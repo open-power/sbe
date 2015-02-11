@@ -99,6 +99,31 @@ namespace fapi2
         return 0;
     }
 
+    /// @enum OpModes operational Mode Error Functions
+    enum OpModes
+    {
+        // These are bit-masks in case they need to be or'd together
+        NORMAL           = 0x00,
+        IGNORE_HW_ERROR  = 0x01,
+        DO_NOT_DO_WAKEUP = 0x02,
+    };
+
+    /// @brief Sets the operational mode
+    /// @param[in]  i_mode     The new mode
+    void setOpMode(const OpModes i_mode)
+    {
+        // No-op for now. Should set thread-local operational mode
+        return;
+    }
+
+    /// @brief Gets the operational mode
+    /// @return the operational mode
+    OpModes getOpMode(void)
+    {
+        // No-op for now. Should read thread-local operational mode
+        return NORMAL;
+    }
+
     //--------------------------------------------------------------------------
     // HW Communication Functions
     //--------------------------------------------------------------------------
