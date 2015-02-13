@@ -103,7 +103,7 @@ namespace fapi2
 
         ///
         /// @brief Create a Target, with a value
-        /// @param[in] V the value (i.e., specific element this
+        /// @param[in] Value the value (i.e., specific element this
         /// target represents, or pointer)
         /// @note Platforms can mangle the value and K to get a
         /// single uint64_t in value which represents all the information
@@ -226,8 +226,8 @@ namespace fapi2
     /// @brief Return the string interpretation of this target
     /// @tparam T The type of the target
     /// @tparam B The type of the buffer
-    /// @param[in] The Target<T>
-    /// @param[in] The buffer
+    /// @param[in] i_target Target<T>
+    /// @param[in] i_buffer buffer
     /// @return void
     /// @post The contents of the buffer is replaced with the string
     /// representation of the target
@@ -257,7 +257,7 @@ namespace fapi2
     ///
     /// @brief Get an enumerated target of a specific type
     /// @tparam T The type of the target
-    /// @param[in] uint64_t representing the ordinal number of
+    /// @param[in] Ordinal representing the ordinal number of
     /// the desired target
     /// @return Target<T> the target requested
     ///
@@ -292,8 +292,8 @@ namespace fapi2
     /// @brief Return the string interpretation of this target
     /// @tparam T The type of the target
     /// @tparam B The type of the buffer
-    /// @param[in] The Target<T>
-    /// @param[in] The buffer
+    /// @param[in] i_target Target<T>
+    /// @param[in] i_buffer buffer
     /// @return void
     /// @post The contents of the buffer is replaced with the string
     /// representation of the target

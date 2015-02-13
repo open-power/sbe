@@ -47,8 +47,10 @@
 #include <fapiMultiScom.H>
 #endif
 
+/// @cond
 typedef uint64_t spyId_t;
 typedef uint64_t scanRingId_t;
+/// @endcond
 
 namespace fapi2
 {
@@ -125,14 +127,43 @@ namespace fapi2
     }
 
     //--------------------------------------------------------------------------
+    // Operational Mode Error Functions
+    //--------------------------------------------------------------------------
+
+    /// @enum OpModes operational Mode Error Functions
+    enum OpModes
+    {
+        // These are bit-masks in case they need to be or'd together
+        NORMAL           = 0x00,
+        IGNORE_HW_ERROR  = 0x01,
+        DO_NOT_DO_WAKEUP = 0x02,
+    };
+
+    /// @brief Sets the operational mode
+    /// @param[in]  i_mode     The new mode
+    void setOpMode(const OpModes i_mode)
+    {
+        // No-op for now. Should set thread-local operational mode
+        return;
+    }
+
+    /// @brief Gets the operational mode
+    /// @return the operational mode
+    OpModes getOpMode(void)
+    {
+        // No-op for now. Should read thread-local operational mode
+        return NORMAL;
+    }
+
+    //--------------------------------------------------------------------------
     // HW Communication Functions
     //--------------------------------------------------------------------------
 
     /// @brief Reads a SCOM register from a chip.
-    /// @Tparam K template parameter, passed in target.
+    /// @tparam K template parameter, passed in target.
     /// @param[in]  i_target     HW target to operate on.
     /// @param[in]  i_address    SCOM register address to read from.
-    /// @param[out] o_date       Buffer that holds data read from HW target.
+    /// @param[out] o_data       Buffer that holds data read from HW target.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     template< TargetType K >
     ReturnCode getScom(const Target<K>& i_target, const uint64_t i_address,
@@ -395,7 +426,7 @@ namespace fapi2
     /// These spy access interfaces are only used in FSP and cronus
     /// HB does not allow spy access
 
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING)
+#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING) || defined(DOXYGEN)
     /// @brief Reads a spy from a chip.
     /// @tparam K template parameter, passed in target.
     /// @param[in]  i_target   Target to operate on.
@@ -442,7 +473,7 @@ namespace fapi2
 
 #ifdef FAPI_SUPPORT_SPY_AS_ENUM
 
-#ifndef DOCUMENTATION
+#ifndef DOXYGEN
 #define fapiGetSpy(TARGET, ID, DATA) \
     _fapiGetSpy(TARGET, FAPI_SPY_NAMES::ID.value, DATA )
 #endif
@@ -467,7 +498,7 @@ namespace fapi2
 
 #ifdef FAPI_SUPPORT_SPY_AS_STRING
 
-#ifndef DOCUMENTATION
+#ifndef DOXYGEN
 #define fapiGetSpy(TARGET, ID, DATA) _fapiGetSpy(TARGET, #ID, DATA)
 #endif
     template< TargetType K >
@@ -476,7 +507,7 @@ namespace fapi2
                            variable_buffer& o_data);
 #endif
 
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING)
+#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING) || defined(DOXYGEN)
     /// @brief Writes a spy on a chip.
     /// @tparam K template parameter, passed in target.
     /// @param[in]  i_target   Target to operate on.
@@ -519,7 +550,7 @@ namespace fapi2
 #endif
 
 #ifdef FAPI_SUPPORT_SPY_AS_ENUM
-#ifndef DOCUMENTATION
+#ifndef DOXYGEN
 #define fapiPutSpy(TARGET, ID, DATA) \
     _fapiPutSpy(TARGET, FAPI_SPY_NAMES::ID.value, DATA)
 #endif
@@ -540,7 +571,7 @@ namespace fapi2
 #endif
 
 #ifdef FAPI_SUPPORT_SPY_AS_STRING
-#ifndef DOCUMENTATION
+#ifndef DOXYGEN
 #define fapiPutSpy(TARGET, ID, DATA) _fapiPutSpy(TARGET, #ID, DATA)
 #endif
     template< TargetType K >
@@ -615,7 +646,7 @@ namespace fapi2
                                 variable_buffer& o_imageData);
 #endif
 
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING)
+#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING) || defined(DOXYGEN)
     /// @brief Reads spy data from a ring image buffer
     /// @param[in]   i_target      Target to operate on
     /// @param[in]   i_spyId       The spy's id
@@ -636,7 +667,7 @@ namespace fapi2
 #endif
 
 #ifdef FAPI_SUPPORT_SPY_AS_ENUM
-#ifndef DOCUMENTATION
+#ifndef DOXYGEN
 #define fapiGetSpyImage(TARGET, ID, DATA1, DATA2) \
     _fapiGetSpyImage(TARGET,                                            \
                      FAPI_SPY_NAMES::ID.value,                          \
@@ -651,7 +682,7 @@ namespace fapi2
 
 #ifdef FAPI_SUPPORT_SPY_AS_STRING
 // fapiGetSpyImage function Cronus version
-#ifndef DOCUMENTATION
+#ifndef DOXYGEN
 #define fapiGetSpyImage(TARGET, ID, DATA1, DATA2) \
     _fapiGetSpyImage(TARGET,                                            \
                      #ID, DATA1,DATA2)
@@ -663,7 +694,7 @@ namespace fapi2
                        const fapi::buffer<fapi::bits_container> & i_imageData);
 #endif
 
-#ifdef FAPI_SUPPORT_MULTI_SCOM
+#if defined(FAPI_SUPPORT_MULTI_SCOM) || defined(DOXYGEN)
 
     /// @brief Performs a multiple SCOM operation
     ///        This interface performs multiple SCOM operations on a chip in the
