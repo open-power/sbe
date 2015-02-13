@@ -162,7 +162,9 @@ namespace fapi2
 
     public:
 
+        /// Shortcut typedef to get to our traits class
         typedef typename TT::bits_type bits_type;
+        /// Shortcut typedef to get to our traits class
         typedef typename TT::unit_type unit_type;
 
         ///
@@ -199,6 +201,11 @@ namespace fapi2
         /// @return The contents of the buffer
         ///
         inline T& operator()(void) { return iv_data; }
+
+        ///
+        /// @brief Get the contents of the buffer
+        /// @return Reference to the contents of the buffer
+        ///
         inline const T& operator()(void) const { return iv_data; }
 
         /// @name Buffer Manipulation Functions
@@ -295,6 +302,7 @@ namespace fapi2
         inline void clear(void)
             { TT::clear(iv_data); }
 
+        /// The contents of the buffer
         T iv_data;
     };
 
