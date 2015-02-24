@@ -17,7 +17,6 @@
 #include "pk.h"
 #include "pk_scom.h"
 
-
 uint32_t putscom( uint32_t i_chiplet_id, uint32_t i_address, uint64_t i_data)
 {
     uint32_t l_cid=0;

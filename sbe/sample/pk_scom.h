@@ -26,6 +26,7 @@ typedef union cfam_fsi_status_reg {
     uint64_t igore_fields2    : 44  ;
   }  fields;
 }  cfam_fsi_status_reg_t;
+
 #define PCB_ERROR_NONE              0
 #define PCB_ERROR_RESOURCE_OCCUPIED 1
 #define PCB_ERROR_CHIPLET_OFFLINE   2
