@@ -14,7 +14,7 @@ endif
 PK_MAKE_DIR := $(PK_SRCDIR)/$(PPE_TYPE)
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
 PKLIB := $(OBJDIR)/pk/libpk.a
-#COMMONLIB := $(OBJDIR)/commonlib/libcommon.a
+
 LIB_DIRS = -L$(OBJDIR)/pk #-L$(OBJDIR)/commonlib
 LINK_OBJS = $(OBJS) $(PKLIB) #$(COMMONLIB)
 LINK_SCRIPT = $(addprefix $(OBJDIR)/, linkscript)

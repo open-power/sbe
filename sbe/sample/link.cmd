@@ -59,7 +59,7 @@ SECTIONS
 
    .rela   . : { *(.rela*) } > sram
    .rwdata . : { *(.data) *(.bss) } > sram
-//   .iplt . : { *(.iplt) } > sram
+//  .iplt . : { *(.iplt) } > sram
 
    _PK_INITIAL_STACK_LIMIT = .;
    . = . + INITIAL_STACK_SIZE;

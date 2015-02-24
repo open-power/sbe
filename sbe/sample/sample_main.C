@@ -18,8 +18,7 @@ extern "C" {
 #define KERNEL_STACK_SIZE   256
 #define MAIN_THREAD_STACK_SIZE  256
 
-//#include <stdint.h>
-//#include <istream>
+
 
 uint8_t     G_kernel_stack[KERNEL_STACK_SIZE];
 uint8_t     G_main_thread_stack[MAIN_THREAD_STACK_SIZE];
