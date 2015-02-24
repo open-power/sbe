@@ -62,10 +62,6 @@ ifndef PK_SRCDIR
 export PK_SRCDIR = $(abspath ../../pk)
 endif
 
-#ifndef COMMONLIB_SRCDIR
-#export COMMONLIB_SRCDIR = $(abspath ../lib/common)
-#endif
-
 ifndef GCC-TOOL-PREFIX
 #GCC-TOOL-PREFIX = $(CTEPATH)/tools/ppcgcc/prod/bin/powerpc-linux-
 GCC-TOOL-PREFIX = /afs/bb/u/rembold/openpower/op-build/output/host/usr/bin/powerpc64-linux-
@@ -76,7 +72,6 @@ endif
 
 ifndef BINUTILS-TOOL-PREFIX
 BINUTILS-TOOL-PREFIX = $(CTEPATH)/tools/ppetools/prod/powerpc-eabi/bin/
-#BINUTILS-TOOL-PREFIX = /afs/bb/u/rembold/openpower/op-build/output/host/usr/bin/powerpc64-linux-
 endif
 
 ifndef P2P_SRCDIR
@@ -151,13 +146,6 @@ INCLUDES += $(IMG_INCLUDES) \
 	-I$(PK_SRCDIR)/$(PPE_TYPE) -I$(PK_SRCDIR)/../include \
 	-I$(PK_SRCDIR)/../tools/ppetracepp
 
-
-#INCLUDES += $(IMG_INCLUDES) \
-#	-I$(PK_SRCDIR)/kernel -I$(PK_SRCDIR)/ppe42 -I$(PK_SRCDIR)/trace \
-#	-I$(PK_SRCDIR)/$(PPE_TYPE) -I$(PK_SRCDIR)/../include \
-#	-I$(PK_SRCDIR)/../tools/ppetracepp \
-#	-I$(COMMONLIB_SRCDIR)
-
 PIPE-CFLAGS = -pipe -Wa,-m405
 
 GCC-CFLAGS += -Wall -fsigned-char -msoft-float  \
@@ -174,24 +162,10 @@ GCC-CFLAGS += -Wall -fsigned-char -msoft-float  \
     -ffixed-cr5 -ffixed-cr6 -ffixed-cr7 #-lstdc++
 
 
-#GCC-CFLAGS += -Wall -fsigned-char -msoft-float  \
-#	-mcpu=405 -mmulhw -mmultiple \
-#	-meabi -msdata=eabi \
-#	-ffreestanding -fno-common -Werror \
-#	-fno-inline-functions-called-once \
-#	-ffixed-r11 -ffixed-r12 \
-#    -ffixed-r14 -ffixed-r15 -ffixed-r16 -ffixed-r17 \
-#    -ffixed-r18 -ffixed-r19 -ffixed-r20 -ffixed-r21 \
-#    -ffixed-r22 -ffixed-r23 -ffixed-r24 -ffixed-r25 \
-#    -ffixed-r26 -ffixed-r27 \
-#    -ffixed-cr1 -ffixed-cr2 -ffixed-cr3 -ffixed-cr4 \
-#    -ffixed-cr5 -ffixed-cr6 -ffixed-cr7
-
 CFLAGS      =  -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES) 
 
 CPPFLAGS    = -E
 
-#ASFLAGS		= -mppe42
 ASFLAGS		=  -mppe42
 
 ifdef P2P_ENABLE
