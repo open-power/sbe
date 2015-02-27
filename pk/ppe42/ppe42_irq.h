@@ -219,6 +219,10 @@ asm("b __pk_irq_full_mode_exit");
 
 #ifdef HWMACRO_GPE
 #include "gpe_irq.h"
+#else
+#ifdef HWMACRO_STD
+#include "std_irq.h"
+#endif
 #endif
 
 /// \page ppe42_irq_macros_page PPE42 PK IRQ Assembler Macros

@@ -1,9 +1,9 @@
-#  @file pkcmefiles.mk
+#  @file pkstdfiles.mk
 #
-#  @brief mk for including cme object files
+#  @brief mk for including std object files
 #
 #  @page ChangeLogs Change Logs
-#  @section pkcmefiles.mk
+#  @section pkstdfiles.mk
 #  @verbatim
 #
 #
@@ -17,17 +17,17 @@
 # Object Files
 ##########################################################################
 
-CME-C-SOURCES = cme_init.c
-CME-S-SOURCES =
+STD-C-SOURCES = std_init.c std_irq_init.c
+STD-S-SOURCES =
 
-CME-TIMER-C-SOURCES = 
-CME-TIMER-S-SOURCES = 
+STD-TIMER-C-SOURCES = 
+STD-TIMER-S-SOURCES = 
 
-CME-THREAD-C-SOURCES = 
-CME-THREAD-S-SOURCES = 
+STD-THREAD-C-SOURCES = 
+STD-THREAD-S-SOURCES = 
 
-CME-ASYNC-C-SOURCES =
-CME-ASYNC-S-SOURCES =
+STD-ASYNC-C-SOURCES =
+STD-ASYNC-S-SOURCES =
 
-CME_OBJECTS += $(CME-C-SOURCES:.c=.o) $(CME-S-SOURCES:.S=.o)
+STD_OBJECTS += $(STD-C-SOURCES:.c=.o) $(STD-S-SOURCES:.S=.o)
 

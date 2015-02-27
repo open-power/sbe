@@ -119,5 +119,4 @@ __hwmacro_setup(void)
     //Wait for the last out32 operation to complete
     sync();
 
-    //async_initialize();
 }

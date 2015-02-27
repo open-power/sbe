@@ -201,20 +201,6 @@
 
 #ifdef __ASSEMBLER__
 
-### ****************************************************************************
-### TODO: shouldnt these be supported by the assembler??
-### ****************************************************************************
-#        .macro  lis treg, imm
-#        addis   \treg, 0, imm
-#        .endm
-
-#        .macro  li  treg, imm
-#        addi    \treg, 0, imm
-#        .endm
-
-#        .macro  beq target
-#        bc      12, 2, \target
-#        .endm
 
 ### ****************************************************************************
 ### _l<b,h,w>zi
@@ -408,6 +394,208 @@
         .type   \symbol, @function
         .size   \symbol, . - \symbol
         .endm           
+
+### ***************************************************************************
+###                                 64-bit macros
+### ***************************************************************************
+
+### ***************************************************************************
+### Using symbols for register names makes the code more readable and allows
+### us to do register arithmetic within macros.
+### ***************************************************************************
+
+.equiv  r0, 0
+.equiv  r1, 1
+.equiv  sp, 1
+.equiv  r3, 3
+.equiv  r4, 4
+.equiv  r5, 5
+.equiv  r6, 6
+.equiv  r7, 7
+.equiv  r8, 8
+.equiv  r9, 9
+.equiv  r10, 10
+
+.equiv  r28, 28
+.equiv  r29, 29
+.equiv  r30, 30
+.equiv  r31, 31
+
+.equiv  d3, 3
+.equiv  d4, 4
+.equiv  d5, 5
+.equiv  d6, 6
+.equiv  d7, 7
+.equiv  d8, 8
+.equiv  d9, 9
+.equiv  d10, 10
+.equiv  d28, 28
+.equiv  d29, 29
+.equiv  d30, 30
+.equiv  d31, 31
+
+### ***************************************************************************
+### Load virtual doubleword generic. Load a virtual doubleword from a relocatable
+### address expression. If the optional RA is specified, the address remains in
+### RA.
+### ***************************************************************************
+.macro _lvdg DT:req addr:req RA=-1
+    .if \RA == -1
+        lis     \DT, (\addr)@ha
+        lvd     \DT, (\addr)@l(\DT)
+    .else
+        lis     \RA, (\addr)@ha
+        lvdu    \DT, (\addr)@l(\RA)
+    .endif
+.endm
+
+### ***************************************************************************
+### Load virtual doubleword from a relocatable small data area address
+### ***************************************************************************
+.macro _lvdsd DT:req addr:req
+    lvd     \DT, (\addr)@sda21(0)
+.endm
+
+### ***************************************************************************
+### Store virtual doubleword generic. Store a virtual doubleword based on a
+### relocatable address expression. The address remains in RA.
+### ***************************************************************************
+.macro _stvdg DS:req addr:req RA:req
+    lis     \RA, (\addr)@ha
+    stvdu   \DS, (\addr)@l(\RA)
+.endm
+
+### ***************************************************************************
+### Store virtual doubleword to a relocatable small data address expression
+### ***************************************************************************
+.macro _stvdsd DS:req addr:req
+    stvd    \DS, (\addr)@sda21(0)
+.endm
+
+### ***************************************************************************
+###  Load virtual doubleword absolute. Set DT to an absolute 64-bit constant
+### ***************************************************************************
+.macro _lvda DT, cvalue
+    lwa (\DT + 1)%32, (\cvalue) & 0x00000000ffffffff
+    lwa \DT, (\cvalue) >> 32
+.endm
+
+### ***************************************************************************
+###
+###                         64-bit arithmetic macros
+###
+### ***************************************************************************
+
+.macro check_overlap2 DA, DB
+    .if ((\DA - \DB) % 32) == 1 || ((\DA - \DB) % 32) == -1
+        .error "virtual doubleword registers must be identical or non-overlapping"
+    .endif
+.endm
+
+.macro check_overlap3 DA, DB, DC
+    check_overlap2 \DA, \DB
+    check_overlap2 \DA, \DC
+    check_overlap2 \DB, \DC
+.endm
+
+### ***************************************************************************
+###  Add virtual doubleword carrying
+### ***************************************************************************
+.macro _addvdc   DT, DA, DB
+    check_overlap3 \DT, \DA, \DB
+    addc    (\DT+1)%32, (\DA+1)%32, (\DB+1)%32
+    adde    \DT, \DA, \DB
+.endm
+
+### ***************************************************************************
+###  Add virtual doubleword to signed 16-bit immediate carrying
+### ***************************************************************************
+.macro _addvdic  DT, DA, SI
+    .if \DA == 31
+        .error "d31 for addend register is not supported"
+    .endif
+    check_overlap2 \DT, \DA
+    addi    (\DT+1)%32, \DA+1, SI
+    addze   \DT, \DA
+.endm
+
+### ***************************************************************************
+###  Add virtual doubleword to unsigned word carrying
+### ***************************************************************************
+.macro _addvdwuc DT, DA, RB
+    check_overlap2 \DT, \DA
+    addc    (\DT+1)%32, (\DA+1)%32, \RB
+    addze   \DT, \DA
+.endm
+
+### ***************************************************************************
+###  Subtract virtual doubleword carrying
+### ***************************************************************************
+.macro _subvdc   DT, DA, DB
+    check_overlap3 \DT, \DA, \DB
+    subfc   (\DT+1)%32, (\DA+1)%32, (\DB+1)%32
+    subfe   \DT, \DA, \DB
+.endm
+
+### ***************************************************************************
+### 
+###                             64-bit logic macros
+### 
+### ***************************************************************************
+
+### ***************************************************************************
+###  AND virtual doubleword
+### ***************************************************************************
+.macro _andvd DT, DA, DB
+    check_overlap3 \DT, \DA, \DB
+    and (\DT+1)%32, (\DA+1)%32, (\DB+1)%32
+    and \DT, \DA, \DB
+.endm
+
+### ***************************************************************************
+###  ANDC virtual doubleword
+### ***************************************************************************
+.macro _andcvd DT, DA, DB
+    check_overlap3 \DT, \DA, \DB
+    andc    (\DT+1)%32, (\DA+1)%32, (\DB+1)%32
+    andc    \DT, \DA, \DB
+.endm
+
+### ***************************************************************************
+###  EQV virtual doubleword
+### ***************************************************************************
+.macro _eqvvd DT, DA, DB
+    check_overlap3 \DT, \DA, \DB
+    eqv (\DT+1)%32, (\DA+1)%32, (\DB+1)%32
+    eqv \DT, \DA, \DB
+.endm
+
+### ***************************************************************************
+###  OR virtual doubleword
+### ***************************************************************************
+.macro _orvd DT, DA, DB
+    check_overlap3 \DT, \DA, \DB
+    or (\DT+1)%32, (\DA+1)%32, (\DB+1)%32
+    or \DT, \DA, \DB
+.endm
+
+### ***************************************************************************
+###  ORC virtual doubleword
+### ***************************************************************************
+.macro _orcvd DT, DA, DB
+    check_overlap3 \DT, \DA, \DB
+    orc (\DT+1)%32, (\DA+1)%32, (\DB+1)%32
+    orc \DT, \DA, \DB
+.endm
+
+### ***************************************************************************
+###  XOR virtual doubleword
+### ***************************************************************************
+.macro _xorvd DT, DA, DB
+    check_overlap3 \DT, \DA, \DB
+    xor (\DT+1)%32, (\DA+1)%32, (\DB+1)%32
+    xor \DT, \DA, \DB
+.endm
 
 #endif /* __ASSEMBLER__ */
 

@@ -1,5 +1,5 @@
-#ifndef __CME_H__
-#define __CME_H__
+#ifndef __STD_H__
+#define __STD_H__
 //-----------------------------------------------------------------------------
 // *! (C) Copyright International Business Machines Corp. 2014
 // *! All Rights Reserved -- Property of IBM
@@ -7,16 +7,14 @@
 //-----------------------------------------------------------------------------
 
 /// \file pgp.h
-/// \brief The CME environment for PK.
+/// \brief The STD environment for PK.
 
-// This is a 'circular' reference in PK, but included here to simplify PGAS
-// programming. 
-
-#ifndef HWMACRO_CME
-#define HWMACRO_CME
+#ifndef HWMACRO_STD
+#define HWMACRO_STD
 #include "ppe42.h"
 #endif  
 
-#include "cme_common.h"
+#include "std_register_addresses.h"
+#include "std_common.h"
 
-#endif  /* __CME_H__ */
+#endif  /* __STD_H__ */

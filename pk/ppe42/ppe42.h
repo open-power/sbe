@@ -29,10 +29,8 @@
 
 #ifdef HWMACRO_GPE
 #include "gpe.h"
-#elif defined(HWMACRO_SBE)
-#include "sbe.h"
-#elif defined(HWMACRO_CME)
-#include "cme.h"
+#elif defined(HWMACRO_STD)
+#include "std.h"
 #elif defined(HWMACRO_PPE)
 #include "ppe.h"
 #else
@@ -154,6 +152,8 @@ do {*(volatile uint32_t *)(addr) = (data);} while(0)
 #define in32(addr) \
 ({uint32_t __data = *(volatile uint32_t *)(addr); __data;})
 
+#ifdef HWMACRO_GPE
+
 /// 64-bit MMIO Write
 #define out64(addr, data) \
     do { \
@@ -164,6 +164,24 @@ do {*(volatile uint32_t *)(addr) = (data);} while(0)
         *__addr_lo = (__data & 0xffffffff);                     \
     } while(0)
 
+#else /* standard PPE's require a 64 bit write */
+
+/// 64-bit MMIO Write
+#define out64(addr, data) \
+{\
+    uint64_t __d = (data); \
+    uint32_t* __a = (uint32_t*)(addr); \
+    asm volatile \
+    (\
+        "stvd %1, %0 \n" \
+        : "=o"(*__a) \
+        : "r"(__d) \
+    ); \
+}
+
+#endif /* HWMACRO_GPE */
+
+#ifdef HWMACRO_GPE
 /// 64-bit MMIO Read
 #define in64(addr) \
     ({                                                     \
@@ -173,6 +191,23 @@ do {*(volatile uint32_t *)(addr) = (data);} while(0)
         __data = *__addr_hi;                               \
         __data = (__data << 32) | *__addr_lo;              \
         __data;})
+
+#else /* Standard PPE's require a 64 bit read */
+
+#define in64(addr) \
+({\
+    uint64_t __d; \
+    uint32_t* __a = (uint32_t*)(addr); \
+    asm volatile \
+    (\
+        "lvd %0, %1 \n" \
+        :"=r"(__d) \
+        :"o"(*__a) \
+    ); \
+    __d; \
+})
+    
+#endif  /* HWMACRO_GPE */
 
 #endif  /* __ASSEMBLER__ */
 

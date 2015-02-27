@@ -1,31 +1,31 @@
-# This Makefile compiles all of the PK code required for the CME port
+# This Makefile compiles all of the PK code required for the STD (standard PPE) port
 # of PK.  See the "pk.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/$(IMAGE_NAME)/pk
 export SUB_OBJDIR = /pk
 
 include img_defs.mk
-include pkcmefiles.mk
+include pkstdfiles.mk
 
 ifeq "$(PK_TIMER_SUPPORT)" "1"
-CME_OBJECTS += ${CME-TIMER-C-SOURCES:.c=.o} ${CME-TIMER-S-SOURCES:.S=.o}
+STD_OBJECTS += ${STD-TIMER-C-SOURCES:.c=.o} ${STD-TIMER-S-SOURCES:.S=.o}
 endif
 
 ifeq "$(PK_THREAD_SUPPORT)" "1"
-CME_OBJECTS += ${CME-THREAD-C-SOURCES:.c=.o} ${CME-THREAD-S-SOURCES:.S=.o}
+STD_OBJECTS += ${STD-THREAD-C-SOURCES:.c=.o} ${STD-THREAD-S-SOURCES:.S=.o}
 endif
 
-ifeq "$(CME_ASYNC_SUPPORT)" "1"
-CME_OBJECTS += ${CME-ASYNC-C-SOURCES:.c=.o} ${CME-ASYNC-S-SOURCES:.S=.o}
+ifeq "$(STD_ASYNC_SUPPORT)" "1"
+STD_OBJECTS += ${STD-ASYNC-C-SOURCES:.c=.o} ${STD-ASYNC-S-SOURCES:.S=.o}
 endif
 
-OBJS := $(addprefix $(OBJDIR)/, $(CME_OBJECTS))
+OBJS := $(addprefix $(OBJDIR)/, $(STD_OBJECTS))
 
-libpk.a: kernel ppe42 trace cme
+libpk.a: kernel ppe42 trace std
 	$(AR) crs $(OBJDIR)/libpk.a $(OBJDIR)/*.o
 
-.PHONY: clean cme kernel ppe42 trace
-cme: $(OBJS)
+.PHONY: clean std kernel ppe42 trace
+std: $(OBJS)
 
 trace:
 	$(MAKE) -I $(IMAGE_SRCDIR) -C ../trace
