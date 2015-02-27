@@ -526,6 +526,7 @@ debug_exit:
         b       fast_exit_critical
 #endif
 
+        .align 5
 __external_interrupt:   
 
         ## The non-critical interrupt handler entry point is re-entrant - A
