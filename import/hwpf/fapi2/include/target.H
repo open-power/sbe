@@ -38,6 +38,15 @@
 namespace fapi2
 {
     ///
+    /// @brief Enumeration of target state values (bitmask values)
+    ///
+    enum TargetState
+    {
+        TARGET_STATE_PRESENT    = 0x00000001,
+        TARGET_STATE_FUNCTIONAL = 0x00000002,
+    };
+
+    ///
     /// @brief Class representing a FAPI2 Target
     /// @tparam K the type (Kind) of target
     /// @tparam V the type of the target's Value
@@ -174,11 +183,13 @@ namespace fapi2
         ///
         /// @brief Get this target's children
         /// @tparam T The type of the parent
+        /// @param[in] i_state The desired TargetState of the children
         /// @return std::vector<Target<T> > a vector of present/functional
         /// children
         ///
         template< TargetType T>
-        inline std::vector<Target<T> > getChildren(void) const
+        inline std::vector<Target<T> >
+        getChildren(const TargetState i_state = TARGET_STATE_FUNCTIONAL) const
             {
                 // For testing
                 return {Target<T>()};
@@ -187,11 +198,13 @@ namespace fapi2
         ///
         /// @brief Get the target at the other end of a bus - dimm included
         /// @tparam T The type of the parent
+        /// @param[in] i_state The desired TargetState of the children
         /// @return Target<T> a target representing the thing on the other end
         /// @note Can be easily changed to a vector if needed
         ///
         template<TargetType T>
-        inline Target<T> getOtherEnd(void) const
+        inline Target<T>
+        getOtherEnd(const TargetState i_state = TARGET_STATE_FUNCTIONAL) const
             {
                 // Implementation note: cast to a composite of
                 // bus types and the compiler will check if this is
