@@ -60,19 +60,6 @@
 #include "pk.h"
         .list
         
-        .set    r0, 0
-        .set    r1, 1
-        .set    r3, 3
-        .set    r4, 4
-        .set    r5, 5
-        .set    r6, 6
-        .set    r7, 7
-        .set    r8, 8
-        .set    r9, 9
-        .set    r10, 10
-        .set    r30, 30
-        .set    r31, 31
-
         .global_function __ppe42_udiv64
 
         /*

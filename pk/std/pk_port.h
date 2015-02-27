@@ -7,9 +7,9 @@
 //-----------------------------------------------------------------------------
 
 /// \file pk_port.h
-/// \brief The top-level CME environment header for PK.
+/// \brief The top-level standard PPE environment header for PK.
 
-#define HWMACRO_CME
+#define HWMACRO_STD
 
 #include "ppe42.h"
 
