@@ -127,21 +127,28 @@ namespace fapi2
         /// @param[in] i_right Reference to Target to assign from.
         /// @return Reference to 'this' Target
         ///
-        Target& operator=(const Target& i_right);
+        Target& operator=(const Target& i_right)
+            { iv_handle = i_right.iv_handle; return *this; }
 
         ///
         /// @brief Equality Comparison Operator
         /// @param[in] i_right Reference to Target to compare.
         /// @return bool. True if equal.
+        /// @note Platforms need to define this so that the physical
+        /// targets are determined to be equivilent rather than just the handles
         ///
-        bool operator==(const Target& i_right) const;
+        bool operator==(const Target& i_right) const
+            { return i_right.iv_handle == iv_handle; }
 
         ///
         /// @brief Inquality Comparison Operator
         /// @param[in] i_right Reference to Target to compare.
-        /// @return bool. True if equal.
+        /// @return bool. True if not equal.
+        /// @note Platforms need to define this so that the physical
+        /// targets are determined to be equivilent rather than just the handles
         ///
-        bool operator!=(const Target& i_right) const;
+        bool operator!=(const Target& i_right) const
+            { return i_right.iv_handle != iv_handle; }
 
         ///
         /// @brief Get the handle.
@@ -231,7 +238,7 @@ namespace fapi2
         // Don't use enums here as it makes it hard to assign
         // in the platform target cast constructor.
         static const TargetType iv_type = K;
-        const V iv_handle;
+        V iv_handle;
 
     };
 
