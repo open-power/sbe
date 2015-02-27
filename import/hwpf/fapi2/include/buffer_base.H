@@ -208,6 +208,12 @@ namespace fapi2
         ///
         inline const T& operator()(void) const { return iv_data; }
 
+        ///
+        /// @brief Get a pointer to the buffer bits
+        /// @return Pointer to the buffer itself
+        ///
+        inline T* pointer(void) { return &iv_data; }
+
         /// @name Buffer Manipulation Functions
         ///@{
 
