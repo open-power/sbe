@@ -827,15 +827,16 @@ def p2p_onefile(ppcFileName):
     # terminate Makefile or execution if an error is detected
     sys.exit(1)
 
-  if P2P_COMMENT:
+  if P2P_COMMENT and P2P_PROFILE:
     f = open(ppeFileName, 'a')
     f.write("#P2P: space(%d) cycle(%d)" % (P2P_SPACE,P2P_CYCLE))
     f.close()
 
-  if P2P_VERBOSE :
+  if P2P_VERBOSE:
     print "Generated PPE assembly: " + ppeFileName
-    print "Optimization Profiling: " + str(P2P_SPACE*4) + " bytes, " +\
-                                       str(P2P_CYCLE) + " cycles."
+    if P2P_PROFILE:
+      print "Optimization Profiling: " + str(P2P_SPACE*4) + " bytes, " +\
+                                         str(P2P_CYCLE) + " cycles."
 
 
 # -----------------------------------------------------------------------------
@@ -912,6 +913,8 @@ def p2p_main():
   global P2P_VERBOSE; P2P_VERBOSE = options.verbose
   # leave a comment mark in output files
   global P2P_COMMENT; P2P_COMMENT = options.comment
+  # space/performance profiling function
+  global P2P_PROFILE; P2P_PROFILE = options.profile
   # enable instruction replace functions
   global P2P_REPLACE; P2P_REPLACE = options.replace
   # enable instruction combine functions
