@@ -12,5 +12,5 @@
 #define HWMACRO_GPE
 
 #include "ppe42.h"
-
+#include "gpe_timebase.h"
 #endif /* __PK_PORT_H__ */

@@ -29,56 +29,6 @@ ppe42_timebase_data_t ppe42_tb_data = {0};
 PkTimebase  ppe42_64bit_timebase = 0;
 
 
-#if 0
-/// Get the emulated 64-bit timebase 
-///
-
-PkTimebase
-pk_timebase_get(void) 
-{
-    PkTimebase          tb;
-    uint32_t            dec_start;
-    uint32_t            dec;
-    uint32_t            time_since_last_update;
-    PkMachineContext    ctx;
-
-    pk_critical_section_enter(&ctx);
-
-    tb = ppe42_64bit_timebase;
-    dec_start = ppe42_dec_start;
-    dec = mfspr(SPRN_DEC);
-
-    pk_critical_section_exit(&ctx);
-
-    time_since_last_update = dec_start - dec;
-
-    return (tb + time_since_last_update);
-}
-#endif
-
-/// Set the 64-bit timebase in an critical section
-///
-/// It is assumed that the caller knows what they are doing; e.g., is aware of
-/// what may happen when time warps as a result of this call.
-
-void
-pk_timebase_set(PkTimebase timebase) 
-{
-    PkMachineContext ctx;
-
-    pk_critical_section_enter(&ctx);
-
-    ppe42_64bit_timebase = timebase;
-    ppe42_tb_data.dec_start = 0;
-    ppe42_tb_data.dec_change_tag++;
-
-    //This will cause TSR[DIS] to be set on the next timer tick.
-    mtspr(SPRN_DEC, 0);
-
-    pk_critical_section_exit(&ctx);
-}
-    
-
 /// Enable interrupt preemption
 ///
 /// This API can only be called from an interrupt context.  Threads will
@@ -152,17 +102,15 @@ pk_interrupt_preemption_disable()
 // If the \a timeout is in the past, we schedule the PIT interrupt for 1 tick
 // in the future in accordance with the PK specification.
 
+#ifdef APPCFG_USE_DEC_FOR_TIMEBASE
 void
 __pk_schedule_hardware_timeout(PkTimebase timeout)
 {
     PkTimebase       now;
     uint32_t         new_dec;
-    PkMachineContext ctx;
     uint32_t         dec;
 
     if (timeout != PK_TIMEBASE_MAX) {
-
-        pk_critical_section_enter(&ctx);
 
         now = pk_timebase_get();
 
@@ -174,7 +122,7 @@ __pk_schedule_hardware_timeout(PkTimebase timeout)
             new_dec = timeout - now;
         }
 
-        //read and write the DEC back-to-back so that we loose as little time
+        //read and write the DEC back-to-back so that we lose as little time
         //as possible
         dec = mfspr(SPRN_DEC);
         mtspr(SPRN_DEC, new_dec);
@@ -187,12 +135,52 @@ __pk_schedule_hardware_timeout(PkTimebase timeout)
         //this update of the accumulator
         ppe42_tb_data.dec_start = new_dec;
         ppe42_tb_data.dec_change_tag++;
-
-        pk_critical_section_exit(&ctx);
     }
 }
 
+#else
 
+void
+__pk_schedule_hardware_timeout(PkTimebase timeout)
+{
+    PkTimebase       now;
+    PkTimebase       diff;
+    uint32_t         new_dec;
+
+    if (timeout != PK_TIMEBASE_MAX) {
+
+        now = pk_timebase_get();
+
+        //update our 64bit accumulator with the current snapshot
+        ppe42_64bit_timebase = now;
+
+        if (timeout <= now)
+        {
+            new_dec = 1;
+        }
+        else
+        {
+            //FIXME: We have to multiply the difference by 16
+            //to workaround missing support for selecting the
+            //external dec_timer clock source for the decrementer.
+            diff = (timeout - now) << 4;
+
+            if (diff > 0xfffffffful)
+            {
+                new_dec = 0xffffffff;
+            }
+            else
+            {
+                new_dec = diff;
+            }
+        }
+
+        mtspr(SPRN_DEC, new_dec);
+
+    }
+}
+
+#endif  /* APPCFG_USE_DEC_FOR_TIMEBASE */
 
 #endif  /* PK_TIMER_SUPPORT */
 

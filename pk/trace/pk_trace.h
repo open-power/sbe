@@ -12,7 +12,7 @@
 
 #include <stdint.h>
 
-#define PK_TRACE_VERSION 1
+#define PK_TRACE_VERSION 2
 
 #ifndef PK_TRACE_SZ
 #define PK_TRACE_SZ 256
@@ -263,6 +263,7 @@ typedef struct
     uint32_t            max_time_change;
     uint32_t            hz;
     uint32_t            pad;
+    uint64_t            time_adj64;
 
     //updated with each new trace entry
     PkTraceState        state;

@@ -42,6 +42,7 @@ PkTraceBuffer g_pk_trace_buf =
     .size               = PK_TRACE_SZ,
     .max_time_change    = PK_TRACE_MTBT,
     .hz                 = 500000000, //default value. Actual value is set in pk_init.c
+    .time_adj64         = 0,
     .state.word64       = 0,
     .cb                 = {0}
 };
@@ -96,57 +97,24 @@ void pk_trace_tiny(uint32_t i_parm)
 void pk_trace_timer_callback(void* arg)
 {
 
-#if 0
-    PkTraceTime64_t     footer;
-    PkTraceState        state;
-    uint64_t*           ptr64;
-    PkMachineContext    ctx;
-
-#define TIMESTAMP64_EXISTS 0x80000000
-
-    //If the timestamp64 flag is not set then we need another 64 bit timestamp
-    if(!(g_pk_trace_buf.state.tbu32 & TIMESTAMP64_EXISTS))
-    {
-
-    //fill in the footer data
-    footer.word64 = pk_timebase_get();
-    footer.time_format.format = PK_TRACE_FORMAT_TIME64;
-
-    state.tbu32 = footer.upper32 | TIMESTAMP64_EXISTS;
-
-    //The following operations must be done atomically
-    pk_critical_section_enter(&ctx);
-
-    //load the current byte count and calculate the address for this
-    //entry in the cb
-    ptr64 = (uint64_t*)&g_pk_trace_buf.cb[g_pk_trace_buf.state.offset & PK_TRACE_CB_MASK];
-
-    //calculate the offset for the next entry in the cb
-    state.offset = g_pk_trace_buf.state.offset + sizeof(PkTraceTiny);
-
-    //update the cb state (tbu and offset)
-    g_pk_trace_buf.state.word64 = state.word64;
-
-    //write the 64bit timestamp to the buffer
-    *ptr64 = footer.word64;
-
-    //exit the critical section
-    pk_critical_section_exit(&ctx);
-
-    }
-
-#else
-    
-    // doing it this way requires less code, but it also means that the
-    // trace can fill up with these traces over time.
-
+    // guarantee at least one trace before the lower 32bit timebase flips
     PK_TRACE("PERIODIC TIMESTAMPING TRACE");
-#endif
 
     // restart the timer
     pk_timer_schedule(&g_pk_trace_timer,
                       PK_TRACE_TIMER_PERIOD,
                       0);
+}
+
+// Use this function to synchronize the timebase between multiple PPEs.
+// PPE A can send PPE B it's current timebase and then PPE B can set that
+// as the current timebase for tracing purposes.  It can also be used
+// to set the current time to 0.  This function changes the timebase for
+// all entries that are currently in the trace buffer.  Setting the current
+// timebase to 0 will cause previous traces to have very large timestamps.
+void pk_trace_set_timebase(PkTimebase timebase)
+{
+    g_pk_trace_buf.time_adj64 = timebase - pk_timebase_get();
 }
 
 #endif

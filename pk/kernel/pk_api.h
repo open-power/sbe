@@ -671,9 +671,6 @@ pk_initialize(PkAddress  noncritical_stack,
 PkTimebase
 pk_timebase_get(void);
 
-void
-pk_timebase_set(PkTimebase timebase);
-
 // Interrupt preemption APIs
 
 int
@@ -930,11 +927,13 @@ pk_deque_delete(PkDeque *element)
     element->next = 0;
 }
 
-
+//Trace function prototypes
 void pk_trace_tiny(uint32_t i_parm);
 void pk_trace_big(uint32_t i_hash_and_count,
                   uint64_t i_parm1, uint64_t i_parm2);
 void pk_trace_binary(uint32_t i_hash_and_size, void* bufp);
+void pk_trace_set_timebase(PkTimebase timebase);
+
 
 /// Cast a pointer to another type, in a way that won't cause warnings
 

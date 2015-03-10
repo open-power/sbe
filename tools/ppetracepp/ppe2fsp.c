@@ -324,6 +324,7 @@ int ppe2fsp(void* in, unsigned long in_size, void* out, unsigned long* io_size)
     PkTraceGeneric*             pte_footer;
     largest_fsp_entry_t         fte;
     LargestPpeEntry             pte;
+    uint64_t                    time_adj64;
 
     do
     {
@@ -350,6 +351,15 @@ int ppe2fsp(void* in, unsigned long in_size, void* out, unsigned long* io_size)
         fsp_bytes_left = *io_size - sizeof(trace_buf_head_t);
         ppe_bytes_left = ntohs(ptb->size);
         ptb_offset = ntohl(ptb->state.offset);
+        if(htonl(1) == 1)
+        {
+            time_adj64 = ptb->time_adj64;
+        }
+        else
+        {
+            time_adj64 = ntohl((uint32_t)(ptb->time_adj64 >> 32));
+            time_adj64 |= ((uint64_t)(ntohl((uint32_t)(ptb->time_adj64 & 0x00000000ffffffff)))) << 32;
+        }
 
         //make sure the ppe buffer size is a power of two
         if((ppe_bytes_left - 1) & ppe_bytes_left)
@@ -451,7 +461,7 @@ int ppe2fsp(void* in, unsigned long in_size, void* out, unsigned long* io_size)
             prev_time32 = new_time32;
 
             //convert the ppe trace entry to an fsp trace entry
-            fte_size = pte2fte(ptb, &pte, pte_size, &fte, ppe_time64);
+            fte_size = pte2fte(ptb, &pte, pte_size, &fte, ppe_time64 + time_adj64);
 
             //fit as much of the entry into the fsp trace buffer as possible
             fsp_put_entry(ftb, &fte, fte_size, fsp_bytes_left);
