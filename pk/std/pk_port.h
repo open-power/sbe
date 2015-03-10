@@ -12,5 +12,6 @@
 #define HWMACRO_STD
 
 #include "ppe42.h"
+#include "std_timebase.h"
 
 #endif /* __PK_PORT_H__ */

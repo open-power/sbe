@@ -50,15 +50,16 @@ __ppe42_system_setup()
 */
 #endif /*STATIC_IRQ_TABLE*/
 
-    // Set the DEC to decrement on every cycle and enable the DEC interrupt. Clear the status
-    // of all timers for good measure.
+    //Clear all status bits in the TSR
+    mtspr(SPRN_TSR, TSR_ENW | TSR_WIS | TSR_DIS | TSR_FIS);
 
-    //andc_spr(SPRN_TCR, TCR_DS);
-    //or_spr(SPRN_TCR, TCR_DIE);
-
-    //Use dec_timer signal for decrementer
-    or_spr(SPRN_TCR, TCR_DIE | TCR_DS);
-    or_spr(SPRN_TSR, TSR_ENW | TSR_WIS | TSR_DIS | TSR_FIS);
+#ifndef APPCFG_USE_DEC_FOR_TIMEBASE
+    //Enable the DEC interrupt and configure it to use the external dec_timer signal
+    mtspr(SPRN_TCR, TCR_DIE | TCR_DS);
+#else
+    //Enable the DEC interrupt and configure it to use the internal clock signal
+    mtspr(SPRN_TCR, TCR_DIE);
+#endif /* APPCFG_USE_DEC_FOR_TIMEBASE */
 
 #if PK_TIMER_SUPPORT
 #if PK_TRACE_SUPPORT

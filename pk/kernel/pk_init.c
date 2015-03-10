@@ -68,10 +68,6 @@ pk_initialize(PkAddress  noncritical_stack,
                      PK_INVALID_ARGUMENT_INIT);
     }
 
-    if (initial_timebase != PK_TIMEBASE_CONTINUES) {
-        pk_timebase_set(initial_timebase);
-    }
-
     __pk_timebase_frequency_hz = timebase_frequency_hz;
     __pk_timebase_frequency_khz = timebase_frequency_hz / 1000;
     __pk_timebase_frequency_mhz = timebase_frequency_hz / 1000000;
@@ -108,8 +104,9 @@ extern PkTraceBuffer g_pk_trace_buf;
     //set the trace timebase HZ
     g_pk_trace_buf.hz = timebase_frequency_hz;
 
-    //TODO: set the ppe instance id (for CME's)
-    
+    //set the timebase ajdustment for trace synchronization
+    pk_trace_set_timebase(initial_timebase);
+
 #endif  /* PK_TRACE_SUPPORT */
 
 #endif  /* PK_TIMER_SUPPORT */
