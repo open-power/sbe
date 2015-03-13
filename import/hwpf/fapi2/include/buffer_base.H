@@ -289,6 +289,17 @@ namespace fapi2
     protected:
 
         ///
+        /// @brief Get the actual bit length of the buffer
+        /// @return The bit length of the buffer.
+        /// @note This is needed by variable_buffer, which is why it's here
+        ///
+        uint32_t bit_length(void)
+            { return TT::bit_length(iv_data); }
+
+        uint32_t bit_length(void) const
+            { return TT::bit_length(iv_data); }
+
+        ///
         /// @brief Variable buffer constructor
         /// @param[in] i_value number of *bits* (sizeof(container_units) * 8)
         /// needed. Meaningless for integral types and thus protected.
@@ -300,7 +311,7 @@ namespace fapi2
         /// @param[in] i_value an initializer list to initialize the container.
         /// Meaningless for integral types and thus protected
         ///
-        buffer_base(std::initializer_list<unit_type> i_value);
+        buffer_base(const std::initializer_list<unit_type>& i_value);
 
         ///
         /// @brief Clear the buffer
@@ -308,23 +319,46 @@ namespace fapi2
         inline void clear(void)
             { TT::clear(iv_data); }
 
+        ///@cond
+        ///
+        /// @brief Return the size of the internal vector given a desired bit size
+        /// @param[in] The size in bits
+        /// @return The size in units.
+        ///
+        inline bits_type _vector_size(const bits_type& bits_size)
+            {
+                // If we fit in one unit, we allocate one unit.
+                if (bits_size < parameterTraits<unit_type>::bit_length())
+                {
+                    return 1;
+                }
+
+                // Otherwise, the number of units is calculates - add one if
+                // we cross the unit boundary.
+                else
+                {
+                    bits_type my_size = bits_type(bits_size / 8 / sizeof(unit_type));
+                    my_size += (bits_size % parameterTraits<unit_type>::bit_length() == 0) ? 0 : 1;
+                    return my_size;
+                }
+            }
+        ///@endcond
+
         /// The contents of the buffer
         T iv_data;
     };
 
     template <typename T, typename TT>
     inline buffer_base<T, TT>::buffer_base(bits_type i_value):
-        iv_data( std::max(bits_type(1),
-                          bits_type(i_value / 8 / sizeof(bits_type))))
-    {
-    }
+        iv_data(_vector_size(i_value))
+    {}
 
     template <typename T, typename TT>
-    inline buffer_base<T, TT>::buffer_base(std::initializer_list<unit_type> i_value):
+    inline buffer_base<T, TT>::buffer_base(const std::initializer_list<unit_type>& i_value):
         iv_data(i_value)
     {
     }
-};
+}
 
 
 
