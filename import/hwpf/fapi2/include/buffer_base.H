@@ -32,7 +32,6 @@
 
 #include <stdint.h>
 #include <initializer_list>
-#include <error_scope.H>
 #include <buffer_parameters.H>
 #include <buffer_traits.H>
 #include <return_code.H>

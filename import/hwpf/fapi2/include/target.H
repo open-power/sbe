@@ -227,6 +227,7 @@ namespace fapi2
         inline Target( const Target<O>& Other ):
             Target<K, V>(Other.get())
         {
+            // In case of recursion depth failure, use -ftemplate-depth=
             static_assert( (K & O) != 0,
                            "unable to cast Target, no shared types");
 
