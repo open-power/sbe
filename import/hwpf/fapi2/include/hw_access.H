@@ -87,6 +87,9 @@ namespace fapi2
     /// @param[in]  i_mask     The new error mask
     inline void setPIBErrorMask(uint8_t i_mask)
     {
+        // Keeps the compiler from complaining about the unused i_mask
+        static_cast<void>(i_mask);
+
         // Platform specific funtion needs to be defined here.
         // For Cronus/FSP/Hostboot, this is a no-op.
         return;
@@ -118,6 +121,9 @@ namespace fapi2
     /// @param[in]  i_mode     The new mode
     inline void setOpMode(const OpModes i_mode)
     {
+        // Keeps the compiler from complaining about the unused i_mode
+        static_cast<void>(i_mode);
+
         // No-op for now. Should set thread-local operational mode
         return;
     }
