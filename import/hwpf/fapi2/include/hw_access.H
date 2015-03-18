@@ -168,7 +168,7 @@ namespace fapi2
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     template< TargetType K >
     inline ReturnCode putScom(const Target<K>& i_target, const uint64_t i_address,
-                              buffer<uint64_t>& i_data)
+                              buffer<uint64_t> i_data)
     {
         std::cout << std::hex << "   putScom "
                   << "target: {" << i_target.getType() << ","

@@ -193,13 +193,17 @@ namespace fapi2
         /// @param[in] i_state The desired TargetState of the children
         /// @return std::vector<Target<T> > a vector of present/functional
         /// children
+        /// @warning The children of EX's (cores) are expected to be returned
+        /// in order. That is, core 0 is std::vector[0].
         ///
         template< TargetType T>
         inline std::vector<Target<T> >
         getChildren(const TargetState i_state = TARGET_STATE_FUNCTIONAL) const
             {
+                // To keep the compiler quiet about unused variables
+                static_cast<void>(i_state);
                 // For testing
-                return {Target<T>()};
+                return {Target<T>(), Target<T>()};
             }
 
         ///
@@ -242,6 +246,120 @@ namespace fapi2
         V iv_handle;
 
     };
+
+    // EX threads map to CORE threads:
+    // t0 / t2 / t4 / t6 fused = t0 / t1 / t2 / t3 normal (c0)
+    // t1 / t3 / t5 / t7 fused = t0 / t1 / t2 / t3 normal (c1)
+    // So when splitting the EX, we need to map from EX threads
+    // to CORE threads.
+
+    ///
+    /// @brief Given a normal core thread id, translate this to
+    /// a fused core thread id. (normal to fused)
+    /// @param[in] the ordinal number of the normal core this thread belongs to
+    /// @param[in] a normal core thread id - 0, ..., 3
+    /// @return the fused core thread id
+    ///
+    inline uint8_t thread_id_n2f(const uint8_t i_ordinal, const uint8_t i_thread_id)
+    {
+        return (i_thread_id << 1) | i_ordinal;
+    }
+
+    ///
+    /// @brief Given a fused core thread id, translate this to
+    /// a normal core thread id. (fused to normal)
+    /// @param[in] a fused core thread id - 0, ..., 7
+    /// @return the normal core thread id
+    ///
+    inline uint8_t thread_id_f2n(const uint8_t i_thread_id)
+    {
+        return i_thread_id >> 1;
+    }
+
+    ///
+    /// @brief Given a normal core thread id, translate this to a
+    /// normal core bitset.
+    /// @param[in] a normal core thread id - 0, ..., 3
+    /// @return the normal core bitset
+    /// @note to got from a fused core id to a normal core bitset,
+    /// translate from a fused core thread id first.
+    ///
+    inline uint8_t thread_id2bitset(const uint8_t i_thread_id)
+    {
+        // 0xff means "set all bits"
+        static const uint8_t all_threads  = 0xff;
+        static const uint8_t all_normal_threads_bitset = 0x0f;
+
+        if (i_thread_id == all_threads)
+        {
+            return all_normal_threads_bitset;
+        }
+
+        // A thread_id is really just bit index.
+        return (1 << (4 - i_thread_id - 1));
+    }
+
+    ///
+    /// @brief Given a bitset of normal core thread ids, translate this to
+    /// a bit mask of fused core thread id. (normal to fused)
+    /// @param[in] the ordinal number of the normal core this thread belongs to
+    /// @param[in] a normal core thread bitset - b0000, ..., b1111
+    /// @return the corresponding fused core bitset
+    ///
+    inline uint8_t thread_bitset_n2f(const uint8_t i_ordinal, const uint8_t i_threads)
+    {
+        // Since we only have 4 bits I think this is better than a shift-type solution
+        // for interleaving bits
+        static uint8_t core_map[] = {
+            0b00000000, // b0000
+            0b00000010, // b0001
+            0b00001000, // b0010
+            0b00001010, // b0011
+            0b00100000, // b0100
+            0b00100010, // b0101
+            0b00101000, // b0110
+            0b00101010, // b0111
+            0b10000000, // b1000
+            0b10000010, // b1001
+            0b10001000, // b1010
+            0b10001010, // b1011
+            0b10100000, // b1100
+            0b10100010, // b1101
+            0b10101000, // b1110
+            0b10101010, // b1111
+        };
+
+        return core_map[i_threads] >> i_ordinal;
+    }
+
+    ///
+    /// @brief Given a fused core thread bitset, translate this to
+    /// a normal core thread bitset. (fused to normal)
+    /// @param[in] the ordinal number of the normal core this thread belongs to
+    /// @param[in] a fused core thread bitset - b00000000, ..., b11111111
+    /// @return the corresponding normal core bitset
+    ///
+    inline uint8_t thread_bitset_f2n(const uint8_t i_ordinal, const uint8_t i_threads)
+    {
+        uint8_t normal_set = 0;
+
+        // core 0 is the left-most bit in the pair
+        uint8_t pair_mask = (i_ordinal == 0) ? 0x2 : 0x1;
+
+        // For each bit which can be set in the normal core bit_set ...
+        for( auto i = 0; i <= 3; ++i )
+        {
+            // ... grab the two fused bits which represent it ...
+            // ... and mask off the bit in the pair which represents this normal core ...
+            // (the << 1 shifts the masks over as we walk the pairs of bits)
+            uint8_t bits = (((3 << (i << 1)) & i_threads) & (pair_mask << (i << 1)));
+
+            // ... if either bit is set, set the corresponding bit in
+            // the normal core bitset.
+            normal_set |= (bits != 0) << i;
+        }
+        return normal_set;
+    }
 
     ///
     /// @brief Return the string interpretation of this target
