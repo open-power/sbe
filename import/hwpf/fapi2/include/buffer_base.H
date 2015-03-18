@@ -258,32 +258,6 @@ namespace fapi2
             return FAPI2_RC_SUCCESS;
         }
 
-        ///
-        /// @brief Set and entire buffer to X's
-        /// @tparam X {0,1} depending if you want to clear (0)
-        /// or fill (1) a buffer
-        ///
-        template< uint8_t X >
-        inline void flush(void)
-            {
-                static_assert( (X == 1) || (X == 0), "bad argument to flush" );
-                (0 == X) ? TT::clear(iv_data) : TT::set(iv_data);
-            }
-
-        ///
-        /// @brief Invert entire buffer
-        /// @return buffer_base&, Useful for method chaining
-        ///
-        inline buffer_base& invert(void)
-            { TT::invert(iv_data); return *this; }
-
-        ///
-        /// @brief Bit reverse entire buffer
-        /// @return buffer_base&, Useful for method chaining
-        ///
-        inline buffer_base& reverse(void)
-            { TT::reverse(iv_data); return *this; }
-
         //@}
     protected:
 
