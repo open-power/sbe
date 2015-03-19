@@ -23,7 +23,7 @@ pk_timebase_get(void);
         .global ppe42_tb_data
         .global_function pk_timebase_get
 
-#ifdef APPCFG_USE_DEC_FOR_TIMEBASE
+#ifndef APPCFG_USE_EXT_TIMEBASE
 
         /// Note that it is ok to use this function in a fast interrupt
         /// context
@@ -102,7 +102,7 @@ pk_timebase_get:
         _pk_timebase32_get r5, r5
 
         //increment the upper 32 bits if the lower 32 bits have flipped
-        cmplwbgt r5, r4, update_lower_32
+        cmplwbge r5, r4, update_lower_32
 
         //increment the upper 32 bits
         addi        r3, r3, 1
@@ -112,5 +112,5 @@ update_lower_32:
         mr          r4, r5
 
         blr
-#endif
+#endif /* APPCFG_USE_EXT_TIMEBASE */
 /// \endcond

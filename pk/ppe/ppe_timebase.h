@@ -7,16 +7,16 @@
 // *! *** IBM Confidential ***
 //-----------------------------------------------------------------------------
 
-/// \file gpe_timebase.h
+/// \file ppe_timebase.h
 /// \brief support for using the OCB 32 bit timebase register
 ///
-/// The OCB timebase register is a 32 bit count-up register that is shared
-/// by all GPE's in the OCC complex.
 
 #include "pk.h"
 
 //The timebase register will never be supported in the base ppe model
-#define APPCFG_USE_DEC_FOR_TIMEBASE
+#ifdef APPCFG_USE_EXT_TIMEBASE
+#error "External timebase is not supported on the PPE standalone model"
+#endif /* APPCFG_USE_EXT_TIMEBASE */
 
 #ifndef __ASSEMBLER__
 

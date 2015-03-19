@@ -15,13 +15,9 @@
 
 #include "pk.h"
 
-//The timebase register is not yet supported in the OCB model.
-//remove this line once it is supported.
-#define APPCFG_USE_DEC_FOR_TIMEBASE
-
 #ifndef __ASSEMBLER__
 
-#ifndef APPCFG_USE_DEC_FOR_TIMEBASE
+#ifdef APPCFG_USE_EXT_TIMEBASE
 static inline
 uint32_t pk_timebase32_get(void)
 {
@@ -32,7 +28,7 @@ uint32_t pk_timebase32_get(void)
 //assembly function is defined in ppe42_timebase.S
 uint32_t pk_timebase32_get(void);
 
-#endif /* APPCFG_USE_DEC_FOR_TIMEBASE */
+#endif /* APPCFG_USE_EXT_TIMEBASE */
 
 #else
 
