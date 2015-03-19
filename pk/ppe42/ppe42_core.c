@@ -102,7 +102,7 @@ pk_interrupt_preemption_disable()
 // If the \a timeout is in the past, we schedule the PIT interrupt for 1 tick
 // in the future in accordance with the PK specification.
 
-#ifdef APPCFG_USE_DEC_FOR_TIMEBASE
+#ifndef APPCFG_USE_EXT_TIMEBASE
 void
 __pk_schedule_hardware_timeout(PkTimebase timeout)
 {
@@ -180,7 +180,7 @@ __pk_schedule_hardware_timeout(PkTimebase timeout)
     }
 }
 
-#endif  /* APPCFG_USE_DEC_FOR_TIMEBASE */
+#endif  /* APPCFG_USE_EXT_TIMEBASE */
 
 #endif  /* PK_TIMER_SUPPORT */
 

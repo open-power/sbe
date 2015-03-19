@@ -53,13 +53,13 @@ __ppe42_system_setup()
     //Clear all status bits in the TSR
     mtspr(SPRN_TSR, TSR_ENW | TSR_WIS | TSR_DIS | TSR_FIS);
 
-#ifndef APPCFG_USE_DEC_FOR_TIMEBASE
+#ifdef APPCFG_USE_EXT_TIMEBASE
     //Enable the DEC interrupt and configure it to use the external dec_timer signal
     mtspr(SPRN_TCR, TCR_DIE | TCR_DS);
 #else
     //Enable the DEC interrupt and configure it to use the internal clock signal
     mtspr(SPRN_TCR, TCR_DIE);
-#endif /* APPCFG_USE_DEC_FOR_TIMEBASE */
+#endif /* APPCFG_USE_EXT_TIMEBASE */
 
 #if PK_TIMER_SUPPORT
 #if PK_TRACE_SUPPORT
