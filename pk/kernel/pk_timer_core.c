@@ -43,8 +43,8 @@
 /// also be rescheduled in place.
 ///
 /// When a timeout occurs the event list is scanned from the beginning, and
-/// any event that has timed out is rescheduled if necessary (periodic events)
-/// and its callback is processed.  Since event and callback processing take
+/// any event that has timed out has its callback processed.
+/// Since event and callback processing take
 /// time, the list is potentially scanned multiple times until there are no
 /// more timed-out events in the list.
 ///
@@ -200,23 +200,14 @@ __pk_timer_handler()
 
             if (timer->timeout <= now) {
 
-                // The timer timed out.  It is removed from the queue unless
-                // it is a peridic timer that needs to be rescheduled.  We do
-                // rescheduling here in the critical section to correctly
-                // handle timers whose callbacks may cancel the timer.  The
-                // timer is rescheduled in absolute time.
+                // The timer timed out.  It is removed from the queue.
                 //
                 // The callback may be made with interrupt preemption enabled
                 // or disabled.  However to mitigate kernel interrupt latency
                 // we go ahead and open up to interrupts after the callback if
                 // the callback itself was not preemptible.
 
-                if (timer->period == 0) {
-                    pk_deque_delete(timer_deque);
-                } else {
-                    timer->timeout += timer->period;
-                    tq->next_timeout = MIN(timer->timeout, tq->next_timeout);
-                }
+                pk_deque_delete(timer_deque);
 
                 callback = timer->callback;
                 if (callback) {
@@ -254,72 +245,12 @@ __pk_timer_handler()
 }
 
 
-/// Schedule a timer in absolute time.
-///
-/// \param timer The PkTimer to schedule.
-///
-/// \param timeout The timer will be scheduled to time out at this absolute
-/// time.  Note that if the \a timeout is less than the current time then the
-/// timer will be scheduled at a minimum timeout in the future and the
-/// callback will be executed in an interrupt context.
-///
-/// \param period If non-0, then when the timer times out it will rescheduled
-/// to time out again at the absolute time equal to the last timeout time plus
-/// the \a period.  By convention a \a period of 0 indicates a one-shot
-/// timer that is not rescheduled.
-///
-/// Once created with pk_timer_create() a timer can be \e scheduled, which
-/// queues the timer in the kernel time queue.  It is not an error to call 
-/// pk_timer_schedule() on a timer that is already scheduled in the time
-/// queue - the timer is simply rescheduled with the new characteristics.
-///
-/// Return values other than PK_OK (0) are errors; see \ref pk_errors
-///
-/// \retval 0 Successful completion
-///
-/// \retval -PK_INVALID_TIMER_AT_SCHEDULE A a null (0) pointer was provided as 
-/// the \a timer argument.
-///
-/// \retval -PK_ILLEGAL_CONTEXT_TIMER The call was made from a critical 
-/// interrupt context. 
-
-int
-pk_timer_schedule_absolute(PkTimer    *timer,
-                            PkTimebase timeout,
-                            PkInterval period)
-                   
-{
-    PkMachineContext ctx;
-
-    pk_critical_section_enter(&ctx);
-
-    if (PK_ERROR_CHECK_API) {
-        PK_ERROR_IF(timer == 0, PK_INVALID_TIMER_AT_SCHEDULE);
-//        PK_ERROR_IF(__pk_kernel_context_critical_interrupt(),
-//                     PK_ILLEGAL_CONTEXT_TIMER);
-    }
-
-    timer->timeout = timeout;
-    timer->period  = period;
-    __pk_timer_schedule(timer);
-
-    pk_critical_section_exit(&ctx);
-
-    return PK_OK;
-}
-
-
 /// Schedule a timer for an interval relative to the current time.
 ///
 /// \param timer The PkTimer to schedule.
 ///
 /// \param interval The timer will be scheduled to time out at the current
 /// time (pk_timebase_get()) plus this \a interval.
-///
-/// \param period If non-0, then when the timer times out it will rescheduled
-/// to time out again at the absolute time equal to the last timeout time plus
-/// the \a period.  By convention a \a period of 0 indicates a one-shot
-/// timer that is not rescheduled.
 ///
 /// Once created with pk_timer_create() a timer can be \e scheduled, which
 /// queues the timer in the kernel time queue.  It is not an error to call \c
@@ -338,12 +269,23 @@ pk_timer_schedule_absolute(PkTimer    *timer,
 
 int
 pk_timer_schedule(PkTimer    *timer, 
-                   PkInterval interval, 
-                   PkInterval period)
+                   PkInterval interval)
 {
-    return pk_timer_schedule_absolute(timer,
-                                       pk_timebase_get() + interval,
-                                       period);
+    PkMachineContext ctx;
+    PkTimebase  timeout = pk_timebase_get() + PK_INTERVAL_SCALE(interval);
+
+    pk_critical_section_enter(&ctx);
+
+    if (PK_ERROR_CHECK_API) {
+        PK_ERROR_IF(timer == 0, PK_INVALID_TIMER_AT_SCHEDULE);
+    }
+
+    timer->timeout = timeout;
+    __pk_timer_schedule(timer);
+
+    pk_critical_section_exit(&ctx);
+
+    return PK_OK;
 }
 
 

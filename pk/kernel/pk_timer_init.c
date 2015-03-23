@@ -27,7 +27,6 @@ _pk_timer_create(PkTimer         *timer,
 
     pk_deque_element_create((PkDeque*)timer);
     timer->timeout = 0;
-    timer->period = 0;
     timer->callback = callback;
     timer->arg = arg;
     timer->options = options;
