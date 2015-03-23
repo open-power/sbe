@@ -298,11 +298,22 @@
 
 #define PK_TIMEBASE_FREQUENCY_HZ __pk_timebase_frequency_hz
 
+/// This is the unscaled timebase frequency in Hz.
+#ifdef APPCFG_USE_EXT_TIMEBASE
+#define PK_BASE_FREQ_HZ     25000000
+#else
+#define PK_BASE_FREQ_HZ     400000000
+#endif /* APPCFG_USE_EXT_TIMEBASE */
+
+/// Scale a time interval to be _closer_ to what was actually requested
+/// base on the actual timebase frequency.
+#define PK_INTERVAL_SCALE(interval) ((interval) + ((interval) >> __pk_timebase_rshift))
+
 /// Convert a time in integral seconds to a time interval - overflows are
 /// ignored. The application can redefine this macro.
 
 #ifndef PK_SECONDS
-#define PK_SECONDS(s) ((PkInterval)(__pk_timebase_frequency_hz * (PkInterval)(s)))
+#define PK_SECONDS(s) ((PkInterval)(PK_BASE_FREQ_HZ * (PkInterval)(s)))
 #endif
 
 /// Convert a time in integral milliseconds to a time interval - overflows are
@@ -310,7 +321,7 @@
 /// assumed. The application can redefine this macro.
 
 #ifndef PK_MILLISECONDS
-#define PK_MILLISECONDS(m) ((PkInterval)(__pk_timebase_frequency_khz * (PkInterval)(m)))
+#define PK_MILLISECONDS(m) ((PkInterval)((PK_BASE_FREQ_HZ * (PkInterval)(m)) / 1000))
 #endif
 
 /// Convert a time in integral microseconds to a time interval - overflows are
@@ -318,7 +329,7 @@
 /// assumed. The application can redefine this macro.
 
 #ifndef PK_MICROSECONDS
-#define PK_MICROSECONDS(u) ((PkInterval)(__pk_timebase_frequency_mhz * (PkInterval)(u)))
+#define PK_MICROSECONDS(u) ((PkInterval)((PK_BASE_FREQ_HZ * (PkInterval)(u)) / 1000000))
 #endif
 
 /// Convert a time in integral nanoseconds to a time interval - overflows are
@@ -326,8 +337,7 @@
 /// assumed. The application can redefine this macro.
 
 #ifndef PK_NANOSECONDS
-#define PK_NANOSECONDS(n) \
-    ((PkInterval)((__pk_timebase_frequency_mhz  * (PkInterval)(n)) / 1000))
+#define PK_NANOSECONDS(n) ((PkInterval)((PK_BASE_FREQ_HZ * (PkInterval)(n)) / 1000000000))
 #endif
 
 
@@ -436,6 +446,8 @@
 
 /// The timebase frequency in Hz; A parameter to pk_initialize()
 extern uint32_t __pk_timebase_frequency_hz;
+
+extern uint8_t __pk_timebase_rshift;
 
 /// The timebase frequency in KHz
 extern uint32_t __pk_timebase_frequency_khz;
@@ -579,12 +591,6 @@ typedef struct PkTimer {
     /// The absolute timeout of the timer.
     PkTimebase timeout;
 
-    /// The timer period
-    ///
-    /// If not 0, then this is a periodic timer and it will be automatically
-    /// rescheduled in absolute time from the previous timeout.
-    PkInterval period;
-
     /// The timer callback
     ///
     /// For PK thread timers used to implement Sleep and semaphore pend
@@ -692,14 +698,8 @@ pk_timer_create_nonpreemptible(PkTimer         *timer,
                                 void             *arg);
 
 int 
-pk_timer_schedule_absolute(PkTimer    *timer,
-                            PkTimebase time,
-                            PkInterval period);
-
-int 
 pk_timer_schedule(PkTimer    *timer,
-                   PkInterval interval,
-                   PkInterval period);
+                   PkInterval interval);
 
 int 
 pk_timer_cancel(PkTimer *timer);

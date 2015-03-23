@@ -15,8 +15,46 @@
 #include "pk_trace.h"
 
 uint32_t __pk_timebase_frequency_hz;
-uint32_t __pk_timebase_frequency_khz;
-uint32_t __pk_timebase_frequency_mhz;
+
+/// The timebase frequency is passed into PK during initialization.  It cannot
+/// be set statically because there is a requirement to support a frequency
+/// that can change from one IPL to the next.  On the 405, scaling of time
+/// intervals is accomplished by doing a 32x32 bit multiplication which is
+/// supported by the ppc405 instruction set.  PPE42 does not support 32x32 bit
+/// multiplication directly and some applications can not afford to use a
+/// function call to emulate the operation.  Instead we scale the time
+/// interval by shifting the value X bits to the right and adding it to itself.
+/// This can scale the value by 2, 1.5, 1.25, 1.125, etc.
+///
+/// This is the right shift value.
+/// NOTE: shifting by 0 gives a 2x scale factor, shifting by 32 gives a 1x
+/// scale factor.
+uint8_t  __pk_timebase_rshift = 32;
+
+void pk_set_timebase_rshift(uint32_t timebase_freq_hz)
+{
+    //Use 1.0 scale if less than halfway between 1.0 and 1.25
+    if(timebase_freq_hz <= (PK_BASE_FREQ_HZ + (PK_BASE_FREQ_HZ >> 3)))
+    {
+        __pk_timebase_rshift = 32;
+    }
+
+    //use 1.25 scale if less than halfway between 1.25 and 1.5
+    else if(timebase_freq_hz <= (PK_BASE_FREQ_HZ + (PK_BASE_FREQ_HZ >> 3) + (PK_BASE_FREQ_HZ >> 2)))
+    {
+        __pk_timebase_rshift = 2;
+    }
+    //use 1.5 scale if less than halfway between 1.5 and 2.0
+    else if(timebase_freq_hz <= (PK_BASE_FREQ_HZ + (PK_BASE_FREQ_HZ >> 2) + (PK_BASE_FREQ_HZ >> 1)))
+    {
+        __pk_timebase_rshift = 1;
+    }
+    //use 2.0 scale if greater than 1.5
+    else
+    {
+        __pk_timebase_rshift = 0;
+    }
+}
 
 /// Initialize PK.  
 ///
@@ -69,8 +107,6 @@ pk_initialize(PkAddress  noncritical_stack,
     }
 
     __pk_timebase_frequency_hz = timebase_frequency_hz;
-    __pk_timebase_frequency_khz = timebase_frequency_hz / 1000;
-    __pk_timebase_frequency_mhz = timebase_frequency_hz / 1000000;
 
     __pk_thread_machine_context_default = PK_THREAD_MACHINE_CONTEXT_DEFAULT;
 
@@ -98,11 +134,12 @@ extern PkTraceBuffer g_pk_trace_buf;
     // Schedule the timer that puts a 64bit timestamp in the trace buffer
     // periodically.  This allows us to use 32bit timestamps.
     pk_timer_schedule(&g_pk_trace_timer,
-                      PK_TRACE_TIMER_PERIOD,
-                      0);
+                      PK_TRACE_TIMER_PERIOD);
 
     //set the trace timebase HZ
     g_pk_trace_buf.hz = timebase_frequency_hz;
+
+    pk_set_timebase_rshift(timebase_frequency_hz);
 
     //set the timebase ajdustment for trace synchronization
     pk_trace_set_timebase(initial_timebase);

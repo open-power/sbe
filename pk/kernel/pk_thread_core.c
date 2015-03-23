@@ -646,7 +646,7 @@ pk_sleep_absolute(PkTimebase time)
 int
 pk_sleep(PkInterval interval) 
 {
-    return pk_sleep_absolute(pk_timebase_get() + interval);
+    return pk_sleep_absolute(pk_timebase_get() + PK_INTERVAL_SCALE(interval));
 }
 
 

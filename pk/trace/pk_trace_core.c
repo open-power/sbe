@@ -26,7 +26,6 @@ PkTimer g_pk_trace_timer = {
     .deque.next = 0,
     .deque.previous = 0,
     .timeout = 0,
-    .period = 0,
     .callback = pk_trace_timer_callback,
     .arg = 0,
     .options = PK_TIMER_CALLBACK_PREEMPTIBLE,
@@ -102,8 +101,7 @@ void pk_trace_timer_callback(void* arg)
 
     // restart the timer
     pk_timer_schedule(&g_pk_trace_timer,
-                      PK_TRACE_TIMER_PERIOD,
-                      0);
+                      PK_TRACE_TIMER_PERIOD);
 }
 
 // Use this function to synchronize the timebase between multiple PPEs.

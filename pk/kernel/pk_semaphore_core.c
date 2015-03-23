@@ -147,6 +147,8 @@ pk_semaphore_pend(PkSemaphore *semaphore,
     PkThreadPriority priority;
     PkThread         *thread;
     PkTimer          *timer = 0;
+    PkInterval       scaled_timeout = PK_INTERVAL_SCALE(timeout);
+
     int rc = PK_OK;
 
     if (PK_ERROR_CHECK_API) {
@@ -183,7 +185,7 @@ pk_semaphore_pend(PkSemaphore *semaphore,
 
         if (timeout != PK_WAIT_FOREVER) {
             timer = &(thread->timer);
-            timer->timeout = pk_timebase_get() + timeout;
+            timer->timeout = pk_timebase_get() + scaled_timeout;
             __pk_timer_schedule(timer);
             thread->flags |= PK_THREAD_FLAG_TIMER_PEND;
         }
