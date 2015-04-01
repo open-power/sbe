@@ -207,12 +207,6 @@ namespace fapi2
         ///
         inline const T& operator()(void) const { return iv_data; }
 
-        ///
-        /// @brief Get a pointer to the buffer bits
-        /// @return Pointer to the buffer itself
-        ///
-        inline T* pointer(void) { return &iv_data; }
-
         /// @name Buffer Manipulation Functions
         ///@{
 
@@ -239,7 +233,7 @@ namespace fapi2
             // as what we're trying to prevent is overflow, which this should do.
             //
             const uint32_t length = TT:: template size<OT>(iv_data);
-            static const bits_type bits_in_value = parameterTraits<OT>::bit_length;
+            static const bits_type bits_in_value = parameterTraits<OT>::bit_length();
             const bits_type bit_length = TT::bit_length(iv_data);
 
             if (i_offset >= length)
@@ -251,7 +245,7 @@ namespace fapi2
             // Shift it left by the amount of unused bits,
             // Clear the unused bits
             if (((i_offset + 1) == length) && (bit_length % bits_in_value)) {
-                i_value &= parameterTraits<OT>::mask << ((bits_in_value * length) - bit_length);
+                i_value &= parameterTraits<OT>::mask() << ((bits_in_value * length) - bit_length);
             }
 
             parameterTraits<OT>::template write_element<unit_type>(TT::get_address(iv_data), i_value, i_offset);
