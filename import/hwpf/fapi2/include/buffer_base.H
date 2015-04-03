@@ -236,7 +236,7 @@ namespace fapi2
             static const bits_type bits_in_value = parameterTraits<OT>::bit_length();
             const bits_type bit_length = TT::bit_length(iv_data);
 
-            if (i_offset >= length)
+            if (i_offset + bits_in_value >= bit_length)
             {
                 return FAPI2_RC_OVERFLOW;
             }
