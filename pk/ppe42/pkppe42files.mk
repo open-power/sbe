@@ -23,14 +23,15 @@
 # Object Files
 ##########################################################################
 PPE42-C-SOURCES = ppe42_core.c \
-				   ppe42_init.c \
-				   ppe42_irq_core.c\
-				   ppe42_gcc.c\
+		  ppe42_init.c \
+		  ppe42_irq_core.c\
+		  ppe42_gcc.c\
+                  ppe42_scom.c
 				   
 PPE42-S-SOURCES =  ppe42_boot.S \
-					ppe42_exceptions.S\
-					div64.S\
-					ppe42_timebase.S
+		   ppe42_exceptions.S\
+		   div64.S\
+		   ppe42_timebase.S
 
 PPE42-TIMER-C-SOURCES = 
 PPE42-TIMER-S-SOURCES = 
