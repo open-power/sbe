@@ -16,7 +16,7 @@
 
 // Note that __ppe42_system_setup() is called from the PK bootloader early
 // in the initialization, at a point before the aplication has enabled
-// critical or external interruts.
+// interrupts.
 
 // This function is expected to be defined by the macro specific code (GPE, CME, SBE)
 void __hwmacro_setup(void);
@@ -38,13 +38,14 @@ __ppe42_system_setup()
     __ppe42_irq_handlers[irq].handler = __ppe42_phantom_irq_handler;
 
     // Initialize special interrupt handlers
-/*
+
     __ppe42_fit_routine = __ppe42_default_irq_handler;
     __ppe42_fit_arg = 0;
 
     __ppe42_watchdog_routine = __ppe42_default_irq_handler;
     __ppe42_watchdog_arg = 0;
 
+/*
     __ppe42_debug_routine = __ppe42_default_irq_handler;
     __ppe42_debug_arg = 0;
 */

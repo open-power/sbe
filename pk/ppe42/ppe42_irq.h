@@ -139,79 +139,6 @@ UNLESS__PPE42_IRQ_CORE_C__(extern)
 volatile
 void* __ppe42_debug_arg;
 
-
-// Note: Why PK_IRQ_FAST2FULL (below) is implemented so strangely.
-//
-// I am adamant that I want to have a a macro in the 'C' environment to create
-// these bridge functions. However the limitations of the C preprocessor and
-// the intelligence of the GCC 'asm' facility consipre against a
-// straightforward solution.  The only way that I was able to find to get
-// naked assembly code into the output stream is to use 'asm' with simple
-// strings - I couldn't make it work with any kind of argument, as 'asm' would
-// reinterpret the arguments and resulting assembler code in various ways.  
-//
-// There is another alternative that I tried wherby I created a subroutine
-// call and then filled in the subroutine body with 'asm' code.  However, the
-// subroutine wrapper that GCC creates only works for PowerPC fast-mode
-// handlers if GCC is invoked with optimization, which ensures that the
-// wrapper doesn't touch the stack pointer or other registers. True, we'll
-// always use optimization, but I did not want to have to make this
-// requirement for using this macro.
-
-///  This macro creates a 'bridge' handler that converts the initial fast-mode
-///  IRQ dispatch into a call of a full-mode IRQ handler. The full-mode
-///  handler is defined by the user (presumably as a \c C subroutine) and has
-///  the same prototype (type PkIrqHandler) as the fast handler.
-///
-///  \param fast_handler This will be the global function name of the fast
-///                      IRQ handler created by this macro. This is the symbol
-///                      that should be passed in as the \a handler argument
-///                      of \c pk_irq_setup() and \c pk_irq_handler_set().
-///
-///  \param full_handler This is the name of the user-defined full-mode
-///                      handler which is invoked through this bridge.
-///
-/// \e BUG \e ALERT : Beware of passing the \c full_handler to IRQ setup
-/// APIs. This won't be caught by the compiler (because the \c full_handler
-/// has the correct prototype) and will lead to nasty bugs.  Always pass in
-/// the \c fast_handler symbol to IRQ setup APIS.
-///
-/// The code stream injected into the GCC assembler output in response to
-///
-/// PK_IRQ_FAST2FULL(fast_handler, full_handler)
-/// 
-/// is (comments added for clarification) :
-///
-/// \code
-/// .text 
-/// .global fast_handler 
-/// .align 5                   # Hard-coded PPE42 cache-line alignment
-/// fast_handler = .           # Can't macro expand LABEL: - this is equivalent 
-/// bl __pk_irq_fast2full     # The fast-mode to full-mode conversion sequence 
-/// bl full_handler 
-/// b  __pk_irq_full_mode_exit 
-/// \endcode
-///
-/// The macro also declares the prototype of the fast handler:
-///
-/// \code
-/// PK_IRQ_HANDLER(fast_handler);
-/// \endcode
-///
-
-#define PK_IRQ_FAST2FULL(fast_handler, full_handler) \
-    PK_IRQ_HANDLER(fast_handler); \
-    __PK_IRQ_FAST2FULL(.global fast_handler, fast_handler = ., bl full_handler)
-
-#define __PK_IRQ_FAST2FULL(global, label, call) \
-asm(".text"); \
-asm(#global); \
-asm(".align 5"); \
-asm(#label); \
-asm("bl __pk_irq_fast2full"); \
-asm(#call); \
-asm("b __pk_irq_full_mode_exit");
-
 #endif  /* __ASSEMBLER__ */
 
 //  It's hard to be portable and get all of the definitions and headers in the
@@ -228,45 +155,6 @@ asm("b __pk_irq_full_mode_exit");
 /// \page ppe42_irq_macros_page PPE42 PK IRQ Assembler Macros
 ///
 ///
-/// \section fast2full_asm Fast-Mode to Full-Mode Handler Conversion
-///
-/// This macro produces the calling sequence required to convert a
-/// fast-mode interrupt handler to a full-mode interrupt handler. The
-/// full-mode handler is implemented by another subroutine.  The
-/// requirements for invoking this macro are:
-///
-/// \li The stack pointer and stack must be exactly as they were when the
-/// fast-mode handler was entered.
-///
-/// \li No changes have been made to the MSR - the interrupt level must
-///     remain disabled.
-///
-/// \li The handler owns the fast context and has not modified the other
-///     register context.  The conversion process will not modify any
-///     register in the fast context (other than the LR used for
-///     subroutine linkage).
-///
-/// The final condition above means that the \a full_handler will
-/// begin with the fast-mode context exactly as it was (save for LR)
-/// at conversion, including the contents of GPR3-7 (the first 5
-/// PowerPC ABI paramater passing registers) and the entire CR.
-///
-/// Forms:
-///
-/// \c _pk_irq_fast2full \a full_handler
-/// \cond
-
-#ifdef __ASSEMBLER__
-
-        .macro  _pk_irq_fast2full full_handler
-        bl      __pk_irq_fast2full
-        bl      \full_handler
-        b       __pk_irq_full_mode_exit
-        .endm     
-
-#endif  /* __ASSEMBLER__ */
-
-/// \endcond
         
 #ifndef __ASSEMBLER__
 

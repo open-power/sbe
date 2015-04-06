@@ -48,54 +48,56 @@ __pk_thread_context_initialize:
         stw     %r7, \prefix\reg(%r6)
         .endm
 
-        ## Initialize a fast context on the thread stack. The CR is cleared,
+        ## Initialize volatile context on the thread stack. The CR is cleared,
         ## the LR = pk_complete(), R3 has the private parameter.
 
         lwz     %r6, PK_THREAD_OFFSET_SAVED_STACK_POINTER(%r3)
         
-        stwu    %r6, -PK_FAST_CTX_SIZE(%r6)
+        stwu    %r6, -PK_CTX_SIZE(%r6)
 
         li      %r7, 0
-        stw     %r7, PK_FAST_CTX_CR(%r6)
+        stw     %r7, PK_CTX_CR(%r6)
 
         _liw    %r7, pk_complete
-        stw     %r7, PK_FAST_CTX_LR(%r6)
+        stw     %r7, PK_CTX_LR(%r6)
 
-        stw     %r5, PK_FAST_CTX_GPR3(%r6)
+        stw     %r5, PK_CTX_GPR3(%r6)
 
-        _gpr_init PK_FAST_CTX_GPR, 4, 0x0404
-        _gpr_init PK_FAST_CTX_GPR, 5, 0x0505
-        _gpr_init PK_FAST_CTX_GPR, 6, 0x0606
+        _gpr_init PK_CTX_GPR, 4, 0x0404
+        _gpr_init PK_CTX_GPR, 5, 0x0505
+        _gpr_init PK_CTX_GPR, 6, 0x0606
 
-        ## Initialize the (volatile - fast) context on the thread stack.  XER
-        ## and CTR are clear, SRR0 = thread_routine, SRR1 = default machine
+        ## XER and CTR are clear, SRR0 = thread_routine, SRR1 = default machine
         ## context.
 
-        stwu    %r6, -PK_VOL_FAST_CTX_SIZE(%r6)
-
         li      %r7, 0
-        stw     %r7, PK_VOL_FAST_CTX_XER(%r6)
-        stw     %r7, PK_VOL_FAST_CTX_CTR(%r6)
+        stw     %r7, PK_CTX_XER(%r6)
+        stw     %r7, PK_CTX_CTR(%r6)
 
-        stw     %r4, PK_VOL_FAST_CTX_SRR0(%r6)
+        stw     %r4, PK_CTX_SRR0(%r6)
 
         _lwzsd  %r7, __pk_thread_machine_context_default
-        stw     %r7, PK_VOL_FAST_CTX_SRR1(%r6)
+        stw     %r7, PK_CTX_SRR1(%r6)
 
-        _gpr_init PK_VOL_FAST_CTX_GPR, 0,  0x0000
-        _gpr_init PK_VOL_FAST_CTX_GPR, 7,  0x0707
-        _gpr_init PK_VOL_FAST_CTX_GPR, 8,  0x0808
-        _gpr_init PK_VOL_FAST_CTX_GPR, 9,  0x0909
-        _gpr_init PK_VOL_FAST_CTX_GPR, 10, 0x1010
+        _gpr_init PK_CTX_GPR, 0,  0x0000
+        _gpr_init PK_CTX_GPR, 7,  0x0707
+        _gpr_init PK_CTX_GPR, 8,  0x0808
+        _gpr_init PK_CTX_GPR, 9,  0x0909
+        _gpr_init PK_CTX_GPR, 10, 0x1010
 
         ## Initialize the non-volatile context on the thread stack.
 
-        stwu    %r6, -PK_NON_VOL_CTX_SIZE(%r6)
+        _gpr_init PK_CTX_GPR, 28, 0x2828       
+        _gpr_init PK_CTX_GPR, 29, 0x2929       
+        _gpr_init PK_CTX_GPR, 30, 0x3030       
+        _gpr_init PK_CTX_GPR, 31, 0x3131
 
-        _gpr_init PK_NON_VOL_CTX_GPR, 28, 0x2828       
-        _gpr_init PK_NON_VOL_CTX_GPR, 29, 0x2929       
-        _gpr_init PK_NON_VOL_CTX_GPR, 30, 0x3030       
-        _gpr_init PK_NON_VOL_CTX_GPR, 31, 0x3131
+        ## Initialize the kernel context on the thread stack.
+        ## Note: Thread priority is set later each time the thread is
+        ##       resumed.
+
+        lis     %r7, PPE42_THREAD_MODE
+        stw     %r7, PK_CTX_KERNEL_CTX(%r6)
 
         ## Initialization is done - the stack pointer is stored back in the
         ## thread.

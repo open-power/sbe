@@ -11,52 +11,12 @@
 ///  always be present at runtime in any PK application that enables threads.
 
 #include "pk.h"
+#include "pk_thread.h"
 
 #define __PK_THREAD_CORE_C__
 
 
-// This routine is only used locally.  Noncritical interrupts must be disabled
-// at entry.
-
-static inline int
-__pk_thread_is_active(PkThread *thread)
-{
-    return ((thread->state != PK_THREAD_STATE_COMPLETED) &&
-            (thread->state != PK_THREAD_STATE_DELETED));
-}
-
-
-// This routine is only used locally.  Noncritical interrupts must be disabled
-// at entry.  
-
-static inline int
-__pk_thread_is_mapped(PkThread *thread)
-{
-    return (thread->state == PK_THREAD_STATE_MAPPED);
-}
-
-
-// This routine is only used locally.  Noncritical interrupts must be disabled
-// at entry.  This is only called on mapped threads.
-
-static inline int
-__pk_thread_is_runnable(PkThread *thread)
-{
-    return __pk_thread_queue_member(&__pk_run_queue, thread->priority);
-}
-
-
-// This routine is only used locally.  Noncritical interrupts must be disabled
-// at entry.
-
-static inline PkThread*
-__pk_thread_at_priority(PkThreadPriority priority)
-{
-    return (PkThread*)__pk_priority_map[priority];
-}
-
-
-// This routine is only used locally.  Noncritical interrupts must be disabled
+// This routine is only used locally.  Interrupts must be disabled
 // at entry.  The caller must also have checked that the priority is free.
 // This routine is only called on threads known to be in a suspended state,
 // either PK_THREAD_STATE_SUSPENDED_RUNNABLE or
@@ -96,17 +56,17 @@ __pk_thread_map(PkThread* thread)
 
     if (PK_KERNEL_TRACE_ENABLE) {
         if (__pk_thread_is_runnable(thread)) {
-            PK_TRACE_THREAD_MAPPED_RUNNABLE(priority);
+            PK_KERN_TRACE("THREAD_MAPPED_RUNNABLE(%d)", priority);
         } else if (thread->flags & PK_THREAD_FLAG_SEMAPHORE_PEND) {
-            PK_TRACE_THREAD_MAPPED_SEMAPHORE_PEND(priority);
+            PK_KERN_TRACE("THREAD_MAPPED_SEMAPHORE_PEND(%d)", priority);
         } else {
-            PK_TRACE_THREAD_MAPPED_SLEEPING(priority);
+            PK_KERN_TRACE("THREAD_MAPPED_SLEEPING(%d)", priority);
         }
     }
 }            
 
     
-// This routine is only used locally.  Noncritical interrupts must be disabled
+// This routine is only used locally.  Interrupts must be disabled
 // at entry.  This routine is only ever called on threads in the
 // PK_THREAD_STATE_MAPPED. Unmapping a thread removes it from the priority
 // map, the run queue and any semaphore pend, but does not cancel any
@@ -214,9 +174,9 @@ __pk_thread_delete(PkThread *thread, PkThreadState final_state)
 
         if (PK_KERNEL_TRACE_ENABLE) {
             if (final_state == PK_THREAD_STATE_DELETED) {
-                PK_TRACE_THREAD_DELETED(thread->priority);
+                PK_KERN_TRACE("THREAD_DELETED(%d)", thread->priority);
             } else {
-                PK_TRACE_THREAD_COMPLETED(thread->priority);
+                PK_KERN_TRACE("THREAD_COMPLETED(%d)", thread->priority);
             }
         }                
     
@@ -243,16 +203,16 @@ __pk_thread_delete(PkThread *thread, PkThreadState final_state)
 // pk_semaphore_release_all(), cancelling any semaphore timeouts is deferred
 // until the thread runs again.
 //
-// __pk_thread_timeout() is currenly the only timer interrupt called from a
-// critical section.
-//
 // Note that we do not create trace events for unmapped threads since the trace
 // tag only encodes the priority, which may be in use by a mapped thread.
 
 void
 __pk_thread_timeout(void *arg)
 {
+    PkMachineContext ctx;
     PkThread *thread = (PkThread *)arg;
+
+    pk_critical_section_enter(&ctx);
 
     switch (thread->state) {
 
@@ -275,19 +235,21 @@ __pk_thread_timeout(void *arg)
     default:
         PK_PANIC(PK_THREAD_TIMEOUT_STATE);
     }
+
+    pk_critical_section_exit(&ctx);
 }
         
 
 // This routine serves as a container for the PK_START_THREADS_HOOK and
 // actually starts threads.  The helper routine __pk_call_pk_start_threads()
 // arranges this routine to be called with interrupts disabled while running
-// on the noncritical interrupt stack.
+// on the kernel stack.
 //
 // The reason for this roundabout is that we want to be able to run a hook
 // routine (transparent to the application) that can hand over every last byte
 // of free memory to "malloc()" - including the stack of main().  Since we
 // always need to run on some stack, we chose to run the hook on the kernel
-// noncritical interrupt stack. However to do this safely we need to make sure
+// stack. However to do this safely we need to make sure
 // that no interrupts will happen during this time. When __pk_thread_resume()
 // is finally called all stack-based context is lost but it doesn't matter at
 // that point - it's a one-way street into thread execution.
@@ -367,9 +329,6 @@ pk_start_threads(void)
 /// \retval 0 Successful completion, including calls on a \a thread that is
 /// already mapped.
 ///
-/// \retval -PK_ILLEGAL_CONTEXT_THREAD The API was called 
-/// from a critical interrupt context. 
-///
 /// \retval -PK_INVALID_THREAD_AT_RESUME1 The \a thread is a null (0) pointer.
 /// 
 /// \retval -PK_INVALID_THREAD_AT_RESUME2 The \a thread is not active, 
@@ -440,9 +399,6 @@ pk_thread_resume(PkThread *thread)
 /// \retval 0 Successful completion, including calls on a \a thread that is
 /// already suspended.
 ///
-/// \retval -PK_ILLEGAL_CONTEXT_THREAD The API was called from a critical 
-/// interrupt context. 
-///
 /// \retval -PK_INVALID_THREAD_AT_SUSPEND1 The \a thread is a null (0) pointer
 /// 
 /// \retval -PK_INVALID_THREAD_AT_SUSPEND2 The \a thread is not active, 
@@ -467,7 +423,7 @@ pk_thread_suspend(PkThread *thread)
 
     if (__pk_thread_is_mapped(thread)) {
 
-        PK_TRACE_THREAD_SUSPENDED(thread->priority);
+        PK_KERN_TRACE("THREAD_SUSPENDED(%d)", thread->priority);
         __pk_thread_unmap(thread);
         __pk_schedule();
     }
@@ -497,8 +453,6 @@ pk_thread_suspend(PkThread *thread)
 /// \retval 0 Successful completion, including calls on a \a thread that has
 /// completed or had already been deleted. 
 ///
-/// \retval -PK_ILLEGAL_CONTEXT_THREAD The API was called from a critical 
-/// interrupt context. 
 ///
 /// \retval -PK_INVALID_THREAD_AT_DELETE The \a thread is a null (0) pointer.
 
@@ -552,67 +506,6 @@ pk_complete(void)
     return PK_OK;
 }
 
-
-/// Sleep a thread until an absolute time
-///
-/// \param time An absolute time as measured by the PK timebase
-///
-/// Threads can use this API to sleep until an absolute time. Sleeping threads
-/// are not scheduled, although they maintain their priorities.  This differs
-/// from thread suspension, where the suspended thread relinquishes its
-/// priority.  When the sleep timer times out the thread becomes runnable
-/// again, and will run as soon as it becomes the highest-priority mapped
-/// runnable thread.
-///
-/// Sleeping threads may also be later suspended. In this case the Sleep timer
-/// continues to run, and if it times out before the thread is resumed the
-/// thread will be immediately runnable when it is resumed.
-///
-/// See the PK specification for a full discussion of how PK handles
-/// scheduling events at absolute times "in the past". Briefly stated, if the
-/// \a time is in the past, the thread will Sleep for the briefest possible
-/// period supported by the hardware.
-///
-/// Return values other than PK_OK (0) are errors; see \ref pk_errors
-///
-/// \retval 0 Successful completion.
-///
-/// \retval -PK_ILLEGAL_CONTEXT_THREAD The API was not called from a thread 
-/// context.
-
-// Note: Casting __pk_current_thread removes the 'volatile' attribute.
-
-int
-pk_sleep_absolute(PkTimebase time)
-{
-    PkMachineContext ctx;
-    PkThread *current;
-
-    if (PK_ERROR_CHECK_API) {
-        PK_ERROR_UNLESS_THREAD_CONTEXT();
-    }
-
-    pk_critical_section_enter(&ctx);
-
-    current = (PkThread *)__pk_current_thread;
-
-    current->timer.timeout = time;
-    __pk_timer_schedule(&(current->timer));
-
-    current->flags |= PK_THREAD_FLAG_TIMER_PEND;
-
-    PK_TRACE_THREAD_SLEEP(current->priority);
-
-    __pk_thread_queue_delete(&__pk_run_queue, current->priority);
-    __pk_schedule();
-
-    current->flags &= ~(PK_THREAD_FLAG_TIMER_PEND | PK_THREAD_FLAG_TIMED_OUT);
-
-    pk_critical_section_exit(&ctx);
-
-    return PK_OK;
-}
-
 /// Sleep a thread for an interval relative to the current time.
 ///
 /// \param interval A time interval relative to the current timebase.
@@ -646,294 +539,35 @@ pk_sleep_absolute(PkTimebase time)
 int
 pk_sleep(PkInterval interval) 
 {
-    return pk_sleep_absolute(pk_timebase_get() + PK_INTERVAL_SCALE(interval));
-}
-
-
-/// Get information about a thread.
-///
-/// \param thread A pointer to the PkThread to query
-///
-/// \param state The value returned through this pointer is the current state
-/// of the thread; See \ref pk_thread_states. The caller can set this
-/// parameter to the null pointer (0) if this information is not required.
-///
-/// \param priority The value returned through this pointer is the current
-/// priority of the thread.  The caller can set this parameter to the null
-/// pointer (0) if this information is not required.
-///
-/// \param runnable The value returned through this pointer is 1 if the thread
-/// is in state PK_THREAD_STATE_MAPPED and is currently in the run queue
-/// (i.e., neither blocked on a semaphore nor sleeping), otherwise 0. The
-/// caller can set this parameter to the null pointer (0) if this information
-/// is not required.
-///
-/// The information returned by this API can only be guaranteed consistent if
-/// the API is called from a critical section. Since the
-/// implementation of this API does not enforce a critical section, it is not
-/// an error to call this API from a critical interrupt context.
-///
-/// Return values other than PK_OK (0) are errors; see \ref pk_errors
-///
-/// \retval 0 Successful completion
-///
-/// \retval -PK_INVALID_THREAD_AT_INFO The \a thread is a null (0) pointer.
-
-int
-pk_thread_info_get(PkThread         *thread,
-                    PkThreadState    *state,
-                    PkThreadPriority *priority,
-                    int               *runnable)
-{
-    if (PK_ERROR_CHECK_API) {
-        PK_ERROR_IF(thread == 0, PK_INVALID_THREAD_AT_INFO);
-    }
-
-    if (state) {
-        *state = thread->state;
-    }
-    if (priority) {
-        *priority = thread->priority;
-    }
-    if (runnable) {
-        *runnable = ((thread->state == PK_THREAD_STATE_MAPPED) &&
-                     __pk_thread_queue_member(&__pk_run_queue,
-                                               thread->priority));
-    }
-    return PK_OK;
-}
-
-
-/// Change the priority of a thread.
-///
-/// \param thread The thread whose priority will be changed
-///
-/// \param new_priority The new priority of the thread
-///
-/// \param old_priority The value returned through this pointer is the
-/// old priority of the thread prior to the change. The caller can set
-/// this parameter to the null pointer (0) if this information is not
-/// required.
-///
-/// Thread priorities can be changed by the \c pk_thread_priority_change()
-/// API. This call will fail if the thread pointer is invalid or if the thread
-/// is mapped and the new priority is currently in use.  The call will succeed
-/// even if the \a thread is suspended, completed or deleted.  The
-/// application-level scheduling algorithm is completely responsible for the
-/// correctness of the application in the event of suspended, completed or
-/// deleted threads.
-///
-/// Return values other than PK_OK (0) are errors; see \ref pk_errors
-///
-/// \retval 0 Successful completion, including the redundant case of
-/// attempting to change the priority of the thread to its current priority.
-///
-/// \retval -PK_ILLEGAL_CONTEXT_THREAD the API was called from a critical 
-/// interrupt context. 
-///
-/// \retval -PK_INVALID_THREAD_AT_CHANGE The \a thread is null (0) or 
-/// otherwise invalid.
-///
-/// \retval -PK_INVALID_ARGUMENT_THREAD_CHANGE The \a new_priority is invalid.
-///
-/// \retval -PK_PRIORITY_IN_USE_AT_CHANGE The \a thread is mapped and the \a
-/// new_priority is currently in use by another thread.
-
-int 
-pk_thread_priority_change(PkThread         *thread,
-                           PkThreadPriority new_priority,
-                           PkThreadPriority *old_priority)
-{
+    PkTimebase  time;
     PkMachineContext ctx;
-    PkThreadPriority priority;
+    PkThread *current;
 
     if (PK_ERROR_CHECK_API) {
-        PK_ERROR_IF(thread == 0, PK_INVALID_THREAD_AT_CHANGE);
-        PK_ERROR_IF(new_priority > PK_THREADS, 
-        PK_INVALID_ARGUMENT_THREAD_CHANGE);
+        PK_ERROR_UNLESS_THREAD_CONTEXT();
     }
+
+    time = pk_timebase_get() + PK_INTERVAL_SCALE(interval);
 
     pk_critical_section_enter(&ctx);
 
-    priority = thread->priority;
+    current = (PkThread *)__pk_current_thread;
 
-    if (priority != new_priority) {
+    current->timer.timeout = time;
+    __pk_timer_schedule(&(current->timer));
 
-        if (!__pk_thread_is_mapped(thread)) {
+    current->flags |= PK_THREAD_FLAG_TIMER_PEND;
 
-            thread->priority = new_priority;
+    PK_KERN_TRACE("THREAD_SLEEP(%d)", current->priority);
 
-        } else {
+    __pk_thread_queue_delete(&__pk_run_queue, current->priority);
+    __pk_schedule();
 
-            if (PK_ERROR_CHECK_API) {
-                PK_ERROR_IF_CRITICAL(__pk_priority_map[new_priority] != 0,
-                                      PK_PRIORITY_IN_USE_AT_CHANGE,
-                                      &ctx);
-            }
-
-            __pk_thread_unmap(thread);
-            thread->priority = new_priority;
-            __pk_thread_map(thread);
-            __pk_schedule();
-        }
-    }
-
-    if (old_priority) {
-        *old_priority = priority;
-    }
+    current->flags &= ~(PK_THREAD_FLAG_TIMER_PEND | PK_THREAD_FLAG_TIMED_OUT);
 
     pk_critical_section_exit(&ctx);
 
     return PK_OK;
 }
-
-
-/// Return a pointer to the thread (if any) mapped at a given priority.
-///
-/// \param priority The thread priority of interest
-///
-/// \param thread The value returned through this pointer is a pointer to the
-/// thread currently mapped at the given priority level.  If no thread is
-/// mapped, or if the \a priority is the priority of the idle thread, the
-/// pointer returned will be null (0).
-///
-/// The information returned by this API can only be guaranteed consistent if
-/// the API is called from a critical section. Since the
-/// implementation of this API does not require a critical section, it is not
-/// an error to call this API from a critical interrupt context.
-///
-/// Return values other than PK_OK (0) are errors; see \ref pk_errors
-///
-/// \retval 0 Successful completion.
-///
-/// \retval -PK_INVALID_ARGUMENT_THREAD_PRIORITY The \a priority is invalid 
-/// or the \a thread parameter is null (0). 
-
-int
-pk_thread_at_priority(PkThreadPriority priority,
-                       PkThread         **thread)
-{
-    if (PK_ERROR_CHECK_API) {
-        PK_ERROR_IF((priority > PK_THREADS) || (thread == 0),
-                     PK_INVALID_ARGUMENT_THREAD_PRIORITY);
-    }
-
-    *thread = __pk_thread_at_priority(priority);
-
-    return PK_OK;
-}
-
-
-/// Swap thread priorities
-///
-/// \param thread_a A pointer to an initialized PkThread
-///
-/// \param thread_b A pointer to an initialized PkThread
-///
-/// This API swaps the priorities of \a thread_a and \a thread_b.  The API is
-/// provided to support general and efficient application-directed scheduling
-/// algorithms.  The requirements on the \a thread_a and \a thread_b arguments
-/// are that they are valid pointers to initialized PkThread structures, that
-/// the current thread priorities of both threads are legal, and that if a
-/// thread is currently mapped, that the new thread priority is not otherwise
-/// in use.
-///
-/// The API does not require either thread to be mapped, or even to be active.
-/// It is legal for one or both of the swap partners to be suspended, deleted
-/// or completed threads.  The application is completely responsible for the
-/// correctness of scheduling algorithms that might operate on inactive or
-/// suspended threads.
-///
-/// The API does not change the mapped status of a thread.  A thread will be
-/// mapped after the call of pk_thread_priority_swap() if and only if it was
-/// mapped prior to the call.  If the new priority of a mapped thread is
-/// currently in use (by a thread other than the swap partner), then the
-/// PK_PRIORITY_IN_USE_AT_SWAP error is signalled and the swap does not take 
-/// place. This could only happen if the swap partner is not currently mapped.
-///
-/// It is legal for a thread to swap its own priority with another thread. The
-/// degenerate case that \a thread_a and \a thread_b are equal is also legal -
-/// but has no effect.
-///
-/// Return values other than PK_OK (0) are errors; see \ref pk_errors
-///
-/// \retval 0 Successful completion, including the redundant cases that do not
-/// actually change priorities, or the cases that assign new priorities to
-/// suspended, completed or deleted threads.
-///
-/// \retval -PK_ILLEGAL_CONTEXT_THREAD the API was called from a critical 
-/// interrupt context. 
-///
-/// \retval -PK_INVALID_THREAD_AT_SWAP1 One or both of \a thread_a and 
-/// \a thread_b is null (0) or otherwise invalid, 
-///
-/// \retval -PK_INVALID_THREAD_AT_SWAP2 the priorities of One or both of 
-/// \a thread_a and \a thread_b are invalid.
-///
-/// \retval -PK_INVALID_ARGUMENT One or both of the priorities
-/// of \a thread_a and \a thread_b is invalid.
-///
-/// \retval -PK_PRIORITY_IN_USE_AT_SWAP Returned if a thread is mapped and the
-/// new thread priority is currently in use by another thread (other than the
-/// swap partner).
-
-int
-pk_thread_priority_swap(PkThread* thread_a, PkThread* thread_b)
-{
-    PkMachineContext ctx;
-    PkThreadPriority priority_a, priority_b;
-    int mapped_a, mapped_b;
-
-    if (PK_ERROR_CHECK_API) {
-        PK_ERROR_IF((thread_a == 0) ||  (thread_b == 0), 
-                       PK_INVALID_THREAD_AT_SWAP1);
-    }
-
-    pk_critical_section_enter(&ctx);
-
-    if (thread_a != thread_b) {
-
-        mapped_a = __pk_thread_is_mapped(thread_a);
-        mapped_b = __pk_thread_is_mapped(thread_b);
-        priority_a = thread_a->priority;
-        priority_b = thread_b->priority;
-
-        if (PK_ERROR_CHECK_API) {
-            int priority_in_use;
-            PK_ERROR_IF_CRITICAL((priority_a > PK_THREADS) ||
-                                  (priority_b > PK_THREADS),
-                                  PK_INVALID_THREAD_AT_SWAP2,
-                                  &ctx);
-            priority_in_use = 
-                (mapped_a && !mapped_b &&
-                 (__pk_thread_at_priority(priority_b) != 0)) ||
-                (!mapped_a && mapped_b && 
-                 (__pk_thread_at_priority(priority_a) != 0));
-            PK_ERROR_IF_CRITICAL(priority_in_use, 
-                                  PK_PRIORITY_IN_USE_AT_SWAP, &ctx); 
-        }
-
-        if (mapped_a) {
-            __pk_thread_unmap(thread_a);
-        }
-        if (mapped_b) {
-            __pk_thread_unmap(thread_b);
-        }            
-        thread_a->priority = priority_b;
-        thread_b->priority = priority_a;
-        if (mapped_a) {
-            __pk_thread_map(thread_a);
-        }
-        if (mapped_b) {
-            __pk_thread_map(thread_b);
-        }
-        __pk_schedule();
-    }
-
-    pk_critical_section_exit(&ctx);
-
-    return PK_OK;
-}
-
 
 #undef __PK_THREAD_CORE_C__

@@ -7,9 +7,6 @@
 /// \file gpe_scom_handler.S
 /// \brief Interrupt handler code for SCOM requests from the ppc405
 ///
-/// This handler is implemented as a fast-mode handler, which means
-/// that only r3, r4, r5, r6, cr0, and lr have been saved off and
-/// are available to be used.
 
         .nolist
 #include "pk.h"
@@ -17,7 +14,7 @@
         .list
 
         ## This function handles requests from the ppc405 to perform a getscom
-        ## or putsom operation.
+        ## or putscom operation.
         ##
         ## The ppc405 must supply a request in the following format:
         ##
@@ -48,8 +45,8 @@ gpe_scom_handler:
         lwz     %r4, OCCHW_SCOM_ADDR_OFFSET(%r3)
 
         ## Mask all SIB errors
-        mfmsr   %r5
-        _oriwa  %r5, %r5, MSR_SEM
+        mfmsr   %r7
+        _oriwa  %r5, %r7, MSR_SEM
         mtmsr   %r5
         
         ## Check bit 0 of the scom address to determine if this
@@ -80,6 +77,10 @@ _get_scom_status:
         ## then, store it to the OISR0_CLR address
         _stwi   %r3, %r4, OCB_OISR0_CLR
 
+        ## restore the MSR as it was before we changed it
+        mtmsr   %r7
+
+        ## return
         blr
 
 _do_putscom:

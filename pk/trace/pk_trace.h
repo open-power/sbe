@@ -74,6 +74,8 @@
 
 #define PK_TRACE_MAX_PARMS  4
 
+//This is the maximum number of bytes allowed to be traced in a binary trace
+//entry.
 //The trace version needs to change if this changes.
 #define PK_TRACE_MAX_BINARY 256
 

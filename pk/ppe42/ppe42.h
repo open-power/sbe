@@ -278,10 +278,8 @@ do {*(volatile uint32_t *)(addr) = (data);} while(0)
 /// The default thread machine context has MSR[CE], MSR[EE] and MSR[ME] set,
 /// and all other MSR bits cleared.
 ///
-/// The default definition allows critical, non-critical and machine check
-/// exceptions. Debug interrupts are not enabled by default.  This definition
-/// can be overriden by the application.  If MMU protection is enabled then
-/// the IR/DR bits are also modeably set.
+/// The default definition allows external and machine check exceptions.  This
+/// definition can be overriden by the application.  
 
 #ifndef PK_THREAD_MACHINE_CONTEXT_DEFAULT
 #define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
@@ -573,57 +571,72 @@ __pk_stack_create_initial_frame(PkAddress *stack, size_t *size) \
 /// information. Instead it defines an API that the port must provide to the
 /// portable kernel.
 ///
-/// In the PPE42 port, the kernel context is maintained in USPRG0.  This
-/// 32-bit value is treated as 5 distinct fields as indicated in the structure
-/// definition. For certain tests it's also helpful to look at the two
-/// interrupt counters as a single 0/non-0 field.
+/// In the PPE42 port, the kernel context is maintained in SPRG0.  This
+/// 32-bit value is treated as 6 distinct fields as indicated in the structure
+/// definition.
 typedef union {
 
     uint32_t value;
 
     struct {
 
-        /// The critical interrupt nesting level.  If this field is non-zero,
-        /// then interrupt priority and preemption rules guarantee that a
-        /// critical interrupt handler is running, and the \c irq field will
-        /// contain the PkIrqId of the currently active critical interrupt.
-        unsigned reserved : 8;
-
-        /// The non-critical interrupt nesting level. If this field is
-        /// non-zero and the \c critical_interrupts field is 0, then interrupt
-        /// priority and preemption rules guarantee that a noncritical
-        /// interrupt handler is running, and the \c irq field will contain
-        /// the PkIrqId of the currently active noncritical interrupt.
-        unsigned noncritical_interrupts : 8;
-
-        /// The PkIrqId of the currently running (or last run) handler.  If
-        /// either of the interrupt nesting levels are non-0, then this is the
-        /// PkIrqId of the IRQ that is currently executing.
-        unsigned irq : 8;
-
         /// A flag indicating that PK is in thread mode after a call of
         /// pk_start_threads(). 
         unsigned thread_mode : 1;
 
+        /// If this field is non-zero then PK is processing an interrupt
+        /// and the \c irq field will contain the PkIrqId of the interrupt
+        /// that kicked off interrupt processing.
+        unsigned processing_interrupt : 1;
+
         /// The priority of the currently running thread.  In an interrupt
         /// context, this is the priority of the thread that was interrupted.
-        unsigned thread_priority : 7;
+        unsigned thread_priority : 6;
+
+        /// This bit tracks whether the current context can be discarded or
+        /// if the context must be saved.  If the processor takes an interrupt
+        /// and this bit is set, then the current context will be discarded.
+        /// This bit is set at the end of handling an interrupt and prior
+        /// to entering the wait enabled state.
+        unsigned discard_ctx : 1;
+
+        /// The PkIrqId of the currently running (or last run) handler.  If
+        /// \c processing_interrupt is set, then this is the
+        /// PkIrqId of the IRQ that is currently executing.
+        unsigned irq : 7;
+
+        /// Each PPE application will define (or not) the interpretation of
+        /// this field.  Since SPRG0 is saved and restored during during thread
+        /// context switches, this field can be used to record the progress of
+        /// individual threads.  The kernel and/or application will provide
+        /// APIs or macros to read and write this field.
+        unsigned app_specific : 16;
 
     } fields;
 
-    struct {
-
-        unsigned also_ignore : 8;
-
-        /// Used as a 0/non-0 flag for interrupt context.
-        unsigned interrupt_context : 8;
-
-        /// Ignore
-        unsigned ignore : 16;
-
-    } merged_fields;
-
 } __PkKernelContext;
+
+// These APIs are provided for applications to get and set the app_specific
+// field of the kernel context which is held in sprg0.
+
+static inline uint16_t ppe42_app_ctx_get(void)
+{
+    __PkKernelContext __ctx;
+    __ctx.value = mfspr(SPRN_SPRG0);
+    return __ctx.fields.app_specific;
+}
+
+static inline void ppe42_app_ctx_set(uint16_t app_ctx)
+{
+    PkMachineContext    mctx;
+    __PkKernelContext   __ctx;
+    mctx = mfmsr();
+    wrteei(0);
+    __ctx.value = mfspr(SPRN_SPRG0);
+    __ctx.fields.app_specific = app_ctx;
+    mtspr(SPRN_SPRG0, __ctx.value);
+    mtmsr(mctx);
+}
 
 // These APIs are provided to the PK portable kernel by the port.
 
@@ -642,7 +655,7 @@ typedef union {
     ({ \
         __PkKernelContext __ctx; \
         __ctx.value = mfspr(SPRN_SPRG0); \
-        __ctx.fields.thread_mode && !__ctx.merged_fields.interrupt_context;})
+        __ctx.fields.thread_mode && !__ctx.fields.processing_interrupt;})
 
 
 ///  PK is executing an interrupt handler of any priority.
@@ -651,28 +664,9 @@ typedef union {
     ({ \
         __PkKernelContext __ctx; \
         __ctx.value = mfspr(SPRN_SPRG0); \
-        __ctx.merged_fields.interrupt_context;})
+        __ctx.fields.processing_interrupt;})
 
 
-/// PK is executing a non-critical interrupt handler.
-
-#define __pk_kernel_context_noncritical_interrupt() \
-    ({ \
-        __PkKernelContext __ctx; \
-        __ctx.value = mfspr(SPRN_SPRG0); \
-        __ctx.fields.noncritical_interrupts &&  \
-            !__ctx.fields.critical_interrupts;})
-
-
-/// Return the noncritical interrupt nesting level
-
-#define __pk_noncritical_level() \
-    ({ \
-        __PkKernelContext __ctx; \
-        __ctx.value = mfspr(SPRN_SPRG0); \
-        __ctx.fields.noncritical_interrupts; })
-
-        
 // PK requires the port to define the type PkThreadQueue, which is a
 // priority queue (where 0 is the highest priority).  This queue must be able
 // to handle PK_THREADS + 1 priorities (the last for the idle thread) The
@@ -740,7 +734,7 @@ __pk_thread_queue_count(volatile PkThreadQueue* queue)
         PkMachineContext ctx;                                  \
         pk_critical_section_enter(&ctx);      \
         asm volatile ("mr 1, %0; mtlr %1; blrl" : :             \
-                      "r" (__pk_noncritical_stack),            \
+                      "r" (__pk_kernel_stack),            \
                       "r" (__pk_start_threads));               \
         PK_PANIC(PK_START_THREADS_RETURNED);                  \
     } while (0)
@@ -750,8 +744,13 @@ __pk_thread_queue_count(volatile PkThreadQueue* queue)
 
 /// The __PkKernelContext 'thread_mode' bit as a flag
 
-#define PPE42_THREAD_MODE 0x80
+#define PPE42_THREAD_MODE   0x8000
+#define PPE42_PROC_IRQ      0x4000
+#define PPE42_DISCARD_CTX   0x0080
 
+#define PPE42_THREAD_MODE_BIT   0
+#define PPE42_PROC_IRQ_BIT      1
+#define PPE42_DISCARD_CTX_BIT   8
 
 #ifndef __ASSEMBLER__
 

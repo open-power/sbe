@@ -53,9 +53,6 @@
 ///
 /// \retval -PK_INVALID_THREAD_AT_CREATE The \a thread is a null (0) pointer.
 /// 
-/// \retval -PK_ILLEGAL_CONTEXT The API was called from a critical interrupt
-/// context. 
-///
 /// \retval -PK_INVALID_ARGUMENT_THREAD1 the \a thread_routine is null (0)
 ///
 /// \retval -PK_INVALID_ARGUMENT_THREAD2 the \a priority is invalid, 
@@ -113,9 +110,9 @@ pk_thread_create(PkThread         *thread,
     thread->state = PK_THREAD_STATE_SUSPENDED_RUNNABLE;
     thread->flags = 0;
 
-    pk_timer_create_nonpreemptible(&(thread->timer), 
-                                    __pk_thread_timeout, 
-                                    (void *)thread);
+    pk_timer_create(&(thread->timer), 
+                    __pk_thread_timeout, 
+                    (void *)thread);
 
     __pk_thread_context_initialize(thread, thread_routine, arg);
 

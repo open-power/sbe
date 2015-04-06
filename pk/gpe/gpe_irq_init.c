@@ -21,8 +21,7 @@
 /// interrupt status in the controller.
 ///
 /// Note that PK allows this API to be called from any context, and changes
-/// to the interrupt controller are made from a critical
-/// section.
+/// to the interrupt controller are made from a critical section.
 ///
 /// Return values other then PK_OK (0) are errors; see \ref pk_errors
 ///
@@ -72,8 +71,7 @@ pk_irq_setup(PkIrqId irq,
 /// Return values other then PK_OK (0) are errors; see \ref pk_errors
 ///
 /// Note that PK allows this API to be called from any context, and changes
-/// to the interrupt controller are made from a critical
-/// section.
+/// to the interrupt controller are made from a critical section.
 ///
 /// \retval 0 Successful completion
 ///

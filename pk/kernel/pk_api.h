@@ -236,7 +236,7 @@
 ///
 /// 2 : (\b Default - Currently Unimplemented) In addition to prepatterning,
 /// stack utilization is computed at the exit of context switches and
-/// noncritical interrupt processing.  The maximum utilization is stored in
+/// interrupt processing.  The maximum utilization is stored in
 /// the thread data structure.  The kernel will panic if stack overflow is
 /// detected. Stack utilization is not computed for the idle thread.
  
@@ -263,7 +263,7 @@
 /// pk_app_cfg.h.  
 ///
 /// The PK_START_THREADS_HOOK runs as a pseudo-interrupt handler on the
-/// noncritical interrupt stack, with noncritical interrupts disabled.
+/// kernel stack, with external interrupts disabled.
 
 #ifndef PK_START_THREADS_HOOK
 #define PK_START_THREADS_HOOK do {} while (0)
@@ -363,32 +363,11 @@
 
 //Kernel trace macros
 #if !PK_KERNEL_TRACE_ENABLE
-
-#define PK_TRACE_THREAD_SLEEP(priority)
-#define PK_TRACE_THREAD_WAKEUP(priority)
-#define PK_TRACE_THREAD_SEMAPHORE_PEND(priority)
-#define PK_TRACE_THREAD_SEMAPHORE_POST(priority)
-#define PK_TRACE_THREAD_SEMAPHORE_TIMEOUT(priority)
-#define PK_TRACE_THREAD_SUSPENDED(priority)
-#define PK_TRACE_THREAD_DELETED(priority)
-#define PK_TRACE_THREAD_COMPLETED(priority)
-#define PK_TRACE_THREAD_MAPPED_RUNNABLE(priority)
-#define PK_TRACE_THREAD_MAPPED_SEMAPHORE_PEND(priority)
-#define PK_TRACE_THREAD_MAPPED_SLEEPING(priority)
-
+#define PK_KERN_TRACE(...)
+#define PK_KERN_TRACE_ASM16(...)
 #else
-
-#define PK_TRACE_THREAD_SLEEP(priority) PKTRACE("THREAD_SLEEP(%d)", priority)
-#define PK_TRACE_THREAD_WAKEUP(priority) PKTRACE("THREAD_WAKEUP(%d)", priority)
-#define PK_TRACE_THREAD_SEMAPHORE_PEND(priority) PKTRACE("SEMAPHORE_PEND(%d)", priority)
-#define PK_TRACE_THREAD_SEMAPHORE_POST(priority) PKTRACE("SEMAPHORE_POST(%d)", priority)
-#define PK_TRACE_THREAD_SEMAPHORE_TIMEOUT(priority) PKTRACE("SEMAPHORE_TIMEOUT(%d)", priority)
-#define PK_TRACE_THREAD_SUSPENDED(priority) PKTRACE("THREAD_SUSPENDED(%d)", priority)
-#define PK_TRACE_THREAD_DELETED(priority) PKTRACE("THREAD_DELETED(%d)", priority)
-#define PK_TRACE_THREAD_COMPLETED(priority) PKTRACE("THREAD_COMPLETED(%d)", priority)
-#define PK_TRACE_THREAD_MAPPED_RUNNABLE(priority) PKTRACE("THREAD_MAPPED_RUNNABLE(%d)", priority)
-#define PK_TRACE_THREAD_MAPPED_SEMAPHORE_PEND(priority) PKTRACE("THREAD_MAPPED_SEMAPHORE_PEND(%d)", priority)
-#define PK_TRACE_THREAD_MAPPED_SLEEPING(priority) PKTRACE("THREAD_MAPPED_SLEEPING(%d)", priority)
+#define PK_KERN_TRACE(...) PK_TRACE(__VA_ARGS__)
+#define PK_KERN_TRACE_ASM16(...) PK_TRACE_ASM16(__VA_ARGS__)
 #endif  /* PK_KERNEL_TRACE_ENABLE */
 
 
@@ -486,7 +465,7 @@ typedef struct {
 } PkSemaphore;
 
 
-/// Compile-time initialize an PkSemaphore structure
+/// Compile-time initialize a PkSemaphore structure
 ///
 /// This low-level macro creates a structure initializatin of an PkSemaphore
 /// structure. This can be used for example to create compile-time initialized
@@ -603,22 +582,7 @@ typedef struct PkTimer {
     /// field is initialized to a pointer to the thread.
     void *arg;
 
-    /// Options for timer processing; See \ref pk_timer_options
-    uint8_t options;
-
 } PkTimer;
-
-/// \defgroup pk_timer_options PK Timer Options
-/// @{
-
-/// Allow interrupt preemption during the callback
-///
-/// This is the normal mode for PkTimer objects scheduled by PK kernal
-/// mechanisms.  The timer callbacks effectively run as if inside a
-/// highest-priority thread, allowing other interrupts to preempt them. 
-#define PK_TIMER_CALLBACK_PREEMPTIBLE 0x1
-
-/// @}
 
 
 // Threads
@@ -663,11 +627,33 @@ typedef struct {
 } PkThread;
 
 
+typedef void (*PkBhHandler)(void *);
+
+#define PK_BH_HANDLER(handler) void handler(void *)
+
+typedef struct {
+
+    /// The bottom half queue management pointers
+    ///
+    /// This pointer container is defined as the first element of the
+    /// structure to allow the PkBottomHalf to be cast to a PkDeque and
+    /// vice-versa. 
+    PkDeque deque;
+
+    /// The bottom half handler
+    PkBhHandler bh_handler;
+
+    /// Private data passed to the handler. 
+    void *arg;
+
+} PkBottomHalf;
+
+
 // Initialization APIs
 
 int
-pk_initialize(PkAddress  noncritical_stack,
-               size_t      noncritical_stack_size,
+pk_initialize(PkAddress  kernel_stack,
+               size_t      kernel_stack_size,
                PkTimebase initial_timebase,
                uint32_t    timebase_frequency_hz);
                
@@ -677,13 +663,6 @@ pk_initialize(PkAddress  noncritical_stack,
 PkTimebase
 pk_timebase_get(void);
 
-// Interrupt preemption APIs
-
-int
-pk_interrupt_preemption_enable(void);
-
-int
-pk_interrupt_preemption_disable(void);
 
 // Timer APIs
 
@@ -692,10 +671,6 @@ pk_timer_create(PkTimer         *timer,
                  PkTimerCallback callback,
                  void             *arg);
 
-int 
-pk_timer_create_nonpreemptible(PkTimer         *timer,
-                                PkTimerCallback callback,
-                                void             *arg);
 
 int 
 pk_timer_schedule(PkTimer    *timer,
@@ -733,9 +708,6 @@ pk_thread_delete(PkThread *thread);
 
 int
 pk_complete(void);
-
-int
-pk_sleep_absolute(PkTimebase time);
 
 int
 pk_sleep(PkInterval interval);
@@ -926,6 +898,27 @@ pk_deque_delete(PkDeque *element)
     element->next->previous = element->previous;
     element->next = 0;
 }
+
+// Bottom Half APIs
+
+extern PkDeque _pk_bh_queue;
+
+static inline void
+pk_bh_schedule(PkBottomHalf *bottom_half)
+{
+    pk_deque_push_back(&_pk_bh_queue, (PkDeque *)bottom_half);
+}
+
+#define PK_BH_INIT(_handler, _arg) \
+{\
+    .deque = PK_DEQUE_ELEMENT_INIT(), \
+    .bh_handler = _handler, \
+    .arg = _arg \
+}
+
+#define PK_BH_STATIC_CREATE(bh_name, handler, arg) \
+PkBottomHalf bh_name = PK_BH_INIT(handler, arg)
+
 
 //Trace function prototypes
 void pk_trace_tiny(uint32_t i_parm);

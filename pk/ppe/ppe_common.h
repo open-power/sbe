@@ -27,23 +27,12 @@
 #define EXTERNAL_IRQS 64
 
 #ifdef __ASSEMBLER__
-/// This macro contains PPE specific code for determining what IRQ caused the
-/// external exception handler to be invoked by the PPE
-
-/// Load noncritical status 0 and the handler array base address.  Check
-/// for interrupts pending in status register 0 while the IRQ is
-/// computed.  The IRQ is expected to be stored in r3.
+/// This macro contains PPE specific code.
+/// Since standalone models of the PPE do not support external interrupts
+/// we just set the code to 64 (phantom interrupt)
     .macro hwmacro_get_ext_irq
         
-#_lwzi       %r4, %r4, OCB_ONISR0
-        cntlzw      %r3, %r4
-        cmpwible    %r3, 31, external_irq_found   #branch if irq is lt or eq to 31
-        
-        ## No IRQ pending in interrupt set 0.  Try set 1.
-        
-#_lwzi   %r4, %r4, OCB_ONISR1
-        cntlzw  %r3, %r4
-        addi    %r3, %r3, 32
+        li  %r4, 64
 
     .endm
 
