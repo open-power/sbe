@@ -35,17 +35,20 @@
 /// Check for interrupts pending in status register 0 while the IRQ is
 /// computed.  The IRQ is expected to be stored in r4.  If no IRQ is
 /// pending then load the phantom irq # (EXTERNAL_IRQS).
+///
+/// r1, r2, r3, and r13 must not be modified.  All other registers may be used.
+///
     .macro hwmacro_get_ext_irq
         
-        _lwzi       %r3, %r3, GPE_GISR0(APPCFG_OCC_INSTANCE_ID)
-        cntlzw      %r4, %r3
-        cmpwible    %r4, 31, external_irq_found   #branch if irq is lt or eq to 31
+        _lwzi       %r5, %r5, GPE_GISR0(APPCFG_OCC_INSTANCE_ID)
+        cntlzw      %r4, %r5
+        cmpwible    %r4, 31, call_external_irq_handler   #branch if irq is lt or eq to 31
         
         ## No IRQ pending in interrupt set 0.  Try set 1.
         ## Note: irq # will be 64 (EXTERNAL_IRQS) if no bits were set in either register
         
-        _lwzi       %r3, %r3, GPE_GISR1(APPCFG_OCC_INSTANCE_ID)
-        cntlzw      %r4, %r3
+        _lwzi       %r6, %r6, GPE_GISR1(APPCFG_OCC_INSTANCE_ID)
+        cntlzw      %r4, %r6
         addi        %r4, %r4, 32
 
     .endm

@@ -58,17 +58,12 @@ void pk_set_timebase_rshift(uint32_t timebase_freq_hz)
 
 /// Initialize PK.  
 ///
-/// \param noncritical_stack A stack area for noncritical interrupt handlers.
+/// \param kernel_stack A stack area for interrupt and bottom-half handlers.
 ///
-/// \param noncritical_stack_size The size (in bytes) of the stack area for
-/// noncritical interrupt handlers. 
+/// \param kernel_stack_size The size (in bytes) of the stack area for
+/// interrupt and bottom-half handlers. 
 ///
-/// \param critical_stack A stack area for critical interrupt handlers.
-///
-/// \param critical_stack_size The size (in bytes) of the stack area for
-/// critical interrupt handlers. 
-///
-/// \param initial_timebase The initial value of the PK timebase.  If this
+/// \param initial_timebase The initial value of the PK timebase.
 /// argument is given as the special value \c PK_TIMEBASE_CONTINUE, then the
 /// timebase is not reset.
 ///
@@ -93,16 +88,16 @@ void pk_set_timebase_rshift(uint32_t timebase_freq_hz)
 // reset everything at initialization.
 
 int
-pk_initialize(PkAddress  noncritical_stack,
-               size_t      noncritical_stack_size,
+pk_initialize(PkAddress  kernel_stack,
+               size_t      kernel_stack_size,
                PkTimebase initial_timebase,
                uint32_t    timebase_frequency_hz)
 {
     int rc;
 
     if (PK_ERROR_CHECK_API) {
-        PK_ERROR_IF((noncritical_stack == 0) ||
-                     (noncritical_stack_size == 0),
+        PK_ERROR_IF((kernel_stack == 0) ||
+                     (kernel_stack_size == 0),
                      PK_INVALID_ARGUMENT_INIT);
     }
 
@@ -110,13 +105,13 @@ pk_initialize(PkAddress  noncritical_stack,
 
     __pk_thread_machine_context_default = PK_THREAD_MACHINE_CONTEXT_DEFAULT;
 
-    rc = __pk_stack_init(&noncritical_stack, &noncritical_stack_size);
+    rc = __pk_stack_init(&kernel_stack, &kernel_stack_size);
     if (rc) {
         return rc;
     }
 
-    __pk_noncritical_stack = noncritical_stack;
-    __pk_noncritical_stack_size = noncritical_stack_size;
+    __pk_kernel_stack = kernel_stack;
+    __pk_kernel_stack_size = kernel_stack_size;
 
 #if PK_TIMER_SUPPORT
 
@@ -131,18 +126,20 @@ pk_initialize(PkAddress  noncritical_stack,
 extern PkTimer       g_pk_trace_timer;
 extern PkTraceBuffer g_pk_trace_buf;
 
-    // Schedule the timer that puts a 64bit timestamp in the trace buffer
-    // periodically.  This allows us to use 32bit timestamps.
-    pk_timer_schedule(&g_pk_trace_timer,
-                      PK_TRACE_TIMER_PERIOD);
-
     //set the trace timebase HZ
     g_pk_trace_buf.hz = timebase_frequency_hz;
 
+    //set the shift adjustment to get us closer to the true
+    //timebase frequency (versus what was hardcoded)
     pk_set_timebase_rshift(timebase_frequency_hz);
 
     //set the timebase ajdustment for trace synchronization
     pk_trace_set_timebase(initial_timebase);
+
+    // Schedule the timer that puts a 64bit timestamp in the trace buffer
+    // periodically.  This allows us to use 32bit timestamps.
+    pk_timer_schedule(&g_pk_trace_timer,
+                      PK_TRACE_TIMER_PERIOD);
 
 #endif  /* PK_TRACE_SUPPORT */
 

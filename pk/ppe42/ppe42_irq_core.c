@@ -32,8 +32,8 @@ __ppe42_default_irq_handler(void* arg, PkIrqId irq)
 
 
 /// This function is installed by default to handle the case that the
-/// interrupt dispatch code is entered in response to an external critical or
-/// non-critical interrupt, but no interrupt is found pending in the interrupt
+/// interrupt dispatch code is entered in response to an external
+/// interrupt, but no interrupt is found pending in the interrupt
 /// controller.  This should never happen, as it would indicate that a
 /// 'glitch' occurred on the external interrupt input
 /// to the PPE42 core.

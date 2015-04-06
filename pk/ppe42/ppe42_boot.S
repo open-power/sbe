@@ -115,7 +115,7 @@ __reset_trap:
         #sync
 
         ## The MSR to be used during the rest of intialization is
-        ## established.  This MSR should NOT enable critical or non-critical
+        ## established.  This MSR should NOT enable 
         ## interrupts, but could enable machine check exceptions.
 
         _liwa   %r3, PPE42_MSR_INITIAL

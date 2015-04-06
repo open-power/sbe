@@ -16,7 +16,7 @@
 /// opens up the possibility of scheduling events "in the past".  PK
 /// uniformly handles this case by scheduling "past" events to occur 1
 /// timebase tick in the future, so that timer callbacks are always run in the
-/// expected noncritical interrupt context.
+/// expected interrupt context.
 ///
 /// PK implements the time queue as a simple unordered list of events, plus a
 /// dedicated variable that holds the earliest timeout of any event in the
@@ -65,7 +65,15 @@
 
 #include "pk.h"
 
-// This routine is only used in this file, and will always be called in 
+// Declare the timer bottom half handler
+static PK_BH_HANDLER(__pk_timer_bh_handler);
+
+// Define the timer bottom half handler that the interrupt handler will
+// schedule
+PK_BH_STATIC_CREATE(pk_timer_bh, __pk_timer_bh_handler, 0);
+
+
+// This routine is only used in this file, and will always be called in a
 // critical section.
 
 static inline int
@@ -78,7 +86,7 @@ timer_active(PkTimer* timer)
 // This is the kernel version of pk_timer_cancel().
 //
 // This routine is used here and by thread and semaphore routines.
-// Noncritical interrupts must be disabled at entry.
+// External interrupts must be disabled at entry.
 //
 // If the timer is active, then there is a special case if we are going to
 // delete the 'cursor' - that is the timer that __pk_timer_handler() is going
@@ -114,7 +122,7 @@ __pk_timer_cancel(PkTimer *timer)
 // This is the kernel version of pk_timer_schedule().
 //
 // This routine is used here and by thread and semaphore routines.
-// Noncritical interrupts must be disabled at entry.
+// interrupts must be disabled at entry.
 //
 // Unless the timer is already active it is enqueued in the doubly-linked
 // timer list by inserting the timer at the end of the queue. Then the
@@ -144,8 +152,7 @@ __pk_timer_schedule(PkTimer* timer)
 // deletions and other factors, there may not actually be a timer in the queue
 // that has timed out - but it doesn't matter (other than for efficiency).
 //
-// Noncritical interrupts are (must be) disabled at entry, and this invariant
-// is checked. This routine must not be entered reentrantly. 
+// This routine must not be entered reentrantly. 
 //
 // First, time out any timers that have expired.  Timers in the queue are
 // unordered, so we have to check every one.  Since passing through the
@@ -158,9 +165,8 @@ __pk_timer_schedule(PkTimer* timer)
 // On each pass through the loop tq->next_timeout computes the minimum timeout
 // of events remaining in the queue.  This is the only part of the kernel that
 // searches a list of indefinite length. Kernel interrupt latency is mitigated
-// by running callbacks with interrupts disabled either during or after the
-// call for timed out events, and also after every check for events that have
-// not timed out.
+// by running this function as a bottom half.  As such, interrupts are only
+// disabled when explicitly requested.
 //
 // Because interrupt preemption is enabled during processing, and preempting
 // handlers may invoke time queue operations, we need to establish a pointer
@@ -171,9 +177,10 @@ __pk_timer_schedule(PkTimer* timer)
 // The main loop iterates on the PkDeque form of the time queue, casting each
 // element back up to the PkTimer as it is processed.
 
-void
-__pk_timer_handler()
+static void
+__pk_timer_bh_handler(void* arg)
 {
+    PkMachineContext ctx;
     PkTimeQueue* tq;
     PkTimebase now;
     PkTimer* timer;
@@ -182,20 +189,28 @@ __pk_timer_handler()
 
     tq = &__pk_time_queue;
 
+    // Check if we entered the function while it was running in another context.
     if (PK_ERROR_CHECK_KERNEL) {
         if (tq->cursor != 0) {
             PK_PANIC(PK_TIMER_HANDLER_INVARIANT);
         }
     }
 
-    while ((now = pk_timebase_get()) >= tq->next_timeout) {
+    pk_critical_section_enter(&ctx);
 
+    while ((now = pk_timebase_get()) >= tq->next_timeout) {
         tq->next_timeout = PK_TIMEBASE_MAX;
         timer_deque = ((PkDeque*)tq)->next;
 
+        // Iterate through the entire timer list, calling the callback of
+        // timed-out elements and finding the timer that will timeout next,
+        // which is stored in tq->next_timeout.
         while (timer_deque != (PkDeque*)tq) {
     
             timer = (PkTimer*)timer_deque;
+
+            // Setting this to a non-zero value indicates we are in the middle
+            // of processing the time queue.
             tq->cursor = timer_deque->next;
 
             if (timer->timeout <= now) {
@@ -209,39 +224,46 @@ __pk_timer_handler()
 
                 pk_deque_delete(timer_deque);
 
+                pk_critical_section_exit(&ctx);
+
                 callback = timer->callback;
                 if (callback) {
-                    if (timer->options & PK_TIMER_CALLBACK_PREEMPTIBLE) {
-                        pk_interrupt_preemption_enable();
-                        callback(timer->arg);
-                    } else {
-                        callback(timer->arg);
-                        pk_interrupt_preemption_enable();
-                    }
+                    callback(timer->arg);
                 }                        
-                pk_interrupt_preemption_disable();
 
             } else {
 
                 // This timer has not timed out.  Its timeout will simply
-                // participate in the computation of the next timeout.  For
-                // interrupt latency reasons we always allow a period of
-                // interrupt preemption.
-
+                // participate in the computation of the next timeout.
                 tq->next_timeout = MIN(timer->timeout, tq->next_timeout);
-                pk_interrupt_preemption_enable();
-                pk_interrupt_preemption_disable();
+                pk_critical_section_exit(&ctx);
             }
 
             timer_deque = tq->cursor;
+            pk_critical_section_enter(&ctx);
         }
+
+        // Time has passed since we checked the time.  Loop back
+        // to check the time again and see if enough time has passed
+        // that the next timer has timed out too.
     }
     
+    pk_critical_section_exit(&ctx);
+
+    // This marks that we are no longer processing the time queue
     tq->cursor = 0;
 
     // Finally, reschedule the next timeout
-
     __pk_schedule_hardware_timeout(tq->next_timeout);
+}
+
+
+void
+__pk_timer_handler(void)
+{
+    //schedule the timer bottom half handler which
+    //is preemptible.
+    pk_bh_schedule(&pk_timer_bh);
 }
 
 
@@ -264,8 +286,6 @@ __pk_timer_handler()
 /// \retval -PK_INVALID_TIMER_AT_SCHEDULE A a null (0) pointer was provided as 
 /// the \a timer argument.
 ///
-/// \retval -PK_ILLEGAL_CONTEXT_TIMER The call was made from a critical 
-/// interrupt context. 
 
 int
 pk_timer_schedule(PkTimer    *timer, 
@@ -313,9 +333,6 @@ pk_timer_schedule(PkTimer    *timer,
 ///
 /// \retval -PK_INVALID_TIMER_AT_CANCEL The \a timer is a null (0) pointer.
 ///
-/// \retval -PK_ILLEGAL_CONTEXT_TIMER The call was made from a critical 
-/// interrupt context. 
-///
 
 int
 pk_timer_cancel(PkTimer *timer)
@@ -353,9 +370,7 @@ pk_timer_cancel(PkTimer *timer)
 /// null pointer (0) if this information is not required.
 ///
 /// The information returned by this API can only be guaranteed consistent if
-/// the API is called from a critical section. Since the
-/// implementation of this API does not require a critical section, it is not
-/// an error to call this API from a critical interrupt context.
+/// the API is called from a critical section.
 ///
 /// Return values other than PK_OK (0) are errors; see \ref pk_errors
 ///

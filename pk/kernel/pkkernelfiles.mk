@@ -21,11 +21,11 @@
 ##########################################################################
 # Object Files 
 ##########################################################################
-PK-C-SOURCES = pk_core.c pk_init.c pk_stack_init.c
+PK-C-SOURCES = pk_core.c pk_init.c pk_stack_init.c pk_bh_core.c
 
 PK-TIMER-C-SOURCES += pk_timer_core.c pk_timer_init.c
 
-PK-THREAD-C-SOURCES += pk_thread_init.c pk_thread_core.c \
+PK-THREAD-C-SOURCES += pk_thread_init.c pk_thread_core.c pk_thread_util.c \
 	 pk_semaphore_init.c pk_semaphore_core.c
 
 PK_OBJECTS += $(PK-C-SOURCES:.c=.o)

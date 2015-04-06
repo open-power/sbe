@@ -30,9 +30,6 @@
 ///
 /// \retval 0 Successful completion
 ///
-/// \retval -PK_ILLEGAL_CONTEXT The API was called from a critical interrupt
-/// context.
-///
 /// \retval -PK_INVALID_SEMAPHORE_AT_POST The \a semaphore is a null (0) pointer.
 /// 
 /// \retval -PK_SEMAPHORE_OVERFLOW The \a max_count argument supplied when
@@ -58,7 +55,7 @@ pk_semaphore_post(PkSemaphore *semaphore)
         __pk_thread_queue_delete(&(semaphore->pending_threads), priority);
         __pk_thread_queue_insert(&__pk_run_queue, priority);
 
-        PK_TRACE_THREAD_SEMAPHORE_POST(priority);
+        PK_KERN_TRACE("THREAD_SEMAPHORE_POST(%d)", priority);
 
         __pk_schedule();
 
@@ -127,9 +124,6 @@ pk_semaphore_post(PkSemaphore *semaphore)
 ///
 /// The following return codes are error codes:
 ///
-/// \retval -PK_ILLEGAL_CONTEXT The API was called from a critical interrupt
-/// context.
-///
 /// \retval -PK_INVALID_SEMAPHORE_AT_PEND The \a semaphore is a null (0) 
 /// pointer.
 /// 
@@ -181,7 +175,7 @@ pk_semaphore_pend(PkSemaphore *semaphore,
         thread->semaphore = semaphore;
         thread->flags |= PK_THREAD_FLAG_SEMAPHORE_PEND;
 
-        PK_TRACE_THREAD_SEMAPHORE_PEND(priority);
+        PK_KERN_TRACE("THREAD_SEMAPHORE_PEND(%d)", priority);
 
         if (timeout != PK_WAIT_FOREVER) {
             timer = &(thread->timer);
@@ -231,9 +225,6 @@ pk_semaphore_pend(PkSemaphore *semaphore,
 ///
 /// \retval 0 Successful completion
 ///
-/// \retval -PK_ILLEGAL_CONTEXT The API was called from a critical interrupt
-/// context.
-///
 /// \retval -PK_INVALID_SEMAPHORE_AT_RELEASE The \a semaphore is a null (0) 
 /// pointer.
 
@@ -271,9 +262,7 @@ pk_semaphore_release_all(PkSemaphore* semaphore)
 /// parameter to the null pointer (0) if this information is not required.
 ///
 /// The information returned by this API can only be guaranteed consistent if
-/// the API is called from a critical section. Since the
-/// implementation of this API does not require a critical section, it is not
-/// an error to call this API from a critical interrupt context.
+/// the API is called from a critical section.
 ///
 /// Return values other than PK_OK (0) are errors; see \ref pk_errors
 ///
@@ -306,7 +295,7 @@ pk_semaphore_info_get(PkSemaphore*      semaphore,
 /// An simple interrupt handler that posts to a semaphore.
 ///
 /// To implement basic event-driven blocking of a thread, install
-/// pk_semaphore_post_handler() as the handler for a non-critical interrupt
+/// pk_semaphore_post_handler() as the handler for an interrupt
 /// and provide a pointer to the semaphore as the \a arg argument in
 /// pk_irq_handler_set().  The semaphore should be initialized with
 /// pk_semaphore_create(&sem, 0, 1).  This handler simply disables (masks)
@@ -319,12 +308,11 @@ pk_semaphore_info_get(PkSemaphore*      semaphore,
 /// condition in the device before re-enabling the interrupt.
 #if 0
 void
-pk_semaphore_post_handler_full(void *arg, PkIrqId irq, int priority)
+pk_semaphore_post_handler(void *arg, PkIrqId irq, int priority)
 {
     pk_irq_disable(irq);
     pk_irq_status_clear(irq);
     pk_semaphore_post((PkSemaphore *)arg);
 }
 
-PK_IRQ_FAST2FULL(pk_semaphore_post_handler, pk_semaphore_post_handler_full);
 #endif

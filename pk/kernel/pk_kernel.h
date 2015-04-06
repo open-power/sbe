@@ -33,33 +33,19 @@
 
 #ifndef __ASSEMBLER__
 
-/// This is the stack pointer saved when switching from a thread or
-/// non-critical interrupt context to a full-mode critical interrupt context.
-
-UNLESS__PK_CORE_C__(extern) 
-volatile 
-PkAddress __pk_saved_sp_critical;
-
-/// The critical interrupt stack; constant once defined by the call of
-/// pk_initialize(). 
-
-UNLESS__PK_CORE_C__(extern)
-volatile 
-PkAddress __pk_critical_stack;
-
-/// This is the stack pointer saved when switching from a thread context to a
-/// full-mode non-critical interrupt context.
+/// This is the stack pointer saved when switching from a thread context to an
+/// interrupt context.
 
 UNLESS__PK_CORE_C__(extern)
 volatile
-PkAddress __pk_saved_sp_noncritical;
+PkAddress __pk_saved_sp;
 
-/// The non-critical interrupt stack; constant once defined by the call of
+/// The kernel stack; constant once defined by the call of
 /// pk_initialize(). 
 
 UNLESS__PK_CORE_C__(extern)
 volatile
-PkAddress __pk_noncritical_stack;
+PkAddress __pk_kernel_stack;
 
 /// This is the run queue - the queue of mapped runnable tasks.
 UNLESS__PK_CORE_C__(extern)
@@ -68,7 +54,7 @@ PkThreadQueue __pk_run_queue;
 
 /// This flag is set by \c __pk_schedule() if a new highest-priority thread
 /// becomes runnable during an interrupt handler.  The context switch will
-/// take place at the end of non-critical interrupt processing, and the
+/// take place at the end of interrupt processing, and the
 /// interrupt handling code will clear the flag. 
 
 UNLESS__PK_CORE_C__(extern)
@@ -146,17 +132,11 @@ volatile
 PkMachineContext __pk_thread_machine_context_default;
 
 
-/// The size of the noncritical stack (bytes).
+/// The size of the kernel stack (bytes).
 
 UNLESS__PK_CORE_C__(extern)
 volatile
-size_t __pk_noncritical_stack_size;
-
-/// The size of the critical stack (bytes).
-
-UNLESS__PK_CORE_C__(extern)
-volatile
-size_t __pk_critical_stack_size;
+size_t __pk_kernel_stack_size;
 
 /// This table maps priorities to threads, and contains PK_THREADS + 1
 /// entries. The final entry is for the idle thread and will always be null

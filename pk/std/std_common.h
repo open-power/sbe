@@ -26,14 +26,14 @@
 /// Check for interrupts pending in the interrupt status register while the IRQ
 /// is computed.  The IRQ is expected to be stored in r4. If no IRQ is
 /// pending then load the phantom irq # (EXTERNAL_IRQS).
-/// Only the following registers have been saved off and can be used:
-/// r3, r4, r5, r6, cr0, lr
+/// 
+/// r1, r2, r3, and r13 must not be modified.  All other registers may be used.
 ///
     .macro hwmacro_get_ext_irq
         
         _lvdg       d5, STD_LCL_EISTR    #load the 64bit interrupt status into d5
         cntlzw      r4, r5
-        cmpwible    r4, 31, external_irq_found   #branch if irq is lt or eq to 31
+        cmpwible    r4, 31, call_external_irq_handler   #branch if irq is lt or eq to 31
         
         ## No IRQ pending in r5.  Try r6.
         ## Note: irq # will be 64 (phantom irq) if no bits were set in either register

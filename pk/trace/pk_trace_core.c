@@ -23,12 +23,10 @@ void pk_trace_timer_callback(void* arg);
 
 //Static initialization of the trace timer
 PkTimer g_pk_trace_timer = {
-    .deque.next = 0,
-    .deque.previous = 0,
+    .deque = PK_DEQUE_ELEMENT_INIT(),
     .timeout = 0,
     .callback = pk_trace_timer_callback,
     .arg = 0,
-    .options = PK_TIMER_CALLBACK_PREEMPTIBLE,
 };
 
 //Static initialization of the pk trace buffer

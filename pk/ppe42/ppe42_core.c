@@ -29,64 +29,6 @@ ppe42_timebase_data_t ppe42_tb_data = {0};
 PkTimebase  ppe42_64bit_timebase = 0;
 
 
-/// Enable interrupt preemption
-///
-/// This API can only be called from an interrupt context.  Threads will
-/// always be preempted by interrupts unless they explicitly disable
-/// interrupts with the \c pk_interrupt_disable() API. It is legal to call
-/// this API redundantly.
-///
-/// Be careful when enabling interrupt handler preemption that the interrupt
-/// being handled does not/can not trigger again, as this could rapidly lead
-/// to stack overflows.
-///
-/// Return values other then PK_OK (0) are errors; see \ref pk_errors
-///
-/// \retval 0 Successful completion
-///
-/// \retval -PK_ILLEGAL_CONTEXT The API call was not made from an interrupt
-/// context. 
-
-int
-pk_interrupt_preemption_enable()
-{
-    if (PK_ERROR_CHECK_API) {
-        PK_ERROR_UNLESS_ANY_INTERRUPT_CONTEXT();
-    }
-
-    wrteei(1);
-
-    return PK_OK;
-}
-        
-
-/// Disable interrupt preemption
-///
-/// This API can only be called from an interrupt context.  Threads will
-/// always be preempted by interrupts unless they explicitly disable
-/// interrupts with the \c pk_interrupt_disable() API.  It is legal to call
-/// this API redundantly.
-///
-/// Return values other then PK_OK (0) are errors; see \ref pk_errors
-///
-/// \retval 0 Successful completion
-///
-/// \retval -PK_ILLEGAL_CONTEXT The API call was not made from an interrupt
-/// context. 
-
-int
-pk_interrupt_preemption_disable()
-{
-    if (PK_ERROR_CHECK_API) {
-        PK_ERROR_UNLESS_ANY_INTERRUPT_CONTEXT();
-    }
-
-    wrteei(0);
-
-    return PK_OK;
-}
-        
-
 #if PK_TIMER_SUPPORT
 
 // The tickless kernel timer mechanism for PPE42
@@ -160,10 +102,7 @@ __pk_schedule_hardware_timeout(PkTimebase timeout)
         }
         else
         {
-            //FIXME: We have to multiply the difference by 16
-            //to workaround missing support for selecting the
-            //external dec_timer clock source for the decrementer.
-            diff = (timeout - now) << 4;
+            diff = (timeout - now);
 
             if (diff > 0xfffffffful)
             {
