@@ -23,15 +23,46 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /**
- * @file error_scope.H
- * @brief platform specializations which create a scope for automatic error handling
+ * @file plat_error_scope.H
+ * @brief platform definitions which create a scope for automatic error handling
  */
 
-#ifndef __FAPI2_ERROR_SCOPE__
-#define __FAPI2_ERROR_SCOPE__
+#ifndef __FAPI2_PLAT_ERROR_SCOPE__
+#define __FAPI2_PLAT_ERROR_SCOPE__
 
-#include <plat_error_scope.H>
-#include <fapi2_error_scope.H>
+/// @cond
+#define PLAT_FAPI_TRY_NO_TRACE( __operation__ )                         \
+    if ((fapi2::current_err = (__operation__)) != fapi2::FAPI2_RC_SUCCESS) \
+    {                                                                   \
+        goto fapi_try_exit;                                             \
+    }
 
+// Why debug? Because this isn't a mechanism to gather FFDC
+// one should be using FAPI_ASSERT. However, it is nice to
+// have a conditional trace in the event of a failure in the
+// operation, so that's why this is here.
+#define PLAT_FAPI_TRY_TRACE( __operation__, ... )                       \
+    if ((fapi2::current_err = (__operation__)) != fapi2::FAPI2_RC_SUCCESS) \
+    {                                                                   \
+        FAPI_DBG(__VA_ARGS__);                                          \
+        goto fapi_try_exit;                                             \
+    }
+
+///
+/// @brief Assert a conditional is true.
+/// If it is not, the FFDC gathering function is called and the
+/// trace is output as a FAPI error trace.
+/// @param[in] __conditional__ the condition to assert
+/// @param[in] __ffdc__ the FFDC gathering function
+/// @param[in] ... varargs, as input to FAPI_ERR
+///
+#define PLAT_FAPI_ASSERT( __conditional__, __ffdc__, ... )      \
+    if (! (__conditional__))                                    \
+    {                                                           \
+        (__ffdc__).execute();                                   \
+        FAPI_ERR(__VA_ARGS__);                                  \
+        goto fapi_try_exit;                                     \
+    }
+/// @endcond
 
 #endif
