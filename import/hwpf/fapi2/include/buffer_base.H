@@ -178,7 +178,7 @@ namespace fapi2
         virtual ~buffer_base(void)
             {}
 
-#ifndef DOXYGEN
+#if !defined(DOXYGEN) && defined(FAPI2_DEBUG)
         /// @brief Print the contents of the buffer to stdout
         inline void print(void) const
         { TT::print(iv_data); }
@@ -236,7 +236,7 @@ namespace fapi2
             static const bits_type bits_in_value = parameterTraits<OT>::bit_length();
             const bits_type bit_length = TT::bit_length(iv_data);
 
-            if (i_offset + bits_in_value >= bit_length)
+            if (((i_offset * bits_in_value) + bits_in_value) > bit_length)
             {
                 return FAPI2_RC_OVERFLOW;
             }

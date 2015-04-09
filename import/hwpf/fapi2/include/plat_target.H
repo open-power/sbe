@@ -23,15 +23,21 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /**
- * @file error_scope.H
- * @brief platform specializations which create a scope for automatic error handling
+ * @file plat_target.H
+ * @brief platform definitions for fapi2 targets
  */
 
-#ifndef __FAPI2_ERROR_SCOPE__
-#define __FAPI2_ERROR_SCOPE__
+#ifndef __FAPI2_PLAT_TARGET__
+#define __FAPI2_PLAT_TARGET__
 
-#include <plat_error_scope.H>
-#include <fapi2_error_scope.H>
-
+//
+// Define what a platform handle looks like. For Hostboot,
+// for example, this might be a void*. For the SBE, this
+// will be a uint64_t ...
+//
+namespace fapi2
+{
+    typedef uint64_t plat_target_handle_t;
+}
 
 #endif

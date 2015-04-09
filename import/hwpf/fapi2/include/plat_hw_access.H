@@ -22,16 +22,18 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-/**
- * @file error_scope.H
- * @brief platform specializations which create a scope for automatic error handling
- */
 
-#ifndef __FAPI2_ERROR_SCOPE__
-#define __FAPI2_ERROR_SCOPE__
+/// @file plat_hw_access.H
+///
+/// @brief Platform hardware-access definitions
+///
 
-#include <plat_error_scope.H>
-#include <fapi2_error_scope.H>
+#ifndef _FAPI2_PLAT_HWACCESS_H_
+#define _FAPI2_PLAT_HWACCESS_H_
 
+namespace fapi2
+{
 
-#endif
+}
+
+#endif // _FAPI2_PLAT_HWACCESS_H_
