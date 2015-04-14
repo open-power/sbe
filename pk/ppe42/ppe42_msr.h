@@ -33,6 +33,13 @@
 //#define MSR_IR_BIT 26
 //#define MSR_DR_BIT 27
 
+
+#define MSR_SEM_START_BIT       1
+#define MSR_SEM_LEN             7
+#define MSR_SIBRC_START_BIT     9
+#define MSR_SIBRC_LEN           3
+
+
 #ifndef __ASSEMBLER__
 
 /// Move From MSR
