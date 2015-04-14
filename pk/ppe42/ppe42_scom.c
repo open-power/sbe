@@ -5,7 +5,7 @@
 //-----------------------------------------------------------------------------
 
 /// \file   ppe42_scom.c
-/// \brief  Lowest level PK SCOM definitions. 
+/// \brief  Lowest level PK SCOM definitions.
 ///
 /// Currently these SCOM functions are only optimized for functionality, not
 /// speed. Speed optimization will be done when we have full compiler support
@@ -21,221 +21,57 @@
 
 #include "pk.h"
 #include "ppe42_scom.h"
+#include "ppe42_msr.h"
 
 
-uint32_t putscom_abs(uint32_t i_address, uint64_t i_data)
+uint32_t putscom_abs(const uint32_t i_address, uint64_t *i_data)
 {
 
-    // CMO-Declaring variables tied to specific registers enables us to protect 
-    // the SCOM data and address variables used in the new stvd and lvd 64-bit
-    // scom instructions. This protection is needed since the new instructions'
-    // operands are not yet properly considered by the compiler.
-    // Note that l_dataH is used to represent the "beginning", i.e. High-order,
-    // part of the 64-bit data in d8 (i.e., r8+r9). 
-    uint32_t register l_dataH asm("r8")=0;
-    uint32_t register l_dataL asm("r9")=0;
-    uint32_t register l_addr_eff asm("r10")=0;
-    uint32_t register l_scratch asm("r31")=0;
+    // Perform the Store Virtual Double instruction
+    PPE_STVD(i_address, &i_data);
+
+    // Get the MSR[SIBRC] as the return code   
+    uint32_t rc = mfmsr();
+    rc = ((rc & MSR_SIBRC) >> (32-(MSR_SIBRC_START_BIT + MSR_SIBRC_LEN)));
+    return (rc);
     
-    l_addr_eff = i_address;
-    l_dataH = (uint32_t)(i_data>>32);
-    l_dataL = (uint32_t)(i_data);    
-
-    // CMO-The following sequence forces usage of l_dataH/L and l_addr_eff
-    // and thus the population of them as well. 
-    // Further note that unless l_dataH/L are placed right before the following
-    // sequence, more specifically, if they're placed at the top of putscom(),
-    // r8, or l_dataH, might be overwritten in the if(chiplet_id) section.
-    // Secondly, we test l_addr_eff for non-zero through the CR0 register 
-    // (which was populated in the "mr." instruction.) This is to convince the 
-    // compiler that we actually used l_addr_eff for something. 
-    // At present the test result causes no action except to execute the stvd 
-    // instruction in either case.
-    asm volatile ( \
-        "mr. %0, %1 \n" \
-        : "=r"(l_scratch) \
-        : "r"(l_dataH) );
-    asm volatile ( \
-        "mr. %0, %1 \n" \
-        : "=r"(l_scratch) \
-        : "r"(l_dataL) );
-    asm volatile ( \
-        "mr. %0, %1 \n" \
-        : "=r"(l_scratch) \
-        : "r"(l_addr_eff) );
-    asm volatile ( \
-        "beq 0x4 \n" );
-
-    // CMO-This instruction is not fully supported by the compiler (as of
-    // 20150108):
-    // - Works: It is correctly translated into the proper OP code
-    //            format.
-    // - Works not: The compiler does not seem to recognize the usage
-    //              of the two l_xyz variables in that it doesn't
-    //              know prior to this command that the registers that
-    //              contain the values of l_xyz need to be protected
-    //              up to this point. Thus, we are forced to use those
-    //              two l_xyz variables in some dummy instructions just
-    //              before this point in order to fake protection.    
-    asm volatile ( \
-        "stvd %[data], 0(%[effective_address]) \n" \
-        : [data]"=r"(l_dataH) \
-        : [effective_address]"r"(l_addr_eff) );
-
-    // CMO-TBD
-    // Check PIB response code in 0x00001007(17:19)
-    // Translate PIB rc to PK rc
-    // Does this rc get reset to zero on success?
-    // Do we need to check this rc prior to issuing the SCOM?
-
-    return 0;
 }
 
-uint32_t _putscom( uint32_t i_chiplet_id, uint32_t i_address, uint64_t i_data)
+uint32_t _putscom( uint32_t i_chiplet_id, uint32_t i_address, uint64_t *i_data)
 {
-    uint32_t  l_rc=0;
-    uint32_t  l_cid=0;
-    uint32_t  l_addr_eff=0;
 
-    if (i_chiplet_id)
-    {
-        // Accommodate two different ways of supplying the chiplet ID:
-        //   0xNN000000: Only bits in high-order two nibbles : Valid
-        //   0x000000NN: Only bits in low-order two nibbles :  Valid
-        //
-        if ((i_chiplet_id & 0xFF000000) == i_chiplet_id)
-        {
-            // Valid: Chiplet ID in high-order two nibbles.
-            l_cid = i_chiplet_id;
-        }
-        else if ((i_chiplet_id & 0x000000FF) == i_chiplet_id)
-        {
-            // Valid: Chiplet ID in low-order two nibbles. Convert to high-order.
-            l_cid = i_chiplet_id << 24;
-        }
-        else
-        {
-            // Invalid: Invalid type of chiplet ID
-            PK_TRACE("putscom() : Invalid value of i_chiplet_id (=0x%08X)",i_chiplet_id);
-            return 1; //CMO-improve Return sensible rc here.
-        }
+    // Perform the Store Virtual Double Index instruction
+    PPE_STVDX(i_chiplet_id, i_address, &i_data);
 
-        l_addr_eff = (i_address & 0x00FFFFFF) | l_cid;
-    }
-    else
-    {
-        // Chiplet ID is zero. Accept address as is.
-        // This is useful for PIB addresses and non-EX chiplets, and even for
-        //   EX chiplets if the fully qualified EX chiplet addr is already known.
-        l_addr_eff = i_address;
+    // Get the MSR[SIBRC] as the return code   
+    uint32_t rc = mfmsr();
+    rc = ((rc & MSR_SIBRC) >> (32-(MSR_SIBRC_START_BIT + MSR_SIBRC_LEN)));
+    return (rc);
 
-    }
+}
+
+uint32_t getscom_abs( const uint32_t i_address, uint64_t *o_data)
+{
     
-    l_rc = putscom_abs(l_addr_eff, i_data);
+    // Perform the Load Virtual Double instruction
+    PPE_LVD(i_address, &o_data);
 
-
-    return l_rc;
+    // Get the MSR[SIBRC] as the return code   
+    uint32_t rc = mfmsr();
+    rc = ((rc & MSR_SIBRC) >> (32-(MSR_SIBRC_START_BIT + MSR_SIBRC_LEN)));
+    return (rc);
 }
 
 
-uint32_t getscom_abs( uint32_t i_address, uint64_t *o_data)
+uint32_t _getscom( const uint32_t i_chiplet_id, const uint32_t i_address, uint64_t *o_data)
 {
     
-    // CMO-Declaring variables tied to specific registers enables us to protect 
-    // the SCOM data and address variables used in the new stvd and lvd 64-bit
-    // data instructions. This protection is needed since the new instructions
-    // are not yet properly considered by the compiler.
-    // Note that l_dataH is used to represent the "beginning", i.e. High-order,
-    // part of the 64-bit data in d8 (i.e., r8+r9). 
-    uint32_t register l_dataH asm("r8")=0;
-    uint32_t register l_dataL asm("r9")=0;
-    uint32_t register l_addr_eff asm("r10")=0;
-    uint32_t register l_scratch asm("r31")=0;
+    // Perform the Load Virtual Double Index instruction
+    PPE_LVDX(i_chiplet_id, i_address, &o_data);
 
-    
-    l_addr_eff = i_address;
-    
-    // CMO-The following sequence forces usage of l_addr_eff and thus the
-    // population of it as well. 
-    // Secondly, we test l_addr_eff for non-zero through the CR0 register 
-    // (which was populated in the "mr." instruction.) This is to convince the 
-    // compiler that we actually used l_addr_eff for something. 
-    // At present the test result causes no action except to execute the lvd 
-    // instruction in either case.
-    asm volatile ( \
-        "mr. %0, %1 \n" \
-        : "=r"(l_scratch) \
-        : "r"(l_addr_eff) );
-    asm volatile ( \
-        "beq 0x4 \n" );
+    // Get the MSR[SIBRC] as the return code   
+    uint32_t rc = mfmsr();
+    rc = ((rc & MSR_SIBRC) >> (32-(MSR_SIBRC_START_BIT + MSR_SIBRC_LEN)));
+    return (rc);
 
-    asm volatile ( \
-        "lvd %[data], 0(%[effective_address]) \n" \
-        : [data]"=r"(l_dataH) \
-        : [effective_address]"r"(l_addr_eff) );
-
-    // CMO-The following sequence moves the read data, in l_dataH/L, into the
-    // 64-bit o_data location.
-    asm volatile ( \
-        "stw %0, 0(%1) \n" \
-        : "=r"(l_dataH) \
-        : "r"(o_data) );
-    asm volatile ( \
-        "stw %0, 4(%1) \n" \
-        : "=r"(l_dataL) \
-        : "r"(o_data) );
-    
-    // CMO-TBD
-    // Check PIB response code in 0x00001007(17:19)
-    // Translate PIB rc to PK rc
-
-    return 0;
-}
-
-uint32_t _getscom( uint32_t i_chiplet_id, uint32_t i_address, uint64_t *o_data)
-{
-    uint32_t  l_rc=0;
-    uint32_t  l_cid=0;
-    uint32_t  l_addr_eff=0;
-
-    if (i_chiplet_id)
-    {
-        // Accommodate two different ways of supplying the chiplet ID:
-        //   0xNN000000: Only bits in high-order two nibbles : Valid
-        //   0x000000NN: Only bits in low-order two nibbles :  Valid
-        //
-        if ((i_chiplet_id & 0xFF000000) == i_chiplet_id)
-        {
-            // Valid: Chiplet ID in high-order two nibbles.
-            l_cid = i_chiplet_id;
-        }
-        else if ((i_chiplet_id & 0x000000FF) == i_chiplet_id)
-        {
-            // Valid: Chiplet ID in low-order two nibbles. Convert to high-order.
-            l_cid = i_chiplet_id << 24;
-        }
-        else
-        {
-            // Invalid: Invalid type of chiplet ID
-            PK_TRACE("getscom() : Invalid value of i_chiplet_id (=0x%08X)",i_chiplet_id);
-            return 1; //CMO-improve Return sensible rc here.
-        }
-
-        l_addr_eff = (i_address & 0x00FFFFFF) | l_cid;
-    }
-    else
-    {
-        // Chiplet ID is zero. Accept address as is.
-        // This is useful for PIB addresses and non-EX chiplets, and even for
-        //   EX chiplets if the fully qualified EX chiplet addr is already known.
-        l_addr_eff = i_address;
-    }
-
-    l_rc = getscom_abs(l_addr_eff, o_data);
-    
-    // CMO-TBD
-    // Check PIB response code in 0x00001007(17:19)
-    // Translate PIB rc to PK rc
-
-    return l_rc;
 }
