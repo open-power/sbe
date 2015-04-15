@@ -21,7 +21,7 @@
 ##########################################################################
 # Object Files 
 ##########################################################################
-PK-C-SOURCES = pk_core.c pk_init.c pk_stack_init.c pk_bh_core.c
+PK-C-SOURCES = pk_core.c pk_init.c pk_stack_init.c pk_bh_core.c pk_debug_ptrs.c
 
 PK-TIMER-C-SOURCES += pk_timer_core.c pk_timer_init.c
 

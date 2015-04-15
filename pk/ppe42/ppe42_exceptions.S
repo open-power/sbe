@@ -125,6 +125,13 @@ __watchdog_interrupt:
         _pk_ctx_push_as_needed  watchdog_handler
 
 
+### ****************************************************************************
+### The rest of the code in this file doesn't have to be placed anywhere
+### special, so just place it in the .text section.
+### ****************************************************************************
+
+        .section .text, "ax", @progbits
+
 
         ## The idle thread has no permanent register context.  The idle thread
         ## entry point is re-entered whenever the idle thread is scheduled.
