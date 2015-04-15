@@ -64,7 +64,7 @@ void pk_set_timebase_rshift(uint32_t timebase_freq_hz)
 /// interrupt and bottom-half handlers. 
 ///
 /// \param initial_timebase The initial value of the PK timebase.
-/// argument is given as the special value \c PK_TIMEBASE_CONTINUE, then the
+/// If the argument is given as the special value \c PK_TIMEBASE_CONTINUES, then the
 /// timebase is not reset.
 ///
 /// \param timebase_frequency_hz The frequency of the PK timebase in Hz.
@@ -88,10 +88,10 @@ void pk_set_timebase_rshift(uint32_t timebase_freq_hz)
 // reset everything at initialization.
 
 int
-pk_initialize(PkAddress  kernel_stack,
-               size_t      kernel_stack_size,
-               PkTimebase initial_timebase,
-               uint32_t    timebase_frequency_hz)
+pk_initialize(PkAddress     kernel_stack,
+               size_t       kernel_stack_size,
+               PkTimebase   initial_timebase,
+               uint32_t     timebase_frequency_hz)
 {
     int rc;
 
@@ -133,8 +133,11 @@ extern PkTraceBuffer g_pk_trace_buf;
     //timebase frequency (versus what was hardcoded)
     pk_set_timebase_rshift(timebase_frequency_hz);
 
-    //set the timebase ajdustment for trace synchronization
-    pk_trace_set_timebase(initial_timebase);
+    if(initial_timebase != PK_TIMEBASE_CONTINUES)
+    {
+        //set the timebase ajdustment for trace synchronization
+        pk_trace_set_timebase(initial_timebase);
+    }
 
     // Schedule the timer that puts a 64bit timestamp in the trace buffer
     // periodically.  This allows us to use 32bit timestamps.
