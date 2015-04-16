@@ -11,6 +11,7 @@
 #include "sbeexeintf.H"
 #include "sbetrace.H"
 #include "ppe42_scom.h"
+#include "sbe_sp_intf.H"
 
 /**
   * @brief SBE FIFO Access addresses
@@ -61,6 +62,22 @@ typedef union
     uint32_t upfifo_status_uint32;
 } sbe_upfifo_status_t;
 
+/**
+  * @brief FIFO access return codes for internal purpose
+  *
+  */
+typedef enum
+{
+    SBE_FIFO_RC_ACCESS_SUCCESS = 0,
+    SBE_FIFO_RC_RESET          = 0xE0,
+    SBE_FIFO_RC_FULL,
+    SBE_FIFO_RC_EMPTY,
+    SBE_FIFO_RC_DUMMY_DATA,
+    SBE_FIFO_RC_EOT_ACKED,
+    SBE_FIFO_RC_EOT_ACK_FAILED,
+    SBE_FIFO_RC_UNKNOWN,
+} sbe_fifo_access_rc_t;
+
 
 /**
   * @brief 64-bit DW structure for Upstream FIFO Read
@@ -101,17 +118,124 @@ typedef union
 } sbe_downfifo_status_t;
 
 
+// @TODO via RTC 129073.
+// Put these structures in separate file as these are not FIFO specific.
+// Also make sure all FIFO structures are 32 bit alligned ( the largest
+// member should be atleast 4 byte). It is required as in sbe fifo
+// operation we are casting these structures to uint32_t pointer. It can
+// cause allignment issue if largest member of structure is not atleast
+// 32 bit. We can use bit fields to optimize  memory requirements.
 /**
   * @brief Command Request Header
+  */
+typedef struct
+{
+    uint32_t len;
+    uint16_t reserved;
+    uint8_t cmdClass;
+    uint8_t command;
+}sbeCmdReqBuf_t;
+
+extern sbeCmdReqBuf_t g_sbeCmdHdr;
+
+/**
+  * @brief structure for generic header for fifo response.
   *
   */
 typedef struct
 {
-    uint32_t cmdReqHdr_cmdLen ;
-    uint32_t cmdReqHdr_cmdClass ;
-} sbeCmdHdr_t;
+    uint16_t magicCode;
+    uint8_t cmdClass;
+    uint8_t command;
+    uint16_t primaryStatus;
+    uint16_t secondaryStatus;
 
-extern sbeCmdHdr_t g_sbeCmdHdr;
+    /**
+      * @brief set the primary and secondary status
+      *
+      * @param[in] i_prim  Primary status
+      * @param[in] i_sec   Secondary status
+      *
+      * @return
+      */
+    void setStatus( const uint16_t i_prim, const uint16_t i_sec)
+    {
+        primaryStatus = i_prim;
+        secondaryStatus = i_sec;
+    }
+
+    /**
+      * @brief set initial values for response header
+      *
+      * @note  We did not set this in constructor as based on use case
+      *        it is possible that g_sbeCmdHdr does not have proper
+      *        values at time of object creation.
+      *
+      */
+    void init()
+    {
+        magicCode = 0xC0DE;
+        cmdClass  = g_sbeCmdHdr.cmdClass;
+        command = g_sbeCmdHdr.command;
+        primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
+        secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
+    }
+
+}sbeResponseGenericHeader_t;
+
+/**
+  * @brief structure for ffdc header for fifo response.
+  *
+  */
+typedef struct sbeResponseFfdc
+{
+    uint16_t magicBytes;
+    uint16_t lenInWords;  // length in word( 4 byte )
+    //@TODO via RTC 129073.
+    //make fapiRc 64 bit
+    uint32_t fapiRc;
+
+    /**
+      * @brief set rc
+      *
+      * @param[in] i_rc  FAPI RC
+      *
+      * @return
+      */
+    void setRc(const uint32_t i_rc)
+    {
+        fapiRc = i_rc;
+    }
+
+    /**
+      * @brief constructor
+      *
+      * @param[in] i_rc  FAPI RC
+      *
+      * @return
+      */
+    sbeResponseFfdc()
+    {
+        magicBytes = 0xFFDC;
+        //TODO via 129076.
+        //Need to change value for length once FFDC design is final.
+        lenInWords  = ( sizeof(magicBytes) + sizeof(lenInWords)
+                            + sizeof(fapiRc) )/ sizeof(uint32_t);
+        fapiRc = 0;
+    }
+}sbeResponseFfdc_t;
+
+/**
+  * @brief structure for execute istep chipop (0xA101) contents.
+  *
+  */
+typedef struct
+{
+    uint8_t reserved1;
+    uint8_t major;
+    uint8_t reserved2;
+    uint8_t minor;
+}sbeIstepReqMsg_t;
 
 
 /**
@@ -133,22 +257,6 @@ typedef struct
     uint16_t magic_bytes;
     uint16_t len;
 } sbeCmdResp_FFDC_t;
-
-/**
-  * @brief FIFO access return codes for internal purpose
-  *
-  */
-typedef enum
-{
-    SBE_FIFO_RC_ACCESS_SUCCESS = 0,
-    SBE_FIFO_RC_RESET          = 0xE0,
-    SBE_FIFO_RC_FULL,
-    SBE_FIFO_RC_EMPTY,
-    SBE_FIFO_RC_DUMMY_DATA,
-    SBE_FIFO_RC_EOT_ACKED,
-    SBE_FIFO_RC_EOT_ACK_FAILED,
-    SBE_FIFO_RC_UNKNOWN,
-} sbe_fifo_access_rc_t;
 
 
 /*****************************************************************/
@@ -296,7 +404,9 @@ extern uint32_t sbeDownFifoEnq_mult (uint8_t        &io_len,
   */
 extern inline uint32_t sbeBuildRespHeaderMagicCodeCmdClass (void)
 {
-    return ( 0xC0DE0000 | g_sbeCmdHdr.cmdReqHdr_cmdClass );
+    return ( (0xC0DE0000 ) |
+             (uint32_t)(g_sbeCmdHdr.cmdClass << 8) |
+             (uint32_t)(g_sbeCmdHdr.command ));
 }
 
 /**
