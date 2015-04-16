@@ -143,8 +143,8 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             // @TODO via RTC: 128658
             //       Review if Mutex protection is required
             //       for all the globals used between threads
-            l_cmdClass  = (uint8_t)(g_sbeCmdHdr.cmdReqHdr_cmdClass>>8) ;
-            l_cmdOpCode = (uint8_t)(g_sbeCmdHdr.cmdReqHdr_cmdClass) ;
+            l_cmdClass  = g_sbeCmdHdr.cmdClass;
+            l_cmdOpCode = g_sbeCmdHdr.command;
 
             // Get the command function
             l_pFuncP = sbeFindCmdFunc (l_cmdClass, l_cmdOpCode) ;

@@ -13,7 +13,7 @@
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 
-sbeCmdHdr_t g_sbeCmdHdr  ;
+sbeCmdReqBuf_t g_sbeCmdHdr;
 sbeCmdRespHdr_t g_sbeCmdRespHdr;
 
 //////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
         //       for all the globals used between threads
         g_sbeCmdRespHdr.prim_status = SBE_PRI_OPERATION_SUCCESSFUL;
         g_sbeCmdRespHdr.sec_status  = SBE_SEC_OPERATION_SUCCESSFUL;
-        g_sbeCmdHdr.cmdReqHdr_cmdClass = SBE_CMD_CLASS_UNKNOWN;
+        g_sbeCmdHdr.cmdClass = SBE_CMD_CLASS_UNKNOWN;
 
         // inner loop for command handling
         do
@@ -59,9 +59,8 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
             // The responsibility of this thread is limited to dequeueing
             // only the first two word entries from the protocol header.
-            uint32_t l_ufifo_data[2] = {0};
-            uint8_t  l_len2dequeue   = 2;
-            l_rc = sbeUpFifoDeq_mult ( l_len2dequeue, &l_ufifo_data[0] );
+            uint8_t len = sizeof( g_sbeCmdHdr)/ sizeof(uint32_t);
+            l_rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&g_sbeCmdHdr );
 
             // If FIFO reset is requested,
             if (l_rc == SBE_FIFO_RC_RESET)
@@ -97,18 +96,10 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 break;
             }
 
-            // Successfully dequeued two mandatory entries;
-            // First entry corresponds to command length parameter
-            g_sbeCmdHdr.cmdReqHdr_cmdLen = l_ufifo_data[0];
-
-            // Second entry contains the command class
-            // and the opcode parameters
-            g_sbeCmdHdr.cmdReqHdr_cmdClass = l_ufifo_data[1];
-
             // validate the command class and sub-class opcodes
             l_rc = sbeValidateCmdClass (
-                    (uint8_t)(g_sbeCmdHdr.cmdReqHdr_cmdClass>>8),
-                    (uint8_t)(g_sbeCmdHdr.cmdReqHdr_cmdClass) ) ;
+                        g_sbeCmdHdr.cmdClass,
+                        g_sbeCmdHdr.command ) ;
 
             if (l_rc)
             {

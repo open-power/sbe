@@ -34,7 +34,7 @@ static sbeCmdStruct_t g_sbeScomCmdArray [] =
 ////////////////////////////////////////////////////////////////
 static sbeCmdStruct_t g_sbeIplControlCmdArray [] =
 {
-    {sbeExecuteIstep,
+    {sbeHandleIstep,
      SBE_CMD_EXECUTE_ISTEP,
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_MPIPL,
      },

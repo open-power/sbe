@@ -3,12 +3,6 @@
  *
  * @brief This file contains the SBE command details
  *
- * Change Log *****************************************************************
- * Flag     Defect/Feature  User        Date         Description
- * ----     --------------  ----        ----         -----------
- *                          basengup  2015/03/17        Created
- *
- *  @endverbatim
  */
 
 #ifndef __SBEFW_SBECMDIPLCONTROL_H
@@ -17,9 +11,23 @@
 #include <stdint.h>
 
 
-uint32_t sbeExecuteIstep (uint8_t *i_pArg);
+/**
+  * @brief execute istep chipop (0xA101)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeHandleIstep(uint8_t *i_pArg);
 
 
+/**
+  * @brief  Handles wait for IPL done chipop (0xA102)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
 uint32_t sbeWaitForSbeIplDone (uint8_t *i_pArg);
 
 
