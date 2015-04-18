@@ -37,14 +37,10 @@
         goto fapi_try_exit;                                             \
     }
 
-// Why debug? Because this isn't a mechanism to gather FFDC
-// one should be using FAPI_ASSERT. However, it is nice to
-// have a conditional trace in the event of a failure in the
-// operation, so that's why this is here.
 #define PLAT_FAPI_TRY_TRACE( __operation__, ... )                       \
     if ((fapi2::current_err = (__operation__)) != fapi2::FAPI2_RC_SUCCESS) \
     {                                                                   \
-        FAPI_DBG(__VA_ARGS__);                                          \
+        FAPI_ERR(__VA_ARGS__);                                          \
         goto fapi_try_exit;                                             \
     }
 
