@@ -7,11 +7,10 @@
 /// \file base_ppe_header.S
 /// \brief code to create header, toc, strings, fixed and fixed_toc sections
 ///
-/// function SbeXipHeader create header section, function .proc_sbe_fixed
+/// function SbeXipHeader creates header section, function .proc_sbe_fixed
 /// creates fixed, fixed_toc sections
 #include "sbe_xip_image.h"
 #include "proc_sbe_fixed.H"
-
 
         
 #define PORE_SPACE_UNDEFINED 0xffff
@@ -178,23 +177,20 @@ __header_string_reserved:
 	.endm
         
 
-.section .fixed, "a", @progbits
-.section .fixed_toc, "a", @progbits        
-.section .ipl_data, "a", @progbits
-.section .ipl_text, "a", @progbits        
+    .section .fixed, "a", @progbits
+    .section .fixed_toc, "a", @progbits        
+    .section .ipl_data, "a", @progbits
+    .section .ipl_text, "a", @progbits        
         
-.section .toc, "a", @progbits
-.section .strings, "aS", @progbits
+    .section .toc, "a", @progbits
+    .section .strings, "aS", @progbits
+    
+    ..set_default_space PORE_SPACE_SEEPROM
+    SbeXipHeader SBE_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _sbe_base_size 
 
-
-        
-        
-..set_default_space PORE_SPACE_SEEPROM
-SbeXipHeader SBE_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _sbe_base_size        
-.proc_sbe_fixed
-        
-
-        
-
-
-        
+    // Create the .fixed section    
+    .proc_sbe_fixed_proc_chip
+    .proc_sbe_fixed_perv
+    .proc_sbe_fixed_core
+    .proc_sbe_fixed_ex
+    .proc_sbe_fixed_eq
