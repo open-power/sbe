@@ -32,21 +32,41 @@
 #
 # OBJDIR             : target directory for all generated files
 
-IMAGE_NAME := base_ppe
+IMAGE_NAME := sbe_main
 
-# TODO change to std?
-PPE_TYPE := ppe
+PPE_TYPE := std
 
 ifndef IMAGE_SRCDIR
 export IMAGE_SRCDIR = $(abspath .)
 endif
 
-ifndef IMG_INCLUDES
-export IMG_INCLUDES = -I$(IMAGE_SRCDIR)
+ifndef CACHE_SRCDIR
+export CACHE_SRCDIR = $(abspath ../../hwp/cache)
 endif
 
+ifndef CORE_SRCDIR
+export CORE_SRCDIR = $(abspath ../../hwp/core)
+endif
+
+ifndef PERV_SRCDIR
+export PERV_SRCDIR = $(abspath ../../hwp/perv)
+endif
+
+ifndef HWPLIB_SRCDIR
+export HWPLIB_SRCDIR = $(abspath ../../hwp/lib)
+
+endif
+
+ifndef IMG_INCLUDES
+export IMG_INCLUDES = -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR)
+
+endif
+
+ifndef IMG_INCLUDES
+export IMG_INCLUDES = -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR)
+endif
 ifndef BASE_OBJDIR
-export BASE_OBJDIR = $(abspath ../../../obj)
+export BASE_OBJDIR = $(abspath ../obj)
 endif
 
 export IMG_OBJDIR = $(BASE_OBJDIR)/$(IMAGE_NAME)
@@ -55,18 +75,16 @@ ifndef PK_SRCDIR
 export PK_SRCDIR = $(abspath ../../pk)
 endif
 
-ifndef GCC-TOOL-PREFIX
-#GCC-TOOL-PREFIX = $(CTEPATH)/tools/ppcgcc/prod/bin/powerpc-linux-
-#GCC-TOOL-PREFIX = /afs/bb/u/rembold/openpower/op-build/output/host/usr/bin/powerpc64-linux-
-GCC-TOOL-PREFIX = /afs/watson/projects/vlsi/cte/tools/gcc405lin/4.8.3/usr/bin/powerpc-linux-
-#GCC-TOOL-PREFIX = /afs/bb/u/rembold/openpower/op-build/buildroot/output/host/usr/bin/powerpc-linux-
-#GCC-TOOL-PREFIX = /afs/bb/u/rembold/openpower/op-build/output/host/usr/powerpc64-buildroot-linux-gnu/bin/
-#GCC-TOOL-PREFIX = /afs/bb/u/rembold/openpower/opcustom/op-build/buildroot/output/host/usr/bin/powerpc-linux-
+ifndef TOOLS_ATTR_DIR
+export TOOLS_ATTR_DIR = $(abspath ../../tools/scripts)
 endif
 
-ifndef BINUTILS-TOOL-PREFIX
-BINUTILS-TOOL-PREFIX = $(CTEPATH)/tools/ppetools/prod/powerpc-eabi/bin/
+
+
+ifndef GCC-TOOL-PREFIX
+GCC-TOOL-PREFIX = $(CTEPATH)/tools/gcc405lin/prod/usr/bin/powerpc-linux-
 endif
+
 
 ifndef P2P_SRCDIR
 export P2P_SRCDIR = $(abspath ../../tools/PowerPCtoPPE)
@@ -76,12 +94,38 @@ ifndef PPETRACEPP_DIR
 export PPETRACEPP_DIR = $(abspath ../../tools/ppetracepp)
 endif
 
+ifndef PLAT_FAPI2_DIR
+export PLAT_FAPI2_DIR = $(abspath ../plat)
+endif
+
+
+ifndef PPE_FAPI2_DIR
+export PPE_FAPI2_DIR = $(abspath ../../hwpf/plat)
+endif
+
+ifndef BASE_FAPI2_DIR
+export BASE_FAPI2_DIR = $(abspath /afs/awd/projects/eclipz/lab/p8/u/rembold/ekbgit/hwpf/fapi2)
+endif
+
+
+ifndef CC_ROOT
+export CC_ROOT = ${CTEPATH}/tools/gcc405lin/prod
+endif
+
+
+ifndef GCC-TOOL-PREFIX
+GCC-TOOL-PREFIX  = ${CC_ROOT}/usr/bin/powerpc-linux-
+endif
+
+ifndef BINUTILS-TOOL-PREFIX
+BINUTILS-TOOL-PREFIX = $(CTEPATH)/tools/ppetools/prod/powerpc-eabi/bin/
+endif
+
 OBJDIR = $(BASE_OBJDIR)$(SUB_OBJDIR)
 
-
 CC_ASM  = $(GCC-TOOL-PREFIX)gcc
-TCC      = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
-CC      = $(GCC-TOOL-PREFIX)gcc
+TCC     = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)g++
+CC      = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
 AS      = $(BINUTILS-TOOL-PREFIX)as
 AR      = $(BINUTILS-TOOL-PREFIX)ar
 LD      = $(BINUTILS-TOOL-PREFIX)ld
@@ -132,36 +176,69 @@ GCC-DEFS += -DPK_THREAD_SUPPORT=$(PK_THREAD_SUPPORT)
 GCC-DEFS += -DPK_TRACE_SUPPORT=$(PK_TRACE_SUPPORT)
 GCC-DEFS += -DPK_TRACE_HASH_PREFIX=$(PK_TRACE_HASH_PREFIX)
 GCC-DEFS += -D__PK__=1
+GCC-DEFS += -D__SBE__=1
 DEFS += $(GCC-DEFS)
+export LD_LIBRARY_PATH = /afs/awd.austin.ibm.com/proj/p3/cte/tools/gcc405lin/vol1/usr/lib
 
 ############################################################################
 
-INCLUDES += $(IMG_INCLUDES) \
-	-I$(PK_SRCDIR)/kernel -I$(PK_SRCDIR)/ppe42 -I$(PK_SRCDIR)/trace \
-	-I$(PK_SRCDIR)/$(PPE_TYPE) -I$(PK_SRCDIR)/../include \
-	-I$(PK_SRCDIR)/../tools/ppetracepp
+
+INCLUDES += $(IMG_INCLUDES)
+INCLUDES += -I$(IMAGE_SRCDIR)/../../../include
+INCLUDES += -I$(PLAT_FAPI2_DIR)/include
+INCLUDES += -I$(PPE_FAPI2_DIR)/include
+INCLUDES += -I$(BASE_FAPI2_DIR)/include
+INCLUDES += -I$(PK_SRCDIR)/../include
+INCLUDES += -I$(PK_SRCDIR)/$(PPE_TYPE)
+INCLUDES += -I$(PK_SRCDIR)/../include
+INCLUDES += -I$(PK_SRCDIR)/kernel
+INCLUDES += -I$(PK_SRCDIR)/ppe
+INCLUDES += -I$(PK_SRCDIR)/ppe42
+INCLUDES += -I$(PK_SRCDIR)/../sbe/sbefw
+INCLUDES += -I$(PK_SRCDIR)/trace
+INCLUDES += -I$(PK_SRCDIR)/../tools/ppetracepp
 
 PIPE-CFLAGS = -pipe -Wa,-m405
 
-GCC-CFLAGS += -Wall -fsigned-char -msoft-float  \
-	-mcpu=405 -m32 -mmulhw -mmultiple \
-	-meabi -msdata=eabi \
-	-ffreestanding -fno-common -Werror \
-	-fno-inline-functions-called-once \
-	-ffixed-r11 -ffixed-r12 \
-    -ffixed-r14 -ffixed-r15 -ffixed-r16 -ffixed-r17 \
-    -ffixed-r18 -ffixed-r19 -ffixed-r20 -ffixed-r21 \
-    -ffixed-r22 -ffixed-r23 -ffixed-r24 -ffixed-r25 \
-    -ffixed-r26 -ffixed-r27 \
-    -ffixed-cr1 -ffixed-cr2 -ffixed-cr3 -ffixed-cr4 \
-    -ffixed-cr5 -ffixed-cr6 -ffixed-cr7 #-lstdc++
 
+GCC-CFLAGS += -Wall -Werror -Wno-unused-label
+GCC-CFLAGS += -msoft-float -mcpu=405 -mmulhw
+GCC-CFLAGS += -meabi -msdata=eabi
+GCC-CFLAGS += -ffreestanding
+GCC-CFLAGS += -fno-common
+GCC-CFLAGS += -fsigned-char
+GCC-CFLAGS += -fno-inline-functions-called-once
+GCC-CFLAGS += -ffixed-r11
+GCC-CFLAGS += -ffixed-r12
+GCC-CFLAGS += -ffixed-r14
+GCC-CFLAGS += -ffixed-r15
+GCC-CFLAGS += -ffixed-r16
+GCC-CFLAGS += -ffixed-r17
+GCC-CFLAGS += -ffixed-r18
+GCC-CFLAGS += -ffixed-r19
+GCC-CFLAGS += -ffixed-r20
+GCC-CFLAGS += -ffixed-r21
+GCC-CFLAGS += -ffixed-r22
+GCC-CFLAGS += -ffixed-r23
+GCC-CFLAGS += -ffixed-r24
+GCC-CFLAGS += -ffixed-r25
+GCC-CFLAGS += -ffixed-r26
+GCC-CFLAGS += -ffixed-r27
+GCC-CFLAGS += -ffixed-cr1
+GCC-CFLAGS += -ffixed-cr2
+GCC-CFLAGS += -ffixed-cr3
+GCC-CFLAGS += -ffixed-cr4
+GCC-CFLAGS += -ffixed-cr5
+GCC-CFLAGS += -ffixed-cr6
+GCC-CFLAGS += -ffixed-cr7
 
-CFLAGS      =  -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES) 
+CFLAGS =  
+PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES) 
 
-CPPFLAGS    = -E
+CPPFLAGS    	= -E -std=c++11
+#CPPFLAGS    	= -E
 
-ASFLAGS		=  -mppe42
+ASFLAGS		= -mppe42
 
 ifdef P2P_ENABLE
 #use this to disable optimizations (fused compare/branch etc.)
@@ -176,20 +253,20 @@ endif
 %.o: %.C
 
 $(OBJDIR)/%.s: %.C
-	$(TCC) $(CFLAGS) $(DEFS) -S -o $@ $<
+	$(TCC) $(PPE-CFLAGS) $(DEFS) -S -std=c++11 -o $@ $<
 
 
 #override the GNU Make implicit rule for going from a .c to a .o
 %.o: %.c
 
 $(OBJDIR)/%.s: %.c
-	$(TCC) $(CFLAGS) $(DEFS) -S -o $@ $<
+	$(CC) $(PPE-CFLAGS) $(DEFS) -S -o $@ $<
 
 #override the GNU Make implicit rule for going from a .S to a .o
 %.o: %.S
 
 $(OBJDIR)/%.s: %.S
-	$(TCPP) $(CFLAGS) $(DEFS) $(CPPFLAGS) -o $@ $<
+	$(TCPP) $(PPE-CFLAGS) $(DEFS) $(CPPFLAGS) -o $@ $<
 .PRECIOUS: $(OBJDIR)/%.s
 
 ifndef P2P_ENABLE
@@ -223,6 +300,7 @@ $(OBJDIR)/%.d: %.C
 $(OBJDIR)/%.d: %.c
 	@set -e; rm -f $@; \
 	echo -n "$(OBJDIR)/" > $@.$$$$; \
+	echo "$(INCLUDES)"; \
 	$(CC_ASM) -MM $(INCLUDES) $(CPPFLAGS) $(DEFS) $< >> $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$

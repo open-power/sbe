@@ -4,91 +4,161 @@
 // *! *** IBM Confidential ***
 //-----------------------------------------------------------------------------
 
-/// \file fapi_sbe_fixed.H
-/// \brief definition of functions, attributes and rings going into fixed 
+/// \file proc_sbe_fixed.H
+/// \brief Define the layout of fixed-position data in the P9 SBE reference
+/// and IPL images
 ///
 /// Contains struct ProcSbeFixed which contains functions, rings and
 /// attributes whose pointers are stored in the fixed and fixed_toc section
+///
+/// This file defines the layout of the special .fixed data section of P9 SBE
+/// reference and IPL images.  The .fixed section is guaranteed to appear at a
+/// fixed offset from the beginning of the image, containing data required to
+/// be manipulated when images are resident in non-volatile memories, thereby
+/// avoiding having to search the TOC. Data manipulated during in-memory image
+/// processing can always be easily located using the SBE-XIP TOC APIs.  All
+/// of the data stored in .fixed can also still be referenced via the SBE-XIP
+/// TOC.
+///
+/// This header file can be #include-ed into either C or SBE assembly language
+/// source code.  In C, it creates simple structures 'ProcChipAttributes', 
+/// 'PervAttributes', 'CoreAttributes', 'EQAttributes' and 'EXAttributes' that 
+/// contain attribute information that are sized per XML definition per entry.
+///
+/// PPE image data is always stored big-endian, so applications on little-endian 
+/// hosts will need to perform the appropriate endian converison when reading or
+/// writing images via this header.
+///
+/// In assembler code, this header creates macros '.proc_sbe_fixed_proc_chip',
+/// '.proc_sbe_fixed_perv', '.proc_sbe_fixed_core', '.proc_sbe_fixed_ex', 
+/// '.proc_sbe_fixed_eq', that is expanded exactly once in the file 
+/// 'sbe_base_header.S', creating the actual data allocation of the data 
+/// equivalent to the C structure.  Assembler code references the data symbols 
+/// as normal.
+///
+/// To simplify programming a 'mini-TOC' is also provided for this data in
+/// the .fixed_toc section.  This section is comprised of SbeXipHashedToc
+/// structures. When a symbol is indedxed in .fixed, a blank SbeXipHashedToc
+/// stucture is added to .fixed_toc.  During image normalization the array of
+/// SbeXipHashedToc is filled in as each symbol in .fixed is re-indexed into
+/// .fixed_toc.
 
 #ifndef __PROC_SBE_FIXED_H__
 #define __PROC_SBE_FIXED_H__
 
+#include "p9_sbe.H"
+#include "plat_target_parms.H"
+#include "fapi2AttributeIds.H"
 
 
 #ifdef __ASSEMBLER__
-
-	.macro	proc_sbe_fixed_uint64, symbol:req, elements=1
-   	.global \symbol
-         //.weak \symbol
-__\symbol\():
-	.rept	(\elements)
-	.quad 0
-	.endr
-	
-	.xip_toc \symbol, SBE_XIP_UINT64, __\symbol, (\elements)
-
-	.pushsection .fixed_toc
-        .space	 8
-	.popsection
-
-	.endm
-
-	.macro remove_from_mc_group dx: req, addr:req, px:req
-        // Current multicast group is in bits 3:5
-        ldandi  \dx, \addr, \px, BITS(3,3)
-        // Need to write 0xFC and previous group (bits 19:21) to current group
-        rotrdi  \dx, \dx, 16
-        ori     \dx, \dx, BITS(0,6)
-        std     \dx, \addr, \px
-        .endm
-
-
-#define PROC_SBE_FIXED_UINT64(symbol) proc_sbe_fixed_uint64 symbol
-
-#define PROC_SBE_FIXED_UINT64_VECTOR(symbol, elements) \
-             proc_sbe_fixed_uint64 symbol, elements
-
-#else  // __ASSEMBLER__
-
-#define PROC_SBE_FIXED_UINT64(symbol) uint64_t symbol
-#define PROC_SBE_FIXED_UINT64_VECTOR(symbol, elements) \
-		uint64_t symbol[elements]
-
-#endif // __ASSEMBLER__
-
-#ifdef __ASSEMBLER__
-         .macro	.proc_sbe_fixed
+         .macro     .proc_sbe_fixed_proc_chip
 	     .section   .fixed, "a", @progbits
 	     .balign    8
+         .global    G_proc_chip_attributes
+G_proc_chip_attributes:         
 #else
-
-typedef struct {
-
+extern "C" {
+namespace fapi2attr {
+typedef struct ProcChipAttributes_t {
 #endif
 
-    // Procedure control variables listed in istep order
-
-    //*************************************************************//
-    //*                         READ THIS!!!                      *//
-    //*                                                           *//
-    //*   The locations in this file are "fixed", meaning that    *//
-    //*   nothing may be deleted, and new things may only be      *//
-    //*   added to the very END of the file. This means that      *//
-    //*   some entries are not going to be in the correct order   *//
-    //*                                                           *//
-    //*************************************************************//
-
-    PROC_SBE_FIXED_UINT64(base_ppe_demo_func);
-    PROC_SBE_FIXED_UINT64(pk_trace_wrap3);
-    PROC_SBE_FIXED_UINT64(combined_good);
-    PROC_SBE_FIXED_UINT64(combined_good_l3);
-    //const char *pk_trace_wrap;
-
+#include "proc_sbe_fixed_proc_chip.H"
 
 #ifdef __ASSEMBLER__
 	.endm
 #else
-} ProcSbeFixed;
+} ProcChipAttributes;
+} // fapi2
+} // C
+#endif
+
+///
+/// Pervasive Target Attributes
+#ifdef __ASSEMBLER__
+         .macro	    .proc_sbe_fixed_perv
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_perv_attributes
+G_perv_attributes:     
+#else
+namespace fapi2attr {
+typedef struct PervAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_perv.H"
+
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} PervAttributes;
+} // fapi2
+#endif
+
+///
+/// Core (EC) Target Attributes
+#ifdef __ASSEMBLER__
+        .macro     .proc_sbe_fixed_core
+        .section   .fixed, "a", @progbits
+	    .balign    8
+        .global     G_core_attributes
+G_core_attributes:     
+#else
+namespace fapi2attr {
+typedef struct CoreAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_core.H"
+    
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} CoreAttributes;
+} // fapi2
+#endif
+
+///
+/// EX Target Attributes
+#ifdef __ASSEMBLER__
+         .macro	    .proc_sbe_fixed_ex
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_ex_attributes
+G_ex_attributes: 
+#else
+namespace fapi2attr {
+typedef struct EXAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_ex.H"
+    
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} EXAttributes;
+} // fapi2
+#endif
+
+///
+/// EQ Target Attributes
+#ifdef __ASSEMBLER__
+         .macro	    .proc_sbe_fixed_eq
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_eq_attributes
+G_eq_attributes:
+#else
+namespace fapi2attr {
+typedef struct EQAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_eq.H"
+    
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} EQAttributes;
+} // fapi2
 #endif
 
 
