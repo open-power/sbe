@@ -2,7 +2,7 @@
 /*
 # *** ppetracepp - a fsp/common Linux trace pre processor
 # this one replaces the trace strings by the corresponding hash value
-# (i.e. the complete call to trace_adal_hash is replaced)
+# (i.e. the complete call to trace_ppe_hash is replaced)
 
 # *** Usage
 #
@@ -14,7 +14,7 @@
 # you can set a env var "REALCPP" to the name of a program to select
 # a different programm as cpp
 #
-# ppetracepp creates a file "$target.hash" with the trace strings and the hash values.
+# ppetracepp creates a file "$target.ppe.hash" with the trace strings and the hash values.
 #
 # to enable debug mode set envvar PPETRACEPPDEBUG to 1 or give '-d' as first arg
 
@@ -31,7 +31,7 @@
 #                  it is obsolete and might lead to an error if afs is used
 # 2004-02-13  RBa  add support for dependency generation (-MD/-MG, -MF)
 #                  don't prepend './' to object filename
-# 2006-04-19  RBa  rewrite trace_adal_write_all support, handle C and C++ the same
+# 2006-04-19  RBa  rewrite trace_ppe_write_all support, handle C and C++ the same
 # 2006-05-24  RBa  fix handling of missing -o ; add TRAC_PPVER for macro/API version
 # 2006-09-15  RBa  add handling of \" in trace format strings ; reduce non-error output
 #                  put object file in current dir if no -o given
@@ -111,7 +111,7 @@ void fileparse(const string& in_str, string& name, string& dir, string& suff)
 	dir = str;
 }
 
-static const size_t TRACE_ADAL_HASH_LEN = 14;
+static const size_t TRACE_PPE_HASH_LEN = 13;
 //*****************************************************************************
 // chop_up_line
 //*****************************************************************************
@@ -120,20 +120,20 @@ bool chop_up_line(string& in_line, string& prefix, string& strings, string& salt
 	// First see if this line matches the pattern we're looking for
 	// Since this will return false 95%+ of the time this function it called, we do it
 	// before doing any other init for performance reasons.
-	size_t pos = in_line.find("trace_adal_hash");
+	size_t pos = in_line.find("trace_ppe_hash");
 	if (pos == string::npos) { return(false); }
 
-	// trace_adal_hash ( "..." ".." "..." , 2 )
-	// regex: PREFIX 'trace_adal_hash' space '(' space STRINGS  space ',' space NUMBER space ')' SUFFIX
+	// trace_ppe_hash ( "..." ".." "..." , 2 )
+	// regex: PREFIX 'trace_ppe_hash' space '(' space STRINGS  space ',' space NUMBER space ')' SUFFIX
 	// STRINGS:  '"' .* '"' space? +
 
 	// Original perl magic incantation:
-	//  	while($line =~ m/^(.*?)trace_adal_hash\s*\(\s*((".*?(?<!\\)"\s*)+),\s*(-?\d+)\s*\)(.*)$/) {
+	//  	while($line =~ m/^(.*?)trace_ppe_hash\s*\(\s*((".*?(?<!\\)"\s*)+),\s*(-?\d+)\s*\)(.*)$/) {
 	//        	($prefix, $strings, $salt, $suffix) = ($1, $2, $4, $5);
 	//
 	// Decrypting the magic pattern matching...
-	// (.*?)            => $1 = everything up to the word "trace_adal_hash"
-	// trace_adal_hash  = delimiter
+	// (.*?)            => $1 = everything up to the word "trace_ppe_hash"
+	// trace_ppe_hash  = delimiter
 	// \s*\(\s*         = delimiter = <0-n whitespace chars>, left paren, <0-n whitespace chars>
 	// ((".*?(?<!\\)"\s*)+) => $2 = double-quote, some chars up to last closing double-quote ($3 used for nested regex)
 	// ,\s*             = delimiter = comma followed by some whitespace
@@ -148,7 +148,7 @@ bool chop_up_line(string& in_line, string& prefix, string& strings, string& salt
 	size_t pos2;
 	size_t pos3;
 
-	pos1 = pos + 15; // pos1 = after "trace_adal_hash"
+	pos1 = pos + 14; // pos1 = after "trace_ppe_hash"
 	pos2 = line.find("(", pos1);
 	if (pos2 == string::npos) { return(false); }
 	++pos2;
@@ -162,7 +162,7 @@ bool chop_up_line(string& in_line, string& prefix, string& strings, string& salt
 	// Get the prefix data
 	dprintf(">chop_up_line(\"%s\",...)\n", line.c_str());
 	prefix = line.substr(0, pos);
-	line = line.substr(pos + TRACE_ADAL_HASH_LEN);
+	line = line.substr(pos + TRACE_PPE_HASH_LEN);
 	dprintf("    prefix=\"%s\"\n", prefix.c_str());
 
 	// Get the strings and join/fix them: Store all strings between paired double-quotes up to the
@@ -354,20 +354,20 @@ void parse_line(map<string,string>& rhash, string& line, string& out_line)
 	size_t pos;
 
 	out_line = "";
-	// trace_adal_hash ( "..." ".." "..." , 2 )
-	// regex: PREFIX 'trace_adal_hash' space '(' space STRINGS  space ',' space NUMBER space ')' SUFFIX
+	// trace_ppe_hash ( "..." ".." "..." , 2 )
+	// regex: PREFIX 'trace_ppe_hash' space '(' space STRINGS  space ',' space NUMBER space ')' SUFFIX
 	// STRINGS:  '"' .* '"' space? +
-	//while($line =~ m/^(.*?)trace_adal_hash\s*\(\s*((".*?(?<!\\)"\s*)+),\s*(-?\d+)\s*\)(.*)$/) {
+	//while($line =~ m/^(.*?)trace_ppe_hash\s*\(\s*((".*?(?<!\\)"\s*)+),\s*(-?\d+)\s*\)(.*)$/) {
 	// Attempt to approximate the above amazing perl regex...
 	while( chop_up_line(line, prefix, strings, salt, suffix) )
 	{
 		//dprintf("\n\nprefix = %s\nstrings = %s\nsalt = %s\nsuffix = %s\n",
 		//	prefix.c_str(), strings.c_str(), salt.c_str(), suffix.c_str());
-		// is this a trace_adal_write_all call?
-		pos = prefix.find("trace_adal_write_all");
+		// is this a trace_ppe_write_all call?
+		pos = prefix.find("trace_ppe_write_all");
 		if (pos != string::npos)
 		{
-			// yes. replace trace_adal_hash with hash value and reduced format string
+			// yes. replace trace_ppe_hash with hash value and reduced format string
 			format_salt = get_format_string(strings, format);
 			// reduced format string will be added after hash value
 			write_all_suffix = ",\" ";
@@ -875,7 +875,7 @@ if (cmd_rc)
 if (!hashtab.empty())
 {
 	string stringfile = object;
-	stringfile += ".hash";
+	stringfile += ".ppe.hash";
 	// open trace string file
 	FILE* TRC = fopen(stringfile.c_str(), "w");
 	if (TRC == NULL)

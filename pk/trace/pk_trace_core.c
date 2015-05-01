@@ -35,7 +35,7 @@ PkTraceBuffer g_pk_trace_buf =
     .version            = PK_TRACE_VERSION,
     .image_str          = PPE_IMG_STRING,
     .hash_prefix        = PK_TRACE_HASH_PREFIX,
-    .partial_trace_hash = trace_adal_hash("PARTIAL TRACE ENTRY. HASH_ID = %d", PK_TRACE_HASH_PREFIX),
+    .partial_trace_hash = trace_ppe_hash("PARTIAL TRACE ENTRY. HASH_ID = %d", PK_TRACE_HASH_PREFIX),
     .size               = PK_TRACE_SZ,
     .max_time_change    = PK_TRACE_MTBT,
     .hz                 = 500000000, //default value. Actual value is set in pk_init.c
