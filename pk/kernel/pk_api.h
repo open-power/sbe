@@ -390,9 +390,9 @@
 
 #define TINY_TRACE_ASM0()   .error "format string required"
 #define TINY_TRACE_ASM1(str) \
-    .tiny_trace_asm1 trace_adal_hash(str, PK_TRACE_HASH_PREFIX)
+    .tiny_trace_asm1 trace_ppe_hash(str, PK_TRACE_HASH_PREFIX)
 #define TINY_TRACE_ASM2(str, reg) \
-    .tiny_trace_asm2 trace_adal_hash(str, PK_TRACE_HASH_PREFIX), reg
+    .tiny_trace_asm2 trace_ppe_hash(str, PK_TRACE_HASH_PREFIX), reg
 #define TINY_TRACE_ASM3()   .error "too many parameters"
 #define TINY_TRACE_ASM4()   .error "too many parameters"
 #define TINY_TRACE_ASM5()   .error "too many parameters"
@@ -483,12 +483,12 @@ typedef struct {
 
 /// Trace macros for C functions
 #define HASH_ARG_COMBO(str, arg) \
-    ((((uint32_t)trace_adal_hash(str, PK_TRACE_HASH_PREFIX)) << 16) | ((uint32_t)(arg) & 0x0000ffff))
+    ((((uint32_t)trace_ppe_hash(str, PK_TRACE_HASH_PREFIX)) << 16) | ((uint32_t)(arg) & 0x0000ffff))
 
 #define PKTRACE0(...) pk_trace_tiny() //will fail at compile time
 
 #define PKTRACE1(str) \
-    pk_trace_tiny((trace_adal_hash(str, PK_TRACE_HASH_PREFIX) << 16))
+    pk_trace_tiny((trace_ppe_hash(str, PK_TRACE_HASH_PREFIX) << 16))
 
 #define PKTRACE2(str, parm0) \
     ((sizeof(parm0) <= 2)? \
