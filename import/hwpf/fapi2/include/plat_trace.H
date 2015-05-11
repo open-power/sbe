@@ -36,6 +36,7 @@
 #define FAPI2_PLATTRACE_H_
 
 #include <stdio.h>
+#include <stdint.h>
 
 // Why not a #define, why is this in the fapi2 namespace?
 // To prevent problems with Cronus and the fapi1 definitions.
