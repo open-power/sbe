@@ -15,6 +15,7 @@
 
 #include "sbeexeintf.H"
 #include "sbetrace.H"
+#include "fapi2.H" // For target init
 
 
 ////////////////////////////////////////////////////////////////
@@ -211,7 +212,8 @@ int sbeInitThreads(void)
 ////////////////////////////////////////////////////////////////
 uint32_t main(int argc, char **argv)
 {
-    SBE_TRACE("Enter SBE main");
+    #define SBE_FUNC "main "
+    SBE_ENTER(SBE_FUNC);
     int l_rc = 0;
 
     // @TODO via RTC : 128818
@@ -255,6 +257,21 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
+        // TODO via RTC 126146.
+        //  Check if we should call plat_TargetsInit in some other thread.
+        //  We may want to keep only PK init in main and can move
+        //  plat init to some other thread. Only if this is required by more
+        //  than one thread and there can be some race condition, we will
+        //  keep it here before starting other threads.
+        fapi2::ReturnCode fapiRc = fapi2::plat_TargetsInit();
+        if( fapiRc != fapi2::FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC"plat_TargetsInit failed");
+            // TODO via RTC 126146.
+            //  Set the state to Failure and remove break statement. It will
+            //  enable FSP to get FFDC for this failure.
+            break;
+        }
         // Start running the highest priority thread.
         // This function never returns
         pk_start_threads();

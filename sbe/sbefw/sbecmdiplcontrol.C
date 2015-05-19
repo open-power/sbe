@@ -1,7 +1,7 @@
 /*
  * @file: ppe/sbe/sbefw/sbecmdiplcontrol.C
  *
- * @brief This file contains the SBE FIFO Commands
+ * @brief This file contains the SBE istep chipOps
  *
  */
 
@@ -10,67 +10,183 @@
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 
+#include "fapi2.H"
+// Pervasive HWP Header Files ( istep 2)
+#include <p9_sbe_attr_setup.H>
+#include <p9_sbe_tp_chiplet_init1.H>
+#include <p9_sbe_npll_initf.H>
+#include <p9_sbe_npll_setup.H>
+#include <p9_sbe_tp_switch_gears.H>
+#include <p9_sbe_tp_chiplet_reset.H>
+#include <p9_sbe_tp_gptr_time_repr_initf.H>
+#include <p9_sbe_tp_chiplet_init2.H>
+#include <p9_sbe_tp_arrayinit.H>
+#include <p9_sbe_tp_initf.H>
+#include <p9_sbe_tp_chiplet_init3.H>
+
+// Pervasive HWP Header Files ( istep 3)
+#include <p9_sbe_chiplet_reset.H>
+#include <p9_sbe_chiplet_pll_initf.H>
+#include <p9_sbe_chiplet_pll_setup.H>
+#include <p9_sbe_gptr_time_repr_initf.H>
+#include <p9_sbe_chiplet_init.H>
+#include <p9_sbe_arrayinit.H>
+#include <p9_sbe_tp_enable_ridi.H>
+#include <p9_sbe_setup_evid.H>
+#include <p9_sbe_nest_initf.H>
+#include <p9_sbe_nest_startclocks.H>
+#include <p9_sbe_nest_enable_ridi.H>
+#include <p9_sbe_startclock_chiplets.H>
+#include <p9_sbe_scominit.H>
+#include <p9_sbe_lpc_init.H>
+#include <p9_sbe_fabricinit.H>
+#include <p9_sbe_mcs_setup.H>
+#include <p9_sbe_select_ex.H>
+// Cache HWP header file
+#include "p9_hcd_cache.H"
+// Core HWP header file
+#include "p9_hcd_core.H"
+
 // Forward declaration
-
-uint32_t sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor);
-bool validateIstep (const uint8_t i_major, const uint8_t i_minor);
-
-// @TODO via RTC 129073.
-// Just a dummy code for HWP to test the flow.
-// Remove it once complete flow is ready
-uint32_t istep1SuccessHwp(  ) { SBE_DEBUG("istep1SuccessHwp"); return 0; }
-uint32_t istep1FailHwp(  ) { SBE_DEBUG("istep1FailHwp"); return 1; }
+using namespace fapi2;
+ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
+bool validateIstep (uint8_t i_major, uint8_t i_minor);
 
 
 //typedefs
-// @TODO via RTC 129073.
-// This is currently not defined as actual HWP signature as it
-// will break compilation. Once Greg FAPI codeis in master, we will
-// change it
-typedef uint32_t (*sbe_istep_hwp)();
+typedef ReturnCode (*sbeIstepHwp_t)
+                    (const Target<TARGET_TYPE_ALL> & i_target);
 
 // Wrapper function for HWP IPl functions
-typedef uint32_t (*sbe_istep)( sbe_istep_hwp );
+typedef ReturnCode (*sbeIstep_t)( sbeIstepHwp_t );
 
 // Wrapper function which will call HWP with Proc target.
-uint32_t istepWithProc( sbe_istep_hwp i_hwp );
+ReturnCode istepWithProc( sbeIstepHwp_t i_hwp );
+ReturnCode istepNoOp( sbeIstepHwp_t i_hwp );
 
+ReturnCode istepWithEx( sbeIstepHwp_t i_hwp);
+
+ReturnCode istepWithEq( sbeIstepHwp_t i_hwp);
+ReturnCode istepWithCore( sbeIstepHwp_t i_hwp);
 //structure for mapping SBE wrapper and HWP functions
+
 typedef struct
 {
-    sbe_istep istepWrapper;
-    sbe_istep_hwp istepHwp;
+    sbeIstep_t istepWrapper;
+    sbeIstepHwp_t istepHwp;
 }istepMap_t;
 
 // Major isteps which are supported
 typedef enum
 {
     SBE_ISTEP2 = 2,
+    SBE_ISTEP3 = 3,
     SBE_ISTEP4 = 4,
     SBE_ISTEP5 = 5,
 }sbe_supported_steps_t;
 
 // constants
-// @TODO via RTC 129073.
-// These are random numbers now. Will fill up
-// once IPL flow document is in better shape.
+// TODO via RTC 135345
+// Check with Dean. In IPL flow doc ( version 0.63 ),
+// after istep 2.9, next istep is 2.11. istep 2.10 is not present.
+// So in IPL flow doc, total minor isteps for step 2 are 16.
 const uint32_t ISTEP2_MAX_SUBSTEPS = 15;
-const uint32_t ISTEP4_MAX_SUBSTEPS = 2;
-const uint32_t ISTEP5_MAX_SUBSTEPS = 4;
+const uint32_t ISTEP3_MAX_SUBSTEPS = 20;
+const uint32_t ISTEP4_MAX_SUBSTEPS = 31;
+const uint32_t ISTEP5_MAX_SUBSTEPS = 2;
 
 // File static data
-// @TODO via RTC 129073.
-// Initialise pointer tables.
 
 static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
-                    {
-                        { NULL, NULL },
-                        { &istepWithProc, &istep1FailHwp },
-                        { &istepWithProc, &istep1SuccessHwp }
+         {
+             { NULL, NULL },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_attr_setup },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_init1 },
+             { &istepNoOp, NULL },  // DFT only
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_npll_initf },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_npll_setup },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_switch_gears },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_reset },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_gptr_time_repr_initf },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_init2 },
+             { &istepNoOp, NULL },  // DFT only
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_arrayinit },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_initf },
+             { &istepNoOp, NULL }, // DFT only
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_init3},
+         };
 
-                    };
-static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ];
-static istepMap_t g_istep5PtrTbl[ ISTEP5_MAX_SUBSTEPS ];
+static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
+         {
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_chiplet_reset },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_chiplet_pll_initf },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_chiplet_pll_setup },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_gptr_time_repr_initf },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_chiplet_init },
+             { &istepNoOp, NULL }, // DFT only
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_arrayinit },
+             { &istepNoOp, NULL }, // DFT only
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_enable_ridi },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_setup_evid },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_nest_initf },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_nest_startclocks },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_nest_enable_ridi },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_startclock_chiplets },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_scominit },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_lpc_init },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_fabricinit },
+             { &istepNoOp, NULL }, // TODO via RTC 120752
+                                   // FW proc_sbe_check_master
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_mcs_setup },
+             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_select_ex },
+         };
+static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
+         {
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_poweron },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_chiplet_reset },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_gptr_time_initf },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_dpll_setup },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_chiplet_init },
+             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_repair_initf },
+             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_arrayinit },
+             { &istepNoOp, NULL },  // DFT Only
+             { &istepNoOp, NULL },  // DFT Only
+             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_initf },
+             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_startclocks },
+             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_scominit },
+             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_scomcust },
+             { &istepNoOp, NULL }, // Runtime only
+             { &istepNoOp, NULL }, // Runtime only
+             { &istepNoOp, NULL }, // stub for SBE
+             // TODO via RTC 135345
+             // As per IPL flow doc, p9_hcd_core_pcb_arb is no-op on SBE
+             // But this HWP is present in SBE code bas and is No-OP.
+             // If we do not require this HWP for future use cases, we
+             // can make it istepNoOp as it will save space in SBE.
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_pcb_arb },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_poweron },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_chiplet_reset },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_gptr_time_initf },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_chiplet_init },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_repair_initf },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_arrayinit },
+             { &istepNoOp, NULL },  // DFT Only
+             { &istepNoOp, NULL },  // DFT Only
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_initf },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_startclocks },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_scominit },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_scomcust },
+             { &istepNoOp, NULL },
+             { &istepNoOp, NULL },
+         };
+
+// TODO via RTC 135345
+//  Add the support for istep 5 HWP
+static istepMap_t g_istep5PtrTbl[ ISTEP5_MAX_SUBSTEPS ]
+         {
+             { &istepNoOp, NULL },
+             { &istepNoOp, NULL },
+         };
 
 // Functions
 //----------------------------------------------------------------------------
@@ -79,10 +195,8 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
     #define SBE_FUNC "sbeHandleIstep "
     SBE_DEBUG(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    //@TODO via RTC 129073.
-    //Use proper initialisation for fapi RC
-    uint32_t fapiRc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint8_t len = 0;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     sbeIstepReqMsg_t req;
     sbeResponseGenericHeader_t respHdr;
     respHdr.init();
@@ -123,14 +237,14 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
         {
             SBE_ERROR(SBE_FUNC" Invalid Istep. major:0x%08x"
                       " minor:0x%08x", req.major, req.minor);
-            // @TODO via RTC 129073.
+            // @TODO via RTC 132295.
             // Need to change code asper better error handling.
             respHdr.setStatus( SBE_PRI_INVALID_DATA,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             break;
         }
         fapiRc = sbeExecuteIstep( req.major, req.minor );
-        if( fapiRc )
+        if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" sbeExecuteIstep() Failed. major:0x%08x"
                                       " minor:0x%08x", req.major, req.minor);
@@ -161,7 +275,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
         distance += len;
 
         // If no ffdc , exit;
-        if( ffdc.fapiRc )
+        if( ffdc.getRc() )
         {
             len = sizeof(ffdc)/sizeof(uint32_t);
             rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &ffdc);
@@ -172,7 +286,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
             distance += len;
         }
         len = sizeof(distance)/sizeof(uint32_t);
-        //@TODO via 129076.
+        //@TODO via RTC 129076.
         //Need to add FFDC data as well.
         rc = sbeDownFifoEnq_mult ( len, &distance);
         if (rc)
@@ -190,24 +304,27 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
 }
 
 //----------------------------------------------------------------------------
-// @TODO via RTC 129073.
-// Change return code as per design
 // @note This is the responsibilty of caller to verify major/minor
 //       number before calling this function
 
 // @TODO via RTC 129077.
 // This function should check for system checkstop as well.
-uint32_t sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
+ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
 {
     #define SBE_FUNC "sbeExecuteIstep "
     SBE_DEBUG(SBE_FUNC"Major number:0x%x minor number:0x%x",
                        i_major, i_minor );
-    uint32_t rc = 0;
 
+    ReturnCode rc = FAPI2_RC_SUCCESS;
     switch( i_major )
     {
         case SBE_ISTEP2:
             rc = (g_istep2PtrTbl[i_minor-1].istepWrapper)(
+                                g_istep2PtrTbl[i_minor-1].istepHwp);
+            break;
+
+        case SBE_ISTEP3:
+            rc = (g_istep3PtrTbl[i_minor-1].istepWrapper)(
                                 g_istep2PtrTbl[i_minor-1].istepHwp);
             break;
 
@@ -256,6 +373,10 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
                 }
                 break;
 
+            case SBE_ISTEP3:
+                if( i_minor > ISTEP3_MAX_SUBSTEPS ) { valid = false; } ;
+                break;
+
             case SBE_ISTEP4:
                 if( i_minor > ISTEP4_MAX_SUBSTEPS )
                 {
@@ -281,22 +402,82 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
 //----------------------------------------------------------------------------
 
-uint32_t istepWithProc( sbe_istep_hwp i_hwp)
+ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 {
     SBE_DEBUG("istepWithProc");
-    uint32_t rc = 0;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    ReturnCode rc = FAPI2_RC_SUCCESS;
     if( i_hwp )
     {
-        rc = i_hwp();
+        rc = i_hwp(proc);
+    }
+    SBE_DEBUG("istepWithProc");
+    return rc;
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepWithEx( sbeIstepHwp_t i_hwp)
+{
+    fapi2::Target<fapi2::TARGET_TYPE_EX > ex10_target((uint64_t)10);
+    SBE_DEBUG("istepWithEx");
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    if( i_hwp )
+    {
+        rc = i_hwp(ex10_target);
     }
     return rc;
 }
 
 //----------------------------------------------------------------------------
 
+ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
+{
+    // TODO via RTC 135345
+    // Curently we are passing Hard code eq target. Finally it is
+    // going to be a multicast target. Once multicast support is
+    // present, use the right target.
+    fapi2::Target<fapi2::TARGET_TYPE_EQ > eq10_target((uint64_t)10);
+    SBE_DEBUG("istepWithEq");
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    if( i_hwp )
+    {
+        rc = i_hwp( eq10_target );
+    }
+    return rc;
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
+{
+    // TODO via RTC 135345
+    // Curently we are passing Hard code core target. Finally it is
+    // going to be a multicast target. Once multicast support is
+    // present, use the right target.
+    fapi2::Target<fapi2::TARGET_TYPE_CORE > core_target((uint64_t)10);
+    SBE_DEBUG("istepWithCore");
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    if( i_hwp )
+    {
+        rc = i_hwp( core_target );
+    }
+    return rc;
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepNoOp( sbeIstepHwp_t i_hwp)
+{
+    SBE_DEBUG("istepNoOp");
+    return FAPI2_RC_SUCCESS ;
+}
+
+//----------------------------------------------------------------------------
+
 uint32_t sbeWaitForSbeIplDone (uint8_t *i_pArg)
 {
-    uint32_t rc = 0;
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     SBE_TRACE("sbeWaitForSbeIplDone");
 
 
