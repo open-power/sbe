@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<integrationtest>
+	<platform startsimargs="--notar --norun">
+		<machine>%%machine%%</machine>
+
+        <test>
+            <!-- testcase>
+                <simcmd>new-symtable file = ~/workspace/sbe/obj/sbe_main.out name = sbe_main</simcmd>
+            </testcase>
+            <testcase>
+                <simcmd>@SIM_create_object('context', 'myppectx', [])</simcmd>
+            </testcase>
+            <testcase>
+                <simcmd>myppectx.symtable symtable = sbe_main</simcmd>
+            </testcase>
+            <testcase>
+                <simcmd>p9Proc0.sbe.ppe.set-context context = myppectx</simcmd>
+            </testcas -->
+            <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
+            <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
+        </test>
+	</platform>
+</integrationtest>
