@@ -32,57 +32,17 @@
 #ifndef FAPI2_HWACCESS_H_
 #define FAPI2_HWACCESS_H_
 
-#ifdef FAPI_SUPPORT_SPY_AS_ENUM
-#include <fapiSpyIds.H>
-#endif
 
-#include <stdint.h>
-#include <thread>
-#include <buffer.H>
+// variable_buffer isn't supported on PPE
+#ifndef __PPE__
 #include <variable_buffer.H>
-#include <return_code.H>
-#include <target.H>
-#include <utils.H>
-#include <plat_includes.H>
-
-//#include <fapi2Util.H>
-//#include <fapi2PlatTrace.H>
-
-#ifdef FAPI_SUPPORT_MULTI_SCOM
-#include <fapiMultiScom.H>
 #endif
 
-/// @cond
-typedef uint64_t spyId_t;
-typedef uint64_t scanRingId_t;
-/// @endcond
+#include <plat_hw_access.H>
+#include <fapi2_hw_access.H>
 
 namespace fapi2
 {
-
-    ///
-    /// @enum fapi2::ChipOpModifyMode
-    /// @brief Enumeration of modify modes used in HW access modify operations
-    ///
-    enum ChipOpModifyMode
-    {
-        CHIP_OP_MODIFY_MODE_OR = 1,  ///< Modify or mode
-        CHIP_OP_MODIFY_MODE_AND = 2, ///< Modify and mode
-        CHIP_OP_MODIFY_MODE_XOR = 3, ///< Modify xor mode
-    };
-
-    ///
-    /// @enum fapi2::RingMode
-    /// @brief Enumeration of Ring access operation modes
-    ///        This is a bitmap to allow the user to specify multiple modes.
-    ///
-    enum RingMode
-    {
-        RING_MODE_SET_PULSE       = 0x00000001, ///< Set pulse
-        RING_MODE_NO_HEADER_CHECK = 0x00000002, ///< Dont' check header
-        // FUTURE_MODE            = 0x00000004,
-        // FUTURE_MODE            = 0x00000008,
-    };
 
     //--------------------------------------------------------------------------
     // PIB Error Functions
@@ -99,6 +59,7 @@ namespace fapi2
     /// @return uint8_t The current PIB error mask
     uint8_t getPIBErrorMask(void)
     {
+        uint8_t o_pib_mask;
         PLAT_GET_PIB_ERROR_MASK(o_pib_mask);
         return o_pib_mask;
     }
@@ -107,25 +68,21 @@ namespace fapi2
     // Operational Mode Error Functions
     //--------------------------------------------------------------------------
 
-    /// @enum OpModes operational Mode Error Functions
-    enum OpModes
-    {
-        // These are bit-masks in case they need to be or'd together
-        NORMAL           = 0x00,
-        IGNORE_HW_ERROR  = 0x01,
-        DO_NOT_DO_WAKEUP = 0x02,
-    };
-
     /// @brief Sets the operational mode
     /// @param[in]  i_mode     The new mode
+    // note: this can be moved  to a C file if desired
     inline void setOpMode(const OpModes i_mode)
     {
+        // Keeps the compiler from complaining about the unused i_mode
+        static_cast<void>(i_mode);
+
         // No-op for now. Should set thread-local operational mode
         return;
     }
 
     /// @brief Gets the operational mode
     /// @return the operational mode
+    // note: this can be moved  to a C file if desired
     inline OpModes getOpMode(void)
     {
         // No-op for now. Should read thread-local operational mode
@@ -298,6 +255,8 @@ namespace fapi2
         return FAPI2_RC_SUCCESS;
     }
 
+    // variable_buffer isn't supported on PPE
+#ifndef __PPE__
     /// @brief Reads a ring from a chip.
     /// @tparam K template parameter, passed in target.
     /// @param[in]  i_target   Target to operate on.
@@ -363,7 +322,7 @@ namespace fapi2
 
        return FAPI2_RC_SUCCESS;
     }
-#ifndef __PPE__
+
     /// @brief Read-modify-write a ring on a chip.
     /// @tparam K template parameter, passed in target.
     /// @param[in] i_target     Target to operate on.
@@ -384,290 +343,9 @@ namespace fapi2
         return FAPI2_RC_SUCCESS;
     }
 #endif
-    /// @note
-    /// These spy access interfaces are only used in FSP and cronus
-    /// HB does not allow spy access
 
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING)
-    /// @brief Reads a spy from a chip.
-    /// @tparam K template parameter, passed in target.
-    /// @param[in]  i_target   Target to operate on.
-    /// @param[in]  i_spyId    Id of the spy whose data to be read.
-    /// @param[out] o_data     Buffer that holds data read from HW target.
-    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    ///
-    /// @note:  The string version is only supported for cronus.
-    ///
-    ///         The fapi design to support both FSP and cronus use of get and
-    ///         put spy functions is dependant on the SPY names being expanded
-    ///         to resemble a valid C identifier. This design places some
-    ///         restrictions on the SPY names which can be used.
-    ///
-    ///         1. if the spy name contains a # procedure writers should replace
-    ///         it with an __P__ for example -
-    ///
-    ///         ABUS.RX0.RXPACKS#0.RXPACK.RD.LC.LC.ACT_DIS
-    ///         becomes
-    ///         ABUS.RX0.RXPACKS__P__0.RXPACK.RD.LC.LC.ACT_DIS
-    ///
-    ///         2. if the spy name has a number following a "." it must have an
-    ///         underscore prepended to the number.
-    ///
-    ///         EH.TPCHIP.2KX100_ARY_CLK_EDGES_DLY
-    ///         becomes
-    ///         EH.TPCHIP._2KX100_ARY_CLK_EDGES_DLY
-    ///
-    ///         Example SPY name:
-    ///         The hardware procedure should call the function like:
-    ///
-    ///          ABUS.RX0.RXPACKS#0.RXPACK.RD.LC.LC.ACT_DIS
-    ///
-    ///          fapi::ReturnCode rc = fapiGetSpy( targ,
-    ///                  ABUS.RX0.RXPACKS__P__0.RXPACK.RD.LC.LC.ACT_DIS, data );
-    ///
-    /// @note The ID is not in quotes the fapi code will handle adding
-    ///       the quotes for the cronus environment
-    ///
-#endif
-
-// Set to 1 for fapi2 API test
-#define FAPI_SUPPORT_SPY_AS_ENUM 1
-
-#ifdef FAPI_SUPPORT_SPY_AS_ENUM
-
-#ifndef DOCUMENTATION
-#define fapiGetSpy(TARGET, ID, DATA) \
-    _fapiGetSpy(TARGET, FAPI_SPY_NAMES::ID.value, DATA )
-#endif
-
-#ifndef __PPE__
-    template< TargetType K >
-    inline ReturnCode _fapiGetSpy(const Target<K>& i_target,
-                           const spyId_t i_spyId,
-                           variable_buffer& o_data)
-    {
-        o_data.setBit(1);
-        o_data.setBit(4);
-#ifndef __PPE__
-        std::cout << std::hex << "   _fapiGetSpy "
-                  << "target: {" << i_target.getType() << ","
-                  << uint64_t(i_target) << "}; "
-                  << "Spy ID: " << i_spyId << "; "
-                  << "output data:";
-                  o_data.print();
-#endif
-        return FAPI2_RC_SUCCESS;
-    }
-#endif
-#endif
-
-#ifdef FAPI_SUPPORT_SPY_AS_STRING
-
-#ifndef DOCUMENTATION
-#define fapiGetSpy(TARGET, ID, DATA) _fapiGetSpy(TARGET, #ID, DATA)
-#endif
-#ifndef __PPE__
-    template< TargetType K >
-    inline ReturnCode _fapiGetSpy(const Target<K>& i_target,
-                                  const char * const i_spyId,
-                                  variable_buffer& o_data);
-#endif
-#endif
-
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING)
-    /// @brief Writes a spy on a chip.
-    /// @tparam K template parameter, passed in target.
-    /// @param[in]  i_target   Target to operate on.
-    /// @param[in]  i_spyId    Id of the spy to write data to.
-    /// @param[out] i_data     Buffer that holds data to write into spy.
-    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    ///
-    /// @note:  The string version is only supported for cronus.
-    ///
-    ///         The fapi design to support both FSP and cronus use of get and
-    ///         put spy functions is dependent on the SPY names being expanded
-    ///         to resemble a valid C identifier. This design places some
-    ///         restrictions on the SPY names which can be used.
-    ///
-    ///         1. if the spy name contains a # procedure writers should replace
-    ///         is with an __P__ for example -
-    ///
-    ///         ABUS.RX0.RXPACKS#0.RXPACK.RD.LC.LC.ACT_DIS
-    ///         becomes
-    ///         ABUS.RX0.RXPACKS__P__0.RXPACK.RD.LC.LC.ACT_DIS
-    ///
-    ///         2. if the spy name has a number following a "." it must have an
-    ///         underscore prepended to the number.
-    ///
-    ///         EH.TPCHIP.2KX100_ARY_CLK_EDGES_DLY
-    ///         becomes
-    ///         EH.TPCHIP._2KX100_ARY_CLK_EDGES_DLY
-    ///
-    ///         Example SPY name:
-    ///         The hardware procedure should call the function like:
-    ///
-    ///          ABUS.RX0.RXPACKS#0.RXPACK.RD.LC.LC.ACT_DIS
-    ///
-    ///          fapi::ReturnCode rc = fapiPutSpy( targ,
-    ///                  ABUS.RX0.RXPACKS__P__0.RXPACK.RD.LC.LC.ACT_DIS, data );
-    ///
-    /// @note The ID is not in quotes the fapi code will handle adding
-    ///         the quotes for the cronus environment
-    ///
-#endif
-
-#ifdef FAPI_SUPPORT_SPY_AS_ENUM
-#ifndef DOCUMENTATION
-#define fapiPutSpy(TARGET, ID, DATA) \
-    _fapiPutSpy(TARGET, FAPI_SPY_NAMES::ID.value, DATA)
-#endif
-
-    template< TargetType K >
-    inline ReturnCode _fapiPutSpy(const Target<K>& i_target,
-                           const spyId_t i_spyId,
-                           variable_buffer& i_data)
-    {
-#ifndef __PPE__
-        std::cout << std::hex << "   _fapiPutSpy "
-                  << "target: {" << i_target.getType() << ","
-                  << uint64_t(i_target) << "}; "
-                  << "Spy Id: " << i_spyId << "; "
-                  << "input data:";
-                  i_data.print();
-#endif
-        return FAPI2_RC_SUCCESS;
-    }
-
-#endif
-
-#ifdef FAPI_SUPPORT_SPY_AS_STRING
-#ifndef DOCUMENTATION
-#define fapiPutSpy(TARGET, ID, DATA) _fapiPutSpy(TARGET, #ID, DATA)
-#endif
-    template< TargetType K >
-    inline ReturnCode _fapiPutSpy(const Target<K>& i_target,
-                                  const spyId_t i_spyId,
-                                  variable_buffer& i_data)
-#endif
-
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING)
-
-    /// @brief Writes spy data into a buffer holding ring data image
-    ///        This API is used by L2/L3 repair to put column repair data
-    ///        into a ring buffer image.
-    /// @tparam K template parameter, passed in target.
-    /// @param[in]  i_target Target to operate on.
-    /// @param[in]  i_spyId  Id of the spy.
-    /// @param[in]  i_data   Buffer that holds spy data to write into ring
-    ///                      image.
-    /// @param[out] o_data   Buffer that holds updated ring image.
-    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    ///
-    /// @note:  The string version is only supported for cronus.
-    ///
-    ///         The fapi design to support both FSP and cronus use of get and
-    ///         put spy functions is dependent on the SPY names being expanded
-    ///         to resemble a valid C identifier. This design places some
-    ///         restrictions on the SPY names which can be used.
-    ///
-    ///         See fapiPutSpy for details on spy id specifics.
-    ///
-#endif
-
-#ifdef FAPI_SUPPORT_SPY_AS_ENUM
-#ifndef DOCUMENTATION
-#define fapiPutSpyImage(TARGET, ID, DATA1, DATA2) \
-    _fapiPutSpyImage(TARGET,                                            \
-                     FAPI_SPY_NAMES::ID.value,                          \
-                     DATA1, DATA2)
-#endif
-    template< TargetType K >
-    inline ReturnCode _fapiPutSpyImage(const Target<K>& i_target,
-                                       const spyId_t i_spyId,
-                                       variable_buffer& i_data,
-                                       variable_buffer& o_imageData)
-    {
-#ifndef __PPE__
-        std::cout << std::hex << "   _fapiPutSpyImage "
-                  << "target: {" << i_target.getType() << ","
-                  << uint64_t(i_target) << "}; "
-                  << "Spy Id: " << i_spyId << "; "
-                  << "input data: ";
-                  i_data.print();
-#endif
-        // Set fake output data
-        o_imageData.invert();
-
-       return FAPI2_RC_SUCCESS;
-    }
-#endif
-
-#ifdef FAPI_SUPPORT_SPY_AS_STRING
-// fapiPutSpyImage function Cronus version
-#ifndef DOCUMENTATION
-#define fapiPutSpyImage(TARGET, ID, DATA1, DATA2) \
-    _fapiPutSpyImage(TARGET, #ID,                                       \
-                     DATA1,DATA2)
-#endif
-
-    template< TargetType K >
-    inline ReturnCode _fapiPutSpyImage(const Target<K>& i_target,
-                                       const char* const i_spyId,
-                                       variable_buffer& i_data,
-                                       variable_buffer& o_imageData);
-#endif
-
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(FAPI_SUPPORT_SPY_AS_STRING)
-    /// @brief Reads spy data from a ring image buffer
-    /// @param[in]   i_target      Target to operate on
-    /// @param[in]   i_spyId       The spy's id
-    /// @param[out]  o_data        Buffer that holds data read from ring image.
-    /// @param[in]   i_imageData   Buffer that holds ring image to read data
-    ///                            from.
-    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    ///
-    /// @note:  The string version is only supported for cronus.
-    ///
-    ///         The fapi design to support both FSP and cronus use of get and
-    ///         put spy functions is dependent on the SPY names being expanded
-    ///         to resemble a valid C identifier. This design places some
-    ///         restrictions on the SPY names which can be used.
-    ///
-    ///         See fapiPutSpy for details on spy id specifics.
-    ///
-#endif
-
-#ifdef FAPI_SUPPORT_SPY_AS_ENUM
-#ifndef DOCUMENTATION
-#define fapiGetSpyImage(TARGET, ID, DATA1, DATA2) \
-    _fapiGetSpyImage(TARGET,                                            \
-                     FAPI_SPY_NAMES::ID.value,                          \
-                     DATA1, DATA2)
-#endif
-    template< TargetType K >
-    inline ReturnCode _fapiGetSpyImage(const Target<K>& i_target,
-                                       const spyId_t i_spyId,
-                                       variable_buffer& o_data,
-                                       const variable_buffer& i_imageData);
-#endif
-
-#ifdef FAPI_SUPPORT_SPY_AS_STRING
-// fapiGetSpyImage function Cronus version
-#ifndef DOCUMENTATION
-#define fapiGetSpyImage(TARGET, ID, DATA1, DATA2) \
-    _fapiGetSpyImage(TARGET,                                            \
-                     #ID, DATA1,DATA2)
-#endif
-
-    inline fapi::ReturnCode _fapiGetSpyImage(
-        const fapi::Target& i_target,
-        const char* const i_spyId,
-        fapi::buffer<fapi::bits_container> & o_data,
-        const fapi::buffer<fapi::bits_container> & i_imageData);
-#endif
 
 #ifdef FAPI_SUPPORT_MULTI_SCOM
-
     /// @brief Performs a multiple SCOM operation
     ///        This interface performs multiple SCOM operations on a chip in the
     ///        order specified by the input MultiScom object.
@@ -679,7 +357,7 @@ namespace fapi2
     /// @param[in,out] io_multiScomObj Reference to a MultiScom object,
     ///                                pre-populated with SingleScomInfo entries
     ///                                to perform multiple SCOMs on input target
-    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+    /// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     ///
     /// @note   This is a synchronous interface and would return after all the
     ///         SCOM operations are completed or on the first failed operation
@@ -707,10 +385,222 @@ namespace fapi2
     ///         SCOM_BULK_WRITE_MODE operations are not supported due to
     ///         hardware limitations.
     ///
-    inline fapi::ReturnCode fapiMultiScom (const Target<K>& i_target,
-                                    MultiScom&  io_multiScomObj);
-#endif  // FAPI_SUPPORT_MULTI_SCOM
+    template< TargetType K >
+    fapi2::ReturnCode multiScom (const Target<K>& i_target,
+                                 MultiScom&  io_multiScomObj)
+    {
+    }
+#endif
+
+    // --------------------------------------------------------------------------
+    // NOTE:
+    // Implement platform Spy access functions if platform supports them.
+    // --------------------------------------------------------------------------
+
+    // variable_buffer isn't supported on PPE
+#ifndef __PPE__
+    /// @brief Reads a spy from a chip.
+    /// @tparam K template parameter, passed in target.
+    /// @param[in]  i_target   Target to operate on.
+    /// @param[in]  i_spyId    Id of the spy whose data to be read.
+    /// @param[out] o_data     Buffer that holds data read from HW target.
+    /// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+    ///
+    /// @note:  The string version is only supported for cronus.
+    ///
+    ///         The fapi design to support both FSP and cronus use of get and
+    ///         put spy functions is dependant on the SPY names being expanded
+    ///         to resemble a valid C identifier. This design places some
+    ///         restrictions on the SPY names which can be used.
+    ///
+    ///         1. if the spy name contains a # procedure writers should replace
+    ///         it with an __P__ for example -
+    ///
+    ///         ABUS.RX0.RXPACKS#0.RXPACK.RD.LC.LC.ACT_DIS
+    ///         becomes
+    ///         ABUS.RX0.RXPACKS__P__0.RXPACK.RD.LC.LC.ACT_DIS
+    ///
+    ///         2. if the spy name has a number following a "." it must have an
+    ///         underscore prepended to the number.
+    ///
+    ///         EH.TPCHIP.2KX100_ARY_CLK_EDGES_DLY
+    ///         becomes
+    ///         EH.TPCHIP._2KX100_ARY_CLK_EDGES_DLY
+    ///
+    ///         Example SPY name:
+    ///         The hardware procedure should call the function like:
+    ///
+    ///          ABUS.RX0.RXPACKS#0.RXPACK.RD.LC.LC.ACT_DIS
+    ///
+    ///          fapi2::ReturnCode rc = fapiGetSpy( targ,
+    ///                  ABUS.RX0.RXPACKS__P__0.RXPACK.RD.LC.LC.ACT_DIS, data );
+    ///
+    /// @note The ID is not in quotes the fapi code will handle adding
+    ///       the quotes for the cronus environment
+    ///
+#ifdef FAPI_SUPPORT_SPY_AS_ENUM
+    template< TargetType K >
+    inline ReturnCode getSpy(const Target<K>& i_target,
+                             const spyId_t i_spyId,
+                             variable_buffer& o_data)
+    {
+        static_assert(K == 0, "implement getSpy (string)");
+        return ~FAPI2_RC_SUCCESS;
+    }
+#endif
+#ifdef FAPI_SUPPORT_SPY_AS_STRING
+    template< TargetType K >
+    inline ReturnCode getSpy(const Target<K>& i_target,
+                             const char * const i_spyId,
+                             variable_buffer& o_data)
+    {
+        static_assert(K == 0, "implement getSpy (string)");
+        return ~FAPI2_RC_SUCCESS;
+    }
+#endif
+    /// @brief Writes a spy on a chip.
+    /// @tparam K template parameter, passed in target.
+    /// @param[in]  i_target   Target to operate on.
+    /// @param[in]  i_spyId    Id of the spy to write data to.
+    /// @param[out] i_data     Buffer that holds data to write into spy.
+    /// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+    ///
+    /// @note:  The string version is only supported for cronus.
+    ///
+    ///         The fapi design to support both FSP and cronus use of get and
+    ///         put spy functions is dependent on the SPY names being expanded
+    ///         to resemble a valid C identifier. This design places some
+    ///         restrictions on the SPY names which can be used.
+    ///
+    ///         1. if the spy name contains a # procedure writers should replace
+    ///         is with an __P__ for example -
+    ///
+    ///         ABUS.RX0.RXPACKS#0.RXPACK.RD.LC.LC.ACT_DIS
+    ///         becomes
+    ///         ABUS.RX0.RXPACKS__P__0.RXPACK.RD.LC.LC.ACT_DIS
+    ///
+    ///         2. if the spy name has a number following a "." it must have an
+    ///         underscore prepended to the number.
+    ///
+    ///         EH.TPCHIP.2KX100_ARY_CLK_EDGES_DLY
+    ///         becomes
+    ///         EH.TPCHIP._2KX100_ARY_CLK_EDGES_DLY
+    ///
+    ///         Example SPY name:
+    ///         The hardware procedure should call the function like:
+    ///
+    ///          ABUS.RX0.RXPACKS#0.RXPACK.RD.LC.LC.ACT_DIS
+    ///
+    ///          fapi2::ReturnCode rc = fapiPutSpy( targ,
+    ///                  ABUS.RX0.RXPACKS__P__0.RXPACK.RD.LC.LC.ACT_DIS, data );
+    ///
+    /// @note The ID is not in quotes the fapi code will handle adding
+    ///         the quotes for the cronus environment
+    ///
+#ifdef FAPI_SUPPORT_SPY_AS_ENUM
+    template< TargetType K >
+    inline ReturnCode putSpy(const Target<K>& i_target,
+                             const spyId_t i_spyId,
+                             variable_buffer& i_data)
+    {
+        static_assert(K == 0, "implement putSpy (enum)");
+        return ~FAPI2_RC_SUCCESS;
+    }
+#endif
+#ifdef FAPI_SUPPORT_SPY_AS_STRING
+    template< TargetType K >
+    inline ReturnCode putSpy(const Target<K>& i_target,
+                             const char* const i_spyId,
+                             variable_buffer& i_data)
+    {
+        static_assert(K == 0, "implement putSpy (string)");
+        return ~FAPI2_RC_SUCCESS;
+    }
+#endif
+    /// @brief Writes spy data into a buffer holding ring data image
+    ///        This API is used by L2/L3 repair to put column repair data
+    ///        into a ring buffer image.
+    /// @tparam K template parameter, passed in target.
+    /// @param[in]  i_target Target to operate on.
+    /// @param[in]  i_spyId  Id of the spy.
+    /// @param[in]  i_data   Buffer that holds spy data to write into ring
+    ///                      image.
+    /// @param[out] o_data   Buffer that holds updated ring image.
+    /// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+    ///
+    /// @note:  The string version is only supported for cronus.
+    ///
+    ///         The fapi design to support both FSP and cronus use of get and
+    ///         put spy functions is dependent on the SPY names being expanded
+    ///         to resemble a valid C identifier. This design places some
+    ///         restrictions on the SPY names which can be used.
+    ///
+    ///         See fapiPutSpy for details on spy id specifics.
+    ///
+#ifdef FAPI_SUPPORT_SPY_AS_ENUM
+    template< TargetType K >
+    inline ReturnCode putSpyImage(const Target<K>& i_target,
+                                  const spyId_t i_spyId,
+                                  const variable_buffer& i_data,
+                                  variable_buffer& o_imageData)
+    {
+        static_assert(K == 0, "implement putSpyImage (enum)");
+        return ~FAPI2_RC_SUCCESS;
+    }
+#endif
+#ifdef FAPI_SUPPORT_SPY_AS_STRING
+    template< TargetType K >
+    inline ReturnCode putSpyImage(const Target<K>& i_target,
+                                  const char* const i_spyId,
+                                  const variable_buffer& i_data,
+                                  variable_buffer& o_imageData)
+    {
+        static_assert(K == 0, "implement putSpyImage (string)");
+        return ~FAPI2_RC_SUCCESS;
+    }
+#endif
+    /// @brief Reads spy data from a ring image buffer
+    /// @param[in]   i_target      Target to operate on
+    /// @param[in]   i_spyId       The spy's id
+    /// @param[out]  o_data        Buffer that holds data read from ring image.
+    /// @param[in]   i_imageData   Buffer that holds ring image to read data
+    ///                            from.
+    /// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+    ///
+    /// @note:  The string version is only supported for cronus.
+    ///
+    ///         The fapi design to support both FSP and cronus use of get and
+    ///         put spy functions is dependent on the SPY names being expanded
+    ///         to resemble a valid C identifier. This design places some
+    ///         restrictions on the SPY names which can be used.
+    ///
+    ///         See fapiPutSpy for details on spy id specifics.
+    ///
+#ifdef FAPI_SUPPORT_SPY_AS_ENUM
+    template< TargetType K >
+    inline ReturnCode getSpyImage(const Target<K>& i_target,
+                                  const spyId_t i_spyId,
+                                  variable_buffer& o_data,
+                                  const variable_buffer& i_imageData)
+    {
+        static_assert(K == 0, "implement getSpyImage (enum)");
+        return ~FAPI2_RC_SUCCESS;
+    }
+#endif
+#ifdef FAPI_SUPPORT_SPY_AS_STRING
+    template< TargetType K >
+    inline ReturnCode getSpyImage(const Target<K>& i_target,
+                                  const char * const i_spyId,
+                                  variable_buffer& o_data,
+                                  const variable_buffer& i_imageData)
+    {
+        static_assert(K == 0, "implement getSpyImage (string)");
+        return ~FAPI2_RC_SUCCESS;
+    }
+#endif
+
+#endif // PPE
 
 };
 
-#endif // FAPI2HWACCESS_H_
+#endif // _FAPI2_HWACCESS_H_
