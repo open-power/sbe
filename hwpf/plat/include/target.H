@@ -43,6 +43,27 @@
 
 #define EX_ADDRESS_MASK 0x0000FF00
 
+#ifdef __ASSEMBLER__
+
+#ifndef ULL
+#define ULL(x) x
+#endif
+
+#else
+
+#ifndef ULL
+#define ULL(x) x##ull
+
+#endif
+
+#endif // __ASSEMBLER
+
+/// Create a multi-bit mask of \a n bits starting at bit \a b
+#define BITS(b, n) ((ULL(0xffffffffffffffff) << (64 - (n))) >> (b))
+
+/// Create a single bit mask at bit \a b
+#define BIT(b) BITS((b), 1)
+
 
 namespace fapi2
 {

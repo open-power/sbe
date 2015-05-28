@@ -93,6 +93,9 @@ $(OBJDIR)/$(IMAGE_NAME).bin $(OBJDIR)/$(IMAGE_NAME).dis: $(OBJDIR)/$(IMAGE_NAME)
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT) -Map $(OBJDIR)/$(IMAGE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_NAME).out $(LIB_DIRS) $(OBJS)  --start-group  $(LLIBS) --end-group  
+#	$(LD) -e __system_reset  -T$(LINK_SCRIPT) -Map $(OBJDIR)/$(IMAGE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_NAME).out $(LIB_DIRS) $(OBJS) -lpk -lp2p #-lcommon
+#	$(LD) -e __system_reset  -T$(LINK_SCRIPT) -Map $(OBJDIR)/$(IMAGE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_NAME).out $(LIB_DIRS) $(OBJS) $(LLIBS)
+
 
 #pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT): link.cmd
