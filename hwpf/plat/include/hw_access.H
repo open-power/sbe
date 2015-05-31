@@ -59,7 +59,6 @@ namespace fapi2
     /// @return uint8_t The current PIB error mask
     uint8_t getPIBErrorMask(void)
     {
-        uint8_t o_pib_mask;
         PLAT_GET_PIB_ERROR_MASK(o_pib_mask);
         return o_pib_mask;
     }

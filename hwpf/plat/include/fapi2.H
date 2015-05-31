@@ -30,7 +30,7 @@
 // In turn includes the needed generated headers (hwp_ffd_classes, etc.)
 #include <error_scope.H>
 #include <set_sbe_error.H>      // Generated file
-#include <fapi2AttributeService.H>
+#include <fapi2PlatAttributeService.H>
 #include <fapi2AttributeIds.H>      // Generated file
 
 
