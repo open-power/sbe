@@ -18,8 +18,7 @@
 ##########################################################################
 
 
-FAPI2-C-SOURCES +=  fapi2PlatAttributeService.C \
-                    plat_utils.C
+FAPI2-C-SOURCES +=  fapi2PlatAttributeService.C
 
 FAPI2-S-SOURCES =
 
