@@ -1,0 +1,64 @@
+<!-- $Id: proc_pll_ring_attributes.xml,v 1.17 2014/11/13 20:14:02 szhong Exp $ -->
+<!-- proc_pll_ring_attributes.xml -->
+<attributes>
+  <attribute>
+    <id>ATTR_L2_REPR_RING</id>
+    <targetType>TARGET_TYPE_EX</targetType>
+    <description>
+    </description>
+    <valueType>uint32</valueType>
+    <platInit/>
+    <persistRuntime/>
+  </attribute>
+  <!-- ********************************************************************* -->
+   <attribute>
+    <id>ATTR_L2_TIME_RING</id>
+    <targetType>TARGET_TYPE_EX</targetType>
+    <description>
+    </description>
+    <valueType>uint32</valueType>
+    <platInit/>
+    <persistRuntime/>
+  </attribute>
+  <!-- ********************************************************************* -->
+   <attribute>
+    <id>ATTR_L2_GPTR_RING</id>
+    <targetType>TARGET_TYPE_EX</targetType>
+    <description>
+    </description>
+    <valueType>uint32</valueType>
+    <platInit/>
+    <persistRuntime/>
+  </attribute>
+  <!-- ********************************************************************* -->
+  <attribute>
+    <id>ATTR_L3_REPR_RING</id>
+    <targetType>TARGET_TYPE_EX</targetType>
+    <description>
+    </description>
+    <valueType>uint32</valueType>
+    <platInit/>
+    <persistRuntime/>
+  </attribute>
+  <!-- ********************************************************************* -->
+   <attribute>
+    <id>ATTR_L3_TIME_RING</id>
+    <targetType>TARGET_TYPE_EX</targetType>
+    <description>
+    </description>
+    <valueType>uint32</valueType>
+    <platInit/>
+    <persistRuntime/>
+  </attribute>
+  <!-- ********************************************************************* -->
+   <attribute>
+    <id>ATTR_L3_GPTR_RING</id>
+    <targetType>TARGET_TYPE_EX</targetType>
+    <description>
+    </description>
+    <valueType>uint32</valueType>
+    <platInit/>
+    <persistRuntime/>
+  </attribute>
+  <!-- ********************************************************************* -->
+</attributes>
