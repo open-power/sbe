@@ -36,6 +36,7 @@
 /// FAPI namespace
 namespace fapi2
 {
+
     ///
     /// @enum fapi::TargetType
     /// @brief Types, kinds, of targets
@@ -51,15 +52,10 @@ namespace fapi2
         TARGET_TYPE_EX                = 0x02, ///< Ex type
         TARGET_TYPE_CORE              = 0x04, ///< Core type
         TARGET_TYPE_EQ                = 0x08, ///< EQ type
-        TARGET_TYPE_PERV              = 0x10, ///< Pervasive type
-        TARGET_TYPE_EQ_MC_WRITE       = 0x20, ///< EQ Multicast Type
-        TARGET_TYPE_EQ_MC_READAND     = 0x21, ///< EQ Multicast Read AND Type
-        TARGET_TYPE_EQ_MC_READOR      = 0x22, ///< EQ Multicast Read OR Type
-        TARGET_TYPE_CORE_MC_WRITE     = 0x23, ///< Core Multicast Type
-        TARGET_TYPE_CORE_MC_READAND   = 0x24, ///< Core Multicast Read AND Type
-        TARGET_TYPE_CORE_MC_READOR    = 0x25, ///< Core Multicast Read OR Type
-        TARGET_TYPE_CME_CORE0         = 0x40, ///< CME Core0 (CME only)
-        TARGET_TYPE_CME_CORE1         = 0x41, ///< CME Core1 (CME only)
+        TARGET_TYPE_MCS               = 0x10, ///< MCS type
+        TARGET_TYPE_PERV              = 0x20, ///< Pervasive type
+        TARGET_TYPE_MCAST             = 0x80, ///< Multicast type
+
         TARGET_TYPE_ALL               = 0xFF, ///< Any/All types
     
     
@@ -101,10 +97,18 @@ namespace fapi2
     };
 
 
-     /**
-      * @brief Typedef used when passing multiple TargetType values
-      */
-     typedef uint8_t TargetTypes_t;
+        // Mappings to target types found in the error xml files
+        TARGET_TYPE_EX_CHIPLET    = TARGET_TYPE_EX,
+//         TARGET_TYPE_MBA_CHIPLET   = TARGET_TYPE_MBA,
+//         TARGET_TYPE_MCS_CHIPLET   = TARGET_TYPE_MCS,
+//         TARGET_TYPE_XBUS_ENDPOINT = TARGET_TYPE_XBUS,
+//         TARGET_TYPE_ABUS_ENDPOINT = TARGET_TYPE_ABUS,
+    };
+    
+    ///
+    /// @brief Typedef used when passing multiple TargetType values
+    ///
+    typedef uint8_t TargetTypes_t;           
 
     /// @cond
     constexpr TargetType operator|(TargetType x, TargetType y)
