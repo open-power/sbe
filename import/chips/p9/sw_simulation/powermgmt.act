@@ -1,7 +1,7 @@
 # This file will contain all the Power MGMT Actions
 
 ##
-# Actions for Procdure - p9_hcd_cache_startclocks
+# Actions for Procedure - p9_hcd_cache_startclocks
 ##
 
 CAUSE_EFFECT {
@@ -21,8 +21,8 @@ CAUSE_EFFECT {
 
 
 ##
-## Actions for Procdure - p9_hcd_core_startclocks
-###
+## Actions for Procedure - p9_hcd_core_startclocks
+##
 
 CAUSE_EFFECT {
   LABEL=[Raise clock sync enable before switch to dpll]
@@ -38,3 +38,15 @@ CAUSE_EFFECT {
   EFFECT: TARGET=[REG(0x20030008)] OP=[AND,BUF,MASK] MASK=[LITERAL(64, 0FFE0000 00000000)] DATA=[LITERAL(64,00000000 00000000)]
 }
 
+
+##
+## Actions for Procedure - p9_pm_occ_control
+##
+
+CAUSE_EFFECT {
+  LABEL=[PPC405 HALT]
+  WATCH=[REG(0x0006D006)]
+  CAUSE: TARGET=[REG(0x0006D006)] OP=[EQUALTO,BUF] DATA=[LITERAL(64, 02000000 00000000)]
+  #suet PPC405_UNHALT:tc1- EFFECT: TARGET=[REG(0x01010800)] OP=[BIT,OFF] BIT=[25]
+  EFFECT: TARGET=[REG(0x01010800)] OP=[BIT,ON] BIT=[25]
+}
