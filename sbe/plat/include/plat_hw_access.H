@@ -1,9 +1,7 @@
 /**
  *  @file plat_hw_access.H
  *
- *  @brief Define platform specific calls for PPE Platforms that use the machine
- *  check function of the PPE to deal with errors (eg no explicit return codes
- *  returned)
+ *  @brief Define platform specific calls for hardware accesses.
  */
 
 #ifndef PLATHWACCESS_H_
@@ -45,20 +43,14 @@ asm volatile \
     :  "[data]"(*_m_data) \
     );
 
-
-/// GetScom   
+/// GetScom
 #define PLAT_GETSCOM(_m_rc, _m_base, _m_offset, _m_data) \
-    PPE_LVDX(_m_base.getAddressOverlay(), (uint32_t)(_m_offset & BITS(40,24)), _m_data)
+    _m_rc = getscom(_m_base.getAddressOverlay(), (uint32_t)(_m_offset & BITS(40,24)), _m_data);
     
 /// PutScom
 #define PLAT_PUTSCOM(_m_rc, _m_base, _m_offset, _m_data) \
-    PPE_STVDX(_m_base.getAddressOverlay(), (uint32_t)(_m_offset & BITS(40,24)), _m_data)
+    _m_rc = putscom(_m_base.getAddressOverlay(), (uint32_t)(_m_offset & BITS(40,24)), _m_data);
     
-/// ModifyScom
-#define PLAT_MODSCOM(_m_base, _m_offset, _m_data, _m_mode) \
-    PPE_STVDX(_m_base.getAddressOverlay(), _m_offset, _m_data)
-
-
 /// GetCFAM  
 #define PLAT_GETCFAM(_m_base, _m_offset, _m_data) \
     static_assert( K == TARGET_TYPE_NONE, \

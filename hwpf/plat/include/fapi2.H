@@ -27,11 +27,11 @@
 #include <utils.H>
 
 
+
 // In turn includes the needed generated headers (hwp_ffd_classes, etc.)
 #include <error_scope.H>
 #include <set_sbe_error.H>      // Generated file
-#include <fapi2PlatAttributeService.H>
-#include <fapi2AttributeIds.H>      // Generated file
+#include <plat_attributes.H>
 
 
 #include <hwp_executor.H>

@@ -22,50 +22,26 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
 /**
- *  @file utils.H
+ *  @file return_code.C
  *
- *  @brief Defines common utility elements for FAPI2 use.
+ *  @brief Fuctions that process PPE return codes
  */
 
-#ifndef FAPI2_UTILS_H_
-#define FAPI2_UTILS_H_
+#include <return_code.H>
 
-#ifdef __ASSEMBLER__
+namespace fapi2
+{
+    
+    /// @brief Takes a non-zero PIB return code and inssert the value into 
+    /// a fapi2::ReturnCode
+    /// @param[in]  i_msr         Value read from the PPE MSR
+    /// @return fapi::ReturnCode. Built ReturnCode
+    ReturnCode&  ReturnCode::insertPIBcode(uint32_t& rhs)
+    {
+        iv_rc = FAPI2_RC_PLAT_MASK | rhs;
+        return iv_rc;
+    }
 
-#ifndef ULL
-#define ULL(x) x
-#endif
-
-#else
-
-#ifndef ULL
-#define ULL(x) x##ull
-
-#endif
-
-#endif // __ASSEMBLER
-
-/// Create a multi-bit mask of \a n bits starting at bit \a b
-#define BITS(b, n) ((ULL(0xffffffffffffffff) << (64 - (n))) >> (b))
-
-/// Create a single bit mask at bit \a b
-#define BIT(b) BITS((b), 1)
-
-#ifdef _BIG_ENDIAN
-
-#define revle16(x) x
-#define revle32(x) x
-#define revle64(x) x
-
-#else
-
-uint16_t revle16(uint16_t i_x);
-uint32_t revle32(uint32_t i_x);
-uint64_t revle64(uint64_t i_x);
-
-#endif
-
-
-
-#endif // FAPI2_UTILS_H_
+}

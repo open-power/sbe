@@ -94,8 +94,6 @@ namespace fapi2
 //         TARGET_TYPE_CME_CORE1         = 0x80000000, ///< CME Core1 (CME only)
 //         TARGET_TYPE_ADDRESS           = 0xAAAAAAAA, ///< Address Overlay Type
 //         TARGET_TYPE_ALL               = 0xFFFFFFFF, ///< Any/All types
-    };
-
 
         // Mappings to target types found in the error xml files
         TARGET_TYPE_EX_CHIPLET    = TARGET_TYPE_EX,

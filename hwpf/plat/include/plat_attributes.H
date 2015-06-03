@@ -23,49 +23,14 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /**
- *  @file utils.H
- *
- *  @brief Defines common utility elements for FAPI2 use.
+ * @file plat_attributes.H
+ * @brief Platform specific attribute headers
  */
 
-#ifndef FAPI2_UTILS_H_
-#define FAPI2_UTILS_H_
+#ifndef __PLAT_ATTTRIBUTE_H__
+#define __PLAT_ATTTRIBUTE_H__
 
-#ifdef __ASSEMBLER__
+#include <fapi2AttributeService.H>
+#include <fapi2AttributeIds.H>      // Generated file
 
-#ifndef ULL
-#define ULL(x) x
-#endif
-
-#else
-
-#ifndef ULL
-#define ULL(x) x##ull
-
-#endif
-
-#endif // __ASSEMBLER
-
-/// Create a multi-bit mask of \a n bits starting at bit \a b
-#define BITS(b, n) ((ULL(0xffffffffffffffff) << (64 - (n))) >> (b))
-
-/// Create a single bit mask at bit \a b
-#define BIT(b) BITS((b), 1)
-
-#ifdef _BIG_ENDIAN
-
-#define revle16(x) x
-#define revle32(x) x
-#define revle64(x) x
-
-#else
-
-uint16_t revle16(uint16_t i_x);
-uint32_t revle32(uint32_t i_x);
-uint64_t revle64(uint64_t i_x);
-
-#endif
-
-
-
-#endif // FAPI2_UTILS_H_
+#endif  // __PLAT_ATTTRIBUTE_H__

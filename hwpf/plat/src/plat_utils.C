@@ -1,3 +1,4 @@
+
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
@@ -28,6 +29,8 @@
 #include <stdint.h>
 #include <plat_trace.H>
 #include <return_code.H>
+
+#ifndef __PPE__
 #include <error_info.H>
 
 namespace fapi2
@@ -74,7 +77,7 @@ namespace fapi2
                      (*i)->iv_procedure, (*i)->iv_calloutPriority);
         }
 
-        FAPI_DBG("busCallouts: %lu", ei->iv_busCallouts.size());
+e         FAPI_DBG("busCallouts: %lu", ei->iv_busCallouts.size());
         for( auto i = ei->iv_busCallouts.begin(); i != ei->iv_busCallouts.end();
              ++i )
         {
@@ -133,3 +136,77 @@ namespace fapi2
         return FAPI2_RC_SUCCESS;
     }
 };
+
+
+/// Byte-reverse a 16-bit integer if on a little-endian machine
+
+uint16_t
+revle16(uint16_t i_x)
+{
+    uint16_t rx;
+
+#ifndef _BIG_ENDIAN
+    uint8_t *pix = (uint8_t*)(&i_x);
+    uint8_t *prx = (uint8_t*)(&rx);
+
+    prx[0] = pix[1];
+    prx[1] = pix[0];
+#else
+    rx = i_x;
+#endif
+
+    return rx;
+}
+
+#endif
+
+/// Byte-reverse a 32-bit integer if on a little-endian machine
+
+uint32_t
+revle32(uint32_t i_x)
+{
+    uint32_t rx;
+
+#ifndef _BIG_ENDIAN
+    uint8_t *pix = (uint8_t*)(&i_x);
+    uint8_t *prx = (uint8_t*)(&rx);
+
+    prx[0] = pix[3];
+    prx[1] = pix[2];
+    prx[2] = pix[1];
+    prx[3] = pix[0];
+#else
+    rx = i_x;
+#endif
+
+    return rx;
+}
+
+
+/// Byte-reverse a 64-bit integer if on a little-endian machine
+
+uint64_t
+revle64(const uint64_t i_x)
+{
+    uint64_t rx;
+
+#ifndef _BIG_ENDIAN
+    uint8_t *pix = (uint8_t*)(&i_x);
+    uint8_t *prx = (uint8_t*)(&rx);
+
+    prx[0] = pix[7];
+    prx[1] = pix[6];
+    prx[2] = pix[5];
+    prx[3] = pix[4];
+    prx[4] = pix[3];
+    prx[5] = pix[2];
+    prx[6] = pix[1];
+    prx[7] = pix[0];
+#else
+    rx = i_x;
+#endif
+
+    return rx;
+}
+
+
