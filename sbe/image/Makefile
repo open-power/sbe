@@ -220,6 +220,13 @@ run: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 
 
 
+# load and run the SBE image in a GPE simics environment
+run: $(OBJDIR)/$(IMAGE_NAME).out
+	$(SIMICS_WS)/simics \
+		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_NAME).out' modelsetup.simics
+
+
+
 #Add dependencies to header files
 ifneq ($(MAKECMDGOALS),clean)
 include $(OBJS:.o=.d) 

@@ -23,49 +23,49 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /**
- *  @file utils.H
- *
- *  @brief Defines common utility elements for FAPI2 use.
+ * @file plat_error_scope.H
+ * @brief platform definitions which create a scope for automatic error handling
  */
 
-#ifndef FAPI2_UTILS_H_
-#define FAPI2_UTILS_H_
+#ifndef __FAPI2_PLAT_ERROR_SCOPE__
+#define __FAPI2_PLAT_ERROR_SCOPE__
 
-#ifdef __ASSEMBLER__
+/// @cond
+#define PLAT_FAPI_TRY_NO_TRACE( __operation__ )                         \
+    if ((fapi2::current_err = (__operation__)) != fapi2::FAPI2_RC_SUCCESS) \
+    {                                                                   \
+        goto fapi_try_exit;                                             \
+    }
 
-#ifndef ULL
-#define ULL(x) x
+#define PLAT_FAPI_TRY_TRACE( __operation__, ... )                       \
+    if ((fapi2::current_err = (__operation__)) != fapi2::FAPI2_RC_SUCCESS) \
+    {                                                                   \
+        FAPI_ERR(__VA_ARGS__);                                          \
+        goto fapi_try_exit;                                             \
+    }
+
+///
+/// @brief Assert a conditional is true.
+/// If it is not, the FFDC gathering function is called and the
+/// trace is output as a FAPI error trace.
+/// @param[in] __conditional__ the condition to assert
+/// @param[in] __ffdc__ the FFDC gathering function
+/// @param[in] ... varargs, as input to FAPI_ERR
+///
+#define PLAT_FAPI_ASSERT( __conditional__, __ffdc__, ... )      \
+    if (! (__conditional__))                                    \
+    {                                                           \
+        (__ffdc__).execute();                                   \
+        FAPI_ERR(__VA_ARGS__);                                  \
+        goto fapi_try_exit;                                     \
+    }
+    
+    
+///
+/// @brief Temporary macro for error label until all are removed.
+/// @todo REMOVE this in time.
+#define FAPI_CLEANUP()   \
+fapi_try_exit:
+/// @endcond
+
 #endif
-
-#else
-
-#ifndef ULL
-#define ULL(x) x##ull
-
-#endif
-
-#endif // __ASSEMBLER
-
-/// Create a multi-bit mask of \a n bits starting at bit \a b
-#define BITS(b, n) ((ULL(0xffffffffffffffff) << (64 - (n))) >> (b))
-
-/// Create a single bit mask at bit \a b
-#define BIT(b) BITS((b), 1)
-
-#ifdef _BIG_ENDIAN
-
-#define revle16(x) x
-#define revle32(x) x
-#define revle64(x) x
-
-#else
-
-uint16_t revle16(uint16_t i_x);
-uint32_t revle32(uint32_t i_x);
-uint64_t revle64(uint64_t i_x);
-
-#endif
-
-
-
-#endif // FAPI2_UTILS_H_

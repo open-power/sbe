@@ -17,12 +17,9 @@
 # Object Files
 ##########################################################################
 
-
-FAPI2-C-SOURCES +=  fapi2PlatAttributeService.C
-FAPI2-C-SOURCES +=  plat_utils.C
-
-
+FAPI2-C-SOURCES += 
 FAPI2-S-SOURCES =
+
 
 FAPI2LIB_OBJECTS += $(FAPI2-C-SOURCES:.C=.o) $(FAPI2-S-SOURCES:.S=.o)
 
