@@ -35,9 +35,9 @@ extern "C" {
 asm volatile \
     ( \
     "lvd %[data], 0(%[address]) \n" \
-    :  [data]"=&r"(*_m_data) \
-    :  "[data]"(*_m_data), \
-       [address]"r"(_m_address) \
+    :  [data]"=&r"(_m_data) \
+    :  "[data]"(_m_data), \
+       [address]"b"(_m_address) \
     );
 
 
@@ -46,9 +46,9 @@ asm volatile \
 asm volatile \
     ( \
         "stvd %[data], 0(%[address]) \n" \
-        : [data]"=&r"(*_m_data) \
-        : "[data]"(*_m_data), \
-          [address]"r"(_m_address) \
+        : [data]"=&r"(_m_data) \
+        : "[data]"(_m_data), \
+          [address]"b"(_m_address) \
         : "memory" \
      );
 
@@ -59,7 +59,7 @@ asm volatile \
     "lvdx %[data], %[base], %[offset] \n" \
     :  [data]"=&r"(*_m_data) \
     :  "[data]"(*_m_data), \
-       [base]"r"(_m_base), \
+       [base]"b"(_m_base), \
        [offset]"r"(_m_offset) \
     );
 
@@ -69,9 +69,9 @@ asm volatile \
 asm volatile \
     ( \
         "stvdx %[data], %[base], %[offset] \n" \
-        : [data]"=&r"(*_m_data) \
-        : "[data]"(*_m_data), \
-          [base]"r"(_m_base), \
+        : [data]"=&r"(_m_data) \
+        : "[data]"(_m_data), \
+          [base]"b"(_m_base), \
           [offset]"r"(_m_offset) \
         : "memory" \
      );
@@ -90,7 +90,7 @@ asm volatile \
 ///                          to optimize the underlying hardware execution
 ///
 /// @retval     On PPE42 platform, unmasked errors will take machine check interrupts
-uint32_t putscom_abs(const uint32_t i_address, uint64_t *i_data);
+uint32_t putscom_abs(const uint32_t i_address, uint64_t i_data);
 
 /// @brief getscom with absolute address
 /// @param [in]  i_address   Fully formed SCOM address
@@ -107,7 +107,7 @@ uint32_t getscom_abs( const uint32_t i_address, uint64_t *o_data);
 ///                         to optimize the underlying hardware execution
 ///
 /// @retval     On PPE42 platform, unmasked errors will take machine check interrupts
-uint32_t _putscom( const uint32_t i_chiplet, const uint32_t i_address, uint64_t *i_data);
+uint32_t _putscom( const uint32_t i_chiplet, const uint32_t i_address, uint64_t i_data);
 
 
 /// @brief Implementation of PPE getscom functionality
@@ -118,7 +118,7 @@ uint32_t _putscom( const uint32_t i_chiplet, const uint32_t i_address, uint64_t 
 /// @retval     On PPE42 platform, unmasked errors will take machine check interrupts
 uint32_t _getscom( uint32_t i_chiplet, uint32_t i_address, uint64_t *o_data);
 
-extern inline uint32_t putscom(const uint32_t i_chiplet, const uint32_t i_address, uint64_t *i_data)
+extern inline uint32_t putscom(const uint32_t i_chiplet, const uint32_t i_address, uint64_t i_data)
 {
     return _putscom(i_chiplet, i_address, i_data);
 }
