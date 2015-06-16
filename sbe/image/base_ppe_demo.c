@@ -14,7 +14,9 @@
 #include "pk.h"
 #include "pk_trace.h"
 
-void base_ppe_demo_func(const char* str)
+
+//void base_ppe_demo_func(const char* str)
+void main()
 {
     PK_TRACE("TESTFUNCTION");
 }
