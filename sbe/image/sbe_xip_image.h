@@ -141,20 +141,35 @@
 /// Data is a single unsigned byte
 #define SBE_XIP_UINT8 0x01
 
+/// Data is a 16-bit unsigned integer
+#define SBE_XIP_UINT16 0x02
+
 /// Data is a 32-bit unsigned integer
-#define SBE_XIP_UINT32 0x02
+#define SBE_XIP_UINT32 0x03
 
 /// Data is a 64-bit unsigned integer
-#define SBE_XIP_UINT64 0x03
+#define SBE_XIP_UINT64 0x04
+
+/// Data is a single signed byte
+#define SBE_XIP_INT8 0x05
+
+/// Data is a 16-bit signed integer
+#define SBE_XIP_INT16 0x06
+
+/// Data is a 32-bit signed integer
+#define SBE_XIP_INT32 0x07
+
+/// Data is a 64-bit signed integer
+#define SBE_XIP_INT64 0x08
 
 /// Data is a 0-byte terminated ASCII string
-#define SBE_XIP_STRING 0x04
+#define SBE_XIP_STRING 0x09
 
 /// Data is an address
-#define SBE_XIP_ADDRESS 0x05
+#define SBE_XIP_ADDRESS 0x0A
 
 /// The maximum type number
-#define SBE_XIP_MAX_TYPE_INDEX 0x05
+#define SBE_XIP_MAX_TYPE_INDEX 0x0A
 
 /// Applications can expand this macro to get access to string forms of the
 /// SBE-XIP data types if desired.
@@ -162,8 +177,13 @@
     const char* var[] = {                       \
         "Illegal 0 Code",                       \
         "SBE_XIP_UINT8",                        \
+        "SBE_XIP_UINT16",                       \
         "SBE_XIP_UINT32",                       \
         "SBE_XIP_UINT64",                       \
+        "SBE_XIP_INT8",                         \
+        "SBE_XIP_INT16",                        \
+        "SBE_XIP_INT32",                        \
+        "SBE_XIP_INT64",                        \
         "SBE_XIP_STRING",                       \
         "SBE_XIP_ADDRESS",                      \
     }
@@ -174,8 +194,13 @@
     const char* var[] = {                       \
         "Illegal 0 Code",                       \
         "u8 ",                                  \
+        "u16",                                  \
         "u32",                                  \
         "u64",                                  \
+        "i8 ",                                  \
+        "i16",                                  \
+        "i32",                                  \
+        "i64",                                  \
         "str",                                  \
         "adr",                                  \
     }
