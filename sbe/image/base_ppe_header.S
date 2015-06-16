@@ -186,7 +186,7 @@ __header_string_reserved:
     .section .strings, "aS", @progbits
     
     ..set_default_space PORE_SPACE_SEEPROM
-    SbeXipHeader SBE_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _sbe_base_size 
+    SbeXipHeader SBE_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _seeprom_size 
 
     // Create the .fixed section    
     .proc_sbe_fixed_proc_chip

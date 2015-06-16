@@ -1,3 +1,4 @@
+
 #remove this once we have a real compiler
 export P2P_ENABLE = 1
 
@@ -29,7 +30,7 @@ LLIBS += -lpk
 SBEFW_MAKE_DIR := ../sbefw
 LIB_DIRS += -L$(OBJDIR)/sbefw
 SBEFWLIB := $(OBJDIR)/sbefw/libsbefw.a
-LLIBS += -lsbefw
+#LLIBS += -lsbefw
 
 SAMPLE_MAKE_DIR := ../sample
 LIB_DIRS += -L$(OBJDIR)/sample
@@ -74,44 +75,61 @@ LIB_DIRS += -L$(OBJDIR)/perv
 PERVLIB := $(OBJDIR)/perv/libperv.a
 LLIBS += -lperv
 
-LINK_OBJS = $(OBJS) $(PKLIB) $(SBEFWLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB)
+LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB)
 
 # Define the objects
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
 LINK_OBJS += $(OBJS) $(GCCLIBS)
 #LINK_OBJS += $(OBJS) $(PKLIB) $(CPPLIB) $(PPELIB)
-LINK_SCRIPT = $(addprefix $(OBJDIR)/, linkscript)
-
+LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/, linkscriptseeprom)
+LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/, linkscriptsbe)
 
 
 #default target is to make a binary application image
 #This removes all unecessary headers from the ELF executable
-$(OBJDIR)/$(IMAGE_NAME).bin $(OBJDIR)/$(IMAGE_NAME).dis: $(OBJDIR)/$(IMAGE_NAME).out
-	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_NAME).out | grep "A _sbe_base_end" | cut -d " " -f 1`
-	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_NAME).dis
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep "A _seeprom_end" | cut -d " " -f 1`
+	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
 
 #create a linked ELF executable
-$(OBJDIR)/$(IMAGE_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT)
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT) -Map $(OBJDIR)/$(IMAGE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_NAME).out $(LIB_DIRS) $(OBJS)  --start-group  $(LLIBS) --end-group  
-#	$(LD) -e __system_reset  -T$(LINK_SCRIPT) -Map $(OBJDIR)/$(IMAGE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_NAME).out $(LIB_DIRS) $(OBJS) -lpk -lp2p #-lcommon
-#	$(LD) -e __system_reset  -T$(LINK_SCRIPT) -Map $(OBJDIR)/$(IMAGE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_NAME).out $(LIB_DIRS) $(OBJS) $(LLIBS)
-
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS)  --start-group  $(LLIBS) --end-group  
 
 #pass the link command file through the C preprocessor to evaluate macros and remove comments
-$(LINK_SCRIPT): link.cmd
-	$(CPP) -E -x c++ -P $(DEFS) link.cmd -o $(LINK_SCRIPT)
+$(LINK_SCRIPT_SEEPROM): linkseeprom.cmd
+	$(CPP) -E -x c++ -P $(DEFS) linkseeprom.cmd -o $(LINK_SCRIPT_SEEPROM)
+
+
+
+#default target is to make a binary pibmem image
+#This removes all unecessary headers from the ELF executable
+$(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMAGE_SBE_NAME).out
+	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SBE_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SBE_NAME).out | grep "A _sbe_end" | cut -d " " -f 1`
+	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SBE_NAME).dis
+
+#create a linked ELF executable
+$(OBJDIR)/$(IMAGE_SBE_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS)  --start-group  $(SBEFWLIB) $(LLIBS) --end-group  
+
+#pass the link command file through the C preprocessor to evaluate macros and remove comments
+$(LINK_SCRIPT_SBE): linksbe.cmd
+	$(CPP) -E -x c++ -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
+
+
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin 
+
 
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 
 $(OBJDIR):
-	$(BASE_FAPI2_DIR)/tools/ppeParseProcSbeFixed.pl . $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
-	$(BASE_FAPI2_DIR)/tools/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
-	$(BASE_FAPI2_DIR)/tools/ppeCreateAttrGetSetMacros.pl -path $(BASE_FAPI2_DIR)/tools -inc $(PPE_FAPI2_DIR)/include -src $(PPE_FAPI2_DIR)/src
-	$(BASE_FAPI2_DIR)/tools/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl -path $(TOOLS_ATTR_DIR)/src -inc $(PPE_FAPI2_DIR)/include -src $(PPE_FAPI2_DIR)/src
+	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(SBEFWLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(HWPLIB)
+.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(HWPLIB)
 
 ATTRFILES += $(TOOLS_ATTR_DIR)/perv_attributes.xml
 ATTRFILES += $(TOOLS_ATTR_DIR)/proc_attributes.xml
@@ -120,60 +138,63 @@ ATTRFILES += $(TOOLS_ATTR_DIR)/eq_attributes.xml
 ATTRFILES += $(TOOLS_ATTR_DIR)/core_attributes.xml
 
 topfixedheaders:
-	$(BASE_FAPI2_DIR)/tools/ppeParseProcSbeFixed.pl . $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
 
 attrids:
-	$(BASE_FAPI2_DIR)/tools/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
 
 platattr:
-	$(BASE_FAPI2_DIR)/tools/ppeCreateAttrGetSetMacros.pl --path $(BASE_FAPI2_DIR)/tools --inc $(PPE_FAPI2_DIR)/include --src $(PPE_FAPI2_DIR)/src
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(PPE_FAPI2_DIR)/include --src $(PPE_FAPI2_DIR)/src
 
 attrserv:
-	$(BASE_FAPI2_DIR)/tools/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
 
 
 #Build macro-specific kernel code
 $(PKLIB):
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PK_MAKE_DIR)
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PK_MAKE_DIR) -f Makefile
 
 #Build macro-specific kernel code
 $(SBEFWLIB):
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(SBEFW_MAKE_DIR)
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(SBEFW_MAKE_DIR) -f Makefile
+
+sbefw:
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(SBEFW_MAKE_DIR) -f Makefile
 
 
 #Build the code that is common for all processors (PPEs and 405)
 $(PPELIB):
 	@echo "Processing ppelibmakefile"
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(LIB_MAKE_DIR)
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(LIB_MAKE_DIR) -f Makefile
 
 #Build the cache exit code shared with the SBE
 $(CACHELIB):
 	@echo "Processing cache makefile"
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(CACHE_MAKE_DIR)
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(CACHE_MAKE_DIR) -f Makefile
 
 #Build the core exit code shared with the SBE
 $(CORELIB):
 	@echo "Processing core makefile"
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(CORE_MAKE_DIR)
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(CORE_MAKE_DIR)  -f Makefile
 
 #Build the perv code
 $(PERVLIB):
 	@echo "Processing perv makefile"
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PERV_MAKE_DIR)
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PERV_MAKE_DIR) -f Makefile
 
 #Build the comming HWP lib procedures
 $(HWPLIB):
 	@echo "Processing HWP lib makefile"
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(HWPLIB_MAKE_DIR)
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(HWPLIB_MAKE_DIR) -f Makefile
 
 #Build the FAPI2 library
 $(FAPI2LIB):
 	@echo "Processing fapi2 makefile"
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(FAPI2_MAKE_DIR)/src
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(FAPI2_MAKE_DIR)/src -f Makefile
 
 ifdef P2P_ENABLE
 $(P2PLIB):
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(P2P_SRCDIR)
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(P2P_SRCDIR) -f Makefile
 endif 
 
 # collect all of the trace hash files for this image into a single trexStringFile
@@ -190,7 +211,14 @@ clean:
 
 
 dump:
-	objdump -s $(OBJDIR)/$(IMAGE_NAME).out > $(IMAGE_NAME).dump
+	objdump -s $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(IMAGE_SEEPROM_NAME).dump
+
+# load and run the SBE image in a GPE simics environment
+run: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+	$(SIMICS_WS)/simics \
+		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out' modelsetup.simics
+
+
 
 #Add dependencies to header files
 ifneq ($(MAKECMDGOALS),clean)
