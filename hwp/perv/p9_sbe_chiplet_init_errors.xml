@@ -1,0 +1,25 @@
+<!-- This is an automatically generated file. -->
+<!-- File: p9_sbe_chiplet_init_errors.xml. -->
+<!-- Halt codes for p9_sbe_chiplet_init -->
+
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_CHECKSTOP_STAGE_1_ERR</rc>
+    <description>Checkstop error after MC config</description>
+    <ffdc>CHIP</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_CHECKSTOP_STAGE_2_ERR</rc>
+    <description>Checkstop error after scan0</description>
+    <ffdc>CHIP</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_CHECKSTOP_STAGE_3_ERR</rc>
+    <description>Checkstop checks</description>
+    <ffdc>CHIP</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
