@@ -1,0 +1,12 @@
+<!-- This is an automatically generated file. -->
+<!-- File: p9_sbe_arrayinit_errors.xml. -->
+<!-- Halt codes for p9_sbe_arrayinit -->
+
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_ABIST_DONE</rc>
+    <description>Check Abist Done bit after Array Init</description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
