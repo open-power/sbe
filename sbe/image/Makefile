@@ -75,6 +75,8 @@ LIB_DIRS += -L$(OBJDIR)/perv
 PERVLIB := $(OBJDIR)/perv/libperv.a
 LLIBS += -lperv
 
+SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_xip_tool $(TOOLS_IMAGE_DIR)/sbe_default_tool
+
 LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB)
 
 # Define the objects
@@ -116,7 +118,7 @@ $(LINK_SCRIPT_SBE): linksbe.cmd
 	$(CPP) -E -x c++ -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin 
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(SBE_TOOLS) normalize $(OBJDIR)/fixed.bin
 
 
 #Create an obj directory if needed
@@ -196,6 +198,15 @@ ifdef P2P_ENABLE
 $(P2PLIB):
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(P2P_SRCDIR) -f Makefile
 endif 
+
+$(SBE_TOOLS):
+	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile
+
+normalize: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
+
+$(OBJDIR)/fixed.bin: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+	/afs/bb/proj/cte/tools/ppetools/prod/powerpc-eabi/bin/objcopy -O binary --only-section=.fixed $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/fixed.bin
 
 # collect all of the trace hash files for this image into a single trexStringFile
 .PHONY : tracehash
