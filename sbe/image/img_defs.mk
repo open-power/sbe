@@ -78,6 +78,10 @@ ifndef TOOLS_IMAGE_DIR
 export TOOLS_IMAGE_DIR = $(abspath ../../tools/image)
 endif
 
+ifndef IMPORT_XML_DIR
+export IMPORT_XML_DIR = $(abspath ../../importtemp/xml)
+endif
+
 ifndef P2P_SRCDIR
 export P2P_SRCDIR = $(abspath ../../tools/PowerPCtoPPE)
 endif

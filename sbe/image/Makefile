@@ -117,39 +117,38 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 $(LINK_SCRIPT_SBE): linksbe.cmd
 	$(CPP) -E -x c++ -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
-
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(SBE_TOOLS) normalize $(OBJDIR)/fixed.bin
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
 
 
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/perv_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/proc_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/ex_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/eq_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
+
 $(OBJDIR):
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl -path $(TOOLS_ATTR_DIR)/src -inc $(PPE_FAPI2_DIR)/include -src $(PPE_FAPI2_DIR)/src
-	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
 .PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(HWPLIB)
 
-ATTRFILES += $(TOOLS_ATTR_DIR)/perv_attributes.xml
-ATTRFILES += $(TOOLS_ATTR_DIR)/proc_attributes.xml
-ATTRFILES += $(TOOLS_ATTR_DIR)/ex_attributes.xml
-ATTRFILES += $(TOOLS_ATTR_DIR)/eq_attributes.xml
-ATTRFILES += $(TOOLS_ATTR_DIR)/core_attributes.xml
-
 topfixedheaders:
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 
 attrids:
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 
 platattr:
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(PPE_FAPI2_DIR)/include --src $(PPE_FAPI2_DIR)/src
 
 attrserv:
-	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(TOOLS_ATTR_DIR)/p9_ppe_attributes1.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 
 
 #Build macro-specific kernel code
@@ -205,8 +204,14 @@ $(SBE_TOOLS):
 normalize: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 
-$(OBJDIR)/fixed.bin: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
-	/afs/bb/proj/cte/tools/ppetools/prod/powerpc-eabi/bin/objcopy -O binary --only-section=.fixed $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/fixed.bin
+defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize 
+	$(TOOLS_IMAGE_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES) 
+
+
+$(OBJDIR)/fixed.bin: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
+
+#/afs/bb/proj/cte/tools/ppetools/prod/powerpc-eabi/bin/objcopy -O binary --only-section=.fixed $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/fixed.bin
 
 # collect all of the trace hash files for this image into a single trexStringFile
 .PHONY : tracehash
@@ -225,16 +230,16 @@ dump:
 	objdump -s $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(IMAGE_SEEPROM_NAME).dump
 
 # load and run the SBE image in a GPE simics environment
-run: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+runseeprom: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(SIMICS_WS)/simics \
 		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out' modelsetup.simics
 
 
 
 # load and run the SBE image in a GPE simics environment
-run: $(OBJDIR)/$(IMAGE_NAME).out
+runsbe: $(OBJDIR)/$(IMAGE_SBE_NAME).out
 	$(SIMICS_WS)/simics \
-		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_NAME).out' modelsetup.simics
+		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SBE_NAME).out' modelsetup.simics
 
 
 

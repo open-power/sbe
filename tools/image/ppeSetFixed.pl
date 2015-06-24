@@ -4,6 +4,9 @@
 
 use strict;
 
+my $attrpath = "../../importtemp/xml";
+my $sbedefaultpath = "../../script/image";
+
 #------------------------------------------------------------------------------
 # Print Command Line Help
 #------------------------------------------------------------------------------
@@ -15,9 +18,15 @@ if ($numArgs < 3)
     print ("  and parse the attribute file to lookup the types.\n");
     print ("  The default values will be set in the image.\n");
     print ("example:\n");
-    print ("./ppeSetFixed.pl ./sbe_main.bin  ../scripts/ppe_attributes.xml \\\n" );
-    print ("../scripts/perv_attributes.xml ../scripts/proc_attributes.xml \\\n" );
-    print ("../scripts/ex_attributes.xml ../scripts/eq_attributes.xml ../scripts/core_attributes.xml \n");
+    print ("./ppeSetFixed.pl \\\n" );
+    print (". \\\n" );
+    print (" ../../sbe/obj/seeprom_main.bin \\\n" );
+    print ("$attrpath/p9_ppe_attributes.xml \\\n" );
+    print ("$attrpath/attribute_info/perv_attributes.xml \\\n" );
+    print ("$attrpath/attribute_info/proc_attributes.xml \\\n" );
+    print ("$attrpath/attribute_info/ex_attributes.xml \\\n" );
+    print ("$attrpath/attribute_info/eq_attributes.xml \\\n" );
+    print ("$attrpath/attribute_info/core_attributes.xml \n");
     exit(1);
 }
 
@@ -47,8 +56,9 @@ my $attribute = 'attribute';
 #------------------------------------------------------------------------------
 # For each argument
 #------------------------------------------------------------------------------
-my $image = $ARGV[0];
-my $argfile = $ARGV[1];
+my $sbedefaultpath = $ARGV[0];
+my $image = $ARGV[1];
+my $argfile = $ARGV[2];
 my $entries = $xml->XMLin($argfile, ForceArray => ['entry']);
 
 if ( ! -e $image) {die "ppeSetFixed.pl: $image $!"};
@@ -60,7 +70,7 @@ foreach my $entr (@{$entries->{entry}}) {
     # read XML file. The ForceArray option ensures that there is an array of
     # elements even if there is only one such element in the file
 
-    foreach my $argnum (2 .. $#ARGV)
+    foreach my $argnum (3 .. $#ARGV)
     {
         my $infile = $ARGV[$argnum];
 
@@ -130,63 +140,71 @@ setFixed("TARGET_TYPE_PERV", @attrPervIds);
 
 
 sub setFixed {
-    
+ 
     my ($string, @entries) =  @_;
+
+foreach my $attr (@entries)
+{
+
+    my $inname = $attr->{name};
     
-    foreach my $attr (@entries)
+    my @values = $attr->{value};
+
+
+    if(scalar @values > 0) {
+
+    foreach my $val (@values)
     {
+
+        if(defined $val && ref($val) eq "") {
+
+            if ($val =~ /(0x)?[0-9a-fA-F]+/) {
+             
+                my $systemRc = system("$sbedefaultpath/sbe_default_tool $image $inname $val $string 0");
         
-        my $inname = $attr->{name};
-        
-        my @values = $attr->{value};
-        
-        
-        if(scalar @values > 0) {
-            
-            foreach my $val (@values)
-            {
+                if ($systemRc) {
+                    print "sbe_default_tool: error in execution\n";
+                    exit 1;
+                }
                 
-                if(defined $val && ref($val) eq "") {
-                    
-                    if ($val =~ /(0x)?[0-9a-fA-F]+/) {
-                        
-                        my $systemRc = system("./sbe_default_tool $image $inname $val $string 0");
-                        
+            } else {
+                print ("ppeSetFixed.pl ERROR. not hex\n");
+                exit(1);
+            }
+
+        } elsif(defined $val && ref($val) eq "ARRAY") {
+
+            my $index = 0;
+
+            foreach my $arr (@{$val}) {
+
+                if(defined $arr && ref($arr) eq "") {
+                    if ($arr =~ /(0x)?[0-9a-fA-F]+/) {
+
+                        my $systemRc = system("$sbedefaultpath/sbe_default_tool $image $inname $arr $string $index");
+
                         if ($systemRc) {
                             print "sbe_default_tool: error in execution\n";
                             exit 1;
                         }
-                        
-                    } else {
-                        print ("ppeSetFixed.pl ERROR. not hex\n");
-                        exit(1);
+
+
                     }
-                    
-                } elsif(defined $val && ref($val) eq "ARRAY") {
-                    
-                    my $index = 0;
-                    
-                    foreach my $arr (@{$val}) {
-                        
-                        if(defined $arr && ref($arr) eq "") {
-                            if ($arr =~ /(0x)?[0-9a-fA-F]+/) {
-                                
-                                my $systemRc = system("./sbe_default_tool $image $inname $arr $string $index");
-                                
-                                if ($systemRc) {
-                                    print "sbe_default_tool: error in execution\n";
-                                    exit 1;
-                                }
-                                
-                                
-                            }
-                        }
-                        $index++;
-                    }                    
-                }       
+                }
+                $index++;
             }
-        }    
+
+
+
+        }
+
+
     }
+    }
+
+
+}
+
 }
 
 
