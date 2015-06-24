@@ -37,6 +37,7 @@
 //        sbe_xip_tool <image> [-<flag> ...] setv <item> <index> <value> [ <item1> <index1> <value1> ... ]
 //        sbe_xip_tool <image> [-<flag> ...] report [<regex>]
 //        sbe_xip_tool <image> [-<flag> ...] append <section> <file>
+//        sbe_xip_tool <image> [-<flag> ...] extract <section> <file>
 //        sbe_xip_tool <image> [-<flag> ...] delete [ <section0> ... <sectionN> ]
 //        sbe_xip_tool <image> [-<flag> ...] dis <section or .rings_summary>\n"//
 // 
@@ -91,6 +92,8 @@
 // section as the final section of the image. The 'append' command writes the
 // relocatable image address where the input file was loaded to stdout.
 //
+// The 'extract' command extracts a sections from the binary image.
+//
 // The 'delete' command deletes 0 or more sections, starting with <section0>.
 // Each section to be deleted must either be the final (highest address)
 // section of the image at the time it is deleted, or must be empty. The
@@ -115,6 +118,7 @@ const char* g_usage =
 "       sbe_xip_tool <image> [-i<flag> ...] setv <item> <index> <value> [ <item1> <index1> <value1> ... ]\n"
 "       sbe_xip_tool <image> [-i<flag> ...] report [<regex>]\n"
 "       sbe_xip_tool <image> [-i<flag> ...] append <section> <file>\n"
+"       sbe_xip_tool <image> [-i<flag> ...] extract <section> <file>\n"
 "       sbe_xip_tool <image> [-i<flag> ...] delete [ <section0> ... <sectionN> ]\n"
 "       sbe_xip_tool <image> [-i<flag> ...] dis <section or .rings_summary>\n"//\n"
 "\n"
@@ -168,6 +172,8 @@ const char* g_usage =
 "the image, or must be empty, in which case the append command creates the\n"
 "section as the final section of the image. The 'append' command writes the\n"
 "relocatable image address where the input file was loaded to stdout.\n"
+"\n"
+"The 'extract' command extracs a sections from a binary image.\n"
 "\n"
 "The 'delete' command deletes 0 or more sections, starting with <section0>.\n"
 "Each section to be deleted must either be the final (highest address)\n"
@@ -458,6 +464,7 @@ report(void* io_image, const int i_argc, const char** i_argv)
             control.regex = 1;
         } else {
             control.regex = 0;
+
             dumpHeader(io_image);
             printf("TOC Report\n\n");
         }
@@ -789,7 +796,6 @@ localStrtoul(const char* s)
 
 
 // Append a file to section
-
 int
 append(const char* i_imageFile, const int i_imageFd, void* io_image, 
        int i_argc, const char** i_argv)
@@ -813,8 +819,7 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
         }
         section = i_argv[0];
         file = i_argv[1];
-
-
+        
         // Translate the section name to a section Id
 
         for (sectionId = 0; sectionId < SBE_XIP_SECTIONS; sectionId++) {
@@ -918,6 +923,95 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
     } while (0);
 
     return rc;
+}
+
+// Extract section from a file
+int
+extract(const char* i_imageFile, const int i_imageFd, void* io_image, 
+        int i_argc, const char** i_argv)
+{
+    int fileFd, newImageFd, sectionId, rc;
+    void* newImage;
+    const char* section;
+    const char* file;
+    struct stat buf;
+    SbeXipHeader header;
+    SbeXipSection* xSection;
+    uint32_t size;
+    uint32_t offset;
+    unsigned int i;
+
+    do {
+
+        if (i_argc != 2) {
+            fprintf(stderr, g_usage);
+            exit(1);
+        }
+        section = i_argv[0];
+        file = i_argv[1];
+
+        printf("%s %s\n", section , file);
+
+        for (sectionId = 0; sectionId < SBE_XIP_SECTIONS; sectionId++) {
+            if (strcmp(section, g_sectionNames[sectionId]) == 0) {
+                break;
+            }
+        }
+        if (sectionId == SBE_XIP_SECTIONS) {
+            fprintf(stderr, "Unrecognized section name : '%s;\n",
+                    section);
+            exit(1);
+        }
+
+        sbe_xip_translate_header(&header, (SbeXipHeader*)io_image);
+
+        for (i = 0; i < SBE_XIP_SECTIONS; i++) {
+            xSection = &(header.iv_section[i]);
+            
+            if (strcmp(section, g_sectionNames[i]) == 0) {
+              
+                size = xSection->iv_size;
+                offset = xSection->iv_offset;
+
+                printf("%-16s 0x%08x 0x%08x (%d)\n",
+                       g_sectionNames[i], 
+                       xSection->iv_offset, xSection->iv_size, xSection->iv_size);
+                
+                break;
+            }
+        }
+
+        newImage = malloc(size);
+
+        if (newImage == 0) {
+            fprintf(stderr, "Can't malloc() a buffer for the new image\n");
+            exit(1);
+        }
+
+        memcpy(newImage, (void*)((uint64_t)io_image + offset), size);
+
+        fileFd = open(file, O_CREAT | O_WRONLY | O_TRUNC, 0755);
+        if (fileFd < 0) {
+            perror("open() of the fixed section : ");
+            exit(1);
+        }
+
+        rc = write(fileFd, newImage, size);
+        if ((rc < 0) || ((uint32_t)rc != size)) {
+            perror("write() of fixed section : ");
+            exit(1);
+        }
+
+        rc = close(fileFd);
+        if (rc) {
+            perror("close() of fixed section : ");
+            exit(1);
+        }
+
+    } while (0);
+
+    return rc;
+
 }
     
 
@@ -1922,6 +2016,11 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
         rc = append(i_imageFile, fd, image, i_argc - 1, &(i_argv[1]));
+
+    } else if (strcmp(i_argv[0], "extract") == 0) {
+
+        openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
+        rc = extract(i_imageFile, fd, image, i_argc - 1, &(i_argv[1]));
 
     } else if (strcmp(i_argv[0], "delete") == 0) {
 
