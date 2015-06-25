@@ -215,6 +215,7 @@ GCC-CFLAGS += -msoft-float -mcpu=405 -mmulhw
 GCC-CFLAGS += -meabi -msdata=eabi
 GCC-CFLAGS += -ffreestanding
 GCC-CFLAGS += -fno-common
+GCC-CFLAGS += -fno-exceptions
 GCC-CFLAGS += -fsigned-char
 GCC-CFLAGS += -fno-inline-functions-called-once
 GCC-CFLAGS += -ffixed-r11
