@@ -100,7 +100,7 @@ export PPE_FAPI2_DIR = $(abspath ../../hwpf/plat)
 endif
 
 ifndef BASE_FAPI2_DIR
-export BASE_FAPI2_DIR = $(abspath /afs/apd/u/rembold/ekb/hwpf/fapi2)
+export BASE_FAPI2_DIR = $(abspath ../../importtemp/fapi2)
 endif
 
 ifndef CC_ROOT
