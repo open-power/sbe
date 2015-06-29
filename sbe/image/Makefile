@@ -223,6 +223,7 @@ tracehash:
 clean:
 	rm -fr $(OBJDIR)
 	rm $(TOP-FIXED-HEADERS)
+	rm -fr $(TOOLS_IMAGE_DIR)/bin/*
 	rm *.dump
 
 

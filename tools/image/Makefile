@@ -61,7 +61,7 @@ INCLUDES += -I ../../pk/kernel/
 INCLUDES += -I ../../pk/std/
 INCLUDES += -I ../../pk/trace/
 INCLUDES += -I ../../tools/ppetracepp/
-INCLUDES += -I /afs/apd/u/rembold/ekb/hwpf/fapi2/include
+INCLUDES += -I ../../importtemp/fapi2/include/
 
 INCLUDES +=	-I$(CRONUS_PATH)
 INCLUDES +=	-I$(ECMD_PATH)/capi 
@@ -83,7 +83,7 @@ GCC-RELEASE = 4.8.2
 GCC-VERSION = $(shell gcc -v 2>&1 | grep "$(GCC-RELEASE)")
 
 ifeq ($(GCC-VERSION),)
-$(error wrong compiler version. Use $(GCC-RELEASE) compiler. Try to execute scl enable devtoolset-2 bash first)
+$(error wrong compiler version. Use $(GCC-RELEASE) compiler. Try: "scl enable devtoolset-2 bash")
 else
 CC   = gcc
 CXX  = g++
