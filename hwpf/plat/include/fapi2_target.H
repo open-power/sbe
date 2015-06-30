@@ -14,6 +14,13 @@
 
 namespace fapi2
 {
+
+
+    ///
+    /// @brief Typedef for chiplet number values
+    ///
+    typedef uint8_t ChipletNumber_t;
+
     ///
     /// @brief Class representing a FAPI2 Target
     /// @tparam K the type (Kind) of target
@@ -153,31 +160,6 @@ namespace fapi2
             return iv_type;
         }
 
-#ifdef __PPE__
-
-        /// Need to optimize PPE Target resoulution in a cheap manner
-        /// Brian:  not sure if the this is the place for this as
-        ///  this is plaform specific.
-
-        ///
-        /// @brief Get address overlay to reduce runtime processing
-        /// @return Overlay as a type V
-        ///
-        inline V getAddressOverlay(void) const
-        {
-            return this->iv_handle.fields.address_overlay;
-        }
-
-        ///
-        /// @brief Get address overlay to reduce runtime processing
-        /// @return Overlay as a type V
-        ///
-        inline uint32_t getTargetNumber(void) const
-        {
-            return static_cast<uint32_t>(this->iv_handle.fields.type_target_num);
-        }
-#endif
-
         ///
         /// @brief Get this target's immediate parent
         /// @tparam T The type of the parent
@@ -266,6 +248,90 @@ namespace fapi2
                            "unable to cast to specialized Target");
         }
 
+#ifdef __PPE__
+       
+        ///                                                               
+        /// @brief Get the target present setting                         
+        /// @return Bool whether present                                  
+        ///                                                               
+        inline bool getPresent(void) const                                
+        {                                                                 
+            return (this->iv_handle.fields.present ? true : false);       
+        }                                                                 
+
+        ///                                                               
+        /// @brief Get the target functional setting                      
+        /// @return Bool whether functional                               
+        ///                                                               
+        inline bool getFunctional(void) const                             
+        {                                                                 
+            return (this->iv_handle.fields.functional ? true : false);    
+        }                                                                 
+
+        ///                                                               
+        /// @brief Set the target present setting                         
+        /// @return Bool whether present                                  
+        ///                                                               
+        inline void setPresent(void) const                                
+        {                                                                 
+            this->iv_handle.fields.present = 1;                           
+            return;                                                       
+        }                                                                 
+
+        ///                                                               
+        /// @brief Set the target functional setting                      
+        /// @return Bool whether functional                               
+        ///                                                               
+        inline void setFunctional(void) const                             
+        {                                                                 
+            this->iv_handle.fields.functional = 1;                        
+            return;                                                       
+        }                                                                 
+
+
+        /// Need to optimize PPE Target resoulution in a cheap manner
+        /// Brian:  not sure if the this is the place for this as
+        ///  this is plaform specific.
+
+        ///
+        /// @brief Get address overlay to reduce runtime processing
+        /// @return Overlay as a type V
+        ///
+        inline V getAddressOverlay(void) const
+        {
+            return this->iv_handle.fields.address_overlay;
+        }
+
+        ///
+        /// @brief Get target number
+        /// @return Overlay as a type V
+        ///
+        inline uint32_t getTargetNumber(void) const
+        {
+            return static_cast<uint32_t>(this->iv_handle.fields.type_target_num);
+        }
+        
+        ///
+        /// @brief Get target type directly from the handle
+        /// @return Overlay as a type V
+        ///
+        inline TargetTypes_t getTargetType(void) const
+        {
+            return static_cast<TargetTypes_t>(this->iv_handle.fields.type);
+        }
+        
+        ///
+        /// @brief Get chiplet number from the handle
+        /// @return ChipletNumber_t Chiplet Number
+        ///
+        inline ChipletNumber_t getChipletNumber(void) const
+        {
+            return static_cast<ChipletNumber_t>(this->iv_handle.fields.chiplet_num);
+        }
+        
+#endif
+
+
     private:
         // Don't use enums here as it makes it hard to assign
         // in the platform target cast constructor.
@@ -296,7 +362,7 @@ namespace fapi2
 //            iv_handle(V i_value = 0):value(i_value) {}
         } iv_handle;
     };
-
+    
     // EX threads map to CORE threads:
     // t0 / t2 / t4 / t6 fused = t0 / t1 / t2 / t3 normal (c0)
     // t1 / t3 / t5 / t7 fused = t0 / t1 / t2 / t3 normal (c1)

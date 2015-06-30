@@ -1,5 +1,5 @@
-TOP-C-SOURCES = base_ppe_demo.c sbe_loader.c
-TOP-CPP-SOURCES =
+TOP-C-SOURCES = 
+TOP-CPP-SOURCES = sbe_main.C sbe_loader.c
 TOP-S-SOURCES = base_ppe_header.S
 
 TOP-FIXED-HEADERS += $(IMAGE_SRCDIR)/proc_sbe_fixed_perv.H

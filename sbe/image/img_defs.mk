@@ -36,7 +36,9 @@ IMAGE_SEEPROM_NAME := seeprom_main
 IMAGE_SBE_NAME := sbe_main
 IMAGE_LOADER_NAME := loader_main
 
+ifndef PPE_TYPE
 PPE_TYPE := std
+endif
 
 ifndef IMAGE_SRCDIR
 export IMAGE_SRCDIR = $(abspath .)
@@ -184,6 +186,8 @@ GCC-DEFS += -D__PK__=1
 GCC-DEFS += -D__SBE__=1
 GCC-DEFS += -D__PPE__=1
 GCC-DEFS += -DFAPI2_NO_FFDC=1
+GCC-DEFS += -DPK_TRACE_SZ=512
+
 DEFS += $(GCC-DEFS)
 export LD_LIBRARY_PATH = /afs/awd.austin.ibm.com/proj/p3/cte/tools/gcc405lin/vol1/usr/lib
 
@@ -213,6 +217,7 @@ PIPE-CFLAGS = -pipe -Wa,-m405
 GCC-CFLAGS += -Wall -Werror -Wno-unused-label
 GCC-CFLAGS += -msoft-float -mcpu=405 -mmulhw
 GCC-CFLAGS += -meabi -msdata=eabi
+GCC-CFLAGS += -gpubnames -gdwarf-3
 GCC-CFLAGS += -ffreestanding
 GCC-CFLAGS += -fno-common
 GCC-CFLAGS += -fno-exceptions

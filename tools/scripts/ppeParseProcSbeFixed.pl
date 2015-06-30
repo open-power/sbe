@@ -145,7 +145,7 @@ foreach my $entr (@{$entries->{entry}}) {
 
             } else {
 
-                print ("ppeParseProcSbeFixed.pl ERROR. Wrong attribute type: $attr->{targetType}\n");
+                print ("ppeParseProcSbeFixed.pl ERROR. Wrong attribute type: $attr->{targetType} for attribute $attr->{id} in $infile\n");
                 exit(1);
 
             }
