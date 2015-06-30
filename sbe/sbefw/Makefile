@@ -3,9 +3,9 @@ export P2P_ENABLE = 1
 export SUB_OBJDIR = /sbefw
 
 include img_defs.mk
-include topfiles.mk
+include sbefwfiles.mk
 
-OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
+OBJS := $(addprefix $(OBJDIR)/, $(SBEFW_OBJECTS))
 
 libsbefw.a: $(OBJS)
 	$(AR) crs $(OBJDIR)/libsbefw.a $(OBJDIR)/*.o
@@ -17,7 +17,7 @@ $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
-	echo "show something else"
+
 
 #clean the kernel directory first, then the application level clean
 clean:

@@ -82,7 +82,7 @@ LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HW
 # Define the objects
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
 LINK_OBJS += $(OBJS) $(GCCLIBS)
-#LINK_OBJS += $(OBJS) $(PKLIB) $(CPPLIB) $(PPELIB)
+
 LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/, linkscriptseeprom)
 LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/, linkscriptsbe)
 
@@ -95,7 +95,7 @@ $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDI
 
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS)  --start-group  $(LLIBS) --end-group  
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS)  --start-group  $(LLIBS) --end-group
 
 #pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SEEPROM): linkseeprom.cmd
@@ -110,8 +110,8 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMA
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SBE_NAME).dis
 
 #create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SBE_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SBE)
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS)  --start-group  $(SBEFWLIB) $(LLIBS) --end-group  
+$(OBJDIR)/$(IMAGE_SBE_NAME).out: $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group  $(SBEFWLIB) $(LLIBS) --end-group
 
 #pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SBE): linksbe.cmd
@@ -119,9 +119,8 @@ $(LINK_SCRIPT_SBE): linksbe.cmd
 
 all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
 
-
 #Create an obj directory if needed
-$(LINK_OBJS) $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
+$(LINK_OBJS) $(OBJS) $(OBJS:.o=.d) $(OBJDIR)/base_sbe_fixed.o $(OBJDIR)/base_sbe_fixed.d: | $(OBJDIR)
 
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/perv_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/proc_attributes.xml
@@ -229,6 +228,7 @@ clean:
 
 dump:
 	objdump -s $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(IMAGE_SEEPROM_NAME).dump
+	objdump -s $(OBJDIR)/$(IMAGE_SBE_NAME).out > $(IMAGE_SBE_NAME).dump
 
 # load and run the SBE image in a GPE simics environment
 runseeprom: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out

@@ -10,14 +10,16 @@ OUTPUT_FORMAT(elf32-powerpc);
 
 MEMORY
 {
-// sram : ORIGIN = 0xFFF40000, LENGTH = 0xc0000
  sram : ORIGIN = 0xffff0000, LENGTH = 0x10000
 }
 
 SECTIONS
 {
     . = 0xffff0000;
-    .text          : {. = ALIGN(512); *(.vectors) *(.text)} > sram
+
+    .vectors : {. = ALIGN(512); *(.vectors)} > sram
+    .fixed . : {. = ALIGN(512); *(.fixed) } > sram
+    .text . : {. = ALIGN(512); *(.text)} > sram
 
     ////////////////////////////////
     // Read-only Data
