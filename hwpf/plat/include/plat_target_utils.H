@@ -23,23 +23,26 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /**
- * @file plat_target.H
- * @brief platform definitions for fapi2 targets
+ * @file plat_target_util.H
+ * @brief platform utility definitions for fapi2 targets
  */
 
-#ifndef __FAPI2_PLAT_TARGET__
-#define __FAPI2_PLAT_TARGET__
-
-#include <return_code.H>
+#ifndef __FAPI2_PLAT_TARGET_UTIL__
+#define __FAPI2_PLAT_TARGET_UTIL__
 
 //
-// Define what a platform handle looks like. For Hostboot,
-// for example, this might be a void*. For the SBE, this
-// will be a uint64_t ...
+// Platform Utility functions..
 //
 namespace fapi2
 {
-    typedef uint64_t plat_target_handle_t;
+
+    /// @brief Function to initialize the G_targets vector based on partial good
+    ///      attributes
+    ReturnCode plat_TargetsInit();
+    
+    /// @brief Function to initialize the G_targets vector based on partial good
+    ///      attributes
+    Target<TARGET_TYPE_PROC_CHIP> plat_getChipTarget();
 
 } 
 #endif

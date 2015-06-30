@@ -1,3 +1,5 @@
+// $Id: sbe_xip_image.c,v 1.28 2013/12/11 00:12:41 bcbrock Exp $
+
 /// \file sbe_xip_image.c 
 /// \brief APIs for validating, normalizing, searching and manipulating
 /// SBE-XIP images.
@@ -1733,6 +1735,115 @@ sbe_xip_find(void* i_image,
 }
 
 
+int
+sbe_xip_map_halt(void* io_image, 
+                 int (*i_fn)(void* io_image, 
+                             const uint64_t i_imageAddress,
+                             const char* i_rcString,
+                             void* io_arg),
+                 void* io_arg)
+{
+    int rc;
+    SbeXipSection haltSection;
+    SbeXipHalt *halt;
+    uint32_t size;
+    uint32_t actualSize;
+
+    do {
+        rc = xipQuickCheck(io_image, 0);
+        if (rc) break;
+
+        rc = sbe_xip_get_section(io_image, SBE_XIP_SECTION_HALT, &haltSection);
+        if (rc) break;
+
+        halt = (SbeXipHalt*)((unsigned long)io_image + haltSection.iv_offset);
+        size = haltSection.iv_size;
+        
+        while (size) {
+
+            rc = i_fn(io_image, 
+                      xipRevLe64(halt->iv_address),
+                      halt->iv_string,
+                      io_arg);
+            if (rc) break;
+
+            // The SbeXipHalt structure claims a 4-character string.  The
+            // computation below computes the actual record size based on the
+            // actual length of the string, including the 0-byte termination.
+
+            actualSize = 8 + (((strlen(halt->iv_string) + 4) / 4) * 4);
+
+            if (size < actualSize) {
+                rc = TRACE_ERRORX(SBE_XIP_IMAGE_ERROR,
+                                  "The .halt section is improperly formed\n");
+                break;
+            }
+
+            size -= actualSize;
+            halt = (SbeXipHalt*)((unsigned long)halt + actualSize);
+        };
+
+        if (rc) break;
+
+    } while (0);
+
+    return rc;
+}
+
+        
+typedef struct {
+    uint64_t iv_address;
+    const char* iv_string;
+} GetHaltStruct;
+
+
+XIP_STATIC int
+xipGetHaltMap(void* io_image, 
+              const uint64_t i_imageAddress,
+              const char* i_rcString,
+              void* io_arg)
+{
+    int rc;
+
+    GetHaltStruct* s = (GetHaltStruct*)io_arg;
+
+    if (i_imageAddress == s->iv_address) {
+        s->iv_string = i_rcString;
+        rc = -1;
+    } else {
+        rc = 0;
+    }
+
+    return rc;
+}
+
+
+int
+sbe_xip_get_halt(void* io_image, 
+                 const uint64_t i_imageAddress,
+                 const char** o_rcString)
+{
+    int rc;
+    GetHaltStruct s;
+
+    s.iv_address = i_imageAddress;
+    do {
+        rc = xipQuickCheck(io_image, 0);
+        if (rc) break;
+
+        rc = sbe_xip_map_halt(io_image, xipGetHaltMap, &s);
+        if (rc == 0) {
+            rc = TRACE_ERRORX(SBE_XIP_ITEM_NOT_FOUND,
+                              "sbe_xip_get_halt: No HALT code is associated "
+                              "with address " F0x012llx "\n", i_imageAddress);
+        } else if (rc < 0) {
+            *o_rcString = s.iv_string;
+            rc = 0;
+        }
+    } while (0);
+
+    return rc;
+}
 
 
 int
@@ -1747,26 +1858,11 @@ sbe_xip_get_scalar(void *i_image, const char* i_id, uint64_t* o_data)
         case SBE_XIP_UINT8:
             *o_data = *((uint8_t*)(item.iv_imageData));
             break;
-        case SBE_XIP_UINT16:
-            *o_data = xipRevLe16(*((uint16_t*)(item.iv_imageData)));
-            break;
         case SBE_XIP_UINT32:
             *o_data = xipRevLe32(*((uint32_t*)(item.iv_imageData)));
             break;
         case SBE_XIP_UINT64:
             *o_data = xipRevLe64(*((uint64_t*)(item.iv_imageData)));
-            break;
-        case SBE_XIP_INT8:
-            *o_data = *((int8_t*)(item.iv_imageData));
-            break;
-        case SBE_XIP_INT16:
-            *o_data = xipRevLe16(*((int16_t*)(item.iv_imageData)));
-            break;
-        case SBE_XIP_INT32:
-            *o_data = xipRevLe32(*((int32_t*)(item.iv_imageData)));
-            break;
-        case SBE_XIP_INT64:
-            *o_data = xipRevLe64(*((int64_t*)(item.iv_imageData)));
             break;
         case SBE_XIP_ADDRESS:
             *o_data = item.iv_address;
@@ -1802,26 +1898,11 @@ sbe_xip_get_element(void *i_image,
         case SBE_XIP_UINT8:
             *o_data = ((uint8_t*)(item.iv_imageData))[i_index];
             break;
-        case SBE_XIP_UINT16:
-            *o_data = xipRevLe16(((uint16_t*)(item.iv_imageData))[i_index]);
-            break;
         case SBE_XIP_UINT32:
             *o_data = xipRevLe32(((uint32_t*)(item.iv_imageData))[i_index]);
             break;
         case SBE_XIP_UINT64:
             *o_data = xipRevLe64(((uint64_t*)(item.iv_imageData))[i_index]);
-            break;
-        case SBE_XIP_INT8:
-            *o_data = ((int8_t*)(item.iv_imageData))[i_index];
-            break;
-        case SBE_XIP_INT16:
-            *o_data = xipRevLe16(((int16_t*)(item.iv_imageData))[i_index]);
-            break;
-        case SBE_XIP_INT32:
-            *o_data = xipRevLe32(((int32_t*)(item.iv_imageData))[i_index]);
-            break;
-        case SBE_XIP_INT64:
-            *o_data = xipRevLe64(((int64_t*)(item.iv_imageData))[i_index]);
             break;
         default:
             rc = TRACE_ERROR(SBE_XIP_TYPE_ERROR);
@@ -1895,26 +1976,11 @@ sbe_xip_set_scalar(void* io_image, const char* i_id, const uint64_t i_data)
         case SBE_XIP_UINT8:
             *((uint8_t*)(item.iv_imageData)) = (uint8_t)i_data;
             break;
-        case SBE_XIP_UINT16:
-            *((uint16_t*)(item.iv_imageData)) = xipRevLe16((uint16_t)i_data);
-            break;
         case SBE_XIP_UINT32:
             *((uint32_t*)(item.iv_imageData)) = xipRevLe32((uint32_t)i_data);
             break;
         case SBE_XIP_UINT64:
             *((uint64_t*)(item.iv_imageData)) = xipRevLe64((uint64_t)i_data);
-            break;
-        case SBE_XIP_INT8:
-            *((int8_t*)(item.iv_imageData)) = (int8_t)i_data;
-            break;
-        case SBE_XIP_INT16:
-            *((int16_t*)(item.iv_imageData)) = xipRevLe16((int16_t)i_data);
-            break;
-        case SBE_XIP_INT32:
-            *((int32_t*)(item.iv_imageData)) = xipRevLe32((int32_t)i_data);
-            break;
-        case SBE_XIP_INT64:
-            *((int64_t*)(item.iv_imageData)) = xipRevLe64((int64_t)i_data);
             break;
         default:
             rc = TRACE_ERROR(SBE_XIP_TYPE_ERROR);

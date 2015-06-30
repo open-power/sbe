@@ -32,6 +32,7 @@
 #include <error_scope.H>
 #include <set_sbe_error.H>      // Generated file
 #include <plat_attributes.H>
+#include <plat_target_utils.H>
 
 
 #include <hwp_executor.H>

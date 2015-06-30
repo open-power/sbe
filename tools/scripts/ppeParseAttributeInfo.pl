@@ -234,14 +234,14 @@ foreach my $argnum (2 .. $#ARGV)
         #----------------------------------------------------------------------
         if (! exists $attr->{id})
         {
-            print ("fapiParseAttributeInfo.pl ERROR. Att 'id' missing\n");
+            print ("fapiParseAttributeInfo.pl ERROR. Attribute 'id' missing in $infile\n");
             exit(1);
         }
 
         if (exists($attrIdHash{$attr->{id}}))
         {
             # Two different attributes with the same id!
-            print ("fapiParseAttributeInfo.pl ERROR. Duplicate attr id $attr->{id} \n");
+            print ("fapiParseAttributeInfo.pl ERROR. Duplicate Attribute id $attr->{id} in $infile\\n");
             exit(1);
         }
 
@@ -255,7 +255,7 @@ foreach my $argnum (2 .. $#ARGV)
         if (exists($attrValHash{$attrHash28Bit}))
         {
             # Two different attributes generate the same hash-value!
-            print ("fapiParseAttributeInfo.pl ERROR. Duplicate attr id hash value for $attr->{id} \n");
+            print ("fapiParseAttributeInfo.pl ERROR. Duplicate attr id hash value for $attr->{id} in $infile\ \n");
             exit(1);
         }
 
@@ -318,7 +318,7 @@ foreach my $argnum (2 .. $#ARGV)
         #----------------------------------------------------------------------
         if (! exists $attr->{description})
         {
-            print ("fapiParseAttributeInfo.pl ERROR. Att 'description' missing\n");
+            print ("fapiParseAttributeInfo.pl ERROR. Attribute 'description' missing for $attr->{id} in $infile\n");
             exit(1);
         }
 
@@ -358,13 +358,19 @@ foreach my $argnum (2 .. $#ARGV)
         {
             if (! exists $attr->{valueType})
             {
-                print ("fapiParseAttributeInfo.pl ERROR. Att 'valueType' missing\n");
+                print ("fapiParseAttributeInfo.pl ERROR. Att 'valueType' missing for $attr->{id} in $infile\n");
                 exit(1);
             }
 
             if ($attr->{valueType} eq 'uint8')
             {
                 print AIFILE "typedef uint8_t $attr->{id}_Type$arrayDimensions;\n";
+                print ITFILE "$attr->{id},$attr->{id},0x$attrIdHash{$attr->{id}},u8" .
+                             "$arrayDimensions\n";                                                         
+            }
+            elsif ($attr->{valueType} eq 'uint16')
+            {
+                print AIFILE "typedef uint16_t $attr->{id}_Type$arrayDimensions;\n";
                 print ITFILE "$attr->{id},$attr->{id},0x$attrIdHash{$attr->{id}},u8" .
                              "$arrayDimensions\n";
             }
@@ -386,6 +392,12 @@ foreach my $argnum (2 .. $#ARGV)
                 print ITFILE "$attr->{id},$attr->{id},0x$attrIdHash{$attr->{id}},8" .
                              "$arrayDimensions\n";
             }
+             elsif ($attr->{valueType} eq 'int16')
+            {
+                print AIFILE "typedef int16_t $attr->{id}_Type$arrayDimensions;\n";
+                print ITFILE "$attr->{id},$attr->{id},0x$attrIdHash{$attr->{id}},32" .
+                             "$arrayDimensions\n";
+            }
             elsif ($attr->{valueType} eq 'int32')
             {
                 print AIFILE "typedef int32_t $attr->{id}_Type$arrayDimensions;\n";
@@ -401,7 +413,7 @@ foreach my $argnum (2 .. $#ARGV)
             else
             {
                 print ("fapi2ParseAttributeInfo.pl ERROR. valueType not recognized: ");
-                print $attr->{valueType}, "\n";
+                print $attr->{valueType}, " for $attr->{id} in $infile\n";
                 exit(1);
             }
         }
@@ -423,7 +435,7 @@ foreach my $argnum (2 .. $#ARGV)
         #----------------------------------------------------------------------
         if (! exists $attr->{targetType})
         {
-            print ("fapiParseAttributeInfo.pl ERROR. Att 'targetType' missing\n");
+            print ("fapiParseAttributeInfo.pl ERROR. Att 'targetType' missing for $attr->{id} in $infile\n");
             exit(1);
         }
 

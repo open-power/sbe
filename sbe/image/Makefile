@@ -30,7 +30,7 @@ LLIBS += -lpk
 SBEFW_MAKE_DIR := ../sbefw
 LIB_DIRS += -L$(OBJDIR)/sbefw
 SBEFWLIB := $(OBJDIR)/sbefw/libsbefw.a
-#LLIBS += -lsbefw
+LLIBS += -lsbefw
 
 SAMPLE_MAKE_DIR := ../sample
 LIB_DIRS += -L$(OBJDIR)/sample
@@ -108,8 +108,6 @@ $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 $(LINK_SCRIPT_SEEPROM): linkseeprom.cmd
 	$(CPP) -E -x c++ -P $(DEFS) linkseeprom.cmd -o $(LINK_SCRIPT_SEEPROM)
 
-
-
 #default target is to make a binary pibmem image
 #This removes all unecessary headers from the ELF executable
 $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMAGE_SBE_NAME).out
@@ -118,7 +116,7 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMA
 
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SBE_NAME).out: $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group  $(SBEFWLIB) $(LLIBS) --end-group
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 #pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SBE): linksbe.cmd
@@ -144,6 +142,8 @@ $(LINK_SCRIPT_LOADER): linkloader.cmd
 
 all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader
 
+generic: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
+
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d) $(OBJDIR)/base_sbe_fixed.o $(OBJDIR)/base_sbe_fixed.d: | $(OBJDIR)
 
@@ -161,6 +161,8 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 .PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(HWPLIB)
+
+#errxml: topfixedheaders attrids platattr attrserv
 
 topfixedheaders:
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
@@ -182,10 +184,6 @@ $(PKLIB):
 #Build macro-specific kernel code
 $(SBEFWLIB):
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(SBEFW_MAKE_DIR) -f Makefile
-
-sbefw:
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(SBEFW_MAKE_DIR) -f Makefile
-
 
 #Build the code that is common for all processors (PPEs and 405)
 $(PPELIB):
@@ -269,15 +267,14 @@ dump:
 	objdump -s $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(IMAGE_SEEPROM_NAME).dump
 	objdump -s $(OBJDIR)/$(IMAGE_SBE_NAME).out > $(IMAGE_SBE_NAME).dump
 
-# load and run the SBE image in a GPE simics environment
-runseeprom: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+.PHONY : run_spgpe run_pmgpe
+# load and run the SBE SeeProm image in a GPE simics environment
+run_spgpe: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(SIMICS_WS)/simics \
 		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out' modelsetup.simics
 
-
-
-# load and run the SBE image in a GPE simics environment
-runsbe: $(OBJDIR)/$(IMAGE_SBE_NAME).out
+# load and run the SBE PibMem image in a GPE simics environment
+run_pmgpe: $(OBJDIR)/$(IMAGE_NAME).out
 	$(SIMICS_WS)/simics \
 		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SBE_NAME).out' modelsetup.simics
 
