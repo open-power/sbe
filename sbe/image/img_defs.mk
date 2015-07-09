@@ -82,6 +82,10 @@ ifndef IMPORT_XML_DIR
 export IMPORT_XML_DIR = $(abspath ../../importtemp/xml)
 endif
 
+ifndef IMPORT_COMMON_DIR
+export IMPORT_COMMON_DIR = $(abspath ../../importtemp/common)
+endif
+
 ifndef P2P_SRCDIR
 export P2P_SRCDIR = $(abspath ../../tools/PowerPCtoPPE)
 endif
@@ -195,6 +199,7 @@ INCLUDES += -I$(PK_SRCDIR)/ppe42
 INCLUDES += -I$(PK_SRCDIR)/../sbe/sbefw
 INCLUDES += -I$(PK_SRCDIR)/trace
 INCLUDES += -I$(PK_SRCDIR)/../tools/ppetracepp
+INCLUDES += -I$(IMPORT_COMMON_DIR)/include
 
 PIPE-CFLAGS = -pipe -Wa,-m405
 

@@ -54,7 +54,7 @@
 //#define CONST_UINT32_T(name, expr, unit, meth) .set name, (expr)
 //#define CONST_UINT64_T(name, expr, unit, meth) .set name, (expr)
 
-#define ULL(x) x
+#define RULL(x) x
 
 #elif defined __cplusplus
 
@@ -66,16 +66,30 @@ struct has_fixup
     static const T value = T(0);
 };
 
+template <typename T, uint64_t UNIT, uint64_t METH, T REG, uint64_t FLD >
+struct has_fixfld
+{
+    static const uint8_t value = 255;
+};
+
 
 #define FIXREG8(name, expr, unit, meth, newexpr) template<> struct has_fixup<uint8_t,unit,meth,expr> { static const uint8_t value = newexpr; };
 #define FIXREG32(name, expr, unit, meth, newexpr) template<> struct has_fixup<uint32_t,unit,meth,expr> { static const uint32_t value = newexpr; };
 #define FIXREG64(name, expr, unit, meth, newexpr) template<> struct has_fixup<uint64_t,unit,meth,expr> { static const uint64_t value = newexpr; };
 
-#define CONST_UINT8_T(name, expr, unit, meth) static const uint8_t name = has_fixup<uint8_t,unit,meth,expr>::value ? has_fixup<uint8_t,unit,meth,expr>::value : expr;
-#define CONST_UINT32_T(name, expr, unit, meth) static const uint32_t name = has_fixup<uint32_t,unit,meth,expr>::value ? has_fixup<uint32_t,unit,meth,expr>::value : expr;
-#define CONST_UINT64_T(name, expr, unit, meth) static const uint64_t name = has_fixup<uint64_t,unit,meth,expr>::value ? has_fixup<uint64_t,unit,meth,expr>::value : expr;
+#define REG8(name, expr, unit, meth) static const uint8_t name = has_fixup<uint8_t,unit,meth,expr>::value ? has_fixup<uint8_t,unit,meth,expr>::value : expr;
+#define REG32(name, expr, unit, meth) static const uint32_t name = has_fixup<uint32_t,unit,meth,expr>::value ? has_fixup<uint32_t,unit,meth,expr>::value : expr;
+#define REG64(name, expr, unit, meth) static const uint64_t name = has_fixup<uint64_t,unit,meth,expr>::value ? has_fixup<uint64_t,unit,meth,expr>::value : expr;
 
-#define ULL(x) x##ull
+#define FIXREG8_FLD(name, expr, unit, meth, fld, newexpr) template<> struct has_fixfld<uint8_t,unit,meth,expr,fld> { static const uint8_t value = newexpr; };
+#define FIXREG32_FLD(name, expr, unit, meth, fld, newexpr) template<> struct has_fixfld<uint32_t,unit,meth,expr,fld> { static const uint32_t value = newexpr; };
+#define FIXREG64_FLD(name, expr, unit, meth, fld, newexpr) template<> struct has_fixfld<uint64_t,unit,meth,expr,fld> { static const uint64_t value = newexpr; };
+
+#define REG8_FLD(name, expr, unit, meth, fld) static const uint8_t name = has_fixfld<uint8_t,unit,meth,expr,fld>::value != 255 ? has_fixfld<uint8_t,unit,meth,expr,fld>::value : expr;
+#define REG32_FLD(name, expr, unit, meth, fld) static const uint8_t name = has_fixfld<uint32_t,unit,meth,expr,fld>::value != 255 ? has_fixfld<uint32_t,unit,meth,expr,fld>::value : expr;
+#define REG64_FLD(name, expr, unit, meth, fld) static const uint8_t name = has_fixfld<uint64_t,unit,meth,expr,fld>::value != 255 ? has_fixfld<uint64_t,unit,meth,expr,fld>::value : expr;
+
+#define RULL(x) x##ull
 
 #else // C code
 
@@ -83,7 +97,7 @@ struct has_fixup
 //
 //     #define <symbol> <value> [ or ULL(<value>) for 64-bit constants
 
-#define ULL(x) x##ull
+#define RULL(x) x##ull
 
 #endif  // __ASSEMBLER__
 

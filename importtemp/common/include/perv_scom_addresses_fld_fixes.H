@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: chips/p9/common/include/perv_scom_addresses_fixes.H $         */
+/* $Source: chips/p9/common/include/perv_scom_addresses_fld_fixes.H $           */
 /*                                                                        */
 /* IBM CONFIDENTIAL                                                       */
 /*                                                                        */
@@ -17,10 +17,10 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 ///
-/// @file perv_scom_addresses_fixes.H
-/// @brief The *scom_addresses.H files are  generated form figtree, but
-///        the figree can be wrong.  This file is included at the end
-///        of scom_addresses.H and allows incorrect constants to be
+/// @file perv_scom_addresses_fld_fixes.H
+/// @brief The *scom_addresses_fld.H files are generated form figtree,
+///        but the figree can be wrong.  This file is included in
+///        *_scom_addresses_fld.H and allows incorrect constants to be
 ///        fixed manually.
 ///
 // *HWP HWP Owner: Ben Gass <bgass@us.ibm.com>
@@ -29,16 +29,15 @@
 // *HWP Level: 1
 // *HWP Consumed by: FSP:HB:HS:OCC:SBE:CME:SGPE:PGPE:FPPE:IPPE
 
-#ifndef __PERV_SCOM_ADDRESSES_FIXES_H
-#define __PERV_SCOM_ADDRESSES_FIXES_H
+#ifndef __PERV_SCOM_ADDRESSES_FLD_FIXES_H
+#define __PERV_SCOM_ADDRESSES_FLD_FIXES_H
 
-//Example,
-//Copy the whole line from the *scom_addresses.H file.  Then add
-//FIX in front of REG, and add another paramter that is the new
-//corrected value.
-//FIXREG64( PU_ALTD_ADDR_REG,
-//          RULL(0x05022800), SH_UNT, SH_ACS_SCOM,
-//          RULL(0x00090000)
-//        );
+//Example
+//Copy the whole line from the *scom_addresses_fld.H file.  Then add FIX in front of REG
+//and add another paramter that is the new value you want.
+//
+//FIXREG64_FLD( PU_ALTD_CMD_REG_FBC_WITH_TM_QUIESCE, 24, SH_UNT, SH_ACS_SCOM, SH_FLD_FBC_WITH_TM_QUIESCE,
+//              12);
+
 
 #endif
