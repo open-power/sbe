@@ -1,35 +1,39 @@
 /*
- * @file: ppe/sbe/sbefw/sbefifo.C
+ * @file: ppe/sbe/sbefw/sbeFifoMsgUtils.C
  *
- * @brief This file contains the SBE FIFO Commands
+ * @brief This file contains the SBE FIFO Access Common Utility Functions
  *
  */
 
-#include "sbeexeintf.H"
 #include "sbefifo.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
+#include "sbeFifoMsgUtils.H"
+#include "sbeerrorcodes.H"
+#include "assert.h"
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
-uint32_t sbeUpFifoDeq_mult (uint8_t     &io_len,
+uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
                             uint32_t    *o_pData,
+                            const bool  i_isEotExpected,
                             const bool  i_flush)
 {
     #define SBE_FUNC " sbeUpFifoDeq_mult "
-    uint32_t l_rc = SBE_FIFO_RC_UNKNOWN;
-    uint8_t  l_len = 0;
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t l_len = 0;
 
-    // @TODO via RTC : 130575
-    //       Refactor this utility to
-    //       optimize RC handling, stack usage
-    //       and FIFO operation infrastructure.
-    //
+    // If Caller didn't request flush operation
+    // and passed a non-zero valid length, we
+    // would expect a valid buffer
+    if ((!i_flush) && (io_len > 0))
+    {
+        assert ( NULL != o_pData)
+    }
 
     do
     {
-        sbe_upfifo_entry_t l_data = {0};
-        uint64_t l_upfifo_data = 0;
+        sbeFifoEntry_t l_data = {0};
 
         // Read Double word from the Upstream FIFO;
         // The DW data represents the first 32 bits of data word entry
@@ -45,40 +49,36 @@ uint32_t sbeUpFifoDeq_mult (uint8_t     &io_len,
         //    0  : 0   -> data=dummy_data
         //    1  : 1   -> Not used
 
-        l_rc = sbeUpFifoDeq ( &l_upfifo_data );
+        l_rc = sbeUpFifoDeq ( reinterpret_cast<uint64_t*>(&l_data) );
 
         if (l_rc)
         {
             // Error while dequeueing from upstream FIFO
             SBE_ERROR(SBE_FUNC"sbeUpFifoDeq failed,"
                          "l_rc=[0x%08X]", l_rc);
+            // @TODO RTC via : 132295
+            //       RC refactoring - reserve 3 bits in SBE RC for PCBPIB
             l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
             break;
         }
 
-        l_data.upfifo_data   =   (uint32_t)(l_upfifo_data>>32);
-        l_data.upfifo_status.upfifo_status_uint32 = (uint32_t)
-                                               (l_upfifo_data);
-
         SBE_DEBUG(SBE_FUNC"sbeUpFifoDeq, "
-                    "l_data.upfifo_data=[0x%08X],"
-                    "l_data.upfifo_status=[0x%08X]",
-                     l_data.upfifo_data,
-                     l_data.upfifo_status.upfifo_status_uint32);
+                    "l_data.fifo_data=[0x%08X],",
+                     l_data.fifo_data);
 
         // If FIFO reset is requested
-        if(l_data.upfifo_status.upfifo_status_bitset.req_upfifo_reset)
+        if(l_data.statusOrReserved.req_upfifo_reset)
         {
             // @TODO via RTC : 126147
             //       Review reset loop flow in here.
             //       Received a FIFO reset request
-            l_rc = SBE_FIFO_RC_RESET;
+            l_rc = SBE_FIFO_RESET_RECEIVED;
             break;
         }
 
-        // if EOT flag is set
-        //    clear EOT
-        if (l_data.upfifo_status.upfifo_status_bitset.eot_flag)
+        // if EOT flag is set, clear EOT and
+        // set the RC accordingly
+        if (l_data.statusOrReserved.eot_flag)
         {
             l_rc = sbeUpFifoAckEot();
             if (l_rc)
@@ -86,38 +86,46 @@ uint32_t sbeUpFifoDeq_mult (uint8_t     &io_len,
                 // Error while ack'ing EOT in upstream FIFO
                 SBE_ERROR(SBE_FUNC"sbeUpFifoAckEot failed,"
                           "l_rc=[0x%08X]", l_rc);
-                // Collect FFDC
-                l_rc = SBE_FIFO_RC_EOT_ACK_FAILED;
+
+                // Collect FFDC and save off the l_rc
+                l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
+                break;
             }
-            else
+
+            // Successfully Ack'ed the EOT in upstream FIFO
+            if ( ((!i_isEotExpected) || (l_len != io_len))
+                     && (!i_flush) )
             {
-                l_rc = SBE_FIFO_RC_EOT_ACKED;
+                if (l_len < io_len)
+                {
+                    // Unexpected EOT, got insufficient data
+                    l_rc = SBE_SEC_UNEXPECTED_EOT_INSUFFICIENT_DATA ;
+                }
+                else
+                {
+                    // Unexpected EOT, got excess data
+                    l_rc = SBE_SEC_UNEXPECTED_EOT_EXCESS_DATA ;
+                }
             }
             break;
         }
 
         // if Upstream FIFO is empty,
-        if (l_data.upfifo_status.upfifo_status_bitset.fifo_empty)
+        if (l_data.statusOrReserved.fifo_empty)
         {
-            l_rc = SBE_FIFO_RC_EMPTY;
             continue;
         }
 
-        if (i_flush)
+        if ((!i_flush) && (l_len < io_len))
         {
-            l_len  = 0; // to force the upFIFO flush until EOT arrives
-            continue;
+            o_pData[l_len] = l_data.fifo_data;
         }
 
-        o_pData[l_len] = l_data.upfifo_data;
         ++l_len;
-        l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
 
-    } while(l_len<io_len);
+    } while(i_flush || i_isEotExpected || (l_len < io_len));
 
     // Return the length of entries dequeued.
-    // When user sets i_flush as true, this
-    // would return io_len as 0;
     io_len = l_len;
     return l_rc;
 
@@ -126,30 +134,19 @@ uint32_t sbeUpFifoDeq_mult (uint8_t     &io_len,
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
-uint32_t sbeDownFifoEnq_mult (uint8_t        &io_len,
+uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
                               const uint32_t *i_pData)
 {
     #define SBE_FUNC " sbeDownFifoEnq_mult "
-    uint8_t  l_rc   = SBE_FIFO_RC_UNKNOWN;
-    uint8_t  l_len = 0;
-
-    // @TODO via RTC : 130575
-    //       Refactor this utility to
-    //       optimize RC handling, stack usage
-    //       and FIFO operation infrastructure.
+    uint32_t  l_rc   = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t   l_len = 0;
 
     do
     {
-        sbe_downfifo_status_t l_downFifoStatus ;
-        typedef union
-        {
-            uint64_t status;
-            uint64_t data;
-        } sbeDownFiFoEntry_t;
-        sbeDownFiFoEntry_t l_sbeDownFiFoEntry ;
+        sbeDownFifoStatusReg_t l_status = {0};
 
         // Read the down stream FIFO status
-        l_rc = sbeDownFifoGetStatus (&l_sbeDownFiFoEntry.status);
+        l_rc = sbeDownFifoGetStatus (reinterpret_cast<uint64_t *>(&l_status));
         if (l_rc)
         {
             // Error while reading downstream FIFO status
@@ -159,29 +156,22 @@ uint32_t sbeDownFifoEnq_mult (uint8_t        &io_len,
             break;
         }
 
-        l_downFifoStatus.downfifo_status_uint32 = (uint32_t)
-                                      (l_sbeDownFiFoEntry.status>>32);
-
-        SBE_DEBUG(SBE_FUNC"downstream fifo status[0x%08X]",
-                   l_downFifoStatus.downfifo_status_uint32);
-
         // Check if there was a FIFO reset request from SP
-        if (l_downFifoStatus.downfifo_status_bitset.req_upfifo_reset)
+        if (l_status.downfifo_status.req_upfifo_reset)
         {
             // @TODO via RTC : 126147
             //       Review reset loop flow in here.
             //       Received an upstream FIFO reset request
             SBE_ERROR(SBE_FUNC"Received reset request");
-            l_rc = SBE_FIFO_RC_RESET;
+            l_rc = SBE_FIFO_RESET_RECEIVED;
             break;
         }
 
         // Check if downstream FIFO is full
-        if (l_downFifoStatus.downfifo_status_bitset.fifo_full)
+        if (l_status.downfifo_status.fifo_full)
         {
             // Downstream FIFO is full
             SBE_INFO(SBE_FUNC"Downstream FIFO is full");
-            l_rc = SBE_FIFO_RC_FULL; // in case we ever add timeout
             continue;
         }
 
@@ -189,23 +179,25 @@ uint32_t sbeDownFifoEnq_mult (uint8_t        &io_len,
         // Bit 0 - 31  : Data
         // Bit 32 - 63 : Unused
 
-        l_sbeDownFiFoEntry.data   = (uint64_t)(*(i_pData+l_len));
-        l_sbeDownFiFoEntry.data   = l_sbeDownFiFoEntry.data<<32;
+        sbeFifoEntry_t l_data = {0};
+
+        l_data.fifo_data   = *(i_pData+l_len);
 
         SBE_DEBUG(SBE_FUNC"Downstream fifo data entry[0x%08X]",
-                                    (l_sbeDownFiFoEntry.data>>32));
+                                             l_data.fifo_data);
 
         // Write the data into the downstream FIFO
-        l_rc = sbeDownFifoEnq (l_sbeDownFiFoEntry.data);
+        l_rc = sbeDownFifoEnq ( *(reinterpret_cast<uint64_t*>(&l_data)) );
         if (l_rc)
         {
             SBE_ERROR(SBE_FUNC"sbeDownFifoEnq failed, "
                               "l_rc[0x%08X]", l_rc);
+            // @TODO RTC via : 132295
+            //       RC refactoring - reserve 3 bits in SBE RC for PCBPIB
             l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
             break;
         }
 
-        l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
         ++l_len;
 
     } while(l_len<io_len);
@@ -217,12 +209,12 @@ uint32_t sbeDownFifoEnq_mult (uint8_t        &io_len,
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-void sbeBuildMinRespHdr ( uint32_t *io_pBuf,
-                          uint8_t  &io_curIndex,
+void sbeBuildMinRespHdr ( uint32_t  *io_pBuf,
+                          uint32_t  &io_curIndex,
                     const uint16_t  i_primStatus,
                     const uint16_t  i_secStatus,
                     const uint32_t  i_pcbpibStatus,
-                    const uint8_t   i_startIndex )
+                    const uint32_t  i_startIndex )
 {
     do
     {
@@ -235,10 +227,13 @@ void sbeBuildMinRespHdr ( uint32_t *io_pBuf,
         io_pBuf[++io_curIndex] = sbeBuildRespHeaderStatusWordLocal(
                                           i_primStatus, i_secStatus);
 
-        // @TODO via RTC: 128916
-        //       pcb-pib error is optional,
-        //       not needed for success case
-        io_pBuf[++io_curIndex]    = i_pcbpibStatus;
+        // Pcb-Pib error is optional,
+        // not needed for success case
+        if ( (i_primStatus  != SBE_PRI_OPERATION_SUCCESSFUL) ||
+             (i_pcbpibStatus != SBE_PCB_PIB_ERROR_NONE) )
+        {
+            io_pBuf[++io_curIndex]    = i_pcbpibStatus;
+        }
 
         // Somehow this compiler isn't allowing the
         // index pre-increment for the last array entry

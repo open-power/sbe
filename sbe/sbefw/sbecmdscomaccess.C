@@ -9,6 +9,8 @@
 #include "sbefifo.H"
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
+#include "sbeFifoMsgUtils.H"
+
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -28,106 +30,63 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
         // the scom addresses plus the expected
         // EOT entry at the end
 
-        // @TODO via RTC : 130575
-        //       Optimize both the RC handling and
-        //       FIFO operation infrastructure.
-        uint8_t  l_len2dequeue  = 3;
-        uint32_t l_scomAddr[3] = {0};
+        uint32_t  l_len2dequeue  = 2;
+        uint32_t l_scomAddr[2] = {0};
         l_rc = sbeUpFifoDeq_mult (l_len2dequeue, &l_scomAddr[0]);
 
         // If FIFO access failure
-        if (l_rc == SBE_SEC_FIFO_ACCESS_FAILURE)
+        if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
         {
             // Let command processor routine to handle the RC.
             break;
         }
 
-        // If we didn't receive EOT yet
-        if ( (l_rc != SBE_FIFO_RC_EOT_ACKED)  &&
-             (l_rc != SBE_FIFO_RC_EOT_ACK_FAILED) )
-        {
-            // We must have received unexpected data
-            // on the upstream FIFO.
-
-            // Flush upstream FIFO until EOT;
-            l_len2dequeue = 1;
-            l_rc = sbeUpFifoDeq_mult ( l_len2dequeue, NULL, true );
-
-            // We will break out here to force
-            // command processor routine to handle the RC.
-            // If the RC indicates the receipt of EOT,
-            // It would send the appropriate response
-            // back into the down stream FIFO.
-            // For all other failures, it would force
-            // timeout the chipOp operation
-            break;
-        }
-
-        // If EOT arrived prematurely
-        if ( ((l_rc == SBE_FIFO_RC_EOT_ACKED)  ||
-              (l_rc == SBE_FIFO_RC_EOT_ACK_FAILED))
-              && (l_len2dequeue < 2) )
-        {
-            // We will break out here to force
-            // command processor routine to respond
-            // into the downstream FIFO with
-            // primary response code as SBE_PRI_INVALID_DATA
-            break;
-        }
-
         uint32_t l_sbeDownFifoRespBuf[6] = {0};
         uint32_t l_pcbpibStatus = SBE_PCB_PIB_ERROR_NONE;
-        uint8_t  l_len2enqueue  = 0;
-        uint8_t  l_index = 0;
-        // successfully dequeued two entries for
-        // scom address followed by the EOT entry
-        if ( ((l_rc == SBE_FIFO_RC_EOT_ACKED)  ||
-              (l_rc == SBE_FIFO_RC_EOT_ACK_FAILED))
-              && (l_len2dequeue == 2) )
+        uint32_t l_len2enqueue  = 0;
+        uint32_t l_index = 0;
+
+        // @TODO via RTC : 126140
+        //       Support Indirect SCOM
+        // Data entry 1 : Scom Register Address (0..31)
+        // Data entry 2 : Register Address (32..63)
+        // For Direct SCOM, will ignore entry 1
+
+        uint64_t l_scomData = 0;
+        SBE_DEBUG(SBE_FUNC"scomAddr1[0x%08X]", l_scomAddr[1]);
+        l_rc = getscom (0, l_scomAddr[1], &l_scomData);
+
+        if (l_rc) // scom failed
         {
-            // @TODO via RTC : 126140
-            //       Support Indirect SCOM
-            // Data entry 1 : Scom Register Address (0..31)
-            // Data entry 2 : Register Address (32..63)
-            // For Direct SCOM, will ignore entry 1
-
-            uint64_t l_scomData = 0;
-            SBE_TRACE(SBE_FUNC"scomAddr1[0x%08X]", l_scomAddr[1]);
-            l_rc = getscom (0, l_scomAddr[1], &l_scomData);
-
-            if (l_rc) // scom failed
-            {
-                SBE_ERROR(SBE_FUNC"getscom failed, l_rc[0x%08X]", l_rc);
-                l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
-                l_pcbpibStatus = l_rc;
-            }
-
-            if (!l_rc) // successful scom
-            {
-                SBE_TRACE(SBE_FUNC"getscom succeeds, l_scomData[0x%X]",
+            SBE_ERROR(SBE_FUNC"getscom failed, l_rc[0x%08X]", l_rc);
+            l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
+            l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+            l_pcbpibStatus = l_rc;
+        }
+        else // successful scom
+        {
+            SBE_DEBUG(SBE_FUNC"getscom succeeds, l_scomData[0x%X]",
                                    l_scomData);
 
-                l_sbeDownFifoRespBuf[0] = (uint32_t)(l_scomData>>32);
-                l_sbeDownFifoRespBuf[1] = (uint32_t)(l_scomData);
+            l_sbeDownFifoRespBuf[0] = (uint32_t)(l_scomData>>32);
+            l_sbeDownFifoRespBuf[1] = (uint32_t)(l_scomData);
 
-                // Push the data into downstream FIFO
-                l_len2enqueue = 2;
-                l_rc = sbeDownFifoEnq_mult (l_len2enqueue,
+            // Push the data into downstream FIFO
+            l_len2enqueue = 2;
+            l_rc = sbeDownFifoEnq_mult (l_len2enqueue,
                                       &l_sbeDownFifoRespBuf[0]);
-                if (l_rc)
-                {
-                    // will let command processor routine
-                    // handle the failure
-                    break;
-                }
-                l_index = 2;
-            } // end successful scom
-        } // end successful dequeue
+            if (l_rc)
+            {
+                // will let command processor routine
+                // handle the failure
+                break;
+            }
+            l_index = 2;
+        } // end successful scom
 
         // Build the response header packet
 
-        uint8_t l_curIndex = l_index ;
+        uint32_t l_curIndex = l_index ;
         sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
                             l_curIndex,
                             l_primStatus,
@@ -171,94 +130,56 @@ uint32_t sbePutScom (uint8_t *i_pArg)
         // corresponding data (two entries) plus
         // the expected EOT entry at the end
 
-        // @TODO via RTC : 130575
-        //       Optimize both the RC handling and
-        //       FIFO operation infrastructure.
-        uint8_t  l_len2dequeue  = 5;
-        uint32_t l_scomAddr_Data[5] = {0};
+        uint32_t  l_len2dequeue  = 4;
+        uint32_t l_scomAddr_Data[4] = {0};
         l_rc = sbeUpFifoDeq_mult (l_len2dequeue, &l_scomAddr_Data[0]);
 
         // If FIFO access failure
-        if (l_rc == SBE_SEC_FIFO_ACCESS_FAILURE)
+        if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
         {
             // Let command processor routine to handle the RC.
-            break;
-        }
-
-        // If we didn't receive EOT yet
-        if ( (l_rc != SBE_FIFO_RC_EOT_ACKED)  &&
-             (l_rc != SBE_FIFO_RC_EOT_ACK_FAILED) )
-        {
-            // We must have received unexpected data
-            // on the upstream FIFO.
-
-            // Flush upstream FIFO until EOT;
-            l_len2dequeue = 1;
-            l_rc = sbeUpFifoDeq_mult ( l_len2dequeue, NULL, true );
-
-            // We will break out here to force
-            // command processor routine to handle the RC.
-            // If the RC indicates the receipt of EOT,
-            // It would send the appropriate response
-            // back into the down stream FIFO.
-            // For all other failures, it would force
-            // timeout the chipOp operation
-            break;
-        }
-
-        // If EOT arrived prematurely
-        if ( ((l_rc == SBE_FIFO_RC_EOT_ACKED)  ||
-              (l_rc == SBE_FIFO_RC_EOT_ACK_FAILED))
-              && (l_len2dequeue < 4) )
-        {
-            // We will break out here to force
-            // command processor routine to respond
-            // into the downstream FIFO with
-            // primary response code as SBE_PRI_INVALID_DATA
             break;
         }
 
         uint64_t l_scomData = 0;
         uint32_t l_sbeDownFifoRespBuf[4] = {0};
         uint32_t l_pcbpibStatus = SBE_PCB_PIB_ERROR_NONE;
-        uint8_t  l_len2enqueue  = 0;
+        uint32_t l_len2enqueue  = 0;
         // successfully dequeued two entries for
         // scom address followed by the EOT entry
-        if ( ((l_rc == SBE_FIFO_RC_EOT_ACKED)  ||
-              (l_rc == SBE_FIFO_RC_EOT_ACK_FAILED))
-              && (l_len2dequeue == 4) )
-        {
-            // @TODO via RTC : 126140
-            //       Support Indirect SCOM
-            // Data entry 1 : Scom Register Address (0..31)
-            // Data entry 2 : Scom Register Address (32..63)
-            // Data entry 3 : Scom Register Data (0..31)
-            // Data entry 4 : Scom Register Data (32..63)
-            // For Direct SCOM, will ignore entry 1
-            l_scomData = ((uint64_t)(l_scomAddr_Data[2])<<32)
+
+        // @TODO via RTC : 126140
+        //       Support Indirect SCOM
+        // Data entry 0 : Scom Register Address (0..31)
+        // Data entry 1 : Scom Register Address (32..63)
+        // Data entry 2 : Scom Register Data (0..31)
+        // Data entry 3 : Scom Register Data (32..63)
+        // For Direct SCOM, will ignore entry 0
+        l_scomData = ((uint64_t)(l_scomAddr_Data[2])<<32)
                            | (l_scomAddr_Data[3]);
 
-            SBE_DEBUG(SBE_FUNC"scomAddr0[0x%X]"
-                              "scomAddr1[0x%X]"
-                              "scomData0[0x%X]"
-                              "scomData1[0x%X]",
-                  l_scomAddr_Data[0], l_scomAddr_Data[1],
-                  l_scomAddr_Data[2], l_scomAddr_Data[3]);
+        l_rc = putscom (0, l_scomAddr_Data[1], l_scomData);
 
-            l_rc = putscom (0, l_scomAddr_Data[1], l_scomData);
-
-            if (l_rc) // scom failed
-            {
-                SBE_ERROR(SBE_FUNC"putscom failed, l_rc[0x%08X]", l_rc);
-                l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
-                l_pcbpibStatus = l_rc;
-            }
-        } // end successful dequeue
+        if (l_rc) // scom failed
+        {
+            SBE_ERROR(SBE_FUNC"putscom failed, l_rc[0x%08X]", l_rc);
+            SBE_ERROR(SBE_FUNC"putscom failure data, "
+                          "scomAddr0[0x%08X], "
+                          "scomAddr1[0x%08X], "
+                          "scomData0[0x%08X], "
+                          "scomData1[0x%08X]",
+                          l_scomAddr_Data[0],
+                          l_scomAddr_Data[1],
+                          l_scomAddr_Data[2],
+                          l_scomAddr_Data[3]);
+            l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
+            l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+            l_pcbpibStatus = l_rc;
+        }
 
         // Build the response header packet
 
-        uint8_t  l_curIndex = 0;
+        uint32_t  l_curIndex = 0;
         sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
                             l_curIndex,
                             l_primStatus,

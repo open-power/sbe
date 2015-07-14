@@ -13,6 +13,8 @@
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 #include "assert.h"
+#include "sbeFifoMsgUtils.H"
+#include "sbeerrorcodes.H"
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -24,8 +26,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     do
     {
         uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-        uint8_t  l_dist2StatusHdr        = 0;
-        uint32_t l_sbeDownFifoRespBuf[4] = {0};
+        uint16_t l_primStatus = SBE_PRI_OPERATION_SUCCESSFUL;
 
         // Wait for new command processing
         int l_rcPk = pk_semaphore_pend (
@@ -33,10 +34,11 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
         do
         {
-            uint16_t l_primStatus = g_sbeCmdRespHdr.prim_status;
-            uint16_t l_secStatus  = g_sbeCmdRespHdr.sec_status ;
-            SBE_DEBUG (SBE_FUNC"l_primStatus=[0x%04X], l_secStatus=[0x%04X]",
-                            l_primStatus, l_secStatus);
+            l_primStatus = g_sbeCmdRespHdr.prim_status;
+            l_rc         = g_sbeCmdRespHdr.sec_status;
+
+            SBE_DEBUG (SBE_FUNC"l_primStatus=[0x%04X], l_rc=[0x%04X]",
+                            l_primStatus, l_rc);
 
             // PK API failure
             if (l_rcPk != PK_OK)
@@ -47,90 +49,17 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
                 // if the command receiver thread already updated
                 // the response status codes, don't override them.
-                if (l_primStatus != SBE_PRI_OPERATION_SUCCESSFUL)
+                if (l_primStatus == SBE_PRI_OPERATION_SUCCESSFUL)
                 {
                     l_primStatus = SBE_PRI_INTERNAL_ERROR;
-                    l_secStatus  = SBE_SEC_OS_FAILURE;
+                    l_rc         = SBE_SEC_OS_FAILURE;
                 }
             }
 
             SBE_DEBUG(SBE_FUNC"unblocked");
 
-            // if there was a PK API failure or the
-            // command receiver thread indicated of
-            // a failure due to
-            //    Command Validation or
-            //    FIFO Reset request
-            if (l_primStatus)
+            if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
             {
-                uint8_t  l_len2dequeue           = 0;
-                switch (l_primStatus)
-                {
-                    case SBE_FIFO_RESET_RECEIVED:
-                        SBE_ERROR(SBE_FUNC"FIFO reset received");
-                        l_rc = SBE_FIFO_RC_RESET;
-                        break;
-
-                    case SBE_PRI_INVALID_COMMAND:
-                        // Command or SBE state validation failed
-                        // just follow through
-
-                    case SBE_PRI_INTERNAL_ERROR:
-                        // Flush out the upstream FIFO till EOT arrives
-                        l_len2dequeue = 1;
-                        l_rc = sbeUpFifoDeq_mult (l_len2dequeue, NULL, true);
-                        if (l_rc == SBE_FIFO_RC_RESET)
-                        {
-                           break;
-                        }
-
-                        // Not handling any other RC from sbeUpFifoDeq_mult
-                        // while flushing out to keep this code simple.
-
-                        // Don't break here to force the flow through
-                        // the next case to enqueue the response into
-                        // the downstream FIFO
-
-                    case SBE_PRI_INVALID_DATA:
-                        // SBE caller already wrongly sent EOT
-                        // before sending two mandatory header entries
-                        //
-                        // enqueue the response payload now into
-                        // the downstream FIFO
-
-                        // @TODO via RTC : 130575
-                        //       Optimize RC handling infrastructure code
-
-                        // Build the response packet first
-                        sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
-                                            l_dist2StatusHdr,
-                                            l_primStatus,
-                                            l_secStatus,
-                                            0);
-
-                        // Now enqueue into the downstream FIFO
-                        l_rc = sbeDownFifoEnq_mult (++l_dist2StatusHdr,
-                                                &l_sbeDownFifoRespBuf[0]);
-                        if (l_rc)
-                        {
-                            SBE_ERROR(SBE_FUNC"sbeDownFifoEnq_mult failure,"
-                                      " l_rc[0x%X]", l_rc);
-                        }
-                        break;
-
-                        // Signal EOT in Downstream FIFO
-                        l_rc = sbeDownFifoSignalEot();
-                        if (l_rc)
-                        {
-                            SBE_ERROR(SBE_FUNC"sbeDownFifoSignalEot failure,"
-                                   " l_rc[0x0%08X]", l_rc);
-                            break;
-                        }
-
-                    default:
-                        break;
-                } // End switch
-
                 break;
             }
 
@@ -139,7 +68,6 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
             uint8_t  l_cmdClass  = 0;
             uint8_t  l_cmdOpCode = 0;
-            uint32_t (*l_pFuncP) (uint8_t *) ;
 
             // @TODO via RTC: 128658
             //       Review if Mutex protection is required
@@ -148,7 +76,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             l_cmdOpCode = g_sbeCmdHdr.command;
 
             // Get the command function
-            l_pFuncP = sbeFindCmdFunc (l_cmdClass, l_cmdOpCode) ;
+            sbeCmdFunc_t l_pFuncP = sbeFindCmdFunc (l_cmdClass, l_cmdOpCode) ;
 
             assert( l_pFuncP )
 
@@ -160,7 +88,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
         SBE_DEBUG(SBE_FUNC"l_rc=[0x%08X]", l_rc);
 
         // Handle FIFO reset case
-        if (l_rc == SBE_FIFO_RC_RESET)
+        if (l_rc == SBE_FIFO_RESET_RECEIVED)
         {
             // @TODO via RTC : 126147
             //       Handle FIFO reset flow
@@ -168,19 +96,60 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             continue;
         }
 
+        if ( (l_rc == SBE_SEC_UNEXPECTED_EOT_INSUFFICIENT_DATA) ||
+             (l_rc == SBE_SEC_UNEXPECTED_EOT_EXCESS_DATA) )
+        {
+            l_primStatus = SBE_PRI_INVALID_DATA;
+        }
+
+        uint32_t l_len2dequeue            = 0;
+        uint32_t l_dist2StatusHdr         = 0;
+        uint32_t l_sbeDownFifoRespBuf[4] = {0};
+        uint32_t l_secStatus = l_rc;
+
         switch (l_rc)
         {
-            // EOT arrived prematurely in upstream FIFO
-            // or there were unexpected data in upstream
-            // FIFO
-            case SBE_FIFO_RC_EOT_ACKED:
-            case SBE_FIFO_RC_EOT_ACK_FAILED:
-                SBE_ERROR(SBE_FUNC"Received unexpected EOT, l_rc[0x%08X]",
-                                 l_rc);
+            case SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED:
+            case SBE_SEC_COMMAND_NOT_SUPPORTED:
+                // Caller sent Invalid Command
+
+            case SBE_SEC_OS_FAILURE:
+                // PK API Failures
+
+                // Flush out the upstream FIFO till EOT arrives
+                l_len2dequeue = 1;
+                l_rc = sbeUpFifoDeq_mult (l_len2dequeue, NULL,
+                                                true, true);
+
+                if ( (l_rc == SBE_FIFO_RESET_RECEIVED) ||
+                     (l_rc == SBE_SEC_FIFO_ACCESS_FAILURE) )
+                {
+                    break;
+                }
+
+                if (l_rc)
+                {
+                    l_secStatus = l_rc;
+                }
+
+                // Don't break here to force the flow through
+                // the next case to enqueue the response into
+                // the downstream FIFO
+
+            case SBE_SEC_UNEXPECTED_EOT_INSUFFICIENT_DATA:
+            case SBE_SEC_UNEXPECTED_EOT_EXCESS_DATA:
+                // EOT arrived prematurely in upstream FIFO
+                // or there were unexpected data in upstream FIFO
+
+                SBE_ERROR(SBE_FUNC"Operation failure, "
+                             "l_primStatus[0x%08X], "
+                             "l_secStatus[0x%08X]",
+                             l_primStatus, l_secStatus);
+
                 sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
                                     l_dist2StatusHdr,
-                                    SBE_PRI_INVALID_DATA,
-                                    SBE_SEC_GENERIC_FAILURE_IN_EXECUTION,
+                                    l_primStatus,
+                                    l_secStatus,
                                     0);
                 l_rc = sbeDownFifoEnq_mult (++l_dist2StatusHdr,
                                         &l_sbeDownFifoRespBuf[0]);

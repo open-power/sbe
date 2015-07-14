@@ -10,6 +10,7 @@
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 #include "sbe_build_info.H"
+#include "sbeFifoMsgUtils.H"
 
 // Forward declaration
 sbeCapabilityRespMsg::sbeCapabilityRespMsg()
@@ -40,25 +41,23 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
     #define SBE_FUNC "sbeGetCapabilities "
     SBE_DEBUG(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    uint8_t len = 0;
+    uint32_t len = 0;
     sbeResponseGenericHeader_t respHdr;
     respHdr.init();
     sbeCapabilityRespMsg_t capMsg;
 
     do
     {
-        // flush the EOT as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL, true );
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL);
         // @TODO via RTC : 130575
         // Optimize both the RC handling and
         // FIFO operation infrastructure.
-        if ( rc != SBE_FIFO_RC_EOT_ACKED )
+        if ( rc != SBE_SEC_OPERATION_SUCCESSFUL )
         {
-            SBE_ERROR(SBE_FUNC"FIFO dequeue failed, rc[0x%X]", rc);
+            // Let command processor routine to handle the RC
             break;
         }
-        // override Rc as we do not want to treat SBE_FIFO_RC_EOT_ACKED as error
-        rc = SBE_SEC_OPERATION_SUCCESSFUL;
 
         len = sizeof(capMsg)/sizeof(uint32_t);
         rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &capMsg);

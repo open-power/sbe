@@ -12,6 +12,8 @@
 #include "sbeirq.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
+#include "sbeFifoMsgUtils.H"
+#include "sbeerrorcodes.H"
 
 sbeCmdReqBuf_t g_sbeCmdHdr;
 sbeCmdRespHdr_t g_sbeCmdRespHdr;
@@ -59,31 +61,49 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
             // The responsibility of this thread is limited to dequeueing
             // only the first two word entries from the protocol header.
-            uint8_t len = sizeof( g_sbeCmdHdr)/ sizeof(uint32_t);
-            l_rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&g_sbeCmdHdr );
+
+            // This thread will attempt to unblock the command processor
+            // thread on the following scenarios:
+            //    - Normal scenarios where SBE would need to respond to FSP
+            //      via downstream FIFO. This includes SUCCESS cases as well as
+            //      the cases for Invalid Data sequence or Command validation
+            //      failure.
+            //    - if there is a need to handle FIFO reset
+
+            // Accordingly, this will update g_sbeCmdRespHdr.prim_status
+            // and g_sbeCmdRespHdr.sec_status for command processor thread
+            // to handle them later in the sequence.
+
+            uint32_t len = sizeof( g_sbeCmdHdr)/ sizeof(uint32_t);
+            l_rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&g_sbeCmdHdr, false );
 
             // If FIFO reset is requested,
-            if (l_rc == SBE_FIFO_RC_RESET)
+            if (l_rc == SBE_FIFO_RESET_RECEIVED)
             {
                 SBE_ERROR(SBE_FUNC"FIFO reset received");
                 g_sbeCmdRespHdr.prim_status =
-                    (uint16_t)SBE_FIFO_RESET_RECEIVED;
+                    (uint16_t)l_rc;
                 g_sbeCmdRespHdr.sec_status  =
-                    (uint16_t)SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                    (uint16_t)l_rc;
+
+                // Reassign l_rc to Success to Unblock command processor
+                // thread and let that take the necessary action.
+                l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
                 break;
             }
 
-            // If we received EOT pre-maturely or
-            // got an error while Ack'ing EOT
-            if ( (l_rc == SBE_FIFO_RC_EOT_ACKED)  ||
-                 (l_rc == SBE_FIFO_RC_EOT_ACK_FAILED) )
+            // If we received EOT out-of-sequence
+            if ( (l_rc == SBE_SEC_UNEXPECTED_EOT_INSUFFICIENT_DATA)  ||
+                 (l_rc == SBE_SEC_UNEXPECTED_EOT_EXCESS_DATA) )
             {
                 SBE_ERROR(SBE_FUNC"sbeUpFifoDeq_mult failure, "
                           " l_rc=[0x%08X]", l_rc);
                 g_sbeCmdRespHdr.prim_status =
                             SBE_PRI_INVALID_DATA;
-                g_sbeCmdRespHdr.sec_status  =
-                            SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                g_sbeCmdRespHdr.sec_status  = l_rc;
+
+                // Reassign l_rc to Success to Unblock command processor
+                // thread and let that take the necessary action.
                 l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
                 break;
             }
@@ -107,6 +127,9 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 SBE_ERROR(SBE_FUNC"Command validation failed");
                 g_sbeCmdRespHdr.prim_status = SBE_PRI_INVALID_COMMAND;
                 g_sbeCmdRespHdr.sec_status  = l_rc;
+
+                // Reassign l_rc to Success to Unblock command processor
+                // thread and let that take the necessary action.
                 l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
                 break;
             }
@@ -125,9 +148,8 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
         if ((l_rcPk != PK_OK) || (l_rc != SBE_SEC_OPERATION_SUCCESSFUL))
         {
-            // It's likely a code bug or PK failure, or
-            // FIFO reset request arrived or any other
-            // FIFO access failure.
+            // It's likely a code bug or PK failure,
+            // or any other FIFO access failure.
 
             // @TODO via RTC : 129166
             //       Review if we need to add ASSERT here
