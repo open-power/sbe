@@ -39,8 +39,8 @@ void sbe_fifo_interrupt_handler (void *i_pArg, PkIrqId i_irq)
                 // If we received an error while posting the semaphore,
                 // unmask the interrupt back and assert
                 SBE_ERROR(SBE_FUNC"pk_semaphore_post failed, rc=[%d]", l_rc);
-                assert(!l_rc);
                 pk_irq_enable(i_irq);
+                assert(!l_rc);
             }
             break;
 

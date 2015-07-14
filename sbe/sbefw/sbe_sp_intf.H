@@ -12,8 +12,14 @@ extern "C" {
 #endif
 
 /**
- * $Version: Conforms to SP-SBE Interface Spec v0.8
+ * $Version: Conforms to SP-SBE Interface Spec v0.8e
  */
+
+/*
+ * Constants for SBE FW major and minor number
+ */
+static const uint16_t SBE_FW_MAJOR_VERSION = 1;
+static const uint16_t SBE_FW_MINOR_VERSION = 1;
 
 /**
  * @brief enums for SBE command classes
@@ -161,6 +167,8 @@ enum sbeSecondaryResponse
     SBE_SEC_SECURITY_VALIDATION_FAILED        = 0x0B,
     SBE_SEC_OS_FAILURE                        = 0x0C,
     SBE_SEC_FIFO_ACCESS_FAILURE               = 0x0D,
+    SBE_SEC_UNEXPECTED_EOT_INSUFFICIENT_DATA  = 0x0E,
+    SBE_SEC_UNEXPECTED_EOT_EXCESS_DATA        = 0x0F,
 };
 
 /**
@@ -188,12 +196,6 @@ enum sbePCBPIBErrorRC
     SBE_PCB_PIB_ERROR_PACKET_ERROR        = 0x06,
     SBE_PCB_PIB_ERROR_TIMEOUT             = 0x07,
 };
-
-/*
- * Constants for SBE FW major and minor number 
- */
-static const uint16_t SBE_FW_MAJOR_VERSION = 1;
-static const uint16_t SBE_FW_MINOR_VERSION = 1;
 
 /**
   * @brief capabilities index values.

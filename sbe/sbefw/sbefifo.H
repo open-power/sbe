@@ -1,7 +1,8 @@
 /*
  * @file: ppe/sbe/sbefw/sbefifo.H
  *
- * @brief This file contains the SBE FIFO Commands
+ * @brief This file contains basic SBE FIFO hardware specific
+ *        definitions and operations.
  *
  */
 
@@ -55,40 +56,38 @@ typedef struct
     uint32_t   fifo_valid_flags:8;   // Bit 16:23
     uint32_t   fifo_eot_flags:8;     // Bit 24:31
 
-} sbe_upfifo_status_bitset_t ;
-
-typedef union
-{
-    sbe_upfifo_status_bitset_t upfifo_status_bitset;
-    uint32_t upfifo_status_uint32;
-} sbe_upfifo_status_t;
+} sbe_upfifo_status_t ;
 
 /**
-  * @brief FIFO access return codes for internal purpose
-  *
-  */
-typedef enum
-{
-    SBE_FIFO_RC_ACCESS_SUCCESS = 0,
-    SBE_FIFO_RC_RESET          = 0xE0,
-    SBE_FIFO_RC_FULL,
-    SBE_FIFO_RC_EMPTY,
-    SBE_FIFO_RC_DUMMY_DATA,
-    SBE_FIFO_RC_EOT_ACKED,
-    SBE_FIFO_RC_EOT_ACK_FAILED,
-    SBE_FIFO_RC_UNKNOWN,
-} sbe_fifo_access_rc_t;
-
-
-/**
-  * @brief 64-bit DW structure for Upstream FIFO Read
+  * @brief 64-bit DW structure for Upstream FIFO Dequeue
+  *        or Downstream FIFO Enqueue
+  *        For Upstream FIFO,
+  *            Bit 0 - 31 : Data, Bit 32 - 63 : Status
+  *        For Downstream FIFO,
+  *            Bit 0 - 31 : Data, Bit 32 - 63 : Unused
   *
   */
 typedef struct
 {
-    uint32_t upfifo_data;
+    uint32_t fifo_data;
+
+    // The following status field is applicable only for
+    // upstream FIFO access and will remain reserved for
+    // downstream FIFO access
+    sbe_upfifo_status_t statusOrReserved;
+} sbeFifoEntry_t ;
+
+
+/**
+  * @brief 64-bit DW structure for Upstream FIFO Status Reg Read
+  *            Bit 0 - 31 : Status Data, Bit 32 - 63 : Unused
+  *
+  */
+typedef struct
+{
     sbe_upfifo_status_t upfifo_status;
-} sbe_upfifo_entry_t ;
+    uint32_t reserved;
+} sbeUpFifoStatusReg_t ;
 
 
 /**
@@ -110,13 +109,19 @@ typedef struct
     uint32_t   fifo_valid_flags:8;   // Bit 16:23
     uint32_t   fifo_eot_flags:8;     // Bit 24:31
 
-} sbe_downfifo_status_bitset_t ;
+} sbe_downfifo_status_t ;
 
-typedef union
+/**
+  * @brief 64-bit DW structure for Downstream FIFO Status Reg Read
+  *          Bit 0 - 31 : Status Data, Bit 32 - 63 : Unused
+  *
+  */
+typedef struct
 {
-    sbe_downfifo_status_bitset_t downfifo_status_bitset;
-    uint32_t                     downfifo_status_uint32;
-} sbe_downfifo_status_t;
+    sbe_downfifo_status_t downfifo_status;
+    uint32_t reserved;
+} sbeDownFifoStatusReg_t;
+
 
 /*****************************************************************/
 /** Upstream FIFO access utilities **/
@@ -159,7 +164,6 @@ extern inline uint32_t sbeUpFifoPerformReset (void)
 extern inline uint32_t sbeUpFifoAckEot (void)
 {
     SBE_DEBUG("sbeUpFifoAckEot");
-
     return putscom(0, SBE_UPSTREAM_FIFO_ACK_EOT, ((uint64_t)0x1)<<32);
 }
 
@@ -210,116 +214,6 @@ extern inline uint32_t sbeDownFifoSignalEot (void)
     SBE_DEBUG(">sbeDownFifoSignalEot");
     return putscom(0, SBE_DOWNSTREAM_FIFO_SIGNAL_EOT, ((uint64_t)0x1)<<32);
 }
-
-
-/**********************************************************************/
-// Utilities
-/**********************************************************************/
-
-/**
-  * @brief sbeUpFifoDeq_mult : Dequeue multiple entries from upstream FIFO
-  *
-  * @param[in/out] io_len
-  *                    number of entries to dequeue as input,
-  *                    number of entries dequeued as output without
-  *                    taking EOT dummy entry into consideration
-  * @param[out]    o_pData  entries dequeued into the buffer
-  * @param[in]     i_flush true / false
-  *                    true - caller requested FIFO flush,
-  *                       io_len would be returned as 0
-  *                    false - default case,
-  *                       io_len would be number of entries dequeued
-  *
-  * @return        Rc from the underlying scom utility
-  *
-  */
-extern uint32_t sbeUpFifoDeq_mult (uint8_t     &io_len,
-                                   uint32_t    *o_pData,
-                                   const bool  i_flush = false);
-
-
-/**
-  * @brief sbeDownFifoEnq_mult : Enqueue into downstream FIFO
-  *
-  * @param[in/out] io_len   number of entries to enqueue as input,
-  *                         number of entries enqueued as output
-  * @param[in]     i_pData  buffer containting data to be enqueued
-  *
-  * @return        Rc from the underlying scom utility
-  *
-  */
-extern uint32_t sbeDownFifoEnq_mult (uint8_t        &io_len,
-                                     const uint32_t *i_pData) ;
-
-
-/**
-  * @brief sbeBuildRespHeaderMagicCodeCmdClass
-  *          Builds the header word containing the magic code,
-  *          the command class and the opcode
-  *
-  * @return     Returns the header word in the response header
-  *             containing  the magic code, command class and opcode
-  *
-  */
-extern inline uint32_t sbeBuildRespHeaderMagicCodeCmdClass (void)
-{
-    return ( (0xC0DE0000 ) |
-             (uint32_t)(g_sbeCmdHdr.cmdClass << 8) |
-             (uint32_t)(g_sbeCmdHdr.command ));
-}
-
-/**
-  * @brief sbeBuildRespHeaderStatusWordGlobal
-  *          Builds the status header word from global variables
-  *
-  * @return     Returns the status word in the response header
-  *
-  */
-extern inline uint32_t sbeBuildRespHeaderStatusWordGlobal (void)
-{
-    return ( (((uint32_t)g_sbeCmdRespHdr.prim_status)<<16) |
-                        (g_sbeCmdRespHdr.sec_status) );
-}
-
-/**
-  * @brief sbeBuildRespHeaderStatusWordLocal
-  *          Builds the status header word from passed in parameters
-  *
-  * @param[in]  const uint16_t i_primStatus Primary Response Status Code
-  * @param[in]  const uint16_t i_secStatus  Secondary Response Status Code
-  *
-  * @return     Returns the status word in the response header
-  *
-  */
-extern inline uint32_t sbeBuildRespHeaderStatusWordLocal (
-                                const uint16_t i_primStatus,
-                                const uint16_t i_secStatus)
-{
-    return ( (((uint32_t)i_primStatus)<<16) | (i_secStatus) );
-}
-
-/**
- * @brief sbeBuildMinRespHdr : Builds minimum response header
- *
- * @desc  This builds the buffer with the following status words
- *           - Magic Bytes, Command Class, Command opcode
- *           - Primary Status Code, Secondary Status Code
- *           - PCB / PIB Status Code [optional]
- *           - Distance to Status Header
- * @param[in/out]    uint32_t *io_pBuf      Buffer to be filled in
- * @param[in/out]    uint8_t  &io_curIndex  Current Index into the buffer
- * @param[in]  const uint16_t  i_primStatus Primary Response Status Code
- * @param[in]  const uint16_t  i_secStatus  Secondary Response Status Code
- * @param[in]  const uint32_t  i_pcbpibStatus PCB-PIB Response Status Code
- * @param[in]  const uint8_t   i_startIndex   Starting Index into the buffer
- */
-
-void sbeBuildMinRespHdr ( uint32_t *io_pBuf,
-                          uint8_t  &io_curIndex,
-                    const uint16_t  i_primStatus,
-                    const uint16_t  i_secStatus,
-                    const uint32_t  i_pcbpibStatus,
-                    const uint8_t   i_startIndex = 0 );
 
 
 #endif // __SBEFW_SBEFIFO_H

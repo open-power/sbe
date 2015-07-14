@@ -9,6 +9,7 @@
 #include "sbefifo.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
+#include "sbeFifoMsgUtils.H"
 #include "assert.h"
 
 #include "fapi2.H"
@@ -196,8 +197,8 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
     #define SBE_FUNC "sbeHandleIstep "
     SBE_DEBUG(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    uint8_t len = 0;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    uint32_t len = 0;
     sbeIstepReqMsg_t req;
     sbeResponseGenericHeader_t respHdr;
     respHdr.init();
@@ -209,27 +210,13 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
     //loop 1
     do
     {
-        // @TODO via RTC : 130575
-        // Optimize both the RC handling and
-        // FIFO operation infrastructure.
         len = sizeof( req )/sizeof(uint32_t);
         rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&req);
-        if (rc) //FIFO access issue
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL) //FIFO access issue
         {
             SBE_ERROR(SBE_FUNC"FIFO dequeue failed, rc[0x%X]", rc);
             break;
         }
-        len = 1;
-        rc = sbeUpFifoDeq_mult ( len, NULL, true );
-
-        // If we didn't receive EOT yet
-        if ( rc != SBE_FIFO_RC_EOT_ACKED )
-        {
-            SBE_ERROR(SBE_FUNC"FIFO dequeue failed, rc[0x%X]", rc);
-            break;
-        }
-        // override Rc as we do not want to treat SBE_FIFO_RC_EOT_ACKED as error
-        rc = SBE_SEC_OPERATION_SUCCESSFUL;
 
         SBE_DEBUG(SBE_FUNC"Major number:0x%08x minor number:0x%08x",
                   req.major, req.minor );

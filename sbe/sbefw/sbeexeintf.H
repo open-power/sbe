@@ -59,17 +59,6 @@ enum sbeThreadStackSize
 };
 
 /**
- * @brief enums SBE internal error codes
- *
-*/
-enum sbeInternalResponseCodes
-{
-    SBE_FIFO_RESET_RECEIVED  = 0xFA,
-    SBE_FIFO_RESET_HANDLING_FAILED = 0xFB,
-    SBE_FUNC_NOT_SUPPORTED   = 0xFC,
-};
-
-/**
  * @brief Global semaphore : g_sbeSemCmdRecv
  *
  *   This is used to synchronize between the ISR and
