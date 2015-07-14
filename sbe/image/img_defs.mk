@@ -126,6 +126,11 @@ ifndef BINUTILS-TOOL-PREFIX
 BINUTILS-TOOL-PREFIX = $(CTEPATH)/tools/ppetools/prod/powerpc-eabi/bin/
 endif
 
+ifndef FAPI_RC
+FAPI_RC = hwp_return_codes.H
+#FAPI_RC =
+endif
+
 OBJDIR = $(BASE_OBJDIR)$(SUB_OBJDIR)
 
 CC_ASM  = $(GCC-TOOL-PREFIX)gcc
@@ -196,6 +201,7 @@ export LD_LIBRARY_PATH = /afs/awd.austin.ibm.com/proj/p3/cte/tools/gcc405lin/vol
 
 INCLUDES += $(IMG_INCLUDES)
 INCLUDES += -I$(IMAGE_SRCDIR)/../../../include
+INCLUDES += -I$(HWPLIB_SRCDIR)
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include
 INCLUDES += -I$(PPE_FAPI2_DIR)/include
 INCLUDES += -I$(BASE_FAPI2_DIR)/include
@@ -305,14 +311,14 @@ endif
 # work as Make targets. The *.d files are include-ed in the
 # subdirectory Makefiles.
 
-$(OBJDIR)/%.d: %.C
+$(OBJDIR)/%.d: %.C $(FAPI_RC)
 	@set -e; rm -f $@; \
 	echo -n "$(OBJDIR)/" > $@.$$$$; \
 	$(CC_ASM) -MM $(INCLUDES) $(CPPFLAGS) $(DEFS) $< >> $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-$(OBJDIR)/%.d: %.c
+$(OBJDIR)/%.d: %.c $(FAPI_RC)
 	@set -e; rm -f $@; \
 	echo -n "$(OBJDIR)/" > $@.$$$$; \
 	echo "$(INCLUDES)"; \
@@ -320,7 +326,7 @@ $(OBJDIR)/%.d: %.c
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-$(OBJDIR)/%.d: %.S
+$(OBJDIR)/%.d: %.S $(FAPI_RC)
 	@set -e; rm -f $@; \
 	echo -n "$(OBJDIR)/" > $@.$$$$; \
 	$(CC_ASM) -MM $(INCLUDES) $(CPPFLAGS) $(DEFS) $< >> $@.$$$$; \

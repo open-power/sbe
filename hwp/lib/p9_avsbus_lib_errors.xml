@@ -1,0 +1,50 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/ipl/ppe/hwp/p9_avsbus_lib_errors.xml $    -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2015                                                         -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+
+<!-- *HWP HWP Owner: Greg Still <stillgs @us.ibm.com>                       -->
+<!-- *HWP FW Owner: Bilicon Patil <bilpatil@in.ibm.com>                     -->
+<!-- *HWP Team: PM                                                          -->
+<!-- *HWP Level: 1                                                          -->
+<!-- *HWP Consumed by: FSP:HS                                               -->
+
+<!-- Error definitions for p9_avsbus_lib procedure -->
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_PROCPM_AVSBUS_READVOLTAGE_TIMEOUT</rc>
+    <description>
+    A timeout occured reading voltage from an AVSBus interface
+    </description>    
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_PROCPM_AVSBUS_WRITEVOLTAGE_TIMEOUT</rc>
+    <description>
+    A timeout occured writing a voltage to an AVSBus interface
+    </description>    
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_PROCPM_AVSBUS_IDLEFRAME_TIMEOUT</rc>
+    <description>
+    A timeout occured writing an idle from to an AVSBus interface
+    </description>    
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
