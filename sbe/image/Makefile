@@ -55,6 +55,7 @@ HWPLIB_MAKE_DIR := $(HWPLIB_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/lib
 HWPLIB := $(OBJDIR)/libcommon.a
 LLIBS += -lcommon
+include $(HWPLIB_SRCDIR)/libcommonerrors.mk
 
 # Common Cache HWP Exit library
 CACHE_MAKE_DIR := $(CACHE_SRCDIR)
@@ -74,6 +75,7 @@ PERV_MAKE_DIR := $(PERV_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/perv
 PERVLIB := $(OBJDIR)/perv/libperv.a
 LLIBS += -lperv
+include $(PERV_SRCDIR)/perverrors.mk
 
 # Common Nest libraries
 NEST_MAKE_DIR := $(NEST_SRCDIR)
@@ -211,6 +213,8 @@ $(NESTLIB):
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(NEST_MAKE_DIR) -f Makefile
 
 #Build the comming HWP lib procedures
+        
+#Build the HWP lib procedures
 $(HWPLIB):
 	@echo "Processing HWP lib makefile"
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(HWPLIB_MAKE_DIR) -f Makefile
@@ -234,6 +238,27 @@ normalize: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize 
 	$(TOOLS_IMAGE_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES) 
 
+# Build hwp_error_info.H.  If the script fails then print the contents of
+# the header and then delete whatever garbage the script left to force it to
+# be built again.
+#
+# -*- HACK -*- Use local version of parseErrorInfo.pl until FW team
+# updates the standard version to work in assembly.  The source for this
+# script is : $(FAPI)/capi/scripts/parseErrorInfo.pl
+
+.PHONY : xml
+
+xml: $(FAPI_RC)
+
+$(FAPI_RC): $(TOOLS_ATTR_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
+	$(TOOLS_ATTR_DIR)/parseErrorInfo.pl --empty-ffdc-classes --output-dir=. $(ERROR_XML_FILES)
+# 	if [ $$? -ne 0 ]; then \
+# 	echo "Build of hwp_error_info.H failed; Current contents :"; \
+# 	cat hwp_error_info.H; \
+# 	rm -f hwp_error_info.H; \
+# 	exit 1; fi
+# The above is commented out as the current version of make produces errors
+# This was taken from the P8 SBE Makefile which worked.
 
 $(OBJDIR)/fixed.bin: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
@@ -261,7 +286,7 @@ clean:
 	rm -f $(TOP-FIXED-HEADERS)
 	rm -fr $(TOOLS_IMAGE_DIR)/bin/*
 	rm -f *.dump
-
+	rm -f hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H
 
 dump:
 	objdump -s $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(IMAGE_SEEPROM_NAME).dump
