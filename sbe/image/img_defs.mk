@@ -34,6 +34,7 @@
 
 IMAGE_SEEPROM_NAME := seeprom_main
 IMAGE_SBE_NAME := sbe_main
+IMAGE_LOADER_NAME := loader_main
 
 PPE_TYPE := std
 

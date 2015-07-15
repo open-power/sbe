@@ -85,6 +85,7 @@ LINK_OBJS += $(OBJS) $(GCCLIBS)
 
 LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/, linkscriptseeprom)
 LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/, linkscriptsbe)
+LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
 
 
 #default target is to make a binary application image
@@ -117,7 +118,25 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).out: $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_
 $(LINK_SCRIPT_SBE): linksbe.cmd
 	$(CPP) -E -x c++ -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
+
+
+
+$(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
+	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
+	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
+
+#create a linked ELF executable
+$(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(OBJDIR)/base_loader.o $(LINK_OBJS) $(LINK_SCRIPT_LOADER)
+	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(LIB_DIRS) $(OBJDIR)/base_loader.o  --start-group  $(SBEFWLIB) $(LLIBS) --end-group
+
+#pass the link command file through the C preprocessor to evaluate macros and remove comments
+$(LINK_SCRIPT_LOADER): linkloader.cmd
+	$(CPP) -E -x c++ -P $(DEFS) linkloader.cmd -o $(LINK_SCRIPT_LOADER)
+
+
+
+
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader
 
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d) $(OBJDIR)/base_sbe_fixed.o $(OBJDIR)/base_sbe_fixed.d: | $(OBJDIR)
@@ -210,6 +229,15 @@ defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 $(OBJDIR)/fixed.bin: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
 
+
+appendbase: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin
+	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .base $(OBJDIR)/$(IMAGE_SBE_NAME).bin
+
+
+
+appendloader: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
+	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
+
 #/afs/bb/proj/cte/tools/ppetools/prod/powerpc-eabi/bin/objcopy -O binary --only-section=.fixed $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/fixed.bin
 
 # collect all of the trace hash files for this image into a single trexStringFile
@@ -221,9 +249,9 @@ tracehash:
 #clean the kernel directory first, then the application level clean
 clean:
 	rm -fr $(OBJDIR)
-	rm $(TOP-FIXED-HEADERS)
+	rm -f $(TOP-FIXED-HEADERS)
 	rm -fr $(TOOLS_IMAGE_DIR)/bin/*
-	rm *.dump
+	rm -f *.dump
 
 
 dump:

@@ -10,16 +10,12 @@ OUTPUT_FORMAT(elf32-powerpc);
 
 MEMORY
 {
- sram : ORIGIN = 0xffff0000, LENGTH = 0x10000
+ sram : ORIGIN = 0xffff2000, LENGTH = 0x10000
 }
 
 SECTIONS
 {
-    . = 0xffff0000;
-
-    .vectors : {. = ALIGN(512); *(.vectors)} > sram
-    .fixed . : {. = ALIGN(512); *(.fixed) } > sram
-    .text . : {. = ALIGN(512); *(.text)} > sram
+    . = 0xffff2000;
 
     ////////////////////////////////
     // Read-only Data
@@ -27,6 +23,9 @@ SECTIONS
 
     . = ALIGN(8);
     _RODATA_SECTION_BASE = .;
+
+   .text . : { *(.text) } > sram
+   .data  . : { *(.data) } > sram
 
     // SDA2 constant sections .sdata2 and .sbss2 must be adjacent to each
     // other.  Our SDATA sections are small so we'll use strictly positive
@@ -68,6 +67,6 @@ SECTIONS
    _PK_INITIAL_STACK = . - 1;
 
     . = ALIGN(8);
-    _sbe_end = . - 0;
+    _loader_end = . - 0;
 
 }

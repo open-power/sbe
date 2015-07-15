@@ -1,4 +1,4 @@
-TOP-C-SOURCES = base_ppe_demo.c
+TOP-C-SOURCES = base_ppe_demo.c sbe_loader.c
 TOP-CPP-SOURCES =
 TOP-S-SOURCES = base_ppe_header.S
 

@@ -27,14 +27,14 @@ SECTIONS
     . = ALIGN(8); _fixed_toc_origin = .; _fixed_toc_offset = . - _seeprom_origin; .fixed_toc . : { *(.fixed_toc) } _fixed_toc_size = . - _fixed_toc_origin;
 
     ////////////////////////////////
-    // IPL_TEXT
+    // LOADER_TEXT
     ////////////////////////////////
-    . = ALIGN(4); _ipl_text_origin = .; _ipl_text_offset = . - _seeprom_origin; .ipl_text . : { *(.ipl_text) } _ipl_text_size = . - _ipl_text_origin;
+    . = ALIGN(4); _loader_text_origin = .; _loader_text_offset = . - _seeprom_origin; .loader_text . : { *(.loader_text) } _loader_text_size = . - _loader_text_origin;
 
     ////////////////////////////////
-    // IPL_DATA
+    // LOADER_DATA
     ////////////////////////////////
-    . = ALIGN(8); _ipl_data_origin = .; _ipl_data_offset = . - _seeprom_origin; .ipl_data . : { *(.ipl_data) } _ipl_data_size = . - _ipl_data_origin;
+    . = ALIGN(8); _loader_data_origin = .; _loader_data_offset = . - _seeprom_origin; .loader_data . : { *(.loader_data) } _loader_data_size = . - _loader_data_origin;
 
     ////////////////////////////////
     // TEXT

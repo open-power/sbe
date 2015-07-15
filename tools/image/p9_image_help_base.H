@@ -28,7 +28,7 @@ const uint64_t  MAX_UINT64_T            = (uint64_t)0xFFFFFFFF<<32 | (uint64_t)0
 
 const uint8_t RING_SECTION_ID[] = {
   SBE_XIP_SECTION_RINGS,
-  SBE_XIP_SECTION_DCRINGS,
+  SBE_XIP_SECTION_OVERLAYS,
 };
 const uint8_t RING_SECTION_ID_SIZE = sizeof(RING_SECTION_ID) / sizeof(RING_SECTION_ID[0]);
 
