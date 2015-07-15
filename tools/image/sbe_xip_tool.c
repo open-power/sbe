@@ -77,13 +77,9 @@
 // 
 // The 'report' command prints a report including a dump of the header and
 // section table, a listing of the types and values of all items that appear
-// in the TOC, and a dump of the .halt section. The TOC listing includes the
+// in the TOC. The TOC listing includes the
 // sequence number of the entry in the TOC, the item name, the item type and
-// the item value. The .halt listing displays a map of HALT PC values to the
-// string form of the halt code associated with the HALT address. The optional
-// <regex> expression, if present, is a POSIX Basic Regular Expression.  If
-// <regex> is specified, then no header, section table or .halt dumps are
-// provided, and only the TOC entries matching <regex> will be listed.
+// the item value.
 //
 // The 'append' command either creates or extends the section named by the
 // section argument, by appending the contents of the named file verbatim.
@@ -158,13 +154,9 @@ const char* g_usage =
 "\n"
 "The 'report' command prints a report including a dump of the header and\n"
 "section table, a listing of the types and values of all items that appear\n"
-"in the TOC, and a dump of the .halt section. The TOC listing includes the\n"
+"in the TOC. The TOC listing includes the\n"
 "sequence number of the entry in the TOC, the item name, the item type and\n"
-"the item value. The .halt listing displays a map of HALT PC values to the\n"
-"string form of the halt code associated with the HALT address. The optional\n"
-"<regex> expression, if present, is a POSIX Basic Regular Expression.  If\n"
-"<regex> is specified, then no header, section table or .halt dumps are\n"
-"provided, and only the TOC entries matching <regex> will be listed.\n"
+"the item value.\n"
 "\n"
 "The 'append' command either creates or extends the section named by the\n"
 "section argument, by appending the contents of the named file verbatim.\n"
@@ -332,15 +324,40 @@ tocListing(void* io_image,
             if (rc) break;
             printf("0x%02x", (uint8_t)data);
             break;
+        case SBE_XIP_INT8:
+            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
+            if (rc) break;
+            printf("%d", (int8_t)data);
+            break;
+        case SBE_XIP_UINT16:
+            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
+            if (rc) break;
+            printf("0x%08x", (uint16_t)data);
+            break;
+        case SBE_XIP_INT16:
+            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
+            if (rc) break;
+            printf("%d", (int16_t)data);
+            break;
         case SBE_XIP_UINT32:
             rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
             if (rc) break;
             printf("0x%08x", (uint32_t)data);
             break;
+        case SBE_XIP_INT32:
+            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
+            if (rc) break;
+            printf("%d", (int32_t)data);
+            break;
         case SBE_XIP_UINT64:
             rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
             if (rc) break;
             printf("0x%016llx", data);
+            break;
+        case SBE_XIP_INT64:
+            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
+            if (rc) break;
+            printf("%d", (int64_t)data);
             break;
         case SBE_XIP_STRING:
             rc = sbe_xip_get_string(io_image, i_item->iv_id, &s);
@@ -355,6 +372,7 @@ tocListing(void* io_image,
                    (uint32_t)(data & 0xffffffff));
             break;
         default:
+            printf("unknown type\n");
             rc = SBE_XIP_BUG;
             break;
         }
@@ -421,19 +439,6 @@ dumpHeader(void* i_image)
 }
 
 
-// Dump an entry from .halt
-
-int
-haltListing(void* io_image, 
-            const uint64_t i_homerAddress,
-            const char* i_rcString,
-            void* io_arg)
-{
-    printf("%016llx : %s\n", i_homerAddress, i_rcString);
-    return 0;
-}
-
-
 // Print a report
 
 int
@@ -474,17 +479,6 @@ report(void* io_image, const int i_argc, const char** i_argv)
         control.index = 0;
         rc = sbe_xip_map_toc(io_image, tocListing, (void*)(&control));
         if (rc) break;
-
-        // Dump the .halt section
-
-        if (i_argc == 0) {
-            printf("\nHALT report\n\n");
-            rc = sbe_xip_map_halt(io_image, haltListing, 0);
-            if (rc == SBE_XIP_ITEM_NOT_FOUND) {
-                rc = 0;
-            }
-            if (rc) break;
-        }
 
     } while (0);
 
@@ -550,6 +544,7 @@ set(void* io_image, const int i_argc, const char** i_argv, int i_setv)
             
             switch (item.iv_type) {
             case SBE_XIP_UINT8:
+            case SBE_XIP_UINT16:
             case SBE_XIP_UINT32:
             case SBE_XIP_UINT64:
 
@@ -586,6 +581,15 @@ set(void* io_image, const int i_argc, const char** i_argv, int i_setv)
                     }
                     break;
                     
+                case SBE_XIP_UINT16:
+                    if ((uint16_t)newValue != newValue) {
+                        fprintf(stderr, 
+                                "Value 0x%016llx too large for 16-bit type\n",
+                                newValue);
+                        exit(1);
+                    }
+                    break;
+
                 case SBE_XIP_UINT32:
                     if ((uint32_t)newValue != newValue) {
                         fprintf(stderr, 
@@ -616,7 +620,18 @@ set(void* io_image, const int i_argc, const char** i_argv, int i_setv)
                 rc = sbe_xip_set_string(io_image, key, (char*)value);
                 if (rc) rc = SBE_XIP_BUG;
                 break;
-
+            case SBE_XIP_INT8:
+            case SBE_XIP_INT16:
+            case SBE_XIP_INT32:
+            case SBE_XIP_INT64:
+                fprintf(stderr, 
+                        "Item %s has int type %s, "
+                        "which is not supported for '%s'.\n",
+                        i_argv[arg], 
+                        SBE_XIP_TYPE_STRING(g_typeStrings, item.iv_type),
+                        (i_setv ? "setv" : "set"));
+                exit(1);
+                break;
             default:
                 fprintf(stderr, 
                         "Item %s has type %s, "
@@ -713,6 +728,7 @@ get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
         switch (item.iv_type) {
 
         case SBE_XIP_UINT8:
+        case SBE_XIP_UINT16:
         case SBE_XIP_UINT32:
         case SBE_XIP_UINT64:
             rc = sbe_xip_get_element(i_image, key, index_val, &data);
@@ -723,6 +739,9 @@ get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
             switch (item.iv_type) {
             case SBE_XIP_UINT8:
                 printf("0x%02x\n", (uint8_t)data);
+                break;
+            case SBE_XIP_UINT16:
+                printf("0x%04x\n", (uint16_t)data);
                 break;
             case SBE_XIP_UINT32:
                 printf("0x%08x\n", (uint32_t)data);
@@ -762,7 +781,14 @@ get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
             }
             printf("%s\n", s);
             break;
-
+        case SBE_XIP_INT8:
+        case SBE_XIP_INT16:
+        case SBE_XIP_INT32:
+        case SBE_XIP_INT64:
+            fprintf(stderr, "%s%d : Bug, int types not implemented %d\n",
+                    __FILE__, __LINE__, item.iv_type);
+            exit(1);
+            break;
         default:
             fprintf(stderr, "%s%d : Bug, unexpected type %d\n",
                     __FILE__, __LINE__, item.iv_type);
@@ -1332,32 +1358,12 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
             BOMB_IF(sbe_xip_find(io_image, "proc_sbe_ex_dpll_initf", 0) != 0);
         }
 
-        // Run the embedded delete and append tests.  This assumes that the
-        // test image does not contain the .fit and .ffdc sections. We just
-        // append zeros here, we're mostly interested in whether we can handle
-        // errors and return the image back to its original state.
-        
-        BOMB_IF((deleteAppendImage = malloc(imageSize + 2000)) == 0);
-        memcpy(deleteAppendImage, io_image, imageSize);
-
-        BOMB_IF(sbe_xip_append(deleteAppendImage, SBE_XIP_SECTION_FIT,
-                               0, 973, imageSize + 2000, 0) != 0);
-        BOMB_IF(sbe_xip_append(deleteAppendImage, SBE_XIP_SECTION_FFDC,
-                               0, 973, imageSize + 2000, 0) != 0);
 
 #ifdef DEBUG_SBE_XIP_IMAGE
         printf("\nYou will see an expected warning below "
                "about SBE_XIP_WOULD_OVERFLOW\n"
                "It means the TEST is working (not failing)\n\n");
 #endif
-
-        BOMB_IF(sbe_xip_append(deleteAppendImage, SBE_XIP_SECTION_FFDC,
-                               0, 973, imageSize + 2000, 0) == 0);
-
-        BOMB_IF(sbe_xip_delete_section(deleteAppendImage, SBE_XIP_SECTION_FFDC) != 0);
-        BOMB_IF(sbe_xip_delete_section(deleteAppendImage, SBE_XIP_SECTION_FIT) != 0);
-
-        memcpy(io_image, deleteAppendImage, imageSize);
 
         // Finally compare against the original
 
@@ -1473,440 +1479,432 @@ int disassembleSection(void         *i_image,
                        int          i_argc, 
                        const char   **i_argv)
 {
-  int rc=0, rcSet=0;
-  uint32_t  rcCount=0;
-  char      *disList=NULL;
-  uint32_t  sizeSection=0, nextLinkOffsetBlock=0;
-  uint32_t  sizeBlock=0, sizeData=0, sizeCode=0, sizeData2=0;
-  uint32_t  sizeDisLine=0, sizeList=0, sizeListMax=0;
-  uint32_t  offsetCode=0;
-  uint8_t   typeRingsSection=0;  // 0: RS4  1: Wiggle-Flip
-  uint8_t   bSummary=0, bFoundInToc=0;
-  uint32_t  sectionId;
-  uint64_t  backPtr=0, fwdPtr=0;
-  PairingInfo pairingInfo;
-  const char *sectionName;
+    int rc=0, rcSet=0;
+    uint32_t  rcCount=0;
+    char      *disList=NULL;
+    uint32_t  sizeSection=0, nextLinkOffsetBlock=0;
+    uint32_t  sizeBlock=0, sizeData=0, sizeCode=0, sizeData2=0;
+    uint32_t  sizeDisLine=0, sizeList=0, sizeListMax=0;
+    uint32_t  offsetCode=0;
+    uint8_t   typeRingsSection=0;  // 0: RS4  1: Wiggle-Flip
+    uint8_t   bSummary=0, bFoundInToc=0;
+    uint32_t  sectionId;
+    uint64_t  backPtr=0, fwdPtr=0;
+    PairingInfo pairingInfo;
+    const char *sectionName;
 	char      *ringName;
 	uint32_t  ringSeqNo=0; // Ring sequence location counter.
 	uint8_t   vectorPos,overRidable;
-  void *nextBlock, *nextSection;
-  SbeXipHeader hostHeader;
-  SbeXipSection hostSection;
-  ImageInlineContext ctx;
-  ImageInlineDisassembly dis;
-  char lineDis[LISTING_STRING_SIZE];
-  void      *hostRs4Container;
-  uint32_t  compressedBits=0, ringLength=0;
-  double    compressionPct=0;
+    void *nextBlock, *nextSection;
+    SbeXipHeader hostHeader;
+    SbeXipSection hostSection;
+    ImageInlineContext ctx;
+    ImageInlineDisassembly dis;
+    char lineDis[LISTING_STRING_SIZE];
+    void      *hostRs4Container;
+    uint32_t  compressedBits=0, ringLength=0;
+    double    compressionPct=0;
 
-  if (i_argc != 1) {
-    fprintf(stderr, g_usage);
-    exit(1);
-  }
-  sectionName = i_argv[0];
+    if (i_argc != 1) {
+        fprintf(stderr, g_usage);
+        exit(1);
+    }
+    sectionName = i_argv[0];
 
-  // Determine SBE-XIP section ID from the section name, e.g.
-  //         .ipl_text =>  SBE_XIP_SECTION_IPL_TEXT
-  //         .text     =>  SBE_XIP_SECTION_TEXT
-  //         .rings    =>  SBE_XIP_SECTION_RINGS
-  if (strcmp(sectionName, ".header")==0)
-    sectionId = SBE_XIP_SECTION_HEADER;
-  else
-  if (strcmp(sectionName, ".fixed")==0)
-    sectionId = SBE_XIP_SECTION_FIXED;
-  else
-  if (strcmp(sectionName, ".fixed_toc")==0)
-    sectionId = SBE_XIP_SECTION_FIXED_TOC;
-  else
-  if (strcmp(sectionName, ".ipl_text")==0)
-    sectionId = SBE_XIP_SECTION_IPL_TEXT;
-  else
-  if (strcmp(sectionName, ".ipl_data")==0)
-    sectionId = SBE_XIP_SECTION_IPL_DATA;
-  else
-  if (strcmp(sectionName, ".text")==0)
-    sectionId = SBE_XIP_SECTION_TEXT;
-  else
-  if (strcmp(sectionName, ".data")==0)
-    sectionId = SBE_XIP_SECTION_DATA;
-  else
-  if (strcmp(sectionName, ".toc")==0)
-    sectionId = SBE_XIP_SECTION_TOC;
-  else
-  if (strcmp(sectionName, ".strings")==0)
-    sectionId = SBE_XIP_SECTION_STRINGS;
-  else
-  if (strcmp(sectionName, ".pibmem0")==0)
-    sectionId = SBE_XIP_SECTION_PIBMEM0;
-  else
-  if (strcmp(sectionName, ".rings")==0)
-    sectionId = SBE_XIP_SECTION_RINGS;
-  else
-  if (strcmp(sectionName, ".rings_summary")==0)  {
-    sectionId = SBE_XIP_SECTION_RINGS;
-    bSummary = 1;
-  }
-  else
-  if (strcmp(sectionName, ".dcrings")==0)
-    sectionId = SBE_XIP_SECTION_DCRINGS;
-  else
-  if (strcmp(sectionName, ".halt")==0)
-    sectionId = SBE_XIP_SECTION_HALT;
-  else
-  if (strcmp(sectionName, ".slw")==0)
-    sectionId = SBE_XIP_SECTION_SLW;
-  else
-  if (strcmp(sectionName, ".ffdc")==0)
-    sectionId = SBE_XIP_SECTION_FFDC;
-  else  {
-    fprintf(stderr,"ERROR : %s is an invalid section name.\n",sectionName);
-    fprintf(stderr,"Valid <section> names for the 'dis' function are:\n");
-    fprintf(stderr,"\t.header\n");
-    fprintf(stderr,"\t.fixed\n");
-    fprintf(stderr,"\t.fixed_toc\n");
-    fprintf(stderr,"\t.ipl_text\n");
-    fprintf(stderr,"\t.ipl_data\n");
-    fprintf(stderr,"\t.text\n");
-    fprintf(stderr,"\t.data\n");
-    fprintf(stderr,"\t.toc\n");
-    fprintf(stderr,"\t.strings\n");
-    fprintf(stderr,"\t.pibmem0\n");
-    fprintf(stderr,"\t.rings\n");
-    fprintf(stderr,"\t.rings_summary\n");
-    fprintf(stderr,"\t.dcrings\n");
-    fprintf(stderr,"\t.halt\n");
-    fprintf(stderr,"\t.slw\n");
-    fprintf(stderr,"\t.ffdc\n");
-    exit(1);
-  }
+    // Determine SBE-XIP section ID from the section name, e.g.
+    //         .loader_text =>  SBE_XIP_SECTION_LOADER_TEXT
+    //         .text     =>  SBE_XIP_SECTION_TEXT
+    //         .rings    =>  SBE_XIP_SECTION_RINGS
+    if (strcmp(sectionName, ".header")==0)
+        sectionId = SBE_XIP_SECTION_HEADER;
+    else
+        if (strcmp(sectionName, ".fixed")==0)
+            sectionId = SBE_XIP_SECTION_FIXED;
+        else
+            if (strcmp(sectionName, ".fixed_toc")==0)
+                sectionId = SBE_XIP_SECTION_FIXED_TOC;
+            else
+                if (strcmp(sectionName, ".loader_text")==0)
+                    sectionId = SBE_XIP_SECTION_LOADER_TEXT;
+                else
+                    if (strcmp(sectionName, ".loader_data")==0)
+                        sectionId = SBE_XIP_SECTION_LOADER_DATA;
+                    else
+                        if (strcmp(sectionName, ".text")==0)
+                            sectionId = SBE_XIP_SECTION_TEXT;
+                        else
+                            if (strcmp(sectionName, ".data")==0)
+                                sectionId = SBE_XIP_SECTION_DATA;
+                            else
+                                if (strcmp(sectionName, ".toc")==0)
+                                    sectionId = SBE_XIP_SECTION_TOC;
+                                else
+                                    if (strcmp(sectionName, ".strings")==0)
+                                        sectionId = SBE_XIP_SECTION_STRINGS;
+                                    else
+                                        if (strcmp(sectionName, ".base")==0)
+                                            sectionId = SBE_XIP_SECTION_BASE;
+                                        else
+                                            if (strcmp(sectionName, ".baseloader")==0)
+                                                sectionId = SBE_XIP_SECTION_BASELOADER;
+                                            else
+                                                if (strcmp(sectionName, ".rings")==0)
+                                                    sectionId = SBE_XIP_SECTION_RINGS;
+                                                else
+                                                    if (strcmp(sectionName, ".rings_summary")==0)  {
+                                                        sectionId = SBE_XIP_SECTION_RINGS;
+                                                        bSummary = 1;
+                                                    }
+                                                    else
+                                                        if (strcmp(sectionName, ".overlays")==0)
+                                                            sectionId = SBE_XIP_SECTION_OVERLAYS;
+                                                        else  {
+                                                            fprintf(stderr,"ERROR : %s is an invalid section name.\n",sectionName);
+                                                            fprintf(stderr,"Valid <section> names for the 'dis' function are:\n");
+                                                            fprintf(stderr,"\t.header\n");
+                                                            fprintf(stderr,"\t.fixed\n");
+                                                            fprintf(stderr,"\t.fixed_toc\n");
+                                                            fprintf(stderr,"\t.loader_text\n");
+                                                            fprintf(stderr,"\t.loader_data\n");
+                                                            fprintf(stderr,"\t.text\n");
+                                                            fprintf(stderr,"\t.data\n");
+                                                            fprintf(stderr,"\t.toc\n");
+                                                            fprintf(stderr,"\t.strings\n");
+                                                            fprintf(stderr,"\t.base\n");
+                                                            fprintf(stderr,"\t.baseloader\n");
+                                                            fprintf(stderr,"\t.overlays\n");
+                                                            fprintf(stderr,"\t.rings\n");
+                                                            fprintf(stderr,"\t.rings_summary\n");
+                                                            exit(1);
+                                                        }
 
-  // Get host header and section pointer.
-  //
-  sbe_xip_translate_header( &hostHeader, (SbeXipHeader*)i_image);
-  rc = sbe_xip_get_section( i_image, sectionId, &hostSection);
-  if (rc)  {
-    fprintf( stderr, "sbe_xip_get_section() failed : %s\n", SBE_XIP_ERROR_STRING(g_errorStrings, rc));
-    return SBE_XIP_DISASSEMBLER_ERROR;
-  }
-  sizeSection = hostSection.iv_size;
-  nextBlock = (void*)(hostSection.iv_offset + (uintptr_t)i_image);
-  nextSection = (void*)((uint64_t)nextBlock + (uint64_t)sizeSection);
-  
-  // Relocatable offset of section at hand.
-  nextLinkOffsetBlock = (uint32_t)hostHeader.iv_linkAddress + hostSection.iv_offset;
-
-  // Allocate buffer to hold disassembled listing. (Start out with minimum 10k buffer size.)
-  //
-  if (sizeSection>10000)
-    sizeListMax = sizeSection; // Just to use something as an initial guess.
-  else
-    sizeListMax = 10000;
-  disList = (char*)malloc(sizeListMax);
-  if (disList==NULL) {
-    fprintf( stderr, "ERROR : malloc() failed.\n");
-    fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_MEMORY_ERROR));
-    return SBE_XIP_DISASSEMBLER_ERROR;
-  }
-  *disList = '\0'; // Make sure the buffer is NULL terminated (though probably not needed.)
-  sizeList = 0;
-
-  // Create context and point it to image section.
-  //
-  rc = image_inline_context_create(  &ctx,
-                                    nextBlock,
-                                    sizeSection,
-                                    nextLinkOffsetBlock,
-                                    0);
-  if (rc)  {
-    fprintf( stderr, "ERROR : %s (rc=%i)\n",image_inline_error_strings[rc],rc);
-    fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_DISASM_ERROR));
-    return SBE_XIP_DISASSEMBLER_ERROR;
-  }
-
-  while ((uint64_t)nextBlock<(uint64_t)nextSection) {
-
-    // Disassemble sections based on their types and intents.
+    // Get host header and section pointer.
     //
-    if (sectionId==SBE_XIP_SECTION_RINGS || sectionId==SBE_XIP_SECTION_DCRINGS)  {
-      // Ring section (with a mix of data and code.)
-      // ...use BaseRingLayout structure to decode each ring block.
-      offsetCode = (uint32_t)myRev64(((BaseRingLayout*)nextBlock)->entryOffset);
-      sizeBlock = myRev32(((BaseRingLayout*)nextBlock)->sizeOfThis);
-      // ...determine ring type, either RS4 or Wiggle-flip.
-      if (offsetCode-(myRev32(((BaseRingLayout*)nextBlock)->sizeOfMeta)+3)/4*4>28)  {
-        typeRingsSection = 0;  // RS4 w/32-byte header.
-        sizeData2 = sizeBlock - offsetCode - ASM_RS4_LAUNCH_BUF_SIZE;
-      }
-      else
-        typeRingsSection = 1;  // Wiggle-flip w/24-byte header.
-      // ...get the backPtr and fwdPtr and put at top of disasm listing.
-      backPtr = myRev64(((BaseRingLayout*)nextBlock)->backItemPtr);
-      sbe_xip_read_uint64(i_image,
-                          backPtr,
-                          &fwdPtr);
+    sbe_xip_translate_header( &hostHeader, (SbeXipHeader*)i_image);
+    rc = sbe_xip_get_section( i_image, sectionId, &hostSection);
+    if (rc)  {
+        fprintf( stderr, "sbe_xip_get_section() failed : %s\n", SBE_XIP_ERROR_STRING(g_errorStrings, rc));
+        return SBE_XIP_DISASSEMBLER_ERROR;
+    }
+    sizeSection = hostSection.iv_size;
+    nextBlock = (void*)(hostSection.iv_offset + (uintptr_t)i_image);
+    nextSection = (void*)((uint64_t)nextBlock + (uint64_t)sizeSection);
+  
+    // Relocatable offset of section at hand.
+    nextLinkOffsetBlock = (uint32_t)hostHeader.iv_linkAddress + hostSection.iv_offset;
+
+    // Allocate buffer to hold disassembled listing. (Start out with minimum 10k buffer size.)
+    //
+    if (sizeSection>10000)
+        sizeListMax = sizeSection; // Just to use something as an initial guess.
+    else
+        sizeListMax = 10000;
+    disList = (char*)malloc(sizeListMax);
+    if (disList==NULL) {
+        fprintf( stderr, "ERROR : malloc() failed.\n");
+        fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_MEMORY_ERROR));
+        return SBE_XIP_DISASSEMBLER_ERROR;
+    }
+    *disList = '\0'; // Make sure the buffer is NULL terminated (though probably not needed.)
+    sizeList = 0;
+
+    // Create context and point it to image section.
+    //
+    rc = image_inline_context_create(  &ctx,
+                                       nextBlock,
+                                       sizeSection,
+                                       nextLinkOffsetBlock,
+                                       0);
+    if (rc)  {
+        fprintf( stderr, "ERROR : %s (rc=%i)\n",image_inline_error_strings[rc],rc);
+        fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_DISASM_ERROR));
+        return SBE_XIP_DISASSEMBLER_ERROR;
+    }
+
+    while ((uint64_t)nextBlock<(uint64_t)nextSection) {
+
+        // Disassemble sections based on their types and intents.
+        //
+        if (sectionId==SBE_XIP_SECTION_RINGS || sectionId==SBE_XIP_SECTION_OVERLAYS)  {
+            // Ring section (with a mix of data and code.)
+            // ...use BaseRingLayout structure to decode each ring block.
+            offsetCode = (uint32_t)myRev64(((BaseRingLayout*)nextBlock)->entryOffset);
+            sizeBlock = myRev32(((BaseRingLayout*)nextBlock)->sizeOfThis);
+            // ...determine ring type, either RS4 or Wiggle-flip.
+            if (offsetCode-(myRev32(((BaseRingLayout*)nextBlock)->sizeOfMeta)+3)/4*4>28)  {
+                typeRingsSection = 0;  // RS4 w/32-byte header.
+                sizeData2 = sizeBlock - offsetCode - ASM_RS4_LAUNCH_BUF_SIZE;
+            }
+            else
+                typeRingsSection = 1;  // Wiggle-flip w/24-byte header.
+            // ...get the backPtr and fwdPtr and put at top of disasm listing.
+            backPtr = myRev64(((BaseRingLayout*)nextBlock)->backItemPtr);
+            sbe_xip_read_uint64(i_image,
+                                backPtr,
+                                &fwdPtr);
       
-      // Calculate RS4 compression efficiency if RS4 rings.
-      if (typeRingsSection==0)  {
-        hostRs4Container = (void*)( (uintptr_t)nextBlock + 
-                                    offsetCode + ASM_RS4_LAUNCH_BUF_SIZE );
-        compressedBits = myRev32(((CompressedScanData*)hostRs4Container)->iv_algorithmReserved) * 4;
-        ringLength = myRev32(((CompressedScanData*)hostRs4Container)->iv_length);
-        compressionPct = (double)compressedBits / (double)ringLength * 100.0;
+            // Calculate RS4 compression efficiency if RS4 rings.
+            if (typeRingsSection==0)  {
+                hostRs4Container = (void*)( (uintptr_t)nextBlock + 
+                                            offsetCode + ASM_RS4_LAUNCH_BUF_SIZE );
+                compressedBits = myRev32(((CompressedScanData*)hostRs4Container)->iv_algorithmReserved) * 4;
+                ringLength = myRev32(((CompressedScanData*)hostRs4Container)->iv_length);
+                compressionPct = (double)compressedBits / (double)ringLength * 100.0;
 			}
       
-      //
+            //
 			//   Map over TOC or do a targeted search of FIXED_TOC to pair backPtr addr 
 			//   with ring name and override and/or vector position (i.e. multi-chiplet).
 			//
-      sbe_xip_get_section( i_image, SBE_XIP_SECTION_TOC, &hostSection);
+            sbe_xip_get_section( i_image, SBE_XIP_SECTION_TOC, &hostSection);
 			if (hostSection.iv_offset)  {
-			  // TOC exists.
-       	pairingInfo.address = backPtr;
+                // TOC exists.
+                pairingInfo.address = backPtr;
 				// Search for pairing. First exhaust base position (pos=0), then next, then next, ...
 				for (pairingInfo.vectorpos=0;pairingInfo.vectorpos<32;pairingInfo.vectorpos++)  {
-	       	rc = sbe_xip_map_toc( i_image, pairRingNameAndAddr, (void*)(&pairingInfo));
+                    rc = sbe_xip_map_toc( i_image, pairRingNameAndAddr, (void*)(&pairingInfo));
 					if (rc)
 						break;
 				}
-       	if (rc==DIS_RING_NAME_ADDR_MATCH_FAILURE)  {
-       	  fprintf( stderr,"ERROR : Error associated with sbe_xip_map_toc().\n");
-       	  fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_RING_NAME_ADDR_MATCH_FAILURE));
-       	  return SBE_XIP_DISASSEMBLER_ERROR;
-       	}
-        ringSeqNo++;
+                if (rc==DIS_RING_NAME_ADDR_MATCH_FAILURE)  {
+                    fprintf( stderr,"ERROR : Error associated with sbe_xip_map_toc().\n");
+                    fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_RING_NAME_ADDR_MATCH_FAILURE));
+                    return SBE_XIP_DISASSEMBLER_ERROR;
+                }
+                ringSeqNo++;
 				if (rc==DIS_RING_NAME_ADDR_MATCH_SUCCESS)  {
 					bFoundInToc = 1;
-      	  ringName = pairingInfo.name;       // The ring name matched in pairRingNameAndAddr()
+                    ringName = pairingInfo.name;       // The ring name matched in pairRingNameAndAddr()
 					vectorPos = pairingInfo.vectorpos; // The vector position matched in pairRingNameAndAddr()
 					overRidable = pairingInfo.overridable; // Whether the ring supports on override ring.
-      	  if (pairingInfo.override)  {
-      	    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-      	      "# ------------------------------\n# %i.\n# ringName = %s (override)\n# vectorPos = %i\n# overRidable = %i\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
-      	      ringSeqNo, ringName,vectorPos,overRidable,(uint32_t)backPtr,(uint32_t)fwdPtr,compressedBits,ringLength,compressionPct);
-      	  }
-      	  else  {
-      	    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-      	      "# ------------------------------\n# %i.\n# ringName = %s (base)\n# vectorPos = %i\n# overRidable = %i\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
-      	      ringSeqNo,ringName,vectorPos,overRidable,(uint32_t)backPtr,(uint32_t)fwdPtr,compressedBits,ringLength,compressionPct);
-      	  }
+                    if (pairingInfo.override)  {
+                        sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                               "# ------------------------------\n# %i.\n# ringName = %s (override)\n# vectorPos = %i\n# overRidable = %i\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
+                                               ringSeqNo, ringName,vectorPos,overRidable,(uint32_t)backPtr,(uint32_t)fwdPtr,compressedBits,ringLength,compressionPct);
+                    }
+                    else  {
+                        sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                               "# ------------------------------\n# %i.\n# ringName = %s (base)\n# vectorPos = %i\n# overRidable = %i\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
+                                               ringSeqNo,ringName,vectorPos,overRidable,(uint32_t)backPtr,(uint32_t)fwdPtr,compressedBits,ringLength,compressionPct);
+                    }
 				}
-       	else  {
-				  sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-				  	"# ------------------------------\n# %i.\n# ringName = Not found (but TOC's available)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n",
-       	  	ringSeqNo,(uint32_t)backPtr,(uint32_t)fwdPtr);
+                else  {
+                    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                           "# ------------------------------\n# %i.\n# ringName = Not found (but TOC's available)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n",
+                                           ringSeqNo,(uint32_t)backPtr,(uint32_t)fwdPtr);
 				}
-      }
+            }
 			else  {
-			  // TOC doesn't exist. First try targeted search of MVPD ring names in FIXED_TOC.
-				bFoundInToc = 0; // If we find in fixed_toc, then change to 1.
+                // TOC doesn't exist. First try targeted search of MVPD ring names in FIXED_TOC.
+                bFoundInToc = 0; // If we find in fixed_toc, then change to 1.
 				// 2012-11-13: CMO TBD. Try using pairRingNameAndAddr by enabling a sequential 
-				//             traversing of each of the MVPD lists inside that function. You'll
-				//             need to call pairRing manually from right here (or from a
-				//             sbe_xip_search_fixed_toc()-like function). Maybe you can add a
+			    //             traversing of each of the MVPD lists inside that function. You'll
+                //             need to call pairRing manually from right here (or from a
+                //             sbe_xip_search_fixed_toc()-like function). Maybe you can add a
 				//             4th arg to pairRing that is zero by default, meaning it is to be
 				//             used by xip_map_toc(). But if non-zero, it is to be used in a
 				//             traversing manner. Or you could add another member to the
-				//             PairingInfo struct to indirectly pass this info to the function.
+                //             PairingInfo struct to indirectly pass this info to the function.
 				//             You'd also need to pass two more arguments to get_vpd_ring_list_
-				//             entry() to indicate sequence number and the MVPD keyword.
-				// rc = pairRingNameAndAddr();
+                //             entry() to indicate sequence number and the MVPD keyword.
+                // rc = pairRingNameAndAddr();
 				// if (rc==DIS_RING_NAME_ADDR_MATCH_SUCCESS)  {
-				//   bFoundInToc = 1;
-				// // Do same as in TOC section above.
-				//   break;
-				// }
-				// // OK, so ring name wasn't in TOC nor in FIXED_TOC. That happens if the ring
-				// //   is a non-Mvpd ring and the TOC has been removed, such as in an IPL or
-				// //   Seeprom image.
-        ringSeqNo++;
-        if (typeRingsSection==0)  {
-				  // RS4 header, which has override info
-          if (((Rs4RingLayout*)nextBlock)->override==0)  {
-					  sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-              "# ------------------------------\n# %i.\n# ringName = Not available (base)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
-              ringSeqNo,(uint32_t)backPtr,(uint32_t)fwdPtr,compressedBits,ringLength,compressionPct);
-          }
+                //   bFoundInToc = 1;
+                // // Do same as in TOC section above.
+                //   break;
+                // }
+                // // OK, so ring name wasn't in TOC nor in FIXED_TOC. That happens if the ring
+                // //   is a non-Mvpd ring and the TOC has been removed, such as in an IPL or
+                // //   Seeprom image.
+                ringSeqNo++;
+                if (typeRingsSection==0)  {
+                    // RS4 header, which has override info
+                    if (((Rs4RingLayout*)nextBlock)->override==0)  {
+                        sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                               "# ------------------------------\n# %i.\n# ringName = Not available (base)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
+                                               ringSeqNo,(uint32_t)backPtr,(uint32_t)fwdPtr,compressedBits,ringLength,compressionPct);
+                    }
 					else  {
-            sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-              "# ------------------------------\n# %i.\n# ringName = Not available (override)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
-              ringSeqNo,(uint32_t)backPtr,(uint32_t)fwdPtr,compressedBits,ringLength,compressionPct);
+                        sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                               "# ------------------------------\n# %i.\n# ringName = Not available (override)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
+                                               ringSeqNo,(uint32_t)backPtr,(uint32_t)fwdPtr,compressedBits,ringLength,compressionPct);
 					}
-        }
+                }
 				else  {
-				  // WF header, which doesn't have override info
-          sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-            "# ------------------------------\n# %i.\n# ringName and override = Not available\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n",
-            ringSeqNo,(uint32_t)backPtr,(uint32_t)fwdPtr);
+                    // WF header, which doesn't have override info
+                    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                           "# ------------------------------\n# %i.\n# ringName and override = Not available\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n",
+                                           ringSeqNo,(uint32_t)backPtr,(uint32_t)fwdPtr);
 				}
-      }
-      sizeList = sizeList + sizeDisLine;
-      disList = strcat(disList,lineDis);
+            }
+            sizeList = sizeList + sizeDisLine;
+            disList = strcat(disList,lineDis);
 		}
-    else  if (  sectionId==SBE_XIP_SECTION_IPL_TEXT || 
-                sectionId==SBE_XIP_SECTION_TEXT)  {
-      // Sections that have only code.
-      offsetCode = 0;
-      sizeBlock = sizeSection;
-    }
-    else  {
-      // Sections that have only data.
-      offsetCode = sizeSection;
-      sizeBlock = sizeSection;
-    }
-    sizeData = offsetCode;
-    sizeCode = sizeBlock - offsetCode - sizeData2;
+        else  if (  sectionId==SBE_XIP_SECTION_LOADER_TEXT || 
+                    sectionId==SBE_XIP_SECTION_TEXT)  {
+            // Sections that have only code.
+            offsetCode = 0;
+            sizeBlock = sizeSection;
+        }
+        else  {
+            // Sections that have only data.
+            offsetCode = sizeSection;
+            sizeBlock = sizeSection;
+        }
+        sizeData = offsetCode;
+        sizeCode = sizeBlock - offsetCode - sizeData2;
 
-    if (sectionId==SBE_XIP_SECTION_RINGS && bSummary)  {  
-    //
-    // Summarize rings section.
+        if (sectionId==SBE_XIP_SECTION_RINGS && bSummary)  {  
+            //
+            // Summarize rings section.
 
-      if (typeRingsSection==0)  {  // RS4 header.
-        sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-          "# ddLevel = 0x%02x\n# override= %i\n# sysPhase= %i\n# Block size= %i\n",
-          myRev32(((Rs4RingLayout*)nextBlock)->ddLevel),
-          ((Rs4RingLayout*)nextBlock)->override,
-          ((Rs4RingLayout*)nextBlock)->sysPhase,
-          sizeBlock);
-      }
-      else  {                      // WF header.
+            if (typeRingsSection==0)  {  // RS4 header.
+                sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                       "# ddLevel = 0x%02x\n# override= %i\n# sysPhase= %i\n# Block size= %i\n",
+                                       myRev32(((Rs4RingLayout*)nextBlock)->ddLevel),
+                                       ((Rs4RingLayout*)nextBlock)->override,
+                                       ((Rs4RingLayout*)nextBlock)->sysPhase,
+                                       sizeBlock);
+            }
+            else  {                      // WF header.
 				if (bFoundInToc)  {
-          sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-            "# override= %i\n# Block size= %i\n",
-            pairingInfo.override, sizeBlock);
+                    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                           "# override= %i\n# Block size= %i\n",
+                                           pairingInfo.override, sizeBlock);
 				}
 				else  {
-          sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-            "# override= Not available\n# Block size= %i\n",
-            sizeBlock);
+                    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                           "# override= Not available\n# Block size= %i\n",
+                                           sizeBlock);
 				}
-      }
-      sizeList = sizeList + sizeDisLine;
-      disList = strcat(disList,lineDis);
-      // Readjust list buffer size, if needed.
-      if (sizeList > sizeListMax-1000)  {
-        sizeListMax = 2*sizeListMax;
-        disList = (char*)realloc( (void*)(disList), sizeListMax);
-      }
-    
-    }
-    else  {  
-    //
-    // Do disassembly.
-    
-      // ...data disassembly
-      if (sizeData>0)  {
-       ctx.options = IMAGE_INLINE_LISTING_MODE | IMAGE_INLINE_DISASSEMBLE_DATA;
-        do  {
-          rc = image_inline_disassemble( &ctx, &dis);
-          sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,"%s\n",dis.s);
-          sizeList = sizeList + sizeDisLine;
-          disList = strcat(disList,lineDis);
-          if (rc)  {
-            rcSet = rcSet | 0x1;
-            sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-              "WARNING: %s (rc=%i) -> Stopping disasm. Check code and sectionID=%i.\n",
-              image_inline_error_strings[rc],rc,sectionId);
+            }
             sizeList = sizeList + sizeDisLine;
             disList = strcat(disList,lineDis);
-          }
-          // Readjust list buffer size, if needed.
-          if (sizeList > sizeListMax-1000)  {
-            sizeListMax = 2*sizeListMax;
-            disList = (char*)realloc( (void*)(disList), sizeListMax);
-          }
-        } while (rc==0 && ctx.lc<nextLinkOffsetBlock+sizeData);
-      }
-      if (rcSet)
-        rc = 0;
+            // Readjust list buffer size, if needed.
+            if (sizeList > sizeListMax-1000)  {
+                sizeListMax = 2*sizeListMax;
+                disList = (char*)realloc( (void*)(disList), sizeListMax);
+            }
+    
+        }
+        else  {  
+            //
+            // Do disassembly.
+    
+            // ...data disassembly
+            if (sizeData>0)  {
+                ctx.options = IMAGE_INLINE_LISTING_MODE | IMAGE_INLINE_DISASSEMBLE_DATA;
+                do  {
+                    rc = image_inline_disassemble( &ctx, &dis);
+                    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,"%s\n",dis.s);
+                    sizeList = sizeList + sizeDisLine;
+                    disList = strcat(disList,lineDis);
+                    if (rc)  {
+                        rcSet = rcSet | 0x1;
+                        sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                               "WARNING: %s (rc=%i) -> Stopping disasm. Check code and sectionID=%i.\n",
+                                               image_inline_error_strings[rc],rc,sectionId);
+                        sizeList = sizeList + sizeDisLine;
+                        disList = strcat(disList,lineDis);
+                    }
+                    // Readjust list buffer size, if needed.
+                    if (sizeList > sizeListMax-1000)  {
+                        sizeListMax = 2*sizeListMax;
+                        disList = (char*)realloc( (void*)(disList), sizeListMax);
+                    }
+                } while (rc==0 && ctx.lc<nextLinkOffsetBlock+sizeData);
+            }
+            if (rcSet)
+                rc = 0;
       
-      // ...code disassembly
-      if (sizeCode>0)  {
-        ctx.options = IMAGE_INLINE_LISTING_MODE;
-        do  {
-          rc = image_inline_disassemble( &ctx, &dis);
-          ctx.options = IMAGE_INLINE_LISTING_MODE;
-          sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,"%s\n",dis.s);
-          sizeList = sizeList + sizeDisLine;
-          disList = strcat(disList,lineDis);
-          if (rc && rcCount<100)  {
-            rcSet = rcSet | 0x2;
-            rcCount++;
-            if (sectionId==SBE_XIP_SECTION_RINGS)  {
-              sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-                "WARNING: %s (rc=%i) -> Trying data disasm mode. Check code, xyzRingLayout structures and image section.\n",
-                image_inline_error_strings[rc],rc);
+            // ...code disassembly
+            if (sizeCode>0)  {
+                ctx.options = IMAGE_INLINE_LISTING_MODE;
+                do  {
+                    rc = image_inline_disassemble( &ctx, &dis);
+                    ctx.options = IMAGE_INLINE_LISTING_MODE;
+                    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,"%s\n",dis.s);
+                    sizeList = sizeList + sizeDisLine;
+                    disList = strcat(disList,lineDis);
+                    if (rc && rcCount<100)  {
+                        rcSet = rcSet | 0x2;
+                        rcCount++;
+                        if (sectionId==SBE_XIP_SECTION_RINGS)  {
+                            sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                                   "WARNING: %s (rc=%i) -> Trying data disasm mode. Check code, xyzRingLayout structures and image section.\n",
+                                                   image_inline_error_strings[rc],rc);
+                        }
+                        else  {
+                            sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                                   "WARNING: %s (rc=%i) -> Trying data disasm mode.\n",
+                                                   image_inline_error_strings[rc],rc);
+                        }
+                        sizeList = sizeList + sizeDisLine;
+                        disList = strcat(disList,lineDis);
+                        ctx.options = IMAGE_INLINE_LISTING_MODE | IMAGE_INLINE_DISASSEMBLE_DATA;
+                        rc = 0;
+                    }
+                    else  {
+                        if (rc && rcCount>=1000)  {
+                            fprintf(stderr, "Too many disasm warnings. Check output listing.\n");
+                            fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_TOO_MANY_DISASM_WARNINGS));
+                            return SBE_XIP_DISASSEMBLER_ERROR;
+                        }
+                    }
+                    // Readjust list buffer size, if needed.
+                    if (sizeList > sizeListMax-1000)  {
+                        sizeListMax = 2*sizeListMax;
+                        disList = (char*)realloc( (void*)(disList), sizeListMax);
+                    }
+                } while (rc==0 && ctx.lc<nextLinkOffsetBlock+sizeData+sizeCode);
             }
-            else  {
-              sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-                "WARNING: %s (rc=%i) -> Trying data disasm mode.\n",
-                image_inline_error_strings[rc],rc);
-            }
-            sizeList = sizeList + sizeDisLine;
-            disList = strcat(disList,lineDis);
-            ctx.options = IMAGE_INLINE_LISTING_MODE | IMAGE_INLINE_DISASSEMBLE_DATA;
-            rc = 0;
-          }
-          else  {
-            if (rc && rcCount>=1000)  {
-              fprintf(stderr, "Too many disasm warnings. Check output listing.\n");
-              fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_TOO_MANY_DISASM_WARNINGS));
-              return SBE_XIP_DISASSEMBLER_ERROR;
-            }
-          }
-          // Readjust list buffer size, if needed.
-          if (sizeList > sizeListMax-1000)  {
-            sizeListMax = 2*sizeListMax;
-            disList = (char*)realloc( (void*)(disList), sizeListMax);
-          }
-        } while (rc==0 && ctx.lc<nextLinkOffsetBlock+sizeData+sizeCode);
-      }
-      if (rcSet)
-        rc = 0;
+            if (rcSet)
+                rc = 0;
         
-      // ...data2 disassembly (only done for rings section if RS4 type.)
-      if (sizeData2>0)  {
-       ctx.options = IMAGE_INLINE_LISTING_MODE | IMAGE_INLINE_DISASSEMBLE_DATA;
-        do  {
-          rc = image_inline_disassemble( &ctx, &dis);
-          sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,"%s\n",dis.s);
-          sizeList = sizeList + sizeDisLine;
-          disList = strcat(disList,lineDis);
-          if (rc)  {
-            rcSet = rcSet | 0x4;
-            sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
-              "WARNING: %s (rc=%i) -> Stopping disasm. Check code and sectionID=%i.\n",
-              image_inline_error_strings[rc],rc,sectionId);
-            sizeList = sizeList + sizeDisLine;
-            disList = strcat(disList,lineDis);
-          }
-          // Readjust list buffer size, if needed.
-          if (sizeList > sizeListMax-1000)  {
-            sizeListMax = 2*sizeListMax;
-            disList = (char*)realloc( (void*)(disList), sizeListMax);
-          }
-        } while (rc==0 && ctx.lc<nextLinkOffsetBlock+sizeBlock);
-      }
-      if (rcSet)
-        rc = 0;
+            // ...data2 disassembly (only done for rings section if RS4 type.)
+            if (sizeData2>0)  {
+                ctx.options = IMAGE_INLINE_LISTING_MODE | IMAGE_INLINE_DISASSEMBLE_DATA;
+                do  {
+                    rc = image_inline_disassemble( &ctx, &dis);
+                    sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,"%s\n",dis.s);
+                    sizeList = sizeList + sizeDisLine;
+                    disList = strcat(disList,lineDis);
+                    if (rc)  {
+                        rcSet = rcSet | 0x4;
+                        sizeDisLine = snprintf(lineDis,LISTING_STRING_SIZE,
+                                               "WARNING: %s (rc=%i) -> Stopping disasm. Check code and sectionID=%i.\n",
+                                               image_inline_error_strings[rc],rc,sectionId);
+                        sizeList = sizeList + sizeDisLine;
+                        disList = strcat(disList,lineDis);
+                    }
+                    // Readjust list buffer size, if needed.
+                    if (sizeList > sizeListMax-1000)  {
+                        sizeListMax = 2*sizeListMax;
+                        disList = (char*)realloc( (void*)(disList), sizeListMax);
+                    }
+                } while (rc==0 && ctx.lc<nextLinkOffsetBlock+sizeBlock);
+            }
+            if (rcSet)
+                rc = 0;
       
-    }  // End of if (bSummary) condition.
+        }  // End of if (bSummary) condition.
 
-    nextBlock = (void*)((uint64_t)nextBlock + (uint64_t)sizeBlock);
-    nextLinkOffsetBlock = nextLinkOffsetBlock + sizeBlock;
+        nextBlock = (void*)((uint64_t)nextBlock + (uint64_t)sizeBlock);
+        nextLinkOffsetBlock = nextLinkOffsetBlock + sizeBlock;
 
-  }  // End of while(nextBlock...) loop.
+    }  // End of while(nextBlock...) loop.
 
-  // Adjust final buffer size, add 1 for NULL char and print it.
-  if (disList)  {
-    disList = (char*)realloc( (void*)(disList), sizeList+1);
-    fprintf(stdout,"%s\n",disList);
-    free(disList);
-  }
+    // Adjust final buffer size, add 1 for NULL char and print it.
+    if (disList)  {
+        disList = (char*)realloc( (void*)(disList), sizeList+1);
+        fprintf(stdout,"%s\n",disList);
+        free(disList);
+    }
   
-  if (rcSet)
-    fprintf( stderr, "INFO : There were some hickups: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_DISASM_TROUBLES));
+    if (rcSet)
+        fprintf( stderr, "INFO : There were some hickups: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_DISASM_TROUBLES));
 
-  return 0;
+    return 0;
 
 }
 #endif
