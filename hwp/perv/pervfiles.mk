@@ -45,6 +45,7 @@ PERV-CPP-SOURCES +=p9_set_fsi_gp_shadow.C
 PERV-CPP-SOURCES +=p9_setup_clock_term.C
 PERV-CPP-SOURCES +=p9_setup_sbe_config.C
 PERV-CPP-SOURCES +=p9_start_cbs.C
+PERV-CPP-SOURCES +=p9_sbe_setup_evid.C
 
 PERV-C-SOURCES =
 PERV-S-SOURCES =
