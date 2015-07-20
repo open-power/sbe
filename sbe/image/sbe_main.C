@@ -35,11 +35,12 @@ extern "C"
 namespace fapi2attr
 {
 
-extern ProcChipAttributes_t* G_proc_chip_attributes asm("G_proc_chip_attributes")   __attribute__ ((section (".fixed")));
-extern PervAttributes_t*     G_perv_attributes      asm("G_perv_attributes")        __attribute__ ((section (".fixed")));
-extern CoreAttributes_t*     G_core_attributes      asm("G_core_attributes")        __attribute__ ((section (".fixed")));
-extern EQAttributes_t*       G_eq_attributes        asm("G_eq_attributes")          __attribute__ ((section (".fixed")));
-extern EXAttributes_t*       G_ex_attributes        asm("G_ex_attributes")          __attribute__ ((section (".fixed")));
+extern ProcChipAttributes_t  G_proc_chip_attributes asm("G_proc_chip_attributes")   __attribute__ ((section (".fixed")));
+extern PervAttributes_t      G_perv_attributes      asm("G_perv_attributes")        __attribute__ ((section (".fixed")));
+extern CoreAttributes_t      G_core_attributes      asm("G_core_attributes")        __attribute__ ((section (".fixed")));
+extern EQAttributes_t        G_eq_attributes        asm("G_eq_attributes")          __attribute__ ((section (".fixed")));
+extern EXAttributes_t        G_ex_attributes        asm("G_ex_attributes")          __attribute__ ((section (".fixed")));
+
 
 }
 
@@ -55,8 +56,20 @@ uint8_t     G_main_thread_stack[MAIN_THREAD_STACK_SIZE];
 PkThread    G_main_thread;
 
 
+fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr ;
+fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
+fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
+fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
+fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
+
+
+
 fapi2::ReturnCode
-hwp_chip(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target);
+hwp_chip_present(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target);
+
+fapi2::ReturnCode
+hwp_chip_functional(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target);
+
 
 fapi2::ReturnCode
 hwp_chip2(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target);
@@ -85,6 +98,9 @@ void main_thread(void* arg)
         std::vector<fapi2::plat_target_handle_t> targets1;
         G_vec_targets = std::move(targets1);
 
+        // Establish the pointer to the global attributes
+        G_proc_chip_attributes_ptr = &G_proc_chip_attributes;
+        
         // Intialize the targets
         fapi2::plat_TargetsInit();
 
@@ -94,7 +110,8 @@ void main_thread(void* arg)
                 
         FAPI_DBG("chip_target_new = 0x%08X", (uint32_t)(chip_target_new.get()>>32));
 
-        FAPI_TRY(hwp_chip(chip_target_new));
+//        FAPI_TRY(hwp_chip_present(chip_target_new));
+        FAPI_TRY(hwp_chip_functional(chip_target_new));
         
         FAPI_TRY(hwp_chip2(chip_target_new));
 
@@ -123,21 +140,21 @@ fapi_try_exit:
 
 // A Chip try
 fapi2::ReturnCode
-hwp_chip(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target)
+hwp_chip_present(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target)
 {
 
     FAPI_DBG("i_target = 0x%08X", (uint32_t)(i_target.get()>>32));
 
-    auto l_perv_functional_vector =
+    auto l_perv_present_vector =
 		        i_target.getChildren<fapi2::TARGET_TYPE_PERV>
                 (fapi2::TARGET_STATE_PRESENT);
 
     // Get the TPChiplet target
     uint32_t i = 0;
-    for (auto it: l_perv_functional_vector)
+    for (auto it: l_perv_present_vector)
 	{
 
-	    FAPI_DBG("Perv Functional Target %u value=%08X chiplet %02X",
+	    FAPI_DBG("Perv Present Target %u value=%08X chiplet %02X",
                     i,
                     (uint32_t)(it.get()>>32),
                     (uint32_t)(it.getChipletNumber()));
@@ -145,16 +162,16 @@ hwp_chip(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target)
         ++i;
 	}
 
-    auto l_core_functional_vector =
+    auto l_core_present_vector =
 		        i_target.getChildren<fapi2::TARGET_TYPE_CORE>
                 (fapi2::TARGET_STATE_PRESENT);
 
     // Get the Core Chiplet targets
     uint32_t j = 0;
-    for (auto it: l_core_functional_vector)
+    for (auto it: l_core_present_vector)
 	{
 
-	    FAPI_DBG("Core Functional Target %u value=%08X chiplet %02X",
+	    FAPI_DBG("Core Present Target %u value=%08X chiplet %02X",
                     j,
                     (uint32_t)(it.get()>>32),
                     (uint32_t)(it.getChipletNumber()));
@@ -180,7 +197,7 @@ hwp_chip(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target)
 
 
      FAPI_TRY(fapi2::getScom(i_target, address, data));
-     FAPI_DBG("First getSCOM: data = %016llX", revle64(data));
+//     FAPI_DBG("The First getSCOM: data = %016llX", revle64(data));
 
      data.setBit<0, 16>();
      FAPI_TRY(fapi2::putScom(i_target, 0x0006d010, data));
@@ -190,6 +207,54 @@ hwp_chip(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target)
 fapi_try_exit:
      return fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
 }
+
+// A Chip try
+fapi2::ReturnCode
+hwp_chip_functional(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target)
+{
+
+    FAPI_DBG("i_target = 0x%08X", (uint32_t)(i_target.get()>>32));
+
+    auto l_perv_functional_vector =
+		        i_target.getChildren<fapi2::TARGET_TYPE_PERV>
+                (fapi2::TARGET_STATE_FUNCTIONAL);
+
+    // Get the TPChiplet target
+    uint32_t i = 0;
+    for (auto it: l_perv_functional_vector)
+	{
+
+	    FAPI_DBG("Perv Functional Target %u value=%08X chiplet %02X",
+                    i,
+                    (uint32_t)(it.get()>>32),
+                    (uint32_t)(it.getChipletNumber()));
+
+        ++i;
+	}
+
+    auto l_core_functional_vector =
+		        i_target.getChildren<fapi2::TARGET_TYPE_CORE>
+                (fapi2::TARGET_STATE_FUNCTIONAL);
+
+    // Get the Core Chiplet targets
+    uint32_t j = 0;
+    for (auto it: l_core_functional_vector)
+	{
+
+	    FAPI_DBG("Core Functional Target %u value=%08X chiplet %02X",
+                    j,
+                    (uint32_t)(it.get()>>32),
+                    (uint32_t)(it.getChipletNumber()));
+
+        ++j;
+	}
+    
+    return fapi2::FAPI2_RC_SUCCESS;
+
+fapi_try_exit:
+     return fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
+}
+
 
 // A Chip try
 fapi2::ReturnCode

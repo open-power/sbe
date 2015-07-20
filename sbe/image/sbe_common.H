@@ -38,8 +38,8 @@
     .rept    ((\tnumber)*(\elements))
     .byte 0
     .endr
-    
-    .xip_toc \symbol, SBE_XIP_UINT8, \symbol, (\elements)
+
+    .xip_toc \symbol, SBE_XIP_UINT8, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -53,8 +53,8 @@
     .rept    ((\tnumber)*(\elements))
     .byte 0
     .endr
-    
-    .xip_toc \symbol, SBE_XIP_INT8, \symbol, (\elements)
+
+    .xip_toc \symbol, SBE_XIP_INT8, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -68,10 +68,10 @@
 \symbol\():
 
     .rept    ((\tnumber)*(\elements))
-    .long 0
+    .byte 0,0
     .endr
-    
-    .xip_toc \symbol, SBE_XIP_UINT16, \symbol, (\elements)
+
+    .xip_toc \symbol, SBE_XIP_UINT16, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -85,10 +85,10 @@
 \symbol\():
 
     .rept    ((\tnumber)*(\elements))
-    .long 0
+    .byte 0,0
     .endr
-    
-    .xip_toc \symbol, SBE_XIP_INT16, \symbol, (\elements)
+
+    .xip_toc \symbol, SBE_XIP_INT16, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -104,8 +104,8 @@
     .rept    ((\tnumber)*(\elements))
     .long 0
     .endr
-    
-    .xip_toc \symbol, SBE_XIP_UINT32, \symbol, (\elements)
+
+    .xip_toc \symbol, SBE_XIP_UINT32, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -121,8 +121,8 @@
     .rept    ((\tnumber)*(\elements))
     .long 0
     .endr
-    
-    .xip_toc \symbol, SBE_XIP_INT32, \symbol, (\elements)
+
+    .xip_toc \symbol, SBE_XIP_INT32, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -137,8 +137,8 @@
     .rept    ((\tnumber)*(\elements))
     .quad 0
     .endr
-    
-    .xip_toc \symbol, SBE_XIP_UINT64, \symbol, (\elements)
+
+    .xip_toc \symbol, SBE_XIP_UINT64, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space     8
@@ -153,8 +153,8 @@
     .rept    ((\tnumber)*(\elements))
     .quad 0
     .endr
-    
-    .xip_toc \symbol, SBE_XIP_INT64, \symbol, (\elements)
+
+    .xip_toc \symbol, SBE_XIP_INT64, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space     8
@@ -166,7 +166,7 @@
     .global \symbol
 \symbol\():
     .quadia (\space), (\address)
-    
+
     .xip_toc \symbol, SBE_XIP_UINT64, \symbol
 
     .pushsection .fixed_toc
@@ -201,79 +201,79 @@
             proc_sbe_fixed_int64 symbol
 
 #define PROC_SBE_FIXED_UINT8_VECTOR(symbol, elements) \
-            proc_sbe_fixed_uint8 symbol,  elements
+            proc_sbe_fixed_uint8 symbol, 1, elements
 
 #define PROC_SBE_FIXED_INT8_VECTOR(symbol, elements) \
-            proc_sbe_fixed_int8 symbol,  elements
-             
+            proc_sbe_fixed_int8 symbol, 1, elements
+
 #define PROC_SBE_FIXED_UINT16_VECTOR(symbol, elements) \
-            proc_sbe_fixed_uint16 symbol,  elements
+            proc_sbe_fixed_uint16 symbol, 1, elements
 
 #define PROC_SBE_FIXED_INT16_VECTOR(symbol, elements) \
-            proc_sbe_fixed_int16 symbol,  elements
-             
+            proc_sbe_fixed_int16 symbol, 1, elements
+
 #define PROC_SBE_FIXED_UINT32_VECTOR(symbol, elements) \
-            proc_sbe_fixed_uint32 symbol,  elements
+            proc_sbe_fixed_uint32 symbol, 1, elements
 
 #define PROC_SBE_FIXED_INT32_VECTOR(symbol, elements) \
-            proc_sbe_fixed_int32 symbol,  elements
+            proc_sbe_fixed_int32 symbol, 1, elements
 
 #define PROC_SBE_FIXED_UINT64_VECTOR(symbol, elements) \
-            proc_sbe_fixed_uint64 symbol,  elements
+            proc_sbe_fixed_uint64 symbol, 1, elements
 
 #define PROC_SBE_FIXED_INT64_VECTOR(symbol, elements) \
-            proc_sbe_fixed_int64 symbol,  elements
+            proc_sbe_fixed_int64 symbol, 1, elements
 
 #define PROC_SBE_FIXED_UINT8_VECTOR_2(symbol, dim1, dim2 ) \
-            proc_sbe_fixed_uint8 symbol,  dim1 * dim2   
+            proc_sbe_fixed_uint8 symbol, 1, dim1 * dim2
 
 #define PROC_SBE_FIXED_INT8_VECTOR_2(symbol, dim1, dim2 ) \
-            proc_sbe_fixed_int8 symbol,  dim1 * dim2                
+            proc_sbe_fixed_int8 symbol, 1, dim1 * dim2
 
 #define PROC_SBE_FIXED_UINT16_VECTOR_2(symbol, dim1, dim2 ) \
-            proc_sbe_fixed_uint16 symbol,  dim1 * dim2   
+            proc_sbe_fixed_uint16 symbol,  1, dim1 * dim2
 
 #define PROC_SBE_FIXED_INT16_VECTOR_2(symbol, dim1, dim2 ) \
-            proc_sbe_fixed_int16 symbol,  dim1 * dim2                
+            proc_sbe_fixed_int16 symbol, 1, dim1 * dim2
 
 #define PROC_SBE_FIXED_UINT32_VECTOR_2(symbol, dim1, dim2 ) \
-            proc_sbe_fixed_uint32 symbol,  dim1 * dim2   
+            proc_sbe_fixed_uint32 symbol, 1, dim1 * dim2
 
 #define PROC_SBE_FIXED_INT32_VECTOR_2(symbol, dim1, dim2 ) \
-            proc_sbe_fixed_int32 symbol,  dim1 * dim2                
-             
+            proc_sbe_fixed_int32 symbol, 1, dim1 * dim2
+
 #define PROC_SBE_FIXED_UINT64_VECTOR_2(symbol, dim1, dim2 ) \
-            proc_sbe_fixed_uint64 symbol,  dim1 * dim2   
+            proc_sbe_fixed_uint64 symbol, 1, dim1 * dim2
 
 #define PROC_SBE_FIXED_INT64_VECTOR_2(symbol, dim1, dim2 ) \
-            proc_sbe_fixed_int64 symbol,  dim1 * dim2                
+            proc_sbe_fixed_int64 symbol, 1, dim1 * dim2
 
 #define PROC_SBE_FIXED_UINT8_VECTOR_3(symbol, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint8 symbol,  dim1 * dim2 * dim3 
-             
+            proc_sbe_fixed_uint8 symbol, 1, dim1 * dim2 * dim3
+
 #define PROC_SBE_FIXED_INT8_VECTOR_3(symbol, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint8 symbol,  dim1 * dim2 * dim3                 
+            proc_sbe_fixed_uint8 symbol, 1, dim1 * dim2 * dim3
 
 #define PROC_SBE_FIXED_UINT16_VECTOR_3(symbol, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint16 symbol,  dim1 * dim2 * dim3 
-             
+            proc_sbe_fixed_uint16 symbol, 1, dim1 * dim2 * dim3
+
 #define PROC_SBE_FIXED_INT16_VECTOR_3(symbol, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint16 symbol,  dim1 * dim2 * dim3                 
+            proc_sbe_fixed_uint16 symbol, 1, dim1 * dim2 * dim3
 
 #define PROC_SBE_FIXED_UINT32_VECTOR_3(symbol, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint32 symbol,  dim1 * dim2 * dim3 
-             
+            proc_sbe_fixed_uint32 symbol, 1, dim1 * dim2 * dim3
+
 #define PROC_SBE_FIXED_INT32_VECTOR_3(symbol, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint32 symbol,  dim1 * dim2 * dim3                 
+            proc_sbe_fixed_uint32 symbol, 1, dim1 * dim2 * dim3
 
 #define PROC_SBE_FIXED_UINT64_VECTOR_3(symbol, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint64 symbol,  dim1 * dim2 * dim3 
-             
+            proc_sbe_fixed_uint64 symbol, 1, dim1 * dim2 * dim3
+
 #define PROC_SBE_FIXED_INT64_VECTOR_3(symbol, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint64 symbol,  dim1 * dim2 * dim3        
-            
+            proc_sbe_fixed_uint64 symbol, 1, dim1 * dim2 * dim3
+
 // Non-Chip Target Attributes
-            
+
 #define PROC_SBE_FIXED_TARGET_UINT8(symbol, tnumber) \
             proc_sbe_fixed_uint8 symbol, tnumber
 
@@ -299,80 +299,80 @@
             proc_sbe_fixed_int64 symbol, tnumber
 
 #define PROC_SBE_FIXED_TARGET_UINT8_VECTOR(symbol, tnumber, elements) \
-            proc_sbe_fixed_uint8 symbol, tnumber * elements
+            proc_sbe_fixed_uint8 symbol, tnumber, elements
 
 #define PROC_SBE_FIXED_TARGET_INT8_VECTOR(symbol, tnumber, elements) \
-            proc_sbe_fixed_int8 symbol, tnumber * elements
-             
+            proc_sbe_fixed_int8 symbol, tnumber, elements
+
 #define PROC_SBE_FIXED_TARGET_UINT16_VECTOR(symbol, tnumber, elements) \
-            proc_sbe_fixed_uint16 symbol, tnumber * elements
+            proc_sbe_fixed_uint16 symbol, tnumber, elements
 
 #define PROC_SBE_FIXED_TARGET_INT16_VECTOR(symbol, tnumber, elements) \
-            proc_sbe_fixed_int16 symbol, tnumber * elements
-             
+            proc_sbe_fixed_int16 symbol, tnumber, elements
+
 #define PROC_SBE_FIXED_TARGET_UINT32_VECTOR(symbol, tnumber, elements) \
-            proc_sbe_fixed_uint32 symbol, tnumber * elements
+            proc_sbe_fixed_uint32 symbol, tnumber, elements
 
 #define PROC_SBE_FIXED_TARGET_INT32_VECTOR(symbol, tnumber, elements) \
-            proc_sbe_fixed_int32 symbol, tnumber * elements
+            proc_sbe_fixed_int32 symbol, tnumber, elements
 
 #define PROC_SBE_FIXED_TARGET_UINT64_VECTOR(symbol, tnumber, elements) \
-            proc_sbe_fixed_uint64 symbol, tnumber * elements
+            proc_sbe_fixed_uint64 symbol, tnumber, elements
 
 #define PROC_SBE_FIXED_TARGET_INT64_VECTOR(symbol, tnumber, elements) \
-            proc_sbe_fixed_int64 symbol, tnumber * elements
+            proc_sbe_fixed_int64 symbol, tnumber, elements
 
 #define PROC_SBE_FIXED_TARGET_UINT8_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
-            proc_sbe_fixed_uint8 symbol, tnumber * dim1 * dim2   
+            proc_sbe_fixed_uint8 symbol, tnumber, dim1 * dim2
 
 #define PROC_SBE_FIXED_TARGET_INT8_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
-            proc_sbe_fixed_int8 symbol, tnumber * dim1 * dim2                
+            proc_sbe_fixed_int8 symbol, tnumber, dim1 * dim2
 
 #define PROC_SBE_FIXED_TARGET_UINT16_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
-            proc_sbe_fixed_uint16 symbol, tnumber * dim1 * dim2   
+            proc_sbe_fixed_uint16 symbol, tnumber, dim1 * dim2
 
 #define PROC_SBE_FIXED_TARGET_INT16_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
-            proc_sbe_fixed_int16 symbol, tnumber * dim1 * dim2                
+            proc_sbe_fixed_int16 symbol, tnumber, dim1 * dim2
 
 #define PROC_SBE_FIXED_TARGET_UINT32_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
-            proc_sbe_fixed_uint32 symbol, tnumber * dim1 * dim2   
+            proc_sbe_fixed_uint32 symbol, tnumber, dim1 * dim2
 
 #define PROC_SBE_FIXED_TARGET_INT32_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
-            proc_sbe_fixed_int32 symbol, tnumber * dim1 * dim2                
-             
+            proc_sbe_fixed_int32 symbol, tnumber, dim1 * dim2
+
 #define PROC_SBE_FIXED_TARGET_UINT64_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
-            proc_sbe_fixed_uint64 symbol, tnumber * dim1 * dim2   
+            proc_sbe_fixed_uint64 symbol, tnumber, dim1 * dim2
 
 #define PROC_SBE_FIXED_TARGET_INT64_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
-            proc_sbe_fixed_int64 symbol, tnumber * dim1 * dim2                
+            proc_sbe_fixed_int64 symbol, tnumber, dim1 * dim2
 
 #define PROC_SBE_FIXED_TARGET_UINT8_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint8 symbol, tnumber * dim1 * dim2 * dim3 
-             
+            proc_sbe_fixed_uint8 symbol, tnumber, dim1 * dim2 * dim3
+
 #define PROC_SBE_FIXED_TARGET_INT8_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint8 symbol, tnumber * dim1 * dim2 * dim3                 
+            proc_sbe_fixed_uint8 symbol, tnumber, dim1 * dim2 * dim3
 
 #define PROC_SBE_FIXED_TARGET_UINT16_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint16 symbol, tnumber * dim1 * dim2 * dim3 
-             
+            proc_sbe_fixed_uint16 symbol, tnumber, dim1 * dim2 * dim3
+
 #define PROC_SBE_FIXED_TARGET_INT16_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint16 symbol, tnumber * dim1 * dim2 * dim3                 
+            proc_sbe_fixed_uint16 symbol, tnumber, dim1 * dim2 * dim3
 
 #define PROC_SBE_FIXED_TARGET_UINT32_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint32 symbol, tnumber * dim1 * dim2 * dim3 
-             
+            proc_sbe_fixed_uint32 symbol, tnumber, dim1 * dim2 * dim3
+
 #define PROC_SBE_FIXED_TARGET_INT32_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint32 symbol, tnumber * dim1 * dim2 * dim3                 
+            proc_sbe_fixed_uint32 symbol, tnumber, dim1 * dim2 * dim3
 
 #define PROC_SBE_FIXED_TARGET_UINT64_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint64 symbol, tnumber * dim1 * dim2 * dim3 
-             
+            proc_sbe_fixed_uint64 symbol, tnumber, dim1 * dim2 * dim3
+
 #define PROC_SBE_FIXED_TARGET_INT64_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
-            proc_sbe_fixed_uint64 symbol, tnumber * dim1 * dim2 * dim3                 
+            proc_sbe_fixed_uint64 symbol, tnumber, dim1 * dim2 * dim3
 
 #define PROC_SBE_FIXED_QUADIA(symbol, space, address) \
             proc_sbe_fixed_quadia symbol, (space), (address)
-             
+
 
 #else  // __ASSEMBLER__  (eg the C portion)
 
@@ -399,19 +399,19 @@
 
 #define PROC_SBE_FIXED_INT64(symbol) \
         int64_t symbol
-        
+
 #define PROC_SBE_FIXED_UINT8_VECTOR(symbol, elements) \
         uint8_t symbol[elements]
 
 #define PROC_SBE_FIXED_INT8_VECTOR(symbol, elements) \
         int8_t symbol[elements]
-        
+
 #define PROC_SBE_FIXED_UINT16_VECTOR(symbol, elements) \
         uint16_t symbol[elements]
 
 #define PROC_SBE_FIXED_INT16_VECTOR(symbol, elements) \
         int16_t symbol[elements]
-        
+
 #define PROC_SBE_FIXED_UINT32_VECTOR(symbol, elements) \
         uint32_t symbol[elements]
 
@@ -422,29 +422,29 @@
         uint64_t symbol[elements]
 
 #define PROC_SBE_FIXED_INT64_VECTOR(symbol, elements) \
-        int64_t symbol[elements]        
-        
+        int64_t symbol[elements]
+
 #define PROC_SBE_FIXED_UINT8_VECTOR_2(symbol, dim1, dim2 ) \
         uint8_t symbol[dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_INT8_VECTOR_2(symbol, dim1, dim2 ) \
         int8_t symbol[dim1][dim2]
 
 #define PROC_SBE_FIXED_UINT16_VECTOR_2(symbol, dim1, dim2 ) \
         uint16_t symbol[dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_INT16_VECTOR_2(symbol, dim1, dim2 ) \
         int16_t symbol[dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_UINT32_VECTOR_2(symbol, dim1, dim2 ) \
         uint32_t symbol[dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_INT32_VECTOR_2(symbol, dim1, dim2 ) \
         int32_t symbol[dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_UINT64_VECTOR_2(symbol, dim1, dim2 ) \
         uint64_t symbol[dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_INT64_VECTOR_2(symbol, dim1, dim2 ) \
         int64_t symbol[dim1][dim2]
 
@@ -453,7 +453,7 @@
 
 #define PROC_SBE_FIXED_INT8_VECTOR_3(symbol, dim1, dim2, dim3 ) \
         int8_t symbol[dim1][dim2][dim3]
-        
+
 #define PROC_SBE_FIXED_UINT16_VECTOR_3(symbol, dim1, dim2, dim3 ) \
         uint16_t symbol[dim1][dim2][dim3]
 
@@ -497,19 +497,19 @@
 
 #define PROC_SBE_FIXED_TARGET_INT64(symbol, tnumber) \
         int64_t symbol[tnumber]
-        
+
 #define PROC_SBE_FIXED_TARGET_UINT8_VECTOR(symbol, tnumber, elements) \
         uint8_t symbol[tnumber][elements]
 
 #define PROC_SBE_FIXED_TARGET_INT8_VECTOR(symbol, tnumber, elements) \
         int8_t symbol[tnumber][elements]
-        
+
 #define PROC_SBE_FIXED_TARGET_UINT16_VECTOR(symbol, tnumber, elements) \
         uint16_t symbol[tnumber][elements]
 
 #define PROC_SBE_FIXED_TARGET_INT16_VECTOR(symbol, tnumber, elements) \
         int16_t symbol[tnumber][elements]
-        
+
 #define PROC_SBE_FIXED_TARGET_UINT32_VECTOR(symbol, tnumber, elements) \
         uint32_t symbol[tnumber][elements]
 
@@ -520,29 +520,29 @@
         uint64_t symbol[tnumber][elements]
 
 #define PROC_SBE_FIXED_TARGET_INT64_VECTOR(symbol, tnumber, elements) \
-        int64_t symbol[tnumber][elements]        
-        
+        int64_t symbol[tnumber][elements]
+
 #define PROC_SBE_FIXED_TARGET_UINT8_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
         uint8_t symbol[tnumber][dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_TARGET_INT8_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
         int8_t symbol[tnumber][dim1][dim2]
 
 #define PROC_SBE_FIXED_TARGET_UINT16_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
         uint16_t symbol[tnumber][dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_TARGET_INT16_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
         int16_t symbol[tnumber][dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_TARGET_UINT32_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
         uint32_t symbol[tnumber][dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_TARGET_INT32_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
         int32_t symbol[tnumber][dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_TARGET_UINT64_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
         uint64_t symbol[tnumber][dim1][dim2]
-        
+
 #define PROC_SBE_FIXED_TARGET_INT64_VECTOR_2(symbol, tnumber, dim1, dim2 ) \
         int64_t symbol[tnumber][dim1][dim2]
 
@@ -551,7 +551,7 @@
 
 #define PROC_SBE_FIXED_TARGET_INT8_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
         int8_t symbol[tnumber][dim1][dim2][dim3]
-        
+
 #define PROC_SBE_FIXED_TARGET_UINT16_VECTOR_3(symbol, tnumber, dim1, dim2, dim3 ) \
         uint16_t symbol[tnumber][dim1][dim2][dim3]
 

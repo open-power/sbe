@@ -77,13 +77,6 @@ namespace fapi2
 
         if(K & TARGET_TYPE_CORE)
         {
-            /*
-            if (Value > CORE_CHIPLET_COUNT)
-            {
-               PK_TRACE("Chiplet number is greater than CORE_CHIPLET_COUNT");
-               return -1;
-            }
-            */
             this->iv_handle.fields.chiplet_num = Value + CORE_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_CORE | TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = Value;
@@ -112,67 +105,11 @@ namespace fapi2
             this->iv_handle.fields.type_target_num = Value;
         }
 
-//         if(K & TARGET_TYPE_EQ_MC_WRITE)
-//         {
-//             this->iv_handle.fields.chiplet_num =
-//                             (((MC_ENABLE) |
-//                              ((MC_WRITE << 3) | (Value & 0x07))) &
-//                               BITS(57,7));
-//             this->iv_handle.fields.type = TARGET_TYPE_EQ_MC_WRITE;
-//         }
-//
-//         if(K & TARGET_TYPE_EQ_MC_READOR)
-//         {
-//             this->iv_handle.fields.chiplet_num =
-//                            (((MC_ENABLE) |
-//                             ((MC_READ_OR << 3) | (Value & 0x07))) &
-//                              BITS(57,7));
-//             this->iv_handle.fields.type = TARGET_TYPE_EQ_MC_READOR;
-//         }
-//
-//         if(K & TARGET_TYPE_EQ_MC_READAND)
-//         {
-//             this->iv_handle.fields.chiplet_num =
-//                             (((MC_ENABLE) |
-//                              ((MC_READ_AND << 3) | (Value & 0x07))) &
-//                               BITS(57,7));
-//             this->iv_handle.fields.type = TARGET_TYPE_EQ_MC_READAND;
-//         }
-//
-//         if(K & TARGET_TYPE_CORE_MC_WRITE)
-//         {
-//             this->iv_handle.fields.chiplet_num =
-//                             (((MC_ENABLE) |
-//                              ((MC_WRITE << 3) | (Value & 0x07))) &
-//                              BITS(57,7));
-//             this->iv_handle.fields.type = TARGET_TYPE_CORE_MC_WRITE;
-//         }
-//
-//         if(K & TARGET_TYPE_CORE_MC_READOR)
-//         {
-//             this->iv_handle.fields.chiplet_num =
-//                             (((MC_ENABLE) |
-//                              ((MC_READ_OR << 3) | (Value & 0x07))) &
-//                              BITS(57,7));
-//             this->iv_handle.fields.type = TARGET_TYPE_CORE_MC_READOR;
-//         }
-//
-//         if(K & TARGET_TYPE_CORE_MC_READAND)
-//         {
-//             this->iv_handle.fields.chiplet_num =
-//                             (((MC_ENABLE) |
-//                              ((MC_READ_AND << 3) | (Value & 0x07))) &
-//                               BITS(57,7));
-//             this->iv_handle.fields.type = TARGET_TYPE_CORE_MC_READAND;
-//         }
-
         if(K == TARGET_TYPE_ALL)
         {
             this->iv_handle.fields.chiplet_num = Value;
             this->iv_handle.fields.type = TARGET_TYPE_ALL;
         }
-        this->iv_handle.fields.present = 1;
-        this->iv_handle.fields.functional = 1;
         this->iv_handle.fields.address_overlay =
                 (this->iv_handle.fields.chiplet_num << 24);
 
@@ -235,7 +172,8 @@ namespace fapi2
 
     ///
     /// @brief Get this target's children
-    /// @tparam T The type of the parent
+    /// @tparam K The type of the parent
+    /// @tparam T The type of child
     /// @param[in] i_state The desired TargetState of the children
     /// @return std::vector<Target<T> > a vector of present/functional
     /// children

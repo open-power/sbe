@@ -18,6 +18,7 @@
 #define __PPE__
 #include "fapi2.H"
 #include "proc_sbe_fixed.H"
+#include "sbe_xip_image.h"
 
 const char* g_usage =
 "Usage: sbe_default_tool <image> <attribute> <value> <target type> <index>\n"
@@ -46,31 +47,35 @@ void assertTarget(const char* str, unsigned int index)
 
     if(strcmp(str, "TARGET_TYPE_PROC_CHIP") == 0) {
         if (index > 0) {
-            fprintf(stderr, "sbe_default_tool: index is larger than 0\n");
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than 0\n", index);
             exit(1);
         } 
         return;
     } else if(strcmp(str, "TARGET_TYPE_EX") == 0)  {
-        if (index >= EX_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index is larger than EX_TARGET_COUNT\n");
+        if (index > EX_TARGET_COUNT) {
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than EX_TARGET_COUNT (%d)\n", 
+                index, EX_TARGET_COUNT);
             exit(1);
         } 
         return;
     } else if(strcmp(str, "TARGET_TYPE_EQ") == 0)  {
-        if (index >= EQ_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index is larger than EQ_TARGET_COUNT\n");
+        if (index > EQ_TARGET_COUNT) {
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than EQ_TARGET_COUNT (%d)\n", 
+                    index, EQ_TARGET_COUNT);
             exit(1);
         } 
         return;
     } else if(strcmp(str, "TARGET_TYPE_CORE") == 0)  {
-        if (index >= CORE_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index is larger than EQ_TARGET_COUNT\n");
+        if (index > CORE_TARGET_COUNT) {
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than CORE_TARGET_COUNT (%d)\n", 
+                    index, CORE_TARGET_COUNT);
             exit(1);
         } 
         return;
     } else if(strcmp(str, "TARGET_TYPE_PERV") == 0)  {
-        if (index >= PERV_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index is larger than PERV_TARGET_COUNT\n");
+        if (index > PERV_TARGET_COUNT) {
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than PERV_TARGET_COUNT (%d)\n", 
+                    index, PERV_TARGET_COUNT);
             exit(1);
         } 
         return;
@@ -100,45 +105,44 @@ void setAttribute(void* image, const char* attribute, unsigned int index, uint64
 
     // debug purpose
     //printf("offset in string section: 0x%x \n",     be32toh(item.iv_toc->iv_id));
-    //printf("address: 0x%x \n", item.iv_address);
+    //printf("address: 0x%x index: %2d 0x%x\n", item.iv_address, index, index);
 
     sbe_xip_image2host(image, item.iv_address, &thePointer);
 
     // debug purpose
-    //printf("pointer1: 0x%x \n", thePointer);
-    //printf("val: 0x%llx \n", val);
+    //printf("pointer1: 0x%x  val: 0x%llx \n", thePointer, val);
 
     if(item.iv_toc->iv_type == SBE_XIP_UINT8) {
 
-        *((uint8_t*)thePointer + index) = (uint8_t)val;
+        *((uint8_t*)thePointer + (index * sizeof(uint8_t))) = (uint8_t)val;
 
     } else if(item.iv_toc->iv_type == SBE_XIP_INT8) {
 
-        *((int8_t*)thePointer + index) = (int8_t)val;
+        *((int8_t*)thePointer + (index * sizeof(int8_t))) = (int8_t)val;
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT16) {
 
-        *((uint16_t*)thePointer + index) = (uint16_t)val;
+        *((uint16_t*)thePointer + (index * sizeof(uint16_t))) = xipRevLe16((uint16_t)val);
 
     } else if(item.iv_toc->iv_type == SBE_XIP_INT16) {
 
-        *((int16_t*)thePointer + index) = (int16_t)val;
+        *((int16_t*)thePointer + (index * sizeof(int16_t))) = xipRevLe16((int16_t)val);
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT32) {
 
-        *((uint32_t*)thePointer + index) = (uint32_t)val;
+        *((uint32_t*)thePointer + (index * sizeof(uint32_t))) = xipRevLe32((uint32_t)val);
 
     } else if(item.iv_toc->iv_type == SBE_XIP_INT32) {
 
-        *((int32_t*)thePointer + index) = (int32_t)val;
+        *((int32_t*)thePointer + (index * sizeof(int32_t))) = xipRevLe32((int32_t)val);
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT64) {
 
-        *((uint64_t*)thePointer + index) = (uint64_t)val;
+        *((uint64_t*)thePointer + (index * sizeof(uint64_t))) = xipRevLe64((uint64_t)val);
 
     } else if(item.iv_toc->iv_type == SBE_XIP_INT64) {
 
-        *((int64_t*)thePointer + index) = (int64_t)val;
+        *((int64_t*)thePointer + (index * sizeof(int64_t))) = xipRevLe64((int64_t)val);
 
     } else {
         fprintf(stderr, "sbe_default_tool: type not available");
@@ -152,7 +156,8 @@ void setAttribute(void* image, const char* attribute, unsigned int index, uint64
     SBE_XIP_TYPE_STRINGS(type_name);
 
     // debug purpose
-    //printf("pointer2: 0x%x \n", thePointer);
+    //printf("pointer2: 0x%x \n", thePointer + index);
+    //printf("elements: %d \n",  item.iv_elements);
     //printf("section id: %s \n",  section_name[item.iv_toc->iv_section]);
     //printf("location in section: 0x%x \n",  be32toh(item.iv_toc->iv_data));
     //printf("type name: %s \n",  type_name[item.iv_toc->iv_type]);
@@ -180,38 +185,38 @@ uint64_t getAttribute(void* image, const char* attribute, unsigned int index) {
 
     if(item.iv_toc->iv_type == SBE_XIP_UINT8) {
 
-        val = *((uint8_t*)thePointer + index);
+        val = *((uint8_t*)thePointer + (index * sizeof(uint8_t)));
         
     } else if(item.iv_toc->iv_type == SBE_XIP_INT8) {
 
-        val = *((int8_t*)thePointer + index);
+        val = *((int8_t*)thePointer + (index * sizeof(int8_t)));
         val &= 0xFF; 
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT16) {
 
-        val = *((uint16_t*)thePointer + index);
+        val = xipRevLe16(*((uint16_t*)thePointer + (index * sizeof(uint16_t))));
 
     } else if(item.iv_toc->iv_type == SBE_XIP_INT16) {
 
-        val = *((int16_t*)thePointer + index);
+        val = xipRevLe16(*((int16_t*)thePointer + (index * sizeof(int16_t))));
         val &= 0xFFFF; 
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT32) {
 
-        val = *((uint32_t*)thePointer + index);
+        val = xipRevLe32(*((uint32_t*)thePointer + (index * sizeof(uint32_t))));
 
     } else if(item.iv_toc->iv_type == SBE_XIP_INT32) {
 
-        val = *((int32_t*)thePointer + index);
+        val = xipRevLe32(*((int32_t*)thePointer + (index * sizeof(int32_t))));
         val &= 0xFFFFFFFF; 
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT64) {
 
-        val = *((uint64_t*)thePointer + index);
+        val = xipRevLe64(*((uint64_t*)thePointer + (index * sizeof(uint64_t))));
 
     } else if(item.iv_toc->iv_type == SBE_XIP_INT64) {
 
-        val = *((int64_t*)thePointer + index);
+        val = xipRevLe64(*((int64_t*)thePointer + (index * sizeof(int64_t))));
 
     } else {
         fprintf(stderr, "sbe_default_tool: type not available");
@@ -269,7 +274,7 @@ int  main(int argc, const char** argv)
 
     if((check & val) != check) {
             
-        fprintf(stderr, "sbe_default_tool: set and get values not equal");
+        fprintf(stderr, "sbe_default_tool: set and get values not equal -> ");
         fprintf(stderr, "%lx != %lx\n", check, val);
         exit(1);
 

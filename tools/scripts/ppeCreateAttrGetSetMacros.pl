@@ -215,12 +215,16 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
     } else {
       if ($type =~ m/uint8_t/) {
         $macroPostfix = "_UINT8_" . $dimension . "D_ARRAY";
+      } elsif ($type =~ m/uint16_t/) {
+        $macroPostfix = "_UINT16_" . $dimension . "D_ARRAY";
       } elsif ($type =~ m/uint32_t/) {
         $macroPostfix = "_UINT32_" . $dimension . "D_ARRAY";
       } elsif ($type =~ m/uint64_t/) {
         $macroPostfix = "_UINT64_" . $dimension . "D_ARRAY";
       } elsif ($type =~ m/int8_t/) {
         $macroPostfix = "_INT8_" . $dimension . "D_ARRAY";
+      } elsif ($type =~ m/int16_t/) {
+        $macroPostfix = "_INT16_" . $dimension . "D_ARRAY";
       } elsif ($type =~ m/int32_t/) {
         $macroPostfix = "_INT32_" . $dimension . "D_ARRAY";
       } elsif ($type =~ m/int64_t/) {
@@ -257,7 +261,7 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
       if(defined $targetMacro) {
 
 
-          my $targetFunction = "template<> void __get<fapi2::$targetMacro, fapi2attr::$macroTarget, $type, fapi2::${attribute}>   ( const fapi2::Target<fapi2::$targetMacro>* i_ptarget, fapi2attr::$macroTarget* object, const fapi2::AttributeId attrid, $type *value )";
+          my $targetFunction = "template<> void __get<fapi2::$targetMacro, fapi2attr::$macroTarget, $type, fapi2::${attribute}>   ( const fapi2::Target<fapi2::$targetMacro>& i_ptarget, fapi2attr::$macroTarget* object, const fapi2::AttributeId attrid, $type *value )";
           push(@newTargetDefines, $targetFunction . ";");
 
           my $targetImplementation = "";
@@ -267,7 +271,7 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
            
           } else {
 
-              $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = (i_ptarget)->getTargetNumber();\n   *value = object->fapi2attr::${macroTarget}::${attribute}[index];\n}\n";
+              $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   *value = object->fapi2attr::${macroTarget}::${attribute}[index];\n}\n";
 
           }
           push(@newTargetImplementations, $targetImplementation);
@@ -280,7 +284,7 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
 
       if(defined $targetMacro) {
 
-          my $targetFunction = "template<> void __set<fapi2::$targetMacro, fapi2attr::$macroTarget, $type, fapi2::${attribute}>   ( const fapi2::Target<fapi2::$targetMacro>* i_ptarget, fapi2attr::$macroTarget* object, const fapi2::AttributeId attrid,  $type* value )";
+          my $targetFunction = "template<> void __set<fapi2::$targetMacro, fapi2attr::$macroTarget, $type, fapi2::${attribute}>   ( const fapi2::Target<fapi2::$targetMacro>& i_ptarget, fapi2attr::$macroTarget* object, const fapi2::AttributeId attrid,  $type* value )";
           push(@newTargetDefines, $targetFunction . ";");
 
           my $targetImplementation = "";
@@ -289,7 +293,7 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
 
               $targetImplementation = "\n" . $targetFunction . "\n{\n  object->fapi2attr::${macroTarget}::${attribute} = *value;\n}\n";
           } else {
-              $targetImplementation = "\n" . $targetFunction . "\n{\n   uint32_t index = (i_ptarget)->getTargetNumber();\n   object->fapi2attr::${macroTarget}::${attribute}[index] = *value;\n}\n";
+              $targetImplementation = "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   object->fapi2attr::${macroTarget}::${attribute}[index] = *value;\n}\n";
           }
 
           push(@newTargetImplementations, $targetImplementation);

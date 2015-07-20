@@ -43,7 +43,7 @@
   <entry>
     <name>ATTR_REPR_RING</name>
     <value>0xcafe</value>
-    <value>0xaffe</value>
+    <value>0xdead</value>
   </entry>
   <entry>
     <name>ATTR_TIME_RING</name>
@@ -274,5 +274,24 @@
   <entry>
       <name>ATTR_PG_EC23</name>
       <value>0xF1FF</value>
+  </entry>
+  <entry>
+      <name>ATTR_CHIP_UNIT_POS</name>
+      <value>0x00</value>
+      <value>0x01</value>
+      <value>0x02</value>
+      <value>0x03</value>
+      <value>0x04</value>
+      <value>0x05</value>
+      <value>0x06</value>
+      <value>0x07</value>
+      <value>0x08</value>
+      <value>0x09</value>
+      <value>0x0A</value>
+      <value>0x0B</value>
+      <value>0x0C</value>
+      <value>0x0D</value>
+      <value>0x0E</value>
+      <value>0x0F</value>
   </entry>
 </entries>

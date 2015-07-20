@@ -324,40 +324,40 @@ tocListing(void* io_image,
             if (rc) break;
             printf("0x%02x", (uint8_t)data);
             break;
-        case SBE_XIP_INT8:
-            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
-            if (rc) break;
-            printf("%d", (int8_t)data);
-            break;
         case SBE_XIP_UINT16:
             rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
             if (rc) break;
-            printf("0x%08x", (uint16_t)data);
-            break;
-        case SBE_XIP_INT16:
-            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
-            if (rc) break;
-            printf("%d", (int16_t)data);
+            printf("0x%04x", (uint16_t)data);
             break;
         case SBE_XIP_UINT32:
             rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
             if (rc) break;
             printf("0x%08x", (uint32_t)data);
             break;
-        case SBE_XIP_INT32:
-            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
-            if (rc) break;
-            printf("%d", (int32_t)data);
-            break;
         case SBE_XIP_UINT64:
             rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
             if (rc) break;
             printf("0x%016llx", data);
             break;
+        case SBE_XIP_INT8:
+            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
+            if (rc) break;
+            printf("0x%02x", (uint8_t)data);
+            break;
+        case SBE_XIP_INT16:
+            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
+            if (rc) break;
+            printf("0x%04x", (uint16_t)data);
+            break;
+        case SBE_XIP_INT32:
+            rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
+            if (rc) break;
+            printf("0x%08x", (uint32_t)data);
+            break;
         case SBE_XIP_INT64:
             rc = sbe_xip_get_scalar(io_image, i_item->iv_id, &data);
             if (rc) break;
-            printf("%d", (int64_t)data);
+            printf("0x%016llx", data);
             break;
         case SBE_XIP_STRING:
             rc = sbe_xip_get_string(io_image, i_item->iv_id, &s);
@@ -780,14 +780,6 @@ get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
                 break;
             }
             printf("%s\n", s);
-            break;
-        case SBE_XIP_INT8:
-        case SBE_XIP_INT16:
-        case SBE_XIP_INT32:
-        case SBE_XIP_INT64:
-            fprintf(stderr, "%s%d : Bug, int types not implemented %d\n",
-                    __FILE__, __LINE__, item.iv_type);
-            exit(1);
             break;
         default:
             fprintf(stderr, "%s%d : Bug, unexpected type %d\n",

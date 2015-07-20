@@ -32,5 +32,6 @@
 
 #include <fapi2AttributeService.H>
 #include <fapi2AttributeIds.H>      // Generated file
+//#include <plat_target_pg_attributes.H>
 
 #endif  // __PLAT_ATTTRIBUTE_H__

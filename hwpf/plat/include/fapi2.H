@@ -35,7 +35,7 @@
 #include <plat_target_utils.H>
 
 
-#include <hwp_executor.H>
+#include <fapi2_hwp_executor.H>
 
 // Block of headers not currently in fapi2
 #ifdef FAPI2_MISSING_HEADERS
