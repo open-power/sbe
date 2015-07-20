@@ -23,13 +23,17 @@
 /*                                                                      */
 /* IBM_PROLOG_END_TAG                                                   */
 
-#include <target.H>
+
+#include <fapi2.H>
 #include <new>
 #include <utility> // For move
+#include <plat_target_pg_attributes.H>
+
 // Global Vector containing ALL targets.  This structure is referenced by
 // fapi2::getChildren to produce the resultant returned vector from that
 // call.
 std::vector<fapi2::plat_target_handle_t> G_vec_targets;
+
 
 namespace fapi2
 {
@@ -38,10 +42,256 @@ namespace fapi2
     ReturnCode current_err;
     #endif
 
+
+    // Not a fan of the switch technique;  I would prefer an array lookup
+    // but the attritute lookup is done via compile time macros that are
+    // resolved to attribute Ids (hashes).
+     fapi2::ReturnCode plat_PervPGTargets(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target,
+                                          const fapi2::TargetTypes_t i_chiplet_num,
+                                          bool & o_present)
+     {
+
+        o_present = false;
+        uint16_t attr_value = 0;
+        switch (i_chiplet_num)
+        {
+            case 0x00:   // Nop
+                break;
+            case 0x01:
+                FAPI_ATTR_GET(ATTR_PG_PRV, i_target, *(&attr_value));
+                FAPI_DBG("ATTR_PG_PRV value = %x", attr_value);
+                break;
+            case 0x02:
+                FAPI_ATTR_GET(ATTR_PG_N0, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_N0 value = %x", attr_value);
+                break;
+            case 0x03:
+                FAPI_ATTR_GET(ATTR_PG_N1, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_N1 value = %x", attr_value);
+                break;
+            case 0x04:
+                FAPI_ATTR_GET(ATTR_PG_N2, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_N2 value = %x", attr_value);
+                break;
+            case 0x05:
+                FAPI_ATTR_GET(ATTR_PG_N3, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_N0 value = %x", attr_value);
+                break;
+            case 0x06:
+                FAPI_ATTR_GET(ATTR_PG_XB, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_XB value = %x", attr_value);
+                break;
+            case 0x07:
+                FAPI_ATTR_GET(ATTR_PG_MC01, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_MC01 value = %x", attr_value);
+                break;
+            case 0x08:
+                FAPI_ATTR_GET(ATTR_PG_MC23, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_MC23 value = %x", attr_value);
+                break;
+            case 0x09:
+                FAPI_ATTR_GET(ATTR_PG_OB0, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_OB0 value = %x", attr_value);
+                break;
+            case 0x0A:
+                FAPI_ATTR_GET(ATTR_PG_OB1, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_OB1 value = %x", attr_value);
+                break;
+            case 0x0B:
+                FAPI_ATTR_GET(ATTR_PG_OB2, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_OB2 value = %x", attr_value);
+                break;
+            case 0x0C:
+                FAPI_ATTR_GET(ATTR_PG_OB3, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_OB3 value = %x", attr_value);
+                break;
+            case 0x0D:
+                FAPI_ATTR_GET(ATTR_PG_PCI0, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_PCI0 value = %x", attr_value);
+                break;
+            case 0x0E:
+                FAPI_ATTR_GET(ATTR_PG_PCI1, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_PCI1 value = %x", attr_value);
+                break;
+            case 0x0F:
+                FAPI_ATTR_GET(ATTR_PG_PCI2, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_PCI2 value = %x", attr_value);
+                break;
+            case 0x10:
+                FAPI_ATTR_GET(ATTR_PG_EQ0, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EQ0 value = %x", attr_value);
+                break;
+            case 0x11:
+                FAPI_ATTR_GET(ATTR_PG_EQ1, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EQ1 value = %x", attr_value);
+                break;
+            case 0x12:
+                FAPI_ATTR_GET(ATTR_PG_EQ2, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EQ2 value = %x", attr_value);
+                break;
+            case 0x13:
+                FAPI_ATTR_GET(ATTR_PG_EQ3, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EQ3 value = %x", attr_value);
+                break;
+            case 0x14:
+                FAPI_ATTR_GET(ATTR_PG_EQ4, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EQ4 value = %x", attr_value);
+                break;
+            case 0x15:
+                FAPI_ATTR_GET(ATTR_PG_EQ5, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EQ5 value = %x", attr_value);
+                break;
+            case 0x20:
+                FAPI_ATTR_GET(ATTR_PG_EC00, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC00 value = %x", attr_value);
+                break;
+            case 0x21:
+                FAPI_ATTR_GET(ATTR_PG_EC01, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC01 value = %x", attr_value);
+                break;
+            case 0x22:
+                FAPI_ATTR_GET(ATTR_PG_EC02, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC02 value = %x", attr_value);
+                break;
+            case 0x23:
+                FAPI_ATTR_GET(ATTR_PG_EC03, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC03 value = %x", attr_value);
+                break;
+            case 0x24:
+                FAPI_ATTR_GET(ATTR_PG_EC04, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC04 value = %x", attr_value);
+                break;
+            case 0x25:
+                FAPI_ATTR_GET(ATTR_PG_EC05, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC05 value = %x", attr_value);
+                break;
+            case 0x26:
+                FAPI_ATTR_GET(ATTR_PG_EC06, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC06 value = %x", attr_value);
+                break;
+            case 0x27:
+                FAPI_ATTR_GET(ATTR_PG_EC07, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC07 value = %x", attr_value);
+                break;
+            case 0x28:
+                FAPI_ATTR_GET(ATTR_PG_EC08, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC08 value = %x", attr_value);
+                break;
+            case 0x29:
+                FAPI_ATTR_GET(ATTR_PG_EC09, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC09 value = %x", attr_value);
+                break;
+            case 0x2A:
+                FAPI_ATTR_GET(ATTR_PG_EC10, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC10 value = %x", attr_value);
+                break;
+            case 0x2B:
+                FAPI_ATTR_GET(ATTR_PG_EC11, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC11 value = %x", attr_value);
+                break;
+            case 0x2C:
+                FAPI_ATTR_GET(ATTR_PG_EC12, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC12 value = %x", attr_value);
+                break;
+            case 0x2D:
+                FAPI_ATTR_GET(ATTR_PG_EC13, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC13 value = %x", attr_value);
+                break;
+            case 0x2E:
+                FAPI_ATTR_GET(ATTR_PG_EC14, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC14 value = %x", attr_value);
+                break;
+            case 0x2F:
+                FAPI_ATTR_GET(ATTR_PG_EC15, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC15 value = %x", attr_value);
+                break;
+            case 0x30:
+                FAPI_ATTR_GET(ATTR_PG_EC16, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC16 value = %x", attr_value);
+                break;
+            case 0x31:
+                FAPI_ATTR_GET(ATTR_PG_EC17, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC17 value = %x", attr_value);
+                break;
+            case 0x32:
+                FAPI_ATTR_GET(ATTR_PG_EC18, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC18 value = %x", attr_value);
+                break;
+            case 0x33:
+                FAPI_ATTR_GET(ATTR_PG_EC19, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC19 value = %x", attr_value);
+                break;
+            case 0x34:
+                FAPI_ATTR_GET(ATTR_PG_EC20, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC20 value = %x", attr_value);
+                break;
+            case 0x35:
+                FAPI_ATTR_GET(ATTR_PG_EC21, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC21 value = %x", attr_value);
+                break;
+            case 0x36:
+                FAPI_ATTR_GET(ATTR_PG_EC22, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC22 value = %x", attr_value);
+                break;
+            case 0x37:
+                FAPI_ATTR_GET(ATTR_PG_EC23, i_target, attr_value);
+                FAPI_DBG("ATTR_PG_EC23 value = %x", attr_value);
+                break;
+            default:
+                FAPI_ERR("PervPGTargets:  invalid chiplet number %u", i_chiplet_num);
+        }
+
+        if (attr_value & 0xC000)
+        {
+            o_present = true;
+        }
+
+        return fapi2::FAPI2_RC_SUCCESS;
+
+    }
+
+    /// @brief Function to determine if pervsaive target within a chip is
+    ///     present and, thus, considered functional per PG attributes
+    template<fapi2::TargetType K>
+    fapi2::ReturnCode
+    plat_TargetPresent( fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_chip_target,
+                        fapi2::Target<K> & i_chiplet_target,
+                        bool & b_present)
+    {
+
+        // Find the PERV target number in the partial good initialization
+        // array
+        fapi2::ChipletNumber_t chiplet_number = i_chiplet_target.getChipletNumber();
+
+        FAPI_TRY(plat_PervPGTargets(i_chip_target, chiplet_number, b_present));
+
+        if (b_present)
+        {
+            i_chiplet_target.setPresent();
+            i_chiplet_target.setFunctional();
+        }
+        else
+        {
+            FAPI_DBG("Perv target NOT present (nor functional): chiplet_number = %d",
+                        chiplet_number);
+        }
+
+        FAPI_DBG("Target present = %u, Target functional = %u",
+            i_chiplet_target.getPresent(),
+            i_chiplet_target.getFunctional());
+            
+fapi_try_exit:
+        return fapi2::current_err;
+    }
+
+
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes ///  this will move to plat_target.H formally
     fapi2::ReturnCode plat_TargetsInit()
     {
+
+        bool b_present = false;
+        uint32_t c = 0;
 
         // This is workaround. Currently we do not have code to initialise
         // global objects. So initializing global objects against using local
@@ -52,69 +302,71 @@ namespace fapi2
         uint32_t l_beginning_offset;
 
         FAPI_DBG("Platform target initialization.  Target Count = %u", TARGET_COUNT);
-        // Initialize all entries to NULL
+        /*
+         * Initialize all entries to NULL
+         */
         for (uint32_t i = 0; i < TARGET_COUNT; ++i)
         {
             G_vec_targets.push_back((fapi2::plat_target_handle_t)0x0);
             FAPI_DBG("Nulling G_vec_targets[%u] hi value=0x%08X",
                         i, (uint32_t)(G_vec_targets.at(i)>>32));
-    //        FAPI_DBG("Nulling G_vec_targets[%u] lo value=0x%08X",
-    //                    i, (uint32_t)(G_vec_targets.at(i)&0x00000000ffffffffull));
-        }
-         FAPI_DBG("Vector size: %u", G_vec_targets.size());
 
-        // Chip Target is the first one
+        }
+        FAPI_DBG("Vector size: %u", G_vec_targets.size());
+
+        /*
+         * Chip Target is the first one
+         */
         FAPI_DBG("Chip Target info: CHIP_TARGET_OFFSET %u CHIP_TARGET_COUNT %u ",
                       CHIP_TARGET_OFFSET,CHIP_TARGET_COUNT);
 
-
         l_beginning_offset = CHIP_TARGET_OFFSET;
-        FAPI_DBG("Chip beginning offset =%u", l_beginning_offset);
-        for (uint32_t i = 0; i < CHIP_TARGET_COUNT; ++i)
-        {
-            fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> target_name((fapi2::plat_target_handle_t)i);
-            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-    //         FAPI_DBG("Chip Target initialization: %u G_vec_targets[%u] value=0x%08X",
-    //                     i,
-    //                    (l_beginning_offset+i),
-    //                    (uint32_t)(G_vec_targets.at(l_beginning_offset+i)>>32));
-        }
 
-        // Chip Level Pervasive Targets
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> chip_target((fapi2::plat_target_handle_t)0);
+        G_vec_targets.at(l_beginning_offset) = revle64((fapi2::plat_target_handle_t)(chip_target.get()));
+
+        /*
+         * Pervasive Targets
+         */
         FAPI_DBG("Pervasive Target info: PERV_TARGET_OFFSET %u PERV_TARGET_COUNT %u",
                       PERV_TARGET_OFFSET, PERV_TARGET_COUNT);
 
         l_beginning_offset = PERV_TARGET_OFFSET;
-        FAPI_DBG("Perv beginning offset =%u", l_beginning_offset);
         for (uint32_t i = 0; i < PERV_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((fapi2::plat_target_handle_t)i);
-            FAPI_DBG("target_name hi word = 0x%08X", (uint32_t)(target_name.get()>>32));
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((fapi2::plat_target_handle_t)i+1);
+            FAPI_DBG("target_name i = %d hi word = 0x%08X", i+1, (uint32_t)(target_name.get()>>32));
+
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
 
             G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-    //         FAPI_DBG("Pervasive Target initialization: %u G_vec_targets[%u] value=0x%08X",
-    //                     i,
-    //                    (l_beginning_offset+i),
-    //                    (uint32_t)(G_vec_targets.at(l_beginning_offset+i)>>32));
+            FAPI_DBG("G offset = %d", l_beginning_offset+i);
         }
 
-        // Cache (EQ) Targets
+        /*
+         * Cache (EQ) Targets
+         */
         FAPI_DBG("EQ Target info: EQ_TARGET_OFFSET %u EQ_TARGET_COUNT %u",
                       EQ_TARGET_OFFSET,  EQ_TARGET_COUNT);
         l_beginning_offset = EQ_TARGET_OFFSET;
-        FAPI_DBG("EQ beginning offset =%u", l_beginning_offset);
         for (uint32_t i = 0; i < EQ_TARGET_COUNT; ++i)
         {
             fapi2::Target<fapi2::TARGET_TYPE_EQ> target_name((fapi2::plat_target_handle_t)i);
-            FAPI_DBG("target_name hi word = 0x%08X", (uint32_t)(target_name.get()>>32));
+            FAPI_DBG("target_name i = %d hi word = 0x%08X", i, (uint32_t)(target_name.get()>>32));
+
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
+
             G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-    //         FAPI_DBG("EQ Target initialization: %u G_vec_targets[%u] value=%16llX",
-    //                      i,
-    //                    (l_beginning_offset+i),
-    //                    revle64((uint64_t)G_vec_targets[l_beginning_offset+i]));
+            FAPI_DBG("G offset = %d", l_beginning_offset+i);
         }
 
-        // Core (EC) Targets
+        /*
+         * Core (EC) Targets
+         */
         FAPI_DBG("Core Target info: CORE_TARGET_OFFSET %u CORE_TARGET_COUNT %u",
                       CORE_TARGET_OFFSET, CORE_TARGET_COUNT);
 
@@ -123,15 +375,19 @@ namespace fapi2
         for (uint32_t i = 0; i < CORE_TARGET_COUNT; ++i)
         {
             fapi2::Target<fapi2::TARGET_TYPE_CORE> target_name((fapi2::plat_target_handle_t)i);
-            FAPI_DBG("target_name hi word = 0x%08X", (uint32_t)(target_name.get()>>32));
+            FAPI_DBG("target_name i = %d hi word = 0x%08X", i, (uint32_t)(target_name.get()>>32));
+
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
+
             G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-    //         FAPI_DBG("Core Target initialization: %u G_vec_targets[%u] value=0x%08X",
-    //                     i,
-    //                    (l_beginning_offset+i),
-    //                    (uint32_t)(G_vec_targets.at(l_beginning_offset+i)>>32));
+            FAPI_DBG("G offset = %d", l_beginning_offset+i);
         }
 
-        // Memroy Controller Synchronous (MCS) Targets
+        /*
+         * Memory Controller Synchronous (MCS) Targets
+         */
         FAPI_DBG("MCS Target info: MCS_TARGET_OFFSET %u MCS_TARGET_COUNT %u",
                       MCS_TARGET_OFFSET, MCS_TARGET_COUNT);
 
@@ -140,23 +396,26 @@ namespace fapi2
         for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
         {
             fapi2::Target<fapi2::TARGET_TYPE_MCS> target_name((fapi2::plat_target_handle_t)i);
-            FAPI_DBG("target_name hi word = 0x%08X", (uint32_t)(target_name.get()>>32));
+            FAPI_DBG("target_name i = %d hi word = 0x%08X", i, (uint32_t)(target_name.get()>>32));
+            
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
+
             G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-    //         FAPI_DBG("MCS Target initialization: %u G_vec_targets[%u] value=0x%08X",
-    //                     i,
-    //                    (l_beginning_offset+i),
-    //                    (uint32_t)(G_vec_targets.at(l_beginning_offset+i)>>32));
+            FAPI_DBG("G offset = %d", l_beginning_offset+i);
+
         }
 
         // Trace all entries
-        uint32_t c = 0;
-        for (tgt_iter = G_vec_targets.begin(); tgt_iter != G_vec_targets.end(); ++tgt_iter)
+        for (auto tgt_iter : G_vec_targets)
         {
             FAPI_DBG("Trace hi word G_vec_targets[%u] value=%08X",
-                       c, (uint32_t)((*tgt_iter)>>32));
+                       c, (uint32_t)(tgt_iter>>32));
             ++c;
         }
 
+fapi_try_exit:
         return fapi2::current_err;
     }
 
@@ -167,7 +426,7 @@ namespace fapi2
 
         // Get the chip specific target
         return ((fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>)G_vec_targets.at(0));
-    }   
+    }
 
-};
 
+} // fapi2

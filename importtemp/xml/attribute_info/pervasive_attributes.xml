@@ -19,7 +19,7 @@
 
 <attribute>
   <id>ATTR_CHIP_UNIT_POS</id>
-  <targetType>TARGET_TYPE_PERV,TARGET_TYPE_PROC_CHIP</targetType>
+  <targetType>TARGET_TYPE_PERV</targetType>
   <description></description>
   <valueType>uint8</valueType>
 </attribute>

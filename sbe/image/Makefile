@@ -1,4 +1,5 @@
 
+
 #remove this once we have a real compiler
 export P2P_ENABLE = 1
 
@@ -102,7 +103,7 @@ LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep "A _seeprom_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
-
+	
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS)  --start-group  $(LLIBS) --end-group
@@ -131,7 +132,7 @@ $(LINK_SCRIPT_SBE): linksbe.cmd
 $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
-
+	
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(OBJDIR)/base_loader.o $(LINK_OBJS) $(LINK_SCRIPT_LOADER)
 	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(LIB_DIRS) $(OBJDIR)/base_loader.o  --start-group  $(SBEFWLIB) $(LLIBS) --end-group
@@ -144,13 +145,16 @@ $(LINK_SCRIPT_LOADER): linkloader.cmd
 
 
 all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader
+	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
 
 generic: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
+	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
 
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d) $(OBJDIR)/base_sbe_fixed.o $(OBJDIR)/base_sbe_fixed.d: | $(OBJDIR)
 
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/perv_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pervasive_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/proc_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/ex_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/eq_attributes.xml
@@ -285,7 +289,7 @@ tracehash:
 clean:
 	rm -fr $(OBJDIR)
 	rm -f $(TOP-FIXED-HEADERS)
-	rm -fr $(TOOLS_IMAGE_DIR)/bin/*
+	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile clean
 	rm -f *.dump
 	rm -f hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H
 
@@ -295,14 +299,17 @@ dump:
 
 .PHONY : run_spgpe run_pmgpe
 # load and run the SBE SeeProm image in a GPE simics environment
-run_spgpe: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+#run_spgpe: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+run_spgpe: generic
 	$(SIMICS_WS)/simics \
-		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out' modelsetup.simics
+		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin;$$occ_gpe0_sym_tbl_file=$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out' \
+                modelsetup.simics
 
 # load and run the SBE PibMem image in a GPE simics environment
 run_pmgpe: $(OBJDIR)/$(IMAGE_NAME).out
 	$(SIMICS_WS)/simics \
-		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SBE_NAME).out' modelsetup.simics
+		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SBE_NAME).bin;$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SBE_NAME).bin' \
+                modelsetup.simics
 
 
 

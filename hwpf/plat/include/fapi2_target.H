@@ -94,7 +94,7 @@ namespace fapi2
         /// they might need. value( K | V ), for example
         ///
         Target(V Value);
-        
+
 //               Target(V Value):
 //            iv_handle(Value)
 //        {}
@@ -176,7 +176,7 @@ namespace fapi2
         {
 //            return ( (K == TARGET_TYPE_PROC_CHIP) ||
 //                     (K == TARGET_TYPE_MEMBUF_CHIP) );
-            
+
            return ( (K == TARGET_TYPE_PROC_CHIP) );
         }
 
@@ -249,44 +249,44 @@ namespace fapi2
         }
 
 #ifdef __PPE__
-       
-        ///                                                               
-        /// @brief Get the target present setting                         
-        /// @return Bool whether present                                  
-        ///                                                               
-        inline bool getPresent(void) const                                
-        {                                                                 
-            return (this->iv_handle.fields.present ? true : false);       
-        }                                                                 
 
-        ///                                                               
-        /// @brief Get the target functional setting                      
-        /// @return Bool whether functional                               
-        ///                                                               
-        inline bool getFunctional(void) const                             
-        {                                                                 
-            return (this->iv_handle.fields.functional ? true : false);    
-        }                                                                 
+        ///
+        /// @brief Get the target present setting
+        /// @return Bool whether present
+        ///
+        inline bool getPresent(void) const
+        {
+            return (this->iv_handle.fields.present ? true : false);
+        }
 
-        ///                                                               
-        /// @brief Set the target present setting                         
-        /// @return Bool whether present                                  
-        ///                                                               
-        inline void setPresent(void) const                                
-        {                                                                 
-            this->iv_handle.fields.present = 1;                           
-            return;                                                       
-        }                                                                 
+        ///
+        /// @brief Get the target functional setting
+        /// @return Bool whether functional
+        ///
+        inline bool getFunctional(void) const
+        {
+            return (this->iv_handle.fields.functional ? true : false);
+        }
 
-        ///                                                               
-        /// @brief Set the target functional setting                      
-        /// @return Bool whether functional                               
-        ///                                                               
-        inline void setFunctional(void) const                             
-        {                                                                 
-            this->iv_handle.fields.functional = 1;                        
-            return;                                                       
-        }                                                                 
+        ///
+        /// @brief Set the target present setting
+        /// @return Bool whether present
+        ///
+        inline void setPresent(void)
+        {
+            this->iv_handle.fields.present = 1;
+            return;
+        }
+
+        ///
+        /// @brief Set the target functional setting
+        /// @return Bool whether functional
+        ///
+        inline void setFunctional(void)
+        {
+            this->iv_handle.fields.functional = 1;
+            return;
+        }
 
 
         /// Need to optimize PPE Target resoulution in a cheap manner
@@ -310,7 +310,7 @@ namespace fapi2
         {
             return static_cast<uint32_t>(this->iv_handle.fields.type_target_num);
         }
-        
+
         ///
         /// @brief Get target type directly from the handle
         /// @return Overlay as a type V
@@ -319,7 +319,7 @@ namespace fapi2
         {
             return static_cast<TargetTypes_t>(this->iv_handle.fields.type);
         }
-        
+
         ///
         /// @brief Get chiplet number from the handle
         /// @return ChipletNumber_t Chiplet Number
@@ -328,7 +328,7 @@ namespace fapi2
         {
             return static_cast<ChipletNumber_t>(this->iv_handle.fields.chiplet_num);
         }
-        
+
 #endif
 
 
@@ -362,7 +362,7 @@ namespace fapi2
 //            iv_handle(V i_value = 0):value(i_value) {}
         } iv_handle;
     };
-    
+
     // EX threads map to CORE threads:
     // t0 / t2 / t4 / t6 fused = t0 / t1 / t2 / t3 normal (c0)
     // t1 / t3 / t5 / t7 fused = t0 / t1 / t2 / t3 normal (c1)

@@ -1250,6 +1250,46 @@ sbe_xip_host2image(const void* i_image,
                   uint64_t* o_imageAddress);
 
 
+
+// PHYP has their own way of implementing the <string.h> functions. PHYP also
+// does not allow static functions or data, so all of the XIP_STATIC functions
+// defined here are global to PHYP.
+
+#ifdef PPC_HYP
+
+#ifdef PLIC_MODULE
+
+#define strcpy(dest, src) hvstrcpy(dest, src)
+#define strlen(s) hvstrlen(s)
+#define strcmp(s1, s2) hvstrcmp(s1, s2)
+#endif //PLIC_MODULE
+
+#define XIP_STATIC
+        
+#else // PPC_HYP
+
+// #define XIP_STATIC static
+#define XIP_STATIC
+
+#endif // PPC_HYP
+
+// Note: For maximum flexibility we provide private versions of
+// endian-conversion routines rather than counting on a system-specific header
+// to provide these. 
+
+/// Byte-reverse a 16-bit integer if on a little-endian machine
+XIP_STATIC uint16_t
+xipRevLe16(const uint16_t i_x);
+
+/// Byte-reverse a 32-bit integer if on a little-endian machine
+XIP_STATIC uint32_t
+xipRevLe32(const uint32_t i_x);
+
+
+/// Byte-reverse a 64-bit integer if on a little-endian machine
+XIP_STATIC uint64_t
+xipRevLe64(const uint64_t i_x);
+
 /// \defgroup sbe_xip_image_errors Error codes from SBE-XIP image APIs
 ///
 /// @{

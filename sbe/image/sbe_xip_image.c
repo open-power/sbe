@@ -30,28 +30,6 @@
 // Local Functions
 ////////////////////////////////////////////////////////////////////////////
 
-// PHYP has their own way of implementing the <string.h> functions. PHYP also
-// does not allow static functions or data, so all of the XIP_STATIC functions
-// defined here are global to PHYP.
-
-#ifdef PPC_HYP
-
-#ifdef PLIC_MODULE
-
-#define strcpy(dest, src) hvstrcpy(dest, src)
-#define strlen(s) hvstrlen(s)
-#define strcmp(s1, s2) hvstrcmp(s1, s2)
-#endif //PLIC_MODULE
-
-#define XIP_STATIC
-        
-#else // PPC_HYP
-
-#define XIP_STATIC static
-
-#endif // PPC_HYP
-
-
 #ifdef DEBUG_SBE_XIP_IMAGE
 
 // Debugging support, normally disabled. All of the formatted I/O you see in
@@ -1947,12 +1925,31 @@ sbe_xip_set_element(void *i_image,
         case SBE_XIP_UINT8:
             ((uint8_t*)(item.iv_imageData))[i_index] = (uint8_t)i_data;
             break;
+        case SBE_XIP_UINT16:
+            ((uint16_t*)(item.iv_imageData))[i_index] = 
+                xipRevLe16((uint16_t)i_data);
+            break;
         case SBE_XIP_UINT32:
             ((uint32_t*)(item.iv_imageData))[i_index] = 
                 xipRevLe32((uint32_t)i_data);
             break;
         case SBE_XIP_UINT64:
             ((uint64_t*)(item.iv_imageData))[i_index] = 
+                xipRevLe64((uint64_t)i_data);
+            break;
+        case SBE_XIP_INT8:
+            ((int8_t*)(item.iv_imageData))[i_index] = (int8_t)i_data;
+            break;
+        case SBE_XIP_INT16:
+            ((int16_t*)(item.iv_imageData))[i_index] = 
+                xipRevLe16((uint16_t)i_data);
+            break;
+        case SBE_XIP_INT32:
+            ((int32_t*)(item.iv_imageData))[i_index] = 
+                xipRevLe32((uint32_t)i_data);
+            break;
+        case SBE_XIP_INT64:
+            ((int64_t*)(item.iv_imageData))[i_index] = 
                 xipRevLe64((uint64_t)i_data);
             break;
         default:

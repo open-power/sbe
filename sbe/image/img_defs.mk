@@ -191,7 +191,10 @@ GCC-DEFS += -D__PK__=1
 GCC-DEFS += -D__SBE__=1
 GCC-DEFS += -D__PPE__=1
 GCC-DEFS += -DFAPI2_NO_FFDC=1
-GCC-DEFS += -DPK_TRACE_SZ=512
+# use the default settings in the code unless a size is defined
+ifdef PK_TRACE_SZ
+GCC-DEFS += -DPK_TRACE_SZ=$(PK_TRACE_SZ)
+endif
 
 DEFS += $(GCC-DEFS)
 export LD_LIBRARY_PATH = /afs/awd.austin.ibm.com/proj/p3/cte/tools/gcc405lin/vol1/usr/lib
