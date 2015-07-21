@@ -16,7 +16,7 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_chiplet_init_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_arrayinit_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_gear_switcher_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_setup_evid_errors.xml
-
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_common_errors.xml
 
 
 
