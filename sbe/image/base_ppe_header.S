@@ -189,7 +189,7 @@ __header_string_reserved:
     .section .strings, "aS", @progbits
 
     ..set_default_space IMAGE_SPACE_SEEPROM
-    P9XipHeader P9_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _seeprom_size
+    P9XipHeader P9_SEEPROM_MAGIC, 0x80000000, 0x80000C78, _seeprom_size
 
     // Create the .fixed section
     .proc_sbe_fixed_system
