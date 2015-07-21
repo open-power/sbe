@@ -5,17 +5,18 @@
 #ifndef INITIAL_STACK_SIZE
 #define INITIAL_STACK_SIZE 256
 #endif
+#include <sbe_link.H>
 
 OUTPUT_FORMAT(elf32-powerpc);
 
 MEMORY
 {
- sram : ORIGIN = 0xfffe8000, LENGTH = 0x18000
+ sram : ORIGIN = SBE_BASE_ORIGIN, LENGTH = SBE_BASE_LENGTH
 }
 
 SECTIONS
 {
-    . = 0xfffe8000;
+    . = SBE_BASE_ORIGIN;
 
     .vectors : {. = ALIGN(512); *(.vectors)} > sram
     .fixed . : {. = ALIGN(512); *(.fixed) } > sram
@@ -54,7 +55,7 @@ SECTIONS
 
     // SDA sections .sdata and .sbss must be adjacent to each
     // other.  Our SDATA sections are small so we'll use strictly positive
-    // offsets. 
+    // offsets.
 
     _SDA_BASE_ = .;
     .sdata  . : { *(.sdata*)  } > sram

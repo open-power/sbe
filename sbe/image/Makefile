@@ -103,6 +103,10 @@ LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HW
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
 LINK_OBJS += $(OBJS) $(GCCLIBS)
 
+# Loader Objects
+LOADER_OBJS := $(addprefix $(OBJDIR)/, $(BASE_LOADER_OBJECTS))
+
+
 LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/, linkscriptseeprom)
 LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/, linkscriptsbe)
 LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
@@ -134,7 +138,7 @@ endif
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SEEPROM): linkseeprom.cmd
-	$(CPP) -E -x c++ -P $(DEFS) linkseeprom.cmd -o $(LINK_SCRIPT_SEEPROM)
+	$(CPP) -I. -E -x c++ -P $(DEFS) linkseeprom.cmd -o $(LINK_SCRIPT_SEEPROM)
 
 # ---- PIBMEM Image  ------
 #This removes all unecessary headers from the ELF executable
@@ -149,20 +153,20 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).out: pibMemAttrSet buildInfo $(OBJDIR)/base_sbe_fixe
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SBE): linksbe.cmd
-	$(CPP) -E -x c++ -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
+	$(CPP) -E -x c++ -I. -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
 # ---- Loader Image  ------
 $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
 
-# create a linked ELF executable
-$(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(OBJDIR)/$(BASE_LOADER_OBJECTS) $(LINK_OBJS) $(LINK_SCRIPT_LOADER)
-	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(BASE_LOADER_OBJECTS)
+#create a linked ELF executable
+$(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
+	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(LOADER_OBJS)
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_LOADER): linkloader.cmd
-	$(CPP) -E -x c++ -P $(DEFS) linkloader.cmd -o $(LINK_SCRIPT_LOADER)
+	$(CPP) -I. -E -x c++ -P $(DEFS) linkloader.cmd -o $(LINK_SCRIPT_LOADER)
 
 # Remove the "all" rule if FAPI2_TEST as the SBE FW is incompatible with the
 # option of PK enabled
@@ -173,15 +177,18 @@ all:
 	@echo "Makefile option error:  ALL is not compatible with FAPI2_test"
 endif
 
-.PHONY: all normalize defaultset appendbase appendloader add_L1_LoaderAddr add_kernelAddr symbols
+.PHONY: all normalize defaultset appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_L1_LoaderAddr add_kernelAddr symbols tracehash
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash
 
 add_L1_LoaderAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep sbe_loader | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pmLoader | cut -f 1 -d " "`
+
+add_L2_LoaderAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __base_loader_setup | cut -f 1 -d " "`
 
 add_kernelAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_LOADER_NAME).out
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep base_loader | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(OBJDIR)/$(IMAGE_SBE_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 
 symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(IMAGE_SBE_NAME).out
 	$(NM) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(OBJDIR)/$(SBE_SYMBOLS_NAME)

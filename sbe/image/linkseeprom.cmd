@@ -1,20 +1,29 @@
 // Need to do this so that elf32-powerpc is not modified!
 #undef powerpc
-
-#ifndef INITIAL_STACK_SIZE
-#define INITIAL_STACK_SIZE 256
-#endif
-
+#include <sbe_link.H>
 OUTPUT_FORMAT(elf32-powerpc);
 
 SECTIONS
 {
-    . = 0xfff00000;
-    _seeprom_origin = . - 0;
+    . = SBE_SEEPROM_BASE_ORIGIN;
+     _seeprom_origin = . - 0;
     ////////////////////////////////
     // Header
     ////////////////////////////////
    . = ALIGN(1); _header_origin = .; _header_offset = . - _seeprom_origin; .header . : { *(.header) } _header_size = . - _header_origin;
+
+    // @TODO via RTC 136315
+    // This value will change as per OTPROM requirement
+    . = SBE_SEEPROM_BASE_ORIGIN + 0x1000;
+    ////////////////////////////////
+    // LOADER_TEXT
+    ////////////////////////////////
+    . = ALIGN(4); _loader_text_origin = .; _loader_text_offset = . - _seeprom_origin; .loader_text . : { *(.loader_text) } _loader_text_size = . - _loader_text_origin;
+
+    ////////////////////////////////
+    // LOADER_DATA
+    ////////////////////////////////
+    . = ALIGN(8); _loader_data_origin = .; _loader_data_offset = . - _seeprom_origin; .loader_data . : { *(.loader_data) } _loader_data_size = . - _loader_data_origin;
 
     ////////////////////////////////
     // FIXED
@@ -26,15 +35,6 @@ SECTIONS
     ////////////////////////////////
     . = ALIGN(8); _fixed_toc_origin = .; _fixed_toc_offset = . - _seeprom_origin; .fixed_toc . : { *(.fixed_toc) } _fixed_toc_size = . - _fixed_toc_origin;
 
-    ////////////////////////////////
-    // LOADER_TEXT
-    ////////////////////////////////
-    . = ALIGN(4); _loader_text_origin = .; _loader_text_offset = . - _seeprom_origin; .loader_text . : { *(.loader_text) } _loader_text_size = . - _loader_text_origin;
-
-    ////////////////////////////////
-    // LOADER_DATA
-    ////////////////////////////////
-    . = ALIGN(8); _loader_data_origin = .; _loader_data_offset = . - _seeprom_origin; .loader_data . : { *(.loader_data) } _loader_data_size = . - _loader_data_origin;
 
     ////////////////////////////////
     // TEXT
@@ -56,11 +56,6 @@ SECTIONS
     ////////////////////////////////
     . = ALIGN(1); _strings_origin = .; _strings_offset = . - _seeprom_origin; .strings . : { *(.strings) } _strings_size = . - _strings_origin;
 
-//    . = ALIGN(8);
-//    _seeprom_size = . - _seeprom_origin;
-//    _seeprom_end = . - 0;
-
-
     _RODATA_SECTION_BASE = .;
 
 
@@ -70,22 +65,15 @@ SECTIONS
 
     // SDA sections .sdata and .sbss must be adjacent to each
     // other.  Our SDATA sections are small so we'll use strictly positive
-    // offsets. 
+    // offsets.
 
     _SDA_BASE_ = .;
 
     .sbss   . : { *(.sbss)   }
     .sdata   . : { *(.sdata)  }
 
-
-   _PK_INITIAL_STACK_LIMIT = .;
-   . = . + INITIAL_STACK_SIZE;
-   _PK_INITIAL_STACK = . - 1;
-
-
     . = ALIGN(8);
     _seeprom_size = . - _seeprom_origin;
     _seeprom_end = . - 0;
-
 
 }

@@ -2,20 +2,21 @@
 // Need to do this so that elf32-powerpc is not modified!
 #undef powerpc
 
-#ifndef INITIAL_STACK_SIZE
-#define INITIAL_STACK_SIZE 256
+#ifndef BASE_LOADER_STACK_SIZE
+#define BASE_LOADER_STACK_SIZE 128
 #endif
+#include <sbe_link.H>
 
 OUTPUT_FORMAT(elf32-powerpc);
 
 MEMORY
 {
- sram : ORIGIN = 0xffff2000, LENGTH = 0x10000
+ sram : ORIGIN = SBE_LOADER_BASE_ORIGIN, LENGTH = SBE_LOADER_BASE_LENGTH
 }
 
 SECTIONS
 {
-    . = 0xffff2000;
+    . = SBE_LOADER_BASE_ORIGIN;
 
     ////////////////////////////////
     // Read-only Data
@@ -29,13 +30,13 @@ SECTIONS
 
     // SDA2 constant sections .sdata2 and .sbss2 must be adjacent to each
     // other.  Our SDATA sections are small so we'll use strictly positive
-    // offsets. 
+    // offsets.
 
     _SDA2_BASE_ = .;
    .sdata2 . : { *(.sdata2) } > sram
    .sbss2  . : { *(.sbss2) } > sram
 
-   // Other read-only data.  
+   // Other read-only data.
 
    .rodata . : { *(.rodata*) *(.got2) } > sram
 
@@ -50,7 +51,7 @@ SECTIONS
 
     // SDA sections .sdata and .sbss must be adjacent to each
     // other.  Our SDATA sections are small so we'll use strictly positive
-    // offsets. 
+    // offsets.
 
     _SDA_BASE_ = .;
     .sdata  . : { *(.sdata)  } > sram
@@ -62,9 +63,9 @@ SECTIONS
    .rela   . : { *(.rela*) } > sram
    .rwdata . : { *(.data) *(.bss) } > sram
 
-   _PK_INITIAL_STACK_LIMIT = .;
-   . = . + INITIAL_STACK_SIZE;
-   _PK_INITIAL_STACK = . - 1;
+   _BASE_LOADER_STACK_LIMIT = .;
+   . = . + BASE_LOADER_STACK_SIZE;
+   _BASE_LOADER_STACK_LIMIT = . - 1;
 
     . = ALIGN(8);
     _loader_end = . - 0;
