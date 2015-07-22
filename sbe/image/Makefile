@@ -75,9 +75,15 @@ LIB_DIRS += -L$(OBJDIR)/perv
 PERVLIB := $(OBJDIR)/perv/libperv.a
 LLIBS += -lperv
 
+# Common Nest libraries
+NEST_MAKE_DIR := $(NEST_SRCDIR)
+LIB_DIRS += -L$(OBJDIR)/nest
+NESTLIB := $(OBJDIR)/nest/libnest.a
+LLIBS += -lnest
+
 SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_xip_tool $(TOOLS_IMAGE_DIR)/sbe_default_tool
 
-LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB)
+LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB) $(NESTLIB)
 
 # Define the objects
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
@@ -154,7 +160,7 @@ $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(HWPLIB)
+.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(HWPLIB)
 
 topfixedheaders:
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
@@ -200,6 +206,11 @@ $(CORELIB):
 $(PERVLIB):
 	@echo "Processing perv makefile"
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PERV_MAKE_DIR) -f Makefile
+
+#Build the nest code
+$(NESTLIB):
+	@echo "Processing nest makefile"
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(NEST_MAKE_DIR) -f Makefile
 
 #Build the comming HWP lib procedures
 $(HWPLIB):
