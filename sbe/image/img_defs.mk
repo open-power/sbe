@@ -54,12 +54,16 @@ ifndef PERV_SRCDIR
 export PERV_SRCDIR = $(abspath ../../hwp/perv)
 endif
 
+ifndef NEST_SRCDIR
+export NEST_SRCDIR = $(abspath ../../hwp/nest)
+endif
+
 ifndef HWPLIB_SRCDIR
 export HWPLIB_SRCDIR = $(abspath ../../hwp/lib)
 endif
 
 ifndef IMG_INCLUDES
-export IMG_INCLUDES = -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR)
+export IMG_INCLUDES = -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR)
 endif
 ifndef BASE_OBJDIR
 export BASE_OBJDIR = $(abspath ../obj)
