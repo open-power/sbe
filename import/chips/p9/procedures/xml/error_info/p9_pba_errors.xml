@@ -1,0 +1,60 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/xml/error_info/p9_pba_errors.xml $        -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2015                                                         -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_P9_PBA_COHERENT_UTILS_INVALID_ARGS</rc>
+    <description>
+      Procedure: p9_pba_coherent_utils
+      PBA access or setup not attempted, PBA access or setup is stopped
+    </description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>ADDRESS</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_P9_PBA_COHERENT_UTILS_RESET_ERR</rc>
+    <description>
+      Procedure: p9_pba_coherent_utils
+      PBA Reset had a problem, the PBA was not actually reset
+    </description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>RDDATA</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_P9_PBA_STATUS_ERR</rc>
+    <description>
+      Procedure: p9_pba_coherent_utils
+      PBA Read Status, Write Status, or Reset Register had a problem, the PBA was still busy
+    </description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>RDBUF0</ffdc>
+    <ffdc>RDBUF1</ffdc>
+    <ffdc>RDBUF2</ffdc>
+    <ffdc>RDBUF3</ffdc>
+    <ffdc>RDBUF4</ffdc>
+    <ffdc>RDBUF5</ffdc>
+    <ffdc>WRBUF0</ffdc>
+    <ffdc>WRBUF1</ffdc>
+    <ffdc>SLVRSTDATA</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
+
