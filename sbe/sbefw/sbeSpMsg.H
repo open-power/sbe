@@ -145,6 +145,23 @@ typedef struct
     uint32_t minor:8;
 }sbeIstepReqMsg_t;
 
+// Maximum number of capabilities
+static const uint32_t SBE_MAX_CAPABILITIES = 18;
+
+/**
+  * @brief structure for SBE Get Capabilities chipop (0xA802) contents.
+  *
+  */
+typedef struct sbeCapabilityRespMsg
+{
+    uint32_t verMajor:16;
+    uint32_t verMinor:16;
+    uint32_t fwCommitId;
+    uint32_t capability[SBE_MAX_CAPABILITIES];
+    // ctor. constructor will initialise all values.
+    sbeCapabilityRespMsg();
+}sbeCapabilityRespMsg_t;
+
 //  TODO via RTC 128658
 //  We may be able to replace this structure by sbeResponseGenericHeader_t
 

@@ -35,6 +35,7 @@ enum sbe_command_fence_attrs
     SBE_FENCE_AT_CONTINUOUS_IPL = 0x40, ///< Fence off the cmd at cont IPL
     SBE_FENCE_AT_RUNTIME        = 0x20, ///< Fence off the cmd at Runtime state
     SBE_FENCE_AT_MPIPL          = 0x10, ///< Fence off the cmd at MPIPL state
+    SBE_NO_FENCE                = 0x00, ///< Allow cmd in all states
 };
 
 

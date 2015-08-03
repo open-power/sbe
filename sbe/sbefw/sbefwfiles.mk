@@ -7,6 +7,7 @@ SBEFW-CPP-SOURCES += sbecmdscomaccess.C
 SBEFW-CPP-SOURCES += sbecmdiplcontrol.C
 SBEFW-CPP-SOURCES += sbefifo.C
 SBEFW-CPP-SOURCES += pool.C
+SBEFW-CPP-SOURCES += sbecmdgeneric.C
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES = 
 
