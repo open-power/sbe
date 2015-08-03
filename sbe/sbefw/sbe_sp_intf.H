@@ -115,10 +115,9 @@ enum sbeInstructionControlCommands
 enum sbeGenericMessageCommands
 {
     SBE_CMD_GET_SBE_FFDC          = 0x01, /* Get FFDC */
-    SBE_CMD_GET_SBE_VER           = 0x02, /* GET SBE Version */
-    SBE_CMD_GET_SBE_CAPABILITIES  = 0x03, /* GET SBE capabilities */
-    SBE_CMD_GET_FREQ_SUPPORTED    = 0x04, /* Get Supported frequencies */
-    SBE_CMD_GET_SBE_STATE         = 0x05, /* Get SBE State */
+    SBE_CMD_GET_SBE_CAPABILITIES  = 0x02, /* GET SBE capabilities */
+    SBE_CMD_GET_FREQ_SUPPORTED    = 0x03, /* Get Supported frequencies */
+    SBE_CMD_GET_SBE_STATE         = 0x04, /* Get SBE State */
 };
 
 enum sbeMpIplCommands
@@ -190,6 +189,64 @@ enum sbePCBPIBErrorRC
     SBE_PCB_PIB_ERROR_TIMEOUT             = 0x07,
 };
 
+/*
+ * Constants for SBE FW major and minor number 
+ */
+static const uint16_t SBE_FW_MAJOR_VERSION = 1;
+static const uint16_t SBE_FW_MINOR_VERSION = 1;
+
+/**
+  * @brief capabilities index values.
+  *        Get Capability response will return 18 capabilities. This
+  *        enum tells the index for each capability. Currently each generic
+  *        functionality( scom, IPL ) etc span across two capabilities.
+  */
+enum
+{
+    GENERIC_CAPABILTITY_START_IDX = 0,
+    IPL_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 2,
+    SCOM_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 4,
+    RING_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 6,
+    MEMORY_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 8,
+    REGISTER_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 10,
+    ARRAY_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 12,
+    INSTRUCTION_CTRL_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 14,
+    GENERIC_CHIPOP_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 16,
+};
+/**
+  * @brief capabilities enum values.
+  *
+  */
+enum
+{
+    HWP_FFDC_COLLECTION_SUPPPORTED      = 0x00000001,
+    SBE_FFDC_COLLECTION_SUPPPORTED      = 0x00000002,
+    ADDRESS_BLACKLISTING_SUPPPORTED     = 0x00000004,
+    FIFO_RESET_SUPPPORTED               = 0x00000008,
+    EXECUTE_ISTEP_SUPPPORTED            = 0xA1000001,
+    IS_SBE_DONE_SUPPPORTED              = 0xA1000002,
+    GET_SCOM_SUPPPORTED                 = 0xA2000001,
+    PUT_SCOM_SUPPPORTED                 = 0xA2000002,
+    MODIFY_SCOM_SUPPPORTED              = 0xA2000004,
+    PUT_SCOM_UNDER_MASK_SUPPPORTED      = 0xA2000008,
+    MULTI_SCOM_SUPPPORTED               = 0xA2000010,
+    GET_RING_SUPPPORTED                 = 0xA3000001,
+    PUT_RING_SUPPPORTED                 = 0xA3000002,
+    GET_MEMORY_SUPPPORTED               = 0xA4000001,
+    PUT_MEMORY_SUPPPORTED               = 0xA4000002,
+    GET_SRAM_SUPPPORTED                 = 0xA4000004,
+    PUT_SRAM_SUPPPORTED                 = 0xA4000008,
+    GET_REGISTER_SUPPPORTED             = 0xA5000001,
+    PUT_REGISTER_SUPPPORTED             = 0xA5000002,
+    READ_FAST_ARRAY_SUPPPORTED          = 0xA6000001,
+    READ_TRACE_ARRAY_SUPPPORTED         = 0xA6000002,
+    COLLECT_TRACE_ARRAY_SUPPPORTED      = 0xA6000004,
+    CONTROL_INSTRUCTIONS_SUPPPORTED     = 0xA7000001,
+    GET_SBE_FFDC_SUPPPORTED             = 0xA8000001,
+    GET_SBE_CAPABILITIES_SUPPPORTED     = 0xA8000002,
+    GET_SBE_FREQUENCIES_SUPPPORTED      = 0xA8000004,
+    GET_SBE_STATE_SUPPPORTED            = 0xA8000008,
+};
 
 #ifdef __cplusplus
 }

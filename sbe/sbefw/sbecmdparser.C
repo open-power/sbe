@@ -8,6 +8,7 @@
 #include "sbecmdparser.H"
 #include "sbecmdscomaccess.H"
 #include "sbecmdiplcontrol.H"
+#include "sbecmdgeneric.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 
@@ -29,7 +30,7 @@ static sbeCmdStruct_t g_sbeScomCmdArray [] =
 };
 
 ////////////////////////////////////////////////////////////////
-// @brief g_sbeScomCmdArray
+// @brief g_sbeIplControlCmdArray
 //
 ////////////////////////////////////////////////////////////////
 static sbeCmdStruct_t g_sbeIplControlCmdArray [] =
@@ -45,6 +46,18 @@ static sbeCmdStruct_t g_sbeIplControlCmdArray [] =
      },
 };
 
+////////////////////////////////////////////////////////////////
+// @brief g_sbeGenericCmdArray
+//
+////////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeGenericCmdArray [] =
+{
+    {sbeGetCapabilities,
+     SBE_CMD_GET_SBE_CAPABILITIES,
+     SBE_NO_FENCE,
+     },
+
+};
 
 
 ////////////////////////////////////////////////////////////////
@@ -71,6 +84,12 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd    = (sbeCmdStruct_t*)g_sbeScomCmdArray;
             break;
+        case SBE_CMD_CLASS_GENERIC_MESSAGE:
+            l_numCmds = sizeof(g_sbeGenericCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd    = (sbeCmdStruct_t*)g_sbeGenericCmdArray;
+            break;
+
 
         // This will grow with each class of chipOp in future
         default:

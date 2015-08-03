@@ -115,14 +115,13 @@ $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDI
 ifndef FAPI2_TEST
 # This is the production build of the SEEPROM
 #create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	@echo ">>>>> Production Build <<<<<<"
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJS)
-
 else
 # This a special build of the SEEPROM image that includes the PK to allow for test threads to be used.
 # create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	@echo ">>>>> Special FAPI2 Test Build <<<<<<"
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS) --start-group $(LLIBS) --end-group
 
@@ -139,7 +138,7 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMA
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SBE_NAME).dis
 
 # create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SBE_NAME).out: $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+$(OBJDIR)/$(IMAGE_SBE_NAME).out: buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
@@ -186,6 +185,11 @@ symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/$(IMAGE_LOADER_NAME).out 
 seeprom: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
 
+# Create build Info file
+buildInfo:
+	python buildInfo.py
+
+
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d) $(OBJDIR)/base_sbe_fixed.o $(OBJDIR)/base_sbe_fixed.d: | $(OBJDIR)
 
@@ -204,7 +208,7 @@ $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(HWPLIB)
+.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(HWPLIB) buildInfo
 
 #errxml: topfixedheaders attrids platattr attrserv
 
@@ -327,7 +331,7 @@ clean:
 	rm -f $(TOP-FIXED-HEADERS)
 	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile clean
 	rm -f *.dump
-	rm -f hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H
+	rm -f hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H sbe_build_info.H
 	rm -f $(GEN-CREATEATTRGETSETMACROS)
 	rm -f $(GEN-PARSEATTRIBUTEINFO)
 	rm -f $(GEN-CREATEIFATTRSERVICE)

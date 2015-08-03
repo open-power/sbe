@@ -118,7 +118,6 @@ typedef union
     uint32_t                     downfifo_status_uint32;
 } sbe_downfifo_status_t;
 
-
 /*****************************************************************/
 /** Upstream FIFO access utilities **/
 /*****************************************************************/
