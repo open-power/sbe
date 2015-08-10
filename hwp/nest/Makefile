@@ -1,5 +1,5 @@
 
-# This Makefile compiles all of the core hardware procedure code. See the
+# This Makefile compiles all of the nest hardware procedure code. See the
 # "nestfiles.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/nest
