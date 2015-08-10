@@ -82,6 +82,7 @@ NEST_MAKE_DIR := $(NEST_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/nest
 NESTLIB := $(OBJDIR)/nest/libnest.a
 LLIBS += -lnest
+include $(NEST_SRCDIR)/nesterrors.mk
 
 SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_xip_tool $(TOOLS_IMAGE_DIR)/sbe_default_tool
 

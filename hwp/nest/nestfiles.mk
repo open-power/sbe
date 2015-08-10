@@ -14,7 +14,7 @@
 
 NEST-CPP-SOURCES = p9_sbe_mcs_setup.C
 NEST-CPP-SOURCES +=p9_sbe_scominit.C
-#NEST-CPP-SOURCES +=p9_sbe_fabricinit.C
+NEST-CPP-SOURCES +=p9_sbe_fabricinit.C
 
 NEST-C-SOURCES =
 NEST-S-SOURCES =
