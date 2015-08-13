@@ -63,13 +63,14 @@ CACHE_MAKE_DIR := $(CACHE_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/cache
 CACHELIB := $(OBJDIR)/cache/libcache.a
 LLIBS += -lcache
-
+include $(CACHE_SRCDIR)/cachehcderrors.mk
 
 # Common Core libraries
 CORE_MAKE_DIR := $(CORE_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/core
 CORELIB := $(OBJDIR)/core/libcore.a
 LLIBS += -lcore
+include $(CORE_SRCDIR)/corehcderrors.mk
 
 # Common Perv libraries
 PERV_MAKE_DIR := $(PERV_SRCDIR)
