@@ -1,0 +1,34 @@
+<!-- Error definitions for p9 dpll_setup procedures -->
+<hwpErrors>
+  <!-- ********************************************************************* -->
+  <hwpError>
+    <rc>RC_PMPROC_DPLL_LOCK_TIMEOUT</rc>
+    <description>
+        DPLL is not locking.
+    </description>
+    <ffdc>ADDRESS</ffdc>
+    <callout>
+      <childTargets>
+        <parent>PROC_CHIP_IN_ERROR</parent>
+        <childType>TARGET_TYPE_EX_CHIPLET</childType>
+        <childNumber>EX_NUMBER_IN_ERROR</childNumber>
+      </childTargets>
+      <priority>HIGH</priority>
+    </callout>
+    <deconfigure>
+      <childTargets>
+        <parent>PROC_CHIP_IN_ERROR</parent>
+        <childType>TARGET_TYPE_EX_CHIPLET</childType>
+        <childNumber>EX_NUMBER_IN_ERROR</childNumber>
+      </childTargets>
+    </deconfigure>
+    <gard>
+      <childTargets>
+        <parent>PROC_CHIP_IN_ERROR</parent>
+        <childType>TARGET_TYPE_EX_CHIPLET</childType>
+        <childNumber>EX_NUMBER_IN_ERROR</childNumber>
+      </childTargets>
+    </gard>
+  </hwpError>
+  <!-- ********************************************************************* -->
+</hwpErrors>
