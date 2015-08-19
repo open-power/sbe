@@ -144,8 +144,13 @@ $(LINK_SCRIPT_LOADER): linkloader.cmd
 
 
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader
-	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_entry_offset add_entry_address_sbe
+
+add_entry_offset: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_offset 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep sbe_loader | cut -f 1 -d " "`
+
+add_entry_address_sbe: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
+	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_address_sbe 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep base_loader | cut -f 1 -d " "`
 
 generic: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt

@@ -337,8 +337,11 @@ typedef struct {
     /// address 
     uint64_t iv_linkAddress;
 
+    /// The entry address of base loader
+    uint64_t iv_entryAddressSBE;
+
     /// Reserved for future expansion
-    uint64_t iv_reserved64[5];
+    uint64_t iv_reserved64[4];
 
     //////////////////////////////////////////////////////////////////////
     // Section Table - 4-byte aligned; 16 entries
