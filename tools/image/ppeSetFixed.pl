@@ -26,7 +26,8 @@ if ($numArgs < 3)
     print ("$attrpath/attribute_info/proc_attributes.xml \\\n" );
     print ("$attrpath/attribute_info/ex_attributes.xml \\\n" );
     print ("$attrpath/attribute_info/eq_attributes.xml \\\n" );
-    print ("$attrpath/attribute_info/core_attributes.xml \n");
+    print ("$attrpath/attribute_info/core_attributes.xml \\ \n");
+    print ("$attrpath/attribute_info/nest_attributes.xml \n");
     exit(1);
 }
 
@@ -40,6 +41,7 @@ my $xml = new XML::Simple (KeyAttr=>[]);
 my $xmlFiles = 0;
 my $attCount = 0;
 my $numIfAttrFiles = 0;
+my @attrSystemIds;
 my @attrChipIds;
 my @attrExIds;
 my @attrCoreIds;
@@ -83,54 +85,54 @@ foreach my $entr (@{$entries->{entry}}) {
         #--------------------------------------------------------------------------
         foreach my $attr (@{$attributes->{attribute}})
         {
-
             if($attr->{id} eq $inname) {
 
-            #------------------------------------------------------------------
-            # Check that the AttributeId exists
-            #------------------------------------------------------------------
-            if (! exists $attr->{id})
-            {
-                print ("ppeSbeFixed.pl ERROR. Att 'id' missing\n");
-                exit(1);
-            }
+                #------------------------------------------------------------------
+                # Check that the AttributeId exists
+                #------------------------------------------------------------------
+                if (! exists $attr->{id})
+                {
+                    print ("ppeSbeFixed.pl ERROR. Att 'id' missing\n");
+                    exit(1);
+                }
 
+                if($attr->{targetType} eq "TARGET_TYPE_SYSTEM") {
 
-            if($attr->{targetType} eq "TARGET_TYPE_PROC_CHIP") {
+                    push(@attrSystemIds, $entr);
 
-                push(@attrChipIds, $entr);
+                } elsif($attr->{targetType} eq "TARGET_TYPE_PROC_CHIP") {
 
-            } elsif($attr->{targetType} eq "TARGET_TYPE_CORE") {
+                    push(@attrChipIds, $entr);
 
-                push(@attrCoreIds, $entr);
-                
-            } elsif($attr->{targetType} eq "TARGET_TYPE_EQ") {
+                } elsif($attr->{targetType} eq "TARGET_TYPE_CORE") {
 
-                push(@attrEqIds, $entr);
+                    push(@attrCoreIds, $entr);
 
-            } elsif($attr->{targetType} eq "TARGET_TYPE_EX") { 
+                } elsif($attr->{targetType} eq "TARGET_TYPE_EQ") {
 
-                push(@attrExIds, $entr);
+                    push(@attrEqIds, $entr);
 
-            } elsif($attr->{targetType} eq "TARGET_TYPE_PERV") { 
+                } elsif($attr->{targetType} eq "TARGET_TYPE_EX") { 
 
-                push(@attrPervIds, $entr);
+                    push(@attrExIds, $entr);
 
-            } else {
+                } elsif($attr->{targetType} eq "TARGET_TYPE_PERV") { 
 
-                print ("ppeSetFixed.pl ERROR. Wrong attribute type: $attr->{targetType}\n");
-                exit(1);
+                    push(@attrPervIds, $entr);
 
-            }
+                } else {
 
+                    print ("ppeSetFixed.pl ERROR. Wrong attribute type: $attr->{targetType}\n");
+                    exit(1);
+
+                }
             }
         }
     }
-
 }
 
 
-
+setFixed("TARGET_TYPE_SYSTEM", @attrSystemIds);
 setFixed("TARGET_TYPE_PROC_CHIP", @attrChipIds);
 setFixed("TARGET_TYPE_CORE", @attrCoreIds);
 setFixed("TARGET_TYPE_EQ", @attrEqIds);
@@ -143,68 +145,59 @@ sub setFixed {
  
     my ($string, @entries) =  @_;
 
-foreach my $attr (@entries)
-{
-
-    my $inname = $attr->{name};
-    
-    my @values = $attr->{value};
-
-
-    if(scalar @values > 0) {
-
-    foreach my $val (@values)
+    foreach my $attr (@entries)
     {
 
-        if(defined $val && ref($val) eq "") {
+        my $inname = $attr->{name};
 
-            if ($val =~ /(0x)?[0-9a-fA-F]+/) {
-             
-                my $systemRc = system("$sbedefaultpath/sbe_default_tool $image $inname $val $string 0");
-        
-                if ($systemRc) {
-                    print "sbe_default_tool: error in execution\n";
-                    exit 1;
-                }
-                
-            } else {
-                print ("ppeSetFixed.pl ERROR. not hex\n");
-                exit(1);
-            }
+        my @values = $attr->{value};
 
-        } elsif(defined $val && ref($val) eq "ARRAY") {
 
-            my $index = 0;
+        if(scalar @values > 0) {
+            foreach my $val (@values)
+            {
 
-            foreach my $arr (@{$val}) {
+                if(defined $val && ref($val) eq "") {
 
-                if(defined $arr && ref($arr) eq "") {
-                    if ($arr =~ /(0x)?[0-9a-fA-F]+/) {
+                    if ($val =~ /(0x)?[0-9a-fA-F]+/) {
 
-                        my $systemRc = system("$sbedefaultpath/sbe_default_tool $image $inname $arr $string $index");
+                        my $systemRc = system("$sbedefaultpath/sbe_default_tool $image $inname $val $string 0");
 
                         if ($systemRc) {
                             print "sbe_default_tool: error in execution\n";
                             exit 1;
                         }
 
+                    } else {
+                        print ("ppeSetFixed.pl ERROR. not hex\n");
+                        exit(1);
+                    }
 
+                } elsif(defined $val && ref($val) eq "ARRAY") {
+
+                    my $index = 0;
+
+                    foreach my $arr (@{$val}) {
+
+                        if(defined $arr && ref($arr) eq "") {
+                            if ($arr =~ /(0x)?[0-9a-fA-F]+/) {
+
+                                my $systemRc = system("$sbedefaultpath/sbe_default_tool $image $inname $arr $string $index");
+
+                                if ($systemRc) {
+                                    print "sbe_default_tool: error in execution\n";
+                                    exit 1;
+                                }
+
+
+                            }
+                        }
+                        $index++;
                     }
                 }
-                $index++;
             }
-
-
-
         }
-
-
     }
-    }
-
-
-}
-
 }
 
 

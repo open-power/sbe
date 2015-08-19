@@ -1,0 +1,95 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/xml/attribute_info/nest_attributes.xml $  -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2015                                                         -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<!-- This is an automatically generated file. -->
+<!-- File: nest_attributes.xml. -->
+<!-- XML file specifying attributes used by HW Procedures. Attributes are taken from model nest -->
+<!--nest_attributes.xml-->
+<attributes>
+
+<attribute>
+  <id>ATTR_DMI_REFCLOCK_SWIZZLE</id>
+  <targetType>TARGET_TYPE_MCS</targetType>
+  <description>Define DMI Ref clock/Swizzle for Centaur</description>
+  <valueType>uint8</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+
+
+<attribute>
+  <id>ATTR_FABRIC_GROUP_ID</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>Logical fabric group ID associated with this chip. Provided by the MRW.</description>
+  <valueType>uint8</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+
+<attribute>
+  <id>ATTR_FABRIC_SYSTEM_ID</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>Logical fabric system ID associated with this chip. Provided by the MRW.</description>
+  <valueType>uint8</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+
+
+<attribute>
+  <id>ATTR_PROC_FABRIC_ADDR_BAR_MODE</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>Processor memory map configuration.0 = default = large system address map1 = small system address map Provided by the MRW.</description>
+  <valueType>uint8</valueType>
+  <enum>LARGE_SYSTEM = 0x0,SMALL_SYSTEM = 0x1</enum>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+
+<attribute>
+  <id>ATTR_PROC_SBE_MASTER_CHIP</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>Indicates if SBE on this chip is serving as hosboot drawer master</description>
+  <valueType>uint8</valueType>
+  <enum>FALSE = 0x0,TRUE = 0x1</enum>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+
+<attribute>
+  <id>ATTR_SYSTEM_IPL_PHASE</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>Define context for current phase of system IPL</description>
+  <valueType>uint8</valueType>
+  <enum>HB_IPL = 0x1,HB_RUNTIME = 0x2,CACHE_CONTAINED = 0x4</enum>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+
+<attribute>
+  <id>ATTR_ADU_XSCOM_BAR_BASE_ADDR</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>Defines XSCOM base address on each processor level.
+  address provided by the MRW </description>
+  <valueType>uint64</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+
+</attributes>
+

@@ -40,7 +40,13 @@
   <entry>
     <name>ATTR_SCRATCH_INT64_2</name>
   </entry>
-  <entry>
+  <entry> 
+    <name>ATTR_SCRATCH_UINT32_ARRAY</name>
+  </entry>
+  <entry> 
+    <name>ATTR_SCRATCH_UINT32_PERV_ARRAY</name>
+  </entry>
+   <entry>
     <name>ATTR_REPR_RING</name>
     <value>0xcafe</value>
     <value>0xdead</value>
@@ -293,5 +299,17 @@
       <value>0x0D</value>
       <value>0x0E</value>
       <value>0x0F</value>
+  </entry>
+  <entry>
+      <name>ATTR_FABRIC_SYSTEM_ID</name>
+      <value>0x1</value>
+  </entry>
+  <entry>
+      <name>ATTR_SYSTEM_IPL_PHASE</name>
+      <value>0x1</value>
+  </entry>
+  
+  <entry>
+      <name>ATTR_BACKUP_SEEPROM_SELECT</name>
   </entry>
 </entries>

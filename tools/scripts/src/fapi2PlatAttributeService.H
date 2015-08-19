@@ -32,12 +32,12 @@
 /* global get uint8_t 1D array macro */
 #define PLAT_ATTR_GET_UINT8_1D_ARRAY(ID, PTARGET, VAL) \
      _getAttributeArrayShort<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetTypes), ID> \
-            (ID, PTARGET, VAL)    
-     
+            (ID, PTARGET, VAL)
+
 /* global set uint8_t 1D array macro */
 #define PLAT_ATTR_SET_UINT8_1D_ARRAY(ID, PTARGET, VAL) \
      _setAttributeArrayShort<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetTypes), ID> \
-            (ID, PTARGET, VAL)   
+            (ID, PTARGET, VAL)
 
 /* global get uint8_t 2D array macro */
 #define PLAT_ATTR_GET_UINT8_2D_ARRAY(ID, PTARGET, VAL) \
@@ -124,7 +124,7 @@
 
 /* global set int macro (uint8_t, 16, 32 and 64) */
 #define PLAT_ATTR_SET_GLOBAL_INT(ID, PTARGET, VAL) \
-     _set<ID##_Type, static_cast<fapi2:TargetType>(ID##_TargetTypes), ID> \
+     _set<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetTypes), ID> \
                 (ID, PTARGET, VAL)
 
 
@@ -179,36 +179,38 @@
      _getOverride<ID##_Type>(ID, PTARGET, VAL)
 
 /******************************************************************************/
-// Get string 
+// Get string
 /******************************************************************************/
 
-extern "C" 
-{ 
+extern "C"
+{
+    extern fapi2attr::SystemAttributes_t    G_system_attributes    asm("G_system_attributes")     __attribute__ ((section (".fixed")));
     extern fapi2attr::ProcChipAttributes_t  G_proc_chip_attributes asm("G_proc_chip_attributes")  __attribute__ ((section (".fixed")));
     extern fapi2attr::PervAttributes_t      G_perv_attributes      asm("G_perv_attributes")       __attribute__ ((section (".fixed")));
     extern fapi2attr::CoreAttributes_t      G_core_attributes      asm("G_core_attributes")       __attribute__ ((section (".fixed")));
     extern fapi2attr::EQAttributes_t        G_eq_attributes        asm("G_eq_attributes")         __attribute__ ((section (".fixed")));
     extern fapi2attr::EXAttributes_t        G_ex_attributes        asm("G_ex_attributes")         __attribute__ ((section (".fixed")));
-    
-    extern fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr ;
-    extern fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
-    extern fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
-    extern fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
-    extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
+
+    extern fapi2attr::SystemAttributes_t*   G_system_attributes_ptr;
+    extern fapi2attr::ProcChipAttributes_t* G_proc_chip_attributes_ptr;
+    extern fapi2attr::PervAttributes_t*     G_perv_attributes_ptr;
+    extern fapi2attr::CoreAttributes_t*     G_core_attributes_ptr;
+    extern fapi2attr::EQAttributes_t*       G_eq_attributes_ptr;
+    extern fapi2attr::EXAttributes_t*       G_ex_attributes_ptr;
 
 }
 
-namespace fapi2 
+namespace fapi2
 {
 
 
-// Parameters are done as pointers (vs references) to allow the attribute 
+// Parameters are done as pointers (vs references) to allow the attribute
 // storage to be relocated
 template<TargetType K, typename TAttrStruct, typename TValue, AttributeId AId>
-void __set( const Target<K>& i_ptarget, TAttrStruct* object, const AttributeId attrid, TValue* value );
+void __set( const Target<K>& i_ptarget, TAttrStruct* object, const AttributeId attrid, const TValue& value );
 
 template<TargetType K, typename TAttrStruct, typename TValue, AttributeId AId>
-void __get( const Target<K>& i_ptarget, TAttrStruct* object, const AttributeId attrid, TValue* value );
+void __get( const Target<K>& i_ptarget, const TAttrStruct* object, const AttributeId attrid, TValue* value );
 
 
 /* INSERT NEW GETTER AND SETTER FUNCTIONS HERE */
@@ -219,15 +221,15 @@ void __get( const Target<K>& i_ptarget, TAttrStruct* object, const AttributeId a
 // Get base template
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_Id,
+ReturnCode _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 T& o_value)
 {
-    return FAPI2_RC_SUCCESS;    
+    return FAPI2_RC_SUCCESS;
 }
 
 //******************************************************************************
-// Get uint8_t 
+// Get uint8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _get(const AttributeId i_id,
@@ -236,36 +238,41 @@ ReturnCode _get(const AttributeId i_id,
 {
     static_assert(std::is_same<T, uint8_t>::value, "Attribute type mismatch");
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __get<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );  
+         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );                     
-    }        
- 
+    {
+        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
+    }
+
     return FAPI2_RC_SUCCESS;
 }
 
 //******************************************************************************
-// Get uint16_t 
+// Get uint16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _get(const AttributeId i_id,
@@ -273,38 +280,43 @@ ReturnCode _get(const AttributeId i_id,
                 uint16_t& o_value)
 {
     static_assert(std::is_same<T, uint16_t>::value, "Attribute type mismatch");
-    
+
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __get<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );  
+         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );                     
-    }        
- 
+    {
+        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
+    }
+
     return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get uint32_t 
+// Get uint32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _get(const AttributeId i_id,
@@ -312,38 +324,43 @@ ReturnCode _get(const AttributeId i_id,
                 uint32_t& o_value)
 {
     static_assert(std::is_same<T, uint32_t>::value, "Attribute type mismatch");
-    
+
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __get<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );  
+         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );                     
-    }        
- 
+    {
+        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
+    }
+
     return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get uint64_t 
+// Get uint64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _get(const AttributeId i_id,
@@ -351,39 +368,43 @@ ReturnCode _get(const AttributeId i_id,
                 uint64_t& o_value)
 {
     static_assert(std::is_same<T, uint64_t>::value, "Attribute type mismatch");
-    
+
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __get<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+    }
 
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );  
+         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
-    
-    if(K & TARGET_TYPE_EX)
-    {                                           
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );                     
-    }        
 
-    return FAPI2_RC_SUCCESS;    
+    if(K & TARGET_TYPE_EX)
+    {
+        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
+    }
+
+    return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get Override uint8_t 
+// Get Override uint8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _getOverride(const AttributeId i_id,
@@ -392,12 +413,12 @@ ReturnCode _getOverride(const AttributeId i_id,
 {
     static_assert(std::is_same<T, uint8_t>::value, "Attribute type mismatch");
 
-    return FAPI2_RC_SUCCESS;    
+    return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get Override uint16_t 
+// Get Override uint16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _getOverride(const AttributeId i_id,
@@ -406,12 +427,12 @@ ReturnCode _getOverride(const AttributeId i_id,
 {
     static_assert(std::is_same<T, uint16_t>::value, "Attribute type mismatch");
 
-    return FAPI2_RC_SUCCESS;   
+    return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get Override uint32_t 
+// Get Override uint32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _getOverride(const AttributeId i_id,
@@ -420,12 +441,12 @@ ReturnCode _getOverride(const AttributeId i_id,
 {
     static_assert(std::is_same<T, uint32_t>::value, "Attribute type mismatch");
 
-    return FAPI2_RC_SUCCESS;   
+    return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get Override uint64_t 
+// Get Override uint64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _getOverride(const AttributeId i_id,
@@ -434,7 +455,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 {
     static_assert(std::is_same<T, uint64_t>::value, "Attribute type mismatch");
 
-    return FAPI2_RC_SUCCESS;    
+    return FAPI2_RC_SUCCESS;
 }
 
 
@@ -448,12 +469,12 @@ ReturnCode _getEcFeatureOverride(const AttributeId i_id,
 {
     static_assert(std::is_same<T, uint8_t>::value, "Attribute type mismatch");
 
-    // The way this is implemented, we want to return a non-zero return code if we found an override.  
+    // The way this is implemented, we want to return a non-zero return code if we found an override.
     // Return 0 if there was an error.
     // This is how it's implemented:
     // PLAT_GET_CHIP_EC_FEATURE_OVERRIDE(ID, PTARGET, VAL) ? fapi::FAPI_RC_SUCCESS : fapi::fapiQueryChipEcFeature(fapi::ID, PTARGET, VAL)
 
-    return FAPI2_RC_SUCCESS;    
+    return FAPI2_RC_SUCCESS;
 }
 
 
@@ -466,16 +487,16 @@ ReturnCode _getAttributeArrayShort(const AttributeId i_id,
                                    uint8_t * o_pValues)
 {
 //       fapi2::Attributeta o_data;
-//     fapi2::ReturnCode l_fapi_rc(FAPI2_RC_SUCCESS); 
+//     fapi2::ReturnCode l_fapi_rc(FAPI2_RC_SUCCESS);
 //     uint32_t l_ecmd_rc = ECMD_SUCCESS;
-// 
+//
 //     ecmdChipTarget l_ecmd_target;
 //     fapiTargetPointerToEcmdTarget(i_pTarget, l_ecmd_target);
-// 
+//
 //     o_data.faValidMask = FAPI_ATTRIBUTE_TYPE_UINT8ARY;
 //     o_data.faUint8ary = o_pValues;
-// 
-//     l_ecmd_rc = fapi2GetAttribute(l_ecmd_target, i_id, o_data); 
+//
+//     l_ecmd_rc = fapi2GetAttribute(l_ecmd_target, i_id, o_data);
 //     if (l_ecmd_rc)
 //     {
 //         l_fapi_rc = (ReturnCodes) l_ecmd_rc;
@@ -492,31 +513,36 @@ ReturnCode _setAttributeArrayShort(const AttributeId i_id,
                                    const Target<K> & i_pTarget,
                                    uint8_t * i_pValues)
 {
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, *i_pValues );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, *i_pValues );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, *i_pValues );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_pValues );  
+        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, *i_pValues );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, *i_pValues );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, *i_pValues );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, *i_pValues );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, *i_pValues );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, *i_pValues );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, *i_pValues );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
@@ -636,174 +662,193 @@ ReturnCode _getAttributeOverrideArrayDoubleWord(const AttributeId i_id,
 // Set base template
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_Id,
+ReturnCode _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
-                T& i_value)
+                const T& i_value)
 {
-    return FAPI2_RC_SUCCESS;    
+    return FAPI2_RC_SUCCESS;
 }
 
 
 
 //******************************************************************************
-// Set uint8_t 
+// Set uint8_t
 //******************************************************************************
-template<typename T, TargetType K, typename A>
-ReturnCode _set(const AttributeId i_Id,
+template<typename T, TargetType K, AttributeId A>
+ReturnCode _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
-                uint8_t& i_value)
+                const uint8_t& i_value)
 {
     static_assert(std::is_same<T, uint8_t>::value, "Attribute type mismatch"); // May need to remove
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_value );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_value );  
+        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_value );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_value );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Set uint16_t 
+// Set uint16_t
 //******************************************************************************
-template<typename T, TargetType K, typename A>
-ReturnCode _set(
+template<typename T, TargetType K, AttributeId A>
+ReturnCode _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
-                uint16_t& i_value)
+                const uint16_t& i_value)
 {
     static_assert(std::is_same<T, uint16_t>::value, "Attribute type mismatch"); // May need to remove
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_value );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_value );  
+        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_value );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_value );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
 //******************************************************************************
-// Set uint32_t 
+// Set uint32_t
 //******************************************************************************
-template<typename T, TargetType K, typename A>
-ReturnCode _set(
+template<typename T, TargetType K, AttributeId A>
+ReturnCode _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
-                uint32_t& i_value)
+                const uint32_t& i_value)
 {
     static_assert(std::is_same<T, uint32_t>::value, "Attribute type mismatch"); // May need to remove
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_value );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_value );  
+        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_value );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id,i_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_value );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Set uint64_t 
+// Set uint64_t
 //******************************************************************************
 
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_Id,
+ReturnCode _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const uint64_t & i_value)
 {
     static_assert(std::is_same<T, uint64_t>::value, "Attribute type mismatch"); // May need to remove
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_value );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_value );  
+        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_value );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_value );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get int8_t 
+// Get int8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _get(const AttributeId i_id,
@@ -812,36 +857,41 @@ ReturnCode _get(const AttributeId i_id,
 {
     static_assert(std::is_same<T, int8_t>::value, "Attribute type mismatch");
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __get<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );  
+         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
-    
-    if(K & TARGET_TYPE_EX)
-    {                                           
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );                     
-    }        
 
-    return FAPI2_RC_SUCCESS;    
+    if(K & TARGET_TYPE_EX)
+    {
+        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
+    }
+
+    return FAPI2_RC_SUCCESS;
 }
 
 //******************************************************************************
-// Get int16_t 
+// Get int16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _get(const AttributeId i_id,
@@ -850,37 +900,42 @@ ReturnCode _get(const AttributeId i_id,
 {
     static_assert(std::is_same<T, int16_t>::value, "Attribute type mismatch");
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __get<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );  
+         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
-    
-    if(K & TARGET_TYPE_EX)
-    {                                           
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );                     
-    }        
 
-    return FAPI2_RC_SUCCESS;    
+    if(K & TARGET_TYPE_EX)
+    {
+        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
+    }
+
+    return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get int32_t 
+// Get int32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _get(const AttributeId i_id,
@@ -889,37 +944,42 @@ ReturnCode _get(const AttributeId i_id,
 {
     static_assert(std::is_same<T, int32_t>::value, "Attribute type mismatch");
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __get<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );  
+         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
-    
-    if(K & TARGET_TYPE_EX)
-    {                                           
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );                     
-    }        
 
-    return FAPI2_RC_SUCCESS;    
+    if(K & TARGET_TYPE_EX)
+    {
+        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
+    }
+
+    return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get int64_t 
+// Get int64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _get(const AttributeId i_id,
@@ -928,37 +988,42 @@ ReturnCode _get(const AttributeId i_id,
 {
     static_assert(std::is_same<T, int64_t>::value, "Attribute type mismatch");
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );  
+         __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );  
+        __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
-    
-    if(K & TARGET_TYPE_EX)
-    {                                           
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );                     
-    }        
 
-    return FAPI2_RC_SUCCESS;    
+    if(K & TARGET_TYPE_EX)
+    {
+        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
+    }
+
+    return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Get Override int8_t 
+// Get Override int8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _getOverride(const AttributeId i_id,
@@ -971,7 +1036,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 }
 
 //******************************************************************************
-// Get Override int16_t 
+// Get Override int16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _getOverride(const AttributeId i_id,
@@ -984,7 +1049,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 }
 
 //******************************************************************************
-// Get Override int32_t 
+// Get Override int32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _getOverride(const AttributeId i_id,
@@ -997,7 +1062,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 }
 
 //******************************************************************************
-// Get Override int64_t 
+// Get Override int64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _getOverride(const AttributeId i_id,
@@ -1005,7 +1070,7 @@ ReturnCode _getOverride(const AttributeId i_id,
                         int64_t& o_value)
 {
     static_assert(std::is_same<T, int64_t>::value, "Attribute type mismatch");
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
@@ -1149,122 +1214,137 @@ ReturnCode _getAttributeOverrideArraySignedDoubleWord(const AttributeId i_id,
 
 
 //******************************************************************************
-// Set int8_t 
+// Set int8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
-                int8_t& i_value)
+                const int8_t& i_value)
 {
     static_assert(std::is_same<T, int8_t>::value, "Attribute type mismatch"); // May need to remove
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_value );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_value );  
+        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_value );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_value );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
 //******************************************************************************
-// Set int16_t 
+// Set int16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
-                int16_t& i_value)
+                const int16_t& i_value)
 {
     static_assert(std::is_same<T, int16_t>::value, "Attribute type mismatch"); // May need to remove
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_value );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_value );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_value );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
 //******************************************************************************
-// Set int32_t 
+// Set int32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
-                int32_t& i_value)
+                const int32_t& i_value)
 {
     static_assert(std::is_same<T, int32_t>::value, "Attribute type mismatch"); // May need to remove
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_value );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_value );  
+        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_value );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_value );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
 
 //******************************************************************************
-// Set int64_t 
+// Set int64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
 ReturnCode _set(const AttributeId i_id,
@@ -1273,31 +1353,36 @@ ReturnCode _set(const AttributeId i_id,
 {
     static_assert(std::is_same<T, int64_t>::value, "Attribute type mismatch"); // May need to remove
 
+    if(K & TARGET_TYPE_SYSTEM)
+    {
+        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PROC_CHIP)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_value );  
+        __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
     {
-        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_value );  
+        __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_CORE)
     {
-        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_value );  
+        __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_core_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_EQ)
     {
-        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_value );  
+        __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
-    
+
     if(K & TARGET_TYPE_EX)
-    {                                           
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_value );                         
+    {
+        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
-    
+
     return FAPI2_RC_SUCCESS;
 }
 
