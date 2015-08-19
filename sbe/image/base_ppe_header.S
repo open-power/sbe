@@ -12,13 +12,13 @@
 #include "sbe_xip_image.h"
 #include "proc_sbe_fixed.H"
 
-        
+
 #define IMAGE_SPACE_UNDEFINED 0xffff
 #define IMAGE_SPACE_OCI       0x8000
 #define IMAGE_SPACE_PNOR      0x800b
 #define IMAGE_SPACE_OTPROM    0x0001
 #define IMAGE_SPACE_SEEPROM   0x800c
-#define IMAGE_SPACE_BASE      0x0008 
+#define IMAGE_SPACE_BASE      0x0008
 
 
 
@@ -31,37 +31,37 @@
 	.iflt	(\x)
 	.error  "An unsigned value is required here"
         .endif
-	
+
 	.ifgt	((\x) - (0xffffffffffffffff >> (64 - (\bits))))
 	.error	"\err"
 	.endif
 
-	.endm        
+	.endm
 
     .macro  ..check_u16, u16
 	..checku (\u16), 16, "Unsigned immediate is larger than 16 bits"
     .endm
-        
-     
+
+
     .macro  ..set_default_space, s
 	..check_u16 (\s)
     .set    _PGAS_DEFAULT_SPACE, (\s)
     .endm
-        
+
 	.macro	..check_default_space
 	.if	(_PGAS_DEFAULT_SPACE == IMAGE_SPACE_UNDEFINED)
 	.error	"The PGAS default address space has not been defined"
 	.endif
-	.endm	
-        
+	.endm
+
 
 	.macro	.quada, offset:req
 	..check_default_space
 	.long   _PGAS_DEFAULT_SPACE
 	.long	(\offset)
-	.endm        
+	.endm
 
-        
+
 //    .macro	SbeXipHeader, magic, link_address, entry_point, image_size
 
 	.macro	SbeXipSection, s:req, alignment=1, empty=0
@@ -79,7 +79,7 @@ __\s\()_section:
 
 
 	.macro	SbeXipHeader, magic, link_address, entry_point, image_size
-	
+
 	.section .header, "a", @progbits
 
 
@@ -87,9 +87,9 @@ __\s\()_section:
 	// Identification - 8-byte aligned; 8 Entries; TOC-Indexed
 	//////////////////////////////////////////////////////////////////////
 
-__magic:	
+__magic:
 	.quad	(\magic)
-__entry_offset:	
+__entry_offset:
 	.quad	((\entry_point) - (\link_address))
 __link_address:
 	.quada	(\link_address)
@@ -102,8 +102,7 @@ __header_64_reserved:
 	.xip_toc entry_offset, SBE_XIP_UINT64, __entry_offset
 	.xip_toc link_address, SBE_XIP_UINT64, __link_address	
 	.xip_toc entry_address_sbe, SBE_XIP_UINT64, __entry_address_sbe
-
-
+     
         //////////////////////////////////////////////////////////////////////
         // Section Table - 8-byte aligned; 16 entries; Not TOC-Indexed
         //////////////////////////////////////////////////////////////////////
@@ -122,7 +121,7 @@ __header_64_reserved:
         SbeXipSection overlay,              8, empty=1
         SbeXipSection rings,                8, empty=1
 
-        
+
         //////////////////////////////////////////////////////////////////////
         // Other Information - 4-byte aligned; 8 entries; TOC-Indexed
         //////////////////////////////////////////////////////////////////////
@@ -175,20 +174,21 @@ __header_string_reserved:
 
 
 	.endm
-        
+
 
     .section .fixed, "a", @progbits
-    .section .fixed_toc, "a", @progbits        
+    .section .fixed_toc, "a", @progbits
     .section .loader_data, "a", @progbits
-    .section .loader_text, "a", @progbits        
-        
+    .section .loader_text, "a", @progbits
+
     .section .toc, "a", @progbits
     .section .strings, "aS", @progbits
-    
+
     ..set_default_space IMAGE_SPACE_SEEPROM
     SbeXipHeader SBE_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _seeprom_size
 
-    // Create the .fixed section    
+    // Create the .fixed section
+    .proc_sbe_fixed_system
     .proc_sbe_fixed_proc_chip
     .proc_sbe_fixed_perv
     .proc_sbe_fixed_core

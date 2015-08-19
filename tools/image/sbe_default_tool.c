@@ -29,6 +29,7 @@ const char* g_usage =
 "The 'value' is the value of the attribute to be set.\n"
 "\n"
 "The 'target type' is the type of the target. The following targets are defined:\n"
+"TARGET_TYPE_SYSTEM: system target\n"
 "TARGET_TYPE_PROC_CHIP: chip target\n"
 "TARGET_TYPE_PERV: pervasive target\n"
 "TARGET_TYPE_CORE: core target\n"
@@ -45,48 +46,43 @@ const char* g_usage =
 void assertTarget(const char* str, unsigned int index)
 {
 
-    if(strcmp(str, "TARGET_TYPE_PROC_CHIP") == 0) {
+    if(strcmp(str, "TARGET_TYPE_SYSTEM") == 0 || (strcmp(str, "TARGET_TYPE_PROC_CHIP") == 0)) {
         if (index > 0) {
             fprintf(stderr, "sbe_default_tool: index (%d) is larger than 0\n", index);
             exit(1);
         } 
-        return;
     } else if(strcmp(str, "TARGET_TYPE_EX") == 0)  {
         if (index > EX_TARGET_COUNT) {
             fprintf(stderr, "sbe_default_tool: index (%d) is larger than EX_TARGET_COUNT (%d)\n", 
                 index, EX_TARGET_COUNT);
             exit(1);
         } 
-        return;
     } else if(strcmp(str, "TARGET_TYPE_EQ") == 0)  {
         if (index > EQ_TARGET_COUNT) {
             fprintf(stderr, "sbe_default_tool: index (%d) is larger than EQ_TARGET_COUNT (%d)\n", 
                     index, EQ_TARGET_COUNT);
             exit(1);
         } 
-        return;
     } else if(strcmp(str, "TARGET_TYPE_CORE") == 0)  {
         if (index > CORE_TARGET_COUNT) {
             fprintf(stderr, "sbe_default_tool: index (%d) is larger than CORE_TARGET_COUNT (%d)\n", 
                     index, CORE_TARGET_COUNT);
             exit(1);
         } 
-        return;
     } else if(strcmp(str, "TARGET_TYPE_PERV") == 0)  {
         if (index > PERV_TARGET_COUNT) {
             fprintf(stderr, "sbe_default_tool: index (%d) is larger than PERV_TARGET_COUNT (%d)\n", 
                     index, PERV_TARGET_COUNT);
             exit(1);
         } 
-        return;
     } else {
-
         if (index >= PERV_TARGET_COUNT) {
             fprintf(stderr, "sbe_default_tool: target not supported:");
             fprintf(stderr, " %s\n", str);
             exit(1);
         }    
     }
+    return;
 }
 
 void setAttribute(void* image, const char* attribute, unsigned int index, uint64_t val) {

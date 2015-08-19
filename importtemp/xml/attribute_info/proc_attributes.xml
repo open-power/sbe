@@ -30,6 +30,7 @@
     </description>
     <valueType>uint32</valueType>
     <platInit/>
+    <writeable/>
     <persistRuntime/>
   </attribute>
   <!-- ********************************************************************* -->
@@ -40,6 +41,7 @@
     </description>
     <valueType>uint32</valueType>
     <platInit/>
+    <writeable/>
     <persistRuntime/>
   </attribute>
   <!-- ********************************************************************* -->
@@ -145,6 +147,30 @@
     <valueType>int64</valueType>
     <enum>VAL_A = 0, VAL_B = 5, VAL_C = 0xffffffffffffffff</enum>
     <platInit/>
+    <persistRuntime/>
+  </attribute>
+  <!-- ********************************************************************* -->
+   <attribute>
+    <id>ATTR_SCRATCH_UINT32_ARRAY</id>
+    <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+    <description>
+    </description>
+    <valueType>uint32</valueType>
+    <array>64</array>
+    <platInit/>
+    <writeable/>
+    <persistRuntime/>
+  </attribute>
+  <!-- ********************************************************************* -->
+   <attribute>
+    <id>ATTR_SCRATCH_UINT32_PERV_ARRAY</id>
+    <targetType>TARGET_TYPE_PERV</targetType>
+    <description>
+    </description>
+    <valueType>uint32</valueType>
+    <array>64</array>
+    <platInit/>
+    <writeable/>
     <persistRuntime/>
   </attribute>
   <!-- ********************************************************************* -->

@@ -54,7 +54,8 @@ namespace fapi2
         TARGET_TYPE_EQ                = 0x08, ///< EQ type
         TARGET_TYPE_MCS               = 0x10, ///< MCS type
         TARGET_TYPE_PERV              = 0x20, ///< Pervasive type
-        TARGET_TYPE_MCAST             = 0x80, ///< Multicast type
+        TARGET_TYPE_MCAST             = 0x40, ///< Multicast type
+        TARGET_TYPE_SYSTEM            = 0x80, ///< System type
 
         TARGET_TYPE_ALL               = 0xFF, ///< Any/All types
 

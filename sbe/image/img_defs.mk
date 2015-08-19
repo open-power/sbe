@@ -276,8 +276,10 @@ endif
 #override the GNU Make implicit rule for going from a .C to a .o
 %.o: %.C
 
+# -Wno-conversion-null is necesary to allow mapping of NULL to TARGET_TYPE_SYSTEM
+#   for attribute accesses
 $(OBJDIR)/%.s: %.C
-	$(TCC) $(PPE-CFLAGS) $(DEFS) -S -std=c++11 -o $@ $<
+	$(TCC) $(PPE-CFLAGS) $(DEFS) -Wno-conversion-null -S -std=c++11 -o $@ $<
 
 
 #override the GNU Make implicit rule for going from a .c to a .o

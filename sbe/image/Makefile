@@ -6,6 +6,13 @@ export P2P_ENABLE = 1
 #remove this once we have a real compiler
 export SBEFW_ENABLE = 1
 
+# Force a non-interrupt variant of PK for FAPI2 testing.  This allows the test to run
+# on any of the PPE SIMICS models.
+# This must be before the inclusion of img_defs.mk.
+ifdef FAPI2_TEST
+PPE_TYPE := ppe
+endif
+
 #Pull in the definitions that affect all makefiles for this image
 include img_defs.mk
 
@@ -98,52 +105,68 @@ LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/, linkscriptseeprom)
 LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/, linkscriptsbe)
 LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
 
-
-#default target is to make a binary application image
-#This removes all unecessary headers from the ELF executable
+# ---- SEEPROM Image  ------
+# This removes all unecessary headers from the ELF executable
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep "A _seeprom_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
 
+
+ifndef FAPI2_TEST
+# This is the production build of the SEEPROM
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+	@echo ">>>>> Production Build <<<<<<"
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJS)
 
-#pass the link command file through the C preprocessor to evaluate macros and remove comments
+else
+# This a special build of the SEEPROM image that includes the PK to allow for test threads to be used.
+# create a linked ELF executable
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+	@echo ">>>>> Special FAPI2 Test Build <<<<<<"
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS) --start-group $(LLIBS) --end-group
+
+endif
+
+# pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SEEPROM): linkseeprom.cmd
 	$(CPP) -E -x c++ -P $(DEFS) linkseeprom.cmd -o $(LINK_SCRIPT_SEEPROM)
 
-#default target is to make a binary pibmem image
+# ---- PIBMEM Image  ------
 #This removes all unecessary headers from the ELF executable
 $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMAGE_SBE_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SBE_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SBE_NAME).out | grep "A _sbe_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SBE_NAME).dis
 
-#create a linked ELF executable
+# create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SBE_NAME).out: $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
-#pass the link command file through the C preprocessor to evaluate macros and remove comments
+# pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SBE): linksbe.cmd
 	$(CPP) -E -x c++ -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
-
-
-
+# ---- Loader Image  ------
 $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
 
-#create a linked ELF executable
+# create a linked ELF executable
 $(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(OBJDIR)/$(BASE_LOADER_OBJECTS) $(LINK_OBJS) $(LINK_SCRIPT_LOADER)
 	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(BASE_LOADER_OBJECTS)
 
-#pass the link command file through the C preprocessor to evaluate macros and remove comments
+# pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_LOADER): linkloader.cmd
 	$(CPP) -E -x c++ -P $(DEFS) linkloader.cmd -o $(LINK_SCRIPT_LOADER)
 
-
-
+# Remove the "all" rule if FAPI2_TEST as the SBE FW is incompatible with the
+# option of PK enabled
+ifndef FAPI2_TEST
+all: seeprom $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) appendbase appendloader
+else
+all:
+	@echo "Makefile option error:  ALL is not compatible with FAPI2_test"
+endif
 
 all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_entry_offset add_entry_address_sbe
 
@@ -153,7 +176,7 @@ add_entry_offset: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 add_entry_address_sbe: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_address_sbe 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep base_loader | cut -f 1 -d " "`
 
-generic: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
+seeprom: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
 
 #Create an obj directory if needed
@@ -165,6 +188,7 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/proc_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/ex_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/eq_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
 
 $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
@@ -194,7 +218,7 @@ attrserv:
 $(PKLIB):
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PK_MAKE_DIR) -f Makefile
 
-#Build macro-specific kernel code
+#Build SBE firmware
 $(SBEFWLIB):
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(SBEFW_MAKE_DIR) -f Makefile
 
@@ -223,8 +247,6 @@ $(NESTLIB):
 	@echo "Processing nest makefile"
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(NEST_MAKE_DIR) -f Makefile
 
-#Build the comming HWP lib procedures
-
 #Build the HWP lib procedures
 $(HWPLIB):
 	@echo "Processing HWP lib makefile"
@@ -240,6 +262,7 @@ $(P2PLIB):
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(P2P_SRCDIR) -f Makefile
 endif
 
+#Build the SBE XIP Tools
 $(SBE_TOOLS):
 	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile
 
@@ -306,20 +329,12 @@ dump:
 	objdump -s $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(IMAGE_SEEPROM_NAME).dump
 	objdump -s $(OBJDIR)/$(IMAGE_SBE_NAME).out > $(IMAGE_SBE_NAME).dump
 
-.PHONY : run_spgpe run_pmgpe
+.PHONY : run_spgpe
 # load and run the SBE SeeProm image in a GPE simics environment
-#run_spgpe: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
-run_spgpe: generic
+run_spgpe: seeprom
 	$(SIMICS_WS)/simics \
 		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin;$$occ_gpe0_sym_tbl_file=$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out' \
                 modelsetup.simics
-
-# load and run the SBE PibMem image in a GPE simics environment
-run_pmgpe: $(OBJDIR)/$(IMAGE_NAME).out
-	$(SIMICS_WS)/simics \
-		-e '$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SBE_NAME).bin;$$occ_gpe0_binary_to_load=$(OBJDIR)/$(IMAGE_SBE_NAME).bin' \
-                modelsetup.simics
-
 
 
 #Add dependencies to header files

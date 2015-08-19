@@ -47,7 +47,7 @@ my @newTargetImplementations;
 my $servicePath;
 my $help;
 
-GetOptions ("verbose" => \$VERBOSE, 
+GetOptions ("verbose" => \$VERBOSE,
             "help" => \$help,
             "debug" => \$DEBUG,
             "path=s" => \$servicePath,
@@ -237,7 +237,9 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
 
     my $macroTarget = "";
     if(defined $targetMacro) {
-        if($targetMacro eq "TARGET_TYPE_PROC_CHIP") {
+        if($targetMacro eq "TARGET_TYPE_SYSTEM") {
+            $macroTarget = "SystemAttributes_t";
+        } elsif ($targetMacro eq "TARGET_TYPE_PROC_CHIP") {
             $macroTarget = "ProcChipAttributes_t";
         } elsif ($targetMacro eq "TARGET_TYPE_CORE") {
             $macroTarget = "CoreAttributes_t";
@@ -257,21 +259,21 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
       if ($VERBOSE) { print "INFO:: did not find ${attribute}_GETMACRO\n"; }
       my $attributeDefine = "#define ${attribute}_GETMACRO ${macroPrefix}GET${macroPostfix}";
       push(@newAttributeDefines, $attributeDefine);
-      
+
       if(defined $targetMacro) {
 
 
-          my $targetFunction = "template<> void __get<fapi2::$targetMacro, fapi2attr::$macroTarget, $type, fapi2::${attribute}>   ( const fapi2::Target<fapi2::$targetMacro>& i_ptarget, fapi2attr::$macroTarget* object, const fapi2::AttributeId attrid, $type *value )";
+          my $targetFunction = "template<> void __get<fapi2::$targetMacro, fapi2attr::$macroTarget, $type, fapi2::${attribute}>   ( const fapi2::Target<fapi2::$targetMacro>& i_ptarget, const fapi2attr::$macroTarget* object, const fapi2::AttributeId attrid, $type* o_pvalue )";
           push(@newTargetDefines, $targetFunction . ";");
 
           my $targetImplementation = "";
-          if($targetMacro eq "TARGET_TYPE_PROC_CHIP") {
+          if($targetMacro eq "TARGET_TYPE_PROC_CHIP" | $targetMacro eq "TARGET_TYPE_SYSTEM") {
 
-              $targetImplementation .= "\n" . $targetFunction . "\n{\n   *value = object->fapi2attr::${macroTarget}::${attribute};\n}\n";
-           
+              $targetImplementation .= "\n" . $targetFunction . "\n{\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute};\n}\n";
+
           } else {
 
-              $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   *value = object->fapi2attr::${macroTarget}::${attribute}[index];\n}\n";
+              $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute}[index];\n}\n";
 
           }
           push(@newTargetImplementations, $targetImplementation);
@@ -284,16 +286,16 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
 
       if(defined $targetMacro) {
 
-          my $targetFunction = "template<> void __set<fapi2::$targetMacro, fapi2attr::$macroTarget, $type, fapi2::${attribute}>   ( const fapi2::Target<fapi2::$targetMacro>& i_ptarget, fapi2attr::$macroTarget* object, const fapi2::AttributeId attrid,  $type* value )";
+          my $targetFunction = "template<> void __set<fapi2::$targetMacro, fapi2attr::$macroTarget, $type, fapi2::${attribute}>   ( const fapi2::Target<fapi2::$targetMacro>& i_ptarget, fapi2attr::$macroTarget* object, const fapi2::AttributeId attrid,  const $type& i_pvalue )";
           push(@newTargetDefines, $targetFunction . ";");
 
           my $targetImplementation = "";
 
-          if($targetMacro eq "TARGET_TYPE_PROC_CHIP") {
+          if($targetMacro eq "TARGET_TYPE_PROC_CHIP" | $targetMacro eq "TARGET_TYPE_SYSTEM") {
 
-              $targetImplementation = "\n" . $targetFunction . "\n{\n  object->fapi2attr::${macroTarget}::${attribute} = *value;\n}\n";
+              $targetImplementation = "\n" . $targetFunction . "\n{\n  object->fapi2attr::${macroTarget}::${attribute} = i_pvalue;\n}\n";
           } else {
-              $targetImplementation = "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   object->fapi2attr::${macroTarget}::${attribute}[index] = *value;\n}\n";
+              $targetImplementation = "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   object->fapi2attr::${macroTarget}::${attribute}[index] = i_pvalue;\n}\n";
           }
 
           push(@newTargetImplementations, $targetImplementation);
@@ -350,7 +352,7 @@ if (@newAttributeDefines != 0) {
   }
 
 
-  my $updatedFapiPlatAttributeServiceImpl = $srcPath . "/" . $fapiPlatAttributeServiceImpl; 
+  my $updatedFapiPlatAttributeServiceImpl = $srcPath . "/" . $fapiPlatAttributeServiceImpl;
   open (OUTFILE, ">$updatedFapiPlatAttributeServiceImpl") or die "ERROR:: could not open $updatedFapiPlatAttributeServiceImpl\n";
 
   print OUTFILE "// $fapiPlatAttributeServiceImpl\n";
@@ -364,7 +366,7 @@ if (@newAttributeDefines != 0) {
 
 
   foreach my $impl (@newTargetImplementations) {
-   
+
       print OUTFILE $impl;
 
   }

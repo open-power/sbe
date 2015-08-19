@@ -21,19 +21,19 @@
 /// TOC.
 ///
 /// This header file can be #include-ed into either C or SBE assembly language
-/// source code.  In C, it creates simple structures 'ProcChipAttributes', 
-/// 'PervAttributes', 'CoreAttributes', 'EQAttributes' and 'EXAttributes' that 
+/// source code.  In C, it creates simple structures 'ProcChipAttributes',
+/// 'PervAttributes', 'CoreAttributes', 'EQAttributes' and 'EXAttributes' that
 /// contain attribute information that are sized per XML definition per entry.
 ///
-/// PPE image data is always stored big-endian, so applications on little-endian 
+/// PPE image data is always stored big-endian, so applications on little-endian
 /// hosts will need to perform the appropriate endian converison when reading or
 /// writing images via this header.
 ///
 /// In assembler code, this header creates macros '.proc_sbe_fixed_proc_chip',
-/// '.proc_sbe_fixed_perv', '.proc_sbe_fixed_core', '.proc_sbe_fixed_ex', 
-/// '.proc_sbe_fixed_eq', that is expanded exactly once in the file 
-/// 'sbe_base_header.S', creating the actual data allocation of the data 
-/// equivalent to the C structure.  Assembler code references the data symbols 
+/// '.proc_sbe_fixed_perv', '.proc_sbe_fixed_core', '.proc_sbe_fixed_ex',
+/// '.proc_sbe_fixed_eq', that is expanded exactly once in the file
+/// 'sbe_base_header.S', creating the actual data allocation of the data
+/// equivalent to the C structure.  Assembler code references the data symbols
 /// as normal.
 ///
 /// To simplify programming a 'mini-TOC' is also provided for this data in
@@ -50,14 +50,37 @@
 #include "plat_target_parms.H"
 #include "fapi2AttributeIds.H"
 
+#ifdef __ASSEMBLER__
+         .macro     .proc_sbe_fixed_system
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_system_attributes
+G_system_attributes:
+#else
+
+extern "C" {
+namespace fapi2attr {
+typedef struct SystemAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_system.H"
+
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} SystemAttributes;
+} // fapi2
+} // C
+#endif
 
 #ifdef __ASSEMBLER__
          .macro     .proc_sbe_fixed_proc_chip
 	     .section   .fixed, "a", @progbits
 	     .balign    8
          .global    G_proc_chip_attributes
-G_proc_chip_attributes:         
+G_proc_chip_attributes:
 #else
+
 extern "C" {
 namespace fapi2attr {
 typedef struct ProcChipAttributes_t {
@@ -80,7 +103,7 @@ typedef struct ProcChipAttributes_t {
 	     .section   .fixed, "a", @progbits
 	     .balign    8
          .global    G_perv_attributes
-G_perv_attributes:     
+G_perv_attributes:
 #else
 namespace fapi2attr {
 typedef struct PervAttributes_t {
@@ -102,14 +125,14 @@ typedef struct PervAttributes_t {
         .section   .fixed, "a", @progbits
 	    .balign    8
         .global     G_core_attributes
-G_core_attributes:     
+G_core_attributes:
 #else
 namespace fapi2attr {
 typedef struct CoreAttributes_t {
 #endif
 
 #include "proc_sbe_fixed_core.H"
-    
+
 #ifdef __ASSEMBLER__
 	.endm
 #else
@@ -124,14 +147,14 @@ typedef struct CoreAttributes_t {
 	     .section   .fixed, "a", @progbits
 	     .balign    8
          .global    G_ex_attributes
-G_ex_attributes: 
+G_ex_attributes:
 #else
 namespace fapi2attr {
 typedef struct EXAttributes_t {
 #endif
 
 #include "proc_sbe_fixed_ex.H"
-    
+
 #ifdef __ASSEMBLER__
 	.endm
 #else
@@ -153,7 +176,7 @@ typedef struct EQAttributes_t {
 #endif
 
 #include "proc_sbe_fixed_eq.H"
-    
+
 #ifdef __ASSEMBLER__
 	.endm
 #else
