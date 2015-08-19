@@ -93,12 +93,15 @@ __entry_offset:
 	.quad	((\entry_point) - (\link_address))
 __link_address:
 	.quada	(\link_address)
+__entry_address_sbe:
+	.quad	0
 __header_64_reserved:
-	.quad	0, 0, 0, 0, 0
+	.quad	0, 0, 0, 0
 
 	.xip_toc magic, SBE_XIP_UINT64, __magic
 	.xip_toc entry_offset, SBE_XIP_UINT64, __entry_offset
 	.xip_toc link_address, SBE_XIP_UINT64, __link_address	
+	.xip_toc entry_address_sbe, SBE_XIP_UINT64, __entry_address_sbe
 
 
         //////////////////////////////////////////////////////////////////////
@@ -183,7 +186,7 @@ __header_string_reserved:
     .section .strings, "aS", @progbits
     
     ..set_default_space IMAGE_SPACE_SEEPROM
-    SbeXipHeader SBE_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _seeprom_size 
+    SbeXipHeader SBE_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _seeprom_size
 
     // Create the .fixed section    
     .proc_sbe_fixed_proc_chip
