@@ -292,6 +292,9 @@ clean:
 	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile clean
 	rm -f *.dump
 	rm -f hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H
+	rm -f $(GEN-CREATEATTRGETSETMACROS)
+	rm -f $(GEN-PARSEATTRIBUTEINFO)
+	rm -f $(GEN-CREATEIFATTRSERVICE)
 
 dump:
 	objdump -s $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(IMAGE_SEEPROM_NAME).dump
