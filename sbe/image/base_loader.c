@@ -13,9 +13,7 @@ int32_t base_loader() {
 
 
     for(idx = 0; idx < SBE_XIP_SECTIONS; idx++) {
-        
-        SBE_TRACE("Section Idx:%u Size:0x%08X", idx, hdr->iv_section[idx].iv_size);
-        
+        hdr++;
     }
 
     return rc;
