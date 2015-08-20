@@ -16,10 +16,10 @@ ifdef P2P_ENABLE
 include $(P2P_SRCDIR)/p2pfiles.mk
 endif
 
-#Pull in PPE complier libraries .  
+#Pull in PPE complier libraries .
 # Sets up the following variables:
 #   $(GCCLIBS)  ->  Libary objects to be linked
-#   $(LIB_DIRS) ->  Include directories 
+#   $(LIB_DIRS) ->  Include directories
 include ../../include/ppe_compiler.mk
 
 
@@ -103,10 +103,10 @@ LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep "A _seeprom_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
-	
+
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS)  --start-group  $(LLIBS) --end-group
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJS)
 
 #pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SEEPROM): linkseeprom.cmd
@@ -132,10 +132,10 @@ $(LINK_SCRIPT_SBE): linksbe.cmd
 $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
-	
+
 #create a linked ELF executable
-$(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(OBJDIR)/base_loader.o $(LINK_OBJS) $(LINK_SCRIPT_LOADER)
-	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(LIB_DIRS) $(OBJDIR)/base_loader.o  --start-group  $(SBEFWLIB) $(LLIBS) --end-group
+$(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(OBJDIR)/$(BASE_LOADER_OBJECTS) $(LINK_OBJS) $(LINK_SCRIPT_LOADER)
+	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(BASE_LOADER_OBJECTS)
 
 #pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_LOADER): linkloader.cmd
@@ -218,7 +218,7 @@ $(NESTLIB):
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(NEST_MAKE_DIR) -f Makefile
 
 #Build the comming HWP lib procedures
-        
+
 #Build the HWP lib procedures
 $(HWPLIB):
 	@echo "Processing HWP lib makefile"
@@ -232,7 +232,7 @@ $(FAPI2LIB):
 ifdef P2P_ENABLE
 $(P2PLIB):
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(P2P_SRCDIR) -f Makefile
-endif 
+endif
 
 $(SBE_TOOLS):
 	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile
@@ -240,8 +240,8 @@ $(SBE_TOOLS):
 normalize: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 
-defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize 
-	$(TOOLS_IMAGE_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES) 
+defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
+	$(TOOLS_IMAGE_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 
 # Build hwp_error_info.H.  If the script fails then print the contents of
 # the header and then delete whatever garbage the script left to force it to
@@ -315,5 +315,5 @@ run_pmgpe: $(OBJDIR)/$(IMAGE_NAME).out
 
 #Add dependencies to header files
 ifneq ($(MAKECMDGOALS),clean)
-include $(OBJS:.o=.d) 
+include $(OBJS:.o=.d)
 endif

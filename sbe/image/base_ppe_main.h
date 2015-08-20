@@ -4,16 +4,12 @@
 // *! *** IBM Confidential ***
 //-----------------------------------------------------------------------------
 
-/// \file base_ppe_demo.h
+/// \file base_ppe_main.h
 /// \brief routine to be placed into the fixed section. 
 ///
 ///  this routing is a demonstration for functions to be placed into the fixed
 ///  fixed section
-#ifndef __BASE_PPE_DEMO_H__
-#define __BASE_PPE_DEMO_H__
+#ifndef __BASE_PPE_MAIN_H__
+#define __BASE_PPE_MAIN_H__
 
-/// this is a demo function whose pointer is placed into the fixed section
-/// @param str demo string
-void base_ppe_demo_func(const char*);
-
-#endif  // __BASE_PPE_DEMO_H__
+#endif  // __BASE_PPE_MAIN_H__
