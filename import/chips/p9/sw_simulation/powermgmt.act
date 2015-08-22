@@ -1,1 +1,40 @@
 # This file will contain all the Power MGMT Actions
+
+##
+# Actions for Procdure - p9_hcd_cache_startclocks
+##
+
+CAUSE_EFFECT {
+  LABEL=[Raise clock sync enable before switch to dpll on EX L2s]
+  WATCH=[REG(0x100F0162)]
+  CAUSE: TARGET=[REG(0x100F0162)] OP=[BIT,ON] BIT=[33]
+  EFFECT: TARGET=[REG(0x100F0163)] OP=[BIT,ON] BIT=[62]
+  EFFECT: TARGET=[REG(0x100F0163)] OP=[BIT,ON] BIT=[63]
+}
+
+CAUSE_EFFECT {
+  LABEL=[Start clock(sl+refresh clock region) via CLK_REGION]
+  WATCH=[REG(0x10030006)]
+  CAUSE: TARGET=[REG(0x10030006)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,5FFE0000 0000E000)]
+  EFFECT: TARGET=[REG(0x10030008)] OP=[AND,BUF,MASK] MASK=[LITERAL(64, 0FFE0000 00000000)] DATA=[LITERAL(64,00000000 00000000)]
+}
+
+
+##
+## Actions for Procdure - p9_hcd_core_startclocks
+###
+
+CAUSE_EFFECT {
+  LABEL=[Raise clock sync enable before switch to dpll]
+  WATCH=[REG(0x200F016A)]
+  CAUSE: TARGET=[REG(0x200F016A)] OP=[BIT,ON] BIT=[15]
+  EFFECT: TARGET=[REG(0x200F016B)] OP=[BIT,ON] BIT=[13]
+}
+
+CAUSE_EFFECT {
+  LABEL=[Start clock(sl+refresh clock region) via CLK_REGION]
+  WATCH=[REG(0x20030006)]
+  CAUSE: TARGET=[REG(0x20030006)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,5FFE0000 0000E000)]
+  EFFECT: TARGET=[REG(0x20030008)] OP=[AND,BUF,MASK] MASK=[LITERAL(64, 0FFE0000 00000000)] DATA=[LITERAL(64,00000000 00000000)]
+}
+
