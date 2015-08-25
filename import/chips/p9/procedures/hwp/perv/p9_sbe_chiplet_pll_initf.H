@@ -19,16 +19,14 @@
 //------------------------------------------------------------------------------
 /// @file  p9_sbe_chiplet_pll_initf.H
 ///
-/// @brief procedure for scan initializing PLL config bits for L2 and L3 plls
-// *!
-// *! OWNER NAME  : Abhishek Agarwal  Email: abagarw8@in.ibm.com
-// *! BACKUP NAME : srinivas naga     Email: srinivan@in.ibm.com
+/// @brief procedure for scan initializing PLL config bits for XBus, OBus, PCIe, MC Chiplets
 //------------------------------------------------------------------------------
-// *HWP HWP Owner   : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP FW Owner    : sunil kumar <skumar8j@in.ibm.com>
-// *HWP Team        : Perv
-// *HWP Level       : 1
-// *HWP Consumed by : SBE
+// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HW Backup Owner : srinivas naga <srinivan@in.ibm.com>
+// *HWP FW Owner        : sunil kumar <skumar8j@in.ibm.com>
+// *HWP Team            : Perv
+// *HWP Level           : 2
+// *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
 
@@ -42,7 +40,10 @@
 typedef fapi2::ReturnCode (*p9_sbe_chiplet_pll_initf_FP_t)(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 
-/// @brief load the pll config settings for L2 AND L3 plls
+/// @brief If TRUE then skip MC chiplet
+/// run scan0 module  (scan region = PLL, scan_types = GPTR)
+/// run scan0 module  (scan region = PLL, scan_types = BNDY/FUNC)
+/// Scan initialize PLL BNDY chain (chiplet =[CPLT], scan ring = PLL, scan type = BNDY)
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
