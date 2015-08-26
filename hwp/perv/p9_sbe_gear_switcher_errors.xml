@@ -1,0 +1,12 @@
+<!-- This is an automatically generated file. -->
+<!-- File: p9_sbe_gear_switcher_errors.xml. -->
+<!-- Halt codes for p9_sbe_gear_switcher -->
+
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_BUS_STATUS_BUSY_0</rc>
+    <description>Status busy check</description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
