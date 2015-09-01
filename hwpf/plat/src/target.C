@@ -34,6 +34,12 @@
 // call.
 std::vector<fapi2::plat_target_handle_t> G_vec_targets;
 
+fapi2attr::SystemAttributes_t*    G_system_attributes_ptr;
+fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr;
+fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
+fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
+fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
+fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 namespace fapi2
 {
@@ -289,9 +295,17 @@ fapi_try_exit:
     ///      attributes ///  this will move to plat_target.H formally
     fapi2::ReturnCode plat_TargetsInit()
     {
-
         bool b_present = false;
         uint32_t c = 0;
+
+        // Initialise global attribute pointers
+        G_system_attributes_ptr = &G_system_attributes;
+        G_proc_chip_attributes_ptr = &G_proc_chip_attributes;
+        G_perv_attributes_ptr = &G_perv_attributes;
+        G_core_attributes_ptr = &G_core_attributes;
+        G_eq_attributes_ptr = &G_eq_attributes;
+        G_ex_attributes_ptr = &G_ex_attributes;
+
 
         // This is workaround. Currently we do not have code to initialise
         // global objects. So initializing global objects against using local

@@ -56,14 +56,6 @@ uint8_t     G_main_thread_stack[MAIN_THREAD_STACK_SIZE];
 PkThread    G_main_thread;
 
 
-fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr ;
-fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
-fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
-fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
-fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
-
-
-
 fapi2::ReturnCode
 hwp_chip_present(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> & i_target);
 
@@ -98,9 +90,6 @@ void main_thread(void* arg)
         std::vector<fapi2::plat_target_handle_t> targets1;
         G_vec_targets = std::move(targets1);
 
-        // Establish the pointer to the global attributes
-        G_proc_chip_attributes_ptr = &G_proc_chip_attributes;
-        
         // Intialize the targets
         fapi2::plat_TargetsInit();
 
