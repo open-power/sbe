@@ -34,6 +34,10 @@
 #include <plat_hw_access.H>
 #include <fapi2_hw_access.H>
 
+//@TODO remove with RTC: 133089
+#ifdef TEMPORARY_FOR_INITFILE
+    #include <SpyInterface.H>
+#endif
 namespace fapi2
 {
 //--------------------------------------------------------------------------
@@ -483,8 +487,33 @@ inline ReturnCode putSpy(const Target<K>& i_target,
                          const char* const i_spyId,
                          const variable_buffer& i_data)
 {
+//@TODO remove with RTC: 133089
+#ifdef TEMPORARY_FOR_INITFILE
+    uint32_t l_chipId = strtol(getenv("CHIPID"), NULL, 16);
+    uint32_t l_chipEc = strtol(getenv("CHIPEC"), NULL, 16);
+
+    return  (SPY::PutSpy(l_chipId, l_chipEc, i_spyId, i_data ));
+#else
     static_assert(K == 0, "implement putSpy (string)");
     return ~FAPI2_RC_SUCCESS;
+#endif
+}
+
+template< TargetType K >
+inline ReturnCode putSpy(const Target<K>& i_target,
+                         const char* const i_spyId,
+                         const char* i_enum)
+{
+//@TODO remove with RTC: 133089
+#ifdef TEMPORARY_FOR_INITFILE
+    uint32_t l_chipId = strtol(getenv("CHIPID"), NULL, 16);
+    uint32_t l_chipEc = strtol(getenv("CHIPEC"), NULL, 16);
+
+    return (SPY::PutSpy(l_chipId, l_chipEc, i_spyId, i_enum ));
+#else
+    static_assert(K == 0, "implement putSpy (string)");
+    return ~FAPI2_RC_SUCCESS;
+#endif
 }
 #endif
 /// @brief Writes spy data into a buffer holding ring data image
