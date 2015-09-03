@@ -48,7 +48,7 @@ PERV-CPP-SOURCES +=p9_start_cbs.C
 PERV-CPP-SOURCES +=p9_sbe_setup_evid.C
 PERV-CPP-SOURCES +=p9_perv_sbe_cmn.C
 PERV-CPP-SOURCES +=p9_sbe_common.C
-PERV-CPP-SOURCES +=p9_sbe_gear_switcher.C
+#PERV-CPP-SOURCES +=p9_sbe_gear_switcher.C
 
 PERV-C-SOURCES =
 PERV-S-SOURCES =
