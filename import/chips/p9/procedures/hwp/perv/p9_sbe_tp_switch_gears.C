@@ -40,12 +40,12 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_DBG("Entering ...");
-
+#if 0
     FAPI_TRY(p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(
                  i_target_chip));
 
     FAPI_TRY(p9_sbe_gear_switcher_i2c_stop_sequence(i_target_chip));
-
+#endif
     FAPI_DBG("Exiting ...");
 
 fapi_try_exit:
