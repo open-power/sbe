@@ -36,6 +36,8 @@ IMAGE_SEEPROM_NAME := seeprom_main
 IMAGE_SBE_NAME := sbe_main
 IMAGE_LOADER_NAME := loader_main
 
+SBE_SYMBOLS_NAME := sbe.syms
+
 ifndef PPE_TYPE
 PPE_TYPE := std
 endif
@@ -140,6 +142,7 @@ CC      = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
 AS      = $(BINUTILS-TOOL-PREFIX)as
 AR      = $(BINUTILS-TOOL-PREFIX)ar
 LD      = $(BINUTILS-TOOL-PREFIX)ld
+NM      = $(BINUTILS-TOOL-PREFIX)nm
 OBJDUMP = $(BINUTILS-TOOL-PREFIX)objdump
 OBJCOPY = $(BINUTILS-TOOL-PREFIX)objcopy
 TCPP    = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
