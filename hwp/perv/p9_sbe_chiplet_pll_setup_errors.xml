@@ -1,13 +1,13 @@
 <!-- This is an automatically generated file. -->
-<!-- File: p9_sbe_chiplet_init_errors.xml. -->
-<!-- Halt codes for p9_sbe_chiplet_init -->
+<!-- File: p9_sbe_chiplet_pll_setup_errors.xml. -->
+<!-- Halt codes for p9_sbe_chiplet_pll_setup -->
 
 <hwpErrors>
   <!-- ******************************************************************** -->
   <hwpError>
-    <rc>RC_CHECKSTOP_ERR</rc>
-    <description>Checkstop error after scan0</description>
-    <ffdc>READ_CHECKSTOP</ffdc>
+    <rc>RC_PLL_LOCK_ERR</rc>
+    <description>PLL Lock Not set</description>
+    <ffdc>PLL_READ</ffdc>
   </hwpError>
   <!-- ******************************************************************** -->
 </hwpErrors>
