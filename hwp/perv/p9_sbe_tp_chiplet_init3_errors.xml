@@ -1,13 +1,13 @@
 <!-- This is an automatically generated file. -->
-<!-- File: p9_sbe_chiplet_init_errors.xml. -->
-<!-- Halt codes for p9_sbe_chiplet_init -->
+<!-- File: p9_sbe_tp_chiplet_init3_errors.xml. -->
+<!-- Halt codes for p9_sbe_tp_chiplet_init3 -->
 
 <hwpErrors>
   <!-- ******************************************************************** -->
   <hwpError>
-    <rc>RC_CHECKSTOP_ERR</rc>
-    <description>Checkstop error after scan0</description>
-    <ffdc>READ_CHECKSTOP</ffdc>
+    <rc>RC_XSTOP_ERR</rc>
+    <description>Checkstop bit set in interrupt type reg</description>
+    <ffdc>READ_XSTOP</ffdc>
   </hwpError>
   <!-- ******************************************************************** -->
 </hwpErrors>

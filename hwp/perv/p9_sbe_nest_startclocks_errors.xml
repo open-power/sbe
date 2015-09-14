@@ -1,13 +1,13 @@
 <!-- This is an automatically generated file. -->
-<!-- File: p9_sbe_chiplet_init_errors.xml. -->
-<!-- Halt codes for p9_sbe_chiplet_init -->
+<!-- File: p9_sbe_nest_startclocks_errors.xml. -->
+<!-- Halt codes for p9_sbe_nest_startclocks -->
 
 <hwpErrors>
   <!-- ******************************************************************** -->
   <hwpError>
-    <rc>RC_CHECKSTOP_ERR</rc>
-    <description>Checkstop error after scan0</description>
-    <ffdc>READ_CHECKSTOP</ffdc>
+    <rc>RC_READ_ALL_CHECKSTOP_ERR</rc>
+    <description>Read and or all Checkstop error</description>
+    <ffdc>READ_ALL_CHECKSTOP</ffdc>
   </hwpError>
   <!-- ******************************************************************** -->
 </hwpErrors>
