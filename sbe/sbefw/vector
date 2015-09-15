@@ -14,9 +14,7 @@
 #endif
 #include <stdint.h>
 #include <pool.H>
-//TODO via RTC 129166
-// Add implementation for assert
-#define assert(X)
+#include <assert.h>
 namespace std
 {
 

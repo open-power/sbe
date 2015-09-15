@@ -12,6 +12,7 @@
 #include "sbeirq.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
+#include "assert.h"
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -149,16 +150,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             // Get the command function
             l_pFuncP = sbeFindCmdFunc (l_cmdClass, l_cmdOpCode) ;
 
-            if (!l_pFuncP)
-            {
-                // No Supported function found
-                SBE_ERROR(SBE_FUNC"No supported function");
-                l_rc = SBE_FUNC_NOT_SUPPORTED;
-
-                // @TODO via RTC : 129166
-                //       force assert
-                break;
-            }
+            assert( l_pFuncP )
 
             // Call the ChipOp function
             l_rc = l_pFuncP ((uint8_t *)i_pArg);
