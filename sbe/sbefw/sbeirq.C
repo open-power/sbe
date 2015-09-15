@@ -8,7 +8,7 @@
 #include "sbeexeintf.H"
 #include "sbeirq.H"
 #include "sbetrace.H"
-
+#include "assert.h"
 
 ////////////////////////////////////////////////////////////////
 // @brief:     SBE control loop ISR:
@@ -38,17 +38,15 @@ void sbe_fifo_interrupt_handler (void *i_pArg, PkIrqId i_irq)
             {
                 // If we received an error while posting the semaphore,
                 // unmask the interrupt back and assert
-                // @TODO via RTC : 129166
-                //       Add support for ASSERT here
                 SBE_ERROR(SBE_FUNC"pk_semaphore_post failed, rc=[%d]", l_rc);
+                assert(!l_rc);
                 pk_irq_enable(i_irq);
             }
             break;
 
         default:
             SBE_ERROR(SBE_FUNC"Unknown IRQ, assert");
-            // @TODO via RTC : 129166
-            //       Add support for ASSERT here
+            assert(0);
             break;
     }
     #undef SBE_FUNC

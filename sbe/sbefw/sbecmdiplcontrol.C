@@ -9,6 +9,7 @@
 #include "sbefifo.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
+#include "assert.h"
 
 #include "fapi2.H"
 // Pervasive HWP Header Files ( istep 2)
@@ -340,9 +341,8 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
 
         // We should never reach here as before calling this validation has
         // been done.
-        // @TODO via RTC 129166.
-        // assert if we reach in default case.
         default:
+            assert(0);
             break;
         }
 

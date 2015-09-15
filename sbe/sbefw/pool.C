@@ -2,6 +2,7 @@
 #include <sbetrace.H>
 #include <stddef.h>
 #include<pool.H>
+#include "assert.h"
 
 namespace SBEVECTORPOOL
 {
@@ -30,14 +31,8 @@ void releaseMem( vectorMemPool_t * i_pool )
     {
         if ( NULL == i_pool )   break;
 
-        if( 0 == i_pool->refCount )
-        {
-            //TODO via RTC 129166
-            // Assert here.  This pool was not supposed to be in use.
-            // Currenty just keeping it as is as we can not do much till the
-            // time support for assert is in.
-            break;
-        }
+       // Assert here.  This pool was not supposed to be in use.
+        assert( 0 != i_pool->refCount )
         SBE_TRACE(" Releasing pool 0x%08X", i_pool);
         i_pool->refCount--;
         SBE_TRACE(" In releaseMem() RefCount:%u", i_pool->refCount);
