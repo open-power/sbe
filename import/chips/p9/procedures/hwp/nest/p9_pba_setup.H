@@ -56,6 +56,7 @@
 //-----------------------------------------------------------------------------------
 typedef fapi2::ReturnCode
 (*p9_pba_setup_FP_t) (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
+                      const fapi2::Target<fapi2::TARGET_TYPE_EX>&,
                       const uint64_t,
                       const bool,
                       const uint32_t,
@@ -72,6 +73,7 @@ extern "C" {
 
 /// @brief setup for reads/writes from the PBA
 /// @param[in]  i_target  => P9 chip target
+/// @param[in]  i_ex_target => P9 EX Target for use with lco_m operations
 /// @param[in]  i_address => base real address for read/write operation (expected to be 128B aligned)
 /// @param[in]  i_rnw     => if the operation is read not write (1 for read, 0 for write)
 /// @param[in]  i_flags   => other information that is needed - the flags are:
@@ -82,6 +84,7 @@ extern "C" {
 //
     fapi2::ReturnCode p9_pba_setup(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_ex_target,
         const uint64_t i_address,
         const bool i_rnw,
         const uint32_t i_flags,
