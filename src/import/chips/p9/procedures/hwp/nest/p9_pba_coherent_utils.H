@@ -46,7 +46,6 @@
 //-----------------------------------------------------------------------------------
 
 #include <fapi2.H>
-#include <misc_scom_addresses.H>
 #include <p9_pba_constants.H>
 
 extern "C"
@@ -56,117 +55,87 @@ extern "C"
 // Constant definitions
 //-----------------------------------------------------------------------------------
 
-//PBA Delay Constants
-    const uint32_t PBA_SLVRST_DELAY_HW_NS = 1000;
-    const uint32_t PBA_SLVRST_DELAY_SIM_CYCLES = 200;
-    const uint32_t WRITE_DELAY_HW_NS = 100;
-    const uint32_t WRITE_DELAY_SIM_CYCLES = 20;
-    const uint32_t PBA_BAR_SCOPE_LOCAL_NODE = 0;
-
-//PBA Slave Control register field/bit definitions
-    const uint32_t PBA_SLVCTL_ENABLE_BIT = 0;
-    const uint32_t PBA_SLVCTL_MASTER_ID_MATCH_START_BIT = 1;
-    const uint32_t PBA_SLVCTL_MASTER_ID_MATCH_END_BIT = 3;
-    const uint32_t PBA_SLVCTL_MASTER_ID_CARE_MASK_START_BIT = 5;
-    const uint32_t PBA_SLVCTL_MASTER_ID_CARE_MASK_END_BIT = 7;
-    const uint32_t PBA_SLVCTL_WRITE_TTYPE_START_BIT = 8;
-    const uint32_t PBA_SLVCTL_WRITE_TTYPE_END_BIT = 10;
-    const uint32_t PBA_SLVCTL_READ_TTYPE_BIT = 15;
-    const uint32_t PBA_SLVCTL_READ_PREFETCH_CTL_START_BIT = 16;
-    const uint32_t PBA_SLVCTL_READ_PREFETCH_CTL_END_BIT = 17;
-    const uint32_t PBA_SLVCTL_READ_BUF_INVALIDATE_CTL_BIT = 18;
-    const uint32_t PBA_SLVCTL_WRITE_BUF_PAIR_ALLOCATION_BIT = 19;
-    const uint32_t PBA_SLVCTL_READ_BUF_PAIR_A_ALLOCATION_BIT = 20;
-    const uint32_t PBA_SLVCTL_READ_BUF_PAIR_B_ALLOCATION_BIT = 21;
-    const uint32_t PBA_SLVCTL_READ_BUF_PAIR_C_ALLOCATION_BIT = 22;
-    const uint32_t PBA_SLVCTL_DISABLE_WRITE_GATHER_BIT = 24;
-    const uint32_t PBA_SLVCTL_WRITE_GATHER_TIMEOUT_START_BIT = 25;
-    const uint32_t PBA_SLVCTL_WRITE_GATHER_TIMEOUT_END_BIT = 27;
-    const uint32_t PBA_SLVCTL_WRITE_TSIZE_START_BIT = 28;
-    const uint32_t PBA_SLVCTL_WRITE_TSIZE_END_BIT = 35;
-    const uint32_t PBA_SLVCTL_EXT_ADDR_START_BIT = 36;
-    const uint32_t PBA_SLVCTL_EXT_ADDR_END_BIT = 49;
-
-    const uint32_t PBA_SLVCTL_EXTADDR_SHIFT = 27;
-    const uint32_t PBA_SLVCTL_EXTADDR_MASK = 0x3fff;
-
-//PBA Slave Reset register field/bit definitions
-    const uint32_t PBA_SLVRST_SET_START_BIT = 0;
-    const uint32_t PBA_SLVRST_SET_END_BIT = 2;
-    const uint32_t PBA_SLVRST_SLVCTL0_IN_PROG = 4;
-    const uint32_t PBA_SLVRST_SLVCTL1_IN_PROG = 5;
-    const uint32_t PBA_SLVRST_SLVCTL2_IN_PROG = 6;
-    const uint32_t PBA_SLVRST_SLVCTL3_IN_PROG = 7;
-    const uint32_t PBA_SLVRST_IN_PROG_START_BIT = 4;
-    const uint32_t PBA_SLVRST_IN_PROG_END_BIT = 7;
-    const uint32_t PBA_SLVRST_BUSY_START_BIT = 8;
-    const uint32_t PBA_SLVRST_BUSY_END_BIT = 11;
-    //mask to check if there is a PBA slave rest in progress and if the PBA Slave Control is busy
-    //if it is not all these bits 4:11 should be set to 0
-    const uint64_t PBA_SLVRST_BUSY_IN_PROG_MASK = 0xFF0000000000000ull;
-
-//PBA Read Buffer Valid Status field/bit definitions
-    const uint32_t PBA_RD_BUF_VALID_START_BIT = 33;
-    const uint32_t PBA_RD_BUF_VALID_END_BIT = 39;
-    const uint64_t PBA_RD_BUF_VALID_MASK = 0x7F000000ull;
-    const uint64_t PBA_RD_BUF_EMPTY =  0x1000000ull;
-
-//PBA Write Buffer Valid Status field/bit definitions
-    const uint32_t PBA_WR_BUF_VALID_START_BIT = 35;
-    const uint32_t PBA_WR_BUF_VALID_END_BIT = 39;
-    const uint64_t PBA_WR_BUF_VALID_MASK = 0x1F000000ull;
-    const uint64_t PBA_WR_BUF_EMPTY = 0x1000000ull;
-
-//PBA BAR register field/bit definitions
-    const uint32_t PBA_BAR_SCOPE_START_BIT = 0;
-    const uint32_t PBA_BAR_SCOPE_END_BIT = 2;
-    const uint32_t PBA_BAR_BASE_ADDRESS_START_BIT = 8;
-    const uint32_t PBA_BAR_BASE_ADDRESS_END_BIT = 43;
-    const uint32_t PBA_BAR_BASE_ADDRESS_SHIFT = 21;
-    const uint64_t PBA_BAR_BASE_ADDRESS_MASK = 0xFFFFFFFFFull;
-
-//PBA BAR Mask register field/bit definitions
-    const uint32_t PBA_BAR_MASK_START_BIT = 23;
-    const uint32_t PBA_BAR_MASK_END_BIT = 43;
-
 //-----------------------------------------------------------------------------------
 // Function prototypes
 //-----------------------------------------------------------------------------------
+
+/// @brief does the setup for the PBA to set up the initial registers for a read/write
+/// @param[in] i_target => P9 chip target
+/// @param[in] i_ex_target => Ex target for which L3 we are targeting
+/// @param[in] i_address => starting address for PBA operation
+/// @param[in] i_rnw => whether the operation is a read or write
+/// @param[in] i_flags => flags that contain information that the PBA needs to know to set up registers
+/// @return FAPI_RC_SUCCESS if setting up the pba registers is a success
     fapi2::ReturnCode p9_pba_coherent_setup_pba(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_ex_target,
         const uint64_t i_address,
         const bool i_rnw,
         const uint32_t i_flags);
 
+/// @brief does the write for the PBA
+/// @param[in] i_target => P9 chip target
+/// @param[in] i_address => address for this write
+/// @param[in] i_flags => flags that contain information that the PBA needs to know to set up registers
+/// @param[in] i_write_data => the data that is to be written to the PBA
+/// @return FAPI_RC_SUCCESS if writing the PBA is a success
     fapi2::ReturnCode p9_pba_coherent_pba_write(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         const uint32_t i_flags,
         const uint64_t i_write_data[]);
 
+/// @brief does the read for the PBA
+/// @param[in] i_target => P9 chip target
+/// @param[in] i_address => address for this write
+/// @param[in] i_flags => flags that contain information that the PBA needs to know to set up registers
+/// @param[out] o_read_data => the data that is read from the PBA
+/// @return FAPI_RC_SUCCESS if reading the PBA is a success
     fapi2::ReturnCode p9_pba_coherent_pba_read(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         const uint32_t i_flags,
         uint64_t o_read_data[]);
 
+/// @brief calculates the number of 128 byte granules that can be read/written before setup needs to be run again
+/// @param[in] i_target => P9 chip target
+/// @param[in] i_address => starting address for PBA operation
+/// @return number of 128 byte granules that can be read/written before setup needs to be run again
     fapi2::ReturnCode p9_pba_coherent_utils_get_num_granules(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         uint32_t& o_numGranules);
 
+/// @brief ensure that fabric is initialized and stop control is not set
+///           (by checkstop/mode switch), which if set would prohibit fabric
+///           commands from being broadcasted
+/// @param[in] i_target => P9 chip target
+/// @return FAPI_RC_SUCCESS if fabric is not stopped
     fapi2::ReturnCode p9_pba_coherent_utils_check_fbc_state(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
+/// @brief check that the address is cacheline aligned and within the fabric real address range
+/// @param[in] i_target => P9 chip target
+/// @param[in] i_address => starting address for PBA operation
+/// @return FAPI_RC_SUCCESS if arguments are valid
     fapi2::ReturnCode p9_pba_coherent_utils_check_args(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address);
-
+/// @brief this checks the PBA/OCB status registers - this is for use at the end of each write/read or at the end of each stream
+/// @return FAPI_RC_SUCCESS if the status check is a success
     fapi2::ReturnCode p9_pba_coherent_status_check(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
+/// @brief this does any cleanup for the PBA after all reads/writes have been done
+/// @param[in] i_target => P9 chip target
+/// @return FAPI_RC_SUCCESS if cleaning up the PBA is a success
     fapi2::ReturnCode p9_pba_coherent_cleanup_pba(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
+
+///@brief sets up the PBA Bar
+///@param[in] i_target => P9 chip target
+///@param[in] i_address => address for this read/write
+///@return FAPI_RC_SUCCESS if writing the PBA is a success
     fapi2::ReturnCode p9_pba_coherent_setup_pba_bar(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_baseAddress);
