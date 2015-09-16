@@ -312,4 +312,8 @@
   <entry>
       <name>ATTR_BACKUP_SEEPROM_SELECT</name>
   </entry>
+  <entry>
+       <name>ATTR_MC_SYNC_MODE</name>
+       <value>0x01</value>
+  </entry>
 </entries>
