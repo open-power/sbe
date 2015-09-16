@@ -53,7 +53,7 @@ extern "C" {
         fapi2::ReturnCode rc1;
 
         // mark HWP entry
-        FAPI_INF("p9_pba_access: Entering ...\n");
+        FAPI_INF("Entering ...\n");
 
         //if read
         if (i_rnw)
@@ -66,24 +66,20 @@ extern "C" {
             rc1 = p9_pba_coherent_pba_write(i_target, i_address, i_flags, io_data);
         }
 
-        //If we are not in fastmode we want to check the status after every read
-        if (!rc1 && !(i_flags >> (31 - FLAG_FASTMODE)))
+        //If we are not in fastmode or this is the last granule, we want to check the status
+        if (!rc1)
         {
-            rc1 = p9_pba_coherent_status_check(i_target);
-        }
-
-        //if it's the last Read/Write
-        if (i_lastGranule)
-        {
-            //If we are in fastmode this will be the first and only time that we check the status
-            if (!rc1 && (i_flags >> (31 - FLAG_FASTMODE)))
+            if ((i_lastGranule) || !(i_flags & FLAG_FASTMODE))
             {
                 rc1 = p9_pba_coherent_status_check(i_target);
-            }
 
-            //Clean up the PBA since it's the last read/write and it has been finished
-            FAPI_TRY(p9_pba_coherent_cleanup_pba(i_target),
-                     "Error doing p9_pba_coherent_cleanup_pba");
+                if (i_lastGranule)
+                {
+                    //Clean up the PBA since it's the last read/write and it has been finished
+                    FAPI_TRY(p9_pba_coherent_cleanup_pba(i_target),
+                             "Error doing p9_pba_coherent_cleanup_pba");
+                }
+            }
         }
 
         // mark HWP exit
@@ -102,7 +98,7 @@ extern "C" {
             fapi2::current_err = rc1;
         }
 
-        FAPI_INF("p9_pba_access: Exit ...\n");
+        FAPI_INF("Exit ...\n");
         return fapi2::current_err;
     }
 
