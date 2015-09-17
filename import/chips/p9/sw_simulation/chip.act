@@ -1,1 +1,19 @@
 # This file will contain all the Chip Actions
+# =============================================================================
+# Simics action for p9_sbe_fabricinit
+# =============================================================================
+CAUSE_EFFECT {
+LABEL=[Fabric Init via ADU]
+WATCH=[REG(0x00090001] #PU_ALTD_CMD_REG
+CAUSE: TARGET=[REG(0x00090001)] OP=[BIT,ON] BIT=[2] #PU_ALTD_CMD_REG, ALTD_CMD_START_OP_BIT
+EFFECT: TARGET=[REG(0x00090003)] OP=[BIT,ON] BIT=[2] #PU_ALTD_STATUS_REG, ALTD_STATUS_ADDR_DONE_BIT
+EFFECT: TARGET=[REG(0x00090003)] OP=[BIT,ON] BIT=[61] #PU_ALTD_STATUS_REG, ALTD_STATUS_CRESP_ACK_DONE
+#EFFECT: TARGET=[REG(0x05011C0A)] OP=[BIT,ON] BIT=[0] #PU_FBC_MODE_REG, PU_FBC_MODE_PB_INITIALIZED_BIT
+}
+
+# =============================================================================
+# Action file not necessary for procedures:
+# p9_sbe_scominit
+# p9_sbe_mcs_setup
+# p9_sbe_instruct_start (default 0's work)
+# =============================================================================
