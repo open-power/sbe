@@ -1,0 +1,49 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/xml/error_info/p9_sbe_load_bootloader_errors.xml $ -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2015                                                         -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<!-- Halt codes for p9_sbe_load_bootloader -->
+<!-- TODO Add in the callout, gard, and deconfig info wherever applicable  -->
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_P9_SBE_LOAD_BOOTLOADER_INVALID_TARGET_ADDRESS</rc>
+    <description>
+      Procedure: p9_sbe_load_bootloader
+      Target base address is not cacheline aligned.
+    </description>
+    <ffdc>CHIP_TARGET</ffdc>
+    <ffdc>EX_TARGET</ffdc>
+    <ffdc>TARGET_BASE_ADDRESS</ffdc>
+    <ffdc>FABRIC_GROUP_ID</ffdc>
+    <ffdc>FABRIC_ADDR_BAR_MODE</ffdc>
+    <ffdc>HRMOR_OFFSET</ffdc>
+    <ffdc>BOOTLOADER_OFFSET</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_P9_SBE_LOAD_BOOTLOADER_INVALID_PAYLOAD_SIZE</rc>
+    <description>
+      Procedure: p9_sbe_load_bootloader
+      Payload size is invalid.
+    </description>
+    <ffdc>CHIP_TARGET</ffdc>
+    <ffdc>EX_TARGET</ffdc>
+    <ffdc>PAYLOAD_SIZE</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
