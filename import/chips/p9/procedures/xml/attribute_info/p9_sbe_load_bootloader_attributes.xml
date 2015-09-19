@@ -1,0 +1,47 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/xml/attribute_info/nest_attributes.xml $  -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2015                                                         -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<!-- This is an automatically generated file. -->
+<!-- File: nest_attributes.xml. -->
+<!-- XML file specifying attributes used by HW Procedures. -->
+<!-- Attributes are taken from model nest -->
+<!--nest_attributes.xml-->
+<attributes>
+
+<attribute>
+  <id>ATTR_SBE_BOOTLOADER_OFFSET</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>Defines offset to be applied to SBE bootloader installation
+  this will be added with the base address and hostboot HRMOR offset to get the target
+  base address</description>
+  <valueType>uint64</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+
+<attribute>
+  <id>ATTR_HOSTBOOT_HRMOR_OFFSET</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>Defines offset to be applied to SBE bootloader installation
+  this will be added with the bootloader offset and the base address to get the
+  target base addres</description>
+  <valueType>uint64</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+</attributes>
