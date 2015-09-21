@@ -37,6 +37,7 @@
 //@TODO remove with RTC: 133089
 #ifdef TEMPORARY_FOR_INITFILE
     #include <SpyInterface.H>
+    #include <iostream>
 #endif
 namespace fapi2
 {
