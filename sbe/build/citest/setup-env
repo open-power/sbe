@@ -1,0 +1,63 @@
+#!/bin/sh
+
+export CITESTPATH=${SBEROOT}/sbe/build/citest
+export PATH=${CITESTPATH}:${PATH}
+export SBE_IMG_OUT_LOC=${SBEROOT}/sbe/obj;
+export SBE_IMG_BIN_LOC=${SBEROOT}/sbe/obj;
+# If we are running under Jenkins we need to pick a random-ish sandbox name
+# so that the autoipl tools do not have a /tmp name collision.
+if [ -z $JOB_NAME -o -z $BUILD_NUMBER ];
+then
+    SBECI_SANDBOX="test_sb"
+else
+    export RUNNING_UNDER_JENKINS=1
+    SBECI_SANDBOX=`echo $JOB_NAME $BUILD_NUMBER | md5sum | head -c10`
+fi
+
+# Setup sandbox location variables.
+if [ -z $SANDBOXROOT ];
+then
+    export SANDBOXROOT=${SBEROOT}
+fi
+
+if [ -z $SANDBOXNAME ];
+then
+    export SANDBOXNAME=${SBECI_SANDBOX}
+fi
+if [ -z $SANDBOXBASE ];
+then
+    export SANDBOXBASE=${SANDBOXROOT}/${SANDBOXNAME}
+fi
+
+if [ -z $SANDBOXRC ];
+then
+    export SANDBOXRC=${SANDBOXROOT}/sbesandboxrc
+fi
+
+# Useful utility function.
+execute_in_sandbox()
+{
+    WORKON_CMD="workon -rc ${SANDBOXRC} -sb ${SANDBOXNAME} -m $2 "
+    echo $1 > ${SANDBOXBASE}/src/sandbox_execute_cmd
+    chmod 700 ${SANDBOXBASE}/src/sandbox_execute_cmd
+
+    TEST="${WORKON_CMD} -c ./sandbox_execute_cmd "
+    echo $TEST
+    ${WORKON_CMD} -c ./sandbox_execute_cmd
+
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+    rm ${SANDBOXBASE}/src/sandbox_execute_cmd
+}
+export -f execute_in_sandbox
+
+# Setup machine type.
+export MACHINE=${MACHINE:-$DEFAULT_MACHINE}
+
+export SBETESTDIR=$SANDBOXBASE/simics/targets/p9_nimbus/sbeTest
+export AUTOSIM_FFDC_XML=$SBETESTDIR/ffdc.xml
+export SBE_TEST_XML=$SBETESTDIR/test.xml
+# Indicate we setup the CI environment.
+export SBE_CI_ENV_SETUP=1

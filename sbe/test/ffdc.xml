@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+      <!--Collect FFDC -->
     <test>
     <subtest>
         <testcase>
-            <simcmd>pipe \"p9Proc0.sbe.mibo_space.x (p9Proc0.sbe.ppe.sym g_pk_trace_buf_ptr) 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\"</simcmd>
+            <simcmd>sbe-trace</simcmd>
+        </testcase>
+        <testcase>
+            <simcmd>p9Proc0.sbe.ppe->ppe_state</simcmd>
         </testcase>
         <testcase>
             <simcmd>p9Proc0.proc_fifo->upstream_hw_fifo</simcmd>

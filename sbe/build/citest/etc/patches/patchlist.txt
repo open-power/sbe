@@ -1,0 +1,6 @@
+# Example Format
+Brief description of the problem or reason for patch
+-RTC: Task/Story used to remove this patch
+-CQ: Defect/Req for checking the changes into fips910
+-Files: list of files
+-Coreq: list of associated changes, e.g. workarounds.presimsetup
