@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: chips/p9/procedures/hwp/nest/p9_sbe_fabricinit.H $            */
+/* $Source: chips/p9/procedures/ipl/sbe/p9_sbe_fabricinit.H $             */
 /*                                                                        */
 /* IBM CONFIDENTIAL                                                       */
 /*                                                                        */
@@ -16,7 +16,6 @@
 /* deposited with the U.S. Copyright Office.                              */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-
 ///
 /// @file p9_sbe_fabricinit.H
 /// @brief Initialize island-mode fabric configuration (FAPI2)
@@ -62,7 +61,7 @@
 // *HWP HWP Owner: Joe McGill <jmcgill@us.ibm.com>
 // *HWP FW Owner: Thi Tran <thi@us.ibm.com>
 // *HWP Team: Nest
-// *HWP Level: 3
+// *HWP Level: 2
 // *HWP Consumed by: SBE
 //
 

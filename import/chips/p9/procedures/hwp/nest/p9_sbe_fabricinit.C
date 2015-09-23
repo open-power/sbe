@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: chips/p9/procedures/hwp/nest/p9_sbe_fabricinit.C $            */
+/* $Source: chips/p9/procedures/ipl/sbe/p9_sbe_fabricinit.C $             */
 /*                                                                        */
 /* IBM CONFIDENTIAL                                                       */
 /*                                                                        */
@@ -16,7 +16,6 @@
 /* deposited with the U.S. Copyright Office.                              */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-
 ///
 /// @file p9_sbe_fabricinit.C
 /// @brief Initialize island-mode fabric configuration (FAPI2)
@@ -29,7 +28,7 @@
 // *HWP HWP Owner: Joe McGill <jmcgill@us.ibm.com>
 // *HWP FW Owner: Thi Tran <thi@us.ibm.com>
 // *HWP Team: Nest
-// *HWP Level: 3
+// *HWP Level: 2
 // *HWP Consumed by: SBE
 //
 
@@ -37,18 +36,13 @@
 // Includes
 //------------------------------------------------------------------------------
 #include <p9_sbe_fabricinit.H>
-
+#include <p9_fbc_utils.H>
+#include <p9_misc_scom_addresses.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions
 //------------------------------------------------------------------------------
 
-// ADU SCOM register address definitions
-// TODO: these are currently incorrect in the FigTree/generated SCOM address header
-//       including locally defined address constants here for testing purposes
-const uint64_t PU_ALTD_CMD_REG = 0x00090001;
-const uint64_t PU_ALTD_STATUS_REG = 0x00090003;
-const uint64_t PU_SND_MODE_REG = 0x00090021;
 // FBC SCOM register address definitions
 // TODO: these are currently not present in the generated SCOM adddress header
 //       including locally defined address constants here for testing purposes
@@ -87,12 +81,6 @@ const uint32_t ALTD_STATUS_CRESP_NUM_BITS = (ALTD_STATUS_CRESP_END_BIT - ALTD_ST
 
 const uint32_t ALTD_STATUS_CRESP_ACK_DONE = 0x04;
 
-// ADU PMisc Register field/bit definitions
-const uint32_t ALTD_SND_MODE_FBC_STOP_BIT = 22;
-
-// FBC Mode Register field/bit definitions
-const uint32_t PU_FBC_MODE_PB_INITIALIZED_BIT = 0;
-
 
 //------------------------------------------------------------------------------
 // Function definitions
@@ -105,17 +93,19 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     FAPI_INF("Start");
 
     fapi2::buffer<uint64_t> l_cmd_data;
-    fapi2::buffer<uint64_t> l_pmisc_mode_data;
     fapi2::buffer<uint64_t> l_status_data_act;
     fapi2::buffer<uint64_t> l_status_data_exp;
-    fapi2::buffer<uint64_t> l_fbc_mode_data;
+    bool l_fbc_is_initialized, l_fbc_is_running;
 
     // check state of fabric pervasive stop control signal
     // if set, this would prohibit all fabric commands from being broadcast
-    FAPI_TRY(fapi2::getScom(i_target, PU_SND_MODE_REG, l_pmisc_mode_data),
-             "Error reading ADU PMisc Mode register");
-    FAPI_ASSERT(!l_pmisc_mode_data.getBit<ALTD_SND_MODE_FBC_STOP_BIT>(),
-                fapi2::P9_SBE_FABRICINIT_FBC_STOPPED_ERR().set_TARGET(i_target),
+    FAPI_DBG("Checking status of FBC stop ...");
+    FAPI_TRY(p9_fbc_utils_get_fbc_state(i_target, l_fbc_is_initialized, l_fbc_is_running),
+             "Error from p9_fbc_utils_get_fbc_state");
+    FAPI_ASSERT(l_fbc_is_running,
+                fapi2::P9_SBE_FABRICINIT_FBC_STOPPED_ERR().
+                set_TARGET(i_target).
+                set_FBC_RUNNING(l_fbc_is_running),
                 "Pervasive stop control is asserted, so fabricinit will not run!");
 
     // write ADU Command Register to attempt lock acquisition
@@ -132,7 +122,7 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
              "Error writing ADU Command Register to clear status and reset state machine");
 
     // launch init command
-    FAPI_DBG("Launching fabric init command via ADU ...");
+    FAPI_INF("Launching fabric init command via ADU ...");
     l_cmd_data.setBit<ALTD_CMD_START_OP_BIT>()
     .clearBit<ALTD_CMD_CLEAR_STATUS_BIT>()
     .clearBit<ALTD_CMD_RESET_FSM_BIT>()
@@ -157,7 +147,9 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     l_status_data_exp.insertFromRight<ALTD_STATUS_CRESP_START_BIT, ALTD_STATUS_CRESP_NUM_BITS>(ALTD_STATUS_CRESP_ACK_DONE);
 
     FAPI_ASSERT(l_status_data_exp == l_status_data_act,
-                fapi2::P9_SBE_FABRICINIT_FAILED_ERR().set_TARGET(i_target),
+                fapi2::P9_SBE_FABRICINIT_FAILED_ERR().set_TARGET(i_target).
+                set_ADU_STATUS_EXP(l_status_data_act).
+                set_ADU_STATUS_ACT(l_status_data_act),
                 "Fabric init failed, or mismatch in expected ADU status!");
 
     // clear ADU Command Register to release lock
@@ -167,12 +159,15 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
              "Error writing ADU Command Register to release lock");
 
     // confirm that fabric was successfully initialized
-    FAPI_DBG("Checking status of FBC init ...");
-    FAPI_TRY(fapi2::getScom(i_target, PU_FBC_MODE_REG, l_fbc_mode_data),
-             "Error reading FBC Mode Register");
-    FAPI_ASSERT(l_fbc_mode_data.getBit<PU_FBC_MODE_PB_INITIALIZED_BIT>(),
-                fapi2::P9_SBE_FABRICINIT_NO_INIT_ERR().set_TARGET(i_target),
-                "ADU command succeded, but fabric was not initialized!");
+    FAPI_DBG("Verifying status of FBC init/stop ...");
+    FAPI_TRY(p9_fbc_utils_get_fbc_state(i_target, l_fbc_is_initialized, l_fbc_is_running),
+             "Error from p9_fbc_utils_get_fbc_state");
+    FAPI_ASSERT(l_fbc_is_initialized && l_fbc_is_running,
+                fapi2::P9_SBE_FABRICINIT_NO_INIT_ERR().
+                set_TARGET(i_target).
+                set_FBC_INITIALIZED(l_fbc_is_initialized).
+                set_FBC_RUNNING(l_fbc_is_running),
+                "ADU command succeded, but fabric was not cleanly initialized!");
 
 fapi_try_exit:
     FAPI_INF("End");
