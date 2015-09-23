@@ -52,9 +52,10 @@ uint32_t _putscom( uint32_t i_chiplet_id, uint32_t i_address, uint64_t i_data)
 
 uint32_t getscom_abs( const uint32_t i_address, uint64_t *o_data)
 {
-    
+    uint64_t temp;
     // Perform the Load Virtual Double instruction
-    PPE_LVD(i_address, o_data);
+    PPE_LVD(i_address, temp);
+    PPE_STVD(o_data, temp);
 
     // Get the MSR[SIBRC] as the return code   
     uint32_t rc = mfmsr();
@@ -65,9 +66,10 @@ uint32_t getscom_abs( const uint32_t i_address, uint64_t *o_data)
 
 uint32_t _getscom( const uint32_t i_chiplet_id, const uint32_t i_address, uint64_t *o_data)
 {
-    
+    uint64_t temp;
     // Perform the Load Virtual Double Index instruction
-    PPE_LVDX(i_chiplet_id, i_address, o_data);
+    PPE_LVDX(i_chiplet_id, i_address, temp);
+    PPE_STVD(o_data, temp);
 
     // Get the MSR[SIBRC] as the return code   
     uint32_t rc = mfmsr();
