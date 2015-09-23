@@ -1,0 +1,64 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: chips/p9/procedures/ipl/sbe/p9_pba_constants.H $              */
+/*                                                                        */
+/* IBM CONFIDENTIAL                                                       */
+/*                                                                        */
+/* EKB Project                                                            */
+/*                                                                        */
+/* COPYRIGHT 2015                                                         */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* The source code for this program is not published or otherwise         */
+/* divested of its trade secrets, irrespective of what has been           */
+/* deposited with the U.S. Copyright Office.                              */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
+/// @file p9_pba_constants.H
+/// @brief Constant enums to support PBA get/putmem procedures (FAPI)
+///
+// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
+// *HWP FW Owner: Thi Tran thi@us.ibm.com
+// *HWP Team: Nest
+// *HWP Level: 2
+// *HWp Consumed by: SBE
+
+#ifndef _P9_PBA_CONSTANTS_H_
+#define _P9_PBA_CONSTANTS_H_
+
+//---------------------------------------------------------------------------------------------
+// Includes
+//---------------------------------------------------------------------------------------------
+
+extern "C"
+{
+
+//----------------------------------------------------------------------------------------------
+// Constant definitions
+//----------------------------------------------------------------------------------------------
+
+//if the flag is more than 1 bit there will be a start and end bit for the flag
+//these give the bit position that is expected for the flags
+    enum flags
+    {
+        //fastmode flag, if this flag is set it means we will not check for errors until the very last granule for the read/write
+        FLAG_FASTMODE = 0,
+        //ttype flag, this is 3 bits, will be set to 0 for dma, 1, to lco_m, 2 for atomic, 3 for cache_inj, and 4 for ci_pr_w --same as in the documentation and how they will be passed to the register
+        FLAG_TTYPE_START = 1,
+        FLAG_TTYPE_END = 3
+    };
+
+    enum proc_pba_write_ttype
+    {
+        DMA = 0,
+        LCO = 1,
+        ATOMIC = 2,
+        INJ = 3,
+        CI = 4
+    };
+
+} //extern "C"
+
+#endif //_P9_PBA_CONSTANTS_H_
