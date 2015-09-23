@@ -2,11 +2,6 @@ import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
 err = False
-#from testWrite import *
-
-TESTDATA = [0,0,0,3,
-            0,0,0xA1,0x01,
-            0,0x02,0x00,0x2]
 
 EXPDATA = [0xc0,0xde,0xa1,0x01,
            0x0,0x0,0x0,0x0,
@@ -14,21 +9,19 @@ EXPDATA = [0xc0,0xde,0xa1,0x01,
 
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
-def main( ):
+def sbe_istep_func( major, minor ):
+    TESTDATA = [0,0,0,3,
+                0,0,0xA1,0x01,
+                0,major,0,minor ]
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( TESTDATA )
     testUtil.writeEot( )
     testUtil.readDsFifo( EXPDATA )
     testUtil.readEot( )
-#-------------------------------------------------
-# Calling all test code
-#-------------------------------------------------
-main()
-
-if err:
-    print ("\nTest Suite completed with error(s)")
-    #sys.exit(1)
-else:
-    print ("\nTest Suite completed with no errors")
-    #sys.exit(0);
+    if err:
+        print ("\nTest completed with error(s)")
+        #sys.exit(1)
+    else:
+        print ("\nTest completed with no errors")
+        #sys.exit(0);
 

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Ensure sandbox exists (create-sandbox has been called).
+if [ -z $SANDBOXBASE ];
+then
+    echo "SANDBOXBASE variable uninitialized.."
+    exit -1
+fi
+
+if [ ! -d "$SANDBOXBASE" ];
+then
+    echo "Cannot find sandbox: $SANDBOXBASE"
+    exit -1
+fi
+
+# Create img directory.
+mkdir -p $SBETESTDIR || exit -1
+
+# Copy files.
+
+cp  $SBEROOT/sbe/test/* $SBETESTDIR/ || exit -1

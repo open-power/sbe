@@ -5,18 +5,11 @@
 		<machine>%%machine%%</machine>
 
         <test>
-            <!-- testcase>
-                <simcmd>new-symtable file = ~/workspace/sbe/obj/sbe_main.out name = sbe_main</simcmd>
-            </testcase>
-            <testcase>
-                <simcmd>@SIM_create_object('context', 'myppectx', [])</simcmd>
-            </testcase>
-            <testcase>
-                <simcmd>myppectx.symtable symtable = sbe_main</simcmd>
-            </testcase>
-            <testcase>
-                <simcmd>p9Proc0.sbe.ppe.set-context context = myppectx</simcmd>
-            </testcas -->
+           <!-- Register SBE tools -->
+          <testcase>
+              <simcmd>run-python-file targets/p9_nimbus/sbeTest/simics-debug-framework.py</simcmd>
+              <exitonerror>yes</exitonerror>
+          </testcase>
             <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
             <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
             <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>

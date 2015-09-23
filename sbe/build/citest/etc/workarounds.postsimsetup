@@ -1,0 +1,11 @@
+#!/bin/sh
+## Workarounds that are run after start_simics is executed for the first time
+##    to setup the sandbox
+##
+
+### Example applying a patch to cec-chip files
+#echo "+++ Updating something wonderful in a simics file"
+#mkdir -p $sb/simu/data/cec-chip/
+#cp $BACKING_BUILD/src/simu/data/cec-chip/base_cec_chip_file $sb/simu/data/cec-chip
+#patch -p0 $sb/simu/data/cec-chip/base_cec_chip_file $HOSTBOOTROOT/src/build/citest/etc/patches/my_patch_File
+

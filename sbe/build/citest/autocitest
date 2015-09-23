@@ -1,0 +1,70 @@
+#!/bin/bash
+################################################################################
+##  Simics automation using run-fsp-it
+################################################################################
+
+##  verbose is the default.
+VERBOSE=" --verbose"
+if [ "$1" = "--quiet" ] ; then
+        VERBOSE=""
+        shift
+fi
+
+##
+##  set up
+##
+DRIVER="$1"                     ##  backing tree
+export bb=$DRIVER               ##  simulate a workon
+
+export SHELL="/bin/bash"        ##  Needed to fool workon to launch a bash
+                                ##  shell, which autosim expects.
+NOWIN="--nowin"                 ##  remote execution does not have a display
+
+##  jenkins creates a new workspace for every compile.
+##     sbetest-start.sh will verify this and then export WORKSPACE_DIR for us.
+SBXHOME=$SBEROOT
+
+if [ "$DRIVER" = "" ] ; then
+        echo "ERROR: you must specify a driver (backing tree) to run the tests with"
+        usage
+        exit 1
+fi
+
+## let's get set up
+cd $SANDBOXROOT
+
+echo    "$0"
+echo    "VERBOSE                    = $VERBOSE"
+echo    "NOWIN                      = $NOWIN"
+echo    "BACKING_TREE               = $DRIVER"
+echo    "SANDBOXRC                  = $SANDBOXRC"
+echo    "SBXHOME                    = $SBXHOME"
+echo    "AUTOSIM_FFDC_XML           = $AUTOSIM_FFDC_XML"
+echo    "current directory is " `pwd`
+
+
+timestamp=`date +'%H:%M:%S'`
+echo "$timestamp Starting SBE test..."
+
+# Check preconditions for run-fsp-it
+mkdir -p ~/private
+if [ ! -f  ~/private/.p ]; then
+        echo "Creating p file"
+        touch ~/private/.p
+fi
+
+if [ ! -f  ~/private/password ]; then
+        echo "Creating passwd file"
+        touch ~/private/password
+        # This is just workaround. It is expected
+        # that user already either have this file
+        # or tokens have been taken by klog command.
+        # This is just to make run-fsp-it work in user
+        # sandbox
+        echo "dummy" > ~/private/password
+fi
+
+execute_in_sandbox "run-fsp-it $NOWIN --machine $MACHINE $SBE_TEST_XML"  "ppc" || exit -1
+
+exit 0
+
