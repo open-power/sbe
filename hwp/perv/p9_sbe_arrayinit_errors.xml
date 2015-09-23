@@ -5,8 +5,9 @@
 <hwpErrors>
   <!-- ******************************************************************** -->
   <hwpError>
-    <rc>RC_ABIST_DONE</rc>
-    <description>Check Abist Done bit after Array Init</description>
+    <rc>RC_ABIST_DONE_ERR</rc>
+    <description>Abist Done bit not set after Array Init</description>
+    <ffdc>READ_ABIST_DONE</ffdc>
   </hwpError>
   <!-- ******************************************************************** -->
 </hwpErrors>
