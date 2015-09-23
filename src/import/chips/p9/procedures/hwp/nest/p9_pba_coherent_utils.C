@@ -1,0 +1,446 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: src/import/chips/p9/procedures/hwp/nest/p9_pba_coherent_utils.C $ */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
+//-----------------------------------------------------------------------------------
+//
+/// @file p9_pba_coherent_utils.C
+/// @brief PBA alter/display library functions (FAPI)
+///
+// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
+// *HWP FW Owner: Thi Tran thi@us.ibm.com
+// *HWP Team: Nest
+// *HWP Level: 2
+// *HWP Consumed by: SBE
+//
+//-----------------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------------------
+#include <p9_pba_coherent_utils.H>
+
+extern "C"
+{
+    //---------------------------------------------------------------------------------
+    // Constant definitions
+    //---------------------------------------------------------------------------------
+    //These may be defined elsewhere and may change, but for now I have included them
+    //here TODO These will live in the p9_fbc_utils header - Change when this is ready
+    const uint64_t PROC_FBC_UTILS_CACHELINE_MASK = 0x7FULL;
+    const uint64_t PROC_FBC_UTILS_FBC_MAX_ADDRESS = ((1ULL << 50) - 1ULL);
+    //TODO Joe commented here that it's in p9_fbc_utils uner http://gfw160.aus.stglabs.ibm.com:8080/gerrit/20275
+    //Right now not adding this because Basabjit just needs the changes that I had to make to get his to run, I will change
+    //this after the long weekend.
+
+
+    //---------------------------------------------------------------------------------
+    // Function definitions
+    //---------------------------------------------------------------------------------
+
+    /// @brief check that the address is cacheline aligned and within the fabric real address range
+    /// @param[in] i_target => P9 chip target
+    /// @param[in] i_address => starting address for PBA operation
+    /// @return FAPI_RC_SUCCESS if arguments are valid
+    fapi2::ReturnCode p9_pba_coherent_utils_check_args(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const uint64_t i_address)
+    {
+
+        FAPI_DBG("p9_pba_coherent_utils_check_args: Start");
+
+        //Check the address alignment
+        FAPI_ASSERT(!(i_address & PROC_FBC_UTILS_CACHELINE_MASK),
+                    fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
+                        i_address),
+                    "p9_pba_coherent_utils_check_args: Address is not cacheline aligned");
+
+        //Make sure the address is within the PBA bounds
+        FAPI_ASSERT(i_address <= PROC_FBC_UTILS_FBC_MAX_ADDRESS,
+                    fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
+                        i_address),
+                    "p9_pba_coherent_utils_check_args: Address exceeds supported fabric real address range");
+
+    fapi_try_exit:
+        FAPI_INF("p9_pba_coherent_utils_check_args: End");
+        return fapi2::current_err;
+    }
+
+    /// @brief ensure that fabric is initialized and stop control is not set
+    ///           (by checkstop/mode switch), which if set would prohibit fabric
+    ///           commands from being broadcasted
+    /// @param[in] i_target => P9 chip target
+    /// @return FAPI_RC_SUCCESS if fabric is not stopped
+    fapi2::ReturnCode p9_pba_coherent_utils_check_fbc_state(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        fapi2::ReturnCode rc;
+        FAPI_DBG("p9_pba_coherent_utils_check_fbc_state: Start");
+
+        //Make sure the fabric is initialized TODO Put in the functions that Joe just made in here
+
+        //Make sure the fabric is running TODO Put in the functions that Joe just made in here
+        return rc;
+    }
+
+    /// @brief calculates the number of 128 byte granules that can be read/written before setup needs to be run again
+    /// @param[in] i_target => P9 chip target
+    /// @param[in] i_address => starting address for PBA operation
+    /// @return number of 128 byte granules that can be read/written before setup needs to be run again
+    fapi2::ReturnCode p9_pba_coherent_utils_get_num_granules(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const uint64_t i_address,
+        uint32_t& o_numGranules)
+    {
+        uint64_t oci_address_mask;
+        uint64_t maximumAddress;
+        //First set up the pba_bar_mask
+        fapi2::buffer<uint64_t> pba_bar_mask_data;
+        //Set the PBA BAR mask to allow as much of the OCI address to pass through directly as possible
+        //by setting bits 23:43 to 0b1.
+        uint64_t pba_bar_mask_attr = 0x1FFFFF00000ull;
+
+        FAPI_DBG("p9_pba_coherent_utils_get_num_granules: Start");
+
+        pba_bar_mask_data.insertFromRight<0, 63>(pba_bar_mask_attr);
+
+        //write the PBA Bar Mask Register
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBABARMSK3, pba_bar_mask_data),
+                 "Error writing to the PBA Bar Mask Attribute");
+
+
+        //maximum size before we need to rerun setup - this is the number if the PBA Bar Mask is set with bits 23:43 to 0b1
+        maximumAddress = 0x8000000ull;
+        //mask to mask away bits 37:63 of the input address
+        oci_address_mask = 0x7FFFFFFull;
+
+        //subtract the oci part of the address from this maximum number and divide by 8 to get the number of bytes
+        //then divide by 128 to get the number of 128 bye granules that can be sent
+        o_numGranules = ((maximumAddress - (i_address & oci_address_mask)) / 8) / 128;
+        FAPI_INF("o_numGranules = %016x", o_numGranules);
+
+    fapi_try_exit:
+        FAPI_INF("End");
+        return fapi2::current_err;
+    }
+
+    /// @brief does the setup for the PBA to set up the initial registers for a read/write
+    /// @param[in] i_target => P9 chip target
+    /// @param[in] i_address => starting address for PBA operation
+    /// @param[in] i_rnw => whether the operation is a read or write
+    /// @param[in] i_flags => flags that contain information that the PBA needs to know to set up registers
+    /// @return FAPI_RC_SUCCESS if setting up the pba registers is a success
+    fapi2::ReturnCode p9_pba_coherent_setup_pba(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const uint64_t i_address,
+        const bool i_rnw,
+        const uint32_t i_flags)
+    {
+        uint32_t extaddr;
+        uint64_t ocb3_addr_data;
+        fapi2::buffer<uint64_t> ocb_status_ctl_data;
+        fapi2::buffer<uint64_t> ocb3_addr;
+        fapi2::buffer<uint64_t> pba_slave_ctl_data;
+
+        FAPI_DBG("p9_pba_coherent_setup_pba: Start");
+
+        //Write the OCB3 Status Control Register
+        //Configure linear stream mode (auto-increment +8 with each data register read/write)
+        //set bit 4 and unset bit 5 of OCB3 Status Control Register
+        ocb_status_ctl_data.flush<1>().clearBit<5>();
+        FAPI_TRY(fapi2::putScom(i_target, PU_GPE6_OCB_PIB_OCBCSR3_CLEAR,
+                                ocb_status_ctl_data),
+                 "Error writing to the OCB3 Status Control Register with and mask");
+        ocb_status_ctl_data.flush<0>().setBit<4>();
+        FAPI_TRY(fapi2::putScom(i_target, PU_GPE6_OCB_PIB_OCBCSR3_OR,
+                                ocb_status_ctl_data),
+                 "Error writing to the OCB3 Status Control Register with or mask");
+
+        //Write the address to OCB3_ADDRESS Register
+        ocb3_addr_data = 0xE000000000000000 | (i_address & 0x7FFFFFFull);
+        //uint64_t ocb3_addr_data = 0xB000000000000000 | (i_address & 0x7FFFFFFull);
+        //uint64_t ocb3_addr_data = 0xB000003800000000 | (i_address & 0x7FFFFFFull);
+        ocb3_addr.insertFromRight<0, 64>(ocb3_addr_data);
+
+        FAPI_INF("setting ocb3_addr to 0x%016x", ocb3_addr);
+
+        FAPI_TRY(fapi2::putScom(i_target, PU_GPE6_OCB_PIB_OCBAR3, ocb3_addr),
+                 "Error writing the OCB3_ADDRESS Register");
+
+        //Write the PBA Slave Control Register that controls the tsize, fastmode, etc
+        //set bit 0 to enable OCI Base Address Range Enabled
+        pba_slave_ctl_data.setBit<PBA_SLVCTL_ENABLE_BIT>();
+        //set bits 1:3 to 110 for setting MasterID Match = OCB
+        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_MASTER_ID_MATCH_START_BIT,
+                                           (PBA_SLVCTL_MASTER_ID_MATCH_END_BIT - PBA_SLVCTL_MASTER_ID_MATCH_START_BIT) + 1 >
+                                           (6);
+        //set bits 5:7 to 111 so that MasterID Care Match limits to ONLY the OCB
+        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_MASTER_ID_CARE_MASK_START_BIT,
+                                           (PBA_SLVCTL_MASTER_ID_CARE_MASK_END_BIT -
+                                            PBA_SLVCTL_MASTER_ID_CARE_MASK_START_BIT) + 1 > (7);
+
+        //set the write ttype bits 8:10 to whatever is in the flags
+        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_WRITE_TTYPE_START_BIT,
+                                           (PBA_SLVCTL_WRITE_TTYPE_END_BIT - PBA_SLVCTL_WRITE_TTYPE_START_BIT) + 1 > (i_flags >> (31 - flags::FLAG_TTYPE_END));
+
+        //it's not cache-inhibited so set bit 15 to cl_rd_nc (0)
+        pba_slave_ctl_data.clearBit<PBA_SLVCTL_READ_TTYPE_BIT>();
+        //set bits 16:17 to No prefetch 01 TODO May need to change this later if we want to use prefetch
+        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_READ_PREFETCH_CTL_START_BIT,
+                                           (PBA_SLVCTL_READ_PREFETCH_CTL_END_BIT - PBA_SLVCTL_READ_PREFETCH_CTL_START_BIT)
+                                           + 1 > (1);
+        //unset bit 18 - no auto-invalidate
+        pba_slave_ctl_data.clearBit<PBA_SLVCTL_READ_BUF_INVALIDATE_CTL_BIT>();
+        //set bit 19 - write buffer pair allocation bit to 1
+        pba_slave_ctl_data.setBit<PBA_SLVCTL_WRITE_BUF_PAIR_ALLOCATION_BIT>();
+        //set bit 21 - read buffer pair b allocation bit to 1
+        pba_slave_ctl_data.setBit<PBA_SLVCTL_READ_BUF_PAIR_B_ALLOCATION_BIT>();
+        //unset bits 20, 22, and 23
+        pba_slave_ctl_data.clearBit<PBA_SLVCTL_READ_BUF_PAIR_A_ALLOCATION_BIT>().clearBit<PBA_SLVCTL_READ_BUF_PAIR_C_ALLOCATION_BIT>().clearBit<PBA_SLVCTL_READ_BUF_PAIR_C_ALLOCATION_BIT>();
+        //unset bit 24 to allow write gather
+        pba_slave_ctl_data.clearBit<PBA_SLVCTL_DISABLE_WRITE_GATHER_BIT>();
+        //set bits 25:27 to 000 for write gather timeout NA
+        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_WRITE_GATHER_TIMEOUT_START_BIT,
+                                           (PBA_SLVCTL_WRITE_GATHER_TIMEOUT_END_BIT -
+                                            PBA_SLVCTL_WRITE_GATHER_TIMEOUT_START_BIT) + 1 > (0);
+        //set bits 28:35 for the tsize to 0 - TODO when this is a write need to do the chiplet ID of the L3 cache in the form of 00cc_ccc0
+        //TODO Joe commented here:
+        //For LCO, we need to think about how we're going to be instructed (in the SBE chip-op use case, this has to come across the SBE FIFO interface) which L3 to target.  In this HWP routine, this information should drive obtaining the correct target to query its LCO config, so it can be used to target the correct cache.
+        //I am planning to get to this after the long weekend, I need to send a note to Dean, Amit, and Basabjit and ask whether they would rather have us
+        //put in a chiplet number into the flags or have them pass in an extra quad target argument - either one works for me but I wasn't sure what they would rather have.
+        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_WRITE_TSIZE_START_BIT,
+                                           (PBA_SLVCTL_WRITE_TSIZE_END_BIT - PBA_SLVCTL_WRITE_TSIZE_START_BIT) + 1 > (0);
+        //set bits 36:49 to the ext addr
+        extaddr = ((uint32_t) (i_address >> PBA_SLVCTL_EXTADDR_SHIFT)) &
+                  PBA_SLVCTL_EXTADDR_MASK;
+
+        FAPI_INF("the external address that will be put into the pba_slave_control register = 0x%016x", extaddr);
+
+        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_EXT_ADDR_START_BIT,
+                                           (PBA_SLVCTL_EXT_ADDR_END_BIT - PBA_SLVCTL_EXT_ADDR_START_BIT) + 1 > (extaddr);
+
+
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBASLVCTL3_SCOM, pba_slave_ctl_data),
+                 "Error writing the PBA Slave Control Register");
+
+        FAPI_INF("pba_slv_ctl is going to be set to 0x%016x", pba_slave_ctl_data);
+
+    fapi_try_exit:
+        FAPI_INF("End");
+        return fapi2::current_err;
+    }
+
+    ///@brief sets up the PBA Bar
+    ///@param[in] i_target => P9 chip target
+    ///@param[in] i_address => address for this read/write
+    ///@return FAPI_RC_SUCCESS if writing the PBA is a success
+    fapi2::ReturnCode p9_pba_coherent_setup_pba_bar(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const uint64_t i_baseAddress)
+    {
+        fapi2::buffer<uint64_t> pba_bar_data;
+
+        FAPI_DBG("p9_pba_coherent_setup_pba_bar: Start");
+
+        //Validate the input parameters
+        //Check the address alignment
+        FAPI_ASSERT(!(i_baseAddress & PROC_FBC_UTILS_CACHELINE_MASK),
+                    fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
+                        i_baseAddress),
+                    "p9_pba_coherent_setup_pba_bar: Base Address is not cacheline aligned");
+        //Make sure the address is within the PBA bounds
+        FAPI_ASSERT(i_baseAddress <= PROC_FBC_UTILS_FBC_MAX_ADDRESS,
+                    fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
+                        i_baseAddress),
+                    "p9_pba_coherent_setup_pba_bar: Base Address exceeds supported fabric real address range");
+
+        //set command scope to local node scope
+        pba_bar_data.insertFromRight < PBA_BAR_SCOPE_START_BIT,
+                                     (PBA_BAR_SCOPE_END_BIT - PBA_BAR_SCOPE_START_BIT) + 1 >
+                                     (PBA_BAR_SCOPE_LOCAL_NODE);
+
+        //set base address bits 8:43
+        pba_bar_data.insertFromRight < PBA_BAR_BASE_ADDRESS_START_BIT,
+                                     (PBA_BAR_BASE_ADDRESS_END_BIT - PBA_BAR_BASE_ADDRESS_START_BIT) + 1 > ((
+                                             i_baseAddress >> PBA_BAR_BASE_ADDRESS_SHIFT) & PBA_BAR_BASE_ADDRESS_MASK);
+
+        FAPI_INF("pba_bar3 is going to be set to 0x%016x", pba_bar_data);
+
+        //write the register
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBABAR3, pba_bar_data),
+                 "Error writing the PBA Bar Register");
+
+    fapi_try_exit:
+        FAPI_INF("End p9_pba_coherent_setup_pba_bar");
+        return fapi2::current_err;
+
+    }
+
+    /// @brief does the write for the PBA
+    /// @param[in] i_target => P9 chip target
+    /// @param[in] i_address => address for this write
+    /// @param[in] i_flags => flags that contain information that the PBA needs to know to set up registers
+    /// @param[in] i_write_data => the data that is to be written to the PBA
+    /// @return FAPI_RC_SUCCESS if writing the PBA is a success
+    fapi2::ReturnCode p9_pba_coherent_pba_write(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const uint64_t i_address,
+        const uint32_t i_flags,
+        const uint64_t i_write_data[])
+    {
+        fapi2::ReturnCode rc;
+        FAPI_DBG("p9_pba_coherent_pba_write: Start");
+
+        //Perform a 128B write -- need to do 16 8B writes since it's in linear mode which can only do 8B...
+        for (int i = 0; i < 16; i++)
+        {
+            fapi2::buffer<uint64_t> data(i_write_data[i]);
+            FAPI_TRY(fapi2::putScom(i_target, PU_GPE6_OCB_PIB_OCBDR3, data),
+                     "Error writing to the PBA via the OCB");
+        }
+
+    fapi_try_exit:
+        FAPI_INF("p9_pba_coherent_pba_write: End");
+        return fapi2::current_err;
+    }
+
+    /// @brief does the read for the PBA
+    /// @param[in] i_target => P9 chip target
+    /// @param[in] i_address => address for this write
+    /// @param[in] i_flags => flags that contain information that the PBA needs to know to set up registers
+    /// @param[out] o_read_data => the data that is read from the PBA
+    /// @return FAPI_RC_SUCCESS if reading the PBA is a success
+    fapi2::ReturnCode p9_pba_coherent_pba_read(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const uint64_t i_address,
+        const uint32_t i_flags,
+        uint64_t o_read_data[])
+    {
+        fapi2::buffer<uint64_t> data;
+
+        FAPI_DBG("p9_pba_coherent_pba_read: Start");
+
+        //Perform a 128B read -- need to do 16 8B reads since it's in linear mode which can only do 8B...
+        for (int i = 0; i < 16; i++)
+        {
+            FAPI_TRY(fapi2::getScom(i_target, PU_GPE6_OCB_PIB_OCBDR3, data),
+                     "Error reading from the PBA via the OCB");
+            o_read_data[i] = data;
+        }
+
+    fapi_try_exit:
+        FAPI_INF("p9_pba_coherent_pba_read: End");
+        return fapi2::current_err;
+    }
+
+    /// @brief this does any cleanup for the PBA after all reads/writes have been done
+    /// @param[in] i_target => P9 chip target
+    /// @return FAPI_RC_SUCCESS if cleaning up the PBA is a success
+    fapi2::ReturnCode p9_pba_coherent_cleanup_pba(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        FAPI_DBG("p9_pba_coherent_cleanup_pba: Start");
+
+        fapi2::buffer<uint64_t> data;
+
+        //Clean up the PBA register by resetting PBASLVCTL3 by writing to the PBASLVRST
+        data.insertFromRight < PBA_SLVRST_SET_START_BIT,
+                             (PBA_SLVRST_SET_END_BIT - PBA_SLVRST_SET_START_BIT) + 1 > (7);
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBASLVRST_SCOM, data),
+                 "Error writing to the PBA Slave Reset register");
+
+        //Wait a little bit and make sure that the reset is no longer in progress
+        FAPI_TRY(fapi2::delay(PBA_SLVRST_DELAY_HW_NS, PBA_SLVRST_DELAY_SIM_CYCLES),
+                 "Error from PBA Slave Reset delay");
+
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBASLVRST_SCOM, data),
+                 "Error reading from the PBA Slave Reset register");
+
+        FAPI_ASSERT(!data.getBit<PBA_SLVRST_SLVCTL3_IN_PROG>(),
+                    fapi2::P9_PBA_COHERENT_UTILS_RESET_ERR().set_TARGET(i_target).set_RDDATA(
+                        data),
+                    "Error in resetting the PBA Slave Reset register");
+
+    fapi_try_exit:
+        FAPI_INF("p9_pba_coherent_cleanup_pba: End");
+        return fapi2::current_err;
+    }
+
+    /// @brief this checks the PBA/OCB status registers - this is for use at the end of each write/read or at the end of each stream
+    /// @return FAPI_RC_SUCCESS if the status check is a success
+    fapi2::ReturnCode p9_pba_coherent_status_check(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        FAPI_DBG("p9_pba_coherent_status_check: Start");
+
+        fapi2::buffer<uint64_t> rd_buf0_valid;
+        fapi2::buffer<uint64_t> rd_buf1_valid;
+        fapi2::buffer<uint64_t> rd_buf2_valid;
+        fapi2::buffer<uint64_t> rd_buf3_valid;
+        fapi2::buffer<uint64_t> rd_buf4_valid;
+        fapi2::buffer<uint64_t> rd_buf5_valid;
+        fapi2::buffer<uint64_t> wr_buf0_valid;
+        fapi2::buffer<uint64_t> wr_buf1_valid;
+        fapi2::buffer<uint64_t> reset_buf;
+
+        //Check the 6 PBA Read Buffer Valid Status by reading the read buffer status (bits 33:39) and making sure it's 1
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBARBUFVAL0, rd_buf0_valid),
+                 "Error reading from the PBA Read Buffer Valid 0 Status Register");
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBARBUFVAL1, rd_buf1_valid),
+                 "Error reading from the PBA Read Buffer Valid 1 Status Register");
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBARBUFVAL2, rd_buf2_valid),
+                 "Error reading from the PBA Read Buffer Valid 2 Status Register");
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBARBUFVAL3, rd_buf3_valid),
+                 "Error reading from the PBA Read Buffer Valid 3 Status Register");
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBARBUFVAL4, rd_buf4_valid),
+                 "Error reading from the PBA Read Buffer Valid 4 Status Register");
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBARBUFVAL5, rd_buf5_valid),
+                 "Error reading from the PBA Read Buffer Valid 5 Status Register");
+
+        //Check the 2 PBA Write Buffer Valid Status by reading the write buffer status (bits 35:39) and making sure it's 1
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBAWBUFVAL0, wr_buf0_valid),
+                 "Error reading from the PBA Write Buffer Valid 0 Status Register");
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBAWBUFVAL1, wr_buf1_valid),
+                 "Error reading from the PBA Write Buffer Valid 1 Status Register");
+
+        //Check the PBA Slave Reset Register for if things are still in progress
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBASLVRST_SCOM, reset_buf),
+                 "Error reading from the PBA Slave Reset Register");
+
+        //If there are any errors in the Status registers that we got above, collect all of the data and send an error
+        FAPI_ASSERT(((rd_buf0_valid & PBA_RD_BUF_VALID_MASK) == (rd_buf1_valid & PBA_RD_BUF_VALID_MASK) ==
+                     (rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == (rd_buf3_valid & PBA_RD_BUF_VALID_MASK) ==
+                     (rd_buf4_valid & PBA_RD_BUF_VALID_MASK) == (rd_buf5_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
+                    && ((wr_buf0_valid & PBA_WR_BUF_VALID_MASK) == (wr_buf1_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
+                    && ((reset_buf & PBA_SLVRST_BUSY_IN_PROG_MASK) == 0),
+                    fapi2::P9_PBA_STATUS_ERR().set_TARGET(i_target).set_RDBUF0(rd_buf0_valid).set_RDBUF1(rd_buf1_valid).set_RDBUF2(
+                        rd_buf2_valid).set_RDBUF3(rd_buf3_valid).set_RDBUF4(rd_buf4_valid).set_RDBUF5(rd_buf5_valid).set_WRBUF0(
+                        wr_buf0_valid).set_WRBUF1(wr_buf1_valid).set_SLVRSTDATA(reset_buf),
+                    "Error in checking the PBA Reset, PBA Read Buffer, or PBA Write Buffer Registers");
+
+    fapi_try_exit:
+        FAPI_INF("p9_pba_coherent_status_check: End");
+        return fapi2::current_err;
+    }
+
+} // extern "C"
