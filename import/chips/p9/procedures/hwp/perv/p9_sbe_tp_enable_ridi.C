@@ -33,7 +33,7 @@
 //## auto_generated
 #include "p9_sbe_tp_enable_ridi.H"
 
-#include "perv_scom_addresses.H"
+#include "p9_perv_scom_addresses.H"
 
 
 fapi2::ReturnCode p9_sbe_tp_enable_ridi(const

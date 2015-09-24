@@ -1,0 +1,35 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/hwp/perv/p9_perv_sbe_cmn_errors.xml $     -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2015                                                         -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<!-- This is an automatically generated file. -->
+<!-- File: p9_perv_sbe_cmn_errors.xml. -->
+<!-- Halt codes for p9_perv_sbe_cmn -->
+
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_SBE_SCAN0_DONE_POLL_THRESHOLD_ERR</rc>
+    <description>Timeout waiting for scan0 to complete , loop count expired that polls for OPCG_DONE</description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_SBE_ARRAYINIT_POLL_THRESHOLD_ERR</rc>
+    <description>Polling for OPCG_DONE for arrayInit reached threshold , count expired.</description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
