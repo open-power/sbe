@@ -33,8 +33,7 @@
 //## auto_generated
 #include "p9_sbe_nest_enable_ridi.H"
 
-#include "perv_scom_addresses.H"
-
+#include "p9_perv_scom_addresses.H"
 
 static fapi2::ReturnCode p9_sbe_nest_enable_ridi_net_ctrl_action_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);

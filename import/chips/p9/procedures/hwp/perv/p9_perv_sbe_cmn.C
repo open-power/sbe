@@ -33,7 +33,7 @@
 //## auto_generated
 #include "p9_perv_sbe_cmn.H"
 
-#include "perv_scom_addresses.H"
+#include "p9_perv_scom_addresses.H"
 
 
 enum P9_PERV_SBE_CMN_Private_Constants
