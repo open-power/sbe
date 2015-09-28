@@ -20,11 +20,12 @@
 /// @file  p9_common_pro_epi_log.H
 /// @brief common procedure prologue/epilogue routines
 ///
-/// *HWP HWP Owner   : David Du      <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Reshmi Nair   <resnair5@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:SGPE
-/// *HWP Level       : 1
+/// *HWP HWP Owner          : David Du      <daviddu@us.ibm.com>
+/// *HWP Backup HWP Owner   : Greg Still    <stillgs@us.ibm.com>
+/// *HWP FW Owner           : Reshmi Nair   <resnair5@in.ibm.com>
+/// *HWP Team               : PM
+/// *HWP Consumed by        : SBE:SGPE
+/// *HWP Level              : 1
 ///
 
 #ifndef __P9_COMMON_PRO_EPI_LOG_H__

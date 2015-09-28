@@ -20,38 +20,34 @@
 /// @file  p9_hcd_cache_startclocks.H
 /// @brief Quad Clock Start
 ///
-/// *HWP HWP Owner   : David Du       <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Sangeetha T S  <sangeet2@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:SGPE
-/// *HWP Level       : 1
-///
 
+// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
+// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:SGPE
+// *HWP Level              : 2
 
 #ifndef __P9_HCD_CACHE_STARTCLOCKS_H__
 #define __P9_HCD_CACHE_STARTCLOCKS_H__
 
-extern "C"
-{
+#include <fapi2.H>
 
 /// @typedef p9_hcd_cache_startclocks_FP_t
 /// function pointer typedef definition for HWP call support
-    typedef fapi2::ReturnCode (*p9_hcd_cache_startclocks_FP_t) (
-        const fapi2::Target<fapi2::TARGET_TYPE_EX>&);
+typedef fapi2::ReturnCode (*p9_hcd_cache_startclocks_FP_t) (
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>&);
+
+extern "C"
+{
 
 /// @brief Quad Clock Start
-///
-/// @param [in] i_target TARGET_TYPE_EX target
-///
-/// @attr
-/// @attritem NONE
-///
-/// @retval FAPI_RC_SUCCESS
+/// @param [in] i_target TARGET_TYPE_EQ target
+/// @return FAPI2_RC_SUCCESS if success, else error code
     fapi2::ReturnCode
     p9_hcd_cache_startclocks(
-        const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_target);
+        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target);
 
-
-} // extern C
+}
 
 #endif  // __P9_HCD_CACHE_STARTCLOCKS_H__
