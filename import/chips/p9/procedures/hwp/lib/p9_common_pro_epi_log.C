@@ -20,11 +20,12 @@
 /// @file  p9_common_pro_epi_log.C
 /// @brief common procedure prologue/epilogue routines
 ///
-/// *HWP HWP Owner   : David Du      <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Reshmi Nair   <resnair5@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:SGPE
-/// *HWP Level       : 1
+/// *HWP HWP Owner          : David Du      <daviddu@us.ibm.com>
+/// *HWP Backup HWP Owner   : Greg Still    <stillgs@us.ibm.com>
+/// *HWP FW Owner           : Reshmi Nair   <resnair5@in.ibm.com>
+/// *HWP Team               : PM
+/// *HWP Consumed by        : SBE:SGPE
+/// *HWP Level              : 1
 ///
 /// Procedure Summary:
 ///
@@ -33,8 +34,6 @@
 // Includes
 //------------------------------------------------------------------------------
 #include <fapi2.H>
-//#include <common_scom_addresses.H>
-//will be replaced with real scom address header file
 #include "p9_common_pro_epi_log.H"
 
 //------------------------------------------------------------------------------

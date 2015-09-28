@@ -36,12 +36,12 @@ extern "C"
 /// @typedef p9_hcd_cache_scominit_FP_t
 /// function pointer typedef definition for HWP call support
     typedef fapi2::ReturnCode (*p9_hcd_cache_scominit_FP_t) (
-        const fapi2::Target<fapi2::TARGET_TYPE_EX>&);
+        const fapi2::Target<fapi2::TARGET_TYPE_EQ>&);
 
 
 /// @brief  Cache Customization SCOMs
 ///
-/// @param [in] i_target TARGET_TYPE_EX target
+/// @param [in] i_target TARGET_TYPE_EQ target
 ///
 /// @attr
 /// @attritem NONE
@@ -49,7 +49,7 @@ extern "C"
 /// @retval FAPI_RC_SUCCESS
     fapi2::ReturnCode
     p9_hcd_cache_scominit(
-        const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_target);
+        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target);
 
 
 } // extern C

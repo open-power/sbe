@@ -58,7 +58,7 @@ extern "C"
 
     fapi2::ReturnCode
     p9_hcd_cache_initf(
-        const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_target)
+        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
     {
 
 #if 0
