@@ -19,16 +19,14 @@
 //------------------------------------------------------------------------------
 /// @file  p9_sbe_nest_startclocks.H
 ///
-/// @brief start clocks for nest chiplets
-// *!
-// *! OWNER NAME  : Abhishek Agarwal  Email: abagarw8@in.ibm.com
-// *! BACKUP NAME :                   Email:
+/// @brief start PB and Nest clocks
 //------------------------------------------------------------------------------
-// *HWP HWP Owner   : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP FW Owner    : Brian Silver <bsilver@us.ibm.com>
-// *HWP Team        : Perv
-// *HWP Level       : 1
-// *HWP Consumed by : SBE
+// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
+// *HWP FW Owner         : sunil kumar <skumar8j@in.ibm.com>
+// *HWP Team             : Perv
+// *HWP Level            : 2
+// *HWP Consumed by      : SBE
 //------------------------------------------------------------------------------
 
 
