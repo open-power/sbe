@@ -19,16 +19,14 @@
 //------------------------------------------------------------------------------
 /// @file  p9_sbe_tp_chiplet_init3.H
 ///
-/// @brief SBE Pervasive Init Procedure 3
-// *!
-// *! OWNER NAME  : Abhishek Agarwal  Email: abagarw8@in.ibm.com
-// *! BACKUP NAME :                   Email:
+/// @brief TP Chiplet Start Clocks
 //------------------------------------------------------------------------------
-// *HWP HWP Owner   : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP FW Owner    : Brian Silver <bsilver@us.ibm.com>
-// *HWP Team        : Perv
-// *HWP Level       : 1
-// *HWP Consumed by : SBE
+// *HWP HWP Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HWP Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
+// *HWP FW Owner         : sunil kumar <skumar8j@in.ibm.com>
+// *HWP Team             : Perv
+// *HWP Level            : 2
+// *HWP Consumed by      : SBE
 //------------------------------------------------------------------------------
 
 
