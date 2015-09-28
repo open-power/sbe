@@ -19,16 +19,14 @@
 //------------------------------------------------------------------------------
 /// @file  p9_sbe_attr_setup.H
 ///
-/// @brief If and only if scratch registers are non-zero, HWP will read the contents of the scratch registers and call FAPI2 APIs to set the values into the corresponding platform ATTR
-// *!
-// *! OWNER NAME  : Abhishek Agarwal  Email: abagarw8@in.ibm.com
-// *! BACKUP NAME :                   Email:
+/// @brief Read scratch Regs, update ATTR
 //------------------------------------------------------------------------------
-// *HWP HWP Owner   : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP FW Owner    : Brian Silver <bsilver@us.ibm.com>
-// *HWP Team        : Perv
-// *HWP Level       : 1
-// *HWP Consumed by : SBE
+// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
+// *HWP FW Owner         : sunil kumar <skumar8j@in.ibm.com>
+// *HWP Team             : Perv
+// *HWP Level            : 2
+// *HWP Consumed by      : SBE
 //------------------------------------------------------------------------------
 
 
@@ -42,7 +40,9 @@
 typedef fapi2::ReturnCode (*p9_sbe_attr_setup_FP_t)(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 
-/// @brief --Setting All Mailbox scratch register 1, 2, 3, 4, 5, 6, 7, 8
+/// @brief HWP will read the contents of Byte 0 of scratch register 8 indicates validity of mailbox register
+/// and call FAPI2 APIs to set the values into the corresponding platform ATTR
+///
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
