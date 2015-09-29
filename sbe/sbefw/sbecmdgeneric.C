@@ -35,6 +35,10 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 
     capability[GENERIC_CHIPOP_CAPABILITY_START_IDX] =
                                 GET_SBE_CAPABILITIES_SUPPPORTED;
+
+    capability[MEMORY_CAPABILITY_START_IDX] =
+                                GET_MEMORY_SUPPPORTED |
+                                PUT_MEMORY_SUPPPORTED ;
 }
 // Functions
 //----------------------------------------------------------------------------

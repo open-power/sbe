@@ -261,6 +261,22 @@ enum
     GET_SBE_STATE_SUPPPORTED            = 0xA8000008,
 };
 
+/**
+ *  * @brief enums for SBE Memory Access command flags
+ *
+ */
+enum sbeMemoryAccessFlags
+{
+    SBE_MEM_ACCESS_FLAGS_TARGET_PROC  = 0x00000001,
+    SBE_MEM_ACCESS_FLAGS_TARGET_PBA   = 0x00000002,
+    SBE_MEM_ACCESS_FLAGS_AUTO_INCR_ON = 0x00000004,
+    SBE_MEM_ACCESS_FLAGS_ECC_OVERRIDE = 0x00000008,
+    SBE_MEM_ACCESS_FLAGS_TAG          = 0x00000010,
+    SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON = 0x00000020,
+};
+
+
+
 #ifdef __cplusplus
 }
 #endif

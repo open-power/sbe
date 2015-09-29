@@ -9,6 +9,7 @@
 #include "sbecmdscomaccess.H"
 #include "sbecmdiplcontrol.H"
 #include "sbecmdgeneric.H"
+#include "sbecmdmemaccess.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 
@@ -71,6 +72,33 @@ static sbeCmdStruct_t g_sbeGenericCmdArray [] =
 
 };
 
+//////////////////////////////////////////////////////////////
+// @brief g_sbeMemoryAccessCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeMemoryAccessCmdArray [] =
+{
+    {sbeGetMem,
+     SBE_CMD_GETMEM,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+
+    {sbePutMem,
+     SBE_CMD_PUTMEM,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+
+    {sbeGetSram,
+     SBE_CMD_GETSRAM,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+
+    {sbePutSram,
+     SBE_CMD_PUTSRAM,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+};
+
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -102,6 +130,11 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             *o_ppCmd    = (sbeCmdStruct_t*)g_sbeGenericCmdArray;
             break;
 
+        case SBE_CMD_CLASS_MEMORY_ACCESS:
+            l_numCmds = sizeof(g_sbeMemoryAccessCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbeMemoryAccessCmdArray;
+            break;
 
         // This will grow with each class of chipOp in future
         default:

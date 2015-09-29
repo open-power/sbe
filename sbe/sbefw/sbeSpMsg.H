@@ -9,6 +9,8 @@
 #ifndef __SBEFW_SBESP_MSG_H
 #define __SBEFW_SBESP_MSG_H
 
+#include "sbe_sp_intf.H"
+
 // @NOTE Make sure all FIFO structures are 32 bit alligned ( the largest
 // member should be atleast 4 byte). It is required as in sbe fifo
 // operation we are casting these structures to uint32_t pointer. It can
@@ -238,7 +240,7 @@ typedef struct
         uint64_t data = ((uint64_t)hiMaskData << 32) | lowMaskData;
         return data;
     }
-    
+
     /**
       * @brief Determines 64-bit Scom data
       *
@@ -250,8 +252,81 @@ typedef struct
         uint64_t l_inputData = getInputData();
         io_scomData = (io_scomData & (~l_inputMask))
                     | (l_inputData & l_inputMask);
-    }    
+    }
 }sbePutScomUnderMaskReqMsg_t;
+
+/**
+ * @brief Structure for SBE Memory Access ChipOps (0xA401/A402)
+ *
+ */
+typedef struct
+{
+    uint32_t flags;  // Operational Flags
+    uint32_t addrHi; // Higher 32-Bit Memory Address
+    uint32_t addrLo; // Lower  32-Bit Memory Address
+    uint32_t len;    // Length of Data in Bytes
+
+    /**
+      * @brief Calculates 64-bit PBA Address
+      *
+      * @return Return 64-bit PBA address
+      */
+    uint64_t getPbaAddr()
+    {
+        uint64_t addr = ((uint64_t)addrHi << 32) | addrLo;
+        return addr;
+    }
+
+    /**
+      * @brief Determines if PBA flag is set
+      *
+      * @return Returns True if PBA Flag is set
+      *                 False if PBA flag is not set
+      */
+    bool isPbaFlagSet()
+    {
+        bool tmp_flag = (flags & SBE_MEM_ACCESS_FLAGS_TARGET_PBA) ?
+                           true : false ;
+        return tmp_flag;
+    }
+
+    /**
+      * @brief Determines if Auto Increment Mode is set
+      *
+      * @return Returns True if Auto Increment mode is set
+      *                 False if Auto Increment is not set
+      */
+    bool isAutoIncrModeSet()
+    {
+        bool tmp_flag = (flags & SBE_MEM_ACCESS_FLAGS_AUTO_INCR_ON) ?
+                           true : false ;
+        return tmp_flag;
+    }
+
+    /**
+      * @brief Determines if Fast Mode is set
+      *
+      * @return Returns True if Fast mode is set
+      *                 False if Fast mode is not set
+      */
+    uint32_t isFastModeSet()
+    {
+        uint32_t tmp_flag = (flags & SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON) ?
+                             (1<<31) : 0;
+        return tmp_flag;
+    }
+
+    /**
+      * @brief Calculates Data length in alignment with PBA Cacheline (128B)
+      *
+      * @return Returns Data length in alignment with PBA Cacheline
+      */
+    uint64_t getDataLenPbaCacheAlign()
+    {
+        uint64_t l_len = (len / 8) / 16;
+        return l_len;
+    }
+}sbeMemAccessReqMsgHdr_t;
 
 
 // Maximum number of capabilities

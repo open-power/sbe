@@ -9,6 +9,7 @@ SBEFW-CPP-SOURCES += pool.C
 SBEFW-CPP-SOURCES += sbecmdgeneric.C
 SBEFW-CPP-SOURCES += sbeFifoMsgUtils.C
 SBEFW-CPP-SOURCES += attr.C
+SBEFW-CPP-SOURCES += sbecmdmemaccess.C
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =
 

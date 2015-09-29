@@ -209,7 +209,6 @@ extern inline uint32_t sbeDownFifoEnq (const uint64_t i_data)
   */
 extern inline uint32_t sbeDownFifoGetStatus (uint64_t *o_data)
 {
-    SBE_DEBUG(">sbeDownFifoStatus");
     return getscom_abs(SBE_DOWNSTREAM_FIFO_STATUS, o_data);
 }
 
