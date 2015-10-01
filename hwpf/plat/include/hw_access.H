@@ -106,7 +106,7 @@ namespace fapi2
 
         PLAT_GETSCOM(current_err,
                      i_target,
-                    (uint32_t)(i_address & BITS(40,24)),
+                    (uint32_t)(i_address ),
                     &(o_data()));
     }
 
@@ -124,7 +124,7 @@ namespace fapi2
 
         PLAT_PUTSCOM(current_err,
                     i_target,
-                    (uint32_t)(i_address & BITS(40,24)),
+                    (uint32_t)(i_address ),
                     i_data());
     }
 
@@ -145,7 +145,7 @@ namespace fapi2
         
         PLAT_GETSCOM(current_err,
                      i_target,
-                     (uint32_t)(i_address & BITS(40,24)),
+                     (uint32_t)(i_address ),
                      &(l_modifyDataBuffer()));
 
         if ( i_modifyMode == CHIP_OP_MODIFY_MODE_OR)
@@ -165,7 +165,7 @@ namespace fapi2
 
         PLAT_PUTSCOM(current_err,
                      i_target,
-                     (uint32_t)(i_address & BITS(40,24)),
+                     (uint32_t)(i_address ),
                      l_modifyDataBuffer()); 
         return;
     }
@@ -189,7 +189,7 @@ namespace fapi2
         
         PLAT_PUTSCOM(current_err,
                     i_target,
-                    (uint32_t)(i_address & BITS(40,24)),
+                    (uint32_t)(i_address ),
                     l_modifyDataBuffer());
         return;
     }
