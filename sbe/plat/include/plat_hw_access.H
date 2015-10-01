@@ -45,11 +45,11 @@ asm volatile \
 
 /// GetScom
 #define PLAT_GETSCOM(_m_rc, _m_base, _m_offset, _m_data) \
-    _m_rc = getscom(_m_base.getAddressOverlay(), (uint32_t)(_m_offset & BITS(40,24)), _m_data);
+    _m_rc = getscom(_m_base.getAddressOverlay(), (0 == _m_base.getAddressOverlay())?_m_offset:(uint32_t)(_m_offset & BITS(40,24)), _m_data);
     
 /// PutScom
 #define PLAT_PUTSCOM(_m_rc, _m_base, _m_offset, _m_data) \
-    _m_rc = putscom(_m_base.getAddressOverlay(), (uint32_t)(_m_offset & BITS(40,24)), _m_data);
+    _m_rc = putscom(_m_base.getAddressOverlay(), (0 == _m_base.getAddressOverlay())?_m_offset:(uint32_t)(_m_offset & BITS(40,24)), _m_data);
     
 /// GetCFAM  
 #define PLAT_GETCFAM(_m_base, _m_offset, _m_data) \
