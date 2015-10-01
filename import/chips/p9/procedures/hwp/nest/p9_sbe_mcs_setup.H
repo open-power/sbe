@@ -24,11 +24,11 @@
 /// of dcbz(Data Cache Block Zero) operations executed by HBI code
 /// (while still running cache contained prior to memory configuration).
 //------------------------------------------------------------------------------
-// *HWP HW Owner         : Girisankar Paulraj <gpaulraj@in.ibm.com>
-// *HWP HW Backup Owner  : Joe McGill <jcmgill@us.ibm.com>
+// *HWP HW Owner        : Girisankar Paulraj <gpaulraj@in.ibm.com>
+// *HWP HW Backup Owner : Joe McGill <jcmgill@us.ibm.com>
 // *HWP FW Owner         : Thi N. Tran <thi@us.ibm.com>
 // *HWP Team             : Nest
-// *HWP Level            : 1
+// *HWP Level            : 2
 // *HWP Consumed by      : SBE
 //------------------------------------------------------------------------------
 
@@ -39,6 +39,20 @@
 
 #include <fapi2.H>
 
+
+namespace p9SbeMcsSetup
+{
+enum P9_SBE_MCS_SETUP_Public_Constants
+{
+    MCFIRMASK_DEFAULT = 0x00280000,
+    MC_CHANNELS_PER_GROUP = 0x00,
+    GROUP_ID = 0x00,
+    GROUP_SIZE = 0x0000,
+    DISABLE_SPEC_OP_ASSO = 0x0007FFFF,
+    GROUP_VALID = 1,
+    DISABLE_ALL_SPEC_OPS = 1
+};
+}
 
 typedef fapi2::ReturnCode (*p9_sbe_mcs_setup_FP_t)(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);

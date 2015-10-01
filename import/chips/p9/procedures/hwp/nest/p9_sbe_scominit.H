@@ -26,11 +26,11 @@
 /// *!     chiplets to chip specific values
 /// *!   o Establish ADU XSCOM BAR for HBI operation
 //------------------------------------------------------------------------------
-// *HWP HW Owner         : Girisankar Paulraj <gpaulraj@in.ibm.com>
-// *HWP HW Backup Owner  : Joe McGill <jmcgill@us.ibm.com>
+// *HWP HW Owner        : Girisankar Paulraj <gpaulraj@in.ibm.com>
+// *HWP HW Backup Owner : Joe McGill <jmcgill@us.ibm.com>
 // *HWP FW Owner         : Thi N. Tran <thi@us.ibm.com>
 // *HWP Team             : Nest
-// *HWP Level            : 1
+// *HWP Level            : 2
 // *HWP Consumed by      : SBE
 //------------------------------------------------------------------------------
 
@@ -41,6 +41,16 @@
 
 #include <fapi2.H>
 
+
+namespace p9SbeScominit
+{
+enum P9_SBE_SCOMINIT_Public_Constants
+{
+    FIR_RESET_VALUE = 0x0000000000000000ull,
+    FIRMASK_RESET_VALUE = 0xFFFFFFFFFFFFFFFFull,
+    FIRACT_RESET_VALUE = 0xFFFFFFFFFFFFFFFFull
+};
+}
 
 typedef fapi2::ReturnCode (*p9_sbe_scominit_FP_t)(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
@@ -56,5 +66,27 @@ extern "C"
     fapi2::ReturnCode p9_sbe_scominit(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 }
+
+// This structure contains the following parameter
+//      i_chip_id --> current chiplet Fabric chip id
+//      i_group_id --> current chiplet Fabric group id
+//      i_system_id --> current chiplet Fabric system id
+struct i_id_struct
+{
+        ////    Constructors and destructors    ////
+
+    public :
+
+        //## auto_generated
+        i_id_struct();
+
+        ////    Attributes    ////
+
+        uint8_t iv_chip_id;
+
+        uint8_t iv_group_id;
+
+        uint8_t iv_system_id;
+};
 
 #endif
