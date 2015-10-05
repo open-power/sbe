@@ -169,7 +169,7 @@ endif
 
 .PHONY: all normalize defaultset appendbase appendloader add_entry_offset add_entry_address_sbe symbols
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_entry_offset add_entry_address_sbe symbols
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_entry_offset add_entry_address_sbe symbols tracehash
 
 add_entry_offset: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_offset 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep sbe_loader | cut -f 1 -d " "`
