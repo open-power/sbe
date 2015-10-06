@@ -141,9 +141,9 @@ inline void toString(const Target<T>& i_target, char* i_buffer, size_t i_bsize)
 /// @brief Return the string interpretation of this target
 /// @tparam T The type of the target
 /// @tparam B The type of the buffer
-/// @param[in] A pointer to the Target<T>
+/// @param[in] i_target A pointer to the Target<T>
 /// @param[in] i_buffer buffer to write in to
-/// @param[in] i_bsize size of the buffer
+/// @param[in] i_bsize  size of the buffer
 /// @return void
 /// @post The contents of the buffer is replaced with the string
 /// representation of the target
