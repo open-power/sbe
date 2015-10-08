@@ -91,12 +91,15 @@ void pk_trace_tiny(uint32_t i_parm)
 
 // This function is called periodically in order to ensure that the max ticks
 // between trace entries is no more than what will fit inside a 32bit value.
+#ifndef PK_TRACE_TIMER_OUTPUT
+#define PK_TRACE_TIMER_OUTPUT 1
+#endif
 void pk_trace_timer_callback(void* arg)
 {
-
+#if PK_TRACE_TIMER_OUTPUT
     // guarantee at least one trace before the lower 32bit timebase flips
     PK_TRACE("PERIODIC TIMESTAMPING TRACE");
-
+#endif
     // restart the timer
     pk_timer_schedule(&g_pk_trace_timer,
                       PK_TRACE_TIMER_PERIOD);

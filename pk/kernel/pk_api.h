@@ -300,10 +300,12 @@
 
 /// This is the unscaled timebase frequency in Hz.
 #ifdef APPCFG_USE_EXT_TIMEBASE
-#define PK_BASE_FREQ_HZ     25000000
+#define PK_BASE_FREQ_HZ     (uint32_t)25000000
 #else
-#define PK_BASE_FREQ_HZ     400000000
+#define PK_BASE_FREQ_HZ     (uint32_t)400000000
 #endif /* APPCFG_USE_EXT_TIMEBASE */
+#define PK_BASE_FREQ_KHZ    (PK_BASE_FREQ_HZ / 1000)
+#define PK_BASE_FREQ_MHZ    (PK_BASE_FREQ_HZ / 1000000)
 
 /// Scale a time interval to be _closer_ to what was actually requested
 /// base on the actual timebase frequency.
@@ -313,7 +315,7 @@
 /// ignored. The application can redefine this macro.
 
 #ifndef PK_SECONDS
-#define PK_SECONDS(s) ((PkInterval)(PK_BASE_FREQ_HZ * (PkInterval)(s)))
+#define PK_SECONDS(s) ((PkInterval)(PK_BASE_FREQ_HZ * (s)))
 #endif
 
 /// Convert a time in integral milliseconds to a time interval - overflows are
@@ -321,7 +323,7 @@
 /// assumed. The application can redefine this macro.
 
 #ifndef PK_MILLISECONDS
-#define PK_MILLISECONDS(m) ((PkInterval)((PK_BASE_FREQ_HZ * (PkInterval)(m)) / 1000))
+#define PK_MILLISECONDS(m) ( (PkInterval)(PK_BASE_FREQ_KHZ * (m)) )
 #endif
 
 /// Convert a time in integral microseconds to a time interval - overflows are
@@ -329,7 +331,7 @@
 /// assumed. The application can redefine this macro.
 
 #ifndef PK_MICROSECONDS
-#define PK_MICROSECONDS(u) ((PkInterval)((PK_BASE_FREQ_HZ * (PkInterval)(u)) / 1000000))
+#define PK_MICROSECONDS(u)  ( (PkInterval)(PK_BASE_FREQ_MHZ * (u)) )
 #endif
 
 /// Convert a time in integral nanoseconds to a time interval - overflows are
@@ -337,7 +339,7 @@
 /// assumed. The application can redefine this macro.
 
 #ifndef PK_NANOSECONDS
-#define PK_NANOSECONDS(n) ((PkInterval)((PK_BASE_FREQ_HZ * (PkInterval)(n)) / 1000000000))
+#define PK_NANOSECONDS(n) ( (PkInterval)( ( ((PK_BASE_FREQ_MHZ<<10)/1000) * (n) ) >> 10) )
 #endif
 
 
