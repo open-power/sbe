@@ -17,3 +17,94 @@ EFFECT: TARGET=[REG(0x00090003)] OP=[BIT,ON] BIT=[61] #PU_ALTD_STATUS_REG, ALTD_
 # p9_sbe_mcs_setup
 # p9_sbe_instruct_start (default 0's work)
 # =============================================================================
+
+# =============================================================================
+# Actions for p9_pba_access and p9_pba_setup procedures
+# =============================================================================
+#If a reset is done need to unset the PBA_SLVRST_SLVCTL3_IN_PROG bit
+CAUSE_EFFECT{
+  LABEL=[PBA Reset set]
+  # Watch the PBASLVRST register for bits 0:2 to go to 0b111
+  WATCH=[REG(0x068001)] #PBASLVRST
+
+  CAUSE: TARGET=[REG(0x068001)] OP=[BIT,ON] BIT=[0]
+  CAUSE: TARGET=[REG(0x068001)] OP=[BIT,ON] BIT=[1]
+  CAUSE: TARGET=[REG(0x068001)] OP=[BIT,ON] BIT=[2]
+
+  #If the reset is set unset bit 7 to show that the PBA Slave reset is no longer in progress
+  EFFECT: TARGET=[REG(0x068007)] OP=[BIT,OFF] BIT=[7]
+
+}
+#If a read or write is done need to set the PBARBUFVAL[0, 1, 2, 3, 4, 5] rd buffer status (bits 33:39) to 0b0000001
+#PBAWBUFVAL[0, 1] wr buffer status (bits 35:39) to 0b00001
+#set the PBASLVRST to appropriate value
+CAUSE_EFFECT{
+  LABEL=[PBA Read to set the PBARBUFVAL PBAWBUFVAL and PBASLVRST]
+  #If the data register is read
+  WATCH_READ=[REG(0x0006D075)] #OCBDR3
+  WATCH=[REG(0x0006D075)] #OCBDR3
+  CAUSE: TARGET=[REG(0x00068007)] OP=[BIT,OFF] BIT=[4]
+
+  #set PBARBUFVAL0[buffer_status] to 0b0000001
+  EFFECT: TARGET=[REG(0x05012850)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 01000000)] MASK=[LITERAL(64,00000000 7F000000)]
+  #set PBARBUFVAL1[buffer_status] to 0b0000001
+  EFFECT: TARGET=[REG(0x05012851)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 01000000)] MASK=[LITERAL(64,00000000 7F000000)]
+  #set PBARBUFVAL2[buffer_status] to 0b0000001
+  EFFECT: TARGET=[REG(0x05012852)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 01000000)] MASK=[LITERAL(64,00000000 7F000000)]
+  #set PBARBUFVAL3[buffer_status] to 0b0000001
+  EFFECT: TARGET=[REG(0x05012853)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 01000000)] MASK=[LITERAL(64,00000000 7F000000)]
+  #set PBARBUFVAL4[buffer_status] to 0b0000001
+  EFFECT: TARGET=[REG(0x05012854)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 01000000)] MASK=[LITERAL(64,00000000 7F000000)]
+  #set PBARBUFVAL5[buffer_status] to 0b0000001
+  EFFECT: TARGET=[REG(0x05012855)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 01000000)] MASK=[LITERAL(64,00000000 7F000000)]
+
+
+  #set PBAWBUFVAL0[buffer_status] to 0b00001
+  EFFECT: TARGET=[REG(0x05012858)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 01000000)] MASK=[LITERAL(64,00000000 1F000000)]
+  #set PBAWBUFVAL0[buffer_status] to 0b00001
+  EFFECT: TARGET=[REG(0x05012859)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 01000000)] MASK=[LITERAL(64,00000000 1F000000)]
+
+  #unset PBASLVRST[in_prog] bit
+  EFFECT: TARGET=[REG(0x068001)] OP=[BIT,OFF] BIT=[7]
+  #set PBASLVRST[busy_status] to 0b0000 bits 8:11
+  EFFECT: TARGET=[REG(0x068001)] OP=[BUF,MASK] DATA=[LITERAL(64,00000000 00000000)] MASK=[LITERAL(64,00F00000 00000000)]
+}
+
+# ==========================================================================
+# Actions for p9_adu_access and p9_adu_setup procedures 
+# ==========================================================================
+#If a read/write is done to the ALTD_DATA Register set the ALTD_STATUS Register so things are as expected
+CAUSE_EFFECT{
+  LABEL=[ADU Read or write to set ALTD_STATUS Register]
+  #If the data register is read
+  WATCH_READ=[REG(0x00090004)]
+  #If the data register is written
+  WATCH=[REG(0x00090004)]
+
+  #Set the ALTD_STATUS Register so these bits are set: 
+  #FBC_ALTD_BUSY = WAIT_CMD_ARBIT = WAIT_RESP = OVERRUN_ERR = AUTOINC_ERR = COMMAND_ERR = ADDRESS_ERR = COMMAND_HANG_ERR = DATA_HANG_ERR = PBINIT_MISSING = ECC_CE = ECC_UE = ECC_SUE = 0
+  #ADDR_DONE = DATA_DONE =1
+  EFFECT: TARGET=[REG(0x00090003)] OP=[BUF,AND] DATA=[LITERAL(64,001FDFFF FFFF1FFF)] 
+  EFFECT: TARGET=[REG(0x00090003)] OP=[BUF,OR] DATA=[LITERAL(64,30000000 00000000)]
+  EFFECT: TARGET=[REG(0x00090003)] OP=[BIT,ON] BIT=[2]
+  EFFECT: TARGET=[REG(0x00090003)] OP=[BIT,ON] BIT=[3]
+}
+#If a read is done to the ALTD_CMD Register and it sets the lock set the ALTD_STATUS Register so the ALTD_STATUS_BUSY bit is set 
+CAUSE_EFFECT{
+  LABEL=[ADU Write to set ALTD_STATUS_BUSY]
+  WATCH=[REG(0x00090001)]
+  CAUSE: TARGET=[REG(0x00090001)] OP=[BIT,ON] BIT=[11]
+
+  #Set the ALTD_STATUS Register so the ALTD_STATUS_BUSY bit is set
+  EFFECT: TARGET=[REG(0x090003)] OP=[BIT,ON] BIT=[0] 
+}
+#If a write is done to the ALD_CMD_REG to set the FBC_ALTD_START_OP bit it should turn FBC_ALTD_BUSY off
+CAUSE_EFFECT{
+  LABEL=[ADU Write to ALTD_CMD_REG to unset set ALTD_STATUS FBC_ALTD_BUSY bit]
+  WATCH=[REG(0x00090001)]
+  CAUSE: TARGET=[REG(0x00090001)] OP=[BIT,ON] BIT=[2]
+
+  #Unset the ALTD_STATUS Register so the ALTD_STATUS_BUSY is unset
+  EFFECT: TARGET=[REG(0x090003)] OP=[BIT,OFF] BIT=[0]
+  EFFECT: TARGET=[REG(0x00090003)] OP=[BIT,ON] BIT=[3]
+}
