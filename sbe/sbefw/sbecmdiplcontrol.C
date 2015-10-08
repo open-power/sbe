@@ -326,7 +326,7 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
 
         case SBE_ISTEP3:
             rc = (g_istep3PtrTbl[i_minor-1].istepWrapper)(
-                                g_istep2PtrTbl[i_minor-1].istepHwp);
+                                g_istep3PtrTbl[i_minor-1].istepHwp);
             break;
 
         case SBE_ISTEP4:
