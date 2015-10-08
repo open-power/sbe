@@ -30,15 +30,18 @@ SECTIONS
 
     // SDA2 constant sections .sdata2 and .sbss2 must be adjacent to each
     // other.  Our SDATA sections are small so we'll use strictly positive
-    // offsets. 
+    // offsets.
 
     _SDA2_BASE_ = .;
    .sdata2 . : { *(.sdata2) } > sram
    .sbss2  . : { *(.sbss2) } > sram
 
-   // Other read-only data.  
-
-   .rodata . : { *(.rodata*) *(.got2) } > sram
+   // Other read-only data.
+    
+    .rodata . : { ctor_start_address = .;
+                  *(.ctors) *(.ctors.*)
+                  ctor_end_address = .;
+                  *(rodata*) *(.got2) } > sram
 
     _RODATA_SECTION_SIZE = . - _RODATA_SECTION_BASE;
 
