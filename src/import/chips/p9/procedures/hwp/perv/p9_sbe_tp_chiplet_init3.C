@@ -27,12 +27,12 @@
 ///
 /// @brief TP Chiplet Start Clocks
 //------------------------------------------------------------------------------
-// *HWP HWP Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP HWP Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
-// *HWP FW Owner         : sunil kumar <skumar8j@in.ibm.com>
-// *HWP Team             : Perv
-// *HWP Level            : 2
-// *HWP Consumed by      : SBE
+// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
+// *HWP FW Owner        : sunil kumar <skumar8j@in.ibm.com>
+// *HWP Team            : Perv
+// *HWP Level           : 2
+// *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
 
@@ -46,7 +46,7 @@
 enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
 {
     PRV_CLOCK_REGION_MASK = 0x0F84,
-    START_CMD = 0x4,
+    START_CMD = 0x1,
     REGIONS_ALL_EXCEPT_PIB_NET = 0x4FF,
     CLOCK_TYPES = 0x7
 };
@@ -75,8 +75,8 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_INF("Clear OCC-PIB and PRV region fence");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
-    l_data64.setBit<4>();  //PERV.CPLT_CTRL1.TC_PERV_FENCE_DC = 0b0
-    l_data64.setBit<20>();  //PERV.CPLT_CTRL1.TC_FUNCTIONAL_FENCE_3 = 0
+    l_data64.setBit<4>();  //PERV.CPLT_CTRL1.TC_PERV_REGION_FENCE = 0b0
+    l_data64.setBit<7>();  //PERV.CPLT_CTRL1.TC_REGION3_FENCE = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_CPLT_CTRL1_CLEAR, l_data64));
 
     // Get the TPChiplet target
@@ -85,7 +85,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
 
-        if (l_attr_chip_unit_pos == 0x01)/* TPChiplet */
+        if ((l_attr_chip_unit_pos == 0x01))/* TPChiplet */
         {
             FAPI_TRY(p9_sbe_common_clock_start_stop(it, START_CMD, 0, 0,
                                                     REGIONS_ALL_EXCEPT_PIB_NET, CLOCK_TYPES));
@@ -116,35 +116,30 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
                             0xE0001c0000000000));
 
     FAPI_INF("Setup Pervasive Hangcounter 0:PBA, 1:ADU, 2:OCC/SBE, 3:PB, 4:malefunction alert");
-    //Setting HANG_PULSE_0_REG register value
-    l_data64.flush<0>();
+    //Setting HANG_PULSE_0_REG register value (Setting all fields)
     //PERV.HANG_PULSE_0_REG.HANG_PULSE_REG_0 = 0b010010
     l_data64.insertFromRight<0, 6>(0b010010);
-    //implicit PERV.HANG_PULSE_0_REG.SUPPRESS_HANG_0 = 0b0
+    l_data64.clearBit<6>();  //PERV.HANG_PULSE_0_REG.SUPPRESS_HANG_0 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_0_REG, l_data64));
-    //Setting HANG_PULSE_1_REG register value
-    l_data64.flush<0>();
+    //Setting HANG_PULSE_1_REG register value (Setting all fields)
     //PERV.HANG_PULSE_1_REG.HANG_PULSE_REG_1 = 0b011100
     l_data64.insertFromRight<0, 6>(0b011100);
     l_data64.setBit<6>();  //PERV.HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0b1
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_1_REG, l_data64));
-    //Setting HANG_PULSE_2_REG register value
-    l_data64.flush<0>();
+    //Setting HANG_PULSE_2_REG register value (Setting all fields)
     //PERV.HANG_PULSE_2_REG.HANG_PULSE_REG_2 = 0b000100
     l_data64.insertFromRight<0, 6>(0b000100);
-    //implicit PERV.HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0b0
+    l_data64.clearBit<6>();  //PERV.HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_2_REG, l_data64));
-    //Setting HANG_PULSE_4_REG register value
-    l_data64.flush<0>();
+    //Setting HANG_PULSE_4_REG register value (Setting all fields)
     //PERV.HANG_PULSE_4_REG.HANG_PULSE_REG_4 = 0b000001
     l_data64.insertFromRight<0, 6>(0b000001);
-    //implicit PERV.HANG_PULSE_4_REG.SUPPRESS_HANG_4 = 0b0
+    l_data64.clearBit<6>();  //PERV.HANG_PULSE_4_REG.SUPPRESS_HANG_4 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_4_REG, l_data64));
-    //Setting HANG_PULSE_5_REG register value
-    l_data64.flush<0>();
+    //Setting HANG_PULSE_5_REG register value (Setting all fields)
     //PERV.HANG_PULSE_5_REG.HANG_PULSE_REG_5 = 0b000110
     l_data64.insertFromRight<0, 6>(0b000110);
-    //implicit PERV.HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0b0
+    l_data64.clearBit<6>();  //PERV.HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_5_REG, l_data64));
 
     FAPI_INF("CHECK FOR XSTOP");
