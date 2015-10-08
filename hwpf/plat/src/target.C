@@ -307,11 +307,6 @@ fapi_try_exit:
         G_ex_attributes_ptr = &G_ex_attributes;
 
 
-        // This is workaround. Currently we do not have code to initialise
-        // global objects. So initializing global objects against using local
-        // initialized object
-        std::vector<fapi2::plat_target_handle_t> targets1;
-        G_vec_targets = std::move(targets1);
         std::vector<fapi2::plat_target_handle_t>::iterator tgt_iter;
         uint32_t l_beginning_offset;
 
