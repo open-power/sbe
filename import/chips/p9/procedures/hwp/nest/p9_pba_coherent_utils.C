@@ -231,9 +231,7 @@ extern "C"
                  "Error writing to the OCB3 Status Control Register with or mask");
 
         //Write the address to OCB3_ADDRESS Register
-        ocb3_addr_data = 0xE000000000000000 | (i_address & 0x7FFFFFFull);
-        //TODO when the fix has come to us for the PBA need to change this back to B instead of E
-        //uint64_t ocb3_addr_data = 0xB000000000000000 | (i_address & 0x7FFFFFFull);
+        ocb3_addr_data = 0xB000000000000000 | (i_address & 0x7FFFFFFull);
         ocb3_addr.insertFromRight<0, 64>(ocb3_addr_data);
 
         FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBAR3, ocb3_addr),
