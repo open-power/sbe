@@ -104,12 +104,12 @@ export PPETRACEPP_DIR = $(abspath ../../tools/ppetracepp)
 endif
 
 ifndef PLAT_FAPI2_DIR
-export PLAT_FAPI2_DIR = $(abspath ../plat)
+export PLAT_FAPI2_DIR = $(abspath ../hwpf)
 endif
 
 
 ifndef PPE_FAPI2_DIR
-export PPE_FAPI2_DIR = $(abspath ../../hwpf/plat)
+export PPE_FAPI2_DIR = $(abspath ../../hwpf)
 endif
 
 ifndef BASE_FAPI2_DIR
@@ -208,8 +208,11 @@ export LD_LIBRARY_PATH = /afs/awd.austin.ibm.com/proj/p3/cte/tools/gcc405lin/vol
 INCLUDES += $(IMG_INCLUDES)
 INCLUDES += -I$(IMAGE_SRCDIR)/../../../include
 INCLUDES += -I$(HWPLIB_SRCDIR)
+INCLUDES += -I$(PLAT_FAPI2_DIR)/include/plat
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include
+INCLUDES += -I$(PPE_FAPI2_DIR)/include/plat
 INCLUDES += -I$(PPE_FAPI2_DIR)/include
+INCLUDES += -I$(BASE_FAPI2_DIR)/include/plat
 INCLUDES += -I$(BASE_FAPI2_DIR)/include
 INCLUDES += -I$(PK_SRCDIR)/../include
 INCLUDES += -I$(PK_SRCDIR)/$(PPE_TYPE)

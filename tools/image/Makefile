@@ -24,13 +24,16 @@ endif
 INCLUDES += -I. -I../../ -I../../utils 
 INCLUDES += -I ../../sbe/image/
 INCLUDES += -I ../../sbe/sbefw/
-INCLUDES += -I ../../sbe/plat/include
-INCLUDES += -I ../../hwpf/plat/include/
+INCLUDES += -I ../../sbe/hwpf/include/plat
+INCLUDES += -I ../../sbe/hwpf/include
+INCLUDES += -I ../../hwpf/include/plat
+INCLUDES += -I ../../hwpf/include/
 INCLUDES += -I ../../pk/ppe42/
 INCLUDES += -I ../../pk/kernel/
 INCLUDES += -I ../../pk/std/
 INCLUDES += -I ../../pk/trace/
 INCLUDES += -I ../../tools/ppetracepp/
+INCLUDES += -I ../../importtemp/fapi2/include/plat
 INCLUDES += -I ../../importtemp/fapi2/include/
 
 # Under Linux the scheme is to use a common compiler to create procedures.
