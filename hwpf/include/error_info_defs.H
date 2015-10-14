@@ -33,9 +33,11 @@
 
 #include <stdint.h>
 #include <target.H>
-#include <variable_buffer.H>
 
+#ifndef __PPE__
+#include <variable_buffer.H>
 #include <iostream>
+#endif  // __PPE__
 
 namespace fapi2
 {
@@ -230,6 +232,7 @@ namespace fapi2
         return EI_FFDC_SIZE_TARGET;
     }
 
+#ifndef __PPE__
     ///
     /// @brief Get FFDC Size specialization for variable buffers
     ///
@@ -240,7 +243,10 @@ namespace fapi2
         return std::min(static_cast<uint32_t>(EI_FFDC_MAX_SIZE),
                         i_thing.getLength<uint8_t>());
     }
+#endif  // __PPE__
 
 };
+
+
 
 #endif // FAPI2_ERRORINFO_DEFS_H_

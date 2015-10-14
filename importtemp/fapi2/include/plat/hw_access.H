@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: hwpf/fapi2/include/fapi2_hw_access.H $                        */
+/* $Source: hwpf/fapi2/include/plat/hw_access.H $                         */
 /*                                                                        */
 /* IBM CONFIDENTIAL                                                       */
 /*                                                                        */
@@ -16,38 +16,28 @@
 /* deposited with the U.S. Copyright Office.                              */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
+/// @file hw_access.H
 ///
-/// @file fapi2_hw_access.H
-/// @brief Common file that defines the hardware access functions that
-/// platform code must implement.
+/// @brief Hardware access functions that needs to be specialized for
+/// platform implementation.
 ///
 
-#ifndef _FAPI2_COMMON_HWACCESS_H_
-#define _FAPI2_COMMON_HWACCESS_H_
-
-#ifdef FAPI_SUPPORT_SPY_AS_ENUM
-    #include <spy_ids.H>
-    typedef uint64_t spyId_t;
-#endif
-
-#include <stdint.h>
-#include <thread>
-#include <buffer.H>
+#ifndef _FAPI2_HWACCESS_H_
+#define _FAPI2_HWACCESS_H_
 
 // variable_buffer isn't supported on PPE
 #ifndef __PPE__
     #include <variable_buffer.H>
 #endif
 
-#include <return_code.H>
-#include <target.H>
-#include <hw_access_def.H>
 #include <plat_hw_access.H>
+#include <fapi2_hw_access.H>
 
-#ifdef FAPI_SUPPORT_MULTI_SCOM
-    #include <multi_scom.H>
+//@TODO remove with RTC: 133089
+#ifdef TEMPORARY_FOR_INITFILE
+    #include <SpyInterface.H>
 #endif
-
 namespace fapi2
 {
 //--------------------------------------------------------------------------
@@ -56,11 +46,22 @@ namespace fapi2
 
 /// @brief Sets the PIB error mask - platform dependant
 /// @param[in]  i_mask     The new error mask
-inline void setPIBErrorMask(uint8_t i_mask);
+// note: this can be moved  to a C file if desired
+inline void setPIBErrorMask(uint8_t i_mask)
+{
+    // Keeps the compiler from complaining about the unused i_mask
+    static_cast<void>(i_mask);
+
+    return;
+}
 
 /// @brief Gets the PIB error mask - platform dependant
 /// @return uint8_t The current PIB error mask
-inline uint8_t getPIBErrorMask(void);
+// note: this can be moved  to a C file if desired
+inline uint8_t getPIBErrorMask(void)
+{
+    return 0;
+}
 
 //--------------------------------------------------------------------------
 // Operational Mode Error Functions
@@ -68,118 +69,228 @@ inline uint8_t getPIBErrorMask(void);
 
 /// @brief Sets the operational mode
 /// @param[in]  i_mode     The new mode
-inline void setOpMode(const OpModes i_mode);
+// note: this can be moved  to a C file if desired
+inline void setOpMode(const OpModes i_mode)
+{
+    // Keeps the compiler from complaining about the unused i_mode
+    static_cast<void>(i_mode);
+
+    // No-op for now. Should set thread-local operational mode
+    return;
+}
 
 /// @brief Gets the operational mode
 /// @return the operational mode
-inline OpModes getOpMode(void);
+// note: this can be moved  to a C file if desired
+inline OpModes getOpMode(void)
+{
+    // No-op for now. Should read thread-local operational mode
+    return NORMAL;
+}
 
-//--------------------------------------------------------------------------
-// HW Communication Functions
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// HW Communication Functions to be implemented at the platform layer.
+//------------------------------------------------------------------------------
 
-/// @brief Reads a SCOM register from a chip.
-/// @tparam K template parameter, passed in target.
-/// @param[in]  i_target     HW target to operate on.
-/// @param[in]  i_address    SCOM register address to read from.
-/// @param[out] o_data       Buffer that holds data read from HW target.
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
+/// @brief Platform-level implementation of getScom()
+/// @Tparam K template parameter, passed in target.
+/// @param[in]  i_target   HW target to operate on.
+/// @param[in]  i_address  SCOM register address to read from.
+/// @param[out] o_date     Buffer that holds data read from HW target.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
 template< TargetType K >
-inline ReturnCode getScom(const Target<K>& i_target, const uint64_t i_address,
-                          buffer<uint64_t>& o_data);
+inline ReturnCode getScom(const Target<K>& i_target,
+                          const uint64_t i_address,
+                          buffer<uint64_t>& o_data)
+{
+    o_data = 0x0000FEEDFACE0000;
+    std::cout << std::hex << "   getScom "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "address: " << i_address << "; "
+              << "output data: " << uint64_t(o_data)
+              << std::dec << std::endl;
 
-/// @brief Writes a SCOM register on a chip.
-/// @tparam K template parameter, passed in target.
+    return FAPI2_RC_SUCCESS;
+}
+
+/// @brief Platform-level implementation of putScom()
+/// @Tparam K template parameter, passed in target.
 /// @param[in] i_target     HW target to operate on.
 /// @param[in] i_address    SCOM register address to write to.
 /// @param[in] i_data       Buffer that holds data to write into address.
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
 template< TargetType K >
-inline ReturnCode putScom(const Target<K>& i_target, const uint64_t i_address,
-                          const buffer<uint64_t> i_data);
+inline ReturnCode putScom(const Target<K>& i_target,
+                          const uint64_t i_address,
+                          const buffer<uint64_t> i_data)
+{
+    std::cout << std::hex << "   putScom "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "address: " << i_address << "; "
+              << "input data: " << uint64_t(i_data)
+              << std::dec << std::endl;
+    return FAPI2_RC_SUCCESS;
+}
 
-/// @brief Writes a SCOM register under mask on a chip
+/// @brief Platform-level implementation of putScomUnderMask()
 /// @tparam K template parameter, passed in target.
 /// @param[in] i_target     HW target to operate on.
 /// @param[in] i_address    SCOM register address to write to.
 /// @param[in] i_data       Buffer that holds data to write into address.
 /// @param[in] i_mask       Buffer that holds the mask value.
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
 template< TargetType K >
 inline ReturnCode putScomUnderMask(const Target<K>& i_target,
                                    const uint64_t i_address,
                                    const buffer<uint64_t> i_data,
-                                   const buffer<uint64_t> i_mask);
+                                   const buffer<uint64_t> i_mask)
+{
+    std::cout << std::hex << "   putScomUnderMask "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "address: " << i_address << "; "
+              << "input data: " << uint64_t(i_data) << "; "
+              << "input mask: " << uint64_t(i_mask)
+              << std::dec << std::endl;
+    return FAPI2_RC_SUCCESS;
+}
 
-/// @brief Reads a CFAM register from a chip.
-///        CFAM register is 32-bit wide.
-/// @tparam K template parameter, passed in target.
-/// @param[in]  i_target  HW target to operate on.
-/// @param[in]  i_address CFAM register address to read from.
-/// @param[out] o_data    Buffer that holds data read from HW target.
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
+/// @brief Platform-level implementation called by getCfamRegister()
+/// Hardware procedures writers will not call this function.
+/// @Tparam K template parameter, passed in target.
+/// @param[in]  i_target   HW target to operate on.
+/// @param[in]  i_address  CFAM address to read from.
+/// @param[out] o_data     32-bit buffer that holds data read from HW target.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
 template< TargetType K >
 inline ReturnCode getCfamRegister(const Target<K>& i_target,
                                   const uint32_t i_address,
-                                  buffer<uint32_t>& o_data);
+                                  buffer<uint32_t>& o_data)
+{
+    o_data = 0xFEED0CFA;
+    std::cout << std::hex << "   getCfamRegister "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "address: " << i_address << "; "
+              << "output data: " << uint32_t(o_data)
+              << std::dec << std::endl;
+    return FAPI2_RC_SUCCESS;
+}
 
-/// @brief Writes a CFAM register on a chip.
-///        CFAM register is 32-bit wide.
-/// @tparam K template parameter, passed in target.
-/// @param[in] i_target  HW target to operate on.
-/// @param[in] i_address CFAM register address to write to.
-/// @param[in] i_data    Buffer that holds data to write into address.
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
+/// @brief Platform-level implementation of putCfamRegister()
+/// Hardware procedures writers will not call this function.
+/// @Tparam K template parameter, passed in target.
+/// @param[in]  i_target   HW target to operate on.
+/// @param[in]  i_address  CFAM address to write to.
+/// @param[out] i_data     32-bit buffer that holds data to write into address.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
 template< TargetType K >
 inline ReturnCode putCfamRegister(const Target<K>& i_target,
                                   const uint32_t i_address,
-                                  const buffer<uint32_t> i_data);
+                                  const buffer<uint32_t> i_data)
+{
+    std::cout << std::hex << "   putCfamRegister "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "address: " << i_address << "; "
+              << "input data: " << uint32_t(i_data)
+              << std::dec << std::endl;
+    return FAPI2_RC_SUCCESS;
+}
 
-/// @brief Read-modify-write a CFAM register on a chip.
-///        CFAM register is 32-bit wide.
-/// @tparam K template parameter, passed in target.
-/// @param[in] i_target     HW target to operate on.
-/// @param[in] i_address    CFAM register address to modify.
-/// @param[in] i_data       Buffer that holds data to be modified.
-/// @param[in] i_modifyMode The modify mode (or/and/xor).
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+
+///
+/// @brief Platform-level implementation of modifyCfamRegister()
+/// Hardware procedures writers will not call this function.
+/// @Tparam K template parameter, passed in target.
+/// @param[in]  i_target     HW target to operate on.
+/// @param[in]  i_address    CFAM register address to modify.
+/// @param[out] i_data       32-bit buffer that holds data to modify.
+/// @param[in]  i_modifyMode The modify mode (or/and/xor).
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
 template< TargetType K >
 inline ReturnCode modifyCfamRegister(const Target<K>& i_target,
                                      const uint32_t i_address,
                                      const buffer<uint32_t> i_data,
-                                     const ChipOpModifyMode i_modifyMode);
+                                     const fapi2::ChipOpModifyMode i_modifyMode)
+{
+    std::cout << std::hex << "   modifyCfamRegister "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "address: " << i_address << "; "
+              << "input modifying data: " << uint32_t(i_data) << "; "
+              << "input ChipOpModifyMode: " << i_modifyMode
+              << std::dec << std::endl;
+    return FAPI2_RC_SUCCESS;
+}
 
 // variable_buffer isn't supported on PPE
 #ifndef __PPE__
-/// @brief Reads a ring from a chip.
-/// @tparam K template parameter, passed in target.
-/// @param[in]  i_target   Target to operate on.
+///
+/// @brief Platform-level implementation of getRing()
+/// Hardware procedures writers will not call this function.
+/// @Tparam K template parameter, passed in target.
+/// @param[in]  i_target   HW target to operate on.
 /// @param[in]  i_address  Ring address to read from.
-/// @param[out] o_data     Buffer that holds data read from HW target.
+/// @param[out] o_data     Buffer that holds ring data read from HW target.
 /// @param[in]  i_ringMode Ring operation mode.
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
 template< TargetType K >
 inline ReturnCode getRing(const Target<K>& i_target,
                           const scanRingId_t i_address,
                           variable_buffer& o_data,
-                          const RingMode i_ringMode = 0);
+                          const RingMode i_ringMode)
+{
+    o_data.setBit(0);
+    o_data.setBit(3);
+    std::cout << std::hex << "   getRing "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "ring address: " << i_address << "; "
+              << "ring mode: " << i_ringMode << "; "
+              << "first element of output data: " << o_data()[0]
+              << std::endl;
 
-/// @brief Writes a ring to a chip.
+    return FAPI2_RC_SUCCESS;
+}
+
+/// @brief Platform-level implementation  of putRing()
+/// Hardware procedures writers will not call this function.
 /// @tparam K template parameter, passed in target.
 /// @param[in] i_target   Target to operate on.
 /// @param[in] i_address  Ring address to write to.
 /// @param[in] i_data     Buffer that contains RS4 compressed ring data
 ///                       to write into address
 /// @param[in] i_ringMode Ring operation mode.
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
 template< TargetType K >
 inline ReturnCode putRing(const Target<K>& i_target,
                           const scanRingId_t i_address,
                           const variable_buffer& i_data,
-                          const RingMode i_ringMode = 0);
+                          const RingMode i_ringMode)
+{
+    std::cout << std::hex << "   putRing "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "address: " << i_address << "; "
+              << "ring mode: " << i_ringMode << "; "
+              << "first element of the input data: " << i_data()[0]
+              << std::endl;
 
+    return FAPI2_RC_SUCCESS;
+}
 
-/// @brief Read-modify-write a ring on a chip.
+/// @brief Platform-level implementation of modifyRing()
 /// @tparam K template parameter, passed in target.
 /// @param[in] i_target     Target to operate on.
 /// @param[in] i_address    Ring address to modify.
@@ -187,13 +298,25 @@ inline ReturnCode putRing(const Target<K>& i_target,
 ///                         to be modified.
 /// @param[in] i_modifyMode The modify mode (or/and/xor)
 /// @param[in] i_ringMode   Ring operation mode.
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
 template< TargetType K >
 inline ReturnCode modifyRing(const Target<K>& i_target,
                              const scanRingId_t i_address,
                              const variable_buffer& i_data,
                              const ChipOpModifyMode i_modifyMode,
-                             const RingMode i_ringMode = 0);
+                             const RingMode i_ringMode)
+{
+    std::cout << std::hex << "   modifyRing "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "address: " << i_address << "; "
+              << "input ChipOpModifyMode: " << i_modifyMode << "; "
+              << "ring mode: " << i_ringMode << "; "
+              << "first element of the input data: " << i_data()[0]
+              << std::endl;
+
+    return FAPI2_RC_SUCCESS;
+}
 #endif
 
 #ifdef FAPI_SUPPORT_MULTI_SCOM
@@ -238,7 +361,9 @@ inline ReturnCode modifyRing(const Target<K>& i_target,
 ///
 template< TargetType K >
 fapi2::ReturnCode multiScom (const Target<K>& i_target,
-                             MultiScom&  io_multiScomObj);
+                             MultiScom&  io_multiScomObj)
+{
+}
 #endif
 
 // --------------------------------------------------------------------------
@@ -286,26 +411,27 @@ fapi2::ReturnCode multiScom (const Target<K>& i_target,
 ///
 /// @note The ID is not in quotes the fapi code will handle adding
 ///       the quotes for the cronus environment
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(DOXYGEN)
-
-#define FAPI_GET_SPY(TARGET, ID, DATA) fapi2::getSpy(TARGET, FAPI_SPY_NAMES::ID.value, DATA)
-
+///
+#ifdef FAPI_SUPPORT_SPY_AS_ENUM
 template< TargetType K >
 inline ReturnCode getSpy(const Target<K>& i_target,
                          const spyId_t i_spyId,
-                         variable_buffer& o_data);
+                         variable_buffer& o_data)
+{
+    static_assert(K == 0, "implement getSpy (enum)");
+    return ~FAPI2_RC_SUCCESS;
+}
 #endif
-
-#if defined(FAPI_SUPPORT_SPY_AS_STRING) || defined(DOXYGEN)
-
-#define FAPI_GET_SPY(TARGET, ID, DATA) fapi2::getSpy(TARGET, #ID, DATA)
-
+#ifdef FAPI_SUPPORT_SPY_AS_STRING
 template< TargetType K >
 inline ReturnCode getSpy(const Target<K>& i_target,
                          const char* const i_spyId,
-                         variable_buffer& o_data);
+                         variable_buffer& o_data)
+{
+    static_assert(K == 0, "implement getSpy (string)");
+    return ~FAPI2_RC_SUCCESS;
+}
 #endif
-
 /// @brief Writes a spy on a chip.
 /// @tparam K template parameter, passed in target.
 /// @param[in]  i_target   Target to operate on.
@@ -345,31 +471,51 @@ inline ReturnCode getSpy(const Target<K>& i_target,
 /// @note The ID is not in quotes the fapi code will handle adding
 ///         the quotes for the cronus environment
 ///
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(DOXYGEN)
-
-#define FAPI_PUT_SPY(TARGET, ID, DATA) fapi2::putSpy(TARGET, FAPI_SPY_NAMES::ID.value, DATA)
-
+#ifdef FAPI_SUPPORT_SPY_AS_ENUM
 template< TargetType K >
 inline ReturnCode putSpy(const Target<K>& i_target,
                          const spyId_t i_spyId,
-                         const variable_buffer& i_data);
+                         const variable_buffer& i_data)
+{
+    static_assert(K == 0, "implement putSpy (enum)");
+    return ~FAPI2_RC_SUCCESS;
+}
 #endif
+#ifdef FAPI_SUPPORT_SPY_AS_STRING
+template< TargetType K >
+inline ReturnCode putSpy(const Target<K>& i_target,
+                         const char* const i_spyId,
+                         const variable_buffer& i_data)
+{
+//@TODO remove with RTC: 133089
+#ifdef TEMPORARY_FOR_INITFILE
+    uint32_t l_chipId = strtol(getenv("CHIPID"), NULL, 16);
+    uint32_t l_chipEc = strtol(getenv("CHIPEC"), NULL, 16);
 
-#if defined(FAPI_SUPPORT_SPY_AS_STRING) || defined(DOXYGEN)
-
-#define FAPI_PUT_SPY(TARGET, ID, DATA) fapi2::putSpy(TARGET, #ID, DATA)
+    return  (SPY::PutSpy(l_chipId, l_chipEc, i_spyId, i_data ));
+#else
+    static_assert(K == 0, "implement putSpy (string)");
+    return ~FAPI2_RC_SUCCESS;
+#endif
+}
 
 template< TargetType K >
 inline ReturnCode putSpy(const Target<K>& i_target,
                          const char* const i_spyId,
-                         const variable_buffer& i_data);
+                         const char* i_enum)
+{
+//@TODO remove with RTC: 133089
+#ifdef TEMPORARY_FOR_INITFILE
+    uint32_t l_chipId = strtol(getenv("CHIPID"), NULL, 16);
+    uint32_t l_chipEc = strtol(getenv("CHIPEC"), NULL, 16);
 
-template< TargetType K >
-inline ReturnCode putSpy(const Target<K>& i_target,
-                         const char* const i_spyId,
-                         const char* i_enum);
+    return (SPY::PutSpy(l_chipId, l_chipEc, i_spyId, i_enum ));
+#else
+    static_assert(K == 0, "implement putSpy (string)");
+    return ~FAPI2_RC_SUCCESS;
 #endif
-
+}
+#endif
 /// @brief Writes spy data into a buffer holding ring data image
 ///        This API is used by L2/L3 repair to put column repair data
 ///        into a ring buffer image.
@@ -390,31 +536,28 @@ inline ReturnCode putSpy(const Target<K>& i_target,
 ///
 ///         See fapiPutSpy for details on spy id specifics.
 ///
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(DOXYGEN)
-
-#define FAPI_PUT_SPY_IMAGE(TARGET, ID, DATA1, DATA2)                    \
-    fapi2::putSpyImage(TARGET, FAPI_SPY_NAMES::ID.value,                \
-                       DATA1, DATA2)
-
+#ifdef FAPI_SUPPORT_SPY_AS_ENUM
 template< TargetType K >
 inline ReturnCode putSpyImage(const Target<K>& i_target,
                               const spyId_t i_spyId,
                               const variable_buffer& i_data,
-                              variable_buffer& o_imageData);
+                              variable_buffer& o_imageData)
+{
+    static_assert(K == 0, "implement putSpyImage (enum)");
+    return ~FAPI2_RC_SUCCESS;
+}
 #endif
-
-#if defined(FAPI_SUPPORT_SPY_AS_STRING) || defined(DOXYGEN)
-
-#define FAPI_PUT_SPY_IMAGE(TARGET, ID, DATA1, DATA2) \
-    fapi2::putSpyImage(TARGET, #ID, DATA1,DATA2)
-
+#ifdef FAPI_SUPPORT_SPY_AS_STRING
 template< TargetType K >
 inline ReturnCode putSpyImage(const Target<K>& i_target,
                               const char* const i_spyId,
                               const variable_buffer& i_data,
-                              variable_buffer& o_imageData);
+                              variable_buffer& o_imageData)
+{
+    static_assert(K == 0, "implement putSpyImage (string)");
+    return ~FAPI2_RC_SUCCESS;
+}
 #endif
-
 /// @brief Reads spy data from a ring image buffer
 /// @param[in]   i_target      Target to operate on
 /// @param[in]   i_spyId       The spy's id
@@ -432,32 +575,31 @@ inline ReturnCode putSpyImage(const Target<K>& i_target,
 ///
 ///         See fapiPutSpy for details on spy id specifics.
 ///
-#if defined(FAPI_SUPPORT_SPY_AS_ENUM) || defined(DOXYGEN)
-
-#define FAPI_GET_SPY_IMAGE(TARGET, ID, DATA1, DATA2)    \
-    fapi2:getSpyImage(TARGET, FAPI_SPY_NAMES::ID.value, \
-                      DATA1, DATA2)
-
+#ifdef FAPI_SUPPORT_SPY_AS_ENUM
 template< TargetType K >
 inline ReturnCode getSpyImage(const Target<K>& i_target,
                               const spyId_t i_spyId,
                               variable_buffer& o_data,
-                              const variable_buffer& i_imageData);
+                              const variable_buffer& i_imageData)
+{
+    static_assert(K == 0, "implement getSpyImage (enum)");
+    return ~FAPI2_RC_SUCCESS;
+}
 #endif
-
-#if defined(FAPI_SUPPORT_SPY_AS_STRING) || defined(DOXYGEN)
-
-#define FAPI_GET_SPY_IMAGE(TARGET, ID, DATA1, DATA2) \
-    fapi2::getSpyImage(TARGET, #ID, DATA1,DATA2)
-
+#ifdef FAPI_SUPPORT_SPY_AS_STRING
 template< TargetType K >
 inline ReturnCode getSpyImage(const Target<K>& i_target,
                               const char* const i_spyId,
                               variable_buffer& o_data,
-                              const variable_buffer& i_imageData);
+                              const variable_buffer& i_imageData)
+{
+    static_assert(K == 0, "implement getSpyImage (string)");
+    return ~FAPI2_RC_SUCCESS;
+}
 #endif
 
 #endif // PPE
+
 };
 
 #endif // _FAPI2_HWACCESS_H_

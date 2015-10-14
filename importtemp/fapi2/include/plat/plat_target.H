@@ -1,13 +1,13 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: hwpf/fapi2/include/fapi2.H $                                  */
+/* $Source: hwpf/fapi2/include/plat_target.H $                            */
 /*                                                                        */
 /* IBM CONFIDENTIAL                                                       */
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2012,2015                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -16,34 +16,24 @@
 /* deposited with the U.S. Copyright Office.                              */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-///
-/// @file fapi2.H
-/// @brief top level header for fapi2
-///
+/**
+ * @file plat_target.H
+ * @brief platform definitions for fapi2 targets
+ */
 
-#ifndef __FAPI2_TOP_LEVEL__
-#define __FAPI2_TOP_LEVEL__
+#ifndef __FAPI2_PLAT_TARGET__
+#define __FAPI2_PLAT_TARGET__
 
-#include <target.H>
-#include <return_code.H>
-#include <buffer.H>
-#include <hw_access.H>
-#include <utils.H>
-#include <plat_trace.H>
+#include <stdint.h>
 
-// In turn includes the needed generated headers (hwp_ffd_classes, etc.)
-#include <error_scope.H>
-#include <set_sbe_error.H>      // Generated file
+//
+// Define what a platform handle looks like. For Hostboot,
+// for example, this might be a void*. For the SBE, this
+// will be a uint64_t ...
+//
+namespace fapi2
+{
+typedef uint64_t plat_target_handle_t;
+}
 
-#include <fapi2_hwp_executor.H>
-#include <fapi2_attribute_service.H>
-#include <fapi2_chip_ec_feature.H>
-
-#include <mvpd_access.H>
-
-// Block of headers not currently in fapi2
-#ifdef FAPI2_MISSING_HEADERS
-    #include <mbvpdAccess.H>
 #endif
-
-#endif // __FAPI2_TOP_LEVEL__

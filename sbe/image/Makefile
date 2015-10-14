@@ -136,6 +136,7 @@ $(LINK_SCRIPT_SEEPROM): linkseeprom.cmd
 $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMAGE_SBE_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SBE_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SBE_NAME).out | grep "A _sbe_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SBE_NAME).dis
+	$(NM)  $< > $(OBJDIR)/$(IMAGE_SBE_NAME).syms
 
 # create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SBE_NAME).out: buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
