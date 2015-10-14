@@ -32,9 +32,12 @@
 
 #ifndef __PPE__
 #include <error_info.H>
+#endif
 
 namespace fapi2
 {
+
+#ifndef __PPE__
     ///
     /// @brief Log an error.
     ///
@@ -121,16 +124,90 @@ e         FAPI_DBG("busCallouts: %lu", ei->iv_busCallouts.size());
         io_rc.forgetData();
 
     }
+#endif
 
     ///
     /// @brief Delay this thread.
     ///
-    ReturnCode delay(uint64_t i_nanoSeconds, uint64_t i_simCycles)
+    ReturnCode delay(uint64_t i_nanoSeconds, uint64_t i_simCycles, bool i_fixed = false)
     {
         // void statements to keep the compiler from complaining
         // about unused variables.
         static_cast<void>(i_nanoSeconds);
         static_cast<void>(i_simCycles);
+        
+
+#ifndef __FAPI_DELAY_SIM__
+
+#define PK_NANOSECONDS_SBE(n) ((PkInterval)((PK_BASE_FREQ_HZ * (PkInterval)(n)) / (1024*1024*1024)))
+
+        PkTimebase  target_time;
+        PkTimebase  current_time;
+        PkMachineContext  ctx;
+
+
+        // Only execute if nanoSeconds is non-zero (eg a real wait)
+        if (i_nanoSeconds)
+        {
+            // @todo For SBE applications, the time accuracy can be traded off
+            // for space with the PK_NANOSECONDS_SBE implemenation as the compiler
+            // use shift operations for the unit normalizing division.
+            
+            // The critical section enter/exit set is done to ensure the timebase 
+            // operations are non-interrupible.
+            
+            pk_critical_section_enter(&ctx);
+            //
+            // The "accurate" version is the next line.
+            // target_time = pk_timebase32_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS(i_nanoSeconds));
+
+            target_time = pk_timebase32_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS_SBE(i_nanoSeconds));
+
+            do
+            {
+                current_time = pk_timebase32_get();                                
+            } while (target_time > current_time);
+            
+            pk_critical_section_exit(&ctx);
+            
+           
+        }
+#else
+
+        // Execute a tight loop that simply counts down the i_simCycles
+        // value.
+
+        // @todo This can might be optimized with a fused compare branch loop
+        //    Note, though, that subwibnz instruction is optimized for word
+        //      operations.   i_simCycles are uint64_t values so the upper
+        //      word values needs to be accounted for.
+        //
+        //  Need to determine if this optimization is worth the effort.
+        
+#ifndef __FAPI_DELAY_PPE_SIM_CYCLES__
+#define __FAPI_DELAY_PPE_SIM_CYCLES__ 8
+#endif
+        
+        static const uint8_t NUM_OVERHEAD_INSTRS = 15;
+        static const uint8_t NUM_LOOP_INSTRS = 4;
+        static const uint64_t MIN_DELAY_CYCLES = 
+                ((NUM_OVERHEAD_INSTRS + NUM_LOOP_INSTRS) * __FAPI_DELAY_PPE_SIM_CYCLES__);
+        
+        uint64_t l_adjusted_simcycles;
+                 
+        if (i_simCycles < MIN_DELAY_CYCLES) 
+            l_adjusted_simcycles = MIN_DELAY_CYCLES;
+        else
+            l_adjusted_simcycles = i_simCycles;             
+
+        uint64_t delay_loop_count = 
+            ((l_adjusted_simcycles - (NUM_OVERHEAD_INSTRS * __FAPI_DELAY_PPE_SIM_CYCLES__)) /
+                        (NUM_LOOP_INSTRS * __FAPI_DELAY_PPE_SIM_CYCLES__));
+        
+
+        for (auto i = delay_loop_count; i > 0; --i) {}
+        
+#endif
 
         // replace with platform specific implementation
         return FAPI2_RC_SUCCESS;
@@ -157,8 +234,6 @@ revle16(uint16_t i_x)
 
     return rx;
 }
-
-#endif
 
 /// Byte-reverse a 32-bit integer if on a little-endian machine
 
