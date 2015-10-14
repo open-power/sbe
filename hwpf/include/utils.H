@@ -70,14 +70,50 @@ uint64_t revle64(uint64_t i_x);
 
 namespace fapi2
 {
-    /// @brief Delay this thread.
-    /// @param[in] i_nanoSeconds    nanoseconds to sleep
-    /// @param[in] i_simCycles      count of Awan cycles to advance
-    /// @return ReturnCode. Zero on success, else platform specified error.
-    inline ReturnCode delay(uint64_t i_nanoSeconds, uint64_t i_simCycles)
-    {
-        return FAPI2_RC_SUCCESS;
-    }
+///
+/// @brief Delay this thread. Hostboot will use the nanoseconds parameter
+/// and make a syscall to nanosleep. While in the syscall, the hostboot
+/// kernel will continue to consume CPU cycles as it looks for a runnable
+/// task.  When the delay time expires, the task becomes runnable and will soon
+/// return from the syscall.  Callers of delay() in the hostboot environment
+/// will likely have to know the mHz clock speed they are running on and
+/// compute a non-zero value for i_nanoSeconds.
+///
+/// On the FSP, it was sometimes acceptable to just provide zero for the
+/// sleep delay time, causing the task to yield its time slice. By the
+/// time the calling task could run again, it was pretty certain enough
+/// host cycles had past.  This is probably not acceptable in
+/// the hostboot environment. Callers should calculate and provide a
+/// sleep value in nanoseconds relative to host clock speed.
+///
+/// On FSP when VBU is the target, then the i_simCycles parameter will be
+/// used instead.  The FSP needs to use the simdispatcher client/server
+/// API and issue a command to the awan to advance the simulation the
+/// specified number of cycles.
+///
+/// On SBE when __FAPI_DELAY_SIM__ is defined, then the i_simCycles parameter
+/// will be used instead and will use the number passed.  The build parameter
+/// __FAPI_DELAY_SIM_CYCLES__ allows the delay to adjust for the number of 
+/// simulation cycles that the PPE engine is running at.  The delay algorithm
+/// takes the i_simCycles parameter, subtracts the loop overhead instructions
+/// times __FAPI_DELAY_SIM_CYCLES__ and then divides the remainder by the
+/// number of loop instructions times __FAPI_DELAY_SIM_CYCLES__.
+///
+/// On SBE when __FAPI_DELAY_SIM__ is NOT defined, the nanoseconds parameter
+/// will bus used to loop on the a call to pk_timebase32_get() function to 
+/// determine the elapsed time.  pk_sleep() is NOT used as there are not
+/// other threads to dispatch.
+///
+/// @param[in] i_nanoSeconds    nanoseconds to sleep
+/// @param[in] i_simCycles      count of Awan cycles to advance
+/// @param[in] i_fixed          Determination, for DFT, if this time is
+///                             fixed or not. Defaults to non-fixed
+///
+/// @return ReturnCode. Zero on success, else platform specified error.
+///
+ReturnCode delay(uint64_t i_nanoSeconds,
+                 uint64_t i_simCycles,
+                 bool i_fixed = false);
 }
 
 #endif // FAPI2_UTILS_H_

@@ -120,7 +120,6 @@ ifndef PLAT_FAPI2_DIR
 export PLAT_FAPI2_DIR = $(abspath ../hwpf)
 endif
 
-
 ifndef PPE_FAPI2_DIR
 export PPE_FAPI2_DIR = $(abspath ../../hwpf)
 endif
@@ -191,6 +190,10 @@ endif
 
 ifdef SBE_ISTEP_STUBBED
 GCC-DEFS += -DSBE_ISTEP_STUBBED=1
+endif
+
+ifdef __FAPI_DELAY_SIM__
+GCC-DEFS += -D__FAPI_DELAY_SIM__=1
 endif
 
 # Generate a 16bit trace string hash prefix value based on the name of this image.  This will form
