@@ -37,11 +37,11 @@ typedef uint64_t spyId_t;
 #endif
 
 #include <stdint.h>
-#include <thread>
 #include <buffer.H>
 
-// variable_buffer isn't supported on PPE
+// thread/variable_buffer isn't supported on PPE
 #ifndef __PPE__
+#include <thread>
 #include <variable_buffer.H>
 #endif
 
