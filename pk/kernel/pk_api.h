@@ -90,6 +90,18 @@
 #define PK_TIMER_HANDLER_INVARIANT            0x00779041
 #define PK_THREAD_TIMEOUT_STATE               0x00779045
 
+// Application-level panic offsets
+// (Use these as offsets for your application code panics and keep
+//  track of them locally in your application code domain, including
+//  sharing the panic defines with other developers making codes
+//  for the same engine.)
+
+#define PK_APP_OFFSET_SBE                     0x0077a000
+#define PK_APP_OFFSET_GPE0                    0x0077b000
+#define PK_APP_OFFSET_GPE1                    0x0077c000
+#define PK_APP_OFFSET_GPE2                    0x0077d000
+#define PK_APP_OFFSET_GPE3                    0x0077e000
+#define PK_APP_OFFSET_CME                     0x0077f000
 
 /// \defgroup pk_thread_states PK Thread States
 ///
