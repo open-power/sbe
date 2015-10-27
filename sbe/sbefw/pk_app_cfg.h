@@ -100,5 +100,11 @@
 #define PK_ERROR_PANIC 0
 #endif
 
+/*
+ * @brief  Override the default behavior of idle timer trace.
+ *         As SBE trace buffer is small, we do not want idle timer traces.
+ *
+ */
+#define PK_TRACE_TIMER_OUTPUT 0
 
 #endif /*__PK_APP_CFG_H__*/
