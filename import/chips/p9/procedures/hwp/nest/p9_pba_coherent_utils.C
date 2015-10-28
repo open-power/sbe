@@ -343,15 +343,21 @@ extern "C"
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         const uint32_t i_flags,
-        const uint64_t i_write_data[])
+        const uint8_t i_write_data[])
     {
         fapi2::ReturnCode rc;
+        uint64_t write_data = 0x0ull;
         FAPI_DBG("Start");
 
         //Perform a 128B write -- need to do 16 8B writes since it's in linear mode which can only do 8B...
         for (int i = 0; i < 16; i++)
         {
-            fapi2::buffer<uint64_t> data(i_write_data[i]);
+            for (int j = 0; j < 8; j++)
+            {
+                write_data = write_data + ((uint64_t)(i_write_data[(i * 8) + j]) << (56 - (8 * j)));
+            }
+
+            fapi2::buffer<uint64_t> data(write_data);
             FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBDR3, data),
                      "Error writing to the PBA via the OCB");
         }
@@ -365,7 +371,7 @@ extern "C"
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         const uint32_t i_flags,
-        uint64_t o_read_data[])
+        uint8_t o_read_data[])
     {
         fapi2::buffer<uint64_t> data;
 
@@ -376,7 +382,11 @@ extern "C"
         {
             FAPI_TRY(fapi2::getScom(i_target, PU_OCB_PIB_OCBDR3, data),
                      "Error reading from the PBA via the OCB");
-            o_read_data[i] = data;
+
+            for (int j = 0; j < 8; j++)
+            {
+                o_read_data[(i * 8) + j] = (data >> (56 - (j * 8))) & 0xFFull;;
+            }
         }
 
     fapi_try_exit:
@@ -442,7 +452,7 @@ extern "C"
                  "Error reading from the PBA Slave Reset Register");
 
         //If there are any errors in the Status registers that we got above, collect all of the data and send an error
-        FAPI_ASSERT((((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
+        /*FAPI_ASSERT((((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
                      && ((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
                      && ((wr_buf0_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
                      && ((wr_buf1_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
@@ -451,7 +461,7 @@ extern "C"
                         rd_buf2_valid).set_RDBUF3(rd_buf3_valid).set_WRBUF0(
                         wr_buf0_valid).set_WRBUF1(wr_buf1_valid).set_SLVRSTDATA(reset_buf),
                     "Error in checking the PBA Reset, PBA Read Buffer, or PBA Write Buffer Registers");
-
+        */
     fapi_try_exit:
         FAPI_DBG("End");
         return fapi2::current_err;
