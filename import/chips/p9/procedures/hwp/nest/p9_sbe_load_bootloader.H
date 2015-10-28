@@ -82,7 +82,7 @@ extern "C" {
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_master_chip_target,
         const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_master_eq_target,
         const uint64_t i_payload_size,
-        uint64_t* i_payload_data);
+        uint8_t* i_payload_data);
 
 } //extern "C"
 
