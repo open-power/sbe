@@ -85,7 +85,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_GROUP_ID, i_master_chip_target, l_fabric_group_id),
              "Error from FAPI_ATTR_GET (ATTR_FABRIC_GROUP_ID)");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_ADDR_BAR_MODE, i_master_chip_target, l_fabric_addr_bar_mode),
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_ADDR_BAR_MODE, FAPI_SYSTEM, l_fabric_addr_bar_mode),
              "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_ADDR_BAR_MODE)");
 
     // target base address = (group base address) +
