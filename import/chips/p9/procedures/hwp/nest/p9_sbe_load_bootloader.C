@@ -55,7 +55,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_master_chip_target,
     const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_master_ex_target,
     const uint64_t i_payload_size,
-    uint64_t* i_payload_data)
+    uint8_t* i_payload_data)
 {
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     uint64_t l_bootloader_offset;
@@ -64,6 +64,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     uint64_t l_chip_base_address_m;
     uint64_t l_target_address;
     uint64_t l_payload_data_offset;
+    bool firstAccess = true;
 
     FAPI_DBG("Start");
 
@@ -119,6 +120,8 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                                PBA_HWP_FLAGS,
                                l_num_cachelines_to_roll), "Error from p9_pba_setup");
 
+        firstAccess = true;
+
         // call PBA access HWP per cacheline to move payload data
         while (l_num_cachelines_to_roll &&
                (l_target_address < (l_chip_base_address_nm + i_payload_size)))
@@ -127,11 +130,12 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                                    l_target_address,
                                    PBA_HWP_WRITE_OP,
                                    PBA_HWP_FLAGS,
+                                   firstAccess,
                                    (l_num_cachelines_to_roll == 1) ||
                                    ((l_target_address + FABRIC_CACHELINE_SIZE) >
                                     (l_chip_base_address_nm + i_payload_size)),
                                    i_payload_data + l_payload_data_offset), "Error from p9_pba_access");
-
+            firstAccess = false;
             // decrement count of cachelines remaining in current stream
             l_num_cachelines_to_roll--;
 
