@@ -83,7 +83,7 @@ extern "C"
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         const uint32_t i_flags,
-        const uint64_t i_write_data[]);
+        const uint8_t i_write_data[]);
 
 /// @brief does the read for the PBA
 /// @param[in] i_target => P9 chip target
@@ -95,7 +95,7 @@ extern "C"
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         const uint32_t i_flags,
-        uint64_t o_read_data[]);
+        uint8_t o_read_data[]);
 
 /// @brief calculates the number of 128 byte granules that can be read/written before setup needs to be run again
 /// @param[in] i_target => P9 chip target

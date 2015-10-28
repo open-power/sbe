@@ -51,8 +51,9 @@ extern "C" {
                                     const uint64_t i_address,
                                     const bool i_rnw,
                                     const uint32_t i_flags,
+                                    const bool i_firstGranule,
                                     const bool i_lastGranule,
-                                    uint64_t io_data[])
+                                    uint8_t io_data[])
     {
         //return codes
         fapi2::ReturnCode rc;
