@@ -61,4 +61,7 @@ static const uint32_t MAX_ECMD_STRING_LEN = 64;
 
 #define FAPI_MFG(_fmt_, _args_...) FAPI_TRACE("mfg", _fmt_, ##_args_)
 
+#define FAPI_LAB(__fmt_, _args_...) \
+    printf(_fmt_, ##_args_);    \
+    printf("\n")
 #endif // FAPI2_PLATTRACE_H_
