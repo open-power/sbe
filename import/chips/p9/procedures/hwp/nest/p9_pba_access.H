@@ -60,7 +60,8 @@ typedef fapi2::ReturnCode
                        const bool,
                        const uint32_t,
                        const bool,
-                       uint64_t[]);
+                       const bool,
+                       uint8_t[]);
 
 //-----------------------------------------------------------------------------------
 // Constant definitions
@@ -73,12 +74,13 @@ extern "C" {
 //-----------------------------------------------------------------------------------
 
 /// @brief setup for reads/writes from the PBA
-/// @param[in]  i_target  => P9 chip target
-/// @param[in]  i_address => base real address for read/write operation (expected to be 128B aligned)
-/// @param[in]  i_rnw     => if the operation is read not write (1 for read, 0 for write)
-/// @param[in]  i_flags   => other information that is needed - the flags are: bit 1 - fastmode
-/// @param[in]  i_lastGranule => is this the last granule that is to be read/written
-/// @param[in, out] io_data => The data that is read/written
+/// @param[in]  i_target       => P9 chip target
+/// @param[in]  i_address      => base real address for read/write operation (expected to be 128B aligned)
+/// @param[in]  i_rnw          => if the operation is read not write (1 for read, 0 for write)
+/// @param[in]  i_flags        => other information that is needed - the flags are: bit 1 - fastmode
+/// @param[in]  i_lastGranule  => is this the last granule that is to be read/written
+/// @param[in]  i_firstGranule => first granule that is to be read/written NOT USED FOR PBA
+/// @param[in, out] io_data    => The data that is read/written
 /// @return FAPI_RC_SUCCESS if the setup completes successfully,
 
     fapi2::ReturnCode p9_pba_access(
@@ -86,8 +88,9 @@ extern "C" {
         const uint64_t i_address,
         const bool i_rnw,
         const uint32_t i_flags,
+        const bool i_firstGranule,
         const bool i_lastGranule,
-        uint64_t io_data[]);
+        uint8_t io_data[]);
 } //extern "C"
 
 #endif //_P9_PBA_ACCESS_H_
