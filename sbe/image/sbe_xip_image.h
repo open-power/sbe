@@ -66,8 +66,9 @@
 #define SBE_XIP_SECTION_BASELOADER 10
 #define SBE_XIP_SECTION_OVERLAYS   11
 #define SBE_XIP_SECTION_RINGS      12
+#define SBE_XIP_SECTION_HBBL       13
 
-#define SBE_XIP_SECTIONS 13
+#define SBE_XIP_SECTIONS 14
 
 /// @}
 
@@ -106,6 +107,7 @@
         ".baseloader",                          \
         ".overlays",                             \
         ".rings",                               \
+        ".hbbl",                                \
     }
 
 /// Applications can use this macro to safely index the array of section

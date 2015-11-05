@@ -120,6 +120,7 @@ __header_64_reserved:
         SbeXipSection baseloader,           8, empty=1
         SbeXipSection overlay,              8, empty=1
         SbeXipSection rings,                8, empty=1
+        SbeXipSection hbbl,                 8, empty=1
 
 
         //////////////////////////////////////////////////////////////////////

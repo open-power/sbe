@@ -1550,25 +1550,29 @@ int disassembleSection(void         *i_image,
                                                     else
                                                         if (strcmp(sectionName, ".overlays")==0)
                                                             sectionId = SBE_XIP_SECTION_OVERLAYS;
-                                                        else  {
-                                                            fprintf(stderr,"ERROR : %s is an invalid section name.\n",sectionName);
-                                                            fprintf(stderr,"Valid <section> names for the 'dis' function are:\n");
-                                                            fprintf(stderr,"\t.header\n");
-                                                            fprintf(stderr,"\t.fixed\n");
-                                                            fprintf(stderr,"\t.fixed_toc\n");
-                                                            fprintf(stderr,"\t.loader_text\n");
-                                                            fprintf(stderr,"\t.loader_data\n");
-                                                            fprintf(stderr,"\t.text\n");
-                                                            fprintf(stderr,"\t.data\n");
-                                                            fprintf(stderr,"\t.toc\n");
-                                                            fprintf(stderr,"\t.strings\n");
-                                                            fprintf(stderr,"\t.base\n");
-                                                            fprintf(stderr,"\t.baseloader\n");
-                                                            fprintf(stderr,"\t.overlays\n");
-                                                            fprintf(stderr,"\t.rings\n");
-                                                            fprintf(stderr,"\t.rings_summary\n");
-                                                            exit(1);
-                                                        }
+                                                        else
+                                                            if (strcmp(sectionName, ".hbbl")==0)
+                                                                sectionId = SBE_XIP_SECTION_HBBL;
+                                                            else  {
+                                                                fprintf(stderr,"ERROR : %s is an invalid section name.\n",sectionName);
+                                                                fprintf(stderr,"Valid <section> names for the 'dis' function are:\n");
+                                                                fprintf(stderr,"\t.header\n");
+                                                                fprintf(stderr,"\t.fixed\n");
+                                                                fprintf(stderr,"\t.fixed_toc\n");
+                                                                fprintf(stderr,"\t.loader_text\n");
+                                                                fprintf(stderr,"\t.loader_data\n");
+                                                                fprintf(stderr,"\t.text\n");
+                                                                fprintf(stderr,"\t.data\n");
+                                                                fprintf(stderr,"\t.toc\n");
+                                                                fprintf(stderr,"\t.strings\n");
+                                                                fprintf(stderr,"\t.base\n");
+                                                                fprintf(stderr,"\t.baseloader\n");
+                                                                fprintf(stderr,"\t.overlays\n");
+                                                                fprintf(stderr,"\t.rings\n");
+                                                                fprintf(stderr,"\t.rings_summary\n");
+                                                                fprintf(stderr,"\t.hbbl\n");
+                                                                exit(1);
+                                                            }
 
     // Get host header and section pointer.
     //
