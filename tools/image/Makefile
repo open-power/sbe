@@ -5,7 +5,7 @@
 
 # Make targets:
 
-# all          :
+# all          : 
 #
 # utilities    : Build utility programs and procedures
 #
@@ -21,7 +21,7 @@ CTEPATH = /afs/awd/projects/cte
 endif
 
 #  Locations of required headers.
-INCLUDES += -I. -I../../ -I../../utils
+INCLUDES += -I. -I../../ -I../../utils 
 INCLUDES += -I ../../sbe/image/
 INCLUDES += -I ../../sbe/sbefw/
 INCLUDES += -I ../../sbe/hwpf/include/plat
@@ -33,7 +33,8 @@ INCLUDES += -I ../../pk/kernel/
 INCLUDES += -I ../../pk/std/
 INCLUDES += -I ../../pk/trace/
 INCLUDES += -I ../../tools/ppetracepp/
-INCLUDES += -I ../../import/hwpf/fapi2/include/
+INCLUDES += -I ../../importtemp/fapi2/include/plat
+INCLUDES += -I ../../importtemp/fapi2/include/
 
 # Under Linux the scheme is to use a common compiler to create procedures.
 # However, the common compiler can be VERY slow, so if the system compiler is
@@ -57,7 +58,7 @@ CC   = gcc
 CXX  = g++
 endif
 
-#UTILITIES-SOURCES += ../../sbe/image/sbe_xip_image.c
+#UTILITIES-SOURCES += ../../sbe/image/sbe_xip_image.c 
 UTILITIES-SOURCES = sbe_xip_tool.c sbe_default_tool.c
 
 UTILITIES = sbe_xip_tool sbe_default_tool
@@ -73,7 +74,7 @@ UTILITIES-EXECUTABLES  = $(patsubst %,bin/%,$(UTILITIES))
 utilities: buildBinDir $(UTILITIES-EXECUTABLES)
 
 buildBinDir:
-	mkdir -p bin
+	mkdir -p bin       
 
 bin/%.o: %.c
 	$(CXX) -std=c++11 $(INCLUDES) $(CXXFLAGS) -DDEBUG_SBE_XIP_IMAGE=1 -DFAPI2_NO_FFDC -c -o $@ $<
@@ -85,7 +86,7 @@ bin/sbe_xip_tool: bin/sbe_xip_image.o bin/p9_ring_identification.o bin/sbe_xip_t
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
 	ln -sf bin/sbe_xip_tool sbe_xip_tool
 
-bin/sbe_default_tool: bin/sbe_xip_image.o bin/sbe_default_tool.o
+bin/sbe_default_tool: bin/sbe_xip_image.o bin/sbe_default_tool.o 
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
 	ln -sf bin/sbe_default_tool sbe_default_tool
 

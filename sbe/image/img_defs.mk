@@ -8,10 +8,10 @@
 #
 # PK                : Default ..; The path to the PK source code.
 #                      The default is set for building the PK
-#                      subdirectories.
+#                      subdirectories. 
 #
 # PK_THREAD_SUPPORT : (0/1, default 1); Compile PK thread and
-#                      semaphore suppprt
+#                      semaphore suppprt 
 #
 # PK_TIMER_SUPPORT  : (0/1, default 1); Compile PK timer suppprt
 #
@@ -22,7 +22,7 @@
 #                      make GCC-O-LEVEL="-Os -fno-branch-count-reg"
 #
 # GCC-TOOL-PREFIX    : The full path (including executable file prefixes) to
-#                      the GCC cross-development tools to use.  The default is
+#                      the GCC cross-development tools to use.  The default is 
 #                      "ppcnf-mcp5-"
 #
 # CTEPATH            : This variable defaults to the afs/awd CTE tool
@@ -113,7 +113,7 @@ export PPE_FAPI2_DIR = $(abspath ../../hwpf)
 endif
 
 ifndef BASE_FAPI2_DIR
-export BASE_FAPI2_DIR = $(abspath ../../import/hwpf/fapi2)
+export BASE_FAPI2_DIR = $(abspath ../../importtemp/fapi2)
 endif
 
 ifndef CC_ROOT
@@ -185,8 +185,8 @@ GCC-O-LEVEL = -O
 endif
 
 GCC-DEFS += -DIMAGE_NAME=$(IMAGE_SEEPROM_NAME)
-GCC-DEFS += -DPK_TIMER_SUPPORT=$(PK_TIMER_SUPPORT)
-GCC-DEFS += -DPK_THREAD_SUPPORT=$(PK_THREAD_SUPPORT)
+GCC-DEFS += -DPK_TIMER_SUPPORT=$(PK_TIMER_SUPPORT) 
+GCC-DEFS += -DPK_THREAD_SUPPORT=$(PK_THREAD_SUPPORT) 
 GCC-DEFS += -DPK_TRACE_SUPPORT=$(PK_TRACE_SUPPORT)
 GCC-DEFS += -DPK_TRACE_HASH_PREFIX=$(PK_TRACE_HASH_PREFIX)
 GCC-DEFS += -DUSE_PK_APP_CFG_H=1
@@ -212,6 +212,7 @@ INCLUDES += -I$(PLAT_FAPI2_DIR)/include/plat
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include
 INCLUDES += -I$(PPE_FAPI2_DIR)/include/plat
 INCLUDES += -I$(PPE_FAPI2_DIR)/include
+INCLUDES += -I$(BASE_FAPI2_DIR)/include/plat
 INCLUDES += -I$(BASE_FAPI2_DIR)/include
 INCLUDES += -I$(PK_SRCDIR)/../include
 INCLUDES += -I$(PK_SRCDIR)/$(PPE_TYPE)
@@ -261,7 +262,7 @@ GCC-CFLAGS += -ffixed-cr5
 GCC-CFLAGS += -ffixed-cr6
 GCC-CFLAGS += -ffixed-cr7
 
-CFLAGS =
+CFLAGS =  
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
 
 CPPFLAGS    	= -E -std=c++11
@@ -271,7 +272,7 @@ ASFLAGS		= -mppe42
 
 ifdef P2P_ENABLE
 #use this to disable optimizations (fused compare/branch etc.)
-PCP-FLAG    =
+PCP-FLAG    =  
 
 #use this to enable optimizations
 #PCP-FLAG =
