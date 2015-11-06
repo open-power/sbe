@@ -23,26 +23,24 @@ scl enable devtoolset-2 " bash -c  \"make all\"" || exit -1
 make tracehash || exit -1
 cd -
 
-#@ TODO via  RTC 123606
-# Enable this in another case
 # Create simics sandbox.
-#create-sandbox > create-sandbox.log 2>&1 &
-#CREATESANDBOX_PID=$!
+create-sandbox > create-sandbox.log 2>&1 &
+CREATESANDBOX_PID=$!
 
 # Check sandbox create completion.
-#wait $CREATESANDBOX_PID
-#if [ $? -eq 0 ]; then
-#    cat create-sandbox.log
-#else
-#    echo "----Sandbox creation failed."
-#    cat create-sandbox.log
-#    exit -1
-#fi
+wait $CREATESANDBOX_PID
+if [ $? -eq 0 ]; then
+    cat create-sandbox.log
+else
+    echo "----Sandbox creation failed."
+    cat create-sandbox.log
+    exit -1
+fi
 
 # Add SBE files to simics sandbox.
-#populate-sandbox || exit -1
+populate-sandbox || exit -1
 
-#sbetest-start.sh || exit -1
+sbetest-start.sh || exit -1
 
 # @TODO via RTC 140875
 #Enable it once SBE copyright script is ready

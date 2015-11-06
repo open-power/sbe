@@ -1,10 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <integrationtest>
-	<platform startsimargs="--notar --norun">
+	<platform startsimargs="--notar --norun --sim_parms -nre">
 		<machine>%%machine%%</machine>
 
         <test>
+           <!-- Set IVPR to point to sbe start address ( currently PIBMEM) -->
+          <testcase>
+              <simcmd>p9Proc0.sbe.mibo_space.write 0xc0000160 0xFFFE800000000000 8 -b</simcmd>
+              <exitonerror>yes</exitonerror>
+          </testcase>
+          <testcase>
+              <simcmd>p9Proc0.sbe.mibo_space.write 0xc00e0000 0x5000000000000000 8 -b</simcmd>
+              <exitonerror>yes</exitonerror>
+          </testcase>
+          <testcase>
+              <simcmd>sim->frontend_current_processor = p9Proc0.sbe.ppe</simcmd>
+              <exitonerror>yes</exitonerror>
+          </testcase>
            <!-- Register SBE tools -->
           <testcase>
               <simcmd>run-python-file targets/p9_nimbus/sbeTest/simics-debug-framework.py</simcmd>
