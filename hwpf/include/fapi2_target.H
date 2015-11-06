@@ -93,11 +93,7 @@ namespace fapi2
         /// single uint64_t in value which represents all the information
         /// they might need. value( K | V ), for example
         ///
-        Target(V Value);
-
-//               Target(V Value):
-//            iv_handle(Value)
-//        {}
+        Target(V Value = 0);
 
         ///
         /// @brief Assignment Operator.
