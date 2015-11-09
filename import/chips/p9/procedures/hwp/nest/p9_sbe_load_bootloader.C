@@ -42,13 +42,6 @@
 // Constant definitions
 //-----------------------------------------------------------------------------------
 
-// group base address determination constants
-const uint8_t FABRIC_GROUP_ID_MASK_LARGE_SYSTEM = 0xF;
-const uint8_t FABRIC_GROUP_ID_SHIFT_LARGE_SYSTEM = 45;
-
-const uint8_t FABRIC_GROUP_ID_MASK_SMALL_SYSTEM = 0x3;
-const uint8_t FABRIC_GROUP_ID_SHIFT_SMALL_SYSTEM = 44;
-
 // PBA setup/access HWP call constants
 const bool PBA_HWP_WRITE_OP = false;
 const uint32_t PBA_HWP_FLAGS = FLAG_FASTMODE | // fastmode
@@ -67,9 +60,8 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     uint64_t l_bootloader_offset;
     uint64_t l_hostboot_hrmor_offset;
-    uint8_t l_fabric_group_id;
-    uint8_t l_fabric_addr_bar_mode;
-    uint64_t l_target_base_address;
+    uint64_t l_chip_base_address_nm;
+    uint64_t l_chip_base_address_m;
     uint64_t l_target_address;
     uint64_t l_payload_data_offset;
 
@@ -82,36 +74,25 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET, FAPI_SYSTEM, l_hostboot_hrmor_offset),
              "Error from FAPI_ATTR_GET (ATTR_HOSTBOOT_HRMOR_OFFSET)");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_GROUP_ID, i_master_chip_target, l_fabric_group_id),
-             "Error from FAPI_ATTR_GET (ATTR_FABRIC_GROUP_ID)");
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_ADDR_BAR_MODE, FAPI_SYSTEM, l_fabric_addr_bar_mode),
-             "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_ADDR_BAR_MODE)");
-
-    // target base address = (group base address) +
+    // target base address = (chip non-mirrored base address) +
     //                       (hostboot HRMOR offset) +
     //                       (bootloader offset)
 
-    // form group base address
-    l_target_base_address = l_fabric_group_id;
-    l_target_base_address &= ((l_fabric_addr_bar_mode == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_LARGE_SYSTEM) ?
-                              (FABRIC_GROUP_ID_MASK_LARGE_SYSTEM) :
-                              (FABRIC_GROUP_ID_MASK_SMALL_SYSTEM));
-    l_target_base_address <<= ((l_fabric_addr_bar_mode == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_LARGE_SYSTEM) ?
-                               (FABRIC_GROUP_ID_SHIFT_LARGE_SYSTEM) :
-                               (FABRIC_GROUP_ID_SHIFT_SMALL_SYSTEM));
+    FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_master_chip_target,
+             l_chip_base_address_nm,
+             l_chip_base_address_m),
+             "Error from p9_fbc_utils_get_chip_base_address");
+
     // add hostboot HRMOR offset and bootloader offset contributions
-    l_target_base_address += l_hostboot_hrmor_offset;
-    l_target_base_address += l_bootloader_offset;
+    l_chip_base_address_nm += l_hostboot_hrmor_offset;
+    l_chip_base_address_nm += l_bootloader_offset;
 
     // check that base address is cacheline aligned
-    FAPI_ASSERT(!(l_target_base_address % FABRIC_CACHELINE_SIZE),
+    FAPI_ASSERT(!(l_chip_base_address_nm % FABRIC_CACHELINE_SIZE),
                 fapi2::P9_SBE_LOAD_BOOTLOADER_INVALID_TARGET_ADDRESS().
                 set_CHIP_TARGET(i_master_chip_target).
                 set_EX_TARGET(i_master_ex_target).
-                set_TARGET_BASE_ADDRESS(l_target_base_address).
-                set_FABRIC_GROUP_ID(l_fabric_group_id).
-                set_FABRIC_ADDR_BAR_MODE(l_fabric_addr_bar_mode).
+                set_TARGET_BASE_ADDRESS(l_chip_base_address_nm).
                 set_HRMOR_OFFSET(l_hostboot_hrmor_offset).
                 set_BOOTLOADER_OFFSET(l_bootloader_offset),
                 "Target base address is not cacheline aligned!");
@@ -124,10 +105,10 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                 "Payload size is invalid!");
 
     // move data using PBA setup/access HWPs
-    l_target_address = l_target_base_address;
+    l_target_address = l_chip_base_address_nm;
     l_payload_data_offset = 0;
 
-    while (l_target_address < (l_target_base_address + i_payload_size))
+    while (l_target_address < (l_chip_base_address_nm + i_payload_size))
     {
         // invoke PBA setup HWP to prep stream
         uint32_t l_num_cachelines_to_roll;
@@ -140,7 +121,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
 
         // call PBA access HWP per cacheline to move payload data
         while (l_num_cachelines_to_roll &&
-               (l_target_address < (l_target_base_address + i_payload_size)))
+               (l_target_address < (l_chip_base_address_nm + i_payload_size)))
         {
             FAPI_TRY(p9_pba_access(i_master_chip_target,
                                    l_target_address,
@@ -148,7 +129,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                                    PBA_HWP_FLAGS,
                                    (l_num_cachelines_to_roll == 1) ||
                                    ((l_target_address + FABRIC_CACHELINE_SIZE) >
-                                    (l_target_base_address + i_payload_size)),
+                                    (l_chip_base_address_nm + i_payload_size)),
                                    i_payload_data + l_payload_data_offset), "Error from p9_pba_access");
 
             // decrement count of cachelines remaining in current stream
