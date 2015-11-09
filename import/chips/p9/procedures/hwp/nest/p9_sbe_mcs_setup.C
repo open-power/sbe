@@ -16,125 +16,175 @@
 /* deposited with the U.S. Copyright Office.                              */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-//------------------------------------------------------------------------------
-/// @file  p9_sbe_mcs_setup.C
 ///
-/// @brief Configure one MCS unit on the master chip to low point of
-/// coherency acknowledge preparations(lpc_ack preps). in support
-/// of dcbz(Data Cache Block Zero) operations executed by HBI code
-/// (while still running cache contained prior to memory configuration).
+/// @file p9_sbe_mcs_setup.C
+/// @brief Configure MC unit to support HB execution (FAPI2)
+///
+
+///
+/// @author Joe McGill <jmcgill@us.ibm.com>
+///
+
+//
+// *HWP HWP Owner: Joe McGill <jmcgill@us.ibm.com>
+// *HWP FW Owner: Thi Tran <thi@us.ibm.com>
+// *HWP Team: Nest
+// *HWP Level: 2
+// *HWP Consumed by: SBE
+//
+
+
 //------------------------------------------------------------------------------
-// *HWP HW Owner        : Girisankar Paulraj <gpaulraj@in.ibm.com>
-// *HWP HW Backup Owner : Joe McGill <jcmgill@us.ibm.com>
-// *HWP FW Owner         : Thi N. Tran <thi@us.ibm.com>
-// *HWP Team             : Nest
-// *HWP Level            : 2
-// *HWP Consumed by      : SBE
+// Includes
+//------------------------------------------------------------------------------
+#include <p9_sbe_mcs_setup.H>
+#include <p9_fbc_utils.H>
+#include <p9_mc_scom_addresses.H>
+#include <p9_mc_scom_addresses_fld.H>
+
+
+//------------------------------------------------------------------------------
+// Constant definitions
+//------------------------------------------------------------------------------
+const uint8_t MCS_MCFGP_BASE_ADDRESS_START_BIT = 8;
+
+//------------------------------------------------------------------------------
+// Function prototypes
+//------------------------------------------------------------------------------
+
+///
+/// @brief Set hostboot dcbz MC configuration for one unit target
+///
+/// @param[in] i_target Reference to an MC target (MCS/MI)
+/// @param[in] i_chip_base_address Chip non-mirrored base address
+////// @return FAPI2_RC_SUCCESS if success, else error code.
+///
+template<fapi2::TargetType T>
+fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<T>& i_target,
+                                     const uint64_t i_chip_base_address);
+
+
+//------------------------------------------------------------------------------
+// Function definitions
 //------------------------------------------------------------------------------
 
 
-//## auto_generated
-#include "p9_sbe_mcs_setup.H"
-
-#include "p9_mc_scom_addresses.H"
-
-
-static fapi2::ReturnCode p9_sbe_mcs_setup_bar_cnfg(const
-        fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target_mcs);
-
-fapi2::ReturnCode p9_sbe_mcs_setup(const
-                                   fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+// specialization for MCS target type
+template<>
+fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target,
+                                     const uint64_t i_chip_base_address)
 {
-    // Local Variable definition
-    // for collect the following attributes
-    //  1) Chip is master sbe chip.
-    //  2) IPL is in MPIPL mode
-    //  3) IPL is in normal IPL type
-    uint8_t l_master_sbe = 0, l_mpipl_mode = 0, l_ipl_type = 0;
-    bool l_mcs_found = 0;
-    auto l_mcs_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_MCS>
-                                   (fapi2::TARGET_STATE_FUNCTIONAL);
+    FAPI_DBG("Start");
+    fapi2::buffer<uint64_t> l_mcfgp;
+    fapi2::buffer<uint64_t> l_mcmode1;
+    fapi2::buffer<uint64_t> l_mcfirmask_and;
+
+    // MCFGP -- set BAR valid, configure single MC group with minimum size at chip base address
+    FAPI_TRY(fapi2::getScom(i_target, MCS_MCFGP, l_mcfgp),
+             "Error from getScom (MCS_MCFGP)");
+    l_mcfgp.setBit<MCS_MCFGP_VALID>();
+    l_mcfgp.clearBit<MCS_MCFGP_MC_CHANNELS_PER_GROUP,
+                     MCS_MCFGP_MC_CHANNELS_PER_GROUP_LEN>();
+    l_mcfgp.clearBit<MCS_MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION,
+                     MCS_MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION_LEN>();
+    l_mcfgp.clearBit<MCS_MCFGP_GROUP_SIZE, MCS_MCFGP_GROUP_SIZE_LEN>();
+    // group base address field covers RA 8:31
+    l_mcfgp.insert(i_chip_base_address,
+                   MCS_MCFGP_GROUP_BASE_ADDRESS,
+                   MCS_MCFGP_GROUP_BASE_ADDRESS_LEN,
+                   MCS_MCFGP_BASE_ADDRESS_START_BIT);
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCFGP, l_mcfgp),
+             "Error from putScom (MCS_MCFGP)");
+
+    // MCMODE1 -- disable speculation
+    FAPI_TRY(fapi2::getScom(i_target, MCS_MCMODE1, l_mcmode1),
+             "Error from getScom (MCS_MCMODE1)");
+    l_mcmode1.setBit<MCS_MCMODE1_DISABLE_ALL_SPEC_OPS>();
+    l_mcmode1.setBit<MCS_MCMODE1_DISABLE_SPEC_OP,
+                     MCS_MCMODE1_DISABLE_SPEC_OP_LEN>();
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCMODE1, l_mcmode1),
+             "Error from putScom (MCS_MCMODE1)");
+
+    // MCFIRMASK -- unmask command list/channel timeout errors (so a checkstop will
+    //              occur if we break cache containment, but hit against the BAR)
+    l_mcfirmask_and.flush<1>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_COMMAND_LIST_TIMEOUT>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_COMMAND_LIST_TIMEOUT_SPEC>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_CHANNEL_0_TIMEOUT_ERROR>();
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCFIRMASK_AND, l_mcfirmask_and),
+             "Error from putScom (MCS_MCFIRMASK_AND)");
+
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}
+
+
+// specialization for MI target type
+template<>
+fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<fapi2::TARGET_TYPE_MI>& i_target,
+                                     const uint64_t i_chip_base_address)
+{
+    // TODO: implement for Cumulus (MI target)
+    return fapi2::current_err;
+}
+
+
+// HWP entry point
+fapi2::ReturnCode p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    FAPI_INF("Start");
+
+    uint8_t l_is_master_sbe;
+    uint8_t l_is_mpipl;
+    uint8_t l_ipl_type;
+    uint64_t l_chip_base_address_nm;
+    uint64_t l_chip_base_address_m;
+
+    auto l_mcs_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MCS>();
+    auto l_mi_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MI>();
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    FAPI_DBG("Entering ...");
 
-    // Collecting System IPL attributes...
-    FAPI_INF(" Collecting attributes for master SBE  chip, MPIPL mode and IPL type");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_SBE_MASTER_CHIP, i_target,
-                           l_master_sbe));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_mpipl_mode));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_ipl_type));
-    FAPI_INF(" Checking whether It is Master SBE chip or not");
+    // configure one MC on master chip (only if IPL is loading hostboot, and is not memory
+    // preserving)
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_SBE_MASTER_CHIP, i_target, l_is_master_sbe),
+             "Error from FAPI_ATTR_GET (ATTR_PROC_SBE_MASTER_CHIP)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_is_mpipl),
+             "Error from FAPI_ATTR_GET (ATTR_IS_MPIPL)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_ipl_type),
+             "Error from FAPI_ATTR_GET (ATTR_SYSTEM_IPL_PHASE)");
 
-    if ( l_ipl_type == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL && l_master_sbe
-         && !l_mpipl_mode )
+    if ((l_ipl_type == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL) &&
+        l_is_master_sbe &&
+        !l_is_mpipl)
     {
-        for (auto l_target_mcs : l_mcs_functional_vector)
+        FAPI_ASSERT(l_mcs_chiplets.size() || l_mi_chiplets.size(),
+                    fapi2::P9_SBE_MCS_SETUP_NO_MC_FOUND_ERR().set_CHIP(i_target),
+                    "No functional MC unit target found");
+
+        // determine base address
+        FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_target,
+                 l_chip_base_address_nm,
+                 l_chip_base_address_m),
+                 "Error from p9_fbc_utils_get_chip_base_addrs");
+
+        if (l_mcs_chiplets.size())
         {
-            FAPI_TRY(p9_sbe_mcs_setup_bar_cnfg(l_target_mcs));
-
-            l_mcs_found = 1;
-            break;
+            FAPI_TRY(set_hb_dcbz_config(l_mcs_chiplets.front(),
+                                        l_chip_base_address_nm),
+                     "Error from set_hb_dcbz_config (MCS)");
         }
-
-        FAPI_ASSERT(l_mcs_found,
-                    fapi2::P9_SBE_MCS_SETUP_NO_MCS_FOUND_ERR()
-                    .set_CHIP(i_target),
-                    "No MCS CHIPLET found ");
+        else
+        {
+            FAPI_TRY(set_hb_dcbz_config(l_mi_chiplets.front(),
+                                        l_chip_base_address_nm),
+                     "Error from set_hb_dcbz_config (MI)");
+        }
     }
 
-    FAPI_DBG("Exiting ...");
-
 fapi_try_exit:
+    FAPI_INF("End");
     return fapi2::current_err;
 
 }
 
-/// @brief Configuring one MCS BAR on Master SBE processor and set as required MCS found
-///
-/// @param[in]     i_target_mcs   Reference to TARGET_TYPE_MCS target
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_mcs_setup_bar_cnfg(const
-        fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target_mcs)
-{
-    fapi2::buffer<uint64_t> l_data64;
-    FAPI_DBG("Entering ...");
-
-    // configures the following on MCFGP registers:-
-    // 1) MCS valid bit  - 1 (Bit 0)
-    // 2) No of MCS in the group as 1 (Bit 1:4)
-    // 3) MCS group ID - 000 (Bit 5:7)
-    // 4) MCS size as 4GB     (Bit 13:23)
-    // 5) Disable spec all ops  (Bti 32)
-    // 6) Disable all spec ops associates ( Bit 33:51)
-    // and Masking all MC FIR calls
-    FAPI_INF("configures first MCS unit MCFGP BAR to acknowledge lpc_ack preps");
-    //Setting MCFGP register value
-    FAPI_TRY(fapi2::getScom(i_target_mcs, MCS_MCFGP, l_data64));
-    l_data64.writeBit<0>
-    (p9SbeMcsSetup::GROUP_VALID);  //MCFGP.MCFGP_VALID = p9SbeMcsSetup::GROUP_VALID
-    //MCFGP.MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION = p9SbeMcsSetup::GROUP_ID
-    l_data64.insertFromRight<5, 3>(p9SbeMcsSetup::GROUP_ID);
-    //MCFGP.MCFGP_GROUP_SIZE = p9SbeMcsSetup::GROUP_SIZE
-    l_data64.insertFromRight<13, 11>(p9SbeMcsSetup::GROUP_SIZE);
-    //MCFGP.MCFGP_MC_CHANNELS_PER_GROUP = p9SbeMcsSetup::MC_CHANNELS_PER_GROUP
-    l_data64.insertFromRight<1, 4>(p9SbeMcsSetup::MC_CHANNELS_PER_GROUP);
-    FAPI_TRY(fapi2::putScom(i_target_mcs, MCS_MCFGP, l_data64));
-    //Setting MCMODE1 register value
-    FAPI_TRY(fapi2::getScom(i_target_mcs, MCS_MCMODE1, l_data64));
-    //MCMODE1.MCMODE1_DISABLE_ALL_SPEC_OPS = p9SbeMcsSetup::DISABLE_ALL_SPEC_OPS
-    l_data64.writeBit<32>(p9SbeMcsSetup::DISABLE_ALL_SPEC_OPS);
-    //MCMODE1.MCMODE1_DISABLE_SPEC_OP = p9SbeMcsSetup::DISABLE_SPEC_OP_ASSO
-    l_data64.insertFromRight<33, 19>(p9SbeMcsSetup::DISABLE_SPEC_OP_ASSO);
-    FAPI_TRY(fapi2::putScom(i_target_mcs, MCS_MCMODE1, l_data64));
-    //Setting MCFIRMASK register value
-    l_data64.flush<0>();
-    //MCFIRMASK.MCFIRMASK_FIR_MASK = p9SbeMcsSetup::MCFIRMASK_DEFAULT
-    l_data64.insertFromRight<0, 26>(p9SbeMcsSetup::MCFIRMASK_DEFAULT);
-    FAPI_TRY(fapi2::putScom(i_target_mcs, MCS_MCFIRMASK, l_data64));
-
-    FAPI_DBG("Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
-}
