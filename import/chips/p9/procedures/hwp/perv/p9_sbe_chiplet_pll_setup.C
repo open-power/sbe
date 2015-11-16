@@ -39,7 +39,8 @@
 enum P9_SBE_CHIPLET_PLL_SETUP_Private_Constants
 {
     NS_DELAY = 100000, // unit is nano seconds
-    SIM_CYCLE_DELAY = 1000 // unit is sim cycles
+    //SIM_CYCLE_DELAY = 25000000 // unit is sim cycles
+    SIM_CYCLE_DELAY = 100000 // unit is sim cycles
 };
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
@@ -124,11 +125,23 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
 
     FAPI_DBG("Entering ...");
 
-    FAPI_INF("Drop PLL Test Enable");
-    //Setting NET_CTRL0 register value
-    l_data64.flush<1>();
-    l_data64.clearBit<3>();  //NET_CTRL0.PLL_TEST_EN = 0
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
+    //-- Manual Update
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chiplet,
+                           l_attr_chip_unit_pos));
+
+    if (l_attr_chip_unit_pos == 0x0D || l_attr_chip_unit_pos == 0x0E
+        || l_attr_chip_unit_pos == 0x0F/* PcieChiplet */)
+    {
+        FAPI_INF("Not Dropping PLL Test Enable for PCI PLL");
+    }
+    else
+    {
+        FAPI_INF("Drop PLL Test Enable");
+        //Setting NET_CTRL0 register value
+        l_data64.flush<1>();
+        l_data64.clearBit<3>();  //NET_CTRL0.PLL_TEST_EN = 0
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
+    }
 
     FAPI_INF("Drop PLL Reset");
     //Setting NET_CTRL0 register value
@@ -142,26 +155,12 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
     //Getting PLL_LOCK_REG register value
     FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_PLL_LOCK_REG,
                             l_read_reg)); //l_read_reg = PLL_LOCK_REG
-    //-- Manual Update
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chiplet,
-                           l_attr_chip_unit_pos));
-
-    //-- HW335674
-    if (l_attr_chip_unit_pos == 0x06/* XbusChiplet */)
-    {
-        FAPI_ASSERT(l_read_reg.getBit<2>(),
-                    fapi2::PLL_LOCK_ERR()
-                    .set_PLL_READ(l_read_reg),
-                    "ERROR:PLL LOCK NOT SET");
-    }
-    else
-    {
-        FAPI_ASSERT(l_read_reg.getBit<0>(),
-                    fapi2::PLL_LOCK_ERR()
-                    .set_PLL_READ(l_read_reg),
-                    "ERROR:PLL LOCK NOT SET");
-    }
+    
+    FAPI_ASSERT(l_read_reg.getBit<0>(),
+                fapi2::PLL_LOCK_ERR()
+                .set_PLL_READ(l_read_reg),
+                "ERROR:PLL LOCK NOT SET");
+    
 
     FAPI_INF("Drop PLL Bypass");
     //Setting NET_CTRL0 register value
