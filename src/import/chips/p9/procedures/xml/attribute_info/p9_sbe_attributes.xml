@@ -525,4 +525,14 @@
            <name>ATTR_HOSTBOOT_HRMOR_OFFSET</name>
            <value>0x01</value>
   </entry>
+  <entry>
+           <name>ATTR_SYS_FORCE_ALL_CORES</name>
+  </entry>
+  <entry>
+           <name>ATTR_MASTER_CORE</name>
+  </entry>
+  <entry>
+           <name>ATTR_MASTER_EX</name>
+  </entry>
+
 </entries>
