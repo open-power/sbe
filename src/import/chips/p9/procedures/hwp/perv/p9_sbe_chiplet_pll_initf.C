@@ -69,10 +69,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt,
                                    l_attr_chip_unit_pos));
 
-            if (!((l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
-                   || l_attr_chip_unit_pos == 0x04
-                   || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
-                  (l_attr_chip_unit_pos == 0x09 || l_attr_chip_unit_pos == 0x0A
+            if (!((l_attr_chip_unit_pos == 0x09 || l_attr_chip_unit_pos == 0x0A
                    || l_attr_chip_unit_pos == 0x0B
                    || l_attr_chip_unit_pos == 0x0C/* ObusChiplet */) ||
                   (l_attr_chip_unit_pos == 0x0D || l_attr_chip_unit_pos == 0x0E
@@ -103,9 +100,6 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
 
             if (!((l_attr_chip_unit_pos == 0x07
                    || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
-                  (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
-                   || l_attr_chip_unit_pos == 0x04
-                   || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
                   (l_attr_chip_unit_pos == 0x09 || l_attr_chip_unit_pos == 0x0A
                    || l_attr_chip_unit_pos == 0x0B
                    || l_attr_chip_unit_pos == 0x0C/* ObusChiplet */) ||
