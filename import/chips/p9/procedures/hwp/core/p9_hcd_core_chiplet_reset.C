@@ -90,21 +90,22 @@ p9_hcd_core_chiplet_reset(
     FAPI_TRY(putScom(i_target, C_HANG_PULSE_1_REG, l_data64));
 
 #ifndef P9_HCD_STOP_SKIP_FLUSH
+    // Putting in block to avoid c++ crosses initialization compile error
+    {
+        //--------------------------------------------
+        // Perform scan0 module for pervasive chiplet
+        //--------------------------------------------
+        // Each scan0 will rotate the ring 8191 latches (2**13 - 1) and the longest
+        // ring is defined by P9_HCD_SCAN_FUNC_REPEAT. When the design ALWAYS has
+        // all stumps less than 8191, the repeat can be removed.
+        fapi2::Target<fapi2::TARGET_TYPE_PERV> l_target;
+        FAPI_DBG("Scan0 the GPTR/TIME/REP rings");
 
-    //--------------------------------------------
-    // Perform scan0 module for pervasive chiplet
-    //--------------------------------------------
-    // Each scan0 will rotate the ring 8191 latches (2**13 - 1) and the longest
-    // ring is defined by P9_HCD_SCAN_FUNC_REPEAT. When the design ALWAYS has
-    // all stumps less than 8191, the repeat can be removed.
-    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_target;
-    FAPI_DBG("Scan0 the GPTR/TIME/REP rings");
-
-    for(uint32_t l_loop = 0; l_loop < P9_HCD_SCAN_GPTR_REPEAT; l_loop++)
-        FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_target,
-                                              p9hcd::SCAN0_REGION_CORE_ONLY,
-                                              p9hcd::SCAN0_TYPE_GPTR_REPR_TIME));
-
+        for(uint32_t l_loop = 0; l_loop < P9_HCD_SCAN_GPTR_REPEAT; l_loop++)
+            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_target,
+                                                  p9hcd::SCAN0_REGION_CORE_ONLY,
+                                                  p9hcd::SCAN0_TYPE_GPTR_REPR_TIME));
+    }
 #endif
 
 fapi_try_exit:
