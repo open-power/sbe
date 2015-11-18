@@ -123,7 +123,7 @@ namespace fapi2
     template<TargetType K, typename V>
     Target<K, V>& Target<K, V>::operator=(const Target& i_right)
         {
-            this->iv_handle.value = i_right->iv_handle.value;
+            this->iv_handle.value = i_right.iv_handle.value;
             return *this;
         }
     ///
@@ -136,7 +136,7 @@ namespace fapi2
     template<TargetType K, typename V>
     bool Target<K, V>::operator==(const Target& i_right) const
     {
-        if (this->iv_handle.value == i_right->iv_handle.value)
+        if (this->iv_handle.value == i_right.iv_handle.value)
             return true;
         else
             return false;
@@ -152,7 +152,7 @@ namespace fapi2
     template<TargetType K, typename V>
     bool Target<K, V>::operator!=(const Target& i_right) const
     {
-        if (this->iv_handle.value != i_right->iv_handle.value)
+        if (this->iv_handle.value != i_right.iv_handle.value)
             return true;
         else
             return false;
@@ -239,9 +239,9 @@ namespace fapi2
         std::vector<fapi2::plat_target_handle_t>::iterator l_iter;
         FAPI_DBG("getChildren: initializing children vector");
         std::vector<Target<T> > l_children;
-        
-        
-       
+
+
+
         uint32_t c = 0;
         for (l_iter = G_vec_targets.begin(); l_iter != G_vec_targets.end(); ++l_iter)
         {
@@ -251,7 +251,7 @@ namespace fapi2
             {
                 switch (i_state)
                 {
-                    case TARGET_STATE_PRESENT:                
+                    case TARGET_STATE_PRESENT:
                         if ((*l_temp).getPresent())
                         {
                             l_children.push_back((*l_temp));
