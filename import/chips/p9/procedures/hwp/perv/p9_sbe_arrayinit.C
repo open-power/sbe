@@ -41,7 +41,8 @@ enum P9_SBE_ARRAYINIT_Private_Constants
 {
     LOOP_COUNTER = 0x0000000000042FFF,
     REGIONS_EXCEPT_VITAL = 0x7FF,
-    SCAN_TYPES_EXCEPT_TIME_GPTR_REPR = 0x230,
+    REGIONS_FOR_PERV = 0x400,
+    SCAN_TYPES_EXCEPT_TIME_GPTR_REPR = 0xDCF,
     SELECT_EDRAM = 0x0,
     SELECT_SRAM = 0x1,
     START_ABIST_MATCH_VALUE = 0x0000000F00000000
@@ -112,7 +113,7 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
     {
         FAPI_INF("run array_init module for all chiplet except TP, EC, EP");
         FAPI_TRY(p9_perv_sbe_cmn_array_init_module(i_target_chiplet,
-                 REGIONS_EXCEPT_VITAL, LOOP_COUNTER, SELECT_SRAM, SELECT_EDRAM,
+                 REGIONS_FOR_PERV, LOOP_COUNTER, SELECT_SRAM, SELECT_EDRAM,
                  START_ABIST_MATCH_VALUE));
 
         FAPI_INF("Check  for SRAM ABIST done");
