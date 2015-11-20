@@ -1,1 +1,146 @@
 # This file will contain all the Pervasive Actions
+# Simics action file for istep 2/3/4 procedures.
+
+CAUSE_EFFECT CHIPLETS tp nest xbus mc obus pcie cache ec {
+LABEL=[SEEPROM ARRAY INIT ]
+# Watch PERV_OPCG_REG0
+WATCH=[REG(MYCHIPLET,0x00030002)]
+# OPCG_REG0.RUNN_MODE = 1
+CAUSE: TARGET=[REG(MYCHIPLET, 0x00030002)]  OP=[BIT,ON] BIT=[0]
+# OPCG_REG0.OPCG_STARTS_BIST = 1
+CAUSE: TARGET=[REG(MYCHIPLET, 0x00030002)]  OP=[BIT,ON] BIT=[14]
+# OPCG_REG0.OPCG_GO = 1
+CAUSE: TARGET=[REG(MYCHIPLET, 0x00030002)] OP=[BIT,ON] BIT=[1]
+# OPCG_DONE for CPLT_STAT0 register
+EFFECT: TARGET=[REG(MYCHIPLET, 0x00000100)] OP=[BIT,ON] BIT=[8]
+# SRAM Abist Done
+EFFECT: TARGET=[REG(MYCHIPLET, 0x00000100)] OP=[BIT,ON] BIT=[0]
+}
+
+CAUSE_EFFECT CHIPLETS tp nest xbus mc obus pcie cache ec {
+LABEL=[SEEPROM SCAN0 MODULE ]
+# Watch PERV_OPCG_REG0
+WATCH=[REG(MYCHIPLET, 0x00030002)]
+# OPCG_REG0.RUN_SCAN0 = 1
+CAUSE: TARGET=[REG(MYCHIPLET, 0x00030002)]  OP=[BIT,ON] BIT=[2]
+# OPCG_DONE for CPLT_STAT0 register
+EFFECT: TARGET=[REG(MYCHIPLET, 0x00000100)] OP=[BIT,ON] BIT=[8]
+}
+
+# =============================================================================
+# Simics action for p9_sbe_tp_chiplet_init3
+# =============================================================================
+
+CAUSE_EFFECT CHIPLETS tp nest mc{
+LABEL=[Common_Clock_Start_AllRegions]
+# Watch PERV_CLK_REGION register
+WATCH=[REG(MYCHIPLET,0x00030006)]
+# Setup all Clock Domains and Clock Types
+CAUSE: TARGET=[REG(MYCHIPLET,0x00030006)]  OP=[EQUALTO,BUF] DATA=[LITERAL(64,0x69FE0000 0000E000)]
+# Clock running status for SL type should match with expected values.
+EFFECT: TARGET=[REG(MYCHIPLET,0x00030008)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0xF601FFFF FFFFFFFF)]
+# Clock running status for NSL type should match with expected values.
+EFFECT: TARGET=[REG(MYCHIPLET,0x00030009)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0xF601FFFF FFFFFFFF)]
+# Clock running status for ARY type should match with expected values.
+EFFECT: TARGET=[REG(MYCHIPLET,0x0003000A)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0xF601FFFF FFFFFFFF)]
+}
+
+# =============================================================================
+# Simics action for p9_sbe_npll_setup
+# =============================================================================
+
+CAUSE_EFFECT{
+LABEL=[SS PLL lock]
+#Watch PERV_ROOT_CTRL8_SCOM register
+WATCH=[REG(0x00050018)]
+# PIB.ROOT_CTRL8.TP_PLL_TEST_ENABLE_DC = 0
+CAUSE: TARGET=[REG(0x00050018)]  OP=[BIT,OFF] BIT=[12]
+# PIB.ROOT_CTRL8.TP_SSPLL_PLL_RESET0_DC = 0
+CAUSE: TARGET=[REG(0x00050018)]  OP=[BIT,OFF] BIT=[0]
+# Check SS PLL lock
+EFFECT: TARGET=[REG(0x010F0019)] OP=[BIT,ON] BIT=[0]
+}
+
+CAUSE_EFFECT{
+LABEL=[CP and IO PLL lock]
+# Watch PERV_ROOT_CTRL8_SCOM register
+WATCH=[REG(0x00050018)]
+# PIB.ROOT_CTRL8.TP_FILTPLL_PLL_RESET1_DC = 0
+CAUSE: TARGET=[REG(0x00050018)]  OP=[BIT,OFF] BIT=[4]
+# Check PLL_LOCK_REG register value
+EFFECT: TARGET=[REG(0x010F0019)] OP=[BIT,ON] BIT=[1]
+EFFECT: TARGET=[REG(0x010F0019)] OP=[BIT,ON] BIT=[2]
+}
+
+CAUSE_EFFECT{
+LABEL=[NEST PLL LOCK]
+# Watch PERV_ROOT_CTRL8_SCOM register
+WATCH=[REG(0x00050018)]
+# PIB.PERV_CTRL0.TP_PLLRST_DC = 0
+CAUSE: TARGET=[REG(0x00050018)]  OP=[BIT,OFF] BIT=[4]
+# Check NEST PLL lock
+EFFECT: TARGET=[REG(0x010F0019)] OP=[BIT,ON] BIT=[3]
+}
+
+# =============================================================================
+# Simics action for p9_sbe_nest_startclocks
+# =============================================================================
+
+CAUSE_EFFECT CHIPLETS nest mc {
+LABEL=[Check checkstop Register]
+# Watch PERV_NET_CTRL0_WAND register
+WATCH=[REG(MYCHIPLET,0x000F0041)]
+# NET_CTRL0.FENCE_EN = 0
+CAUSE: TARGET=[REG(MYCHIPLET,0x000F0041)]  OP=[BIT,OFF] BIT=[18]
+# Check checkstop register
+EFFECT: TARGET=[REG(MYCHIPLET,0x00040000)]  OP=[EQUALTO,BUF] DATA=[LITERAL(64,0x00000000 00000000)] 
+}
+
+
+# =============================================================================
+# Simics action for p9_sbe_tp_switchgear
+# =============================================================================
+CAUSE_EFFECT {
+LABEL=[Gear Switcher i2c stop Sequence]
+# Watch PU_CONTROL_REGISTER_B
+WATCH=[REG(0x000A0000)]
+# PIB.CONTROL_REGISTER_B.PIB_CNTR_REG_BIT_WITHSTOP_0 = 1
+CAUSE: TARGET=[REG(0x000A0000)]  OP=[BIT,ON] BIT=[3]
+# PIB.CONTROL_REGISTER_B.ENH_MODE_0 = 1
+CAUSE: TARGET=[REG(0x000A0000)]  OP=[BIT,ON] BIT=[26]
+# PIB.STATUS_REGISTER_B.BUS_STATUS_BUSY_0
+EFFECT: TARGET=[REG(0x000A0002)] OP=[BIT,OFF] BIT=[44]
+}
+
+# =============================================================================
+# Simics action for p9_sbe_chiplet_pll_setup
+# =============================================================================
+CAUSE_EFFECT CHIPLETS nest xbus mc obus pcie{
+LABEL=[PLL lock]
+# Watch PERV_NET_CTRL0_WAND Register
+WATCH=[REG(MYCHIPLET,0x000F0041)]
+# NET_CTRL0.PLL_RESET = 0
+CAUSE: TARGET=[REG(MYCHIPLET,0x000F0041)]  OP=[BIT,OFF] BIT=[4]
+# Getting PLL_LOCK_REG register value
+EFFECT: TARGET=[REG(MYCHIPLET,0x000F0019)] OP=[BIT,ON] BIT=[0]
+}
+
+# =============================================================================
+# Simics action for p9_start_cbs
+# =============================================================================
+CAUSE_EFFECT {
+LABEL=[CBS_CS_START_BOOT_SEQUENCER]
+#Watch PERV_CBS_CS_FSI
+WATCH=[CFAM_REG(0x00002801)]
+# CFAM.CBS_CS.CBS_CS_START_BOOT_SEQUENCER = 1
+CAUSE: TARGET=[CFAM_REG(0x00002801)]  OP=[BIT,ON] BIT=[0]
+# CFAM.CBS_CS.CBS_CS_INTERNAL_STATE_VECTOR 
+EFFECT: TARGET=[CFAM_REG(0x00002801)] OP=[AND,BUF] DATA=[LITERAL(32,0xFFFF0000)]
+EFFECT: TARGET=[CFAM_REG(0x00002801)] OP=[OR,BUF] DATA=[LITERAL(32,0x00000002)]
+}
+
+
+
+
+
+
