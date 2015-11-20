@@ -121,7 +121,7 @@ p9_hcd_cache_dpll_setup(
     FAPI_DBG("Drop DPLL Test Mode and Reset");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_AND(3, 2, 0)));
 
-    FAPI_DBG("Put DPLL into bypass");
+    FAPI_DBG("Put DPLL into bypass mode");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR,  MASK_SET(5)));
 
     FAPI_DBG("Put DPLL into Mode 1 by asserting ff_bypass");
