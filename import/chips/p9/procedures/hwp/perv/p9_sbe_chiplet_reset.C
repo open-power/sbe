@@ -40,6 +40,7 @@
 #include "p9_sbe_chiplet_reset.H"
 
 #include "p9_perv_scom_addresses.H"
+#include "p9_perv_scom_addresses_fld.H"
 
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
@@ -51,14 +52,16 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(
 static fapi2::ReturnCode p9_sbe_chiplet_reset_cache_hang_cnt_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_ep);
 
-static fapi2::ReturnCode p9_sbe_chiplet_reset_cache_mc_setup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_ep);
-
 static fapi2::ReturnCode p9_sbe_chiplet_reset_core_hang_cnt_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_ec);
 
-static fapi2::ReturnCode p9_sbe_chiplet_reset_core_mc_setup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_ec);
+static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_net_ctrl_clk_async_reset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
+
+static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup(const
+        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+        const bool i_iscache = false,
+        const bool i_iscore = false);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_hang_cnt_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
@@ -66,18 +69,18 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_hang_cnt_setup(
 static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_mc_call(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_cplt);
 
-static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_mc_setup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
-
-static fapi2::ReturnCode p9_sbe_chiplet_reset_opcg_cnfg(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_clpt);
+static fapi2::ReturnCode p9_sbe_chiplet_reset_net_ctrl_pcb_ep_reset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_opcg_cnfg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
     const uint8_t i_attr_mc_sync_mode);
 
-static fapi2::ReturnCode p9_sbe_chiplet_reset_pg_fence_setup(
+static fapi2::ReturnCode p9_sbe_chiplet_reset_opcg_cnfg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
+
+static fapi2::ReturnCode p9_sbe_chiplet_reset_setup(const
+        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -87,9 +90,6 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     auto l_perv_functional_vector =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
         (fapi2::TARGET_STATE_FUNCTIONAL);
-    std::vector<fapi2::Target<fapi2::TARGET_TYPE_PERV>> l_nestchiplets_vector;
-    std::vector<fapi2::Target<fapi2::TARGET_TYPE_PERV>> l_cachechiplets_vector;
-    std::vector<fapi2::Target<fapi2::TARGET_TYPE_PERV>> l_corechiplets_vector;
     FAPI_DBG("Entering ...");
 
     // Collecting MC sync mode attribute...
@@ -100,60 +100,67 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     // Configuring chiplet multicasting registers..
     FAPI_TRY(p9_sbe_chiplet_reset_nest_mc_call(i_target_chip));
 
-    // Get targets
     for (auto l_target_cplt : l_perv_functional_vector)
     {
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
                                l_attr_chip_unit_pos));
 
-        if ((l_attr_chip_unit_pos >= 0x10
-             && l_attr_chip_unit_pos <= 0x15))/* CacheChiplet */
+        if (!(l_attr_chip_unit_pos >= 0x10
+              && l_attr_chip_unit_pos <= 0x15))/* CacheChiplet */
         {
-            l_cachechiplets_vector.push_back(l_target_cplt);
+            continue;
         }
-    }
 
-    for (auto l_target_cplt : l_cachechiplets_vector)
-    {
         // Configuring chiplet multicasting registers..
         FAPI_INF("Configuring cache chiplet multicasting registers");
-        FAPI_TRY(p9_sbe_chiplet_reset_cache_mc_setup(l_target_cplt));
+        FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt, true, false));
     }
 
-    // Get targets
     for (auto l_target_cplt : l_perv_functional_vector)
     {
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
                                l_attr_chip_unit_pos));
 
-        if ((l_attr_chip_unit_pos >= 0x20
-             && l_attr_chip_unit_pos <= 0x37))/* CoreChiplet */
+        if (!(l_attr_chip_unit_pos >= 0x20
+              && l_attr_chip_unit_pos <= 0x37))/* CoreChiplet */
         {
-            l_corechiplets_vector.push_back(l_target_cplt);
+            continue;
         }
-    }
 
-    for (auto l_target_cplt : l_corechiplets_vector)
-    {
         // Configuring chiplet multicasting registers..
         FAPI_INF("Configuring core chiplet multicasting registers");
-        FAPI_TRY(p9_sbe_chiplet_reset_core_mc_setup(l_target_cplt));
+        FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt, false, true));
     }
 
     for (auto l_target_cplt : l_perv_functional_vector)
     {
-        FAPI_INF("Restore NET_CTRL0&1 init value - For all chiplets except TP");
-
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
                                l_attr_chip_unit_pos));
 
-        if (l_attr_chip_unit_pos != 0x01) //-- Manual
+        if (!((l_attr_chip_unit_pos >= 0x10
+               && l_attr_chip_unit_pos <= 0x15/* CacheChiplet */) ||
+              (l_attr_chip_unit_pos >= 0x20 && l_attr_chip_unit_pos <= 0x37/* CoreChiplet */)
+              ||
+              (l_attr_chip_unit_pos == 0x07 || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
+              (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+               || l_attr_chip_unit_pos == 0x04
+               || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
+              (l_attr_chip_unit_pos == 0x09 || l_attr_chip_unit_pos == 0x0A
+               || l_attr_chip_unit_pos == 0x0B
+               || l_attr_chip_unit_pos == 0x0C/* ObusChiplet */) ||
+              (l_attr_chip_unit_pos == 0x0D || l_attr_chip_unit_pos == 0x0E
+               || l_attr_chip_unit_pos == 0x0F/* PcieChiplet */) ||
+              (l_attr_chip_unit_pos == 0x06/* XbusChiplet */)))
         {
-            FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(l_target_cplt));
+            continue;
         }
+
+        // Configuring NET control registers into Default required value
+        FAPI_INF("Restore NET_CTRL0&1 init value - for all chiplets except TP");
+        FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(l_target_cplt));
     }
 
     for (auto l_target_cplt : l_perv_functional_vector)
@@ -179,37 +186,53 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt));
     }
 
-    // Get targets
     for (auto l_target_cplt : l_perv_functional_vector)
     {
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
                                l_attr_chip_unit_pos));
 
-        if ((l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
-             || l_attr_chip_unit_pos == 0x04
-             || l_attr_chip_unit_pos == 0x05))/* NestChiplet */
+        if (!(l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+              || l_attr_chip_unit_pos == 0x04
+              || l_attr_chip_unit_pos == 0x05))/* NestChiplet */
         {
-            l_nestchiplets_vector.push_back(l_target_cplt);
+            continue;
         }
-    }
 
-    for (auto l_target_cplt : l_nestchiplets_vector)
-    {
         // Setting up hang pulse counter for register 5
         FAPI_INF("Setup hang pulse counter for nest chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_nest_hang_cnt_setup(l_target_cplt));
     }
 
-    for (auto l_target_cplt : l_corechiplets_vector)
+    for (auto l_target_cplt : l_perv_functional_vector)
     {
+        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
+                               l_attr_chip_unit_pos));
+
+        if (!(l_attr_chip_unit_pos >= 0x20
+              && l_attr_chip_unit_pos <= 0x37))/* CoreChiplet */
+        {
+            continue;
+        }
+
         // Setting up hang pulse counter for register 5
         FAPI_INF("Setup hang pulse counter for core chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_core_hang_cnt_setup(l_target_cplt));
     }
 
-    for (auto l_target_cplt : l_cachechiplets_vector)
+    for (auto l_target_cplt : l_perv_functional_vector)
     {
+        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
+                               l_attr_chip_unit_pos));
+
+        if (!(l_attr_chip_unit_pos >= 0x10
+              && l_attr_chip_unit_pos <= 0x15))/* CacheChiplet */
+        {
+            continue;
+        }
+
         // Setting up hang pulse counter for register 5
         FAPI_INF("Setup hang pulse counter for cache chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_cache_hang_cnt_setup(l_target_cplt));
@@ -221,14 +244,50 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
                                l_attr_chip_unit_pos));
 
-        //-- Manual ---
-        if (l_attr_chip_unit_pos == 0x07 || l_attr_chip_unit_pos == 0x08/* McChiplet */)
+        if (!((l_attr_chip_unit_pos >= 0x10
+               && l_attr_chip_unit_pos <= 0x15/* CacheChiplet */) ||
+              (l_attr_chip_unit_pos >= 0x20 && l_attr_chip_unit_pos <= 0x37/* CoreChiplet */)
+              ||
+              (l_attr_chip_unit_pos == 0x07 || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
+              (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+               || l_attr_chip_unit_pos == 0x04
+               || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
+              (l_attr_chip_unit_pos == 0x09 || l_attr_chip_unit_pos == 0x0A
+               || l_attr_chip_unit_pos == 0x0B
+               || l_attr_chip_unit_pos == 0x0C/* ObusChiplet */) ||
+              (l_attr_chip_unit_pos == 0x0D || l_attr_chip_unit_pos == 0x0E
+               || l_attr_chip_unit_pos == 0x0F/* PcieChiplet */) ||
+              (l_attr_chip_unit_pos == 0x06/* XbusChiplet */)))
         {
-            fapi2::buffer<uint64_t> l_data64;
-            l_data64.flush<1>();
-            l_data64.clearBit<2>();
-            FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL0_WAND, l_data64));
+            continue;
         }
+
+        // Setting up partial good fence drop and resetting chiplet.
+        FAPI_INF("Enable chiplet and reset error register");
+        FAPI_TRY(p9_sbe_chiplet_reset_setup(l_target_cplt));
+    }
+
+    for (auto l_target_cplt : l_perv_functional_vector)
+    {
+        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
+                               l_attr_chip_unit_pos));
+
+        if (!(l_attr_chip_unit_pos == 0x07
+              || l_attr_chip_unit_pos == 0x08))/* McChiplet */
+        {
+            continue;
+        }
+
+        FAPI_INF("Drop clk async reset");
+        FAPI_TRY(p9_sbe_chiplet_reset_mc_net_ctrl_clk_async_reset(l_target_cplt));
+    }
+
+    for (auto l_target_cplt : l_perv_functional_vector)
+    {
+        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
+                               l_attr_chip_unit_pos));
 
         if (!((l_attr_chip_unit_pos == 0x07
                || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
@@ -245,13 +304,23 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             continue;
         }
 
-        // Setting up partial good fence drop and resetting chiplet.
-        FAPI_INF("Setting up partial good fence drop and resetting chiplet");
-        FAPI_TRY(p9_sbe_chiplet_reset_pg_fence_setup(l_target_cplt));
+        FAPI_INF("Drop endpoint reset");
+        FAPI_TRY(p9_sbe_chiplet_reset_net_ctrl_pcb_ep_reset(l_target_cplt));
     }
 
-    for (auto l_target_cplt : l_nestchiplets_vector)
+    for (auto l_target_cplt : l_perv_functional_vector)
     {
+        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
+                               l_attr_chip_unit_pos));
+
+        if (!(l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+              || l_attr_chip_unit_pos == 0x04
+              || l_attr_chip_unit_pos == 0x05))/* NestChiplet */
+        {
+            continue;
+        }
+
         FAPI_INF("Initialize OPCG registers for Nest");
         FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg(l_target_cplt));
     }
@@ -320,7 +389,6 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(
     FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_NET_CTRL1,
                             p9SbeChipletReset::NET_CNTL1_HW_INIT_VALUE));
 
-
     FAPI_DBG("Exiting ...");
 
 fapi_try_exit:
@@ -376,35 +444,6 @@ fapi_try_exit:
 
 }
 
-/// @brief Configuring cache chiplet multcast registers based on partial good
-///
-/// @param[in]     i_target_ep   Reference to TARGET_TYPE_PERV target
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_reset_cache_mc_setup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_ep)
-{
-    FAPI_DBG("Entering ...");
-
-    //Setting MULTICAST_GROUP_1 register value
-    //MULTICAST_GROUP_1 = p9SbeChipletReset::MCGR0_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_ep, PERV_MULTICAST_GROUP_1,
-                            p9SbeChipletReset::MCGR0_CNFG_SETTINGS));
-    //Setting MULTICAST_GROUP_2 register value
-    //MULTICAST_GROUP_2 = p9SbeChipletReset::MCGR3_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_ep, PERV_MULTICAST_GROUP_2,
-                            p9SbeChipletReset::MCGR3_CNFG_SETTINGS));
-    //Setting MULTICAST_GROUP_3 register value
-    //MULTICAST_GROUP_3 = p9SbeChipletReset::MCGR1_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_ep, PERV_MULTICAST_GROUP_3,
-                            p9SbeChipletReset::MCGR1_CNFG_SETTINGS));
-
-    FAPI_DBG("Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
-}
-
 /// @brief Setup core hang pulse counter configuration...
 ///
 /// @param[in]     i_target_ec   Reference to TARGET_TYPE_PERV target
@@ -438,31 +477,66 @@ fapi_try_exit:
 
 }
 
-/// @brief Configuring core chiplet multcast registers based on partial good
+/// @brief Dropping the net_ctrl0 clock_async_reset
 ///
-/// @param[in]     i_target_ec   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_reset_core_mc_setup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_ec)
+static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_net_ctrl_clk_async_reset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_DBG("Entering ...");
+
+    //Setting NET_CTRL0 register value
+    l_data64.flush<1>();
+    //NET_CTRL0.CLK_ASYNC_RESET = 0
+    l_data64.clearBit<PERV_1_NET_CTRL0_CLK_ASYNC_RESET>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief Configuring multicast registers for nest, cache, core
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_iscache          cache chiplet mc setup
+/// @param[in]     i_iscore           core chiplet Mc setup
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup(const
+        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+        const bool i_iscache,
+        const bool i_iscore)
 {
     FAPI_DBG("Entering ...");
 
     //Setting MULTICAST_GROUP_1 register value
     //MULTICAST_GROUP_1 = p9SbeChipletReset::MCGR0_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_ec, PERV_MULTICAST_GROUP_1,
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_1,
                             p9SbeChipletReset::MCGR0_CNFG_SETTINGS));
     //Setting MULTICAST_GROUP_2 register value
     //MULTICAST_GROUP_2 = p9SbeChipletReset::MCGR3_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_ec, PERV_MULTICAST_GROUP_2,
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_2,
                             p9SbeChipletReset::MCGR3_CNFG_SETTINGS));
+
     //Setting MULTICAST_GROUP_3 register value
-    //MULTICAST_GROUP_3 = p9SbeChipletReset::MCGR1_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_ec, PERV_MULTICAST_GROUP_3,
-                            p9SbeChipletReset::MCGR1_CNFG_SETTINGS));
+    if (i_iscache | i_iscore)
+    {
+        //MULTICAST_GROUP_3 = (i_iscache | i_iscore)?p9SbeChipletReset::MCGR1_CNFG_SETTINGS
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_3,
+                                p9SbeChipletReset::MCGR1_CNFG_SETTINGS));
+    }
+
     //Setting MULTICAST_GROUP_4 register value
-    //MULTICAST_GROUP_4 = p9SbeChipletReset::MCGR2_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_ec, PERV_MULTICAST_GROUP_4,
-                            p9SbeChipletReset::MCGR2_CNFG_SETTINGS));
+    if (i_iscore)
+    {
+        //MULTICAST_GROUP_4 = i_iscore ?p9SbeChipletReset::MCGR2_CNFG_SETTINGS
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_4,
+                                p9SbeChipletReset::MCGR2_CNFG_SETTINGS));
+    }
 
     FAPI_DBG("Exiting ...");
 
@@ -585,8 +659,9 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_mc_call(
             continue;
         }
 
+        // Configuring chiplet multicasting registers.
         FAPI_INF("Configuring nest chiplet multicasting registers");
-        FAPI_TRY(p9_sbe_chiplet_reset_nest_mc_setup(l_target_cplt));
+        FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt));
     }
 
     FAPI_DBG("Exiting ...");
@@ -596,62 +671,21 @@ fapi_try_exit:
 
 }
 
-/// @brief Configuring nest chiplet multcast registers based on partial good
+/// @brief Drop Endpoint reset
 ///
-/// @param[in]     i_target_cplt   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_mc_setup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt)
-{
-    FAPI_DBG("Entering ...");
-
-    //Setting MULTICAST_GROUP_1 register value
-    //MULTICAST_GROUP_1 = p9SbeChipletReset::MCGR0_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_MULTICAST_GROUP_1,
-                            p9SbeChipletReset::MCGR0_CNFG_SETTINGS));
-    //Setting MULTICAST_GROUP_2 register value
-    //MULTICAST_GROUP_2 = p9SbeChipletReset::MCGR3_CNFG_SETTINGS
-    FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_MULTICAST_GROUP_2,
-                            p9SbeChipletReset::MCGR3_CNFG_SETTINGS));
-
-    FAPI_DBG("Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
-}
-
-/// @brief configuring nest chiplet OPCG registers..
-///
-/// @param[in]     i_target_clpt   Reference to TARGET_TYPE_PERV target
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_reset_opcg_cnfg(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_clpt)
+static fapi2::ReturnCode p9_sbe_chiplet_reset_net_ctrl_pcb_ep_reset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_DBG("Entering ...");
 
-    // INOP_ALIGN is 8:1 ratio
-    // INOP_WAIT is zero
-    // OPCG_WAIT is 0x020
-    // SCAN_RATIO is 4:1
-    //Setting OPCG_ALIGN register value
-    l_data64 =
-        p9SbeChipletReset::OPCG_ALIGN_SETTING;  //OPCG_ALIGN = p9SbeChipletReset::OPCG_ALIGN_SETTING
-    //OPCG_ALIGN.INOP_ALIGN = p9SbeChipletReset::INOP_ALIGN_SETTING_0X9
-    l_data64.insertFromRight<0, 4>(p9SbeChipletReset::INOP_ALIGN_SETTING_0X9);
-    l_data64.clearBit<12, 8>();  //OPCG_ALIGN.INOP_WAIT = 0
-    //OPCG_ALIGN.OPCG_WAIT_CYCLES = p9SbeChipletReset::OPCG_WAIT_CYCLE_0X020
-    l_data64.insertFromRight<52, 12>(p9SbeChipletReset::OPCG_WAIT_CYCLE_0X020);
-    //OPCG_ALIGN.SCAN_RATIO = p9SbeChipletReset::SCAN_RATIO_0X3
-    l_data64.insertFromRight<47, 5>(p9SbeChipletReset::SCAN_RATIO_0X3);
-    FAPI_TRY(fapi2::putScom(i_target_clpt, PERV_OPCG_ALIGN, l_data64));
-
-    // Enable listen_to_sync mode
-    //Setting SYNC_CONFIG register value
-    //SYNC_CONFIG = p9SbeChipletReset::SYNC_CONFIG_DEFAULT
-    FAPI_TRY(fapi2::putScom(i_target_clpt, PERV_SYNC_CONFIG,
-                            p9SbeChipletReset::SYNC_CONFIG_DEFAULT));
+    //Setting NET_CTRL0 register value
+    l_data64.flush<1>();
+    //NET_CTRL0.PCB_EP_RESET = 0b0
+    l_data64.clearBit<PERV_1_NET_CTRL0_PCB_EP_RESET>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
 
     FAPI_DBG("Exiting ...");
 
@@ -683,11 +717,11 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_opcg_cnfg(
             p9SbeChipletReset::OPCG_ALIGN_SETTING;  //OPCG_ALIGN = p9SbeChipletReset::OPCG_ALIGN_SETTING
         //OPCG_ALIGN.INOP_ALIGN = p9SbeChipletReset::INOP_ALIGN_SETTING_0X9
         l_data64.insertFromRight<0, 4>(p9SbeChipletReset::INOP_ALIGN_SETTING_0X9);
-        l_data64.clearBit<12, 8>();  //OPCG_ALIGN.INOP_WAIT = 0
+        l_data64.clearBit<PERV_1_OPCG_ALIGN_INOP_WAIT, PERV_1_OPCG_ALIGN_INOP_WAIT_LEN>();  //OPCG_ALIGN.INOP_WAIT = 0
         //OPCG_ALIGN.OPCG_WAIT_CYCLES = p9SbeChipletReset::OPCG_WAIT_CYCLE_0X020
         l_data64.insertFromRight<52, 12>(p9SbeChipletReset::OPCG_WAIT_CYCLE_0X020);
-        //OPCG_ALIGN.SCAN_RATIO = p9SbeChipletReset::SCAN_RATIO_0X3
-        l_data64.insertFromRight<47, 5>(p9SbeChipletReset::SCAN_RATIO_0X3);
+        l_data64.insertFromRight<PERV_1_OPCG_ALIGN_SCAN_RATIO, PERV_1_OPCG_ALIGN_SCAN_RATIO_LEN>
+        (p9SbeChipletReset::SCAN_RATIO_0X3);  //OPCG_ALIGN.SCAN_RATIO = p9SbeChipletReset::SCAN_RATIO_0X3
         FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_OPCG_ALIGN, l_data64));
 
         // Enable listen_to_sync mode
@@ -704,38 +738,64 @@ fapi_try_exit:
 
 }
 
-/// @brief Dorping fence on Partial good chiplet and resetting it.
+/// @brief configuring Nest chiplet OPCG registers
+///
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_reset_pg_fence_setup(
+static fapi2::ReturnCode p9_sbe_chiplet_reset_opcg_cnfg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_DBG("Entering ...");
 
-    // Local variable and constant definition
-    fapi2::buffer <uint32_t> l_attr_pg;
-    const uint64_t ERROR_DEFAULT_VALUE = 0xFFFFFFFFFFFFFFFFull;
+    //Setting OPCG_ALIGN register value
+    l_data64 =
+        p9SbeChipletReset::OPCG_ALIGN_SETTING;  //OPCG_ALIGN = p9SbeChipletReset::OPCG_ALIGN_SETTING
+    //OPCG_ALIGN.INOP_ALIGN = p9SbeChipletReset::INOP_ALIGN_SETTING_0X9
+    l_data64.insertFromRight<0, 4>(p9SbeChipletReset::INOP_ALIGN_SETTING_0X9);
+    l_data64.clearBit<PERV_1_OPCG_ALIGN_INOP_WAIT, PERV_1_OPCG_ALIGN_INOP_WAIT_LEN>();  //OPCG_ALIGN.INOP_WAIT = 0
+    //OPCG_ALIGN.OPCG_WAIT_CYCLES = p9SbeChipletReset::OPCG_WAIT_CYCLE_0X020
+    l_data64.insertFromRight<52, 12>(p9SbeChipletReset::OPCG_WAIT_CYCLE_0X020);
+    l_data64.insertFromRight<PERV_1_OPCG_ALIGN_SCAN_RATIO, PERV_1_OPCG_ALIGN_SCAN_RATIO_LEN>
+    (p9SbeChipletReset::SCAN_RATIO_0X3);  //OPCG_ALIGN.SCAN_RATIO = p9SbeChipletReset::SCAN_RATIO_0X3
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_ALIGN, l_data64));
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
+    //Setting SYNC_CONFIG register value
+    //SYNC_CONFIG = p9SbeChipletReset::SYNC_CONFIG_DEFAULT
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_SYNC_CONFIG,
+                            p9SbeChipletReset::SYNC_CONFIG_DEFAULT));
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief Dorping fence on Partial good chiplet and resetting it.
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_setup(const
+        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_DBG("Entering ...");
+
+    // Local variable and constant definition
+    const uint64_t ERROR_DEFAULT_VALUE = 0xFFFFFFFFFFFFFFFFull;
 
     // EP Reset all chiplet with in multicasting group
     //Setting NET_CTRL0 register value
     l_data64.flush<0>();
-    l_data64.setBit<0>();  //NET_CTRL0.CHIPLET_ENABLE = 0b1
+    //NET_CTRL0.CHIPLET_ENABLE = 0b1
+    l_data64.setBit<PERV_1_NET_CTRL0_CHIPLET_ENABLE>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WOR, l_data64));
 
     //Setting ERROR_REG register value
     //ERROR_REG = ERROR_DEFAULT_VALUE
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_ERROR_REG, ERROR_DEFAULT_VALUE));
-
-    // EP Reset all chiplet with in multicasting group
-    //Setting NET_CTRL0 register value
-    l_data64.flush<1>();
-    l_data64.clearBit<1>();  //NET_CTRL0.PCB_EP_RESET = 0b0
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
-
 
     FAPI_DBG("Exiting ...");
 
