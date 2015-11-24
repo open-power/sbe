@@ -25,8 +25,6 @@
 
 
 #include <fapi2.H>
-#include <new>
-#include <utility> // For move
 #include <plat_target_pg_attributes.H>
 
 // Global Vector containing ALL targets.  This structure is referenced by
@@ -285,7 +283,7 @@ namespace fapi2
         FAPI_DBG("Target present = %u, Target functional = %u",
             i_chiplet_target.getPresent(),
             i_chiplet_target.getFunctional());
-            
+
 fapi_try_exit:
         return fapi2::current_err;
     }
@@ -406,7 +404,7 @@ fapi_try_exit:
         {
             fapi2::Target<fapi2::TARGET_TYPE_MCS> target_name((fapi2::plat_target_handle_t)i);
             FAPI_DBG("target_name i = %d hi word = 0x%08X", i, (uint32_t)(target_name.get()>>32));
-            
+
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));

@@ -41,6 +41,7 @@
 
 namespace fapi2
 {
+#ifndef FAPI2_NO_FFDC
     ///
     /// @brief Type to hold the ffdc element in the ffdc class
     /// Needed so that the size can be squirled away before the
@@ -65,6 +66,7 @@ namespace fapi2
     private:
         std::pair<const void*, int16_t> iv_value;
     };
+#endif
 
     ///
     /// @brief Enumeration of ErrorInfo FFDC sizes that are used to indicate a

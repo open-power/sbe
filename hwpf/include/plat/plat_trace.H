@@ -35,12 +35,11 @@
 #ifndef FAPI2_PLATTRACE_H_
 #define FAPI2_PLATTRACE_H_
 
-#include <stdio.h>
 #include <stdint.h>
 
 // @todo  update these headers with extern "C" in a future commit
 //        or not and leave this just as it is.
-extern "C" 
+extern "C"
 {
 #include "pk.h"
 #include <pk_trace.h>
@@ -61,7 +60,7 @@ namespace fapi2
 
 /*  The following is a desirous trace entry but the second line has a
     compilation issue that is unresolved
-    
+
 #define FAPI_TRACE(_id_, _fmt_, _args_...)                              \
     PK_TRACE("%s: %s:%d ", _id_, __FUNCTION__, __LINE__);               \
     PK_TRACE(_fmt_, ##_args_);

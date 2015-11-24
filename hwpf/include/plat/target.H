@@ -35,7 +35,6 @@
 #include <fapi2_target.H>
 #include <plat_trace.H>
 #include <utils.H>
-#include <stdio.h>
 #include <stdint.h>
 #include <vector>
 
