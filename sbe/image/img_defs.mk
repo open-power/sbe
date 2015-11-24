@@ -120,8 +120,11 @@ ifndef CC_ROOT
 export CC_ROOT = ${CTEPATH}/tools/gcc405lin/prod
 endif
 
+GCC-TOOL-PATH = $(CTEPATH)/tools/ppetools/prod
+
 ifndef GCC-TOOL-PREFIX
-GCC-TOOL-PREFIX  = ${CC_ROOT}/usr/bin/powerpc-linux-
+GCC-TOOL-PREFIX = $(GCC-TOOL-PATH)/bin/powerpc-eabi-
+LIB_DIRS += -L$(GCC-TOOL-PATH)/libgcc
 endif
 
 ifndef BINUTILS-TOOL-PREFIX
@@ -200,8 +203,7 @@ GCC-DEFS += -DPK_TRACE_SZ=$(PK_TRACE_SZ)
 endif
 
 DEFS += $(GCC-DEFS)
-export LD_LIBRARY_PATH = /afs/awd.austin.ibm.com/proj/p3/cte/tools/gcc405lin/vol1/usr/lib
-
+export LD_LIBRARY_PATH=$(GCC-TOOL-PATH)/lib
 ############################################################################
 
 
@@ -216,6 +218,7 @@ INCLUDES += -I$(BASE_FAPI2_DIR)/include
 INCLUDES += -I$(PK_SRCDIR)/../include
 INCLUDES += -I$(PK_SRCDIR)/$(PPE_TYPE)
 INCLUDES += -I$(PK_SRCDIR)/../include
+INCLUDES += -I$(PK_SRCDIR)/../include/std
 INCLUDES += -I$(PK_SRCDIR)/kernel
 INCLUDES += -I$(PK_SRCDIR)/ppe
 INCLUDES += -I$(PK_SRCDIR)/ppe42

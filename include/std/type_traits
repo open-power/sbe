@@ -59,5 +59,28 @@ namespace std
         : public integral_constant<bool, (_is_integral_type<typename
                                           remove_cv<_Tp>::type>::value)>
     { };
+  /// is_same
+  template<typename, typename>
+    struct is_same
+    : public false_type { };
+
+  template<typename _Tp>
+    struct is_same<_Tp, _Tp>
+    : public true_type { };
+
+  template<typename>
+    struct __is_pointer_helper
+    : public false_type { };
+
+  template<typename _Tp>
+    struct __is_pointer_helper<_Tp*>
+    : public true_type { };
+
+  /// is_pointer
+  template<typename _Tp>
+    struct is_pointer
+    : public integral_constant<bool, (__is_pointer_helper<typename
+                      remove_cv<_Tp>::type>::value)>
+    { };
 }
 #endif

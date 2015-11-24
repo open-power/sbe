@@ -386,7 +386,9 @@ print ECFILE "#include <variable_buffer.H>\n" if ($arg_use_variable_buffers ne u
 print ECFILE "#include <error_info.H>\n";
 print ECFILE "#include <utils.H>\n";
 print ECFILE "#include <hwp_error_info.H>\n";
+print ECFILE "#ifndef FAPI2_NO_FFDC\n";
 print ECFILE "#include <collect_reg_ffdc.H>\n";
+print ECFILE "#endif\n";
 #print ECFILE "#include <proc_extract_sbe_rc.H>\n\n";
 print ECFILE "/**\n";
 print ECFILE " * \@brief FFDC gathering classes\n";

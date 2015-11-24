@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <pool.H>
 #include <assert.h>
+#include <new>
 namespace std
 {
 
@@ -328,7 +329,7 @@ namespace std
                 __attribute__ ((always_inline))
                 void push_back(const T& x)
                 {
-                    assert(max_size() > size())
+                    assert(max_size() > size());
                     new (iv_finish++) T(x);
                 }
 
