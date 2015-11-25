@@ -407,8 +407,8 @@ fapi_try_exit:
         // Trace all entries
         for (auto tgt_iter : G_vec_targets)
         {
-            FAPI_DBG("Trace hi word G_vec_targets[%u] value=%08X",
-                       c, (uint32_t)(tgt_iter>>32));
+            FAPI_DBG("G_vec_targets[%u] value=%08X",
+                       c, (uint32_t)(tgt_iter));
             ++c;
         }
 

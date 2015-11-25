@@ -32,7 +32,6 @@
 
 #ifndef __ASSEMBLER__
 
-
 /// FAPI namespace
 namespace fapi2
 {
@@ -47,19 +46,19 @@ namespace fapi2
     /// Target Kind
     enum TargetType
     {
-        TARGET_TYPE_NONE              = 0x00, ///< No type
-        TARGET_TYPE_PROC_CHIP         = 0x01, ///< Processor type
-        TARGET_TYPE_EX                = 0x02, ///< Ex type
-        TARGET_TYPE_CORE              = 0x04, ///< Core type
-        TARGET_TYPE_EQ                = 0x08, ///< EQ type
-        TARGET_TYPE_MCS               = 0x10, ///< MCS type
-        TARGET_TYPE_PERV              = 0x20, ///< Pervasive type
-        TARGET_TYPE_MCAST             = 0x40, ///< Multicast type
-        TARGET_TYPE_SYSTEM            = 0x80, ///< System type
+        TARGET_TYPE_NONE              = 0x00,  ///< No type
+        TARGET_TYPE_PROC_CHIP         = 0x01,  ///< Processor type
+        TARGET_TYPE_EX                = 0x02,  ///< Ex type
+        TARGET_TYPE_CORE              = 0x04,  ///< Core type
+        TARGET_TYPE_EQ                = 0x08,  ///< EQ type
+        TARGET_TYPE_MCS               = 0x10,  ///< MCS type
+        TARGET_TYPE_PERV              = 0x20,  ///< Pervasive type
+        TARGET_TYPE_MCAST             = 0x40,  ///< Multicast type
+        TARGET_TYPE_MI                = 0x80,  ///< MI type
+        TARGET_TYPE_SYSTEM            = 0x100, ///< System type
+        TARGET_TYPE_ALL               = 0xFFF, ///< Any/All types
 
-        TARGET_TYPE_ALL               = 0xFF, ///< Any/All types
-
-        // The following are actually illegal targets on PPE platforms    
+        // The following are actually illegal targets on PPE platforms
 //         TARGET_TYPE_SYSTEM            = 0xFE, ///< System type
 //         TARGET_TYPE_DIMM              = 0xFD, ///< DIMM type
 //         TARGET_TYPE_MEMBUF_CHIP       = 0xFC, ///< Membuf type
@@ -77,8 +76,8 @@ namespace fapi2
 //         TARGET_TYPE_SBE               = 0xF0, ///< SBE type
 //         TARGET_TYPE_PPE               = 0xEF, ///< PPE type
 //         TARGET_TYPE_PEC               = 0xEE, ///< PEC type
-//         TARGET_TYPE_PHB               = 0xED, ///< PHB type  
-//         TARGET_TYPE_MI                = 0xEC, ///< MI type  
+//         TARGET_TYPE_PHB               = 0xED, ///< PHB type
+//         TARGET_TYPE_MI                = 0xEC, ///< MI type
 
         // Mappings to target types found in the error xml files
         TARGET_TYPE_EX_CHIPLET    = TARGET_TYPE_EX,
@@ -87,11 +86,11 @@ namespace fapi2
 //        TARGET_TYPE_XBUS_ENDPOINT = TARGET_TYPE_XBUS,
 //        TARGET_TYPE_ABUS_ENDPOINT = TARGET_TYPE_ABUS,
     };
-    
+
     ///
     /// @brief Typedef used when passing multiple TargetType values
     ///
-    typedef uint8_t TargetTypes_t;           
+    typedef uint16_t TargetTypes_t;
 
     /// @cond
     constexpr TargetType operator|(TargetType x, TargetType y)
