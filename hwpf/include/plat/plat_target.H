@@ -29,11 +29,11 @@
 //
 // Define what a platform handle looks like. For Hostboot,
 // for example, this might be a void*. For the SBE, this
-// will be a uint64_t ...
+// will be a uint32_t ...
 //
 namespace fapi2
 {
-typedef uint64_t plat_target_handle_t;
+    typedef uint32_t plat_target_handle_t;
 }
 
 #endif

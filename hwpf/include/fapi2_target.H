@@ -214,7 +214,7 @@ namespace fapi2
         /// in order. That is, core 0 is std::vector[0].
         ///
         template< TargetType T>
-        inline std::vector<Target<T> >
+        std::vector<Target<T> >
         getChildren(const TargetState i_state = TARGET_STATE_FUNCTIONAL) const;
 
         ///
@@ -295,7 +295,7 @@ namespace fapi2
         ///
         inline V getAddressOverlay(void) const
         {
-            return this->iv_handle.fields.address_overlay;
+            return (iv_handle.value & 0xFF000000);
         }
 
         ///
@@ -304,7 +304,7 @@ namespace fapi2
         ///
         inline uint32_t getTargetNumber(void) const
         {
-            return static_cast<uint32_t>(this->iv_handle.fields.type_target_num);
+            return static_cast<uint32_t>(iv_handle.fields.type_target_num);
         }
 
         ///
@@ -313,7 +313,7 @@ namespace fapi2
         ///
         inline TargetTypes_t getTargetType(void) const
         {
-            return static_cast<TargetTypes_t>(this->iv_handle.fields.type);
+            return static_cast<TargetTypes_t>(iv_handle.fields.type);
         }
 
         ///
@@ -322,7 +322,7 @@ namespace fapi2
         ///
         inline ChipletNumber_t getChipletNumber(void) const
         {
-            return static_cast<ChipletNumber_t>(this->iv_handle.fields.chiplet_num);
+            return static_cast<ChipletNumber_t>(iv_handle.fields.chiplet_num);
         }
 
 #endif
@@ -339,17 +339,17 @@ namespace fapi2
 #ifdef _BIG_ENDIAN
                 V chiplet_num       : 8;
                 V type_target_num   : 8;
-                V type              : 8;
-                V _reserved_b6      : 6;
                 V present           : 1;
                 V functional        : 1;
-                V address_overlay   : 32;
+                V _reserved_b1      : 1;
+                V valid             : 1;
+                V type              : 12;
 #else
-                V address_overlay   : 32;
+                V type              : 12;
+                V valid             : 1;
+                V _reserved_b1      : 1;
                 V functional        : 1;
                 V present           : 1;
-                V _reserved_b6      : 6;
-                V type              : 8;
                 V type_target_num   : 8;
                 V chiplet_num       : 8;
 #endif

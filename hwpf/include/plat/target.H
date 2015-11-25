@@ -56,7 +56,7 @@ namespace fapi2
     Target<K, V>::Target(V Value)
     {
         // Already formed target handle?
-        if(static_cast<union iv_handle>(Value).fields.type != 0)
+        if(static_cast<union iv_handle>(Value).fields.valid == 1)
         {
             this->iv_handle.value = Value;
             return;
@@ -69,51 +69,45 @@ namespace fapi2
             this->iv_handle.fields.type = TARGET_TYPE_PROC_CHIP;
             this->iv_handle.fields.type_target_num = 0;
         }
-
-        if(K & TARGET_TYPE_PERV)
+        else if(K & TARGET_TYPE_PERV)
         {
             this->iv_handle.fields.chiplet_num = Value + NEST_GROUP1_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = Value;
         }
-
-        if(K & TARGET_TYPE_CORE)
+        else if(K & TARGET_TYPE_CORE)
         {
             this->iv_handle.fields.chiplet_num = Value + CORE_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_CORE | TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = Value;
         }
-
-        if(K & TARGET_TYPE_EQ)
+        else if(K & TARGET_TYPE_EQ)
         {
             this->iv_handle.fields.chiplet_num = Value + EQ_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_EQ | TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = Value;
         }
-
-        if(K & TARGET_TYPE_EX)
+        else if(K & TARGET_TYPE_EX)
         {
 
             this->iv_handle.fields.chiplet_num = (Value / 2) + EX_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_EX | TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = Value;
         }
-
-        if(K & TARGET_TYPE_MCS)
+        else if(K & TARGET_TYPE_MCS)
         {
 
             this->iv_handle.fields.chiplet_num = Value + MCS_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_MCS | TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = Value;
         }
-
-        if(K == TARGET_TYPE_ALL)
+        else if(K == TARGET_TYPE_ALL)
         {
             this->iv_handle.fields.chiplet_num = Value;
             this->iv_handle.fields.type = TARGET_TYPE_ALL;
         }
-        this->iv_handle.fields.address_overlay =
-                (this->iv_handle.fields.chiplet_num << 24);
+
+        this->iv_handle.fields.valid = 1;
 
     }
 
