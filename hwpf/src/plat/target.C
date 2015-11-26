@@ -272,7 +272,7 @@ namespace fapi2
         if (b_present)
         {
             i_chiplet_target.setPresent();
-            i_chiplet_target.setFunctional();
+            i_chiplet_target.setFunctional(true);
         }
         else
         {
@@ -425,5 +425,54 @@ fapi_try_exit:
         return ((fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>)G_vec_targets.at(0));
     }
 
+    /// @brief Function to apply any gard records set (via
+    //  ATTR_EQ_GARD/ATTR_EC_GARD) to mark corresponding targets non functional
+    ReturnCode plat_ApplyGards()
+    {
+        uint8_t l_eqGards = 0;
+        uint32_t l_ecGards = 0;
+        static const uint32_t l_mask = 0x80000000;
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = plat_getChipTarget();
+
+        // Read the EQ and EC gard attributes from the chip target
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EQ_GARD, l_chip, l_eqGards));
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EC_GARD, l_chip, l_ecGards));
+
+        FAPI_DBG("ATTR_EQ_GARD:: 0x%08x", l_eqGards);
+        FAPI_DBG("ATTR_EC_GARD:: 0x%08x", l_ecGards);
+
+        // Normalize the values read from the attributes (they are right aligned)
+        l_eqGards <<= ((sizeof(l_eqGards) * 8) - EQ_TARGET_COUNT);
+        l_ecGards <<= ((sizeof(l_ecGards) * 8) - CORE_TARGET_COUNT);
+
+        // Iterate over the bits in EQ and EC gards, if set, mark the
+        // corresponding target non-functional
+        // TODO: Need to mark corresponding EX targets non-functional when we
+        // start supporting EX targets in the global target vector
+        for(uint32_t l_idx = 0; l_idx < EQ_TARGET_COUNT; ++l_idx)
+        {
+            if((l_mask >> l_idx) & (((uint32_t)(l_eqGards)) << 24))
+            {
+                FAPI_DBG("Making %d'th EQ non-functional", l_idx);
+                // EQ chiplet l_idx is to be marked non-functional
+                fapi2::Target<fapi2::TARGET_TYPE_EQ> l_target = G_vec_targets.at(l_idx + EQ_TARGET_OFFSET);
+                l_target.setFunctional(false);
+                G_vec_targets.at(l_idx + EQ_TARGET_OFFSET) = l_target.get();
+            }
+        }
+
+        for(uint32_t l_idx = 0; l_idx < CORE_TARGET_COUNT; ++l_idx)
+        {
+            if((l_mask >> l_idx) & (l_ecGards))
+            {
+                // EC chiplet l_idx is to be marked non-functional
+                fapi2::Target<fapi2::TARGET_TYPE_CORE> l_target = G_vec_targets.at(l_idx + CORE_TARGET_OFFSET);
+                l_target.setFunctional(false);
+                G_vec_targets.at(l_idx + CORE_TARGET_OFFSET) = l_target.get();
+            }
+        }
+fapi_try_exit:
+        return fapi2::current_err;
+    }
 
 } // fapi2

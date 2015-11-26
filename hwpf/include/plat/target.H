@@ -59,6 +59,13 @@ namespace fapi2
                             (K == TARGET_TYPE_EQ)       ) != true,
             "TARGET_TYPE_CORE and TARGET_TYPE_EQ cannot be specified at the same time");
 
+        // Already formed target handle?
+        if(static_cast<union iv_handle>(Value).fields.type != 0)
+        {
+            this->iv_handle.value = Value;
+            return;
+        }
+
         this->iv_handle.value = 0;
         if(K & TARGET_TYPE_PROC_CHIP)
         {

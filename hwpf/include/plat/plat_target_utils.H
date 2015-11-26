@@ -39,10 +39,14 @@ namespace fapi2
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes
     ReturnCode plat_TargetsInit();
-    
+
+    /// @brief Function to apply any gard records set (via
+    //  ATTR_EQ_GARD/ATTR_EC_GARD) to mark corresponding targets non functional
+    ReturnCode plat_ApplyGards();
+
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes
     Target<TARGET_TYPE_PROC_CHIP> plat_getChipTarget();
 
-} 
+}
 #endif
