@@ -271,10 +271,15 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
 
               $targetImplementation .= "\n" . $targetFunction . "\n{\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute};\n}\n";
 
+          } elsif($targetMacro eq "TARGET_TYPE_PERV") {
+
+              $targetImplementation .= "\n" . $targetFunction .
+"\n{
+    *o_pvalue = object->fapi2attr::${macroTarget}::${attribute}[getPervAttrIndex(i_ptarget)];
+}\n";
+
           } else {
-
-              $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute}[index];\n}\n";
-
+$targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute}[index];\n}\n"
           }
           push(@newTargetImplementations, $targetImplementation);
       }
@@ -363,7 +368,29 @@ if (@newAttributeDefines != 0) {
   print OUTFILE "#include \"proc_sbe_fixed.H\"\n";
   print OUTFILE "#include \"plat_target_parms.H\"\n\n";
   print OUTFILE "namespace fapi2 {\n";
-
+  print OUTFILE "
+uint32_t getPervAttrIndex(const fapi2::Target<TARGET_TYPE_PERV> &i_target)
+{
+    uint32_t l_index = i_target.getTargetNumber();
+    if(TARGET_TYPE_EQ & i_target.getTargetType())
+    {
+        l_index += (EQ_TARGET_OFFSET);
+    }
+    else if(TARGET_TYPE_CORE & i_target.getTargetType())
+    {
+        l_index += (CORE_TARGET_OFFSET);
+    }
+    else if(TARGET_TYPE_MCS & i_target.getTargetType())
+    {
+        l_index += (MCS_TARGET_OFFSET);
+    }
+    else
+    {
+        l_index += (NEST_GROUP1_TARGET_OFFSET);
+    }
+    return (l_index - NEST_GROUP1_TARGET_OFFSET);
+}
+";
 
   foreach my $impl (@newTargetImplementations) {
 

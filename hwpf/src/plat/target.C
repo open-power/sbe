@@ -315,103 +315,93 @@ fapi_try_exit:
         for (uint32_t i = 0; i < TARGET_COUNT; ++i)
         {
             G_vec_targets.push_back((fapi2::plat_target_handle_t)0x0);
-            FAPI_DBG("Nulling G_vec_targets[%u] hi value=0x%08X",
-                        i, (uint32_t)(G_vec_targets.at(i)>>32));
-
         }
-        FAPI_DBG("Vector size: %u", G_vec_targets.size());
 
         /*
          * Chip Target is the first one
          */
-        FAPI_DBG("Chip Target info: CHIP_TARGET_OFFSET %u CHIP_TARGET_COUNT %u ",
-                      CHIP_TARGET_OFFSET,CHIP_TARGET_COUNT);
-
         l_beginning_offset = CHIP_TARGET_OFFSET;
 
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> chip_target((fapi2::plat_target_handle_t)0);
         G_vec_targets.at(l_beginning_offset) = revle64((fapi2::plat_target_handle_t)(chip_target.get()));
 
         /*
-         * Pervasive Targets
+         * Nest Targets - group 1
          */
-        FAPI_DBG("Pervasive Target info: PERV_TARGET_OFFSET %u PERV_TARGET_COUNT %u",
-                      PERV_TARGET_OFFSET, PERV_TARGET_COUNT);
-
-        l_beginning_offset = PERV_TARGET_OFFSET;
-        for (uint32_t i = 0; i < PERV_TARGET_COUNT; ++i)
+        l_beginning_offset = NEST_GROUP1_TARGET_OFFSET;
+        for (uint32_t i = 0; i < NEST_GROUP1_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((fapi2::plat_target_handle_t)i+1);
-            FAPI_DBG("target_name i = %d hi word = 0x%08X", i+1, (uint32_t)(target_name.get()>>32));
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((fapi2::plat_target_handle_t)i);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
 
             G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-            FAPI_DBG("G offset = %d", l_beginning_offset+i);
-        }
-
-        /*
-         * Cache (EQ) Targets
-         */
-        FAPI_DBG("EQ Target info: EQ_TARGET_OFFSET %u EQ_TARGET_COUNT %u",
-                      EQ_TARGET_OFFSET,  EQ_TARGET_COUNT);
-        l_beginning_offset = EQ_TARGET_OFFSET;
-        for (uint32_t i = 0; i < EQ_TARGET_COUNT; ++i)
-        {
-            fapi2::Target<fapi2::TARGET_TYPE_EQ> target_name((fapi2::plat_target_handle_t)i);
-            FAPI_DBG("target_name i = %d hi word = 0x%08X", i, (uint32_t)(target_name.get()>>32));
-
-            // Determine if the chiplet is present and, thus, functional
-            // via partial good attributes
-            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
-
-            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-            FAPI_DBG("G offset = %d", l_beginning_offset+i);
-        }
-
-        /*
-         * Core (EC) Targets
-         */
-        FAPI_DBG("Core Target info: CORE_TARGET_OFFSET %u CORE_TARGET_COUNT %u",
-                      CORE_TARGET_OFFSET, CORE_TARGET_COUNT);
-
-        l_beginning_offset = CORE_TARGET_OFFSET;
-        FAPI_DBG("Core beginning offset =%u", l_beginning_offset);
-        for (uint32_t i = 0; i < CORE_TARGET_COUNT; ++i)
-        {
-            fapi2::Target<fapi2::TARGET_TYPE_CORE> target_name((fapi2::plat_target_handle_t)i);
-            FAPI_DBG("target_name i = %d hi word = 0x%08X", i, (uint32_t)(target_name.get()>>32));
-
-            // Determine if the chiplet is present and, thus, functional
-            // via partial good attributes
-            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
-
-            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-            FAPI_DBG("G offset = %d", l_beginning_offset+i);
         }
 
         /*
          * Memory Controller Synchronous (MCS) Targets
          */
-        FAPI_DBG("MCS Target info: MCS_TARGET_OFFSET %u MCS_TARGET_COUNT %u",
-                      MCS_TARGET_OFFSET, MCS_TARGET_COUNT);
 
         l_beginning_offset = MCS_TARGET_OFFSET;
-        FAPI_DBG("MCS beginning offset =%u", l_beginning_offset);
         for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
         {
             fapi2::Target<fapi2::TARGET_TYPE_MCS> target_name((fapi2::plat_target_handle_t)i);
-            FAPI_DBG("target_name i = %d hi word = 0x%08X", i, (uint32_t)(target_name.get()>>32));
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
 
             G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
-            FAPI_DBG("G offset = %d", l_beginning_offset+i);
 
+        }
+
+        /*
+         * Nest Targets - group 2
+         */
+        l_beginning_offset = NEST_GROUP2_TARGET_OFFSET;
+        for (uint32_t i = NEST_GROUP2_TARGET_OFFSET;
+                i < (NEST_GROUP2_TARGET_OFFSET + NEST_GROUP2_TARGET_COUNT); ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((fapi2::plat_target_handle_t)(i - 1));
+
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
+
+            G_vec_targets.at(i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
+        }
+
+        /*
+         * Cache (EQ) Targets
+         */
+        l_beginning_offset = EQ_TARGET_OFFSET;
+        for (uint32_t i = 0; i < EQ_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_EQ> target_name((fapi2::plat_target_handle_t)i);
+
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
+
+            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
+        }
+
+        /*
+         * Core (EC) Targets
+         */
+
+        l_beginning_offset = CORE_TARGET_OFFSET;
+        for (uint32_t i = 0; i < CORE_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_CORE> target_name((fapi2::plat_target_handle_t)i);
+
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
+
+            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
         }
 
         // Trace all entries
