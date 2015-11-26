@@ -278,9 +278,9 @@ namespace fapi2
         /// @brief Set the target functional setting
         /// @return Bool whether functional
         ///
-        inline void setFunctional(void)
+        inline void setFunctional(const bool &i_state)
         {
-            this->iv_handle.fields.functional = 1;
+            this->iv_handle.fields.functional = (i_state) ? 1 : 0;
             return;
         }
 
@@ -355,7 +355,7 @@ namespace fapi2
 #endif
             } fields;
             // Union Constructor
-//            iv_handle(V i_value = 0):value(i_value) {}
+            iv_handle(V i_value = 0):value(i_value) {}
         } iv_handle;
     };
 
