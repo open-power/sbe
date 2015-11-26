@@ -8,6 +8,28 @@
 
 namespace fapi2 {
 
+uint32_t getPervAttrIndex(const fapi2::Target<TARGET_TYPE_PERV> &i_target)
+{
+    uint32_t l_index = i_target.getTargetNumber();
+    if(TARGET_TYPE_EQ & i_target.getTargetType())
+    {
+        l_index += (EQ_TARGET_OFFSET);
+    }
+    else if(TARGET_TYPE_CORE & i_target.getTargetType())
+    {
+        l_index += (CORE_TARGET_OFFSET);
+    }
+    else if(TARGET_TYPE_MCS & i_target.getTargetType())
+    {
+        l_index += (MCS_TARGET_OFFSET);
+    }
+    else
+    {
+        l_index += (NEST_GROUP1_TARGET_OFFSET);
+    }
+    return (l_index - NEST_GROUP1_TARGET_OFFSET);
+}
+
 template<> void __get<fapi2::TARGET_TYPE_PROC_CHIP, fapi2attr::ProcChipAttributes_t, uint8_t, fapi2::ATTR_BACKUP_SEEPROM_SELECT>   ( const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_ptarget, const fapi2attr::ProcChipAttributes_t* object, const fapi2::AttributeId attrid, uint8_t* o_pvalue )
 {
    *o_pvalue = object->fapi2attr::ProcChipAttributes_t::ATTR_BACKUP_SEEPROM_SELECT;
@@ -15,8 +37,7 @@ template<> void __get<fapi2::TARGET_TYPE_PROC_CHIP, fapi2attr::ProcChipAttribute
 
 template<> void __get<fapi2::TARGET_TYPE_PERV, fapi2attr::PervAttributes_t, uint8_t, fapi2::ATTR_CHIP_UNIT_POS>   ( const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_ptarget, const fapi2attr::PervAttributes_t* object, const fapi2::AttributeId attrid, uint8_t* o_pvalue )
 {
-   uint32_t index = i_ptarget.getTargetNumber();
-   *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_CHIP_UNIT_POS[index];
+    *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_CHIP_UNIT_POS[getPervAttrIndex(i_ptarget)];
 }
 
 template<> void __get<fapi2::TARGET_TYPE_CORE, fapi2attr::CoreAttributes_t, uint32_t, fapi2::ATTR_CORE_GPTR_RING>   ( const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_ptarget, const fapi2attr::CoreAttributes_t* object, const fapi2::AttributeId attrid, uint32_t* o_pvalue )
@@ -68,8 +89,7 @@ template<> void __get<fapi2::TARGET_TYPE_PROC_CHIP, fapi2attr::ProcChipAttribute
 
 template<> void __get<fapi2::TARGET_TYPE_PERV, fapi2attr::PervAttributes_t, uint32_t, fapi2::ATTR_GPTR_RING>   ( const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_ptarget, const fapi2attr::PervAttributes_t* object, const fapi2::AttributeId attrid, uint32_t* o_pvalue )
 {
-   uint32_t index = i_ptarget.getTargetNumber();
-   *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_GPTR_RING[index];
+    *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_GPTR_RING[getPervAttrIndex(i_ptarget)];
 }
 
 template<> void __get<fapi2::TARGET_TYPE_EX, fapi2attr::EXAttributes_t, uint32_t, fapi2::ATTR_L2_GPTR_RING>   ( const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_ptarget, const fapi2attr::EXAttributes_t* object, const fapi2::AttributeId attrid, uint32_t* o_pvalue )
@@ -345,14 +365,12 @@ template<> void __get<fapi2::TARGET_TYPE_PROC_CHIP, fapi2attr::ProcChipAttribute
 
 template<> void __get<fapi2::TARGET_TYPE_PERV, fapi2attr::PervAttributes_t, uint32_t, fapi2::ATTR_PLL_RING>   ( const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_ptarget, const fapi2attr::PervAttributes_t* object, const fapi2::AttributeId attrid, uint32_t* o_pvalue )
 {
-   uint32_t index = i_ptarget.getTargetNumber();
-   *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_PLL_RING[index];
+    *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_PLL_RING[getPervAttrIndex(i_ptarget)];
 }
 
 template<> void __get<fapi2::TARGET_TYPE_PERV, fapi2attr::PervAttributes_t, uint32_t, fapi2::ATTR_REPR_RING>   ( const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_ptarget, const fapi2attr::PervAttributes_t* object, const fapi2::AttributeId attrid, uint32_t* o_pvalue )
 {
-   uint32_t index = i_ptarget.getTargetNumber();
-   *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_REPR_RING[index];
+    *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_REPR_RING[getPervAttrIndex(i_ptarget)];
 }
 
 template<> void __get<fapi2::TARGET_TYPE_PROC_CHIP, fapi2attr::ProcChipAttributes_t, int32_t, fapi2::ATTR_SCRATCH_INT32_1>   ( const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_ptarget, const fapi2attr::ProcChipAttributes_t* object, const fapi2::AttributeId attrid, int32_t* o_pvalue )
@@ -427,8 +445,7 @@ template<> void __set<fapi2::TARGET_TYPE_PROC_CHIP, fapi2attr::ProcChipAttribute
 
 template<> void __get<fapi2::TARGET_TYPE_PERV, fapi2attr::PervAttributes_t, uint32_t, fapi2::ATTR_SCRATCH_UINT32_PERV_ARRAY>   ( const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_ptarget, const fapi2attr::PervAttributes_t* object, const fapi2::AttributeId attrid, uint32_t* o_pvalue )
 {
-   uint32_t index = i_ptarget.getTargetNumber();
-   *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_SCRATCH_UINT32_PERV_ARRAY[index];
+    *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_SCRATCH_UINT32_PERV_ARRAY[getPervAttrIndex(i_ptarget)];
 }
 
 template<> void __set<fapi2::TARGET_TYPE_PERV, fapi2attr::PervAttributes_t, uint32_t, fapi2::ATTR_SCRATCH_UINT32_PERV_ARRAY>   ( const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_ptarget, fapi2attr::PervAttributes_t* object, const fapi2::AttributeId attrid,  const uint32_t& i_pvalue )
@@ -479,8 +496,7 @@ template<> void __get<fapi2::TARGET_TYPE_SYSTEM, fapi2attr::SystemAttributes_t, 
 
 template<> void __get<fapi2::TARGET_TYPE_PERV, fapi2attr::PervAttributes_t, uint32_t, fapi2::ATTR_TIME_RING>   ( const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_ptarget, const fapi2attr::PervAttributes_t* object, const fapi2::AttributeId attrid, uint32_t* o_pvalue )
 {
-   uint32_t index = i_ptarget.getTargetNumber();
-   *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_TIME_RING[index];
+    *o_pvalue = object->fapi2attr::PervAttributes_t::ATTR_TIME_RING[getPervAttrIndex(i_ptarget)];
 }
 
 } // namespace fapi2

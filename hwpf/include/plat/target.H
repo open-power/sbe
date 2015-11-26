@@ -69,7 +69,7 @@ namespace fapi2
 
         if(K & TARGET_TYPE_PERV)
         {
-            this->iv_handle.fields.chiplet_num = Value;
+            this->iv_handle.fields.chiplet_num = Value + NEST_GROUP1_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = Value;
         }

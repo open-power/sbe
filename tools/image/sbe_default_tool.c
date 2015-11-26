@@ -50,37 +50,37 @@ void assertTarget(const char* str, unsigned int index)
         if (index > 0) {
             fprintf(stderr, "sbe_default_tool: index (%d) is larger than 0\n", index);
             exit(1);
-        } 
+        }
     } else if(strcmp(str, "TARGET_TYPE_EX") == 0)  {
         if (index > EX_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index (%d) is larger than EX_TARGET_COUNT (%d)\n", 
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than EX_TARGET_COUNT (%d)\n",
                 index, EX_TARGET_COUNT);
             exit(1);
-        } 
+        }
     } else if(strcmp(str, "TARGET_TYPE_EQ") == 0)  {
         if (index > EQ_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index (%d) is larger than EQ_TARGET_COUNT (%d)\n", 
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than EQ_TARGET_COUNT (%d)\n",
                     index, EQ_TARGET_COUNT);
             exit(1);
-        } 
+        }
     } else if(strcmp(str, "TARGET_TYPE_CORE") == 0)  {
         if (index > CORE_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index (%d) is larger than CORE_TARGET_COUNT (%d)\n", 
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than CORE_TARGET_COUNT (%d)\n",
                     index, CORE_TARGET_COUNT);
             exit(1);
-        } 
+        }
     } else if(strcmp(str, "TARGET_TYPE_PERV") == 0)  {
         if (index > PERV_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index (%d) is larger than PERV_TARGET_COUNT (%d)\n", 
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than PERV_TARGET_COUNT (%d)\n",
                     index, PERV_TARGET_COUNT);
             exit(1);
-        } 
+        }
     } else {
         if (index >= PERV_TARGET_COUNT) {
             fprintf(stderr, "sbe_default_tool: target not supported:");
             fprintf(stderr, " %s\n", str);
             exit(1);
-        }    
+        }
     }
     return;
 }
@@ -176,17 +176,17 @@ uint64_t getAttribute(void* image, const char* attribute, unsigned int index) {
         fprintf(stderr, " %s", attribute);
         exit(1);
     }
-    
+
     sbe_xip_image2host(image, item.iv_address, &thePointer);
 
     if(item.iv_toc->iv_type == SBE_XIP_UINT8) {
 
         val = *((uint8_t*)thePointer + (index * sizeof(uint8_t)));
-        
+
     } else if(item.iv_toc->iv_type == SBE_XIP_INT8) {
 
         val = *((int8_t*)thePointer + (index * sizeof(int8_t)));
-        val &= 0xFF; 
+        val &= 0xFF;
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT16) {
 
@@ -195,7 +195,7 @@ uint64_t getAttribute(void* image, const char* attribute, unsigned int index) {
     } else if(item.iv_toc->iv_type == SBE_XIP_INT16) {
 
         val = xipRevLe16(*((int16_t*)thePointer + (index * sizeof(int16_t))));
-        val &= 0xFFFF; 
+        val &= 0xFFFF;
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT32) {
 
@@ -204,7 +204,7 @@ uint64_t getAttribute(void* image, const char* attribute, unsigned int index) {
     } else if(item.iv_toc->iv_type == SBE_XIP_INT32) {
 
         val = xipRevLe32(*((int32_t*)thePointer + (index * sizeof(int32_t))));
-        val &= 0xFFFFFFFF; 
+        val &= 0xFFFFFFFF;
 
     } else if(item.iv_toc->iv_type == SBE_XIP_UINT64) {
 
@@ -235,7 +235,7 @@ int  main(int argc, const char** argv)
         fprintf(stderr, "sbe_default_tool: argument missing\n");
         fprintf(stderr, g_usage);
         exit(1);
-    } 
+    }
 
     printf("sbe_default_tool %s %s %s %s %s\n", argv[1], argv[2], argv[3], argv[4], argv[5]);
 
@@ -269,7 +269,7 @@ int  main(int argc, const char** argv)
     uint64_t check = getAttribute(image, argv[2], index);
 
     if((check & val) != check) {
-            
+
         fprintf(stderr, "sbe_default_tool: set and get values not equal -> ");
         fprintf(stderr, "%lx != %lx\n", check, val);
         exit(1);
@@ -282,6 +282,6 @@ int  main(int argc, const char** argv)
         exit(1);
     }
 
-			
+
     return 0;
 }
