@@ -385,7 +385,6 @@
   </entry>
   <entry>
             <name>ATTR_PG</name>
-            <value>0x01</value>
   </entry>
   <entry>
             <name>ATTR_FABRIC_CHIP_ID</name>
@@ -430,5 +429,13 @@
   <entry>
           <name>ATTR_MEM_MIRROR_PLACEMENT_POLICY</name>
           <value>0x01</value>
+  </entry>
+  <entry>
+          <name>ATTR_SBE_BOOTLOADER_OFFSET</name>
+          <value>0x01</value>
+  </entry>
+  <entry>
+           <name>ATTR_HOSTBOOT_HRMOR_OFFSET</name>
+           <value>0x01</value>
   </entry>
 </entries>
