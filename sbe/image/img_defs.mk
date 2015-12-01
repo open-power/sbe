@@ -47,28 +47,33 @@ export IMAGE_SRCDIR = $(abspath .)
 endif
 
 ifndef CACHE_SRCDIR
-export CACHE_SRCDIR = $(abspath ../../hwp/cache)
+export CACHE_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/cache)
 endif
 
 ifndef CORE_SRCDIR
-export CORE_SRCDIR = $(abspath ../../hwp/core)
+export CORE_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/core)
 endif
 
 ifndef PERV_SRCDIR
-export PERV_SRCDIR = $(abspath ../../hwp/perv)
+export PERV_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/perv)
+endif
+
+ifndef HWPERR_SRCDIR
+export HWPERR_SRCDIR = $(abspath ../../import/chips/p9/procedures/xml/error_info)
 endif
 
 ifndef NEST_SRCDIR
-export NEST_SRCDIR = $(abspath ../../hwp/nest)
+export NEST_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/nest)
 endif
 
 ifndef HWPLIB_SRCDIR
-export HWPLIB_SRCDIR = $(abspath ../../hwp/lib)
+export HWPLIB_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/lib)
 endif
 
 ifndef IMG_INCLUDES
 export IMG_INCLUDES = -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR)
 endif
+
 ifndef BASE_OBJDIR
 export BASE_OBJDIR = $(abspath ../obj)
 endif
@@ -88,11 +93,11 @@ export TOOLS_IMAGE_DIR = $(abspath ../../tools/image)
 endif
 
 ifndef IMPORT_XML_DIR
-export IMPORT_XML_DIR = $(abspath ../../importtemp/xml)
+export IMPORT_XML_DIR = $(abspath ../../import/chips/p9/procedures/xml)
 endif
 
 ifndef IMPORT_COMMON_DIR
-export IMPORT_COMMON_DIR = $(abspath ../../importtemp/common)
+export IMPORT_COMMON_DIR = $(abspath ../../import/chips/p9/common)
 endif
 
 ifndef P2P_SRCDIR
@@ -274,11 +279,9 @@ ASFLAGS		= -mppe42
 
 ifdef P2P_ENABLE
 #use this to disable optimizations (fused compare/branch etc.)
-PCP-FLAG    =
-
-#use this to enable optimizations
-#PCP-FLAG =
+PCP-FLAG    =  -b
 endif
+
 ############################################################################
 
 #override the GNU Make implicit rule for going from a .C to a .o

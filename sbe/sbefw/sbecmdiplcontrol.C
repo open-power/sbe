@@ -49,6 +49,10 @@
 // Core HWP header file
 #include "p9_hcd_core.H"
 
+// istep 5 hwp header files
+#include "p9_sbe_instruct_start.H"
+#include "p9_sbe_load_bootloader.H"
+
 // Forward declaration
 using namespace fapi2;
 ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
@@ -65,13 +69,11 @@ typedef ReturnCode (*sbeIstep_t)( sbeIstepHwp_t );
 // Wrapper function which will call HWP with Proc target.
 ReturnCode istepWithProc( sbeIstepHwp_t i_hwp );
 ReturnCode istepNoOp( sbeIstepHwp_t i_hwp );
-
-ReturnCode istepWithEx( sbeIstepHwp_t i_hwp);
-
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp);
-//structure for mapping SBE wrapper and HWP functions
+ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp);
 
+//structure for mapping SBE wrapper and HWP functions
 typedef struct
 {
     sbeIstep_t istepWrapper;
@@ -139,7 +141,12 @@ static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
              { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_fabricinit },
              { &istepNoOp, NULL }, // TODO via RTC 120752
                                    // FW proc_sbe_check_master
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_mcs_setup },
+             // TODO via RTC 142710
+             // mcs_setup does not compile currently as MI target support
+             // is not present. So currently this istep has neem made NoOp
+             // in this code
+             //{ &istepWithProc, (sbeIstepHwp_t)&p9_sbe_mcs_setup },
+             { &istepNoOp, NULL }, // mcs_setup does not compile currently
              { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_select_ex },
          };
 static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
@@ -149,14 +156,14 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
              { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_gptr_time_initf },
              { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_dpll_setup },
              { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_chiplet_init },
-             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_repair_initf },
-             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_arrayinit },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_repair_initf },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_arrayinit },
              { &istepNoOp, NULL },  // DFT Only
              { &istepNoOp, NULL },  // DFT Only
-             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_initf },
-             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_startclocks },
-             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_scominit },
-             { &istepWithEx, (sbeIstepHwp_t )&p9_hcd_cache_scomcust },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_initf },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_startclocks },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_scominit },
+             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_scomcust },
              { &istepNoOp, NULL }, // Runtime only
              { &istepNoOp, NULL }, // Runtime only
              { &istepNoOp, NULL }, // stub for SBE
@@ -186,8 +193,8 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
 //  Add the support for istep 5 HWP
 static istepMap_t g_istep5PtrTbl[ ISTEP5_MAX_SUBSTEPS ]
          {
-             { &istepNoOp, NULL },
-             { &istepNoOp, NULL },
+             { &istepLoadBootLoader, NULL },
+             { &istepWithCore, (sbeIstepHwp_t )&p9_sbe_instruct_start },
          };
 
 // Functions
@@ -404,19 +411,6 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 
 //----------------------------------------------------------------------------
 
-ReturnCode istepWithEx( sbeIstepHwp_t i_hwp)
-{
-    fapi2::Target<fapi2::TARGET_TYPE_EX > ex10_target((uint64_t)10);
-    SBE_DEBUG("istepWithEx");
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-    if( i_hwp )
-    {
-        rc = i_hwp(ex10_target);
-    }
-    return rc;
-}
-
-//----------------------------------------------------------------------------
 
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
 {
@@ -454,6 +448,17 @@ ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
 
 //----------------------------------------------------------------------------
 
+ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
+{
+    // TODO via RTC 135345
+    //  Send right Ex, address and size of HB loader
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    fapi2::Target<fapi2::TARGET_TYPE_EX > exTgt((uint64_t)7);
+    ReturnCode rc = p9_sbe_load_bootloader( proc, exTgt, 0, NULL );
+    return rc;
+}
+
+//----------------------------------------------------------------------------
 ReturnCode istepNoOp( sbeIstepHwp_t i_hwp)
 {
     SBE_DEBUG("istepNoOp");

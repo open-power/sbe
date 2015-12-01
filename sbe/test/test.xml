@@ -18,6 +18,11 @@
               <simcmd>sim->frontend_current_processor = p9Proc0.sbe.ppe</simcmd>
               <exitonerror>yes</exitonerror>
           </testcase>
+          <!-- Workaround to set clock regs. Once simics have fix, we can remove it -->
+          <testcase>
+            <simcmd>p9Proc0.proc_chip.invoke parallel_store LOGIC 0xffc50000 \"00000000_00000001\" 64</simcmd>
+          </testcase>
+      <!-- Write value to a register and than read it back -->
            <!-- Register SBE tools -->
           <testcase>
               <simcmd>run-python-file targets/p9_nimbus/sbeTest/simics-debug-framework.py</simcmd>
