@@ -115,7 +115,10 @@ $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDI
 ifndef FAPI2_TEST
 # This is the production build of the SEEPROM
 #create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+# TODO via RTC 142365
+# Remove pibMemAttrSet from this file once we have support to copy fixed section
+# from SEEPROM to PIBMEM.
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: pibMemAttrSet buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	@echo ">>>>> Production Build <<<<<<"
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJS) $(LIB_DIRS)  -leabi -lmath
 else
@@ -139,7 +142,7 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMA
 	$(NM)  $< > $(OBJDIR)/$(IMAGE_SBE_NAME).syms
 
 # create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SBE_NAME).out: buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+$(OBJDIR)/$(IMAGE_SBE_NAME).out: pibMemAttrSet buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS)   -leabi -lmath --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
@@ -209,7 +212,7 @@ $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(HWPLIB) buildInfo
+.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(HWPLIB) buildInfo pibMemAttrSet
 
 #errxml: topfixedheaders attrids platattr attrserv
 
@@ -325,6 +328,9 @@ appendloader: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME)
 tracehash:
 	mkdir -p $(OBJDIR)
 	$(THASH) -c -d $(OBJDIR) -s $(OBJDIR)/trexStringFile
+
+pibMemAttrSet:
+	$(TOOLS_IMAGE_DIR)/ppeSetFixedPibmem.pl $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
 
 #clean the kernel directory first, then the application level clean
 clean:

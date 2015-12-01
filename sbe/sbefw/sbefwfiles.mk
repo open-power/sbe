@@ -8,6 +8,7 @@ SBEFW-CPP-SOURCES += sbecmdiplcontrol.C
 SBEFW-CPP-SOURCES += pool.C
 SBEFW-CPP-SOURCES += sbecmdgeneric.C
 SBEFW-CPP-SOURCES += sbeFifoMsgUtils.C
+SBEFW-CPP-SOURCES += attr.C
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =
 
