@@ -17,7 +17,10 @@
 #include "sbetrace.H"
 #include "fapi2.H" // For target init
 
-
+// TODO via RTC 142365
+// Remove this workaround once we have support to copy fixed section
+// from SEEPROM to PIBMEM.
+extern void initAttrWA();
 ////////////////////////////////////////////////////////////////
 // @brief Global semaphores
 ////////////////////////////////////////////////////////////////
@@ -297,6 +300,10 @@ uint32_t main(int argc, char **argv)
             //  enable FSP to get FFDC for this failure.
             break;
         }
+        // TODO via RTC 142365
+        // Remove this workaround once we have support to copy fixed section
+        // from SEEPROM to PIBMEM.
+        initAttrWA();
         // Start running the highest priority thread.
         // This function never returns
         pk_start_threads();
