@@ -1,6 +1,12 @@
 # Example Format
-Brief description of the problem or reason for patch
--RTC: Task/Story used to remove this patch
--CQ: Defect/Req for checking the changes into fips910
--Files: list of files
--Coreq: list of associated changes, e.g. workarounds.presimsetup
+#Brief description of the problem or reason for patch
+#-RTC: Task/Story used to remove this patch
+#-CQ: Defect/Req for checking the changes into fips910
+#-Files: list of files
+#-Coreq: list of associated changes, e.g. workarounds.presimsetup
+
+RTC:  142706
+Files: P9n.chip. This patch is used to add missing register in scomdef file.
+       As test verification of all isteps, updated scomdef, p9n.chip
+       will be added in CMVC.
+

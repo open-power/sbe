@@ -1,0 +1,11 @@
+<!-- $Id: proc_pll_ring_attributes.xml,v 1.17 2014/11/13 20:14:02 szhong Exp $ -->
+<!-- proc_pll_ring_attributes.xml -->
+<attributes>
+  <attribute>
+    <id>ATTR_CHIP_UNIT_POS</id>
+    <targetType>TARGET_TYPE_PERV</targetType>
+    <description></description>
+    <valueType>uint8</valueType>
+  </attribute>
+  <!-- ********************************************************************* -->
+</attributes>

@@ -63,35 +63,31 @@ HWPLIB_MAKE_DIR := $(HWPLIB_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/lib
 HWPLIB := $(OBJDIR)/libcommon.a
 LLIBS += -lcommon
-include $(HWPLIB_SRCDIR)/libcommonerrors.mk
+include $(HWPERR_SRCDIR)/hwpErrors.mk
 
 # Common Cache HWP Exit library
 CACHE_MAKE_DIR := $(CACHE_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/cache
 CACHELIB := $(OBJDIR)/cache/libcache.a
 LLIBS += -lcache
-include $(CACHE_SRCDIR)/cachehcderrors.mk
 
 # Common Core libraries
 CORE_MAKE_DIR := $(CORE_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/core
 CORELIB := $(OBJDIR)/core/libcore.a
 LLIBS += -lcore
-include $(CORE_SRCDIR)/corehcderrors.mk
 
 # Common Perv libraries
 PERV_MAKE_DIR := $(PERV_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/perv
 PERVLIB := $(OBJDIR)/perv/libperv.a
 LLIBS += -lperv
-include $(PERV_SRCDIR)/perverrors.mk
 
 # Common Nest libraries
 NEST_MAKE_DIR := $(NEST_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/nest
 NESTLIB := $(OBJDIR)/nest/libnest.a
 LLIBS += -lnest
-include $(NEST_SRCDIR)/nesterrors.mk
 
 SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_xip_tool $(TOOLS_IMAGE_DIR)/sbe_default_tool
 
@@ -197,19 +193,21 @@ buildInfo:
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d) $(OBJDIR)/base_sbe_fixed.o $(OBJDIR)/base_sbe_fixed.d: | $(OBJDIR)
 
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/perv_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pg_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pervasive_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/proc_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/ex_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/eq_attributes.xml
+# TODO via RTC 142708
+# Workaound for ATTR_CHIP_UNIT_POS. Remove Mirror_WA_attributes.xml once fapi
+# support is in.
+ATTRFILES += $(IMPORT_XML_DIR)/../../../../../sbe/image/Mirror_WA_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_sbe_load_bootloader_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
 
 $(OBJDIR):
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl -path $(TOOLS_ATTR_DIR)/src -inc $(PPE_FAPI2_DIR)/include -src $(PPE_FAPI2_DIR)/src
-	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
 .PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(HWPLIB) buildInfo pibMemAttrSet
@@ -217,16 +215,16 @@ $(OBJDIR):
 #errxml: topfixedheaders attrids platattr attrserv
 
 topfixedheaders:
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 attrids:
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 platattr:
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(PPE_FAPI2_DIR)/include --src $(PPE_FAPI2_DIR)/src
 
 attrserv:
-	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 
 #Build macro-specific kernel code
@@ -285,7 +283,7 @@ normalize: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 
 defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
-	$(TOOLS_IMAGE_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
+	$(TOOLS_IMAGE_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 # Build hwp_error_info.H.  If the script fails then print the contents of
 # the header and then delete whatever garbage the script left to force it to
@@ -330,7 +328,7 @@ tracehash:
 	$(THASH) -c -d $(OBJDIR) -s $(OBJDIR)/trexStringFile
 
 pibMemAttrSet:
-	$(TOOLS_IMAGE_DIR)/ppeSetFixedPibmem.pl $(IMPORT_XML_DIR)/p9_ppe_attributes.xml $(ATTRFILES)
+	$(TOOLS_IMAGE_DIR)/ppeSetFixedPibmem.pl $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 #clean the kernel directory first, then the application level clean
 clean:

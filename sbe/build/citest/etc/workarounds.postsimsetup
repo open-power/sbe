@@ -9,3 +9,7 @@
 #cp $BACKING_BUILD/src/simu/data/cec-chip/base_cec_chip_file $sb/simu/data/cec-chip
 #patch -p0 $sb/simu/data/cec-chip/base_cec_chip_file $HOSTBOOTROOT/src/build/citest/etc/patches/my_patch_File
 
+echo "+++ Updating p9n.chip file"
+mkdir -p  $sb/simu/data/cec-chip
+cp $BACKING_BUILD/src/simu/data/cec-chip/p9n.chip $sb/simu/data/cec-chip
+patch -p0 $sb/simu/data/cec-chip/p9n.chip $SBEROOT/sbe/build/citest/etc/patches/p9n.chip.patch
