@@ -145,6 +145,115 @@ typedef struct
     uint32_t minor:8;
 }sbeIstepReqMsg_t;
 
+
+/**
+  * @brief structure for GetScom Chipop (0xA201) contents.
+  *
+  */
+typedef struct
+{
+    uint32_t hiAddr;
+    uint32_t lowAddr;
+}sbeGetScomReqMsg_t;
+
+/**
+  * @brief structure for PutScom Chipop (0xA202) contents.
+  *
+  */
+typedef struct
+{
+    uint32_t hiAddr;
+    uint32_t lowAddr;
+    uint32_t hiInputData;
+    uint32_t lowInputData;
+
+    /**
+      * @brief return 64-bit Scom data
+      *
+      * @return 64-bit Scom data
+      */
+    uint64_t getScomData()
+    {
+        uint64_t data = ((uint64_t)hiInputData << 32) | lowInputData;
+        return data;
+    }
+}sbePutScomReqMsg_t;
+
+/**
+  * @brief structure for Modify_Scom Chipop (0xA203) contents.
+  *
+  */
+typedef struct
+{
+    uint32_t reserved:24;
+    uint32_t opMode:8;
+    uint32_t hiAddr;
+    uint32_t lowAddr;
+    uint32_t hiInputData;
+    uint32_t lowInputData;
+
+    /**
+      * @brief return 64-bit modifying data
+      *
+      * @return 64-bit modifying data
+      */
+    uint64_t getModifyingData()
+    {
+        uint64_t data = ((uint64_t)hiInputData << 32) | lowInputData;
+        return data;
+    }
+}sbeModifyScomReqMsg_t;
+
+/**
+  * @brief structure for PutScom_UnderMask Chipop (0xA204) contents.
+  *
+  */
+typedef struct
+{
+    uint32_t hiAddr;
+    uint32_t lowAddr;
+    uint32_t hiInputData;
+    uint32_t lowInputData;
+    uint32_t hiMaskData;
+    uint32_t lowMaskData;
+
+    /**
+      * @brief return 64-bit input data
+      *
+      * @return 64-bit input data
+      */
+    uint64_t getInputData()
+    {
+        uint64_t data = ((uint64_t)hiInputData << 32) | lowInputData;
+        return data;
+    }
+
+    /**
+      * @brief return 64-bit input mask
+      *
+      * @return 64-bit input mask
+      */
+    uint64_t getInputMask()
+    {
+        uint64_t data = ((uint64_t)hiMaskData << 32) | lowMaskData;
+        return data;
+    }
+    
+    /**
+      * @brief Determines 64-bit Scom data
+      *
+      * @param[in/out] io_scomData 64-bit scom data
+      */
+    void getScomData(uint64_t &io_scomData)
+    {
+        uint64_t l_inputMask = getInputMask();
+        uint64_t l_inputData = getInputData();
+        io_scomData = (io_scomData & (~l_inputMask))
+                    | (l_inputData & l_inputMask);
+    }    
+}sbePutScomUnderMaskReqMsg_t;
+
+
 // Maximum number of capabilities
 static const uint32_t SBE_MAX_CAPABILITIES = 18;
 

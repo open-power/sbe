@@ -4,3 +4,12 @@
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPutGetScom.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPutScomUnderMask.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testModifyScom.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+
