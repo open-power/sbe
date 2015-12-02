@@ -63,6 +63,17 @@ enum sbeScomAccessCommands
 };
 
 /**
+ *  @brief enum for modify mode
+ *
+*/
+enum sbeChipOpModifyMode
+{
+    SBE_MODIFY_MODE_OR      = 0x01,
+    SBE_MODIFY_MODE_AND     = 0x02,
+    SBE_MODIFY_MODE_XOR     = 0x03,
+};
+
+/**
  * @brief enums for Ring Access Messages
  *
 */

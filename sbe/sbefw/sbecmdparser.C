@@ -27,6 +27,18 @@ static sbeCmdStruct_t g_sbeScomCmdArray [] =
      SBE_CMD_PUTSCOM,
      SBE_FENCE_AT_CONTINUOUS_IPL,
      },
+
+
+    {sbeModifyScom,
+     SBE_CMD_MODIFYSCOM,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+     },
+
+    {sbePutScomUnderMask,
+     SBE_CMD_PUTSCOM_MASK,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+     },
+
 };
 
 ////////////////////////////////////////////////////////////////

@@ -138,7 +138,7 @@ typedef struct
 extern inline uint32_t sbeUpFifoDeq (uint64_t *o_data)
 {
     /* For SBE FIFO (PIB) access, chiplet ID should be passed as 0 */
-    return getscom(0, SBE_UPSTREAM_FIFO_DEQ_ADD, o_data);
+    return getscom_abs(SBE_UPSTREAM_FIFO_DEQ_ADD, o_data);
 }
 
 
@@ -151,7 +151,7 @@ extern inline uint32_t sbeUpFifoDeq (uint64_t *o_data)
 extern inline uint32_t sbeUpFifoPerformReset (void)
 {
     SBE_TRACE(">sbeUpFifoPerformReset");
-    return putscom(0, SBE_UPSTREAM_FIFO_PERFORM_RESET, ((uint64_t)0x1)<<32);
+    return putscom_abs(SBE_UPSTREAM_FIFO_PERFORM_RESET, ((uint64_t)0x1)<<32);
 }
 
 
@@ -164,7 +164,7 @@ extern inline uint32_t sbeUpFifoPerformReset (void)
 extern inline uint32_t sbeUpFifoAckEot (void)
 {
     SBE_DEBUG("sbeUpFifoAckEot");
-    return putscom(0, SBE_UPSTREAM_FIFO_ACK_EOT, ((uint64_t)0x1)<<32);
+    return putscom_abs(SBE_UPSTREAM_FIFO_ACK_EOT, ((uint64_t)0x1)<<32);
 }
 
 
@@ -184,7 +184,7 @@ extern inline uint32_t sbeUpFifoAckEot (void)
 extern inline uint32_t sbeDownFifoEnq (const uint64_t i_data)
 {
     SBE_DEBUG(">sbeDownFifoEnq");
-    return putscom(0, SBE_DOWNSTREAM_FIFO_ENQ_ADD, i_data);
+    return putscom_abs(SBE_DOWNSTREAM_FIFO_ENQ_ADD, i_data);
 }
 
 
@@ -200,7 +200,7 @@ extern inline uint32_t sbeDownFifoEnq (const uint64_t i_data)
 extern inline uint32_t sbeDownFifoGetStatus (uint64_t *o_data)
 {
     SBE_DEBUG(">sbeDownFifoStatus");
-    return getscom(0, SBE_DOWNSTREAM_FIFO_STATUS, o_data);
+    return getscom_abs(SBE_DOWNSTREAM_FIFO_STATUS, o_data);
 }
 
 /**
@@ -212,7 +212,7 @@ extern inline uint32_t sbeDownFifoGetStatus (uint64_t *o_data)
 extern inline uint32_t sbeDownFifoSignalEot (void)
 {
     SBE_DEBUG(">sbeDownFifoSignalEot");
-    return putscom(0, SBE_DOWNSTREAM_FIFO_SIGNAL_EOT, ((uint64_t)0x1)<<32);
+    return putscom_abs(SBE_DOWNSTREAM_FIFO_SIGNAL_EOT, ((uint64_t)0x1)<<32);
 }
 
 

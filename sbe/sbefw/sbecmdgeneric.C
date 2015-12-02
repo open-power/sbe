@@ -29,7 +29,9 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 
     capability[SCOM_CAPABILITY_START_IDX] =
                                 GET_SCOM_SUPPPORTED |
-                                PUT_SCOM_SUPPPORTED;
+                                PUT_SCOM_SUPPPORTED |
+                                MODIFY_SCOM_SUPPPORTED |
+                                PUT_SCOM_UNDER_MASK_SUPPPORTED ;
 
     capability[GENERIC_CHIPOP_CAPABILITY_START_IDX] =
                                 GET_SBE_CAPABILITIES_SUPPPORTED;
