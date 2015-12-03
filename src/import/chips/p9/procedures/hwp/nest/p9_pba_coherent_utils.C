@@ -185,7 +185,7 @@ extern "C"
 
         FAPI_DBG("Start");
 
-        pba_bar_mask_data.insertFromRight<0, 63>(pba_bar_mask_attr);
+        pba_bar_mask_data.insertFromRight<0, 64>(pba_bar_mask_attr);
 
         //write the PBA Bar Mask Register
         FAPI_TRY(fapi2::putScom(i_target, PU_PBABARMSK3, pba_bar_mask_data),
@@ -358,6 +358,8 @@ extern "C"
         //Perform a 128B write -- need to do 16 8B writes since it's in linear mode which can only do 8B...
         for (int i = 0; i < 16; i++)
         {
+            write_data = 0x0ull;
+
             for (int j = 0; j < 8; j++)
             {
                 write_data = write_data + ((uint64_t)(i_write_data[(i * 8) + j]) << (56 - (8 * j)));
