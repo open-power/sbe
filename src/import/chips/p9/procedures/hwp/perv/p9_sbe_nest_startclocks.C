@@ -38,8 +38,11 @@
 
 //## auto_generated
 #include "p9_sbe_nest_startclocks.H"
-
+#include "p9_const_common.H"
+#include "p9_misc_scom_addresses_fld.H"
 #include "p9_perv_scom_addresses.H"
+#include "p9_perv_scom_addresses_fld.H"
+#include "p9_quad_scom_addresses_fld.H"
 #include "p9_sbe_common.H"
 
 
@@ -66,6 +69,9 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_check_checkstop_function(
 static fapi2::ReturnCode p9_sbe_nest_startclocks_cplt_ctrl_action_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
+static fapi2::ReturnCode p9_sbe_nest_startclocks_flushmode(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
+
 fapi2::ReturnCode p9_sbe_nest_startclocks(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -73,92 +79,119 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     auto l_perv_functional_vector =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
         (fapi2::TARGET_STATE_FUNCTIONAL);
-    std::vector<fapi2::Target<fapi2::TARGET_TYPE_PERV>> l_mc_nest_chiplets_vector;
-    std::vector<fapi2::Target<fapi2::TARGET_TYPE_PERV>> l_n0_n1_n2_chiplets_vector;
-    std::vector<fapi2::Target<fapi2::TARGET_TYPE_PERV>> l_nestchiplets_vector;
-    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_n3chiplet;
     FAPI_DBG("Entering ...");
-
-    // Get the N3Chiplet target
-    for (auto it : l_perv_functional_vector)
-    {
-        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
-
-        if ((l_attr_chip_unit_pos == 0x05))/* N3Chiplet */
-        {
-            l_n3chiplet = it;
-            break;
-        }
-    }
-
-    // Get targets
-    for (auto l_trgt_chplt : l_perv_functional_vector)
-    {
-        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
-                               l_attr_chip_unit_pos));
-
-        if (((l_attr_chip_unit_pos == 0x02/* N0Chiplet */) ||
-             (l_attr_chip_unit_pos == 0x03/* N1Chiplet */) ||
-             (l_attr_chip_unit_pos == 0x04/* N2Chiplet */)))
-        {
-            l_n0_n1_n2_chiplets_vector.push_back(l_trgt_chplt);
-        }
-    }
 
     FAPI_INF("Switch MC meshs to Nest mesh");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_read_attr));
 
     if ( l_read_attr )
     {
-        // Get targets
         for (auto l_trgt_chplt : l_perv_functional_vector)
         {
             uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
                                    l_attr_chip_unit_pos));
 
-            if (((l_attr_chip_unit_pos == 0x07
-                  || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
-                 (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
-                  || l_attr_chip_unit_pos == 0x04
-                  || l_attr_chip_unit_pos == 0x05/* NestChiplet */)))
+            if (!((l_attr_chip_unit_pos == 0x07
+                   || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
+                  (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+                   || l_attr_chip_unit_pos == 0x04
+                   || l_attr_chip_unit_pos == 0x05/* NestChiplet */)))
             {
-                l_mc_nest_chiplets_vector.push_back(l_trgt_chplt);
+                continue;
             }
-        }
 
-        for (auto l_trgt_chplt : l_mc_nest_chiplets_vector)
-        {
             FAPI_INF("Call p9_sbe_nest_startclocks_cplt_ctrl_action_function for Nest and Mc chiplets");
             FAPI_TRY(p9_sbe_nest_startclocks_cplt_ctrl_action_function(l_trgt_chplt));
+        }
+
+        for (auto l_trgt_chplt : l_perv_functional_vector)
+        {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!((l_attr_chip_unit_pos == 0x07
+                   || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
+                  (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+                   || l_attr_chip_unit_pos == 0x04
+                   || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
+                  (l_attr_chip_unit_pos == 0x01/* TPChiplet */)))
+            {
+                continue;
+            }
 
             FAPI_INF("Call module align chiplets for Nest and Mc chiplets");
             FAPI_TRY(p9_sbe_common_align_chiplets(l_trgt_chplt));
         }
 
-        for (auto l_trgt_chplt : l_n0_n1_n2_chiplets_vector)
+        for (auto l_trgt_chplt : l_perv_functional_vector)
         {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!((l_attr_chip_unit_pos == 0x02/* N0Chiplet */) ||
+                  (l_attr_chip_unit_pos == 0x03/* N1Chiplet */) ||
+                  (l_attr_chip_unit_pos == 0x04/* N2Chiplet */)))
+            {
+                continue;
+            }
+
             FAPI_INF("Call module clock start stop for N0, N1, N2");
             FAPI_TRY(p9_sbe_common_clock_start_stop(l_trgt_chplt, CLOCK_CMD, STARTSLAVE,
                                                     DONT_STARTMASTER, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
         }
 
         FAPI_INF("Call module clock start stop for N3");
-        FAPI_TRY(p9_sbe_common_clock_start_stop(l_n3chiplet, CLOCK_CMD, DONT_STARTSLAVE,
-                                                STARTMASTER, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
 
-        for (auto l_trgt_chplt : l_n0_n1_n2_chiplets_vector)
+        // Get the N3Chiplet target
+        for (auto it : l_perv_functional_vector)
         {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
+
+            if ((l_attr_chip_unit_pos == 0x05))/* N3Chiplet */
+            {
+                FAPI_TRY(p9_sbe_common_clock_start_stop(it, CLOCK_CMD, DONT_STARTSLAVE,
+                                                        STARTMASTER, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
+                break;
+            }
+        }
+
+        for (auto l_trgt_chplt : l_perv_functional_vector)
+        {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!((l_attr_chip_unit_pos == 0x02/* N0Chiplet */) ||
+                  (l_attr_chip_unit_pos == 0x03/* N1Chiplet */) ||
+                  (l_attr_chip_unit_pos == 0x04/* N2Chiplet */)))
+            {
+                continue;
+            }
+
             FAPI_INF("Call clockstatus check function for N0,N1,N2");
             FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(l_trgt_chplt,
                      CLOCK_CMD, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
         }
 
         FAPI_INF("Call clockstatus check function for N3");
-        FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(l_n3chiplet,
-                 CLOCK_CMD, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
+
+        // Get the N3Chiplet target
+        for (auto it : l_perv_functional_vector)
+        {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
+
+            if ((l_attr_chip_unit_pos == 0x05))/* N3Chiplet */
+            {
+                FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(it, CLOCK_CMD,
+                         REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
+                break;
+            }
+        }
 
         for (auto l_trgt_chplt : l_perv_functional_vector)
         {
@@ -178,64 +211,181 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
                                                     CLOCK_TYPES));
         }
 
-        for (auto l_trgt_chplt : l_mc_nest_chiplets_vector)
-        {
-            FAPI_INF("Call sbe_nest_startclocks_check_checkstop_function for Nest and Mc chiplets ");
-            FAPI_TRY(p9_sbe_nest_startclocks_check_checkstop_function(l_trgt_chplt));
-        }
-    }
-    else
-    {
-        // Get targets
         for (auto l_trgt_chplt : l_perv_functional_vector)
         {
             uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
                                    l_attr_chip_unit_pos));
 
-            if ((l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
-                 || l_attr_chip_unit_pos == 0x04
-                 || l_attr_chip_unit_pos == 0x05))/* NestChiplet */
+            if (!((l_attr_chip_unit_pos == 0x07
+                   || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
+                  (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+                   || l_attr_chip_unit_pos == 0x04
+                   || l_attr_chip_unit_pos == 0x05/* NestChiplet */)))
             {
-                l_nestchiplets_vector.push_back(l_trgt_chplt);
+                continue;
             }
+
+            FAPI_INF("Call sbe_nest_startclocks_check_checkstop_function for Nest and Mc chiplets ");
+            FAPI_TRY(p9_sbe_nest_startclocks_check_checkstop_function(l_trgt_chplt));
         }
 
-        for (auto l_trgt_chplt : l_nestchiplets_vector)
+        for (auto l_trgt_chplt : l_perv_functional_vector)
         {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!((l_attr_chip_unit_pos == 0x07
+                   || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
+                  (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+                   || l_attr_chip_unit_pos == 0x04
+                   || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
+                  (l_attr_chip_unit_pos == 0x01/* TPChiplet */)))
+            {
+                continue;
+            }
+
+            FAPI_TRY(p9_sbe_nest_startclocks_flushmode(l_trgt_chplt));
+        }
+    }
+    else
+    {
+        for (auto l_trgt_chplt : l_perv_functional_vector)
+        {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!(l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+                  || l_attr_chip_unit_pos == 0x04
+                  || l_attr_chip_unit_pos == 0x05))/* NestChiplet */
+            {
+                continue;
+            }
+
             FAPI_INF("Call p9_sbe_nest_startclocks_cplt_ctrl_action_function for nest chiplets");
             FAPI_TRY(p9_sbe_nest_startclocks_cplt_ctrl_action_function(l_trgt_chplt));
+        }
+
+        for (auto l_trgt_chplt : l_perv_functional_vector)
+        {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!((l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+                   || l_attr_chip_unit_pos == 0x04
+                   || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
+                  (l_attr_chip_unit_pos == 0x01/* TPChiplet */)))
+            {
+                continue;
+            }
 
             FAPI_INF("call module align chiplets for nest chiplets");
             FAPI_TRY(p9_sbe_common_align_chiplets(l_trgt_chplt));
         }
 
-        for (auto l_trgt_chplt : l_n0_n1_n2_chiplets_vector)
+        for (auto l_trgt_chplt : l_perv_functional_vector)
         {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!((l_attr_chip_unit_pos == 0x02/* N0Chiplet */) ||
+                  (l_attr_chip_unit_pos == 0x03/* N1Chiplet */) ||
+                  (l_attr_chip_unit_pos == 0x04/* N2Chiplet */)))
+            {
+                continue;
+            }
+
             FAPI_INF("Call module clock start stop for N0, N1, N2");
             FAPI_TRY(p9_sbe_common_clock_start_stop(l_trgt_chplt, CLOCK_CMD, STARTSLAVE,
                                                     DONT_STARTMASTER, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
         }
 
         FAPI_INF("Call module clock start stop for N3");
-        FAPI_TRY(p9_sbe_common_clock_start_stop(l_n3chiplet, CLOCK_CMD, DONT_STARTSLAVE,
-                                                STARTMASTER, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
 
-        for (auto l_trgt_chplt : l_n0_n1_n2_chiplets_vector)
+        // Get the N3Chiplet target
+        for (auto it : l_perv_functional_vector)
         {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
+
+            if ((l_attr_chip_unit_pos == 0x05))/* N3Chiplet */
+            {
+                FAPI_TRY(p9_sbe_common_clock_start_stop(it, CLOCK_CMD, DONT_STARTSLAVE,
+                                                        STARTMASTER, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
+                break;
+            }
+        }
+
+        for (auto l_trgt_chplt : l_perv_functional_vector)
+        {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!((l_attr_chip_unit_pos == 0x02/* N0Chiplet */) ||
+                  (l_attr_chip_unit_pos == 0x03/* N1Chiplet */) ||
+                  (l_attr_chip_unit_pos == 0x04/* N2Chiplet */)))
+            {
+                continue;
+            }
+
             FAPI_INF("Call clockstatus check function for N0,N1,N2");
             FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(l_trgt_chplt,
                      CLOCK_CMD, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
         }
 
         FAPI_INF("Call clockstatus check function for N3");
-        FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(l_n3chiplet,
-                 CLOCK_CMD, REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
 
-        for (auto l_trgt_chplt : l_nestchiplets_vector)
+        // Get the N3Chiplet target
+        for (auto it : l_perv_functional_vector)
         {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
+
+            if ((l_attr_chip_unit_pos == 0x05))/* N3Chiplet */
+            {
+                FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(it, CLOCK_CMD,
+                         REGIONS_ALL_EXCEPT_VITAL_NESTPLL, CLOCK_TYPES));
+                break;
+            }
+        }
+
+        for (auto l_trgt_chplt : l_perv_functional_vector)
+        {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!(l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+                  || l_attr_chip_unit_pos == 0x04
+                  || l_attr_chip_unit_pos == 0x05))/* NestChiplet */
+            {
+                continue;
+            }
+
             FAPI_INF("call sbe_nest_startclocks_check_checkstop_function for nest chiplets");
             FAPI_TRY(p9_sbe_nest_startclocks_check_checkstop_function(l_trgt_chplt));
+        }
+
+        for (auto l_trgt_chplt : l_perv_functional_vector)
+        {
+            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_trgt_chplt,
+                                   l_attr_chip_unit_pos));
+
+            if (!((l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+                   || l_attr_chip_unit_pos == 0x04
+                   || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
+                  (l_attr_chip_unit_pos == 0x01/* TPChiplet */)))
+            {
+                continue;
+            }
+
+            FAPI_TRY(p9_sbe_nest_startclocks_flushmode(l_trgt_chplt));
         }
     }
 
@@ -407,24 +557,18 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_check_checkstop_function(
     FAPI_INF("Drop chiplet fence");
     //Setting NET_CTRL0 register value
     l_data64.flush<1>();
-    l_data64.clearBit<18>();  //NET_CTRL0.FENCE_EN = 0
+    l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
 
     FAPI_INF("Check checkstop register");
     //Getting XFIR register value
-    FAPI_TRY(fapi2::getScom(i_target_chiplet, 0x00040000,
+    FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_XFIR,
                             l_read_reg)); //l_read_reg = XFIR
 
     FAPI_ASSERT(l_read_reg == 0,
                 fapi2::READ_ALL_CHECKSTOP_ERR()
                 .set_READ_ALL_CHECKSTOP(l_read_reg),
                 "ERROR: COMBINE ALL CHECKSTOP ERROR");
-
-    FAPI_INF("Clear flush_inhibit to go in to flush mode");
-    //Setting CPLT_CTRL0 register value
-    l_data64.flush<0>();
-    l_data64.setBit<2>();  //CPLT_CTRL0.CTRL_CC_FLUSHMODE_INH_DC = 0
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_CLEAR, l_data64));
 
     FAPI_DBG("Exiting ...");
 
@@ -444,18 +588,74 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_cplt_ctrl_action_function(
     fapi2::buffer<uint64_t> l_data64;
     FAPI_DBG("Entering ...");
 
-    FAPI_INF("Drop Vital Fence");
+    // Local variable and constant definition
+    fapi2::buffer <uint32_t> l_attr_pg;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
+
+    l_attr_pg.invert();
+
+    FAPI_INF("Drop partial good fences");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
-    l_data64.setBit<3>();  //CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
+    //CPLT_CTRL1.TC_VITL_REGION_FENCE = l_attr_pg.getBit<19>()
+    l_data64.writeBit<PEC_CPLT_CTRL1_TC_VITL_REGION_FENCE>(l_attr_pg.getBit<19>());
+    //CPLT_CTRL1.TC_PERV_REGION_FENCE = l_attr_pg.getBit<20>()
+    l_data64.writeBit<PEC_CPLT_CTRL1_TC_PERV_REGION_FENCE>(l_attr_pg.getBit<20>());
+    //CPLT_CTRL1.TC_REGION1_FENCE = l_attr_pg.getBit<21>()
+    l_data64.writeBit<PEC_CPLT_CTRL1_TC_REGION1_FENCE>(l_attr_pg.getBit<21>());
+    //CPLT_CTRL1.TC_REGION2_FENCE = l_attr_pg.getBit<22>()
+    l_data64.writeBit<PEC_CPLT_CTRL1_TC_REGION2_FENCE>(l_attr_pg.getBit<22>());
+    //CPLT_CTRL1.TC_REGION3_FENCE = l_attr_pg.getBit<23>()
+    l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_REGION3_FENCE>(l_attr_pg.getBit<23>());
+    //CPLT_CTRL1.TC_REGION4_FENCE = l_attr_pg.getBit<24>()
+    l_data64.writeBit<EQ_CPLT_CTRL1_TC_REGION4_FENCE>(l_attr_pg.getBit<24>());
+    //CPLT_CTRL1.TC_REGION5_FENCE = l_attr_pg.getBit<25>()
+    l_data64.writeBit<EQ_CPLT_CTRL1_TC_REGION5_FENCE>(l_attr_pg.getBit<25>());
+    //CPLT_CTRL1.TC_REGION6_FENCE = l_attr_pg.getBit<26>()
+    l_data64.writeBit<EQ_CPLT_CTRL1_TC_REGION6_FENCE>(l_attr_pg.getBit<26>());
+    //CPLT_CTRL1.TC_REGION7_FENCE = l_attr_pg.getBit<27>()
+    l_data64.writeBit<EQ_CPLT_CTRL1_TC_REGION7_FENCE>(l_attr_pg.getBit<27>());
+    //CPLT_CTRL1.UNUSED_12B = l_attr_pg.getBit<28>()
+    l_data64.writeBit<PEC_CPLT_CTRL1_UNUSED_12B>(l_attr_pg.getBit<28>());
+    //CPLT_CTRL1.UNUSED_13B = l_attr_pg.getBit<29>()
+    l_data64.writeBit<PEC_CPLT_CTRL1_UNUSED_13B>(l_attr_pg.getBit<29>());
+    //CPLT_CTRL1.UNUSED_14B = l_attr_pg.getBit<30>()
+    l_data64.writeBit<PEC_CPLT_CTRL1_UNUSED_14B>(l_attr_pg.getBit<30>());
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
     FAPI_INF("reset abistclk_muxsel and syncclk_muxsel");
     //Setting CPLT_CTRL0 register value
     l_data64.flush<0>();
-    l_data64.setBit<0>();  //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 1
-    l_data64.setBit<1>();  //CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 1
+    //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 1
+    l_data64.setBit<PEC_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
+    //CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 1
+    l_data64.setBit<PEC_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_OR, l_data64));
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief will force all chiplets out of flush
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_nest_startclocks_flushmode(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_DBG("Entering ...");
+
+    FAPI_INF("Clear flush_inhibit to go in to flush mode");
+    //Setting CPLT_CTRL0 register value
+    l_data64.flush<0>();
+    //CPLT_CTRL0.CTRL_CC_FLUSHMODE_INH_DC = 0
+    l_data64.setBit<PEC_CPLT_CTRL0_CTRL_CC_FLUSHMODE_INH_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_CLEAR, l_data64));
 
     FAPI_DBG("Exiting ...");
 
