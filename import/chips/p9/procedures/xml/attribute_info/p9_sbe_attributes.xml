@@ -159,11 +159,11 @@
   </entry>
   <entry>
       <name>ATTR_PG_OB1</name>
-      <value>0xF1FD</value>
+      <value>0</value>
   </entry>
   <entry>
       <name>ATTR_PG_OB2</name>
-      <value>0xF1FD</value>
+      <value>0</value>
   </entry>
   <entry>
       <name>ATTR_PG_OB3</name>
