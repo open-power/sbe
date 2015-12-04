@@ -113,7 +113,7 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
     {
         FAPI_INF("run array_init module for all chiplet except TP, EC, EP");
         FAPI_TRY(p9_perv_sbe_cmn_array_init_module(i_target_chiplet,
-                 REGIONS_FOR_PERV, LOOP_COUNTER, SELECT_SRAM, SELECT_EDRAM,
+                 REGIONS_EXCEPT_VITAL, LOOP_COUNTER, SELECT_SRAM, SELECT_EDRAM,
                  START_ABIST_MATCH_VALUE));
 
         FAPI_INF("Check  for SRAM ABIST done");
