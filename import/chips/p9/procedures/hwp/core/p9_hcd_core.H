@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -24,7 +24,7 @@
 /// *HWP FW Owner    : Reshmi Nair   <resnair5@in.ibm.com>
 /// *HWP Team        : PM
 /// *HWP Consumed by : SBE:CME
-/// *HWP Level       : 1
+/// *HWP Level       : 2
 ///
 
 #ifndef __P9_HCD_CORE_H__

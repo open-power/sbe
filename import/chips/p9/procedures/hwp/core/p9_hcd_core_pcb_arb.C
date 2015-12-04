@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -20,12 +20,6 @@
 /// @file  p9_hcd_core_pcb_arb.C
 /// @brief Core Chiplet PCB Arbitration
 ///
-/// *HWP HWP Owner   : David Du      <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Reshmi Nair   <resnair5@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:CME
-/// *HWP Level       : 1
-///
 /// Procedure Summary:
 ///   If CME,
 ///     1.Request PCB Mux, via write to PCB_MUX_REQ_C0 @ CCSCR_OR
@@ -37,41 +31,79 @@
 ///     Nop (as the CME is not running in bringing up the first Core)
 ///
 
+// *HWP HWP Owner          : David Du      <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still    <stillgs@us.ibm.com>
+// *HWP FW Owner           : Sangeetha T S <sangeet2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:CME
+// *HWP Level              : 2
+
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <fapi2.H>
-//#include <common_scom_addresses.H>
-//will be replaced with real scom address header file
+#include <p9_quad_scom_addresses.H>
+#include <p9_hcd_common.H>
 #include "p9_hcd_core_pcb_arb.H"
 
 //-----------------------------------------------------------------------------
 // Constant Definitions: Core Chiplet PCB Arbitration
 //-----------------------------------------------------------------------------
 
-extern "C"
+
+fapi2::ReturnCode
+p9_hcd_core_pcb_arb(
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
+    const p9hcd::P9_HCD_CME_CORE_MASKS i_core_mask,
+    const p9hcd::P9_HCD_PCB_ARBITER_CTRL i_request)
 {
+    FAPI_INF(">>p9_hcd_core_pcb_arb: Core[%d] Req[%d]", i_core_mask, i_request);
 
-    fapi2::ReturnCode
-    p9_hcd_core_pcb_arb(
-        const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
+#ifdef P9_HCD_CME_BUILD
+
+    FAPI_DBG("Request or Release the PCB Arbiter");
+    out32((i_request ? CME_LCL_SICR_OR : CME_LCL_SICR_CLR),
+          (i_core_mask << SHIFT32(11)));
+
+    FAPI_DBG("Poll for PCB Arbiter Granted");
+    uint32_t l_sisr;
+
+    do
     {
+        l_sisr = (in32(CME_LCL_SISR) >> SHIFT32(11));
 
-#if 0
+        if((  i_request  && ((i_core_mask &   l_sisr)  == i_core_mask)) ||
+           ((!i_request) && ((i_core_mask & (~l_sisr)) == i_core_mask)))
+        {
+            break;
+        }
+    }
+    while(1);
 
-        fapi2::buffer<uint64_t> data;
+#else
 
-        return fapi2::FAPI2_RC_SUCCESS;
+    FAPI_DBG("Check for PCB Arbiter Granted to Core");
 
-        FAPI_CLEANUP();
-        return fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
+    /// @todo require core to cme target conversion
+    /*
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_TRY(getScom(i_target, EX_0_CME_LCL_SISR_SCOM, l_data64));
+
+    FAPI_ASSERT(((l_data64 & (i_core_mask << SHIFT64(11))) !=
+                             (i_core_mask << SHIFT64(11))),
+                fapi2::PMPROC_COREPCBARB_GRANTCME().set_CMESISR(l_data64),
+                "PCB Arbiter is Granted to CME");
+    */
+    FAPI_DBG("PCB Arbiter is Granted to Core");
+
+    /// @todo MPIPL: if check grant to cme, consider to overide it back to core
+
+//fapi_try_exit:
 
 #endif
 
-        return fapi2::FAPI2_RC_SUCCESS;
+    FAPI_INF("<<p9_hcd_core_pcb_arb");
 
-    } // Procedure
+    return fapi2::current_err;
+}
 
-
-} // extern C
 
