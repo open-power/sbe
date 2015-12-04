@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -25,7 +25,7 @@
 /// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
 /// *HWP Team               : PM
 /// *HWP Consumed by        : SBE:SGPE
-/// *HWP Level              : 1
+/// *HWP Level              : 2
 ///
 
 #ifndef __P9_HCD_CACHE_DPLL_SETUP_H__

@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -20,17 +20,18 @@
 /// @file  p9_hcd_core_poweron.H
 /// @brief Core Chiplet Power-on
 ///
+
 // *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
 // *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
 // *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:CME
 // *HWP Level              : 2
-//
-
 
 #ifndef __P9_HCD_CORE_POWERON_H__
 #define __P9_HCD_CORE_POWERON_H__
+
+#include <fapi2.H>
 
 /// @typedef p9_hcd_core_poweron_FP_t
 /// function pointer typedef definition for HWP call support
@@ -52,4 +53,5 @@ extern "C"
     p9_hcd_core_poweron(
         const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target);
 }
+
 #endif  // __P9_HCD_CORE_POWERON_H__

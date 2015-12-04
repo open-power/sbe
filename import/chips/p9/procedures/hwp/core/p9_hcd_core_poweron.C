@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -20,25 +20,28 @@
 /// @file  p9_hcd_core_poweron.C
 /// @brief Core Chiplet Power-on
 ///
+/// Procedure Summary:
+///   Set glsmux async reset
+///   Command the core PFET controller to power-on, via putscom to CPPM
+///   Check for valid power on completion, via getscom from CPPM
+///     Polled Timeout:  100us
+
 // *HWP HWP Owner          : David Du          <daviddu@us.ibm.com>
 // *HWP Backup HWP Owner   : Greg Still        <stillgs@us.ibm.com>
 // *HWP FW Owner           : Sangeetha T S     <sangeet2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:CME
 // *HWP Level              : 2
-//
-// Procedure Summary:
-//   1.Command the core PFET controller to power-on, via putscom to CPPM
-//   2.Check for valid power on completion, via getscom from CPPM
-//     Polled Timeout:  100us
-//
 
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <fapi2.H>
+
+#include <p9_quad_scom_addresses.H>
+#include <p9_hcd_common.H>
+#include <p9_common_poweronoff.H>
+#include <p9_common_poweronoff.C>
 #include "p9_hcd_core_poweron.H"
-#include "p9_common_poweronoff.H"
 
 //-----------------------------------------------------------------------------
 // Constant Definitions
@@ -48,14 +51,40 @@
 // Procedure: Core Chiplet Power-on
 //-----------------------------------------------------------------------------
 
-
 fapi2::ReturnCode
 p9_hcd_core_poweron(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
 {
-    FAPI_TRY(p9_common_poweronoff(i_target, p9power::POWER_ON_VDD));
+    FAPI_INF(">>p9_hcd_core_poweron");
+
+    //--------------------------
+    // Prepare to core power on
+    //--------------------------
+
+    fapi2::buffer<uint64_t> l_data64;
+
+    FAPI_DBG("Assert PCB fence via NET_CTRL0[25]");
+    FAPI_TRY(putScom(i_target, C_NET_CTRL0_WOR, MASK_SET(25)));
+
+    FAPI_DBG("Assert chiplet electrical fence via NET_CTRL0[26]");
+    FAPI_TRY(putScom(i_target, C_NET_CTRL0_WOR, MASK_SET(26)));
+
+    FAPI_DBG("Assert Vital Thold via NET_CTRL0[16]");
+    FAPI_TRY(putScom(i_target, C_NET_CTRL0_WOR, MASK_SET(16)));
+
+    FAPI_DBG("Set core glsmux reset via CLOCK_GRID_CTRL[0]");
+    FAPI_TRY(putScom(i_target, C_PPM_CGCR, MASK_SET(0)));
+
+    //-----------------------
+    // Power on core chiplet
+    //-----------------------
+
+    FAPI_DBG("Power on core chiplet");
+    FAPI_TRY(p9_common_poweronoff<fapi2::TARGET_TYPE_CORE>(i_target, p9power::POWER_ON_VDD));
 
 fapi_try_exit:
-    return fapi2::current_err;
 
-} // Procedure
+    FAPI_INF("<<p9_hcd_core_poweron");
+
+    return fapi2::current_err;
+}

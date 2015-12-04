@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -20,16 +20,18 @@
 /// @file  p9_common_poweronoff.H
 /// @brief common procedure for power on/off
 ///
-/// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
-/// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
-/// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
-/// *HWP Team               : PM
-/// *HWP Consumed by        : SBE:SGPE:CME
-/// *HWP Level              : 2
-///
+
+// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
+// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:SGPE:CME
+// *HWP Level              : 2
 
 #ifndef __P9_COMMON_POWERONOFF_H__
 #define __P9_COMMON_POWERONOFF_H__
+
+#include <fapi2.H>
 
 namespace p9power
 {
@@ -42,23 +44,14 @@ enum powerOperation_t
 };
 }
 
-// Define only address offset to be compatible with both core and cache domain
-#define    PPM_PFCS      0x000f0118
-#define    PPM_PFCS_CLR  0x000f0119
-#define    PPM_PFCS_OR   0x000f011a
-#define    PPM_PFDLY     0x000f011b
-#define    PPM_PFSNS     0x000f011c
-#define    PPM_PFOFF     0x000f011d
-
 /// @typedef p9_common_poweronoff_FP_t
 /// function pointer typedef definition for HWP call support
+/// @todo: consider template solution here
 typedef fapi2::ReturnCode (*p9_common_poweronoff_FP_t) (
     const fapi2::Target < fapi2::TARGET_TYPE_EQ |
     fapi2::TARGET_TYPE_CORE > &,
     const p9power::powerOperation_t i_operation);
 
-extern "C"
-{
 /// @brief common procedure for power on/off
 ///
 /// @param [in] i_target    TARGET_TYPE_EQ|TARGET_TYPE_CORE target
@@ -68,12 +61,10 @@ extern "C"
 /// @attritem ATTR_PFET_TIMING - EX target, uint32
 ///
 /// @retval FAPI_RC_SUCCESS
-    fapi2::ReturnCode
-    p9_common_poweronoff(
-        const fapi2::Target < fapi2::TARGET_TYPE_EQ |
-        fapi2::TARGET_TYPE_CORE > & i_target,
-        const p9power::powerOperation_t i_operation);
-
-} // extern C
+template <fapi2::TargetType K>
+fapi2::ReturnCode
+p9_common_poweronoff(
+    const fapi2::Target<K>& i_target,
+    const p9power::powerOperation_t i_operation);
 
 #endif  // __P9_COMMON_POWERONOFF_H__
