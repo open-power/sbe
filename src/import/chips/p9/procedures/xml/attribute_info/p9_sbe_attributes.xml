@@ -310,7 +310,6 @@
   </entry>
   <entry>
       <name>ATTR_CHIP_UNIT_POS</name>
-      <value>0x00</value>
       <value>0x01</value>
       <value>0x02</value>
       <value>0x03</value>
@@ -326,6 +325,36 @@
       <value>0x0D</value>
       <value>0x0E</value>
       <value>0x0F</value>
+      <value>0x10</value>
+      <value>0x11</value>
+      <value>0x12</value>
+      <value>0x13</value>
+      <value>0x14</value>
+      <value>0x15</value>
+      <value>0x20</value>
+      <value>0x21</value>
+      <value>0x22</value>
+      <value>0x23</value>
+      <value>0x24</value>
+      <value>0x25</value>
+      <value>0x26</value>
+      <value>0x27</value>
+      <value>0x28</value>
+      <value>0x29</value>
+      <value>0x2A</value>
+      <value>0x2B</value>
+      <value>0x2C</value>
+      <value>0x2D</value>
+      <value>0x2E</value>
+      <value>0x2F</value>
+      <value>0x30</value>
+      <value>0x31</value>
+      <value>0x32</value>
+      <value>0x33</value>
+      <value>0x34</value>
+      <value>0x35</value>
+      <value>0x36</value>
+      <value>0x37</value>
   </entry>
   <entry>
       <name>ATTR_FABRIC_SYSTEM_ID</name>
