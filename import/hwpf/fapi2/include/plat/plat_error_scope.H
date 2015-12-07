@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2012,2015                                                    */
+/* COPYRIGHT 2012,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -54,5 +54,31 @@
         goto fapi_try_exit;                                     \
     }
 /// @endcond
+
+///
+/// @brief Create an error log based on __conditional__,
+/// the FFDC gathering function is called and the
+/// trace is output as a FAPI error trace. An error log
+/// is created and returned to the caller via the platform
+/// log pointer of the fapi2::current_err return code object
+/// The caller is responsible for handling the error object.
+///
+/// @param[in] __conditional__ the condition to assert
+/// @param[in] __ffdc__ the FFDC gathering function
+/// @param[in] ... varargs, as input to FAPI_ERR
+///
+/// @note: Plat error, if supported, is stored in RC object. Failing
+///        the __conditional__ test does not cause a branch to fapi_try_exit
+///
+///
+#define PLAT_FAPI_ASSERT_NOEXIT( __conditional__, __ffdc__, ... )   \
+    if (! (__conditional__))                                        \
+    {                                                                   \
+        __ffdc__.execute(                                               \
+                fapi2::FAPI2_ERRL_SEV_UNDEFINED, false);            \
+        FAPI_ERR(__VA_ARGS__); \
+    }
+/// @endcond
+
 
 #endif
