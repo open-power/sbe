@@ -101,6 +101,20 @@ Target<K, V>::getChildren(const TargetState i_state) const
     // For testing
     return {Target<T>(), Target<T>()};
 }
+// Specialization of getChildren, filtered for pervasive targets.
+template<>
+template<>
+inline std::vector<Target<TARGET_TYPE_PERV> >
+Target<TARGET_TYPE_PERV>::getChildren(const TargetFilter i_filter,
+                                      const TargetState i_state ) const
+{
+    // To keep the compiler quiet about unused variables
+    static_cast<void>(i_state);
+    static_cast<void>(i_filter);
+
+    // For testing
+    return {Target<TARGET_TYPE_PERV>(i_filter), Target<TARGET_TYPE_PERV>(i_filter)};
+}
 
 ///
 /// @brief Get the target at the other end of a bus - dimm included
