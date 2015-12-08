@@ -33,8 +33,8 @@ SECTIONS
     // offsets.
 
     _SDA2_BASE_ = .;
-   .sdata2 . : { *(.sdata2) } > sram
-   .sbss2  . : { *(.sbss2) } > sram
+   .sdata2 . : { *(.sdata2*) } > sram
+   .sbss2  . : { *(.sbss2*) } > sram
 
    // Other read-only data.
     
@@ -57,14 +57,14 @@ SECTIONS
     // offsets. 
 
     _SDA_BASE_ = .;
-    .sdata  . : { *(.sdata)  } > sram
-    .sbss   . : { *(.sbss)   } > sram
+    .sdata  . : { *(.sdata*)  } > sram
+    .sbss   . : { *(.sbss*)   } > sram
 
     // Other read-write data
     // It's not clear why boot.S is generating empty .glink,.iplt
 
    .rela   . : { *(.rela*) } > sram
-   .rwdata . : { *(.data) *(.bss) } > sram
+   .rwdata . : { *(.data*) *(.bss*) } > sram
 
    _PK_INITIAL_STACK_LIMIT = .;
    . = . + INITIAL_STACK_SIZE;

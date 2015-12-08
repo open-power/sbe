@@ -121,15 +121,17 @@ ifndef BASE_FAPI2_DIR
 export BASE_FAPI2_DIR = $(abspath ../../import/hwpf/fapi2)
 endif
 
+ifdef P2P_ENABLE
 ifndef CC_ROOT
 export CC_ROOT = ${CTEPATH}/tools/gcc405lin/prod
+endif
 endif
 
 GCC-TOOL-PATH = $(CTEPATH)/tools/ppetools/prod
 
+
 ifndef GCC-TOOL-PREFIX
 GCC-TOOL-PREFIX = $(GCC-TOOL-PATH)/bin/powerpc-eabi-
-LIB_DIRS += -L$(GCC-TOOL-PATH)/libgcc
 endif
 
 ifndef BINUTILS-TOOL-PREFIX
@@ -191,9 +193,13 @@ endif
 
 
 ifndef GCC-O-LEVEL
-#GCC-O-LEVEL = -Os
-#GCC-O-LEVEL = -O -g
+ifdef P2P_ENABLE
 GCC-O-LEVEL = -O
+#GCC-O-LEVEL = -O -g
+else
+GCC-O-LEVEL = -Os
+#GCC-O-LEVEL = -Os -g
+endif
 endif
 
 GCC-DEFS += -DIMAGE_NAME=$(IMAGE_SEEPROM_NAME)
@@ -212,7 +218,7 @@ GCC-DEFS += -DPK_TRACE_SZ=$(PK_TRACE_SZ)
 endif
 
 DEFS += $(GCC-DEFS)
-export LD_LIBRARY_PATH=$(GCC-TOOL-PATH)/lib
+export LD_LIBRARY_PATH+=:$(GCC-TOOL-PATH)/lib
 ############################################################################
 
 
@@ -236,12 +242,8 @@ INCLUDES += -I$(PK_SRCDIR)/trace
 INCLUDES += -I$(PK_SRCDIR)/../tools/ppetracepp
 INCLUDES += -I$(IMPORT_COMMON_DIR)/include
 
-PIPE-CFLAGS = -pipe -Wa,-m405
-
-# -Wno-error=unused-label , needs to be in.
-
 GCC-CFLAGS += -Wall -Werror -Wno-unused-label
-GCC-CFLAGS += -msoft-float -mcpu=405 -mmulhw
+GCC-CFLAGS += -msoft-float
 GCC-CFLAGS += -meabi -msdata=eabi
 GCC-CFLAGS += -gpubnames -gdwarf-3
 GCC-CFLAGS += -ffreestanding
@@ -249,6 +251,12 @@ GCC-CFLAGS += -fno-common
 GCC-CFLAGS += -fno-exceptions
 GCC-CFLAGS += -fsigned-char
 GCC-CFLAGS += -fno-inline-functions-called-once
+
+ifdef P2P_ENABLE
+## Flags specific to 405 compiler with PowerPc to PPE backend
+PIPE-CFLAGS = -pipe -Wa,-m405
+
+GCC-CFLAGS +=  -mcpu=405  -mmulhw
 GCC-CFLAGS += -ffixed-r11
 GCC-CFLAGS += -ffixed-r12
 GCC-CFLAGS += -ffixed-r14
@@ -272,12 +280,20 @@ GCC-CFLAGS += -ffixed-cr4
 GCC-CFLAGS += -ffixed-cr5
 GCC-CFLAGS += -ffixed-cr6
 GCC-CFLAGS += -ffixed-cr7
+else
+## Flags specific to ppe42 compiler
+PIPE-CFLAGS = -pipe
+
+GCC-CFLAGS += -mcpu=ppe42
+GCC-CFLAGS += -ffunction-sections
+GCC-CFLAGS += -fdata-sections
+endif
 
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
 
-CPPFLAGS    	= -E -std=c++11
-#CPPFLAGS    	= -E
+CXXFLAGS        = -std=c++11 -nostdinc++ -fno-rtti
+CPPFLAGS    	= -E
 
 ASFLAGS		= -mppe42
 
@@ -294,7 +310,7 @@ endif
 # -Wno-conversion-null is necesary to allow mapping of NULL to TARGET_TYPE_SYSTEM
 #   for attribute accesses
 $(OBJDIR)/%.s: %.C
-	$(TCC) $(PPE-CFLAGS) $(DEFS) -Wno-conversion-null -S -std=c++11 -o $@ $<
+	$(TCC) $(PPE-CFLAGS) $(DEFS) -Wno-conversion-null -S $(CXXFLAGS) -o $@ $<
 
 
 #override the GNU Make implicit rule for going from a .c to a .o

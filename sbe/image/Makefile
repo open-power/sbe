@@ -1,7 +1,9 @@
 
 
-#remove this once we have a real compiler
-export P2P_ENABLE = 1
+#Use this to switch between the new pp42 compiler
+#  and the 405 compiler with P2P backend
+#  Enable for P2P backend
+#export P2P_ENABLE = 1
 
 #remove this once we have a real compiler
 export SBEFW_ENABLE = 1
@@ -21,14 +23,13 @@ include topfiles.mk
 
 ifdef P2P_ENABLE
 include $(P2P_SRCDIR)/p2pfiles.mk
-endif
 
 #Pull in PPE complier libraries .
 # Sets up the following variables:
 #   $(GCCLIBS)  ->  Libary objects to be linked
 #   $(LIB_DIRS) ->  Include directories
 include ../../include/ppe_compiler.mk
-
+endif
 
 PK_MAKE_DIR := $(PK_SRCDIR)/$(PPE_TYPE)
 LIB_DIRS += -L$(OBJDIR)/pk
@@ -40,9 +41,9 @@ LIB_DIRS += -L$(OBJDIR)/sbefw
 SBEFWLIB := $(OBJDIR)/sbefw/libsbefw.a
 LLIBS += -lsbefw
 
-SAMPLE_MAKE_DIR := ../sample
-LIB_DIRS += -L$(OBJDIR)/sample
-SAMPLELIB := $(OBJDIR)/sample/libsample.a
+#SAMPLE_MAKE_DIR := ../sample
+#LIB_DIRS += -L$(OBJDIR)/sample
+#SAMPLELIB := $(OBJDIR)/sample/libsample.a
 #LLIBS += -lsample
 
 # FAPI2 library
@@ -56,6 +57,9 @@ LIB_DIRS += -L$(OBJDIR)/p2p
 P2PLIB := $(OBJDIR)/p2p/libp2p.a
 LINK_OBJS += $(P2PLIB)
 LLIBS += -lp2p
+else
+LIB_DIRS += -L$(GCC-TOOL-PATH)/libgcc
+LLIBS += -lmath -leabi -lc
 endif
 
 # HWP LIB library
@@ -116,13 +120,13 @@ ifndef FAPI2_TEST
 # from SEEPROM to PIBMEM.
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: pibMemAttrSet buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	@echo ">>>>> Production Build <<<<<<"
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJS) $(LIB_DIRS)  -leabi -lmath
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJS) $(LIB_DIRS)  -leabi -lmath -lc
 else
 # This a special build of the SEEPROM image that includes the PK to allow for test threads to be used.
 # create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	@echo ">>>>> Special FAPI2 Test Build <<<<<<"
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS) --start-group $(LLIBS)  -leabi -lmath --end-group
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS) --start-group $(LLIBS) --end-group
 
 endif
 
@@ -139,7 +143,7 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMA
 
 # create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SBE_NAME).out: pibMemAttrSet buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS)   -leabi -lmath --end-group
+	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SBE): linksbe.cmd
