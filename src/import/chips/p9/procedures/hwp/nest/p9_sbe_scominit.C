@@ -63,11 +63,11 @@ fapi2::ReturnCode p9_sbe_scominit(const
 
     FAPI_DBG("Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_CHIP_ID, i_target,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, i_target,
                            l_id_struct.iv_chip_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_GROUP_ID, i_target,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, i_target,
                            l_id_struct.iv_group_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_SYSTEM_ID, i_target,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID, i_target,
                            l_id_struct.iv_system_id));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ADU_XSCOM_BAR_BASE_ADDR, i_target,
                            l_attr_xscom_bar_addr));
