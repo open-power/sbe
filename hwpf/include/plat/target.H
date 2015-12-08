@@ -55,10 +55,6 @@ namespace fapi2
     template<TargetType K, typename V>
     Target<K, V>::Target(V Value)
     {
-        static_assert( ((K == TARGET_TYPE_CORE) &
-                            (K == TARGET_TYPE_EQ)       ) != true,
-            "TARGET_TYPE_CORE and TARGET_TYPE_EQ cannot be specified at the same time");
-
         // Already formed target handle?
         if(static_cast<union iv_handle>(Value).fields.type != 0)
         {
@@ -173,6 +169,8 @@ namespace fapi2
     template<TargetType T>
     inline Target<T> Target<K, V>::getParent(void) const
     {
+        static_assert(((K == TARGET_TYPE_EQ) || (K == TARGET_TYPE_CORE))
+                && (T == TARGET_TYPE_PERV), "Input target type must be either EQ/CORE, and parent type must be PERV");
         return this->iv_handle.value;
     }
 
