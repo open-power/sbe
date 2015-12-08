@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -86,7 +86,7 @@ struct i_id_struct
 
         uint8_t iv_group_id;
 
-        uint8_t iv_system_id;
+        uint32_t iv_system_id;
 };
 
 #endif
