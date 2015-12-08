@@ -1,4 +1,4 @@
-export P2P_ENABLE = 1
+#export P2P_ENABLE = 1
 
 export SUB_OBJDIR = /sbefw
 

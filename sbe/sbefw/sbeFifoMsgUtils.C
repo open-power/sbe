@@ -190,7 +190,8 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
                                              l_data.fifo_data);
 
         // Write the data into the downstream FIFO
-        l_rc = sbeDownFifoEnq ( *(reinterpret_cast<uint64_t*>(&l_data)) );
+        uint64_t * tp = reinterpret_cast<uint64_t*>(&l_data);
+        l_rc = sbeDownFifoEnq ( *tp );
         if (l_rc)
         {
             SBE_ERROR(SBE_FUNC"sbeDownFifoEnq failed, "

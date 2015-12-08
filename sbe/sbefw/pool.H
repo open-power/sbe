@@ -18,7 +18,7 @@ static const size_t G_POOLSIZE = 8;
 typedef struct
 {
     size_t refCount;
-    uint8_t data[G_BLOCKSIZE];
+    uint8_t data[G_BLOCKSIZE] __attribute__ ((aligned (8)));
 }vectorMemPool_t;
 
 /**
