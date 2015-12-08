@@ -7,7 +7,7 @@
 <!--                                                                        -->
 <!-- EKB Project                                                            -->
 <!--                                                                        -->
-<!-- COPYRIGHT 2015                                                         -->
+<!-- COPYRIGHT 2015,2016                                                    -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -351,10 +351,6 @@
       <value>0x37</value>
   </entry>
   <entry>
-      <name>ATTR_FABRIC_SYSTEM_ID</name>
-      <value>0x1</value>
-  </entry>
-  <entry>
       <name>ATTR_SYSTEM_IPL_PHASE</name>
       <value>0x1</value>
   </entry>
@@ -408,14 +404,6 @@
   </entry>
   <entry>
             <name>ATTR_PG</name>
-  </entry>
-  <entry>
-            <name>ATTR_FABRIC_CHIP_ID</name>
-            <value>0x01</value>
-  </entry>
-  <entry>
-             <name>ATTR_FABRIC_GROUP_ID</name>
-             <value>0x01</value>
   </entry>
   <entry>
            <name>ATTR_ADU_XSCOM_BAR_BASE_ADDR</name>
