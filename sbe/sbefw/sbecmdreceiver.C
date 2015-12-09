@@ -25,6 +25,10 @@ void sbeCommandReceiver_routine(void *i_pArg)
     #define SBE_FUNC " sbeCommandReceiver_routine "
     SBE_ENTER(SBE_FUNC);
 
+    // Update SBE msgg reg to indicate that control loop
+    // is ready now to receive data on its interfaces
+    SBE_UPDATE_SBE_MSG_REG(SBE_STATE_PK_READY);
+
     do
     {
         uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;

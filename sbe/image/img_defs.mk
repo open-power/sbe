@@ -179,6 +179,10 @@ ifeq "$(PK_TRACE_SUPPORT)" ""
 PK_TRACE_SUPPORT = 1
 endif
 
+ifdef SBE_ISTEP_STUBBED
+GCC-DEFS += -DSBE_ISTEP_STUBBED=1
+endif
+
 # Generate a 16bit trace string hash prefix value based on the name of this image.  This will form
 # the upper 16 bits of the 32 bit trace hash values.
 ifndef PK_TRACE_HASH_PREFIX
