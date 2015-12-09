@@ -218,6 +218,19 @@ namespace fapi2
         getChildren(const TargetState i_state = TARGET_STATE_FUNCTIONAL) const;
 
         ///
+        /// @brief Get this target's children, filtered
+        /// @tparam T The type of the parent
+        /// @param[in], i_filter The desired chiplet filter
+        /// @param[in] i_state The desired TargetState of the children
+        /// @return std::vector<Target<T> > a vector of present/functional
+        /// children
+        ///
+        template< TargetType T>
+        std::vector<Target<T> >
+        getChildren(const TargetFilter i_filter,
+                    const TargetState i_state = TARGET_STATE_FUNCTIONAL) const;
+
+        ///
         /// @brief Get the target at the other end of a bus - dimm included
         /// @tparam T The type of the parent
         /// @param[in] i_state The desired TargetState of the children

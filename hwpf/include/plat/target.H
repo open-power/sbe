@@ -180,7 +180,7 @@ namespace fapi2
     ///
     template<TargetType K, typename V>
     template< TargetType T>
-    inline std::vector<Target<T> >
+    std::vector<Target<T> >
     Target<K, V>::getChildren(const TargetState i_state) const
     {
 #define INVALID_CHILD(PARENT, CHILD) \
@@ -271,6 +271,57 @@ namespace fapi2
         }
 
         return l_children;
+    }
+
+    // Specialization of getChildren, filtered for the chip target
+    template<TargetType K, typename V>
+    template<TargetType T>
+    std::vector<Target<T> >
+    Target<K, V>::getChildren(const TargetFilter i_filter,
+                                          const TargetState i_state) const
+    {
+        static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
+        static_assert((T == TARGET_TYPE_EQ) || (T == TARGET_TYPE_CORE)
+                || (T == TARGET_TYPE_PERV) || (T == TARGET_TYPE_MCS),
+                "Child target type must be a pervasive chiplet");
+
+        std::vector<Target<T> > l_children;
+        static const uint64_t mask = 1;
+
+        // Walk the bits in the input target filter. For every bit, at
+        // position x, that is set, x can be used as an index into our global
+        // target vector (indexed by chiplet number)
+        for (uint32_t l_idx = 0;
+                l_idx < sizeof(TargetFilter) * 8;
+                ++l_idx)
+        {
+            if (i_filter & (mask << (((sizeof(TargetFilter)*8)-1) - l_idx)))
+            {
+                uint64_t l_targetHandle = G_vec_targets.at(l_idx + NEST_GROUP1_CHIPLET_OFFSET);
+
+                if(((static_cast<union iv_handle>(l_targetHandle)).fields.type & TARGET_TYPE_PERV)) // Can be an assertion?
+                {
+                    switch (i_state)
+                    {
+                        case TARGET_STATE_PRESENT:
+                            if(static_cast<union iv_handle>(l_targetHandle).fields.present)
+                            {
+                                l_children.push_back(l_targetHandle);
+                            }
+                            break;
+                         case TARGET_STATE_FUNCTIONAL:
+                            if(static_cast<union iv_handle>(l_targetHandle).fields.functional)
+                            {
+                                l_children.push_back(l_targetHandle);
+                            }
+                            break;
+                        default:
+                            break;
+                     }
+                 }
+             }
+         }
+         return l_children;
     }
 
     ///
