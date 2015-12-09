@@ -340,6 +340,10 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
             break;
         }
 
+    // bits 16-23 major istep number, 24-31 minor istep number
+    uint64_t l_iplState = (uint64_t)(i_major)<<40  |  (uint64_t)(i_minor)<<32;
+    SBE_UPDATE_SBE_MSG_REG (l_iplState);
+
     return rc;
     #undef SBE_FUNC
 }
@@ -398,6 +402,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
 ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 {
+#ifndef SBE_ISTEP_STUBBED // @TODO  via RTC 142985
     SBE_DEBUG("istepWithProc");
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     ReturnCode rc = FAPI2_RC_SUCCESS;
@@ -407,6 +412,9 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
     }
     SBE_DEBUG("istepWithProc");
     return rc;
+#else
+    return FAPI2_RC_SUCCESS;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -414,6 +422,7 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
 {
+#ifndef SBE_ISTEP_STUBBED // @TODO via RTC 142985
     // TODO via RTC 135345
     // Curently we are passing Hard code eq target. Finally it is
     // going to be a multicast target. Once multicast support is
@@ -426,12 +435,16 @@ ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
         rc = i_hwp( eq10_target );
     }
     return rc;
+#else
+    return FAPI2_RC_SUCCESS;
+#endif
 }
 
 //----------------------------------------------------------------------------
 
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
 {
+#ifndef SBE_ISTEP_STUBBED // @TODO via RTC 142985
     // TODO via RTC 135345
     // Curently we are passing Hard code core target. Finally it is
     // going to be a multicast target. Once multicast support is
@@ -444,17 +457,27 @@ ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
         rc = i_hwp( core_target );
     }
     return rc;
+#else
+    return FAPI2_RC_SUCCESS;
+#endif
 }
 
 //----------------------------------------------------------------------------
 
 ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
 {
+// @TODO via RTC 142985: Call instruct_start to load+start HB - BU hack
+#ifdef SBE_ISTEP_STUBBED
+    SBE_DEBUG ("istepLoadBootLoader: istep 5.1 hack to load+start HB");
+    fapi2::Target<fapi2::TARGET_TYPE_CORE > core_target((uint64_t)0);
+    ReturnCode rc = p9_sbe_instruct_start (core_target);
+#else
     // TODO via RTC 135345
     //  Send right Ex, address and size of HB loader
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     fapi2::Target<fapi2::TARGET_TYPE_EX > exTgt((uint64_t)7);
     ReturnCode rc = p9_sbe_load_bootloader( proc, exTgt, 0, NULL );
+#endif
     return rc;
 }
 
