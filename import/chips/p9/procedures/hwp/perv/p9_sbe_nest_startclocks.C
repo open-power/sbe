@@ -551,7 +551,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_check_checkstop_function(
     FAPI_INF("Drop chiplet fence");
     //Setting NET_CTRL0 register value
     l_data64.flush<1>();
-    l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
+    l_data64.clearBit<PEC_STACK0_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
 
     FAPI_INF("Check checkstop register");
@@ -622,10 +622,10 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_cplt_ctrl_action_function(
     //Setting CPLT_CTRL0 register value
     l_data64.flush<0>();
     //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 1
-    l_data64.setBit<PEC_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
+    l_data64.writeBit<PEC_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>(1);
     //CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 1
-    l_data64.setBit<PEC_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_OR, l_data64));
+    l_data64.writeBit<PEC_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>(1);
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_CLEAR, l_data64));
 
     FAPI_DBG("Exiting ...");
 
