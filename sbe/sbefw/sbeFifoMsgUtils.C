@@ -113,6 +113,8 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
         // if Upstream FIFO is empty,
         if (l_data.statusOrReserved.fifo_empty)
         {
+            SBE_DEBUG(SBE_FUNC"Downstream FIFO is empty. Sleeping for 1 ms");
+            pk_sleep(PK_MILLISECONDS(1));
             continue;
         }
 
@@ -171,7 +173,8 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
         if (l_status.downfifo_status.fifo_full)
         {
             // Downstream FIFO is full
-            SBE_INFO(SBE_FUNC"Downstream FIFO is full");
+            SBE_DEBUG(SBE_FUNC"Downstream FIFO is full. Sleeping for 1 ms");
+            pk_sleep(PK_MILLISECONDS(1));
             continue;
         }
 
