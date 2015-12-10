@@ -66,8 +66,9 @@ typedef ReturnCode (*sbeIstepHwp_t)
 // Wrapper function for HWP IPl functions
 typedef ReturnCode (*sbeIstep_t)( sbeIstepHwp_t );
 
-// Wrapper function which will call HWP with Proc target.
+// Wrapper function which will call HWP.
 ReturnCode istepWithProc( sbeIstepHwp_t i_hwp );
+ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp );
 ReturnCode istepNoOp( sbeIstepHwp_t i_hwp );
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp);
@@ -104,7 +105,7 @@ const uint32_t ISTEP5_MAX_SUBSTEPS = 2;
 static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
          {
              { NULL, NULL },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_attr_setup },
+             { &istepAttrSetup, (sbeIstepHwp_t)&p9_sbe_attr_setup },
              { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_init1 },
              { &istepNoOp, NULL },  // DFT only
              { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_npll_initf },
@@ -400,6 +401,26 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
 //----------------------------------------------------------------------------
 
+ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
+{
+    SBE_DEBUG("istepAttrSetup");
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        rc = i_hwp(proc);
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+        // Apply the gard records
+        rc = plat_ApplyGards();
+     }while(0);
+    return rc;
+}
+
+//----------------------------------------------------------------------------
+
 ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 {
 #ifndef SBE_ISTEP_STUBBED // @TODO  via RTC 142985
@@ -423,16 +444,25 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
 {
 #ifndef SBE_ISTEP_STUBBED // @TODO via RTC 142985
+    SBE_DEBUG("istepWithEq");
     // TODO via RTC 135345
     // Curently we are passing Hard code eq target. Finally it is
     // going to be a multicast target. Once multicast support is
     // present, use the right target.
-    fapi2::Target<fapi2::TARGET_TYPE_EQ > eq10_target((uint64_t)10);
-    SBE_DEBUG("istepWithEq");
+    fapi2::Target<fapi2::TARGET_TYPE_EQ > eqTgt;
+    // Put this in scope so that vector can be freed up before calling hwp.
+    {
+        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+        auto eqList = proc.getChildren<fapi2::TARGET_TYPE_EQ>();
+        // As it is workaround lets assume there will always be atleast one
+        // functional eq. No need to validate.
+        eqTgt = eqList[0];
+    }
+
     ReturnCode rc = FAPI2_RC_SUCCESS;
     if( i_hwp )
     {
-        rc = i_hwp( eq10_target );
+        rc = i_hwp( eqTgt );
     }
     return rc;
 #else
@@ -445,16 +475,24 @@ ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
 {
 #ifndef SBE_ISTEP_STUBBED // @TODO via RTC 142985
+    SBE_DEBUG("istepWithCore");
     // TODO via RTC 135345
     // Curently we are passing Hard code core target. Finally it is
     // going to be a multicast target. Once multicast support is
     // present, use the right target.
-    fapi2::Target<fapi2::TARGET_TYPE_CORE > core_target((uint64_t)10);
-    SBE_DEBUG("istepWithCore");
+    fapi2::Target<fapi2::TARGET_TYPE_CORE > coreTgt;
+    // Put this in scope so that vector can be freed up before calling hwp.
+    {
+        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+        auto coreList = proc.getChildren<fapi2::TARGET_TYPE_CORE>();
+        // As it is workaround lets assume there will always be atleast one
+        // functional ec. No need to validate.
+        coreTgt = coreList[0];
+    }
     ReturnCode rc = FAPI2_RC_SUCCESS;
     if( i_hwp )
     {
-        rc = i_hwp( core_target );
+        rc = i_hwp( coreTgt );
     }
     return rc;
 #else
