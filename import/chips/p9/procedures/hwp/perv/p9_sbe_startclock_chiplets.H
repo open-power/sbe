@@ -21,12 +21,12 @@
 ///
 /// @brief Start clock procedure for XBUS, OBUS, PCIe
 //------------------------------------------------------------------------------
-// *HWP HWP Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP HWP Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
-// *HWP FW Owner         : sunil kumar <skumar8j@in.ibm.com>
-// *HWP Team             : Perv
-// *HWP Level            : 1
-// *HWP Consumed by      : SBE
+// *HWP HW Owner        : Anusha Reddy Rangareddygari <anusrang@in.ibm.com>
+// *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
+// *HWP FW Owner        : sunil kumar <skumar8j@in.ibm.com>
+// *HWP Team            : Perv
+// *HWP Level           : 1
+// *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
 
@@ -38,17 +38,17 @@
 
 
 typedef fapi2::ReturnCode (*p9_sbe_startclock_chiplets_FP_t)(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>&);
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 
 /// @brief Start Xbus, Obus, PCIe clocks
 /// Start clocks on configured chiplets for all chips (master and slaves)
 ///
-/// @param[in]     i_target_chiplets   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplets   Reference to TARGET_TYPE_PROC_CHIP target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 extern "C"
 {
     fapi2::ReturnCode p9_sbe_startclock_chiplets(const
-            fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplets);
+            fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chiplets);
 }
 
 #endif
