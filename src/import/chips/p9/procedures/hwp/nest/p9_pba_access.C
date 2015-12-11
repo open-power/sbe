@@ -62,21 +62,25 @@ extern "C" {
         // mark HWP entry
         FAPI_INF("Entering ...\n");
 
+        // Process input flag
+        p9_PBA_oper_flag l_myPbaFlag;
+        l_myPbaFlag.getFlag(i_flags);
+
         //if read
         if (i_rnw)
         {
-            rc1 = p9_pba_coherent_pba_read(i_target, i_address, i_flags, io_data);
+            rc1 = p9_pba_coherent_pba_read(i_target, i_address, io_data);
         }
         //else if write
         else
         {
-            rc1 = p9_pba_coherent_pba_write(i_target, i_address, i_flags, io_data);
+            rc1 = p9_pba_coherent_pba_write(i_target, i_address, io_data);
         }
 
         //If we are not in fastmode or this is the last granule, we want to check the status
         if (!rc1)
         {
-            if ((i_lastGranule) || !(i_flags & FLAG_FASTMODE))
+            if ( i_lastGranule || (l_myPbaFlag.getFastMode() == false) )
             {
                 rc1 = p9_pba_coherent_status_check(i_target);
 

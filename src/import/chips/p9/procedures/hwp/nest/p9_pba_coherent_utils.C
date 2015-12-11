@@ -225,7 +225,14 @@ extern "C"
         fapi2::buffer<uint64_t> pba_slave_ctl_data;
         fapi2::buffer<uint64_t> l3_mode_reg1;
 
+        p9_PBA_oper_flag l_myPbaFlag;
+        p9_PBA_oper_flag::OperationType_t l_operType;
+
         FAPI_DBG("Start");
+
+        // Process input flag
+        l_myPbaFlag.getFlag(i_flags);
+        l_operType = l_myPbaFlag.getOperationType();
 
         //Write the OCB3 Status Control Register
         //Configure linear stream mode (auto-increment +8 with each data register read/write)
@@ -260,7 +267,7 @@ extern "C"
 
         //set the write ttype bits 8:10 to whatever is in the flags
         pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_WRITE_TTYPE_START_BIT,
-                                           (PBA_SLVCTL_WRITE_TTYPE_END_BIT - PBA_SLVCTL_WRITE_TTYPE_START_BIT) + 1 > ((i_flags & FLAG_TTYPE) >> FLAG_TTYPE_SHIFT);
+                                           (PBA_SLVCTL_WRITE_TTYPE_END_BIT - PBA_SLVCTL_WRITE_TTYPE_START_BIT) + 1 > (l_operType);
 
         //it's not cache-inhibited so set bit 15 to cl_rd_nc (0)
         pba_slave_ctl_data.clearBit<PBA_SLVCTL_READ_TTYPE_BIT>();
@@ -285,7 +292,7 @@ extern "C"
 
         //set bits 28:35 for the tsize to 0 - TODO when this is a write need to do the chiplet ID of the L3 cache in the form of 00cc_ccc0 if it's an lco_m
         //pass in an extra quad target argument
-        if (((i_flags & FLAG_TTYPE) >> FLAG_TTYPE_SHIFT) == 1)
+        if (l_operType == p9_PBA_oper_flag::LCO)
         {
             FAPI_TRY(fapi2::getScom(i_ex_target, EX_L3_MODE_REG1, l3_mode_reg1), "Error reading from the L3 Mode Register");
             l3_mode_reg1.extractToRight(chiplet_number, 1, 5);
@@ -351,7 +358,6 @@ extern "C"
     fapi2::ReturnCode p9_pba_coherent_pba_write(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
-        const uint32_t i_flags,
         const uint8_t i_write_data[])
     {
         fapi2::ReturnCode rc;
@@ -381,7 +387,6 @@ extern "C"
     fapi2::ReturnCode p9_pba_coherent_pba_read(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
-        const uint32_t i_flags,
         uint8_t o_read_data[])
     {
         fapi2::buffer<uint64_t> data;
