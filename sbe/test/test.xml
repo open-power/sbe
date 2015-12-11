@@ -28,9 +28,12 @@
               <simcmd>run-python-file targets/p9_nimbus/sbeTest/simics-debug-framework.py</simcmd>
               <exitonerror>yes</exitonerror>
           </testcase>
-            <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
-            <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
-            <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
+          <testcase>
+              <simcmd>sbe-trace</simcmd>
+          </testcase>
         </test>
 	</platform>
 </integrationtest>
