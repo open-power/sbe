@@ -60,9 +60,21 @@ bool validateIstep (uint8_t i_major, uint8_t i_minor);
 
 
 //typedefs
-typedef ReturnCode (*sbeIstepHwp_t)
-                    (const Target<TARGET_TYPE_ALL> & i_target);
+typedef ReturnCode (*sbeIstepHwpProc_t)
+                    (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
 
+typedef ReturnCode (*sbeIstepHwpEq_t)
+                    (const Target<TARGET_TYPE_EQ> & i_target);
+
+typedef ReturnCode (*sbeIstepHwpCore_t)
+                    (const Target<TARGET_TYPE_CORE> & i_target);
+
+typedef union
+{
+    sbeIstepHwpProc_t procHwp;
+    sbeIstepHwpEq_t eqHwp;
+    sbeIstepHwpCore_t coreHwp;
+}sbeIstepHwp_t;
 // Wrapper function for HWP IPl functions
 typedef ReturnCode (*sbeIstep_t)( sbeIstepHwp_t );
 
@@ -105,66 +117,71 @@ const uint32_t ISTEP5_MAX_SUBSTEPS = 2;
 static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
          {
              { NULL, NULL },
-             { &istepAttrSetup, (sbeIstepHwp_t)&p9_sbe_attr_setup },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_init1 },
+             { &istepAttrSetup, { .procHwp = &p9_sbe_attr_setup }},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_init1 }},
              { &istepNoOp, NULL },  // DFT only
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_npll_initf },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_npll_setup },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_switch_gears },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_reset },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_gptr_time_repr_initf },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_init2 },
+             { &istepWithProc, { .procHwp = &p9_sbe_npll_initf }},
+             { &istepWithProc, { .procHwp = &p9_sbe_npll_setup }},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_switch_gears }},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_reset }},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_gptr_time_repr_initf }},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_init2 }},
              { &istepNoOp, NULL },  // DFT only
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_arrayinit },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_initf },
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_arrayinit }},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_initf }},
              { &istepNoOp, NULL }, // DFT only
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_chiplet_init3},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_init3 }},
          };
 
 static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
          {
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_chiplet_reset },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_chiplet_pll_initf },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_chiplet_pll_setup },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_gptr_time_repr_initf },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_chiplet_init },
+             { &istepWithProc, { .procHwp = &p9_sbe_chiplet_reset }},
+             { &istepWithProc, { .procHwp = &p9_sbe_chiplet_pll_initf }},
+             { &istepWithProc, { .procHwp = &p9_sbe_chiplet_pll_setup }},
+             { &istepWithProc, { .procHwp = &p9_sbe_gptr_time_repr_initf }},
+             { &istepWithProc, { .procHwp = &p9_sbe_chiplet_init }},
              { &istepNoOp, NULL }, // DFT only
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_arrayinit },
+             { &istepWithProc, { .procHwp = &p9_sbe_arrayinit }},
              { &istepNoOp, NULL }, // DFT only
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_tp_enable_ridi },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_setup_evid },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_nest_initf },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_nest_startclocks },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_nest_enable_ridi },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_startclock_chiplets },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_scominit },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_lpc_init },
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_fabricinit },
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_enable_ridi }},
+             { &istepWithProc, { .procHwp = &p9_sbe_setup_evid }},
+             { &istepWithProc, { .procHwp = &p9_sbe_nest_initf }},
+             { &istepWithProc, { .procHwp = &p9_sbe_nest_startclocks }},
+             { &istepWithProc, { .procHwp = &p9_sbe_nest_enable_ridi }},
+             // TODO via RTC 142710
+             // L1 for p9_sbe_startclock_chiplets has qrong signature.
+             // PERV team has fixed this in gerrit. Once it is merged
+             // to master, enable this hwp. Remove No-Op after this.
+             // { &istepWithProc, { .procHwp = &p9_sbe_startclock_chiplets }},
+             { &istepNoOp, NULL }, // startclock_chiple wrong signature
+             { &istepWithProc, { .procHwp = &p9_sbe_scominit }},
+             { &istepWithProc, { .procHwp = &p9_sbe_lpc_init }},
+             { &istepWithProc, { .procHwp = &p9_sbe_fabricinit }},
              { &istepNoOp, NULL }, // TODO via RTC 120752
                                    // FW proc_sbe_check_master
              // TODO via RTC 142710
              // mcs_setup does not compile currently as MI target support
              // is not present. So currently this istep has neem made NoOp
              // in this code
-             //{ &istepWithProc, (sbeIstepHwp_t)&p9_sbe_mcs_setup },
+             //{ &istepWithProc, { .procHwp = &p9_sbe_mcs_setup }},
              { &istepNoOp, NULL }, // mcs_setup does not compile currently
-             { &istepWithProc, (sbeIstepHwp_t)&p9_sbe_select_ex },
+             { &istepWithProc, { .procHwp = &p9_sbe_select_ex }},
          };
 static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
          {
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_poweron },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_chiplet_reset },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_gptr_time_initf },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_dpll_setup },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_chiplet_init },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_repair_initf },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_arrayinit },
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_poweron} },
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_reset } },
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_gptr_time_initf }},
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_dpll_setup }},
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_init }},
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_repair_initf }},
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_arrayinit }},
              { &istepNoOp, NULL },  // DFT Only
              { &istepNoOp, NULL },  // DFT Only
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_initf },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_startclocks },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_scominit },
-             { &istepWithEq, (sbeIstepHwp_t )&p9_hcd_cache_scomcust },
+             { &istepWithEq, { .eqHwp = &p9_hcd_cache_initf }},
+             { &istepWithEq, { .eqHwp = &p9_hcd_cache_startclocks }},
+             { &istepWithEq, { .eqHwp = &p9_hcd_cache_scominit }},
+             { &istepWithEq, { .eqHwp = &p9_hcd_cache_scomcust }},
              { &istepNoOp, NULL }, // Runtime only
              { &istepNoOp, NULL }, // Runtime only
              { &istepNoOp, NULL }, // stub for SBE
@@ -173,19 +190,19 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
              // But this HWP is present in SBE code bas and is No-OP.
              // If we do not require this HWP for future use cases, we
              // can make it istepNoOp as it will save space in SBE.
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_pcb_arb },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_poweron },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_chiplet_reset },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_gptr_time_initf },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_chiplet_init },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_repair_initf },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_arrayinit },
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_pcb_arb }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_poweron }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_chiplet_reset }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_gptr_time_initf }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_chiplet_init }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_repair_initf }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_arrayinit }},
              { &istepNoOp, NULL },  // DFT Only
              { &istepNoOp, NULL },  // DFT Only
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_initf },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_startclocks },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_scominit },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_hcd_core_scomcust },
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_initf }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_startclocks }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_scominit }},
+             { &istepWithCore, { .coreHwp = &p9_hcd_core_scomcust }},
              { &istepNoOp, NULL },
              { &istepNoOp, NULL },
          };
@@ -195,7 +212,7 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
 static istepMap_t g_istep5PtrTbl[ ISTEP5_MAX_SUBSTEPS ]
          {
              { &istepLoadBootLoader, NULL },
-             { &istepWithCore, (sbeIstepHwp_t )&p9_sbe_instruct_start },
+             { &istepWithCore,  { .coreHwp = &p9_sbe_instruct_start }},
          };
 
 // Functions
@@ -403,12 +420,14 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
 ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
 {
+#ifndef SBE_ISTEP_STUBBED // @TODO  via RTC 142985
     SBE_DEBUG("istepAttrSetup");
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     ReturnCode rc = FAPI2_RC_SUCCESS;
     do
     {
-        rc = i_hwp(proc);
+        assert( NULL != i_hwp.procHwp );
+        rc = i_hwp.procHwp(proc);
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;
@@ -417,6 +436,9 @@ ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
         rc = plat_ApplyGards();
      }while(0);
     return rc;
+#else
+    return FAPI2_RC_SUCCESS;
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -426,13 +448,8 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 #ifndef SBE_ISTEP_STUBBED // @TODO  via RTC 142985
     SBE_DEBUG("istepWithProc");
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-    if( i_hwp )
-    {
-        rc = i_hwp(proc);
-    }
-    SBE_DEBUG("istepWithProc");
-    return rc;
+    assert( NULL != i_hwp.procHwp );
+    return i_hwp.procHwp(proc);
 #else
     return FAPI2_RC_SUCCESS;
 #endif
@@ -459,12 +476,8 @@ ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
         eqTgt = eqList[0];
     }
 
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-    if( i_hwp )
-    {
-        rc = i_hwp( eqTgt );
-    }
-    return rc;
+    assert( NULL != i_hwp.eqHwp );
+    return i_hwp.eqHwp( eqTgt );
 #else
     return FAPI2_RC_SUCCESS;
 #endif
@@ -489,12 +502,8 @@ ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
         // functional ec. No need to validate.
         coreTgt = coreList[0];
     }
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-    if( i_hwp )
-    {
-        rc = i_hwp( coreTgt );
-    }
-    return rc;
+    assert( NULL != i_hwp.coreHwp );
+    return i_hwp.coreHwp( coreTgt );
 #else
     return FAPI2_RC_SUCCESS;
 #endif
