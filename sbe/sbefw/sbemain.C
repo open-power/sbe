@@ -285,6 +285,11 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
+        // TODO via RTC 142365
+        // Remove this workaround once we have support to copy fixed section
+        // from SEEPROM to PIBMEM.
+        initAttrWA();
+
         // TODO via RTC 126146.
         //  Check if we should call plat_TargetsInit in some other thread.
         //  We may want to keep only PK init in main and can move
@@ -300,10 +305,6 @@ uint32_t main(int argc, char **argv)
             //  enable FSP to get FFDC for this failure.
             break;
         }
-        // TODO via RTC 142365
-        // Remove this workaround once we have support to copy fixed section
-        // from SEEPROM to PIBMEM.
-        initAttrWA();
         // Start running the highest priority thread.
         // This function never returns
         pk_start_threads();
