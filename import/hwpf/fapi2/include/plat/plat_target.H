@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: hwpf/fapi2/include/plat_target.H $                            */
+/* $Source: hwpf/fapi2/include/plat/plat_target.H $                       */
 /*                                                                        */
 /* IBM CONFIDENTIAL                                                       */
 /*                                                                        */
