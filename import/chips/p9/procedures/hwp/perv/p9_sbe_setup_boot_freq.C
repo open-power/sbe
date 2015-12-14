@@ -1,3 +1,21 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: chips/p9/procedures/hwp/perv/p9_sbe_setup_boot_freq.C $       */
+/*                                                                        */
+/* IBM CONFIDENTIAL                                                       */
+/*                                                                        */
+/* EKB Project                                                            */
+/*                                                                        */
+/* COPYRIGHT 2015                                                         */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* The source code for this program is not published or otherwise         */
+/* divested of its trade secrets, irrespective of what has been           */
+/* deposited with the U.S. Copyright Office.                              */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 
 ///
 /// @file  p9_sbe_setup_boot_freq.C
@@ -38,7 +56,7 @@ enum P9_SBE_SETUP_BOOT_FREQ_CONSTANTS
 // Note:  the above is aligned, as a value, to 0:10, written as bits 17:27 of PPM DPLL freq ctrl register
 // Bits 0:7 are DPLL.MULT_INTG(0:7), and Bits 8:10 are DPLL.MULT_FRAC(0:2)
 //
-DEFAULT_BOOT_FREQUENCY_MULTIPLIER =  0x00B4,
+    DEFAULT_BOOT_FREQUENCY_MULTIPLIER =  0x00B4,
 
 };
 
@@ -48,12 +66,12 @@ DEFAULT_BOOT_FREQUENCY_MULTIPLIER =  0x00B4,
 
 fapi2::ReturnCode
 BootFreqInitAttributes(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
-                  uint16_t &i_boot_frequency_multiplier)
+                       uint16_t& i_boot_frequency_multiplier)
 {
 
     i_boot_frequency_multiplier = DEFAULT_BOOT_FREQUENCY_MULTIPLIER;
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BOOT_FMULT,i_target, i_boot_frequency_multiplier));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BOOT_FMULT, i_target, i_boot_frequency_multiplier));
 
     // If attribute values are zero, use the default values (hardcoded)
 
@@ -67,12 +85,12 @@ BootFreqInitAttributes(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_targ
 
         i_boot_frequency_multiplier  = DEFAULT_BOOT_FREQUENCY_MULTIPLIER;
         FAPI_INF("DPLL boot frequency not set in attributes.  Setting to default of %d (%x)",
-               i_boot_frequency_multiplier, i_boot_frequency_multiplier);
+                 i_boot_frequency_multiplier, i_boot_frequency_multiplier);
     }
     else
     {
         FAPI_INF("DPLL boot frequency = %d (%x)",
-               i_boot_frequency_multiplier, i_boot_frequency_multiplier);
+                 i_boot_frequency_multiplier, i_boot_frequency_multiplier);
     }
 
 fapi_try_exit:
@@ -83,20 +101,20 @@ fapi_try_exit:
 fapi2::ReturnCode
 setDPLLFrequency(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
                  const uint16_t i_DpllBootFreqMult
-               )
+                )
 {
     fapi2::buffer<uint64_t> l_data;
 
 
     auto l_present_eqs = i_target.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL);
 
-    l_data.insertFromRight<17,11>(i_DpllBootFreqMult);
+    l_data.insertFromRight<17, 11>(i_DpllBootFreqMult);
 
-    for(auto l_tlst: l_present_eqs)
+    for(auto l_tlst : l_present_eqs)
     {
-       FAPI_TRY(fapi2::putScom(l_tlst,  EQ_QPPM_DPLL_FREQ, l_data));
-       //@todo,Determine ff_slew rate value RTC 140053
-       FAPI_TRY(fapi2::putScom(l_tlst,  EQ_QPPM_DPLL_CTRL,  0));
+        FAPI_TRY(fapi2::putScom(l_tlst,  EQ_QPPM_DPLL_FREQ, l_data));
+        //@todo,Determine ff_slew rate value RTC 140053
+        FAPI_TRY(fapi2::putScom(l_tlst,  EQ_QPPM_DPLL_CTRL,  0));
 
     }
 
@@ -116,10 +134,10 @@ p9_sbe_setup_boot_freq(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_targ
     FAPI_TRY(BootFreqInitAttributes(i_target, l_boot_frequency_multiplier));
 
     // Set Boot Frequency
-    
+
     FAPI_TRY(setDPLLFrequency(i_target,
-                  l_boot_frequency_multiplier),
-            "Setting Boot Frequency");
+                              l_boot_frequency_multiplier),
+             "Setting Boot Frequency");
 
 fapi_try_exit:
     return fapi2::current_err;
