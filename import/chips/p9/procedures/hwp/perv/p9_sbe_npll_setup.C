@@ -34,6 +34,7 @@
 #include "p9_sbe_npll_setup.H"
 
 #include "p9_perv_scom_addresses.H"
+#include "p9_perv_scom_addresses_fld.H"
 
 
 enum P9_SBE_NPLL_SETUP_Private_Constants
@@ -51,17 +52,44 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
     fapi2::buffer<uint64_t> l_data64;
     FAPI_DBG("Entering ...");
 
-    FAPI_INF("Release PLL test enable for SS,  Filt & NEST PLLs");
+    FAPI_INF("Drop PLL test enable for Spread Spectrum PLL");
     //Setting ROOT_CTRL8 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8));
-    l_data64_root_ctrl8.clearBit<12>();  //PIB.ROOT_CTRL8.TP_PLL_TEST_ENABLE_DC = 0
+    //PIB.ROOT_CTRL8.TP_SS0_PLL_TEST_EN = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_SS0_PLL_TEST_EN>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8));
 
-    FAPI_INF("Release SS PLL reset0");
+    FAPI_INF("Drop PLL test enable for CP Filter PLL");
     //Setting ROOT_CTRL8 register value
-    l_data64_root_ctrl8.clearBit<0>();  //PIB.ROOT_CTRL8.TP_SSPLL_PLL_RESET0_DC = 0
+    //PIB.ROOT_CTRL8.TP_FILT1_PLL_TEST_EN = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_FILT1_PLL_TEST_EN>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
+                            l_data64_root_ctrl8));
+
+    FAPI_INF("Drop PLL test enable for IO Filter PLL");
+    //Setting ROOT_CTRL8 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
+                            l_data64_root_ctrl8));
+    //PIB.ROOT_CTRL8.TP_FILT0_PLL_TEST_EN = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_FILT0_PLL_TEST_EN>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
+                            l_data64_root_ctrl8));
+
+    FAPI_INF("Drop PLL test enable for Nest PLL");
+    //Setting ROOT_CTRL8 register value
+    //PIB.ROOT_CTRL8.TP_PLL_TEST_EN = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_PLL_TEST_EN>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
+                            l_data64_root_ctrl8));
+
+    FAPI_INF("Release SS PLL reset");
+    //Setting ROOT_CTRL8 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
+                            l_data64_root_ctrl8));
+    //PIB.ROOT_CTRL8.TP_SS0_PLL_RESET = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_SS0_PLL_RESET>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8));
 
@@ -77,19 +105,26 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                 .set_SS_PLL_READ(l_read_reg),
                 "ERROR:SS PLL LOCK NOT SET");
 
-    FAPI_INF("Release SS PLL Bypass0");
+    FAPI_INF("Release SS PLL Bypass");
     //Setting ROOT_CTRL8 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8));
-    //PIB.ROOT_CTRL8.TP_SSPLL_PLL_BYPASS0_DC = 0
-    l_data64_root_ctrl8.clearBit<1>();
+    //PIB.ROOT_CTRL8.TP_SS0_PLL_BYPASS = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_SS0_PLL_BYPASS>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8));
 
-    FAPI_INF("Release Filter PLL reset1");
+    FAPI_INF("Release CP Filter PLL reset");
     //Setting ROOT_CTRL8 register value
-    //PIB.ROOT_CTRL8.TP_FILTPLL_PLL_RESET1_DC = 0
-    l_data64_root_ctrl8.clearBit<4>();
+    //PIB.ROOT_CTRL8.TP_FILT1_PLL_RESET = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_FILT1_PLL_RESET>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
+                            l_data64_root_ctrl8));
+
+    FAPI_INF("Release IO Filter PLL reset");
+    //Setting ROOT_CTRL8 register value
+    //PIB.ROOT_CTRL8.TP_FILT0_PLL_RESET = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_FILT0_PLL_RESET>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8));
 
@@ -105,16 +140,14 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                 .set_FILTER_PLL_READ(l_read_reg),
                 "ERROR:CP or IO FILTER PLL LOCK NOT SET");
 
-    FAPI_INF("Release FILTER PLL Bypass Signals");
+    FAPI_INF("Release CP filetr and IO filter PLL Bypass Signals");
     //Setting ROOT_CTRL8 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8));
-    //PIB.ROOT_CTRL8.TP_FILTPLL_PLL_BYPASS1_DC = 0
-    l_data64_root_ctrl8.clearBit<5>();
-    //PIB.ROOT_CTRL8.TP_FILTPLL_CP_ALT_BYPASS_DC = 0
-    l_data64_root_ctrl8.clearBit<6>();
-    //PIB.ROOT_CTRL8.TP_FILTPLL_IO_ALT_BYPASS_DC = 0
-    l_data64_root_ctrl8.clearBit<7>();
+    //PIB.ROOT_CTRL8.TP_FILT1_PLL_BYPASS = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_FILT1_PLL_BYPASS>();
+    //PIB.ROOT_CTRL8.TP_FILT0_PLL_BYPASS = 0
+    l_data64_root_ctrl8.clearBit<PERV_ROOT_CTRL8_SET_TP_FILT0_PLL_BYPASS>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8));
 
@@ -125,27 +158,22 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
     {
         FAPI_INF("Set MUX to Nest Clock input");
         //Setting ROOT_CTRL8 register value
-        l_data64_root_ctrl8.setBit<31>();  //PIB.ROOT_CTRL8.TP_PLL_CLKIN_SEL4_DC = 1
+        //PIB.ROOT_CTRL8.TP_PLL_CLKIN_SEL4_DC = 1
+        l_data64_root_ctrl8.setBit<PERV_ROOT_CTRL8_SET_TP_PLL_CLKIN_SEL4_DC>();
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                                 l_data64_root_ctrl8));
     }
 
-    FAPI_INF("Release test_pll_bypass2");
-    //Setting ROOT_CTRL8 register value
-    //PIB.ROOT_CTRL8.TP_TANKPLL_TEST_PLL_BYPASS2_DC = 0
-    l_data64_root_ctrl8.clearBit<10>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
-                            l_data64_root_ctrl8));
-
-    FAPI_INF("Release Tank PLL reset2");
+    FAPI_INF("Release Nest PLL  reset");
     //Setting PERV_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
-    l_data64.clearBit<4>();  //PIB.PERV_CTRL0.TP_PLLRST_DC = 0
+    //PIB.PERV_CTRL0.TP_PLLRST_DC = 0
+    l_data64.clearBit<PERV_PERV_CTRL0_SET_TP_PLLRST_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
 
     fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
 
-    FAPI_INF("Check  NEST PLL lock");
+    FAPI_INF("check  NEST PLL lock");
     //Getting PLL_LOCK_REG register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG,
                             l_read_reg)); //l_read_reg = PERV.PLL_LOCK_REG
@@ -155,10 +183,11 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                 .set_NEST_PLL_READ(l_read_reg),
                 "ERROR:NEST PLL LOCK NOT SET");
 
-    FAPI_INF("Release Tank PLL bypass2");
+    FAPI_INF("Release PLL bypass2");
     //Setting PERV_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
-    l_data64.clearBit<5>();  //PIB.PERV_CTRL0.TP_PLLBYP_DC = 0
+    //PIB.PERV_CTRL0.TP_PLLBYP_DC = 0
+    l_data64.clearBit<PERV_PERV_CTRL0_SET_TP_PLLBYP_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
 
     FAPI_DBG("Exiting ...");
