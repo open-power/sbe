@@ -6,6 +6,7 @@
 #ifndef SBE_ASSERT_H
 #define SBE_ASSERT_H
 #include "sbetrace.H"
+#include "sbeutil.H"
 
 //@TODO via RTC 129166
 //inject exception to halt SBE. Also see if we can use some
@@ -15,6 +16,7 @@
     if( !(expr ))  \
     {  \
         SBE_ERROR("assertion failed: "#expr); \
+        PK_PANIC(SBE::PANIC_ASSERT); \
     } \
 
 #else
