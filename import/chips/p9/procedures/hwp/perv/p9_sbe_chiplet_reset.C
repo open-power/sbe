@@ -26,6 +26,7 @@
 ///     4) Similar way,  Reset sys.config and OPCG setting for Nest and MC chiplet in sync mode
 ///
 /// Done
+///
 //------------------------------------------------------------------------------
 // *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V. Naga <srinivan@in.ibm.com>
@@ -54,6 +55,9 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_cache_hang_cnt_setup(
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_core_hang_cnt_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_ec);
+
+static fapi2::ReturnCode p9_sbe_chiplet_reset_enable_pll(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_net_ctrl_clk_async_reset(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
@@ -273,6 +277,31 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
                                l_attr_chip_unit_pos));
 
+        if (!((l_attr_chip_unit_pos == 0x07
+               || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
+              (l_attr_chip_unit_pos == 0x02 || l_attr_chip_unit_pos == 0x03
+               || l_attr_chip_unit_pos == 0x04
+               || l_attr_chip_unit_pos == 0x05/* NestChiplet */) ||
+              (l_attr_chip_unit_pos == 0x09 || l_attr_chip_unit_pos == 0x0A
+               || l_attr_chip_unit_pos == 0x0B
+               || l_attr_chip_unit_pos == 0x0C/* ObusChiplet */) ||
+              (l_attr_chip_unit_pos == 0x0D || l_attr_chip_unit_pos == 0x0E
+               || l_attr_chip_unit_pos == 0x0F/* PcieChiplet */) ||
+              (l_attr_chip_unit_pos == 0x06/* XbusChiplet */)))
+        {
+            continue;
+        }
+
+        FAPI_INF("enable PLL");
+        FAPI_TRY(p9_sbe_chiplet_reset_enable_pll(l_target_cplt));
+    }
+
+    for (auto l_target_cplt : l_perv_functional_vector)
+    {
+        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt,
+                               l_attr_chip_unit_pos));
+
         if (!(l_attr_chip_unit_pos == 0x07
               || l_attr_chip_unit_pos == 0x08))/* McChiplet */
         {
@@ -469,6 +498,30 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_core_hang_cnt_setup(
     l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X06);
     l_data64.clearBit<6>();  //HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0
     FAPI_TRY(fapi2::putScom(i_target_ec, PERV_HANG_PULSE_5_REG, l_data64));
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief Enable PLL
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_enable_pll(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+{
+    fapi2::buffer<uint64_t> l_data;
+    FAPI_DBG("Entering ...");
+
+    l_data.flush<0>();
+    l_data.setBit<31>();
+
+    //Setting NET_CTRL0 register value
+    //NET_CTRL0 = l_data
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WOR, l_data));
 
     FAPI_DBG("Exiting ...");
 
