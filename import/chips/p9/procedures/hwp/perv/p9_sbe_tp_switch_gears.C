@@ -45,10 +45,10 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
                  i_target_chip));
 
     FAPI_TRY(p9_sbe_gear_switcher_i2c_stop_sequence(i_target_chip));
-#endif
     FAPI_DBG("Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
+#endif
 
 }
