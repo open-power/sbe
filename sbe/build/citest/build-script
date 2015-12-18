@@ -20,7 +20,6 @@ source "$SBEROOT/sbe/build/citest/setup-env"
 # Build .
 cd sbe/image
 scl enable devtoolset-2 " bash -c  \"make all\"" || exit -1
-make tracehash || exit -1
 cd -
 
 # Create simics sandbox.
