@@ -48,7 +48,7 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
     FAPI_DBG("Exiting ...");
 
 fapi_try_exit:
-    return fapi2::current_err;
 #endif
+    return fapi2::current_err;
 
 }
