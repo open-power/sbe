@@ -8,8 +8,12 @@ namespace SBEVECTORPOOL
 // Size of a block  for a vector
 static const size_t G_BLOCKSIZE = 512;
 
+// TODO via RTC 143517
+// Currently istep 3.1 and 3.7 take more number of vectors.
+// Once getChildrenFilter support is in need to bring it back to 4.
+
 //Pool size
-static const size_t G_POOLSIZE = 4;
+static const size_t G_POOLSIZE = 8;
 
 typedef struct
 {
