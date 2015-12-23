@@ -19,5 +19,3 @@ mkdir -p $SBETESTDIR || exit -1
 # Copy test files.
 cp  $SBEROOT/sbe/test/* $SBETESTDIR/ || exit -1
 
-# Copy action files
-cp  $SBEROOT/import/chips/p9/sw_simulation/* $SANDBOXBASE/src/simu/data/cec-chip || exit -1

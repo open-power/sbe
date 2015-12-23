@@ -5,8 +5,6 @@
 #-Files: list of files
 #-Coreq: list of associated changes, e.g. workarounds.presimsetup
 
-RTC:  142706
-Files: P9n.chip. This patch is used to add missing register in scomdef file.
-       As test verification of all isteps, updated scomdef, p9n.chip
-       will be added in CMVC.
-
+RTC: 144728
+Files : pervasive.act.patch. Currently SUET does not support FSIMBOX KW. Once
+        support is in, remove this patch.
