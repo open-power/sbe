@@ -185,12 +185,7 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
              { &istepNoOp, NULL }, // Runtime only
              { &istepNoOp, NULL }, // Runtime only
              { &istepNoOp, NULL }, // stub for SBE
-             // TODO via RTC 135345
-             // As per IPL flow doc, p9_hcd_core_pcb_arb is no-op on SBE
-             // But this HWP is present in SBE code bas and is No-OP.
-             // If we do not require this HWP for future use cases, we
-             // can make it istepNoOp as it will save space in SBE.
-             { &istepWithCore, { .coreHwp = &p9_hcd_core_pcb_arb }},
+             { &istepNoOp, NULL },  // stub for SBE
              { &istepWithCore, { .coreHwp = &p9_hcd_core_poweron }},
              { &istepWithCore, { .coreHwp = &p9_hcd_core_chiplet_reset }},
              { &istepWithCore, { .coreHwp = &p9_hcd_core_gptr_time_initf }},
