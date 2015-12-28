@@ -34,12 +34,12 @@
 #include "p9_sbe_tp_chiplet_init3.H"
 
 #include "p9_perv_scom_addresses.H"
+#include "p9_perv_scom_addresses_fld.H"
 #include "p9_sbe_common.H"
 
 
 enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
 {
-    PRV_CLOCK_REGION_MASK = 0x0F84,
     START_CMD = 0x1,
     REGIONS_ALL_EXCEPT_PIB_NET = 0x4FF,
     CLOCK_TYPES = 0x7
@@ -58,7 +58,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_INF("Switch pervasive chiplet OOB mux");
     //Setting ROOT_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
-    l_data64.clearBit<17>();  //PIB.ROOT_CTRL0.OOB_MUX = 0
+    l_data64.clearBit<PERV_ROOT_CTRL0_SET_OOB_MUX>();  //PIB.ROOT_CTRL0.OOB_MUX = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
 
     FAPI_INF("Reset PCB Master Interrupt Register");
@@ -66,11 +66,22 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //PIB.INTERRUPT_TYPE_REG = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PIB_INTERRUPT_TYPE_REG, 0));
 
-    FAPI_INF("Clear OCC-PIB and PRV region fence");
+    FAPI_INF("Clear PIB,NET,OCC-PIB and PRV region fence");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
-    l_data64.setBit<4>();  //PERV.CPLT_CTRL1.TC_PERV_REGION_FENCE = 0b0
-    l_data64.setBit<7>();  //PERV.CPLT_CTRL1.TC_REGION3_FENCE = 0
+    //PERV.CPLT_CTRL1.TC_PERV_REGION_FENCE = 0b0
+    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_PERV_REGION_FENCE>();
+    l_data64.setBit<5>();  //PERV.CPLT_CTRL1.TC_REGION1_FENCE = 0
+    l_data64.setBit<6>();  //PERV.CPLT_CTRL1.TC_REGION2_FENCE = 0
+    //PERV.CPLT_CTRL1.TC_REGION3_FENCE = 0
+    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_REGION3_FENCE>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_CPLT_CTRL1_CLEAR, l_data64));
+
+    FAPI_INF("Drop Vital fence in TP chiplet");
+    //Setting CPLT_CTRL1 register value
+    l_data64.flush<0>();
+    //PERV.CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
+    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_CPLT_CTRL1_CLEAR, l_data64));
 
     // Get the TPChiplet target
@@ -90,7 +101,8 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_INF("Drop FSI fence 5");
     //Setting ROOT_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
-    l_data64.clearBit<12>();  //PIB.ROOT_CTRL0.FENCE5_DC = 0
+    //PIB.ROOT_CTRL0.FENCE5_DC = 0
+    l_data64.clearBit<PERV_ROOT_CTRL0_SET_FENCE5_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
 
     //TOD error reg;
@@ -101,7 +113,9 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //PERV.LOCAL_FIR_ACTION1=0;
     //PERV.LOCAL_FIR_MASK=0;
 
-    //PERV.LOCAL_FIR=0;
+    //Setting LOCAL_FIR register value
+    //PERV.LOCAL_FIR = 0
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_AND, 0));
 
     FAPI_INF("Add Pervasive chiplet to Multicast Group 0");
     //Setting MULTICAST_GROUP_1 register value
@@ -140,7 +154,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //Getting INTERRUPT_TYPE_REG register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PIB_INTERRUPT_TYPE_REG, l_data64));
     //l_read_reg = PIB.INTERRUPT_TYPE_REG.CHECKSTOP
-    l_read_reg = l_data64.getBit<2>();
+    l_read_reg = l_data64.getBit<PERV_INTERRUPT_TYPE_REG_CHECKSTOP>();
 
     FAPI_ASSERT(l_read_reg == 0,
                 fapi2::XSTOP_ERR()
