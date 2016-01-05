@@ -13,7 +13,6 @@ extern "C" {
 #include "pk.h"
 #include "pk_trace.h"
 #include "base_ppe_main.h"
-#include "sbe_xip_image.h"
 }
 #define KERNEL_STACK_SIZE   256
 #define MAIN_THREAD_STACK_SIZE  256

@@ -93,7 +93,9 @@ LIB_DIRS += -L$(OBJDIR)/nest
 NESTLIB := $(OBJDIR)/nest/libnest.a
 LLIBS += -lnest
 
-SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_xip_tool $(TOOLS_IMAGE_DIR)/sbe_default_tool
+SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_default_tool
+
+P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
 
 LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB) $(NESTLIB)
 
@@ -175,19 +177,19 @@ endif
 
 all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_entry_offset add_entry_address_sbe symbols tracehash
 
-add_entry_offset: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
-	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_offset 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep sbe_loader | cut -f 1 -d " "`
+add_entry_offset: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_offset 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep sbe_loader | cut -f 1 -d " "`
 
-add_entry_address_sbe: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
-	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_address_sbe 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep base_loader | cut -f 1 -d " "`
+add_entry_address_sbe: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_LOADER_NAME).out
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_address_sbe 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep base_loader | cut -f 1 -d " "`
 
 symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(IMAGE_SBE_NAME).out
 	$(NM) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(OBJDIR)/$(SBE_SYMBOLS_NAME)
 	$(NM) $(OBJDIR)/$(IMAGE_LOADER_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
 	$(NM) $(OBJDIR)/$(IMAGE_SBE_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
 
-seeprom: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
-	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
+seeprom: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
 
 # Create build Info file
 buildInfo:
@@ -283,8 +285,12 @@ endif
 $(SBE_TOOLS):
 	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile
 
-normalize: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
+# Build the P9-XIP Tool
+$(P9_XIP_TOOL):
+	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile #$(P9_XIP_TOOL)
+
+normalize: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 
 defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 	$(TOOLS_IMAGE_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
@@ -311,17 +317,17 @@ $(FAPI_RC): $(TOOLS_ATTR_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
 # The above is commented out as the current version of make produces errors
 # This was taken from the P8 SBE Makefile which worked.
 
-$(OBJDIR)/fixed.bin: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
+$(OBJDIR)/fixed.bin: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
 
 
-appendbase: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin
-	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .base $(OBJDIR)/$(IMAGE_SBE_NAME).bin
+appendbase: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .base $(OBJDIR)/$(IMAGE_SBE_NAME).bin
 
 
 
-appendloader: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
-	$(TOOLS_IMAGE_DIR)/sbe_xip_tool $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
+appendloader: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
 
 #/afs/bb/proj/cte/tools/ppetools/prod/powerpc-eabi/bin/objcopy -O binary --only-section=.fixed $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/fixed.bin
 
@@ -339,6 +345,7 @@ clean:
 	rm -fr $(OBJDIR)
 	rm -f $(TOP-FIXED-HEADERS)
 	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile clean
+	$(MAKE) -C $(P9_XIP_SRCDIR) -f Makefile clean
 	rm -f *.dump
 	rm -f hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H sbe_build_info.H
 	rm -f $(GEN-CREATEATTRGETSETMACROS)

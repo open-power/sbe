@@ -1,5 +1,5 @@
 /// \file sbe_default_tool.c
-/// \brief SBE-XIP image setter tool for attributes in fixed section
+/// \brief P9-XIP image setter tool for attributes in fixed section
 ///
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -18,7 +18,7 @@
 #define __PPE__
 #include "fapi2.H"
 #include "proc_sbe_fixed.H"
-#include "sbe_xip_image.h"
+#include "p9_xip_image.h"
 
 const char* g_usage =
 "Usage: sbe_default_tool <image> <attribute> <value> <target type> <index>\n"
@@ -88,11 +88,11 @@ void assertTarget(const char* str, unsigned int index)
 void setAttribute(void* image, const char* attribute, unsigned int index, uint64_t val) {
 
 
-    SbeXipItem item;
+    P9XipItem item;
     void *thePointer;
     int rc;
 
-    rc = sbe_xip_find(image, attribute, &item);
+    rc = p9_xip_find(image, attribute, &item);
     if (rc) {
         fprintf(stderr, "sbe_default_tool: attribute not existing:");
         fprintf(stderr, " %s", attribute);
@@ -103,40 +103,40 @@ void setAttribute(void* image, const char* attribute, unsigned int index, uint64
     //printf("offset in string section: 0x%x \n",     be32toh(item.iv_toc->iv_id));
     //printf("address: 0x%x index: %2d 0x%x\n", item.iv_address, index, index);
 
-    sbe_xip_image2host(image, item.iv_address, &thePointer);
+    p9_xip_image2host(image, item.iv_address, &thePointer);
 
     // debug purpose
     //printf("pointer1: 0x%x  val: 0x%llx \n", thePointer, val);
 
-    if(item.iv_toc->iv_type == SBE_XIP_UINT8) {
+    if(item.iv_toc->iv_type == P9_XIP_UINT8) {
 
         *((uint8_t*)thePointer + (index * sizeof(uint8_t))) = (uint8_t)val;
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_INT8) {
+    } else if(item.iv_toc->iv_type == P9_XIP_INT8) {
 
         *((int8_t*)thePointer + (index * sizeof(int8_t))) = (int8_t)val;
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_UINT16) {
+    } else if(item.iv_toc->iv_type == P9_XIP_UINT16) {
 
         *((uint16_t*)thePointer + (index * sizeof(uint16_t))) = xipRevLe16((uint16_t)val);
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_INT16) {
+    } else if(item.iv_toc->iv_type == P9_XIP_INT16) {
 
         *((int16_t*)thePointer + (index * sizeof(int16_t))) = xipRevLe16((int16_t)val);
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_UINT32) {
+    } else if(item.iv_toc->iv_type == P9_XIP_UINT32) {
 
         *((uint32_t*)thePointer + (index * sizeof(uint32_t))) = xipRevLe32((uint32_t)val);
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_INT32) {
+    } else if(item.iv_toc->iv_type == P9_XIP_INT32) {
 
         *((int32_t*)thePointer + (index * sizeof(int32_t))) = xipRevLe32((int32_t)val);
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_UINT64) {
+    } else if(item.iv_toc->iv_type == P9_XIP_UINT64) {
 
         *((uint64_t*)thePointer + (index * sizeof(uint64_t))) = xipRevLe64((uint64_t)val);
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_INT64) {
+    } else if(item.iv_toc->iv_type == P9_XIP_INT64) {
 
         *((int64_t*)thePointer + (index * sizeof(int64_t))) = xipRevLe64((int64_t)val);
 
@@ -148,8 +148,8 @@ void setAttribute(void* image, const char* attribute, unsigned int index, uint64
 
 
 
-    SBE_XIP_SECTION_NAMES(section_name);
-    SBE_XIP_TYPE_STRINGS(type_name);
+    P9_XIP_SECTION_NAMES(section_name);
+    P9_XIP_TYPE_STRINGS(type_name);
 
     // debug purpose
     //printf("pointer2: 0x%x \n", thePointer + index);
@@ -166,51 +166,51 @@ uint64_t getAttribute(void* image, const char* attribute, unsigned int index) {
 
     uint64_t val = 0;
 
-    SbeXipItem item;
+    P9XipItem item;
     void *thePointer;
     int rc;
 
-    rc = sbe_xip_find(image, attribute, &item);
+    rc = p9_xip_find(image, attribute, &item);
     if (rc) {
         fprintf(stderr, "sbe_default_tool: attribute not existing:");
         fprintf(stderr, " %s", attribute);
         exit(1);
     }
 
-    sbe_xip_image2host(image, item.iv_address, &thePointer);
+    p9_xip_image2host(image, item.iv_address, &thePointer);
 
-    if(item.iv_toc->iv_type == SBE_XIP_UINT8) {
+    if(item.iv_toc->iv_type == P9_XIP_UINT8) {
 
         val = *((uint8_t*)thePointer + (index * sizeof(uint8_t)));
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_INT8) {
+    } else if(item.iv_toc->iv_type == P9_XIP_INT8) {
 
         val = *((int8_t*)thePointer + (index * sizeof(int8_t)));
         val &= 0xFF;
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_UINT16) {
+    } else if(item.iv_toc->iv_type == P9_XIP_UINT16) {
 
         val = xipRevLe16(*((uint16_t*)thePointer + (index * sizeof(uint16_t))));
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_INT16) {
+    } else if(item.iv_toc->iv_type == P9_XIP_INT16) {
 
         val = xipRevLe16(*((int16_t*)thePointer + (index * sizeof(int16_t))));
         val &= 0xFFFF;
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_UINT32) {
+    } else if(item.iv_toc->iv_type == P9_XIP_UINT32) {
 
         val = xipRevLe32(*((uint32_t*)thePointer + (index * sizeof(uint32_t))));
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_INT32) {
+    } else if(item.iv_toc->iv_type == P9_XIP_INT32) {
 
         val = xipRevLe32(*((int32_t*)thePointer + (index * sizeof(int32_t))));
         val &= 0xFFFFFFFF;
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_UINT64) {
+    } else if(item.iv_toc->iv_type == P9_XIP_UINT64) {
 
         val = xipRevLe64(*((uint64_t*)thePointer + (index * sizeof(uint64_t))));
 
-    } else if(item.iv_toc->iv_type == SBE_XIP_INT64) {
+    } else if(item.iv_toc->iv_type == P9_XIP_INT64) {
 
         val = xipRevLe64(*((int64_t*)thePointer + (index * sizeof(int64_t))));
 
