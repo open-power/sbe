@@ -11,7 +11,7 @@
 
 
 #include "sbe_link.H"
-#include "sbe_xip_image.h"
+#include "p9_xip_image.h"
 //#include "sbe_xip_header.H"
 
 /// Macros for generating the .fixed section
@@ -24,7 +24,7 @@
 /// In assembler each invocation also creates space in the .fixed_toc section
 /// for a fixed TOC entry.  Unlike the normal TOC no data is generated for
 /// .fixed_toc by the data declaration.  Instead, the fixed TOC table is
-/// filled in during image normalization by normalizeToc (sbe_xip_image.c)
+/// filled in during image normalization by normalizeToc (p9_xip_image.c)
 /// which requires that there be one and only one fixed TOC entery allocated
 /// per TOC entry referencing the .fixed section. This means that in the
 /// current implementation it is not possible to create .fixed_toc entries
@@ -39,7 +39,7 @@
     .byte 0
     .endr
 
-    .xip_toc \symbol, SBE_XIP_UINT8, \symbol, ((\tnumber)*(\elements))
+    .xip_toc \symbol, P9_XIP_UINT8, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -54,7 +54,7 @@
     .byte 0
     .endr
 
-    .xip_toc \symbol, SBE_XIP_INT8, \symbol, ((\tnumber)*(\elements))
+    .xip_toc \symbol, P9_XIP_INT8, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -71,7 +71,7 @@
     .byte 0,0
     .endr
 
-    .xip_toc \symbol, SBE_XIP_UINT16, \symbol, ((\tnumber)*(\elements))
+    .xip_toc \symbol, P9_XIP_UINT16, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -88,7 +88,7 @@
     .byte 0,0
     .endr
 
-    .xip_toc \symbol, SBE_XIP_INT16, \symbol, ((\tnumber)*(\elements))
+    .xip_toc \symbol, P9_XIP_INT16, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -105,7 +105,7 @@
     .long 0
     .endr
 
-    .xip_toc \symbol, SBE_XIP_UINT32, \symbol, ((\tnumber)*(\elements))
+    .xip_toc \symbol, P9_XIP_UINT32, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -122,7 +122,7 @@
     .long 0
     .endr
 
-    .xip_toc \symbol, SBE_XIP_INT32, \symbol, ((\tnumber)*(\elements))
+    .xip_toc \symbol, P9_XIP_INT32, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space  8
@@ -138,7 +138,7 @@
     .quad 0
     .endr
 
-    .xip_toc \symbol, SBE_XIP_UINT64, \symbol, ((\tnumber)*(\elements))
+    .xip_toc \symbol, P9_XIP_UINT64, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space     8
@@ -154,7 +154,7 @@
     .quad 0
     .endr
 
-    .xip_toc \symbol, SBE_XIP_INT64, \symbol, ((\tnumber)*(\elements))
+    .xip_toc \symbol, P9_XIP_INT64, \symbol, ((\tnumber)*(\elements))
 
     .pushsection .fixed_toc
     .space     8
@@ -167,7 +167,7 @@
 \symbol\():
     .quadia (\space), (\address)
 
-    .xip_toc \symbol, SBE_XIP_UINT64, \symbol
+    .xip_toc \symbol, P9_XIP_UINT64, \symbol
 
     .pushsection .fixed_toc
     .space  8

@@ -7,9 +7,9 @@
 /// \file base_ppe_header.S
 /// \brief code to create header, toc, strings, fixed and fixed_toc sections
 ///
-/// function SbeXipHeader creates header section, function .proc_sbe_fixed
+/// function P9XipHeader creates header section, function .proc_sbe_fixed
 /// creates fixed, fixed_toc sections
-#include "sbe_xip_image.h"
+#include "p9_xip_image.h"
 #include "proc_sbe_fixed.H"
 
 
@@ -62,9 +62,9 @@
 	.endm
 
 
-//    .macro	SbeXipHeader, magic, link_address, entry_point, image_size
+//    .macro	P9XipHeader, magic, link_address, entry_point, image_size
 
-	.macro	SbeXipSection, s:req, alignment=1, empty=0
+	.macro	P9XipSection, s:req, alignment=1, empty=0
 __\s\()_section:
 	.if	\empty
 		.long	0
@@ -78,7 +78,7 @@ __\s\()_section:
 	.endm
 
 
-	.macro	SbeXipHeader, magic, link_address, entry_point, image_size
+	.macro	P9XipHeader, magic, link_address, entry_point, image_size
 
 	.section .header, "a", @progbits
 
@@ -98,29 +98,29 @@ __entry_address_sbe:
 __header_64_reserved:
 	.quad	0, 0, 0, 0
 
-	.xip_toc magic, SBE_XIP_UINT64, __magic
-	.xip_toc entry_offset, SBE_XIP_UINT64, __entry_offset
-	.xip_toc link_address, SBE_XIP_UINT64, __link_address	
-	.xip_toc entry_address_sbe, SBE_XIP_UINT64, __entry_address_sbe
+	.xip_toc magic, P9_XIP_UINT64, __magic
+	.xip_toc entry_offset, P9_XIP_UINT64, __entry_offset
+	.xip_toc link_address, P9_XIP_UINT64, __link_address	
+	.xip_toc entry_address_sbe, P9_XIP_UINT64, __entry_address_sbe
      
         //////////////////////////////////////////////////////////////////////
         // Section Table - 8-byte aligned; 16 entries; Not TOC-Indexed
         //////////////////////////////////////////////////////////////////////
 
-        SbeXipSection header
-        SbeXipSection fixed,                8
-        SbeXipSection fixed_toc,            8
-        SbeXipSection loader_text,          4
-        SbeXipSection loader_data,          8
-        SbeXipSection text,                 4
-        SbeXipSection data,                 8
-        SbeXipSection toc,                  4
-        SbeXipSection strings
-        SbeXipSection base,                 4, empty=1
-        SbeXipSection baseloader,           8, empty=1
-        SbeXipSection overlay,              8, empty=1
-        SbeXipSection rings,                8, empty=1
-        SbeXipSection hbbl,                 8, empty=1
+        P9XipSection header
+        P9XipSection fixed,                8
+        P9XipSection fixed_toc,            8
+        P9XipSection loader_text,          4
+        P9XipSection loader_data,          8
+        P9XipSection text,                 4
+        P9XipSection data,                 8
+        P9XipSection toc,                  4
+        P9XipSection strings
+        P9XipSection base,                 4, empty=1
+        P9XipSection baseloader,           8, empty=1
+        P9XipSection overlay,              8, empty=1
+        P9XipSection rings,                8, empty=1
+        P9XipSection hbbl,                 8, empty=1
 
 
         //////////////////////////////////////////////////////////////////////
@@ -136,9 +136,9 @@ __build_time:
 __header_32_reserved:
 	.long	0, 0, 0, 0, 0
 
-	.xip_toc image_size, SBE_XIP_UINT32, __image_size
-	.xip_toc build_date, SBE_XIP_UINT32, __build_date
-	.xip_toc build_time, SBE_XIP_UINT32, __build_time
+	.xip_toc image_size, P9_XIP_UINT32, __image_size
+	.xip_toc build_date, P9_XIP_UINT32, __build_date
+	.xip_toc build_time, P9_XIP_UINT32, __build_time
 
 
         //////////////////////////////////////////////////////////////////////
@@ -146,7 +146,7 @@ __header_32_reserved:
         //////////////////////////////////////////////////////////////////////
 
 __header_version:
-	.byte	SBE_XIP_HEADER_VERSION
+	.byte	P9_XIP_HEADER_VERSION
 __toc_normalized:
 	.byte	0
 __toc_sorted:
@@ -154,9 +154,9 @@ __toc_sorted:
 __header_8_reserved:
 	.byte	0, 0, 0, 0, 0
 
-	.xip_toc header_version, SBE_XIP_UINT8, __header_version
-	.xip_toc toc_normalized, SBE_XIP_UINT8, __toc_normalized
-	.xip_toc toc_sorted, SBE_XIP_UINT8, __toc_sorted
+	.xip_toc header_version, P9_XIP_UINT8, __header_version
+	.xip_toc toc_normalized, P9_XIP_UINT8, __toc_normalized
+	.xip_toc toc_sorted, P9_XIP_UINT8, __toc_sorted
 
 
         //////////////////////////////////////////////////////////////////////
@@ -170,8 +170,8 @@ __build_host:
 __header_string_reserved:
 	.space	24, 0
 
-	.xip_toc build_user, SBE_XIP_STRING, __build_user
-	.xip_toc build_host, SBE_XIP_STRING, __build_host
+	.xip_toc build_user, P9_XIP_STRING, __build_user
+	.xip_toc build_host, P9_XIP_STRING, __build_host
 
 
 	.endm
@@ -186,7 +186,7 @@ __header_string_reserved:
     .section .strings, "aS", @progbits
 
     ..set_default_space IMAGE_SPACE_SEEPROM
-    SbeXipHeader SBE_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _seeprom_size
+    P9XipHeader P9_SEEPROM_MAGIC, 0xFFF00000, 0xFFF00C78, _seeprom_size
 
     // Create the .fixed section
     .proc_sbe_fixed_system

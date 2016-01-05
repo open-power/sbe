@@ -1,7 +1,7 @@
 /// \file sbefixed.S
 /// \brief code to generated fixed section in pibmem image
 ///
-#include "sbe_xip_image.h"
+#include "p9_xip_image.h"
 #include "proc_sbe_fixed.H"
 
 
