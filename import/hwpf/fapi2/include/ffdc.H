@@ -69,7 +69,8 @@ class FirstFailureData
         //  problem.
         ///
         FirstFailureData(void):
-            iv_info( nullptr ), iv_platDataPtr(nullptr)
+            iv_info( nullptr )
+//            iv_info( nullptr ), iv_platDataPtr(nullptr)
         {}
 
         ///
@@ -177,7 +178,7 @@ class FirstFailureData
         {
             iv_info = nullptr;
         }
-
+#if 0
         ///
         /// @brief Returns the platform data pointer value to the caller.
         ///
@@ -194,14 +195,14 @@ class FirstFailureData
         {
             iv_platDataPtr = i_ptr;
         };
-
+#endif
     private:
 
         // Pointer to the error info
         std::shared_ptr<ErrorInfo> iv_info;
 
         // free format data, to be used by the platform
-        void*    iv_platDataPtr;
+//        void*    iv_platDataPtr;
 };
 
 }
