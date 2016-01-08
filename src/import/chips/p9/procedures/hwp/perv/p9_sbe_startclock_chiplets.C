@@ -48,8 +48,6 @@ enum P9_SBE_STARTCLOCK_CHIPLETS_Private_Constants
 {
     DONT_STARTMASTER = 0x0,
     DONT_STARTSLAVE = 0x0,
-    STARTMASTER = 0x1,
-    STARTSLAVE = 0x1,
     CLOCK_CMD = 0x1,
     CLOCK_TYPES = 0x7,
     REGIONS_ALL_EXCEPT_VITAL_NESTPLL = 0x7FE
@@ -83,16 +81,15 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
                || l_attr_chip_unit_pos == 0x0C/* ObusChiplet */) ||
               (l_attr_chip_unit_pos == 0x0D || l_attr_chip_unit_pos == 0x0E
                || l_attr_chip_unit_pos == 0x0F/* PcieChiplet */) ||
-              (l_attr_chip_unit_pos == 0x06/* XbusChiplet */)
-             ))
+              (l_attr_chip_unit_pos == 0x06/* XbusChiplet */)))
         {
             continue;
         }
 
-        FAPI_INF("Call proc_sbe_nest_startclocks_cplt_ctrl_action_function for xbus, obus, pcie chiplets");
+        FAPI_INF("Call p9_sbe_startclock_chiplets_cplt_ctrl_action_function for xbus, obus, pcie chiplets");
         FAPI_TRY(p9_sbe_startclock_chiplets_cplt_ctrl_action_function(l_trgt_chplt));
 
-        FAPI_INF("call sync config module for xbus, obus, pcie chiplets");
+        FAPI_INF("Disable listen to sync for all non-master/slave chiplets");
         FAPI_TRY(p9_sbe_startclock_chiplets_sync_config(l_trgt_chplt));
 
         FAPI_INF("call module align chiplets for xbus, obus, pcie chiplets");
@@ -103,7 +100,7 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
                                                 DONT_STARTSLAVE, DONT_STARTMASTER, REGIONS_ALL_EXCEPT_VITAL_NESTPLL,
                                                 CLOCK_TYPES));
 
-        FAPI_INF("call sbe_nest_startclocks_check_checkstop_function for xbus, obus, pcie chiplets");
+        FAPI_INF("call sbe_startclock_chiplets_check_checkstop_function for xbus, obus, pcie chiplets");
         FAPI_TRY(p9_sbe_startclock_chiplets_check_checkstop_function(l_trgt_chplt));
     }
 
@@ -177,6 +174,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_cplt_ctrl_action_function(
 
     // Not needed as have only nest chiplet (no dual clock controller) Bit 62 ->0
     //
+    FAPI_INF("Drop partial good fences");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>
@@ -208,9 +206,9 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_cplt_ctrl_action_function(
     FAPI_INF("reset abistclk_muxsel and syncclk_muxsel");
     //Setting CPLT_CTRL0 register value
     l_data64.flush<0>();
-    //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 1
+    //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 0
     l_data64.setBit<PERV_1_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
-    //CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 1
+    //CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 0
     l_data64.setBit<PERV_1_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_CLEAR, l_data64));
 
