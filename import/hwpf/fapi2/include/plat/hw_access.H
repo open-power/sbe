@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2012,2015                                                    */
+/* COPYRIGHT 2012,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -229,6 +229,28 @@ inline ReturnCode modifyCfamRegister(const Target<K>& i_target,
     return FAPI2_RC_SUCCESS;
 }
 
+/// @brief Platform-level implementation  of putRing()
+/// Hardware procedures writers will not call this function.
+/// @tparam K template parameter, passed in target.
+/// @param[in] i_target   Target to operate on.
+/// @param[in] i_ringID   Ring ID that will identify the Ring in the image.
+/// @param[in] i_ringMode Ring operation mode.
+/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+template< TargetType K >
+inline ReturnCode putRing(const Target<K>& i_target,
+                          const RingID i_ringID,
+                          const RingMode i_ringMode)
+{
+    std::cout << std::hex << "   putRing "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "Ring ID: " << i_ringID << "; "
+              << "ring mode: " << i_ringMode
+              << std::endl;
+
+    return FAPI2_RC_SUCCESS;
+}
+
 // variable_buffer isn't supported on PPE
 #ifndef __PPE__
 ///
@@ -255,32 +277,6 @@ inline ReturnCode getRing(const Target<K>& i_target,
               << "ring address: " << i_address << "; "
               << "ring mode: " << i_ringMode << "; "
               << "first element of output data: " << o_data()[0]
-              << std::endl;
-
-    return FAPI2_RC_SUCCESS;
-}
-
-/// @brief Platform-level implementation  of putRing()
-/// Hardware procedures writers will not call this function.
-/// @tparam K template parameter, passed in target.
-/// @param[in] i_target   Target to operate on.
-/// @param[in] i_address  Ring address to write to.
-/// @param[in] i_data     Buffer that contains RS4 compressed ring data
-///                       to write into address
-/// @param[in] i_ringMode Ring operation mode.
-/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-template< TargetType K >
-inline ReturnCode putRing(const Target<K>& i_target,
-                          const scanRingId_t i_address,
-                          const variable_buffer& i_data,
-                          const RingMode i_ringMode)
-{
-    std::cout << std::hex << "   putRing "
-              << "target: {" << i_target.getType() << ","
-              << uint64_t(i_target) << "}; "
-              << "address: " << i_address << "; "
-              << "ring mode: " << i_ringMode << "; "
-              << "first element of the input data: " << i_data()[0]
               << std::endl;
 
     return FAPI2_RC_SUCCESS;
