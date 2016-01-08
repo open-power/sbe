@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -58,7 +58,7 @@ typedef fapi2::ReturnCode(*p9_sbe_load_bootloader_FP_t) (
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
     const fapi2::Target<fapi2::TARGET_TYPE_EX>&,
     const uint64_t,
-    uint64_t*);
+    uint8_t*);
 
 //-----------------------------------------------------------------------------------
 // Constant definitions

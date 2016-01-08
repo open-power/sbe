@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -126,6 +126,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
         while (l_num_cachelines_to_roll &&
                (l_target_address < (l_chip_base_address_nm + i_payload_size)))
         {
+
             FAPI_TRY(p9_pba_access(i_master_chip_target,
                                    l_target_address,
                                    PBA_HWP_WRITE_OP,
@@ -141,7 +142,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
 
             // stride address/payload data pointer offset to next cacheline
             l_target_address += FABRIC_CACHELINE_SIZE;
-            l_payload_data_offset += (FABRIC_CACHELINE_SIZE / sizeof(uint64_t));
+            l_payload_data_offset += (FABRIC_CACHELINE_SIZE / sizeof(uint8_t));
         }
 
     }
