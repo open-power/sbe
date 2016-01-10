@@ -1,0 +1,42 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/xml/error_info/p9_sbe_check_master_stop15_errors.xml $ -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2015,2016                                                    -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_CHECK_MASTER_STOP15_PENDING</rc>
+    <description>
+      Procedure: p9_sbe_check_master_stop15
+      Indicates that STOP15 on the Master Hostboot processor is in a valid
+       transition state (eg pending).  This return code would be used by the
+       caller (SBE control loop) to determine whether to continue polling for
+       a completed transition.
+    </description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_CHECK_MASTER_STOP15_COMPLETE_WRONG_ACTUAL</rc>
+    <description>
+      Procedure: p9_sbe_check_master_stop15
+      Indicates that STOP15 on the Master Hostboot processor has completed but
+      does not indicate the correct actual level.
+    </description>
+    <ffdc>HISTORY_REG</ffdc>
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
