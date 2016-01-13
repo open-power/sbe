@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -21,7 +21,7 @@
 ///
 /// @brief Modules for scan 0 and array init
 //------------------------------------------------------------------------------
-// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HW Owner        : Anusha Reddy Rangareddygari <anusrang@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : sunil kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
@@ -90,7 +90,14 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     fapi2::buffer<uint64_t> l_data64_clk_region;
     FAPI_DBG("Entering ...");
 
-    FAPI_INF("Start pervasive Clocks");
+    FAPI_INF("Drop vital fence (moved to arrayinit from scan0 module)");
+    //Setting CPLT_CTRL1 register value
+    l_data64.flush<0>();
+    //CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
+    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL1_CLEAR, l_data64));
+
+    FAPI_INF("Start pervasive region Clocks");
     l_data64_clk_region.flush<0>();
     //Setting CLK_REGION register value
     l_data64_clk_region.insertFromRight<PERV_1_CLK_REGION_CLOCK_CMD, PERV_1_CLK_REGION_CLOCK_CMD_LEN>
@@ -102,10 +109,8 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     l_data64_clk_region.setBit<PERV_1_CLK_REGION_SEL_THOLD_NSL>();
     //CLK_REGION.SEL_THOLD_ARY = 1
     l_data64_clk_region.setBit<PERV_1_CLK_REGION_SEL_THOLD_ARY>();
-    FAPI_INF("Clock start data : %#018lX", l_data64_clk_region);
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
                             l_data64_clk_region));
-    
 
     FAPI_INF("Mask all LFIR's in Chiplet Global FIR");
     //Setting FIR_MASK register value
@@ -117,7 +122,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     //SPA_MASK = 0xFFFFFFFFFFFFFFFF
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_SPA_MASK, 0xFFFFFFFFFFFFFFFF));
 
-    FAPI_INF("Stop Pervasive clocks");
+    FAPI_INF("Stop Pervasive region clocks");
     l_data64_clk_region.flush<0>();
     //Setting CLK_REGION register value
     l_data64_clk_region.insertFromRight<PERV_1_CLK_REGION_CLOCK_CMD, PERV_1_CLK_REGION_CLOCK_CMD_LEN>
@@ -129,10 +134,8 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     l_data64_clk_region.setBit<PERV_1_CLK_REGION_SEL_THOLD_NSL>();
     //CLK_REGION.SEL_THOLD_ARY = 1
     l_data64_clk_region.setBit<PERV_1_CLK_REGION_SEL_THOLD_ARY>();
-    FAPI_INF("Clock stop data : %#018lX", l_data64_clk_region);
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
                             l_data64_clk_region));
-    
 
     FAPI_INF("Setup ABISTMUX_SEL");
     //Setting CPLT_CTRL0 register value
@@ -208,13 +211,6 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     l_data64_clk_region.setBit<PERV_1_CLK_REGION_SEL_THOLD_ARY>();
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
                             l_data64_clk_region));
-
-    FAPI_INF("Drop Vital Fence(moved to arrayinit from scan0 module)");
-    //Setting CPLT_CTRL1 register value
-    l_data64.flush<0>();
-    //CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
-    FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
     FAPI_INF("Drop Region fences");
     //Setting CPLT_CTRL1 register value
@@ -419,7 +415,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     l_data64.setBit<PERV_1_CLK_REGION_SEL_THOLD_ARY>();
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION, l_data64));
 
-    FAPI_INF("Write scan select registers");
+    FAPI_INF("Write scan select register");
     //Setting SCAN_REGION_TYPE register value
     l_data64.flush<0>();  //SCAN_REGION_TYPE = 0
     //SCAN_REGION_TYPE.SCAN_REGION_PERV = i_regions.getBit<5>()
@@ -504,7 +500,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     FAPI_INF("Loop Count :%d", l_timeout);
 
     FAPI_ASSERT(l_timeout > 0,
-                fapi2::SBE_ARRAYINIT_POLL_THRESHOLD_ERR(),
+                fapi2::SBE_SCAN0_DONE_POLL_THRESHOLD_ERR(),
                 "ERROR:OPCG DONE BIT NOT SET");
 
     //os0m_poll_done
