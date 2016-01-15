@@ -84,6 +84,7 @@ CAUSE_EFFECT {
 }
 
 ##
+<<<<<<< HEAD
 ## Actions for Procedure - p9_pm_pba_init
 ##
 
@@ -417,3 +418,37 @@ CAUSE_EFFECT {
   EFFECT: TARGET=[REG(0x370F0114)] OP=[EQUALTO,BUF] DATA=[SSH(0x0)]
 }
 ## Core23 End
+
+##
+# Actions for Procedure - p9_block_wakeup_intr
+##
+
+# Core Power Management Mode Register
+CAUSE_EFFECT {
+  LABEL=[CPMMR Write OR of PPM Write Override]
+  WATCH=[REG(0x290F0108)]
+  CAUSE: TARGET=[REG(0x290F0108)] OP=[BIT,ON] BIT=[1]
+  EFFECT: TARGET=[REG(0x290F0106)] OP=[BIT,ON] BIT=[1]
+}
+
+CAUSE_EFFECT {
+  LABEL=[CPMMR Write CLEAR of PPM Write Override]
+  WATCH=[REG(0x290F0107)]
+  CAUSE: TARGET=[REG(0x290F0107)] OP=[BIT,ON] BIT=[1]
+  EFFECT: TARGET=[REG(0x290F0106)] OP=[BIT,OFF] BIT=[1]
+}
+
+# General Power Management Mode Register
+CAUSE_EFFECT {
+  LABEL=[GPMMR Write OR of Block Wakeup Events]
+  WATCH=[REG(0x290F0102)]
+  CAUSE: TARGET=[REG(0x290F0102)] OP=[BIT,ON] BIT=[6]
+  EFFECT: TARGET=[REG(0x290F0100)] OP=[BIT,ON] BIT=[6]
+}
+
+CAUSE_EFFECT {
+  LABEL=[GPMMR Write CLEAR of PPM Write Override]
+  WATCH=[REG(0x290F0101)]
+  CAUSE: TARGET=[REG(0x290F0101)] OP=[BIT,ON] BIT=[6]
+  EFFECT: TARGET=[REG(0x290F0100)] OP=[BIT,OFF] BIT=[6]
+}
