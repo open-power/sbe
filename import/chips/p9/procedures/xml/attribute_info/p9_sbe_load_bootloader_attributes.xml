@@ -7,7 +7,7 @@
 <!--                                                                        -->
 <!-- EKB Project                                                            -->
 <!--                                                                        -->
-<!-- COPYRIGHT 2015                                                         -->
+<!-- COPYRIGHT 2015,2016                                                    -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -41,6 +41,38 @@
   this will be added with the bootloader offset and the base address to get the
   target base addres</description>
   <valueType>uint64</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+<attribute>
+  <id>ATTR_PNOR_SIZE</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>Defines size of PNOR that will be put into the exception vector if written</description>
+  <valueType>uint16</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+<attribute>
+  <id>ATTR_SBE_BOOT_SIDE</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>Defines sbe boot side that will be put into the exception vector if written</description>
+  <valueType>uint8</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+<attribute>
+  <id>ATTR_PNOR_BOOT_SIDE</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>Defines boot side of PNOR that will be put into the exception vector if written</description>
+  <valueType>uint8</valueType>
+  <persistRuntime/>
+  <platInit/>
+</attribute>
+<attribute>
+  <id>ATTR_SBE_HBBL_EXCEPTION_INSTRUCT</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>Instruction for exception vector that will be put into the exception vector if not 0</description>
+  <valueType>uint32</valueType>
   <persistRuntime/>
   <platInit/>
 </attribute>

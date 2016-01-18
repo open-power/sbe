@@ -46,7 +46,8 @@
 const bool PBA_HWP_WRITE_OP = false;
 const uint32_t PBA_HWP_FLAGS = FLAG_FASTMODE | // fastmode
                                ((p9_pba_write_ttype::LCO << FLAG_TTYPE_SHIFT) & p9_pba_flags::FLAG_TTYPE);   // LCO_M
-
+const int EXCEPTION_VECTOR_NUM_CACHELINES = 96;
+const uint32_t SBE_BOOTLOADER_VERSION = 0x901;
 //-----------------------------------------------------------------------------------
 // Function definitions
 //-----------------------------------------------------------------------------------
@@ -58,13 +59,22 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     uint8_t* i_payload_data)
 {
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    //the branching instruction for 12KB past where it currently is (1024 * 12 = 12288 = 0x3000)
+    //The branch instruction is 0100 10_address to branch to_ 0  0
+    //                      0      6                   29 30 31
+    //bit 30 is for absolute address (since it is not set this is relative)
+    const uint32_t l_branch_to_12 = 0x4800C000ull;
     uint64_t l_bootloader_offset;
     uint64_t l_hostboot_hrmor_offset;
     uint64_t l_chip_base_address_nm;
     uint64_t l_chip_base_address_m;
     uint64_t l_target_address;
-    uint64_t l_payload_data_offset;
-    bool firstAccess = true;
+    uint32_t l_exception_instruction;
+    bool l_firstAccess = true;
+    uint32_t l_num_cachelines_to_roll;
+    uint8_t l_data_to_pass_to_pba_array[FABRIC_CACHELINE_SIZE];
+    uint32_t l_exception_vector_size = 0;
+    int l_cacheline_num = 0;
 
     FAPI_DBG("Start");
 
@@ -78,7 +88,6 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     // target base address = (chip non-mirrored base address) +
     //                       (hostboot HRMOR offset) +
     //                       (bootloader offset)
-
     FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_master_chip_target,
              l_chip_base_address_nm,
              l_chip_base_address_m),
@@ -97,6 +106,30 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                 set_HRMOR_OFFSET(l_hostboot_hrmor_offset).
                 set_BOOTLOADER_OFFSET(l_bootloader_offset),
                 "Target base address is not cacheline aligned!");
+
+    //Check to see if we need to populate the exception vectors
+    //Check the SBE_HBBL_EXCEPTION_INSTRUCT attribute
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_HBBL_EXCEPTION_INSTRUCT, FAPI_SYSTEM, l_exception_instruction),
+             "fapiGetAttribute of ATTR_SBE_HBBL_EXCEPTION_INSTRUCT failed!");
+
+    l_target_address = l_chip_base_address_nm;
+
+    BootloaderConfigData_t l_bootloader_config_data;
+
+    l_bootloader_config_data.version = SBE_BOOTLOADER_VERSION;
+
+    //At address X + 0x8 put whatever is in ATTR_SBE_BOOT_SIDE
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_BOOT_SIDE, FAPI_SYSTEM, l_bootloader_config_data.sbeBootSide),
+             "fapiGetAttribute of ATTR_SBE_BOOT_SIDE failed!");
+
+    //At address X + 0x9 put whatever is in ATTR_PNOR_BOOT_SIDE
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PNOR_BOOT_SIDE, FAPI_SYSTEM, l_bootloader_config_data.pnorBootSide),
+             "fapiGetAttribute of ATTR_PNOR_BOOT_SIDE failed!");
+
+    //At address X + 0xA put whatever is in ATTR_PNOR_SIZE
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PNOR_SIZE, FAPI_SYSTEM, l_bootloader_config_data.pnorSizeMB),
+             "fapiGetAttribute of ATTR_PNOR_SIZE failed!");
+
     // check that the payload size is non-zero and evenly divisible into cachelines
     FAPI_ASSERT(i_payload_size && !(i_payload_size % FABRIC_CACHELINE_SIZE),
                 fapi2::P9_SBE_LOAD_BOOTLOADER_INVALID_PAYLOAD_SIZE().
@@ -106,13 +139,15 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                 "Payload size is invalid!");
 
     // move data using PBA setup/access HWPs
-    l_target_address = l_chip_base_address_nm;
-    l_payload_data_offset = 0;
 
-    while (l_target_address < (l_chip_base_address_nm + i_payload_size))
+    if (l_exception_instruction != 0x0)
+    {
+        l_exception_vector_size = EXCEPTION_VECTOR_NUM_CACHELINES * FABRIC_CACHELINE_SIZE;
+    }
+
+    while (l_target_address < (l_chip_base_address_nm + i_payload_size + l_exception_vector_size))
     {
         // invoke PBA setup HWP to prep stream
-        uint32_t l_num_cachelines_to_roll;
         FAPI_TRY(p9_pba_setup( i_master_chip_target,
                                i_master_ex_target,
                                l_target_address,
@@ -120,31 +155,90 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                                PBA_HWP_FLAGS,
                                l_num_cachelines_to_roll), "Error from p9_pba_setup");
 
-        firstAccess = true;
+        l_firstAccess = true;
 
         // call PBA access HWP per cacheline to move payload data
         while (l_num_cachelines_to_roll &&
-               (l_target_address < (l_chip_base_address_nm + i_payload_size)))
+               (l_target_address < (l_chip_base_address_nm + i_payload_size + l_exception_vector_size)))
         {
+            if ((l_cacheline_num == 0) && (l_exception_instruction != 0))
+            {
+                //This is for the first cacheline of data that has the branch, pnor_size, and pnor_boot_side in it
+                //The rest of the exception vector is what was in SBE_HBBL_EXCEPTION_INSTRUCT replicated multiple times (until the end of 12KB of exception vector data)
+                for (uint32_t i = 0; i < FABRIC_CACHELINE_SIZE; i++)
+                {
+                    //At address X put whatever is in l_branch_to_12
+                    if (i < 4)
+                    {
+                        l_data_to_pass_to_pba_array[i] = (l_branch_to_12 >> (24 - 8 * i )) & 0xFF;
+                    }
+                    //At address X + 0x4 put the HBBL_STRUCT_VERSION
+                    else if (i < 8)
+                    {
+                        l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.version >> (24 - 8 * ((i - 4) % 4))) & 0xFF;
+                    }
+                    //At address X + 0x8 put the SBE_BOOT_SIDE
+                    else if (i == 8)
+                    {
+                        l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.sbeBootSide;
+                    }
+                    //At address X + 0x9 put the PNOR_BOOT_SIDE
+                    else if (i  == 9)
+                    {
+                        l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.pnorBootSide;
+                    }
+                    //At address X + 0xA pu the PNOR_SIZE
+                    else if (i == 10)
+                    {
+                        l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.pnorSizeMB >> 8 & 0xFF;
+                    }
+                    else if (i == 11)
+                    {
+                        l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.pnorSizeMB & 0xFF;
+                    }
+                    //Fill the rest with the exception vector instruction
+                    else
+                    {
+                        l_data_to_pass_to_pba_array[i] = (l_exception_instruction >> (24 - 8 * (i % 4))) & 0xFF;
+                    }
+                }
+            }
+            else if ((l_cacheline_num  == 1) && (l_exception_instruction != 0))
+            {
+                //This is for the other 95 cachelines that we are sending
+                for (uint32_t i = 0; i < FABRIC_CACHELINE_SIZE; i++)
+                {
+                    l_data_to_pass_to_pba_array[i] = (l_exception_instruction >> (24 - 8 * (i % 4))) & 0xFF;
+                }
+            }
+            else if ((l_cacheline_num >= EXCEPTION_VECTOR_NUM_CACHELINES) || (l_exception_instruction == 0))
+            {
+                //This is for the data after the exception vector
+                for (uint32_t i = 0; i < FABRIC_CACHELINE_SIZE; i++)
+                {
+                    l_data_to_pass_to_pba_array[i] = i_payload_data[((l_cacheline_num - (l_exception_vector_size / FABRIC_CACHELINE_SIZE)) *
+                                                     FABRIC_CACHELINE_SIZE)
+                                                     + i];
+                }
+            }
 
             FAPI_TRY(p9_pba_access(i_master_chip_target,
                                    l_target_address,
                                    PBA_HWP_WRITE_OP,
                                    PBA_HWP_FLAGS,
-                                   firstAccess,
+                                   l_firstAccess,
                                    (l_num_cachelines_to_roll == 1) ||
                                    ((l_target_address + FABRIC_CACHELINE_SIZE) >
-                                    (l_chip_base_address_nm + i_payload_size)),
-                                   i_payload_data + l_payload_data_offset), "Error from p9_pba_access");
-            firstAccess = false;
+                                    (l_chip_base_address_nm + i_payload_size + l_exception_vector_size)),
+                                   l_data_to_pass_to_pba_array), "Error from p9_pba_access");
+            l_firstAccess = false;
             // decrement count of cachelines remaining in current stream
             l_num_cachelines_to_roll--;
 
             // stride address/payload data pointer offset to next cacheline
             l_target_address += FABRIC_CACHELINE_SIZE;
-            l_payload_data_offset += (FABRIC_CACHELINE_SIZE / sizeof(uint8_t));
+            l_cacheline_num++;
         }
-
     }
 
 fapi_try_exit:
