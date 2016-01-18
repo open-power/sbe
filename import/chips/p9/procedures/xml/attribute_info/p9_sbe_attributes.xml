@@ -528,5 +528,21 @@
   <entry>
            <name>ATTR_MASTER_EX</name>
   </entry>
-
+  <entry> 
+           <name>ATTR_PNOR_SIZE</name>
+           <value>0x00</value>
+  </entry>
+  <entry>
+           <name>ATTR_PNOR_BOOT_SIDE</name>
+           <value>0x00</value>
+  </entry>
+  <entry>
+           <name>ATTR_SBE_BOOT_SIDE</name>
+           <value>0x00</value>
+  </entry>
+  <!-- TODO we need to change this once the absolute address is known -->
+  <entry>
+           <name>ATTR_SBE_HBBL_EXCEPTION_INSTRUCT</name>
+           <value>0x48000000</value>
+  </entry>
 </entries>

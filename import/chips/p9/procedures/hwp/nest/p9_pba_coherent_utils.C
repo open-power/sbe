@@ -109,12 +109,15 @@ extern "C"
     const uint32_t PBA_BAR_SCOPE_END_BIT = 2;
     const uint32_t PBA_BAR_BASE_ADDRESS_START_BIT = 8;
     const uint32_t PBA_BAR_BASE_ADDRESS_END_BIT = 43;
-    const uint32_t PBA_BAR_BASE_ADDRESS_SHIFT = 21;
+    const uint32_t PBA_BAR_BASE_ADDRESS_SHIFT = 20;
     const uint64_t PBA_BAR_BASE_ADDRESS_MASK = 0xFFFFFFFFFull;
 
 //PBA BAR Mask register field/bit definitions
     const uint32_t PBA_BAR_MASK_START_BIT = 23;
     const uint32_t PBA_BAR_MASK_END_BIT = 43;
+
+//OCB3_ADDRESS field/bit definitions
+    const uint32_t OCB3_ADDRESS_REG_ADDR_SHIFT = 32;
 
     //---------------------------------------------------------------------------------
     // Function definitions
@@ -231,7 +234,7 @@ extern "C"
                  "Error writing to the OCB3 Status Control Register with or mask");
 
         //Write the address to OCB3_ADDRESS Register
-        ocb3_addr_data = 0xB000000000000000 | (i_address & 0x7FFFFFFull);
+        ocb3_addr_data = 0xB000000000000000 | ((i_address & 0x7FFFFFFull) << OCB3_ADDRESS_REG_ADDR_SHIFT);
         ocb3_addr.insertFromRight<0, 64>(ocb3_addr_data);
 
         FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBAR3, ocb3_addr),
@@ -454,7 +457,7 @@ extern "C"
                  "Error reading from the PBA Slave Reset Register");
 
         //If there are any errors in the Status registers that we got above, collect all of the data and send an error
-        /*FAPI_ASSERT((((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
+        FAPI_ASSERT((((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
                      && ((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
                      && ((wr_buf0_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
                      && ((wr_buf1_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
@@ -463,7 +466,7 @@ extern "C"
                         rd_buf2_valid).set_RDBUF3(rd_buf3_valid).set_WRBUF0(
                         wr_buf0_valid).set_WRBUF1(wr_buf1_valid).set_SLVRSTDATA(reset_buf),
                     "Error in checking the PBA Reset, PBA Read Buffer, or PBA Write Buffer Registers");
-        */
+
     fapi_try_exit:
         FAPI_DBG("End");
         return fapi2::current_err;
