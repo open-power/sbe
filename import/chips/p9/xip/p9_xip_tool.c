@@ -198,7 +198,16 @@ const char* g_usage =
 P9_XIP_ERROR_STRINGS(g_errorStrings);
 P9_XIP_TYPE_STRINGS(g_typeStrings);
 P9_XIP_TYPE_ABBREVS(g_typeAbbrevs);
-P9_XIP_SECTION_NAMES(g_sectionNames);
+
+P9_XIP_SECTION_NAMES_HW(g_sectionNamesHw);
+P9_XIP_SECTION_NAMES_SGPE(g_sectionNamesSgpe);
+P9_XIP_SECTION_NAMES_RESTORE(g_sectionNamesRestore);
+P9_XIP_SECTION_NAMES_CME(g_sectionNamesCme);
+P9_XIP_SECTION_NAMES_PGPE(g_sectionNamesPgpe);
+P9_XIP_SECTION_NAMES_IOPPE(g_sectionNamesIoppe);
+P9_XIP_SECTION_NAMES_FPPE(g_sectionNamesFppe);
+P9_XIP_SECTION_NAMES_SBE(g_sectionNamesSbe);
+
 // Disassembler error support.
 DIS_ERROR_STRINGS(g_errorStringsDis);
 
@@ -258,6 +267,61 @@ myRev64(const uint64_t i_x)
 #endif
 
     return rx;
+}
+
+// Determine name of section given by its index in section table
+
+static inline const char* get_sectionName(uint64_t magic, int index)
+{
+    switch (magic)
+    {
+//      case P9_XIP_MAGIC_BASE:
+//          FIXME
+//          break;
+//      case P9_XIP_MAGIC_CENTAUR:
+//          FIXME
+//          break;
+        case P9_XIP_MAGIC_SEEPROM:
+            return P9_XIP_SECTION_NAME(g_sectionNamesSbe, index);
+
+        case P9_XIP_MAGIC_HW:
+            return P9_XIP_SECTION_NAME(g_sectionNamesHw, index);
+
+        case P9_XIP_MAGIC_SGPE:
+            return P9_XIP_SECTION_NAME(g_sectionNamesSgpe, index);
+
+        case P9_XIP_MAGIC_RESTORE:
+            return P9_XIP_SECTION_NAME(g_sectionNamesRestore, index);
+
+        case P9_XIP_MAGIC_CME:
+            return P9_XIP_SECTION_NAME(g_sectionNamesCme, index);
+
+        case P9_XIP_MAGIC_PGPE:
+            return P9_XIP_SECTION_NAME(g_sectionNamesPgpe, index);
+
+        case P9_XIP_MAGIC_IOPPE:
+            return P9_XIP_SECTION_NAME(g_sectionNamesIoppe, index);
+
+        case P9_XIP_MAGIC_FPPE:
+            return P9_XIP_SECTION_NAME(g_sectionNamesFppe, index);
+    }
+
+    return "";
+}
+
+// Determine index of section given by its name in section table
+
+static inline int get_sectionId(uint64_t i_magic, const char* i_section)
+{
+    int i;
+
+    for (i = 0; i < P9_XIP_SECTIONS; i++)
+        if (strcmp(i_section, get_sectionName(i_magic, i)) == 0)
+        {
+            return i;
+        }
+
+    return -1;
 }
 
 // Normalize a P9-XIP image.  We normalize a copy of the image first so that
@@ -488,8 +552,6 @@ dumpHeader(void* i_image)
     P9XipSection* section;
     char magicString[9];
 
-    P9_XIP_SECTION_NAMES(section_name);
-
     // Dump header information. Since the TOC may not exist we need to get
     // the information from the header explicitly.
 
@@ -527,7 +589,7 @@ dumpHeader(void* i_image)
     {
         section = &(header.iv_section[i]);
         printf("%-16s 0x%08x 0x%08x (%d)\n",
-               section_name[i],
+               get_sectionName(header.iv_magic, i),
                section->iv_offset, section->iv_size, section->iv_size);
     }
 
@@ -1024,6 +1086,7 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
     void* newImage;
     uint32_t size, newSize, sectionOffset;
     uint64_t homerAddress;
+    P9XipHeader header;
 
     do
     {
@@ -1039,23 +1102,16 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
         section = i_argv[0];
         file = i_argv[1];
 
+        p9_xip_translate_header(&header, (P9XipHeader*)io_image);
+
         // Translate the section name to a section Id
+        sectionId = get_sectionId(header.iv_magic, section);
 
-        for (sectionId = 0; sectionId < P9_XIP_SECTIONS; sectionId++)
+        if (sectionId < 0)
         {
-            if (strcmp(section, g_sectionNames[sectionId]) == 0)
-            {
-                break;
-            }
-        }
-
-        if (sectionId == P9_XIP_SECTIONS)
-        {
-            fprintf(stderr, "Unrecognized section name : '%s;\n",
-                    section);
+            fprintf(stderr, "Unrecognized section name : '%s;\n", section);
             exit(1);
         }
-
 
         // Open and mmap the file to be appended
 
@@ -1208,22 +1264,15 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
 
         printf("%s %s\n", section , file);
 
-        for (sectionId = 0; sectionId < P9_XIP_SECTIONS; sectionId++)
-        {
-            if (strcmp(section, g_sectionNames[sectionId]) == 0)
-            {
-                break;
-            }
-        }
+        p9_xip_translate_header(&header, (P9XipHeader*)io_image);
 
-        if (sectionId == P9_XIP_SECTIONS)
+        sectionId = get_sectionId(header.iv_magic, section);
+
+        if (sectionId < 0)
         {
-            fprintf(stderr, "Unrecognized section name : '%s;\n",
-                    section);
+            fprintf(stderr, "Unrecognized section name : '%s;\n", section);
             exit(1);
         }
-
-        p9_xip_translate_header(&header, (P9XipHeader*)io_image);
 
         xSection = &(header.iv_section[sectionId]);
 
@@ -1231,7 +1280,7 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
         offset = xSection->iv_offset;
 
         printf("%-16s 0x%08x 0x%08x (%d)\n",
-               g_sectionNames[sectionId], offset, size, size);
+               section, offset, size, size);
 
         newImage = malloc(size);
 
@@ -1286,6 +1335,7 @@ deleteSection(const char* i_imageFile, const int i_imageFd, void* io_image,
     const char** argv;
     void* newImage;
     uint32_t size;
+    P9XipHeader header;
 
     do
     {
@@ -1321,6 +1371,8 @@ deleteSection(const char* i_imageFile, const int i_imageFd, void* io_image,
             exit(1);
         }
 
+        p9_xip_translate_header(&header, (P9XipHeader*)io_image);
+
         // Delete the sections in argument order
 
         for (argc = i_argc, argv = i_argv; argc != 0; argc--, argv++)
@@ -1330,18 +1382,11 @@ deleteSection(const char* i_imageFile, const int i_imageFd, void* io_image,
 
             section = *argv;
 
-            for (sectionId = 0; sectionId < P9_XIP_SECTIONS; sectionId++)
-            {
-                if (strcmp(section, g_sectionNames[sectionId]) == 0)
-                {
-                    break;
-                }
-            }
+            sectionId = get_sectionId(header.iv_magic, section);
 
-            if (sectionId == P9_XIP_SECTIONS)
+            if (sectionId < 0)
             {
-                fprintf(stderr, "Unrecognized section name : '%s;\n",
-                        section);
+                fprintf(stderr, "Unrecognized section name : '%s;\n", section);
                 exit(1);
             }
 
@@ -1458,19 +1503,19 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 
         switch (magicKey)
         {
-            case P9_BASE_MAGIC:
+            case P9_XIP_MAGIC_BASE:
                 key = (char*)"proc_p9_fabricinit_revision";
                 rc = p9_xip_get_string(io_image, key, &revision);
                 BOMB_IF_RC;
                 BOMB_IF(strncmp(revision, "1.", 2) != 0);
                 break;
 
-            case P9_SEEPROM_MAGIC:
+            case P9_XIP_MAGIC_SEEPROM:
                 key = (char*)"";
                 // Can't do this test here as the TOC has been stripped
                 break;
 
-            case P9_CENTAUR_MAGIC:
+            case P9_XIP_MAGIC_CENTAUR:
                 key = (char*)"cen_p9_initf_revision";
                 rc = p9_xip_get_string(io_image, key, &revision);
                 BOMB_IF_RC;
@@ -1485,7 +1530,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
         rc = p9_xip_get_scalar(io_image, "link_address", &linkAddress);
         BOMB_IF_RC;
 
-        if (magicKey != P9_SEEPROM_MAGIC)
+        if (magicKey != P9_XIP_MAGIC_SEEPROM)
         {
             rc = p9_xip_get_scalar(io_image, "entry_point", &entryPoint);
             BOMB_IF_RC;
@@ -1493,7 +1538,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 
         rc = p9_xip_get_scalar(io_image, "L1_LoaderAddr", &data);
         BOMB_IF_RC;
-        BOMB_IF((magicKey != P9_SEEPROM_MAGIC) && (entryPoint != (linkAddress + data)));
+        BOMB_IF((magicKey != P9_XIP_MAGIC_SEEPROM) && (entryPoint != (linkAddress + data)));
 
         rc =
             p9_xip_set_scalar(io_image, "toc_sorted", 0) ||
@@ -1524,7 +1569,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
         longString = (char*)"A very long string";
         shortString = (char*)"?";
 
-        if (magicKey != P9_SEEPROM_MAGIC)
+        if (magicKey != P9_XIP_MAGIC_SEEPROM)
         {
             rc =
                 p9_xip_set_string(io_image, key, longString) ||
@@ -1577,7 +1622,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
         // work. Modify an entry via the .fixed and verify it with normal TOC
         // access.
 
-        if (magicKey == P9_SEEPROM_MAGIC)
+        if (magicKey == P9_XIP_MAGIC_SEEPROM)
         {
 
             BOMB_IF(0 != 0);
@@ -1630,7 +1675,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
         ((P9XipHeader*)io_image)->iv_section[P9_XIP_SECTION_TOC].iv_size =
             tocSize;
 
-        if (magicKey != P9_SEEPROM_MAGIC)
+        if (magicKey != P9_XIP_MAGIC_SEEPROM)
         {
             BOMB_IF(p9_xip_find(io_image, "proc_p9_ex_dpll_initf", 0) != 0);
         }
