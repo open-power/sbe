@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,7 +37,8 @@
 #include <fapi2.H>
 
 
-typedef fapi2::ReturnCode (*p9_sbe_tp_chiplet_init1_FP_t)(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
+typedef fapi2::ReturnCode (*p9_sbe_tp_chiplet_init1_FP_t)(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 
 /// @brief Releases the Pervasive Control Bus (PCB) reset
 /// Sets TP chiplet enable
@@ -48,7 +49,8 @@ typedef fapi2::ReturnCode (*p9_sbe_tp_chiplet_init1_FP_t)(const fapi2::Target<fa
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 extern "C"
 {
-    fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+    fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
+            fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 }
 
 #endif
