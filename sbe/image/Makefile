@@ -208,6 +208,7 @@ ATTRFILES += $(IMPORT_XML_DIR)/../../../../../sbe/image/Mirror_WA_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_sbe_load_bootloader_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_plat_attributes.xml
 
 $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
