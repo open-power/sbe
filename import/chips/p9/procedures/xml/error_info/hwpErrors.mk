@@ -28,3 +28,4 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_hcd_core_startclocks_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_pba_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_load_bootloader_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_thread_control_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_startclock_chiplets_errors.xml
