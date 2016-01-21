@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -69,19 +69,16 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_INF("Clear PIB,NET,OCC-PIB and PRV region fence");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
-    //PERV.CPLT_CTRL1.TC_PERV_REGION_FENCE = 0b0
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_PERV_REGION_FENCE>();
+    l_data64.setBit<4>();  //PERV.CPLT_CTRL1.TC_PERV_REGION_FENCE = 0b0
     l_data64.setBit<5>();  //PERV.CPLT_CTRL1.TC_REGION1_FENCE = 0
     l_data64.setBit<6>();  //PERV.CPLT_CTRL1.TC_REGION2_FENCE = 0
-    //PERV.CPLT_CTRL1.TC_REGION3_FENCE = 0
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_REGION3_FENCE>();
+    l_data64.setBit<7>();  //PERV.CPLT_CTRL1.TC_REGION3_FENCE = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_CPLT_CTRL1_CLEAR, l_data64));
 
     FAPI_INF("Drop Vital fence in TP chiplet");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
-    //PERV.CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
+    l_data64.setBit<3>();  //PERV.CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_CPLT_CTRL1_CLEAR, l_data64));
 
     // Get the TPChiplet target
@@ -101,9 +98,14 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_INF("Drop FSI fence 5");
     //Setting ROOT_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
-    //PIB.ROOT_CTRL0.FENCE5_DC = 0
-    l_data64.clearBit<PERV_ROOT_CTRL0_SET_FENCE5_DC>();
+    l_data64.clearBit<12>();  //PIB.ROOT_CTRL0.FENCE5_DC = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
+
+    FAPI_INF("Drop eDRAM control gate");
+    //Setting ROOT_CTRL2 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
+    l_data64.clearBit<16>();  //PIB.ROOT_CTRL2.ROOT_CTRL2_16_FREE_USAGE = 0
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
 
     //TOD error reg;
     //config TOD error mask reg;
@@ -154,7 +156,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //Getting INTERRUPT_TYPE_REG register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PIB_INTERRUPT_TYPE_REG, l_data64));
     //l_read_reg = PIB.INTERRUPT_TYPE_REG.CHECKSTOP
-    l_read_reg = l_data64.getBit<PERV_INTERRUPT_TYPE_REG_CHECKSTOP>();
+    l_read_reg = l_data64.getBit<2>();
 
     FAPI_ASSERT(l_read_reg == 0,
                 fapi2::XSTOP_ERR()
