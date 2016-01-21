@@ -25,16 +25,14 @@
 //------------------------------------------------------------------------------
 /// @file  p9_setup_clock_term.H
 ///
-/// @brief proc setup clock term
-// *!
-// *! OWNER NAME  : Abhishek Agarwal  Email: abagarw8@in.ibm.com
-// *! BACKUP NAME :                   Email:
+/// @brief Setup the clock termination correctly for system/chip type
 //------------------------------------------------------------------------------
-// *HWP HWP Owner   : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP FW Owner    : Brian Silver <bsilver@us.ibm.com>
-// *HWP Team        : Perv
-// *HWP Level       : 1
-// *HWP Consumed by : SBE
+// *HWP HW Owner        : Anusha Reddy Rangareddygari <anusrang@in.ibm.com>
+// *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
+// *HWP FW Owner        : Brian Silver <bsilver@us.ibm.com>
+// *HWP Team            : Perv
+// *HWP Level           : 2
+// *HWP Consumed by     : FSP:HB
 //------------------------------------------------------------------------------
 
 
@@ -45,18 +43,43 @@
 #include <fapi2.H>
 
 
-typedef fapi2::ReturnCode (*p9_setup_clock_term_FP_t)(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
+namespace p9SetupClockTerm
+{
+enum P9_SETUP_CLOCK_TERM_Public_Constants
+{
+    OSCSWITCH_RC3 = 0x0080C000,
+    OSCSWITCH_RC4 = 0x0
+};
+}
 
-/// @brief Setup the clock termination correctly for system/chip type
-/// Since this is the first procedure run against the chips it also clears the GP write protect
+typedef enum { BOTH_SRC0, BOTH_SRC1, SRC0, SRC1, SRC_NONE } pci_clk_req_enum;
+
+//            pci_clk_req_enum          enumarated data type with allowed PCI refclock configurations
+//                                      BOTH_SRC0:  redundant PCI clock available, SRC0 configured as primary source
+//                                      BOTH_SRC1:  redundant PCI clock available, SRC1 configured as primary source
+//                                      SRC0:       redundant PCI clock but forced to use SRC0 only as other clock may be garded/deconfigured
+//                                      SRC1:       redundant PCI clock but forced to use SRC1 only as other clock may be garded/deconfigured
+//                                      SRC_NONE:   non-redundant PCI clock setup
+
+
+
+typedef fapi2::ReturnCode (*p9_setup_clock_term_FP_t)(const
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&, const pci_clk_req_enum);
+
+/// @brief Setup the clock termination correctly, since this is the first procedure run against the chips it also clears the GP write protect
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
+//                 pci_clk_req_enum  enumarated data type with allowed PCI refclock configurations
+//                                      BOTH_SRC0:  redundant PCI clock available, SRC0 configured as primary source
+//                                      BOTH_SRC1:  redundant PCI clock available, SRC1 configured as primary source
+//                                      SRC0:       redundant PCI clock but forced to use SRC0 only as other clock may be garded/deconfigured
+//                                      SRC1:       redundant PCI clock but forced to use SRC1 only as other clock may be garded/deconfigured
+//                                      SRC_NONE:   non-redundant PCI clock setup
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 extern "C"
 {
     fapi2::ReturnCode p9_setup_clock_term(const
-                                          fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+                                          fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, const pci_clk_req_enum  i_pci_clk_req);
 }
 
 #endif
