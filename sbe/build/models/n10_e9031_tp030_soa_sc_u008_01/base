@@ -1,0 +1,11 @@
+#base commit id
+base:177ed87bff3c7abc300069fe75cc8b89ea7b1681
+#cherry-picks
+# fapi delay
+cp:refs/changes/57/21157/4
+# awan workarounds
+cp:refs/changes/05/22605/4
+# startclock_chiplets
+cp:refs/changes/33/22733/1
+# PBA support
+cp:refs/changes/36/20836/10
