@@ -89,19 +89,22 @@ __\s\()_section:
 
 __magic:
 	.quad	(\magic)
-__entry_offset:
-	.quad	((\entry_point) - (\link_address))
+__L1_LoaderAddr:
+	.quad	0
+__L2_LoaderAddr:
+	.quad	0
+__kernelAddr:
+	.quad   0
 __link_address:
 	.quada	(\link_address)
-__entry_address_sbe:
-	.quad	0
 __header_64_reserved:
-	.quad	0, 0, 0, 0
+	.quad	0, 0, 0
 
 	.xip_toc magic, P9_XIP_UINT64, __magic
-	.xip_toc entry_offset, P9_XIP_UINT64, __entry_offset
+	.xip_toc L1_LoaderAddr, P9_XIP_UINT64, __L1_LoaderAddr
+	.xip_toc L2_LoaderAddr, P9_XIP_UINT64, __L2_LoaderAddr
+	.xip_toc kernelAddr, P9_XIP_UINT64, __kernelAddr
 	.xip_toc link_address, P9_XIP_UINT64, __link_address	
-	.xip_toc entry_address_sbe, P9_XIP_UINT64, __entry_address_sbe
      
         //////////////////////////////////////////////////////////////////////
         // Section Table - 8-byte aligned; 16 entries; Not TOC-Indexed
