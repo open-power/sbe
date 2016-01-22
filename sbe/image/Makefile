@@ -173,15 +173,15 @@ all:
 	@echo "Makefile option error:  ALL is not compatible with FAPI2_test"
 endif
 
-.PHONY: all normalize defaultset appendbase appendloader add_entry_offset add_entry_address_sbe symbols
+.PHONY: all normalize defaultset appendbase appendloader add_L1_LoaderAddr add_kernelAddr symbols
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_entry_offset add_entry_address_sbe symbols tracehash
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_L1_LoaderAddr add_kernelAddr symbols tracehash
 
-add_entry_offset: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_offset 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep sbe_loader | cut -f 1 -d " "`
+add_L1_LoaderAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep sbe_loader | cut -f 1 -d " "`
 
-add_entry_address_sbe: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_LOADER_NAME).out
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set entry_address_sbe 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep base_loader | cut -f 1 -d " "`
+add_kernelAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_LOADER_NAME).out
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep base_loader | cut -f 1 -d " "`
 
 symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(IMAGE_SBE_NAME).out
 	$(NM) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(OBJDIR)/$(SBE_SYMBOLS_NAME)
