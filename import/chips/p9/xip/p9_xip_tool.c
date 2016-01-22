@@ -502,7 +502,9 @@ dumpHeader(void* i_image)
            header.iv_magic, magicString);
     printf("Header Version : 0x%02x\n", header.iv_headerVersion);
     printf("Link Address   : 0x%016llx\n", header.iv_linkAddress);
-    printf("Entry Offset   : 0x%08x\n", (uint32_t)header.iv_entryOffset);
+    printf("L1 Loader Address   : 0x%08x\n", (uint32_t)header.iv_L1LoaderAddr);
+    printf("L2 Loader Address   : 0x%08x\n", (uint32_t)header.iv_L2LoaderAddr);
+    printf("Kernel Address   : 0x%08x\n", (uint32_t)header.iv_kernelAddr);
     printf("Image Size     : 0x%08x (%d)\n",
            header.iv_imageSize, header.iv_imageSize);
     printf("Normalized     : %s\n", header.iv_normalized ? "Yes" : "No");
@@ -1437,7 +1439,7 @@ int
 TEST(void* io_image, const int i_argc, const char** i_argv)
 {
     int rc;
-    uint64_t linkAddress, entryPoint, data, data1, magicKey, entry_offset[2];
+    uint64_t linkAddress, entryPoint, data, data1, magicKey, L1_LoaderAddr[2];
     char* key, *revision, *revdup, *longString, *shortString;
     void* originalImage, *deleteAppendImage;
     uint32_t imageSize;
@@ -1501,7 +1503,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
             BOMB_IF_RC;
         }
 
-        rc = p9_xip_get_scalar(io_image, "entry_offset", &data);
+        rc = p9_xip_get_scalar(io_image, "L1_LoaderAddr", &data);
         BOMB_IF_RC;
         BOMB_IF((magicKey != P9_SEEPROM_MAGIC) && (entryPoint != (linkAddress + data)));
 
@@ -1555,23 +1557,23 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
         // Use p9_xip_[read,write]_uint64 to modify the image and restore it
         // to its original form.
 
-        rc = p9_xip_find(io_image, "entry_offset", &item);
+        rc = p9_xip_find(io_image, "L1_LoaderAddr", &item);
         BOMB_IF_RC;
-        rc = p9_xip_get_scalar(io_image, "entry_offset", &(entry_offset[0]));
+        rc = p9_xip_get_scalar(io_image, "L1_LoaderAddr", &(L1_LoaderAddr[0]));
         BOMB_IF_RC;
 
-        rc = p9_xip_read_uint64(io_image, item.iv_address, &(entry_offset[1]));
+        rc = p9_xip_read_uint64(io_image, item.iv_address, &(L1_LoaderAddr[1]));
         BOMB_IF_RC;
-        BOMB_IF(entry_offset[0] != entry_offset[1]);
+        BOMB_IF(L1_LoaderAddr[0] != L1_LoaderAddr[1]);
 
         rc = p9_xip_write_uint64(io_image, item.iv_address,
                                  0xdeadbeefdeadc0deull);
         BOMB_IF_RC;
-        rc = p9_xip_read_uint64(io_image, item.iv_address, &(entry_offset[1]));
+        rc = p9_xip_read_uint64(io_image, item.iv_address, &(L1_LoaderAddr[1]));
         BOMB_IF_RC;
-        BOMB_IF(entry_offset[1] != 0xdeadbeefdeadc0deull);
+        BOMB_IF(L1_LoaderAddr[1] != 0xdeadbeefdeadc0deull);
 
-        rc = p9_xip_write_uint64(io_image, item.iv_address, entry_offset[0]);
+        rc = p9_xip_write_uint64(io_image, item.iv_address, L1_LoaderAddr[0]);
         BOMB_IF_RC;
 
         // Try p9_xip_get_section against the translated header
