@@ -24,6 +24,108 @@
 <entries>
   <!-- ********************************************************************* -->
   <entry>
+    <name>ATTR_I2C_BUS_DIV_REF</name>
+    <value>0x0001</value>
+  </entry>
+  <entry>
+    <name>ATTR_FUNCTIONAL_EQ_EC_VALID</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_EQ_GARD</name>
+    <value>0x01</value>
+  </entry>
+  <entry>
+     <name>ATTR_EC_GARD</name>
+     <value>0x01</value>
+  </entry>
+  <entry>
+    <name>ATTR_I2C_BUS_DIV_REF_VALID</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_FW_MODE_FLAGS_VALID</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_ISTEP_MODE</name>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_RUNTIME_MODE</name>
+  </entry>
+  <entry>
+     <name>ATTR_IS_MPIPL</name>
+     <value>0x01</value>
+  </entry>
+  <entry>
+     <name>ATTR_IS_SP_MODE</name>
+     <value>0x01</value>
+  </entry>
+  <entry>
+     <name>ATTR_SBE_FFDC_ENABLE</name>
+     <value>0x01</value>
+  </entry>
+  <entry>
+     <name>ATTR_SBE_INTERNAL_FFDC_ENABLE</name>
+     <value>0x00</value>
+  </entry>
+  <entry>
+     <name>ATTR_BOOT_FREQUENCY_VALID</name>
+     <value>0x00</value>
+  </entry>
+  <entry>
+     <name>ATTR_NEST_PLL_BUCKET</name>
+     <value>0x01</value>
+  </entry>
+  <entry>
+     <name>ATTR_BOOT_FREQ_MULT</name>
+     <value>0x01</value>
+  </entry>
+  <entry>
+     <name>ATTR_HWP_CONTROL_FLAGS_VALID</name>
+     <value>0x00</value>
+  </entry>
+  <entry>
+      <name>ATTR_SYSTEM_IPL_PHASE</name>
+      <value>0x1</value>
+  </entry>
+  <entry>
+      <name>ATTR_SYS_FORCE_ALL_CORES</name>
+      <value>0x1</value>
+  </entry>
+  <entry>
+      <name>ATTR_RISK_LEVEL</name>
+      <value>0x1</value>
+  </entry>
+  <entry>
+      <name>ATTR_DISABLE_HBBL_VECTORS</name>
+      <value>0x1</value>
+  </entry>
+  <entry>
+      <name>ATTR_CHIP_SELECTION_VALID</name>
+      <value>0x0</value>
+  </entry>
+  <entry>
+      <name>ATTR_CHIP_SELECTION</name>
+      <value>0x1</value>
+  </entry>
+  <entry>
+     <name>ATTR_NODE_POS</name>
+     <value>0x01</value>
+  </entry>
+  <entry>
+     <name>ATTR_CHIP_POS</name>
+     <value>0x01</value>
+  </entry>
+  <entry>
+     <name>ATTR_SCRATCH6_VALID</name>
+     <value>0x00</value>
+  </entry>
+  <entry>
+     <name>ATTR_SCRATCH7_VALID</name>
+     <value>0x00</value>
+  </entry>
+  <entry>
     <name>ATTR_SCRATCH_UINT8_1</name>
     <value>0x8</value>
   </entry>
@@ -350,10 +452,6 @@
       <value>0x36</value>
       <value>0x37</value>
   </entry>
-  <entry>
-      <name>ATTR_SYSTEM_IPL_PHASE</name>
-      <value>0x1</value>
-  </entry>
 
   <entry>
       <name>ATTR_BACKUP_SEEPROM_SELECT</name>
@@ -363,36 +461,12 @@
        <value>0x01</value>
   </entry>
   <entry>
-        <name>ATTR_EQ_GARD</name>
-        <value>0x01</value>
-  </entry>
-  <entry>
-         <name>ATTR_EC_GARD</name>
-         <value>0x01</value>
-  </entry>
-  <entry>
-         <name>ATTR_I2C_BUS_DIV_REF</name>
-         <value>0x01</value>
-  </entry>
-  <entry>
          <name>ATTR_BOOT_FLAGS</name>
-         <value>0x01</value>
-  </entry>
-  <entry>
-         <name>ATTR_NODE_POS</name>
-         <value>0x01</value>
-  </entry>
-  <entry>
-         <name>ATTR_CHIP_POS</name>
          <value>0x01</value>
   </entry>
   <entry>
          <name>ATTR_BOOT_FREQ</name>
          <value>0x01</value>
-  </entry>
-  <entry>
-          <name>ATTR_NEST_PLL_BUCKET</name>
-          <value>0x01</value>
   </entry>
   <entry>
           <name>ATTR_VCS_BOOT_VOLTAGE</name>
@@ -415,10 +489,6 @@
   </entry>
   <entry>
          <name>ATTR_PROC_SBE_MASTER_CHIP</name>
-         <value>0x01</value>
-  </entry>
-  <entry>
-         <name>ATTR_IS_MPIPL</name>
          <value>0x01</value>
   </entry>
   <entry>
