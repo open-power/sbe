@@ -392,7 +392,7 @@ tocListing(void* io_image,
                     break;
                 }
 
-                printf("0x%016llx", data);
+                printf("0x%016lx", data);
                 break;
 
             case P9_XIP_INT8:
@@ -436,7 +436,7 @@ tocListing(void* io_image,
                     break;
                 }
 
-                printf("0x%016llx", data);
+                printf("0x%016lx", data);
                 break;
 
             case P9_XIP_STRING:
@@ -498,10 +498,10 @@ dumpHeader(void* i_image)
     memcpy(magicString, (char*)(&(((P9XipHeader*)i_image)->iv_magic)), 8);
     magicString[8] = 0;
 
-    printf("Magic Number   : 0x%016llx \"%s\"\n",
+    printf("Magic Number   : 0x%016lx \"%s\"\n",
            header.iv_magic, magicString);
     printf("Header Version : 0x%02x\n", header.iv_headerVersion);
-    printf("Link Address   : 0x%016llx\n", header.iv_linkAddress);
+    printf("Link Address   : 0x%016lx\n", header.iv_linkAddress);
     printf("L1 Loader Address   : 0x%08x\n", (uint32_t)header.iv_L1LoaderAddr);
     printf("L2 Loader Address   : 0x%08x\n", (uint32_t)header.iv_L2LoaderAddr);
     printf("Kernel Address   : 0x%08x\n", (uint32_t)header.iv_kernelAddr);
@@ -603,7 +603,7 @@ report(void* io_image, const int i_argc, const char** i_argv)
 int
 set(void* io_image, const int i_argc, const char** i_argv, int i_setv)
 {
-    int rc, arg, base, clause_args, index_val;
+    int rc = P9_XIP_BUG, arg, base, clause_args, index_val;
     P9XipItem item;
     unsigned long long newValue;
     const char* key, *index, *value;
@@ -928,7 +928,7 @@ get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
                         break;
 
                     case P9_XIP_UINT64:
-                        printf("0x%016llx\n", data);
+                        printf("0x%016lx\n", data);
                         break;
 
                     default:
@@ -953,7 +953,7 @@ get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
                     break;
                 }
 
-                printf("0x%012llx\n", data);
+                printf("0x%012lx\n", data);
                 break;
 
             case P9_XIP_STRING:
@@ -1139,7 +1139,7 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
             break;
         }
 
-        printf("0x%016llx\n", homerAddress);
+        printf("0x%016lx\n", homerAddress);
 
 
         // Now write the new image back to the filesystem
@@ -1185,16 +1185,14 @@ int
 extract(const char* i_imageFile, const int i_imageFd, void* io_image,
         int i_argc, const char** i_argv)
 {
-    int fileFd, newImageFd, sectionId, rc;
+    int fileFd, sectionId, rc;
     void* newImage;
     const char* section;
     const char* file;
-    struct stat buf;
     P9XipHeader header;
     P9XipSection* xSection;
     uint32_t size;
     uint32_t offset;
-    unsigned int i;
 
     do
     {
@@ -1227,23 +1225,13 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
 
         p9_xip_translate_header(&header, (P9XipHeader*)io_image);
 
-        for (i = 0; i < P9_XIP_SECTIONS; i++)
-        {
-            xSection = &(header.iv_section[i]);
+        xSection = &(header.iv_section[sectionId]);
 
-            if (strcmp(section, g_sectionNames[i]) == 0)
-            {
+        size = xSection->iv_size;
+        offset = xSection->iv_offset;
 
-                size = xSection->iv_size;
-                offset = xSection->iv_offset;
-
-                printf("%-16s 0x%08x 0x%08x (%d)\n",
-                       g_sectionNames[i],
-                       xSection->iv_offset, xSection->iv_size, xSection->iv_size);
-
-                break;
-            }
-        }
+        printf("%-16s 0x%08x 0x%08x (%d)\n",
+               g_sectionNames[sectionId], offset, size, size);
 
         newImage = malloc(size);
 
@@ -1441,7 +1429,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
     int rc;
     uint64_t linkAddress, entryPoint, data, data1, magicKey, L1_LoaderAddr[2];
     char* key, *revision, *revdup, *longString, *shortString;
-    void* originalImage, *deleteAppendImage;
+    void* originalImage;
     uint32_t imageSize;
     P9XipItem item;
     P9XipHeader header;
@@ -1665,6 +1653,8 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 }
 
 
+// these functions are just defined out, because there is a future need.
+#ifdef BLUBBER
 /// Function:  pairRingNameAndAddr()  to be used w/p9_xip_map_toc()
 ///
 /// Brief:  Looks for address match for both base and override rings and
@@ -1770,8 +1760,6 @@ static int pairRingNameAndAddr( void* i_image, const P9XipItem* i_item, void* io
     return rc;
 }
 
-// this function is just defined out, because there is a future need.
-#ifdef BLUBBER
 /// Function:  disassembleSection
 ///
 /// Brief:  Disassembles a section and returns a pointer to a buffer that
