@@ -19,8 +19,9 @@
 #define SBE_IRQ_DRTM_REQ 4       /* DRTM late launch request */
 #define SBE_IRQ_SBEFIFO_RESET 5  /* FIFO - Reset request from SE */
 #define SBE_IRQ_SBEFIFO_DATA  6  /* FIFO - Incoming Data Available */
+#define SBE_IRQ_HOST_PSU_INTR 7  /* PSU  - Incoming Data Available */
 
-#define SBE_IRQ_RESERVED_7  7
+
 #define SBE_IRQ_RESERVED_8  8
 #define SBE_IRQ_RESERVED_9  9
 

@@ -31,9 +31,9 @@ typedef struct
     uint32_t reserved:16;
     uint32_t cmdClass:8;
     uint32_t command:8;
-}sbeCmdReqBuf_t;
+}sbeFifoCmdReqBuf_t;
 
-extern sbeCmdReqBuf_t g_sbeCmdHdr;
+extern sbeFifoCmdReqBuf_t g_sbeFifoCmdHdr;
 
 /**
   * @brief structure for generic header for fifo response.
@@ -65,15 +65,15 @@ typedef struct
       * @brief set initial values for response header
       *
       * @note  We did not set this in constructor as based on use case
-      *        it is possible that g_sbeCmdHdr does not have proper
+      *        it is possible that g_sbeFifoCmdHdr does not have proper
       *        values at time of object creation.
       *
       */
     void init()
     {
         magicCode = 0xC0DE;
-        cmdClass  = g_sbeCmdHdr.cmdClass;
-        command = g_sbeCmdHdr.command;
+        cmdClass  = g_sbeFifoCmdHdr.cmdClass;
+        command = g_sbeFifoCmdHdr.command;
         primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
         secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
     }

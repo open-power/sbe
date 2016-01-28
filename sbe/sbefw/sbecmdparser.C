@@ -10,9 +10,11 @@
 #include "sbecmdiplcontrol.H"
 #include "sbecmdgeneric.H"
 #include "sbecmdmemaccess.H"
+#include "sbecmdcntrldmt.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
-
+#include "sbeHostMsg.H"
+#include "sbe_host_intf.H"
 
 ////////////////////////////////////////////////////////////////
 // @brief g_sbeScomCmdArray
@@ -99,6 +101,17 @@ static sbeCmdStruct_t g_sbeMemoryAccessCmdArray [] =
     },
 };
 
+//////////////////////////////////////////////////////////////
+// @brief g_sbeCoreStateControlCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeCoreStateControlCmdArray [] =
+{
+    {sbeControlDeadmanTimer,
+     SBE_PSU_CMD_CONTROL_DEADMAN,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+};
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -112,6 +125,7 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
 
     switch(i_cmdClass)
     {
+        // FIFO Commands
         case SBE_CMD_CLASS_IPL_CONTROL:
             // @TODO via RTC : 128655
             //       Use C++ style typecase
@@ -134,6 +148,13 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             l_numCmds = sizeof(g_sbeMemoryAccessCmdArray) /
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbeMemoryAccessCmdArray;
+            break;
+
+        // PSU Commands
+        case SBE_PSU_CMD_CLASS_CORE_STATE:
+            l_numCmds = sizeof(g_sbeCoreStateControlCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbeCoreStateControlCmdArray;
             break;
 
         // This will grow with each class of chipOp in future
