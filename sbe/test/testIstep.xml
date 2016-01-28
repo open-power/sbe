@@ -74,6 +74,10 @@
       </testcase>
       <!-- istep 3.3 fails on simics. Need to investigate more -->
       <testcase>
+          <simcmd>sbe-istep 3 3</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <testcase>
           <simcmd>sbe-istep 3 4</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
@@ -105,10 +109,8 @@
           <simcmd>sbe-istep 3 11</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
-      <testcase>
-          <simcmd>sbe-istep 3 12</simcmd>
-          <exitonerror>yes</exitonerror>
-      </testcase>
+      <!-- TODO via RTC 14472. istep 3.12 fails on simics. -->
+      <!-- HWP need to update action file for p9_sbe_common_align_chiplets -->
       <testcase>
           <simcmd>sbe-istep 3 13</simcmd>
           <exitonerror>yes</exitonerror>
