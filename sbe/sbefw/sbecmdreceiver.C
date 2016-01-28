@@ -14,9 +14,14 @@
 #include "sbe_sp_intf.H"
 #include "sbeFifoMsgUtils.H"
 #include "sbeerrorcodes.H"
+#include "sbeHostMsg.H"
+#include "sbeHostUtils.H"
 
-sbeCmdReqBuf_t g_sbeCmdHdr;
+sbeFifoCmdReqBuf_t g_sbeFifoCmdHdr;
 sbeCmdRespHdr_t g_sbeCmdRespHdr;
+sbePsu2SbeCmdReqHdr_t g_sbePsu2SbeCmdReqHdr;
+sbeSbe2PsuRespHdr_t g_sbeSbe2PsuRespHdr;
+sbeIntrHandle_t g_sbeIntrSource ;
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -36,7 +41,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
         // @TODO via RTC: 128944
         //       Read Scratchpad
 
-        // Wait for new data in FIFO or FIFO reset interrupt
+        // Wait for new data in FIFO or FIFO reset interrupt or PSU interrupt
         int l_rcPk = pk_semaphore_pend (&g_sbeSemCmdRecv, PK_WAIT_FOREVER);
 
         // @TODO via RTC: 128658
@@ -44,11 +49,15 @@ void sbeCommandReceiver_routine(void *i_pArg)
         //       for all the globals used between threads
         g_sbeCmdRespHdr.prim_status = SBE_PRI_OPERATION_SUCCESSFUL;
         g_sbeCmdRespHdr.sec_status  = SBE_SEC_OPERATION_SUCCESSFUL;
-        g_sbeCmdHdr.cmdClass = SBE_CMD_CLASS_UNKNOWN;
+        g_sbeFifoCmdHdr.cmdClass = SBE_CMD_CLASS_UNKNOWN;
+        g_sbePsu2SbeCmdReqHdr.init();
 
         // inner loop for command handling
         do
         {
+            uint8_t l_cmdClass = SBE_CMD_CLASS_UNKNOWN;
+            uint8_t l_command  = 0xFF;
+
             // pk API failure
             if (l_rcPk != PK_OK)
             {
@@ -57,14 +66,32 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
             SBE_DEBUG(SBE_FUNC"unblocked");
 
-            // @TODO via RTC: 128943
-            //       Host services / OPAL handling
+            // The responsibility of this thread is limited to reading off
+            // the FIFO or PSU interfaces to be able to decode the command
+            // class and the command opcode parameters.
 
-            // @TODO via RTC: 128945
-            // Handle protocol violation if needed (a long term goal)
+            // Received PSU interrupt
+            if ( g_sbeIntrSource.isSet(SBE_INTERFACE_PSU) )
+            {
+                // First clear PSU->SBE DB bit 0
+                l_rc = sbeClearPsu2SbeDbBitX(SBE_PSU2SBE_DOORBELL_CLEAR_BIT0);
+                if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+                {
+                    break;
+                }
 
-            // The responsibility of this thread is limited to dequeueing
-            // only the first two word entries from the protocol header.
+                // Read the request field from PSU->SBE Mbx Reg0
+                uint8_t l_count = sizeof(g_sbePsu2SbeCmdReqHdr)/
+                                  sizeof(uint64_t);
+                l_rc = sbeReadPsu2SbeMbxReg (SBE_HOST_PSU_MBOX_REG0,
+                              l_count, (uint64_t *)&g_sbePsu2SbeCmdReqHdr);
+                g_sbeSbe2PsuRespHdr.init();
+                l_cmdClass  = g_sbePsu2SbeCmdReqHdr.cmdClass;
+                l_command   = g_sbePsu2SbeCmdReqHdr.command;
+            } // end if loop for PSU interface chipOp handling
+
+            // Received FIFO interrupt
+            else if (  g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO) ) {
 
             // This thread will attempt to unblock the command processor
             // thread on the following scenarios:
@@ -78,8 +105,10 @@ void sbeCommandReceiver_routine(void *i_pArg)
             // and g_sbeCmdRespHdr.sec_status for command processor thread
             // to handle them later in the sequence.
 
-            uint32_t len = sizeof( g_sbeCmdHdr)/ sizeof(uint32_t);
-            l_rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&g_sbeCmdHdr, false );
+            l_cmdClass  = SBE_CMD_CLASS_UNKNOWN;
+            uint32_t len = sizeof(g_sbeFifoCmdHdr)/sizeof(uint32_t);
+            l_rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&g_sbeFifoCmdHdr,
+                                       false );
 
             // If FIFO reset is requested,
             if (l_rc == SBE_FIFO_RESET_RECEIVED)
@@ -112,25 +141,34 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 break;
             }
 
+            l_cmdClass  = g_sbeFifoCmdHdr.cmdClass;
+            l_command   = g_sbeFifoCmdHdr.command;
+
+            } // end else if loop for FIFO interface chipOp handling
+
             // Any other FIFO access issue
             if ( l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
             {
-                SBE_ERROR(SBE_FUNC"sbeUpFifoDeq_mult failue, "
-                          "l_rc=[0x%08X]", l_rc);
                 break;
             }
 
             // validate the command class and sub-class opcodes
-            l_rc = sbeValidateCmdClass (
-                        g_sbeCmdHdr.cmdClass,
-                        g_sbeCmdHdr.command ) ;
+            l_rc = sbeValidateCmdClass (l_cmdClass, l_command) ;
 
             if (l_rc)
             {
                 // Command Validation failed;
                 SBE_ERROR(SBE_FUNC"Command validation failed");
-                g_sbeCmdRespHdr.prim_status = SBE_PRI_INVALID_COMMAND;
-                g_sbeCmdRespHdr.sec_status  = l_rc;
+                if (  g_sbeIntrSource.isSet(SBE_INTERFACE_PSU) )
+                {
+                    g_sbeSbe2PsuRespHdr.primStatus = SBE_PRI_INVALID_COMMAND;
+                    g_sbeSbe2PsuRespHdr.secStatus  = l_rc;
+                }
+                else if (  g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO) )
+                {
+                    g_sbeCmdRespHdr.prim_status = SBE_PRI_INVALID_COMMAND;
+                    g_sbeCmdRespHdr.sec_status  = l_rc;
+                }
 
                 // Reassign l_rc to Success to Unblock command processor
                 // thread and let that take the necessary action.
@@ -153,7 +191,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
         if ((l_rcPk != PK_OK) || (l_rc != SBE_SEC_OPERATION_SUCCESSFUL))
         {
             // It's likely a code bug or PK failure,
-            // or any other FIFO access failure.
+            // or any other PSU/FIFO access (scom) failure.
 
             // @TODO via RTC : 129166
             //       Review if we need to add ASSERT here
@@ -164,8 +202,16 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 "l_rcPk=[%d], g_sbeSemCmdProcess.count=[%d], l_rc=[%d]",
                 l_rcPk, g_sbeSemCmdProcess.count, l_rc);
 
-            pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
-
+            if ( g_sbeIntrSource.isSet(SBE_INTERFACE_PSU) )
+            {
+                g_sbeIntrSource.clearIntrSource(SBE_INTERFACE_PSU);
+                pk_irq_enable(SBE_IRQ_HOST_PSU_INTR);
+            }
+            else if ( g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO) )
+            {
+                g_sbeIntrSource.clearIntrSource(SBE_INTERFACE_FIFO);
+                pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
+            }
             continue;
         }
 

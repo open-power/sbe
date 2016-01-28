@@ -86,6 +86,43 @@ extern PkSemaphore g_sbeSemCmdProcess;
 extern PkSemaphore g_sbeSemFifoReset;
 
 /**
+ *  @brief SBE Interface source
+ *
+ */
+typedef enum
+{
+    SBE_INTERFACE_UNKNOWN = 0x00,
+    SBE_INTERFACE_FIFO    = 0x01,
+    SBE_INTERFACE_PSU     = 0x02,
+} sbeInterfaceSrc_t;
+
+/**
+ *  @brief structure for SBE external Interrupt handling
+ *
+ */
+typedef struct
+{
+    uint8_t l_intrSource;
+
+    void setIntrSource(const sbeInterfaceSrc_t i_val)
+    {
+        l_intrSource |= i_val;
+    }
+
+    void clearIntrSource(const sbeInterfaceSrc_t i_val)
+    {
+        l_intrSource &= ~i_val;
+    }
+
+    bool isSet (const sbeInterfaceSrc_t i_val)
+    {
+        return (l_intrSource & i_val);
+    }
+} sbeIntrHandle_t;
+extern sbeIntrHandle_t g_sbeIntrSource ;
+
+
+/**
  * @TODO via RTC : 128658
  *   Mutex protect the critical data
  *   e.g., add Mutex g_sbeMutCmdReqBuf etc.
@@ -137,14 +174,15 @@ void sbeSyncCommandProcessor_routine(void *i_pArg);
 void sbeAsyncCommandProcessor_routine(void *i_pArg);
 
 
-/* @brief  ISR for all application FIFO Interrupts
+/* @brief  ISR for all SBE External Interrupts
  *         - FIFO : New data available
  *         - FIFO : Reset Request
+ *         - PSU  : New data available
  *
  * @param[in/out]  i_pArg - Any buffer needed to be passed to the handler
  * @param[in]      i_irq  - IRQ number as defined in the SBE PPE spec
  */
-void sbe_fifo_interrupt_handler(void* i_pArg, PkIrqId i_irq);
+void sbe_interrupt_handler(void* i_pArg, PkIrqId i_irq);
 
 
 /* brief : Register SBE interrupt handlers and enable the IRQs

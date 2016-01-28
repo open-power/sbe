@@ -86,9 +86,9 @@ extern uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
   */
 extern inline uint32_t sbeBuildRespHeaderMagicCodeCmdClass (void)
 {
-    return ( (0xC0DE0000 ) |
-             (uint32_t)(g_sbeCmdHdr.cmdClass << 8) |
-             (uint32_t)(g_sbeCmdHdr.command ));
+    return ( (0xC0DE0000) |
+             (uint32_t)(g_sbeFifoCmdHdr.cmdClass << 8) |
+             (uint32_t)(g_sbeFifoCmdHdr.command));
 }
 
 /**
