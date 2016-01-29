@@ -1,33 +1,4 @@
-#include "p9_xip_image.h"
-#include "ppe42_scom.h"  // for PPE_STVD
-#include "sbe_link.H"  // for SBE_BASE_ORIGIN, SBE_SEEPROM_BASE_ORIGIN
-
-// Unconditional jump to a memory location
-#define JUMP_TO_ADDR(VAL ) \
-{ \
-asm volatile ( \
-    "mtlr  %0 \n\t" \
-    :   \
-    : "r" (VAL)); \
-asm volatile ( \
-    "blr  \n\t" \
-    :   \
-    );\
-}
-
-// PIBMEM start address
-const uint32_t g_pibMemAddr = SBE_BASE_ORIGIN;
-// SEEPROM start address
-const uint32_t g_headerAddr = SBE_SEEPROM_BASE_ORIGIN;
-// IVPR register address
-const uint32_t g_ivprLoc = 0xC0000160;
-
-// Get XIP image header
-P9XipHeader * getXipHdr()
-{
-    P9XipHeader *hdr = (P9XipHeader *)( g_headerAddr );
-    return hdr;
-}
+#include "sbeXipUtils.H"
 
 // Load section to destination address
 int32_t loadSection( P9XipSection * i_section, uint64_t *i_destAddr )

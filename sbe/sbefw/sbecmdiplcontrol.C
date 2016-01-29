@@ -53,6 +53,7 @@
 #include "p9_sbe_instruct_start.H"
 #include "p9_sbe_load_bootloader.H"
 
+#include "sbeXipUtils.H" // For getting hbbl offset
 // Forward declaration
 using namespace fapi2;
 ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
@@ -500,14 +501,17 @@ ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
 {
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-#ifndef SBE_ISTEP_STUBBED
-    // TODO via RTC 135345
-    //  Send right Ex, address and size of HB loader
+    // Get master Ex
+    uint8_t exId = 0;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    fapi2::Target<fapi2::TARGET_TYPE_EX > exTgt((uint64_t)7);
-    rc = p9_sbe_load_bootloader( proc, exTgt, 0, NULL );
-#endif
+    FAPI_ATTR_GET(fapi2::ATTR_MASTER_EX,proc,exId);
+    fapi2::Target<fapi2::TARGET_TYPE_EX > exTgt(exId);
+    // Get hbbl section
+    P9XipHeader *hdr = getXipHdr();
+    P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_HBBL]);
+
+    ReturnCode rc = p9_sbe_load_bootloader( proc, exTgt, hbblSection->iv_size, 
+                                            getSectionAddr(hbblSection) );
     return rc;
 }
 
