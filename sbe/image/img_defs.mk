@@ -32,9 +32,9 @@
 #
 # OBJDIR             : target directory for all generated files
 
-IMAGE_SEEPROM_NAME := seeprom_main
-IMAGE_SBE_NAME := sbe_main
-IMAGE_LOADER_NAME := loader_main
+IMAGE_SEEPROM_NAME := sbe_seeprom
+IMAGE_SBE_NAME := sbe_pibmem
+IMAGE_LOADER_NAME := sbe_loader
 
 SBE_SYMBOLS_NAME := sbe.syms
 

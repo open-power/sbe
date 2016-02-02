@@ -1,0 +1,6 @@
+35,36c35,36
+< IMGS:SBE_IMG_OUT | FLASH:sbe_main.out | LOC:ENVVAR_SIMICS_GSA_CELL/projects/s/simics_hb_images/nimbus
+< IMGS:SBE_IMG_BIN | FLASH:sbe_main.bin | LOC:SB_CHAIN/images/ppc/lab/flash
+---
+> IMGS:SBE_IMG_OUT | FLASH:sbe_pibmem.out | LOC:ENVVAR_SIMICS_GSA_CELL/projects/s/simics_hb_images/nimbus
+> IMGS:SBE_IMG_BIN | FLASH:sbe_pibmem.bin | LOC:SB_CHAIN/images/ppc/lab/flash
