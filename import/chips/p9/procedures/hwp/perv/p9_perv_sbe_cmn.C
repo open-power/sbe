@@ -40,9 +40,12 @@
 
 enum P9_PERV_SBE_CMN_Private_Constants
 {
-    P9_OPCG_DONE_POLL_COUNT = 700, // No. of times OPCG read to check OPCG_DONE
-    P9_OPCG_DONE_HW_NS_DELAY = 100000, // unit is nano seconds
-    P9_OPCG_DONE_SIM_CYCLE_DELAY = 5000 // unit is cycles
+    P9_OPCG_DONE_SCAN0_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
+    P9_OPCG_DONE_SCAN0_HW_NS_DELAY = 100000, // unit is nano seconds
+    P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY = 25000, // unit is cycles
+    P9_OPCG_DONE_ARRAYINIT_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
+    P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY = 100000, // unit is nano seconds
+    P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY = 25000 // unit is cycles
 };
 
 /// @brief Seeprom array Init Module
@@ -270,7 +273,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
 
     FAPI_INF("Poll OPCG done bit to check for run-N completeness");
-    l_timeout = P9_OPCG_DONE_POLL_COUNT;
+    l_timeout = P9_OPCG_DONE_ARRAYINIT_POLL_COUNT;
 
     //UNTIL CPLT_STAT0.CC_CTRL_OPCG_DONE_DC == 1
     while (l_timeout != 0)
@@ -285,7 +288,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
             break;
         }
 
-        fapi2::delay(P9_OPCG_DONE_HW_NS_DELAY, P9_OPCG_DONE_SIM_CYCLE_DELAY);
+        fapi2::delay(P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY, P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY);
         --l_timeout;
     }
 
@@ -479,7 +482,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
 
     FAPI_INF("Poll OPCG done bit to check for run-N completeness");
-    l_timeout = P9_OPCG_DONE_POLL_COUNT;
+    l_timeout = P9_OPCG_DONE_SCAN0_POLL_COUNT;
 
     //UNTIL CPLT_STAT0.CC_CTRL_OPCG_DONE_DC == 1
     while (l_timeout != 0)
@@ -494,6 +497,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
             break;
         }
 
+        fapi2::delay(P9_OPCG_DONE_SCAN0_HW_NS_DELAY, P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY);
         --l_timeout;
     }
 
