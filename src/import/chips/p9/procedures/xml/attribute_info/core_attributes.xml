@@ -22,9 +22,9 @@
 <!-- permissions and limitations under the License.                         -->
 <!--                                                                        -->
 <!-- IBM_PROLOG_END_TAG                                                     -->
-<!-- $Id: proc_pll_ring_attributes.xml,v 1.17 2014/11/13 20:14:02 szhong Exp $ -->
 <!-- proc_pll_ring_attributes.xml -->
 <attributes>
+  <!-- ********************************************************************* -->
   <attribute>
     <id>ATTR_CORE_REPR_RING</id>
     <targetType>TARGET_TYPE_CORE</targetType>
