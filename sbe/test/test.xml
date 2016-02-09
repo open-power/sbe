@@ -32,6 +32,7 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testPutGetMem.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testSram.xml</include>
           <testcase>
               <simcmd>sbe-trace</simcmd>
           </testcase>

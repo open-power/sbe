@@ -217,7 +217,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
     sbeIstepReqMsg_t req;
-    sbeResponseGenericHeader_t respHdr;
+    sbeRespGenHdr_t respHdr;
     respHdr.init();
     sbeResponseFfdc_t ffdc;
 

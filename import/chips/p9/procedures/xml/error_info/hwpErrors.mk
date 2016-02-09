@@ -31,3 +31,5 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_thread_control_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_startclock_chiplets_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_select_ex_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_check_master_stop15_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_pm_ocb_indir_access_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_pm_ocb_init_errors.xml

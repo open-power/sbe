@@ -38,7 +38,9 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 
     capability[MEMORY_CAPABILITY_START_IDX] =
                                 GET_MEMORY_SUPPPORTED |
-                                PUT_MEMORY_SUPPPORTED ;
+                                PUT_MEMORY_SUPPPORTED |
+                                GET_SRAM_OCC_SUPPPORTED |
+                                PUT_SRAM_OCC_SUPPPORTED;
 }
 // Functions
 //----------------------------------------------------------------------------
@@ -48,7 +50,7 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
     SBE_DEBUG(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
-    sbeResponseGenericHeader_t respHdr;
+    sbeRespGenHdr_t respHdr;
     respHdr.init();
     sbeCapabilityRespMsg_t capMsg;
 

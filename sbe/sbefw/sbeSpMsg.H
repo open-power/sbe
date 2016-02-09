@@ -78,7 +78,43 @@ typedef struct
         secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
     }
 
-}sbeResponseGenericHeader_t;
+}sbeRespGenHdr_t;
+
+/**
+  * @brief structure for generic Resp header with Len for fifo response.
+  *
+  */
+typedef struct
+{
+    uint32_t respLen;
+    sbeRespGenHdr_t respHdr;
+
+    /**
+      * @brief set response length
+      *
+      * @param[in] i_len   Length
+      *
+      * @return
+      */
+    void setLength( const uint32_t i_len )
+    {
+        respLen = i_len;
+    }
+
+    /**
+      * @brief set initial values for response header
+      *
+      * @note  We did not set this in constructor as based on use case
+      *        it is possible that g_sbeCmdHdr does not have proper
+      *        values at time of object creation.
+      *
+      */
+    void init()
+    {
+        respHdr.init();
+    }
+}sbeRespGenHdrWithLen_t;
+
 
 /**
   * @brief structure for ffdc header for fifo response.
@@ -327,6 +363,17 @@ typedef struct
 }sbeMemAccessReqMsgHdr_t;
 
 
+/**
+ * @brief Structure for SBE OCC Get/Put Sram Access ChipOps (0xA403/A404)
+ */
+typedef struct
+{
+    uint32_t reserved:24;           // Not used
+    sbeSramAccessMode mode:8;       // Channel select 0-3
+    uint32_t addr;                  // 32-Bit Memory Address
+    uint32_t len;                   // Length of Data in Bytes
+}sbeOccSramAccessReqMsgHdr_t;
+
 // Maximum number of capabilities
 static const uint32_t SBE_MAX_CAPABILITIES = 18;
 
@@ -345,7 +392,7 @@ typedef struct sbeCapabilityRespMsg
 }sbeCapabilityRespMsg_t;
 
 //  TODO via RTC 128658
-//  We may be able to replace this structure by sbeResponseGenericHeader_t
+//  We may be able to replace this structure by sbeRespGenHdr_t
 
 /**
   * @brief Command response structure to hold the primary and secondary
