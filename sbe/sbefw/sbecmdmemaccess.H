@@ -28,23 +28,5 @@ uint32_t sbeGetMem (uint8_t *i_pArg);
   */
 uint32_t sbePutMem  (uint8_t *i_pArg);
 
-/**
- * @brief sbeGetSram : Implements SBE Get SRAM ChipOp
- *
- * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
- *
- * @return    Rc from the FIFO access utility
- */
-uint32_t sbeGetSram (uint8_t *i_pArg);
-
-/**
- * @brief sbePutSram : Implements SBE Put SRAM ChipOp
- *
- * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
- *
- * @return    Rc from the FIFO access utility
- */
-uint32_t sbePutSram (uint8_t *i_pArg);
-
 
 #endif /* __SBEFW_SBECMDMEMACCESS_H */

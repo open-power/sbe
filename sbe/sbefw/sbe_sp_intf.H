@@ -91,8 +91,8 @@ enum sbeMemoryAccesCommands
 {
     SBE_CMD_GETMEM           = 0x01, /* Get Memory (Proc/PBA) */
     SBE_CMD_PUTMEM           = 0x02, /* Put Memory (Proc/PBA) */
-    SBE_CMD_GETSRAM          = 0x03, /* Get Memory (SRAM) */
-    SBE_CMD_PUTSRAM          = 0x04, /* Put Memory (SRAM) */
+    SBE_CMD_GETSRAM_OCC      = 0x03, /* Get Memory (OCC SRAM) */
+    SBE_CMD_PUTSRAM_OCC      = 0x04, /* Put Memory (OCC SRAM) */
 };
 
 /**
@@ -247,8 +247,10 @@ enum
     PUT_RING_SUPPPORTED                 = 0xA3000002,
     GET_MEMORY_SUPPPORTED               = 0xA4000001,
     PUT_MEMORY_SUPPPORTED               = 0xA4000002,
-    GET_SRAM_SUPPPORTED                 = 0xA4000004,
-    PUT_SRAM_SUPPPORTED                 = 0xA4000008,
+    GET_SRAM_OCC_SUPPPORTED             = 0xA4000004,
+    PUT_SRAM_OCC_SUPPPORTED             = 0xA4000008,
+    GET_SRAM_CME_SUPPPORTED             = 0xA4000010,
+    PUT_SRAM_CME_SUPPPORTED             = 0xA4000011,
     GET_REGISTER_SUPPPORTED             = 0xA5000001,
     PUT_REGISTER_SUPPPORTED             = 0xA5000002,
     READ_FAST_ARRAY_SUPPPORTED          = 0xA6000001,
@@ -275,6 +277,15 @@ enum sbeMemoryAccessFlags
     SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON = 0x00000020,
 };
 
+/**
+ *  @brief enum for various modes for Sram Access
+ */
+enum sbeSramAccessMode
+{
+    NORMAL_MODE    = 0x1,
+    DEBUG_MODE     = 0x2,
+    CIRCULAR_MODE  = 0x3,
+};
 
 
 #ifdef __cplusplus

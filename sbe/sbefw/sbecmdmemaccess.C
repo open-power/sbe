@@ -35,7 +35,7 @@ uint32_t sbeMemAccess_Wrap(const bool i_flagGetOrPut)
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
 
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
-    sbeResponseGenericHeader_t l_respHdr;
+    sbeRespGenHdr_t l_respHdr;
     l_respHdr.init();
     sbeResponseFfdc_t l_ffdc;
 
@@ -353,26 +353,4 @@ uint32_t sbeGetMem (uint8_t *i_pArg)
     #undef SBE_FUNC
 }
 
-/////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-uint32_t sbeGetSram (uint8_t *i_pArg)
-{
-    #define SBE_FUNC " sbeGetSram "
-    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
 
-
-    return l_rc;
-    #undef SBE_FUNC
-}
-
-/////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-uint32_t sbePutSram (uint8_t *i_pArg)
-{
-    #define SBE_FUNC " sbePutSram "
-    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-
-
-    return l_rc;
-    #undef SBE_FUNC
-}

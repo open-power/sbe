@@ -110,11 +110,17 @@ SIMICS_PPE_TAR_FILES += $(OBJDIR)/../../tools/ppetracepp/ppe2fsp
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/trexStringFile
 SIMICS_BB_TAR_FILES += $(OBJDIR)/../build/simics/*
 
+# Common Pm libraries
+PM_MAKE_DIR := $(PM_SRCDIR)
+LIB_DIRS += -L$(OBJDIR)/pm
+PMLIB := $(OBJDIR)/pm/libpm.a
+LLIBS += -lpm
+
 SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_default_tool
 
 P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
 
-LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB) $(NESTLIB)
+LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB) $(NESTLIB) $(PMLIB)
 
 # Define the objects
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
@@ -256,7 +262,7 @@ $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(HWPLIB) buildInfo pibMemAttrSet
+.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(HWPLIB) buildInfo pibMemAttrSet
 
 #errxml: topfixedheaders attrids platattr attrserv
 
@@ -305,6 +311,11 @@ $(PERVLIB):
 $(NESTLIB):
 	@echo "Processing nest makefile"
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(NEST_MAKE_DIR) -f Makefile
+
+#Build the pm code
+$(PMLIB):
+	@echo "Processing pm makefile"
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PM_MAKE_DIR) -f Makefile
 
 #Build the HWP lib procedures
 $(HWPLIB):

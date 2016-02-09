@@ -11,6 +11,7 @@
 #include "sbecmdgeneric.H"
 #include "sbecmdmemaccess.H"
 #include "sbecmdcntrldmt.H"
+#include "sbecmdsram.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 #include "sbeHostMsg.H"
@@ -90,6 +91,15 @@ static sbeCmdStruct_t g_sbeMemoryAccessCmdArray [] =
      SBE_FENCE_AT_CONTINUOUS_IPL,
     },
 
+    {sbeGetOccSram,
+     SBE_CMD_GETSRAM_OCC,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+
+    {sbePutOccSram,
+     SBE_CMD_PUTSRAM_OCC,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
 };
 
 //////////////////////////////////////////////////////////////
@@ -176,6 +186,9 @@ uint8_t sbeValidateCmdClass (const uint8_t i_cmdClass,
         l_numCmds = sbeGetCmdStructAttr (i_cmdClass, &l_pCmd);
         if (!l_numCmds)
         {
+            SBE_ERROR(SBE_FUNC"SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED "
+                "i_cmdClass[0x%02X], i_cmdOpcode[0x%02X]",
+                i_cmdClass, i_cmdOpcode);
             // Command class not supported
             l_rc = SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED;
             break;
