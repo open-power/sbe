@@ -56,13 +56,30 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
 static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
 
-
-
 static fapi2::ReturnCode p9_sbe_chiplet_reset_cache_async_reset(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_cache_hang_cnt_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_ep);
+
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_MC(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const fapi2::buffer<uint32_t> i_clk_mux_value);
+
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_call(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chiplet);
+
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_obus(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const fapi2::buffer<uint32_t> i_clk_mux_value);
+
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_pcie(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const fapi2::buffer<uint32_t> i_clk_mux_value);
+
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_xbus(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const fapi2::buffer<uint32_t> i_clk_mux_value);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_core_async_reset(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target_chiplet);
@@ -185,6 +202,9 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_INF("Setup hang pulse counter for cache chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_cache_hang_cnt_setup(l_target_cplt));
     }
+
+    FAPI_INF("Clock mux settings");
+    FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_call(i_target_chip));
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_SYNC_MODE_ALL_EXCEPT_TP, fapi2::TARGET_STATE_FUNCTIONAL))
@@ -320,7 +340,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_cache_async_reset(
     uint32_t l_attr_pg ;
 
     FAPI_INF("Reading ATTR_PG for cache");
-    FAPI_TRY((FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet.getParent<fapi2::TARGET_TYPE_PERV>(), l_attr_pg)));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet.getParent<fapi2::TARGET_TYPE_PERV>(), l_attr_pg));
 
     if ( l_attr_pg != 0xFFFF )
     {
@@ -412,6 +432,249 @@ fapi_try_exit:
 
 }
 
+/// @brief clock mux settings for Mc chiplet
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_clk_mux_value    clock mux value
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_MC(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const fapi2::buffer<uint32_t> i_clk_mux_value)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_DBG("Entering ...");
+
+    uint32_t l_attr_pg;
+
+    FAPI_INF("Reading ATTR_PG");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
+
+    if ( l_attr_pg != 0xFFFF )
+    {
+        //Setting NET_CTRL1 register value
+        FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+        //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<3>()
+        l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<3>());
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+    }
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief call all the related mux settings on chiplets
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_call(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chiplet)
+{
+    fapi2::buffer<uint32_t> l_read_attr;
+    FAPI_DBG("Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_PLL_MUX, i_target_chiplet,
+                           l_read_attr));
+
+    for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_INF("Mux settings for Mc chiplet");
+        FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_MC(l_target_cplt, l_read_attr));
+    }
+
+    for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_INF("Mux settings for OB chiplet");
+        FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_obus(l_target_cplt, l_read_attr));
+    }
+
+    FAPI_INF("Mux settings for XB chiplet");
+    FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_xbus(
+                 i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_XBUS,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], l_read_attr));
+
+    for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_INF("Mux settings for Pcie chiplet");
+        FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_pcie(l_target_cplt, l_read_attr));
+    }
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief clock mux settings for OB chiplet
+///
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_clk_mux_value    Clock mux value
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_obus(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const fapi2::buffer<uint32_t> i_clk_mux_value)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_DBG("Entering ...");
+
+    uint32_t l_attr_pg;
+    uint8_t l_attr_unit_pos;
+
+    FAPI_INF("Reading ATTR_PG");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
+
+    if ( l_attr_pg != 0xFFFF )
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chiplet,
+                               l_attr_unit_pos));
+
+        if ( l_attr_unit_pos == 0x09 )
+        {
+            //Setting NET_CTRL1 register value
+            FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+            //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<6>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<6>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
+            (i_clk_mux_value.getBit<13>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = i_clk_mux_value.getBit<13>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>
+            (i_clk_mux_value.getBit<15>());  //NET_CTRL1.REFCLK_CLKMUX1_SEL = i_clk_mux_value.getBit<15>()
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+        }
+
+        if ( l_attr_unit_pos == 0x0A )
+        {
+            //Setting NET_CTRL1 register value
+            FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>
+            (i_clk_mux_value.getBit<16>());  //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<16>()
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+        }
+
+        if ( l_attr_unit_pos == 0x0B )
+        {
+            //Setting NET_CTRL1 register value
+            FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>
+            (i_clk_mux_value.getBit<17>());  //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<17>()
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+        }
+
+        if ( l_attr_unit_pos == 0x0C )
+        {
+            //Setting NET_CTRL1 register value
+            FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+            //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<7>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<7>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
+            (i_clk_mux_value.getBit<9>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = i_clk_mux_value.getBit<9>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>
+            (i_clk_mux_value.getBit<14>());  //NET_CTRL1.REFCLK_CLKMUX1_SEL = i_clk_mux_value.getBit<14>()
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+        }
+    }
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief clock mux settings for Pcie chiplet
+///
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_clk_mux_value    clock mux value
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_pcie(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const fapi2::buffer<uint32_t> i_clk_mux_value)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_DBG("Entering ...");
+
+    uint32_t l_attr_pg;
+    uint8_t l_attr_unit_pos;
+
+    FAPI_INF("Reading ATTR_PG");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
+
+    if ( l_attr_pg != 0xFFFF )
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chiplet,
+                               l_attr_unit_pos));
+
+        if ( l_attr_unit_pos == 0x0D )
+        {
+            //Setting NET_CTRL1 register value
+            FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+            //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<5>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<5>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
+            (i_clk_mux_value.getBit<10>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = i_clk_mux_value.getBit<10>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>
+            (i_clk_mux_value.getBit<11>());  //NET_CTRL1.REFCLK_CLKMUX1_SEL = i_clk_mux_value.getBit<11>()
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+        }
+
+        if ( l_attr_unit_pos == 0x0F )
+        {
+            //Setting NET_CTRL1 register value
+            FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+            //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<4>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<4>());
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+        }
+    }
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief clock mux settings for XB chiplet
+///
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_clk_mux_value    clock mux value
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_xbus(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const fapi2::buffer<uint32_t> i_clk_mux_value)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_DBG("Entering ...");
+
+    uint32_t l_attr_pg;
+
+    FAPI_INF("Reading ATTR_PG");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
+
+    if ( l_attr_pg != 0xFFFF )
+    {
+        //Setting NET_CTRL1 register value
+        FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+        //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<8>()
+        l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<8>());
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
+    }
+
+    FAPI_DBG("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
 /// @brief set async reset for core chiplets
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_CORE target
@@ -425,7 +688,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_core_async_reset(
     uint32_t l_attr_pg;
 
     FAPI_INF("Reading ATTR_PG for core chiplet");
-    FAPI_TRY((FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet.getParent<fapi2::TARGET_TYPE_PERV>(), l_attr_pg)));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet.getParent<fapi2::TARGET_TYPE_PERV>(), l_attr_pg));
 
     if ( l_attr_pg != 0xFFFF )
     {
