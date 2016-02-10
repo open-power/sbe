@@ -493,15 +493,15 @@
   </entry>
   <entry>
           <name>ATTR_PROC_FABRIC_SYSTEM_ID</name>
-          <value>0x01</value>
+          <value>0x00</value>
   </entry>
   <entry>
           <name>ATTR_PROC_FABRIC_GROUP_ID</name>
-          <value>0x01</value>
+          <value>0x00</value>
   </entry>
   <entry>
           <name>ATTR_PROC_FABRIC_CHIP_ID</name>
-          <value>0x01</value>
+          <value>0x00</value>
   </entry>
   <entry>
           <name>ATTR_PROC_FABRIC_ADDR_BAR_MODE</name>
@@ -509,15 +509,15 @@
   </entry>
   <entry>
           <name>ATTR_MEM_MIRROR_PLACEMENT_POLICY</name>
-          <value>0x01</value>
+          <value>0x00</value>
   </entry>
   <entry>
           <name>ATTR_SBE_BOOTLOADER_OFFSET</name>
-          <value>0x01</value>
+          <value>0x200000</value>
   </entry>
   <entry>
            <name>ATTR_HOSTBOOT_HRMOR_OFFSET</name>
-           <value>0x01</value>
+           <value>0x8000000</value>
   </entry>
   <entry>
            <name>ATTR_SYS_FORCE_ALL_CORES</name>

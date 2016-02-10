@@ -63,7 +63,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     //The branch instruction is 0100 10_address to branch to_ 0  0
     //                      0      6                   29 30 31
     //bit 30 is for absolute address (since it is not set this is relative)
-    const uint32_t l_branch_to_12 = 0x4800C000ull;
+    const uint32_t l_branch_to_12 = 0x48003000ull;
     uint64_t l_bootloader_offset;
     uint64_t l_hostboot_hrmor_offset;
     uint64_t l_chip_base_address_nm;
