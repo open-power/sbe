@@ -40,7 +40,7 @@ namespace std
 
             protected:
 
-                pointer iv_start;
+                pointer iv_start __attribute__ ((aligned (8)));
                 pointer iv_finish;
                 SBEVECTORPOOL::vectorMemPool_t *iv_poolPtr;
             public:

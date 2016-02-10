@@ -19,6 +19,10 @@ using namespace fapi2;
 // This is used to find out the array index in g_control_reg_map in
 // p9_thread_control.C
 static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
+// TODO via RTC 152424
+// Currently all proecdures in core directory are in seeprom.
+// So we have to use function pointer to force a long call.
+p9_thread_control_FP_t threadCntlhwp = &p9_thread_control;
 
 /* @brief Map User Thread Command to Hwp ThreadCommands Enum */
 ThreadCommands getThreadCommand(const sbeCntlInstRegMsgHdr_t & i_req)
@@ -111,7 +115,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
             do
             {
                 // Call the Procedure
-                l_fapiRc = p9_thread_control(
+                l_fapiRc = threadCntlhwp(
                                     l_coreTgt,
                                     (SINGLE_THREAD_BIT_MASK >> l_thread),
                                     l_cmd, l_warnCheck,
