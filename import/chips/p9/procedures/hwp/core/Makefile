@@ -5,6 +5,7 @@
 #all generated files from this makefile will end up in obj/cache
 export SUB_OBJDIR = /core
 
+GCC-CFLAGS += -mlongcall
 include img_defs.mk
 include corehcdfiles.mk
 

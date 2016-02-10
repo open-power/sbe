@@ -22,76 +22,76 @@
 
 
 
-	.macro	..checku, x:req, bits:req, err="Unsigned value too large"
+    .macro    ..checku, x:req, bits:req, err="Unsigned value too large"
 
-	.if	(((\bits) <= 0) || ((\bits) > 63))
-	.error	"The number of bits must be in the range 0 < bits < 64"
-	.endif
+    .if    (((\bits) <= 0) || ((\bits) > 63))
+    .error    "The number of bits must be in the range 0 < bits < 64"
+    .endif
 
-	.iflt	(\x)
-	.error  "An unsigned value is required here"
+    .iflt    (\x)
+    .error  "An unsigned value is required here"
         .endif
 
-	.ifgt	((\x) - (0xffffffffffffffff >> (64 - (\bits))))
-	.error	"\err"
-	.endif
+    .ifgt    ((\x) - (0xffffffffffffffff >> (64 - (\bits))))
+    .error    "\err"
+    .endif
 
-	.endm
+    .endm
 
     .macro  ..check_u16, u16
-	..checku (\u16), 16, "Unsigned immediate is larger than 16 bits"
+    ..checku (\u16), 16, "Unsigned immediate is larger than 16 bits"
     .endm
 
 
     .macro  ..set_default_space, s
-	..check_u16 (\s)
+    ..check_u16 (\s)
     .set    _PGAS_DEFAULT_SPACE, (\s)
     .endm
 
-	.macro	..check_default_space
-	.if	(_PGAS_DEFAULT_SPACE == IMAGE_SPACE_UNDEFINED)
-	.error	"The PGAS default address space has not been defined"
-	.endif
-	.endm
+    .macro    ..check_default_space
+    .if    (_PGAS_DEFAULT_SPACE == IMAGE_SPACE_UNDEFINED)
+    .error    "The PGAS default address space has not been defined"
+    .endif
+    .endm
 
 
-	.macro	.quada, offset:req
-	..check_default_space
-	.long   _PGAS_DEFAULT_SPACE
-	.long	(\offset)
-	.endm
+    .macro    .quada, offset:req
+    ..check_default_space
+    .long   _PGAS_DEFAULT_SPACE
+    .long    (\offset)
+    .endm
 
 
-	.macro	P9XipHeader, magic, link_address, entry_point, image_size
+    .macro    P9XipHeader, magic, link_address, entry_point, image_size
 
-	.section .header, "a", @progbits
+    .section .header, "a", @progbits
 
 
-	//////////////////////////////////////////////////////////////////////
-	// Identification - 8-byte aligned; 8 Entries; TOC-Indexed
-	//////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    // Identification - 8-byte aligned; 8 Entries; TOC-Indexed
+    //////////////////////////////////////////////////////////////////////
 
 __magic:
-	.quad	(\magic)
+    .quad    (\magic)
 __L1_LoaderAddr:
-	.quad	0
+    .quad    0
 __L2_LoaderAddr:
-	.quad	0
+    .quad    0
 __kernelAddr:
-	.quad   0
+    .quad   0
 __link_address:
-	.quada	(\link_address)
+    .quada    (\link_address)
 __header_64_reserved:
-	.quad	0, 0, 0
+    .quad    0, 0, 0
 
-	.xip_toc magic, P9_XIP_UINT64, __magic
-	.xip_toc L1_LoaderAddr, P9_XIP_UINT64, __L1_LoaderAddr
-	.xip_toc L2_LoaderAddr, P9_XIP_UINT64, __L2_LoaderAddr
-	.xip_toc kernelAddr, P9_XIP_UINT64, __kernelAddr
-	.xip_toc link_address, P9_XIP_UINT64, __link_address	
-     
+    .xip_toc magic, P9_XIP_UINT64, __magic
+    .xip_toc L1_LoaderAddr, P9_XIP_UINT64, __L1_LoaderAddr
+    .xip_toc L2_LoaderAddr, P9_XIP_UINT64, __L2_LoaderAddr
+    .xip_toc kernelAddr, P9_XIP_UINT64, __kernelAddr
+    .xip_toc link_address, P9_XIP_UINT64, __link_address
+
         //////////////////////////////////////////////////////////////////////
-        // Section Table - 8-byte aligned; 16 entries; Not TOC-Indexed
+        // Section Table - Not TOC-Indexed
         //////////////////////////////////////////////////////////////////////
 
         .xip_section header
@@ -100,10 +100,10 @@ __header_64_reserved:
         .xip_section toc,                  4
         .xip_section strings
         .xip_section loader_text,          4
-        .xip_section loader_data,          8
+        .xip_section loader_data,          8, empty=1
         .xip_section text,                 4
-        .xip_section data,                 8
-        .xip_section base,                 4, empty=1
+        .xip_section data,                 8, empty=1
+        .xip_section base,                 4
         .xip_section baseloader,           8, empty=1
         .xip_section overrides,            8, empty=1
         .xip_section rings,                8, empty=1
@@ -116,17 +116,17 @@ __header_64_reserved:
         //////////////////////////////////////////////////////////////////////
 
 __image_size:
-	.long	(\image_size)
+    .long    (\image_size)
 __build_date:
-	.long	0
+    .long    0
 __build_time:
-	.long	0
+    .long    0
 __header_32_reserved:
-	.long	0, 0, 0, 0, 0
+    .long    0, 0, 0, 0, 0
 
-	.xip_toc image_size, P9_XIP_UINT32, __image_size
-	.xip_toc build_date, P9_XIP_UINT32, __build_date
-	.xip_toc build_time, P9_XIP_UINT32, __build_time
+    .xip_toc image_size, P9_XIP_UINT32, __image_size
+    .xip_toc build_date, P9_XIP_UINT32, __build_date
+    .xip_toc build_time, P9_XIP_UINT32, __build_time
 
 
         //////////////////////////////////////////////////////////////////////
@@ -134,17 +134,17 @@ __header_32_reserved:
         //////////////////////////////////////////////////////////////////////
 
 __header_version:
-	.byte	P9_XIP_HEADER_VERSION
+    .byte    P9_XIP_HEADER_VERSION
 __toc_normalized:
-	.byte	0
+    .byte    0
 __toc_sorted:
-	.byte	0
+    .byte    0
 __header_8_reserved:
-	.byte	0, 0, 0, 0, 0
+    .byte    0, 0, 0, 0, 0
 
-	.xip_toc header_version, P9_XIP_UINT8, __header_version
-	.xip_toc toc_normalized, P9_XIP_UINT8, __toc_normalized
-	.xip_toc toc_sorted, P9_XIP_UINT8, __toc_sorted
+    .xip_toc header_version, P9_XIP_UINT8, __header_version
+    .xip_toc toc_normalized, P9_XIP_UINT8, __toc_normalized
+    .xip_toc toc_sorted, P9_XIP_UINT8, __toc_sorted
 
 
         //////////////////////////////////////////////////////////////////////
@@ -152,17 +152,17 @@ __header_8_reserved:
         //////////////////////////////////////////////////////////////////////
 
 __build_user:
-	.asciz	"unknown        "         # 16 Characters allocated
+    .asciz    "unknown        "         # 16 Characters allocated
 __build_host:
-	.asciz	"unknown                " # 24 characters allocated
+    .asciz    "unknown                " # 24 characters allocated
 __header_string_reserved:
-	.space	24, 0
+    .space    24, 0
 
-	.xip_toc build_user, P9_XIP_STRING, __build_user
-	.xip_toc build_host, P9_XIP_STRING, __build_host
+    .xip_toc build_user, P9_XIP_STRING, __build_user
+    .xip_toc build_host, P9_XIP_STRING, __build_host
 
 
-	.endm
+    .endm
 
 
     .section .fixed, "a", @progbits
@@ -172,9 +172,10 @@ __header_string_reserved:
 
     .section .toc, "a", @progbits
     .section .strings, "aS", @progbits
+    .section .base, "a", @progbits
 
     ..set_default_space IMAGE_SPACE_SEEPROM
-    P9XipHeader P9_XIP_MAGIC_SEEPROM, 0x80000000, 0x80000C78, _seeprom_size
+    P9XipHeader P9_XIP_MAGIC_SEEPROM, 0x80000000, 0x00000000, _sbe_image_size
 
     // Create the .fixed section
     .proc_sbe_fixed_system

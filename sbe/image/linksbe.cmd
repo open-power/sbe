@@ -11,7 +11,9 @@ OUTPUT_FORMAT(elf32-powerpc);
 
 MEMORY
 {
- sram : ORIGIN = SBE_BASE_ORIGIN, LENGTH = SBE_BASE_LENGTH
+ // increasing ram size as workaround so that pibmem image compilation
+ // doe not fail.
+ sram : ORIGIN = SBE_BASE_ORIGIN, LENGTH = SBE_BASE_LENGTH + 0xF000
 }
 
 SECTIONS
@@ -60,7 +62,9 @@ SECTIONS
 
     _SDA_BASE_ = .;
     .sdata  . : { *(.sdata*)  } > sram
+    _sbss_start = .;   
     .sbss   . : { *(.sbss*)   } > sram
+    _sbss_end = .;   
 
     // Other read-write data
     // It's not clear why boot.S is generating empty .glink,.iplt

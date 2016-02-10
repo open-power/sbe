@@ -8,6 +8,7 @@ export SUB_OBJDIR = /cache
 include img_defs.mk
 include cachehcdfiles.mk
 
+GCC-CFLAGS += -mlongcall
 
 OBJS := $(addprefix $(OBJDIR)/, $(CACHE_OBJECTS))
 

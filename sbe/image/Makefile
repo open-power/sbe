@@ -140,19 +140,16 @@ LINK_SCRIPT_OTPROM =  $(addprefix $(OBJDIR)/, linkscriptotprom)
 # ---- SEEPROM Image  ------
 # This removes all unecessary headers from the ELF executable
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
-	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep "A _seeprom_end" | cut -d " " -f 1`
+	./parsAndCutElf.py
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
 
 
 ifndef FAPI2_TEST
 # This is the production build of the SEEPROM
 #create a linked ELF executable
-# TODO via RTC 142365
-# Remove pibMemAttrSet from this file once we have support to copy fixed section
-# from SEEPROM to PIBMEM.
-$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: pibMemAttrSet buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	@echo ">>>>> Production Build <<<<<<"
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJS) $(LIB_DIRS)  -leabi -lmath -lc
+	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out  $(OBJS) $(LIB_DIRS)  --start-group $(LLIBS) --end-group  -leabi -lmath -lc
 else
 # This a special build of the SEEPROM image that includes the PK to allow for test threads to be used.
 # create a linked ELF executable
@@ -174,7 +171,7 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMA
 	$(NM)  $< > $(OBJDIR)/$(IMAGE_SBE_NAME).syms
 
 # create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SBE_NAME).out: pibMemAttrSet buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+$(OBJDIR)/$(IMAGE_SBE_NAME).out: buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
@@ -211,7 +208,7 @@ $(LINK_SCRIPT_LOADER): linkloader.cmd
 # Remove the "all" rule if FAPI2_TEST as the SBE FW is incompatible with the
 # option of PK enabled
 ifndef FAPI2_TEST
-all: seeprom $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) appendbase appendloader
+all: seeprom $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) appendloader
 install: all
 	@echo "Installing simics.tar"
 	@rm -rf $(OBJDIR)/simics-tar-dir
@@ -226,9 +223,10 @@ all:
 	@echo "Makefile option error:  ALL is not compatible with FAPI2_test"
 endif
 
-.PHONY: all normalize defaultset appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols appendoverrides report
+.PHONY: all normalize defaultset appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols appendoverrides report
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader appendoverrides add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash buildinfo report
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendloader appendoverrides add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash buildinfo report
+
 
 buildinfo: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_date `date +%Y%m%d`
@@ -243,12 +241,11 @@ add_L2_LoaderAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __base_loader_setup | cut -f 1 -d " "`
 
 add_kernelAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_LOADER_NAME).out
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(OBJDIR)/$(IMAGE_SBE_NAME).out | grep __pk_boot | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 
 symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(IMAGE_SBE_NAME).out
 	$(NM) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(OBJDIR)/$(SBE_SYMBOLS_NAME)
 	$(NM) $(OBJDIR)/$(IMAGE_LOADER_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
-	$(NM) $(OBJDIR)/$(IMAGE_SBE_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
 
 # this target is broken, since the image report should be created
 # when the xip image has been finalised
@@ -284,7 +281,7 @@ $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(HWPLIB) buildInfo pibMemAttrSet
+.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(HWPLIB) buildInfo
 
 #errxml: topfixedheaders attrids platattr attrserv
 
@@ -394,9 +391,6 @@ $(OBJDIR)/fixed.bin: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
 
 
-appendbase: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .base $(OBJDIR)/$(IMAGE_SBE_NAME).bin
-
 appendloader: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
 
@@ -411,9 +405,6 @@ appendoverrides: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 tracehash:
 	mkdir -p $(OBJDIR)
 	$(THASH) -c -d $(OBJDIR) -s $(OBJDIR)/trexStringFile
-
-pibMemAttrSet:
-	$(TOOLS_IMAGE_DIR)/ppeSetFixedPibmem.pl $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 #clean the kernel directory first, then the application level clean
 clean:

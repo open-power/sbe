@@ -13,15 +13,13 @@
 
         .section .loader_text, "ax", @progbits
 
-        .global __vectors
-
 __vectors:
 
         ############################################################
         # 0x0040 : System Reset
         ############################################################
-        .global __system_reset
         .org __vectors + 0x0040
+
 __system_reset:
         b   __pmLoader
 
