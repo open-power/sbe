@@ -42,10 +42,10 @@ enum P9_PERV_SBE_CMN_Private_Constants
 {
     P9_OPCG_DONE_SCAN0_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
     P9_OPCG_DONE_SCAN0_HW_NS_DELAY = 100000, // unit is nano seconds
-    P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY = 25000, // unit is cycles
+    P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY = 100000, // unit is cycles
     P9_OPCG_DONE_ARRAYINIT_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
     P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY = 100000, // unit is nano seconds
-    P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY = 25000 // unit is cycles
+    P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY = 280000 // unit is cycles
 };
 
 /// @brief Seeprom array Init Module
