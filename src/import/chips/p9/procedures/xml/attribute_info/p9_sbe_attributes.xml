@@ -96,10 +96,6 @@
       <value>0x1</value>
   </entry>
   <entry>
-      <name>ATTR_SYS_FORCE_ALL_CORES</name>
-      <value>0x1</value>
-  </entry>
-  <entry>
       <name>ATTR_RISK_LEVEL</name>
       <value>0x1</value>
   </entry>

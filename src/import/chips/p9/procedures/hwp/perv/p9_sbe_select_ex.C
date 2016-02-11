@@ -269,10 +269,8 @@ fapi2::ReturnCode p9_sbe_select_ex(
                      l_ex_num, l_ex_num);
             FAPI_DBG("SINGLE mode: core config: %016llX", l_core_config);
 
-
-            FAPI_DBG("SINGLE mode: core chiplet %d 0x%02X with is chiplet id 0x%02X; selected element %d Target Type %X",
-                     l_core_num, l_core_num, l_core_num + 0x20, 0,
-                     l_core_functional_vector.at(0).getType());
+            FAPI_DBG("SINGLE mode:  chiplet id 0x%02X; selected element %d Target Type %X",
+                     l_core_num + 0x20, 0, l_core_functional_vector.at(0).getType());
 
             // We found the core and cache so exit in SINGLE mode
             break;
