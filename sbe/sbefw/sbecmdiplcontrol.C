@@ -84,6 +84,7 @@ ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp );
 ReturnCode istepNoOp( sbeIstepHwp_t i_hwp );
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp);
+ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp);
 ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp);
 
 //structure for mapping SBE wrapper and HWP functions
@@ -152,12 +153,7 @@ static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
              { &istepWithProc, { .procHwp = &p9_sbe_nest_startclocks }},
            #endif
              { &istepWithProc, { .procHwp = &p9_sbe_nest_enable_ridi }},
-             // TODO via RTC 142710
-             // L1 for p9_sbe_startclock_chiplets has wrong signature.
-             // PERV team has fixed this in gerrit. Once it is merged
-             // to master, enable this hwp. Remove No-Op after this.
-             // { &istepWithProc, { .procHwp = &p9_sbe_startclock_chiplets }},
-             { &istepNoOp, NULL }, // startclock_chiple wrong signature
+             { &istepWithProc, { .procHwp = &p9_sbe_startclock_chiplets }},
              { &istepWithProc, { .procHwp = &p9_sbe_scominit }},
              { &istepWithProc, { .procHwp = &p9_sbe_lpc_init }},
            #ifdef SBE_ISTEP_STUBBED
@@ -173,7 +169,7 @@ static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
              // in this code
              //{ &istepWithProc, { .procHwp = &p9_sbe_mcs_setup }},
              { &istepNoOp, NULL }, // mcs_setup does not compile currently
-             { &istepWithProc, { .procHwp = &p9_sbe_select_ex }},
+             { &istepSelectEx, NULL },
          };
 static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
          {
@@ -448,6 +444,18 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp.procHwp );
     return i_hwp.procHwp(proc);
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp)
+{
+    SBE_DEBUG("istepWithProc");
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    // TODO via RTC 135345
+    // Once multicast targets are supported, we may need to pass
+    // p9selectex::ALL as input.
+    return p9_sbe_select_ex(proc, p9selectex::SINGLE);
 }
 
 //----------------------------------------------------------------------------
