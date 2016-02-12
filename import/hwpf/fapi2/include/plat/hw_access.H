@@ -237,9 +237,9 @@ inline ReturnCode modifyCfamRegister(const Target<K>& i_target,
 /// @param[in] i_ringMode Ring operation mode.
 /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
 template< TargetType K >
-inline ReturnCode putRing(const Target<K>& i_target,
-                          const RingID i_ringID,
-                          const RingMode i_ringMode)
+ReturnCode putRing(const Target<K>& i_target,
+                   const RingID i_ringID,
+                   const RingMode i_ringMode)
 {
     std::cout << std::hex << "   putRing "
               << "target: {" << i_target.getType() << ","
