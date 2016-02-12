@@ -155,7 +155,7 @@ fapi_try_exit:
 }
 
 /// @brief --drop vital fence
-/// --reset abstclk muxsel and syncclk muxsel
+/// --reset abstclk muxsel
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
@@ -203,13 +203,11 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_cplt_ctrl_action_function(
     l_data64.writeBit<PERV_1_CPLT_CTRL1_UNUSED_14B>(l_attr_pg.getBit<30>());
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
-    FAPI_INF("reset abistclk_muxsel and syncclk_muxsel");
+    FAPI_INF("reset abistclk_muxsel");
     //Setting CPLT_CTRL0 register value
     l_data64.flush<0>();
     //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 0
     l_data64.setBit<PERV_1_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
-    //CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 0
-    l_data64.setBit<PERV_1_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_CLEAR, l_data64));
 
     FAPI_DBG("Exiting ...");
