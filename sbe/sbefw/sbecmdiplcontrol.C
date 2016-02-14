@@ -508,7 +508,7 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
     fapi2::Target<fapi2::TARGET_TYPE_EX > exTgt(exId);
     // Get hbbl section
     P9XipHeader *hdr = getXipHdr();
-    P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_HBBL]);
+    P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
 
     ReturnCode rc = p9_sbe_load_bootloader( proc, exTgt, hbblSection->iv_size, 
                                             getSectionAddr(hbblSection) );
