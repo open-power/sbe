@@ -22,7 +22,7 @@ int32_t base_loader()
     P9XipHeader *hdr = getXipHdr();
 
     uint64_t *pibMemAddr  = (uint64_t *)g_pibMemAddr;
-    loadSection(&(hdr->iv_section[P9_XIP_SECTION_BASE]), pibMemAddr);
+    loadSection(&(hdr->iv_section[P9_XIP_SECTION_SBE_BASE]), pibMemAddr);
     // Set the IVPR register. This is required so that interrupt vector table
     // points to pk interfaces.
     uint64_t data = (uint64_t)(SBE_BASE_ORIGIN) << 32;

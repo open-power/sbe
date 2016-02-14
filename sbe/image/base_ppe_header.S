@@ -62,22 +62,6 @@
 	.endm
 
 
-//    .macro	P9XipHeader, magic, link_address, entry_point, image_size
-
-	.macro	P9XipSection, s:req, alignment=1, empty=0
-__\s\()_section:
-	.if	\empty
-		.long	0
-		.long	0
-	.else
-		.long	_\s\()_offset
-		.long	_\s\()_size
-	.endif
-		.byte	(\alignment)
-        .byte	0, 0, 0
-	.endm
-
-
 	.macro	P9XipHeader, magic, link_address, entry_point, image_size
 
 	.section .header, "a", @progbits
@@ -110,20 +94,21 @@ __header_64_reserved:
         // Section Table - 8-byte aligned; 16 entries; Not TOC-Indexed
         //////////////////////////////////////////////////////////////////////
 
-        P9XipSection header
-        P9XipSection fixed,                8
-        P9XipSection fixed_toc,            8
-        P9XipSection loader_text,          4
-        P9XipSection loader_data,          8
-        P9XipSection text,                 4
-        P9XipSection data,                 8
-        P9XipSection toc,                  4
-        P9XipSection strings
-        P9XipSection base,                 4, empty=1
-        P9XipSection baseloader,           8, empty=1
-        P9XipSection overlay,              8, empty=1
-        P9XipSection rings,                8, empty=1
-        P9XipSection hbbl,                 8, empty=1
+        .xip_section header
+        .xip_section fixed,                8
+        .xip_section fixed_toc,            8
+        .xip_section toc,                  4
+        .xip_section strings
+        .xip_section loader_text,          4
+        .xip_section loader_data,          8
+        .xip_section text,                 4
+        .xip_section data,                 8
+        .xip_section base,                 4, empty=1
+        .xip_section baseloader,           8, empty=1
+        .xip_section overrides,            8, empty=1
+        .xip_section rings,                8, empty=1
+        .xip_section overlay,              8, empty=1
+        .xip_section hbbl,                 8, empty=1
 
 
         //////////////////////////////////////////////////////////////////////
@@ -189,7 +174,7 @@ __header_string_reserved:
     .section .strings, "aS", @progbits
 
     ..set_default_space IMAGE_SPACE_SEEPROM
-    P9XipHeader P9_SEEPROM_MAGIC, 0x80000000, 0x80000C78, _seeprom_size
+    P9XipHeader P9_XIP_MAGIC_SEEPROM, 0x80000000, 0x80000C78, _seeprom_size
 
     // Create the .fixed section
     .proc_sbe_fixed_system
