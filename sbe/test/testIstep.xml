@@ -101,8 +101,10 @@
           <simcmd>sbe-istep 3 11</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
-      <!-- TODO via RTC 14472. istep 3.12 fails on simics. -->
-      <!-- HWP need to update action file for p9_sbe_common_align_chiplets -->
+      <testcase>
+          <simcmd>sbe-istep 3 12</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
       <testcase>
           <simcmd>sbe-istep 3 13</simcmd>
           <exitonerror>yes</exitonerror>
@@ -119,8 +121,10 @@
           <simcmd>sbe-istep 3 16</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
-      <!-- TODO via RTC : 144728. istep 3.17 fails on simics.-->
-      <!-- Christy needs to give fix in action files   -->
+      <testcase>
+          <simcmd>sbe-istep 3 17</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
       <testcase>
           <simcmd>sbe-istep 3 18</simcmd>
           <exitonerror>yes</exitonerror>
