@@ -147,20 +147,12 @@ static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
              { &istepWithProc, { .procHwp = &p9_sbe_tp_enable_ridi }},
              { &istepWithProc, { .procHwp = &p9_sbe_setup_evid }},
              { &istepWithProc, { .procHwp = &p9_sbe_nest_initf }},
-           #ifdef SBE_ISTEP_STUBBED
-             { &istepNoOp, NULL }, // WA for simics testing
-           #else
              { &istepWithProc, { .procHwp = &p9_sbe_nest_startclocks }},
-           #endif
              { &istepWithProc, { .procHwp = &p9_sbe_nest_enable_ridi }},
              { &istepWithProc, { .procHwp = &p9_sbe_startclock_chiplets }},
              { &istepWithProc, { .procHwp = &p9_sbe_scominit }},
              { &istepWithProc, { .procHwp = &p9_sbe_lpc_init }},
-           #ifdef SBE_ISTEP_STUBBED
-             { &istepNoOp, NULL }, // WA for simics testing
-           #else
              { &istepWithProc, { .procHwp = &p9_sbe_fabricinit }},
-           #endif
              { &istepNoOp, NULL }, // TODO via RTC 120752
                                    // FW proc_sbe_check_master
              // TODO via RTC 142710
