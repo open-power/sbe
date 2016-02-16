@@ -185,7 +185,13 @@ endif
 
 .PHONY: all normalize defaultset appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash buildinfo
+
+buildinfo: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_date `date +%Y%m%d`
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_time `date +%H%M`
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_user `id -un`
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_host `hostname`
 
 add_L1_LoaderAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pmLoader | cut -f 1 -d " "`
