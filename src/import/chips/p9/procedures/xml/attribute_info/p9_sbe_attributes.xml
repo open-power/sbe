@@ -547,4 +547,8 @@
            <name>ATTR_SBE_HBBL_EXCEPTION_INSTRUCT</name>
            <value>0x48000000</value>
   </entry>
+  <entry>
+           <name>ATTR_CLOCK_PLL_MUX</name>
+           <value>0x0C400000</value>
+  </entry>
 </entries>
