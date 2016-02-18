@@ -15,7 +15,7 @@
 #define PK_TRACE_VERSION 2
 
 #ifndef PK_TRACE_SZ
-#define PK_TRACE_SZ 256
+#define PK_TRACE_SZ 1024
 #endif
 
 //Fail compilation if size is not a power of 2

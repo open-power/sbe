@@ -47,4 +47,10 @@ enum sbePsuControlFlags
     SBE_PSU_FLAGS_ACK_REQUIRED    = 0x0200,
 };
 
+enum sbePsuDmtCmdFlags
+{
+    SBE_PSU_FLAGS_START_DMT       = 0x0001,
+    SBE_PSU_FLAGS_STOP_DMT        = 0x0002,
+};
+
 #endif // __SBEFW_SBE_HOST_INTF_H

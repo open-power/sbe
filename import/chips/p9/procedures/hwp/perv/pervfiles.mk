@@ -37,6 +37,7 @@ PERV-CPP-SOURCES +=p9_sbe_setup_evid.C
 PERV-CPP-SOURCES +=p9_perv_sbe_cmn.C
 PERV-CPP-SOURCES +=p9_sbe_common.C
 PERV-CPP-SOURCES +=p9_sbe_gear_switcher.C
+PERV-CPP-SOURCES +=p9_sbe_check_master_stop15.C
 
 PERV-C-SOURCES =
 PERV-S-SOURCES =
