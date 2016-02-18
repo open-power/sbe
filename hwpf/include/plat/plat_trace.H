@@ -65,21 +65,50 @@ namespace fapi2
     PK_TRACE("%s: %s:%d ", _id_, __FUNCTION__, __LINE__);               \
     PK_TRACE(_fmt_, ##_args_);
 */
-
+// FAPI_TRACE_LEVEL controls what traces are included in the code build
+// 0 == No tracing
+// 1 == ERR traces only
+// 2 == ERR and IMP only
+// 3 == ERR, IMP and INF only. This is the default in Makefile
+// > 4 == All traces (ERR, IMP, INF, DBG, SCAN, MFG)
+#if (FAPI_TRACE_LEVEL >= 3)
 #define FAPI_INF(_fmt_, _args_...) FAPI_TRACE("inf", _fmt_, ##_args_)
+#else
+#define FAPI_INF(_fmt_, _args_...)
+#endif
 
 // Important traces (go into slow trace buffer that should not wrap often)
+#if (FAPI_TRACE_LEVEL >= 2)
 #define FAPI_IMP(_fmt_, _args_...) FAPI_TRACE("imp", _fmt_, ##_args_)
+#else
+#define FAPI_IMP(_fmt_, _args_...)
+#endif
 
 // Error traces (go into slow trace buffer that should not wrap often)
+#if (FAPI_TRACE_LEVEL >= 1)
 #define FAPI_ERR(_fmt_, _args_...) FAPI_TRACE("err", _fmt_, ##_args_)
+#else
+#define FAPI_ERR(_fmt_, _args_...)
+#endif
 
 // Debug traces (go into fast trace buffer that can wrap often)
+#if (FAPI_TRACE_LEVEL >= 4)
 #define FAPI_DBG(_fmt_, _args_...) FAPI_TRACE("dbg", _fmt_, ##_args_)
+#else
+#define FAPI_DBG(_fmt_, _args_...)
+#endif
 
 // Scan traces
+#if (FAPI_TRACE_LEVEL >= 4)
 #define FAPI_SCAN(_fmt_, _args_...) FAPI_TRACE("scan", _fmt_, ##_args_)
+#else
+#define FAPI_SCAN(_fmt_, _args_...)
+#endif
 
+#if (FAPI_TRACE_LEVEL >= 4)
 #define FAPI_MFG(_fmt_, _args_...) FAPI_TRACE("mfg", _fmt_, ##_args_)
+#else
+#define FAPI_MFG(_fmt_, _args_...)
+#endif
 
 #endif // FAPI2_PLATTRACE_H_

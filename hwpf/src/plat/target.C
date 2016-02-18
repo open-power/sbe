@@ -295,7 +295,6 @@ fapi_try_exit:
     fapi2::ReturnCode plat_TargetsInit()
     {
         bool b_present = false;
-        uint32_t c = 0;
 
         // Initialise global attribute pointers
         G_system_attributes_ptr = &G_system_attributes;
@@ -405,14 +404,6 @@ fapi_try_exit:
             G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
         }
 
-        // Trace all entries
-        for (auto tgt_iter : G_vec_targets)
-        {
-            FAPI_DBG("G_vec_targets[%u] value=%08X",
-                       c, (uint32_t)(tgt_iter));
-            ++c;
-        }
-
 fapi_try_exit:
         return fapi2::current_err;
     }
@@ -466,6 +457,7 @@ fapi_try_exit:
         {
             if((l_mask >> l_idx) & (l_ecGards))
             {
+                FAPI_DBG("Making %d'th EC non-functional", l_idx);
                 // EC chiplet l_idx is to be marked non-functional
                 fapi2::Target<fapi2::TARGET_TYPE_CORE> l_target = G_vec_targets.at(l_idx + CORE_TARGET_OFFSET);
                 l_target.setFunctional(false);
