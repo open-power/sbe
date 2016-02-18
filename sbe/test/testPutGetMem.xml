@@ -1,20 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-      <!-- Workaround to set clock regs. Once simics have fix, we can remove it -->
-      <testcase>
-          <simcmd>p9Proc0.proc_chip.invoke parallel_store LOGIC 0xffc50000 \"00000000_00000001\" 64</simcmd>
-      </testcase>
-      <!-- Workaround to configure L3 cache on Simics. Once simics have all the support integrated, we can remove it -->
-      <testcase>
-          <simcmd>p9Proc0.proc_fsi2host_mbox->responder_enable =1</simcmd>
-          <simcmd>@conf.p9Proc0.proc_chip.iface.signal.signal_raise()</simcmd>
-          <simcmd>p9Proc0.proc_chip.invoke parallel_store STARTSBEREGS 0 "80000000" 32</simcmd>
-      </testcase>
-      <!-- Run trace script framework -->
-      <testcase>
-          <simcmd>run-python-file simics-debug-framework.py</simcmd>
-      </testcase>
-      <!-- Write value to the PBA region and then read it back -->
       <testcase>
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPutMem.py</simcmd>
           <exitonerror>yes</exitonerror>
