@@ -88,7 +88,7 @@ typedef struct sbeResponseFfdc
 {
     uint32_t magicBytes:16;
     uint32_t lenInWords:16;  // length in word( 4 byte )
-    uint32_t hiFapiRc;
+    uint32_t hiFapiRc; // Unused since FAPI RC is 32 bit on the SBE
     uint32_t lowFapiRc;
 
     /**
@@ -98,10 +98,9 @@ typedef struct sbeResponseFfdc
       *
       * @return
       */
-    void setRc(const uint64_t i_rc)
+    void setRc(const uint32_t i_rc)
     {
-        lowFapiRc = uint32_t(i_rc);
-        hiFapiRc = uint32_t(i_rc>>32);
+        lowFapiRc = i_rc;
     }
 
     /**
@@ -109,10 +108,9 @@ typedef struct sbeResponseFfdc
       *
       * @return fapiRc
       */
-    uint64_t getRc()
+    uint32_t getRc()
     {
-        uint64_t temp = ( (uint64_t)hiFapiRc << 32) | lowFapiRc;
-        return temp;
+        return lowFapiRc;
     }
 
     /**

@@ -100,6 +100,7 @@ namespace fapi2
     /// @param[out] o_data       Buffer that holds data read from HW target.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     template< TargetType K >
+    __attribute__((always_inline))
     inline ReturnCode  getScom(const Target<K>& i_target, const uint64_t i_address,
                        buffer<uint64_t>& o_data)
     {
@@ -119,6 +120,7 @@ namespace fapi2
     /// @param[in] i_data       Buffer that holds data to write into address.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     template< TargetType K >
+    __attribute__((always_inline))
     inline ReturnCode  putScom(const Target<K>& i_target, const uint64_t i_address,
                        const buffer<uint64_t> i_data)
     {
