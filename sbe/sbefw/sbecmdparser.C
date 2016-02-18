@@ -90,15 +90,6 @@ static sbeCmdStruct_t g_sbeMemoryAccessCmdArray [] =
      SBE_FENCE_AT_CONTINUOUS_IPL,
     },
 
-    {sbeGetSram,
-     SBE_CMD_GETSRAM,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
-    },
-
-    {sbePutSram,
-     SBE_CMD_PUTSRAM,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
-    },
 };
 
 //////////////////////////////////////////////////////////////

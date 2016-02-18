@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include "sbe_host_intf.H"
+#include "sbe_sp_intf.H"
 
 /*****************************************************************/
 /*            SBE->PSU request structures                        */

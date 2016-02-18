@@ -107,16 +107,15 @@ inline uint32_t sbeReadPsu2SbeDbReg (uint64_t *o_data)
   *
   * @param[in]     i_addr
   *    Starting Mbx Register Address
-  * @param[in/out] io_count
-  *    On input:  Number of Mbx registers to be read.
-  *    On output: Number of Mbx registers read.
+  * @param[in]     i_count
+  *    Number of Mbx registers to be read.
   * @param[out]    o_pData
   *    Contents of the Mbx registers read into the buffer
   * @return  Return Code
   *    SUCCESS or TBD
   */
 uint32_t sbeReadPsu2SbeMbxReg (uint32_t       i_addr,
-                               uint8_t        &io_count,
+                               const uint8_t  i_count,
                                uint64_t       *o_pData);
 
 /*****************************************************************/
@@ -189,14 +188,17 @@ uint32_t sbeIntrHostUponRespWaiting();
   *    Starting Mbx Register Address
   * @param[in]     i_pData
   *    Contains the data to be written into given Mbx registers
-  * @param[in/out] io_count
-  *    On input:  Number of Mbx registers to be written.
-  *    On output: Number of Mbx registers written.
+  * @param[in]     i_count
+  *    Number of Mbx registers to be written.
+  * @param[in] i_setBit0ToIntrHB
+  *    Indicates whether to write Bit0 to interrupt the Host,
+  *    By default it is false.
   * @return  Return Code
   *    SUCCESS or TBD
   */
 uint32_t sbeWriteSbe2PsuMbxReg (uint32_t        i_addr,
                                 const uint64_t  *i_pData,
-                                uint8_t         &io_count);
+                                const uint8_t   i_count,
+                                bool            i_setBit0ToIntrHB = false);
 
 #endif // __SBEFW_SBEHOSTUTILS_H

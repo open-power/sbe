@@ -35,7 +35,6 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
             case SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED:
             case SBE_SEC_COMMAND_NOT_SUPPORTED:
                 // Caller sent an invalid Command class/opcode
-
                 // Set the Ack bit in SBE->PSU DB register
                 l_rc = sbeAcknowledgeHost();
                 if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
@@ -50,21 +49,29 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
                                        sizeof(uint64_t);
                 l_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
                             reinterpret_cast<const uint64_t *>(
-                                &g_sbeSbe2PsuRespHdr), l_count);
-                if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-                {
-                    break;
-                }
-
-                // Interrupt the host indicating about the response
-                // message in SBE->PSU mbx register
-                l_rc = sbeIntrHostUponRespWaiting();
+                                &g_sbeSbe2PsuRespHdr), l_count, true);
                 if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
                 {
                     break;
                 }
                 break;
+            
+            case SBE_SEC_OS_FAILURE:
+                // Set primary and secondary status
+                g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE, i_rc);
 
+                // Now Update SBE->PSU Mbx Reg4 with response
+                l_count = sizeof(g_sbeSbe2PsuRespHdr)/
+                                       sizeof(uint64_t);
+                l_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
+                            reinterpret_cast<const uint64_t *>(
+                                &g_sbeSbe2PsuRespHdr), l_count, true);
+                if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+                {
+                    break;
+                }
+                break;
+ 
             case SBE_SEC_OPERATION_SUCCESSFUL:
                 // Services code successfully executed the chipOp.
                 SBE_INFO(SBE_FUNC"PSU ChipOp Done");
