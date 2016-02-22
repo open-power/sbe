@@ -317,7 +317,6 @@ static fapi2::ReturnCode set_core_mc_group(
     FAPI_INF("> set_core_mc_group...");
 
     fapi2::buffer<uint64_t> l_data64;
-    uint32_t l_core_num;
 
     FAPI_DBG("Setting Core MC group %d", p9_selex::CORE_STOP_MC_GROUP );
     l_data64.insertFromRight<3, 3>(p9_selex::CORE_STOP_MC_GROUP);
@@ -327,8 +326,8 @@ static fapi2::ReturnCode set_core_mc_group(
                            i_core_target_cplt,
                            l_attr_chip_unit_pos));
 
-    l_core_num = l_attr_chip_unit_pos - p9_selex::PERV_CORE_START;
-    FAPI_DBG("Setting MC group in core %d", l_core_num);
+    FAPI_DBG("Setting MC group in core %d",
+             (l_attr_chip_unit_pos - p9_selex::PERV_CORE_START));
 
     FAPI_TRY(fapi2::putScom(i_core_target_cplt,
                             p9_selex::CORE_MC_REG,
