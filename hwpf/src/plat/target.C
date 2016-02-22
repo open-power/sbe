@@ -26,6 +26,7 @@
 
 #include <fapi2.H>
 #include <plat_target_pg_attributes.H>
+#include <assert.h>
 
 // Global Vector containing ALL targets.  This structure is referenced by
 // fapi2::getChildren to produce the resultant returned vector from that
@@ -475,4 +476,34 @@ fapi_try_exit:
         return fapi2::current_err;
     }
 
+    /// @brief Function to return a platform target handle, given the chiplet
+    //         number
+    //  @param i_chipletNumber The chiplet number of the target
+    //  @return Platform target handle
+    //  @note The caller can use the platform target handle to construct a
+    //        Target of it's choice. Ex:
+    //  fapi2::Target<fapi2::TARGET_TYPE_CORE>
+    //  l_core(plat_getTargetHandleByChipletNumber(0x20);
+    plat_target_handle_t plat_getTargetHandleByChipletNumber(
+            const uint8_t i_chipletNumber)
+    {
+        assert(((i_chipletNumber > 0) &&
+                (i_chipletNumber < (EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT))) ||
+                ((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT))));
+
+        uint32_t l_idx = 0;
+
+        if(i_chipletNumber < (EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT))
+        {
+            l_idx = (i_chipletNumber - NEST_GROUP1_CHIPLET_OFFSET) +
+                NEST_GROUP1_TARGET_OFFSET;
+        }
+        else
+        {
+            l_idx = (i_chipletNumber - CORE_CHIPLET_OFFSET) +
+                CORE_TARGET_OFFSET;
+        }
+        return G_vec_targets[l_idx];
+    }
 } // fapi2

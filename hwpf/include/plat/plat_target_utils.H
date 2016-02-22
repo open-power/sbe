@@ -48,5 +48,15 @@ namespace fapi2
     ///      attributes
     Target<TARGET_TYPE_PROC_CHIP> plat_getChipTarget();
 
+    /// @brief Function to return a platform target handle, given the chiplet
+    //         number
+    //  @param i_chipletNumber The chiplet number of the target
+    //  @return Platform handle
+    //  @note The caller can use the platform handle to construct a Target of
+    //  it's choice. Ex:
+    //  fapi2::Target<fapi2::TARGET_TYPE_CORE>
+    //  l_core(plat_getTargetHandleByChipletNumber(0x20);
+    plat_target_handle_t plat_getTargetHandleByChipletNumber(
+            const uint8_t i_chipletNumber);
 }
 #endif
