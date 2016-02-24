@@ -13,7 +13,7 @@ then
     exit -1
 fi
 
-# Create img directory.
+# Create test directory.
 mkdir -p $SBETESTDIR || exit -1
 
 # Copy test files.

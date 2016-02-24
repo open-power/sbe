@@ -27,6 +27,7 @@ mksb -rc $SANDBOXRC -dir $SANDBOXROOT -back $BACKING_BUILD -sb $SANDBOXNAME \
 # workaround scripts expect $sb variable to be populated.
 export sb=$SANDBOXBASE/src
 
+execute_in_sandbox "ecc --inject ${SBE_IMG_OUT_LOC}/sbe_seeprom.bin --output  ${SBE_IMG_OUT_LOC}/sbe_seeprom.bin.ecc --p8 "  "ppc" || exit -1
 
 # Run presimsetup workarounds.
 echo "----Running presimsetup workarounds."
