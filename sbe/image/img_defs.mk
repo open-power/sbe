@@ -300,6 +300,11 @@ GCC-CFLAGS += -ffunction-sections
 GCC-CFLAGS += -fdata-sections
 endif
 
+## Enable compiler flags for istep4
+GCC-CFLAGS += -DP9_HCD_STOP_SKIP_FLUSH
+GCC-CFLAGS += -DP9_HCD_STOP_SKIP_SCAN
+GCC-CFLAGS += -DP9_HCD_STOP_SKIP_ARRAYINIT
+
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
 
