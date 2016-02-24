@@ -7,7 +7,7 @@
         <test>
            <!-- Set IVPR to point to sbe start address ( currently PIBMEM) -->
           <testcase>
-              <simcmd>p9Proc0.sbe.mibo_space.write 0xc0000160 0xFFFE800000000000 8 -b</simcmd>
+              <simcmd>p9Proc0.sbe.mibo_space.write 0xc0000160 0x8000100000000000 8 -b</simcmd>
               <exitonerror>yes</exitonerror>
           </testcase>
           <testcase>
