@@ -54,9 +54,19 @@
 /// 
 /// r1, r2, r3, and r13 must not be modified.  All other registers may be used.
 ///
+/// The pk_unified_irq_prty_mask_handler routine MUST return the task priority
+/// interrupt vector in d5.
+///
     .macro hwmacro_get_ext_irq
 
+#ifdef UNIFIED_IRQ_HANDLER_CME
+        // Unified approach.
+        _liw        r5, pk_unified_irq_prty_mask_handler
+        mtlr        r5
+        blrl            // On return, d5 contains task prty irq vec.
+#else
         _lvdg       d5, STD_LCL_EISTR    #load the 64bit interrupt status into d5
+#endif        
         cntlzw      r4, r5
         cmpwible    r4, 31, call_external_irq_handler   #branch if irq is lt or eq to 31
 
