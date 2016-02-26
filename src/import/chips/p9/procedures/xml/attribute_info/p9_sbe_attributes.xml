@@ -551,4 +551,9 @@
            <name>ATTR_CLOCK_PLL_MUX</name>
            <value>0x0C400000</value>
   </entry>
+   <entry>
+           <name>ATTR_CLOCK_PLL_MUX0</name>
+           <value>0x0</value>
+  </entry>
+
 </entries>
