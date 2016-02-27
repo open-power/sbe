@@ -3506,6 +3506,7 @@ CAUSE_EFFECT {
   WATCH=[REG(0x01010805]
   EFFECT: TARGET=[REG(0x01010803)] OP=[EQUALTO,BUF] DATA=[REG(0x01010805)]
 }
+
 ##
 ## Actions for Procedure - p9_sbe_check_master_stop15 and others
 ##
@@ -6209,5 +6210,4 @@ CAUSE_EFFECT {
 }
 
 ## Core 23 End
->>>>>>> Level 2 p9_cpu_special_wakeup
 
