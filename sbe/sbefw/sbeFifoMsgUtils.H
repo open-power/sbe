@@ -144,5 +144,15 @@ void sbeBuildMinRespHdr ( uint32_t  *io_pBuf,
                     const uint32_t  i_pcbpibStatus,
                     const uint32_t  i_startIndex = 0 );
 
+/**
+  * @brief sbeDownFifoSignalEot : Signal EOT in Downstream FIFO
+  *
+  * @return     Rc from the underlying scom utility
+  *
+  * @note       This is a blocking call. If FIFO is full, it will wait
+  *             in loop ( sleep ) till the time there is some space in
+  *             FIFO.
+  */
+uint32_t sbeDownFifoSignalEot (void);
 
 #endif // __SBEFW_SBEFIFOMSGUTILS_H
