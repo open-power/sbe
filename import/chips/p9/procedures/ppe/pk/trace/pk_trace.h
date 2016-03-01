@@ -302,4 +302,8 @@ typedef struct
 
 extern PkTraceBuffer g_pk_trace_buf;
 
+#ifdef PK_TRACE_BUFFER_WRAP_MARKER
+    extern uint32_t G_wrap_mask;
+#endif
+
 #endif /* __PK_TRACE_H__ */
