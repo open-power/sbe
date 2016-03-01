@@ -23,7 +23,6 @@
 /// Procedure Summary:
 ///   Use ABIST engine to zero out all arrays
 ///   Upon completion, scan0 flush all rings except Vital,Repair,GPTR,and TIME
-///
 
 // *HWP HWP Owner          : David Du      <daviddu@us.ibm.com>
 // *HWP Backup HWP Owner   : Greg Still    <stillgs@us.ibm.com>
@@ -35,6 +34,7 @@
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
+
 #include <p9_perv_sbe_cmn.H>
 #include <p9_hcd_common.H>
 #include "p9_hcd_core_arrayinit.H"
@@ -42,14 +42,13 @@
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
+
 enum P9_HCD_CORE_ARRAYINIT_Private_Constants
 {
-    LOOP_COUNTER = 0x0000000000042FFF,
     REGIONS_EXCEPT_VITAL = 0x7FF,
-    REGIONS_FOR_PERV = 0x400,
-    SCAN_TYPES_EXCEPT_TIME_GPTR_REPR = 0xDCF,
-    SELECT_EDRAM = 0x0,
+    LOOP_COUNTER = 0x0000000000042FFF,
     SELECT_SRAM = 0x1,
+    SELECT_EDRAM = 0x0,
     START_ABIST_MATCH_VALUE = 0x0000000F00000000
 };
 
@@ -60,17 +59,17 @@ enum P9_HCD_CORE_ARRAYINIT_Private_Constants
 fapi2::ReturnCode
 p9_hcd_core_arrayinit(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
-
 {
-
     FAPI_INF(">>p9_hcd_core_arrayinit");
+
+#if not defined(P9_HCD_STOP_SKIP_FLUSH) || not defined(P9_HCD_STOP_SKIP_ARRAYINIT)
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
+        i_target.getParent<fapi2::TARGET_TYPE_PERV>();
+#endif
 
 #ifndef P9_HCD_STOP_SKIP_ARRAYINIT
 
-    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
-        i_target.getParent<fapi2::TARGET_TYPE_PERV>();
-
-    FAPI_DBG("Arrayinit all regions except Vital");
+    FAPI_DBG("Arrayinit all regions except vital");
     FAPI_TRY(p9_perv_sbe_cmn_array_init_module(l_perv,
              REGIONS_EXCEPT_VITAL,
              LOOP_COUNTER,
@@ -88,7 +87,8 @@ p9_hcd_core_arrayinit(
     // Each scan0 will rotate the ring 8191 latches (2**13 - 1) and the longest
     // ring is defined by P9_HCD_SCAN_FUNC_REPEAT. When the design ALWAYS has
     // all stumps less than 8191, the loop can be removed.
-    FAPI_DBG("Scan0 all except GPTR/TIME/REPR scan chains");
+
+    FAPI_DBG("Scan0 region:all_but_vital type:all_but_gptr_repr_time rings");
 
     for(uint32_t l_loop = 0; l_loop < P9_HCD_SCAN_FUNC_REPEAT; l_loop++)
         FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_perv,
@@ -102,8 +102,6 @@ fapi_try_exit:
 #endif
 
     FAPI_INF("<<p9_hcd_core_arrayinit");
-
     return fapi2::current_err;
-
 }
 

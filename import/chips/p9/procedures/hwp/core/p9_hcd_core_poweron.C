@@ -56,12 +56,14 @@ p9_hcd_core_poweron(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
 {
     FAPI_INF(">>p9_hcd_core_poweron");
-
-    //--------------------------
-    // Prepare to core power on
-    //--------------------------
-
     fapi2::buffer<uint64_t> l_data64;
+
+    //-------------------------
+    // Prepare to power on core
+    //-------------------------
+
+    FAPI_DBG("Drop chiplet enable via NET_CTRL0[0]");
+    FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(0)));
 
     FAPI_DBG("Assert PCB fence via NET_CTRL0[25]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WOR, MASK_SET(25)));
@@ -69,15 +71,15 @@ p9_hcd_core_poweron(
     FAPI_DBG("Assert chiplet electrical fence via NET_CTRL0[26]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WOR, MASK_SET(26)));
 
-    FAPI_DBG("Assert Vital Thold via NET_CTRL0[16]");
+    FAPI_DBG("Assert vital thold via NET_CTRL0[16]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WOR, MASK_SET(16)));
 
-    FAPI_DBG("Set core glsmux reset via CLOCK_GRID_CTRL[0]");
+    FAPI_DBG("Assert core glsmux reset via PPM_CGCR[0]");
     FAPI_TRY(putScom(i_target, C_PPM_CGCR, MASK_SET(0)));
 
-    //-----------------------
+    //----------------------
     // Power on core chiplet
-    //-----------------------
+    //----------------------
 
     FAPI_DBG("Power on core chiplet");
     FAPI_TRY(p9_common_poweronoff<fapi2::TARGET_TYPE_CORE>(i_target, p9power::POWER_ON_VDD));
@@ -85,6 +87,5 @@ p9_hcd_core_poweron(
 fapi_try_exit:
 
     FAPI_INF("<<p9_hcd_core_poweron");
-
     return fapi2::current_err;
 }

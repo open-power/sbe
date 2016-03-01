@@ -57,12 +57,14 @@ p9_hcd_cache_poweron(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
 {
     FAPI_INF(">>p9_hcd_cache_poweron");
-
-    //--------------------------
-    // Prepare to cache power on
-    //--------------------------
-
     fapi2::buffer<uint64_t> l_data64;
+
+    //--------------------------
+    // Prepare to power on cache
+    //--------------------------
+
+    FAPI_DBG("Drop chiplet enable via NET_CTRL0[0]");
+    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(0)));
 
     FAPI_DBG("Assert PCB fence via NET_CTRL0[25]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR, MASK_SET(25)));
@@ -70,13 +72,13 @@ p9_hcd_cache_poweron(
     FAPI_DBG("Assert chiplet electrical fence via NET_CTRL0[26]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR, MASK_SET(26)));
 
-    FAPI_DBG("Assert Vital Thold via NET_CTRL0[16]");
+    FAPI_DBG("Assert vital thold via NET_CTRL0[16]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR, MASK_SET(16)));
 
-    FAPI_DBG("Set L2 glsmux reset via EXCLK_GRID_CTRL[32:33]");
+    FAPI_DBG("Assert L2 glsmux reset via EXCLK_GRID_CTRL[32:33]");
     FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_OR, MASK_OR(32, 2, 0x3)));
 
-    FAPI_DBG("Set L3 glsmux reset via CLOCK_GRID_CTRL[0]");
+    FAPI_DBG("Assert cache glsmux reset via CLOCK_GRID_CTRL[0]");
     FAPI_TRY(putScom(i_target, EQ_PPM_CGCR, MASK_SET(0)));
 
     //-----------------------
@@ -89,6 +91,5 @@ p9_hcd_cache_poweron(
 fapi_try_exit:
 
     FAPI_INF("<<p9_hcd_cache_poweron");
-
     return fapi2::current_err;
 }

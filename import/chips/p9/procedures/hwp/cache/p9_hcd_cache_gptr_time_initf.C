@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -20,12 +20,6 @@
 /// @file  p9_hcd_cache_gptr_time_initf.C
 /// @brief Load GPTR and Time for EX non-core
 ///
-/// *HWP HWP Owner   : David Du       <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Sangeetha T S  <sangeet2@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:SGPE
-/// *HWP Level       : 1
-///
 /// Procedure Summary:
 ///   Initfiles in procedure defined on VBU ENGD wiki (TODO add link)
 ///     to produce #G VPD contents
@@ -34,14 +28,18 @@
 ///   if found, apply;  if not, apply core GPTR from image
 ///     Check for the presence of core override TIME ring from image;
 ///   if found, apply;  if not, apply core base TIME from image
-///
+
+// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
+// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:SGPE
+// *HWP Level              : 2
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-#include <fapi2.H>
-//#include <common_scom_addresses.H>
-//will be replaced with real scom address header file
+
 #include "p9_hcd_cache_gptr_time_initf.H"
 
 //------------------------------------------------------------------------------
@@ -52,53 +50,59 @@
 // Procedure: Load GPTR and Time for EX non-core
 //------------------------------------------------------------------------------
 
-extern "C"
+fapi2::ReturnCode
+p9_hcd_cache_gptr_time_initf(
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
 {
+    FAPI_INF(">>p9_hcd_cache_gptr_time_initf");
 
-    fapi2::ReturnCode
-    p9_hcd_cache_gptr_time_initf(
-        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
-    {
+#ifndef P9_HCD_STOP_SKIP_SCAN
 
-#if 0
+    FAPI_DBG("Scanning Cache GPTR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EQ_GPTR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        // Set EX scan ratio to 1:1 as EX is still at refclock
-        FAPI_INF("<p9_sbe_ex_gptr_time_initf> : Set EX scan ratio to 1:1 ...");
-        // = sti     EX_OPCG_CNTL0_0x10030002, P0, 0x0
-        FAPI_TRY(fapi2::putScom(i_target, EX_OPCG_CNTL0_0x10030002, 0x0));
+    FAPI_DBG("Scanning EX L3 GPTR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L3_GPTR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        // scan ring content shared among all chiplets
-        FAPI_DBG("Scanning EX GPTR rings...")
-        // - load_ring ex_gptr_perv skipoverride=1
-        // - load_ring ex_gptr_dpll skipoverride=1
-        // - load_ring ex_gptr_l3 skipoverride=1
-        // - load_ring ex_gptr_l3refr skipoverride=1
+    FAPI_DBG("Scanning EX L2 GPTR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L2_GPTR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        // scan chiplet specific ring content
-        FAPI_DBG("Scanning EX TIME rings...")
-        // - load_ring_vec_ex ex_time_eco
+    FAPI_DBG("Scanning EX L3 Refresh GPTR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L3_REFR_GPTR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
+    FAPI_DBG("Scanning Cache Analog GPTR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EQ_ANA_GPTR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        // Set EX scan ratio back to 8:1
-        FAPI_INF("<p9_sbe_ex_gptr_time_initf> : Set EX scan ratio to 8:1 ...");
-        // Inputs: A1 and P0 and D0, destroys D0 & D1
-        // -   .pibmem_port (PORE_SPACE_PIBMEM & 0xf)
-        // -    lpcs    P1, PIBMEM0_0x00080000
-        // -    ld      D0, ex_scan_ratio_override, P1
-        // -    bsr     set_scan_ratio_d0
+    FAPI_DBG("Scanning Cache DPLL GPTR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EQ_DPLL_GPTR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        return fapi2::FAPI2_RC_SUCCESS;
+    FAPI_DBG("Scanning Cache TIME Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EQ_TIME,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        FAPI_CLEANUP();
-        return fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
+    FAPI_DBG("Scanning EX L3 TIME Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L3_TIME,
+                            fapi2::RING_MODE_HEADER_CHECK));
+
+    FAPI_DBG("Scanning EX L2 TIME Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L2_TIME,
+                            fapi2::RING_MODE_HEADER_CHECK));
+
+    FAPI_DBG("Scanning EX L3 Reference TIME Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L3_REFR_TIME,
+                            fapi2::RING_MODE_HEADER_CHECK));
+
+fapi_try_exit:
 
 #endif
 
-        return fapi2::FAPI2_RC_SUCCESS;
-
-    } // Procedure
-
-
-} // extern C
-
+    FAPI_INF("<<p9_hcd_cache_gptr_time_initf");
+    return fapi2::current_err;
+}
 

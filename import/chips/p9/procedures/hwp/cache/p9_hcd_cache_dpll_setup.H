@@ -20,13 +20,13 @@
 /// @file  p9_hcd_cache_dpll_setup.H
 /// @brief Quad DPLL Setup
 ///
-/// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
-/// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
-/// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
-/// *HWP Team               : PM
-/// *HWP Consumed by        : SBE:SGPE
-/// *HWP Level              : 2
-///
+
+// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
+// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:SGPE
+// *HWP Level              : 2
 
 #ifndef __P9_HCD_CACHE_DPLL_SETUP_H__
 #define __P9_HCD_CACHE_DPLL_SETUP_H__
