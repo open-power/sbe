@@ -212,17 +212,4 @@ extern inline uint32_t sbeDownFifoGetStatus (uint64_t *o_data)
     return getscom_abs(SBE_DOWNSTREAM_FIFO_STATUS, o_data);
 }
 
-/**
-  * @brief sbeDownFifoSignalEot : Signal EOT in Downstream FIFO
-  *
-  * @return     Rc from the underlying scom utility
-  *
-  */
-extern inline uint32_t sbeDownFifoSignalEot (void)
-{
-    SBE_DEBUG(">sbeDownFifoSignalEot");
-    return putscom_abs(SBE_DOWNSTREAM_FIFO_SIGNAL_EOT, ((uint64_t)0x1)<<32);
-}
-
-
 #endif // __SBEFW_SBEFIFO_H

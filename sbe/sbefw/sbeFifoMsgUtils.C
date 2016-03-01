@@ -12,6 +12,15 @@
 #include "sbeerrorcodes.H"
 #include "assert.h"
 
+// If we can not perform FIFO operation ( FIFO FULL while writing
+// or EMPTY while reading ) we will sleep for FIFO_WAIT_SLEEP_TIME
+// ms so that FIFO can be ready.
+static const uint32_t FIFO_WAIT_SLEEP_TIME = 1;
+// Write this data to send EOT to DS FIFO. The register to send EOT
+// is 32 bit only. But our scom operations are 64 bit. So set a bit
+// in higher word to trigger EOT.
+static const uint64_t DOWNSTREAM_EOT_DATA = 0x100000000ull;
+
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
@@ -114,7 +123,7 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
         if (l_data.statusOrReserved.fifo_empty)
         {
             //SBE_DEBUG(SBE_FUNC"Downstream FIFO is empty. Sleeping for 1 ms");
-            pk_sleep(PK_MILLISECONDS(1));
+            pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
             continue;
         }
 
@@ -174,7 +183,7 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
         {
             // Downstream FIFO is full
             //SBE_DEBUG(SBE_FUNC"Downstream FIFO is full. Sleeping for 1 ms");
-            pk_sleep(PK_MILLISECONDS(1));
+            pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
             continue;
         }
 
@@ -247,3 +256,41 @@ void sbeBuildMinRespHdr ( uint32_t  *io_pBuf,
 
     } while(false);
 }
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+uint32_t sbeDownFifoSignalEot (void)
+{
+    uint32_t l_rc = 0;
+    #define SBE_FUNC "sbeDownFifoSignalEot "
+    SBE_ENTER(SBE_FUNC);
+    sbeDownFifoStatusReg_t l_status = {0};
+    do
+    {
+        // Read the down stream FIFO status
+        l_rc = sbeDownFifoGetStatus (reinterpret_cast<uint64_t *>(&l_status));
+        if (l_rc)
+        {
+            // Error while reading downstream FIFO status
+            SBE_ERROR(SBE_FUNC"sbeDownFifoGetStatus failed, "
+                      "l_rc=[0x%08X]", l_rc);
+            l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
+            break;
+        }
+
+        // Check if downstream FIFO is full
+        if (l_status.downfifo_status.fifo_full)
+        {
+            pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
+            continue;
+        }
+        l_rc = putscom_abs(SBE_DOWNSTREAM_FIFO_SIGNAL_EOT, DOWNSTREAM_EOT_DATA);
+        break;
+    } while(1);
+
+
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
