@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -20,12 +20,6 @@
 /// @file  p9_hcd_cache_initf.C
 /// @brief EX (non-core) scan init
 ///
-/// *HWP HWP Owner   : David Du       <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Sangeetha T S  <sangeet2@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:SGPE
-/// *HWP Level       : 1
-///
 /// Procedure Summary:
 ///   Initfiles in procedure defined on VBU ENGD wiki (TODO add link)
 ///   Check for the presence of cache FUNC override rings from image;
@@ -35,14 +29,18 @@
 ///   (TODO to make sure the image build support is in place)
 ///   Note: all caches that are in the Cache Multicast group will be
 ///   initialized to the same values via multicast scans
-///
+
+// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
+// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:SGPE
+// *HWP Level              : 2
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-#include <fapi2.H>
-//#include <common_scom_addresses.H>
-//will be replaced with real scom address header file
+
 #include "p9_hcd_cache_initf.H"
 
 //------------------------------------------------------------------------------
@@ -53,41 +51,42 @@
 // Procedure: EX (non-core) scan init
 //------------------------------------------------------------------------------
 
-extern "C"
+fapi2::ReturnCode
+p9_hcd_cache_initf(
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
 {
+    FAPI_INF(">>p9_hcd_cache_initf");
 
-    fapi2::ReturnCode
-    p9_hcd_cache_initf(
-        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
-    {
+#ifndef P9_HCD_STOP_SKIP_SCAN
 
-#if 0
-        fapi2::buffer<uint64_t> data;
+    FAPI_DBG("Scanning Cache FUNC Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EQ_FURE,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        // - load_ring ex_lbst_eco conditional_override=1
-        // - load_ring ex_abfa_eco conditional_override=1
-        // - load_ring ex_cmsk_eco conditional_override=1
-        // - load_ring ex_func_perv conditional_override=1
-        // - load_ring ex_func_l3 conditional_override=1
-        // - load_ring ex_func_l3refr conditional_override=1
+    FAPI_DBG("Scanning EX L3 FUNC Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L3_FURE,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        //Sim Speedup for L3 refresh cycles
-        // - load_ring ex_regf_l3 conditional_override=1
-        // - load_ring ex_regf_l3refr conditional_override=1
+    FAPI_DBG("Scanning EX L2 FUNC Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L2_FURE,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        return fapi2::FAPI2_RC_SUCCESS;
+    FAPI_DBG("Scanning EX L3 Refresh FUNC Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L3_REFR_FURE,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        FAPI_CLEANUP();
-        return fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
+    FAPI_DBG("Scanning Cache Analog FUNC Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EQ_ANA_FUNC,
+                            fapi2::RING_MODE_HEADER_CHECK));
+
+fapi_try_exit:
 
 #endif
 
-        return fapi2::FAPI2_RC_SUCCESS;
+    FAPI_INF("<<p9_hcd_cache_initf");
+    return fapi2::current_err;
+}
 
-    } // Procedure
-
-
-} // extern C
 
 
 

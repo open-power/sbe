@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -20,25 +20,24 @@
 /// @file  p9_hcd_cache_repair_initf.C
 /// @brief Load Repair ring for EX non-core
 ///
-/// *HWP HWP Owner   : David Du       <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Sangeetha T S  <sangeet2@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:SGPE
-/// *HWP Level       : 1
-///
 /// Procedure Summary:
 ///   Load cache ring images from MVPD
 ///   These rings must contain ALL chip customization data.
 ///   This includes the following:  Repair Power headers, and DTS
-///   Historically this was stored in MVPD keywords are #R, #G. Still stored in ///     MVPD, but SBE image is customized with rings for booting cores
-///
+///   Historically this was stored in MVPD keywords are #R, #G. Still stored in
+///     MVPD, but SBE image is customized with rings for booting cores
+
+// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
+// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:SGPE
+// *HWP Level              : 2
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-#include <fapi2.H>
-//#include <common_scom_addresses.H>
-//will be replaced with real scom address header file
+
 #include "p9_hcd_cache_repair_initf.H"
 
 //------------------------------------------------------------------------------
@@ -49,33 +48,37 @@
 // Procedure: Load Repair ring for cache
 //------------------------------------------------------------------------------
 
-extern "C"
+fapi2::ReturnCode
+p9_hcd_cache_repair_initf(
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
 {
+    FAPI_INF(">>p9_hcd_cache_repair_initf");
 
-    fapi2::ReturnCode
-    p9_hcd_cache_repair_initf(
-        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
-    {
+#ifndef P9_HCD_STOP_SKIP_SCAN
 
-#if 0
-        fapi2::buffer<uint64_t> data;
+    FAPI_DBG("Scanning Cache REPAIR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EQ_REPR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        // scan chiplet specific ring content
-        FAPI_DBG("Scanning EX REPAIR rings...")
-        // - load_ring_vec_ex ex_repr_eco
+    FAPI_DBG("Scanning EX L3 REPAIR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L3_REPR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        return fapi2::FAPI2_RC_SUCCESS;
+    FAPI_DBG("Scanning EX L2 REPAIR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L2_REPR,
+                            fapi2::RING_MODE_HEADER_CHECK));
 
-        FAPI_CLEANUP();
-        return fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
+    FAPI_DBG("Scanning EX L3 Refresh REPAIR Rings");
+    FAPI_TRY(fapi2::putRing(i_target, EX_L3_REFR_REPR,
+                            fapi2::RING_MODE_HEADER_CHECK));
+
+fapi_try_exit:
 
 #endif
 
-        return fapi2::FAPI2_RC_SUCCESS;
+    FAPI_INF("<<p9_hcd_cache_repair_initf");
+    return fapi2::current_err;
+}
 
-    } // Procedure
-
-
-} // extern C
 
 
