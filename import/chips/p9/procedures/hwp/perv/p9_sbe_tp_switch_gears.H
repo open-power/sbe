@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -21,7 +21,7 @@
 ///
 /// @brief Switch from refclock to PLL AND adjust I2C
 //------------------------------------------------------------------------------
-// *HWP HW Owner        : abagarw8 <srinivan@in.ibm.com>
+// *HWP HW Owner        : Anusha Reddy Rangareddygari <anusrang@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : sunil kumar <skumarj8@in.ibm.com>
 // *HWP Team            : Perv
@@ -54,5 +54,8 @@ extern "C"
     fapi2::ReturnCode p9_sbe_tp_switch_gears(const
             fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 }
+
+fapi2::ReturnCode p9_sbe_tp_switch_gears_check_magicnumber(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chiplet);
 
 #endif

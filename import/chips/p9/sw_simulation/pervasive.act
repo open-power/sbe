@@ -111,7 +111,7 @@ EFFECT: TARGET=[REG(MYCHIPLET,0x00000100)]  OP=[BIT,ON] BIT=[9]
 # Simics action for p9_sbe_tp_switchgear
 # =============================================================================
 CAUSE_EFFECT {
-LABEL=[Gear Switcher i2c stop Sequence]
+LABEL=[I2C Stop Sequence]
 # Watch PU_CONTROL_REGISTER_B
 WATCH=[REG(0x000A0000)]
 # PIB.CONTROL_REGISTER_B.PIB_CNTR_REG_BIT_WITHSTOP_0 = 1
@@ -122,6 +122,25 @@ CAUSE: TARGET=[REG(0x000A0000)]  OP=[BIT,ON] BIT=[26]
 EFFECT: TARGET=[REG(0x000A0002)] OP=[BIT,OFF] BIT=[44]
 }
 
+CAUSE_EFFECT {
+LABEL=[Backup Seeprom Magic Num]
+# Watch PU_CONTROL_REGISTER_B
+WATCH=[REG(0x000A0000)]
+CAUSE: TARGET=[REG(0x000A0000)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0xD8A90290 00000000)]
+# PIB.STATUS_REGISTER_B.BUS_STATUS_BUSY_0
+EFFECT: TARGET=[REG(0x000A0002)] OP=[BIT,OFF] BIT=[44]
+EFFECT: TARGET=[REG(0x000A0003)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0x58495020 5345504D)]
+}
+
+CAUSE_EFFECT {
+LABEL=[Normal Seeprom Sequnce Num]
+# Watch PU_CONTROL_REGISTER_B
+WATCH=[REG(0x000A0000)]
+CAUSE: TARGET=[REG(0x000A0000)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0xD8A90090 00000000)]
+# PIB.STATUS_REGISTER_B.BUS_STATUS_BUSY_0
+EFFECT: TARGET=[REG(0x000A0002)] OP=[BIT,OFF] BIT=[44]
+EFFECT: TARGET=[REG(0x000A0003)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0x58495020 5345504D)]
+}
 # =============================================================================
 # Simics action for p9_sbe_chiplet_pll_setup
 # =============================================================================
