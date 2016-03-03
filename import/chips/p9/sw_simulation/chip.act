@@ -270,3 +270,14 @@ CAUSE_EFFECT CHIPLETS ec {
   #   - Set LSU is empty status bit 3
   EFFECT: TARGET=[REG(MYCHIPLET, 0x00010A50)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0x50000000 0x00000000)]
 }
+
+# =============================================================================
+# Actions for p9_tod_setup and p9_tod_init 
+# =============================================================================
+#If a write is done to start the state machine set the FSM_REG_IS_RUNNING bit 
+CAUSE_EFFECT{
+  LABEL=[TOD statem machine is running]
+  WATCH=[REG(0x00040022)]
+  CAUSE: TARGET[REG(0x00040022)] OP=[BIT,ON] BIT=[0]
+  EFFECT: TARGET=[REG(0x00040024)] OP=[BIT,ON] BIT=[4]
+}
