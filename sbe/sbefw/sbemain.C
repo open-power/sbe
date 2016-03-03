@@ -15,6 +15,8 @@
 
 #include "sbeexeintf.H"
 #include "sbetrace.H"
+#include "sberegaccess.H"
+#include "sbestates.H"
 #include "fapi2.H" // For target init
 
 // TODO via RTC 142365
@@ -299,6 +301,18 @@ uint32_t main(int argc, char **argv)
             //  enable FSP to get FFDC for this failure.
             break;
         }
+
+        if(SbeRegAccess::theSbeRegAccess().init())
+        {
+            SBE_ERROR(SBE_FUNC"Failed to initialize SbeRegAccess");
+            // init failure could mean the below will fail too, but attempt it
+            // anyway
+            (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_DUMP);
+            // TODO: via RTC 126146 : Decide if we should really break here or
+            // continue in the failed state.
+            break;
+        }
+
         // Start running the highest priority thread.
         // This function never returns
         pk_start_threads();

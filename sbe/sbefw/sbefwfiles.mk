@@ -13,6 +13,8 @@ SBEFW-CPP-SOURCES += sbecmdmemaccess.C
 SBEFW-CPP-SOURCES += sbeHostUtils.C
 SBEFW-CPP-SOURCES += sbecmdcntrldmt.C
 SBEFW-CPP-SOURCES += sbecmdsram.C
+SBEFW-CPP-SOURCES += sberegaccess.C
+
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =
 

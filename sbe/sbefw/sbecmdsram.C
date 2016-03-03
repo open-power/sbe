@@ -10,6 +10,7 @@
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
+#include "sberegaccess.H"
 
 #include "fapi2.H"
 #include "p9_pm_ocb_init.H"
@@ -54,26 +55,6 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
 
     do
     {
-        // Do a SCOM on Register PERV_SCRATCH_REGISTER_3_SCOM for Bit3
-        // to know if Fsp is attached
-        // This can be a attribute read or to refer a global value.
-        // TODO - RTC:120752
-        uint64_t l_scratchReg3data = 0;
-        bool l_isFspAttached = false;
-        l_rc = getscom_abs(PERV_SCRATCH_REGISTER_3_SCOM, &l_scratchReg3data);
-        if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-        {
-            SBE_ERROR(SBE_FUNC "getscom_abs failed for "
-                "PERV_SCRATCH_REGISTER_3_SCOM l_rc [0x%08X]", l_rc);
-            break;
-        }
-
-        // Fetch the Bit3
-        if(l_scratchReg3data & SBE_FWCTRLFLG3_FSP_ATTACHED)
-        {
-            l_isFspAttached = true;
-        }
-
         // Get the Req Struct Size Data from upstream Fifo
         uint32_t l_len2dequeue  = sizeof(l_req) / sizeof(uint32_t);
         l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
@@ -105,7 +86,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         switch(l_req.mode)
         {
             case NORMAL_MODE:
-                if(!l_isFspAttached)
+                if(false == SbeRegAccess::theSbeRegAccess().isFspSystem())
                 {
                     l_chan = p9ocb::OCB_CHAN2;
                 }

@@ -17,6 +17,9 @@
 #include "sbeerrorcodes.H"
 #include "sbeHostUtils.H"
 #include "sbeHostMsg.H"
+#include "sbecmdiplcontrol.H"
+#include "sberegaccess.H"
+#include "sbestates.H"
 
 
 /////////////////////////////////////////////////////////////////////
@@ -55,7 +58,7 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
                     break;
                 }
                 break;
-            
+
             case SBE_SEC_OS_FAILURE:
                 // Set primary and secondary status
                 g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE, i_rc);
@@ -71,7 +74,7 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
                     break;
                 }
                 break;
- 
+
             case SBE_SEC_OPERATION_SUCCESSFUL:
                 // Services code successfully executed the chipOp.
                 SBE_INFO(SBE_FUNC"PSU ChipOp Done");
@@ -209,6 +212,26 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     {
         uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
         uint16_t l_primStatus = SBE_PRI_OPERATION_SUCCESSFUL;
+
+        // Check the destination bit
+        if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+        {
+            SBE_DEBUG(SBE_FUNC"Destination bit tells us to go to runtime");
+            (void)SbeRegAccess::theSbeRegAccess().
+                  updateSbeState(SBE_STATE_RUNTIME);
+        }
+
+        else if(true == SbeRegAccess::theSbeRegAccess().isIstepMode())
+        {
+            SBE_DEBUG(SBE_FUNC"Continuous IPL mode not set, will wait for "
+                    "commands...");
+            (void)SbeRegAccess::theSbeRegAccess().
+                  updateSbeState(SBE_STATE_ISTEP);
+        }
+        else
+        {
+            sbeDoContinuousIpl();
+        }
 
         // Wait for new command processing
         int l_rcPk = pk_semaphore_pend (
