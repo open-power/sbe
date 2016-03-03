@@ -146,16 +146,10 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMA
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SBE_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SBE_NAME).out | grep "A _sbe_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SBE_NAME).dis
 	$(NM)  $< > $(OBJDIR)/$(IMAGE_SBE_NAME).syms
-    # TODO via SW333946
-    # Remove this once we have simics support for new file names.
-	cp  $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/sbe_main.bin
 
 # create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SBE_NAME).out: pibMemAttrSet buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
-    # TODO via SW333946
-    # Remove this once we have simics support for new file names.
-	cp  $(OBJDIR)/$(IMAGE_SBE_NAME).out $(OBJDIR)/sbe_main.out
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
 $(LINK_SCRIPT_SBE): linksbe.cmd
