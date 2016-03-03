@@ -1,0 +1,35 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/xml/error_info/p9_sbe_tp_switch_gears_errors.xml $ -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2016                                                         -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<!-- This is an automatically generated file. -->
+<!-- File: p9_sbe_tp_switch_gears_errors.xml. -->
+<!-- Halt codes for p9_sbe_tp_switch_gears -->
+
+<hwpErrors>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_BUS_STATUS_BUSY0</rc>
+    <description>Status busy check</description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_MAGIC_NUMBER_NOT_VALID</rc>
+    <description>Magic number not matching</description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+</hwpErrors>
