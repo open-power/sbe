@@ -122,17 +122,6 @@ typedef struct
     uint32_t reserved;
 } sbeDownFifoStatusReg_t;
 
-// @TODO via RTC 142985: move to a better file with final fix
-// Do a R-M-W to retain un-related bits
-/**
- *  @brief Update SBE Messaging Register with the SBE states
- */
-const uint32_t SBE_SCOM_MESSAGE_REGISTER          = 0x50009;
-const uint64_t SBE_STATE_PK_READY                 = 0x8000000000000000ull;
-
-#define SBE_UPDATE_SBE_MSG_REG(value) \
-    putscom_abs(SBE_SCOM_MESSAGE_REGISTER, (value));
-
 /*****************************************************************/
 /** Upstream FIFO access utilities **/
 /*****************************************************************/

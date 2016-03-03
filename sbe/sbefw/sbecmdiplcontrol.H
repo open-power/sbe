@@ -10,6 +10,10 @@
 
 #include <stdint.h>
 
+namespace fapi2
+{
+    class ReturnCode;
+}
 
 /**
   * @brief execute istep chipop (0xA101)
@@ -30,5 +34,15 @@ uint32_t sbeHandleIstep(uint8_t *i_pArg);
   */
 uint32_t sbeWaitForSbeIplDone (uint8_t *i_pArg);
 
+
+/**
+ * @brief Executes IPL steps in continuous mode.
+ *
+ * @par On the master SBE, this will run
+ *      all steps from 2.2 to 5.2. On the slave SBE, it runs all steps from 2.2
+ *      to 3.18.
+ *      In case an error is encountered, the execution is aborted.
+ */
+void sbeDoContinuousIpl();
 
 #endif // __SBEFW_SBECMDIPLCONTROL_H

@@ -11,6 +11,8 @@
 #include "sbe_sp_intf.H"
 #include "sbeFifoMsgUtils.H"
 #include "assert.h"
+#include "sberegaccess.H"
+#include "sbestates.H"
 
 #include "fapi2.H"
 // Pervasive HWP Header Files ( istep 2)
@@ -59,7 +61,6 @@ using namespace fapi2;
 ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
 bool validateIstep (uint8_t i_major, uint8_t i_minor);
 
-
 //typedefs
 typedef ReturnCode (*sbeIstepHwpProc_t)
                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
@@ -87,6 +88,8 @@ ReturnCode istepWithEq( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp);
 ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp);
 ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp);
+ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp);
+ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp);
 
 //structure for mapping SBE wrapper and HWP functions
 typedef struct
@@ -99,9 +102,12 @@ typedef struct
 typedef enum
 {
     SBE_ISTEP2 = 2,
+    SBE_ISTEP_FIRST = SBE_ISTEP2,
     SBE_ISTEP3 = 3,
+    SBE_ISTEP_LAST_SLAVE = SBE_ISTEP3,
     SBE_ISTEP4 = 4,
     SBE_ISTEP5 = 5,
+    SBE_ISTEP_LAST_MASTER = SBE_ISTEP5,
 }sbe_supported_steps_t;
 
 // constants
@@ -113,6 +119,17 @@ const uint32_t ISTEP2_MAX_SUBSTEPS = 15;
 const uint32_t ISTEP3_MAX_SUBSTEPS = 20;
 const uint32_t ISTEP4_MAX_SUBSTEPS = 31;
 const uint32_t ISTEP5_MAX_SUBSTEPS = 2;
+static const uint8_t ISTEP_MINOR_START = 1;
+static const uint8_t SLAVE_LAST_MINOR_ISTEP = 18;
+static const uint8_t ISTEP2_MINOR_START = 2;
+static const uint32_t SBE_ROLE_MASK = 0x00000002;
+
+// Globals
+// TODO: via RTC 123602 This global needs to move to a class that will store the
+// SBE FFDC.
+fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
+
+sbeRole g_sbeRole = SBE_ROLE_MASTER;
 
 // File static data
 
@@ -154,8 +171,7 @@ static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
              { &istepWithProc, { .procHwp = &p9_sbe_scominit }},
              { &istepWithProc, { .procHwp = &p9_sbe_lpc_init }},
              { &istepWithProc, { .procHwp = &p9_sbe_fabricinit }},
-             { &istepNoOp, NULL }, // TODO via RTC 120752
-                                   // FW proc_sbe_check_master
+             { &istepCheckSbeMaster, NULL },
              { &istepWithProc, { .procHwp = &p9_sbe_mcs_setup }},
              { &istepSelectEx, NULL },
          };
@@ -199,7 +215,7 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
 static istepMap_t g_istep5PtrTbl[ ISTEP5_MAX_SUBSTEPS ]
          {
              { &istepLoadBootLoader, NULL },
-             { &istepWithCore,  { .coreHwp = &p9_sbe_instruct_start }},
+             { &istepStartInstruction,  { .coreHwp = &p9_sbe_instruct_start }},
          };
 
 // Functions
@@ -251,8 +267,8 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             ffdc.setRc(fapiRc);
+            break;
         }
-
     }while(0);
 
     //loop 2
@@ -345,9 +361,14 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
             break;
         }
 
-    // bits 16-23 major istep number, 24-31 minor istep number
-    uint64_t l_iplState = (uint64_t)(i_major)<<40  |  (uint64_t)(i_minor)<<32;
-    SBE_UPDATE_SBE_MSG_REG (l_iplState);
+    (void)SbeRegAccess::theSbeRegAccess().updateSbeStep(i_major, i_minor);
+
+    // TODO: via RTC: 126146 - Should the state be set to DUMP even in istep
+    // mode failures? Revisit this when we implement state management.
+    if(rc != FAPI2_RC_SUCCESS)
+    {
+        (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_DUMP);
+    }
 
     return rc;
     #undef SBE_FUNC
@@ -361,6 +382,17 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
     {
         if( 0 == i_minor )
         {
+            valid = false;
+            break;
+        }
+
+        if((SBE_ROLE_SLAVE == g_sbeRole) &&
+           ((SBE_ISTEP_LAST_SLAVE < i_major) ||
+            ((SBE_ISTEP_LAST_SLAVE == i_major) &&
+             (SLAVE_LAST_MINOR_ISTEP < i_minor)
+            )))
+        {
+            // Cannot run beyond 3.18 on a slave SBE
             valid = false;
             break;
         }
@@ -505,8 +537,34 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
     P9XipHeader *hdr = getXipHdr();
     P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
 
-    ReturnCode rc = p9_sbe_load_bootloader( proc, exTgt, hbblSection->iv_size, 
+    ReturnCode rc = p9_sbe_load_bootloader( proc, exTgt, hbblSection->iv_size,
                                             getSectionAddr(hbblSection) );
+    return rc;
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp)
+{
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    rc = istepWithCore(i_hwp);
+    if(rc == FAPI2_RC_SUCCESS)
+    {
+        (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_RUNTIME);
+    }
+    return rc;
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp)
+{
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
+                SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
+    if(SBE_ROLE_SLAVE == g_sbeRole)
+    {
+        (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_RUNTIME);
+    }
     return rc;
 }
 
@@ -523,7 +581,69 @@ uint32_t sbeWaitForSbeIplDone (uint8_t *i_pArg)
 {
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     SBE_TRACE("sbeWaitForSbeIplDone");
-
-
     return rc;
 }
+
+//----------------------------------------------------------------------------
+void sbeDoContinuousIpl()
+{
+    #define SBE_FUNC "sbeDoContinuousIpl "
+    SBE_DEBUG(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        // An array that holds the max number of minor steps per major step
+        const uint8_t l_minorSteps[] =
+        {
+            ISTEP2_MAX_SUBSTEPS,
+            ISTEP3_MAX_SUBSTEPS,
+            ISTEP4_MAX_SUBSTEPS,
+            ISTEP5_MAX_SUBSTEPS
+        };
+
+        // Where does each minor istep start from?
+        const uint8_t l_minorStartStep[] =
+        {
+            ISTEP2_MINOR_START,
+            ISTEP_MINOR_START,
+            ISTEP_MINOR_START,
+            ISTEP_MINOR_START
+        };
+
+        // Set SBE state as IPLing
+        (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_IPLING);
+        bool l_done = false;
+        // Run isteps
+        for(uint8_t l_major = SBE_ISTEP_FIRST;
+            (l_major <= SBE_ISTEP_LAST_MASTER) &&
+            (false == l_done);
+            ++l_major)
+        {
+            for(uint8_t l_minor = l_minorStartStep[l_major - SBE_ISTEP_FIRST];
+                l_minor <= l_minorSteps[l_major - SBE_ISTEP_FIRST];
+                ++l_minor)
+            {
+                l_rc = sbeExecuteIstep(l_major, l_minor);
+                if(l_rc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_DEBUG(SBE_FUNC"Failed istep execution in plck mode: "
+                            "Major: %d, Minor: %d", l_major, l_minor);
+                    l_done = true;
+                    break;
+                }
+                // Check if we are at step 3.18 on the slave SBE
+                if(((SBE_ISTEP_LAST_SLAVE == l_major) &&
+                        (SLAVE_LAST_MINOR_ISTEP == l_minor)) &&
+                        (SBE_ROLE_SLAVE == g_sbeRole))
+                {
+                    l_done = true;
+                    break;
+                }
+            }
+        }
+    } while(false);
+    // Store l_rc in a global variable that will be a part of the SBE FFDC
+    g_iplFailRc = l_rc;
+    #undef SBE_FUNC
+}
+

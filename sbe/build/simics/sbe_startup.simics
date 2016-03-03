@@ -7,5 +7,8 @@ try {
     python "os.environ['SBE_TOOLS_PATH'] = \""+$sbe_script_location+"\""
     echo $sbe_script_location;
     run-python-file (lookup-file sbfw/simics-debug-framework.py)
+    # Set mailbox scratch registers so that the SBE starts in istep mode
+    p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003F "20000000_00000000" 64
+    p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003A "90000000_00000000" 64
 } except { echo "ERROR: Failed to load SBE debug tools." }
 

@@ -16,6 +16,7 @@
 #include "sbeerrorcodes.H"
 #include "sbeHostMsg.H"
 #include "sbeHostUtils.H"
+#include "sberegaccess.H"
 
 sbeFifoCmdReqBuf_t g_sbeFifoCmdHdr;
 sbeCmdRespHdr_t g_sbeCmdRespHdr;
@@ -32,7 +33,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
     // Update SBE msgg reg to indicate that control loop
     // is ready now to receive data on its interfaces
-    SBE_UPDATE_SBE_MSG_REG(SBE_STATE_PK_READY);
+    (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
 
     do
     {
