@@ -408,4 +408,72 @@ typedef struct
 
 extern sbeCmdRespHdr_t g_sbeCmdRespHdr;
 
+/**
+  * @brief structure for Control Instruction Chipop (0xA701) contents.
+  *
+  */
+typedef struct
+{
+    uint32_t           reserved:12;
+    sbeErrorMode       mode:4;
+    sbeCoreChipletId   coreChipletId:8;
+    sbeThreadNum       threadNum:4;
+    sbeThreadOps       threadOps:4;
+
+    /**
+      * @brief Validate input arguments
+      *
+      * @return bool, true if the validation is success, else false for
+      * validation failure
+      */
+    bool validateInputArgs()
+    {
+        bool l_validatePassFlag = true;
+        // Validate Thread Command / Thread Num / Error Mode
+        if((threadOps > THREAD_SRESET_INS) ||
+           (mode > IGNORE_HW_ERRORS) ||
+           !((threadNum <= SMT4_THREAD3) || (threadNum == SMT4_THREAD_ALL)))
+        {
+            SBE_ERROR(SBE_FUNC "Invalid Parameter by User, ThreadOps[%d] "
+                "mode[%d] ThreadNum[%d]", threadOps, mode, threadNum);
+            l_validatePassFlag = false;
+        }
+        return l_validatePassFlag; 
+    }
+
+    /**
+      * @brief Process the input to find out core/thread ids to iterate
+      *        over HWP for the internal business logic
+      *
+      * @param[out] o_core, Core Id to start with in the iteration
+      * @param[out] o_coreCntMax, Core Max count to iterate, start from o_core
+      * @param[out] o_threadCnt, Thread Num to start with in the iteration
+      * @param[out] o_threadCntMax, Thread Max Num to iterate, start from
+      *             o_threadCnt
+      *
+      * @return void
+      */
+    void processInputDataToIterate(uint8_t & o_core, uint8_t & o_coreCntMax,
+                               uint8_t & o_threadCnt, uint8_t & o_threadCntMax)
+    {
+        //Default Init
+        o_threadCnt = SMT4_THREAD0;
+        o_threadCntMax = SMT4_THREAD_MAX;
+
+        o_core = SMT4_CORE0_ID;
+        o_coreCntMax = SMT4_CORE_ID_MAX;
+
+        if( SMT4_ALL_CORES != coreChipletId )
+        {
+            o_core = coreChipletId;
+            o_coreCntMax = coreChipletId;
+        }
+        if( SMT4_THREAD_ALL != threadNum )
+        {
+            o_threadCnt = threadNum;
+            o_threadCntMax = threadNum;
+        }
+    }
+}sbeCntlInstRegMsgHdr_t;
+
 #endif // __SBEFW_SBESP_MSG_H

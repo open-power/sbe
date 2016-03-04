@@ -261,6 +261,14 @@
           <simcmd>sbe-istep 4 31</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
+      <testcase>
+          <simcmd>sbe-istep 5 1</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <testcase>
+          <simcmd>sbe-istep 5 2</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
       <!-- Invalid Istep Test case -->
       <testcase>
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testIstepInvalid.py</simcmd>

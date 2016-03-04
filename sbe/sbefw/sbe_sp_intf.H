@@ -287,6 +287,48 @@ enum sbeSramAccessMode
     CIRCULAR_MODE  = 0x3,
 };
 
+/**
+ * @brief Error Mode enum
+ */
+enum sbeErrorMode
+{
+    EXIT_ON_FIRST_ERROR = 0x0,   // Bail out on first error
+    IGNORE_HW_ERRORS    = 0x01,  // Attempt best case
+};
+
+/**
+ * @brief Core Chiplet Id Enum
+ */
+enum sbeCoreChipletId
+{
+    SMT4_CORE0_ID       = 0x20,
+    SMT4_CORE_ID_MAX    = 0x38,
+    SMT4_ALL_CORES      = 0xFF,
+};
+
+/**
+ * @brief Thread Num Enum
+ */
+enum sbeThreadNum
+{
+    SMT4_THREAD0     = 0x0,
+    SMT4_THREAD1     = 0x1,
+    SMT4_THREAD2     = 0x2,
+    SMT4_THREAD3     = 0x3,
+    SMT4_THREAD_MAX  = 0x4,
+    SMT4_THREAD_ALL  = 0xF,
+};
+
+/**
+ * @brief Thread Operation Enum
+ */
+enum sbeThreadOps
+{
+    THREAD_START_INS       = 0x0,
+    THREAD_STOP_INS        = 0x1,
+    THREAD_STEP_INS        = 0x2,
+    THREAD_SRESET_INS      = 0x3,
+};
 
 #ifdef __cplusplus
 }
