@@ -12,6 +12,7 @@
 #include "sbecmdmemaccess.H"
 #include "sbecmdcntrldmt.H"
 #include "sbecmdsram.H"
+#include "sbecmdcntlinst.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 #include "sbeHostMsg.H"
@@ -103,6 +104,18 @@ static sbeCmdStruct_t g_sbeMemoryAccessCmdArray [] =
 };
 
 //////////////////////////////////////////////////////////////
+// @brief g_sbeInstructionCntlCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeInstructionCntlCmdArray[] =
+{
+    {sbeCntlInst,
+     SBE_CMD_CONTROL_INSTRUCTIONS,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+};
+
+//////////////////////////////////////////////////////////////
 // @brief g_sbeCoreStateControlCmdArray
 //
 //////////////////////////////////////////////////////////////
@@ -120,7 +133,7 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
                                    sbeCmdStruct_t **o_ppCmd)
 {
     #define SBE_FUNC " sbeGetCmdStructAttr "
-    SBE_DEBUG(SBE_FUNC);
+    SBE_DEBUG(SBE_FUNC "i_cmdClass [0x%08X]", i_cmdClass);
     uint8_t l_numCmds  = 0;
     *o_ppCmd = NULL;
 
@@ -149,6 +162,12 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             l_numCmds = sizeof(g_sbeMemoryAccessCmdArray) /
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbeMemoryAccessCmdArray;
+            break;
+
+        case SBE_CMD_CLASS_INSTRUCTION_CONTROL:
+            l_numCmds = sizeof(g_sbeInstructionCntlCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbeInstructionCntlCmdArray;
             break;
 
         // PSU Commands

@@ -3,14 +3,13 @@
 <integrationtest>
 	<platform startsimargs="--notar --norun --sim_parms -nre">
 		<machine>%%machine%%</machine>
-
         <test>
-           <!-- Set IVPR to point to sbe start address -->
           <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testPutGetMem.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSram.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testCntlInstruction.xml</include>
           <testcase>
               <simcmd>sbe-trace 0</simcmd>
           </testcase>

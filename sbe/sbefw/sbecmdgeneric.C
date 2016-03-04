@@ -41,6 +41,9 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
                                 PUT_MEMORY_SUPPPORTED |
                                 GET_SRAM_OCC_SUPPPORTED |
                                 PUT_SRAM_OCC_SUPPPORTED;
+
+    capability[INSTRUCTION_CTRL_CAPABILITY_START_IDX] =
+                                CONTROL_INSTRUCTIONS_SUPPPORTED;
 }
 // Functions
 //----------------------------------------------------------------------------
