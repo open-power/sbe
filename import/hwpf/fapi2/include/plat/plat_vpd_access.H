@@ -42,15 +42,15 @@ class VPDInfo<TARGET_TYPE_MCS>
               iv_rank_count_dimm_1(0), iv_dimm_drop_per_port(0)
         {};
 
+        // type of vpd field to return
+        fapi2::MemVpdData_t iv_vpd_type;
+
         // size of the vpd data
         size_t   iv_size;
         uint64_t iv_freq;
         uint64_t iv_rank_count_dimm_0;
         uint64_t iv_rank_count_dimm_1;
         uint64_t iv_dimm_drop_per_port;
-
-        // type of vpd field to return
-        fapi2::MemVpdData_t iv_vpd_type;
 };
 
 };
