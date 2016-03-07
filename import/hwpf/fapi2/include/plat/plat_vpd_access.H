@@ -28,30 +28,32 @@
 
 namespace fapi2
 {
+// -- platform specific getVPD implementation goes here --
 
-/// @brief  Class representing required VPDInfo to be used in vpd collection.
-/// @tparam T, the type of target this class is used with.
-template<>
-class VPDInfo<TARGET_TYPE_MCS>
+// platform specific for MCS target -- test code only
+inline fapi2::ReturnCode platGetVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target,
+                                    VPDInfo<fapi2::TARGET_TYPE_MCS>& io_vpd_info,
+                                    uint8_t* o_blob)
 {
-    public:
-        // @brief VPDInfo constructor
-        VPDInfo( const fapi2::MemVpdData& i_vpd_type)
-            : iv_vpd_type(i_vpd_type),
-              iv_size(0), iv_freq(0), iv_rank_count_dimm_0(0),
-              iv_rank_count_dimm_1(0), iv_dimm_drop_per_port(0)
-        {};
+    fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
 
-        // type of vpd field to return
-        fapi2::MemVpdData_t iv_vpd_type;
+    if( o_blob == nullptr )
+    {
+        io_vpd_info.iv_size = 2048;
+    }
+    else
+    {
+        o_blob[0] = 111;
 
-        // size of the vpd data
-        size_t   iv_size;
-        uint64_t iv_freq;
-        uint64_t iv_rank_count_dimm_0;
-        uint64_t iv_rank_count_dimm_1;
-        uint64_t iv_dimm_drop_per_port;
-};
+        io_vpd_info.iv_freq = 10000;
+        io_vpd_info.iv_rank_count_dimm_0 = 1;
+        io_vpd_info.iv_rank_count_dimm_1 = 8;
+        io_vpd_info.iv_dimm_drop_per_port = 6;
+
+    }
+
+    return l_rc;
+}
 
 };
 #endif // _FAPI2_PLAT_VPDACCESS_H_
