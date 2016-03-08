@@ -1,0 +1,7 @@
+echo "Attempting to register SBE Tools"
+
+# Load SBE debug tools.
+try {
+    run-python-file (lookup-file sbfw/simics-debug-framework.py)
+} except { echo "ERROR: Failed to load SBE debug tools." }
+

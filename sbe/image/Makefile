@@ -93,6 +93,23 @@ LIB_DIRS += -L$(OBJDIR)/nest
 NESTLIB := $(OBJDIR)/nest/libnest.a
 LLIBS += -lnest
 
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).out
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).map
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).dis
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_LOADER_NAME).out
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_LOADER_NAME).map
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/sbe.syms
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/../test/*.xml
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/../test/*.py
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/../../tools/ppetracepp/fsp-trace
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/../../tools/ppetracepp/ppe2fsp
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/trexStringFile
+SIMICS_BB_TAR_FILES += $(OBJDIR)/../build/simics/*
+
 SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_default_tool
 
 P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
@@ -172,6 +189,15 @@ $(LINK_SCRIPT_LOADER): linkloader.cmd
 # option of PK enabled
 ifndef FAPI2_TEST
 all: seeprom $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) appendbase appendloader
+install: all
+	@echo "Installing simics.tar"
+	@rm -rf $(OBJDIR)/simics-tar-dir
+	@mkdir $(OBJDIR)/simics-tar-dir
+	@cp  $(SIMICS_PPE_TAR_FILES) $(OBJDIR)/simics-tar-dir
+	@cp  $(SIMICS_BB_TAR_FILES) $(OBJDIR)/simics-tar-dir
+	@cd  $(OBJDIR)/simics-tar-dir && tar -cvf simics.tar * && mv simics.tar $(OBJDIR) && cd ..
+	@rm -rf $(OBJDIR)/simics-tar-dir
+	@echo "Generated simics.tar in Sbe Obj Directory"
 else
 all:
 	@echo "Makefile option error:  ALL is not compatible with FAPI2_test"
