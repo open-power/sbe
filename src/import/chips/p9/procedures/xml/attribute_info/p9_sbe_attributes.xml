@@ -235,237 +235,52 @@
     <name>ATTR_DPLL_RING</name>
   </entry>
   <entry>
-    <name>ATTR_PG_FSI</name>
-    <value>0xF1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_PRV</name>
-      <value>0xE07D</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_N0</name>
-      <value>0xE03F</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_N1</name>
-      <value>0xE03F</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_N2</name>
-      <value>0xE03F</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_N3</name>
-      <value>0xE01F</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_XB</name>
-      <value>0xE01D</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_MC01</name>
-      <value>0xE0FD</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_MC23</name>
-      <value>0xE0FD</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_OB0</name>
-      <value>0xE1FD</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_OB1</name>
-      <value>0</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_OB2</name>
-      <value>0</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_OB3</name>
-      <value>0xE1FD</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_PCI0</name>
-      <value>0xE1FD</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_PCI1</name>
-      <value>0xE0FD</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_PCI2</name>
-      <value>0xE07D</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EQ0</name>
-      <value>0xE019</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EQ1</name>
-      <value>0xE019</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EQ2</name>
-      <value>0xE019</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EQ3</name>
-      <value>0xE019</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EQ4</name>
-      <value>0xE019</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EQ5</name>
-      <value>0xE019</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC00</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC01</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC02</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC03</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC04</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC05</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC06</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC07</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC08</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC09</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC10</name>
-      <value>0xE1FF</value>
-  </entry>
-
-  <entry>
-      <name>ATTR_PG_EC11</name>
-     <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC12</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC13</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC14</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC15</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC16</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC17</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC18</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC19</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC20</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC21</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC22</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
-      <name>ATTR_PG_EC23</name>
-      <value>0xE1FF</value>
-  </entry>
-  <entry>
       <name>ATTR_CHIP_UNIT_POS</name>
-      <value>0x01</value>
-      <value>0x02</value>
-      <value>0x03</value>
-      <value>0x04</value>
-      <value>0x05</value>
-      <value>0x06</value>
-      <value>0x07</value>
-      <value>0x08</value>
-      <value>0x09</value>
-      <value>0x0A</value>
-      <value>0x0B</value>
-      <value>0x0C</value>
-      <value>0x0D</value>
-      <value>0x0E</value>
-      <value>0x0F</value>
-      <value>0x10</value>
-      <value>0x11</value>
-      <value>0x12</value>
-      <value>0x13</value>
-      <value>0x14</value>
-      <value>0x15</value>
-      <value>0x20</value>
-      <value>0x21</value>
-      <value>0x22</value>
-      <value>0x23</value>
-      <value>0x24</value>
-      <value>0x25</value>
-      <value>0x26</value>
-      <value>0x27</value>
-      <value>0x28</value>
-      <value>0x29</value>
-      <value>0x2A</value>
-      <value>0x2B</value>
-      <value>0x2C</value>
-      <value>0x2D</value>
-      <value>0x2E</value>
-      <value>0x2F</value>
-      <value>0x30</value>
-      <value>0x31</value>
-      <value>0x32</value>
-      <value>0x33</value>
-      <value>0x34</value>
-      <value>0x35</value>
-      <value>0x36</value>
-      <value>0x37</value>
+      <value>0x01</value> <!-- PERV -->
+      <value>0x02</value> <!-- N0 -->
+      <value>0x03</value> <!-- N1 -->
+      <value>0x04</value> <!-- N2 -->
+      <value>0x05</value> <!-- N3 -->
+      <value>0x06</value> <!-- XB -->
+      <value>0x07</value> <!-- MC01 -->
+      <value>0x08</value> <!-- MC23 -->
+      <value>0x09</value> <!-- OB0 -->
+      <value>0x0A</value> <!-- OB1 -->
+      <value>0x0B</value> <!-- OB2 -->
+      <value>0x0C</value> <!-- OB3 -->
+      <value>0x0D</value> <!-- PCI0 -->
+      <value>0x0E</value> <!-- PCI1 -->
+      <value>0x0F</value> <!-- PCI2 -->
+      <value>0x10</value> <!-- EP0 -->
+      <value>0x11</value> <!-- EP1 -->
+      <value>0x12</value> <!-- EP2 -->
+      <value>0x13</value> <!-- EP3 -->
+      <value>0x14</value> <!-- EP4 -->
+      <value>0x15</value> <!-- EP5 -->
+      <value>0x20</value> <!-- EC00 -->
+      <value>0x21</value> <!-- EC01 -->
+      <value>0x22</value> <!-- EC02 -->
+      <value>0x23</value> <!-- EC03 -->
+      <value>0x24</value> <!-- EC04 -->
+      <value>0x25</value> <!-- EC05 -->
+      <value>0x26</value> <!-- EC06 -->
+      <value>0x27</value> <!-- EC07 -->
+      <value>0x28</value> <!-- EC08 -->
+      <value>0x29</value> <!-- EC09 -->
+      <value>0x2A</value> <!-- EC10 -->
+      <value>0x2B</value> <!-- EC11 -->
+      <value>0x2C</value> <!-- EC12 -->
+      <value>0x2D</value> <!-- EC13 -->
+      <value>0x2E</value> <!-- EC14 -->
+      <value>0x2F</value> <!-- EC15 -->
+      <value>0x30</value> <!-- EC16 -->
+      <value>0x31</value> <!-- EC17 -->
+      <value>0x32</value> <!-- EC18 -->
+      <value>0x33</value> <!-- EC19 -->
+      <value>0x34</value> <!-- EC20 -->
+      <value>0x35</value> <!-- EC21 -->
+      <value>0x36</value> <!-- EC22 -->
+      <value>0x37</value> <!-- EC23 -->
   </entry>
 
   <entry>
@@ -493,7 +308,57 @@
            <value>0x0</value>
   </entry>
   <entry>
+      <!-- The values here are per pervasive chiplet in the order of the chiplet
+      numbers Bit 3 (in the 16-bit representation) is used to indicate
+      partial good. If this bit is 1, the region is bad, else it is good.
+      Bits 0,1,2 are don't care. For nimbus, pervasive chiplets 10 and 11 are
+      not used (OB1 and OB2), therefore the value for them is 0xFFFF -->
             <name>ATTR_PG</name>
+            <value>0xE07D</value> <!-- PERV -->
+            <value>0xE03F</value> <!-- N0 -->
+            <value>0xE03F</value> <!-- N1 -->
+            <value>0xE03F</value> <!-- N2 -->
+            <value>0xE01F</value> <!-- N3 -->
+            <value>0xE01D</value> <!-- XB -->
+            <value>0xE0FD</value> <!-- MC01 -->
+            <value>0xE0FD</value> <!-- MC23 -->
+            <value>0xE1FD</value> <!-- OB0 -->
+            <value>0xFFFF</value> <!-- OB1 -->
+            <value>0xFFFF</value> <!-- OB2 -->
+            <value>0xE1FD</value> <!-- OB3 -->
+            <value>0xE1FD</value> <!-- PCI0 -->
+            <value>0xE0FD</value> <!-- PCI1 -->
+            <value>0xE07D</value> <!-- PCI2 -->
+            <value>0xE001</value> <!-- EP0 -->
+            <value>0xE001</value> <!-- EP1 -->
+            <value>0xE001</value> <!-- EP2 -->
+            <value>0xE001</value> <!-- EP3 -->
+            <value>0xE001</value> <!-- EP4 -->
+            <value>0xE001</value> <!-- EP5 -->
+            <value>0xE1FF</value> <!-- EC00 -->
+            <value>0xE1FF</value> <!-- EC01 -->
+            <value>0xE1FF</value> <!-- EC02 -->
+            <value>0xE1FF</value> <!-- EC03 -->
+            <value>0xE1FF</value> <!-- EC04 -->
+            <value>0xE1FF</value> <!-- EC05 -->
+            <value>0xE1FF</value> <!-- EC06 -->
+            <value>0xE1FF</value> <!-- EC07 -->
+            <value>0xE1FF</value> <!-- EC08 -->
+            <value>0xE1FF</value> <!-- EC09 -->
+            <value>0xE1FF</value> <!-- EC10 -->
+            <value>0xE1FF</value> <!-- EC11 -->
+            <value>0xE1FF</value> <!-- EC12 -->
+            <value>0xE1FF</value> <!-- EC13 -->
+            <value>0xE1FF</value> <!-- EC14 -->
+            <value>0xE1FF</value> <!-- EC15 -->
+            <value>0xE1FF</value> <!-- EC16 -->
+            <value>0xE1FF</value> <!-- EC17 -->
+            <value>0xE1FF</value> <!-- EC18 -->
+            <value>0xE1FF</value> <!-- EC19 -->
+            <value>0xE1FF</value> <!-- EC20 -->
+            <value>0xE1FF</value> <!-- EC21 -->
+            <value>0xE1FF</value> <!-- EC22 -->
+            <value>0xE1FF</value> <!-- EC23 -->
   </entry>
   <entry>
            <name>ATTR_ADU_XSCOM_BAR_BASE_ADDR</name>
@@ -537,7 +402,7 @@
   </entry>
   <entry>
            <name>ATTR_SYS_FORCE_ALL_CORES</name>
-           <value>0x01</value> 
+           <value>0x01</value>
   </entry>
   <entry>
            <name>ATTR_MASTER_CORE</name>
