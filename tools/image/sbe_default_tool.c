@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: tools/image/sbe_default_tool.c $                              */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /// \file sbe_default_tool.c
 /// \brief P9-XIP image setter tool for attributes in fixed section
 ///
@@ -110,35 +134,35 @@ void setAttribute(void* image, const char* attribute, unsigned int index, uint64
 
     if(item.iv_toc->iv_type == P9_XIP_UINT8) {
 
-        *((uint8_t*)thePointer + (index * sizeof(uint8_t))) = (uint8_t)val;
+        *((uint8_t*)thePointer + index) = (uint8_t)val;
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT8) {
 
-        *((int8_t*)thePointer + (index * sizeof(int8_t))) = (int8_t)val;
+        *((int8_t*)thePointer + index) = (int8_t)val;
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT16) {
 
-        *((uint16_t*)thePointer + (index * sizeof(uint16_t))) = htobe16((uint16_t)val);
+        *((uint16_t*)thePointer + index) = htobe16((uint16_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT16) {
 
-        *((int16_t*)thePointer + (index * sizeof(int16_t))) = htobe16((int16_t)val);
+        *((int16_t*)thePointer + index) = htobe16((int16_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT32) {
 
-        *((uint32_t*)thePointer + (index * sizeof(uint32_t))) = htobe32((uint32_t)val);
+        *((uint32_t*)thePointer + index) = htobe32((uint32_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT32) {
 
-        *((int32_t*)thePointer + (index * sizeof(int32_t))) = htobe32((int32_t)val);
+        *((int32_t*)thePointer + index) = htobe32((int32_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT64) {
 
-        *((uint64_t*)thePointer + (index * sizeof(uint64_t))) = htobe64((uint64_t)val);
+        *((uint64_t*)thePointer + index) = htobe64((uint64_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT64) {
 
-        *((int64_t*)thePointer + (index * sizeof(int64_t))) = htobe64((int64_t)val);
+        *((int64_t*)thePointer + index) = htobe64((int64_t)val);
 
     } else {
         fprintf(stderr, "sbe_default_tool: type not available");
@@ -181,38 +205,38 @@ uint64_t getAttribute(void* image, const char* attribute, unsigned int index) {
 
     if(item.iv_toc->iv_type == P9_XIP_UINT8) {
 
-        val = *((uint8_t*)thePointer + (index * sizeof(uint8_t)));
+        val = *((uint8_t*)thePointer + index);
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT8) {
 
-        val = *((int8_t*)thePointer + (index * sizeof(int8_t)));
+        val = *((int8_t*)thePointer + index);
         val &= 0xFF;
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT16) {
 
-        val = htobe16(*((uint16_t*)thePointer + (index * sizeof(uint16_t))));
+        val = htobe16(*((uint16_t*)thePointer + index));
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT16) {
 
-        val = htobe16(*((int16_t*)thePointer + (index * sizeof(int16_t))));
+        val = htobe16(*((int16_t*)thePointer + index));
         val &= 0xFFFF;
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT32) {
 
-        val = htobe32(*((uint32_t*)thePointer + (index * sizeof(uint32_t))));
+        val = htobe32(*((uint32_t*)thePointer + (index)));
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT32) {
 
-        val = htobe32(*((int32_t*)thePointer + (index * sizeof(int32_t))));
+        val = htobe32(*((int32_t*)thePointer + index));
         val &= 0xFFFFFFFF;
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT64) {
 
-        val = htobe64(*((uint64_t*)thePointer + (index * sizeof(uint64_t))));
+        val = htobe64(*((uint64_t*)thePointer + index));
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT64) {
 
-        val = htobe64(*((int64_t*)thePointer + (index * sizeof(int64_t))));
+        val = htobe64(*((int64_t*)thePointer + index));
 
     } else {
         fprintf(stderr, "sbe_default_tool: type not available");
