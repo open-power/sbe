@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: $                                                             */
+/* $Source: hwpf/include/plat/plat_target_utils.H $                       */
 /*                                                                        */
-/* OpenPOWER HostBoot Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2014                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -30,12 +30,22 @@
 #ifndef __FAPI2_PLAT_TARGET_UTIL__
 #define __FAPI2_PLAT_TARGET_UTIL__
 
+#pragma pack(8) //Start of packing to 8byte boundary
+    typedef struct {
+      fapi2attr::SystemAttributes_t    G_system_attrs;
+      fapi2attr::ProcChipAttributes_t  G_proc_chip_attrs;
+      fapi2attr::PervAttributes_t      G_perv_attrs;
+      fapi2attr::CoreAttributes_t      G_core_attrs;
+      fapi2attr::EXAttributes_t        G_ex_attrs;
+      fapi2attr::EQAttributes_t        G_eq_attrs;
+    } G_sbe_attrs_t;
+#pragma pack()//End of packing to 8byte boundary
+
 //
 // Platform Utility functions..
 //
 namespace fapi2
 {
-
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes
     ReturnCode plat_TargetsInit();

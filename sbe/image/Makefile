@@ -300,7 +300,6 @@ buildInfo:
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d) $(OBJDIR)/base_sbe_fixed.o $(OBJDIR)/base_sbe_fixed.d: | $(OBJDIR)
 
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pg_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pervasive_attributes.xml
 # TODO via RTC 142708
 # Workaound for ATTR_CHIP_UNIT_POS. Remove Mirror_WA_attributes.xml once fapi
