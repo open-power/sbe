@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,47 +33,48 @@
 //## auto_generated
 #include "p9_sbe_npll_initf.H"
 
-#include "p9_perv_sbe_cmn.H"
-
-
-enum P9_SBE_NPLL_INITF_Private_Constants
-{
-    REGIONS_PLL_ONLY = 0x001,
-    SCAN_TYPES_BNDY_FUNC = 0x808,
-    SCAN_TYPES_GPTR = 0x200
-};
-
 fapi2::ReturnCode p9_sbe_npll_initf(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    auto l_perv_functional_vector =
-        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-        (fapi2::TARGET_STATE_FUNCTIONAL);
-    FAPI_DBG("Entering ...");
+    uint8_t l_read_attr = 0;
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    RingID ringID = perv_pll_bndy_bucket_1;
+    FAPI_INF("Entering ...");
 
-    // Get the TPChiplet target
-    for (auto it : l_perv_functional_vector)
+    FAPI_DBG("Get the attribute ATTR_NEST_PLL_BUCKET");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_PLL_BUCKET, FAPI_SYSTEM , l_read_attr));
+
+    switch(l_read_attr)
     {
-        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
 
-        if ((l_attr_chip_unit_pos == 0x01))/* TPChiplet */
-        {
-            FAPI_INF("Call Scan0 Module (scan region=PLL, scan types=GPTR)");
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(it, REGIONS_PLL_ONLY,
-                                                  SCAN_TYPES_GPTR));
-            FAPI_INF("Call Scan0 Module (scan region=PLL, scan types=GPTR)");
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(it, REGIONS_PLL_ONLY,
-                                                  SCAN_TYPES_BNDY_FUNC));
+        case 1:
+            ringID = perv_pll_bndy_bucket_1;
             break;
-        }
+
+        case 2:
+            ringID = perv_pll_bndy_bucket_2;
+            break;
+
+        case 3:
+            ringID = perv_pll_bndy_bucket_3;
+            break;
+
+        case 4:
+            ringID = perv_pll_bndy_bucket_4;
+            break;
+
+        case 5:
+            ringID = perv_pll_bndy_bucket_5;
+            break;
+
+        default:
+            FAPI_TRY(false, "Invalid values of ATTR_NEST_PLL_BUCKET")
     }
 
-    //TODO:Load Ring Module : Scan initialize PLL BNDY chain
+    FAPI_TRY(fapi2::putRing(i_target_chip, ringID, fapi2::RING_MODE_SET_PULSE_NSL));
 
-    FAPI_DBG("Exiting ...");
+    FAPI_INF("Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
-
 }
