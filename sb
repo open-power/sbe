@@ -1,0 +1,61 @@
+#!/bin/sh
+
+sb_helptext()
+{
+    echo "SBE Utility Script"
+
+    case $1 in
+    workon)
+        echo "  Topic 'workon'"
+        echo
+        echo "  Usage:"
+        echo "      sb workon"
+        echo
+        echo "  Sources necessary environment files for building sbe"
+        echo "  and begins a new shell.  The workon may be left via 'exit'."
+        echo
+        echo "  See also:"
+        echo "      customrc"
+        ;;
+    *)
+        echo "  Usage:"
+        echo "      sb <cmd>"
+        echo "      sb help [<cmd>|<topic>]"
+        echo
+        echo "  Available Commands:"
+        echo "      workon"
+        echo
+    esac
+}
+
+sb_workon()
+{
+    if [ -n "${SBE_INSIDE_WORKON}" ]; then
+        echo "Already in a workon."
+        exit -1
+    else
+        export SBE_INSIDE_WORKON=1
+        echo "Setting environment variables..."
+        source ./env.bash
+        echo "Spawning new shell with devtoolset 2..."
+        scl enable devtoolset-2 bash
+    fi
+}
+
+if [ 0 == $# ]; then
+    sb_helptext
+    exit -1
+fi
+
+FIRST_PARAM=$1
+shift
+
+case ${FIRST_PARAM} in
+workon)
+    sb_workon $*
+    ;;
+*)
+    sb_helptext $*
+    exit -1
+    ;;
+esac

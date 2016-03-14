@@ -20,14 +20,12 @@ then
     export SANDBOXROOT=${SBEROOT}
 fi
 
-if [ -z $SANDBOXNAME ];
+if [ -z $SANDBOXNAME ] || [ $RUNNING_UNDER_JENKINS -eq 1 ];
 then
     export SANDBOXNAME=${SBECI_SANDBOX}
 fi
-if [ -z $SANDBOXBASE ];
-then
-    export SANDBOXBASE=${SANDBOXROOT}/${SANDBOXNAME}
-fi
+
+export SANDBOXBASE=${SANDBOXROOT}/${SANDBOXNAME}
 
 if [ -z $SANDBOXRC ];
 then
