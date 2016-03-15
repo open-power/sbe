@@ -70,6 +70,19 @@ bool Target<K, V>::operator!=(const Target& i_right) const
 }
 
 ///
+/// @brief Less Than Comparison Operator
+/// @param[in] i_right Reference to Target to compare.
+/// @return bool. True if less than i_right.
+/// @note Platforms need to define this so that the physical
+/// targets are determined to be less than rather than just the handles
+///
+template<TargetType K, typename V>
+bool Target<K, V>::operator<(const Target& i_right) const
+{
+    return i_right.iv_handle < iv_handle;
+}
+
+///
 /// @brief Get this target's immediate parent
 /// @tparam T The type of the parent
 /// @return Target<T> a target representing the parent
