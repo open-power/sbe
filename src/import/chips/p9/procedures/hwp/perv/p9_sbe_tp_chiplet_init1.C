@@ -39,52 +39,78 @@
 //## auto_generated
 #include "p9_sbe_tp_chiplet_init1.H"
 
-#include "p9_perv_scom_addresses.H"
-#include "p9_perv_scom_addresses_fld.H"
+#include <p9_perv_scom_addresses.H>
+#include <p9_perv_scom_addresses_fld.H>
+#include <p9_perv_sbe_cmn.H>
 
+
+enum P9_SBE_TP_CHIPLET_INIT1_Private_Constants
+{
+    SCAN_TYPES_EXCEPT_TIME_GPTR_REPR = 0xDCE,
+    REGIONS_EXCEPT_VITAL_PIB_NET = 0x4FF, // Regions excluding VITAL, PIB and NET
+    SCAN_TYPES_TIME_GPTR_REPR = 0x230
+};
 
 fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_DBG("Entering ...");
+    FAPI_INF("Entering ...");
 
-    FAPI_INF("Release PCB Reset");
+    FAPI_DBG("Release PCB Reset");
     //Setting ROOT_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
     //PIB.ROOT_CTRL0.PCB_RESET_DC = 0
     l_data64.clearBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
 
-    FAPI_INF("Set Chiplet Enable");
+    FAPI_DBG("Set Chiplet Enable");
     //Setting PERV_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
     //PIB.PERV_CTRL0.TP_CHIPLET_EN_DC = 1
     l_data64.setBit<PERV_PERV_CTRL0_SET_TP_CHIPLET_EN_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
 
-    FAPI_INF("Drop TP Chiplet Fence Enable");
+    FAPI_DBG("Drop TP Chiplet Fence Enable");
     //Setting PERV_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
     //PIB.PERV_CTRL0.TP_FENCE_EN_DC = 0
     l_data64.clearBit<PERV_PERV_CTRL0_SET_TP_FENCE_EN_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
 
-    FAPI_INF("Drop Global Endpoint reset");
+    FAPI_DBG("Drop Global Endpoint reset");
     //Setting ROOT_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
     //PIB.ROOT_CTRL0.GLOBAL_EP_RESET_DC = 0
     l_data64.clearBit<PERV_ROOT_CTRL0_SET_GLOBAL_EP_RESET_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
-    FAPI_INF("Switching PIB trace bus to SBE tracing");
+    FAPI_DBG("Switching PIB trace bus to SBE tracing");
 
-    FAPI_INF("Drop OOB Mux");
+    FAPI_DBG("Drop OOB Mux");
     //Setting ROOT_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
     l_data64.clearBit<PERV_ROOT_CTRL0_SET_OOB_MUX>();  //PIB.ROOT_CTRL0.OOB_MUX = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
 
-    FAPI_DBG("Exiting ...");
+    FAPI_DBG("Region setup call");
+    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(
+                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_EXCEPT_VITAL_PIB_NET, l_regions));
+    FAPI_DBG("l_regions value : %#018lX", l_regions);
+
+    FAPI_DBG("run scan0 module for region except vital,PIB,net, scan types GPTR, TIME, REPR");
+    FAPI_TRY(p9_perv_sbe_cmn_scan0_module(
+                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], l_regions, SCAN_TYPES_TIME_GPTR_REPR));
+
+    FAPI_DBG("run scan0 module for region except vital,PIB,net, scan types except GPTR, TIME, REPR");
+    FAPI_TRY(p9_perv_sbe_cmn_scan0_module(
+                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], l_regions,
+                 SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
+
+    FAPI_INF("Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

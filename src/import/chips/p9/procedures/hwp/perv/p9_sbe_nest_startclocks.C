@@ -96,9 +96,6 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     fapi2::buffer<uint64_t> l_n3_clock_regions;
     fapi2::buffer<uint16_t> l_ccstatus_regions;
     fapi2::buffer<uint16_t> l_n3_ccstatus_regions;
-    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_n3chiplet =
-        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-        (fapi2::TARGET_FILTER_NEST_WEST, fapi2::TARGET_STATE_FUNCTIONAL)[0];
     FAPI_INF("Entering ...");
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -109,15 +106,20 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
         FAPI_DBG("pg targets vector: %#018lX", l_pg_vector);
     }
 
-    FAPI_DBG("Regions setup : N3 start clock");
-    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_n3chiplet,
-             REGIONS_ALL_EXCEPT_VITAL_NESTPLL, l_n3_clock_regions));
-    FAPI_DBG("Regions value: %#018lX", l_n3_clock_regions);
 
-    FAPI_DBG("Region setup : N3 check cc status");
-    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(l_n3chiplet,
-             REGIONS_ALL_EXCEPT_VITAL_NESTPLL, l_n3_ccstatus_regions));
-    FAPI_DBG("Regions value: %#018lX", l_n3_ccstatus_regions);
+    for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_NEST_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_DBG("Regions setup : N3 start clock");
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_trgt_chplt,
+                 REGIONS_ALL_EXCEPT_VITAL_NESTPLL, l_n3_clock_regions));
+        FAPI_DBG("Regions value: %#018lX", l_n3_clock_regions);
+
+        FAPI_DBG("Region setup : N3 check cc status");
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(l_trgt_chplt,
+                 REGIONS_ALL_EXCEPT_VITAL_NESTPLL, l_n3_ccstatus_regions));
+        FAPI_DBG("Regions value: %#018lX", l_n3_ccstatus_regions);
+    }
 
     FAPI_DBG("Switch MC meshs to Nest mesh");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_read_attr));
@@ -149,15 +151,21 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
             FAPI_DBG("Regions value: %#018lX", l_clock_regions);
             FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_trgt_chplt,
                      REGIONS_ALL_EXCEPT_VITAL_NESTPLL, l_clock_regions));
+            FAPI_DBG("Regions value: %#018lX", l_clock_regions);
+
 
             FAPI_DBG("Call module clock start stop for N0, N1, N2");
             FAPI_TRY(p9_sbe_common_clock_start_stop(l_trgt_chplt, CLOCK_CMD, STARTSLAVE,
                                                     DONT_STARTMASTER, l_clock_regions, CLOCK_TYPES));
         }
 
-        FAPI_DBG("Call module clock start stop for N3");
-        FAPI_TRY(p9_sbe_common_clock_start_stop(l_n3chiplet, CLOCK_CMD, DONT_STARTSLAVE,
-                                                STARTMASTER, l_n3_clock_regions, CLOCK_TYPES));
+        for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_NEST_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Call module clock start stop for N3");
+            FAPI_TRY(p9_sbe_common_clock_start_stop(l_trgt_chplt, CLOCK_CMD,
+                                                    DONT_STARTSLAVE, STARTMASTER, l_n3_clock_regions, CLOCK_TYPES));
+        }
 
         for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_NEST_NORTH |
@@ -173,9 +181,13 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
                      CLOCK_CMD, l_ccstatus_regions, CLOCK_TYPES));
         }
 
-        FAPI_DBG("Call clockstatus check function for N3");
-        FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(l_n3chiplet,
-                 CLOCK_CMD, l_n3_ccstatus_regions, CLOCK_TYPES));
+        for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_NEST_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Call clockstatus check function for N3");
+            FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(l_trgt_chplt,
+                     CLOCK_CMD, l_n3_ccstatus_regions, CLOCK_TYPES));
+        }
 
         for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
@@ -189,8 +201,12 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
                                                     DONT_STARTSLAVE, DONT_STARTMASTER, l_clock_regions, CLOCK_TYPES));
         }
 
-        FAPI_DBG("Drop chiplet fence for N3");
-        FAPI_TRY(p9_sbe_nest_startclocks_N3_fence_drop(l_n3chiplet, l_pg_vector));
+        for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_NEST_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Drop chiplet fence for N3");
+            FAPI_TRY(p9_sbe_nest_startclocks_N3_fence_drop(l_trgt_chplt, l_pg_vector));
+        }
 
         for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_NEST_NORTH |
@@ -255,9 +271,13 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
                                                     DONT_STARTMASTER, l_clock_regions, CLOCK_TYPES));
         }
 
-        FAPI_DBG("Call module clock start stop for N3");
-        FAPI_TRY(p9_sbe_common_clock_start_stop(l_n3chiplet, CLOCK_CMD, DONT_STARTSLAVE,
-                                                STARTMASTER, l_n3_clock_regions, CLOCK_TYPES));
+        for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_NEST_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Call module clock start stop for N3");
+            FAPI_TRY(p9_sbe_common_clock_start_stop(l_trgt_chplt, CLOCK_CMD,
+                                                    DONT_STARTSLAVE, STARTMASTER, l_n3_clock_regions, CLOCK_TYPES));
+        }
 
         for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_NEST_NORTH |
@@ -274,12 +294,20 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
                      CLOCK_CMD, l_ccstatus_regions, CLOCK_TYPES));
         }
 
-        FAPI_DBG("Call clockstatus check function for N3");
-        FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(l_n3chiplet,
-                 CLOCK_CMD, l_n3_ccstatus_regions, CLOCK_TYPES));
+        for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_NEST_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Call clockstatus check function for N3");
+            FAPI_TRY(p9_sbe_nest_startclocks_check_cc_status_function(l_trgt_chplt,
+                     CLOCK_CMD, l_n3_ccstatus_regions, CLOCK_TYPES));
+        }
 
-        FAPI_DBG("Drop chiplet fence for N3");
-        FAPI_TRY(p9_sbe_nest_startclocks_N3_fence_drop(l_n3chiplet, l_pg_vector));
+        for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_NEST_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Drop chiplet fence for N3");
+            FAPI_TRY(p9_sbe_nest_startclocks_N3_fence_drop(l_trgt_chplt, l_pg_vector));
+        }
 
         for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_NEST_NORTH |
@@ -312,7 +340,7 @@ fapi_try_exit:
 
 }
 
-/// @brief Drop chiplet fence for OB chiplet
+/// @brief Drop chiplet fence for N3
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_pg_vector     Pg vector of targets

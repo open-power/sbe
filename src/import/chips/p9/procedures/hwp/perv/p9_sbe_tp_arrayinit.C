@@ -27,21 +27,22 @@
 ///
 /// @brief SBE PRV Array Init Procedure
 //------------------------------------------------------------------------------
-// *HWP HWP Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP HWP Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
-// *HWP FW Owner         : sunil kumar <skumar8j@in.ibm.com>
-// *HWP Team             : Perv
-// *HWP Level            : 2
-// *HWP Consumed by      : SBE
+// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
+// *HWP FW Owner        : sunil kumar <skumar8j@in.ibm.com>
+// *HWP Team            : Perv
+// *HWP Level           : 2
+// *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
 
 //## auto_generated
 #include "p9_sbe_tp_arrayinit.H"
 
-#include "p9_misc_scom_addresses.H"
-#include "p9_perv_scom_addresses.H"
-#include "p9_perv_sbe_cmn.H"
+#include <p9_misc_scom_addresses.H>
+#include <p9_perv_scom_addresses.H>
+#include <p9_perv_scom_addresses_fld.H>
+#include <p9_perv_sbe_cmn.H>
 
 
 enum P9_SBE_TP_ARRAYINIT_Private_Constants
@@ -58,13 +59,14 @@ fapi2::ReturnCode p9_sbe_tp_arrayinit(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     bool l_sram_abist_check = false;
-    auto l_perv_functional_vector =
-        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-        (fapi2::TARGET_STATE_FUNCTIONAL);
+    fapi2::buffer<uint16_t> l_regions;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
+        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                fapi2::TARGET_STATE_FUNCTIONAL)[0];
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_DBG("Entering ...");
+    FAPI_INF("Entering ...");
 
-    FAPI_INF("Exclude PIBMEM from TP array init");
+    FAPI_DBG("Exclude PIBMEM from TP array init");
     //Setting PIBMEM_REPAIR_REGISTER_0 register value
     //PIB.PIBMEM_REPAIR_REGISTER_0 = 0x0000000000000001
     FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0,
@@ -73,39 +75,37 @@ fapi2::ReturnCode p9_sbe_tp_arrayinit(const
     // Step 1: Array Init for PRV Cplt
     // ===============================
 
-    // Get the TPChiplet target
-    for (auto it : l_perv_functional_vector)
-    {
-        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
+    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(l_tpchiplet,
+             REGIONS_EXCEPT_PIB_NET_PLL, l_regions));
+    FAPI_DBG("l_regions value: %#018lX", l_regions);
 
-        if (l_attr_chip_unit_pos == 0x01)/* TPChiplet */
-        {
-            FAPI_INF("Call ARRAY INIT Module for Pervasive Chiplet");
-            FAPI_TRY(p9_perv_sbe_cmn_array_init_module(it,
-                     REGIONS_EXCEPT_PIB_NET_PLL, LOOP_COUNTER, SELECT_SRAM, SELECT_EDRAM,
-                     START_ABIST_MATCH_VALUE));
+    FAPI_DBG("Call ARRAY INIT Module for Pervasive Chiplet");
+    FAPI_TRY(p9_perv_sbe_cmn_array_init_module(l_tpchiplet, l_regions, LOOP_COUNTER,
+             SELECT_SRAM, SELECT_EDRAM, START_ABIST_MATCH_VALUE));
 
-            FAPI_INF("Check SRAM Abist Done");
-            //Getting CPLT_STAT0 register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_CPLT_STAT0, l_data64));
-            //l_sram_abist_check = PERV.CPLT_STAT0.SRAM_ABIST_DONE_DC
-            l_sram_abist_check = l_data64.getBit<0>();
-            FAPI_ASSERT(l_sram_abist_check , fapi2::SRAM_ABIST_DONE_BIT_ERR()
-                        .set_READ_ABIST_DONE(l_sram_abist_check),
-                        "ERROR:ABIST_DONE_BIT_NOT_SET");
-            // Step 2: Scan0 for PRV Cplt
-            FAPI_INF("Call SCAN0 Module for Pervasive Chiplet");
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(it, REGIONS_EXCEPT_PIB_NET_PLL,
-                                                  SCAN_TYPES));
-            FAPI_INF("Add PIBMEM back to TP array init");
-            //Setting PIBMEM_REPAIR_REGISTER_0 register value
-            //PIB.PIBMEM_REPAIR_REGISTER_0 = 0x0
-            FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0, 0));
-        }
-    }
+    FAPI_DBG("Check SRAM Abist Done");
+    //Getting CPLT_STAT0 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_CPLT_STAT0, l_data64));
+    //l_sram_abist_check = PERV.CPLT_STAT0.SRAM_ABIST_DONE_DC
+    l_sram_abist_check = l_data64.getBit<PERV_1_CPLT_STAT0_SRAM_ABIST_DONE_DC>();
 
-    FAPI_DBG("Exiting ...");
+    FAPI_ASSERT(l_sram_abist_check ,
+                fapi2::SRAM_ABIST_DONE_BIT_ERR()
+                .set_READ_ABIST_DONE(l_sram_abist_check),
+                "ERROR:ABIST_DONE_BIT_NOT_SET");
+
+    // Step 2: Scan0 for PRV Cplt
+    // ==========================
+
+    FAPI_DBG("Call SCAN0 Module for Pervasive Chiplet");
+    FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_tpchiplet, l_regions, SCAN_TYPES));
+
+    FAPI_DBG("Add PIBMEM back to TP array init");
+    //Setting PIBMEM_REPAIR_REGISTER_0 register value
+    //PIB.PIBMEM_REPAIR_REGISTER_0 = 0x0
+    FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0, 0x0));
+
+    FAPI_INF("Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
