@@ -12,6 +12,7 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testCntlInstruction.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testFifoReset.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
           <testcase>
               <simcmd>sbe-trace 0</simcmd>
           </testcase>
