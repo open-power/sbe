@@ -295,20 +295,65 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t flags;  // Operational Flags
-    uint32_t addrHi; // Higher 32-Bit Memory Address
-    uint32_t addrLo; // Lower  32-Bit Memory Address
-    uint32_t len;    // Length of Data in Bytes
+    uint32_t coreChipletId:8; //Pervasive Core Chiplet Id for PBA
+    uint32_t eccByte:8;       //Ecc Override Byte from user
+    uint32_t flags:16;        //Operational Flags -refer enum sbeMemoryAccessFlags 
+    uint32_t addrHi;          //Higher 32-Bit Memory Address
+    uint32_t addrLo;          //Lower  32-Bit Memory Address
+    uint32_t len;             //Length of Data in Bytes
 
     /**
-      * @brief Calculates 64-bit PBA Address
+      * @brief Calculates 64-bit PBA ADU Address
       *
-      * @return Return 64-bit PBA address
+      * @return Return 64-bit PBA ADU address
       */
-    uint64_t getPbaAddr()
+    uint64_t getAddr() const
     {
-        uint64_t addr = ((uint64_t)addrHi << 32) | addrLo;
-        return addr;
+        return (((uint64_t)addrHi << 32) | addrLo);
+    }
+
+    /**
+      * @brief Determines if ECC Override bit is set
+      *
+      * @return Returns True if ECC Override bit is set
+      *                 False if ECC Override bit is not set
+      */
+    bool isEccOverrideFlagSet() const
+    {
+        return ((flags & SBE_MEM_ACCESS_FLAGS_ECC_OVERRIDE) ? true : false);
+    }
+
+    /**
+      * @brief Determines if ECC required bit is set
+      *
+      * @return Returns True if ECC required flag is set
+      *                 False if ECC required flag is not set
+      */
+    bool isEccFlagSet() const
+    {
+        return ((flags & SBE_MEM_ACCESS_FLAGS_ECC_REQUIRED) ? true : false);
+    }
+
+    /**
+      * @brief Determines if Itag required bit is set
+      *
+      * @return Returns True if Itag required flag is set
+      *                 False if Itag required flag is not set
+      */
+    bool isItagFlagSet() const
+    {
+        return ((flags & SBE_MEM_ACCESS_FLAGS_ITAG) ? true : false);
+    }
+
+    /**
+      * @brief Determines if Cache Inhibited mode is set
+      *
+      * @return Returns True if Cache Inhibited Mode flag is set
+      *                 False if Cache Inhibited Mode flag is not set
+      */
+    bool isCacheInhibitModeFlagSet() const
+    {
+        return ((flags & SBE_MEM_ACCESS_FLAGS_CACHE_INHIBIT) ? true : false);
     }
 
     /**
@@ -319,9 +364,7 @@ typedef struct
       */
     bool isPbaFlagSet()
     {
-        bool tmp_flag = (flags & SBE_MEM_ACCESS_FLAGS_TARGET_PBA) ?
-                           true : false ;
-        return tmp_flag;
+        return ((flags & SBE_MEM_ACCESS_FLAGS_TARGET_PBA) ? true : false);
     }
 
     /**
@@ -330,11 +373,9 @@ typedef struct
       * @return Returns True if Auto Increment mode is set
       *                 False if Auto Increment is not set
       */
-    bool isAutoIncrModeSet()
+    bool isAutoIncrModeSet() const
     {
-        bool tmp_flag = (flags & SBE_MEM_ACCESS_FLAGS_AUTO_INCR_ON) ?
-                           true : false ;
-        return tmp_flag;
+        return ((flags & SBE_MEM_ACCESS_FLAGS_AUTO_INCR_ON) ? true : false);
     }
 
     /**
@@ -343,25 +384,39 @@ typedef struct
       * @return Returns True if Fast mode is set
       *                 False if Fast mode is not set
       */
-    uint32_t isFastModeSet()
+    uint32_t isFastModeSet() const
     {
-        uint32_t tmp_flag = (flags & SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON) ?
-                             (1<<31) : 0;
-        return tmp_flag;
+        return ((flags & SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON) ? true : false);
     }
 
     /**
-      * @brief Calculates Data length in alignment with PBA Cacheline (128B)
+      * @brief Determines if LCO Mode is set
       *
-      * @return Returns Data length in alignment with PBA Cacheline
+      * @return Returns True if LCO mode is set
+      *                 False if LCO mode is not set
       */
-    uint64_t getDataLenPbaCacheAlign()
+    uint32_t isPbaLcoModeSet() const
     {
-        uint64_t l_len = (len / 8) / 16;
+        return ((flags & SBE_MEM_ACCESS_FLAGS_LCO_ENABLED) ? true : false);
+    }
+
+    /**
+      * @brief Calculates Data length in alignment with PBA/ADU Cacheline
+      * (128B/8B respectively)
+      *
+      * @return Returns Data length in alignment with PBA/ADU Cacheline
+      */
+    uint64_t getDataLenCacheAlign() const
+    {
+        uint64_t l_len = (len / 8);
+        if(flags & SBE_MEM_ACCESS_FLAGS_TARGET_PBA)
+        {
+            l_len = (l_len / 16);
+        }
         return l_len;
     }
-}sbeMemAccessReqMsgHdr_t;
 
+}sbeMemAccessReqMsgHdr_t;
 
 /**
  * @brief Structure for SBE OCC Get/Put Sram Access ChipOps (0xA403/A404)
@@ -438,7 +493,7 @@ typedef struct
                 "mode[%d] ThreadNum[%d]", threadOps, mode, threadNum);
             l_validatePassFlag = false;
         }
-        return l_validatePassFlag; 
+        return l_validatePassFlag;
     }
 
     /**

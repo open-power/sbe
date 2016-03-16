@@ -36,3 +36,4 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_pm_ocb_init_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_block_wakeup_intr_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_ram_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_tp_switch_gears_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_adu_errors.xml

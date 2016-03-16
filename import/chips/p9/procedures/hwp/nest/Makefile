@@ -8,7 +8,6 @@ export SUB_OBJDIR = /nest
 include img_defs.mk
 include nestfiles.mk
 
-
 OBJS := $(addprefix $(OBJDIR)/, $(NEST_OBJECTS))
 
 libnest.a: nest

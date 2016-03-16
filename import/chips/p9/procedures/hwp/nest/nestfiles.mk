@@ -14,6 +14,9 @@ NEST-CPP-SOURCES +=p9_sbe_load_bootloader.C
 NEST-CPP-SOURCES +=p9_pba_access.C
 NEST-CPP-SOURCES +=p9_pba_coherent_utils.C
 NEST-CPP-SOURCES +=p9_pba_setup.C
+NEST-CPP-SOURCES +=p9_adu_access.C
+NEST-CPP-SOURCES +=p9_adu_setup.C
+NEST-CPP-SOURCES +=p9_adu_coherent_utils.C
 NEST-C-SOURCES =
 NEST-S-SOURCES =
 

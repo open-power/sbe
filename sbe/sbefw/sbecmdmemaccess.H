@@ -28,5 +28,4 @@ uint32_t sbeGetMem (uint8_t *i_pArg);
   */
 uint32_t sbePutMem  (uint8_t *i_pArg);
 
-
 #endif /* __SBEFW_SBECMDMEMACCESS_H */
