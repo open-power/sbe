@@ -125,7 +125,7 @@ EFFECT: TARGET=[REG(0x000A0002)] OP=[BIT,OFF] BIT=[44]
 # =============================================================================
 # Simics action for p9_sbe_chiplet_pll_setup
 # =============================================================================
-CAUSE_EFFECT CHIPLETS nest xbus mc obus pcie{
+CAUSE_EFFECT CHIPLETS nest xbus mc obus{
 LABEL=[PLL lock]
 # Watch PERV_NET_CTRL0_WAND Register
 WATCH=[REG(MYCHIPLET,0x000F0041)]
@@ -133,6 +133,17 @@ WATCH=[REG(MYCHIPLET,0x000F0041)]
 CAUSE: TARGET=[REG(MYCHIPLET,0x000F0041)]  OP=[BIT,OFF] BIT=[4]
 # Getting PLL_LOCK_REG register value
 EFFECT: TARGET=[REG(MYCHIPLET,0x000F0019)] OP=[BIT,ON] BIT=[0]
+}
+
+CAUSE_EFFECT CHIPLETS pcie{
+LABEL=[PLL lock]
+# Watch PERV_NET_CTRL0_WAND Register
+WATCH=[REG(MYCHIPLET,0x000F0041)]
+# NET_CTRL0.PLL_RESET = 0
+CAUSE: TARGET=[REG(MYCHIPLET,0x000F0041)]  OP=[BIT,OFF] BIT=[4]
+# Getting PLL_LOCK_REG register value
+EFFECT: TARGET=[REG(MYCHIPLET,0x000F0019)] OP=[BIT,ON] BIT=[0]
+EFFECT: TARGET=[REG(MYCHIPLET,0x000F0019)] OP=[BIT,ON] BIT=[1]
 }
 
 # =============================================================================

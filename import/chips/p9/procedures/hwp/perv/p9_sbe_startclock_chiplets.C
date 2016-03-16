@@ -113,10 +113,19 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
                                                 DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
     }
 
-    FAPI_DBG("Drop chiplet fence for Xbus");
-    FAPI_TRY(p9_sbe_startclock_chiplets_xb_fence_drop(
+    //FAPI_DBG("Drop chiplet fence for Xbus");
+    /* FAPI_TRY(p9_sbe_startclock_chiplets_xb_fence_drop(
                  i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_FUNCTIONAL)[0], l_pg_vector));
+                 (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_FUNCTIONAL)[0], l_pg_vector));*/
+
+    for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_DBG("Drop Chiplet fence for Xbus");
+        FAPI_TRY(p9_sbe_startclock_chiplets_xb_fence_drop(l_trgt_chplt, l_pg_vector));
+    }
+
+
 
     for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))

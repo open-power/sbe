@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,42 +33,15 @@
 //## auto_generated
 #include "p9_sbe_tp_chiplet_init2.H"
 
-#include "p9_perv_sbe_cmn.H"
-
-
-enum P9_SBE_TP_CHIPLET_INIT2_Private_Constants
-{
-    REGIONS_EXCEPT_PIB_NET_PLL = 0x4FE,
-    SCAN_TYPES = 0xDCF
-};
 
 fapi2::ReturnCode p9_sbe_tp_chiplet_init2(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    auto l_perv_functional_vector =
-        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-        (fapi2::TARGET_STATE_FUNCTIONAL);
-    FAPI_DBG("Entering ...");
 
-    FAPI_INF("Call Scan0 Module");
+    FAPI_INF("Entering ...");
 
-    // Get the TPChiplet target
-    for (auto it : l_perv_functional_vector)
-    {
-        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, it, l_attr_chip_unit_pos));
 
-        if (l_attr_chip_unit_pos == 0x01)/* TPChiplet */
-        {
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(it, REGIONS_EXCEPT_PIB_NET_PLL,
-                                                  SCAN_TYPES));
-            break;
-        }
-    }
+    FAPI_INF("Exiting ...");
 
-    FAPI_DBG("Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
+    return fapi2::FAPI2_RC_SUCCESS;
 }
