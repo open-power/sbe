@@ -21,7 +21,7 @@
 ///
 /// @brief Modules for scan 0 and array init
 //------------------------------------------------------------------------------
-// *HWP HW Owner        : Anusha Reddy Rangareddygari <anusrang@in.ibm.com>
+// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : sunil kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
@@ -33,9 +33,9 @@
 //## auto_generated
 #include "p9_perv_sbe_cmn.H"
 
-#include "p9_perv_scom_addresses.H"
-#include "p9_perv_scom_addresses_fld.H"
-#include "p9_const_common.H"
+#include <p9_perv_scom_addresses.H>
+#include <p9_perv_scom_addresses_fld.H>
+#include <p9_const_common.H>
 
 
 enum P9_PERV_SBE_CMN_Private_Constants
@@ -43,8 +43,8 @@ enum P9_PERV_SBE_CMN_Private_Constants
     P9_OPCG_DONE_SCAN0_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
     P9_OPCG_DONE_SCAN0_HW_NS_DELAY = 100000, // unit is nano seconds
     P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY = 100000, // unit is cycles
-    P9_OPCG_DONE_ARRAYINIT_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
     P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY = 100000, // unit is nano seconds
+    P9_OPCG_DONE_ARRAYINIT_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
     P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY = 280000 // unit is cycles
 };
 
@@ -91,16 +91,16 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
     fapi2::buffer<uint64_t> l_data64_clk_region;
-    FAPI_DBG("Entering ...");
+    FAPI_INF("Entering ...");
 
-    FAPI_INF("Drop vital fence (moved to arrayinit from scan0 module)");
+    FAPI_DBG("Drop vital fence (moved to arrayinit from sacn0 module)");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     //CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
     l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
-    FAPI_INF("Start pervasive region Clocks");
+    FAPI_DBG("Start pervasive regions Clocks");
     l_data64_clk_region.flush<0>();
     //Setting CLK_REGION register value
     l_data64_clk_region.insertFromRight<PERV_1_CLK_REGION_CLOCK_CMD, PERV_1_CLK_REGION_CLOCK_CMD_LEN>
@@ -115,17 +115,17 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
                             l_data64_clk_region));
 
-    FAPI_INF("Mask all LFIR's in Chiplet Global FIR");
+    FAPI_DBG("Mask all LFIR's in Chiplet Global FIR");
     //Setting FIR_MASK register value
     //FIR_MASK = 0xFFFFFFFFFFFFFFFF
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_FIR_MASK, 0xFFFFFFFFFFFFFFFF));
 
-    FAPI_INF("Mask Special Attention");
+    FAPI_DBG("Mask Special Attention");
     //Setting SPA_MASK register value
     //SPA_MASK = 0xFFFFFFFFFFFFFFFF
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_SPA_MASK, 0xFFFFFFFFFFFFFFFF));
 
-    FAPI_INF("Stop Pervasive region clocks");
+    FAPI_DBG("Stop Pervasive regions clocks");
     l_data64_clk_region.flush<0>();
     //Setting CLK_REGION register value
     l_data64_clk_region.insertFromRight<PERV_1_CLK_REGION_CLOCK_CMD, PERV_1_CLK_REGION_CLOCK_CMD_LEN>
@@ -140,14 +140,14 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
                             l_data64_clk_region));
 
-    FAPI_INF("Setup ABISTMUX_SEL");
+    FAPI_DBG("Setup ABISTMUX_SEL");
     //Setting CPLT_CTRL0 register value
     l_data64.flush<0>();
     //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 1
     l_data64.setBit<PERV_1_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL0_OR, l_data64));
 
-    FAPI_INF("setup ABIST modes , BIST REGIONS:%#018lX", i_regions);
+    FAPI_DBG("setup ABIST modes , BIST REGIONS:%#018lX", i_regions);
     //Setting BIST register value
     FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_BIST, l_data64));
     l_data64.clearBit<0>();  //BIST.TC_BIST_START_TEST_DC = 0
@@ -178,9 +178,9 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     //BIST.BIST_UNIT10 = i_regions.getBit<15>()
     l_data64.writeBit<14>(i_regions.getBit<15>());
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_BIST, l_data64));
-    FAPI_INF("l_data64 value:%#018lX", l_data64);
+    FAPI_DBG("l_data64 value:%#018lX", l_data64);
 
-    FAPI_INF("Setup all Clock Domains and Clock Types");
+    FAPI_DBG("Setup all Clock Domains and Clock Types");
     //Setting CLK_REGION register value
     FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_CLK_REGION,
                             l_data64_clk_region));
@@ -215,7 +215,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
                             l_data64_clk_region));
 
-    FAPI_INF("Drop Region fences");
+    FAPI_DBG("Drop Region fences");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_PERV_REGION_FENCE>
@@ -242,7 +242,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     l_data64.writeBit<PERV_1_CPLT_CTRL1_UNUSED_14B>(i_regions.getBit<15>());
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
-    FAPI_INF("Setup: loopcount , OPCG engine start ABIST, run-N mode");
+    FAPI_DBG("Setup: loopcount , OPCG engine start ABIST, run-N mode");
     //Setting OPCG_REG0 register value
     FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
     l_data64.setBit<PERV_1_OPCG_REG0_RUNN_MODE>();  //OPCG_REG0.RUNN_MODE = 1
@@ -255,7 +255,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     i_start_abist_match_value.extractToRight<12, 12>(l_misr_a_value);
     i_start_abist_match_value.extractToRight<24, 12>(l_misr_b_value);
 
-    FAPI_INF("Setup IDLE count");
+    FAPI_DBG("Setup IDLE count");
     //Setting OPCG_REG1 register value
     FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_OPCG_REG1, l_data64));
     l_data64.insertFromRight<PERV_1_OPCG_REG1_SCAN_COUNT, PERV_1_OPCG_REG1_SCAN_COUNT_LEN>
@@ -266,13 +266,13 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     (l_misr_b_value);  //OPCG_REG1.MISR_B_VAL = l_misr_b_value
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_OPCG_REG1, l_data64));
 
-    FAPI_INF("opcg go");
+    FAPI_DBG("opcg go");
     //Setting OPCG_REG0 register value
     FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
     l_data64.setBit<1>();  //OPCG_REG0.OPCG_GO = 1
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
 
-    FAPI_INF("Poll OPCG done bit to check for run-N completeness");
+    FAPI_DBG("Poll OPCG done bit to check for run-N completeness");
     l_timeout = P9_OPCG_DONE_ARRAYINIT_POLL_COUNT;
 
     //UNTIL CPLT_STAT0.CC_CTRL_OPCG_DONE_DC == 1
@@ -288,11 +288,12 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
             break;
         }
 
-        fapi2::delay(P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY, P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY);
+        fapi2::delay(P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY,
+                     P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY);
         --l_timeout;
     }
 
-    FAPI_INF("Loop Count :%d", l_timeout);
+    FAPI_DBG("Loop Count :%d", l_timeout);
 
     FAPI_ASSERT(l_timeout > 0,
                 fapi2::SBE_ARRAYINIT_POLL_THRESHOLD_ERR(),
@@ -300,7 +301,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
 
     //oaim_poll_done
     {
-        FAPI_INF("OPCG done, clear Run-N mode");
+        FAPI_DBG("OPCG done, clear Run-N mode");
         //Setting OPCG_REG0 register value
         FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
         l_data64.clearBit<PERV_1_OPCG_REG0_RUNN_MODE>();  //OPCG_REG0.RUNN_MODE = 0
@@ -308,27 +309,118 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
         l_data64.clearBit<PERV_1_OPCG_REG0_LOOP_COUNT, PERV_1_OPCG_REG0_LOOP_COUNT_LEN>();  //OPCG_REG0.LOOP_COUNT = 0
         FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
 
-        FAPI_INF("clear all clock REGIONS and type");
+        FAPI_DBG("clear all clock REGIONS and type");
         //Setting CLK_REGION register value
         //CLK_REGION = 0
         l_data64_clk_region = 0;  //using variable to keep register data
         FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
                                 l_data64_clk_region));
 
-        FAPI_INF("clear ABISTCLK_MUXSEL");
+        FAPI_DBG("clear ABISTCLK_MUXSEL");
         //Setting CPLT_CTRL0 register value
         l_data64.flush<0>();
         //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 0
         l_data64.setBit<PERV_1_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
         FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL0_CLEAR, l_data64));
 
-        FAPI_INF("clear BIST REGISTER");
+        FAPI_DBG("clear BIST REGISTER");
         //Setting BIST register value
         //BIST = 0
         FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_BIST, 0));
     }
 
-    FAPI_DBG("Exiting ...");
+    FAPI_INF("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief Region value settings
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_regions_value    regions except vital and pll
+/// @param[out]    o_regions_value    regions value
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_16(const
+        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+        const fapi2::buffer<uint16_t> i_regions_value,
+        fapi2::buffer<uint16_t>& o_regions_value)
+{
+    fapi2::buffer<uint32_t> l_read_attr = 0;
+    fapi2::buffer<uint32_t> l_read_attr_invert = 0;
+    fapi2::buffer<uint32_t> l_read_attr_shift1_right = 0;
+    FAPI_INF("Entering ...");
+
+    FAPI_DBG("Reading ATTR_PG");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_read_attr));
+    FAPI_DBG("ATTR_PG Value : %#018lX", l_read_attr);
+
+    FAPI_DBG("i_regions_value input from calling function: %#018lX",
+             i_regions_value);
+
+    if ( l_read_attr == 0x0 )
+    {
+        o_regions_value = i_regions_value;
+    }
+    else
+    {
+        l_read_attr_invert = l_read_attr.invert();
+        FAPI_DBG("ATTR_PG inverted: %#018lX", l_read_attr_invert);
+        l_read_attr_shift1_right = (l_read_attr_invert >> 1);
+        FAPI_DBG("ATTR_PG inverted and shifted right by 1 %#018lX",
+                 l_read_attr_shift1_right);
+
+        o_regions_value = (i_regions_value & l_read_attr_shift1_right);
+    }
+
+    FAPI_INF("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief Region value settings
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_regions_value    regions except vital and pll
+/// @param[out]    o_regions_value    Regions value
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_64(const
+        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+        const fapi2::buffer<uint16_t> i_regions_value,
+        fapi2::buffer<uint64_t>& o_regions_value)
+{
+    fapi2::buffer<uint32_t> l_read_attr = 0;
+    fapi2::buffer<uint32_t> l_read_attr_invert = 0;
+    fapi2::buffer<uint32_t> l_read_attr_shift1_right = 0;
+    fapi2::buffer<uint64_t> l_temp = 0;
+    FAPI_INF("Entering ...");
+
+    FAPI_DBG("Reading ATTR_PG");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_read_attr));
+    FAPI_DBG("ATTR_PG Value : %#018lX", l_read_attr);
+
+    FAPI_DBG("i_regions_value input from calling function: %#018lX",
+             i_regions_value);
+
+    if ( l_read_attr == 0x0 )
+    {
+        o_regions_value = (i_regions_value | l_temp);
+    }
+    else
+    {
+        l_read_attr_invert = l_read_attr.invert();
+        FAPI_DBG("ATTR_PG inverted: %#018lX", l_read_attr_invert);
+        l_read_attr_shift1_right = (l_read_attr_invert >> 1);
+        FAPI_DBG("ATTR_PG inverted and shifted right by 1 %#018lX",
+                 l_read_attr_shift1_right);
+
+        o_regions_value = (i_regions_value & l_read_attr_shift1_right);
+    }
+
+    FAPI_INF("Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -358,16 +450,16 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
 {
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
-    FAPI_DBG("Entering ...");
+    FAPI_INF("Entering ...");
 
-    FAPI_INF("raise Vital clock region fence");
+    FAPI_DBG("raise Vital clock region fence");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     //CPLT_CTRL1.TC_VITL_REGION_FENCE = 1
     l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL1_OR, l_data64));
 
-    FAPI_INF("Raise region fences for scanned regions");
+    FAPI_DBG("Raise region fences for scanned regions");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     //CPLT_CTRL1.TC_PERV_REGION_FENCE = 1
@@ -385,7 +477,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     l_data64.setBit<PERV_1_CPLT_CTRL1_UNUSED_14B>();  //CPLT_CTRL1.UNUSED_14B = 1
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL1_OR, l_data64));
 
-    FAPI_INF("Setup all Clock Domains and Clock Types");
+    FAPI_DBG("Setup all Clock Domains and Clock Types");
     //Setting CLK_REGION register value
     FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_CLK_REGION, l_data64));
     //CLK_REGION.CLOCK_REGION_PERV = i_regions.getBit<5>()
@@ -418,7 +510,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     l_data64.setBit<PERV_1_CLK_REGION_SEL_THOLD_ARY>();
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION, l_data64));
 
-    FAPI_INF("Write scan select register");
+    FAPI_DBG("Write scan select register");
     //Setting SCAN_REGION_TYPE register value
     l_data64.flush<0>();  //SCAN_REGION_TYPE = 0
     //SCAN_REGION_TYPE.SCAN_REGION_PERV = i_regions.getBit<5>()
@@ -469,19 +561,19 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     l_data64.writeBit<59>(i_scan_types.getBit<15>());
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_SCAN_REGION_TYPE, l_data64));
 
-    FAPI_INF("set OPCG_REG0 register bit 0='0'");
+    FAPI_DBG("set OPCG_REG0 register bit 0='0'");
     //Setting OPCG_REG0 register value
     FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
     l_data64.clearBit<PERV_1_OPCG_REG0_RUNN_MODE>();  //OPCG_REG0.RUNN_MODE = 0
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
 
-    FAPI_INF("trigger Scan0");
+    FAPI_DBG("trigger Scan0");
     //Setting OPCG_REG0 register value
     FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
     l_data64.setBit<PERV_1_OPCG_REG0_RUN_SCAN0>();  //OPCG_REG0.RUN_SCAN0 = 1
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_OPCG_REG0, l_data64));
 
-    FAPI_INF("Poll OPCG done bit to check for run-N completeness");
+    FAPI_DBG("Poll OPCG done bit to check for run-N completeness");
     l_timeout = P9_OPCG_DONE_SCAN0_POLL_COUNT;
 
     //UNTIL CPLT_STAT0.CC_CTRL_OPCG_DONE_DC == 1
@@ -497,11 +589,12 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
             break;
         }
 
-        fapi2::delay(P9_OPCG_DONE_SCAN0_HW_NS_DELAY, P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY);
+        fapi2::delay(P9_OPCG_DONE_SCAN0_HW_NS_DELAY,
+                     P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY);
         --l_timeout;
     }
 
-    FAPI_INF("Loop Count :%d", l_timeout);
+    FAPI_DBG("Loop Count :%d", l_timeout);
 
     FAPI_ASSERT(l_timeout > 0,
                 fapi2::SBE_SCAN0_DONE_POLL_THRESHOLD_ERR(),
@@ -509,18 +602,18 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
 
     //os0m_poll_done
     {
-        FAPI_INF("clear all clock REGIONS and type");
+        FAPI_DBG("clear all clock REGIONS and type");
         //Setting CLK_REGION register value
         //CLK_REGION = 0
         FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION, 0));
 
-        FAPI_INF("Clear Scan Select Register");
+        FAPI_DBG("Clear Scan Select Register");
         //Setting SCAN_REGION_TYPE register value
         //SCAN_REGION_TYPE = 0
         FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_SCAN_REGION_TYPE, 0));
     }
 
-    FAPI_DBG("Exiting ...");
+    FAPI_INF("Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

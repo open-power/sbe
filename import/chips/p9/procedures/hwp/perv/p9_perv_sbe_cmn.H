@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,6 +44,16 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
         const bool i_select_sram,
         const bool i_select_edram,
         const fapi2::buffer<uint64_t> i_start_abist_match_value);
+
+fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_16(const
+        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+        const fapi2::buffer<uint16_t> i_regions_value,
+        fapi2::buffer<uint16_t>& o_regions_value);
+
+fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_64(const
+        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+        const fapi2::buffer<uint16_t> i_regions_value,
+        fapi2::buffer<uint64_t>& o_regions_value);
 
 fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
         fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplets,
