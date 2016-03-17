@@ -17,13 +17,33 @@ sb_helptext()
         echo "  See also:"
         echo "      customrc"
         ;;
+    cmvc)
+        echo "  Topic 'Launch CMVC Operation on PPE file's"
+        echo
+        echo "  Usage:"
+        echo "      Refer : $PWD/sbe/build/tools/CommitSbeImageToCMVC.py -h"
+        ;;
+    compile)
+        echo "  Topic 'Compile the PPE file's on fips Sandbox"
+        echo
+        echo "  Usage:"
+        echo "      Refer : $PWD/sbe/build/tools/sbeDistribute.py -h"
+        ;;
     *)
         echo "  Usage:"
         echo "      sb <cmd>"
         echo "      sb help [<cmd>|<topic>]"
-        echo
+        echo ""
         echo "  Available Commands:"
         echo "      workon"
+        echo "      cmvc"
+        echo "      ---------------------------------------------------- "
+        echo "      # To check in SBE FW files in CMVC command options # "
+        echo "      sb cmvc -f < feature CMVC No > -r <fips release >"
+        echo "      sb cmvc -d < defect CMVC No  > -r <fips release >"
+        echo "      ---------------------------------------------------- "
+        echo ""
+        echo "      compile"
         echo
     esac
 }
@@ -42,6 +62,35 @@ sb_workon()
     fi
 }
 
+sb_cmvc()
+{
+    if [ -n "${SBE_INSIDE_WORKON}" ]; then
+        echo "Already in a workon.. Continuing" 
+        # Launch the CMVC utility 
+        str="'$*'"
+        echo "User input string : $str"
+        $PWD/sbe/build/tools/CommitSbeImageToCMVC.py $*
+    else
+        echo "Please do workon and re launch..."
+    fi
+
+}
+
+sb_compile()
+{
+    if [ -n "${SBE_INSIDE_WORKON}" ]; then
+        echo "Already in a workon.. Continuing"
+        # Launch the CMVC utility
+        str="'$*'"
+        echo "User input string : $str"
+        $PWD/sbe/build/tools/sbeDistribute.py $*
+    else
+        echo "Please do workon and re launch..."
+    fi
+
+}
+
+
 if [ 0 == $# ]; then
     sb_helptext
     exit -1
@@ -53,6 +102,12 @@ shift
 case ${FIRST_PARAM} in
 workon)
     sb_workon $*
+    ;;
+cmvc)
+    sb_cmvc $*
+    ;;
+compile)
+    sb_compile $*
     ;;
 *)
     sb_helptext $*
