@@ -1,0 +1,39 @@
+--------------------
+CONTENT OF THIS FILE
+--------------------
+1. Tools:
+   * Automate SBE Image integration into FIPS driver
+   * Developer SBE fips tool for copy and compile ( TBD )
+
+
+-------------------------------------------------
+* Automate SBE Image integration into FIPS driver
+-------------------------------------------------
+  [ Files ]   : CommitSbeImageToCMVC.py (Main)  
+                sbeCmvcConstants.py 
+                sbeCmvcUtility.py
+
+  [ Brief ]   : This tool will check in the SBE FW fips files to CMVC, Fix Complete the track and trigger Jenkin Job.
+
+  [ Feature ] :
+              - By default, the tool will check in the files from a default list pre-defined for sbe 
+                Refer: sbeCmvcConstants.py
+
+              - User can selectively choose which file/files it wants to upload to CMVC from the default list
+
+              - The tool roll backs all the checkout/checkin in case of CMVC Operation failure
+
+              - The tool will auto complete fix record on completion of successful code check in 
+
+              - The internal of the work flow validates the Hash of the files on the SBE repo vs files to be
+                check in to be sure that the files are correctly uploaded
+
+              - The pre-req checks CMVC bash env and CMVC access session availability and provides verbose 
+                help to follow on failures
+
+              - Jenkin job trigger at the end after fix completing record.
+
+
+-------------------------------------------------
+* Developer SBE fips tool for copy and compile ( TBD )
+-------------------------------------------------
