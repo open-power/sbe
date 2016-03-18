@@ -89,10 +89,10 @@ bool Target<K, V>::operator<(const Target& i_right) const
 ///
 template<TargetType K, typename V>
 template<TargetType T>
-inline Target<T> Target<K, V>::getParent(void) const
+inline Target<T, V> Target<K, V>::getParent(void) const
 {
     // For testing
-    return Target<T>(iv_handle);
+    return Target<T, V>(iv_handle);
 }
 
 ///
@@ -106,13 +106,13 @@ inline Target<T> Target<K, V>::getParent(void) const
 ///
 template<TargetType K, typename V>
 template< TargetType T>
-inline std::vector<Target<T> >
+inline std::vector<Target<T, V> >
 Target<K, V>::getChildren(const TargetState i_state) const
 {
     // To keep the compiler quiet about unused variables
     static_cast<void>(i_state);
     // For testing
-    return {Target<T>(), Target<T>()};
+    return {Target<T, V>(), Target<T, V>()};
 }
 // Specialization of getChildren, filtered for pervasive targets.
 template<>
@@ -142,12 +142,13 @@ Target<TARGET_TYPE_PERV>::getChildren(const TargetFilter i_filter,
 template<TargetType K, typename V>
 template<TargetType T>
 inline fapi2::ReturnCodes
-Target<K, V>::getOtherEnd(Target<T>& o_target, const TargetState i_state) const
+Target<K, V>::getOtherEnd(Target<T, V>& o_target,
+                          const TargetState i_state) const
 {
     // To keep the compiler quiet about unused variables
     static_cast<void>(i_state);
 
-    o_target = Target<T>();
+    o_target = Target<T, V>();
 
     return FAPI2_RC_SUCCESS;
 }
@@ -191,8 +192,9 @@ Target<K, V>::getChipletNumber(void) const
 /// @post The contents of the buffer is replaced with the string
 /// representation of the target
 ///
-template< TargetType T >
-inline void toString(const Target<T>& i_target, char* i_buffer, size_t i_bsize)
+template< TargetType T, typename V >
+inline void toString(const Target<T, V>& i_target,
+                     char* i_buffer, size_t i_bsize)
 {
     snprintf(i_buffer, i_bsize, "Target 0x%lx/0x%x", i_target.get(), T);
 }
@@ -208,8 +210,9 @@ inline void toString(const Target<T>& i_target, char* i_buffer, size_t i_bsize)
 /// @post The contents of the buffer is replaced with the string
 /// representation of the target
 ///
-template< TargetType T >
-inline void toString(const Target<T>* i_target, char* i_buffer, size_t i_bsize)
+template< TargetType T, typename V >
+inline void toString(const Target<T, V>* i_target,
+                     char* i_buffer, size_t i_bsize)
 {
     snprintf(i_buffer, i_bsize, "Target 0x%lx/0x%x", i_target->get(), T);
 }
@@ -221,11 +224,11 @@ inline void toString(const Target<T>* i_target, char* i_buffer, size_t i_bsize)
 /// the desired target
 /// @return Target<T> the target requested
 ///
-template<TargetType T>
-inline Target<T> getTarget(uint64_t Ordinal)
+template<TargetType T, typename V>
+inline Target<T, V> getTarget(uint64_t Ordinal)
 {
     // For testing
-    return Target<T>(Ordinal);
+    return Target<T, V>(Ordinal);
 }
 }
 
