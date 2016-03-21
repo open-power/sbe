@@ -18,10 +18,10 @@
 /// interface is at local address 0x8000.  SBE/IPL uses the PIB addressing
 /// mode, so the OTPROM image is linked at 0x40000 (the byte-address
 /// equivalent of 0x8000).
-#define OTPROM_ORIGIN 0x40000
+#define OTPROM_ORIGIN 0xC0000
 
 /// The amount of memory contained in each OTPROM macro
-#define OTPROM_BLOCK_SIZE 4096
+#define OTPROM_BLOCK_SIZE 1024
 
 /// The amount of memory reserved for OTPROM code
 ///
@@ -68,6 +68,9 @@
 
 /// The amount of space available in the PIBMEM, in bytes (96KB)
 #define PIBMEM_SIZE (96 * 1024)
+
+/// The fixed section of Otprom
+#define OTPROM_FIXED_SIZE (OTPROM_ORIGIN + 0x340)
 
 #endif  // __SBE_LINK_H
 

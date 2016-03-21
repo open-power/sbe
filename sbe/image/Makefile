@@ -129,10 +129,13 @@ LINK_OBJS += $(OBJS) $(GCCLIBS)
 # Loader Objects
 LOADER_OBJS := $(addprefix $(OBJDIR)/, $(BASE_LOADER_OBJECTS))
 
+#Otprom Loader Objects
+OTPROM_LOADER_OBJS := $(addprefix $(OBJDIR)/, $(OTPROM_LOADER_OBJECTS))
 
 LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/, linkscriptseeprom)
 LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/, linkscriptsbe)
 LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
+LINK_SCRIPT_OTPROM =  $(addprefix $(OBJDIR)/, linkscriptotprom)
 
 # ---- SEEPROM Image  ------
 # This removes all unecessary headers from the ELF executable
@@ -178,6 +181,20 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).out: pibMemAttrSet buildInfo $(OBJDIR)/base_sbe_fixe
 $(LINK_SCRIPT_SBE): linksbe.cmd
 	$(CPP) -E -x c++ -I. -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
+# ---- Otprom Image  ------
+$(OBJDIR)/$(IMAGE_OTPROM_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).dis: $(OBJDIR)/$(IMAGE_OTPROM_NAME).out
+	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_OTPROM_NAME).bin `/usr/bin/nm $(OBJDIR)/$(IMAGE_OTPROM_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
+	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_OTPROM_NAME).dis
+
+#create a linked ELF executable
+$(OBJDIR)/$(IMAGE_OTPROM_NAME).out: $(OTPROM_LOADER_OBJS) $(LINK_SCRIPT_OTPROM)
+	$(LD) -e base_loader -T$(LINK_SCRIPT_OTPROM) -Map $(OBJDIR)/$(IMAGE_OTPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_OTPROM_NAME).out $(OTPROM_LOADER_OBJS)
+
+# pass the link command file through the C preprocessor to evaluate macros and remove comments
+$(LINK_SCRIPT_OTPROM): linkotprom.cmd
+	$(CPP) -I. -E -x c++ -P $(DEFS) linkotprom.cmd -o $(LINK_SCRIPT_OTPROM)
+
+
 # ---- Loader Image  ------
 $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
 	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
@@ -211,7 +228,7 @@ endif
 
 .PHONY: all normalize defaultset appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols appendoverrides
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader appendoverrides add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash buildinfo
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash buildinfo
 
 buildinfo: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_date `date +%Y%m%d`
