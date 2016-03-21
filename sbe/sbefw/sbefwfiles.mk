@@ -14,6 +14,8 @@ SBEFW-CPP-SOURCES += sbecmdcntrldmt.C
 SBEFW-CPP-SOURCES += sbecmdsram.C
 SBEFW-CPP-SOURCES += sberegaccess.C
 SBEFW-CPP-SOURCES += sbecmdcntlinst.C
+SBEFW-CPP-SOURCES += sbecmdregaccess.C
+
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =
 

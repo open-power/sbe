@@ -286,6 +286,10 @@ enum sbeSramAccessMode
     DEBUG_MODE     = 0x2,
     CIRCULAR_MODE  = 0x3,
 };
+/*
+ * Constants for maximum number of register supported in reg access chipop.
+ */
+static const uint32_t SBE_MAX_REG_ACCESS_REGS = 64;
 
 /**
  * @brief Error Mode enum
@@ -328,6 +332,17 @@ enum sbeThreadOps
     THREAD_STOP_INS        = 0x1,
     THREAD_STEP_INS        = 0x2,
     THREAD_SRESET_INS      = 0x3,
+};
+
+/**
+ *  @brief enums for Reg access register type
+ *
+ */
+enum sbeRegAccesRegType
+{
+    SBE_REG_ACCESS_GPR  = 0x00,
+    SBE_REG_ACCESS_SPR  = 0x01,
+    SBE_REG_ACCESS_FPR  = 0x02,
 };
 
 #ifdef __cplusplus
