@@ -144,7 +144,7 @@ typedef struct sbeResponseFfdc
       *
       * @return fapiRc
       */
-    uint32_t getRc()
+    uint32_t getRc() const
     {
         return lowFapiRc;
     }
@@ -475,5 +475,50 @@ typedef struct
         }
     }
 }sbeCntlInstRegMsgHdr_t;
+/**
+  * @brief Reg access message header
+  */
+typedef struct
+{
+    uint32_t reserved:8;
+    uint32_t coreChiplet:8;
+    uint32_t threadNr:4;
+    uint32_t regType:4;
+    uint32_t numRegs:8;
+
+    /**
+      * @brief checks if it is valid request.
+      *
+      * @return true if valid request, false otherwise
+      */
+    bool isValidRequest() const
+    {
+        return (( SBE_REG_ACCESS_FPR >= regType )
+                &&( SBE_MAX_REG_ACCESS_REGS >= numRegs )
+                &&( SMT4_THREAD3 >= threadNr )
+                &&( SMT4_CORE0_ID <= coreChiplet )
+                &&( SMT4_CORE_ID_MAX >= coreChiplet )) ? true:false;
+    }
+}sbeRegAccessMsgHdr_t;
+
+/**
+  * @brief reg scom package
+  */
+typedef struct
+{
+    uint32_t regNr;
+    uint32_t hiData;
+    uint32_t lowData;
+
+    /**
+      * @brief data for a register.
+      *
+      * @return data.
+      */
+    uint64_t getData() const
+    {
+        return (((uint64_t)hiData << 32 ) | lowData );
+    }
+}sbeRegAccessPackage_t;
 
 #endif // __SBEFW_SBESP_MSG_H

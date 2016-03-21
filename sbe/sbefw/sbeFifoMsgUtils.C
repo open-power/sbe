@@ -294,3 +294,43 @@ uint32_t sbeDownFifoSignalEot (void)
     #undef SBE_FUNC
 }
 
+
+uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
+                          const sbeResponseFfdc_t &i_ffdc )
+{
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    do
+    {
+        uint32_t distance = 1; //initialise by 1 for entry count itself.
+        uint32_t len = sizeof( i_hdr )/sizeof(uint32_t);
+        // sbeDownFifoEnq_mult.
+        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &i_hdr);
+        if (rc)
+        {
+            break;
+        }
+        distance += len;
+
+        // If no ffdc , exit;
+        if( i_ffdc.getRc() )
+        {
+            len = sizeof(i_ffdc)/sizeof(uint32_t);
+            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &i_ffdc);
+            if (rc)
+            {
+                break;
+            }
+            distance += len;
+        }
+        len = sizeof(distance)/sizeof(uint32_t);
+        //@TODO via RTC 129076.
+        //Need to add FFDC data as well.
+        rc = sbeDownFifoEnq_mult ( len, &distance);
+        if (rc)
+        {
+            break;
+        }
+
+    }while(0);
+    return rc;
+}

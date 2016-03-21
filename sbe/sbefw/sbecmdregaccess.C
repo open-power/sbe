@@ -1,0 +1,248 @@
+/*
+ * @file: ppe/sbe/sbefw/sbecmdregaccess.C
+ *
+ * @brief This file contains the SBE Reg Access chipOps
+ *
+ */
+
+#include "sbecmdregaccess.H"
+#include "sbefifo.H"
+#include "sbe_sp_intf.H"
+#include "sbetrace.H"
+#include "sbeFifoMsgUtils.H"
+#include "p9_ram_core.H"
+
+using namespace fapi2;
+
+Enum_RegType getRegType( const sbeRegAccessMsgHdr_t &regReq)
+{
+    Enum_RegType type = REG_GPR;
+    switch( regReq.regType )
+    {
+        case SBE_REG_ACCESS_SPR:
+            type = REG_SPR;
+            break;
+
+        case SBE_REG_ACCESS_FPR:
+            type = REG_FPR;
+            break;
+    }
+    return type;
+}
+
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbeGetReg(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeGetReg "
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    sbeRegAccessMsgHdr_t regReqMsg;
+    uint32_t reqData[SBE_MAX_REG_ACCESS_REGS];
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+    sbeResponseFfdc_t ffdc;
+    ReturnCode fapiRc;
+
+    do
+    {
+        // Get the reg access header
+        uint32_t len  = sizeof(sbeRegAccessMsgHdr_t)/sizeof(uint32_t);
+        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&regReqMsg, false);
+
+        // If FIFO access failure
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            // Let command processor routine to handle the RC.
+            break;
+        }
+        if( false == regReqMsg.isValidRequest() )
+        {
+            SBE_ERROR(SBE_FUNC" Invalid request. core: 0x%02x threadNr:0x%x"
+                      " regType:0x%01x numRegs:0x%02x", regReqMsg.coreChiplet,
+                      regReqMsg.threadNr, regReqMsg.regType, regReqMsg.numRegs);
+
+            respHdr.setStatus( SBE_PRI_INVALID_DATA,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            break;
+        }
+
+        len  = regReqMsg.numRegs;
+        rc = sbeUpFifoDeq_mult (len, reqData, true);
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            break;
+        }
+        uint8_t core = regReqMsg.coreChiplet;
+        RamCore ramCore( plat_getTargetHandleByChipletNumber(core),
+                         regReqMsg.threadNr );
+
+        fapiRc = ramCore.ram_setup();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%x"
+                      "chipletId:0x%02x", regReqMsg.threadNr, core);
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+
+        fapi2::buffer<uint64_t> data64;
+        uint64_t respData = 0;
+        for( uint32_t regIdx = 0; regIdx < regReqMsg.numRegs; regIdx++ )
+        {
+            fapiRc = ramCore.get_reg( getRegType(regReqMsg), reqData[regIdx],
+                                      &data64, true );
+            if( fapiRc != FAPI2_RC_SUCCESS )
+            {
+                SBE_ERROR(SBE_FUNC" get_reg failed. threadNr:0x%x"
+                              "chipletId:0x%02x, regNr:%u regType:%u ",
+                              regReqMsg.threadNr, core, reqData[regIdx],
+                              regReqMsg.regType);
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                   SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                ffdc.setRc(fapiRc);
+                break;
+            }
+            SBE_DEBUG(SBE_FUNC" getting response data");
+            respData = data64;
+            // Now enqueue into the downstream FIFO
+            len = sizeof( respData )/sizeof(uint32_t);
+            rc = sbeDownFifoEnq_mult (len, ( uint32_t *)&respData);
+            if (rc)
+            {
+               break;
+            }
+         }
+         // HWP team does not care about cleanup for failure case.
+         // So call cleaup only for success case.
+         if( ffdc.getRc() )
+         {
+             break;
+         }
+         fapiRc = ramCore.ram_cleanup();
+         if( fapiRc != FAPI2_RC_SUCCESS )
+         {
+             SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%x"
+                       "chipletId:0x%02x", regReqMsg.threadNr, core);
+             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+             ffdc.setRc(fapiRc);
+         }
+    }while(false);
+
+    if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
+    {
+        rc = sbeDsSendRespHdr( respHdr, ffdc);
+    }
+
+    return rc;
+    #undef SBE_FUNC
+}
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbePutReg(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbePutReg "
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    sbeRegAccessMsgHdr_t regReqMsg;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+    sbeResponseFfdc_t ffdc;
+    ReturnCode fapiRc;
+
+    do
+    {
+        // Get the reg access header
+        uint32_t len  = sizeof(sbeRegAccessMsgHdr_t)/sizeof(uint32_t);
+        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&regReqMsg, false);
+
+        // If FIFO access failure
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            // Let command processor routine to handle the RC.
+            break;
+        }
+        if( false == regReqMsg.isValidRequest() )
+        {
+            SBE_ERROR(SBE_FUNC" Invalid request. threadNr:0x%x"
+                      " regType:0x%02x numRegs:0x%02x", regReqMsg.threadNr,
+                      regReqMsg.regType, regReqMsg.numRegs);
+            respHdr.setStatus( SBE_PRI_INVALID_DATA,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            break;
+        }
+
+        sbeRegAccessPackage_t regPkg[SBE_MAX_REG_ACCESS_REGS];
+        len  = (sizeof(sbeRegAccessPackage_t)/sizeof(uint32_t)) * 
+                                                    regReqMsg.numRegs;
+        rc = sbeUpFifoDeq_mult (len, (uint32_t *) regPkg,true );
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            break;
+        }
+        uint8_t core = regReqMsg.coreChiplet;
+        RamCore ramCore( plat_getTargetHandleByChipletNumber(core),
+                         regReqMsg.threadNr );
+
+        fapiRc = ramCore.ram_setup();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%x"
+                      "chipletId:0x%02x", regReqMsg.threadNr, core);
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+
+        fapi2::buffer<uint64_t> data64;
+        for( uint32_t regIdx = 0; regIdx < regReqMsg.numRegs; regIdx++ )
+        {
+            data64 = regPkg[regIdx].getData();
+            fapiRc = ramCore.put_reg( getRegType(regReqMsg),
+                                      regPkg[regIdx].regNr,
+                                      &data64, true );
+            if( fapiRc != FAPI2_RC_SUCCESS )
+            {
+                SBE_ERROR(SBE_FUNC" get_reg failed. threadNr:0x%x"
+                              "chipletId:0x%02x, regNr:%u regType:%u ",
+                              regReqMsg.threadNr, core, regPkg[regIdx].regNr,
+                              regReqMsg.regType);
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                   SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                ffdc.setRc(fapiRc);
+                break;
+            }
+         }
+         // HWP team does not care about cleanup for failure case.
+         // So call cleaup only for success case.
+         if( ffdc.getRc() )
+         {
+             break;
+         }
+         fapiRc = ramCore.ram_cleanup();
+         if( fapiRc )
+         {
+             SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%x"
+                       " chipletId:0x%02x", regReqMsg.threadNr, core);
+             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+             ffdc.setRc(fapiRc);
+         }
+
+    }while(false);
+
+    if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
+    {
+        rc = sbeDsSendRespHdr( respHdr, ffdc);
+    }
+
+    return rc;
+    #undef SBE_FUNC
+}
+

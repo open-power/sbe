@@ -25,3 +25,14 @@ echo "+++ Patching standalone.simics"
 mkdir -p $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 cp $BACKING_BUILD/obj/ppc/simu/scripts/hbfw/standalone.simics $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 patch -p0 $SANDBOXBASE/obj/ppc/simu/scripts/hbfw/standalone.simics $SBEROOT/sbe/build/citest/etc/patches/standalone.simics.patch
+
+echo "  +++ Add executeInstruction module call"
+echo "  patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/chip.act $SBEROOT/sbe/build/citest/etc/patches/chip.act.patch"
+patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/chip.act $SBEROOT/sbe/build/citest/etc/patches/chip.act.patch
+
+echo "  +++ Update ramming instructions"
+echo "  cp $BACKING_BUILD/src/simu/data/cec-chip/p9.inst $SANDBOXBASE/src/simu/data/cec-chip/p9.inst"
+echo "  patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/p9.inst $SBEROOT/sbe/build/citest/etc/patches/p9.inst.patch"
+cp $BACKING_BUILD/src/simu/data/cec-chip/p9.inst $SANDBOXBASE/src/simu/data/cec-chip/p9.inst
+patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/p9.inst $SBEROOT/sbe/build/citest/etc/patches/p9.inst.patch
+

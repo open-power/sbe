@@ -44,6 +44,9 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 
     capability[INSTRUCTION_CTRL_CAPABILITY_START_IDX] =
                                 CONTROL_INSTRUCTIONS_SUPPPORTED;
+    capability[REGISTER_CAPABILITY_START_IDX] =
+                                GET_REGISTER_SUPPPORTED |
+                                PUT_REGISTER_SUPPPORTED ;
 }
 // Functions
 //----------------------------------------------------------------------------

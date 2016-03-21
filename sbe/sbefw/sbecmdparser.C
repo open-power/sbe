@@ -10,6 +10,7 @@
 #include "sbecmdiplcontrol.H"
 #include "sbecmdgeneric.H"
 #include "sbecmdmemaccess.H"
+#include "sbecmdregaccess.H"
 #include "sbecmdcntrldmt.H"
 #include "sbecmdsram.H"
 #include "sbecmdcntlinst.H"
@@ -114,6 +115,22 @@ static sbeCmdStruct_t g_sbeInstructionCntlCmdArray[] =
      SBE_FENCE_AT_CONTINUOUS_IPL,
     },
 };
+//////////////////////////////////////////////////////////////
+// @brief g_sbeRegAccessCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeRegAccessCmdArray [] =
+{
+    {sbeGetReg,
+     SBE_CMD_GETREG,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+
+    {sbePutReg,
+     SBE_CMD_PUTREG,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+};
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbeCoreStateControlCmdArray
@@ -168,6 +185,12 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             l_numCmds = sizeof(g_sbeInstructionCntlCmdArray) /
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbeInstructionCntlCmdArray;
+            break;
+
+        case SBE_CMD_CLASS_REGISTER_ACCESS:
+            l_numCmds = sizeof(g_sbeRegAccessCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbeRegAccessCmdArray;
             break;
 
         // PSU Commands
