@@ -35,6 +35,7 @@
 IMAGE_SEEPROM_NAME := sbe_seeprom
 IMAGE_SBE_NAME := sbe_pibmem
 IMAGE_LOADER_NAME := sbe_loader
+IMAGE_OTPROM_NAME := sbe_otprom
 
 SBE_SYMBOLS_NAME := sbe.syms
 
