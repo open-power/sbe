@@ -43,6 +43,7 @@ extern "C"
     extern std::vector<fapi2::plat_target_handle_t> G_vec_targets;
 }
 
+static const uint8_t CORES_PER_QUAD = 4;
 namespace fapi2
 {
     /// @brief Create a Target, with a value
@@ -163,9 +164,24 @@ namespace fapi2
     template<TargetType T>
     inline Target<T> Target<K, V>::getParent(void) const
     {
-        static_assert(((K == TARGET_TYPE_EQ) || (K == TARGET_TYPE_CORE))
-                && (T == TARGET_TYPE_PERV), "Input target type must be either EQ/CORE, and parent type must be PERV");
-        return this->iv_handle.value;
+        static_assert((((K == TARGET_TYPE_EQ) || (K == TARGET_TYPE_CORE)) &&
+                      (T == TARGET_TYPE_PERV)) || (T == TARGET_TYPE_PROC_CHIP)
+                      || ((K == TARGET_TYPE_CORE) && (T == TARGET_TYPE_EQ)),
+                "Input target type must be either EQ/CORE, and parent type "
+                "must be PERV. Or the parent type must be a PROC_CHIP. Or "
+                "parent type must be an EQ and input target must be a CORE");
+        if(TARGET_TYPE_PERV == T)
+        {
+            return this->iv_handle.value;
+        }
+        if(TARGET_TYPE_PROC_CHIP == T)
+        {
+            return G_vec_targets[CHIP_TARGET_OFFSET];
+        }
+        if(TARGET_TYPE_EQ == T)
+        {
+            return G_vec_targets[((getChipletNumber() - CORE_CHIPLET_OFFSET) / CORES_PER_QUAD) + EQ_TARGET_OFFSET];
+        }
     }
 
     ///
