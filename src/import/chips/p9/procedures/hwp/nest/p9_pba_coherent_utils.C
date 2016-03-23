@@ -103,6 +103,8 @@ extern "C"
     const uint32_t PBA_RD_BUF_VALID_END_BIT = 39;
     const uint64_t PBA_RD_BUF_VALID_MASK = 0x7F000000ull;
     const uint64_t PBA_RD_BUF_EMPTY =  0x1000000ull;
+    const uint64_t PBA_RD_BUF_VALID =  0x4000000ull;
+    const uint64_t PBA_RD_BUF_VALIDWFP = 0x8000000ull;
 
 //PBA Write Buffer Valid Status field/bit definitions
     const uint32_t PBA_WR_BUF_VALID_START_BIT = 35;
@@ -468,8 +470,12 @@ extern "C"
                  "Error reading from the PBA Slave Reset Register");
 
         //If there are any errors in the Status registers that we got above, collect all of the data and send an error
-        FAPI_ASSERT((((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
-                     && ((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
+        FAPI_ASSERT((((((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
+                       || ((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALID)
+                       || ((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALIDWFP)) )
+                     && (((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
+                         || ((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALID)
+                         || ((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALIDWFP)  )
                      && ((wr_buf0_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
                      && ((wr_buf1_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
                      && ((reset_buf & PBA_SLVRST_BUSY_IN_PROG_MASK) == 0)),
