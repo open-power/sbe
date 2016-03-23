@@ -138,12 +138,16 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                 set_PAYLOAD_SIZE(i_payload_size),
                 "Payload size is invalid!");
 
-    // move data using PBA setup/access HWPs
-
+    // adjust exception vector size
     if (l_exception_instruction != 0x0)
     {
         l_exception_vector_size = EXCEPTION_VECTOR_NUM_CACHELINES * FABRIC_CACHELINE_SIZE;
     }
+
+    // Pass size of load including exception vectors and Bootloader
+    l_bootloader_config_data.blLoadSize = l_exception_vector_size + i_payload_size;
+
+    // move data using PBA setup/access HWPs
 
     while (l_target_address < (l_chip_base_address_nm + i_payload_size + l_exception_vector_size))
     {
@@ -195,6 +199,11 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                     else if (i == 11)
                     {
                         l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.pnorSizeMB & 0xFF;
+                    }
+                    //At address X + 0xC put the total load size
+                    else if (i < 20)
+                    {
+                        l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.blLoadSize >> (56 - 8 * ((i - 12) % 8))) & 0xFF;
                     }
                     //Fill the rest with the exception vector instruction
                     else
