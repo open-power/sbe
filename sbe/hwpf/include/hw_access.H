@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: $                                                             */
+/* $Source: sbe/hwpf/include/hw_access.H $                                */
 /*                                                                        */
-/* OpenPOWER HostBoot Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2014                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,6 +41,7 @@
 #include <utils.H>
 #include <plat_hw_access.H>
 #include <fapi2_hw_access.H>
+#include "plat_ring_traverse.H" // for findRS4InImageAndApply
 
 namespace fapi2
 {
@@ -100,18 +101,18 @@ namespace fapi2
     /// @param[out] o_data       Buffer that holds data read from HW target.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     template< TargetType K >
-    __attribute__((always_inline))
-    inline ReturnCode  getScom(const Target<K>& i_target, const uint64_t i_address,
-                       buffer<uint64_t>& o_data)
-    {
-        fapi2::ReturnCode l_rc;
-        PLAT_GETSCOM(l_rc,
-                     i_target,
-                     i_address,
-                     &(o_data()));
+        __attribute__((always_inline))
+        inline ReturnCode  getScom(const Target<K>& i_target, const uint64_t i_address,
+                buffer<uint64_t>& o_data)
+        {
+            fapi2::ReturnCode l_rc;
+            PLAT_GETSCOM(l_rc,
+                    i_target,
+                    i_address,
+                    &(o_data()));
 
-        return l_rc;
-    }
+            return l_rc;
+        }
 
     /// @brief Writes a SCOM register on a chip.
     /// @tparam K template parameter, passed in target.
@@ -270,6 +271,28 @@ __fapi2exit__:
         return FAPI2_RC_SUCCESS;
     }
 
+    /// @brief Platform-level implementation  of putRing()
+    /// Hardware procedures writers will not call this function.
+    /// @tparam K template parameter, passed in target.
+    /// @param[in] i_target   Target to operate on.
+    /// @param[in] i_ringID   Ring ID that will identify the Ring in the image.
+    /// @param[in] i_ringMode Ring operation mode.
+    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+    template< TargetType K >
+        inline ReturnCode putRing(const Target<K>& i_target,
+                                  const RingID i_ringID,
+                                  const RingMode i_ringMode)
+        {
+            SBE_TRACE(">> putRing");
+            ReturnCode l_rc = FAPI2_RC_SUCCESS;
+
+            // Find the RS4 string in the SEEPROM
+            l_rc = findRS4InImageAndApply(i_target, i_ringID, i_ringMode);
+
+            SBE_TRACE("<< putRing");
+            return l_rc;
+        }
+
     // variable_buffer isn't supported on PPE
 #ifndef __PPE__
     /// @brief Reads a ring from a chip.
@@ -298,44 +321,6 @@ __fapi2exit__:
 #endif
 
         return FAPI2_RC_SUCCESS;
-    }
-
-    /// @brief Writes a ring to a chip.
-    /// @tparam K template parameter, passed in target.
-    /// @param[in] i_target   Target to operate on.
-    /// @param[in] i_address  Ring address to write to.
-    /// @param[in] i_data     Buffer that contains RS4 compressed ring data
-    ///                       to write into address
-    /// @param[in] i_ringMode Ring operation mode.
-    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K >
-    inline ReturnCode putRing(const Target<K>& i_target,
-                              const scanRingId_t i_address,
-                              variable_buffer& i_data,
-                              const RingMode i_ringMode = 0)
-    {
-
-        return FAPI2_RC_SUCCESS;
-    }
-
-
-    /// @brief Writes a ring to a chip.
-    /// @tparam K template parameter, passed in target.
-    /// @param[in] i_target   Target to operate on.
-    /// @param[in] i_address  Ring address to write to.
-    /// @param[in] i_data     Pointer to location that contains RS4 compressed
-    //  ring data to write into address
-    /// @param[in] i_ringMode Ring operation mode.
-    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K >
-    inline ReturnCode putRing(const Target<K>& i_target,
-                              const scanRingId_t i_address,
-                              const void* i_data,
-                              const RingMode i_ringMode = 0)
-    {
-        uint64_t* dataPtr =   reinterpret_cast<uint64_t*>(const_cast<void*>(i_data));
-
-       return FAPI2_RC_SUCCESS;
     }
 
     /// @brief Read-modify-write a ring on a chip.

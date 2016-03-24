@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: $                                                             */
+/* $Source: sbe/hwpf/include/fapi2_hw_access.H $                          */
 /*                                                                        */
-/* OpenPOWER HostBoot Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2014                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,6 +49,7 @@ typedef uint64_t spyId_t;
 #include <target.H>
 #include <hw_access_def.H>
 #include <plat_hw_access.H>
+#include "imageProcs/p9_ringId.H"
 
 #ifdef FAPI_SUPPORT_MULTI_SCOM
 #include <multi_scom.H>
@@ -157,6 +158,17 @@ namespace fapi2
                                          const buffer<uint32_t> i_data,
                                          const ChipOpModifyMode i_modifyMode);
 
+/// @brief Writes a ring to a chip.
+/// @tparam K template parameter, passed in target.
+/// @param[in] i_target   Target to operate on.
+/// @param[in] i_RingID   Ring ID to write to.
+/// @param[in] i_ringMode Ring operation mode.
+/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+template< TargetType K >
+inline ReturnCode putRing(const Target<K>& i_target,
+                          const RingID i_ringID,
+                          const RingMode i_ringMode = RING_MODE_HEADER_CHECK);
+
     // variable_buffer isn't supported on PPE
 #ifndef __PPE__
     /// @brief Reads a ring from a chip.
@@ -172,19 +184,6 @@ namespace fapi2
                               variable_buffer& o_data,
                               const RingMode i_ringMode = 0);
 
-    /// @brief Writes a ring to a chip.
-    /// @tparam K template parameter, passed in target.
-    /// @param[in] i_target   Target to operate on.
-    /// @param[in] i_address  Ring address to write to.
-    /// @param[in] i_data     Buffer that contains RS4 compressed ring data
-    ///                       to write into address
-    /// @param[in] i_ringMode Ring operation mode.
-    /// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K >
-    inline ReturnCode putRing(const Target<K>& i_target,
-                              const scanRingId_t i_address,
-                              const variable_buffer& i_data,
-                              const RingMode i_ringMode = 0);
 
 
     /// @brief Read-modify-write a ring on a chip.

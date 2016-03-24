@@ -69,6 +69,12 @@ HWPLIB := $(OBJDIR)/libcommon.a
 LLIBS += -lcommon
 include $(HWPERR_SRCDIR)/hwpErrors.mk
 
+# Common Utils library
+UTILS_MAKE_DIR := $(UTILS_SRCDIR)
+LIB_DIRS += -L$(OBJDIR)/utils
+UTILSLIB := $(OBJDIR)/utils/libutils.a
+LLIBS += -lutils
+
 # Common Cache HWP Exit library
 CACHE_MAKE_DIR := $(CACHE_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/cache
@@ -127,7 +133,7 @@ SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_default_tool
 
 P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
 
-LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(INITFILESLIB)
+LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(UTILSLIB) $(NESTLIB)  $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(INITFILESLIB)
 
 # Define the objects
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
@@ -289,7 +295,7 @@ $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(HWPLIB) $(INITFILESLIB) buildInfo
+.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(UTILSLIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(HWPLIB) $(INITFILESLIB) buildInfo
 
 #errxml: topfixedheaders attrids platattr attrserv
 
@@ -318,6 +324,11 @@ $(SBEFWLIB):
 $(PPELIB):
 	@echo "Processing ppelibmakefile"
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(LIB_MAKE_DIR) -f Makefile
+
+#Build the utils code shared with the SBE
+$(UTILSLIB):
+	@echo "Processing utils makefile"
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(UTILS_MAKE_DIR) -f Makefile
 
 #Build the cache exit code shared with the SBE
 $(CACHELIB):
