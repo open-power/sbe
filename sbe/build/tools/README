@@ -3,7 +3,7 @@ CONTENT OF THIS FILE
 --------------------
 1. Tools:
    * Automate SBE Image integration into FIPS driver
-   * Developer SBE fips tool for copy and compile ( TBD )
+   * Developer SBE fips tool for copy and compile
 
 
 -------------------------------------------------
@@ -34,6 +34,33 @@ CONTENT OF THIS FILE
               - Jenkin job trigger at the end after fix completing record.
 
 
--------------------------------------------------
-* Developer SBE fips tool for copy and compile ( TBD )
--------------------------------------------------
+------------------------------------------------------------------
+* Developer SBE fips tool for copy,compile & simics action patches
+------------------------------------------------------------------
+
+  [ Files ]   : sbeDistribute.py (Main)
+                sbePatchUtility.py
+                sbeCmvcConstants.py
+                sbeCmvcUtility.py
+
+  [ Brief ]   : This tool will copy the SBFW files from PPE repo to fips sandbox and compile.
+                Additionaly it would patch the simics action files at the end of compilation.
+
+  [ Feature ] :
+              - By default, the tool doesn't need any input as an argument
+
+              - Refers the Sandbox and Repo ENV and identifies which fips sandbox and PPE Repo needed.
+
+              - Find the list of pre-define file list in the PPE repo and copies to fips sandbox
+                Refer: sbeCmvcConstants.py
+
+              - Loads the ENV and compiles the fips sandbox code.
+
+              - User can create a fips sandbox manually and still use this tool by passing -s <sandbox name >
+                as an argument
+
+              - User can specify file as an input but -ONLY- those pre-define files selectively using option
+                -i <file1,file2>
+
+              - Sets up simics directory and patches the action files needed.
+

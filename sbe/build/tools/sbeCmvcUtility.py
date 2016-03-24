@@ -510,8 +510,8 @@ def utilWriteShell_hooks(i_sandbox_path):
     cd_cmd= 'cd ' + i_sandbox_path + '/src/sbei/sbfw/'
     f.write(cd_cmd)
     f.write('\n')
-    f.write('mk -a \n')
-    f.write('mk install_all \n')
+    f.write('mk -a || exit -1 \n')
+    f.write('mk install_all || exit -1\n')
     f.close()
 
     # Change the file permission for execute
