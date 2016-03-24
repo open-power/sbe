@@ -1,9 +1,9 @@
 #!/usr/bin/python
 '''
 ###########################################################
-#    @file    sbeDistribute.py
+#    @file    sbePrime.py
 #    @author: George Keishing <gkeishin@in.ibm.com>
-#    @brief   Main Module to support developer compilation 
+#    @brief   Main Module to support developer compilation
 #             and patching.
 #
 #    Created on March 03, 2016
@@ -25,6 +25,7 @@ import stat # for File permission op
 # Libraries/utility funcs and user define const
 import sbeCmvcConstants as errorcode
 import sbeCmvcUtility as utilcode
+import sbePatchUtility as utilpatch
 
 #-------------------------
 # Main Function
@@ -44,6 +45,7 @@ def main():
         print "   |       By default NO argument is needed as an input .                            |"
         print "   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         print " \n  ***** Options Supported  *****"
+        print " \t  -p,--patch     = [ Optional ] Patch Simics related files on Sandbox "
         print " \t  -s,--sb        = [ Optional ] Sandbox base name"
         print " \t                                By default it picks up the ppe Repo test_sb sandbox"
         print " \t                                but if you have created a sandbox of your own manually "
@@ -73,12 +75,13 @@ def main():
            print "\n  [ ERROR - MAIN ] Exiting with error code = ", rc
            sys.exit(rc)
         else:
-           print "\n  Fips Sandbox compilation completed [ OK ] "
+           print "\n  Fips Sandbox compilation and simics patching completed [ OK ] "
            sys.exit(0)
 
     #------------------------------------------
     # Local var place name holder's
     #------------------------------------------
+    sim_patch    = "None"
     sandbox_name = "None"
     path_name    = "None" # PPE Repo
     file_name    = "None"
@@ -86,11 +89,13 @@ def main():
     #----------------------------
     # Read command line args
     #----------------------------
-    opts, args = getopt.getopt(sys.argv[1:],"s:i:h",['sb=', 'files=', 'help'])
+    opts, args = getopt.getopt(sys.argv[1:],"p:s:i:h",['patch=', 'sb=', 'files=', 'help'])
     for opt, arg in opts:
        if opt in ('-h', '--help'):
            usage()
            exit_main(errorcode.HELP_EXIT)
+       elif opt in ('-p', '--patch'):
+           sim_patch = arg
        elif opt in ('-s', '--sb'):
            sandbox_name = arg
        elif opt in ('-i', '--files'):
@@ -127,7 +132,7 @@ def main():
             path_name = l_ppe_path
 
     #-----------------------------------
-    # 2) Get the Sanbox and repo paths 
+    # 2) Get the Sanbox and repo paths
     #-----------------------------------
     # Get the base path of the fips sandbox
     if sandbox_name == "None":
@@ -153,6 +158,51 @@ def main():
     else:
         print "  Sandbox root path\t : ",sandbox_root
     
+    #---------------------------------------------
+    # sim setup if user initiates
+    #---------------------------------------------
+    if sim_patch != "None": 
+        #---------------------------------------------
+        # Create sandbox for simics
+        #---------------------------------------------
+        rc_sb = utilpatch.utilExecuteShell(path_name,"None","sandbox-create")
+        if rc_sb == errorcode.SUCCESS_EXIT:
+            print "  Sandbox Created.. [ OK ] \n"
+        else:
+            print "  Sandbox Create.. [ ERROR ]",rc_sb
+            exit_main(rc_sb)
+
+        #----------------------------------------
+        # Patch up the simics patches files
+        #----------------------------------------
+
+        print "\n  *** Update Simics patches onto Sandbox *** \n "
+        # Pre sim setup
+        rc_shell = utilpatch.utilExecuteShell(path_name,sandbox_path,"workarounds.presimsetup")
+        if rc_shell == errorcode.SUCCESS_EXIT:
+            print "  presimsetup [ OK ]\n"
+        else:
+            print "  presimsetup [ ERROR ] : ",rc_shell
+            exit_main(rc_shell)
+
+        # Patch the simics files
+        rc_sim = utilpatch.utilPatchSimics(sandbox_path,sandbox_root)
+        if rc_sim != errorcode.SUCCESS_EXIT:
+            exit_main(rc_sim)
+        else:
+            print "  Patch the simics files on Sandbox [ OK ] \n"
+
+        # Post sim setup
+        rc_shell = utilpatch.utilExecuteShell(path_name,sandbox_path,"workarounds.postsimsetup")
+        if rc_shell == errorcode.SUCCESS_EXIT:
+            print "  postsimsetup [ OK ]\n"
+            # Clean exit Get out from here
+            exit_main(errorcode.SUCCESS_EXIT)
+        else:
+            print "  postsimsetup [ ERROR ] : ",rc_shell
+            exit_main(rc_shell)
+
+
     #----------------------------------------
     # 4) Copy the files from repo to sandbox
     #----------------------------------------
@@ -192,7 +242,7 @@ def main():
     if sandbox_name == "None":
         compile_cmd="workon -m ppc  " + sb_name + " -c " + hook_file + " -rc " + sandbox_root +"/sbesandboxrc"
     else:
-        compile_cmd="workon -m ppc  " + sb_name + " -c " + hook_file + sandbox_root +"/.sandboxrc"
+        compile_cmd="workon -m ppc  " + sb_name + " -c " + hook_file + " -rc " + sandbox_root +"/.sandboxrc"
 
     print "\n  [ COMPILE ] Executing :%s \n"%compile_cmd
     rc = os.system(compile_cmd)

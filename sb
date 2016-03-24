@@ -18,16 +18,22 @@ sb_helptext()
         echo "      customrc"
         ;;
     cmvc)
-        echo "  Topic 'Launch CMVC Operation on PPE file's"
+        echo "  Topic 'Launch CMVC Operation on PPE files'"
         echo
         echo "  Usage:"
         echo "      Refer : $PWD/sbe/build/tools/CommitSbeImageToCMVC.py -h"
         ;;
-    compile)
-        echo "  Topic 'Compile the PPE file's on fips Sandbox"
+    prime)
+        echo "  Topic 'Compile the PPE files on fips Sandbox'"
         echo
         echo "  Usage:"
-        echo "      Refer : $PWD/sbe/build/tools/sbeDistribute.py -h"
+        echo "      Refer : $PWD/sbe/build/tools/sbePrime.py -h"
+        ;;
+    simsetup)
+        echo "  Topic 'Patch simics action files on fips Sandbox'"
+        echo
+        echo "  Usage:"
+        echo "      Refer : $PWD/sbe/build/tools/sbePrime.py -h"
         ;;
     *)
         echo "  Usage:"
@@ -43,7 +49,9 @@ sb_helptext()
         echo "      sb cmvc -d < defect CMVC No  > -r <fips release >"
         echo "      ---------------------------------------------------- "
         echo ""
-        echo "      compile"
+        echo "      prime"
+        echo ""
+        echo "      simsetup"
         echo
     esac
 }
@@ -76,20 +84,31 @@ sb_cmvc()
 
 }
 
-sb_compile()
+sb_prime()
 {
     if [ -n "${SBE_INSIDE_WORKON}" ]; then
         echo "Already in a workon.. Continuing"
-        # Launch the CMVC utility
         str="'$*'"
         echo "User input string : $str"
-        $PWD/sbe/build/tools/sbeDistribute.py $*
+        $PWD/sbe/build/tools/sbePrime.py $*
     else
         echo "Please do workon and re launch..."
     fi
 
 }
 
+sb_simsetup()
+{
+    if [ -n "${SBE_INSIDE_WORKON}" ]; then
+        echo "Already in a workon.. Continuing"
+        str="'$*'"
+        echo "User input string : $str"
+        $PWD/sbe/build/tools/sbePrime.py -p patch
+    else
+        echo "Please do workon and re launch..."
+    fi
+
+}
 
 if [ 0 == $# ]; then
     sb_helptext
@@ -106,8 +125,11 @@ workon)
 cmvc)
     sb_cmvc $*
     ;;
-compile)
-    sb_compile $*
+prime)
+    sb_prime $*
+    ;;
+simsetup)
+    sb_simsetup $*
     ;;
 *)
     sb_helptext $*

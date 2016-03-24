@@ -18,7 +18,7 @@
 Generic Failure RC code
 '''
 SUCCESS_EXIT   = 0
-SHELL_EXIT     = 1
+SHELL_EXIT     = 1 # Shell Exited with error
 ERROR_EXIT     = 2
 HELP_EXIT      = 3
 SUCCESS_DEV_EXIT   = 4
@@ -45,7 +45,6 @@ SUCCESS_CI_TRIGGER      = 54
 CMVC_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_pibmem.bin,sbe_seeprom.bin"
 CMVC_FILE_UNDO_LIST  ="src/sbei/sbfw/sbe_sp_intf.H src/sbei/sbfw/simics.tar src/sbei/sbfw/img/sbe_pibmem.bin src/sbei/sbfw/img/sbe_seeprom.bin"
 
-#CMVC_FILE_LIST  ="src/sbei/sbfw/sbe_sp_intf.H,src/sbei/sbfw/simics.tar,src/sbei/sbfw/img/sbe_main.bin,src/sbei/sbfw/img/sbe_pibmem.bin,src/sbei/sbfw/img/sbe_seeprom.bin"
 CMVC_DIR_CREATE ="sandbox_"
 
 
@@ -58,4 +57,5 @@ ERROR_HASH_CHECK   = 101
 ERROR_SANDBOX_EXIST = 200 # Sandbox doesnt exist
 ERROR_FILE_INPUT    = 201 # User have entered no file
 ERROR_BUILD_FAILED  = 202 # Compilation failed
+ERROR_HOOKING_FILE  = 203 # Error while building shell hooks
 FILE_LOOKUP_LIST  ="src/sbei/sbfw/sbe_sp_intf.H,src/sbei/sbfw/simics.tar,src/sbei/sbfw/img/sbe_pibmem.bin,src/sbei/sbfw/img/sbe_seeprom.bin"
