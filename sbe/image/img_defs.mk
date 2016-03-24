@@ -71,6 +71,10 @@ ifndef IMAGE_SRCDIR
 export IMAGE_SRCDIR = $(abspath .)
 endif
 
+ifndef UTILS_SRCDIR
+export UTILS_SRCDIR = $(abspath ../../import/chips/p9/utils)
+endif
+
 ifndef CACHE_SRCDIR
 export CACHE_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/cache)
 endif
@@ -116,7 +120,7 @@ export P9_XIP_BINDIR = $(P9_XIP_SRCDIR)/bin
 endif
 
 ifndef IMG_INCLUDES
-export IMG_INCLUDES = -I$(IMAGEPROCS_SRCDIR) -I$(P9_XIP_SRCDIR) -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR) -I$(PM_SRCDIR) -I$(INITFILES_SRCDIR)
+export IMG_INCLUDES = -I$(IMAGEPROCS_SRCDIR) -I$(P9_XIP_SRCDIR) -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(UTILS_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR) -I$(PM_SRCDIR) -I$(INITFILES_SRCDIR)
 endif
 
 ifndef BASE_OBJDIR
@@ -139,6 +143,10 @@ endif
 
 ifndef IMPORT_XML_DIR
 export IMPORT_XML_DIR = $(abspath ../../import/chips/p9/procedures/xml)
+endif
+
+ifndef IMPORT_UTILS_DIR
+export IMPORT_UTILS_DIR = $(abspath ../../import/chips/p9/utils)
 endif
 
 ifndef IMPORT_COMMON_DIR
@@ -295,6 +303,8 @@ INCLUDES += -I$(PK_SRCDIR)/../sbe/sbefw
 INCLUDES += -I$(PK_SRCDIR)/trace
 INCLUDES += -I$(PK_SRCDIR)/../tools/ppetracepp
 INCLUDES += -I$(IMPORT_COMMON_DIR)/include
+INCLUDES += -I$(IMPORT_UTILS_DIR)/imageProcs
+INCLUDES += -I$(IMPORT_UTILS_DIR)/
 
 GCC-CFLAGS += -Wall -Werror -Wno-unused-label
 GCC-CFLAGS += -msoft-float
