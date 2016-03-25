@@ -366,12 +366,32 @@ inline ReturnCode getSpy(const Target<K>& i_target,
     static_assert(K == 0, "implement getSpy (enum)");
     return ~FAPI2_RC_SUCCESS;
 }
+
+template< TargetType K >
+inline ReturnCode getSpy(const Target<K>& i_target,
+                         const spyId_t i_spyId,
+                         variable_buffer& o_data,
+                         const RingMode i_ringMode)
+{
+    static_assert(K == 0, "implement getSpy (enum)");
+    return ~FAPI2_RC_SUCCESS;
+}
 #endif
 #ifdef FAPI_SUPPORT_SPY_AS_STRING
 template< TargetType K >
 inline ReturnCode getSpy(const Target<K>& i_target,
                          const char* const i_spyId,
                          variable_buffer& o_data)
+{
+    static_assert(K == 0, "implement getSpy (string)");
+    return ~FAPI2_RC_SUCCESS;
+}
+
+template< TargetType K >
+inline ReturnCode getSpy(const Target<K>& i_target,
+                         const char* const i_spyId,
+                         variable_buffer& o_data,
+                         const RingMode i_ringMode)
 {
     static_assert(K == 0, "implement getSpy (string)");
     return ~FAPI2_RC_SUCCESS;
