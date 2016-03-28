@@ -72,5 +72,8 @@
 /// The fixed section of Otprom
 #define OTPROM_FIXED_SIZE (OTPROM_ORIGIN + 0x340)
 
+/// Sbe fixed sction for the pibmem repair
+#define SBE_FIXED_SECTION (SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET + 12)
+
 #endif  // __SBE_LINK_H
 

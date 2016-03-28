@@ -13,6 +13,8 @@
 
         .section .loader_text, "ax", @progbits
 
+        .global _pibmemRepair
+
 __vectors:
 
         ############################################################
@@ -25,6 +27,7 @@ __system_reset:
 
 
 __pmLoader:
+        bl _pibmemRepair
         _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
         _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest
         _liw     %r9, SBE_SEEPROM_BASE_ORIGIN
@@ -53,3 +56,4 @@ copy_loop:
 
         .epilogue __pmLoader
 
+#include "pm_pibmem_repair.S"
