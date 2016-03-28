@@ -240,3 +240,31 @@ CAUSE_EFFECT{
   #Unset the ALTD_STATUS Register so the ALTD_STATUS_BUSY is unset
   EFFECT: TARGET=[REG(0x090003)] OP=[BIT,OFF] BIT=[0]
 }
+
+
+# =============================================================================
+# Actions for p9_ram_core procedures
+# =============================================================================
+# TODO: RTC 150507
+# MYCHIPLET is supposed to work, but for core chiplets, it only works on core 0
+# because of a bug in SUET.  Infrastructure team will fix it using the above RTC.
+CAUSE_EFFECT CHIPLETS ec {
+  LABEL=[p9_ram_core reads Thread Info Register]
+  # If bit 0 of C_RAM_MODEREG is set (Enable RAM)
+  WATCH=[REG(MYCHIPLET,0x00010A4E)]
+  CAUSE: TARGET=[REG(MYCHIPLET, 0x00010A4E)]  OP=[BIT,ON] BIT=[0]
+  # Set all threads active in C_THREAD_INFO
+  EFFECT: TARGET=[REG(MYCHIPLET, 0x00010A9B)]  OP=[EQUALTO,BUF] DATA=[LITERAL(64,0xFFFFFFFF 0xFFFFFFFF)]
+}
+
+CAUSE_EFFECT CHIPLETS ec {
+  LABEL=[p9_ram_core - C_RAM_CTRL write]
+  # Any write to RAM CTRL reg (thread, opcode, etc...)
+  WATCH=[REG(MYCHIPLET, 0x00010A4F)]
+  # Set C_RAM_STATUS
+  #   - Clear RAM recovery status  bit 0
+  #   - Clear RAM exception status bit 2
+  #   - Set PPC complete status bit 1
+  #   - Set LSU is empty status bit 3
+  EFFECT: TARGET=[REG(MYCHIPLET, 0x00010A50)] OP=[EQUALTO,BUF] DATA=[LITERAL(64,0x50000000 0x00000000)]
+}
