@@ -38,6 +38,7 @@ PERV-CPP-SOURCES +=p9_perv_sbe_cmn.C
 PERV-CPP-SOURCES +=p9_sbe_common.C
 PERV-CPP-SOURCES +=p9_sbe_gear_switcher.C
 PERV-CPP-SOURCES +=p9_sbe_check_master_stop15.C
+PERV-CPP-SOURCES +=p9_ram_core.C
 
 PERV-C-SOURCES =
 PERV-S-SOURCES =
