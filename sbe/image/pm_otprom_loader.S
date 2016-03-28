@@ -26,7 +26,7 @@ __reserved:
 # 0x0040 : otprom loader
 #############################################################
 _start:
-lis r4 , 0x50	                               #dummy instruction
+#lis r4 , 0x50	                               #dummy instruction
 .org __reserved + 0x0040
 .macro     .pm_otprom_fixed_system
          .section   .fixed, "a", @progbits
@@ -41,7 +41,7 @@ __seeprom3_config_reg:
 __otprom_magic_num:
     .quad   0x584950205345504D
 __sbe_config_reg:
-    .quad   0x000A800060000000
+    .quad   0x000A80003C000000
  .endm
 oos_start:                                         #R4 --> A0000   R5 --> 5003F   R6 --> C000_0818
                 lis r4 , 0xA
@@ -70,7 +70,7 @@ oos_write_mode_reg:
                 b oos_write_mode_done
 
 oos_load_const_brd:
-                lis r2 , 0x6                       #load constant BRD = 6 to first 2 bytes of R2
+                lis r2 , 0x3                       #load constant BRD = 3 to first 2 bytes of R2
                 b oos_write_mode_reg
 
 oos_write_mode_done:
