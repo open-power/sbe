@@ -22,26 +22,354 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-/*------------------------------------------------------------------------------*/
-/* *! TITLE : p9_ipl_build.C                                                    */
-/* *! DESCRIPTION : Copies RS4 delta ring states from unsigned HW image to DD-  */
-//                  specific PNOR SBE image.
-/* *! OWNER NAME : Michael Olsen                  cmolsen@us.ibm.com            */
-//
-/* *! EXTENDED DESCRIPTION :                                                    */
-//
-/* *! USAGE : To build -                                                        */
-//              buildecmdprcd -C "p9_image_help_base.C" -c "p9_xip_image.c" p9_ipl_build.C
-//
-/* *! ASSUMPTIONS :                                                             */
-//    - sysPhase=0 is assumed which puts the SBE image together for IPL.
-//
-/* *! COMMENTS :                                                                */
-//    - .strings and .toc are removed as "a unit" before validating.
-//
-/*------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* *! TITLE : p9_ipl_build.C                                                  */
+/* *! DESCRIPTION : Copies RS4 delta ring states from unsigned HW image to DD */
+/*                  specific PNOR SBE image.                                  */
+/* *! OWNER NAME : Michael Olsen cmolsen@us.ibm.com                           */
+/*                                                                            */
+/* *! EXTENDED DESCRIPTION :                                                  */
+/*                                                                            */
+/* *! USAGE : p9_ipl_build <sbe image> <unsigend hw image> <dd level>         */
+/*                                                                            */
+/* *! ASSUMPTIONS :                                                           */
+/*    - sysPhase=0 is assumed which puts the SBE image together for IPL.      */
+/*                                                                            */
+/* *! COMMENTS :                                                              */
+/*----------------------------------------------------------------------------*/
+#include <string>
+#include <iomanip>
+#include <sstream>
+#include <fstream>
+#include <errno.h>
 
-#include <p9_image_help.H>
+#include "p9_ipl_build.H"
+#include <p9_xip_image.h>
+#include <p9_tor.H>
+
+// prefix of our debug file name
+const char* CHIP_TYPE = "p9_";
+
+///
+/// @brief Create a filename containing the DD level and chip type
+///
+/// @param[in]   i_fn SBE image file name
+/// @param[in]   i_ddLevel - DD level of ring
+///
+/// @retval  std::string - holding the newly created file name.
+///
+std::string getDDSpecificFileName(const char* i_fn,
+                                  uint32_t i_ddLevel
+                                 )
+{
+    // create our dd specific file name
+    std::stringstream ss;
+    std::string fn = i_fn;
+    auto found = fn.find_last_of("/");
+
+    ss << CHIP_TYPE << std::hex << i_ddLevel << "." << fn.substr(found + 1);
+    return ss.str();
+}
+
+
+///
+/// @brief retrieve a block of DD level rings from the unsigned hw image
+///
+/// @param[in]  i_hwImage - pointer to a an unsigned hw image.
+/// @param[in]  i_ddLevel - DD level of rings to append
+/// @param[out] o_ringBlock - DD level block of rings from the hw image.
+/// @param[out] o_blockSize - size of ring block returned
+///
+/// @return IMGBUILD_SUCCESS, or failure value.
+///
+int get_dd_level_rings_from_hw_image(char* i_hwImage,
+                                     uint32_t i_ddLevel,
+                                     void** o_ringBlock,
+                                     uint32_t& o_blockSize
+                                    )
+{
+    int rc = IMGBUILD_SUCCESS;
+
+    P9XipSection l_ringsSection;
+    *o_ringBlock = NULL;
+    o_blockSize = 0;
+    RingType_t l_ringType = ALLRING;
+    uint8_t unused_parm = 0;
+
+    // 1. use the tor api go get the block of rings from the hw image
+    rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection);
+
+    if(rc)
+    {
+        MY_ERR("call to p9_xip_get_section ID(%d) failed rc=%d\n", P9_XIP_SECTION_HW_RINGS, rc);
+        rc = IMGBUILD_ERR_GET_SECTION;
+    }
+    else
+    {
+        // make a pointer to the start of the rings section
+        void* ringsSection = i_hwImage + l_ringsSection.iv_offset;
+
+        do
+        {
+
+            // call the first time to get a size of the pending section
+            rc = tor_get_block_of_rings(ringsSection, i_ddLevel,
+                                        SBE, l_ringType, BASE, unused_parm, o_ringBlock,
+                                        o_blockSize);
+
+            if(rc)
+            {
+                MY_ERR("error calling tor API rc = %d\n", rc);
+                rc = IMGBUILD_ERR_SECTION_SIZING;
+                break;
+            }
+
+            if( o_blockSize == 0 )
+            {
+                rc = IMGBUILD_NO_RINGS_FOUND;
+                MY_INF("No rings for dd_level %#02x found\n", i_ddLevel);
+                break;
+            }
+
+            // *o_ringBlock is freed by caller
+            *o_ringBlock = malloc(o_blockSize);
+
+            if(o_ringBlock != NULL)
+            {
+                rc = tor_get_block_of_rings (ringsSection, i_ddLevel,
+                                             SBE, l_ringType, BASE, unused_parm, o_ringBlock,
+                                             o_blockSize);
+
+                if(rc)
+                {
+                    MY_ERR("error calling tor API rc = %d\n", rc);
+                    rc = IMGBUILD_ERR_RING_SEARCH;
+                }
+            }
+            else
+            {
+                MY_ERR("failed to allocate memory for ring block\n");
+                rc = IMGBUILD_ERR_MEMORY;
+            }
+
+            MY_DBG("o_blockSize = %d\n", o_blockSize);
+            MY_DBG("o_ringBlock = %p\n", o_ringBlock);
+
+        }
+        while(0);
+    }
+
+    return rc;
+};
+
+
+///
+/// @brief appends a block of rings to the previously un-populated .rings
+///        section of the P9 SBE image
+///
+///  the passed in image pointer should point to an in memory sbe image
+///  callers should ensure that the location is large enough for the existing
+///  image and the new ring section.
+///
+/// @param[in]   io_sbeImage - pointer to an unsigned SBE image
+/// @param[i/o]  io_sbeImageSize - size of image after section has been appended
+/// @param[i]    i_ringBlock - pointer to a block of rings to be appended to
+//                             the sbe image
+/// @param[i]    i_blockSize - size of the block of rings to append.
+///
+/// @return 0 on success non-zero on failure
+///
+int append_ring_block_to_image(char* io_sbeImage,
+                               size_t& io_sbeImageSize,
+                               char* i_ringBlock,
+                               uint32_t i_blockSize
+                              )
+{
+    uint32_t unused_parm = 0;
+    int rc = IMGBUILD_SUCCESS;
+
+    // Append block of rings to the sbe image in Memory
+    rc = p9_xip_append(io_sbeImage,
+                       P9_XIP_SECTION_SBE_RINGS,
+                       i_ringBlock,
+                       i_blockSize,
+                       io_sbeImageSize,
+                       &unused_parm);
+
+    if(rc)
+    {
+        MY_ERR("error appending ring section = %d\n", rc);
+        rc = IMGBUILD_ERR_APPEND;
+    }
+
+    MY_DBG("i_ringBlock = %p\n", i_ringBlock);
+
+    return rc;
+};
+
+///
+/// @brief Create an SBE image customized with DD level rings
+///
+/// @param[in]  i_fnSbeImage - File name of SBE image
+/// @param[in]  i_hwImage - pointer to a memory mapped Unsigned hardware image
+/// @param[i]   i_ddLevel - DD level of rings to append to the SBE image
+///
+int ipl_build(char* i_fnSbeImage,
+              void* i_hwImage,
+              uint32_t i_ddLevel
+             )
+{
+
+    char* sbeImage    = NULL;
+    void* l_ringBlock = NULL;
+    int   rc          = 0;
+
+
+    std::string ddSpecificFileName = getDDSpecificFileName(i_fnSbeImage, i_ddLevel);
+
+    std::ifstream  sbeImageFile;
+    std::ofstream  ddSpecificImage;
+
+    sbeImageFile.open(i_fnSbeImage, std::ios::binary | std::ios::in | std::ios::out);
+
+
+    if(!sbeImageFile)
+    {
+        printf("failed to open %s\n", i_fnSbeImage);
+        rc = IMGBUILD_ERR_FILE_ACCESS;
+    }
+    else
+    {
+        // open it in read mode, if it does not exist this will fail, which means
+        // its ok to create, otherwise we don't want to overwrite existing files.
+        ddSpecificImage.open(ddSpecificFileName.c_str(), std::ios::in);
+
+        // did it open ok, if so tell the user
+        if(ddSpecificImage)
+        {
+            MY_ERR("%s already exists..\n", ddSpecificFileName.c_str());
+            rc = IMGBUILD_ERR_FILE_ACCESS;
+        }
+        else
+        {
+            do
+            {
+                // get a filebuf pointer to make it easy to work with
+                std::filebuf* pbuf = sbeImageFile.rdbuf();
+
+                // get the file size
+                std::size_t sbeImageSize = pbuf->pubseekoff(0,
+                                           sbeImageFile.end, sbeImageFile.in);
+
+                pbuf->pubseekpos(0, sbeImageFile.in);
+
+                // allocate some space to hold the file data
+                sbeImage =  (char*)malloc(sbeImageSize);
+
+                if(sbeImage == NULL)
+                {
+                    MY_ERR("Failed to allocate memory for the SBE image\n");
+                    rc = IMGBUILD_ERR_MEMORY;
+                    break;
+                }
+
+                bzero(sbeImage, sbeImageSize);
+
+                // copy the SBE image into memory
+                pbuf->sgetn(sbeImage, sbeImageSize);
+
+                // validate it
+                rc = p9_xip_validate(sbeImage, sbeImageSize);
+
+                if(rc)
+                {
+                    MY_ERR("The SBE image copied to memory"
+                           "failed validation rc = %d", rc);
+
+                    rc = IMGBUILD_INVALID_IMAGE;
+                    break;
+                }
+
+                MY_INF("SBE Image validated ok.. %p\n", sbeImage);
+
+                uint32_t    l_blockSize = 0;
+
+                char* hwImagePtr = static_cast<char*>(i_hwImage);
+
+                rc = get_dd_level_rings_from_hw_image(hwImagePtr,
+                                                      i_ddLevel,
+                                                      &l_ringBlock,
+                                                      l_blockSize);
+
+                if(rc == IMGBUILD_SUCCESS)
+                {
+                    // update our SBE image size to include the new block of rings
+                    sbeImageSize += l_blockSize;
+
+                    // grow our workspace
+                    void* tmp = realloc(sbeImage, sbeImageSize);
+
+                    if(tmp == NULL)
+                    {
+                        MY_ERR("error resizing workspace..giving up errno=%d", errno);
+                        rc = IMGBUILD_ERR_MEMORY;
+                        break;
+                    }
+
+                    // use the new, larger space
+                    sbeImage = static_cast<char*>(tmp);
+
+                    rc = append_ring_block_to_image(sbeImage,
+                                                    sbeImageSize,
+                                                    (char*)l_ringBlock,
+                                                    l_blockSize);
+
+                    if(rc == IMGBUILD_SUCCESS)
+                    {
+                        // looks like it worked, create a debug file and write the
+                        // customized image to it
+                        ddSpecificImage.open(ddSpecificFileName.c_str(), std::ios::binary | std::ios::out);
+
+                        if(!ddSpecificImage)
+                        {
+                            MY_ERR("failed to open %s for writing\n", ddSpecificFileName.c_str());
+                            rc = IMGBUILD_ERR_FILE_ACCESS;
+                        }
+                        else
+                        {
+                            std::filebuf* outbuf = ddSpecificImage.rdbuf();
+
+                            outbuf->sputn(sbeImage, sbeImageSize);
+
+                            MY_INF("DD specific file created as %s\n", ddSpecificFileName.c_str());
+
+                            // rewind to the beginning of the original file and write this
+                            // into it.
+                            pbuf->pubseekpos(0, sbeImageFile.in);
+
+                            pbuf->sputn(sbeImage, sbeImageSize);
+
+                        }
+                    }
+                    else
+                    {
+                        MY_ERR("creating dd specific SBE image failed rc=%d\n", rc);
+                    }
+                }
+            }
+            while(0);
+
+            free(sbeImage);
+            free(l_ringBlock);
+        }
+
+        ddSpecificImage.close();
+        sbeImageFile.close();
+    }
+
+    return rc;
+}
+
 
 #define THIS_HELP  ("\nUSAGE:\n\tp9_ipl_build  -help [anything]\n\t  or\n" \
                     "\tp9_ipl_build \n" \
@@ -49,21 +377,21 @@
                     "\t\t<Input HW reference image file\n" \
                     "\t\t<DD level [hex value]>\n" )
 
+
+
 //  main() input parms:
 //  arg1:   Input/output SBE image file
 //  arg2:   Input HW image file
 //  arg3:   DD level [hex value]
 int main( int argc, char* argv[])
 {
-    int         rc = 0;
-    char*        fnImageSbe, *fnImageHw;
+    int         rc = IMGBUILD_SUCCESS;
+    char*       fnSbeImage, *fnHwImage;
     uint32_t    ddLevel = 0;
-    uint32_t    fdImageHw = 0;
+    uint32_t    fdHwImage = 0;
     struct stat stbuf;
-    uint32_t    sizeImageHw;
-    void*        imageHw;
-
-    P9_XIP_ERROR_STRINGS(g_errorStrings);
+    uint32_t    sizeHwImage;
+    void*       hwImage;
 
     // ==========================================================================
     // Convert input parms from char to <type>
@@ -78,344 +406,75 @@ int main( int argc, char* argv[])
 
     // Convert input parms from char to <type>
     //
-    fnImageSbe = argv[1];
-    fnImageHw  = argv[2];
+    fnSbeImage = argv[1];
+    fnHwImage  = argv[2];
     ddLevel    = strtol(argv[3], NULL, 16);
 
-    MY_INF("  Input/output SBE image fn = %s\n", fnImageSbe);
-    MY_INF("  Input HW image fn         = %s\n", fnImageHw);
-    MY_INF("  DD level                  = 0x%02x\n", ddLevel);
-
+    MY_INF("  Input/output SBE image fn = %s\n", fnSbeImage);
+    MY_INF("  Input HW image fn         = %s\n", fnHwImage);
+    MY_INF("  DD level                  = %#02x\n", ddLevel);
     // ==========================================================================
     // Memory map HW reference image.
     // ==========================================================================
-    MY_DBG("Memory map HW ref image.\n");
-    fdImageHw = open(fnImageHw, O_RDONLY);
+    MY_DBG("Memory map HW image.\n");
+    fdHwImage = open(fnHwImage, O_RDONLY);
 
-    if (fstat(fdImageHw, &stbuf) != 0)
+
+    if (fstat(fdHwImage, &stbuf) != 0)
     {
-        MY_ERR("Could not fstat the HW ref image file.\n");
+        MY_ERR("Could not fstat the HW image file.\n");
         return 1;
     }
 
-    sizeImageHw = stbuf.st_size;
-    imageHw = mmap(0, sizeImageHw, PROT_READ, MAP_SHARED, fdImageHw, 0);
+    sizeHwImage = stbuf.st_size;
+    hwImage = mmap(0, sizeHwImage, PROT_READ, MAP_SHARED, fdHwImage, 0);
 
-    if (imageHw == MAP_FAILED)
+    if (hwImage == MAP_FAILED)
     {
-        MY_ERR("mmap() of HW ref image failed.\n");
-        return 1;
-    }
-
-    // ...validate image.
-    rc = p9_xip_validate(imageHw, sizeImageHw);
-
-    if (rc)
-    {
-        MY_ERR("p9_xip_validate() of HW ref image failed: %s\n", P9_XIP_ERROR_STRING(g_errorStrings, rc));
-        return 1;
-    }
-
-    // Update the SBE image.
-    //
-    MY_INF("Updating the SBE image... \n");
-
-    rc = ipl_build( fnImageSbe,
-                    imageHw,
-                    ddLevel );
-
-    if (rc == IMGBUILD_SUCCESS)
-    {
-        MY_INF("SBE image build was SUCCESSFUL.\n");
-    }
-    else if (rc == IMGBUILD_RING_SEARCH_EOS_NO_MATCH)
-    {
-        MY_INF("SBE image build was SUCCESSFUL but no RS4 rings appended (rc=%i).\n", rc);
+        MY_ERR("mmap() of HW image failed.\n");
+        rc = IMGBUILD_MEM_MAP_FAILED;
     }
     else
     {
-        MY_ERR("SBE image build was UNSUCCESSFUL (rc=%i).\n", rc);
-        return 1;
-    }
-
-    close(fdImageHw);
-
-    return rc;
-
-}
-
-
-
-//  Parameter list:
-//  char      *io_fnImageSbe:   Filename of SBE I/O image
-//  void      *i_imageHw:       Pointer to memory mapped HW Reference image
-//  uint32_t  i_ddLevel:        DD level
-//
-int ipl_build( char*      io_fnImageSbe,
-               void*      i_imageHw,
-               uint32_t  i_ddLevel )
-{
-    int             rc = 0, rcLoc = 0, rcSearch = 0, countRings = 0;
-    void*            ringBuffer = NULL;
-    uint32_t        ringBlockSize = 0;
-    void*            nextRing = NULL;
-    uint8_t         iRingType = 0;
-    uint8_t         xipSectionId = 0;
-    uint8_t         bDone = 0;
-
-//CMO-When removing sections, mmap SBE image file here first.
-
-#if 0  //CMO-for now.. we probably need different impl for p9
-    uint32_t        sizeImage = 0;
-    P9XipSection    xipSection;
-
-    // ==========================================================================
-    // First, remove all unnecessary sections in the output image.
-    // ==========================================================================
-    //
-    rcLoc1 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_HBBL);
-    rcLoc2 = sbe_xip_image_size(i_imageOut, &sizeImage);
-    rcLoc =  sbe_xip_validate(i_imageOut, sizeImage);
-
-    if (rcLoc1 || rcLoc2 || rcLoc)
-    {
-        fprintf(stderr, "_delete_section(.hbbl) (rcLoc1=%i), _image_size() (rcLoc2=%i) and/or _validate() (rcLoc=%i) failed.\n",
-                rcLoc1, rcLoc2, rcLoc);
-        return IMGBUILD_ERR_SECTION_DELETE;
-    }
-
-    fprintf(stdout, "Image size (after .hbbl delete): %i\n", sizeImage);
-
-    rcLoc1 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_RINGS);
-    rcLoc2 = sbe_xip_image_size(i_imageOut, &sizeImage);
-    rcLoc =  sbe_xip_validate(i_imageOut, sizeImage);
-
-    if (rcLoc1 || rcLoc2 || rcLoc)
-    {
-        fprintf(stderr,
-                "_delete_section(.rings) (rcLoc1=%i), _image_size() (rcLoc2=%i) and/or _validate() (rcLoc=%i) failed.\n", rcLoc1,
-                rcLoc2, rcLoc);
-        return IMGBUILD_ERR_SECTION_DELETE;
-    }
-
-    fprintf(stdout, "Image size (after .rings delete): %i\n", sizeImage);
-
-    rcLoc1 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_OVERLAYS);
-    rcLoc2 = sbe_xip_image_size(i_imageOut, &sizeImage);
-    rcLoc =  sbe_xip_validate(i_imageOut, sizeImage);
-
-    if (rcLoc1 || rcLoc2 || rcLoc)
-    {
-        fprintf(stderr,
-                "_delete_section(.overlays) (rcLoc1=%i), _image_size() (rcLoc2=%i) and/or _validate() (rcLoc=%i) failed.\n", rcLoc1,
-                rcLoc2, rcLoc);
-        return IMGBUILD_ERR_SECTION_DELETE;
-    }
-
-    fprintf(stdout, "Image size (after .overlays delete): %i\n", sizeImage);
-
-    rcLoc1 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_PIBMEM0);
-    rcLoc2 = sbe_xip_image_size(i_imageOut, &sizeImage);
-    rcLoc =  sbe_xip_validate(i_imageOut, sizeImage);
-
-    if (rcLoc1 || rcLoc2 || rcLoc)
-    {
-        fprintf(stderr,
-                "_delete_section(.pibmem0) (rcLoc1=%i), _image_size() (rcLoc2=%i) and/or _validate() (rcLoc=%i) failed.\n", rcLoc1,
-                rcLoc2, rcLoc);
-        return IMGBUILD_ERR_SECTION_DELETE;
-    }
-
-    fprintf(stdout, "Image size (after .pibmem0 delete): %i\n", sizeImage);
-
-    rcLoc1 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_HALT);
-    rcLoc2 = sbe_xip_image_size(i_imageOut, &sizeImage);
-    rcLoc =  sbe_xip_validate(i_imageOut, sizeImage);
-
-    if (rcLoc1 || rcLoc2 || rcLoc)
-    {
-        fprintf(stderr, "_delete_section(.halt) (rcLoc1=%i), _image_size() (rcLoc2=%i) and/or _validate() (rcLoc=%i) failed.\n",
-                rcLoc1, rcLoc2, rcLoc);
-        return IMGBUILD_ERR_SECTION_DELETE;
-    }
-
-    fprintf(stdout, "Image size (after .halt delete): %i\n", sizeImage);
-
-    rcLoc1 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_STRINGS);
-    rcLoc2 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_TOC);
-    sbe_xip_image_size(i_imageOut, &sizeImage);
-    rcLoc =  sbe_xip_validate(i_imageOut, sizeImage);
-
-    if (rcLoc1 || rcLoc2 || rcLoc)
-    {
-        fprintf(stderr,
-                "_delete_section(.strings) (rcLoc1=%i), _delete_section(.toc) (rcLoc2=%i) and/or _validate() (rcLoc=%i) failed.\n",
-                rcLoc1, rcLoc2, rcLoc);
-        return IMGBUILD_ERR_SECTION_DELETE;
-    }
-
-    fprintf(stdout, "Image size (after .strings and .toc delete): %i\n", sizeImage);
-
-    rcLoc1 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_DATA);
-    rcLoc2 = sbe_xip_image_size(i_imageOut, &sizeImage);
-    rcLoc =  sbe_xip_validate(i_imageOut, sizeImage);
-
-    if (rcLoc1 || rcLoc2 || rcLoc)
-    {
-        fprintf(stderr, "_delete_section(.data) (rcLoc1=%i), _image_size() (rcLoc2=%i) and/or _validate() (rcLoc=%i) failed.\n",
-                rcLoc1, rcLoc2, rcLoc);
-        return IMGBUILD_ERR_SECTION_DELETE;
-    }
-
-    fprintf(stdout, "Image size (after .data delete): %i\n", sizeImage);
-
-    rcLoc1 = sbe_xip_delete_section( i_imageOut, P9_XIP_SECTION_TEXT);
-    rcLoc2 = sbe_xip_image_size(i_imageOut, &sizeImage);
-    rcLoc =  sbe_xip_validate(i_imageOut, sizeImage);
-
-    if (rcLoc1 || rcLoc2 || rcLoc)
-    {
-        fprintf(stderr, "_delete_section(.text) (rcLoc1=%i), _image_size() (rcLoc2=%i) and/or _validate() (rcLoc=%i) failed.\n",
-                rcLoc1, rcLoc2, rcLoc);
-        return IMGBUILD_ERR_SECTION_DELETE;
-    }
-
-    fprintf(stdout, "Image size (after .text delete): %i\n", sizeImage);
-
-
-    // ==========================================================================
-    // Re-append .pibmem0
-    // ==========================================================================
-    rc = sbe_xip_get_section( i_imageSbe, P9_XIP_SECTION_PIBMEM0, &xipSection);
-
-    if (rc)
-    {
-        MY_INF("ERROR : sbe_xip_get_section() failed: %s", P9_XIP_ERROR_STRING(g_errorStrings, rc));
-        MY_INF("Probable cause:");
-        MY_INF("\tThe section (=P9_XIP_SECTION_PIBMEM0=%i) was not found.", P9_XIP_SECTION_RINGS);
-        return IMGBUILD_ERR_KEYWORD_NOT_FOUND;
-    }
-
-    rc = sbe_xip_append(     i_imageOut,
-                             P9_XIP_SECTION_PIBMEM0,
-                             (void*)((uintptr_t)i_imageSbe + xipSection.iv_offset),
-                             xipSection.iv_size,
-                             i_sizeImageOutMax,
-                             0);
-
-    if (rc)
-    {
-        MY_INF("sbe_xip_append() failed: %s", P9_XIP_ERROR_STRING(g_errorStrings, rc));
-        return IMGBUILD_ERR_APPEND;
-    }
-
-#endif // #if 0
-
-//CMO-When removing sections, close the mmapped SBE image file here.
-
-    for (iRingType = 0; iRingType < RING_SECTION_ID_SIZE; iRingType++)
-    {
-
-        xipSectionId = RING_SECTION_ID[iRingType];
-        nextRing = NULL;
-        bDone = 0;
-
-        /****************************************************************************
-         *                          SEARCH LOOP - Begin                                *
-         ****************************************************************************/
-
         do
         {
+            // ...validate image.
+            MY_INF("Validating the the HW image... \n");
+            rc = p9_xip_validate(hwImage, sizeHwImage);
 
-            MY_DBG("nextRing (at top)=0x%016lx\n", (uint64_t)nextRing);
-
-            ringBlockSize = FIXED_RING_BUF_SIZE;
-            ringBuffer = malloc(ringBlockSize);
-
-            if (!ringBuffer)
+            if (rc)
             {
-                MY_ERR("malloc() for fixed ring buffer failed.\n");
-                exit(1);
+                MY_ERR("p9_xip_validate() of HW image failed: rc=%d\n", rc);
+                rc = IMGBUILD_INVALID_IMAGE;
+                break;
             }
 
-            // ==========================================================================
-            // Get ring layout from HW ref image
-            // ==========================================================================
-            rcLoc = get_ring_from_image( i_imageHw,
-                                         i_ddLevel,
-                                         0,             // sysPhase = IPL-SBE image build
-                                         ringBuffer,    // Contains copy of RS4 ring, incl layout
-                                         &ringBlockSize,// Contains ring block size on return
-                                         &nextRing,     // Points to next ring (may not need for P9)
-                                         xipSectionId );
-            rcSearch = rcLoc;
-
-            if ( rcSearch != IMGBUILD_RING_SEARCH_MATCH &&
-                 rcSearch != IMGBUILD_RING_SEARCH_EOS_MATCH &&
-                 rcSearch != IMGBUILD_RING_SEARCH_EOS_NO_MATCH)
-            {
-                MY_ERR("ERROR : Error during retrieval of delta rings from the image (rcSearch=%i).\n", rcSearch);
-                MY_ERR("No further RS4 rings will be appended to the IPL image.\n");
-                MY_ERR("The IPL image is incomplete.\n");
-                return IMGBUILD_ERR_INCOMPLETE_IMG_BUILD;
-            }
-
-            if ( rcSearch == IMGBUILD_RING_SEARCH_MATCH ||
-                 rcSearch == IMGBUILD_RING_SEARCH_EOS_MATCH )
-            {
-                MY_DBG("Retrieving ring was successful.\n");
-                countRings++;
-            }
-
-            // Check if we're done due to failure to find any more rings.
+            // Update the SBE image.
             //
-            if ( rcSearch == IMGBUILD_RING_SEARCH_EOS_NO_MATCH )
+            MY_INF("Updating the SBE image... \n");
+
+            rc = ipl_build( fnSbeImage, hwImage, ddLevel);
+
+            if (rc == IMGBUILD_SUCCESS)
             {
-                MY_INF("Number of RS4 rings appended to ring section (ID=%i): %i\n", xipSectionId, countRings);
-                rc = IMGBUILD_SUCCESS;
-                bDone = 1;
+                MY_INF("SBE image build was SUCCESSFUL.\n");
             }
-
-            if (!bDone)
+            else if (rc == IMGBUILD_NO_RINGS_FOUND)
             {
-                rc = append_ring_to_image( io_fnImageSbe,
-                                           ringBuffer,
-                                           ringBlockSize );
-                free(ringBuffer);
-
-                if (rc)
-                {
-                    MY_ERR("ring_section_append() failed: rc=%i   Stopping.\n", rc);
-                    exit(1);
-                }
-                else
-                {
-                    MY_DBG("Image update successful.\n");
-                }
-
-            } // End of if(!bDone)
-
-            // Check if we're done due to having reached EOS of ring section and found a ring.
-            //
-            if ( rcSearch == IMGBUILD_RING_SEARCH_EOS_MATCH )
-            {
-                MY_INF("Number of RS4 rings appended to ring section (ID=%i): %i\n", xipSectionId, countRings);
-                rc = IMGBUILD_SUCCESS;
-                bDone = 1;
+                MY_INF("SBE image build was UNSUCCESSFUL no rings found in the HW image"
+                       "(rc=%i).\n", rc);
             }
-
-
+            else
+            {
+                MY_ERR("SBE image build was UNSUCCESSFUL (rc=%i).\n", rc);
+            }
         }
-        while (!bDone);
+        while(0);
 
-        /***************************************************************************
-         *    SEARCH LOOP - End
-         ***************************************************************************/
+        munmap(hwImage, sizeHwImage);
+    }
 
-        MY_INF("Done adding rings to ring section ID = %i\n", xipSectionId);
+    close(fdHwImage);
 
-    } // End of for(iRingType=...) loop
-
-    exit(1);
     return rc;
 }
