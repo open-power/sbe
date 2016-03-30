@@ -560,37 +560,50 @@ dumpHeader(void* i_image)
     memcpy(magicString, (char*)(&(((P9XipHeader*)i_image)->iv_magic)), 8);
     magicString[8] = 0;
 
-    printf("Magic Number   : 0x%016lx \"%s\"\n",
+    printf("Magic Number      : 0x%016lx \"%s\"\n",
            header.iv_magic, magicString);
-    printf("Header Version : 0x%02x\n", header.iv_headerVersion);
-    printf("Link Address   : 0x%016lx\n", header.iv_linkAddress);
-    printf("L1 Loader Address   : 0x%08x\n", (uint32_t)header.iv_L1LoaderAddr);
-    printf("L2 Loader Address   : 0x%08x\n", (uint32_t)header.iv_L2LoaderAddr);
-    printf("Kernel Address   : 0x%08x\n", (uint32_t)header.iv_kernelAddr);
-    printf("Image Size     : 0x%08x (%d)\n",
+    printf("Header Version    : 0x%02x\n", header.iv_headerVersion);
+    printf("Link Address      : 0x%016lx\n", header.iv_linkAddress);
+    printf("L1 Loader Address : 0x%08x\n", (uint32_t)header.iv_L1LoaderAddr);
+    printf("L2 Loader Address : 0x%08x\n", (uint32_t)header.iv_L2LoaderAddr);
+    printf("Kernel Address    : 0x%08x\n", (uint32_t)header.iv_kernelAddr);
+    printf("Image Size        : 0x%08x (%d)\n",
            header.iv_imageSize, header.iv_imageSize);
-    printf("Normalized     : %s\n", header.iv_normalized ? "Yes" : "No");
-    printf("TOC Sorted     : %s\n", header.iv_tocSorted ? "Yes" : "No");
-    printf("Build Date     : %02d/%02d/%04d\n",
+    printf("Normalized        : %s\n", header.iv_normalized ? "Yes" : "No");
+    printf("TOC Sorted        : %s\n", header.iv_tocSorted ? "Yes" : "No");
+    printf("Build Date        : %02d/%02d/%04d\n",
            (header.iv_buildDate / 100) % 100,
            header.iv_buildDate % 100,
            header.iv_buildDate / 10000);
-    printf("Build Time     : %02d:%02d\n",
+    printf("Build Time        : %02d:%02d\n",
            header.iv_buildTime / 100,
            header.iv_buildTime % 100);
-    printf("Build User     : %s\n", header.iv_buildUser);
-    printf("Build Host     : %s\n", header.iv_buildHost);
+    printf("Build User        : %s\n", header.iv_buildUser);
+    printf("Build Host        : %s\n", header.iv_buildHost);
     printf("\n");
 
-    printf("Section Table  :   Offset      Size\n");
+    printf("Section Table     :\n\n");
+    printf("    Name              Alignment   Start        End          Size\n");
     printf("\n");
 
     for (i = 0; i < P9_XIP_SECTIONS; i++)
     {
         section = &(header.iv_section[i]);
-        printf("%-16s 0x%08x 0x%08x (%d)\n",
+        printf("   %-16s   %d           0x%08x   ",
                get_sectionName(header.iv_magic, i),
-               section->iv_offset, section->iv_size, section->iv_size);
+               section->iv_alignment,
+               section->iv_offset);
+
+        if (section->iv_size == 0)
+        {
+            printf("          ");
+        }
+        else
+        {
+            printf("0x%08x", section->iv_offset + section->iv_size - 1);
+        }
+
+        printf("   0x%08x (%d)\n", section->iv_size, section->iv_size);
     }
 
     printf("\n");
