@@ -51,7 +51,6 @@ endif
 
 XIP_SOURCES  = p9_xip_image.c
 XIP_SOURCES += p9_xip_tool.c
-XIP_SOURCES += p9_ring_identification.c
 
 XIP_UTILS = p9_xip_tool
 
@@ -71,7 +70,7 @@ $(OBJ_DIR):
 $(OBJ_DIR)/%.o: %.c
 	$(CXX) $(CXX_FLAGS) $(INCLUDES) $(XIP_FLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/p9_xip_tool: $(OBJ_DIR)/p9_xip_image.o $(OBJ_DIR)/p9_ring_identification.o $(OBJ_DIR)/p9_xip_tool.o
+$(OBJ_DIR)/p9_xip_tool: $(OBJ_DIR)/p9_xip_image.o  $(OBJ_DIR)/p9_xip_tool.o
 	$(CXX) -o $@ $^
 
 clean:

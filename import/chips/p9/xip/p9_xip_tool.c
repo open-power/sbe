@@ -35,13 +35,10 @@
 #include <string.h>
 #include <unistd.h>
 
-
-
 #define __PPE__
 #include "p9_xip_image.h"
 
-#include "p9_image_help_base.H"
-#include "p9_ring_identification.H"
+#define LINE_SIZE_MAX 1024      // Max size of a single snprintf dump.
 
 // Usage: p9_xip_tool <image> [-<flag> ...] normalize
 //        p9_xip_tool <image> [-<flag> ...] get <item>
@@ -1856,7 +1853,7 @@ int disassembleSection(void*         i_image,
     P9XipSection hostSection;
     ImageInlineContext ctx;
     ImageInlineDisassembly dis;
-    char lineDis[LISTING_STRING_SIZE];
+    char lineDis[LINE_SIZE_MAX];
     void*      hostRs4Container;
     uint32_t  compressedBits = 0, ringLength = 0;
     double    compressionPct = 0;
@@ -2091,14 +2088,14 @@ int disassembleSection(void*         i_image,
 
                     if (pairingInfo.override)
                     {
-                        sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                        sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                                "# ------------------------------\n# %i.\n# ringName = %s (override)\n# vectorPos = %i\n# overRidable = %i\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
                                                ringSeqNo, ringName, vectorPos, overRidable, (uint32_t)backPtr, (uint32_t)fwdPtr, compressedBits, ringLength,
                                                compressionPct);
                     }
                     else
                     {
-                        sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                        sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                                "# ------------------------------\n# %i.\n# ringName = %s (base)\n# vectorPos = %i\n# overRidable = %i\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
                                                ringSeqNo, ringName, vectorPos, overRidable, (uint32_t)backPtr, (uint32_t)fwdPtr, compressedBits, ringLength,
                                                compressionPct);
@@ -2106,7 +2103,7 @@ int disassembleSection(void*         i_image,
                 }
                 else
                 {
-                    sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                    sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                            "# ------------------------------\n# %i.\n# ringName = Not found (but TOC's available)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n",
                                            ringSeqNo, (uint32_t)backPtr, (uint32_t)fwdPtr);
                 }
@@ -2141,13 +2138,13 @@ int disassembleSection(void*         i_image,
                     // RS4 header, which has override info
                     if (((Rs4RingLayout*)nextBlock)->override == 0)
                     {
-                        sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                        sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                                "# ------------------------------\n# %i.\n# ringName = Not available (base)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
                                                ringSeqNo, (uint32_t)backPtr, (uint32_t)fwdPtr, compressedBits, ringLength, compressionPct);
                     }
                     else
                     {
-                        sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                        sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                                "# ------------------------------\n# %i.\n# ringName = Not available (override)\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n# Compressed Bits  = %u\n# Ring Length Bits = %u\n# Compression      = %0.2f%%\n",
                                                ringSeqNo, (uint32_t)backPtr, (uint32_t)fwdPtr, compressedBits, ringLength, compressionPct);
                     }
@@ -2155,7 +2152,7 @@ int disassembleSection(void*         i_image,
                 else
                 {
                     // WF header, which doesn't have override info
-                    sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                    sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                            "# ------------------------------\n# %i.\n# ringName and override = Not available\n# backPtr = 0x%08x\n# fwdPtr  = 0x%08x\n",
                                            ringSeqNo, (uint32_t)backPtr, (uint32_t)fwdPtr);
                 }
@@ -2188,7 +2185,7 @@ int disassembleSection(void*         i_image,
 
             if (typeRingsSection == 0)   // RS4 header.
             {
-                sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                        "# ddLevel = 0x%02x\n# override= %i\n# sysPhase= %i\n# Block size= %i\n",
                                        myRev32(((Rs4RingLayout*)nextBlock)->ddLevel),
                                        ((Rs4RingLayout*)nextBlock)->override,
@@ -2199,13 +2196,13 @@ int disassembleSection(void*         i_image,
             {
                 if (bFoundInToc)
                 {
-                    sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                    sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                            "# override= %i\n# Block size= %i\n",
                                            pairingInfo.override, sizeBlock);
                 }
                 else
                 {
-                    sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                    sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                            "# override= Not available\n# Block size= %i\n",
                                            sizeBlock);
                 }
@@ -2235,14 +2232,14 @@ int disassembleSection(void*         i_image,
                 do
                 {
                     rc = image_inline_disassemble( &ctx, &dis);
-                    sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE, "%s\n", dis.s);
+                    sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX, "%s\n", dis.s);
                     sizeList = sizeList + sizeDisLine;
                     disList = strcat(disList, lineDis);
 
                     if (rc)
                     {
                         rcSet = rcSet | 0x1;
-                        sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                        sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                                "WARNING: %s (rc=%i) -> Stopping disasm. Check code and sectionID=%i.\n",
                                                image_inline_error_strings[rc], rc, sectionId);
                         sizeList = sizeList + sizeDisLine;
@@ -2273,7 +2270,7 @@ int disassembleSection(void*         i_image,
                 {
                     rc = image_inline_disassemble( &ctx, &dis);
                     ctx.options = IMAGE_INLINE_LISTING_MODE;
-                    sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE, "%s\n", dis.s);
+                    sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX, "%s\n", dis.s);
                     sizeList = sizeList + sizeDisLine;
                     disList = strcat(disList, lineDis);
 
@@ -2284,13 +2281,13 @@ int disassembleSection(void*         i_image,
 
                         if (sectionId == P9_XIP_SECTION_RINGS)
                         {
-                            sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                            sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                                    "WARNING: %s (rc=%i) -> Trying data disasm mode. Check code, xyzRingLayout structures and image section.\n",
                                                    image_inline_error_strings[rc], rc);
                         }
                         else
                         {
-                            sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                            sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                                    "WARNING: %s (rc=%i) -> Trying data disasm mode.\n",
                                                    image_inline_error_strings[rc], rc);
                         }
@@ -2333,14 +2330,14 @@ int disassembleSection(void*         i_image,
                 do
                 {
                     rc = image_inline_disassemble( &ctx, &dis);
-                    sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE, "%s\n", dis.s);
+                    sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX, "%s\n", dis.s);
                     sizeList = sizeList + sizeDisLine;
                     disList = strcat(disList, lineDis);
 
                     if (rc)
                     {
                         rcSet = rcSet | 0x4;
-                        sizeDisLine = snprintf(lineDis, LISTING_STRING_SIZE,
+                        sizeDisLine = snprintf(lineDis, LINE_SIZE_MAX,
                                                "WARNING: %s (rc=%i) -> Stopping disasm. Check code and sectionID=%i.\n",
                                                image_inline_error_strings[rc], rc, sectionId);
                         sizeList = sizeList + sizeDisLine;
