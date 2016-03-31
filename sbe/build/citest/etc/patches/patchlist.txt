@@ -8,7 +8,3 @@
 RTC: 144728
 Files : pervasive.act.patch. Currently SUET does not support FSIMBOX KW. Once
         support is in, remove this patch.
-
-RTC: 148318
-Files : p9regs.chip.patch. Some scom definitions are missing in the CMVC backing
-        builds. This patch can be removde once we have those in a CMVC driver.

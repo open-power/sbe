@@ -7,10 +7,7 @@
 #echo "+++ Updating something wonderful in a simics file"
 #mkdir -p $sb/simu/data/cec-chip/
 #cp $BACKING_BUILD/src/simu/data/cec-chip/base_cec_chip_file $sb/simu/data/cec-chip
-#patch -p0 $sb/simu/data/cec-chip/base_cec_chip_file $HOSTBOOTROOT/src/build/citest/etc/patches/my_patch_File
+#patch -p0 $sb/simu/data/cec-chip/base_cec_chip_file $SBEROOT/src/build/citest/etc/patches/my_patch_File
 
 echo "+++ Add FSIMBOX KW for actions on 50018 register"
 patch -p0 $sb/simu/data/cec-chip/pervasive.act $SBEROOT/sbe/build/citest/etc/patches/pervasive.act.patch
-echo "+++ Patching scomdef file"
-cp $BACKING_BUILD/src/simu/data/cec-chip/p9regs.chip $SANDBOXBASE/src/simu/data/cec-chip
-patch -p0 $sb/simu/data/cec-chip/p9regs.chip $SBEROOT/sbe/build/citest/etc/patches/p9regs.chip.patch

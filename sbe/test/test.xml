@@ -7,22 +7,9 @@
         <test>
            <!-- Set IVPR to point to sbe start address ( currently PIBMEM) -->
           <testcase>
-              <simcmd>p9Proc0.sbe.mibo_space.write 0xc0000160 0x8000100000000000 8 -b</simcmd>
+              <simcmd>p9Proc0.proc_chip.invoke parallel_store FSIMBOX 0x01 \"80000000\" 32</simcmd>
               <exitonerror>yes</exitonerror>
           </testcase>
-          <testcase>
-              <simcmd>p9Proc0.sbe.mibo_space.write 0xc00e0000 0x5000000000000000 8 -b</simcmd>
-              <exitonerror>yes</exitonerror>
-          </testcase>
-          <testcase>
-              <simcmd>sim->frontend_current_processor = p9Proc0.sbe.ppe</simcmd>
-              <exitonerror>yes</exitonerror>
-          </testcase>
-          <!-- Workaround to set clock regs. Once simics have fix, we can remove it -->
-          <testcase>
-            <simcmd>p9Proc0.proc_chip.invoke parallel_store LOGIC 0xffc50000 \"00000000_00000001\" 64</simcmd>
-          </testcase>
-      <!-- Write value to a register and than read it back -->
            <!-- Register SBE tools -->
           <testcase>
               <simcmd>run-python-file targets/p9_nimbus/sbeTest/simics-debug-framework.py</simcmd>

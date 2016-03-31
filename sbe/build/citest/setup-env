@@ -20,7 +20,7 @@ then
     export SANDBOXROOT=${SBEROOT}
 fi
 
-if [ -z $SANDBOXNAME ] || [ $RUNNING_UNDER_JENKINS -eq 1 ];
+if [ -z $SANDBOXNAME ] || [ "$RUNNING_UNDER_JENKINS" = "1" ];
 then
     export SANDBOXNAME=${SBECI_SANDBOX}
 fi
