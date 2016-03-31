@@ -38,6 +38,7 @@ INCLUDES += -I ../../pk/trace/
 INCLUDES += -I ../../tools/ppetracepp/
 INCLUDES += -I ../../import/hwpf/fapi2/include/
 INCLUDES += -I ../../import/chips/p9/xip/
+INCLUDES += -I ../../import/tools/imageProcs/
 
 # Under Linux the scheme is to use a common compiler to create procedures.
 # However, the common compiler can be VERY slow, so if the system compiler is
