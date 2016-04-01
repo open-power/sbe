@@ -156,12 +156,7 @@ static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
              { &istepWithProc, { .procHwp = &p9_sbe_fabricinit }},
              { &istepNoOp, NULL }, // TODO via RTC 120752
                                    // FW proc_sbe_check_master
-             // TODO via RTC 142710
-             // mcs_setup does not compile currently as MI target support
-             // is not present. So currently this istep has neem made NoOp
-             // in this code
-             //{ &istepWithProc, { .procHwp = &p9_sbe_mcs_setup }},
-             { &istepNoOp, NULL }, // mcs_setup does not compile currently
+             { &istepWithProc, { .procHwp = &p9_sbe_mcs_setup }},
              { &istepSelectEx, NULL },
          };
 static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
