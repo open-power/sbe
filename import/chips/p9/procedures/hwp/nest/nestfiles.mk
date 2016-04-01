@@ -6,7 +6,7 @@
 # Object Files
 ##########################################################################
 
-#NEST-CPP-SOURCES = p9_sbe_mcs_setup.C
+NEST-CPP-SOURCES = p9_sbe_mcs_setup.C
 NEST-CPP-SOURCES +=p9_sbe_scominit.C
 NEST-CPP-SOURCES +=p9_sbe_fabricinit.C
 NEST-CPP-SOURCES +=p9_fbc_utils.C
