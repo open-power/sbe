@@ -16,6 +16,25 @@ fi
 # Create test directory.
 mkdir -p $SBETESTDIR || exit -1
 
+# Create test directory.
+mkdir -p $SBEFW_IMG_DIR || exit -1
+mkdir -p $SBEFW_SB_XIP_DIR || exit -1
+
+# Copy sbe binaries
+cp  $SBEROOT/sbe/obj/*.bin $SBEFW_IMG_DIR/ || exit -1
+cp  $SBEROOT/sbe/obj/simics.tar $SBEFW_DIR/ || exit -1
+# Copy XIP binary binaries
+cp  $SBEROOT/import/chips/p9/xip/bin/p9_xip_tool $SBEFW_SB_XIP_DIR/ || exit -1
+# Compile sbe code in sandbox to copy binaries at right place
+echo "---Setup sandbox for sbe binaries."
+
+execute_in_sandbox "cd $SBEFW_DIR; mk -a" \
+                   "ppc" || exit -1
+
+execute_in_sandbox "cd $SBEFW_DIR; mk install_all" \
+                   "ppc" || exit -1
+
+
 # Copy test files.
 cp  $SBEROOT/sbe/test/* $SBETESTDIR/ || exit -1
 

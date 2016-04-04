@@ -1,13 +1,11 @@
 import sys
-sys.path.append("targets/p9_nimbus/sbeTest" )
-import testUtil
 from sim_commands import *
+import imp
 err = False
-
+testUtil = imp.load_source("testUtil", os.environ['SBE_TOOLS_PATH'] + "/testUtil.py")
 EXPDATA = [0xc0,0xde,0xa1,0x01,
            0x0,0x0,0x0,0x0,
            0x00,0x0,0x0,0x03];
-
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
 def sbe_istep_func( major, minor ):

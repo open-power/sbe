@@ -2,8 +2,7 @@
 
 export CITESTPATH=${SBEROOT}/sbe/build/citest
 export PATH=${CITESTPATH}:${PATH}
-export SBE_IMG_OUT_LOC=${SBEROOT}/sbe/obj;
-export SBE_IMG_BIN_LOC=${SBEROOT}/sbe/obj;
+
 # If we are running under Jenkins we need to pick a random-ish sandbox name
 # so that the autoipl tools do not have a /tmp name collision.
 if [ -z $JOB_NAME -o -z $BUILD_NUMBER ];
@@ -31,7 +30,6 @@ if [ -z $SANDBOXRC ];
 then
     export SANDBOXRC=${SANDBOXROOT}/sbesandboxrc
 fi
-
 # Useful utility function.
 execute_in_sandbox()
 {
@@ -55,6 +53,9 @@ export -f execute_in_sandbox
 export MACHINE=${MACHINE:-$DEFAULT_MACHINE}
 
 export SBETESTDIR=$SANDBOXBASE/simics/targets/p9_nimbus/sbeTest
+export SBEFW_DIR=$SANDBOXBASE/src/sbei/sbfw/
+export SBEFW_IMG_DIR=$SANDBOXBASE/src/sbei/sbfw/img
+export SBEFW_SB_XIP_DIR=$SANDBOXBASE/obj/ppc/hwsv/server/buildhwpf2/hwpf2/tools/
 export AUTOSIM_FFDC_XML=$SBETESTDIR/ffdc.xml
 export SBE_TEST_XML=$SBETESTDIR/test.xml
 # Indicate we setup the CI environment.

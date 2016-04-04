@@ -5,14 +5,9 @@
 		<machine>%%machine%%</machine>
 
         <test>
-           <!-- Set IVPR to point to sbe start address ( currently PIBMEM) -->
+           <!-- Set IVPR to point to sbe start address -->
           <testcase>
               <simcmd>p9Proc0.proc_chip.invoke parallel_store FSIMBOX 0x01 \"80000000\" 32</simcmd>
-              <exitonerror>yes</exitonerror>
-          </testcase>
-           <!-- Register SBE tools -->
-          <testcase>
-              <simcmd>run-python-file targets/p9_nimbus/sbeTest/simics-debug-framework.py</simcmd>
               <exitonerror>yes</exitonerror>
           </testcase>
           <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
