@@ -39,6 +39,7 @@ SECTIONS
 
    // Other read-only data.
     
+    . = ALIGN(8);
     .rodata . : { ctor_start_address = .;
                   *(.ctors) *(.ctors.*)
                   ctor_end_address = .;
@@ -67,6 +68,7 @@ SECTIONS
    .rela   . : { *(.rela*) } > sram
    .rwdata . : { *(.data*) *(.bss*) } > sram
 
+    . = ALIGN(8);
    _PK_INITIAL_STACK_LIMIT = .;
    . = . + INITIAL_STACK_SIZE;
    _PK_INITIAL_STACK = . - 1;
