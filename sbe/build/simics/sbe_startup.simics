@@ -2,6 +2,10 @@ echo "Attempting to register SBE Tools"
 
 # Load SBE debug tools.
 try {
+    $sbe_startup_path = (lookup-file sbfw/simics-debug-framework.py);
+    $sbe_script_location = (python "''.join(map('/'.__add__,\""+$sbe_startup_path+"\"[1:].split('/')[0:-1]))")
+    python "os.environ['SBE_TOOLS_PATH'] = \""+$sbe_script_location+"\""
+    echo $sbe_script_location;
     run-python-file (lookup-file sbfw/simics-debug-framework.py)
 } except { echo "ERROR: Failed to load SBE debug tools." }
 
