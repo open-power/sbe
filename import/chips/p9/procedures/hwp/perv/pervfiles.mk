@@ -39,6 +39,9 @@ PERV-CPP-SOURCES +=p9_sbe_common.C
 PERV-CPP-SOURCES +=p9_sbe_gear_switcher.C
 PERV-CPP-SOURCES +=p9_sbe_check_master_stop15.C
 PERV-CPP-SOURCES +=p9_ram_core.C
+PERV-CPP-SOURCES +=p9_hcd_cache_dcc_skewadjust_setup.C
+PERV-CPP-SOURCES +=p9_sbe_setup_boot_freq.C
+PERV-CPP-SOURCES +=p9_sbe_io_initf.C
 
 PERV-C-SOURCES =
 PERV-S-SOURCES =
