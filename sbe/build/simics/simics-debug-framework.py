@@ -25,10 +25,10 @@ def register_sbe_debug_framework_tools():
                  short = "Runs the debug framework for istep ",
                  doc = "")
     new_command("sbe-trace", collectTrace,
-                 args = [],
+                 args = [arg(int_t, "procNr")],
                  alias = "strace",
                  type = ["sbe-commands"],
-                 short = "Runs the debug framework for istep ",
+                 short = "Runs the debug framework for trace ",
                  doc = "")
     print "SBE Debug Framework: Registered tool:", "sbe-istep"
     print "SBE Debug Framework: Registered tool:", "sbe-trace"
@@ -44,11 +44,12 @@ def fillSymTable():
         if( len(words) == 3):
             syms[words[2]] = words[0]
 
-def collectTrace():
-  cmd1 = "pipe \"p9Proc0.sbe.mibo_space.x 0x"  + syms['g_pk_trace_buf'] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
+def collectTrace ( procNr ):
+  fileName = "sbe_" + `procNr` + "_tracMERG"
+  cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x"  + syms['g_pk_trace_buf'] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
-  cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/trexStringFile sbetrace.bin > tracMERG \""
-  cmd4 = "shell \"" + "cat tracMERG \""
+  cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/trexStringFile sbetrace.bin >" +  fileName + "\""
+  cmd4 = "shell \"" + "cat " + fileName + "\""
 
   ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
   if ( rc ):

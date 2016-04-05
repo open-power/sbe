@@ -3,7 +3,7 @@
     <test>
     <subtest>
         <testcase>
-            <simcmd>sbe-trace</simcmd>
+            <simcmd>sbe-trace 0</simcmd>
         </testcase>
         <testcase>
             <simcmd>p9Proc0.sbe.ppe->ppe_state</simcmd>
