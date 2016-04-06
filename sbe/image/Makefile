@@ -226,9 +226,9 @@ all:
 	@echo "Makefile option error:  ALL is not compatible with FAPI2_test"
 endif
 
-.PHONY: all normalize defaultset appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols appendoverrides
+.PHONY: all normalize defaultset appendbase appendloader add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols appendoverrides report
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader appendoverrides add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash buildinfo
+all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendbase appendloader appendoverrides add_L1_LoaderAddr add_L2_LoaderAddr add_kernelAddr symbols tracehash buildinfo report
 
 buildinfo: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_date `date +%Y%m%d`
@@ -250,7 +250,12 @@ symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/$(IMAGE_LOADER_NAME).out 
 	$(NM) $(OBJDIR)/$(IMAGE_LOADER_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
 	$(NM) $(OBJDIR)/$(IMAGE_SBE_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
 
+# this target is broken, since the image report should be created
+# when the xip image has been finalised
 seeprom: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
+
+report: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
 
 # Create build Info file
