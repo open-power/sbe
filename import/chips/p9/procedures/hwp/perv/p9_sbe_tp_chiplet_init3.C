@@ -104,6 +104,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //Setting ROOT_CTRL2 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
     l_data64.clearBit<16>();  //PIB.ROOT_CTRL2.ROOT_CTRL2_16_FREE_USAGE = 0
+    l_data64.clearBit<18>();  //Clear PFET Force Off
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
 
     //TOD error reg;
