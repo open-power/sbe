@@ -65,8 +65,9 @@
 
 enum P9_HCD_CORE_STARTCLOCKS_CONSTANTS
 {
-    CORE_CLK_SYNC_TIMEOUT_IN_MS = 1,
-    CORE_CLK_START_TIMEOUT_IN_MS = 1
+    CORE_CLK_SYNC_TIMEOUT_IN_MS       = 1,
+    CORE_CLK_START_TIMEOUT_IN_MS      = 1,
+    CORE_CLK_ALIGN_DELAY_CACHE_CYCLES = 255
 };
 
 //------------------------------------------------------------------------------
@@ -80,12 +81,34 @@ p9_hcd_core_startclocks(
     FAPI_INF(">>p9_hcd_core_startclocks");
     fapi2::buffer<uint64_t>                     l_data64;
     uint32_t                                    l_timeout;
+    uint32_t                                    l_attr_pg;
+    uint8_t                                     l_attr_chip_unit_pos;
+    uint8_t                                     l_attr_system_ipl_phase;
+    uint8_t                                     l_attr_runn_mode;
     fapi2::Target<fapi2::TARGET_TYPE_EQ>        l_quad =
         i_target.getParent<fapi2::TARGET_TYPE_EQ>();
+    fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
+        i_target.getParent<fapi2::TARGET_TYPE_PERV>();
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MODE,        l_sys,
+                           l_attr_runn_mode));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
+                           l_attr_system_ipl_phase));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG,               l_perv,
+                           l_attr_pg));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,    l_perv,
+                           l_attr_chip_unit_pos));
+    l_attr_chip_unit_pos = (l_attr_chip_unit_pos -
+                            p9hcd::PERV_TO_CORE_POS_OFFSET) % 4;
 
     // ----------------------------
     // Prepare to start core clocks
     // ----------------------------
+
+    /// @todo add DD1 attribute control
+    FAPI_DBG("DD1 only: set sdis_n(flushing LCBES condition workaround");
+    FAPI_TRY(putScom(i_target, C_CPLT_CONF0_OR, MASK_SET(34)));
 
     FAPI_DBG("Set inop_align/wait/wait_cycles via OPCG_ALIGN[0-3,12-19,52-63]");
     FAPI_TRY(getScom(i_target, C_OPCG_ALIGN, l_data64));
@@ -95,8 +118,8 @@ p9_hcd_core_startclocks(
     FAPI_TRY(putScom(i_target, C_OPCG_ALIGN, l_data64));
 
     /// @todo partial good information via attribute, drop all fences for now
-    FAPI_DBG("Drop partial good fences via CPLT_CTRL1[3-14]");
-    FAPI_TRY(putScom(i_target, C_CPLT_CTRL1_CLEAR, 0x0E00000000000000));
+    FAPI_DBG("Drop partial good fences via CPLT_CTRL1[4-13]");
+    FAPI_TRY(putScom(i_target, C_CPLT_CTRL1_CLEAR, MASK_CLR(4, 11, 0x7FF)));
 
     FAPI_DBG("Drop vital fence via CPLT_CTRL1[3]");
     FAPI_TRY(putScom(i_target, C_CPLT_CTRL1_CLEAR, MASK_SET(3)));
@@ -140,6 +163,12 @@ p9_hcd_core_startclocks(
     FAPI_TRY(putScom(i_target, C_SYNC_CONFIG, DATA_SET(7)));
     FAPI_TRY(putScom(i_target, C_SYNC_CONFIG, DATA_UNSET(7)));
 
+    FAPI_TRY(fapi2::delay(
+                 CORE_CLK_ALIGN_DELAY_CACHE_CYCLES * p9hcd::CLK_PERIOD_CORE2CACHE *
+                 p9hcd::CLK_PERIOD_250PS / 1000,
+                 CORE_CLK_ALIGN_DELAY_CACHE_CYCLES * p9hcd::CLK_PERIOD_CORE2CACHE *
+                 p9hcd::SIM_CYCLE_4U4D));
+
     FAPI_DBG("Poll for core chiplet aligned");
     l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
                 CORE_CLK_START_TIMEOUT_IN_MS;
@@ -159,8 +188,6 @@ p9_hcd_core_startclocks(
     FAPI_DBG("Drop force_align via CPLT_CTRL0[3]");
     FAPI_TRY(putScom(i_target, C_CPLT_CTRL0_CLEAR, MASK_SET(3)));
 
-    FAPI_TRY(fapi2::delay(0, 900));
-
     // -------------------------------
     // Start core clocks
     // -------------------------------
@@ -168,38 +195,48 @@ p9_hcd_core_startclocks(
     FAPI_DBG("Clear all bits prior start core clocks via SCAN_REGION_TYPE");
     FAPI_TRY(putScom(i_target, C_SCAN_REGION_TYPE, MASK_ZERO));
 
-    FAPI_DBG("Start core clocks(arrays+nsl clock region) via CLK_REGION");
-    l_data64 = p9hcd::CLK_START_REGION_ALL_THOLD_NSL_ARY;
-    FAPI_TRY(putScom(i_target, C_CLK_REGION, l_data64));
-
-    /// @todo parameterize delay
-    FAPI_TRY(fapi2::delay(0, 1000000));
-
-    FAPI_DBG("Start core clocks(sl+refresh clock region) via CLK_REGION");
-    l_data64 = p9hcd::CLK_START_REGION_ALL_THOLD_ALL;
-    FAPI_TRY(putScom(i_target, C_CLK_REGION, l_data64));
-
-    FAPI_DBG("Poll for core clocks running via CLOCK_STAT_SL[4-14]");
-    l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
-                CORE_CLK_START_TIMEOUT_IN_MS;
-
-    do
+    if (!l_attr_runn_mode)
     {
-        FAPI_TRY(getScom(i_target, C_CLOCK_STAT_SL, l_data64));
-    }
-    while(((l_data64 & BITS64(4, 11)) != 0) && ((--l_timeout) != 0));
 
-    FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_CORECLKSTART_TIMEOUT().set_CORECLKSTAT(l_data64),
-                "Core Clock Start Timeout");
-    FAPI_DBG("Core clocks running now");
+        FAPI_DBG("Start core clocks(all but pll) via CLK_REGION");
+        l_data64 = (p9hcd::CLK_START_CMD          |
+                    p9hcd::CLK_REGION_ALL_BUT_PLL |
+                    p9hcd::CLK_THOLD_ALL);
+        FAPI_TRY(putScom(i_target, C_CLK_REGION, l_data64));
+
+        FAPI_DBG("Poll for core clocks running via CPLT_STAT0[8]");
+        l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
+                    CORE_CLK_START_TIMEOUT_IN_MS;
+
+        do
+        {
+            FAPI_TRY(getScom(i_target, C_CPLT_STAT0, l_data64));
+        }
+        while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
+
+        FAPI_ASSERT((l_timeout != 0),
+                    fapi2::PMPROC_CORECLKSTART_TIMEOUT().set_CORECPLTSTAT(l_data64),
+                    "Core Clock Start Timeout");
+
+        FAPI_DBG("Check core clocks running via CLOCK_STAT_SL[4-13]");
+        FAPI_TRY(getScom(i_target, C_CLOCK_STAT_SL, l_data64));
+
+        FAPI_ASSERT(((l_data64 & p9hcd::CLK_REGION_ALL_BUT_PLL) == 0),
+                    fapi2::PMPROC_CORECLKSTART_FAILED().set_CORECLKSTAT(l_data64),
+                    "Core Clock Start Failed");
+        FAPI_DBG("Core clocks running now");
+
+    }
 
     // -------------------------------
     // Cleaning up
     // -------------------------------
 
-    FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
-    FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(18)));
+    if ((~l_attr_pg) & BITS32(4, 11))
+    {
+        FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
+        FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(18)));
+    }
 
     /// @todo ignore xstop checkstop in sim, review for lab
     /*
@@ -213,17 +250,15 @@ p9_hcd_core_startclocks(
     FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
     FAPI_TRY(putScom(i_target, C_CPLT_CTRL0_CLEAR, MASK_SET(2)));
 
-    FAPI_TRY(getScom(l_quad, EQ_CPLT_STAT0, l_data64));
-    FAPI_ASSERT(((l_data64 & BIT64(9)) != 1),
-                fapi2::PMPROC_QUADCPLTALIGN_FAILED()
-                .set_QUADCPLTSTAT0(l_data64),
-                "Quad Chiplets Is Not Aligned");
-
-    FAPI_TRY(getScom(i_target, C_CPLT_STAT0, l_data64));
-    FAPI_ASSERT(((l_data64 & BIT64(9)) != 1),
-                fapi2::PMPROC_CORECPLTALIGN_FAILED()
-                .set_CORECPLTSTAT0(l_data64),
-                "Core Chiplets Is Not Aligned");
+    if (!l_attr_runn_mode && l_attr_system_ipl_phase != 0x4/*CACHE_CONTAINED*/)
+    {
+        FAPI_DBG("Drop Core-L2/CC Quiesces via CME_SCOM_SICR[6,8]/[7,9]");
+        FAPI_TRY(putScom(l_quad,
+                         (l_attr_chip_unit_pos < 2) ?
+                         EX_0_CME_SCOM_SICR_CLEAR : EX_1_CME_SCOM_SICR_CLEAR,
+                         (BIT64(6 + (l_attr_chip_unit_pos % 2)) |
+                          BIT64(8 + (l_attr_chip_unit_pos % 2)))));
+    }
 
 fapi_try_exit:
 

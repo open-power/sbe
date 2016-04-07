@@ -66,8 +66,9 @@
 
 enum P9_HCD_CACHE_STARTCLOCKS_CONSTANTS
 {
-    CACHE_CLK_SYNC_TIMEOUT_IN_MS = 1,
-    CACHE_CLK_START_TIMEOUT_IN_MS = 1
+    CACHE_CLK_SYNC_TIMEOUT_IN_MS        = 1,
+    CACHE_CLK_START_TIMEOUT_IN_MS       = 1,
+    CACHE_CLK_ALIGN_DELAY_CACHE_CYCLES  = 255
 };
 
 //------------------------------------------------------------------------------
@@ -81,24 +82,33 @@ p9_hcd_cache_startclocks(
     FAPI_INF(">>p9_hcd_cache_startclocks");
     fapi2::buffer<uint64_t>                     l_qcsr;
     fapi2::buffer<uint64_t>                     l_data64;
-    uint64_t                                    l_l2sync_clock;
     uint64_t                                    l_region_clock;
+    uint64_t                                    l_l2sync_clock;
+    uint64_t                                    l_l2pscom_mask;
+    uint64_t                                    l_l3pscom_mask;
     uint32_t                                    l_timeout;
     uint32_t                                    l_attr_system_id     = 0;
     uint8_t                                     l_attr_group_id      = 0;
     uint8_t                                     l_attr_chip_id       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
+    uint8_t                                     l_attr_system_ipl_phase;
+    uint32_t                                    l_attr_pg;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
         i_target.getParent<fapi2::TARGET_TYPE_PERV>();
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>    l_sys;
 
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE,      l_sys,
+                           l_attr_system_ipl_phase));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,  l_chip,
                            l_attr_group_id));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID,   l_chip,
                            l_attr_chip_id));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID, l_chip,
                            l_attr_system_id));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG,                    l_perv,
+                           l_attr_pg));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,         l_perv,
                            l_attr_chip_unit_pos));
     l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_EQ_POS_OFFSET;
@@ -110,9 +120,17 @@ p9_hcd_cache_startclocks(
     // -----------------------------
     // Prepare to start cache clocks
     // -----------------------------
+    // QCCR[0/4] EDRAM_ENABLE_DC
+    // QCCR[1/5] EDRAM_VWL_ENABLE_DC
+    // QCCR[2/6] L3_EX0/1_EDRAM_VROW_VBLH_ENABLE_DC
+    // QCCR[3/7] EDRAM_VPP_ENABLE_DC
+    // 0x0 -> 0x8 -> 0xC -> 0xE -> 0xF to turn on edram
+    // stagger EDRAM turn-on per EX (not both at same time)
 
-    l_region_clock = p9hcd::CLK_REGION_ALL_BUT_EX_DPLL;
+    l_region_clock = p9hcd::CLK_REGION_ALL_BUT_EX_ANEP_DPLL;
     l_l2sync_clock = 0;
+    l_l2pscom_mask = 0;
+    l_l3pscom_mask = 0;
 
     if (l_qcsr & BIT64(l_attr_chip_unit_pos << 1))
     {
@@ -127,6 +145,11 @@ p9_hcd_cache_startclocks(
         FAPI_TRY(fapi2::delay(4000, 200));
         FAPI_TRY(putScom(i_target, EQ_QPPM_QCCR_WOR, MASK_SET(3)));
         FAPI_TRY(fapi2::delay(1000, 200));
+    }
+    else
+    {
+        l_l2pscom_mask |= (BIT64(2) | BIT64(10));
+        l_l3pscom_mask |= (BIT64(4) | BIT64(6) | BIT64(8));
     }
 
     if (l_qcsr & BIT64((l_attr_chip_unit_pos << 1) + 1))
@@ -143,6 +166,14 @@ p9_hcd_cache_startclocks(
         FAPI_TRY(putScom(i_target, EQ_QPPM_QCCR_WOR, MASK_SET(7)));
         FAPI_TRY(fapi2::delay(1000, 200));
     }
+    else
+    {
+        l_l2pscom_mask |= (BIT64(3) | BIT64(11));
+        l_l3pscom_mask |= (BIT64(5) | BIT64(7) | BIT64(9));
+    }
+
+    FAPI_DBG("Assert cache EX1 ID bit2 via CPLT_CTRL0[6]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_OR, MASK_SET(6)));
 
     FAPI_DBG("Set inop_align/wait/wait_cycles via OPCG_ALIGN[0-3,12-19,52-63]");
     FAPI_TRY(getScom(i_target, EQ_OPCG_ALIGN, l_data64));
@@ -151,8 +182,9 @@ p9_hcd_cache_startclocks(
     insertFromRight<52, 12>(0x10);
     FAPI_TRY(putScom(i_target, EQ_OPCG_ALIGN, l_data64));
 
-    FAPI_DBG("Drop partial good fences via CPLT_CTRL1[3-14]");
-    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, l_region_clock));
+    FAPI_DBG("Drop partial good fences via CPLT_CTRL1[4,5,6/7,8/9,10,11,12/13]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR,
+                     (l_region_clock | p9hcd::CLK_REGION_ANEP)));
 
     FAPI_DBG("Drop vital fence via CPLT_CTRL1[3]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, MASK_SET(3)));
@@ -202,6 +234,12 @@ p9_hcd_cache_startclocks(
     FAPI_TRY(putScom(i_target, EQ_SYNC_CONFIG, DATA_SET(7)));
     FAPI_TRY(putScom(i_target, EQ_SYNC_CONFIG, DATA_UNSET(7)));
 
+    FAPI_TRY(fapi2::delay(
+                 CACHE_CLK_ALIGN_DELAY_CACHE_CYCLES * p9hcd::CLK_PERIOD_CORE2CACHE *
+                 p9hcd::CLK_PERIOD_250PS / 1000,
+                 CACHE_CLK_ALIGN_DELAY_CACHE_CYCLES * p9hcd::CLK_PERIOD_CORE2CACHE *
+                 p9hcd::SIM_CYCLE_4U4D));
+
     FAPI_DBG("Poll for cache chiplet aligned");
     l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
                 CACHE_CLK_START_TIMEOUT_IN_MS;
@@ -221,8 +259,6 @@ p9_hcd_cache_startclocks(
     FAPI_DBG("Drop force_align via CPLT_CTRL0[3]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_CLEAR, MASK_SET(3)));
 
-    FAPI_TRY(fapi2::delay(0, 900));
-
     // -------------------------------
     // Start cache clocks
     // -------------------------------
@@ -230,38 +266,43 @@ p9_hcd_cache_startclocks(
     FAPI_DBG("Clear all bits prior start cache clocks via SCAN_REGION_TYPE");
     FAPI_TRY(putScom(i_target, EQ_SCAN_REGION_TYPE, MASK_ZERO));
 
-    FAPI_DBG("Start cache clocks(arrays+nsl clock region) via CLK_REGION");
-    l_data64 = p9hcd::CLK_START_REGION_NONE_THOLD_NSL_ARY | l_region_clock;
+    FAPI_DBG("Start cache clocks(all but anep+dpll) via CLK_REGION");
+    l_data64 = (p9hcd::CLK_START_CMD |
+                l_region_clock       |
+                p9hcd::CLK_THOLD_ALL);
     FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
 
-    /// @todo parameterize delay
-    FAPI_TRY(fapi2::delay(0, 1000000));
-
-    FAPI_DBG("Start cache clocks(sl+refresh clock region) via CLK_REGION");
-    l_data64 = p9hcd::CLK_START_REGION_NONE_THOLD_ALL | l_region_clock;
-    FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
-
-    FAPI_DBG("Poll for cache clocks running via CLOCK_STAT_SL[4-14]");
+    FAPI_DBG("Poll for cache clocks running via CPLT_STAT0[8]");
     l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
                 CACHE_CLK_START_TIMEOUT_IN_MS;
 
     do
     {
-        FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_SL, l_data64));
+        FAPI_TRY(getScom(i_target, EQ_CPLT_STAT0, l_data64));
     }
-    while(((l_data64 & l_region_clock) != 0) && ((--l_timeout) != 0));
+    while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
 
     FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_CACHECLKSTART_TIMEOUT().set_EQCLKSTAT(l_data64),
+                fapi2::PMPROC_CACHECLKSTART_TIMEOUT().set_EQCPLTSTAT(l_data64),
                 "Cache Clock Start Timeout");
+
+    FAPI_DBG("Check cache clocks running");
+    FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_SL, l_data64));
+
+    FAPI_ASSERT(((l_data64 & l_region_clock) == 0),
+                fapi2::PMPROC_CACHECLKSTART_FAILED().set_EQCLKSTAT(l_data64),
+                "Cache Clock Start Failed");
     FAPI_DBG("Cache clocks running now");
 
     // -------------------------------
     // Cleaning up
     // -------------------------------
 
-    FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
-    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(18)));
+    if (((~l_attr_pg) & BITS32(4, 11)) && l_attr_system_ipl_phase != 4)
+    {
+        FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
+        FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(18)));
+    }
 
     /// @todo ignore xstop checkstop in sim, review for lab
     /*
@@ -274,6 +315,10 @@ p9_hcd_cache_startclocks(
 
     FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_CLEAR, MASK_SET(2)));
+
+    FAPI_DBG("Drop partial good and assert partial bad L2/L3 pscom masks");
+    l_data64 = (l_l2pscom_mask | l_l3pscom_mask);
+    FAPI_TRY(putScom(i_target, EQ_RING_FENCE_MASK_LATCH_REG, l_data64));
 
 fapi_try_exit:
 

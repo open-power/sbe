@@ -51,6 +51,27 @@
 // Constant Definitions
 //------------------------------------------------------------------------------
 
+enum P9_HCD_CORE_CHIPLET_RESET_CONSTANTS
+{
+    // (1)PCB_EP_RESET
+    // (2)CLK_ASYNC_RESET
+    // (3)PLL_TEST_EN
+    // (4)PLLRST
+    // (5)PLLBYP
+    // (11)EDIS
+    // (12)VITL_MPW1
+    // (13)VITL_MPW2
+    // (14)VITL_MPW3
+    // (16)VITL_THOLD
+    // (18)FENCE_EN
+    // (22)FUNC_CLKSEL
+    // (25)PCB_FENCE
+    // (26)LVLTRANS_FENCE
+    C_NET_CTRL0_INIT_VECTOR = (BIT64(1) | BITS64(3, 3) | BITS64(11, 4) |
+                               BIT64(16) | BIT64(18) | BIT64(22) | BITS64(25, 2)),
+    CORE_GLSMUX_RESET_DELAY_CORE_CYCLES = 200
+};
+
 //------------------------------------------------------------------------------
 // Procedure: Core Chiplet Reset
 //------------------------------------------------------------------------------
@@ -68,8 +89,8 @@ p9_hcd_core_chiplet_reset(
     // If there is an unused, powered-off core chiplet which needs to be
     // configured in the following steps to setup the PCB endpoint.
 
-    FAPI_DBG("Init NET_CTRL0[1,3-5,11-14,18,22,26],step needed for hotplug");
-    l_data64 = p9hcd::C_NET_CTRL0_INIT_VECTOR;
+    FAPI_DBG("Init NET_CTRL0[1,3-5,11-14,16,18,22,25,26],step needed for hotplug");
+    l_data64 = C_NET_CTRL0_INIT_VECTOR;
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WOR, l_data64));
     l_data64 |= BIT64(2); // make sure bit 2 is untouched
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, l_data64));
@@ -83,11 +104,14 @@ p9_hcd_core_chiplet_reset(
     FAPI_DBG("Drop vital thold via NET_CTRL0[16]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(16)));
 
-    /// @todo setup sector buffer strength, pulse mode and pulsed mode enable
+    /// @todo optional setup sector buffer strength, pulse mode and pulsed mode enable
 
     FAPI_DBG("Drop core glsmux reset via PPM_CGCR[0]");
     FAPI_TRY(putScom(i_target, C_PPM_CGCR, 0));
-    FAPI_TRY(fapi2::delay(0, 800));
+
+    FAPI_TRY(fapi2::delay(
+                 CORE_GLSMUX_RESET_DELAY_CORE_CYCLES * p9hcd::CLK_PERIOD_250PS / 1000,
+                 CORE_GLSMUX_RESET_DELAY_CORE_CYCLES * p9hcd::SIM_CYCLE_4U4D));
 
     FAPI_DBG("Flip core glsmux to DPLL via PPM_CGCR[3]");
     FAPI_TRY(putScom(i_target, C_PPM_CGCR, MASK_SET(3)));
@@ -122,17 +146,21 @@ p9_hcd_core_chiplet_reset(
 
         for(l_loop = 0; l_loop < P9_HCD_SCAN_GPTR_REPEAT; l_loop++)
             FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_perv,
-                                                  p9hcd::SCAN0_REGION_PERV_CORE,
+                                                  p9hcd::SCAN0_REGION_ALL,
                                                   p9hcd::SCAN0_TYPE_GPTR_REPR_TIME));
 
         FAPI_DBG("Scan0 region:all_but_vital type:all_but_gptr_repr_time rings");
 
         for(l_loop = 0; l_loop < P9_HCD_SCAN_FUNC_REPEAT; l_loop++)
             FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_perv,
-                                                  p9hcd::SCAN0_REGION_PERV_CORE,
+                                                  p9hcd::SCAN0_REGION_ALL,
                                                   p9hcd::SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
     }
 #endif
+
+    /// @todo add VDM_ENABLE attribute control
+    FAPI_DBG("Assert vdm enable via CPPM_VDMCR[0]");
+    FAPI_TRY(putScom(i_target, C_PPM_VDMCR_OR, MASK_SET(0)));
 
 fapi_try_exit:
 

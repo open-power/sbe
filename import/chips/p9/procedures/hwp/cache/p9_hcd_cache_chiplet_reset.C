@@ -50,6 +50,27 @@
 // Constant Definitions
 //------------------------------------------------------------------------------
 
+enum P9_HCD_CACHE_CHIPLET_RESET_CONSTANTS
+{
+    // (1)PCB_EP_RESET
+    // (2)CLK_ASYNC_RESET
+    // (3)PLL_TEST_EN
+    // (4)PLLRST
+    // (5)PLLBYP
+    // (11)EDIS
+    // (12)VITL_MPW1
+    // (13)VITL_MPW2
+    // (14)VITL_MPW3
+    // (16)VITL_THOLD
+    // (18)FENCE_EN
+    // (22)FUNC_CLKSEL
+    // (25)PCB_FENCE
+    // (26)LVLTRANS_FENCE
+    Q_NET_CTRL0_INIT_VECTOR = (BITS64(1, 5) | BITS64(11, 4) | BIT64(16) |
+                               BIT64(18) | BIT64(22) | BITS64(25, 2)),
+    CACHE_GLSMUX_RESET_DELAY_REF_CYCLES = 40
+};
+
 //------------------------------------------------------------------------------
 // Procedure: Cache Chiplet Reset
 //------------------------------------------------------------------------------
@@ -64,7 +85,6 @@ p9_hcd_cache_chiplet_reset(
     uint64_t                                    l_l2gmux_input       = 0;
     uint64_t                                    l_l2gmux_reset       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
@@ -115,12 +135,12 @@ p9_hcd_cache_chiplet_reset(
                          MASK_SET(2)));
     }
 
-    FAPI_DBG("Init heartbeat hang counter");
-    l_data64.flush<0>().setBit<2>();
-    FAPI_TRY(putScom(i_target, EQ_HANG_PULSE_6_REG, l_data64));
+    /// @todo needs to revisit this sim workaround
+    FAPI_DBG("Init heartbeat hang counter via HANG_PULSE_6[2]");
+    FAPI_TRY(putScom(i_target, EQ_HANG_PULSE_6_REG, MASK_SET(2)));
 
-    FAPI_DBG("Init NET_CTRL0[1-5,11-14,18,22,26],step needed for hotplug");
-    l_data64 = p9hcd::Q_NET_CTRL0_INIT_VECTOR;
+    FAPI_DBG("Init NET_CTRL0[1-5,11-14,16,18,22,25,26],step needed for hotplug");
+    l_data64 = Q_NET_CTRL0_INIT_VECTOR;
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0, l_data64));
 
     FAPI_DBG("Assert progdly/DCC bypass,L2 DCC reset via NET_CTRL1[1,2,23,24]");
@@ -139,11 +159,17 @@ p9_hcd_cache_chiplet_reset(
     FAPI_DBG("Drop vital thold via NET_CTRL0[16]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(16)));
 
+    /// @todo optional setup sector buffer strength, pulse mode and pulsed mode enable
+
     FAPI_DBG("Drop cache glsmux reset via PPM_CGCR[0]");
     FAPI_TRY(putScom(i_target, EQ_PPM_CGCR, MASK_SET(3)));
 
     FAPI_DBG("Drop L2 glsmux reset via QPPM_EXCGCR[32:33]");
     FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_CLEAR, l_l2gmux_reset));
+
+    FAPI_TRY(fapi2::delay(
+                 CACHE_GLSMUX_RESET_DELAY_REF_CYCLES * p9hcd::CLK_PERIOD_10NS,
+                 CACHE_GLSMUX_RESET_DELAY_REF_CYCLES * p9hcd::SIM_CYCLE_200UD));
 
     FAPI_DBG("Assert chiplet enable via NET_CTRL0[0]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR, MASK_SET(0)));
@@ -191,8 +217,11 @@ p9_hcd_cache_chiplet_reset(
 #endif
 
     /// @todo scan_with_setpulse_module(L3 DCC)
-    ///FAPI_DBG("Drop L3 DCC bypass via NET_CTRL1[1]");
-    ///FAPI_TRY(putScom(i_target, EQ_NET_CTRL1_WAND, MASK_UNSET(1)));
+    //FAPI_DBG("Drop L3 DCC bypass via NET_CTRL1[1]");
+    //FAPI_TRY(putScom(i_target, EQ_NET_CTRL1_WAND, MASK_UNSET(1)));
+    /// @todo add VDM_ENABLE attribute control
+    //FAPI_DBG("Assert vdm enable via CPPM_VDMCR[0]");
+    //FAPI_TRY(putScom(i_target, EQ_PPM_VDMCR_OR, MASK_SET(0)));
 
 fapi_try_exit:
 

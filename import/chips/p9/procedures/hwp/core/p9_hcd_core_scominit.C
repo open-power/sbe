@@ -34,6 +34,9 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
+
+#include <p9_quad_scom_addresses.H>
+#include <p9_hcd_common.H>
 #include "p9_hcd_core_scominit.H"
 
 //-----------------------------------------------------------------------------
@@ -50,12 +53,27 @@ p9_hcd_core_scominit(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
 {
     FAPI_INF(">>p9_hcd_core_scominit");
+    fapi2::buffer<uint64_t> l_data64;
 
-    /// @todo actual scom init content will be required for L3
+    /// @todo how about bit 6?
+    FAPI_DBG("Restore SYNC_CONFIG[8] for stop1");
+    FAPI_TRY(getScom(i_target, C_SYNC_CONFIG, l_data64));
+    FAPI_TRY(putScom(i_target, C_SYNC_CONFIG, DATA_SET(8)));
+
+    /// @todo set the sample pulse count (bit 6:9)
+    /// enable the appropriate loops
+    /// (needs investigation with the Perv team on the EC wiring).
+    FAPI_DBG("Enable DTS sampling via THERM_MODE_REG[5]");
+    FAPI_TRY(getScom(i_target, C_THERM_MODE_REG, l_data64));
+    FAPI_TRY(putScom(i_target, C_THERM_MODE_REG, DATA_SET(5)));
+
+    FAPI_DBG("Set core as ready to run in STOP history register");
+    FAPI_TRY(putScom(i_target, C_PPM_SSHSRC, 0));
+
+fapi_try_exit:
 
     FAPI_INF("<<p9_hcd_core_scominit");
-
-    return fapi2::FAPI2_RC_SUCCESS;
+    return fapi2::current_err;
 }
 
 
