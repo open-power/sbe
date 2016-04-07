@@ -622,4 +622,8 @@
   <entry>
            <name>ATTR_ECID</name>
   </entry>
+  <entry>
+           <name>ATTR_RUNN_MODE</name>
+           <value>0x0</value>
+  </entry>
 </entries>
