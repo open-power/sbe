@@ -112,30 +112,32 @@ p9_hcd_cache_dpll_setup(
     FAPI_DBG("Clear all bits prior start DPLL clock via SCAN_REGION_TYPE");
     FAPI_TRY(putScom(i_target, EQ_SCAN_REGION_TYPE, MASK_ZERO));
 
-    FAPI_DBG("Start DPLL clock(arrays+nsl clock region) via CLK_REGION");
-    l_data64 = p9hcd::CLK_START_REGION_DPLL_THOLD_NSL_ARY;
+    FAPI_DBG("Start DPLL clock via CLK_REGION");
+    l_data64 = (p9hcd::CLK_START_CMD   |
+                p9hcd::CLK_REGION_DPLL |
+                p9hcd::CLK_THOLD_ALL);
     FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
 
-    /// @todo parameterize delay
-    FAPI_TRY(fapi2::delay(0, 1000000));
-
-    FAPI_DBG("Start DPLL clock(sl+refresh clock region) via CLK_REGION");
-    l_data64 = p9hcd::CLK_START_REGION_DPLL_THOLD_ALL;
-    FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
-
-    FAPI_DBG("Poll for DPLL clock running via CLOCK_STAT_SL[14]");
+    FAPI_DBG("Poll for DPLL clock running via CPLT_STAT0[8]");
     l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
                 CACHE_DPLL_CLK_START_TIMEOUT_IN_MS;
 
     do
     {
-        FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_SL, l_data64));
+        FAPI_TRY(getScom(i_target, EQ_CPLT_STAT0, l_data64));
     }
-    while(((l_data64 & BIT64(14)) != 0) && ((--l_timeout) != 0));
+    while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
 
     FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_DPLLCLKSTART_TIMEOUT().set_EQCLKSTAT(l_data64),
+                fapi2::PMPROC_DPLLCLKSTART_TIMEOUT().set_EQCPLTSTAT(l_data64),
                 "DPLL Clock Start Timeout");
+
+    FAPI_DBG("Check DPLL clock running via CLOCK_STAT_SL[14]");
+    FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_SL, l_data64));
+
+    FAPI_ASSERT((l_data64.getBit<14>() == 0),
+                fapi2::PMPROC_DPLLCLKSTART_FAILED().set_EQCLKSTAT(l_data64),
+                "DPLL Clock Start Failed");
     FAPI_DBG("DPLL clock running now");
 
     // This is necessary to ensure that the DPLL is in Mode 1(ff_bypass = 1)
@@ -178,40 +180,6 @@ p9_hcd_cache_dpll_setup(
 
     FAPI_DBG("Drop skew/duty cycle adjust func_clksel via NET_CTRL0[22]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(22)));
-
-    // ----------------
-    // Start ANEP clock
-    /// @todo remove this step starting with Chip Drop DT1
-    // ----------------
-
-    FAPI_DBG("Clear all bits prior start ANEP clock via SCAN_REGION_TYPE");
-    FAPI_TRY(putScom(i_target, EQ_SCAN_REGION_TYPE, MASK_ZERO));
-
-    FAPI_DBG("Start ANEP clock(arrays+nsl clock region) via CLK_REGION");
-    l_data64 = p9hcd::CLK_START_REGION_ANEP_THOLD_NSL_ARY;
-    FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
-
-    /// @todo parameterize delay
-    FAPI_TRY(fapi2::delay(0, 1000000));
-
-    FAPI_DBG("Start ANEP clock(sl+refresh clock region) via CLK_REGION");
-    l_data64 = p9hcd::CLK_START_REGION_ANEP_THOLD_ALL;
-    FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
-
-    FAPI_DBG("Poll for ANEP clock running via CLOCK_STAT_SL[10]");
-    l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
-                CACHE_ANEP_CLK_START_TIMEOUT_IN_MS;
-
-    do
-    {
-        FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_SL, l_data64));
-    }
-    while(((l_data64 & BIT64(10)) != 0) && ((--l_timeout) != 0));
-
-    FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_ANEPCLKSTART_TIMEOUT().set_EQCLKSTAT(l_data64),
-                "ANEP Clock Start Timeout");
-    FAPI_DBG("ANEP clock running now");
 
     FAPI_DBG("Drop skew adjust reset via NET_CTRL0[2]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(2)));

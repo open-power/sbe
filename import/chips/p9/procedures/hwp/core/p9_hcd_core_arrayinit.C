@@ -35,6 +35,7 @@
 // Includes
 //------------------------------------------------------------------------------
 
+#include <p9_quad_scom_addresses.H>
 #include <p9_perv_sbe_cmn.H>
 #include <p9_hcd_common.H>
 #include "p9_hcd_core_arrayinit.H"
@@ -61,11 +62,16 @@ p9_hcd_core_arrayinit(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
 {
     FAPI_INF(">>p9_hcd_core_arrayinit");
+    fapi2::buffer<uint64_t>                     l_data64;
 
 #if not defined(P9_HCD_STOP_SKIP_FLUSH) || not defined(P9_HCD_STOP_SKIP_ARRAYINIT)
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
         i_target.getParent<fapi2::TARGET_TYPE_PERV>();
 #endif
+
+    /// @todo add DD1 attribute control
+    FAPI_DBG("DD1 only: set sdis_n(flushing LCBES condition workaround");
+    FAPI_TRY(putScom(i_target, C_CPLT_CONF0_OR, MASK_SET(34)));
 
 #ifndef P9_HCD_STOP_SKIP_ARRAYINIT
 
@@ -88,18 +94,22 @@ p9_hcd_core_arrayinit(
     // ring is defined by P9_HCD_SCAN_FUNC_REPEAT. When the design ALWAYS has
     // all stumps less than 8191, the loop can be removed.
 
-    FAPI_DBG("Scan0 region:all_but_vital type:all_but_gptr_repr_time rings");
+    FAPI_DBG("Scan0 region:all_but_pll type:all_but_gptr_repr_time rings");
 
     for(uint32_t l_loop = 0; l_loop < P9_HCD_SCAN_FUNC_REPEAT; l_loop++)
         FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_perv,
-                                              p9hcd::SCAN0_REGION_PERV_CORE,
+                                              p9hcd::SCAN0_REGION_ALL_BUT_PLL,
                                               p9hcd::SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
 
 #endif
 
-#if not defined(P9_HCD_STOP_SKIP_FLUSH) || not defined(P9_HCD_STOP_SKIP_ARRAYINIT)
+    /// @todo add DD1 attribute control
+    FAPI_DBG("DD1 only: reset sdis_n(flushing LCBES condition workaround");
+    FAPI_TRY(putScom(i_target, C_CPLT_CONF0_CLEAR, MASK_SET(34)));
+
+//#if not defined(P9_HCD_STOP_SKIP_FLUSH) || not defined(P9_HCD_STOP_SKIP_ARRAYINIT)
 fapi_try_exit:
-#endif
+//#endif
 
     FAPI_INF("<<p9_hcd_core_arrayinit");
     return fapi2::current_err;

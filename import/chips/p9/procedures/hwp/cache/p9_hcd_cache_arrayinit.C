@@ -36,6 +36,7 @@
 // Includes
 //-----------------------------------------------------------------------------
 
+#include <p9_quad_scom_addresses.H>
 #include <p9_misc_scom_addresses.H>
 #include <p9_perv_sbe_cmn.H>
 #include <p9_hcd_common.H>
@@ -94,6 +95,10 @@ p9_hcd_cache_arrayinit(
         l_region_scan0 |= p9hcd::SCAN0_REGION_EX1_L2_L3_REFR;
     }
 
+    /// @todo add DD1 attribute control
+    FAPI_DBG("DD1 only: set sdis_n(flushing LCBES condition workaround");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CONF0_OR, MASK_SET(34)));
+
 #ifndef P9_HCD_STOP_SKIP_ARRAYINIT
 
     FAPI_DBG("Arrayinit all regions except vital/DPLL");
@@ -123,6 +128,10 @@ p9_hcd_cache_arrayinit(
                                               p9hcd::SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
 
 #endif
+
+    /// @todo add DD1 attribute control
+    FAPI_DBG("DD1 only: reset sdis_n(flushing LCBES condition workaround");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CONF0_CLEAR, MASK_SET(34)));
 
 fapi_try_exit:
 
