@@ -586,8 +586,8 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_cplt_ctrl_action_function(
     FAPI_DBG("reset abistclk_muxsel and syncclk_muxsel");
     //Setting CPLT_CTRL0 register value
     l_data64.flush<0>();
-    //implicit CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 0
-    //implicit CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 0
+    l_data64.setBit<PERV_1_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
+    l_data64.setBit<PERV_1_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_CLEAR, l_data64));
 
     FAPI_INF("Exiting ...");
