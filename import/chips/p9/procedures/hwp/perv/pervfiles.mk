@@ -42,6 +42,11 @@ PERV-CPP-SOURCES +=p9_ram_core.C
 PERV-CPP-SOURCES +=p9_hcd_cache_dcc_skewadjust_setup.C
 PERV-CPP-SOURCES +=p9_sbe_setup_boot_freq.C
 PERV-CPP-SOURCES +=p9_sbe_io_initf.C
+PERV-CPP-SOURCES +=p9_sbe_gptr_time_initf.C
+PERV-CPP-SOURCES +=p9_sbe_repr_initf.C
+PERV-CPP-SOURCES +=p9_sbe_tp_gptr_time_initf.C
+PERV-CPP-SOURCES +=p9_sbe_tp_repr_initf.C
+PERV-CPP-SOURCES +=p9_sbe_clock_test2.C
 
 PERV-C-SOURCES =
 PERV-S-SOURCES =
