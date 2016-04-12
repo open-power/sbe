@@ -107,6 +107,13 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
 
     if ( l_read_reg )
     {
+
+        FAPI_DBG("Drop chiplet fence");
+        //Setting NET_CTRL0 register value
+        l_data64.flush<1>();
+        l_data64.clearBit<18>();  //NET_CTRL0.FENCE_EN = 0
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
+
         FAPI_DBG("run array_init module for all chiplet except TP, EC, EP");
         FAPI_TRY(p9_perv_sbe_cmn_array_init_module(i_target_chiplet, i_regions,
                  LOOP_COUNTER, SELECT_SRAM, SELECT_EDRAM, START_ABIST_MATCH_VALUE));
@@ -121,6 +128,13 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
                     fapi2::ABIST_DONE_ERR()
                     .set_READ_ABIST_DONE(l_read_reg),
                     "ERROR:ABIST DONE BIT NOT SET ");
+
+        FAPI_DBG("enable chiplet fence");
+        //Setting NET_CTRL0 register value
+        FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL0, l_data64));
+        l_data64.setBit<18>();  //NET_CTRL0.FENCE_EN = 1
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0, l_data64));
+
 
         while(l_timeout != 0)
         {
