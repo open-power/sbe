@@ -208,30 +208,29 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     #define SBE_FUNC " sbeSyncCommandProcessor_routine "
     SBE_ENTER(SBE_FUNC);
 
+    // Check the destination bit at the start
+    if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+    {
+        SBE_DEBUG(SBE_FUNC"Destination bit tells us to go to runtime");
+        (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(SBE_STATE_RUNTIME);
+    }
+    else if(true == SbeRegAccess::theSbeRegAccess().isIstepMode())
+    {
+        SBE_DEBUG(SBE_FUNC"Continuous IPL mode not set, will wait for "
+                "commands...");
+        (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(SBE_STATE_ISTEP);
+    }
+    else
+    {
+        sbeDoContinuousIpl();
+    }
+
     do
     {
         uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
         uint16_t l_primStatus = SBE_PRI_OPERATION_SUCCESSFUL;
-
-        // Check the destination bit
-        if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
-        {
-            SBE_DEBUG(SBE_FUNC"Destination bit tells us to go to runtime");
-            (void)SbeRegAccess::theSbeRegAccess().
-                  updateSbeState(SBE_STATE_RUNTIME);
-        }
-
-        else if(true == SbeRegAccess::theSbeRegAccess().isIstepMode())
-        {
-            SBE_DEBUG(SBE_FUNC"Continuous IPL mode not set, will wait for "
-                    "commands...");
-            (void)SbeRegAccess::theSbeRegAccess().
-                  updateSbeState(SBE_STATE_ISTEP);
-        }
-        else
-        {
-            sbeDoContinuousIpl();
-        }
 
         // Wait for new command processing
         int l_rcPk = pk_semaphore_pend (
