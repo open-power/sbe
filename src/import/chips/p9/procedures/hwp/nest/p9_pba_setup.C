@@ -58,7 +58,7 @@ extern "C"
                                    uint32_t& o_numGranules)
     {
         // mark HWP entry
-        FAPI_INF("Entering ...\n");
+        FAPI_DBG("Entering ...\n");
 
         //check arguments
         FAPI_TRY(p9_pba_coherent_utils_check_args(i_target, i_address),
@@ -88,7 +88,7 @@ extern "C"
                  "Error from p9_pba_coherent_utils_get_num_granules");
 
     fapi_try_exit:
-        FAPI_INF("Exiting...");
+        FAPI_DBG("Exiting...");
         return fapi2::current_err;
     }
 } // extern "C"
