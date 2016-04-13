@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -54,7 +54,7 @@ extern "C" {
         fapi2::ReturnCode rc1;
 
         // mark HWP entry
-        FAPI_INF("Entering ...\n");
+        FAPI_DBG("Entering ...\n");
 
         // Process input flag
         p9_PBA_oper_flag l_myPbaFlag;
@@ -103,7 +103,7 @@ extern "C" {
             fapi2::current_err = rc1;
         }
 
-        FAPI_INF("Exit ...\n");
+        FAPI_DBG("Exit ...\n");
         return fapi2::current_err;
     }
 
