@@ -262,6 +262,13 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_DBG("Setup IOP logic for PCIe chiplet");
+        FAPI_TRY(p9_sbe_chiplet_reset_pcie_iop_logic_setup(l_target_cplt));
+    }
+
+    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
                                            fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
                                            fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
@@ -305,6 +312,39 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     {
         FAPI_TRY(p9_sbe_chiplet_reset_scan0_call(l_target_cplt));
     }
+
+    FAPI_INF("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief Setup IOP logic for PCIe chiplet
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p9_sbe_chiplet_reset_pcie_iop_logic_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip)
+{
+    fapi2::buffer<uint64_t> l_data64_cplt_conf1;
+    FAPI_INF("Entering ...");
+
+    //Setting CPLT_CONF1 register value
+    l_data64_cplt_conf1.flush<0>();
+    l_data64_cplt_conf1.setBit<30>();  //CPLT_CONF1.TC_IOP_HSSPORWREN = 0b1
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF1_OR,
+                            l_data64_cplt_conf1));
+
+    fapi2::delay(p9SbeChipletReset::HW_NS_DELAY,
+                 p9SbeChipletReset::SIM_CYCLE_DELAY);
+
+    //Setting CPLT_CONF1 register value
+    l_data64_cplt_conf1.flush<0>();
+    l_data64_cplt_conf1.setBit<28>();  //CPLT_CONF1.TC_IOP_SYS_RESET_PCS = 0b1
+    l_data64_cplt_conf1.setBit<29>();  //CPLT_CONF1.TC_IOP_SYS_RESET_PMA = 0b1
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF1_OR,
+                            l_data64_cplt_conf1));
 
     FAPI_INF("Exiting ...");
 
@@ -485,10 +525,12 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_call(
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_obus(l_target_cplt, l_read_attr));
     }
 
-    FAPI_DBG("Mux settings for XB chiplet");
-    FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_xbus(
-                 i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_XBUS,
-                         fapi2::TARGET_STATE_FUNCTIONAL)[0], l_read_attr));
+    for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_DBG("Mux settings for XB chiplet");
+        FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_xbus(l_target_cplt, l_read_attr));
+    }
 
     for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
@@ -1262,6 +1304,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_scan0_call(
                                               p9SbeChipletReset::SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
         FAPI_DBG("Loop Count :%d", l_timeout);
         --l_timeout;
+
     }
 
     FAPI_INF("Exiting ...");
