@@ -1,0 +1,46 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: chips/p9/procedures/xml/attribute_info/p9_cache_contained_attributes.xml $ -->
+<!--                                                                        -->
+<!-- IBM CONFIDENTIAL                                                       -->
+<!--                                                                        -->
+<!-- EKB Project                                                            -->
+<!--                                                                        -->
+<!-- COPYRIGHT 2016                                                         -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- The source code for this program is not published or otherwise         -->
+<!-- divested of its trade secrets, irrespective of what has been           -->
+<!-- deposited with the U.S. Copyright Office.                              -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<attributes>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_RUNN_MODE</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>
+    Set to indicate clock-start/instruction execution in cache-contained
+    mode will be managed by runn
+    Provided by: platform (FW platforms init to OFF)
+  </description>
+  <valueType>uint8</valueType>
+  <platInit/>
+  <enum>OFF=0, ON=1</enum>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_RUNN_CYCLE_COUNT</id>
+  <targetType>TARGET_TYPE_EQ</targetType>
+  <description>
+    Number of clock cycles to execute in runn mode
+    Consumed by: p9_runn HWP (Cronus platform only, cache-contained mode)
+    Provided by: platform (FW platforms init to 0)
+  </description>
+  <valueType>uint64</valueType>
+  <platInit/>
+</attribute>
+<!-- ********************************************************************** -->
+</attributes>
