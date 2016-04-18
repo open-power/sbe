@@ -18,9 +18,11 @@
 // Pervasive HWP Header Files ( istep 2)
 #include <p9_sbe_attr_setup.H>
 #include <p9_sbe_tp_chiplet_init1.H>
+#include <p9_sbe_tp_gptr_time_initf.H>
 #include <p9_sbe_npll_initf.H>
 #include <p9_sbe_npll_setup.H>
 #include <p9_sbe_tp_switch_gears.H>
+#include <p9_sbe_clock_test2.H>
 #include <p9_sbe_tp_chiplet_reset.H>
 #include <p9_sbe_tp_gptr_time_repr_initf.H>
 #include <p9_sbe_tp_chiplet_init2.H>
@@ -30,15 +32,17 @@
 
 // Pervasive HWP Header Files ( istep 3)
 #include <p9_sbe_chiplet_reset.H>
+#include <p9_sbe_gptr_time_initf.H>
+#include <p9_sbe_chiplet_init.H>
 #include <p9_sbe_chiplet_pll_initf.H>
 #include <p9_sbe_chiplet_pll_setup.H>
-#include <p9_sbe_gptr_time_repr_initf.H>
-#include <p9_sbe_chiplet_init.H>
+#include <p9_sbe_repr_initf.H>
 #include <p9_sbe_arrayinit.H>
 #include <p9_sbe_tp_enable_ridi.H>
-#include <p9_sbe_setup_evid.H>
+#include <p9_sbe_setup_boot_freq.H>
 #include <p9_sbe_nest_initf.H>
 #include <p9_sbe_nest_startclocks.H>
+#include <p9_sbe_io_initf.H>
 #include <p9_sbe_nest_enable_ridi.H>
 #include <p9_sbe_startclock_chiplets.H>
 #include <p9_sbe_scominit.H>
@@ -47,9 +51,10 @@
 #include <p9_sbe_mcs_setup.H>
 #include <p9_sbe_select_ex.H>
 // Cache HWP header file
-#include "p9_hcd_cache.H"
+#include <p9_hcd_cache.H>
+#include <p9_hcd_cache_dcc_skewadjust_setup.H>
 // Core HWP header file
-#include "p9_hcd_core.H"
+#include <p9_hcd_core.H>
 
 // istep 5 hwp header files
 #include "p9_sbe_instruct_start.H"
@@ -90,6 +95,8 @@ ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp);
 ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp);
 ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp);
 ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp);
+ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp);
+ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp);
 
 //structure for mapping SBE wrapper and HWP functions
 typedef struct
@@ -111,13 +118,9 @@ typedef enum
 }sbe_supported_steps_t;
 
 // constants
-// TODO via RTC 135345
-// Check with Dean. In IPL flow doc ( version 0.63 ),
-// after istep 2.9, next istep is 2.11. istep 2.10 is not present.
-// So in IPL flow doc, total minor isteps for step 2 are 16.
-const uint32_t ISTEP2_MAX_SUBSTEPS = 15;
-const uint32_t ISTEP3_MAX_SUBSTEPS = 20;
-const uint32_t ISTEP4_MAX_SUBSTEPS = 31;
+const uint32_t ISTEP2_MAX_SUBSTEPS = 17;
+const uint32_t ISTEP3_MAX_SUBSTEPS = 22;
+const uint32_t ISTEP4_MAX_SUBSTEPS = 34;
 const uint32_t ISTEP5_MAX_SUBSTEPS = 2;
 static const uint8_t ISTEP_MINOR_START = 1;
 static const uint8_t SLAVE_LAST_MINOR_ISTEP = 18;
@@ -138,10 +141,12 @@ static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
              { NULL, NULL },
              { &istepAttrSetup, { .procHwp = &p9_sbe_attr_setup }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_init1 }},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_gptr_time_initf }},
              { &istepNoOp, NULL },  // DFT only
              { &istepWithProc, { .procHwp = &p9_sbe_npll_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_npll_setup }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_switch_gears }},
+             { &istepWithProc, { .procHwp = &p9_sbe_clock_test2 }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_reset }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_gptr_time_repr_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_init2 }},
@@ -155,18 +160,20 @@ static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
 static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
          {
              { &istepWithProc, { .procHwp = &p9_sbe_chiplet_reset }},
+             { &istepWithProc, { .procHwp = &p9_sbe_gptr_time_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_chiplet_pll_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_chiplet_pll_setup }},
-             { &istepWithProc, { .procHwp = &p9_sbe_gptr_time_repr_initf }},
+             { &istepWithProc, { .procHwp = &p9_sbe_repr_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_chiplet_init }},
              { &istepNoOp, NULL }, // DFT only
              { &istepWithProc, { .procHwp = &p9_sbe_arrayinit }},
              { &istepNoOp, NULL }, // DFT only
              { &istepWithProc, { .procHwp = &p9_sbe_tp_enable_ridi }},
-             { &istepWithProc, { .procHwp = &p9_sbe_setup_evid }},
+             { &istepWithProc, { .procHwp = &p9_sbe_setup_boot_freq }},
              { &istepWithProc, { .procHwp = &p9_sbe_nest_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_nest_startclocks }},
              { &istepWithProc, { .procHwp = &p9_sbe_nest_enable_ridi }},
+             { &istepWithProc, { .procHwp = &p9_sbe_io_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_startclock_chiplets }},
              { &istepWithProc, { .procHwp = &p9_sbe_scominit }},
              { &istepWithProc, { .procHwp = &p9_sbe_lpc_init }},
@@ -179,17 +186,24 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
          {
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_poweron} },
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_reset } },
+             // TODO via RTC 148465
+             // L1 for hwp is still not available
+             { &istepNoOp, NULL },  //  p9_hcd_cache_chiplet_l3_dcc_setup.C
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_gptr_time_initf }},
+             // TODO via RTC 148465
+             // L1 for hwp is still not available
+             { &istepNoOp, NULL },  // p9_hcd_cache_dpll_initf.C
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_dpll_setup }},
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_dcc_skewadjust_setup }},
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_init }},
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_repair_initf }},
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_arrayinit }},
              { &istepNoOp, NULL },  // DFT Only
              { &istepNoOp, NULL },  // DFT Only
              { &istepWithEq, { .eqHwp = &p9_hcd_cache_initf }},
-             { &istepWithEq, { .eqHwp = &p9_hcd_cache_startclocks }},
-             { &istepWithEq, { .eqHwp = &p9_hcd_cache_scominit }},
-             { &istepWithEq, { .eqHwp = &p9_hcd_cache_scomcust }},
+             { &istepWithEqConditional, { .eqHwp = &p9_hcd_cache_startclocks }},
+             { &istepWithEqConditional, { .eqHwp = &p9_hcd_cache_scominit }},
+             { &istepWithEqConditional, { .eqHwp = &p9_hcd_cache_scomcust }},
              { &istepNoOp, NULL }, // Runtime only
              { &istepNoOp, NULL }, // Runtime only
              { &istepNoOp, NULL }, // stub for SBE
@@ -203,9 +217,10 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
              { &istepNoOp, NULL },  // DFT Only
              { &istepNoOp, NULL },  // DFT Only
              { &istepWithCore, { .coreHwp = &p9_hcd_core_initf }},
-             { &istepWithCore, { .coreHwp = &p9_hcd_core_startclocks }},
-             { &istepWithCore, { .coreHwp = &p9_hcd_core_scominit }},
-             { &istepWithCore, { .coreHwp = &p9_hcd_core_scomcust }},
+             { &istepWithCoreConditional, 
+                              { .coreHwp = &p9_hcd_core_startclocks }},
+             { &istepWithCoreConditional, { .coreHwp = &p9_hcd_core_scominit }},
+             { &istepWithCoreConditional, { .coreHwp = &p9_hcd_core_scomcust }},
              { &istepNoOp, NULL },
              { &istepNoOp, NULL },
          };
@@ -522,6 +537,46 @@ ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
     }
     assert( NULL != i_hwp.coreHwp );
     return i_hwp.coreHwp( coreTgt );
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp)
+{
+    SBE_DEBUG("istepWithEqCondtional");
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM > sysTgt;
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        uint8_t iplPhase = ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL;
+        FAPI_ATTR_GET(ATTR_SYSTEM_IPL_PHASE, sysTgt, iplPhase);
+        if( ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED == iplPhase )
+        {
+            break;
+        }
+        rc = istepWithEq(i_hwp);
+     }while(0);
+    return rc;
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp)
+{
+    SBE_DEBUG("istepWithCoreCondtional");
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM > sysTgt;
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        uint8_t iplPhase = ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL;
+        FAPI_ATTR_GET(ATTR_SYSTEM_IPL_PHASE, sysTgt, iplPhase);
+        if( ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED == iplPhase )
+        {
+            break;
+        }
+        rc = istepWithCore(i_hwp);
+     }while(0);
+    return rc;
 }
 
 //----------------------------------------------------------------------------
