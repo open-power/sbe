@@ -58,10 +58,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     bool l_read_reg = 0;
     fapi2::buffer<uint64_t> l_regions;
     fapi2::buffer<uint64_t> l_data64;
-    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
-        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                fapi2::TARGET_STATE_FUNCTIONAL)[0];
-    FAPI_DBG("Entering ...");
+    FAPI_INF("Entering ...");
 
     FAPI_DBG("Switch pervasive chiplet OOB mux");
     //Setting ROOT_CTRL0 register value
@@ -92,12 +89,16 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_CPLT_CTRL1_CLEAR, l_data64));
 
-    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_tpchiplet,
-             REGIONS_ALL_EXCEPT_PIB_NET, l_regions));
-    FAPI_DBG("l_regions value: %#018lX", l_regions);
+    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_target_cplt,
+                 REGIONS_ALL_EXCEPT_PIB_NET, l_regions));
+        FAPI_DBG("l_regions value: %#018lX", l_regions);
 
-    FAPI_TRY(p9_sbe_common_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, l_regions,
-                                            CLOCK_TYPES));
+        FAPI_TRY(p9_sbe_common_clock_start_stop(l_target_cplt, START_CMD, 0, 0,
+                                                l_regions, CLOCK_TYPES));
+    }
 
     FAPI_DBG("Drop FSI fence 5");
     //Setting ROOT_CTRL0 register value
@@ -109,8 +110,8 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_DBG("Drop EDRAM control gate");
     //Setting ROOT_CTRL2 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
-    l_data64.clearBit<16>();  //PIB.ROOT_CTRL2.ROOT_CTRL2_16_FREE_USAGE = 0
-    l_data64.clearBit<18>();  //Clear PFET Force Off
+    l_data64.clearBit<16>();  // Drop EDRAM control gate
+    l_data64.clearBit<18>();  // Drop pfet force off
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
 
     //TOD error reg;
@@ -133,7 +134,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_MULTICAST_GROUP_1,
                             0xE0001c0000000000));
 
-    FAPI_DBG("Setup Pervasive Hangcounter 0:PBA, 1:ADU, 2:OCC/SBE, 3:PB, 4:malefunction alert");
+    FAPI_DBG("Setup Pervasive Hangcounter 0:PBA, 1:ADU, 2:OCC/SBE, 3:PB, 5:malefunction alert");
     //Setting HANG_PULSE_0_REG register value (Setting all fields)
     //PERV.HANG_PULSE_0_REG.HANG_PULSE_REG_0 = 0b010010
     l_data64.insertFromRight<0, 6>(0b010010);
@@ -149,11 +150,11 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     l_data64.insertFromRight<0, 6>(0b000100);
     l_data64.clearBit<6>();  //PERV.HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_2_REG, l_data64));
-    //Setting HANG_PULSE_4_REG register value (Setting all fields)
-    //PERV.HANG_PULSE_4_REG.HANG_PULSE_REG_4 = 0b000001
+    //Setting HANG_PULSE_3_REG register value (Setting all fields)
+    //PERV.HANG_PULSE_3_REG.HANG_PULSE_REG_3 = 0b000001
     l_data64.insertFromRight<0, 6>(0b000001);
-    l_data64.clearBit<6>();  //PERV.HANG_PULSE_4_REG.SUPPRESS_HANG_4 = 0b0
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_4_REG, l_data64));
+    l_data64.clearBit<6>();  //PERV.HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0b0
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_3_REG, l_data64));
     //Setting HANG_PULSE_5_REG register value (Setting all fields)
     //PERV.HANG_PULSE_5_REG.HANG_PULSE_REG_5 = 0b000110
     l_data64.insertFromRight<0, 6>(0b000110);
@@ -171,7 +172,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
                 .set_READ_XSTOP(l_read_reg),
                 "XSTOP BIT GET SET");
 
-    FAPI_DBG("Exiting ...");
+    FAPI_INF("Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
