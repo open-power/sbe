@@ -1,20 +1,31 @@
 #!/usr/bin/python
-'''
-#############################################################
-#    @file    testExecutor.py
-#    @author: George Keishing <gkeishin@in.ibm.com>
-#    @brief   Framework to test Host SBE interface on simics
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
 #
-#    Created on March 29, 2016
-#    ----------------------------------------------------
-#    @version  Developer      Date       Description
-#    ----------------------------------------------------
-#      1.0     gkeishin     29/03/16     Initial create
-#############################################################
-'''
-
-import testClass as testObj
+# $Source: sbe/test/testExecutorPutRing.py $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
+import testPSUUtil
 import testRegistry as reg
+import testUtil
 
 #-------------------------------
 # This  is a Test Expected Data
@@ -22,100 +33,194 @@ import testRegistry as reg
 '''
 This data are the values or strings that needs to be validated for the test.
 '''
-SBE_TEST_EXPECT_DEFAULT  = "None"
-SBE_TEST_EXPECT_MBOX0    = "0000030100F0D101"
-SBE_TEST_EXPECT_DOORBELL = "8000000000000000"
-
-HOST_TEST_EXPECT_DEFAULT = "None"
-HOST_TEST_EXPECT_MBOX04  = "0000000000F0D301"
-HOST_TEST_EXPECT_DOORBELL= "2000000000000000"
-
 '''
-The test data is designed to accomodate as many as new entries a test needs
-and can also increase the field in it to add new action associated with it.
+#------------------------------------------------------------------------------------------------------------------------------
+# SBE side test data - Target - Core, Chiplet Id - 32, Ring ID - ec_func(177), mode - 0x0020(RING_MODE_HEADER_CHECK)
+#------------------------------------------------------------------------------------------------------------------------------
+'''
+sbe_test_data1 = (
+    #-----------------------------------------------------------------------------------------------------
+    #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
+    #-----------------------------------------------------------------------------------------------------
+    ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
+    ["write", reg.REG_MBOX1, "0002002000F90020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
+    )
+'''
+#------------------------------------------------------------------------------------------------------------------------------
+# SBE side test data - Target - Pervasive, Chiplet Id - 1, Ring ID - perv_pll_bndy_bucket_1(10), mode - 0x0020(RING_MODE_HEADER_CHECK)
+#------------------------------------------------------------------------------------------------------------------------------
+'''
+sbe_test_data2 = (
+    #--------------------------------------------------------------------------------------------------------------------------
+    #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
+    #--------------------------------------------------------------------------------------------------------------------------
+    ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
+    ["write", reg.REG_MBOX1, "00000001000A0020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
+    )
 '''
 #---------------------
-# SBE side test data
+# SBE side test data - Target - PROC CHIP, Chiplet Id - 6, Ring ID - xb_pll_bndy_bucket_1(90), mode - 0x0020(RING_MODE_HEADER_CHECK)
 #---------------------
 '''
-Every test data entry itself represent an action associated with it's data.
-The data is validated as it executes.
-
-The Test Expected Data if "None" signifies that this test entry is not to be
-validated else it would validated against the expected value in the field.
-On success returns macro SUCCESS else FAILURE
-
-Refer Documentation for the data used here directly.
+sbe_test_data3 = (
+    #--------------------------------------------------------------------------------------------------------------------------
+    #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
+    #--------------------------------------------------------------------------------------------------------------------------
+    ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
+    ["write", reg.REG_MBOX1, "0001000600590020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
+    )
 '''
-
-sbe_test_data = (
+#------------------------------------------------------------------------------------------------------------------------------
+# SBE side test data - Target - EX, Chiplet Id - 32, Ring ID - ex_l3_refr_repr(223), mode - 0x0020(RING_MODE_HEADER_CHECK)
+#------------------------------------------------------------------------------------------------------------------------------
+'''
+sbe_test_data4 = (
     #-----------------------------------------------------------------------------------------------------
-    #   OP      Reg                               Value         size    Test Expected Data       Description
+    #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
     #-----------------------------------------------------------------------------------------------------
-    ["write", reg.REG_MBOX0,                  "0000010000F0D301", 8, SBE_TEST_EXPECT_DEFAULT,    "Writing to MBOX0 address"],
-    ["write", reg.REG_MBOX0,                  "123456789ABCDEF0", 8, SBE_TEST_EXPECT_DEFAULT,    "Writing to MBOX1 address"],
-    ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 8, SBE_TEST_EXPECT_DEFAULT,    "Update SBE Doorbell register to interrupt SBE"],
+    ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
+    ["write", reg.REG_MBOX1, "0003002000DF0020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
+    )
+'''
+#------------------------------------------------------------------------------------------------------------------------------
+# SBE side test data - Target - Invalid target 0x10, Chiplet Id - 32, Ring ID - ex_l3_refr_repr(248), mode - 0x0020(RING_MODE_HEADER_CHECK)
+#------------------------------------------------------------------------------------------------------------------------------
+'''
+sbe_test_data5 = (
+    #-----------------------------------------------------------------------------------------------------
+    #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
+    #-----------------------------------------------------------------------------------------------------
+    ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
+    ["write", reg.REG_MBOX1, "0010002000F80020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
+    )
+'''
+#---------------------
+# Host side test data - SUCCESS
+#---------------------
+'''
+host_test_data_success = (
+    #----------------------------------------------------------------------------------------------------------------
+    #   OP     Reg                                 ValueToWrite        size    Test Expected Data        Description
+    #----------------------------------------------------------------------------------------------------------------
+    ["read", reg.REG_MBOX4, 		"0", 	 	 8, 	"0000000000F0D301", "Reading Host MBOX4 data to Validate"],
+    )
+'''
+#---------------------
+# Host side test data - FAILURE
+#---------------------
+'''
+host_test_data_failure5 = (
+    #----------------------------------------------------------------------------------------------------------------
+    #   OP     Reg                                 ValueToWrite        size    Test Expected Data        Description
+    #----------------------------------------------------------------------------------------------------------------
+    ["read", reg.REG_MBOX4, 		"0", 	 	 8, 	"0002000400F0D301", "Reading Host MBOX4 data to Validate"],
     )
 
-#---------------------
-# Host side test data
-#---------------------
 '''
-This Host data indicates that this will validate the SBE test set execution
-if the overall test is a success or failure.
-
-It can have as many entries which are needed to be validated.
+#-----------------------------------------------------------------------
+# Do not modify - Used to simulate interrupt on Ringing Doorbell on Host
+#-----------------------------------------------------------------------
 '''
-host_test_data = (
+host_polling_data = (
     #----------------------------------------------------------------------------------------------------------------
-    #   OP     Reg                                 Value           size    Test Expected Data           Description
+    #   OP     Reg                                 ValueToWrite        size    Test Expected Data           Description
     #----------------------------------------------------------------------------------------------------------------
-    ["read",  reg.PSU_HOST_DOORBELL_REG_WO_OR, "0000000000000000",  8,   HOST_TEST_EXPECT_DOORBELL,    "Reading Host Doorbell for Interrupt"],
-    ["read",  reg.REG_MBOX4,                   "0000000000000000",  8,   HOST_TEST_EXPECT_MBOX04,      "Reading Host MBOX4 data to Validate"],
-    )
-
-'''
-User can define a function which does some task and returns SUCCESS or FAILURE.
-one can simply call that function like any OP in the test data and still work.
-
-Define those function in testClassUtil.py context for this to work.
-'''
-
-SAMPLE_TEST_EXPECT_FUNC = "None"
-PARM_DATA = [1, 2, 3, 4] # sample 4 input paramters
-sample_test_data = (
-    #----------------------------------------------------------------------------------------------------------------
-    #   OP     function Name          Parameters  NA     Test Expected Data           Description
-    #----------------------------------------------------------------------------------------------------------------
-    ["func",  "classUtilFuncSample",  PARM_DATA,   0,   SAMPLE_TEST_EXPECT_FUNC,     "Load func and do task"],
+    ["read", reg.PSU_HOST_DOORBELL_REG_WO_OR, 		"0", 		8, 	"8000000000000000", "Reading Host Doorbell for Interrupt"],
     )
 
 #-------------------------
 # Main Function
 #-------------------------
 def main():
+    # Run Simics initially
+    testUtil.runCycles( 10000000 );
 
     # Intialize the class obj instances
-    print "\n  Initializing Registry instances ...."
-    regObj = testObj.registry() # Registry obj def for operation
+    regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test set  [ Put Ring ] ...\n"
-                                   # Sim obj Target    Test set 
-    rc_test = regObj.ExecuteTestOp(testObj.simSbeObj,sbe_test_data)
-    if rc_test != testObj.SUCCESS:
-        print "  SBE Test data set .. [ Failed ] .."
-    else:
-        print "  SBE Test data set .. [ OK ] "
-        print "\n  Poll on Host side for INTR  ...\n"
-                                   # Sim obj Target    Test set     Max timedout
-        rc_intr = regObj.pollingOn(testObj.simSbeObj,host_test_data,20)
-        if rc_intr == testObj.SUCCESS:
-            print "  Interrupt Event Recieved .. Success !!"
-        else:
-            print "  Interrupt not Recieved.. Exiting .."
+    print "\n  Execute SBE Test set1  [ Put Ring ] ...\n"
 
-    print "\n"
+    '''
+    Test Case 1
+    '''
+    # HOST->SBE data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data1 )
 
-if __name__=="__main__":
+    print "\n  Poll on Host side for INTR  ...\n"
+    #Poll on HOST DoorBell Register for interrupt
+    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
+
+    #SBE->HOST data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
+
+    print "\n  Execute SBE Test set2  [ Put Ring ] ...\n"
+    '''
+    Test Case 2
+    '''
+    # HOST->SBE data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data2 )
+
+    print "\n  Poll on Host side for INTR  ...\n"
+    #Poll on HOST DoorBell Register for interrupt
+    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
+
+    #SBE->HOST data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
+
+    print "\n  Execute SBE Test set3 [ Put Ring ] ...\n"
+    '''
+    Test Case 3
+    '''
+    # HOST->SBE data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data3 )
+
+    print "\n  Poll on Host side for INTR  ...\n"
+    #Poll on HOST DoorBell Register for interrupt
+    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
+
+    #SBE->HOST data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
+
+    print "\n  Execute SBE Test set4  [ Put Ring ] ...\n"
+    '''
+    Test Case 4
+    '''
+    # HOST->SBE data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data4 )
+
+    print "\n  Poll on Host side for INTR  ...\n"
+    #Poll on HOST DoorBell Register for interrupt
+    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
+
+    #SBE->HOST data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
+
+    print "\n  Execute SBE Test set5  [ Put Ring ] ...\n"
+    '''
+    Test Case 5
+    '''
+    # HOST->SBE data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data5 )
+
+    print "\n  Poll on Host side for INTR  ...\n"
+    #Poll on HOST DoorBell Register for interrupt
+    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
+
+    #SBE->HOST data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_failure5 )
+
+if __name__ == "__main__":
     main()
+    if err:
+    	print ( "\nTest Suite completed with error(s)" )
+    	#sys.exit(1)
+    else:
+    	print ( "\nTest Suite completed with no errors" )
+	#sys.exit(0);
+
 

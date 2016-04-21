@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sbe_sp_intf.H $                                     */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
  *  @file sbe_sp_intf.H
  *
@@ -347,6 +371,33 @@ enum sbeRegAccesRegType
     SBE_REG_ACCESS_SPR  = 0x01,
     SBE_REG_ACCESS_FPR  = 0x02,
 };
+
+/*
+ * @brief enums for target types used in ring access chip op
+*/
+typedef enum
+{
+    TARGET_PERV         = 0x0000,
+    TARGET_PROC_CHIP    = 0x0001,
+    TARGET_CORE         = 0x0002,
+    TARGET_EX           = 0x0003,
+} sbeRingTargetTypes_t;
+
+/*
+ * @brief enums for access modes used in ring access chip op
+ */
+typedef enum
+{
+    SBE_RING_MODE_NO_HEADER_CHECK           = 0x0001, ///< Don't check header
+    SBE_RING_MODE_SET_PULSE_NO_OPCG_COND    = 0x0002, ///< Set pulse with
+                                                     ///  no OPCG conditioning
+    SBE_RING_MODE_SET_PULSE_NSL             = 0x0004, ///< Set pulse with NSL
+                                                    ///  pulse
+    SBE_RING_MODE_SET_PULSE_SL              = 0x0008, ///< Set pulse with SL
+                                                    ///  pulse
+    SBE_RING_MODE_SET_PULSE_ALL             = 0x0010, ///< Set pulse with pulse
+                                                    ///  to all hold types
+} sbeRingAccessModes_t;
 
 #ifdef __cplusplus
 }

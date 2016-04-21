@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: sbe/sbefw/sbe_host_intf.H $                                   */
+/* $Source: sbe/sbefw/sbecmdringaccess.H $                                */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -23,68 +23,33 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/sbe/sbefw/sbe_host_intf.H
+ * @file: ppe/sbe/sbefw/sbeputringfromimage.H
  *
- * @brief This file contains the Host-SBE interface protocol common details
+ * @brief This file contains the Put Ring From Image Command handler
+ *
  */
 
-#ifndef __SBEFW_SBE_HOST_INTF_H
-#define __SBEFW_SBE_HOST_INTF_H
+#ifndef __SBEFW_SBECMDRINGACCESS_H
+#define __SBEFW_SBECMDRINGACCESS_H
 
 #include <stdint.h>
 
+typedef struct
+{
+    uint64_t TargetType:16;
+    uint64_t ChipletID:16;
+    uint64_t RingID:16;
+    uint64_t RingMode:16;
+} sbePSUPutRingCMD_t;
+
 /**
- * $Version: Conforms to HOST-SBE Interface Spec v0.5a
+ * @brief Put Ring From Image Command (0xD301)
+ *
+ * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+ *
+ * @return    RC from the PSU access utility
  */
+uint32_t sbePutRingFromImagePSU(uint8_t *i_pArg);
 
-/*
- * Constants for SBE FW major and minor number
- */
-static const uint16_t SBE_SBEFW_HOST_MAJOR_VERSION = 1;
-static const uint16_t SBE_SBEFW_HOST_MINOR_VERSION = 0;
+#endif // __SBEFW_SBECMDRINGACCESS_H
 
-/**
-  * @brief enums for SBE-Host interface command class
-  */
-enum sbePsuCommandClass
- {
-    SBE_PSU_CMD_CLASS_UNKNOWN       = 0,
-    SBE_PSU_CMD_CLASS_CORE_STATE    = 0xD1,
-    SBE_PSU_CMD_CLASS_RING_ACCESS   = 0xD3,
- };
-
-/**
-  * @brief enums for SBE-Host interface core state control commands
-  */
-enum sbePsuCoreStateControlCommands
-{
-    SBE_PSU_CMD_CONTROL_DEADMAN     = 0x01,
-    SBE_PSU_CMD_UNKNOWN             = 0xFF,
-};
-
-/**
-  * @brief enums for SBE-Host interface ring access messages
-  */
-enum sbePsuRingAccessMessages
-{
-    SBE_PSU_MSG_PUT_RING_FROM_IMAGE = 0x01,
-    SBE_PSU_MSG_UNKNOWN             = 0xFF,
-};
-
-/**
-  * @brief enums denoting control flags
-  *
-  */
-enum sbePsuControlFlags
-{
-    SBE_PSU_FLAGS_RESP_REQUIRED   = 0x0100,
-    SBE_PSU_FLAGS_ACK_REQUIRED    = 0x0200,
-};
-
-enum sbePsuDmtCmdFlags
-{
-    SBE_PSU_FLAGS_START_DMT       = 0x0001,
-    SBE_PSU_FLAGS_STOP_DMT        = 0x0002,
-};
-
-#endif // __SBEFW_SBE_HOST_INTF_H
