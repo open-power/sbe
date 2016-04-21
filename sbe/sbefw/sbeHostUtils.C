@@ -36,7 +36,7 @@
 #include "sbe_host_intf.H"
 #include "sbeerrorcodes.H"
 #include "assert.h"
-
+#include "fapi2.H"
 
 
 ///////////////////////////////////////////////////////////////////
@@ -74,7 +74,9 @@ uint32_t sbeReadPsu2SbeMbxReg (uint32_t       i_addr,
             break;
         }
 
-        SBE_DEBUG(SBE_FUNC"l_data=[0x%016X]", o_pData[l_count]);
+        SBE_DEBUG(SBE_FUNC"l_data=[0x%08X%08X]", 
+                    SBE::higher32BWord(o_pData[l_count]),
+                    SBE::lower32BWord(o_pData[l_count]));
         ++l_count;
         ++i_addr;
     }
@@ -149,7 +151,9 @@ uint32_t sbeWriteSbe2PsuMbxReg (uint32_t        i_addr,
     {
         while (l_count < i_count)
         {
-            SBE_DEBUG(SBE_FUNC"l_data=[0x%016X]", *(i_pData+l_count));
+            SBE_DEBUG(SBE_FUNC"l_data=[0x%08X%08X]",
+                            SBE::higher32BWord(*(i_pData+l_count)),
+                            SBE::lower32BWord(*(i_pData+l_count)));
 
             l_rc = putscom_abs ( i_addr, *(i_pData+l_count) );
             if (l_rc)
@@ -179,4 +183,45 @@ uint32_t sbeWriteSbe2PsuMbxReg (uint32_t        i_addr,
     return l_rc;
 
     #undef SBE_FUNC
+}
+
+/* @brief - Send PSU Chip Op response
+ *
+ * @param[in] - i_sbe2PsuRespHdr - Response header
+ * @param[in] - i_fapiRc - fapi rc of the relevant hwp call
+ * @param[in/out] - io_rc - rc status of the PSU access utility
+ *
+ * @return - void
+ */
+void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
+                        uint32_t &i_fapiRc,
+                        uint32_t &io_rc)
+{
+#define SBE_FUNC "sbePSUSendResponse"
+    do
+    {
+        // Making sure the PSU access utility is functional
+        if(io_rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            break;
+        }
+        // TODO via RTC:151555 Generate FFDC
+        if(i_fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            i_sbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                      SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+        }
+
+        // Send the response header
+        io_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
+                        (uint64_t*)(&i_sbe2PsuRespHdr),
+                        (sizeof(i_sbe2PsuRespHdr)/sizeof(uint64_t)),
+                        true);
+        if(SBE_SEC_OPERATION_SUCCESSFUL != io_rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to write to "
+                    "SBE_HOST_PSU_MBOX_REG4");
+        }
+    } while(0);
+#undef SBE_FUNC
 }

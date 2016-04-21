@@ -35,6 +35,7 @@
 
 #include <stdint.h>
 #include "ppe42_scom.h"
+#include "sbeHostMsg.H"
 
 /**
   * @brief SBE PSU Access register addresses
@@ -230,4 +231,15 @@ uint32_t sbeWriteSbe2PsuMbxReg (uint32_t        i_addr,
                                 const uint8_t   i_count,
                                 bool            i_setBit0ToIntrHB = false);
 
+/* @brief - Send PSU Chip Op response
+ *
+ * @param[in] - i_sbe2PsuRespHdr - Response header
+ * @param[in] - i_fapiRc - fapi rc of the relevant hwp call
+ * @param[in/out] - io_rc - rc status of the PSU access utility
+ *
+ * @return - void
+ */
+void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
+                        uint32_t &i_fapiRc,
+                        uint32_t &io_rc);
 #endif // __SBEFW_SBEHOSTUTILS_H

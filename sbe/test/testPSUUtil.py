@@ -1,4 +1,28 @@
 #!/usr/bin/python
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: sbe/test/testPSUUtil.py $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 '''
 #############################################################
 #    @file    testClass.py
@@ -147,12 +171,12 @@ class registry(object):
 
     #---------------------------
     # Read from a memomry
-    # Max Sim interface can read 8 
+    # Max Sim interface can read 8
     # byte data at a given time
     #---------------------------
     def readFromMemory(self, objType, magicNum):
         # Start addr + 8 bytes
-        address = self.regAddr 
+        address = self.regAddr
         size    = self.regSize    # Max it can read is 8 Bytes
         value   = self.regVal     # Max lentgth it should read
 
@@ -220,7 +244,7 @@ class registry(object):
     # Execute the read or write operation in loop as per
     # Test data set pre-defined
     #----------------------------------------------------
-    def ExecuteTestOp(self, testOp, test_bucket, raiseException):
+    def ExecuteTestOp(self, testOp, test_bucket, raiseException=True):
         '''
            3 prong steps : set data, read/write data, validate
         '''
@@ -289,11 +313,11 @@ class registry(object):
         print "  Expect bytes : ", self.stringToByte(test_data)
         if self.compareList(self.stringToByte(test_data), sim_data, "None") == True:
            print "  Test ... [ OK ] "
-           print "  ++++++++++++++++++++++++++++++++++++++++++" 
+           print "  ++++++++++++++++++++++++++++++++++++++++++"
            return SUCCESS
-        else: 
+        else:
            print "  Test Failed... !!!"
-           print "  ++++++++++++++++++++++++++++++++++++++++++" 
+           print "  ++++++++++++++++++++++++++++++++++++++++++"
            return FAILURE
 
     #----------------------------------------------------
@@ -326,10 +350,10 @@ class registry(object):
     #----------------------------------------------------
     def pollingOn(self, simObj, test_data, retries=20):
         for l_param in test_data:
-            print "\n*****  Polling On result - retrials left [%d] " % retries
             while True:
+                print "\n*****  Polling On result - retrials left [%d] " % retries
                 print "\n"
-                testUtil.runCycles( 10000000);
+                testUtil.runCycles( 1000000);
                 test_d = (l_param,)
                 rc = self.ExecuteTestOp(simObj, test_d, False)
                 if rc == SUCCESS:
@@ -345,7 +369,7 @@ class registry(object):
 
     #----------------------------------------------------
     # Load the function and execute
-    #---------------------------------------------------- 
+    #----------------------------------------------------
     def loadFunc(self, func_name, i_pArray ):
         rc = testPSUUserUtil.__getattribute__(func_name)(i_pArray)
         return rc # Either success or failure from func
