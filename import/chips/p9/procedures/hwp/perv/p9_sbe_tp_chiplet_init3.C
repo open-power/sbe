@@ -104,8 +104,9 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_DBG("Drop EDRAM control gate");
     //Setting ROOT_CTRL2 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
-    l_data64.clearBit<16>();  // Drop EDRAM control gate
-    l_data64.clearBit<18>();  // Drop pfet force off
+    l_data64.clearBit<16>();  //PIB.ROOT_CTRL2.ROOT_CTRL2_16_FREE_USAGE = 0
+    //PIB.ROOT_CTRL2.TPFSI_TP_PFET_FORCE_OFF_DC = 0
+    l_data64.clearBit<PERV_ROOT_CTRL2_SET_TPFSI_TP_PFET_FORCE_OFF_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
 
     //TOD error reg;
@@ -128,20 +129,20 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_MULTICAST_GROUP_1,
                             0xE0001c0000000000));
 
-    FAPI_DBG("Setup Pervasive Hangcounter 0:PBA, 1:ADU, 2:OCC/SBE, 3:PB, 5:malefunction alert");
+    FAPI_DBG("Setup Pervasive Hangcounter 0:Thermal, 1:OCC/SBE, 2:PBA hang, 3:Nest freq for TOD hang, 5:malefunction alert");
     //Setting HANG_PULSE_0_REG register value (Setting all fields)
-    //PERV.HANG_PULSE_0_REG.HANG_PULSE_REG_0 = 0b010010
-    l_data64.insertFromRight<0, 6>(0b010010);
+    //PERV.HANG_PULSE_0_REG.HANG_PULSE_REG_0 = 0b010000
+    l_data64.insertFromRight<0, 6>(0b010000);
     l_data64.clearBit<6>();  //PERV.HANG_PULSE_0_REG.SUPPRESS_HANG_0 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_0_REG, l_data64));
     //Setting HANG_PULSE_1_REG register value (Setting all fields)
-    //PERV.HANG_PULSE_1_REG.HANG_PULSE_REG_1 = 0b011100
-    l_data64.insertFromRight<0, 6>(0b011100);
+    //PERV.HANG_PULSE_1_REG.HANG_PULSE_REG_1 = 0b000100
+    l_data64.insertFromRight<0, 6>(0b000100);
     l_data64.setBit<6>();  //PERV.HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0b1
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_1_REG, l_data64));
     //Setting HANG_PULSE_2_REG register value (Setting all fields)
-    //PERV.HANG_PULSE_2_REG.HANG_PULSE_REG_2 = 0b000100
-    l_data64.insertFromRight<0, 6>(0b000100);
+    //PERV.HANG_PULSE_2_REG.HANG_PULSE_REG_2 = 0b010010
+    l_data64.insertFromRight<0, 6>(0b010010);
     l_data64.clearBit<6>();  //PERV.HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_2_REG, l_data64));
     //Setting HANG_PULSE_3_REG register value (Setting all fields)
