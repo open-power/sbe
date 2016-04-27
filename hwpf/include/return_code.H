@@ -67,10 +67,10 @@ namespace fapi2
         inline operator uint32_t() const { return iv_rc; }
 
         ///
-        /// @brief Returns true iff iv_rc == SUCCESS
+        /// @brief Returns true if iv_rc != SUCCESS
         /// @return true or false
         ///
-        inline operator bool() const { return iv_rc == FAPI2_RC_SUCCESS; }
+        inline operator bool() const { return iv_rc != FAPI2_RC_SUCCESS; }
 
         ///
         /// @brief Assignement operator
