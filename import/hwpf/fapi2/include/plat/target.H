@@ -32,6 +32,7 @@
 
 #include <plat_target.H>
 #include <fapi2_target.H>
+#include <multicast.H>
 #include <stdio.h>
 
 namespace fapi2
