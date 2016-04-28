@@ -91,7 +91,17 @@ const chiplet_pg_entry_t CHIPLET_PG_ARRAY[] =
      { fapi2::ATTR_PG_EC23, fapi2::TARGET_TYPE_CORE,      0x17 }
 };
 
-uint32_t CHIPLET_PG_ARRAY_ENTRIES = sizeof(CHIPLET_PG_ARRAY) /
-                                    sizeof(chiplet_pg_entry_t);
+extern uint32_t CHIPLET_PG_ARRAY_ENTRIES;
+
+#pragma pack(8) //Start of packing to 8byte boundary
+typedef struct {
+  fapi2attr::SystemAttributes_t    G_system_attrs;
+  fapi2attr::ProcChipAttributes_t  G_proc_chip_attrs;
+  fapi2attr::PervAttributes_t      G_perv_attrs;
+  fapi2attr::CoreAttributes_t      G_core_attrs;
+  fapi2attr::EXAttributes_t        G_ex_attrs;
+  fapi2attr::EQAttributes_t        G_eq_attrs;
+} G_sbe_attrs_t;
+#pragma pack()//End of packing to 8byte boundary
 
 #endif  // __FAPI2_PPE_TARGET_PG_ATTR__
