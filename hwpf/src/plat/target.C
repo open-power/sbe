@@ -28,19 +28,16 @@
 #include <plat_target_pg_attributes.H>
 #include <assert.h>
 
+uint32_t CHIPLET_PG_ARRAY_ENTRIES = sizeof(CHIPLET_PG_ARRAY) /
+                                    sizeof(chiplet_pg_entry_t);
+
 // Global Vector containing ALL targets.  This structure is referenced by
 // fapi2::getChildren to produce the resultant returned vector from that
 // call.
 std::vector<fapi2::plat_target_handle_t> G_vec_targets;
 
-// Global variables for fixed section in pibmem
-fapi2attr::SystemAttributes_t    G_system_attrs;
-fapi2attr::ProcChipAttributes_t  G_proc_chip_attrs;
-fapi2attr::PervAttributes_t      G_perv_attrs;
-fapi2attr::CoreAttributes_t      G_core_attrs;
-fapi2attr::EQAttributes_t        G_eq_attrs;
-fapi2attr::EXAttributes_t        G_ex_attrs;
-
+// Global variable for fixed section in pibmem
+G_sbe_attrs_t G_sbe_attrs;
 
 fapi2attr::SystemAttributes_t*    G_system_attributes_ptr;
 fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr;
@@ -306,20 +303,20 @@ fapi_try_exit:
         bool b_present = false;
 
         // Copy fixed section from SEEPROM to PIBMEM
-        G_system_attrs = G_system_attributes;
-        G_proc_chip_attrs = G_proc_chip_attributes;
-        G_perv_attrs = G_perv_attributes;
-        G_core_attrs = G_core_attributes;
-        G_eq_attrs = G_eq_attributes;
-        G_ex_attrs = G_ex_attributes;
+        G_sbe_attrs.G_system_attrs = G_system_attributes;
+        G_sbe_attrs.G_proc_chip_attrs = G_proc_chip_attributes;
+        G_sbe_attrs.G_perv_attrs = G_perv_attributes;
+        G_sbe_attrs.G_core_attrs = G_core_attributes;
+        G_sbe_attrs.G_eq_attrs = G_eq_attributes;
+        G_sbe_attrs.G_ex_attrs = G_ex_attributes;
 
         // Initialise global attribute pointers
-        G_system_attributes_ptr = &G_system_attrs;
-        G_proc_chip_attributes_ptr = &G_proc_chip_attrs;
-        G_perv_attributes_ptr = &G_perv_attrs;
-        G_core_attributes_ptr = &G_core_attrs;
-        G_eq_attributes_ptr = &G_eq_attrs;
-        G_ex_attributes_ptr = &G_ex_attrs;
+        G_system_attributes_ptr = &(G_sbe_attrs.G_system_attrs);
+        G_proc_chip_attributes_ptr = &(G_sbe_attrs.G_proc_chip_attrs);
+        G_perv_attributes_ptr = &(G_sbe_attrs.G_perv_attrs);
+        G_core_attributes_ptr = &(G_sbe_attrs.G_core_attrs);
+        G_eq_attributes_ptr = &(G_sbe_attrs.G_eq_attrs);
+        G_ex_attributes_ptr = &(G_sbe_attrs.G_ex_attrs);
 
 
         std::vector<fapi2::plat_target_handle_t>::iterator tgt_iter;
