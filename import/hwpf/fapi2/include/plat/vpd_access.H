@@ -33,9 +33,9 @@ namespace fapi2
 {
 // -- platform specializations for getVPD go here --
 
-// specialization for MCS target
-template<> fapi2::ReturnCode getVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target,
-                                    VPDInfo<fapi2::TARGET_TYPE_MCS>& io_vpd_info,
+// specialization for MCA target
+template<> fapi2::ReturnCode getVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target,
+                                    VPDInfo<fapi2::TARGET_TYPE_MCA>& io_vpd_info,
                                     uint8_t* o_blob)
 {
     return platGetVPD( i_target, io_vpd_info, o_blob );
