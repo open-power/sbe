@@ -43,6 +43,16 @@
 
 #include "p9_hcd_cache_initf.H"
 
+#ifdef P9_HCD_STOP_SKIP_SCAN
+    #ifndef __PPE__
+        #include <p9_core_common_scan.H>
+        #include <p9_cme_scan.H>
+        #include <p9_l2_scan.H>
+        #include <p9_l3_scan.H>
+        #include <p9_ncu_scan.H>
+    #endif
+#endif
+
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
@@ -78,15 +88,65 @@ p9_hcd_cache_initf(
     FAPI_DBG("Scanning Cache Analog FUNC Rings");
     FAPI_TRY(fapi2::putRing(i_target, EQ_ANA_FUNC,
                             fapi2::RING_MODE_HEADER_CHECK));
+fapi_try_exit:
+#else
+#ifndef __PPE__
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    auto l_ex_targets = i_target.getChildren<fapi2::TARGET_TYPE_EX>();
+    fapi2::ReturnCode l_rc;
+
+    FAPI_EXEC_HWP(l_rc, p9_cme_scan, i_target, FAPI_SYSTEM);
+
+    if (l_rc)
+    {
+        FAPI_ERR("Error from p9_cme_scan (p9.cme.scan.initfile)");
+        fapi2::current_err = l_rc;
+        goto fapi_try_exit;
+    }
+
+    // process configured child EX chiplets
+    for (auto l_iter = l_ex_targets.begin(); l_iter != l_ex_targets.end(); l_iter++)
+    {
+        FAPI_EXEC_HWP(l_rc, p9_core_common_scan, *l_iter);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p9_core_common_scan (p9.core.common.scan.initfile)");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+
+        FAPI_EXEC_HWP(l_rc, p9_l3_scan, *l_iter, FAPI_SYSTEM);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p9_l3_scan (p9.l3.scan.initfile)");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+
+        FAPI_EXEC_HWP(l_rc, p9_l2_scan, *l_iter, FAPI_SYSTEM);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p9_l2_scan (p9.l2.scan.initfile)");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+
+        FAPI_EXEC_HWP(l_rc, p9_ncu_scan, *l_iter, FAPI_SYSTEM);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p9_ncu_scan (p9.ncu.scan.initfile)");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+    }
 
 fapi_try_exit:
-
 #endif
-
+#endif
     FAPI_INF("<<p9_hcd_cache_initf");
     return fapi2::current_err;
 }
-
-
-
-
