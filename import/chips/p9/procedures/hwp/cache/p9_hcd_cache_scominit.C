@@ -38,6 +38,9 @@
 // Includes
 //------------------------------------------------------------------------------
 #include "p9_hcd_cache_scominit.H"
+#include <p9_l2_scom.H>
+#include <p9_l3_scom.H>
+#include <p9_ncu_scom.H>
 
 //------------------------------------------------------------------------------
 // Constant Definitions
@@ -56,9 +59,45 @@ p9_hcd_cache_scominit(
 
     /// @todo actual scom init content will be required for L3
 
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    auto l_ex_targets = i_target.getChildren<fapi2::TARGET_TYPE_EX>();
+    fapi2::ReturnCode l_rc;
+
+    for (auto l_iter = l_ex_targets.begin(); l_iter != l_ex_targets.end(); l_iter++)
+    {
+        FAPI_EXEC_HWP(l_rc, p9_l2_scom, *l_iter, FAPI_SYSTEM);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p9_l2_scom (p9.l2.scom.initfile)");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+
+        FAPI_EXEC_HWP(l_rc, p9_l3_scom, *l_iter, FAPI_SYSTEM);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p9_l3_scom (p9.l3.scom.initfile)");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+
+        FAPI_EXEC_HWP(l_rc, p9_ncu_scom, *l_iter, FAPI_SYSTEM);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p9_ncu_scom (p9.ncu.scom.initfile)");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+    }
+
+fapi_try_exit:
+
     FAPI_INF("<<p9_hcd_cache_scominit");
 
-    return fapi2::FAPI2_RC_SUCCESS;
+    return fapi2::current_err;
 }
 
 
