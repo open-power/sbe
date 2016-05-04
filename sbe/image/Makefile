@@ -93,6 +93,13 @@ LIB_DIRS += -L$(OBJDIR)/nest
 NESTLIB := $(OBJDIR)/nest/libnest.a
 LLIBS += -lnest
 
+# Initfiles library
+INITFILES_MAKE_DIR := $(INITFILES_SRCDIR)
+LIB_DIRS += -L$(OBJDIR)/initfiles
+INITFILESLIB := $(OBJDIR)/initfiles/libinitfiles.a
+LLIBS += -linitfiles
+
+
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).out
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).map
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).dis
@@ -120,7 +127,7 @@ SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_default_tool
 
 P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
 
-LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB) $(NESTLIB) $(PMLIB)
+LINK_OBJS = $(OBJS) $(SBEFWLIB) $(PKLIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(HWPLIB) $(P2PLIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(INITFILESLIB)
 
 # Define the objects
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
@@ -281,7 +288,7 @@ $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PPE_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
 
-.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(HWPLIB) buildInfo
+.PHONY: clean topfixedheaders $(PKLIB) $(P2PLIB) $(PPELIB) $(FAPI2LIB) $(CACHELIB) $(CORELIB) $(PERVLIB) $(NESTLIB) $(PMLIB) $(HWPLIB) $(INITFILESLIB) buildInfo
 
 #errxml: topfixedheaders attrids platattr attrserv
 
@@ -335,6 +342,11 @@ $(NESTLIB):
 $(PMLIB):
 	@echo "Processing pm makefile"
 	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PM_MAKE_DIR) -f Makefile
+
+#Build the initfiles
+$(INITFILESLIB):
+	@echo "Processing initfiles makefile"
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(INITFILES_MAKE_DIR) -f Makefile
 
 #Build the HWP lib procedures
 $(HWPLIB):
