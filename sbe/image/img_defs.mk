@@ -71,6 +71,10 @@ ifndef PM_SRCDIR
 export PM_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/pm)
 endif
 
+ifndef INITFILES_SRCDIR
+export INITFILES_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/initfiles)
+endif
+
 ifndef HWPLIB_SRCDIR
 export HWPLIB_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/lib)
 endif
@@ -88,7 +92,7 @@ export P9_XIP_BINDIR = $(P9_XIP_SRCDIR)/bin
 endif
 
 ifndef IMG_INCLUDES
-export IMG_INCLUDES = -I$(IMAGEPROCS_SRCDIR) -I$(P9_XIP_SRCDIR) -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR) -I$(PM_SRCDIR)
+export IMG_INCLUDES = -I$(IMAGEPROCS_SRCDIR) -I$(P9_XIP_SRCDIR) -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR) -I$(PM_SRCDIR) -I$(INITFILES_SRCDIR)
 endif
 
 ifndef BASE_OBJDIR
