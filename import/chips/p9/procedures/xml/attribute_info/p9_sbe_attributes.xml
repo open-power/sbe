@@ -553,4 +553,24 @@
    <entry>
            <name>ATTR_BOOT_FMULT</name>
   </entry>
+  <entry>
+  	<name>ATTR_PROC_EPS_READ_CYCLES_T0</name>
+  	<value>0x00000FFF</value>
+  </entry>
+  <entry>
+  	<name>ATTR_PROC_EPS_READ_CYCLES_T1</name>
+  	<value>0x00000FFF</value>
+  </entry>
+  <entry>
+  	<name>ATTR_PROC_EPS_READ_CYCLES_T2</name>
+  	<value>0x00000FFF</value>
+  </entry>
+  <entry>
+  	<name>ATTR_PROC_EPS_WRITE_CYCLES_T1</name>
+  	<value>0x00000FFF</value>
+  </entry>
+  <entry>
+  	<name>ATTR_PROC_EPS_WRITE_CYCLES_T2</name>
+  	<value>0x00000FFF</value>
+  </entry>
 </entries>

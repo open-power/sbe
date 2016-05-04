@@ -27,8 +27,6 @@ constexpr auto literal_0b0001 = 0b0001;
 constexpr auto literal_0b0100 = 0b0100;
 constexpr auto literal_0 = 0;
 constexpr auto literal_0x001 = 0x001;
-constexpr auto literal_1 = 1;
-constexpr auto literal_2 = 2;
 constexpr auto literal_0b0000 = 0b0000;
 
 fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
@@ -122,12 +120,30 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             }
         }
 
-        fapi2::ATTR_PROC_EPS_READ_CYCLES_Type l_TGT1_ATTR_PROC_EPS_READ_CYCLES;
-        l_rc = FAPI_ATTR_GET(fapi2::ATTR_PROC_EPS_READ_CYCLES, TGT1, l_TGT1_ATTR_PROC_EPS_READ_CYCLES);
+        fapi2::ATTR_PROC_EPS_READ_CYCLES_T0_Type l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0;
+        l_rc = FAPI_ATTR_GET(fapi2::ATTR_PROC_EPS_READ_CYCLES_T0, TGT1, l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0);
 
         if (l_rc)
         {
-            FAPI_ERR("ERROR executing: FAPI_ATTR_GET (ATTR_PROC_EPS_READ_CYCLES)");
+            FAPI_ERR("ERROR executing: FAPI_ATTR_GET (ATTR_PROC_EPS_READ_CYCLES_T0)");
+            break;
+        }
+
+        fapi2::ATTR_PROC_EPS_READ_CYCLES_T1_Type l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1;
+        l_rc = FAPI_ATTR_GET(fapi2::ATTR_PROC_EPS_READ_CYCLES_T1, TGT1, l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1);
+
+        if (l_rc)
+        {
+            FAPI_ERR("ERROR executing: FAPI_ATTR_GET (ATTR_PROC_EPS_READ_CYCLES_T1)");
+            break;
+        }
+
+        fapi2::ATTR_PROC_EPS_READ_CYCLES_T2_Type l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2;
+        l_rc = FAPI_ATTR_GET(fapi2::ATTR_PROC_EPS_READ_CYCLES_T2, TGT1, l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2);
+
+        if (l_rc)
+        {
+            FAPI_ERR("ERROR executing: FAPI_ATTR_GET (ATTR_PROC_EPS_READ_CYCLES_T2)");
             break;
         }
 
@@ -141,33 +157,33 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             }
 
             {
-                if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_0] != literal_0))
+                if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0 != literal_0))
                 {
-                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_0], 0, 12, 52 );
+                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0, 0, 12, 52 );
                 }
-                else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_0] == literal_0))
+                else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0 == literal_0))
                 {
                     l_scom_buffer.insert<uint64_t> (literal_0x001, 0, 12, 52 );
                 }
             }
 
             {
-                if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_1] != literal_0))
+                if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1 != literal_0))
                 {
-                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_1], 12, 12, 52 );
+                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1, 12, 12, 52 );
                 }
-                else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_1] == literal_0))
+                else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1 == literal_0))
                 {
                     l_scom_buffer.insert<uint64_t> (literal_0x001, 12, 12, 52 );
                 }
             }
 
             {
-                if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_2] != literal_0))
+                if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2 != literal_0))
                 {
-                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_2], 24, 12, 52 );
+                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2, 24, 12, 52 );
                 }
-                else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES[literal_2] == literal_0))
+                else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2 == literal_0))
                 {
                     l_scom_buffer.insert<uint64_t> (literal_0x001, 24, 12, 52 );
                 }
@@ -182,12 +198,21 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             }
         }
 
-        fapi2::ATTR_PROC_EPS_WRITE_CYCLES_Type l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES;
-        l_rc = FAPI_ATTR_GET(fapi2::ATTR_PROC_EPS_WRITE_CYCLES, TGT1, l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES);
+        fapi2::ATTR_PROC_EPS_WRITE_CYCLES_T1_Type l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1;
+        l_rc = FAPI_ATTR_GET(fapi2::ATTR_PROC_EPS_WRITE_CYCLES_T1, TGT1, l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1);
 
         if (l_rc)
         {
-            FAPI_ERR("ERROR executing: FAPI_ATTR_GET (ATTR_PROC_EPS_WRITE_CYCLES)");
+            FAPI_ERR("ERROR executing: FAPI_ATTR_GET (ATTR_PROC_EPS_WRITE_CYCLES_T1)");
+            break;
+        }
+
+        fapi2::ATTR_PROC_EPS_WRITE_CYCLES_T2_Type l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2;
+        l_rc = FAPI_ATTR_GET(fapi2::ATTR_PROC_EPS_WRITE_CYCLES_T2, TGT1, l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2);
+
+        if (l_rc)
+        {
+            FAPI_ERR("ERROR executing: FAPI_ATTR_GET (ATTR_PROC_EPS_WRITE_CYCLES_T2)");
             break;
         }
 
@@ -201,22 +226,22 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             }
 
             {
-                if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES[literal_0] != literal_0))
+                if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1 != literal_0))
                 {
-                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES[literal_0], 0, 12, 52 );
+                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1, 0, 12, 52 );
                 }
-                else if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES[literal_0] == literal_0))
+                else if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1 == literal_0))
                 {
                     l_scom_buffer.insert<uint64_t> (literal_0x001, 0, 12, 52 );
                 }
             }
 
             {
-                if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES[literal_1] != literal_0))
+                if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2 != literal_0))
                 {
-                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES[literal_1], 12, 12, 52 );
+                    l_scom_buffer.insert<uint64_t> (l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2, 12, 12, 52 );
                 }
-                else if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES[literal_1] == literal_0))
+                else if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2 == literal_0))
                 {
                     l_scom_buffer.insert<uint64_t> (literal_0x001, 12, 12, 52 );
                 }
