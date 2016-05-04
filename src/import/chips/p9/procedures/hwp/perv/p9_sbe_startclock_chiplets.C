@@ -38,6 +38,8 @@
 
 //## auto_generated
 #include "p9_sbe_startclock_chiplets.H"
+//## auto_generated
+#include "p9_const_common.H"
 
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
@@ -119,19 +121,12 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
                                                 DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
     }
 
-    //FAPI_DBG("Drop chiplet fence for Xbus");
-    /* FAPI_TRY(p9_sbe_startclock_chiplets_xb_fence_drop(
-                 i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_FUNCTIONAL)[0], l_pg_vector));*/
-
     for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_FUNCTIONAL))
     {
-        FAPI_DBG("Drop Chiplet fence for Xbus");
+        FAPI_DBG("Drop chiplet fence for Xbus");
         FAPI_TRY(p9_sbe_startclock_chiplets_xb_fence_drop(l_trgt_chplt, l_pg_vector));
     }
-
-
 
     for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))
@@ -208,15 +203,16 @@ fapi_try_exit:
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_cplt_ctrl_action_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
-    fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
-
     // Local variable and constant definition
     fapi2::buffer <uint32_t> l_attr_pg;
+    fapi2::buffer <uint16_t> l_cplt_ctrl_init;
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_INF("Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
 
     l_attr_pg.invert();
+    l_attr_pg.extractToRight<20, 11>(l_cplt_ctrl_init);
 
     // Not needed as have only nest chiplet (no dual clock controller) Bit 62 ->0
     //
@@ -225,35 +221,17 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_cplt_ctrl_action_function(
     l_data64.flush<0>();
     l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>
     (l_attr_pg.getBit<19>());  //CPLT_CTRL1.TC_VITL_REGION_FENCE = l_attr_pg.getBit<19>()
-    l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_PERV_REGION_FENCE>
-    (l_attr_pg.getBit<20>());  //CPLT_CTRL1.TC_PERV_REGION_FENCE = l_attr_pg.getBit<20>()
-    //CPLT_CTRL1.TC_REGION1_FENCE = l_attr_pg.getBit<21>()
-    l_data64.writeBit<5>(l_attr_pg.getBit<21>());
-    //CPLT_CTRL1.TC_REGION2_FENCE = l_attr_pg.getBit<22>()
-    l_data64.writeBit<6>(l_attr_pg.getBit<22>());
-    //CPLT_CTRL1.TC_REGION3_FENCE = l_attr_pg.getBit<23>()
-    l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_REGION3_FENCE>(l_attr_pg.getBit<23>());
-    //CPLT_CTRL1.TC_REGION4_FENCE = l_attr_pg.getBit<24>()
-    l_data64.writeBit<8>(l_attr_pg.getBit<24>());
-    //CPLT_CTRL1.TC_REGION5_FENCE = l_attr_pg.getBit<25>()
-    l_data64.writeBit<9>(l_attr_pg.getBit<25>());
-    //CPLT_CTRL1.TC_REGION6_FENCE = l_attr_pg.getBit<26>()
-    l_data64.writeBit<10>(l_attr_pg.getBit<26>());
-    //CPLT_CTRL1.TC_REGION7_FENCE = l_attr_pg.getBit<27>()
-    l_data64.writeBit<11>(l_attr_pg.getBit<27>());
-    //CPLT_CTRL1.UNUSED_12B = l_attr_pg.getBit<28>()
-    l_data64.writeBit<PERV_1_CPLT_CTRL1_UNUSED_12B>(l_attr_pg.getBit<28>());
-    //CPLT_CTRL1.UNUSED_13B = l_attr_pg.getBit<29>()
-    l_data64.writeBit<PERV_1_CPLT_CTRL1_UNUSED_13B>(l_attr_pg.getBit<29>());
-    //CPLT_CTRL1.UNUSED_14B = l_attr_pg.getBit<30>()
-    l_data64.writeBit<PERV_1_CPLT_CTRL1_UNUSED_14B>(l_attr_pg.getBit<30>());
+    //CPLT_CTRL1.TC_ALL_REGIONS_FENCE = l_cplt_ctrl_init
+    l_data64.insertFromRight<4, 11>(l_cplt_ctrl_init);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
-    FAPI_DBG("reset abistclk_muxsel");
+    FAPI_DBG("reset abistclk_muxsel and syncclk_muxsel");
     //Setting CPLT_CTRL0 register value
     l_data64.flush<0>();
-    //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 0
+    //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 1
     l_data64.setBit<PERV_1_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
+    //CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 1
+    l_data64.setBit<PERV_1_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_CLEAR, l_data64));
 
     FAPI_INF("Exiting ...");
@@ -322,12 +300,14 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_fence_drop(
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("Entering ...");
 
-    if ( i_pg_vector.getBit<2>() == 1 )
+    FAPI_DBG("Drop chiplet fence");
+
+    //Setting NET_CTRL0 register value
+    if (i_pg_vector.getBit<2>() == 1)
     {
-        FAPI_DBG("Drop chiplet fence");
-        //Setting NET_CTRL0 register value
         l_data64.flush<1>();
-        l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
+        //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<2>() == 1) ? 0
+        l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
     }
 
@@ -350,12 +330,14 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_pci_fence_drop(
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("Entering ...");
 
-    if ( i_pg_vector.getBit<3>() == 1 )
+    FAPI_DBG("Drop chiplet fence");
+
+    //Setting NET_CTRL0 register value
+    if (i_pg_vector.getBit<3>() == 1)
     {
-        FAPI_DBG("Drop chiplet fence");
-        //Setting NET_CTRL0 register value
         l_data64.flush<1>();
-        l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
+        //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<3>() == 1) ? 0
+        l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
     }
 
@@ -400,12 +382,14 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_xb_fence_drop(
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("Entering ...");
 
-    if ( i_pg_vector.getBit<1>() == 1 )
+    FAPI_DBG("Drop chiplet fence");
+
+    //Setting NET_CTRL0 register value
+    if (i_pg_vector.getBit<1>() == 1)
     {
-        FAPI_DBG("Drop chiplet fence");
-        //Setting NET_CTRL0 register value
         l_data64.flush<1>();
-        l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
+        //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<1>() == 1) ? 0
+        l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
     }
 
