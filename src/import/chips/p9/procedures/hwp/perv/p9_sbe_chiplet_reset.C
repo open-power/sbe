@@ -32,7 +32,6 @@
 ///     4) Similar way,  Reset sys.config and OPCG setting for Nest and MC chiplet in sync mode
 ///
 /// Done
-///
 //------------------------------------------------------------------------------
 // *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V. Naga <srinivan@in.ibm.com>
@@ -186,7 +185,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
+                                           fapi2::TARGET_FILTER_ALL_PCI), fapi2::TARGET_STATE_FUNCTIONAL))
     {
         // Setting up hang pulse counter for register 0 and register 6
         FAPI_DBG("Setup hang pulse counter for Mc,Pcie");
@@ -195,8 +194,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_XBUS |
-                                           fapi2::TARGET_FILTER_ALL_OBUS), fapi2::TARGET_STATE_FUNCTIONAL))
+         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
+                                           fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
     {
         // Setting up hang pulse counter for register 0 and register 6
         FAPI_DBG("Setup hang pulse counter for Xbus,Obus");
@@ -250,9 +249,10 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_NEST_WEST), fapi2::TARGET_STATE_FUNCTIONAL))
+                                           fapi2::TARGET_FILTER_NEST_WEST | fapi2::TARGET_FILTER_ALL_OBUS),
+          fapi2::TARGET_STATE_FUNCTIONAL))
     {
-        FAPI_DBG("Drop clk async reset for N3 and Mc chiplets");
+        FAPI_DBG("Drop clk async reset for N3, Mc  and Obus chiplets");
         FAPI_TRY(p9_sbe_chiplet_reset_mc_net_ctrl_clk_async_reset(l_target_cplt));
     }
 
