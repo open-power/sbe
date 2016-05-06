@@ -579,4 +579,7 @@
   	<name>ATTR_PROC_EPS_WRITE_CYCLES_T2</name>
   	<value>0x00000FFF</value>
   </entry>
+  <entry>
+           <name>ATTR_SDISN_SETUP</name>
+  </entry>
 </entries>

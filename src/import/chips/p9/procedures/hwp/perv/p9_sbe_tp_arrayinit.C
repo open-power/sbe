@@ -38,6 +38,8 @@
 
 //## auto_generated
 #include "p9_sbe_tp_arrayinit.H"
+//## auto_generated
+#include "p9_const_common.H"
 
 #include <p9_misc_scom_addresses.H>
 #include <p9_perv_scom_addresses.H>
@@ -55,16 +57,19 @@ enum P9_SBE_TP_ARRAYINIT_Private_Constants
     SELECT_EDRAM = 0x0
 };
 
+static fapi2::ReturnCode p9_sbe_tp_arrayinit_sdisn_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::buffer<uint8_t> i_attr,
+    const bool i_set);
+
 fapi2::ReturnCode p9_sbe_tp_arrayinit(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    bool l_sram_abist_check = false;
     fapi2::buffer<uint16_t> l_regions;
-    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
-        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                fapi2::TARGET_STATE_FUNCTIONAL)[0];
-    fapi2::buffer<uint64_t> l_data64;
+    fapi2::buffer<uint8_t> l_attr_read;
     FAPI_INF("Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SDISN_SETUP, i_target_chip, l_attr_read));
 
     FAPI_DBG("Exclude PIBMEM from TP array init");
     //Setting PIBMEM_REPAIR_REGISTER_0 register value
@@ -72,38 +77,77 @@ fapi2::ReturnCode p9_sbe_tp_arrayinit(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0,
                             0x0000000000000001));
 
-    // Step 1: Array Init for PRV Cplt
-    // ===============================
+    FAPI_DBG("set sdis_n");
+    FAPI_TRY(p9_sbe_tp_arrayinit_sdisn_setup(
+                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], l_attr_read, true));
 
-    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(l_tpchiplet,
-             REGIONS_EXCEPT_PIB_NET_PLL, l_regions));
+    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(
+                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_EXCEPT_PIB_NET_PLL, l_regions));
     FAPI_DBG("l_regions value: %#018lX", l_regions);
 
     FAPI_DBG("Call ARRAY INIT Module for Pervasive Chiplet");
-    FAPI_TRY(p9_perv_sbe_cmn_array_init_module(l_tpchiplet, l_regions, LOOP_COUNTER,
-             SELECT_SRAM, SELECT_EDRAM, START_ABIST_MATCH_VALUE));
-
-    FAPI_DBG("Check SRAM Abist Done");
-    //Getting CPLT_STAT0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_CPLT_STAT0, l_data64));
-    //l_sram_abist_check = PERV.CPLT_STAT0.SRAM_ABIST_DONE_DC
-    l_sram_abist_check = l_data64.getBit<PERV_1_CPLT_STAT0_SRAM_ABIST_DONE_DC>();
-
-    FAPI_ASSERT(l_sram_abist_check ,
-                fapi2::SRAM_ABIST_DONE_BIT_ERR()
-                .set_READ_ABIST_DONE(l_sram_abist_check),
-                "ERROR:ABIST_DONE_BIT_NOT_SET");
-
-    // Step 2: Scan0 for PRV Cplt
-    // ==========================
+    FAPI_TRY(p9_perv_sbe_cmn_array_init_module(
+                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], l_regions, LOOP_COUNTER, SELECT_SRAM,
+                 SELECT_EDRAM, START_ABIST_MATCH_VALUE));
 
     FAPI_DBG("Call SCAN0 Module for Pervasive Chiplet");
-    FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_tpchiplet, l_regions, SCAN_TYPES));
+    FAPI_TRY(p9_perv_sbe_cmn_scan0_module(
+                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], l_regions, SCAN_TYPES));
+
+    FAPI_DBG("clear sdis_n");
+    FAPI_TRY(p9_sbe_tp_arrayinit_sdisn_setup(
+                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                         fapi2::TARGET_STATE_FUNCTIONAL)[0], l_attr_read, false));
 
     FAPI_DBG("Add PIBMEM back to TP array init");
     //Setting PIBMEM_REPAIR_REGISTER_0 register value
     //PIB.PIBMEM_REPAIR_REGISTER_0 = 0x0
     FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0, 0x0));
+
+    FAPI_INF("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief Sdis_n set or clear
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_attr          Attribute to decide to sdis_n setup
+/// @param[in]     i_set           set or clear the LCBES condition
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_tp_arrayinit_sdisn_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::buffer<uint8_t> i_attr,
+    const bool i_set)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_INF("Entering ...");
+
+    if ( i_attr )
+    {
+        if ( i_set )
+        {
+            //Setting CPLT_CONF0 register value
+            l_data64.flush<0>();
+            //CPLT_CONF0.CTRL_CC_SDIS_DC_N = 1
+            l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0_OR, l_data64));
+        }
+        else
+        {
+            //Setting CPLT_CONF0 register value
+            l_data64.flush<0>();
+            //CPLT_CONF0.CTRL_CC_SDIS_DC_N = 0
+            l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0_CLEAR, l_data64));
+        }
+    }
 
     FAPI_INF("Exiting ...");
 
