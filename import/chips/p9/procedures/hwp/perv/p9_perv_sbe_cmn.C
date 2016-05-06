@@ -32,9 +32,12 @@
 
 //## auto_generated
 #include "p9_perv_sbe_cmn.H"
+//## auto_generated
+#include "p9_const_common.H"
 
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
+#include <p9_quad_scom_addresses_fld.H>
 #include <p9_const_common.H>
 
 
@@ -89,6 +92,8 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     fapi2::buffer<uint16_t> l_misr_a_value;
     fapi2::buffer<uint16_t> l_misr_b_value;
     fapi2::buffer<uint16_t> l_regions;
+    fapi2::buffer<uint64_t> l_read_reg;
+    bool l_abist_check = false;
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
     fapi2::buffer<uint64_t> l_data64_clk_region;
@@ -100,36 +105,8 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     //CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
+    l_data64.setBit<C_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL1_CLEAR, l_data64));
-
-    FAPI_DBG("Start pervasive regions Clocks");
-    //Setting CLK_REGION register value
-    l_data64_clk_region.insertFromRight<PERV_1_CLK_REGION_CLOCK_CMD, PERV_1_CLK_REGION_CLOCK_CMD_LEN>
-    (0b01);  //CLK_REGION.CLOCK_CMD = 0b01
-    l_data64_clk_region.setBit<4>();  //CLK_REGION.CLOCK_REGION_PERV = 1
-    l_data64_clk_region.setBit<48, 3>();  //CLK_REGION.SEL_THOLD_ALL = 0b111
-    FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
-                            l_data64_clk_region));
-
-    FAPI_DBG("Mask all LFIR's in Chiplet Global FIR");
-    //Setting FIR_MASK register value
-    //FIR_MASK = 0xFFFFFFFFFFFFFFFF
-    FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_FIR_MASK, 0xFFFFFFFFFFFFFFFF));
-
-    FAPI_DBG("Mask Special Attention");
-    //Setting SPA_MASK register value
-    //SPA_MASK = 0xFFFFFFFFFFFFFFFF
-    FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_SPA_MASK, 0xFFFFFFFFFFFFFFFF));
-
-    FAPI_DBG("Stop Pervasive regions clocks");
-    //Setting CLK_REGION register value
-    l_data64_clk_region.insertFromRight<PERV_1_CLK_REGION_CLOCK_CMD, PERV_1_CLK_REGION_CLOCK_CMD_LEN>
-    (0b10);  //CLK_REGION.CLOCK_CMD = 0b10
-    l_data64_clk_region.setBit<4>();  //CLK_REGION.CLOCK_REGION_PERV = 1
-    l_data64_clk_region.setBit<48, 3>();  //CLK_REGION.SEL_THOLD_ALL = 0b111
-    FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CLK_REGION,
-                            l_data64_clk_region));
 
     FAPI_DBG("Setup ABISTMUX_SEL");
     //Setting CPLT_CTRL0 register value
@@ -223,6 +200,28 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     FAPI_ASSERT(l_timeout > 0,
                 fapi2::SBE_ARRAYINIT_POLL_THRESHOLD_ERR(),
                 "ERROR:OPCG DONE BIT NOT SET");
+
+    //Getting CPLT_STAT0 register value
+    FAPI_TRY(fapi2::getScom(i_target_chiplets, PERV_CPLT_STAT0,
+                            l_read_reg)); //l_read_reg = CPLT_STAT0
+
+    if ( i_select_sram )
+    {
+        FAPI_DBG("Checking sram abist done");
+        FAPI_ASSERT(l_read_reg.getBit<0>() == 1,
+                    fapi2::SRAM_ABIST_DONE_BIT_ERR()
+                    .set_READ_ABIST_DONE(l_abist_check),
+                    "ERROR:SRAM_ABIST_DONE_BIT_NOT_SET");
+    }
+
+    if ( i_select_edram )
+    {
+        FAPI_DBG("Checking edram abist done");
+        FAPI_ASSERT(l_read_reg.getBit<1>() == 1,
+                    fapi2::EDRAM_ABIST_DONE_BIT_ERR()
+                    .set_READ_ABIST_DONE(l_abist_check),
+                    "ERROR:EDRAM_ABIST_DONE_BIT_NOT_SET");
+    }
 
     //oaim_poll_done
     {
@@ -386,7 +385,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     //CPLT_CTRL1.TC_VITL_REGION_FENCE = 1
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
+    l_data64.setBit<C_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
     FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_CPLT_CTRL1_OR, l_data64));
 
     FAPI_DBG("Raise region fences for scanned regions");
