@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+      <!-- SBE FIFO reset Test case -->
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testFifoReset.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <!-- An istep chip-op should succeed post the FIFO reset  -->
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testIstepInvalid.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>

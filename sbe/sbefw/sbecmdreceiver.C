@@ -71,6 +71,14 @@ void sbeCommandReceiver_routine(void *i_pArg)
             // the FIFO or PSU interfaces to be able to decode the command
             // class and the command opcode parameters.
 
+            // Received FIFO Reset interrupt
+            if (  g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO_RESET) )
+            {
+                SBE_ERROR(SBE_FUNC"FIFO reset received");
+                l_rc = SBE_FIFO_RESET_RECEIVED;
+                break;
+            }
+
             // Received PSU interrupt
             if ( g_sbeIntrSource.isSet(SBE_INTERFACE_PSU) )
             {
@@ -91,7 +99,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 l_command   = g_sbePsu2SbeCmdReqHdr.command;
             } // end if loop for PSU interface chipOp handling
 
-            // Received FIFO interrupt
+            // Received FIFO New Data interrupt
             else if (  g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO) ) {
 
             // This thread will attempt to unblock the command processor
@@ -115,14 +123,6 @@ void sbeCommandReceiver_routine(void *i_pArg)
             if (l_rc == SBE_FIFO_RESET_RECEIVED)
             {
                 SBE_ERROR(SBE_FUNC"FIFO reset received");
-                g_sbeCmdRespHdr.prim_status =
-                    (uint16_t)l_rc;
-                g_sbeCmdRespHdr.sec_status  =
-                    (uint16_t)l_rc;
-
-                // Reassign l_rc to Success to Unblock command processor
-                // thread and let that take the necessary action.
-                l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
                 break;
             }
 
@@ -182,8 +182,36 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
         } while (false); // Inner do..while ends
 
+        // If there was a FIFO reset request,
+        if (l_rc == SBE_FIFO_RESET_RECEIVED)
+        {
+            // Perform FIFO Reset
+            uint32_t l_rc = sbeUpFifoPerformReset();
+            if (l_rc)
+            {
+                // Perform FIFO Reset failed
+                SBE_ERROR(SBE_FUNC"Perform FIFO Reset failed, "
+                                "l_rc=[0x%08X]", l_rc);
+                // Collect FFDC?
+            }
+
+            if ( g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO) )
+            {
+                g_sbeIntrSource.clearIntrSource(SBE_INTERFACE_FIFO);
+            }
+
+            if ( g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO_RESET) )
+            {
+                g_sbeIntrSource.clearIntrSource(SBE_INTERFACE_FIFO_RESET);
+            }
+
+            pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
+            pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
+            continue;
+        } // FIFO reset handling ends
+
         // Unblock the command processor thread
-        // if we could dequeue the header successfully
+        // if we could dequeue the header successfully,
         if ((l_rcPk == PK_OK) && (l_rc == SBE_SEC_OPERATION_SUCCESSFUL))
         {
             l_rcPk = pk_semaphore_post(&g_sbeSemCmdProcess);
