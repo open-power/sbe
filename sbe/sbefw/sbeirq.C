@@ -36,8 +36,13 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
             break;
 
         case SBE_IRQ_SBEFIFO_DATA:
-        case SBE_IRQ_SBEFIFO_RESET:
             g_sbeIntrSource.setIntrSource(SBE_INTERFACE_FIFO);
+            pk_irq_disable(SBE_IRQ_SBEFIFO_RESET);
+            break;
+
+        case SBE_IRQ_SBEFIFO_RESET:
+            g_sbeIntrSource.setIntrSource(SBE_INTERFACE_FIFO_RESET);
+            pk_irq_disable(SBE_IRQ_SBEFIFO_DATA);
             break;
 
         default:
@@ -118,3 +123,4 @@ int sbeIRQSetup (void)
     return l_rc;
     #undef SBE_FUNC
 }
+

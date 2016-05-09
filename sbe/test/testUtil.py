@@ -32,6 +32,47 @@ def readEot():
     checkEqual( (status[3] & 0x80), 0x80 );
     read(lbus, 0x2440, 4)
 
+def resetFifo():
+    write(lbus, 0x240C, (0, 0, 0, 1))
+    return
+
+def readUsFifoStatus():
+    status = read(lbus, 0x2404, 4)
+    return status
+
+def readDsFifoStatus():
+    status = read(lbus, 0x2444, 4)
+    return status
+
+def waitTillFifoEmpty(func):
+    count = 0
+    loop = True
+    while(loop is True):
+        status = func()
+        if(status[1] == 0x10):
+            loop = False
+            break
+        else:
+            count = count + 1
+            runCycles(200000)
+            if(count > 10):
+                raise Exception('Timed out waiting for FIFO to get flushed')
+
+
+def waitTillUsFifoEmpty():
+    try:
+        waitTillFifoEmpty(readUsFifoStatus)
+    except:
+        raise Exception('US FIFO did not get empty')
+
+
+def waitTillDsFifoEmpty():
+    try:
+        waitTillFifoEmpty(readDsFifoStatus)
+    except:
+        raise Exception('DS FIFO did not get empty')
+
+
 # This function will only read the entry but will not compare it
 # with anything. This can be used to flush out enteries.
 def readDsEntry(entryCount):

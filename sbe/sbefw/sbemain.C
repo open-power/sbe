@@ -24,7 +24,6 @@
 ////////////////////////////////////////////////////////////////
 PkSemaphore g_sbeSemCmdRecv;
 PkSemaphore g_sbeSemCmdProcess;
-PkSemaphore g_sbeSemFifoReset;
 
 ////////////////////////////////////////////////////////////////
 // @brief Stacks for Non-critical Interrupts and Threads
@@ -109,11 +108,6 @@ uint32_t sbeInitSems(void)
             break;
         }
         l_rc = pk_semaphore_create(&g_sbeSemCmdProcess, 0, 1);
-        if (l_rc)
-        {
-            break;
-        }
-        l_rc = pk_semaphore_create(&g_sbeSemFifoReset, 0, 1);
         if (l_rc)
         {
             break;

@@ -76,14 +76,6 @@ extern PkSemaphore g_sbeSemCmdRecv;
  */
 extern PkSemaphore g_sbeSemCmdProcess;
 
-/**
- * @brief Global semaphore : g_sbeSemFifoReset
- *
- *   This is used to synchronize the graceful handling of FIFO reset
- *   between command receiver and synchronous command processor threads.
- *
- */
-extern PkSemaphore g_sbeSemFifoReset;
 
 /**
  *  @brief SBE Interface source
@@ -94,6 +86,7 @@ typedef enum
     SBE_INTERFACE_UNKNOWN = 0x00,
     SBE_INTERFACE_FIFO    = 0x01,
     SBE_INTERFACE_PSU     = 0x02,
+    SBE_INTERFACE_FIFO_RESET    = 0x04,
 } sbeInterfaceSrc_t;
 
 /**

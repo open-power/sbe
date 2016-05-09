@@ -109,9 +109,6 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
         // Handle FIFO reset case
         if (i_rc == SBE_FIFO_RESET_RECEIVED)
         {
-            // @TODO via RTC : 126147
-            //       Handle FIFO reset flow
-            pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
             break;
         }
 
@@ -248,6 +245,14 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
                 l_primStatus = g_sbeCmdRespHdr.prim_status;
                 l_rc         = g_sbeCmdRespHdr.sec_status;
             }
+            else // SBE_INTERFACE_FIFO_RESET or SBE_INTERFACE_UNKNOWN
+            {
+                SBE_ERROR(SBE_FUNC"Unexpected interrupt communicated to the "
+                          "processor thread. Interrupt source: 0x%02X",
+                          g_sbeIntrSource.l_intrSource);
+                assert(false);
+                break;
+            }
 
             SBE_DEBUG (SBE_FUNC"l_primStatus=[0x%04X], l_rc=[0x%04X]",
                             l_primStatus, l_rc);
@@ -325,8 +330,8 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             // Enable the new data available interrupt
             g_sbeIntrSource.clearIntrSource(SBE_INTERFACE_FIFO);
             pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
+            pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
         }
-
     } while(true); // Thread always exists
 }
 
