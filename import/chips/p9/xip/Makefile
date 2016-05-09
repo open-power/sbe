@@ -49,15 +49,9 @@ ifeq ($(CXX_VERSION),)
 $(error wrong compiler version. Use $(CXX_RELEASE) compiler. Try: "scl enable devtoolset-2 bash")
 endif
 
-XIP_SOURCES  = p9_xip_image.c
-XIP_SOURCES += p9_xip_tool.c
-
 XIP_UTILS = p9_xip_tool
 
 #  Utility targets
-XIP_OBJc         = $(patsubst %.c,$(OBJ_DIR)/%.o,$(XIP_SOURCES))
-XIP_OBJECTS      = $(patsubst %.C,$(OBJ_DIR)/%.o,$(XIP_OBJc))
-#XIP_DEPENDENCIES = $(patsubst %.o,%.d,$(XIP_OBJECTS))
 XIP_EXECUTABLES  = $(patsubst %,$(OBJ_DIR)/%,$(XIP_UTILS))
 
 .PHONY : all clean
@@ -68,6 +62,9 @@ $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
 $(OBJ_DIR)/%.o: %.c
+	$(CXX) $(CXX_FLAGS) $(INCLUDES) $(XIP_FLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/%.o: %.C
 	$(CXX) $(CXX_FLAGS) $(INCLUDES) $(XIP_FLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/p9_xip_tool: $(OBJ_DIR)/p9_xip_image.o  $(OBJ_DIR)/p9_xip_tool.o
