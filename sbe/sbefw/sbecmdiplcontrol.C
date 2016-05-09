@@ -123,7 +123,7 @@ const uint32_t ISTEP3_MAX_SUBSTEPS = 22;
 const uint32_t ISTEP4_MAX_SUBSTEPS = 34;
 const uint32_t ISTEP5_MAX_SUBSTEPS = 2;
 static const uint8_t ISTEP_MINOR_START = 1;
-static const uint8_t SLAVE_LAST_MINOR_ISTEP = 18;
+static const uint8_t SLAVE_LAST_MINOR_ISTEP = 20;
 static const uint8_t ISTEP2_MINOR_START = 2;
 static const uint32_t SBE_ROLE_MASK = 0x00000002;
 
@@ -407,7 +407,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
              (SLAVE_LAST_MINOR_ISTEP < i_minor)
             )))
         {
-            // Cannot run beyond 3.18 on a slave SBE
+            // Cannot run beyond 3.20 on a slave SBE
             valid = false;
             break;
         }
@@ -686,7 +686,7 @@ void sbeDoContinuousIpl()
                     l_done = true;
                     break;
                 }
-                // Check if we are at step 3.18 on the slave SBE
+                // Check if we are at step 3.20 on the slave SBE
                 if(((SBE_ISTEP_LAST_SLAVE == l_major) &&
                         (SLAVE_LAST_MINOR_ISTEP == l_minor)) &&
                         (SBE_ROLE_SLAVE == g_sbeRole))
