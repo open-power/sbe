@@ -582,4 +582,12 @@
   <entry>
            <name>ATTR_SDISN_SETUP</name>
   </entry>
+  <entry>
+           <name>ATTR_SECURITY_MODE</name>
+           <value>0x0</value>
+  </entry>
+  <entry>
+           <name>ATTR_SECURITY_ENABLE</name>
+  </entry>
+  
 </entries>

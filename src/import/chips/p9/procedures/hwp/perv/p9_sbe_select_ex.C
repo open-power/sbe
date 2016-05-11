@@ -113,6 +113,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
     uint8_t attr_force_all = 0;
     bool b_single = true;
     bool b_first = true;
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
     auto l_perv_functional_vector =
         i_target.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -176,7 +177,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
 
     // Read the "FORCE_ALL" attribute
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES,
-                           i_target,
+                           FAPI_SYSTEM,
                            attr_force_all));
 
     // Set the flow mode and respect the force mode
