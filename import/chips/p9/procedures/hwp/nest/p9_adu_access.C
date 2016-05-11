@@ -107,6 +107,7 @@ extern "C" {
         }
 
     fapi_try_exit:
+        fapi2::ReturnCode saveError = fapi2::current_err;
 
         if ( fapi2::current_err && l_myAduFlag.getOperFailCleanup() )
         {
@@ -116,7 +117,7 @@ extern "C" {
         }
 
         FAPI_DBG("Exiting...");
-        return fapi2::current_err;
+        return saveError;
     }
 
 } // extern "C"
