@@ -1,5 +1,29 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sbecmdcntrldmt.C $                                  */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/sbe/sbefw/sbecmdcntrldmt.C
+ * @file: sbe/sbefw/sbecmdcntrldmt.C
  *
  * @brief This file contains the Core State Control Messages
  *
@@ -14,6 +38,7 @@
 #include "fapi2.H"
 #include "p9_sbe_check_master_stop15.H"
 #include "p9_perv_scom_addresses.H"
+#include "p9_block_wakeup_intr.H"
 
 using namespace fapi2;
 
@@ -133,6 +158,16 @@ uint32_t sbeStartCntlDmt()
             // Only for Pending and Success case
             if(RC_CHECK_MASTER_STOP15_PENDING != l_rcFapi) // Success
             {
+                l_fapiRc = p9_block_wakeup_intr(l_coreTgt,
+                                                p9pmblockwkup::CLEAR );
+                if( l_fapiRc )
+                {
+                    SBE_ERROR(SBE_FUNC" p9_block_wakeup_intr failed ");
+                    // TODO via RTC 149074
+                    // Async Response to be stored.
+                    // Also checkstop the system.
+                    break;
+                }
                 // indicate the Host via Bit SBE_SBE2PSU_DOORBELL_SET_BIT2
                 // that Stop15 exit
                 l_rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT2);
