@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -21,12 +21,12 @@
 ///
 /// @brief Read scratch Regs, update ATTR
 //------------------------------------------------------------------------------
-// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HW Owner        : Anusha Reddy Rangareddygari <anusrang@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
-// *HWP FW Owner         : sunil kumar <skumar8j@in.ibm.com>
-// *HWP Team             : Perv
-// *HWP Level            : 2
-// *HWP Consumed by      : SBE
+// *HWP FW Owner        : sunil kumar <skumar8j@in.ibm.com>
+// *HWP Team            : Perv
+// *HWP Level           : 2
+// *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
 
