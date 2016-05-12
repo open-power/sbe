@@ -214,17 +214,11 @@ class SbeRegAccess
             uint64_t iv_messagingReg;
         };
 
-        // Scom address definitions for mailbox scratch registers, note that the
-        // mailbox numbering starts at 0
-        static const uint32_t SBE_MESSAGING_REGISTER_ADDR = 0x50009;
-        static const uint32_t SBE_MBX3_REGISTER_ADDR = 0x5003A;
-        static const uint32_t SBE_MBX6_REGISTER_ADDR = 0x5003D;
-        static const uint32_t SBE_MBX8_REGISTER_ADDR = 0x5003F;
-
         // Bit masks defining bits in the above registers that the SBE is
         // interested in
         static const uint64_t SBE_MBX8_MBX3_VALID_MASK = 0x2000000000000000ULL;
         static const uint64_t SBE_MBX8_MBX6_VALID_MASK = 0x0400000000000000ULL;
+        static const uint64_t SBE_DEV_ID_C4_PIN_MASK = 0x0000000000800000ULL;
 };
 #endif //__SBEFW_SBEREGACCESS_H
 

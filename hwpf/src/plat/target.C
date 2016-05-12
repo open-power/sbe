@@ -447,10 +447,6 @@ fapi_try_exit:
         FAPI_DBG("ATTR_EQ_GARD:: 0x%08x", l_eqGards);
         FAPI_DBG("ATTR_EC_GARD:: 0x%08x", l_ecGards);
 
-        // Normalize the values read from the attributes (they are right aligned)
-        l_eqGards <<= ((sizeof(l_eqGards) * 8) - EQ_TARGET_COUNT);
-        l_ecGards <<= ((sizeof(l_ecGards) * 8) - CORE_TARGET_COUNT);
-
         // Iterate over the bits in EQ and EC gards, if set, mark the
         // corresponding target non-functional
         // TODO: Need to mark corresponding EX targets non-functional when we
