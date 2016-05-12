@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -20,27 +20,30 @@
 /// @file  p9_sbe_tp_initf.C
 ///
 /// @brief TP chiplet scaninits for the TP rings
-// *!
-// *! OWNER NAME  : Abhishek Agarwal  Email: abagarw8@in.ibm.com
-// *! BACKUP NAME :                   Email:
 //------------------------------------------------------------------------------
-// *HWP HWP Owner   : Abhishek Agarwal <abagarw8@in.ibm.com>
-// *HWP FW Owner    : Brian Silver <bsilver@us.ibm.com>
-// *HWP Team        : Perv
-// *HWP Level       : 1
-// *HWP Consumed by : SBE
+// *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
+// *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
+// *HWP FW Owner        : Sunil Kumar <skumar8j@in.ibm.com>
+// *HWP Team            : Perv
+// *HWP Level           : 2
+// *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
 
 //## auto_generated
 #include "p9_sbe_tp_initf.H"
+#include "p9_ringId.H"
+
 fapi2::ReturnCode p9_sbe_tp_initf(const
                                   fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    FAPI_DBG("p9_sbe_tp_initf: Entering ...");
+    FAPI_INF("Entering ...");
 
-    FAPI_DBG("p9_sbe_tp_initf: Exiting ...");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_fure));
+    FAPI_TRY(fapi2::putRing(i_target_chip, occ_fure));
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_ana_func));
+    FAPI_INF("Exiting ...");
 
-    return fapi2::FAPI2_RC_SUCCESS;
-
+fapi_try_exit:
+    return fapi2::current_err;
 }
