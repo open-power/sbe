@@ -21,12 +21,14 @@
 ///
 /// @brief Scan initialize REPR for PERV chiplet
 //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // *HWP HW Owner        : Anusha Reddy Rangareddygari <anusrang@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : Sunil Kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
-// *HWP Level           : 1
+// *HWP Level           : 2
 // *HWP Consumed by     : SBE
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
 #include "p9_sbe_tp_repr_initf.H"
@@ -36,8 +38,14 @@ fapi2::ReturnCode p9_sbe_tp_repr_initf(const
 {
     FAPI_INF("Entering ...");
 
+    FAPI_DBG("Scan perv repr ring.");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_repr));
+
+    FAPI_DBG("Scan occ repr ring.");
+    FAPI_TRY(fapi2::putRing(i_target_chip, occ_repr));
+
     FAPI_INF("Exiting ...");
 
-    return fapi2::FAPI2_RC_SUCCESS;
-
+fapi_try_exit:
+    return fapi2::current_err;
 }

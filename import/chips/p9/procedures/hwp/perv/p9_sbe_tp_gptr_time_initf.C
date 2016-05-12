@@ -26,22 +26,28 @@
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : Sunil Kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
-// *HWP Level           : 1
+// *HWP Level           : 2
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
-
+//------------------------------------------------------------------------------
 
 #include "p9_sbe_tp_gptr_time_initf.H"
 
 fapi2::ReturnCode p9_sbe_tp_gptr_time_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-
     FAPI_INF("Entering ...");
+
+    FAPI_DBG("Scan gptr and time rings for tp chiplet");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_gptr));
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_ana_gptr));
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_pll_gptr));
+    FAPI_TRY(fapi2::putRing(i_target_chip, occ_gptr));
+    FAPI_TRY(fapi2::putRing(i_target_chip, occ_time));
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_time));
 
     FAPI_INF("Exiting ...");
 
-    return fapi2::FAPI2_RC_SUCCESS;
-
+fapi_try_exit:
+    return fapi2::current_err;
 }
-
