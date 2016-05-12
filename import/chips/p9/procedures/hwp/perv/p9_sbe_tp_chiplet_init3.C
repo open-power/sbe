@@ -32,6 +32,8 @@
 
 //## auto_generated
 #include "p9_sbe_tp_chiplet_init3.H"
+//## auto_generated
+#include "p9_const_common.H"
 
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
@@ -46,11 +48,17 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
     CLOCK_TYPES = 0x7
 };
 
+static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
+
 fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     bool l_read_reg = 0;
     fapi2::buffer<uint64_t> l_regions;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
+        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                fapi2::TARGET_STATE_FUNCTIONAL)[0];
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("Entering ...");
 
@@ -65,34 +73,15 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //PIB.INTERRUPT_TYPE_REG = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PIB_INTERRUPT_TYPE_REG, 0));
 
-    FAPI_DBG("Clear PIB,NET,OCC-PIB and PRV region fence");
-    //Setting CPLT_CTRL1 register value
-    l_data64.flush<0>();
-    //PERV.CPLT_CTRL1.TC_PERV_REGION_FENCE = 0b0
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_PERV_REGION_FENCE>();
-    l_data64.setBit<5>();  //PERV.CPLT_CTRL1.TC_REGION1_FENCE = 0
-    l_data64.setBit<6>();  //PERV.CPLT_CTRL1.TC_REGION2_FENCE = 0
-    //PERV.CPLT_CTRL1.TC_REGION3_FENCE = 0
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_REGION3_FENCE>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_CPLT_CTRL1_CLEAR, l_data64));
+    FAPI_DBG("Clear Pervasive Chiplet region fence");
+    FAPI_TRY(p9_sbe_tp_chiplet_init3_region_fence_setup(l_tpchiplet));
 
-    FAPI_DBG("Drop vital fence for TP chiplet");
-    //Setting CPLT_CTRL1 register value
-    l_data64.flush<0>();
-    //PERV.CPLT_CTRL1.TC_VITL_REGION_FENCE = 0
-    l_data64.setBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_CPLT_CTRL1_CLEAR, l_data64));
+    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_tpchiplet,
+             REGIONS_ALL_EXCEPT_PIB_NET, l_regions));
+    FAPI_DBG("l_regions value: %#018lX", l_regions);
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_target_cplt,
-                 REGIONS_ALL_EXCEPT_PIB_NET, l_regions));
-        FAPI_DBG("l_regions value: %#018lX", l_regions);
-
-        FAPI_TRY(p9_sbe_common_clock_start_stop(l_target_cplt, START_CMD, 0, 0,
-                                                l_regions, CLOCK_TYPES));
-    }
+    FAPI_TRY(p9_sbe_common_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, l_regions,
+                                            CLOCK_TYPES));
 
     FAPI_DBG("Drop FSI fence 5");
     //Setting ROOT_CTRL0 register value
@@ -166,6 +155,40 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
                 fapi2::XSTOP_ERR()
                 .set_READ_XSTOP(l_read_reg),
                 "XSTOP BIT GET SET");
+
+    FAPI_INF("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief region fence setup
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+{
+    // Local variable and constant definition
+    fapi2::buffer <uint32_t> l_attr_pg;
+    fapi2::buffer <uint16_t> l_attr_pg_data;
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_INF("Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
+
+    l_attr_pg.invert();
+    l_attr_pg.extractToRight<20, 11>(l_attr_pg_data);
+
+    FAPI_INF("Drop partial good fences");
+    //Setting CPLT_CTRL1 register value
+    l_data64.flush<0>();
+    l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>
+    (l_attr_pg.getBit<19>());  //CPLT_CTRL1.TC_VITL_REGION_FENCE = l_attr_pg.getBit<19>()
+    //CPLT_CTRL1.TC_ALL_REGIONS_FENCE = l_attr_pg_data
+    l_data64.insertFromRight<4, 11>(l_attr_pg_data);
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
     FAPI_INF("Exiting ...");
 
