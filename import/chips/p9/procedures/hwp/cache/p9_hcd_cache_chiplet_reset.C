@@ -64,6 +64,7 @@ p9_hcd_cache_chiplet_reset(
     uint64_t                                    l_l2gmux_input       = 0;
     uint64_t                                    l_l2gmux_reset       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
@@ -113,6 +114,10 @@ p9_hcd_cache_chiplet_reset(
                                   (l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET))),
                          MASK_SET(2)));
     }
+
+    FAPI_DBG("Init heartbeat hang counter");
+    l_data64.flush<0>().setBit<2>();
+    FAPI_TRY(putScom(i_target, EQ_HANG_PULSE_6_REG, l_data64));
 
     FAPI_DBG("Init NET_CTRL0[1-5,11-14,18,22,26],step needed for hotplug");
     l_data64 = p9hcd::Q_NET_CTRL0_INIT_VECTOR;
