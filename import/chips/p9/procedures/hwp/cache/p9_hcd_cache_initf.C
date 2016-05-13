@@ -107,7 +107,7 @@ fapi_try_exit:
     // process configured child EX chiplets
     for (auto l_iter = l_ex_targets.begin(); l_iter != l_ex_targets.end(); l_iter++)
     {
-        FAPI_EXEC_HWP(l_rc, p9_core_common_scan, *l_iter);
+        FAPI_EXEC_HWP(l_rc, p9_core_common_scan, *l_iter, FAPI_SYSTEM);
 
         if (l_rc)
         {
