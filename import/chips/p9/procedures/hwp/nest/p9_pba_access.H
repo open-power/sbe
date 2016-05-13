@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -77,7 +77,8 @@ extern "C" {
 /// @param[in]  i_target       => P9 chip target
 /// @param[in]  i_address      => base real address for read/write operation (expected to be 128B aligned)
 /// @param[in]  i_rnw          => if the operation is read not write (1 for read, 0 for write)
-/// @param[in]  i_flags        => other information that is needed - the flags are: bit 1 - fastmode
+/// @param[in]  i_flags        => other information that is needed - see the p9_pba_constants pba_flags enums for bit definitions
+///                               Note: to construct the flag you can use the p9_PBA_oper_flag class
 /// @param[in]  i_lastGranule  => is this the last granule that is to be read/written
 /// @param[in]  i_firstGranule => first granule that is to be read/written NOT USED FOR PBA
 /// @param[in, out] io_data    => The data that is read/written

@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -76,8 +76,8 @@ extern "C" {
 /// @param[in]  i_ex_target => P9 EX Target for use with lco_m operations
 /// @param[in]  i_address => base real address for read/write operation (expected to be 128B aligned)
 /// @param[in]  i_rnw     => if the operation is read not write (1 for read, 0 for write)
-/// @param[in]  i_flags   => other information that is needed - the flags are:
-///                          -bit 1 - fastmode,
+/// @param[in]  i_flags   => other information that is needed - see the p9_pba_constants pba_flags enums for bit definitions
+///                          Note: to construct the flag you can use the p9_PBA_oper_flag class
 /// @param[out] o_numGranules => number of 128B granules that can be read/written before setup needs to be called again
 //
 /// @return FAPI_RC_SUCCESS if the setup completes successfully,
