@@ -373,35 +373,6 @@ fapi2::ReturnCode standardScan(
     return l_rc;
 }
 
-/// @brief Function to apply the Ring data using the queued-scan method
-/// @param[in] i_target Chiplet Target of Scan
-/// @param[in] i_operation Type of operation to perform - ROTATE/SCAN
-/// @param[in] i_opVal Number of bits for the operation
-/// @param[in] i_scanData This value has to be scanned when i_operation is SCAN
-/// @return FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode queuedScan(
-    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-    opType_t i_operation,
-    uint32_t i_opVal,
-    uint64_t i_scanData)
-{
-    return fapi2::FAPI2_RC_SUCCESS;
-}
-
-/// @brief Function to apply the Ring data using the polled-scan method
-/// @param[in] i_target Chiplet Target of Scan
-/// @param[in] i_operation Type of operation to perform - ROTATE/SCAN
-/// @param[in] i_opVal Number of bits for the operation
-/// @param[in] i_scanData This value has to be scanned when i_operation is SCAN
-fapi2::ReturnCode polledScan(
-    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-    opType_t i_operation,
-    uint64_t i_opVal,
-    uint64_t i_scanData)
-{
-    return fapi2::FAPI2_RC_SUCCESS;
-}
-
 /// @brief Wrapper function to check the scan-type and call the
 ///        appropriate scan function
 /// @param[in] i_scanType Type of Scan
@@ -421,30 +392,11 @@ fapi2::ReturnCode doOperation(
 {
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
 
-    switch(i_scanType)
-    {
-        case STANDARD_SCAN:
-            l_rc = standardScan(i_target,
-                                i_chipletId,
-                                i_operation,
-                                i_opVal,
-                                i_scanData);
-            break;
-
-        case QUEUED_SCAN:
-            l_rc = queuedScan(i_target,
-                              i_operation,
-                              i_opVal,
-                              i_scanData);
-            break;
-
-        case POLLED_SCAN:
-            l_rc = polledScan(i_target,
-                              i_operation,
-                              i_opVal,
-                              i_scanData);
-            break;
-    };
+    l_rc = standardScan(i_target,
+                        i_chipletId,
+                        i_operation,
+                        i_opVal,
+                        i_scanData);
 
     return l_rc;
 }
@@ -461,6 +413,7 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 {
     fapi2::ReturnCode l_rc;
     uint32_t l_chiplet =  i_chipletId << 24;
+    uint64_t l_scan_region = i_scanRegion;
 #ifdef __PPE__
     uint32_t l_chipletID = i_target.getChipletNumber();
 
@@ -469,7 +422,31 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
         l_chiplet = (l_chipletID << 24);
     }
 
+    if (fapi2::TARGET_TYPE_EQ & i_target.getTargetType())
+    {
+        // this gives position of ex (0 or 1)
+        uint32_t l_ex_number = i_target.getTargetNumber();
+
+        // We are in odd EX and it's placed in bottom half of the EQ
+        if (l_ex_number % 2)
+        {
+            uint32_t l_type = (uint32_t)i_scanRegion;
+            // need to shift one bit.
+            uint32_t l_ex_region = i_scanRegion >> 32;
+            l_ex_region = l_ex_region >> 1;
+
+            l_scan_region = l_ex_region;
+            l_scan_region = l_scan_region << 32;
+            l_scan_region = l_scan_region | l_type;
+
+        }
+
+        // for even ex, the data from RS4 hold good.
+    }
+
 #endif
+
+
 
 #ifndef __PPE__
     // Non-PPE platform - Cronus need a Chip target to be used
@@ -489,7 +466,7 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
         l_scomAddress |= l_chiplet;
 
         // Do the scom
-        fapi2::buffer<uint64_t> l_scanRegion(i_scanRegion);
+        fapi2::buffer<uint64_t> l_scanRegion(l_scan_region);
 #ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_scanRegion);
 #else
@@ -564,11 +541,13 @@ fapi2::ReturnCode writeHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 /// @param[in] i_target Chiplet Target of Scan
 /// @param[in] i_header The header data that is expected.
 //  @param[in] i_chipletId data from RS4
+//  @param[in] i_ringMode different ring mode operations
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                i_target,
                                const uint64_t i_header,
-                               const uint8_t i_chipletId)
+                               const uint8_t i_chipletId,
+                               const fapi2::RingMode i_ringMode)
 {
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
 
@@ -616,11 +595,643 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
             l_rc = fapi2::FAPI2_RC_PLAT_ERR_RING_HEADER_CHECK;
             break;
         }
+
+        if ((i_ringMode &  fapi2::RING_MODE_SET_PULSE_NSL))
+        {
+            const uint64_t l_header = 0xa5a5a5a500000000;
+            uint32_t l_address = 0x0003A000; // 64-bit scan
+            // Add the chiplet ID in the Scom Address
+            l_address |= l_chiplet;
+
+#ifndef __PPE__
+            l_rc = fapi2::putScom(
+                       i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
+                       l_address,
+                       l_header);
+#else
+            l_rc = fapi2::putScom(i_target, l_address, l_header);
+#endif
+
+            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                FAPI_ERR("Error during writing header %016x", l_header);
+                break;
+            }
+
+        }
     }
     while(0);
 
     return l_rc;
 
+}
+
+/// @brief Function to set the Scan Region for set pulse mode
+/// @param[in] i_target Chiplet Target of Scan
+/// @param[in] i_scanRegion Value to be set to select a Scan Region
+/// @return FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode setupScanRegionForSetPulse(
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
+    uint64_t i_scanRegion,
+    const fapi2::RingMode i_ringMode,
+    const uint8_t i_chipletId)
+{
+    fapi2::ReturnCode l_rc;
+
+    uint32_t l_chiplet = (i_chipletId << 24);
+#ifdef __PPE__
+    uint32_t l_chipletID = i_target.getChipletNumber();
+
+    if ( l_chipletID )
+    {
+        l_chiplet = (l_chipletID << 24);
+    }
+
+#endif
+
+#ifndef __PPE__
+    // Non-PPE platform - Cronus need a Chip target to be used
+    // in putScom/getScom.
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent(
+        i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>());
+#endif
+
+    do
+    {
+        // **************************
+        // Setup OPCG_ALIGN – SNOP Align=5 and SNOP Wait=7
+        // **************************
+        uint32_t l_scomAddress = 0x00030001;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+        fapi2::buffer<uint64_t> l_opcgAlign;
+
+#ifndef __PPE__
+        l_rc = fapi2::getScom(l_parent, l_scomAddress, l_opcgAlign);
+#else
+        l_rc = fapi2::getScom(i_target, l_scomAddress, l_opcgAlign);
+#endif
+        //set SNOP Align=8:1 and SNOP Wait=7
+        // bits: 4:7   SNOP_ALIGN(0:3) 5: 8:1
+        // bits: 20:31 SNOP_WAIT(0:11)
+        l_opcgAlign.setBit<5>();
+        l_opcgAlign.setBit<7>();
+
+        l_opcgAlign.setBit<29>();
+        l_opcgAlign.setBit<30>();
+        l_opcgAlign.setBit<31>();
+
+        // Do the scom
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgAlign);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgAlign);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup OPCG Algin failed");
+            break;
+        }
+
+        // **************************
+        // Setup Scan-Type and Region
+        // **************************
+        l_scomAddress = 0x00030005;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+        // Do the scom
+        fapi2::buffer<uint64_t> l_scanRegion(i_scanRegion);
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_scanRegion);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_scanRegion);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup Scan-Type and Region failed");
+            break;
+        }
+
+        ////////////////////////////
+        //prepare clk_region register
+        ////////////////////////////
+        l_scomAddress = 0x00030006;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+        //First 32 bits tells clock region
+        uint64_t l_clk_region = i_scanRegion & 0xFFFFFFFF00000000;
+
+        fapi2::buffer<uint64_t> l_clkRegion(l_clk_region);
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_clkRegion);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_clkRegion);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup NSL mode failed");
+            break;
+        }
+
+        //////////////////////
+        //prepare opcg_reg0
+        //////////////////////
+        l_scomAddress = 0x00030002;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+        //bit 11 -- RUN_OPCG_ON_UPDATE_DR
+        uint64_t l_opcg_reg0 = 0x0010000000000000;
+
+        fapi2::buffer<uint64_t> l_opcgReg0(l_opcg_reg0);
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgReg0);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgReg0);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup NSL mode failed");
+            break;
+        }
+
+        uint64_t l_opcg_reg1 = 0x0;
+        uint64_t l_opcg_reg2 = 0x0;
+        // NSL for slow regions
+        uint64_t l_opcg_capt1 = 0x0;
+        // NSL for fast regions
+        uint64_t l_opcg_capt2 = 0x0;
+        uint64_t l_opcg_capt3 = 0x0;
+
+        // setup NSL mode
+        if (i_ringMode &  fapi2::RING_MODE_SET_PULSE_NSL)
+        {
+            l_opcg_reg1 = 0x0;
+            l_opcg_reg2 = 0x0;
+            // NSL for slow regions
+            l_opcg_capt1 = 0x1400000000000000;
+            // NSL for fast regions
+            l_opcg_capt2 = 0x0400000000000000;
+            l_opcg_capt3 = 0x0;
+
+        }
+        else if ((i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL))
+        {
+            l_opcg_reg1 = 0x0;
+            l_opcg_reg2 = 0x0;
+            // NSL for slow regions
+            l_opcg_capt1 = 0x1800000000000000;
+            // NSL for fast regions
+            l_opcg_capt2 = 0x0800000000000000;
+            l_opcg_capt3 = 0x0;
+        }
+        else   //set pulse all
+        {
+            l_opcg_reg1 = 0x0;
+            l_opcg_reg2 = 0x0;
+            // NSL for slow regions
+            l_opcg_capt1 = 0x1E00000000000000;
+            // NSL for fast regions
+            l_opcg_capt2 = 0x0E00000000000000;
+            l_opcg_capt3 = 0x0;
+
+        }
+
+        //prepare opcg_reg1
+        l_scomAddress = 0x00030003;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+        fapi2::buffer<uint64_t> l_opcgReg1(l_opcg_reg1);
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgReg1);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgReg1);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup opcg reg1 failed");
+            break;
+        }
+
+        //prepare opcg_reg2
+        l_scomAddress = 0x00030004;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+
+        fapi2::buffer<uint64_t> l_opcgReg2(l_opcg_reg2);
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgReg2);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgReg2);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup opcg reg2 failed");
+            break;
+        }
+
+        //prepare opcg_capt1
+        l_scomAddress = 0x00030010;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+
+        fapi2::buffer<uint64_t> l_opcgCapt1(l_opcg_capt1);
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgCapt1);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgCapt1);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup opcg capture 1 failed");
+            break;
+        }
+
+        //prepare opcg_capt2
+        l_scomAddress = 0x00030011;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+
+        fapi2::buffer<uint64_t> l_opcgCapt2(l_opcg_capt2);
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgCapt2);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgCapt2);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup opcg capture 2 failed");
+            break;
+        }
+
+        //prepare opcg_capt3
+        l_scomAddress = 0x00030012;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+
+        fapi2::buffer<uint64_t> l_opcgCapt3(l_opcg_capt3);
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgCapt3);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgCapt3);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("Setup opcg capture 3 failed");
+            break;
+        }
+
+    }
+    while(0);
+
+    return l_rc;
+}
+/// @brief Function to restore the opcg registers
+/// @param[in] i_target Chiplet Target of Scan
+/// @param[out]o_OPCGData Structure that contains opcg data
+/// @return FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode storeOPCGRegData(
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
+    struct restoreOpcgRegisters& o_OPCGData,
+    const uint8_t i_chipletId)
+{
+    fapi2::ReturnCode l_rc;
+    uint32_t l_chiplet = i_chipletId << 24;
+#ifdef __PPE__
+    uint32_t l_chipletID = i_target.getChipletNumber();
+
+    if ( l_chipletID )
+    {
+        l_chiplet = (l_chipletID << 24);
+    }
+
+#endif
+
+#ifndef __PPE__
+    // Non-PPE platform - Cronus need a Chip target to be used
+    // in putScom/getScom.
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent(
+        i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>());
+#endif
+
+    do
+    {
+        //////////////////////
+        //prepare opcg_reg0
+        //////////////////////
+        uint32_t l_scomAddress = 0x00030002;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+
+#ifndef __PPE__
+        l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgReg0);
+#else
+        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgReg0);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_REG0 read op failed");
+            break;
+        }
+
+        //prepare opcg_reg1
+        l_scomAddress = 0x00030003;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+#ifndef __PPE__
+        l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgReg1);
+#else
+        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgReg1);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_REG1 read op failed");
+            break;
+        }
+
+        //prepare opcg_reg2
+        l_scomAddress = 0x00030004;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+#ifndef __PPE__
+        l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgReg2);
+#else
+        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgReg2);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_REG2 read op failed");
+            break;
+        }
+
+        //prepare opcg_capt1
+        l_scomAddress = 0x00030010;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+
+#ifndef __PPE__
+        l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgCapt1);
+#else
+        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgCapt1);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_CAPT1 read op failed");
+            break;
+        }
+
+        //prepare opcg_capt2
+        l_scomAddress = 0x00030011;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+#ifndef __PPE__
+        l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgCapt2);
+#else
+        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgCapt2);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_CAPT2 read op failed");
+            break;
+        }
+
+        //prepare opcg_capt3
+        l_scomAddress = 0x00030012;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+#ifndef __PPE__
+        l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgCapt3);
+#else
+        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgCapt3);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_CAPT3 read op failed");
+            break;
+        }
+    }
+    while(0);
+
+    return l_rc;
+}
+/// @brief Function to restore the opcg registers
+/// @param[in] i_target Chiplet Target of Scan
+/// @param[in] i_OPCGData opcg register data to restore original values
+/// @return FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode restoreOPCGRegData(
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
+    struct restoreOpcgRegisters i_OPCGData,
+    const uint8_t i_chipletId)
+{
+    fapi2::ReturnCode l_rc;
+    uint32_t l_chiplet = i_chipletId << 24;
+#ifdef __PPE__
+    uint32_t l_chipletID = i_target.getChipletNumber();
+
+    if ( l_chipletID )
+    {
+        l_chiplet = (l_chipletID << 24);
+    }
+
+#endif
+
+#ifndef __PPE__
+    // Non-PPE platform - Cronus need a Chip target to be used
+    // in putScom/getScom.
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent(
+        i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>());
+#endif
+
+    do
+    {
+        //////////////////////
+        //clear clk region
+        //////////////////////
+        uint32_t l_scomAddress = 0x00030006;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+        fapi2::buffer<uint64_t> l_clkReg(0);
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_clkReg);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, l_clkReg);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_REG0 write op failed");
+            break;
+        }
+
+        //////////////////////
+        //prepare opcg_reg0
+        //////////////////////
+        l_scomAddress = 0x00030002;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgReg0);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgReg0);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_REG0 write op failed");
+            break;
+        }
+
+        //prepare opcg_reg1
+        l_scomAddress = 0x00030003;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgReg1);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgReg1);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_REG1 write op failed");
+            break;
+        }
+
+        //prepare opcg_reg2
+        l_scomAddress = 0x00030004;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgReg2);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgReg2);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_REG2 write op failed");
+            break;
+        }
+
+        //prepare opcg_capt1
+        l_scomAddress = 0x00030010;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgCapt1);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgCapt1);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_CAPT1 write op failed");
+            break;
+        }
+
+        //prepare opcg_capt2
+        l_scomAddress = 0x00030011;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgCapt2);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgCapt2);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_CAPT2 write op failed");
+            break;
+        }
+
+        //prepare opcg_capt3
+        l_scomAddress = 0x00030012;
+
+        // Add the chiplet ID in the Scom Address
+        l_scomAddress |= l_chiplet;
+
+#ifndef __PPE__
+        l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgCapt3);
+#else
+        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgCapt3);
+#endif
+
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("OPCG_CAPT3 write op failed");
+            break;
+        }
+    }
+    while(0);
+
+    return l_rc;
 }
 
 /// @brief Function to decompress the RS4 and apply the Ring data
@@ -645,6 +1256,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
     uint64_t l_scanRegion = rs4_revle64(l_rs4Header->iv_scanSelect);
     uint8_t l_chipletId = l_rs4Header->iv_chipletId;
     fapi2::ReturnCode l_rc;
+    struct restoreOpcgRegisters l_opcgData;
 
     do
     {
@@ -654,14 +1266,35 @@ fapi2::ReturnCode rs4DecompressionSvc(
             break;
         }
 
-        // Set up the scan region for the ring.
-        l_rc = setupScanRegion(i_target, l_scanRegion, l_chipletId);
-
-        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        if ((i_ringMode &  fapi2::RING_MODE_SET_PULSE_NSL) ||
+            (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL) ||
+            (i_ringMode &  fapi2::RING_MODE_SET_PULSE_ALL))
         {
-            break;
-        }
+            l_rc =  storeOPCGRegData (i_target, l_opcgData, l_chipletId);
 
+            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+
+            l_rc = setupScanRegionForSetPulse(i_target, l_scanRegion, i_ringMode
+                                              , l_chipletId);
+
+            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+        }
+        else
+        {
+            // Set up the scan region for the ring.
+            l_rc = setupScanRegion(i_target, l_scanRegion, l_chipletId);
+
+            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+        }
 
         // Write a 64 bit value for header.
         const uint64_t l_header = 0xa5a5a5a5a5a5a5a5;
@@ -887,7 +1520,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
         } // end of if(l_nibble != 0)
 
         // Verify header
-        l_rc = verifyHeader(i_target, l_header, l_chipletId);
+        l_rc = verifyHeader(i_target, l_header, l_chipletId, i_ringMode);
 
         if(l_rc)
         {
@@ -901,6 +1534,19 @@ fapi2::ReturnCode rs4DecompressionSvc(
         {
             break;
         }
+
+        if ((i_ringMode &  fapi2::RING_MODE_SET_PULSE_NSL) ||
+            (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL) ||
+            (i_ringMode &  fapi2::RING_MODE_SET_PULSE_ALL))
+        {
+            l_rc = restoreOPCGRegData (i_target, l_opcgData, l_chipletId);
+
+            if (l_rc)
+            {
+                break;
+            }
+        }
+
     }
     while(0);
 
@@ -922,31 +1568,6 @@ fapi2::ReturnCode applyRS4_SS(const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_tar
                                i_ringMode);
 }
 
-/// @brief Function to call the RS4 decompression service and aply ring
-///        using the Queued Scan method
-/// @param[in] i_target Chiplet Target of Scan
-/// @param[in] i_rs4 The RS4 compressed string
-/// @param[in] i_scanType Type of Scan
-fapi2::ReturnCode applyRS4_QS(const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-                              const uint8_t* i_rs4,
-                              const fapi2::RingMode i_ringMode)
-{
-    // Call the decompression functionality with the Queued scan method
-    return rs4DecompressionSvc(i_target, i_rs4, QUEUED_SCAN, i_ringMode);
-}
-
-/// @brief Function to call the RS4 decompression service and aply ring
-///        using the Polled Scan method
-/// @param[in] i_target Chiplet Target of Scan
-/// @param[in] i_rs4 The RS4 compressed string
-/// @param[in] i_scanType Type of Scan
-fapi2::ReturnCode applyRS4_PS(const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-                              const uint8_t* i_rs4,
-                              const fapi2::RingMode i_ringMode)
-{
-    // Call the decompression functionality with the polled scan method
-    return rs4DecompressionSvc(i_target, i_rs4, POLLED_SCAN, i_ringMode);
-}
 /// @brief Function to clean up the scan region and type
 /// @param[in] i_target Chiplet Target of Scan
 //  @param[in] chipletId data from RS4
