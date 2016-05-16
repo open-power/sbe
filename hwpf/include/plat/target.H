@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: $                                                             */
+/* $Source: hwpf/include/plat/target.H $                                  */
 /*                                                                        */
-/* OpenPOWER HostBoot Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2014                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,6 +44,9 @@ extern "C"
 }
 
 static const uint8_t CORES_PER_QUAD = 4;
+static const uint8_t EX_PER_QUAD = 2;
+static const uint8_t CORES_PER_EX = 2;
+
 namespace fapi2
 {
     /// @brief Create a Target, with a value
@@ -56,10 +59,11 @@ namespace fapi2
     template<TargetType K, typename V>
     Target<K, V>::Target(V Value)
     {
+        uint32_t l_plat_argument = Value.value;
         // Already formed target handle?
-        if(static_cast<union iv_handle>(Value).fields.valid == 1)
+        if(Value.fields.valid == 1)
         {
-            this->iv_handle.value = Value;
+            this->iv_handle = Value;
             return;
         }
 
@@ -72,39 +76,38 @@ namespace fapi2
         }
         else if(K & TARGET_TYPE_PERV)
         {
-            this->iv_handle.fields.chiplet_num = Value + NEST_GROUP1_CHIPLET_OFFSET;
+            this->iv_handle.fields.chiplet_num = l_plat_argument + NEST_GROUP1_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_PERV;
-            this->iv_handle.fields.type_target_num = Value;
+            this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_CORE)
         {
-            this->iv_handle.fields.chiplet_num = Value + CORE_CHIPLET_OFFSET;
+            this->iv_handle.fields.chiplet_num = l_plat_argument + CORE_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_CORE | TARGET_TYPE_PERV;
-            this->iv_handle.fields.type_target_num = Value;
+            this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_EQ)
         {
-            this->iv_handle.fields.chiplet_num = Value + EQ_CHIPLET_OFFSET;
+            this->iv_handle.fields.chiplet_num = l_plat_argument + EQ_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_EQ | TARGET_TYPE_PERV;
-            this->iv_handle.fields.type_target_num = Value;
+            this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_EX)
         {
-
-            this->iv_handle.fields.chiplet_num = (Value / 2) + EX_CHIPLET_OFFSET;
-            this->iv_handle.fields.type = TARGET_TYPE_EX | TARGET_TYPE_PERV;
-            this->iv_handle.fields.type_target_num = Value;
+            this->iv_handle.fields.chiplet_num = (l_plat_argument / 2) + EX_CHIPLET_OFFSET;
+            this->iv_handle.fields.type = TARGET_TYPE_EX;
+            this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_MCS)
         {
 
-            this->iv_handle.fields.chiplet_num = Value + MCS_CHIPLET_OFFSET;
+            this->iv_handle.fields.chiplet_num = l_plat_argument + MCS_CHIPLET_OFFSET;
             this->iv_handle.fields.type = TARGET_TYPE_MCS | TARGET_TYPE_PERV;
-            this->iv_handle.fields.type_target_num = Value;
+            this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K == TARGET_TYPE_ALL)
         {
-            this->iv_handle.fields.chiplet_num = Value;
+            this->iv_handle.fields.chiplet_num = l_plat_argument;
             this->iv_handle.fields.type = TARGET_TYPE_ALL;
         }
 
@@ -164,70 +167,88 @@ namespace fapi2
     template<TargetType T>
     inline Target<T> Target<K, V>::getParent(void) const
     {
-        static_assert((((K == TARGET_TYPE_EQ) || (K == TARGET_TYPE_CORE)) &&
-                      (T == TARGET_TYPE_PERV)) || (T == TARGET_TYPE_PROC_CHIP)
-                      || ((K == TARGET_TYPE_CORE) && (T == TARGET_TYPE_EQ)),
-                "Input target type must be either EQ/CORE, and parent type "
-                "must be PERV. Or the parent type must be a PROC_CHIP. Or "
-                "parent type must be an EQ and input target must be a CORE");
-        if(TARGET_TYPE_PERV == T)
+        static_assert(((K == TARGET_TYPE_EQ) ||
+                       (K == TARGET_TYPE_CORE) ||
+                       (K == TARGET_TYPE_MCS) ||
+                       (K == TARGET_TYPE_PERV) ||
+                       (K == TARGET_TYPE_EX)) &&
+                      ((T == TARGET_TYPE_EQ) ||
+                       (T == TARGET_TYPE_EX) ||
+                       (T == TARGET_TYPE_PROC_CHIP) ||
+                       (T == TARGET_TYPE_PERV)),
+                      "Invalid parent/child target type passed");
+
+        static_assert(!((K == TARGET_TYPE_EQ) &&
+                        (T != TARGET_TYPE_PERV) &&
+                        (T != TARGET_TYPE_PROC_CHIP)),
+                        "Invalid parent for EQ target, must be PERV or "
+                        "PROC_CHIP");
+
+        static_assert(!((K == TARGET_TYPE_MCS) &&
+                        (T != TARGET_TYPE_PERV) &&
+                        (T != TARGET_TYPE_PROC_CHIP)),
+                        "Invalid parent for MCS target, must be PERV or "
+                        "PROC_CHIP");
+
+        static_assert(!((K == TARGET_TYPE_CORE) &&
+                        (T != TARGET_TYPE_PERV) &&
+                        (T != TARGET_TYPE_PROC_CHIP) &&
+                        (T != TARGET_TYPE_EQ) &&
+                        (T != TARGET_TYPE_EX)),
+                        "Invalid parent for CORE target, must be PERV or "
+                        "PROC_CHIP or EQ or EX");
+
+        static_assert(!((K == TARGET_TYPE_PERV) &&
+                        (T != TARGET_TYPE_PERV) &&
+                        (T != TARGET_TYPE_PROC_CHIP)),
+                        "Invalid parent for PERV target, must be PERV or "
+                        "PROC_CHIP");
+
+        static_assert(!((K == TARGET_TYPE_EX) &&
+                        (T != TARGET_TYPE_PROC_CHIP) &&
+                        (T != TARGET_TYPE_EQ)),
+                        "Invalid parent for EX target, must be PERV or "
+                        "PROC_CHIP or EQ");
+
+        if(TARGET_TYPE_PERV == T) // EQ/EC/MCS/PERV ===> PERV
         {
-            return this->iv_handle.value;
+            return this->iv_handle;
         }
-        if(TARGET_TYPE_PROC_CHIP == T)
+        if(TARGET_TYPE_PROC_CHIP == T) // EQ/EC/EX/MCS/PERV ===> PROC
         {
             return G_vec_targets[CHIP_TARGET_OFFSET];
         }
-        if(TARGET_TYPE_EQ == T)
+        if((TARGET_TYPE_EQ == T) && (TARGET_TYPE_CORE == K)) // EC ===> EQ
         {
-            return G_vec_targets[((getChipletNumber() - CORE_CHIPLET_OFFSET) / CORES_PER_QUAD) + EQ_TARGET_OFFSET];
+            return G_vec_targets[(getTargetNumber() / CORES_PER_QUAD) + EQ_TARGET_OFFSET];
+        }
+        if((TARGET_TYPE_EQ == T) && (TARGET_TYPE_EX == K)) // EX ===> EQ
+        {
+            return G_vec_targets[(getTargetNumber() / EX_PER_QUAD) + EQ_TARGET_OFFSET];
+        }
+        if(TARGET_TYPE_EX == T) // EC ===> EX
+        {
+            return G_vec_targets[(getTargetNumber() / CORES_PER_EX) + EX_TARGET_OFFSET];
         }
     }
 
-    ///
-    /// @brief Get this target's children
-    /// @tparam K The type of the parent
+    /// @brief Get this target's children - handles EQ/EX/EC conversions
+    /// @tparam K The type of parent
+    /// @tparam V The plat target handle type
     /// @tparam T The type of child
     /// @param[in] i_state The desired TargetState of the children
     /// @return std::vector<Target<T> > a vector of present/functional
     /// children
-    /// @warning The children of EX's (cores) are expected to be returned
-    /// in order. That is, core 0 is std::vector[0].
-    ///
+    /// @warning The children are returned in order, ex child[0] is
+    /// std::vector[0]
     template<TargetType K, typename V>
-    template< TargetType T>
-    std::vector<Target<T> >
+    template<TargetType T>
+    std::vector<Target<T>>
     Target<K, V>::getChildren(const TargetState i_state) const
     {
-#define INVALID_CHILD(PARENT, CHILD) \
-        static_assert(!((K == PARENT) && (T == CHILD)), \
-                  #CHILD " is not a child of " #PARENT );
-
-        // invalid children for proc
-//        INVALID_CHILD(fapi2::TARGET_TYPE_PROC_CHIP, fapi2::TARGET_TYPE_NONE)
-//        INVALID_CHILD(fapi2::TARGET_TYPE_PROC_CHIP, fapi2::TARGET_TYPE_SYSTEM)
-//        INVALID_CHILD(fapi2::TARGET_TYPE_PROC_CHIP, fapi2::TARGET_TYPE_DIMM)
-//        INVALID_CHILD(fapi2::TARGET_TYPE_PROC_CHIP, fapi2::TARGET_TYPE_PROC_CHIP)
-//        INVALID_CHILD(fapi2::TARGET_TYPE_PROC_CHIP, fapi2::TARGET_TYPE_MEMBUF_CHIP)
-//        INVALID_CHILD(fapi2::TARGET_TYPE_PROC_CHIP, fapi2::TARGET_TYPE_MBA)
-#undef INVALID_CHILD
-
-#define INVALID_PARENT(PARENT) \
-        static_assert(!((K == PARENT)), \
-                  #PARENT "is not supported on PPE platforms");
-
-        // invalid parents
-//         INVALID_PARENT(fapi2::TARGET_TYPE_SYSTEM)
-//         INVALID_PARENT(fapi2::TARGET_TYPE_MEMBUF_CHIP)
-//         INVALID_PARENT(fapi2::TARGET_TYPE_L4)
-//         INVALID_PARENT(fapi2::TARGET_TYPE_DIMM)
-//         INVALID_PARENT(fapi2::TARGET_TYPE_MCA)
-//         INVALID_PARENT(fapi2::TARGET_TYPE_MBA)
-//         INVALID_PARENT(fapi2::TARGET_TYPE_MI)
-//         INVALID_PARENT(fapi2::TARGET_TYPE_MCBIST)
-//         INVALID_PARENT(fapi2::TARGET_TYPE_DMI)
-#undef INVALID_PARENT
-
+        static_assert(((K == TARGET_TYPE_EQ) || (K == TARGET_TYPE_EX)) &&
+                      ((T == TARGET_TYPE_EX) || (T == TARGET_TYPE_CORE)),
+                      "Invalid parent/child passed to getChildren");
         // valid children for EQ
         // EQ -> CORE
         // EQ -> EX
@@ -242,21 +263,71 @@ namespace fapi2
                         (T != fapi2::TARGET_TYPE_CORE)),
                       "improper child of fapi2::TARGET_TYPE_EX");
 
-        // Nimbus Memory
-        // valid children for MCS
-        // MCS -> MCA
-//         static_assert(!((K == fapi2::TARGET_TYPE_MCS) &&
-//                         (T != fapi2::TARGET_TYPE_MCA)),
-//                       "improper child of fapi2::TARGET_TYPE_MCS");
+        std::vector<Target<T> > l_children;
+        uint32_t l_childPerChiplet = 0;
+        uint32_t l_childTargetOffset = 0;
 
+        // EQ ==> EX
+        if((K == TARGET_TYPE_EQ) && (T == TARGET_TYPE_EX))
+        {
+            l_childPerChiplet = EX_PER_QUAD;
+            l_childTargetOffset = EX_TARGET_OFFSET;
+        }
 
+        // EQ ==> EC
+        if((K == TARGET_TYPE_EQ) && (T == TARGET_TYPE_CORE))
+        {
+            l_childPerChiplet = CORES_PER_QUAD;
+            l_childTargetOffset = CORE_TARGET_OFFSET;
+        }
+
+        // EX ==> EC
+        if((K == TARGET_TYPE_EX) && (T == TARGET_TYPE_CORE))
+        {
+            l_childPerChiplet = CORES_PER_EX;
+            l_childTargetOffset = CORE_TARGET_OFFSET;
+        }
+
+        for(uint32_t i = 0; i < l_childPerChiplet; ++i)
+        {
+            Target<T> *l_temp = reinterpret_cast< Target<T>* >(&G_vec_targets.at((getTargetNumber() * l_childPerChiplet) + l_childTargetOffset + i));
+            switch (i_state)
+            {
+                case TARGET_STATE_PRESENT:
+                    if ((*l_temp).getPresent())
+                    {
+                        l_children.push_back((*l_temp));
+                    }
+                    break;
+                case TARGET_STATE_FUNCTIONAL:
+                    if ((*l_temp).getFunctional())
+                    {
+                        l_children.push_back((*l_temp));
+                    }
+                    break;
+                default:
+                    assert(false);
+            }
+        }
+
+        return l_children;
+    }
+
+    ///
+    /// @brief Get this target's children - specialization for PROC_CHIP
+    /// @tparam T The type of child
+    /// @param[in] i_state The desired TargetState of the children
+    /// @return std::vector<Target<T> > a vector of present/functional
+    /// children
+    ///
+    template<>
+    template< TargetType T>
+    std::vector<Target<T> >
+    Target<TARGET_TYPE_PROC_CHIP>::getChildren(const TargetState i_state) const
+    {
         std::vector<fapi2::plat_target_handle_t>::iterator l_iter;
-        FAPI_DBG("getChildren: initializing children vector");
         std::vector<Target<T> > l_children;
 
-
-
-        uint32_t c = 0;
         for (l_iter = G_vec_targets.begin(); l_iter != G_vec_targets.end(); ++l_iter)
         {
 
@@ -269,21 +340,18 @@ namespace fapi2
                         if ((*l_temp).getPresent())
                         {
                             l_children.push_back((*l_temp));
-//                            FAPI_DBG("Pushing getChildren present 0x%08X", (uint32_t)(((*l_temp)).get()>>32));
                         }
                         break;
                     case TARGET_STATE_FUNCTIONAL:
                         if ((*l_temp).getFunctional())
                         {
                             l_children.push_back((*l_temp));
-//                            FAPI_DBG("Pushing getChildren functional 0x%08X", (uint32_t)(((*l_temp)).get()>>32));
                         }
                         break;
                     default:
-                        FAPI_ERR("Coming error ASSERT for illegal i_state = %u", i_state);
+                        assert(false);
                 }
             }
-            ++c;
         }
 
         return l_children;
@@ -313,20 +381,20 @@ namespace fapi2
         {
             if (i_filter & (mask << (((sizeof(TargetFilter)*8)-1) - l_idx)))
             {
-                uint64_t l_targetHandle = G_vec_targets.at(l_idx + NEST_GROUP1_CHIPLET_OFFSET);
+                plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx + NEST_GROUP1_CHIPLET_OFFSET);
 
-                if(((static_cast<union iv_handle>(l_targetHandle)).fields.type & TARGET_TYPE_PERV)) // Can be an assertion?
+                if(l_targetHandle.fields.type & TARGET_TYPE_PERV) // Can be an assertion?
                 {
                     switch (i_state)
                     {
                         case TARGET_STATE_PRESENT:
-                            if(static_cast<union iv_handle>(l_targetHandle).fields.present)
+                            if(l_targetHandle.fields.present)
                             {
                                 l_children.push_back(l_targetHandle);
                             }
                             break;
                          case TARGET_STATE_FUNCTIONAL:
-                            if(static_cast<union iv_handle>(l_targetHandle).fields.functional)
+                            if(l_targetHandle.fields.functional)
                             {
                                 l_children.push_back(l_targetHandle);
                             }
