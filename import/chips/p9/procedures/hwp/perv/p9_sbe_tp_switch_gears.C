@@ -53,13 +53,7 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("Entering ...");
 
-    FAPI_DBG("switch from refclock to PLL speed");
-    //Setting PERV_CTRL0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
-    //PIB.PERV_CTRL0.TP_PLLBYP_DC = 0
-    l_data64.clearBit<PERV_PERV_CTRL0_SET_TP_PLLBYP_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
-
+#ifdef __PPE__
     FAPI_TRY(p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(
                  i_target_chip));
 
@@ -67,12 +61,11 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
 
     FAPI_DBG("Checking Magic number");
     FAPI_TRY(p9_sbe_tp_switch_gears_check_magicnumber(i_target_chip));
+fapi_try_exit:
+#endif
 
     FAPI_INF("Exiting ...");
-
-fapi_try_exit:
     return fapi2::current_err;
-
 }
 
 /// @brief check for magic number
