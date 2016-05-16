@@ -1,32 +1,33 @@
-/* IBM_PROLOG_BEGIN_TAG                                                 */
-/* This is an automatically generated prolog.                           */
-/*                                                                      */
-/* $Source: $                                                           */
-/*                                                                      */
-/* OpenPOWER HostBoot Project                                           */
-/*                                                                      */
-/* Contributors Listed Below - COPYRIGHT 2012,2014                      */
-/* [+] International Business Machines Corp.                            */
-/*                                                                      */
-/*                                                                      */
-/* Licensed under the Apache License, Version 2.0 (the "License");      */
-/* you may not use this file except in compliance with the License.     */
-/* You may obtain a copy of the License at                              */
-/*                                                                      */
-/* http://www.apache.org/licenses/LICENSE-2.0                           */
-/*                                                                      */
-/* Unless required by applicable law or agreed to in writing, software  */
-/* distributed under the License is distributed on an "AS IS" BASIS,    */
-/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or      */
-/* implied. See the License for the specific language governing         */
-/* permissions and limitations under the License.                       */
-/*                                                                      */
-/* IBM_PROLOG_END_TAG                                                   */
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: hwpf/src/plat/target.C $                                      */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 
 
 #include <fapi2.H>
 #include <plat_target_pg_attributes.H>
 #include <assert.h>
+#include <fapi2_target.H>
 
 uint32_t CHIPLET_PG_ARRAY_ENTRIES = sizeof(CHIPLET_PG_ARRAY) /
                                     sizeof(chiplet_pg_entry_t);
@@ -337,7 +338,7 @@ fapi_try_exit:
         l_beginning_offset = CHIP_TARGET_OFFSET;
 
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> chip_target((fapi2::plat_target_handle_t)0);
-        G_vec_targets.at(l_beginning_offset) = revle64((fapi2::plat_target_handle_t)(chip_target.get()));
+        G_vec_targets.at(l_beginning_offset) = revle32((fapi2::plat_target_handle_t)(chip_target.get()));
 
         /*
          * Nest Targets - group 1
@@ -351,7 +352,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
         }
 
         /*
@@ -367,7 +368,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
 
         }
 
@@ -384,7 +385,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
 
-            G_vec_targets.at(i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
         }
 
         /*
@@ -399,7 +400,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
         }
 
         /*
@@ -415,7 +416,28 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(chip_target, target_name, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = revle64((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
+        }
+
+        /*
+         * EX Targets
+         */
+
+        l_beginning_offset = EX_TARGET_OFFSET;
+        for (uint32_t i = 0; i < EX_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_EX> target_name((fapi2::plat_target_handle_t)i);
+
+            // Check if at least one of the cores in the EX are good, if they
+            // are, set the EX present and functional
+            if((G_vec_targets.at(CORE_TARGET_OFFSET + (CORES_PER_EX * i))).fields.present ||
+               (G_vec_targets.at(CORE_TARGET_OFFSET + (CORES_PER_EX * i) + 1)).fields.present)
+            {
+                target_name.setPresent();
+                target_name.setFunctional(true);
+            }
+
+            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
         }
 
 fapi_try_exit:
@@ -438,6 +460,7 @@ fapi_try_exit:
         uint8_t l_eqGards = 0;
         uint32_t l_ecGards = 0;
         static const uint32_t l_mask = 0x80000000;
+        bool l_coreGroupNonFunctional = true;
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = plat_getChipTarget();
 
         // Read the EQ and EC gard attributes from the chip target
@@ -449,8 +472,6 @@ fapi_try_exit:
 
         // Iterate over the bits in EQ and EC gards, if set, mark the
         // corresponding target non-functional
-        // TODO: Need to mark corresponding EX targets non-functional when we
-        // start supporting EX targets in the global target vector
         for(uint32_t l_idx = 0; l_idx < EQ_TARGET_COUNT; ++l_idx)
         {
             if((l_mask >> l_idx) & (((uint32_t)(l_eqGards)) << 24))
@@ -472,6 +493,21 @@ fapi_try_exit:
                 fapi2::Target<fapi2::TARGET_TYPE_CORE> l_target = G_vec_targets.at(l_idx + CORE_TARGET_OFFSET);
                 l_target.setFunctional(false);
                 G_vec_targets.at(l_idx + CORE_TARGET_OFFSET) = l_target.get();
+            }
+            else
+            {
+                l_coreGroupNonFunctional = false;
+            }
+            if(0 == ((l_idx + 1) % CORES_PER_EX))
+            {
+                if(true == l_coreGroupNonFunctional)
+                {
+                    // All cores of this group are non-functional. Mark the EX
+                    // non-functional too.
+                    G_vec_targets.at((l_idx / CORES_PER_EX) + EX_TARGET_OFFSET).fields.functional = false;
+                }
+                // Reset ex non-functional flag for the next group
+                l_coreGroupNonFunctional = true;
             }
         }
 fapi_try_exit:
@@ -508,4 +544,5 @@ fapi_try_exit:
         }
         return G_vec_targets[l_idx];
     }
+
 } // fapi2

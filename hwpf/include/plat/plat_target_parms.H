@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: $                                                             */
+/* $Source: hwpf/include/plat/plat_target_parms.H $                       */
 /*                                                                        */
-/* OpenPOWER HostBoot Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2014                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -61,10 +61,12 @@ CONST_UINT32_T(CORE_TARGET_OFFSET, EQ_TARGET_OFFSET + EQ_TARGET_COUNT);
 CONST_UINT32_T(CORE_CHIPLET_OFFSET,     0x20);
 CONST_UINT32_T(CORE_TARGET_COUNT,       24);
 
+// Ex Targets
 CONST_UINT32_T(EX_TARGET_OFFSET, CORE_TARGET_OFFSET + CORE_TARGET_COUNT);
 CONST_UINT32_T(EX_CHIPLET_OFFSET,       0x10);
 CONST_UINT32_T(EX_TARGET_COUNT,         12);
 
+// System Target
 CONST_UINT32_T(SYSTEM_TARGET_OFFSET, EX_TARGET_OFFSET + EX_TARGET_COUNT);
 CONST_UINT32_T(SYSTEM_TARGET_COUNT,     1);
 
