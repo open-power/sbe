@@ -41,12 +41,12 @@ def fillSymTable():
     f = open( symFile, 'r')
     for line in f:
         words = line.split()
-        if( len(words) == 3):
-            syms[words[2]] = words[0]
+        if( len( words ) == 4 ):
+            syms[words[3]] = [words[0], words[1]]
 
 def collectTrace ( procNr ):
   fileName = "sbe_" + `procNr` + "_tracMERG"
-  cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x"  + syms['g_pk_trace_buf'] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
+  cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
   cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/trexStringFile sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""
