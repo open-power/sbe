@@ -18,7 +18,8 @@
 #-------------------------
 import time
 import conf
-import testClassUtil as util
+import testUtil
+import testPSUUserUtil
 from sim_commands import *
 
 #-------------------------
@@ -219,7 +220,7 @@ class registry(object):
     # Execute the read or write operation in loop as per
     # Test data set pre-defined
     #----------------------------------------------------
-    def ExecuteTestOp(self, testOp, test_bucket):
+    def ExecuteTestOp(self, testOp, test_bucket, raiseException):
         '''
            3 prong steps : set data, read/write data, validate
         '''
@@ -257,6 +258,8 @@ class registry(object):
                     if self.validateTestOp(sim_data,l_params[4]) == True:
                         print "  Test validated .. [ OK ]"
                     else:
+                        if(raiseException == True):
+                            raise Exception('Data mistmach');
                         return FAILURE # Failed validation
                 else:
                     print "  ++++++++++++++++++++++++++++++++++++++++++"
@@ -270,6 +273,9 @@ class registry(object):
                 rc = self.loadFunc( l_params[1], l_params[2] )
                 return rc
             else:
+                print "\n Invalid Test Data"
+                if(raiseException == True):
+                    raise Exception('Invalid Test Data');
                 return FAILURE # Unknown entry op
 
             print "\n"
@@ -316,28 +322,32 @@ class registry(object):
         return True
 
     #----------------------------------------------------
-    # A basic loop wait poll mechanism
+    # A basic loop poll mechanism
     #----------------------------------------------------
-    def pollingOn(self, simObj, test_data, timeOut):
-        print "\n*****  Polling On result for %d seconds " % timeOut
-        while True:
-            print "\n"
-            rc = self.ExecuteTestOp(simObj,test_data)
-            if rc == SUCCESS:
-                return rc
-            elif timeOut <= 0:
-                print "  Timmer Expired... Exiting polling"
-                break
-            else:
-                time.sleep(5)
-                timeOut = timeOut - 5
+    def pollingOn(self, simObj, test_data, retries=20):
+        for l_param in test_data:
+            print "\n*****  Polling On result - retrials left [%d] " % retries
+            while True:
+                print "\n"
+                testUtil.runCycles( 10000000);
+                test_d = (l_param,)
+                rc = self.ExecuteTestOp(simObj, test_d, False)
+                if rc == SUCCESS:
+                    print ('Polling Successful for - ' + l_param[5])
+                    break
+                elif retries <= 0:
+                    print "  Retrials exhausted... Exiting polling"
+                    raise Exception('Polling Failed for - ' + l_param[5]);
+                    break
+                else:
+                    retries = retries - 1
         return FAILURE
 
     #----------------------------------------------------
     # Load the function and execute
     #---------------------------------------------------- 
     def loadFunc(self, func_name, i_pArray ):
-        rc = util.__getattribute__(func_name)(i_pArray)
+        rc = testPSUUserUtil.__getattribute__(func_name)(i_pArray)
         return rc # Either success or failure from func
 
 
