@@ -13,7 +13,7 @@
 #############################################################
 '''
 
-import testClass as testObj
+import testPSUUtil
 import testRegistry as reg
 
 #-------------------------------
@@ -93,19 +93,19 @@ def main():
 
     # Intialize the class obj instances
     print "\n  Initializing Registry instances ...."
-    regObj = testObj.registry() # Registry obj def for operation
+    regObj = testPSUUtil.registry() # Registry obj def for operation
 
     print "\n  Execute SBE Test set  [ PSU ] ...\n"
-                                   # Sim obj Target    Test set 
-    rc_test = regObj.ExecuteTestOp(testObj.simSbeObj,sbe_test_data)
-    if rc_test != testObj.SUCCESS:
+                                   # Sim obj Target    Test set     Raise Exception
+    rc_test = regObj.ExecuteTestOp(testPSUUtil.simSbeObj,sbe_test_data, True)
+    if rc_test != testPSUUtil.SUCCESS:
         print "  SBE Test data set .. [ Failed ] .."
     else:
         print "  SBE Test data set .. [ OK ] "
         print "\n  Poll on Host side for INTR  ...\n"
                                    # Sim obj Target    Test set     Max timedout
-        rc_intr = regObj.pollingOn(testObj.simSbeObj,host_test_data,20)
-        if rc_intr == testObj.SUCCESS:
+        rc_intr = regObj.pollingOn(testPSUUtil.simSbeObj,host_test_data,20)
+        if rc_intr == testPSUUtil.SUCCESS:
             print "  Interrupt Event Recieved .. Success !!"
         else:
             print "  Interrupt not Recieved.. Exiting .."

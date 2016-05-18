@@ -14,7 +14,7 @@
 #############################################################
 '''
 
-import testClass as testClass
+import testPSUUtil
 
 '''
 Add your personalize functions here for execution but ensure it returns
@@ -32,4 +32,4 @@ either SUCCESS or FAILURE as an end result for generalization purpose.
 def classUtilFuncSample(i_paramArray):
     for input in i_paramArray:
         print "  classUtilFuncSample : parm: ",input
-    return testClass.SUCCESS 
+    return testPSUUtil.SUCCESS 
