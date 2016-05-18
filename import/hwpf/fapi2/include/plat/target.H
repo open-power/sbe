@@ -171,6 +171,20 @@ Target<K, V>::getOtherEnd(Target<T>& o_target, const TargetState i_state) const
 }
 
 ///
+/// @brief Is the target functional?
+/// @return true if target is functional, false if non-functional
+///
+
+template<TargetType K, typename V>
+inline bool
+Target<K, V>::isFunctional(void) const
+{
+    // Platform check if target is good
+    // Could check ATTR_FUNCTIONAL or ATTR_PG_*
+    return true;
+}
+
+///
 /// @brief Return the string interpretation of this target
 /// @tparam T The type of the target
 /// @param[in] i_target Target<T>
