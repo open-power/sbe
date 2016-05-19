@@ -245,6 +245,27 @@ restore_and_update_sprg0:
         rlwimi  %r3, %r31, 24, 2, 7
         mtsprg0 %r3
 
+#ifdef HWMACRO_GPE
+        ## restore PBA slave on GPE if it needed
+        _liw    %r29,  PBA_SLVCTLN(PBASLVCTLN)
+        lvd     %d3, 0(%r29)
+        lvd     %d30, PK_CTX_PBASLVCTLV(%r1)
+
+        ## check if the thread to be resumed has a different pba context
+        ## than what was running. if so then restore the pba context
+        cmpwbne %r3, %r30, pbaslvctl_restore
+
+        ## else skip pba context restore if it has not changed
+        cmpwbeq %r4, %r31, pbaslvctl_continue
+
+pbaslvctl_restore:
+        bl      gpe_pba_reset
+        stvd    %d30, 0(%r29)
+
+pbaslvctl_continue:
+
+#endif
+
         b       ctx_pop
  
 fit_handler:
@@ -359,6 +380,14 @@ ctx_continue_push:
         ## we interrupted a bonafide thread, so save off the stack
         ## pointer
         stw     %r1, PK_THREAD_OFFSET_SAVED_STACK_POINTER(%r4)
+
+#ifdef HWMACRO_GPE
+        ## Save the context of the PBASLVCTL reg
+        _liw    %r7,  PBA_SLVCTLN(PBASLVCTLN)
+        lvd     %d7, 0(%r7)
+        stvd    %d7, PK_CTX_PBASLVCTLV(%r4)
+#endif
+
 
 switch_to_kernel_stack:
         _stwsd  %r1, __pk_saved_sp

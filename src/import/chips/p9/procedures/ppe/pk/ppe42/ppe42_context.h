@@ -132,7 +132,12 @@
         .set    PK_CTX_GPR0,        0x50 # Volatile;  Language specific
         .set    PK_CTX_KERNEL_CTX,  0x54 # Saved __PkKernelContext for IRQ
 
-        .set    PK_CTX_SIZE,        0x58  # Must be 8-byte aligned
+#ifdef HWMACRO_GPE
+        .set    PK_CTX_PBASLVCTLV,  0x58 # PBA slave controller value(8 bytes)
+        .set    PK_CTX_SIZE,        0x60 # Must be 8-byte aligned
+#else
+        .set    PK_CTX_SIZE,        0x58
+#endif
 
         ## ------------------------------------------------------------
         ## Push the interrupted context if necessary
@@ -212,7 +217,9 @@ typedef struct
     uint32_t srr1;
     uint32_t r0;
     uint32_t sprg0;
-
+#ifdef HWMACRO_GPE
+    uint64_t pbaslvctlv;
+#endif
 } PkThreadContext;
 
 
