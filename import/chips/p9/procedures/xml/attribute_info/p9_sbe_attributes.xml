@@ -586,5 +586,38 @@
    <entry>
            <name>ATTR_PFET_OFF_CONTROLS</name>
   </entry>
-  
+   <entry>
+           <name>ATTR_PERV_CTRL0_SHADOW</name>
+  </entry> 
+  <entry>
+           <name>ATTR_PERV_CTRL1_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL0_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL1_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL2_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL3_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL4_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL5_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL6_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL7_SHADOW</name>
+  </entry>
+  <entry>
+           <name>ATTR_ROOT_CTRL8_SHADOW</name>
+  </entry>
+
 </entries>
