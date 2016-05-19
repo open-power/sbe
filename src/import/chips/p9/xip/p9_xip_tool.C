@@ -2082,10 +2082,6 @@ int dissectRingSection(void*          i_image,
         {
             sectionId = P9_XIP_SECTION_SBE_OVERRIDES;
         }
-        else if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
-        {
-            sectionId = P9_XIP_SECTION_HW_OVERRIDES;
-        }
         else
         {
             fprintf(stderr, "ERROR: .overrides is not a valid section for image w/magic=0x%016lx\n",
@@ -2098,10 +2094,6 @@ int dissectRingSection(void*          i_image,
         if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
         {
             sectionId = P9_XIP_SECTION_SBE_OVERLAYS;
-        }
-        else if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
-        {
-            sectionId = P9_XIP_SECTION_HW_OVERRIDES;
         }
         else
         {
