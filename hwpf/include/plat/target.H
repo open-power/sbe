@@ -355,6 +355,18 @@ namespace fapi2
 //        static_assert( false, "getOtherEnd() is not supported on PPE platforms");
     }
 
+    ///
+    /// @brief Is the target functional?
+    /// @return true if target is functional, false if non-functional
+    ///
+
+    template<TargetType K, typename V>
+    inline bool
+    Target<K, V>::isFunctional(void) const
+    {
+        return getFunctional();
+    }
+
 
     ///
     /// @brief Return the string interpretation of this target
