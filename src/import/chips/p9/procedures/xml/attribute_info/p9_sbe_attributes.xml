@@ -589,5 +589,8 @@
   <entry>
            <name>ATTR_SECURITY_ENABLE</name>
   </entry>
+   <entry>
+           <name>ATTR_PFET_OFF_CONTROLS</name>
+  </entry>
   
 </entries>

@@ -41,6 +41,7 @@
 //## auto_generated
 #include "p9_const_common.H"
 
+#include <p9_misc_scom_addresses.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 #include <p9_perv_sbe_cmn.H>
@@ -61,12 +62,18 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     bool l_read_reg = 0;
+    fapi2::buffer<uint32_t> l_pfet_value;
+    fapi2::buffer<uint32_t> l_attr_pfet;
     fapi2::buffer<uint64_t> l_regions;
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
                 fapi2::TARGET_STATE_FUNCTIONAL)[0];
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("Entering ...");
+
+    FAPI_DBG("Reading ATTR_PFET_OFF_CONTROLS");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PFET_OFF_CONTROLS, i_target_chip,
+                           l_pfet_value));
 
     FAPI_DBG("Switch pervasive chiplet OOB mux");
     //Setting ROOT_CTRL0 register value
@@ -79,7 +86,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //PIB.INTERRUPT_TYPE_REG = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PIB_INTERRUPT_TYPE_REG, 0));
 
-    FAPI_DBG("Clear Pervasive Chiplet region fence");
+    FAPI_DBG("Clear pervasive chiplet region fence");
     FAPI_TRY(p9_sbe_tp_chiplet_init3_region_fence_setup(l_tpchiplet));
 
     FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_tpchiplet,
@@ -96,7 +103,16 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     l_data64.clearBit<PERV_ROOT_CTRL0_SET_FENCE5_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
 
-    FAPI_DBG("Drop EDRAM control gate");
+    l_pfet_value.extractToRight<0, 30>(l_attr_pfet);
+
+    FAPI_DBG("Set pfet off controls");
+    //Setting DISABLE_FORCE_PFET_OFF register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PU_DISABLE_FORCE_PFET_OFF, l_data64));
+    //PIB.DISABLE_FORCE_PFET_OFF.DISABLE_FORCE_PFET_OFF_REG = l_attr_pfet
+    l_data64.insertFromRight<0, 30>(l_attr_pfet);
+    FAPI_TRY(fapi2::putScom(i_target_chip, PU_DISABLE_FORCE_PFET_OFF, l_data64));
+
+    FAPI_DBG("Drop EDRAM control gate and pfet_force_off");
     //Setting ROOT_CTRL2 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
     l_data64.clearBit<16>();  //PIB.ROOT_CTRL2.ROOT_CTRL2_16_FREE_USAGE = 0
