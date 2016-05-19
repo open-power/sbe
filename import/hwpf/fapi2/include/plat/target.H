@@ -130,24 +130,6 @@ Target<TARGET_TYPE_PERV>::getChildren(const TargetFilter i_filter,
 }
 
 ///
-/// @brief Get the target at the other end of a bus - dimm included
-/// @tparam T The type of the parent
-/// @param[in] i_state The desired TargetState of the children
-/// @return Target<T> a target representing the thing on the other end
-/// @note Can be easily changed to a vector if needed
-///
-template<TargetType K, typename V>
-template<TargetType T>
-inline Target<T>
-Target<K, V>::getOtherEnd(const TargetState i_state) const
-{
-    // Implementation note: cast to a composite of
-    // bus types and the compiler will check if this is
-    // a good function at compile time
-    return Target<T>();
-}
-
-///
 /// @brief Get the target at the other end of a bus
 /// @tparam T The type of the target on the other end
 /// @param[out] o_target A target representing the thing on the other end
