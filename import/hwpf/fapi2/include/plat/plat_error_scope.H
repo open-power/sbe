@@ -72,9 +72,9 @@
 ///
 #define PLAT_FAPI_ASSERT_NOEXIT( __conditional__, __ffdc__, ... )   \
     if (! (__conditional__))                                        \
-    {                                                                   \
-        __ffdc__.execute(                                               \
-                fapi2::FAPI2_ERRL_SEV_UNDEFINED, false);            \
+    {                                                               \
+        __ffdc__.execute(                                           \
+                fapi2::FAPI2_ERRL_SEV_UNDEFINED, true);             \
         FAPI_ERR(__VA_ARGS__); \
     }
 /// @endcond
