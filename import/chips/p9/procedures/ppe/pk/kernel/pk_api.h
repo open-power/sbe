@@ -54,78 +54,8 @@
 // API return codes
 
 #define PK_OK                                 0
-#define PK_ILLEGAL_CONTEXT_THREAD_CONTEXT     0x00779002
-#define PK_ILLEGAL_CONTEXT_INTERRUPT_CONTEXT  0x00779003
-#define PK_ILLEGAL_CONTEXT_THREAD             0x00779004
-#define PK_ILLEGAL_CONTEXT_TIMER              0x00779005
-#define PK_INVALID_THREAD_AT_RESUME1          0x00779007
-#define PK_INVALID_THREAD_AT_RESUME2          0x00779008
-#define PK_INVALID_THREAD_AT_SUSPEND1         0x00779009
-#define PK_INVALID_THREAD_AT_SUSPEND2         0x0077900a
-#define PK_INVALID_THREAD_AT_DELETE           0x0077900b
-#define PK_INVALID_THREAD_AT_INFO             0x0077900c
-#define PK_INVALID_THREAD_AT_CHANGE           0x0077900d
-#define PK_INVALID_THREAD_AT_SWAP1            0x0077900e
-#define PK_INVALID_THREAD_AT_SWAP2            0x0077900f
-#define PK_INVALID_THREAD_AT_CREATE           0x00779010
-#define PK_INVALID_SEMAPHORE_AT_POST          0x00779011
-#define PK_INVALID_SEMAPHORE_AT_PEND          0x00779012
-#define PK_INVALID_SEMAPHORE_AT_RELEASE       0x00779013
-#define PK_INVALID_SEMAPHORE_AT_INFO          0x00779014
-#define PK_INVALID_SEMAPHORE_AT_CREATE        0x00779015
-#define PK_INVALID_TIMER_AT_SCHEDULE          0x00779016
-#define PK_INVALID_TIMER_AT_CANCEL            0x00779017
-#define PK_INVALID_TIMER_AT_INFO              0x00779018
-#define PK_INVALID_TIMER_AT_CREATE            0x00779019
-#define PK_INVALID_ARGUMENT_IRQ_SETUP         0x0077901a
-#define PK_INVALID_ARGUMENT_IRQ_HANDLER       0x0077901b
-#define PK_INVALID_ARGUMENT_INTERRUPT         0x00779024
-#define PK_INVALID_ARGUMENT_CONTEXT_SET       0x00779025
-#define PK_INVALID_ARGUMENT_CONTEXT_GET       0x00779026
-#define PK_INVALID_ARGUMENT_FIT               0x00779027
-#define PK_INVALID_ARGUMENT_WATCHDOG          0x00779028
-#define PK_INVALID_ARGUMENT_INIT              0x00779029
-#define PK_INVALID_ARGUMENT_SEMAPHORE         0x0077902a
-#define PK_INVALID_ARGUMENT_THREAD_CHANGE     0x0077902b
-#define PK_INVALID_ARGUMENT_THREAD_PRIORITY   0x0077902c
-#define PK_INVALID_ARGUMENT_THREAD1           0x0077902d
-#define PK_INVALID_ARGUMENT_THREAD2           0x0077902e
-#define PK_INVALID_ARGUMENT_THREAD3           0x0077902f
-#define PK_STACK_OVERFLOW                     0x00779030
-#define PK_TIMER_ACTIVE                       0x00779031
-#define PK_TIMER_NOT_ACTIVE                   0x00779032
-#define PK_PRIORITY_IN_USE_AT_RESUME          0x00779033
-#define PK_PRIORITY_IN_USE_AT_CHANGE          0x00779034
-#define PK_PRIORITY_IN_USE_AT_SWAP            0x00779035
-#define PK_SEMAPHORE_OVERFLOW                 0x00779036
-#define PK_SEMAPHORE_PEND_NO_WAIT             0x00779037
-#define PK_SEMAPHORE_PEND_TIMED_OUT           0x00779038
-#define PK_SEMAPHORE_PEND_WOULD_BLOCK         0x00779039
-#define PK_INVALID_DEQUE_SENTINEL             0x0077903a
-#define PK_INVALID_DEQUE_ELEMENT              0x0077903b
-#define PK_INVALID_OBJECT                     0x0077903c
 
-// Kernel panics
-
-#define PK_NO_TIMER_SUPPORT                   0x0077903d
-#define PK_START_THREADS_RETURNED             0x0077903e
-#define PK_UNIMPLEMENTED                      0x0077903f
-#define PK_SCHEDULING_INVARIANT               0x00779040
-#define PK_TIMER_HANDLER_INVARIANT            0x00779041
-#define PK_THREAD_TIMEOUT_STATE               0x00779045
-
-// Application-level panic offsets
-// (Use these as offsets for your application code panics and keep
-//  track of them locally in your application code domain, including
-//  sharing the panic defines with other developers making codes
-//  for the same engine.)
-
-#define PK_APP_OFFSET_SBE                     0x0077a000
-#define PK_APP_OFFSET_GPE0                    0x0077b000
-#define PK_APP_OFFSET_GPE1                    0x0077c000
-#define PK_APP_OFFSET_GPE2                    0x0077d000
-#define PK_APP_OFFSET_GPE3                    0x0077e000
-#define PK_APP_OFFSET_CME                     0x0077f000
+/// @see pk_panic_codes.h for valid return/panic codes
 
 /// \defgroup pk_thread_states PK Thread States
 ///

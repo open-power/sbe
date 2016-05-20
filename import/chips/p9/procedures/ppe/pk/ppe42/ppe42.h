@@ -35,7 +35,7 @@
 
 // Macros to define where declared code is actually compiled
 
-#ifdef __PPE42_C__
+#ifdef __PPE42_CORE_C__
     #define IF__PPE42_CORE_C__(x) x
     #define UNLESS__PPE42_CORE_C__(x)
 #else
@@ -267,6 +267,7 @@ popcount64(uint64_t x)
 
 
 #include "ppe42_context.h"
+#include "pk_panic_codes.h"
 
 // PPE42 stack characteristics for PK.  The pre-pattern pattern is selected
 // to be easily recognizable yet be an illegal instruction.
@@ -283,26 +284,6 @@ popcount64(uint64_t x)
 #define PK_THREAD_OFFSET_STACK_LIMIT         4
 #define PK_THREAD_OFFSET_STACK_BASE          8
 
-// PK boot loader panic codes
-
-#define PPE42_BOOT_VECTORS_NOT_ALIGNED 0x00405001
-
-// Interrupt handler panic codes
-
-#define PPE42_DEFAULT_IRQ_HANDLER     0x00405010
-#define PPE42_DEFAULT_SPECIAL_HANDLER 0x00405011
-#define PPE42_PHANTOM_INTERRUPT       0x00405012
-#define PPE42_PROGRAM_HALT            0x00405013
-
-
-// Exception handling invariant panic codes
-
-#define PPE42_IRQ_FULL_EXIT_INVARIANT 0x00405020
-#define PPE42_IRQ_FAST2FULL_INVARIANT 0x00405021
-
-
-// API error panic codes
-
 
 // Application-overrideable definitions
 
@@ -310,7 +291,7 @@ popcount64(uint64_t x)
 /// and all other MSR bits cleared.
 ///
 /// The default definition allows external and machine check exceptions.  This
-/// definition can be overriden by the application.  
+/// definition can be overriden by the application.
 
 #ifndef PK_THREAD_MACHINE_CONTEXT_DEFAULT
 #define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
@@ -321,28 +302,10 @@ popcount64(uint64_t x)
 
 #ifndef __ASSEMBLER__
 
-/// The PK kernel default panic sequence for C code
+/// The PK kernel default panic sequence for C code is to issue a trap
+/// instruction with DBCR[TRAP] set, which causes XSR[TRAP] <- 1
+/// and causes the PPE to halt.
 ///
-/// By default a kernel panic from C code forces external debug mode then
-/// generates a \c trap instruction followed by the error code.  The \a code
-/// argument must be a compile-time integer immediate. This definition can be
-/// overriden by the application.
-///
-/// The OCC may be running in internal debug mode for various reasons, and
-/// TRAP-ing in internal debug mode would lead to an infinite loop in the
-/// default Program Interrupt handler - which itself would be a TRAP (since
-/// that's the default implementation of PK_PANIC().  Therefore by default
-/// the panic is implemented as a special code sequence that forces the core
-/// into external debug mode before issuing a TRAP which will halt the core.
-/// To preserve the state we use the special global variables
-/// __pk_panic_save_dbcr0 and __pk_panic_save_r3 defined in ppe42_core.c.
-/// The original value of DBCR0 is destroyed, but can be recovered from the
-/// global.  In the end %r3 is reloaded from temporary storage and will be
-/// unchanged at the halt.
-///
-/// Note that there is a small chance that an interrupt will fire and
-/// interrupt this code before the halt - in general there is no way around
-/// this.
 ///
 /// The Simics environment does not model Debug events correctly. It executes
 /// the TRAP as an illegal instruction and branches to the Program Interrupt
@@ -351,39 +314,41 @@ popcount64(uint64_t x)
 /// before the hardware trap.  The special-form magic instruction is
 /// recognized by our Simics support scripts which decode the kernel state and
 /// try to help the user interpret what happened based on the TRAP code.
+///   NOTE! SIMICS does not seem to recognize the "magic breakpoint" on PPE!
+
 
 #ifndef PK_PANIC
 
-/*#define PK_PANIC(code)                                                 \
-    do {                                                                \
-        barrier();                                                      \
-        asm volatile ("stw     %r3, __pk_panic_save_r3@sda21(0)");     \
-        asm volatile ("mfdbcr0 %r3");                                   \
-        asm volatile ("stw     %r3, __pk_panic_save_dbcr0@sda21(0)");  \
-        asm volatile ("lwz     %r3, __pk_panic_dbcr0@sda21(0)");       \
-        asm volatile ("mtdbcr0 %r3");                                   \
-        asm volatile ("isync");                                         \
-        asm volatile ("lwz     %r3, __pk_panic_save_r3@sda21(0)");     \
-        asm volatile ("rlwimi  1,1,0,0,0");                             \
-        asm volatile ("trap");                                          \
+#if SIMICS_ENVIRONMENT
+#define PK_PANIC(code)                  \
+    do {                                \
+        asm volatile ("stw     %r3, __pk_panic_save_r3@sda21(0)");      \
+        asm volatile ("lwz     %r3, __pk_panic_dbcr@sda21(0)");         \
+        asm volatile ("mtdbcr  %r3");                                   \
         asm volatile (".long %0" : : "i" (code));                       \
-    } while (0)
-*/
-#define PK_PANIC(code)                                                 \
+    } while(0)
+#else
+#define PK_PANIC(code)                                                  \
     do {                                                                \
-        barrier();                                                      \
-        asm volatile ("b .");                                          \
+        asm volatile ("tw 31, %0, %1" : : "i" (code/256) , "i" (code%256)); \
     } while (0)
+#endif
+#endif // SIMICS_ENVIRONMENT
 
 // These variables are used by the PK_PANIC() definition above to save and
-// restore state. __pk_panic_dbcr0 is the value loaded into DBCR0 to force
-// traps to halt the OCC and freeze the timers.
+// restore state. __pk_panic_dbcr is the value loaded into DBCR to force
+// traps to halt the PPE and freeze the timers.
 
-//#ifdef __PPE42_CORE_C__
-//uint32_t __pk_panic_save_r3;
-//uint32_t __pk_panic_save_dbcr0;
-//uint32_t __pk_panic_dbcr0 = DBCR0_EDM | DBCR0_TDE | DBCR0_FT;
-//#endif
+#if SIMICS_ENVIRONMENT
+#ifdef __PPE42_CORE_C__
+uint32_t __pk_panic_save_r3;
+uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
+#define __PK_PANIC_DEFS__
+#else
+#define __PK_PANIC_DEFS__                                               \
+        extern uint32_t __pk_panic_save_r3;                             \
+        extern uint32_t __pk_panic_dbcr;
+#endif //SIMICS_ENVIRONMENT
 
 #endif // PK_PANIC
 
@@ -396,7 +361,7 @@ popcount64(uint64_t x)
 //#define SIMICS_MAGIC_BREAKPOINT asm volatile ("rlwimi 0,0,0,0,0")
 
 /// This is the Simics 'magic breakpoint' instruction including a memory
-/// barrier. 
+/// barrier.
 ///
 /// Note that the memory barrier guarantees that all variables held in
 /// registers are flushed to memory before the breakpoint, however this might
@@ -436,11 +401,18 @@ popcount64(uint64_t x)
 #ifndef PK_PANIC
 
 #define PK_PANIC(code) _pk_panic code
-
-        .macro  _pk_panic, code
-        b .
+#if SIMICS_ENVIRONMENT
+        .macro _pk_panic, code
+            stw     %r3, __pk_panic_save_r3@sda21(0)
+            lwz     %r3, __pk_panic_dbcr@sda21(0)
+            mtdbcr  %r3,
+            .long   (\code)
         .endm
-
+#else
+        .macro  _pk_panic, code
+            tw  31,(\code)/256, (\code)%256
+        .endm
+#endif // SIMICS_ENVIRONMENT
 #endif // PK_PANIC
 
 // *INDENT-ON*
@@ -504,7 +476,7 @@ popcount64(uint64_t x)
 typedef uint32_t PkMachineContext;
 
 /// Disable interrupts and return the current
-/// context.  
+/// context.
 ///
 /// \param context A pointer to an PkMachineContext, this is the context that
 ///                existed before interrupts were disabled. Typically this
@@ -535,7 +507,7 @@ return PK_OK;
 ///
 /// \retval 0 Successful completion
 ///
-/// \retval -PK_INVALID_ARGUMENT_CONTEXT_SET A null pointer was provided as 
+/// \retval -PK_INVALID_ARGUMENT_CONTEXT_SET A null pointer was provided as
 /// the \a context argument or an illegal machine context was specified.
 
 UNLESS__PPE42_CORE_C__(extern)
@@ -560,7 +532,7 @@ return PK_OK;
 ///
 /// \retval 0 Successful completion
 ///
-/// \retval -PK_INVALID_ARGUMENT_CONTEXT_GET A null pointer was provided as 
+/// \retval -PK_INVALID_ARGUMENT_CONTEXT_GET A null pointer was provided as
 /// the \a context argument.
 
 UNLESS__PPE42_CORE_C__(extern)
@@ -579,7 +551,7 @@ return PK_OK;
 
 extern void __ctx_switch();
 /// The PK context switch for the PPE kernel
-//  There is no protected mode in PPE42 so just call kernel code 
+//  There is no protected mode in PPE42 so just call kernel code
 #define __pk_switch() __ctx_switch()
 
 
@@ -588,14 +560,14 @@ extern void __ctx_switch();
 /// behind the SP are for the initial subroutine's LR.
 
 static inline void
-__pk_stack_create_initial_frame(PkAddress* stack, size_t* size) \
+__pk_stack_create_initial_frame(PkAddress* stack, size_t* size)
 {
 *stack -= 8;
 * size -= 8;
 * ((PK_STACK_TYPE*)(*stack)) = 0;
 }
 
-/// The PK Kernel Context for PPE42 
+/// The PK Kernel Context for PPE42
 ///
 /// The PK portable kernel does not define how the kernel keeps track of
 /// whether PK is running, interrupt levels, and other debug
@@ -614,7 +586,7 @@ struct
 {
 
 /// A flag indicating that PK is in thread mode after a call of
-/// pk_start_threads(). 
+/// pk_start_threads().
 unsigned thread_mode : 1;
 
 /// If this field is non-zero then PK is processing an interrupt
@@ -710,10 +682,10 @@ mtmsr(mctx);
 // queue).
 //
 // These queues are used both for the run queue and the pending queue
-// associated with every semaphore. 
+// associated with every semaphore.
 //
 // On PPE42 with 32 threads (implied), this is a job for a uint32_t and
-// cntlzw(). 
+// cntlzw().
 
 static inline void
 __pk_thread_queue_clear(volatile PkThreadQueue* queue)
@@ -809,13 +781,13 @@ return __builtin_popcount(*queue);
 /// Once hit, restarting from the break requires clearing IAC4 and restarting
 /// instructions:
 ///
-/// \code 
+/// \code
 ///
 /// putspr pu.occ iac4 0
 /// cipinstruct pu.occ start
 ///
 /// \endcode
-/// 
+///
 /// The above restart processes is also encapsulated as the p8_tclEcmd
 /// procedure 'unbreakOcc'.
 ///

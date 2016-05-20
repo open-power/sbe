@@ -63,10 +63,14 @@
 
 /* DBCR - Debug Control Register */
 
-#define DBCR_RST         0x30000000 /* Reset: 01=Soft Reset, 10=Hard Reset, 11=Halt */
+#define DBCR_RST_SOFT    0x10000000 /* Reset: 01=Soft Reset */
+#define DBCR_RST_HARD    0x20000000 /* Reset: 10=Hard Reset */
+#define DBCR_RST_HALT    0x30000000 /* Reset: 11=Halt */
 #define DBCR_TRAP        0x01000000 /* Trap Instruction Enable */
 #define DBCR_IACE        0x00800000 /* Instruction Address Compare Enable */
-#define DBCR_DACE        0x000c0000 /* Data Address Compare Enable: 01=store, 10=load, 11=both */
+#define DBCR_DACE_ST     0x00040000 /* Data Address Compare Enable: 01=store */
+#define DBCR_DACE_LD     0x00080000 /* Data Address Compare Enable: 10=load */
+#define DBCR_DACE_STLD   0x000C0000 /* Data Address Compare Enable: 11=both */
 
 /* TCR - Timer Control Register */
 

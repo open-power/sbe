@@ -51,7 +51,7 @@
 void
 __ppe42_default_irq_handler(void* arg, PkIrqId irq)
 {
-    PK_PANIC(PPE42_DEFAULT_IRQ_HANDLER);
+    PK_PANIC(PK_DEFAULT_IRQ_HANDLER);
 }
 
 
