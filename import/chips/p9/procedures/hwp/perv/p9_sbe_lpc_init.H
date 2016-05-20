@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,7 +33,6 @@
 #ifndef _P9_SBE_LPC_INIT_H_
 #define _P9_SBE_LPC_INIT_H_
 
-
 #include <fapi2.H>
 
 
@@ -46,6 +45,7 @@ typedef fapi2::ReturnCode (*p9_sbe_lpc_init_FP_t)(const
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 extern "C"
 {
+    const uint32_t CPLT_CONF1_TC_LP_RESET = 12;
     fapi2::ReturnCode p9_sbe_lpc_init(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 }
