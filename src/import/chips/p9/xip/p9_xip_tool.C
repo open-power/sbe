@@ -1764,7 +1764,7 @@ int dissectRingSectionTor( void*       i_ringSection,
     //
     if (i_imageMagicNo == P9_XIP_MAGIC_HW)
     {
-        numDdLevels = myRev32( ( (TorNumDdLevels_t*)i_ringSection )->TorNumDdLevels );
+        numDdLevels = htobe32( ( (TorNumDdLevels_t*)i_ringSection )->TorNumDdLevels );
         fprintf( stdout, "numDdLevels (=%d) read from top of ring section.\n", numDdLevels);
     }
     else
@@ -1781,7 +1781,7 @@ int dissectRingSectionTor( void*       i_ringSection,
 
         if (i_imageMagicNo == P9_XIP_MAGIC_HW)
         {
-            ddLevel = ( ( myRev32( ( ( (TorDdLevelBlock_t*)((uintptr_t)i_ringSection + sizeof(TorNumDdLevels_t)) ) +
+            ddLevel = ( ( htobe32( ( ( (TorDdLevelBlock_t*)((uintptr_t)i_ringSection + sizeof(TorNumDdLevels_t)) ) +
                                      iDdLevel )->TorDdLevelAndOffset ) & 0xff000000 ) >> 24 );
         }
 
@@ -1838,11 +1838,11 @@ int dissectRingSectionTor( void*       i_ringSection,
                         {
 
                             // Check ring block size.
-                            if ( myRev32(((RingLayout_t*)ringBlockPtr)->sizeOfThis) != ringBlockSize )
+                            if ( htobe32(((RingLayout_t*)ringBlockPtr)->sizeOfThis) != ringBlockSize )
                             {
                                 fprintf(stderr, "tor_get_ring() was successful and found a ring but "
                                         "sizeOfThis(=0x%08x) != ringBlockSize(=0x%08x) is a bug.\n",
-                                        myRev32(((RingLayout_t*)ringBlockPtr)->sizeOfThis), ringBlockSize);
+                                        htobe32(((RingLayout_t*)ringBlockPtr)->sizeOfThis), ringBlockSize);
                                 exit(1);
                             }
 
@@ -1883,8 +1883,8 @@ int dissectRingSectionTor( void*       i_ringSection,
                             {
                                 // Calculate RS4 compression efficiency.
                                 hostRs4Container = (void*)( (uintptr_t)ringBlockPtr + sizeof(RingLayout_t) );
-                                compressedBits = myRev32(((CompressedScanData*)hostRs4Container)->iv_algorithmReserved) * 4;
-                                ringLength = myRev32(((CompressedScanData*)hostRs4Container)->iv_length);
+                                compressedBits = htobe32(((CompressedScanData*)hostRs4Container)->iv_algorithmReserved) * 4;
+                                ringLength = htobe32(((CompressedScanData*)hostRs4Container)->iv_length);
                                 compressionPct = (double)compressedBits / (double)ringLength * 100.0;
 
                                 sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
@@ -1943,10 +1943,10 @@ int dissectRingSectionTor( void*       i_ringSection,
                                     sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
                                                             "%04x: %04x %04x %04x %04x\n",
                                                             i * 8,
-                                                            (uint16_t)( myRev64(*((uint64_t*)ringBlockPtr + i)) >> 48),
-                                                            (uint16_t)( myRev64(*((uint64_t*)ringBlockPtr + i)) >> 32),
-                                                            (uint16_t)( myRev64(*((uint64_t*)ringBlockPtr + i)) >> 16),
-                                                            (uint16_t)( myRev64(*((uint64_t*)ringBlockPtr + i))) );
+                                                            (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 48),
+                                                            (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 32),
+                                                            (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 16),
+                                                            (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i))) );
 
                                     disList = strcat(disList, lineDis);
                                     sizeList = sizeList + sizeDisLine;
