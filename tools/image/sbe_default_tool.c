@@ -118,27 +118,27 @@ void setAttribute(void* image, const char* attribute, unsigned int index, uint64
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT16) {
 
-        *((uint16_t*)thePointer + (index * sizeof(uint16_t))) = xipRevLe16((uint16_t)val);
+        *((uint16_t*)thePointer + (index * sizeof(uint16_t))) = htobe16((uint16_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT16) {
 
-        *((int16_t*)thePointer + (index * sizeof(int16_t))) = xipRevLe16((int16_t)val);
+        *((int16_t*)thePointer + (index * sizeof(int16_t))) = htobe16((int16_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT32) {
 
-        *((uint32_t*)thePointer + (index * sizeof(uint32_t))) = xipRevLe32((uint32_t)val);
+        *((uint32_t*)thePointer + (index * sizeof(uint32_t))) = htobe32((uint32_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT32) {
 
-        *((int32_t*)thePointer + (index * sizeof(int32_t))) = xipRevLe32((int32_t)val);
+        *((int32_t*)thePointer + (index * sizeof(int32_t))) = htobe32((int32_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT64) {
 
-        *((uint64_t*)thePointer + (index * sizeof(uint64_t))) = xipRevLe64((uint64_t)val);
+        *((uint64_t*)thePointer + (index * sizeof(uint64_t))) = htobe64((uint64_t)val);
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT64) {
 
-        *((int64_t*)thePointer + (index * sizeof(int64_t))) = xipRevLe64((int64_t)val);
+        *((int64_t*)thePointer + (index * sizeof(int64_t))) = htobe64((int64_t)val);
 
     } else {
         fprintf(stderr, "sbe_default_tool: type not available");
@@ -190,29 +190,29 @@ uint64_t getAttribute(void* image, const char* attribute, unsigned int index) {
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT16) {
 
-        val = xipRevLe16(*((uint16_t*)thePointer + (index * sizeof(uint16_t))));
+        val = htobe16(*((uint16_t*)thePointer + (index * sizeof(uint16_t))));
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT16) {
 
-        val = xipRevLe16(*((int16_t*)thePointer + (index * sizeof(int16_t))));
+        val = htobe16(*((int16_t*)thePointer + (index * sizeof(int16_t))));
         val &= 0xFFFF;
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT32) {
 
-        val = xipRevLe32(*((uint32_t*)thePointer + (index * sizeof(uint32_t))));
+        val = htobe32(*((uint32_t*)thePointer + (index * sizeof(uint32_t))));
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT32) {
 
-        val = xipRevLe32(*((int32_t*)thePointer + (index * sizeof(int32_t))));
+        val = htobe32(*((int32_t*)thePointer + (index * sizeof(int32_t))));
         val &= 0xFFFFFFFF;
 
     } else if(item.iv_toc->iv_type == P9_XIP_UINT64) {
 
-        val = xipRevLe64(*((uint64_t*)thePointer + (index * sizeof(uint64_t))));
+        val = htobe64(*((uint64_t*)thePointer + (index * sizeof(uint64_t))));
 
     } else if(item.iv_toc->iv_type == P9_XIP_INT64) {
 
-        val = xipRevLe64(*((int64_t*)thePointer + (index * sizeof(int64_t))));
+        val = htobe64(*((int64_t*)thePointer + (index * sizeof(int64_t))));
 
     } else {
         fprintf(stderr, "sbe_default_tool: type not available");
