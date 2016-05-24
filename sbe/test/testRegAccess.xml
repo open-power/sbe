@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
       <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testStopInstruction.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <testcase>
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPutGetRegGpr.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
@@ -10,6 +14,10 @@
       </testcase>
       <testcase>
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPutGetRegSpr.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testStartInstruction.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
 
