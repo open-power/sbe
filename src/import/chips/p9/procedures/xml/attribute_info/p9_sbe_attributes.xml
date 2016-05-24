@@ -625,5 +625,11 @@
   <entry>
            <name>ATTR_ROOT_CTRL8_SHADOW</name>
   </entry>
+  <entry>
+           <name>ATTR_HANG_COUNTER6_SETUP</name>
+  </entry>
+  <entry>
+           <name>ATTR_VITL_CLK_SETUP</name>
+  </entry>
 
 </entries>
