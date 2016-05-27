@@ -144,8 +144,7 @@ fapi2::ReturnCode p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
     uint8_t l_is_master_sbe;
     uint8_t l_is_mpipl;
     uint8_t l_ipl_type;
-    uint64_t l_chip_base_address_nm;
-    uint64_t l_chip_base_address_m;
+    uint64_t l_chip_base_address_nm0, l_chip_base_address_nm1, l_chip_base_address_m, l_chip_base_address_mmio;
 
     auto l_mcs_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MCS>();
     auto l_mi_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MI>();
@@ -170,20 +169,22 @@ fapi2::ReturnCode p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 
         // determine base address
         FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_target,
-                 l_chip_base_address_nm,
-                 l_chip_base_address_m),
+                 l_chip_base_address_nm0,
+                 l_chip_base_address_nm1,
+                 l_chip_base_address_m,
+                 l_chip_base_address_mmio),
                  "Error from p9_fbc_utils_get_chip_base_addrs");
 
         if (l_mcs_chiplets.size())
         {
             FAPI_TRY(set_hb_dcbz_config(l_mcs_chiplets.front(),
-                                        l_chip_base_address_nm),
+                                        l_chip_base_address_nm0),
                      "Error from set_hb_dcbz_config (MCS)");
         }
         else
         {
             FAPI_TRY(set_hb_dcbz_config(l_mi_chiplets.front(),
-                                        l_chip_base_address_nm),
+                                        l_chip_base_address_nm0),
                      "Error from set_hb_dcbz_config (MI)");
         }
     }

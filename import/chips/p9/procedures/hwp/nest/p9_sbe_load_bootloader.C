@@ -76,8 +76,9 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     const uint32_t C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0 = 18;
     uint64_t l_bootloader_offset;
     uint64_t l_hostboot_hrmor_offset;
-    uint64_t l_chip_base_address_nm;
+    uint64_t l_chip_base_address_nm0, l_chip_base_address_nm1;
     uint64_t l_chip_base_address_m;
+    uint64_t l_chip_base_address_mmio;
     uint64_t l_target_address;
     uint32_t l_exception_instruction;
     bool l_firstAccess = true;
@@ -128,20 +129,22 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     //                       (hostboot HRMOR offset) +
     //                       (bootloader offset)
     FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_master_chip_target,
-             l_chip_base_address_nm,
-             l_chip_base_address_m),
+             l_chip_base_address_nm0,
+             l_chip_base_address_nm1,
+             l_chip_base_address_m,
+             l_chip_base_address_mmio),
              "Error from p9_fbc_utils_get_chip_base_address");
 
     // add hostboot HRMOR offset and bootloader offset contributions
-    l_chip_base_address_nm += l_hostboot_hrmor_offset;
-    l_chip_base_address_nm += l_bootloader_offset;
+    l_chip_base_address_nm0 += l_hostboot_hrmor_offset;
+    l_chip_base_address_nm0 += l_bootloader_offset;
 
     // check that base address is cacheline aligned
-    FAPI_ASSERT(!(l_chip_base_address_nm % FABRIC_CACHELINE_SIZE),
+    FAPI_ASSERT(!(l_chip_base_address_nm0 % FABRIC_CACHELINE_SIZE),
                 fapi2::P9_SBE_LOAD_BOOTLOADER_INVALID_TARGET_ADDRESS().
                 set_CHIP_TARGET(i_master_chip_target).
                 set_EX_TARGET(i_master_ex_target).
-                set_TARGET_BASE_ADDRESS(l_chip_base_address_nm).
+                set_TARGET_BASE_ADDRESS(l_chip_base_address_nm0).
                 set_HRMOR_OFFSET(l_hostboot_hrmor_offset).
                 set_BOOTLOADER_OFFSET(l_bootloader_offset),
                 "Target base address is not cacheline aligned!");
@@ -151,7 +154,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_HBBL_EXCEPTION_INSTRUCT, FAPI_SYSTEM, l_exception_instruction),
              "fapiGetAttribute of ATTR_SBE_HBBL_EXCEPTION_INSTRUCT failed!");
 
-    l_target_address = l_chip_base_address_nm;
+    l_target_address = l_chip_base_address_nm0;
 
     BootloaderConfigData_t l_bootloader_config_data;
 
@@ -190,7 +193,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     l_myPbaFlag.setFastMode(true);  // FASTMODE
     l_myPbaFlag.setOperationType(p9_PBA_oper_flag::LCO); // LCO operation
 
-    while (l_target_address < (l_chip_base_address_nm + i_payload_size + l_exception_vector_size))
+    while (l_target_address < (l_chip_base_address_nm0 + i_payload_size + l_exception_vector_size))
     {
         // invoke PBA setup HWP to prep stream
         FAPI_TRY(p9_pba_setup( i_master_chip_target,
@@ -204,7 +207,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
 
         // call PBA access HWP per cacheline to move payload data
         while (l_num_cachelines_to_roll &&
-               (l_target_address < (l_chip_base_address_nm + i_payload_size + l_exception_vector_size)))
+               (l_target_address < (l_chip_base_address_nm0 + i_payload_size + l_exception_vector_size)))
         {
             if ((l_cacheline_num == 0) && (l_exception_instruction != 0))
             {
@@ -278,8 +281,8 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                                    l_myPbaFlag.setFlag(),
                                    l_firstAccess,
                                    (l_num_cachelines_to_roll == 1) ||
-                                   ((l_target_address + FABRIC_CACHELINE_SIZE) >=
-                                    (l_chip_base_address_nm + i_payload_size + l_exception_vector_size)),
+                                   ((l_target_address + FABRIC_CACHELINE_SIZE) >
+                                    (l_chip_base_address_nm0 + i_payload_size + l_exception_vector_size)),
                                    l_data_to_pass_to_pba_array), "Error from p9_pba_access");
             l_firstAccess = false;
             // decrement count of cachelines remaining in current stream
@@ -312,7 +315,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
         l_dataBuf.flush<0>().setBit<C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0>();
         FAPI_TRY(fapi2::putScom(l_coreTarget, C_0_THREAD_INFO, l_dataBuf),
                  "Error setting thread active for t0");
-        l_dataBuf.flush<0>().insertFromRight<0, 64>(l_chip_base_address_nm);
+        l_dataBuf.flush<0>().insertFromRight<0, 64>(l_chip_base_address_nm0);
         //call RamCore put_reg method
         FAPI_TRY(ram.put_reg(REG_SPR, 313, &l_dataBuf), "Error ramming HRMOR");
     }
