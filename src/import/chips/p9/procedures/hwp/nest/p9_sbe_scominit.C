@@ -23,151 +23,383 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 //------------------------------------------------------------------------------
-/// @file  p9_sbe_scominit.C
 ///
-/// @brief This procedure contains SCOM based initialization required for
-///  fabric configuration & HBI operation
-/// *!
-/// *!   o Set fabric node/chip ID configuration for all configured
-/// *!     chiplets to chip specific values
-/// *!   o Establish ADU XSCOM BAR for HBI operation
+/// @file p9_sbe_scominit.C
+/// @brief Peform SCOM initialization required for fabric & HBI operation (FAPI2)
+///
+/// @author Joe McGill <jmcgill@us.ibm.com>
+/// @author Christy Graves <clgraves@us.ibm.com>
+///
+
+//
+// *HWP HWP Owner: Joe McGill <jmcgill@us.ibm.com>
+// *HWP FW Owner: Thi Tran <thi@us.ibm.com>
+// *HWP Team: Nest
+// *HWP Level: 2
+// *HWP Consumed by: SBE
+//
+
 //------------------------------------------------------------------------------
-// *HWP HW Owner        : Girisankar Paulraj <gpaulraj@in.ibm.com>
-// *HWP HW Backup Owner : Joe McGill <jmcgill@us.ibm.com>
-// *HWP FW Owner         : Thi N. Tran <thi@us.ibm.com>
-// *HWP Team             : Nest
-// *HWP Level            : 2
-// *HWP Consumed by      : SBE
+// Includes
+//------------------------------------------------------------------------------
+#include <p9_sbe_scominit.H>
+#include <p9_fbc_utils.H>
+
+#include <p9_misc_scom_addresses.H>
+#include <p9_perv_scom_addresses.H>
+#include <p9_perv_scom_addresses_fld.H>
+
+
+//------------------------------------------------------------------------------
+// Constant definitions
 //------------------------------------------------------------------------------
 
+// XSCOM/LPC BAR constants
+const uint64_t XSCOM_BAR_MASK = 0xFF000003FFFFFFFFULL;
+const uint64_t LPC_BAR_MASK = 0xFF000000FFFFFFFFULL;
 
-//## auto_generated
-#include "p9_sbe_scominit.H"
+// FBC FIR constants
+const uint64_t FBC_CENT_FIR_ACTION0 = 0x0000000000000000ULL;
+const uint64_t FBC_CENT_FIR_ACTION1 = 0xFFFFFFFFFFFFFFFFULL;
+const uint64_t FBC_CENT_FIR_MASK    = 0xFFFFFFFFFFFFFFFFULL;
+const uint64_t FBC_WEST_FIR_ACTION0 = 0x0000000000000000ULL;
+const uint64_t FBC_WEST_FIR_ACTION1 = 0xFFFFFFFFFFFFFFFFULL;
+const uint64_t FBC_WEST_FIR_MASK    = 0xFFFFFFFFFFFFFFFFULL;
+const uint64_t FBC_EAST_FIR_ACTION0 = 0x0000000000000000ULL;
+const uint64_t FBC_EAST_FIR_ACTION1 = 0xFFFFFFFFFFFFFFFFULL;
+const uint64_t FBC_EAST_FIR_MASK    = 0xFFFFFFFFFFFFFFFFULL;
 
-#include "p9_misc_scom_addresses.H"
-#include "p9_perv_scom_addresses.H"
+// PBA FIR constants
+const uint64_t PBA_FIR_ACTION0 = 0x0000000000000000ULL;
+const uint64_t PBA_FIR_ACTION1 = 0xFFFFFFFFFFFFFFFFULL;
+const uint64_t PBA_FIR_MASK = 0xFFFFFFFFFFFFFFFFULL;
 
-
-static fapi2::ReturnCode p9_sbe_scominit_chiplet_cnfg(const
-        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
-        const i_id_struct& iv_id_struct);
-
-fapi2::ReturnCode p9_sbe_scominit(const
-                                  fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+// chiplet pervasive FIR constants
+const uint64_t PERV_LFIR_ACTION0[15] =
 {
-    i_id_struct l_id_struct;
-    uint64_t l_attr_xscom_bar_addr = 0;
-    uint64_t l_attr_lpc_base_addr = 0;
-    fapi2::buffer<uint64_t> l_data64;
-    auto l_perv_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_PERV>
-                                    (fapi2::TARGET_STATE_FUNCTIONAL);
+    0x0000000000000000ULL, // TP
+    0x0000000000000000ULL, // N0
+    0x0000000000000000ULL, // N1
+    0x0000000000000000ULL, // N2
+    0x0000000000000000ULL, // N3
+    0x0000000000000000ULL, // X
+    0x0000000000000000ULL, // -
+    0x0000000000000000ULL, // -
+    0x0000000000000000ULL, // OB0
+    0x0000000000000000ULL, // OB1
+    0x0000000000000000ULL, // OB2
+    0x0000000000000000ULL, // OB3
+    0x0000000000000000ULL, // PCI0
+    0x0000000000000000ULL, // PCI1
+    0x0000000000000000ULL  // PCI2
+};
 
+const uint64_t PERV_LFIR_ACTION1[15] =
+{
+    0x0000000000000000ULL, // TP
+    0xFFFFFFFFFFFFFFFFULL, // N0
+    0xFFFFFFFFFFFFFFFFULL, // N1
+    0xFFFFFFFFFFFFFFFFULL, // N2
+    0xFFFFFFFFFFFFFFFFULL, // N3
+    0xFFFFFFFFFFFFFFFFULL, // X
+    0xFFFFFFFFFFFFFFFFULL, // -
+    0xFFFFFFFFFFFFFFFFULL, // -
+    0xFFFFFFFFFFFFFFFFULL, // OB0
+    0xFFFFFFFFFFFFFFFFULL, // OB1
+    0xFFFFFFFFFFFFFFFFULL, // OB2
+    0xFFFFFFFFFFFFFFFFULL, // OB3
+    0xFFFFFFFFFFFFFFFFULL, // PCI0
+    0xFFFFFFFFFFFFFFFFULL, // PCI1
+    0xFFFFFFFFFFFFFFFFULL  // PCI2
+};
+
+const uint64_t PERV_LFIR_MASK[15] =
+{
+    0xFFFFFFFFFFFFFFFFULL, // TP
+    0xFFFFFFFFFFFFFFFFULL, // N0
+    0xFFFFFFFFFFFFFFFFULL, // N1
+    0xFFFFFFFFFFFFFFFFULL, // N2
+    0xFFFFFFFFFFFFFFFFULL, // N3
+    0xFFFFFFFFFFFFFFFFULL, // X
+    0xFFFFFFFFFFFFFFFFULL, // -
+    0xFFFFFFFFFFFFFFFFULL, // -
+    0xFFFFFFFFFFFFFFFFULL, // OB0
+    0xFFFFFFFFFFFFFFFFULL, // OB1
+    0xFFFFFFFFFFFFFFFFULL, // OB2
+    0xFFFFFFFFFFFFFFFFULL, // OB3
+    0xFFFFFFFFFFFFFFFFULL, // PCI0
+    0xFFFFFFFFFFFFFFFFULL, // PCI1
+    0xFFFFFFFFFFFFFFFFULL  // PCI2
+};
+
+// chiplet XIR constants
+const uint64_t PERV_XFIR_MASK[15] =
+{
+    0xFFFFFFFFFFFFFFFFULL, // TP
+    0xFFFFFFFFFFFFFFFFULL, // N0
+    0xFFFFFFFFFFFFFFFFULL, // N1
+    0xFFFFFFFFFFFFFFFFULL, // N2
+    0xFFFFFFFFFFFFFFFFULL, // N3
+    0xFFFFFFFFFFFFFFFFULL, // X
+    0xFFFFFFFFFFFFFFFFULL, // -
+    0xFFFFFFFFFFFFFFFFULL, // -
+    0xFFFFFFFFFFFFFFFFULL, // OB0
+    0xFFFFFFFFFFFFFFFFULL, // OB1
+    0xFFFFFFFFFFFFFFFFULL, // OB2
+    0xFFFFFFFFFFFFFFFFULL, // OB3
+    0xFFFFFFFFFFFFFFFFULL, // PCI0
+    0xFFFFFFFFFFFFFFFFULL, // PCI1
+    0xFFFFFFFFFFFFFFFFULL  // PCI2
+};
+
+
+//------------------------------------------------------------------------------
+// Function definitions
+//------------------------------------------------------------------------------
+
+fapi2::ReturnCode
+p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+
+{
     FAPI_DBG("Entering ...");
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    uint64_t l_base_addr_nm0;
+    uint64_t l_base_addr_nm1;
+    uint64_t l_base_addr_m;
+    uint64_t l_base_addr_mmio;
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, i_target,
-                           l_id_struct.iv_chip_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, i_target,
-                           l_id_struct.iv_group_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID, i_target,
-                           l_id_struct.iv_system_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ADU_XSCOM_BAR_BASE_ADDR, i_target,
-                           l_attr_xscom_bar_addr));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_LPC_BASE_ADDR, i_target, l_attr_lpc_base_addr), "Error getting the LPC_BASE_ADDR");
-
-    for (auto l_target_chplt : l_perv_functional_vector)
+    // set fabric topology information in each pervasive chiplet (outside of EC/EP)
     {
-        uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_chplt,
-                               l_attr_chip_unit_pos));
+        // read fabric topology attributes
+        uint32_t l_fbc_system_id;
+        uint8_t l_fbc_group_id;
+        uint8_t l_fbc_chip_id;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID, i_target, l_fbc_system_id),
+                 "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_SYSTEM_ID)");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, i_target, l_fbc_group_id),
+                 "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_GROUP_ID)");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, i_target, l_fbc_chip_id),
+                 "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_CHIP_ID)");
 
-        if ((l_attr_chip_unit_pos & 0xF0) == 0)
+        for (auto l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP |
+                                               fapi2::TARGET_FILTER_ALL_NEST |
+                                               fapi2::TARGET_FILTER_XBUS |
+                                               fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_PCI),
+              fapi2::TARGET_STATE_FUNCTIONAL))
         {
-            FAPI_TRY(p9_sbe_scominit_chiplet_cnfg(l_target_chplt, l_id_struct));
+            fapi2::buffer<uint64_t> l_cplt_conf0;
+            FAPI_TRY(fapi2::getScom(l_chplt_target, PERV_CPLT_CONF0, l_cplt_conf0),
+                     "Error from getScom (PERV_CPLT_CONF0)");
+            l_cplt_conf0.insertFromRight<PERV_1_CPLT_CONF0_TC_UNIT_SYS_ID_DC, PERV_1_CPLT_CONF0_TC_UNIT_SYS_ID_DC_LEN>
+            (l_fbc_system_id)
+            .insertFromRight<PERV_1_CPLT_CONF0_TC_UNIT_GROUP_ID_DC, PERV_1_CPLT_CONF0_TC_UNIT_GROUP_ID_DC_LEN>(l_fbc_group_id)
+            .insertFromRight<PERV_1_CPLT_CONF0_TC_UNIT_CHIP_ID_DC, PERV_1_CPLT_CONF0_TC_UNIT_CHIP_ID_DC_LEN>(l_fbc_chip_id);
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_CPLT_CONF0, l_cplt_conf0),
+                     "Error from putScom (PERV_CPLT_CONF0)");
         }
     }
 
-    // Clearing and masking the Local Power bus, Fabric bus and N3 chiplet FIRs/MASK/ACTION registers
-    //Setting FIR_MASK register value
-    //N3.FIR_MASK = p9SbeScominit::FIRMASK_RESET_VALUE
-    FAPI_TRY(fapi2::putScom(i_target, 0x05040002,
-                            p9SbeScominit::FIRMASK_RESET_VALUE));
-    //Setting LOCAL_FIR_ACTION0 register value
-    //N3.LOCAL_FIR_ACTION0 = p9SbeScominit::FIRACT_RESET_VALUE
-    FAPI_TRY(fapi2::putScom(i_target, PERV_N3_LOCAL_FIR_ACTION0,
-                            p9SbeScominit::FIRACT_RESET_VALUE));
-    //Setting LOCAL_FIR_ACTION1 register value
-    //N3.LOCAL_FIR_ACTION1 = p9SbeScominit::FIRACT_RESET_VALUE
-    FAPI_TRY(fapi2::putScom(i_target, PERV_N3_LOCAL_FIR_ACTION1,
-                            p9SbeScominit::FIRACT_RESET_VALUE));
-    //Setting XFIR register value
-    //N3.XFIR = p9SbeScominit::FIR_RESET_VALUE
-    FAPI_TRY(fapi2::putScom(i_target, 0x05040000, p9SbeScominit::FIR_RESET_VALUE));
-    //Setting PBAFIRMASK register value
-    //N3.PBAFIRMASK = p9SbeScominit::FIRMASK_RESET_VALUE
-    FAPI_TRY(fapi2::putScom(i_target, PU_PBAFIRMASK,
-                            p9SbeScominit::FIRMASK_RESET_VALUE));
-    //Setting PBAFIRACT0 register value
-    //N3.PBAFIRACT0 = p9SbeScominit::FIRACT_RESET_VALUE
-    FAPI_TRY(fapi2::putScom(i_target, PU_PBAFIRACT0,
-                            p9SbeScominit::FIRACT_RESET_VALUE));
-    //Setting PBAFIRACT1 register value
-    //N3.PBAFIRACT1 = p9SbeScominit::FIRACT_RESET_VALUE
-    FAPI_TRY(fapi2::putScom(i_target, PU_PBAFIRACT1,
-                            p9SbeScominit::FIRACT_RESET_VALUE));
-    //Setting PBAFIR register value
-    //N3.PBAFIR = p9SbeScominit::FIR_RESET_VALUE
-    FAPI_TRY(fapi2::putScom(i_target, PU_PBAFIR, p9SbeScominit::FIR_RESET_VALUE));
+    // determine base address of chip nm/m/mmmio regions in real address space
+    FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_target,
+             l_base_addr_nm0,
+             l_base_addr_nm1,
+             l_base_addr_m,
+             l_base_addr_mmio),
+             "Error from p9_fbc_utils_get_chip_base_address");
 
-    // Setting ADU XSCOM BASE ADDR register value
-    l_data64 = l_attr_xscom_bar_addr;
-    l_data64.clearBit<0, 8>();
-    l_data64.clearBit<30, 34>();
+    // set XSCOM BAR
+    {
+        fapi2::buffer<uint64_t> l_xscom_bar;
+        uint64_t l_xscom_bar_offset;
 
-    FAPI_TRY(fapi2::putScom(i_target, PU_XSCOM_BASE_REG, l_data64));
+        FAPI_DBG("Configuring XSCOM BAR");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET, FAPI_SYSTEM, l_xscom_bar_offset),
+                 "Error from FAPI_ATTR_GET (ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET)");
 
-    // Setting LPC BASE ADDR register value
-    l_data64 = l_attr_lpc_base_addr;
-    FAPI_TRY(fapi2::putScom(i_target, PU_LPC_BASE_REG, l_data64));
+        l_xscom_bar = l_base_addr_mmio;
+        l_xscom_bar += l_xscom_bar_offset;
 
-    FAPI_DBG("Exiting ...");
+        FAPI_ASSERT((l_xscom_bar & XSCOM_BAR_MASK) == 0,
+                    fapi2::P9_SBE_SCOMINIT_XSCOM_BAR_ATTR_ERR().
+                    set_TARGET(i_target).
+                    set_XSCOM_BAR(l_xscom_bar).
+                    set_XSCOM_BAR_OFFSET(l_xscom_bar_offset).
+                    set_BASE_ADDR_MMIO(l_base_addr_mmio),
+                    "Invalid XSCOM BAR configuration!");
+
+        FAPI_TRY(fapi2::putScom(i_target, PU_XSCOM_BASE_REG, l_xscom_bar),
+                 "Error from putScom (PU_XSCOM_BASE_REG)");
+    }
+
+    // set LPC BAR
+    {
+        fapi2::buffer<uint64_t> l_lpc_bar;
+        uint64_t l_lpc_bar_offset;
+
+        FAPI_DBG("Configuring LPC BAR");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET, FAPI_SYSTEM, l_lpc_bar_offset),
+                 "Error from FAPI_ATTR_GET (ATRR_PROC_LPC_BAR_BASE_ADDR_OFFSET");
+
+        l_lpc_bar = l_base_addr_mmio;
+        l_lpc_bar += l_lpc_bar_offset;
+
+        FAPI_ASSERT((l_lpc_bar & LPC_BAR_MASK) == 0,
+                    fapi2::P9_SBE_SCOMINIT_LPC_BAR_ATTR_ERR().
+                    set_TARGET(i_target).
+                    set_LPC_BAR(l_lpc_bar).
+                    set_LPC_BAR_OFFSET(l_lpc_bar_offset).
+                    set_BASE_ADDR_MMIO(l_base_addr_mmio),
+                    "Invalid LPC BAR configuration!");
+
+        FAPI_TRY(fapi2::putScom(i_target, PU_LPC_BASE_REG, l_lpc_bar),
+                 "Error from putScom (PU_LPC_BASE_REG)");
+    }
+
+    // configure FBC FIRs
+    {
+        fapi2::buffer<uint64_t> l_scom_data;
+
+        // CENT
+        FAPI_DBG("Configuring FBC CENT FIR");
+        // clear FIR
+        l_scom_data = 0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_REG, l_scom_data),
+                 "Error from putScom (PU_PB_CENT_SM0_PB_CENT_FIR_REG)");
+
+        // configure action/mask
+        l_scom_data = FBC_CENT_FIR_ACTION0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_ACTION0_REG, l_scom_data),
+                 "Error from putScom (PU_PB_CENT_SM0_PB_CENT_FIR_ACTION0_REG)");
+
+        l_scom_data = FBC_CENT_FIR_ACTION1;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_ACTION1_REG, l_scom_data),
+                 "Error from putScom (PU_PB_CENT_SM0_PB_CENT_FIR_ACTION1_REG)");
+
+        l_scom_data = FBC_CENT_FIR_MASK;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG, l_scom_data),
+                 "Error from putScom (PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG)");
+
+        // WEST
+        FAPI_DBG("Configuring FBC WEST FIR");
+        // clear FIR
+        l_scom_data = 0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_WEST_SM0_PB_WEST_FIR_REG, l_scom_data),
+                 "Error from putScom (PU_PB_WEST_SM0_PB_WEST_FIR_REG)");
+
+        // configure action/mask
+        l_scom_data = FBC_WEST_FIR_ACTION0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_WEST_SM0_PB_WEST_FIR_ACTION0_REG, l_scom_data),
+                 "Error from putScom (PU_PB_WEST_SM0_PB_WEST_FIR_ACTION0_REG)");
+
+        l_scom_data = FBC_WEST_FIR_ACTION1;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_WEST_SM0_PB_WEST_FIR_ACTION1_REG, l_scom_data),
+                 "Error from putScom (PU_PB_WEST_SM0_PB_WEST_FIR_ACTION1_REG)");
+
+        l_scom_data = FBC_WEST_FIR_MASK;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_WEST_SM0_PB_WEST_FIR_MASK_REG, l_scom_data),
+                 "Error from putScom (PU_PB_WEST_SM0_PB_WEST_FIR_MASK_REG)");
+
+        // EAST
+        FAPI_DBG("Configuring FBC EAST FIR");
+        // clear FIR
+        l_scom_data = 0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_EAST_FIR_REG, l_scom_data),
+                 "Error from putScom (PU_PB_EAST_FIR_REG)");
+
+        // configure action/mask
+        l_scom_data = FBC_EAST_FIR_ACTION0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_EAST_FIR_ACTION0_REG, l_scom_data),
+                 "Error from putScom (PU_PB_EAST_FIR_ACTION0_REG)");
+
+        l_scom_data = FBC_EAST_FIR_ACTION1;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_EAST_FIR_ACTION1_REG, l_scom_data),
+                 "Error from putScom (PU_PB_EAST_FIR_ACTION1_REG)");
+
+        l_scom_data = FBC_EAST_FIR_MASK;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_EAST_FIR_MASK_REG, l_scom_data),
+                 "Error from putScom (PU_PB_EAST_FIR_MASK_REG)");
+    }
+
+    // configure PBA FIRs
+    {
+        fapi2::buffer<uint64_t> l_scom_data;
+
+        // clear FIR
+        FAPI_DBG("Configuring PBA FIR");
+        l_scom_data = 0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBAFIR, l_scom_data),
+                 "Error from putScom (PU_PBAFIR)");
+
+        // configure action/mask
+        l_scom_data = PBA_FIR_ACTION0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBAFIRACT0, l_scom_data),
+                 "Error from putScom (PU_PBAFIRACT0)");
+
+        l_scom_data = PBA_FIR_ACTION1;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBAFIRACT1, l_scom_data),
+                 "Error from putScom (PU_PBAFIRACT1)");
+
+        l_scom_data = PBA_FIR_MASK;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBAFIRMASK, l_scom_data),
+                 "Error from putScom (PU_PBAFIRMASK)");
+    }
+
+    // configure chiplet pervasive FIRs / XFIRs
+    {
+        for (auto l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP |
+                                               fapi2::TARGET_FILTER_ALL_NEST |
+                                               fapi2::TARGET_FILTER_XBUS |
+                                               fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_PCI),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            uint8_t l_unit_idx;
+            fapi2::buffer<uint64_t> l_scom_data;
+
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_target, l_unit_idx),
+                     "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
+            l_unit_idx--;
+
+
+            // PERV LFIR
+            FAPI_DBG("Configuring PERV LFIR (chiplet ID: %02X)", l_unit_idx + 1);
+            // reset pervasive FIR
+            l_scom_data = 0;
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_LOCAL_FIR, l_scom_data),
+                     "Error from putScom (PERV_LOCAL_FIR)");
+
+            // configure pervasive FIR action/mask
+            l_scom_data = PERV_LFIR_ACTION0[l_unit_idx];
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_LOCAL_FIR_ACTION0, l_scom_data),
+                     "Error from putScom (PERV_LOCAL_FIR_ACTION0)");
+
+            l_scom_data = PERV_LFIR_ACTION1[l_unit_idx];
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_LOCAL_FIR_ACTION1, l_scom_data),
+                     "Error from putScom (PERV_LOCAL_FIR_ACTION1)");
+
+            l_scom_data = PERV_LFIR_MASK[l_unit_idx];
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_LOCAL_FIR_MASK, l_scom_data),
+                     "Error from putScom (PERV_LOCAL_FIR_MASK)");
+
+            // XFIR
+            FAPI_DBG("Configuring chiplet XFIR (chiplet ID: %02X)", l_unit_idx + 1);
+            // reset XFIR
+            l_scom_data = 0;
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_XFIR, l_scom_data),
+                     "Error from putScom (PERV_XFIR)");
+
+            // configure XFIR mask
+            l_scom_data = PERV_XFIR_MASK[l_unit_idx];
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_FIR_MASK, l_scom_data),
+                     "Error from putScom (PERV_FIR_MASK");
+        }
+    }
 
 fapi_try_exit:
-    return fapi2::current_err;
-
-}
-
-/// @brief This function configures Fabric chip/system/group ID for functioning chiplet
-///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
-/// @param[in]     i_id_struct     This structure contains the following parameter
-///      i_chip_id --> current chiplet Fabric chip id
-///      i_group_id --> current chiplet Fabric group id
-///      i_system_id --> current chiplet Fabric system id
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_scominit_chiplet_cnfg(const
-        fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
-        const i_id_struct& i_id_struct)
-{
-    fapi2::buffer<uint64_t> l_data64;
-    FAPI_DBG("Entering ...");
-
-    //Setting CPLT_CONF0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CPLT_CONF0, l_data64));
-    //CPLT_CONF0.TC_UNIT_GROUP_ID_DC = i_id_struct.iv_group_id
-    l_data64.insertFromRight<48, 4>(i_id_struct.iv_group_id);
-    //CPLT_CONF0.TC_UNIT_CHIP_ID_DC = i_id_struct.iv_chip_id
-    l_data64.insertFromRight<52, 3>(i_id_struct.iv_chip_id);
-    //CPLT_CONF0.TC_UNIT_SYS_ID_DC = i_id_struct.iv_system_id
-    l_data64.insertFromRight<56, 5>(i_id_struct.iv_system_id);
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0, l_data64));
-
     FAPI_DBG("Exiting ...");
-
-fapi_try_exit:
     return fapi2::current_err;
 
-}
-
-i_id_struct::i_id_struct() : iv_chip_id(0), iv_group_id(0), iv_system_id(0)
-{
 }
