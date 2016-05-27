@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sbecmdiplcontrol.C $                                */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
  * @file: ppe/sbe/sbefw/sbecmdiplcontrol.C
  *
@@ -24,7 +48,7 @@
 #include <p9_sbe_tp_switch_gears.H>
 #include <p9_sbe_clock_test2.H>
 #include <p9_sbe_tp_chiplet_reset.H>
-#include <p9_sbe_tp_gptr_time_repr_initf.H>
+#include <p9_sbe_tp_repr_initf.H>
 #include <p9_sbe_tp_chiplet_init2.H>
 #include <p9_sbe_tp_arrayinit.H>
 #include <p9_sbe_tp_initf.H>
@@ -53,6 +77,8 @@
 // Cache HWP header file
 #include <p9_hcd_cache.H>
 #include <p9_hcd_cache_dcc_skewadjust_setup.H>
+#include <p9_hcd_cache_chiplet_l3_dcc_setup.H>
+#include <p9_hcd_cache_dpll_initf.H>
 // Core HWP header file
 #include <p9_hcd_core.H>
 
@@ -148,7 +174,7 @@ static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
              { &istepWithProc, { .procHwp = &p9_sbe_tp_switch_gears }},
              { &istepWithProc, { .procHwp = &p9_sbe_clock_test2 }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_reset }},
-             { &istepWithProc, { .procHwp = &p9_sbe_tp_gptr_time_repr_initf }},
+             { &istepWithProc, { .procHwp = &p9_sbe_tp_repr_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_init2 }},
              { &istepNoOp, NULL },  // DFT only
              { &istepWithProc, { .procHwp = &p9_sbe_tp_arrayinit }},
@@ -186,13 +212,9 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
          {
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_poweron} },
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_reset } },
-             // TODO via RTC 148465
-             // L1 for hwp is still not available
-             { &istepNoOp, NULL },  //  p9_hcd_cache_chiplet_l3_dcc_setup.C
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_l3_dcc_setup }},
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_gptr_time_initf }},
-             // TODO via RTC 148465
-             // L1 for hwp is still not available
-             { &istepNoOp, NULL },  // p9_hcd_cache_dpll_initf.C
+             { &istepWithEq, { .eqHwp  = &p9_hcd_cache_dpll_initf }},
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_dpll_setup }},
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_dcc_skewadjust_setup }},
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_init }},

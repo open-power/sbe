@@ -29,7 +29,6 @@ PERV-CPP-SOURCES +=p9_sbe_tp_chiplet_init2.C
 PERV-CPP-SOURCES +=p9_sbe_tp_chiplet_init3.C
 PERV-CPP-SOURCES +=p9_sbe_tp_chiplet_reset.C
 PERV-CPP-SOURCES +=p9_sbe_tp_enable_ridi.C
-PERV-CPP-SOURCES +=p9_sbe_tp_gptr_time_repr_initf.C
 PERV-CPP-SOURCES +=p9_sbe_tp_initf.C
 PERV-CPP-SOURCES +=p9_sbe_tp_ld_image.C
 PERV-CPP-SOURCES +=p9_sbe_tp_switch_gears.C
