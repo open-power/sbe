@@ -631,5 +631,8 @@
   <entry>
            <name>ATTR_VITL_CLK_SETUP</name>
   </entry>
+  <entry>
+           <name>ATTR_OBUS_RATIO_VALUE</name>
+  </entry>
 
 </entries>
