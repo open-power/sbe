@@ -20,6 +20,8 @@ CACHE-CPP-SOURCES += p9_hcd_cache_runinit.C
 CACHE-CPP-SOURCES += p9_hcd_cache_scomcust.C
 CACHE-CPP-SOURCES += p9_hcd_cache_scominit.C
 CACHE-CPP-SOURCES += p9_hcd_cache_startclocks.C
+CACHE-CPP-SOURCES += p9_hcd_cache_chiplet_l3_dcc_setup.C
+CACHE-CPP-SOURCES += p9_hcd_cache_dpll_initf.C
 
 CACHE-C-SOURCES   +=
 CACHE-S-SOURCES   +=
