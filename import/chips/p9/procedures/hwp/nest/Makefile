@@ -8,6 +8,11 @@ export SUB_OBJDIR = /nest
 include img_defs.mk
 include nestfiles.mk
 
+# TODO via RTC 152424
+# Adding VPATH as there are few procedures which are in
+# perv folder but we are compiling them here. Refer to
+# nestfiles.mk for details.
+export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR)
 OBJS := $(addprefix $(OBJDIR)/, $(NEST_OBJECTS))
 
 libnest.a: nest
