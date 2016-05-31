@@ -8,6 +8,7 @@ export SUB_OBJDIR = /perv
 include img_defs.mk
 include pervfiles.mk
 
+GCC-CFLAGS += -mlongcall
 
 OBJS := $(addprefix $(OBJDIR)/, $(PERV_OBJECTS))
 

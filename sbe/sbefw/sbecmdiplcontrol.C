@@ -124,6 +124,9 @@ ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp);
 
+// Using function pointer to force long call.
+p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
+
 //structure for mapping SBE wrapper and HWP functions
 typedef struct
 {
@@ -512,7 +515,7 @@ ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp)
     // TODO via RTC 135345
     // Once multicast targets are supported, we may need to pass
     // p9selectex::ALL as input.
-    return p9_sbe_select_ex(proc, p9selectex::SINGLE);
+    return p9_sbe_select_ex_hwp(proc, p9selectex::SINGLE);
 }
 
 //----------------------------------------------------------------------------
