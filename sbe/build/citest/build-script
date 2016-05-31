@@ -35,8 +35,8 @@ fi
 source "$SBEROOT/sbe/build/citest/setup-env"
 
 # Check copyright.
-check-copyright > copyright.log 2>&1 &
-COPYRIGHT_PID=$!
+#check-copyright > copyright.log 2>&1 &
+#COPYRIGHT_PID=$!
 
 
 # Build .
@@ -64,12 +64,12 @@ populate-sandbox || exit -1
 sbetest-start.sh || exit -1
 
 # Check copyright completion.
-wait $COPYRIGHT_PID
-if [ $? -eq 0 ]; then
-    cat copyright.log
-else
-    echo "----Copyright check failed."
-    cat copyright.log
-    exit -1
-fi
+#wait $COPYRIGHT_PID
+#if [ $? -eq 0 ]; then
+#    cat copyright.log
+#else
+#    echo "----Copyright check failed."
+#    cat copyright.log
+#    exit -1
+#fi
 
