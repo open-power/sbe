@@ -37,6 +37,7 @@
 #include <p9_pba_setup.H>
 #include <p9_pba_access.H>
 #include <p9_fbc_utils.H>
+#include <p9_pba_coherent_utils.H>
 
 //-----------------------------------------------------------------------------------
 // Constant definitions
@@ -44,8 +45,6 @@
 
 // PBA setup/access HWP call constants
 const bool PBA_HWP_WRITE_OP = false;
-const uint32_t PBA_HWP_FLAGS = FLAG_FASTMODE | // fastmode
-                               ((p9_pba_write_ttype::LCO << FLAG_TTYPE_SHIFT) & p9_pba_flags::FLAG_TTYPE);   // LCO_M
 const int EXCEPTION_VECTOR_NUM_CACHELINES = 96;
 const uint32_t SBE_BOOTLOADER_VERSION = 0x901;
 //-----------------------------------------------------------------------------------
@@ -75,6 +74,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     uint8_t l_data_to_pass_to_pba_array[FABRIC_CACHELINE_SIZE];
     uint32_t l_exception_vector_size = 0;
     int l_cacheline_num = 0;
+    p9_PBA_oper_flag l_myPbaFlag;
 
     FAPI_DBG("Start");
 
@@ -147,7 +147,12 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     // Pass size of load including exception vectors and Bootloader
     l_bootloader_config_data.blLoadSize = l_exception_vector_size + i_payload_size;
 
+
+
+
     // move data using PBA setup/access HWPs
+    l_myPbaFlag.setFastMode(true);  // FASTMODE
+    l_myPbaFlag.setOperationType(p9_PBA_oper_flag::LCO); // LCO operation
 
     while (l_target_address < (l_chip_base_address_nm + i_payload_size + l_exception_vector_size))
     {
@@ -156,7 +161,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                                i_master_ex_target,
                                l_target_address,
                                PBA_HWP_WRITE_OP,
-                               PBA_HWP_FLAGS,
+                               l_myPbaFlag.setFlag(),
                                l_num_cachelines_to_roll), "Error from p9_pba_setup");
 
         l_firstAccess = true;
@@ -234,7 +239,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
             FAPI_TRY(p9_pba_access(i_master_chip_target,
                                    l_target_address,
                                    PBA_HWP_WRITE_OP,
-                                   PBA_HWP_FLAGS,
+                                   l_myPbaFlag.setFlag(),
                                    l_firstAccess,
                                    (l_num_cachelines_to_roll == 1) ||
                                    ((l_target_address + FABRIC_CACHELINE_SIZE) >
