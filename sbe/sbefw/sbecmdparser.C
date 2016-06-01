@@ -44,6 +44,16 @@
 #include "sbe_sp_intf.H"
 #include "sbeHostMsg.H"
 #include "sbe_host_intf.H"
+#include "sbestates.H"
+#include "sberegaccess.H"
+
+// Declaration
+static const uint16_t HARDWARE_FENCED_STATE =
+     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE|
+     SBE_FENCE_AT_DMT;
+
+static const uint16_t PUT_HARDWARE_FENCED_STATE =
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_MPIPL;
 
 ////////////////////////////////////////////////////////////////
 // @brief g_sbeScomCmdArray
@@ -52,25 +62,24 @@ static sbeCmdStruct_t g_sbeScomCmdArray [] =
 {
     {sbeGetScom,
      SBE_CMD_GETSCOM,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
-     },
-
+     HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+    },
     {sbePutScom,
      SBE_CMD_PUTSCOM,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
-     },
-
-
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+    },
     {sbeModifyScom,
      SBE_CMD_MODIFYSCOM,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
-     },
-
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+    },
     {sbePutScomUnderMask,
      SBE_CMD_PUTSCOM_MASK,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
-     },
-
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+    },
+    {sbeMultiScom,
+     SBE_CMD_MULTISCOM,
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+    },
 };
 
 ////////////////////////////////////////////////////////////////
@@ -81,13 +90,18 @@ static sbeCmdStruct_t g_sbeIplControlCmdArray [] =
 {
     {sbeHandleIstep,
      SBE_CMD_EXECUTE_ISTEP,
-     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_MPIPL,
-     },
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_RUNTIME|
+     SBE_FENCE_AT_DUMPING,
+     // This is allowed in FFDC Collect state
+     // TODO - Issue 157287 - Allow MPIIPL in Isteps state
+    },
 
-    {sbeWaitForSbeIplDone,
-     SBE_CMD_IS_SBE_IPL_DONE,
-     SBE_FENCE_AT_ISTEP|SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_MPIPL,
-     },
+    {sbeContinueBoot,
+     SBE_CMD_CONTINUE_BOOT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_RUNTIME|
+     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ISTEP,
+     // This is allowed only in FFDC Collect State in PLCK mode
+    },
 };
 
 ////////////////////////////////////////////////////////////////
@@ -98,9 +112,9 @@ static sbeCmdStruct_t g_sbeGenericCmdArray [] =
 {
     {sbeGetCapabilities,
      SBE_CMD_GET_SBE_CAPABILITIES,
-     SBE_NO_FENCE,
-     },
-
+     SBE_STATE_FFDC_COLLECT,
+     // Fence in FFDC Collect State, since it might over-write traces
+    },
 };
 
 //////////////////////////////////////////////////////////////
@@ -111,22 +125,22 @@ static sbeCmdStruct_t g_sbeMemoryAccessCmdArray [] =
 {
     {sbeGetMem,
      SBE_CMD_GETMEM,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
     },
 
     {sbePutMem,
      SBE_CMD_PUTMEM,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
     },
 
     {sbeGetOccSram,
      SBE_CMD_GETSRAM_OCC,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
     },
 
     {sbePutOccSram,
      SBE_CMD_PUTSRAM_OCC,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
     },
 };
 
@@ -138,9 +152,10 @@ static sbeCmdStruct_t g_sbeInstructionCntlCmdArray[] =
 {
     {sbeCntlInst,
      SBE_CMD_CONTROL_INSTRUCTIONS,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
     },
 };
+
 //////////////////////////////////////////////////////////////
 // @brief g_sbeRegAccessCmdArray
 //
@@ -149,12 +164,36 @@ static sbeCmdStruct_t g_sbeRegAccessCmdArray [] =
 {
     {sbeGetReg,
      SBE_CMD_GETREG,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
     },
 
     {sbePutReg,
      SBE_CMD_PUTREG,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+    },
+};
+
+//////////////////////////////////////////////////////////////
+// @brief g_sbeMpiplCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeMpiplCmdArray[] =
+{
+    {sbeEnterMpipl,
+     SBE_CMD_MPIPL_ENTER,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ABORT,
+     // Allow Fspless system to enter MPIPL
+     // Honour MPIPL at FFDC Collect state
+     // Issue 157287
+    },
+
+    {sbeContinueMpipl,
+     SBE_CMD_MPIPL_CONTINUE,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_DUMPING|
+     SBE_FENCE_AT_ABORT|SBE_FENCE_AT_FFDC_COLLECT,
+     // Only allowed State is MPIPL
     },
 };
 
@@ -178,7 +217,9 @@ static sbeCmdStruct_t g_sbeCoreStateControlCmdArray [] =
 {
     {sbeControlDeadmanTimer,
      SBE_PSU_CMD_CONTROL_DEADMAN,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ABORT|
+     SBE_FENCE_AT_FFDC_COLLECT,
     },
 };
 
@@ -248,6 +289,12 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             l_numCmds = sizeof(g_sbeRingAccessCmdArray) /
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbeRingAccessCmdArray;
+            break;
+
+        case SBE_CMD_CLASS_MPIPL_COMMANDS:
+            l_numCmds = sizeof(g_sbeMpiplCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbeMpiplCmdArray;
             break;
 
         // PSU Commands
@@ -322,9 +369,90 @@ uint8_t sbeValidateCmdClass (const uint8_t i_cmdClass,
 bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
                              const uint8_t i_cmdOpcode)
 {
-    // @TODO via RTC : 126146
-    //       SBE state management
-    return 0;
+    #define SBE_FUNC " sbeIsCmdAllowedAtState "
+    uint8_t l_numCmds = 0;
+    sbeCmdStruct_t *l_pCmd = NULL;
+    bool l_ret = false;
+    l_numCmds = sbeGetCmdStructAttr (i_cmdClass, &l_pCmd);
+
+    SBE_DEBUG(SBE_FUNC"CmdClass[0x%02X], CmdOpcode[0x%02X], NumCmds[0x%02X]",
+        i_cmdClass, i_cmdOpcode, l_numCmds);
+
+    for (uint8_t l_cnt = 0; l_cnt < l_numCmds; ++l_cnt, ++l_pCmd)
+    {
+        if (i_cmdOpcode == l_pCmd->cmd_opcode)
+        {
+            // Get the Present State
+            uint64_t l_state =
+                SbeRegAccess::theSbeRegAccess().getSbeState();
+            SBE_DEBUG(SBE_FUNC "SBE State [0x%08X] Fence State[0x%04X]",
+                (uint32_t)(l_state & 0xFFFFFFFF),l_pCmd->cmd_state_fence);
+
+            switch(l_state)
+            {
+                case SBE_STATE_QUIESCE:
+                case SBE_STATE_UNKNOWN:
+                case SBE_STATE_FAILURE:
+                    // All operations are fenced here, return false
+                    // Reset is the only Option available
+                    break;
+
+                case SBE_STATE_FFDC_COLLECT:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_FFDC_COLLECT)? false:true);
+                    break;
+                }
+
+                case SBE_STATE_IPLING:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_CONTINUOUS_IPL)? false:true);
+                    break;
+                }
+
+                case SBE_STATE_ISTEP:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_ISTEP)? false:true);
+                    break;
+                }
+
+                case SBE_STATE_RUNTIME:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_RUNTIME)? false:true);
+                    break;
+                }
+
+                case SBE_STATE_DUMP:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_DUMPING)? false:true);
+                    break;
+                }
+
+                case SBE_STATE_MPIPL:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_MPIPL)? false:true);
+                    break;
+                }
+
+                case SBE_STATE_ABORT:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_ABORT)? false:true);
+                    break;
+                }
+
+                default: break;
+            }
+        }
+    }
+    // For any other state, which is not handled above, return from here
+    return l_ret;
+    #undef SBE_FUNC
 }
 
 ////////////////////////////////////////////////////////////////

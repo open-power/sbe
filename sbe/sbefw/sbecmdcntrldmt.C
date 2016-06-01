@@ -34,6 +34,8 @@
 #include "sbe_build_info.H"
 #include "sbeHostMsg.H"
 #include "sbeHostUtils.H"
+#include "sberegaccess.H"
+#include "sbestates.H"
 #include "sbe_sp_intf.H"
 #include "fapi2.H"
 #include "p9_sbe_check_master_stop15.H"
@@ -59,6 +61,9 @@ void sbeDmtPkExpiryCallback(void *)
     #define SBE_FUNC "sbeDmtPkExpiryCallback"
     SBE_INFO(SBE_FUNC" DMT Callback Timer has expired..Checkstop the system ");
     g_SbeDmtTimerExpired = true;
+
+    (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                            SBE_DUMP_FAILURE_EVENT);
 
     // check stop the system
     uint32_t l_status = SBE_PCB_PIB_ERROR_NONE;
@@ -128,6 +133,9 @@ uint32_t sbeStartCntlDmt()
                     "SBE_HOST_PSU_MBOX_REG4");
             break;
         }
+        // Set DMT State
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                            SBE_DMT_ENTER_EVENT);
 
         // Fetch the master core
         Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
@@ -234,6 +242,9 @@ uint32_t sbeStopCntlDmt()
             SBE_ERROR(SBE_FUNC" Failed to write to SBE_HOST_PSU_MBOX_REG4");
             break;
         }
+        // Set Runtime State
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                            SBE_DMT_COMP_EVENT);
     }while(0);
 
     return l_rc;

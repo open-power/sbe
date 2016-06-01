@@ -61,6 +61,7 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
         {
             case SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED:
             case SBE_SEC_COMMAND_NOT_SUPPORTED:
+            case SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE:
                 // Caller sent an invalid Command class/opcode
                 // Set the Ack bit in SBE->PSU DB register
                 l_rc = sbeAcknowledgeHost();
@@ -143,6 +144,7 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
         {
             case SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED:
             case SBE_SEC_COMMAND_NOT_SUPPORTED:
+            case SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE:
                 // Caller sent Invalid Command
 
             case SBE_SEC_OS_FAILURE:
@@ -222,21 +224,36 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     SBE_ENTER(SBE_FUNC);
 
     // Check the destination bit at the start
-    if(SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+    if(SbeRegAccess::theSbeRegAccess().isIstepMode())
     {
-        SBE_DEBUG(SBE_FUNC"Destination bit tells us to go to runtime");
-        (void)SbeRegAccess::theSbeRegAccess().
-              updateSbeState(SBE_STATE_RUNTIME);
-    }
-    else if(SbeRegAccess::theSbeRegAccess().isIstepMode())
-    {
+        // In this state, we need not take care of FFDC State, User may
+        // or may not fetch FFDC and may not issue sbeContinueboot
         SBE_DEBUG(SBE_FUNC"Continuous IPL mode not set, will wait for "
                 "commands...");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_ISTEP);
     }
+    // If Istep mode is not set, it makes sense to check if we are directly
+    // in runtime.
+    else if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+    {
+        SBE_DEBUG(SBE_FUNC"Destination bit tells us to go to runtime");
+        (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(SBE_STATE_RUNTIME);
+    }
+    // Now we can assume that we are in Continuous IPL mode, just check if
+    // FFDC needs to be collected before continuing with IPL
+    else if(true == SbeRegAccess::theSbeRegAccess().isCollectFFDCSet())
+    {
+        SBE_DEBUG(SBE_FUNC"FFDC Collect State - Waiting for FFDC to be picked");
+        (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(SBE_STATE_FFDC_COLLECT);
+    }
     else
     {
+        SBE_DEBUG(SBE_FUNC"Continuous IPL Mode set... IPLing");
+        (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(SBE_STATE_IPLING);
         sbeDoContinuousIpl();
     }
 

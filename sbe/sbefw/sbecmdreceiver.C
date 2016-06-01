@@ -41,6 +41,7 @@
 #include "sbeHostMsg.H"
 #include "sbeHostUtils.H"
 #include "sberegaccess.H"
+#include "sbeutil.H"
 
 sbeFifoCmdReqBuf_t g_sbeFifoCmdHdr;
 sbeCmdRespHdr_t g_sbeCmdRespHdr;
@@ -59,6 +60,9 @@ void sbeCommandReceiver_routine(void *i_pArg)
     // Update SBE msgg reg to indicate that control loop
     // is ready now to receive data on its interfaces
     (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
+
+    // Set Current State to First State i.e. Unknown
+    (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_UNKNOWN);
 
     do
     {
@@ -205,8 +209,31 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 break;
             }
 
-            // @TODO via RTC: 126146
-            //       validate state machine constraints
+            // Need to return from receiver thread itself for fenced rejection
+            // of command, but there might be contention on the response sent
+            // over FIFO/Mailbox usage.
+            if(false == sbeIsCmdAllowedAtState(l_cmdClass, l_command))
+            {
+                // This command is not allowed in this state
+                SBE_ERROR("Chip-Op CmdClass[0x%02X] Cmd[0x%02X] not allowed in "
+                    "State - [0x%04X] ",l_cmdClass,l_command,
+                    SbeRegAccess::theSbeRegAccess().getSbeState());
+
+                if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE, SBE_INTERFACE_PSU) )
+                {
+                    g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
+                                SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE);
+                }
+                else if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
+                                                SBE_INTERFACE_FIFO) )
+                {
+                    g_sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
+                                SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE);
+                }
+
+                l_rc = SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE;
+                break;
+            }
 
         } while (false); // Inner do..while ends
 
@@ -248,23 +275,31 @@ void sbeCommandReceiver_routine(void *i_pArg)
             l_rcPk = pk_semaphore_post(&g_sbeSemCmdProcess);
         }
 
+        // Handle Cmd not in a valid state here
+
         if ((l_rcPk != PK_OK) || (l_rc != SBE_SEC_OPERATION_SUCCESSFUL))
         {
-            // It's likely a code bug or PK failure,
-            // or any other PSU/FIFO access (scom) failure.
+            if(l_rc != SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE)
+            {
+                // It's likely a code bug or PK failure,
+                // or any other PSU/FIFO access (scom) failure.
 
-            // @TODO via RTC : 129166
-            //       Review if we need to add ASSERT here
+                // @TODO via RTC : 129166
+                //       Review if we need to add ASSERT here
 
-            // Add Error trace, collect FFDC and
-            // continue wait for the next interrupt
-            SBE_ERROR(SBE_FUNC"Unexpected failure, "
-                "l_rcPk=[%d], g_sbeSemCmdProcess.count=[%d], l_rc=[%d]",
-                l_rcPk, g_sbeSemCmdProcess.count, l_rc);
-
+                // Add Error trace, collect FFDC and
+                // continue wait for the next interrupt
+                SBE_ERROR(SBE_FUNC"Unexpected failure, "
+                    "l_rcPk=[%d], g_sbeSemCmdProcess.count=[%d], l_rc=[%d]",
+                    l_rcPk, g_sbeSemCmdProcess.count, l_rc);
+            }
             if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
                                         SBE_INTERFACE_PSU) )
             {
+                if(l_rc == SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE)
+                {
+                    sbeHandlePsuResponse(l_rc);
+                }
                 g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_PSU);
                 pk_irq_enable(SBE_IRQ_HOST_PSU_INTR);
@@ -272,6 +307,10 @@ void sbeCommandReceiver_routine(void *i_pArg)
             else if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
                                              SBE_INTERFACE_FIFO) )
             {
+                if(l_rc == SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE)
+                {
+                    sbeHandleFifoResponse(l_rc);
+                }
                 g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO);
                 pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);

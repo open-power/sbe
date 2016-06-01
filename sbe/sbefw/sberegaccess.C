@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sberegaccess.C $                                    */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
  * @file: ppe/sbe/sbefw/sberegaccess.C
  *
@@ -13,11 +37,100 @@
 
 using namespace fapi2;
 
+// Struct to Map Current State - Event - Final State Transition
+typedef struct stateTransitionStr
+{
+    uint16_t currState:4;
+    uint16_t event:4;
+    uint16_t finalState:4;
+    uint16_t reserved:4;
+} stateTransitionStr_t;
+
+// Start and End point of Event Transition in stateTransMap Table
+typedef struct stateEventRangeStr
+{
+    uint16_t start:8;
+    uint16_t end:8;
+}stateEventRangeStr_t;
+
+// Entry Point and End point to the StateTransition Map for a State
+// It is sequenced as per the sbeState enum, Don't change the sequence
+// of states. Events are incremented w.r.t previous event.
+static const stateEventRangeStr_t eventRangePerState[SBE_MAX_STATE] =
+{
+    {SBE_STATE_UNKNOWN_ENTRY_TO_MAP, SBE_STATE_UNKNOWN_MAX_EVENT},
+    {SBE_STATE_FFDC_COLLECT_ENTRY_TO_MAP, SBE_STATE_FFDC_COLLECT_MAX_EVENT},
+    {SBE_STATE_IPLING_ENTRY_TO_MAP, SBE_STATE_IPLING_MAX_EVENT},
+    {SBE_STATE_ISTEP_ENTRY_TO_MAP, SBE_STATE_ISTEP_MAX_EVENT},
+    {SBE_STATE_RUNTIME_ENTRY_TO_MAP, SBE_STATE_RUNTIME_MAX_EVENT},
+    {SBE_STATE_MPIPL_ENTRY_TO_MAP, SBE_STATE_MPIPL_MAX_EVENT},
+    {SBE_STATE_DMT_ENTRY_TO_MAP, SBE_STATE_DMT_MAX_EVENT},
+    {SBE_STATE_DUMP_ENTRY_TO_MAP, SBE_STATE_DUMP_MAX_EVENT},
+    {SBE_STATE_FAILURE_ENTRY_TO_MAP, SBE_STATE_FAILURE_MAX_EVENT},
+    {SBE_STATE_QUIESCE_ENTRY_TO_MAP, SBE_STATE_QUIESCE_MAX_EVENT},
+    {SBE_STATE_ABORT_ENTRY_TO_MAP, SBE_STATE_ABORT_MAX_EVENT},
+};
+
+// Map to connect the current State with an event along with the final state
+// transition. It is sequenced according to the sbeState enums, Don't change the
+// sequence of states.
+static const stateTransitionStr_t stateTransMap[SBE_MAX_TRANSITIONS] = {
+    {SBE_STATE_UNKNOWN, SBE_FAILURE_EVENT, SBE_STATE_FAILURE},
+    {SBE_STATE_UNKNOWN, SBE_RUNTIME_EVENT, SBE_STATE_RUNTIME},
+    {SBE_STATE_UNKNOWN, SBE_ISTEP_EVENT, SBE_STATE_ISTEP},
+    {SBE_STATE_UNKNOWN, SBE_PLCK_EVENT, SBE_STATE_IPLING},
+    {SBE_STATE_UNKNOWN, SBE_FFDC_COLLECT_EVENT, SBE_STATE_FFDC_COLLECT},
+    {SBE_STATE_FFDC_COLLECT, SBE_CONTINUE_BOOT_PLCK_EVENT, SBE_STATE_IPLING},
+    {SBE_STATE_FFDC_COLLECT, SBE_CONTINUE_BOOT_RUNTIME_EVENT, SBE_STATE_RUNTIME},
+    {SBE_STATE_FFDC_COLLECT, SBE_ISTEP_EVENT, SBE_STATE_ISTEP},
+    {SBE_STATE_FFDC_COLLECT, SBE_FAILURE_EVENT, SBE_STATE_DUMP},
+    {SBE_STATE_IPLING, SBE_RUNTIME_EVENT, SBE_STATE_RUNTIME},
+    {SBE_STATE_IPLING, SBE_DUMP_FAILURE_EVENT, SBE_STATE_DUMP},
+    {SBE_STATE_IPLING, SBE_FAILURE_EVENT, SBE_STATE_FAILURE},
+    {SBE_STATE_IPLING, SBE_ABORT_EVENT, SBE_STATE_ABORT},
+    {SBE_STATE_ISTEP, SBE_RUNTIME_EVENT, SBE_STATE_RUNTIME},
+    {SBE_STATE_ISTEP, SBE_ABORT_EVENT, SBE_STATE_ABORT},
+    {SBE_STATE_ISTEP, SBE_FAILURE_EVENT, SBE_STATE_FAILURE},
+    {SBE_STATE_RUNTIME, SBE_DUMP_FAILURE_EVENT, SBE_STATE_DUMP},
+    {SBE_STATE_RUNTIME, SBE_ENTER_MPIPL_EVENT, SBE_STATE_MPIPL},
+    {SBE_STATE_RUNTIME, SBE_DMT_ENTER_EVENT, SBE_STATE_DMT},
+    {SBE_STATE_RUNTIME, SBE_FAILURE_EVENT, SBE_STATE_FAILURE},
+    {SBE_STATE_MPIPL, SBE_CONTINUE_MPIPL_EVENT, SBE_STATE_RUNTIME},
+    {SBE_STATE_MPIPL, SBE_DUMP_FAILURE_EVENT, SBE_STATE_DUMP},
+    {SBE_STATE_DMT, SBE_DMT_COMP_EVENT, SBE_STATE_RUNTIME},
+};
+
 /**
  * @brief Initizlize the class
  *
  * @return An RC indicating success/failure
  */
+
+void SbeRegAccess::stateTransition(const sbeEvent &i_event)
+{
+    #define SBE_FUNC "SbeRegAccess::stateTransition "
+    //Fetch Current State
+    uint32_t l_state = (uint32_t)getSbeState();
+    uint8_t l_startCnt = eventRangePerState[l_state].start;
+    SBE_INFO(SBE_FUNC "Event Received %d CurrState 0x%08X StartCnt%d EndCnt%d",
+        i_event, l_state, l_startCnt, eventRangePerState[l_state].end);
+    // Fetch the final State from the Map
+    while(l_startCnt <
+          (eventRangePerState[l_state].end + eventRangePerState[l_state].start))
+    {
+        if(stateTransMap[l_startCnt].event == i_event)
+        {
+            SBE_INFO(SBE_FUNC "Updating State as %d",
+                        (sbeState)stateTransMap[l_startCnt].finalState);
+            updateSbeState((sbeState)stateTransMap[l_startCnt].finalState);
+            break;
+        }
+        else
+            ++l_startCnt;
+    }
+    #undef SBE_FUNC
+}
+
 uint32_t SbeRegAccess::init()
 {
     #define SBE_FUNC "SbeRegAccess::SbeRegAccess "

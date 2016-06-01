@@ -1,11 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: sbe/test/testIstepInvalid.py $
+# $Source: sbe/test/testEnterMpipl.py $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2016
 # [+] International Business Machines Corp.
 #
 #
@@ -26,15 +26,14 @@ import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
 err = False
-#from testWrite import *
 
-TESTDATA = [0,0,0,3,
-            0,0,0xA1,0x01,
-            0,0x02,0x00,0x1]
+TESTDATA = [0,0,0,2,
+            0,0,0xA9,0x01 ]
 
-EXPDATA = [0xc0,0xde,0xa1,0x01,
-           0x00,0x02,0x00,0x0A,
-           0x00,0x0,0x0,0x03];
+EXPDATA = [0xc0,0xde,0xa9,0x01,
+           0x0,0x0,0x0,0x0,
+           0x00,0x0,0x0,0x3];
+
 
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
@@ -44,6 +43,7 @@ def main( ):
     testUtil.writeEot( )
     testUtil.readDsFifo( EXPDATA )
     testUtil.readEot( )
+
 #-------------------------------------------------
 # Calling all test code
 #-------------------------------------------------
