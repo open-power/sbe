@@ -242,7 +242,7 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
              { &istepNoOp, NULL },  // DFT Only
              { &istepNoOp, NULL },  // DFT Only
              { &istepWithCore, { .coreHwp = &p9_hcd_core_initf }},
-             { &istepWithCoreConditional, 
+             { &istepWithCoreConditional,
                               { .coreHwp = &p9_hcd_core_startclocks }},
              { &istepWithCoreConditional, { .coreHwp = &p9_hcd_core_scominit }},
              { &istepWithCoreConditional, { .coreHwp = &p9_hcd_core_scomcust }},
@@ -299,6 +299,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             break;
         }
+
         fapiRc = sbeExecuteIstep( req.major, req.minor );
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
@@ -309,6 +310,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
             ffdc.setRc(fapiRc);
             break;
         }
+
     }while(0);
 
     //loop 2
@@ -403,11 +405,15 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
 
     (void)SbeRegAccess::theSbeRegAccess().updateSbeStep(i_major, i_minor);
 
-    // TODO: via RTC: 126146 - Should the state be set to DUMP even in istep
-    // mode failures? Revisit this when we implement state management.
     if(rc != FAPI2_RC_SUCCESS)
     {
-        (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_DUMP);
+        // If IPLing State
+        uint64_t l_state = SbeRegAccess::theSbeRegAccess().getSbeState();
+        if(l_state == SBE_STATE_IPLING)
+        {
+            (void)SbeRegAccess::theSbeRegAccess().
+                  stateTransition(SBE_DUMP_FAILURE_EVENT);
+        }
     }
 
     return rc;
@@ -630,7 +636,8 @@ ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp)
     rc = istepWithCore(i_hwp);
     if(rc == FAPI2_RC_SUCCESS)
     {
-        (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_RUNTIME);
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                          SBE_RUNTIME_EVENT);
     }
     return rc;
 }
@@ -643,7 +650,8 @@ ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp)
                 SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
     if(SBE_ROLE_SLAVE == g_sbeRole)
     {
-        (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_RUNTIME);
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                        SBE_RUNTIME_EVENT);
     }
     return rc;
 }
@@ -655,13 +663,66 @@ ReturnCode istepNoOp( sbeIstepHwp_t i_hwp)
     return FAPI2_RC_SUCCESS ;
 }
 
+// Only allowed in PLCK Mode, since FFDC State mode is set only in PLCK
 //----------------------------------------------------------------------------
-
-uint32_t sbeWaitForSbeIplDone (uint8_t *i_pArg)
+uint32_t sbeContinueBoot (uint8_t *i_pArg)
 {
+    #define SBE_FUNC "sbeContinueBoot "
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    SBE_TRACE("sbeWaitForSbeIplDone");
+    uint32_t len = 0;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+
+    do
+    {
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL);
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            // let command processor routine handle the RC
+            break;
+        }
+
+        uint32_t distance = 1;
+        len = sizeof(respHdr)/sizeof(uint32_t);
+        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &respHdr);
+        if (rc)
+        {
+            break;
+        }
+        distance += len;
+
+        len = sizeof(distance)/sizeof(uint32_t);
+        rc = sbeDownFifoEnq_mult ( len, &distance);
+        if (rc)
+        {
+            break;
+        }
+        rc = sbeDownFifoSignalEot();
+        if (rc)
+        {
+            break;
+        }
+
+        // Expecting this to be in PLCK Mode and not in Istep mode
+        if(SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+        {
+            (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                    SBE_CONTINUE_BOOT_RUNTIME_EVENT);
+            // Nothing to do here.
+        }
+        else
+        {
+            SBE_DEBUG(SBE_FUNC"Continuous IPL Mode set... IPLing");
+            (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                    SBE_CONTINUE_BOOT_PLCK_EVENT);
+            sbeDoContinuousIpl();
+        }
+    }while(0);
+
+    SBE_DEBUG(SBE_FUNC "RC = 0x%08X", rc);
     return rc;
+    #undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------
@@ -691,7 +752,8 @@ void sbeDoContinuousIpl()
         };
 
         // Set SBE state as IPLing
-        (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_IPLING);
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                                SBE_PLCK_EVENT);
         bool l_done = false;
         // Run isteps
         for(uint8_t l_major = SBE_ISTEP_FIRST;
@@ -726,4 +788,72 @@ void sbeDoContinuousIpl()
     g_iplFailRc = l_rc;
     #undef SBE_FUNC
 }
+
+// TODO - RTC 133367
+//----------------------------------------------------------------------------
+uint32_t sbeEnterMpipl(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeEnterMpipl "
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t len = 0;
+    sbeRespGenHdr_t l_respHdr;
+    l_respHdr.init();
+
+    do
+    {
+        // Dequeue the EOT entry as no more data is expected.
+        l_rc = sbeUpFifoDeq_mult (len, NULL);
+        if ( l_rc != SBE_SEC_OPERATION_SUCCESSFUL )
+        {
+            // Let command processor routine to handle the RC
+            break;
+        }
+
+        sbeResponseFfdc_t l_ffdc;
+        l_rc = sbeDsSendRespHdr( l_respHdr, l_ffdc);
+
+        // set state to MPIPL Wait
+        (void)SbeRegAccess::theSbeRegAccess().
+               stateTransition(SBE_ENTER_MPIPL_EVENT);
+
+        //TODO RTC-123696  MPIPL Related procedure/steps
+    }while(0);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+// TODO - RTC 133367
+//----------------------------------------------------------------------------
+uint32_t sbeContinueMpipl(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeContinueMpipl "
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t len = 0;
+    sbeRespGenHdr_t l_respHdr;
+    l_respHdr.init();
+
+    do
+    {
+        // Dequeue the EOT entry as no more data is expected.
+        l_rc = sbeUpFifoDeq_mult (len, NULL);
+        if ( l_rc != SBE_SEC_OPERATION_SUCCESSFUL )
+        {
+            // Let command processor routine to handle the RC
+            break;
+        }
+
+        sbeResponseFfdc_t l_ffdc;
+        l_rc = sbeDsSendRespHdr( l_respHdr, l_ffdc);
+
+        //TODO RTC-134278  Continue MPIPL Related procedure/steps
+
+        // TODO - Once continue steps are over, it will trigger the
+        // istep5.2 and transition to runtime will happen
+
+    }while(0);
+
+    return l_rc;
+    #undef SBE_FUNC
+}
+
 

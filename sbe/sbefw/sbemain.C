@@ -325,9 +325,9 @@ uint32_t main(int argc, char **argv)
         if( fapiRc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC"plat_TargetsInit failed");
-            // TODO via RTC 126146.
-            //  Set the state to Failure and remove break statement. It will
-            //  enable FSP to get FFDC for this failure.
+            (void)SbeRegAccess::theSbeRegAccess().
+                    stateTransition(SBE_FAILURE_EVENT);
+            // Hard Reset SBE to recover
             break;
         }
 
@@ -336,9 +336,9 @@ uint32_t main(int argc, char **argv)
             SBE_ERROR(SBE_FUNC"Failed to initialize SbeRegAccess");
             // init failure could mean the below will fail too, but attempt it
             // anyway
-            (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_DUMP);
-            // TODO: via RTC 126146 : Decide if we should really break here or
-            // continue in the failed state.
+            (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                                 SBE_FAILURE_EVENT);
+            // Hard Reset SBE to recover
             break;
         }
 

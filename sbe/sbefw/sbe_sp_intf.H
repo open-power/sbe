@@ -70,7 +70,7 @@ enum sbeCommandClass
 enum sbeIplControlCommands
 {
     SBE_CMD_EXECUTE_ISTEP      = 0x01, /* Execute istep */
-    SBE_CMD_IS_SBE_IPL_DONE    = 0x02, /* Check if SBE IPL Done */
+    SBE_CMD_CONTINUE_BOOT  = 0x02, /* Continue SBE Boot */
 };
 
 /**
@@ -158,12 +158,13 @@ enum sbeGenericMessageCommands
     SBE_CMD_GET_SBE_FFDC          = 0x01, /* Get FFDC */
     SBE_CMD_GET_SBE_CAPABILITIES  = 0x02, /* GET SBE capabilities */
     SBE_CMD_GET_FREQ_SUPPORTED    = 0x03, /* Get Supported frequencies */
-    SBE_CMD_GET_SBE_STATE         = 0x04, /* Get SBE State */
+    SBE_CMD_ABORT                 = 0x05, /* Sbe Abort */
 };
 
 enum sbeMpIplCommands
 {
-    SBE_CMD_MPIPL_INVALID = 0x00,
+    SBE_CMD_MPIPL_ENTER    = 0x01, /* Enter MPIPL */
+    SBE_CMD_MPIPL_CONTINUE = 0x02, /* Continue MPIPL */
 };
 
 /**

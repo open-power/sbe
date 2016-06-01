@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: sbe/test/testIstepInvalid.py $
+# $Source: sbe/test/testIstepInvalidFenced.py $
 #
 # OpenPOWER sbe Project
 #
@@ -33,7 +33,7 @@ TESTDATA = [0,0,0,3,
             0,0x02,0x00,0x1]
 
 EXPDATA = [0xc0,0xde,0xa1,0x01,
-           0x00,0x02,0x00,0x0A,
+           0x00,0x00,0x00,0x08,
            0x00,0x0,0x0,0x03];
 
 # MAIN Test Run Starts Here...

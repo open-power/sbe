@@ -38,6 +38,10 @@ if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
     break; \
 } \
 
+void sbeHandleFifoResponse (const uint32_t i_rc);
+
+void sbeHandlePsuResponse (const uint32_t i_rc);
+
 namespace SBE
 {
 
