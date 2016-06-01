@@ -56,6 +56,6 @@ extern "C"
 }
 
 fapi2::ReturnCode p9_sbe_tp_switch_gears_check_magicnumber(
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chiplet);
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 #endif
