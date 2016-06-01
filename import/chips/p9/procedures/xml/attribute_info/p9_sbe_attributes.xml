@@ -24,6 +24,18 @@
 <entries>
   <!-- ********************************************************************* -->
   <entry>
+    <name>ATTR_PIBMEM_REPAIR0</name>
+    <value>0x0000000000000000</value>
+  </entry>
+  <entry>
+    <name>ATTR_PIBMEM_REPAIR1</name>
+    <value>0x0000000000000000</value>
+  </entry>
+  <entry>
+    <name>ATTR_PIBMEM_REPAIR2</name>
+    <value>0x0000000000000000</value>
+  </entry>
+  <entry>
     <name>ATTR_I2C_BUS_DIV_REF</name>
     <value>0x0001</value>
   </entry>
