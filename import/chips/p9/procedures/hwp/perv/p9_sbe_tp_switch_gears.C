@@ -32,6 +32,8 @@
 
 //## auto_generated
 #include "p9_sbe_tp_switch_gears.H"
+//## auto_generated
+#include "p9_const_common.H"
 
 #include <p9_misc_scom_addresses.H>
 #include <p9_perv_scom_addresses.H>
@@ -54,6 +56,14 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
     FAPI_INF("Entering ...");
 
 #ifdef __PPE__
+
+    FAPI_DBG("switch from refclock to PLL speed");
+    //Setting PERV_CTRL0 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
+    //PIB.PERV_CTRL0.TP_PLLBYP_DC = 0
+    l_data64.clearBit<PERV_PERV_CTRL0_SET_TP_PLLBYP_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
+
     FAPI_TRY(p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(
                  i_target_chip));
 
@@ -65,7 +75,9 @@ fapi_try_exit:
 #endif
 
     FAPI_INF("Exiting ...");
+
     return fapi2::current_err;
+
 }
 
 /// @brief check for magic number
@@ -130,11 +142,6 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears_check_magicnumber(
     //Getting DATA0TO7_REGISTER_B register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PU_DATA0TO7_REGISTER_B,
                             l_read_reg)); //l_read_reg = PIB.DATA0TO7_REGISTER_B
-
-
-    FAPI_DBG("DATA0TO7_REGISTER_B value: %#018lX", l_read_reg);
-    FAPI_DBG("DATA0TO7_REGISTER_B value compared to the Magicnumber : %#018lX", MAGIC_NUMBER);
-
 
     FAPI_ASSERT(l_read_reg == MAGIC_NUMBER,
                 fapi2::MAGIC_NUMBER_NOT_VALID(),
