@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/image/linksbe.cmd $                                       */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 
 // Need to do this so that elf32-powerpc is not modified!
 #undef powerpc
@@ -13,12 +37,14 @@ MEMORY
 {
  // increasing ram size as workaround so that pibmem image compilation
  // doe not fail.
- sram : ORIGIN = SBE_BASE_ORIGIN, LENGTH = SBE_BASE_LENGTH + 0xF000
+ // TODO: Reducing the SBE_BASE_ORIGIN by 0xF000 to reduce the size of
+ // generated sbe_pibmem.bin. Just a workaround to use pibmem for poweron
+ sram : ORIGIN = SBE_BASE_ORIGIN - 0xF000, LENGTH = SBE_BASE_LENGTH + 0xF000
 }
 
 SECTIONS
 {
-    . = SBE_BASE_ORIGIN;
+    . = SBE_BASE_ORIGIN - 0xF000;
 
     .vectors : {. = ALIGN(512); *(.vectors)} > sram
     .fixed . : {. = ALIGN(512); *(.fixed) } > sram
