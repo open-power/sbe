@@ -384,13 +384,44 @@
     #define PK_TRACE_ENABLE 1
 #endif
 
+/// Enable PK crit  (disabled by default)
+#ifndef PK_TRACE_CRIT_ENABLE
+    #define PK_TRACE_CRIT_ENABLE 0
+#endif
+
+/// Enable Debug suppress  (disabled by default)
+// a.k.a. enabled means turn off PK_TRACE(), but keep crit trace
+#ifndef PK_TRACE_DBG_SUPPRESS
+    #define PK_TRACE_DBG_SUPPRESS 0
+#endif
+
 /// Enable PK kernel tracing (disabled by default)
 #ifndef PK_KERNEL_TRACE_ENABLE
     #define PK_KERNEL_TRACE_ENABLE 0
 #endif
 
-//Application trace macros
+/// pk trace disabled implies no tracing at all
+//   override any other trace settings
 #if !PK_TRACE_ENABLE
+    #undef PK_TRACE_DBG_SUPPRESS
+    #undef PK_TRACE_CRIT_ENABLE
+
+    #define PK_TRACE_DBG_SUPPRESS 1
+    #define PK_TRACE_CRIT_ENABLE 0
+#endif
+
+// PK TRACE enabled & PK CRIT enabled implies all tracing on.
+// PK TRACE enabled & PK DBUG disabled implies   PK CRIT INFO tracing only.
+// PK TRACE enable & pK CRIT INFO disabled  && PK DBUG disabled implies
+//          PK TRACE disabled
+#if PK_TRACE_ENABLE &&  PK_TRACE_DBG_SUPPRESS && !PK_TRACE_CRIT_ENABLE
+    #undef PK_TRACE_ENABLE
+    #define PK_TRACE_ENABLE 0
+#endif
+
+
+//Application trace macros
+#if PK_TRACE_DBG_SUPPRESS
     #define PK_TRACE(...)
     #define PK_TRACE_BIN(str, bufp, buf_size)
 #else
@@ -398,6 +429,11 @@
     #define PK_TRACE_BIN(str, bufp, buf_size) PKTRACE_BIN(str, bufp, buf_size)
 #endif
 
+#if !PK_TRACE_CRIT_ENABLE
+    #define PK_TRACE_INF(...)
+#else
+    #define PK_TRACE_INF(...) PKTRACE(__VA_ARGS__)
+#endif
 
 //Kernel trace macros
 #if !PK_KERNEL_TRACE_ENABLE
@@ -438,7 +474,7 @@
 #define TINY_TRACE_ASM6()   .error "too many parameters"
 #define TINY_TRACE_ASM7()   .error "too many parameters"
 
-//TODO: add support for tracing more than 1 parameter and binary data in assembly
+//Possible enhancement: add support for tracing more than 1 parameter and binary data in assembly
 
     .global pk_trace_tiny
 
