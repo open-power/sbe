@@ -1,4 +1,28 @@
 #!/bin/sh
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: sbe/build/citest/etc/workarounds.postsimsetup $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 ## Workarounds that are run after start_simics is executed for the first time
 ##    to setup the sandbox
 ##
@@ -29,10 +53,4 @@ patch -p0 $SANDBOXBASE/obj/ppc/simu/scripts/hbfw/standalone.simics $SBEROOT/sbe/
 echo "  +++ Add executeInstruction module call"
 echo "  patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/chip.act $SBEROOT/sbe/build/citest/etc/patches/chip.act.patch"
 patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/chip.act $SBEROOT/sbe/build/citest/etc/patches/chip.act.patch
-
-echo "  +++ Update ramming instructions"
-echo "  cp $BACKING_BUILD/src/simu/data/cec-chip/p9.inst $SANDBOXBASE/src/simu/data/cec-chip/p9.inst"
-echo "  patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/p9.inst $SBEROOT/sbe/build/citest/etc/patches/p9.inst.patch"
-cp $BACKING_BUILD/src/simu/data/cec-chip/p9.inst $SANDBOXBASE/src/simu/data/cec-chip/p9.inst
-patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/p9.inst $SBEROOT/sbe/build/citest/etc/patches/p9.inst.patch
 
