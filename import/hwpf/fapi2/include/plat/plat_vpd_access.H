@@ -30,9 +30,9 @@ namespace fapi2
 {
 // -- platform specific getVPD implementation goes here --
 
-// platform specific for MCA target -- test code only
-inline fapi2::ReturnCode platGetVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCA>& i_target,
-                                    VPDInfo<fapi2::TARGET_TYPE_MCA>& io_vpd_info,
+// platform specific for MCS target -- test code only
+inline fapi2::ReturnCode platGetVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target,
+                                    VPDInfo<fapi2::TARGET_TYPE_MCS>& io_vpd_info,
                                     uint8_t* o_blob)
 {
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
