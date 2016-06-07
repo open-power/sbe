@@ -42,6 +42,11 @@
 #include <sstream>
 #include <fstream>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 #include "p9_ipl_build.H"
 #include <p9_xip_image.h>
