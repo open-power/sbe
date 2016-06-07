@@ -1958,10 +1958,11 @@ int dissectRingSectionTor( void*       i_ringSection,
                                               ringType,            // IO parm
                                               (RingVariant_t)ringVariant,
                                               instanceId,          // IO parm
-                                              SINGLE_RING,
+                                              GET_SINGLE_RING,
                                               &ringBlockPtr,       // IO parm
                                               ringBlockSize,       // IO parm
-                                              ringName);
+                                              ringName,
+                                              0 );
 
                         // Gather ring details and print it.
                         //
