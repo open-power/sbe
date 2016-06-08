@@ -469,10 +469,10 @@ extern uint32_t __pk_timebase_frequency_hz;
 extern uint8_t __pk_timebase_rshift;
 
 /// The timebase frequency in KHz
-extern uint32_t __pk_timebase_frequency_khz;
+extern uint32_t __pk_timebase_frequency_khz;  //never set or used. Delete?
 
 /// The timebase frequency in Mhz
-extern uint32_t __pk_timebase_frequency_mhz;
+extern uint32_t __pk_timebase_frequency_mhz;  //never set or used. Delete?
 
 
 typedef unsigned long int PkAddress;
@@ -702,6 +702,17 @@ pk_initialize(PkAddress  kernel_stack,
               PkTimebase initial_timebase,
               uint32_t    timebase_frequency_hz);
 
+/**
+ * Set the timebase frequency.
+ * @param[in] The frequency in HZ
+ * @return PK_OK
+ * @pre  pk_initialize
+ * @Note This interface is intended for SBE. The timebase frequency value is
+ *       used by PK to calcate timed events. Any existing timeouts,
+ *       sleeps, or time based pending semaphores are not recalculated.
+ */
+int
+pk_timebase_freq_set(uint32_t timebase_frequency_hz);
 
 // Timebase APIs
 
