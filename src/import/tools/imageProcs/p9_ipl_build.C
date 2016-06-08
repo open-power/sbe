@@ -52,6 +52,8 @@
 #include <p9_xip_image.h>
 #include <p9_tor.H>
 
+using namespace P9_TOR;
+
 // prefix of our debug file name
 const char* CHIP_TYPE = "p9_";
 
