@@ -130,6 +130,10 @@ pk_initialize(PkAddress     kernel_stack,
 
     __pk_thread_machine_context_default = PK_THREAD_MACHINE_CONTEXT_DEFAULT;
 
+    //set the shift adjustment to get us closer to the true
+    //timebase frequency (versus what was hardcoded)
+    pk_set_timebase_rshift(timebase_frequency_hz);
+
     rc = __pk_stack_init(&kernel_stack, &kernel_stack_size);
 
     if (rc)
@@ -155,10 +159,6 @@ pk_initialize(PkAddress     kernel_stack,
 
     //set the trace timebase HZ
     g_pk_trace_buf.hz = timebase_frequency_hz;
-
-    //set the shift adjustment to get us closer to the true
-    //timebase frequency (versus what was hardcoded)
-    pk_set_timebase_rshift(timebase_frequency_hz);
 
     if(initial_timebase != PK_TIMEBASE_CONTINUES)
     {
@@ -196,6 +196,21 @@ pk_initialize(PkAddress     kernel_stack,
 
 #endif  /* PK_THREAD_SUPPORT */
 
+    return PK_OK;
+}
+
+
+// Set the timebase frequency.
+int
+pk_timebase_freq_set(uint32_t timebase_frequency_hz)
+{
+    __pk_timebase_frequency_hz = timebase_frequency_hz;
+    pk_set_timebase_rshift(timebase_frequency_hz);
+
+#if PK_TRACE_SUPPORT
+    g_pk_trace_buf.hz = timebase_frequency_hz;
+#endif
+    // Does the initial_timebase need to be reset?
     return PK_OK;
 }
 
