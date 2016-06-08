@@ -1,11 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: sbe/hwpf/src/Makefile $
+# $Source: sbe/hwpf/src/plat/Makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2016
 # [+] International Business Machines Corp.
 #
 #
@@ -23,27 +23,13 @@
 #
 # IBM_PROLOG_END_TAG
 # This Makefile is designed to be invoked with the -I argument
-
-export SUB_OBJDIR = /fapi2
-
 include img_defs.mk
-include fapi2sbefiles.mk
+include fapi2sbeplatfiles.mk
 
+OBJS := $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_OBJECTS))
 
-OBJS := $(addprefix $(OBJDIR)/, $(FAPI2LIB_OBJECTS))
+all: $(OBJS)
 
-libfapi2.a: fapi2 hwpf plat
-	$(AR) crs $(OBJDIR)/libfapi2.a $(OBJDIR)/*.o
-
-.PHONY: clean fapi2 hwpf plat
-fapi2: $(OBJS)
-
-plat:
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PLAT_FAPI2_DIR)/src/plat
-
-hwpf:
-	@echo "Processing fapi2 hwpf makefile"
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PPE_FAPI2_DIR)/src
 
 $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 
@@ -51,6 +37,6 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(OBJS:.o=.d) 
+include $(OBJS:.o=.d)
 endif
 
