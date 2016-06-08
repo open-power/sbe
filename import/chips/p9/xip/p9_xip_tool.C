@@ -41,6 +41,7 @@
 #ifdef XIP_TOOL_ENABLE_DISSECT
     #include "p9_tor.H"
     #include "p9_scan_compression.H"
+    using namespace P9_TOR;
 #endif
 
 #define LINE_SIZE_MAX  1024     // Max size of a single snprintf dump.
