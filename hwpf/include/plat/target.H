@@ -46,6 +46,36 @@ extern "C"
 static const uint8_t CORES_PER_QUAD = 4;
 static const uint8_t EX_PER_QUAD = 2;
 static const uint8_t CORES_PER_EX = 2;
+static const uint8_t N3_CHIPLET = 5;
+struct ScomAddr
+{
+    ScomAddr(uint32_t i_addr) : iv_addr(i_addr)
+    {
+    }
+
+    operator uint32_t()
+    {
+        return iv_addr;
+    }
+
+    union
+    {
+        struct
+        {
+            uint32_t iv_unused : 1;
+            uint32_t iv_multicast : 1;
+            uint32_t iv_chiplet : 6;
+            uint32_t iv_pibMaster : 4;
+            uint32_t iv_port : 4;
+            uint32_t iv_unused2 : 2;
+            uint32_t iv_ring : 4;
+            uint32_t iv_satId : 4;
+            uint32_t iv_satOffset : 6;
+        };
+        uint32_t iv_addr;
+    };
+};
+
 
 namespace fapi2
 {
@@ -450,6 +480,53 @@ namespace fapi2
     inline void toString(const Target<T>& i_target, char* i_buffer, size_t i_bsize)
     {
         snprintf(i_buffer, i_bsize, "Target 0x%lx/0x%x", i_target.get(), T);
+    }
+
+    template<TargetType T>
+    __attribute__((always_inline))
+    inline uint32_t getEffectiveAddress(const Target<T> &i_target,
+                                        const uint32_t i_addr)
+    {
+        ScomAddr l_addr = i_addr;
+        if(0 != i_target.getAddressOverlay())
+        {
+            l_addr.iv_chiplet = i_target.getChipletNumber();
+        }
+        return l_addr;
+    }
+
+    inline uint32_t getEffectiveAddress(const Target<TARGET_TYPE_EX> &i_target,
+                                        const uint32_t i_addr)
+    {
+        ScomAddr l_addr = i_addr;
+
+        if((EQ_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
+           ((EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT) > l_addr.iv_chiplet))
+        {
+            l_addr.iv_chiplet = i_target.getChipletNumber();
+            l_addr.iv_ring = (l_addr.iv_ring - (l_addr.iv_ring % 2)) +
+                              (i_target.getTargetNumber() % 2);
+        }
+        else if ((CORE_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
+                 ((CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT) > l_addr.iv_chiplet))
+        {
+            l_addr.iv_chiplet = CORE_CHIPLET_OFFSET + (l_addr.iv_chiplet % 2) +
+                                (i_target.getTargetNumber() * 2);
+        }
+        else
+        {
+           assert(false);
+        }
+        return l_addr;
+    }
+
+    inline uint32_t getEffectiveAddress(const Target<TARGET_TYPE_MCS> &i_target,
+                                        const uint32_t i_addr)
+    {
+        ScomAddr l_addr = i_addr;
+        l_addr.iv_chiplet = N3_CHIPLET - (2 * (i_target.getTargetNumber() / 2));
+        l_addr.iv_satId = (2 * (i_target.getTargetNumber() % 2));
+        return l_addr;
     }
 
     ///
