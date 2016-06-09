@@ -84,6 +84,14 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             }
 
             {
+                if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
+                {
+                    constexpr auto l_scom_buffer_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 21, 1, 63 );
+                }
+            }
+
+            {
                 if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
                 {
                     constexpr auto l_scom_buffer_ON = 0x1;
