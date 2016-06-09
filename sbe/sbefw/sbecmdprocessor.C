@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sbecmdprocessor.C $                                 */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
  * @file: ppe/sbe/sbefw/sbecmdprocessor.C
  *
@@ -32,7 +56,7 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
 
     do
     {
-        uint8_t  l_count = 0;
+        uint8_t  l_cnt = 0;
         switch (i_rc)
         {
             case SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED:
@@ -48,31 +72,24 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
                 g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND, i_rc);
 
                 // Now Update SBE->PSU Mbx Reg4 with response
-                l_count = sizeof(g_sbeSbe2PsuRespHdr)/
+                l_cnt = sizeof(g_sbeSbe2PsuRespHdr)/
                                        sizeof(uint64_t);
                 l_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
                             reinterpret_cast<const uint64_t *>(
-                                &g_sbeSbe2PsuRespHdr), l_count, true);
-                if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-                {
-                    break;
-                }
+                                &g_sbeSbe2PsuRespHdr), l_cnt, true);
                 break;
 
             case SBE_SEC_OS_FAILURE:
                 // Set primary and secondary status
-                g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE, i_rc);
+                g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                               i_rc);
 
                 // Now Update SBE->PSU Mbx Reg4 with response
-                l_count = sizeof(g_sbeSbe2PsuRespHdr)/
+                l_cnt = sizeof(g_sbeSbe2PsuRespHdr)/
                                        sizeof(uint64_t);
                 l_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
                             reinterpret_cast<const uint64_t *>(
-                                &g_sbeSbe2PsuRespHdr), l_count, true);
-                if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-                {
-                    break;
-                }
+                                &g_sbeSbe2PsuRespHdr), l_cnt, true);
                 break;
 
             case SBE_SEC_OPERATION_SUCCESSFUL:
@@ -89,7 +106,6 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
     } while(false);
 
     SBE_DEBUG(SBE_FUNC"l_rc[0x0%08X]", l_rc);
-
     #undef SBE_FUNC
 }
 
@@ -206,13 +222,13 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     SBE_ENTER(SBE_FUNC);
 
     // Check the destination bit at the start
-    if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+    if(SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
     {
         SBE_DEBUG(SBE_FUNC"Destination bit tells us to go to runtime");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_RUNTIME);
     }
-    else if(true == SbeRegAccess::theSbeRegAccess().isIstepMode())
+    else if(SbeRegAccess::theSbeRegAccess().isIstepMode())
     {
         SBE_DEBUG(SBE_FUNC"Continuous IPL mode not set, will wait for "
                 "commands...");
@@ -235,27 +251,47 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
         do
         {
-            if ( g_sbeIntrSource.isSet(SBE_INTERFACE_PSU) )
+            // Local Variables
+            uint8_t  l_cmdClass  = 0;
+            uint8_t  l_cmdOpCode = 0;
+
+            // Check on the Rx Thread Interrupt Bits for Interrupt Status
+            if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
+                                        SBE_INTERFACE_PSU) )
             {
-                l_primStatus = g_sbeSbe2PsuRespHdr.primStatus;
                 l_rc         = g_sbeSbe2PsuRespHdr.secStatus;
+                l_cmdClass   = g_sbePsu2SbeCmdReqHdr.cmdClass;
+                l_cmdOpCode  = g_sbePsu2SbeCmdReqHdr.command;
+                // Set this here, so that during response handling we know which
+                // interrupt we are processing, need not check for
+                // g_sbeIntrSource again
+                g_sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
+                                               SBE_INTERFACE_PSU);
             }
-            else if ( g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO) )
+            else if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
+                                             SBE_INTERFACE_FIFO) )
             {
-                l_primStatus = g_sbeCmdRespHdr.prim_status;
                 l_rc         = g_sbeCmdRespHdr.sec_status;
+                l_cmdClass   = g_sbeFifoCmdHdr.cmdClass;
+                l_cmdOpCode  = g_sbeFifoCmdHdr.command;
+                // Set this here, so that during response handling we know which
+                // interrupt we are processing, need not check for
+                // g_sbeIntrSource again
+                g_sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
+                                               SBE_INTERFACE_FIFO);
             }
             else // SBE_INTERFACE_FIFO_RESET or SBE_INTERFACE_UNKNOWN
             {
                 SBE_ERROR(SBE_FUNC"Unexpected interrupt communicated to the "
-                          "processor thread. Interrupt source: 0x%02X",
-                          g_sbeIntrSource.l_intrSource);
+                   "processor thread. Interrupt source: 0x%02X 0x%02X",
+                   g_sbeIntrSource.intrSource, g_sbeIntrSource.rxThrIntrSource);
                 assert(false);
                 break;
             }
 
-            SBE_DEBUG (SBE_FUNC"l_primStatus=[0x%04X], l_rc=[0x%04X]",
-                            l_primStatus, l_rc);
+            SBE_DEBUG (SBE_FUNC"New cmd arrived, g_sbeSemCmdProcess.count=%d "
+                "l_primStatus=[0x%04X], l_rc=[0x%04X]",
+                g_sbeSemCmdProcess.count, l_primStatus, l_rc);
 
             // PK API failure
             if (l_rcPk != PK_OK)
@@ -264,46 +300,19 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
                           "l_rcPk=%d, g_sbeSemCmdRecv.count=%d",
                            l_rcPk, g_sbeSemCmdRecv.count);
 
-                // if the command receiver thread already updated
-                // the response status codes, don't override them.
-                if (l_primStatus == SBE_PRI_OPERATION_SUCCESSFUL)
-                {
-                    l_primStatus = SBE_PRI_INTERNAL_ERROR;
-                    l_rc         = SBE_SEC_OS_FAILURE;
-                }
+                // If it's a semphore_pend error then update the same to show
+                // internal failure
+                l_rc         = SBE_SEC_OS_FAILURE;
             }
 
-            SBE_DEBUG(SBE_FUNC"unblocked");
-
+            // Check for error which Receiver thread might have set
             if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
             {
                 break;
             }
 
-            SBE_DEBUG(SBE_FUNC"New cmd arrived, g_sbeSemCmdProcess.count=%d",
-                         g_sbeSemCmdProcess.count);
-
-            uint8_t  l_cmdClass  = 0;
-            uint8_t  l_cmdOpCode = 0;
-
-            // @TODO via RTC: 128658
-            //       Review if Mutex protection is required
-            //       for all the globals used between threads
-
-            if ( g_sbeIntrSource.isSet(SBE_INTERFACE_PSU) )
-            {
-                l_cmdClass  = g_sbePsu2SbeCmdReqHdr.cmdClass;
-                l_cmdOpCode = g_sbePsu2SbeCmdReqHdr.command;
-            }
-            else if (  g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO) )
-            {
-                l_cmdClass  = g_sbeFifoCmdHdr.cmdClass;
-                l_cmdOpCode = g_sbeFifoCmdHdr.command;
-            }
-
             // Get the command function
-            sbeCmdFunc_t l_pFuncP = sbeFindCmdFunc (l_cmdClass, l_cmdOpCode) ;
-
+            sbeCmdFunc_t l_pFuncP = sbeFindCmdFunc (l_cmdClass, l_cmdOpCode);
             assert( l_pFuncP )
 
             // Call the ChipOp function
@@ -312,23 +321,20 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
         } while(false); // Inner do..while loop ends here
 
         SBE_DEBUG(SBE_FUNC"l_rc=[0x%08X]", l_rc);
-        if ( g_sbeIntrSource.isSet(SBE_INTERFACE_PSU) )
+        if ( g_sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_PSU) )
         {
             sbeHandlePsuResponse (l_rc);
 
             // Enable Host interrupt
-            g_sbeIntrSource.clearIntrSource(SBE_INTERFACE_PSU);
+            g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_PSU);
             pk_irq_enable(SBE_IRQ_HOST_PSU_INTR);
         }
-        else if ( g_sbeIntrSource.isSet(SBE_INTERFACE_FIFO) )
+        else if ( g_sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_FIFO) )
         {
             sbeHandleFifoResponse (l_rc);
 
-            // @TODO via RTC : 126147
-            //       Review all the scenarios
-
             // Enable the new data available interrupt
-            g_sbeIntrSource.clearIntrSource(SBE_INTERFACE_FIFO);
+            g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_FIFO);
             pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
             pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
         }

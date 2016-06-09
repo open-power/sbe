@@ -481,6 +481,28 @@ typedef struct
 {
     uint32_t          prim_status:16 ;    // Primary Response Status
     uint32_t          sec_status:16  ;    // Secondary Response Status
+
+    /**
+     * @brief initialize the response status
+     **/
+    void init()
+    {
+        prim_status   = SBE_PRI_OPERATION_SUCCESSFUL;
+        sec_status    = SBE_SEC_OPERATION_SUCCESSFUL;
+    }
+
+    /**
+     * @brief set the primary and secondary status
+     *
+     * @param[in] i_prim  Primary status
+     * @param[in] i_sec   Secondary status
+     *
+     **/
+    void setStatus(const uint16_t i_prim, const uint16_t i_sec)
+    {
+        prim_status = i_prim;
+        sec_status  = i_sec;
+    }
 } sbeCmdRespHdr_t;
 
 extern sbeCmdRespHdr_t g_sbeCmdRespHdr;
