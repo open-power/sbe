@@ -309,7 +309,7 @@ ppe_trace_bin:
 xml: $(FAPI_RC)
 
 $(FAPI_RC): $(TOOLS_ATTR_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
-	$(TOOLS_ATTR_DIR)/parseErrorInfo.pl --empty-ffdc-classes --output-dir=. $(ERROR_XML_FILES)
+	$(TOOLS_ATTR_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=. $(ERROR_XML_FILES)
 
 $(OBJDIR)/fixed.bin: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin

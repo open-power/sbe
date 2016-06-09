@@ -41,6 +41,7 @@
 # Object Files
 ##########################################################################
 
+FAPI2-C-SOURCES += ffdc.C
 FAPI2-C-SOURCES += plat_ring_traverse.C
 FAPI2-S-SOURCES =
 
