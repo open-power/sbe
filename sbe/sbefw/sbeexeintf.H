@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sbeexeintf.H $                                      */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
  * @file: ppe/sbe/sbefw/sbeexeintf.H
  *
@@ -89,27 +113,69 @@ typedef enum
     SBE_INTERFACE_FIFO_RESET    = 0x04,
 } sbeInterfaceSrc_t;
 
+/*
+ * @brief Enum for Handler, handling the interrupt and setting/clearing the
+ * interrupt variable
+ */
+typedef enum
+{
+    SBE_ALL_HANDLER        = 0x0,
+    SBE_INTERRUPT_ROUTINE  = 0x1,
+    SBE_RX_ROUTINE         = 0x2,
+    SBE_PROC_ROUTINE       = 0x3,
+} sbeHandler_t;
+
 /**
  *  @brief structure for SBE external Interrupt handling
  *
  */
 typedef struct
 {
-    uint8_t l_intrSource;
+    uint8_t intrSource;
+    uint8_t rxThrIntrSource;
+    uint8_t procThrIntrSource;
 
-    void setIntrSource(const sbeInterfaceSrc_t i_val)
+    void setIntrSource(const sbeHandler_t i_handler,
+                       const sbeInterfaceSrc_t i_val)
     {
-        l_intrSource |= i_val;
+        switch(i_handler)
+        {
+            case SBE_INTERRUPT_ROUTINE: intrSource |= i_val; break;
+            case SBE_RX_ROUTINE: rxThrIntrSource |= i_val; break;
+            case SBE_PROC_ROUTINE: procThrIntrSource |= i_val; break;
+            case SBE_ALL_HANDLER: break;
+        }
     }
 
-    void clearIntrSource(const sbeInterfaceSrc_t i_val)
+    void clearIntrSource(const sbeHandler_t i_handler,
+                         const sbeInterfaceSrc_t i_val)
     {
-        l_intrSource &= ~i_val;
+        switch(i_handler)
+        {
+            case SBE_INTERRUPT_ROUTINE: intrSource &= ~i_val; break;
+            case SBE_RX_ROUTINE: rxThrIntrSource &= ~i_val; break;
+            case SBE_PROC_ROUTINE: procThrIntrSource &= ~i_val; break;
+            case SBE_ALL_HANDLER:
+            {
+                intrSource &= ~i_val;
+                rxThrIntrSource &= ~i_val;
+                procThrIntrSource &= ~i_val;
+                break;
+            }
+        }
     }
 
-    bool isSet (const sbeInterfaceSrc_t i_val)
+    bool isSet (const sbeHandler_t i_handler, const sbeInterfaceSrc_t i_val)
     {
-        return (l_intrSource & i_val);
+        bool l_ret = false;
+        switch(i_handler)
+        {
+            case SBE_INTERRUPT_ROUTINE: l_ret = (intrSource & i_val); break;
+            case SBE_RX_ROUTINE: l_ret = (rxThrIntrSource & i_val); break;
+            case SBE_PROC_ROUTINE: l_ret = (procThrIntrSource & i_val); break;
+            case SBE_ALL_HANDLER: break;
+        }
+        return l_ret;
     }
 } sbeIntrHandle_t;
 extern sbeIntrHandle_t g_sbeIntrSource ;

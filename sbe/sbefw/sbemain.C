@@ -49,6 +49,9 @@
 PkSemaphore g_sbeSemCmdRecv;
 PkSemaphore g_sbeSemCmdProcess;
 
+// Max defines for Semaphores
+static uint32_t MAX_SEMAPHORE_COUNT = 3;
+
 ////////////////////////////////////////////////////////////////
 // @brief Stacks for Non-critical Interrupts and Threads
 ////////////////////////////////////////////////////////////////
@@ -126,12 +129,12 @@ uint32_t sbeInitSems(void)
 
     do
     {
-        l_rc = pk_semaphore_create(&g_sbeSemCmdRecv, 0, 1);
+        l_rc = pk_semaphore_create(&g_sbeSemCmdRecv, 0, MAX_SEMAPHORE_COUNT);
         if (l_rc)
         {
             break;
         }
-        l_rc = pk_semaphore_create(&g_sbeSemCmdProcess, 0, 1);
+        l_rc = pk_semaphore_create(&g_sbeSemCmdProcess, 0, MAX_SEMAPHORE_COUNT);
         if (l_rc)
         {
             break;

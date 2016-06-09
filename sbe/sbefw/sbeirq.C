@@ -56,16 +56,19 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
     switch (i_irq)
     {
         case SBE_IRQ_HOST_PSU_INTR:
-            g_sbeIntrSource.setIntrSource(SBE_INTERFACE_PSU);
+            g_sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
+                                            SBE_INTERFACE_PSU);
             break;
 
         case SBE_IRQ_SBEFIFO_DATA:
-            g_sbeIntrSource.setIntrSource(SBE_INTERFACE_FIFO);
+            g_sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
+                                            SBE_INTERFACE_FIFO);
             pk_irq_disable(SBE_IRQ_SBEFIFO_RESET);
             break;
 
         case SBE_IRQ_SBEFIFO_RESET:
-            g_sbeIntrSource.setIntrSource(SBE_INTERFACE_FIFO_RESET);
+            g_sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
+                                            SBE_INTERFACE_FIFO_RESET);
             pk_irq_disable(SBE_IRQ_SBEFIFO_DATA);
             break;
 
