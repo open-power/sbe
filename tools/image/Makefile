@@ -109,8 +109,11 @@ buildBinDir:
 $(P9_XIP_BINDIR)/p9_xip_image.o:
 	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile
 
+CXXFLAGS+=-DDEBUG_SBE_XIP_IMAGE=1
+CXXFLAGS+=-DFAPI2_NO_FFDC
+
 bin/%.o: %.c
-	$(CXX) -std=c++11 $(INCLUDES) $(CXXFLAGS) -DDEBUG_SBE_XIP_IMAGE=1 -DFAPI2_NO_FFDC -c -o $@ $<
+	$(CXX) -std=c++11 $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
 
 bin/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o bin/sbe_default_tool.o
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^

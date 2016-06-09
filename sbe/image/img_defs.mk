@@ -133,6 +133,7 @@ ifndef PK_SRCDIR
 export PK_SRCDIR = $(abspath ../../pk)
 endif
 
+
 ifndef TOOLS_ATTR_DIR
 export TOOLS_ATTR_DIR = $(abspath ../../tools/scripts)
 endif
@@ -171,6 +172,10 @@ endif
 
 ifndef BASE_FAPI2_DIR
 export BASE_FAPI2_DIR = $(abspath ../../import/hwpf/fapi2)
+endif
+
+ifndef FAPI2_TOOLS_DIR
+export FAPI2_TOOLS_DIR = $(abspath ../../import/hwpf/fapi2/tools/)
 endif
 
 ifdef P2P_ENABLE
@@ -276,7 +281,7 @@ GCC-DEFS += -DUSE_PK_APP_CFG_H=1
 GCC-DEFS += -D__PK__=1
 GCC-DEFS += -D__SBE__=1
 GCC-DEFS += -D__PPE__=1
-GCC-DEFS += -DFAPI2_NO_FFDC=1
+GCC-DEFS += -DMINIMUM_FFDC=1
 GCC-DEFS += -DFAPI_TRACE_LEVEL=$(FAPI_TRACE_LEVEL_DEF)
 # use the default settings in the code unless a size is defined
 ifdef PK_TRACE_SZ
@@ -289,7 +294,7 @@ export LD_LIBRARY_PATH+=:$(GCC-TOOL-PATH)/lib
 
 
 INCLUDES += $(IMG_INCLUDES)
-INCLUDES += -I$(IMAGE_SRCDIR)/../../../include
+INCLUDES += -I$(IMAGE_SRCDIR)/../../include
 INCLUDES += -I$(HWPLIB_SRCDIR)
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include/plat
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include

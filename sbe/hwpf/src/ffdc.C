@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: hwpf/include/ffdc.H $                                         */
+/* $Source: sbe/hwpf/src/ffdc.C $                                         */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2016                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -23,14 +23,20 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /**
- *  @file ffdc.H
- *  @brief Defines the FirstFailureData class
+ *  @file ffdc.C
+ *  @brief Implements the ffdc for sbe
  */
 
-#ifndef FAPI2_FFDC_H_
-#define FAPI2_FFDC_H_
+#include <ffdc.H>
+#include <error_info.H>
+
 
 namespace fapi2
 {
-}
-#endif // FAPI2_FFDC_H_
+
+#ifdef MINIMUM_FFDC
+    // buffer used to hold ffdc data
+    SbeFfdcData_t g_FfdcData;
+#endif
+
+};

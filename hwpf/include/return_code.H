@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: $                                                             */
+/* $Source: hwpf/include/return_code.H $                                  */
 /*                                                                        */
-/* OpenPOWER HostBoot Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2014                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,7 +34,7 @@
 #include <return_code_defs.H>
 
 #ifndef FAPI2_NO_FFDC
-  #include <ffdc.H>
+#include <ffdc.H>
 #endif
 
 namespace fapi2
@@ -44,7 +44,7 @@ namespace fapi2
     ///
     // Remove the inheritance relationship with FirstFailureData if
     // the platform doesn't support FFDC.
-#ifdef FAPI2_NO_FFDC
+#if defined(FAPI2_NO_FFDC) || defined (MINIMUM_FFDC)
     class ReturnCode
 #else
     class ReturnCode : public FirstFailureData<ReturnCode>
@@ -104,5 +104,5 @@ namespace fapi2
     extern thread_local uint64_t pib_error_mask;     /// the pib mask
     extern thread_local uint64_t operational_state;  /// the operational mode
 }
-
 #endif
+
