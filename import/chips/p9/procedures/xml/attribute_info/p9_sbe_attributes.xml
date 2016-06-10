@@ -68,7 +68,7 @@
   </entry>
   <entry>
      <name>ATTR_IS_MPIPL</name>
-     <value>0x01</value>
+     <value>0x0</value>
   </entry>
   <entry>
      <name>ATTR_IS_SP_MODE</name>
@@ -88,11 +88,11 @@
   </entry>
   <entry>
      <name>ATTR_NEST_PLL_BUCKET</name>
-     <value>0x01</value>
+     <value>0x05</value>
   </entry>
   <entry>
      <name>ATTR_BOOT_FREQ_MULT</name>
-     <value>0x01</value>
+     <value>0x0</value>
   </entry>
   <entry>
      <name>ATTR_HWP_CONTROL_FLAGS_VALID</name>
@@ -234,39 +234,39 @@
   </entry>
   <entry>
       <name>ATTR_PG_PRV</name>
-      <value>0xF07D</value>
+      <value>0xE07D</value>
   </entry>
   <entry>
       <name>ATTR_PG_N0</name>
-      <value>0xF03F</value>
+      <value>0xE03F</value>
   </entry>
   <entry>
       <name>ATTR_PG_N1</name>
-      <value>0xF03F</value>
+      <value>0xE03F</value>
   </entry>
   <entry>
       <name>ATTR_PG_N2</name>
-      <value>0xF03F</value>
+      <value>0xE03F</value>
   </entry>
   <entry>
       <name>ATTR_PG_N3</name>
-      <value>0xF01F</value>
+      <value>0xE01F</value>
   </entry>
   <entry>
       <name>ATTR_PG_XB</name>
-      <value>0xF01D</value>
+      <value>0xE01D</value>
   </entry>
   <entry>
       <name>ATTR_PG_MC01</name>
-      <value>0xF0FD</value>
+      <value>0xE0FD</value>
   </entry>
   <entry>
       <name>ATTR_PG_MC23</name>
-      <value>0xF0FD</value>
+      <value>0xE0FD</value>
   </entry>
   <entry>
       <name>ATTR_PG_OB0</name>
-      <value>0xF1FD</value>
+      <value>0xE1FD</value>
   </entry>
   <entry>
       <name>ATTR_PG_OB1</name>
@@ -278,140 +278,140 @@
   </entry>
   <entry>
       <name>ATTR_PG_OB3</name>
-      <value>0xF1FD</value>
+      <value>0xE1FD</value>
   </entry>
   <entry>
       <name>ATTR_PG_PCI0</name>
-      <value>0xF1FD</value>
+      <value>0xE1FD</value>
   </entry>
   <entry>
       <name>ATTR_PG_PCI1</name>
-      <value>0xF0FD</value>
+      <value>0xE0FD</value>
   </entry>
   <entry>
       <name>ATTR_PG_PCI2</name>
-      <value>0xF07D</value>
+      <value>0xE07D</value>
   </entry>
   <entry>
       <name>ATTR_PG_EQ0</name>
-      <value>0xF019</value>
+      <value>0xE019</value>
   </entry>
   <entry>
       <name>ATTR_PG_EQ1</name>
-      <value>0xF019</value>
+      <value>0xE019</value>
   </entry>
   <entry>
       <name>ATTR_PG_EQ2</name>
-      <value>0xF019</value>
+      <value>0xE019</value>
   </entry>
   <entry>
       <name>ATTR_PG_EQ3</name>
-      <value>0xF019</value>
+      <value>0xE019</value>
   </entry>
   <entry>
       <name>ATTR_PG_EQ4</name>
-      <value>0xF019</value>
+      <value>0xE019</value>
   </entry>
   <entry>
       <name>ATTR_PG_EQ5</name>
-      <value>0xF019</value>
+      <value>0xE019</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC00</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC01</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC02</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC03</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC04</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC05</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC06</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC07</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC08</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC09</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC10</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
 
   <entry>
       <name>ATTR_PG_EC11</name>
-     <value>0xF1FF</value>
+     <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC12</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC13</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC14</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC15</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC16</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC17</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC18</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC19</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC20</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC21</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC22</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_PG_EC23</name>
-      <value>0xF1FF</value>
+      <value>0xE1FF</value>
   </entry>
   <entry>
       <name>ATTR_CHIP_UNIT_POS</name>
@@ -464,6 +464,7 @@
 
   <entry>
       <name>ATTR_BACKUP_SEEPROM_SELECT</name>
+      <value>0x0</value>
   </entry>
   <entry>
        <name>ATTR_MC_SYNC_MODE</name>
@@ -471,26 +472,26 @@
   </entry>
   <entry>
          <name>ATTR_BOOT_FLAGS</name>
-         <value>0x01</value>
+         <value>0x80000000</value>
   </entry>
   <entry>
          <name>ATTR_BOOT_FREQ</name>
-         <value>0x01</value>
+         <value>0x0</value>
   </entry>
   <entry>
           <name>ATTR_VCS_BOOT_VOLTAGE</name>
-          <value>0x01</value>
+          <value>0x0</value>
   </entry>
   <entry>
            <name>ATTR_VDD_BOOT_VOLTAGE</name>
-           <value>0x01</value>
+           <value>0x0</value>
   </entry>
   <entry>
             <name>ATTR_PG</name>
   </entry>
   <entry>
            <name>ATTR_ADU_XSCOM_BAR_BASE_ADDR</name>
-           <value>0x01</value>
+           <value>0x000603FC00000000</value>
   </entry>
   <entry>
          <name>ATTR_SUN_ID</name>
@@ -530,6 +531,7 @@
   </entry>
   <entry>
            <name>ATTR_SYS_FORCE_ALL_CORES</name>
+           <value>0x01</value> 
   </entry>
   <entry>
            <name>ATTR_MASTER_CORE</name>
@@ -556,7 +558,7 @@
   </entry>
   <entry>
            <name>ATTR_CLOCK_PLL_MUX</name>
-           <value>0x0C400000</value>
+           <value>0x0C410000</value>
   </entry>
    <entry>
            <name>ATTR_CLOCK_PLL_MUX0</name>
@@ -591,12 +593,15 @@
   </entry>
   <entry>
            <name>ATTR_SECURITY_ENABLE</name>
+           <value>0x0</value>
   </entry>
-   <entry>
+  <entry>
            <name>ATTR_PFET_OFF_CONTROLS</name>
+           <value>0x00000000</value>
   </entry>
   <entry>
            <name>ATTR_OBUS_RATIO_VALUE</name>
+           <value>0x0</value>
   </entry>
   <entry>
            <name>ATTR_ECID</name>
