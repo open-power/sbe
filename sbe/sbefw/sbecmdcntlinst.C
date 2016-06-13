@@ -110,6 +110,10 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
         {
             fapi2::Target<fapi2::TARGET_TYPE_CORE> l_coreTgt(
                         plat_getTargetHandleByChipletNumber(l_core));
+            if(!l_coreTgt.isFunctional())
+            {
+                continue;
+            }
 
             uint8_t l_thread = l_threadCnt;
             do
