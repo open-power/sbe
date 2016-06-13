@@ -69,13 +69,6 @@ fapi2::ReturnCode findRS4InImageAndApply(
         // Get the address of the Section-TOR
         P9XipHeader *l_hdr = getXipHdr();
         P9XipSection *l_section = &(l_hdr->iv_section[P9_XIP_SECTION_SBE_RINGS]);
-
-
-        if (!(l_section->iv_offset))
-        {
-            SBE_TRACE("No ring data in .RING section");
-            break;
-        }
         SectionTOR *l_sectionTOR = (SectionTOR *)(g_seepromAddr + 
                                     l_section->iv_offset);
 
@@ -180,9 +173,9 @@ fapi2::ReturnCode findRS4InImageAndApply(
 
                 break;
 
-            case OB_TYPE: // OB - OB2
-                l_chipletData = OB::g_obData;
-                l_cpltRingVariantSz = sizeof(OB::RingVariants) / 
+            case OB0_TYPE: // OB0
+                l_chipletData = OB0::g_ob0Data;
+                l_cpltRingVariantSz = sizeof(OB0::RingVariants) / 
                                         sizeof(l_cpltRingVariantSz);
 
                 l_sectionOffset = l_sectionTOR->TOC_OB_COMMON_RING;
@@ -192,6 +185,43 @@ fapi2::ReturnCode findRS4InImageAndApply(
                 }
 
                 break;
+            case OB1_TYPE: // OB1
+                l_chipletData = OB1::g_ob1Data;
+                l_cpltRingVariantSz = sizeof(OB1::RingVariants) / 
+                                        sizeof(l_cpltRingVariantSz);
+
+                l_sectionOffset = l_sectionTOR->TOC_OB_COMMON_RING;
+                if(INSTANCE_RING == l_ringType)
+                {
+                    l_sectionOffset = l_sectionTOR->TOC_OB_INSTANCE_RING;
+                }
+
+                break;
+            case OB2_TYPE: // OB2
+                l_chipletData = OB2::g_ob2Data;
+                l_cpltRingVariantSz = sizeof(OB2::RingVariants) / 
+                                        sizeof(l_cpltRingVariantSz);
+
+                l_sectionOffset = l_sectionTOR->TOC_OB_COMMON_RING;
+                if(INSTANCE_RING == l_ringType)
+                {
+                    l_sectionOffset = l_sectionTOR->TOC_OB_INSTANCE_RING;
+                }
+
+                break;
+            case OB3_TYPE: // OB3
+                l_chipletData = OB3::g_ob3Data;
+                l_cpltRingVariantSz = sizeof(OB3::RingVariants) / 
+                                        sizeof(l_cpltRingVariantSz);
+
+                l_sectionOffset = l_sectionTOR->TOC_OB_COMMON_RING;
+                if(INSTANCE_RING == l_ringType)
+                {
+                    l_sectionOffset = l_sectionTOR->TOC_OB_INSTANCE_RING;
+                }
+
+                break;
+
 
             case PCI0_TYPE: // PCI - PCI0
                 l_chipletData = PCI0::g_pci0Data;
@@ -347,6 +377,7 @@ fapi2::ReturnCode findRS4InImageAndApply(
         }
         else
         {
+            l_rc = fapi2::FAPI2_RC_PLAT_RING_ID_NOT_FOUND_IN_RS4_IMAGE;
             SBE_TRACE("Ring image is not found for this is ringId %u",i_ringID);
         }
     }while(0);
