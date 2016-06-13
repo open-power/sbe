@@ -68,6 +68,7 @@ enum LISTING_MODE_ID
 //        p9_xip_tool <image> [-<flag> ...] set <item> <value> [ <item1> <value1> ... ]
 //        p9_xip_tool <image> [-<flag> ...] setv <item> <index> <value> [ <item1> <index1> <value1> ... ]
 //        p9_xip_tool <image> [-<flag> ...] report [<regex>]
+//        p9_xip_tool <image> [-<flag> ...] attrdump <attr dump file>
 //        p9_xip_tool <image> [-<flag> ...] append <section> <file>
 //        p9_xip_tool <image> [-<flag> ...] extract <section> <file>
 //        p9_xip_tool <image> [-<flag> ...] delete <section> [ <section1> ... <sectionN> ]
@@ -114,6 +115,10 @@ enum LISTING_MODE_ID
 // sequence number of the entry in the TOC, the item name, the item type and
 // the item value.
 //
+// The 'attrdump' command prints a listing of the names, types and values
+// of all attribute items that appear in the TOC and their value from
+// the attribute dump file
+//
 // The 'append' command either creates or extends the section named by the
 // section argument, by appending the contents of the named file verbatim.
 // Currently the section must either be the final (highest address) section of
@@ -154,6 +159,7 @@ const char* g_usage =
     "       p9_xip_tool <image> [-i<flag> ...] set <item> <value> [ <item1> <value1> ... ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] setv <item> <index> <value> [ <item1> <index1> <value1> ... ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] report [<regex>]\n"
+    "       p9_xip_tool <image> [-i<flag> ...] attrdump <attr dump file>\n"
     "       p9_xip_tool <image> [-i<flag> ...] append <section> <file>\n"
     "       p9_xip_tool <image> [-i<flag> ...] extract <section> <file>\n"
     "       p9_xip_tool <image> [-i<flag> ...] delete <section> [ <section1> ... <sectionN> ]\n"
@@ -200,6 +206,10 @@ const char* g_usage =
     "in the TOC. The TOC listing includes the\n"
     "sequence number of the entry in the TOC, the item name, the item type and\n"
     "the item value.\n"
+    "\n"
+    "The 'attrdump' command prints a listing of the names, types and values\n"
+    "of all attribute items that appear in the TOC and their value from \n"
+    "the attribute dump file\n"
     "\n"
     "The 'append' command either creates or extends the section named by the\n"
     "section argument, by appending the contents of the named file verbatim.\n"
@@ -534,6 +544,84 @@ tocListing(void* io_image,
     return rc;
 }
 
+// Print a line of attribute report, listing the symbol, type and current
+// value.
+int
+attrListing(const P9XipItem* i_item)
+{
+    int rc = 0;
+    uint64_t data = 0;
+
+    if (i_item->iv_address == 0)
+    {
+        //TOC item not present in fixed section
+        return rc;
+    }
+
+    printf("%-42s | %s | ", i_item->iv_id,
+           P9_XIP_TYPE_STRING(g_typeAbbrevs, i_item->iv_type));
+
+    rc = p9_xip_get_item(i_item, &data);
+
+    if (rc)
+    {
+        return rc;
+    }
+
+    switch (i_item->iv_type)
+    {
+        case P9_XIP_UINT8:
+            printf("0x%02x", (uint8_t)data);
+            break;
+
+        case P9_XIP_UINT16:
+            printf("0x%04x", (uint16_t)data);
+            break;
+
+        case P9_XIP_UINT32:
+            printf("0x%08x", (uint32_t)data);
+            break;
+
+        case P9_XIP_UINT64:
+            printf("0x%016lx", data);
+            break;
+
+        case P9_XIP_INT8:
+            printf("0x%02x", (uint8_t)data);
+            break;
+
+        case P9_XIP_INT16:
+            printf("0x%04x", (uint16_t)data);
+            break;
+
+        case P9_XIP_INT32:
+            printf("0x%08x", (uint32_t)data);
+            break;
+
+        case P9_XIP_INT64:
+            printf("0x%016lx", data);
+            break;
+
+        case P9_XIP_STRING:
+            printf("%s", (char*)(i_item->iv_imageData));
+            break;
+
+        case P9_XIP_ADDRESS:
+            printf("0x%04x:0x%08x",
+                   (uint16_t)((data >> 32) & 0xffff),
+                   (uint32_t)(data & 0xffffffff));
+            break;
+
+        default:
+            printf("unknown type\n");
+            rc = P9_XIP_BUG;
+            break;
+    }
+
+    printf("\n");
+
+    return rc;
+}
 
 // Dump the image header, including the section table
 
@@ -651,6 +739,45 @@ report(void* io_image, const int i_argc, const char** i_argv)
     return rc;
 }
 
+//Print attributes from dump image
+int
+reportAttr(void* io_image, size_t i_imageSize, void* io_dump)
+{
+    int rc = 0;
+    P9XipToc* imageToc = NULL;
+    P9XipItem item = {0};
+    size_t entries = 0;
+
+    //check for seeprom image validity
+    rc = p9_xip_validate(io_image, i_imageSize);
+
+    if (rc)
+    {
+        return rc;
+    }
+
+    //get toc listing from seeprom image
+    rc = p9_xip_get_toc(io_image, &imageToc, &entries, 0, 0);
+
+    if (rc)
+    {
+        return rc;
+    }
+
+    //loop through each toc listing and print its value from pibmem dump
+    for (; entries--; imageToc++)
+    {
+        rc = p9_xip_decode_toc_dump(io_image, io_dump, imageToc, &item);
+
+        if (!rc)
+        {
+            //helper function to print the attributes
+            attrListing(&item);
+        }
+    }
+
+    return rc;
+}
 
 // Set a scalar or vector element values in the image.  The 'i_setv' argument
 // indicates set/setv (0/1).
@@ -2253,6 +2380,7 @@ void
 command(const char* i_imageFile, const int i_argc, const char** i_argv, const uint32_t i_maskIgnores)
 {
     void* image;
+    void* attrDump;
     int fd, rc = 0;
 
     if (strcmp(i_argv[0], "normalize") == 0)
@@ -2295,6 +2423,18 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
         rc = report(image, i_argc - 1, &(i_argv[1]));
+
+    }
+    else if (strcmp(i_argv[0], "attrdump") == 0)
+    {
+
+        openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
+        //capture the g_imageSize size for validation, since the next
+        //openAndMapReadOnly will overwrite it
+        size_t imageSize = g_imageSize;
+        //first argument after command is dump file
+        openAndMapReadOnly(i_argv[1], &fd, &attrDump, P9_XIP_IGNORE_ALL);
+        rc = reportAttr(image, imageSize, attrDump);
 
     }
     else if (strcmp(i_argv[0], "append") == 0)
