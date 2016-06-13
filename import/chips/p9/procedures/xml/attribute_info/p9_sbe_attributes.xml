@@ -610,4 +610,7 @@
   <entry>
            <name>ATTR_FSI_GP_SHADOWS_OVERWRITE</name>
   </entry>
+  <entry>
+           <name>ATTR_ECID</name>
+  </entry>
 </entries>
