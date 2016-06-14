@@ -593,6 +593,7 @@
   </entry>
   <entry>
            <name>ATTR_SDISN_SETUP</name>
+           <value>0x1</value>
   </entry>
   <entry>
            <name>ATTR_SECURITY_MODE</name>
@@ -606,9 +607,11 @@
   </entry> 
   <entry>
            <name>ATTR_HANG_COUNTER6_SETUP</name>
+           <value>0x1</value>
   </entry>
   <entry>
            <name>ATTR_VITL_CLK_SETUP</name>
+           <value>0x1</value>
   </entry>
   <entry>
            <name>ATTR_OBUS_RATIO_VALUE</name>
