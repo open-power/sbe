@@ -48,7 +48,9 @@ enum P9_SBE_TP_ARRAYINIT_Private_Constants
     LOOP_COUNTER = 0x0000000000042FFF,
     START_ABIST_MATCH_VALUE = 0x0000000F00000000,
     SELECT_SRAM = 0x1,
-    SELECT_EDRAM = 0x0
+    SELECT_EDRAM = 0x0,
+    PIBMEM_EXCLUDE_ABIST = 0xC000000000000000,
+    PIBMEM_INCLUDE_ABIST = 0x8000000000000000
 };
 
 static fapi2::ReturnCode p9_sbe_tp_arrayinit_sdisn_setup(
@@ -61,17 +63,15 @@ fapi2::ReturnCode p9_sbe_tp_arrayinit(const
 {
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint8_t> l_attr_read;
-    fapi2::buffer<uint64_t> l_data64_pibmem_repair;
+
     FAPI_INF("Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SDISN_SETUP, i_target_chip, l_attr_read));
 
     FAPI_DBG("Exclude PIBMEM from TP array init");
     //Setting PIBMEM_REPAIR_REGISTER_0 register value
-    //PIB.PIBMEM_REPAIR_REGISTER_0 = 0x0000000000000001
-    FAPI_TRY(fapi2::getScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0, l_data64_pibmem_repair));
-    l_data64_pibmem_repair.setBit<1>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0, l_data64_pibmem_repair));
+    //PIB.PIBMEM_REPAIR_REGISTER_0 = 0xC000000000000000
+    FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0, PIBMEM_EXCLUDE_ABIST ));
 
     FAPI_DBG("set sdis_n");
     FAPI_TRY(p9_sbe_tp_arrayinit_sdisn_setup(
@@ -101,9 +101,8 @@ fapi2::ReturnCode p9_sbe_tp_arrayinit(const
 
     FAPI_DBG("Add PIBMEM back to TP array init");
     //Setting PIBMEM_REPAIR_REGISTER_0 register value
-    //PIB.PIBMEM_REPAIR_REGISTER_0 = 0x0
-    l_data64_pibmem_repair.clearBit<1>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0, l_data64_pibmem_repair));
+    //PIB.PIBMEM_REPAIR_REGISTER_0 = 0x8000000000000000
+    FAPI_TRY(fapi2::putScom(i_target_chip, PU_PIBMEM_REPAIR_REGISTER_0, PIBMEM_INCLUDE_ABIST));
 
     FAPI_INF("Exiting ...");
 

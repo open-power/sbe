@@ -53,7 +53,8 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     const uint8_t i_reg2_val = 0xff,
     const uint8_t i_reg3_val = 0xff,
     const uint8_t i_reg4_val = 0xff,
-    const uint8_t i_reg5_val = 0xff);
+    const uint8_t i_reg5_val = 0xff,
+    const uint8_t i_reg6_val = 0xff);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
@@ -83,9 +84,6 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_div_clk_bypass(
 static fapi2::ReturnCode p9_sbe_chiplet_reset_enable_listen_to_sync(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const bool i_enable);
-
-static fapi2::ReturnCode p9_sbe_chiplet_reset_hang_counter6_setup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_hsspowergate(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
@@ -144,21 +142,6 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_VITL_CLK_SETUP, i_target_chip,
                            l_attr_vitl_setup));
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HANG_COUNTER6_SETUP, i_target_chip,
-                           l_attr_hang_cnt6_setup));
-
-    if ( l_attr_hang_cnt6_setup )
-    {
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                               fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-              fapi2::TARGET_STATE_FUNCTIONAL))
-        {
-            FAPI_TRY(p9_sbe_chiplet_reset_hang_counter6_setup(l_target_cplt));
-        }
-    }
-
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
                                            fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
@@ -216,7 +199,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         // Setting up hang pulse counter for register 0 and register 6
         FAPI_DBG("Setup hang pulse counter for Mc,Pcie");
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
-                 p9SbeChipletReset::HANG_PULSE_0X10));
+                 p9SbeChipletReset::HANG_PULSE_0X10, 0xff, 0xff, 0xff, 0xff, 0xff,
+                 p9SbeChipletReset::HANG_PULSE_0X05));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -226,7 +210,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         // Setting up hang pulse counter for register 0 and register 6
         FAPI_DBG("Setup hang pulse counter for Xbus,Obus");
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
-                 p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X04));
+                 p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X04, 0xff,
+                 0xff, 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X05));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -244,7 +229,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_DBG("Setup hang pulse counter for core chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
                  p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X1A, 0xff,
-                 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X06));
+                 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X06,
+                 p9SbeChipletReset::HANG_PULSE_0X05));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -255,7 +241,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
                  p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X01,
                  p9SbeChipletReset::HANG_PULSE_0X01, p9SbeChipletReset::HANG_PULSE_0X04,
-                 p9SbeChipletReset::HANG_PULSE_0X00, p9SbeChipletReset::HANG_PULSE_0X06));
+                 p9SbeChipletReset::HANG_PULSE_0X00, p9SbeChipletReset::HANG_PULSE_0X06,
+                 p9SbeChipletReset::HANG_PULSE_0X05));
     }
 
     FAPI_DBG("Clock mux settings");
@@ -425,6 +412,7 @@ fapi_try_exit:
 /// @param[in]     i_reg3_val      value for HANG_PULSE_3_REG
 /// @param[in]     i_reg4_val      value for HANG_PULSE_4_REG
 /// @param[in]     i_reg5_val      value for HANG_PULSE_5_REG
+/// @param[in]     i_reg6_val      Hang pulse reg 6 value - for heartbeat
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
@@ -433,7 +421,8 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     const uint8_t i_reg2_val,
     const uint8_t i_reg3_val,
     const uint8_t i_reg4_val,
-    const uint8_t i_reg5_val)
+    const uint8_t i_reg5_val,
+    const uint8_t i_reg6_val)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("Entering ...");
@@ -496,6 +485,16 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
         //HANG_PULSE_5_REG.SUPPRESS_HANG_5 = (i_reg5_val != 0xff) ? 0
         l_data64.clearBit<6>();
         FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_5_REG, l_data64));
+    }
+
+    //Setting HANG_PULSE_6_REG register value (Setting all fields)
+    if (i_reg6_val != 0xff)
+    {
+        //HANG_PULSE_6_REG.HANG_PULSE_REG_6 = (i_reg6_val != 0xff) ? i_reg6_val
+        l_data64.insertFromRight<0, 6>(i_reg6_val);
+        //HANG_PULSE_6_REG.SUPPRESS_HANG_6 = (i_reg6_val != 0xff) ? 0
+        l_data64.clearBit<6>();
+        FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_6_REG, l_data64));
     }
 
     FAPI_INF("Exiting ...");
@@ -789,29 +788,6 @@ fapi_try_exit:
 
 }
 
-/// @brief Configuring Hang pulse counter6
-///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_reset_hang_counter6_setup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip)
-{
-    fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
-
-    l_data64.setBit<2>();
-
-    //Setting HANG_PULSE_6_REG register value
-    //HANG_PULSE_6_REG = l_data64
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_HANG_PULSE_6_REG, l_data64));
-
-    FAPI_INF("Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
-}
-
 /// @brief Set Chip-wide HSSPORWREN gate
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
@@ -988,6 +964,11 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_hang_cnt_setup(
     l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X06);
     l_data64.clearBit<6>();  //HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0
     FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_5_REG, l_data64));
+    //Setting HANG_PULSE_6_REG register value (Setting all fields)
+    //HANG_PULSE_6_REG.HANG_PULSE_REG_6 = p9SbeChipletReset::HANG_PULSE_0X05
+    l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X05);
+    l_data64.clearBit<6>();  //HANG_PULSE_6_REG.SUPPRESS_HANG_6 = 0
+    FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_6_REG, l_data64));
 
     if ( l_attr_chipunit_pos == l_n0 )
     {
