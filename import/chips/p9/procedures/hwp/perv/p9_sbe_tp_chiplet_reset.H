@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,7 +39,7 @@
 
 enum P9_SBE_TP_CHIPLET_RESET_Constants
 {
-    HANG_PULSE_VALUE = 0x0c00000000000000
+    HANG_PULSE_VALUE = 0x1400000000000000
 };
 
 typedef fapi2::ReturnCode (*p9_sbe_tp_chiplet_reset_FP_t)(

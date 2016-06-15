@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,7 +41,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_reset(const
 {
     FAPI_DBG("Entering ...");
 
-    FAPI_INF("Initializing Hangcounter 6 for PRV Cplt");
+    FAPI_DBG("Initializing Hangcounter 6 for PRV Cplt");
     //Setting HANG_PULSE_6_REG register value
     //PERV.HANG_PULSE_6_REG = HANG_PULSE_VALUE
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_6_REG,
