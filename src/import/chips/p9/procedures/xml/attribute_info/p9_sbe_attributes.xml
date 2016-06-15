@@ -606,7 +606,7 @@
            <name>ATTR_PFET_OFF_CONTROLS</name>
   </entry> 
   <entry>
-           <name>ATTR_HANG_COUNTER6_SETUP</name>
+           <name>ATTR_N3_FLUSH_MODE</name>
            <value>0x1</value>
   </entry>
   <entry>
