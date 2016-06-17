@@ -1,4 +1,28 @@
 #!/usr/bin/perl
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: tools/scripts/ppeParseProcSbeFixed.pl $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 # Purpose:  This perl script will parse HWP Attribute XML files and
 # initfile attr files and create the fapiGetInitFileAttr() function
 # in a file called fapiAttributeService.C
@@ -94,6 +118,12 @@ foreach my $entr (@{$entries->{entry}}) {
 
     my $inname = $entr->{name};
 
+    # Skip virtual attributes
+    if(exists $entr->{virtual})
+    {
+        next;
+    }
+
     # read XML file. The ForceArray option ensures that there is an array of
     # elements even if there is only one such element in the file
 
@@ -123,35 +153,61 @@ foreach my $entr (@{$entries->{entry}}) {
                     exit(1);
                 }
 
-                if ($attr->{targetType} eq "TARGET_TYPE_SYSTEM") {
+                my @targets = split(",", $attr->{targetType});
+                my $targetTypeMatched = 0;
 
-                    push(@attrSystemIds, $attr);
+                foreach my $target (@targets)
+                {
 
-                } elsif ($attr->{targetType} eq "TARGET_TYPE_PROC_CHIP") {
+                    if ($target eq "TARGET_TYPE_SYSTEM") {
 
-                    push(@attrChipIds, $attr);
+                        push(@attrSystemIds, $attr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } elsif ($attr->{targetType} eq "TARGET_TYPE_CORE") {
+                    } elsif ($target eq "TARGET_TYPE_PROC_CHIP") {
 
-                    push(@attrCoreIds, $attr);
+                        push(@attrChipIds, $attr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } elsif ($attr->{targetType} eq "TARGET_TYPE_EQ") {
+                    } elsif ($target eq "TARGET_TYPE_CORE") {
 
-                    push(@attrEqIds, $attr);
+                        push(@attrCoreIds, $attr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } elsif ($attr->{targetType} eq "TARGET_TYPE_EX") {
+                    } elsif ($target eq "TARGET_TYPE_EQ") {
 
-                    push(@attrExIds, $attr);
+                        push(@attrEqIds, $attr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } elsif ($attr->{targetType} eq "TARGET_TYPE_PERV") {
+                    } elsif ($target eq "TARGET_TYPE_EX") {
 
-                    push(@attrPervIds, $attr);
+                        push(@attrExIds, $attr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } else {
+                    } elsif ($target eq "TARGET_TYPE_PERV") {
 
-                    print ("ppeParseProcSbeFixed.pl ERROR. Wrong attribute type: $attr->{targetType} for attribute $attr->{id} in $infile\n");
-                    exit(1);
+                        push(@attrPervIds, $attr);
+                        $targetTypeMatched = 1;
+                        last;
 
+                    } else {
+
+                        print ("ppeParseProcSbeFixed.pl WARNING. Unsupported ".
+                            "target type: $target for attribute $inname in $infile\n");
+                        next;
+
+                    }
+                }
+                if($targetTypeMatched eq 0)
+                {
+                        print ("ppeParseProcSbeFixed.pl ERROR. Unsupported ".
+                            "target type: $attr->{targetType} for attribute $inname in $infile\n");
+                        exit(1);
                 }
             }
         }

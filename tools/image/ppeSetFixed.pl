@@ -1,4 +1,28 @@
 #!/usr/bin/perl
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: tools/image/ppeSetFixed.pl $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 # Purpose:  This perl script will parse the attribute and default list and
 # and set the default values into the image.
 
@@ -67,6 +91,12 @@ if ( ! -e $image) {die "ppeSetFixed.pl: $image $!"};
 
 foreach my $entr (@{$entries->{entry}}) {
 
+    # Skip virtual attributes
+    if(exists $entr->{virtual})
+    {
+        next;
+    }
+
     my $inname = $entr->{name};
 
     # read XML file. The ForceArray option ensures that there is an array of
@@ -96,36 +126,63 @@ foreach my $entr (@{$entries->{entry}}) {
                     exit(1);
                 }
 
-                if($attr->{targetType} eq "TARGET_TYPE_SYSTEM") {
+                my @targets = split(",", $attr->{targetType});
 
-                    push(@attrSystemIds, $entr);
+                my $targetTypeMatched = 0;
 
-                } elsif($attr->{targetType} eq "TARGET_TYPE_PROC_CHIP") {
+                foreach my $target (@targets)
+                {
+                    if($target eq "TARGET_TYPE_SYSTEM") {
 
-                    push(@attrChipIds, $entr);
+                        push(@attrSystemIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } elsif($attr->{targetType} eq "TARGET_TYPE_CORE") {
+                    } elsif($target eq "TARGET_TYPE_PROC_CHIP") {
 
-                    push(@attrCoreIds, $entr);
+                        push(@attrChipIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } elsif($attr->{targetType} eq "TARGET_TYPE_EQ") {
+                    } elsif($target eq "TARGET_TYPE_CORE") {
 
-                    push(@attrEqIds, $entr);
+                        push(@attrCoreIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } elsif($attr->{targetType} eq "TARGET_TYPE_EX") { 
+                    } elsif($target eq "TARGET_TYPE_EQ") {
 
-                    push(@attrExIds, $entr);
+                        push(@attrEqIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } elsif($attr->{targetType} eq "TARGET_TYPE_PERV") { 
+                    } elsif($target eq "TARGET_TYPE_EX") {
 
-                    push(@attrPervIds, $entr);
+                        push(@attrExIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
 
-                } else {
+                    } elsif($target eq "TARGET_TYPE_PERV") {
 
-                    print ("ppeSetFixed.pl ERROR. Wrong attribute type: $attr->{targetType}\n");
-                    exit(1);
+                        push(@attrPervIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
 
+                    } else {
+
+                        print ("ppeSetFixed.pl WARNING. Ignoring unsupported".
+                            " target type: $target for attribute: $inname\n");
+                        next;
+
+                    }
                 }
+                if($targetTypeMatched eq 0)
+                {
+                    print ("ppeSetFixed.pl ERROR. No matching target type ".
+                        "found for attribute: $inname\n");
+                    exit(1);
+                }
+
             }
         }
     }
@@ -142,7 +199,7 @@ setFixed("TARGET_TYPE_PERV", @attrPervIds);
 
 
 sub setFixed {
- 
+
     my ($string, @entries) =  @_;
 
     foreach my $attr (@entries)
