@@ -41,7 +41,7 @@ __seeprom3_config_reg:
 __otprom_magic_num:
     .quad   0x584950205345504D
 __sbe_config_reg:
-    .quad   0x000A80003C000000
+    .quad   0x000A800030000000
  .endm
 oos_start:                                         #R4 --> A0000   R5 --> 5003F   R6 --> C000_0818
                 lis r4 , 0xA
