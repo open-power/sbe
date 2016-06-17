@@ -1,12 +1,13 @@
-
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: $                                                             */
+/* $Source: hwpf/src/plat/plat_utils.C $                                  */
 /*                                                                        */
-/* OpenPOWER HostBoot Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* COPYRIGHT International Business Machines Corp. 2011,2014              */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
 /* you may not use this file except in compliance with the License.       */
@@ -21,14 +22,18 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
 /**
  *  @file plat_utils.C
  *  @brief Implements fapi2 common utilities
  */
 
 #include <stdint.h>
-#include <plat_trace.H>
+#include <fapi2AttributeService.H>
+#include <fapi2AttributeIds.H>
 #include <return_code.H>
+#include <plat_trace.H>
+#include <target.H>
 
 #ifndef __PPE__
 #include <error_info.H>
@@ -129,13 +134,13 @@ e         FAPI_DBG("busCallouts: %lu", ei->iv_busCallouts.size());
     ///
     /// @brief Delay this thread.
     ///
-    ReturnCode delay(uint64_t i_nanoSeconds, uint64_t i_simCycles, bool i_fixed = false)
+    ReturnCode delay(uint64_t i_nanoSeconds, uint64_t i_simCycles, bool i_fixed /* = false*/)
     {
         // void statements to keep the compiler from complaining
         // about unused variables.
         static_cast<void>(i_nanoSeconds);
         static_cast<void>(i_simCycles);
-        
+
 
 #ifndef __FAPI_DELAY_SIM__
 
@@ -152,10 +157,10 @@ e         FAPI_DBG("busCallouts: %lu", ei->iv_busCallouts.size());
             // @todo For SBE applications, the time accuracy can be traded off
             // for space with the PK_NANOSECONDS_SBE implemenation as the compiler
             // use shift operations for the unit normalizing division.
-            
-            // The critical section enter/exit set is done to ensure the timebase 
+
+            // The critical section enter/exit set is done to ensure the timebase
             // operations are non-interrupible.
-            
+
             pk_critical_section_enter(&ctx);
             //
             // The "accurate" version is the next line.
@@ -165,12 +170,12 @@ e         FAPI_DBG("busCallouts: %lu", ei->iv_busCallouts.size());
 
             do
             {
-                current_time = pk_timebase32_get();                                
+                current_time = pk_timebase32_get();
             } while (target_time > current_time);
-            
+
             pk_critical_section_exit(&ctx);
-            
-           
+
+
         }
 #else
 
@@ -183,37 +188,65 @@ e         FAPI_DBG("busCallouts: %lu", ei->iv_busCallouts.size());
         //      word values needs to be accounted for.
         //
         //  Need to determine if this optimization is worth the effort.
-        
+
 #ifndef __FAPI_DELAY_PPE_SIM_CYCLES__
 #define __FAPI_DELAY_PPE_SIM_CYCLES__ 8
 #endif
-        
+
         static const uint8_t NUM_OVERHEAD_INSTRS = 15;
         static const uint8_t NUM_LOOP_INSTRS = 4;
-        static const uint64_t MIN_DELAY_CYCLES = 
+        static const uint64_t MIN_DELAY_CYCLES =
                 ((NUM_OVERHEAD_INSTRS + NUM_LOOP_INSTRS) * __FAPI_DELAY_PPE_SIM_CYCLES__);
-        
+
         uint64_t l_adjusted_simcycles;
-                 
-        if (i_simCycles < MIN_DELAY_CYCLES) 
+
+        if (i_simCycles < MIN_DELAY_CYCLES)
             l_adjusted_simcycles = MIN_DELAY_CYCLES;
         else
-            l_adjusted_simcycles = i_simCycles;             
+            l_adjusted_simcycles = i_simCycles;
 
-        uint64_t delay_loop_count = 
+        uint64_t delay_loop_count =
             ((l_adjusted_simcycles - (NUM_OVERHEAD_INSTRS * __FAPI_DELAY_PPE_SIM_CYCLES__)) /
                         (NUM_LOOP_INSTRS * __FAPI_DELAY_PPE_SIM_CYCLES__));
-        
+
 
         for (auto i = delay_loop_count; i > 0; --i) {}
-        
+
 #endif
 
         // replace with platform specific implementation
         return FAPI2_RC_SUCCESS;
     }
+
+    ///
+    /// @brief Queries the ATTR_NAME and ATTR_EC attributes
+    ///
+    ReturnCode queryChipEcAndName(
+        const Target < fapi2::TARGET_TYPE_PROC_CHIP > & i_target,
+        fapi2::ATTR_NAME_Type& o_chipName, fapi2::ATTR_EC_Type& o_chipEc )
+    {
+
+        ReturnCode l_rc = FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, i_target, o_chipName);
+
+        if ( l_rc != FAPI2_RC_SUCCESS )
+        {
+            FAPI_ERR("queryChipEcFeature: error getting chip name");
+        }
+        else
+        {
+            l_rc = FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_target, o_chipEc);
+
+            if ( l_rc != FAPI2_RC_SUCCESS )
+            {
+                FAPI_ERR("queryChipEcFeature: error getting chip ec");
+            }
+        }
+
+        return l_rc;
+    }
 };
 
+#ifndef _BIG_ENDIAN
 
 /// Byte-reverse a 16-bit integer if on a little-endian machine
 
@@ -221,16 +254,11 @@ uint16_t
 revle16(uint16_t i_x)
 {
     uint16_t rx;
-
-#ifndef _BIG_ENDIAN
     uint8_t *pix = (uint8_t*)(&i_x);
     uint8_t *prx = (uint8_t*)(&rx);
 
     prx[0] = pix[1];
     prx[1] = pix[0];
-#else
-    rx = i_x;
-#endif
 
     return rx;
 }
@@ -241,8 +269,6 @@ uint32_t
 revle32(uint32_t i_x)
 {
     uint32_t rx;
-
-#ifndef _BIG_ENDIAN
     uint8_t *pix = (uint8_t*)(&i_x);
     uint8_t *prx = (uint8_t*)(&rx);
 
@@ -250,9 +276,6 @@ revle32(uint32_t i_x)
     prx[1] = pix[2];
     prx[2] = pix[1];
     prx[3] = pix[0];
-#else
-    rx = i_x;
-#endif
 
     return rx;
 }
@@ -264,8 +287,6 @@ uint64_t
 revle64(const uint64_t i_x)
 {
     uint64_t rx;
-
-#ifndef _BIG_ENDIAN
     uint8_t *pix = (uint8_t*)(&i_x);
     uint8_t *prx = (uint8_t*)(&rx);
 
@@ -277,11 +298,8 @@ revle64(const uint64_t i_x)
     prx[5] = pix[2];
     prx[6] = pix[1];
     prx[7] = pix[0];
-#else
-    rx = i_x;
-#endif
 
     return rx;
 }
-
+#endif
 
