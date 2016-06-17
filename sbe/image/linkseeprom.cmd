@@ -168,19 +168,27 @@ SECTIONS
     . = ALIGN(8); _DATA_SECTION_BASE = .;
     _SDA_BASE_ = .;
     .data . : {
-              *(.data*) *(.bss*) *(.comment)
+              *(.data*)  *(.comment)
      } > pibmem
     .sdata  . : { *(.sdata*)  } > pibmem
     . = ALIGN(8);
-    _sbss_start = .;   
-    .sbss   . : { 
-    *(.sbss*);
+
+    // We do not want to store bss section in sbe image as laoder will take
+    // care of it while loading image on PIBMEM. It will save us space in
+    // SEEPROM. So define XIP image related variables here so that SBE image
+    // finishes here.
+
+    _base_size = . - _base_origin;
+    _pibmem_size = . - _pibmem_origin;
+    _sbe_image_size = _seeprom_size  + ( . - _pibmem_origin );
+
+    _sbss_start = .;
+    .sbss   . : {
+    *(.bss*) *(.sbss*);
     . = ALIGN(8);
    } > pibmem
-    _sbss_end = .;   
+    _sbss_end = .;
 
-    // As bss section is not expanded by default, reserve the space
-    . = . + SIZEOF(.sbss);
     . = ALIGN(8);
     _sbss_size = SIZEOF(.sbss);
 
@@ -189,11 +197,5 @@ SECTIONS
    . = . + INITIAL_STACK_SIZE;
    _PK_INITIAL_STACK = . - 1;
     . = ALIGN(8);
-
-    _base_size = . - _base_origin;
-
-    . = ALIGN(8);
-    _pibmem_size = . - _pibmem_origin;
-    _sbe_image_size = _seeprom_size  + ( . - _pibmem_origin );
 
 }
