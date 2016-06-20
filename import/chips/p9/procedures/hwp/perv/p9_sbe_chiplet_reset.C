@@ -193,14 +193,23 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_PCI), fapi2::TARGET_STATE_FUNCTIONAL))
+         (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
     {
         // Setting up hang pulse counter for register 0 and register 6
-        FAPI_DBG("Setup hang pulse counter for Mc,Pcie");
+        FAPI_DBG("Setup hang pulse counter for Mc");
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
                  p9SbeChipletReset::HANG_PULSE_0X10, 0xff, 0xff, 0xff, 0xff, 0xff,
                  p9SbeChipletReset::HANG_PULSE_0X05));
+    }
+
+    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        // Setting up hang pulse counter for register 0 and register 6
+        FAPI_DBG("Setup hang pulse counter for Pcie - increase in hang_pulse value");
+        FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
+                 p9SbeChipletReset::HANG_PULSE_0X10, 0xff, 0xff, 0xff, 0xff, 0xff,
+                 p9SbeChipletReset::HANG_PULSE_0X08));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
