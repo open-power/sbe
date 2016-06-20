@@ -70,5 +70,18 @@ namespace fapi2
     template <TargetType K>
     plat_target_handle_t plat_getTargetHandleByChipletNumber(
             const uint8_t i_chipletNumber);
+
+    /// @brief Function to return a platform target handle, given the target
+    ///        instance number and the fapi2 Target type
+    //  @tparam K The fapi2 TargetType
+    //  @param i_targetNum The instance number for the target
+    //  @return Platform handle
+    //  @note The caller can use the platform handle to construct a Target of
+    //  it's choice. Ex:
+    //  fapi2::Target<fapi2::TARGET_TYPE_EX>
+    //  l_ex(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_EX>(0);
+    template <TargetType K>
+    plat_target_handle_t plat_getTargetHandleByInstance(
+            const uint8_t i_targetNum);
 }
 #endif

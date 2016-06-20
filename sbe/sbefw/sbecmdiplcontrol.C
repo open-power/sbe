@@ -618,7 +618,8 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
     uint8_t exId = 0;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     FAPI_ATTR_GET(fapi2::ATTR_MASTER_EX,proc,exId);
-    fapi2::Target<fapi2::TARGET_TYPE_EX > exTgt(exId);
+    fapi2::Target<fapi2::TARGET_TYPE_EX >
+        exTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_EX>(exId));
     // Get hbbl section
     P9XipHeader *hdr = getXipHdr();
     P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);

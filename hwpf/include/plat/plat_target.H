@@ -32,7 +32,16 @@
 
 #include <stdint.h>
 #include <target_types.H>
+#include <target_states.H>
 #include <assert.h>
+#include <plat_target_parms.H>
+#include <vector>
+
+static const uint8_t CORES_PER_QUAD = 4;
+static const uint8_t EX_PER_QUAD = 2;
+static const uint8_t CORES_PER_EX = 2;
+static const uint8_t N3_CHIPLET = 5;
+static const uint8_t MCS_PER_MCBIST = 2;
 
 //
 // Define what a platform handle looks like. For Hostboot,
@@ -63,30 +72,145 @@ namespace fapi2
             uint32_t type_target_num   : 8;
             uint32_t present           : 1;
             uint32_t functional        : 1;
-            uint32_t _reserved_b1      : 1;
+            uint32_t is_multicast      : 1;
             uint32_t valid             : 1;
             uint32_t type              : 12;
 #else
             uint32_t type              : 12;
             uint32_t valid             : 1;
-            uint32_t _reserved_b1      : 1;
+            uint32_t is_multicast      : 1;
             uint32_t functional        : 1;
             uint32_t present           : 1;
             uint32_t type_target_num   : 8;
             uint32_t chiplet_num       : 8;
 #endif
         } fields;
-        // Union Constructor
+        ///
+        /// @brief Plat target handle constructor
+        ///
+        /// @param  i_value Value to instantiate handle with
+        ///
         plat_target_handle(uint32_t i_value = 0):value(i_value) {}
 
-
+        ///
+        /// @brief Get the fapi2::TargetType for this target
+        ///
+        /// @par Converts the internal PPE type for this target to fapi2 enum
+        ///
+        /// @return The fapi2::TargetType for this target
+        ///
         TargetType getFapiTargetType() const;
 
+        ///
+        /// @brief Get the instance number for this target
+        ///
+        /// @return The instance number for this target
+        ///
         inline uint32_t getTargetInstance() const
         {
             return fields.type_target_num;
         }
+
+        ///
+        /// @brief Get this target's children
+        ///
+        /// @param [in] i_parentType fapi2 type of the parent
+        /// @param [in] i_childType  fapi2 type of the child
+        /// @param [in] i_platType   Plat type of the parent
+        /// @param [in] i_state      Required state of the children
+        /// @param [out] o_children  A vector of child target handles
+        ///
+        void getChildren(const TargetType i_parentType,
+                         const TargetType i_childType,
+                         const plat_target_type_t i_platType,
+                         const TargetState i_state,
+                         std::vector<plat_target_handle> &o_children) const;
+
+        ///
+        /// @brief Get proc chip target's children - filtered
+        ///
+        /// @param [in] i_filter     Target filter
+        /// @param [in] i_state      Required state of the children
+        /// @param [out] o_children  A vector of child target handles
+        ///
+        void getChildren(const TargetFilter i_filter,
+                         const TargetState i_state,
+                         std::vector<plat_target_handle>& o_children) const;
+
+        ///
+        /// @brief Gets the plat target handle as a uint32
+        ///
+        /// @return Plat target handle as a uint32_t
+        ///
+        operator uint32_t() const {return value;}
     } plat_target_handle_t;
+
+    typedef plat_target_handle_t plat_target_argument_t;
+
+    template<TargetType K, bool MULTICAST = false>
+    plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
+    {
+        static_assert((MULTICAST != true) || (K == TARGET_TYPE_PROC_CHIP),
+                "Only PROC_CHIP types can be multicast");
+        plat_target_handle_t l_handle = 0;
+
+        if(MULTICAST == true)
+        {
+            // Simply set the is multicast flag
+            l_handle.fields.is_multicast = 1;
+        }
+        else if(K & TARGET_TYPE_PROC_CHIP)
+        {
+            l_handle.fields.chiplet_num = 0;
+            l_handle.fields.type = PPE_TARGET_TYPE_PROC_CHIP;
+            l_handle.fields.type_target_num = 0;
+        }
+        else if(K & TARGET_TYPE_PERV)
+        {
+            l_handle.fields.chiplet_num = i_plat_argument + NEST_GROUP1_CHIPLET_OFFSET;
+            l_handle.fields.type = PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_CORE)
+        {
+            l_handle.fields.chiplet_num = i_plat_argument + CORE_CHIPLET_OFFSET;
+            l_handle.fields.type = PPE_TARGET_TYPE_CORE | PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_EQ)
+        {
+            l_handle.fields.chiplet_num = i_plat_argument + EQ_CHIPLET_OFFSET;
+            l_handle.fields.type = PPE_TARGET_TYPE_EQ | PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_EX)
+        {
+            l_handle.fields.chiplet_num = (i_plat_argument / 2) + EX_CHIPLET_OFFSET;
+            l_handle.fields.type = PPE_TARGET_TYPE_EX;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_MCBIST)
+        {
+            l_handle.fields.chiplet_num = i_plat_argument + MCBIST_CHIPLET_OFFSET;
+            l_handle.fields.type = PPE_TARGET_TYPE_MCBIST | PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_MCS)
+        {
+            l_handle.fields.chiplet_num = N3_CHIPLET - (MCS_PER_MCBIST * (i_plat_argument / MCS_PER_MCBIST));
+            l_handle.fields.type = PPE_TARGET_TYPE_MCS;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K == TARGET_TYPE_ALL)
+        {
+            l_handle.fields.chiplet_num = i_plat_argument;
+            l_handle.fields.type = PPE_TARGET_TYPE_ALL;
+        }
+
+        l_handle.fields.valid = 1;
+        return l_handle;
+    }
+
 };
 
 #endif
