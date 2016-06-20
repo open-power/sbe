@@ -110,6 +110,13 @@ namespace fapi2
     public:
 
         ///
+        /// @brief Delagate default constructor to constructor
+        ///        that takes in a value as a param
+        ///
+        Target(): Target(V())
+        {};
+
+        ///
         /// @brief Create a Target, with a value
         /// @param[in] Value the value (i.e., specific element this
         /// target represents, or pointer)
@@ -117,7 +124,9 @@ namespace fapi2
         /// single uint64_t in value which represents all the information
         /// they might need. value( K | V ), for example
         ///
-        Target(V Value = 0);
+        Target(const V& Value):
+            iv_handle(Value)
+        {};
 
         ///
         /// @brief Assignment Operator.
@@ -150,7 +159,7 @@ namespace fapi2
         ///
         V get(void) const
         {
-            return this->iv_handle.value;
+            return iv_handle;
         }
 
         ///
@@ -159,7 +168,7 @@ namespace fapi2
         ///
         inline operator V() const
         {
-            return this->iv_handle.value;
+            return iv_handle;
         }
 
         ///
@@ -168,7 +177,7 @@ namespace fapi2
         ///
         inline V& operator()(void)
         {
-            return this->iv_handle.value;
+            return iv_handle;
         }
 
         ///
@@ -183,10 +192,10 @@ namespace fapi2
         ///
         /// @brief Get this target's immediate parent
         /// @tparam T The type of the parent
-        /// @return Target<T> a target representing the parent
+        /// @return Target<T, V> a target representing the parent
         ///
-        template< TargetType T >
-        inline Target<T> getParent(void) const;
+        template< TargetType T>
+        inline Target<T, V> getParent(void) const;
 
         ///
         /// @brief Is this target a chip?
@@ -232,13 +241,13 @@ namespace fapi2
         /// @brief Get this target's children
         /// @tparam T The type of the parent
         /// @param[in] i_state The desired TargetState of the children
-        /// @return std::vector<Target<T> > a vector of present/functional
+        /// @return std::vector<Target<T, V> > a vector of present/functional
         /// children
         /// @warning The children of EX's (cores) are expected to be returned
         /// in order. That is, core 0 is std::vector[0].
         ///
         template< TargetType T>
-        std::vector<Target<T> >
+        std::vector<Target<T, V> >
         getChildren(const TargetState i_state = TARGET_STATE_FUNCTIONAL) const;
 
         ///
@@ -246,11 +255,11 @@ namespace fapi2
         /// @tparam T The type of the parent
         /// @param[in], i_filter The desired chiplet filter
         /// @param[in] i_state The desired TargetState of the children
-        /// @return std::vector<Target<T> > a vector of present/functional
+        /// @return std::vector<Target<T, V> > a vector of present/functional
         /// children
         ///
         template< TargetType T>
-        std::vector<Target<T> >
+        std::vector<Target<T, V>>
         getChildren(const TargetFilter i_filter,
                     const TargetState i_state = TARGET_STATE_FUNCTIONAL) const;
 
@@ -258,11 +267,11 @@ namespace fapi2
         /// @brief Get the target at the other end of a bus - dimm included
         /// @tparam T The type of the parent
         /// @param[in] i_state The desired TargetState of the children
-        /// @return Target<T> a target representing the thing on the other end
+        /// @return Target<T, V> a target representing the thing on the other end
         /// @note Can be easily changed to a vector if needed
         ///
         template<TargetType T>
-        inline Target<T>
+        inline Target<T, V>
         getOtherEnd(const TargetState i_state = TARGET_STATE_FUNCTIONAL) const;
 
         ///
@@ -274,11 +283,11 @@ namespace fapi2
         isFunctional(void) const;
 
         ///
-        /// @brief Copy from a Target<O> to a Target<K>
+        /// @brief Copy from a Target<O, VO> to a Target<K, V>
         /// @tparam O the target type of the other
         ///
-        template<TargetType O>
-        inline Target( const Target<O>& Other ):
+        template<TargetType O, typename VO>
+        inline Target( const Target<O, VO>& Other ):
             Target<K, V>(Other.get())
         {
             // In case of recursion depth failure, use -ftemplate-depth=
@@ -297,7 +306,7 @@ namespace fapi2
         ///
         inline bool getPresent(void) const
         {
-            return (this->iv_handle.fields.present ? true : false);
+            return (static_cast<plat_target_handle_t>(this->iv_handle).fields.present ? true : false);
         }
 
         ///
@@ -306,7 +315,7 @@ namespace fapi2
         ///
         inline bool getFunctional(void) const
         {
-            return (this->iv_handle.fields.functional ? true : false);
+            return (static_cast<plat_target_handle_t>(this->iv_handle).fields.functional ? true : false);
         }
 
         ///
@@ -315,7 +324,7 @@ namespace fapi2
         ///
         inline void setPresent(void)
         {
-            this->iv_handle.fields.present = 1;
+            (static_cast<plat_target_handle_t&>(this->iv_handle)).fields.present = 1;
             return;
         }
 
@@ -325,7 +334,7 @@ namespace fapi2
         ///
         inline void setFunctional(const bool &i_state)
         {
-            this->iv_handle.fields.functional = (i_state) ? 1 : 0;
+            (static_cast<plat_target_handle_t&>(this->iv_handle)).fields.functional = (i_state) ? 1 : 0;
             return;
         }
 
@@ -340,7 +349,7 @@ namespace fapi2
         ///
         inline uint32_t getAddressOverlay(void) const
         {
-            return (iv_handle.value & 0xFF000000);
+            return (static_cast<plat_target_handle_t>(iv_handle).value & 0xFF000000);
         }
 
         ///
@@ -349,7 +358,7 @@ namespace fapi2
         ///
         inline uint32_t getTargetNumber(void) const
         {
-            return static_cast<uint32_t>(iv_handle.fields.type_target_num);
+            return static_cast<uint32_t>(static_cast<plat_target_handle_t>(iv_handle).fields.type_target_num);
         }
 
         ///
@@ -358,7 +367,7 @@ namespace fapi2
         ///
         inline TargetType  getTargetType(void) const
         {
-            return static_cast<TargetType>(iv_handle.fields.type);
+            return static_cast<TargetType>(static_cast<plat_target_handle_t>(iv_handle).fields.type);
         }
 
         ///
@@ -367,7 +376,7 @@ namespace fapi2
         ///
         inline ChipletNumber_t getChipletNumber(void) const
         {
-            return static_cast<ChipletNumber_t>(iv_handle.fields.chiplet_num);
+            return static_cast<ChipletNumber_t>(static_cast<plat_target_handle_t>(iv_handle).fields.chiplet_num);
         }
 
 #endif
@@ -498,39 +507,39 @@ namespace fapi2
     ///
     /// @brief Return the string interpretation of this target
     /// @tparam T The type of the target
-    /// @param[in] i_target Target<T>
+    /// @param[in] i_target Target<T, V>
     /// @param[in] i_buffer buffer to write in to
     /// @param[in] i_bsize size of the buffer
     /// @return void
     /// @post The contents of the buffer is replaced with the string
     /// representation of the target
     ///
-    template< TargetType T >
-    inline void toString(const Target<T>& i_target, char* i_buffer, size_t i_bsize);
+    template< TargetType T, typename V >
+    inline void toString(const Target<T, V>& i_target, char* i_buffer, size_t i_bsize);
 
     ///
     /// @brief Return the string interpretation of this target
     /// @tparam T The type of the target
     /// @tparam B The type of the buffer
-    /// @param[in] A pointer to the Target<T>
+    /// @param[in] A pointer to the Target<T, V>
     /// @param[in] i_buffer buffer to write in to
     /// @param[in] i_bsize size of the buffer
     /// @return void
     /// @post The contents of the buffer is replaced with the string
     /// representation of the target
     ///
-    template< TargetType T >
-    inline void toString(const Target<T>* i_target, char* i_buffer, size_t i_bsize);
+    template< TargetType T, typename V >
+    inline void toString(const Target<T, V>* i_target, char* i_buffer, size_t i_bsize);
 
     ///
     /// @brief Get an enumerated target of a specific type
     /// @tparam T The type of the target
     /// @param[in] Ordinal representing the ordinal number of
     /// the desired target
-    /// @return Target<T> the target requested
+    /// @return Target<T, V> the target requested
     ///
-    template<TargetType T>
-    inline Target<T> getTarget(uint64_t Ordinal);
+    template<TargetType T, typename V>
+    inline Target<T, V> getTarget(uint64_t Ordinal);
 
     // Why has the been removed? For starters, the API name
     // is probably wrong as it's already been confused with
@@ -562,8 +571,8 @@ namespace fapi2
     /// @post The contents of the buffer is replaced with the string
     /// representation of the target
     ///
-    template<TargetType T, typename B>
-    inline void toString(const Target<T>& i_target, B& i_buffer);
+    template<TargetType T, typename V, typename B>
+    inline void toString(const Target<T, V>& i_target, B& i_buffer);
 
     ///
     /// @brief Check if the target is of a type, or in a type subset.

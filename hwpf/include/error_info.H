@@ -53,11 +53,12 @@ inline uint64_t convertType( T& i_value )
 };
 
 // convert platform target handle to a uint64_t
-template<fapi2::TargetType T>
-inline uint64_t convertType( const fapi2::Target<T>& i_value)
+template<fapi2::TargetType T, typename V>
+inline uint64_t convertType( const fapi2::Target<T, V>& i_value)
 {
+    // TODO: via RTC 158868 : Update this for multicast targets
     // get the SBE platform target handle
-    return static_cast<uint64_t>((static_cast<uint64_t>((i_value.get().getFapiTargetType())) << 32) | i_value.get().getTargetInstance());
+    return static_cast<uint64_t>((static_cast<uint64_t>((static_cast<plat_target_handle_t>(i_value.get()).getFapiTargetType())) << 32) | static_cast<plat_target_handle_t>(i_value.get()).getTargetInstance());
 };
 #endif
 

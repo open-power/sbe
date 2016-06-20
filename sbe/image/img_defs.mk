@@ -368,7 +368,7 @@ GCC-CFLAGS += -DP9_HCD_STOP_SKIP_SCAN
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
 
-CXXFLAGS        = -std=c++11 -nostdinc++ -fno-rtti -fno-threadsafe-statics
+CXXFLAGS        = -std=c++11 -nostdinc++ -fno-rtti -fno-threadsafe-statics -fno-strict-aliasing
 CPPFLAGS    	= -E
 
 ASFLAGS		= -mppe42

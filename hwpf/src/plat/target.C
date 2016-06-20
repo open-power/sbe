@@ -84,6 +84,129 @@ namespace fapi2
         return l_targetType;
     }
 
+    void plat_target_handle_t::getChildren(const TargetType i_parentType,
+                                           const TargetType i_childType,
+                                           const plat_target_type_t i_platType,
+                                           const TargetState i_state,
+                                           std::vector<plat_target_handle>
+                                           &o_children) const
+    {
+        uint32_t l_childPerChiplet = 0;
+        uint32_t l_childTargetOffset = 0;
+        uint32_t l_loopCount = G_vec_targets.size();
+        TargetType l_targetType = i_parentType;
+
+        if((i_parentType & ~(TARGET_TYPE_PROC_CHIP)) != 0)
+        {
+            // For composite targets, if multicast, treat as PROC_CHIP, else
+            // treat as other target
+            if(this->fields.is_multicast)
+            {
+                l_targetType = TARGET_TYPE_PROC_CHIP;
+            }
+            else
+            {
+                l_targetType =
+                    static_cast<TargetType>(l_targetType & ~(TARGET_TYPE_PROC_CHIP));
+            }
+        }
+
+        // EQ ==> EX
+        if((l_targetType == TARGET_TYPE_EQ) && (i_childType == TARGET_TYPE_EX))
+        {
+            l_childPerChiplet = EX_PER_QUAD;
+            l_childTargetOffset = EX_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
+
+        // EQ ==> EC
+        if((l_targetType == TARGET_TYPE_EQ) && (i_childType == TARGET_TYPE_CORE))
+        {
+            l_childPerChiplet = CORES_PER_QUAD;
+            l_childTargetOffset = CORE_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
+
+        // EX ==> EC
+        if((l_targetType == TARGET_TYPE_EX) && (i_childType == TARGET_TYPE_CORE))
+        {
+            l_childPerChiplet = CORES_PER_EX;
+            l_childTargetOffset = CORE_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
+        // else it is TARGET_TYPE_PROC_CHIP ==> anything, and we iterate over
+        // all the targets
+
+        for(uint32_t i = 0; i < l_loopCount; ++i)
+        {
+            plat_target_handle_t l_temp =
+                G_vec_targets.at((this->fields.type_target_num *
+                            l_childPerChiplet) + l_childTargetOffset + i);
+            if ((l_temp.fields.type & i_platType) == i_platType)
+            {
+                switch (i_state)
+                {
+                    case TARGET_STATE_PRESENT:
+                        if (l_temp.fields.present)
+                        {
+                            o_children.push_back(l_temp);
+                        }
+                        break;
+                    case TARGET_STATE_FUNCTIONAL:
+                        if (l_temp.fields.functional)
+                        {
+                            o_children.push_back(l_temp);
+                        }
+                        break;
+                    default:
+                        assert(false);
+                }
+            }
+        }
+    }
+
+    void plat_target_handle_t::getChildren(const TargetFilter i_filter,
+                                           const TargetState i_state,
+                                           std::vector<plat_target_handle_t>
+                                           &o_children) const
+    {
+        static const uint64_t mask = 1;
+
+        // Walk the bits in the input target filter. For every bit, at
+        // position x, that is set, x can be used as an index into our global
+        // target vector (indexed by chiplet number)
+        for (uint32_t l_idx = 0;
+                l_idx < sizeof(TargetFilter) * 8;
+                ++l_idx)
+        {
+            if (i_filter & (mask << (((sizeof(TargetFilter)*8)-1) - l_idx)))
+            {
+                plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx + NEST_GROUP1_CHIPLET_OFFSET);
+
+                if(l_targetHandle.fields.type & PPE_TARGET_TYPE_PERV) // Can be an assertion?
+                {
+                    switch (i_state)
+                    {
+                        case TARGET_STATE_PRESENT:
+                            if(l_targetHandle.fields.present)
+                            {
+                                o_children.push_back(l_targetHandle);
+                            }
+                            break;
+                         case TARGET_STATE_FUNCTIONAL:
+                            if(l_targetHandle.fields.functional)
+                            {
+                                o_children.push_back(l_targetHandle);
+                            }
+                            break;
+                        default:
+                            break;
+                     }
+                 }
+             }
+         }
+    }
+
     #ifndef __noRC__
     ReturnCode current_err;
     #endif
@@ -175,7 +298,7 @@ fapi_try_exit:
          */
         l_beginning_offset = CHIP_TARGET_OFFSET;
 
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> chip_target((fapi2::plat_target_handle_t)0);
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> chip_target((createPlatTargetHandle<fapi2::TARGET_TYPE_PROC_CHIP>(0)));
         G_vec_targets.at(l_beginning_offset) = revle32((fapi2::plat_target_handle_t)(chip_target.get()));
 
         /*
@@ -184,7 +307,7 @@ fapi_try_exit:
         l_beginning_offset = NEST_GROUP1_TARGET_OFFSET;
         for (uint32_t i = 0; i < NEST_GROUP1_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((fapi2::plat_target_handle_t)i);
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PERV>(i)));
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
@@ -200,7 +323,7 @@ fapi_try_exit:
         l_beginning_offset = MCBIST_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCBIST_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_MCBIST> target_name((fapi2::plat_target_handle_t)i);
+            fapi2::Target<fapi2::TARGET_TYPE_MCBIST> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_MCBIST>(i)));
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv = target_name.getParent<fapi2::TARGET_TYPE_PERV>();
 
             // Determine if the chiplet is present and, thus, functional
@@ -218,7 +341,7 @@ fapi_try_exit:
         for (uint32_t i = NEST_GROUP2_TARGET_OFFSET;
                 i < (NEST_GROUP2_TARGET_OFFSET + NEST_GROUP2_TARGET_COUNT); ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((fapi2::plat_target_handle_t)(i - 1));
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PERV>(i - 1)));
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
@@ -233,7 +356,7 @@ fapi_try_exit:
         l_beginning_offset = EQ_TARGET_OFFSET;
         for (uint32_t i = 0; i < EQ_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_EQ> target_name((fapi2::plat_target_handle_t)i);
+            fapi2::Target<fapi2::TARGET_TYPE_EQ> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_EQ>(i)));
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv = target_name.getParent<fapi2::TARGET_TYPE_PERV>();
 
             // Determine if the chiplet is present and, thus, functional
@@ -250,7 +373,7 @@ fapi_try_exit:
         l_beginning_offset = CORE_TARGET_OFFSET;
         for (uint32_t i = 0; i < CORE_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_CORE> target_name((fapi2::plat_target_handle_t)i);
+            fapi2::Target<fapi2::TARGET_TYPE_CORE> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_CORE>(i)));
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv = target_name.getParent<fapi2::TARGET_TYPE_PERV>();
 
             // Determine if the chiplet is present and, thus, functional
@@ -267,7 +390,7 @@ fapi_try_exit:
         l_beginning_offset = EX_TARGET_OFFSET;
         for (uint32_t i = 0; i < EX_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_EX> target_name((fapi2::plat_target_handle_t)i);
+            fapi2::Target<fapi2::TARGET_TYPE_EX> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_EX>(i)));
 
             fapi2::Target<fapi2::TARGET_TYPE_EQ> l_parent = target_name.getParent<fapi2::TARGET_TYPE_EQ>();
 
@@ -302,7 +425,7 @@ fapi_try_exit:
         l_beginning_offset = MCS_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_MCS> target_name((fapi2::plat_target_handle_t)i);
+            fapi2::Target<fapi2::TARGET_TYPE_MCS> target_name(createPlatTargetHandle<fapi2::TARGET_TYPE_MCS>(i));
 
             fapi2::Target<fapi2::TARGET_TYPE_PERV>
                 l_nestTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(N3_CHIPLET - (MCS_PER_MCBIST * (i / MCS_PER_MCBIST)))));
@@ -450,4 +573,15 @@ fapi_try_exit:
 
         return G_vec_targets[l_idx];
     }
+
+    // Get plat target handle by instance number - For EX targets
+    template <>
+    plat_target_handle_t plat_getTargetHandleByInstance<TARGET_TYPE_EX>(
+            const uint8_t i_targetNum)
+    {
+        assert(i_targetNum < EX_TARGET_COUNT);
+
+        return G_vec_targets[i_targetNum + EX_TARGET_OFFSET];
+    }
+
 } // fapi2
