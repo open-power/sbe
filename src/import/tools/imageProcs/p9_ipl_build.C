@@ -51,6 +51,7 @@
 #include "p9_ipl_build.H"
 #include <p9_xip_image.h>
 #include <p9_tor.H>
+#include <p9_infrastruct_help.H>
 
 using namespace P9_TOR;
 
