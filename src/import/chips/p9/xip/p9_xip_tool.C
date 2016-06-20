@@ -1821,6 +1821,9 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 
 #ifdef XIP_TOOL_ENABLE_DISSECT
 
+// This should be improved, though. Not really our responsibility defining this.
+#define CHIPLET_ID_MAX            (uint8_t)0x37
+
 /// Function:  dissectRingSectionTor()
 ///
 /// Brief:  Dissects and summarizes content of a ring section.
