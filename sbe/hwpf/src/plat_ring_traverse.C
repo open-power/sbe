@@ -69,6 +69,13 @@ fapi2::ReturnCode findRS4InImageAndApply(
         // Get the address of the Section-TOR
         P9XipHeader *l_hdr = getXipHdr();
         P9XipSection *l_section = &(l_hdr->iv_section[P9_XIP_SECTION_SBE_RINGS]);
+
+
+        if (!(l_section->iv_offset))
+        {
+            SBE_TRACE("No ring data in .RING section");
+            break;
+        }
         SectionTOR *l_sectionTOR = (SectionTOR *)(g_seepromAddr + 
                                     l_section->iv_offset);
 
@@ -340,7 +347,6 @@ fapi2::ReturnCode findRS4InImageAndApply(
         }
         else
         {
-            l_rc = fapi2::FAPI2_RC_PLAT_RING_ID_NOT_FOUND_IN_RS4_IMAGE;
             SBE_TRACE("Ring image is not found for this is ringId %u",i_ringID);
         }
     }while(0);
