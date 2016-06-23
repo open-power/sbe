@@ -40,7 +40,6 @@
 #include <p9_hcd_core_poweron.H>
 #include <p9_hcd_core_ras_runtime_scom.H>
 #include <p9_hcd_core_repair_initf.H>
-#include <p9_hcd_core_runinit.H>
 #include <p9_hcd_core_scomcust.H>
 #include <p9_hcd_core_scominit.H>
 #include <p9_hcd_core_startclocks.H>
