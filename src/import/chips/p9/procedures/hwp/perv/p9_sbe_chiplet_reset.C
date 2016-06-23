@@ -205,7 +205,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_DBG("Setup hang pulse counter for Mc");
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
                  p9SbeChipletReset::HANG_PULSE_0X10, 0xff, 0xff, 0xff, 0xff, 0xff,
-                 p9SbeChipletReset::HANG_PULSE_0X05));
+                 p9SbeChipletReset::HANG_PULSE_0X08));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -226,7 +226,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_DBG("Setup hang pulse counter for Xbus,Obus");
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
                  p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X04, 0xff,
-                 0xff, 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X05));
+                 0xff, 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X08));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -245,7 +245,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
                  p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X1A, 0xff,
                  0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X06,
-                 p9SbeChipletReset::HANG_PULSE_0X05));
+                 p9SbeChipletReset::HANG_PULSE_0X08));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -257,7 +257,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                  p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X01,
                  p9SbeChipletReset::HANG_PULSE_0X01, p9SbeChipletReset::HANG_PULSE_0X04,
                  p9SbeChipletReset::HANG_PULSE_0X00, p9SbeChipletReset::HANG_PULSE_0X06,
-                 p9SbeChipletReset::HANG_PULSE_0X05));
+                 p9SbeChipletReset::HANG_PULSE_0X08));
     }
 
     FAPI_DBG("Clock mux settings");
@@ -928,13 +928,18 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup_cache(
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_2,
                             p9SbeChipletReset::MCGR2_CACHE_CNFG_SETTINGS));
 
-    if ( l_attr_pg == 0x0 )
+    if ( ( l_attr_pg & 0x1EBA ) == 0x0 ) // Check good EP chiplet clockdomains excluding l31, l21, refr1
     {
-        FAPI_DBG("Setting up multicast register 3&4 for cache chiplet");
+        FAPI_DBG("Setting up multicast register 3 for even cache chiplet");
         //Setting MULTICAST_GROUP_3 register value
         //MULTICAST_GROUP_3 = p9SbeChipletReset::MCGR3_CACHE_CNFG_SETTINGS
         FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_3,
                                 p9SbeChipletReset::MCGR3_CACHE_CNFG_SETTINGS));
+    }
+
+    if ( ( l_attr_pg & 0x1D76 ) == 0x0 ) // Check good EP chiplet clockdomains excluding l30, l20, refr0
+    {
+        FAPI_DBG("Setting up multicast register 4 for odd cache chiplet");
         //Setting MULTICAST_GROUP_4 register value
         //MULTICAST_GROUP_4 = p9SbeChipletReset::MCGR4_CACHE_CNFG_SETTINGS
         FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_4,
@@ -980,8 +985,8 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_hang_cnt_setup(
     l_data64.clearBit<6>();  //HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0
     FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_5_REG, l_data64));
     //Setting HANG_PULSE_6_REG register value (Setting all fields)
-    //HANG_PULSE_6_REG.HANG_PULSE_REG_6 = p9SbeChipletReset::HANG_PULSE_0X05
-    l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X05);
+    //HANG_PULSE_6_REG.HANG_PULSE_REG_6 = p9SbeChipletReset::HANG_PULSE_0X08
+    l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X08);
     l_data64.clearBit<6>();  //HANG_PULSE_6_REG.SUPPRESS_HANG_6 = 0
     FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_6_REG, l_data64));
 
