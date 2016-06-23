@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sbeHostUtils.C $                                    */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
  * @file: ppe/sbe/sbefw/sbeHostUtils.C
  *
@@ -23,7 +47,8 @@
 ///////////////////////////////////////////////////////////////////
 uint32_t sbeReadPsu2SbeMbxReg (uint32_t       i_addr,
                                const uint8_t  i_count,
-                               uint64_t       *o_pData)
+                               uint64_t       *o_pData,
+                               bool i_isFinalRead)
 {
     #define SBE_FUNC " sbeReadPsu2SbeMbxReg "
     SBE_DEBUG(SBE_FUNC"i_count[0x%02X], i_addr=[0x%08X]", i_count, i_addr);
@@ -52,6 +77,18 @@ uint32_t sbeReadPsu2SbeMbxReg (uint32_t       i_addr,
         SBE_DEBUG(SBE_FUNC"l_data=[0x%016X]", o_pData[l_count]);
         ++l_count;
         ++i_addr;
+    }
+
+    // Set the Ack bit in SBE->PSU DB register
+    // if the message requires ack and if its a final read operation
+    if ((i_isFinalRead) && (SBE_SEC_OPERATION_SUCCESSFUL == l_rc))
+    {
+        l_rc = sbeAcknowledgeHost();
+        if (l_rc)
+        {
+            SBE_ERROR(SBE_FUNC " Failed to Sent Ack to Host over "
+                    "SBE_SBE2PSU_DOORBELL_SET_BIT1");
+        }
     }
     return l_rc;
 
