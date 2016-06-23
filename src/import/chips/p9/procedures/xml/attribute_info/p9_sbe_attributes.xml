@@ -543,7 +543,7 @@
   <entry>
            <name>ATTR_MASTER_EX</name>
   </entry>
-  <entry> 
+  <entry>
            <name>ATTR_PNOR_SIZE</name>
            <value>0x00</value>
   </entry>
@@ -604,7 +604,7 @@
   </entry>
    <entry>
            <name>ATTR_PFET_OFF_CONTROLS</name>
-  </entry> 
+  </entry>
   <entry>
            <name>ATTR_N3_FLUSH_MODE</name>
            <value>0x1</value>
@@ -626,4 +626,25 @@
            <name>ATTR_RUNN_MODE</name>
            <value>0x0</value>
   </entry>
+  <!-- See chip_attributes.xml for a description of ATTR_EC -->
+  <entry>
+           <name>ATTR_EC</name>
+           <!-- The value needs to be changed as per the EC level  -->
+           <value>0x00</value>
+  </entry>
+  <!-- See chip_attributes.xml for a description of ATTR_NAME -->
+  <entry>
+           <name>ATTR_NAME</name>
+           <!-- NIMBUS -->
+           <value>0x5</value>
+  </entry>
+<!--
+This is an example of how to add a CHIP EC feature attribute to this file
+The virtual tag indicates to the SBE plat to not attach storage in the
+attribute tank
+  <entry>
+           <name>ATTR_CHIP_EC_FEATURE_TEST1</name>
+           <virtual/>
+  </entry>
+-->
 </entries>
