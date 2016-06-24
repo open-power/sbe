@@ -46,8 +46,15 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
 {
     START_CMD = 0x1,
     REGIONS_ALL_EXCEPT_PIB_NET = 0x4FF,
-    CLOCK_TYPES = 0x7
+    CLOCK_TYPES = 0x7,
+    HW_NS_DELAY = 100000, // unit is nano seconds
+    SIM_CYCLE_DELAY = 1000, // unit is sim cycles
+    POLL_COUNT = 300, // Observed Number of times CBS read for CBS_INTERNAL_STATE_VECTOR
+    OSC_ERROR_MASK = 0xF700000000000000 // Mask OSC errors
 };
+
+static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
@@ -59,10 +66,12 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     fapi2::buffer<uint32_t> l_pfet_value;
     fapi2::buffer<uint32_t> l_attr_pfet;
     fapi2::buffer<uint64_t> l_regions;
+    fapi2::buffer<uint64_t> l_kvref_reg;
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
                 fapi2::TARGET_STATE_FUNCTIONAL)[0];
     fapi2::buffer<uint64_t> l_data64;
+    int l_timeout = 0;
     FAPI_INF("Entering ...");
 
     FAPI_DBG("Reading ATTR_PFET_OFF_CONTROLS");
@@ -89,6 +98,9 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
 
     FAPI_TRY(p9_sbe_common_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, l_regions,
                                             CLOCK_TYPES));
+
+    FAPI_DBG("Calling clock_test2");
+    FAPI_TRY(p9_sbe_tp_chiplet_init3_clock_test2(i_target_chip));
 
     FAPI_DBG("Drop FSI fence 5");
     //Setting ROOT_CTRL0 register value
@@ -128,12 +140,6 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //PERV.LOCAL_FIR_ACTION1=0;
     //PERV.LOCAL_FIR_MASK=0;
 
-    FAPI_DBG("Add Pervasive chiplet to Multicast Group 0");
-    //Setting MULTICAST_GROUP_1 register value
-    //PERV.MULTICAST_GROUP_1 = 0xE0001c0000000000
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_MULTICAST_GROUP_1,
-                            0xE0001c0000000000));
-
     FAPI_DBG("Setup Pervasive Hangcounter 0:Thermal, 1:OCC/SBE, 2:PBA hang, 3:Nest freq for TOD hang, 5:malefunction alert");
     //Setting HANG_PULSE_0_REG register value (Setting all fields)
     //PERV.HANG_PULSE_0_REG.HANG_PULSE_REG_0 = 0b010000
@@ -172,6 +178,133 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
                 .set_READ_XSTOP(l_read_reg),
                 "XSTOP BIT GET SET");
 
+    FAPI_DBG("Start  calibration");
+    //Setting KVREF_AND_VMEAS_MODE_STATUS_REG register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
+    l_data64.setBit<0>();  //KVREF_AND_VMEAS_MODE_STATUS_REG.KVREF_START_CAL = 0b1
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
+
+    FAPI_DBG("Check for calibration done");
+    l_timeout = POLL_COUNT;
+
+    //UNTIL KVREF_AND_VMEAS_MODE_STATUS_REG.KVREF_CAL_DONE == 1
+    while (l_timeout != 0)
+    {
+        //Getting KVREF_AND_VMEAS_MODE_STATUS_REG register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
+        //bool l_poll_data = KVREF_AND_VMEAS_MODE_STATUS_REG.KVREF_CAL_DONE
+        bool l_poll_data = l_data64.getBit<16>();
+
+        if (l_poll_data == 1)
+        {
+            break;
+        }
+
+        fapi2::delay(HW_NS_DELAY, SIM_CYCLE_DELAY);
+        --l_timeout;
+    }
+
+    FAPI_DBG("Loop Count :%d", l_timeout);
+
+    FAPI_ASSERT(l_timeout > 0,
+                fapi2::CALIBRATION_NOT_DONE(),
+                "Calibration not done, bit16 not set");
+
+    FAPI_INF("Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief clock test
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    fapi2::buffer<uint64_t> l_read ;
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_INF("Entering ...");
+
+    FAPI_DBG("unfence 281D");
+    //Setting ROOT_CTRL0 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
+    l_data64.clearBit<0>();  //PIB.ROOT_CTRL0.TPFSI_SBE_FENCE_VTLIO_DC_UNUSED = 0
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
+
+    //Getting ROOT_CTRL3 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL3_SCOM,
+                            l_read)); //l_read = PIB.ROOT_CTRL3
+
+    l_read.setBit<27>();
+
+    FAPI_DBG("Set osc_ok latch active");
+    //Setting ROOT_CTRL3 register value
+    //PIB.ROOT_CTRL3 = l_read
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_SCOM, l_read));
+
+    FAPI_DBG("Turn on oscilate pgood");
+    //Setting ROOT_CTRL6 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL6_SCOM, l_data64));
+    //PIB.ROOT_CTRL6.TPFSI_OSCSW1_PGOOD = 1
+    l_data64.setBit<PERV_ROOT_CTRL6_SET_TPFSI_OSCSW1_PGOOD>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL6_SCOM, l_data64));
+
+    //Getting ROOT_CTRL3 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL3_SCOM,
+                            l_read)); //l_read = PIB.ROOT_CTRL3
+
+    l_read.clearBit<17>();
+
+    FAPI_DBG("turn off use_osc_1_0");
+    //Setting ROOT_CTRL3 register value
+    //PIB.ROOT_CTRL3 = l_read
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_SCOM, l_read));
+
+    FAPI_DBG("Mask OSC err");
+    //Setting OSCERR_MASK register value
+    //PIB.OSCERR_MASK = OSC_ERROR_MASK
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_MASK, OSC_ERROR_MASK));
+
+    FAPI_DBG("reset osc-error_reg");
+    //Setting OSCERR_HOLD register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OSCERR_HOLD, l_data64));
+    l_data64.clearBit<4, 4>();  //PERV.OSCERR_HOLD.OSCERR_MEM = 0000
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_HOLD, l_data64));
+
+    FAPI_DBG("Rests FIR");
+    //Setting LOCAL_FIR register value
+    l_data64.flush<1>();
+    l_data64.clearBit<35>();  //PERV.LOCAL_FIR.FIR_IN35 = 0
+    l_data64.clearBit<36>();  //PERV.LOCAL_FIR.FIR_IN36 = 0
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_AND, l_data64));
+
+#ifndef SIM_ONLY_OSC_SWC_CHK
+
+    FAPI_DBG("check for OSC ok");
+    //Getting SNS1LTH register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM,
+                            l_read)); //l_read = PIB.SNS1LTH
+
+    FAPI_ASSERT(l_read.getBit<21>() == 0 && l_read.getBit<28>() == 1,
+                fapi2::MF_OSC_NOT_TOGGLE()
+                .set_READ_SNS1LTH(l_read),
+                "MF oscillator not toggling");
+
+    FAPI_DBG("Osc error active");
+    //Getting OSCERR_HOLD register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OSCERR_HOLD,
+                            l_read)); //l_read = PERV.OSCERR_HOLD
+
+    FAPI_ASSERT(l_read.getBit<4>() == 0,
+                fapi2::MF_OSC_ERR()
+                .set_READ_OSCERR_HOLD(l_read),
+                "MF oscillator error active");
+
+#endif
+
     FAPI_INF("Exiting ...");
 
 fapi_try_exit:
@@ -197,7 +330,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
     l_attr_pg.invert();
     l_attr_pg.extractToRight<20, 11>(l_attr_pg_data);
 
-    FAPI_INF("Drop partial good fences");
+    FAPI_DBG("Drop partial good fences");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>
