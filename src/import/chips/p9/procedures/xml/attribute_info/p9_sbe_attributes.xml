@@ -626,7 +626,7 @@
            <name>ATTR_RUNN_MODE</name>
            <value>0x0</value>
   </entry>
-  <!-- See chip_attributes.xml for a description of ATTR_EC -->
+   <!-- See chip_attributes.xml for a description of ATTR_EC -->
   <entry>
            <name>ATTR_EC</name>
            <!-- The value needs to be changed as per the EC level  -->
@@ -647,4 +647,16 @@ attribute tank
            <virtual/>
   </entry>
 -->
+  <entry>
+           <name>ATTR_SS_FILTER_BYPASS</name>
+           <value>0x0</value>
+  </entry>
+  <entry>
+           <name>ATTR_CP_FILTER_BYPASS</name>
+           <value>0x0</value>
+  </entry>
+  <entry>
+           <name>ATTR_IO_FILTER_BYPASS</name>
+           <value>0x0</value>
+  </entry>
 </entries>
