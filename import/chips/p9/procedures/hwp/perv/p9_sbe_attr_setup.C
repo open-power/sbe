@@ -35,7 +35,6 @@
 
 #include <p9_perv_scom_addresses.H>
 
-
 fapi2::ReturnCode p9_sbe_attr_setup(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -48,6 +47,8 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     fapi2::buffer<uint32_t> l_read_5 = 0;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::buffer<uint64_t> l_data64;
+    bool sbe_slave_chip = false;
+    fapi2::buffer<uint64_t> l_read_device_reg = 0;
     FAPI_INF("Entering ...");
 
     FAPI_DBG("Read Scratch8 for validity of Scratch register");
@@ -178,17 +179,30 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_6_SCOM,
                                     l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_6
 
-            l_read_1.writeBit<7>(l_read_scratch_reg.getBit<24>());
+            sbe_slave_chip = l_read_scratch_reg.getBit<24>();
+
+            if ( sbe_slave_chip )  // 0b1 == slave
+            {
+                l_read_1.writeBit<7>(l_read_scratch_reg.flipBit<24>());
+            }
+            else  // 0b0 == master
+            {
+                FAPI_DBG("Reading DEVIVE_ID_REG value");
+                FAPI_TRY(fapi2::getScom(i_target_chip, PERV_DEVICE_ID_REG, l_read_device_reg));
+                l_read_1.writeBit<7>(l_read_device_reg.flipBit<40>());
+            }
+
             l_read_scratch_reg.extractToRight<26, 3>(l_read_2);
             l_read_scratch_reg.extractToRight<29, 3>(l_read_3);
 
-            FAPI_DBG("Settuing up MASTER_CHIP, FABRIC_GROUP_ID and CHIP_ID");
+            FAPI_DBG("Setting up MASTER_CHIP, FABRIC_GROUP_ID and CHIP_ID");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_SBE_MASTER_CHIP, i_target_chip,
                                    l_read_1));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, i_target_chip,
                                    l_read_2));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, i_target_chip,
                                    l_read_3));
+
         }
     }
 
