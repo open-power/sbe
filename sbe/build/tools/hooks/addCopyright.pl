@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: tools/hookScripts/verify-commit $
+# $Source: sbe/build/tools/addCopyright.pl $
 #
 # OpenPOWER sbe Project
 #

@@ -30,7 +30,7 @@
 #
 
 export WORKSPACE_DIR=`pwd`
-export ADDCOPYRIGHT=${WORKSPACE_DIR}/tools/hookScripts/addCopyright.pl
+export ADDCOPYRIGHT=${WORKSPACE_DIR}/sbe/build/tools/hooks/addCopyright.pl
 
 ##  run git show to get a list of checked in files
 CHECKINFILES=`git show --pretty=format: --name-only -n1 | tr '\n' ' '`
