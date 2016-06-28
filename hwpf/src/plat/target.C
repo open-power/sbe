@@ -356,13 +356,13 @@ fapi_try_exit:
         }
 
         /*
-         * Memory Controller Synchronous (MCS) Targets
+         * Memory Controller Synchronous (MCBIST) Targets
          */
 
-        l_beginning_offset = MCS_TARGET_OFFSET;
-        for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
+        l_beginning_offset = MCBIST_TARGET_OFFSET;
+        for (uint32_t i = 0; i < MCBIST_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_MCS> target_name((fapi2::plat_target_handle_t)i);
+            fapi2::Target<fapi2::TARGET_TYPE_MCBIST> target_name((fapi2::plat_target_handle_t)i);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
@@ -439,6 +439,28 @@ fapi_try_exit:
 
             G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
         }
+
+        /*
+         * MCS Targets
+         */
+
+        l_beginning_offset = MCS_TARGET_OFFSET;
+        for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_MCS> target_name((fapi2::plat_target_handle_t)i);
+
+            // Check if both the MCBIST as well as the NEST chiplets for the MCS
+            // are present and functional
+            if((G_vec_targets.at(MCBIST_TARGET_OFFSET + (i / MCS_PER_MCBIST))).fields.present &&
+               (plat_getTargetHandleByChipletNumber(N3_CHIPLET - (MCS_PER_MCBIST * (i / MCS_PER_MCBIST)))).fields.present)
+            {
+                target_name.setPresent();
+                target_name.setFunctional(true);
+            }
+
+            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
+        }
+
 
 fapi_try_exit:
         return fapi2::current_err;
