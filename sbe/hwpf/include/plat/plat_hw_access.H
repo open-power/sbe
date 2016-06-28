@@ -91,7 +91,8 @@ asm volatile \
      static_assert( K == TARGET_TYPE_NONE, \
                   "modifyCfamRegister is not supported by PPE platforms")
 
-
+namespace fapi2 
+{
     // This function loads the scan region data for the given ring address and
     // updates the check word data
     // @param[in] : ring addtress
@@ -119,7 +120,7 @@ asm volatile \
     // @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     fapi2::ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
                                         const fapi2::RingMode i_ringMode);
-
+}
 
 
 #endif // PLATHWACCESS_H_

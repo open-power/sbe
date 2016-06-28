@@ -39,6 +39,7 @@
 #include "sbecmdringaccess.H"
 #include "sbecmdsram.H"
 #include "sbecmdcntlinst.H"
+#include "sbecmdringaccess.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 #include "sbeHostMsg.H"
@@ -158,6 +159,18 @@ static sbeCmdStruct_t g_sbeRegAccessCmdArray [] =
 };
 
 //////////////////////////////////////////////////////////////
+// @brief g_sbeRingAccessCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeRingAccessCmdArray [] =
+{
+    {sbeGetRing,
+     SBE_CMD_GETRING,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+};
+
+//////////////////////////////////////////////////////////////
 // @brief g_sbeCoreStateControlCmdArray
 //
 //////////////////////////////////////////////////////////////
@@ -229,6 +242,12 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             l_numCmds = sizeof(g_sbeRegAccessCmdArray) /
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbeRegAccessCmdArray;
+            break;
+
+        case SBE_CMD_CLASS_RING_ACCESS:
+            l_numCmds = sizeof(g_sbeRingAccessCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbeRingAccessCmdArray;
             break;
 
         // PSU Commands

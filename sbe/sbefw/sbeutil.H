@@ -31,6 +31,13 @@
 #define MASK_ZERO_H32B_UINT64(x)    ((x) & 0x00000000FFFFFFFF)
 #define SHIFT_RIGHT(x, bits)        ((x) >> bits)
 
+// Macros Defined for Internal RC Check, Break if Error
+#define CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc) \
+if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
+{ \
+    break; \
+} \
+
 namespace SBE
 {
 
@@ -60,5 +67,6 @@ namespace SBE
     {
         return (uint32_t)(MASK_ZERO_H32B_UINT64(i_lWord));
     }
+
 } // namespace SBE
 #endif //SBE_UTIL_H
