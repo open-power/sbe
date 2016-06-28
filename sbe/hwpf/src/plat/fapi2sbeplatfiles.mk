@@ -41,7 +41,7 @@
 # Object Files
 ##########################################################################
 
-FAPI2PLAT-CPP-SOURCES += plat_ring_traverse.C
+#FAPI2PLAT-CPP-SOURCES += plat_ring_traverse.C
 FAPI2PLAT-CPP-SOURCES += plat_hw_access.C
 
 FAPI2PLAT-C-SOURCES =

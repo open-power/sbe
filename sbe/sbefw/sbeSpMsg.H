@@ -319,7 +319,7 @@ typedef struct
 {
     uint32_t coreChipletId:8; //Pervasive Core Chiplet Id for PBA
     uint32_t eccByte:8;       //Ecc Override Byte from user
-    uint32_t flags:16;        //Operational Flags -refer enum sbeMemoryAccessFlags 
+    uint32_t flags:16;        //Operational Flags -refer enum sbeMemoryAccessFlags
     uint32_t addrHi;          //Higher 32-Bit Memory Address
     uint32_t addrLo;          //Lower  32-Bit Memory Address
     uint32_t len;             //Length of Data in Bytes
@@ -574,6 +574,18 @@ typedef struct
         }
     }
 }sbeCntlInstRegMsgHdr_t;
+
+/**
+ * @brief Get Ring access message header
+ */
+typedef struct
+{
+    uint32_t ringAddr;
+    uint32_t ringLenInBits;
+    uint32_t reserved:16;
+    uint32_t ringMode:16;
+}sbeGetRingAccessMsgHdr_t;
+
 /**
   * @brief Reg access message header
   */

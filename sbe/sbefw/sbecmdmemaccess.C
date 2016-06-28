@@ -34,6 +34,7 @@
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
+#include "sbeutil.H"
 
 #include "fapi2.H"
 
@@ -89,13 +90,6 @@ static const uint32_t CACHE_INHIBIT_MODE_SHIFT    = 29;
 
 // Fast Mode bit shift for PBA
 static const uint32_t PBA_FAST_MODE_SHIFT         = 31;
-
-// Macros Defined for Internal RC Check, Break if Error
-#define checkSbeRC(l_rc) \
-if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
-{ \
-    break; \
-} \
 
 ///////////////////////////////////////////////////////////////////////
 // @brief align4ByteWordLength - Internal Method to this file
@@ -375,7 +369,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
                         (uint32_t *)&l_dataFifo,
                         false);
-                checkSbeRC(l_rc);
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
             // Call PBA access
             l_fapiRc = p9_pba_access(
@@ -405,7 +399,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 // Number of 4Bytes to put, to align with Granule Size
                 uint32_t l_len = l_sizeMultiplier; // l_len*4 = Granule Size
                 l_rc = sbeDownFifoEnq_mult (l_len, (uint32_t *)&l_dataFifo);
-                checkSbeRC(l_rc);
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
             l_granulesCompleted++;
             l_numCurrAcc++;
@@ -424,13 +418,13 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     {
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
-        checkSbeRC(l_rc);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         // If there was a HWP failure for putmem request,
         // need to Flush out upstream FIFO, until EOT arrives
         if (!i_isFlagRead)
         {
             l_rc = flushUpstreamFifo(l_fapiRc);
-            checkSbeRC(l_rc);
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
 
         // first enqueue the length of data actually written
@@ -439,7 +433,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
         SBE_DEBUG(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
         l_rc = sbeDownFifoEnq_mult ( l_len, &l_respLen );
-        checkSbeRC(l_rc);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
         l_rc = sbeDsSendRespHdr( l_respHdr, l_ffdc);
     } while(false);
@@ -579,7 +573,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
                         (uint32_t *)&l_dataFifo,
                         false);
-                checkSbeRC(l_rc);
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
                 // Insert the ECC if ECC Mode is set
                 if(l_isEccMode)
@@ -664,7 +658,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 if(l_len)
                 {
                     l_rc = sbeDownFifoEnq_mult (l_len, (uint32_t *)&l_dataFifo);
-                    checkSbeRC(l_rc);
+                    CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
                 }
             }
             l_granulesCompleted++;
@@ -685,13 +679,13 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     {
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
-        checkSbeRC(l_rc);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         // If there was a HWP failure for putmem request,
         // need to Flush out upstream FIFO, until EOT arrives
         if (!i_isFlagRead)
         {
             l_rc = flushUpstreamFifo(l_fapiRc);
-            checkSbeRC(l_rc);
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
 
         // first enqueue the length of data actually written
@@ -703,7 +697,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
         SBE_DEBUG(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
         l_rc = sbeDownFifoEnq_mult ( l_len, &l_respLen );
-        checkSbeRC(l_rc);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
         l_rc = sbeDsSendRespHdr( l_respHdr, l_ffdc);
     } while(false);
