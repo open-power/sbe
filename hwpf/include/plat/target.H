@@ -47,6 +47,8 @@ static const uint8_t CORES_PER_QUAD = 4;
 static const uint8_t EX_PER_QUAD = 2;
 static const uint8_t CORES_PER_EX = 2;
 static const uint8_t N3_CHIPLET = 5;
+static const uint8_t MCS_PER_MCBIST = 2;
+
 struct ScomAddr
 {
     ScomAddr(uint32_t i_addr) : iv_addr(i_addr)
@@ -128,11 +130,17 @@ namespace fapi2
             this->iv_handle.fields.type = TARGET_TYPE_EX;
             this->iv_handle.fields.type_target_num = l_plat_argument;
         }
-        else if(K & TARGET_TYPE_MCS)
+        else if(K & TARGET_TYPE_MCBIST)
         {
 
-            this->iv_handle.fields.chiplet_num = l_plat_argument + MCS_CHIPLET_OFFSET;
-            this->iv_handle.fields.type = TARGET_TYPE_MCS | TARGET_TYPE_PERV;
+            this->iv_handle.fields.chiplet_num = l_plat_argument + MCBIST_CHIPLET_OFFSET;
+            this->iv_handle.fields.type = TARGET_TYPE_MCBIST | TARGET_TYPE_PERV;
+            this->iv_handle.fields.type_target_num = l_plat_argument;
+        }
+        else if(K & TARGET_TYPE_MCS)
+        {
+            this->iv_handle.fields.chiplet_num = N3_CHIPLET - (MCS_PER_MCBIST * (l_plat_argument / MCS_PER_MCBIST));
+            this->iv_handle.fields.type = TARGET_TYPE_MCS;
             this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K == TARGET_TYPE_ALL)
@@ -199,7 +207,7 @@ namespace fapi2
     {
         static_assert(((K == TARGET_TYPE_EQ) ||
                        (K == TARGET_TYPE_CORE) ||
-                       (K == TARGET_TYPE_MCS) ||
+                       (K == TARGET_TYPE_MCBIST) ||
                        (K == TARGET_TYPE_PERV) ||
                        (K == TARGET_TYPE_EX)) &&
                       ((T == TARGET_TYPE_EQ) ||
@@ -214,10 +222,10 @@ namespace fapi2
                         "Invalid parent for EQ target, must be PERV or "
                         "PROC_CHIP");
 
-        static_assert(!((K == TARGET_TYPE_MCS) &&
+        static_assert(!((K == TARGET_TYPE_MCBIST) &&
                         (T != TARGET_TYPE_PERV) &&
                         (T != TARGET_TYPE_PROC_CHIP)),
-                        "Invalid parent for MCS target, must be PERV or "
+                        "Invalid parent for MCBIST target, must be PERV or "
                         "PROC_CHIP");
 
         static_assert(!((K == TARGET_TYPE_CORE) &&
@@ -240,11 +248,11 @@ namespace fapi2
                         "Invalid parent for EX target, must be PERV or "
                         "PROC_CHIP or EQ");
 
-        if(TARGET_TYPE_PERV == T) // EQ/EC/MCS/PERV ===> PERV
+        if(TARGET_TYPE_PERV == T) // EQ/EC/MCBIST/PERV ===> PERV
         {
             return this->iv_handle;
         }
-        if(TARGET_TYPE_PROC_CHIP == T) // EQ/EC/EX/MCS/PERV ===> PROC
+        if(TARGET_TYPE_PROC_CHIP == T) // EQ/EC/EX/MCBIST/PERV ===> PROC
         {
             return G_vec_targets[CHIP_TARGET_OFFSET];
         }
@@ -396,7 +404,7 @@ namespace fapi2
     {
         static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
         static_assert((T == TARGET_TYPE_EQ) || (T == TARGET_TYPE_CORE)
-                || (T == TARGET_TYPE_PERV) || (T == TARGET_TYPE_MCS),
+                || (T == TARGET_TYPE_PERV) || (T == TARGET_TYPE_MCBIST),
                 "Child target type must be a pervasive chiplet");
 
         std::vector<Target<T> > l_children;
@@ -524,7 +532,7 @@ namespace fapi2
                                         const uint32_t i_addr)
     {
         ScomAddr l_addr = i_addr;
-        l_addr.iv_chiplet = N3_CHIPLET - (2 * (i_target.getTargetNumber() / 2));
+        l_addr.iv_chiplet = i_target.getChipletNumber();
         l_addr.iv_satId = (2 * (i_target.getTargetNumber() % 2));
         return l_addr;
     }

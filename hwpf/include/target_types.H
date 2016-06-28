@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: $                                                             */
+/* $Source: hwpf/include/target_types.H $                                 */
 /*                                                                        */
-/* OpenPOWER HostBoot Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2014                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -55,7 +55,8 @@ namespace fapi2
         TARGET_TYPE_PERV              = 0x20,  ///< Pervasive type
         TARGET_TYPE_MCAST             = 0x40,  ///< Multicast type
         TARGET_TYPE_MI                = 0x80,  ///< MI type
-        TARGET_TYPE_SYSTEM            = 0x100, ///< System type
+        TARGET_TYPE_MCBIST            = 0x100, ///< MCBIST type
+        TARGET_TYPE_SYSTEM            = 0x400, ///< System type
         TARGET_TYPE_ALL               = 0xFFF, ///< Any/All types
 
         // The following are actually illegal targets on PPE platforms
