@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: tools/hookScripts/setupgithooks.sh $
+# $Source: sbe/build/tools/hooks/setupgithooks.sh $
 #
 # OpenPOWER sbe Project
 #

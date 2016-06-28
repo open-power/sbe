@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: tools/hookScripts/post-commit $
+# $Source: sbe/build/tools/hooks/pre-commit $
 #
 # OpenPOWER sbe Project
 #
@@ -29,5 +29,13 @@
 # suit the PPE environment.
 
 if [ -z $MIRROR ]; then
-    $TOOLSDIR/verify-commit
+    if [ -f $TOOLSDIR/pre-commit-actions ]; then
+        $TOOLSDIR/pre-commit-actions
+    # Legacy support for older releases
+    elif [ -f $TOOLSDIR/pre-commit-prologs ]; then
+        $TOOLSDIR/pre-commit-prologs
+    else
+        echo "Missing pre-commit files"
+        exit -1
+    fi
 fi
