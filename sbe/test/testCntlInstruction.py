@@ -1,3 +1,27 @@
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: sbe/test/testCntlInstruction.py $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
@@ -232,24 +256,21 @@ INST_EXPDATA_ERR = [0xc0,0xde,0xa7,0x01,
 
 STOP_INST_EXPDATA_ERR_WTH_FFDC = [0xc0,0xde,0xa7,0x01,
                                   0x00,0xFE,0x00,0x0A,
-                                  0xFF,0xDC,0x00,0x03,
-                                  0x00,0x00,0x00,0x00,
+                                  0xFF,0xDC,0x00,0x02,
                                   0x00,0xCE,0xBC,0xB2,
-                                  0x00,0x00,0x00,0x06]
+                                  0x00,0x00,0x00,0x05]
 
 START_INST_EXPDATA_ERR_WTH_FFDC = [0xc0,0xde,0xa7,0x01,
                                   0x00,0xFE,0x00,0x0A,
-                                  0xFF,0xDC,0x00,0x03,
-                                  0x00,0x00,0x00,0x00,
+                                  0xFF,0xDC,0x00,0x02,
                                   0x00,0x25,0x64,0xDB,
-                                  0x00,0x00,0x00,0x06]
+                                  0x00,0x00,0x00,0x05]
 
 STEP_INST_EXPDATA_ERR_WTH_FFDC = [0xc0,0xde,0xa7,0x01,
                                   0x00,0xFE,0x00,0x0A,
-                                  0xFF,0xDC,0x00,0x03,
-                                  0x00,0x00,0x00,0x00,
+                                  0xFF,0xDC,0x00,0x02,
                                   0x00,0x0D,0x06,0x8E,
-                                  0x00,0x00,0x00,0x06]
+                                  0x00,0x00,0x00,0x05]
 
 # MAIN Test Run Starts Here...
 #-------------------------------------------------

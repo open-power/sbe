@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sbeSpMsg.H $                                        */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
  * @file: ppe/sbe/sbefw/sbeSpMsg.H
  *
@@ -124,8 +148,7 @@ typedef struct sbeResponseFfdc
 {
     uint32_t magicBytes:16;
     uint32_t lenInWords:16;  // length in word( 4 byte )
-    uint32_t hiFapiRc; // Unused since FAPI RC is 32 bit on the SBE
-    uint32_t lowFapiRc;
+    uint32_t fapiRc;
 
     /**
       * @brief set rc
@@ -136,7 +159,7 @@ typedef struct sbeResponseFfdc
       */
     void setRc(const uint32_t i_rc)
     {
-        lowFapiRc = i_rc;
+        fapiRc = i_rc;
     }
 
     /**
@@ -146,7 +169,7 @@ typedef struct sbeResponseFfdc
       */
     uint32_t getRc() const
     {
-        return lowFapiRc;
+        return fapiRc;
     }
 
     /**
@@ -162,10 +185,9 @@ typedef struct sbeResponseFfdc
         //TODO via 129076.
         //Need to change value for length once FFDC design is final.
         lenInWords  = ( sizeof(uint32_t )    // For magicBytes + lenInWords
-                        + sizeof(lowFapiRc) + sizeof(hiFapiRc) )
+                        + sizeof(fapiRc))
                            / sizeof(uint32_t);
-        lowFapiRc = 0;
-        hiFapiRc = 0;
+        fapiRc = 0;
     }
 }sbeResponseFfdc_t;
 
