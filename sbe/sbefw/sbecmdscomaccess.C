@@ -33,6 +33,8 @@
 #include "sbefifo.H"
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
+#include "sbescom.H"
+#include "sbeutil.H"
 #include "sbeFifoMsgUtils.H"
 
 
@@ -70,20 +72,21 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
         uint32_t l_len2enqueue  = 0;
         uint32_t l_index = 0;
 
-        // @TODO via RTC : 126140
-        //       Support Indirect SCOM
-        // For Direct SCOM, will ignore Bit 0-31
-
+        uint64_t l_addr = ( (uint64_t)l_getScomReqMsg.hiAddr << 32) |
+                                      l_getScomReqMsg.lowAddr;
         uint64_t l_scomData = 0;
-        SBE_DEBUG(SBE_FUNC"scomAddrLow[0x%08X]", l_getScomReqMsg.lowAddr);
-        l_pcbpibStatus = getscom_abs (l_getScomReqMsg.lowAddr, &l_scomData);
+        SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
+                            l_getScomReqMsg.hiAddr, l_getScomReqMsg.lowAddr);
+        l_rc = checkIndirectAndDoScom(true, l_addr,
+                                      l_scomData, l_pcbpibStatus);
 
-        if (l_pcbpibStatus != SBE_PCB_PIB_ERROR_NONE) // scom failed
+        if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
         {
             SBE_ERROR(SBE_FUNC"getscom failed, l_pcbpibStatus[0x%08X], "
-                "scomAddr[0x%08X]", l_pcbpibStatus, l_getScomReqMsg.lowAddr);
+                "scomAddr[0x%08X%08X]", l_pcbpibStatus,
+                l_getScomReqMsg.hiAddr, l_getScomReqMsg.lowAddr);
             l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-            l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+            l_secStatus  = l_rc;
         }
         else // successful scom
         {
@@ -170,8 +173,6 @@ uint32_t sbePutScom (uint8_t *i_pArg)
         // successfully dequeued two entries for
         // scom address followed by the EOT entry
 
-        // @TODO via RTC : 126140
-        //       Support Indirect SCOM
         // Data entry 0 : Scom Register Address (0..31)
         // Data entry 1 : Scom Register Address (32..63)
         // Data entry 2 : Scom Register Data (0..31)
@@ -180,20 +181,26 @@ uint32_t sbePutScom (uint8_t *i_pArg)
 
         l_scomData = l_putScomReqMsg.getScomData();
 
-        l_pcbpibStatus = putscom_abs (l_putScomReqMsg.lowAddr, l_scomData);
+        uint64_t l_addr = ( (uint64_t)  l_putScomReqMsg.hiAddr << 32) |
+                                        l_putScomReqMsg.lowAddr;
+        SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
+                            l_putScomReqMsg.hiAddr, l_putScomReqMsg.lowAddr);
+        l_rc = checkIndirectAndDoScom(false, l_addr,
+                                      l_scomData, l_pcbpibStatus);
 
-        if (l_pcbpibStatus != SBE_PCB_PIB_ERROR_NONE) // scom failed
+        if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
         {
             SBE_ERROR(SBE_FUNC"putscom failed, l_pcbpibStatus[0x%08X]",
                             l_pcbpibStatus);
             SBE_ERROR(SBE_FUNC"putscom failure data, "
                           "scomAddr[0x%08X%08X], "
-                          "scomData[0x%016X]",
+                          "scomData[0x%08X%08X]",
                           l_putScomReqMsg.hiAddr,
                           l_putScomReqMsg.lowAddr,
-                          l_scomData);
+                          SBE::higher32BWord(l_scomData),
+                          SBE::lower32BWord(l_scomData));
             l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-            l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+            l_secStatus  = l_rc;
         }
 
         // Build the response header packet
@@ -238,9 +245,6 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
         uint16_t l_primStatus = g_sbeCmdRespHdr.prim_status;
         uint16_t l_secStatus  = g_sbeCmdRespHdr.sec_status ;
 
-        // @TODO via RTC : 128916
-        //       Use structures for payload entries
-
         // Will attempt to dequeue the following entries:
         // Entry 1 : Operation Mode
         // Entry 2 : Scom Register Address (0..31)
@@ -263,14 +267,13 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
         uint32_t l_pcbpibStatus = SBE_PCB_PIB_ERROR_NONE;
         uint32_t  l_len2enqueue  = 0;
 
-        // @TODO via RTC : 126140
-        //       Support Indirect SCOM
-
         // Modifying Data
         uint64_t l_modifyingData = l_modifyScomMsg.getModifyingData();
 
         SBE_DEBUG(SBE_FUNC"OpMode[0x%02X], modifyingData[0x%016X]",
-                    l_modifyScomMsg.opMode, l_modifyingData);
+                    l_modifyScomMsg.opMode,
+                    SBE::higher32BWord(l_modifyingData),
+                    SBE::lower32BWord(l_modifyingData));
 
         // The following steps need to be done as part of this command :
         //    1. Read Register Data (getscom)
@@ -291,17 +294,21 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                     break;
                 }
 
+                uint64_t l_addr = ( (uint64_t) l_modifyScomMsg.hiAddr << 32) |
+                                               l_modifyScomMsg.lowAddr;
                 uint64_t l_scomData = 0;
-                l_pcbpibStatus = getscom_abs (l_modifyScomMsg.lowAddr,
-                                              &l_scomData);
+                SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
+                              l_modifyScomMsg.hiAddr, l_modifyScomMsg.lowAddr);
+                l_rc = checkIndirectAndDoScom(true, l_addr,
+                                      l_scomData, l_pcbpibStatus);
 
-                if (l_pcbpibStatus != SBE_PCB_PIB_ERROR_NONE) // scom failed
+                if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
                 {
                     SBE_ERROR(SBE_FUNC"getscom failed, l_pcbpibStatus[0x%08X],"
-                        " ScomAddress[0x%08X%08X]", l_pcbpibStatus,
+                        " ScomAddress[0x%08X %08X]", l_pcbpibStatus,
                         l_modifyScomMsg.hiAddr, l_modifyScomMsg.lowAddr);
                     l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                    l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                    l_secStatus  = l_rc;
                     break;
                 }
 
@@ -319,17 +326,19 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                 }
 
                 // Write the modified data
-                l_pcbpibStatus = putscom_abs (l_modifyScomMsg.lowAddr,
-                                              l_modifyingData);
+                l_rc = checkIndirectAndDoScom(false, l_addr,
+                                      l_modifyingData, l_pcbpibStatus);
 
-                if (l_pcbpibStatus != SBE_PCB_PIB_ERROR_NONE) // scom failed
+                if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
                 {
                     SBE_ERROR(SBE_FUNC"putscom failed, l_pcbpibStatus[0x%08X],"
                         " ScomAddress[0x%08X%08X]", l_pcbpibStatus,
                         l_modifyScomMsg.hiAddr, l_modifyScomMsg.lowAddr);
-                    SBE_ERROR(SBE_FUNC"modifyingData[0x%016X]",l_modifyingData);
+                    SBE_ERROR(SBE_FUNC"modifyingData[0x%08X%08X]",
+                              SBE::higher32BWord(l_modifyingData),
+                              SBE::lower32BWord(l_modifyingData));
                     l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                    l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                    l_secStatus  = l_rc;
                     break;
                 }
         } while (false);
@@ -375,9 +384,6 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
         uint16_t l_primStatus = g_sbeCmdRespHdr.prim_status;
         uint16_t l_secStatus  = g_sbeCmdRespHdr.sec_status ;
 
-        // @TODO via RTC : 128916
-        //       Use structures for payload entries
-
         // Will attempt to dequeue the following entries:
         // Entry 1 : Scom Register Address (0..31)
         // Entry 2 : Scom Register Address (32..63)
@@ -402,10 +408,6 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
         uint32_t l_pcbpibStatus = SBE_PCB_PIB_ERROR_NONE;
         uint32_t  l_len2enqueue  = 0;
 
-        // @TODO via RTC : 126140
-        //       Support Indirect SCOM
-        // For Direct SCOM, will ignore entry 1
-
         SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X],"
                      "modifyingData[0x%08X%08X]",
                       l_putScomUmaskMsg.hiAddr,
@@ -423,18 +425,21 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
         {
             uint64_t l_scomData = 0;
 
-            l_pcbpibStatus = getscom_abs (l_putScomUmaskMsg.lowAddr,
-                                          &l_scomData);
-            if (l_pcbpibStatus == SBE_PCB_PIB_ERROR_NONE) // getscom succeeded
+            uint64_t l_addr = ( (uint64_t) l_putScomUmaskMsg.hiAddr << 32) |
+                                           l_putScomUmaskMsg.lowAddr;
+            l_rc = checkIndirectAndDoScom(true, l_addr,
+                                          l_scomData, l_pcbpibStatus);
+
+            if (l_rc == SBE_SEC_OPERATION_SUCCESSFUL) // scom success
             {
                 l_putScomUmaskMsg.getScomData(l_scomData);
 
                 // Write the modified data
-                l_pcbpibStatus = putscom_abs (l_putScomUmaskMsg.lowAddr,
-                                              l_scomData);
+                l_rc = checkIndirectAndDoScom(false, l_addr,
+                                          l_scomData, l_pcbpibStatus);
             }
 
-            if (l_pcbpibStatus != SBE_PCB_PIB_ERROR_NONE) // scom failed
+            if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
             {
                 SBE_ERROR(SBE_FUNC"scom failed, l_pcbpibStatus[0x%08X], "
                     "ScomAddress[0x%08X%08X]", l_pcbpibStatus,
@@ -448,7 +453,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
                     l_putScomUmaskMsg.lowMaskData);
 
                 l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                l_secStatus  = l_rc;
                 break;
             }
         } while (false);
