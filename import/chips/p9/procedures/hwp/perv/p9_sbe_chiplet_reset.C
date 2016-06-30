@@ -95,7 +95,8 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_async_reset_setup(
 static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup(const
         fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
         const uint64_t i_mc_grp1_val,
-        const uint64_t i_mc_grp2_val = 0x0);
+        const uint64_t i_mc_grp2_val = 0x0,
+        const uint64_t i_mc_grp3_val = 0x0);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup_cache(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
@@ -150,7 +151,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         // Configuring chiplet multicasting registers.
         FAPI_DBG("Configuring multicasting registers for Nest,Xb,Obus,pcie chiplets" );
         FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
-                                               p9SbeChipletReset::MCGR0_CNFG_SETTINGS));
+                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -158,8 +159,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     {
         FAPI_DBG("Configuring multicast registers for MC01,MC23");
         FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
-                                               p9SbeChipletReset::MCGR0_CNFG_SETTINGS,
-                                               p9SbeChipletReset::MCGR2_CNFG_SETTINGS));
+                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0,
+                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP2));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -176,8 +177,9 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         // Configuring chiplet multicasting registers..
         FAPI_DBG("Configuring core chiplet multicasting registers");
         FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
-                                               p9SbeChipletReset::MCGR0_CNFG_SETTINGS,
-                                               p9SbeChipletReset::MCGR1_CNFG_SETTINGS));
+                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0,
+                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP1,
+                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP3));
     }
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -875,21 +877,30 @@ fapi_try_exit:
 static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup(const
         fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
         const uint64_t i_mc_grp1_val,
-        const uint64_t i_mc_grp2_val)
+        const uint64_t i_mc_grp2_val,
+        const uint64_t i_mc_grp3_val)
 {
     FAPI_INF("Entering ...");
 
     //Setting MULTICAST_GROUP_1 register value
-    //MULTICAST_GROUP_1 = i_mc_grp1_val
+    //MULTICAST_GROUP_1 (register) = i_mc_grp1_val
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_1,
                             i_mc_grp1_val));
 
     //Setting MULTICAST_GROUP_2 register value
     if (i_mc_grp2_val != 0x0)
     {
-        //MULTICAST_GROUP_2 = (i_mc_grp2_val != 0x0) ? i_mc_grp2_val
+        //MULTICAST_GROUP_2 (register) = (i_mc_grp2_val != 0x0) ? i_mc_grp2_val
         FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_2,
                                 i_mc_grp2_val));
+    }
+
+    //Setting MULTICAST_GROUP_3 register value
+    if (i_mc_grp3_val != 0x0)
+    {
+        //MULTICAST_GROUP_REGISTER_3 = (i_mc_grp3_val != 0x0) ? i_mc_grp3_val
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_3,
+                                i_mc_grp3_val));
     }
 
     FAPI_INF("Exiting ...");
@@ -914,30 +925,30 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup_cache(
 
     FAPI_DBG("Setting Multicast register 1&2 for cache chiplet");
     //Setting MULTICAST_GROUP_1 register value
-    //MULTICAST_GROUP_1 = p9SbeChipletReset::MCGR0_CNFG_SETTINGS
+    //MULTICAST_GROUP_1 (register) = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_1,
-                            p9SbeChipletReset::MCGR0_CNFG_SETTINGS));
+                            p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0));
     //Setting MULTICAST_GROUP_2 register value
-    //MULTICAST_GROUP_2 = p9SbeChipletReset::MCGR2_CACHE_CNFG_SETTINGS
+    //MULTICAST_GROUP_2 (register) = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP4
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_2,
-                            p9SbeChipletReset::MCGR2_CACHE_CNFG_SETTINGS));
+                            p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP4));
 
     if ( ( l_attr_pg & 0x1EBA ) == 0x0 ) // Check good EP chiplet clockdomains excluding l31, l21, refr1
     {
         FAPI_DBG("Setting up multicast register 3 for even cache chiplet");
         //Setting MULTICAST_GROUP_3 register value
-        //MULTICAST_GROUP_3 = p9SbeChipletReset::MCGR3_CACHE_CNFG_SETTINGS
+        //MULTICAST_GROUP_3 (register) = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP5
         FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_3,
-                                p9SbeChipletReset::MCGR3_CACHE_CNFG_SETTINGS));
+                                p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP5));
     }
 
     if ( ( l_attr_pg & 0x1D76 ) == 0x0 ) // Check good EP chiplet clockdomains excluding l30, l20, refr0
     {
         FAPI_DBG("Setting up multicast register 4 for odd cache chiplet");
         //Setting MULTICAST_GROUP_4 register value
-        //MULTICAST_GROUP_4 = p9SbeChipletReset::MCGR4_CACHE_CNFG_SETTINGS
+        //MULTICAST_GROUP_4 (register) = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP6
         FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_MULTICAST_GROUP_4,
-                                p9SbeChipletReset::MCGR4_CACHE_CNFG_SETTINGS));
+                                p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP6));
     }
 
     FAPI_INF("Exiting ...");
