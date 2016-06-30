@@ -72,7 +72,7 @@ fapi2::ReturnCode p9_sbe_tp_arrayinit(const
 
     FAPI_INF("Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SDISN_SETUP, i_target_chip, l_attr_read));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SDISN_SETUP, i_target_chip, l_attr_read));
 
     FAPI_DBG("Exclude PIBMEM from TP array init");
     //Setting PIBMEM_REPAIR_REGISTER_0 register value

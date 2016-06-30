@@ -87,7 +87,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     fapi2::buffer<uint16_t> l_n3_ccstatus_regions;
     FAPI_INF("Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_N3_FLUSH_MODE, i_target_chip,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_N3_FLUSH_MODE, i_target_chip,
                            l_read_flush_attr));
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
