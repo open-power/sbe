@@ -67,7 +67,7 @@ fapi2::ReturnCode p9_sbe_arrayinit(const
     fapi2::buffer<uint8_t> l_attr_read;
     FAPI_INF("Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SDISN_SETUP, i_target_chip, l_attr_read));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SDISN_SETUP, i_target_chip, l_attr_read));
 
     for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
