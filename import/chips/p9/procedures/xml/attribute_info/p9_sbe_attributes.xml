@@ -586,10 +586,6 @@
   	<value>0x00000FFF</value>
   </entry>
   <entry>
-           <name>ATTR_SDISN_SETUP</name>
-           <value>0x1</value>
-  </entry>
-  <entry>
            <name>ATTR_SECURITY_MODE</name>
            <value>0x0</value>
   </entry>
@@ -600,18 +596,7 @@
            <name>ATTR_PFET_OFF_CONTROLS</name>
   </entry>
   <entry>
-           <name>ATTR_N3_FLUSH_MODE</name>
-           <value>0x1</value>
-  </entry>
-  <entry>
-           <name>ATTR_VITL_CLK_SETUP</name>
-           <value>0x1</value>
-  </entry>
-  <entry>
            <name>ATTR_OBUS_RATIO_VALUE</name>
-  </entry>
-  <entry>
-           <name>ATTR_FSI_GP_SHADOWS_OVERWRITE</name>
   </entry>
   <entry>
            <name>ATTR_ECID</name>
@@ -620,11 +605,23 @@
            <name>ATTR_RUNN_MODE</name>
            <value>0x0</value>
   </entry>
+  <entry>
+           <name>ATTR_SS_FILTER_BYPASS</name>
+           <value>0x0</value>
+  </entry>
+  <entry>
+           <name>ATTR_CP_FILTER_BYPASS</name>
+           <value>0x0</value>
+  </entry>
+  <entry>
+           <name>ATTR_IO_FILTER_BYPASS</name>
+           <value>0x0</value>
+  </entry>
    <!-- See chip_attributes.xml for a description of ATTR_EC -->
   <entry>
            <name>ATTR_EC</name>
            <!-- The value needs to be changed as per the EC level  -->
-           <value>0x00</value>
+           <value>0x10</value>
   </entry>
   <!-- See chip_attributes.xml for a description of ATTR_NAME -->
   <entry>
@@ -641,16 +638,22 @@ attribute tank
            <virtual/>
   </entry>
 -->
+
+<!-- Pervasive EC attributes -->
   <entry>
-           <name>ATTR_SS_FILTER_BYPASS</name>
-           <value>0x0</value>
+           <name>ATTR_CHIP_EC_FEATURE_FSI_GP_SHADOWS_OVERWRITE</name>
+           <virtual/>
   </entry>
   <entry>
-           <name>ATTR_CP_FILTER_BYPASS</name>
-           <value>0x0</value>
+           <name>ATTR_CHIP_EC_FEATURE_N3_FLUSH_MODE</name>
+           <virtual/>
   </entry>
   <entry>
-           <name>ATTR_IO_FILTER_BYPASS</name>
-           <value>0x0</value>
+           <name>ATTR_CHIP_EC_FEATURE_VITL_CLK_SETUP</name>
+            <virtual/>
+  </entry>
+  <entry>
+           <name>ATTR_CHIP_EC_FEATURE_SDISN_SETUP</name>
+           <virtual/>
   </entry>
 </entries>

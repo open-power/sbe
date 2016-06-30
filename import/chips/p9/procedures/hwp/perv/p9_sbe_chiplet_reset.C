@@ -139,7 +139,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     fapi2::TargetState l_target_state = fapi2::TARGET_STATE_FUNCTIONAL;
     FAPI_INF("Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_VITL_CLK_SETUP, i_target_chip,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_VITL_CLK_SETUP, i_target_chip,
                            l_attr_vitl_setup));
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
