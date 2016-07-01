@@ -38,6 +38,7 @@
 // Includes
 //------------------------------------------------------------------------------
 
+#include <p9_ringId.H>
 #include "p9_hcd_cache_dpll_initf.H"
 
 //------------------------------------------------------------------------------
@@ -57,7 +58,7 @@ p9_hcd_cache_dpll_initf(
 #ifndef P9_HCD_STOP_SKIP_SCAN
 
     FAPI_DBG("Scanning Cache DPLL FUNC Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EQ_DPLL_FUNC,
+    FAPI_TRY(fapi2::putRing(i_target, eq_dpll_func,
                             fapi2::RING_MODE_HEADER_CHECK));
 
 fapi_try_exit:

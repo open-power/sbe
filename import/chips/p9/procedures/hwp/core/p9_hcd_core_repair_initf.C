@@ -39,6 +39,7 @@
 // Includes
 //-----------------------------------------------------------------------------
 
+#include <p9_ringId.H>
 #include "p9_hcd_core_repair_initf.H"
 
 //-----------------------------------------------------------------------------
@@ -58,7 +59,7 @@ p9_hcd_core_repair_initf(
 #ifndef P9_HCD_STOP_SKIP_SCAN
 
     FAPI_DBG("Scanning Core REPAIR Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EC_REPR,
+    FAPI_TRY(fapi2::putRing(i_target, ec_repr,
                             fapi2::RING_MODE_HEADER_CHECK));
 
 fapi_try_exit:
