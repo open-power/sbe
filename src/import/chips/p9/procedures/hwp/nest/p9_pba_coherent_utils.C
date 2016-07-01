@@ -292,9 +292,8 @@ extern "C"
                                            (PBA_SLVCTL_WRITE_GATHER_TIMEOUT_END_BIT -
                                             PBA_SLVCTL_WRITE_GATHER_TIMEOUT_START_BIT) + 1 > (0);
 
-        //set bits 28:35 for the tsize to 0 - TODO when this is a write need to do the chiplet ID of the L3 cache in the form of 00cc_ccc0 if it's an lco_m
-        //pass in an extra quad target argument
-        if (l_operType == p9_PBA_oper_flag::LCO)
+        //set bits 28:35 for the tsize to 0 - when this is an lco_m write need to do the chiplet ID of the L3 cache in the form of 00cc_ccc0
+        if (l_operType == p9_PBA_oper_flag::LCO && !i_rnw)
         {
             FAPI_TRY(fapi2::getScom(i_ex_target, EX_L3_MODE_REG1, l3_mode_reg1), "Error reading from the L3 Mode Register");
             l3_mode_reg1.extractToRight(chiplet_number, 1, 5);
