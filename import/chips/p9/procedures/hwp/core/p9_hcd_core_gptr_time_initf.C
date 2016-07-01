@@ -40,6 +40,7 @@
 // Includes
 //-----------------------------------------------------------------------------
 
+#include <p9_ringId.H>
 #include "p9_hcd_core_gptr_time_initf.H"
 
 //-----------------------------------------------------------------------------
@@ -59,11 +60,11 @@ p9_hcd_core_gptr_time_initf(
 #ifndef P9_HCD_STOP_SKIP_SCAN
 
     FAPI_DBG("Scanning Core GPTR Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EC_GPTR,
+    FAPI_TRY(fapi2::putRing(i_target, ec_gptr,
                             fapi2::RING_MODE_HEADER_CHECK));
 
     FAPI_DBG("Scanning Core TIME Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EC_TIME,
+    FAPI_TRY(fapi2::putRing(i_target, ec_time,
                             fapi2::RING_MODE_HEADER_CHECK));
 
 fapi_try_exit:
