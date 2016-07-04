@@ -56,8 +56,17 @@ struct SectionTOR
     uint32_t TOC_MC_COMMON_RING;   // Offset of MC Common Ring section
     uint32_t TOC_MC_INSTANCE_RING; // Offset of MC Instance Ring section
 
-    uint32_t TOC_OB_COMMON_RING;   // Offset of OB Common Ring section
-    uint32_t TOC_OB_INSTANCE_RING; // Offset of OB Instance Ring section
+    uint32_t TOC_OB0_COMMON_RING;   // Offset of OB0 Common Ring section
+    uint32_t TOC_OB0_INSTANCE_RING; // Offset of OB0 Instance Ring section
+
+    uint32_t TOC_OB1_COMMON_RING;   // Offset of OB1 Common Ring section
+    uint32_t TOC_OB1_INSTANCE_RING; // Offset of OB1 Instance Ring section
+
+    uint32_t TOC_OB2_COMMON_RING;   // Offset of OB2 Common Ring section
+    uint32_t TOC_OB2_INSTANCE_RING; // Offset of OB2 Instance Ring section
+
+    uint32_t TOC_OB3_COMMON_RING;   // Offset of OB3 Common Ring section
+    uint32_t TOC_OB3_INSTANCE_RING; // Offset of OB3 Instance Ring section
 
     uint32_t TOC_PCI0_COMMON_RING;   // Offset of PCI0 Common Ring section
     uint32_t TOC_PCI0_INSTANCE_RING; // Offset of PCI0 Instance Ring section
