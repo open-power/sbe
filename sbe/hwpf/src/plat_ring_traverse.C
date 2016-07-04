@@ -185,10 +185,10 @@ fapi2::ReturnCode findRS4InImageAndApply(
                 l_cpltRingVariantSz = sizeof(OB0::RingVariants) / 
                                         sizeof(l_cpltRingVariantSz);
 
-                l_sectionOffset = l_sectionTOR->TOC_OB_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_OB0_COMMON_RING;
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = l_sectionTOR->TOC_OB_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_OB0_INSTANCE_RING;
                 }
 
                 break;
@@ -197,10 +197,10 @@ fapi2::ReturnCode findRS4InImageAndApply(
                 l_cpltRingVariantSz = sizeof(OB1::RingVariants) / 
                                         sizeof(l_cpltRingVariantSz);
 
-                l_sectionOffset = l_sectionTOR->TOC_OB_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_OB1_COMMON_RING;
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = l_sectionTOR->TOC_OB_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_OB1_INSTANCE_RING;
                 }
 
                 break;
@@ -209,10 +209,10 @@ fapi2::ReturnCode findRS4InImageAndApply(
                 l_cpltRingVariantSz = sizeof(OB2::RingVariants) / 
                                         sizeof(l_cpltRingVariantSz);
 
-                l_sectionOffset = l_sectionTOR->TOC_OB_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_OB2_COMMON_RING;
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = l_sectionTOR->TOC_OB_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_OB2_INSTANCE_RING;
                 }
 
                 break;
@@ -221,10 +221,10 @@ fapi2::ReturnCode findRS4InImageAndApply(
                 l_cpltRingVariantSz = sizeof(OB3::RingVariants) / 
                                         sizeof(l_cpltRingVariantSz);
 
-                l_sectionOffset = l_sectionTOR->TOC_OB_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_OB3_COMMON_RING;
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = l_sectionTOR->TOC_OB_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_OB3_INSTANCE_RING;
                 }
 
                 break;
