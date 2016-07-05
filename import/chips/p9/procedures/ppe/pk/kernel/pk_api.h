@@ -335,11 +335,13 @@
 #define PK_TIMEBASE_FREQUENCY_HZ __pk_timebase_frequency_hz
 
 /// This is the unscaled timebase frequency in Hz.
-#ifdef APPCFG_USE_EXT_TIMEBASE
-    #define PK_BASE_FREQ_HZ     (uint32_t)25000000
-#else
-    #define PK_BASE_FREQ_HZ     (uint32_t)400000000
-#endif /* APPCFG_USE_EXT_TIMEBASE */
+#ifndef PK_BASE_FREQ_HZ
+    #ifdef APPCFG_USE_EXT_TIMEBASE
+        #define PK_BASE_FREQ_HZ     (uint32_t)25000000
+    #else
+        #define PK_BASE_FREQ_HZ     (uint32_t)400000000
+    #endif /* APPCFG_USE_EXT_TIMEBASE */
+#endif
 #define PK_BASE_FREQ_KHZ    (PK_BASE_FREQ_HZ / 1000)
 #define PK_BASE_FREQ_MHZ    (PK_BASE_FREQ_HZ / 1000000)
 
