@@ -144,7 +144,7 @@ SIMICS_PPE_TAR_FILES += $(OBJDIR)/../test/*.xml
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/../test/*.py
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/../../tools/ppetracepp/fsp-trace
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/../../tools/ppetracepp/ppe2fsp
-SIMICS_PPE_TAR_FILES += $(OBJDIR)/trexStringFile
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/sbeStringFile
 SIMICS_BB_TAR_FILES += $(OBJDIR)/../build/simics/*
 
 # Common Pm libraries
@@ -445,11 +445,11 @@ appendloader: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMA
 
 #/afs/bb/proj/cte/tools/ppetools/prod/powerpc-eabi/bin/objcopy -O binary --only-section=.fixed $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/fixed.bin
 
-# collect all of the trace hash files for this image into a single trexStringFile
+# collect all of the trace hash files for this image into a single sbeStringFile
 .PHONY : tracehash
 tracehash:
 	mkdir -p $(OBJDIR)
-	$(THASH) -c -d $(OBJDIR) -s $(OBJDIR)/trexStringFile
+	$(THASH) -c -d $(OBJDIR) -s $(OBJDIR)/sbeStringFile
 
 #clean the kernel directory first, then the application level clean
 clean:

@@ -1,4 +1,28 @@
 #!/usr/bin/perl -w
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: tools/ppetracepp/tracehash.pl $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 # File tracehash.pl created by B J Zander.
 
 use strict;
@@ -28,7 +52,7 @@ my $BB_STRING_FILE = "/opt/fsp/etc/BB_StringFile";
 # Global Variables
 my $debug = 0;
 my $seperator = "&&&&";
-my $file_name = "trexStringFile";
+my $file_name = "sbeStringFile";
 my $in_sand;
 my ($backing) = $ENV{'bb'};
 my $hash_prog = "trexhash";    #default to in path
@@ -292,7 +316,7 @@ sub determine_args() {
 	exit(127);
     }
 
-    # Make sure trexStringFile is readable/writeable
+    # Make sure sbeStringFile is readable/writeable
     system("chmod ugo+rw $string_file");
 
 }
@@ -432,7 +456,7 @@ sub read_string_file() {
 
     $line = <FH>;
 
-    print "first line in trexStringFile= $line\n" if $debug;
+    print "first line in sbeStringFile= $line\n" if $debug;
 
     if((defined $line) && ($line =~ /^$HEAD_EYE_CATCHER(\d)/))
     {
@@ -470,7 +494,7 @@ sub read_string_file() {
     }
     else
     {	  # If there is a file then we are dealing with the first
-	  # version of trexStringFile so don't look for file name.
+	  # version of sbeStringFile so don't look for file name.
 	if ($debug) {
 		print "version 0 stringfile detected: $string_file\n";
 	}
@@ -611,7 +635,7 @@ sub assimilate_file($) {
 	if ($version eq "1") {
 	    if ($hash_filename_too) {
 	    	print "*** ERROR: hash_filename_too (-F) isn't possible with trace version 1\n";
-		print "           please rebuild all .hash files and global trexStringFile\n";
+		print "           please rebuild all .hash files and global sbeStringFile\n";
 		print "           version 1 file is '$l_loc'\n";
 		exit(127);
 	    }
@@ -664,7 +688,7 @@ sub assimilate_file($) {
     }
     else
     {	# If there is a file then we are dealing with the first
-	# version of trexStringFile so don't look for file name.
+	# version of sbeStringFile so don't look for file name.
 	# these files shouldn't be there anymore. we don't check for collisions here
 	if ($debug) {
 	    print "version 0 stringfile detected: $string_file\n";
@@ -774,7 +798,7 @@ sub write_string_file() {
     foreach $l_key (@keys) {
 	my $l_tmp = $hash_strings_array{$l_key}; # freshly collected strings
 	if (exists $string_file_array{$l_key})
-	{ # hash exists in list from trexStringFile
+	{ # hash exists in list from sbeStringFile
 	    my $l_tmp2 = $string_file_array{$l_key};
     	    if (!$hash_filename_too) {
 		$l_tmp =~ s/\|\|.*$//;
@@ -847,7 +871,7 @@ Collect mode: tracehash.pl -c [-vFCS] [-d <dir>] [-s <string_file>]
       -f   - String file to read and write/add to <string_file>.
       -d   - Start of directory tree to scan for .hash files. Default = .
       -s   - File with trace strings (and hashes) to read from and write to
-             default = ./trexStringFile
+             default = ./sbeStringFile
       -F   - hash is calculated over trace string and source file name,
              otherwise without source file name
       -C   - report an error if a hash collisions occurs
@@ -862,7 +886,7 @@ Scan mode: tracehash.pl [-vFCS] [-d <dir>] [-s <string_file>] [ccpopts]
       -f   - Source file to scan for trace entries.
       -d   - Source directory to scan for trace entries.
       -s   - File with trace strings (and hashes) to read from and write to.
-             default = ./trexStringFile
+             default = ./sbeStringFile
       -F   - hash for string was build from format string + source file name
       -C   - report an error if hash collisions occur
       -S   - don't read global FLD-2.2 string file ($BB_STRING_FILE)
