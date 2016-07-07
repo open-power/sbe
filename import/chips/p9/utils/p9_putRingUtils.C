@@ -416,7 +416,7 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
         l_chiplet = (l_chipletID << 24);
     }
 
-    if (fapi2::TARGET_TYPE_EQ & i_target.getTargetType())
+    if (fapi2::TARGET_TYPE_EX & i_target.getTargetType())
     {
         // this gives position of ex (0 or 1)
         uint32_t l_ex_number = i_target.getTargetNumber();
