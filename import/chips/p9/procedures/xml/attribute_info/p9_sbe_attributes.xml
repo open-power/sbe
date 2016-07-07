@@ -484,16 +484,7 @@
            <name>ATTR_IO_FILTER_BYPASS</name>
            <value>0x0</value>
   </entry>
-  <entry>
-           <name>ATTR_TARGET_HAS_POWER</name>
-  </entry>
-  <entry>
-           <name>ATTR_TARGET_HAS_CLOCK</name>
-  </entry>
-  <entry>
-           <name>ATTR_TARGET_IS_SCOMMABLE</name>
-  </entry>
-   <!-- See chip_attributes.xml for a description of ATTR_EC -->
+  <!-- See chip_attributes.xml for a description of ATTR_EC -->
   <entry>
            <name>ATTR_EC</name>
            <!-- The value needs to be changed as per the EC level  -->
