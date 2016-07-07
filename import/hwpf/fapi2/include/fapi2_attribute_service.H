@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -89,7 +89,8 @@ namespace fapi2
 {
 
 ///
-/// @brief Get an InitFile attribute for FAPI2
+/// @brief Get raw access to a FAPI2 Attribute.  This is used to dump FAPI2
+///        Attrs
 ///
 /// This function gets a copy of an attribute. In the case of an array attribute,
 /// The value in the specified index is retrieved. This should be used by the
@@ -111,14 +112,9 @@ namespace fapi2
 ///
 /// @return ReturnCode. Zero if success
 ///
-template< TargetType K >
-ReturnCode getInitFileAttr(const AttributeId i_id,
-                           const Target<K>& i_target,
-                           uint64_t& o_val,
-                           const uint32_t i_arrayIndex1 = 0,
-                           const uint32_t i_arrayIndex2 = 0,
-                           const uint32_t i_arrayIndex3 = 0,
-                           const uint32_t i_arrayIndex4 = 0);
+ReturnCode rawAccessAttr(const AttributeId i_id,
+                         const Target<TARGET_TYPE_ALL>& i_target,
+                         uint8_t* o_val);
 
 /**
  * @brief Check the ID and TYPE
