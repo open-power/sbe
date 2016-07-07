@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -43,7 +43,7 @@ extern "C"
 ///        into each configured EQ chiplet.
 /// @param [in] i_target TARGET_TYPE_PROC_CHIP
 /// @attr
-/// @attritem ATTR_BOOT_FMULT - 11 bit frequency multiplier of refclk
+/// @attritem ATTR_BOOT_FREQ_MULT - 11 bit frequency multiplier of refclk
 /// @return FAPI2_RC_SUCCESS
     fapi2::ReturnCode
     p9_sbe_setup_boot_freq(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);

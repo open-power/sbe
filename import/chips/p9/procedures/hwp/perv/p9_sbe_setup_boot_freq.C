@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -71,7 +71,7 @@ BootFreqInitAttributes(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_targ
 
     i_boot_frequency_multiplier = DEFAULT_BOOT_FREQUENCY_MULTIPLIER;
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BOOT_FMULT, i_target, i_boot_frequency_multiplier));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BOOT_FREQ_MULT, i_target, i_boot_frequency_multiplier));
 
     // If attribute values are zero, use the default values (hardcoded)
 
