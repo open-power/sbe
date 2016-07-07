@@ -42,6 +42,10 @@
 
 using namespace fapi2;
 
+// Using Function pointer to force long call
+p9_sbe_check_master_stop15_FP_t p9_sbe_check_master_stop15_hwp =
+                                            &p9_sbe_check_master_stop15;
+
 ////////////////////////////////////////////////////////////////////
 //Static initialization of the Dmt Pk timer
 PkTimer g_sbe_pk_dmt_timer;
@@ -140,7 +144,7 @@ uint32_t sbeStartCntlDmt()
         // Go around a loop till you get FAPI2_RC_SUCCESS
         do
         {
-            l_fapiRc = p9_sbe_check_master_stop15(l_coreTgt);
+            l_fapiRc = p9_sbe_check_master_stop15_hwp(l_coreTgt);
             //Conversion is required here, since ReturnCode doesn't support
             //comparision '!=' or '=='
             //TODO RTC:149021
