@@ -68,7 +68,7 @@ fapi2::ReturnCode p9_sbe_npll_initf(const
             break;
 
         default:
-            FAPI_TRY(false, "Invalid values of ATTR_NEST_PLL_BUCKET")
+            FAPI_TRY(!(fapi2::FAPI2_RC_SUCCESS), "Invalid values of ATTR_NEST_PLL_BUCKET")
     }
 
     FAPI_TRY(fapi2::putRing(i_target_chip, ringID, fapi2::RING_MODE_SET_PULSE_NSL));
