@@ -216,50 +216,50 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             {
                 if ((l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_SMALL_SYSTEM))
                 {
-                    constexpr auto l_scom_buffer_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 22, 1, 63 );
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_SYSMAP_SM_NOT_LG_SEL_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_SYSMAP_SM_NOT_LG_SEL_ON, 22, 1, 63 );
                 }
                 else if ((l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_LARGE_SYSTEM))
                 {
-                    constexpr auto l_scom_buffer_OFF = 0x0;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_OFF, 22, 1, 63 );
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_SYSMAP_SM_NOT_LG_SEL_OFF = 0x0;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_SYSMAP_SM_NOT_LG_SEL_OFF, 22, 1, 63 );
                 }
             }
 
             {
                 if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
                 {
-                    constexpr auto l_scom_buffer_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 11, 1, 63 );
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_ADDR_HASH_EN_CFG_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_ADDR_HASH_EN_CFG_ON, 11, 1, 63 );
                 }
             }
 
             {
                 if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
                 {
-                    constexpr auto l_scom_buffer_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 2, 1, 63 );
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_RDSN_LINEDEL_UE_EN_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_RDSN_LINEDEL_UE_EN_ON, 2, 1, 63 );
                 }
             }
 
             {
                 if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
                 {
-                    constexpr auto l_scom_buffer_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 3, 1, 63 );
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_NO_ALLOCATE_MODE_EN_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_NO_ALLOCATE_MODE_EN_ON, 3, 1, 63 );
                 }
                 else if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED))
                 {
-                    constexpr auto l_scom_buffer_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 3, 1, 63 );
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_NO_ALLOCATE_MODE_EN_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_NO_ALLOCATE_MODE_EN_ON, 3, 1, 63 );
                 }
             }
 
             {
                 if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
                 {
-                    constexpr auto l_scom_buffer_OFF = 0x0;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_OFF, 1, 1, 63 );
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_DMAP_CI_EN_CFG_OFF = 0x0;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_DMAP_CI_EN_CFG_OFF, 1, 1, 63 );
                 }
             }
 
