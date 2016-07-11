@@ -73,29 +73,29 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             {
                 if ((l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_SMALL_SYSTEM))
                 {
-                    constexpr auto l_scom_buffer_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 23, 1, 63 );
+                    constexpr auto l_EXP_L2_L2MISC_L2CERRS_CFG_SYSMAP_SM_NOT_LG_SEL_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L2_L2MISC_L2CERRS_CFG_SYSMAP_SM_NOT_LG_SEL_ON, 23, 1, 63 );
                 }
                 else if ((l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_LARGE_SYSTEM))
                 {
-                    constexpr auto l_scom_buffer_OFF = 0x0;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_OFF, 23, 1, 63 );
+                    constexpr auto l_EXP_L2_L2MISC_L2CERRS_CFG_SYSMAP_SM_NOT_LG_SEL_OFF = 0x0;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L2_L2MISC_L2CERRS_CFG_SYSMAP_SM_NOT_LG_SEL_OFF, 23, 1, 63 );
                 }
             }
 
             {
                 if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
                 {
-                    constexpr auto l_scom_buffer_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 21, 1, 63 );
+                    constexpr auto l_EXP_L2_L2MISC_L2CERRS_CFG_HASH_L3_ADDR_EN_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L2_L2MISC_L2CERRS_CFG_HASH_L3_ADDR_EN_ON, 21, 1, 63 );
                 }
             }
 
             {
                 if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
                 {
-                    constexpr auto l_scom_buffer_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_scom_buffer_ON, 15, 1, 63 );
+                    constexpr auto l_EXP_L2_L2MISC_L2CERRS_CFG_CAC_ERR_REPAIR_EN_ON = 0x1;
+                    l_scom_buffer.insert<uint64_t> (l_EXP_L2_L2MISC_L2CERRS_CFG_CAC_ERR_REPAIR_EN_ON, 15, 1, 63 );
                 }
             }
 
@@ -262,8 +262,8 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             }
 
             {
-                constexpr auto l_scom_buffer_OFF = 0x0;
-                l_scom_buffer.insert<uint64_t> (l_scom_buffer_OFF, 29, 1, 63 );
+                constexpr auto l_EXP_L2_L2MISC_L2CERRS_EPS_CNT_USE_L2_DIVIDER_EN_OFF = 0x0;
+                l_scom_buffer.insert<uint64_t> (l_EXP_L2_L2MISC_L2CERRS_EPS_CNT_USE_L2_DIVIDER_EN_OFF, 29, 1, 63 );
             }
 
             {
@@ -275,8 +275,8 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             }
 
             {
-                constexpr auto l_scom_buffer_MODE1 = 0x0;
-                l_scom_buffer.insert<uint64_t> (l_scom_buffer_MODE1, 28, 1, 63 );
+                constexpr auto l_EXP_L2_L2MISC_L2CERRS_EPS_MODE_SEL_MODE1 = 0x0;
+                l_scom_buffer.insert<uint64_t> (l_EXP_L2_L2MISC_L2CERRS_EPS_MODE_SEL_MODE1, 28, 1, 63 );
             }
 
             l_rc = fapi2::putScom(TGT0, 0x10010811ull, l_scom_buffer);
