@@ -555,6 +555,7 @@ dumpHeader(void* i_image)
            header.iv_buildTime % 100);
     printf("Build User        : %s\n", header.iv_buildUser);
     printf("Build Host        : %s\n", header.iv_buildHost);
+    printf("Build Tag         : %s\n", header.iv_buildTag);
     printf("\n");
 
     printf("Section Table     :\n\n");
