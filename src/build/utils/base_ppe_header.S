@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -86,12 +86,15 @@ __build_date:
         .long 0
 __build_time:
         .long 0
+__build_tag:
+        .asciz "unknown        "                         # 16 Characters
 __header_32_reserved:
-        .long 0, 0, 0, 0, 0
+        .long 0
 
         .xip_toc image_size, P9_XIP_UINT32, __image_size
         .xip_toc build_date, P9_XIP_UINT32, __build_date
         .xip_toc build_time, P9_XIP_UINT32, __build_time
+        .xip_toc build_tag,  P9_XIP_STRING, __build_tag
 
 
         //////////////////////////////////////////////////////////////////////
