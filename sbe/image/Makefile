@@ -143,8 +143,8 @@ SIMICS_PPE_TAR_FILES += $(OBJDIR)/sbe.syms
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/../test/*.xml
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/../test/*.py
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/../../tools/ppetracepp/fsp-trace
-SIMICS_PPE_TAR_FILES += $(OBJDIR)/../../tools/ppetracepp/ppe2fsp
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/sbeStringFile
+SIMICS_PPE_TAR_FILES += $(OBJDIR)/ppe2fsp
 SIMICS_BB_TAR_FILES += $(OBJDIR)/../build/simics/*
 
 # Common Pm libraries
@@ -184,13 +184,13 @@ $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDI
 ifndef FAPI2_TEST
 # This is the production build of the SEEPROM
 #create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	@echo ">>>>> Production Build <<<<<<"
 	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out  $(OBJS) $(LIB_DIRS)  --start-group $(LLIBS) --end-group  -leabi -lmath -lc
 else
 # This a special build of the SEEPROM image that includes the PK to allow for test threads to be used.
 # create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	@echo ">>>>> Special FAPI2 Test Build <<<<<<"
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(LIB_DIRS) $(OBJS) --start-group $(LLIBS) --end-group
 
@@ -208,7 +208,7 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMA
 	$(NM)  $< > $(OBJDIR)/$(IMAGE_SBE_NAME).syms
 
 # create a linked ELF executable
-$(OBJDIR)/$(IMAGE_SBE_NAME).out: buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+$(OBJDIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(OBJDIR)/base_sbe_fixed.o $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
@@ -413,6 +413,11 @@ normalize: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 
 defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 	$(TOOLS_IMAGE_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+
+# Build the trace utilities
+ppe_trace_bin:
+	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PPETRACEPP_DIR) -f Makefile #$(PK trace util)
+
 
 # Build hwp_error_info.H.  If the script fails then print the contents of
 # the header and then delete whatever garbage the script left to force it to

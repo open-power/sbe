@@ -153,12 +153,12 @@ ifndef IMPORT_COMMON_DIR
 export IMPORT_COMMON_DIR = $(abspath ../../import/chips/p9/common)
 endif
 
-ifndef P2P_SRCDIR
-export P2P_SRCDIR = $(abspath ../../tools/PowerPCtoPPE)
-endif
-
 ifndef PPETRACEPP_DIR
 export PPETRACEPP_DIR = $(abspath ../../tools/ppetracepp)
+endif
+
+ifndef PPETRACEPP_BIN_DIR
+export PPETRACEPP_BIN_DIR = $(abspath ../obj)
 endif
 
 ifndef PLAT_FAPI2_DIR
@@ -199,15 +199,15 @@ OBJDIR = $(BASE_OBJDIR)$(SUB_OBJDIR)
 
 CC_ASM  = $(GCC-TOOL-PREFIX)gcc
 #TCC     = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)g++
-TCC     = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
-CC      = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
+TCC     = $(PPETRACEPP_BIN_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
+CC      = $(PPETRACEPP_BIN_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
 AS      = $(BINUTILS-TOOL-PREFIX)as
 AR      = $(BINUTILS-TOOL-PREFIX)ar
 LD      = $(BINUTILS-TOOL-PREFIX)ld
 NM      = $(BINUTILS-TOOL-PREFIX)nm -S
 OBJDUMP = $(BINUTILS-TOOL-PREFIX)objdump
 OBJCOPY = $(BINUTILS-TOOL-PREFIX)objcopy
-TCPP    = $(PPETRACEPP_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
+TCPP    = $(PPETRACEPP_BIN_DIR)/ppetracepp $(GCC-TOOL-PREFIX)gcc
 THASH	= $(PPETRACEPP_DIR)/tracehash.pl
 CPP     = $(GCC-TOOL-PREFIX)gcc
 
