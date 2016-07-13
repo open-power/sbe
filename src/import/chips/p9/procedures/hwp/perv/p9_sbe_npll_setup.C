@@ -47,7 +47,7 @@
 
 enum P9_SBE_NPLL_SETUP_Private_Constants
 {
-    NS_DELAY = 100000, // unit is nano seconds
+    NS_DELAY = 5000000, // unit is nano seconds
     SIM_CYCLE_DELAY = 1000 // unit is sim cycles
 };
 
