@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -58,6 +58,8 @@ const uint32_t ALTD_CMD_CLEAR_STATUS_BIT = 3;
 const uint32_t ALTD_CMD_RESET_FSM_BIT = 4;
 const uint32_t ALTD_CMD_ADDRESS_ONLY_BIT = 6;
 const uint32_t ALTD_CMD_LOCK_BIT = 11;
+const uint32_t ALTD_CMD_SCOPE_START_BIT = 16;
+const uint32_t ALTD_CMD_SCOPE_END_BIT = 18;
 const uint32_t ALTD_CMD_DROP_PRIORITY_BIT = 20;
 const uint32_t ALTD_CMD_OVERWRITE_PBINIT_BIT = 22;
 const uint32_t ALTD_CMD_TTYPE_START_BIT = 25;
@@ -67,9 +69,11 @@ const uint32_t ALTD_CMD_TSIZE_END_BIT = 39;
 
 const uint32_t ALTD_CMD_TTYPE_NUM_BITS = (ALTD_CMD_TTYPE_END_BIT - ALTD_CMD_TTYPE_START_BIT + 1);
 const uint32_t ALTD_CMD_TSIZE_NUM_BITS = (ALTD_CMD_TSIZE_END_BIT - ALTD_CMD_TSIZE_START_BIT + 1);
+const uint32_t ALTD_CMD_SCOPE_NUM_BITS = (ALTD_CMD_SCOPE_END_BIT - ALTD_CMD_SCOPE_START_BIT + 1);
 
 const uint32_t ALTD_CMD_TTYPE_PBOP_EN_ALL = 0x3F;
 const uint32_t ALTD_CMD_TSIZE_PBOP_EN_ALL = 0x0B;
+const uint32_t ALTD_CMD_SCOPE_GROUP = 0x3;
 
 // ADU Status Register field/bit definitions
 const uint32_t ALTD_STATUS_ADDR_DONE_BIT = 2;
@@ -129,6 +133,7 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     .setBit<ALTD_CMD_ADDRESS_ONLY_BIT>()
     .setBit<ALTD_CMD_DROP_PRIORITY_BIT>()
     .setBit<ALTD_CMD_OVERWRITE_PBINIT_BIT>();
+    l_cmd_data.insertFromRight<ALTD_CMD_SCOPE_START_BIT, ALTD_CMD_SCOPE_NUM_BITS>(ALTD_CMD_SCOPE_GROUP);
     l_cmd_data.insertFromRight<ALTD_CMD_TTYPE_START_BIT, ALTD_CMD_TTYPE_NUM_BITS>(ALTD_CMD_TTYPE_PBOP_EN_ALL);
     l_cmd_data.insertFromRight<ALTD_CMD_TSIZE_START_BIT, ALTD_CMD_TSIZE_NUM_BITS>(ALTD_CMD_TSIZE_PBOP_EN_ALL);
     FAPI_TRY(fapi2::putScom(i_target, PU_ALTD_CMD_REG, l_cmd_data),
