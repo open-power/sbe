@@ -38,93 +38,84 @@
 
 //## auto_generated
 #include "p9_sbe_chiplet_pll_initf.H"
-
-#include "p9_perv_sbe_cmn.H"
-
-
-enum P9_SBE_CHIPLET_PLL_INITF_Private_Constants
-{
-    REGIONS_PLL_ONLY = 0x001,
-    SCAN_TYPES_GPTR = 0x200,
-    SCAN_TYPES_BNDY_FUNC = 0x808
-};
+#include "p9_perv_scom_addresses.H"
 
 fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    uint8_t l_read_attr = 0;
-    auto l_perv_functional_vector =
-        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-        (fapi2::TARGET_STATE_FUNCTIONAL);
-    FAPI_DBG("Entering ...");
+    FAPI_INF("Entering ...");
 
-    FAPI_INF("Switch MC meshs to Nest mesh");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_read_attr));
-
-    if ( l_read_attr )
+    for (auto l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_XBUS |
+                                           fapi2::TARGET_FILTER_ALL_OBUS |
+                                           fapi2::TARGET_FILTER_ALL_PCI), fapi2::TARGET_STATE_FUNCTIONAL))
     {
-        for (auto l_chplt_trgt : l_perv_functional_vector)
+        uint8_t l_unit_pos;
+        RingID l_ring_id = xb_pll_bndy;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt, l_unit_pos),
+                 "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
+
+        switch (l_unit_pos)
         {
-            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt,
-                                   l_attr_chip_unit_pos));
+            case 0x6:
+                FAPI_DBG("Scan XBUS chiplet ring");
+                l_ring_id = xb_pll_bndy;
+                break;
 
-            if (!((l_attr_chip_unit_pos == 0x09 || l_attr_chip_unit_pos == 0x0A
-                   || l_attr_chip_unit_pos == 0x0B
-                   || l_attr_chip_unit_pos == 0x0C/* ObusChiplet */) ||
-                  (l_attr_chip_unit_pos == 0x0D || l_attr_chip_unit_pos == 0x0E
-                   || l_attr_chip_unit_pos == 0x0F/* PcieChiplet */) ||
-                  (l_attr_chip_unit_pos == 0x06/* XbusChiplet */)))
-            {
-                continue;
-            }
+            case 0x9:
+                FAPI_DBG("Scan OB0 chiplet ring");
+                l_ring_id = ob0_pll_bndy;
+                break;
 
-            FAPI_INF("Call Scan0 Module (scan region=PLL, scan types=GPTR)");
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_chplt_trgt, REGIONS_PLL_ONLY,
-                                                  SCAN_TYPES_GPTR));
+            case 0xa:
+                FAPI_DBG("Scan OB1 chiplet ring");
+                l_ring_id = ob1_pll_bndy;
+                break;
 
-            FAPI_INF("Call Scan0 Module (scan region=PLL, scan types=GPTR)");
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_chplt_trgt, REGIONS_PLL_ONLY,
-                                                  SCAN_TYPES_BNDY_FUNC));
+            case 0xb:
+                FAPI_DBG("Scan OB2 chiplet ring");
+                l_ring_id = ob2_pll_bndy;
+                break;
 
-            //TODO:Load Ring Module : Scan initialize PLL BNDY chain
+            case 0xc:
+                FAPI_DBG("Scan OB3 chiplet ring");
+                l_ring_id = ob3_pll_bndy;
+                break;
+
+            case 0xd:
+                FAPI_DBG("Scan PCI0 chiplet ring");
+                l_ring_id = pci0_pll_bndy;
+                break;
+
+            case 0xe:
+                FAPI_DBG("Scan PCI1 chiplet ring");
+                l_ring_id = pci1_pll_bndy;
+                break;
+
+            case 0xf:
+                FAPI_DBG("Scan PCI2 chiplet ring");
+                l_ring_id = pci2_pll_bndy;
+                break;
+
+            default:
+                FAPI_ASSERT(false,
+                            fapi2::P9_SBE_CHIPLET_PLL_INITF_INVALID_CHIPLET().
+                            set_TARGET(l_chplt_trgt).
+                            set_UNIT_POS(l_unit_pos),
+                            "Unexpected chiplet!");
         }
-    }
-    else
-    {
-        for (auto l_chplt_trgt : l_perv_functional_vector)
-        {
-            uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt,
-                                   l_attr_chip_unit_pos));
 
-            if (!((l_attr_chip_unit_pos == 0x07
-                   || l_attr_chip_unit_pos == 0x08/* McChiplet */) ||
-                  (l_attr_chip_unit_pos == 0x09 || l_attr_chip_unit_pos == 0x0A
-                   || l_attr_chip_unit_pos == 0x0B
-                   || l_attr_chip_unit_pos == 0x0C/* ObusChiplet */) ||
-                  (l_attr_chip_unit_pos == 0x0D || l_attr_chip_unit_pos == 0x0E
-                   || l_attr_chip_unit_pos == 0x0F/* PcieChiplet */) ||
-                  (l_attr_chip_unit_pos == 0x06/* XbusChiplet */)))
-            {
-                continue;
-            }
+        FAPI_TRY(fapi2::putRing(i_target_chip, l_ring_id, fapi2::RING_MODE_SET_PULSE_NSL));
 
-            FAPI_INF("Call Scan0 Module (scan region=PLL, scan types=GPTR)");
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_chplt_trgt, REGIONS_PLL_ONLY,
-                                                  SCAN_TYPES_GPTR));
-
-            FAPI_INF("Call Scan0 Module (scan region=PLL, scan types=GPTR)");
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_chplt_trgt, REGIONS_PLL_ONLY,
-                                                  SCAN_TYPES_BNDY_FUNC));
-
-            //TODO:Load Ring Module : Scan initialize PLL BNDY chain
-        }
     }
 
-    FAPI_DBG("Exiting ...");
+    for (auto l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_DBG("Scan initialize MC chiplet ring");
+        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_pll_bndy_bucket_1, fapi2::RING_MODE_SET_PULSE_NSL));
+    }
 
 fapi_try_exit:
+    FAPI_INF("Exiting ...");
     return fapi2::current_err;
-
 }
