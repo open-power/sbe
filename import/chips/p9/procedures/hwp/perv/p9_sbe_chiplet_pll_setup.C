@@ -42,7 +42,7 @@
 
 enum P9_SBE_CHIPLET_PLL_SETUP_Private_Constants
 {
-    NS_DELAY = 100000, // unit is nano seconds
+    NS_DELAY = 5000000, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     CLOCK_CMD = 0x1,
     CLOCK_TYPES = 0x2,
