@@ -1,4 +1,28 @@
 #!/usr/bin/python
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: sbe/build/tools/sbeCmvcUtility.py $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 '''
 ###########################################################
 #    @file  sbeCmvcUtility.py
@@ -128,6 +152,10 @@ def utilFindFilePPE(i_filename, i_path, i_sandbox_name):
             # Ignore the test sandbox files in the PPE
             if not i_sandbox_name in root:
                 return os.path.join(root, i_filename)
+            # Consider the path, if the repository is contanied in the sandbox
+            else:
+                if i_sandbox_name in i_path:
+                    return os.path.join(root, i_filename)
 
 ##########################################################################
 # Function :utilCmvcCheckout
@@ -463,6 +491,27 @@ def utilFind_sb_base(i_sb_name):
         return "None"
     else:
         return out_str.strip('SANDBOXBASE=')
+
+##########################################################################
+# Function : utilFind_sb_rc
+#
+# @param   i_sb_name : Sandbox RC path
+#
+# @brief   find the sandbox RC path
+#
+##########################################################################
+def utilFind_sb_rc(i_sb_name):
+    out_str= "None"
+
+    # workon -m ppc sbeisb -c 'env | grep SANDBOXRC'
+    find_sb_rc = 'workon -m ppc  ' + i_sb_name + " -c 'env | grep SANDBOXRC ' | grep SANDBOXRC"
+    # SANDBOXRC=/gsa/ausgsa/projects/i/indiateam04/gkeishin/.sandboxrc
+    out_str = os.popen(find_sb_rc).read()
+
+    if not out_str:
+        return "None"
+    else:
+        return os.path.dirname(out_str.strip('SANDBOXRC='))
 
 ##########################################################################
 # Function : utilFind_ENV_string
