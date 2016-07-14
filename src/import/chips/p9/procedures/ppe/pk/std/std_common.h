@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/std/std_common.h $          */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/std/std_common.h $      */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -64,6 +64,7 @@
         _liw        r5, pk_unified_irq_prty_mask_handler
         mtlr        r5
         blrl            // On return, d5 contains task prty irq vec.
+        mfsprg      r3, 0 // In case r3 is modified by unified handler, restore to sprg0
 #else
         _lvdg       d5, STD_LCL_EISTR    #load the 64bit interrupt status into d5
 #endif        
