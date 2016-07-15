@@ -54,3 +54,10 @@ echo "  +++ Add executeInstruction module call"
 echo "  patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/chip.act $SBEROOT/sbe/build/citest/etc/patches/chip.act.patch"
 patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/chip.act $SBEROOT/sbe/build/citest/etc/patches/chip.act.patch
 
+echo "  +++ Add scandef patch"
+mkdir -p $SANDBOXBASE/src/simu/data/cec-chip/
+cp -f /esw/user/nfs/prasrang/sachin/scandef.abr $SANDBOXBASE/src/simu/data/cec-chip/
+
+echo "  +++ Add simics patch for timeout"
+mkdir -p $SANDBOXBASE/simics/linux64/lib/
+cp -f /esw/user/nfs/prasrang/sachin/cec-chip.so $SANDBOXBASE/simics/linux64/lib/

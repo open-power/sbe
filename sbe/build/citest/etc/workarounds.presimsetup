@@ -1,4 +1,28 @@
 #!/bin/sh
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: sbe/build/citest/etc/workarounds.presimsetup $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 
 #### Examples ####
 #echo "+++ Some message about why you need to do this."
@@ -6,3 +30,7 @@
 #egrep -v "WSALIAS DEFAULT FIPSLEVEL|WSALIAS DEFAULT SIMICSLEVEL" $BACKING_BUILD/src/simu/data/simicsInfo > $sb/simu/data/simicsInfo
 #echo "WSALIAS DEFAULT FIPSLEVEL env/gfwb/simics-4.2.0/simics-4.2.83/fips/fld36/fi120201a700.42" >> $sb/simu/data/simicsInfo
 #echo "WSALIAS DEFAULT SIMICSLEVEL env/vtechb/simics-4.2.0/simics-4.2.83/bin" >> $sb/simu/data/simicsInfo
+echo "+++ Applying HW image patch from CMVC"
+mkdir -p $SANDBOXBASE/src/engd/href
+cp  /esw/user/nfs/prasrang/sachin/p9n.temp_hw_ref_image.bin $SANDBOXBASE/src/engd/href/
+
