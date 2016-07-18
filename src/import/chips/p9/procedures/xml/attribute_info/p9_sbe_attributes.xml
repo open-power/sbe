@@ -365,6 +365,10 @@
            <value>0x000603FC00000000</value>
   </entry>
   <entry>
+           <name>ATTR_LPC_BASE_ADDR</name>
+           <value>0x0006030000000000</value>
+  </entry>
+  <entry>
          <name>ATTR_SUN_ID</name>
          <value>0x01</value>
   </entry>
