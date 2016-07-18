@@ -431,7 +431,11 @@ void parse_line(map<string,string>& rhash, string& line, string& out_line)
 		{
 			fprintf(stderr, "hash collision: two different strings give the same hash value '%s'\n", hash32.c_str());
 			fprintf(stderr, "%s\n%s\n", strings.c_str(), rhash[hash32].c_str());
-			return;
+            // Not breaking the compilation here. This is same as if we get hash
+            // collision across files. As in SBE we are using mirroring, these
+            // hash collisions will take some time to resolve. Till that time,
+            // let us allow compilation of procedures. 
+			//return;
 		}
 		rhash[hash32] = strings;
 
