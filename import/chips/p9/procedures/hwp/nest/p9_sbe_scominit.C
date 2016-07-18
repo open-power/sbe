@@ -51,6 +51,7 @@ fapi2::ReturnCode p9_sbe_scominit(const
 {
     i_id_struct l_id_struct;
     uint64_t l_attr_xscom_bar_addr = 0;
+    uint64_t l_attr_lpc_base_addr = 0;
     fapi2::buffer<uint64_t> l_data64;
     auto l_perv_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_PERV>
                                     (fapi2::TARGET_STATE_FUNCTIONAL);
@@ -65,6 +66,7 @@ fapi2::ReturnCode p9_sbe_scominit(const
                            l_id_struct.iv_system_id));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ADU_XSCOM_BAR_BASE_ADDR, i_target,
                            l_attr_xscom_bar_addr));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_LPC_BASE_ADDR, i_target, l_attr_lpc_base_addr), "Error getting the LPC_BASE_ADDR");
 
     for (auto l_target_chplt : l_perv_functional_vector)
     {
@@ -116,6 +118,10 @@ fapi2::ReturnCode p9_sbe_scominit(const
     l_data64.clearBit<30, 34>();
 
     FAPI_TRY(fapi2::putScom(i_target, PU_XSCOM_BASE_REG, l_data64));
+
+    // Setting LPC BASE ADDR register value
+    l_data64 = l_attr_lpc_base_addr;
+    FAPI_TRY(fapi2::putScom(i_target, PU_LPC_BASE_REG, l_data64));
 
     FAPI_DBG("Exiting ...");
 
