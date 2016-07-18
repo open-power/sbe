@@ -38,6 +38,9 @@
 #include <p9_pba_access.H>
 #include <p9_fbc_utils.H>
 #include <p9_pba_coherent_utils.H>
+#include <p9_quad_scom_addresses.H>
+#include <p9_quad_scom_addresses_fld.H>
+#include <p9_ram_core.H>
 
 //-----------------------------------------------------------------------------------
 // Constant definitions
@@ -47,6 +50,7 @@
 const bool PBA_HWP_WRITE_OP = false;
 const int EXCEPTION_VECTOR_NUM_CACHELINES = 96;
 const uint32_t SBE_BOOTLOADER_VERSION = 0x901;
+const uint8_t PERV_TO_CORE_POS_OFFSET = 0x20;
 //-----------------------------------------------------------------------------------
 // Function definitions
 //-----------------------------------------------------------------------------------
@@ -63,6 +67,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     //                      0      6                   29 30 31
     //bit 30 is for absolute address (since it is not set this is relative)
     const uint32_t l_branch_to_12 = 0x48003000ull;
+    const uint32_t C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0 = 18;
     uint64_t l_bootloader_offset;
     uint64_t l_hostboot_hrmor_offset;
     uint64_t l_chip_base_address_nm;
@@ -73,10 +78,38 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     uint32_t l_num_cachelines_to_roll;
     uint8_t l_data_to_pass_to_pba_array[FABRIC_CACHELINE_SIZE];
     uint32_t l_exception_vector_size = 0;
+    uint8_t l_master_core = 0;
     int l_cacheline_num = 0;
     p9_PBA_oper_flag l_myPbaFlag;
+    fapi2::buffer<uint64_t> l_dataBuf;
+    fapi2::Target<fapi2::TARGET_TYPE_CORE> l_coreTarget;
+    bool l_coreFoundMatch = false;
 
     FAPI_DBG("Start");
+
+    //Find the master core for writing the HRMOR later
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE, i_master_chip_target, l_master_core), "Error getting ATTR_MASTER_CORE");
+
+    for ( auto l_current_core : i_master_ex_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        uint8_t l_attr_chip_unit_pos = 0;
+        fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv = l_current_core.getParent<fapi2::TARGET_TYPE_PERV>();
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv, l_attr_chip_unit_pos),
+                 "Error getting ATTR_CHIP_UNIT_POS");
+        l_attr_chip_unit_pos = l_attr_chip_unit_pos - PERV_TO_CORE_POS_OFFSET;
+        FAPI_DBG("l_attr_chip_unit_pos = %d, l_attr_chip_unit_pos = %d, l_master_core = %d", l_attr_chip_unit_pos,
+                 l_attr_chip_unit_pos, l_master_core);
+
+        if (l_attr_chip_unit_pos == l_master_core)
+        {
+            l_coreTarget = l_current_core;
+            l_coreFoundMatch = true;
+            break;
+        }
+    }
+
+    FAPI_ASSERT(l_coreFoundMatch, fapi2::P9_MASTER_CORE_NOT_FOUND().set_CHIP_TARGET(i_master_chip_target).set_EX_TARGET(
+                    i_master_ex_target).set_MASTER_CORE(l_master_core) , "Error in finding the master core");
 
     // read platform initialized attributes needed to determine target base address
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_BOOTLOADER_OFFSET, FAPI_SYSTEM, l_bootloader_offset),
@@ -146,9 +179,6 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
 
     // Pass size of load including exception vectors and Bootloader
     l_bootloader_config_data.blLoadSize = l_exception_vector_size + i_payload_size;
-
-
-
 
     // move data using PBA setup/access HWPs
     l_myPbaFlag.setFastMode(true);  // FASTMODE
@@ -253,6 +283,32 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
             l_target_address += FABRIC_CACHELINE_SIZE;
             l_cacheline_num++;
         }
+    }
+
+    {
+        //instantiate the basic RamCore class
+        RamCore ram(l_coreTarget, 0);
+
+        //Set the HRMOR
+        //Override PM_EXIT on master core bit 4 is for core 0 bit 5 is for core 1
+        if (l_master_core % 2 == 0)
+        {
+            l_dataBuf.flush<0>().setBit<EQ_CME_SCOM_SICR_PM_EXIT_C0>();
+        }
+        else
+        {
+            l_dataBuf.flush<0>().setBit<EQ_CME_SCOM_SICR_PM_EXIT_C1>();
+        }
+
+        FAPI_TRY(fapi2::putScom(i_master_ex_target, EX_0_CME_SCOM_SICR_SCOM2, l_dataBuf),
+                 "Error overriding PM_EXIT");
+        //Set ram_thread_active for t0
+        l_dataBuf.flush<0>().setBit<C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0>();
+        FAPI_TRY(fapi2::putScom(l_coreTarget, C_0_THREAD_INFO, l_dataBuf),
+                 "Error setting thread active for t0");
+        l_dataBuf.flush<0>().insertFromRight<0, 64>(l_chip_base_address_nm);
+        //call RamCore put_reg method
+        FAPI_TRY(ram.put_reg(REG_SPR, 313, &l_dataBuf), "Error ramming HRMOR");
     }
 
 fapi_try_exit:
