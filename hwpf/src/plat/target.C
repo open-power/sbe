@@ -369,6 +369,8 @@ fapi_try_exit:
         return fapi2::current_err;
     }
 
+    template plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(const uint8_t);
+    template plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_EQ>(const uint8_t);
     // Get the plat target handle by chiplet number - For PERV and EQ targets
     template<TargetType K>
     plat_target_handle_t plat_getTargetHandleByChipletNumber(
