@@ -253,12 +253,7 @@ int ipl_build(char* i_fnSbeImage,
         ddSpecificImage.open(ddSpecificFileName.c_str(), std::ios::in);
 
         // did it open ok, if so tell the user
-        if(ddSpecificImage)
-        {
-            MY_ERR("%s already exists..\n", ddSpecificFileName.c_str());
-            rc = IMGBUILD_ERR_FILE_ACCESS;
-        }
-        else
+        if(!ddSpecificImage)
         {
             do
             {
