@@ -385,7 +385,7 @@ ctx_continue_push:
         ## Save the context of the PBASLVCTL reg
         _liw    %r7,  PBA_SLVCTLN(PBASLVCTLN)
         lvd     %d7, 0(%r7)
-        stvd    %d7, PK_CTX_PBASLVCTLV(%r4)
+        stvd    %d7, PK_CTX_PBASLVCTLV(%r1)
 #endif
 
 
