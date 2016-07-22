@@ -92,18 +92,6 @@ extern "C" {
     fapi2::ReturnCode p9_ec_eq_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
-    /// @brief Helper function to check the quiesce on AFU
-    /// @param[in] i_target       => P9 chip target
-    /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
-    fapi2::ReturnCode p9_afu_check_quiesce(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
-
-    /// @brief Helper funcion to check the quiesce on PSL
-    /// @param[in] i_target       => P9 chip target
-    /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
-    fapi2::ReturnCode p9_psl_check_quiesce(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
-
     /// @brief Helper function to check the quiesce for CAPP
     /// @param[in] i_target       => P9 chip target
     /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
@@ -150,12 +138,6 @@ extern "C" {
     /// @param[in] i_target       => P9 chip target
     /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
     fapi2::ReturnCode p9_intp_check_quiesce(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
-
-    /// @brief Helper function to set LQA
-    /// @param[in] i_target       => P9 chip target
-    /// @return FAPI_RC_SUCCESS if the set_lqa completes successfully
-    fapi2::ReturnCode p9_set_lqa(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
 } //extern "C"
