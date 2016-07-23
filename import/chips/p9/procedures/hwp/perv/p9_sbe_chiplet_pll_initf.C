@@ -52,42 +52,42 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
         switch (l_unit_pos)
         {
             case 0x6:
-                FAPI_DBG("Scan XBUS chiplet ring");
+                FAPI_DBG("Scan xb_pll_bndy_ring");
                 l_ring_id = xb_pll_bndy;
                 break;
 
             case 0x9:
-                FAPI_DBG("Scan OB0 chiplet ring");
+                FAPI_DBG("Scan ob0_pll_bndy ring");
                 l_ring_id = ob0_pll_bndy;
                 break;
 
             case 0xa:
-                FAPI_DBG("Scan OB1 chiplet ring");
+                FAPI_DBG("Scan ob1_pll_bndy ring");
                 l_ring_id = ob1_pll_bndy;
                 break;
 
             case 0xb:
-                FAPI_DBG("Scan OB2 chiplet ring");
+                FAPI_DBG("Scan ob2_pll_bndy ring");
                 l_ring_id = ob2_pll_bndy;
                 break;
 
             case 0xc:
-                FAPI_DBG("Scan OB3 chiplet ring");
+                FAPI_DBG("Scan ob3_pll_bndy ring");
                 l_ring_id = ob3_pll_bndy;
                 break;
 
             case 0xd:
-                FAPI_DBG("Scan PCI0 chiplet ring");
+                FAPI_DBG("Scan pci0_pll_bndy ring");
                 l_ring_id = pci0_pll_bndy;
                 break;
 
             case 0xe:
-                FAPI_DBG("Scan PCI1 chiplet ring");
+                FAPI_DBG("Scan pci1_pll_bndy ring");
                 l_ring_id = pci1_pll_bndy;
                 break;
 
             case 0xf:
-                FAPI_DBG("Scan PCI2 chiplet ring");
+                FAPI_DBG("Scan pci2_pll_bndy ring");
                 l_ring_id = pci2_pll_bndy;
                 break;
 
@@ -99,14 +99,16 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
                             "Unexpected chiplet!");
         }
 
-        FAPI_TRY(fapi2::putRing(i_target_chip, l_ring_id, fapi2::RING_MODE_SET_PULSE_NSL));
+        FAPI_TRY(fapi2::putRing(i_target_chip, l_ring_id, fapi2::RING_MODE_SET_PULSE_NSL),
+                 "Error from putRing (ringID: %d)", l_ring_id);
 
     }
 
     for (auto l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
-        FAPI_DBG("Scan initialize MC chiplet ring");
-        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_pll_bndy_bucket_1, fapi2::RING_MODE_SET_PULSE_NSL));
+        FAPI_DBG("Scan mc_pll_bndy_bucket_1 ring");
+        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_pll_bndy_bucket_1, fapi2::RING_MODE_SET_PULSE_NSL),
+                 "Error from putRing (mc_pll_bndy)");
     }
 
 fapi_try_exit:

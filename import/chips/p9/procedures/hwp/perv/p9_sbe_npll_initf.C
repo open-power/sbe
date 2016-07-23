@@ -75,7 +75,9 @@ fapi2::ReturnCode p9_sbe_npll_initf(const
                         "Unsupported Nest PLL bucket value!");
     }
 
-    FAPI_TRY(fapi2::putRing(i_target_chip, ringID, fapi2::RING_MODE_SET_PULSE_NSL));
+    FAPI_DBG("Scan perv_pll_bndy_bucket_%d ring", l_read_attr);
+    FAPI_TRY(fapi2::putRing(i_target_chip, ringID, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (perv_pll_bndy, ringID: %d)", ringID);
 
 fapi_try_exit:
     FAPI_INF("Exiting ...");

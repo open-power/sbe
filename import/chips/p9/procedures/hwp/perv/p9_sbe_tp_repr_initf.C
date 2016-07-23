@@ -38,14 +38,15 @@ fapi2::ReturnCode p9_sbe_tp_repr_initf(const
 {
     FAPI_INF("Entering ...");
 
-    FAPI_DBG("Scan perv repr ring.");
-    FAPI_TRY(fapi2::putRing(i_target_chip, perv_repr));
+    FAPI_DBG("Scan perv_repr ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_repr),
+             "Error from putRing (perv_repr)");
 
-    FAPI_DBG("Scan occ repr ring.");
-    FAPI_TRY(fapi2::putRing(i_target_chip, occ_repr));
-
-    FAPI_INF("Exiting ...");
+    FAPI_DBG("Scan occ_repr ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, occ_repr),
+             "Error from putRing (occ_repr)");
 
 fapi_try_exit:
+    FAPI_INF("Exiting ...");
     return fapi2::current_err;
 }
