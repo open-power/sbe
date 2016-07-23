@@ -57,56 +57,62 @@ p9_hcd_cache_gptr_time_initf(
 {
     FAPI_INF(">>p9_hcd_cache_gptr_time_initf");
 
-#ifndef P9_HCD_STOP_SKIP_SCAN
-
     auto l_ex_targets = i_target.getChildren<fapi2::TARGET_TYPE_EX>();
 
-    FAPI_DBG("Scanning Cache GPTR Rings");
+    FAPI_DBG("Scan eq_gptr ring");
     FAPI_TRY(fapi2::putRing(i_target, eq_gptr,
-                            fapi2::RING_MODE_HEADER_CHECK));
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (eq_gptr)");
 
-    FAPI_DBG("Scanning Cache TIME Rings");
+    FAPI_DBG("Scan eq_time ring");
     FAPI_TRY(fapi2::putRing(i_target, eq_time,
-                            fapi2::RING_MODE_HEADER_CHECK));
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (eq_time)");
 
     for (auto l_ex : l_ex_targets)
     {
-        FAPI_DBG("Scanning EX L3 GPTR Rings");
+        FAPI_DBG("Scan ex_l3_gptr ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l3_gptr,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l3_gptr)");
 
-        FAPI_DBG("Scanning EX L2 GPTR Rings");
+        FAPI_DBG("Scan ex_l2_gptr ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l2_gptr,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l2_gptr)");
 
-        FAPI_DBG("Scanning EX L3 Refresh GPTR Rings");
+        FAPI_DBG("Scan ex_l3_refr_gptr ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l3_refr_gptr,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l3_refr_gptr)");
 
-        FAPI_DBG("Scanning EX L3 TIME Rings");
+        FAPI_DBG("Scan ex_l3_time ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l3_time,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l3_time)");
 
-        FAPI_DBG("Scanning EX L2 TIME Rings");
+        FAPI_DBG("Scan ex_l2_time ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l2_time,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l2_time)");
 
-        FAPI_DBG("Scanning EX L3 Refresh TIME Rings");
+        FAPI_DBG("Scan ex_l3_refr_time ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l3_refr_time,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l3_refr_time)");
     }
 
-    FAPI_DBG("Scanning Cache DPLL GPTR Rings");
+    FAPI_DBG("Scan eq_dpll_gptr ring");
     FAPI_TRY(fapi2::putRing(i_target, eq_dpll_gptr,
-                            fapi2::RING_MODE_HEADER_CHECK));
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (eq_dpll_gptr)");
 
-    FAPI_DBG("Scanning Cache Analog GPTR Rings");
+    FAPI_DBG("Scan eq_ana_gptr ring");
     FAPI_TRY(fapi2::putRing(i_target, eq_ana_gptr,
-                            fapi2::RING_MODE_HEADER_CHECK));
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (eq_ana_gptr)");
 
 fapi_try_exit:
-
-#endif
 
     FAPI_INF("<<p9_hcd_cache_gptr_time_initf");
     return fapi2::current_err;

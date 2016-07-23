@@ -55,32 +55,32 @@ p9_hcd_cache_repair_initf(
 {
     FAPI_INF(">>p9_hcd_cache_repair_initf");
 
-#ifndef P9_HCD_STOP_SKIP_SCAN
-
     auto l_ex_targets = i_target.getChildren<fapi2::TARGET_TYPE_EX>();
 
-    FAPI_DBG("Scanning Cache REPAIR Rings");
+    FAPI_DBG("Scan eq_repr ring");
     FAPI_TRY(fapi2::putRing(i_target, eq_repr,
-                            fapi2::RING_MODE_HEADER_CHECK));
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (eq_repr)");
 
     for (auto l_ex : l_ex_targets)
     {
-        FAPI_DBG("Scanning EX L3 REPAIR Rings");
+        FAPI_DBG("Scan ex_l3_repr ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l3_repr,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l3_repr)");
 
-        FAPI_DBG("Scanning EX L2 REPAIR Rings");
+        FAPI_DBG("Scan ex_l2_repr ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l2_repr,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l2_repr)");
 
-        FAPI_DBG("Scanning EX L3 Refresh REPAIR Rings");
+        FAPI_DBG("Scan ex_l3_refr_repr ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l3_refr_repr,
-                                fapi2::RING_MODE_HEADER_CHECK));
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ex_l3_refr_repr)");
     }
 
 fapi_try_exit:
-
-#endif
 
     FAPI_INF("<<p9_hcd_cache_repair_initf");
     return fapi2::current_err;

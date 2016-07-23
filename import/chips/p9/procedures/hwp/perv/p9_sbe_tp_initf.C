@@ -39,11 +39,19 @@ fapi2::ReturnCode p9_sbe_tp_initf(const
 {
     FAPI_INF("Entering ...");
 
-    FAPI_TRY(fapi2::putRing(i_target_chip, perv_fure));
-    FAPI_TRY(fapi2::putRing(i_target_chip, occ_fure));
-    FAPI_TRY(fapi2::putRing(i_target_chip, perv_ana_func));
-    FAPI_INF("Exiting ...");
+    FAPI_DBG("Scan perv_fure ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_fure),
+             "Error from putRing (perv_fure)");
+
+    FAPI_DBG("Scan occ_fure ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, occ_fure),
+             "Error from putRing (occ_fure)");
+
+    FAPI_DBG("Scan perv_ana_func ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_ana_func),
+             "Error from putRing (perv_ana_func)");
 
 fapi_try_exit:
+    FAPI_INF("Exiting ...");
     return fapi2::current_err;
 }
