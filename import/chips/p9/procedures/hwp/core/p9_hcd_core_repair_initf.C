@@ -56,15 +56,12 @@ p9_hcd_core_repair_initf(
 {
     FAPI_INF(">>p9_hcd_core_repair_initf");
 
-#ifndef P9_HCD_STOP_SKIP_SCAN
-
-    FAPI_DBG("Scanning Core REPAIR Rings");
+    FAPI_DBG("Scan ec_repr ring");
     FAPI_TRY(fapi2::putRing(i_target, ec_repr,
-                            fapi2::RING_MODE_HEADER_CHECK));
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (ec_repr)");
 
 fapi_try_exit:
-
-#endif
 
     FAPI_INF("<<p9_hcd_core_repair_initf");
     return fapi2::current_err;

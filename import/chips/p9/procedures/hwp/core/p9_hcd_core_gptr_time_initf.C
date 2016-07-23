@@ -57,19 +57,17 @@ p9_hcd_core_gptr_time_initf(
 {
     FAPI_INF(">>p9_hcd_core_gptr_time_initf");
 
-#ifndef P9_HCD_STOP_SKIP_SCAN
-
-    FAPI_DBG("Scanning Core GPTR Rings");
+    FAPI_DBG("Scan ec_gptr ring");
     FAPI_TRY(fapi2::putRing(i_target, ec_gptr,
-                            fapi2::RING_MODE_HEADER_CHECK));
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (ec_gptr)");
 
-    FAPI_DBG("Scanning Core TIME Rings");
+    FAPI_DBG("Scan ec_time ring");
     FAPI_TRY(fapi2::putRing(i_target, ec_time,
-                            fapi2::RING_MODE_HEADER_CHECK));
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (ec_time)");
 
 fapi_try_exit:
-
-#endif
 
     FAPI_INF("<<p9_hcd_core_gptr_time_initf");
     return fapi2::current_err;

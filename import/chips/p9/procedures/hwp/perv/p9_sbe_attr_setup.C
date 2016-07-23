@@ -148,9 +148,25 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_5_SCOM,
                                     l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_5
 
-            l_read_1.writeBit<7>(l_read_scratch_reg.getBit<0>());
+            if (l_read_scratch_reg.getBit<0>())
+            {
+                l_read_1 = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED;
+            }
+            else
+            {
+                l_read_1 = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL;
+            }
+
             l_read_2.writeBit<7>(l_read_scratch_reg.getBit<1>());
-            l_read_3.writeBit<7>(l_read_scratch_reg.getBit<2>());
+
+            if (l_read_scratch_reg.getBit<2>())
+            {
+                l_read_3 = fapi2::ENUM_ATTR_RISK_LEVEL_TRUE;
+            }
+            else
+            {
+                l_read_3 = fapi2::ENUM_ATTR_RISK_LEVEL_FALSE;
+            }
 
             FAPI_DBG("Setting up SYSTEM_IPL_PHASE, RISK_LEVEL, SYS_FORCE_ALL_CORES");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_read_1));
@@ -162,7 +178,14 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             l_read_2  = 0;
             l_read_3 = 0;
 
-            l_read_1.writeBit<7>(l_read_scratch_reg.getBit<3>());
+            if (l_read_scratch_reg.getBit<3>())
+            {
+                l_read_1 = fapi2::ENUM_ATTR_DISABLE_HBBL_VECTORS_TRUE;
+            }
+            else
+            {
+                l_read_1 = fapi2::ENUM_ATTR_DISABLE_HBBL_VECTORS_FALSE;
+            }
 
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM,
                                    l_read_1));
