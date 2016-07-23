@@ -75,45 +75,96 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
                                 l_data64));
     }
 
-
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_0, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_1, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_2, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_3, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_4, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_5, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_6, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_7, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_8, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_9, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_10, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_11, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_12, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_13, fapi2::RING_MODE_SET_PULSE_NSL));
+    FAPI_DBG("Scan eq_ana_bndy_bucket_0 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_0, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_0)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_1 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_1, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_1)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_2 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_2, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_2)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_3 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_3, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_3)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_4 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_4, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_4)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_5 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_5, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_5)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_6 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_6, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_6)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_7 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_7, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_7)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_8 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_8, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_8)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_9 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_9, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_9)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_10 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_10, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_10)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_11 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_11, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_11)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_12 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_12, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_12)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_13 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_13, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_13)");
 
     FAPI_DBG("Release DCC bypass");
     l_data64.flush<1>();
     l_data64.clearBit<1>();
     FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL1_WAND, l_data64));
 
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_14, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_15, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_16, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_17, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_18, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_19, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_20, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_21, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_22, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_23, fapi2::RING_MODE_SET_PULSE_NSL));
+    FAPI_DBG("Scan eq_ana_bndy_bucket_14 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_14, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_14)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_15 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_15, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_15)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_16 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_16, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_16)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_17 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_17, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_17)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_18 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_18, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_18)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_19 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_19, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_19)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_20 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_20, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_20)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_21 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_21, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_21)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_22 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_22, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_22)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_23 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_23, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_23)");
 
     FAPI_DBG("Release Progdly bypass");
     l_data64.flush<1>();
     l_data64.clearBit<2>();
     FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL1_WAND, l_data64));
 
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_24, fapi2::RING_MODE_SET_PULSE_NSL));
-    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_25, fapi2::RING_MODE_SET_PULSE_NSL));
+    FAPI_DBG("Scan eq_ana_bndy_bucket_24 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_24, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_24)");
+    FAPI_DBG("Scan eq_ana_bndy_bucket_25 ring");
+    FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_25, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_bucket_25)");
 
     FAPI_DBG("Exiting ...");
 fapi_try_exit:
