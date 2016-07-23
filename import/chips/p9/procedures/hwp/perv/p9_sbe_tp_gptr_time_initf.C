@@ -38,16 +38,26 @@ fapi2::ReturnCode p9_sbe_tp_gptr_time_initf(const
 {
     FAPI_INF("Entering ...");
 
-    FAPI_DBG("Scan gptr and time rings for tp chiplet");
-    FAPI_TRY(fapi2::putRing(i_target_chip, perv_gptr));
-    FAPI_TRY(fapi2::putRing(i_target_chip, perv_ana_gptr));
-    FAPI_TRY(fapi2::putRing(i_target_chip, perv_pll_gptr));
-    FAPI_TRY(fapi2::putRing(i_target_chip, occ_gptr));
-    FAPI_TRY(fapi2::putRing(i_target_chip, occ_time));
-    FAPI_TRY(fapi2::putRing(i_target_chip, perv_time));
-
-    FAPI_INF("Exiting ...");
+    FAPI_DBG("Scan perv_gptr ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_gptr),
+             "Error from putRing (perv_gptr)");
+    FAPI_DBG("Scan perv_ana_gptr ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_ana_gptr),
+             "Error from putRing (perv_ana_gptr)");
+    FAPI_DBG("Scan perv_pll_gptr ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_pll_gptr),
+             "Error from putRing (perv_pll_gptr)");
+    FAPI_DBG("Scan occ_gptr ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, occ_gptr),
+             "Error from putRing (occ_gptr)");
+    FAPI_DBG("Scan occ_time ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, occ_time),
+             "Error from putRing (occ_time)");
+    FAPI_DBG("Scan perv_time ring");
+    FAPI_TRY(fapi2::putRing(i_target_chip, perv_time),
+             "Error from putRing (perv_time)");
 
 fapi_try_exit:
+    FAPI_INF("Exiting ...");
     return fapi2::current_err;
 }
