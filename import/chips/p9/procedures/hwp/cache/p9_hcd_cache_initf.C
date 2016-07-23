@@ -49,20 +49,6 @@
 
 #include "p9_hcd_cache_initf.H"
 
-#ifdef P9_HCD_STOP_SKIP_SCAN
-    #ifndef __PPE__
-        #include <p9_core_common_scan.H>
-        #include <p9_cme_scan.H>
-        #include <p9_l2_scan.H>
-        #include <p9_l3_scan.H>
-        #include <p9_ncu_scan.H>
-    #endif
-#endif
-
-//------------------------------------------------------------------------------
-// Constant Definitions
-//------------------------------------------------------------------------------
-
 //------------------------------------------------------------------------------
 // Procedure: EX (non-core) scan init
 //------------------------------------------------------------------------------
@@ -73,86 +59,30 @@ p9_hcd_cache_initf(
 {
     FAPI_INF(">>p9_hcd_cache_initf");
 
-#ifndef P9_HCD_STOP_SKIP_SCAN
+    FAPI_DBG("Scan eq_fure ring");
+    FAPI_TRY(fapi2::putRing(i_target, eq_fure),
+             "Error from putRing (eq_fure)");
+    FAPI_DBG("Scan eq_ana_func ring");
+    FAPI_TRY(fapi2::putRing(i_target, eq_ana_func),
+             "Error from putRing (eq_ana_func)");
 
-    FAPI_DBG("Scanning Cache FUNC Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EQ_FURE,
-                            fapi2::RING_MODE_HEADER_CHECK));
-
-    FAPI_DBG("Scanning EX L3 FUNC Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EX_L3_FURE,
-                            fapi2::RING_MODE_HEADER_CHECK));
-
-    FAPI_DBG("Scanning EX L2 FUNC Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EX_L2_FURE,
-                            fapi2::RING_MODE_HEADER_CHECK));
-
-    FAPI_DBG("Scanning EX L3 Refresh FUNC Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EX_L3_REFR_FURE,
-                            fapi2::RING_MODE_HEADER_CHECK));
-
-    FAPI_DBG("Scanning Cache Analog FUNC Rings");
-    FAPI_TRY(fapi2::putRing(i_target, EQ_ANA_FUNC,
-                            fapi2::RING_MODE_HEADER_CHECK));
-fapi_try_exit:
-#else
-#ifndef __PPE__
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    auto l_ex_targets = i_target.getChildren<fapi2::TARGET_TYPE_EX>();
-    fapi2::ReturnCode l_rc;
-
-    FAPI_EXEC_HWP(l_rc, p9_cme_scan, i_target, FAPI_SYSTEM);
-
-    if (l_rc)
+    for (auto l_ex_target : i_target.getChildren<fapi2::TARGET_TYPE_EX>())
     {
-        FAPI_ERR("Error from p9_cme_scan (p9.cme.scan.initfile)");
-        fapi2::current_err = l_rc;
-        goto fapi_try_exit;
-    }
-
-    // process configured child EX chiplets
-    for (auto l_iter = l_ex_targets.begin(); l_iter != l_ex_targets.end(); l_iter++)
-    {
-        FAPI_EXEC_HWP(l_rc, p9_core_common_scan, *l_iter, FAPI_SYSTEM);
-
-        if (l_rc)
-        {
-            FAPI_ERR("Error from p9_core_common_scan (p9.core.common.scan.initfile)");
-            fapi2::current_err = l_rc;
-            goto fapi_try_exit;
-        }
-
-        FAPI_EXEC_HWP(l_rc, p9_l3_scan, *l_iter, FAPI_SYSTEM);
-
-        if (l_rc)
-        {
-            FAPI_ERR("Error from p9_l3_scan (p9.l3.scan.initfile)");
-            fapi2::current_err = l_rc;
-            goto fapi_try_exit;
-        }
-
-        FAPI_EXEC_HWP(l_rc, p9_l2_scan, *l_iter, FAPI_SYSTEM);
-
-        if (l_rc)
-        {
-            FAPI_ERR("Error from p9_l2_scan (p9.l2.scan.initfile)");
-            fapi2::current_err = l_rc;
-            goto fapi_try_exit;
-        }
-
-        FAPI_EXEC_HWP(l_rc, p9_ncu_scan, *l_iter, FAPI_SYSTEM);
-
-        if (l_rc)
-        {
-            FAPI_ERR("Error from p9_ncu_scan (p9.ncu.scan.initfile)");
-            fapi2::current_err = l_rc;
-            goto fapi_try_exit;
-        }
+        FAPI_DBG("Scan ex_l2_fure ring");
+        FAPI_TRY(fapi2::putRing(l_ex_target, ex_l2_fure),
+                 "Error from putRing (ex_l2_fure)");
+        FAPI_DBG("Scan ex_l2_mode ring");
+        FAPI_TRY(fapi2::putRing(l_ex_target, ex_l2_mode),
+                 "Error from putRing (ex_l2_mode)");
+        FAPI_DBG("Scan ex_l3_fure ring");
+        FAPI_TRY(fapi2::putRing(l_ex_target, ex_l3_fure),
+                 "Error from putRing (ex_l3_fure)");
+        FAPI_DBG("Scan ex_l3_refr_fure ring");
+        FAPI_TRY(fapi2::putRing(l_ex_target, ex_l3_refr_fure),
+                 "Error from putRing (ex_l3_refr_fure)");
     }
 
 fapi_try_exit:
-#endif
-#endif
     FAPI_INF("<<p9_hcd_cache_initf");
     return fapi2::current_err;
 }

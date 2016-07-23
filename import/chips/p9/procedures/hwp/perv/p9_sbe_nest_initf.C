@@ -45,62 +45,91 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_INF("Entering ...");
-    uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
-    fapi2::buffer<uint64_t> l_data64;
-    l_data64.setBit<PERV_1_CPLT_CTRL0_TC_UNIT_DETERMINISTIC_TEST_ENABLE_DC>();
+    uint8_t l_attr_chip_unit_pos = 0;
 
-    for( auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         ( fapi2::TARGET_STATE_FUNCTIONAL))
+    for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt, l_attr_chip_unit_pos));
 
-        if ((l_attr_chip_unit_pos == 0x02))/* N0 Chiplet */
+        if (l_attr_chip_unit_pos == 0x2)/* N0 Chiplet */
         {
-            FAPI_DBG("Scan N0 chiplet rings");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n0_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n0_nx_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n0_cxa0_fure));
+            FAPI_DBG("Scan n0_cxa_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n0_cxa0_fure),
+                     "Error from putRing (n0_cxa0_fure)");
+            FAPI_DBG("Scan n0_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n0_fure),
+                     "Error from putRing (n0_fure)");
+            FAPI_DBG("Scan n0_nx_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n0_nx_fure),
+                     "Error from putRing (n0_nx_fure)");
         }
 
-        if ((l_attr_chip_unit_pos == 0x03))/* N1 Chiplet */
+        if (l_attr_chip_unit_pos == 0x3)/* N1 Chiplet */
         {
-            FAPI_DBG("Scan N1 chiplet rings");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo0_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo1_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_mcs23_fure));
+            FAPI_DBG("Scan n1_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n1_fure),
+                     "Error from putRing (n1_fure)");
+            FAPI_DBG("Scan n1_ioo0_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo0_fure),
+                     "Error from putRing (n1_ioo0_fure)");
+            FAPI_DBG("Scan n1_ioo1_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo1_fure),
+                     "Error from putRing (n1_ioo1_fure)");
+            FAPI_DBG("Scan n1_mcs23_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n1_mcs23_fure),
+                     "Error from putRing (n1_mcs23_fure)");
         }
 
-        if ((l_attr_chip_unit_pos == 0x04))/* N2 Chiplet */
+        if (l_attr_chip_unit_pos == 0x4)/* N2 Chiplet */
         {
-            FAPI_DBG("Scan N2 chiplet rings");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n2_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n2_cxa1_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n2_psi_fure));
+            FAPI_DBG("Scan n2_cxa1_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n2_cxa1_fure),
+                     "Error from putRing (n2_cxa1_fure)");
+            FAPI_DBG("Scan n2_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n2_fure),
+                     "Error from putRing (n2_fure)");
+            FAPI_DBG("Scan n2_psi_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n2_psi_fure),
+                     "Error from putRing (n2_psi_fure)");
         }
 
-        if ((l_attr_chip_unit_pos == 0x05))/* N3 Chiplet */
+        if (l_attr_chip_unit_pos == 0x05)/* N3 Chiplet */
         {
-            FAPI_DBG("Scan N3 chiplet rings");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n3_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n3_mcs01_fure));
-            FAPI_TRY(fapi2::putRing(i_target_chip, n3_np_fure));
+            FAPI_DBG("Scan n3_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n3_fure),
+                     "Error from putRing (n3_fure)");
+            FAPI_DBG("Scan n3_mcs01_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n3_mcs01_fure),
+                     "Error from putRing (n3_mcs01_fure)");
+            FAPI_DBG("Scan n3_np_fure ring");
+            FAPI_TRY(fapi2::putRing(i_target_chip, n3_np_fure),
+                     "Error from putRing (n3_np_fure)");
         }
     }
 
-    for( auto l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>
-         (fapi2::TARGET_STATE_FUNCTIONAL))
+    for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
-        FAPI_DBG("Scan MC chiplet rings");
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_fure));
-        FAPI_TRY(fapi2::putScom(l_chplt_trgt, PERV_CPLT_CTRL0_OR, l_data64));
-        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom01_fure));
-        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom23_fure));
-        FAPI_TRY(fapi2::putScom(l_chplt_trgt, PERV_CPLT_CTRL0_OR, l_data64));
-    }
+#if 0
+        {
+            // MC IOMxx FURE rings require deterministic scan enable
+            // no current plan to scan these during mainline IPL, but recipe is below if needed
+            fapi2::buffer<uint64_t> l_data64;
+            l_data64.setBit<PERV_1_CPLT_CTRL0_TC_UNIT_DETERMINISTIC_TEST_ENABLE_DC>();
+            FAPI_TRY(fapi2::putScom(l_chplt_trgt, PERV_MC01_CPLT_CTRL0_OR, l_data64));
+            FAPI_DBG("Scan mc_iom01_fure ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom01_fure),
+                     "Error from putRing (mc_iom01_fure)");
+            FAPI_DBG("Scan mc_iom23_fure ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom23_fure),
+                     "Error from putRing (mc_iom23_fure)");
+            FAPI_TRY(fapi2::putScom(l_chplt_trgt, PERV_MC01_CPLT_CTRL0_CLEAR, l_data64));
+        }
+#endif
 
-    FAPI_INF("Exiting ...");
+    }
 
 fapi_try_exit:
+    FAPI_INF("Exiting ...");
     return fapi2::current_err;
 }

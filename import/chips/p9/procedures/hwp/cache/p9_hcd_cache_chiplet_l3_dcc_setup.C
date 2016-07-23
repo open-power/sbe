@@ -51,7 +51,9 @@ fapi2::ReturnCode p9_hcd_cache_chiplet_l3_dcc_setup(const
     uint8_t l_read_attr = 0;
     FAPI_DBG("Entering ...");
 
-    FAPI_TRY(fapi2::putRing(i_target_chiplet, eq_ana_bndy_l3dcc_bucket_26, fapi2::RING_MODE_SET_PULSE_NSL));
+    FAPI_DBG("Scan eq_ana_bndy_l3dcc_bucket_26 ring");
+    FAPI_TRY(fapi2::putRing(i_target_chiplet, eq_ana_bndy_l3dcc_bucket_26, fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (eq_ana_bndy_l3dcc_bucket_26)");
 
     FAPI_DBG("Drop L3 DCC bypass");
     //Setting NET_CTRL1 register value

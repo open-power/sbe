@@ -48,15 +48,6 @@
 //-----------------------------------------------------------------------------
 
 #include "p9_hcd_core_initf.H"
-#ifdef P9_HCD_STOP_SKIP_SCAN
-    #ifndef __PPE__
-        #include <p9_core_scan.H>
-    #endif
-#endif
-
-//-----------------------------------------------------------------------------
-// Constant Definitions
-//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Procedure: Core scan init
@@ -68,31 +59,14 @@ p9_hcd_core_initf(
 {
     FAPI_INF(">>p9_hcd_core_initf");
 
-#ifndef P9_HCD_STOP_SKIP_SCAN
-
-    FAPI_DBG("Scanning Core FUNC Rings");
-    FAPI_TRY(putRing(i_target, EC_FUNC,
-                     fapi2::RING_MODE_HEADER_CHECK));
-
-fapi_try_exit:
-#else
-#ifndef __PPE__
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    fapi2::ReturnCode l_rc;
-
-    FAPI_EXEC_HWP(l_rc, p9_core_scan, i_target, FAPI_SYSTEM);
-
-    if (l_rc)
-    {
-        FAPI_ERR("Error from p9_core_scan (p9.core.scan.initfile)");
-        fapi2::current_err = l_rc;
-        goto fapi_try_exit;
-    }
+    FAPI_DBG("Scan ec_func ring");
+    FAPI_TRY(putRing(i_target, ec_func),
+             "Error from putRing (ec_func)");
+    FAPI_DBG("Scan ec_mode ring");
+    FAPI_TRY(putRing(i_target, ec_mode),
+             "Error from putRing (ec_mode)");
 
 fapi_try_exit:
-#endif
-#endif
-
     FAPI_INF("<<p9_hcd_core_initf");
     return fapi2::current_err;
 }
