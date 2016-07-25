@@ -283,13 +283,11 @@ __fapi2exit__:
                                   const RingID i_ringID,
                                   const RingMode i_ringMode)
         {
-            SBE_TRACE(">> putRing");
             ReturnCode l_rc = FAPI2_RC_SUCCESS;
 
             // Find the RS4 string in the SEEPROM
             l_rc = findRS4InImageAndApply(i_target, i_ringID, i_ringMode);
 
-            SBE_TRACE("<< putRing");
             return l_rc;
         }
 
