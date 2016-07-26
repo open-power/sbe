@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -95,12 +96,17 @@ public:
      *
      * @param[out] o_bytesSent -number of bytes sent
      *
+     * @param[in] i_skipffdciBitCheck
+     *                           - boolean to indicate whether
+     *                             ffdc bit should be checked or not.
+     *                             By Default it is false.
      * @return - SBE secondary RC
      */
     uint32_t sendOverFIFO(uint32_t i_primStatus,
                           uint32_t i_secStatus,
                           uint32_t i_fieldsConfig,
-                          uint32_t &o_bytesSent);
+                          uint32_t &o_bytesSent,
+                          bool i_skipffdcBitCheck = false);
 
     /* TODO via RTC:150786
      * @brief sendOverHOST - method to pack and send SBE internal FFDC

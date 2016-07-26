@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -36,17 +37,20 @@
  * @param[in] i_secStatus    - Secondary status of Chip op
  * @param[in] i_fieldsConfig - bitmap indicating the field
  *                             to be sent in FFDC
- *
  * @param[out] o_bytesSent -number of bytes sent
  *
+ * @param[in] i_skipffdcBitCheck - Boolean to indicate whether
+ *                                 ffdc bit should be checked or not.
+ *                                 By default it is false.
  * @return - SBE secondary RC
  */
 uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
                                       uint32_t i_secStatus,
                                       uint32_t i_fieldsConfig,
-                                      uint32_t &o_bytesSent)
+                                      uint32_t &o_bytesSent,
+                                      bool i_skipffdcBitCheck)
 {
-    #define SBE_FUNC "sbeSendFFDCPackageFIFO "
+    #define SBE_FUNC "sendOverFIFO"
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t length = 0;
@@ -57,7 +61,9 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
         o_bytesSent = 0;
 
         //check if SBE internal FFDC should be generated
-        if(SbeRegAccess::theSbeRegAccess().isSendInternalFFDCSet() == false)
+        if(!i_skipffdcBitCheck &&
+           (SbeRegAccess::theSbeRegAccess().isSendInternalFFDCSet() 
+            == false))
         {
             SBE_INFO(SBE_FUNC" isSendInternalFFDCSet()=false, "
                     "not generating SBE InternalFFDC");

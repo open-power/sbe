@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -33,6 +34,14 @@
 
 #include <stdint.h>
 
+/**
+  * @brief retrieve SBE FFDC on request from FSP.  (0xA801)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeGetFfdc(uint8_t *i_pArg);
 
 /**
   * @brief SBE Generic capabilities  (0xA802)
