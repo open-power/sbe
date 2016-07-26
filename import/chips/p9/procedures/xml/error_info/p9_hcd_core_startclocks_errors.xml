@@ -20,6 +20,7 @@
 <hwpErrors>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_PMPROC_CORECPLTALIGN_TIMEOUT</rc>
     <description>
         core chiplets alignment timed out.
@@ -28,6 +29,7 @@
   </hwpError>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_PMPROC_QUADCPLTALIGN_FAILED</rc>
     <description>
         quad chiplets alignment failed.
@@ -36,6 +38,7 @@
   </hwpError>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_PMPROC_CORECPLTALIGN_FAILED</rc>
     <description>
         core chiplets alignment failed.
@@ -44,6 +47,7 @@
   </hwpError>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_PMPROC_CORE_XSTOP</rc>
     <description>
         core checkstops.
@@ -52,6 +56,7 @@
   </hwpError>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_PMPROC_CORECLKSYNC_TIMEOUT</rc>
     <description>
         core clock sync done timed out.
@@ -60,6 +65,7 @@
   </hwpError>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_PMPROC_CORECLKSTART_FAILED</rc>
     <description>
         core clock start failed.
@@ -68,6 +74,7 @@
   </hwpError>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_PMPROC_CORECLKSTART_TIMEOUT</rc>
     <description>
         core clock start timed out.
