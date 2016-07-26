@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,11 +28,12 @@ import testUtil
 err = False
 #from testWrite import *
 
-TESTDATA = [0, 0, 0, 3,
-            0, 0, 0xA1, 0x01,
-            0, 0x02, 0x00, 0x2]
+TESTDATA = [0, 0, 0, 2,
+            0, 0, 0xA8, 0x01]
 
-EXPDATA = [0xc0, 0xde, 0xa1, 0x01]
+EXPDATA = [0xc0, 0xde, 0xa8, 0x01,
+           0x0, 0x0, 0x0, 0x0,
+           0x0, 0x0, 0x0, 0x3]
 
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
@@ -39,15 +41,7 @@ def main():
     testUtil.runCycles(10000000)
     testUtil.writeUsFifo(TESTDATA)
     testUtil.writeEot()
-    testUtil.readDsFifo(EXPDATA)
-    #flush out primary and secondary status
-    data = testUtil.readDsEntryReturnVal()
 
-    #flush hwp ffdc
-    data = testUtil.readDsEntryReturnVal()
-    data = testUtil.readDsEntryReturnVal()
-
-    #start processing sbe ffdc
     data = testUtil.readDsEntryReturnVal()
     magicBytes = ((data[0] << 8) | data[1])
     if (magicBytes == 0xFFDC) :
@@ -94,8 +88,12 @@ def main():
             myBin.write(bytearray(data))
         print("write to a file Done")
         myBin.close()
-    #flush out distance
-    data = testUtil.readDsEntryReturnVal()
+
+    #Read the Exp data
+    print ("Read the Expected data")
+    testUtil.readDsFifo( EXPDATA )
+    testUtil.readEot( )
+
 #-------------------------------------------------
 # Calling all test code
 #-------------------------------------------------

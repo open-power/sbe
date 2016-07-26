@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -114,6 +115,11 @@ static sbeCmdStruct_t g_sbeGenericCmdArray [] =
      SBE_STATE_FFDC_COLLECT,
      // Fence in FFDC Collect State, since it might over-write traces
     },
+
+     {sbeGetFfdc,
+      SBE_CMD_GET_SBE_FFDC,
+      SBE_NO_FENCE,
+     },
 };
 
 //////////////////////////////////////////////////////////////

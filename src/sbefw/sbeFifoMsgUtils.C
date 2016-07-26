@@ -338,7 +338,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         distance += len;
 
         // If no ffdc , exit;
-        if( (i_ffdc != NULL) && i_ffdc->getRc() )
+        if( (i_ffdc != NULL) && (i_ffdc->getRc() != FAPI2_RC_SUCCESS))
         {
             // making sure ffdc length is multiples of uint32_t
             assert((g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0);
