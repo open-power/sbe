@@ -125,7 +125,7 @@ public:
                           uint32_t i_fieldsConfig,
                           uint32_t &o_bytesSent);
 
-    /*
+    /* TODO via RTC:150786
      * @brief sendOverHOST - method to pack and send SBE internal FFDC
      *                       only if isSendInternalFFDCSet() is true
      *                       over HOST interface

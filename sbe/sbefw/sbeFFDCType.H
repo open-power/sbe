@@ -56,6 +56,23 @@ typedef struct
             traceField = true;
         }
     }
+    /* @brief - get dump fields as uint32_t
+     *
+     * @return - uint32_t value
+     */
+    uint32_t get()
+    {
+        uint32_t l_val = 0;
+        if(attrField)
+        {
+            l_val |= SBE_FFDC_ATTR_DUMP;
+        }
+        if(traceField)
+        {
+            l_val |= SBE_FFDC_TRACE_DUMP;
+        }
+        return l_val;
+    }
 } sbeFFDCDumpFields_t;
 
 //Sturcture indicating the type of ffdc user data blob
