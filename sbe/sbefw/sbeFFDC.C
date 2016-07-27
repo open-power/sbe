@@ -68,7 +68,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
         //Update the user data header with dump fields configuration
         iv_sbeFFDCDataHeader.dumpFields.set(i_fieldsConfig);
         iv_sbeFFDCHeader.lenInWords = (sizeof(sbeResponseFfdc_t) +
-                                       sizeof(sbeFFDCUserDataIdentifier_t))
+                                       sizeof(sbeFFDCDataHeader_t))
                                        /sizeof(uint32_t);
         //Update the length in ffdc package header base on required fields
         for(auto &sbeFFDCUserData:sbeFFDCUserDataArray)
@@ -76,8 +76,9 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
             if(sbeFFDCUserData.userDataId.fieldId & i_fieldsConfig)
             {
                 iv_sbeFFDCHeader.lenInWords +=
-                                            sbeFFDCUserData.userDataId.fieldLen
-                                            /sizeof(uint32_t);
+                                        (sbeFFDCUserData.userDataId.fieldLen +
+                                         sizeof(sbeFFDCUserDataIdentifier_t))
+                                         /sizeof(uint32_t);
             }
         }
 
@@ -132,7 +133,6 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
         }
 
         SBE_DEBUG(SBE_FUNC "Number of words sent [%d]", o_bytesSent);
-        break;
     } while(false);
 
     SBE_EXIT(SBE_FUNC);
