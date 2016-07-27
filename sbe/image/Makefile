@@ -114,6 +114,14 @@ SIMICS_PPE_TAR_FILES += $(OBJDIR)/../../tools/ppetracepp/fsp-trace
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/sbeStringFile
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/ppe2fsp
 SIMICS_BB_TAR_FILES += $(OBJDIR)/../build/simics/*
+SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/cmvc/makefile
+SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/ppe2fsp.h
+SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/ppe2fsp.c
+SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/ppe2fsp_cmd.c
+SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/trac_interface.h
+SIMICS_PPETRACEPP_TAR_FILES += $(PK_SRCDIR)/trace/pk_trace.h
+SIMICS_PARSERPLUGINS_TAR_FILES += $(PK_SRCDIR)/../sbe/sbefw/plugins/sbeUserDataParser.C
+SIMICS_PARSERPLUGINS_TAR_FILES += $(PK_SRCDIR)/../sbe/sbefw/sbeFFDCType.H
 
 SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_default_tool
 
@@ -208,8 +216,12 @@ install: all
 	@echo "Installing simics.tar"
 	@rm -rf $(OBJDIR)/simics-tar-dir
 	@mkdir $(OBJDIR)/simics-tar-dir
+	@mkdir $(OBJDIR)/simics-tar-dir/ppetracepp
+	@mkdir $(OBJDIR)/simics-tar-dir/parserplugins
 	@cp  $(SIMICS_PPE_TAR_FILES) $(OBJDIR)/simics-tar-dir
 	@cp  $(SIMICS_BB_TAR_FILES) $(OBJDIR)/simics-tar-dir
+	@cp  $(SIMICS_PPETRACEPP_TAR_FILES) $(OBJDIR)/simics-tar-dir/ppetracepp
+	@cp  $(SIMICS_PARSERPLUGINS_TAR_FILES) $(OBJDIR)/simics-tar-dir/parserplugins
 	@cd  $(OBJDIR)/simics-tar-dir && tar -cvf simics.tar * && mv simics.tar $(OBJDIR) && cd ..
 	@rm -rf $(OBJDIR)/simics-tar-dir
 	@echo "Generated simics.tar in Sbe Obj Directory"

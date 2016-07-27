@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: tools/ppetracepp/ppe2fsp.c $                                  */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 #include "pk_trace.h"
 #include "ppe2fsp.h"
 #include "trac_interface.h"
@@ -55,7 +79,7 @@ uint64_t ppe2fsp_time(uint64_t ppe_time, uint32_t hz)
 }
 
 //Writes an fsp trace entry to the fsp trace buffer
-fsp_put_entry(trace_buf_head_t* tb, largest_fsp_entry_t* fte, size_t entry_size, uint32_t bytes_left)
+void fsp_put_entry(trace_buf_head_t* tb, largest_fsp_entry_t* fte, size_t entry_size, uint32_t bytes_left)
 {
     char*       buffer = ((char*)tb) + sizeof(trace_buf_head_t);
     char*       tb_start;
@@ -308,7 +332,7 @@ size_t ppe_get_entry(PkTraceBuffer* tb, uint32_t offset, LargestPpeEntry* pte)
 }
 
 //convert a ppe trace buffer to an fsp trace buffer
-int ppe2fsp(void* in, unsigned long in_size, void* out, unsigned long* io_size)
+int ppe2fsp(void* in, size_t in_size, void* out, size_t* io_size)
 {
     PkTraceBuffer*              ptb = (PkTraceBuffer*)in;
     trace_buf_head_t*           ftb = (trace_buf_head_t*)out;
@@ -316,7 +340,6 @@ int ppe2fsp(void* in, unsigned long in_size, void* out, unsigned long* io_size)
     uint32_t                    fsp_bytes_left;
     int                         rc = 0;
     uint32_t                    ptb_offset;
-    PkTraceEntryFooter*         ptb_te;
     uint64_t                    ppe_time64;
     uint32_t                    fte_size, pte_size;
     uint32_t                    fsp_te_count = 0;
@@ -341,7 +364,7 @@ int ppe2fsp(void* in, unsigned long in_size, void* out, unsigned long* io_size)
         }
 
         //check that the input buffer is large enough to have a ppe trace buffer
-        if(in_size < (((uint32_t)(&ptb->cb[0])) - (uint32_t)(ptb)))
+        if(in_size < (((uintptr_t)(&ptb->cb[0])) - (uintptr_t)(ptb)))
         {
             rc = P2F_INPUT_BUFFER_TOO_SMALL;
             break;
