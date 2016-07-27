@@ -43,12 +43,14 @@
 
 enum P9_PERV_SBE_CMN_Private_Constants
 {
-    P9_OPCG_DONE_SCAN0_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
-    P9_OPCG_DONE_SCAN0_HW_NS_DELAY = 100000, // unit is nano seconds
-    P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY = 100000, // unit is cycles
-    P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY = 100000, // unit is nano seconds
-    P9_OPCG_DONE_ARRAYINIT_POLL_COUNT = 1500, // No. of times OPCG read to check OPCG_DONE
-    P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY = 280000 // unit is cycles
+    P9_OPCG_DONE_SCAN0_POLL_COUNT = 200, // Scan0 Poll count
+    P9_OPCG_DONE_SCAN0_HW_NS_DELAY = 16000, // unit is nano seconds [min : 8k cycles x 4 = 8000/2 x 4 = 16000 x 10(-9) = 16 us
+    //                       max : 8k cycles  =  (8000/25) x 10 (-6) = 320 us]
+    P9_OPCG_DONE_SCAN0_SIM_CYCLE_DELAY = 800000, // unit is cycles, to match the poll count change ( 10000 * 8 )
+    P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY = 200000, // unit is nano seconds [min : 400k/2 = 200k ns = 200 us
+    //                       max : 200k /25 = 8000 us = 8 ms]
+    P9_OPCG_DONE_ARRAYINIT_POLL_COUNT = 400, // Arrayinit Poll count
+    P9_OPCG_DONE_ARRAYINIT_SIM_CYCLE_DELAY = 1120000 // unit is cycles,to match the poll count change ( 280000 * 4 )
 };
 
 /// @brief Seeprom array Init Module
