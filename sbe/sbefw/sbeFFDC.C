@@ -54,6 +54,9 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
 
     do
     {
+        //reset sent bytes
+        o_bytesSent = 0;
+
         //check if SBE internal FFDC should be generated
         if(SbeRegAccess::theSbeRegAccess().isSendInternalFFDCSet() == false)
         {
@@ -63,8 +66,6 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
             break;
         }
 
-        //reset sent bytes
-        o_bytesSent = 0;
         // update the primary and secondary status
         iv_sbeFFDCDataHeader.primaryStatus = i_primStatus;
         iv_sbeFFDCDataHeader.secondaryStatus = i_secStatus;

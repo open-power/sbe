@@ -322,35 +322,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
             break;
         }
 
-        uint32_t distance = 1; //initialise by 1 for entry count itself.
-        len = sizeof(respHdr)/sizeof(uint32_t);
-        // sbeDownFifoEnq_mult.
-        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &respHdr);
-        if (rc)
-        {
-            break;
-        }
-        distance += len;
-
-        // If no ffdc , exit;
-        if( ffdc.getRc() )
-        {
-            len = sizeof(ffdc)/sizeof(uint32_t);
-            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &ffdc);
-            if (rc)
-            {
-                break;
-            }
-            distance += len;
-        }
-        len = sizeof(distance)/sizeof(uint32_t);
-        //@TODO via RTC 129076.
-        //Need to add FFDC data as well.
-        rc = sbeDownFifoEnq_mult ( len, &distance);
-        if (rc)
-        {
-            break;
-        }
+        rc = sbeDsSendRespHdr(respHdr, ffdc);
     }while(0);
 
     if( rc )

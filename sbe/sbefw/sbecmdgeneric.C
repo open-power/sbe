@@ -86,6 +86,7 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
     sbeRespGenHdr_t respHdr;
     respHdr.init();
     sbeCapabilityRespMsg_t capMsg;
+    sbeResponseFfdc_t l_ffdc;
 
     do
     {
@@ -107,21 +108,7 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
             break;
         }
 
-        uint32_t distance = 1; //initialise by 1 for entry count itself.
-        len = sizeof(respHdr)/sizeof(uint32_t);
-        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &respHdr);
-        if (rc)
-        {
-            break;
-        }
-        distance += len;
-
-        len = sizeof(distance)/sizeof(uint32_t);
-        rc = sbeDownFifoEnq_mult ( len, &distance);
-        if (rc)
-        {
-            break;
-        }
+        rc = sbeDsSendRespHdr(respHdr, l_ffdc);
     }while(0);
 
     if( rc )
