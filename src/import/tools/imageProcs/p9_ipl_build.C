@@ -248,123 +248,115 @@ int ipl_build(char* i_fnSbeImage,
     }
     else
     {
-        // open it in read mode, if it does not exist this will fail, which means
-        // its ok to create, otherwise we don't want to overwrite existing files.
-        ddSpecificImage.open(ddSpecificFileName.c_str(), std::ios::in);
-
-        // did it open ok, if so tell the user
-        if(!ddSpecificImage)
+        do
         {
-            do
+            // get a filebuf pointer to make it easy to work with
+            std::filebuf* pbuf = sbeImageFile.rdbuf();
+
+            // get the file size
+            std::size_t sbeImageSize = pbuf->pubseekoff(0,
+                                       sbeImageFile.end, sbeImageFile.in);
+
+            pbuf->pubseekpos(0, sbeImageFile.in);
+
+            // allocate some space to hold the file data
+            sbeImage =  (char*)malloc(sbeImageSize);
+
+            if(sbeImage == NULL)
             {
-                // get a filebuf pointer to make it easy to work with
-                std::filebuf* pbuf = sbeImageFile.rdbuf();
+                MY_ERR("Failed to allocate memory for the SBE image\n");
+                rc = IMGBUILD_ERR_MEMORY;
+                break;
+            }
 
-                // get the file size
-                std::size_t sbeImageSize = pbuf->pubseekoff(0,
-                                           sbeImageFile.end, sbeImageFile.in);
+            bzero(sbeImage, sbeImageSize);
 
-                pbuf->pubseekpos(0, sbeImageFile.in);
+            // copy the SBE image into memory
+            pbuf->sgetn(sbeImage, sbeImageSize);
 
-                // allocate some space to hold the file data
-                sbeImage =  (char*)malloc(sbeImageSize);
+            // validate it
+            rc = p9_xip_validate(sbeImage, sbeImageSize);
 
-                if(sbeImage == NULL)
+            if(rc)
+            {
+                MY_ERR("The SBE image copied to memory"
+                       "failed validation rc = %d", rc);
+
+                rc = IMGBUILD_INVALID_IMAGE;
+                break;
+            }
+
+            MY_INF("SBE Image validated ok.. %p\n", sbeImage);
+
+            uint32_t    l_blockSize = 0;
+
+            char* hwImagePtr = static_cast<char*>(i_hwImage);
+
+            rc = get_dd_level_rings_from_hw_image(hwImagePtr,
+                                                  i_ddLevel,
+                                                  &l_ringBlock,
+                                                  l_blockSize);
+
+            if(rc == IMGBUILD_SUCCESS)
+            {
+                // update our SBE image size to include the new block of rings
+                sbeImageSize += l_blockSize;
+
+                // grow our workspace
+                void* tmp = realloc(sbeImage, sbeImageSize);
+
+                if(tmp == NULL)
                 {
-                    MY_ERR("Failed to allocate memory for the SBE image\n");
+                    MY_ERR("error resizing workspace..giving up errno=%d", errno);
                     rc = IMGBUILD_ERR_MEMORY;
                     break;
                 }
 
-                bzero(sbeImage, sbeImageSize);
+                // use the new, larger space
+                sbeImage = static_cast<char*>(tmp);
 
-                // copy the SBE image into memory
-                pbuf->sgetn(sbeImage, sbeImageSize);
-
-                // validate it
-                rc = p9_xip_validate(sbeImage, sbeImageSize);
-
-                if(rc)
-                {
-                    MY_ERR("The SBE image copied to memory"
-                           "failed validation rc = %d", rc);
-
-                    rc = IMGBUILD_INVALID_IMAGE;
-                    break;
-                }
-
-                MY_INF("SBE Image validated ok.. %p\n", sbeImage);
-
-                uint32_t    l_blockSize = 0;
-
-                char* hwImagePtr = static_cast<char*>(i_hwImage);
-
-                rc = get_dd_level_rings_from_hw_image(hwImagePtr,
-                                                      i_ddLevel,
-                                                      &l_ringBlock,
-                                                      l_blockSize);
+                rc = append_ring_block_to_image(sbeImage,
+                                                sbeImageSize,
+                                                (char*)l_ringBlock,
+                                                l_blockSize);
 
                 if(rc == IMGBUILD_SUCCESS)
                 {
-                    // update our SBE image size to include the new block of rings
-                    sbeImageSize += l_blockSize;
+                    // looks like it worked, create a debug file and write the
+                    // customized image to it
+                    ddSpecificImage.open(ddSpecificFileName.c_str(), std::ios::binary | std::ios::out);
 
-                    // grow our workspace
-                    void* tmp = realloc(sbeImage, sbeImageSize);
-
-                    if(tmp == NULL)
+                    if(!ddSpecificImage)
                     {
-                        MY_ERR("error resizing workspace..giving up errno=%d", errno);
-                        rc = IMGBUILD_ERR_MEMORY;
-                        break;
-                    }
-
-                    // use the new, larger space
-                    sbeImage = static_cast<char*>(tmp);
-
-                    rc = append_ring_block_to_image(sbeImage,
-                                                    sbeImageSize,
-                                                    (char*)l_ringBlock,
-                                                    l_blockSize);
-
-                    if(rc == IMGBUILD_SUCCESS)
-                    {
-                        // looks like it worked, create a debug file and write the
-                        // customized image to it
-                        ddSpecificImage.open(ddSpecificFileName.c_str(), std::ios::binary | std::ios::out);
-
-                        if(!ddSpecificImage)
-                        {
-                            MY_ERR("failed to open %s for writing\n", ddSpecificFileName.c_str());
-                            rc = IMGBUILD_ERR_FILE_ACCESS;
-                        }
-                        else
-                        {
-                            std::filebuf* outbuf = ddSpecificImage.rdbuf();
-
-                            outbuf->sputn(sbeImage, sbeImageSize);
-
-                            MY_INF("DD specific file created as %s\n", ddSpecificFileName.c_str());
-
-                            // rewind to the beginning of the original file and write this
-                            // into it.
-                            pbuf->pubseekpos(0, sbeImageFile.in);
-
-                            pbuf->sputn(sbeImage, sbeImageSize);
-
-                        }
+                        MY_ERR("failed to open %s for writing\n", ddSpecificFileName.c_str());
+                        rc = IMGBUILD_ERR_FILE_ACCESS;
                     }
                     else
                     {
-                        MY_ERR("creating dd specific SBE image failed rc=%d\n", rc);
+                        std::filebuf* outbuf = ddSpecificImage.rdbuf();
+
+                        outbuf->sputn(sbeImage, sbeImageSize);
+
+                        MY_INF("DD specific file created as %s\n", ddSpecificFileName.c_str());
+
+                        // rewind to the beginning of the original file and write this
+                        // into it.
+                        pbuf->pubseekpos(0, sbeImageFile.in);
+
+                        pbuf->sputn(sbeImage, sbeImageSize);
+
                     }
                 }
+                else
+                {
+                    MY_ERR("creating dd specific SBE image failed rc=%d\n", rc);
+                }
             }
-            while(0);
-
-            free(sbeImage);
-            free(l_ringBlock);
         }
+        while(0);
+
+        free(sbeImage);
+        free(l_ringBlock);
 
         ddSpecificImage.close();
         sbeImageFile.close();
