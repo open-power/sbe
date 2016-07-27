@@ -194,36 +194,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
             break;
         }
 
-        uint32_t l_dist2Hdr = 1;
-        // Now enqueue the minimum response header
-        uint32_t l_len = sizeof(l_respHdr) / sizeof(uint32_t);
-        l_rc = sbeDownFifoEnq_mult(l_len, (uint32_t *)(&l_respHdr) );
-        if ( SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-        {
-            break;
-        }
-
-        l_dist2Hdr += l_len;
-
-        // Enqueue FFDC data if there is one
-        if( l_ffdc.getRc() )
-        {
-            l_len = sizeof(l_ffdc) / sizeof(uint32_t);
-            l_rc = sbeDownFifoEnq_mult ( l_len, (uint32_t *)(&l_ffdc) );
-            if ( SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-            {
-                break;
-            }
-
-            l_dist2Hdr += l_len;
-        }
-
-        l_len = sizeof(l_dist2Hdr) / sizeof(uint32_t);
-        l_rc = sbeDownFifoEnq_mult ( l_len, &l_dist2Hdr);
-        if ( l_rc )
-        {
-            break;
-        }
+        l_rc = sbeDsSendRespHdr(l_respHdr, l_ffdc);
     }while(0);
 
     SBE_EXIT(SBE_FUNC);
