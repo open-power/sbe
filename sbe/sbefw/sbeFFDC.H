@@ -31,10 +31,6 @@
 #include "sbeFFDCType.H"
 #include "sbeSpMsg.H"
 
-
-//Since maximum error log supported in HB is 4KB
-#define SBE_FFDC_MAX_LENGTH     0x1000
-
 //PIBMEM attribute dump
 extern G_sbe_attrs_t G_sbe_attrs;
 
@@ -43,7 +39,7 @@ extern G_sbe_attrs_t G_sbe_attrs;
 //Definition - Identifier
 //             length of the blob
 //             pointer to the data
-constexpr sbeFFDCUserData_t sbeFFDCUserDataArray[] =
+const sbeFFDCUserData_t sbeFFDCUserDataArray[] =
                                               {{{SBE_FFDC_TRACE_DUMP,
                                                 sizeof(PkTraceBuffer)},
                                                 (const void *)&g_pk_trace_buf,
@@ -53,17 +49,6 @@ constexpr sbeFFDCUserData_t sbeFFDCUserDataArray[] =
                                                 (const void *)&G_sbe_attrs,
                                                 },
                                               };
-#define SBE_FFDC_NUM_USER_DATA (sizeof(sbeFFDCUserDataArray)/\
-                                sizeof(sbeFFDCUserData_t))
-
-//Compile time usage - to derive the sum of all user data
-//as defined in sbeFFDCUserDataArray
-constexpr uint16_t getMaxFFDCUserDataLength(int8_t index)
-{
-    return index<0 ? 0 : sbeFFDCUserDataArray[index].userDataId.fieldLen +\
-                                            getMaxFFDCUserDataLength(index-1);
-}
-
 
 //SBE internal FFDC package singleton class
 class SbeFFDCPackage
@@ -96,13 +81,6 @@ public:
         iv_sbeFFDCDataHeader.primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
         iv_sbeFFDCDataHeader.secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
 
-        //Making sure that the maximum length of FFDC package
-        //can be accomodated
-        static_assert((sizeof(sbeResponseFfdc_t) + sizeof(sbeFFDCDataHeader_t) +
-                       getMaxFFDCUserDataLength(SBE_FFDC_NUM_USER_DATA-1)) \
-                       <= SBE_FFDC_MAX_LENGTH,
-                        "length of FFDC package must never exceed"
-                        "SBE_FFDC_MAX_LENGTH ");
         //length and dumpFields will be filled up depending on the fields
         //to be sent in send APIs
         iv_sbeFFDCDataHeader.dumpFields = {0};
