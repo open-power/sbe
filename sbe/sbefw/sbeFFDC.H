@@ -50,7 +50,7 @@ const sbeFFDCUserData_t sbeFFDCUserDataArray[] =
                                                 },
                                               };
 
-//SBE internal FFDC package singleton class
+//SBE internal FFDC package class
 class SbeFFDCPackage
 {
 private:

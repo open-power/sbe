@@ -65,6 +65,9 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
 
         //reset sent bytes
         o_bytesSent = 0;
+        // update the primary and secondary status
+        iv_sbeFFDCDataHeader.primaryStatus = i_primStatus;
+        iv_sbeFFDCDataHeader.secondaryStatus = i_secStatus;
         //Update the user data header with dump fields configuration
         iv_sbeFFDCDataHeader.dumpFields.set(i_fieldsConfig);
         iv_sbeFFDCHeader.lenInWords = (sizeof(sbeResponseFfdc_t) +
