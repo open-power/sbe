@@ -356,9 +356,9 @@ namespace fapi2
         /// @brief Get target type directly from the handle
         /// @return Overlay as a type V
         ///
-        inline TargetTypes_t getTargetType(void) const
+        inline TargetType  getTargetType(void) const
         {
-            return static_cast<TargetTypes_t>(iv_handle.fields.type);
+            return static_cast<TargetType>(iv_handle.fields.type);
         }
 
         ///

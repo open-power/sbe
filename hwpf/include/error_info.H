@@ -57,7 +57,7 @@ template<fapi2::TargetType T>
 inline uint64_t convertType( const fapi2::Target<T>& i_value)
 {
     // get the SBE platform target handle
-    return static_cast<uint64_t>(i_value.get().value);
+    return static_cast<uint64_t>((static_cast<uint64_t>((i_value.get().getFapiTargetType())) << 32) | i_value.get().getTargetInstance());
 };
 #endif
 
