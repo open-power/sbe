@@ -1950,18 +1950,18 @@ int dissectRingSectionTor( void*       i_ringSection,
                                  ddLevel, ppeTypeName[ppeType], ringVariantName[ringVariant], ringId, instanceId);
 
                         ringBlockSize = RING_BUF_SIZE_MAX;
-                        rc = tor_get_ring( i_ringSection,
-                                           i_imageMagicNo,
-                                           (RingID)ringId,
-                                           ddLevel,
-                                           (PpeType_t)ppeType,
-                                           ringType,            // IO parm
-                                           (RingVariant_t)ringVariant,
-                                           instanceId,          // IO parm
-                                           SINGLE_RING,
-                                           &ringBlockPtr,       // IO parm
-                                           ringBlockSize,       // IO parm
-                                           ringName );
+                        rc = tor_access_ring( i_ringSection,
+                                              i_imageMagicNo,
+                                              (RingID)ringId,
+                                              ddLevel,
+                                              (PpeType_t)ppeType,
+                                              ringType,            // IO parm
+                                              (RingVariant_t)ringVariant,
+                                              instanceId,          // IO parm
+                                              SINGLE_RING,
+                                              &ringBlockPtr,       // IO parm
+                                              ringBlockSize,       // IO parm
+                                              ringName);
 
                         // Gather ring details and print it.
                         //
@@ -1971,7 +1971,7 @@ int dissectRingSectionTor( void*       i_ringSection,
                             // Check ring block size.
                             if ( htobe32(((RingLayout_t*)ringBlockPtr)->sizeOfThis) != ringBlockSize )
                             {
-                                fprintf(stderr, "tor_get_ring() was successful and found a ring but "
+                                fprintf(stderr, "tor_access_ring() was successful and found a ring but "
                                         "sizeOfThis(=0x%08x) != ringBlockSize(=0x%08x) is a bug.\n",
                                         htobe32(((RingLayout_t*)ringBlockPtr)->sizeOfThis), ringBlockSize);
                                 exit(1);
@@ -2096,19 +2096,19 @@ int dissectRingSectionTor( void*       i_ringSection,
                         }
                         else if (rc == IMGBUILD_TGR_RING_NOT_FOUND)
                         {
-                            fprintf(stdout, "tor_get_ring() returned rc=%d=IMGBUILD_TGR_RING_NOT_FOUND\n", rc);
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_RING_NOT_FOUND\n", rc);
                         }
                         else if (rc == IMGBUILD_INVALID_INSTANCEID)
                         {
-                            fprintf(stdout, "tor_get_ring() returned rc=%d=IMGBUILD_INVALID_INSTANCEID\n", rc);
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_INVALID_INSTANCEID\n", rc);
                         }
                         else if (rc == IMGBUILD_TGR_AMBIGUOUS_API_PARMS)
                         {
-                            fprintf(stdout, "tor_get_ring() returned rc=%d=IMGBUILD_TGR_AMBIGUOUS_API_PARMS\n", rc);
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_AMBIGUOUS_API_PARMS\n", rc);
                         }
                         else
                         {
-                            fprintf(stderr, "tor_get_ring() returned error code rc=%d\n", rc);
+                            fprintf(stderr, "tor_access_ring() returned error code rc=%d\n", rc);
                             exit(1);
                         }
 
