@@ -46,6 +46,43 @@ fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 namespace fapi2
 {
+    TargetType plat_target_handle_t::getFapiTargetType() const
+    {
+        TargetType l_targetType = TARGET_TYPE_NONE;
+        switch(fields.type)
+        {
+            case PPE_TARGET_TYPE_PROC_CHIP:
+                l_targetType = TARGET_TYPE_PROC_CHIP;
+                break;
+            case PPE_TARGET_TYPE_MCS:
+                l_targetType = TARGET_TYPE_MCS;
+                break;
+            case PPE_TARGET_TYPE_CORE | PPE_TARGET_TYPE_PERV:
+                l_targetType = TARGET_TYPE_CORE;
+                break;
+            case PPE_TARGET_TYPE_EQ | PPE_TARGET_TYPE_PERV:
+                l_targetType = TARGET_TYPE_EQ;
+                break;
+            case PPE_TARGET_TYPE_EX:
+                l_targetType = TARGET_TYPE_EX;
+                break;
+            case PPE_TARGET_TYPE_PERV:
+                l_targetType = TARGET_TYPE_PERV;
+                break;
+            case PPE_TARGET_TYPE_SYSTEM:
+                l_targetType = TARGET_TYPE_SYSTEM;
+                break;
+            case PPE_TARGET_TYPE_MCBIST | PPE_TARGET_TYPE_PERV:
+                l_targetType = TARGET_TYPE_MCBIST;
+                break;
+            case PPE_TARGET_TYPE_NONE:
+            case PPE_TARGET_TYPE_ALL:
+            default:
+                assert(false);
+                break;
+        }
+        return l_targetType;
+    }
 
     #ifndef __noRC__
     ReturnCode current_err;

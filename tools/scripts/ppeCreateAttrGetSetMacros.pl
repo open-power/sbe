@@ -1,4 +1,28 @@
 #!/usr/bin/perl -w
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: tools/scripts/ppeCreateAttrGetSetMacros.pl $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 #find enums in AttributeId
 #for each enum check for ${enum}_Type
 #check for type and array values
@@ -96,7 +120,7 @@ while (<FILE>) {
   } elsif (m/\s*#define\s+(\w+)_SETMACRO\(ID\,\sPTARGET\,\sVAL\)\s(.+)/) {
     $setMacros{$1} = $2;
     if ($DEBUG) { print "DEBUG:: attribute = $1 : SETMACRO = $2\n"; }
-  } elsif (m/\s*const\s*TargetTypes_t\s+(\w+)_TargetTypes\s*=\s*(\S+)\s*;\s*/) {
+  } elsif (m/\s*const\s*TargetType\s+(\w+)_TargetTypes\s*=\s*(\S+)\s*;\s*/) {
     $targetMacros{$1} = $2;
 #    print "DEBUG:: attribute = $1 : TARGET = $2\n";
     if ($DEBUG) { print "DEBUG:: attribute = $1 : TARGET = $2\n"; }
@@ -157,7 +181,7 @@ while (<FILE>) {
   } elsif (m/\s*#define\s+(\w+)_SETMACRO\s+(\S+)\s*/) {
     $setMacros{$1} = $2;
     if ($DEBUG) { print "DEBUG:: attribute = $1 : SETMACRO = $2\n"; }
-  } elsif (m/\s*const\s*TargetTypes_t\s+(\w+)_TargetTypes\s*=\s*(\S+)\s*;\s*/) {
+  } elsif (m/\s*const\s*TargetType\s+(\w+)_TargetTypes\s*=\s*(\S+)\s*;\s*/) {
     $targetMacros{$1} = $2;
     if ($DEBUG) { print "DEBUG:: attribute = $1 : TARGET = $2\n"; }
   }
@@ -343,15 +367,15 @@ if (@newAttributeDefines != 0) {
         __attribute__((always_inline)) inline uint32_t getPervAttrIndex(const fapi2::Target<TARGET_TYPE_PERV> &i_target)
         {
             uint32_t l_index = i_target.getTargetNumber();
-            if(TARGET_TYPE_EQ & i_target.getTargetType())
+            if(PPE_TARGET_TYPE_EQ & i_target.getTargetType())
             {
                 l_index += (EQ_TARGET_OFFSET);
             }
-            else if(TARGET_TYPE_CORE & i_target.getTargetType())
+            else if(PPE_TARGET_TYPE_CORE & i_target.getTargetType())
             {
                 l_index += (CORE_TARGET_OFFSET);
             }
-            else if(TARGET_TYPE_MCS & i_target.getTargetType())
+            else if(PPE_TARGET_TYPE_MCS & i_target.getTargetType())
             {
                 l_index += (MCS_TARGET_OFFSET);
             }

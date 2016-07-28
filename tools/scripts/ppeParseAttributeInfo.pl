@@ -475,7 +475,7 @@ foreach my $entr (@{$entries->{entry}}) {
                 exit(1);
             }
 
-            print AIFILE "const TargetTypes_t $attr->{id}_TargetTypes = ";
+            print AIFILE "const TargetType $attr->{id}_TargetTypes = ";
 
             # Split on commas
             my @targTypes = split(',', $attr->{targetType});

@@ -262,11 +262,9 @@ inline fapi2::ffdc_t getFfdcData( sbeFfdc_t& i_sbeFfdc )
     if(i_sbeFfdc.size == EI_FFDC_SIZE_TARGET )
     {
         fapi2::TargetType type = TARGET_TYPE_EX;
-        uint8_t instance = 0;
-        // 1 convert from SBE targetPointer to TYPE/INSTANCE
-        // convertSbePlatPtr( i_sbeFfdcPtr->data, type, instance );
+        uint64_t targetData = i_sbeFfdc.data;
         // call hostboot to get the fapi2 target
-        temp.ptr() = static_cast<void*>(getTarget(type, instance));
+        temp.ptr() = static_cast<void*>(getTarget((targetData >> 32), static_cast<uint8_t>(targetData & 0xFFFFFFFF)));
     }
     else
     {

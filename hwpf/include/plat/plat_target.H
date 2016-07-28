@@ -31,6 +31,8 @@
 #define __FAPI2_PLAT_TARGET__
 
 #include <stdint.h>
+#include <target_types.H>
+#include <assert.h>
 
 //
 // Define what a platform handle looks like. For Hostboot,
@@ -39,6 +41,20 @@
 //
 namespace fapi2
 {
+    typedef enum plat_target_type
+    {
+        PPE_TARGET_TYPE_NONE              = 0x00,
+        PPE_TARGET_TYPE_PROC_CHIP         = 0x01,
+        PPE_TARGET_TYPE_MCS               = 0x02,
+        PPE_TARGET_TYPE_CORE              = 0x04,
+        PPE_TARGET_TYPE_EQ                = 0x08,
+        PPE_TARGET_TYPE_EX                = 0x10,
+        PPE_TARGET_TYPE_PERV              = 0x20,
+        PPE_TARGET_TYPE_MCBIST            = 0x40,
+        PPE_TARGET_TYPE_SYSTEM            = 0x80,
+        PPE_TARGET_TYPE_ALL               = 0xFFF,
+    } plat_target_type_t;
+
     typedef union plat_target_handle {
         uint32_t value;
         struct {
@@ -62,6 +78,14 @@ namespace fapi2
         } fields;
         // Union Constructor
         plat_target_handle(uint32_t i_value = 0):value(i_value) {}
+
+
+        TargetType getFapiTargetType() const;
+
+        inline uint32_t getTargetInstance() const
+        {
+            return fields.type_target_num;
+        }
     } plat_target_handle_t;
 };
 

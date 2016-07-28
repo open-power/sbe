@@ -81,6 +81,55 @@ struct ScomAddr
 
 namespace fapi2
 {
+
+    template<TargetType T>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType()
+    {
+        return PPE_TARGET_TYPE_NONE;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PROC_CHIP>()
+    {
+        return PPE_TARGET_TYPE_PROC_CHIP;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_EQ>()
+    {
+        return PPE_TARGET_TYPE_EQ;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_CORE>()
+    {
+        return PPE_TARGET_TYPE_CORE;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_EX>()
+    {
+        return PPE_TARGET_TYPE_EX;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MCS>()
+    {
+        return PPE_TARGET_TYPE_MCS;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MCBIST>()
+    {
+        return PPE_TARGET_TYPE_MCBIST;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PERV>()
+    {
+        return PPE_TARGET_TYPE_PERV;
+    }
+
     /// @brief Create a Target, with a value
     /// @param[in] Value the value (i.e., specific element this
     /// target represents, or pointer)
@@ -103,50 +152,50 @@ namespace fapi2
         if(K & TARGET_TYPE_PROC_CHIP)
         {
             this->iv_handle.fields.chiplet_num = 0;
-            this->iv_handle.fields.type = TARGET_TYPE_PROC_CHIP;
+            this->iv_handle.fields.type = PPE_TARGET_TYPE_PROC_CHIP;
             this->iv_handle.fields.type_target_num = 0;
         }
         else if(K & TARGET_TYPE_PERV)
         {
             this->iv_handle.fields.chiplet_num = l_plat_argument + NEST_GROUP1_CHIPLET_OFFSET;
-            this->iv_handle.fields.type = TARGET_TYPE_PERV;
+            this->iv_handle.fields.type = PPE_TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_CORE)
         {
             this->iv_handle.fields.chiplet_num = l_plat_argument + CORE_CHIPLET_OFFSET;
-            this->iv_handle.fields.type = TARGET_TYPE_CORE | TARGET_TYPE_PERV;
+            this->iv_handle.fields.type = PPE_TARGET_TYPE_CORE | PPE_TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_EQ)
         {
             this->iv_handle.fields.chiplet_num = l_plat_argument + EQ_CHIPLET_OFFSET;
-            this->iv_handle.fields.type = TARGET_TYPE_EQ | TARGET_TYPE_PERV;
+            this->iv_handle.fields.type = PPE_TARGET_TYPE_EQ | PPE_TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_EX)
         {
             this->iv_handle.fields.chiplet_num = (l_plat_argument / 2) + EX_CHIPLET_OFFSET;
-            this->iv_handle.fields.type = TARGET_TYPE_EX;
+            this->iv_handle.fields.type = PPE_TARGET_TYPE_EX;
             this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_MCBIST)
         {
 
             this->iv_handle.fields.chiplet_num = l_plat_argument + MCBIST_CHIPLET_OFFSET;
-            this->iv_handle.fields.type = TARGET_TYPE_MCBIST | TARGET_TYPE_PERV;
+            this->iv_handle.fields.type = PPE_TARGET_TYPE_MCBIST | PPE_TARGET_TYPE_PERV;
             this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K & TARGET_TYPE_MCS)
         {
             this->iv_handle.fields.chiplet_num = N3_CHIPLET - (MCS_PER_MCBIST * (l_plat_argument / MCS_PER_MCBIST));
-            this->iv_handle.fields.type = TARGET_TYPE_MCS;
+            this->iv_handle.fields.type = PPE_TARGET_TYPE_MCS;
             this->iv_handle.fields.type_target_num = l_plat_argument;
         }
         else if(K == TARGET_TYPE_ALL)
         {
             this->iv_handle.fields.chiplet_num = l_plat_argument;
-            this->iv_handle.fields.type = TARGET_TYPE_ALL;
+            this->iv_handle.fields.type = PPE_TARGET_TYPE_ALL;
         }
 
         this->iv_handle.fields.valid = 1;
@@ -365,12 +414,12 @@ namespace fapi2
     {
         std::vector<fapi2::plat_target_handle_t>::iterator l_iter;
         std::vector<Target<T> > l_children;
+        constexpr plat_target_type_t P = fapiTargetTypeToPlatTargetType<T>();
 
         for (l_iter = G_vec_targets.begin(); l_iter != G_vec_targets.end(); ++l_iter)
         {
-
             Target<T> * l_temp =  reinterpret_cast< Target<T>* >(l_iter);
-            if (((*l_temp).getTargetType() & T) == T)
+            if (((*l_temp).getTargetType() & P) == P)
             {
                 switch (i_state)
                 {
@@ -421,7 +470,7 @@ namespace fapi2
             {
                 plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx + NEST_GROUP1_CHIPLET_OFFSET);
 
-                if(l_targetHandle.fields.type & TARGET_TYPE_PERV) // Can be an assertion?
+                if(l_targetHandle.fields.type & PPE_TARGET_TYPE_PERV) // Can be an assertion?
                 {
                     switch (i_state)
                     {
