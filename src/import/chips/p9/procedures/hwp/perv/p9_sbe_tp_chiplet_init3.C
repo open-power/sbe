@@ -280,11 +280,11 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     l_data64.clearBit<4, 4>();  //PERV.OSCERR_HOLD.OSCERR_MEM = 0000
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_HOLD, l_data64));
 
-    FAPI_DBG("Rests FIR");
+    FAPI_DBG("Resets FIR");
     //Setting LOCAL_FIR register value
     l_data64.flush<1>();
-    l_data64.clearBit<35>();  //PERV.LOCAL_FIR.FIR_IN35 = 0
-    l_data64.clearBit<36>();  //PERV.LOCAL_FIR.FIR_IN36 = 0
+    l_data64.clearBit<36>();
+    l_data64.clearBit<37>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_AND, l_data64));
 
 #ifndef SIM_ONLY_OSC_SWC_CHK
