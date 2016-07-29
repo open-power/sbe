@@ -202,17 +202,18 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_6_SCOM,
                                     l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_6
 
+            l_read_1 = 0;
             sbe_slave_chip = l_read_scratch_reg.getBit<24>();
 
-            if ( sbe_slave_chip )  // 0b1 == slave
+            if ( !sbe_slave_chip )  // 0b0 == master
             {
-                l_read_1.writeBit<7>(l_read_scratch_reg.flipBit<24>());
-            }
-            else  // 0b0 == master
-            {
-                FAPI_DBG("Reading DEVIVE_ID_REG value");
+                FAPI_DBG("Reading DEVICE_ID_REG value");
                 FAPI_TRY(fapi2::getScom(i_target_chip, PERV_DEVICE_ID_REG, l_read_device_reg));
-                l_read_1.writeBit<7>(l_read_device_reg.flipBit<40>());
+
+                if (!l_read_device_reg.getBit<40>())
+                {
+                    l_read_1.setBit<7>();
+                }
             }
 
             l_read_scratch_reg.extractToRight<26, 3>(l_read_2);
