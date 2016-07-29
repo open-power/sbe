@@ -39,7 +39,8 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testFifoReset.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testExecutorPutRing.xml</include>
+          <!-- TODO : Enable putring from image chip op test case-->
+          <!--../simics/targets/p9_nimbus/sbeTest/testExecutorPutRing.xml-->
           <include>../simics/targets/p9_nimbus/sbeTest/testGetRing.xml</include>
           <testcase>
               <simcmd>sbe-trace 0</simcmd>
