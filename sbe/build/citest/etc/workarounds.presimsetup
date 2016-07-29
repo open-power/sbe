@@ -30,7 +30,3 @@
 #egrep -v "WSALIAS DEFAULT FIPSLEVEL|WSALIAS DEFAULT SIMICSLEVEL" $BACKING_BUILD/src/simu/data/simicsInfo > $sb/simu/data/simicsInfo
 #echo "WSALIAS DEFAULT FIPSLEVEL env/gfwb/simics-4.2.0/simics-4.2.83/fips/fld36/fi120201a700.42" >> $sb/simu/data/simicsInfo
 #echo "WSALIAS DEFAULT SIMICSLEVEL env/vtechb/simics-4.2.0/simics-4.2.83/bin" >> $sb/simu/data/simicsInfo
-echo "+++ Applying HW image patch from CMVC"
-mkdir -p $SANDBOXBASE/src/engd/href
-cp  /esw/user/nfs/prasrang/sachin/p9n.temp_hw_ref_image.bin $SANDBOXBASE/src/engd/href/
-
