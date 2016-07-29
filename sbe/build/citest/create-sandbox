@@ -1,4 +1,28 @@
 #!/bin/sh
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: sbe/build/citest/create-sandbox $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
 
 echo "Creating ODE sandbox..."
 
@@ -40,11 +64,6 @@ fi
 echo "----Setting up simics."
 execute_in_sandbox "start_simics -no_start -machine $MACHINE -batch_mode" \
                    "ppc" || exit -1
-
-# Copy action files. As we are taking actions files from ppe, copy them here
-# so that any workaround necessary can be applied over them in pre-simsetup path
-mkdir -p $SANDBOXBASE/src/simu/data/cec-chip
-cp  $SBEROOT/import/chips/p9/sw_simulation/* $SANDBOXBASE/src/simu/data/cec-chip || exit -1
 
 # Run postsimsetup workarounds.
 echo "----Running postsimsetup workarounds."

@@ -33,14 +33,6 @@
 #cp $BACKING_BUILD/src/simu/data/cec-chip/base_cec_chip_file $sb/simu/data/cec-chip
 #patch -p0 $sb/simu/data/cec-chip/base_cec_chip_file $SBEROOT/src/build/citest/etc/patches/my_patch_File
 
-echo "  +++ Add FSIMBOX KW for actions on 50018 register"
-echo "  patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/pervasive.act $SBEROOT/sbe/build/citest/etc/patches/pervasive.act.patch"
-patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/pervasive.act $SBEROOT/sbe/build/citest/etc/patches/pervasive.act.patch
-
-echo "  +++ Patching powermgmt.act file"
-echo "  patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/powermgmt.act $SBEROOT/sbe/build/citest/etc/patches/powermgmt.act.patch"
-patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/powermgmt.act $SBEROOT/sbe/build/citest/etc/patches/powermgmt.act.patch
-
 # NOTE: The below patch removes mailbox settings in standalone.simics (comes
 # from HB) that cause the SBE to run in plck mode. For our CI, we need the SBE
 # to be in istep mode. This patch is likely never going to be removed as long as
@@ -50,14 +42,7 @@ mkdir -p $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 cp $BACKING_BUILD/obj/ppc/simu/scripts/hbfw/standalone.simics $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 patch -p0 $SANDBOXBASE/obj/ppc/simu/scripts/hbfw/standalone.simics $SBEROOT/sbe/build/citest/etc/patches/standalone.simics.patch
 
-echo "  +++ Add executeInstruction module call"
-echo "  patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/chip.act $SBEROOT/sbe/build/citest/etc/patches/chip.act.patch"
-patch -p0 $SANDBOXBASE/src/simu/data/cec-chip/chip.act $SBEROOT/sbe/build/citest/etc/patches/chip.act.patch
-
 echo "  +++ Add scandef patch"
 mkdir -p $SANDBOXBASE/src/simu/data/cec-chip/
 cp -f /esw/user/nfs/prasrang/sachin/scandef.abr $SANDBOXBASE/src/simu/data/cec-chip/
 
-echo "  +++ Add simics patch for timeout"
-mkdir -p $SANDBOXBASE/simics/linux64/lib/
-cp -f /esw/user/nfs/prasrang/sachin/cec-chip.so $SANDBOXBASE/simics/linux64/lib/
