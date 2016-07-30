@@ -72,15 +72,6 @@ p9_hcd_cache_poweron(
     FAPI_DBG("Drop chiplet enable via NET_CTRL0[0]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(0)));
 
-    FAPI_DBG("Assert PCB fence via NET_CTRL0[25]");
-    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR, MASK_SET(25)));
-
-    FAPI_DBG("Assert chiplet electrical fence via NET_CTRL0[26]");
-    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR, MASK_SET(26)));
-
-    FAPI_DBG("Assert vital thold via NET_CTRL0[16]");
-    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR, MASK_SET(16)));
-
     FAPI_DBG("Assert L2 glsmux reset via EXCLK_GRID_CTRL[32:33]");
     FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_OR, MASK_OR(32, 2, 0x3)));
 
