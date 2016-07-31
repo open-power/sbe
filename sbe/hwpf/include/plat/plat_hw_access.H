@@ -33,6 +33,8 @@
 
 #include <plat_includes.H>
 #include "hw_access_def.H"
+#include <return_code.H>
+
 
 /// PIB Error Mask
 
@@ -70,11 +72,11 @@ asm volatile \
 
 /// GetScom
 #define PLAT_GETSCOM(_m_rc, _m_base, _m_offset, _m_data) \
-    _m_rc = getscom_abs(getEffectiveAddress(_m_base, _m_offset), _m_data)
+    _m_rc = fapi2::getscom_abs_wrap(getEffectiveAddress(_m_base, _m_offset), _m_data)
 
 /// PutScom
 #define PLAT_PUTSCOM(_m_rc, _m_base, _m_offset, _m_data) \
-    _m_rc = putscom_abs(getEffectiveAddress(_m_base, _m_offset), _m_data)
+    _m_rc = fapi2::putscom_abs_wrap(getEffectiveAddress(_m_base, _m_offset), _m_data)
 
 /// GetCFAM
 #define PLAT_GETCFAM(_m_base, _m_offset, _m_data) \
@@ -91,7 +93,7 @@ asm volatile \
      static_assert( K == TARGET_TYPE_NONE, \
                   "modifyCfamRegister is not supported by PPE platforms")
 
-namespace fapi2 
+namespace fapi2
 {
     // This function loads the scan region data for the given ring address and
     // updates the check word data
@@ -120,6 +122,26 @@ namespace fapi2
     // @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     fapi2::ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
                                         const fapi2::RingMode i_ringMode);
+
+    ///
+    /// @brief Platform wrapper over PK getscom_abs
+    ///
+    /// @param [in] i_addr The SCOM address
+    /// @param [out] o_data The data read
+    ///
+    /// @return PCB-PIB return code
+    ///
+    uint32_t getscom_abs_wrap(const uint32_t i_addr, uint64_t *o_data);
+
+    ///
+    /// @brief Platform wrapper over PK putscom_abs
+    ///
+    /// @param [in] i_addr The SCOM address
+    /// @param [in] i_data The data read
+    ///
+    /// @return PCB-PIB return code
+    ///
+    uint32_t putscom_abs_wrap(const uint32_t i_addr, uint64_t i_data);
 }
 
 

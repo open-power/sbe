@@ -49,5 +49,25 @@ namespace fapi2
         return FAPI2_RC_SUCCESS;
     }
 
+    uint32_t getscom_abs_wrap(const uint32_t i_addr, uint64_t *o_data)
+    {
+        uint32_t l_rc = 0;
+        FAPI_INF("getScom: address: 0x%08X", i_addr);
+        l_rc = getscom_abs(i_addr, o_data);
+        FAPI_INF("getScom: returned rc: 0x%08X, data HI: 0x%08X, "
+                 "data LO: 0x%08X", l_rc, (*o_data >> 32),
+                 static_cast<uint32_t>(*o_data & 0xFFFFFFFF));
+        return l_rc;
+    }
 
+    uint32_t putscom_abs_wrap(const uint32_t i_addr, uint64_t i_data)
+    {
+        uint32_t l_rc = 0;
+        FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X",
+                 i_addr, (i_data >> 32),
+                 static_cast<uint32_t>(i_data & 0xFFFFFFFF));
+        l_rc = putscom_abs(i_addr, i_data);
+        FAPI_INF("putScom: returned rc: 0x%08X", l_rc);
+        return l_rc;
+    }
 };
