@@ -44,6 +44,7 @@
 #include "sbecmdiplcontrol.H"
 #include "sberegaccess.H"
 #include "sbestates.H"
+#include "fapi2.H"
 
 
 /////////////////////////////////////////////////////////////////////
@@ -271,6 +272,12 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             // Local Variables
             uint8_t  l_cmdClass  = 0;
             uint8_t  l_cmdOpCode = 0;
+
+            // Reset the value of fapi2::current_err from previous value.
+            // This is required as none of procedure set this value in success
+            // case. So if we do not reset previous value, previous failure
+            // will impact new chipops also.
+            fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
 
             // Check on the Rx Thread Interrupt Bits for Interrupt Status
             if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
