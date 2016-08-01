@@ -32,7 +32,7 @@
 
 //## auto_generated
 #include "p9_sbe_tp_initf.H"
-#include "p9_ringId.H"
+#include "p9_ring_id.h"
 
 fapi2::ReturnCode p9_sbe_tp_initf(const
                                   fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
