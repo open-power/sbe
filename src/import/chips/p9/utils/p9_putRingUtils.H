@@ -37,7 +37,6 @@
 
 #include <return_code.H>
 #include <fapi2.H>
-#include "imageProcs/p9_ringId.H"
 
 namespace RS4
 {
