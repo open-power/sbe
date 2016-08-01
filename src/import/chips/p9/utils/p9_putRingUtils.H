@@ -117,51 +117,6 @@ enum scanType_t
     POLLED_SCAN   = 3   ///< used in SGPE plat
 };
 
-///
-/// @brief This structure represents the header information that preceeds the
-///        RS4 compressed string.
-/// @note This structure will only be used to typecast the address of the
-///       RS4 header and then to dereference the offsets represented by the
-///       structure members.
-///       This structure need to be identical to similarly named structure
-///       used in generating a Ring Container.
-///
-struct CompressedScanData
-{
-    /// Magic number - See \ref scan_compression_magic
-    uint32_t iv_magic;
-
-    /// Compressed Size. Total size in bytes, including the container header
-    uint32_t iv_size;
-
-    /// Reserved to the algorithm
-    uint32_t iv_algorithmReserved;
-
-    /// Length of the original scan chain in bits
-    uint32_t iv_length;
-
-    /// The 64 bits of Scan Select register value
-    uint64_t iv_scanSelect;
-
-    /// Data structure (header) version
-    uint8_t iv_headerVersion;
-
-    /// Flush-state optimization
-    /// Normally, modifying the state of the ring requires XOR-ing the
-    /// difference state (the compressed state) with the current ring state as
-    /// it will appear in the Scan Data Register. If the current state of the
-    /// ring is the scan-0 flush state, then by definition the Scan Data
-    /// Register is always 0. Therefore we can simply write the difference to
-    /// the Scan Data Register rather than using a read-XOR-write.
-    uint8_t iv_flushOptimization;
-
-    /// Ring ID uniquely identifying the repair name.
-    uint8_t iv_ringId;
-
-    /// 7-bit pervasive chiplet Id + Multicast bit
-    uint8_t iv_chipletId;
-};
-
 //
 // Function Definitions
 //

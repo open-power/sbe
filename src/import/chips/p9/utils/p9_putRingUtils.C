@@ -32,6 +32,7 @@
 // *HWP Consumed by: SBE:CME:SGPE:PGPE
 
 #include <p9_putRingUtils.H>
+#include <p9_scan_compression.H>
 
 using namespace RING_TYPES;
 namespace RS4
