@@ -140,25 +140,6 @@ fapi2::ReturnCode standardScan(
     uint64_t i_opVal,
     uint64_t i_scanData = 0);
 
-
-/// @brief Wrapper function to check the scan-type and call the
-///        appropriate scan function
-/// @param[in] i_scanType Type of Scan
-/// @param[in] i_target Chiplet Target of Scan
-//  @param[in] i_chipletId data from RS4
-/// @param[in] i_operation Type of operation to perform - ROTATE/SCAN
-/// @param[in] i_opVal Number for the type of operation
-/// @param[in] i_scanData This value has to be scanned when i_operation is SCAN
-/// @return FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode doOperation(
-    scanType_t i_scanType,
-    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-    const uint8_t i_chipletId,
-    opType_t i_operation,
-    uint64_t i_opVal,
-    uint64_t i_scanData = 0);
-
-
 /// @brief Function to set the Scan Region
 /// @param[in] i_target Chiplet Target of Scan
 /// @param[in] i_scanRegion Value to be set to select a Scan Region
@@ -197,23 +178,14 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 /// @brief Function to decompress the RS4 and apply the Ring data
 /// @param[in] i_target Chiplet Target of Scan
 /// @param[in] i_rs4 The RS4 compressed string
+//  @param[in] i_applyOverride: state of the override mode
 //  @param[in] i_ringMode differnet ring modes operations
 /// @return FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode rs4DecompressionSvc(const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-                                      const uint8_t* i_rs4,
-                                      scanType_t i_scanType,
-                                      const fapi2::RingMode i_ringMode);
-
-
-/// @brief Function to call the RS4 decompression service and aply ring
-///        using the Standard Scan method
-/// @param[in] i_target Chiplet Target of Scan
-/// @param[in] i_rs4 The RS4 compressed string
-//  @param[in] i_ringMode differnet ring mode operations
-fapi2::ReturnCode applyRS4_SS(const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-                              const uint8_t* i_rs4,
-                              const fapi2::RingMode i_ringMode);
-
+fapi2::ReturnCode rs4DecompressionSvc(
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
+    const uint8_t* i_rs4,
+    const bool i_applyOverride,
+    const fapi2::RingMode i_ringMode);
 
 
 /// @brief Function to clean up the scan region and type
