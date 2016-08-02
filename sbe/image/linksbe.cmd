@@ -37,14 +37,14 @@ MEMORY
 {
  // increasing ram size as workaround so that pibmem image compilation
  // doe not fail.
- // TODO: Reducing the SBE_BASE_ORIGIN by 0xF000 to reduce the size of
+ // TODO: Reducing the SBE_BASE_ORIGIN by 0x1F000 to reduce the size of
  // generated sbe_pibmem.bin. Just a workaround to use pibmem for poweron
- sram : ORIGIN = SBE_BASE_ORIGIN - 0xF000, LENGTH = SBE_BASE_LENGTH + 0xF000
+ sram : ORIGIN = SBE_BASE_ORIGIN - 0x1F000, LENGTH = SBE_BASE_LENGTH + 0x1F000
 }
 
 SECTIONS
 {
-    . = SBE_BASE_ORIGIN - 0xF000;
+    . = SBE_BASE_ORIGIN - 0x1F000;
 
     .vectors : {. = ALIGN(512); *(.vectors)} > sram
     .fixed . : {. = ALIGN(512); *(.fixed) } > sram
@@ -66,7 +66,7 @@ SECTIONS
    .sbss2  . : { *(.sbss2*) } > sram
 
    // Other read-only data.
-    
+
     . = ALIGN(8);
     .rodata . : { ctor_start_address = .;
                   *(.ctors) *(.ctors.*)
@@ -88,9 +88,9 @@ SECTIONS
 
     _SDA_BASE_ = .;
     .sdata  . : { *(.sdata*)  } > sram
-    _sbss_start = .;   
+    _sbss_start = .;
     .sbss   . : { *(.sbss*)   } > sram
-    _sbss_end = .;   
+    _sbss_end = .;
 
     // Other read-write data
     // It's not clear why boot.S is generating empty .glink,.iplt
