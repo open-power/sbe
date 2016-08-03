@@ -38,10 +38,10 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init2(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
 
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init2: Entering ...");
 
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init2: Exiting ...");
 
     return fapi2::FAPI2_RC_SUCCESS;
 }

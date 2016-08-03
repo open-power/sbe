@@ -53,7 +53,7 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_switch_gears: Entering ...");
 
 #ifdef __PPE__
 
@@ -74,7 +74,7 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
 fapi_try_exit:
 #endif
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_switch_gears: Exiting ...");
 
     return fapi2::current_err;
 
@@ -91,7 +91,7 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears_check_magicnumber(
     fapi2::buffer<uint8_t> l_read_attr = 0;
     int l_timeout = 0;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_switch_gears_check_magicnumber: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKUP_SEEPROM_SELECT, i_target_chip,
                            l_read_attr));
@@ -147,7 +147,7 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears_check_magicnumber(
                 fapi2::MAGIC_NUMBER_NOT_VALID(),
                 "ERROR: Magic number not matching");
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_switch_gears_check_magicnumber: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

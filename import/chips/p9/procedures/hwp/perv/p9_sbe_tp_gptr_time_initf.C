@@ -36,7 +36,7 @@
 fapi2::ReturnCode p9_sbe_tp_gptr_time_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_gptr_time_initf: Entering ...");
 
     FAPI_DBG("Scan perv_gptr ring");
     FAPI_TRY(fapi2::putRing(i_target_chip, perv_gptr),
@@ -58,6 +58,6 @@ fapi2::ReturnCode p9_sbe_tp_gptr_time_initf(const
              "Error from putRing (perv_time)");
 
 fapi_try_exit:
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_gptr_time_initf: Exiting ...");
     return fapi2::current_err;
 }

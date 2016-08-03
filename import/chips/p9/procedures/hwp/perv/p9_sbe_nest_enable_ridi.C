@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,7 +44,7 @@ fapi2::ReturnCode p9_sbe_nest_enable_ridi(const
     auto l_perv_functional_vector =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
         (fapi2::TARGET_STATE_FUNCTIONAL);
-    FAPI_DBG("Entering ...");
+    FAPI_DBG("p9_sbe_nest_enable_ridi: Entering ...");
 
     for (auto l_chplt_trgt : l_perv_functional_vector)
     {
@@ -65,7 +65,7 @@ fapi2::ReturnCode p9_sbe_nest_enable_ridi(const
         FAPI_TRY(p9_sbe_nest_enable_ridi_net_ctrl_action_function(l_chplt_trgt));
     }
 
-    FAPI_DBG("Exiting ...");
+    FAPI_DBG("p9_sbe_nest_enable_ridi: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -81,7 +81,7 @@ static fapi2::ReturnCode p9_sbe_nest_enable_ridi_net_ctrl_action_function(
 {
     bool l_read_reg = false;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_DBG("Entering ...");
+    FAPI_DBG("p9_sbe_nest_enable_ridi_net_ctrl_action_function: Entering ...");
 
     FAPI_INF("Check for chiplet enable");
     //Getting NET_CTRL0 register value
@@ -99,7 +99,7 @@ static fapi2::ReturnCode p9_sbe_nest_enable_ridi_net_ctrl_action_function(
         FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WOR, l_data64));
     }
 
-    FAPI_DBG("Exiting ...");
+    FAPI_DBG("p9_sbe_nest_enable_ridi_net_ctrl_action_function: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

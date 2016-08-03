@@ -39,7 +39,7 @@
 fapi2::ReturnCode p9_sbe_tp_chiplet_reset(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    FAPI_DBG("Entering ...");
+    FAPI_DBG("p9_sbe_tp_chiplet_reset: Entering ...");
 
     FAPI_DBG("Initializing Hangcounter 6 for PRV Cplt");
     //Setting HANG_PULSE_6_REG register value
@@ -47,7 +47,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_reset(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_6_REG,
                             HANG_PULSE_VALUE));
 
-    FAPI_DBG("Exiting ...");
+    FAPI_DBG("p9_sbe_tp_chiplet_reset: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
