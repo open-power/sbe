@@ -45,7 +45,7 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
 {
     uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
 
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_gptr_time_initf: Entering ...");
 
     for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>
          (fapi2::TARGET_STATE_FUNCTIONAL))
@@ -281,7 +281,7 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
     }
 
 fapi_try_exit:
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_gptr_time_initf: Exiting ...");
     return fapi2::current_err;
 
 }

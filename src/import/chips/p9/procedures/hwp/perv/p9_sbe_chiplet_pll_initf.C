@@ -43,7 +43,7 @@
 fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_chiplet_pll_initf: Entering ...");
 
     for (auto l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_XBUS |
@@ -118,6 +118,6 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
     }
 
 fapi_try_exit:
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_chiplet_pll_initf: Exiting ...");
     return fapi2::current_err;
 }

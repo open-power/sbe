@@ -58,7 +58,7 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
     uint8_t l_read_attr = 0;
     fapi2::buffer<uint64_t> l_data64_root_ctrl8;
     fapi2::buffer<uint64_t> l_data64_perv_ctrl0;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_npll_setup: Entering ...");
 
     FAPI_DBG("Reading ROOT_CTRL8 register value");
     //Getting ROOT_CTRL8 register value
@@ -234,7 +234,7 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
                             l_data64_perv_ctrl0));
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_npll_setup: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

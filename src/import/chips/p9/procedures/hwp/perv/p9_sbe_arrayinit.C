@@ -71,7 +71,7 @@ fapi2::ReturnCode p9_sbe_arrayinit(const
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint32_t> l_attr_pg;
     fapi2::buffer<uint8_t> l_attr_read;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_arrayinit: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SDISN_SETUP, i_target_chip, l_attr_read));
 
@@ -97,7 +97,7 @@ fapi2::ReturnCode p9_sbe_arrayinit(const
         FAPI_TRY(p9_sbe_arrayinit_sdisn_setup(l_chplt_trgt, l_attr_read, false));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_arrayinit: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -117,7 +117,7 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
 {
     bool l_read_reg = false;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_arrayinit_scan0_and_arrayinit_module_function: Entering ...");
 
     FAPI_DBG("Check for chiplet enable");
     //Getting NET_CTRL0 register value
@@ -136,7 +136,7 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
                                               SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_arrayinit_scan0_and_arrayinit_module_function: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -155,7 +155,7 @@ static fapi2::ReturnCode p9_sbe_arrayinit_sdisn_setup(const
         const bool i_set)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_arrayinit_sdisn_setup: Entering ...");
 
     if ( i_attr )
     {
@@ -177,7 +177,7 @@ static fapi2::ReturnCode p9_sbe_arrayinit_sdisn_setup(const
         }
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_arrayinit_sdisn_setup: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

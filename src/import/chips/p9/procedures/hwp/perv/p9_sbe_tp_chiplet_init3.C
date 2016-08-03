@@ -78,7 +78,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
                 fapi2::TARGET_STATE_FUNCTIONAL)[0];
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init3: Entering ...");
 
     FAPI_DBG("Reading ATTR_PFET_OFF_CONTROLS");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PFET_OFF_CONTROLS, i_target_chip,
@@ -216,7 +216,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
                 fapi2::CALIBRATION_NOT_DONE(),
                 "Calibration not done, bit16 not set");
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init3: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -232,7 +232,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
 {
     fapi2::buffer<uint64_t> l_read ;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init3_clock_test2: Entering ...");
 
     FAPI_DBG("unfence 281D");
     //Setting ROOT_CTRL0 register value
@@ -311,7 +311,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
 
 #endif
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init3_clock_test2: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -329,7 +329,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
     fapi2::buffer <uint32_t> l_attr_pg;
     fapi2::buffer <uint16_t> l_attr_pg_data;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init3_region_fence_setup: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
 
@@ -345,7 +345,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
     l_data64.insertFromRight<4, 11>(l_attr_pg_data);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init3_region_fence_setup: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

@@ -85,7 +85,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     fapi2::buffer<uint64_t> l_n3_clock_regions;
     fapi2::buffer<uint16_t> l_ccstatus_regions;
     fapi2::buffer<uint16_t> l_n3_ccstatus_regions;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_nest_startclocks: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_N3_FLUSH_MODE, i_target_chip,
                            l_read_flush_attr));
@@ -264,7 +264,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
         }
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_nest_startclocks: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -281,7 +281,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_N3_fence_drop(
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_nest_startclocks_N3_fence_drop: Entering ...");
 
     if ( i_pg_vector.getBit<0>() == 1 )
     {
@@ -292,7 +292,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_N3_fence_drop(
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_nest_startclocks_N3_fence_drop: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -308,11 +308,11 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_get_attr_pg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
     fapi2::buffer<uint32_t>& o_attr_pg)
 {
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_nest_startclocks_get_attr_pg: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chip, o_attr_pg));
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_nest_startclocks_get_attr_pg: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -330,7 +330,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_mc_fence_drop(
 {
     uint8_t l_read_attrunitpos = 0;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_nest_startclocks_mc_fence_drop: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chip,
                            l_read_attrunitpos));
@@ -359,7 +359,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_mc_fence_drop(
         }
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_nest_startclocks_mc_fence_drop: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -376,7 +376,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_nest_fence_drop(
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_nest_startclocks_nest_fence_drop: Entering ...");
 
     if ( i_pg_vector.getBit<4>() == 1 )
     {
@@ -387,7 +387,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_nest_fence_drop(
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_nest_startclocks_nest_fence_drop: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
