@@ -217,7 +217,8 @@ static sbeCmdStruct_t g_sbeCoreStateControlCmdArray [] =
 {
     {sbeControlDeadmanTimer,
      SBE_PSU_CMD_CONTROL_DEADMAN,
-     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE|
+     SBE_FENCE_AT_MPIPL|SBE_FENCE_AT_ISTEP|
      SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ABORT|
      SBE_FENCE_AT_FFDC_COLLECT,
     },
@@ -436,6 +437,13 @@ bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
                 {
                     l_ret = ((l_pCmd->cmd_state_fence &
                              SBE_FENCE_AT_MPIPL)? false:true);
+                    break;
+                }
+
+                case SBE_STATE_DMT:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_DMT)? false:true);
                     break;
                 }
 
