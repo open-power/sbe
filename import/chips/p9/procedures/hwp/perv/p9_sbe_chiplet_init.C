@@ -41,7 +41,7 @@ fapi2::ReturnCode p9_sbe_chiplet_init(const
 {
     bool l_read_reg = false;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering..");
+    FAPI_INF("p9_sbe_chiplet_init: Entering..");
 
     FAPI_DBG("Check  for XSTOP Bit");
     //Getting INTERRUPT_TYPE_REG register value
@@ -54,7 +54,7 @@ fapi2::ReturnCode p9_sbe_chiplet_init(const
                 .set_READ_CHECKSTOP(l_read_reg),
                 "ERROR:CHECKSTOP BIT GET SET ");
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_chiplet_init: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

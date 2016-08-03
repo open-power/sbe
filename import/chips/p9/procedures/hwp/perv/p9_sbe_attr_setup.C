@@ -49,7 +49,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     fapi2::buffer<uint64_t> l_data64;
     bool sbe_slave_chip = false;
     fapi2::buffer<uint64_t> l_read_device_reg = 0;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_attr_setup: Entering ...");
 
     FAPI_DBG("Read Scratch8 for validity of Scratch register");
     //Getting SCRATCH_REGISTER_8 register value
@@ -230,7 +230,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         }
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_attr_setup: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

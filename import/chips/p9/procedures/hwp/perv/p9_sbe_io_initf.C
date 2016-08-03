@@ -37,7 +37,7 @@
 
 fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_io_initf: Entering ...");
     uint8_t l_attr_chip_unit_pos = 0;
 
     for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
@@ -123,6 +123,6 @@ fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
     }
 
 fapi_try_exit:
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_io_initf: Exiting ...");
     return fapi2::current_err;
 }

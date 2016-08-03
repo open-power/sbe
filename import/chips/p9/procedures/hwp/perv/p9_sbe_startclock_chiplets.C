@@ -80,7 +80,7 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
     fapi2::buffer<uint64_t> l_regions;
     fapi2::buffer<uint8_t> l_attr_obus_ratio;
     fapi2::buffer<uint32_t> l_attr_pg;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_startclock_chiplets: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OBUS_RATIO_VALUE, i_target_chiplets,
                            l_attr_obus_ratio));
@@ -166,7 +166,7 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
         FAPI_TRY(p9_sbe_common_flushmode(l_trgt_chplt));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_startclock_chiplets: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -182,11 +182,11 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_get_attr_pg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
     fapi2::buffer<uint32_t>& o_attr_pg)
 {
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_get_attr_pg: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chip, o_attr_pg));
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_get_attr_pg: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -203,7 +203,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_fence_drop(
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_ob_fence_drop: Entering ...");
 
     FAPI_INF("Drop chiplet fence");
 
@@ -216,7 +216,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_fence_drop(
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_ob_fence_drop: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -233,7 +233,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_pci_fence_drop(
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_pci_fence_drop: Entering ...");
 
     FAPI_INF("Drop chiplet fence");
 
@@ -246,7 +246,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_pci_fence_drop(
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_pci_fence_drop: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -263,14 +263,14 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_set_ob_ratio(
     const uint8_t i_attr)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_set_ob_ratio: Entering ...");
 
     //Setting CPLT_CONF1 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CPLT_CONF1, l_data64));
     l_data64.insertFromRight<16, 2>(i_attr);  //CPLT_CONF1.TC_OB_RATIO_DC = i_attr
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF1, l_data64));
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_set_ob_ratio: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -285,14 +285,14 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_sync_config(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_sync_config: Entering ...");
 
     //Setting SYNC_CONFIG register value
     FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_SYNC_CONFIG, l_data64));
     l_data64.setBit<4>();  //SYNC_CONFIG.LISTEN_TO_SYNC_PULSE_DIS = 0b1
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_SYNC_CONFIG, l_data64));
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_sync_config: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -309,7 +309,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_xb_fence_drop(
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_xb_fence_drop: Entering ...");
 
     FAPI_INF("Drop chiplet fence");
 
@@ -322,7 +322,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_xb_fence_drop(
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_startclock_chiplets_xb_fence_drop: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

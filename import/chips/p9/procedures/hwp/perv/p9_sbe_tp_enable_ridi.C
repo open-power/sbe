@@ -7,7 +7,7 @@
 /*                                                                        */
 /* EKB Project                                                            */
 /*                                                                        */
-/* COPYRIGHT 2015                                                         */
+/* COPYRIGHT 2015,2016                                                    */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,7 +40,7 @@ fapi2::ReturnCode p9_sbe_tp_enable_ridi(const
                                         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_DBG("Entering ...");
+    FAPI_DBG("p9_sbe_tp_enable_ridi: Entering ...");
 
     FAPI_INF("Enable Recievers, Drivers DI1 & DI2");
     //Setting ROOT_CTRL1 register value
@@ -50,7 +50,7 @@ fapi2::ReturnCode p9_sbe_tp_enable_ridi(const
     l_data64.setBit<21>();  //PIB.ROOT_CTRL1.TP_DI2_DC_B = 1
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL1_SCOM, l_data64));
 
-    FAPI_DBG("Exiting ...");
+    FAPI_DBG("p9_sbe_tp_enable_ridi: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

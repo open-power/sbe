@@ -97,7 +97,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
     fapi2::buffer<uint64_t> l_data64_clk_region;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_perv_sbe_cmn_array_init_module: Entering ...");
 
     i_regions.extractToRight<5, 11>(l_regions);
 
@@ -253,7 +253,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
         FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_BIST, 0));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_perv_sbe_cmn_array_init_module: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -274,7 +274,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_16(const
     fapi2::buffer<uint32_t> l_read_attr = 0;
     fapi2::buffer<uint32_t> l_read_attr_invert = 0;
     fapi2::buffer<uint32_t> l_read_attr_shift1_right = 0;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_perv_sbe_cmn_regions_setup_16: Entering ...");
 
     FAPI_DBG("Reading ATTR_PG");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chip, l_read_attr));
@@ -298,7 +298,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_16(const
         o_regions_value = (i_regions_value & l_read_attr_shift1_right);
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_perv_sbe_cmn_regions_setup_16: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -320,7 +320,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_64(const
     fapi2::buffer<uint32_t> l_read_attr_invert = 0;
     fapi2::buffer<uint32_t> l_read_attr_shift1_right = 0;
     fapi2::buffer<uint64_t> l_temp = 0;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_perv_sbe_cmn_regions_setup_64: Entering ...");
 
     FAPI_DBG("Reading ATTR_PG");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_read_attr));
@@ -344,7 +344,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_64(const
         o_regions_value = (i_regions_value & l_read_attr_shift1_right);
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_perv_sbe_cmn_regions_setup_64: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -376,7 +376,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     fapi2::buffer<uint16_t> l_scan_types;
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_perv_sbe_cmn_scan0_module: Entering ...");
 
     i_regions.extractToRight<5, 11>(l_regions);
     i_scan_types.extractToRight<4, 12>(l_scan_types);
@@ -463,7 +463,7 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
         FAPI_TRY(fapi2::putScom(i_target_chiplets, PERV_SCAN_REGION_TYPE, 0));
     }
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_perv_sbe_cmn_scan0_module: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

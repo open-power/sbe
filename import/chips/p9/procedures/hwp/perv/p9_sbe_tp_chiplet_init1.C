@@ -50,7 +50,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
 {
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init1: Entering ...");
 
     FAPI_DBG("Release PCB Reset");
     //Setting ROOT_CTRL0 register value
@@ -104,7 +104,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
                          fapi2::TARGET_STATE_FUNCTIONAL)[0], l_regions,
                  SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
 
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_chiplet_init1: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

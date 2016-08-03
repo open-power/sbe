@@ -36,7 +36,7 @@
 fapi2::ReturnCode p9_sbe_tp_repr_initf(const
                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_repr_initf: Entering ...");
 
     FAPI_DBG("Scan perv_repr ring");
     FAPI_TRY(fapi2::putRing(i_target_chip, perv_repr),
@@ -47,6 +47,6 @@ fapi2::ReturnCode p9_sbe_tp_repr_initf(const
              "Error from putRing (occ_repr)");
 
 fapi_try_exit:
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_repr_initf: Exiting ...");
     return fapi2::current_err;
 }

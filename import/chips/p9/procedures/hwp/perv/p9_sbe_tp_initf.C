@@ -37,7 +37,7 @@
 fapi2::ReturnCode p9_sbe_tp_initf(const
                                   fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    FAPI_INF("Entering ...");
+    FAPI_INF("p9_sbe_tp_initf: Entering ...");
 
     FAPI_DBG("Scan perv_fure ring");
     FAPI_TRY(fapi2::putRing(i_target_chip, perv_fure),
@@ -52,6 +52,6 @@ fapi2::ReturnCode p9_sbe_tp_initf(const
              "Error from putRing (perv_ana_func)");
 
 fapi_try_exit:
-    FAPI_INF("Exiting ...");
+    FAPI_INF("p9_sbe_tp_initf: Exiting ...");
     return fapi2::current_err;
 }
