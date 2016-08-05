@@ -33,7 +33,8 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testPutGetMem.xml</include>
+          <!-- TODO via 158768: Enable pba test case-->
+          <!-- include>../simics/targets/p9_nimbus/sbeTest/testPutGetMem.xml</include -->
           <include>../simics/targets/p9_nimbus/sbeTest/testSram.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testCntlInstruction.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
