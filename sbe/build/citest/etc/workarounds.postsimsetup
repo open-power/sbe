@@ -42,7 +42,3 @@ mkdir -p $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 cp $BACKING_BUILD/obj/ppc/simu/scripts/hbfw/standalone.simics $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 patch -p0 $SANDBOXBASE/obj/ppc/simu/scripts/hbfw/standalone.simics $SBEROOT/sbe/build/citest/etc/patches/standalone.simics.patch
 
-echo "  +++ Add scandef patch"
-mkdir -p $SANDBOXBASE/src/simu/data/cec-chip/
-cp -f /esw/user/nfs/prasrang/sachin/scandef.abr $SANDBOXBASE/src/simu/data/cec-chip/
-
