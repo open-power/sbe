@@ -528,12 +528,29 @@ fapi_try_exit:
 static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt)
 {
+    fapi2::buffer<uint8_t> l_read_attr;
     FAPI_INF("p9_sbe_chiplet_reset_all_cplt_net_cntl_setup: Entering ...");
 
     //Setting NET_CTRL0 register value
-    //NET_CTRL0 = p9SbeChipletReset::NET_CNTL0_HW_INIT_VALUE
-    FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_NET_CTRL0,
-                            p9SbeChipletReset::NET_CNTL0_HW_INIT_VALUE));
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
+        i_target_cplt.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    FAPI_DBG("Disable local clock gating VITAL");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_VITL_CLOCK_GATING,
+                           l_chip, l_read_attr));
+
+    if (l_read_attr)
+    {
+        //NET_CTRL0 = p9SbeChipletReset::NET_CNTL0_HW_INIT_VALUE_FOR_DD1
+        FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_NET_CTRL0,
+                                p9SbeChipletReset::NET_CNTL0_HW_INIT_VALUE_FOR_DD1));
+    }
+    else
+    {
+        //NET_CTRL0 = p9SbeChipletReset::NET_CNTL0_HW_INIT_VALUE
+        FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_NET_CTRL0,
+                                p9SbeChipletReset::NET_CNTL0_HW_INIT_VALUE));
+    }
+
     //Setting NET_CTRL1 register value
     //NET_CTRL1 = p9SbeChipletReset::NET_CNTL1_HW_INIT_VALUE
     FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_NET_CTRL1,
