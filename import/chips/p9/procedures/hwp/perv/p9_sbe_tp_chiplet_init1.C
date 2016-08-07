@@ -32,7 +32,6 @@
 
 //## auto_generated
 #include "p9_sbe_tp_chiplet_init1.H"
-
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 #include <p9_perv_sbe_cmn.H>
@@ -50,7 +49,24 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
 {
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64;
+    fapi2::buffer<uint8_t> l_read_attr;
     FAPI_INF("p9_sbe_tp_chiplet_init1: Entering ...");
+
+    FAPI_DBG("Disable local clock gating VITAL");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_VITL_CLOCK_GATING,
+                           i_target_chip, l_read_attr));
+    FAPI_DBG("l_read_attr is %d", l_read_attr);
+
+    if (l_read_attr)
+    {
+        //Getting PERV_CTRL0 register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
+                                l_data64))
+        //PERV_PERV_CTRL0_SET_TP_VITL_ACT_DIS_DC = 1
+        l_data64.setBit<PERV_PERV_CTRL0_SET_TP_VITL_ACT_DIS_DC>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM,
+                                l_data64));
+    }
 
     FAPI_DBG("Release PCB Reset");
     //Setting ROOT_CTRL0 register value
