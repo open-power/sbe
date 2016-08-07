@@ -531,4 +531,8 @@ attribute tank
            <name>ATTR_CHIP_EC_FEATURE_SDISN_SETUP</name>
            <virtual/>
   </entry>
+  <entry>
+           <name>ATTR_CHIP_EC_FEATURE_VITL_CLOCK_GATING</name>
+           <virtual/>
+  </entry>
 </entries>
