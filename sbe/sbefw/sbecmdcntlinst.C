@@ -105,7 +105,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
             break;
         }
 
-        SBE_DEBUG("mode[0x%04X] coreChipletId[0x%08X] threadNum[0x%04X] "
+        SBE_INFO("mode[0x%04X] coreChipletId[0x%08X] threadNum[0x%04X] "
             "threadOps[0x%04X] ", l_req.mode, l_req.coreChipletId,
             l_req.threadNum, l_req.threadOps);
 
@@ -159,7 +159,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                     {
                         // No need to delete the l_fapiRc handle,it will get
                         // over-written
-                        SBE_DEBUG(SBE_FUNC "Continuing in case of HW Errors"
+                        SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
                             " As user has passed to ignore errors.");
                         continue;
                     }

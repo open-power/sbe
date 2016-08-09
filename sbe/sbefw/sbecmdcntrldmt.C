@@ -216,7 +216,7 @@ uint32_t sbeStopCntlDmt()
         // returns error code.
         if(false == g_SbeDmtTimerExpired)
         {
-            SBE_DEBUG(SBE_FUNC " DmTimer hasn't expired yet.. stop it");
+            SBE_INFO(SBE_FUNC " DmTimer hasn't expired yet.. stop it");
             l_pkRc = pk_timer_cancel(&g_sbe_pk_dmt_timer);
             if(l_pkRc)
             {
@@ -292,7 +292,7 @@ uint32_t sbeControlDeadmanTimer (uint8_t *i_pArg)
         }
         else
         {
-            SBE_DEBUG(SBE_DEBUG" Not a valid command ");
+            SBE_ERROR(SBE_FUNC" Not a valid command ");
             l_rc = SBE_SEC_COMMAND_NOT_SUPPORTED;
         }
     }while(0); // End of do-while

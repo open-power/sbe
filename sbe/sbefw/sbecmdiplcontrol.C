@@ -263,7 +263,7 @@ static istepMap_t g_istep5PtrTbl[ ISTEP5_MAX_SUBSTEPS ]
 uint32_t sbeHandleIstep (uint8_t *i_pArg)
 {
     #define SBE_FUNC "sbeHandleIstep "
-    SBE_DEBUG(SBE_FUNC);
+    SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
@@ -285,9 +285,6 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
             SBE_ERROR(SBE_FUNC"FIFO dequeue failed, rc[0x%X]", rc);
             break;
         }
-
-        SBE_DEBUG(SBE_FUNC"Major number:0x%08x minor number:0x%08x",
-                  req.major, req.minor );
 
         if( false == validateIstep( req.major, req.minor ) )
         {
@@ -329,6 +326,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
     {
         SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
     }
+    SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
 }
@@ -342,7 +340,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
 ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
 {
     #define SBE_FUNC "sbeExecuteIstep "
-    SBE_DEBUG(SBE_FUNC"Major number:0x%x minor number:0x%x",
+    SBE_INFO(SBE_FUNC"Major number:0x%x minor number:0x%x",
                        i_major, i_minor );
 
     ReturnCode rc = FAPI2_RC_SUCCESS;
@@ -457,7 +455,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
 ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
 {
-    SBE_DEBUG("istepAttrSetup");
+    SBE_ENTER("istepAttrSetup");
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     ReturnCode rc = FAPI2_RC_SUCCESS;
     do
@@ -471,6 +469,7 @@ ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
         // Apply the gard records
         rc = plat_ApplyGards();
      }while(0);
+    SBE_EXIT("istepAttrSetup");
     return rc;
 }
 
@@ -478,7 +477,6 @@ ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 {
-    SBE_DEBUG("istepWithProc");
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp.procHwp );
     return i_hwp.procHwp(proc);
@@ -488,7 +486,6 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp)
 {
-    SBE_DEBUG("istepWithProc");
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     // TODO via RTC 135345
     // Once multicast targets are supported, we may need to pass
@@ -501,7 +498,6 @@ ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
 {
-    SBE_DEBUG("istepWithEq");
     // TODO via RTC 135345
     // Curently we are passing Hard code eq target. Finally it is
     // going to be a multicast target. Once multicast support is
@@ -524,7 +520,6 @@ ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
 {
-    SBE_DEBUG("istepWithCore");
     // TODO via RTC 135345
     // Curently we are passing Hard code core target. Finally it is
     // going to be a multicast target. Once multicast support is
@@ -546,7 +541,7 @@ ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp)
 {
-    SBE_DEBUG("istepWithEqCondtional");
+    SBE_ENTER("istepWithEqCondtional");
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM > sysTgt;
     ReturnCode rc = FAPI2_RC_SUCCESS;
     do
@@ -559,6 +554,7 @@ ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp)
         }
         rc = istepWithEq(i_hwp);
      }while(0);
+    SBE_EXIT("istepWithEqCondtional");
     return rc;
 }
 
@@ -566,7 +562,7 @@ ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp)
 {
-    SBE_DEBUG("istepWithCoreCondtional");
+    SBE_ENTER("istepWithCoreCondtional");
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM > sysTgt;
     ReturnCode rc = FAPI2_RC_SUCCESS;
     do
@@ -579,6 +575,7 @@ ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp)
         }
         rc = istepWithCore(i_hwp);
      }while(0);
+    SBE_EXIT("istepWithCoreCondtional");
     return rc;
 }
 
@@ -621,6 +618,7 @@ ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp)
     ReturnCode rc = FAPI2_RC_SUCCESS;
     g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
                 SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
+    SBE_INFO("stepCheckSbeMaster g_sbeRole [%x]", g_sbeRole);
     if(SBE_ROLE_SLAVE == g_sbeRole)
     {
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
@@ -632,7 +630,7 @@ ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp)
 //----------------------------------------------------------------------------
 ReturnCode istepNoOp( sbeIstepHwp_t i_hwp)
 {
-    SBE_DEBUG("istepNoOp");
+    SBE_INFO("istepNoOp");
     return FAPI2_RC_SUCCESS ;
 }
 
@@ -686,7 +684,7 @@ uint32_t sbeContinueBoot (uint8_t *i_pArg)
         }
         else
         {
-            SBE_DEBUG(SBE_FUNC"Continuous IPL Mode set... IPLing");
+            SBE_INFO(SBE_FUNC"Continuous IPL Mode set... IPLing");
             (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                     SBE_CONTINUE_BOOT_PLCK_EVENT);
             sbeDoContinuousIpl();
@@ -702,7 +700,7 @@ uint32_t sbeContinueBoot (uint8_t *i_pArg)
 void sbeDoContinuousIpl()
 {
     #define SBE_FUNC "sbeDoContinuousIpl "
-    SBE_DEBUG(SBE_FUNC);
+    SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
     do
     {
@@ -741,7 +739,7 @@ void sbeDoContinuousIpl()
                 l_rc = sbeExecuteIstep(l_major, l_minor);
                 if(l_rc != FAPI2_RC_SUCCESS)
                 {
-                    SBE_DEBUG(SBE_FUNC"Failed istep execution in plck mode: "
+                    SBE_ERROR(SBE_FUNC"Failed istep execution in plck mode: "
                             "Major: %d, Minor: %d", l_major, l_minor);
                     l_done = true;
                     break;
@@ -759,6 +757,7 @@ void sbeDoContinuousIpl()
     } while(false);
     // Store l_rc in a global variable that will be a part of the SBE FFDC
     g_iplFailRc = l_rc;
+    SBE_EXIT(SBE_FUNC);
     #undef SBE_FUNC
 }
 

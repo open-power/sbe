@@ -52,7 +52,6 @@
 void sbeHandlePsuResponse (const uint32_t i_rc)
 {
     #define SBE_FUNC " sbeHandlePsuResponse "
-    SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
 
     do
@@ -107,7 +106,6 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
         }
     } while(false);
 
-    SBE_DEBUG(SBE_FUNC"l_rc[0x0%08X]", l_rc);
     #undef SBE_FUNC
 }
 
@@ -229,7 +227,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     {
         // In this state, we need not take care of FFDC State, User may
         // or may not fetch FFDC and may not issue sbeContinueboot
-        SBE_DEBUG(SBE_FUNC"Continuous IPL mode not set, will wait for "
+        SBE_INFO(SBE_FUNC"Continuous IPL mode not set, will wait for "
                 "commands...");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_ISTEP);
@@ -238,7 +236,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     // in runtime.
     else if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
     {
-        SBE_DEBUG(SBE_FUNC"Destination bit tells us to go to runtime");
+        SBE_INFO(SBE_FUNC"Destination bit tells us to go to runtime");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_RUNTIME);
     }
@@ -246,13 +244,13 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     // FFDC needs to be collected before continuing with IPL
     else if(true == SbeRegAccess::theSbeRegAccess().isCollectFFDCSet())
     {
-        SBE_DEBUG(SBE_FUNC"FFDC Collect State - Waiting for FFDC to be picked");
+        SBE_INFO(SBE_FUNC"FFDC Collect State - Waiting for FFDC to be picked");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_FFDC_COLLECT);
     }
     else
     {
-        SBE_DEBUG(SBE_FUNC"Continuous IPL Mode set... IPLing");
+        SBE_INFO(SBE_FUNC"Continuous IPL Mode set... IPLing");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_IPLING);
         sbeDoContinuousIpl();
@@ -261,7 +259,6 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     do
     {
         uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-        uint16_t l_primStatus = SBE_PRI_OPERATION_SUCCESSFUL;
 
         // Wait for new command processing
         int l_rcPk = pk_semaphore_pend (
@@ -313,10 +310,6 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
                 break;
             }
 
-            SBE_DEBUG (SBE_FUNC"New cmd arrived, g_sbeSemCmdProcess.count=%d "
-                "l_primStatus=[0x%04X], l_rc=[0x%04X]",
-                g_sbeSemCmdProcess.count, l_primStatus, l_rc);
-
             // PK API failure
             if (l_rcPk != PK_OK)
             {
@@ -344,7 +337,10 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
         } while(false); // Inner do..while loop ends here
 
-        SBE_DEBUG(SBE_FUNC"l_rc=[0x%08X]", l_rc);
+        SBE_INFO (SBE_FUNC"New cmd arrived, g_sbeSemCmdProcess.count=%d "
+            "l_rc=[0x%04X]",
+            g_sbeSemCmdProcess.count, l_rc);
+
         if ( g_sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_PSU) )
         {
             sbeHandlePsuResponse (l_rc);
@@ -363,13 +359,14 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
         }
     } while(true); // Thread always exists
+    SBE_EXIT(SBE_FUNC);
 }
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 void sbeAsyncCommandProcessor_routine(void *arg)
 {
-    SBE_TRACE("sbeAsyncCommandProcessor Thread started");
+    SBE_INFO("sbeAsyncCommandProcessor Thread started");
 
     do
     {

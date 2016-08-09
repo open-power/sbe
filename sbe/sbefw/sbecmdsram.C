@@ -92,7 +92,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
             break;
         }
 
-        SBE_DEBUG("mode [0x%08X] addr[0x%08X] len[0x%08X]",
+        SBE_INFO("mode [0x%08X] addr[0x%08X] len[0x%08X]",
              l_req.mode, l_req.addr, l_req.len);
 
         // Get the Proc Chip Target to be passed in to the procedure call

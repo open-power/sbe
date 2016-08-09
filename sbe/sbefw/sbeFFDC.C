@@ -60,7 +60,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
         //check if SBE internal FFDC should be generated
         if(SbeRegAccess::theSbeRegAccess().isSendInternalFFDCSet() == false)
         {
-            SBE_DEBUG(SBE_FUNC" isSendInternalFFDCSet()=false, "
+            SBE_INFO(SBE_FUNC" isSendInternalFFDCSet()=false, "
                     "not generating SBE InternalFFDC");
             rc = SBE_SEC_OPERATION_SUCCESSFUL;
             break;
@@ -85,9 +85,6 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
                                          /sizeof(uint32_t);
             }
         }
-
-        SBE_DEBUG(SBE_FUNC "length of FFDC package in words [%d]",
-                (uint32_t)(iv_sbeFFDCHeader.lenInWords));
 
         //Send FFDC package header
         length = sizeof(iv_sbeFFDCHeader) / sizeof(uint32_t);
@@ -136,7 +133,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
             }
         }
 
-        SBE_DEBUG(SBE_FUNC "Number of words sent [%d]", o_bytesSent);
+        SBE_INFO(SBE_FUNC "Number of words sent [%d]", o_bytesSent);
     } while(false);
 
     SBE_EXIT(SBE_FUNC);

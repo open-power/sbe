@@ -200,7 +200,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-        SBE_DEBUG(SBE_FUNC "Ring Address 0x%08X User Ring Mode 0x%04X "
+        SBE_INFO(SBE_FUNC "Ring Address 0x%08X User Ring Mode 0x%04X "
             "Length in Bits 0x%08X",
             l_reqMsg.ringAddr, l_reqMsg.ringMode, l_reqMsg.ringLenInBits);
 
@@ -299,6 +299,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
             l_rc = sbeDsSendRespHdr( respHdr, l_ffdc);
         }
     }
+    SBE_EXIT(SBE_FUNC);
     return l_rc;
 #undef SBE_FUNC
 }
