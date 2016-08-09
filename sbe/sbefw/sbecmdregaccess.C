@@ -131,7 +131,6 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
                 ffdc.setRc(fapiRc);
                 break;
             }
-            SBE_DEBUG(SBE_FUNC" getting response data");
             respData = data64;
             // Now enqueue into the downstream FIFO
             len = sizeof( respData )/sizeof(uint32_t);
@@ -163,6 +162,7 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
         rc = sbeDsSendRespHdr( respHdr, ffdc);
     }
 
+    SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
 }
@@ -268,6 +268,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
         rc = sbeDsSendRespHdr( respHdr, ffdc);
     }
 
+    SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
 }

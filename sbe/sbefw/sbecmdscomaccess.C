@@ -132,6 +132,7 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
 
     } while(false);
 
+    SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
 }
@@ -224,6 +225,7 @@ uint32_t sbePutScom (uint8_t *i_pArg)
 
     } while(false);
 
+    SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
 }
@@ -365,6 +367,7 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
 
     } while(false);
 
+    SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
 }
@@ -414,7 +417,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
                       l_putScomUmaskMsg.lowAddr,
                       l_putScomUmaskMsg.hiInputData,
                       l_putScomUmaskMsg.lowInputData);
-        SBE_DEBUG(SBE_FUNC"maskData[0x%08X%08X]",
+        SBE_INFO(SBE_FUNC"maskData[0x%08X%08X]",
                       l_putScomUmaskMsg.hiMaskData,
                       l_putScomUmaskMsg.lowMaskData);
 
@@ -477,6 +480,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
         }
     } while(false);
 
+    SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
 }

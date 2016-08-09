@@ -292,7 +292,7 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
-        SBE_DEBUG("Completed PK init");
+        SBE_INFO("Completed PK init");
 
         // Initialize the semaphores
         l_rc = sbeInitSems();
@@ -348,5 +348,6 @@ uint32_t main(int argc, char **argv)
 
     } while (false);
 
+    SBE_EXIT(SBE_FUNC);
     return l_rc;
 }

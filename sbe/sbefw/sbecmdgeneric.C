@@ -80,7 +80,6 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 uint32_t sbeGetCapabilities (uint8_t *i_pArg)
 {
     #define SBE_FUNC "sbeGetCapabilities "
-    SBE_DEBUG(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
     sbeRespGenHdr_t respHdr;

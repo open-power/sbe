@@ -246,9 +246,9 @@ uint32_t constructAduFlag(const sbeMemAccessReqMsgHdr_t & i_hdr,
               (SBE_ADU_LOCK_TRIES << ADU_LOCK_TRIES_SHIFT) );
                     // 4-bit Lock Tries at 19-18-17-16 bits
 
-    SBE_DEBUG(SBE_FUNC "Cache[%d] Itag[%d] AutoIncr[%d] FastMode[%d] ",
+    SBE_INFO(SBE_FUNC "Cache[%d] Itag[%d] AutoIncr[%d] FastMode[%d] ",
         l_isCacheInhibitMode,l_isItagBit,l_isAutoIncr,l_isFastMode);
-    SBE_DEBUG(SBE_FUNC "EccRequiredMode[%d] EccOverrideMode[%d] EccOverrideByte"
+    SBE_INFO(SBE_FUNC "EccRequiredMode[%d] EccOverrideMode[%d] EccOverrideByte"
         "[0x%02X] AduSetupFlag[0x%04X]",l_isEccRequiredMode,l_isEccOverrideMode,
         i_hdr.eccByte, l_aduSetupFlag);
 
@@ -302,7 +302,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     }
     // By default, ex_chipletId printed below won't be used unless accompanied
     // by LCO_mode.
-    SBE_DEBUG(SBE_FUNC "FAST_Mode[%d] LCO_Mode[%d] EX_ChipletId[%d]",
+    SBE_INFO(SBE_FUNC "FAST_Mode[%d] LCO_Mode[%d] EX_ChipletId[%d]",
         l_isFastMode, l_isLcoMode, (i_hdr.coreChipletId)/2);
 
     // The max granule size for which the ADU/PBA interface if configured
@@ -340,7 +340,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // Assumption is Hwp won't return zero for Num Granules
         assert(0 != l_numGranules);
 
-        SBE_DEBUG(SBE_FUNC "Hwp returned l_numGranules=[0x%08X]",l_numGranules);
+        SBE_INFO(SBE_FUNC "Hwp returned l_numGranules=[0x%08X]",l_numGranules);
         uint64_t l_numAcc = 0;
 
         if (l_numGranules < (l_lenCacheAligned - l_granulesCompleted))
@@ -431,7 +431,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         uint32_t l_len = 1;
         uint32_t l_respLen = l_granulesCompleted * l_granuleSize;
 
-        SBE_DEBUG(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
+        SBE_INFO(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
         l_rc = sbeDownFifoEnq_mult ( l_len, &l_respLen );
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
@@ -511,7 +511,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // Assumption is Hwp won't return zero for Num Granules
         assert(0 != l_numGranules);
 
-        SBE_DEBUG(SBE_FUNC "Hwp returned l_numGranules=[0x%08X]",l_numGranules);
+        SBE_INFO(SBE_FUNC "Hwp returned l_numGranules=[0x%08X]",l_numGranules);
         uint64_t l_numAcc = 0;
 
         if (l_numGranules < (l_lenCacheAligned - l_granulesCompleted))
@@ -695,7 +695,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                                        l_isItagMode,
                                        l_isEccMode);
 
-        SBE_DEBUG(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
+        SBE_INFO(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
         l_rc = sbeDownFifoEnq_mult ( l_len, &l_respLen );
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
@@ -732,10 +732,9 @@ uint32_t sbeMemAccess_Wrap(const bool i_isFlagRead)
     if(!l_rc)
     {
         // Calculate the PBA/ADU address from the given input
-        uint64_t l_addr = l_req.getAddr();
-        SBE_DEBUG(SBE_FUNC "Address Upper[0x%08X] Lower[0x%08X] Flags[0x%08X] "
-            "Length[0x%08X]", ((l_addr >>32) & 0xFFFFFFFF),
-            (l_addr & 0xFFFFFFFF), l_req.flags, l_req.len);
+        SBE_INFO(SBE_FUNC "Address Upper[0x%08X] Lower[0x%08X] Flags[0x%08X] "
+            "Length[0x%08X]", ((l_req.getAddr()>>32) & 0xFFFFFFFF),
+            (l_req.getAddr() & 0xFFFFFFFF), l_req.flags, l_req.len);
 
         // PBA
         bool l_isPBA = l_req.isPbaFlagSet();

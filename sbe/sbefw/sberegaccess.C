@@ -204,14 +204,14 @@ uint32_t SbeRegAccess::init()
                 break;
             }
             iv_isSlave = l_sbeDevIdReg & SBE_DEV_ID_C4_PIN_MASK;
-            SBE_DEBUG(SBE_FUNC"Overriding master/slave with data read from "
+            SBE_INFO(SBE_FUNC"Overriding master/slave with data read from "
                       "C4 pin: HI: 0x%08X, LO: 0x%08X",
                       (uint32_t)(l_sbeDevIdReg >> 32),
                       (uint32_t)(l_sbeDevIdReg & 0xFFFFFFFF));
         }
     } while(false);
 
-    SBE_DEBUG(SBE_FUNC"Read mailbox registers: mbx8: 0x%08X, mbx3: 0x%08X, "
+    SBE_INFO(SBE_FUNC"Read mailbox registers: mbx8: 0x%08X, mbx3: 0x%08X, "
               "mbx6: 0x%08X", (uint32_t)(l_mbx8 >> 32),
               (uint32_t)(iv_mbx3 >> 32), (uint32_t)(iv_mbx6 >> 32));
     l_initDone = true;

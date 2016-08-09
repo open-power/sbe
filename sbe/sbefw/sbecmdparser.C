@@ -243,7 +243,6 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
                                    sbeCmdStruct_t **o_ppCmd)
 {
     #define SBE_FUNC " sbeGetCmdStructAttr "
-    SBE_DEBUG(SBE_FUNC "i_cmdClass [0x%08X]", i_cmdClass);
     uint8_t l_numCmds  = 0;
     *o_ppCmd = NULL;
 
@@ -328,7 +327,7 @@ uint8_t sbeValidateCmdClass (const uint8_t i_cmdClass,
     #define SBE_FUNC " sbeValidateCmdClass "
     uint8_t l_rc           = SBE_SEC_COMMAND_NOT_SUPPORTED;
 
-    SBE_DEBUG(SBE_FUNC"i_cmdClass[0x%02X], "
+    SBE_INFO(SBE_FUNC"i_cmdClass[0x%02X], "
               "i_cmdOpcode[0x%02X]", i_cmdClass, i_cmdOpcode);
 
     do
@@ -376,9 +375,6 @@ bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
     bool l_ret = false;
     l_numCmds = sbeGetCmdStructAttr (i_cmdClass, &l_pCmd);
 
-    SBE_DEBUG(SBE_FUNC"CmdClass[0x%02X], CmdOpcode[0x%02X], NumCmds[0x%02X]",
-        i_cmdClass, i_cmdOpcode, l_numCmds);
-
     for (uint8_t l_cnt = 0; l_cnt < l_numCmds; ++l_cnt, ++l_pCmd)
     {
         if (i_cmdOpcode == l_pCmd->cmd_opcode)
@@ -386,7 +382,7 @@ bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
             // Get the Present State
             uint64_t l_state =
                 SbeRegAccess::theSbeRegAccess().getSbeState();
-            SBE_DEBUG(SBE_FUNC "SBE State [0x%08X] Fence State[0x%04X]",
+            SBE_INFO(SBE_FUNC "SBE State [0x%08X] Fence State[0x%04X]",
                 (uint32_t)(l_state & 0xFFFFFFFF),l_pCmd->cmd_state_fence);
 
             switch(l_state)
@@ -474,10 +470,6 @@ sbeCmdFunc_t sbeFindCmdFunc (const uint8_t i_cmdClass,
     sbeCmdStruct_t *l_pCmd = NULL;
 
     l_numCmds = sbeGetCmdStructAttr (i_cmdClass, &l_pCmd);
-
-    SBE_DEBUG(SBE_FUNC"i_cmdClass[0x%02X], "
-              "i_cmdOpcode[0x%02X], l_numCmds[0x%02X]",
-               i_cmdClass, i_cmdOpcode, l_numCmds);
 
     for (uint8_t l_cnt = 0; l_cnt < l_numCmds; ++l_cnt, ++l_pCmd)
     {

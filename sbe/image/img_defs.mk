@@ -276,6 +276,14 @@ ifdef FAPI_TRACE_LEVEL_ENV
 FAPI_TRACE_LEVEL_DEF = $(FAPI_TRACE_LEVEL_ENV)
 endif
 
+# Levels of SBE logging
+# 0 - No tracing
+# 1 - Error
+# 2 - Error, info
+# 3 - Error, info, entry/exit
+# 4 - Error, info, entry/exit, debug
+SBE_TRACE_LEVEL_DEF = 3
+
 GCC-DEFS += -DIMAGE_NAME=$(IMAGE_SEEPROM_NAME)
 GCC-DEFS += -DPK_TIMER_SUPPORT=$(PK_TIMER_SUPPORT)
 GCC-DEFS += -DPK_THREAD_SUPPORT=$(PK_THREAD_SUPPORT)
@@ -287,6 +295,7 @@ GCC-DEFS += -D__SBE__=1
 GCC-DEFS += -D__PPE__=1
 GCC-DEFS += -DMINIMUM_FFDC=1
 GCC-DEFS += -DFAPI_TRACE_LEVEL=$(FAPI_TRACE_LEVEL_DEF)
+GCC-DEFS += -DSBE_TRACE_LEVEL=$(SBE_TRACE_LEVEL_DEF)
 # use the default settings in the code unless a size is defined
 ifdef PK_TRACE_SZ
 GCC-DEFS += -DPK_TRACE_SZ=$(PK_TRACE_SZ)

@@ -1,3 +1,27 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: sbe/sbefw/sbefifo.H $                                         */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 /*
  * @file: ppe/sbe/sbefw/sbefifo.H
  *
@@ -149,7 +173,7 @@ extern inline uint32_t sbeUpFifoDeq (uint64_t *o_data)
   */
 extern inline uint32_t sbeUpFifoPerformReset (void)
 {
-    SBE_TRACE(">sbeUpFifoPerformReset");
+    SBE_INFO("sbeUpFifoPerformReset");
     return putscom_abs(SBE_UPSTREAM_FIFO_PERFORM_RESET, ((uint64_t)0x1)<<32);
 }
 
@@ -162,7 +186,7 @@ extern inline uint32_t sbeUpFifoPerformReset (void)
   */
 extern inline uint32_t sbeUpFifoAckEot (void)
 {
-    SBE_DEBUG("sbeUpFifoAckEot");
+    SBE_INFO("sbeUpFifoAckEot");
     return putscom_abs(SBE_UPSTREAM_FIFO_ACK_EOT, ((uint64_t)0x1)<<32);
 }
 
