@@ -427,11 +427,11 @@
   </entry>
   <entry>
            <name>ATTR_CLOCK_PLL_MUX</name>
-           <value>0x0C410000</value>
+           <value>0x80010800</value>
   </entry>
    <entry>
            <name>ATTR_CLOCK_PLL_MUX0</name>
-           <value>0x0</value>
+           <value>0x3</value>
   </entry>
   <entry>
   	<name>ATTR_PROC_EPS_READ_CYCLES_T0</name>
@@ -478,15 +478,15 @@
   </entry>
   <entry>
            <name>ATTR_SS_FILTER_BYPASS</name>
-           <value>0x0</value>
+           <value>0x1</value>
   </entry>
   <entry>
            <name>ATTR_CP_FILTER_BYPASS</name>
-           <value>0x0</value>
+           <value>0x1</value>
   </entry>
   <entry>
            <name>ATTR_IO_FILTER_BYPASS</name>
-           <value>0x0</value>
+           <value>0x1</value>
   </entry>
   <entry>
            <name>ATTR_VDM_ENABLE</name>
