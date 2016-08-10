@@ -25,12 +25,12 @@
 # IBM_PROLOG_END_TAG
 
 #
-#   Front end to addCopyright.pl - script to check for copyright block during
+#   Front end to addCopyright - script to check for copyright block during
 #   Gerrit checkin.
 #
 
 export WORKSPACE_DIR=`pwd`
-export ADDCOPYRIGHT=${WORKSPACE_DIR}/sbe/build/tools/hooks/addCopyright.pl
+export ADDCOPYRIGHT=${WORKSPACE_DIR}/sbe/build/tools/hooks/addCopyright
 
 ##  run git show to get a list of checked in files
 CHECKINFILES=`git show --pretty=format: --name-only -n1 | tr '\n' ' '`

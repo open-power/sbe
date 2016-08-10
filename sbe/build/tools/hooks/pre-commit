@@ -28,14 +28,12 @@
 # maintained same as that of Hoostboot except for minor changes to
 # suit the PPE environment.
 
-if [ -z $MIRROR ]; then
-    if [ -f $TOOLSDIR/pre-commit-actions ]; then
-        $TOOLSDIR/pre-commit-actions
-    # Legacy support for older releases
-    elif [ -f $TOOLSDIR/pre-commit-prologs ]; then
-        $TOOLSDIR/pre-commit-prologs
-    else
-        echo "Missing pre-commit files"
-        exit -1
-    fi
+if [ -f $TOOLSDIR/pre-commit-actions ]; then
+    $TOOLSDIR/pre-commit-actions
+# Legacy support for older releases
+elif [ -f $TOOLSDIR/pre-commit-prologs ]; then
+    $TOOLSDIR/pre-commit-prologs
+else
+    echo "Missing pre-commit files"
+    exit -1
 fi
