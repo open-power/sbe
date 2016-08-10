@@ -62,31 +62,8 @@
     <value>0x00</value>
   </entry>
   <entry>
-    <name>ATTR_FW_MODE_FLAGS_VALID</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
-    <name>ATTR_ISTEP_MODE</name>
-    <value>0x01</value>
-  </entry>
-  <entry>
-    <name>ATTR_SBE_RUNTIME_MODE</name>
-  </entry>
-  <entry>
      <name>ATTR_IS_MPIPL</name>
      <value>0x0</value>
-  </entry>
-  <entry>
-     <name>ATTR_IS_SP_MODE</name>
-     <value>0x01</value>
-  </entry>
-  <entry>
-     <name>ATTR_SBE_FFDC_ENABLE</name>
-     <value>0x01</value>
-  </entry>
-  <entry>
-     <name>ATTR_SBE_INTERNAL_FFDC_ENABLE</name>
-     <value>0x00</value>
   </entry>
   <entry>
      <name>ATTR_BOOT_FREQUENCY_VALID</name>
@@ -131,15 +108,7 @@
   <entry>
      <name>ATTR_CHIP_POS</name>
      <value>0x01</value>
-  </entry>
-  <entry>
-     <name>ATTR_SCRATCH6_VALID</name>
-     <value>0x00</value>
-  </entry>
-  <entry>
-     <name>ATTR_SCRATCH7_VALID</name>
-     <value>0x00</value>
-  </entry>
+  </entry> 
   <entry>
     <name>ATTR_SCRATCH_UINT8_1</name>
     <value>0x8</value>
