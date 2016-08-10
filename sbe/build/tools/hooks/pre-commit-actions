@@ -26,7 +26,7 @@
 # This hook is used to add or update copyright prolog statements and run
 # the code beautifier astyle.
 
-my $copyrightScript = "addCopyright.pl";
+my $copyrightScript = "addCopyright";
 
 ##  Make up a list of all staged files ( --cached --name-only )
 ##  Filter for only Added or Modified ( --diff-filter=AM )
