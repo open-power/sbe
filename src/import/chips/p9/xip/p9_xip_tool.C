@@ -1454,6 +1454,7 @@ deleteSection(const char* i_imageFile, const int i_imageFd, void* io_image,
     const char* section;
     const char** argv;
     void* newImage;
+    void* tempImage;
     uint32_t size;
     P9XipHeader header;
 
@@ -1491,6 +1492,17 @@ deleteSection(const char* i_imageFile, const int i_imageFd, void* io_image,
             exit(1);
         }
 
+        // Create a temporary place holder for image
+
+        tempImage = malloc(size);
+
+        if (tempImage == 0)
+        {
+            fprintf(stderr, "Can't malloc() a buffer for the temporary image\n");
+            exit(1);
+        }
+
+
         p9_xip_translate_header(&header, (P9XipHeader*)io_image);
 
         // Delete the sections in argument order
@@ -1512,7 +1524,7 @@ deleteSection(const char* i_imageFile, const int i_imageFd, void* io_image,
 
             // Delete the section
 
-            rc = p9_xip_delete_section(newImage, sectionId);
+            rc = p9_xip_delete_section(newImage, tempImage, size, sectionId);
 
             if (rc)
             {
