@@ -316,14 +316,9 @@ fapi2::ReturnCode findRS4InImageAndApply(
             if ( l_chipletID > l_chipletData.iv_base_chiplet_number)
             {
                 uint8_t l_chipletOffset =
-                    (l_chipletID - l_chipletData.iv_base_chiplet_number);
+                    (l_chipletID - l_chipletData.iv_base_chiplet_number) ;
                 l_sectionAddr += (l_chipletOffset * 
-                   (l_chipletData.iv_num_instance_rings * l_cpltRingVariantSz));
-            }
-            else
-            {
-                l_sectionAddr +=
-                   (l_chipletData.iv_num_instance_rings * l_cpltRingVariantSz);
+                   (l_chipletData.iv_num_instance_rings)) ;
             }
         }
 
