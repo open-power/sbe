@@ -300,8 +300,8 @@ fapi2::ReturnCode standardScan(
                 // Add the chiplet ID in the Scom Address
                 l_scomAddress |= l_chiplet;
 
-                // @TODO: Value 200 is a random number to start with.
-                uint8_t l_attempts = 200;
+                // @TODO: Value 300 is a random number to start with.
+                uint32_t l_attempts = 300;
 
                 while(l_attempts > 0)
                 {
@@ -328,7 +328,7 @@ fapi2::ReturnCode standardScan(
 
                     // @TODO: 1 micro second is a number that works now.
                     //        Need to derive the real delay number.
-                    fapi2::delay(1000, 0);
+                    fapi2::delay(1000, 1000000);
 
                 }
 
