@@ -105,6 +105,9 @@ p9_hcd_cache_dpll_setup(
     l_data64.flush<0>().setBit<2>().insertFromRight<6, 10>(0x40);
     FAPI_TRY(putScom(i_target, EQ_QPPM_DPLL_CTRL_OR, l_data64));
 
+    FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_CLEAR, MASK_SET(2)));
+
     FAPI_DBG("Drop DPLL test mode and reset via NET_CTRL0[3,4]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_AND(3, 2, 0)));
 
@@ -175,6 +178,9 @@ p9_hcd_cache_dpll_setup(
 
     FAPI_DBG("Drop DPLL ff_bypass via QPPM_DPLL_CTRL[2]");
     FAPI_TRY(putScom(i_target, EQ_QPPM_DPLL_CTRL_CLEAR, MASK_SET(2)));
+
+    FAPI_DBG("Assert flushmode_inhibit via CPLT_CTRL0[2]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_OR, MASK_SET(2)));
 
     FAPI_DBG("Set scan ratio to 4:1 in non-bypass mode via OPCG_ALIGN[47-51]");
     FAPI_TRY(getScom(i_target, EQ_OPCG_ALIGN, l_data64));
