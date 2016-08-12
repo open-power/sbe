@@ -346,7 +346,12 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
                 break;
             }
             distance += len;
+        }
 
+        // If there is a SBE internal failure
+        if((i_hdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL) ||\
+            (i_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL))
+        {
             //Add FFDC data as well.
             //Generate all the fields of FFDC package
             SbeFFDCPackage sbeFfdc;

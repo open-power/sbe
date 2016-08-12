@@ -47,11 +47,13 @@
 
 #define SBE_PARSER_MAX_LOCAL_BUFFER     8192
 
-#define SBE_PARSER_PRINT_DELIMETER {std::cout << \
+#define SBE_PARSER_PRINT_DELIMITER {std::cout << \
 "*****************************************************************************"\
 << std::endl;}
-#define SBE_PARSER_PRINT_HEADING(x) {std::cout << \
-"                             "x<< std::endl;}
+#define SBE_PARSER_PRINT_HEADING(x) { SBE_PARSER_PRINT_DELIMITER \
+std::cout << \
+"                             "x<< std::endl;\
+SBE_PARSER_PRINT_DELIMITER }
 
 std::string findSbeFile(const char *name)
 {
@@ -108,7 +110,6 @@ void sbeParserSysCall(const char *cmd)
     FILE *stream;
     char buffer[256];
 
-    std::cout << "calling " << cmd << std::endl;
     stream = popen(cmd, "r" );
     if(stream)
     {
@@ -180,7 +181,6 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
         {
             if(l_dumpFields & 0x0001)
             {
-                SBE_PARSER_PRINT_DELIMETER
                 if(l_buflen < sizeof(uint32_t))
                 {
                     //Complete this loop and let the tools print as much data
@@ -280,7 +280,6 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
 
                 //Delete the temp file
                 l_fileObj.Remove();
-                SBE_PARSER_PRINT_DELIMETER
             }
             l_dumpFields >>= 1;
             if(l_rc != 0)
