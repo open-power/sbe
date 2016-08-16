@@ -143,7 +143,6 @@ uint32_t SbeRegAccess::init()
         {
             break;
         }
-        Target<TARGET_TYPE_PROC_CHIP> l_chip = plat_getChipTarget();
         // Read SBE messaging register into iv_messagingReg
         l_rc = getscom_abs(PERV_SB_MSG_SCOM, &iv_messagingReg);
         if(PCB_ERROR_NONE != l_rc)
@@ -175,19 +174,10 @@ uint32_t SbeRegAccess::init()
         else
         {
             // Need to read the values off the attributes
-            // TODO: via RTC 150291 : Needs to be changed when all FW control
-            // attributes are to be combined into one
-            uint8_t l_attr = 0;
-            FAPI_ATTR_GET(ATTR_ISTEP_MODE, l_chip, l_attr);
-            iv_istepMode = l_attr;
-            FAPI_ATTR_GET(ATTR_SBE_RUNTIME_MODE, l_chip, l_attr);
-            iv_sbeDestRuntime = l_attr;
-            FAPI_ATTR_GET(ATTR_IS_SP_MODE, l_chip, l_attr);
-            iv_fspAttached = l_attr;
-            FAPI_ATTR_GET(ATTR_SBE_FFDC_ENABLE, l_chip, l_attr);
-            iv_collectFFDC = l_attr;
-            FAPI_ATTR_GET(ATTR_SBE_INTERNAL_FFDC_ENABLE, l_chip, l_attr);
-            iv_sendFFDC = l_attr;
+            uint32_t l_attr = 0;
+            FAPI_ATTR_GET(ATTR_BOOT_FLAGS, Target<TARGET_TYPE_SYSTEM>(),
+                          l_attr);
+            iv_mbx6 = ((uint64_t) l_attr ) << 32;
         }
         if(l_mbx8 & SBE_MBX8_MBX6_VALID_MASK)
         {
