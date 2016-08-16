@@ -177,7 +177,7 @@ uint32_t SbeRegAccess::init()
             uint32_t l_attr = 0;
             FAPI_ATTR_GET(ATTR_BOOT_FLAGS, Target<TARGET_TYPE_SYSTEM>(),
                           l_attr);
-            iv_mbx6 = ((uint64_t) l_attr ) << 32;
+            iv_mbx3 = ((uint64_t) l_attr ) << 32;
         }
         if(l_mbx8 & SBE_MBX8_MBX6_VALID_MASK)
         {
