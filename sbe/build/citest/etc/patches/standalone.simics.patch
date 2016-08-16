@@ -1,4 +1,4 @@
-50,52d49
-< # Set mailbox scratch registers so that the SBE starts in plck mode
-< ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003F "20000000_00000000" 64
+52c52
 < ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "00000000_00000000" 64
+---
+> ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "80000000_00000000" 64
