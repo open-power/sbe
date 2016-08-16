@@ -67,6 +67,10 @@ ifndef PPE_TYPE
 PPE_TYPE := std
 endif
 
+ifndef SBE_ROOT_DIR
+export SBE_ROOT_DIR = $(abspath ../..)
+endif
+
 ifndef IMAGE_SRCDIR
 export IMAGE_SRCDIR = $(abspath .)
 endif
@@ -130,7 +134,7 @@ endif
 export IMG_OBJDIR = $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME)
 
 ifndef PK_SRCDIR
-export PK_SRCDIR = $(abspath ../../pk)
+export PK_SRCDIR = $(abspath ../../import/chips/p9/procedures/ppe/pk)
 endif
 
 
@@ -308,9 +312,9 @@ INCLUDES += -I$(PK_SRCDIR)/../include/std
 INCLUDES += -I$(PK_SRCDIR)/kernel
 INCLUDES += -I$(PK_SRCDIR)/ppe
 INCLUDES += -I$(PK_SRCDIR)/ppe42
-INCLUDES += -I$(PK_SRCDIR)/../sbe/sbefw
+INCLUDES += -I$(SBE_ROOT_DIR)/sbe/sbefw
 INCLUDES += -I$(PK_SRCDIR)/trace
-INCLUDES += -I$(PK_SRCDIR)/../tools/ppetracepp
+INCLUDES += -I$(SBE_ROOT_DIR)/tools/ppetracepp
 INCLUDES += -I$(IMPORT_COMMON_DIR)/include
 INCLUDES += -I$(IMPORT_UTILS_DIR)/imageProcs
 INCLUDES += -I$(IMPORT_UTILS_DIR)/
