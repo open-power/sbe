@@ -46,6 +46,84 @@ fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 namespace fapi2
 {
+    // Get the plat target handle by chiplet number - For PERV targets
+    template<>
+    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(
+            const uint8_t i_chipletNumber)
+    {
+        uint32_t l_idx = 0;
+
+        if((i_chipletNumber > 0) &&
+           (i_chipletNumber < (EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT)))
+        {
+            l_idx = (i_chipletNumber - NEST_GROUP1_CHIPLET_OFFSET) +
+                NEST_GROUP1_TARGET_OFFSET;
+        }
+        else if((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT)))
+        {
+            l_idx = (i_chipletNumber - CORE_CHIPLET_OFFSET) +
+                CORE_TARGET_OFFSET;
+        }
+        else
+        {
+            assert(false);
+        }
+        return G_vec_targets[l_idx];
+    }
+
+    // Get the plat target handle by chiplet number - For EQ targets
+    template<>
+    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_EQ>(
+            const uint8_t i_chipletNumber)
+    {
+        assert(((i_chipletNumber >= EQ_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT))))
+
+        uint32_t l_idx = (i_chipletNumber - EQ_CHIPLET_OFFSET) +
+                EQ_TARGET_OFFSET;
+        return G_vec_targets[l_idx];
+    }
+
+    // Get the plat target handle by chiplet number - For CORE targets
+    template<>
+    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_CORE>(
+            const uint8_t i_chipletNumber)
+    {
+        assert(((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT))));
+
+        uint32_t l_idx = (i_chipletNumber - CORE_CHIPLET_OFFSET) +
+                 CORE_TARGET_OFFSET;
+
+        return G_vec_targets[l_idx];
+    }
+
+    // Get the plat target handle by chiplet number - For EX targets
+    template<>
+    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
+            const uint8_t i_chipletNumber)
+    {
+        assert(((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT))));
+
+        uint32_t l_idx = ((i_chipletNumber - CORE_CHIPLET_OFFSET) / 2) +
+                 EX_TARGET_OFFSET;
+
+        return G_vec_targets[l_idx];
+    }
+
+    // Get plat target handle by instance number - For EX targets
+    template <>
+    plat_target_handle_t plat_getTargetHandleByInstance<TARGET_TYPE_EX>(
+            const uint8_t i_targetNum)
+    {
+        assert(i_targetNum < EX_TARGET_COUNT);
+
+        return G_vec_targets[i_targetNum + EX_TARGET_OFFSET];
+    }
+
+
     TargetType plat_target_handle_t::getFapiTargetType() const
     {
         TargetType l_targetType = TARGET_TYPE_NONE;
@@ -527,61 +605,6 @@ fapi_try_exit:
         }
 fapi_try_exit:
         return fapi2::current_err;
-    }
-
-    template plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(const uint8_t);
-    template plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_EQ>(const uint8_t);
-    // Get the plat target handle by chiplet number - For PERV and EQ targets
-    template<TargetType K>
-    plat_target_handle_t plat_getTargetHandleByChipletNumber(
-            const uint8_t i_chipletNumber)
-    {
-        static_assert((K == TARGET_TYPE_EQ) || (K == TARGET_TYPE_PERV),
-                      "Invalid target type");
-        assert(((i_chipletNumber > 0) &&
-                (i_chipletNumber < (EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT))))
-
-        uint32_t l_idx = (i_chipletNumber - NEST_GROUP1_CHIPLET_OFFSET) +
-                NEST_GROUP1_TARGET_OFFSET;
-        return G_vec_targets[l_idx];
-    }
-
-    // Get the plat target handle by chiplet number - For CORE targets
-    template<>
-    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_CORE>(
-            const uint8_t i_chipletNumber)
-    {
-        assert(((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT))));
-
-        uint32_t l_idx = (i_chipletNumber - CORE_CHIPLET_OFFSET) +
-                 CORE_TARGET_OFFSET;
-
-        return G_vec_targets[l_idx];
-    }
-
-    // Get the plat target handle by chiplet number - For EX targets
-    template<>
-    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
-            const uint8_t i_chipletNumber)
-    {
-        assert(((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT))));
-
-        uint32_t l_idx = ((i_chipletNumber - CORE_CHIPLET_OFFSET) / 2) +
-                 EX_TARGET_OFFSET;
-
-        return G_vec_targets[l_idx];
-    }
-
-    // Get plat target handle by instance number - For EX targets
-    template <>
-    plat_target_handle_t plat_getTargetHandleByInstance<TARGET_TYPE_EX>(
-            const uint8_t i_targetNum)
-    {
-        assert(i_targetNum < EX_TARGET_COUNT);
-
-        return G_vec_targets[i_targetNum + EX_TARGET_OFFSET];
     }
 
 } // fapi2
