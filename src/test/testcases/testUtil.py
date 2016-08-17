@@ -147,6 +147,32 @@ def readEntry(obj, address, size):
 
     return value
 
+def extractHWPFFDC(dumpToFile = False):
+    '''Header extraction'''
+    data = readDsEntryReturnVal()
+    magicBytes = ((data[0] << 8) | data[1])
+    if (magicBytes == 0xFFDC) :
+        print ("\nMagic Bytes Match")
+    else :
+        raise Exception('data mistmach')
+    packLen = ((data[2] << 8) | data[3])
+    print ("\nFFDC package length = " + str(packLen))
+
+    data = readDsEntryReturnVal()
+    fapiRc = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])
+    print ("\nFAPI rc = " + str(hex(fapiRc)))
+
+    if(dumpToFile):
+        myBin = open('trace.bin', 'wb')
+        print ("\nwriting "+'trace.bin')
+    for i in range(0, packLen-2):
+        data = readDsEntryReturnVal()
+        if(dumpToFile):
+            myBin.write(bytearray(data))
+    if(dumpToFile):
+        print("write to a file Done")
+        myBin.close()
+
 def read(obj, address, size):
     """ Read from memory space """
     iface = SIM_get_interface(obj, "memory_space")

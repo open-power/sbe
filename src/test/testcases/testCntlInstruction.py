@@ -254,22 +254,13 @@ INST_EXPDATA_ERR = [0xc0,0xde,0xa7,0x01,
                     0x00,0x00,0x00,0x03]
 
 STOP_INST_EXPDATA_ERR_WTH_FFDC = [0xc0,0xde,0xa7,0x01,
-                                  0x00,0xFE,0x00,0x0A,
-                                  0xFF,0xDC,0x00,0x02,
-                                  0x00,0xCE,0xBC,0xB2,
-                                  0x00,0x00,0x00,0x05]
+                                  0x00,0xFE,0x00,0x0A]
 
 START_INST_EXPDATA_ERR_WTH_FFDC = [0xc0,0xde,0xa7,0x01,
-                                  0x00,0xFE,0x00,0x0A,
-                                  0xFF,0xDC,0x00,0x02,
-                                  0x00,0x25,0x64,0xDB,
-                                  0x00,0x00,0x00,0x05]
+                                  0x00,0xFE,0x00,0x0A]
 
 STEP_INST_EXPDATA_ERR_WTH_FFDC = [0xc0,0xde,0xa7,0x01,
-                                  0x00,0xFE,0x00,0x0A,
-                                  0xFF,0xDC,0x00,0x02,
-                                  0x00,0x0D,0x06,0x8E,
-                                  0x00,0x00,0x00,0x05]
+                                  0x00,0xFE,0x00,0x0A]
 
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
@@ -301,18 +292,30 @@ def main( ):
     testUtil.writeUsFifo( INST_STOP_0_0_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STOP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_STOP_0_1_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STOP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_STOP_0_2_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STOP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_STOP_0_3_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STOP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
 
     #stop all thread in core0
@@ -323,6 +326,9 @@ def main( ):
     testUtil.writeUsFifo( INST_STOP0_ALL_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STOP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
 
     # Control Instruction Message - Start
@@ -346,18 +352,30 @@ def main( ):
     testUtil.writeUsFifo( INST_START_0_0_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( START_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_START_0_1_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( START_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_START_0_2_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( START_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_START_0_3_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( START_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
 
     #start all thread in core0
@@ -368,6 +386,9 @@ def main( ):
     testUtil.writeUsFifo( INST_START0_ALL_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( START_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
 
     # Control Instruction Message - Step
@@ -390,18 +411,30 @@ def main( ):
     testUtil.writeUsFifo( INST_STEP_0_0_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STEP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_STEP_0_1_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STEP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_STEP_0_2_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STEP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     testUtil.writeUsFifo( INST_STEP_0_3_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STEP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
 
     #step all thread in core0
@@ -412,6 +445,9 @@ def main( ):
     testUtil.writeUsFifo( INST_STEP0_ALL_TESTDATA_WITHOUT_WARN_FLG )
     testUtil.writeEot( )
     testUtil.readDsFifo( STEP_INST_EXPDATA_ERR_WTH_FFDC )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
 
     # Control Instruction Message - Sreset

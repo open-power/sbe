@@ -35,6 +35,7 @@
 #include "sbeerrorcodes.H"
 #include "assert.h"
 #include "sbeFFDC.H"
+#include "hwp_error_info.H"
 
 // If we can not perform FIFO operation ( FIFO FULL while writing
 // or EMPTY while reading ) we will sleep for FIFO_WAIT_SLEEP_TIME
@@ -45,6 +46,7 @@ static const uint32_t FIFO_WAIT_SLEEP_TIME = 1;
 // in higher word to trigger EOT.
 static const uint64_t DOWNSTREAM_EOT_DATA = 0x100000000ull;
 
+using namespace fapi2;
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
@@ -318,7 +320,7 @@ uint32_t sbeDownFifoSignalEot (void)
 
 
 uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
-                          const sbeResponseFfdc_t &i_ffdc )
+                          sbeResponseFfdc_t &io_ffdc )
 {
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do
@@ -334,15 +336,30 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         distance += len;
 
         // If no ffdc , exit;
-        if( i_ffdc.getRc() )
+        if( io_ffdc.getRc() )
         {
-            len = sizeof(i_ffdc)/sizeof(uint32_t);
-            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &i_ffdc);
+            // making sure ffdc length is multiples of uint32_t
+            assert((g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0);
+            uint32_t ffdcDataLenInWords = g_FfdcData.ffdcLength
+                                            / sizeof(uint32_t);
+            // Add HWP specific ffdc data length
+            io_ffdc.lenInWords += ffdcDataLenInWords;
+            len = sizeof(io_ffdc)/sizeof(uint32_t);
+            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &io_ffdc);
             if (rc)
             {
                 break;
             }
             distance += len;
+
+            // Send HWP ffdc data
+            rc = sbeDownFifoEnq_mult ( ffdcDataLenInWords,
+                                        ( uint32_t *) &g_FfdcData.ffdcData);
+            if (rc)
+            {
+                break;
+            }
+            distance += ffdcDataLenInWords;
         }
 
         // If there is a SBE internal failure
@@ -369,6 +386,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         {
             break;
         }
+        SBE_INFO("sizeof(sbeFfdc_t) [%x]", sizeof(sbeFfdc_t));
 
     }while(0);
     return rc;
