@@ -93,12 +93,9 @@ bool sbeGetFapiTargetHandle(uint16_t i_targetType,
                             fapi2::plat_target_handle_t &o_tgtHndl)
 {
     bool l_rc = true;
+    o_tgtHndl = NULL;
     switch(i_targetType)
     {
-        case TARGET_CORE:
-            o_tgtHndl = plat_getTargetHandleByChipletNumber
-                            <fapi2::TARGET_TYPE_CORE>(i_chipletId);
-            break;
         case TARGET_EX:
             o_tgtHndl = plat_getTargetHandleByChipletNumber
                             <fapi2::TARGET_TYPE_EX>(i_chipletId);

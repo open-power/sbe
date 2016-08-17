@@ -378,10 +378,10 @@ enum sbeRegAccesRegType
 */
 typedef enum
 {
-    TARGET_PERV         = 0x0000,
-    TARGET_PROC_CHIP    = 0x0001,
-    TARGET_CORE         = 0x0002,
-    TARGET_EX           = 0x0003,
+    TARGET_PROC_CHIP    = 0x0000,
+    TARGET_EX           = 0x0001,
+    TARGET_PERV         = 0x0002,
+    TARGET_MCS          = 0x0003,
 } sbeRingTargetTypes_t;
 
 /*
