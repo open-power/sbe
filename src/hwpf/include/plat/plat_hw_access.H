@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -34,6 +35,18 @@
 #include "hw_access_def.H"
 #include <return_code.H>
 
+// PIB errors
+enum PCB_ERRORS
+{
+    PIB_NO_ERROR      = 0x0,
+    PIB_XSCOM_ERROR   = 0x1,
+    PIB_OFFLINE_ERROR = 0x2,
+    PIB_PARTIAL_ERROR = 0x3,
+    PIB_ADDRESS_ERROR = 0x4,
+    PIB_CLOCK_ERROR   = 0x5,
+    PIB_PARITY_ERROR  = 0x6,
+    PIB_TIMEOUT_ERROR = 0x7
+};
 
 /// PIB Error Mask
 
@@ -141,6 +154,19 @@ namespace fapi2
     /// @return PCB-PIB return code
     ///
     uint32_t putscom_abs_wrap(const uint32_t i_addr, uint64_t i_data);
+
+    ///
+    /// @brief Platform wrapper to retry scom for parity/timeout errors
+    ///
+    /// @param [in] i_addr    The SCOM address
+    /// @param [io] io_data   The data pointer
+    /// @param [in] i_pibErr  PIB error code
+    /// @param [in] i_isRead  True if read operation, false otherwise
+    ///
+    /// @return PCB-PIB return code
+    ///
+    uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,
+                             const uint8_t i_pibErr, const bool i_isRead);
 }
 
 
