@@ -70,7 +70,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
                                 l_data64))
         //PERV_PERV_CTRL0_SET_TP_VITL_ACT_DIS_DC = 1
         l_data64.setBit<PERV_PERV_CTRL0_SET_TP_VITL_ACT_DIS_DC>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM,
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
                                 l_data64));
     }
 
