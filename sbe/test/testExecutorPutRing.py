@@ -35,7 +35,7 @@ This data are the values or strings that needs to be validated for the test.
 '''
 '''
 #------------------------------------------------------------------------------------------------------------------------------
-# SBE side test data - Target - Core, Chiplet Id - 32, Ring ID - ec_func(177), mode - 0x0020(RING_MODE_HEADER_CHECK)
+# SBE side test data - Target - Pervasive(Core), Chiplet Id - 32, Ring ID - ec_func(224), mode - 0x0020(RING_MODE_HEADER_CHECK)
 #------------------------------------------------------------------------------------------------------------------------------
 '''
 sbe_test_data1 = (
@@ -43,12 +43,12 @@ sbe_test_data1 = (
     #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
     #-----------------------------------------------------------------------------------------------------
     ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
-    ["write", reg.REG_MBOX1, "0002002000F90020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.REG_MBOX1, "0002002000E00020", 	 8, 	"None", 			"Writing to MBOX1 address"],
     ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
     )
 '''
 #------------------------------------------------------------------------------------------------------------------------------
-# SBE side test data - Target - Pervasive, Chiplet Id - 1, Ring ID - perv_pll_bndy_bucket_1(10), mode - 0x0020(RING_MODE_HEADER_CHECK)
+# SBE side test data - Target - Pervasive(Perv), Chiplet Id - 1, Ring ID - perv_fure(00), mode - 0x0020(RING_MODE_HEADER_CHECK)
 #------------------------------------------------------------------------------------------------------------------------------
 '''
 sbe_test_data2 = (
@@ -56,12 +56,12 @@ sbe_test_data2 = (
     #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
     #--------------------------------------------------------------------------------------------------------------------------
     ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
-    ["write", reg.REG_MBOX1, "00000001000A0020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.REG_MBOX1, "0002000100000020", 	 8, 	"None", 			"Writing to MBOX1 address"],
     ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
     )
 '''
 #---------------------
-# SBE side test data - Target - PROC CHIP, Chiplet Id - 6, Ring ID - xb_pll_bndy_bucket_1(90), mode - 0x0020(RING_MODE_HEADER_CHECK)
+# SBE side test data - Target - PROC CHIP, Chiplet Id - x, Ring ID - ob0_fure(118), mode - 0x0020(RING_MODE_HEADER_CHECK)
 #---------------------
 '''
 sbe_test_data3 = (
@@ -69,12 +69,12 @@ sbe_test_data3 = (
     #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
     #--------------------------------------------------------------------------------------------------------------------------
     ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
-    ["write", reg.REG_MBOX1, "0001000600590020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.REG_MBOX1, "0000000600760020", 	 8, 	"None", 			"Writing to MBOX1 address"],
     ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
     )
 '''
 #------------------------------------------------------------------------------------------------------------------------------
-# SBE side test data - Target - EX, Chiplet Id - 32, Ring ID - ex_l3_refr_repr(223), mode - 0x0020(RING_MODE_HEADER_CHECK)
+# SBE side test data - Target - EX, Chiplet Id - 32, Ring ID - ex_l3_fure(176), mode - 0x0020(RING_MODE_HEADER_CHECK)
 #------------------------------------------------------------------------------------------------------------------------------
 '''
 sbe_test_data4 = (
@@ -82,7 +82,7 @@ sbe_test_data4 = (
     #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
     #-----------------------------------------------------------------------------------------------------
     ["write", reg.REG_MBOX0, "0000010000F0D301", 	 8, 	"None", 		"Writing to MBOX0 address"],
-    ["write", reg.REG_MBOX1, "0003002000DF0020", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.REG_MBOX1, "0001002000B00020", 	 8, 	"None", 			"Writing to MBOX1 address"],
     ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
     )
 '''
