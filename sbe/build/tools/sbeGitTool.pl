@@ -209,23 +209,28 @@ sub retrivePatchList
 sub fetchRefs
 {
     my $currentRef = "";
+    my $validPatchCount = 0;
 
     foreach my $patch (@patchList)
     {
         my ($changeId,$patchSet) = split(":",$patch);
         if (gitUtil::gerritIsPatch($changeId))
         {
+            $validPatchCount = $validPatchCount + 1;
             print "Fetching reference for the patch : $patch \n" if $debug;
-            my $currentRef = gitUtil::gerritQueryReference($changeId, $patchSet);
-            push @references, $currentRef;
-            print "(patchset -> reference) = $patch -> $currentRef\n" if $debug;
+            if (gitUtil::patchMergeStatus($changeId) == 0)
+            {
+                my $currentRef = gitUtil::gerritQueryReference($changeId, $patchSet);
+                push @references, $currentRef;
+                print "(patchset -> reference) = $patch -> $currentRef\n" if $debug;
+            }
         }
         else
         {
             print "\n Warning : Patchset $patch is invalid.. Continuing to check if there is any other valid patch \n";
         }
     }
-    die "ERROR: No valid patches given..\n" if (scalar @references == 0);
+    die "ERROR: No valid patches given..\n" if ($validPatchCount == 0);
 }
 
 sub applyRefs
