@@ -497,7 +497,7 @@ sub gerritQueryReference
             # If all patchsets queried, search all of them for the commit
             foreach my $patchset (@{$result->{patchSets}})
             {
-                if ($patchNumber eq "")
+                if ($patchNumber eq " ")
                 {
                     return $patchset->{currentPatchSet}->{ref};
                 }
@@ -551,6 +551,42 @@ sub gerritQueryCommit
                     }
                 }
             }
+        }
+    }
+    die "Cannot find $changeId in $project";
+}
+
+# Function             : patchMergeStatus
+#
+# @brief               : Check if given patch is merged into repository
+#
+# @param[in] changeId  : Change id of the patch
+#
+# @return  mergeStatus : 1 if merged; else 0
+#
+sub patchMergeStatus
+{
+    my $mergeStatus = 1;
+
+    my $changeId = shift;
+
+    my $project = configProject();
+
+    my $query_result = gerritQuery("$changeId project:$project");
+
+    foreach my $result (@{$query_result})
+    {
+        if ($result->{id} eq $changeId)
+        {
+            if ($result->{status} eq "MERGED" || $result->{status} eq "merged")
+            {
+                $mergeStatus = 1;
+            }
+            else
+            {
+                $mergeStatus = 0;
+            }
+            return $mergeStatus;
         }
     }
     die "Cannot find $changeId in $project";
