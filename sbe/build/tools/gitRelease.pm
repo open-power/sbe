@@ -785,7 +785,7 @@ sub git_create_branch
     my $level = shift;
     my $base = shift;
 
-    system("git checkout -b __hbRelease_$level $base");
+    system("git checkout -b __sbeRelease_$level $base");
     die "Could not create branch for $level" if ($?);
 }
 
@@ -1671,10 +1671,11 @@ sub gerrit_resolve_patchset
 sub gerrit_fetch
 {
     my $ref = shift;
-    open COMMAND, "git config --get remote.ppe.url |";
+    open COMMAND, "git config --list | grep remote.*ssh |";
     my $projecturl = <COMMAND>;
     close COMMAND;
     chomp $projecturl;
+    $projecturl =~ s/(.*?)\=(.*)/$2/;
     system("git fetch $projecturl $ref -q");
 }
 
