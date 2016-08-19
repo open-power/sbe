@@ -375,9 +375,9 @@ if (@newAttributeDefines != 0) {
             {
                 l_index += (CORE_TARGET_OFFSET);
             }
-            else if(PPE_TARGET_TYPE_MCS & i_target.getTargetType())
+            else if(PPE_TARGET_TYPE_MCBIST & i_target.getTargetType())
             {
-                l_index += (MCS_TARGET_OFFSET);
+                l_index += (MCBIST_TARGET_OFFSET);
             }
             else
             {
