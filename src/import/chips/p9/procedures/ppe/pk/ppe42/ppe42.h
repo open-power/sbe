@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/ppe42/ppe42.h $             */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/ppe42.h $         */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -287,17 +287,27 @@ popcount64(uint64_t x)
 
 // Application-overrideable definitions
 
-/// The default thread machine context has MSR[CE], MSR[EE] and MSR[ME] set,
+/// The default thread machine context has
+//  MSR[CE], MSR[EE] MSR[ME] MSR[IS0] MSR[IS1] MSR[IS2] set.
+//  MSR[IPE] is set if USE_PPE_IMPRECISE_MODE is defined.
 /// and all other MSR bits cleared.
 ///
 /// The default definition allows external and machine check exceptions.  This
 /// definition can be overriden by the application.
 
 #ifndef PK_THREAD_MACHINE_CONTEXT_DEFAULT
-#define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
-    (MSR_UIE | MSR_EE | MSR_ME)
 
-#endif
+#if defined(USE_PPE_IMPRECISE_MODE)
+
+#define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
+    (MSR_UIE | MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
+#else
+
+#define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
+    (MSR_UIE | MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2)
+
+#endif  /*USE_PPE_IMPRECISE_MODE*/
+#endif  /*PK_THREAD_MACHINE_CONTEXT_DEFAULT*/
 
 
 #ifndef __ASSEMBLER__
@@ -440,10 +450,14 @@ uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
 /// PK_THREAD_MACHINE_CONTEXT_DEFAULT. This definition can be overriden by
 /// the application.
 ///
-/// The default is to enable machine checks only.
+
 
 #ifndef PPE42_MSR_INITIAL
-#define PPE42_MSR_INITIAL MSR_ME
+#if defined(USE_PPE_IMPRECISE_MODE)
+#define PPE42_MSR_INITIAL (MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
+#else
+#define PPE42_MSR_INITIAL (MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2)
+#endif
 #endif
 
 /// The \a argc argument passed to \c main(). This definition can be overriden

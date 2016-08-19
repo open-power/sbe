@@ -49,6 +49,8 @@
 #define MSR_UIE     0x00010000      /* Unmaskable Interrupt Enable */
 #define MSR_EE      0x00008000      /* External Interrupt Enable */
 #define MSR_ME      0x00001000      /* Machine Check Exception Enable */
+#define MSR_IS2     0x00000800      /* Instance-Specific field 2 */
+#define MSR_IS3     0x00000400      /* Instance-Specific field 3 */
 #define MSR_IPE     0x00000100      /* Imprecise Mode Enable */
 #define MSR_SIBRCA  0x000000ff      /* SIB Return Code Accumulator */
 
