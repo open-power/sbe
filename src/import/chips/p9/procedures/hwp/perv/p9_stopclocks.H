@@ -31,17 +31,17 @@
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : Sunil Kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
-// *HWP Level           : 1
+// *HWP Level           : 2
 // *HWP Consumed by     : FSP:HB
 //------------------------------------------------------------------------------
 
 
 #ifndef _P9_STOPCLOCKS_H_
 #define _P9_STOPCLOCKS_H_
-
+#define btos(x) ((x)?"TRUE":"FALSE")
 
 #include <fapi2.H>
-
+#include <p9_hcd_common.H>
 
 typedef fapi2::ReturnCode (*p9_stopclocks_FP_t)(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
         const bool,
@@ -50,12 +50,14 @@ typedef fapi2::ReturnCode (*p9_stopclocks_FP_t)(const fapi2::Target<fapi2::TARGE
         const bool,
         const bool,
         const bool,
-        const bool);
+        const bool,
+        const p9hcd::P9_HCD_CLK_CTRL_CONSTANTS,
+        const p9hcd::P9_HCD_EX_CTRL_CONSTANTS );
 
 extern "C"
 {
     /**
-    * @brief proc_stopclocks procedure:  The purpose of this procedure is to stop the clocks in the non-core chiplets of the P9 processor chip
+    * @brief p9_stopclocks procedure:  The purpose of this procedure is to stop the clocks of the P9 processor chip
     *
     * @param[in] i_target                Reference to processor chip target
     * @param[in] i_stop_nest_clks        True if NEST chiplet clocks should be stopped, else false
@@ -65,17 +67,21 @@ extern "C"
     * @param[in] i_stop_pcie_clks        True if PCIE chiplet clocks should be stopped, else false
     * @param[in] i_stop_tp_clks          True if PERV (TP) chiplet clocks should be stopped, else false
     * @param[in] i_stop_vitl_clks        True if PERV VITL clocks should be stopped, else false
+    * @param[in] i_eq_clk_regions        EQ chiplet clock regions of which clocks should be stopped
+    * @param[in] i_ex_select             EX chiplet selected for clocks stop
     *
     * @return ReturnCode
     */
-    fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chiplet,
-                                    const bool i_stop_nest_clks,
-                                    const bool i_stop_mc_clks,
-                                    const bool i_stop_xbus_clks,
-                                    const bool i_stop_obus_clks,
-                                    const bool i_stop_pcie_clks,
-                                    const bool i_stop_tp_clks,
-                                    const bool i_stop_vitl_clks);
+    fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
+                                    const bool i_stop_nest_clks = true,
+                                    const bool i_stop_mc_clks = true,
+                                    const bool i_stop_xbus_clks = true,
+                                    const bool i_stop_obus_clks = true,
+                                    const bool i_stop_pcie_clks = true,
+                                    const bool i_stop_tp_clks = false,
+                                    const bool i_stop_vitl_clks = false,
+                                    const p9hcd::P9_HCD_CLK_CTRL_CONSTANTS i_eq_clk_regions = p9hcd::CLK_REGION_ALL_BUT_PLL_REFR,
+                                    const p9hcd::P9_HCD_EX_CTRL_CONSTANTS i_ex_select = p9hcd::BOTH_EX);
 }
 
 #endif
