@@ -251,19 +251,6 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             {
                 if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
                 {
-                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_NO_ALLOCATE_MODE_EN_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_NO_ALLOCATE_MODE_EN_ON, 3, 1, 63 );
-                }
-                else if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED))
-                {
-                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_NO_ALLOCATE_MODE_EN_ON = 0x1;
-                    l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_NO_ALLOCATE_MODE_EN_ON, 3, 1, 63 );
-                }
-            }
-
-            {
-                if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
-                {
                     constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_DMAP_CI_EN_CFG_OFF = 0x0;
                     l_scom_buffer.insert<uint64_t> (l_EXP_L3_L3_MISC_L3CERRS_L3_DMAP_CI_EN_CFG_OFF, 1, 1, 63 );
                 }
