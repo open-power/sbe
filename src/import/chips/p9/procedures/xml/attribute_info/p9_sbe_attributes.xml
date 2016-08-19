@@ -526,7 +526,7 @@ attribute tank
 
   <entry>
         <name>ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET</name>
-        <value>0x000003FB00000000</value>
+        <value>0x0000030000000000</value>
   </entry>
 
 
