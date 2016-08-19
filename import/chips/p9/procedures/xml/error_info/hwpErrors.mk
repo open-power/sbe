@@ -63,3 +63,4 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_tp_switch_gears_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_adu_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_npll_initf_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_chiplet_pll_initf_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_scominit_errors.xml
