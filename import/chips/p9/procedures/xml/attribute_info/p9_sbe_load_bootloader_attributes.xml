@@ -28,7 +28,6 @@
 <!-- Attributes are taken from model nest -->
 <!--nest_attributes.xml-->
 <attributes>
-
 <attribute>
   <id>ATTR_SBE_BOOTLOADER_OFFSET</id>
   <targetType>TARGET_TYPE_SYSTEM</targetType>
@@ -38,8 +37,8 @@
   <valueType>uint64</valueType>
   <persistRuntime/>
   <platInit/>
+  <initToZero/>
 </attribute>
-
 <attribute>
   <id>ATTR_HOSTBOOT_HRMOR_OFFSET</id>
   <targetType>TARGET_TYPE_SYSTEM</targetType>
@@ -49,6 +48,7 @@
   <valueType>uint64</valueType>
   <persistRuntime/>
   <platInit/>
+  <initToZero/>
 </attribute>
 <attribute>
   <id>ATTR_PNOR_SIZE</id>
@@ -57,6 +57,7 @@
   <valueType>uint16</valueType>
   <persistRuntime/>
   <platInit/>
+  <initToZero/>
 </attribute>
 <attribute>
   <id>ATTR_SBE_BOOT_SIDE</id>
@@ -65,6 +66,7 @@
   <valueType>uint8</valueType>
   <persistRuntime/>
   <platInit/>
+  <initToZero/>
 </attribute>
 <attribute>
   <id>ATTR_PNOR_BOOT_SIDE</id>
@@ -73,6 +75,7 @@
   <valueType>uint8</valueType>
   <persistRuntime/>
   <platInit/>
+  <initToZero/>
 </attribute>
 <attribute>
   <id>ATTR_SBE_HBBL_EXCEPTION_INSTRUCT</id>
@@ -81,5 +84,6 @@
   <valueType>uint32</valueType>
   <persistRuntime/>
   <platInit/>
+  <initToZero/>
 </attribute>
 </attributes>
