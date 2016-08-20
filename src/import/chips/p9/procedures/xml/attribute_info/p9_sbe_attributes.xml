@@ -301,7 +301,7 @@
             <value>0xE001</value> <!-- EP0 -->
             <value>0xE001</value> <!-- EP1 -->
             <value>0xE001</value> <!-- EP2 -->
-            <value>0xE001</value> <!-- EP3 -->
+            <value>0xE288</value> <!-- EP3 -->
             <value>0xE001</value> <!-- EP4 -->
             <value>0xE001</value> <!-- EP5 -->
             <value>0xE1FF</value> <!-- EC00 -->
@@ -375,7 +375,7 @@
   </entry>
   <entry>
            <name>ATTR_SYS_FORCE_ALL_CORES</name>
-           <value>0x01</value>
+           <value>0x00</value>
   </entry>
   <entry>
            <name>ATTR_MASTER_CORE</name>
