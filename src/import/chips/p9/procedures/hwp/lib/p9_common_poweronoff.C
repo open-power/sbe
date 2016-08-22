@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/lib/p9_common_poweronoff.C $   */
+/* $Source: src/import/chips/p9/procedures/hwp/lib/p9_common_poweronoff.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -74,7 +74,7 @@ const uint64_t PPM_PFSNS[2] =   { C_PPM_PFSNS,
                                 };
 
 enum { FSM_IDLE_POLLING_HW_NS_DELAY = 10000,
-       FSM_IDLE_POLLING_SIM_CYCLE_DELAY = 80000,
+       FSM_IDLE_POLLING_SIM_CYCLE_DELAY = 320000,
        PFET_STATE_LENGTH = 2,
        VXX_PG_SEL_LEN = 4
      };

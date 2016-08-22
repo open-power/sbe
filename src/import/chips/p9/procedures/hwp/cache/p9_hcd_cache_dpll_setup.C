@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/cache/p9_hcd_cache_dpll_setup.C $ */
+/* $Source: src/import/chips/p9/procedures/hwp/cache/p9_hcd_cache_dpll_setup.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -95,7 +95,12 @@ p9_hcd_cache_dpll_setup(
 {
     FAPI_INF(">>p9_hcd_cache_dpll_setup");
     fapi2::buffer<uint64_t>                  l_data64;
+    uint8_t                                  l_dpll_bypass;
     uint32_t                                 l_timeout;
+
+    auto l_parent_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DPLL_BYPASS, l_parent_chip, l_dpll_bypass),
+             "Error from FAPI_ATTR_GET (ATTR_DPLL_BYPASS)");
 
     //----------------------------
     // Prepare to start DPLL clock
@@ -108,8 +113,11 @@ p9_hcd_cache_dpll_setup(
     FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_CLEAR, MASK_SET(2)));
 
-    FAPI_DBG("Drop DPLL test mode and reset via NET_CTRL0[3,4]");
-    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_AND(3, 2, 0)));
+    if (l_dpll_bypass == 0)
+    {
+        FAPI_DBG("Drop DPLL test mode and reset via NET_CTRL0[3,4]");
+        FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_AND(3, 2, 0)));
+    }
 
     FAPI_DBG("Drop DPLL clock region fence via NET_CTRL1[14]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, MASK_SET(14)));
@@ -151,41 +159,48 @@ p9_hcd_cache_dpll_setup(
 
     // This is necessary to ensure that the DPLL is in Mode 1(ff_bypass = 1)
     // If not, the lock times will go from ~30us to 3-5ms
-    FAPI_DBG("Poll for DPLL to lock via QPPM_DPLL_STAT");
-    l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
-                CACHE_DPLL_LOCK_TIMEOUT_IN_MS;
-
-    do
+    if (l_dpll_bypass == 0)
     {
-        FAPI_TRY(getScom(i_target, EQ_QPPM_DPLL_STAT, l_data64));
-        ///@todo disable poll for DPLL lock until model setting in place
-        break;
-    }
-    while ((l_data64.getBit<63>() != 1 ) && (--l_timeout != 0));
+        FAPI_DBG("Poll for DPLL to lock via QPPM_DPLL_STAT");
+        l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
+                    CACHE_DPLL_LOCK_TIMEOUT_IN_MS;
 
-    FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_DPLL_LOCK_TIMEOUT()
-                .set_EQQPPMDPLLSTAT(l_data64),
-                "DPLL Lock Timeout");
-    FAPI_DBG("DPLL is locked now");
+        do
+        {
+            FAPI_TRY(getScom(i_target, EQ_QPPM_DPLL_STAT, l_data64));
+            ///@todo disable poll for DPLL lock until model setting in place
+            break;
+        }
+        while ((l_data64.getBit<63>() != 1 ) && (--l_timeout != 0));
+
+        FAPI_ASSERT((l_timeout != 0),
+                    fapi2::PMPROC_DPLL_LOCK_TIMEOUT()
+                    .set_EQQPPMDPLLSTAT(l_data64),
+                    "DPLL Lock Timeout");
+        FAPI_DBG("DPLL is locked now");
+
+        FAPI_DBG("Drop DPLL bypass via NET_CTRL0[5]");
+        FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(5)));
+
+
+        FAPI_DBG("Drop DPLL ff_bypass via QPPM_DPLL_CTRL[2]");
+        FAPI_TRY(putScom(i_target, EQ_QPPM_DPLL_CTRL_CLEAR, MASK_SET(2)));
+    }
 
     //--------------------------
     // Cleaning up
     //--------------------------
 
-    FAPI_DBG("Drop DPLL bypass via NET_CTRL0[5]");
-    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(5)));
-
-    FAPI_DBG("Drop DPLL ff_bypass via QPPM_DPLL_CTRL[2]");
-    FAPI_TRY(putScom(i_target, EQ_QPPM_DPLL_CTRL_CLEAR, MASK_SET(2)));
-
     FAPI_DBG("Assert flushmode_inhibit via CPLT_CTRL0[2]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_OR, MASK_SET(2)));
 
-    FAPI_DBG("Set scan ratio to 4:1 in non-bypass mode via OPCG_ALIGN[47-51]");
-    FAPI_TRY(getScom(i_target, EQ_OPCG_ALIGN, l_data64));
-    l_data64.insertFromRight<47, 5>(0x3);
-    FAPI_TRY(putScom(i_target, EQ_OPCG_ALIGN, l_data64));
+    if (l_dpll_bypass == 0)
+    {
+        FAPI_DBG("Set scan ratio to 4:1 in non-bypass mode via OPCG_ALIGN[47-51]");
+        FAPI_TRY(getScom(i_target, EQ_OPCG_ALIGN, l_data64));
+        l_data64.insertFromRight<47, 5>(0x3);
+        FAPI_TRY(putScom(i_target, EQ_OPCG_ALIGN, l_data64));
+    }
 
     FAPI_DBG("Drop ANEP clock region fence via CPLT_CTRL1[10]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, MASK_SET(10)));
