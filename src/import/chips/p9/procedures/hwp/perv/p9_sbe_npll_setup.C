@@ -56,6 +56,7 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
 {
     fapi2::buffer<uint64_t> l_read_reg;
     uint8_t l_read_attr = 0;
+    uint8_t l_nest_bypass = 0;
     fapi2::buffer<uint64_t> l_data64_root_ctrl8;
     fapi2::buffer<uint64_t> l_data64_perv_ctrl0;
     FAPI_INF("p9_sbe_npll_setup: Entering ...");
@@ -186,14 +187,21 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                                 l_data64_root_ctrl8));
     }
 
-    FAPI_DBG("Drop PLL test enable for Nest PLL");
-    //Setting PERV_CTRL0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
-                            l_data64_perv_ctrl0));
-    //PIB.PERV_CTRL0.TP_PLL_TEST_EN_DC = 0
-    l_data64_perv_ctrl0.clearBit<PERV_PERV_CTRL0_SET_TP_PLL_TEST_EN_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
-                            l_data64_perv_ctrl0));
+    FAPI_DBG("Reading ATTR_NEST_MEM_X_O_PCI_BYPASS");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_nest_bypass),
+             "Error from FAPI_ATTR_GET (ATTR_NEST_MEM_X_O_PCI_BYPASS)");
+
+    if ( l_nest_bypass == 0x0 )
+    {
+        FAPI_DBG("Drop PLL test enable for Nest PLL");
+        //Setting PERV_CTRL0 register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
+                                l_data64_perv_ctrl0));
+        //PIB.PERV_CTRL0.TP_PLL_TEST_EN_DC = 0
+        l_data64_perv_ctrl0.clearBit<PERV_PERV_CTRL0_SET_TP_PLL_TEST_EN_DC>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
+                                l_data64_perv_ctrl0));
+    }
 
     FAPI_DBG("Reading ATTR_MC_SYNC_MODE");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_read_attr));
@@ -208,31 +216,34 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                                 l_data64_root_ctrl8));
     }
 
-    FAPI_DBG("Release Nest PLL  reset");
-    //Setting PERV_CTRL0 register value
-    //PIB.PERV_CTRL0.TP_PLLRST_DC = 0
-    l_data64_perv_ctrl0.clearBit<PERV_PERV_CTRL0_SET_TP_PLLRST_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
-                            l_data64_perv_ctrl0));
+    if ( l_nest_bypass == 0x0 )
+    {
+        FAPI_DBG("Release Nest PLL  reset");
+        //Setting PERV_CTRL0 register value
+        //PIB.PERV_CTRL0.TP_PLLRST_DC = 0
+        l_data64_perv_ctrl0.clearBit<PERV_PERV_CTRL0_SET_TP_PLLRST_DC>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
+                                l_data64_perv_ctrl0));
 
-    fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
+        fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
 
-    FAPI_DBG("check  NEST PLL lock");
-    //Getting PLL_LOCK_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG,
-                            l_read_reg)); //l_read_reg = PERV.PLL_LOCK_REG
+        FAPI_DBG("check  NEST PLL lock");
+        //Getting PLL_LOCK_REG register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG,
+                                l_read_reg)); //l_read_reg = PERV.PLL_LOCK_REG
 
-    FAPI_ASSERT(l_read_reg.getBit<3>(),
-                fapi2::NEST_PLL_ERR()
-                .set_NEST_PLL_READ(l_read_reg),
-                "ERROR:NEST PLL LOCK NOT SET");
+        FAPI_ASSERT(l_read_reg.getBit<3>(),
+                    fapi2::NEST_PLL_ERR()
+                    .set_NEST_PLL_READ(l_read_reg),
+                    "ERROR:NEST PLL LOCK NOT SET");
 
-    FAPI_DBG("Release PLL bypass2");
-    //Setting PERV_CTRL0 register value
-    //PIB.PERV_CTRL0.TP_PLLBYP_DC = 0
-    l_data64_perv_ctrl0.clearBit<PERV_PERV_CTRL0_SET_TP_PLLBYP_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
-                            l_data64_perv_ctrl0));
+        FAPI_DBG("Release PLL bypass2");
+        //Setting PERV_CTRL0 register value
+        //PIB.PERV_CTRL0.TP_PLLBYP_DC = 0
+        l_data64_perv_ctrl0.clearBit<PERV_PERV_CTRL0_SET_TP_PLLBYP_DC>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
+                                l_data64_perv_ctrl0));
+    }
 
     FAPI_INF("p9_sbe_npll_setup: Exiting ...");
 

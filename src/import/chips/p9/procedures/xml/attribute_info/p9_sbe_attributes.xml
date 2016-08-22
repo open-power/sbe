@@ -464,6 +464,14 @@
            <value>0x1</value>
   </entry>
   <entry>
+           <name>ATTR_DPLL_BYPASS</name>
+           <value>0x0</value>
+  </entry>
+  <entry>
+           <name>ATTR_NEST_MEM_X_O_PCI_BYPASS</name>
+           <value>0x0</value>
+  </entry>
+  <entry>
            <name>ATTR_VDM_ENABLE</name>
            <value>0x0</value>
   </entry>
