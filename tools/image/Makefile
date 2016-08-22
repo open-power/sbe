@@ -29,11 +29,11 @@
 
 # Make targets:
 
-# all          :
+# all          : utilities
 #
 # utilities    : Build utility programs and procedures
 #
-# clean        : Removes the bin/ directory and all symbolic links
+# clean        : Removes generated files
 #
 
 ############################################################################
@@ -43,9 +43,6 @@ ifeq ($(CTEPATH),)
 $(warning CTEPATH not defined; defaulting to awd)
 CTEPATH = /afs/awd/projects/cte
 endif
-
-P9_XIP_SRCDIR = $(abspath ../../import/chips/p9/xip)
-P9_XIP_BINDIR = $(P9_XIP_SRCDIR)/bin
 
 #  Locations of required headers.
 INCLUDES += -I. -I../../ -I../../utils
@@ -82,42 +79,31 @@ GCC-VERSION = $(shell gcc -v 2>&1 | grep "$(GCC-RELEASE)")
 ifeq ($(GCC-VERSION),)
 $(error wrong compiler version. Use $(GCC-RELEASE) compiler. Try: "scl enable devtoolset-2 bash")
 else
-CC   = gcc
 CXX  = g++
 endif
 
 UTILITIES-SOURCES = sbe_default_tool.c
-
 UTILITIES = sbe_default_tool
 
 #  Utility targets
-UTILITIES-OBJc         = $(patsubst %.c,bin/%.o,$(UTILITIES-SOURCES))
-UTILITIES-OBJECTS      += $(patsubst %.C,bin/%.o,$(UTILITIES-OBJc))
+UTILITIES-OBJc         = $(patsubst %.c,$(BASE_OBJDIR)/%.o,$(UTILITIES-SOURCES))
+UTILITIES-OBJECTS      += $(patsubst %.C,$(BASE_OBJDIR)/%.o,$(UTILITIES-OBJc))
 UTILITIES-DEPENDENCIES = $(patsubst %.o,%.d,$(UTILITIES-OBJECTS))
-UTILITIES-EXECUTABLES  = $(patsubst %,bin/%,$(UTILITIES))
+UTILITIES-EXECUTABLES  = $(patsubst %,$(BASE_OBJDIR)/%,$(UTILITIES))
 
+.PHONY : all utilities clean
 
-.PHONY : utilities buildBinDir
-utilities: buildBinDir $(UTILITIES-EXECUTABLES)
+all: utilities
 
-buildBinDir:
-	mkdir -p bin
+utilities: $(UTILITIES-EXECUTABLES)
 
-# Build the P9-XIP image code
-$(P9_XIP_BINDIR)/p9_xip_image.o:
-	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile
-
-CXXFLAGS+=-DDEBUG_SBE_XIP_IMAGE=1
 CXXFLAGS+=-DFAPI2_NO_FFDC
 
-bin/%.o: %.c
+$(BASE_OBJDIR)/%.o: %.c
 	$(CXX) -std=c++11 $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
 
-bin/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o bin/sbe_default_tool.o
+$(BASE_OBJDIR)/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o $(BASE_OBJDIR)/sbe_default_tool.o
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
-	ln -sf bin/sbe_default_tool sbe_default_tool
 
 clean:
-	rm -f sbe_default_tool
-	rm -rf bin
-	mkdir -p bin
+	rm -f $(BASE_OBJDIR)/sbe_default_tool*

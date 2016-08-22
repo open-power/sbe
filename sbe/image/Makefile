@@ -123,7 +123,7 @@ SIMICS_PPETRACEPP_TAR_FILES += $(PK_SRCDIR)/trace/pk_trace.h
 SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_ROOT_DIR)/sbe/sbefw/plugins/sbeUserDataParser.C
 SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_ROOT_DIR)/sbe/sbefw/sbeFFDCType.H
 
-SBE_TOOLS := $(TOOLS_IMAGE_DIR)/sbe_default_tool
+SBE_TOOLS := $(BASE_OBJDIR)/sbe_default_tool
 
 P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
 
@@ -295,7 +295,7 @@ $(SUBDIRS):
 
 
 #Build the SBE XIP Tools
-$(SBE_TOOLS):
+$(SBE_TOOLS): $(P9_XIP_TOOL)
 	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile
 
 # Build the P9-XIP Tool
@@ -306,7 +306,7 @@ normalize: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 
 defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
-	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(TOOLS_IMAGE_DIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(BASE_OBJDIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 # Build the trace utilities
 ppe_trace_bin:
@@ -339,8 +339,6 @@ tracehash:
 clean:
 	rm -fr $(OBJDIR)
 	rm -f $(TOP-FIXED-HEADERS)
-	$(MAKE) -C $(TOOLS_IMAGE_DIR) -f Makefile clean
-	$(MAKE) -C $(P9_XIP_SRCDIR) -f Makefile clean
 	rm -f collect_reg_ffdc.H hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H sbe_build_info.H
 	rm -f $(GEN-CREATEATTRGETSETMACROS)
 	rm -f $(GEN-PARSEATTRIBUTEINFO)
