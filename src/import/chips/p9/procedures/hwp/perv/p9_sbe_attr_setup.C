@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/perv/p9_sbe_attr_setup.C $     */
+/* $Source: src/import/chips/p9/procedures/hwp/perv/p9_sbe_attr_setup.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -125,17 +125,53 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         }
     }
 
+    //read_scratch3_reg
+    {
+        uint8_t l_is_mpipl = 0;
+
+        if ( l_read_scratch8.getBit<2>() )
+        {
+            FAPI_DBG("Reading Scratch_reg3");
+            //Getting SCRATCH_REGISTER_3 register value
+            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_3_SCOM,
+                                    l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_
+
+            l_read_scratch_reg.extractToRight<2, 1>(l_is_mpipl);
+
+            FAPI_DBG("Setting up ATTR_IS_MPIPL");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_is_mpipl));
+        }
+    }
+
     //read_scratch4_reg
     {
         if ( l_read_scratch8.getBit<3>() )
         {
+            uint8_t l_cp_filter_bypass = 0;
+            uint8_t l_ss_filter_bypass = 0;
+            uint8_t l_io_filter_bypass = 0;
+            uint8_t l_dpll_bypass = 0;
+            uint8_t l_nest_mem_x_o_pci_bypass = 0;
+
             FAPI_DBG("Reading Scratch_Reg4");
             //Getting SCRATCH_REGISTER_4 register value
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_4_SCOM,
                                     l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_4
 
             l_read_scratch_reg.extractToRight<0, 16>(l_read_4);
+            l_read_scratch_reg.extractToRight<16, 1>(l_cp_filter_bypass);
+            l_read_scratch_reg.extractToRight<17, 1>(l_ss_filter_bypass);
+            l_read_scratch_reg.extractToRight<18, 1>(l_io_filter_bypass);
+            l_read_scratch_reg.extractToRight<19, 1>(l_dpll_bypass);
+            l_read_scratch_reg.extractToRight<20, 1>(l_nest_mem_x_o_pci_bypass);
             l_read_scratch_reg.extractToRight<24, 8>(l_read_1);
+
+            FAPI_DBG("Setting up PLL bypass attributes");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CP_FILTER_BYPASS, i_target_chip, l_cp_filter_bypass));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SS_FILTER_BYPASS, i_target_chip, l_ss_filter_bypass));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_IO_FILTER_BYPASS, i_target_chip, l_io_filter_bypass));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DPLL_BYPASS, i_target_chip, l_dpll_bypass));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_nest_mem_x_o_pci_bypass));
 
             FAPI_DBG("Setting up ATTR_BOOT_FREQ_MULT, ATTR_NEST_PLL_BUCKET");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_BOOT_FREQ_MULT, i_target_chip, l_read_4));
@@ -149,6 +185,13 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     {
         if ( l_read_scratch8.getBit<4>() )
         {
+            uint8_t l_system_ipl_phase = 0;
+            uint8_t l_force_all_cores = 0;
+            uint8_t l_risk_level = 0;
+            uint8_t l_disable_hbbl_vectors = 0;
+            uint32_t l_pll_mux = 0;
+            uint8_t l_mc_sync_mode = 0;
+
             FAPI_DBG("Reading Scratch_reg5");
             //Getting SCRATCH_REGISTER_5 register value
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_5_SCOM,
@@ -156,47 +199,43 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
             if (l_read_scratch_reg.getBit<0>())
             {
-                l_read_1 = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED;
+                l_system_ipl_phase = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED;
             }
             else
             {
-                l_read_1 = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL;
+                l_system_ipl_phase = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL;
             }
 
-            l_read_2.writeBit<7>(l_read_scratch_reg.getBit<1>());
+            l_read_scratch_reg.extract<1, 1, 7>(l_force_all_cores);
 
             if (l_read_scratch_reg.getBit<2>())
             {
-                l_read_3 = fapi2::ENUM_ATTR_RISK_LEVEL_TRUE;
+                l_risk_level = fapi2::ENUM_ATTR_RISK_LEVEL_TRUE;
             }
             else
             {
-                l_read_3 = fapi2::ENUM_ATTR_RISK_LEVEL_FALSE;
+                l_risk_level = fapi2::ENUM_ATTR_RISK_LEVEL_FALSE;
             }
-
-            FAPI_DBG("Setting up SYSTEM_IPL_PHASE, RISK_LEVEL, SYS_FORCE_ALL_CORES");
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_read_1));
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYS_FORCE_ALL_CORES, FAPI_SYSTEM,
-                                   l_read_2));
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_read_3));
-
-            l_read_1 = 0;
-            l_read_2  = 0;
-            l_read_3 = 0;
 
             if (l_read_scratch_reg.getBit<3>())
             {
-                l_read_1 = fapi2::ENUM_ATTR_DISABLE_HBBL_VECTORS_TRUE;
+                l_disable_hbbl_vectors = fapi2::ENUM_ATTR_DISABLE_HBBL_VECTORS_TRUE;
             }
             else
             {
-                l_read_1 = fapi2::ENUM_ATTR_DISABLE_HBBL_VECTORS_FALSE;
+                l_disable_hbbl_vectors = fapi2::ENUM_ATTR_DISABLE_HBBL_VECTORS_FALSE;
             }
 
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM,
-                                   l_read_1));
+            l_read_scratch_reg.extract<4, 1, 7>(l_mc_sync_mode);
+            l_read_scratch_reg.extract<12, 20, 0>(l_pll_mux);
 
-            l_read_1 = 0;
+            FAPI_DBG("Setting up SYSTEM_IPL_PHASE, RISK_LEVEL, SYS_FORCE_ALL_CORES");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_system_ipl_phase));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYS_FORCE_ALL_CORES, FAPI_SYSTEM, l_force_all_cores));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_risk_level));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM, l_disable_hbbl_vectors));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_mc_sync_mode));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_PLL_MUX, i_target_chip, l_pll_mux));
         }
     }
     //read_scratch6_reg

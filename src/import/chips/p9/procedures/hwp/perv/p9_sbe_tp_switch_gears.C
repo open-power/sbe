@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/perv/p9_sbe_tp_switch_gears.C $ */
+/* $Source: src/import/chips/p9/procedures/hwp/perv/p9_sbe_tp_switch_gears.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -58,25 +58,25 @@ enum P9_SBE_TP_SWITCH_GEARS_Private_Constants
 fapi2::ReturnCode p9_sbe_tp_switch_gears(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_tp_switch_gears: Entering ...");
 
 #ifdef __PPE__
+    uint8_t l_nest_bypass = 0;
+    // - if we've just switched from refclock->PLL, we need to adjust the
+    // i2c bit rate divisor to account for the new frequency (plus
+    // check our ability to access the seeprom with this setting)
+    // - if no frequency change has occurred (nest PLL in bypass),
+    // skip all of these steps as the current divisor in place is appropriate
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_nest_bypass));
 
-    FAPI_DBG("switch from refclock to PLL speed");
-    //Setting PERV_CTRL0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
-    //PIB.PERV_CTRL0.TP_PLLBYP_DC = 0
-    l_data64.clearBit<PERV_PERV_CTRL0_SET_TP_PLLBYP_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
+    if (l_nest_bypass == 0)
+    {
+        FAPI_TRY(p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(i_target_chip));
+        FAPI_TRY(p9_sbe_gear_switcher_i2c_stop_sequence(i_target_chip));
+        FAPI_DBG("Checking Magic number");
+        FAPI_TRY(p9_sbe_tp_switch_gears_check_magicnumber(i_target_chip));
+    }
 
-    FAPI_TRY(p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(
-                 i_target_chip));
-
-    FAPI_TRY(p9_sbe_gear_switcher_i2c_stop_sequence(i_target_chip));
-
-    FAPI_DBG("Checking Magic number");
-    FAPI_TRY(p9_sbe_tp_switch_gears_check_magicnumber(i_target_chip));
 fapi_try_exit:
 #endif
 
