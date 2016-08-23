@@ -320,7 +320,7 @@ uint32_t sbeDownFifoSignalEot (void)
 
 
 uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
-                          sbeResponseFfdc_t &io_ffdc )
+                          sbeResponseFfdc_t *i_ffdc )
 {
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do
@@ -336,16 +336,16 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         distance += len;
 
         // If no ffdc , exit;
-        if( io_ffdc.getRc() )
+        if( (i_ffdc != NULL) && i_ffdc->getRc() )
         {
             // making sure ffdc length is multiples of uint32_t
             assert((g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0);
             uint32_t ffdcDataLenInWords = g_FfdcData.ffdcLength
                                             / sizeof(uint32_t);
             // Add HWP specific ffdc data length
-            io_ffdc.lenInWords += ffdcDataLenInWords;
-            len = sizeof(io_ffdc)/sizeof(uint32_t);
-            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &io_ffdc);
+            i_ffdc->lenInWords += ffdcDataLenInWords;
+            len = sizeof(sbeResponseFfdc_t)/sizeof(uint32_t);
+            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) i_ffdc);
             if (rc)
             {
                 break;

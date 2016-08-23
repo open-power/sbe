@@ -182,11 +182,12 @@ uint32_t sbeDownFifoSignalEot (void);
  * @brief sbeDsSendRespHdr : Send response header to DS FIFO
  *           - This also sends the FFDC if exist.
  *
- * @param[in]    i_hdr      Response Header
- * @param[in]    io_ffdc    FFDC object
-  *
-  * @return     Rc from the underlying scom utility
+ * @param[in]    i_hdr     Response Header
+ * @param[in]    i_ffdc    Pointer to FFDC object, if NULL FFDC package
+ *                         is not sent in the chip op response
+ *
+ * @return                 Rc from the underlying scom utility
  */
 uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
-                          sbeResponseFfdc_t &io_ffdc );
+                          sbeResponseFfdc_t *i_ffdc=NULL );
 #endif // __SBEFW_SBEFIFOMSGUTILS_H

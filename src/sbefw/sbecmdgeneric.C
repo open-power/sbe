@@ -84,7 +84,6 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
     sbeRespGenHdr_t respHdr;
     respHdr.init();
     sbeCapabilityRespMsg_t capMsg;
-    sbeResponseFfdc_t l_ffdc;
 
     do
     {
@@ -106,7 +105,7 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
             break;
         }
 
-        rc = sbeDsSendRespHdr(respHdr, l_ffdc);
+        rc = sbeDsSendRespHdr(respHdr);
     }while(0);
 
     if( rc )

@@ -158,7 +158,7 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
 
     if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
     {
-        rc = sbeDsSendRespHdr( respHdr, ffdc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }
 
     SBE_EXIT(SBE_FUNC);
@@ -264,7 +264,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
 
     if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
     {
-        rc = sbeDsSendRespHdr( respHdr, ffdc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }
 
     SBE_EXIT(SBE_FUNC);

@@ -434,7 +434,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         l_rc = sbeDownFifoEnq_mult ( l_len, &l_respLen );
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-        l_rc = sbeDsSendRespHdr( l_respHdr, l_ffdc);
+        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
     } while(false);
 
     SBE_EXIT(SBE_FUNC);
@@ -698,7 +698,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         l_rc = sbeDownFifoEnq_mult ( l_len, &l_respLen );
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-        l_rc = sbeDsSendRespHdr( l_respHdr, l_ffdc);
+        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
     } while(false);
 
     SBE_EXIT(SBE_FUNC);
