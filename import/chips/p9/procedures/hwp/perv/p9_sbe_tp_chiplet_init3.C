@@ -56,7 +56,10 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
     HW_NS_DELAY = 100000, // unit is nano seconds
     SIM_CYCLE_DELAY = 1000, // unit is sim cycles
     POLL_COUNT = 300, // Observed Number of times CBS read for CBS_INTERNAL_STATE_VECTOR
-    OSC_ERROR_MASK = 0xF700000000000000 // Mask OSC errors
+    OSC_ERROR_MASK = 0xF700000000000000, // Mask OSC errors
+    LFIR_ACTION0_VALUE = 0x0000000000000000,
+    LFIR_ACTION1_VALUE = 0xFFFFBC2BFC7FFFFF,
+    FIR_MASK_VALUE = 0x0000000000000000
 };
 
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
@@ -142,9 +145,24 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_AND, 0));
 
     FAPI_DBG("Configure pervasive LFIR" );
-    //PERV.LOCAL_FIR_ACTION0=0;
-    //PERV.LOCAL_FIR_ACTION1=0;
-    //PERV.LOCAL_FIR_MASK=0;
+    //Setting LOCAL_FIR_ACTION0 register value
+    //PERV.LOCAL_FIR_ACTION0 = LFIR_ACTION0_VALUE
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_ACTION0,
+                            LFIR_ACTION0_VALUE));
+    //Setting LOCAL_FIR_ACTION1 register value
+    //PERV.LOCAL_FIR_ACTION1 = LFIR_ACTION1_VALUE
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_ACTION1,
+                            LFIR_ACTION1_VALUE));
+    //Setting LOCAL_FIR_MASK register value
+    //PERV.LOCAL_FIR_MASK = FIR_MASK_VALUE
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_MASK, FIR_MASK_VALUE));
+
+    // Enables any checkstop if set, to propogate to FSP and get notified
+    //
+    FAPI_DBG("p9_sbe_tp_chiplet_init3: Unmask CFIR Mask");
+    //Setting FIR_MASK register value
+    //PERV.FIR_MASK = FIR_MASK_VALUE
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_FIR_MASK, FIR_MASK_VALUE));
 
     FAPI_DBG("Setup Pervasive Hangcounter 0:Thermal, 1:OCC/SBE, 2:PBA hang, 3:Nest freq for TOD hang, 5:malefunction alert");
     //Setting HANG_PULSE_0_REG register value (Setting all fields)
