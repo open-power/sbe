@@ -59,19 +59,19 @@ enum P9_SBE_NEST_STARTCLOCKS_Private_Constants
 };
 
 static fapi2::ReturnCode p9_sbe_nest_startclocks_N3_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector);
 
 static fapi2::ReturnCode p9_sbe_nest_startclocks_get_attr_pg(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     fapi2::buffer<uint32_t>& o_attr_pg);
 
 static fapi2::ReturnCode p9_sbe_nest_startclocks_mc_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector);
 
 static fapi2::ReturnCode p9_sbe_nest_startclocks_nest_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector);
 
 fapi2::ReturnCode p9_sbe_nest_startclocks(const
@@ -238,13 +238,6 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
         }
     }
 
-    for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (l_nest_filter, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Call common_check_checkstop_function for Nest and Mc chiplets ");
-        FAPI_TRY(p9_sbe_common_check_checkstop_function(l_trgt_chplt));
-    }
-
     if ( l_read_flush_attr )
     {
         for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -273,11 +266,11 @@ fapi_try_exit:
 
 /// @brief Drop chiplet fence for OB chiplet
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_pg_vector     Pg vector of targets
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_nest_startclocks_N3_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
@@ -289,7 +282,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_N3_fence_drop(
         //Setting NET_CTRL0 register value
         l_data64.flush<1>();
         l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
     }
 
     FAPI_INF("p9_sbe_nest_startclocks_N3_fence_drop: Exiting ...");
@@ -301,16 +294,16 @@ fapi_try_exit:
 
 /// @brief get attr_pg for the chiplet
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[out]    o_attr_pg       ATTR_PG for the chiplet
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_nest_startclocks_get_attr_pg(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     fapi2::buffer<uint32_t>& o_attr_pg)
 {
     FAPI_INF("p9_sbe_nest_startclocks_get_attr_pg: Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chip, o_attr_pg));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, o_attr_pg));
 
     FAPI_INF("p9_sbe_nest_startclocks_get_attr_pg: Exiting ...");
 
@@ -321,18 +314,18 @@ fapi_try_exit:
 
 /// @brief Drop chiplet fence for MC
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_pg_vector     Pg vector of targets
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_nest_startclocks_mc_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     uint8_t l_read_attrunitpos = 0;
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_nest_startclocks_mc_fence_drop: Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chip,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chiplet,
                            l_read_attrunitpos));
 
     if ( l_read_attrunitpos == 0x07 )
@@ -343,7 +336,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_mc_fence_drop(
             //Setting NET_CTRL0 register value
             l_data64.flush<1>();
             l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
-            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
         }
     }
 
@@ -355,7 +348,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_mc_fence_drop(
             //Setting NET_CTRL0 register value
             l_data64.flush<1>();
             l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
-            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
         }
     }
 
@@ -368,11 +361,11 @@ fapi_try_exit:
 
 /// @brief Drop chiplet fence for pcie chiplet
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_pg_vector     Pg vector of targets
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_nest_startclocks_nest_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
@@ -384,7 +377,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_nest_fence_drop(
         //Setting NET_CTRL0 register value
         l_data64.flush<1>();
         l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();  //NET_CTRL0.FENCE_EN = 0
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
     }
 
     FAPI_INF("p9_sbe_nest_startclocks_nest_fence_drop: Exiting ...");

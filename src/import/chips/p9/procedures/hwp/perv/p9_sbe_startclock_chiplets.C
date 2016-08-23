@@ -57,30 +57,30 @@ enum P9_SBE_STARTCLOCK_CHIPLETS_Private_Constants
 };
 
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_get_attr_pg(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     fapi2::buffer<uint32_t>& o_attr_pg);
 
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector);
 
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_pci_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector);
 
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_set_ob_ratio(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const uint8_t i_attr);
 
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_sync_config(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_xb_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector);
 
 fapi2::ReturnCode p9_sbe_startclock_chiplets(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chiplets)
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint64_t> l_pg_vector;
     fapi2::buffer<uint64_t> l_regions;
@@ -88,10 +88,10 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
     fapi2::buffer<uint32_t> l_attr_pg;
     FAPI_INF("p9_sbe_startclock_chiplets: Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OBUS_RATIO_VALUE, i_target_chiplets,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OBUS_RATIO_VALUE, i_target_chip,
                            l_attr_obus_ratio));
 
-    for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(p9_sbe_startclock_chiplets_set_ob_ratio(l_trgt_chplt,
@@ -99,7 +99,7 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
     }
 
     for (auto l_target_cplt :
-         i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
+         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
                                            fapi2::TARGET_FILTER_TP), fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -107,7 +107,7 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
         FAPI_DBG("partial good targets vector: %#018lX", l_pg_vector);
     }
 
-    for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
                                            fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
           fapi2::TARGET_STATE_FUNCTIONAL))
@@ -133,37 +133,28 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
                                                 DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
     }
 
-    for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_DBG("Drop chiplet fence for Xbus");
         FAPI_TRY(p9_sbe_startclock_chiplets_xb_fence_drop(l_trgt_chplt, l_pg_vector));
     }
 
-    for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_DBG("Drop Chiplet fence for Obus");
         FAPI_TRY(p9_sbe_startclock_chiplets_ob_fence_drop(l_trgt_chplt, l_pg_vector));
     }
 
-    for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_DBG("Drop chiplet fence for PCIe");
         FAPI_TRY(p9_sbe_startclock_chiplets_pci_fence_drop(l_trgt_chplt, l_pg_vector));
     }
 
-    for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-          fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("call sbe_common_check_checkstop_function for xbus, obus, pcie chiplets");
-        FAPI_TRY(p9_sbe_common_check_checkstop_function(l_trgt_chplt));
-    }
-
-    for (auto l_trgt_chplt : i_target_chiplets.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
                                            fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
           fapi2::TARGET_STATE_FUNCTIONAL))
@@ -181,16 +172,16 @@ fapi_try_exit:
 
 /// @brief get attr_pg for the chiplet
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[out]    o_attr_pg       ATTR_PG for the chiplet
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_get_attr_pg(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     fapi2::buffer<uint32_t>& o_attr_pg)
 {
     FAPI_INF("p9_sbe_startclock_chiplets_get_attr_pg: Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chip, o_attr_pg));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, o_attr_pg));
 
     FAPI_INF("p9_sbe_startclock_chiplets_get_attr_pg: Exiting ...");
 
@@ -201,11 +192,11 @@ fapi_try_exit:
 
 /// @brief Drop chiplet fence for OB chiplet
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_pg_vector     Pg vector of targets
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
@@ -219,7 +210,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_fence_drop(
         l_data64.flush<1>();
         //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<2>() == 1) ? 0
         l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
     }
 
     FAPI_INF("p9_sbe_startclock_chiplets_ob_fence_drop: Exiting ...");
@@ -231,11 +222,11 @@ fapi_try_exit:
 
 /// @brief Drop chiplet fence for pcie chiplet
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_pg_vector     Pg vector of targets
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_pci_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
@@ -249,7 +240,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_pci_fence_drop(
         l_data64.flush<1>();
         //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<3>() == 1) ? 0
         l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
     }
 
     FAPI_INF("p9_sbe_startclock_chiplets_pci_fence_drop: Exiting ...");
@@ -261,20 +252,20 @@ fapi_try_exit:
 
 /// @brief set obus ratio
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_attr          Attribute that holds the OBUS ratio value
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_set_ob_ratio(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const uint8_t i_attr)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_startclock_chiplets_set_ob_ratio: Entering ...");
 
     //Setting CPLT_CONF1 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CPLT_CONF1, l_data64));
+    FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_CPLT_CONF1, l_data64));
     l_data64.insertFromRight<16, 2>(i_attr);  //CPLT_CONF1.TC_OB_RATIO_DC = i_attr
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF1, l_data64));
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CONF1, l_data64));
 
     FAPI_INF("p9_sbe_startclock_chiplets_set_ob_ratio: Exiting ...");
 
@@ -307,11 +298,11 @@ fapi_try_exit:
 
 /// @brief Drop chiplet fence for XB chiplet
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_pg_vector     vector of targets
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_xb_fence_drop(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const fapi2::buffer<uint64_t> i_pg_vector)
 {
     fapi2::buffer<uint64_t> l_data64;
@@ -325,7 +316,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_xb_fence_drop(
         l_data64.flush<1>();
         //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<1>() == 1) ? 0
         l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
     }
 
     FAPI_INF("p9_sbe_startclock_chiplets_xb_fence_drop: Exiting ...");
