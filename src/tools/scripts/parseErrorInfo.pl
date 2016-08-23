@@ -1250,7 +1250,8 @@ foreach my $argnum (0 .. $#ARGV)
             {
                 print ECFILE "    $class_name()\n";
                 print ECFILE "    {\n\t\tfapi2::current_err = RC_$class_name;\n\t\tFAPI_ERR(\"$err->{description}\");\n";
-                print ECFILE "    \tfapi2::g_FfdcData.fapiRc = RC_$class_name;\n\t}\n\n";
+                print ECFILE "    \tfapi2::g_FfdcData.fapiRc = RC_$class_name;\n";
+                print ECFILE "    \tfapi2::g_FfdcData.ffdcLength = 0;\n\t}\n\n";
             }
         }
         else
