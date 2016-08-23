@@ -318,7 +318,7 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
             break;
         }
 
-        rc = sbeDsSendRespHdr(respHdr, ffdc);
+        rc = sbeDsSendRespHdr(respHdr, &ffdc);
     }while(0);
 
     if( rc )
@@ -780,14 +780,14 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             break;
         }
 
-        sbeResponseFfdc_t l_ffdc;
-        l_rc = sbeDsSendRespHdr( l_respHdr, l_ffdc);
+        // TODO via  RTC:123696  MPIPL Related procedure/steps
+        // Can send FFDC if MPIPL procedure fails
+        l_rc = sbeDsSendRespHdr( l_respHdr );
 
         // set state to MPIPL Wait
         (void)SbeRegAccess::theSbeRegAccess().
                stateTransition(SBE_ENTER_MPIPL_EVENT);
 
-        //TODO RTC-123696  MPIPL Related procedure/steps
     }while(0);
     return l_rc;
     #undef SBE_FUNC
@@ -813,8 +813,7 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
             break;
         }
 
-        sbeResponseFfdc_t l_ffdc;
-        l_rc = sbeDsSendRespHdr( l_respHdr, l_ffdc);
+        l_rc = sbeDsSendRespHdr( l_respHdr);
 
         //TODO RTC-134278  Continue MPIPL Related procedure/steps
 

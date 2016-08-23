@@ -295,7 +295,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
         l_rc = sbeDownFifoEnq_mult (l_len, &(l_bitSentCnt));
         if(SBE_SEC_OPERATION_SUCCESSFUL == l_rc)
         {
-            l_rc = sbeDsSendRespHdr( respHdr, l_ffdc);
+            l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc);
         }
     }
     SBE_EXIT(SBE_FUNC);

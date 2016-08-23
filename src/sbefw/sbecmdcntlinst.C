@@ -193,7 +193,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
             break;
         }
 
-        l_rc = sbeDsSendRespHdr(l_respHdr, l_ffdc);
+        l_rc = sbeDsSendRespHdr(l_respHdr, &l_ffdc);
     }while(0);
 
     SBE_EXIT(SBE_FUNC);
