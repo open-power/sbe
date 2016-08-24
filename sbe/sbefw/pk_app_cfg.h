@@ -136,4 +136,10 @@
 #endif
 #define PPE42_MACHINE_CHECK_HANDLER SBE_MACHINE_CHECK_HANDLER
 
+// Set the trace buffer size
+#ifdef PK_TRACE_SZ
+#undef PK_TRACE_SZ
+#endif
+#define PK_TRACE_SZ 4*1024
+
 #endif /*__PK_APP_CFG_H__*/
