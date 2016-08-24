@@ -260,7 +260,6 @@ ifndef PK_TRACE_HASH_PREFIX
 PK_TRACE_HASH_PREFIX := $(shell echo $(IMAGE_SEEPROM_NAME) | md5sum | cut -c1-4 | xargs -i printf "%d" 0x{})
 endif
 
-
 ifndef GCC-O-LEVEL
 ifdef P2P_ENABLE
 GCC-O-LEVEL = -O
@@ -271,7 +270,7 @@ GCC-O-LEVEL = -Os
 endif
 endif
 
-FAPI_TRACE_LEVEL_DEF = 3
+FAPI_TRACE_LEVEL_DEF = 4
 ifdef FAPI_TRACE_LEVEL_ENV
 FAPI_TRACE_LEVEL_DEF = $(FAPI_TRACE_LEVEL_ENV)
 endif
@@ -374,9 +373,6 @@ GCC-CFLAGS += -mcpu=ppe42
 GCC-CFLAGS += -ffunction-sections
 GCC-CFLAGS += -fdata-sections
 endif
-
-## Enable compiler flags for istep4
-GCC-CFLAGS += -DP9_HCD_STOP_SKIP_SCAN
 
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
