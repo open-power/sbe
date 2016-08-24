@@ -45,9 +45,15 @@ void sbeHandlePsuResponse (const uint32_t i_rc);
 namespace SBE
 {
 
+    // Currently PK does not define start range for app
+    // specifc panic code as enum. It is implicit understanding
+    // through code comments. Expectation is 0x1cxx range is for
+    // non-pk code.
+    static const uint32_t PK_APP_OFFSET_SBE_START = 0x1c00;
     enum
     {
-        PANIC_ASSERT = PK_APP_OFFSET_SBE + 1
+        // For defining new panic codes refer to pk/ppe42/pk_panic_codes.h
+        PANIC_ASSERT = PK_APP_OFFSET_SBE_START
     };
 
     /*@brief - Get higher 32bit number from uint64
