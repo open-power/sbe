@@ -71,52 +71,68 @@ ifndef SBE_ROOT_DIR
 export SBE_ROOT_DIR = $(abspath ../..)
 endif
 
+ifndef SBE_SRC_DIR
+export SBE_SRC_DIR = $(SBE_ROOT_DIR)/sbe
+endif
+
+ifndef SBE_FW_DIR
+export SBE_FW_DIR = $(SBE_SRC_DIR)/sbefw
+endif
+
 ifndef IMAGE_SRCDIR
-export IMAGE_SRCDIR = $(abspath .)
+export IMAGE_SRCDIR = $(SBE_SRC_DIR)/image
+endif
+
+ifndef IMPORT_SRCDIR
+export IMPORT_SRCDIR = $(SBE_ROOT_DIR)/import
+endif
+
+ifndef TOOLS_SRCDIR
+export TOOLS_SRCDIR = $(SBE_ROOT_DIR)/tools
 endif
 
 ifndef UTILS_SRCDIR
-export UTILS_SRCDIR = $(abspath ../../import/chips/p9/utils)
+export UTILS_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/utils
 endif
 
 ifndef CACHE_SRCDIR
-export CACHE_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/cache)
+export CACHE_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/cache
 endif
 
 ifndef CORE_SRCDIR
-export CORE_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/core)
+export CORE_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/core
 endif
 
 ifndef PERV_SRCDIR
-export PERV_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/perv)
+export PERV_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/perv
 endif
 
 ifndef HWPERR_SRCDIR
-export HWPERR_SRCDIR = $(abspath ../../import/chips/p9/procedures/xml/error_info)
+export HWPERR_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/xml/error_info
 endif
 
 ifndef NEST_SRCDIR
-export NEST_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/nest)
+export NEST_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/nest
 endif
 
 ifndef PM_SRCDIR
-export PM_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/pm)
+export PM_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/pm
 endif
 
 ifndef INITFILES_SRCDIR
-export INITFILES_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/initfiles)
+export INITFILES_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/initfiles
 endif
 
 ifndef HWPLIB_SRCDIR
-export HWPLIB_SRCDIR = $(abspath ../../import/chips/p9/procedures/hwp/lib)
+export HWPLIB_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/lib
 endif
 
 ifndef IMAGEPROCS_SRCDIR
-export IMAGEPROCS_SRCDIR = $(abspath ../../import/tools/imageProcs)
+export IMAGEPROCS_SRCDIR = $(IMPORT_SRCDIR)/tools/imageProcs
 endif
 
 ifndef P9_XIP_SRCDIR
-export P9_XIP_SRCDIR = $(abspath ../../import/chips/p9/xip)
+export P9_XIP_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/xip
 endif
 
 ifndef P9_XIP_BINDIR
@@ -128,58 +144,58 @@ export IMG_INCLUDES = -I$(IMAGEPROCS_SRCDIR) -I$(P9_XIP_SRCDIR) -I$(IMAGE_SRCDIR
 endif
 
 ifndef BASE_OBJDIR
-export BASE_OBJDIR = $(abspath ../obj)
+export BASE_OBJDIR = $(SBE_SRC_DIR)/obj
 endif
 
 export IMG_OBJDIR = $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME)
 
 ifndef PK_SRCDIR
-export PK_SRCDIR = $(abspath ../../import/chips/p9/procedures/ppe/pk)
+export PK_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/ppe/pk
 endif
 
 
 ifndef TOOLS_ATTR_DIR
-export TOOLS_ATTR_DIR = $(abspath ../../tools/scripts)
+export TOOLS_ATTR_DIR = $(TOOLS_SRCDIR)/scripts
 endif
 
 ifndef TOOLS_IMAGE_DIR
-export TOOLS_IMAGE_DIR = $(abspath ../../tools/image)
+export TOOLS_IMAGE_DIR = $(TOOLS_SRCDIR)/image
 endif
 
 ifndef IMPORT_XML_DIR
-export IMPORT_XML_DIR = $(abspath ../../import/chips/p9/procedures/xml)
+export IMPORT_XML_DIR = $(IMPORT_SRCDIR)/chips/p9/procedures/xml
 endif
 
 ifndef IMPORT_UTILS_DIR
-export IMPORT_UTILS_DIR = $(abspath ../../import/chips/p9/utils)
+export IMPORT_UTILS_DIR = $(IMPORT_SRCDIR)/chips/p9/utils
 endif
 
 ifndef IMPORT_COMMON_DIR
-export IMPORT_COMMON_DIR = $(abspath ../../import/chips/p9/common)
+export IMPORT_COMMON_DIR = $(IMPORT_SRCDIR)/chips/p9/common
 endif
 
 ifndef PPETRACEPP_DIR
-export PPETRACEPP_DIR = $(abspath ../../tools/ppetracepp)
+export PPETRACEPP_DIR = $(SBE_ROOT_DIR)/tools/ppetracepp
 endif
 
 ifndef PPETRACEPP_BIN_DIR
-export PPETRACEPP_BIN_DIR = $(abspath ../obj)
+export PPETRACEPP_BIN_DIR = $(BASE_OBJDIR)
 endif
 
 ifndef PLAT_FAPI2_DIR
-export PLAT_FAPI2_DIR = $(abspath ../hwpf)
+export PLAT_FAPI2_DIR = $(SBE_SRC_DIR)/hwpf
 endif
 
 ifndef PPE_FAPI2_DIR
-export PPE_FAPI2_DIR = $(abspath ../../hwpf)
+export PPE_FAPI2_DIR = $(SBE_ROOT_DIR)/hwpf
 endif
 
 ifndef BASE_FAPI2_DIR
-export BASE_FAPI2_DIR = $(abspath ../../import/hwpf/fapi2)
+export BASE_FAPI2_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2
 endif
 
 ifndef FAPI2_TOOLS_DIR
-export FAPI2_TOOLS_DIR = $(abspath ../../import/hwpf/fapi2/tools/)
+export FAPI2_TOOLS_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2/tools/
 endif
 
 ifdef P2P_ENABLE
@@ -320,7 +336,7 @@ INCLUDES += -I$(PK_SRCDIR)/../include/std
 INCLUDES += -I$(PK_SRCDIR)/kernel
 INCLUDES += -I$(PK_SRCDIR)/ppe
 INCLUDES += -I$(PK_SRCDIR)/ppe42
-INCLUDES += -I$(SBE_ROOT_DIR)/sbe/sbefw
+INCLUDES += -I$(SBE_FW_DIR)
 INCLUDES += -I$(PK_SRCDIR)/trace
 INCLUDES += -I$(SBE_ROOT_DIR)/tools/ppetracepp
 INCLUDES += -I$(IMPORT_COMMON_DIR)/include
