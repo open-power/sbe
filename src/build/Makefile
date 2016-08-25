@@ -52,9 +52,6 @@ LIB_DIRS += -L$(OBJDIR)/fapi2
 FAPI2LIB := $(OBJDIR)/fapi2/libfapi2.a
 LLIBS += -lfapi2
 
-LIB_DIRS += -L$(GCC-TOOL-PATH)/libgcc
-LLIBS += -lmath -leabi -lc
-
 # HWP LIB library
 SUBDIRS += $(HWPLIB_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/lib
@@ -153,7 +150,7 @@ $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis: $(IMG
 $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
 		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(BOOT_OBJECTS) $(BUILDDATA_OBJDIR)/base_ppe_header.o $(OBJS) $(LIB_DIRS) \
-	    --start-group $(LLIBS) --end-group  -leabi -lmath -lc
+	    --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments
