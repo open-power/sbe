@@ -186,10 +186,6 @@ ifndef PLAT_FAPI2_DIR
 export PLAT_FAPI2_DIR = $(SBE_SRC_DIR)/hwpf
 endif
 
-ifndef PPE_FAPI2_DIR
-export PPE_FAPI2_DIR = $(SBE_ROOT_DIR)/hwpf
-endif
-
 ifndef BASE_FAPI2_DIR
 export BASE_FAPI2_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2
 endif
@@ -326,8 +322,6 @@ INCLUDES += -I$(IMAGE_SRCDIR)/../../include
 INCLUDES += -I$(HWPLIB_SRCDIR)
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include/plat
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include
-INCLUDES += -I$(PPE_FAPI2_DIR)/include/plat
-INCLUDES += -I$(PPE_FAPI2_DIR)/include
 INCLUDES += -I$(BASE_FAPI2_DIR)/include
 INCLUDES += -I$(PK_SRCDIR)/../include
 INCLUDES += -I$(PK_SRCDIR)/$(PPE_TYPE)
