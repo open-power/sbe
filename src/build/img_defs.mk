@@ -232,14 +232,18 @@ ifndef FAPI2_TOOLS_DIR
 export FAPI2_TOOLS_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2/tools/
 endif
 
-ifdef P2P_ENABLE
-ifndef CC_ROOT
-export CC_ROOT = ${CTEPATH}/tools/gcc405lin/prod
-endif
-endif
-
 GCC-TOOL-PATH = $(CTEPATH)/tools/ppetools/prod
 
+# This is used for op-build
+# It has to be passed into make by the openpower SBE package.
+# CTEPATH won't be defined in openpower.
+#
+# From the SBE package, make must be called like this:
+# make LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib PPE42PATH=$(PPE42_GCC_BIN)
+ifdef PPE42PATH
+GCC-TOOL-PREFIX = $(PPE42PATH)/bin/powerpc-eabi-
+BINUTILS-TOOL-PREFIX = $(PPE42PATH)/powerpc-eabi/bin/
+endif
 
 ifndef GCC-TOOL-PREFIX
 GCC-TOOL-PREFIX = $(GCC-TOOL-PATH)/bin/powerpc-eabi-
