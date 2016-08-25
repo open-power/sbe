@@ -242,19 +242,20 @@ sub applyRefs
         print "Cherrypicking reference $ref \n" if $debug;
         open  SBWORKON, " | ./sb workon";
         print SBWORKON  "git fetch gerrit $ref  && echo \"Fetch Done \" > $statusFile \n";
-        print SBWORKON  "git cherry-pick FETCH_HEAD  && echo \"Cherry-pick Done \" >> $statusFile \n";
+        #print SBWORKON  "git cherry-pick FETCH_HEAD  && echo \"Cherry-pick Done \" >> $statusFile \n"; // will be reused once appropriate support is there
+        print SBWORKON  "git checkout FETCH_HEAD  && echo \"Checkout Done \" >> $statusFile \n";
         print SBWORKON  "exit \n";
         close SBWORKON;
 
         print "\nChecking cherrypick status for $ref...\n" if $debug;
         my $ch_status = `cat $statusFile`;
-        if( ($ch_status =~ m/Fetch/) && ($ch_status =~ m/Cherry-pick/))
+        if( ($ch_status =~ m/Fetch/) && ($ch_status =~ m/Checkout/))
         {
-            print "Cherry Picking successful\n";
+            print "Checkout successful\n";
         }
         else
         {
-            die "ERROR: Cherry Picking of $ref failed\n";
+            die "ERROR: Checkout of $ref failed\n";
         }
     }
 }
