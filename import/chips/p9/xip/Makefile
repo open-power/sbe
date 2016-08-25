@@ -28,6 +28,7 @@
 # Make targets:
 # all          : Builds P9-XIP code and tools in $(OBJ_DIR)/
 # clean        : Removes the $(OBJ_DIR)/ directory
+# BINDIR can be passed in to determine the ouput directory
 ############################################################################
 
 #  Locations of required headers.
@@ -40,7 +41,11 @@ XIP_FLAGS += -DFAPI2_NO_FFDC
 
 CXX_FLAGS += -std=c++11
 
+ifdef BINDIR
+OBJ_DIR = $(BINDIR)
+else
 OBJ_DIR = bin
+endif
 
 # Under Linux the scheme is to use a common compiler to create procedures.
 # However, the common compiler can be VERY slow, so if the system compiler is
