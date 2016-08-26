@@ -42,7 +42,7 @@ export DEFAULT_MACHINE=nimbus
 
 # The following ENV variables are required by the pre/post commit hooks
 export PROJECT_NAME=sbe
-export TOOLSDIR=$SBEROOT/sbe/build/tools/hooks
+export TOOLSDIR=$SBEROOT/sbe/tools/hooks
 export HOOKSDIR=$SBEROOT/.git/hooks
 export IMPORT_REL_PATH=import
 export IMPORT_DIR=$SBEROOT/$IMPORT_REL_PATH

@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +30,7 @@
 #
 
 export WORKSPACE_DIR=`pwd`
-export ADDCOPYRIGHT=${WORKSPACE_DIR}/sbe/build/tools/hooks/addCopyright
+export ADDCOPYRIGHT=${WORKSPACE_DIR}/sbe/tools/hooks/addCopyright
 
 ##  run git show to get a list of checked in files
 CHECKINFILES=`git show --pretty=format: --name-only -n1 | tr '\n' ' '`

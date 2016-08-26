@@ -1,13 +1,12 @@
-#!/bin/sh
+#!/usr/bin/perl
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: sbe/build/tools/hooks/pre-commit $
+# $Source: sbe/tools/hooks/pre-commit-actions $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,17 +22,27 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+# This hook is used to add or update copyright prolog statements and run
+# the code beautifier astyle.
 
-# NOTE: pre-commit hook and its associated helper functions are all
-# maintained same as that of Hoostboot except for minor changes to
-# suit the PPE environment.
+my $copyrightScript = "addCopyright";
 
-if [ -f $TOOLSDIR/pre-commit-actions ]; then
-    $TOOLSDIR/pre-commit-actions
-# Legacy support for older releases
-elif [ -f $TOOLSDIR/pre-commit-prologs ]; then
-    $TOOLSDIR/pre-commit-prologs
-else
-    echo "Missing pre-commit files"
-    exit -1
-fi
+##  Make up a list of all staged files ( --cached --name-only )
+##  Filter for only Added or Modified ( --diff-filter=AM )
+chomp( my @fileList = `git diff --cached --name-only --diff-filter=AM` );
+
+
+if ( @fileList )
+{
+    print "run $copyrightScript update ...\n";
+    print "        $_\n" foreach @fileList;
+    print "\n";
+
+    system "$ENV{'TOOLSDIR'}/$copyrightScript update @fileList";
+    die("$?") if ($? != 0);
+
+    system "git add @fileList";
+    exit 1 if ($? != 0);
+}
+
+exit 0;
