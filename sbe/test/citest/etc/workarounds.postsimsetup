@@ -2,12 +2,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: sbe/build/citest/etc/workarounds.postsimsetup $
+# $Source: sbe/test/citest/etc/workarounds.postsimsetup $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,5 +39,5 @@
 echo "+++ Patching standalone.simics"
 mkdir -p $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 cp $BACKING_BUILD/obj/ppc/simu/scripts/hbfw/standalone.simics $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
-patch -p0 $SANDBOXBASE/obj/ppc/simu/scripts/hbfw/standalone.simics $SBEROOT/sbe/build/citest/etc/patches/standalone.simics.patch
+patch -p0 $SANDBOXBASE/obj/ppc/simu/scripts/hbfw/standalone.simics $SBEROOT/sbe/test/citest/etc/patches/standalone.simics.patch
 

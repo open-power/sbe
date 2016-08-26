@@ -2,12 +2,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: sbe/build/citest/setup-env $
+# $Source: sbe/test/citest/setup-env $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +23,7 @@
 #
 # IBM_PROLOG_END_TAG
 
-export CITESTPATH=${SBEROOT}/sbe/build/citest
+export CITESTPATH=${SBEROOT}/sbe/test/citest
 export PATH=${CITESTPATH}:${PATH}
 
 # If we are running under Jenkins we need to pick a random-ish sandbox name

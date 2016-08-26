@@ -2,12 +2,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: sbe/build/citest/build-script $
+# $Source: sbe/test/citest/build-script $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +31,7 @@ if [ -z $SBEROOT ]; then
     source "$WORKSPACE/env.bash"
 fi
 
-source "$SBEROOT/sbe/build/citest/setup-env"
+source "$SBEROOT/sbe/test/citest/setup-env"
 
 # Check copyright.
 #check-copyright > copyright.log 2>&1 &
