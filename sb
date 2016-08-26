@@ -24,6 +24,9 @@
 #
 # IBM_PROLOG_END_TAG
 
+SBE_TOOLS_PATH="sbe/build/tools"
+SBE_CITEST_PATH="sbe/test/citest"
+
 sb_helptext()
 {
     echo "SBE Utility Script"
@@ -45,19 +48,19 @@ sb_helptext()
         echo "  Topic 'Launch CMVC Operation on PPE files'"
         echo
         echo "  Usage:"
-        echo "      Refer : $PWD/sbe/build/tools/CommitSbeImageToCMVC.py -h"
+        echo "      Refer : $PWD/${SBE_TOOLS_PATH}/CommitSbeImageToCMVC.py -h"
         ;;
     prime)
         echo "  Topic 'Compile the PPE files on fips Sandbox'"
         echo
         echo "  Usage:"
-        echo "      Refer : $PWD/sbe/build/tools/sbePrime.py -h"
+        echo "      Refer : $PWD/${SBE_TOOLS_PATH}/sbePrime.py -h"
         ;;
     simsetup)
         echo "  Topic 'Patch simics action files on fips Sandbox'"
         echo
         echo "  Usage:"
-        echo "      Refer : $PWD/sbe/build/tools/sbePrime.py -h"
+        echo "      Refer : $PWD/${SBE_TOOLS_PATH}/sbePrime.py -h"
         ;;
     citest)
         echo "  Topic 'Run SBE CI'"
@@ -109,7 +112,7 @@ sb_cmvc()
         # Launch the CMVC utility 
         str="'$*'"
         echo "User input string : $str"
-        $PWD/sbe/build/tools/CommitSbeImageToCMVC.py $*
+        $PWD/${SBE_TOOLS_PATH}/CommitSbeImageToCMVC.py $*
     else
         echo "Please do workon and re launch..."
     fi
@@ -122,7 +125,7 @@ sb_prime()
         echo "Already in a workon.. Continuing"
         str="'$*'"
         echo "User input string : $str"
-        $PWD/sbe/build/tools/sbePrime.py $*
+        $PWD/${SBE_TOOLS_PATH}/sbePrime.py $*
     else
         echo "Please do workon and re launch..."
     fi
@@ -133,7 +136,7 @@ sb_citest()
 {
     if [ -n "${SBE_INSIDE_WORKON}" ]; then
         echo "Already in a workon.. Continuing"
-        $PWD/sbe/build/citest/build-script
+        $PWD/${SBE_CITEST_PATH}/build-script
     else
         echo "Please do workon and re launch..."
     fi
@@ -146,7 +149,7 @@ sb_simsetup()
         echo "Already in a workon.. Continuing"
         str="'$*'"
         echo "User input string : $str"
-        $PWD/sbe/build/tools/sbePrime.py -p patch
+        $PWD/${SBE_TOOLS_PATH}/sbePrime.py -p patch
     else
         echo "Please do workon and re launch..."
     fi

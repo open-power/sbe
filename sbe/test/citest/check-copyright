@@ -2,12 +2,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: sbe/build/citest/etc/workarounds.presimsetup $
+# $Source: sbe/test/citest/check-copyright $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2016
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +23,8 @@
 #
 # IBM_PROLOG_END_TAG
 
-#### Examples ####
-#echo "+++ Some message about why you need to do this."
-#mkdir -p $sb/simu/data
-#egrep -v "WSALIAS DEFAULT FIPSLEVEL|WSALIAS DEFAULT SIMICSLEVEL" $BACKING_BUILD/src/simu/data/simicsInfo > $sb/simu/data/simicsInfo
-#echo "WSALIAS DEFAULT FIPSLEVEL env/gfwb/simics-4.2.0/simics-4.2.83/fips/fld36/fi120201a700.42" >> $sb/simu/data/simicsInfo
-#echo "WSALIAS DEFAULT SIMICSLEVEL env/vtechb/simics-4.2.0/simics-4.2.83/bin" >> $sb/simu/data/simicsInfo
+COPYRIGHT_CHECK=${SBEROOT}/sbe/test/citest/copyright-check.sh
+COMMIT_CHECK=${SBEROOT}/sbe/test/tools/hooks/verify-commit
+
+$COPYRIGHT_CHECK || exit -1
+$COMMIT_CHECK || exit -1
