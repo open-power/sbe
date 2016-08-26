@@ -1,7 +1,7 @@
 <!-- IBM_PROLOG_BEGIN_TAG                                                   -->
 <!-- This is an automatically generated prolog.                             -->
 <!--                                                                        -->
-<!-- $Source: src/import/chips/p9/procedures/xml/attribute_info/pm_plat_attributes.xml $ -->
+<!-- $Source: import/chips/p9/procedures/xml/attribute_info/pm_plat_attributes.xml $ -->
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
@@ -278,13 +278,13 @@
   </attribute>
   <!-- ********************************************************************* -->
   <attribute>
-    <id>ATTR_PM_APSS_CHIP_SELECT</id>
+    <id>ATTR_APSS_CHIP_SELECT</id>
     <targetType>TARGET_TYPE_PROC_CHIP</targetType>
     <description>
       Defines which of the PSS chip selects (0 or 1) that the APSS is connected
 
       Provided by the Machine Readable Workbook.
-      Consumer: p9_pm_pss_init
+      Consumer: p8_pss_init
     </description>
     <valueType>uint8</valueType>
     <enum>NONE = 0xFF, CS0 = 0x00, CS1 = 0x01</enum>
@@ -943,8 +943,8 @@
     </description>
     <initToZero/>
     <valueType>uint8</valueType>
-      <platInit/>
-  </attribute>    
+    <platInit/>
+  </attribute>
   <!-- ********************************************************************* -->
   <attribute>
       <id>ATTR_POUNDV_BUCKET_NUM</id>
@@ -1369,24 +1369,6 @@
   </attribute>
   <!-- ********************************************************************* -->
   <attribute>
-      <id>ATTR_SYSTEM_RESCLK_ENABLE</id>
-      <targetType>TARGET_TYPE_SYSTEM</targetType>
-      <description>
-      Controls the enablement of resonant clocking in the system.
-
-      Producer:  Machine Readable Workbook
-
-      Consumers:
-        p9_pstate_parameter_block to set flag for CME QuadManager Hcode
-            reaction
-      </description>
-      <valueType>uint8</valueType>
-      <enum>OFF = 0x00, ON = 0x01</enum>
-      <initToZero/>
-      <platInit/>
-  </attribute>
-  <!-- ********************************************************************* -->
-  <attribute>
     <id>ATTR_SYSTEM_RESCLK_STEP_DELAY</id>
     <targetType>TARGET_TYPE_SYSTEM</targetType>
     <description>
@@ -1496,6 +1478,6 @@
     </description>
     <valueType>uint16</valueType>
     <platInit/>
-</attribute>
-   <!-- ********************************************************************* -->
+  </attribute>
+  <!-- ********************************************************************* -->
 </attributes>
