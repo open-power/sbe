@@ -27,6 +27,8 @@
 #Pull in the definitions that affect all makefiles for this image
 include img_defs.mk
 
+include ../boot/bootfiles.mk
+
 #Pull in object file names for the top directory
 include topfiles.mk
 
@@ -34,6 +36,8 @@ SUBDIRS := $(PK_SRCDIR)/$(PPE_TYPE)
 LIB_DIRS += -L$(OBJDIR)/pk
 PKLIB := $(OBJDIR)/pk/libpk.a
 LLIBS += -lpk
+
+SUBDIRS += $(BOOT_SRCDIR)
 
 SUBDIRS += ../sbefw
 LIB_DIRS += -L$(OBJDIR)/sbefw
@@ -101,9 +105,9 @@ LLIBS += -lpm
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).out
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).map
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SBE_NAME).dis
-SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_LOADER_NAME).out
-SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_LOADER_NAME).map
-SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
+SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out
+SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).map
+SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).dis
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
@@ -133,16 +137,8 @@ LINK_OBJS = $(OBJS)
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
 LINK_OBJS += $(OBJS) $(GCCLIBS)
 
-# Loader Objects
-LOADER_OBJS := $(addprefix $(OBJDIR)/, $(BASE_LOADER_OBJECTS))
-
-#Otprom Loader Objects
-OTPROM_LOADER_OBJS := $(addprefix $(OBJDIR)/, $(OTPROM_LOADER_OBJECTS))
-
 LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/, linkscriptseeprom)
 LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/, linkscriptsbe)
-LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
-LINK_SCRIPT_OTPROM =  $(addprefix $(OBJDIR)/, linkscriptotprom)
 
 # ---- SEEPROM Image  ------
 # This removes all unecessary headers from the ELF executable
@@ -153,7 +149,7 @@ $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDI
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map \
-		-Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out  $(OBJS) $(LIB_DIRS) \
+		-Bstatic -o $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(BOOT_OBJECTS) $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group  -leabi -lmath -lc
 
 # pass the link command file through the C preprocessor to evaluate macros
@@ -178,37 +174,7 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(OBJDIR)/base_sbe_fix
 $(LINK_SCRIPT_SBE): linksbe.cmd
 	$(CPP) -E -x c++ -I. -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
-# ---- Otprom Image  ------
-$(OBJDIR)/$(IMAGE_OTPROM_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).dis: $(OBJDIR)/$(IMAGE_OTPROM_NAME).out
-	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_OTPROM_NAME).bin `/usr/bin/nm $(OBJDIR)/$(IMAGE_OTPROM_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
-	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_OTPROM_NAME).dis
-
-#create a linked ELF executable
-$(OBJDIR)/$(IMAGE_OTPROM_NAME).out: $(OTPROM_LOADER_OBJS) $(LINK_SCRIPT_OTPROM)
-	$(LD) -e base_loader -T$(LINK_SCRIPT_OTPROM) -Map $(OBJDIR)/$(IMAGE_OTPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_OTPROM_NAME).out $(OTPROM_LOADER_OBJS)
-
-# pass the link command file through the C preprocessor to evaluate macros
-# and remove comments
-$(LINK_SCRIPT_OTPROM): linkotprom.cmd
-	$(CPP) -I. -E -x c++ -P $(DEFS) linkotprom.cmd -o $(LINK_SCRIPT_OTPROM)
-
-
-# ---- Loader Image  ------
-$(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
-	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
-	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
-
-#create a linked ELF executable
-$(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
-	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(LOADER_OBJS)
-
-# pass the link command file through the C preprocessor to evaluate macros
-# and remove comments
-$(LINK_SCRIPT_LOADER): linkloader.cmd
-	$(CPP) -I. -E -x c++ -P $(DEFS) linkloader.cmd -o $(LINK_SCRIPT_LOADER)
-
 all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin \
-	 $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).bin \
 	 $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendloader \
 	 appendoverrides add_LoaderAddr symbols tracehash buildinfo report
 
@@ -237,12 +203,12 @@ buildinfo: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 
 add_LoaderAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pmLoader | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __base_loader_setup | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __base_loader_setup | cut -f 1 -d " "`
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 
-symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(IMAGE_SBE_NAME).out
+symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(IMAGE_SBE_NAME).out
 	$(NM) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(OBJDIR)/$(SBE_SYMBOLS_NAME)
-	$(NM) $(OBJDIR)/$(IMAGE_LOADER_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
+	$(NM) $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
 
 report: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
@@ -327,8 +293,8 @@ $(OBJDIR)/fixed.bin: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
 
 
-appendloader: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(OBJDIR)/$(IMAGE_LOADER_NAME).bin
+appendloader: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).bin
+	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).bin
 
 # collect all of the trace hash files for this image into a single sbeStringFile
 tracehash:
