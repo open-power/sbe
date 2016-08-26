@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: tools/ppetracepp/Makefile $
+# $Source: sbe/tools/ppetracepp/cmvc/makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2016
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,17 +21,8 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-include img_defs.mk
+PROGRAMS += ppe2fsp
+ppe2fsp_OFILES = ppe2fsp.o ppe2fsp_cmd.o
 
-all: ppetracepp ppe2fsp
-
-ppetracepp: ppetracepp.C
-	g++ -m32 -O3 -w -g -I./ ppetracepp.C -o $(PPETRACEPP_BIN_DIR)/ppetracepp
-#	g++ -O3 -w -x c++ -fPIC -g -I./ ppetracepp.C -o ppetracepp
-
-ppe2fsp: ppe2fsp.c ppe2fsp_cmd.c
-	gcc -m32 -w -g -I./ -I../../import/chips/p9/procedures/ppe/pk/trace ppe2fsp.c ppe2fsp_cmd.c -o $(PPETRACEPP_BIN_DIR)/ppe2fsp
-
-clean:
-	rm $(PPETRACEPP_BIN_DIR)/ppetracepp $(PPETRACEPP_BIN_DIR)/ppe2fsp
+.include <${RULES_MK}>
 

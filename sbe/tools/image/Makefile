@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: tools/image/Makefile $
+# $Source: sbe/tools/image/Makefile $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,29 +36,7 @@
 #
 
 ############################################################################
-
-
-ifeq ($(CTEPATH),)
-$(warning CTEPATH not defined; defaulting to awd)
-CTEPATH = /afs/awd/projects/cte
-endif
-
-#  Locations of required headers.
-INCLUDES += -I. -I../../ -I../../utils
-INCLUDES += -I ../../sbe/image/
-INCLUDES += -I ../../sbe/sbefw/
-INCLUDES += -I ../../sbe/hwpf/include/plat
-INCLUDES += -I ../../sbe/hwpf/include
-INCLUDES += -I ../../import/chips/p9/procedures/ppe/pk/ppe42/
-INCLUDES += -I ../../import/chips/p9/procedures/ppe/pk/kernel/
-INCLUDES += -I ../../import/chips/p9/procedures/ppe/pk/std/
-INCLUDES += -I ../../import/chips/p9/procedures/ppe/pk/trace/
-INCLUDES += -I ../../tools/ppetracepp/
-INCLUDES += -I ../../import/hwpf/fapi2/include/
-INCLUDES += -I ../../import/chips/p9/xip/
-INCLUDES += -I ../../import/tools/imageProcs/
-INCLUDES += -I ../../import/chips/p9/utils/
-INCLUDES += -I ../../import/chips/p9/utils/imageProcs
+include img_defs.mk
 
 # Under Linux the scheme is to use a common compiler to create procedures.
 # However, the common compiler can be VERY slow, so if the system compiler is
