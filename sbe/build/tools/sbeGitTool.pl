@@ -263,7 +263,7 @@ sub applyRefs
 sub compileAndCopy
 {
     my $statusFile = $globals{sbe_git_root}."/compile.status";
-    my $compile_path = $globals{sbe_git_root}."/sbe/image";
+    my $compile_path = $globals{sbe_git_root};
 
     print "Compiling and copying the generated binaries to sandbox\n" if $debug;
     open  SBWORKON, " | ./sb workon";

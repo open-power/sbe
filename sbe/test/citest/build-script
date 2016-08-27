@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,9 +40,7 @@ source "$SBEROOT/sbe/test/citest/setup-env"
 
 
 # Build .
-cd sbe/image
 scl enable devtoolset-2 " bash -c  \"make install\"" || exit -1
-cd -
 
 # Create simics sandbox.
 create-sandbox > create-sandbox.log 2>&1 &
