@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/tools/perl.modules/gitUtil.pm $
+# $Source: src/tools/utils/perl.modules/gitUtil.pm $
 #
 # OpenPOWER sbe Project
 #

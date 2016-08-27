@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/tools/CommitSbeImageToCMVC.py $
+# $Source: src/tools/utils/CommitSbeImageToCMVC.py $
 #
 # OpenPOWER sbe Project
 #
