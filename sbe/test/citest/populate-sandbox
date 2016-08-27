@@ -44,8 +44,8 @@ mkdir -p $SBETESTDIR || exit -1
 mkdir -p $SBEFW_IMG_DIR || exit -1
 
 # Copy sbe binaries
-cp  $SBEROOT/sbe/obj/*.bin $SBEFW_IMG_DIR/ || exit -1
-cp  $SBEROOT/sbe/obj/simics.tar $SBEFW_DIR/ || exit -1
+cp  $SBEROOT/obj/*.bin $SBEFW_IMG_DIR/ || exit -1
+cp  $SBEROOT/obj/simics.tar $SBEFW_DIR/ || exit -1
 # Compile sbe code in sandbox to copy binaries at right place
 echo "---Setup sandbox for sbe binaries."
 
