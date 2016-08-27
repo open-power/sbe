@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/tools/conv_rel_branch.pl $
+# $Source: src/tools/utils/conv_rel_branch.pl $
 #
 # OpenPOWER sbe Project
 #

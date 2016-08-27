@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/tools/sbeGitTool.pl $
+# $Source: src/tools/utils/sbeGitTool.pl $
 #
 # OpenPOWER sbe Project
 #
@@ -25,7 +25,7 @@
 
 use strict;
 #use lib "$ENV{'PERLMODULES'}";
-use lib "sbe/build/tools/perl.modules";
+use lib "src/tools/utils/perl.modules";
 use Getopt::Long qw(:config pass_through);
 use Data::Dumper;
 use Cwd;
