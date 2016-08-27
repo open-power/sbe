@@ -1,12 +1,12 @@
+#!/bin/sh
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: Makefile $
+# $Source: src/test/citest/sbetest-start.sh $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,17 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
-.PHONY: install all clean
+if [ -z $SBE_CI_ENV_SETUP ];
+then
+    unset $SANDBOXBASE
+    unset $SANDBOXNAME
+    source "$SBEROOT/src/test/citest/setup-env"
+fi
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
+#   Front end to autocitest - script to execute unit tests under simics.
+#
+##  when jenkins runs it will create a workspace with the built code tree
+##  and drop us into it.
+autocitest ${BACKING_BUILD}
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
-
-clean:
-	$(MAKE) -C $(BUILD_DIR) clean
+exit $?

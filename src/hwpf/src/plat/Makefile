@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: Makefile $
+# $Source: src/hwpf/src/plat/Makefile $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +21,21 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
-.PHONY: install all clean
+# This Makefile is designed to be invoked with the -I argument
+include img_defs.mk
+include fapi2sbeplatfiles.mk
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
+OBJS := $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_OBJECTS))
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
+all: $(OBJS)
 
-clean:
-	$(MAKE) -C $(BUILD_DIR) clean
+
+$(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+ifneq ($(MAKECMDGOALS),clean)
+include $(OBJS:.o=.d)
+endif
+

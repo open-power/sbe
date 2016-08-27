@@ -24,8 +24,8 @@
 #
 # IBM_PROLOG_END_TAG
 
-SBE_TOOLS_PATH="sbe/build/tools"
-SBE_CITEST_PATH="sbe/test/citest"
+SBE_TOOLS_PATH="src/build/tools"
+SBE_CITEST_PATH="src/test/citest"
 
 sb_helptext()
 {

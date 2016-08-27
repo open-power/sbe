@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: Makefile $
+# $Source: src/sbefw/Makefile $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +21,36 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
-.PHONY: install all clean
+#export P2P_ENABLE = 1
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
+export SUB_OBJDIR = /sbefw
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
+include img_defs.mk
+include sbefwfiles.mk
 
+OBJS := $(addprefix $(OBJDIR)/, $(SBEFW_OBJECTS))
+
+libsbefw.a: $(OBJS)
+	$(AR) crs $(OBJDIR)/libsbefw.a $(OBJDIR)/*.o
+
+.PHONY: clean sbefw
+sbefw: $(OBJS)
+
+$(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+
+#clean the kernel directory first, then the application level clean
 clean:
-	$(MAKE) -C $(BUILD_DIR) clean
+	rm -fr $(OBJDIR)
+
+ifneq ($(MAKECMDGOALS),clean)
+include $(OBJS:.o=.d)
+endif
+
+
+
+
+

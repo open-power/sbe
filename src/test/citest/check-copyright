@@ -1,12 +1,12 @@
+#!/bin/sh
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: Makefile $
+# $Source: src/test/citest/check-copyright $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,9 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
-.PHONY: install all clean
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
+COPYRIGHT_CHECK=${SBEROOT}/src/test/citest/copyright-check.sh
+COMMIT_CHECK=${SBEROOT}/src/tools/hooks/verify-commit
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
-
-clean:
-	$(MAKE) -C $(BUILD_DIR) clean
+$COPYRIGHT_CHECK || exit -1
+$COMMIT_CHECK || exit -1

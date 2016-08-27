@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: Makefile $
+# $Source: src/sample/topfiles.mk $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +21,9 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
-.PHONY: install all clean
+TOP-C-SOURCES = pk_trace_wrap.c pk_scom.c
+TOP-CPP-SOURCES = sample_main.C
+TOP-S-SOURCES =
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
-
-clean:
-	$(MAKE) -C $(BUILD_DIR) clean
+TOP_OBJECTS = $(TOP-C-SOURCES:.c=.o) $(TOP-CPP-SOURCES:.C=.o) $(TOP-S-SOURCES:.S=.o)
