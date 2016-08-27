@@ -95,6 +95,10 @@ ifndef TOOLS_SRCDIR
 export TOOLS_SRCDIR = $(SBE_SRC_DIR)/tools
 endif
 
+ifndef TEST_SRCDIR
+export TEST_SRCDIR = $(SBE_SRC_DIR)/test
+endif
+
 ifndef DEBUGTOOLS_SRCDIR
 export DEBUGTOOLS_SRCDIR = $(TOOLS_SRCDIR)/debug
 endif
@@ -144,7 +148,7 @@ export IMAGEPROCS_SRCDIR = $(IMPORT_SRCDIR)/tools/imageProcs
 endif
 
 ifndef BASE_OBJDIR
-export BASE_OBJDIR = $(SBE_SRC_DIR)/obj
+export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj
 endif
 
 ifndef P9_XIP_SRCDIR

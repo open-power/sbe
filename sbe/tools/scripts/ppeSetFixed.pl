@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +44,7 @@ if ($numArgs < 3)
     print ("example:\n");
     print ("./ppeSetFixed.pl \\\n" );
     print (". \\\n" );
-    print (" ../../sbe/obj/seeprom_main.bin \\\n" );
+    print (" ../../obj/seeprom_main.bin \\\n" );
     print ("$attrpath/p9_ppe_attributes.xml \\\n" );
     print ("$attrpath/attribute_info/perv_attributes.xml \\\n" );
     print ("$attrpath/attribute_info/proc_attributes.xml \\\n" );
