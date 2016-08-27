@@ -1,0 +1,60 @@
+#!/bin/bash
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: src/build/tools/sandbox-create $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2016
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
+
+echo " Creating ODE sandbox..."
+
+# Ensure backing build is accessible.
+if [ ! -d "$BACKING_BUILD" ];
+then
+    echo " Cannot access the backing build: $BACKING_BUILD"
+    exit -1
+fi
+
+SANDBOXRC=${SANDBOXROOT}/sbesandboxrc;
+
+# Delete existing sandbox if it exists.
+if [ -d "$SANDBOXBASE" ];
+then
+    # prompt the user to delete the sanbox or not if exist
+    echo -ne " Remove existing sandbox? {y/n}:"
+    read input
+    if [ "$input" == "y" ];then
+       echo " Executing : mksb -undo -auto -rc $SANDBOXRC -dir $SANDBOXROOT -sb $SANDBOXNAME"
+       mksb -undo -auto -rc $SANDBOXRC -dir $SANDBOXROOT -sb $SANDBOXNAME
+    else
+        exit 0
+    fi
+fi
+
+if [ -d "$SANDBOXBASE" ];
+then
+    rm -rf $SANDBOXBASE
+    rm -f $SANDBOXRC
+fi
+
+# Create sandbox.
+echo " Sandbox backing build = $BACKING_BUILD"
+echo " mksb -rc $SANDBOXRC -dir $SANDBOXROOT -back $BACKING_BUILD -sb $SANDBOXNAME -m ppc -auto"
+mksb -rc $SANDBOXRC -dir $SANDBOXROOT -back $BACKING_BUILD -sb $SANDBOXNAME -m ppc -auto || exit -1

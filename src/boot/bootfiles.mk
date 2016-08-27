@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: Makefile $
+# $Source: src/boot/bootfiles.mk $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +21,14 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
-.PHONY: install all clean
+BOOTTOP-S-SOURCES = loader_l1.S
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
+BOOT_OBJECTS += $(BOOTTOP-S-SOURCES:.S=.o)
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
+BASE-LOADER-C-SOURCES = loader_l2.c
+BASE-LOADER-S-SOURCES = loader_l2_setup.S
 
-clean:
-	$(MAKE) -C $(BUILD_DIR) clean
+BASE_LOADER_OBJECTS = $(BASE-LOADER-C-SOURCES:.c=.o)  $(BASE-LOADER-S-SOURCES:.S=.o)
+
+OTPROM-LOADER-S-SOURCES = otprom_init.S
+OTPROM_LOADER_OBJECTS = $(OTPROM-LOADER-S-SOURCES:.S=.o)

@@ -30,7 +30,7 @@ if [ -e ./customrc ]; then
 fi
 
 export PATH=${PATH}:${SBEROOT}/import/chips/p9/xip/bin/
-export PATH=${PATH}:${SBEROOT}/sbe/tools/ppetracepp/
+export PATH=${PATH}:${SBEROOT}/src/tools/ppetracepp/
 
 if [ -n "${SANDBOXROOT}" ]; then
     if [ -n "${SANDBOXNAME}" ]; then
@@ -42,7 +42,7 @@ export DEFAULT_MACHINE=nimbus
 
 # The following ENV variables are required by the pre/post commit hooks
 export PROJECT_NAME=sbe
-export TOOLSDIR=$SBEROOT/sbe/tools/hooks
+export TOOLSDIR=$SBEROOT/src/tools/hooks
 export HOOKSDIR=$SBEROOT/.git/hooks
 export IMPORT_REL_PATH=import
 export IMPORT_DIR=$SBEROOT/$IMPORT_REL_PATH

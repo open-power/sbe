@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: Makefile $
+# $Source: src/tools/ppetracepp/cmvc/makefile $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +21,8 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
-.PHONY: install all clean
+PROGRAMS += ppe2fsp
+ppe2fsp_OFILES = ppe2fsp.o ppe2fsp_cmd.o
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
+.include <${RULES_MK}>
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
-
-clean:
-	$(MAKE) -C $(BUILD_DIR) clean

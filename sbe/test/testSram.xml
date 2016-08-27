@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-      <testcase>
-          <!-- TODO RTC - 150091 - Add the Occ sram test case -->
-          <!--<simcmd>run-python-file targets/p9_nimbus/sbeTest/testSram.py</simcmd>-->
-          <!--<exitonerror>yes</exitonerror>-->
-      </testcase>
-

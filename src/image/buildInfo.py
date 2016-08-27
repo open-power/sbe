@@ -1,12 +1,12 @@
+#! /usr/bin/python
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: Makefile $
+# $Source: src/image/buildInfo.py $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,27 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
-.PHONY: install all clean
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
+# This script will create header file sbe_build_info.H which will have
+# buld information required by SBE code.
+import os
+buildInfoFileName = "sbe_build_info.H"
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
+def buildInfo():
+    header = \
+"#ifndef SBE_BUILD_INFO_H  \n\
+#define SBE_BUILD_INFO_H  \n\n"
 
-clean:
-	$(MAKE) -C $(BUILD_DIR) clean
+    footer = "\n#endif  // SBE_BUILD_INFO_H"
+    commitId = "0x" + os.popen("git rev-parse --short=8 HEAD").read().rstrip()
+
+    f = open( buildInfoFileName, 'w')
+
+    f.write(header)
+    f.write("//Define SBE Commit ID \n")
+    f.write("#define SBE_COMMIT_ID " + commitId + "\n")
+    f.write(footer)
+    f.close()
+
+# Call buildInfo
+buildInfo()

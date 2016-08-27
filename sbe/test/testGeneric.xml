@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-      <!-- SBE Get Capabilities Test case -->
-      <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testGetCapabilities.py</simcmd>
-          <exitonerror>yes</exitonerror>
-      </testcase>
