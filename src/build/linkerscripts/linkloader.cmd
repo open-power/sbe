@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/image/linkloader.cmd $                                    */
+/* $Source: src/build/linkerscripts/linkloader.cmd $                      */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -28,7 +28,7 @@
 #ifndef BASE_LOADER_STACK_SIZE
 #define BASE_LOADER_STACK_SIZE 128
 #endif
-#include "sbe_link.H"
+#include "../sbe_link.H"
 
 OUTPUT_FORMAT(elf32-powerpc);
 

@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +39,7 @@ libfapi2.a: fapi2 hwpf plat
 fapi2: $(OBJS)
 
 plat:
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PLAT_FAPI2_DIR)/src/plat
+	$(MAKE) -I $(BUILD_DIR) -C $(PLAT_FAPI2_DIR)/src/plat
 
 $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 

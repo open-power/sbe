@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/image/linkseeprom.cmd $                                   */
+/* $Source: src/build/linkerscripts/linkseeprom.cmd $                     */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

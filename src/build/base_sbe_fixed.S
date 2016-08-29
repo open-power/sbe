@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sample/pk_scom.h $                                        */
+/* $Source: src/build/base_sbe_fixed.S $                                  */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -21,46 +21,47 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2014
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
-
-/// \file sample_main.c
-/// \brief Sample program that creates and starts a thread
+/// \file sbefixed.S
+/// \brief code to generated fixed section in pibmem image
 ///
-/// This file demonstrates how to create a thread and run it.  It also provides
-/// an example of how to add traces to the code.
+#include "p9_xip_image.h"
+#include "proc_sbe_fixed.H"
 
-#ifndef __PK_SCOM_H__
-#define __PK_SCOM_H__
 
-/// SCOM operations return non-zero error codes that may or may not indicate
-/// an actual error, depending on which SCOM is begin accessed.  This error
-/// code is returned as the value of get/putscom().  The error code value
-/// increases with teh severity of the error.
-#define CFAM_FSI_STATUS_0x00001007  0x00001007
-typedef union cfam_fsi_status_reg {
-  uint64_t value;
-  struct  {
-    uint64_t ignore_fields1   : 17  ;
-    uint64_t pib_error_code   : 3   ;
-    uint64_t igore_fields2    : 44  ;
-  }  fields;
-}  cfam_fsi_status_reg_t;
+	.macro	..checku, x:req, bits:req, err="Unsigned value too large"
 
-#define PCB_ERROR_NONE              0
-#define PCB_ERROR_RESOURCE_OCCUPIED 1
-#define PCB_ERROR_CHIPLET_OFFLINE   2
-#define PCB_ERROR_PARTIAL_GOOD      3
-#define PCB_ERROR_ADDRESS_ERROR     4
-#define PCB_ERROR_CLOCK_ERROR       5
-#define PCB_ERROR_PACKET_ERROR      6
-#define PCB_ERROR_TIMEOUT           7
+	.if	(((\bits) <= 0) || ((\bits) > 63))
+	.error	"The number of bits must be in the range 0 < bits < 64"
+	.endif
 
-uint32_t putscom( uint32_t i_chiplet, uint32_t i_address, uint64_t i_data);
+	.iflt	(\x)
+	.error  "An unsigned value is required here"
+        .endif
 
-uint32_t getscom( uint32_t i_chiplet, uint32_t i_address, uint64_t *o_data);
+	.ifgt	((\x) - (0xffffffffffffffff >> (64 - (\bits))))
+	.error	"\err"
+	.endif
 
-#endif  // __PK_SCOM_H__
+	.endm
+
+
+    .macro  ..check_u16, u16
+	..checku (\u16), 16, "Unsigned immediate is larger than 16 bits"
+    .endm
+
+
+    .macro  ..set_default_space, s
+	..check_u16 (\s)
+    .set    _PGAS_DEFAULT_SPACE, (\s)
+    .endm
+
+    .section .fixed, "a", @progbits
+
+
+    // Create the .fixed section
+    .proc_sbe_fixed_system
+    .proc_sbe_fixed_proc_chip
+    .proc_sbe_fixed_perv
+    .proc_sbe_fixed_core
+    .proc_sbe_fixed_ex
+    .proc_sbe_fixed_eq

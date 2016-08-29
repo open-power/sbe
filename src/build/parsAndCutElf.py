@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/image/parsAndCutElf.py $
+# $Source: src/build/parsAndCutElf.py $
 #
 # OpenPOWER sbe Project
 #

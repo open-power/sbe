@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sample/pk_trace_wrap.h $                                  */
+/* $Source: src/build/linkerscripts/linkotprom.cmd $                      */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -21,10 +21,23 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __PK_WRAP_WRAP_H__
-#define __PK_WRAP_WRAP__H__
 
+// Need to do this so that elf32-powerpc is not modified!
+#undef powerpc
 
-void pk_trace_wrap(const char*);
+#include "sbe_link.H"
 
-#endif  // __PK_WRAP_WRAP_H__
+OUTPUT_FORMAT(elf32-powerpc);
+
+MEMORY
+{
+ sram : ORIGIN = OTPROM_ORIGIN, LENGTH = OTPROM_BLOCK_SIZE
+}
+
+SECTIONS
+{
+    . = OTPROM_ORIGIN;
+    .text  . : { *(.text)}
+    . = OTPROM_FIXED_SIZE;
+    .fixed . : { *(.fixed)}
+}
