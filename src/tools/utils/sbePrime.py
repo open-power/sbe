@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -189,11 +190,11 @@ def main():
         exit_main(errorcode.ERROR_SETTING)
     else:
         print "  Sandbox root path\t : ",sandbox_root
-    
+
     #---------------------------------------------
     # sim setup if user initiates
     #---------------------------------------------
-    if sim_patch != "None": 
+    if sim_patch != "None":
         #---------------------------------------------
         # Create sandbox for simics
         #---------------------------------------------
@@ -238,7 +239,7 @@ def main():
     #----------------------------------------
     # 4) Copy the files from repo to sandbox
     #----------------------------------------
-    # Find the files and copy to the sanbox dir 
+    # Find the files and copy to the sanbox dir
     # Just take a quick check if the Sandbox exist or not
     if sandbox_path != "None":
         if os.path.isdir(sandbox_path) == True:
@@ -269,7 +270,7 @@ def main():
         hook_file = utilcode.utilWriteShell_hooks(sandbox_path)
 
         #----------------------------------------
-        # 6) Compile the code 
+        # 6) Compile the code
         #----------------------------------------
         # Use the hook script to compile the code
         if sandbox_name == "None":

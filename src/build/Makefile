@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -110,11 +111,11 @@ SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).dis
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).map
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
-SIMICS_PPE_TAR_FILES += $(OBJDIR)/sbe.syms
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe.syms
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.xml
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.py
 SIMICS_PPE_TAR_FILES += $(PPETRACEPP_DIR)/fsp-trace
-SIMICS_PPE_TAR_FILES += $(OBJDIR)/sbeStringFile
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeStringFile
 SIMICS_PPE_TAR_FILES += $(OBJDIR)/ppe2fsp
 SIMICS_BB_TAR_FILES += $(SIMICSTOOLS_SRCDIR)/*
 SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/cmvc/makefile
@@ -141,7 +142,7 @@ LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/, linkscriptsbe)
 
 # ---- SEEPROM Image  ------
 # This removes all unecessary headers from the ELF executable
-$(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
+$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
 	./parsAndCutElf.py
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).dis
 
@@ -158,12 +159,12 @@ $(LINK_SCRIPT_SEEPROM): $(LINKER_DIR)/linkseeprom.cmd
 
 # ---- PIBMEM Image  ------
 #This removes all unecessary headers from the ELF executable
-$(OBJDIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMAGE_SBE_NAME).out
-	$(OBJCOPY) -O binary  $< $(OBJDIR)/$(IMAGE_SBE_NAME).bin --pad-to \
+$(IMG_DIR)/$(IMAGE_SBE_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).dis: $(OBJDIR)/$(IMAGE_SBE_NAME).out
+	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_SBE_NAME).bin --pad-to \
 	      0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_SBE_NAME).out | grep "A _sbe_end" \
 		  | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_SBE_NAME).dis
-	$(NM)  $< > $(OBJDIR)/$(IMAGE_SBE_NAME).syms
+	$(NM)  $< > $(IMG_DIR)/$(IMAGE_SBE_NAME).syms
 
 # create a linked ELF executable
 $(OBJDIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(OBJDIR)/base_sbe_fixed.o $(SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SBE)
@@ -173,7 +174,7 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(OBJDIR)/base_sbe_fix
 $(LINK_SCRIPT_SBE): $(LINKER_DIR)/linksbe.cmd
 	$(CPP) -E -x c++ -I. -P $(DEFS) $(LINKER_DIR)/linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
-all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin \
+all: $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_SBE_NAME).bin \
 	 $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendloader \
 	 appendoverrides add_LoaderAddr symbols tracehash buildinfo report
 
@@ -194,23 +195,23 @@ install: all
 .PHONY: all normalize defaultset appendloader add_LoaderAddr symbols report \
 		appendoverrides xml tracehash topfixedheaders  $(SUBDIRS)
 
-buildinfo: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_date `date +%Y%m%d`
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_time `date +%H%M`
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_user `id -un`
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set build_host `hostname`
+buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_date `date +%Y%m%d`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_time `date +%H%M`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_user `id -un`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_host `hostname`
 
 add_LoaderAddr: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pmLoader | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __base_loader_setup | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pk_boot | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pmLoader | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __base_loader_setup | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 
 symbols: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out $(OBJDIR)/$(IMAGE_SBE_NAME).out
-	$(NM) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(OBJDIR)/$(SBE_SYMBOLS_NAME)
-	$(NM) $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out >> $(OBJDIR)/$(SBE_SYMBOLS_NAME)
+	$(NM) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
+	$(NM) $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out >> $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
 
-report: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin report > $(OBJDIR)/$(IMAGE_SEEPROM_NAME).rpt
+report: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin report > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).rpt
 
 # Create build Info file
 buildInfo:
@@ -239,6 +240,7 @@ $(OBJDIR):
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(PLAT_FAPI2_DIR)/include --src $(PLAT_FAPI2_DIR)/src
 	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PLAT_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	mkdir -p $(OBJDIR)
+	mkdir -p $(IMG_DIR)
 
 topfixedheaders:
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
@@ -267,11 +269,11 @@ $(SBE_TOOLS): $(P9_XIP_TOOL)
 $(P9_XIP_TOOL):
 	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile BINDIR=$(P9_XIP_BINDIR)
 
-normalize: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
+normalize: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 
-defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
-	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(BASE_OBJDIR) $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+defaultset: $(SBE_TOOLS) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin normalize
+	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(BASE_OBJDIR) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 # Build the trace utilities
 ppe_trace_bin:
@@ -288,21 +290,22 @@ xml: $(FAPI_RC)
 $(FAPI_RC): $(TOOLS_ATTR_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
 	$(TOOLS_ATTR_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=. $(ERROR_XML_FILES)
 
-$(OBJDIR)/fixed.bin: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
+$(OBJDIR)/fixed.bin: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(BASE_OBJDIR)/fixed.bin
 
 
-appendloader: $(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).bin
-	$(P9_XIP_TOOL) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).bin
+appendloader: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
 
 # collect all of the trace hash files for this image into a single sbeStringFile
 tracehash:
 	mkdir -p $(OBJDIR)
-	$(THASH) -c -d $(OBJDIR) -s $(OBJDIR)/sbeStringFile
+	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/sbeStringFile
 
 #clean the kernel directory first, then the application level clean
 clean:
 	rm -fr $(OBJDIR)
+	rm -fr $(IMG_DIR)
 	rm -f $(TOP-FIXED-HEADERS)
 	rm -f collect_reg_ffdc.H hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H sbe_build_info.H
 	rm -f $(GEN-CREATEATTRGETSETMACROS)

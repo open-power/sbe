@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +60,7 @@ def parserElf():
         exit(-1)
 
     # cut the image
-    cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if=../../obj/sbe_seeprom.out of=../../obj/sbe_seeprom.bin bs=1"
+    cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if=../../obj/sbe_seeprom.out of=../../images/sbe_seeprom.bin bs=1"
     rc = os.system(cmd1)
     if ( rc ):
        print "ERROR running %s: %d "%( cmd1, rc )
