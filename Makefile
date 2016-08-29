@@ -22,7 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILD_DIR = src/image
+BUILD_DIR = src/build
 .PHONY: install all clean
 
 install:

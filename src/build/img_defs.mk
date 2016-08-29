@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/image/img_defs.mk $
+# $Source: src/build/img_defs.mk $
 #
 # OpenPOWER sbe Project
 #
@@ -78,8 +78,12 @@ ifndef SBE_FW_DIR
 export SBE_FW_DIR = $(SBE_SRC_DIR)/sbefw
 endif
 
-ifndef IMAGE_SRCDIR
-export IMAGE_SRCDIR = $(SBE_SRC_DIR)/image
+ifndef BUILD_DIR
+export BUILD_DIR = $(SBE_SRC_DIR)/build
+endif
+
+ifndef LINKER_DIR
+export LINKER_DIR = $(BUILD_DIR)/linkerscripts
 endif
 
 ifndef BOOT_SRCDIR
@@ -159,7 +163,7 @@ export P9_XIP_BINDIR = $(BASE_OBJDIR)/xip
 endif
 
 ifndef IMG_INCLUDES
-export IMG_INCLUDES = -I$(IMAGEPROCS_SRCDIR) -I$(P9_XIP_SRCDIR) -I$(IMAGE_SRCDIR) -I$(CACHE_SRCDIR) -I$(UTILS_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR) -I$(PM_SRCDIR) -I$(INITFILES_SRCDIR)
+export IMG_INCLUDES = -I$(IMAGEPROCS_SRCDIR) -I$(P9_XIP_SRCDIR) -I$(BUILD_DIR) -I$(CACHE_SRCDIR) -I$(UTILS_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR) -I$(PM_SRCDIR) -I$(INITFILES_SRCDIR)
 endif
 
 ifndef BOOT_OBJDIR
@@ -337,7 +341,7 @@ export LD_LIBRARY_PATH+=:$(GCC-TOOL-PATH)/lib
 
 
 INCLUDES += $(IMG_INCLUDES)
-INCLUDES += -I$(IMAGE_SRCDIR)/../../include
+INCLUDES += -I$(BUILD_DIR)/../../include
 INCLUDES += -I$(HWPLIB_SRCDIR)
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include/plat
 INCLUDES += -I$(PLAT_FAPI2_DIR)/include

@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/image/Makefile $
+# $Source: src/build/Makefile $
 #
 # OpenPOWER sbe Project
 #
@@ -153,8 +153,8 @@ $(OBJDIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) $(LINK_O
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments
-$(LINK_SCRIPT_SEEPROM): linkseeprom.cmd
-	$(CPP) -I. -E -x c++ -P $(DEFS) linkseeprom.cmd -o $(LINK_SCRIPT_SEEPROM)
+$(LINK_SCRIPT_SEEPROM): $(LINKER_DIR)/linkseeprom.cmd
+	$(CPP) -I. -E -x c++ -P $(DEFS) $(LINKER_DIR)/linkseeprom.cmd -o $(LINK_SCRIPT_SEEPROM)
 
 # ---- PIBMEM Image  ------
 #This removes all unecessary headers from the ELF executable
@@ -170,8 +170,8 @@ $(OBJDIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(OBJDIR)/base_sbe_fix
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(OBJDIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
-$(LINK_SCRIPT_SBE): linksbe.cmd
-	$(CPP) -E -x c++ -I. -P $(DEFS) linksbe.cmd -o $(LINK_SCRIPT_SBE)
+$(LINK_SCRIPT_SBE): $(LINKER_DIR)/linksbe.cmd
+	$(CPP) -E -x c++ -I. -P $(DEFS) $(LINKER_DIR)/linksbe.cmd -o $(LINK_SCRIPT_SBE)
 
 all: $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin $(OBJDIR)/$(IMAGE_SBE_NAME).bin \
 	 $(SBE_TOOLS) normalize defaultset $(OBJDIR)/fixed.bin appendloader \
@@ -224,7 +224,7 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pervasive_attributes.xml
 # TODO via RTC 142708
 # Workaound for ATTR_CHIP_UNIT_POS. Remove Mirror_WA_attributes.xml once fapi
 # support is in.
-ATTRFILES += $(IMAGE_SRCDIR)/Mirror_WA_attributes.xml
+ATTRFILES += $(BUILD_DIR)/Mirror_WA_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_sbe_load_bootloader_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
@@ -256,13 +256,12 @@ attrserv:
 
 # Build the subdirectories
 $(SUBDIRS):
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $@ -f Makefile
+	$(MAKE) -I $(BUILD_DIR) -C $@ -f Makefile
 
 
 #Build the SBE XIP Tools
 $(SBE_TOOLS): $(P9_XIP_TOOL)
-	$(info #######$(P9_XIP_TOOL)###########)
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(TOOLS_IMAGE_DIR) -f Makefile
+	$(MAKE) -I $(BUILD_DIR) -C $(TOOLS_IMAGE_DIR) -f Makefile
 
 # Build the P9-XIP Tool
 $(P9_XIP_TOOL):
@@ -276,7 +275,7 @@ defaultset: $(SBE_TOOLS) $(OBJDIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 
 # Build the trace utilities
 ppe_trace_bin:
-	$(MAKE) -I $(IMAGE_SRCDIR) -C $(PPETRACEPP_DIR) -f Makefile #$(PK trace util)
+	$(MAKE) -I $(BUILD_DIR) -C $(PPETRACEPP_DIR) -f Makefile #$(PK trace util)
 
 
 # Build hwp_error_info.H.  If the script fails then print the contents of

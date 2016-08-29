@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +27,7 @@ export SUB_OBJDIR = /boot
 include img_defs.mk
 include bootfiles.mk
 
-INCLUDES += -I$(IMAGE_SRCDIR)
+INCLUDES += -I$(BUILD_DIR)
 
 OBJS := $(addprefix $(OBJDIR)/, $(BOOT_OBJECTS))
 BOOTOBJS += $(OBJS)
@@ -53,8 +54,8 @@ $(OBJDIR)/$(IMAGE_OTPROM_NAME).out: $(OTPROM_LOADER_OBJS) $(LINK_SCRIPT_OTPROM)
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments
-$(LINK_SCRIPT_OTPROM): $(IMAGE_SRCDIR)/linkotprom.cmd
-	$(CPP) -I. -E -x c++ -P $(DEFS) $(IMAGE_SRCDIR)/linkotprom.cmd -o $(LINK_SCRIPT_OTPROM)
+$(LINK_SCRIPT_OTPROM): $(LINKER_DIR)/linkotprom.cmd
+	$(CPP) -I$(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/linkotprom.cmd -o $(LINK_SCRIPT_OTPROM)
 
 # ---- Loader Image  ------
 $(OBJDIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
@@ -67,8 +68,8 @@ $(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments
-$(LINK_SCRIPT_LOADER): $(IMAGE_SRCDIR)/linkloader.cmd
-	$(CPP) -I. -E -x c++ -P $(DEFS) $(IMAGE_SRCDIR)/linkloader.cmd -o $(LINK_SCRIPT_LOADER)
+$(LINK_SCRIPT_LOADER): $(LINKER_DIR)/linkloader.cmd
+	$(CPP) -I$(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/linkloader.cmd -o $(LINK_SCRIPT_LOADER)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
