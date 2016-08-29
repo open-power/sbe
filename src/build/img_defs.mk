@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,7 +171,9 @@ ifndef BOOT_OBJDIR
 export BOOT_OBJDIR = $(BASE_OBJDIR)/boot
 endif
 
-export IMG_OBJDIR = $(BASE_OBJDIR)/$(IMAGE_SEEPROM_NAME)
+ifndef IMG_DIR
+export IMG_DIR = $(SBE_ROOT_DIR)/images
+endif
 
 ifndef PK_SRCDIR
 export PK_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/ppe/pk

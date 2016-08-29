@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/tools/utils/Debug/sbe-debug.py $
+# $Source: src/tools/debug/sbe-debug.py $
 #
 # OpenPOWER sbe Project
 #

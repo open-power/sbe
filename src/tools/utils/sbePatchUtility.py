@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -125,7 +126,7 @@ def utilExecuteShell(i_ppe_root, i_sandbox_path, i_shell_file):
         sb_name=os.path.basename(i_sandbox_path)
 
     # Find the file and execute
-    l_path_name = i_ppe_root + '/src/build/'
+    l_path_name = i_ppe_root + '/src'
     l_shell_path=utilcode.utilFindFile(i_shell_file, l_path_name)
     print "  [ %s ]"%l_shell_path
 
