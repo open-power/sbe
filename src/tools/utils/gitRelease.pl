@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/tools/utils/gitRelease.pm $
+# $Source: src/tools/utils/gitRelease.pl $
 #
 # OpenPOWER sbe Project
 #
@@ -57,6 +57,7 @@ my %commands = ( "define" => \&execute_define,
                  "verify-patches" => \&execute_verify_patches,
                  "release" => \&execute_release,
                  "build-name" => \&execute_build_name,
+                 "fsp-ci" => \&execute_fsp_ci,
                  "gerrit-commit" => \&execute_gerrit_commit,
                  "help" => \&execute_help,
                );
@@ -301,6 +302,89 @@ sub execute_gerrit_commit
     print "\n";
 }
 
+sub execute_fsp_ci
+{
+
+    my $patches = "";
+    my $discover = 0;
+    my %level = ();
+    my $branch = $globals{"branch"};
+    my $bbuild_Rel = "";
+
+    GetOptions("level:s" => \$level{name},
+               "patches:s" => \$patches,
+               "discover" => \$discover,
+               "basestr:s" => \$level{base},
+               "bbuild-Rel:s" => \$bbuild_Rel);
+
+    die "Missing level name" if ($level{name} eq "");
+    die "Missing level base" if ($level{base} eq "");
+    die "Missing bbuild's release" if ($bbuild_Rel eq "");
+
+    print "Creating CI release...\n" if !$discover;
+
+    # Define release
+    print "Basestr: " if $debug;
+    $level{base} = git_resolve_ref($level{base});
+    $level{released} = $level{base};
+    config_add_level(\%level);
+
+    # Get all commits between level base and the bbuilds release
+    my @commits = split('\n',`git rev-list $level{base} ^$bbuild_Rel`);
+    # Check all commits between gerrit/<branch> and bbuild's Rel for any
+    # cmvc req's that are needed in the discover step only.
+    if ($discover)
+    {
+        # Check each commit message for CMVC reqs
+        foreach my $commit (@commits)
+        {
+            my @msg_lines = split('\n',git_commit_msg($commit));
+            # Search commit message for dependencies
+            foreach my $line (@msg_lines)
+            {
+                # Print out CMVC dependencies
+                if ($line =~ m/cmvc-([a-zA-Z]+):/i)
+                {
+                    print "$TOKEN Need ".$line."\n";
+                }
+            }
+        }
+    }
+    # Print out commits that are in the gerrit branch and not the bbuild Rel
+    print "\n========\n";
+    print "Commits in gerrit/$branch but not in bbuild => $bbuild_Rel\n\n";
+    print "**Note these commits may cause problems too, but since they\n";
+    print "  are merged commits, they should have passed fsp-ci prior.\n";
+    print "  It is done this way to greatly simply dependencies of your\n";
+    print "  commit ontop of a release\n\n";
+    my $i=1;
+    foreach my $commit (@commits)
+    {
+        print "    $i. $commit\n";
+        $i++;
+    }
+    print "\n";
+
+    # Parse out csv list of patches
+    if ($patches ne "")
+    {
+        my @patches = split(/,+/, $patches);
+
+        print ">>>Patches\n" if $debug;
+        print Dumper @patches if $debug;
+        print "<<<End of Patches\n" if $debug;
+        # Resolve level dependencies
+        config_resolve_level_dep($level{name}, $level{base}, @patches);
+    }
+
+    if(!$discover)
+    {
+        # Create release
+        my $level_info = config_get_level($level{name});
+        config_release($level_info,0);
+    }
+}
+
 sub execute_help
 {
     my $command = shift @ARGV;
@@ -421,6 +505,18 @@ q(
         --release=<id>          Release name [default=910].
         --letter=[a-z]          Build letter [default=a].
         --prefix=[a-z]          Build prefix [default=sbe]
+),
+            "fsp-ci" =>
+q(
+        Creates a release based on basestr and a optional list of patches
+
+    Options:
+        --level=<name>          The level to create [required].
+        --basestr=<commit>      Commit Id of the base[required].
+        --bbuild-Rel=<commit>   Commit Id of the latest release in backing build[required].
+        --patches=<csv>         CSV of patches to add [optional].
+        --branch=[a-z]          Branch to use for release [default=master].
+        --discover              Print the list of dependent CMVC reqs, without creating a release[optional]
 ),
             "gerrit-commit" =>
 q(
