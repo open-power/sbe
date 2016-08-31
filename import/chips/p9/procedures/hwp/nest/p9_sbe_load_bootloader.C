@@ -281,7 +281,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                                    l_myPbaFlag.setFlag(),
                                    l_firstAccess,
                                    (l_num_cachelines_to_roll == 1) ||
-                                   ((l_target_address + FABRIC_CACHELINE_SIZE) >
+                                   ((l_target_address + FABRIC_CACHELINE_SIZE) >=
                                     (l_chip_base_address_nm0 + i_payload_size + l_exception_vector_size)),
                                    l_data_to_pass_to_pba_array), "Error from p9_pba_access");
             l_firstAccess = false;
