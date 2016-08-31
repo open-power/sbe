@@ -83,6 +83,10 @@ ifndef BUILD_DIR
 export BUILD_DIR = $(SBE_SRC_DIR)/build
 endif
 
+ifndef BUILDDATA_SRCDIR
+export BUILDDATA_SRCDIR = $(BUILD_DIR)/utils
+endif
+
 ifndef LINKER_DIR
 export LINKER_DIR = $(BUILD_DIR)/linkerscripts
 endif
@@ -100,7 +104,7 @@ export TOOLS_SRCDIR = $(SBE_SRC_DIR)/tools
 endif
 
 ifndef TEST_SRCDIR
-export TEST_SRCDIR = $(SBE_SRC_DIR)/test
+export TEST_SRCDIR = $(SBE_SRC_DIR)/test/testcases
 endif
 
 ifndef DEBUGTOOLS_SRCDIR
@@ -171,6 +175,10 @@ ifndef BOOT_OBJDIR
 export BOOT_OBJDIR = $(BASE_OBJDIR)/boot
 endif
 
+ifndef BUILDDATA_OBJDIR
+export BUILDDATA_OBJDIR = $(BASE_OBJDIR)/build/utils
+endif
+
 ifndef IMG_DIR
 export IMG_DIR = $(SBE_ROOT_DIR)/images
 endif
@@ -201,11 +209,15 @@ export IMPORT_COMMON_DIR = $(IMPORT_SRCDIR)/chips/p9/common
 endif
 
 ifndef PPETRACEPP_DIR
-export PPETRACEPP_DIR = $(TOOLS_SRCDIR)/ppetracepp
+export PPETRACEPP_DIR = $(TOOLS_SRCDIR)/trace
 endif
 
 ifndef PPETRACEPP_BIN_DIR
-export PPETRACEPP_BIN_DIR = $(BASE_OBJDIR)
+export PPETRACEPP_BIN_DIR = $(IMG_DIR)
+endif
+
+ifndef GENFILES_DIR
+export GENFILES_DIR = $(BASE_OBJDIR)/genfiles
 endif
 
 ifndef PLAT_FAPI2_DIR
@@ -358,6 +370,8 @@ INCLUDES += -I$(PK_SRCDIR)/ppe
 INCLUDES += -I$(PK_SRCDIR)/ppe42
 INCLUDES += -I$(SBE_FW_DIR)
 INCLUDES += -I$(BOOT_SRCDIR)
+INCLUDES += -I$(GENFILES_DIR)
+INCLUDES += -I$(BUILDDATA_SRCDIR)
 INCLUDES += -I$(PK_SRCDIR)/trace
 INCLUDES += -I$(PPETRACEPP_DIR)
 INCLUDES += -I$(IMPORT_COMMON_DIR)/include

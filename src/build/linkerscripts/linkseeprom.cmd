@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -23,7 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 // Need to do this so that elf32-powerpc is not modified!
 #undef powerpc
-#include <sbe_link.H>
+#include "sbe_link.H"
 OUTPUT_FORMAT(elf32-powerpc);
 
 #ifndef INITIAL_STACK_SIZE

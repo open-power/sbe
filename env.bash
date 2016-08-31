@@ -30,7 +30,7 @@ if [ -e ./customrc ]; then
 fi
 
 export PATH=${PATH}:${SBEROOT}/import/chips/p9/xip/bin/
-export PATH=${PATH}:${SBEROOT}/src/tools/ppetracepp/
+export PATH=${PATH}:${SBEROOT}/src/tools/trace/
 
 if [ -n "${SANDBOXROOT}" ]; then
     if [ -n "${SANDBOXNAME}" ]; then

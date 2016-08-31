@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,7 @@
 use strict;
 
 my $attrpath = "../../importtemp/xml";
-my $sbedefaultpath = "../../script/image";
+my $sbedefaultpath = "../../../images";
 
 #------------------------------------------------------------------------------
 # Print Command Line Help
