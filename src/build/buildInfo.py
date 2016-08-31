@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +27,7 @@
 # This script will create header file sbe_build_info.H which will have
 # buld information required by SBE code.
 import os
-buildInfoFileName = "sbe_build_info.H"
+buildInfoFileName = "../../obj/genfiles/sbe_build_info.H"
 
 def buildInfo():
     header = \

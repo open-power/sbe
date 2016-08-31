@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,28 +60,23 @@ else
 CXX  = g++
 endif
 
-UTILITIES-SOURCES = sbe_default_tool.c
-UTILITIES = sbe_default_tool
-
-#  Utility targets
-UTILITIES-OBJc         = $(patsubst %.c,$(BASE_OBJDIR)/%.o,$(UTILITIES-SOURCES))
-UTILITIES-OBJECTS      += $(patsubst %.C,$(BASE_OBJDIR)/%.o,$(UTILITIES-OBJc))
-UTILITIES-DEPENDENCIES = $(patsubst %.o,%.d,$(UTILITIES-OBJECTS))
-UTILITIES-EXECUTABLES  = $(patsubst %,$(BASE_OBJDIR)/%,$(UTILITIES))
-
 .PHONY : all utilities clean
 
-all: utilities
+all:objdir utilities
 
-utilities: $(UTILITIES-EXECUTABLES)
+objdir:
+	mkdir -p $(BASE_OBJDIR)/tools/image
+
+utilities: $(IMG_DIR)/sbe_default_tool
 
 CXXFLAGS+=-DFAPI2_NO_FFDC
 
-$(BASE_OBJDIR)/%.o: %.c
+$(BASE_OBJDIR)/tools/image/%.o: %.c
 	$(CXX) -std=c++11 $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
 
-$(BASE_OBJDIR)/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o $(BASE_OBJDIR)/sbe_default_tool.o
+$(IMG_DIR)/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o $(BASE_OBJDIR)/tools/image/sbe_default_tool.o
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
 
 clean:
-	rm -f $(BASE_OBJDIR)/sbe_default_tool*
+	rm -f $(BASE_OBJDIR)/tools/image/sbe_default_tool*
+	rm -f $(IMG_DIR)/sbe_default_tool*

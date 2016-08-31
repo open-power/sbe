@@ -31,9 +31,9 @@ import sys
 
 # Workaround to cut SBE image from elf image.
 def parserElf():
-    cmd = "readelf -S ../../obj/sbe_seeprom.out"
+    cmd = "readelf -S ../../images/sbe_seeprom.out"
     firstSection = ".header"
-    cmd1 = "nm ../../obj/sbe_seeprom.out | grep  _sbe_image_size"
+    cmd1 = "nm ../../images/sbe_seeprom.out | grep  _sbe_image_size"
     output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     i = 0;
     for line in output.stdout:
@@ -60,7 +60,7 @@ def parserElf():
         exit(-1)
 
     # cut the image
-    cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if=../../obj/sbe_seeprom.out of=../../images/sbe_seeprom.bin bs=1"
+    cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if=../../images/sbe_seeprom.out of=../../images/sbe_seeprom.bin bs=1"
     rc = os.system(cmd1)
     if ( rc ):
        print "ERROR running %s: %d "%( cmd1, rc )
