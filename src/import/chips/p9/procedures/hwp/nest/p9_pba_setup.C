@@ -68,10 +68,11 @@ extern "C"
         FAPI_TRY(p9_pba_coherent_utils_check_fbc_state(i_target),
                  "Error from p9_pba_coherent_utils_check_fbc_state");
 
-        //reset the ADU - cleanup just calls reset
-        //TODO Joe had made a comment on this about resetting the PBA as part of the setup process - I need to test
-        //this more before I'm willing to actually put this in - I got some errors when I had it in earlier.
-        //FAPI_TRY(p9_pba_coherent_cleanup_pba(i_target), "p9_pba_setup: Error from p9_pba_cleanup_pba");
+        //reset the PBA - cleanup just calls reset
+        FAPI_TRY(p9_pba_coherent_cleanup_pba(i_target), "Error from p9_pba_cleanup_pba");
+
+        //Check to make sure that it's ready for another write
+        FAPI_TRY(p9_pba_coherent_status_check(i_target), "Error from p9_pba_coherent_status_check");
 
         //The PBA Bar and PBA Bar Mask need to be setup before getting the number of granules because how they get setup affects the number of granules that can be read/written
         //setup the PBA Bar
