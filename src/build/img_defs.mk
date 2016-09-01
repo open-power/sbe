@@ -96,7 +96,7 @@ export BOOT_SRCDIR = $(SBE_SRC_DIR)/boot
 endif
 
 ifndef IMPORT_SRCDIR
-export IMPORT_SRCDIR = $(SBE_ROOT_DIR)/import
+export IMPORT_SRCDIR = $(SBE_SRC_DIR)/import
 endif
 
 ifndef TOOLS_SRCDIR
