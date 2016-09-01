@@ -95,7 +95,7 @@ def utilPatchSimics(i_sandbox_path, i_sandbox_root):
 
     # Ge the ppe root
     ppe_base = utilcode.utilFind_ENV_string("SBEROOT").rstrip('\n')
-    ppe_path = ppe_base + "/import/chips/p9/sw_simulation/"
+    ppe_path = ppe_base + "/src/import/chips/p9/sw_simulation/"
     p_cmd = "cp -f " + ppe_path + "*  " + sandbox_path
     print "  * Executing : ",p_cmd
     rc = os.system(p_cmd)

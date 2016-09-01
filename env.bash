@@ -29,7 +29,7 @@ if [ -e ./customrc ]; then
     source ./customrc
 fi
 
-export PATH=${PATH}:${SBEROOT}/import/chips/p9/xip/bin/
+export PATH=${PATH}:${SBEROOT}/src/import/chips/p9/xip/bin/
 export PATH=${PATH}:${SBEROOT}/src/tools/trace/
 
 if [ -n "${SANDBOXROOT}" ]; then
