@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: import/chips/p9/procedures/hwp/initfiles/initfiles.mk $
+# $Source: src/import/chips/p9/procedures/hwp/initfiles/initfiles.mk $
 #
 # OpenPOWER sbe Project
 #
@@ -33,6 +33,7 @@
 INITFILES-CPP-SOURCES += p9_ncu_scom.C
 INITFILES-CPP-SOURCES += p9_l2_scom.C
 INITFILES-CPP-SOURCES += p9_l3_scom.C
+INITFILES-CPP-SOURCES += p9_core_scom.C
 
 INITFILES-C-SOURCES   +=
 INITFILES-S-SOURCES   +=
