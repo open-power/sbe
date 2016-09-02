@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,15 +158,21 @@ def extractHWPFFDC(dumpToFile = False):
         raise Exception('data mistmach')
     packLen = ((data[2] << 8) | data[3])
     print ("\nFFDC package length = " + str(packLen))
+    # extract Sequence ID, Command class and command
+    data = readDsEntryReturnVal()
+    seqId = ((data[0] << 24) | (data[1] << 16))
+    cmdClass = data[2]
+    cmd = data[3]
+    print ("\n SeqId ["+str(seqId)+"] CmdClass ["+str(cmdClass)+"] Cmd ["+str(cmd)+"]")
 
     data = readDsEntryReturnVal()
     fapiRc = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])
     print ("\nFAPI rc = " + str(hex(fapiRc)))
 
     if(dumpToFile):
-        myBin = open('trace.bin', 'wb')
-        print ("\nwriting "+'trace.bin')
-    for i in range(0, packLen-2):
+        myBin = open('hwp_ffdc.bin', 'wb')
+        print ("\nwriting "+'hwp_ffdc.bin')
+    for i in range(0, packLen-3):
         data = readDsEntryReturnVal()
         if(dumpToFile):
             myBin.write(bytearray(data))

@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -147,7 +148,28 @@ typedef struct sbeResponseFfdc
 {
     uint32_t magicBytes:16;
     uint32_t lenInWords:16;  // length in word( 4 byte )
+    uint32_t seqId:16;
+    uint32_t cmdClass:8;
+    uint32_t cmd:8;
     uint32_t fapiRc;
+
+    /**
+      * @brief set failed command information
+      *
+      * @param[in] i_seqId      sequence Id of command
+      * @param[in] i_cmdClass   command class
+      * @param[in] i_cmd        command
+      *
+      * @return
+      */
+    void inline setCmdInfo(const uint16_t i_seqId,
+                           const uint8_t i_cmdClass,
+                           const uint8_t i_cmd)
+    {
+        seqId = i_seqId;
+        cmdClass = i_cmdClass;
+        cmd = i_cmd;
+    }
 
     /**
       * @brief set rc
@@ -181,9 +203,11 @@ typedef struct sbeResponseFfdc
     sbeResponseFfdc()
     {
         magicBytes = 0xFFDC;
-        //TODO via 129076.
-        //Need to change value for length once FFDC design is final.
+        seqId = 0;
+        cmdClass = SBE_CMD_CLASS_UNKNOWN;
+        cmd = SBE_CMD_UNKNOWN;
         lenInWords  = ( sizeof(uint32_t )    // For magicBytes + lenInWords
+                        + sizeof(uint32_t)   // For SeqId + CmdClass + Cmd
                         + sizeof(fapiRc))
                            / sizeof(uint32_t);
         fapiRc = 0;
