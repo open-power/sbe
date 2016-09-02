@@ -50,6 +50,12 @@ def main():
         raise Exception('data mistmach')
     packLen = ((data[2] << 8) | data[3])
     print ("\nFFDC package length = " + str(packLen))
+    # extract Sequence ID, Command class and command
+    data = testUtil.readDsEntryReturnVal()
+    seqId = ((data[0] << 24) | (data[1] << 16))
+    cmdClass = data[2]
+    cmd = data[3]
+    print ("\n SeqId ["+str(seqId)+"] CmdClass ["+str(cmdClass)+"] Cmd ["+str(cmd)+"]")
 
     data = testUtil.readDsEntryReturnVal()
     fapiRc = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])

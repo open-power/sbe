@@ -30,22 +30,20 @@
 #include "sbeFFDC.H"
 
 /*
- * @brief sendOverFIFO - method to pack and send SBE internal FFDC
- *                       only if isSendInternalFFDCSet() is true
- *                       over FIFO interface
- * @param[in] i_primStatus   - Primary status of Chip op
- * @param[in] i_secStatus    - Secondary status of Chip op
- * @param[in] i_fieldsConfig - bitmap indicating the field
- *                             to be sent in FFDC
- * @param[out] o_bytesSent -number of bytes sent
- *
+ * @brief sendOverFIFO           - method to pack and send SBE internal FFDC
+ *                                 only if isSendInternalFFDCSet() is true
+ *                                 over FIFO interface
+ * @param[in] i_hdr              - Fifo response header
+ * @param[in] i_fieldsConfig     - bitmap indicating the field
+ *                                 to be sent in FFDC
+ * @param[out] o_bytesSent       - number of bytes sent
  * @param[in] i_skipffdcBitCheck - Boolean to indicate whether
  *                                 ffdc bit should be checked or not.
  *                                 By default it is false.
- * @return - SBE secondary RC
+ *
+ * @return                       - SBE secondary RC
  */
-uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
-                                      uint32_t i_secStatus,
+uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
                                       uint32_t i_fieldsConfig,
                                       uint32_t &o_bytesSent,
                                       bool i_skipffdcBitCheck)
@@ -72,8 +70,11 @@ uint32_t SbeFFDCPackage::sendOverFIFO(uint32_t i_primStatus,
         }
 
         // update the primary and secondary status
-        iv_sbeFFDCDataHeader.primaryStatus = i_primStatus;
-        iv_sbeFFDCDataHeader.secondaryStatus = i_secStatus;
+        iv_sbeFFDCDataHeader.primaryStatus = i_hdr.primaryStatus;
+        iv_sbeFFDCDataHeader.secondaryStatus = i_hdr.secondaryStatus;
+        // Set failed command information
+        // Sequence Id is 0 by default for Fifo interface
+        iv_sbeFFDCHeader.setCmdInfo(0, i_hdr.cmdClass, i_hdr.command);
         //Update the user data header with dump fields configuration
         iv_sbeFFDCDataHeader.dumpFields.set(i_fieldsConfig);
         iv_sbeFFDCHeader.lenInWords = (sizeof(sbeResponseFfdc_t) +

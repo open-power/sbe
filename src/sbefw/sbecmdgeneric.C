@@ -150,10 +150,10 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
         // @TODO via RTC : 149074
         // primary and secondary status should be picked
         // from the globals.
-        rc = sbeFfdcPack.sendOverFIFO(respHdr.primaryStatus,
-                                   respHdr.secondaryStatus,
-                                   SBE_FFDC_ALL_DUMP,len,
-                                   true);
+        rc = sbeFfdcPack.sendOverFIFO(respHdr,
+                                      SBE_FFDC_ALL_DUMP,
+                                      len,
+                                      true);
         if (rc)
         {
             break;

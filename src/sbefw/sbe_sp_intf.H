@@ -63,6 +63,8 @@ enum sbeCommandClass
     SBE_CMD_CLASS_MPIPL_COMMANDS         = 0xA9,
 };
 
+static const uint8_t SBE_CMD_UNKNOWN = 0x00;
+
 /**
  * @brief enums for SBE Istep Control command class
  *

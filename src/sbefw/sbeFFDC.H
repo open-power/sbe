@@ -75,7 +75,6 @@ public:
         static_assert((sizeof(PkTraceBuffer) % 4) == 0,
                         "g_pk_trace_buf not 4byte aligned");
 
-        iv_sbeFFDCHeader.magicBytes = 0xFFDC;
         iv_sbeFFDCHeader.fapiRc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
 
         iv_sbeFFDCDataHeader.primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
@@ -85,29 +84,25 @@ public:
         //to be sent in send APIs
         iv_sbeFFDCDataHeader.dumpFields = {0};
     }
+
     /*
-     * @brief sendOverFIFO - method to pack and send SBE internal FFDC
-     *                       only if isSendInternalFFDCSet() is true
-     *                       over FIFO interface
-     * @param[in] i_primStatus   - Primary status of Chip op
-     * @param[in] i_secStatus    - Secondary status of Chip op
-     * @param[in] i_fieldsConfig - bitmap indicating the field
-     *                             to be sent in FFDC
+     * @brief sendOverFIFO           - method to pack and send SBE internal FFDC
+     *                                 only if isSendInternalFFDCSet() is true
+     *                                 over FIFO interface
+     * @param[in] i_hdr              - Fifo response header
+     * @param[in] i_fieldsConfig     - bitmap indicating the field
+     *                                 to be sent in FFDC
+     * @param[out] o_bytesSent       - number of bytes sent
+     * @param[in] i_skipffdcBitCheck - Boolean to indicate whether
+     *                                 ffdc bit should be checked or not.
+     *                                 By default it is false.
      *
-     * @param[out] o_bytesSent -number of bytes sent
-     *
-     * @param[in] i_skipffdciBitCheck
-     *                           - boolean to indicate whether
-     *                             ffdc bit should be checked or not.
-     *                             By Default it is false.
-     * @return - SBE secondary RC
+     * @return                       - SBE secondary RC
      */
-    uint32_t sendOverFIFO(uint32_t i_primStatus,
-                          uint32_t i_secStatus,
+    uint32_t sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
                           uint32_t i_fieldsConfig,
                           uint32_t &o_bytesSent,
                           bool i_skipffdcBitCheck = false);
-
     /* TODO via RTC:150786
      * @brief sendOverHOST - method to pack and send SBE internal FFDC
      *                       only if isSendInternalFFDCSet() is true

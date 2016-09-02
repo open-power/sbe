@@ -344,6 +344,9 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
             assert((g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0);
             uint32_t ffdcDataLenInWords = g_FfdcData.ffdcLength
                                             / sizeof(uint32_t);
+            // Set failed command information
+            // Sequence Id is 0 by default for Fifo interface
+            i_ffdc->setCmdInfo(0, i_hdr.cmdClass, i_hdr.command);
             // Add HWP specific ffdc data length
             i_ffdc->lenInWords += ffdcDataLenInWords;
             len = sizeof(sbeResponseFfdc_t)/sizeof(uint32_t);
@@ -371,8 +374,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
             //Add FFDC data as well.
             //Generate all the fields of FFDC package
             SbeFFDCPackage sbeFfdc;
-            rc = sbeFfdc.sendOverFIFO(i_hdr.primaryStatus,
-                                      i_hdr.secondaryStatus,
+            rc = sbeFfdc.sendOverFIFO(i_hdr,
                                       SBE_FFDC_ALL_DUMP,
                                       len);
             if (rc)
