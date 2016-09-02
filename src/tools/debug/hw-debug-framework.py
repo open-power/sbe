@@ -32,24 +32,43 @@ import sys
 err = False
 
 syms = {};
+if 'SBE_TOOLS_PATH' in os.environ:
+    SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
+else:
+    print "SBE_TOOLS_PATH not defined"
+    exit(1)
 
-def fillSymTable(sbeObjDir):
-    symFile = sbeObjDir + "/sbe.syms"
+baseAddr = 0xfffe8000
+
+def fillSymTable(sbeObjDir, target ):
+    if (target == 'AWAN'):
+        symFile = sbeObjDir + "/sim.sbe.syms"
+    else:
+        symFile = sbeObjDir + "/sbe.syms"
     f = open( symFile, 'r' )
     for line in f:
         words = line.split()
         if( len( words ) == 4 ):
             syms[words[3]] = [words[0], words[1]]
 
-def collectTrace( hwpBinDir, sbeObjDir, target, proc ):
-    cmd1 = ("."+hwpBinDir+"/p9_sbe_pibMemDump_wrap.exe " + \
-                          syms['g_pk_trace_buf'][0] +\
-                          " " + syms['g_pk_trace_buf'][1] + " " + target)
-    cmd2 = "." + "/ppe2fsp dumpPibMem sbetrace.bin "
-    cmd3 = ("." + "/fsp-trace -s " + sbeObjDir +\
-                         "/trexStringFile sbetrace.bin > "+\
+def getOffset( symbol ):
+    symAddr = syms[ symbol][0]
+    print "\n symAddress :", symAddr
+    offset = int(symAddr, base = 16) - baseAddr;
+    return hex(offset)
+
+def collectTrace( sbeObjDir, target, node, proc ):
+    offset = getOffset( 'g_pk_trace_buf' );
+    len = "0x" + syms['g_pk_trace_buf'][1];
+    cmd1 = ("p9_pibmem_dump_wrap.exe -quiet -start_byte " + \
+            str(offset) +\
+             " -num_of_byte " + len + " "
+             " -n" + str(node) + " -p" + str(proc))
+    cmd2 = sbeObjDir + "/ppe2fsp DumpPIBMEM sbetrace.bin "
+    cmd3 = (sbeObjDir + "/fsp-trace -s " + sbeObjDir +\
+                         "/sbeStringFile sbetrace.bin > "+\
                          "sbe_"+str(proc)+"_tracMERG")
-    cmd4 = "mv dumpPibMem dumpPibMem_trace"
+    cmd4 = "mv DumpPIBMEM dumpPibMem_trace"
     print "\ncollecting trace with commands -\n"
     print "cmd1:", cmd1
     rc = os.system( cmd1 )
@@ -75,14 +94,24 @@ def collectTrace( hwpBinDir, sbeObjDir, target, proc ):
        print "ERROR running %s: %d " % ( cmd4, rc )
        return 1
 
-def collectAttr( hwpBinDir, sbeObjDir, target, proc ):
-    cmd1 = ("."+hwpBinDir+"/p9_sbe_pibMemDump_wrap.exe " +\
-                         syms['G_sbe_attrs'][0] + " " + \
-                         syms['G_sbe_attrs'][1] + " " + target)
-    cmd2 = "mv dumpPibMem sbeAttr.bin"
-    cmd3 = ("."+ sbeObjDir + "/p9_xip_tool " +\
-                 sbeObjDir + "/sbe_seeprom.bin -ifs attrdump sbeAttr.bin > "+\
-                 "sbe_"+str(proc)+"_attrs")
+def collectAttr( sbeObjDir, target, node, proc ):
+    if (target == 'AWAN'):
+        sbeImgFile = "p9n_10.sim.sbe_seeprom.bin"
+    else:
+        sbeImgFile = "sbe_seeprom.bin"
+    offset = getOffset( 'G_sbe_attrs' );
+    len = "0x" + syms['G_sbe_attrs'][1];
+    cmd1 = ("p9_pibmem_dump_wrap.exe -quiet -start_byte " + \
+            str(offset) +\
+             " -num_of_byte " + len + " "
+             " -n" + str(node) + " -p" + str(proc))
+    cmd2 = "mv DumpPIBMEM sbeAttr.bin"
+    # TODO via RTC 158861
+    # For multi-node system we need to convert node/proc to absolute
+    # proc number.
+    cmd3 = ( sbeObjDir + "/p9_xip_tool " +\
+             sbeObjDir + "/" + sbeImgFile + " -ifs attrdump sbeAttr.bin > "+\
+             "sbe_"+str(proc)+"_attrs")
     print "\ncollecting attributes with commands -\n"
     print "cmd1:", cmd1
     rc = os.system( cmd1 )
@@ -102,36 +131,57 @@ def collectAttr( hwpBinDir, sbeObjDir, target, proc ):
        print "ERROR running %s: %d " % ( cmd3, rc )
        return 1
 
+def ppeState( sbeObjDir, target, node, proc ):
+    cmd1 = ("p9_ppe_state_wrap.exe -quiet -sbe -snapshot" +\
+             " -n" + str(node) + " -p" + str(proc))
+    print "cmd1:", cmd1
+    rc = os.system( cmd1 )
+    if ( rc ):
+       print "ERROR running %s: %d " % ( cmd1, rc )
+       return 1
+
+def sbeState( sbeObjDir, target, node, proc ):
+    cmd1 = ("p9_pibms_reg_dump_wrap.exe -quiet" +\
+             " -n" + str(node) + " -p" + str(proc))
+    print "cmd1:", cmd1
+    rc = os.system( cmd1 )
+    if ( rc ):
+       print "ERROR running %s: %d " % ( cmd1, rc )
+       return 1
+
 def main( argv ):
     parser = argparse.ArgumentParser( description = "SBE Dump Parser" )
 
-    parser.add_argument( '-hwpBinDir', type=str, default = os.getcwd(), \
-                                help = 'Path of p9_sbe_pibMemDump_wrap.exe')
-    parser.add_argument( '-sbeObjDir', type=str, default = os.getcwd(), \
-                                help = 'Path of sbe.syms file')
-    parser.add_argument( '-l', '--level', choices = ['all', 'trace', 'attr'],\
-                                default='all', help = 'Parser level' )
-    parser.add_argument( '-t', '--target', choices = ['AWAN', 'HW'], \
-                                required = 'true', help = 'Target type' )
+    parser.add_argument( '-l', '--level', choices = [ 'trace', 'attr', \
+                                'ppestate', 'sbestate'],\
+                                default='trace', help = 'Parser level' )
+    parser.add_argument( '-t', '--target', choices = ['AWAN', 'HW', 'FILE'], \
+                                default='HW', help = 'Target type' )
+    parser.add_argument( '-n', '--node', type=int , default = 0, \
+                                help = 'Node Number' )
     parser.add_argument( '-p', '--proc', type=int , default = 0, \
                                 help = 'Proc Number' )
 
     args = parser.parse_args()
 
-    if ( args.target == 'AWAN' ):
-        target = "1"
-    elif ( args.target == 'HW' ):
-        target = "0"
 
-    fillSymTable(args.sbeObjDir)
+    sbeObjDir = SBE_TOOLS_PATH;
+    print "sbeObjDir", sbeObjDir
+    fillSymTable(sbeObjDir, args.target)
     if ( args.level == 'all' ):
         print "Parsing everything"
-        collectTrace( args.hwpBinDir, args.sbeObjDir, target, args.proc )
-        collectAttr( args.hwpBinDir, args.sbeObjDir, target, args.proc )
+        collectTrace( sbeObjDir, args.target, args.node, args.proc )
+        collectAttr(  sbeObjDir, args.target, args.node, args.proc )
     elif ( args.level == 'trace' ):
-        collectTrace( args.hwpBinDir, args.sbeObjDir, target, args.proc )
+        collectTrace( sbeObjDir, args.target, args.node, args.proc )
     elif ( args.level == 'attr' ):
-        collectAttr( args.hwpBinDir, args.sbeObjDir, target, args.proc )
+        collectAttr( sbeObjDir, args.target, args.node, args.proc )
+    elif ( args.level == 'ppestate' ):
+        ppeState( sbeObjDir, args.target, args.node, args.proc )
+    elif ( args.level == 'sbestate' ):
+        sbeState( sbeObjDir, args.target, args.node, args.proc )
+
 
 if __name__ == "__main__":
     main( sys.argv )
+
