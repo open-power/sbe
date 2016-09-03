@@ -41,74 +41,160 @@
     <name>ATTR_PIBMEM_REPAIR2</name>
     <value>0x0000000000000000</value>
   </entry>
+<!-- xip_customize MB attributes - begin-->
   <entry>
     <name>ATTR_I2C_BUS_DIV_REF</name>
     <value>0x0001</value>
-  </entry>
-  <entry>
-    <name>ATTR_FUNCTIONAL_EQ_EC_VALID</name>
-    <value>0x00</value>
   </entry>
   <entry>
     <name>ATTR_EQ_GARD</name>
     <value>0x01</value>
   </entry>
   <entry>
-     <name>ATTR_EC_GARD</name>
-     <value>0x01</value>
+    <name>ATTR_EC_GARD</name>
+    <value>0x01</value>
   </entry>
   <entry>
-    <name>ATTR_I2C_BUS_DIV_REF_VALID</name>
+    <name>ATTR_NEST_PLL_BUCKET</name>
+    <value>0x05</value>
+  </entry>
+  <entry>
+    <name>ATTR_BOOT_FREQ_MULT</name>
+    <value>0x00B4</value>
+  </entry>
+  <entry>
+    <name>ATTR_CLOCK_PLL_MUX</name>
+    <value>0x80010800</value>
+  </entry>
+  <entry>
+    <name>ATTR_SS_FILTER_BYPASS</name>
+    <value>0x1</value>
+  </entry>
+  <entry>
+    <name>ATTR_CP_FILTER_BYPASS</name>
+    <value>0x1</value>
+  </entry>
+  <entry>
+    <name>ATTR_IO_FILTER_BYPASS</name>
+    <value>0x1</value>
+  </entry>
+  <entry>
+    <name>ATTR_IS_MPIPL</name>
     <value>0x00</value>
   </entry>
   <entry>
-     <name>ATTR_IS_MPIPL</name>
-     <value>0x0</value>
+    <name>ATTR_SYSTEM_IPL_PHASE</name>
+    <value>0x1</value>
   </entry>
   <entry>
-     <name>ATTR_BOOT_FREQUENCY_VALID</name>
-     <value>0x00</value>
+    <name>ATTR_SYS_FORCE_ALL_CORES</name>
+    <value>0x00</value>
   </entry>
   <entry>
-     <name>ATTR_NEST_PLL_BUCKET</name>
-     <value>0x05</value>
+    <name>ATTR_RISK_LEVEL</name>
+    <value>0x0</value>
   </entry>
   <entry>
-     <name>ATTR_BOOT_FREQ_MULT</name>
-     <value>0x00B4</value>
+    <name>ATTR_DISABLE_HBBL_VECTORS</name>
+    <value>0x1</value>
   </entry>
   <entry>
-     <name>ATTR_HWP_CONTROL_FLAGS_VALID</name>
-     <value>0x00</value>
+    <name>ATTR_MC_SYNC_MODE</name>
+    <value>0x01</value>
   </entry>
   <entry>
-      <name>ATTR_SYSTEM_IPL_PHASE</name>
-      <value>0x1</value>
+    <name>ATTR_PROC_SBE_MASTER_CHIP</name>
+    <value>0x01</value>
   </entry>
   <entry>
-      <name>ATTR_RISK_LEVEL</name>
-      <value>0x0</value>
+    <name>ATTR_PROC_FABRIC_GROUP_ID</name>
+    <value>0x00</value>
   </entry>
   <entry>
-      <name>ATTR_DISABLE_HBBL_VECTORS</name>
-      <value>0x1</value>
+    <name>ATTR_PROC_FABRIC_CHIP_ID</name>
+    <value>0x00</value>
   </entry>
   <entry>
-      <name>ATTR_CHIP_SELECTION_VALID</name>
-      <value>0x0</value>
+    <name>ATTR_DPLL_BYPASS</name>
+    <value>0x0</value>
   </entry>
   <entry>
-      <name>ATTR_CHIP_SELECTION</name>
-      <value>0x1</value>
+    <name>ATTR_NEST_MEM_X_O_PCI_BYPASS</name>
+    <value>0x0</value>
   </entry>
   <entry>
-     <name>ATTR_NODE_POS</name>
-     <value>0x01</value>
+      <!-- The values here are per pervasive chiplet in the order of the chiplet
+      numbers Bit 3 (in the 16-bit representation) is used to indicate
+      partial good. If this bit is 1, the region is bad, else it is good.
+      Bits 0,1,2 are don't care. For nimbus, pervasive chiplets 10 and 11 are
+      not used (OB1 and OB2), therefore the value for them is 0xFFFF -->
+            <name>ATTR_PG</name>
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xE07D</value> <!-- PERV -->
+            <value>0xE03F</value> <!-- N0 -->
+            <value>0xE03F</value> <!-- N1 -->
+            <value>0xE03F</value> <!-- N2 -->
+            <value>0xE01F</value> <!-- N3 -->
+            <value>0xE44D</value> <!-- XB -->
+            <value>0xE0FD</value> <!-- MC01 -->
+            <value>0xE0FD</value> <!-- MC23 -->
+            <value>0xE1FD</value> <!-- OB0 -->
+            <value>0xFFFF</value> <!-- OB1 -->
+            <value>0xFFFF</value> <!-- OB2 -->
+            <value>0xE1FD</value> <!-- OB3 -->
+            <value>0xE1FD</value> <!-- PCI0 -->
+            <value>0xE0FD</value> <!-- PCI1 -->
+            <value>0xE07D</value> <!-- PCI2 -->
+            <value>0xE001</value> <!-- EP0 -->
+            <value>0xE001</value> <!-- EP1 -->
+            <value>0xE001</value> <!-- EP2 -->
+            <value>0xE288</value> <!-- EP3 -->
+            <value>0xE001</value> <!-- EP4 -->
+            <value>0xE001</value> <!-- EP5 -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xE1FF</value> <!-- EC00 -->
+            <value>0xE1FF</value> <!-- EC01 -->
+            <value>0xE1FF</value> <!-- EC02 -->
+            <value>0xE1FF</value> <!-- EC03 -->
+            <value>0xE1FF</value> <!-- EC04 -->
+            <value>0xE1FF</value> <!-- EC05 -->
+            <value>0xE1FF</value> <!-- EC06 -->
+            <value>0xE1FF</value> <!-- EC07 -->
+            <value>0xE1FF</value> <!-- EC08 -->
+            <value>0xE1FF</value> <!-- EC09 -->
+            <value>0xE1FF</value> <!-- EC10 -->
+            <value>0xE1FF</value> <!-- EC11 -->
+            <value>0xE1FF</value> <!-- EC12 -->
+            <value>0xE1FF</value> <!-- EC13 -->
+            <value>0xE1FF</value> <!-- EC14 -->
+            <value>0xE1FF</value> <!-- EC15 -->
+            <value>0xE1FF</value> <!-- EC16 -->
+            <value>0xE1FF</value> <!-- EC17 -->
+            <value>0xE1FF</value> <!-- EC18 -->
+            <value>0xE1FF</value> <!-- EC19 -->
+            <value>0xE1FF</value> <!-- EC20 -->
+            <value>0xE1FF</value> <!-- EC21 -->
+            <value>0xE1FF</value> <!-- EC22 -->
+            <value>0xE1FF</value> <!-- EC23 -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
   </entry>
-  <entry>
-     <name>ATTR_CHIP_POS</name>
-     <value>0x01</value>
-  </entry>
+<!-- xip_customize MB attributes - end-->
   <entry>
     <name>ATTR_SCRATCH_UINT8_1</name>
     <value>0x8</value>
@@ -276,10 +362,6 @@
       <value>0x0</value>
   </entry>
   <entry>
-       <name>ATTR_MC_SYNC_MODE</name>
-       <value>0x01</value>
-  </entry>
-  <entry>
          <name>ATTR_BOOT_FLAGS</name>
          <value>0x80000000</value>
   </entry>
@@ -296,78 +378,6 @@
            <value>0x0</value>
   </entry>
   <entry>
-      <!-- The values here are per pervasive chiplet in the order of the chiplet
-      numbers Bit 3 (in the 16-bit representation) is used to indicate
-      partial good. If this bit is 1, the region is bad, else it is good.
-      Bits 0,1,2 are don't care. For nimbus, pervasive chiplets 10 and 11 are
-      not used (OB1 and OB2), therefore the value for them is 0xFFFF -->
-            <name>ATTR_PG</name>
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xE07D</value> <!-- PERV -->
-            <value>0xE03F</value> <!-- N0 -->
-            <value>0xE03F</value> <!-- N1 -->
-            <value>0xE03F</value> <!-- N2 -->
-            <value>0xE01F</value> <!-- N3 -->
-            <value>0xE00D</value> <!-- XB -->
-            <value>0xE0FD</value> <!-- MC01 -->
-            <value>0xE0FD</value> <!-- MC23 -->
-            <value>0xE1FD</value> <!-- OB0 -->
-            <value>0xFFFF</value> <!-- OB1 -->
-            <value>0xFFFF</value> <!-- OB2 -->
-            <value>0xE1FD</value> <!-- OB3 -->
-            <value>0xE1FD</value> <!-- PCI0 -->
-            <value>0xE0FD</value> <!-- PCI1 -->
-            <value>0xE07D</value> <!-- PCI2 -->
-            <value>0xE001</value> <!-- EP0 -->
-            <value>0xE001</value> <!-- EP1 -->
-            <value>0xE001</value> <!-- EP2 -->
-            <value>0xE288</value> <!-- EP3 -->
-            <value>0xE001</value> <!-- EP4 -->
-            <value>0xE001</value> <!-- EP5 -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xE1FF</value> <!-- EC00 -->
-            <value>0xE1FF</value> <!-- EC01 -->
-            <value>0xE1FF</value> <!-- EC02 -->
-            <value>0xE1FF</value> <!-- EC03 -->
-            <value>0xE1FF</value> <!-- EC04 -->
-            <value>0xE1FF</value> <!-- EC05 -->
-            <value>0xE1FF</value> <!-- EC06 -->
-            <value>0xE1FF</value> <!-- EC07 -->
-            <value>0xE1FF</value> <!-- EC08 -->
-            <value>0xE1FF</value> <!-- EC09 -->
-            <value>0xE1FF</value> <!-- EC10 -->
-            <value>0xE1FF</value> <!-- EC11 -->
-            <value>0xE1FF</value> <!-- EC12 -->
-            <value>0xE1FF</value> <!-- EC13 -->
-            <value>0xE1FF</value> <!-- EC14 -->
-            <value>0xE1FF</value> <!-- EC15 -->
-            <value>0xE1FF</value> <!-- EC16 -->
-            <value>0xE1FF</value> <!-- EC17 -->
-            <value>0xE1FF</value> <!-- EC18 -->
-            <value>0xE1FF</value> <!-- EC19 -->
-            <value>0xE1FF</value> <!-- EC20 -->
-            <value>0xE1FF</value> <!-- EC21 -->
-            <value>0xE1FF</value> <!-- EC22 -->
-            <value>0xE1FF</value> <!-- EC23 -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-            <value>0xFFFF</value> <!-- Unused -->
-  </entry>
-  <entry>
            <name>ATTR_ADU_XSCOM_BAR_BASE_ADDR</name>
            <value>0x000603FC00000000</value>
   </entry>
@@ -380,19 +390,7 @@
          <value>0x01</value>
   </entry>
   <entry>
-         <name>ATTR_PROC_SBE_MASTER_CHIP</name>
-         <value>0x01</value>
-  </entry>
-  <entry>
           <name>ATTR_PROC_FABRIC_SYSTEM_ID</name>
-          <value>0x00</value>
-  </entry>
-  <entry>
-          <name>ATTR_PROC_FABRIC_GROUP_ID</name>
-          <value>0x00</value>
-  </entry>
-  <entry>
-          <name>ATTR_PROC_FABRIC_CHIP_ID</name>
           <value>0x00</value>
   </entry>
   <entry>
@@ -410,10 +408,6 @@
   <entry>
            <name>ATTR_HOSTBOOT_HRMOR_OFFSET</name>
            <value>0x8000000</value>
-  </entry>
-  <entry>
-           <name>ATTR_SYS_FORCE_ALL_CORES</name>
-           <value>0x00</value>
   </entry>
   <entry>
            <name>ATTR_MASTER_CORE</name>
@@ -439,10 +433,6 @@
            <value>0x48000000</value>
   </entry>
   <entry>
-           <name>ATTR_CLOCK_PLL_MUX</name>
-           <value>0x80010800</value>
-  </entry>
-   <entry>
            <name>ATTR_CLOCK_PLL_MUX0</name>
            <value>0x3</value>
   </entry>
@@ -487,26 +477,6 @@
   </entry>
   <entry>
            <name>ATTR_RUNN_MODE</name>
-           <value>0x0</value>
-  </entry>
-  <entry>
-           <name>ATTR_SS_FILTER_BYPASS</name>
-           <value>0x1</value>
-  </entry>
-  <entry>
-           <name>ATTR_CP_FILTER_BYPASS</name>
-           <value>0x1</value>
-  </entry>
-  <entry>
-           <name>ATTR_IO_FILTER_BYPASS</name>
-           <value>0x1</value>
-  </entry>
-  <entry>
-           <name>ATTR_DPLL_BYPASS</name>
-           <value>0x0</value>
-  </entry>
-  <entry>
-           <name>ATTR_NEST_MEM_X_O_PCI_BYPASS</name>
            <value>0x0</value>
   </entry>
   <entry>
