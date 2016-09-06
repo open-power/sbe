@@ -4,11 +4,3 @@
 #-CQ: Defect/Req for checking the changes into fips910
 #-Files: list of files
 #-Coreq: list of associated changes, e.g. workarounds.presimsetup
-
-RTC: 144728
-Files : pervasive.act.patch. Currently SUET does not support FSIMBOX KW. Once
-        support is in, remove this patch.
-
-RTC: 128984
-Files: chip.act.patch. Added call for executeInstruction module call.
-       p9.inst.patch. Added P9 specific commands for ramming.
