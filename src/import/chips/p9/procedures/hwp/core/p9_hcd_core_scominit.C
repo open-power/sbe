@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/core/p9_hcd_core_scominit.C $  */
+/* $Source: src/import/chips/p9/procedures/hwp/core/p9_hcd_core_scominit.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -43,6 +43,7 @@
 
 #include <p9_quad_scom_addresses.H>
 #include <p9_hcd_common.H>
+#include <p9_core_scom.H>
 #include "p9_hcd_core_scominit.H"
 
 //-----------------------------------------------------------------------------
@@ -60,6 +61,7 @@ p9_hcd_core_scominit(
 {
     FAPI_INF(">>p9_hcd_core_scominit");
     fapi2::buffer<uint64_t> l_data64;
+    fapi2::ReturnCode l_rc;
 
     /// @todo how about bit 6?
     FAPI_DBG("Restore SYNC_CONFIG[8] for stop1");
@@ -75,6 +77,16 @@ p9_hcd_core_scominit(
 
     FAPI_DBG("Set core as ready to run in STOP history register");
     FAPI_TRY(putScom(i_target, C_PPM_SSHSRC, 0));
+
+    // invoke core SCOM initfile
+    FAPI_EXEC_HWP(l_rc, p9_core_scom, i_target);
+
+    if (l_rc)
+    {
+        FAPI_ERR("Error from p9_core_scom (p9.core.scom.initfile)");
+        fapi2::current_err = l_rc;
+        goto fapi_try_exit;
+    }
 
 fapi_try_exit:
 
