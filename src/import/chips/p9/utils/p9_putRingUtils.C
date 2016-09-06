@@ -252,7 +252,7 @@ fapi2::ReturnCode standardScan(
             // Add the chiplet ID in the Scom Address
             l_scomAddress |= l_chiplet;
 
-            const uint64_t l_maxRotates = 0x100000;
+            const uint64_t l_maxRotates = 0xFFFFF;
             uint64_t l_rotateCount = i_opVal;
             uint32_t l_numRotateScoms = 1; // 1 - We need to do atleast one scom
 
@@ -295,10 +295,10 @@ fapi2::ReturnCode standardScan(
                 }
 
                 // Check OPCG_DONE status
-                l_scomAddress = 0x00000100;
+                uint32_t  l_OPCGAddress = 0x00000100;
 
                 // Add the chiplet ID in the Scom Address
-                l_scomAddress |= l_chiplet;
+                l_OPCGAddress |= l_chiplet;
 
                 // @TODO: Value 300 is a random number to start with.
                 uint32_t l_attempts = 300;
@@ -309,9 +309,9 @@ fapi2::ReturnCode standardScan(
 
                     fapi2::buffer<uint64_t> l_opcgStatus;
 #ifndef __PPE__
-                    l_rc = fapi2::getScom(l_parent, l_scomAddress, l_opcgStatus);
+                    l_rc = fapi2::getScom(l_parent, l_OPCGAddress, l_opcgStatus);
 #else
-                    l_rc = fapi2::getScom(i_target, l_scomAddress, l_opcgStatus);
+                    l_rc = fapi2::getScom(i_target, l_OPCGAddress, l_opcgStatus);
 #endif
 
                     if(l_rc != fapi2::FAPI2_RC_SUCCESS)
