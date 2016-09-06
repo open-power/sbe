@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/xip/p9_xip_tool.C $                           */
+/* $Source: src/import/chips/p9/xip/p9_xip_tool.C $                       */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -2118,6 +2118,10 @@ int dissectRingSectionTor( void*       i_ringSection,
                         else if (rc == IMGBUILD_TGR_AMBIGUOUS_API_PARMS)
                         {
                             fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_AMBIGUOUS_API_PARMS\n", rc);
+                        }
+                        else if (rc == IMGBUILD_TGR_INVALID_RING_ID)
+                        {
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_INVALID_RING_ID\n", rc);
                         }
                         else
                         {
