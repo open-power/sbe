@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/core/p9_hcd_core_chiplet_reset.C $ */
+/* $Source: src/import/chips/p9/procedures/hwp/core/p9_hcd_core_chiplet_reset.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -88,6 +88,11 @@ p9_hcd_core_chiplet_reset(
 {
     FAPI_INF(">>p9_hcd_core_chiplet_reset");
     fapi2::buffer<uint64_t> l_data64;
+    uint8_t                 l_dpll_bypass;
+
+    auto l_parent_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DPLL_BYPASS, l_parent_chip, l_dpll_bypass),
+             "Error from FAPI_ATTR_GET (ATTR_DPLL_BYPASS)");
 
     //--------------------------
     // Reset core chiplet logic
@@ -133,6 +138,21 @@ p9_hcd_core_chiplet_reset(
 
     FAPI_DBG("Drop PCB fence via NET_CTRL0[25]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(25)));
+
+    if (l_dpll_bypass == 0)
+    {
+        FAPI_DBG("Set scan ratio to 4:1 in non-bypass mode via OPCG_ALIGN[47-51]");
+        FAPI_TRY(getScom(i_target, C_OPCG_ALIGN, l_data64));
+        l_data64.insertFromRight<47, 5>(0x3);
+        FAPI_TRY(putScom(i_target, C_OPCG_ALIGN, l_data64));
+    }
+    else
+    {
+        FAPI_DBG("Set scan ratio to 1:1 in bypass mode via OPCG_ALIGN[47-51]");
+        FAPI_TRY(getScom(i_target, C_OPCG_ALIGN, l_data64));
+        l_data64.insertFromRight<47, 5>(0x0);
+        FAPI_TRY(putScom(i_target, C_OPCG_ALIGN, l_data64));
+    }
 
 #ifndef P9_HCD_STOP_SKIP_FLUSH
     //--------------------------------------------
