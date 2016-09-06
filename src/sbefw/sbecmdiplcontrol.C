@@ -689,68 +689,6 @@ ReturnCode istepNoOp( sbeIstepHwp_t i_hwp)
     return FAPI2_RC_SUCCESS ;
 }
 
-// Only allowed in PLCK Mode, since FFDC State mode is set only in PLCK
-//----------------------------------------------------------------------------
-uint32_t sbeContinueBoot (uint8_t *i_pArg)
-{
-    #define SBE_FUNC "sbeContinueBoot "
-    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    uint32_t len = 0;
-    sbeRespGenHdr_t respHdr;
-    respHdr.init();
-
-    do
-    {
-        // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
-        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            // let command processor routine handle the RC
-            break;
-        }
-
-        uint32_t distance = 1;
-        len = sizeof(respHdr)/sizeof(uint32_t);
-        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &respHdr);
-        if (rc)
-        {
-            break;
-        }
-        distance += len;
-
-        len = sizeof(distance)/sizeof(uint32_t);
-        rc = sbeDownFifoEnq_mult ( len, &distance);
-        if (rc)
-        {
-            break;
-        }
-        rc = sbeDownFifoSignalEot();
-        if (rc)
-        {
-            break;
-        }
-
-        // Expecting this to be in PLCK Mode and not in Istep mode
-        if(SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
-        {
-            (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                    SBE_CONTINUE_BOOT_RUNTIME_EVENT);
-            // Nothing to do here.
-        }
-        else
-        {
-            SBE_INFO(SBE_FUNC"Continuous IPL Mode set... IPLing");
-            (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                    SBE_CONTINUE_BOOT_PLCK_EVENT);
-            sbeDoContinuousIpl();
-        }
-    }while(0);
-
-    SBE_DEBUG(SBE_FUNC "RC = 0x%08X", rc);
-    return rc;
-    #undef SBE_FUNC
-}
-
 //----------------------------------------------------------------------------
 void sbeDoContinuousIpl()
 {

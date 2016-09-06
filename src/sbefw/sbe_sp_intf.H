@@ -72,7 +72,6 @@ static const uint8_t SBE_CMD_UNKNOWN = 0x00;
 enum sbeIplControlCommands
 {
     SBE_CMD_EXECUTE_ISTEP      = 0x01, /* Execute istep */
-    SBE_CMD_CONTINUE_BOOT  = 0x02, /* Continue SBE Boot */
 };
 
 /**
@@ -160,7 +159,6 @@ enum sbeGenericMessageCommands
     SBE_CMD_GET_SBE_FFDC          = 0x01, /* Get FFDC */
     SBE_CMD_GET_SBE_CAPABILITIES  = 0x02, /* GET SBE capabilities */
     SBE_CMD_GET_FREQ_SUPPORTED    = 0x03, /* Get Supported frequencies */
-    SBE_CMD_ABORT                 = 0x05, /* Sbe Abort */
     SBE_CMD_QUIESCE               = 0x06, /* Sbe Quiesce */
 };
 

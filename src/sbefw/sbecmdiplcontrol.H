@@ -48,17 +48,6 @@ namespace fapi2
   */
 uint32_t sbeHandleIstep(uint8_t *i_pArg);
 
-
-/**
-  * @brief  Handles Sbe continue boot after collect ffdc chip-op (0xA102)
-  *
-  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
-  *
-  * @return    Rc from the FIFO access utility
-  */
-uint32_t sbeContinueBoot(uint8_t *i_pArg);
-
-
 /**
  * @brief Executes IPL steps in continuous mode.
  *
@@ -104,15 +93,6 @@ uint32_t sbeGetSbeFfdc(uint8_t *i_pArg);
   * @return    Rc from the FIFO access utility
   */
 uint32_t sbeGetFreqSupported(uint8_t *i_pArg);
-
-/**
-  * @brief  Handles Sbe Abort chip-op (0xA804)
-  *
-  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
-  *
-  * @return    Rc from the FIFO access utility
-  */
-uint32_t sbeAbort(uint8_t *i_pArg);
 
 
 #endif // __SBEFW_SBECMDIPLCONTROL_H

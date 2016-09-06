@@ -55,15 +55,13 @@ typedef struct {
 enum sbe_command_fence_attrs
 {
     SBE_NO_FENCE                = 0x0000, ///< Allow cmd in all states
-    SBE_FENCE_AT_ABORT          = 0x0001, ///< Fence off at SBE Abort State
-    SBE_FENCE_AT_FFDC_COLLECT   = 0x0002, ///< Fence off at FFDC Collect State
-    SBE_FENCE_AT_DUMPING        = 0x0004, ///< Fence off at DUMPING State
-    SBE_FENCE_AT_MPIPL          = 0x0010, ///< Fence off at MPIPL state
-    SBE_FENCE_AT_CONTINUOUS_IPL = 0x0040, ///< Fence off at cont IPL
-    SBE_FENCE_AT_ISTEP          = 0x0080, ///< Fence off at istep state
-    SBE_FENCE_AT_RUNTIME        = 0x0100, ///< Fence off at Runtime state
-    SBE_FENCE_AT_QUIESCE        = 0x0200, ///< Fense off at Quiesce state
-    SBE_FENCE_AT_DMT            = 0x0400, ///< Fense off at DMT state
+    SBE_FENCE_AT_DUMPING        = 0x0001, ///< Fence off at DUMPING State
+    SBE_FENCE_AT_MPIPL          = 0x0002, ///< Fence off at MPIPL state
+    SBE_FENCE_AT_CONTINUOUS_IPL = 0x0004, ///< Fence off at cont IPL
+    SBE_FENCE_AT_ISTEP          = 0x0008, ///< Fence off at istep state
+    SBE_FENCE_AT_RUNTIME        = 0x0010, ///< Fence off at Runtime state
+    SBE_FENCE_AT_QUIESCE        = 0x0020, ///< Fense off at Quiesce state
+    SBE_FENCE_AT_DMT            = 0x0040, ///< Fense off at DMT state
 };
 
 /**

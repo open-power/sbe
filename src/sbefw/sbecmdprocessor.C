@@ -225,8 +225,6 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     // Check the destination bit at the start
     if(SbeRegAccess::theSbeRegAccess().isIstepMode())
     {
-        // In this state, we need not take care of FFDC State, User may
-        // or may not fetch FFDC and may not issue sbeContinueboot
         SBE_INFO(SBE_FUNC"Continuous IPL mode not set, will wait for "
                 "commands...");
         (void)SbeRegAccess::theSbeRegAccess().
@@ -239,14 +237,6 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
         SBE_INFO(SBE_FUNC"Destination bit tells us to go to runtime");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_RUNTIME);
-    }
-    // Now we can assume that we are in Continuous IPL mode, just check if
-    // FFDC needs to be collected before continuing with IPL
-    else if(true == SbeRegAccess::theSbeRegAccess().isCollectFFDCSet())
-    {
-        SBE_INFO(SBE_FUNC"FFDC Collect State - Waiting for FFDC to be picked");
-        (void)SbeRegAccess::theSbeRegAccess().
-              updateSbeState(SBE_STATE_FFDC_COLLECT);
     }
     else
     {
