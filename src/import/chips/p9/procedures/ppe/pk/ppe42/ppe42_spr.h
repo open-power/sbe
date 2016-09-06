@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/ppe42/ppe42_spr.h $         */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/ppe42_spr.h $     */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -139,7 +139,7 @@ typedef union
 ///  Note that \a sprn must be a compile-time constant.
 
 #define mfspr(sprn)                                             \
-    ({uint32_t __value;                                          \
+    ({volatile uint32_t __value;                                          \
         asm volatile ("mfspr %0, %1" : "=r" (__value) : "i" (sprn)); \
         __value;})
 
@@ -149,7 +149,7 @@ typedef union
 ///  Note that \a sprn must be a compile-time constant.
 
 #define mtspr(sprn, value)                                        \
-    ({uint32_t __value = (value);                                  \
+    ({volatile uint32_t __value = (value);                                  \
         asm volatile ("mtspr %0, %1" : : "i" (sprn), "r" (__value)); \
     })
 

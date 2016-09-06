@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/ppe42/ppe42_msr.h $         */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/ppe42_msr.h $     */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -69,7 +69,7 @@
 /// Move From MSR
 
 #define mfmsr()                               \
-    ({uint32_t __msr;                          \
+    ({volatile uint32_t __msr;                          \
         asm volatile ("mfmsr %0" : "=r" (__msr)); \
         __msr;})
 
