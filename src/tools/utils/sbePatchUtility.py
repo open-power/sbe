@@ -80,29 +80,6 @@ def utilPatchSimics(i_sandbox_path, i_sandbox_root):
 
     os.system(l_sim_cmd)
 
-    # Copy action files. As we are taking actions files from ppe, copy them here
-    # so that any workaround necessary can be applied over them in pre-simsetup path
-    # mkdir -p $SANDBOXBASE/src/simu/data/cec-chip
-    # cp  $SBEROOT/import/chips/p9/sw_simulation/* $SANDBOXBASE/src/simu/data/cec-chip || exit -1
-
-    print "  [ Copying action files to fips Sandbox ]"
-    # Ge the Sandbox base
-    sandbox_base = utilcode.utilFind_ENV_string("SANDBOXBASE").rstrip('\n')
-    sandbox_path = sandbox_base + "/src/simu/data/cec-chip"
-    cmd = "mkdir -p  " + sandbox_path
-    print "  * Executing : ",cmd
-    os.system(cmd)
-
-    # Ge the ppe root
-    ppe_base = utilcode.utilFind_ENV_string("SBEROOT").rstrip('\n')
-    ppe_path = ppe_base + "/src/import/chips/p9/sw_simulation/"
-    p_cmd = "cp -f " + ppe_path + "*  " + sandbox_path
-    print "  * Executing : ",p_cmd
-    rc = os.system(p_cmd)
-    if rc:
-        print "  ERROR rc :",rc
-        return rc
-
     return errorcode.SUCCESS_EXIT
 
 ##########################################################################
