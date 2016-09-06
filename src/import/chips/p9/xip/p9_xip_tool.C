@@ -2119,6 +2119,10 @@ int dissectRingSectionTor( void*       i_ringSection,
                         {
                             fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_AMBIGUOUS_API_PARMS\n", rc);
                         }
+                        else if (rc == IMGBUILD_TGR_INVALID_RING_ID)
+                        {
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_INVALID_RING_ID\n", rc);
+                        }
                         else
                         {
                             fprintf(stderr, "tor_access_ring() returned error code rc=%d\n", rc);
