@@ -49,6 +49,7 @@ CORE-CPP-SOURCES += p9_hcd_core_startclocks.C
 # in PIBMEM for quiesce case, So compiling in nest makefile
 #CORE-CPP-SOURCES += p9_thread_control.C
 #CORE-CPP-SOURCES += p9_sbe_instruct_start.C
+CORE-CPP-SOURCES += p9_hcd_core_stopclocks.C
 
 CORE-C-SOURCES   +=
 CORE-S-SOURCES   +=

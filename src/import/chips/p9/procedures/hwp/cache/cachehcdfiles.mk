@@ -46,6 +46,8 @@ CACHE-CPP-SOURCES += p9_hcd_cache_scominit.C
 CACHE-CPP-SOURCES += p9_hcd_cache_startclocks.C
 CACHE-CPP-SOURCES += p9_hcd_cache_chiplet_l3_dcc_setup.C
 CACHE-CPP-SOURCES += p9_hcd_cache_dpll_initf.C
+CACHE-CPP-SOURCES += p9_hcd_cache_stopclocks.C
+CACHE-CPP-SOURCES += p9_hcd_l2_stopclocks.C
 
 CACHE-C-SOURCES   +=
 CACHE-S-SOURCES   +=

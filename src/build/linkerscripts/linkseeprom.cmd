@@ -98,7 +98,7 @@ SECTIONS
     ////////////////////////////////
     .text ALIGN(8): {
          _text_origin = .; _text_offset = . - _seeprom_origin;
-        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) } > seeprom
+        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) *\libistepmpipl.a:(.text* ) } > seeprom
      _text_size = . - _text_origin;
 
    ////////////////////////////////

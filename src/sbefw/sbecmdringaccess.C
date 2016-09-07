@@ -37,6 +37,7 @@
 #include "sbeHostUtils.H"
 #include "sbeFifoMsgUtils.H"
 #include "sbeutil.H"
+#include "sbefapiutil.H"
 #include "fapi2.H"
 #include "plat_hw_access.H"
 
@@ -46,77 +47,10 @@ static const uint32_t SIZE_OF_LENGTH_INWORDS = 1;
 static const uint32_t NUM_WORDS_PER_GRANULE = 2;
 static const uint32_t GETRING_GRANULE_SIZE_IN_BITS = 64;
 
-/*@brief - Map sbe ring access modes to fapi ring access modes
- *
- * @param[in] - i_ringMode - sbe ring access mode
- *
- * @return - l_fapiRingMode - fapi ring mode
- */
-uint16_t sbeToFapiRingMode(uint16_t i_ringMode)
-{
-    uint16_t l_fapiRingMode = RING_MODE_HEADER_CHECK;
-
-    if(i_ringMode & SBE_RING_MODE_SET_PULSE_NO_OPCG_COND)
-    {
-        l_fapiRingMode |= RING_MODE_SET_PULSE_NO_OPCG_COND;
-    }
-    if(i_ringMode & SBE_RING_MODE_NO_HEADER_CHECK)
-    {
-        l_fapiRingMode |= RING_MODE_NO_HEADER_CHECK;
-    }
-    if(i_ringMode & SBE_RING_MODE_SET_PULSE_NSL)
-    {
-        l_fapiRingMode |= RING_MODE_SET_PULSE_NSL;
-    }
-    if(i_ringMode & SBE_RING_MODE_SET_PULSE_SL)
-    {
-        l_fapiRingMode |= RING_MODE_SET_PULSE_SL;
-    }
-    if(i_ringMode & SBE_RING_MODE_SET_PULSE_ALL)
-    {
-        l_fapiRingMode |= RING_MODE_SET_PULSE_ALL;
-    }
-    return l_fapiRingMode;
-}
-
-/*@brief - create fapi target handle for the target type
- *
- * @param[in] - i_taretType - sbe ring target type
- * @param[in] - i_chipletId - chiplet id
- * @param[out] - o_tgtHndl - fapi target handle
- *
- * @return - true - on success
- *           false - on failure
- */
-bool sbeGetFapiTargetHandle(uint16_t i_targetType,
-                            uint16_t i_chipletId,
-                            fapi2::plat_target_handle_t &o_tgtHndl)
-{
-    bool l_rc = true;
-    o_tgtHndl = NULL;
-    switch(i_targetType)
-    {
-        case TARGET_EX:
-            o_tgtHndl = plat_getTargetHandleByChipletNumber
-                            <fapi2::TARGET_TYPE_EX>(i_chipletId);
-            break;
-        case TARGET_PERV:
-            o_tgtHndl = plat_getTargetHandleByChipletNumber
-                            <fapi2::TARGET_TYPE_PERV>(i_chipletId);
-            break;
-        case TARGET_PROC_CHIP:
-            o_tgtHndl = plat_getChipTarget().get();
-            break;
-        default:
-            l_rc = false;
-            break;
-    }
-    return l_rc;
-}
 
 uint32_t sbePutRingFromImagePSU (uint8_t *i_pArg)
 {
-#define SBE_FUNC " sbePutRingFromImagePSU "
+    #define SBE_FUNC " sbePutRingFromImagePSU "
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
@@ -172,7 +106,7 @@ uint32_t sbePutRingFromImagePSU (uint8_t *i_pArg)
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;
-#undef SBE_FUNC
+    #undef SBE_FUNC
 }
 
 //////////////////////////////////////////////////////

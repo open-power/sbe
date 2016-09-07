@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/import_hwp_mk/istep2/Makefile $
+# $Source: src/build/import_hwp_mk/istepmpipl/Makefile $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,32 +25,32 @@
 # "*.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/*
-export SUB_OBJDIR = /istep2
+export SUB_OBJDIR = /istepmpipl
 
 include img_defs.mk
-include istep2files.mk
+include istepmpiplfiles.mk
 
 export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR)
 
 GCC-CFLAGS += -mlongcall
 
-OBJSISTEP2 := $(addprefix $(OBJDIR-ISTEP2)/, $(ISTEP2_OBJECTS))
+OBJSISTEPMPIPL := $(addprefix $(OBJDIR-ISTEPMPIPL)/, $(ISTEPMPIPL_OBJECTS))
 
-.PHONY: clean istep2
+.PHONY: clean istepmpipl
 
-libistep2.a: istep2
-	$(AR) crs $(OBJDIR-ISTEP2)/libistep2.a $(OBJDIR-ISTEP2)/*.o
+libistepmpipl.a: istepmpipl
+	$(AR) crs $(OBJDIR-ISTEPMPIPL)/libistepmpipl.a $(OBJDIR-ISTEPMPIPL)/*.o
 
-istep2: $(OBJSISTEP2)
+istepmpipl: $(OBJSISTEPMPIPL)
 
-$(OBJSISTEP2) $(OBJSISTEP2:.o=.d): | $(OBJDIR-ISTEP2)
+$(OBJSISTEPMPIPL) $(OBJSISTEPMPIPL:.o=.d): | $(OBJDIR-ISTEPMPIPL)
 
-$(OBJDIR-ISTEP2):
-	mkdir -p $(OBJDIR-ISTEP2)
+$(OBJDIR-ISTEPMPIPL):
+	mkdir -p $(OBJDIR-ISTEPMPIPL)
 
 clean:
-	rm -fr $(OBJDIR-ISTEP2)
+	rm -fr $(OBJDIR-ISTEPMPIPL)
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(OBJSISTEP2:.o=.d)
+include $(OBJSISTEPMPIPL:.o=.d)
 endif

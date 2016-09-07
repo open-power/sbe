@@ -46,6 +46,7 @@
 #include "sbe_host_intf.H"
 #include "sbestates.H"
 #include "sberegaccess.H"
+#include "sbecmdmpipl.H"
 
 // Declaration
 static const uint16_t HARDWARE_FENCED_STATE =
@@ -192,6 +193,11 @@ static sbeCmdStruct_t g_sbeMpiplCmdArray[] =
      HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
      SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_DUMPING,
      // Only allowed State is MPIPL
+    },
+
+    {sbeStopClocks,
+     SBE_CMD_MPIPL_STOPCLOCKS,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_DUMPING,
     },
 };
 

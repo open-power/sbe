@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +35,6 @@ export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM
 
 OBJSISTEP5 := $(addprefix $(OBJDIR-ISTEP5)/, $(ISTEP5_OBJECTS))
 
-#.PHONY: clean istep2 istep3 istep4 istep5 istepcommon all
 .PHONY: clean istep5
 
 libistep5.a: istep5

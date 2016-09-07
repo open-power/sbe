@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/sbecmdiplcontrol.H $                                */
+/* $Source: src/sbefw/sbefapiutil.H $                                     */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2016                             */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -23,58 +22,41 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/sbe/sbefw/sbecmdiplcontrol.H
+ * @file: ppe/src/sbefw/sbefapiutil.H
  *
- * @brief This file contains the SBE command details
+ * @brief This file contains the SBE FAPI Utility
  *
  */
 
-#ifndef __SBEFW_SBECMDIPLCONTROL_H
-#define __SBEFW_SBECMDIPLCONTROL_H
+#ifndef __SBEFW_SBEFAPIUTIL_H
+#define __SBEFW_SBEFAPIUTIL_H
 
 #include <stdint.h>
+#include "sbe_sp_intf.H"
+#include "sbeutil.H"
+#include "fapi2.H"
+#include "plat_hw_access.H"
 
-namespace fapi2
-{
-    class ReturnCode;
-}
-
-/**
-  * @brief execute istep chipop (0xA101)
-  *
-  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
-  *
-  * @return    Rc from the FIFO access utility
-  */
-uint32_t sbeHandleIstep(uint8_t *i_pArg);
-
-/**
- * @brief Executes IPL steps in continuous mode.
+/*@brief - create fapi target handle for the target type
  *
- * @par On the master SBE, this will run
- *      all steps from 2.2 to 5.2. On the slave SBE, it runs all steps from 2.2
- *      to 3.18.
- *      In case an error is encountered, the execution is aborted.
+ * @param[in] - i_taretType - sbe target type
+ * @param[in] - i_chipletId - chiplet id
+ * @param[out] - o_tgtHndl - fapi target handle
+ *
+ * @return - true - on success
+ *           false - on failure
  */
-void sbeDoContinuousIpl();
+bool sbeGetFapiTargetHandle(uint16_t i_targetType,
+                            uint16_t i_chipletId,
+                            fapi2::plat_target_handle_t &o_tgtHndl);
 
-/**
-  * @brief  Handles Sbe Get FFDC chip-op (0xA801)
-  *
-  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
-  *
-  * @return    Rc from the FIFO access utility
-  */
-uint32_t sbeGetSbeFfdc(uint8_t *i_pArg);
-
-/**
-  * @brief  Handles Sbe Get FFDC chip-op (0xA803)
-  *
-  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
-  *
-  * @return    Rc from the FIFO access utility
-  */
-uint32_t sbeGetFreqSupported(uint8_t *i_pArg);
+/*@brief - Map sbe ring access modes to fapi ring access modes
+ *
+ * @param[in] - i_ringMode - sbe ring access mode
+ *
+ * @return - l_fapiRingMode - fapi ring mode
+ */
+uint16_t sbeToFapiRingMode(uint16_t i_ringMode);
 
 
-#endif // __SBEFW_SBECMDIPLCONTROL_H
+#endif /* __SBEFW_SBEFAPIUTIL_H */

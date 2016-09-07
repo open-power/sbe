@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +37,6 @@ GCC-CFLAGS += -mlongcall
 
 OBJSISTEP4 := $(addprefix $(OBJDIR-ISTEP4)/, $(ISTEP4_OBJECTS))
 
-#.PHONY: clean istep2 istep3 istep4 istep5 istepcommon all
 .PHONY: clean istep4
 
 libistep4.a: istep4

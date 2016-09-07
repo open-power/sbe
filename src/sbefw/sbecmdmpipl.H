@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/sbecmdiplcontrol.H $                                */
+/* $Source: src/sbefw/sbecmdmpipl.H $                                     */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2016                             */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -23,58 +22,42 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/sbe/sbefw/sbecmdiplcontrol.H
+ * @file: ppe/src/sbefw/sbecmdmpipl.H
  *
- * @brief This file contains the SBE command details
+ * @brief This file contains the Interfaces for MPIPL chip-ops
  *
  */
 
-#ifndef __SBEFW_SBECMDIPLCONTROL_H
-#define __SBEFW_SBECMDIPLCONTROL_H
+#ifndef __SBEFW_SBECMDMPIPL_H
+#define __SBEFW_SBECMDMPIPL_H
 
 #include <stdint.h>
 
-namespace fapi2
-{
-    class ReturnCode;
-}
-
 /**
-  * @brief execute istep chipop (0xA101)
+  * @brief  Handles Sbe Enter Mpipl chip-op (0xA901)
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
   *
   * @return    Rc from the FIFO access utility
   */
-uint32_t sbeHandleIstep(uint8_t *i_pArg);
+uint32_t sbeEnterMpipl(uint8_t *i_pArg);
 
 /**
- * @brief Executes IPL steps in continuous mode.
- *
- * @par On the master SBE, this will run
- *      all steps from 2.2 to 5.2. On the slave SBE, it runs all steps from 2.2
- *      to 3.18.
- *      In case an error is encountered, the execution is aborted.
- */
-void sbeDoContinuousIpl();
-
-/**
-  * @brief  Handles Sbe Get FFDC chip-op (0xA801)
+  * @brief  Handles Sbe Continue Mpipl chip-op (0xA902)
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
   *
   * @return    Rc from the FIFO access utility
   */
-uint32_t sbeGetSbeFfdc(uint8_t *i_pArg);
+uint32_t sbeContinueMpipl(uint8_t *i_pArg);
 
 /**
-  * @brief  Handles Sbe Get FFDC chip-op (0xA803)
+  * @brief  Handles Sbe Stop Clocks chip-op (0xA903)
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
   *
   * @return    Rc from the FIFO access utility
   */
-uint32_t sbeGetFreqSupported(uint8_t *i_pArg);
+uint32_t sbeStopClocks(uint8_t *i_pArg);
 
-
-#endif // __SBEFW_SBECMDIPLCONTROL_H
+#endif /* __SBEFW_SBECMDMPIPL_H */

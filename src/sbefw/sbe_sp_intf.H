@@ -166,6 +166,7 @@ enum sbeMpIplCommands
 {
     SBE_CMD_MPIPL_ENTER    = 0x01, /* Enter MPIPL */
     SBE_CMD_MPIPL_CONTINUE = 0x02, /* Continue MPIPL */
+    SBE_CMD_MPIPL_STOPCLOCKS = 0x03, /* Stop Clocks */
 };
 
 /**
@@ -274,6 +275,7 @@ enum
     GET_SBE_FREQUENCIES_SUPPPORTED      = 0xA8000004,
     GET_SBE_STATE_SUPPPORTED            = 0xA8000008,
     SBE_QUIESCE                         = 0xA8000010,
+    STOP_CLOCKS_MPIPL_SUPPORTED         = 0xA9000004,
 };
 
 /**
@@ -361,8 +363,14 @@ enum sbeRegAccesRegType
     SBE_REG_ACCESS_FPR  = 0x02,
 };
 
+
+// Base Target Type offset maintined by SBE to be used across different chip-ops
+// Need to avoid any duplicate target type since it is used to convert into FAPI
+// target via file sbefapiutil.C
+
 /*
- * @brief enums for target types used in ring access chip op
+ * @brief enums for target types used in ring access chip op and
+ * in stop clocks chip ops
 */
 typedef enum
 {
@@ -370,7 +378,19 @@ typedef enum
     TARGET_EX           = 0x0001,
     TARGET_PERV         = 0x0002,
     TARGET_MCS          = 0x0003,
-} sbeRingTargetTypes_t;
+    TARGET_EQ           = 0x0004,
+    TARGET_CORE         = 0x0005,
+} sbeTargetTypes_t;
+
+/**
+ * @brief Cache Chiplet Id Enum
+ */
+enum sbeCacheChipletId
+{
+    EQ_ID_0          = 0x10,
+    EQ_ID_MAX        = 0x06,
+    EQ_ALL_CHIPLETS  = 0xFF,
+};
 
 /*
  * @brief enums for access modes used in ring access chip op

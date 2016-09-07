@@ -107,6 +107,10 @@ ifndef ISTEP5_INFRA_DIR
 export ISTEP5_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep5
 endif
 
+ifndef ISTEPMPIPL_INFRA_DIR
+export ISTEPMPIPL_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istepmpipl
+endif
+
 ifndef ISTEPCOMMON_INFRA_DIR
 export ISTEPCOMMON_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istepcommon
 endif
@@ -270,6 +274,10 @@ endif
 
 ifndef OBJDIR-ISTEP5
 export OBJDIR-ISTEP5 = $(BASE_OBJDIR)/istep5
+endif
+
+ifndef OBJDIR-ISTEPMPIPL
+export OBJDIR-ISTEPMPIPL = $(BASE_OBJDIR)/istepmpipl
 endif
 
 ifndef OBJDIR-ISTEPCOMMON

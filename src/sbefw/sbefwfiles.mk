@@ -42,6 +42,8 @@ SBEFW-CPP-SOURCES += sbecmdregaccess.C
 SBEFW-CPP-SOURCES += sbeFFDC.C
 SBEFW-CPP-SOURCES += sbecmdringaccess.C
 SBEFW-CPP-SOURCES += sbescom.C
+SBEFW-CPP-SOURCES += sbecmdmpipl.C
+SBEFW-CPP-SOURCES += sbefapiutil.C
 
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =

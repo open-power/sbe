@@ -65,3 +65,6 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_npll_initf_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_chiplet_pll_initf_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_scominit_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_plat_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_hcd_core_stopclocks_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_hcd_cache_stopclocks_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_hcd_l2_stopclocks_errors.xml
