@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: import/chips/p9/procedures/ppe/pk/ppe42/ppe42_thread_init.S $
+# $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/ppe42_thread_init.S $
 #
 # OpenPOWER sbe Project
 #
@@ -49,12 +49,7 @@ __pk_thread_context_initialize(PkThread        *thread,
                                 PkThreadRoutine thread_routine, 
                                 void             *private);
 #endif
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2014
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
-        
+
 /// \cond
 
         .global_function __pk_thread_context_initialize
@@ -76,7 +71,7 @@ __pk_thread_context_initialize:
         ## the LR = pk_complete(), R3 has the private parameter.
 
         lwz     %r6, PK_THREAD_OFFSET_SAVED_STACK_POINTER(%r3)
-        
+
         stwu    %r6, -PK_CTX_SIZE(%r6)
 
         li      %r7, 0
@@ -111,9 +106,9 @@ __pk_thread_context_initialize:
 
         ## Initialize the non-volatile context on the thread stack.
 
-        _gpr_init PK_CTX_GPR, 28, 0x2828       
-        _gpr_init PK_CTX_GPR, 29, 0x2929       
-        _gpr_init PK_CTX_GPR, 30, 0x3030       
+        _gpr_init PK_CTX_GPR, 28, 0x2828
+        _gpr_init PK_CTX_GPR, 29, 0x2929
+        _gpr_init PK_CTX_GPR, 30, 0x3030
         _gpr_init PK_CTX_GPR, 31, 0x3131
 
         ## Initialize the kernel context on the thread stack.

@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/ppe42/pk_port_types.h $     */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/pk_port_types.h $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -24,11 +24,6 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef __PK_PORT_TYPES_H__
 #define __PK_PORT_TYPES_H__
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2014
-// *! All Rights Reserved --  Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
 
 /// \file pk_port_types.h
 /// \brief Type definitions required by the PK port.

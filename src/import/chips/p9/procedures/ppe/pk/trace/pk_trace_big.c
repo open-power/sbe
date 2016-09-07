@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/trace/pk_trace_big.c $      */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/trace/pk_trace_big.c $  */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,11 +22,6 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2014
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
 
 /// \file pk_trace_big.c
 /// \brief PK Trace function that supports up to four 32-bit parameters

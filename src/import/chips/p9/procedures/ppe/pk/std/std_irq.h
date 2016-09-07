@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/std/std_irq.h $             */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/std/std_irq.h $         */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -24,12 +24,6 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef __STD_IRQ_H__
 #define __STD_IRQ_H__
-
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2014
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
 
 /// \file occhw_irq.h
 /// \brief Standard PPE Externnal Interrupt handling for PK

@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/kernel/pk_debug_ptrs.h $    */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/kernel/pk_debug_ptrs.h $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -24,11 +24,6 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef __PK_DEBUG_PTRS_H__
 #define __PK_DEBUG_PTRS_H__
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2015
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
 
 /// \file pk_debug_ptrs.h
 /// \brief Structure for a table of pointers to kernel debug data

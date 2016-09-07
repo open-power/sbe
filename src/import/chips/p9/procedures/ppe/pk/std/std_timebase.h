@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/std/std_timebase.h $        */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/std/std_timebase.h $    */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -24,12 +24,6 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef __STD_TIMEBASE_H__
 #define __STD_TIMEBASE_H__
-
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2015
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
 
 /// \file std_timebase.h
 /// \brief support for using the standard PPE 32 bit timebase register
