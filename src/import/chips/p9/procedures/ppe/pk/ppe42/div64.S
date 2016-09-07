@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/ppe42/div64.S $             */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/div64.S $         */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,12 +22,7 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2014
-// *! All Rights Reserved --  Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
-                
+
 /// \file div64.S
 /// \brief Unsigned 64/64 bit division
 ///
@@ -54,7 +49,7 @@
 **      Divide 64 bit unsigned values on 32 bit CPU
 **      div64(uint64_t dividen, uint64_t divisor, 
 **            uint64_t *quotient, uint64_t *remainder)
-**      
+**
 **      Original source from:
 **      "The PowerPC Compiler Writer's Guide", pp62-65 by
 **      Steve Hoxey, Faraydon Karim, Bill Hay, Hank Warray,
@@ -184,7 +179,7 @@ lab2:
         subf    r9, r9, r10     /* (dvd.SD - dvs.SD) = right shift of dvd for */
                                 /* initial tmp */
         mtctr   r9              /* Number of iterations = dvd.SD - dvs.SD */
-        
+
         /* R7:R8 = R3:R4 >> R9 */
         cmpwi   cr0, r9, 32     /* compare R9 to 32 */
         addi    r7, r9, -32

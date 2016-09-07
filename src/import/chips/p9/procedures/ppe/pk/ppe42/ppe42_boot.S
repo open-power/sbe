@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/ppe42/ppe42_boot.S $        */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/ppe42_boot.S $    */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,19 +22,14 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2014
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
-        
+
 /// \file ppe42_boot.S
 /// \brief PK bootloader for PPE42
 
         .nolist
 #include "pk.h"
         .list
-        
+
 ### PK Bootloader for PPE42
 ###
 ### This is the basic restart initialization of the processor.  
@@ -71,19 +66,19 @@
 
         .global_function __pk_boot
         .global __reset_trap
-        
+
 __pk_boot:
-        
+
         ## Trap the reset for the debugger.  Set R0 to a non-zero value in the
         ## debugger to continue.
 
         .if     PPE42_RESET_TRAP
         li      %r0, 0
 __reset_trap:   
-        cmpwi   %r0, 0          
+        cmpwi   %r0, 0
         beq     __reset_trap
         .endif
-        
+
         ## Set up PowerPC EABI constant registers.  These registers are never
         ## again touched by the PK kernel or the application (if they are
         ## behaving).
@@ -104,12 +99,12 @@ __reset_trap:
         ## stack pointer to indicate the end of the stack chain. Stack frames
         ## always consist of at least 8 bytes - the backchain pointer and the
         ## slot above the backchain pointer for the callee's LR.
-        
+
         _liw    %r1, _PK_INITIAL_STACK
         _clrfield %r1, %r1, 3, 29 # 8-byte align
         li      %r3, 0
         stwu    %r3, -8(%r1)
-        
+
         ## SPRG0 (__PkKernelContext) is initialized to 0
         ## indicating that the PK kernel is not in thread mode, and no
         ## interrupts are active.
@@ -129,12 +124,12 @@ __reset_trap:
 
         ## The exception vector prefix is set - it must be 512 byte aligned.
         ## NOTE: for PPE42, the IVPR is read only, but can be changed through scoms
-        
+
         #_liw    %r3, __vectors
         #andi.   %r4, %r3, 0x01ff
         #beq     1f
         #_pk_panic PK_BOOT_VECTORS_NOT_ALIGNED
-#1:      
+#1:
         #mtivpr  %r3
         #sync
 
@@ -169,16 +164,16 @@ copy_loop:
         bdnz    copy_loop
 
 #endif /* PK_BOOT_FROM_ROM */
-        
+
 
         ## Call the system setup code.
-        
+
         bl      __ppe42_system_setup
-        
+
         ## Call the application. If for some reason we return from
         ## the call of the application we call an alternate entry point of the
         ## idle thread.
-        ##      
+        ##
         ## An initial argc/argv can be passed into main(). argc is expected to
         ## be a 32-bit immediate integer, and argv is expected to be a 32-bit
         ## absolute or relocatable expression. 

@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/std/std_register_addresses.h $ */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/std/std_register_addresses.h $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -24,12 +24,6 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef __STD_REGISTER_ADDRESSES_H__
 #define __STD_REGISTER_ADDRESSES_H__
-
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2015
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
 
 /// \file std_register_addresses.h
 /// \brief Symbolic addresses for a standard PPE

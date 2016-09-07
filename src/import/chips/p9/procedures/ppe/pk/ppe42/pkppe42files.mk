@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: import/chips/p9/procedures/ppe/pk/ppe42/pkppe42files.mk $
+# $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/pkppe42files.mk $
 #
 # OpenPOWER sbe Project
 #
@@ -41,7 +41,7 @@
 # Include Files
 ##########################################################################
 
-			
+
 
 ##########################################################################
 # Object Files

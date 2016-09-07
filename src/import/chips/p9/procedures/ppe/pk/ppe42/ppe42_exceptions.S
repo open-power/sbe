@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/ppe/pk/ppe42/ppe42_exceptions.S $  */
+/* $Source: src/import/chips/p9/procedures/ppe/pk/ppe42/ppe42_exceptions.S $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,12 +22,7 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-//-----------------------------------------------------------------------------
-// *! (C) Copyright International Business Machines Corp. 2014
-// *! All Rights Reserved -- Property of IBM
-// *! *** IBM Confidential ***
-//-----------------------------------------------------------------------------
-        
+
 /// \file ppe42_exceptions.S
 /// \brief PPE42 exception vector area.
 ///
@@ -136,7 +131,7 @@ __dec_interrupt:
         # 0x0120 : FIT Interrupts
         ############################################################
         .org __vectors + 0x0120
-__fit_interrupt:        
+__fit_interrupt:
 
         _pk_ctx_push_as_needed  fit_handler
 
@@ -144,7 +139,7 @@ __fit_interrupt:
         # 0x0140 : Watchdog Interrupts
         ############################################################
         .org __vectors + 0x0140
-__watchdog_interrupt:   
+__watchdog_interrupt:
 
         _pk_ctx_push_as_needed  watchdog_handler
 
@@ -168,7 +163,7 @@ __pk_idle_thread:
         ## The idle thread 'uses' the kernel stack.  Any register context
         ## pushed here is redundant and is wiped out/ignored every time the
         ## idle thread is re-scheduled. 
-        
+
         ## The idle thread simply establishes a default machine context and
         ## enters the wait-enable state.  The idle thread is always entered
         ## with interrupts disabled.  
@@ -181,13 +176,13 @@ __pk_idle_thread:
         ##
         ## This loop can also be called from the PK bootloader if main()
         ## returns - in which case we don't muck with the SPRG0 or the stack
-        ## pointer. 
-        mfsprg0 %r3         
+        ## pointer.
+        mfsprg0 %r3
         srwi    %r3, %r3, 16
         oris    %r3, %r3, (PK_THREADS << 8) | PPE42_THREAD_MODE | PPE42_DISCARD_CTX
         mtsprg0        %r3
         _lwzsd  %r1, __pk_kernel_stack
-                
+
 __pk_idle_thread_from_bootloader:
 
         PK_KERN_TRACE_ASM16("ENTER_IDLE_STATE")
@@ -206,7 +201,7 @@ pk_halt:
         .long   0
 
 
-dec_handler:            
+dec_handler:
 
         ## The portable timer handler of PK is a full-mode handler with the prototype:
         ## void (*pk_timer_handler)(void).
@@ -217,7 +212,7 @@ dec_handler:
 
         li      %r4, PPE42_IRQ_DEC
         _update_kernel_context %r4, %r3
-        
+
         _liwa   %r3, TSR_DIS
         mttsr   %r3
 
@@ -229,13 +224,13 @@ program_exception_handler:
 
         .global __pk_next_thread_resume
 __pk_next_thread_resume:
-        
+
         _lwzsd  %r3, __pk_next_thread
         _stwsd  %r3, __pk_current_thread
 
         ## Enter the wait enabled state if the thread pointer is null
         bwz     %r3, __pk_idle_thread
-        
+
         ## switch to the new thread stack 
         lwz     %r1, PK_THREAD_OFFSET_SAVED_STACK_POINTER(%r3)
 
@@ -253,13 +248,13 @@ restore_and_update_sprg0:
         b       ctx_pop
  
 fit_handler:
-        
+
         ## The FIT handler is user defined. By
         ## convention the kernel clears the interrupt by writing the FIS back
         ## into the TSR.
-        
+
         li      %r4, PPE42_IRQ_FIT
-                
+
         _update_kernel_context %r4, %r3
 
         _lwzsd  %r3, __ppe42_fit_arg
@@ -270,7 +265,7 @@ fit_handler:
         _lwzsd  %r6, __ppe42_fit_routine
         mtlr    %r6
         blrl
-        
+
         b       check_for_ext_interrupt
 
 watchdog_handler:
@@ -278,7 +273,7 @@ watchdog_handler:
         ## The kernel clears TSR[WIS] prior to calling the handler.  
 
         li      %r4, PPE42_IRQ_WATCHDOG
-        
+
         _update_kernel_context %r4, %r3
 
         _liwa   %r6, TSR_WIS
@@ -306,7 +301,7 @@ ctx_check_discard:
         mfsprg0 %r3
         bb0wi   %r3, PPE42_DISCARD_CTX_BIT, ctx_continue_push
 
-ctx_discard:        
+ctx_discard:
         ## DISCARD_CTX bit was set.  Discard stack and branch to interrupt
         ## handler code
         addi    %r1, %r1, PK_CTX_SIZE
@@ -332,7 +327,7 @@ __ctx_switch:
 
         ## ctx_continue_push expects r3 to be value of sprg0
         mfsprg0 %r3
-        
+
 ctx_continue_push:
 
         stvd    %d5,    PK_CTX_GPR5(%r1)
@@ -348,7 +343,7 @@ ctx_continue_push:
         stvd    %d7,    PK_CTX_SRR0(%r1)
         stw     %r0,    PK_CTX_GPR0(%r1)
         stw     %r3,    PK_CTX_KERNEL_CTX(%r1)
-        
+
         ## If the 'processing interrupt' bit is set then we were already
         ## using the kernel stack and don't need to modify or save the current
         ## stack pointer.
@@ -356,7 +351,7 @@ ctx_continue_push:
 
         ## load the pointer to the current thread control block
         _lwzsd  %r4, __pk_current_thread
-        
+
         ## don't save the stack pointer in the thread control block
         ## if the current thread was the idle thread (null pointer)
         bwz     %r4, switch_to_kernel_stack
@@ -368,12 +363,12 @@ ctx_continue_push:
 switch_to_kernel_stack:
         _stwsd  %r1, __pk_saved_sp
         _lwzsd  %r1, __pk_kernel_stack
-       
-ctx_push_completed:      
+
+ctx_push_completed:
         blr
 
 __get_ext_irq:   
-        
+
         ## Entry invariants:
         ## 1. external interupts are disabled;
         ## 2. previous context has ben saved off
@@ -382,7 +377,7 @@ __get_ext_irq:
 
         ## This is HW Macro specific code that is responsible for finding the
         ## IRQ # and storing it in r4 (phantom IRQ's are assigned a value of EXTERNAL_IRQS).
-        
+
         hwmacro_get_ext_irq        
 
         ## An active or phantom IRQ was found. 
@@ -405,7 +400,7 @@ call_external_irq_handler:
         lwzx    %r3, %r6, %r3
         mtlr    %r5
         blrl
-                
+
         ## Once the interrupt handler returns, check if any interrupts are
         ## waiting and handle them now.
 
@@ -446,7 +441,7 @@ process_bottom_halves:
         rlwinm  %r3, %r31, 0, 9, 1   //clear thread id + discard bit
         oris    %r3, %r3, 0x2100    //set thread id to 33
         mtsprg0 %r3                 //set bottom half context
-        
+
         ## branch to a C function that processes bottom halves
         wrteei  1
         bl      _pk_process_bh
@@ -481,7 +476,7 @@ check_for_ctx_switch:
 
         li      %r3, 0
         _stwsd  %r3, __pk_delayed_switch
-        
+
         b       __pk_next_thread_resume
 
         ## check if we should switch to the wait enabled state (idle)
@@ -521,5 +516,5 @@ ctx_pop:
         addi    %r1,    %r1, PK_CTX_SIZE
 
         rfi
-        
+
 /// \endcond
