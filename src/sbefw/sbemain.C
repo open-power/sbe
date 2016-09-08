@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -332,7 +333,7 @@ uint32_t main(int argc, char **argv)
 
         if(SbeRegAccess::theSbeRegAccess().init())
         {
-            SBE_ERROR(SBE_FUNC"Failed to initialize SbeRegAccess");
+            SBE_ERROR(SBE_FUNC"Failed to initialize SbeRegAccess.");
             // init failure could mean the below will fail too, but attempt it
             // anyway
             (void)SbeRegAccess::theSbeRegAccess().stateTransition(
