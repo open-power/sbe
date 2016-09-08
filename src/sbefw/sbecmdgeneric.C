@@ -36,6 +36,11 @@
 #include "sbe_build_info.H"
 #include "sbeFifoMsgUtils.H"
 #include "sbeFFDC.H"
+#include "sberegaccess.H"
+#include "sbestates.H"
+#include "sbeHostMsg.H"
+#include "sbeHostUtils.H"
+
 
 // Forward declaration
 sbeCapabilityRespMsg::sbeCapabilityRespMsg()
@@ -62,7 +67,8 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 
     capability[GENERIC_CHIPOP_CAPABILITY_START_IDX] =
                                 GET_SBE_FFDC_SUPPPORTED |
-                                GET_SBE_CAPABILITIES_SUPPPORTED;
+                                GET_SBE_CAPABILITIES_SUPPPORTED|
+                                SBE_QUIESCE;
 
     capability[MEMORY_CAPABILITY_START_IDX] =
                                 GET_MEMORY_SUPPPORTED |
@@ -72,6 +78,7 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 
     capability[INSTRUCTION_CTRL_CAPABILITY_START_IDX] =
                                 CONTROL_INSTRUCTIONS_SUPPPORTED;
+
     capability[REGISTER_CAPABILITY_START_IDX] =
                                 GET_REGISTER_SUPPPORTED |
                                 PUT_REGISTER_SUPPPORTED ;
@@ -169,3 +176,81 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
     return rc;
     #undef SBE_FUNC
 }
+
+//----------------------------------------------------------------------------
+uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbeFifoQuiesce"
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t len = 0;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+
+    do
+    {
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        // Set Quiesce State
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                          SBE_QUIESCE_EVENT);
+
+        rc = sbeDsSendRespHdr(respHdr);
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC "sbeDsSendRespHdr failed");
+            // Not Breaking here since we can't revert back on the set state
+        }
+    }while(0);
+
+    if( rc )
+    {
+        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
+    }
+    return rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+uint32_t sbePsuQuiesce( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbePsuQuiesce"
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    do
+    {
+        // Send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
+        // This util method will check internally on the mbox0 register if
+        // ACK is requested.
+        rc = sbeAcknowledgeHost();
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC " Failed to Sent Ack to Host over "
+                "SBE_SBE2PSU_DOORBELL_SET_BIT1");
+            break;
+        }
+
+        // Set Quiesce State
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                          SBE_QUIESCE_EVENT);
+
+        rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
+                         (uint64_t*)(&g_sbeSbe2PsuRespHdr),
+                         (sizeof(g_sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
+                         true);
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to write SBE_HOST_PSU_MBOX_REG4");
+            // Not Breaking here since we can't revert back on the set state
+        }
+    }while(0);
+
+    if( rc )
+    {
+        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
+    }
+    return rc;
+    #undef SBE_FUNC
+}
+

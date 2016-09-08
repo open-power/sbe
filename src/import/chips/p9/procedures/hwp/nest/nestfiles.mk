@@ -51,6 +51,11 @@ NEST-CPP-SOURCES +=p9_ram_core.C
 # be executed from PIBMEM. So compiling these is nest makefile.
 NEST-CPP-SOURCES +=p9_sbe_gear_switcher.C
 NEST-CPP-SOURCES +=p9_sbe_tp_switch_gears.C
+# TODO via RTC 152424
+# thread control procedure is in core directory, but this procedure needs to be
+# in PIBMEM for quiesce case, So compiling in nest makefile
+NEST-CPP-SOURCES +=p9_thread_control.C
+NEST-CPP-SOURCES +=p9_sbe_instruct_start.C
 NEST-C-SOURCES =
 NEST-S-SOURCES =
 

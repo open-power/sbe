@@ -51,6 +51,7 @@ enum sbePsuCommandClass
     SBE_PSU_CMD_CLASS_UNKNOWN       = 0,
     SBE_PSU_CMD_CLASS_CORE_STATE    = 0xD1,
     SBE_PSU_CMD_CLASS_RING_ACCESS   = 0xD3,
+    SBE_PSU_CMD_CLASS_GENERIC       = 0xD7,
  };
 
 /**
@@ -69,6 +70,15 @@ enum sbePsuRingAccessMessages
 {
     SBE_PSU_MSG_PUT_RING_FROM_IMAGE = 0x01,
     SBE_PSU_MSG_UNKNOWN             = 0xFF,
+};
+
+/**
+ * @brief enums for SBE-Host interface for generic commands
+ */
+enum sbePsuGenericMessages
+{
+    SBE_PSU_GENERIC_MSG_QUIESCE     = 0x05,
+    SBE_PSU_GENERIC_MSG_UNKNOWN     = 0xFF,
 };
 
 /**

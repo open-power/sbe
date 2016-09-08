@@ -36,7 +36,7 @@ include nestfiles.mk
 # Adding VPATH as there are few procedures which are in
 # perv folder but we are compiling them here. Refer to
 # nestfiles.mk for details.
-export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR)
+export VPATH = $(PERV_SRCDIR):$(CORE_SRCDIR):$(NEST_SRCDIR)
 OBJS := $(addprefix $(OBJDIR)/, $(NEST_OBJECTS))
 
 libnest.a: nest

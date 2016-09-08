@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/test/testcases/testGetCapabilities.py $
+# $Source: src/test/testcases/testQuiesce.py $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,29 +27,9 @@ import testUtil
 err = False
 
 TESTDATA = [0,0,0,2,
-            0,0,0xA8,0x02 ]
+            0,0,0xA8,0x06 ]
 
-EXPDATA1 = [0x0,0x0,0x0,0x0,
-           0x0,0x0,0x0,0x0,
-           0xa1,0x0,0x0,0x01, # istep
-           0x0,0x0,0x0,0x0,
-           0xa2,0x0,0x0,0x0f, #getscom/putscom/modifyscom/putscomundermask
-           0x0,0x0,0x0,0x0,
-           0xa3,0x0,0x0,0x1,  #getring
-           0x00,0x0,0x0,0x0];
-
-EXPDATA2 = [0xa4,0x0,0x0,0x0f, #GetMemPba/PutMemPba/GetSramOcc/PutSramOcc
-           0x0,0x0,0x0,0x0,
-           0xa5,0x0,0x0,0x03, #GetReg/PutReg
-           0x0,0x0,0x0,0x0,
-           0x0,0x0,0x0,0x0,
-           0x0,0x0,0x0,0x0,
-           0xa7,0x0,0x0,0x1, #  control Instruction
-           0x00,0x0,0x0,0x0];
-
-EXPDATA3 = [0xa8,0x0,0x0,0x13, #getcapability/getSbeFFDC/quiesce
-           0x0,0x0,0x0,0x0,
-           0xc0,0xde,0xa8,0x02,
+EXPDATA = [0xc0,0xde,0xa8,0x06,
            0x0,0x0,0x0,0x0,
            0x00,0x0,0x0,0x3];
 
@@ -61,12 +40,7 @@ def main( ):
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( TESTDATA )
     testUtil.writeEot( )
-    # Ignore first two enteries ( major number, minor number
-    # and fw version) as they will keep on changing
-    testUtil.readDsEntry( 2 )
-    testUtil.readDsFifo( EXPDATA1 )
-    testUtil.readDsFifo( EXPDATA2 )
-    testUtil.readDsFifo( EXPDATA3 )
+    testUtil.readDsFifo( EXPDATA )
     testUtil.readEot( )
 
 #-------------------------------------------------

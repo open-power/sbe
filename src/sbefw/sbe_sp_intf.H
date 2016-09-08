@@ -161,6 +161,7 @@ enum sbeGenericMessageCommands
     SBE_CMD_GET_SBE_CAPABILITIES  = 0x02, /* GET SBE capabilities */
     SBE_CMD_GET_FREQ_SUPPORTED    = 0x03, /* Get Supported frequencies */
     SBE_CMD_ABORT                 = 0x05, /* Sbe Abort */
+    SBE_CMD_QUIESCE               = 0x06, /* Sbe Quiesce */
 };
 
 enum sbeMpIplCommands
@@ -263,7 +264,7 @@ enum
     GET_SRAM_OCC_SUPPPORTED             = 0xA4000004,
     PUT_SRAM_OCC_SUPPPORTED             = 0xA4000008,
     GET_SRAM_CME_SUPPPORTED             = 0xA4000010,
-    PUT_SRAM_CME_SUPPPORTED             = 0xA4000011,
+    PUT_SRAM_CME_SUPPPORTED             = 0xA4000020,
     GET_REGISTER_SUPPPORTED             = 0xA5000001,
     PUT_REGISTER_SUPPPORTED             = 0xA5000002,
     READ_FAST_ARRAY_SUPPPORTED          = 0xA6000001,
@@ -274,6 +275,7 @@ enum
     GET_SBE_CAPABILITIES_SUPPPORTED     = 0xA8000002,
     GET_SBE_FREQUENCIES_SUPPPORTED      = 0xA8000004,
     GET_SBE_STATE_SUPPPORTED            = 0xA8000008,
+    SBE_QUIESCE                         = 0xA8000010,
 };
 
 /**

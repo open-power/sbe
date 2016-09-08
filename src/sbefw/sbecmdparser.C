@@ -49,8 +49,7 @@
 
 // Declaration
 static const uint16_t HARDWARE_FENCED_STATE =
-     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE|
-     SBE_FENCE_AT_DMT;
+     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
 
 static const uint16_t PUT_HARDWARE_FENCED_STATE =
      HARDWARE_FENCED_STATE|SBE_FENCE_AT_MPIPL;
@@ -62,23 +61,23 @@ static sbeCmdStruct_t g_sbeScomCmdArray [] =
 {
     {sbeGetScom,
      SBE_CMD_GETSCOM,
-     HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT,
     },
     {sbePutScom,
      SBE_CMD_PUTSCOM,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT,
     },
     {sbeModifyScom,
      SBE_CMD_MODIFYSCOM,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT,
     },
     {sbePutScomUnderMask,
      SBE_CMD_PUTSCOM_MASK,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT,
     },
     {sbeMultiScom,
      SBE_CMD_MULTISCOM,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT,
     },
 };
 
@@ -91,7 +90,7 @@ static sbeCmdStruct_t g_sbeIplControlCmdArray [] =
     {sbeHandleIstep,
      SBE_CMD_EXECUTE_ISTEP,
      PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_RUNTIME|
-     SBE_FENCE_AT_DUMPING,
+     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_QUIESCE,
      // This is allowed in FFDC Collect state
      // TODO - Issue 157287 - Allow MPIIPL in Isteps state
     },
@@ -99,7 +98,8 @@ static sbeCmdStruct_t g_sbeIplControlCmdArray [] =
     {sbeContinueBoot,
      SBE_CMD_CONTINUE_BOOT,
      PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_RUNTIME|
-     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ISTEP,
+     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_QUIESCE,
      // This is allowed only in FFDC Collect State in PLCK mode
     },
 };
@@ -112,7 +112,7 @@ static sbeCmdStruct_t g_sbeGenericCmdArray [] =
 {
     {sbeGetCapabilities,
      SBE_CMD_GET_SBE_CAPABILITIES,
-     SBE_STATE_FFDC_COLLECT,
+     SBE_FENCE_AT_FFDC_COLLECT,
      // Fence in FFDC Collect State, since it might over-write traces
     },
 
@@ -120,6 +120,11 @@ static sbeCmdStruct_t g_sbeGenericCmdArray [] =
       SBE_CMD_GET_SBE_FFDC,
       SBE_NO_FENCE,
      },
+
+    {sbeFifoQuiesce,
+     SBE_CMD_QUIESCE,
+     SBE_NO_FENCE,
+    },
 };
 
 //////////////////////////////////////////////////////////////
@@ -130,22 +135,24 @@ static sbeCmdStruct_t g_sbeMemoryAccessCmdArray [] =
 {
     {sbeGetMem,
      SBE_CMD_GETMEM,
-     HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT,
     },
 
     {sbePutMem,
      SBE_CMD_PUTMEM,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT,
     },
 
     {sbeGetOccSram,
      SBE_CMD_GETSRAM_OCC,
-     HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT|
+     SBE_FENCE_AT_QUIESCE,
     },
 
     {sbePutOccSram,
      SBE_CMD_PUTSRAM_OCC,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT|
+     SBE_FENCE_AT_QUIESCE,
     },
 };
 
@@ -157,7 +164,7 @@ static sbeCmdStruct_t g_sbeInstructionCntlCmdArray[] =
 {
     {sbeCntlInst,
      SBE_CMD_CONTROL_INSTRUCTIONS,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT,
     },
 };
 
@@ -169,12 +176,14 @@ static sbeCmdStruct_t g_sbeRegAccessCmdArray [] =
 {
     {sbeGetReg,
      SBE_CMD_GETREG,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT|
+     SBE_FENCE_AT_QUIESCE,
     },
 
     {sbePutReg,
      SBE_CMD_PUTREG,
-     PUT_HARDWARE_FENCED_STATE|SBE_STATE_FFDC_COLLECT,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_FFDC_COLLECT|
+     SBE_FENCE_AT_QUIESCE,
     },
 };
 
@@ -187,7 +196,8 @@ static sbeCmdStruct_t g_sbeMpiplCmdArray[] =
     {sbeEnterMpipl,
      SBE_CMD_MPIPL_ENTER,
      PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
-     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ABORT,
+     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ABORT|
+     SBE_FENCE_AT_QUIESCE,
      // Allow Fspless system to enter MPIPL
      // Honour MPIPL at FFDC Collect state
      // Issue 157287
@@ -197,7 +207,8 @@ static sbeCmdStruct_t g_sbeMpiplCmdArray[] =
      SBE_CMD_MPIPL_CONTINUE,
      HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
      SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_DUMPING|
-     SBE_FENCE_AT_ABORT|SBE_FENCE_AT_FFDC_COLLECT,
+     SBE_FENCE_AT_ABORT|SBE_FENCE_AT_FFDC_COLLECT|
+     SBE_FENCE_AT_QUIESCE,
      // Only allowed State is MPIPL
     },
 };
@@ -210,7 +221,7 @@ static sbeCmdStruct_t g_sbeRingAccessCmdArray [] =
 {
     {sbeGetRing,
      SBE_CMD_GETRING,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE,
     },
 };
 
@@ -225,7 +236,7 @@ static sbeCmdStruct_t g_sbeCoreStateControlCmdArray [] =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE|
      SBE_FENCE_AT_MPIPL|SBE_FENCE_AT_ISTEP|
      SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_ABORT|
-     SBE_FENCE_AT_FFDC_COLLECT,
+     SBE_FENCE_AT_FFDC_COLLECT|SBE_FENCE_AT_QUIESCE,
     },
 };
 
@@ -237,10 +248,21 @@ static sbeCmdStruct_t g_sbePutRingFromImageCmdArray [] =
 {
     {sbePutRingFromImagePSU,
      SBE_PSU_MSG_PUT_RING_FROM_IMAGE,
-     SBE_FENCE_AT_CONTINUOUS_IPL,
+     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE,
     },
 };
 
+//////////////////////////////////////////////////////////////
+// @brief g_sbePsuGenericCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbePsuGenericCmdArray[] =
+{
+    {sbePsuQuiesce,
+     SBE_PSU_GENERIC_MSG_QUIESCE,
+     SBE_NO_FENCE,
+    },
+};
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -313,6 +335,12 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             l_numCmds = sizeof(g_sbePutRingFromImageCmdArray) /
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbePutRingFromImageCmdArray;
+            break;
+
+        case  SBE_PSU_CMD_CLASS_GENERIC:
+            l_numCmds = sizeof(g_sbePsuGenericCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbePsuGenericCmdArray;
             break;
 
         // This will grow with each class of chipOp in future
@@ -392,13 +420,18 @@ bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
 
             switch(l_state)
             {
-                case SBE_STATE_QUIESCE:
                 case SBE_STATE_UNKNOWN:
                 case SBE_STATE_FAILURE:
                     // All operations are fenced here, return false
                     // Reset is the only Option available
                     break;
 
+                case SBE_STATE_QUIESCE:
+                {
+                    l_ret = ((l_pCmd->cmd_state_fence &
+                             SBE_FENCE_AT_QUIESCE)? false:true);
+                    break;
+                }
                 case SBE_STATE_FFDC_COLLECT:
                 {
                     l_ret = ((l_pCmd->cmd_state_fence &

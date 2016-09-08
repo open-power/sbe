@@ -44,8 +44,11 @@ CORE-CPP-SOURCES += p9_hcd_core_runinit.C
 CORE-CPP-SOURCES += p9_hcd_core_scomcust.C
 CORE-CPP-SOURCES += p9_hcd_core_scominit.C
 CORE-CPP-SOURCES += p9_hcd_core_startclocks.C
-CORE-CPP-SOURCES += p9_thread_control.C
-CORE-CPP-SOURCES += p9_sbe_instruct_start.C
+# TODO via RTC 152424
+# thread control procedure is in core directory, but this procedure needs to be
+# in PIBMEM for quiesce case, So compiling in nest makefile
+#CORE-CPP-SOURCES += p9_thread_control.C
+#CORE-CPP-SOURCES += p9_sbe_instruct_start.C
 
 CORE-C-SOURCES   +=
 CORE-S-SOURCES   +=
