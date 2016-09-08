@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -245,7 +246,7 @@ uint32_t constructAduFlag(const sbeMemAccessReqMsgHdr_t & i_hdr,
               (SBE_ADU_LOCK_TRIES << ADU_LOCK_TRIES_SHIFT) );
                     // 4-bit Lock Tries at 19-18-17-16 bits
 
-    SBE_INFO(SBE_FUNC "Cache[%d] Itag[%d] AutoIncr[%d] FastMode[%d] ",
+    SBE_INFO(SBE_FUNC " Cache[%d] Itag[%d] AutoIncr[%d] FastMode[%d].",
         l_isCacheInhibitMode,l_isItagBit,l_isAutoIncr,l_isFastMode);
     SBE_INFO(SBE_FUNC "EccRequiredMode[%d] EccOverrideMode[%d] EccOverrideByte"
         "[0x%02X] AduSetupFlag[0x%04X]",l_isEccRequiredMode,l_isEccOverrideMode,
@@ -383,7 +384,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             // if p9_pba_access returns error
             if( l_fapiRc != FAPI2_RC_SUCCESS )
             {
-                SBE_ERROR(SBE_FUNC" p9_pba_access Failed");
+                SBE_ERROR(SBE_FUNC" p9_pba_access Failed.");
                 // Respond with HWP FFDC
                 l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                  SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );

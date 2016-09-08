@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -78,7 +79,7 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         // If the indirect scom bit is 0, then doing a regular scom
         if( (i_addr & DIRECT_SCOM_ADDR_MASK) == 0)
         {
-            SBE_INFO(SBE_FUNC "Performing Direct scom");
+            SBE_INFO(SBE_FUNC "Performing Direct scom.");
             if( i_isRead )
             {
                 o_pcbPibStatus = getscom_abs ( (uint32_t)i_addr,
@@ -183,7 +184,7 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         if( o_pcbPibStatus ) break;
         if( ! scomout.done)
         {
-            SBE_ERROR(SBE_FUNC "Indirect scom timeout");
+            SBE_ERROR(SBE_FUNC "Indirect scom timeout.");
             l_rc = SBE_SEC_HW_OP_TIMEOUT;
             break;
         }
