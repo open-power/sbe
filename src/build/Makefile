@@ -30,9 +30,6 @@ include img_defs.mk
 include $(BOOT_SRCDIR)/bootfiles.mk
 include $(BUILDDATA_SRCDIR)/utils.mk
 
-#Pull in object file names for the top directory
-include topfiles.mk
-
 SUBDIRS := $(PK_SRCDIR)/$(PPE_TYPE)
 LIB_DIRS += -L$(OBJDIR)/pk
 PKLIB := $(OBJDIR)/pk/libpk.a
@@ -238,10 +235,9 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 	mkdir -p $(IMG_DIR)
 	mkdir -p $(OBJDIR)/genfiles
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(PLAT_FAPI2_DIR)/include --src $(PLAT_FAPI2_DIR)/src
-	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PLAT_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 topfixedheaders:
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
@@ -250,12 +246,7 @@ attrids:
 	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 platattr:
-	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(PLAT_FAPI2_DIR)/include --src $(PLAT_FAPI2_DIR)/src
-
-attrserv:
-	$(TOOLS_ATTR_DIR)/ppeCreateIfAttrService.pl $(PLAT_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
-
-
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 # Build the subdirectories
 $(SUBDIRS):
@@ -290,7 +281,7 @@ ppe_trace_bin:
 xml: $(FAPI_RC)
 
 $(FAPI_RC): $(TOOLS_ATTR_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
-	$(TOOLS_ATTR_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=. $(ERROR_XML_FILES)
+	$(TOOLS_ATTR_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=$(GENFILES_DIR) $(ERROR_XML_FILES)
 
 $(IMG_DIR)/fixed.bin: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(IMG_DIR)/fixed.bin
@@ -308,11 +299,6 @@ tracehash:
 clean:
 	rm -fr $(OBJDIR)
 	rm -fr $(IMG_DIR)
-	rm -f $(TOP-FIXED-HEADERS)
-	rm -f collect_reg_ffdc.H hwp_return_codes.H hwp_error_info.H hwp_ffdc_classes.H collect_reg_ffdc.C set_sbe_error.H sbe_build_info.H
-	rm -f $(GEN-CREATEATTRGETSETMACROS)
-	rm -f $(GEN-PARSEATTRIBUTEINFO)
-	rm -f $(GEN-CREATEIFATTRSERVICE)
 
 #Add dependencies to header files
 ifneq ($(MAKECMDGOALS),clean)
