@@ -283,9 +283,14 @@ popcount64(uint64_t x)
 // Application-overrideable definitions
 
 /// The default thread machine context has
-//  MSR[CE], MSR[EE] MSR[ME] MSR[IS0] MSR[IS1] MSR[IS2] set.
-//  MSR[IPE] is set if USE_PPE_IMPRECISE_MODE is defined.
-/// and all other MSR bits cleared.
+///  MSR[CE], MSR[EE] MSR[ME] MSR[IS0] MSR[IS1] MSR[IS2] set.
+///  MSR[IPE] is set if USE_PPE_IMPRECISE_MODE is defined.
+///  and all other MSR bits cleared.
+///
+///  MSR[IS0] = Data Cache Populate
+///  MSR[IS1] = Store Gathering
+///  MSR[IS2] = Instruction Cache Prefetch
+///  MSR[IS3] = Reserved
 ///
 /// The default definition allows external and machine check exceptions.  This
 /// definition can be overriden by the application.
