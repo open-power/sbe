@@ -24,31 +24,149 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 #include <fapi2.H>
+#include "hw_access.H"
 #include "plat_hw_access.H"
 #include "p9_perv_scom_addresses.H"
+#include <p9_putRingUtils.H>
 
 namespace fapi2
 {
 
-    ReturnCode getRing_setup(const uint32_t i_ringAddress,
+struct restoreOpcgRegisters g_opcgData;
+
+uint64_t decodeScanRegionData(const uint32_t i_ringAddress)
+{
+    uint32_t l_scan_region = (i_ringAddress & 0x0000FFF0) << 13;
+
+    uint32_t l_scan_type = 0x00008000 >> (i_ringAddress & 0x0000000F);
+
+    // This is special case if encoded type is 0xF
+    
+    if ( (i_ringAddress & 0x0000000F) == 0xF)
+    {
+        l_scan_type = 0x00008000 | (l_scan_type << 12);
+    }
+    uint64_t l_value = l_scan_region;
+    l_value = (l_value << 32) |  l_scan_type;
+    
+    return l_value;
+}
+
+ReturnCode getRing_setup(const uint32_t i_ringAddress,
                              const RingMode i_ringMode)
-    {
-        return FAPI2_RC_SUCCESS;
-    }
+{
+    fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    uint64_t l_scanRegion = 0;
+    uint32_t l_chipletId = i_ringAddress >> 24;
 
-    ReturnCode getRing_granule_data(const uint32_t i_ringAddress,
-                                    uint64_t *o_data,
-                                    const uint32_t i_bitShiftValue)
+    Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc = plat_getChipTarget();
+
+    do
     {
-        return FAPI2_RC_SUCCESS;
-    }
+        l_scanRegion = decodeScanRegionData(i_ringAddress);
+
+        if (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL)
+        {
+            l_rc =  storeOPCGRegData (l_proc, g_opcgData, l_chipletId);
+            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+
+            l_rc = setupScanRegionForSetPulse(l_proc, l_scanRegion, 
+                                        i_ringMode,l_chipletId);
+            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+        }
+        else
+        {
+            // Set up the scan region for the ring.
+            l_rc = setupScanRegion(l_proc, l_scanRegion, l_chipletId);
+            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+        }
+        // Write a 64 bit value for header.
+        const uint64_t l_header = 0xa5a5a5a5a5a5a5a5;
+        uint32_t l_scomAddress = 0x0003E000 |  (i_ringAddress & 0xFF000000);
+        l_rc = fapi2::putScom(l_proc, l_scomAddress, l_header);
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            break;
+        }
+
+    }while(0);
+
+    return l_rc;
+}
+
+ReturnCode getRing_granule_data(const uint32_t i_ringAddress,
+                                uint64_t *o_data,
+                                const uint32_t i_bitShiftValue)
+{
+    fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    uint32_t l_chipletId = i_ringAddress & 0xFF000000;
+
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc;
+
+    uint32_t l_scomAddress = 0x00039000 | i_bitShiftValue;
+    l_scomAddress |= l_chipletId;
+
+    do
+    {
+        fapi2::buffer<uint64_t> l_ringData;
+        l_rc = fapi2::getScom(l_proc, l_scomAddress, l_ringData);
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            break;
+        }
+        *o_data = l_ringData;
+    } while(0);
+
+    return l_rc;
+}
 
 
-    ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
-                                        const RingMode i_ringMode)
+ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
+                                    const RingMode i_ringMode)
+{
+    fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    uint32_t l_chipletId = i_ringAddress >> 24;
+
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc;
+
+    do
     {
-        return FAPI2_RC_SUCCESS;
-    }
+        // Verify header
+        uint64_t l_header = 0xa5a5a5a5a5a5a5a5;
+        l_rc = verifyHeader(l_proc, l_header, l_chipletId,i_ringMode);
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            break;
+        }
+
+        l_rc = cleanScanRegionandTypeData(l_proc, l_chipletId);
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            break;
+        }
+
+        if (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL)
+        {
+            l_rc =  restoreOPCGRegData(l_proc, g_opcgData, l_chipletId);
+            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+        }
+        
+    }while(0);
+
+    return l_rc;
+}
 
     uint32_t getscom_abs_wrap(const uint32_t i_addr, uint64_t *o_data)
     {
