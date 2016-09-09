@@ -33,33 +33,14 @@ LOOP_COUNT = 1
 #aligned Data
 GETRING_TESTDATA =  [0,0,0,0x6,
                      0,0,0xA3,0x01,
-                     0xa,0xa,0xa,0xa,      # address
-                     0,0,0,0x40,           # length of data
+                     0x20,0x03,0x70,0x01,      # address
+                     0,0,0x4D,0xF1,           # length of data in bits
                      0x00,0x00,0x00,0x01]
 
-GETRING_EXPDATA =   [0,0,0,0,     #data
-                     0,0,0,0,     #data
-                     0,0,0,0x40,  # length of data
+GETRING_EXPDATA =   [0,0,0x4D,0xF1,  # length of data in bits
                      0xc0,0xde,0xa3,0x01,
                      0x0,0x0,0x0,0x0,
                      0x00,0x0,0x0,0x03];
-
-#Un-aligned Data
-GETRING_TESTDATA1 =  [0,0,0,0x6,
-                     0,0,0xA3,0x01,
-                     0xa,0xa,0xa,0xa,      # address
-                     0,0,0,0x45,           # length of data
-                     0x00,0x00,0x00,0x01]
-
-GETRING_EXPDATA1 =   [0,0,0,0,    #data
-                     0,0,0,0,     #data
-                     0,0,0,0,     #data
-                     0,0,0,0,     #data
-                     0,0,0,0x45,  # length of data
-                     0xc0,0xde,0xa3,0x01,
-                     0x0,0x0,0x0,0x0,
-                     0x00,0x0,0x0,0x03];
-
 
 
 # MAIN Test Run Starts Here...
@@ -70,15 +51,8 @@ def main( ):
     # GetRing test - Aligned Data
     testUtil.writeUsFifo( GETRING_TESTDATA )
     testUtil.writeEot( )
+    testUtil.readDsEntry ( 624 )  ## 6242 entries
     testUtil.readDsFifo( GETRING_EXPDATA )
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
-
-    # GetRing test - un-aligned Data
-    testUtil.runCycles( 10000000 )
-    testUtil.writeUsFifo( GETRING_TESTDATA1 )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( GETRING_EXPDATA1 )
     testUtil.runCycles( 10000000 )
     testUtil.readEot( )
 
