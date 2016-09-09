@@ -71,7 +71,7 @@ fapi2::ReturnCode p9_common_stopclocks_cplt_ctrl_action_function(
     (l_attr_pg.getBit<19>());  //CPLT_CTRL1.TC_VITL_REGION_FENCE = l_attr_pg.getBit<19>()
     //CPLT_CTRL1.TC_ALL_REGIONS_FENCE = l_cplt_ctrl_init
     l_data64.insertFromRight<4, 11>(l_cplt_ctrl_init);
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_OR, l_data64));
 
     FAPI_DBG("set abistclk_muxsel and syncclk_muxsel");
     //Setting CPLT_CTRL0 register value

@@ -98,10 +98,10 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
 
     FAPI_INF("p9_stopclocks : Entering ...");
 
-    FAPI_DBG("p9_stopclocks : Input arguments recieved are \n\t i_stop_nest_clks = %s\n\t i_stop_mc_clks = %s\n\t i_stop_xbus_clks = %s\n\t i_stop_obus_clks = %s\n\t i_stop_pcie_clks = %s\n\t i_stop_tp_clks = %s\n\t i_stop_vitl_clks =  %s\n",
+    FAPI_DBG("p9_stopclocks : Input arguments received are \n\t i_stop_nest_clks = %s\n\t i_stop_mc_clks = %s\n\t i_stop_xbus_clks = %s\n\t i_stop_obus_clks = %s\n\t i_stop_pcie_clks = %s\n\t i_stop_tp_clks = %s\n\t i_stop_vitl_clks =  %s\n",
              btos(i_stop_nest_clks), btos(i_stop_mc_clks), btos(i_stop_xbus_clks), btos(i_stop_obus_clks), btos(i_stop_pcie_clks),
              btos(i_stop_tp_clks), btos(i_stop_vitl_clks));
-    FAPI_DBG("p9_stopclocks : Input CACHE arguments recieved are \n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
+    FAPI_DBG("p9_stopclocks : Input CACHE arguments received are \n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
              (uint64_t)i_eq_clk_regions, (uint64_t)i_ex_select);
 
     FAPI_DBG("p9_stopclocks : Check to see if the Perv Vital clocks are OFF");
