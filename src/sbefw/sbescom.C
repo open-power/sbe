@@ -26,8 +26,9 @@
 #include <stdint.h>
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
-#include "ppe42_scom.h"
+#include "plat_hw_access.H"
 
+using namespace fapi2;
 /**
  * @brief Indirect SCOM Status
  */
@@ -82,12 +83,12 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
             SBE_INFO(SBE_FUNC "Performing Direct scom.");
             if( i_isRead )
             {
-                o_pcbPibStatus = getscom_abs ( (uint32_t)i_addr,
+                o_pcbPibStatus = getscom_abs_wrap ( (uint32_t)i_addr,
                                               & io_data);
             }
             else
             {
-                o_pcbPibStatus = putscom_abs ( (uint32_t)i_addr,
+                o_pcbPibStatus = putscom_abs_wrap ( (uint32_t)i_addr,
                                               io_data);
             }
             break;
@@ -144,7 +145,7 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
 
         // perform write before the read with the new
         // IO_buffer with the imbedded indirect scom addr.
-        o_pcbPibStatus = putscom_abs ( tempAddr, tempBuffer);
+        o_pcbPibStatus = putscom_abs_wrap ( tempAddr, tempBuffer);
 
         if( ( o_pcbPibStatus ) || ( scomType == SBE_SCOM_TYPE_INDIRECT_2 ))
         {
@@ -158,7 +159,7 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         {
             // Now perform the op requested using the passed in
             // IO_Buffer to pass the read data back to caller.
-            o_pcbPibStatus = getscom_abs ( tempAddr, &(scomout.data64));
+            o_pcbPibStatus = getscom_abs_wrap ( tempAddr, &(scomout.data64));
 
             if( o_pcbPibStatus ) break;
             // if bit 32 is on indicating a complete bit
