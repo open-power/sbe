@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -35,6 +36,7 @@
 #include "sbescom.H"
 #include "sbeutil.H"
 #include "sbeFifoMsgUtils.H"
+#include "plat_hw_access.H"
 
 
 //////////////////////////////////////////////////////
@@ -67,7 +69,7 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
         }
 
         uint32_t l_sbeDownFifoRespBuf[6] = {0};
-        uint32_t l_pcbpibStatus = SBE_PCB_PIB_ERROR_NONE;
+        uint32_t l_pcbpibStatus = PIB_NO_ERROR;
         uint32_t l_len2enqueue  = 0;
         uint32_t l_index = 0;
 
@@ -168,7 +170,7 @@ uint32_t sbePutScom (uint8_t *i_pArg)
 
         uint64_t l_scomData = 0;
         uint32_t l_sbeDownFifoRespBuf[4] = {0};
-        uint32_t l_pcbpibStatus = SBE_PCB_PIB_ERROR_NONE;
+        uint32_t l_pcbpibStatus = PIB_NO_ERROR;
         uint32_t l_len2enqueue  = 0;
         // successfully dequeued two entries for
         // scom address followed by the EOT entry
@@ -265,7 +267,7 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
         }
 
         uint32_t l_sbeDownFifoRespBuf[4] = {0};
-        uint32_t l_pcbpibStatus = SBE_PCB_PIB_ERROR_NONE;
+        uint32_t l_pcbpibStatus = PIB_NO_ERROR;
         uint32_t  l_len2enqueue  = 0;
 
         // Modifying Data
@@ -407,7 +409,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
         }
 
         uint32_t l_sbeDownFifoRespBuf[4] = {0};
-        uint32_t l_pcbpibStatus = SBE_PCB_PIB_ERROR_NONE;
+        uint32_t l_pcbpibStatus = PIB_NO_ERROR;
         uint32_t  l_len2enqueue  = 0;
 
         SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X],"

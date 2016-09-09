@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -216,22 +217,6 @@ enum sbeCmdRespTimeout
 {
     SBE_CMD_TIMEOUT_SHORT_IN_MSEC = 100,
     SBE_CMD_TIMEOUT_LONG_IN_MSEC  = 30000,
-};
-
-/**
- * @brief enums for PCB-PIB Generic Error codes
- *
-*/
-enum sbePCBPIBErrorRC
-{
-    SBE_PCB_PIB_ERROR_NONE                = 0x00,
-    SBE_PCB_PIB_ERROR_RESOURCE_OCCUPIED   = 0x01,
-    SBE_PCB_PIB_ERROR_CHIPLET_OFFLINE     = 0x02,
-    SBE_PCB_PIB_ERROR_PARTIAL_GOOD        = 0x03,
-    SBE_PCB_PIB_ERROR_ADDRESS_ERROR       = 0x04,
-    SBE_PCB_PIB_ERROR_CLOCK_ERROR         = 0x05,
-    SBE_PCB_PIB_ERROR_PACKET_ERROR        = 0x06,
-    SBE_PCB_PIB_ERROR_TIMEOUT             = 0x07,
 };
 
 /**

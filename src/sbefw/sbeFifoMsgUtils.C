@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -33,6 +34,7 @@
 #include "sbe_sp_intf.H"
 #include "sbeFifoMsgUtils.H"
 #include "sbeerrorcodes.H"
+#include "plat_hw_access.H"
 #include "assert.h"
 #include "sbeFFDC.H"
 #include "hwp_error_info.H"
@@ -267,7 +269,7 @@ void sbeBuildMinRespHdr ( uint32_t  *io_pBuf,
         // Pcb-Pib error is optional,
         // not needed for success case
         if ( (i_primStatus  != SBE_PRI_OPERATION_SUCCESSFUL) ||
-             (i_pcbpibStatus != SBE_PCB_PIB_ERROR_NONE) )
+             (i_pcbpibStatus != PIB_NO_ERROR) )
         {
             io_pBuf[++io_curIndex]    = i_pcbpibStatus;
         }

@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -37,6 +38,7 @@
 #include "sbestates.H"
 #include "sbe_sp_intf.H"
 #include "fapi2.H"
+#include "plat_hw_access.H"
 #include "p9_sbe_check_master_stop15.H"
 #include "p9_perv_scom_addresses.H"
 #include "p9_block_wakeup_intr.H"
@@ -65,9 +67,10 @@ void sbeDmtPkExpiryCallback(void *)
                                             SBE_DUMP_FAILURE_EVENT);
 
     // check stop the system
-    uint32_t l_status = SBE_PCB_PIB_ERROR_NONE;
-    l_status = putscom_abs (PERV_N3_LOCAL_FIR_OR, N3_FIR_CORE_CHECKSTOP_BIT);
-    if(SBE_PCB_PIB_ERROR_NONE != l_status)
+    uint32_t l_status = PIB_NO_ERROR;
+    l_status = putscom_abs_wrap(PERV_N3_LOCAL_FIR_OR,
+                                N3_FIR_CORE_CHECKSTOP_BIT);
+    if(PIB_NO_ERROR != l_status)
     {
         // Scom failed
         SBE_ERROR(SBE_FUNC "PutScom failed for REG PERV_N3_LOCAL_FIR");
