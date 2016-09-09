@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/cache/p9_hcd_cache_initf.C $   */
+/* $Source: src/import/chips/p9/procedures/hwp/cache/p9_hcd_cache_initf.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -59,6 +59,14 @@ p9_hcd_cache_initf(
 {
     FAPI_INF(">>p9_hcd_cache_initf");
 
+#ifndef __PPE__
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+    uint8_t l_attr_system_ipl_phase;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
+                           l_attr_system_ipl_phase));
+#endif
+
     FAPI_DBG("Scan eq_fure ring");
     FAPI_TRY(fapi2::putRing(i_target, eq_fure),
              "Error from putRing (eq_fure)");
@@ -77,9 +85,24 @@ p9_hcd_cache_initf(
         FAPI_DBG("Scan ex_l3_fure ring");
         FAPI_TRY(fapi2::putRing(l_ex_target, ex_l3_fure),
                  "Error from putRing (ex_l3_fure)");
-        FAPI_DBG("Scan ex_l3_refr_fure ring");
-        FAPI_TRY(fapi2::putRing(l_ex_target, ex_l3_refr_fure),
-                 "Error from putRing (ex_l3_refr_fure)");
+
+#ifndef __PPE__
+
+        if (l_attr_system_ipl_phase ==
+            fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
+        {
+            FAPI_DBG("Cache contained: Skipping ex_l3_refr ring scan");
+        }
+        else
+        {
+#endif
+            FAPI_DBG("Scan ex_l3_refr_fure ring");
+            FAPI_TRY(fapi2::putRing(l_ex_target, ex_l3_refr_fure),
+                     "Error from putRing (ex_l3_refr_fure)");
+#ifndef __PPE__
+        }
+
+#endif
     }
 
 fapi_try_exit:

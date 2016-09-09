@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/perv/p9_sbe_chiplet_reset.C $  */
+/* $Source: src/import/chips/p9/procedures/hwp/perv/p9_sbe_chiplet_reset.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -144,30 +144,14 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     fapi2::buffer<uint8_t> l_attr_vitl_setup;
     fapi2::buffer<uint8_t> l_attr_hang_cnt6_setup;
     fapi2::TargetState l_target_state = fapi2::TARGET_STATE_FUNCTIONAL;
+#ifndef __PPE__
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+    uint8_t l_attr_system_ipl_phase;
+#endif
+
     FAPI_INF("p9_sbe_chiplet_reset: Entering ...");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_VITL_CLK_SETUP, i_target_chip,
-                           l_attr_vitl_setup));
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
-                                           fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
-                                           fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        // Configuring chiplet multicasting registers.
-        FAPI_DBG("Configuring multicasting registers for Nest,Xb,Obus,pcie chiplets" );
-        FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
-                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Configuring multicast registers for MC01,MC23");
-        FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
-                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0,
-                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP2));
-    }
+//Always setup cache/cores, but do not do other setup if not PPE and cache_contained mode.
 
     for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_CACHES, fapi2::TARGET_STATE_FUNCTIONAL))
@@ -188,118 +172,119 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                                p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP3));
     }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
-                                           fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-          fapi2::TARGET_STATE_FUNCTIONAL))
+#ifndef __PPE__
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
+                           l_attr_system_ipl_phase));
+
+    if (l_attr_system_ipl_phase !=
+        fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED) //Skip for cache contained.
     {
-        // Configuring NET control registers into Default required value
-        FAPI_DBG("Restore NET_CTRL0&1 init value - for all chiplets except TP");
-        FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(l_target_cplt));
-    }
+#endif
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        // Setting up hang pulse counter for register 0 and register 6
-        FAPI_DBG("Setup hang pulse counter for Mc");
-        FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
-                 p9SbeChipletReset::HANG_PULSE_0X10, 0xff, 0xff, 0xff, 0xff, 0xff,
-                 p9SbeChipletReset::HANG_PULSE_0X08));
-    }
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_VITL_CLK_SETUP, i_target_chip,
+                               l_attr_vitl_setup));
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        // Setting up hang pulse counter for register 0 and register 6
-        FAPI_DBG("Setup hang pulse counter for Pcie - increase in hang_pulse value");
-        FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
-                 p9SbeChipletReset::HANG_PULSE_0X10, 0xff, 0xff, 0xff, 0xff, 0xff,
-                 p9SbeChipletReset::HANG_PULSE_0X08));
-    }
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
+                                               fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
+                                               fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Configuring chiplet multicasting registers.
+            FAPI_DBG("Configuring multicasting registers for Nest,Xb,Obus,pcie chiplets" );
+            FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
+                                                   p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0));
+        }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        // Setting up hang pulse counter for register 0 and register 6
-        FAPI_DBG("Setup hang pulse counter for Xbus,Obus");
-        FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
-                 p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X04, 0xff,
-                 0xff, 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X08));
-    }
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Configuring multicast registers for MC01,MC23");
+            FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
+                                                   p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0,
+                                                   p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP2));
+        }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_NEST, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        // Setting up hang pulse counter for register 5
-        FAPI_DBG("Setup hang pulse counter for nest chiplet");
-        FAPI_TRY(p9_sbe_chiplet_reset_nest_hang_cnt_setup(l_target_cplt));
-    }
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
+                                               fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
+                                               fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Configuring NET control registers into Default required value
+            FAPI_DBG("Restore NET_CTRL0&1 init value - for all chiplets except TP");
+            FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(l_target_cplt));
+        }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_CORES, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        // Setting up hang pulse counter for register 5
-        FAPI_DBG("Setup hang pulse counter for core chiplet");
-        FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
-                 p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X1A, 0xff,
-                 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X06,
-                 p9SbeChipletReset::HANG_PULSE_0X08));
-    }
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Setting up hang pulse counter for register 0 and register 6
+            FAPI_DBG("Setup hang pulse counter for Mc");
+            FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
+                     p9SbeChipletReset::HANG_PULSE_0X10, 0xff, 0xff, 0xff, 0xff, 0xff,
+                     p9SbeChipletReset::HANG_PULSE_0X08));
+        }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_CACHES, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        // Setting up hang pulse counter for register 5
-        FAPI_DBG("Setup hang pulse counter for cache chiplet");
-        FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
-                 p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X01,
-                 p9SbeChipletReset::HANG_PULSE_0X01, p9SbeChipletReset::HANG_PULSE_0X04,
-                 p9SbeChipletReset::HANG_PULSE_0X00, p9SbeChipletReset::HANG_PULSE_0X06,
-                 p9SbeChipletReset::HANG_PULSE_0X08));
-    }
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Setting up hang pulse counter for register 0 and register 6
+            FAPI_DBG("Setup hang pulse counter for Pcie - increase in hang_pulse value");
+            FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
+                     p9SbeChipletReset::HANG_PULSE_0X10, 0xff, 0xff, 0xff, 0xff, 0xff,
+                     p9SbeChipletReset::HANG_PULSE_0X08));
+        }
 
-    FAPI_DBG("Clock mux settings");
-    FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_call(i_target_chip));
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Setting up hang pulse counter for register 0 and register 6
+            FAPI_DBG("Setup hang pulse counter for Xbus,Obus");
+            FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
+                     p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X04, 0xff,
+                     0xff, 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X08));
+        }
 
-    if ( l_attr_vitl_setup )
-    {
-        l_target_state = fapi2::TARGET_STATE_PRESENT;
-    }
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_NEST, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Setting up hang pulse counter for register 5
+            FAPI_DBG("Setup hang pulse counter for nest chiplet");
+            FAPI_TRY(p9_sbe_chiplet_reset_nest_hang_cnt_setup(l_target_cplt));
+        }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
-                                           fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS), l_target_state))
-    {
-        // Setting up partial good fence drop and resetting chiplet.
-        FAPI_DBG("PLL Setup : Enable pll");
-        FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(l_target_cplt, true));
-    }
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_CORES, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Setting up hang pulse counter for register 5
+            FAPI_DBG("Setup hang pulse counter for core chiplet");
+            FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
+                     p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X1A, 0xff,
+                     0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X06,
+                     p9SbeChipletReset::HANG_PULSE_0X08));
+        }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_NEST_WEST, l_target_state))
-    {
-        FAPI_DBG("Drop clk async reset for N3 chiplet");
-        FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(l_target_cplt));
-    }
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_CACHES, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Setting up hang pulse counter for register 5
+            FAPI_DBG("Setup hang pulse counter for cache chiplet");
+            FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(l_target_cplt,
+                     p9SbeChipletReset::HANG_PULSE_0X10, p9SbeChipletReset::HANG_PULSE_0X01,
+                     p9SbeChipletReset::HANG_PULSE_0X01, p9SbeChipletReset::HANG_PULSE_0X04,
+                     p9SbeChipletReset::HANG_PULSE_0X00, p9SbeChipletReset::HANG_PULSE_0X06,
+                     p9SbeChipletReset::HANG_PULSE_0X08));
+        }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_MC, l_target_state))
-    {
-        FAPI_DBG("Drop clk async reset for Mc chiplet");
-        FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(l_target_cplt, true));
-    }
+        FAPI_DBG("Clock mux settings");
+        FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_call(i_target_chip));
 
-    fapi2::delay(10000, (40 * 400));
-
-    if ( l_attr_vitl_setup )
-    {
-        l_target_state = fapi2::TARGET_STATE_PRESENT;
+        if ( l_attr_vitl_setup )
+        {
+            l_target_state = fapi2::TARGET_STATE_PRESENT;
+        }
 
         for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
@@ -308,110 +293,146 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                                fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS), l_target_state))
         {
             // Setting up partial good fence drop and resetting chiplet.
-            FAPI_DBG("PLL setup : Disable pll");
-            FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(l_target_cplt, false));
+            FAPI_DBG("PLL Setup : Enable pll");
+            FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(l_target_cplt, true));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_NEST_WEST, l_target_state))
+        {
+            FAPI_DBG("Drop clk async reset for N3 chiplet");
+            FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(l_target_cplt));
         }
 
         for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_MC, l_target_state))
         {
-            FAPI_DBG("Raise clk async reset for Mc chiplet");
-            FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(l_target_cplt, false));
+            FAPI_DBG("Drop clk async reset for Mc chiplet");
+            FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(l_target_cplt, true));
         }
+
+        fapi2::delay(10000, (40 * 400));
+
+        if ( l_attr_vitl_setup )
+        {
+            l_target_state = fapi2::TARGET_STATE_PRESENT;
+
+            for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+                 (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
+                                                   fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
+                                                   fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
+                                                   fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS), l_target_state))
+            {
+                // Setting up partial good fence drop and resetting chiplet.
+                FAPI_DBG("PLL setup : Disable pll");
+                FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(l_target_cplt, false));
+            }
+
+            for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+                 (fapi2::TARGET_FILTER_ALL_MC, l_target_state))
+            {
+                FAPI_DBG("Raise clk async reset for Mc chiplet");
+                FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(l_target_cplt, false));
+            }
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Drop clk async reset for N3, Mc  and Obus chiplets");
+            FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(l_target_cplt));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Drop clk_div_bypass for Mc chiplet");
+            FAPI_TRY(p9_sbe_chiplet_reset_div_clk_bypass(l_target_cplt));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
+                                               fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
+                                               fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Enable chiplet and reset error register");
+            FAPI_TRY(p9_sbe_chiplet_reset_setup(l_target_cplt));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
+                                               fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Drop lvltrans fence and endpoint reset");
+            FAPI_TRY(p9_sbe_chiplet_reset_net_ctrl_lvltrans_fence_pcb_ep_reset(
+                         l_target_cplt));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
+                                               fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Initialize OPCG registers for Nest,MC,XB,OB,PCIe");
+            FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg(l_target_cplt));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
+                                               fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
+                                               fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Enable listen to sync for NEST,OB,XB,PCIe");
+            FAPI_TRY(p9_sbe_chiplet_reset_enable_listen_to_sync(l_target_cplt, true));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
+                                               fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
+                                               fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Disable listen_to_sync for Nest,MC,XB,OB,PCIe");
+            FAPI_TRY(p9_sbe_chiplet_reset_enable_listen_to_sync(l_target_cplt, false));
+        }
+
+        FAPI_DBG("Set Chip-wide HSSPORWREN gate");
+        FAPI_TRY(p9_sbe_chiplet_reset_hsspowergate(i_target_chip));
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("Setup IOP Logic for PCIe");
+            FAPI_TRY(p9_sbe_chiplet_reset_setup_iop_logic(l_target_cplt));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
+                                               fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_DBG("set scan ratio to 1:1 ");
+            FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio(l_target_cplt));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
+                                               fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            FAPI_TRY(p9_sbe_chiplet_reset_scan0_call(l_target_cplt));
+        }
+
+#ifndef __PPE__
     }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Drop clk async reset for N3, Mc  and Obus chiplets");
-        FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(l_target_cplt));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Drop clk_div_bypass for Mc chiplet");
-        FAPI_TRY(p9_sbe_chiplet_reset_div_clk_bypass(l_target_cplt));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
-                                           fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-          fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Enable chiplet and reset error register");
-        FAPI_TRY(p9_sbe_chiplet_reset_setup(l_target_cplt));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-          fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Drop lvltrans fence and endpoint reset");
-        FAPI_TRY(p9_sbe_chiplet_reset_net_ctrl_lvltrans_fence_pcb_ep_reset(
-                     l_target_cplt));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-          fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Initialize OPCG registers for Nest,MC,XB,OB,PCIe");
-        FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg(l_target_cplt));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
-                                           fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
-                                           fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Enable listen to sync for NEST,OB,XB,PCIe");
-        FAPI_TRY(p9_sbe_chiplet_reset_enable_listen_to_sync(l_target_cplt, true));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
-                                           fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Disable listen_to_sync for Nest,MC,XB,OB,PCIe");
-        FAPI_TRY(p9_sbe_chiplet_reset_enable_listen_to_sync(l_target_cplt, false));
-    }
-
-    FAPI_DBG("Set Chip-wide HSSPORWREN gate");
-    FAPI_TRY(p9_sbe_chiplet_reset_hsspowergate(i_target_chip));
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Setup IOP Logic for PCIe");
-        FAPI_TRY(p9_sbe_chiplet_reset_setup_iop_logic(l_target_cplt));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-          fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("set scan ratio to 1:1 ");
-        FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio(l_target_cplt));
-    }
-
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                           fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-          fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_TRY(p9_sbe_chiplet_reset_scan0_call(l_target_cplt));
-    }
+#endif
 
     FAPI_INF("p9_sbe_chiplet_reset: Exiting ...");
 
