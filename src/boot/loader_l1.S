@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -28,7 +29,7 @@
         .list
 
 ### ****************************************************************************
-### .loader_text - This section contains pm loader code
+### .loader_text - This section contains l1 loader code
 ###                @TODO via RTC 136315
 ###                It also contains vector code. We can remove vector code
 ###                once OTPROM support for simics is in.
@@ -46,10 +47,10 @@ __vectors:
         .org __vectors + 0x0040
 
 __system_reset:
-        b   __pmLoader
+        b   __l1Loader
 
 
-__pmLoader:
+__l1Loader:
         bl _pibmemRepair
         _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
         _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest
@@ -58,7 +59,7 @@ __pmLoader:
         li     r6, 3
         srw    r5, r5, r6   # Number of double word transfers
         mtctr   r5          # set the counter for loop
-        lwz    r8, 0(r3)    # offset of baseloader section
+        lwz    r8, 0(r3)    # offset of l2loader section
         adde    r8, r8, r9  # add base address to offset to get absolute address
 
 copy_loop:
@@ -77,6 +78,6 @@ copy_loop:
         mtlr  r6
         blr
 
-        .epilogue __pmLoader
+        .epilogue __l1Loader
 
 #include "pibmem_repair.S"

@@ -50,7 +50,7 @@ $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).dis: $(OBJDIR
 
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_OTPROM_NAME).out: $(OTPROM_LOADER_OBJS) $(LINK_SCRIPT_OTPROM)
-	$(LD) -e base_loader -T$(LINK_SCRIPT_OTPROM) -Map $(OBJDIR)/$(IMAGE_OTPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_OTPROM_NAME).out $(OTPROM_LOADER_OBJS)
+	$(LD) -e l2_loader -T$(LINK_SCRIPT_OTPROM) -Map $(OBJDIR)/$(IMAGE_OTPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_OTPROM_NAME).out $(OTPROM_LOADER_OBJS)
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments
@@ -64,7 +64,7 @@ $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR
 
 #create a linked ELF executable
 $(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
-	$(LD) -e base_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(LOADER_OBJS)
+	$(LD) -e l2_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(LOADER_OBJS)
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments

@@ -202,8 +202,8 @@ buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_host `hostname`
 
 add_LoaderAddr: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __pmLoader | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __base_loader_setup | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __l1Loader | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 
 symbols: $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out $(IMG_DIR)/$(IMAGE_SBE_NAME).out
