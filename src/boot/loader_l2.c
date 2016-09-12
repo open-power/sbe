@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -39,7 +40,7 @@ int32_t loadSection( P9XipSection * i_section, uint64_t *i_destAddr )
 }
 
 // Function to load base image into PIBMEM
-int32_t base_loader()
+int32_t l2_loader()
 {
     int32_t rc  = 0;
     P9XipHeader *hdr = getXipHdr();
@@ -61,8 +62,8 @@ int32_t base_loader()
     // initialising all PIBMEM. If performance become concern during initial
     // SBE load, we can optimise this.
     // We have three options here in optimisation
-    //   1.  Put this logic in SEEPROM loader ( pmloader ). This was we can
-    //       reclaim space taken by base loader as stack/bss can grow in base
+    //   1.  Put this logic in SEEPROM loader ( l1loader ). This was we can
+    //       reclaim space taken by l2 loader as stack/bss can grow in base
     //       loader section after image load.
     //   2.  Keep this code in PIBMEM. But do not initialise the memory taken
     //       by base image.

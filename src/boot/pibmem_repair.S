@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -58,5 +59,5 @@ _pibmemRepair:
         oris     r0, r0, 0x8A00                 # set the bit 0 to enable the debug blot-on
         stvd     d0, 0(r5)                              # DBG_LCL_REG
 
-        blr                                             # back to pm_loader
+        blr                                             # back to l1_loader
 

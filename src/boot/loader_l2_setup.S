@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -26,11 +27,11 @@
         .list
 
 ### ****************************************************************************
-### Do the initial setup for base loader
+### Do the initial setup for l2 loader
 ###
 ### ****************************************************************************
 
-__base_loader_setup:
+__l2_loader_setup:
 
         ## Set up PowerPC EABI constant registers.
 
@@ -51,7 +52,7 @@ __base_loader_setup:
         li      %r4, 0
         stvd    %r3, -8(%r1)
 
-        ## Call the base loader
-        bl      base_loader
+        ## Call the l2 loader
+        bl      l2_loader
 
-        .epilogue __base_loader_setup
+        .epilogue __l2_loader_setup
