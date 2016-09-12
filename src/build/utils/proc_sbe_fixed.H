@@ -72,7 +72,7 @@
 
 #include "p9_sbe.H"
 #include "plat_target_parms.H"
-#include "fapi2AttributeIds.H"
+#include "attribute_ids.H"
 
 #ifdef __ASSEMBLER__
          .macro     .proc_sbe_fixed_system

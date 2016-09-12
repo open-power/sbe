@@ -28,9 +28,6 @@
 
 use strict;
 
-my $attrpath = "../../importtemp/xml";
-my $sbedefaultpath = "../../../images";
-
 #------------------------------------------------------------------------------
 # Print Command Line Help
 #------------------------------------------------------------------------------
@@ -45,13 +42,13 @@ if ($numArgs < 3)
     print ("./ppeSetFixed.pl \\\n" );
     print (". \\\n" );
     print (" ../../obj/seeprom_main.bin \\\n" );
-    print ("$attrpath/p9_ppe_attributes.xml \\\n" );
-    print ("$attrpath/attribute_info/perv_attributes.xml \\\n" );
-    print ("$attrpath/attribute_info/proc_attributes.xml \\\n" );
-    print ("$attrpath/attribute_info/ex_attributes.xml \\\n" );
-    print ("$attrpath/attribute_info/eq_attributes.xml \\\n" );
-    print ("$attrpath/attribute_info/core_attributes.xml \\ \n");
-    print ("$attrpath/attribute_info/nest_attributes.xml \n");
+    print ("p9_ppe_attributes.xml \\\n" );
+    print ("perv_attributes.xml \\\n" );
+    print ("proc_attributes.xml \\\n" );
+    print ("ex_attributes.xml \\\n" );
+    print ("eq_attributes.xml \\\n" );
+    print ("core_attributes.xml \\ \n");
+    print ("nest_attributes.xml \n");
     exit(1);
 }
 

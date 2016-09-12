@@ -237,7 +237,7 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)/genfiles
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR)/src/plat --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 topfixedheaders:
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
@@ -246,7 +246,7 @@ attrids:
 	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 platattr:
-	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(TOOLS_ATTR_DIR)/src --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR)/src/plat --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 # Build the subdirectories
 $(SUBDIRS):
