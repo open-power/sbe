@@ -30,8 +30,7 @@
 #ifndef __PLAT_ATTTRIBUTE_H__
 #define __PLAT_ATTTRIBUTE_H__
 
-#include <fapi2AttributeService.H>
-#include <fapi2AttributeIds.H>      // Generated file
-//#include <plat_target_pg_attributes.H>
+#include <fapi2_attribute_service.H>
+#include <attribute_ids.H>      // Generated file
 
 #endif  // __PLAT_ATTTRIBUTE_H__

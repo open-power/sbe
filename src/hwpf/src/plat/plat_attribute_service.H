@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/tools/scripts/src/fapi2PlatAttributeService.H $           */
+/* $Source: src/hwpf/src/plat/plat_attribute_service.H $                  */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
-/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -37,8 +36,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <type_traits>
-#include <fapi2AttributeIds.H>
-#include <fapi2ChipEcFeature.H>
+#include <attribute_ids.H>
+#include <fapi2_chip_ec_feature.H>
 #include <plat_includes.H>
 #include "proc_sbe_fixed.H"
 #include "plat_target_parms.H"

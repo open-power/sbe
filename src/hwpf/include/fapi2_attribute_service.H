@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/hwpf/include/fapi2AttributeService.H $                    */
+/* $Source: src/hwpf/include/fapi2_attribute_service.H $                  */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
-/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -33,12 +32,10 @@
 #ifndef FAPI2ATTRIBUTESERVICE_H_
 #define FAPI2ATTRIBUTESERVICE_H_
 #include <stdint.h>
-//#include <attribute_ids.H>
-#include <fapi2AttributeIds.H>
+#include <attribute_ids.H>
 #include <target.H>
 #include <target_types.H>
-//#include <plat_attribute_service.H>
-#include <fapi2PlatAttributeService.H>
+#include <plat_attribute_service.H>
 
 /// @brief Macros called by user to get/set attributes for FAPI2 targets
 ///

@@ -55,8 +55,8 @@ my %targetMacros;
 
 
 
-my $fapiAttributeIdsFile = "fapi2AttributeIds.H";
-my $fapiPlatAttributeServiceFile= "fapi2PlatAttributeService.H";
+my $fapiAttributeIdsFile = "attribute_ids.H";
+my $fapiPlatAttributeServiceFile= "plat_attribute_service.H";
 
 
 my $includePath = "./";
