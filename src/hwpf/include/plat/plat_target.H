@@ -102,13 +102,71 @@ namespace fapi2
         TargetType getFapiTargetType() const;
 
         ///
+        /// @brief Get the scom address overlay for this target
+        ///
+        /// @return Address overlay
+        ///
+        uint32_t getAddressOverlay() const
+        {
+            return (value & 0xFF000000);
+        }
+
+        ///
+        /// @brief Get the plat target type
+        ///
+        /// @return The plat target type as a fapi2::TargetType
+        ///
+        TargetType getTargetType() const
+        {
+            return static_cast<TargetType>(fields.type);
+        }
+
+        ///
         /// @brief Get the instance number for this target
         ///
         /// @return The instance number for this target
         ///
-        inline uint32_t getTargetInstance() const
+        uint32_t getTargetInstance() const
         {
             return fields.type_target_num;
+        }
+
+        ///
+        /// @brief Returns whether this target is functional
+        ///
+        /// @return true if Target is functional
+        ///
+        bool getFunctional() const
+        {
+            return fields.functional;
+        }
+
+        ///
+        /// @brief Set functional state of the Target
+        ///
+        /// @param [in] i_state Functional state to set
+        ///
+        void setFunctional(const bool &i_state)
+        {
+            fields.functional = i_state;
+        }
+
+        ///
+        /// @brief Returns whether this target is present
+        ///
+        /// @return true if Target is present
+        ///
+        bool getPresent() const
+        {
+            return fields.present;
+        }
+
+        ///
+        /// @brief Set Target as present
+        ///
+        void setPresent()
+        {
+            fields.present = true;
         }
 
         ///

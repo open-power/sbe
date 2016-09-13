@@ -30,6 +30,8 @@
 #ifndef __FAPI2_PLAT_TARGET_UTIL__
 #define __FAPI2_PLAT_TARGET_UTIL__
 
+#include <proc_sbe_fixed.H>
+
 #pragma pack(8) //Start of packing to 8byte boundary
     typedef struct {
       fapi2attr::SystemAttributes_t    G_system_attrs;

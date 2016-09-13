@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -56,12 +57,12 @@
 
 /* global get uint8_t 1D array macro */
 #define PLAT_ATTR_GET_UINT8_1D_ARRAY(ID, PTARGET, VAL) \
-     _getAttributeArrayShort<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetTypes), ID> \
+     _getAttributeArrayShort<ID##_Type, static_cast<fapi2::TargetType>(ID##TargetType), ID> \
             (ID, PTARGET, VAL)
 
 /* global set uint8_t 1D array macro */
 #define PLAT_ATTR_SET_UINT8_1D_ARRAY(ID, PTARGET, VAL) \
-     _setAttributeArrayShort<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetTypes), ID> \
+     _setAttributeArrayShort<ID##_Type, static_cast<fapi2::TargetType>(ID##TargetType), ID> \
             (ID, PTARGET, VAL)
 
 /* global get uint8_t 2D array macro */
@@ -144,12 +145,12 @@
 
 /* global get int macro (uint8_t, 16, 32 and 64) */
 #define PLAT_ATTR_GET_GLOBAL_INT(ID, PTARGET, VAL) \
-     _get<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetTypes), ID> \
+     _get<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetType), ID> \
                 (ID, PTARGET, VAL)
 
 /* global set int macro (uint8_t, 16, 32 and 64) */
 #define PLAT_ATTR_SET_GLOBAL_INT(ID, PTARGET, VAL) \
-     _set<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetTypes), ID> \
+     _set<ID##_Type, static_cast<fapi2::TargetType>(ID##_TargetType), ID> \
                 (ID, PTARGET, VAL)
 
 

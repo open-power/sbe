@@ -38,6 +38,7 @@
 #include <utils.H>
 #include <stdint.h>
 #include <vector>
+#include <plat_target_utils.H>
 
 extern "C"
 {
@@ -233,15 +234,15 @@ namespace fapi2
         }
         if((TARGET_TYPE_EQ == T) && (TARGET_TYPE_CORE == K)) // EC ===> EQ
         {
-            return static_cast<V>(G_vec_targets[(getTargetNumber() / CORES_PER_QUAD) + EQ_TARGET_OFFSET]);
+            return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / CORES_PER_QUAD) + EQ_TARGET_OFFSET]);
         }
         if((TARGET_TYPE_EQ == T) && (TARGET_TYPE_EX == K)) // EX ===> EQ
         {
-            return static_cast<V>(G_vec_targets[(getTargetNumber() / EX_PER_QUAD) + EQ_TARGET_OFFSET]);
+            return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / EX_PER_QUAD) + EQ_TARGET_OFFSET]);
         }
         if(TARGET_TYPE_EX == T) // EC ===> EX
         {
-            return static_cast<V>(G_vec_targets[(getTargetNumber() / CORES_PER_EX) + EX_TARGET_OFFSET]);
+            return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / CORES_PER_EX) + EX_TARGET_OFFSET]);
         }
     }
 
@@ -310,32 +311,26 @@ namespace fapi2
     }
 
     ///
-    /// @brief Get the target at the other end of a bus - dimm included
-    /// @tparam T The type of the parent
-    /// @param[in] i_state The desired TargetState of the children
-    /// @return Target<T, V> a target representing the thing on the other end
-    /// @note Can be easily changed to a vector if needed
-    ///
-    template<TargetType K, typename V>
-    template<TargetType T>
-    inline Target<T, V>
-    Target<K, V>::getOtherEnd(const TargetState i_state) const
-    {
-//        static_assert( false, "getOtherEnd() is not supported on PPE platforms");
-    }
-
-    ///
     /// @brief Is the target functional?
     /// @return true if target is functional, false if non-functional
     ///
-
     template<TargetType K, typename V>
     inline bool
     Target<K, V>::isFunctional(void) const
     {
-        return getFunctional();
+        return static_cast<plat_target_handle_t>(get()).getFunctional();
     }
 
+    ///
+    /// @brief Returns the chiplet number for this Target
+    /// @return The chiplet number
+    ///
+    template<TargetType K, typename V>
+    inline uint8_t
+    Target<K, V>::getChipletNumber(void) const
+    {
+        return static_cast<plat_target_handle_t>(iv_handle).fields.chiplet_num;
+    }
 
     ///
     /// @brief Return the string interpretation of this target
@@ -359,7 +354,7 @@ namespace fapi2
                                         const uint32_t i_addr)
     {
         ScomAddr l_addr = i_addr;
-        if(0 != i_target.getAddressOverlay())
+        if(0 != static_cast<plat_target_handle_t>(i_target.get()).getAddressOverlay())
         {
             l_addr.iv_chiplet = i_target.getChipletNumber();
         }
@@ -376,13 +371,13 @@ namespace fapi2
         {
             l_addr.iv_chiplet = i_target.getChipletNumber();
             l_addr.iv_ring = (l_addr.iv_ring - (l_addr.iv_ring % 2)) +
-                              (i_target.getTargetNumber() % 2);
+                              (static_cast<plat_target_handle_t>(i_target.get()).getTargetInstance() % 2);
         }
         else if ((CORE_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
                  ((CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT) > l_addr.iv_chiplet))
         {
             l_addr.iv_chiplet = CORE_CHIPLET_OFFSET + (l_addr.iv_chiplet % 2) +
-                                (i_target.getTargetNumber() * 2);
+                                (static_cast<plat_target_handle_t>(i_target.get()).getTargetInstance() * 2);
         }
         else
         {
@@ -396,7 +391,7 @@ namespace fapi2
     {
         ScomAddr l_addr = i_addr;
         l_addr.iv_chiplet = i_target.getChipletNumber();
-        l_addr.iv_satId = (2 * (i_target.getTargetNumber() % 2));
+        l_addr.iv_satId = (2 * (static_cast<plat_target_handle_t>(i_target.get()).getTargetInstance() % 2));
         return l_addr;
     }
 

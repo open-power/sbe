@@ -120,7 +120,7 @@ while (<FILE>) {
   } elsif (m/\s*#define\s+(\w+)_SETMACRO\(ID\,\sPTARGET\,\sVAL\)\s(.+)/) {
     $setMacros{$1} = $2;
     if ($DEBUG) { print "DEBUG:: attribute = $1 : SETMACRO = $2\n"; }
-  } elsif (m/\s*const\s*TargetType\s+(\w+)_TargetTypes\s*=\s*(\S+)\s*;\s*/) {
+  } elsif (m/\s*const\s*fapi2::TargetType\s+(\w+)_TargetType\s*=\s*(\S+)\s*;\s*/) {
     $targetMacros{$1} = $2;
 #    print "DEBUG:: attribute = $1 : TARGET = $2\n";
     if ($DEBUG) { print "DEBUG:: attribute = $1 : TARGET = $2\n"; }
@@ -181,7 +181,7 @@ while (<FILE>) {
   } elsif (m/\s*#define\s+(\w+)_SETMACRO\s+(\S+)\s*/) {
     $setMacros{$1} = $2;
     if ($DEBUG) { print "DEBUG:: attribute = $1 : SETMACRO = $2\n"; }
-  } elsif (m/\s*const\s*TargetType\s+(\w+)_TargetTypes\s*=\s*(\S+)\s*;\s*/) {
+  } elsif (m/\s*const\s*fapi2::TargetType\s+(\w+)_TargetType\s*=\s*(\S+)\s*;\s*/) {
     $targetMacros{$1} = $2;
     if ($DEBUG) { print "DEBUG:: attribute = $1 : TARGET = $2\n"; }
   }
@@ -302,7 +302,7 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
 }\n";
 
           } else {
-$targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute}[index];\n}\n"
+$targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = static_cast<plat_target_handle_t>(i_ptarget.get()).getTargetInstance();\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute}[index];\n}\n"
           }
           push(@newTargetImplementations, $targetImplementation);
       }
@@ -323,7 +323,7 @@ $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = i_pt
 
               $targetImplementation = "\n" . $targetFunction . "\n{\n  object->fapi2attr::${macroTarget}::${attribute} = i_pvalue;\n}\n";
           } else {
-              $targetImplementation = "\n" . $targetFunction . "\n{\n   uint32_t index = i_ptarget.getTargetNumber();\n   object->fapi2attr::${macroTarget}::${attribute}[index] = i_pvalue;\n}\n";
+              $targetImplementation = "\n" . $targetFunction . "\n{\n   uint32_t index = static_cast<plat_target_handle_t>(i_ptarget.get()).getTargetInstance();\n   object->fapi2attr::${macroTarget}::${attribute}[index] = i_pvalue;\n}\n";
           }
 
           push(@newTargetImplementations, $targetImplementation);
@@ -366,16 +366,16 @@ if (@newAttributeDefines != 0) {
         print OUTFILE "
         __attribute__((always_inline)) inline uint32_t getPervAttrIndex(const fapi2::Target<TARGET_TYPE_PERV> &i_target)
         {
-            uint32_t l_index = i_target.getTargetNumber();
-            if(PPE_TARGET_TYPE_EQ & i_target.getTargetType())
+            uint32_t l_index = static_cast<plat_target_handle_t>(i_target.get()).getTargetInstance();
+            if(PPE_TARGET_TYPE_EQ & static_cast<plat_target_handle_t>(i_target.get()).getTargetType())
             {
                 l_index += (EQ_TARGET_OFFSET);
             }
-            else if(PPE_TARGET_TYPE_CORE & i_target.getTargetType())
+            else if(PPE_TARGET_TYPE_CORE & static_cast<plat_target_handle_t>(i_target.get()).getTargetType())
             {
                 l_index += (CORE_TARGET_OFFSET);
             }
-            else if(PPE_TARGET_TYPE_MCBIST & i_target.getTargetType())
+            else if(PPE_TARGET_TYPE_MCBIST & static_cast<plat_target_handle_t>(i_target.get()).getTargetType())
             {
                 l_index += (MCBIST_TARGET_OFFSET);
             }

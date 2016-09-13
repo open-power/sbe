@@ -318,18 +318,17 @@ namespace fapi2
 
         if (b_present)
         {
-            i_chiplet_target.setPresent();
-            i_chiplet_target.setFunctional(true);
+            static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
+            static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setFunctional(true);
         }
         else
         {
-            FAPI_DBG("Perv target NOT present (nor functional): chiplet_number = %d",
-                        i_chiplet_target.getChipletNumber());
+            FAPI_DBG("Perv target NOT present (nor functional): chiplet_number = %d", i_chiplet_target.getChipletNumber());
         }
 
         FAPI_DBG("Target present = %u, Target functional = %u",
-            i_chiplet_target.getPresent(),
-            i_chiplet_target.getFunctional());
+            static_cast<plat_target_handle_t>(i_chiplet_target.get()).getPresent(),
+            static_cast<plat_target_handle_t>(i_chiplet_target.get()).getFunctional());
 
 fapi_try_exit:
         return fapi2::current_err;
@@ -490,8 +489,8 @@ fapi_try_exit:
 
             if(0 == l_eqAttrPg)
             {
-                target_name.setPresent();
-                target_name.setFunctional(true);
+                static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+                static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             }
             G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
         }
@@ -525,8 +524,8 @@ fapi_try_exit:
 
             if(0 == l_attrPg)
             {
-                target_name.setPresent();
-                target_name.setFunctional(true);
+                static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+                static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             }
 
             G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
@@ -572,7 +571,7 @@ fapi_try_exit:
                 FAPI_DBG("Making %d'th EQ non-functional", l_idx);
                 // EQ chiplet l_idx is to be marked non-functional
                 fapi2::Target<fapi2::TARGET_TYPE_EQ> l_target = G_vec_targets.at(l_idx + EQ_TARGET_OFFSET);
-                l_target.setFunctional(false);
+                static_cast<plat_target_handle_t&>(l_target.operator ()()).setFunctional(false);
                 G_vec_targets.at(l_idx + EQ_TARGET_OFFSET) = l_target.get();
             }
         }
@@ -584,7 +583,7 @@ fapi_try_exit:
                 FAPI_DBG("Making %d'th EC non-functional", l_idx);
                 // EC chiplet l_idx is to be marked non-functional
                 fapi2::Target<fapi2::TARGET_TYPE_CORE> l_target = G_vec_targets.at(l_idx + CORE_TARGET_OFFSET);
-                l_target.setFunctional(false);
+                static_cast<plat_target_handle_t&>(l_target.operator ()()).setFunctional(false);
                 G_vec_targets.at(l_idx + CORE_TARGET_OFFSET) = l_target.get();
             }
             else

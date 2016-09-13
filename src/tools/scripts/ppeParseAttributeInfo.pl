@@ -475,7 +475,7 @@ foreach my $entr (@{$entries->{entry}}) {
                 exit(1);
             }
 
-            print AIFILE "const TargetType $attr->{id}_TargetTypes = ";
+            print AIFILE "const fapi2::TargetType $attr->{id}_TargetType = ";
 
             # Split on commas
             my @targTypes = split(',', $attr->{targetType});
@@ -576,7 +576,7 @@ foreach my $entr (@{$entries->{entry}}) {
                 # compile failure if a set is attempted
                 #------------------------------------------------------------------
                 print AIFILE "#define $attr->{id}_GETMACRO(ID, PTARGET, VAL) \\\n";
-                print AIFILE "    PLAT_GET_CHIP_EC_FEATURE_OVERRIDE(ID, PTARGET, VAL) ? fapi2::FAPI2_RC_SUCCESS : \\\n";
+                print AIFILE "    PLAT_GET_CHIP_EC_FEATURE_OVERRIDE(ID, PTARGET, VAL) ? fapi2::ReturnCode() : \\\n";
                 print AIFILE " fapi2::queryChipEcFeature(fapi2::int2Type<ID>(), PTARGET, VAL)\n";
                 print AIFILE "#define $attr->{id}_SETMACRO(ID, PTARGET, VAL) ";
                 print AIFILE "CHIP_EC_FEATURE_ATTRIBUTE_NOT_WRITABLE\n";
