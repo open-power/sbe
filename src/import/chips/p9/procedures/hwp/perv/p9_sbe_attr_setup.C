@@ -41,6 +41,12 @@
 
 #include <p9_perv_scom_addresses.H>
 
+enum P9_SETUP_SBE_CONFIG_scratch4
+{
+    // Scratch4 reg bit definitions
+    ATTR_OBUS_RATIO_VALUE_BIT          = 21,
+};
+
 fapi2::ReturnCode p9_sbe_attr_setup(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -152,6 +158,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             uint8_t l_io_filter_bypass = 0;
             uint8_t l_dpll_bypass = 0;
             uint8_t l_nest_mem_x_o_pci_bypass = 0;
+            uint8_t l_attr_obus_ratio = 0;
 
             FAPI_DBG("Reading Scratch_Reg4");
             //Getting SCRATCH_REGISTER_4 register value
@@ -164,6 +171,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             l_read_scratch_reg.extractToRight<18, 1>(l_io_filter_bypass);
             l_read_scratch_reg.extractToRight<19, 1>(l_dpll_bypass);
             l_read_scratch_reg.extractToRight<20, 1>(l_nest_mem_x_o_pci_bypass);
+            l_read_scratch_reg.extractToRight<ATTR_OBUS_RATIO_VALUE_BIT, 1>(l_attr_obus_ratio);
             l_read_scratch_reg.extractToRight<24, 8>(l_read_1);
 
             FAPI_DBG("Setting up PLL bypass attributes");
@@ -172,10 +180,12 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_IO_FILTER_BYPASS, i_target_chip, l_io_filter_bypass));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DPLL_BYPASS, i_target_chip, l_dpll_bypass));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_nest_mem_x_o_pci_bypass));
-
             FAPI_DBG("Setting up ATTR_BOOT_FREQ_MULT, ATTR_NEST_PLL_BUCKET");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_BOOT_FREQ_MULT, i_target_chip, l_read_4));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NEST_PLL_BUCKET, FAPI_SYSTEM, l_read_1));
+
+            FAPI_DBG("Setting up ATTR_OBUS_RATIO_VALUE");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_OBUS_RATIO_VALUE, i_target_chip, l_attr_obus_ratio));
 
             l_read_1 = 0;
             l_read_4 = 0;
