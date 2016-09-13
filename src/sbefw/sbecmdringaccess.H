@@ -60,5 +60,13 @@ uint32_t sbePutRingFromImagePSU(uint8_t *i_pArg);
   */
 uint32_t sbeGetRing(uint8_t *i_pArg);
 
+/**
+ * @brief Put Ring Command
+ *
+ * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+ *
+ * @return    RC from the FIFO access utility
+ */
+uint32_t sbePutRing(uint8_t *i_pArg);
 
 #endif /* __SBEFW_SBECMDRINGACCESS_H */

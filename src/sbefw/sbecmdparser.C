@@ -211,6 +211,11 @@ static sbeCmdStruct_t g_sbeRingAccessCmdArray [] =
      SBE_CMD_GETRING,
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE,
     },
+
+    {sbePutRing,
+     SBE_CMD_PUTRING,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_QUIESCE,
+    },
 };
 
 //////////////////////////////////////////////////////////////
@@ -235,7 +240,7 @@ static sbeCmdStruct_t g_sbePutRingFromImageCmdArray [] =
 {
     {sbePutRingFromImagePSU,
      SBE_PSU_MSG_PUT_RING_FROM_IMAGE,
-     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_QUIESCE,
     },
 };
 

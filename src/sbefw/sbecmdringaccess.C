@@ -238,3 +238,78 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
 #undef SBE_FUNC
 }
 
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbePutRing(uint8_t *i_pArg)
+{
+#define SBE_FUNC " sbePutRing "
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    sbePutRingMsg_t reqMsg;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+    sbeResponseFfdc_t ffdc;
+    ReturnCode fapiRc;
+    sbePutRingMsgHdr_t hdr;
+    uint32_t len = 0;
+
+    do
+    {
+        // Get the length of payload
+        // Length is not part of chipop. So take length from total length
+        len = g_sbeFifoCmdHdr.len -
+                        sizeof(g_sbeFifoCmdHdr)/sizeof(uint32_t);
+        uint32_t rs4FifoEntries = len - 
+                        sizeof(sbePutRingMsgHdr_t)/sizeof(uint32_t);
+
+        if( rs4FifoEntries  > (SBE_PUT_RING_RS4_MAX_DOUBLE_WORDS * 2) )
+        {
+            SBE_ERROR(SBE_FUNC" RS4 palyload size is wrong."
+                "size(entries):0x%08x",  rs4FifoEntries);
+            respHdr.setStatus( SBE_PRI_INVALID_DATA,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            // flush the fifo
+            rc = sbeUpFifoDeq_mult(len, NULL,true, true);
+            break;
+        }
+
+        len = sizeof(sbePutRingMsgHdr_t)/sizeof(uint32_t);
+        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&hdr, false);
+        // If FIFO access failure
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        len = rs4FifoEntries;
+        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&reqMsg);
+        // If FIFO access failure
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        uint16_t ringMode = sbeToFapiRingMode(hdr.ringMode);
+
+        Target<TARGET_TYPE_PROC_CHIP> proc = plat_getChipTarget();
+        // No need to pass length as platform api takes length from payload.
+        fapiRc = rs4DecompressionSvc(proc, (uint8_t *)reqMsg.rs4Payload,
+                                     false, (fapi2::RingMode)ringMode);
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" rs4DecompressionSvc failed."
+                "RingMode:0x%04x",  ringMode);
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+    }while(false);
+
+    // Now build and enqueue response into downstream FIFO
+    // If there was a FIFO error, will skip sending the response,
+    // instead give the control back to the command processor thread
+    if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
+    {
+        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+    }
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+#undef SBE_FUNC
+}
+

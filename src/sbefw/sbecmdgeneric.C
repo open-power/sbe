@@ -84,7 +84,8 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
                                 PUT_REGISTER_SUPPPORTED ;
 
     capability[RING_CAPABILITY_START_IDX] =
-                                GET_RING_SUPPPORTED;
+                                GET_RING_SUPPPORTED |
+                                PUT_RING_SUPPPORTED;
 }
 // Functions
 //----------------------------------------------------------------------------

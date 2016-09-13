@@ -645,6 +645,32 @@ typedef struct
 }sbeGetRingAccessMsgHdr_t;
 
 /**
+ * @brief maximum double words for putring RS4 payload for chipop operation
+ */
+static const uint32_t SBE_PUT_RING_RS4_MAX_DOUBLE_WORDS =
+                        SBE_PUT_RING_RS4_MAX_PAYLOAD_BYTES/sizeof(uint64_t);
+
+/**
+ * @brief Put Ring message header
+ */
+typedef struct
+{
+    uint32_t reserved:16;
+    uint32_t ringMode:16;
+}sbePutRingMsgHdr_t;
+
+/**
+ * @brief Put Ring message
+ * @note This structure should have uint64_t as type as underlying
+ *       platrform cast it to uint64 pointer. If we declare this as
+ *       uint32, we can get allignment errors.
+ */
+typedef struct
+{
+    uint64_t rs4Payload[SBE_PUT_RING_RS4_MAX_DOUBLE_WORDS];
+}sbePutRingMsg_t;
+
+/**
   * @brief Reg access message header
   */
 typedef struct
