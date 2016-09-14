@@ -25,7 +25,6 @@
 # IBM_PROLOG_END_TAG
 
 use strict;
-#use lib "$ENV{'PERLMODULES'}";
 use lib "src/tools/utils/modules";
 use Getopt::Long qw(:config pass_through);
 use Data::Dumper;
@@ -44,9 +43,15 @@ my $sbbase = "";
 my $sbname = "";
 my $sbrc = "";
 my $release = "";
+my $bbuild = "";
+
+# We do not want hooks to run in this tool
+$ENV{MIRROR} = 1;
+$ENV{DISABLEHOOKS} = 1;
 
 my %commands = ( "extract" => \&execute_extract,
-                 "get-commits" => \&execute_get_commits);
+                 "get-commits" => \&execute_get_commits,
+                 "discover" => \&execute_discover);
 
 # Handle input command
 GetOptions("debug!" => \$debug,
@@ -76,6 +81,10 @@ foreach my $arg (@ARGV)
 
 ############################## Begin Actions ##################################
 
+# sub execute_help
+#
+# Display the help text for the tool
+#
 sub execute_help
 {
  my $command = shift @ARGV;
@@ -111,13 +120,14 @@ sub execute_help
         my %help = (
            "extract" =>
 q(
-    Create the SBE binaries with the patch and its CMVC/GIT dependencies.
+    Create the SBE binaries with the patch and its GIT dependencies.
 
     Options:
         --patches=<changeId:patch-set>      CSV of changeId:patch-set's [required].
         --sbbase=<full-path-to-sb-base>     Sandbox base for FSP-CI [required].
         --sbname=<name>                     Sandbox name [required].
         --rc=<rc file name>                 RC file for the sandbox with absolute path [optional].
+        --bbuild=<full-path-to-bb>          Backing build of sandbox [required].
 ),
            "get-commits" =>
 q(
@@ -127,67 +137,154 @@ q(
         --patches=<changeId:patch-set>      CSV of changeId:patch-set's [required].
         --sbbase=<full-path-to-sb-base>     Sandbox base for FSP-CI [required].
         --sbname=<name>                     Sandbox name [required].
-)
-        );
+        --release=<name>                    Fips release for patch [required].
+),
+           "discover" =>
+q(
+    Discover if there are any CMVC dependencies
 
+    Options:
+        --patches=<changeId:patch-set>      CSV of changeId:patch-set's [required].
+        --sbbase=<full-path-to-sb-base>     Sandbox base for FSP-CI [required].
+        --sbname=<name>                     Sandbox name [required].
+        --bbuild=<full-path-to-bb>          Backing build of sandbox [required].
+)
+    );
         print "sbeGitTool $command:";
         print $help{$command};
     }
 }
 
-sub execute_get_commits
+# sub execute_discover
+#
+# Discover if there are any CMVC dependencies
+#
+sub execute_discover
 {
-
     # Set GIT environment
     git_environ_init();
 
-    # Obtain the list of patches
-    retrivePatchList();
+    # Set CI environment
+    git_ci_init();
 
-    # Fetch the commits for the patches
-    fetchCommits();
+    # Use Release tool to discover possible CMVC requirements
+    print "Discovering CMVC requirements for $globals{sandbox}\n" if $debug;
+    my $output = `./src/tools/utils/gitRelease.pl fsp-ci --discover --level $sbname --patches $patches --branch $globals{branch} --basestr \"gerrit/$globals{branch}\" --bbuild-Rel $globals{Build_Rel} --debug`;
+    die "sbeRelease tool failed\n" if($?);
 
-    # Prepare commit string
-    my $commitStr = prepareCommitStr();
+    my $bbuild_tracks = `cat $bbuild/logs/tracks.txt`;
+    my @lines = split /\n/, $output;
+    my @tracks = ();
+    foreach my $line (@lines)
+    {
+        # Look for lines indicating tracks (e.g. !@#%^ Need CoReq:)
+        my $cmvc_line = $line;
+        if ($cmvc_line =~ m/^\!\@\#\%\^/)
+        {
+            $cmvc_line =~ s/^.*\:\s*//;
 
-    print "The set of commits: $commitStr" if $debug;
-    print $commitStr;
-    return $commitStr;
+            # Remove CMVC tracks that are already in the sb bbuild
+            if ($bbuild_tracks !~ m/$cmvc_line/)
+            {
+                print $cmvc_line;
+                print "," if(\$line != \$lines[-1]);
+            }
+        }
+    }
+
+    # Remove level=$sbname from config file as extract() will
+    # actually create a release with this name
+    system("./src/tools/utils/gitRelease.pl undef $sbname > /dev/null");
+    die "sbeRelease tool failed\n" if($?);
 }
 
+# sub execute_get_commits
+#
+# Given a patch, find the asociated corresponding commits
+#
+sub execute_get_commits
+{
+    # Set GIT environment
+    git_environ_init();
+
+    die "Missing release" if ($release eq "");
+
+    # Set CI environemnt
+    git_ci_init($release);
+
+    # Obtain the list of patches
+#    retrivePatchList();
+
+    # Fetch the commits for the patches
+#    fetchCommits();
+
+    # Prepare commit string
+#    my $commitStr = prepareCommitStr();
+
+#    print "The set of commits: $commitStr" if $debug;
+#    print $commitStr;
+#    return $commitStr;
+
+    # Use gitRelease tool to discover all associated commits
+    chdir $globals{tool_path};
+    print `./src/tools/utils/gitRelease.pl gerrit-commit --patches $patches --branch $globals{branch}`;
+    die "$?" if ($?);
+}
+
+# sub execute_extract
+#
+# Create the SBE binaries with the patch and its GIT dependencies.
+# Copy the binaries to the sandbox.
+#
 sub execute_extract
 {
     # Set GIT environment
     git_environ_init();
 
+    # Set CI environment
+    git_ci_init();
+
     # Obtain the list of patches
-    retrivePatchList();
+#    retrivePatchList();
 
     # Fetch the references for the patches
-    fetchRefs();
+#    fetchRefs();
 
     # Apply the patches on the GIT repo
-    applyRefs();
+#    applyRefs();
+
+    print "Extracting Code for $globals{sandbox}\n";
+    system("./src/tools/utils/gitRelease.pl fsp-ci --level $sbname --patches $patches --branch $globals{branch} --basestr \"gerrit/$globals{branch}\" --bbuild-Rel $globals{Build_Rel}");
+    die "sbeRelease tool failed\n" if($?);
 
     # Compile the SBE and copy binaries to sandbox
     compileAndCopy();
 }
 
+# sub git_environ_init
+#
+# Fetch the parameters and setup environment for further functions
+#
 sub git_environ_init
 {
     # Handle the i/p to the function
     GetOptions("patches:s" => \$patches,
                "sbbase:s" => \$sbbase,
                "sbname:s" => \$sbname,
-               "rc:s" => \$sbrc);
+               "rc:s" => \$sbrc,
+               "bbuild:s" => \$bbuild,
+               "release:s" => \$release);
 
     die "Missing patch list" if ($patches eq "");
     die "Missing sandbox base path" if ($sbbase eq "");
     die "Missing sandbox name" if ($sbname eq "");
+    die "Missing bbuild path" if ($bbuild eq "" && $release eq "");
+    exit "Workaround for Patch list = none" if ($patches eq "none");
 
     # Set global variables
     $globals{sandbox} = $sbbase."/".$sbname;
     $globals{sbe_git_root} = $globals{sandbox}."/git-ci";
+    $globals{tool_path} = $globals{sb_git_root}."/src/tools/utils";
 
     print "Sandbox: $globals{sandbox}\n" if $debug;
     print "GIT repository path: $globals{sbe_git_root}\n" if $debug;
@@ -196,70 +293,90 @@ sub git_environ_init
     die "ERROR $?: Invalid GIT repository path in the sandbox" if $? ;
 }
 
-sub retrivePatchList
+# sub git_ci_init
+#
+# Fetch the GIT branch to work with given the release
+#
+# @param[in] release - release to convert to branch, indicates no bbuild was
+#                      passed in so the default is blank as the release is
+#                      derived from the bbuild
+#
+sub git_ci_init
 {
-    # Parse out the CSV patch list
-    @patchList = split(/,+/, $patches);
 
-    print ">>>Patches\n" if $debug;
-    print Dumper @patchList if $debug;
-    print "<<<End of Patches\n" if $debug;
+    my $release = shift;
+
+    # If a release is passed in, there is no bbuild to do parsing for
+    if ($release eq "")
+    {
+        # Get SBE release associated with bbuild
+        parse_release_notes($bbuild);
+
+        # Parse release out of bbuild path ("fipsXXX")
+        ($release) = $bbuild =~ /\/esw\/(fips.*)\/Builds/;
+        chomp($release);
+    }
+
+    # Convert release to gerrit branch
+    release_to_branch($release);
+    print "\nConverted release:\n" if $debug;
+    print "    Release=$release -> branch=$globals{branch}\n\n" if $debug;
+    die "Gerrit branch missing" if  $globals{branch} eq "";
 }
 
-sub fetchRefs
+# sub parse_release_notes
+#
+# Parse bbuilds SBE release notes to determine the sbeRelease in the bbuild
+#
+# @param[in] bbuild - bbuild of the sandbox
+#
+sub parse_release_notes
 {
-    my $currentRef = "";
-    my $validPatchCount = 0;
+    my $bbuild = shift;
 
-    foreach my $patch (@patchList)
+    print "Parsing Release Notes...\n" if $debug;
+
+    # Check if a new SBE release was pulled into the sandbox first, then check the bbuild
+    open(RELNOTE, $globals{sandbox}."/src/sbei/sbfw/releaseNotes.html") or
+    open(RELNOTE, $bbuild."/src/sbei/sbfw/releaseNotes.html") or
+    die("Cannot find releaseNotes.html in the following directories $globals{sandbox} or $bbuild; : $!");
+    my $Release = "";
+    while (my $line = <RELNOTE>)
     {
-        my ($changeId,$patchSet) = split(":",$patch);
-        if (gitUtil::gerritIsPatch($changeId))
+        if ($line =~ m/<title>/)
         {
-            $validPatchCount = $validPatchCount + 1;
-            print "Fetching reference for the patch : $patch \n" if $debug;
-            if (gitUtil::patchMergeStatus($changeId) == 0)
-            {
-                my $currentRef = gitUtil::gerritQueryReference($changeId, $patchSet);
-                push @references, $currentRef;
-                print "(patchset -> reference) = $patch -> $currentRef\n" if $debug;
-            }
-        }
-        else
-        {
-            print "\n Warning : Patchset $patch is invalid.. Continuing to check if there is any other valid patch \n";
+            print $line if $debug;
+            ($Release) = $line =~ /Release notes for (.*)<\/title>/;
+            chomp $Release;
+            last;
         }
     }
-    die "ERROR: No valid patches given..\n" if ($validPatchCount == 0);
+    $globals{Build_Rel} = $Release;
+    close(RELNOTE);
 }
 
-sub applyRefs
+# sub release_to_branch
+#
+# Assign global branch by converting a release name to a SBE branch
+#
+# @param[in] release - The fips release to convert to a branch
+#
+sub release_to_branch
 {
-    my $statusFile = $globals{sbe_git_root}."/patchApply.status";
+    my ($release) = @_;
 
-    foreach my $ref (@references)
-    {
-        print "Cherrypicking reference $ref \n" if $debug;
-        open  SBWORKON, " | ./sb workon";
-        print SBWORKON  "git fetch gerrit $ref  && echo \"Fetch Done \" > $statusFile \n";
-        #print SBWORKON  "git cherry-pick FETCH_HEAD  && echo \"Cherry-pick Done \" >> $statusFile \n"; // will be reused once appropriate support is there
-        print SBWORKON  "git checkout FETCH_HEAD  && echo \"Checkout Done \" >> $statusFile \n";
-        print SBWORKON  "exit \n";
-        close SBWORKON;
+    die "Release missing while trying to convert to branch" if $release eq "";
 
-        print "\nChecking cherrypick status for $ref...\n" if $debug;
-        my $ch_status = `cat $statusFile`;
-        if( ($ch_status =~ m/Fetch/) && ($ch_status =~ m/Checkout/))
-        {
-            print "Checkout successful\n";
-        }
-        else
-        {
-            die "ERROR: Checkout of $ref failed\n";
-        }
-    }
+    # Run conversion tool to translate a fips-release to gerrit branch
+    $globals{branch} = `./src/tools/utils/conv_rel_branch.pl rtob --release $release`;
+    die "Conversion from fips-release = $release to gerrit branch failed" if $globals{branch} eq "";
+    chomp($globals{branch});
 }
 
+# sub compileAndCopy
+#
+# utility that builds and copies the SBE image.
+#
 sub compileAndCopy
 {
     my $statusFile = $globals{sbe_git_root}."/compile.status";
@@ -296,38 +413,4 @@ sub compileAndCopy
     {
         die "ERROR: SBE prime failed\n";
     }
-}
-
-sub fetchCommits
-{
-    my $currentCommit = "";
-
-    foreach my $patch (@patchList)
-    {
-        my ($changeId,$patchSet) = split(":",$patch);
-        if (gitUtil::gerritIsPatch($changeId))
-        {
-            print "Fetching commit for the patch : $patch \n" if $debug;
-            my $currentCommit = gitUtil::gerritQueryCommit($changeId, $patchSet);
-            push @commits, $currentCommit;
-            print "(patchset -> commit) = $patch -> $currentCommit\n" if $debug;
-        }
-        else
-        {
-            print "\n Warning : Patchset $patch is invalid.. Continuing to check if there is any other valid patch \n";
-        }
-    }
-    die "ERROR: No valid patches given..\n" if (scalar @commits == 0);
-}
-
-sub prepareCommitStr
-{
-    my $commitStr = "";
-
-    foreach my $commit (@commits)
-    {
-        $commitStr = $commitStr.",".$commit;
-    }
-    $commitStr =~ s/^,//g;
-    return $commitStr;
 }

@@ -350,20 +350,23 @@ sub execute_fsp_ci
             }
         }
     }
-    # Print out commits that are in the gerrit branch and not the bbuild Rel
-    print "\n========\n";
-    print "Commits in gerrit/$branch but not in bbuild => $bbuild_Rel\n\n";
-    print "**Note these commits may cause problems too, but since they\n";
-    print "  are merged commits, they should have passed fsp-ci prior.\n";
-    print "  It is done this way to greatly simply dependencies of your\n";
-    print "  commit ontop of a release\n\n";
-    my $i=1;
-    foreach my $commit (@commits)
+    else
     {
-        print "    $i. $commit\n";
-        $i++;
+        # Print out commits that are in the gerrit branch and not the bbuild Rel
+        print "\n========\n";
+        print "Commits in gerrit/$branch but not in bbuild => $bbuild_Rel\n\n";
+        print "**Note these commits may cause problems too, but since they\n";
+        print "  are merged commits, they should have passed fsp-ci prior.\n";
+        print "  It is done this way to greatly simply dependencies of your\n";
+        print "  commit ontop of a release\n\n";
+        my $i=1;
+        foreach my $commit (@commits)
+        {
+            print "    $i. $commit\n";
+            $i++;
+        }
+        print "\n";
     }
-    print "\n";
 
     # Parse out csv list of patches
     if ($patches ne "")
