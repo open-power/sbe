@@ -398,7 +398,7 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
     if (fapi2::TARGET_TYPE_EX & (i_target.get().getFapiTargetType()))
     {
         // this gives position of ex (0 or 1)
-        uint32_t l_ex_number = i_target.getTargetNumber();
+        uint32_t l_ex_number = i_target.get().getTargetInstance();
 
         // We are in odd EX and it's placed in bottom half of the EQ
         if (l_ex_number % 2)
