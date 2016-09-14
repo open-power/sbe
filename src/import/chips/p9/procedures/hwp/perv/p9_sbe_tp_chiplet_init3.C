@@ -71,7 +71,6 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
 fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    bool l_read_reg = 0;
     fapi2::buffer<uint32_t> l_pfet_value;
     fapi2::buffer<uint32_t> l_attr_pfet;
     fapi2::buffer<uint64_t> l_regions;
@@ -190,17 +189,6 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     l_data64.insertFromRight<0, 6>(0b000110);
     l_data64.clearBit<6>();  //PERV.HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_5_REG, l_data64));
-
-    FAPI_DBG("CHECK FOR XSTOP");
-    //Getting INTERRUPT_TYPE_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PIB_INTERRUPT_TYPE_REG, l_data64));
-    //l_read_reg = PIB.INTERRUPT_TYPE_REG.CHECKSTOP
-    l_read_reg = l_data64.getBit<PERV_INTERRUPT_TYPE_REG_CHECKSTOP>();
-
-    FAPI_ASSERT(l_read_reg == 0,
-                fapi2::XSTOP_ERR()
-                .set_READ_XSTOP(l_read_reg),
-                "XSTOP BIT GET SET");
 
     FAPI_DBG("Start  calibration");
     //Setting KVREF_AND_VMEAS_MODE_STATUS_REG register value
