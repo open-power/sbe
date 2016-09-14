@@ -45,25 +45,12 @@
 fapi2::ReturnCode p9_sbe_chiplet_init(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    bool l_read_reg = false;
-    fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_chiplet_init: Entering..");
 
-    FAPI_DBG("Check  for XSTOP Bit");
-    //Getting INTERRUPT_TYPE_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PIB_INTERRUPT_TYPE_REG, l_data64));
-    //l_read_reg = PIB.INTERRUPT_TYPE_REG.CHECKSTOP
-    l_read_reg = l_data64.getBit<2>();
-
-    FAPI_ASSERT(!(l_read_reg),
-                fapi2::CHECKSTOP_ERR()
-                .set_READ_CHECKSTOP(l_read_reg),
-                "ERROR:CHECKSTOP BIT GET SET ");
 
     FAPI_INF("p9_sbe_chiplet_init: Exiting ...");
 
-fapi_try_exit:
-    return fapi2::current_err;
+    return fapi2::FAPI2_RC_SUCCESS;
 
 }
 
