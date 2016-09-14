@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/hwpf/fapi2/include/ffdc.H $                            */
+/* $Source: src/import/hwpf/fapi2/include/ffdc.H $                        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -29,6 +29,8 @@
 
 #ifndef FAPI2_FFDC_H_
 #define FAPI2_FFDC_H_
+
+#if !defined (FAPI2_NO_FFDC) && !defined (MINIMUM_FFDC)
 
 #include <memory>
 #include <hwp_return_codes.H>
@@ -235,4 +237,5 @@ class FirstFailureData
 };
 
 }
+#endif // !defined (FAPI2_NO_FFDC) && !defined (MINIMUM_FFDC)
 #endif // FAPI2_FFDC_H_

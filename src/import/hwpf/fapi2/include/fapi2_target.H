@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/hwpf/fapi2/include/fapi2_target.H $                    */
+/* $Source: src/import/hwpf/fapi2/include/fapi2_target.H $                */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -31,7 +31,9 @@
 #define __FAPI2_COMMON_TARGET__
 
 #include <stdint.h>
-#include <stdlib.h>
+#ifndef __PPE__
+    #include <stdlib.h>
+#endif // __PPE__
 #include <vector>
 #include <target_types.H>
 #include <target_states.H>
