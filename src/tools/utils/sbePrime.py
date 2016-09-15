@@ -51,6 +51,9 @@ import sbeCmvcConstants as errorcode
 import sbeCmvcUtility as utilcode
 import sbePatchUtility as utilpatch
 
+# Files to copy for sbe prime
+PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_pibmem.bin,sbe_seeprom.bin"
+
 #-------------------------
 # Main Function
 #-------------------------
@@ -241,6 +244,9 @@ def main():
     #----------------------------------------
     # Find the files and copy to the sanbox dir
     # Just take a quick check if the Sandbox exist or not
+
+    if sim_patch == "None":
+        file_name = PRIME_FILE_LIST
     if sandbox_path != "None":
         if os.path.isdir(sandbox_path) == True:
            rc_copy = utilcode.utilCopyFileToSandbox(path_name,sandbox_path,file_name)
