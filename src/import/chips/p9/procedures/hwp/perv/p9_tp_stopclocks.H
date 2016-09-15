@@ -38,13 +38,13 @@
 
 #ifndef _P9_TP_STOPCLOCKS_H_
 #define _P9_TP_STOPCLOCKS_H_
-
+#define btos(x) ((x)?"TRUE":"FALSE")
 
 #include <fapi2.H>
 
 
 typedef fapi2::ReturnCode (*p9_tp_stopclocks_FP_t)(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&, bool, bool);
 
 /// @brief Stop clocks for TP chiplet
 ///
@@ -53,7 +53,7 @@ typedef fapi2::ReturnCode (*p9_tp_stopclocks_FP_t)(const
 extern "C"
 {
     fapi2::ReturnCode p9_tp_stopclocks(const
-                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, const bool i_stop_tp_clks, const bool i_stop_pib_clks);
 }
 
 #endif
