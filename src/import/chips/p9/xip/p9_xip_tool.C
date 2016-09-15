@@ -392,6 +392,8 @@ attrListing(const P9XipItem* i_item, const char* prefix)
 {
     int rc = 0;
     uint64_t data = 0;
+    uint32_t i;
+    char name[42];
 
     if (i_item->iv_address == 0)
     {
@@ -399,67 +401,79 @@ attrListing(const P9XipItem* i_item, const char* prefix)
         return rc;
     }
 
-    printf("%s%-42s | %s | ", prefix, i_item->iv_id,
-           P9_XIP_TYPE_STRING(g_typeAbbrevs, i_item->iv_type));
-
-    rc = p9_xip_get_item(i_item, &data, 0);
-
-    if (rc)
+    for (i = 0; i < i_item->iv_elements; i++)
     {
-        return rc;
+        rc = p9_xip_get_item(i_item, &data, i);
+
+        if (rc)
+        {
+            return rc;
+        }
+
+        if (i_item->iv_elements > 1)
+        {
+            snprintf(name, sizeof(name), "%s[%d]", i_item->iv_id, i);
+        }
+        else
+        {
+            strncpy(name, i_item->iv_id, sizeof(name));
+        }
+
+        printf("%s%-42s | %s | ", prefix, name,
+               P9_XIP_TYPE_STRING(g_typeAbbrevs, i_item->iv_type));
+
+        switch (i_item->iv_type)
+        {
+            case P9_XIP_UINT8:
+                printf("0x%02x", (uint8_t)data);
+                break;
+
+            case P9_XIP_UINT16:
+                printf("0x%04x", (uint16_t)data);
+                break;
+
+            case P9_XIP_UINT32:
+                printf("0x%08x", (uint32_t)data);
+                break;
+
+            case P9_XIP_UINT64:
+                printf("0x%016lx", data);
+                break;
+
+            case P9_XIP_INT8:
+                printf("0x%02x", (uint8_t)data);
+                break;
+
+            case P9_XIP_INT16:
+                printf("0x%04x", (uint16_t)data);
+                break;
+
+            case P9_XIP_INT32:
+                printf("0x%08x", (uint32_t)data);
+                break;
+
+            case P9_XIP_INT64:
+                printf("0x%016lx", data);
+                break;
+
+            case P9_XIP_STRING:
+                printf("%s", (char*)(i_item->iv_imageData));
+                break;
+
+            case P9_XIP_ADDRESS:
+                printf("0x%04x:0x%08x",
+                       (uint16_t)((data >> 32) & 0xffff),
+                       (uint32_t)(data & 0xffffffff));
+                break;
+
+            default:
+                printf("unknown type\n");
+                rc = P9_XIP_BUG;
+                break;
+        }
+
+        printf("\n");
     }
-
-    switch (i_item->iv_type)
-    {
-        case P9_XIP_UINT8:
-            printf("0x%02x", (uint8_t)data);
-            break;
-
-        case P9_XIP_UINT16:
-            printf("0x%04x", (uint16_t)data);
-            break;
-
-        case P9_XIP_UINT32:
-            printf("0x%08x", (uint32_t)data);
-            break;
-
-        case P9_XIP_UINT64:
-            printf("0x%016lx", data);
-            break;
-
-        case P9_XIP_INT8:
-            printf("0x%02x", (uint8_t)data);
-            break;
-
-        case P9_XIP_INT16:
-            printf("0x%04x", (uint16_t)data);
-            break;
-
-        case P9_XIP_INT32:
-            printf("0x%08x", (uint32_t)data);
-            break;
-
-        case P9_XIP_INT64:
-            printf("0x%016lx", data);
-            break;
-
-        case P9_XIP_STRING:
-            printf("%s", (char*)(i_item->iv_imageData));
-            break;
-
-        case P9_XIP_ADDRESS:
-            printf("0x%04x:0x%08x",
-                   (uint16_t)((data >> 32) & 0xffff),
-                   (uint32_t)(data & 0xffffffff));
-            break;
-
-        default:
-            printf("unknown type\n");
-            rc = P9_XIP_BUG;
-            break;
-    }
-
-    printf("\n");
 
     return rc;
 }
