@@ -32,22 +32,146 @@
 //------------------------------------------------------------------------------
 // *HWP HW Owner        : Santosh Balasubramanian <sbalasub@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
-// *HWP FW Owner        : Sunil Kumar <skumar8j@in.ibm.com>
+// *HWP FW Owner        : Raja Das <rajadas2@in.ibm.com>
 // *HWP Team            : Perv
-// *HWP Level           : 1
+// *HWP Level           : 2
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
 
+//------------------------------------------------------------------------------
+// Includes
+//------------------------------------------------------------------------------
+#include <fapi2.H>
+#include <fapi2ClientCapi.H>
+#include <fapi2SharedUtils.H>
+#include <cstdlib>
+#include <p9_adu_setup.H>
+#include <p9_adu_access.H>
+#include <p9_adu_coherent_utils.H>
 #include "p9_sbe_sequence_drtm.H"
 
+///----------------------------------------------------------------------------
+/// Constant definitions
+///----------------------------------------------------------------------------
+const uint64_t SECURITY_SWITCH_REG_ADDR  = 0x00010005;   // Security Switch Register Address
+const uint64_t ADU_XSCOM_BASE_ADDR       = 0x000603FC00000000;   // Security Switch Register Address
 
-fapi2::ReturnCode p9_sbe_sequence_drtm(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+fapi2::ReturnCode p9_sbe_sequence_drtm(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
+                                       uint8_t& o_quiesced_status)
 {
     FAPI_INF("p9_sbe_sequence_drtm : Entering ...");
 
+    //uint8_t l_current_node = 0;
+    //uint8_t l_current_chip = 0;
+    //uint64_t l_current_position = 0;
+    uint64_t l_sys_config   = 0;
+    // Flags for ADU operation
+    bool l_rnw = true;
+    uint64_t address;
+    uint32_t granulesBeforeSetup = 0;
+    p9_ADU_oper_flag l_myAduFlag;
+    uint8_t l_adu_lock_attempts = 5;
+    bool firstGranule = true;
+    bool lastGranule  = true;
+
+    uint8_t  l_lqa_achieved = 0b00010000;
+    uint8_t l_maxchips = 63;
+
+    uint8_t validchip = 0;
+    uint64_t group_id;
+    uint64_t chip_id = 0;
+    uint8_t data[8];
+    uint8_t read_data;
+
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+
+    // Bit Mapping of l_sys_config
+    // 16-23: .........
+    // 08-15: Node 1, Porc 8/9/10/11/12/13/14/15
+    // 00-07: Node 0, Proc 0/1/2/3/4/5/6/7
+
+    //Issue Reads to secure switch register(0x10005) of each of the other chips on the system and check for LQA bit(Bit 3)
+    //Return back if LQA=0 for any chip - Start from beginning next time
+    //If all valid chips have LQA bit set to '1', return successful RC back to upper level FW code
+
+
+    //Identify Current Chip Position
+    //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NODE_POS, i_target_chip, l_current_node));
+    //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_POS, i_target_chip, l_current_chip));
+    //FAPI_DBG("Current Node id : %#04lx, Current Chip id : %#04lx", l_current_node, l_current_chip);
+    //l_current_position = uint64_t(1)<<(63-(l_current_chip + 8 * l_current_node));
+    //Not used - too keep code simple
+
+    // Gather system information
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_SYS_CONFIG, FAPI_SYSTEM, l_sys_config));
+    FAPI_INF("Current System configuration : %#010lx - %#x", (l_sys_config >> 32), (uint32_t)l_sys_config);
+
+
+    //Setup ADU flags
+    l_myAduFlag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);   // XSCOM to PIB are Cache Inhibited
+    l_myAduFlag.setTransactionSize(p9_ADU_oper_flag::TSIZE_8);       // 8 Bytes register read
+    l_myAduFlag.setAutoIncrement(false);                             // No Auto Increment, single register read
+    l_myAduFlag.setLockControl(true);                                // Set ADU lock
+    l_myAduFlag.setOperFailCleanup(false);                           // Reset and release after failed ADU operation
+    l_myAduFlag.setFastMode(false);                                  // Do Status check after every operation
+    l_myAduFlag.setItagMode(false);                                  // Single 8B read operation, no need to collect itag?!
+    l_myAduFlag.setEccMode(false);                                   // Don't collect ECC
+    l_myAduFlag.setEccItagOverrideMode(false);                       // Don't overwrite ECC, not valid for Read operation
+    l_myAduFlag.setNumLockAttempts(l_adu_lock_attempts);             // Number of lock attempts - Set to 5.
+
+    //Walk through l_sys_config, if the bit is set(valid chip in system), read LQA bit value
+    //Set quiesced_status as '1' - As soon as it encounters a chip with LQA not set, set quiesced_status to '0' and break
+    o_quiesced_status = 1;
+
+    while (validchip <= l_maxchips)
+    {
+
+        // Identify if the chip is not matching to originator of the request - Current chip's LQA should already be set
+        //if ((l_sys_config & uint64_t(1)<<(63-validchip)) != l_current_position)
+        //Procedure will ignore current chip position and issue a read to all chips including itself
+        if ((l_sys_config & (uint64_t(1) << (63 - validchip))) != 0)
+        {
+
+            // Determine Group(Node) ID
+            group_id = validchip / 8; //Divider
+
+            // Determine Chip ID
+            chip_id = validchip % 8; //Remainder
+
+            //XSCOM_BASE_ADDR as per ADU document
+            //PIB Address(0x00010005) in address location 30:60
+            //Node Id in location 15:18, Chip id in location 19:21
+            //address =  0x0006010000080028 | (group_id << 45) | (chip_id << 42);
+            address =  ADU_XSCOM_BASE_ADDR | (group_id << 45) | (chip_id << 42) | (SECURITY_SWITCH_REG_ADDR << 3);
+
+            // To read from each chip
+            // Set up ADU
+            FAPI_TRY(p9_adu_setup(i_target_chip, address, l_rnw, l_myAduFlag.setFlag(), granulesBeforeSetup));
+            // Access ADU
+            FAPI_TRY(p9_adu_access(i_target_chip, address, l_rnw, l_myAduFlag.setFlag(), firstGranule, lastGranule, data));
+
+            read_data = data[0];
+
+            //Check if Bit 3(LQA) is not set
+            if (l_lqa_achieved != (read_data & l_lqa_achieved))
+            {
+                //Return Pending return code
+                o_quiesced_status = 0;
+                FAPI_DBG("Current Chip on the system not quiesced - %#018lx", (uint64_t(1) << (63 - validchip)));
+                break; //From while loop with PENDING return code
+            }
+
+        }
+
+        validchip++;
+
+    } //End of while (validchip <= 63)
+
+
     FAPI_INF("p9_sbe_sequence_drtm : Exiting ...");
 
-    return fapi2::FAPI2_RC_SUCCESS;
+fapi_try_exit:
+    return fapi2::current_err;
 
 }
