@@ -332,7 +332,7 @@ static inline int get_sectionId(uint64_t i_magic, const char* i_section)
 // normalization fails, then validate and copy the normalized image back to
 // the mmap()-ed file.
 
-int
+static int
 normalize(void* io_image, const int i_argc, const char** i_argv, uint32_t i_maskIgnores)
 {
     int rc;
@@ -387,7 +387,7 @@ normalize(void* io_image, const int i_argc, const char** i_argv, uint32_t i_mask
 
 // Print a line of attribute report, listing the symbol, type and current
 // value.
-int
+static int
 attrListing(const P9XipItem* i_item, const char* prefix)
 {
     int rc = 0;
@@ -468,7 +468,7 @@ attrListing(const P9XipItem* i_item, const char* prefix)
 // Print a line of a report, listing the index, symbol, type and current
 // value.
 
-int
+static int
 tocListing(void* i_image,
            const P9XipItem* i_item,
            void* arg)
@@ -504,7 +504,7 @@ tocListing(void* i_image,
 
 // Dump the image header, including the section table
 
-int
+static int
 dumpHeader(void* i_image)
 {
     int i;
@@ -561,7 +561,7 @@ dumpHeader(void* i_image)
 
 // Print a report
 
-int
+static int
 report(void* io_image, const int i_argc, const char** i_argv)
 {
     int rc;
@@ -619,7 +619,7 @@ report(void* io_image, const int i_argc, const char** i_argv)
 }
 
 //Print attributes from dump image
-int
+static int
 reportAttr(void* io_image, size_t i_imageSize, void* io_dump)
 {
     int rc = 0;
@@ -661,7 +661,7 @@ reportAttr(void* io_image, size_t i_imageSize, void* io_dump)
 // Set a scalar or vector element values in the image.  The 'i_setv' argument
 // indicates set/setv (0/1).
 
-int
+static int
 set(void* io_image, const int i_argc, const char** i_argv, int i_setv)
 {
     int rc = P9_XIP_BUG, arg, base, clause_args, index_val;
@@ -898,7 +898,7 @@ set(void* io_image, const int i_argc, const char** i_argv, int i_setv)
 // Get a value from the image, and return on stdout.  The 'i_getv' argument
 // indicates get/getv (0/1)
 
-int
+static int
 get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
 {
     int rc, nargs, index_val;
@@ -1049,31 +1049,8 @@ get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
 }
 
 
-// strtoul() with application-specific error handling
-
-unsigned long
-localStrtoul(const char* s)
-{
-    unsigned long v;
-    char* endptr;
-
-    errno = 0;
-    v = strtoul(s, &endptr, 0);
-
-    if ((errno != 0) || (endptr != (s + strlen(s))))
-    {
-        fprintf(stderr,
-                "Error parsing putative integer value : %s\n",
-                s);
-        exit(1);
-    }
-
-    return v;
-}
-
-
 // Append a file to section
-int
+static int
 append(const char* i_imageFile, const int i_imageFd, void* io_image,
        int i_argc, const char** i_argv)
 {
@@ -1236,7 +1213,7 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
 }
 
 // Extract section from a file
-int
+static int
 extract(const char* i_imageFile, const int i_imageFd, void* io_image,
         int i_argc, const char** i_argv)
 {
@@ -1325,7 +1302,7 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
 
 // Delete 0 or more sections in order.
 
-int
+static int
 deleteSection(const char* i_imageFile, const int i_imageFd, void* io_image,
               int i_argc, const char** i_argv)
 {
@@ -1479,7 +1456,7 @@ deleteSection(const char* i_imageFile, const int i_imageFd, void* io_image,
     }
 
 
-int
+static int
 TEST(void* io_image, const int i_argc, const char** i_argv)
 {
     int rc;
@@ -1727,6 +1704,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 ///
 /// Assumptions:
 ///
+static
 int dissectRingSectionTor( void*       i_ringSection,
                            uint64_t    i_imageMagicNo,
                            uint8_t     i_listingModeId )
@@ -2053,6 +2031,7 @@ int dissectRingSectionTor( void*       i_ringSection,
 ///
 /// Assumptions:
 ///
+static
 int dissectRingSection(void*          i_image,
                        int            i_argc,
                        const char**   i_argv)
@@ -2199,7 +2178,7 @@ int dissectRingSection(void*          i_image,
 ///
 /// Brief:  Opens and mmaps the file.
 ///
-void
+static void
 openAndMap(const char* i_fileName, int i_writable, int* o_fd, void** o_image, const uint32_t i_maskIgnores)
 {
     int rc, openMode, mmapProt, mmapShared;
@@ -2275,7 +2254,7 @@ openAndMapReadOnly(const char* i_imageFile, int* o_fd, void** o_image, const uin
 
 // Parse and execute a pre-tokenized command
 
-void
+static void
 command(const char* i_imageFile, const int i_argc, const char** i_argv, const uint32_t i_maskIgnores)
 {
     void* image;
