@@ -537,5 +537,10 @@ attribute tank
         <value>0x0000030000000000</value>
   </entry>
 
+  <entry>
+        <name>ATTR_SBE_SYS_CONFIG</name>
+        <value>0x0000000000000000</value>
+   </entry>
+
 
 </entries>
