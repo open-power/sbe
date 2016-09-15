@@ -45,45 +45,84 @@
 #include <p9_sbe_common.H>
 #include <p9_common_stopclocks.H>
 
-
 enum P9_TP_STOPCLOCKS_Private_Constants
 {
     CLOCK_CMD = 0x2,
     CLOCK_TYPES = 0x7,
     DONT_STARTMASTER = 0x0,
     DONT_STARTSLAVE = 0x0,
+    REGIONS_ONLY_PIB_NET = 0x300,
+    REGIONS_ALL_EXCEPT_PIB_NET_PLL = 0x4FE,
     REGIONS_ALL_EXCEPT_PLL = 0x7FE,
     STARTMASTER = 0x1,
     STARTSLAVE = 0x1
 };
 
-fapi2::ReturnCode p9_tp_stopclocks(const
-                                   fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
+                                   const bool i_stop_tp_clks, const bool i_stop_pib_clks)
 {
     fapi2::buffer<uint64_t> l_clock_regions;
     fapi2::buffer<uint32_t> l_data32;
     fapi2::buffer<uint32_t> l_data32_root_ctrl0;
     FAPI_INF("p9_tp_stopclocks: Entering ...");
 
-    FAPI_DBG("p9_tp_stopclocks: Raise chiplet fence");
-    //Setting PERV_CTRL0 register value
-    FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_PERV_CTRL0_FSI, l_data32));
-    //CFAM.PERV_CTRL0.TP_FENCE_EN_DC = 1
-    l_data32.setBit<PERV_PERV_CTRL0_SET_TP_FENCE_EN_DC>();
-    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_PERV_CTRL0_FSI, l_data32));
+    if(!(i_stop_tp_clks || i_stop_pib_clks)) //Atleast one must be TRUE
+    {
+        FAPI_INF("p9_tp_stopclocks: Input arguments \n\t i_stop_tp_clks  = %s \n\t i_stop_pib_clks = %s", btos(i_stop_tp_clks),
+                 btos(i_stop_pib_clks));
+        FAPI_ERR("p9_tp_stopclocks: Calling stopclocks without selecting any regions\n\t --> Skipping TP Stopclocks..! <--");
+        goto fapi_try_exit;
+    }
 
-    FAPI_DBG("p9_tp_stopclocks: Raise pib2pcb mux");
-    //Setting ROOT_CTRL0 register value
-    FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
-                                    l_data32_root_ctrl0));
-    //CFAM.ROOT_CTRL0.PIB2PCB_DC = 1
-    l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_SET_PIB2PCB_DC>();
-    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
-                                    l_data32_root_ctrl0));
+    if(i_stop_pib_clks)
+    {
+#ifdef __PPE__
+        FAPI_ERR("p9_tp_stopclocks: Calling TP stopclocks for PIB & NET regions in SBE mode is INVALID\n\t --> Skipping TP Stopclocks for PIB/NET regions..! <--");
+        goto fapi_try_exit;
+#endif
+    }
 
-    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
-                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                         fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_EXCEPT_PLL, l_clock_regions));
+    if(i_stop_pib_clks)
+    {
+        FAPI_DBG("p9_tp_stopclocks: Raise chiplet fence");
+        //Setting PERV_CTRL0 register value
+        FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_PERV_CTRL0_FSI, l_data32));
+        //CFAM.PERV_CTRL0.TP_FENCE_EN_DC = 1
+        l_data32.setBit<PERV_PERV_CTRL0_SET_TP_FENCE_EN_DC>();
+        FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_PERV_CTRL0_FSI, l_data32));
+
+        FAPI_DBG("p9_tp_stopclocks: Raise pib2pcb mux");
+        //Setting ROOT_CTRL0 register value
+        FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
+                                        l_data32_root_ctrl0));
+        //CFAM.ROOT_CTRL0.PIB2PCB_DC = 1
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_SET_PIB2PCB_DC>();
+        FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
+                                        l_data32_root_ctrl0));
+    }
+
+    if(i_stop_tp_clks && i_stop_pib_clks)
+    {
+        FAPI_DBG("p9_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_PLL");
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
+                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_EXCEPT_PLL, l_clock_regions));
+    }
+    else if(i_stop_tp_clks)
+    {
+        FAPI_DBG("p9_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_PIB_NET_PLL");
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
+                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_EXCEPT_PIB_NET_PLL, l_clock_regions));
+    }
+    else if(i_stop_pib_clks)
+    {
+        FAPI_DBG("p9_tp_stopclocks: TP regions selected is REGIONS_ONLY_PIB_NET");
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
+                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ONLY_PIB_NET, l_clock_regions));
+    }
+
     FAPI_DBG("p9_tp_stopclocks: Regions value: %#018lX", l_clock_regions);
 
     FAPI_DBG("p9_tp_stopclocks: Call module clock start stop for Tp chiplet");
@@ -102,21 +141,25 @@ fapi2::ReturnCode p9_tp_stopclocks(const
                  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
                          fapi2::TARGET_STATE_FUNCTIONAL)[0]));
 
-    FAPI_INF("p9_tp_stopclocks: Raise OOB Mux");
-    //Setting ROOT_CTRL0 register value
-    //CFAM.ROOT_CTRL0.OOB_MUX = 1
-    l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_SET_OOB_MUX>();
-    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
-                                    l_data32_root_ctrl0));
+    if(i_stop_pib_clks)
+    {
+        FAPI_INF("p9_tp_stopclocks: Raise OOB Mux");
+        //Setting ROOT_CTRL0 register value
+        //CFAM.ROOT_CTRL0.OOB_MUX = 1
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_SET_OOB_MUX>();
+        FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
+                                        l_data32_root_ctrl0));
 
-    FAPI_INF("p9_tp_stopclocks: Raise Global Endpoint reset");
-    //Setting ROOT_CTRL0 register value
-    //CFAM.ROOT_CTRL0.GLOBAL_EP_RESET_DC = 1
-    l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_SET_GLOBAL_EP_RESET_DC>();
-    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
-                                    l_data32_root_ctrl0));
+        FAPI_INF("p9_tp_stopclocks: Raise Global Endpoint reset");
+        //Setting ROOT_CTRL0 register value
+        //CFAM.ROOT_CTRL0.GLOBAL_EP_RESET_DC = 1
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_SET_GLOBAL_EP_RESET_DC>();
+        FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
+                                        l_data32_root_ctrl0));
+    }
 
     FAPI_INF("p9_tp_stopclocks: Exiting ...");
+
 fapi_try_exit:
     return fapi2::current_err;
 

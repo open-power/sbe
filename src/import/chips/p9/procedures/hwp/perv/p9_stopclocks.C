@@ -55,7 +55,8 @@
 //             i_stop_xbus_clks        =>   True to stop XBUS chiplet clocks                              (should default TRUE)
 //             i_stop_abus_clks        =>   True to stop OBUS chiplet clocks                              (should default TRUE)
 //             i_stop_pcie_clks        =>   True to stop PCIE chiplet clocks                              (should default TRUE)
-//             i_stop_tp_clks          =>   True to stop PERVASIVE (TP) chiplet clocks                    (should default FALSE)
+//             i_stop_tp_clks          =>   True to stop PERVASIVE (TP) chiplet clocks all except PIB/NET (should default FALSE)
+//             i_stop_pib_clks         =>   True to stop PERVASIVE (TP) chiplet PIB/NET clocks            (should default FALSE)
 //             i_stop_vitl_clks        =>   True to stop PERVASIVE VITL clocks                            (should default FALSE)
 //             i_eq_clk_regions        =>   EQ chiplet clock regions of which clocks should be stopped    (default ALL_BUT_PLL_REFR)
 //             i_ex_select             =>   EX chiplet selected for clocks stop                           (default BOTH_EX)
@@ -69,6 +70,7 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
                                 const bool i_stop_obus_clks,
                                 const bool i_stop_pcie_clks,
                                 const bool i_stop_tp_clks,
+                                const bool i_stop_pib_clks,
                                 const bool i_stop_vitl_clks,
                                 const p9hcd::P9_HCD_CLK_CTRL_CONSTANTS i_eq_clk_regions,
                                 const p9hcd::P9_HCD_EX_CTRL_CONSTANTS i_ex_select)
@@ -98,38 +100,40 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
 
     FAPI_INF("p9_stopclocks : Entering ...");
 
-    FAPI_DBG("p9_stopclocks : Input arguments received are \n\t i_stop_nest_clks = %s\n\t i_stop_mc_clks = %s\n\t i_stop_xbus_clks = %s\n\t i_stop_obus_clks = %s\n\t i_stop_pcie_clks = %s\n\t i_stop_tp_clks = %s\n\t i_stop_vitl_clks =  %s\n",
+    FAPI_DBG("p9_stopclocks : Input arguments received are \n\t i_stop_nest_clks = %s\n\t i_stop_mc_clks = %s\n\t i_stop_xbus_clks = %s\n\t i_stop_obus_clks = %s\n\t i_stop_pcie_clks = %s\n\t i_stop_tp_clks = %s\n\t i_stop_pib_clks = %s\n\t i_stop_vitl_clks =  %s\n",
              btos(i_stop_nest_clks), btos(i_stop_mc_clks), btos(i_stop_xbus_clks), btos(i_stop_obus_clks), btos(i_stop_pcie_clks),
-             btos(i_stop_tp_clks), btos(i_stop_vitl_clks));
+             btos(i_stop_tp_clks), btos(i_stop_pib_clks), btos(i_stop_vitl_clks));
     FAPI_DBG("p9_stopclocks : Input CACHE arguments received are \n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
              (uint64_t)i_eq_clk_regions, (uint64_t)i_ex_select);
 
     FAPI_DBG("p9_stopclocks : Check to see if the Perv Vital clocks are OFF");
+#ifdef __PPE__
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
+    perv_vitl_clks_off = l_data64.getBit<PERV_PERV_CTRL0_TP_VITL_CLKOFF_DC>();
+#else
     FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_PERV_CTRL0_FSI, l_cfam_data));
+    perv_vitl_clks_off = l_cfam_data.getBit<PERV_PERV_CTRL0_TP_VITL_CLKOFF_DC>();
+#endif
 
-    if(l_cfam_data.getBit<PERV_PERV_CTRL0_TP_VITL_CLKOFF_DC>())
+    if(perv_vitl_clks_off)
     {
         FAPI_INF("p9_stopclocks : Perv Vital clocks are off, so stopclocks cant go ahead");
-        perv_vitl_clks_off   = true;
-    }
-    else
-    {
-        perv_vitl_clks_off   = false;
     }
 
     if(!(perv_vitl_clks_off))
     {
         FAPI_DBG("p9_stopclocks : Check to see if the PIB/PCB network is being bypassed");
+#ifdef __PPE__
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
+        pcb_is_bypassed = l_data64.getBit<PERV_ROOT_CTRL0_PIB2PCB_DC>();
+#else
         FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_cfam_data));
+        pcb_is_bypassed = l_cfam_data.getBit<PERV_ROOT_CTRL0_PIB2PCB_DC>();
+#endif
 
-        if(l_cfam_data.getBit<PERV_ROOT_CTRL0_PIB2PCB_DC>())
+        if(pcb_is_bypassed)
         {
             FAPI_INF("p9_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible.");
-            pcb_is_bypassed      = true;
-        }
-        else
-        {
-            pcb_is_bypassed      = false;
         }
 
 
@@ -240,15 +244,18 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
         }
 
         // TP chiplet stopclocks
-        if((i_stop_tp_clks && tp_cplt_scomable) && !(pcb_is_bypassed == false && pcb_clks_are_off == true))
+        if(((i_stop_tp_clks || i_stop_pib_clks) && tp_cplt_scomable) && !(pcb_is_bypassed == false && pcb_clks_are_off == true))
         {
             FAPI_INF("p9_stopclocks : Call p9_tp_stopclocks function");
-            FAPI_TRY(p9_tp_stopclocks(i_target_chip));
+            FAPI_TRY(p9_tp_stopclocks(i_target_chip, i_stop_tp_clks, i_stop_pib_clks));
         }
 
         // Vital stopclocks
         if(i_stop_vitl_clks)
         {
+#ifdef __PPE__
+            FAPI_INF("p9_stopclocks : WARNING::VITAL clocks can't be stopped in SBE mode\n\t --> Skipping VITAL Stopclocks..! <--");
+#else
             FAPI_INF("p9_stopclocks : Stopping Pervasive VITAL clocks");
 
             FAPI_DBG("Reading the current value of PERV_CTRL0 register");
@@ -270,6 +277,7 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
 
             FAPI_DBG("Writing the ROOT_CTRL0 register to raise FSI fence 4 and 5");
             FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_cfam_data));
+#endif
         }
     }
 
