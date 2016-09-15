@@ -385,169 +385,10 @@ normalize(void* io_image, const int i_argc, const char** i_argv, uint32_t i_mask
 }
 
 
-// Print a line of a report, listing the index, symbol, type and current
-// value.
-
-int
-tocListing(void* io_image,
-           const P9XipItem* i_item,
-           void* arg)
-{
-    int rc;
-    ReportControl* control;
-    uint64_t data;
-    char* s;
-
-    control = (ReportControl*)arg;
-
-    do
-    {
-        rc = 0;
-
-        if (control->regex)
-        {
-            if (regexec(&(control->preg), i_item->iv_id, 0, 0, 0))
-            {
-                break;
-            }
-        }
-
-        printf("0x%04x | %-42s | %s | ",
-               control->index, i_item->iv_id,
-               P9_XIP_TYPE_STRING(g_typeAbbrevs, i_item->iv_type));
-
-        switch (i_item->iv_type)
-        {
-            case P9_XIP_UINT8:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%02x", (uint8_t)data);
-                break;
-
-            case P9_XIP_UINT16:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%04x", (uint16_t)data);
-                break;
-
-            case P9_XIP_UINT32:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%08x", (uint32_t)data);
-                break;
-
-            case P9_XIP_UINT64:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%016lx", data);
-                break;
-
-            case P9_XIP_INT8:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%02x", (uint8_t)data);
-                break;
-
-            case P9_XIP_INT16:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%04x", (uint16_t)data);
-                break;
-
-            case P9_XIP_INT32:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%08x", (uint32_t)data);
-                break;
-
-            case P9_XIP_INT64:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%016lx", data);
-                break;
-
-            case P9_XIP_STRING:
-                rc = p9_xip_get_string(io_image, i_item->iv_id, &s);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("%s", s);
-                break;
-
-            case P9_XIP_ADDRESS:
-                rc = p9_xip_get_scalar(io_image, i_item->iv_id, &data);
-
-                if (rc)
-                {
-                    break;
-                }
-
-                printf("0x%04x:0x%08x",
-                       (uint16_t)((data >> 32) & 0xffff),
-                       (uint32_t)(data & 0xffffffff));
-                break;
-
-            default:
-                printf("unknown type\n");
-                rc = P9_XIP_BUG;
-                break;
-        }
-
-        printf("\n");
-    }
-    while (0);
-
-    control->index += 1;
-    return rc;
-}
-
 // Print a line of attribute report, listing the symbol, type and current
 // value.
 int
-attrListing(const P9XipItem* i_item)
+attrListing(const P9XipItem* i_item, const char* prefix)
 {
     int rc = 0;
     uint64_t data = 0;
@@ -558,7 +399,7 @@ attrListing(const P9XipItem* i_item)
         return rc;
     }
 
-    printf("%-42s | %s | ", i_item->iv_id,
+    printf("%s%-42s | %s | ", prefix, i_item->iv_id,
            P9_XIP_TYPE_STRING(g_typeAbbrevs, i_item->iv_type));
 
     rc = p9_xip_get_item(i_item, &data);
@@ -620,6 +461,44 @@ attrListing(const P9XipItem* i_item)
 
     printf("\n");
 
+    return rc;
+}
+
+
+// Print a line of a report, listing the index, symbol, type and current
+// value.
+
+int
+tocListing(void* i_image,
+           const P9XipItem* i_item,
+           void* arg)
+{
+    P9XipItem item;
+    int rc = 0;
+    ReportControl* control = (ReportControl*)arg;
+    char prefix[10];
+
+    do
+    {
+        if (control->regex)
+        {
+            if (regexec(&(control->preg), i_item->iv_id, 0, 0, 0))
+            {
+                break;
+            }
+        }
+
+        rc = p9_xip_find(i_image, i_item->iv_id, &item);
+
+        if (!rc)
+        {
+            snprintf(prefix, sizeof(prefix), "0x%04x | ", control->index);
+            attrListing(&item, prefix);
+        }
+    }
+    while (0);
+
+    control->index += 1;
     return rc;
 }
 
@@ -772,7 +651,7 @@ reportAttr(void* io_image, size_t i_imageSize, void* io_dump)
         if (!rc)
         {
             //helper function to print the attributes
-            attrListing(&item);
+            attrListing(&item, "");
         }
     }
 
