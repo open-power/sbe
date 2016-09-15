@@ -402,7 +402,7 @@ attrListing(const P9XipItem* i_item, const char* prefix)
     printf("%s%-42s | %s | ", prefix, i_item->iv_id,
            P9_XIP_TYPE_STRING(g_typeAbbrevs, i_item->iv_type));
 
-    rc = p9_xip_get_item(i_item, &data);
+    rc = p9_xip_get_item(i_item, &data, 0);
 
     if (rc)
     {
