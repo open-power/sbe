@@ -173,9 +173,12 @@ def utilCmvcCheckout(i_filename, i_release, i_cmvcnum):
     print "  File Name\t: ",i_filename
     print "  Release\t: ",i_release
 
-    # The file simics.tar is not unique so provide the relative path
+    # The file simics.tar,releaseNotes.html is not unique so provide
+    # the relative path
     if i_filename == "simics.tar":
        i_filename = 'src/sbei/sbfw/simics.tar'
+    elif i_filename == "releaseNotes.html":
+       i_filename = 'src/sbei/sbfw/releaseNotes.html'
 
     print "  CMVC #\t: ",i_cmvcnum[1:]
     l_home_path= expanduser("~") + "/" + errorcode.CMVC_DIR_CREATE + i_cmvcnum
