@@ -332,7 +332,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
     // Local variable and constant definition
-    fapi2::buffer <uint32_t> l_attr_pg;
+    fapi2::buffer <uint16_t> l_attr_pg;
     fapi2::buffer <uint16_t> l_attr_pg_data;
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_tp_chiplet_init3_region_fence_setup: Entering ...");
@@ -340,13 +340,13 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
 
     l_attr_pg.invert();
-    l_attr_pg.extractToRight<20, 11>(l_attr_pg_data);
+    l_attr_pg.extractToRight<4, 11>(l_attr_pg_data);
 
     FAPI_DBG("Drop partial good fences");
     //Setting CPLT_CTRL1 register value
     l_data64.flush<0>();
     l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>
-    (l_attr_pg.getBit<19>());  //CPLT_CTRL1.TC_VITL_REGION_FENCE = l_attr_pg.getBit<19>()
+    (l_attr_pg.getBit<3>());
     //CPLT_CTRL1.TC_ALL_REGIONS_FENCE = l_attr_pg_data
     l_data64.insertFromRight<4, 11>(l_attr_pg_data);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));

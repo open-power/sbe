@@ -69,7 +69,6 @@ fapi2::ReturnCode p9_sbe_arrayinit(const
                                    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint16_t> l_regions;
-    fapi2::buffer<uint32_t> l_attr_pg;
     fapi2::buffer<uint8_t> l_attr_read;
     FAPI_INF("p9_sbe_arrayinit: Entering ...");
 

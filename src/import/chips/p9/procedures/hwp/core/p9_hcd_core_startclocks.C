@@ -87,7 +87,6 @@ p9_hcd_core_startclocks(
     FAPI_INF(">>p9_hcd_core_startclocks");
     fapi2::buffer<uint64_t>                     l_data64;
     uint32_t                                    l_timeout;
-    uint32_t                                    l_attr_pg;
     uint8_t                                     l_attr_chip_unit_pos;
     uint8_t                                     l_attr_system_ipl_phase;
     uint8_t                                     l_attr_runn_mode;
@@ -101,8 +100,6 @@ p9_hcd_core_startclocks(
                            l_attr_runn_mode));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
                            l_attr_system_ipl_phase));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG,               l_perv,
-                           l_attr_pg));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,    l_perv,
                            l_attr_chip_unit_pos));
     l_attr_chip_unit_pos = (l_attr_chip_unit_pos -
@@ -245,11 +242,8 @@ p9_hcd_core_startclocks(
     // Cleaning up
     // -------------------------------
 
-    if ((~l_attr_pg) & BITS32(4, 11))
-    {
-        FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
-        FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(18)));
-    }
+    FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
+    FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(18)));
 
     /// @todo ignore xstop checkstop in sim, review for lab
     /*
