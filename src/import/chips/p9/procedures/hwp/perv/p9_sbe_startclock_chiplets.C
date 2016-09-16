@@ -58,7 +58,7 @@ enum P9_SBE_STARTCLOCK_CHIPLETS_Private_Constants
 
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_get_attr_pg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    fapi2::buffer<uint32_t>& o_attr_pg);
+    fapi2::buffer<uint16_t>& o_attr_pg);
 
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_fence_drop(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
@@ -85,7 +85,7 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
     fapi2::buffer<uint64_t> l_pg_vector;
     fapi2::buffer<uint64_t> l_regions;
     fapi2::buffer<uint8_t> l_attr_obus_ratio;
-    fapi2::buffer<uint32_t> l_attr_pg;
+    fapi2::buffer<uint16_t> l_attr_pg;
     FAPI_INF("p9_sbe_startclock_chiplets: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OBUS_RATIO_VALUE, i_target_chip,
@@ -177,7 +177,7 @@ fapi_try_exit:
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_get_attr_pg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    fapi2::buffer<uint32_t>& o_attr_pg)
+    fapi2::buffer<uint16_t>& o_attr_pg)
 {
     FAPI_INF("p9_sbe_startclock_chiplets_get_attr_pg: Entering ...");
 

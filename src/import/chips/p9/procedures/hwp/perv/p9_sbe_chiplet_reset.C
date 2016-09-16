@@ -961,7 +961,7 @@ fapi_try_exit:
 static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup_cache(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
-    uint32_t l_attr_pg = 0;
+    uint16_t l_attr_pg = 0;
     FAPI_INF("p9_sbe_chiplet_reset_mc_setup_cache: Entering ...");
 
     FAPI_DBG("Reading ATTR_PG");

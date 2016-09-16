@@ -64,7 +64,7 @@ static fapi2::ReturnCode p9_sbe_nest_startclocks_N3_fence_drop(
 
 static fapi2::ReturnCode p9_sbe_nest_startclocks_get_attr_pg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    fapi2::buffer<uint32_t>& o_attr_pg);
+    fapi2::buffer<uint16_t>& o_attr_pg);
 
 static fapi2::ReturnCode p9_sbe_nest_startclocks_mc_fence_drop(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
@@ -79,7 +79,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
 {
     uint8_t l_read_attr = 0;
     fapi2::buffer<uint8_t> l_read_flush_attr;
-    fapi2::buffer<uint32_t> l_attr_pg;
+    fapi2::buffer<uint16_t> l_attr_pg;
     fapi2::buffer<uint64_t> l_pg_vector;
     fapi2::buffer<uint64_t> l_clock_regions;
     fapi2::buffer<uint64_t> l_n3_clock_regions;
@@ -299,7 +299,7 @@ fapi_try_exit:
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_nest_startclocks_get_attr_pg(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    fapi2::buffer<uint32_t>& o_attr_pg)
+    fapi2::buffer<uint16_t>& o_attr_pg)
 {
     FAPI_INF("p9_sbe_nest_startclocks_get_attr_pg: Entering ...");
 
