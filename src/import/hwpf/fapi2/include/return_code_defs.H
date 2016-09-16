@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/hwpf/fapi2/include/return_code_defs.H $                */
+/* $Source: src/import/hwpf/fapi2/include/return_code_defs.H $            */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

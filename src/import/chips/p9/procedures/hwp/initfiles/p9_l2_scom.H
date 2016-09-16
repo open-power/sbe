@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/initfiles/p9_l2_scom.H $       */
+/* $Source: src/import/chips/p9/procedures/hwp/initfiles/p9_l2_scom.H $   */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

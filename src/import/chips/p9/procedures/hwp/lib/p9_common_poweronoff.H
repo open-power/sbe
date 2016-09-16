@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/lib/p9_common_poweronoff.H $   */
+/* $Source: src/import/chips/p9/procedures/hwp/lib/p9_common_poweronoff.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

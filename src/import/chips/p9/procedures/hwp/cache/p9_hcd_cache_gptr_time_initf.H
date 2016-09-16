@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/cache/p9_hcd_cache_gptr_time_initf.H $ */
+/* $Source: src/import/chips/p9/procedures/hwp/cache/p9_hcd_cache_gptr_time_initf.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

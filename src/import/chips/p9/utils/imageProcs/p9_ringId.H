@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/utils/imageProcs/p9_ringId.H $                */
+/* $Source: src/import/chips/p9/utils/imageProcs/p9_ringId.H $            */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

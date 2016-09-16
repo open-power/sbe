@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: import/chips/p9/procedures/hwp/core/corehcdfiles.mk $
+# $Source: src/import/chips/p9/procedures/hwp/core/corehcdfiles.mk $
 #
 # OpenPOWER sbe Project
 #

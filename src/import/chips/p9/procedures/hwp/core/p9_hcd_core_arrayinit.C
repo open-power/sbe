@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/core/p9_hcd_core_arrayinit.C $ */
+/* $Source: src/import/chips/p9/procedures/hwp/core/p9_hcd_core_arrayinit.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/procedures/hwp/pm/p9_pm_ocb_indir_setup_linear.H $ */
+/* $Source: src/import/chips/p9/procedures/hwp/pm/p9_pm_ocb_indir_setup_linear.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

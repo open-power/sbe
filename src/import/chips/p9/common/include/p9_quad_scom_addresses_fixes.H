@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: import/chips/p9/common/include/p9_quad_scom_addresses_fixes.H $ */
+/* $Source: src/import/chips/p9/common/include/p9_quad_scom_addresses_fixes.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
