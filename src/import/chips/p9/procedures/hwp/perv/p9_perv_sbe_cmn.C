@@ -279,9 +279,9 @@ fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_16(const
         const fapi2::buffer<uint16_t> i_regions_value,
         fapi2::buffer<uint16_t>& o_regions_value)
 {
-    fapi2::buffer<uint32_t> l_read_attr = 0;
-    fapi2::buffer<uint32_t> l_read_attr_invert = 0;
-    fapi2::buffer<uint32_t> l_read_attr_shift1_right = 0;
+    fapi2::buffer<uint16_t> l_read_attr = 0;
+    fapi2::buffer<uint16_t> l_read_attr_invert = 0;
+    fapi2::buffer<uint16_t> l_read_attr_shift1_right = 0;
     FAPI_INF("p9_perv_sbe_cmn_regions_setup_16: Entering ...");
 
     FAPI_DBG("Reading ATTR_PG");
@@ -324,9 +324,9 @@ fapi2::ReturnCode p9_perv_sbe_cmn_regions_setup_64(const
         const fapi2::buffer<uint16_t> i_regions_value,
         fapi2::buffer<uint64_t>& o_regions_value)
 {
-    fapi2::buffer<uint32_t> l_read_attr = 0;
-    fapi2::buffer<uint32_t> l_read_attr_invert = 0;
-    fapi2::buffer<uint32_t> l_read_attr_shift1_right = 0;
+    fapi2::buffer<uint16_t> l_read_attr = 0;
+    fapi2::buffer<uint16_t> l_read_attr_invert = 0;
+    fapi2::buffer<uint16_t> l_read_attr_shift1_right = 0;
     fapi2::buffer<uint64_t> l_temp = 0;
     FAPI_INF("p9_perv_sbe_cmn_regions_setup_64: Entering ...");
 

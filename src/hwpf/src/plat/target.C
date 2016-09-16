@@ -293,7 +293,7 @@ namespace fapi2
                                           bool & o_present)
      {
         o_present = false;
-        uint32_t attr_value = 0;
+        uint16_t attr_value = 0;
         FAPI_ATTR_GET(fapi2::ATTR_PG,
                 i_target,
                 attr_value);
@@ -472,7 +472,7 @@ fapi_try_exit:
             fapi2::Target<fapi2::TARGET_TYPE_EQ> l_parent = target_name.getParent<fapi2::TARGET_TYPE_EQ>();
 
             // Get the parent EQ's ATTR_PG
-            uint32_t l_eqAttrPg = 0;
+            uint16_t l_eqAttrPg = 0;
             FAPI_ATTR_GET(fapi2::ATTR_PG, l_parent.getParent<TARGET_TYPE_PERV>(), l_eqAttrPg);
 
             // Check if this EX's L2 and L3 regions are marked "good"
@@ -507,7 +507,7 @@ fapi_try_exit:
             fapi2::Target<fapi2::TARGET_TYPE_PERV>
                 l_nestTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(N3_CHIPLET - (MCS_PER_MCBIST * (i / MCS_PER_MCBIST)))));
 
-            uint32_t l_attrPg = 0;
+            uint16_t l_attrPg = 0;
 
             FAPI_ATTR_GET(fapi2::ATTR_PG, l_nestTarget, l_attrPg);
 

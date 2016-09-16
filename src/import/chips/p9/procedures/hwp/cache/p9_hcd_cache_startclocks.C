@@ -98,7 +98,6 @@ p9_hcd_cache_startclocks(
     uint8_t                                     l_attr_chip_id       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
     uint8_t                                     l_attr_system_ipl_phase;
-    uint32_t                                    l_attr_pg;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
@@ -113,8 +112,6 @@ p9_hcd_cache_startclocks(
                            l_attr_chip_id));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID, l_chip,
                            l_attr_system_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG,                    l_perv,
-                           l_attr_pg));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,         l_perv,
                            l_attr_chip_unit_pos));
     l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_EQ_POS_OFFSET;
@@ -304,7 +301,7 @@ p9_hcd_cache_startclocks(
     // Cleaning up
     // -------------------------------
 
-    if (((~l_attr_pg) & BITS32(4, 11)) && l_attr_system_ipl_phase != 4)
+    if (l_attr_system_ipl_phase != 4)
     {
         FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
         FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(18)));
