@@ -46,7 +46,9 @@ static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
 // TODO via RTC 152424
 // Currently all proecdures in core directory are in seeprom.
 // So we have to use function pointer to force a long call.
+#ifdef SEEPROM_IMAGE
 p9_thread_control_FP_t threadCntlhwp = &p9_thread_control;
+#endif
 
 /* @brief Map User Thread Command to Hwp ThreadCommands Enum */
 ThreadCommands getThreadCommand(const sbeCntlInstRegMsgHdr_t & i_req)
@@ -144,11 +146,12 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
             do
             {
                 // Call the Procedure
-                l_fapiRc = threadCntlhwp(
-                                    l_coreTgt,
-                                    (SINGLE_THREAD_BIT_MASK >> l_thread),
-                                    l_cmd, l_warnCheck,
-                                    l_data64, l_state);
+                SBE_EXEC_HWP(l_fapiRc,
+                             threadCntlhwp,
+                             l_coreTgt,
+                              (SINGLE_THREAD_BIT_MASK >> l_thread),
+                              l_cmd, l_warnCheck,
+                              l_data64, l_state)
 
                 if(l_fapiRc != FAPI2_RC_SUCCESS)
                 {

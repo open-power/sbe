@@ -52,7 +52,7 @@ import sbeCmvcUtility as utilcode
 import sbePatchUtility as utilpatch
 
 # Files to copy for sbe prime
-PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_pibmem.bin,sbe_seeprom.bin"
+PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin"
 
 #-------------------------
 # Main Function
@@ -79,7 +79,7 @@ def main():
         print " \t                                and you want to compile, use this option then only"
         print " \t  -i,--files     = [ Optional ] Firmware Files coma ',' separated input file1,file2"
         print " \t                                Only the pre-define listed files bellow:"
-        print " \t                                sbe_sp_intf.H,simics.tar,sbe_pibmem.bin,sbe_seeprom.bin"
+        print " \t                                sbe_sp_intf.H,simics.tar,sbe_seeprom.bin"
         print " \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)"
         print " \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled"
         print " \t  -h,--help      = Help"

@@ -318,13 +318,14 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     while (l_granulesCompleted < l_lenCacheAligned)
     {
         // Call the PBA setup HWP
-        l_fapiRc = p9_pba_setup(
-                        l_proc,
-                        l_ex,
-                        l_addr,
-                        i_isFlagRead,
-                        ((l_isFastMode) ? (1<<PBA_FAST_MODE_SHIFT) : 0),
-                        l_numGranules);
+        SBE_EXEC_HWP(l_fapiRc,
+                     p9_pba_setup,
+                     l_proc,
+                     l_ex,
+                     l_addr,
+                     i_isFlagRead,
+                     ((l_isFastMode) ? (1<<PBA_FAST_MODE_SHIFT) : 0),
+                     l_numGranules)
 
         // if p9_pba_setup returns error
         if(l_fapiRc != FAPI2_RC_SUCCESS)
@@ -372,14 +373,15 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
             // Call PBA access
-            l_fapiRc = p9_pba_access(
+            SBE_EXEC_HWP(l_fapiRc,
+                         p9_pba_access,
                            l_proc,
                            l_addr,
                            i_isFlagRead,
                            ((l_isFastMode) ? (1<<PBA_FAST_MODE_SHIFT) : 0),
                            l_firstGran,
                            l_lastGran,
-                           (uint8_t *)&l_dataFifo);
+                           (uint8_t *)&l_dataFifo)
 
             // if p9_pba_access returns error
             if( l_fapiRc != FAPI2_RC_SUCCESS )
@@ -493,11 +495,12 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     while (l_granulesCompleted < l_lenCacheAligned)
     {
         // Call the ADU setup HWP
-        l_fapiRc = p9_adu_setup (l_proc,
+        SBE_EXEC_HWP(l_fapiRc,
+                     p9_adu_setup,l_proc,
                                  l_addr,
                                  i_isFlagRead,
                                  l_aduSetupFlags,
-                                 l_numGranules);
+                                 l_numGranules)
         // if p9_adu_setup returns error
         if( (l_fapiRc != FAPI2_RC_SUCCESS) )
         {
@@ -603,14 +606,15 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             }
 
             // Call ADU access HWP for ADU write/read request
-            l_fapiRc = p9_adu_access (
+            SBE_EXEC_HWP(l_fapiRc,
+                         p9_adu_access,
                             l_proc,
                             l_addr,
                             i_isFlagRead,
                             l_aduSetupFlags,
                             l_firstGran,
                             l_lastGran,
-                            &(((uint8_t *)&(l_dataFifo))[l_bufIdx]));
+                            &(((uint8_t *)&(l_dataFifo))[l_bufIdx]))
             // if p9_adu_access returns error
             if( l_fapiRc != FAPI2_RC_SUCCESS )
             {

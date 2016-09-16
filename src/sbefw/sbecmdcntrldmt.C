@@ -45,9 +45,11 @@
 
 using namespace fapi2;
 
+#ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
 p9_sbe_check_master_stop15_FP_t p9_sbe_check_master_stop15_hwp =
                                             &p9_sbe_check_master_stop15;
+#endif
 
 ////////////////////////////////////////////////////////////////////
 //Static initialization of the Dmt Pk timer
@@ -154,7 +156,7 @@ uint32_t sbeStartCntlDmt()
         // Go around a loop till you get FAPI2_RC_SUCCESS
         do
         {
-            l_fapiRc = p9_sbe_check_master_stop15_hwp(l_coreTgt);
+            SBE_EXEC_HWP(l_fapiRc, p9_sbe_check_master_stop15_hwp, l_coreTgt)
             //Conversion is required here, since ReturnCode doesn't support
             //comparision '!=' or '=='
             //TODO RTC:149021
@@ -172,8 +174,8 @@ uint32_t sbeStartCntlDmt()
             // Only for Pending and Success case
             if(RC_CHECK_MASTER_STOP15_PENDING != l_rcFapi) // Success
             {
-                l_fapiRc = p9_block_wakeup_intr(l_coreTgt,
-                                                p9pmblockwkup::CLEAR );
+                SBE_EXEC_HWP(l_fapiRc, p9_block_wakeup_intr, l_coreTgt,
+                                                p9pmblockwkup::CLEAR )
                 if( l_fapiRc )
                 {
                     SBE_ERROR(SBE_FUNC" p9_block_wakeup_intr failed ");

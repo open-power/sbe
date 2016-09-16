@@ -39,7 +39,10 @@ source "$SBEROOT/src/test/framework/setup-env"
 #COPYRIGHT_PID=$!
 
 
-# Build .
+# Build PIBMEM Image
+scl enable devtoolset-2 " bash -c  \"make install img=pibmem\"" || exit -1
+bash -c  "rm -rf $SBEROOT/obj/sbefw" || exit -1
+# Build SEEPROM Image
 scl enable devtoolset-2 " bash -c  \"make install\"" || exit -1
 
 # Create simics sandbox.

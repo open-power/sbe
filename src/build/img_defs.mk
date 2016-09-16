@@ -433,6 +433,23 @@ GCC-CFLAGS += -mcpu=ppe42
 GCC-CFLAGS += -ffunction-sections
 GCC-CFLAGS += -fdata-sections
 endif
+############################################################################
+# Image settings
+# pass argument img=seeprom/pibmem
+# By default seeprom image is built
+ifndef img
+img = seeprom
+endif
+
+ifeq ($(img), seeprom)
+GCC-DEFS += -DSEEPROM_IMAGE
+endif
+ifeq ($(img), pibmem)
+GCC-DEFS += -DPIBMEM_ONLY_IMAGE
+endif
+
+###########################################################################
+
 
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
@@ -446,7 +463,6 @@ ifdef P2P_ENABLE
 #use this to disable optimizations (fused compare/branch etc.)
 PCP-FLAG    =  -b
 endif
-
 ############################################################################
 
 #override the GNU Make implicit rule for going from a .C to a .o

@@ -99,11 +99,13 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
             break;
         }
         uint8_t core = regReqMsg.coreChiplet;
+#ifdef SEEPROM_IMAGE
         RamCore ramCore( plat_getTargetHandleByChipletNumber
                          <fapi2::TARGET_TYPE_CORE>(core),
                          regReqMsg.threadNr );
+#endif
 
-        fapiRc = ramCore.ram_setup();
+        SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_setup)
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%x"
@@ -118,8 +120,8 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
         uint64_t respData = 0;
         for( uint32_t regIdx = 0; regIdx < regReqMsg.numRegs; regIdx++ )
         {
-            fapiRc = ramCore.get_reg( getRegType(regReqMsg), reqData[regIdx],
-                                      &data64, true );
+            SBE_EXEC_HWP(fapiRc, ramCore.get_reg, getRegType(regReqMsg), reqData[regIdx],
+                                      &data64, true )
             if( fapiRc != FAPI2_RC_SUCCESS )
             {
                 SBE_ERROR(SBE_FUNC" get_reg failed. threadNr:0x%x"
@@ -146,7 +148,7 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
          {
              break;
          }
-         fapiRc = ramCore.ram_cleanup();
+         SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_cleanup)
          if( fapiRc != FAPI2_RC_SUCCESS )
          {
              SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%x"
@@ -211,11 +213,13 @@ uint32_t sbePutReg(uint8_t *i_pArg)
             break;
         }
         uint8_t core = regReqMsg.coreChiplet;
+#ifdef SEEPROM_IMAGE
         RamCore ramCore( plat_getTargetHandleByChipletNumber
                          <fapi2::TARGET_TYPE_CORE>(core),
                          regReqMsg.threadNr );
+#endif
 
-        fapiRc = ramCore.ram_setup();
+        SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_setup)
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%x"
@@ -230,9 +234,9 @@ uint32_t sbePutReg(uint8_t *i_pArg)
         for( uint32_t regIdx = 0; regIdx < regReqMsg.numRegs; regIdx++ )
         {
             data64 = regPkg[regIdx].getData();
-            fapiRc = ramCore.put_reg( getRegType(regReqMsg),
+            SBE_EXEC_HWP(fapiRc, ramCore.put_reg, getRegType(regReqMsg),
                                       regPkg[regIdx].regNr,
-                                      &data64, true );
+                                      &data64, true )
             if( fapiRc != FAPI2_RC_SUCCESS )
             {
                 SBE_ERROR(SBE_FUNC" get_reg failed. threadNr:0x%x"
@@ -251,7 +255,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
          {
              break;
          }
-         fapiRc = ramCore.ram_cleanup();
+         SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_cleanup)
          if( fapiRc )
          {
              SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%x"

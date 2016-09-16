@@ -35,20 +35,16 @@ OUTPUT_FORMAT(elf32-powerpc);
 
 MEMORY
 {
- // increasing ram size as workaround so that pibmem image compilation
- // doe not fail.
- // TODO: Reducing the SBE_BASE_ORIGIN by 0x1F000 to reduce the size of
- // generated sbe_pibmem.bin. Just a workaround to use pibmem for poweron
- sram : ORIGIN = SBE_BASE_ORIGIN - 0x1F000, LENGTH = SBE_BASE_LENGTH + 0x1F000
+ pibmem : ORIGIN = SBE_BASE_ORIGIN, LENGTH = SBE_BASE_LENGTH
 }
 
 SECTIONS
 {
-    . = SBE_BASE_ORIGIN - 0x1F000;
+    . = SBE_BASE_ORIGIN;
 
-    .vectors : {. = ALIGN(512); *(.vectors)} > sram
-    .fixed . : {. = ALIGN(512); *(.fixed) } > sram
-    .text . : {. = ALIGN(512); *(.text)} > sram
+    .vectors : {. = ALIGN(512); *(.vectors)} > pibmem
+    .fixed . : {. = ALIGN(512); *(.fixed) } > pibmem
+    .text . : {. = ALIGN(512); *(.text)} > pibmem
 
     ////////////////////////////////
     // Read-only Data
@@ -62,8 +58,8 @@ SECTIONS
     // offsets.
 
     _SDA2_BASE_ = .;
-   .sdata2 . : { *(.sdata2*) } > sram
-   .sbss2  . : { *(.sbss2*) } > sram
+   .sdata2 . : { *(.sdata2*) } > pibmem
+   .sbss2  . : { *(.sbss2*) } > pibmem
 
    // Other read-only data.
 
@@ -71,7 +67,7 @@ SECTIONS
     .rodata . : { ctor_start_address = .;
                   *(.ctors) *(.ctors.*)
                   ctor_end_address = .;
-                  *(rodata*) *(.got2) } > sram
+                  *(rodata*) *(.got2) } > pibmem
 
     _RODATA_SECTION_SIZE = . - _RODATA_SECTION_BASE;
 
@@ -87,16 +83,16 @@ SECTIONS
     // offsets.
 
     _SDA_BASE_ = .;
-    .sdata  . : { *(.sdata*)  } > sram
+    .sdata  . : { *(.sdata*)  } > pibmem
     _sbss_start = .;
-    .sbss   . : { *(.sbss*)   } > sram
+    .sbss   . : { *(.sbss*)   } > pibmem
     _sbss_end = .;
 
     // Other read-write data
     // It's not clear why boot.S is generating empty .glink,.iplt
 
-   .rela   . : { *(.rela*) } > sram
-   .rwdata . : { *(.data*) *(.bss*) } > sram
+   .rela   . : { *(.rela*) } > pibmem
+   .rwdata . : { *(.data*) *(.bss*) } > pibmem
 
     . = ALIGN(8);
    _PK_INITIAL_STACK_LIMIT = .;

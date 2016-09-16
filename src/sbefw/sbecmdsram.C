@@ -139,9 +139,9 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         // Setup Needs to be called in Normal and Debug Mode only
         if( (l_req.mode == NORMAL_MODE) || (l_req.mode == DEBUG_MODE) )
         {
-            l_fapiRc = p9_pm_ocb_indir_setup_linear(l_proc, l_chan,
+            SBE_EXEC_HWP(l_fapiRc, p9_pm_ocb_indir_setup_linear,l_proc, l_chan,
                                                     p9ocb::OCB_TYPE_LINSTR,
-                                                    l_req.addr);
+                                                    l_req.addr)
             if(l_fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC "p9_pm_ocb_indir_setup_linear failed, "
@@ -193,7 +193,8 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
             // Don't need to put any check for Linear/Circular - It's the same
             // API for access, For circular valid address flag is false, Hwp
             // doesn't need the address field from us.
-            l_fapiRc = p9_pm_ocb_indir_access(
+            SBE_EXEC_HWP(l_fapiRc,
+                    p9_pm_ocb_indir_access,
                     l_proc,
                     l_chan,
                     l_ocb_access, // Get/Put
@@ -201,7 +202,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                     l_validAddrForFirstAccess, // If requested addr is valid
                     l_req.addr, // Requested Addr being passed
                     l_actLen, // O/p from hwp not used
-                    (uint64_t *)l_getBuf); // O/p buffer
+                    (uint64_t *)l_getBuf) // O/p buffer
             if(l_fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC "p9_pm_ocb_indir_access failed, "

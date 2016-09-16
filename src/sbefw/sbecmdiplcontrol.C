@@ -124,8 +124,10 @@ ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp);
 
+#ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
+#endif
 
 //structure for mapping SBE wrapper and HWP functions
 typedef struct
@@ -167,6 +169,7 @@ sbeRole g_sbeRole = SBE_ROLE_MASTER;
 
 static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
          {
+#ifdef SEEPROM_IMAGE
              { NULL, NULL },
              { &istepAttrSetup, { .procHwp = &p9_sbe_attr_setup }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_init1 }},
@@ -184,10 +187,12 @@ static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
              { &istepWithProc, { .procHwp = &p9_sbe_tp_initf }},
              { &istepNoOp, NULL }, // DFT only
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_init3 }},
+#endif
          };
 
 static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
          {
+#ifdef SEEPROM_IMAGE
              { &istepWithProc, { .procHwp = &p9_sbe_chiplet_reset }},
              { &istepWithProc, { .procHwp = &p9_sbe_gptr_time_initf }},
              { &istepWithProc, { .procHwp = &p9_sbe_chiplet_pll_initf }},
@@ -210,9 +215,11 @@ static istepMap_t g_istep3PtrTbl[ ISTEP3_MAX_SUBSTEPS ] =
              { &istepCheckSbeMaster, NULL },
              { &istepWithProc, { .procHwp = &p9_sbe_mcs_setup }},
              { &istepSelectEx, NULL },
+#endif
          };
 static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
          {
+#ifdef SEEPROM_IMAGE
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_poweron} },
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_reset } },
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_chiplet_l3_dcc_setup }},
@@ -248,14 +255,17 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
              { &istepWithCoreConditional, { .coreHwp = &p9_hcd_core_scomcust }},
              { &istepNoOp, NULL },
              { &istepNoOp, NULL },
+#endif
          };
 
 // TODO via RTC 135345
 //  Add the support for istep 5 HWP
 static istepMap_t g_istep5PtrTbl[ ISTEP5_MAX_SUBSTEPS ]
          {
+#ifdef SEEPROM_IMAGE
              { &istepLoadBootLoader, NULL },
              { &istepStartInstruction,  { .coreHwp = &p9_sbe_instruct_start }},
+#endif
          };
 
 // Functions
@@ -461,7 +471,7 @@ ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
     do
     {
         assert( NULL != i_hwp.procHwp );
-        rc = i_hwp.procHwp(proc);
+        SBE_EXEC_HWP(rc, i_hwp.procHwp, proc)
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;
@@ -477,20 +487,24 @@ ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
 {
+    ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp.procHwp );
-    return i_hwp.procHwp(proc);
+    SBE_EXEC_HWP(rc, i_hwp.procHwp,proc)
+    return rc;
 }
 
 //----------------------------------------------------------------------------
 
 ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp)
 {
+    ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     // TODO via RTC 135345
     // Once multicast targets are supported, we may need to pass
     // p9selectex::ALL as input.
-    return p9_sbe_select_ex_hwp(proc, p9selectex::SINGLE);
+    SBE_EXEC_HWP(rc, p9_sbe_select_ex_hwp, proc, p9selectex::SINGLE)
+    return rc;
 }
 
 //----------------------------------------------------------------------------
@@ -498,6 +512,7 @@ ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
 {
+    ReturnCode rc = FAPI2_RC_SUCCESS;
     // TODO via RTC 135345
     // Curently we are passing Hard code eq target. Finally it is
     // going to be a multicast target. Once multicast support is
@@ -513,13 +528,15 @@ ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
     }
 
     assert( NULL != i_hwp.eqHwp );
-    return i_hwp.eqHwp( eqTgt );
+    SBE_EXEC_HWP(rc, i_hwp.eqHwp, eqTgt )
+    return rc;
 }
 
 //----------------------------------------------------------------------------
 
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
 {
+    ReturnCode rc = FAPI2_RC_SUCCESS;
     // TODO via RTC 135345
     // Curently we are passing Hard code core target. Finally it is
     // going to be a multicast target. Once multicast support is
@@ -534,7 +551,8 @@ ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
         coreTgt = coreList[0];
     }
     assert( NULL != i_hwp.coreHwp );
-    return i_hwp.coreHwp( coreTgt );
+    SBE_EXEC_HWP(rc, i_hwp.coreHwp, coreTgt )
+    return rc;
 }
 
 //----------------------------------------------------------------------------
@@ -583,6 +601,7 @@ ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp)
 
 ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
 {
+    ReturnCode rc = FAPI2_RC_SUCCESS;
     // Get master Ex
     uint8_t exId = 0;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
@@ -593,8 +612,8 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
     P9XipHeader *hdr = getXipHdr();
     P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
 
-    ReturnCode rc = p9_sbe_load_bootloader( proc, exTgt, hbblSection->iv_size,
-                                            getSectionAddr(hbblSection) );
+    SBE_EXEC_HWP(rc, p9_sbe_load_bootloader, proc, exTgt, hbblSection->iv_size,
+                                            getSectionAddr(hbblSection) )
     return rc;
 }
 

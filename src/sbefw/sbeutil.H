@@ -36,7 +36,32 @@
 if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
 { \
     break; \
-} \
+}
+
+// To handle unused variables compilation error
+static inline void UNUSED(int dummy, ...) {}
+
+// Macro to execute HWP
+#ifdef SEEPROM_IMAGE
+#define SBE_EXEC_HWP_NOARG(...) SBE_EXEC_HWP(__VA_ARGS__)
+#define SBE_EXEC_HWP(fapiRc, hwp, ...) \
+{ \
+    fapiRc = hwp(__VA_ARGS__); \
+}
+#else
+#define SBE_EXEC_HWP_NOARG(fapiRc, hwp) \
+{ \
+    SBE_INFO("Procedure not present in the image:No-Op"); \
+    fapiRc = FAPI2_RC_SUCCESS; \
+}
+#define SBE_EXEC_HWP(fapiRc, hwp, ...) \
+{ \
+    /* handling unused variables */ \
+    UNUSED(0, __VA_ARGS__); \
+    SBE_INFO("Procedure not present in the image:No-Op"); \
+    fapiRc = FAPI2_RC_SUCCESS; \
+}
+#endif
 
 void sbeHandleFifoResponse (const uint32_t i_rc);
 
