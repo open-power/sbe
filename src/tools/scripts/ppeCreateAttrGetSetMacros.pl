@@ -366,24 +366,7 @@ if (@newAttributeDefines != 0) {
         print OUTFILE "
         __attribute__((always_inline)) inline uint32_t getPervAttrIndex(const fapi2::Target<TARGET_TYPE_PERV> &i_target)
         {
-            uint32_t l_index = static_cast<plat_target_handle_t>(i_target.get()).getTargetInstance();
-            if(PPE_TARGET_TYPE_EQ & static_cast<plat_target_handle_t>(i_target.get()).getTargetType())
-            {
-                l_index += (EQ_TARGET_OFFSET);
-            }
-            else if(PPE_TARGET_TYPE_CORE & static_cast<plat_target_handle_t>(i_target.get()).getTargetType())
-            {
-                l_index += (CORE_TARGET_OFFSET);
-            }
-            else if(PPE_TARGET_TYPE_MCBIST & static_cast<plat_target_handle_t>(i_target.get()).getTargetType())
-            {
-                l_index += (MCBIST_TARGET_OFFSET);
-            }
-            else
-            {
-                l_index += (NEST_GROUP1_TARGET_OFFSET);
-            }
-            return (l_index - NEST_GROUP1_TARGET_OFFSET);
+            return i_target.getChipletNumber();
         }
         ";
 

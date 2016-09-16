@@ -298,7 +298,7 @@ foreach my $attr (@attrPervIds)
 {
 
     my $value = uc $attr->{valueType};
-    print PEFILE "PROC_SBE_FIXED_TARGET_$value($attr->{id}, PERV_TARGET_COUNT);\n"
+    print PEFILE "PROC_SBE_FIXED_TARGET_$value($attr->{id}, MAX_PERV_CHIPLETS);\n"
 
 
 }

@@ -94,13 +94,13 @@ void assertTarget(const char* str, unsigned int index)
             exit(1);
         }
     } else if(strcmp(str, "TARGET_TYPE_PERV") == 0)  {
-        if (index > PERV_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index (%d) is larger than PERV_TARGET_COUNT (%d)\n",
-                    index, PERV_TARGET_COUNT);
+        if (index > MAX_PERV_CHIPLETS) {
+            fprintf(stderr, "sbe_default_tool: index (%d) is larger than MAX_PERV_CHIPLETS (%d)\n",
+                    index, MAX_PERV_CHIPLETS);
             exit(1);
         }
     } else {
-        if (index >= PERV_TARGET_COUNT) {
+        if (index >= MAX_PERV_CHIPLETS) {
             fprintf(stderr, "sbe_default_tool: target not supported:");
             fprintf(stderr, " %s\n", str);
             exit(1);

@@ -108,7 +108,7 @@
   <entry>
      <name>ATTR_CHIP_POS</name>
      <value>0x01</value>
-  </entry> 
+  </entry>
   <entry>
     <name>ATTR_SCRATCH_UINT8_1</name>
     <value>0x8</value>
@@ -205,6 +205,7 @@
   </entry>
   <entry>
       <name>ATTR_CHIP_UNIT_POS</name>
+      <value>0x00</value> <!-- Unused -->
       <value>0x01</value> <!-- PERV -->
       <value>0x02</value> <!-- N0 -->
       <value>0x03</value> <!-- N1 -->
@@ -226,6 +227,16 @@
       <value>0x13</value> <!-- EP3 -->
       <value>0x14</value> <!-- EP4 -->
       <value>0x15</value> <!-- EP5 -->
+      <value>0x16</value> <!-- Unused -->
+      <value>0x17</value> <!-- Unused -->
+      <value>0x18</value> <!-- Unused -->
+      <value>0x19</value> <!-- Unused -->
+      <value>0x1A</value> <!-- Unused -->
+      <value>0x1B</value> <!-- Unused -->
+      <value>0x1C</value> <!-- Unused -->
+      <value>0x1D</value> <!-- Unused -->
+      <value>0x1E</value> <!-- Unused -->
+      <value>0x1F</value> <!-- Unused -->
       <value>0x20</value> <!-- EC00 -->
       <value>0x21</value> <!-- EC01 -->
       <value>0x22</value> <!-- EC02 -->
@@ -250,6 +261,14 @@
       <value>0x35</value> <!-- EC21 -->
       <value>0x36</value> <!-- EC22 -->
       <value>0x37</value> <!-- EC23 -->
+      <value>0x38</value> <!-- unused -->
+      <value>0x39</value> <!-- unused -->
+      <value>0x3A</value> <!-- unused -->
+      <value>0x3B</value> <!-- unused -->
+      <value>0x3C</value> <!-- unused -->
+      <value>0x3D</value> <!-- unused -->
+      <value>0x3E</value> <!-- unused -->
+      <value>0x3F</value> <!-- unused -->
   </entry>
 
   <entry>
@@ -283,6 +302,7 @@
       Bits 0,1,2 are don't care. For nimbus, pervasive chiplets 10 and 11 are
       not used (OB1 and OB2), therefore the value for them is 0xFFFF -->
             <name>ATTR_PG</name>
+            <value>0xFFFF</value> <!-- Unused -->
             <value>0xE07D</value> <!-- PERV -->
             <value>0xE03F</value> <!-- N0 -->
             <value>0xE03F</value> <!-- N1 -->
@@ -304,6 +324,16 @@
             <value>0xE288</value> <!-- EP3 -->
             <value>0xE001</value> <!-- EP4 -->
             <value>0xE001</value> <!-- EP5 -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
             <value>0xE1FF</value> <!-- EC00 -->
             <value>0xE1FF</value> <!-- EC01 -->
             <value>0xE1FF</value> <!-- EC02 -->
@@ -328,6 +358,14 @@
             <value>0xE1FF</value> <!-- EC21 -->
             <value>0xE1FF</value> <!-- EC22 -->
             <value>0xE1FF</value> <!-- EC23 -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
+            <value>0xFFFF</value> <!-- Unused -->
   </entry>
   <entry>
            <name>ATTR_ADU_XSCOM_BAR_BASE_ADDR</name>

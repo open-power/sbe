@@ -90,4 +90,7 @@ CONST_UINT32_T(TARGET_COUNT,            CHIP_TARGET_COUNT +
                                         SYSTEM_TARGET_COUNT +
                                         MCAST_TARGET_COUNT);
 
+// Maximum possible Pervasive chiplets
+CONST_UINT32_T(MAX_PERV_CHIPLETS, 64);
+
 #endif  // __FAPI2_PPE_TARGET_PARMS__
