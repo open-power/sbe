@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: import/chips/p9/procedures/ppe/pk/kernel/pkkernelfiles.mk $
+# $Source: src/import/chips/p9/procedures/ppe/pk/kernel/pkkernelfiles.mk $
 #
 # OpenPOWER sbe Project
 #

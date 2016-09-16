@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: import/chips/p9/utils/p9_putRingUtils.mk $
+# $Source: src/import/chips/p9/utils/p9_putRingUtils.mk $
 #
 # OpenPOWER sbe Project
 #
