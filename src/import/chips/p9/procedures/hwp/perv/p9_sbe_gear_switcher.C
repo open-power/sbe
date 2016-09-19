@@ -37,9 +37,8 @@
 //------------------------------------------------------------------------------
 
 
-//## auto_generated
 #include "p9_sbe_gear_switcher.H"
-
+#include "p9_frequency_buckets.H"
 #include "p9_misc_scom_addresses.H"
 #include "p9_perv_scom_addresses.H"
 
@@ -57,33 +56,25 @@ enum P9_SBE_GEAR_SWITCHER_Private_Constants
 fapi2::ReturnCode p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    fapi2::buffer<uint64_t> l_read_scratch_reg = 0;
-    uint16_t l_mb_bit_rate_divisor = 0;
+    uint8_t l_attr_nest_pll_bucket = 0;
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::buffer<uint16_t> l_mb_bit_rate_divisor;
+    fapi2::buffer<uint64_t> l_data64;
+
     FAPI_DBG("Entering ...");
 
-    FAPI_INF("Check Mailbox for Valid I2C bit rate divisor setting");
-    //Getting SCRATCH_REGISTER_2 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_2_SCOM,
-                            l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_2
+    FAPI_DBG("Reading ATTR_NEST_PLL_BUCKET");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_PLL_BUCKET, FAPI_SYSTEM,
+                           l_attr_nest_pll_bucket));
+    FAPI_DBG("ATTR_NEST_PLL_BUCKET value: %d", l_attr_nest_pll_bucket);
 
-    if ( !l_read_scratch_reg )
-    {
-        FAPI_INF("Set with Default value if Mailbox empty");
-        //Setting MODE_REGISTER_B register value
-        //PIB.MODE_REGISTER_B = DEFAULT_MB_BIT_RATE_DIVISOR
-        FAPI_TRY(fapi2::putScom(i_target_chip, PU_MODE_REGISTER_B,
-                                DEFAULT_MB_BIT_RATE_DIVISOR));
-    }
-    else
-    {
-        l_read_scratch_reg.extractToRight<0, 16>(l_mb_bit_rate_divisor);
+    l_mb_bit_rate_divisor = NEST_PLL_FREQ_I2CDIV_LIST[l_attr_nest_pll_bucket - 1];
+    FAPI_DBG("bit_rate_divisor value: %d", l_mb_bit_rate_divisor);
 
-        FAPI_INF("Adjust I2C bit rate divisor setting in I2CM B Mode Reg");
-        //Setting MODE_REGISTER_B register value
-        //PIB.MODE_REGISTER_B = l_mb_bit_rate_divisor
-        FAPI_TRY(fapi2::putScom(i_target_chip, PU_MODE_REGISTER_B,
-                                l_mb_bit_rate_divisor));
-    }
+    FAPI_DBG("Adjust I2C bit rate divisor setting in I2CM B Mode Reg");
+    FAPI_TRY(fapi2::getScom(i_target_chip, PU_MODE_REGISTER_B, l_data64));
+    l_data64.insertFromRight< 0, 16 >(l_mb_bit_rate_divisor);
+    FAPI_TRY(fapi2::putScom(i_target_chip, PU_MODE_REGISTER_B, l_data64));
 
     FAPI_DBG("Exiting ...");
 
