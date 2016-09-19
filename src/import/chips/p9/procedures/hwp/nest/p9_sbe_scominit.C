@@ -429,6 +429,31 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         }
     }
 
+    // configure PCI tracing logic
+    {
+        for (auto l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            fapi2::buffer<uint64_t> l_dbg_mode_reg;
+            fapi2::buffer<uint64_t> l_dbg_trace_mode_reg_2;
+
+            FAPI_TRY(fapi2::getScom(l_chplt_target, PERV_DBG_MODE_REG, l_dbg_mode_reg),
+                     "Error from getScom (PERV_DBG_MODE_REG)");
+            l_dbg_mode_reg.setBit<PERV_1_DBG_MODE_REG_STOP_ON_XSTOP_SELECTION>();
+            l_dbg_mode_reg.clearBit<PERV_1_DBG_MODE_REG_STOP_ON_RECOV_ERR_SELECTION>();
+            l_dbg_mode_reg.clearBit<PERV_1_DBG_MODE_REG_STOP_ON_SPATTN_SELECTION>();
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_DBG_MODE_REG, l_dbg_mode_reg),
+                     "Error from putScom (PERV_DBG_MODE_REG)");
+
+            FAPI_TRY(fapi2::getScom(l_chplt_target, PERV_DBG_TRACE_MODE_REG_2, l_dbg_trace_mode_reg_2),
+                     "Error from getScom (PERV_DBG_TRACE_MODE_REG_2)");
+            l_dbg_trace_mode_reg_2.setBit<PERV_1_DBG_TRACE_MODE_REG_2_STOP_ON_ERR>();
+            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_DBG_TRACE_MODE_REG_2, l_dbg_trace_mode_reg_2),
+                     "Error from putScom (PERV_DBG_TRACE_MODE_REG_2)");
+        }
+    }
+
 fapi_try_exit:
     FAPI_DBG("Exiting ...");
     return fapi2::current_err;
