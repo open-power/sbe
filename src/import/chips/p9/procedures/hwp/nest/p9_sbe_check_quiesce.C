@@ -67,7 +67,6 @@ extern "C" {
         FAPI_DBG("Entering ...\n");
 
         // SBE will check quiesce state for all units on the powerbus on its chip
-        FAPI_TRY(p9_occ_pm_check_quiesce(i_target), "Error from p9_occ_pm_check_quiesce");
         FAPI_TRY(p9_ec_eq_check_quiesce(i_target), "Error from p9_ec_eq_check_quiesce");
         FAPI_TRY(p9_capp_check_quiesce(i_target), "Error from p9_capp_check_quiesce");
         FAPI_TRY(p9_phb_check_quiesce(i_target), "Error from p9_phb_check_quiesce");
@@ -80,36 +79,52 @@ extern "C" {
         FAPI_TRY(p9_intp_check_quiesce(i_target), "Error from p9_intp_check_quiesce");
 
     fapi_try_exit:
+        fapi2::ReturnCode saveError = fapi2::current_err;
+        fapi2::buffer<uint64_t> l_data(0);
+        uint64_t l_ffdc_data;
+        fapi2::ffdc_t CHECKSTOP_DATA;
+
         //If the quiesce fails then checkstop the system
-        // TODO RTC 160713 How to checkstop the system
+        if (fapi2::current_err)
+        {
+            //Checkstop the system
+            l_data.setBit<34>();
+            fapi2::ReturnCode rc = fapi2::putScom(i_target, PERV_N3_LOCAL_FIR_OR, l_data);
+
+            if (rc)
+            {
+                FAPI_INF("ERROR: There was an error doing the checkstop, it did not go through");
+                //Set the extra FFDC data to DEADBEEFDEADBEEF which tells us there was a fail with the checkstop
+                l_ffdc_data = 0xDEADBEEFDEADBEEF;
+            }
+            else
+            {
+                //Add extra FFDC data so we can make sure the checkstop happened
+                rc = fapi2::getScom(i_target, 0x570F001C, l_data);
+
+                if (rc)
+                {
+                    FAPI_INF("ERROR: There was an error reading the checkstop data");
+                    l_ffdc_data = 0xBEEFDEADBEEFDEAD;
+                }
+                else
+                {
+                    l_data.extractToRight(l_ffdc_data, 0, 64);
+                }
+            }
+
+            CHECKSTOP_DATA.ptr() = static_cast<void*>(&l_ffdc_data);
+            CHECKSTOP_DATA.size() = sizeof(l_ffdc_data);
+            FAPI_ADD_INFO_TO_HWP_ERROR(saveError, RC_P9_CHECK_XSTOP);
+        }
+
         FAPI_DBG("Exiting...");
-        return fapi2::current_err;
+        return saveError;
     }
 
 //---------------------------------------------------------------------------
 //  Helper Functions
 //---------------------------------------------------------------------------
-
-    //---------------------------------------------------------------------------------
-    // NOTE: description in header
-    //---------------------------------------------------------------------------------
-    fapi2::ReturnCode p9_occ_pm_check_quiesce(const
-            fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
-    {
-        // mark HWP entry
-        FAPI_DBG("Entering ...\n");
-
-        //TODO RTC 160713 Greg/Michael are still working on figuring out what exactly we need to do here -- what is currently in here is not a graceful way to do this
-        // Write bit 10 in OCR to halt OCC
-        fapi2::buffer<uint64_t> l_ocr_reg_data(0);
-        l_ocr_reg_data.setBit<PU_OCB_PIB_OCR_OCC_DBG_HALT>();
-
-        FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCR_OR, l_ocr_reg_data), "Error writing to OCR register");
-
-    fapi_try_exit:
-        FAPI_DBG("Exiting...");
-        return fapi2::current_err;
-    }
 
     //---------------------------------------------------------------------------------
     // NOTE: description in header
@@ -246,26 +261,75 @@ extern "C" {
     {
         // mark HWP entry
         FAPI_DBG("Entering ...\n");
-
-        //The address of the PHB Quiesce DMA Register is 0x0888 (found in PHB spec)
-        const uint64_t l_phb_q_dma_addr = 0x0888;
-
-        auto l_phb_chiplets_vec = i_target.getChildren<fapi2::TARGET_TYPE_PHB>(fapi2::TARGET_STATE_FUNCTIONAL);
+        fapi2::buffer<uint64_t> phb_hv_addr_reg_data(0x0888);
         //We want to set bit 0 (the Quiesce DMA bit)
         //This is the data that will be passed in to set the PHB Quiesce DMA register
-        uint64_t l_phb_q_dma_data = 0x8000000000000000;
+        fapi2::buffer<uint64_t> phb_hv_data_reg_data(0x8000000000000000);
 
-        for (auto l_phb_chiplets : l_phb_chiplets_vec)
+        //The address of the PHB Quiesce DMA Register is 0x0888 (found in PHB spec)
+        uint8_t l_pci_id = 0;
+        uint64_t phb_absolute_address_array[3];
+        uint8_t num_phbs = 0;
+        uint64_t phb_addr_reg = 0;
+        uint64_t phb_data_reg = 0;
+
+        auto l_pci_chiplets_vec = i_target.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_ALL_PCI,
+                                  fapi2::TARGET_STATE_FUNCTIONAL);
+
+        for (auto l_pci_chiplet : l_pci_chiplets_vec)
         {
-            //Write to PHB Quiesce DMA Register
-            FAPI_TRY(p9_phb_hv_access(l_phb_chiplets, l_phb_q_dma_addr, 0, 0, l_phb_q_dma_data),
-                     "Error writing to the PHB Quiesce DMA register");
+            //Get the PCI ID
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_pci_chiplet, l_pci_id), "Error getting the CHIP_UNIT_POS");
+
+            //There are a different number and different PHBs associated with each PCI ID
+            //PHB 0 is attached to PCI0
+            //PHB 1 and PHB 2 are attached to PCI1
+            //PHB 3 and PHB 4 and PHB 5 are attached to PCI2
+            if (l_pci_id == 0xd)
+            {
+                num_phbs = 1;
+                phb_absolute_address_array[0] = PHB_0_PHB4_SCOM_HVIAR;
+            }
+            else if (l_pci_id == 0xe)
+            {
+                num_phbs = 2;
+                phb_absolute_address_array[0] = PHB_1_PHB4_SCOM_HVIAR;
+                phb_absolute_address_array[1] = PHB_2_PHB4_SCOM_HVIAR;
+            }
+            else if (l_pci_id == 0xf)
+            {
+                num_phbs = 3;
+                phb_absolute_address_array[0] = PHB_3_PHB4_SCOM_HVIAR;
+                phb_absolute_address_array[1] = PHB_4_PHB4_SCOM_HVIAR;
+                phb_absolute_address_array[2] = PHB_5_PHB4_SCOM_HVIAR;
+            }
+
+            for (uint8_t i = 0; i < num_phbs; i++)
+            {
+                phb_addr_reg = phb_absolute_address_array[i];
+                phb_data_reg = phb_absolute_address_array[i] + 1;
+                //Clear contents of PHB HV Indirect Address Register
+                phb_hv_addr_reg_data.flush<0>();
+                FAPI_TRY(fapi2::putScom(i_target, phb_addr_reg, phb_hv_addr_reg_data),
+                         "Error clearing PHB HV Indirect Address Register");
+                //Setup the PHB HV registers for the write
+                phb_hv_addr_reg_data.insertFromRight<PHB_HV_IND_ADDR_START_BIT, PHB_HV_IND_ADDR_LEN>(0x888);
+                phb_hv_addr_reg_data.setBit<PHB_HV_IND_ADDR_VALID_BIT>();
+                FAPI_TRY(fapi2::putScom(i_target, phb_addr_reg, phb_hv_addr_reg_data),
+                         "Error writing PHB HV Indirect Address Register");
+                //Setup PHB HV Indirect for write access
+                FAPI_TRY(fapi2::putScom(i_target, phb_data_reg, phb_hv_data_reg_data),
+                         "Error writing PHB HV Indirect Data Register");
+                //Clear contents of PHB HV Indirect Address Register
+                phb_hv_addr_reg_data.flush<0>();
+                FAPI_TRY(fapi2::putScom(i_target, phb_addr_reg, phb_hv_addr_reg_data),
+                         "Error clearing PHB HV Indirect Address Register");
+            }
         }
 
     fapi_try_exit:
         FAPI_DBG("Exiting...");
         return fapi2::current_err;
-        //return fapi2::FAPI2_RC_SUCCESS;
     }
 
     //---------------------------------------------------------------------------------

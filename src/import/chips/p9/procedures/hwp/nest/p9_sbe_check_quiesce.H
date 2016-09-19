@@ -67,6 +67,10 @@ typedef fapi2::ReturnCode
 //-----------------------------------------------------------------------------------
 // Constant definitions
 //-----------------------------------------------------------------------------------
+const uint32_t PHB_HV_IND_ADDR_VALID_BIT    = 0;
+const uint32_t PHB_HV_IND_ADDR_START_BIT = 52;
+const uint32_t PHB_HV_IND_ADDR_LEN = 12;
+
 
 extern "C" {
 
@@ -78,12 +82,6 @@ extern "C" {
     /// @param[in] i_target       => P9 chip target
     /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
     fapi2::ReturnCode p9_sbe_check_quiesce(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
-
-    /// @brief Helper function to check the quiesce on OCC/PM
-    /// @param[in] i_target       => P9 chip target
-    /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
-    fapi2::ReturnCode p9_occ_pm_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
     /// @brief Helper function to check the quiesce on EC/EQ
