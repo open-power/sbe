@@ -206,7 +206,11 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
     FAPI_DBG("Loop Count :%d", l_timeout);
 
     FAPI_ASSERT(l_timeout > 0,
-                fapi2::SBE_ARRAYINIT_POLL_THRESHOLD_ERR(),
+                fapi2::SBE_ARRAYINIT_POLL_THRESHOLD_ERR()
+                .set_TARGET_CHIPLET(i_target_chiplets)
+                .set_PERV_CPLT_STAT0(l_data64)
+                .set_LOOP_COUNT(l_timeout)
+                .set_HW_DELAY(P9_OPCG_DONE_ARRAYINIT_HW_NS_DELAY),
                 "ERROR:OPCG DONE BIT NOT SET");
 
     //Getting CPLT_STAT0 register value
@@ -218,6 +222,9 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
         FAPI_DBG("Checking sram abist done");
         FAPI_ASSERT(l_read_reg.getBit<0>() == 1,
                     fapi2::SRAM_ABIST_DONE_BIT_ERR()
+                    .set_TARGET_CHIPLET(i_target_chiplets)
+                    .set_PERV_CPLT_STAT(l_read_reg)
+                    .set_SELECT_SRAM(i_select_sram)
                     .set_READ_ABIST_DONE(l_abist_check),
                     "ERROR:SRAM_ABIST_DONE_BIT_NOT_SET");
     }
@@ -227,6 +234,9 @@ fapi2::ReturnCode p9_perv_sbe_cmn_array_init_module(const
         FAPI_DBG("Checking edram abist done");
         FAPI_ASSERT(l_read_reg.getBit<1>() == 1,
                     fapi2::EDRAM_ABIST_DONE_BIT_ERR()
+                    .set_TARGET_CHIPLET(i_target_chiplets)
+                    .set_PERV_CPLT_STAT(l_read_reg)
+                    .set_SELECT_EDRAM(i_select_edram)
                     .set_READ_ABIST_DONE(l_abist_check),
                     "ERROR:EDRAM_ABIST_DONE_BIT_NOT_SET");
     }
@@ -455,7 +465,11 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
     FAPI_DBG("Loop Count :%d", l_timeout);
 
     FAPI_ASSERT(l_timeout > 0,
-                fapi2::SBE_SCAN0_DONE_POLL_THRESHOLD_ERR(),
+                fapi2::SBE_SCAN0_DONE_POLL_THRESHOLD_ERR()
+                .set_TARGET_CHIPLET(i_target_chiplets)
+                .set_PERV_CPLT_STAT0(l_data64)
+                .set_LOOP_COUNT(l_timeout)
+                .set_HW_DELAY(P9_OPCG_DONE_SCAN0_HW_NS_DELAY),
                 "ERROR:OPCG DONE BIT NOT SET");
 
     //os0m_poll_done

@@ -141,7 +141,10 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears_check_magicnumber(
     FAPI_DBG("Loop Count :%d", l_timeout);
 
     FAPI_ASSERT(l_timeout > 0,
-                fapi2::BUS_STATUS_BUSY0(),
+                fapi2::I2C_BUS_STATUS_BUSY()
+                .set_MASTER_CHIP(i_target_chip)
+                .set_STATUS_REGISTER_B(l_data64)
+                .set_LOOP_COUNT(l_timeout),
                 "ERROR:BUS_STSTUS_BUSY_0 NOT SET TO 0");
 
     FAPI_DBG("Reading the value of DATA0TO7_REGISTER_B");
@@ -150,7 +153,11 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears_check_magicnumber(
                             l_read_reg)); //l_read_reg = PIB.DATA0TO7_REGISTER_B
 
     FAPI_ASSERT(l_read_reg == MAGIC_NUMBER,
-                fapi2::MAGIC_NUMBER_NOT_VALID(),
+                fapi2::MAGIC_NUMBER_NOT_VALID()
+                .set_MASTER_CHIP(i_target_chip)
+                .set_DATA0TO7_REGISTER_B(l_read_reg)
+                .set_MAGIC_NUMBER_VALUE(MAGIC_NUMBER)
+                .set_BACKUP_SEEPROM_ATTR(l_read_attr),
                 "ERROR: Magic number not matching");
 
     FAPI_INF("p9_sbe_tp_switch_gears_check_magicnumber: Exiting ...");

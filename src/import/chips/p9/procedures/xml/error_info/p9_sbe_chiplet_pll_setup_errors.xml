@@ -25,14 +25,40 @@
 <!-- This is an automatically generated file. -->
 <!-- File: p9_sbe_chiplet_pll_setup_errors.xml. -->
 <!-- Halt codes for p9_sbe_chiplet_pll_setup -->
-
 <hwpErrors>
-  <!-- ******************************************************************** -->
-  <hwpError>
-    <sbeError/>
-    <rc>RC_PLL_LOCK_ERR</rc>
-    <description>PLL Lock Not set</description>
-    <ffdc>PLL_READ</ffdc>
-  </hwpError>
-  <!-- ******************************************************************** -->
+   <sbeTarget>TARGET_CHIP</sbeTarget>
+   <!-- ******************************************************************** -->
+   <hwpError>
+      <sbeError/>
+      <rc>RC_PLL_LOCK_ERR</rc>
+      <description>PLL Lock Not set</description>
+      <ffdc>TARGET_CHIPLET</ffdc>
+      <collectRegisterFfdc>
+	   <id>NET_CTRL_REGISTERS</id>
+	   <target>TARGET_CHIPLET</target>
+	   <targetType>TARGET_TYPE_PERV</targetType>
+      </collectRegisterFfdc>
+      <collectRegisterFfdc>
+	  <id>CPLT_CTRL_REGISTERS</id>
+	  <target>TARGET_CHIPLET</target>
+	  <targetType>TARGET_TYPE_PERV</targetType>
+      </collectRegisterFfdc>
+      <collectRegisterFfdc>
+	  <id>PLL_LOCK_REG</id>
+	  <target>TARGET_CHIPLET</target>
+	  <targetType>TARGET_TYPE_PERV</targetType>
+      </collectRegisterFfdc>
+      <collectRegisterFfdc>
+	  <id>ROOT_CTRL_REGISTERS</id>
+	  <target>TARGET_CHIP</target>
+	  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+      </collectRegisterFfdc>
+      <collectRegisterFfdc>
+	  <id>PERV_CTRL_REGISTERS</id>
+	  <target>TARGET_CHIP</target>
+	  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+      </collectRegisterFfdc>
+      <ffdc>PLL_READ</ffdc>
+   </hwpError>
+   <!-- ******************************************************************** -->
 </hwpErrors>

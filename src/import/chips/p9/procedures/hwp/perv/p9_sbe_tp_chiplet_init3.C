@@ -218,9 +218,10 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
 
     FAPI_DBG("Loop Count :%d", l_timeout);
 
-    FAPI_ASSERT(l_timeout > 0,
-                fapi2::CALIBRATION_NOT_DONE(),
-                "Calibration not done, bit16 not set");
+    if(!(l_timeout > 0))
+    {
+        FAPI_DBG("Calibration not done, bit16 not set");
+    }
 
     FAPI_INF("p9_sbe_tp_chiplet_init3: Exiting ...");
 
@@ -302,6 +303,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
 
     FAPI_ASSERT(l_read.getBit<21>() == 0 && l_read.getBit<28>() == 1,
                 fapi2::MF_OSC_NOT_TOGGLE()
+                .set_MASTER_CHIP(i_target_chip)
                 .set_READ_SNS1LTH(l_read),
                 "MF oscillator not toggling");
 
@@ -312,6 +314,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
 
     FAPI_ASSERT(l_read.getBit<4>() == 0,
                 fapi2::MF_OSC_ERR()
+                .set_MASTER_CHIP(i_target_chip)
                 .set_READ_OSCERR_HOLD(l_read),
                 "MF oscillator error active");
 
