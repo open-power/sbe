@@ -58,23 +58,23 @@ enum P9_SBE_CHIPLET_PLL_SETUP_Private_Constants
 };
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pci_pll_lock(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip);
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pll_lock(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip);
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const bool i_bypass);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_dcc_bypass(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip);
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_pdly_bypass(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_pll_reset(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip);
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_pll_test_enable(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
@@ -225,21 +225,24 @@ fapi_try_exit:
 
 /// @brief check pll lock for pcie chiplet
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pci_pll_lock(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip)
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
     fapi2::buffer<uint64_t> l_read_reg;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = i_target_chiplet.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     FAPI_INF("p9_sbe_chiplet_pll_setup_check_pci_pll_lock: Entering ...");
 
     FAPI_DBG("Check  PLL lock");
     //Getting PLL_LOCK_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PLL_LOCK_REG,
+    FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_PLL_LOCK_REG,
                             l_read_reg)); //l_read_reg = PLL_LOCK_REG
 
     FAPI_ASSERT(l_read_reg.getBit<0>() == 1 && l_read_reg.getBit<1>() == 1,
                 fapi2::PLL_LOCK_ERR()
+                .set_TARGET_CHIPLET(i_target_chiplet)
+                .set_TARGET_CHIP(l_chip)
                 .set_PLL_READ(l_read_reg),
                 "ERROR:PLL LOCK NOT SET");
 
@@ -252,21 +255,24 @@ fapi_try_exit:
 
 /// @brief check pll lock for OB,XB,MC
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pll_lock(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip)
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
     fapi2::buffer<uint64_t> l_read_reg;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = i_target_chiplet.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     FAPI_INF("p9_sbe_chiplet_pll_setup_check_pll_lock: Entering ...");
 
     FAPI_DBG("Check  PLL lock");
     //Getting PLL_LOCK_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PLL_LOCK_REG,
+    FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_PLL_LOCK_REG,
                             l_read_reg)); //l_read_reg = PLL_LOCK_REG
 
     FAPI_ASSERT(l_read_reg.getBit<0>() == 1 ,
                 fapi2::PLL_LOCK_ERR()
+                .set_TARGET_CHIPLET(i_target_chiplet)
+                .set_TARGET_CHIP(l_chip)
                 .set_PLL_READ(l_read_reg),
                 "ERROR:PLL LOCK NOT SET");
 
@@ -322,7 +328,7 @@ fapi_try_exit:
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_dcc_bypass(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip)
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_chiplet_pll_setup_mc_dcc_bypass: Entering ...");
@@ -332,7 +338,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_dcc_bypass(
     l_data64.flush<1>();
     //NET_CTRL1.CLK_DCC_BYPASS_EN = 0
     l_data64.clearBit<PERV_1_NET_CTRL1_CLK_DCC_BYPASS_EN>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL1_WAND, l_data64));
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1_WAND, l_data64));
 
     FAPI_INF("p9_sbe_chiplet_pll_setup_mc_dcc_bypass: Exiting ...");
 
@@ -370,7 +376,7 @@ fapi_try_exit:
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_pll_reset(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip)
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_chiplet_pll_setup_pll_reset: Entering ...");
@@ -379,7 +385,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_pll_reset(
     //Setting NET_CTRL0 register value
     l_data64.flush<1>();
     l_data64.clearBit<PERV_1_NET_CTRL0_PLL_RESET>();  //NET_CTRL0.PLL_RESET = 0
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_NET_CTRL0_WAND, l_data64));
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
 
     fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
 

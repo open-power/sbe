@@ -57,6 +57,9 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
     fapi2::buffer<uint64_t> l_read_reg;
     uint8_t l_read_attr = 0;
     uint8_t l_nest_bypass = 0;
+    uint8_t l_attr_ss_filter = 0;
+    uint8_t l_attr_cp_filter = 0;
+    uint8_t l_attr_io_filter = 0;
     fapi2::buffer<uint64_t> l_data64_root_ctrl8;
     fapi2::buffer<uint64_t> l_data64_perv_ctrl0;
     FAPI_INF("p9_sbe_npll_setup: Entering ...");
@@ -66,12 +69,18 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL8_SCOM,
                             l_data64_root_ctrl8)); //l_data64_root_ctrl8 = PIB.ROOT_CTRL8
 
-
-    FAPI_DBG("Reading ATTR_SS_FILTER_BYPASS");
+    FAPI_DBG("Reading ATTR_SS_FILTER_BYPASS, ATTR_CP_FILTER_BYPASS, ATTR_IO_FILTER_BYPASS");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SS_FILTER_BYPASS, i_target_chip,
-                           l_read_attr));
+                           l_attr_ss_filter));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_FILTER_BYPASS, i_target_chip,
+                           l_attr_cp_filter));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IO_FILTER_BYPASS, i_target_chip,
+                           l_attr_io_filter));
+    FAPI_DBG("SS,CP and IO filter configuration 1.ATTR_SS_FILTER_BYPASS: %#018lX 2.ATTR_CP_FILTER_BYPASS: %#018lX 3.ATTR_IO_FILTER_BYPASS: %#018lX",
+             l_attr_ss_filter, l_attr_cp_filter, l_attr_io_filter);
 
-    if ( l_read_attr == 0x0 )
+
+    if (l_attr_ss_filter == 0x0 )
     {
         FAPI_DBG("Drop PLL test enable for Spread Spectrum PLL");
         //Setting ROOT_CTRL8 register value
@@ -96,6 +105,7 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
 
         FAPI_ASSERT(l_read_reg.getBit<0>(),
                     fapi2::SS_PLL_LOCK_ERR()
+                    .set_MASTER_CHIP(i_target_chip)
                     .set_SS_PLL_READ(l_read_reg),
                     "ERROR:SS PLL LOCK NOT SET");
 
@@ -107,11 +117,7 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                                 l_data64_root_ctrl8));
     }
 
-    FAPI_DBG("Reading ATTR_CP_FILTER_BYPASS");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_FILTER_BYPASS, i_target_chip,
-                           l_read_attr));
-
-    if ( l_read_attr == 0x0 )
+    if ( l_attr_cp_filter == 0x0 )
     {
         FAPI_DBG("Drop PLL test enable for CP Filter PLL");
         //Setting ROOT_CTRL8 register value
@@ -136,6 +142,7 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
 
         FAPI_ASSERT(l_read_reg.getBit<1>(),
                     fapi2::CP_FILTER_PLL_LOCK_ERR()
+                    .set_MASTER_CHIP(i_target_chip)
                     .set_CP_FILTER_PLL_READ(l_read_reg),
                     "ERROR:CP FILTER PLL LOCK NOT SET");
 
@@ -147,11 +154,7 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                                 l_data64_root_ctrl8));
     }
 
-    FAPI_DBG("Reading ATTR_IO_FILTER_BYPASS");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IO_FILTER_BYPASS, i_target_chip,
-                           l_read_attr));
-
-    if ( l_read_attr == 0x0 )
+    if ( l_attr_io_filter == 0x0 )
     {
         FAPI_DBG("Drop PLL test enable for IO Filter PLL");
         //Setting ROOT_CTRL8 register value
@@ -176,6 +179,7 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
 
         FAPI_ASSERT(l_read_reg.getBit<2>(),
                     fapi2::IO_FILTER_PLL_LOCK_ERR()
+                    .set_MASTER_CHIP(i_target_chip)
                     .set_IO_FILTER_PLL_READ(l_read_reg),
                     "ERROR:IO FILTER PLL LOCK NOT SET");
 
@@ -234,7 +238,11 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
 
         FAPI_ASSERT(l_read_reg.getBit<3>(),
                     fapi2::NEST_PLL_ERR()
-                    .set_NEST_PLL_READ(l_read_reg),
+                    .set_MASTER_CHIP(i_target_chip)
+                    .set_NEST_PLL_READ(l_read_reg)
+                    .set_SS_FILTER_BYPASS_STATUS(l_attr_ss_filter)
+                    .set_CP_FILTER_BYPASS_STATUS(l_attr_cp_filter)
+                    .set_IO_FILTER_BYPASS_STATUS(l_attr_io_filter),
                     "ERROR:NEST PLL LOCK NOT SET");
 
         FAPI_DBG("Release PLL bypass2");
