@@ -268,6 +268,12 @@ p9_hcd_core_startclocks(
                           BIT64(8 + (l_attr_chip_unit_pos % 2)))));
     }
 
+    if (!l_attr_runn_mode)
+    {
+        FAPI_DBG("Set core as ready to run in STOP history register");
+        FAPI_TRY(putScom(i_target, C_PPM_SSHSRC, 0));
+    }
+
 fapi_try_exit:
 
     FAPI_INF("<<p9_hcd_core_startclocks");

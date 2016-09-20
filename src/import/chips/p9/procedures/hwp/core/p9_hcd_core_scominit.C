@@ -75,9 +75,6 @@ p9_hcd_core_scominit(
     FAPI_TRY(getScom(i_target, C_THERM_MODE_REG, l_data64));
     FAPI_TRY(putScom(i_target, C_THERM_MODE_REG, DATA_SET(5)));
 
-    FAPI_DBG("Set core as ready to run in STOP history register");
-    FAPI_TRY(putScom(i_target, C_PPM_SSHSRC, 0));
-
     // invoke core SCOM initfile
     FAPI_EXEC_HWP(l_rc, p9_core_scom, i_target);
 
