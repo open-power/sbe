@@ -192,6 +192,10 @@ ifndef TOOLS_ATTR_DIR
 export TOOLS_ATTR_DIR = $(TOOLS_SRCDIR)/scripts
 endif
 
+ifndef IMPORT_TOOLS_DIR
+export IMPORT_TOOLS_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2/tools
+endif
+
 ifndef TOOLS_IMAGE_DIR
 export TOOLS_IMAGE_DIR = $(TOOLS_SRCDIR)/image
 endif
