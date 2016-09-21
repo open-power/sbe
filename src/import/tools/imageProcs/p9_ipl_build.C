@@ -66,9 +66,8 @@ const char* CHIP_TYPE = "p9_";
 ///
 /// @retval  std::string - holding the newly created file name.
 ///
-std::string getDDSpecificFileName(const char* i_fn,
-                                  uint32_t i_ddLevel
-                                 )
+std::string getDDSpecificFileName( const char* i_fn,
+                                   uint32_t i_ddLevel )
 {
     // create our dd specific file name
     std::stringstream ss;
@@ -90,11 +89,10 @@ std::string getDDSpecificFileName(const char* i_fn,
 ///
 /// @return IMGBUILD_SUCCESS, or failure value.
 ///
-int get_dd_level_rings_from_hw_image(char* i_hwImage,
-                                     uint32_t i_ddLevel,
-                                     void** o_ringBlock,
-                                     uint32_t& o_blockSize
-                                    )
+int get_dd_level_rings_from_hw_image( char* i_hwImage,
+                                      uint32_t i_ddLevel,
+                                      void** o_ringBlock,
+                                      uint32_t& o_blockSize )
 {
     int rc = IMGBUILD_SUCCESS;
 
@@ -104,26 +102,39 @@ int get_dd_level_rings_from_hw_image(char* i_hwImage,
     RingType_t l_ringType = ALLRING;
     uint8_t unused_parm = 0;
 
-    // 1. use the tor api go get the block of rings from the hw image
+    // Get the block of rings from the HW image
     rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection);
 
-    if(rc)
+    if (rc)
     {
-        MY_ERR("call to p9_xip_get_section ID(%d) failed rc=%d\n", P9_XIP_SECTION_HW_RINGS, rc);
+        MY_ERR("Call to p9_xip_get_section ID(%d) failed rc=%d\n", P9_XIP_SECTION_HW_RINGS, rc);
         rc = IMGBUILD_ERR_GET_SECTION;
     }
     else
     {
-        // make a pointer to the start of the rings section
+        // Check if any content in .rings
+        if (l_ringsSection.iv_size == 0)
+        {
+            MY_ERR("Ring section size in HW image is zero. No TOR. We need rings here.\n");
+            rc = IMGBUILD_EMPTY_RING_SECTION;
+            return rc;
+        }
+
+        // Make a pointer to the start of the rings section
         void* ringsSection = i_hwImage + l_ringsSection.iv_offset;
 
         do
         {
 
-            // call the first time to get a size of the pending section
-            rc = tor_get_block_of_rings(ringsSection, i_ddLevel,
-                                        SBE, l_ringType, BASE, unused_parm, o_ringBlock,
-                                        o_blockSize);
+            // Call the first time to get a size of the pending section
+            rc = tor_get_block_of_rings( ringsSection,
+                                         i_ddLevel,
+                                         SBE,
+                                         l_ringType,
+                                         BASE,
+                                         unused_parm,
+                                         o_ringBlock,
+                                         o_blockSize );
 
             if(rc)
             {
@@ -142,11 +153,16 @@ int get_dd_level_rings_from_hw_image(char* i_hwImage,
             // *o_ringBlock is freed by caller
             *o_ringBlock = malloc(o_blockSize);
 
-            if(o_ringBlock != NULL)
+            if (o_ringBlock != NULL)
             {
-                rc = tor_get_block_of_rings (ringsSection, i_ddLevel,
-                                             SBE, l_ringType, BASE, unused_parm, o_ringBlock,
-                                             o_blockSize);
+                rc = tor_get_block_of_rings( ringsSection,
+                                             i_ddLevel,
+                                             SBE,
+                                             l_ringType,
+                                             BASE,
+                                             unused_parm,
+                                             o_ringBlock,
+                                             o_blockSize );
 
                 if(rc)
                 {
@@ -187,22 +203,21 @@ int get_dd_level_rings_from_hw_image(char* i_hwImage,
 ///
 /// @return 0 on success non-zero on failure
 ///
-int append_ring_block_to_image(char* io_sbeImage,
-                               size_t& io_sbeImageSize,
-                               char* i_ringBlock,
-                               uint32_t i_blockSize
-                              )
+int append_ring_block_to_image( char* io_sbeImage,
+                                size_t& io_sbeImageSize,
+                                char* i_ringBlock,
+                                uint32_t i_blockSize )
 {
     uint32_t unused_parm = 0;
     int rc = IMGBUILD_SUCCESS;
 
     // Append block of rings to the sbe image in Memory
-    rc = p9_xip_append(io_sbeImage,
-                       P9_XIP_SECTION_SBE_RINGS,
-                       i_ringBlock,
-                       i_blockSize,
-                       io_sbeImageSize,
-                       &unused_parm);
+    rc = p9_xip_append( io_sbeImage,
+                        P9_XIP_SECTION_SBE_RINGS,
+                        i_ringBlock,
+                        i_blockSize,
+                        io_sbeImageSize,
+                        &unused_parm );
 
     if(rc)
     {
@@ -222,10 +237,9 @@ int append_ring_block_to_image(char* io_sbeImage,
 /// @param[in]  i_hwImage - pointer to a memory mapped Unsigned hardware image
 /// @param[i]   i_ddLevel - DD level of rings to append to the SBE image
 ///
-int ipl_build(char* i_fnSbeImage,
-              void* i_hwImage,
-              uint32_t i_ddLevel
-             )
+int ipl_build( char* i_fnSbeImage,
+               void* i_hwImage,
+               uint32_t i_ddLevel )
 {
 
     char* sbeImage    = NULL;
@@ -241,9 +255,9 @@ int ipl_build(char* i_fnSbeImage,
     sbeImageFile.open(i_fnSbeImage, std::ios::binary | std::ios::in | std::ios::out);
 
 
-    if(!sbeImageFile)
+    if (!sbeImageFile)
     {
-        printf("failed to open %s\n", i_fnSbeImage);
+        MY_ERR("Failed to open %s\n", i_fnSbeImage);
         rc = IMGBUILD_ERR_FILE_ACCESS;
     }
     else
@@ -274,28 +288,24 @@ int ipl_build(char* i_fnSbeImage,
             // copy the SBE image into memory
             pbuf->sgetn(sbeImage, sbeImageSize);
 
-            // validate it
+            // Validate the SBE image
             rc = p9_xip_validate(sbeImage, sbeImageSize);
 
             if(rc)
             {
-                MY_ERR("The SBE image copied to memory"
-                       "failed validation rc = %d", rc);
-
+                MY_ERR("The SBE image failed validation w/rc = %d", rc);
                 rc = IMGBUILD_INVALID_IMAGE;
                 break;
             }
-
-            MY_INF("SBE Image validated ok.. %p\n", sbeImage);
 
             uint32_t    l_blockSize = 0;
 
             char* hwImagePtr = static_cast<char*>(i_hwImage);
 
-            rc = get_dd_level_rings_from_hw_image(hwImagePtr,
-                                                  i_ddLevel,
-                                                  &l_ringBlock,
-                                                  l_blockSize);
+            rc = get_dd_level_rings_from_hw_image( hwImagePtr,
+                                                   i_ddLevel,
+                                                   &l_ringBlock,
+                                                   l_blockSize );
 
             if(rc == IMGBUILD_SUCCESS)
             {
@@ -315,10 +325,10 @@ int ipl_build(char* i_fnSbeImage,
                 // use the new, larger space
                 sbeImage = static_cast<char*>(tmp);
 
-                rc = append_ring_block_to_image(sbeImage,
-                                                sbeImageSize,
-                                                (char*)l_ringBlock,
-                                                l_blockSize);
+                rc = append_ring_block_to_image( sbeImage,
+                                                 sbeImageSize,
+                                                 (char*)l_ringBlock,
+                                                 l_blockSize );
 
                 if(rc == IMGBUILD_SUCCESS)
                 {
@@ -408,12 +418,9 @@ int main( int argc, char* argv[])
     MY_INF("  Input/output SBE image fn = %s\n", fnSbeImage);
     MY_INF("  Input HW image fn         = %s\n", fnHwImage);
     MY_INF("  DD level                  = %#02x\n", ddLevel);
-    // ==========================================================================
-    // Memory map HW reference image.
-    // ==========================================================================
-    MY_DBG("Memory map HW image.\n");
-    fdHwImage = open(fnHwImage, O_RDONLY);
 
+    // Memory map HW image.
+    fdHwImage = open(fnHwImage, O_RDONLY);
 
     if (fstat(fdHwImage, &stbuf) != 0)
     {
@@ -433,8 +440,7 @@ int main( int argc, char* argv[])
     {
         do
         {
-            // ...validate image.
-            MY_INF("Validating the the HW image... \n");
+            // Validate image.
             rc = p9_xip_validate(hwImage, sizeHwImage);
 
             if (rc)
@@ -445,19 +451,13 @@ int main( int argc, char* argv[])
             }
 
             // Update the SBE image.
-            //
-            MY_INF("Updating the SBE image... \n");
-
-            rc = ipl_build( fnSbeImage, hwImage, ddLevel);
+            rc = ipl_build( fnSbeImage,
+                            hwImage,
+                            ddLevel );
 
             if (rc == IMGBUILD_SUCCESS)
             {
                 MY_INF("SBE image build was SUCCESSFUL.\n");
-            }
-            else if (rc == IMGBUILD_NO_RINGS_FOUND)
-            {
-                MY_INF("SBE image build was UNSUCCESSFUL no rings found in the HW image"
-                       "(rc=%i).\n", rc);
             }
             else
             {

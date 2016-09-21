@@ -32,11 +32,12 @@
 #define IMGBUILD_ERR_FILE_ACCESS              2  // Unable to access/open file.
 #define IMGBUILD_MEM_MAP_FAILED               3  // Failed to map image to memory location
 #define IMGBUILD_NO_RINGS_FOUND               5  // Successful img build but no rings found.
+#define IMGBUILD_EMPTY_RING_SECTION           6  // Successful img build but empty ring section.
 #define IMGBUILD_ERR_MEMORY                   7  // Memory allocation error.
 #define IMGBUILD_INVALID_IMAGE               10  // Invalid image.
 #define IMGBUILD_ERR_RING_SEARCH             33  // Err assoc w/ring retrieval.
 #define IMGBUILD_ERR_GET_SECTION             49  // Err assoc w/getting section ID.
-#define IMGBUILD_ERR_APPEND                  51  // Err assoc w/appending to ELF section.
 #define IMGBUILD_ERR_SECTION_SIZING          48  // Err assoc w/section sizing.
+#define IMGBUILD_ERR_APPEND                  51  // Err assoc w/appending to ELF section.
 
 #endif
