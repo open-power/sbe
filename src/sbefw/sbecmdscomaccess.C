@@ -68,10 +68,11 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
             break;
         }
 
-        uint32_t l_sbeDownFifoRespBuf[6] = {0};
-        uint32_t l_pcbpibStatus = PIB_NO_ERROR;
+        sbeRespGenHdr_t l_hdr;
+        l_hdr.init();
+        sbeResponseFfdc_t l_ffdc;
         uint32_t l_len2enqueue  = 0;
-        uint32_t l_index = 0;
+        uint32_t l_sbeDownFifoRespBuf[2] = {0};
 
         uint64_t l_addr = ( (uint64_t)l_getScomReqMsg.hiAddr << 32) |
                                       l_getScomReqMsg.lowAddr;
@@ -79,12 +80,13 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
         SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
                             l_getScomReqMsg.hiAddr, l_getScomReqMsg.lowAddr);
         l_rc = checkIndirectAndDoScom(true, l_addr,
-                                      l_scomData, l_pcbpibStatus);
+                                      l_scomData,
+                                      &l_ffdc);
 
         if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
         {
-            SBE_ERROR(SBE_FUNC"getscom failed, l_pcbpibStatus[0x%08X], "
-                "scomAddr[0x%08X%08X]", l_pcbpibStatus,
+            SBE_ERROR(SBE_FUNC"getscom failed, "
+                "scomAddr[0x%08X%08X]",
                 l_getScomReqMsg.hiAddr, l_getScomReqMsg.lowAddr);
             l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
             l_secStatus  = l_rc;
@@ -107,23 +109,12 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
                 // handle the failure
                 break;
             }
-            l_index = 2;
         } // end successful scom
 
         // Build the response header packet
 
-        uint32_t l_curIndex = l_index ;
-        sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
-                            l_curIndex,
-                            l_primStatus,
-                            l_secStatus,
-                            l_pcbpibStatus,
-                            l_index);
-
-        // Now enqueue into the downstream FIFO
-        l_len2enqueue = ++l_curIndex - l_index;
-        l_rc = sbeDownFifoEnq_mult (l_len2enqueue,
-                               &l_sbeDownFifoRespBuf[l_index]);
+        l_hdr.setStatus(l_primStatus, l_secStatus);
+        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
         if (l_rc)
         {
            // will let command processor routine
@@ -169,9 +160,9 @@ uint32_t sbePutScom (uint8_t *i_pArg)
         }
 
         uint64_t l_scomData = 0;
-        uint32_t l_sbeDownFifoRespBuf[4] = {0};
-        uint32_t l_pcbpibStatus = PIB_NO_ERROR;
-        uint32_t l_len2enqueue  = 0;
+        sbeRespGenHdr_t l_hdr;
+        l_hdr.init();
+        sbeResponseFfdc_t l_ffdc;
         // successfully dequeued two entries for
         // scom address followed by the EOT entry
 
@@ -188,12 +179,10 @@ uint32_t sbePutScom (uint8_t *i_pArg)
         SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
                             l_putScomReqMsg.hiAddr, l_putScomReqMsg.lowAddr);
         l_rc = checkIndirectAndDoScom(false, l_addr,
-                                      l_scomData, l_pcbpibStatus);
+                                      l_scomData, &l_ffdc);
 
         if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
         {
-            SBE_ERROR(SBE_FUNC"putscom failed, l_pcbpibStatus[0x%08X]",
-                            l_pcbpibStatus);
             SBE_ERROR(SBE_FUNC"putscom failure data, "
                           "scomAddr[0x%08X%08X], "
                           "scomData[0x%08X%08X]",
@@ -207,16 +196,8 @@ uint32_t sbePutScom (uint8_t *i_pArg)
 
         // Build the response header packet
 
-        uint32_t  l_curIndex = 0;
-        sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
-                            l_curIndex,
-                            l_primStatus,
-                            l_secStatus,
-                            l_pcbpibStatus);
-
-        // Now enqueue into the downstream FIFO
-        l_len2enqueue = ++l_curIndex;
-        l_rc = sbeDownFifoEnq_mult (l_len2enqueue, &l_sbeDownFifoRespBuf[0]);
+        l_hdr.setStatus(l_primStatus, l_secStatus);
+        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
         if (l_rc)
         {
            // will let command processor routine
@@ -266,9 +247,9 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
             break;
         }
 
-        uint32_t l_sbeDownFifoRespBuf[4] = {0};
-        uint32_t l_pcbpibStatus = PIB_NO_ERROR;
-        uint32_t  l_len2enqueue  = 0;
+        sbeRespGenHdr_t l_hdr;
+        l_hdr.init();
+        sbeResponseFfdc_t l_ffdc;
 
         // Modifying Data
         uint64_t l_modifyingData = l_modifyScomMsg.getModifyingData();
@@ -303,12 +284,12 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                 SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
                               l_modifyScomMsg.hiAddr, l_modifyScomMsg.lowAddr);
                 l_rc = checkIndirectAndDoScom(true, l_addr,
-                                      l_scomData, l_pcbpibStatus);
+                                      l_scomData, &l_ffdc);
 
                 if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
                 {
-                    SBE_ERROR(SBE_FUNC"getscom failed, l_pcbpibStatus[0x%08X],"
-                        " ScomAddress[0x%08X %08X]", l_pcbpibStatus,
+                    SBE_ERROR(SBE_FUNC"getscom failed,"
+                        " ScomAddress[0x%08X %08X]",
                         l_modifyScomMsg.hiAddr, l_modifyScomMsg.lowAddr);
                     l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
                     l_secStatus  = l_rc;
@@ -330,12 +311,12 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
 
                 // Write the modified data
                 l_rc = checkIndirectAndDoScom(false, l_addr,
-                                      l_modifyingData, l_pcbpibStatus);
+                                      l_modifyingData, &l_ffdc);
 
                 if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
                 {
-                    SBE_ERROR(SBE_FUNC"putscom failed, l_pcbpibStatus[0x%08X],"
-                        " ScomAddress[0x%08X%08X]", l_pcbpibStatus,
+                    SBE_ERROR(SBE_FUNC"putscom failed,"
+                        " ScomAddress[0x%08X%08X]",
                         l_modifyScomMsg.hiAddr, l_modifyScomMsg.lowAddr);
                     SBE_ERROR(SBE_FUNC"modifyingData[0x%08X%08X]",
                               SBE::higher32BWord(l_modifyingData),
@@ -348,17 +329,8 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
 
         // Build the response header packet
 
-        uint32_t  l_curIndex = 0;
-        sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
-                            l_curIndex,
-                            l_primStatus,
-                            l_secStatus,
-                            l_pcbpibStatus);
-
-        // Now enqueue into the downstream FIFO
-        l_len2enqueue = ++l_curIndex;
-        l_rc = sbeDownFifoEnq_mult (l_len2enqueue,
-                                   (uint32_t *)&l_sbeDownFifoRespBuf);
+        l_hdr.setStatus(l_primStatus, l_secStatus);
+        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
         if (l_rc)
         {
            // will let command processor routine
@@ -408,9 +380,9 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
             break;
         }
 
-        uint32_t l_sbeDownFifoRespBuf[4] = {0};
-        uint32_t l_pcbpibStatus = PIB_NO_ERROR;
-        uint32_t  l_len2enqueue  = 0;
+        sbeRespGenHdr_t l_hdr;
+        l_hdr.init();
+        sbeResponseFfdc_t l_ffdc;
 
         SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X],"
                      "modifyingData[0x%08X%08X]",
@@ -432,7 +404,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
             uint64_t l_addr = ( (uint64_t) l_putScomUmaskMsg.hiAddr << 32) |
                                            l_putScomUmaskMsg.lowAddr;
             l_rc = checkIndirectAndDoScom(true, l_addr,
-                                          l_scomData, l_pcbpibStatus);
+                                          l_scomData, &l_ffdc);
 
             if (l_rc == SBE_SEC_OPERATION_SUCCESSFUL) // scom success
             {
@@ -440,13 +412,13 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
 
                 // Write the modified data
                 l_rc = checkIndirectAndDoScom(false, l_addr,
-                                          l_scomData, l_pcbpibStatus);
+                                          l_scomData, &l_ffdc);
             }
 
             if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
             {
-                SBE_ERROR(SBE_FUNC"scom failed, l_pcbpibStatus[0x%08X], "
-                    "ScomAddress[0x%08X%08X]", l_pcbpibStatus,
+                SBE_ERROR(SBE_FUNC"scom failed, "
+                    "ScomAddress[0x%08X%08X]",
                     l_putScomUmaskMsg.hiAddr,
                     l_putScomUmaskMsg.lowAddr);
                 SBE_ERROR(SBE_FUNC"modifyingData[0x%08X%08X]"
@@ -463,16 +435,8 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
         } while (false);
 
         // Build the response header packet
-        uint32_t  l_curIndex = 0;
-        sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
-                            l_curIndex,
-                            l_primStatus,
-                            l_secStatus,
-                            l_pcbpibStatus);
-
-        // Now enqueue into the downstream FIFO
-        l_len2enqueue = ++l_curIndex;
-        l_rc = sbeDownFifoEnq_mult (l_len2enqueue, &l_sbeDownFifoRespBuf[0]);
+        l_hdr.setStatus(l_primStatus, l_secStatus);
+        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
         if (l_rc)
         {
            // will let command processor routine

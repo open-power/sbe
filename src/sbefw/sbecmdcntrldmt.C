@@ -64,16 +64,16 @@ void sbeDmtPkExpiryCallback(void *)
     #define SBE_FUNC "sbeDmtPkExpiryCallback"
     SBE_INFO(SBE_FUNC" DMT Callback Timer has expired..Checkstop the system ");
     g_SbeDmtTimerExpired = true;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
     (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_DUMP_FAILURE_EVENT);
 
     // check stop the system
-    uint32_t l_status = PIB_NO_ERROR;
     plat_target_handle_t l_hndl;
-    l_status = putscom_abs_wrap(&l_hndl, PERV_N3_LOCAL_FIR_OR,
+    fapiRc = putscom_abs_wrap(&l_hndl, PERV_N3_LOCAL_FIR_OR,
                                 N3_FIR_CORE_CHECKSTOP_BIT);
-    if(PIB_NO_ERROR != l_status)
+    if(fapiRc != FAPI2_RC_SUCCESS)
     {
         // Scom failed
         SBE_ERROR(SBE_FUNC "PutScom failed for REG PERV_N3_LOCAL_FIR");

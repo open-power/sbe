@@ -206,36 +206,59 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
     return l_addr;
 }
 
-uint32_t getscom_abs_wrap(const void *i_target, const uint32_t i_addr, uint64_t *o_data)
+fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
+                                   const uint32_t i_addr, uint64_t *o_data)
 {
-    uint32_t l_rc = 0;
+    uint32_t l_pibRc = 0;
     uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
     FAPI_INF("getScom: address: 0x%08X", l_addr);
-    l_rc = getscom_abs(l_addr, o_data);
-    if( PIB_NO_ERROR != l_rc )
+    l_pibRc = getscom_abs(l_addr, o_data);
+    if( PIB_NO_ERROR != l_pibRc )
     {
-        l_rc = p9_pibErrRetry( l_addr, o_data, l_rc, true);
+        l_pibRc = p9_pibErrRetry( l_addr, o_data, l_pibRc, true);
     }
-    FAPI_INF("getScom: returned rc: 0x%08X, data HI: 0x%08X, "
-             "data LO: 0x%08X", l_rc, (*o_data >> 32),
+    FAPI_INF("getScom: returned pibRc: 0x%08X, data HI: 0x%08X, "
+             "data LO: 0x%08X", l_pibRc, (*o_data >> 32),
              static_cast<uint32_t>(*o_data & 0xFFFFFFFF));
-    return l_rc;
+    fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
+    // Setting 64bit address in ffdc package as the parsers are
+    // hard coded to read 64bit address
+    const uint64_t ffdcAddr = l_addr;
+    PLAT_FAPI_ASSERT( PIB_NO_ERROR == l_pibRc,
+                      SBE_SCOM_FAILURE().
+                      set_address(ffdcAddr).
+                      set_pcb_pib_rc(l_pibRc),
+                      "getScom:pcb pib error");
+fapi_try_exit:
+    return fapi2::current_err;
 }
 
-uint32_t putscom_abs_wrap(const void *i_target, const uint32_t i_addr, uint64_t i_data)
+fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
+                                    const uint32_t i_addr, uint64_t i_data)
 {
-    uint32_t l_rc = 0;
-    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
+    uint32_t l_pibRc = 0;
+    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target,
+                                                                    i_addr);
     FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X",
              l_addr, (i_data >> 32),
              static_cast<uint32_t>(i_data & 0xFFFFFFFF));
-    l_rc = putscom_abs(l_addr, i_data);
-    if( PIB_NO_ERROR != l_rc )
+    l_pibRc = putscom_abs(l_addr, i_data);
+    if( PIB_NO_ERROR != l_pibRc )
     {
-        l_rc = p9_pibErrRetry( l_addr, &i_data, l_rc, false);
+        l_pibRc = p9_pibErrRetry( l_addr, &i_data, l_pibRc, false);
     }
-    FAPI_INF("putScom: returned rc: 0x%08X", l_rc);
-    return l_rc;
+    FAPI_INF("putScom: returned pibRc: 0x%08X", l_pibRc);
+    fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
+    // Setting 64bit address in ffdc package as the parsers are
+    // hard coded to read 64bit address
+    const uint64_t ffdcAddr = l_addr;
+    PLAT_FAPI_ASSERT( PIB_NO_ERROR == l_pibRc,
+                      SBE_SCOM_FAILURE().
+                      set_address(ffdcAddr).
+                      set_pcb_pib_rc(l_pibRc),
+                      "putScom:pcb pib error");
+fapi_try_exit:
+    return fapi2::current_err;
 }
 
 uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,

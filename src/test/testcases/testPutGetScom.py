@@ -53,10 +53,7 @@ PUTSCOM_EXPDATA = [0xc0,0xde,0xa2,0x02,
                    0x00,0x0,0x0,0x03];
 
 PUTSCOM_EXPDATA_INVALID = [0xc0,0xde,0xa2,0x02,
-                           0x0,0xfe,0x0,0x11,
-                           0x00,0x0,0x0,0x04,
-                           0x00,0x0,0x0,0x04];
-
+                           0x0,0xfe,0x0,0x11]
 GETSCOM_TESTDATA = [0,0,0,4,
                     0,0,0xA2,0x01,
                     0,0,0x0,0x00,
@@ -76,10 +73,7 @@ GETSCOM_EXPDATA = [0xde,0xca,0xff,0xee,
                    0x00,0x0,0x0,0x03];
 
 GETSCOM_EXPDATA_INVALID = [0xc0,0xde,0xa2,0x01,
-                           0x0,0xfe,0x0,0x11,
-                           0x00,0x0,0x0,0x04,
-                           0x00,0x0,0x0,0x04];
-
+                           0x0,0xfe,0x0,0x11]
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
 def main( ):
@@ -93,6 +87,9 @@ def main( ):
     testUtil.writeUsFifo( PUTSCOM_TESTDATA_INVALID )
     testUtil.writeEot( )
     testUtil.readDsFifo( PUTSCOM_EXPDATA_INVALID )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
     print ("\nStarting getscom test")
     testUtil.writeUsFifo( GETSCOM_TESTDATA )
@@ -103,6 +100,9 @@ def main( ):
     testUtil.writeUsFifo( GETSCOM_TESTDATA_INVALID )
     testUtil.writeEot( )
     testUtil.readDsFifo( GETSCOM_EXPDATA_INVALID )
+    testUtil.extractHWPFFDC( )
+    #flush out distance
+    testUtil.readDsEntryReturnVal()
     testUtil.readEot( )
 
 #-------------------------------------------------

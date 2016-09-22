@@ -98,23 +98,6 @@ extern uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
 extern uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
                                      const uint32_t *i_pData) ;
 
-
-/**
-  * @brief sbeBuildRespHeaderMagicCodeCmdClass
-  *          Builds the header word containing the magic code,
-  *          the command class and the opcode
-  *
-  * @return     Returns the header word in the response header
-  *             containing  the magic code, command class and opcode
-  *
-  */
-extern inline uint32_t sbeBuildRespHeaderMagicCodeCmdClass (void)
-{
-    return ( (0xC0DE0000) |
-             (uint32_t)(g_sbeFifoCmdHdr.cmdClass << 8) |
-             (uint32_t)(g_sbeFifoCmdHdr.command));
-}
-
 /**
   * @brief sbeBuildRespHeaderStatusWordGlobal
   *          Builds the status header word from global variables
@@ -144,29 +127,6 @@ extern inline uint32_t sbeBuildRespHeaderStatusWordLocal (
 {
     return ( (((uint32_t)i_primStatus)<<16) | (i_secStatus) );
 }
-
-/**
- * @brief sbeBuildMinRespHdr : Builds minimum response header
- *
- * @desc  This builds the buffer with the following status words
- *           - Magic Bytes, Command Class, Command opcode
- *           - Primary Status Code, Secondary Status Code
- *           - PCB / PIB Status Code [optional]
- *           - Distance to Status Header
- * @param[in/out]    uint32_t  *io_pBuf       Buffer to be filled in
- * @param[in/out]    uint32_t  &io_curIndex   Current Index into the buffer
- * @param[in]  const uint16_t  i_primStatus   Primary Response Status Code
- * @param[in]  const uint16_t  i_secStatus    Secondary Response Status Code
- * @param[in]  const uint32_t  i_pcbpibStatus PCB-PIB Response Status Code
- * @param[in]  const uint32_t  i_startIndex   Starting Index into the buffer
- */
-
-void sbeBuildMinRespHdr ( uint32_t  *io_pBuf,
-                          uint32_t  &io_curIndex,
-                    const uint16_t  i_primStatus,
-                    const uint16_t  i_secStatus,
-                    const uint32_t  i_pcbpibStatus,
-                    const uint32_t  i_startIndex = 0 );
 
 /**
   * @brief sbeDownFifoSignalEot : Signal EOT in Downstream FIFO

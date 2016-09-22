@@ -248,43 +248,6 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-void sbeBuildMinRespHdr ( uint32_t  *io_pBuf,
-                          uint32_t  &io_curIndex,
-                    const uint16_t  i_primStatus,
-                    const uint16_t  i_secStatus,
-                    const uint32_t  i_pcbpibStatus,
-                    const uint32_t  i_startIndex )
-{
-    do
-    {
-        if (!io_pBuf)
-        {
-            break;
-        }
-
-        io_pBuf[io_curIndex] = sbeBuildRespHeaderMagicCodeCmdClass();
-        io_pBuf[++io_curIndex] = sbeBuildRespHeaderStatusWordLocal(
-                                          i_primStatus, i_secStatus);
-
-        // Pcb-Pib error is optional,
-        // not needed for success case
-        if ( (i_primStatus  != SBE_PRI_OPERATION_SUCCESSFUL) ||
-             (i_pcbpibStatus != PIB_NO_ERROR) )
-        {
-            io_pBuf[++io_curIndex]    = i_pcbpibStatus;
-        }
-
-        // Somehow this compiler isn't allowing the
-        // index pre-increment for the last array entry
-        // directly embedded into the assignment
-        ++io_curIndex;
-        io_pBuf[io_curIndex]   = io_curIndex - i_startIndex + 1;
-
-    } while(false);
-}
-
-////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////
 uint32_t sbeDownFifoSignalEot (void)
 {
     uint32_t l_rc = 0;
@@ -390,7 +353,6 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         {
             break;
         }
-        SBE_INFO("sizeof(sbeFfdc_t) [%x]", sizeof(sbeFfdc_t));
 
     }while(0);
     return rc;

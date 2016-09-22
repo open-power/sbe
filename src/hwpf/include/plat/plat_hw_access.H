@@ -140,22 +140,24 @@ namespace fapi2
     ///
     /// @brief Platform wrapper over PK getscom_abs
     ///
-    /// @param [in] i_addr The SCOM address
+    /// @param [in]  i_addr The SCOM address
     /// @param [out] o_data The data read
     ///
-    /// @return PCB-PIB return code
+    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     ///
-    uint32_t getscom_abs_wrap(const void *i_target, const uint32_t i_addr, uint64_t *o_data);
+    fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
+                                    const uint32_t i_addr, uint64_t *o_data);
 
     ///
     /// @brief Platform wrapper over PK putscom_abs
     ///
     /// @param [in] i_addr The SCOM address
-    /// @param [in] i_data The data read
+    /// @param [in] i_data The data to write
     ///
-    /// @return PCB-PIB return code
+    /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     ///
-    uint32_t putscom_abs_wrap(const void *i_target, const uint32_t i_addr, uint64_t i_data);
+    fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
+                                    const uint32_t i_addr, uint64_t i_data);
 
     ///
     /// @brief Platform wrapper to retry scom for parity/timeout errors

@@ -135,8 +135,8 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
         }
 
         uint32_t l_len2dequeue            = 0;
-        uint32_t l_dist2StatusHdr         = 0;
-        uint32_t l_sbeDownFifoRespBuf[4] = {0};
+        sbeRespGenHdr_t l_hdr;
+        l_hdr.init();
         uint32_t l_secStatus = i_rc;
 
         switch (i_rc)
@@ -178,14 +178,9 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
                              "l_primStatus[0x%08X], "
                              "l_secStatus[0x%08X]",
                              l_primStatus, l_secStatus);
+                l_hdr.setStatus(l_primStatus, l_secStatus);
 
-                sbeBuildMinRespHdr(&l_sbeDownFifoRespBuf[0],
-                                    l_dist2StatusHdr,
-                                    l_primStatus,
-                                    l_secStatus,
-                                    0);
-                l_rc = sbeDownFifoEnq_mult (++l_dist2StatusHdr,
-                                        &l_sbeDownFifoRespBuf[0]);
+                l_rc = sbeDsSendRespHdr(l_hdr);
                 if (l_rc)
                 {
                     SBE_ERROR(SBE_FUNC"sbeDownFifoEnq_mult failure,"

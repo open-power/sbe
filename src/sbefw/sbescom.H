@@ -23,17 +23,18 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
+#include "sbeSpMsg.H"
 /**
   * @brief check if scom address is Indirect scom and perform scom
   *
-  * @param[in] i_isRead True if read operation, false otherwise
-  * @param[in] i_addr scom addess
-  * @param[in] io_data data for scom operation. For read, it is output operand.
-  * @param[in] o_pcbPibStatus pcbpib status
+  * @param[in]  i_isRead True if read operation, false otherwise
+  * @param[in]  i_addr scom addess
+  * @param[in]  io_data data for scom operation. For read, it is output operand.
+  * @param[out] o_ffdc ffdc object
   *
-  * @return    seconday error code.
+  * @return     seconday error code.
   */
 uint32_t checkIndirectAndDoScom( const bool i_isRead,
                                  const uint64_t i_addr,
                                  uint64_t & io_data,
-                                 uint32_t & o_pcbPibStatus );
+                                 sbeResponseFfdc_t *const o_ffdc);
