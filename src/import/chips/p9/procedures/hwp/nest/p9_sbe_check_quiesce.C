@@ -102,7 +102,7 @@ extern "C" {
         //TODO RTC 160713 Greg/Michael are still working on figuring out what exactly we need to do here -- what is currently in here is not a graceful way to do this
         // Write bit 10 in OCR to halt OCC
         fapi2::buffer<uint64_t> l_ocr_reg_data(0);
-        l_ocr_reg_data.setBit<PU_OCB_PIB_OCR_OCR_DBG_HALT>();
+        l_ocr_reg_data.setBit<PU_OCB_PIB_OCR_OCC_DBG_HALT>();
 
         FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCR_OR, l_ocr_reg_data), "Error writing to OCR register");
 
