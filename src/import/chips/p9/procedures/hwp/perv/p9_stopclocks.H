@@ -52,6 +52,8 @@ typedef fapi2::ReturnCode (*p9_stopclocks_FP_t)(const fapi2::Target<fapi2::TARGE
         const bool,
         const bool,
         const bool,
+        const bool,
+        const bool,
         const p9hcd::P9_HCD_CLK_CTRL_CONSTANTS,
         const p9hcd::P9_HCD_EX_CTRL_CONSTANTS );
 
@@ -69,6 +71,8 @@ extern "C"
     * @param[in] i_stop_tp_clks          True if PERV (TP) chiplet clocks all except PIB/NET should be stopped, else false
     * @param[in] i_stop_pib_clks         True if PERV (TP) chiplet PIB/NET clocks should be stopped, else false
     * @param[in] i_stop_vitl_clks        True if PERV VITL clocks should be stopped, else false
+    * @param[in] i_stop_cache_clks       True if CACHE chiplet clocks should be stopped, else false
+    * @param[in] i_stop_core_clks        True if CORE chiplet clocks should be stopped, else false
     * @param[in] i_eq_clk_regions        EQ chiplet clock regions of which clocks should be stopped
     * @param[in] i_ex_select             EX chiplet selected for clocks stop
     *
@@ -83,6 +87,8 @@ extern "C"
                                     const bool i_stop_tp_clks = false,
                                     const bool i_stop_pib_clks = false,
                                     const bool i_stop_vitl_clks = false,
+                                    const bool i_stop_cache_clks = true,
+                                    const bool i_stop_core_clks = true,
                                     const p9hcd::P9_HCD_CLK_CTRL_CONSTANTS i_eq_clk_regions = p9hcd::CLK_REGION_ALL_BUT_PLL_REFR,
                                     const p9hcd::P9_HCD_EX_CTRL_CONSTANTS i_ex_select = p9hcd::BOTH_EX);
 }
