@@ -53,11 +53,13 @@
 //             i_stop_nest_clks        =>   True to stop NEST chiplet clocks                              (should default TRUE)
 //             i_stop_mc_clks          =>   True to stop MC chiplet clocks                                (should default TRUE)
 //             i_stop_xbus_clks        =>   True to stop XBUS chiplet clocks                              (should default TRUE)
-//             i_stop_abus_clks        =>   True to stop OBUS chiplet clocks                              (should default TRUE)
+//             i_stop_obus_clks        =>   True to stop OBUS chiplet clocks                              (should default TRUE)
 //             i_stop_pcie_clks        =>   True to stop PCIE chiplet clocks                              (should default TRUE)
 //             i_stop_tp_clks          =>   True to stop PERVASIVE (TP) chiplet clocks all except PIB/NET (should default FALSE)
 //             i_stop_pib_clks         =>   True to stop PERVASIVE (TP) chiplet PIB/NET clocks            (should default FALSE)
 //             i_stop_vitl_clks        =>   True to stop PERVASIVE VITL clocks                            (should default FALSE)
+//             i_stop_cache_clks       =>   True to stop CACHE chiplet clocks                             (should default TRUE)
+//             i_stop_core_clks        =>   True to stop CORE chiplet clocks                              (should default TRUE)
 //             i_eq_clk_regions        =>   EQ chiplet clock regions of which clocks should be stopped    (default ALL_BUT_PLL_REFR)
 //             i_ex_select             =>   EX chiplet selected for clocks stop                           (default BOTH_EX)
 // returns: FAPI_RC_SUCCESS if operation was successful, else error
@@ -72,6 +74,8 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
                                 const bool i_stop_tp_clks,
                                 const bool i_stop_pib_clks,
                                 const bool i_stop_vitl_clks,
+                                const bool i_stop_cache_clks,
+                                const bool i_stop_core_clks,
                                 const p9hcd::P9_HCD_CLK_CTRL_CONSTANTS i_eq_clk_regions,
                                 const p9hcd::P9_HCD_EX_CTRL_CONSTANTS i_ex_select)
 {
@@ -103,8 +107,8 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     FAPI_DBG("p9_stopclocks : Input arguments received are \n\t i_stop_nest_clks = %s\n\t i_stop_mc_clks = %s\n\t i_stop_xbus_clks = %s\n\t i_stop_obus_clks = %s\n\t i_stop_pcie_clks = %s\n\t i_stop_tp_clks = %s\n\t i_stop_pib_clks = %s\n\t i_stop_vitl_clks =  %s\n",
              btos(i_stop_nest_clks), btos(i_stop_mc_clks), btos(i_stop_xbus_clks), btos(i_stop_obus_clks), btos(i_stop_pcie_clks),
              btos(i_stop_tp_clks), btos(i_stop_pib_clks), btos(i_stop_vitl_clks));
-    FAPI_DBG("p9_stopclocks : Input CACHE arguments received are \n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
-             (uint64_t)i_eq_clk_regions, (uint64_t)i_ex_select);
+    FAPI_DBG("p9_stopclocks : Input QUAD arguments received are \n\t i_stop_cache_clks = %s\n\t i_stop_core_clks = %s\n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
+             btos(i_stop_cache_clks), btos(i_stop_core_clks), (uint64_t)i_eq_clk_regions, (uint64_t)i_ex_select);
 
     FAPI_DBG("p9_stopclocks : Check to see if the Perv Vital clocks are OFF");
 #ifdef __PPE__
@@ -217,17 +221,23 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
                      btos(obus_cplt_scomable), btos(pcie_cplt_scomable));
 
             // Core stopclocks
-            for (auto l_target_core : i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+            if(i_stop_core_clks)
             {
-                FAPI_INF("p9_stopclocks : Calling p9_hcd_core_stopclocks");
-                FAPI_TRY(p9_hcd_core_stopclocks(l_target_core));
+                for (auto l_target_core : i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+                {
+                    FAPI_INF("p9_stopclocks : Calling p9_hcd_core_stopclocks");
+                    FAPI_TRY(p9_hcd_core_stopclocks(l_target_core));
+                }
             }
 
             // L2 & Cache stopclocks
-            for (auto l_target_eq : i_target_chip.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
+            if(i_stop_cache_clks)
             {
-                FAPI_INF("p9_stopclocks : Calling p9_hcd_cache_stopclocks");
-                FAPI_TRY(p9_hcd_cache_stopclocks(l_target_eq, i_eq_clk_regions, i_ex_select));
+                for (auto l_target_eq : i_target_chip.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
+                {
+                    FAPI_INF("p9_stopclocks : Calling p9_hcd_cache_stopclocks");
+                    FAPI_TRY(p9_hcd_cache_stopclocks(l_target_eq, i_eq_clk_regions, i_ex_select));
+                }
             }
 
             // Chiplet stopclocks
