@@ -175,8 +175,12 @@ ifndef HWPLIB_SRCDIR
 export HWPLIB_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/lib
 endif
 
+ifndef IMAGEPROCS_TOOL_DIR
+export IMAGEPROCS_TOOL_DIR = $(IMPORT_SRCDIR)/tools/imageProcs
+endif
+
 ifndef IMAGEPROCS_SRCDIR
-export IMAGEPROCS_SRCDIR = $(IMPORT_SRCDIR)/tools/imageProcs
+export IMAGEPROCS_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/utils/imageProcs
 endif
 
 ifndef BASE_OBJDIR
@@ -222,6 +226,10 @@ endif
 
 ifndef TOOLS_IMAGE_DIR
 export TOOLS_IMAGE_DIR = $(TOOLS_SRCDIR)/image
+endif
+
+ifndef IPL_BUILD_DIR
+export IPL_BUILD_DIR = $(TOOLS_SRCDIR)/iplbuild
 endif
 
 ifndef IMPORT_XML_DIR
@@ -434,6 +442,7 @@ INCLUDES += -I$(PPETRACEPP_DIR)
 INCLUDES += -I$(IMPORT_COMMON_DIR)/include
 INCLUDES += -I$(IMPORT_UTILS_DIR)/imageProcs
 INCLUDES += -I$(IMPORT_UTILS_DIR)/
+INCLUDES += -I$(IMPORT_SRCDIR)/tools/imageProcs
 
 GCC-CFLAGS += -Wall -Werror -Wno-unused-label
 GCC-CFLAGS += -msoft-float

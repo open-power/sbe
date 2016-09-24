@@ -113,6 +113,7 @@ SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/plugins/sbeUserDataParser.C
 SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/sbeFFDCType.H
 
 SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
+SBE_IPL_TOOLS := $(IMG_DIR)/p9_ipl_build
 
 P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
 
@@ -167,8 +168,9 @@ all: $(OBJDIR) xml \
 endif
 ifeq ($(img), seeprom)
 all: $(OBJDIR) xml $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin \
-	 $(SBE_TOOLS) normalize defaultset $(IMG_DIR)/fixed.bin appendloader \
-	 appendoverrides add_LoaderAddr symbols tracehash buildinfo report
+	 $(SBE_TOOLS) $(SBE_IPL_TOOLS) normalize defaultset $(IMG_DIR)/fixed.bin \
+	 appendloader appendoverrides add_LoaderAddr symbols tracehash buildinfo \
+	 report
 endif
 
 install: all
@@ -258,6 +260,10 @@ $(SUBDIRS):
 #Build the SBE XIP Tools
 $(SBE_TOOLS): $(P9_XIP_TOOL)
 	$(MAKE) -I $(INCLUDES) -C $(TOOLS_IMAGE_DIR) -f Makefile
+
+#Build the IPL Build Tools
+$(SBE_IPL_TOOLS): $(P9_XIP_TOOL)
+	$(MAKE) -I $(INCLUDES) -C $(IPL_BUILD_DIR) -f Makefile
 
 # Build the P9-XIP Tool
 $(P9_XIP_TOOL):
