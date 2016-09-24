@@ -70,6 +70,9 @@ void sbeHandlePsuResponse (const uint32_t i_rc);
 namespace SBE
 {
 
+    // Nest to SBE frequency ratio
+    static const uint8_t  SBE_TO_NEST_FREQ_FACTOR = 4;
+
     // Currently PK does not define start range for app
     // specifc panic code as enum. It is implicit understanding
     // through code comments. Expectation is 0x1cxx range is for

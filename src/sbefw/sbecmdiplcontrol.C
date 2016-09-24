@@ -85,8 +85,11 @@
 // istep 5 hwp header files
 #include "p9_sbe_instruct_start.H"
 #include "p9_sbe_load_bootloader.H"
+// Nest frequency array
+#include "p9_frequency_buckets.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
+#include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
 // Forward declaration
 using namespace fapi2;
 ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
@@ -123,6 +126,7 @@ ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp);
 ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp);
+ReturnCode istepNestFreq( sbeIstepHwp_t i_hwp);
 
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
@@ -176,7 +180,7 @@ static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
              { &istepWithProc, { .procHwp = &p9_sbe_tp_gptr_time_initf }},
              { &istepNoOp, NULL },  // DFT only
              { &istepWithProc, { .procHwp = &p9_sbe_npll_initf }},
-             { &istepWithProc, { .procHwp = &p9_sbe_npll_setup }},
+             { &istepNestFreq, { .procHwp = &p9_sbe_npll_setup }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_switch_gears }},
              { &istepWithProc, { .procHwp = &p9_sbe_clock_test2 }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_reset }},
@@ -494,6 +498,38 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
     return rc;
 }
 
+//----------------------------------------------------------------------------
+
+ReturnCode istepNestFreq( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepNestFreq "
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    fapi2::Target<TARGET_TYPE_SYSTEM> sys;
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    uint8_t nestPllBkt = 0;
+    FAPI_ATTR_GET( ATTR_NEST_PLL_BUCKET, sys, nestPllBkt );
+    assert( nestPllBkt && (nestPllBkt <= NEST_PLL_FREQ_BUCKETS ));
+    uint32_t sbeFreqHz = ( NEST_PLL_FREQ_LIST[ nestPllBkt - 1 ] * 1000 * 1000 )/
+                                                 SBE::SBE_TO_NEST_FREQ_FACTOR;
+
+    assert( NULL != i_hwp.procHwp );
+    do
+    {
+        SBE_EXEC_HWP(rc, i_hwp.procHwp,proc)
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+        // This function signature though has return value
+        // But it always return SUCCESS.
+        SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", sbeFreqHz);
+        pk_timebase_freq_set(sbeFreqHz);
+    }while(0);
+    return rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp)

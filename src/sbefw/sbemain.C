@@ -42,6 +42,7 @@
 #include "sberegaccess.H"
 #include "sbestates.H"
 #include "fapi2.H" // For target init
+#include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
 
 ////////////////////////////////////////////////////////////////
 // @brief Global semaphores
@@ -280,13 +281,15 @@ uint32_t main(int argc, char **argv)
 
     do
     {
+        // Keep default nest frequncy as 133 MHZ
+        static const uint32_t initialSbefreq = ( 133 * 1000 * 1000)/
+                                                  SBE::SBE_TO_NEST_FREQ_FACTOR;
         // initializes kernel data -
         // stack, threads, timebase, timers, etc.
         l_rc = pk_initialize((PkAddress)g_sbe_Kernel_NCInt_stack,
              SBE_NONCRITICAL_STACK_SIZE,
              0,
-             500000000); // @TODO via RTC : 128819
-                         //       Need to obtain at Runtime, a new attribute?
+             initialSbefreq );
         if (l_rc)
         {
             break;
