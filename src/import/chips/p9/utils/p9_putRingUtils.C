@@ -226,18 +226,10 @@ fapi2::ReturnCode standardScan(
 
 #endif
 
-#ifndef __PPE__
-
     // Non-PPE platform - Cronus need a Chip target to be used
     // in putScom/getScom.
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent;
-
-    if (i_target.getType() == fapi2::TARGET_TYPE_CORE)
-    {
-        l_parent = i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
-    }
-
-#endif
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent =
+        i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
 
     do
     {
@@ -282,11 +274,7 @@ fapi2::ReturnCode standardScan(
                 FAPI_INF("l_rotateCount %u", l_rotateCount);
                 fapi2::buffer<uint64_t> l_scomData(l_rotateCount);
 
-#ifndef __PPE__
                 l_rc = fapi2::putScom(l_parent, l_scomAddress, l_scomData);
-#else
-                l_rc = fapi2::putScom(i_target, l_scomAddress, l_scomData);
-#endif
 
                 if(l_rc != fapi2::FAPI2_RC_SUCCESS)
                 {
@@ -308,11 +296,8 @@ fapi2::ReturnCode standardScan(
                     l_attempts--;
 
                     fapi2::buffer<uint64_t> l_opcgStatus;
-#ifndef __PPE__
+
                     l_rc = fapi2::getScom(l_parent, l_OPCGAddress, l_opcgStatus);
-#else
-                    l_rc = fapi2::getScom(i_target, l_OPCGAddress, l_opcgStatus);
-#endif
 
                     if(l_rc != fapi2::FAPI2_RC_SUCCESS)
                     {
@@ -355,11 +340,7 @@ fapi2::ReturnCode standardScan(
             // Set the scan count to the actual value
             l_scomAddress |= l_scanCount;
 
-#ifndef __PPE__
             l_rc = fapi2::putScom(l_parent, l_scomAddress, l_scomData);
-#else
-            l_rc = fapi2::putScom(i_target, l_scomAddress, l_scomData);
-#endif
 
             if(l_rc != fapi2::FAPI2_RC_SUCCESS)
             {
@@ -419,14 +400,10 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 
 #endif
 
-
-
-#ifndef __PPE__
     // Non-PPE platform - Cronus need a Chip target to be used
     // in putScom/getScom.
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent(
         i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>());
-#endif
 
     do
     {
@@ -440,11 +417,8 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 
         // Do the scom
         fapi2::buffer<uint64_t> l_scanRegion(l_scan_region);
-#ifndef __PPE__
+
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_scanRegion);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_scanRegion);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -489,14 +463,10 @@ fapi2::ReturnCode writeHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
         l_scomAddress |= l_chiplet;
 
 // I think we won't require this
-#ifndef __PPE__
         l_rc = fapi2::putScom(
                    i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
                    l_scomAddress,
                    i_header);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, i_header);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -545,14 +515,10 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 
         fapi2::buffer<uint64_t> l_readHeader;
 
-#ifndef __PPE__
         l_rc = fapi2::getScom(
                    i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
                    l_scomAddress,
                    l_readHeader);
-#else
-        l_rc = fapi2::getScom(i_target, l_scomAddress, l_readHeader);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -576,14 +542,10 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
             // Add the chiplet ID in the Scom Address
             l_address |= l_chiplet;
 
-#ifndef __PPE__
             l_rc = fapi2::putScom(
                        i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
                        l_address,
                        l_header);
-#else
-            l_rc = fapi2::putScom(i_target, l_address, l_header);
-#endif
 
             if(l_rc != fapi2::FAPI2_RC_SUCCESS)
             {
@@ -622,12 +584,10 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
 #endif
 
-#ifndef __PPE__
     // Non-PPE platform - Cronus need a Chip target to be used
     // in putScom/getScom.
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent(
         i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>());
-#endif
 
     do
     {
@@ -641,11 +601,8 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         fapi2::buffer<uint64_t> l_opcgAlign;
 
-#ifndef __PPE__
         l_rc = fapi2::getScom(l_parent, l_scomAddress, l_opcgAlign);
-#else
-        l_rc = fapi2::getScom(i_target, l_scomAddress, l_opcgAlign);
-#endif
+
         //set SNOP Align=8:1 and SNOP Wait=7
         // bits: 4:7   SNOP_ALIGN(0:3) 5: 8:1
         // bits: 20:31 SNOP_WAIT(0:11)
@@ -657,11 +614,7 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
         l_opcgAlign.setBit<31>();
 
         // Do the scom
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgAlign);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgAlign);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -679,11 +632,8 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         // Do the scom
         fapi2::buffer<uint64_t> l_scanRegion(i_scanRegion);
-#ifndef __PPE__
+
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_scanRegion);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_scanRegion);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -704,11 +654,7 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         fapi2::buffer<uint64_t> l_clkRegion(l_clk_region);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_clkRegion);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_clkRegion);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -729,11 +675,7 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         fapi2::buffer<uint64_t> l_opcgReg0(l_opcg_reg0);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgReg0);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgReg0);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -791,11 +733,7 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         fapi2::buffer<uint64_t> l_opcgReg1(l_opcg_reg1);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgReg1);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgReg1);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -812,11 +750,7 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         fapi2::buffer<uint64_t> l_opcgReg2(l_opcg_reg2);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgReg2);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgReg2);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -833,11 +767,7 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         fapi2::buffer<uint64_t> l_opcgCapt1(l_opcg_capt1);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgCapt1);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgCapt1);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -854,11 +784,7 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         fapi2::buffer<uint64_t> l_opcgCapt2(l_opcg_capt2);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgCapt2);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgCapt2);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -875,11 +801,7 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
 
         fapi2::buffer<uint64_t> l_opcgCapt3(l_opcg_capt3);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgCapt3);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_opcgCapt3);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -913,12 +835,10 @@ fapi2::ReturnCode storeOPCGRegData(
 
 #endif
 
-#ifndef __PPE__
     // Non-PPE platform - Cronus need a Chip target to be used
     // in putScom/getScom.
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent(
         i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>());
-#endif
 
     do
     {
@@ -931,11 +851,7 @@ fapi2::ReturnCode storeOPCGRegData(
         l_scomAddress |= l_chiplet;
 
 
-#ifndef __PPE__
         l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgReg0);
-#else
-        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgReg0);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -949,11 +865,7 @@ fapi2::ReturnCode storeOPCGRegData(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
-#ifndef __PPE__
         l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgReg1);
-#else
-        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgReg1);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -967,11 +879,7 @@ fapi2::ReturnCode storeOPCGRegData(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
-#ifndef __PPE__
         l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgReg2);
-#else
-        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgReg2);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -986,11 +894,7 @@ fapi2::ReturnCode storeOPCGRegData(
         l_scomAddress |= l_chiplet;
 
 
-#ifndef __PPE__
         l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgCapt1);
-#else
-        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgCapt1);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1004,11 +908,7 @@ fapi2::ReturnCode storeOPCGRegData(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
-#ifndef __PPE__
         l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgCapt2);
-#else
-        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgCapt2);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1022,11 +922,7 @@ fapi2::ReturnCode storeOPCGRegData(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
-#ifndef __PPE__
         l_rc = fapi2::getScom(l_parent, l_scomAddress, o_OPCGData.l_opcgCapt3);
-#else
-        l_rc = fapi2::getScom(i_target, l_scomAddress, o_OPCGData.l_opcgCapt3);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1059,12 +955,10 @@ fapi2::ReturnCode restoreOPCGRegData(
 
 #endif
 
-#ifndef __PPE__
     // Non-PPE platform - Cronus need a Chip target to be used
     // in putScom/getScom.
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent(
         i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>());
-#endif
 
     do
     {
@@ -1078,11 +972,7 @@ fapi2::ReturnCode restoreOPCGRegData(
 
         fapi2::buffer<uint64_t> l_clkReg(0);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_clkReg);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_clkReg);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1099,11 +989,7 @@ fapi2::ReturnCode restoreOPCGRegData(
         l_scomAddress |= l_chiplet;
 
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgReg0);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgReg0);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1117,11 +1003,7 @@ fapi2::ReturnCode restoreOPCGRegData(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgReg1);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgReg1);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1135,11 +1017,7 @@ fapi2::ReturnCode restoreOPCGRegData(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgReg2);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgReg2);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1154,11 +1032,7 @@ fapi2::ReturnCode restoreOPCGRegData(
         l_scomAddress |= l_chiplet;
 
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgCapt1);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgCapt1);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1172,11 +1046,7 @@ fapi2::ReturnCode restoreOPCGRegData(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgCapt2);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgCapt2);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1190,11 +1060,7 @@ fapi2::ReturnCode restoreOPCGRegData(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, i_OPCGData.l_opcgCapt3);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, i_OPCGData.l_opcgCapt3);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -1658,12 +1524,10 @@ fapi2::ReturnCode cleanScanRegionandTypeData(
 
 #endif
 
-#ifndef __PPE__
     // Non-PPE platform - Cronus need a Chip target to be used
     // in putScom/getScom.
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_parent(
         i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>());
-#endif
 
     do
     {
@@ -1677,11 +1541,7 @@ fapi2::ReturnCode cleanScanRegionandTypeData(
 
         fapi2::buffer<uint64_t> l_data(0);
 
-#ifndef __PPE__
         l_rc = fapi2::putScom(l_parent, l_scomAddress, l_data);
-#else
-        l_rc = fapi2::putScom(i_target, l_scomAddress, l_data);
-#endif
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
