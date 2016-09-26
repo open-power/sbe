@@ -62,41 +62,30 @@ LIB_DIRS += -L$(OBJDIR)/utils
 UTILSLIB := $(OBJDIR)/utils/libutils.a
 LLIBS += -lutils
 
-# Common Cache HWP Exit library
-SUBDIRS += $(CACHE_SRCDIR)
-LIB_DIRS += -L$(OBJDIR)/cache
-CACHELIB := $(OBJDIR)/cache/libcache.a
-LLIBS += -lcache
+SUBDIRS += $(ISTEP2_INFRA_DIR)
+LIB_DIRS += -L$(OBJDIR-ISTEP2)
+ISTEP2LIB := $(OBJDIR-ISTEP2)/libistep2.a
+LLIBS += -listep2
 
-# Common Core libraries
-SUBDIRS += $(CORE_SRCDIR)
-LIB_DIRS += -L$(OBJDIR)/core
-CORELIB := $(OBJDIR)/core/libcore.a
-LLIBS += -lcore
+SUBDIRS += $(ISTEP3_INFRA_DIR)
+LIB_DIRS += -L$(OBJDIR-ISTEP3)
+ISTEP3LIB := $(OBJDIR-ISTEP3)/libistep3.a
+LLIBS += -listep3
 
-# Common Perv libraries
-SUBDIRS += $(PERV_SRCDIR)
-LIB_DIRS += -L$(OBJDIR)/perv
-PERVLIB := $(OBJDIR)/perv/libperv.a
-LLIBS += -lperv
+SUBDIRS += $(ISTEP4_INFRA_DIR)
+LIB_DIRS += -L$(OBJDIR-ISTEP4)
+ISTEP4LIB := $(OBJDIR-ISTEP4)/libistep4.a
+LLIBS += -listep4
 
-# Common Nest libraries
-SUBDIRS += $(NEST_SRCDIR)
-LIB_DIRS += -L$(OBJDIR)/nest
-NESTLIB := $(OBJDIR)/nest/libnest.a
-LLIBS += -lnest
+SUBDIRS += $(ISTEP5_INFRA_DIR)
+LIB_DIRS += -L$(OBJDIR-ISTEP5)
+ISTEP5LIB := $(OBJDIR-ISTEP5)/libistep5.a
+LLIBS += -listep5
 
-# Initfiles library
-SUBDIRS += $(INITFILES_SRCDIR)
-LIB_DIRS += -L$(OBJDIR)/initfiles
-INITFILESLIB := $(OBJDIR)/initfiles/libinitfiles.a
-LLIBS += -linitfiles
-
-# Common Pm libraries
-SUBDIRS += $(PM_SRCDIR)
-LIB_DIRS += -L$(OBJDIR)/pm
-PMLIB := $(OBJDIR)/pm/libpm.a
-LLIBS += -lpm
+SUBDIRS += $(ISTEPCOMMON_INFRA_DIR)
+LIB_DIRS += -L$(OBJDIR-ISTEPCOMMON)
+ISTEPCOMMON := $(OBJDIR-ISTEPCOMMON)/libistepcommon.a
+LLIBS += -listepcommon
 
 SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out
 SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).map

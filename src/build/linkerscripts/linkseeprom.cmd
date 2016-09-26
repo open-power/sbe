@@ -119,7 +119,7 @@ SECTIONS
 
     .text ALIGN(8): {
          _text_origin = .; _text_offset = . - _seeprom_origin;
-        *\libcore.a:(.text* ) *\libcache.a:(.text* ) *\libperv.a:(.text* )} > seeprom
+        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) } > seeprom
      _text_size = . - _text_origin;
 
     _seeprom_size = . - _seeprom_origin;

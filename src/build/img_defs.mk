@@ -91,6 +91,26 @@ ifndef LINKER_DIR
 export LINKER_DIR = $(BUILD_DIR)/linkerscripts
 endif
 
+ifndef ISTEP2_INFRA_DIR
+export ISTEP2_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep2
+endif
+
+ifndef ISTEP3_INFRA_DIR
+export ISTEP3_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep3
+endif
+
+ifndef ISTEP4_INFRA_DIR
+export ISTEP4_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep4
+endif
+
+ifndef ISTEP5_INFRA_DIR
+export ISTEP5_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep5
+endif
+
+ifndef ISTEPCOMMON_INFRA_DIR
+export ISTEPCOMMON_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istepcommon
+endif
+
 ifndef BOOT_SRCDIR
 export BOOT_SRCDIR = $(SBE_SRC_DIR)/boot
 endif
@@ -234,6 +254,26 @@ endif
 
 ifndef FAPI2_TOOLS_DIR
 export FAPI2_TOOLS_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2/tools/
+endif
+
+ifndef OBJDIR-ISTEP2
+export OBJDIR-ISTEP2 = $(BASE_OBJDIR)/istep2
+endif
+
+ifndef OBJDIR-ISTEP3
+export OBJDIR-ISTEP3 = $(BASE_OBJDIR)/istep3
+endif
+
+ifndef OBJDIR-ISTEP4
+export OBJDIR-ISTEP4 = $(BASE_OBJDIR)/istep4
+endif
+
+ifndef OBJDIR-ISTEP5
+export OBJDIR-ISTEP5 = $(BASE_OBJDIR)/istep5
+endif
+
+ifndef OBJDIR-ISTEPCOMMON
+export OBJDIR-ISTEPCOMMON = $(BASE_OBJDIR)/istepcommon
 endif
 
 GCC-TOOL-PATH = $(CTEPATH)/tools/ppetools/prod

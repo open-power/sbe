@@ -1,0 +1,57 @@
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: src/build/import_hwp_mk/istep4/Makefile $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2016
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
+# This Makefile compiles all of the hardware procedure code. See the
+# "*.mk" file in this directory.
+
+#all generated files from this makefile will end up in obj/*
+export SUB_OBJDIR = /istep4
+
+include img_defs.mk
+include istep4files.mk
+
+export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR)
+
+GCC-CFLAGS += -mlongcall
+
+OBJSISTEP4 := $(addprefix $(OBJDIR-ISTEP4)/, $(ISTEP4_OBJECTS))
+
+#.PHONY: clean istep2 istep3 istep4 istep5 istepcommon all
+.PHONY: clean istep4
+
+libistep4.a: istep4
+	$(AR) crs $(OBJDIR-ISTEP4)/libistep4.a $(OBJDIR-ISTEP4)/*.o
+
+istep4: $(OBJSISTEP4)
+
+$(OBJSISTEP4) $(OBJSISTEP4:.o=.d): | $(OBJDIR-ISTEP4)
+
+$(OBJDIR-ISTEP4):
+	mkdir -p $(OBJDIR-ISTEP4)
+
+clean:
+	rm -fr $(OBJDIR-ISTEP4)
+
+ifneq ($(MAKECMDGOALS),clean)
+include $(OBJSISTEP4:.o=.d)
+endif
