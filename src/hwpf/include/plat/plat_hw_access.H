@@ -34,6 +34,7 @@
 #include <plat_includes.H>
 #include "hw_access_def.H"
 #include <return_code.H>
+#include <fapi2_target.H>
 
 // PIB errors
 enum PCB_ERRORS
@@ -84,11 +85,11 @@ asm volatile \
 
 /// GetScom
 #define PLAT_GETSCOM(_m_rc, _m_base, _m_offset, _m_data) \
-    _m_rc = fapi2::getscom_abs_wrap(getEffectiveAddress(_m_base, _m_offset), _m_data)
+    _m_rc = fapi2::getscom_abs_wrap(&(_m_base), _m_offset, _m_data)
 
 /// PutScom
 #define PLAT_PUTSCOM(_m_rc, _m_base, _m_offset, _m_data) \
-    _m_rc = fapi2::putscom_abs_wrap(getEffectiveAddress(_m_base, _m_offset), _m_data)
+    _m_rc = fapi2::putscom_abs_wrap(&(_m_base), _m_offset, _m_data)
 
 /// GetCFAM
 #define PLAT_GETCFAM(_m_base, _m_offset, _m_data) \
@@ -135,6 +136,7 @@ namespace fapi2
     fapi2::ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
                                         const fapi2::RingMode i_ringMode);
 
+    typedef union plat_target_handle plat_target_handle_t;
     ///
     /// @brief Platform wrapper over PK getscom_abs
     ///
@@ -143,7 +145,7 @@ namespace fapi2
     ///
     /// @return PCB-PIB return code
     ///
-    uint32_t getscom_abs_wrap(const uint32_t i_addr, uint64_t *o_data);
+    uint32_t getscom_abs_wrap(const void *i_target, const uint32_t i_addr, uint64_t *o_data);
 
     ///
     /// @brief Platform wrapper over PK putscom_abs
@@ -153,7 +155,7 @@ namespace fapi2
     ///
     /// @return PCB-PIB return code
     ///
-    uint32_t putscom_abs_wrap(const uint32_t i_addr, uint64_t i_data);
+    uint32_t putscom_abs_wrap(const void *i_target, const uint32_t i_addr, uint64_t i_data);
 
     ///
     /// @brief Platform wrapper to retry scom for parity/timeout errors

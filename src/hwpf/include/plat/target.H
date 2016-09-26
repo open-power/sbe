@@ -178,24 +178,30 @@ namespace fapi2
     template<TargetType T>
     inline Target<T, V> Target<K, V>::getParent(void) const
     {
-        static_assert(((K == TARGET_TYPE_EQ) ||
+        static_assert((((K == TARGET_TYPE_EQ) ||
                        (K == TARGET_TYPE_CORE) ||
                        (K == TARGET_TYPE_MCBIST) ||
                        (K == TARGET_TYPE_PERV) ||
                        (K == TARGET_TYPE_EX) ||
                        (K == TARGET_TYPE_PROC_CHIP) ||
                        (K == (TARGET_TYPE_PROC_CHIP | TARGET_TYPE_EQ)) ||
-                       (K == (TARGET_TYPE_PROC_CHIP | TARGET_TYPE_CORE))) &&
+                       (K == (TARGET_TYPE_PROC_CHIP | TARGET_TYPE_CORE)) ||
+                       (K == TARGET_TYPE_ALL)) &&
                       ((T == TARGET_TYPE_EQ) ||
                        (T == TARGET_TYPE_EX) ||
                        (T == TARGET_TYPE_PROC_CHIP) ||
-                       (T == TARGET_TYPE_PERV)),
+                       (T == TARGET_TYPE_PERV))),
                       "Invalid parent/child target type passed");
 
         static_assert(!((K == TARGET_TYPE_EQ) &&
                         (T != TARGET_TYPE_PERV) &&
                         (T != TARGET_TYPE_PROC_CHIP)),
                         "Invalid parent for EQ target, must be PERV or "
+                        "PROC_CHIP");
+
+        static_assert(!((K == TARGET_TYPE_ALL) &&
+                        (T != TARGET_TYPE_PROC_CHIP)),
+                        "Invalid parent for ALL target, must be "
                         "PROC_CHIP");
 
         static_assert(!((K == TARGET_TYPE_MCBIST) &&
@@ -346,53 +352,6 @@ namespace fapi2
     inline void toString(const Target<T, V>& i_target, char* i_buffer, size_t i_bsize)
     {
         snprintf(i_buffer, i_bsize, "Target 0x%lx/0x%x", i_target.get(), T);
-    }
-
-    template<TargetType T, typename V>
-    __attribute__((always_inline))
-    inline uint32_t getEffectiveAddress(const Target<T, V> &i_target,
-                                        const uint32_t i_addr)
-    {
-        ScomAddr l_addr = i_addr;
-        if(0 != static_cast<plat_target_handle_t>(i_target.get()).getAddressOverlay())
-        {
-            l_addr.iv_chiplet = i_target.getChipletNumber();
-        }
-        return l_addr;
-    }
-
-    inline uint32_t getEffectiveAddress(const Target<TARGET_TYPE_EX> &i_target,
-                                        const uint32_t i_addr)
-    {
-        ScomAddr l_addr = i_addr;
-
-        if((EQ_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
-           ((EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT) > l_addr.iv_chiplet))
-        {
-            l_addr.iv_chiplet = i_target.getChipletNumber();
-            l_addr.iv_ring = (l_addr.iv_ring - (l_addr.iv_ring % 2)) +
-                              (static_cast<plat_target_handle_t>(i_target.get()).getTargetInstance() % 2);
-        }
-        else if ((CORE_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
-                 ((CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT) > l_addr.iv_chiplet))
-        {
-            l_addr.iv_chiplet = CORE_CHIPLET_OFFSET + (l_addr.iv_chiplet % 2) +
-                                (static_cast<plat_target_handle_t>(i_target.get()).getTargetInstance() * 2);
-        }
-        else
-        {
-           assert(false);
-        }
-        return l_addr;
-    }
-
-    inline uint32_t getEffectiveAddress(const Target<TARGET_TYPE_MCS> &i_target,
-                                        const uint32_t i_addr)
-    {
-        ScomAddr l_addr = i_addr;
-        l_addr.iv_chiplet = i_target.getChipletNumber();
-        l_addr.iv_satId = (2 * (static_cast<plat_target_handle_t>(i_target.get()).getTargetInstance() % 2));
-        return l_addr;
     }
 
     ///

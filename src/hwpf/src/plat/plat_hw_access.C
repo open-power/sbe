@@ -41,14 +41,14 @@ uint64_t decodeScanRegionData(const uint32_t i_ringAddress)
     uint32_t l_scan_type = 0x00008000 >> (i_ringAddress & 0x0000000F);
 
     // This is special case if encoded type is 0xF
-    
+
     if ( (i_ringAddress & 0x0000000F) == 0xF)
     {
         l_scan_type = 0x00008000 | (l_scan_type << 12);
     }
     uint64_t l_value = l_scan_region;
     l_value = (l_value << 32) |  l_scan_type;
-    
+
     return l_value;
 }
 
@@ -73,7 +73,7 @@ ReturnCode getRing_setup(const uint32_t i_ringAddress,
                 break;
             }
 
-            l_rc = setupScanRegionForSetPulse(l_proc, l_scanRegion, 
+            l_rc = setupScanRegionForSetPulse(l_proc, l_scanRegion,
                                         i_ringMode,l_chipletId);
             if(l_rc != fapi2::FAPI2_RC_SUCCESS)
             {
@@ -162,41 +162,81 @@ ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
                 break;
             }
         }
-        
+
     }while(0);
 
     return l_rc;
 }
 
-    uint32_t getscom_abs_wrap(const uint32_t i_addr, uint64_t *o_data)
+static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const uint32_t i_addr)
+{
+    ScomAddr l_addr(i_addr);
+    switch(i_target.getTargetType())
     {
-        uint32_t l_rc = 0;
-        FAPI_INF("getScom: address: 0x%08X", i_addr);
-        l_rc = getscom_abs(i_addr, o_data);
-        if( PIB_NO_ERROR != l_rc )
-        {
-            l_rc = p9_pibErrRetry( i_addr, o_data, l_rc, true);
-        }
-        FAPI_INF("getScom: returned rc: 0x%08X, data HI: 0x%08X, "
-                 "data LO: 0x%08X", l_rc, (*o_data >> 32),
-                 static_cast<uint32_t>(*o_data & 0xFFFFFFFF));
-        return l_rc;
+        case PPE_TARGET_TYPE_EX:
+            if((EQ_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
+               ((EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT) > l_addr.iv_chiplet))
+            {
+                l_addr.iv_chiplet = i_target.fields.chiplet_num;
+                l_addr.iv_ring = (l_addr.iv_ring - (l_addr.iv_ring % 2)) +
+                                  (i_target.getTargetInstance() % 2);
+            }
+            else if ((CORE_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
+                     ((CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT) > l_addr.iv_chiplet))
+            {
+                l_addr.iv_chiplet = CORE_CHIPLET_OFFSET + (l_addr.iv_chiplet % 2) +
+                                    (i_target.getTargetInstance() * 2);
+            }
+            else
+            {
+               assert(false);
+            }
+            break;
+        case PPE_TARGET_TYPE_MCS:
+            l_addr.iv_chiplet = i_target.fields.chiplet_num;
+            l_addr.iv_satId = (2 * (i_target.getTargetInstance() % 2));
+            break;
+        default:
+            if(0 != i_target.getAddressOverlay())
+            {
+                l_addr.iv_chiplet = i_target.fields.chiplet_num;
+            }
+            break;
     }
+    return l_addr;
+}
 
-    uint32_t putscom_abs_wrap(const uint32_t i_addr, uint64_t i_data)
+uint32_t getscom_abs_wrap(const void *i_target, const uint32_t i_addr, uint64_t *o_data)
+{
+    uint32_t l_rc = 0;
+    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
+    FAPI_INF("getScom: address: 0x%08X", l_addr);
+    l_rc = getscom_abs(l_addr, o_data);
+    if( PIB_NO_ERROR != l_rc )
     {
-        uint32_t l_rc = 0;
-        FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X",
-                 i_addr, (i_data >> 32),
-                 static_cast<uint32_t>(i_data & 0xFFFFFFFF));
-        l_rc = putscom_abs(i_addr, i_data);
-        if( PIB_NO_ERROR != l_rc )
-        {
-            l_rc = p9_pibErrRetry( i_addr, &i_data, l_rc, false);
-        }
-        FAPI_INF("putScom: returned rc: 0x%08X", l_rc);
-        return l_rc;
+        l_rc = p9_pibErrRetry( l_addr, o_data, l_rc, true);
     }
+    FAPI_INF("getScom: returned rc: 0x%08X, data HI: 0x%08X, "
+             "data LO: 0x%08X", l_rc, (*o_data >> 32),
+             static_cast<uint32_t>(*o_data & 0xFFFFFFFF));
+    return l_rc;
+}
+
+uint32_t putscom_abs_wrap(const void *i_target, const uint32_t i_addr, uint64_t i_data)
+{
+    uint32_t l_rc = 0;
+    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
+    FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X",
+             l_addr, (i_data >> 32),
+             static_cast<uint32_t>(i_data & 0xFFFFFFFF));
+    l_rc = putscom_abs(l_addr, i_data);
+    if( PIB_NO_ERROR != l_rc )
+    {
+        l_rc = p9_pibErrRetry( l_addr, &i_data, l_rc, false);
+    }
+    FAPI_INF("putScom: returned rc: 0x%08X", l_rc);
+    return l_rc;
+}
 
 uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,
                          const uint8_t i_pibErr, const bool i_isRead)

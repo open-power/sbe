@@ -27,6 +27,7 @@
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
 #include "plat_hw_access.H"
+#include "plat_target.H"
 
 using namespace fapi2;
 /**
@@ -80,15 +81,16 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         // If the indirect scom bit is 0, then doing a regular scom
         if( (i_addr & DIRECT_SCOM_ADDR_MASK) == 0)
         {
+            plat_target_handle_t l_hndl;
             SBE_INFO(SBE_FUNC "Performing Direct scom.");
             if( i_isRead )
             {
-                o_pcbPibStatus = getscom_abs_wrap ( (uint32_t)i_addr,
+                o_pcbPibStatus = getscom_abs_wrap (&l_hndl, (uint32_t)i_addr,
                                               & io_data);
             }
             else
             {
-                o_pcbPibStatus = putscom_abs_wrap ( (uint32_t)i_addr,
+                o_pcbPibStatus = putscom_abs_wrap (&l_hndl, (uint32_t)i_addr,
                                               io_data);
             }
             break;
@@ -129,6 +131,7 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         // bit 33-47 - bcast/chipletID/port
         // bit 48-63 - local addr
         uint64_t tempAddr = i_addr & 0x000000007FFFFFFF;
+        plat_target_handle_t l_hndl;
 
         // If we are doing a read. We need to do a write first..
         if( i_isRead)
@@ -145,7 +148,7 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
 
         // perform write before the read with the new
         // IO_buffer with the imbedded indirect scom addr.
-        o_pcbPibStatus = putscom_abs_wrap ( tempAddr, tempBuffer);
+        o_pcbPibStatus = putscom_abs_wrap (&l_hndl, tempAddr, tempBuffer);
 
         if( ( o_pcbPibStatus ) || ( scomType == SBE_SCOM_TYPE_INDIRECT_2 ))
         {
@@ -159,7 +162,7 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         {
             // Now perform the op requested using the passed in
             // IO_Buffer to pass the read data back to caller.
-            o_pcbPibStatus = getscom_abs_wrap ( tempAddr, &(scomout.data64));
+            o_pcbPibStatus = getscom_abs_wrap (&l_hndl, tempAddr, &(scomout.data64));
 
             if( o_pcbPibStatus ) break;
             // if bit 32 is on indicating a complete bit
