@@ -29,38 +29,6 @@ extern "C"
 {
 #endif
 
-unsigned long
-udivmodsi4(unsigned long num, unsigned long den, int modwanted)
-{
-    unsigned long bit = 1;
-    unsigned long res = 0;
-
-    while (den < num && bit && !(den & (1L << 31)))
-    {
-        den <<= 1;
-        bit <<= 1;
-    }
-
-    while (bit)
-    {
-        if (num >= den)
-        {
-            num -= den;
-            res |= bit;
-        }
-
-        bit >>= 1;
-        den >>= 1;
-    }
-
-    if (modwanted)
-    {
-        return num;
-    }
-
-    return res;
-}
-
 // 64 bit divide.  Note: TBD add when needed
 //unsigned long long __udivdi3(unsigned long long a, unsigned long long b)
 //{
@@ -68,17 +36,6 @@ udivmodsi4(unsigned long num, unsigned long den, int modwanted)
 //    return c;
 //}
 
-// 32 bit unsigned integer divide
-unsigned long __udivsi3(unsigned long a, unsigned long b)
-{
-    return udivmodsi4(a, b, 0);
-}
-
-// 32 bit modulus
-unsigned long __umodsi3(unsigned long a, unsigned long b)
-{
-    return udivmodsi4(a, b, 1);
-}
 
 // 32 bit signed divide
 int __divsi3(int _a, int _b)
