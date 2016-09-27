@@ -98,14 +98,8 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
                  l_attr_obus_ratio));
     }
 
-    for (auto l_target_cplt :
-         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
-                                           fapi2::TARGET_FILTER_TP), fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_TRY(p9_sbe_common_get_pg_vector(l_target_cplt, l_pg_vector));
-        FAPI_DBG("partial good targets vector: %#018lX", l_pg_vector);
-    }
+    FAPI_TRY(p9_sbe_common_get_pg_vector(i_target_chip, l_pg_vector));
+    FAPI_DBG("partial good targets vector: %#018lX", l_pg_vector);
 
     for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
@@ -205,7 +199,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_fence_drop(
     FAPI_INF("Drop chiplet fence");
 
     //Setting NET_CTRL0 register value
-    if (i_pg_vector.getBit<2>() == 1)
+    if (i_pg_vector.getBit<3>() == 1)
     {
         l_data64.flush<1>();
         //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<2>() == 1) ? 0
@@ -235,7 +229,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_pci_fence_drop(
     FAPI_INF("Drop chiplet fence");
 
     //Setting NET_CTRL0 register value
-    if (i_pg_vector.getBit<3>() == 1)
+    if (i_pg_vector.getBit<4>() == 1)
     {
         l_data64.flush<1>();
         //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<3>() == 1) ? 0
@@ -311,7 +305,7 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_xb_fence_drop(
     FAPI_INF("Drop chiplet fence");
 
     //Setting NET_CTRL0 register value
-    if (i_pg_vector.getBit<1>() == 1)
+    if (i_pg_vector.getBit<2>() == 1)
     {
         l_data64.flush<1>();
         //NET_CTRL0.FENCE_EN = (i_pg_vector.getBit<1>() == 1) ? 0
