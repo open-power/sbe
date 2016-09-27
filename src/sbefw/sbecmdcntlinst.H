@@ -34,6 +34,11 @@
 
 #include <stdint.h>
 
+
+// This is used to find out the array index in g_control_reg_map in
+// p9_thread_control.C
+static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
+
 /**
   * @brief sbeCntlInst : Implements SBE Control instructions ChipOp
   *

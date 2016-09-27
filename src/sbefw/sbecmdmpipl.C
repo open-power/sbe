@@ -37,6 +37,7 @@
 #include "sbecmdmpipl.H"
 #include "sberegaccess.H"
 #include "sbefapiutil.H"
+#include "sbecmdiplcontrol.H"
 
 #include "p9_hcd_core_stopclocks.H"
 #include "p9_hcd_cache_stopclocks.H"
@@ -44,14 +45,12 @@
 
 using namespace fapi2;
 
-
 #ifdef SEEPROM_IMAGE
-// Using function pointer to force long call.
+    // Using function pointer to force long call.
 p9_hcd_cache_stopclocks_FP_t p9_hcd_cache_stopclocks_hwp = &p9_hcd_cache_stopclocks;
 p9_hcd_core_stopclocks_FP_t p9_hcd_core_stopclocks_hwp = &p9_hcd_core_stopclocks;
 #endif
 
-// TODO - RTC 133367
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeEnterMpipl Sbe enter MPIPL function
 //
@@ -62,9 +61,11 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     #define SBE_FUNC " sbeEnterMpipl "
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
     sbeRespGenHdr_t l_respHdr;
     l_respHdr.init();
+    sbeResponseFfdc_t l_ffdc;
 
     do
     {
@@ -72,15 +73,33 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         l_rc = sbeUpFifoDeq_mult (len, NULL);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-        // TODO via  RTC:123696  MPIPL Related procedure/steps
-        // Can send FFDC if MPIPL procedure fails
-        l_rc = sbeDsSendRespHdr( l_respHdr );
-
-        // set state to MPIPL Wait
-        (void)SbeRegAccess::theSbeRegAccess().
-               stateTransition(SBE_ENTER_MPIPL_EVENT);
+        uint32_t l_minor = 1;
+        do
+        {
+            l_fapiRc = sbeExecuteIstep(SBE_ISTEP_MPIPL_START, l_minor);
+            if(l_fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "Failed in Mpipl Start in ChipOp Mode "
+                    "Minor: %d", l_minor);
+                l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                l_ffdc.setRc(l_fapiRc);
+                break;
+            }
+            ++l_minor;
+        }while(l_minor<=MPIPL_START_MAX_SUBSTEPS);
 
     }while(0);
+
+    // Create the Response to caller
+    do
+    {
+        // If there was a FIFO error, will skip sending the response,
+        // instead give the control back to the command processor thread
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+    }while(0);
+
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

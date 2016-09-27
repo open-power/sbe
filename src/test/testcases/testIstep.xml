@@ -24,11 +24,6 @@
 <!-- IBM_PROLOG_END_TAG                                                     -->
 <?xml version="1.0" encoding="UTF-8"?>
 
-      <!-- Invalid Istep Test case -->
-      <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testIstepInvalid.py</simcmd>
-          <exitonerror>yes</exitonerror>
-      </testcase>
       <!-- Positive Istep Test case -->
       <testcase>
           <simcmd>sbe-istep 2 2</simcmd>
@@ -324,6 +319,11 @@
       </testcase>
       <testcase>
           <simcmd>sbe-istep 5 2</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <!-- Invalid Istep Test case -->
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testIstepInvalid.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
       <!-- Invalid Istep Test case -->

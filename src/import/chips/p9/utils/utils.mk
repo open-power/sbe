@@ -31,5 +31,7 @@
 ##########################################################################
 
 UTILS-CPP-SOURCES = p9_putRingUtils.C
+PM-C-SOURCES =
+PM-S-SOURCES =
 
 UTILS_OBJECTS = $(UTILS-CPP-SOURCES:.C=.o)

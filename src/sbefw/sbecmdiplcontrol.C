@@ -37,8 +37,10 @@
 #include "assert.h"
 #include "sberegaccess.H"
 #include "sbestates.H"
+#include "sbecmdcntrldmt.H"
 
 #include "fapi2.H"
+#include "p9_misc_scom_addresses_fld.H"
 // Pervasive HWP Header Files ( istep 2)
 #include <p9_sbe_attr_setup.H>
 #include <p9_sbe_tp_chiplet_init1.H>
@@ -88,11 +90,22 @@
 // Nest frequency array
 #include "p9_frequency_buckets.H"
 
+// istep mpipl header files
+#include "p9_block_wakeup_intr.H"
+#include "p9_query_core_access_state.H"
+#include "p9_sbe_check_quiesce.H"
+#include "p9_l2_flush.H"
+#include "p9_l3_flush.H"
+#include "p9_sbe_sequence_drtm.H"
+#include "p9_thread_control.H"
+#include "sbecmdcntlinst.H"
+#include "p9_quad_power_off.H"
+
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
 // Forward declaration
 using namespace fapi2;
-ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
+
 bool validateIstep (uint8_t i_major, uint8_t i_minor);
 
 //typedefs
@@ -105,12 +118,40 @@ typedef ReturnCode (*sbeIstepHwpEq_t)
 typedef ReturnCode (*sbeIstepHwpCore_t)
                     (const Target<TARGET_TYPE_CORE> & i_target);
 
+typedef ReturnCode (*sbeIstepHwpExL2Flush_t)
+                    (const Target<TARGET_TYPE_EX> & i_target,
+                     const p9core::purgeData_t & i_purgeData);
+
+typedef ReturnCode (*sbeIstepHwpExL3Flush_t)
+                    (const Target<TARGET_TYPE_EX> & i_target,
+                     const uint32_t i_purgeType,
+                     const uint32_t i_purgeAddr);
+
+typedef ReturnCode (*sbeIstepHwpCoreBlockIntr_t)
+                    (const Target<TARGET_TYPE_CORE> & i_target,
+                     const p9pmblockwkup::OP_TYPE i_oper);
+
+typedef ReturnCode (*sbeIstepHwpCoreScomState_t)
+                    (const Target<TARGET_TYPE_CORE> & i_target,
+                     bool & o_isScom,
+                     bool & o_isScan);
+
+typedef ReturnCode (*sbeIstepHwpSequenceDrtm_t)
+                    (const Target<TARGET_TYPE_PROC_CHIP> & i_target,
+                     uint8_t & o_status);
+
 typedef union
 {
     sbeIstepHwpProc_t procHwp;
     sbeIstepHwpEq_t eqHwp;
     sbeIstepHwpCore_t coreHwp;
+    sbeIstepHwpExL2Flush_t exL2Hwp;
+    sbeIstepHwpExL3Flush_t exL3Hwp;
+    sbeIstepHwpCoreBlockIntr_t coreBlockIntrHwp;
+    sbeIstepHwpCoreScomState_t coreScomStateHwp;
+    sbeIstepHwpSequenceDrtm_t  procSequenceDrtm;
 }sbeIstepHwp_t;
+
 // Wrapper function for HWP IPl functions
 typedef ReturnCode (*sbeIstep_t)( sbeIstepHwp_t );
 
@@ -128,9 +169,24 @@ ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp);
 ReturnCode istepNestFreq( sbeIstepHwp_t i_hwp);
 
+//MPIPL Specific
+ReturnCode istepWithCoreSetBlock( sbeIstepHwp_t i_hwp );
+ReturnCode istepWithCoreState( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplRstClrTpmBits( sbeIstepHwp_t i_hwp );
+ReturnCode istepWithProcQuiesceLQASet( sbeIstepHwp_t i_hwp );
+ReturnCode istepWithExL2Flush( sbeIstepHwp_t i_hwp );
+ReturnCode istepWithExL3Flush( sbeIstepHwp_t i_hwp );
+ReturnCode istepNoOpStartMpipl( sbeIstepHwp_t i_hwp );
+ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp );
+
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
+//p9_thread_control_FP_t threadCntlhwp = &p9_thread_control;
+extern p9_thread_control_FP_t threadCntlhwp;
 #endif
 
 //structure for mapping SBE wrapper and HWP functions
@@ -140,27 +196,16 @@ typedef struct
     sbeIstepHwp_t istepHwp;
 }istepMap_t;
 
-// Major isteps which are supported
-typedef enum
-{
-    SBE_ISTEP2 = 2,
-    SBE_ISTEP_FIRST = SBE_ISTEP2,
-    SBE_ISTEP3 = 3,
-    SBE_ISTEP_LAST_SLAVE = SBE_ISTEP3,
-    SBE_ISTEP4 = 4,
-    SBE_ISTEP5 = 5,
-    SBE_ISTEP_LAST_MASTER = SBE_ISTEP5,
-}sbe_supported_steps_t;
 
 // constants
-const uint32_t ISTEP2_MAX_SUBSTEPS = 17;
-const uint32_t ISTEP3_MAX_SUBSTEPS = 22;
-const uint32_t ISTEP4_MAX_SUBSTEPS = 34;
-const uint32_t ISTEP5_MAX_SUBSTEPS = 2;
-static const uint8_t ISTEP_MINOR_START = 1;
-static const uint8_t SLAVE_LAST_MINOR_ISTEP = 20;
-static const uint8_t ISTEP2_MINOR_START = 2;
 static const uint32_t SBE_ROLE_MASK = 0x00000002;
+static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 100;
+
+static const uint64_t SBE_LQA_DELAY_HW_US = 1000000ULL; // 1ms
+static const uint64_t SBE_LQA_DELAY_SIM_CYCLES = 0x1ULL;
+
+// Bit-33 used to checkstop the system
+static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 33;
 
 // Globals
 // TODO: via RTC 123602 This global needs to move to a class that will store the
@@ -169,8 +214,43 @@ fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
 
 sbeRole g_sbeRole = SBE_ROLE_MASTER;
 
-// File static data
+static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
+        {
+#ifdef SEEPROM_IMAGE
+            // Place holder for StartMpipl Chip-op, State Change
+            { &istepNoOpStartMpipl, NULL },
+            // Find all the child cores within proc and call set block intr
+            { &istepWithCoreSetBlock, { .coreBlockIntrHwp = &p9_block_wakeup_intr }},
+            // Find all the child cores within proc and call hwp to know the
+            // scom state and call instruction control
+            { &istepWithCoreState, { .coreScomStateHwp = &p9_query_core_access_state }},
+            //  Reset the TPM and clear the TPM deconfig bit, it's not a
+            //  procedure but local SBE function
+            { &istepMpiplRstClrTpmBits, NULL },
+            // quiesce state for all units on the powerbus on its chip
+            { &istepWithProcQuiesceLQASet, { .procHwp = &p9_sbe_check_quiesce }},
+            // L2 cache flush via purge engine on each EX
+            { &istepWithExL2Flush, { .exL2Hwp = &p9_l2_flush }},
+            // L3 cache flush via purge engine on each EX
+            { &istepWithExL3Flush, { .exL3Hwp = &p9_l3_flush }},
+            // Check on Quiescing of all Chips in a System by Local SBE
+            { &istepWithProcSequenceDrtm, { .procSequenceDrtm = &p9_sbe_sequence_drtm }},
+#endif
+        };
 
+static istepMap_t g_istepMpiplContinuePtrTbl[MPIPL_CONTINUE_MAX_SUBSTEPS] =
+        {
+#ifdef SEEPROM_IMAGE
+            // Setup EC/EQ guard records
+            { NULL, NULL},
+            // place holder for p9_quad_power_off
+            { istepMpiplQuadPoweroff, { .eqHwp = &p9_quad_power_off} },
+            // Set MPIPL mode in Sratch Reg 3
+            { NULL, NULL},
+#endif
+        };
+
+// File static data
 static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
          {
 #ifdef SEEPROM_IMAGE
@@ -380,6 +460,16 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
                               g_istep5PtrTbl[i_minor-1].istepHwp);
             break;
 
+        case SBE_ISTEP_MPIPL_START:
+            rc = (g_istepMpiplStartPtrTbl[i_minor-1].istepWrapper)(
+                        g_istepMpiplStartPtrTbl[i_minor-1].istepHwp);
+            break;
+
+        case SBE_ISTEP_MPIPL_CONTINUE:
+            rc = (g_istepMpiplContinuePtrTbl[i_minor-1].istepWrapper)(
+                        g_istepMpiplContinuePtrTbl[i_minor-1].istepHwp);
+            break;
+
         // We should never reach here as before calling this validation has
         // been done.
         default:
@@ -416,17 +506,6 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
             break;
         }
 
-        if((SBE_ROLE_SLAVE == g_sbeRole) &&
-           ((SBE_ISTEP_LAST_SLAVE < i_major) ||
-            ((SBE_ISTEP_LAST_SLAVE == i_major) &&
-             (SLAVE_LAST_MINOR_ISTEP < i_minor)
-            )))
-        {
-            // Cannot run beyond 3.20 on a slave SBE
-            valid = false;
-            break;
-        }
-
         switch( i_major )
         {
             case SBE_ISTEP2:
@@ -439,25 +518,46 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
                 break;
 
             case SBE_ISTEP3:
-                if( i_minor > ISTEP3_MAX_SUBSTEPS ) { valid = false; } ;
+                if( (i_minor > ISTEP3_MAX_SUBSTEPS ) ||
+                    ((SBE_ROLE_SLAVE == g_sbeRole) &&
+                    (i_minor > SLAVE_LAST_MINOR_ISTEP)) )
+                {
+                    valid = false;
+                }
                 break;
 
             case SBE_ISTEP4:
-                if( i_minor > ISTEP4_MAX_SUBSTEPS )
+                if( (i_minor > ISTEP4_MAX_SUBSTEPS ) ||
+                    (SBE_ROLE_SLAVE == g_sbeRole) )
                 {
                     valid = false;
                 }
                 break;
 
             case SBE_ISTEP5:
-                if( i_minor > ISTEP5_MAX_SUBSTEPS )
+                if( (i_minor > ISTEP5_MAX_SUBSTEPS ) ||
+                    (SBE_ROLE_SLAVE == g_sbeRole) )
+                {
+                    valid = false;
+                }
+                break;
+
+            case SBE_ISTEP_MPIPL_START:
+                if( i_minor > MPIPL_START_MAX_SUBSTEPS )
+                {
+                    valid = false;
+                }
+                break;
+
+            case SBE_ISTEP_MPIPL_CONTINUE:
+                if( i_minor > MPIPL_CONTINUE_MAX_SUBSTEPS )
                 {
                     valid = false;
                 }
                 break;
 
             default:
-                valid= false;
+                valid = false;
                 break;
         }
     } while(0);
@@ -751,6 +851,265 @@ void sbeDoContinuousIpl()
     // Store l_rc in a global variable that will be a part of the SBE FFDC
     g_iplFailRc = l_rc;
     SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
+}
+
+// MPIPL Specific
+//----------------------------------------------------------------------------
+ReturnCode istepWithCoreSetBlock( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepWithCoreSetBlock"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+    for (auto l_coreTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        SBE_EXEC_HWP(l_rc, i_hwp.coreBlockIntrHwp, l_coreTgt, p9pmblockwkup::SET)
+        if(l_rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " p9_block_wakeup_intr failed, RC=[0x%08X]",
+                l_rc);
+            break;
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepWithCoreState( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepWithCoreState"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+    for (auto l_coreTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        bool l_isScanEnable = false;
+        bool l_isCoreScomEnabled = false;
+        SBE_EXEC_HWP(l_rc, i_hwp.coreScomStateHwp, l_coreTgt,
+                     l_isCoreScomEnabled, l_isScanEnable)
+        if(l_rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " p9_query_core_access_state failed, "
+               "RC=[0x%08X]", l_rc);
+            break;
+        }
+        if(l_isCoreScomEnabled) //true
+        {
+            uint8_t l_thread = SMT4_THREAD0;
+            fapi2::buffer<uint64_t> l_data64;
+            uint64_t l_state;
+            bool l_warnCheck = true;
+            do
+            {
+                // Call instruction control stop
+                // TODO RTC 164425 - Can we pass in 1111 i.e. all threads at the
+                // same time instead of individual threads
+                SBE_EXEC_HWP(l_rc, threadCntlhwp, l_coreTgt,
+                             (SINGLE_THREAD_BIT_MASK >> l_thread),
+                             PTC_CMD_STOP, l_warnCheck,l_data64, l_state)
+                if(l_rc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR(SBE_FUNC "p9_thread_control stop Failed for "
+                        "Core Thread  RC[0x%08X]", l_rc);
+                    break;
+                }
+            }while(++l_thread < SMT4_THREAD_MAX);
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepMpiplRstClrTpmBits( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepMpiplRstClrTpmBits"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+
+    // TODO RTC 150711 - Security milestone
+
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepWithExL2Flush( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepWithExL2Flush"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+    for (auto l_exTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
+    {
+        p9core::purgeData_t l_purgeData;
+        // TODO RTC 164425 need to check if L2 is Scomable
+        // This will come from the HWP team.
+        SBE_EXEC_HWP(l_rc, i_hwp.exL2Hwp, l_exTgt, l_purgeData)
+        if(l_rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " p9_l2_flush failed, RC=[0x%08X]", l_rc);
+            break;
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepWithExL3Flush( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepWithExL3Flush"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+    for (auto l_exTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
+    {
+        // TODO RTC 164425 need to check if L3 is Scomable
+        // This will come from the HWP team.
+        SBE_EXEC_HWP(l_rc, i_hwp.exL3Hwp, l_exTgt, L3_FULL_PURGE, 0x0)
+        if(l_rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " p9_l3_flush failed, RC=[0x%08X]", l_rc);
+            break;
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepWithProcSequenceDrtm"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+
+    uint8_t l_status = 0;
+    size_t l_timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
+    while(l_timeOut)
+    {
+        SBE_EXEC_HWP(l_rc, i_hwp.procSequenceDrtm, l_procTgt, l_status)
+        if(l_rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "p9_sbe_sequence_drtm failed, RC=[0x%08X]",l_rc);
+            break;
+        }
+        if(l_status)
+        {
+            SBE_INFO(SBE_FUNC "p9_sbe_sequence_drtm LQA SBE System Quiesce done");
+            break;
+        }
+        else
+        {
+            l_timeOut--;
+            // delay prior to repeating the above
+            FAPI_TRY(fapi2::delay(SBE_LQA_DELAY_HW_US, SBE_LQA_DELAY_SIM_CYCLES),
+                     "Error from delay");
+        }
+    }
+    // Checkstop system if SBE system quiesce not set after the loop
+    if(!l_status || l_rc)
+    {
+        SBE_ERROR(SBE_FUNC "p9_sbe_sequence_drtm LQA SBE System Quiesce failed,"
+            "Either System Quiesce Achieved not true or procedure "
+            "failed RC=[0x%08X]",l_rc);
+        // check stop the system
+        // TODO RTC 164425 this needs to be replicated on any MPIPL Hwp failure
+        Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
+        l_rc = putscom_abs_wrap(&l_proc, PERV_N3_LOCAL_FIR_OR,
+                                    N3_FIR_SYSTEM_CHECKSTOP_BIT);
+        if(l_rc != FAPI2_RC_SUCCESS)
+        {
+            // Scom failed
+            SBE_ERROR(SBE_FUNC "PutScom failed for REG PERV_N3_LOCAL_FIR");
+            // TODO - Store the response in Async Response
+            // RTC:149074
+        }
+    }
+fapi_try_exit:
+    if(fapi2::current_err)
+    {
+        l_rc = fapi2::current_err;
+    }
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepNoOpStartMpipl( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepNoOpStartMpipl"
+    SBE_ENTER(SBE_FUNC);
+    (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                          SBE_ENTER_MPIPL_EVENT);
+    SBE_EXIT(SBE_FUNC);
+    return FAPI2_RC_SUCCESS;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepMpiplQuadPoweroff"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    if(g_sbeRole == SBE_ROLE_MASTER)
+    {
+        Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
+        // Fetch the MASTER_CORE attribute
+        uint8_t l_coreId = 0;
+        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE, l_proc, l_coreId);
+        // Construct the Master Core Target
+        fapi2::Target<fapi2::TARGET_TYPE_CORE > l_core(
+            plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_CORE>(
+            l_coreId + CORE_CHIPLET_OFFSET));
+        fapi2::Target<fapi2::TARGET_TYPE_EQ> l_quad =
+                                l_core.getParent<fapi2::TARGET_TYPE_EQ>();
+        SBE_EXEC_HWP(l_rc, i_hwp.eqHwp, l_quad)
+    }
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepWithProcQuiesceLQASet( sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepWithProcQuiesceLQASet"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        l_rc = istepWithProc(i_hwp);
+        if(l_rc == FAPI2_RC_SUCCESS)
+        {
+            //set the LQA Bit
+            // TODO RTC 164425 - Create another istep for Setting LQA bit after
+            // L2/L3 flush istep
+            Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
+            l_rc = putscom_abs_wrap(&l_proc, PU_SECURITY_SWITCH_REGISTER_SCOM,
+                            PU_SECURITY_SWITCH_REGISTER_LOCAL_QUIESCE_ACHIEVED);
+            if(l_rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "PutScom failed for PU_SECURITY_SWITCH_REGISTER_SCOM");
+                break;
+            }
+        }
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
     #undef SBE_FUNC
 }
 

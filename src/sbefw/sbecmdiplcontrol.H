@@ -39,6 +39,44 @@ namespace fapi2
     class ReturnCode;
 }
 
+// Major isteps which are supported
+typedef enum
+{
+    SBE_ISTEP2 = 2,
+    SBE_ISTEP_FIRST = SBE_ISTEP2,
+    SBE_ISTEP3 = 3,
+    SBE_ISTEP_LAST_SLAVE = SBE_ISTEP3,
+    SBE_ISTEP4 = 4,
+    SBE_ISTEP5 = 5,
+    SBE_ISTEP_LAST_MASTER = SBE_ISTEP5,
+}sbe_supported_steps_t;
+
+// Major MPIPL isteps which are supported
+static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
+static const uint32_t SBE_ISTEP_MPIPL_CONTINUE      = 97;
+static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 8;
+static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 3;
+
+// constants
+static const uint32_t ISTEP2_MAX_SUBSTEPS = 17;
+static const uint32_t ISTEP3_MAX_SUBSTEPS = 22;
+static const uint32_t ISTEP4_MAX_SUBSTEPS = 34;
+static const uint32_t ISTEP5_MAX_SUBSTEPS = 2;
+static const uint8_t ISTEP_MINOR_START = 1;
+static const uint8_t SLAVE_LAST_MINOR_ISTEP = 20;
+static const uint8_t ISTEP2_MINOR_START = 2;
+
+/**
+ * @brief Support function to execute specific istep
+ *
+ * @param[in] i_major Major Istep Number
+ * @param[in] i_minor Minor Istep Number
+ *
+ * @return FAPI2_RC_SUCCESS if success, else error code.
+ */
+fapi2::ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
+
+
 /**
   * @brief execute istep chipop (0xA101)
   *

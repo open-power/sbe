@@ -40,9 +40,6 @@
 
 using namespace fapi2;
 
-// This is used to find out the array index in g_control_reg_map in
-// p9_thread_control.C
-static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
 // TODO via RTC 152424
 // Currently all proecdures in core directory are in seeprom.
 // So we have to use function pointer to force a long call.

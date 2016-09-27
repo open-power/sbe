@@ -42,6 +42,7 @@ def main( ):
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( TESTDATA )
     testUtil.writeEot( )
+    testUtil.runCycles( 10000000 )
     testUtil.readDsFifo( EXPDATA )
     testUtil.readEot( )
 #-------------------------------------------------

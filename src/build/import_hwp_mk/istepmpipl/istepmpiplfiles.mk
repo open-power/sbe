@@ -37,6 +37,14 @@ ISTEPMPIPL-CPP-SOURCES +=p9_block_wakeup_intr.C
 ISTEPMPIPL-CPP-SOURCES +=p9_adu_setup.C
 ISTEPMPIPL-CPP-SOURCES +=p9_adu_coherent_utils.C
 ISTEPMPIPL-CPP-SOURCES +=p9_adu_access.C
+ISTEPMPIPL-CPP-SOURCES +=p9_l2_flush.C
+ISTEPMPIPL-CPP-SOURCES +=p9_l3_flush.C
+ISTEPMPIPL-CPP-SOURCES +=p9_sbe_check_quiesce.C
+ISTEPMPIPL-CPP-SOURCES +=p9_inject_local_xstop.C
+ISTEPMPIPL-CPP-SOURCES +=p9_sbe_sequence_drtm.C
+ISTEPMPIPL-CPP-SOURCES +=p9_query_core_access_state.C
+ISTEPMPIPL-CPP-SOURCES +=p9_quad_power_off.C
+ISTEPMPIPL-CPP-SOURCES +=p9_pm_pfet_control.C
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 
