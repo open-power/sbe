@@ -44,13 +44,13 @@ LOADER_OBJS := $(addprefix $(OBJDIR)/, $(BASE_LOADER_OBJECTS))
 #Otprom Loader Objects
 OTPROM_LOADER_OBJS := $(addprefix $(OBJDIR)/, $(OTPROM_LOADER_OBJECTS))
 # ---- Otprom Image  ------
-$(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin $(OBJDIR)/$(IMAGE_OTPROM_NAME).dis: $(OBJDIR)/$(IMAGE_OTPROM_NAME).out
-	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin `/usr/bin/nm $(OBJDIR)/$(IMAGE_OTPROM_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
-	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_OTPROM_NAME).dis
+$(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin $(IMG_DIR)/$(IMAGE_OTPROM_NAME).dis: $(IMG_DIR)/$(IMAGE_OTPROM_NAME).out
+	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin `/usr/bin/nm $(IMG_DIR)/$(IMAGE_OTPROM_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
+	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_OTPROM_NAME).dis
 
 #create a linked ELF executable
-$(OBJDIR)/$(IMAGE_OTPROM_NAME).out: $(OTPROM_LOADER_OBJS) $(LINK_SCRIPT_OTPROM)
-	$(LD) -e l2_loader -T$(LINK_SCRIPT_OTPROM) -Map $(OBJDIR)/$(IMAGE_OTPROM_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_OTPROM_NAME).out $(OTPROM_LOADER_OBJS)
+$(IMG_DIR)/$(IMAGE_OTPROM_NAME).out: $(OTPROM_LOADER_OBJS) $(LINK_SCRIPT_OTPROM)
+	$(LD) -e l2_loader -T$(LINK_SCRIPT_OTPROM) -Map $(IMG_DIR)/$(IMAGE_OTPROM_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_OTPROM_NAME).out $(OTPROM_LOADER_OBJS)
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments
