@@ -128,7 +128,7 @@
       partial good. If this bit is 1, the region is bad, else it is good.
       Bits 0,1,2 are don't care. For nimbus, pervasive chiplets 10 and 11 are
       not used (OB1 and OB2), therefore the value for them is 0xFFFF -->
-            <name>ATTR_PG</name>
+            <name>ATTR_PG</name> <!-- As per SOA_SC model config of Nimbus chip-->
             <value>0xFFFF</value> <!-- Unused -->
             <value>0xE07D</value> <!-- PERV -->
             <value>0xE03F</value> <!-- N0 -->
@@ -136,8 +136,8 @@
             <value>0xE03F</value> <!-- N2 -->
             <value>0xE01F</value> <!-- N3 -->
             <value>0xE44D</value> <!-- XB -->
-            <value>0xE0FD</value> <!-- MC01 -->
-            <value>0xE0FD</value> <!-- MC23 -->
+            <value>0xE1FD</value> <!-- MC01 -->
+            <value>0xE1FD</value> <!-- MC23 -->
             <value>0xE1FD</value> <!-- OB0 -->
             <value>0xFFFF</value> <!-- OB1 -->
             <value>0xFFFF</value> <!-- OB2 -->
@@ -148,7 +148,7 @@
             <value>0xE001</value> <!-- EP0 -->
             <value>0xE001</value> <!-- EP1 -->
             <value>0xE001</value> <!-- EP2 -->
-            <value>0xE288</value> <!-- EP3 -->
+            <value>0xE289</value> <!-- EP3 -->
             <value>0xE001</value> <!-- EP4 -->
             <value>0xE001</value> <!-- EP5 -->
             <value>0xFFFF</value> <!-- Unused -->
