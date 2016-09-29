@@ -112,7 +112,7 @@ ReturnCode getRing_granule_data(const uint32_t i_ringAddress,
 
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc;
 
-    uint32_t l_scomAddress = 0x00039000 | i_bitShiftValue;
+    uint32_t l_scomAddress = 0x00039000;
     l_scomAddress |= l_chipletId;
 
     do
@@ -124,6 +124,15 @@ ReturnCode getRing_granule_data(const uint32_t i_ringAddress,
             break;
         }
         *o_data = l_ringData;
+
+        l_scomAddress = 0x00039000 | i_bitShiftValue;
+        l_scomAddress |= l_chipletId;
+
+        l_rc = fapi2::getScom(l_proc, l_scomAddress, l_ringData);
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            break;
+        }
     } while(0);
 
     return l_rc;
