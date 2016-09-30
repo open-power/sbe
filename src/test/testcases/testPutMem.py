@@ -30,12 +30,26 @@ err = False
 
 LOOP_COUNT = 4
 
-PUTMEM_TEST_HDR =  [0,0,0,0x86,
-                    0,0,0xA4,0x02,
-                    0,0,0x0,0x02,
-                    0,0,0,0,
-                    0x08,0x00,0x00,0x00,
-                    0x00,0x00,0x00,0x80]
+PUTMEM_TEST_HDR_WO_FMODE_WO_LCO =  [0,0,0,0x86,
+                                    0,0,0xA4,0x02,
+                                    0,0,0x0,0x02,
+                                    0,0,0,0,
+                                    0x08,0x00,0x00,0x00,
+                                    0x00,0x00,0x00,0x80]
+
+PUTMEM_TEST_HDR_W_FMODE_WO_LCO =  [0,0,0,0x86,
+                                   0,0,0xA4,0x02,
+                                   0,0,0x0,0x22,
+                                   0,0,0,0,
+                                   0x08,0x00,0x00,0x00,
+                                   0x00,0x00,0x00,0x80]
+
+PUTMEM_TEST_HDR_W_FMODE_W_LCO =  [0,0,0,0x86,
+                                  0,0,0xA4,0x02,
+                                  0x2E,0,0x0,0x62,
+                                  0,0,0,0,
+                                  0x08,0x00,0x00,0x00,
+                                  0x00,0x00,0x00,0x80]
 
 PUTMEM_TEST_DATA = [0xAB,0xCD,0xEF,0x01,
                     0xAB,0xCD,0xEF,0x02,
@@ -55,18 +69,42 @@ PUTMEM_EXPDATA =  [0x00,0x00,0x00,0x80,
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
 def main( ):
+# First Case without Fast Mode without LCO
     testUtil.runCycles( 10000000 )
-
-    testUtil.writeUsFifo( PUTMEM_TEST_HDR )
+    testUtil.writeUsFifo( PUTMEM_TEST_HDR_WO_FMODE_WO_LCO )
 
     loop = 1
     while (loop <= LOOP_COUNT):
-        #testUtil.runCycles( 10000000 )
         testUtil.writeUsFifo( PUTMEM_TEST_DATA )
         loop += 1
     testUtil.writeEot( )
 
-    #testUtil.runCycles( 10000000 )
+    testUtil.readDsFifo( PUTMEM_EXPDATA )
+    testUtil.readEot( )
+
+# Second Case with Fast Mode without LCO
+    testUtil.runCycles( 10000000 )
+    testUtil.writeUsFifo( PUTMEM_TEST_HDR_W_FMODE_WO_LCO )
+
+    loop = 1
+    while (loop <= LOOP_COUNT):
+        testUtil.writeUsFifo( PUTMEM_TEST_DATA )
+        loop += 1
+    testUtil.writeEot( )
+
+    testUtil.readDsFifo( PUTMEM_EXPDATA )
+    testUtil.readEot( )
+
+# Third Case with Fast Mode with LCO
+    testUtil.runCycles( 10000000 )
+    testUtil.writeUsFifo( PUTMEM_TEST_HDR_W_FMODE_W_LCO )
+
+    loop = 1
+    while (loop <= LOOP_COUNT):
+        testUtil.writeUsFifo( PUTMEM_TEST_DATA )
+        loop += 1
+    testUtil.writeEot( )
+
     testUtil.readDsFifo( PUTMEM_EXPDATA )
     testUtil.readEot( )
 

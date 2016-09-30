@@ -42,7 +42,7 @@
 #include "p9_adu_setup.H"
 #include "p9_pba_access.H"
 #include "p9_adu_access.H"
-
+#include "p9_pba_coherent_utils.H"
 
 using namespace fapi2;
 
@@ -287,11 +287,21 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     // Default EX Target Init..Not changing it for the time being
     Target<fapi2::TARGET_TYPE_EX > l_ex((uint64_t)PBA_DEFAULT_EX_CHIPLET_ID);
 
+    p9_PBA_oper_flag l_myPbaFlag;
     // Determine the access flags
     // Fast mode flag
     bool l_isFastMode = i_hdr.isFastModeSet();
+    if(l_isFastMode)
+    {
+        l_myPbaFlag.setFastMode(true);
+    }
     //LCO Mode for PBA-Put
     bool l_isLcoMode = i_hdr.isPbaLcoModeSet();
+    // By default, ex_chipletId printed below won't be used unless accompanied
+    // by LCO_mode.
+    SBE_INFO(SBE_FUNC "FAST_Mode[%d] LCO_Mode[%d] EX_ChipletId[%d]",
+        l_isFastMode, l_isLcoMode, (i_hdr.coreChipletId)/2);
+
     if(l_isLcoMode)
     {
         //Derive the EX target from the input Core Chiplet Id
@@ -299,11 +309,8 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         //..so on
         l_ex = plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>
                 (i_hdr.coreChipletId);
+        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::LCO); // LCO operation
     }
-    // By default, ex_chipletId printed below won't be used unless accompanied
-    // by LCO_mode.
-    SBE_INFO(SBE_FUNC "FAST_Mode[%d] LCO_Mode[%d] EX_ChipletId[%d]",
-        l_isFastMode, l_isLcoMode, (i_hdr.coreChipletId)/2);
 
     // The max granule size for which the ADU/PBA interface if configured
     uint32_t l_numGranules = 0;
@@ -324,7 +331,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                      l_ex,
                      l_addr,
                      i_isFlagRead,
-                     ((l_isFastMode) ? (1<<PBA_FAST_MODE_SHIFT) : 0),
+                     l_myPbaFlag.setFlag(),
                      l_numGranules)
 
         // if p9_pba_setup returns error
@@ -378,7 +385,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                            l_proc,
                            l_addr,
                            i_isFlagRead,
-                           ((l_isFastMode) ? (1<<PBA_FAST_MODE_SHIFT) : 0),
+                           l_myPbaFlag.setFlag(),
                            l_firstGran,
                            l_lastGran,
                            (uint8_t *)&l_dataFifo)
