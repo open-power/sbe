@@ -46,9 +46,12 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
 {
     FAPI_INF("Entering ...");
     uint8_t l_attr_chip_unit_pos = 0;
+    fapi2::buffer<uint16_t> l_read_attr;
 
     for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, l_chplt_trgt, l_read_attr));
+        FAPI_DBG("ATTR_PG Value : %#04lx", l_read_attr);
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt, l_attr_chip_unit_pos));
 
         if (l_attr_chip_unit_pos == 0x2)/* N0 Chiplet */
@@ -69,15 +72,27 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
             FAPI_DBG("Scan n1_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n1_fure),
                      "Error from putRing (n1_fure)");
-            FAPI_DBG("Scan n1_ioo0_fure ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo0_fure),
-                     "Error from putRing (n1_ioo0_fure)");
-            FAPI_DBG("Scan n1_ioo1_fure ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo1_fure),
-                     "Error from putRing (n1_ioo1_fure)");
-            FAPI_DBG("Scan n1_mcs23_fure ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_mcs23_fure),
-                     "Error from putRing (n1_mcs23_fure)");
+
+            if (!l_read_attr.getBit<7>()) //Check pbioo0 is enable
+            {
+                FAPI_DBG("Scan n1_ioo0_fure ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo0_fure),
+                         "Error from putRing (n1_ioo0_fure)");
+            }
+
+            if (!l_read_attr.getBit<8>()) //Check pbioo1 is enable
+            {
+                FAPI_DBG("Scan n1_ioo1_fure ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo1_fure),
+                         "Error from putRing (n1_ioo1_fure)");
+            }
+
+            if (!l_read_attr.getBit<9>()) //Check mcs23 is enable
+            {
+                FAPI_DBG("Scan n1_mcs23_fure ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n1_mcs23_fure),
+                         "Error from putRing (n1_mcs23_fure)");
+            }
         }
 
         if (l_attr_chip_unit_pos == 0x4)/* N2 Chiplet */
@@ -98,9 +113,14 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
             FAPI_DBG("Scan n3_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n3_fure),
                      "Error from putRing (n3_fure)");
-            FAPI_DBG("Scan n3_mcs01_fure ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n3_mcs01_fure),
-                     "Error from putRing (n3_mcs01_fure)");
+
+            if (!l_read_attr.getBit<10>()) //Check mcs01 is enable
+            {
+                FAPI_DBG("Scan n3_mcs01_fure ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n3_mcs01_fure),
+                         "Error from putRing (n3_mcs01_fure)");
+            }
+
             FAPI_DBG("Scan n3_np_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n3_np_fure),
                      "Error from putRing (n3_np_fure)");
