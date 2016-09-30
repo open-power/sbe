@@ -44,6 +44,7 @@ my $sbname = "";
 my $sbrc = "";
 my $release = "";
 my $bbuild = "";
+my $authorFile = "git_author_emails.csv";
 
 # We do not want hooks to run in this tool
 $ENV{MIRROR} = 1;
@@ -212,19 +213,6 @@ sub execute_get_commits
     # Set CI environemnt
     git_ci_init($release);
 
-    # Obtain the list of patches
-#    retrivePatchList();
-
-    # Fetch the commits for the patches
-#    fetchCommits();
-
-    # Prepare commit string
-#    my $commitStr = prepareCommitStr();
-
-#    print "The set of commits: $commitStr" if $debug;
-#    print $commitStr;
-#    return $commitStr;
-
     # Use gitRelease tool to discover all associated commits
     chdir $globals{tool_path};
     print `./src/tools/utils/gitRelease.pl gerrit-commit --patches $patches --branch $globals{branch}`;
@@ -243,15 +231,6 @@ sub execute_extract
 
     # Set CI environment
     git_ci_init();
-
-    # Obtain the list of patches
-#    retrivePatchList();
-
-    # Fetch the references for the patches
-#    fetchRefs();
-
-    # Apply the patches on the GIT repo
-#    applyRefs();
 
     print "Extracting Code for $globals{sandbox}\n";
     system("./src/tools/utils/gitRelease.pl fsp-ci --level $sbname --patches $patches --branch $globals{branch} --basestr \"gerrit/$globals{branch}\" --bbuild-Rel $globals{Build_Rel}");
@@ -322,6 +301,10 @@ sub git_ci_init
     print "\nConverted release:\n" if $debug;
     print "    Release=$release -> branch=$globals{branch}\n\n" if $debug;
     die "Gerrit branch missing" if  $globals{branch} eq "";
+
+    # Create commit author file
+    create_author_file($patches);
+
 }
 
 # sub parse_release_notes
@@ -371,6 +354,39 @@ sub release_to_branch
     $globals{branch} = `./src/tools/utils/conv_rel_branch.pl rtob --release $release`;
     die "Conversion from fips-release = $release to gerrit branch failed" if $globals{branch} eq "";
     chomp($globals{branch});
+}
+
+# sub create_author_file
+#
+# Get patches from gerrit and create a CSV file with author emails
+# for FSP-CI notification purposes.
+#
+# @param[in] patches - List of patches to determine authors of
+#
+sub create_author_file
+{
+    my ($patches) = @_;
+
+    # Get commits via gitRelease.pl tool
+    my $commitsCSV = `./src/tools/utils/gitRelease.pl gerrit-commit --patches $patches --branch $globals{branch}`;
+    chomp($commitsCSV);
+    my @commits = split(',',$commitsCSV);
+    print Dumper \@commits if $debug;
+
+    # Write author email to file
+    system("mkdir -p $globals{sandbox}/logs");
+    my $file = $globals{sandbox}."/logs/".$authorFile;
+    print "Creating CSV author file - $file\n" if $debug;
+    open(FILE, ">", $file) or die("Cannot open: $file: $!");
+    foreach my $commit (@commits)
+    {
+        my $email =  `git log -n1 --pretty="%ae" $commit`;
+        chomp ($email);
+        print FILE $email;
+        print FILE "," if ($commit != $commits[-1]);
+    }
+    system("chmod 755 $file");
+    close FILE;
 }
 
 # sub compileAndCopy
