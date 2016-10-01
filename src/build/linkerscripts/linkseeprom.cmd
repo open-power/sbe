@@ -93,6 +93,14 @@ SECTIONS
     } > seeprom
      _fixed_size = . - _fixed_origin;
 
+    ////////////////////////////////
+    // text
+    ////////////////////////////////
+    .text ALIGN(8): {
+         _text_origin = .; _text_offset = . - _seeprom_origin;
+        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) } > seeprom
+     _text_size = . - _text_origin;
+
    ////////////////////////////////
     // FIXED_TOC
     ////////////////////////////////
@@ -116,11 +124,6 @@ SECTIONS
          _strings_origin = .; _strings_offset = . - _seeprom_origin; *(.strings);
     } > seeprom
     _strings_size = . - _strings_origin;
-
-    .text ALIGN(8): {
-         _text_origin = .; _text_offset = . - _seeprom_origin;
-        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) } > seeprom
-     _text_size = . - _text_origin;
 
     _seeprom_size = . - _seeprom_origin;
 
