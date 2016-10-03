@@ -140,7 +140,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     // Local variable
-    //uint8_t l_mc_sync_mode = 0;
+    uint8_t l_mc_sync_mode = 0;
+    uint8_t l_pll_bypass = 0;
     fapi2::buffer<uint8_t> l_attr_vitl_setup;
     fapi2::buffer<uint8_t> l_attr_hang_cnt6_setup;
     fapi2::TargetState l_target_state = fapi2::TARGET_STATE_FUNCTIONAL;
@@ -148,6 +149,12 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     uint8_t l_attr_system_ipl_phase;
 #endif
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_mc_sync_mode),
+             "Error from FAPI_ATTR_GET (ATTR_MC_SYNC_MODE)");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_pll_bypass),
+             "Error from FAPI_ATTR_GET (ATTR_NEST_MEM_X_O_PCI_BYPASS)");
 
     FAPI_INF("p9_sbe_chiplet_reset: Entering ...");
 
@@ -410,14 +417,30 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_setup_iop_logic(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                               fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
-                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-              fapi2::TARGET_STATE_FUNCTIONAL))
+        // lower scan ratio for chiplets operating at PLL speed
+        // Nest: on pll, if not in bypass
+        // MC:   on pll, if not in bypsas, and if in sync mode
+        if (!l_pll_bypass)
         {
-            FAPI_DBG("set scan ratio to 1:1 ");
-            FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio(l_target_cplt));
+            if (l_mc_sync_mode)
+            {
+                for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+                     (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
+                                                       fapi2::TARGET_FILTER_ALL_NEST),
+                      fapi2::TARGET_STATE_FUNCTIONAL))
+                {
+                    FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio(l_target_cplt));
+                }
+            }
+            else
+            {
+                for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+                     (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST),
+                      fapi2::TARGET_STATE_FUNCTIONAL))
+                {
+                    FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio(l_target_cplt));
+                }
+            }
         }
 
         for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -1183,7 +1206,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_opcg_cnfg(
     //OPCG_ALIGN.OPCG_WAIT_CYCLES = p9SbeChipletReset::OPCG_WAIT_CYCLE_0X020
     l_data64.insertFromRight<52, 12>(p9SbeChipletReset::OPCG_WAIT_CYCLE_0X020);
     l_data64.insertFromRight<PERV_1_OPCG_ALIGN_SCAN_RATIO, PERV_1_OPCG_ALIGN_SCAN_RATIO_LEN>
-    (p9SbeChipletReset::SCAN_RATIO_0X3);  //OPCG_ALIGN.SCAN_RATIO = p9SbeChipletReset::SCAN_RATIO_0X3
+    (p9SbeChipletReset::SCAN_RATIO_0X0);  //OPCG_ALIGN.SCAN_RATIO = p9SbeChipletReset::SCAN_RATIO_0X0
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_ALIGN, l_data64));
 
     FAPI_INF("p9_sbe_chiplet_reset_opcg_cnfg: Exiting ...");
@@ -1193,7 +1216,7 @@ fapi_try_exit:
 
 }
 
-/// @brief set scan ratio to 1:1 as long as PLL is in bypass mode
+/// @brief set scan ratio to 4:1 for chiplets running at PLL speed
 ///
 /// @param[in]     i_target_cplt   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
@@ -1203,11 +1226,11 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio(
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio: Entering ...");
 
-    FAPI_DBG("Set scan ratio to 1:1 as long as PLL is in bypass mode");
+    FAPI_DBG("Set scan ratio to 4:1 for at speed PLL");
     //Setting OPCG_ALIGN register value
     FAPI_TRY(fapi2::getScom(i_target_cplt, PERV_OPCG_ALIGN, l_data64));
     l_data64.insertFromRight<PERV_1_OPCG_ALIGN_SCAN_RATIO, PERV_1_OPCG_ALIGN_SCAN_RATIO_LEN>
-    (p9SbeChipletReset::SCAN_RATIO_0X0);  //OPCG_ALIGN.SCAN_RATIO = p9SbeChipletReset::SCAN_RATIO_0X0
+    (p9SbeChipletReset::SCAN_RATIO_0X3);  //OPCG_ALIGN.SCAN_RATIO = p9SbeChipletReset::SCAN_RATIO_0X3
     FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_OPCG_ALIGN, l_data64));
 
     FAPI_INF("p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio: Exiting ...");
