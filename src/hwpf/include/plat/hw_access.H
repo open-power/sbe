@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2012,2016                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -44,6 +45,11 @@
 
 namespace fapi2
 {
+
+    /// @brief Default template to disallow at compile time any operations the
+    //         plat does not support on Targets
+    template<TargetType K, typename V>
+    struct does_plat_allow {static constexpr bool value = false;};
 
     //--------------------------------------------------------------------------
     // PIB Error Functions
@@ -195,6 +201,8 @@ __fapi2exit__:
                                         buffer<uint64_t> i_data,
                                         buffer<uint64_t> i_mask)
     {
+        // TODO: via RTC: 160143: Fix the plat implementation
+        static_assert(does_plat_allow<K, V>::value, "putScomUnderMask not suppported");
         fapi2::buffer<uint64_t> l_modifyDataBuffer = i_data;
 
         l_modifyDataBuffer &= i_mask;
