@@ -288,8 +288,8 @@ fapi2::ReturnCode standardScan(
                 // Add the chiplet ID in the Scom Address
                 l_OPCGAddress |= l_chiplet;
 
-                // @TODO: Value 300 is a random number to start with.
-                uint32_t l_attempts = 300;
+                // @TODO: Value 1000 is a random number to start with.
+                uint32_t l_attempts = 1000;
 
                 while(l_attempts > 0)
                 {
