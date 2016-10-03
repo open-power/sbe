@@ -43,6 +43,7 @@
 #include "p9_pba_access.H"
 #include "p9_adu_access.H"
 #include "p9_pba_coherent_utils.H"
+#include "p9_adu_coherent_utils.H"
 
 using namespace fapi2;
 
@@ -64,32 +65,6 @@ static const uint32_t PBA_DEFAULT_EX_CHIPLET_ID = 7;
  * @brief static definition of parameters passed in adu chip-ops
  */
 static const uint32_t SBE_ADU_LOCK_TRIES = 3;
-
-// Transaction size (choice is 1, 2, 4, or 8)
-// 0b00: TSIZE_1
-// 0b01: TSIZE_2
-// 0b10: TSIZE_4
-// 0b11: TSIZE_8
-static const uint32_t SBE_ADU_TRANSACTION_SIZE = 3;
-static const bool     SBE_ADU_LEAVE_DIRTY_BOOL = false;
-static const bool     SBE_ADU_LOCK_PICK_BOOL   = false;
-
-/**
- * @brief Mask used to build the Flag struct for ADU chip-op
- **/
-static const uint32_t ADU_LOCK_TRIES_SHIFT        = 16;
-static const uint32_t ADU_TRANSACTION_SIZE_SHIFT  = 20;
-static const uint32_t ADU_ECC_OVERRIDE_BIT_SHIFT  = 22;
-static const uint32_t ADU_ECC_REQUIRED_BIT_SHIFT  = 23;
-static const uint32_t ADU_ITAG_REQUIRED_BIT_SHIFT = 24;
-static const uint32_t ADU_FAST_MODE_SHIFT         = 25;
-static const uint32_t ADU_LEAVE_DIRTY_SHIFT       = 26;
-static const uint32_t ADU_LOCK_PICK_SHIFT         = 27;
-static const uint32_t ADU_AUTO_INCR_SHIFT         = 28;
-static const uint32_t CACHE_INHIBIT_MODE_SHIFT    = 29;
-
-// Fast Mode bit shift for PBA
-static const uint32_t PBA_FAST_MODE_SHIFT         = 31;
 
 ///////////////////////////////////////////////////////////////////////
 // @brief align4ByteWordLength - Internal Method to this file
@@ -186,76 +161,6 @@ inline uint32_t flushUpstreamFifo (const uint32_t &i_fapiRc)
     return l_rc;
 }
 
-
-///////////////////////////////////////////////////////////////////////
-// @brief constructAduFlag - Internal Method to this file, to construct
-//        ADU flag as the HWP expects
-//
-// @param [in] i_hdr, Message Request Header
-// @param [in] i_isFlagRead, Read/Write Flag
-//
-// @return Constructed ADU Flag
-///////////////////////////////////////////////////////////////////////
-uint32_t constructAduFlag(const sbeMemAccessReqMsgHdr_t & i_hdr,
-                          const bool i_isFlagRead)
-{
-    #define SBE_FUNC " constructAduFlag"
-
-    // Fast Mode / Ecc mode / Cache Inhibit Mode / Auto Increment
-    // required in ADU operations.
-    bool l_isFastMode = i_hdr.isFastModeSet();
-    bool l_isCacheInhibitMode = i_hdr.isCacheInhibitModeFlagSet();
-    bool l_isItagBit = i_hdr.isItagFlagSet();
-    bool l_isAutoIncr = i_hdr.isAutoIncrModeSet();
-    bool l_isEccRequiredMode = false;
-    bool l_isEccOverrideMode = false;
-
-    if(!i_isFlagRead) // ECC override in write mode
-    {
-        l_isEccOverrideMode = i_hdr.isEccOverrideFlagSet();
-        if(l_isEccOverrideMode)
-        {
-            l_isEccRequiredMode = true;
-        }
-    }
-    else // ECC required in read mode
-    {
-        l_isEccRequiredMode = i_hdr.isEccFlagSet();
-    }
-
-    // Construct the flag required for adu setup
-    uint32_t l_aduSetupFlag =
-            ( (l_isCacheInhibitMode << CACHE_INHIBIT_MODE_SHIFT) |
-                    // 3-bit of Cache mode placed in 31-30-29 bits
-              (l_isAutoIncr << ADU_AUTO_INCR_SHIFT) |
-                    // 1-bit Auto increment placed at 28th bit
-              (SBE_ADU_LOCK_PICK_BOOL << ADU_LOCK_PICK_SHIFT) |
-                    // 1-bit pick lock placed at 27th bit
-              (SBE_ADU_LEAVE_DIRTY_BOOL << ADU_LEAVE_DIRTY_SHIFT) |
-                    // 1-bit leave dirty placed at 26th bit
-              (l_isFastMode << ADU_FAST_MODE_SHIFT) |
-                    // 1-bit Fast mode placed at 25th bit
-              (l_isItagBit << ADU_ITAG_REQUIRED_BIT_SHIFT) |
-                    // 1-bit itag placed at 24th bit
-              (l_isEccRequiredMode << ADU_ECC_REQUIRED_BIT_SHIFT) |
-                    // 1-bit ecc required at 23rd bit
-              (l_isEccOverrideMode << ADU_ECC_OVERRIDE_BIT_SHIFT) |
-                    // 1-bit ecc override  at 22nd bit
-              (SBE_ADU_TRANSACTION_SIZE << ADU_TRANSACTION_SIZE_SHIFT) |
-                    // 2-bit Transcation size at 21-20th bits
-              (SBE_ADU_LOCK_TRIES << ADU_LOCK_TRIES_SHIFT) );
-                    // 4-bit Lock Tries at 19-18-17-16 bits
-
-    SBE_INFO(SBE_FUNC " Cache[%d] Itag[%d] AutoIncr[%d] FastMode[%d].",
-        l_isCacheInhibitMode,l_isItagBit,l_isAutoIncr,l_isFastMode);
-    SBE_INFO(SBE_FUNC "EccRequiredMode[%d] EccOverrideMode[%d] EccOverrideByte"
-        "[0x%02X] AduSetupFlag[0x%04X]",l_isEccRequiredMode,l_isEccOverrideMode,
-        i_hdr.eccByte, l_aduSetupFlag);
-
-    return (l_aduSetupFlag);
-    #undef SBE_FUNC
-}
-
 ///////////////////////////////////////////////////////////////////////
 // @brief processPbaRequest - Internal Method to this file,
 //        To process the PBA Access request
@@ -290,20 +195,18 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     p9_PBA_oper_flag l_myPbaFlag;
     // Determine the access flags
     // Fast mode flag
-    bool l_isFastMode = i_hdr.isFastModeSet();
-    if(l_isFastMode)
+    if(i_hdr.isFastModeSet())
     {
         l_myPbaFlag.setFastMode(true);
+        SBE_INFO(SBE_FUNC "Fast Mode is set");
     }
-    //LCO Mode for PBA-Put
-    bool l_isLcoMode = i_hdr.isPbaLcoModeSet();
-    // By default, ex_chipletId printed below won't be used unless accompanied
-    // by LCO_mode.
-    SBE_INFO(SBE_FUNC "FAST_Mode[%d] LCO_Mode[%d] EX_ChipletId[%d]",
-        l_isFastMode, l_isLcoMode, (i_hdr.coreChipletId)/2);
 
-    if(l_isLcoMode)
+    // By default, ex_chipletId printed below won't be used unless accompanied
+    // by LCO_mode (LCO Mode for PBA-Put)
+    if(i_hdr.isPbaLcoModeSet())
     {
+        SBE_INFO(SBE_INFO "LCO Mode is set with Ex ChipletId[%d]",
+            (i_hdr.coreChipletId)/2);
         //Derive the EX target from the input Core Chiplet Id
         //Core0/1 -> EX0, Core2/3 -> EX1, Core4/5 -> EX2, Core6/7 -> EX3
         //..so on
@@ -452,7 +355,6 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     #undef SBE_FUNC
 }
 
-
 ///////////////////////////////////////////////////////////////////////
 // @brief processAduRequest - Internal Method to this file,
 //        To process the ADU Access request
@@ -478,8 +380,48 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     uint32_t l_sizeMultiplier = ADU_SIZE_MULTIPLIER_FOR_LEN_ALIGNMENT;
     uint32_t l_granuleSize = ADU_GRAN_SIZE_BYTES;
 
-    // Adu Setup Flag
-    uint32_t l_aduSetupFlags = constructAduFlag(i_hdr, i_isFlagRead);
+    p9_ADU_oper_flag l_aduFlag;
+    //Default Operation Type is DMA_PARTIAL
+    l_aduFlag.setOperationType(p9_ADU_oper_flag::DMA_PARTIAL);
+    l_aduFlag.setTransactionSize(p9_ADU_oper_flag::TSIZE_8);
+    l_aduFlag.setLockControl(false);
+    l_aduFlag.setOperFailCleanup(true);
+    l_aduFlag.setNumLockAttempts(SBE_ADU_LOCK_TRIES);
+
+    // Fast Mode / Ecc mode / Cache Inhibit Mode / Auto Increment
+    // required in ADU operations.
+    if(i_hdr.isFastModeSet())
+    {
+        l_aduFlag.setFastMode(true);
+    }
+    if(i_hdr.isCacheInhibitModeFlagSet())
+    {
+        l_aduFlag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);
+    }
+    if(i_hdr.isItagFlagSet())
+    {
+        l_aduFlag.setItagMode(true);
+    }
+    if(i_hdr.isAutoIncrModeSet())
+    {
+        l_aduFlag.setAutoIncrement(true);
+    }
+
+    if(!i_isFlagRead) // ECC override in write mode
+    {
+        if(i_hdr.isEccOverrideFlagSet())
+        {
+            l_aduFlag.setEccItagOverrideMode(true);
+            l_aduFlag.setEccMode(true);
+        }
+    }
+    else // ECC required in read mode
+    {
+        if(i_hdr.isEccFlagSet())
+        {
+            l_aduFlag.setEccMode(true);
+        }
+    }
 
     // For local Use
     bool l_isEccMode = i_hdr.isEccFlagSet();
@@ -503,11 +445,12 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     {
         // Call the ADU setup HWP
         SBE_EXEC_HWP(l_fapiRc,
-                     p9_adu_setup,l_proc,
-                                 l_addr,
-                                 i_isFlagRead,
-                                 l_aduSetupFlags,
-                                 l_numGranules)
+                     p9_adu_setup,
+                     l_proc,
+                     l_addr,
+                     i_isFlagRead,
+                     l_aduFlag.setFlag(),
+                     l_numGranules)
         // if p9_adu_setup returns error
         if( (l_fapiRc != FAPI2_RC_SUCCESS) )
         {
@@ -618,7 +561,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                             l_proc,
                             l_addr,
                             i_isFlagRead,
-                            l_aduSetupFlags,
+                            l_aduFlag.setFlag(),
                             l_firstGran,
                             l_lastGran,
                             &(((uint8_t *)&(l_dataFifo))[l_bufIdx]))
