@@ -346,6 +346,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
                 l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
                                       ( sizeof(EQ::RingVariants) /
                                         sizeof(l_cpltRingVariantSz));
+                 
 
                 l_sectionOffset = i_sectionTOR->TOC_EQ_COMMON_RING;
                 if(INSTANCE_RING == l_ringType)
@@ -388,16 +389,40 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
         SBE_TRACE ("l_sectionAddr %08X",l_sectionAddr);
 
+        uint16_t *l_ringTorAddr = NULL;
+
 
         if(INSTANCE_RING == l_ringType)
         {
-            if ( l_chipletID > l_chipletData.iv_base_chiplet_number)
+            if ( l_chipletID >= l_chipletData.iv_base_chiplet_number)
             {
                 uint8_t l_chipletOffset =
                     (l_chipletID - l_chipletData.iv_base_chiplet_number);
-                l_sectionAddr += (l_chipletOffset *
-                   (l_chipletData.iv_num_instance_rings ));
+                if (l_chipLetType == EQ_TYPE)
+                {
+                    if (fapi2::TARGET_TYPE_EX & (i_target.get().getFapiTargetType()))
+                    {
+                        uint32_t l_ex_number = i_target.get().getTargetInstance();
+                        l_chipletOffset = l_ex_number;
+                        SBE_TRACE ("l_chipletID %d l_ex_number %d",l_chipletID,l_ex_number);
+                    }
+                }
+                SBE_TRACE ("l_chipletID %u l_chipletOffset %u",l_chipletID, l_chipletOffset);
+                l_ringTorAddr =  reinterpret_cast<uint16_t *>(l_sectionAddr )+ ((l_chipletOffset *
+                   (l_chipletData.iv_num_instance_rings *l_cpltRingVariantSz)) + (l_torOffset * l_cpltRingVariantSz));
+
             }
+            else
+            {
+                l_ringTorAddr = reinterpret_cast<uint16_t *>(l_sectionAddr) +
+                    (l_torOffset * l_cpltRingVariantSz);
+            }
+        }
+        else
+        {
+            // TOR records of Ring TOR are 2 bytes in size.
+            l_ringTorAddr = reinterpret_cast<uint16_t *>(l_sectionAddr) +
+                    (l_torOffset * l_cpltRingVariantSz);
         }
 
         // The ring variants in section TOR are expected to be in the sequence -
@@ -405,11 +430,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
         // 2. Cache-Contained
         // 3. Risk Level
 
-        SBE_TRACE ("l_sectionAddr %08X",l_sectionAddr);
 
-        // TOR records of Ring TOR are 2 bytes in size.
-        uint16_t *l_ringTorAddr = reinterpret_cast<uint16_t *>(l_sectionAddr) +
-                    (l_torOffset * l_cpltRingVariantSz);
         SBE_TRACE ("ring tor address %04X\n",l_ringTorAddr);
 
         // If there are non-base variants of the ring, we'll have to check
@@ -449,7 +470,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
                                     (l_addr + *l_ringTorAddr);
             SBE_TRACE("l_rs4Address %08x",l_rs4Address);
             l_rc = rs4DecompressionSvc(i_target,l_rs4Address,
-                                       i_applyOverride,i_ringMode);
+                                       i_applyOverride,i_ringMode,l_ringType);
             if(l_rc != fapi2::FAPI2_RC_SUCCESS)
             {
                 SBE_TRACE("Error from applyRS4_SS");

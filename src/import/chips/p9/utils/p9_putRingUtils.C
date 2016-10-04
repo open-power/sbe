@@ -363,7 +363,8 @@ fapi2::ReturnCode standardScan(
 fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                   i_target,
                                   uint64_t i_scanRegion,
-                                  const uint8_t i_chipletId)
+                                  const uint8_t i_chipletId,
+                                  const RINGTYPE i_ringType)
 {
     fapi2::ReturnCode l_rc;
     uint32_t l_chiplet =  i_chipletId << 24;
@@ -376,7 +377,8 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
         l_chiplet = (l_chipletID << 24);
     }
 
-    if (fapi2::TARGET_TYPE_EX & (i_target.get().getFapiTargetType()))
+    if ((fapi2::TARGET_TYPE_EX & (i_target.get().getFapiTargetType())) &&
+        (i_ringType != INSTANCE_RING ))
     {
         // this gives position of ex (0 or 1)
         uint32_t l_ex_number = i_target.get().getTargetInstance();
@@ -1083,7 +1085,8 @@ fapi2::ReturnCode rs4DecompressionSvc(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
     const uint8_t* i_rs4,
     const bool i_applyOverride,
-    const fapi2::RingMode i_ringMode)
+    const fapi2::RingMode i_ringMode,
+    const RINGTYPE i_ringType)
 {
     FAPI_INF(">> rs4DecompressionSvc");
     CompressedScanData* l_rs4Header = (CompressedScanData*) i_rs4;
@@ -1130,7 +1133,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
         else
         {
             // Set up the scan region for the ring.
-            l_rc = setupScanRegion(i_target, l_scanRegion, l_chipletId);
+            l_rc = setupScanRegion(i_target, l_scanRegion, l_chipletId, i_ringType);
 
             if(l_rc != fapi2::FAPI2_RC_SUCCESS)
             {

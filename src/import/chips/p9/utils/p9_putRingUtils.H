@@ -148,7 +148,8 @@ fapi2::ReturnCode standardScan(
 fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                   i_target,
                                   uint64_t i_scanRegion,
-                                  const uint8_t i_chipletId);
+                                  const uint8_t i_chipletId,
+                                  const RINGTYPE i_ringType = COMMON_RING);
 
 
 /// @brief Function to write the header data to the ring.
@@ -179,13 +180,15 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 /// @param[in] i_target Chiplet Target of Scan
 /// @param[in] i_rs4 The RS4 compressed string
 //  @param[in] i_applyOverride: state of the override mode
+//  @param[in] i_ringType : Ring type Instance /Common
 //  @param[in] i_ringMode differnet ring modes operations
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode rs4DecompressionSvc(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
     const uint8_t* i_rs4,
     const bool i_applyOverride,
-    const fapi2::RingMode i_ringMode);
+    const fapi2::RingMode i_ringMode,
+    const RINGTYPE i_ringType = COMMON_RING);
 
 
 /// @brief Function to clean up the scan region and type
