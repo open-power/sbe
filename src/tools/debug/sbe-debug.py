@@ -29,6 +29,7 @@ import re
 import random
 import argparse
 import sys
+import binascii
 err = False
 
 syms = {};
@@ -149,11 +150,57 @@ def sbeState( sbeObjDir, target, node, proc ):
        print "ERROR running %s: %d " % ( cmd1, rc )
        return 1
 
+def sbeStatus():
+    cmd = "getcfam pu 2809"
+    output = os.popen(cmd).read()
+    output = output.split()
+    if ("ERROR:" in output):
+      print "Error while getting the status register"
+      print ' '.join(output)
+    else:
+      parsevalue(bin(int(output[6], 16)))
+
+def parsevalue(iValue):
+    sbeStates = {'0000' : 'SBE_STATE_UNKNOWN' , '0001' : 'SBE_STATE_IPLING' ,
+                 '0010' : 'SBE_STATE_ISTEP', '0011' : 'SBE_STATE_MPIPL' ,
+                 '0100' : 'SBE_STATE_RUNTIME' , '0101' : 'SBE_STATE_DMT' ,
+                 '0110' : 'SBE_STATE_DUMP' , '0111' : 'SBE_STATE_FAILURE' ,
+                 '1000' : 'SBE_STATE_QUIESCE' , '1001' : 'SBE_STATE_QUIESCE' ,
+                 '1111' : 'SBE_INVALID_STATE'}
+
+    tempVal = iValue[2:3]
+    tempVal = 'True' if tempVal == '1' else 'False'
+    print "SBE Booted           : %s" %(tempVal)
+
+    tempVal = iValue[3:4]
+    tempVal = 'True' if tempVal == '1' else 'False'
+    print "Async FFDC           : %s" %(tempVal)
+
+    tempVal = iValue[4:6]
+    print "Reserver Bit [2:3]   : %s" %(tempVal)
+
+    tempVal = iValue[6:10]
+    print "SBE Previous State   : %s (%s)" %(sbeStates[tempVal], tempVal)
+
+
+    tempVal = iValue[10:14]
+    print "SBE Current State    : %s (%s)" %(sbeStates[tempVal], tempVal)
+
+    tempVal = iValue[14:18]
+    print "Istep Major          : %s" %(int(tempVal, 2))
+
+    tempVal = iValue[18:26]
+    print "Istep Minor          : %s" %(int(tempVal, 2))
+
+    tempVal = iValue[26:34]
+    print "Reserved Bit [24:31] : %s" %(tempVal)
+
+
 def main( argv ):
     parser = argparse.ArgumentParser( description = "SBE Dump Parser" )
 
     parser.add_argument( '-l', '--level', choices = [ 'trace', 'attr', \
-                                'ppestate', 'sbestate'],\
+                                'ppestate', 'sbestate' , 'sbestatus'],\
                                 default='trace', help = 'Parser level' )
     parser.add_argument( '-t', '--target', choices = ['AWAN', 'HW', 'FILE'], \
                                 default='HW', help = 'Target type' )
@@ -172,6 +219,7 @@ def main( argv ):
         print "Parsing everything"
         collectTrace( sbeObjDir, args.target, args.node, args.proc )
         collectAttr(  sbeObjDir, args.target, args.node, args.proc )
+        sbeStatus()
     elif ( args.level == 'trace' ):
         collectTrace( sbeObjDir, args.target, args.node, args.proc )
     elif ( args.level == 'attr' ):
@@ -180,7 +228,8 @@ def main( argv ):
         ppeState( sbeObjDir, args.target, args.node, args.proc )
     elif ( args.level == 'sbestate' ):
         sbeState( sbeObjDir, args.target, args.node, args.proc )
-
+    elif ( args.level == 'sbestatus' ):
+        sbeStatus()
 
 if __name__ == "__main__":
     main( sys.argv )
