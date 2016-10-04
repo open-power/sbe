@@ -49,6 +49,7 @@
 #include <p9_misc_scom_addresses.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
+#include <p9_sbe_common.H>
 
 
 //------------------------------------------------------------------------------
@@ -80,85 +81,6 @@ const uint64_t PBA_FIR_ACTION0 = 0x0000000000000000ULL;
 const uint64_t PBA_FIR_ACTION1 = 0x0C0100600C000000ULL;
 const uint64_t PBA_FIR_MASK = 0x3082448062FC0000ULL;
 
-// chiplet pervasive FIR constants
-const uint64_t PERV_LFIR_ACTION0[15] =
-{
-    0x0000000000000000ULL, // TP
-    0x0000000000000000ULL, // N0
-    0x0000000000000000ULL, // N1
-    0x0000000000000000ULL, // N2
-    0x0000000000000000ULL, // N3
-    0x0000000000000000ULL, // X
-    0x0000000000000000ULL, // MC0
-    0x0000000000000000ULL, // MC1
-    0x0000000000000000ULL, // OB0
-    0x0000000000000000ULL, // OB1
-    0x0000000000000000ULL, // OB2
-    0x0000000000000000ULL, // OB3
-    0x0000000000000000ULL, // PCI0
-    0x0000000000000000ULL, // PCI1
-    0x0000000000000000ULL  // PCI2
-};
-
-const uint64_t PERV_LFIR_ACTION1[15] =
-{
-    0x8000000000000000ULL, // TP
-    0x8000000000000000ULL, // N0
-    0x8000000000000000ULL, // N1
-    0x8000000000000000ULL, // N2
-    0x8000000000000000ULL, // N3
-    0x8000000000000000ULL, // X
-    0x8000000000000000ULL, // MC0
-    0x8000000000000000ULL, // MC1
-    0x8000000000000000ULL, // OB0
-    0x8000000000000000ULL, // OB1
-    0x8000000000000000ULL, // OB2
-    0x8000000000000000ULL, // OB3
-    0x8000000000000000ULL, // PCI0
-    0x8000000000000000ULL, // PCI1
-    0x8000000000000000ULL  // PCI2
-};
-
-const uint64_t PERV_LFIR_MASK[15] =
-{
-    0xFFFFFFFFFFC00000ULL, // TP
-    0xFFFFFFFFFFC00000ULL, // N0
-    0xFFFFFFFFFFC00000ULL, // N1
-    0xFFFFFFFFFFC00000ULL, // N2
-    0xFFFFFFFFFFC00000ULL, // N3
-    0xFFFFFFFFFFC00000ULL, // X
-    0xFFFFFFFFFFC00000ULL, // MC0
-    0xFFFFFFFFFFC00000ULL, // MC1
-    0xFFFFFFFFFFC00000ULL, // OB0
-    0xFFFFFFFFFFC00000ULL, // OB1
-    0xFFFFFFFFFFC00000ULL, // OB2
-    0xFFFFFFFFFFC00000ULL, // OB3
-    0xFFFFFFFFFFC00000ULL, // PCI0
-    0xFFFFFFFFFFC00000ULL, // PCI1
-    0xFFFFFFFFFFC00000ULL  // PCI2
-};
-
-// chiplet XIR constants
-const uint64_t PERV_XFIR_MASK[15] =
-{
-    0x9FFFFFE000000000ULL, // TP
-    0x2007FFE000000000ULL, // N0
-    0x201FFFE000000000ULL, // N1
-    0x200FFFE000000000ULL, // N2
-    0x000007E000000000ULL, // N3
-    0x210FFFE000000000ULL, // X
-    0x20007FE000000000ULL, // MC0
-    0x20007FE000000000ULL, // MC1
-    0x29FFFFE000000000ULL, // OB0
-    0x29FFFFE000000000ULL, // OB1
-    0x29FFFFE000000000ULL, // OB2
-    0x29FFFFE000000000ULL, // OB3
-    0x21FFFFE000000000ULL, // PCI0
-    0x207FFFE000000000ULL, // PCI1
-    0x201FFFE000000000ULL  // PCI2
-};
-
-
 //------------------------------------------------------------------------------
 // Function definitions
 //------------------------------------------------------------------------------
@@ -173,6 +95,8 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     uint64_t l_base_addr_nm1;
     uint64_t l_base_addr_m;
     uint64_t l_base_addr_mmio;
+    uint8_t l_mc_sync_mode;
+    fapi2::TargetFilter l_target_filter = fapi2::TARGET_FILTER_NONE ;
 
     // set fabric topology information in each pervasive chiplet (outside of EC/EP)
     {
@@ -378,55 +302,26 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
     // configure chiplet pervasive FIRs / XFIRs
     {
-        for (auto l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
-             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP |
-                                               fapi2::TARGET_FILTER_ALL_NEST |
-                                               fapi2::TARGET_FILTER_XBUS |
-                                               fapi2::TARGET_FILTER_ALL_MC |
-                                               fapi2::TARGET_FILTER_ALL_OBUS |
-                                               fapi2::TARGET_FILTER_ALL_PCI),
-              fapi2::TARGET_STATE_FUNCTIONAL))
+        l_target_filter = static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP |
+                          fapi2::TARGET_FILTER_ALL_NEST |
+                          fapi2::TARGET_FILTER_XBUS |
+                          fapi2::TARGET_FILTER_ALL_OBUS |
+                          fapi2::TARGET_FILTER_ALL_PCI);
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target, l_mc_sync_mode),
+                 "Error from FAPI_ATTR_GET (ATTR_MC_SYNC_MODE)");
+
+        if (l_mc_sync_mode)
         {
-            uint8_t l_unit_idx;
-            fapi2::buffer<uint64_t> l_scom_data;
+            l_target_filter = static_cast<fapi2::TargetFilter>(l_target_filter | fapi2::TARGET_FILTER_ALL_MC);
+        }
 
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_target, l_unit_idx),
-                     "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
-            l_unit_idx--;
+        for (auto l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>(l_target_filter,
+                fapi2::TARGET_STATE_FUNCTIONAL))
+        {
 
-
-            // PERV LFIR
-            FAPI_DBG("Configuring PERV LFIR (chiplet ID: %02X)", l_unit_idx + 1);
-
-            // reset pervasive FIR
-            l_scom_data = 0;
-            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_LOCAL_FIR, l_scom_data),
-                     "Error from putScom (PERV_LOCAL_FIR)");
-
-            // configure pervasive FIR action/mask
-            l_scom_data = PERV_LFIR_ACTION0[l_unit_idx];
-            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_LOCAL_FIR_ACTION0, l_scom_data),
-                     "Error from putScom (PERV_LOCAL_FIR_ACTION0)");
-
-            l_scom_data = PERV_LFIR_ACTION1[l_unit_idx];
-            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_LOCAL_FIR_ACTION1, l_scom_data),
-                     "Error from putScom (PERV_LOCAL_FIR_ACTION1)");
-
-            l_scom_data = PERV_LFIR_MASK[l_unit_idx];
-            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_LOCAL_FIR_MASK, l_scom_data),
-                     "Error from putScom (PERV_LOCAL_FIR_MASK)");
-
-            // XFIR
-            FAPI_DBG("Configuring chiplet XFIR (chiplet ID: %02X)", l_unit_idx + 1);
-            // reset XFIR
-            l_scom_data = 0;
-            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_XFIR, l_scom_data),
-                     "Error from putScom (PERV_XFIR)");
-
-            // configure XFIR mask
-            l_scom_data = PERV_XFIR_MASK[l_unit_idx];
-            FAPI_TRY(fapi2::putScom(l_chplt_target, PERV_FIR_MASK, l_scom_data),
-                     "Error from putScom (PERV_FIR_MASK");
+            FAPI_INF("Call p9_sbe_common_configure_chiplet_FIR");
+            FAPI_TRY(p9_sbe_common_configure_chiplet_FIR(l_chplt_target));
         }
     }
 
