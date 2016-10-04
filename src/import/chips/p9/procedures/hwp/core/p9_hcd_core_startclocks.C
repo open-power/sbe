@@ -257,8 +257,7 @@ p9_hcd_core_startclocks(
     FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
     FAPI_TRY(putScom(i_target, C_CPLT_CTRL0_CLEAR, MASK_SET(2)));
 
-    if (!l_attr_runn_mode && l_attr_system_ipl_phase !=
-        fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
+    if (!l_attr_runn_mode)
     {
         FAPI_DBG("Drop Core-L2/CC Quiesces via CME_SCOM_SICR[6,8]/[7,9]");
         FAPI_TRY(putScom(l_quad,
