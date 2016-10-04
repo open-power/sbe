@@ -287,6 +287,7 @@ uint32_t sbeDownFifoSignalEot (void)
 uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
                           sbeResponseFfdc_t *i_ffdc )
 {
+    #define SBE_FUNC "sbeDsSendRespHdr "
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do
     {
@@ -303,6 +304,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         // If no ffdc , exit;
         if( (i_ffdc != NULL) && (i_ffdc->getRc() != FAPI2_RC_SUCCESS))
         {
+            SBE_ERROR( SBE_FUNC" FAPI RC:0x%08X", i_ffdc->getRc());
             // making sure ffdc length is multiples of uint32_t
             assert((g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0);
             uint32_t ffdcDataLenInWords = g_FfdcData.ffdcLength
@@ -334,6 +336,8 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         if((i_hdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL) ||\
             (i_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL))
         {
+            SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X",
+                       i_hdr.primaryStatus, i_hdr.secondaryStatus);
             //Add FFDC data as well.
             //Generate all the fields of FFDC package
             SbeFFDCPackage sbeFfdc;
@@ -356,4 +360,5 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
 
     }while(0);
     return rc;
+    #undef SBE_FUNC
 }
