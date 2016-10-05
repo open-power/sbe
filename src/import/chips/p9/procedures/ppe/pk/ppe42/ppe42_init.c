@@ -57,6 +57,7 @@ __ppe42_system_setup()
     //NOTE: EXTERNAL_IRQS is the phantom interrupt assigned irq
     __ppe42_irq_handlers[irq].handler = __ppe42_phantom_irq_handler;
 
+#endif /*STATIC_IRQ_TABLE*/
     // Initialize special interrupt handlers
 
     __ppe42_fit_routine = __ppe42_default_irq_handler;
@@ -64,12 +65,6 @@ __ppe42_system_setup()
 
     __ppe42_watchdog_routine = __ppe42_default_irq_handler;
     __ppe42_watchdog_arg = 0;
-
-    /*
-        __ppe42_debug_routine = __ppe42_default_irq_handler;
-        __ppe42_debug_arg = 0;
-    */
-#endif /*STATIC_IRQ_TABLE*/
 
     //Clear all status bits in the TSR
     mtspr(SPRN_TSR, TSR_ENW | TSR_WIS | TSR_DIS | TSR_FIS);

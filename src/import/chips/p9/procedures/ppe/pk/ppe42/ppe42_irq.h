@@ -106,7 +106,7 @@ PK_IRQ_HANDLER(__ppe42_phantom_irq_handler);
 
 
 int
-ppe42_fit_setup(int tcr_fp, PkIrqHandler handler, void* arg);
+ppe42_fit_setup(PkIrqHandler handler, void* arg);
 
 
 ///  The address of the optional FIT interrupt handler

@@ -49,6 +49,7 @@
 PPE42-C-SOURCES = ppe42_core.c \
 		  ppe42_init.c \
 		  ppe42_irq_core.c\
+		  ppe42_irq_init.c\
 		  ppe42_gcc.c\
 		  ppe42_scom.c\
 		  eabi.c\
