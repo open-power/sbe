@@ -117,6 +117,8 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
+    ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
+    sbeResponseFfdc_t l_ffdc;
     sbeRespGenHdr_t l_respHdr;
     l_respHdr.init();
 
@@ -126,14 +128,42 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         l_rc = sbeUpFifoDeq_mult (len, NULL);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-        l_rc = sbeDsSendRespHdr( l_respHdr);
-
-        //TODO RTC-134278  Continue MPIPL Related procedure/steps
-
-        // TODO - Once continue steps are over, it will trigger the
-        // istep5.2 and transition to runtime will happen
-
+        // Run isteps
+        const uint8_t isteps[][3] = {
+            // Major Num,              Minor Start,       Minor End
+            {SBE_ISTEP_MPIPL_CONTINUE, ISTEP_MINOR_START, MPIPL_CONTINUE_MAX_SUBSTEPS},
+            {SBE_ISTEP4,               ISTEP_MINOR_START, ISTEP4_MAX_SUBSTEPS},
+            {SBE_ISTEP5,               ISTEP_MINOR_START, ISTEP5_MAX_SUBSTEPS}};
+        // Loop through isteps
+        for( auto istep : isteps)
+        {
+            for(uint8_t l_minor = istep[1]; l_minor <= istep[2]; l_minor++)
+            {
+                l_fapiRc = sbeExecuteIstep(istep[0], l_minor);
+                if(l_fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR(SBE_FUNC "Failed in Mpipl continue in ChipOp "
+                        "Mode Major [%d] Minor [%d]", istep[0], l_minor);
+                    l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                    l_ffdc.setRc(l_fapiRc);
+                    break;
+                }
+            }
+            if(l_ffdc.getRc() != FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+        }
     }while(0);
+
+    // Create the Response to caller
+    // If there was a FIFO error, will skip sending the response,
+    // instead give the control back to the command processor thread
+    if(SBE_SEC_OPERATION_SUCCESSFUL == l_rc)
+    {
+        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+    }
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

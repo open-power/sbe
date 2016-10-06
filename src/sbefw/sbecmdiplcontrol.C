@@ -181,6 +181,8 @@ ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp );
 
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
@@ -242,11 +244,11 @@ static istepMap_t g_istepMpiplContinuePtrTbl[MPIPL_CONTINUE_MAX_SUBSTEPS] =
         {
 #ifdef SEEPROM_IMAGE
             // Setup EC/EQ guard records
-            { NULL, NULL},
-            // place holder for p9_quad_power_off
+            { &istepMpiplSetFunctionalState, NULL},
+            // p9_quad_power_off
             { istepMpiplQuadPoweroff, { .eqHwp = &p9_quad_power_off} },
             // Set MPIPL mode in Sratch Reg 3
-            { NULL, NULL},
+            { &istepMpiplSetMPIPLMode, NULL},
 #endif
         };
 
@@ -1113,4 +1115,86 @@ ReturnCode istepWithProcQuiesceLQASet( sbeIstepHwp_t i_hwp )
     #undef SBE_FUNC
 }
 
+//----------------------------------------------------------------------------
+ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp)
+{
+    #define SBE_FUNC "istepMpiplSetMPIPLMode"
+    // Set MPIPL mode bit in Scratch Reg 3
+    (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
+    return FAPI2_RC_SUCCESS;
+    #undef SBE_FUNC
+}
 
+//----------------------------------------------------------------------------
+ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepMpiplSetFunctionalState"
+    SBE_ENTER(SBE_FUNC);
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        // Read the EQ and EC gard attributes from the chip target
+        fapi2::buffer<uint64_t> l_scratchReg1 = 0;
+        uint64_t l_scratchReg8 = 0;
+        static const uint64_t SCRATCH8_SCRATCH1REG_VALID_BIT =
+                                                    0x8000000000000000ULL;
+        fapi2::buffer<uint8_t> l_eqMask = 0;
+        fapi2::buffer<uint32_t> l_ecMask = 0;
+        plat_target_handle_t l_hndl;
+        rc = getscom_abs_wrap (&l_hndl,
+                               PERV_SCRATCH_REGISTER_8_SCOM,
+                               &l_scratchReg8);
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to read Scratch RegR8");
+            break;
+        }
+        if(l_scratchReg8 & SCRATCH8_SCRATCH1REG_VALID_BIT)
+        {
+            rc = getscom_abs_wrap (&l_hndl,
+                                   PERV_SCRATCH_REGISTER_1_SCOM,
+                                   &l_scratchReg1());
+            if( rc != FAPI2_RC_SUCCESS )
+            {
+                SBE_ERROR(SBE_FUNC" Failed to read Scratch Reg1");
+                break;
+            }
+
+            l_scratchReg1.extract<0, 6>(l_eqMask);
+            l_scratchReg1.extract<8, 24>(l_ecMask);
+            SBE_INFO(SBE_FUNC" Setting ATTR_EQ_GARD [0x%08X] "
+                             "ATTR_EC_GARD [0x%08X]",
+                             l_eqMask, l_ecMask);
+
+            FAPI_ATTR_SET(fapi2::ATTR_EQ_GARD, proc, l_eqMask);
+            FAPI_ATTR_SET(fapi2::ATTR_EC_GARD, proc, l_ecMask);
+
+            // Apply the gard records
+            rc = plat_ApplyGards();
+            if( rc != FAPI2_RC_SUCCESS )
+            {
+                SBE_ERROR(SBE_FUNC" Failed to to apply gard records");
+                break;
+            }
+
+            // TODO via RTC 135345
+            // Once multicast targets are supported, we may need to pass
+            // p9selectex::ALL as input.
+            SBE_EXEC_HWP(rc, p9_sbe_select_ex_hwp, proc, p9selectex::SINGLE)
+            if( rc != FAPI2_RC_SUCCESS )
+            {
+                SBE_ERROR(SBE_FUNC" Failed hwp p9_sbe_select_ex_hwp");
+                break;
+            }
+        }
+        else
+        {
+            SBE_ERROR(SBE_FUNC " Scratch Reg 1 is invalid,"
+                    "not applying gard records");
+        }
+     }while(0);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
