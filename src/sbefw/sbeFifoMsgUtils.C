@@ -133,6 +133,8 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
             if ( ((!i_isEotExpected) || (l_len != io_len))
                      && (!i_flush) )
             {
+                SBE_ERROR(SBE_FUNC" Actual length:0x%08X Expected len:0x%08X",
+                          l_len, io_len );
                 if (l_len < io_len)
                 {
                     // Unexpected EOT, got insufficient data
@@ -338,6 +340,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         {
             SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X",
                        i_hdr.primaryStatus, i_hdr.secondaryStatus);
+
             //Add FFDC data as well.
             //Generate all the fields of FFDC package
             SbeFFDCPackage sbeFfdc;
