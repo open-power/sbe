@@ -62,17 +62,13 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
 
 static fapi2::ReturnCode p9_sbe_arrayinit_sdisn_setup(const
         fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
-        const fapi2::buffer<uint8_t> i_attr,
         const bool i_set);
 
 fapi2::ReturnCode p9_sbe_arrayinit(const
                                    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint16_t> l_regions;
-    fapi2::buffer<uint8_t> l_attr_read;
     FAPI_INF("p9_sbe_arrayinit: Entering ...");
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SDISN_SETUP, i_target_chip, l_attr_read));
 
     for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
@@ -81,7 +77,7 @@ fapi2::ReturnCode p9_sbe_arrayinit(const
           fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_DBG("set sdis_n");
-        FAPI_TRY(p9_sbe_arrayinit_sdisn_setup(l_chplt_trgt, l_attr_read, true));
+        FAPI_TRY(p9_sbe_arrayinit_sdisn_setup(l_chplt_trgt, true));
 
         FAPI_DBG("Region setup");
         FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(l_chplt_trgt,
@@ -93,7 +89,7 @@ fapi2::ReturnCode p9_sbe_arrayinit(const
                  l_regions));
 
         FAPI_DBG("clear sdis_n");
-        FAPI_TRY(p9_sbe_arrayinit_sdisn_setup(l_chplt_trgt, l_attr_read, false));
+        FAPI_TRY(p9_sbe_arrayinit_sdisn_setup(l_chplt_trgt, false));
     }
 
     FAPI_INF("p9_sbe_arrayinit: Exiting ...");
@@ -145,35 +141,30 @@ fapi_try_exit:
 /// @brief Sdis_n setup
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
-/// @param[in]     i_attr          Attribute to decide the sdis setup
 /// @param[in]     i_set           set or clear the LCBES condition
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_arrayinit_sdisn_setup(const
         fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
-        const fapi2::buffer<uint8_t> i_attr,
         const bool i_set)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_arrayinit_sdisn_setup: Entering ...");
 
-    if ( i_attr )
+    if ( i_set )
     {
-        if ( i_set )
-        {
-            //Setting CPLT_CONF0 register value
-            l_data64.flush<0>();
-            //CPLT_CONF0.CTRL_CC_SDIS_DC_N = 1
-            l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
-            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0_OR, l_data64));
-        }
-        else
-        {
-            //Setting CPLT_CONF0 register value
-            l_data64.flush<0>();
-            //CPLT_CONF0.CTRL_CC_SDIS_DC_N = 0
-            l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
-            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0_CLEAR, l_data64));
-        }
+        //Setting CPLT_CONF0 register value
+        l_data64.flush<0>();
+        //CPLT_CONF0.CTRL_CC_SDIS_DC_N = 1
+        l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0_OR, l_data64));
+    }
+    else
+    {
+        //Setting CPLT_CONF0 register value
+        l_data64.flush<0>();
+        //CPLT_CONF0.CTRL_CC_SDIS_DC_N = 0
+        l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0_CLEAR, l_data64));
     }
 
     FAPI_INF("p9_sbe_arrayinit_sdisn_setup: Exiting ...");
