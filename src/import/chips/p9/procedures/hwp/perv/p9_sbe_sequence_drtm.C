@@ -43,9 +43,6 @@
 // Includes
 //------------------------------------------------------------------------------
 #include <fapi2.H>
-#include <fapi2ClientCapi.H>
-#include <fapi2SharedUtils.H>
-#include <cstdlib>
 #include <p9_adu_setup.H>
 #include <p9_adu_access.H>
 #include <p9_adu_coherent_utils.H>
