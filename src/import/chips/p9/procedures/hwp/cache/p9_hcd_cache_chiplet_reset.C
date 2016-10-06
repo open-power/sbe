@@ -52,6 +52,11 @@
 #include <p9_hcd_common.H>
 #include "p9_hcd_cache_chiplet_reset.H"
 
+#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
+    #include <p9_common_poweronoff.H>
+    #include <p9_common_poweronoff.C>
+#endif
+
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
@@ -77,6 +82,15 @@ enum P9_HCD_CACHE_CHIPLET_RESET_CONSTANTS
     CACHE_GLSMUX_RESET_DELAY_REF_CYCLES = 40
 };
 
+/// @todo RTC 162433
+/// This is going to break on Nimbus DD2.0 and Cumulus SoA testing.
+/// need more discussion in HW/FW interlock on how to handle this.
+enum HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX_CONSTATNS
+{
+    // Eq_fure + Ex_l2_fure(ex0) + Ex_l2_fure(ex1)
+    DD1_EQ_FURE_RING_LENGTH = (46532 + 119192 + 119192)
+};
+
 //------------------------------------------------------------------------------
 // Procedure: Cache Chiplet Reset
 //------------------------------------------------------------------------------
@@ -91,6 +105,9 @@ p9_hcd_cache_chiplet_reset(
     uint64_t                                    l_l2gmux_input       = 0;
     uint64_t                                    l_l2gmux_reset       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
+#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
+    fapi2::buffer<uint8_t>                      l_attr_dd1_vcs_workaround;
+#endif
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
@@ -213,6 +230,19 @@ p9_hcd_cache_chiplet_reset(
                                                   l_region_scan0,
                                                   p9hcd::SCAN0_TYPE_GPTR_REPR_TIME));
 
+#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
+        FAPI_TRY(FAPI_ATTR_GET(
+                     fapi2::ATTR_CHIP_EC_FEATURE_VCS_POWER_ON_IN_CHIPLET_RESET,
+                     l_chip, l_attr_dd1_vcs_workaround));
+
+        if (l_attr_dd1_vcs_workaround)
+        {
+            FAPI_DBG("Enable DD1 VCS workaround");
+            FAPI_TRY(p9_hcd_dd1_vcs_workaround(i_target));
+        }
+
+#endif
+
         FAPI_DBG("Scan0 region:all_but_vital type:all_but_gptr_repr_time rings");
 
         for(l_loop = 0; l_loop < P9_HCD_SCAN_FUNC_REPEAT; l_loop++)
@@ -235,3 +265,146 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
+fapi2::ReturnCode
+p9_hcd_dd1_vcs_workaround(
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
+{
+    FAPI_INF(">>p9_hcd_dd1_vcs_workaround");
+    fapi2::buffer<uint64_t>                     l_data64;
+    uint64_t                                    l_regions;
+    uint32_t                                    l_timeout;
+    uint32_t                                    l_loop;
+
+    l_regions = p9hcd::CLK_REGION_PERV   |
+                p9hcd::CLK_REGION_EX0_L2 |
+                p9hcd::CLK_REGION_EX1_L2;
+
+    // ----------------------------------------------------
+    // Scan1 initialize region:Perv/L20/L21 type:Fure rings
+    // Note: must also scan partial good "bad" L2 rings,
+    // and clock start&stop their latches, as well
+    // ----------------------------------------------------
+
+    FAPI_DBG("Assert Vital clock regional fence via CPLT_CTRL1[3]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_OR, MASK_SET(3)));
+
+    FAPI_DBG("Assert regional fences of scanned regions via CPLT_CTRL1[4,8,9]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_OR, l_regions));
+
+    FAPI_DBG("Clear clock region register via CLK_REGION");
+    FAPI_TRY(putScom(i_target, EQ_CLK_REGION, MASK_ZERO));
+
+    FAPI_DBG("Setup scan select register via SCAN_REGION_TYPE[4,8,9,48,51]");
+    FAPI_TRY(putScom(i_target, EQ_SCAN_REGION_TYPE,
+                     (l_regions | p9hcd::SCAN_TYPE_FUNC | p9hcd::SCAN_TYPE_REGF)));
+
+    FAPI_DBG("Write scan data register via 0x1003E040");
+
+    for (l_loop = 0; l_loop <= DD1_EQ_FURE_RING_LENGTH / 64; l_loop++)
+    {
+        FAPI_DBG("Loop Count: %d", l_loop);
+        FAPI_TRY(putScom(i_target, 0x1003E040, MASK_ALL));
+    }
+
+    // -------------------------------
+    // Start Perv/L20/L21 clocks
+    // -------------------------------
+
+    FAPI_DBG("Clear all SCAN_REGION_TYPE bits");
+    FAPI_TRY(putScom(i_target, EQ_SCAN_REGION_TYPE, MASK_ZERO));
+
+    FAPI_DBG("Start cache clocks(perv/l20/l21) via CLK_REGION");
+    l_data64 = (p9hcd::CLK_START_CMD | l_regions | p9hcd::CLK_THOLD_ARY);
+    FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
+
+    FAPI_DBG("Poll for perv/l20/l21 clocks running via CPLT_STAT0[8]");
+    l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP);
+
+    do
+    {
+        FAPI_TRY(getScom(i_target, EQ_CPLT_STAT0, l_data64));
+    }
+    while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
+
+    FAPI_ASSERT((l_timeout != 0),
+                fapi2::PMPROC_CACHECLKSTART_TIMEOUT().set_EQCPLTSTAT(l_data64),
+                "perv/l20/l21 Clock Start Timeout");
+
+    FAPI_DBG("Check perv/l20/l21 clocks running");
+    FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_ARY, l_data64));
+
+    FAPI_ASSERT(((l_data64 & l_regions) == 0),
+                fapi2::PMPROC_CACHECLKSTART_FAILED().set_EQCLKSTAT(l_data64),
+                "perv/l20/l21 Clock Start Failed");
+    FAPI_DBG("perv/l20/l21 clocks running now");
+
+    // -------------------------------
+    // Turn on power headers for VCS
+    // -------------------------------
+
+    FAPI_TRY(p9_common_poweronoff<fapi2::TARGET_TYPE_EQ>(i_target, p9power::POWER_ON_VCS));
+
+    // Because common module raises those fences, we need to lower them here.
+    FAPI_DBG("Drop vital thold via NET_CTRL0[16]");
+    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(16)));
+
+    FAPI_DBG("Drop chiplet electrical fence via NET_CTRL0[26]");
+    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(26)));
+
+    FAPI_DBG("Drop PCB fence via NET_CTRL0[25]");
+    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(25)));
+
+    // -------------------------------
+    // Stop Perv/L20/L21 clocks
+    // -------------------------------
+
+    FAPI_DBG("Clear all SCAN_REGION_TYPE bits");
+    FAPI_TRY(putScom(i_target, EQ_SCAN_REGION_TYPE, MASK_ZERO));
+
+    FAPI_DBG("Stop perv/l20/l21 clocks via CLK_REGION");
+    l_data64 = (p9hcd::CLK_STOP_CMD | l_regions | p9hcd::CLK_THOLD_ARY);
+    FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
+
+    FAPI_DBG("Poll for perv/l20/l21 clocks stopped via CPLT_STAT0[8]");
+    l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP);
+
+    do
+    {
+        FAPI_TRY(getScom(i_target, EQ_CPLT_STAT0, l_data64));
+    }
+    while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
+
+    FAPI_ASSERT((l_timeout != 0),
+                fapi2::PMPROC_CACHECLKSTOP_TIMEOUT()
+                .set_EQ_TARGET(i_target)
+                .set_EQCPLTSTAT(l_data64),
+                "perv/l20/l21 Clock Stop Timeout");
+
+    FAPI_DBG("Check perv/l20/l21 clocks stopped");
+    FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_ARY, l_data64));
+
+    FAPI_ASSERT((((~l_data64) & l_regions) == 0),
+                fapi2::PMPROC_CACHECLKSTOP_FAILED()
+                .set_EQ_TARGET(i_target)
+                .set_EQCLKSTAT(l_data64),
+                "perv/l20/l21 Clock Stop Failed");
+    FAPI_DBG("perv/l20/l21 clocks stopped now");
+
+    // -------------------------------
+    // Clean up
+    // -------------------------------
+
+    FAPI_DBG("Drop Vital clock regional fence via CPLT_CTRL1[3]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, MASK_SET(3)));
+
+    FAPI_DBG("Drop Perv/L20/L21 regional fences via CPLT_CTRL1[4,8,9]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, l_regions));
+
+fapi_try_exit:
+
+    FAPI_INF("<<p9_hcd_dd1_vcs_workaround");
+    return fapi2::current_err;
+}
+
+#endif

@@ -64,6 +64,11 @@ p9_hcd_cache_poweron(
 {
     FAPI_INF(">>p9_hcd_cache_poweron");
     fapi2::buffer<uint64_t> l_data64;
+#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
+    fapi2::buffer<uint8_t>  l_attr_dd1_vcs_workaround;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
+        i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+#endif
 
     //--------------------------
     // Prepare to power on cache
@@ -83,7 +88,24 @@ p9_hcd_cache_poweron(
     //-----------------------
 
     FAPI_DBG("Power on cache chiplet");
+#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
+    FAPI_TRY(FAPI_ATTR_GET(
+                 fapi2::ATTR_CHIP_EC_FEATURE_VCS_POWER_ON_IN_CHIPLET_RESET,
+                 l_chip, l_attr_dd1_vcs_workaround));
+
+    if (l_attr_dd1_vcs_workaround)
+    {
+        FAPI_TRY(p9_common_poweronoff<fapi2::TARGET_TYPE_EQ>(i_target, p9power::POWER_ON_VDD));
+    }
+    else
+    {
+        FAPI_TRY(p9_common_poweronoff<fapi2::TARGET_TYPE_EQ>(i_target, p9power::POWER_ON));
+    }
+
+#else
     FAPI_TRY(p9_common_poweronoff<fapi2::TARGET_TYPE_EQ>(i_target, p9power::POWER_ON));
+#endif
+
 
 fapi_try_exit:
 

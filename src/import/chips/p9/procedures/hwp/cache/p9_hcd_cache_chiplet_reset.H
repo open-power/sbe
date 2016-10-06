@@ -53,7 +53,11 @@ extern "C"
     fapi2::ReturnCode
     p9_hcd_cache_chiplet_reset(
         const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target);
-
+#if HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
+    fapi2::ReturnCode
+    p9_hcd_dd1_vcs_workaround(
+        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target);
+#endif
 }
 
 #endif  // __P9_HCD_CACHE_CHIPLET_RESET_H__
