@@ -1862,7 +1862,7 @@ int dissectRingSectionTor( void*       i_ringSection,
 
                         // Gather ring details and print it.
                         //
-                        if (rc == IMGBUILD_TGR_RING_FOUND)
+                        if (rc == TOR_RING_FOUND)
                         {
 
                             // Check ring block size.
@@ -1991,21 +1991,21 @@ int dissectRingSectionTor( void*       i_ringSection,
                             fprintf(stdout, "%s\n", disList);
 
                         }
-                        else if (rc == IMGBUILD_TGR_RING_NOT_FOUND)
+                        else if (rc == TOR_RING_NOT_FOUND)
                         {
-                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_RING_NOT_FOUND\n", rc);
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=TOR_RING_NOT_FOUND\n", rc);
                         }
-                        else if (rc == IMGBUILD_INVALID_INSTANCEID)
+                        else if (rc == TOR_INVALID_INSTANCE_ID)
                         {
-                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_INVALID_INSTANCEID\n", rc);
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=TOR_INVALID_INSTANCE_ID\n", rc);
                         }
-                        else if (rc == IMGBUILD_TGR_AMBIGUOUS_API_PARMS)
+                        else if (rc == TOR_AMBIGUOUS_API_PARMS)
                         {
-                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_AMBIGUOUS_API_PARMS\n", rc);
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=TOR_AMBIGUOUS_API_PARMS\n", rc);
                         }
-                        else if (rc == IMGBUILD_TGR_INVALID_RING_ID)
+                        else if (rc == TOR_INVALID_RING_ID)
                         {
-                            fprintf(stdout, "tor_access_ring() returned rc=%d=IMGBUILD_TGR_INVALID_RING_ID\n", rc);
+                            fprintf(stdout, "tor_access_ring() returned rc=%d=TOR_INVALID_RING_ID\n", rc);
                         }
                         else
                         {
