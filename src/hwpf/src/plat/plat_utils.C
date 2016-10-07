@@ -115,8 +115,10 @@ namespace fapi2
             ((l_adjusted_simcycles - (NUM_OVERHEAD_INSTRS * __FAPI_DELAY_PPE_SIM_CYCLES__)) /
                         (NUM_LOOP_INSTRS * __FAPI_DELAY_PPE_SIM_CYCLES__));
 
-
-        for (auto i = delay_loop_count; i > 0; --i) {}
+        for (auto i = delay_loop_count; i > 0; --i) {
+            // Force compiler not to optimize for loop
+             asm("");
+        }
 
 #endif
 
