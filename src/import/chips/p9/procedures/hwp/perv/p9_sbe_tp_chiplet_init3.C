@@ -26,6 +26,11 @@
 /// @file  p9_sbe_tp_chiplet_init3.C
 ///
 /// @brief TP Chiplet Start Clocks
+///        Starting clocks for all regions in perv chiplet other than pib and net
+///        Clock test to check osc runnong
+///        Configures pfet controls, tod errr regs , perv hang counters
+///        pervasive LFIRS and set mask in IPOLL mask reg
+///        Starts VREF calibration and checks for Calib Done
 //------------------------------------------------------------------------------
 // *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
@@ -59,7 +64,8 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
     OSC_ERROR_MASK = 0xF700000000000000, // Mask OSC errors
     LFIR_ACTION0_VALUE = 0x0000000000000000,
     LFIR_ACTION1_VALUE = 0x8000000000000000,
-    FIR_MASK_VALUE = 0xFFFFFFFFFFC00000
+    FIR_MASK_VALUE = 0xFFFFFFFFFFC00000,
+    IPOLL_MASK_VALUE = 0xFC00000000000000
 };
 
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
@@ -189,6 +195,11 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     l_data64.insertFromRight<0, 6>(0b000110);
     l_data64.clearBit<6>();  //PERV.HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_5_REG, l_data64));
+
+
+    // Mask IPOLL to hostbridge
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_HOST_MASK_REG, IPOLL_MASK_VALUE));
+
 
     FAPI_DBG("Start  calibration");
     //Setting KVREF_AND_VMEAS_MODE_STATUS_REG register value
