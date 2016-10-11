@@ -52,7 +52,8 @@ enum P9_SBE_TP_SWITCH_GEARS_Private_Constants
     BACKUP_SEEPROM_MAGIC_NUM_ADDRESS = 0xD8A9029000000000, // Magic number value from Backup SEEPROM
     BUS_STATUS_BUSY_POLL_COUNT = 256,
     MAGIC_NUMBER = 0x584950205345504D,
-    NORMAL_SEEPROM_MAGIC_NUM_ADDRESS = 0xD8A9009000000000 // Magic number value from SEEPROM
+    NORMAL_SEEPROM_MAGIC_NUM_ADDRESS = 0xD8A9009000000000, // Magic number value from SEEPROM
+    SCAN_RATIO_8TO1 = 0x7
 };
 
 fapi2::ReturnCode p9_sbe_tp_switch_gears(const
@@ -60,15 +61,16 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
 {
     FAPI_INF("p9_sbe_tp_switch_gears: Entering ...");
 
-#ifdef __PPE__
     uint8_t l_nest_bypass = 0;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_nest_bypass));
+
+#ifdef __PPE__
+
     // - if we've just switched from refclock->PLL, we need to adjust the
     // i2c bit rate divisor to account for the new frequency (plus
     // check our ability to access the seeprom with this setting)
     // - if no frequency change has occurred (nest PLL in bypass),
     // skip all of these steps as the current divisor in place is appropriate
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_nest_bypass));
-
     if (l_nest_bypass == 0)
     {
         FAPI_TRY(p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(i_target_chip));
@@ -77,9 +79,24 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
         FAPI_TRY(p9_sbe_tp_switch_gears_check_magicnumber(i_target_chip));
     }
 
-fapi_try_exit:
 #endif
 
+    if (l_nest_bypass == 0)
+    {
+        fapi2::buffer<uint64_t> l_opcg_align;
+
+        // adjust scan ratio
+        FAPI_DBG("Adjust scan rate to 8:1");
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OPCG_ALIGN, l_opcg_align),
+                 "Error from getScom (PERV_TP_OPCG_ALIGN)");
+
+        l_opcg_align.insertFromRight<PERV_1_OPCG_ALIGN_SCAN_RATIO, PERV_1_OPCG_ALIGN_SCAN_RATIO_LEN>(SCAN_RATIO_8TO1);
+
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OPCG_ALIGN, l_opcg_align),
+                 "Error from putScom (PERV_TP_OPCG_ALIGN)");
+    }
+
+fapi_try_exit:
     FAPI_INF("p9_sbe_tp_switch_gears: Exiting ...");
 
     return fapi2::current_err;
