@@ -212,6 +212,14 @@ def main( argv ):
     args = parser.parse_args()
 
 
+    # On cronus, disabe FIFO mode
+    cmdFifoOff = "setconfig USE_SBE_FIFO off"
+    cmdFifoOn = "setconfig USE_SBE_FIFO on"
+    rc = os.system( cmdFifoOff )
+    if ( rc ):
+       print "ERROR running %s: %d " % ( cmdFifoOff, rc )
+       return 1
+
     sbeObjDir = SBE_TOOLS_PATH;
     print "sbeObjDir", sbeObjDir
     fillSymTable(sbeObjDir, args.target)
@@ -230,6 +238,13 @@ def main( argv ):
         sbeState( sbeObjDir, args.target, args.node, args.proc )
     elif ( args.level == 'sbestatus' ):
         sbeStatus()
+
+    # On cronus, Enable FIFO mode
+    rc = os.system( cmdFifoOn )
+    if ( rc ):
+       print "ERROR running %s: %d " % ( cmdFifoOn, rc )
+       return 1
+
 
 if __name__ == "__main__":
     main( sys.argv )
