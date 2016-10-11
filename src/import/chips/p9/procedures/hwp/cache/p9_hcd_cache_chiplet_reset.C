@@ -52,10 +52,8 @@
 #include <p9_hcd_common.H>
 #include "p9_hcd_cache_chiplet_reset.H"
 
-#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
-    #include <p9_common_poweronoff.H>
-    #include <p9_common_poweronoff.C>
-#endif
+#include <p9_common_poweronoff.H>
+#include <p9_common_poweronoff.C>
 
 //------------------------------------------------------------------------------
 // Constant Definitions
@@ -85,7 +83,7 @@ enum P9_HCD_CACHE_CHIPLET_RESET_CONSTANTS
 /// @todo RTC 162433
 /// This is going to break on Nimbus DD2.0 and Cumulus SoA testing.
 /// need more discussion in HW/FW interlock on how to handle this.
-enum HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX_CONSTATNS
+enum HW388878_DD1_FIX_CONSTATNS
 {
     // Eq_fure + Ex_l2_fure(ex0) + Ex_l2_fure(ex1)
     DD1_EQ_FURE_RING_LENGTH = (46532 + 119192 + 119192)
@@ -105,9 +103,7 @@ p9_hcd_cache_chiplet_reset(
     uint64_t                                    l_l2gmux_input       = 0;
     uint64_t                                    l_l2gmux_reset       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
-#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
     fapi2::buffer<uint8_t>                      l_attr_dd1_vcs_workaround;
-#endif
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
@@ -115,6 +111,9 @@ p9_hcd_cache_chiplet_reset(
     auto l_core_functional_vector =
         i_target.getChildren<fapi2::TARGET_TYPE_CORE>
         (fapi2::TARGET_STATE_FUNCTIONAL);
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW388878, l_chip,
+                           l_attr_dd1_vcs_workaround));
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv,
                            l_attr_chip_unit_pos));
@@ -174,7 +173,15 @@ p9_hcd_cache_chiplet_reset(
     FAPI_TRY(putScom(i_target, EQ_PPM_CGCR, MASK_OR(0, 4, 0x9)));
 
     FAPI_DBG("Flip L2 glsmux to DPLL input via QPPM_EXCGCR[34:35]");
-    FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_OR, l_l2gmux_input));
+
+    if (l_attr_dd1_vcs_workaround)
+    {
+        FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_OR, MASK_OR(34, 2, 3)));
+    }
+    else
+    {
+        FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_OR, l_l2gmux_input));
+    }
 
     FAPI_DBG("Assert DPLL ff_bypass via QPPM_DPLL_CTRL[2]");
     FAPI_TRY(putScom(i_target, EQ_QPPM_DPLL_CTRL_OR, MASK_SET(2)));
@@ -188,7 +195,15 @@ p9_hcd_cache_chiplet_reset(
     FAPI_TRY(putScom(i_target, EQ_PPM_CGCR, MASK_SET(3)));
 
     FAPI_DBG("Drop L2 glsmux reset via QPPM_EXCGCR[32:33]");
-    FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_CLEAR, l_l2gmux_reset));
+
+    if (l_attr_dd1_vcs_workaround)
+    {
+        FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_CLEAR, MASK_CLR(32, 2, 3)));
+    }
+    else
+    {
+        FAPI_TRY(putScom(i_target, EQ_QPPM_EXCGCR_CLEAR, l_l2gmux_reset));
+    }
 
     FAPI_TRY(fapi2::delay(
                  CACHE_GLSMUX_RESET_DELAY_REF_CYCLES * p9hcd::CLK_PERIOD_10NS,
@@ -225,23 +240,23 @@ p9_hcd_cache_chiplet_reset(
 
         FAPI_DBG("Scan0 region:all_but_vital type:gptr_repr_time rings");
 
-        for(l_loop = 0; l_loop < P9_HCD_SCAN_GPTR_REPEAT; l_loop++)
-            FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_perv,
-                                                  l_region_scan0,
-                                                  p9hcd::SCAN0_TYPE_GPTR_REPR_TIME));
-
-#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
-        FAPI_TRY(FAPI_ATTR_GET(
-                     fapi2::ATTR_CHIP_EC_FEATURE_HW388878,
-                     l_chip, l_attr_dd1_vcs_workaround));
-
         if (l_attr_dd1_vcs_workaround)
         {
+            for(l_loop = 0; l_loop < P9_HCD_SCAN_GPTR_REPEAT; l_loop++)
+                FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_perv,
+                                                      p9hcd::SCAN0_REGION_ALL,
+                                                      p9hcd::SCAN0_TYPE_GPTR_REPR_TIME));
+
             FAPI_DBG("Enable DD1 VCS workaround");
             FAPI_TRY(p9_hcd_dd1_vcs_workaround(i_target));
         }
-
-#endif
+        else
+        {
+            for(l_loop = 0; l_loop < P9_HCD_SCAN_GPTR_REPEAT; l_loop++)
+                FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_perv,
+                                                      l_region_scan0,
+                                                      p9hcd::SCAN0_TYPE_GPTR_REPR_TIME));
+        }
 
         FAPI_DBG("Scan0 region:all_but_vital type:all_but_gptr_repr_time rings");
 
@@ -265,7 +280,12 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-#ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
+
+
+
+// ----------------------------------------------------
+// HW388878
+// ----------------------------------------------------
 fapi2::ReturnCode
 p9_hcd_dd1_vcs_workaround(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
@@ -376,18 +396,14 @@ p9_hcd_dd1_vcs_workaround(
     while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
 
     FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_CACHECLKSTOP_TIMEOUT()
-                .set_EQ_TARGET(i_target)
-                .set_EQCPLTSTAT(l_data64),
+                fapi2::PMPROC_CACHECLKSTOP_TIMEOUT().set_EQCPLTSTAT(l_data64),
                 "perv/l20/l21 Clock Stop Timeout");
 
     FAPI_DBG("Check perv/l20/l21 clocks stopped");
     FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_ARY, l_data64));
 
     FAPI_ASSERT((((~l_data64) & l_regions) == 0),
-                fapi2::PMPROC_CACHECLKSTOP_FAILED()
-                .set_EQ_TARGET(i_target)
-                .set_EQCLKSTAT(l_data64),
+                fapi2::PMPROC_CACHECLKSTOP_FAILED().set_EQCLKSTAT(l_data64),
                 "perv/l20/l21 Clock Stop Failed");
     FAPI_DBG("perv/l20/l21 clocks stopped now");
 
@@ -407,4 +423,3 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-#endif
