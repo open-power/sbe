@@ -70,18 +70,15 @@ namespace fapi2
             pk_critical_section_enter(&ctx);
             //
             // The "accurate" version is the next line.
-            // target_time = pk_timebase32_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS(i_nanoSeconds));
+            // target_time = pk_timebase_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS(i_nanoSeconds));
 
-            target_time = pk_timebase32_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS_SBE(i_nanoSeconds));
-
+            target_time = pk_timebase_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS_SBE(i_nanoSeconds));
             do
             {
-                current_time = pk_timebase32_get();
+                current_time = pk_timebase_get();
             } while (target_time > current_time);
 
             pk_critical_section_exit(&ctx);
-
-
         }
 #else
 
