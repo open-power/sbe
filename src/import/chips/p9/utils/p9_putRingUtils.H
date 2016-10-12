@@ -186,7 +186,7 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 fapi2::ReturnCode rs4DecompressionSvc(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
     const uint8_t* i_rs4,
-    const bool i_applyOverride,
+    bool i_applyOverride,
     const fapi2::RingMode i_ringMode,
     const RINGTYPE i_ringType = COMMON_RING);
 

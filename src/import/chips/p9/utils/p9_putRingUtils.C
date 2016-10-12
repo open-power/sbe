@@ -1084,7 +1084,7 @@ fapi2::ReturnCode restoreOPCGRegData(
 fapi2::ReturnCode rs4DecompressionSvc(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
     const uint8_t* i_rs4,
-    const bool i_applyOverride,
+    bool i_applyOverride,
     const fapi2::RingMode i_ringMode,
     const RINGTYPE i_ringType)
 {
@@ -1175,7 +1175,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
 
                 //Need to skip 64bits , because we have already written header
                 //data.
-                if (l_skip_64bits)
+                if (l_skip_64bits && (l_bitRotates >= SIXTYFOUR_BIT_HEADER) )
                 {
                     l_bitRotates -= SIXTYFOUR_BIT_HEADER;
                     l_skip_64bits = false;
@@ -1220,7 +1220,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
                     break;
                 }
 
-                if (!i_applyOverride)
+                if ((!i_applyOverride) && l_scanCount != 0xF)
                 {
                     l_bitsDecoded += (4 * l_scanCount);
 
@@ -1256,6 +1256,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
                 {
                     if(0xF == l_scanCount) // We are parsing RS4 for override rings
                     {
+                        i_applyOverride = true;
                         uint8_t l_careMask =
                             rs4_get_nibble(l_rs4Str, l_nibbleIndx);
                         l_nibbleIndx++;
