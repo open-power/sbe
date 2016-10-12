@@ -90,7 +90,7 @@ p9_hcd_cache_poweron(
     FAPI_DBG("Power on cache chiplet");
 #ifdef HW388878_DD1_VCS_POWER_ON_IN_CHIPLET_RESET_FIX
     FAPI_TRY(FAPI_ATTR_GET(
-                 fapi2::ATTR_CHIP_EC_FEATURE_VCS_POWER_ON_IN_CHIPLET_RESET,
+                 fapi2::ATTR_CHIP_EC_FEATURE_HW388878,
                  l_chip, l_attr_dd1_vcs_workaround));
 
     if (l_attr_dd1_vcs_workaround)
