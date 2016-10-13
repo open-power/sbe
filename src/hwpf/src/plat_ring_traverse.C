@@ -387,7 +387,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
         uint32_t *l_sectionAddr = reinterpret_cast<uint32_t *>(g_seepromAddr +
                                   i_sectionOffset + l_sectionOffset);
 
-        SBE_TRACE ("l_sectionAddr %08X",l_sectionAddr);
+        SBE_TRACE ("l_sectionAddr %08X",(uint32_t)l_sectionAddr);
 
         uint16_t *l_ringTorAddr = NULL;
 
@@ -431,7 +431,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
         // 3. Risk Level
 
 
-        SBE_TRACE ("ring tor address %04X\n",l_ringTorAddr);
+        SBE_TRACE ("ring tor address %08X\n",(uint32_t)l_ringTorAddr);
 
         // If there are non-base variants of the ring, we'll have to check
         // attributes to determine the sequence of ring apply.
@@ -468,7 +468,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
             uint8_t *l_addr = reinterpret_cast<uint8_t *>(l_sectionAddr);
             uint8_t *l_rs4Address = reinterpret_cast<uint8_t *>
                                     (l_addr + *l_ringTorAddr);
-            SBE_TRACE("l_rs4Address %08x",l_rs4Address);
+            SBE_TRACE("l_rs4Address %08x",(uint32_t)l_rs4Address);
             l_rc = rs4DecompressionSvc(i_target,l_rs4Address,
                                        i_applyOverride,i_ringMode,l_ringType);
             if(l_rc != fapi2::FAPI2_RC_SUCCESS)

@@ -569,7 +569,7 @@ typedef struct
 
             default:
                 SBE_ERROR(SBE_FUNC "Invalid TargetType[%d] ChipletId[%d] "
-                    "by User",targetType,chipletId);
+                    "by User",(uint32_t)targetType,(uint32_t)chipletId);
             break;
         }
         return l_validatePassFlag;
@@ -603,7 +603,7 @@ typedef struct
            !((threadNum <= SMT4_THREAD3) || (threadNum == SMT4_THREAD_ALL)))
         {
             SBE_ERROR(SBE_FUNC "Invalid Parameter by User, ThreadOps[%d] "
-                "mode[%d] ThreadNum[%d]", threadOps, mode, threadNum);
+                "mode[%d] ThreadNum[%d]", (uint32_t)threadOps, (uint32_t)mode, (uint32_t)threadNum);
             l_validatePassFlag = false;
         }
         return l_validatePassFlag;

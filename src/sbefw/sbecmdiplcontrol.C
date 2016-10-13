@@ -385,7 +385,8 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
         if( false == validateIstep( req.major, req.minor ) )
         {
             SBE_ERROR(SBE_FUNC" Invalid Istep. major:0x%08x"
-                      " minor:0x%08x", req.major, req.minor);
+                      " minor:0x%08x",
+                      (uint32_t)req.major, (uint32_t)req.minor);
             // @TODO via RTC 132295.
             // Need to change code asper better error handling.
             respHdr.setStatus( SBE_PRI_INVALID_DATA,
@@ -397,7 +398,9 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" sbeExecuteIstep() Failed. major:0x%08x"
-                                      " minor:0x%08x", req.major, req.minor);
+                                      " minor:0x%08x",
+                                     (uint32_t)req.major,
+                                     (uint32_t)req.minor);
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             ffdc.setRc(fapiRc);

@@ -136,7 +136,9 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
 
         SBE_INFO(SBE_FUNC "Ring Address 0x%08X User Ring Mode 0x%04X "
             "Length in Bits 0x%08X",
-            l_reqMsg.ringAddr, l_reqMsg.ringMode, l_reqMsg.ringLenInBits);
+            (uint32_t)l_reqMsg.ringAddr,
+            (uint32_t)l_reqMsg.ringMode,
+            (uint32_t)l_reqMsg.ringLenInBits);
 
         uint16_t l_ringMode = sbeToFapiRingMode(l_reqMsg.ringMode);
 

@@ -109,7 +109,7 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%x"
-                      "chipletId:0x%02x", regReqMsg.threadNr, core);
+                      "chipletId:0x%02x", (uint32_t)regReqMsg.threadNr, core);
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             ffdc.setRc(fapiRc);
@@ -152,7 +152,7 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
          if( fapiRc != FAPI2_RC_SUCCESS )
          {
              SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%x"
-                       "chipletId:0x%02x", regReqMsg.threadNr, core);
+                       "chipletId:0x%02x", (uint32_t)regReqMsg.threadNr, core);
              respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
              ffdc.setRc(fapiRc);
@@ -197,8 +197,10 @@ uint32_t sbePutReg(uint8_t *i_pArg)
         if( false == regReqMsg.isValidRequest() )
         {
             SBE_ERROR(SBE_FUNC" Invalid request. threadNr:0x%x"
-                      " regType:0x%02x numRegs:0x%02x", regReqMsg.threadNr,
-                      regReqMsg.regType, regReqMsg.numRegs);
+                      " regType:0x%02x numRegs:0x%02x",
+                      (uint32_t)regReqMsg.threadNr,
+                      (uint32_t)regReqMsg.regType,
+                      (uint32_t)regReqMsg.numRegs);
             respHdr.setStatus( SBE_PRI_INVALID_DATA,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             break;
@@ -223,7 +225,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%x"
-                      "chipletId:0x%02x", regReqMsg.threadNr, core);
+                      "chipletId:0x%02x", (uint32_t)regReqMsg.threadNr, core);
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             ffdc.setRc(fapiRc);
@@ -259,7 +261,8 @@ uint32_t sbePutReg(uint8_t *i_pArg)
          if( fapiRc )
          {
              SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%x"
-                       " chipletId:0x%02x", regReqMsg.threadNr, core);
+                       " chipletId:0x%02x",
+                       (uint32_t)regReqMsg.threadNr, core);
              respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
              ffdc.setRc(fapiRc);

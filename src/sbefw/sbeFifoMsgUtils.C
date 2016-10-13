@@ -364,10 +364,11 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
 
         // If there is a SBE internal failure
         if((i_hdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL) ||\
-            (i_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL))
+           (i_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL))
         {
             SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X",
-                       i_hdr.primaryStatus, i_hdr.secondaryStatus);
+                       (uint32_t)i_hdr.primaryStatus,
+                       (uint32_t)i_hdr.secondaryStatus);
 
             //Add FFDC data as well.
             //Generate all the fields of FFDC package

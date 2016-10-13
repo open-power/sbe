@@ -196,7 +196,8 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
         SBE_INFO(SBE_FUNC "TargetType 0x%04X ChipletId 0x%02X",
-                    l_reqMsg.targetType, l_reqMsg.chipletId);
+                    (uint16_t)l_reqMsg.targetType,
+                    (uint8_t)l_reqMsg.chipletId);
 
         if(false == l_reqMsg.validateInputTargetType())
         {
@@ -268,7 +269,9 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         if( l_fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" Stopclocks failed for TargetType [0x%04X] "
-                "ChipletId [0x%02X]", l_reqMsg.targetType, l_reqMsg.chipletId);
+                "ChipletId [0x%02X]",
+                (uint16_t)l_reqMsg.targetType,
+                (uint8_t)l_reqMsg.chipletId);
             l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                  SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             l_ffdc.setRc(l_fapiRc);
