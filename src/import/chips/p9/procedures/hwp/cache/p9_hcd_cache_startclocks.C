@@ -87,6 +87,7 @@ p9_hcd_cache_startclocks(
 {
     FAPI_INF(">>p9_hcd_cache_startclocks");
     fapi2::buffer<uint64_t>                     l_qcsr;
+    fapi2::buffer<uint64_t>                     l_qssr;
     fapi2::buffer<uint64_t>                     l_data64;
     uint64_t                                    l_region_clock;
     uint64_t                                    l_l2sync_clock;
@@ -137,6 +138,8 @@ p9_hcd_cache_startclocks(
 
     if (l_qcsr & BIT64(l_attr_chip_unit_pos << 1))
     {
+        l_qssr |= (BIT64(l_attr_chip_unit_pos << 1) |
+                   BIT64(l_attr_chip_unit_pos + 14));
         l_region_clock |= p9hcd::CLK_REGION_EX0_L2_L3_REFR;
         l_l2sync_clock |= BIT64(36);
         FAPI_DBG("Sequence EX0 EDRAM enables via QPPM_QCCR[0-3]");
@@ -157,6 +160,8 @@ p9_hcd_cache_startclocks(
 
     if (l_qcsr & BIT64((l_attr_chip_unit_pos << 1) + 1))
     {
+        l_qssr |= (BIT64((l_attr_chip_unit_pos << 1) + 1) |
+                   BIT64(l_attr_chip_unit_pos + 14));
         l_region_clock |= p9hcd::CLK_REGION_EX1_L2_L3_REFR;
         l_l2sync_clock |= BIT64(37);
         FAPI_DBG("Sequence EX1 EDRAM enables via QPPM_QCCR[4-7]");
@@ -322,6 +327,16 @@ p9_hcd_cache_startclocks(
     FAPI_DBG("Drop partial good and assert partial bad L2/L3 pscom masks");
     l_data64 = (l_l2pscom_mask | l_l3pscom_mask);
     FAPI_TRY(putScom(i_target, EQ_RING_FENCE_MASK_LATCH_REG, l_data64));
+
+    // -------------------------------
+    // Update Status
+    // -------------------------------
+
+    FAPI_DBG("Set cache as ready to run in STOP history register");
+    FAPI_TRY(putScom(i_target, EQ_PPM_SSHSRC, 0));
+
+    FAPI_DBG("Set cache as running in QSSR");
+    FAPI_TRY(putScom(l_chip, PU_OCB_OCI_QSSR_SCOM1, l_qssr));
 
 fapi_try_exit:
 
