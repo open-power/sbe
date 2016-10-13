@@ -141,9 +141,12 @@ p9_hcd_core_chiplet_reset(
 
     if (l_dpll_bypass == 0)
     {
-        FAPI_DBG("Set scan ratio to 4:1 in non-bypass mode via OPCG_ALIGN[47-51]");
+        // HW390253: The core clock controller itself is clocked at 2:1 versus the core clock,
+        // so it will introduce an additional 2:1 into whatever scan raito is set up. Hence,
+        // to get the core to scan at 4:1, need to put a scan ratio of 2:1 if run at pll speed.
+        FAPI_DBG("Set scan ratio to 2:1 in non-bypass mode via OPCG_ALIGN[47-51]");
         FAPI_TRY(getScom(i_target, C_OPCG_ALIGN, l_data64));
-        l_data64.insertFromRight<47, 5>(0x3);
+        l_data64.insertFromRight<47, 5>(0x1);
         FAPI_TRY(putScom(i_target, C_OPCG_ALIGN, l_data64));
     }
     else
