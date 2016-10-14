@@ -44,6 +44,7 @@
 //------------------------------------------------------------------------------
 #include <p9_sbe_scominit.H>
 #include <p9_fbc_utils.H>
+#include <p9_mmu_scom.H>
 
 #include <p9_misc_scom_addresses.H>
 #include <p9_perv_scom_addresses.H>
@@ -453,6 +454,21 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                      "Error from putScom (PERV_DBG_TRACE_MODE_REG_2)");
         }
     }
+
+    // execute NMMU initfile
+    {
+        FAPI_DBG("Executing NMMU initfile");
+        fapi2::ReturnCode l_rc;
+        FAPI_EXEC_HWP(l_rc, p9_mmu_scom, i_target, FAPI_SYSTEM);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p9_mmu_scom (p9.mmu.scom.initfile)");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+    }
+
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");
