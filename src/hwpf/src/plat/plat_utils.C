@@ -50,7 +50,7 @@ namespace fapi2
 
 #ifndef __FAPI_DELAY_SIM__
 
-#define PK_NANOSECONDS_SBE(n) ((PkInterval)((PK_BASE_FREQ_HZ * (PkInterval)(n)) / (1024*1024*1024)))
+#define PK_NANOSECONDS_SBE(n) ((PkTimebase)((PK_BASE_FREQ_HZ * (PkTimebase)(n)) / (1024*1024*1024)))
 
         PkTimebase  target_time;
         PkTimebase  current_time;

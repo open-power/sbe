@@ -114,7 +114,7 @@ def writeEntry(obj, address, value ):
             count = count + 1
             runCycles(200000)
             # This will cause  test to fail
-            if(count > 10):
+            if(count > 50):
                 raise Exception('Timeout. FIFO FULL');
         else:
             # write entry
@@ -143,7 +143,7 @@ def readEntry(obj, address, size):
             count = count + 1
             runCycles(200000)
             # This will cause  test to fail
-            if(count > 10):
+            if(count > 50):
                 raise Exception('Timeout. Empty FIFO');
 
     return value

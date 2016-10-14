@@ -150,7 +150,8 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
         }
 
         // if Upstream FIFO is empty,
-        if (l_data.statusOrReserved.fifo_empty)
+        if ( ( l_data.statusOrReserved.fifo_empty) &&
+             ( !l_data.statusOrReserved.valid_flag))
         {
             pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
             continue;
