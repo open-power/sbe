@@ -29,6 +29,9 @@
 <!--    defined.                                                            -->
 <entries>
   <!-- ********************************************************************* -->
+
+  <!-- PIBMEM repair attributes should be first attribute in this file-->
+  <!-- Do not add any attribute before these attributes in this file-->
   <entry>
     <name>ATTR_PIBMEM_REPAIR0</name>
     <value>0x0000000000000000</value>
@@ -541,7 +544,10 @@ attribute tank
   <entry>
         <name>ATTR_SBE_SYS_CONFIG</name>
         <value>0x0000000000000000</value>
-   </entry>
-
+  </entry>
+  <entry>
+        <name>ATTR_PROC_FABRIC_PUMP_MODE</name>
+        <value>0x2</value>
+  </entry>
 
 </entries>
