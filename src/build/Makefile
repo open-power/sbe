@@ -49,11 +49,6 @@ LIB_DIRS += -L$(OBJDIR)/fapi2
 FAPI2LIB := $(OBJDIR)/fapi2/libfapi2.a
 LLIBS += -lfapi2
 
-# HWP LIB library
-SUBDIRS += $(HWPLIB_SRCDIR)
-LIB_DIRS += -L$(OBJDIR)/lib
-HWPLIB := $(OBJDIR)/libcommon.a
-LLIBS += -lcommon
 include $(HWPERR_SRCDIR)/hwpErrors.mk
 
 # Common Utils library

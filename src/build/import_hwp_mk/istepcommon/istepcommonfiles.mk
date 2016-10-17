@@ -35,7 +35,6 @@ ISTEPCOMMON-CPP-SOURCES +=p9_sbe_gear_switcher.C
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_check_master_stop15.C
 ISTEPCOMMON-CPP-SOURCES +=p9_ram_core.C
 ISTEPCOMMON-CPP-SOURCES +=p9_thread_control.C
-ISTEPCOMMON-CPP-SOURCES +=p9_common_pro_epi_log.C
 ISTEPCOMMON-CPP-SOURCES +=p9_fbc_utils.C
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_load_bootloader.C
 ISTEPCOMMON-CPP-SOURCES +=p9_pba_access.C
