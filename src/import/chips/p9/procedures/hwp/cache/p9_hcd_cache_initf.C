@@ -48,6 +48,8 @@
 //------------------------------------------------------------------------------
 
 #include "p9_hcd_cache_initf.H"
+#include <p9_hcd_common.H>
+#include <p9_quad_scom_addresses.H>
 
 //------------------------------------------------------------------------------
 // Procedure: EX (non-core) scan init
@@ -62,9 +64,16 @@ p9_hcd_cache_initf(
 #ifndef __PPE__
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     uint8_t l_attr_system_ipl_phase;
+    uint8_t l_attr_runn_mode;
+    fapi2::buffer<uint64_t> l_data64;
+
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
                            l_attr_system_ipl_phase));
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MODE,        l_sys,
+                           l_attr_runn_mode));
+
 #endif
 
     FAPI_DBG("Scan eq_fure ring");
@@ -104,6 +113,29 @@ p9_hcd_cache_initf(
 
 #endif
     }
+
+#ifndef __PPE__
+
+    if (l_attr_system_ipl_phase ==
+        fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
+    {
+        if (l_attr_runn_mode)
+        {
+            FAPI_DBG("RUN-N mode drop fences for clock sync");
+            l_data64.flush<0>();
+            l_data64.setBit<3>();
+            l_data64.setBit<4>();
+            l_data64.setBit<5>();
+            l_data64.setBit<10>();
+            l_data64.setBit<11>();
+            l_data64.setBit<14>();
+
+            FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, l_data64));
+        }
+    }
+
+#endif
+
 
 fapi_try_exit:
     FAPI_INF("<<p9_hcd_cache_initf");
