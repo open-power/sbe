@@ -107,6 +107,7 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
         FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
                      i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
                              fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_EXCEPT_PLL, l_clock_regions));
+        FAPI_DBG("p9_tp_stopclocks: Regions value: %#018lX", l_clock_regions);
     }
     else if(i_stop_tp_clks)
     {
@@ -114,32 +115,32 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
         FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
                      i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
                              fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_EXCEPT_PIB_NET_PLL, l_clock_regions));
+        FAPI_DBG("p9_tp_stopclocks: Regions value: %#018lX", l_clock_regions);
     }
-    else if(i_stop_pib_clks)
+
+    if(!i_stop_tp_clks && i_stop_pib_clks) //Using CBS interface to stop clock in PIB & NET
     {
-        FAPI_DBG("p9_tp_stopclocks: TP regions selected is REGIONS_ONLY_PIB_NET");
-        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
-                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ONLY_PIB_NET, l_clock_regions));
+        FAPI_DBG("p9_tp_stopclocks: Call module clock start stop for PIB, NET only");
+        FAPI_TRY(p9_common_stopclocks_pib_net_clkstop(i_target_chip));
     }
+    else
+    {
+        FAPI_DBG("p9_tp_stopclocks: Call module clock start stop for TP chiplet");
+        FAPI_TRY(p9_sbe_common_clock_start_stop(
+                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0], CLOCK_CMD, DONT_STARTSLAVE, DONT_STARTMASTER,
+                     l_clock_regions, CLOCK_TYPES));
 
-    FAPI_DBG("p9_tp_stopclocks: Regions value: %#018lX", l_clock_regions);
+        FAPI_DBG("p9_tp_stopclocks: Assert vital fence and set flush_inhibit");
+        FAPI_TRY(p9_common_stopclocks_set_vitalfence_flushmode(
+                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0]));
 
-    FAPI_DBG("p9_tp_stopclocks: Call module clock start stop for Tp chiplet");
-    FAPI_TRY(p9_sbe_common_clock_start_stop(
-                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                         fapi2::TARGET_STATE_FUNCTIONAL)[0], CLOCK_CMD, DONT_STARTSLAVE, DONT_STARTMASTER,
-                 l_clock_regions, CLOCK_TYPES));
-
-    FAPI_DBG("p9_tp_stopclocks: Assert vital fence and set flush_inhibit");
-    FAPI_TRY(p9_common_stopclocks_set_vitalfence_flushmode(
-                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                         fapi2::TARGET_STATE_FUNCTIONAL)[0]));
-
-    FAPI_DBG("p9_tp_stopclocks: Raise partial good fences and set abist_muxsel, syncclk_muxsel");
-    FAPI_TRY(p9_common_stopclocks_cplt_ctrl_action_function(
-                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                         fapi2::TARGET_STATE_FUNCTIONAL)[0]));
+        FAPI_DBG("p9_tp_stopclocks: Raise partial good fences and set abist_muxsel, syncclk_muxsel");
+        FAPI_TRY(p9_common_stopclocks_cplt_ctrl_action_function(
+                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0]));
+    }
 
     if(i_stop_pib_clks)
     {

@@ -44,6 +44,16 @@
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 
+enum P9_common_stopclocks_Private_Constants
+{
+    CBS_ACK_POLL = 20,
+    P9_WAIT_CBS_ACK_HW_NS_DELAY = 16000,
+    P9_WAIT_CBS_ACK_SIM_CYCLE_DELAY = 800000,
+    CBS_CMD_COMPLETE_POLL = 20,
+    P9_WAIT_CBS_CMD_COMPLETE_HW_NS_DELAY = 16000,
+    P9_WAIT_CBS_CMD_COMPLETE_SIM_CYCLE_DELAY = 800000
+
+};
 
 /// @brief --Raise partial good fences
 /// --set abstclk muxsel,syncclk_muxsel
@@ -91,7 +101,7 @@ fapi_try_exit:
 
 /// @brief Raise chiplet fence for chiplets
 ///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode p9_common_stopclocks_raise_fence(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
@@ -142,4 +152,116 @@ fapi2::ReturnCode p9_common_stopclocks_set_vitalfence_flushmode(
 fapi_try_exit:
     return fapi2::current_err;
 
+}
+
+/// @brief Stopping PIB & NET domain clocks in PERV chiplet using CBS
+///
+/// @param[in]     i_target_chip   Reference to TARGET_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p9_common_stopclocks_pib_net_clkstop(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    fapi2::buffer<uint32_t> l_data32_root_ctrl0;
+
+    FAPI_INF("Entering p9_common_stopclocks_pib_net_clkstop ...");
+
+    FAPI_DBG("Clear FSI Fence1 to open CBS-CC interface");
+    FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_data32_root_ctrl0));
+
+    if(l_data32_root_ctrl0.getBit<PERV_ROOT_CTRL0_FENCE1_DC>())
+    {
+        l_data32_root_ctrl0.clearBit<PERV_ROOT_CTRL0_FENCE1_DC>();
+        FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_data32_root_ctrl0));
+    }
+
+    FAPI_DBG("Check that state of CBS_REQ");
+
+    if(l_data32_root_ctrl0.getBit<PERV_ROOT_CTRL0_FSI_CC_VSB_CBS_REQ>())
+    {
+        FAPI_DBG("CBS_REQ is high - Calling p9_common_stopclocks_poll_cbs_cmd_complete function");
+        FAPI_TRY(p9_common_stopclocks_poll_cbs_cmd_complete(i_target_chip));
+    }
+    else
+    {
+        FAPI_DBG("CBS_REQ is Low - Hence CBS is idle");
+    }
+
+    FAPI_DBG("Set CBS_CMD to stop PIB,NET clocks");
+    FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_data32_root_ctrl0));
+    l_data32_root_ctrl0.insertFromRight<PERV_ROOT_CTRL0_FSI_CC_VSB_CBS_CMD, PERV_ROOT_CTRL0_FSI_CC_VSB_CBS_CMD_LEN>(0x4);
+    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_data32_root_ctrl0));
+
+    FAPI_DBG("Set CBS_REQ to 1 to start command");
+    l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FSI_CC_VSB_CBS_REQ>();
+    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_data32_root_ctrl0));
+
+    FAPI_DBG("Calling p9_common_stopclocks_poll_cbs_cmd_complete function");
+    FAPI_TRY(p9_common_stopclocks_poll_cbs_cmd_complete(i_target_chip));
+
+    FAPI_INF("Exiting p9_common_stopclocks_pib_net_clkstop ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+
+
+/// @brief Checking for CBS request complete
+///
+/// @param[in]     i_target_chip   Reference to TARGET_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p9_common_stopclocks_poll_cbs_cmd_complete(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
+        i_target_chip)
+{
+    fapi2::buffer<uint32_t> l_data32_cbs_cc_stat;
+    fapi2::buffer<uint32_t> l_data32_root_ctrl0;
+    int l_timeout = 0;
+
+    FAPI_INF("Entering p9_common_stopclocks_poll_cbs_cmd_complete ...");
+    FAPI_DBG("Wait for CBS_ACK to go to 1");
+    l_timeout = CBS_ACK_POLL;
+
+    while (l_timeout != 0)
+    {
+        FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_CBS_STAT_FSI, l_data32_cbs_cc_stat));
+        bool l_poll_data = l_data32_cbs_cc_stat.getBit<PERV_CBS_STAT_DBG_TP_TPFSI_ACK>();
+
+        if(l_poll_data == 1)
+        {
+            break;
+        }
+
+        fapi2::delay(P9_WAIT_CBS_ACK_HW_NS_DELAY, P9_WAIT_CBS_ACK_SIM_CYCLE_DELAY);
+        --l_timeout;
+    }
+
+    FAPI_ASSERT(l_timeout > 0, fapi2::CBS_ACK_NOT_HIGH_ERR(), "CBS_ACK is not HIGH with in expected time");
+
+    FAPI_DBG("Lower CBS_REQ");
+    FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_data32_root_ctrl0));
+    l_data32_root_ctrl0.clearBit<PERV_ROOT_CTRL0_FSI_CC_VSB_CBS_REQ>();
+    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_data32_root_ctrl0));
+
+    FAPI_DBG("Poll for CBS_ACK to go to 0");
+    l_timeout = CBS_CMD_COMPLETE_POLL;
+
+    while (l_timeout != 0)
+    {
+        FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_CBS_STAT_FSI, l_data32_cbs_cc_stat));
+        bool l_poll_data = l_data32_cbs_cc_stat.getBit<PERV_CBS_STAT_DBG_TP_TPFSI_ACK>();
+
+        if(l_poll_data == 0)
+        {
+            break;
+        }
+
+        fapi2::delay(P9_WAIT_CBS_CMD_COMPLETE_HW_NS_DELAY, P9_WAIT_CBS_CMD_COMPLETE_SIM_CYCLE_DELAY);
+        --l_timeout;
+    }
+
+    FAPI_ASSERT(l_timeout > 0, fapi2::CBS_ACK_NOT_LOW_ERR(), "CBS_ACK is not LOW with in expected time");
+
+    FAPI_INF("Exiting p9_common_stopclocks_poll_cbs_cmd_complete ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
 }

@@ -51,4 +51,10 @@ fapi2::ReturnCode p9_common_stopclocks_raise_fence(
 fapi2::ReturnCode p9_common_stopclocks_set_vitalfence_flushmode(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
+fapi2::ReturnCode p9_common_stopclocks_pib_net_clkstop(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+
+fapi2::ReturnCode p9_common_stopclocks_poll_cbs_cmd_complete(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+
 #endif
