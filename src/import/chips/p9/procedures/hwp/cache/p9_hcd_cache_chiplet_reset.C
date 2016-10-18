@@ -104,6 +104,7 @@ p9_hcd_cache_chiplet_reset(
     uint64_t                                    l_l2gmux_reset       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
     fapi2::buffer<uint8_t>                      l_attr_dd1_vcs_workaround;
+
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
@@ -296,6 +297,15 @@ p9_hcd_dd1_vcs_workaround(
     uint32_t                                    l_timeout;
     uint32_t                                    l_loop;
 
+#ifndef __PPE__
+    //This is to skip flushing the entire eq ring to 1's in simulation
+    //for the HW388878 workaround
+    fapi2::buffer<uint8_t>                      l_attr_is_simulation;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SIMULATION, fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                           l_attr_is_simulation));
+#endif
+
     l_regions = p9hcd::CLK_REGION_PERV   |
                 p9hcd::CLK_REGION_EX0_L2 |
                 p9hcd::CLK_REGION_EX1_L2;
@@ -321,11 +331,27 @@ p9_hcd_dd1_vcs_workaround(
 
     FAPI_DBG("Write scan data register via 0x1003E040");
 
-    for (l_loop = 0; l_loop <= DD1_EQ_FURE_RING_LENGTH / 64; l_loop++)
+#ifndef __PPE__
+
+    if (l_attr_is_simulation)
     {
-        FAPI_DBG("Loop Count: %d", l_loop);
+        FAPI_DBG("SIMULATION ONLY WRITE ONCE");
         FAPI_TRY(putScom(i_target, 0x1003E040, MASK_ALL));
     }
+    else
+    {
+#endif
+
+        for (l_loop = 0; l_loop <= DD1_EQ_FURE_RING_LENGTH / 64; l_loop++)
+        {
+            FAPI_DBG("Loop Count: %d", l_loop);
+            FAPI_TRY(putScom(i_target, 0x1003E040, MASK_ALL));
+        }
+
+#ifndef __PPE__
+    }
+
+#endif
 
     // -------------------------------
     // Start Perv/L20/L21 clocks
