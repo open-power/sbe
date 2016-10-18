@@ -70,4 +70,13 @@ uint32_t sbeFifoQuiesce(uint8_t *i_pArg);
   */
 uint32_t sbePsuQuiesce(uint8_t *i_pArg);
 
+/**
+  * @brief SBE Psu Set System Fabric Map (0xD706)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the Psu access utility
+  */
+uint32_t sbeSetSystemFabricMap(uint8_t *i_pArg);
+
 #endif // __SBEFW_SBECMDGENERIC_H

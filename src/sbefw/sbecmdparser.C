@@ -254,6 +254,11 @@ static sbeCmdStruct_t g_sbePsuGenericCmdArray[] =
      SBE_PSU_GENERIC_MSG_QUIESCE,
      SBE_NO_FENCE,
     },
+
+    {sbeSetSystemFabricMap,
+     SBE_PSU_GENERIC_MSG_SYSTEM_FABRIC_MAP,
+     SBE_NO_FENCE,
+    },
 };
 
 ////////////////////////////////////////////////////////////////

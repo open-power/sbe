@@ -1,12 +1,11 @@
 <!-- IBM_PROLOG_BEGIN_TAG                                                   -->
 <!-- This is an automatically generated prolog.                             -->
 <!--                                                                        -->
-<!-- $Source: src/test/testcases/test.xml $                                 -->
+<!-- $Source: src/test/testcases/testSystemFabricMap.xml $                  -->
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2016                        -->
-<!-- [+] International Business Machines Corp.                              -->
+<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
 <!--                                                                        -->
 <!--                                                                        -->
 <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
@@ -22,30 +21,10 @@
 <!-- permissions and limitations under the License.                         -->
 <!--                                                                        -->
 <!-- IBM_PROLOG_END_TAG                                                     -->
+<?xml version="1.0" encoding="UTF-8"?>
 
-<integrationtest>
-	<platform startsimargs="--notar --norun --sim_parms -nre">
-		<machine>%%machine%%</machine>
-        <test>
-          <testcase>
-              <simcmd>p9Proc0.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]</simcmd>
-          </testcase>
-          <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testPutGetMem.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testSram.xml</include>
-          <!-- TODO add testCntlInstruction.xml -->
-          <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testFifoReset.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testExecutorPutRing.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testSystemFabricMap.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testGetRing.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testQuiesce.xml</include>
-          <testcase>
-              <simcmd>sbe-trace 0</simcmd>
-          </testcase>
-        </test>
-	</platform>
-</integrationtest>
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testSystemFabricMap.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+

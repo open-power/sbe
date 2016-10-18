@@ -41,6 +41,9 @@
 #include "sbeHostMsg.H"
 #include "sbeHostUtils.H"
 
+#include "fapi2.H"
+
+using namespace fapi2;
 
 // Forward declaration
 sbeCapabilityRespMsg::sbeCapabilityRespMsg()
@@ -252,6 +255,55 @@ uint32_t sbePsuQuiesce( uint8_t *i_pArg )
         SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
     }
     return rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbeSetSystemFabricMap"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
+
+    do
+    {
+        // Send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
+        // This util method will check internally on the mbox0 register if
+        // ACK is requested.
+        l_rc = sbeAcknowledgeHost();
+        if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC " Failed to Sent Ack to Host over "
+                "SBE_SBE2PSU_DOORBELL_SET_BIT1");
+            break;
+        }
+
+        uint64_t l_sysFabricMap = 0;
+        l_rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                    (sizeof(l_sysFabricMap)/sizeof(uint64_t)),
+                                    &l_sysFabricMap);
+
+        if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to extract SBE_HOST_PSU_MBOX_REG1");
+            break;
+        }
+
+        SBE_INFO(SBE_FUNC "Sytem Fabric Map [0x%08X][%08X]",
+            SBE::higher32BWord(l_sysFabricMap),
+            SBE::lower32BWord(l_sysFabricMap));
+
+        FAPI_ATTR_SET(fapi2::ATTR_SBE_SYS_CONFIG,
+                       fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                       l_sysFabricMap);
+    }while(0);
+
+    // Send the response
+    sbePSUSendResponse(g_sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
+
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
     #undef SBE_FUNC
 }
 
