@@ -102,12 +102,17 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     bool obus_cplt_scomable   = true;
     bool pcie_cplt_scomable   = true;
 
+    bool tp_cplt_en           = false;
+    bool tp_ep_rst            = true;
+    bool tp_vitl_clk_off      = true;
+    bool tp_mesh_clk_en       = false;
+
     FAPI_INF("p9_stopclocks : Entering ...");
 
-    FAPI_DBG("p9_stopclocks : Input arguments received are \n\t i_stop_nest_clks = %s\n\t i_stop_mc_clks = %s\n\t i_stop_xbus_clks = %s\n\t i_stop_obus_clks = %s\n\t i_stop_pcie_clks = %s\n\t i_stop_tp_clks = %s\n\t i_stop_pib_clks = %s\n\t i_stop_vitl_clks =  %s\n",
+    FAPI_DBG("p9_stopclocks : Input arguments received are \n\t i_stop_nest = %s\n\t i_stop_mc = %s\n\t i_stop_xbus = %s\n\t i_stop_obus = %s\n\t i_stop_pcie = %s\n\t i_stop_tp = %s\n\t i_stop_pib = %s\n\t i_stop_vitl =  %s\n",
              btos(i_stop_nest_clks), btos(i_stop_mc_clks), btos(i_stop_xbus_clks), btos(i_stop_obus_clks), btos(i_stop_pcie_clks),
              btos(i_stop_tp_clks), btos(i_stop_pib_clks), btos(i_stop_vitl_clks));
-    FAPI_DBG("p9_stopclocks : Input QUAD arguments received are \n\t i_stop_cache_clks = %s\n\t i_stop_core_clks = %s\n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
+    FAPI_DBG("p9_stopclocks : Input QUAD arguments received are \n\t i_stop_cache = %s\n\t i_stop_core = %s\n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
              btos(i_stop_cache_clks), btos(i_stop_core_clks), (uint64_t)i_eq_clk_regions, (uint64_t)i_ex_select);
 
     FAPI_DBG("p9_stopclocks : Check to see if the Perv Vital clocks are OFF");
@@ -121,7 +126,7 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
 
     if(perv_vitl_clks_off)
     {
-        FAPI_INF("p9_stopclocks : Perv Vital clocks are off, so stopclocks cant go ahead");
+        FAPI_ERR("p9_stopclocks : Perv Vital clocks are off, so stopclocks cant go ahead");
     }
 
     if(!(perv_vitl_clks_off))
@@ -137,37 +142,68 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
 
         if(pcb_is_bypassed)
         {
-            FAPI_INF("p9_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible.");
+            if(i_stop_nest_clks || i_stop_mc_clks || i_stop_xbus_clks || i_stop_obus_clks || i_stop_pcie_clks || i_stop_cache_clks
+               || i_stop_core_clks)
+            {
+                FAPI_ERR("p9_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible.");
+            }
+            else
+            {
+                FAPI_IMP("p9_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible.");
+            }
         }
 
+#ifdef __PPE__
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
+        tp_cplt_en      = l_data64.getBit<PERV_PERV_CTRL0_TP_CHIPLET_EN_DC>();
+        tp_ep_rst       = l_data64.getBit<PERV_PERV_CTRL0_TP_PCB_EP_RESET_DC>();
+        tp_vitl_clk_off = l_data64.getBit<PERV_PERV_CTRL0_CLEAR_TP_VITL_CLKOFF_DC>();
+        tp_mesh_clk_en  = l_data64.getBit<PERV_PERV_CTRL0_TP_PLLCHIPLET_FORCE_OUT_EN_DC>();
+#else
+        FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_PERV_CTRL0_FSI, l_cfam_data));
+        tp_cplt_en      = l_cfam_data.getBit<PERV_PERV_CTRL0_TP_CHIPLET_EN_DC>();
+        tp_ep_rst       = l_cfam_data.getBit<PERV_PERV_CTRL0_TP_PCB_EP_RESET_DC>();
+        tp_vitl_clk_off = l_cfam_data.getBit<PERV_PERV_CTRL0_CLEAR_TP_VITL_CLKOFF_DC>();
+        tp_mesh_clk_en  = l_cfam_data.getBit<PERV_PERV_CTRL0_TP_PLLCHIPLET_FORCE_OUT_EN_DC>();
+#endif
+        FAPI_DBG("Read PERV_CTRL0 Reg Value and observe CPLT_EN = %s, EP_RST = %s, VITL_CLKOFF = %s", btos(tp_cplt_en),
+                 btos(tp_ep_rst), btos(tp_vitl_clk_off));
 
-        FAPI_INF("p9_stopclocks : Reading Clock Status Register in the TP chiplet to see if PIB and NET clocks are running. Bits 5 & 6 should be zero.");
-
-        FAPI_DBG("Read Perv Clock Stat SL");
-        FAPI_TRY(fapi2::getScom(l_target_tp, PERV_CLOCK_STAT_SL, l_sl_clock_status));
-        FAPI_DBG("Perv CLOCK_STAT_SL Value : %#018lX", l_sl_clock_status);
-
-        FAPI_DBG("Read Perv Clock Stat NSL");
-        FAPI_TRY(fapi2::getScom(l_target_tp, PERV_CLOCK_STAT_NSL, l_nsl_clock_status));
-        FAPI_DBG("Perv CLOCK_STAT_NSL Value : %#018lX", l_nsl_clock_status);
-
-        FAPI_DBG("Read Perv Clock Stat ARY");
-        FAPI_TRY(fapi2::getScom(l_target_tp, PERV_CLOCK_STAT_ARY, l_ary_clock_status));
-        FAPI_DBG("Perv CLOCK_STAT_ARY Value : %#018lX", l_ary_clock_status);
-
-        if(l_sl_clock_status.getBit<PERV_1_CLOCK_STAT_SL_STATUS_UNIT1>() ||
-           l_sl_clock_status.getBit<PERV_1_CLOCK_STAT_SL_STATUS_UNIT2>() ||
-           l_nsl_clock_status.getBit<PERV_1_CLOCK_STAT_NSL_STATUS_UNIT1>() ||
-           l_nsl_clock_status.getBit<PERV_1_CLOCK_STAT_NSL_STATUS_UNIT2>() ||
-           l_ary_clock_status.getBit<PERV_1_CLOCK_STAT_ARY_STATUS_UNIT1>() ||
-           l_ary_clock_status.getBit<PERV_1_CLOCK_STAT_ARY_STATUS_UNIT2>())
+        if (tp_cplt_en && !(tp_ep_rst) && !(tp_vitl_clk_off))
         {
-            FAPI_INF("p9_stopclocks : At least one of the NET or PIB clocks is NOT running.  May not be able to use the PCB fabric to access chiplets.");
-            pcb_clks_are_off      = true;
+            FAPI_INF("p9_stopclocks : Reading Clock Status Register in the TP chiplet to see if PIB and NET clocks are running. Bits 5 & 6 should be zero.");
+
+            FAPI_DBG("Read Perv Clock Stat SL");
+            FAPI_TRY(fapi2::getScom(l_target_tp, PERV_CLOCK_STAT_SL, l_sl_clock_status));
+            FAPI_DBG("Perv CLOCK_STAT_SL Value : %#018lX", l_sl_clock_status);
+
+            FAPI_DBG("Read Perv Clock Stat NSL");
+            FAPI_TRY(fapi2::getScom(l_target_tp, PERV_CLOCK_STAT_NSL, l_nsl_clock_status));
+            FAPI_DBG("Perv CLOCK_STAT_NSL Value : %#018lX", l_nsl_clock_status);
+
+            FAPI_DBG("Read Perv Clock Stat ARY");
+            FAPI_TRY(fapi2::getScom(l_target_tp, PERV_CLOCK_STAT_ARY, l_ary_clock_status));
+            FAPI_DBG("Perv CLOCK_STAT_ARY Value : %#018lX", l_ary_clock_status);
+
+            if(l_sl_clock_status.getBit<PERV_1_CLOCK_STAT_SL_STATUS_UNIT1>() ||
+               l_sl_clock_status.getBit<PERV_1_CLOCK_STAT_SL_STATUS_UNIT2>() ||
+               l_nsl_clock_status.getBit<PERV_1_CLOCK_STAT_NSL_STATUS_UNIT1>() ||
+               l_nsl_clock_status.getBit<PERV_1_CLOCK_STAT_NSL_STATUS_UNIT2>() ||
+               l_ary_clock_status.getBit<PERV_1_CLOCK_STAT_ARY_STATUS_UNIT1>() ||
+               l_ary_clock_status.getBit<PERV_1_CLOCK_STAT_ARY_STATUS_UNIT2>())
+            {
+                FAPI_ERR("p9_stopclocks : At least one of the NET or PIB clocks is NOT running.  May not be able to use the PCB fabric to access chiplets.");
+                pcb_clks_are_off      = true;
+            }
+            else
+            {
+                pcb_clks_are_off      = false;
+            }
         }
         else
         {
-            pcb_clks_are_off      = false;
+            FAPI_ERR("p9_stopclocks : TP chiplet dont have favourable conditions to access Clock Controller registers.");
+            pcb_clks_are_off      = true;
         }
 
 
@@ -254,17 +290,32 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
         }
 
         // TP chiplet stopclocks
-        if(((i_stop_tp_clks || i_stop_pib_clks) && tp_cplt_scomable) && !(pcb_is_bypassed == false && pcb_clks_are_off == true))
+        if(((i_stop_tp_clks && i_stop_pib_clks) && tp_cplt_scomable) && !(pcb_is_bypassed == false && pcb_clks_are_off == true))
         {
             FAPI_INF("p9_stopclocks : Call p9_tp_stopclocks function");
             FAPI_TRY(p9_tp_stopclocks(i_target_chip, i_stop_tp_clks, i_stop_pib_clks));
+        }
+        else if((i_stop_tp_clks && tp_cplt_scomable) && !(pcb_is_bypassed == false && pcb_clks_are_off == true))
+        {
+            FAPI_INF("p9_stopclocks : Call p9_tp_stopclocks function to stop only TP clocks");
+            FAPI_TRY(p9_tp_stopclocks(i_target_chip, i_stop_tp_clks, 0));
+        }
+        else if(i_stop_pib_clks && !tp_vitl_clk_off && !tp_ep_rst && tp_mesh_clk_en)
+        {
+            FAPI_INF("p9_stopclocks : Call p9_tp_stopclocks function to stop only PIB clocks");
+            FAPI_TRY(p9_tp_stopclocks(i_target_chip, 0, i_stop_pib_clks));
+        }
+        else if(i_stop_tp_clks || i_stop_pib_clks)
+        {
+            FAPI_ERR("p9_stopclocks : Invalid condition to stop TP chiplet clocks\n\t TP_CPLT_SCOMABLE= %s, PCB_IS_BYPASSED=%s, PCB_CLKS_ARE_OFF=%s TP_MESH_CLK_EN=%s",
+                     btos(tp_cplt_scomable), btos(pcb_is_bypassed), btos(pcb_clks_are_off), btos(tp_mesh_clk_en));
         }
 
         // Vital stopclocks
         if(i_stop_vitl_clks)
         {
 #ifdef __PPE__
-            FAPI_INF("p9_stopclocks : WARNING::VITAL clocks can't be stopped in SBE mode\n\t --> Skipping VITAL Stopclocks..! <--");
+            FAPI_ERR("p9_stopclocks : WARNING::VITAL clocks can't be stopped in SBE mode\n\t --> Skipping VITAL Stopclocks..! <--");
 #else
             FAPI_INF("p9_stopclocks : Stopping Pervasive VITAL clocks");
 
