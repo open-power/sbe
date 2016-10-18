@@ -41,7 +41,6 @@
 // Includes
 //--------------------------------------------------------------------------
 #include <p9_sbe_check_quiesce.H>
-#include <p9_phb_hv_access.H>
 #include <p9_quad_scom_addresses.H>
 #include <p9_misc_scom_addresses_fld.H>
 #include <p9_misc_scom_addresses.H>
@@ -81,8 +80,6 @@ extern "C" {
     fapi_try_exit:
         fapi2::ReturnCode saveError = fapi2::current_err;
         fapi2::buffer<uint64_t> l_data(0);
-        uint64_t l_ffdc_data;
-        fapi2::ffdc_t CHECKSTOP_DATA;
 
         //If the quiesce fails then checkstop the system
         if (fapi2::current_err)
@@ -93,29 +90,8 @@ extern "C" {
 
             if (rc)
             {
-                FAPI_INF("ERROR: There was an error doing the checkstop, it did not go through");
-                //Set the extra FFDC data to DEADBEEFDEADBEEF which tells us there was a fail with the checkstop
-                l_ffdc_data = 0xDEADBEEFDEADBEEF;
+                FAPI_INF("ERROR: There was an error doing the checkstop, it may not have gone through");
             }
-            else
-            {
-                //Add extra FFDC data so we can make sure the checkstop happened
-                rc = fapi2::getScom(i_target, 0x570F001C, l_data);
-
-                if (rc)
-                {
-                    FAPI_INF("ERROR: There was an error reading the checkstop data");
-                    l_ffdc_data = 0xBEEFDEADBEEFDEAD;
-                }
-                else
-                {
-                    l_data.extractToRight(l_ffdc_data, 0, 64);
-                }
-            }
-
-            CHECKSTOP_DATA.ptr() = static_cast<void*>(&l_ffdc_data);
-            CHECKSTOP_DATA.size() = sizeof(l_ffdc_data);
-            FAPI_ADD_INFO_TO_HWP_ERROR(saveError, RC_P9_CHECK_XSTOP);
         }
 
         FAPI_DBG("Exiting...");
@@ -804,6 +780,7 @@ extern "C" {
         l_int_cq_rst_ctl_data.setBit<PU_INT_CQ_RST_CTL_SYNC_RESET>();
         FAPI_TRY(fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, l_int_cq_rst_ctl_data),
                  "Error writing INT_CQ_RST_CTL register to set reset");
+
 
     fapi_try_exit:
         FAPI_DBG("Exiting...");
