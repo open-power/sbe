@@ -446,6 +446,17 @@ typedef struct
     }
 
     /**
+      * @brief Determines if inject Mode is set
+      *
+      * @return Returns True if inject mode is set
+      *                 False if inject mode is not set
+      */
+    uint32_t isPbaInjectModeSet() const
+    {
+        return ((flags & SBE_MEM_ACCESS_FLAGS_INJECT_ON) ? true : false);
+    }
+
+    /**
       * @brief Calculates Data length in alignment with PBA/ADU Cacheline
       * (128B/8B respectively)
       *

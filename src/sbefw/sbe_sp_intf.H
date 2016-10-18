@@ -293,6 +293,7 @@ enum sbeMemoryAccessFlags
     SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON       = 0x0020,
     SBE_MEM_ACCESS_FLAGS_LCO_ENABLED        = 0x0040, //required only in PBA-PUT
     SBE_MEM_ACCESS_FLAGS_CACHE_INHIBIT      = 0x0080, //required in I/O oper ADU
+    SBE_MEM_ACCESS_FLAGS_INJECT_ON          = 0x0200, // Inject mode ( PBA put )
 };
 
 /**

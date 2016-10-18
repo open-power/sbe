@@ -201,6 +201,13 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         SBE_INFO(SBE_FUNC "Fast Mode is set");
     }
 
+    // inject mode flag
+    if(i_hdr.isPbaInjectModeSet())
+    {
+        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ); // Inject operation
+        SBE_INFO(SBE_FUNC "inject Mode is set");
+    }
+
     // By default, ex_chipletId printed below won't be used unless accompanied
     // by LCO_mode (LCO Mode for PBA-Put)
     if(i_hdr.isPbaLcoModeSet())
