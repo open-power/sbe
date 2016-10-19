@@ -209,6 +209,7 @@ enum sbeSecondaryResponse
     SBE_SEC_UNEXPECTED_EOT_EXCESS_DATA        = 0x0F,
     SBE_SEC_HW_OP_TIMEOUT                     = 0x10,
     SBE_SEC_PCB_PIB_ERR                       = 0x11,
+    SBE_SEC_FIFO_PARITY_ERROR                 = 0x12,
 };
 
 /**

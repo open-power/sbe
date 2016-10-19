@@ -98,7 +98,11 @@ typedef struct
     // The following status field is applicable only for
     // upstream FIFO access and will remain reserved for
     // downstream FIFO access
-    sbe_upfifo_status_t statusOrReserved;
+    union
+    {
+        sbe_upfifo_status_t statusOrReserved;
+        uint32_t status;
+    };
 } sbeFifoEntry_t ;
 
 

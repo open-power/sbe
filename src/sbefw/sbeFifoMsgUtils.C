@@ -100,8 +100,8 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
         }
 
         SBE_DEBUG(SBE_FUNC"sbeUpFifoDeq, "
-                    "l_data.fifo_data=[0x%08X],",
-                     l_data.fifo_data);
+                    "fifo_data:0x%08X, status:0x%08X",
+                     l_data.fifo_data, l_data.status);
 
         // If FIFO reset is requested
         if(l_data.statusOrReserved.req_upfifo_reset)
@@ -149,10 +149,19 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
             break;
         }
 
-        // if Upstream FIFO is empty,
-        if ( ( l_data.statusOrReserved.fifo_empty) &&
-             ( !l_data.statusOrReserved.valid_flag))
+        // Check valid flag
+        if ( !l_data.statusOrReserved.valid_flag )
         {
+            if( l_data.statusOrReserved.parity_err )
+            {
+                SBE_ERROR(SBE_FUNC"Parity error while reading FIFO."
+                          " FIFO status: 0x%08X");
+                l_rc = SBE_SEC_FIFO_PARITY_ERROR;
+                break;
+            }
+            // We can reach here because FIFO was empty. We can not trust
+            // empty flag because empty flag tells the status of FIFO after
+            // operation not at the time of operation
             pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
             continue;
         }
