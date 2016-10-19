@@ -34,6 +34,7 @@
 #include <return_code.H>
 #include <plat_trace.H>
 #include <target.H>
+#include <sbeutil.H>
 
 namespace fapi2
 {
@@ -72,7 +73,22 @@ namespace fapi2
             // The "accurate" version is the next line.
             // target_time = pk_timebase_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS(i_nanoSeconds));
 
-            target_time = pk_timebase_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS_SBE(i_nanoSeconds));
+            uint64_t cycles = 0;
+            if( SBE::isSimicsRunning() )
+            {
+                cycles = PK_INTERVAL_SCALE(
+                                PK_NANOSECONDS_SBE(i_nanoSeconds));
+            }
+            else
+            {
+                // TODO via RTC 163216
+                // Fix for the timer ( using in cycle mode )
+                // Check  what should be the right approach for time calculatin.
+                cycles = PK_INTERVAL_SCALE(
+                                PK_NANOSECONDS_SBE(i_nanoSeconds)) * 64;
+            }    
+            target_time = pk_timebase_get() + cycles;
+
             do
             {
                 current_time = pk_timebase_get();

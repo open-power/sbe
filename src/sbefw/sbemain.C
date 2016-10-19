@@ -345,6 +345,10 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
+         if(SBE::isSimicsRunning())
+         {
+            SBE_INFO("SBE is running on simics");
+         }
         // Start running the highest priority thread.
         // This function never returns
         pk_start_threads();

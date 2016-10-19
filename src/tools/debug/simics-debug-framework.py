@@ -83,7 +83,24 @@ def collectTrace ( procNr ):
   SIM_run_alone( run_command, cmd3 )
   SIM_run_alone( run_command, cmd4 )
 
+# MAGIC_INSTRUCTION hap handler
+# arg contains the integer parameter n passed to MAGIC_INSTRUCTION(n)
+# See src/include/arch/ppc.H for the definitions of the magic args.
+# SBE  magic args should range 8000..8190.
+def sbe_magic_instruction_callback(user_arg, cpu, inst_num):
+    # Check if its for ppe processor
+    if(SIM_get_class_name(SIM_object_class(cpu)) != "ppe"):
+        return;
+
+    if inst_num == 8000: #MAGIC_SIMICS_CHECK
+        iface = SIM_get_interface(cpu, "int_register")
+        iface.write(iface.get_number("r3"), 1)
+        print "SBE::isSimicsRunning = true"
 
 # Run the registration automatically whenever this script is loaded.
 register_sbe_debug_framework_tools()
+
+# Register the magic instruction hap handler (a callback).
+# Currently registering a range does not work on simics for sbe
+SIM_hap_add_callback( "Core_Magic_Instruction", sbe_magic_instruction_callback, None )
 

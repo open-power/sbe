@@ -26,6 +26,8 @@ import time
 import conf
 from sim_commands import *
 
+waitItrCount = 10000000;
+cyclesPerIter = 20000;
 #err = False
 lbus = conf.p9Proc0.proc_lbus_map
 def writeUsFifo( data):
@@ -112,9 +114,9 @@ def writeEntry(obj, address, value ):
 
         if( status[2] & 0x02):
             count = count + 1
-            runCycles(200000)
+            runCycles(cyclesPerIter)
             # This will cause  test to fail
-            if(count > 50):
+            if(count > waitItrCount):
                 raise Exception('Timeout. FIFO FULL');
         else:
             # write entry
@@ -141,9 +143,9 @@ def readEntry(obj, address, size):
             loop = 0
         else:
             count = count + 1
-            runCycles(200000)
+            runCycles(cyclesPerIter)
             # This will cause  test to fail
-            if(count > 50):
+            if(count > waitItrCount):
                 raise Exception('Timeout. Empty FIFO');
 
     return value
