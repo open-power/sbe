@@ -646,28 +646,28 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_call(
                            l_read_attr));
 
     for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
+         (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_PRESENT))
     {
         FAPI_DBG("Mux settings for Mc chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_MC(l_target_cplt, l_read_attr));
     }
 
     for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))
+         (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_PRESENT))
     {
         FAPI_DBG("Mux settings for OB chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_obus(l_target_cplt, l_read_attr));
     }
 
     for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_FUNCTIONAL))
+         (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_PRESENT))
     {
         FAPI_DBG("Mux settings for XB chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_xbus(l_target_cplt, l_read_attr));
     }
 
     for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
+         (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_PRESENT))
     {
         FAPI_DBG("Mux settings for Pcie chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_pcie(l_target_cplt, l_read_attr));
