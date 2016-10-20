@@ -269,6 +269,12 @@ p9_hcd_core_startclocks(
 
     if (!l_attr_runn_mode)
     {
+        FAPI_DBG("Drop auto special wakeup disable via CME_SCOM_LMCR[12/13]");
+        FAPI_TRY(putScom(l_quad,
+                         (l_attr_chip_unit_pos < 2) ?
+                         EX_0_CME_SCOM_LMCR_CLEAR : EX_1_CME_SCOM_LMCR_CLEAR,
+                         (BIT64(12 + (l_attr_chip_unit_pos % 2)))));
+
         FAPI_DBG("Set core as ready to run in STOP history register");
         FAPI_TRY(putScom(i_target, C_PPM_SSHSRC, 0));
     }
