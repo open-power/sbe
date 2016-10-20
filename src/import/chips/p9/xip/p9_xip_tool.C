@@ -50,6 +50,7 @@
     using namespace P9_TOR;
 #endif
 
+
 #define LINE_SIZE_MAX  1024     // Max size of a single snprintf dump.
 #define RING_BUF_SIZE_MAX  1000000
 
@@ -1862,13 +1863,15 @@ int dissectRingSectionTor( void*       i_ringSection,
                         //
                         if (rc == TOR_RING_FOUND)
                         {
+                            uint32_t l_ringSize = htobe16(((CompressedScanData*)ringBlockPtr)->iv_size);
 
                             // Check ring block size.
-                            if ( htobe32(((RingLayout_t*)ringBlockPtr)->sizeOfThis) != ringBlockSize )
+                            if ( l_ringSize != ringBlockSize || l_ringSize == 0 )
                             {
                                 fprintf(stderr, "tor_access_ring() was successful and found a ring but "
-                                        "sizeOfThis(=0x%08x) != ringBlockSize(=0x%08x) is a bug.\n",
-                                        htobe32(((RingLayout_t*)ringBlockPtr)->sizeOfThis), ringBlockSize);
+                                        "RS4 header's iv_size(=0x%08x) is either zero or doesn't match "
+                                        "size of ring buffer (ringBlockSize=0x%08x).\n",
+                                        l_ringSize, ringBlockSize);
                                 exit(1);
                             }
 
