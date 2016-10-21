@@ -150,8 +150,10 @@ def sbeState( sbeObjDir, target, node, proc ):
        print "ERROR running %s: %d " % ( cmd1, rc )
        return 1
 
-def sbeStatus():
-    cmd = "getcfam pu 2809"
+def sbeStatus( node, proc ):
+    cmd = ("getcfam pu 2809" +\
+            " -n" + str(node) + " -p" + str(proc))
+    print "cmd:", cmd
     output = os.popen(cmd).read()
     output = output.split()
     if ("ERROR:" in output):
@@ -227,7 +229,7 @@ def main( argv ):
         print "Parsing everything"
         collectTrace( sbeObjDir, args.target, args.node, args.proc )
         collectAttr(  sbeObjDir, args.target, args.node, args.proc )
-        sbeStatus()
+        sbeStatus( args.node, args.proc )
     elif ( args.level == 'trace' ):
         collectTrace( sbeObjDir, args.target, args.node, args.proc )
     elif ( args.level == 'attr' ):
@@ -237,7 +239,7 @@ def main( argv ):
     elif ( args.level == 'sbestate' ):
         sbeState( sbeObjDir, args.target, args.node, args.proc )
     elif ( args.level == 'sbestatus' ):
-        sbeStatus()
+        sbeStatus( args.node, args.proc )
 
     # On cronus, Enable FIFO mode
     rc = os.system( cmdFifoOn )
