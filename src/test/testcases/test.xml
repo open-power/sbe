@@ -35,7 +35,7 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testPutGetMem.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSram.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testCntlInstruction.xml</include>
+          <!-- TODO add testCntlInstruction.xml -->
           <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testFifoReset.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
