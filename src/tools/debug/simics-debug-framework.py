@@ -44,7 +44,7 @@ def register_sbe_debug_framework_tools():
     fillSymTable()
     # Create command hook.
     new_command("sbe-istep",testIstepAuto.sbe_istep_func,
-                 args = [arg(int_t, "major"), arg(int_t, "minor")],
+                 args = [arg(float_t, "Major/start istep"), arg(float_t, "Minor/end istep")],
                  alias = "istep",
                  type = ["sbe-commands"],
                  short = "Runs the debug framework for istep ",
