@@ -614,8 +614,8 @@ ReturnCode istepNestFreq( sbeIstepHwp_t i_hwp)
     uint8_t nestPllBkt = 0;
     FAPI_ATTR_GET( ATTR_NEST_PLL_BUCKET, sys, nestPllBkt );
     assert( nestPllBkt && (nestPllBkt <= NEST_PLL_FREQ_BUCKETS ));
-    uint32_t sbeFreqHz = ( NEST_PLL_FREQ_LIST[ nestPllBkt - 1 ] * 1000 * 1000 )/
-                                                 SBE::SBE_TO_NEST_FREQ_FACTOR;
+    g_sbefreq = ( NEST_PLL_FREQ_LIST[ nestPllBkt - 1 ] * 1000 * 1000 )/
+                                              SBE::SBE_TO_NEST_FREQ_FACTOR;
 
     assert( NULL != i_hwp.procHwp );
     do
@@ -627,8 +627,8 @@ ReturnCode istepNestFreq( sbeIstepHwp_t i_hwp)
         }
         // This function signature though has return value
         // But it always return SUCCESS.
-        SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", sbeFreqHz);
-        pk_timebase_freq_set(sbeFreqHz);
+        SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", g_sbefreq);
+        pk_timebase_freq_set(g_sbefreq);
     }while(0);
     return rc;
     #undef SBE_FUNC

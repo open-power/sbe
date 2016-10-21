@@ -77,7 +77,8 @@ PkThread g_sbeSyncCommandProcessor_thread;
 ////        processing thread
 ////////////////////////////////////////////////////////////////
 PkThread g_sbeAsyncCommandProcessor_thread;
-
+// SBE Frequency. Initially nest frequency is 133 MHZ
+uint32_t g_sbefreq = ( 133 * 1000 * 1000)/SBE::SBE_TO_NEST_FREQ_FACTOR;
 extern "C"
 {
 // These variables are declared in linker script to keep track of
@@ -281,15 +282,12 @@ uint32_t main(int argc, char **argv)
 
     do
     {
-        // Keep default nest frequncy as 133 MHZ
-        static const uint32_t initialSbefreq = ( 133 * 1000 * 1000)/
-                                                  SBE::SBE_TO_NEST_FREQ_FACTOR;
         // initializes kernel data -
         // stack, threads, timebase, timers, etc.
         l_rc = pk_initialize((PkAddress)g_sbe_Kernel_NCInt_stack,
              SBE_NONCRITICAL_STACK_SIZE,
              0,
-             initialSbefreq );
+             g_sbefreq );
         if (l_rc)
         {
             break;

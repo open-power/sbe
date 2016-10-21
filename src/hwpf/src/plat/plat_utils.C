@@ -39,6 +39,13 @@
 namespace fapi2
 {
 
+    // Define own function rather than using PK function
+    // This is required as PK function does not scale well for low
+    // frequency till istep 2.7
+    inline uint64_t delayCycles(uint64_t i_nanoSeconds )
+    {
+        return ( i_nanoSeconds/1000) * ( g_sbefreq /(1000*1000));
+    }
     /// @brief Delay this thread.
     ///
     ReturnCode delay(uint64_t i_nanoSeconds, uint64_t i_simCycles, bool i_fixed /* = false*/)
@@ -51,8 +58,6 @@ namespace fapi2
 
 #ifndef __FAPI_DELAY_SIM__
 
-#define PK_NANOSECONDS_SBE(n) ((PkTimebase)((PK_BASE_FREQ_HZ * (PkTimebase)(n)) / (1024*1024*1024)))
-
         PkTimebase  target_time;
         PkTimebase  current_time;
         PkMachineContext  ctx;
@@ -61,33 +66,12 @@ namespace fapi2
         // Only execute if nanoSeconds is non-zero (eg a real wait)
         if (i_nanoSeconds)
         {
-            // @todo For SBE applications, the time accuracy can be traded off
-            // for space with the PK_NANOSECONDS_SBE implemenation as the compiler
-            // use shift operations for the unit normalizing division.
-
             // The critical section enter/exit set is done to ensure the timebase
             // operations are non-interrupible.
 
             pk_critical_section_enter(&ctx);
-            //
-            // The "accurate" version is the next line.
-            // target_time = pk_timebase_get() + PK_INTERVAL_SCALE(PK_NANOSECONDS(i_nanoSeconds));
 
-            uint64_t cycles = 0;
-            if( SBE::isSimicsRunning() )
-            {
-                cycles = PK_INTERVAL_SCALE(
-                                PK_NANOSECONDS_SBE(i_nanoSeconds));
-            }
-            else
-            {
-                // TODO via RTC 163216
-                // Fix for the timer ( using in cycle mode )
-                // Check  what should be the right approach for time calculatin.
-                cycles = PK_INTERVAL_SCALE(
-                                PK_NANOSECONDS_SBE(i_nanoSeconds)) * 64;
-            }    
-            target_time = pk_timebase_get() + cycles;
+            target_time = pk_timebase_get() + delayCycles( i_nanoSeconds);
 
             do
             {
