@@ -1107,13 +1107,13 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_nest_hang_cnt_setup(
         l_data64.clearBit<6>();  //HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0
         FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_1_REG, l_data64));
         //Setting HANG_PULSE_2_REG register value (Setting all fields)
-        //HANG_PULSE_2_REG.HANG_PULSE_REG_2 = p9SbeChipletReset::HANG_PULSE_0X13
-        l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X13);
+        //HANG_PULSE_2_REG.HANG_PULSE_REG_2 = p9SbeChipletReset::HANG_PULSE_0X0F
+        l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X0F);
         l_data64.clearBit<6>();  //HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0
         FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_2_REG, l_data64));
         //Setting HANG_PULSE_3_REG register value (Setting all fields)
-        //HANG_PULSE_3_REG.HANG_PULSE_REG_3 = p9SbeChipletReset::HANG_PULSE_0X0F
-        l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X0F);
+        //HANG_PULSE_3_REG.HANG_PULSE_REG_3 = p9SbeChipletReset::HANG_PULSE_0X13
+        l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X13);
         l_data64.clearBit<6>();  //HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0
         FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_3_REG, l_data64));
         //Setting HANG_PULSE_4_REG register value (Setting all fields)
