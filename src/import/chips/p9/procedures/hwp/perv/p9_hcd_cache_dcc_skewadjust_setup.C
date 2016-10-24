@@ -56,6 +56,10 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
 
     FAPI_DBG("Entering ...");
 
+    FAPI_DBG("Release Skew Adjust Reset");
+    l_data64.flush<1>().clearBit<2>();
+    FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL0_WAND, l_data64));
+
     FAPI_DBG("Release L2-0, L2-1 DC Adjust reset");
     l_data64.flush<1>();
     l_data64.clearBit<23>();

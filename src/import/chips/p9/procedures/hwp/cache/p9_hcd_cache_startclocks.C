@@ -131,7 +131,7 @@ p9_hcd_cache_startclocks(
     // 0x0 -> 0x8 -> 0xC -> 0xE -> 0xF to turn on edram
     // stagger EDRAM turn-on per EX (not both at same time)
 
-    l_region_clock = p9hcd::CLK_REGION_ALL_BUT_EX_ANEP_DPLL;
+    l_region_clock = p9hcd::CLK_REGION_ALL_BUT_EX_DPLL;
     l_l2sync_clock = 0;
     l_l2pscom_mask = 0;
     l_l3pscom_mask = 0;
@@ -306,7 +306,7 @@ p9_hcd_cache_startclocks(
     // Cleaning up
     // -------------------------------
 
-    if (l_attr_system_ipl_phase != 4)
+    if (l_attr_system_ipl_phase != fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
     {
         FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
         FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(18)));

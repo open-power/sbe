@@ -222,6 +222,9 @@ p9_hcd_cache_chiplet_reset(
     FAPI_DBG("Drop PCB fence via NET_CTRL0[25]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(25)));
 
+    FAPI_DBG("Assert sram_enable via NET_CTRL0[23]");
+    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WOR, MASK_SET(23)));
+
     FAPI_DBG("Set scan ratio to 1:1 in bypass mode via OPCG_ALIGN[47-51]");
     FAPI_TRY(getScom(i_target, EQ_OPCG_ALIGN, l_data64));
     l_data64.insertFromRight<47, 5>(0x0);

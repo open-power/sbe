@@ -93,6 +93,7 @@ p9_hcd_core_startclocks(
     uint8_t                                     l_attr_chip_unit_pos;
     uint8_t                                     l_attr_system_ipl_phase;
     uint8_t                                     l_attr_runn_mode;
+    uint8_t                                     l_attr_sdisn_setup;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_EQ>        l_quad =
@@ -101,16 +102,21 @@ p9_hcd_core_startclocks(
         i_target.getParent<fapi2::TARGET_TYPE_PERV>();
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
 
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SDISN_SETUP, l_chip,
+                           l_attr_sdisn_setup));
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,        l_chip,
+                           l_attr_group_id));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID,         l_chip,
+                           l_attr_chip_id));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID,       l_chip,
+                           l_attr_system_id));
+
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MODE,        l_sys,
                            l_attr_runn_mode));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
                            l_attr_system_ipl_phase));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,  l_chip,
-                           l_attr_group_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID,   l_chip,
-                           l_attr_chip_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID, l_chip,
-                           l_attr_system_id));
+
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,    l_perv,
                            l_attr_chip_unit_pos));
     l_attr_chip_unit_pos = (l_attr_chip_unit_pos -
@@ -127,9 +133,11 @@ p9_hcd_core_startclocks(
         FAPI_TRY(putScom(i_target, C_CPLT_CTRL0_OR, MASK_SET(5)));
     }
 
-    /// @todo add DD1 attribute control
-    FAPI_DBG("DD1 only: set sdis_n(flushing LCBES condition workaround");
-    FAPI_TRY(putScom(i_target, C_CPLT_CONF0_OR, MASK_SET(34)));
+    if (l_attr_sdisn_setup)
+    {
+        FAPI_DBG("DD1 ONLY: Assert sdis_n(flushing LCBES condition) via CPLT_CONF0[34]");
+        FAPI_TRY(putScom(i_target, C_CPLT_CONF0_OR, MASK_SET(34)));
+    }
 
     FAPI_DBG("Set inop_align/wait/wait_cycles via OPCG_ALIGN[0-3,12-19,52-63]");
     FAPI_TRY(getScom(i_target, C_OPCG_ALIGN, l_data64));
@@ -284,10 +292,7 @@ p9_hcd_core_startclocks(
                          EX_0_CME_SCOM_SICR_CLEAR : EX_1_CME_SCOM_SICR_CLEAR,
                          (BIT64(6 + (l_attr_chip_unit_pos % 2)) |
                           BIT64(8 + (l_attr_chip_unit_pos % 2)))));
-    }
 
-    if (!l_attr_runn_mode)
-    {
         FAPI_DBG("Drop auto special wakeup disable via CME_SCOM_LMCR[12/13]");
         FAPI_TRY(putScom(l_quad,
                          (l_attr_chip_unit_pos < 2) ?

@@ -191,6 +191,14 @@ p9_hcd_core_chiplet_reset(
     FAPI_DBG("Assert vdm enable via CPPM_VDMCR[0]");
     FAPI_TRY(putScom(i_target, C_PPM_VDMCR_OR, MASK_SET(0)));
 
+    // content of p9_hcd_core_dcc_skewadjust below:
+
+    FAPI_DBG("Drop core DCC bypass via NET_CTRL[1]");
+    FAPI_TRY(putScom(i_target, C_NET_CTRL1_WAND, MASK_UNSET(1)));
+
+    FAPI_DBG("Drop core progdly bypass(skewadjust) via NET_CTRL1[2]");
+    FAPI_TRY(putScom(i_target, C_NET_CTRL1_WAND, MASK_UNSET(2)));
+
 fapi_try_exit:
 
     FAPI_INF("<<p9_hcd_core_chiplet_reset");

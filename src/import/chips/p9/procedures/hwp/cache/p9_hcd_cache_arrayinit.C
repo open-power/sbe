@@ -101,8 +101,7 @@ p9_hcd_cache_arrayinit(
         l_region_scan0 |= p9hcd::SCAN0_REGION_EX1_L2_L3_REFR;
     }
 
-    /// @todo add DD1 attribute control
-    FAPI_DBG("DD1 only: set sdis_n(flushing LCBES condition workaround");
+    FAPI_DBG("Assert sdis_n(flushing LCBES condition) via CPLT_CONF0[34]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CONF0_OR, MASK_SET(34)));
 
 #ifndef P9_HCD_STOP_SKIP_ARRAYINIT
@@ -135,8 +134,7 @@ p9_hcd_cache_arrayinit(
 
 #endif
 
-    /// @todo add DD1 attribute control
-    FAPI_DBG("DD1 only: reset sdis_n(flushing LCBES condition workaround");
+    FAPI_DBG("Drop sdis_n(flushing LCBES condition) via CPLT_CONF0[34]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CONF0_CLEAR, MASK_SET(34)));
 
 fapi_try_exit:

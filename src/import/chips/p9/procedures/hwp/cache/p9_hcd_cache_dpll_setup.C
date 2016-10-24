@@ -97,8 +97,16 @@ p9_hcd_cache_dpll_setup(
     fapi2::buffer<uint64_t>                  l_data64;
     uint8_t                                  l_dpll_bypass;
     uint32_t                                 l_timeout;
-
     auto l_parent_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+
+#ifndef __PPE__
+    uint8_t                                  l_attr_is_simulation;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SIMULATION,
+                           fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                           l_attr_is_simulation));
+#endif
+
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DPLL_BYPASS, l_parent_chip, l_dpll_bypass),
              "Error from FAPI_ATTR_GET (ATTR_DPLL_BYPASS)");
 
@@ -119,8 +127,8 @@ p9_hcd_cache_dpll_setup(
         FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_AND(3, 2, 0)));
     }
 
-    FAPI_DBG("Drop DPLL clock region fence via NET_CTRL1[14]");
-    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, MASK_SET(14)));
+    FAPI_DBG("Drop ANEP+DPLL clock region fences via NET_CTRL1[10, 14]");
+    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, MASK_CLR(10, 5, 0x11)));
 
     // ----------------
     // Start DPLL clock
@@ -168,8 +176,22 @@ p9_hcd_cache_dpll_setup(
         do
         {
             FAPI_TRY(getScom(i_target, EQ_QPPM_DPLL_STAT, l_data64));
-            ///@todo disable poll for DPLL lock until model setting in place
+
+#ifndef __PPE__
+
+            if (l_attr_is_simulation)
+            {
+                FAPI_DBG("Skipping DPLL lock check in Sim");
+                break;
+            }
+
+#else
+#ifdef SIM_DPLL_LOCK_CHK
+            FAPI_DBG("Skipping DPLL lock check in Sim");
             break;
+#endif
+#endif
+
         }
         while ((l_data64.getBit<63>() != 1 ) && (--l_timeout != 0));
 
@@ -181,7 +203,6 @@ p9_hcd_cache_dpll_setup(
 
         FAPI_DBG("Drop DPLL bypass via NET_CTRL0[5]");
         FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(5)));
-
 
         FAPI_DBG("Drop DPLL ff_bypass via QPPM_DPLL_CTRL[2]");
         FAPI_TRY(putScom(i_target, EQ_QPPM_DPLL_CTRL_CLEAR, MASK_SET(2)));
@@ -202,14 +223,8 @@ p9_hcd_cache_dpll_setup(
         FAPI_TRY(putScom(i_target, EQ_OPCG_ALIGN, l_data64));
     }
 
-    FAPI_DBG("Drop ANEP clock region fence via CPLT_CTRL1[10]");
-    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL1_CLEAR, MASK_SET(10)));
-
     FAPI_DBG("Drop skew/duty cycle adjust func_clksel via NET_CTRL0[22]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(22)));
-
-    FAPI_DBG("Drop skew adjust reset via NET_CTRL0[2]");
-    FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(2)));
 
 fapi_try_exit:
 
