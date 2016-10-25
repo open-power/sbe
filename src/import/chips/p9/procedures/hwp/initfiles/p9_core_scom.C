@@ -29,7 +29,7 @@
 
 using namespace fapi2;
 
-constexpr auto literal_0x0301D70000AB7696 = 0x0301D70000AB7696;
+constexpr auto literal_0x4301D70000AB7696 = 0x4301D70000AB7696;
 constexpr auto literal_0x0000000000000000 = 0x0000000000000000;
 constexpr auto literal_0xA858009775100008 = 0xA858009775100008;
 
@@ -50,7 +50,7 @@ fapi2::ReturnCode p9_core_scom(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& TGT
             }
 
             {
-                l_scom_buffer.insert<uint64_t> (literal_0x0301D70000AB7696, 0, 64, 0 );
+                l_scom_buffer.insert<uint64_t> (literal_0x4301D70000AB7696, 0, 64, 0 );
             }
 
             l_rc = fapi2::putScom(TGT0, 0x20010a43ull, l_scom_buffer);
