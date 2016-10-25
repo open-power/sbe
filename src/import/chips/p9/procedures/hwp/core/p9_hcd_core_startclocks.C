@@ -87,9 +87,14 @@ p9_hcd_core_startclocks(
     FAPI_INF(">>p9_hcd_core_startclocks");
     fapi2::buffer<uint64_t>                     l_data64;
     uint32_t                                    l_timeout;
+    uint32_t                                    l_attr_system_id = 0;
+    uint8_t                                     l_attr_group_id  = 0;
+    uint8_t                                     l_attr_chip_id   = 0;
     uint8_t                                     l_attr_chip_unit_pos;
     uint8_t                                     l_attr_system_ipl_phase;
     uint8_t                                     l_attr_runn_mode;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
+        i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_EQ>        l_quad =
         i_target.getParent<fapi2::TARGET_TYPE_EQ>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
@@ -100,6 +105,12 @@ p9_hcd_core_startclocks(
                            l_attr_runn_mode));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
                            l_attr_system_ipl_phase));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,  l_chip,
+                           l_attr_group_id));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID,   l_chip,
+                           l_attr_chip_id));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID, l_chip,
+                           l_attr_system_id));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,    l_perv,
                            l_attr_chip_unit_pos));
     l_attr_chip_unit_pos = (l_attr_chip_unit_pos -
@@ -157,6 +168,14 @@ p9_hcd_core_startclocks(
 
     FAPI_DBG("Reset abstclk & syncclk muxsel(io_clk_sel) via CPLT_CTRL0[0:1]");
     FAPI_TRY(putScom(i_target, C_CPLT_CTRL0_CLEAR, MASK_CLR(0, 2, 3)));
+
+    FAPI_DBG("Set fabric group ID[%x] chip ID[%x] system ID[%x]",
+             l_attr_group_id, l_attr_chip_id, l_attr_system_id);
+    FAPI_TRY(getScom(i_target, C_CPLT_CONF0, l_data64));
+    l_data64.insertFromRight<48, 4>(l_attr_group_id).
+    insertFromRight<52, 3>(l_attr_chip_id).
+    insertFromRight<56, 5>(l_attr_system_id);
+    FAPI_TRY(putScom(i_target, C_CPLT_CONF0, l_data64));
 
     // -------------------------------
     // Align chiplets
