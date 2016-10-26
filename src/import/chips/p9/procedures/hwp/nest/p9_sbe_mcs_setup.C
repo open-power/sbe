@@ -163,9 +163,14 @@ fapi2::ReturnCode p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
         l_is_master_sbe &&
         !l_is_mpipl)
     {
+
+#ifdef __PPE__
+        // assert that a viable MCS/MI chiplet is found to service dcbz on the
+        // master processor
         FAPI_ASSERT(l_mcs_chiplets.size() || l_mi_chiplets.size(),
                     fapi2::P9_SBE_MCS_SETUP_NO_MC_FOUND_ERR().set_CHIP(i_target),
                     "No functional MC unit target found");
+#endif
 
         // determine base address
         FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_target,
