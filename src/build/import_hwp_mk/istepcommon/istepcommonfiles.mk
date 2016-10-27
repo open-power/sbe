@@ -45,11 +45,6 @@ ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_access.C
 ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_circular.C
 ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_linear.C
 ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_init.C
-ISTEPCOMMON-CPP-SOURCES +=p9_pm_utils.C
-ISTEPCOMMON-CPP-SOURCES +=p9_block_wakeup_intr.C
-ISTEPCOMMON-CPP-SOURCES +=p9_adu_setup.C
-ISTEPCOMMON-CPP-SOURCES +=p9_adu_coherent_utils.C
-ISTEPCOMMON-CPP-SOURCES +=p9_adu_access.C
 #Istep2 Procedure but this is required to run from PIBMEM
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_tp_switch_gears.C
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_npll_setup.C

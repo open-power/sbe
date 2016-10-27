@@ -47,6 +47,12 @@
 
 using namespace fapi2;
 
+#ifdef SEEPROM_IMAGE
+// Using Function pointer to force long call
+p9_adu_access_FP_t p9_adu_access_hwp = &p9_adu_access;
+p9_adu_setup_FP_t p9_adu_setup_hwp = &p9_adu_setup; 
+#endif
+
 // Buffer requirement for ADU and PBA on the stack
 static const uint32_t MAX_ADU_BUFFER       = 40;
 static const uint32_t MAX_PBA_BUFFER       = 32;
@@ -452,7 +458,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     {
         // Call the ADU setup HWP
         SBE_EXEC_HWP(l_fapiRc,
-                     p9_adu_setup,
+                     p9_adu_setup_hwp,
                      l_proc,
                      l_addr,
                      i_isFlagRead,
@@ -564,14 +570,14 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
             // Call ADU access HWP for ADU write/read request
             SBE_EXEC_HWP(l_fapiRc,
-                         p9_adu_access,
-                            l_proc,
-                            l_addr,
-                            i_isFlagRead,
-                            l_aduFlag.setFlag(),
-                            l_firstGran,
-                            l_lastGran,
-                            &(((uint8_t *)&(l_dataFifo))[l_bufIdx]))
+                         p9_adu_access_hwp,
+                         l_proc,
+                         l_addr,
+                         i_isFlagRead,
+                         l_aduFlag.setFlag(),
+                         l_firstGran,
+                         l_lastGran,
+                         &(((uint8_t *)&(l_dataFifo))[l_bufIdx]))
             // if p9_adu_access returns error
             if( l_fapiRc != FAPI2_RC_SUCCESS )
             {

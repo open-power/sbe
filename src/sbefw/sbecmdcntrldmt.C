@@ -49,6 +49,8 @@ using namespace fapi2;
 // Using Function pointer to force long call
 p9_sbe_check_master_stop15_FP_t p9_sbe_check_master_stop15_hwp =
                                             &p9_sbe_check_master_stop15;
+p9_block_wakeup_intr_FP_t p9_block_wakeup_intr_hwp =
+                                            &p9_block_wakeup_intr;
 #endif
 
 ////////////////////////////////////////////////////////////////////
@@ -175,7 +177,7 @@ uint32_t sbeStartCntlDmt()
             // Only for Pending and Success case
             if(RC_CHECK_MASTER_STOP15_PENDING != l_rcFapi) // Success
             {
-                SBE_EXEC_HWP(l_fapiRc, p9_block_wakeup_intr, l_coreTgt,
+                SBE_EXEC_HWP(l_fapiRc, p9_block_wakeup_intr_hwp, l_coreTgt,
                                                 p9pmblockwkup::CLEAR);
                 if( l_fapiRc )
                 {

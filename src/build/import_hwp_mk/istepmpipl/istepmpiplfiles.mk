@@ -33,6 +33,10 @@
 ISTEPMPIPL-CPP-SOURCES = p9_hcd_core_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES +=p9_hcd_cache_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES +=p9_hcd_l2_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_block_wakeup_intr.C
+ISTEPMPIPL-CPP-SOURCES +=p9_adu_setup.C
+ISTEPMPIPL-CPP-SOURCES +=p9_adu_coherent_utils.C
+ISTEPMPIPL-CPP-SOURCES +=p9_adu_access.C
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 
