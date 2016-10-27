@@ -51,6 +51,9 @@ enum P9_SBE_NPLL_SETUP_Private_Constants
     SIM_CYCLE_DELAY = 1000 // unit is sim cycles
 };
 
+static fapi2::ReturnCode p9_sbe_npll_setup_sectorbuffer_pulsemode_settings(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+
 fapi2::ReturnCode p9_sbe_npll_setup(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -63,6 +66,9 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
     fapi2::buffer<uint64_t> l_data64_root_ctrl8;
     fapi2::buffer<uint64_t> l_data64_perv_ctrl0;
     FAPI_INF("p9_sbe_npll_setup: Entering ...");
+
+    FAPI_DBG("Sector buffer strength and pulse mode setup");
+    FAPI_TRY(p9_sbe_npll_setup_sectorbuffer_pulsemode_settings(i_target_chip));
 
     FAPI_DBG("Reading ROOT_CTRL8 register value");
     //Getting ROOT_CTRL8 register value
@@ -277,4 +283,51 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
 fapi_try_exit:
     return fapi2::current_err;
 
+}
+
+/// @brief Setup sector buffer strength and pulse mode
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_npll_setup_sectorbuffer_pulsemode_settings(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+    fapi2::buffer<uint64_t> l_data64_perv_ctrl1;
+    fapi2::buffer<uint8_t> l_attr_buffer_strength = 0;
+    fapi2::buffer<uint8_t> l_attr_pulse_mode_enable = 0;
+    fapi2::buffer<uint8_t> l_attr_pulse_mode_value = 0;
+
+    FAPI_INF("p9_sbe_npll_setup_sectorbuffer_pulsemode_settings:Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECTOR_BUFFER_STRENGTH, l_sys,
+                           l_attr_buffer_strength));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PULSE_MODE_ENABLE, l_sys,
+                           l_attr_pulse_mode_enable));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PULSE_MODE_VALUE, l_sys,
+                           l_attr_pulse_mode_value));
+
+    FAPI_TRY(fapi2::getScom(i_target_chip , PERV_PERV_CTRL1_SCOM, l_data64_perv_ctrl1));
+
+    FAPI_DBG("Sector buffer strength");
+    l_data64_perv_ctrl1.insertFromRight< PERV_PERV_CTRL1_TP_SEC_BUF_DRV_STRENGTH_DC,
+                                         PERV_PERV_CTRL1_TP_SEC_BUF_DRV_STRENGTH_DC_LEN >(l_attr_buffer_strength);
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL1_SCOM, l_data64_perv_ctrl1));
+
+    FAPI_DBG("Pulse mode enable & pulse mode");
+
+    if (l_attr_pulse_mode_enable.getBit<7>())
+    {
+        l_data64_perv_ctrl1.setBit<PERV_PERV_CTRL1_TP_CLK_PULSE_ENABLE_DC>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL1_SCOM, l_data64_perv_ctrl1));
+
+        l_data64_perv_ctrl1.insertFromRight< PERV_PERV_CTRL1_TP_CLK_PULSE_MODE_DC,
+                                             PERV_PERV_CTRL1_TP_CLK_PULSE_MODE_DC_LEN  >(l_attr_pulse_mode_value);
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL1_SCOM, l_data64_perv_ctrl1));
+    }
+
+    FAPI_INF("p9_sbe_npll_setup_sectorbuffer_pulsemode_settings:Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
 }

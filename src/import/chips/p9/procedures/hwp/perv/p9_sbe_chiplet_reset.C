@@ -139,6 +139,9 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_setup_iop_logic(
 static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
+static fapi2::ReturnCode p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+
 fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -293,6 +296,9 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
 
         FAPI_DBG("Clock mux settings");
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_call(i_target_chip));
+
+        FAPI_DBG("Sector buffer strength and pulse mode setup");
+        FAPI_TRY(p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup(i_target_chip));
 
         if ( l_attr_vitl_setup )
         {
@@ -1446,6 +1452,62 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
     }
 
     FAPI_INF("p9_sbe_chiplet_reset_all_obus_scan0:Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+/// @brief Setup sector buffer strength and pulse mode for MC,OB,XB,PCIE
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+
+    fapi2::buffer<uint64_t> l_data64_net_ctrl1;
+    fapi2::buffer<uint8_t> l_attr_buffer_strength = 0;
+    fapi2::buffer<uint8_t> l_attr_pulse_mode_enable = 0;
+    fapi2::buffer<uint8_t> l_attr_pulse_mode_value = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+
+    FAPI_INF("p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup:Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECTOR_BUFFER_STRENGTH, l_sys,
+                           l_attr_buffer_strength));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PULSE_MODE_ENABLE, l_sys,
+                           l_attr_pulse_mode_enable));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PULSE_MODE_VALUE, l_sys,
+                           l_attr_pulse_mode_value));
+
+    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+         (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC | fapi2::TARGET_FILTER_ALL_OBUS |
+                                           fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
+          fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_TRY(fapi2::getScom(l_target_cplt, PERV_NET_CTRL1, l_data64_net_ctrl1));
+
+        FAPI_DBG("Sector buffer strength");
+        l_data64_net_ctrl1.insertFromRight< PERV_1_NET_CTRL1_SB_STRENGTH,
+                                            PERV_1_NET_CTRL1_SB_STRENGTH_LEN >(l_attr_buffer_strength);
+        FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL1, l_data64_net_ctrl1));
+
+        FAPI_DBG("Pulse mode enable & pulse mode");
+
+        if (l_attr_pulse_mode_enable.getBit<7>())
+        {
+            FAPI_DBG("setting pulse mode enable");
+            l_data64_net_ctrl1.setBit<PERV_1_NET_CTRL1_CLK_PULSE_EN>();
+            FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL1, l_data64_net_ctrl1));
+
+            l_data64_net_ctrl1.insertFromRight< PERV_1_NET_CTRL1_CLK_PULSE_MODE,
+                                                PERV_1_NET_CTRL1_CLK_PULSE_MODE_LEN >(l_attr_pulse_mode_value);
+            FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL1, l_data64_net_ctrl1));
+        }
+
+    }
+
+    FAPI_INF("p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup:Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
