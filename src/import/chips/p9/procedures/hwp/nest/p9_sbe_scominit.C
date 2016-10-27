@@ -95,8 +95,6 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     uint64_t l_base_addr_nm1;
     uint64_t l_base_addr_m;
     uint64_t l_base_addr_mmio;
-    uint8_t l_mc_sync_mode;
-    fapi2::TargetFilter l_target_filter = fapi2::TARGET_FILTER_NONE ;
 
     // set fabric topology information in each pervasive chiplet (outside of EC/EP)
     {
@@ -116,6 +114,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                                                fapi2::TARGET_FILTER_ALL_NEST |
                                                fapi2::TARGET_FILTER_XBUS |
                                                fapi2::TARGET_FILTER_ALL_OBUS |
+                                               fapi2::TARGET_FILTER_ALL_MC |
                                                fapi2::TARGET_FILTER_ALL_PCI),
               fapi2::TARGET_STATE_FUNCTIONAL))
         {
@@ -302,11 +301,12 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
     // configure chiplet pervasive FIRs / XFIRs
     {
-        l_target_filter = static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP |
-                          fapi2::TARGET_FILTER_ALL_NEST |
-                          fapi2::TARGET_FILTER_XBUS |
-                          fapi2::TARGET_FILTER_ALL_OBUS |
-                          fapi2::TARGET_FILTER_ALL_PCI);
+        uint8_t l_mc_sync_mode = 0;
+        fapi2::TargetFilter l_target_filter = static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP |
+                                              fapi2::TARGET_FILTER_ALL_NEST |
+                                              fapi2::TARGET_FILTER_XBUS |
+                                              fapi2::TARGET_FILTER_ALL_OBUS |
+                                              fapi2::TARGET_FILTER_ALL_PCI);
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target, l_mc_sync_mode),
                  "Error from FAPI_ATTR_GET (ATTR_MC_SYNC_MODE)");
