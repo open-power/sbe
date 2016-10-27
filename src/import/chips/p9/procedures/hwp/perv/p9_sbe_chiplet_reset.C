@@ -136,6 +136,9 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_setup(const
 static fapi2::ReturnCode p9_sbe_chiplet_reset_setup_iop_logic(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip);
 
+static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+
 fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -157,6 +160,9 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
              "Error from FAPI_ATTR_GET (ATTR_NEST_MEM_X_O_PCI_BYPASS)");
 
     FAPI_INF("p9_sbe_chiplet_reset: Entering ...");
+
+    FAPI_DBG("Do a scan0 to all obus chiplets independent of PG information");
+    FAPI_TRY(p9_sbe_chiplet_reset_all_obus_scan0(i_target_chip));
 
 //Always setup cache/cores, but do not do other setup if not PPE and cache_contained mode.
 
@@ -1179,6 +1185,12 @@ p9_sbe_chiplet_reset_net_ctrl_lvltrans_fence_pcb_ep_reset(
     l_data64.clearBit<PERV_1_NET_CTRL0_PCB_EP_RESET>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
 
+    FAPI_DBG("Assert sram enable");
+    //Setting NET_CTRL0 register value
+    l_data64.flush<0>();
+    l_data64.setBit<23>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WOR, l_data64));
+
     FAPI_INF("p9_sbe_chiplet_reset_net_ctrl_lvltrans_fence_pcb_ep_reset: Exiting ...");
 
 fapi_try_exit:
@@ -1249,7 +1261,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_pll_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const bool i_enable)
 {
-    fapi2::buffer<uint64_t> l_data;;
+    fapi2::buffer<uint64_t> l_data;
     FAPI_INF("p9_sbe_chiplet_reset_pll_setup: Entering ...");
 
     if ( i_enable )
@@ -1371,4 +1383,70 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_setup_iop_logic(
 fapi_try_exit:
     return fapi2::current_err;
 
+}
+
+/// @brief Do a scan0 to all obus chiplets independent of PG information
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    fapi2::buffer<uint16_t> l_regions;
+    fapi2::buffer<uint64_t> l_data;
+
+    FAPI_INF("p9_sbe_chiplet_reset_all_obus_scan0: Entering ...");
+
+    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+         (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_PRESENT))
+    {
+
+        l_data.flush<0>();
+        l_data.setBit<PERV_1_NET_CTRL0_PLLFORCE_OUT_EN>();
+        FAPI_DBG("Force PLL out enable for PLLs");
+        FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL0_WOR, l_data));
+
+        l_data.flush<1>();
+        l_data.clearBit<PERV_1_NET_CTRL0_PCB_EP_RESET>();
+        FAPI_DBG("Release endpoint reset");
+        FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL0_WAND, l_data));
+
+        l_data.flush<0>();
+        l_data.setBit<PERV_1_NET_CTRL0_CHIPLET_ENABLE>();
+        FAPI_DBG("Set partial good enable");
+        FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL0_WOR, l_data));
+
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(l_target_cplt,
+                 p9SbeChipletReset::REGIONS_EXCEPT_VITAL, l_regions));
+
+        FAPI_DBG("run scan0 module for region except vital and pll, scan types GPTR, TIME, REPR");
+        FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_target_cplt, l_regions,
+                                              p9SbeChipletReset::SCAN_TYPES_TIME_GPTR_REPR));
+
+        FAPI_DBG("run scan0 module for region except vital and pll, scan types except GPTR, TIME, REPR");
+        FAPI_TRY(p9_perv_sbe_cmn_scan0_module(l_target_cplt, l_regions,
+                                              p9SbeChipletReset::SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
+
+        l_data.flush<1>();
+        l_data.clearBit<PERV_1_NET_CTRL0_CHIPLET_ENABLE>();
+        FAPI_DBG("Reset partial good enable");
+        FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL0_WAND, l_data));
+
+        l_data.flush<0>();
+        l_data.setBit<PERV_1_NET_CTRL0_PCB_EP_RESET>();
+        FAPI_DBG("Assert endpoint reset");
+        FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL0_WOR, l_data));
+
+
+        l_data.flush<1>();
+        l_data.clearBit<PERV_1_NET_CTRL0_PLLFORCE_OUT_EN>();
+        FAPI_DBG("Reset Force PLL out enable for PLLs");
+        FAPI_TRY(fapi2::putScom(l_target_cplt, PERV_NET_CTRL0_WAND, l_data));
+
+    }
+
+    FAPI_INF("p9_sbe_chiplet_reset_all_obus_scan0:Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
 }
