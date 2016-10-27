@@ -44,6 +44,7 @@
 // Includes
 //------------------------------------------------------------------------------
 
+#include <p9_misc_scom_addresses.H>
 #include <p9_quad_scom_addresses.H>
 #include <p9_hcd_common.H>
 #include <p9_l2_scom.H>
@@ -65,15 +66,38 @@ p9_hcd_cache_scominit(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
 {
     FAPI_INF(">>p9_hcd_cache_scominit");
-    fapi2::buffer<uint64_t> l_data64;
-
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ReturnCode                           l_rc;
+    fapi2::buffer<uint64_t>                     l_qcsr;
+    fapi2::buffer<uint64_t>                     l_data64;
+    uint16_t                                    l_exlist;
+    uint8_t                                     l_exid;
+    uint8_t                                     l_exloop;
+    uint8_t                                     l_excount = 0;
+    uint8_t                                     l_attr_chip_unit_pos = 0;
+    uint8_t                                     l_attr_sys_force_all_cores = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
+        i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>    l_sys;
     auto l_ex_targets = i_target.getChildren<fapi2::TARGET_TYPE_EX>();
-    fapi2::ReturnCode l_rc;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES, l_sys,
+                           l_attr_sys_force_all_cores));
+
+    FAPI_TRY(getScom(l_chip, PU_OCB_OCI_QCSR_SCOM, l_qcsr));
+    l_exlist = ((l_qcsr & BITS64(0, 12)) >> 48);
+    FAPI_DBG("List of L3 Victims[%16X] from QCSR", l_exlist);
+
+    for (l_exloop = 0; l_exloop < 12; l_exloop++)
+    {
+        if (l_exlist & BIT16(l_exloop))
+        {
+            l_excount++;
+        }
+    }
 
     for (auto l_iter = l_ex_targets.begin(); l_iter != l_ex_targets.end(); l_iter++)
     {
-        FAPI_EXEC_HWP(l_rc, p9_l2_scom, *l_iter, FAPI_SYSTEM);
+        FAPI_EXEC_HWP(l_rc, p9_l2_scom, *l_iter, l_sys);
 
         if (l_rc)
         {
@@ -82,7 +106,7 @@ p9_hcd_cache_scominit(
             goto fapi_try_exit;
         }
 
-        FAPI_EXEC_HWP(l_rc, p9_l3_scom, *l_iter, FAPI_SYSTEM);
+        FAPI_EXEC_HWP(l_rc, p9_l3_scom, *l_iter, l_sys);
 
         if (l_rc)
         {
@@ -91,13 +115,53 @@ p9_hcd_cache_scominit(
             goto fapi_try_exit;
         }
 
-        FAPI_EXEC_HWP(l_rc, p9_ncu_scom, *l_iter, FAPI_SYSTEM);
+        FAPI_EXEC_HWP(l_rc, p9_ncu_scom, *l_iter, l_sys);
 
         if (l_rc)
         {
             FAPI_ERR("Error from p9_ncu_scom (p9.ncu.scom.initfile)");
             fapi2::current_err = l_rc;
             goto fapi_try_exit;
+        }
+
+        if (l_attr_sys_force_all_cores)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex     = *l_iter;
+            auto l_core_targets = l_ex.getChildren<fapi2::TARGET_TYPE_CORE>();
+            auto l_core         = l_core_targets.begin();
+
+            fapi2::Target<fapi2::TARGET_TYPE_CORE> l_ec   = *l_core;
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
+                l_ec.getParent<fapi2::TARGET_TYPE_PERV>();
+
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv,
+                                   l_attr_chip_unit_pos));
+            l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET;
+            l_exid               = (l_attr_chip_unit_pos >> 1);
+
+            FAPI_DBG("Setup L3-LCO on TARGET_ID[%d] via EX_L3_MODE_REG1[0,2-5,6-21]", l_exid);
+            FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG1, l_data64));
+            l_data64.insertFromRight<2, 4>(l_exid).insertFromRight<6, 16>(l_exlist);
+
+            if (l_excount > 1)
+            {
+                l_data64.setBit<0>();
+            }
+
+            FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG1, l_data64));
+
+            FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG0, l_data64));
+
+            if (l_excount == 2)
+            {
+                FAPI_DBG("Assert L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
+                FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_SET(9)));
+            }
+            else
+            {
+                FAPI_DBG("Drop L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
+                FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_UNSET(9)));
+            }
         }
     }
 
