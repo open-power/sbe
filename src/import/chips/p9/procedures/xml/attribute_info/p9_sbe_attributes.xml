@@ -549,5 +549,17 @@ attribute tank
         <name>ATTR_PROC_FABRIC_PUMP_MODE</name>
         <value>0x2</value>
   </entry>
+  <entry>
+        <name>ATTR_SECTOR_BUFFER_STRENGTH</name>
+        <value>0x0</value>
+  </entry>
+  <entry>
+        <name>ATTR_PULSE_MODE_ENABLE</name>
+        <value>0x0</value>
+  </entry>
+  <entry>
+        <name>ATTR_PULSE_MODE_VALUE</name>
+        <value>0x0</value>
+  </entry>
 
 </entries>
