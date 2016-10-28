@@ -29,6 +29,7 @@ import re
 import random
 import sys
 import imp
+import struct
 testIstepAuto = imp.load_source("testIstepAuto", os.environ['SBE_TOOLS_PATH'] + "/testIstepAuto.py")
 err = False
 
@@ -54,8 +55,15 @@ def register_sbe_debug_framework_tools():
                  type = ["sbe-commands"],
                  short = "Runs the debug framework for trace ",
                  doc = "")
+    new_command("sbe-su", collectStackUsage,
+                 args = [arg(int_t, "procNr")],
+                 alias = "susage",
+                 type = ["sbe-commands"],
+                 short = "Runs the debug framework for stack usage ",
+                 doc = "")
     print "SBE Debug Framework: Registered tool:", "sbe-istep"
     print "SBE Debug Framework: Registered tool:", "sbe-trace"
+    print "SBE Debug Framework: Registered tool:", "sbe-su"
 
 
 def fillSymTable():
@@ -67,6 +75,38 @@ def fillSymTable():
         words = line.split()
         if( len( words ) == 4 ):
             syms[words[3]] = [words[0], words[1]]
+
+# Print least available stack of each thread in SBE during a Run.
+#
+# Logic is - during init, ppe kernel fills the stack memory with '0xEFCDAB03'.
+# So while traversing the stack, starting from lowest memory to the top,
+# the first memory address where the pattern('0xEFCDAB03') is broken,
+# will be the deepest stack usage point of tht thread during the run
+def collectStackUsage ( procNr ):
+  threads = ('g_sbeSyncCommandProcessor_stack',
+             'g_sbeCommandReceiver_stack',
+             'g_sbe_Kernel_NCInt_stack',
+             'g_sbeAsyncCommandProcessor_stack')
+  print "==================================Stack usage==================================="
+  # Dump stack memory to binary files
+  for thread in threads:
+    cmd = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
+    ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
+    if ( rc ):
+        print "simics ERROR running %s: %d "%( cmd, rc )
+
+  print "Thread".ljust(40)+"Least Available[bytes]".ljust(30)+"Max usage[%]"
+  for thread in threads:
+    with open(thread, "rb") as f:
+        word = struct.unpack('I', f.read(4))[0]
+        leastAvailable = 0
+        while (1):
+            if (word == int("0xEFCDAB03", 16)):
+                leastAvailable += 4
+                word = struct.unpack('I', f.read(4))[0]
+            else:
+                break
+        print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
 
 def collectTrace ( procNr ):
   fileName = "sbe_" + `procNr` + "_tracMERG"
