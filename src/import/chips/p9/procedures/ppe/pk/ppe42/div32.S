@@ -68,11 +68,11 @@ __udivsi3:
     b           udivmodsi4_loop
 
 
-    .section    .text._umodsi3,"ax",@progbits
+    .section    .text.__umodsi3,"ax",@progbits
     .align      2
-    .globl _umodsi3
-    .type   _umodsi3, @function
-_umodsi3:
+    .globl __umodsi3
+    .type   __umodsi3, @function
+__umodsi3:
     li          %r5, 1
     li          %r10, 33
     mtctr       %r10
