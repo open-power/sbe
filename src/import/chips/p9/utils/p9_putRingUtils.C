@@ -140,25 +140,21 @@ uint64_t stop_decode(const uint8_t* i_rs4Str,
     return l_numNibblesParsed;
 }
 
-/// @brief Byte-reverse a 64-bit integer
-/// @param[in] i_x 64-bit word that need to be byte reversed
-/// @return Byte reversed 64-bit word
-uint64_t rs4_revle64(const uint64_t i_x)
+/// @brief Byte-reverse a 32-bit integer
+/// @param[in] i_x 32-bit word that need to be byte reversed
+/// @return Byte reversed 32-bit word
+uint32_t rs4_revle32(const uint32_t i_x)
 {
-    uint64_t rx;
+    uint32_t rx;
 
 #ifndef _BIG_ENDIAN
     uint8_t* pix = (uint8_t*)(&i_x);
     uint8_t* prx = (uint8_t*)(&rx);
 
-    prx[0] = pix[7];
-    prx[1] = pix[6];
-    prx[2] = pix[5];
-    prx[3] = pix[4];
-    prx[4] = pix[3];
-    prx[5] = pix[2];
-    prx[6] = pix[1];
-    prx[7] = pix[0];
+    prx[0] = pix[3];
+    prx[1] = pix[2];
+    prx[2] = pix[1];
+    prx[3] = pix[0];
 #else
     rx = i_x;
 #endif
@@ -196,6 +192,25 @@ void getRingProperties(const RingID i_ringId,
     }
     while(0);
 }
+
+uint64_t decodeScanRegionData(const uint32_t i_ringAddress)
+{
+    uint32_t l_scan_region = (i_ringAddress & 0x0000FFF0) << 13;
+
+    uint32_t l_scan_type = 0x00008000 >> (i_ringAddress & 0x0000000F);
+
+    // This is special case if encoded type is 0xF
+    if ( (i_ringAddress & 0x0000000F) == 0xF)
+    {
+        l_scan_type = 0x00008000 | (l_scan_type << 12);
+    }
+
+    uint64_t l_value = l_scan_region;
+    l_value = (l_value << 32) |  l_scan_type;
+
+    return l_value;
+}
+
 /// @brief Function to apply the Ring data using the standard-scan method
 /// @param[in] i_target Chiplet Target of Scan
 //  @param[in] i_chipletId data from RS4
@@ -1096,6 +1111,9 @@ fapi2::ReturnCode rs4DecompressionSvc(
     uint64_t l_nibbleIndx = 0;
     uint64_t l_bitsDecoded = 0;
     bool l_decompressionDone = false;
+    uint32_t l_scanAddr = rs4_revle32(l_rs4Header->iv_scanAddr);
+    uint64_t l_scanRegion = decodeScanRegionData(l_scanAddr);
+    uint8_t l_chipletId = (l_scanAddr & 0xFF000000UL) >> 24;
     fapi2::ReturnCode l_rc;
     struct restoreOpcgRegisters l_opcgData;
     uint8_t l_mask = 0x08;
@@ -1103,16 +1121,6 @@ fapi2::ReturnCode rs4DecompressionSvc(
 
     do
     {
-        if ( (l_rs4Header == NULL) || (l_rs4Header->iv_length == 0))
-        {
-            l_rc = fapi2::FAPI2_RC_PLAT_RS4_HEADER_DATA_INVALID;
-            FAPI_ERR("Invalid ring length in RS4 image");
-            break;
-        }
-
-        uint64_t l_scanRegion = rs4_revle64(l_rs4Header->iv_scanSelect);
-        uint8_t l_chipletId = l_rs4Header->iv_chipletId;
-
         if ((i_ringMode &  fapi2::RING_MODE_SET_PULSE_NSL) ||
             (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL) ||
             (i_ringMode &  fapi2::RING_MODE_SET_PULSE_ALL))
@@ -1152,15 +1160,6 @@ fapi2::ReturnCode rs4DecompressionSvc(
             break;
         }
 
-        //if the ring length is not 8bit aligned, then we need to skip the
-        //padding bits
-        uint8_t l_padding_bits = 0;
-
-        if (l_rs4Header->iv_length % 4)
-        {
-            l_padding_bits = (4 - (l_rs4Header->iv_length % 4));
-        }
-
         bool l_skip_64bits = true;
 
         // Decompress the RS4 string and scan
@@ -1184,16 +1183,6 @@ fapi2::ReturnCode rs4DecompressionSvc(
                 }
 
                 l_bitsDecoded += l_bitRotates;
-
-                if(l_bitsDecoded > l_rs4Header->iv_length)
-                {
-                    FAPI_ERR("Rotate decompression done."
-                             "l_bitsDecoded = %d, length = %d",
-                             l_bitsDecoded, l_rs4Header->iv_length);
-                    l_decompressionDone = true;
-                    l_rc = fapi2::FAPI2_RC_PLAT_RING_DECODE_LENGTH_EXCEEDED;
-                    break;
-                }
 
                 // Do the ROTATE operation
                 if (l_bitRotates != 0)
@@ -1225,16 +1214,6 @@ fapi2::ReturnCode rs4DecompressionSvc(
                 if ((!i_applyOverride) && l_scanCount != 0xF)
                 {
                     l_bitsDecoded += (4 * l_scanCount);
-
-                    if(l_bitsDecoded > l_rs4Header->iv_length)
-                    {
-                        FAPI_ERR("Scan decompression done."
-                                 "l_bitsDecoded = %d, length = %d",
-                                 l_bitsDecoded, l_rs4Header->iv_length);
-                        l_decompressionDone = true;
-                        l_rc = fapi2::FAPI2_RC_PLAT_RING_DECODE_LENGTH_EXCEEDED;
-                        break;
-                    }
 
                     // Parse the non-zero nibbles of the RS4 string and
                     // scan them into the ring
@@ -1365,107 +1344,94 @@ fapi2::ReturnCode rs4DecompressionSvc(
 
         if (l_nibble != 0)
         {
-            // Parse the non-zero nibbles of the RS4 string and
-            // scan them into the ring
-            if((l_bitsDecoded + l_nibble) > l_rs4Header->iv_length)
+            if (!i_applyOverride)
             {
-                FAPI_ERR("Decompression Done."
-                         "l_bitsDecoded = %d, l_nibble= %d, length = %d",
-                         l_bitsDecoded, l_nibble, l_rs4Header->iv_length);
-                l_rc = fapi2::FAPI2_RC_PLAT_RING_DECODE_LENGTH_EXCEEDED;
-                break;
+                l_bitsDecoded += l_nibble;
+                l_scomData = rs4_get_verbatim(l_rs4Str,
+                                              l_nibbleIndx,
+                                              1); // return 1 nibble
+
+                l_rc = standardScan(i_target,
+                                    l_chipletId,
+                                    SCAN,
+                                    l_nibble & 0x3,
+                                    l_scomData);
             }
             else
             {
-                if (!i_applyOverride)
+                if(0x8 & l_nibble) // We are parsing RS4 for override rings
                 {
-                    l_bitsDecoded += l_nibble;
-                    l_scomData = rs4_get_verbatim(l_rs4Str,
-                                                  l_nibbleIndx,
-                                                  1); // return 1 nibble
+                    uint8_t l_careMask = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
+                    l_nibbleIndx++;
+                    uint8_t l_spyData = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
+                    l_nibbleIndx++;
 
-                    l_rc = standardScan(i_target,
-                                        l_chipletId,
-                                        SCAN,
-                                        (4 - l_padding_bits) , // scan 4 bits
-                                        l_scomData);
-                }
-                else
-                {
-                    if(0x8 & l_nibble) // We are parsing RS4 for override rings
+                    for(uint8_t i = 0; i < 4; i++)
                     {
-                        uint8_t l_careMask = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
-                        l_nibbleIndx++;
-                        uint8_t l_spyData = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
-                        l_nibbleIndx++;
+                        l_bitsDecoded += 1;
+                        l_scomData = 0x0;
 
-                        for(uint8_t i = 0; i < 4; i++)
+                        if((l_careMask & (l_mask >> i)))
                         {
-                            l_bitsDecoded += 1;
-                            l_scomData = 0x0;
-
-                            if((l_careMask & (l_mask >> i)))
+                            if((l_spyData & (l_mask >> i)))
                             {
-                                if((l_spyData & (l_mask >> i)))
-                                {
-                                    l_scomData = 0xFFFFFFFFFFFFFFFF;
-                                }
-
-                                l_opType = SCAN;
-                            }
-                            else
-                            {
-                                l_opType = ROTATE;
-                            }
-
-                            l_rc = standardScan(i_target,
-                                                l_chipletId,
-                                                l_opType,
-                                                1, // Insert 1 bit
-                                                l_scomData);
-
-                            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
-                            {
-                                break;
-                            }
-                        } // end of looper for bit-parsing a non-zero nibble
-                    }
-                    else // We are parsing RS4 for base rings
-                    {
-                        // scan them into the ring
-                        uint8_t l_data = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
-
-                        l_nibbleIndx += 1;
-
-                        for(uint8_t i = 0; i < l_nibble; i++)
-                        {
-                            l_scomData = 0x0;
-                            l_bitsDecoded += 1;
-
-                            if((l_data & (l_mask >> i)))
-                            {
-                                l_opType = SCAN;
                                 l_scomData = 0xFFFFFFFFFFFFFFFF;
-
-                            }
-                            else
-                            {
-                                l_opType = ROTATE;
-
                             }
 
-                            l_rc = standardScan(i_target,
-                                                l_chipletId,
-                                                l_opType,
-                                                1, // Insert 1 bit
-                                                l_scomData);
+                            l_opType = SCAN;
+                        }
+                        else
+                        {
+                            l_opType = ROTATE;
+                        }
 
-                            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
-                            {
-                                break;
-                            }
-                        } //end of for
-                    }
+                        l_rc = standardScan(i_target,
+                                            l_chipletId,
+                                            l_opType,
+                                            1, // Insert 1 bit
+                                            l_scomData);
+
+                        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+                        {
+                            break;
+                        }
+                    } // end of looper for bit-parsing a non-zero nibble
+                }
+                else // We are parsing RS4 for base rings
+                {
+                    // scan them into the ring
+                    uint8_t l_data = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
+
+                    l_nibbleIndx += 1;
+
+                    for(uint8_t i = 0; i < l_nibble; i++)
+                    {
+                        l_scomData = 0x0;
+                        l_bitsDecoded += 1;
+
+                        if((l_data & (l_mask >> i)))
+                        {
+                            l_opType = SCAN;
+                            l_scomData = 0xFFFFFFFFFFFFFFFF;
+
+                        }
+                        else
+                        {
+                            l_opType = ROTATE;
+
+                        }
+
+                        l_rc = standardScan(i_target,
+                                            l_chipletId,
+                                            l_opType,
+                                            1, // Insert 1 bit
+                                            l_scomData);
+
+                        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
+                        {
+                            break;
+                        }
+                    } //end of for
                 }
             }
         } // end of if(l_nibble != 0)
