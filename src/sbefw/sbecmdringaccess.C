@@ -71,7 +71,7 @@ uint32_t sbePutRingFromImagePSU (uint8_t *i_pArg)
         }
 
         // Construct a Target from Chiplet ID and Target Type
-        fapi2::plat_target_handle_t l_tgtHndl = {0};
+        fapi2::plat_target_handle_t l_tgtHndl;
         if(!sbeGetFapiTargetHandle(l_cmd.TargetType, l_cmd.ChipletID,
                                    l_tgtHndl))
         {
@@ -260,7 +260,7 @@ uint32_t sbePutRing(uint8_t *i_pArg)
         // Length is not part of chipop. So take length from total length
         len = g_sbeFifoCmdHdr.len -
                         sizeof(g_sbeFifoCmdHdr)/sizeof(uint32_t);
-        uint32_t rs4FifoEntries = len - 
+        uint32_t rs4FifoEntries = len -
                         sizeof(sbePutRingMsgHdr_t)/sizeof(uint32_t);
 
         if( rs4FifoEntries  > (SBE_PUT_RING_RS4_MAX_DOUBLE_WORDS * 2) )

@@ -90,7 +90,7 @@ namespace fapi2
         ///
         /// @param  i_value Value to instantiate handle with
         ///
-        plat_target_handle(uint32_t i_value = 0):value(i_value) {}
+        explicit plat_target_handle(uint32_t i_value = 0):value(i_value) {}
 
         ///
         /// @brief Get the fapi2::TargetType for this target
@@ -210,7 +210,7 @@ namespace fapi2
     {
         static_assert((MULTICAST != true) || (K == TARGET_TYPE_PROC_CHIP),
                 "Only PROC_CHIP types can be multicast");
-        plat_target_handle_t l_handle = 0;
+        plat_target_handle_t l_handle;
 
         if(MULTICAST == true)
         {

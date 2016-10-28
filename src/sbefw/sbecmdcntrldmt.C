@@ -152,8 +152,9 @@ uint32_t sbeStartCntlDmt()
         FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,l_procTgt,l_coreId);
 
         // Construct the Master Core Target
-        fapi2::Target<fapi2::TARGET_TYPE_CORE > l_coreTgt(
-                (uint64_t)l_coreId);
+        Target<TARGET_TYPE_CORE> l_coreTgt(
+                plat_getTargetHandleByChipletNumber<TARGET_TYPE_CORE>(
+                    CORE_CHIPLET_OFFSET + l_coreId));
 
         // Call Hwp p9_sbe_check_master_stop15 and loop
         // Go around a loop till you get FAPI2_RC_SUCCESS

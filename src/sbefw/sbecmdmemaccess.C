@@ -50,7 +50,7 @@ using namespace fapi2;
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
 p9_adu_access_FP_t p9_adu_access_hwp = &p9_adu_access;
-p9_adu_setup_FP_t p9_adu_setup_hwp = &p9_adu_setup; 
+p9_adu_setup_FP_t p9_adu_setup_hwp = &p9_adu_setup;
 #endif
 
 // Buffer requirement for ADU and PBA on the stack
@@ -65,7 +65,7 @@ static const uint32_t ADU_SIZE_MULTIPLIER_FOR_LEN_ALIGNMENT = 2;
 static const uint32_t PBA_SIZE_MULTIPLIER_FOR_LEN_ALIGNMENT = 32;
 
 //Default EX Target ChipletId to be used in PBA by default
-static const uint32_t PBA_DEFAULT_EX_CHIPLET_ID = 7;
+static const uint32_t PBA_DEFAULT_EX_CHIPLET_ID = 0x20;
 
 /**
  * @brief static definition of parameters passed in adu chip-ops
@@ -196,7 +196,9 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     // Proc Chip Target
     Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc = plat_getChipTarget();
     // Default EX Target Init..Not changing it for the time being
-    Target<fapi2::TARGET_TYPE_EX > l_ex((uint64_t)PBA_DEFAULT_EX_CHIPLET_ID);
+    Target<TARGET_TYPE_EX> l_ex(
+            plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
+                PBA_DEFAULT_EX_CHIPLET_ID));
 
     p9_PBA_oper_flag l_myPbaFlag;
     // Determine the access flags

@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -37,7 +38,6 @@ bool sbeGetFapiTargetHandle(uint16_t i_targetType,
                             fapi2::plat_target_handle_t &o_tgtHndl)
 {
     bool l_rc = true;
-    o_tgtHndl = NULL;
     switch(i_targetType)
     {
         case TARGET_EX:

@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -195,7 +196,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         else // for a single Core/Cache chiplet
         {
             // Construct the Target
-            fapi2::plat_target_handle_t l_tgtHndl = {0};
+            fapi2::plat_target_handle_t l_tgtHndl;
             // No Need to check the return here, it's already validated
             sbeGetFapiTargetHandle( l_reqMsg.targetType,
                                     l_reqMsg.chipletId,
