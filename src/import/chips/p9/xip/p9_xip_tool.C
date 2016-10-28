@@ -1752,9 +1752,6 @@ int dissectRingSectionTor( void*       i_ringSection,
     void*       ringBlockPtr;
     uint32_t    ringBlockSize;
     char        ringName[32];
-    void*       hostRs4Container;
-    uint32_t    compressedBits = 0, ringLength = 0;
-    double      compressionPct = 0;
     uint32_t    ringSeqNo  = 0; // Ring sequence number
 
     //
@@ -1910,12 +1907,6 @@ int dissectRingSectionTor( void*       i_ringSection,
                             // Summarize all characteristics of the ring block if "normal" or "long" (default).
                             if ( i_listingModeId == LMID_NORMAL || i_listingModeId == LMID_LONG )
                             {
-                                // Calculate RS4 compression efficiency.
-                                hostRs4Container = (void*)( (uintptr_t)ringBlockPtr + sizeof(RingLayout_t) );
-                                compressedBits = htobe32(((CompressedScanData*)hostRs4Container)->iv_algorithmReserved) * 4;
-                                ringLength = htobe32(((CompressedScanData*)hostRs4Container)->iv_length);
-                                compressionPct = (double)compressedBits / (double)ringLength * 100.0;
-
                                 sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
                                                         "-----------------------------\n"
                                                         "%i.\n"
@@ -1925,13 +1916,10 @@ int dissectRingSectionTor( void*       i_ringSection,
                                                         "ringName = %s\n"
                                                         "ringVariant = %s\n"
                                                         "instanceId = 0x%02x\n"
-                                                        "ringBlockSize = 0x%08x\n"
-                                                        "RS4 ring size [bits] = %u\n"
-                                                        "Raw ring size [bits] = %u\n"
-                                                        "Compression [%%]      = %0.2f\n",
+                                                        "ringBlockSize = 0x%08x\n",
                                                         ringSeqNo, ddLevel, ppeTypeName[ppeType], ringId, ringName,
                                                         ringVariantName[ringVariant], instanceId,
-                                                        ringBlockSize, compressedBits, ringLength, compressionPct );
+                                                        ringBlockSize);
 
                                 if (sizeDisLine >= LINE_SIZE_MAX)
                                 {
