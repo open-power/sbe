@@ -145,6 +145,7 @@ fapi2::ReturnCode p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
     uint8_t l_is_mpipl;
     uint8_t l_ipl_type;
     uint64_t l_chip_base_address_nm0, l_chip_base_address_nm1, l_chip_base_address_m, l_chip_base_address_mmio;
+    uint64_t l_hostboot_hrmor_offset;
 
     auto l_mcs_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MCS>();
     auto l_mi_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MI>();
@@ -173,12 +174,21 @@ fapi2::ReturnCode p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 #endif
 
         // determine base address
+        //      = (chip non-mirrored base address) + (hostboot HRMOR offset)
+        //      min MCS base size is 4GB, local HB will always be below
         FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_target,
                  l_chip_base_address_nm0,
                  l_chip_base_address_nm1,
                  l_chip_base_address_m,
                  l_chip_base_address_mmio),
                  "Error from p9_fbc_utils_get_chip_base_addrs");
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET, FAPI_SYSTEM,
+                               l_hostboot_hrmor_offset),
+                 "Error from FAPI_ATTR_GET (ATTR_HOSTBOOT_HRMOR_OFFSET)");
+
+        l_chip_base_address_nm0 += l_hostboot_hrmor_offset;
+        l_chip_base_address_nm0 &= 0xFFFFFFFF00000000; // only keep 4GB and up
 
         if (l_mcs_chiplets.size())
         {
