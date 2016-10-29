@@ -92,7 +92,7 @@ def utilCmvcRepoPath(i_pathname, i_cmvcnum, i_filename):
 
     if i_filename == "None":
         i_filename = errorcode.CMVC_FILE_LIST
-     
+
     for l_filename in i_filename.split(","):
 
         # Find the files and copy
@@ -132,9 +132,19 @@ def utilCmvcRepoPath(i_pathname, i_cmvcnum, i_filename):
 #
 ##########################################################################
 def utilFindFile(i_filename, i_path):
+    # preferred paths for files
+    ppaths = [utilFind_ENV_string("SANDBOXROOT").rstrip('\n')+'/src', utilFind_ENV_string("SANDBOXROOT").rstrip('\n')+'/images']
+    # all the occurances of the file in the repo
+    filePaths = []
     for root, dirs, files in os.walk(i_path):
         if i_filename in files:
-            return os.path.join(root, i_filename)
+            filePaths.append(os.path.join(root, i_filename))
+    for ppath in ppaths:
+        for file in filePaths:
+            if ppath in file:
+                return file
+    # if no preferred path found, just return the first found path
+    return filePaths[0]
 
 ##########################################################################
 # Function :utilFindFilePPE
@@ -224,7 +234,7 @@ def utilCmvcCheckin(i_filename, i_release, i_cmvcnum):
         if i_filename in l_var:
             l_str = 'src' + l_var
 
-    cmd='File -checkin ' + l_str + '  -release '+ i_release + '  -relative ' + l_home_path 
+    cmd='File -checkin ' + l_str + '  -release '+ i_release + '  -relative ' + l_home_path
     if i_cmvcnum[:1] == "D":
         cmd += '  -defect ' + i_cmvcnum[1:]
     else:
@@ -309,7 +319,7 @@ def utilCheckFileHash(i_src, i_dest):
     print "  Source\t: ",i_src
     print "  Destination\t: ",i_dest
 
-    sha_orig = hashlib.sha256() 
+    sha_orig = hashlib.sha256()
     sha_orig.update(file(i_src).read())
     orig_hash=sha_orig.hexdigest()
     print "  * Orig Hash\t [ %s : %s ] "% (os.path.basename(i_src),orig_hash)
@@ -490,7 +500,7 @@ def utilFind_sb_base(i_sb_name):
     # SANDBOXBASE=/gsa/ausgsa/projects/i/indiateam04/gkeishin/sbeisb
     out_str = os.popen(find_sb_base).read()
 
-    if not out_str: 
+    if not out_str:
         return "None"
     else:
         return out_str.strip('SANDBOXBASE=')
