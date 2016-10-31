@@ -312,13 +312,36 @@ namespace fapi2
                         bool & b_present)
     {
 
+        // TODO via RTC 164026
+        // In nimbus all pervasive chiplets (non quad, non core), are present
+        // other than OBUS1 and OBUS2. In cumulus all chiplets are present.
+        // Though on field parts, all chiplets which are present should be
+        // functional. But in lab when we can get partial good parts, its
+        // possible that few chiplets are not functional. So we need to
+        // differentiate between present versus functional chiplets.
+        // We need to see if we need to use same strategy for cores/caches as
+        // well.
+        // Also in current code we are hard coding the chiplets. We need to use
+        // attribute to differentiate between nimbus versus cumulus config.
+        static const size_t OBUS1 = 10;
+        static const size_t OBUS2 = 11;
+        if(( i_chiplet_target.getChipletNumber() != OBUS1 ) &&
+            ( i_chiplet_target.getChipletNumber() != OBUS2 ) &&
+            ( i_chiplet_target.getChipletNumber() < EQ_CHIPLET_OFFSET ) )
+        {
+            static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
+        }
         // Find the PERV target number in the partial good initialization
         // array
+
         FAPI_TRY(plat_PervPGTargets(i_chiplet_target, b_present));
 
         if (b_present)
         {
-            static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
+            if( i_chiplet_target.getChipletNumber() >=  EQ_CHIPLET_OFFSET )
+            {
+                static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
+            }
             static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setFunctional(true);
         }
         else
