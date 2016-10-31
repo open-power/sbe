@@ -42,6 +42,3 @@ mkdir -p $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 cp $BACKING_BUILD/obj/ppc/simu/scripts/hbfw/standalone.simics $SANDBOXBASE/obj/ppc/simu/scripts/hbfw
 patch -p0 $SANDBOXBASE/obj/ppc/simu/scripts/hbfw/standalone.simics $SBEROOT/src/test/framework/etc/patches/standalone.simics.patch
 
-# patch for magic instruction
-mkdir -p $SANDBOXBASE/imics/linux64/lib/
-cp -f /esw/san2/sgupta2m/MagicPatch/ppe.so  $SANDBOXBASE/simics/linux64/lib/

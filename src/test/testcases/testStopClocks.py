@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,25 +64,25 @@ def main( ):
     testUtil.runCycles( 10000000 )
     testUtil.readEot( )
 
-    testUtil.writeUsFifo( STOPCLOCK_ALL_CORE_TESTDATA )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( STOPCLOCK_CORE_EXPDATA )
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
-
+#    testUtil.writeUsFifo( STOPCLOCK_ALL_CORE_TESTDATA )
+#    testUtil.writeEot( )
+#    testUtil.readDsFifo( STOPCLOCK_CORE_EXPDATA )
+#    testUtil.runCycles( 10000000 )
+#    testUtil.readEot( )
+#
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( STOPCLOCK_EQ_TESTDATA )
     testUtil.writeEot( )
     testUtil.readDsFifo( STOPCLOCK_EQ_EXPDATA )
     testUtil.runCycles( 10000000 )
     testUtil.readEot( )
-
-    testUtil.runCycles( 10000000 )
-    testUtil.writeUsFifo( STOPCLOCK_ALL_EQ_TESTDATA )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( STOPCLOCK_EQ_EXPDATA )
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
+#
+#    testUtil.runCycles( 10000000 )
+#    testUtil.writeUsFifo( STOPCLOCK_ALL_EQ_TESTDATA )
+#    testUtil.writeEot( )
+#    testUtil.readDsFifo( STOPCLOCK_EQ_EXPDATA )
+#    testUtil.runCycles( 10000000 )
+#    testUtil.readEot( )
 
 #-------------------------------------------------
 # Calling all test code

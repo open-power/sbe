@@ -46,7 +46,7 @@ PUTMEM_TEST_HDR_W_FMODE_WO_LCO =  [0,0,0,0x86,
 
 PUTMEM_TEST_HDR_W_FMODE_W_LCO =  [0,0,0,0x86,
                                   0,0,0xA4,0x02,
-                                  0x2E,0,0x0,0x62,
+                                  0x20,0,0x0,0x62,
                                   0,0,0,0,
                                   0x08,0x00,0x00,0x00,
                                   0x00,0x00,0x00,0x80]
