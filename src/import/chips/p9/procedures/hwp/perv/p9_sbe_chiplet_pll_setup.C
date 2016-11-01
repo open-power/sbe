@@ -315,6 +315,10 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
     //Setting ERROR_REG register value
     //ERROR_REG = 0xFFFFFFFFFFFFFFFF
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_ERROR_REG, 0xFFFFFFFFFFFFFFFF));
+    FAPI_DBG(" Unmasking pll unlock error in   Pcb slave config reg");
+    FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_SLAVE_CONFIG_REG, l_data64));
+    l_data64.clearBit<12>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_SLAVE_CONFIG_REG, l_data64));
 
     FAPI_INF("p9_sbe_chiplet_pll_setup_function: Exiting ...");
 
