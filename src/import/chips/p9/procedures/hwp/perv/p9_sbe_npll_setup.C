@@ -253,6 +253,25 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                                 l_data64_perv_ctrl0));
     }
 
+    l_read_reg.flush<1>();
+
+    // Clear Perv pcb slave error register
+    // Clearing mask bit in pcb slave config register [bit 12] to allow unlock error
+    // to propagate to Pervasive Lfir [ bit 21]
+    if (  l_nest_bypass == 0x0 &&  l_attr_cp_filter == 0x0 && l_attr_ss_filter == 0x0 && l_attr_io_filter == 0x0 )
+    {
+
+        FAPI_DBG(" Reset PCB error reg");
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ERROR_REG, l_read_reg));
+
+        FAPI_DBG(" Unmasking pll unlock error in   Pcb slave config reg");
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SLAVE_CONFIG_REG, l_read_reg));
+        l_read_reg.clearBit<12>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SLAVE_CONFIG_REG, l_read_reg));
+    }
+
+
+
     FAPI_INF("p9_sbe_npll_setup: Exiting ...");
 
 fapi_try_exit:
