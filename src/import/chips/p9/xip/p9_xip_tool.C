@@ -44,7 +44,7 @@
 #define __PPE__
 
 #include "p9_xip_image.h"
-#ifdef XIP_TOOL_ENABLE_DISSECT
+#ifdef XIP_TOOL_ENABLE_DISSECT // Needed on ppe side to avoid TOR API
     #include "p9_tor.H"
     #include "p9_scan_compression.H"
     using namespace P9_TOR;
@@ -1713,10 +1713,9 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 }
 
 
+#ifdef XIP_TOOL_ENABLE_DISSECT  // Needed on the ppe side to avoid TOR API
 
-#ifdef XIP_TOOL_ENABLE_DISSECT
-
-// This should be improved, though. Not really our responsibility defining this.
+//@FIXME: This should be improved. Probably defined somewhere else.
 #define CHIPLET_ID_MAX            (uint8_t)0x37
 
 /// Function:  dissectRingSectionTor()
@@ -2368,7 +2367,7 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
     {
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
-#ifdef XIP_TOOL_ENABLE_DISSECT
+#ifdef XIP_TOOL_ENABLE_DISSECT // Needed on ppe side to avoid TOR API
         rc = dissectRingSection(image, i_argc - 1, &(i_argv[1]));
 #else
         fprintf(stderr, "\n");
