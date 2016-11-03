@@ -81,6 +81,10 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
     l_data64.clearBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
 
+    FAPI_DBG("Enable PCB auto-reset");
+    l_data64.flush<0>().setBit<PERV_RESET_REG_TIMEOUT_EN>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_RESET_REG, l_data64));
+
     FAPI_DBG("Set Chiplet Enable");
     //Setting PERV_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
