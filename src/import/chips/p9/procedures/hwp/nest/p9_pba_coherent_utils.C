@@ -296,11 +296,11 @@ extern "C"
         if (l_operType == p9_PBA_oper_flag::LCO && !i_rnw)
         {
             FAPI_TRY(fapi2::getScom(i_ex_target, EX_L3_MODE_REG1, l3_mode_reg1), "Error reading from the L3 Mode Register");
-            l3_mode_reg1.extractToRight(chiplet_number, 1, 5);
+            l3_mode_reg1.extractToRight(chiplet_number, 2, 4);
         }
 
         pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_WRITE_TSIZE_START_BIT,
-                                           (PBA_SLVCTL_WRITE_TSIZE_END_BIT - PBA_SLVCTL_WRITE_TSIZE_START_BIT) + 1 > (chiplet_number);
+                                           (PBA_SLVCTL_WRITE_TSIZE_END_BIT - PBA_SLVCTL_WRITE_TSIZE_START_BIT) + 1 > (chiplet_number << 1);
         //set bits 36:49 to the ext addr
         extaddr = ((uint32_t) (i_address >> PBA_SLVCTL_EXTADDR_SHIFT)) &
                   PBA_SLVCTL_EXTADDR_MASK;
