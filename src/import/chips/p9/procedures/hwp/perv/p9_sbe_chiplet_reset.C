@@ -155,6 +155,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     uint8_t l_attr_system_ipl_phase;
 #endif
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    uint8_t attr_force_all = 0;
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_mc_sync_mode),
              "Error from FAPI_ATTR_GET (ATTR_MC_SYNC_MODE)");
@@ -167,27 +169,37 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     FAPI_DBG("Do a scan0 to all obus chiplets independent of PG information");
     FAPI_TRY(p9_sbe_chiplet_reset_all_obus_scan0(i_target_chip));
 
-//Always setup cache/cores, but do not do other setup if not PPE and cache_contained mode.
+    // Setup cache/cores multicast groups only in FORCE_ALL_CORE mode.
+    // If not in FORCE_ALL_CORE mode, cache/core multicast groups will be setup
+    // in preparation of p9_sbe_select_ex in preparation of istep 4.
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_CACHES, fapi2::TARGET_STATE_FUNCTIONAL))
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES,
+                           FAPI_SYSTEM,
+                           attr_force_all));
+
+    if (attr_force_all)
     {
-        // Configuring chiplet multicasting registers..
-        FAPI_DBG("Configuring cache chiplet multicasting registers");
-        FAPI_TRY(p9_sbe_chiplet_reset_mc_setup_cache(l_target_cplt));
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_CACHES, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Configuring chiplet multicasting registers..
+            FAPI_DBG("Configuring cache chiplet multicasting registers");
+            FAPI_TRY(p9_sbe_chiplet_reset_mc_setup_cache(l_target_cplt));
+        }
+
+        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (fapi2::TARGET_FILTER_ALL_CORES, fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            // Configuring chiplet multicasting registers..
+            FAPI_DBG("Configuring core chiplet multicasting registers");
+            FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
+                                                   p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0,
+                                                   p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP1,
+                                                   p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP3));
+        }
     }
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_CORES, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        // Configuring chiplet multicasting registers..
-        FAPI_DBG("Configuring core chiplet multicasting registers");
-        FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(l_target_cplt,
-                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0,
-                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP1,
-                                               p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP3));
-    }
-
+    // do not do other setup if not PPE and cache_contained mode.
 #ifndef __PPE__
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
                            l_attr_system_ipl_phase));

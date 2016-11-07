@@ -36,7 +36,10 @@
 ///
 /// High-level procedure flow:
 /// @verbatim
-///   Following MC groups are needed to be setup for istep 4 use:
+///   Add the master core to Group 0 (all functional chiplets) and Group 1
+///     (all functional cores)
+///   Add the master cache to Group 0 (all functional chiplets)
+///   Setup MC groups needed for istep 4 use:
 ///     - MC group 3:  Core(s) (eg ECs);  use EC MC group register 3
 ///     - MC group 4:  EQ(s);             use EQ MC group register 2
 ///     - MC group 5:  Even EXs;          use EQ MC group register 3
@@ -45,7 +48,7 @@
 ///   Prerequisite:  istep 2 will setup the above groups with ALL the good
 ///                  elements represented.
 ///
-///   This procedure will REMOVE entities from these groups in SINGLE mode;
+///   This procedure will ADD entities to these groups in SINGLE mode;
 ///   in ALL mode, the groups are not changed.  In either case, the OCC
 ///   registers are written with the valid configuration.  Additionally,
 ///   default PFET controller delays are written into all configured
@@ -58,9 +61,7 @@
 ///         if mode == SINGLE {
 ///             if first one {
 ///                 Record the master core, EX and EQ number
-///             }
-///             else {
-///                 Remove from MC Group 3
+///                 Add to MC Group 3
 ///             }
 ///         }
 ///         Set bits in core and EX scoreboard for later updating the OCC
@@ -69,12 +70,15 @@
 ///
 ///     loop over functional EQs {
 ///         if mode == SINGLE {
-///             if not master EQ {
-///                 Remove from MC Groups 4
-///             for the EXs in the EQ {
-///                 if not master EX && bit is set in EX scoreboard
-///                     Remove from MC Group 5 if Even (EX0)
-///                     Remove from MC Group 6 if Odd (EX1)
+///             if master EQ
+///                 Add to MC Groups 4
+///                 for the EXs in the EQ {
+///                     if master EX
+///                         Add to MC Group 5 if Even (EX0)
+///                         Add to MC Group 6 if Odd (EX1)
+///                 }
+///             }
+///             Set bit in EQ scoreboard for later updating the OCC
 ///         }
 ///         Set default PFET controller delay values into EQ
 ///     }
@@ -99,6 +103,8 @@ static const uint32_t NUM_EX_PER_EQ = 2;
 static const uint8_t CORE_CHIPLET_START     = 0x20;
 static const uint8_t CORE_CHIPLET_COUNT     = 24;
 
+static const uint8_t ALL_CHIPLETS_MC_GROUP  = 0;
+static const uint8_t ALL_CORES_MC_GROUP     = 1;
 static const uint8_t CORE_STOP_MC_GROUP     = 3;
 static const uint8_t EQ_STOP_MC_GROUP       = 4;
 static const uint8_t EX_EVEN_STOP_MC_GROUP  = 5;
@@ -106,6 +112,8 @@ static const uint8_t EX_ODD_STOP_MC_GROUP   = 6;
 static const uint8_t BROADCAST_GROUP        = 7;
 
 // Use PERV addressses as the accesses to the cores and EQ use PERV targets
+static const uint64_t ALL_CHIPLETS_MC_REG   = PERV_MULTICAST_GROUP_1;
+static const uint64_t ALL_CORES_MC_REG      = PERV_MULTICAST_GROUP_2;
 static const uint64_t CORE_MC_REG           = PERV_MULTICAST_GROUP_3;
 static const uint64_t EQ_MC_REG             = PERV_MULTICAST_GROUP_2;
 static const uint64_t EX_EVEN_MC_REG        = PERV_MULTICAST_GROUP_3;
@@ -123,14 +131,14 @@ static const uint8_t PERV_CORE_COUNT    = 24;
 //  Function prototypes
 // -----------------------------------------------------------------------------
 
-fapi2::ReturnCode select_ex_remove_core_from_mc_group(
+fapi2::ReturnCode select_ex_add_core_to_mc_group(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
 
-fapi2::ReturnCode select_ex_remove_ex_from_mc_group(
+fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
     const uint32_t i_ex_num);
 
-fapi2::ReturnCode select_ex_remove_eq_from_mc_group(
+fapi2::ReturnCode select_ex_add_eq_to_mc_group(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
 
 // -----------------------------------------------------------------------------
@@ -150,7 +158,6 @@ fapi2::ReturnCode p9_sbe_select_ex(
     uint8_t attr_force_all = 0;
     bool b_single = true;
     bool b_host_core_found = false;
-    bool b_processing_host_core = false;
 
     uint32_t l_master_ex_num = 0xFF;  // invalid EX number initialized
     uint32_t l_master_eq_num = 0xFF;  // invalid EQ number initialized
@@ -209,8 +216,6 @@ fapi2::ReturnCode p9_sbe_select_ex(
 
         if (b_single)
         {
-            b_processing_host_core = false;
-
             if (!b_host_core_found)
             {
 
@@ -232,17 +237,11 @@ fapi2::ReturnCode p9_sbe_select_ex(
                          l_master_ex_num, l_master_ex_num);
 
                 b_host_core_found = true;
-                b_processing_host_core = true;
+
+                // Add the core to the apppropriate multicast group
+                FAPI_TRY(select_ex_add_core_to_mc_group(core));
 
             } // host_core_found
-
-            // Remove the core from the apppropriate multicast group if not
-            // the host core
-            if (!b_processing_host_core)
-            {
-                FAPI_TRY(select_ex_remove_core_from_mc_group(core));
-            }
-
         } // Single
 
         // To save code space in the SBE, the assumption is made that if the core
@@ -291,9 +290,9 @@ fapi2::ReturnCode p9_sbe_select_ex(
 
         if (b_single)
         {
-            if (l_eq_num != l_master_eq_num)
+            if (l_eq_num == l_master_eq_num)
             {
-                FAPI_TRY(select_ex_remove_eq_from_mc_group(eq));
+                FAPI_TRY(select_ex_add_eq_to_mc_group(eq));
             }
 
             for (auto i = l_eq_num * NUM_EX_PER_EQ; i < (l_eq_num + 1)*NUM_EX_PER_EQ; ++i)
@@ -301,13 +300,12 @@ fapi2::ReturnCode p9_sbe_select_ex(
                 FAPI_DBG("ex = %d, master ex = %d, quad bit[%d] = %d",
                          i, l_master_ex_num, i, l_quad_config.getBit(i));
 
-                // Remove from MC group if not master EX and configured
-                if ((i != l_master_ex_num) && l_quad_config.getBit(i))
+                // Add to MC group
+                if ((i == l_master_ex_num) && l_quad_config.getBit(i))
                 {
-                    FAPI_TRY(select_ex_remove_ex_from_mc_group(eq, i));
+                    FAPI_TRY(select_ex_add_ex_to_mc_groups(eq, i));
                 }
             }
-
         } // Single
 
         FAPI_DBG("Setting PFET Delays in EQ %d", l_eq_num);
@@ -323,7 +321,6 @@ fapi2::ReturnCode p9_sbe_select_ex(
                                 l_data64),
                  "Error: EQ PFET Delay register, rc 0x%.8X",
                  (uint32_t)fapi2::current_err);
-
 
     } // EQ loop
 
@@ -347,23 +344,25 @@ fapi_try_exit:
 } // END p9_sbe_select_ex
 
 ///-----------------------------------------------------------------------------
-/// @brief Remve core chiplet from Dynamic cores multicast group
+/// @brief Add core chiplet to Dynamic cores multicast group
 ///
 /// @param[in]     i_target_cplt   Reference to TARGET_TYPE_PERV target
 ///                                     that is a core
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode select_ex_remove_core_from_mc_group(
+fapi2::ReturnCode select_ex_add_core_to_mc_group(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt)
 {
-    FAPI_INF("> remove_from_core_mc_group...");
+    FAPI_INF("> add_to_core_mc_group...");
 
     fapi2::buffer<uint64_t> l_data64 = 0;
 
+    // Add core to functional Chiplets group
+
     // Entering group
     l_data64.insertFromRight<0, 3>(0x7);
-    l_data64.insertFromRight<3, 3>(BROADCAST_GROUP);
+    l_data64.insertFromRight<3, 3>(ALL_CHIPLETS_MC_GROUP);
     // Removed group
-    l_data64.insertFromRight<19, 3>(CORE_STOP_MC_GROUP);
+    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
 
 #ifndef __PPE__
     uint8_t l_attr_chip_unit_pos = 0;
@@ -371,7 +370,42 @@ fapi2::ReturnCode select_ex_remove_core_from_mc_group(
                            i_target_cplt,
                            l_attr_chip_unit_pos));
 
-    FAPI_DBG("Removing Core %d from MC group %d",
+    FAPI_DBG("Adding Core %d to MC group %d",
+             l_attr_chip_unit_pos - PERV_CORE_START,
+             ALL_CHIPLETS_MC_GROUP );
+#endif
+    FAPI_TRY(fapi2::putScom(i_target_cplt,
+                            ALL_CHIPLETS_MC_REG,
+                            l_data64),
+             "Error: Core MC group register, rc 0x%.8X",
+             (uint32_t)fapi2::current_err);
+
+    // Add core to functional core group
+    // Entering group
+    l_data64.insertFromRight<0, 3>(0x7);
+    l_data64.insertFromRight<3, 3>(ALL_CORES_MC_GROUP);
+    // Removed group
+    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
+
+#ifndef __PPE__
+    FAPI_DBG("Adding Core %d to MC group %d",
+             l_attr_chip_unit_pos - PERV_CORE_START,
+             ALL_CORES_MC_GROUP );
+#endif
+    FAPI_TRY(fapi2::putScom(i_target_cplt,
+                            ALL_CORES_MC_REG,
+                            l_data64),
+             "Error: Core MC group register, rc 0x%.8X",
+             (uint32_t)fapi2::current_err);
+
+    // Entering group
+    l_data64.insertFromRight<0, 3>(0x7);
+    l_data64.insertFromRight<3, 3>(CORE_STOP_MC_GROUP);
+    // Removed group
+    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
+
+#ifndef __PPE__
+    FAPI_DBG("Adding Core %d to MC group %d",
              l_attr_chip_unit_pos - PERV_CORE_START,
              CORE_STOP_MC_GROUP );
 #endif
@@ -383,22 +417,22 @@ fapi2::ReturnCode select_ex_remove_core_from_mc_group(
              (uint32_t)fapi2::current_err);
 
 fapi_try_exit:
-    FAPI_INF("< remove_from_core_mc_group...");
+    FAPI_INF("< add_to_core_mc_group...");
     return fapi2::current_err;
 
 }
 
 ///-----------------------------------------------------------------------------
-/// @brief Remove EX from multicast group
+/// @brief Add EX to multicast groups
 ///
-/// @param[in]     i_ex_num  EX number that needs to be removed from an MC group
+/// @param[in]     i_ex_num  EX number that needs to be added to MC groups
 ///
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode select_ex_remove_ex_from_mc_group(
+fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
     const uint32_t i_ex_num)
 {
-    FAPI_INF("> select_ex_remove_ex_from_mc_group...");
+    FAPI_INF("> select_ex_add_ex_to_mc_groups...");
 
     // If the Core is in a even EX, then put the EQ chiplet in the EQ MC group
     // and the EX Even MC group.
@@ -408,18 +442,19 @@ fapi2::ReturnCode select_ex_remove_ex_from_mc_group(
 
     fapi2::buffer<uint64_t> l_data64 = 0;
 
-    // Entering group
     l_data64.insertFromRight<0, 3>(0x7);
-    l_data64.insertFromRight<3, 3>(BROADCAST_GROUP);
+    // Removed group
+    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
 
     if (i_ex_num % 2)   // Odd EX
     {
-        FAPI_DBG("Removing EX %d (Odd) from MC group %d",
+
+        FAPI_DBG("Add EX %d (Odd) to MC group %d",
                  i_ex_num,
                  EX_ODD_STOP_MC_GROUP);
 
-        // Removed group
-        l_data64.insertFromRight<19, 3>(EX_ODD_STOP_MC_GROUP);
+        // Entering group
+        l_data64.insertFromRight<3, 3>(EX_ODD_STOP_MC_GROUP);
 
         FAPI_TRY(fapi2::putScom(i_target_cplt,
                                 EX_ODD_MC_REG,
@@ -430,13 +465,12 @@ fapi2::ReturnCode select_ex_remove_ex_from_mc_group(
     }
     else                // Even EX
     {
-        FAPI_DBG("Removing EX %d (Even) from MC group %d",
+        FAPI_DBG("Add EX %d (Even) to MC group %d",
                  i_ex_num,
                  EX_EVEN_STOP_MC_GROUP);
 
-
-        // Removed group
-        l_data64.insertFromRight<19, 3>(EX_EVEN_STOP_MC_GROUP);
+        // Entering group
+        l_data64.insertFromRight<3, 3>(EX_EVEN_STOP_MC_GROUP);
 
         FAPI_TRY(fapi2::putScom(i_target_cplt,
                                 EX_EVEN_MC_REG,
@@ -446,29 +480,29 @@ fapi2::ReturnCode select_ex_remove_ex_from_mc_group(
     }
 
 fapi_try_exit:
-    FAPI_INF("< select_ex_remove_ex_from_mc_group...");
+    FAPI_INF("< select_ex_add_ex_to_mc_groups...");
     return fapi2::current_err;
 
 }
 
 ///-----------------------------------------------------------------------------
-/// @brief Remove EX from multicast group
-///
-/// @param[in]     i_ex_num  EX number for which the EQ needs to be in MC group
+/// @brief Add EQ to multicast groups
 ///
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode select_ex_remove_eq_from_mc_group(
+fapi2::ReturnCode select_ex_add_eq_to_mc_group(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt)
 {
-    FAPI_INF("> select_ex_remove_eq_from_mc_group...");
+    FAPI_INF("> select_ex_add_eq_to_mc_group...");
 
     fapi2::buffer<uint64_t> l_data64;
 
+    // Add EQ to functional chiplets group
+
     // Entering group
     l_data64.insertFromRight<0, 3>(0x7);
-    l_data64.insertFromRight<3, 3>(BROADCAST_GROUP);
+    l_data64.insertFromRight<3, 3>(ALL_CHIPLETS_MC_GROUP);
     // Removed group
-    l_data64.insertFromRight<19, 3>(EQ_STOP_MC_GROUP);
+    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
 
 #ifndef __PPE__
     uint8_t l_attr_chip_unit_pos = 0;
@@ -476,7 +510,27 @@ fapi2::ReturnCode select_ex_remove_eq_from_mc_group(
                            i_target_cplt,
                            l_attr_chip_unit_pos));
 
-    FAPI_DBG("Removing EQ %d from MC group %d",
+    FAPI_DBG("Adding EQ %d to MC group %d",
+             l_attr_chip_unit_pos - PERV_EQ_START,
+             ALL_CHIPLETS_MC_GROUP );
+#endif
+
+    FAPI_TRY(fapi2::putScom(i_target_cplt,
+                            ALL_CHIPLETS_MC_REG,
+                            l_data64),
+             "Error: EQ All chiplets MC group register, rc 0x%.8X",
+             (uint32_t)fapi2::current_err);
+
+    // Add EQ to EQ STOP group
+
+    // Entering group
+    l_data64.insertFromRight<0, 3>(0x7);
+    l_data64.insertFromRight<3, 3>(EQ_STOP_MC_GROUP);
+    // Removed group
+    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
+
+#ifndef __PPE__
+    FAPI_DBG("Adding EQ %d to MC group %d",
              l_attr_chip_unit_pos - PERV_EQ_START,
              EQ_STOP_MC_GROUP );
 #endif
@@ -488,7 +542,7 @@ fapi2::ReturnCode select_ex_remove_eq_from_mc_group(
              (uint32_t)fapi2::current_err);
 
 fapi_try_exit:
-    FAPI_INF("< select_ex_remove_eq_from_mc_group...");
+    FAPI_INF("< select_ex_add_eq_to_mc_group...");
     return fapi2::current_err;
 
 }
