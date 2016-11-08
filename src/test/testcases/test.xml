@@ -42,6 +42,7 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testStopClocks.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testExecutorPutRing.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSystemFabricMap.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testArrayAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGetRing.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testQuiesce.xml</include>
           <testcase>

@@ -47,6 +47,7 @@
 #include "sbestates.H"
 #include "sberegaccess.H"
 #include "sbecmdmpipl.H"
+#include "sbecmdtracearray.H"
 
 // Declaration
 static const uint16_t HARDWARE_FENCED_STATE =
@@ -217,6 +218,21 @@ static sbeCmdStruct_t g_sbeRingAccessCmdArray [] =
     },
 };
 
+// @brief g_sbeArrayAccessCmdArray[]
+//
+////////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeArrayAccessCmdArray[] =
+{
+    {NULL,
+     SBE_CMD_GET_FAST_ARRAY,
+     SBE_FENCE_AT_QUIESCE,
+    },
+    {sbeControlTraceArray,
+     SBE_CMD_CONTROL_TRACE_ARRAY,
+     SBE_FENCE_AT_QUIESCE,
+    },
+};
+
 //////////////////////////////////////////////////////////////
 // @brief g_sbeCoreStateControlCmdArray
 //
@@ -318,6 +334,12 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             l_numCmds = sizeof(g_sbeMpiplCmdArray) /
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbeMpiplCmdArray;
+            break;
+
+        case SBE_CMD_CLASS_ARRAY_ACCESS:
+            l_numCmds = sizeof(g_sbeArrayAccessCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd = (sbeCmdStruct_t*)g_sbeArrayAccessCmdArray;
             break;
 
         // PSU Commands

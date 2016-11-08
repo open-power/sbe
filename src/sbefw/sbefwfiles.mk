@@ -45,6 +45,7 @@ SBEFW-CPP-SOURCES += sbescom.C
 SBEFW-CPP-SOURCES += sbecmdmpipl.C
 SBEFW-CPP-SOURCES += sbefapiutil.C
 SBEFW-CPP-SOURCES += sbeutil.C
+SBEFW-CPP-SOURCES += sbecmdtracearray.C
 
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =
