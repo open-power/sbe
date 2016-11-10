@@ -316,6 +316,11 @@
     #define PK_TRACE_CRIT_ENABLE 0
 #endif
 
+/// Enable PK ckpt  (disabled by default)
+#ifndef PK_TRACE_CKPT_ENABLE
+    #define PK_TRACE_CKPT_ENABLE 0
+#endif
+
 /// Enable Debug suppress  (disabled by default)
 // a.k.a. enabled means turn off PK_TRACE(), but keep crit trace
 #ifndef PK_TRACE_DBG_SUPPRESS
@@ -332,16 +337,18 @@
 #if !PK_TRACE_ENABLE
     #undef PK_TRACE_DBG_SUPPRESS
     #undef PK_TRACE_CRIT_ENABLE
+    #undef PK_TRACE_CKPT_ENABLE
 
     #define PK_TRACE_DBG_SUPPRESS 1
     #define PK_TRACE_CRIT_ENABLE 0
+    #define PK_TRACE_CKPT_ENABLE 0
 #endif
 
 // PK TRACE enabled & PK CRIT enabled implies all tracing on.
 // PK TRACE enabled & PK DBUG disabled implies   PK CRIT INFO tracing only.
 // PK TRACE enable & pK CRIT INFO disabled  && PK DBUG disabled implies
 //          PK TRACE disabled
-#if PK_TRACE_ENABLE &&  PK_TRACE_DBG_SUPPRESS && !PK_TRACE_CRIT_ENABLE
+#if PK_TRACE_ENABLE &&  PK_TRACE_DBG_SUPPRESS && !PK_TRACE_CRIT_ENABLE && !PK_TRACE_CKPT_ENABLE
     #undef PK_TRACE_ENABLE
     #define PK_TRACE_ENABLE 0
 #endif
@@ -360,6 +367,12 @@
     #define PK_TRACE_INF(...)
 #else
     #define PK_TRACE_INF(...) PKTRACE(__VA_ARGS__)
+#endif
+
+#if !PK_TRACE_CKPT_ENABLE
+    #define PK_TRACE_DBG(...)
+#else
+    #define PK_TRACE_DBG(...) PKTRACE(__VA_ARGS__)
 #endif
 
 //Kernel trace macros

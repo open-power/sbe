@@ -68,12 +68,11 @@ p9_hcd_core_scominit(
     FAPI_TRY(getScom(i_target, C_SYNC_CONFIG, l_data64));
     FAPI_TRY(putScom(i_target, C_SYNC_CONFIG, DATA_SET(8)));
 
-    /// @todo set the sample pulse count (bit 6:9)
-    /// enable the appropriate loops
-    /// (needs investigation with the Perv team on the EC wiring).
-    FAPI_DBG("Enable DTS sampling via THERM_MODE_REG[5]");
+    FAPI_DBG("Enable DTS via THERM_MODE_REG[5,6-9,20-21]");
     FAPI_TRY(getScom(i_target, C_THERM_MODE_REG, l_data64));
-    FAPI_TRY(putScom(i_target, C_THERM_MODE_REG, DATA_SET(5)));
+    // DTS sampling enable | sample pulse count | DTS loop1 enable
+    l_data64.setBit<5>().insertFromRight<6, 4>(0xF).insertFromRight<20, 2>(0x3);
+    FAPI_TRY(putScom(i_target, C_THERM_MODE_REG, l_data64));
 
     // invoke core SCOM initfile
     FAPI_EXEC_HWP(l_rc, p9_core_scom, i_target);

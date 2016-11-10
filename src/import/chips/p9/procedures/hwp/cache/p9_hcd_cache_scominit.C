@@ -165,12 +165,11 @@ p9_hcd_cache_scominit(
         }
     }
 
-    /// @todo set the sample pulse count (bit 6:9)
-    /// enable the appropriate loops
-    /// (needs investigation with the Perv team on the EC wiring).
-    FAPI_DBG("Enable DTS sampling via THERM_MODE_REG[5]");
+    FAPI_DBG("Enable DTS via THERM_MODE_REG[5,6-9,20-21]");
     FAPI_TRY(getScom(i_target, EQ_THERM_MODE_REG, l_data64));
-    FAPI_TRY(putScom(i_target, EQ_THERM_MODE_REG, DATA_SET(5)));
+    // DTS sampling enable | sample pulse count | DTS loop1 enable
+    l_data64.setBit<5>().insertFromRight<6, 4>(0xF).insertFromRight<20, 2>(0x3);
+    FAPI_TRY(putScom(i_target, EQ_THERM_MODE_REG, l_data64));
 
 fapi_try_exit:
 

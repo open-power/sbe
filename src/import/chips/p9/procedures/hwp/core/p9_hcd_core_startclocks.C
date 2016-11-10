@@ -299,6 +299,9 @@ p9_hcd_core_startclocks(
                          EX_0_CME_SCOM_LMCR_CLEAR : EX_1_CME_SCOM_LMCR_CLEAR,
                          (BIT64(12 + (l_attr_chip_unit_pos % 2)))));
 
+        FAPI_DBG("Assert special wakeup on hostboot core via SPWKUP_OTR[0]");
+        FAPI_TRY(putScom(i_target, C_PPM_SPWKUP_OTR, MASK_SET(0)));
+
         FAPI_DBG("Set core as ready to run in STOP history register");
         FAPI_TRY(putScom(i_target, C_PPM_SSHSRC, 0));
     }
