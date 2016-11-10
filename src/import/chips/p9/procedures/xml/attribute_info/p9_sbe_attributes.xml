@@ -564,5 +564,9 @@ attribute tank
         <name>ATTR_PULSE_MODE_VALUE</name>
         <value>0x0</value>
   </entry>
+  <entry>
+        <name>ATTR_IS_SP_MODE</name>
+        <value>0x0</value>
+  </entry>
 
 </entries>
