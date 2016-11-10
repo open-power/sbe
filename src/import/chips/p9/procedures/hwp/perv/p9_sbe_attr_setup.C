@@ -207,6 +207,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     //read_scratch3_reg
     {
         uint8_t l_is_mpipl = 0;
+        uint8_t l_is_sp_mode = 0;
 
         if ( l_read_scratch8.getBit<2>() )
         {
@@ -219,6 +220,11 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
             FAPI_DBG("Setting up ATTR_IS_MPIPL");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_is_mpipl));
+
+            l_read_scratch_reg.extractToRight<3, 1>(l_is_sp_mode);
+
+            FAPI_DBG("Setting up ATTR_IS_SP_MODE");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_IS_SP_MODE, i_target_chip, l_is_sp_mode));
         }
         else
         {
