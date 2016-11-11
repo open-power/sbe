@@ -201,7 +201,7 @@ typedef struct
 
 // constants
 static const uint32_t SBE_ROLE_MASK = 0x00000002;
-static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 100;
+static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 3;
 
 static const uint64_t SBE_LQA_DELAY_HW_US = 1000000ULL; // 1ms
 static const uint64_t SBE_LQA_DELAY_SIM_CYCLES = 0x1ULL;
@@ -1101,8 +1101,8 @@ ReturnCode istepWithProcQuiesceLQASet( sbeIstepHwp_t i_hwp )
             // TODO RTC 164425 - Create another istep for Setting LQA bit after
             // L2/L3 flush istep
             Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
-            l_rc = putscom_abs_wrap(&l_proc, PU_SECURITY_SWITCH_REGISTER_SCOM,
-                            PU_SECURITY_SWITCH_REGISTER_LOCAL_QUIESCE_ACHIEVED);
+            uint64_t l_data = 0x1000000000000000ULL; //Set bit3
+            l_rc = putscom_abs_wrap(&l_proc, PU_SECURITY_SWITCH_REGISTER_SCOM, l_data);
             if(l_rc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC "PutScom failed for PU_SECURITY_SWITCH_REGISTER_SCOM");
