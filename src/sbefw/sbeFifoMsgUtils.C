@@ -162,7 +162,13 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
             // We can reach here because FIFO was empty. We can not trust
             // empty flag because empty flag tells the status of FIFO after
             // operation not at the time of operation
-            pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
+            if( SBE::isSimicsRunning() )
+            {
+                // sleep if simics is running. Otherwise simics becomes
+                // 99 % busy and fsp does not get a chance to do operation
+                // over FIFO.
+                pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
+            }
             continue;
         }
 
@@ -221,7 +227,13 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
         if (l_status.downfifo_status.fifo_full)
         {
             // Downstream FIFO is full
-            pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
+            if( SBE::isSimicsRunning() )
+            {
+                // sleep if simics is running. Otherwise simics becomes
+                // 99 % busy and fsp does not get a chance to do operation
+                // over FIFO.
+                pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
+            }
             continue;
         }
 
@@ -282,7 +294,13 @@ uint32_t sbeDownFifoSignalEot (void)
         // Check if downstream FIFO is full
         if (l_status.downfifo_status.fifo_full)
         {
-            pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
+            if( SBE::isSimicsRunning() )
+            {
+                // sleep if simics is running. Otherwise simics becomes
+                // 99 % busy and fsp does not get a chance to do operation
+                // over FIFO.
+                pk_sleep(PK_MILLISECONDS(FIFO_WAIT_SLEEP_TIME));
+            }
             continue;
         }
         l_rc = putscom_abs(SBE_DOWNSTREAM_FIFO_SIGNAL_EOT, DOWNSTREAM_EOT_DATA);
