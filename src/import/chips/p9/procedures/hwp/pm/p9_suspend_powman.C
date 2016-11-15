@@ -46,6 +46,7 @@
 #include <p9_query_cache_access_state.H>
 #include <p9_quad_scom_addresses.H>
 #include <p9_quad_scom_addresses_fld.H>
+#include <p9_pm_hcd_flags.h>
 
 extern "C" {
 
@@ -54,11 +55,6 @@ extern "C" {
 //--------------------------------------------------------------------------
 
     const uint32_t c_tries_before_timeout = 20;
-    //TODO @todo RTC 164106 it looks like these may be changing
-    const uint32_t C_OCC_FLG_REQ_ENTER_SAFE_STATE = 31;
-    const uint32_t C_OCC_FLG_CHECK_PGPE_SET = 6;
-    const uint32_t C_OCC_FLG_REQ_PGPE_MANUAL_SAFE_MODE = 2;
-    const uint32_t OCC_FLG_REQ_PM_COMPLEX_SUSPEND = 3;
 
 //--------------------------------------------------------------------------
 //  HWP entry point
@@ -70,24 +66,25 @@ extern "C" {
 
         fapi2::buffer<uint64_t> l_pba_data(0);
         fapi2::buffer<uint64_t> l_occflg_data(0);
+        fapi2::buffer<uint64_t> l_occs2_data(0);
         fapi2::buffer<uint64_t> l_ocr_reg_data(0);
         fapi2::buffer<uint64_t> l_ppe_xixcr_data(0);
         uint64_t l_xixcr_force_halt_cmd = 0b111;
         bool l_pgpe_in_safe_mode = false;
 
-        // SBE messages request to OCC to enter safe state via OCC Flag register bit 31, which OCC polls every 500us. This does not cause any errors to be logged.
+        // SBE messages request to OCC to enter safe state via OCC_Flag[REQUEST_OCC_SAFE_STATE] , which OCC polls every 500us. This does not cause any errors to be logged.
         // In response PGPE will detect missing OCC heartbeat after an additional 8ms and go into "safe mode". This is cleanly handled on OCC across all chips.
-        l_occflg_data.setBit<C_OCC_FLG_REQ_ENTER_SAFE_STATE>();
+        l_occflg_data.setBit<p9hcd::REQUEST_OCC_SAFE_STATE>();
         FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data),
-                 "Error setting OCC Flag register bit C_OCC_FLG_REQ_ENTER_SAFE_STATE");
+                 "Error setting OCC Flag register bit REQUEST_OCC_SAFE_STATE");
 
-        // SBE waits for PGPE to set OCC Flag bit6. SBE Timeout after 33ms, then sets bit 2 in OCC Flag register to request PGPE into "safe mode" manually. SBE polls on bit6 again, timeout after 8ms
+        // SBE waits for PGPE to set OCC Scratch2[PGPE_SAFE_MODE_ACTIVE]. SBE Timeout after 33ms, then sets OCC Flag[PGPE_SAFE_MODE] to request PGPE into "safe mode" manually. SBE polls on OCC Scratch2[PGPE_SAFE_MODE_ACTIVE] again, timeout after 8ms
         //TODO put in the delays here for 33ms and 8ms
         for (uint32_t i = 0; i < c_tries_before_timeout; i++)
         {
-            FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCFLG_SCOM, l_occflg_data), "Error reading OCC Flag register");
+            FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCS2_SCOM, l_occs2_data), "Error reading OCC Scratch 2 register");
 
-            if(l_occflg_data.getBit<C_OCC_FLG_CHECK_PGPE_SET>())
+            if(l_occs2_data.getBit<p9hcd::PGPE_SAFE_MODE_ACTIVE>())
             {
                 l_pgpe_in_safe_mode = true;
                 break;
@@ -96,14 +93,15 @@ extern "C" {
 
         if (!l_pgpe_in_safe_mode)
         {
-            l_occflg_data.flush<0>().setBit<C_OCC_FLG_REQ_PGPE_MANUAL_SAFE_MODE>();
+
+            l_occflg_data.flush<0>().setBit<p9hcd::PGPE_SAFE_MODE>();
             FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data), "Error setting OCC Flag register bit 2");
 
             for (uint32_t i = 0; i < c_tries_before_timeout; i++)
             {
-                FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCFLG_SCOM, l_occflg_data), "Error reading OCC Flag register");
+                FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCS2_SCOM, l_occs2_data), "Error reading OCC Scratch 2 register");
 
-                if(l_occflg_data.getBit<C_OCC_FLG_CHECK_PGPE_SET>())
+                if(l_occs2_data.getBit<p9hcd::PGPE_SAFE_MODE_ACTIVE>())
                 {
                     l_pgpe_in_safe_mode = true;
                     break;
@@ -119,7 +117,7 @@ extern "C" {
 
         // Suspend PGPE, SGPE, and CME from processing Pstate, WOF, and STOP entry/exit requests.
         // (see above) Use OCC flag register bit 3 to request PM Complex suspend.:  In response, PGPE will stop processing Pstates, message SGPE to stop calling 24x7 thread andsuspend responding to Stop entry & exit. PGPE will message CME to stop processing Stop states??????.; then wait for ACK from each engine
-        l_occflg_data.flush<0>().setBit<OCC_FLG_REQ_PM_COMPLEX_SUSPEND>();
+        l_occflg_data.flush<0>().setBit<p9hcd::PM_COMPLEX_SUSPEND>();
         FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data), "Error setting OCC Flag register bit 3");
         // TODO @todo RTC 164110 How to wait for ACK from each engine - an update is needed once the PGPE implements the function
 
