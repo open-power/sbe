@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -35,6 +35,8 @@
 /// supported threads _can not_ be changed simply by changing this constant.
 
 #define PK_THREADS 32
+
+#define USE_PPE_IMPRECISE_MODE
 
 #define PK_IDLE_THREAD_PRIORITY PK_THREADS
 
