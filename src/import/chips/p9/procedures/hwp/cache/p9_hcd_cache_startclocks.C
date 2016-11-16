@@ -219,13 +219,17 @@ p9_hcd_cache_startclocks(
     FAPI_DBG("Reset abstclk & syncclk muxsel(io_clk_sel) via CPLT_CTRL0[0:1]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_CLEAR, MASK_CLR(0, 2, 3)));
 
-    FAPI_DBG("Set fabric group ID[%x] chip ID[%x] system ID[%x]",
-             l_attr_group_id, l_attr_chip_id, l_attr_system_id);
-    FAPI_TRY(getScom(i_target, EQ_CPLT_CONF0, l_data64));
-    l_data64.insertFromRight<48, 4>(l_attr_group_id).
-    insertFromRight<52, 3>(l_attr_chip_id).
-    insertFromRight<56, 5>(l_attr_system_id);
-    FAPI_TRY(putScom(i_target, EQ_CPLT_CONF0, l_data64));
+    if (l_attr_system_ipl_phase !=
+        fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
+    {
+        FAPI_DBG("Set fabric group ID[%x] chip ID[%x] system ID[%x]",
+                 l_attr_group_id, l_attr_chip_id, l_attr_system_id);
+        FAPI_TRY(getScom(i_target, EQ_CPLT_CONF0, l_data64));
+        l_data64.insertFromRight<48, 4>(l_attr_group_id).
+        insertFromRight<52, 3>(l_attr_chip_id).
+        insertFromRight<56, 5>(l_attr_system_id);
+        FAPI_TRY(putScom(i_target, EQ_CPLT_CONF0, l_data64));
+    }
 
     // -------------------------------
     // Align chiplets
