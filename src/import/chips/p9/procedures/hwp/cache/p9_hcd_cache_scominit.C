@@ -126,41 +126,50 @@ p9_hcd_cache_scominit(
 
         if (l_attr_sys_force_all_cores)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex     = *l_iter;
+            fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex = *l_iter;
             auto l_core_targets = l_ex.getChildren<fapi2::TARGET_TYPE_CORE>();
-            auto l_core         = l_core_targets.begin();
 
-            fapi2::Target<fapi2::TARGET_TYPE_CORE> l_ec   = *l_core;
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
-                l_ec.getParent<fapi2::TARGET_TYPE_PERV>();
-
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv,
-                                   l_attr_chip_unit_pos));
-            l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET;
-            l_exid               = (l_attr_chip_unit_pos >> 1);
-
-            FAPI_DBG("Setup L3-LCO on TARGET_ID[%d] via EX_L3_MODE_REG1[0,2-5,6-21]", l_exid);
-            FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG1, l_data64));
-            l_data64.insertFromRight<2, 4>(l_exid).insertFromRight<6, 16>(l_exlist);
-
-            if (l_excount > 1)
+            if (l_core_targets.size() == 0)
             {
-                l_data64.setBit<0>();
-            }
-
-            FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG1, l_data64));
-
-            FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG0, l_data64));
-
-            if (l_excount == 2)
-            {
-                FAPI_DBG("Assert L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
-                FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_SET(9)));
+                FAPI_ERR("ERROR: NO Good Children Cores under this So-Called Good EX!");
+                fapi2::current_err = fapi2::FAPI2_RC_FALSE;
+                goto fapi_try_exit;
             }
             else
             {
-                FAPI_DBG("Drop L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
-                FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_UNSET(9)));
+                auto l_core = l_core_targets.begin();
+                fapi2::Target<fapi2::TARGET_TYPE_CORE> l_ec   = *l_core;
+                fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
+                    l_ec.getParent<fapi2::TARGET_TYPE_PERV>();
+
+                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv,
+                                       l_attr_chip_unit_pos));
+                l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET;
+                l_exid               = (l_attr_chip_unit_pos >> 1);
+
+                FAPI_DBG("Setup L3-LCO on TARGET_ID[%d] via EX_L3_MODE_REG1[0,2-5,6-21]", l_exid);
+                FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG1, l_data64));
+                l_data64.insertFromRight<2, 4>(l_exid).insertFromRight<6, 16>(l_exlist);
+
+                if (l_excount > 1)
+                {
+                    l_data64.setBit<0>();
+                }
+
+                FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG1, l_data64));
+
+                FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG0, l_data64));
+
+                if (l_excount == 2)
+                {
+                    FAPI_DBG("Assert L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
+                    FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_SET(9)));
+                }
+                else
+                {
+                    FAPI_DBG("Drop L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
+                    FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_UNSET(9)));
+                }
             }
         }
     }
