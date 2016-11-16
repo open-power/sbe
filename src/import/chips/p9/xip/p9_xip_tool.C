@@ -1729,6 +1729,8 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 /// \param[in] i_listingModeId  The listing mode: {short, normal(default), long}.
 ///
 /// Assumptions:
+/// - Dissection only works with .rings section. It does not work with .overrides
+///   until we get TOR magic (RTC157744).
 ///
 static
 int dissectRingSectionTor( void*       i_ringSection,
@@ -1820,7 +1822,7 @@ int dissectRingSectionTor( void*       i_ringSection,
             //--------------------
             // Ring variant loop.
             // - Base, cache, risk, override, overlay
-            for (ringVariant = 0; ringVariant < NUM_RING_VARIANTS; ringVariant++)
+            for (ringVariant = 0; ringVariant < OVERRIDE; ringVariant++)
             {
 
                 //----------------------
