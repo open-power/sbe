@@ -52,7 +52,7 @@ fapi2::ReturnCode p9_sbe_nest_enable_ridi(const
         (fapi2::TARGET_STATE_FUNCTIONAL);
     FAPI_DBG("p9_sbe_nest_enable_ridi: Entering ...");
 
-    for (auto l_chplt_trgt : l_perv_functional_vector)
+    for (auto& l_chplt_trgt : l_perv_functional_vector)
     {
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt,

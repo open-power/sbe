@@ -116,7 +116,7 @@ setDPLLFrequency(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
 
     l_data.insertFromRight<17, 11>(i_DpllBootFreqMult);
 
-    for(auto l_tlst : l_present_eqs)
+    for(auto& l_tlst : l_present_eqs)
     {
         FAPI_TRY(fapi2::putScom(l_tlst,  EQ_QPPM_DPLL_FREQ, l_data));
         //@todo,Determine ff_slew rate value RTC 140053

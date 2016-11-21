@@ -66,7 +66,7 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
     l_data64.clearBit<24>();
     FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL1_WAND, l_data64));
 
-    for(auto it : l_core_functional_vector)
+    for(auto& it : l_core_functional_vector)
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
                                it.getParent<fapi2::TARGET_TYPE_PERV>(),

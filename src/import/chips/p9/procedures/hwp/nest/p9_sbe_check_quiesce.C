@@ -129,7 +129,7 @@ extern "C" {
         //Block wake up on all cores
         l_gpmmr_data.setBit<C_BLOCK_ALL_WKUP_EVENTS>().setBit<C_BLOCK_REG_WKUP_EVENTS>();
 
-        for (auto current_core : l_core_targets)
+        for (auto& current_core : l_core_targets)
         {
             //Stop the threads on each core
             FAPI_EXEC_HWP(l_rc, p9_thread_control, current_core, C_ALL_THREADS, PTC_CMD_STOP, l_thread_warncheck, l_ras_status,
@@ -146,7 +146,7 @@ extern "C" {
             FAPI_TRY(fapi2::putScom(current_core, C_PPM_GPMMR_SCOM1, l_gpmmr_data), "Error writing to GPMMR");
         }
 
-        for (auto current_core : l_core_targets)
+        for (auto& current_core : l_core_targets)
         {
             // check for maint mode or STOP state in core RAS Status register (try 5 times), if not reached fail
             // All ECs should already be there per initial instruction stop
@@ -174,7 +174,7 @@ extern "C" {
                         "Error with the RAS Status not being set as expected");
         }
 
-        for (auto current_core : l_core_targets)
+        for (auto& current_core : l_core_targets)
         {
             // p9_inject_local_xstop.C
             // inject a local core checkstop on each core to prevent them from restarting
@@ -252,7 +252,7 @@ extern "C" {
         auto l_pci_chiplets_vec = i_target.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_ALL_PCI,
                                   fapi2::TARGET_STATE_FUNCTIONAL);
 
-        for (auto l_pci_chiplet : l_pci_chiplets_vec)
+        for (auto& l_pci_chiplet : l_pci_chiplets_vec)
         {
             //Get the PCI ID
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_pci_chiplet, l_pci_id), "Error getting the CHIP_UNIT_POS");

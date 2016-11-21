@@ -45,7 +45,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
 {
     FAPI_INF("p9_sbe_chiplet_pll_initf: Entering ...");
 
-    for (auto l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto& l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_XBUS |
                                            fapi2::TARGET_FILTER_ALL_OBUS |
                                            fapi2::TARGET_FILTER_ALL_PCI), fapi2::TARGET_STATE_FUNCTIONAL))
@@ -110,7 +110,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
 
     }
 
-    for (auto l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
+    for (auto& l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_DBG("Scan mc_pll_bndy_bucket_1 ring");
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_pll_bndy_bucket_1, fapi2::RING_MODE_SET_PULSE_NSL),

@@ -75,7 +75,7 @@ p9_hcd_cache_gptr_time_initf(
                             fapi2::RING_MODE_HEADER_CHECK),
              "Error from putRing (eq_time)");
 
-    for (auto l_ex : l_ex_targets)
+    for (auto& l_ex : l_ex_targets)
     {
         FAPI_DBG("Scan ex_l3_gptr ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l3_gptr,

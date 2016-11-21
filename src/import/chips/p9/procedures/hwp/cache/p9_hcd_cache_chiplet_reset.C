@@ -146,7 +146,7 @@ p9_hcd_cache_chiplet_reset(
     // If there is an unused, powered-off cache chiplet which needs to be
     // configured in the following steps to setup the PCB endpoint.
 
-    for(auto it : l_core_functional_vector)
+    for(auto& it : l_core_functional_vector)
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
                                it.getParent<fapi2::TARGET_TYPE_PERV>(),

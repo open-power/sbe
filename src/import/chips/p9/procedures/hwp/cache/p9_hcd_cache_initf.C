@@ -83,7 +83,7 @@ p9_hcd_cache_initf(
     FAPI_TRY(fapi2::putRing(i_target, eq_ana_func),
              "Error from putRing (eq_ana_func)");
 
-    for (auto l_ex_target : i_target.getChildren<fapi2::TARGET_TYPE_EX>())
+    for (auto& l_ex_target : i_target.getChildren<fapi2::TARGET_TYPE_EX>())
     {
         FAPI_DBG("Scan ex_l2_fure ring");
         FAPI_TRY(fapi2::putRing(l_ex_target, ex_l2_fure),

@@ -97,7 +97,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     //Find the master core for writing the HRMOR later
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE, i_master_chip_target, l_master_core), "Error getting ATTR_MASTER_CORE");
 
-    for ( auto l_current_core : i_master_ex_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+    for ( auto& l_current_core : i_master_ex_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         uint8_t l_attr_chip_unit_pos = 0;
         fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv = l_current_core.getParent<fapi2::TARGET_TYPE_PERV>();

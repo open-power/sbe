@@ -68,7 +68,7 @@ p9_hcd_cache_repair_initf(
                             fapi2::RING_MODE_HEADER_CHECK),
              "Error from putRing (eq_repr)");
 
-    for (auto l_ex : l_ex_targets)
+    for (auto& l_ex : l_ex_targets)
     {
         FAPI_DBG("Scan ex_l3_repr ring");
         FAPI_TRY(fapi2::putRing(l_ex, ex_l3_repr,

@@ -48,7 +48,7 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
     uint8_t l_attr_chip_unit_pos = 0;
     fapi2::buffer<uint16_t> l_read_attr;
 
-    for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, l_chplt_trgt, l_read_attr));
         FAPI_DBG("ATTR_PG Value : %#04lx", l_read_attr);
@@ -127,7 +127,7 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
         }
     }
 
-    for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_fure));
 #if 0
