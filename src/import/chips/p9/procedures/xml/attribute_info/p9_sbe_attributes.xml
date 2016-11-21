@@ -199,100 +199,6 @@
   </entry>
 <!-- xip_customize MB attributes - end-->
   <entry>
-    <name>ATTR_SCRATCH_UINT8_1</name>
-    <value>0x8</value>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_UINT8_2</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_UINT32_1</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_UINT32_2</name>
-    <value>0xaffeaffe</value>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_UINT64_1</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_UINT64_2</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_INT8_1</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_INT8_2</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_INT32_1</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_INT32_2</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_INT64_1</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_INT64_2</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_UINT32_ARRAY</name>
-  </entry>
-  <entry>
-    <name>ATTR_SCRATCH_UINT32_PERV_ARRAY</name>
-  </entry>
-   <entry>
-    <name>ATTR_REPR_RING</name>
-    <value>0xcafe</value>
-    <value>0xdead</value>
-  </entry>
-  <entry>
-    <name>ATTR_TIME_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_GPTR_RING</name>
-    <value>0xcafe</value>
-    <value>0xaffe</value>
-  </entry>
-  <entry>
-    <name>ATTR_PLL_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_CORE_REPR_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_CORE_TIME_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_CORE_GPTR_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_L2_REPR_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_L2_TIME_RING</name>
-    <value>0xcafe</value>
-    <value>0xaffe</value>
-  </entry>
-  <entry>
-    <name>ATTR_L2_GPTR_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_L3_REPR_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_L3_TIME_RING</name>
-    <value>0xcafe</value>
-    <value>0xaffe</value>
-  </entry>
-  <entry>
-    <name>ATTR_L3_GPTR_RING</name>
-  </entry>
-  <entry>
-    <name>ATTR_DPLL_RING</name>
-  </entry>
-  <entry>
       <name>ATTR_CHIP_UNIT_POS</name>
       <value>0x00</value> <!-- Unused -->
       <value>0x01</value> <!-- PERV -->
@@ -369,30 +275,6 @@
          <value>0x80000000</value>
   </entry>
   <entry>
-         <name>ATTR_BOOT_FREQ</name>
-         <value>0x0</value>
-  </entry>
-  <entry>
-          <name>ATTR_VCS_BOOT_VOLTAGE</name>
-          <value>0x0</value>
-  </entry>
-  <entry>
-           <name>ATTR_VDD_BOOT_VOLTAGE</name>
-           <value>0x0</value>
-  </entry>
-  <entry>
-           <name>ATTR_ADU_XSCOM_BAR_BASE_ADDR</name>
-           <value>0x000603FC00000000</value>
-  </entry>
-  <entry>
-           <name>ATTR_LPC_BASE_ADDR</name>
-           <value>0x0006030000000000</value>
-  </entry>
-  <entry>
-         <name>ATTR_SUN_ID</name>
-         <value>0x01</value>
-  </entry>
-  <entry>
           <name>ATTR_PROC_FABRIC_SYSTEM_ID</name>
           <value>0x00</value>
   </entry>
@@ -436,10 +318,6 @@
            <value>0x48000000</value>
   </entry>
   <entry>
-           <name>ATTR_CLOCK_PLL_MUX0</name>
-           <value>0x3</value>
-  </entry>
-  <entry>
   	<name>ATTR_PROC_EPS_READ_CYCLES_T0</name>
   	<value>0x00000FFF</value>
   </entry>
@@ -474,9 +352,6 @@
   <entry>
            <name>ATTR_OBUS_RATIO_VALUE</name>
            <value>0x0</value>
-  </entry>
-  <entry>
-           <name>ATTR_ECID</name>
   </entry>
   <entry>
            <name>ATTR_RUNN_MODE</name>
@@ -520,7 +395,7 @@ attribute tank
   <entry>
            <name>ATTR_CHIP_EC_FEATURE_VITL_CLK_SETUP</name>
             <virtual/>
-  </entry> 
+  </entry>
   <entry>
            <name>ATTR_CHIP_EC_FEATURE_VITL_CLOCK_GATING</name>
            <virtual/>
