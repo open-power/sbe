@@ -179,7 +179,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
 
     if (attr_force_all)
     {
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_CACHES, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             // Configuring chiplet multicasting registers..
@@ -187,7 +187,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_mc_setup_cache(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_CORES, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             // Configuring chiplet multicasting registers..
@@ -212,7 +212,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_VITL_CLK_SETUP, i_target_chip,
                                l_attr_vitl_setup));
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
                                                fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
                                                fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
@@ -223,7 +223,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                                    p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             FAPI_DBG("Configuring multicast registers for MC01,MC23");
@@ -232,7 +232,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                                    p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP2));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
                                                fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
                                                fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
@@ -244,7 +244,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             // Setting up hang pulse counter for register 0 and register 6
@@ -254,7 +254,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                      p9SbeChipletReset::HANG_PULSE_0X08));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             // Setting up hang pulse counter for register 0 and register 6
@@ -264,7 +264,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                      p9SbeChipletReset::HANG_PULSE_0X08));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
                                                fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
         {
@@ -275,7 +275,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                      0xff, 0xff, 0xff, p9SbeChipletReset::HANG_PULSE_0X08));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_NEST, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             // Setting up hang pulse counter for register 5
@@ -283,7 +283,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_nest_hang_cnt_setup(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_CORES, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             // Setting up hang pulse counter for register 5
@@ -294,7 +294,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                      p9SbeChipletReset::HANG_PULSE_0X08));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_CACHES, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             // Setting up hang pulse counter for register 5
@@ -317,7 +317,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             l_target_state = fapi2::TARGET_STATE_PRESENT;
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
                                                fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
                                                fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
@@ -328,14 +328,14 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(l_target_cplt, true));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_NEST_WEST, l_target_state))
         {
             FAPI_DBG("Drop clk async reset for N3 chiplet");
             FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_MC, l_target_state))
         {
             FAPI_DBG("Drop clk async reset for Mc chiplet");
@@ -348,7 +348,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         {
             l_target_state = fapi2::TARGET_STATE_PRESENT;
 
-            for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+            for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
                  (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
                                                    fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
                                                    fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
@@ -359,7 +359,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                 FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(l_target_cplt, false));
             }
 
-            for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+            for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
                  (fapi2::TARGET_FILTER_ALL_MC, l_target_state))
             {
                 FAPI_DBG("Raise clk async reset for Mc chiplet");
@@ -367,21 +367,21 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             }
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             FAPI_DBG("Drop clk async reset for N3, Mc  and Obus chiplets");
             FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             FAPI_DBG("Drop clk_div_bypass for Mc chiplet");
             FAPI_TRY(p9_sbe_chiplet_reset_div_clk_bypass(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_CACHES |
                                                fapi2::TARGET_FILTER_ALL_CORES | fapi2::TARGET_FILTER_ALL_MC |
                                                fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
@@ -392,7 +392,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_setup(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
                                                fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
                                                fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
@@ -403,7 +403,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                          l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
                                                fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
                                                fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
@@ -413,7 +413,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg(l_target_cplt));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
                                                fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
                                                fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
@@ -422,7 +422,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_enable_listen_to_sync(l_target_cplt, true));
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
                                                fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
                                                fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
@@ -434,7 +434,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         FAPI_DBG("Set Chip-wide HSSPORWREN gate");
         FAPI_TRY(p9_sbe_chiplet_reset_hsspowergate(i_target_chip));
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
         {
             FAPI_DBG("Setup IOP Logic for PCIe");
@@ -448,7 +448,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         {
             if (l_mc_sync_mode)
             {
-                for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+                for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
                      (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
                                                        fapi2::TARGET_FILTER_ALL_NEST),
                       fapi2::TARGET_STATE_FUNCTIONAL))
@@ -458,7 +458,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             }
             else
             {
-                for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+                for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
                      (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST),
                       fapi2::TARGET_STATE_FUNCTIONAL))
                 {
@@ -467,7 +467,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             }
         }
 
-        for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
                                                fapi2::TARGET_FILTER_ALL_NEST | fapi2::TARGET_FILTER_ALL_OBUS |
                                                fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
@@ -669,28 +669,28 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_call(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_PLL_MUX, i_target_chiplet,
                            l_read_attr));
 
-    for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto& l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_PRESENT))
     {
         FAPI_DBG("Mux settings for Mc chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_MC(l_target_cplt, l_read_attr));
     }
 
-    for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto& l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_PRESENT))
     {
         FAPI_DBG("Mux settings for OB chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_obus(l_target_cplt, l_read_attr));
     }
 
-    for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto& l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_XBUS, fapi2::TARGET_STATE_PRESENT))
     {
         FAPI_DBG("Mux settings for XB chiplet");
         FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_xbus(l_target_cplt, l_read_attr));
     }
 
-    for (auto l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto& l_target_cplt : i_target_chiplet.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_PRESENT))
     {
         FAPI_DBG("Mux settings for Pcie chiplet");
@@ -1415,7 +1415,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
 
     FAPI_INF("p9_sbe_chiplet_reset_all_obus_scan0: Entering ...");
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (fapi2::TARGET_FILTER_ALL_OBUS, fapi2::TARGET_STATE_PRESENT))
     {
 
@@ -1492,7 +1492,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PULSE_MODE_VALUE, l_sys,
                            l_attr_pulse_mode_value));
 
-    for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+    for (auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC | fapi2::TARGET_FILTER_ALL_OBUS |
                                            fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
           fapi2::TARGET_STATE_FUNCTIONAL))

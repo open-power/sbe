@@ -109,7 +109,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, i_target, l_fbc_chip_id),
                  "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_CHIP_ID)");
 
-        for (auto l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP |
                                                fapi2::TARGET_FILTER_ALL_NEST |
                                                fapi2::TARGET_FILTER_XBUS |
@@ -316,7 +316,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
             l_target_filter = static_cast<fapi2::TargetFilter>(l_target_filter | fapi2::TARGET_FILTER_ALL_MC);
         }
 
-        for (auto l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>(l_target_filter,
+        for (auto& l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>(l_target_filter,
                 fapi2::TARGET_STATE_FUNCTIONAL))
         {
 
@@ -327,7 +327,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
     // configure PCI tracing logic
     {
-        for (auto l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
+        for (auto& l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
               fapi2::TARGET_STATE_FUNCTIONAL))
         {

@@ -47,7 +47,7 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
 
     FAPI_INF("p9_sbe_gptr_time_initf: Entering ...");
 
-    for (auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>
          (fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_DBG("Scan mc_gptr ring");
@@ -67,7 +67,7 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
                  "Error from putRing (mc_time)");
     }
 
-    for( auto l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+    for( auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          ( fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt, l_attr_chip_unit_pos));

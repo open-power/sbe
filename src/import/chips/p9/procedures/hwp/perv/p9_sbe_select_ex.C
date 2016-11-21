@@ -198,7 +198,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
     // mode chosen.  This is done to reduce conditional processing within the
     // vector loop to allow for better prefetch utilization.
 
-    for (auto core : l_core_functional_vector)
+    for (auto& core : l_core_functional_vector)
     {
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
@@ -275,7 +275,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
     } // Core loop
 
     // Process the good EQs
-    for (auto eq : l_eq_functional_vector)
+    for (auto& eq : l_eq_functional_vector)
     {
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
