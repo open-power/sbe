@@ -119,9 +119,9 @@ def collectTrace ( procNr ):
   if ( rc ):
     print "simics ERROR running %s: %d "%( cmd1, rc )
 
-  SIM_run_alone( run_command, cmd2 )
-  SIM_run_alone( run_command, cmd3 )
-  SIM_run_alone( run_command, cmd4 )
+  run_command ( cmd2 )
+  run_command ( cmd3 )
+  run_command ( cmd4 )
 
 # MAGIC_INSTRUCTION hap handler
 # arg contains the integer parameter n passed to MAGIC_INSTRUCTION(n)
