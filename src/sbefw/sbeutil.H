@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,8 +27,8 @@
 #include "pk.h"
 #include "pk_api.h"
 
-#define MASK_ZERO_L32B_UINT64(x)    ((x) & 0xFFFFFFFF00000000)
-#define MASK_ZERO_H32B_UINT64(x)    ((x) & 0x00000000FFFFFFFF)
+#define MASK_ZERO_L32B_UINT64(x)    ((x) & 0xFFFFFFFF00000000ull)
+#define MASK_ZERO_H32B_UINT64(x)    ((x) & 0x00000000FFFFFFFFull)
 #define SHIFT_RIGHT(x, bits)        ((x) >> bits)
 
 // Macros Defined for Internal RC Check, Break if Error

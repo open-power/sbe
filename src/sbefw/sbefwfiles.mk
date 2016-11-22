@@ -48,6 +48,7 @@ SBEFW-CPP-SOURCES += sbeutil.C
 SBEFW-CPP-SOURCES += sbecmdtracearray.C
 SBEFW-CPP-SOURCES += sbeTimerSvc.C
 SBEFW-CPP-SOURCES += sbecmdCntrlTimer.C
+SBEFW-CPP-SOURCES += sbecmdfastarray.C
 
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =
