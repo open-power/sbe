@@ -90,6 +90,10 @@ uint16_t sbeToFapiRingMode(uint16_t i_ringMode)
     {
         l_fapiRingMode |= RING_MODE_SET_PULSE_ALL;
     }
+    if(i_ringMode & SBE_RING_MODE_FASTARRAY)
+    {
+        l_fapiRingMode |= RING_MODE_FASTARRAY;
+    }
     return l_fapiRingMode;
 }
 

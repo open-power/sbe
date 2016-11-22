@@ -136,7 +136,7 @@ enum sbeRegisterAccessCommands
 */
 enum sbeArrayAccessCommands
 {
-    SBE_CMD_GET_FAST_ARRAY        = 0x01, /* Get Fast Array */
+    SBE_CMD_CONTROL_FAST_ARRAY    = 0x01, /* Control Fast Array */
     SBE_CMD_CONTROL_TRACE_ARRAY   = 0x02, /* Control Trace Array */
 };
 
@@ -267,7 +267,7 @@ enum
     PUT_SRAM_CME_SUPPPORTED             = 0xA4000020,
     GET_REGISTER_SUPPPORTED             = 0xA5000001,
     PUT_REGISTER_SUPPPORTED             = 0xA5000002,
-    READ_FAST_ARRAY_SUPPPORTED          = 0xA6000001,
+    CONTROL_FAST_ARRAY_SUPPPORTED       = 0xA6000001,
     CONTROL_TRACE_ARRAY_SUPPPORTED      = 0xA6000002,
     CONTROL_INSTRUCTIONS_SUPPPORTED     = 0xA7000001,
     GET_SBE_FFDC_SUPPPORTED             = 0xA8000001,
@@ -411,6 +411,7 @@ typedef enum
                                                     ///  pulse
     SBE_RING_MODE_SET_PULSE_ALL             = 0x0010, ///< Set pulse with pulse
                                                     ///  to all hold types
+    SBE_RING_MODE_FASTARRAY                 = 0x0020, //Fast array mode
 } sbeRingAccessModes_t;
 
 // Trace array chip-op operation bitmaps
@@ -419,6 +420,16 @@ static const uint16_t SBE_TA_RESTART            = 0x0002;
 static const uint16_t SBE_TA_STOP               = 0x0004;
 static const uint16_t SBE_TA_COLLECT_DUMP       = 0x0008;
 static const uint16_t SBE_TA_IGNORE_MUX_SETTING = 0x0010;
+
+/*
+ * @brief enums for fast array control mode
+ */
+typedef enum
+{
+    FASTARRAY_SETUP      = 0x01,
+    FASTARRAY_SKIPCYCLES = 0x02,
+    FASTARRAY_CLEANUP    = 0x03,
+} sbeFastArrayControlModes_t;
 
 #ifdef __cplusplus
 }
