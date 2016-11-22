@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -52,23 +52,29 @@ uint8_t  __pk_timebase_rshift = 32;
 
 void pk_set_timebase_rshift(uint32_t timebase_freq_hz)
 {
-    //Use 1.0 scale if less than halfway between 1.0 and 1.25
-    if(timebase_freq_hz <= (PK_BASE_FREQ_HZ + (PK_BASE_FREQ_HZ >> 3)))
+    //Use 1.0 scale if less than or equal to 1.0625 * base frequency
+    if(timebase_freq_hz <= (PK_BASE_FREQ_HZ + (PK_BASE_FREQ_HZ >> 4)))
     {
         __pk_timebase_rshift = 32;
     }
 
-    //use 1.25 scale if less than halfway between 1.25 and 1.5
+    //use 1.125 scale if between 1.0625 and 1.1875 * base frequency
+    else if(timebase_freq_hz <= (PK_BASE_FREQ_HZ + (PK_BASE_FREQ_HZ >> 4) + (PK_BASE_FREQ_HZ >> 3)))
+    {
+        __pk_timebase_rshift = 3;
+    }
+
+    //use 1.25 scale if between 1,1875 and 1.375 * base frequency
     else if(timebase_freq_hz <= (PK_BASE_FREQ_HZ + (PK_BASE_FREQ_HZ >> 3) + (PK_BASE_FREQ_HZ >> 2)))
     {
         __pk_timebase_rshift = 2;
     }
-    //use 1.5 scale if less than halfway between 1.5 and 2.0
+    //use 1.5 scale if between 1.375 and 1.75 * base frequency
     else if(timebase_freq_hz <= (PK_BASE_FREQ_HZ + (PK_BASE_FREQ_HZ >> 2) + (PK_BASE_FREQ_HZ >> 1)))
     {
         __pk_timebase_rshift = 1;
     }
-    //use 2.0 scale if greater than 1.5
+    //use 2.0 scale if greater than 1.75 * base frequency
     else
     {
         __pk_timebase_rshift = 0;
