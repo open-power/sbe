@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -92,6 +92,12 @@ typedef enum
     // firmware to trigger Stop15 exit on thread 0 on the master core.
     // This would be used to trigger hostboot in istep 16
     SBE_SBE2PSU_DOORBELL_SET_BIT2      = 0x2000000000000000ull,
+
+    // Bit 14 OR flag for SBE->PSU Doorbell Register;
+    // When this is set by SBE, it would trigger an interrupt to host
+    // firmware to inform that timer has expired.
+    SBE_SBE2PSU_DOORBELL_SET_BIT14     = 0x0002000000000000ull,
+
 } sbe_sbe2psuDoorbellReg_UpdateFlags;
 
 

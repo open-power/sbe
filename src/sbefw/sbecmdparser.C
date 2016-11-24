@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -48,6 +48,7 @@
 #include "sberegaccess.H"
 #include "sbecmdmpipl.H"
 #include "sbecmdtracearray.H"
+#include "sbecmdCntrlTimer.H"
 
 // Declaration
 static const uint16_t HARDWARE_FENCED_STATE =
@@ -248,6 +249,19 @@ static sbeCmdStruct_t g_sbeCoreStateControlCmdArray [] =
 };
 
 //////////////////////////////////////////////////////////////
+// @brief g_sbeControlTimerCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbeControlTimerCmdArray [] =
+{
+    {sbeCntrlTimer,
+     SBE_PSU_CMD_CONTROL_TIMER,
+     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE|
+     SBE_FENCE_AT_MPIPL|SBE_FENCE_AT_DUMPING,
+    },
+};
+
+//////////////////////////////////////////////////////////////
 // @brief g_sbePutRingFromImageCmdArray
 //
 //////////////////////////////////////////////////////////////
@@ -360,6 +374,13 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbePsuGenericCmdArray;
             break;
+
+        case  SBE_PSU_CMD_CLASS_CNTRL_TIMER:
+            l_numCmds = sizeof(g_sbeControlTimerCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbeControlTimerCmdArray;
+            break;
+
 
         // This will grow with each class of chipOp in future
         default:

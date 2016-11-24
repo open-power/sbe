@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -51,6 +51,7 @@ enum sbePsuCommandClass
     SBE_PSU_CMD_CLASS_UNKNOWN       = 0,
     SBE_PSU_CMD_CLASS_CORE_STATE    = 0xD1,
     SBE_PSU_CMD_CLASS_RING_ACCESS   = 0xD3,
+    SBE_PSU_CMD_CLASS_CNTRL_TIMER   = 0xD4,
     SBE_PSU_CMD_CLASS_GENERIC       = 0xD7,
  };
 
@@ -61,6 +62,15 @@ enum sbePsuCoreStateControlCommands
 {
     SBE_PSU_CMD_CONTROL_DEADMAN     = 0x01,
     SBE_PSU_CMD_UNKNOWN             = 0xFF,
+};
+
+/**
+  * @brief enums for SBE-Host interface control timer commands
+  */
+enum sbePsuControlTimerCommands
+{
+    SBE_PSU_CMD_CONTROL_TIMER                 = 0x01,
+    SBE_PSU_CMD_CONTROL_TIMER_UNKNOWN         = 0xFF,
 };
 
 /**
@@ -96,6 +106,12 @@ enum sbePsuDmtCmdFlags
 {
     SBE_PSU_FLAGS_START_DMT       = 0x0001,
     SBE_PSU_FLAGS_STOP_DMT        = 0x0002,
+};
+
+enum sbePsuCntrlTimerFlags
+{
+    SBE_PSU_FLAGS_START_TIMER       = 0x0001,
+    SBE_PSU_FLAGS_STOP_TIMER        = 0x0002,
 };
 
 #endif // __SBEFW_SBE_HOST_INTF_H

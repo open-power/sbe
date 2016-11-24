@@ -365,7 +365,7 @@ class registry(object):
                     break
                 else:
                     retries = retries - 1
-        return FAILURE
+        return SUCCESS
 
     #----------------------------------------------------
     # Load the function and execute

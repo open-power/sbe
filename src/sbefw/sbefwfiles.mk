@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -46,6 +46,8 @@ SBEFW-CPP-SOURCES += sbecmdmpipl.C
 SBEFW-CPP-SOURCES += sbefapiutil.C
 SBEFW-CPP-SOURCES += sbeutil.C
 SBEFW-CPP-SOURCES += sbecmdtracearray.C
+SBEFW-CPP-SOURCES += sbeTimerSvc.C
+SBEFW-CPP-SOURCES += sbecmdCntrlTimer.C
 
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =

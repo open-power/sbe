@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -209,6 +209,7 @@ enum sbeSecondaryResponse
     SBE_SEC_HW_OP_TIMEOUT                     = 0x10,
     SBE_SEC_PCB_PIB_ERR                       = 0x11,
     SBE_SEC_FIFO_PARITY_ERROR                 = 0x12,
+    SBE_SEC_TIMER_ALREADY_STARTED             = 0x13,
 };
 
 /**
