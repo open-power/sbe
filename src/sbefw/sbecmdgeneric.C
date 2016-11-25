@@ -268,21 +268,11 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
 
     do
     {
-        // Send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
-        // This util method will check internally on the mbox0 register if
-        // ACK is requested.
-        l_rc = sbeAcknowledgeHost();
-        if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            SBE_ERROR(SBE_FUNC " Failed to Sent Ack to Host over "
-                "SBE_SBE2PSU_DOORBELL_SET_BIT1");
-            break;
-        }
-
         uint64_t l_sysFabricMap = 0;
+        //send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
         l_rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
                                     (sizeof(l_sysFabricMap)/sizeof(uint64_t)),
-                                    &l_sysFabricMap);
+                                    &l_sysFabricMap, true);
 
         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
         {
