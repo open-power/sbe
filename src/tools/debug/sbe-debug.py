@@ -27,7 +27,7 @@ import os
 import subprocess
 import re
 import random
-import argparse
+import getopt
 import sys
 import binascii
 err = False
@@ -197,22 +197,64 @@ def parsevalue(iValue):
     tempVal = iValue[26:34]
     print "Reserved Bit [24:31] : %s" %(tempVal)
 
+def usage():
+    print "usage: testarg.py [-h] [-l {trace,attr,ppestate,sbestate,sbestatus}]\n\
+\t\t\t\t[-t {AWAN,HW,FILE}] [-n NODE] [-p PROC]\n\
+\n\
+SBE Dump Parser\n\
+\n\
+optional arguments:\n\
+  -h, --help            show this help message and exitn\n\
+  -l {trace,attr,ppestate,sbestate,sbestatus}, --level {trace,attr,ppestate,sbestate,sbestatus}\n\
+                        Parser level\n\
+  -t {AWAN,HW,FILE}, --target {AWAN,HW,FILE}\n\
+                        Target type\n\
+  -n NODE, --node NODE  Node Number\n\
+  -p PROC, --proc PROC  Proc Number"
 
 def main( argv ):
-    parser = argparse.ArgumentParser( description = "SBE Dump Parser" )
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "l:t:n:p:h", ['level=', 'target=', 'node=', 'proc=', 'help'])
+    except getopt.GetoptError as err:
+        print str(err)
+        usage()
+        exit_main(errorcode.ERROR_EXIT)
 
-    parser.add_argument( '-l', '--level', choices = [ 'trace', 'attr', \
-                                'ppestate', 'sbestate' , 'sbestatus'],\
-                                default='trace', help = 'Parser level' )
-    parser.add_argument( '-t', '--target', choices = ['AWAN', 'HW', 'FILE'], \
-                                default='HW', help = 'Target type' )
-    parser.add_argument( '-n', '--node', type=int , default = 0, \
-                                help = 'Node Number' )
-    parser.add_argument( '-p', '--proc', type=int , default = 0, \
-                                help = 'Proc Number' )
+    # Default values
+    level = 'trace'
+    target = 'HW'
+    node = 0
+    proc = 0
 
-    args = parser.parse_args()
-
+    # Parse the command line arguments
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            usage()
+            exit_main(errorcode.HELP_EXIT)
+        elif opt in ('-l', '--level'):
+            if arg in ('trace','attr','ppestate','sbestate','sbestatus'):
+                level = arg
+            else:
+                print "level should be one of {trace,attr,ppestate,sbestate,sbestatus}"
+                exit_main(errorcode.ERROR_EXIT)
+        elif opt in ('-t', '--target'):
+            if arg in ('AWAN', 'HW', 'FILE'):
+                target = arg
+            else:
+                print "target should be one of {AWAN,HW,FILE}"
+                exit_main(errorcode.ERROR_EXIT)
+        elif opt in ('-n', '--node'):
+            try:
+                node = int(arg)
+            except:
+                print "node should be an integer number"
+                exit_main(errorcode.ERROR_EXIT)
+        elif opt in ('-p', '--proc'):
+            try:
+                proc = int(arg)
+            except:
+                print "proc should be an integer number"
+                exit_main(errorcode.ERROR_EXIT)
 
     # On cronus, disabe FIFO mode
     cmdFifoOff = "setconfig USE_SBE_FIFO off"
@@ -224,22 +266,22 @@ def main( argv ):
 
     sbeObjDir = SBE_TOOLS_PATH;
     print "sbeObjDir", sbeObjDir
-    fillSymTable(sbeObjDir, args.target)
-    if ( args.level == 'all' ):
+    fillSymTable(sbeObjDir, target)
+    if ( level == 'all' ):
         print "Parsing everything"
-        collectTrace( sbeObjDir, args.target, args.node, args.proc )
-        collectAttr(  sbeObjDir, args.target, args.node, args.proc )
-        sbeStatus( args.node, args.proc )
-    elif ( args.level == 'trace' ):
-        collectTrace( sbeObjDir, args.target, args.node, args.proc )
-    elif ( args.level == 'attr' ):
-        collectAttr( sbeObjDir, args.target, args.node, args.proc )
-    elif ( args.level == 'ppestate' ):
-        ppeState( sbeObjDir, args.target, args.node, args.proc )
-    elif ( args.level == 'sbestate' ):
-        sbeState( sbeObjDir, args.target, args.node, args.proc )
-    elif ( args.level == 'sbestatus' ):
-        sbeStatus( args.node, args.proc )
+        collectTrace( sbeObjDir, target, node, proc )
+        collectAttr(  sbeObjDir, target, node, proc )
+        sbeStatus( node, proc )
+    elif ( level == 'trace' ):
+        collectTrace( sbeObjDir, target, node, proc )
+    elif ( level == 'attr' ):
+        collectAttr( sbeObjDir, target, node, proc )
+    elif ( level == 'ppestate' ):
+        ppeState( sbeObjDir, target, node, proc )
+    elif ( level == 'sbestate' ):
+        sbeState( sbeObjDir, target, node, proc )
+    elif ( level == 'sbestatus' ):
+        sbeStatus( node, proc )
 
     # On cronus, Enable FIFO mode
     rc = os.system( cmdFifoOn )
