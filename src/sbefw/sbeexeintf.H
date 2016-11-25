@@ -76,7 +76,7 @@ typedef enum
  */
 enum sbeThreadStackSize
 {
-    SBE_NONCRITICAL_STACK_SIZE           = 256,
+    SBE_NONCRITICAL_STACK_SIZE           = 512,
     SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE = 256,
     SBE_THREAD_CMD_RECV_STACK_SIZE       = 512,
     SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE  = 2048,
