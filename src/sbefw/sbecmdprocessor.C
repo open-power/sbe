@@ -322,9 +322,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
         } while(false); // Inner do..while loop ends here
 
-        SBE_INFO (SBE_FUNC"New cmd arrived, g_sbeSemCmdProcess.count=%d "
-            "l_rc=[0x%04X]",
-            g_sbeSemCmdProcess.count, l_rc);
+        SBE_INFO (SBE_FUNC"Command processesed. l_rc=[0x%04X]", l_rc );
 
         if ( g_sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_PSU) )
         {
