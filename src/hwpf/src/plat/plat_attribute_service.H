@@ -229,7 +229,6 @@ extern "C"
 namespace fapi2
 {
 
-
 // Parameters are done as pointers (vs references) to allow the attribute
 // storage to be relocated
 template<TargetType K, typename TAttrStruct, typename TValue, AttributeId AId>
@@ -247,7 +246,7 @@ void __get( const Target<K>& i_ptarget, const TAttrStruct* object, const Attribu
 // Get base template
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 T& o_value)
 {
@@ -258,7 +257,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get uint8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 uint8_t& o_value)
 {
@@ -301,7 +300,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get uint16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 uint16_t& o_value)
 {
@@ -345,7 +344,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get uint32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 uint32_t& o_value)
 {
@@ -389,7 +388,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get uint64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 uint64_t& o_value)
 {
@@ -433,7 +432,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get Override uint8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getOverride(const AttributeId i_id,
+AttributeRC _getOverride(const AttributeId i_id,
                         const Target<K> & i_pTarget,
                         uint8_t& o_value)
 {
@@ -447,7 +446,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 // Get Override uint16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getOverride(const AttributeId i_id,
+AttributeRC _getOverride(const AttributeId i_id,
                         const Target<K> & i_pTarget,
                         uint16_t& o_value)
 {
@@ -461,7 +460,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 // Get Override uint32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getOverride(const AttributeId i_id,
+AttributeRC _getOverride(const AttributeId i_id,
                         const Target<K> & i_pTarget,
                         uint32_t& o_value)
 {
@@ -475,7 +474,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 // Get Override uint64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getOverride(const AttributeId i_id,
+AttributeRC _getOverride(const AttributeId i_id,
                         const Target<K> & i_pTarget,
                         uint64_t& o_value)
 {
@@ -489,7 +488,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 // Get override EC Feature (uint8_t)
 //******************************************************************************
 template<typename T, TargetType K>
-ReturnCode _getEcFeatureOverride(const AttributeId i_id,
+AttributeRC _getEcFeatureOverride(const AttributeId i_id,
                                  const Target<K> & i_pTarget,
                                  uint8_t& o_value)
 {
@@ -508,7 +507,7 @@ ReturnCode _getEcFeatureOverride(const AttributeId i_id,
 // Get uint8_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getAttributeArrayShort(const AttributeId i_id,
+AttributeRC _getAttributeArrayShort(const AttributeId i_id,
                                    const Target<K> & i_pTarget,
                                    uint8_t * o_pValues)
 {
@@ -535,7 +534,7 @@ ReturnCode _getAttributeArrayShort(const AttributeId i_id,
 // Set uint8_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _setAttributeArrayShort(const AttributeId i_id,
+AttributeRC _setAttributeArrayShort(const AttributeId i_id,
                                    const Target<K> & i_pTarget,
                                    uint8_t * i_pValues)
 {
@@ -576,7 +575,7 @@ ReturnCode _setAttributeArrayShort(const AttributeId i_id,
 // Get uint16_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getAttributeArrayWord(const AttributeId i_id,
+AttributeRC _getAttributeArrayWord(const AttributeId i_id,
                                   const Target<K> & i_pTarget,
                                   uint16_t * o_pValues)
 {
@@ -587,7 +586,7 @@ ReturnCode _getAttributeArrayWord(const AttributeId i_id,
 // Set uint16_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _setAttributeArrayWord(const AttributeId i_id,
+AttributeRC _setAttributeArrayWord(const AttributeId i_id,
                                   const Target<K> & i_pTarget,
                                   uint16_t * i_pValues)
 {
@@ -598,7 +597,7 @@ ReturnCode _setAttributeArrayWord(const AttributeId i_id,
 // Get uint32_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getAttributeArrayWord(const AttributeId i_id,
+AttributeRC _getAttributeArrayWord(const AttributeId i_id,
                                   const Target<K> & i_pTarget,
                                   uint32_t * o_pValues)
 {
@@ -609,7 +608,7 @@ ReturnCode _getAttributeArrayWord(const AttributeId i_id,
 // Set uint32_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _setAttributeArrayWord(const AttributeId i_id,
+AttributeRC _setAttributeArrayWord(const AttributeId i_id,
                                   const Target<K> & i_pTarget,
                                   uint32_t * i_pValues)
 {
@@ -621,7 +620,7 @@ ReturnCode _setAttributeArrayWord(const AttributeId i_id,
 // Get uint64_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getAttributeArrayDoubleWord(const AttributeId i_id,
+AttributeRC _getAttributeArrayDoubleWord(const AttributeId i_id,
                                         const Target<K> & i_pTarget,
                                         uint64_t * o_pValues)
 {
@@ -632,7 +631,7 @@ ReturnCode _getAttributeArrayDoubleWord(const AttributeId i_id,
 // Set uint64_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _setAttributeArrayDoubleWord(const AttributeId i_id,
+AttributeRC _setAttributeArrayDoubleWord(const AttributeId i_id,
                                         const Target<K> & i_pTarget,
                                         uint64_t * i_pValues)
 {
@@ -643,7 +642,7 @@ ReturnCode _setAttributeArrayDoubleWord(const AttributeId i_id,
 // Get Override uint8_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getAttributeOverrideArrayShort(const AttributeId i_id,
+AttributeRC _getAttributeOverrideArrayShort(const AttributeId i_id,
                                            const Target<K> & i_pTarget,
                                            uint8_t * o_pValues)
 {
@@ -654,7 +653,7 @@ ReturnCode _getAttributeOverrideArrayShort(const AttributeId i_id,
 // Get Override uint16_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getAttributeOverrideArrayWord(const AttributeId i_id,
+AttributeRC _getAttributeOverrideArrayWord(const AttributeId i_id,
                                           const Target<K> & i_pTarget,
                                           uint16_t * o_pValues)
 {
@@ -665,7 +664,7 @@ ReturnCode _getAttributeOverrideArrayWord(const AttributeId i_id,
 // Get Override uint32_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getAttributeOverrideArrayWord(const AttributeId i_id,
+AttributeRC _getAttributeOverrideArrayWord(const AttributeId i_id,
                                           const Target<K> & i_pTarget,
                                           uint32_t * o_pValues)
 {
@@ -676,7 +675,7 @@ ReturnCode _getAttributeOverrideArrayWord(const AttributeId i_id,
 // Get Override uint64_t array
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getAttributeOverrideArrayDoubleWord(const AttributeId i_id,
+AttributeRC _getAttributeOverrideArrayDoubleWord(const AttributeId i_id,
                                                 const Target<K> & i_pTarget,
                                                 uint64_t * o_pValues)
 {
@@ -688,7 +687,7 @@ ReturnCode _getAttributeOverrideArrayDoubleWord(const AttributeId i_id,
 // Set base template
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const T& i_value)
 {
@@ -701,7 +700,7 @@ ReturnCode _set(const AttributeId i_id,
 // Set uint8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const uint8_t& i_value)
 {
@@ -745,7 +744,7 @@ ReturnCode _set(const AttributeId i_id,
 // Set uint16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const uint16_t& i_value)
 {
@@ -788,7 +787,7 @@ ReturnCode _set(const AttributeId i_id,
 // Set uint32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const uint32_t& i_value)
 {
@@ -833,7 +832,7 @@ ReturnCode _set(const AttributeId i_id,
 //******************************************************************************
 
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const uint64_t & i_value)
 {
@@ -877,7 +876,7 @@ ReturnCode _set(const AttributeId i_id,
 // Get int8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 int8_t& o_value)
 {
@@ -920,7 +919,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get int16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 int16_t& o_value)
 {
@@ -964,7 +963,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get int32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 int32_t& o_value)
 {
@@ -1008,7 +1007,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get int64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _get(const AttributeId i_id,
+AttributeRC _get(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 int64_t& o_value)
 {
@@ -1052,7 +1051,7 @@ ReturnCode _get(const AttributeId i_id,
 // Get Override int8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getOverride(const AttributeId i_id,
+AttributeRC _getOverride(const AttributeId i_id,
                         const Target<K> & i_pTarget,
                         int8_t& o_value)
 {
@@ -1065,7 +1064,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 // Get Override int16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getOverride(const AttributeId i_id,
+AttributeRC _getOverride(const AttributeId i_id,
                         const Target<K> & i_pTarget,
                         int16_t& o_value)
 {
@@ -1078,7 +1077,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 // Get Override int32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getOverride(const AttributeId i_id,
+AttributeRC _getOverride(const AttributeId i_id,
                         const Target<K> & i_pTarget,
                         int32_t& o_value)
 {
@@ -1091,7 +1090,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 // Get Override int64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _getOverride(const AttributeId i_id,
+AttributeRC _getOverride(const AttributeId i_id,
                         const Target<K> & i_pTarget,
                         int64_t& o_value)
 {
@@ -1105,7 +1104,7 @@ ReturnCode _getOverride(const AttributeId i_id,
 // Get int8_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _getAttributeArraySignedShort(const AttributeId i_id,
+AttributeRC _getAttributeArraySignedShort(const AttributeId i_id,
                                          const Target<K> & i_pTarget,
                                          int8_t * o_pValues)
 {
@@ -1117,7 +1116,7 @@ ReturnCode _getAttributeArraySignedShort(const AttributeId i_id,
 // Set int8_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _setAttributeArraySignedShort(const AttributeId i_id,
+AttributeRC _setAttributeArraySignedShort(const AttributeId i_id,
                                          const Target<K> & i_pTarget,
                                          int8_t * i_pValues)
 {
@@ -1128,7 +1127,7 @@ ReturnCode _setAttributeArraySignedShort(const AttributeId i_id,
 // Get int16_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _getAttributeArraySignedWord(const AttributeId i_id,
+AttributeRC _getAttributeArraySignedWord(const AttributeId i_id,
                                         const Target<K> & i_pTarget,
                                         int16_t * o_pValues)
 {
@@ -1140,7 +1139,7 @@ ReturnCode _getAttributeArraySignedWord(const AttributeId i_id,
 // Set int16_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _setAttributeArraySignedWord(const AttributeId i_id,
+AttributeRC _setAttributeArraySignedWord(const AttributeId i_id,
                                         const Target<K> & i_pTarget,
                                         int16_t * i_pValues)
 {
@@ -1151,7 +1150,7 @@ ReturnCode _setAttributeArraySignedWord(const AttributeId i_id,
 // Get int32_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _getAttributeArraySignedWord(const AttributeId i_id,
+AttributeRC _getAttributeArraySignedWord(const AttributeId i_id,
                                         const Target<K> & i_pTarget,
                                         int32_t * o_pValues)
 {
@@ -1163,7 +1162,7 @@ ReturnCode _getAttributeArraySignedWord(const AttributeId i_id,
 // Set int32_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _setAttributeArraySignedWord(const AttributeId i_id,
+AttributeRC _setAttributeArraySignedWord(const AttributeId i_id,
                                         const Target<K> & i_pTarget,
                                         int32_t * i_pValues)
 {
@@ -1175,7 +1174,7 @@ ReturnCode _setAttributeArraySignedWord(const AttributeId i_id,
 // Get int64_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _getAttributeArraySignedDoubleWord(const AttributeId i_id,
+AttributeRC _getAttributeArraySignedDoubleWord(const AttributeId i_id,
                                               const Target<K> & i_pTarget,
                                               int64_t * o_pValues)
 {
@@ -1186,7 +1185,7 @@ ReturnCode _getAttributeArraySignedDoubleWord(const AttributeId i_id,
 // Set int64_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _setAttributeArraySignedDoubleWord(const AttributeId i_id,
+AttributeRC _setAttributeArraySignedDoubleWord(const AttributeId i_id,
                                               const Target<K> & i_pTarget,
                                               int64_t * i_pValues)
 {
@@ -1197,7 +1196,7 @@ ReturnCode _setAttributeArraySignedDoubleWord(const AttributeId i_id,
 // Get Override int8_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _getAttributeOverrideArraySignedShort(const AttributeId i_id,
+AttributeRC _getAttributeOverrideArraySignedShort(const AttributeId i_id,
                                                  const Target<K> & i_pTarget,
                                                  int8_t * o_pValues)
 {
@@ -1208,7 +1207,7 @@ ReturnCode _getAttributeOverrideArraySignedShort(const AttributeId i_id,
 // Get Override int16_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _getAttributeOverrideArraySignedWord(const AttributeId i_id,
+AttributeRC _getAttributeOverrideArraySignedWord(const AttributeId i_id,
                                                 const Target<K> & i_pTarget,
                                                 int16_t * o_pValues)
 {
@@ -1219,7 +1218,7 @@ ReturnCode _getAttributeOverrideArraySignedWord(const AttributeId i_id,
 // Get Override int32_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _getAttributeOverrideArraySignedWord(const AttributeId i_id,
+AttributeRC _getAttributeOverrideArraySignedWord(const AttributeId i_id,
                                                 const Target<K> & i_pTarget,
                                                 int32_t * o_pValues)
 {
@@ -1231,7 +1230,7 @@ ReturnCode _getAttributeOverrideArraySignedWord(const AttributeId i_id,
 // Get Override int64_t array
 //******************************************************************************
 template<TargetType K>
-ReturnCode _getAttributeOverrideArraySignedDoubleWord(const AttributeId i_id,
+AttributeRC _getAttributeOverrideArraySignedDoubleWord(const AttributeId i_id,
                                                       const Target<K> & i_pTarget,
                                                       int64_t * o_pValues)
 {
@@ -1243,7 +1242,7 @@ ReturnCode _getAttributeOverrideArraySignedDoubleWord(const AttributeId i_id,
 // Set int8_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const int8_t& i_value)
 {
@@ -1286,7 +1285,7 @@ ReturnCode _set(const AttributeId i_id,
 // Set int16_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const int16_t& i_value)
 {
@@ -1329,7 +1328,7 @@ ReturnCode _set(const AttributeId i_id,
 // Set int32_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const int32_t& i_value)
 {
@@ -1373,7 +1372,7 @@ ReturnCode _set(const AttributeId i_id,
 // Set int64_t
 //******************************************************************************
 template<typename T, TargetType K, AttributeId A>
-ReturnCode _set(const AttributeId i_id,
+AttributeRC _set(const AttributeId i_id,
                 const Target<K> & i_pTarget,
                 const int64_t & i_value)
 {

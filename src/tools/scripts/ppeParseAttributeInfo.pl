@@ -155,27 +155,30 @@ print ECHFILE "template<int I>\n";
 print ECHFILE  "struct int2Type {\n";
 print ECHFILE  "enum { value = I };\n";
 print ECHFILE "};\n";
-print ECHFILE "ReturnCode queryChipEcAndName(\n";
+print ECHFILE "class AttributeRC\n";
+print ECHFILE "{\n";
+print ECHFILE "    public:\n";
+print ECHFILE "    AttributeRC() : value(FAPI2_RC_SUCCESS){}\n";
+print ECHFILE "    AttributeRC(uint32_t i_val) : value(i_val){}\n";
+print ECHFILE "    operator uint32_t (){return value;}\n";
+print ECHFILE "    operator ReturnCode (){return value;}\n";
+print ECHFILE "    private:\n";
+print ECHFILE "    uint32_t value;\n";
+print ECHFILE "};\n";
+print ECHFILE "void queryChipEcAndName(\n";
 print ECHFILE "                    const Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,\n";
 print ECHFILE "                    fapi2::ATTR_NAME_Type& , fapi2::ATTR_EC_Type & );\n\n";
 print ECHFILE "template<int T>\n";
-print ECHFILE "ReturnCode queryChipEcFeature(int2Type<T> id,\n";
+print ECHFILE "AttributeRC queryChipEcFeature(int2Type<T> id,\n";
 print ECHFILE "                    const Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,\n";
 print ECHFILE "                    uint8_t & o_hasFeature)\n";
 print ECHFILE "{\n";
 print ECHFILE "    fapi2::ATTR_NAME_Type l_chipName;\n";
 print ECHFILE "    fapi2::ATTR_EC_Type l_chipEc;\n\n";
 print ECHFILE "    o_hasFeature = 0;\n\n";
-print ECHFILE "    ReturnCode l_rc = queryChipEcAndName(i_target, l_chipName, l_chipEc);\n";
-print ECHFILE "    if (l_rc)\n";
-print ECHFILE "    {\n";
-print ECHFILE "        FAPI_ERR(\"queryChipEcFeature: error getting chip name\");\n";
-print ECHFILE "    }\n";
-print ECHFILE "    else\n";
-print ECHFILE "    {\n";
-print ECHFILE "        o_hasFeature = hasFeature(int2Type<T>(), l_chipName, l_chipEc);\n";
-print ECHFILE "    }\n";
-print ECHFILE "    return l_rc;\n";
+print ECHFILE "    queryChipEcAndName(i_target, l_chipName, l_chipEc);\n";
+print ECHFILE "    o_hasFeature = hasFeature(int2Type<T>(), l_chipName, l_chipEc);\n";
+print ECHFILE "    return FAPI2_RC_SUCCESS;\n";
 print ECHFILE "}\n\n";
 
 #------------------------------------------------------------------------------
@@ -576,7 +579,7 @@ foreach my $entr (@{$entries->{entry}}) {
                 # compile failure if a set is attempted
                 #------------------------------------------------------------------
                 print AIFILE "#define $attr->{id}_GETMACRO(ID, PTARGET, VAL) \\\n";
-                print AIFILE "    PLAT_GET_CHIP_EC_FEATURE_OVERRIDE(ID, PTARGET, VAL) ? fapi2::ReturnCode() : \\\n";
+                print AIFILE "    PLAT_GET_CHIP_EC_FEATURE_OVERRIDE(ID, PTARGET, VAL) ? fapi2::AttributeRC() : \\\n";
                 print AIFILE " fapi2::queryChipEcFeature(fapi2::int2Type<ID>(), PTARGET, VAL)\n";
                 print AIFILE "#define $attr->{id}_SETMACRO(ID, PTARGET, VAL) ";
                 print AIFILE "CHIP_EC_FEATURE_ATTRIBUTE_NOT_WRITABLE\n";

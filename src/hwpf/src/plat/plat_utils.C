@@ -126,28 +126,14 @@ namespace fapi2
     ///
     /// @brief Queries the ATTR_NAME and ATTR_EC attributes
     ///
-    ReturnCode queryChipEcAndName(
+    void queryChipEcAndName(
         const Target < fapi2::TARGET_TYPE_PROC_CHIP > & i_target,
         fapi2::ATTR_NAME_Type& o_chipName, fapi2::ATTR_EC_Type& o_chipEc )
     {
 
-        ReturnCode l_rc = FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, i_target, o_chipName);
+        FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, i_target, o_chipName);
 
-        if ( l_rc != FAPI2_RC_SUCCESS )
-        {
-            FAPI_ERR("queryChipEcFeature: error getting chip name");
-        }
-        else
-        {
-            l_rc = FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_target, o_chipEc);
-
-            if ( l_rc != FAPI2_RC_SUCCESS )
-            {
-                FAPI_ERR("queryChipEcFeature: error getting chip ec");
-            }
-        }
-
-        return l_rc;
+        FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_target, o_chipEc);
     }
 };
 

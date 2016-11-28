@@ -32,10 +32,18 @@
 
 /// @cond
 #define PLAT_FAPI_TRY_NO_TRACE( __operation__ )                         \
+    if(std::is_same<decltype((__operation__)), fapi2::AttributeRC>::value)                     \
+    { \
+        (void)((__operation__)); \
+    } \
+    else \
+    { \
     if ((fapi2::current_err = (__operation__)) != fapi2::FAPI2_RC_SUCCESS) \
     {                                                                   \
         goto fapi_try_exit;                                             \
+    } \
     }
+
 
 #define PLAT_FAPI_TRY_TRACE( __operation__, ... )                       \
     if ((fapi2::current_err = (__operation__)) != fapi2::FAPI2_RC_SUCCESS) \
@@ -59,8 +67,8 @@
         FAPI_ERR(__VA_ARGS__);                                  \
         goto fapi_try_exit;                                     \
     }
-    
-    
+
+
 ///
 /// @brief Temporary macro for error label until all are removed.
 /// @todo REMOVE this in time.
