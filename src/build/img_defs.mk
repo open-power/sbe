@@ -410,6 +410,9 @@ GCC-DEFS += -DMINIMUM_FFDC=1
 GCC-DEFS += -DFAPI_TRACE_LEVEL=$(FAPI_TRACE_LEVEL_DEF)
 GCC-DEFS += -DSBE_TRACE_LEVEL=$(SBE_TRACE_LEVEL_DEF)
 GCC-DEFS += -DPLAT_NO_THREAD_LOCAL_STORAGE=1
+# disable assert
+GCC-DEFS += -DNDEBUG
+
 # use the default settings in the code unless a size is defined
 ifdef PK_TRACE_SZ
 GCC-DEFS += -DPK_TRACE_SZ=$(PK_TRACE_SZ)
