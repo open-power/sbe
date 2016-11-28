@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -28,7 +28,7 @@
 #include "sbeFifoMsgUtils.H"
 #include "sberegaccess.H"
 #include "sbeFFDC.H"
-
+#include "sbe_build_info.H"
 /*
  * @brief sendOverFIFO           - method to pack and send SBE internal FFDC
  *                                 only if isSendInternalFFDCSet() is true
@@ -72,6 +72,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
         // update the primary and secondary status
         iv_sbeFFDCDataHeader.primaryStatus = i_hdr.primaryStatus;
         iv_sbeFFDCDataHeader.secondaryStatus = i_hdr.secondaryStatus;
+        iv_sbeFFDCDataHeader.fwCommitID = SBE_COMMIT_ID;
         // Set failed command information
         // Sequence Id is 0 by default for Fifo interface
         iv_sbeFFDCHeader.setCmdInfo(0, i_hdr.cmdClass, i_hdr.command);

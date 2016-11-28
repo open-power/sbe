@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -42,6 +42,10 @@ def main():
     testUtil.writeUsFifo(TESTDATA)
     testUtil.writeEot()
 
+    print ("\n HWP internal ffdc")
+    testUtil.extractHWPFFDC( True )
+
+    print ("\n SBE internal ffdc")
     data = testUtil.readDsEntryReturnVal()
     magicBytes = ((data[0] << 8) | data[1])
     if (magicBytes == 0xFFDC) :
@@ -66,6 +70,10 @@ def main():
     secondaryStatus = ((data[2] << 8) | data[3])
     print ("\nPrimary Status " + str(hex(primaryStatus)) + " Secondary Status "\
                                                     + str(hex(secondaryStatus)))
+
+    data = testUtil.readDsEntryReturnVal()
+    commitID = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])
+    print ("\ncommitID = " + str(hex(commitID)))
 
     data = testUtil.readDsEntryReturnVal()
     header = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])
@@ -95,9 +103,9 @@ def main():
         print("write to a file Done")
         myBin.close()
 
-    #Read the Exp data
     print ("Read the Expected data")
     testUtil.readDsFifo( EXPDATA )
+    print ("Read Eot")
     testUtil.readEot( )
 
 #-------------------------------------------------

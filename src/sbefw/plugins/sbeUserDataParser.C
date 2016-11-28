@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -174,7 +174,8 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
                 (uint16_t)l_pData.primaryStatus);
         i_parser.PrintNumber("Secondary Status ", "0x%04X",
                 (uint16_t)l_pData.secondaryStatus);
-
+        i_parser.PrintNumber("FW Commit ID ", "0x%08X",
+                (uint32_t)l_pData.fwCommitID);
         //loop through the number of fields configured
         uint32_t l_dumpFields = l_pData.dumpFields.get();
         while(l_dumpFields && !l_rc)

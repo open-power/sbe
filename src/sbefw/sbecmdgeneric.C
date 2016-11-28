@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -138,7 +138,7 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
 uint32_t sbeGetFfdc (uint8_t *i_pArg)
 {
     #define SBE_FUNC "sbeGetFfdc "
-    SBE_DEBUG(SBE_FUNC);
+    SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
     sbeRespGenHdr_t respHdr;
@@ -156,11 +156,45 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
         }
 
         SbeFFDCPackage sbeFfdcPack;
-        len = 0;
+        sbeResponseFfdc_t l_ffdc ;
+        l_ffdc.setRc(g_FfdcData.fapiRc);
+        SBE_INFO(SBE_FUNC"FAPI RC is %x", g_FfdcData.fapiRc);
+        // If no ffdc , exit;
+        if( (l_ffdc.getRc() != FAPI2_RC_SUCCESS))
+        {
+            // making sure ffdc length is multiples of uint32_t
+            assert((g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0);
+            uint32_t ffdcDataLenInWords = g_FfdcData.ffdcLength
+                                            / sizeof(uint32_t);
+            // Set failed command information
+            // Sequence Id is 0 by default for Fifo interface
+            // @TODO via RTC : 149074
+            // primary and secondary status should be picked
+            // from the globals.
+            l_ffdc.setCmdInfo(0, respHdr.cmdClass, respHdr.command);
+            // Add HWP specific ffdc data length
+            l_ffdc.lenInWords += ffdcDataLenInWords;
+            len = sizeof(sbeResponseFfdc_t)/sizeof(uint32_t);
+            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &l_ffdc);
+            if (rc)
+            {
+                break;
+            }
+            //Send HWP internal Data
+            rc = sbeDownFifoEnq_mult ( ffdcDataLenInWords,
+                                        ( uint32_t *) &g_FfdcData.ffdcData);
+            if (rc)
+            {
+                break;
+            }
+
+        }
         //Send the FFDC data over FIFO.
         // @TODO via RTC : 149074
         // primary and secondary status should be picked
         // from the globals.
+        // Check for Primary and Secondary Status from Globals and then send 
+        // internal FFDC.
         rc = sbeFfdcPack.sendOverFIFO(respHdr,
                                       SBE_FFDC_ALL_DUMP,
                                       len,

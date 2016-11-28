@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -95,6 +95,7 @@ typedef struct
 {
     uint32_t primaryStatus:16;//Chip Op Primary status
     uint32_t secondaryStatus:16;//Chip Op Secondary status
+    uint32_t fwCommitID;// FW commit ID
     sbeFFDCDumpFields_t dumpFields;//bitmapped dumpFields
 } sbeFFDCDataHeader_t;
 
