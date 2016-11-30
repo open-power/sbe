@@ -1742,9 +1742,6 @@ int dissectRingSectionTor( void*       i_ringSection,
 {
     int         rc = 0;
     uint32_t    i;
-    char*       disList = NULL;
-    uint32_t    sizeDisLine = 0, sizeList = 0, sizeListMax = 0, sizeListIncr;
-    char        lineDis[LINE_SIZE_MAX];
     uint32_t    numDdLevels;
     uint8_t     iDdLevel, ddLevel;
     uint8_t     ppeType;
@@ -1757,29 +1754,8 @@ int dissectRingSectionTor( void*       i_ringSection,
     char        ringName[32];
     uint32_t    ringSeqNo  = 0; // Ring sequence number
 
-    //
-    // Allocate buffer to hold dissected ring info. (Start out with min 10kB buffer size.)
-    //
-    sizeListIncr = 10 * LINE_SIZE_MAX;
-    sizeListMax = sizeListIncr;
-    disList = (char*)malloc(sizeListMax);
-
-    if (disList == NULL)
-    {
-        fprintf( stderr, "ERROR : malloc() failed.\n");
-        fprintf( stderr, "\tMore info: %s\n", DIS_ERROR_STRING(g_errorStringsDis, DIS_MEMORY_ERROR));
-        return P9_XIP_DISASSEMBLER_ERROR;
-    }
-
-    *disList = '\0'; // Make sure the buffer is NULL terminated (though probably not needed.)
-    sizeList = 0;
-
-    sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
-                            "-----------------------------\n"
-                            "*       Ring summary        *\n");
-
-    disList = strcat(disList, lineDis);
-    sizeList = sizeList + sizeDisLine;
+    fprintf( stdout, "-----------------------------\n"
+             "*       Ring summary        *\n");
 
     //
     // Allocate large buffer to hold max length ring block.
@@ -1883,104 +1859,51 @@ int dissectRingSectionTor( void*       i_ringSection,
                             // Summarize a few key characteristics of the ring block if "short".
                             if (i_listingModeId == LMID_SHORT)
                             {
-                                sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
-                                                        "-----------------------------\n"
-                                                        "%i.\n"
-                                                        "ddLevel = 0x%02x\n"
-                                                        "ppeType = %s\n"
-                                                        "ringName = %s\n"
-                                                        "ringVariant = %s\n"
-                                                        "instanceId = 0x%02x\n",
-                                                        ringSeqNo, ddLevel, ppeTypeName[ppeType], ringName,
-                                                        ringVariantName[ringVariant], instanceId );
-
-                                if (sizeDisLine >= LINE_SIZE_MAX)
-                                {
-                                    fprintf(stderr, "The max print line size, LINE_SIZE_MAX=%d, has been reached.(1)",
-                                            LINE_SIZE_MAX);
-                                    fprintf(stderr, "You should investigate why this happened before increasing "
-                                            "the value of LINE_SIZE_MAX since something might be wrong "
-                                            "with the RS4 ring content.");
-                                    exit(1);
-                                }
-
-                                // Update list buffer and readjust list buffer size, if needed.
-                                disList = strcat(disList, lineDis);
-                                sizeList = sizeList + sizeDisLine;
-
+                                fprintf( stdout,
+                                         "-----------------------------\n"
+                                         "%i.\n"
+                                         "ddLevel = 0x%02x\n"
+                                         "ppeType = %s\n"
+                                         "ringName = %s\n"
+                                         "ringVariant = %s\n"
+                                         "instanceId = 0x%02x\n",
+                                         ringSeqNo, ddLevel, ppeTypeName[ppeType], ringName,
+                                         ringVariantName[ringVariant], instanceId );
                             }
 
                             // Summarize all characteristics of the ring block if "normal" or "long" (default).
                             if ( i_listingModeId == LMID_NORMAL || i_listingModeId == LMID_LONG )
                             {
-                                sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
-                                                        "-----------------------------\n"
-                                                        "%i.\n"
-                                                        "ddLevel = 0x%02x\n"
-                                                        "ppeType = %s\n"
-                                                        "ringId = %u\n"
-                                                        "ringName = %s\n"
-                                                        "ringVariant = %s\n"
-                                                        "instanceId = 0x%02x\n"
-                                                        "ringBlockSize = 0x%08x\n",
-                                                        ringSeqNo, ddLevel, ppeTypeName[ppeType], ringId, ringName,
-                                                        ringVariantName[ringVariant], instanceId,
-                                                        ringBlockSize);
-
-                                if (sizeDisLine >= LINE_SIZE_MAX)
-                                {
-                                    fprintf(stderr, "The max print line size, LINE_SIZE_MAX=%d, has been reached.(2)",
-                                            LINE_SIZE_MAX);
-                                    fprintf(stderr, "You should investigate why this happened before increasing "
-                                            "the value of LINE_SIZE_MAX since something might be wrong "
-                                            "with the RS4 ring content.");
-                                    exit(1);
-                                }
-
-                                // Update list buffer and readjust list buffer size, if needed.
-                                disList = strcat(disList, lineDis);
-                                sizeList = sizeList + sizeDisLine;
-
+                                fprintf( stdout,
+                                         "-----------------------------\n"
+                                         "%i.\n"
+                                         "ddLevel = 0x%02x\n"
+                                         "ppeType = %s\n"
+                                         "ringId = %u\n"
+                                         "ringName = %s\n"
+                                         "ringVariant = %s\n"
+                                         "instanceId = 0x%02x\n"
+                                         "ringBlockSize = 0x%08x\n",
+                                         ringSeqNo, ddLevel, ppeTypeName[ppeType], ringId, ringName,
+                                         ringVariantName[ringVariant], instanceId,
+                                         ringBlockSize);
                             }
 
                             // Dump ring block if "long".
                             if (i_listingModeId == LMID_LONG)
                             {
-                                sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
-                                                        "Binary ring block dump (LE format):\n");
-                                disList = strcat(disList, lineDis);
-                                sizeList = sizeList + sizeDisLine;
-
-                                if (sizeDisLine >= LINE_SIZE_MAX)
-                                {
-                                    fprintf(stderr, "The max print line size, LINE_SIZE_MAX=%d, has been reached.(3)",
-                                            LINE_SIZE_MAX);
-                                    fprintf(stderr, "You should investigate why this happened before increasing "
-                                            "the value of LINE_SIZE_MAX since something might be wrong "
-                                            "with the RS4 ring content.");
-                                    exit(1);
-                                }
+                                fprintf(stdout, "Binary ring block dump (LE format):\n");
 
                                 for (i = 0; i < ringBlockSize / 8; i++)
                                 {
-                                    sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
-                                                            "%04x: %04x %04x %04x %04x\n",
-                                                            i * 8,
-                                                            (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 48),
-                                                            (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 32),
-                                                            (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 16),
-                                                            (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i))) );
-
-                                    disList = strcat(disList, lineDis);
-                                    sizeList = sizeList + sizeDisLine;
-
+                                    fprintf( stdout,
+                                             "%04x: %04x %04x %04x %04x\n",
+                                             i * 8,
+                                             (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 48),
+                                             (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 32),
+                                             (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 16),
+                                             (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i))) );
                                 }
-                            }
-
-                            if (sizeList > (sizeListMax - LINE_SIZE_MAX))
-                            {
-                                sizeListMax = sizeListMax + sizeListIncr;
-                                disList = (char*)realloc( (void*)(disList), sizeListMax);
                             }
                         }
                         else if (rc == TOR_RING_NOT_FOUND      ||
@@ -2009,22 +1932,9 @@ int dissectRingSectionTor( void*       i_ringSection,
     }  // End of for(iDdLevel)
 
 
-    sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
-                            "-----------------------------\n");
-
-    disList = strcat(disList, lineDis);
-    sizeList = sizeList + sizeDisLine;
-
-    // Adjust final buffer size, add 1 for NULL char and print it.
-    if (disList)
-    {
-        disList = (char*)realloc( (void*)(disList), sizeList + 1);
-        fprintf(stdout, "%s\n", disList);
-        free(disList);
-    }
+    fprintf(stdout, "-----------------------------\n");
 
     return 0;
-
 }
 
 
