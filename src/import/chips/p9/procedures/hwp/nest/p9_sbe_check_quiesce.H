@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -84,12 +84,6 @@ extern "C" {
     fapi2::ReturnCode p9_sbe_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
-    /// @brief Helper function to check the quiesce on EC/EQ
-    /// @param[in] i_target       => P9 chip target
-    /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
-    fapi2::ReturnCode p9_ec_eq_check_quiesce(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
-
     /// @brief Helper function to check the quiesce for CAPP
     /// @param[in] i_target       => P9 chip target
     /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
@@ -114,12 +108,6 @@ extern "C" {
     fapi2::ReturnCode p9_nx_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
-    /// @brief Helper function to check the quiesce for HCA
-    /// @param[in] i_target       => P9 chip target
-    /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
-    fapi2::ReturnCode p9_hca_check_quiesce(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
-
     /// @brief Helper function to check the quiesce for PSIHB
     /// @param[in] i_target       => P9 chip target
     /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
@@ -137,6 +125,8 @@ extern "C" {
     /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
     fapi2::ReturnCode p9_intp_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
+
+    fapi2::ReturnCode p9_int_scrub_caches(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
 } //extern "C"
 
