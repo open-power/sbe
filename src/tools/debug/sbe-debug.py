@@ -218,7 +218,7 @@ def main( argv ):
     except getopt.GetoptError as err:
         print str(err)
         usage()
-        exit_main(errorcode.ERROR_EXIT)
+        exit(1)
 
     # Default values
     level = 'trace'
@@ -230,35 +230,42 @@ def main( argv ):
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage()
-            exit_main(errorcode.HELP_EXIT)
+            exit(1)
         elif opt in ('-l', '--level'):
             if arg in ('trace','attr','ppestate','sbestate','sbestatus'):
                 level = arg
             else:
                 print "level should be one of {trace,attr,ppestate,sbestate,sbestatus}"
-                exit_main(errorcode.ERROR_EXIT)
+                exit(1)
         elif opt in ('-t', '--target'):
             if arg in ('AWAN', 'HW', 'FILE'):
                 target = arg
             else:
                 print "target should be one of {AWAN,HW,FILE}"
-                exit_main(errorcode.ERROR_EXIT)
+                exit(1)
         elif opt in ('-n', '--node'):
             try:
                 node = int(arg)
             except:
                 print "node should be an integer number"
-                exit_main(errorcode.ERROR_EXIT)
+                exit(1)
         elif opt in ('-p', '--proc'):
             try:
                 proc = int(arg)
             except:
                 print "proc should be an integer number"
-                exit_main(errorcode.ERROR_EXIT)
+                exit(1)
 
+    # On cronus, save the existing FIFO mode
+    cmdFifoLastState = subprocess.Popen(['getconfig','USE_SBE_FIFO'], stdout=subprocess.PIPE).communicate()[0]
+    # Example output: 'CNFG FILE GLOBAL_DEBUG: 8.VI.B\n\tk0                 \nUSE_SBE_FIFO = off\n/afs/awd.austin.ibm.com/projects/eng/tools/cronus/p9/exe/dev/p9sim_dev_x86_64.exe getconfig USE_SBE_FIFO \n'
+    regEx = re.search('USE_SBE_FIFO.*=(.*)', cmdFifoLastState)
+    if (regEx == None):
+       print "ERROR in getting USE_SBE_FIFO config"
+       return 1
+    cmdFifoLastState = regEx.group(1).split()[0]
     # On cronus, disabe FIFO mode
     cmdFifoOff = "setconfig USE_SBE_FIFO off"
-    cmdFifoOn = "setconfig USE_SBE_FIFO on"
     rc = os.system( cmdFifoOff )
     if ( rc ):
        print "ERROR running %s: %d " % ( cmdFifoOff, rc )
@@ -283,10 +290,11 @@ def main( argv ):
     elif ( level == 'sbestatus' ):
         sbeStatus( node, proc )
 
-    # On cronus, Enable FIFO mode
-    rc = os.system( cmdFifoOn )
+    # On cronus, set the FIFO mode to previous state
+    cmdFifoLastState = "setconfig USE_SBE_FIFO " + cmdFifoLastState
+    rc = os.system( cmdFifoLastState )
     if ( rc ):
-       print "ERROR running %s: %d " % ( cmdFifoOn, rc )
+       print "ERROR running %s: %d " % ( cmdFifoLastState, rc )
        return 1
 
 
