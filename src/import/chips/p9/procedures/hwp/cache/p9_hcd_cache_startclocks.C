@@ -99,21 +99,24 @@ p9_hcd_cache_startclocks(
     uint8_t                                     l_attr_chip_id       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
     uint8_t                                     l_attr_system_ipl_phase;
+    uint8_t                                     l_attr_dd1_skip_flushmode_inhibit_drop;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
         i_target.getParent<fapi2::TARGET_TYPE_PERV>();
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>    l_sys;
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE,      l_sys,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE,         l_sys,
                            l_attr_system_ipl_phase));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,  l_chip,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW388878, l_chip,
+                           l_attr_dd1_skip_flushmode_inhibit_drop));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,     l_chip,
                            l_attr_group_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID,   l_chip,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID,      l_chip,
                            l_attr_chip_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID, l_chip,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID,    l_chip,
                            l_attr_system_id));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,         l_perv,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,            l_perv,
                            l_attr_chip_unit_pos));
     l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_EQ_POS_OFFSET;
 
@@ -325,8 +328,11 @@ p9_hcd_cache_startclocks(
                 "Cache Chiplet Checkstop");
     */
 
-    FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
-    FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_CLEAR, MASK_SET(2)));
+    if (!l_attr_dd1_skip_flushmode_inhibit_drop)
+    {
+        FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
+        FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_CLEAR, MASK_SET(2)));
+    }
 
     FAPI_DBG("Drop partial good and assert partial bad L2/L3 pscom masks");
     l_data64 = (l_l2pscom_mask | l_l3pscom_mask);
