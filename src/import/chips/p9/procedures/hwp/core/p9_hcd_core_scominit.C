@@ -42,6 +42,7 @@
 //-----------------------------------------------------------------------------
 
 #include <p9_quad_scom_addresses.H>
+#include <p9_quad_scom_addresses_fld.H>
 #include <p9_hcd_common.H>
 #include <p9_core_scom.H>
 #include "p9_hcd_core_scominit.H"
@@ -49,6 +50,8 @@
 //-----------------------------------------------------------------------------
 // Constant Definitions
 //-----------------------------------------------------------------------------
+const uint8_t CORE_HANG_DIVIDER_4X  = 0x9F;
+const uint8_t CORE_HANG_DIVIDER_64X = 0x7B;
 
 //-----------------------------------------------------------------------------
 // Procedure: Core SCOM Inits
@@ -83,6 +86,14 @@ p9_hcd_core_scominit(
         fapi2::current_err = l_rc;
         goto fapi_try_exit;
     }
+
+    // update core hang pulse dividers
+    FAPI_TRY(getScom(i_target, C_HANG_CONTROL, l_data64),
+             "Error from getScom (C_HANG_CONTROL)");
+    l_data64.insertFromRight<C_HANG_CONTROL_CORE_LIMIT, C_HANG_CONTROL_CORE_LIMIT_LEN>(CORE_HANG_DIVIDER_4X);
+    l_data64.insertFromRight<C_HANG_CONTROL_NEST_LIMIT, C_HANG_CONTROL_NEST_LIMIT_LEN>(CORE_HANG_DIVIDER_64X);
+    FAPI_TRY(putScom(i_target, C_HANG_CONTROL, l_data64),
+             "Error from putScom (C_HANG_CONTROL)");
 
 fapi_try_exit:
 

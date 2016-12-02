@@ -540,7 +540,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     else  if(l_chipletID >= 0x20 && l_chipletID < 0x38)
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
-        i_reg1_val = p9SbeChipletReset::HANG_PULSE_0X1A;
+        i_reg1_val = p9SbeChipletReset::HANG_PULSE_0X17;
         i_reg5_val = p9SbeChipletReset::HANG_PULSE_0X06;
         i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X08;
     }
