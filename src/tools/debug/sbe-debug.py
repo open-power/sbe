@@ -262,14 +262,14 @@ def parsevalue(iValue):
     tempVal = iValue[10:14]
     print "SBE Current State    : %s (%s)" %(sbeStates[tempVal], tempVal)
 
-    tempVal = iValue[14:18]
+    tempVal = iValue[14:22]
     print "Istep Major          : %s" %(int(tempVal, 2))
 
-    tempVal = iValue[18:26]
+    tempVal = iValue[22:28]
     print "Istep Minor          : %s" %(int(tempVal, 2))
 
-    tempVal = iValue[26:34]
-    print "Reserved Bit [24:31] : %s" %(tempVal)
+    tempVal = iValue[28:34]
+    print "Reserved Bit [26:31] : %s" %(tempVal)
 
 def usage():
     print "usage: testarg.py [-h] [-l {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}]\n\

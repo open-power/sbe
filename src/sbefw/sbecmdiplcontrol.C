@@ -183,6 +183,11 @@ ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp );
 ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp );
+// BMC Isteps, No-op in Fsp
+ReturnCode istepMpiplDumpRegs( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplQueryQuadAccessState( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplHcdCoreStopClocks( sbeIstepHwp_t i_hwp );
+ReturnCode istepMpiplHcdCacheStopClocks( sbeIstepHwp_t i_hwp );
 
 // Utility function to do TPM reset
 ReturnCode performTpmReset();
@@ -247,6 +252,14 @@ static istepMap_t g_istepMpiplContinuePtrTbl[MPIPL_CONTINUE_MAX_SUBSTEPS] =
 #ifdef SEEPROM_IMAGE
             // Setup EC/EQ guard records
             { &istepMpiplSetFunctionalState, NULL},
+            // Collect master quad regs, BMC Only istep, No-op in FSP
+            { &istepMpiplDumpRegs, NULL},
+            // Query Master quad, BMC Only istep, No-op in Fsp
+            { &istepMpiplQueryQuadAccessState, NULL},
+            // Master Quad Core stop clocks, BMC Only istep, No-op in Fsp
+            { &istepMpiplHcdCoreStopClocks, NULL},
+            // Master Quad Cache stop clocks, BMC Only istep, No-op in Fsp
+            { &istepMpiplHcdCacheStopClocks, NULL},
             // p9_quad_power_off
             { istepMpiplQuadPoweroff, { .eqHwp = &p9_quad_power_off} },
             // No-op
@@ -1315,3 +1328,35 @@ ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp )
     #undef SBE_FUNC
 }
 
+// BMC - Istep
+ReturnCode istepMpiplDumpRegs( sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepMpiplDumpRegs"
+    return FAPI2_RC_SUCCESS;
+    #undef SBE_FUNC
+}
+//----------------------------------------------------------------------------
+// BMC - Istep
+ReturnCode istepMpiplQueryQuadAccessState( sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepMpiplQueryQuadAccessState"
+    return FAPI2_RC_SUCCESS;
+    #undef SBE_FUNC
+}
+//----------------------------------------------------------------------------
+// BMC - Istep
+ReturnCode istepMpiplHcdCoreStopClocks( sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepMpiplHcdCoreStopClocks"
+    return FAPI2_RC_SUCCESS;
+    #undef SBE_FUNC
+}
+//----------------------------------------------------------------------------
+// BMC - Istep
+ReturnCode istepMpiplHcdCacheStopClocks( sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepMpiplHcdCacheStopClocks"
+    return FAPI2_RC_SUCCESS;
+    #undef SBE_FUNC
+}
+//----------------------------------------------------------------------------

@@ -56,8 +56,8 @@ static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
 static const uint32_t SBE_ISTEP_MPIPL_CONTINUE      = 97;
 static const uint32_t SBE_ISTEP_STOPCLOCK           = 98;
 static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 8;
-static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 3;
 static const uint32_t ISTEP_STOPCLOCK_MAX_SUBSTEPS  = 1;
+static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 7;
 
 // constants
 static const uint32_t ISTEP2_MAX_SUBSTEPS = 17;
