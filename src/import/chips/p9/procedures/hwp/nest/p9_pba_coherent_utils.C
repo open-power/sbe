@@ -41,6 +41,9 @@
 #include <p9_pba_coherent_utils.H>
 #include <p9_misc_scom_addresses.H>
 #include <p9_quad_scom_addresses.H>
+#include <p9_misc_scom_addresses_fld.H>
+#include <p9_perv_scom_addresses_fld.H>
+#include <p9_perv_scom_addresses.H>
 #include <p9_fbc_utils.H>
 
 extern "C"
@@ -127,6 +130,7 @@ extern "C"
 //OCB3_ADDRESS field/bit definitions
     const uint32_t OCB3_ADDRESS_REG_ADDR_SHIFT = 32;
 
+    const uint32_t FSI2PIB_RESET_PIB_RESET_BIT = 0;
     //---------------------------------------------------------------------------------
     // Function definitions
     //---------------------------------------------------------------------------------
@@ -376,13 +380,18 @@ extern "C"
             }
 
             fapi2::buffer<uint64_t> data(write_data);
-            FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBDR3, data),
-                     "Error writing to the PBA via the OCB");
+            rc = fapi2::putScom(i_target, PU_OCB_PIB_OCBDR3, data);
+
+            if (rc)
+            {
+                FAPI_ERR("Error writing to the PBA via the OCB");
+                rc = p9_pba_coherent_error_handling(i_target, rc);
+                break;
+            }
         }
 
-    fapi_try_exit:
         FAPI_DBG("End");
-        return fapi2::current_err;
+        return rc;
     }
 
     fapi2::ReturnCode p9_pba_coherent_pba_read(
@@ -390,6 +399,7 @@ extern "C"
         const uint64_t i_address,
         uint8_t o_read_data[])
     {
+        fapi2::ReturnCode rc;
         fapi2::buffer<uint64_t> data;
 
         FAPI_DBG("Start");
@@ -397,8 +407,14 @@ extern "C"
         //Perform a 128B read -- need to do 16 8B reads since it's in linear mode which can only do 8B...
         for (int i = 0; i < 16; i++)
         {
-            FAPI_TRY(fapi2::getScom(i_target, PU_OCB_PIB_OCBDR3, data),
-                     "Error reading from the PBA via the OCB");
+            rc = fapi2::getScom(i_target, PU_OCB_PIB_OCBDR3, data);
+
+            if (rc)
+            {
+                FAPI_ERR("Error reading from the PBA via the OCB");
+                rc = p9_pba_coherent_error_handling(i_target, rc);
+                break;
+            }
 
             for (int j = 0; j < 8; j++)
             {
@@ -406,9 +422,8 @@ extern "C"
             }
         }
 
-    fapi_try_exit:
         FAPI_DBG("End");
-        return fapi2::current_err;
+        return rc;
     }
 
     fapi2::ReturnCode p9_pba_coherent_cleanup_pba(
@@ -486,6 +501,204 @@ extern "C"
     fapi_try_exit:
         FAPI_DBG("End");
         return fapi2::current_err;
+    }
+
+    // TODO RTC 167768: support pib abort condition on PPE platform
+#ifndef __PPE__
+    fapi2::ReturnCode p9_pba_coherent_check_ocb_status(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        fapi2::ReturnCode rc;
+        fapi2::buffer<uint64_t> l_ocb_csr_data;
+        bool l_expected_state;
+
+        // read OCB3 Status/Control register
+        FAPI_DBG("proc_pba_coherent_utils_check_ocb_status: Reading OCB3 Status/Control register");
+        FAPI_TRY(fapi2::getScom(i_target, PU_OCB_PIB_OCBCSR3_RO, l_ocb_csr_data),
+                 "Error reading from OCB Control/Status Register");
+
+        // check for any bits set (outside of status/reserved fields)
+        l_expected_state =
+            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_PULL_READ_UNDERFLOW>() &&
+            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_PUSH_WRITE_OVERFLOW>() &&
+            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_OCI_TIMEOUT>() &&
+            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_OCI_READ_DATA_PARITY>() &&
+            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_OCI_SLAVE_ERROR>() &&
+            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_ADDR_PARITY_ERR>() &&
+            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_DATA_PARITY_ERR>() &&
+            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_FSM_ERR>();
+
+        FAPI_ASSERT(!(l_expected_state), fapi2::P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH().set_TARGET(i_target).set_DATA(
+                        l_ocb_csr_data));
+    fapi_try_exit:
+        FAPI_DBG("End");
+        return fapi2::current_err;
+    }
+
+    fapi2::ReturnCode p9_pba_coherent_check_pba_fir(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        fapi2::buffer<uint64_t> l_pba_fir_data;
+        bool l_expected_state;
+
+        // read PBA FIR register
+        FAPI_DBG("proc_pba_coherent_utils_check_pba_fir: Reading PBA FIR register");
+        FAPI_TRY(fapi2::getScom(i_target, PU_PBAFIR, l_pba_fir_data), "Error reading PBA Fir register");
+
+        // check for unexpected state
+        l_expected_state =
+            !l_pba_fir_data.getBit<PU_PBAFIR_OCI_APAR_ERR>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_PB_RDADRERR_FW>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_PB_RDDATATO_FW>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_OCI_SLAVE_INIT>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_OCI_WRPAR_ERR>() &&
+            //l_pba_fir_data.getBit<PBA_FIR_OCI_REREQTO_BIT>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_PB_UNEXPCRESP>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_PB_UNEXPDATA>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_PB_PARITY_ERR>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_PB_WRADRERR_FW>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_PB_BADCRESP>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_PB_ACKDEAD_FW_RD>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_INTERNAL_ERR>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_ILLEGAL_CACHE_OP>() &&
+            !l_pba_fir_data.getBit<PU_PBAFIR_OCI_BAD_REG_ADDR>();
+        FAPI_ASSERT(!(l_expected_state), fapi2::P9_PBA_COHERENT_UTILS_PBA_FIR_ERR().set_TARGET(i_target).set_DATA(
+                        l_pba_fir_data),
+                    "Error in PBA FIR");
+    fapi_try_exit:
+        FAPI_DBG("End");
+        return fapi2::current_err;
+
+    }
+
+    fapi2::ReturnCode p9_pba_coherent_check_status_for_err_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
+            i_target)
+    {
+        FAPI_TRY(p9_pba_coherent_status_check(i_target), "Error calling p9_pba_coherent_status_check");
+        FAPI_TRY(p9_pba_coherent_check_ocb_status(i_target), "Error calling p9_pba_coherent_check_ocb_status");
+        FAPI_TRY(p9_pba_coherent_check_pba_fir(i_target), "Error calling p9_pba_coherent_check_pba_fir");
+
+    fapi_try_exit:
+        FAPI_DBG("End");
+        return fapi2::current_err;
+    }
+
+
+    fapi2::ReturnCode p9_pba_utils_unlock_pib(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        fapi2::ReturnCode rc;
+        fapi2::buffer<uint32_t> l_cfam_data;
+        fapi2::buffer<uint64_t> l_pba_slv_rst_data;
+
+        FAPI_DBG("Start");
+        // unlock PIB :n case of HW229314
+        FAPI_DBG("Checking FSI2PIB Status Register");
+        rc = fapi2::getCfamRegister(i_target, PERV_FSI2PIB_STATUS_FSI, l_cfam_data);
+
+        if (rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            FAPI_ERR("getCfamRegister error");
+            return rc;
+        }
+
+        if (l_cfam_data.getBit(PERV_FSI2PIB_STATUS_PIB_ABORT))
+        {
+            FAPI_DBG("Performing PIB reset");
+
+            // reset PIB/OCB
+            l_cfam_data.flush<0>();
+            l_cfam_data.setBit(FSI2PIB_RESET_PIB_RESET_BIT);
+            const fapi2::buffer<uint32_t> l_const_cfam_data = l_cfam_data;
+            rc = fapi2::putCfamRegister(i_target, PERV_FSI2PIB_RESET_FSI, l_const_cfam_data);
+
+            if (rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                FAPI_ERR("Error resetting PIB/OCB");
+                return rc;
+            }
+
+            // ensure PBA region is unlocked, discard/ignore return code
+            (void) fapi2::getScom(i_target, PU_PBASLVRST_PIB, l_pba_slv_rst_data);
+
+            rc = fapi2::putCfamRegister(i_target, PERV_FSI2PIB_RESET_FSI, l_const_cfam_data);
+
+            if (rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                FAPI_ERR("Error ensuring PBA region is unlocked");
+                return rc;
+            }
+        }
+        else
+        {
+            // ensure PBA region is unlocked, discard/ignore return code
+            (void) fapi2::getScom(i_target, PU_PBASLVRST_PIB, l_pba_slv_rst_data);
+        }
+
+        return rc;
+    }
+#endif
+
+    fapi2::ReturnCode p9_pba_coherent_error_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+            fapi2::ReturnCode i_rc)
+    {
+        fapi2::ReturnCode l_return_rc;
+
+
+        FAPI_DBG("Start");
+
+        // TODO RTC 167768: support pib abort condition on PPE platform
+#ifndef __PPE__
+
+        // analyze failure, attempt to differentiate between SCOM failure due to faulty HW
+        // versus failure to return read data, which under some conditions can cause SCOM to fail as well
+        FAPI_ERR("Error from a read or write with the PBA");
+
+        // ensure that PIB abort condition (which may have occurred as a result of SCOM read
+        // failure) is cleared, so that analysis of HW state is possible
+        l_return_rc = p9_pba_utils_unlock_pib(i_target);
+
+        if (l_return_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            // if the chip is in a functional state, accesses to the cfam region
+            // should always succeed -- if a fail occurs, return the original return code
+            // (as this represents the first error encountered, and the analysis
+            // indicates a HW issue which the PBA operation did not functionally cause)
+            FAPI_ERR("Error from p9_pba_utils_unlock_pib, returning original SCOM fail rc");
+            l_return_rc = i_rc;
+            FAPI_DBG("End");
+            return l_return_rc;
+        }
+
+        // PIB is unlocked, analyze state of FIRs/state machines to see if the SCOM
+        // failure was a result of a read failure on the fabric launched by PBA
+        l_return_rc = p9_pba_coherent_check_status_for_err_handling(i_target);
+
+        if (l_return_rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            // check for return codes that this routine can emit which indicate
+            // a functional failure in PBA that could result in the SCOM failure as a side-effect
+            if ((l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR) ||
+                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH) ||
+                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR))
+            {
+                FAPI_ERR("Error from p9_pba_coherent_check_status_for_err_handling, returning PBA rc");
+            }
+            // none of these match, return the original return code as it was the first error
+            else
+            {
+                FAPI_ERR("Error from p9_pba_coherent_check_status_for_err_handling, returning original SCOM fail rc");
+                l_return_rc = i_rc;
+            }
+
+            FAPI_DBG("End");
+            return l_return_rc;
+        }
+
+        // no sign of an error in PBA/OCB logic, just return the original return code for the SCOM fail
+        FAPI_ERR("No PBA error found, returning original SCOM fail rc");
+#endif
+        l_return_rc = i_rc;
+        FAPI_DBG("End");
+        return l_return_rc;
+
     }
 
 } //extern "C"
