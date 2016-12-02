@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -279,6 +279,31 @@ extern "C"
     fapi2::ReturnCode p9_pba_coherent_setup_pba_bar(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_baseAddress);
+
+///@brief does extra error handling for if we hit a problem with a read or write
+///@param[in] i_target => P9 chip target
+///@param[in] i_rc => The current error that we are seeing from the read/write
+///@return the error that we got from the scom or a different error that points to a problem in the PBA
+    fapi2::ReturnCode p9_pba_coherent_error_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+            fapi2::ReturnCode i_rc);
+
+///@brief does error checking on the OCB side
+///@param[in] i_target => P9 chip target
+///@return FAPI_RC_SUCCESS if no errors are detected otherwise an error that contains what is in the OCB status registers
+    fapi2::ReturnCode p9_pba_coherent_check_ocb_status(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
+
+///@brief does error checking on the PBA Fir
+///@param[in] i_target => P9 chip target
+///@return FAPI_RC_SUCCESS if no errros are detected otherwise an error that has what error is in the PBA Fir
+    fapi2::ReturnCode p9_pba_coherent_check_pba_fir(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
+
+///@brief calls all of the error checking procedures (ocb_status, check_pba_fir, and status_check)
+///@param[in] i_target => P9 chip target
+///@return FAPI_RC_SUCCESS if no errors are detected on the PBA
+    fapi2::ReturnCode p9_pba_coherent_check_status_for_err_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
+            i_target);
+
+
 
 } //extern "C"
 
