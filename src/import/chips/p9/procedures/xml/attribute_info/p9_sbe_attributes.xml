@@ -405,6 +405,10 @@ attribute tank
            <virtual/>
   </entry>
   <entry>
+           <name>ATTR_CHIP_EC_FEATURE_HW396520</name>
+           <virtual/>
+  </entry>
+  <entry>
            <name>ATTR_CHIP_EC_FEATURE_HW388878</name>
            <virtual/>
   </entry>
