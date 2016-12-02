@@ -37,28 +37,12 @@ constexpr auto literal_0x10 = 0x10;
 fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                               const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>& TGT1)
 {
-    fapi2::ReturnCode l_rc = 0;
-
-    do
     {
         fapi2::ATTR_PROC_FABRIC_ADDR_BAR_MODE_Type l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE;
-        l_rc = FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_ADDR_BAR_MODE, TGT1, l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE);
-
-        if (l_rc)
-        {
-            FAPI_ERR("ERROR executing: FAPI_ATTR_GET (ATTR_PROC_FABRIC_ADDR_BAR_MODE)");
-            break;
-        }
-
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_ADDR_BAR_MODE, TGT1, l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE));
         fapi2::buffer<uint64_t> l_scom_buffer;
         {
-            l_rc = fapi2::getScom( TGT0, 0x1001100aull, l_scom_buffer );
-
-            if (l_rc)
-            {
-                FAPI_ERR("ERROR executing: getScom (0x1001100aull)");
-                break;
-            }
+            FAPI_TRY(fapi2::getScom( TGT0, 0x1001100aull, l_scom_buffer ));
 
             if ((l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_SMALL_SYSTEM))
             {
@@ -71,22 +55,10 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                 l_scom_buffer.insert<uint64_t> (l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_OFF, 9, 1, 63 );
             }
 
-            l_rc = fapi2::putScom(TGT0, 0x1001100aull, l_scom_buffer);
-
-            if (l_rc)
-            {
-                FAPI_ERR("ERROR executing: putScom (0x1001100aull)");
-                break;
-            }
+            FAPI_TRY(fapi2::putScom(TGT0, 0x1001100aull, l_scom_buffer));
         }
         {
-            l_rc = fapi2::getScom( TGT0, 0x1001100bull, l_scom_buffer );
-
-            if (l_rc)
-            {
-                FAPI_ERR("ERROR executing: getScom (0x1001100bull)");
-                break;
-            }
+            FAPI_TRY(fapi2::getScom( TGT0, 0x1001100bull, l_scom_buffer ));
 
             l_scom_buffer.insert<uint64_t> (literal_0b0001, 0, 4, 60 );
             l_scom_buffer.insert<uint64_t> (literal_0b0100, 4, 4, 60 );
@@ -94,17 +66,10 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             l_scom_buffer.insert<uint64_t> (literal_0x10, 26, 10, 54 );
             l_scom_buffer.insert<uint64_t> (literal_0x8, 18, 4, 60 );
             l_scom_buffer.insert<uint64_t> (literal_0x8, 22, 4, 60 );
-            l_rc = fapi2::putScom(TGT0, 0x1001100bull, l_scom_buffer);
-
-            if (l_rc)
-            {
-                FAPI_ERR("ERROR executing: putScom (0x1001100bull)");
-                break;
-            }
+            FAPI_TRY(fapi2::putScom(TGT0, 0x1001100bull, l_scom_buffer));
         }
 
-    }
-    while(0);
-
-    return l_rc;
+    };
+fapi_try_exit:
+    return fapi2::current_err;
 }
