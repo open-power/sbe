@@ -1096,8 +1096,6 @@ fapi2::ReturnCode rs4DecompressionSvc(
     uint64_t l_nibbleIndx = 0;
     uint64_t l_bitsDecoded = 0;
     bool l_decompressionDone = false;
-    uint64_t l_scanRegion = rs4_revle64(l_rs4Header->iv_scanSelect);
-    uint8_t l_chipletId = l_rs4Header->iv_chipletId;
     fapi2::ReturnCode l_rc;
     struct restoreOpcgRegisters l_opcgData;
     uint8_t l_mask = 0x08;
@@ -1105,11 +1103,15 @@ fapi2::ReturnCode rs4DecompressionSvc(
 
     do
     {
-        if (l_rs4Header->iv_length == 0)
+        if ( (l_rs4Header == NULL) || (l_rs4Header->iv_length == 0))
         {
+            l_rc = fapi2::FAPI2_RC_PLAT_RS4_HEADER_DATA_INVALID;
             FAPI_ERR("Invalid ring length in RS4 image");
             break;
         }
+
+        uint64_t l_scanRegion = rs4_revle64(l_rs4Header->iv_scanSelect);
+        uint8_t l_chipletId = l_rs4Header->iv_chipletId;
 
         if ((i_ringMode &  fapi2::RING_MODE_SET_PULSE_NSL) ||
             (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL) ||
