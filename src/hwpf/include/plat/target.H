@@ -178,14 +178,13 @@ namespace fapi2
     template<TargetType T>
     inline Target<T, V> Target<K, V>::getParent(void) const
     {
-        static_assert((((K == TARGET_TYPE_EQ) ||
-                       (K == TARGET_TYPE_CORE) ||
-                       (K == TARGET_TYPE_MCBIST) ||
-                       (K == TARGET_TYPE_PERV) ||
-                       (K == TARGET_TYPE_EX) ||
-                       (K == TARGET_TYPE_PROC_CHIP) ||
-                       (K == (TARGET_TYPE_PROC_CHIP | TARGET_TYPE_EQ)) ||
-                       (K == (TARGET_TYPE_PROC_CHIP | TARGET_TYPE_CORE)) ||
+        constexpr TargetType TARGET_TYPE_PROC_CHILDREN =
+            TARGET_TYPE_EQ | TARGET_TYPE_PERV | TARGET_TYPE_EX |
+            TARGET_TYPE_MCBIST | TARGET_TYPE_CORE |
+            TARGET_TYPE_MCS | TARGET_TYPE_PROC_CHIP;
+
+        static_assert(((
+                       ((K & TARGET_TYPE_PROC_CHILDREN) != TARGET_TYPE_NONE) ||
                        (K == TARGET_TYPE_ALL)) &&
                       ((T == TARGET_TYPE_EQ) ||
                        (T == TARGET_TYPE_EX) ||
@@ -199,10 +198,9 @@ namespace fapi2
                         "Invalid parent for EQ target, must be PERV or "
                         "PROC_CHIP");
 
-        static_assert(!((K == TARGET_TYPE_ALL) &&
-                        (T != TARGET_TYPE_PROC_CHIP)),
-                        "Invalid parent for ALL target, must be "
-                        "PROC_CHIP");
+        static_assert(!((T == TARGET_TYPE_PROC_CHIP) &&
+                        ((K & TARGET_TYPE_PROC_CHILDREN) == TARGET_TYPE_NONE)),
+                        "Parent proc chip invalid for this target type");
 
         static_assert(!((K == TARGET_TYPE_MCBIST) &&
                         (T != TARGET_TYPE_PERV) &&
@@ -250,6 +248,23 @@ namespace fapi2
         {
             return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / CORES_PER_EX) + EX_TARGET_OFFSET]);
         }
+    }
+
+    ///
+    /// @brief Get this target's immediate parent - specialization for compound
+    //         target (PROC_CHIP | CORE | EX)
+    /// @tparam T The type of the parent
+    /// @return Target<T, plat_target_handle_t> a target representing the parent
+    ///
+    template<>
+    template<TargetType T>
+    Target<T, plat_target_handle_t>
+    Target<TARGET_TYPE_PROC_CHIP | TARGET_TYPE_CORE | TARGET_TYPE_EX,
+           plat_target_handle_t>::getParent(void) const
+    {
+        static_assert(((T == TARGET_TYPE_PROC_CHIP) || (T == TARGET_TYPE_EQ)),
+                      "Wrong parent target type");
+        return static_cast<plat_target_handle_t>(get()).getParent(T);
     }
 
     /// @brief Get this target's children - handles EQ/EX/EC conversions

@@ -170,6 +170,14 @@ namespace fapi2
         }
 
         ///
+        /// @brief Get this target's parent
+        ///
+        /// @param [in] The fapi2 type of the requested parent
+        /// @return Plat target handle to the parent target
+        ///
+        plat_target_handle getParent(const TargetType i_parentType) const;
+
+        ///
         /// @brief Get this target's children
         ///
         /// @param [in] i_parentType fapi2 type of the parent

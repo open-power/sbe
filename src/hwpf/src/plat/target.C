@@ -162,6 +162,41 @@ namespace fapi2
         return l_targetType;
     }
 
+    plat_target_handle_t plat_target_handle_t::getParent(
+            const TargetType i_parentType) const
+    {
+        plat_target_handle_t l_handle;
+        switch(i_parentType)
+        {
+            case TARGET_TYPE_PROC_CHIP:
+                l_handle = G_vec_targets[CHIP_TARGET_OFFSET];
+                break;
+            case TARGET_TYPE_PERV:
+                assert(fields.type & PPE_TARGET_TYPE_PERV);
+                l_handle = *this;
+                break;
+            case TARGET_TYPE_EX:
+                assert(fields.type & PPE_TARGET_TYPE_CORE);
+                l_handle = G_vec_targets
+                    [(fields.type_target_num / EX_PER_QUAD) + EX_TARGET_OFFSET];
+                break;
+            case TARGET_TYPE_EQ:
+                assert(fields.type &
+                       (PPE_TARGET_TYPE_EX | PPE_TARGET_TYPE_CORE));
+                {
+                    uint32_t l_perQuad = (fields.type & PPE_TARGET_TYPE_EX) ?
+                                         EX_PER_QUAD : CORES_PER_QUAD;
+                    l_handle = G_vec_targets
+                        [(fields.type_target_num / l_perQuad) +
+                         EX_TARGET_OFFSET];
+                }
+                break;
+            default:
+                assert(false);
+        }
+        return l_handle;
+    }
+
     void plat_target_handle_t::getChildren(const TargetType i_parentType,
                                            const TargetType i_childType,
                                            const plat_target_type_t i_platType,
