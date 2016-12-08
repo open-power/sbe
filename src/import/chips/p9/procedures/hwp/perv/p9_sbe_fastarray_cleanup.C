@@ -39,6 +39,8 @@
 // Includes
 //-----------------------------------------------------------------------------------
 #include <p9_sbe_fastarray_cleanup.H>
+#include <p9_perv_scom_addresses.H>
+#include <p9_perv_scom_addresses_fld.H>
 
 /**
  * @brief Cleanup sub-procedure for p9_fastarray procedure
@@ -48,8 +50,15 @@
 fapi2::ReturnCode p9_sbe_fastarray_cleanup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
-    FAPI_INF("Start");
-    FAPI_INF("End");
+    /* Clean up clock controller */
+    fapi2::buffer<uint64_t> buf = 0;
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CLK_REGION, buf), "Failed to clear clock regions");
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT1, buf), "Failed to clear OPCG_CAPT1");
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT2, buf), "Failed to clear OPCG_CAPT2");
+
+    return fapi2::FAPI2_RC_SUCCESS;
+
+fapi_try_exit:
     return fapi2::current_err;
 }
 
