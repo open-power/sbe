@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -39,14 +40,34 @@
 // Includes
 //-----------------------------------------------------------------------------------
 #include <p9_sbe_fastarray_abist_catchup.H>
+#include <p9_perv_scom_addresses.H>
+#include <p9_perv_scom_addresses_fld.H>
 
 
 fapi2::ReturnCode p9_sbe_fastarray_abist_catchup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const uint32_t i_clockCycles)
 {
-    FAPI_INF("Start");
-    FAPI_INF("End");
+    fapi2::buffer<uint64_t> l_cc_buf = i_clockCycles;
+
+    l_cc_buf.setBit<PERV_1_OPCG_REG0_GO>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_REG0, l_cc_buf), "Failed to clock %d array cycle(s)",
+             i_clockCycles + 1);
+
+    /* If we clocked more than a single cycle, do due diligence and wait for OPCG_DONE */
+    if( i_clockCycles )
+    {
+        do
+        {
+            FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_CPLT_STAT0, l_cc_buf), "Failed to read Chiplet Status 0 Register");
+        }
+        while (!l_cc_buf.getBit<PERV_1_CPLT_STAT0_CC_CTRL_OPCG_DONE_DC>());
+    }
+
+    return fapi2::FAPI2_RC_SUCCESS;
+
+fapi_try_exit:
     return fapi2::current_err;
+
 }
 
