@@ -135,6 +135,8 @@ pk_initialize(PkAddress     kernel_stack,
     //timebase frequency (versus what was hardcoded)
     pk_set_timebase_rshift(timebase_frequency_hz);
 
+    __pk_kernel_stack_limit = kernel_stack;
+
     rc = __pk_stack_init(&kernel_stack, &kernel_stack_size);
 
     if (rc)

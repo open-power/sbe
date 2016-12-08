@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -368,7 +368,7 @@ ctx_continue_push:
         ## If the 'processing interrupt' bit is set then we were already
         ## using the kernel stack and don't need to modify or save the current
         ## stack pointer.
-        bb1wi   %r3, PPE42_PROC_IRQ_BIT, ctx_push_completed
+        bb1wi   %r3, PPE42_PROC_IRQ_BIT, kernel_stack_check
 
         ## load the pointer to the current thread control block
         _lwzsd  %r4, __pk_current_thread
@@ -381,6 +381,12 @@ ctx_continue_push:
         ## pointer
         stw     %r1, PK_THREAD_OFFSET_SAVED_STACK_POINTER(%r4)
 
+        ## Check thread stack overflow
+        lwz     %r7, PK_THREAD_OFFSET_STACK_LIMIT(%r4)
+        cmplwblt %r7, %r1, stack_good
+        _pk_panic PK_STACK_OVERFLOW
+stack_good:
+
 #ifdef HWMACRO_GPE
         ## Save the context of the PBASLVCTL reg
         _liw    %r7,  PBA_SLVCTLN(PBASLVCTLN)
@@ -392,11 +398,17 @@ ctx_continue_push:
 switch_to_kernel_stack:
         _stwsd  %r1, __pk_saved_sp
         _lwzsd  %r1, __pk_kernel_stack
-
-ctx_push_completed:
         blr
 
-__get_ext_irq:   
+kernel_stack_check:
+        _lwzsd  %r7, __pk_kernel_stack_limit
+        cmplwblt %r7, %r1, ctx_push_complete
+        _pk_panic PK_STACK_OVERFLOW
+
+ctx_push_complete:
+        blr
+
+__get_ext_irq:
 
         ## Entry invariants:
         ## 1. external interupts are disabled;
@@ -407,7 +419,7 @@ __get_ext_irq:
         ## This is HW Macro specific code that is responsible for finding the
         ## IRQ # and storing it in r4 (phantom IRQ's are assigned a value of EXTERNAL_IRQS).
 
-        hwmacro_get_ext_irq        
+        hwmacro_get_ext_irq
 
         ## An active or phantom IRQ was found. 
         ## R3 has the context of the interrupted thread or bottom half

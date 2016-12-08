@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -65,6 +65,10 @@ PkAddress __pk_saved_sp;
 UNLESS__PK_CORE_C__(extern)
 volatile
 PkAddress __pk_kernel_stack;
+
+UNLESS__PK_CORE_C__(extern)
+volatile
+PkAddress __pk_kernel_stack_limit;
 
 /// This is the run queue - the queue of mapped runnable tasks.
 UNLESS__PK_CORE_C__(extern)
@@ -231,6 +235,17 @@ PK_TIMER_CALLBACK(__pk_thread_timeout);
 int
 __pk_stack_init(PkAddress* stack,
                 size_t*     size);
+
+void
+__pk_stack_check(uint32_t stack_base, uint32_t stack_limit);
+
+#define PK_KERNEL_STACK_CHECK() __pk_stack_check(__pk_kernel_stack, __pk_kernel_stack_limit)
+
+#define PK_THREAD_STACK_CHECK() \
+    { \
+        PkThread* thread = (PkThread*)__pk_current_thread; \
+        if (thread) __pk_stack_check(thread->stack_base, thread->stack_limit); \
+    }
 
 /// Machine-specific thread context initialization.
 
