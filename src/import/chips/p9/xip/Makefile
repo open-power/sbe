@@ -36,6 +36,10 @@ INCLUDES += -I.
 INCLUDES += -I../../../hwpf/fapi2/include/plat          # ekb: define path variable covering ekb and ppe
 INCLUDES += -I../../../../hwpf/include/plat/            # ppe: define path variable covering ekb and ppe
 
+ifeq ($(PROJECT_NAME),sbe)
+XIP_FLAGS+=-D__PPE__
+endif
+
 XIP_FLAGS += -DDEBUG_P9_XIP_IMAGE=1
 XIP_FLAGS += -DFAPI2_NO_FFDC
 

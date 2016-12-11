@@ -41,8 +41,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#define __PPE__
-
 #include "p9_xip_image.h"
 #ifdef XIP_TOOL_ENABLE_DISSECT // Needed on ppe side to avoid TOR API
     #include "p9_tor.H"
@@ -167,6 +165,7 @@ const char* g_usage =
     "       p9_xip_tool <image> [-i<flag> ...] dis <section>\n"
     "       p9_xip_tool <image> [-i<flag> ...] dissect <ring section> [short,normal(default),long]\n"
     "       p9_xip_tool <image> [-i<flag> ...] disasm <text section>\n"
+    "       p9_xip_tool <image> [-i<flag> ...] check-sbe-ring-section <dd level> <maximum size>\n"
     "\n"
     "This simple application uses the P9-XIP image APIs to normalize, search\n"
     "update and edit P9-XIP images. This program encapsulates several commands\n"
@@ -2271,6 +2270,93 @@ openAndMapReadOnly(const char* i_imageFile, int* o_fd, void** o_image, const uin
     openAndMap(i_imageFile, 0, o_fd, o_image, i_maskIgnores);
 }
 
+///
+/// @brief Checks .rings section created for SBE image to
+///        see if it is less than the passed in size.
+///
+/// @param[in]  i_hwImage - pointer to an unsigned hw image.
+/// @param[in]  i_ddLevel - DD level .rings section to check
+/// @param[in]  i_maxSize - Maximum allowable section size
+///
+/// @return IMGBUILD_SUCCESS if section is less than i_maxSize
+///
+static
+int check_sbe_ring_section_size( void* i_hwImage,
+                                 uint32_t i_ddLevel,
+                                 uint32_t i_maxSize )
+{
+    int rc = 0;
+#ifndef __PPE__
+
+    P9XipSection l_ringsSection;
+
+    RingType_t l_ringType = ALLRING;
+
+    uint8_t  unused_parm  = 0;
+    void**   l_blockPtr   = NULL;
+    uint32_t l_blockSize  = 0;
+
+    // Get the full .rings section from the HW image
+    rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection);
+
+    if (!rc)
+    {
+        // verify the .rings section is populated
+        if (l_ringsSection.iv_size == 0)
+        {
+            fprintf(stderr, "Ring section size in HW image is zero.\n");
+            rc = P9_XIP_DATA_NOT_PRESENT;
+            return rc;
+        }
+
+        // Make a pointer to the start of the rings section
+        void* ringsSection = (uint8_t*)i_hwImage + l_ringsSection.iv_offset;
+
+        do
+        {
+            // Call the tor function will a null block pointer to get the
+            // section size
+            rc = tor_get_block_of_rings( ringsSection,
+                                         i_ddLevel,
+                                         SBE,
+                                         l_ringType,
+                                         BASE,
+                                         unused_parm,
+                                         l_blockPtr,
+                                         l_blockSize);
+
+            if(rc)
+            {
+                fprintf(stderr, "error calling tor API rc = %d\n", rc);
+                break;
+            }
+
+            if( l_blockSize == 0 )
+            {
+                fprintf(stderr, "No rings for dd_level %#02x found\n", i_ddLevel);
+                break;
+            }
+
+            fprintf(stderr, " SBE .ring section size for DD level %#02x ", i_ddLevel);
+
+            // return failure if the block size would exceed the maximum allowed size
+            if( l_blockSize > i_maxSize )
+            {
+                fprintf(stderr, "is %d bytes, which exceeds maximum size limit of %i\n", l_blockSize, i_maxSize);
+                rc = P9_XIP_SBE_DD_SIZE_ERR;
+            }
+            else
+            {
+                fprintf(stderr, "is %d bytes - OK\n", l_blockSize);
+            }
+
+        }
+        while(0);
+    }
+
+#endif
+    return rc;
+}
 
 // Parse and execute a pre-tokenized command
 
@@ -2380,6 +2466,27 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
         fprintf(stderr, "not supported\n");
         exit(1);
 
+    }
+    else if (strcmp(i_argv[0], "check-sbe-ring-section") == 0)
+    {
+        if(i_argc != 3)
+        {
+            fprintf(stderr, g_usage);
+            exit(1);
+        }
+
+        openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
+
+        // grab the size and dd level from the cmdline
+        const char* i_ddLevel = i_argv[1];
+
+        uint8_t l_ddLevel = strtol(i_ddLevel, 0, 0);
+
+        uint32_t l_maxSize = strtol(i_argv[2], 0, 10);
+
+        // validate that the dd level specific .rings section generated for the
+        // sbe image will not exceed the given size.
+        rc = check_sbe_ring_section_size(image, l_ddLevel, l_maxSize) ;
     }
     else if (strcmp(i_argv[0], "TEST") == 0)
     {
