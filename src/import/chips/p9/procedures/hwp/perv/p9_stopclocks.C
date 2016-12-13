@@ -44,7 +44,11 @@
 #include <p9_tp_stopclocks.H>
 #include <p9_hcd_core_stopclocks.H>
 #include <p9_hcd_cache_stopclocks.H>
-#include <p9_check_chiplet_states.H>
+#ifdef __PPE__
+    #include <p9_common_stopclocks.H>
+#else
+    #include <p9_check_chiplet_states.H>
+#endif
 #include <p9_hcd_common.H>
 
 //------------------------------------------------------------------------------
@@ -89,7 +93,7 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     fapi2::buffer<uint64_t> l_nsl_clock_status;
     fapi2::buffer<uint64_t> l_ary_clock_status;
 
-    uint8_t l_cplt_scomable;
+    uint8_t l_cplt_scomable = 0;
 
     bool pcb_is_bypassed      = false;
     bool pcb_clks_are_off     = false;
@@ -106,14 +110,17 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     bool tp_ep_rst            = true;
     bool tp_vitl_clk_off      = true;
     bool tp_mesh_clk_en       = false;
+#ifdef __PPE__
+    uint8_t l_tp_chiplet_accesible = 0;
+#endif
 
     FAPI_INF("p9_stopclocks : Entering ...");
 
-    FAPI_DBG("p9_stopclocks : Input arguments received are \n\t i_stop_nest = %s\n\t i_stop_mc = %s\n\t i_stop_xbus = %s\n\t i_stop_obus = %s\n\t i_stop_pcie = %s\n\t i_stop_tp = %s\n\t i_stop_pib = %s\n\t i_stop_vitl =  %s\n",
-             btos(i_stop_nest_clks), btos(i_stop_mc_clks), btos(i_stop_xbus_clks), btos(i_stop_obus_clks), btos(i_stop_pcie_clks),
-             btos(i_stop_tp_clks), btos(i_stop_pib_clks), btos(i_stop_vitl_clks));
-    FAPI_DBG("p9_stopclocks : Input QUAD arguments received are \n\t i_stop_cache = %s\n\t i_stop_core = %s\n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
-             btos(i_stop_cache_clks), btos(i_stop_core_clks), (uint64_t)i_eq_clk_regions, (uint64_t)i_ex_select);
+    FAPI_DBG("p9_stopclocks : Input arguments received are \n\t i_stop_nest = %d\n\t i_stop_mc = %d\n\t i_stop_xbus = %d\n\t i_stop_obus = %d\n\t i_stop_pcie = %d\n\t i_stop_tp = %d\n\t i_stop_pib = %d\n\t i_stop_vitl =  %d\n",
+             i_stop_nest_clks, i_stop_mc_clks, i_stop_xbus_clks, i_stop_obus_clks, i_stop_pcie_clks,
+             i_stop_tp_clks, i_stop_pib_clks, i_stop_vitl_clks);
+    FAPI_DBG("p9_stopclocks : Input QUAD arguments received are \n\t i_stop_cache = %d\n\t i_stop_core = %d\n\t i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
+             i_stop_cache_clks, i_stop_core_clks, (uint64_t)i_eq_clk_regions, (uint64_t)i_ex_select);
 
     FAPI_DBG("p9_stopclocks : Check to see if the Perv Vital clocks are OFF");
 #ifdef __PPE__
@@ -166,8 +173,8 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
         tp_vitl_clk_off = l_cfam_data.getBit<PERV_PERV_CTRL0_CLEAR_TP_VITL_CLKOFF_DC>();
         tp_mesh_clk_en  = l_cfam_data.getBit<PERV_PERV_CTRL0_TP_PLLCHIPLET_FORCE_OUT_EN_DC>();
 #endif
-        FAPI_DBG("Read PERV_CTRL0 Reg Value and observe CPLT_EN = %s, EP_RST = %s, VITL_CLKOFF = %s", btos(tp_cplt_en),
-                 btos(tp_ep_rst), btos(tp_vitl_clk_off));
+        FAPI_DBG("Read PERV_CTRL0 Reg Value and observe CPLT_EN = %d, EP_RST = %d, VITL_CLKOFF = %d", tp_cplt_en,
+                 tp_ep_rst, tp_vitl_clk_off);
 
         if (tp_cplt_en && !(tp_ep_rst) && !(tp_vitl_clk_off))
         {
@@ -199,6 +206,10 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
             {
                 pcb_clks_are_off      = false;
             }
+
+#ifdef __PPE__
+            l_tp_chiplet_accesible = true;
+#endif
         }
         else
         {
@@ -210,56 +221,87 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
         if ( (pcb_is_bypassed == false) && (pcb_clks_are_off == false) )
         {
             FAPI_DBG("p9_stopclocks : Call p9_check_chiplet_states to get the state of chip");
+#ifndef __PPE__
             FAPI_TRY(p9_check_chiplet_states(i_target_chip));
+#endif
 
             //To get the chiplet state from Attributes
-            for (auto l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+            for (const auto& l_target_cplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
                  (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP | fapi2::TARGET_FILTER_ALL_MC | fapi2::TARGET_FILTER_ALL_NEST
                                                    | fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
                   fapi2::TARGET_STATE_FUNCTIONAL))
             {
-                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_TARGET_IS_SCOMMABLE, l_target_cplt, l_cplt_scomable));
+                uint8_t l_attr_unit_pos = 0;
+                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt, l_attr_unit_pos));
 
-                if(!(l_cplt_scomable))
+                if (l_attr_unit_pos == 0x01)
                 {
-                    uint8_t l_attr_unit_pos = 0;
-                    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt, l_attr_unit_pos));
+#ifdef __PPE__
 
-                    if (l_attr_unit_pos == 0x01)
+                    if(l_tp_chiplet_accesible)
                     {
-                        tp_cplt_scomable = false;
+                        FAPI_TRY(p9_common_stopclock_is_scommable(l_target_cplt, l_cplt_scomable));
                     }
-                    else if (l_attr_unit_pos == 0x02 || l_attr_unit_pos == 0x03 || l_attr_unit_pos == 0x04 || l_attr_unit_pos == 0x05)
+                    else
                     {
-                        nest_cplt_scomable = false;
+                        l_cplt_scomable = false;
+                    }
+
+#else
+                    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_TARGET_IS_SCOMMABLE, l_target_cplt, l_cplt_scomable));
+#endif
+                    tp_cplt_scomable = l_cplt_scomable;
+                }
+                else
+                {
+#ifdef __PPE__
+                    uint8_t l_chiplet_accessible = 0;
+                    FAPI_TRY(p9_common_stopclock_chiplet_accesible(l_target_cplt, l_chiplet_accessible));
+
+                    if(l_chiplet_accessible)
+                    {
+                        FAPI_TRY(p9_common_stopclock_is_scommable(l_target_cplt, l_cplt_scomable));
+                    }
+                    else
+                    {
+                        l_cplt_scomable = false;
+                    }
+
+#else
+                    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_TARGET_IS_SCOMMABLE, l_target_cplt, l_cplt_scomable));
+#endif
+
+                    if (l_attr_unit_pos == 0x02 || l_attr_unit_pos == 0x03 || l_attr_unit_pos == 0x04 || l_attr_unit_pos == 0x05)
+                    {
+                        nest_cplt_scomable = l_cplt_scomable;
                     }
                     else if (l_attr_unit_pos == 0x06)
                     {
-                        xbus_cplt_scomable = false;
+                        xbus_cplt_scomable = l_cplt_scomable;
                     }
                     else if (l_attr_unit_pos == 0x07 || l_attr_unit_pos == 0x08 )
                     {
-                        mc_cplt_scomable = false;
+                        mc_cplt_scomable = l_cplt_scomable;
                     }
                     else if (l_attr_unit_pos == 0x09 || l_attr_unit_pos == 0x0A || l_attr_unit_pos == 0x0B || l_attr_unit_pos == 0x0C)
                     {
-                        obus_cplt_scomable = false;
+                        obus_cplt_scomable = l_cplt_scomable;
                     }
                     else if (l_attr_unit_pos == 0x0D || l_attr_unit_pos == 0x0E || l_attr_unit_pos == 0x0F )
                     {
-                        pcie_cplt_scomable = false;
+                        pcie_cplt_scomable = l_cplt_scomable;
                     }
                 }
             }
 
-            FAPI_DBG("p9_stopclocks : Chiplet scomable states \n\t tp_cplt_scomable = %s\n\t nest_cplt_scomable = %s\n\t xbus_cplt_scomable = %s\n\t mc_cplt_scomable = %s\n\t obus_cplt_scomable = %s\n\t pcie_cplt_scomable = %s\n",
-                     btos(tp_cplt_scomable), btos(nest_cplt_scomable), btos(xbus_cplt_scomable), btos(mc_cplt_scomable),
-                     btos(obus_cplt_scomable), btos(pcie_cplt_scomable));
+            FAPI_DBG("p9_stopclocks : Chiplet scomable states \n\t tp_cplt_scomable = %d\n\t nest_cplt_scomable = %d\n\t xbus_cplt_scomable = %d\n\t mc_cplt_scomable = %d\n\t obus_cplt_scomable = %d\n\t pcie_cplt_scomable = %d\n",
+                     tp_cplt_scomable, nest_cplt_scomable, xbus_cplt_scomable, mc_cplt_scomable,
+                     obus_cplt_scomable, pcie_cplt_scomable);
 
             // Core stopclocks
             if(i_stop_core_clks)
             {
-                for (auto l_target_core : i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+                for (const auto& l_target_core : i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
                 {
                     FAPI_INF("p9_stopclocks : Calling p9_hcd_core_stopclocks");
                     FAPI_TRY(p9_hcd_core_stopclocks(l_target_core));
@@ -269,7 +311,7 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
             // L2 & Cache stopclocks
             if(i_stop_cache_clks)
             {
-                for (auto l_target_eq : i_target_chip.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
+                for (const auto& l_target_eq : i_target_chip.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
                 {
                     FAPI_INF("p9_stopclocks : Calling p9_hcd_cache_stopclocks");
                     FAPI_TRY(p9_hcd_cache_stopclocks(l_target_eq, i_eq_clk_regions, i_ex_select));
@@ -307,8 +349,8 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
         }
         else if(i_stop_tp_clks || i_stop_pib_clks)
         {
-            FAPI_ERR("p9_stopclocks : Invalid condition to stop TP chiplet clocks\n\t TP_CPLT_SCOMABLE= %s, PCB_IS_BYPASSED=%s, PCB_CLKS_ARE_OFF=%s TP_MESH_CLK_EN=%s",
-                     btos(tp_cplt_scomable), btos(pcb_is_bypassed), btos(pcb_clks_are_off), btos(tp_mesh_clk_en));
+            FAPI_ERR("p9_stopclocks : Invalid condition to stop TP chiplet clocks\n\t TP_CPLT_SCOMABLE= %d, PCB_IS_BYPASSED=%d, PCB_CLKS_ARE_OFF=%d TP_MESH_CLK_EN=%d",
+                     tp_cplt_scomable, pcb_is_bypassed, pcb_clks_are_off, tp_mesh_clk_en);
         }
 
         // Vital stopclocks
