@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -527,22 +527,21 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     if((l_chipletID >= 7 && l_chipletID < 9) || (l_chipletID >= 13 && l_chipletID < 16))
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
-        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X08;
+        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X10;
     }
     // OBUS & XBUS Perv Targets
     else if((l_chipletID == 6) || (l_chipletID >= 9 && l_chipletID < 13))
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
         i_reg1_val = p9SbeChipletReset::HANG_PULSE_0X04;
-        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X08;
+        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X10;
     }
     // Core Perv Target
     else  if(l_chipletID >= 0x20 && l_chipletID < 0x38)
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
-        i_reg1_val = p9SbeChipletReset::HANG_PULSE_0X17;
         i_reg5_val = p9SbeChipletReset::HANG_PULSE_0X06;
-        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X08;
+        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X10;
     }
     // Cache Perv Target
     else if(l_chipletID >= 0x10 && l_chipletID < 0x16)
@@ -553,7 +552,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
         i_reg3_val = p9SbeChipletReset::HANG_PULSE_0X04;
         i_reg4_val = p9SbeChipletReset::HANG_PULSE_0X00;
         i_reg5_val = p9SbeChipletReset::HANG_PULSE_0X06;
-        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X08;
+        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X10;
     }
 
     // NEST Perv Target
@@ -561,7 +560,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
         i_reg5_val = p9SbeChipletReset::HANG_PULSE_0X06;
-        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X08;
+        i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X10;
     }
 
     //Setting HANG_PULSE_0_REG register value (Setting all fields)
@@ -634,6 +633,16 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
         FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_6_REG, l_data64));
     }
 
+    // Core Perv Target
+    if(l_chipletID >= 0x20 && l_chipletID < 0x38)
+    {
+        //Setting HANG_PULSE_1_REG register value (Setting all fields)
+        //HANG_PULSE_1_REG.HANG_PULSE_REG_1 = p9SbeChipletReset::HANG_PULSE_0X1A
+        l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X1A);
+        l_data64.setBit<6>();  //HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 1
+        FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_1_REG, l_data64));
+    }
+
     // NEST Perv Target
     if(l_chipletID >= 2 && l_chipletID < 6)
     {
@@ -646,17 +655,17 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
             //Setting HANG_PULSE_1_REG register value (Setting all fields)
             //HANG_PULSE_1_REG.HANG_PULSE_REG_1 = p9SbeChipletReset::HANG_PULSE_0X18
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X18);
-            l_data64.clearBit<6>();  //HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_1_REG, l_data64));
             //Setting HANG_PULSE_2_REG register value (Setting all fields)
             //HANG_PULSE_2_REG.HANG_PULSE_REG_2 = p9SbeChipletReset::HANG_PULSE_0X23
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X23);
-            l_data64.clearBit<6>();  //HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_2_REG, l_data64));
             //Setting HANG_PULSE_3_REG register value (Setting all fields)
             //HANG_PULSE_3_REG.HANG_PULSE_REG_3 = p9SbeChipletReset::HANG_PULSE_0X12
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X12);
-            l_data64.clearBit<6>();  //HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_3_REG, l_data64));
         }
 
@@ -665,7 +674,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
             //Setting HANG_PULSE_2_REG register value (Setting all fields)
             //HANG_PULSE_2_REG.HANG_PULSE_REG_2 = p9SbeChipletReset::HANG_PULSE_0X0F
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X0F);
-            l_data64.clearBit<6>();  //HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_2_REG, l_data64));
         }
 
@@ -674,7 +683,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
             //Setting HANG_PULSE_3_REG register value (Setting all fields)
             //HANG_PULSE_3_REG.HANG_PULSE_REG_3 = p9SbeChipletReset::HANG_PULSE_0X12
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X12);
-            l_data64.clearBit<6>();  //HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_3_REG, l_data64));
         }
 
@@ -683,22 +692,22 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
             //Setting HANG_PULSE_1_REG register value (Setting all fields)
             //HANG_PULSE_1_REG.HANG_PULSE_REG_1 = p9SbeChipletReset::HANG_PULSE_0X17
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X17);
-            l_data64.clearBit<6>();  //HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_1_REG, l_data64));
             //Setting HANG_PULSE_2_REG register value (Setting all fields)
             //HANG_PULSE_2_REG.HANG_PULSE_REG_2 = p9SbeChipletReset::HANG_PULSE_0X0F
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X0F);
-            l_data64.clearBit<6>();  //HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_2_REG, l_data64));
             //Setting HANG_PULSE_3_REG register value (Setting all fields)
             //HANG_PULSE_3_REG.HANG_PULSE_REG_3 = p9SbeChipletReset::HANG_PULSE_0X13
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X13);
-            l_data64.clearBit<6>();  //HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_3_REG, l_data64));
             //Setting HANG_PULSE_4_REG register value (Setting all fields)
             //HANG_PULSE_4_REG.HANG_PULSE_REG_4 = p9SbeChipletReset::HANG_PULSE_0X1C
             l_data64.insertFromRight<0, 6>(p9SbeChipletReset::HANG_PULSE_0X1C);
-            l_data64.clearBit<6>();  //HANG_PULSE_4_REG.SUPPRESS_HANG_4 = 0
+            l_data64.setBit<6>();  //HANG_PULSE_4_REG.SUPPRESS_HANG_4 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_4_REG, l_data64));
         }
     }

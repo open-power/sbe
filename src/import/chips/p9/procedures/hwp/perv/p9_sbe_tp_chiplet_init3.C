@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -178,7 +178,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     //Setting HANG_PULSE_1_REG register value (Setting all fields)
     //PERV.HANG_PULSE_1_REG.HANG_PULSE_REG_1 = 0b000100
     l_data64.insertFromRight<0, 6>(0b000100);
-    l_data64.setBit<6>();  //PERV.HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0b1
+    l_data64.clearBit<6>();  //PERV.HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0b1
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_1_REG, l_data64));
     //Setting HANG_PULSE_2_REG register value (Setting all fields)
     //PERV.HANG_PULSE_2_REG.HANG_PULSE_REG_2 = 0b010010
