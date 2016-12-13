@@ -74,13 +74,17 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
         goto fapi_try_exit;
     }
 
+#ifdef __PPE__
+
     if(i_stop_pib_clks)
     {
-#ifdef __PPE__
         FAPI_ERR("p9_tp_stopclocks: Calling TP stopclocks for PIB & NET regions in SBE mode is INVALID\n\t --> Skipping TP Stopclocks for PIB/NET regions..! <--");
         goto fapi_try_exit;
-#endif
     }
+
+#endif
+
+#ifndef __PPE__
 
     if(i_stop_pib_clks)
     {
@@ -100,6 +104,8 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
         FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
                                         l_data32_root_ctrl0));
     }
+
+#endif
 
     if(i_stop_tp_clks && i_stop_pib_clks)
     {
@@ -142,6 +148,8 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
                              fapi2::TARGET_STATE_FUNCTIONAL)[0]));
     }
 
+#ifndef __PPE__
+
     if(i_stop_pib_clks)
     {
         FAPI_INF("p9_tp_stopclocks: Raise OOB Mux");
@@ -158,6 +166,8 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
         FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
                                         l_data32_root_ctrl0));
     }
+
+#endif
 
     FAPI_INF("p9_tp_stopclocks: Exiting ...");
 

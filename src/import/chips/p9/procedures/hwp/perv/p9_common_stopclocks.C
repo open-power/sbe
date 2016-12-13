@@ -153,7 +153,119 @@ fapi_try_exit:
     return fapi2::current_err;
 
 }
+#ifdef __PPE__
+/// @brief p9_common_stopclock_is_scommable - Read Clock STAT SL,NSL,ARY
+///             Read ATTR_PG
+///             Compare Region Anding(SL,NSL,ARY) with ATTR_PG
+///@param[in]   i_target_cplt  - chiplet target
+///@param[out]  o_isScommable  - is chiplet scommable
+fapi2::ReturnCode p9_common_stopclock_is_scommable(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
+    uint8_t& o_isScommable)
+{
+    fapi2::buffer<uint64_t> l_sl_clock_status_act;
+    fapi2::buffer<uint64_t> l_nsl_clock_status_act;
+    fapi2::buffer<uint64_t> l_ary_clock_status_act;
+    fapi2::buffer<uint16_t> l_sl_regions_act;
+    fapi2::buffer<uint16_t> l_nsl_regions_act;
+    fapi2::buffer<uint16_t> l_ary_regions_act;
+    fapi2::buffer<uint16_t> l_read_attr;
+    fapi2::buffer<uint16_t> l_attr_regions;
+    FAPI_DBG("p9_stopclock_is_scommable: Entering ...");
 
+    FAPI_DBG("Read Clock Stat SL");
+    FAPI_TRY(fapi2::getScom(i_target_cplt, PERV_CLOCK_STAT_SL,
+                            l_sl_clock_status_act));
+    FAPI_DBG("CLOCK_STAT_SL Value : %#018lX", l_sl_clock_status_act);
+
+    FAPI_DBG("Read Clock Stat NSL");
+    FAPI_TRY(fapi2::getScom(i_target_cplt, PERV_CLOCK_STAT_NSL,
+                            l_nsl_clock_status_act));
+    FAPI_DBG("CLOCK_STAT_NSL Value : %#018lX", l_nsl_clock_status_act);
+
+    FAPI_DBG("Read Clock Stat ARY");
+    FAPI_TRY(fapi2::getScom(i_target_cplt, PERV_CLOCK_STAT_ARY,
+                            l_ary_clock_status_act));
+    FAPI_DBG("CLOCK_STAT_ARY Value : %#018lX", l_ary_clock_status_act);
+
+    FAPI_DBG("Extract Regions bits excluding PLL from Clock Stat SL/NSL/ARY");
+    l_sl_clock_status_act.extractToRight<4, 10>(l_sl_regions_act);
+    l_nsl_clock_status_act.extractToRight<4, 10>(l_nsl_regions_act);
+    l_ary_clock_status_act.extractToRight<4, 10>(l_ary_regions_act);
+    FAPI_DBG("Region bits from Clock status registers\n\t SL = %#06lX, "
+             "NSL = %#06lX, ARY = %#06lX", l_sl_regions_act,
+             l_nsl_regions_act, l_ary_regions_act);
+
+    FAPI_DBG("Reading ATTR_PG");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_cplt, l_read_attr));
+    FAPI_DBG("ATTR_PG Value : %#010lX", l_read_attr);
+
+    FAPI_DBG("Extract Regions bits excluding PLL from ATTR_PG");
+    l_read_attr.extractToRight<4, 10>(l_attr_regions);
+    FAPI_DBG("Regions bits from ATTR_PG Value : %#06lX", l_attr_regions);
+
+    FAPI_DBG("Compare region(ANDing Regions bits from SL/NSL/ARY register)"
+             " with ATTR_PG");
+
+    if ((l_sl_regions_act & l_nsl_regions_act & l_ary_regions_act)
+        == l_attr_regions)
+    {
+        FAPI_DBG("o_isScommable is True");
+        o_isScommable = true;
+    }
+    else
+    {
+        FAPI_DBG("o_isScommable is False");
+        o_isScommable = false;
+    }
+
+    FAPI_DBG("p9_stopclock_is_scommable: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+/*
+ * @brief - Check if the chiplet is accesible for scom,
+ *          valid for all chiplets except TP
+ *
+ * @param[in]  - i_target        - Pervasive target
+ * @param[out] - o_o_isAccesible - If the the chiplet is accesible
+ * */
+fapi2::ReturnCode p9_common_stopclock_chiplet_accesible(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target,
+    uint8_t& o_isAccesible)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    //Reading NET_CTRL0 for chiplets except TP/EQ/EC and call function
+    //target_is_scommable
+    FAPI_TRY(fapi2::getScom(i_target, PERV_NET_CTRL0, l_data64));
+    FAPI_DBG("Read NET_CTRL0 Reg Value and Observe bit0(cplt_en) set,"
+             "bit1(ep_rst) clear, bit16(vtl_thld) clear : %#018lX",
+             l_data64);
+
+    if ((l_data64.getBit(PERV_1_NET_CTRL0_CHIPLET_ENABLE))
+        && !(l_data64.getBit(PERV_1_NET_CTRL0_PCB_EP_RESET))
+        && !(l_data64.getBit(PERV_1_NET_CTRL0_VITAL_THOLD)))
+    {
+        FAPI_DBG("Read NET_CTRL0 Reg Value and required bits met -- "
+                 "cplt_en is set, ep_rst is clear, vtl_thld is clear :"
+                 "Target Chiplet is acessible");
+        o_isAccesible = 1;
+    }
+    else
+    {
+        FAPI_DBG("Read NET_CTRL0 Reg Value and min one of them required bits"
+                 "is not met -- cplt_en is not set, ep_rst is not clear, "
+                 "vtl_thld is not clear : Target Chiplet is not acessible");
+        o_isAccesible = 0;
+    }
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+#endif
+#ifndef __PPE__
 /// @brief Stopping PIB & NET domain clocks in PERV chiplet using CBS
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_CHIP target
@@ -265,3 +377,4 @@ fapi2::ReturnCode p9_common_stopclocks_poll_cbs_cmd_complete(const fapi2::Target
 fapi_try_exit:
     return fapi2::current_err;
 }
+#endif

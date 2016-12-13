@@ -57,4 +57,13 @@ fapi2::ReturnCode p9_common_stopclocks_pib_net_clkstop(
 fapi2::ReturnCode p9_common_stopclocks_poll_cbs_cmd_complete(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
+#ifdef __PPE__
+fapi2::ReturnCode p9_common_stopclock_is_scommable(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
+    uint8_t& o_isScommable);
+
+fapi2::ReturnCode p9_common_stopclock_chiplet_accesible(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target,
+    uint8_t& o_isAccesible);
+#endif
 #endif
