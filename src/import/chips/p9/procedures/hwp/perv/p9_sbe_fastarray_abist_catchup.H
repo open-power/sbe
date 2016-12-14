@@ -52,8 +52,11 @@ typedef fapi2::ReturnCode (*p9_sbe_fastarray_abist_catchup_FP_t)(
  * @return FAPI2_RC_SUCCESS if success, else error code.
  */
 
-fapi2::ReturnCode p9_sbe_fastarray_abist_catchup(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const uint32_t i_clockCycles);
+extern "C"
+{
+    fapi2::ReturnCode p9_sbe_fastarray_abist_catchup(
+        const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+        const uint32_t i_clockCycles);
+}
 
 #endif //_P9_SBE_FASTARRAY_ABIST_CATCHUP
