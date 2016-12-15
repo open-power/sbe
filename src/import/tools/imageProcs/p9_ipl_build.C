@@ -310,8 +310,7 @@ int ipl_build( char* i_fnSbeImage,
             if(rc == IMGBUILD_SUCCESS)
             {
                 // update our SBE image size to include the new block of rings
-                // and make sure it's 8 byte aligned
-                sbeImageSize += ((l_blockSize + 7) / 8) * 8;
+                sbeImageSize += l_blockSize;
 
                 // grow our workspace
                 void* tmp = realloc(sbeImage, sbeImageSize);
