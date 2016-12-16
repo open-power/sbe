@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -29,7 +29,7 @@
 
 using namespace fapi2;
 
-constexpr uint64_t literal_0x4301D70000AB7696 = 0x4301D70000AB7696;
+constexpr uint64_t literal_0x0301D70000AB7696 = 0x0301D70000AB7696;
 constexpr uint64_t literal_0x0000000000000000 = 0x0000000000000000;
 constexpr uint64_t literal_0xA858009775100008 = 0xA858009775100008;
 
@@ -40,7 +40,7 @@ fapi2::ReturnCode p9_core_scom(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& TGT
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x20010a43ull, l_scom_buffer ));
 
-            l_scom_buffer.insert<0, 64, 0, uint64_t>(literal_0x4301D70000AB7696 );
+            l_scom_buffer.insert<0, 64, 0, uint64_t>(literal_0x0301D70000AB7696 );
             FAPI_TRY(fapi2::putScom(TGT0, 0x20010a43ull, l_scom_buffer));
         }
         {
