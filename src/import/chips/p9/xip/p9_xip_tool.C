@@ -50,6 +50,7 @@
     using namespace P9_TOR;
 #endif
 
+
 #define LINE_SIZE_MAX  1024     // Max size of a single snprintf dump.
 #define RING_BUF_SIZE_MAX  1000000
 
@@ -1752,9 +1753,6 @@ int dissectRingSectionTor( void*       i_ringSection,
     void*       ringBlockPtr;
     uint32_t    ringBlockSize;
     char        ringName[32];
-    void*       hostRs4Container;
-    uint32_t    compressedBits = 0, ringLength = 0;
-    double      compressionPct = 0;
     uint32_t    ringSeqNo  = 0; // Ring sequence number
 
     //
@@ -1865,13 +1863,15 @@ int dissectRingSectionTor( void*       i_ringSection,
                         //
                         if (rc == TOR_RING_FOUND)
                         {
+                            uint32_t l_ringSize = htobe16(((CompressedScanData*)ringBlockPtr)->iv_size);
 
                             // Check ring block size.
-                            if ( htobe32(((RingLayout_t*)ringBlockPtr)->sizeOfThis) != ringBlockSize )
+                            if ( l_ringSize != ringBlockSize || l_ringSize == 0 )
                             {
                                 fprintf(stderr, "tor_access_ring() was successful and found a ring but "
-                                        "sizeOfThis(=0x%08x) != ringBlockSize(=0x%08x) is a bug.\n",
-                                        htobe32(((RingLayout_t*)ringBlockPtr)->sizeOfThis), ringBlockSize);
+                                        "RS4 header's iv_size(=0x%08x) is either zero or doesn't match "
+                                        "size of ring buffer (ringBlockSize=0x%08x).\n",
+                                        l_ringSize, ringBlockSize);
                                 exit(1);
                             }
 
@@ -1910,12 +1910,6 @@ int dissectRingSectionTor( void*       i_ringSection,
                             // Summarize all characteristics of the ring block if "normal" or "long" (default).
                             if ( i_listingModeId == LMID_NORMAL || i_listingModeId == LMID_LONG )
                             {
-                                // Calculate RS4 compression efficiency.
-                                hostRs4Container = (void*)( (uintptr_t)ringBlockPtr + sizeof(RingLayout_t) );
-                                compressedBits = htobe32(((CompressedScanData*)hostRs4Container)->iv_algorithmReserved) * 4;
-                                ringLength = htobe32(((CompressedScanData*)hostRs4Container)->iv_length);
-                                compressionPct = (double)compressedBits / (double)ringLength * 100.0;
-
                                 sizeDisLine = snprintf( lineDis, LINE_SIZE_MAX,
                                                         "-----------------------------\n"
                                                         "%i.\n"
@@ -1925,13 +1919,10 @@ int dissectRingSectionTor( void*       i_ringSection,
                                                         "ringName = %s\n"
                                                         "ringVariant = %s\n"
                                                         "instanceId = 0x%02x\n"
-                                                        "ringBlockSize = 0x%08x\n"
-                                                        "RS4 ring size [bits] = %u\n"
-                                                        "Raw ring size [bits] = %u\n"
-                                                        "Compression [%%]      = %0.2f\n",
+                                                        "ringBlockSize = 0x%08x\n",
                                                         ringSeqNo, ddLevel, ppeTypeName[ppeType], ringId, ringName,
                                                         ringVariantName[ringVariant], instanceId,
-                                                        ringBlockSize, compressedBits, ringLength, compressionPct );
+                                                        ringBlockSize);
 
                                 if (sizeDisLine >= LINE_SIZE_MAX)
                                 {
