@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,11 +44,6 @@ namespace RS4
 //
 // Forward Declarations
 //
-
-/// @brief Byte-reverse a 64-bit integer
-/// @param[in] i_x 64-bit word that need to be byte reversed
-/// @return Byte reversed 64-bit word
-uint64_t rs4_revle64(const uint64_t i_x);
 
 ///
 /// @brief Decode an unsigned integer from a 4-bit octal stop code.
