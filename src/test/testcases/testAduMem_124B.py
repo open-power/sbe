@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2017
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,8 +30,6 @@ import testUtil
 import testMemUtil as testMemProcUtil
 err = False
 
-
-
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
 def main( ):
@@ -45,7 +44,7 @@ def main( ):
     # GetMemAdu test
     readData = testMemProcUtil.getmem(0x08000000, 1, 0xA5)
     if(data == readData):
-        print ("Success - Write-Read ADU")
+        print ("Success - Write-Read ADU 1byte")
     else:
         print data
         print readData
@@ -60,7 +59,7 @@ def main( ):
     # GetMemAdu test
     readData = testMemProcUtil.getmem(0x08000000, 2, 0xA5)
     if(data == readData):
-        print ("Success - Write-Read ADU")
+        print ("Success - Write-Read ADU 2byte")
     else:
         print data
         print readData
@@ -75,11 +74,16 @@ def main( ):
     # GetMemAdu test
     readData = testMemProcUtil.getmem(0x08000000, 4, 0xA5)
     if(data == readData):
-        print ("Success - Write-Read ADU")
+        print ("Success - Write-Read ADU 4byte")
     else:
         print data
         print readData
         raise Exception('data mistmach')
+
+# Test case 4: Invalid length - 3
+    # GetMemAdu test
+    testMemProcUtil.getmem_failure(0x08000000, 3, 0xA5)
+    print ("Success - invalid length test")
 
 #-------------------------------------------------
 # Calling all test code
