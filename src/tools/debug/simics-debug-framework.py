@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -68,7 +68,9 @@ def register_sbe_debug_framework_tools():
 
 def fillSymTable():
 #    symFile = os.environ['SBE_IMG_OUT_LOC'] +  "/sbe.syms"
-    symFile = SBE_TOOLS_PATH + "/sbe.syms"
+# TODO via RTC:168436 - figure out the DD level from simics flag,
+#                       as of now defaulting to DD1
+    symFile = SBE_TOOLS_PATH + "/sbe_DD1.syms"
 #    symFile = os.environ['sb'] + "/../obj/ppc/sbei/sbfw/simics/sbe.syms"
     f = open( symFile, 'r')
     for line in f:
@@ -112,7 +114,8 @@ def collectTrace ( procNr ):
   fileName = "sbe_" + `procNr` + "_tracMERG"
   cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
-  cmd3 = "shell \"" + "fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile sbetrace.bin >" +  fileName + "\""
+# TODO via RTC:168436 - figure out the DD level from simics flag, as of now defaulting to DD1
+  cmd3 = "shell \"" + "fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_DD1 sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""
 
   ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -26,14 +26,16 @@
 # "*.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/*
-export SUB_OBJDIR = /istep4
+export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istep4
 
 include img_defs.mk
 include istep4files.mk
 
 export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR)
 
+ifneq ($(ddlevel), DD2)
 GCC-CFLAGS += -mlongcall
+endif
 
 OBJSISTEP4 := $(addprefix $(OBJDIR-ISTEP4)/, $(ISTEP4_OBJECTS))
 

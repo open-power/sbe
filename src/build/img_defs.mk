@@ -56,12 +56,19 @@
 #
 # OBJDIR             : target directory for all generated files
 
-IMAGE_SEEPROM_NAME := sbe_seeprom
-IMAGE_SBE_NAME := sbe_pibmem
+IMAGE_SUFFIX := DD1
+ifeq ($(ddlevel), DD2)
+IMAGE_SUFFIX := DD2
+GCC-DEFS += -DDD2
+endif
+IMAGE_SEEPROM_NAME := sbe_seeprom_$(IMAGE_SUFFIX)
+IMAGE_SBE_NAME := sbe_pibmem_$(IMAGE_SUFFIX)
 IMAGE_LOADER_NAME := sbe_loader
 IMAGE_OTPROM_NAME := sbe_otprom
+IMAGE_BASE_PPE_HEADER := base_ppe_header
 
-SBE_SYMBOLS_NAME := sbe.syms
+SBE_SYMBOLS_NAME := sbe_$(IMAGE_SUFFIX).syms
+SBE_STRINGFILE_NAME := sbeStringFile_$(IMAGE_SUFFIX)
 
 ifndef PPE_TYPE
 PPE_TYPE := std
@@ -268,28 +275,32 @@ ifndef FAPI2_TOOLS_DIR
 export FAPI2_TOOLS_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2/tools/
 endif
 
+ifndef IMPORT_OBJDIR
+export IMPORT_OBJDIR= import_hwp_mk
+endif
+
 ifndef OBJDIR-ISTEP2
-export OBJDIR-ISTEP2 = $(BASE_OBJDIR)/istep2
+export OBJDIR-ISTEP2 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep2
 endif
 
 ifndef OBJDIR-ISTEP3
-export OBJDIR-ISTEP3 = $(BASE_OBJDIR)/istep3
+export OBJDIR-ISTEP3 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep3
 endif
 
 ifndef OBJDIR-ISTEP4
-export OBJDIR-ISTEP4 = $(BASE_OBJDIR)/istep4
+export OBJDIR-ISTEP4 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep4
 endif
 
 ifndef OBJDIR-ISTEP5
-export OBJDIR-ISTEP5 = $(BASE_OBJDIR)/istep5
+export OBJDIR-ISTEP5 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep5
 endif
 
 ifndef OBJDIR-ISTEPMPIPL
-export OBJDIR-ISTEPMPIPL = $(BASE_OBJDIR)/istepmpipl
+export OBJDIR-ISTEPMPIPL = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepmpipl
 endif
 
 ifndef OBJDIR-ISTEPCOMMON
-export OBJDIR-ISTEPCOMMON = $(BASE_OBJDIR)/istepcommon
+export OBJDIR-ISTEPCOMMON = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepcommon
 endif
 
 GCC-TOOL-PATH = $(CTEPATH)/tools/ppetools/prod

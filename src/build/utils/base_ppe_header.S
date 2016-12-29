@@ -139,7 +139,7 @@ __header_string_reserved:
     .section .strings, "aS", @progbits
     .section .base, "a", @progbits
 
-    P9XipHeader P9_XIP_MAGIC_SEEPROM, 0x80000000, _sbe_image_size
+    P9XipHeader P9_XIP_MAGIC_SEEPROM, SBE_SEEPROM_BASE_ORIGIN, _sbe_image_size
 
     // Create the .fixed section
     .proc_sbe_fixed_system

@@ -65,6 +65,10 @@
 
 /// The link address of the P9 SBE Base image
 #define SBE_SEEPROM_BASE_ORIGIN 0x80000000
+#ifdef DD2
+#undef SBE_SEEPROM_BASE_ORIGIN
+#define SBE_SEEPROM_BASE_ORIGIN 0xFF800000
+#endif
 
 ///  This Index depends upon XIP HEADER File
 ///  Each section table entry is 12 bytes(SIZE_OF_SBE_XIP_SECTION) size,

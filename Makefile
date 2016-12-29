@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -23,13 +23,27 @@
 #
 # IBM_PROLOG_END_TAG
 BUILD_DIR = src/build
-.PHONY: install all clean
+.PHONY: install all clean tar
 
-install:
-	$(MAKE) -C $(BUILD_DIR) install
+del_objects:
+	@rm -rf obj/sbefw
+	@rm -rf obj/import_hwp_mk
+	@rm -rf obj/boot
+	@rm -rf obj/build/utils
+	@rm -rf obj/fapi2
 
-all:
-	$(MAKE) -C $(BUILD_DIR) all
+install: all tar
+
+tar:
+	$(MAKE) -C $(BUILD_DIR) tar
+
+DD1_build:
+	$(MAKE) -C $(BUILD_DIR) all ddlevel=DD1
+
+DD2_build:
+	$(MAKE) -C $(BUILD_DIR) all ddlevel=DD2
+
+all: DD1_build del_objects DD2_build
 
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean

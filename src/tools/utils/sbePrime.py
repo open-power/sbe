@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -51,9 +51,6 @@ import sbeCmvcConstants as errorcode
 import sbeCmvcUtility as utilcode
 import sbePatchUtility as utilpatch
 
-# Files to copy for sbe prime
-PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin"
-
 #-------------------------
 # Main Function
 #-------------------------
@@ -82,6 +79,8 @@ def main():
         print " \t                                sbe_sp_intf.H,simics.tar,sbe_seeprom.bin"
         print " \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)"
         print " \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled"
+        print " \t  -l,--level     = [ Optional ] Flag to determine ddlevel of the image, by default"
+        print " \t                                DD1 image is compiled"
         print " \t  -h,--help      = Help"
         print "  ------------------------------------------------------------------------------------"
 
@@ -116,11 +115,12 @@ def main():
     file_name    = "None"
     rc_file      = "None"
     build        = "1"
+    ddlevel      = "DD1"
 
     #----------------------------
     # Read command line args
     #----------------------------
-    opts, args = getopt.getopt(sys.argv[1:],"p:s:i:h:r:n",['patch=', 'sb=', 'files=', 'help', 'rc_file=', 'no_build'])
+    opts, args = getopt.getopt(sys.argv[1:],"p:s:i:hr:nl:",['patch=', 'sb=', 'files=', 'help', 'rc_file=', 'no_build', 'level='])
     for opt, arg in opts:
        if opt in ('-h', '--help'):
            usage()
@@ -135,6 +135,8 @@ def main():
            rc_file = arg
        elif opt in ('--no_build'):
            build = "0"
+       elif opt in ('-l', '--level'):
+           ddlevel = arg
        else:
            usage()
            exit_main(errorcode.ERROR_EXIT)
@@ -238,6 +240,10 @@ def main():
             print "  postsimsetup [ ERROR ] : ",rc_shell
             exit_main(rc_shell)
 
+    # Files to copy for sbe prime
+    # TODO via RTC:168436 - DD specific images to be updated in CMVC makefiles
+    # PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_"+ddlevel+".bin"
+    PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin"
 
     #----------------------------------------
     # 4) Copy the files from repo to sandbox

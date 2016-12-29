@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -26,7 +26,7 @@
 # "*.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/*
-export SUB_OBJDIR = /istep5
+export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istep5
 
 include img_defs.mk
 include istep5files.mk

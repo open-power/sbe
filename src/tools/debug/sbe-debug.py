@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -41,11 +41,11 @@ else:
 
 baseAddr = 0xfffe8000
 
-def fillSymTable(sbeObjDir, target ):
+def fillSymTable(sbeObjDir, target, ddsuffix ):
     if (target == 'AWAN'):
         symFile = sbeObjDir + "/sim.sbe.syms"
     else:
-        symFile = sbeObjDir + "/sbe.syms"
+        symFile = sbeObjDir + "/sbe"+ddsuffix+".syms"
     f = open( symFile, 'r' )
     for line in f:
         words = line.split()
@@ -58,7 +58,7 @@ def getOffset( symbol ):
     offset = int(symAddr, base = 16) - baseAddr;
     return hex(offset)
 
-def collectTrace( sbeObjDir, target, node, proc ):
+def collectTrace( sbeObjDir, target, node, proc, ddsuffix ):
     offset = getOffset( 'g_pk_trace_buf' );
     len = "0x" + syms['g_pk_trace_buf'][1];
     cmd1 = ("p9_pibmem_dump_wrap.exe -quiet -start_byte " + \
@@ -67,7 +67,7 @@ def collectTrace( sbeObjDir, target, node, proc ):
              " -n" + str(node) + " -p" + str(proc))
     cmd2 = sbeObjDir + "/ppe2fsp DumpPIBMEM sbetrace.bin "
     cmd3 = (sbeObjDir + "/fsp-trace -s " + sbeObjDir +\
-                         "/sbeStringFile sbetrace.bin > "+\
+                         "/sbeStringFile"+ddsuffix+" sbetrace.bin > "+\
                          "sbe_"+str(proc)+"_tracMERG")
     cmd4 = "mv DumpPIBMEM dumpPibMem_trace"
     print "\ncollecting trace with commands -\n"
@@ -95,11 +95,11 @@ def collectTrace( sbeObjDir, target, node, proc ):
        print "ERROR running %s: %d " % ( cmd4, rc )
        return 1
 
-def collectAttr( sbeObjDir, target, node, proc ):
+def collectAttr( sbeObjDir, target, node, proc, ddsuffix ):
     if (target == 'AWAN'):
         sbeImgFile = "p9n_10.sim.sbe_seeprom.bin"
     else:
-        sbeImgFile = "sbe_seeprom.bin"
+        sbeImgFile = "sbe_seeprom"+ddsuffix+".bin"
     offset = getOffset( 'G_sbe_attrs' );
     len = "0x" + syms['G_sbe_attrs'][1];
     cmd1 = ("p9_pibmem_dump_wrap.exe -quiet -start_byte " + \
@@ -210,7 +210,8 @@ optional arguments:\n\
   -t {AWAN,HW,FILE}, --target {AWAN,HW,FILE}\n\
                         Target type\n\
   -n NODE, --node NODE  Node Number\n\
-  -p PROC, --proc PROC  Proc Number"
+  -p PROC, --proc PROC  Proc Number\n\
+  -d DDLEVEL, --ddlevel DD Specific image identifier"
 
 def main( argv ):
     try:
@@ -225,6 +226,7 @@ def main( argv ):
     target = 'HW'
     node = 0
     proc = 0
+    ddsuffix = 'DD1'
 
     # Parse the command line arguments
     for opt, arg in opts:
@@ -255,6 +257,12 @@ def main( argv ):
             except:
                 print "proc should be an integer number"
                 exit(1)
+        elif opt in ('-d', '--ddlevel'):
+            if arg in ('DD1', 'DD2'):
+                ddsuffix = arg
+            else:
+                print "target should be one of {DD1, DD2}"
+                exit(1)
 
     # On cronus, save the existing FIFO mode
     cmdFifoLastState = subprocess.Popen(['getconfig','USE_SBE_FIFO'], stdout=subprocess.PIPE).communicate()[0]
@@ -273,11 +281,11 @@ def main( argv ):
 
     sbeObjDir = SBE_TOOLS_PATH;
     print "sbeObjDir", sbeObjDir
-    fillSymTable(sbeObjDir, target)
+    fillSymTable(sbeObjDir, target, ddsuffix)
     if ( level == 'all' ):
         print "Parsing everything"
-        collectTrace( sbeObjDir, target, node, proc )
-        collectAttr(  sbeObjDir, target, node, proc )
+        collectTrace( sbeObjDir, target, node, proc, ddsuffix )
+        collectAttr(  sbeObjDir, target, node, proc, ddsuffix )
         sbeStatus( node, proc )
     elif ( level == 'trace' ):
         collectTrace( sbeObjDir, target, node, proc )

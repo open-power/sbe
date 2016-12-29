@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -30,10 +30,17 @@ import random
 import sys
 
 # Workaround to cut SBE image from elf image.
-def parserElf():
-    cmd = "readelf -S ../../images/sbe_seeprom.out"
+def parserElf(argv):
+    try:
+        ddlevel = argv[1]
+    except:
+        print "Missing DD level name"
+        exit(-1)
+    SBE_SEEPROM_OUT = "../../images/sbe_seeprom_"+ddlevel+".out"
+    SBE_SEEPROM_BIN = "../../images/sbe_seeprom_"+ddlevel+".bin"
+    cmd = "readelf -S "+SBE_SEEPROM_OUT
     firstSection = ".header"
-    cmd1 = "nm ../../images/sbe_seeprom.out | grep  _sbe_image_size"
+    cmd1 = "nm "+SBE_SEEPROM_OUT+" | grep  _sbe_image_size"
     output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     i = 0;
     for line in output.stdout:
@@ -60,11 +67,11 @@ def parserElf():
         exit(-1)
 
     # cut the image
-    cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if=../../images/sbe_seeprom.out of=../../images/sbe_seeprom.bin bs=1"
+    cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if="+SBE_SEEPROM_OUT+" of="+SBE_SEEPROM_BIN+" bs=1"
     rc = os.system(cmd1)
     if ( rc ):
        print "ERROR running %s: %d "%( cmd1, rc )
        exit(-1)
 
-parserElf()
+parserElf(sys.argv)
 

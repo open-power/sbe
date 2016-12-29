@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -58,13 +58,13 @@ $(LINK_SCRIPT_OTPROM): $(LINKER_DIR)/linkotprom.cmd
 	$(CPP) -I$(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/linkotprom.cmd -o $(LINK_SCRIPT_OTPROM)
 
 # ---- Loader Image  ------
-$(IMG_DIR)/$(IMAGE_LOADER_NAME).bin $(OBJDIR)/$(IMAGE_LOADER_NAME).dis: $(OBJDIR)/$(IMAGE_LOADER_NAME).out
-	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(OBJDIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
-	$(OBJDUMP) -S $< > $(OBJDIR)/$(IMAGE_LOADER_NAME).dis
+$(IMG_DIR)/$(IMAGE_LOADER_NAME).bin $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis: $(IMG_DIR)/$(IMAGE_LOADER_NAME).out
+	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
+	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 
 #create a linked ELF executable
-$(OBJDIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
-	$(LD) -e l2_loader -T$(LINK_SCRIPT_LOADER) -Map $(OBJDIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(OBJDIR)/$(IMAGE_LOADER_NAME).out $(LOADER_OBJS)
+$(IMG_DIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
+	$(LD) -e l2_loader -T$(LINK_SCRIPT_LOADER) -Map $(IMG_DIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_LOADER_NAME).out $(LOADER_OBJS)
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments

@@ -38,10 +38,6 @@ source "$SBEROOT/src/test/framework/setup-env"
 #check-copyright > copyright.log 2>&1 &
 #COPYRIGHT_PID=$!
 
-
-# Build PIBMEM Image
-bash -c  "make install img=pibmem" || exit -1
-bash -c  "rm -rf $SBEROOT/obj/sbefw" || exit -1
 # Build SEEPROM Image
 bash -c  "make install" || exit -1
 

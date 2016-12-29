@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -87,18 +87,18 @@ LIB_DIRS += -L$(OBJDIR-ISTEPCOMMON)
 ISTEPCOMMON := $(OBJDIR-ISTEPCOMMON)/libistepcommon.a
 LLIBS += -listepcommon
 
-SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out
-SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).map
-SIMICS_PPE_TAR_FILES += $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).dis
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).out
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).map
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 ifeq ($(img), seeprom)
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.out
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.map
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.dis
 endif
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe.syms
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_*.syms
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.xml
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.py
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeStringFile
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(SBE_STRINGFILE_NAME)
 SIMICS_PPE_TAR_FILES += $(PPETRACEPP_BIN_DIR)/ppe2fsp
 SIMICS_BB_TAR_FILES += $(SIMICSTOOLS_SRCDIR)/*
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/simics-debug-framework.py
@@ -123,19 +123,19 @@ LINK_OBJS = $(OBJS)
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
 LINK_OBJS += $(OBJS) $(GCCLIBS)
 
-LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptseeprom)
+LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptseeprom_$(IMAGE_SUFFIX))
 LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
 
 # ---- SEEPROM Image  ------
 # This removes all unecessary headers from the ELF executable
 $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis: $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out
-	./parsAndCutElf.py
+	./parsAndCutElf.py $(IMAGE_SUFFIX)
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
 
 #create a linked ELF executable
 $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
-		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(BOOT_OBJECTS) $(BUILDDATA_OBJDIR)/base_ppe_header.o $(OBJS) $(LIB_DIRS) \
+		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(BOOT_OBJECTS) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros
@@ -173,7 +173,11 @@ all: $(OBJDIR) xml $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin \
 	 report
 endif
 
-install: all
+install: all tar
+
+tar:
+# TODO:Remove this line once Simics supports DD specific files
+	@cp $(IMG_DIR)/sbe_seeprom_DD1.bin $(IMG_DIR)/sbe_seeprom.bin | true
 	@echo "Installing simics.tar"
 	@rm -rf $(OBJDIR)/simics-tar-dir
 	@mkdir $(OBJDIR)/simics-tar-dir
@@ -188,7 +192,8 @@ install: all
 	@echo "Generated simics.tar in Sbe images Directory"
 
 .PHONY: all normalize defaultset appendloader add_LoaderAddr symbols report \
-		appendoverrides xml tracehash topfixedheaders  $(SUBDIRS)
+		appendoverrides xml tracehash topfixedheaders  $(SUBDIRS) \
+		tar install
 
 buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_date `date +%Y%m%d`
@@ -198,13 +203,13 @@ buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
 
 add_LoaderAddr: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __l1Loader | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 
 ifeq ($(img), seeprom)
-symbols: $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out
+symbols: $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(IMG_DIR)/$(IMAGE_LOADER_NAME).out
 	$(NM) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
-	$(NM) $(BOOT_OBJDIR)/$(IMAGE_LOADER_NAME).out >> $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
+	$(NM) $(IMG_DIR)/$(IMAGE_LOADER_NAME).out >> $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
 endif
 ifeq ($(img), pibmem)
 symbols: $(IMG_DIR)/$(IMAGE_SBE_NAME).out
@@ -238,7 +243,8 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/chip_ec_attributes.xml
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 	mkdir -p $(IMG_DIR)
-	mkdir -p $(OBJDIR)/genfiles
+	mkdir -p $(GENFILES_DIR)
+	mkdir -p $(IMPORT_OBJDIR)
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR)/src/plat --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
@@ -301,7 +307,7 @@ appendloader: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(I
 # collect all of the trace hash files for this image into a single sbeStringFile
 tracehash:
 	mkdir -p $(OBJDIR)
-	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/sbeStringFile
+	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/$(SBE_STRINGFILE_NAME)
 
 #clean the kernel directory first, then the application level clean
 clean:

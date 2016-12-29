@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,14 +26,16 @@
 # "*.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/*
-export SUB_OBJDIR = /istepmpipl
+export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istepmpipl
 
 include img_defs.mk
 include istepmpiplfiles.mk
 
 export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR)
 
+ifneq ($(ddlevel), DD2)
 GCC-CFLAGS += -mlongcall
+endif
 
 OBJSISTEPMPIPL := $(addprefix $(OBJDIR-ISTEPMPIPL)/, $(ISTEPMPIPL_OBJECTS))
 

@@ -135,7 +135,9 @@ sb_citest()
 {
     if [ -n "${SBE_INSIDE_WORKON}" ]; then
         echo "Already in a workon.. Continuing"
-        $PWD/${SBE_CITEST_PATH}/build-script
+        str="'$*'"
+        echo "User input string : $str"
+        $PWD/${SBE_CITEST_PATH}/build-script $*
     else
         echo "Please do workon and re launch..."
     fi
