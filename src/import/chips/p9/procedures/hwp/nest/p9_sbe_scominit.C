@@ -49,6 +49,8 @@
 #include <p9_misc_scom_addresses.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
+#include <p9_xbus_scom_addresses.H>
+#include <p9_obus_scom_addresses.H>
 #include <p9_sbe_common.H>
 
 
@@ -79,7 +81,22 @@ const uint64_t LPC_FIR_MASK    = 0x00F0000000000000ULL;
 // PBA FIR constants
 const uint64_t PBA_FIR_ACTION0 = 0x0000000000000000ULL;
 const uint64_t PBA_FIR_ACTION1 = 0x0C0100600C000000ULL;
-const uint64_t PBA_FIR_MASK = 0x3082448062FC0000ULL;
+const uint64_t PBA_FIR_MASK = 0x7082448062FC0000ULL;
+
+// PPE FIR constants
+// FBC
+const uint64_t FBC_PPE_FIR_ACTION0 = 0x0000000000000000ULL;
+const uint64_t FBC_PPE_FIR_ACTION1 = 0xF1C0000000000000ULL;
+const uint64_t FBC_PPE_FIR_MASK    = 0x0E1C000000000000ULL;
+// XBUS
+const uint64_t XB_PPE_FIR_ACTION0 = 0x0000000000000000ULL;
+const uint64_t XB_PPE_FIR_ACTION1 = 0xF1C0000000000000ULL;
+const uint64_t XB_PPE_FIR_MASK    = 0x0E38000000000000ULL;
+// OBUS
+const uint64_t OB_PPE_FIR_ACTION0 = 0x0000000000000000ULL;
+const uint64_t OB_PPE_FIR_ACTION1 = 0xF1C0000000000000ULL;
+const uint64_t OB_PPE_FIR_MASK    = 0x0E38000000000000ULL;
+
 
 //------------------------------------------------------------------------------
 // Function definitions
@@ -319,9 +336,90 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         for (auto& l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>(l_target_filter,
                 fapi2::TARGET_STATE_FUNCTIONAL))
         {
-
+            uint8_t l_unit_pos = 0;
             FAPI_INF("Call p9_sbe_common_configure_chiplet_FIR");
             FAPI_TRY(p9_sbe_common_configure_chiplet_FIR(l_chplt_target));
+
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_target, l_unit_pos),
+                     "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
+
+            if (l_unit_pos == 0x05)
+            {
+                // configure FBC PPE FIRs
+                FAPI_TRY(fapi2::putScom(i_target, PU_PB_PPE_LFIRACT0, FBC_PPE_FIR_ACTION0),
+                         "Error from putScom (PU_PB_PPE_LFIRACT0)");
+
+                FAPI_TRY(fapi2::putScom(i_target, PU_PB_PPE_LFIRACT1, FBC_PPE_FIR_ACTION1),
+                         "Error from putScom (PU_PB_PPE_LFIRACT1)");
+
+                FAPI_TRY(fapi2::putScom(i_target, PU_PB_PPE_LFIRMASK, FBC_PPE_FIR_MASK),
+                         "Error from putScom (PU_PB_PPE_LFIRMASK)");
+            }
+
+            if (l_unit_pos == 0x06)
+            {
+                // configure XBUS PPE FIRs
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_IOPPE_PPE_FIR_ACTION0_REG, XB_PPE_FIR_ACTION0),
+                         "Error from putScom (XBUS_IOPPE_PPE_FIR_ACTION0_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_IOPPE_PPE_FIR_ACTION1_REG, XB_PPE_FIR_ACTION1),
+                         "Error from putScom (XBUS_IOPPE_PPE_FIR_ACTION1_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_IOPPE_PPE_FIR_MASK_REG, XB_PPE_FIR_MASK),
+                         "Error from putScom (XBUS_IOPPE_PPE_FIR_MASK_REG)");
+            }
+
+            if (l_unit_pos == 0x09)
+            {
+                // configure OBUS0 PPE FIRs
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_0_IOPPE_PPE_FIR_ACTION0_REG, OB_PPE_FIR_ACTION0),
+                         "Error from putScom (OBUS_0_IOPPE_PPE_FIR_ACTION0_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_0_IOPPE_PPE_FIR_ACTION1_REG, OB_PPE_FIR_ACTION1),
+                         "Error from putScom (OBUS_0_IOPPE_PPE_FIR_ACTION1_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_0_IOPPE_PPE_FIR_MASK_REG, OB_PPE_FIR_MASK),
+                         "Error from putScom (OBUS_0_IOPPE_PPE_FIR_MASK_REG)");
+            }
+
+            if (l_unit_pos == 0x0A)
+            {
+                // configure OBUS1 PPE FIRs
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_1_IOPPE_PPE_FIR_ACTION0_REG, OB_PPE_FIR_ACTION0),
+                         "Error from putScom (OBUS_1_IOPPE_PPE_FIR_ACTION0_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_1_IOPPE_PPE_FIR_ACTION1_REG, OB_PPE_FIR_ACTION1),
+                         "Error from putScom (OBUS_1_IOPPE_PPE_FIR_ACTION1_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_1_IOPPE_PPE_FIR_MASK_REG, OB_PPE_FIR_MASK),
+                         "Error from putScom (OBUS_1_IOPPE_PPE_FIR_MASK_REG)");
+            }
+
+            if (l_unit_pos == 0x0B)
+            {
+                // configure OBUS2 PPE FIRs
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_2_IOPPE_PPE_FIR_ACTION0_REG, OB_PPE_FIR_ACTION0),
+                         "Error from putScom (OBUS_2_IOPPE_PPE_FIR_ACTION0_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_2_IOPPE_PPE_FIR_ACTION1_REG, OB_PPE_FIR_ACTION1),
+                         "Error from putScom (OBUS_2_IOPPE_PPE_FIR_ACTION1_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_2_IOPPE_PPE_FIR_MASK_REG, OB_PPE_FIR_MASK),
+                         "Error from putScom (OBUS_2_IOPPE_PPE_FIR_MASK_REG)");
+            }
+
+            if (l_unit_pos == 0x0C)
+            {
+                // configure OBUS3 PPE FIRs
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_3_IOPPE_PPE_FIR_ACTION0_REG, OB_PPE_FIR_ACTION0),
+                         "Error from putScom (OBUS_3_IOPPE_PPE_FIR_ACTION0_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_3_IOPPE_PPE_FIR_ACTION1_REG, OB_PPE_FIR_ACTION1),
+                         "Error from putScom (OBUS_3_IOPPE_PPE_FIR_ACTION1_REG)");
+
+                FAPI_TRY(fapi2::putScom(i_target, OBUS_3_IOPPE_PPE_FIR_MASK_REG, OB_PPE_FIR_MASK),
+                         "Error from putScom (OBUS_3_IOPPE_PPE_FIR_MASK_REG)");
+            }
         }
     }
 
