@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -176,7 +176,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
             }while(++l_thread < l_threadCntMax);
 
             // If FapiRc from the inner loop (thread loop), just break here
-            if ( l_fapiRc )
+            if ((l_fapiRc) && (IGNORE_HW_ERRORS != l_req.mode))
             {
                 break; // From core while loop
             }
