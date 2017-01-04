@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,6 +57,14 @@
 
 #define MSR_SEM_START_BIT       1
 #define MSR_SEM_LEN             7
+#define MSR_SEM1                0x40000000
+#define MSR_SEM2                0x20000000
+#define MSR_SEM3                0x10000000
+#define MSR_SEM4                0x08000000
+#define MSR_SEM5                0x04000000
+#define MSR_SEM6                0x02000000
+#define MSR_SEM7                0x01000000
+
 #define MSR_SIBRC_START_BIT     9
 #define MSR_SIBRC_LEN           3
 

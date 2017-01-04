@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -299,13 +299,31 @@ popcount64(uint64_t x)
 
 #if defined(USE_PPE_IMPRECISE_MODE)
 
+#if defined(MASK_MSR_SEM6)
+
+#define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
+    (MSR_UIE | MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE | MSR_SEM6)
+
+#else
+
 #define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
     (MSR_UIE | MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
+
+#endif  /*MASK_MSR_SEM6*/
+
+#else
+
+#if defined(MASK_MSR_SEM6)
+
+#define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
+    (MSR_UIE | MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_SEM6)
+
 #else
 
 #define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
     (MSR_UIE | MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2)
 
+#endif  /*MASK_MSR_SEM6*/
 #endif  /*USE_PPE_IMPRECISE_MODE*/
 #endif  /*PK_THREAD_MACHINE_CONTEXT_DEFAULT*/
 
