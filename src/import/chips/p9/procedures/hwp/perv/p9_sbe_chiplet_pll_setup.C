@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,21 +57,18 @@ enum P9_SBE_CHIPLET_PLL_SETUP_Private_Constants
     REGIONS = 0x001
 };
 
-static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pci_pll_lock(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pll_lock(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    bool is_pcie_chiplet);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const bool i_bypass);
 
-static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_dcc_bypass(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
-
-static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_pdly_bypass(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
+static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    bool mc_pdly_bypass, bool mc_dcc_bypass);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_pll_reset(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
@@ -89,12 +86,11 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
     uint8_t l_bypass = 0;
     FAPI_INF("p9_sbe_chiplet_pll_setup: Entering ...");
 
-    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-         (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_DBG("Drop PDLY bypass");
-        FAPI_TRY(p9_sbe_chiplet_pll_setup_mc_pdly_bypass(l_chplt_trgt));
-    }
+    auto l_mc_io_func = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                            static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
+                                    fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_XBUS |
+                                    fapi2::TARGET_FILTER_ALL_PCI),
+                            fapi2::TARGET_STATE_FUNCTIONAL);
 
     FAPI_DBG("Reading bypass attribute");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_bypass));
@@ -102,117 +98,100 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
     FAPI_DBG("Reading ATTR_mc_sync_mode");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_read_attr));
 
-    if ( l_read_attr )
+    for (auto& mc : l_mc_io_func)
     {
-        for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-             (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
+        uint32_t l_chipletID = mc.getChipletNumber();
+
+        if( l_chipletID == 7 || l_chipletID == 8 )
         {
-            FAPI_DBG("call clock start stop module and drop syncclk muxsel");
-            FAPI_TRY(p9_sbe_chiplet_pll_setup_strt_pci_nsl_drp_synclk_mux(l_chplt_trgt));
-        }
+            FAPI_DBG("Drop PDLY bypass");
+            FAPI_TRY(p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass(mc, true, false));
 
-        if (l_bypass == 0)
-        {
-            for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
-                                                   fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
+            if ( !(l_read_attr) )
             {
-                FAPI_DBG("release pll test enable for except pcie");
-                FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_test_enable(l_chplt_trgt));
+                FAPI_DBG("Drop DCC  bypass");
+                FAPI_TRY(p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass(mc, false, true));
             }
-
-            for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
-                                                   fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-                  fapi2::TARGET_STATE_FUNCTIONAL))
-            {
-                FAPI_DBG("Release PLL reset");
-                FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_reset(l_chplt_trgt));
-            }
-
-            for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
-            {
-                FAPI_DBG("Check pll lock for PCIe");
-                FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pci_pll_lock(l_chplt_trgt));
-            }
-
-            for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
-                                                   fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
-            {
-                FAPI_DBG("Check pll lock for Xb,Ob");
-                FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pll_lock(l_chplt_trgt));
-            }
-        }
-
-        for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
-                                               fapi2::TARGET_FILTER_ALL_PCI | fapi2::TARGET_FILTER_XBUS),
-              fapi2::TARGET_STATE_FUNCTIONAL))
-        {
-            FAPI_TRY(p9_sbe_chiplet_pll_setup_function(l_chplt_trgt, l_bypass));
         }
     }
-    else
+
+    for (auto& pcie : l_mc_io_func)
     {
-        for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-             (fapi2::TARGET_FILTER_ALL_MC, fapi2::TARGET_STATE_FUNCTIONAL))
-        {
-            FAPI_DBG("Drop MCC bypass");
-            FAPI_TRY(p9_sbe_chiplet_pll_setup_mc_dcc_bypass(l_chplt_trgt));
-        }
+        // PCIe
+        uint32_t l_chipletID = pcie.getChipletNumber();
 
-        for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-             (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
+        if( l_chipletID >= 13 && l_chipletID <= 15 )
         {
-            FAPI_DBG("call clock start stop module and drop syncclk_muxsel");
-            FAPI_TRY(p9_sbe_chiplet_pll_setup_strt_pci_nsl_drp_synclk_mux(l_chplt_trgt));
+            FAPI_DBG("call clock start stop module and drop syncclk muxsel");
+            FAPI_TRY(p9_sbe_chiplet_pll_setup_strt_pci_nsl_drp_synclk_mux( pcie ));
         }
+    }
 
-        if (l_bypass == 0)
+    if (l_bypass == 0)
+    {
+        for (auto& targ : l_mc_io_func)
         {
-            for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                                   fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_XBUS),
-                  fapi2::TARGET_STATE_FUNCTIONAL))
+            // OBUS, XBUS, MC
+            uint32_t l_chipletID = targ.getChipletNumber();
+
+            if(l_chipletID == 6 || (l_chipletID >= 9 && l_chipletID <= 12) ||
+               ((!l_read_attr) && (l_chipletID == 7 || l_chipletID == 8))  )
             {
                 FAPI_DBG("release pll test enable for except pcie");
-                FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_test_enable(l_chplt_trgt));
-            }
-
-            for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                                   fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
-                                                   fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
-            {
-                FAPI_DBG("Release PLL reset");
-                FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_reset(l_chplt_trgt));
-            }
-
-            for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (fapi2::TARGET_FILTER_ALL_PCI, fapi2::TARGET_STATE_FUNCTIONAL))
-            {
-                FAPI_DBG("Check pll lock for pcie");
-                FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pci_pll_lock(l_chplt_trgt));
-            }
-
-            for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-                 (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                                   fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_XBUS),
-                  fapi2::TARGET_STATE_FUNCTIONAL))
-            {
-                FAPI_DBG("check pll lock for Mc,Xb,Ob");
-                FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pll_lock(l_chplt_trgt));
+                FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_test_enable(targ));
             }
         }
 
-        for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
-                                               fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_ALL_PCI |
-                                               fapi2::TARGET_FILTER_XBUS), fapi2::TARGET_STATE_FUNCTIONAL))
+        for (auto& targ : l_mc_io_func)
         {
-            FAPI_TRY(p9_sbe_chiplet_pll_setup_function(l_chplt_trgt, l_bypass));
+            // OBUS, XBUS, PCIe, MC
+            uint32_t l_chipletID = targ.getChipletNumber();
+
+            if(l_chipletID == 6 || (l_chipletID >= 9 && l_chipletID <= 12) ||
+               (l_chipletID >= 13 && l_chipletID <= 15) ||
+               ((!l_read_attr) && (l_chipletID == 7 || l_chipletID == 8))  )
+            {
+                FAPI_DBG("Release PLL reset");
+                FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_reset(targ));
+            }
+        }
+
+        for (auto& pcie : l_mc_io_func)
+        {
+            // PCIe
+            uint32_t l_chipletID = pcie.getChipletNumber();
+
+            if( l_chipletID >= 13 && l_chipletID <= 15 )
+            {
+                FAPI_DBG("Check pll lock for pcie");
+                FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pll_lock(pcie, true));
+            }
+        }
+
+        for (auto& targ : l_mc_io_func)
+        {
+            // OBUS, XBUS, MC
+            uint32_t l_chipletID = targ.getChipletNumber();
+
+            if(l_chipletID == 6 || (l_chipletID >= 9 && l_chipletID <= 12) ||
+               ((!l_read_attr) && (l_chipletID == 7 || l_chipletID == 8))  )
+            {
+                FAPI_DBG("check pll lock for Mc,Xb,Ob");
+                FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pll_lock(targ, false));
+            }
+        }
+    }
+
+    for (auto& targ : l_mc_io_func)
+    {
+        // OBUS, XBUS, PCIe, MC
+        uint32_t l_chipletID = targ.getChipletNumber();
+
+        if(l_chipletID == 6 || (l_chipletID >= 9 && l_chipletID <= 12) ||
+           (l_chipletID >= 13 && l_chipletID <= 15) ||
+           ((!l_read_attr) && (l_chipletID == 7 || l_chipletID == 8))  )
+        {
+            FAPI_TRY(p9_sbe_chiplet_pll_setup_function(targ, l_bypass));
         }
     }
 
@@ -223,42 +202,12 @@ fapi_try_exit:
 
 }
 
-/// @brief check pll lock for pcie chiplet
-///
-/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pci_pll_lock(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
-{
-    fapi2::buffer<uint64_t> l_read_reg;
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = i_target_chiplet.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
-    FAPI_INF("p9_sbe_chiplet_pll_setup_check_pci_pll_lock: Entering ...");
-
-    FAPI_DBG("Check  PLL lock");
-    //Getting PLL_LOCK_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_PLL_LOCK_REG,
-                            l_read_reg)); //l_read_reg = PLL_LOCK_REG
-
-    FAPI_ASSERT(l_read_reg.getBit<0>() == 1 && l_read_reg.getBit<1>() == 1,
-                fapi2::PLL_LOCK_ERR()
-                .set_TARGET_CHIPLET(i_target_chiplet)
-                .set_TARGET_CHIP(l_chip)
-                .set_PLL_READ(l_read_reg),
-                "ERROR:PLL LOCK NOT SET");
-
-    FAPI_INF("p9_sbe_chiplet_pll_setup_check_pci_pll_lock: Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
-}
-
-/// @brief check pll lock for OB,XB,MC
+/// @brief check pll lock for OB,XB,MC,PCIe chiplets
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pll_lock(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet, bool is_pcie_chiplet)
 {
     fapi2::buffer<uint64_t> l_read_reg;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = i_target_chiplet.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
@@ -269,12 +218,24 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pll_lock(
     FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_PLL_LOCK_REG,
                             l_read_reg)); //l_read_reg = PLL_LOCK_REG
 
-    FAPI_ASSERT(l_read_reg.getBit<0>() == 1 ,
-                fapi2::PLL_LOCK_ERR()
-                .set_TARGET_CHIPLET(i_target_chiplet)
-                .set_TARGET_CHIP(l_chip)
-                .set_PLL_READ(l_read_reg),
-                "ERROR:PLL LOCK NOT SET");
+    if ( is_pcie_chiplet )
+    {
+        FAPI_ASSERT(l_read_reg.getBit<0>() == 1 && l_read_reg.getBit<1>() == 1,
+                    fapi2::PLL_LOCK_ERR()
+                    .set_TARGET_CHIPLET(i_target_chiplet)
+                    .set_TARGET_CHIP(l_chip)
+                    .set_PLL_READ(l_read_reg),
+                    "ERROR:PCIe PLL LOCK NOT SET");
+    }
+    else
+    {
+        FAPI_ASSERT(l_read_reg.getBit<0>() == 1 ,
+                    fapi2::PLL_LOCK_ERR()
+                    .set_TARGET_CHIPLET(i_target_chiplet)
+                    .set_TARGET_CHIP(l_chip)
+                    .set_PLL_READ(l_read_reg),
+                    "ERROR:PLL LOCK NOT SET");
+    }
 
     FAPI_INF("p9_sbe_chiplet_pll_setup_check_pll_lock: Exiting ...");
 
@@ -282,6 +243,7 @@ fapi_try_exit:
     return fapi2::current_err;
 
 }
+
 
 /// @brief Setup PLL for XBus, OBus, PCIe, (MC) chiplets
 ///
@@ -327,53 +289,40 @@ fapi_try_exit:
 
 }
 
-/// @brief Drop Mc DCC bypass
+/// @brief Drop Mc DCC bypass, Drop Mc PDLY bypass
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_dcc_bypass(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    bool mc_pdly_bypass, bool mc_dcc_bypass)
 {
     fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("p9_sbe_chiplet_pll_setup_mc_dcc_bypass: Entering ...");
+    FAPI_INF("p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass: Entering ...");
 
-    FAPI_DBG("Drop DCC bypass");
-    //Setting NET_CTRL1 register value
     l_data64.flush<1>();
-    //NET_CTRL1.CLK_DCC_BYPASS_EN = 0
-    l_data64.clearBit<PERV_1_NET_CTRL1_CLK_DCC_BYPASS_EN>();
+
+    if ( mc_pdly_bypass )
+    {
+        FAPI_DBG("Drop PDLY bypass");
+        l_data64.clearBit<PERV_1_NET_CTRL1_CLK_PDLY_BYPASS_EN>();
+    }
+
+    if ( mc_dcc_bypass )
+    {
+        FAPI_DBG("Drop DCC bypass");
+        l_data64.clearBit<PERV_1_NET_CTRL1_CLK_DCC_BYPASS_EN>();
+    }
+
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1_WAND, l_data64));
 
-    FAPI_INF("p9_sbe_chiplet_pll_setup_mc_dcc_bypass: Exiting ...");
+    FAPI_INF("p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
 
 }
 
-/// @brief Drop Mc PDLY bypass
-///
-/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_pdly_bypass(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
-{
-    fapi2::buffer<uint64_t> l_data64;
-    FAPI_INF("p9_sbe_chiplet_pll_setup_mc_pdly_bypass: Entering ...");
-
-    FAPI_DBG("Drop PDLY bypass");
-    //Setting NET_CTRL1 register value
-    l_data64.flush<1>();
-    //NET_CTRL1.CLK_PDLY_BYPASS_EN = 0
-    l_data64.clearBit<PERV_1_NET_CTRL1_CLK_PDLY_BYPASS_EN>();
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1_WAND, l_data64));
-
-    FAPI_INF("p9_sbe_chiplet_pll_setup_mc_pdly_bypass: Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
-}
 
 /// @brief release pll reset and wait
 ///
