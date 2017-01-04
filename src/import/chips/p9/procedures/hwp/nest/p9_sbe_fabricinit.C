@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,6 +44,7 @@
 #include <p9_sbe_fabricinit.H>
 #include <p9_fbc_utils.H>
 #include <p9_misc_scom_addresses.H>
+#include <p9_misc_scom_addresses_fld.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions
@@ -105,7 +106,45 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     fapi2::buffer<uint64_t> l_cmd_data;
     fapi2::buffer<uint64_t> l_status_data_act;
     fapi2::buffer<uint64_t> l_status_data_exp;
+    fapi2::buffer<uint64_t> l_hp_mode_data;
     bool l_fbc_is_initialized, l_fbc_is_running;
+    fapi2::ATTR_PROC_FABRIC_PUMP_MODE_Type l_pump_mode;
+
+    // before fabric is initialized, configure resources which live in hotplug registers
+    // but which themselves are not hotpluggable
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE, fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(), l_pump_mode),
+             "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_PUMP_MODE)");
+    FAPI_TRY(fapi2::getScom(i_target, PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR, l_hp_mode_data),
+             "Error from getScom (PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR)");
+
+    l_hp_mode_data.clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_PHYP_IS_GROUP>()    // PHYP_IS_GROUP
+    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_ADDR_BAR>()                   // Large System Map
+    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_DCACHE_CAPP>();               // dsable Dcache CAPP mode
+
+    if (l_pump_mode == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE)
+    {
+        l_hp_mode_data.clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_PUMP>();
+    }
+    else
+    {
+        l_hp_mode_data.setBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_PUMP>();
+    }
+
+    // write back to all hotplug registers (EAST/CENTER/WEST, NEXT & CURR)
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR, l_hp_mode_data),
+             "Error from putScom (PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR)");
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_HP_MODE_NEXT, l_hp_mode_data),
+             "Error from putScom (PU_PB_CENT_SM0_PB_CENT_HP_MODE_NEXT)");
+
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_EAST_HP_MODE_CURR, l_hp_mode_data),
+             "Error from putScom (PU_PB_EAST_HP_MODE_CURR)");
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_EAST_HP_MODE_NEXT, l_hp_mode_data),
+             "Error from putScom (PU_PB_EAST_HP_MODE_NEXT)");
+
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_WEST_SM0_PB_WEST_HP_MODE_CURR, l_hp_mode_data),
+             "Error from putScom (PU_PB_WEST_SM0_PB_WEST_HP_MODE_CURR)");
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_WEST_SM0_PB_WEST_HP_MODE_NEXT, l_hp_mode_data),
+             "Error from putScom (PU_PB_WEST_SM0_PB_WEST_HP_MODE_NEXT)");
 
     // check state of fabric pervasive stop control signal
     // if set, this would prohibit all fabric commands from being broadcast

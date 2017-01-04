@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,23 +38,12 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                               const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>& TGT1)
 {
     {
-        fapi2::ATTR_PROC_FABRIC_ADDR_BAR_MODE_Type l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE;
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_ADDR_BAR_MODE, TGT1, l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE));
         fapi2::buffer<uint64_t> l_scom_buffer;
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x1001100aull, l_scom_buffer ));
 
-            if ((l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_SMALL_SYSTEM))
-            {
-                constexpr auto l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_ON = 0x1;
-                l_scom_buffer.insert<9, 1, 63, uint64_t>(l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_ON );
-            }
-            else if ((l_TGT1_ATTR_PROC_FABRIC_ADDR_BAR_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_ADDR_BAR_MODE_LARGE_SYSTEM))
-            {
-                constexpr auto l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_OFF = 0x0;
-                l_scom_buffer.insert<9, 1, 63, uint64_t>(l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_OFF );
-            }
-
+            constexpr auto l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_OFF = 0x0;
+            l_scom_buffer.insert<9, 1, 63, uint64_t>(l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_OFF );
             FAPI_TRY(fapi2::putScom(TGT0, 0x1001100aull, l_scom_buffer));
         }
         {

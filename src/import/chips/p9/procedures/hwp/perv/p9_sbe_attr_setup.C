@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -53,6 +53,7 @@ enum P9_SETUP_SBE_CONFIG_scratch4
     ATTR_I2C_BUS_DIV_REF_LENGTH = 16,
     ATTR_BOOT_FLAGS_STARTBIT = 0,
     ATTR_BOOT_FLAGS_LENGTH = 32,
+    ATTR_PUMP_CHIP_IS_GROUP = 23,
     ATTR_PROC_FABRIC_GROUP_ID_STARTBIT = 26,
     ATTR_PROC_FABRIC_GROUP_ID_LENGTH = 3,
     ATTR_PROC_FABRIC_CHIP_ID_STARTBIT = 29,
@@ -473,6 +474,8 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     }
     //read_scratch6_reg
     {
+        uint8_t l_pump_mode;
+
         if ( l_read_scratch8.getBit<5>() )
         {
             FAPI_DBG("Reading Scratch_reg6");
@@ -494,8 +497,22 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
                 }
             }
 
+            if (l_read_scratch_reg.getBit<ATTR_PUMP_CHIP_IS_GROUP>())
+            {
+                l_pump_mode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_GROUP;
+            }
+            else
+            {
+                l_pump_mode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE;
+            }
+
             l_read_scratch_reg.extractToRight<26, 3>(l_read_2);
             l_read_scratch_reg.extractToRight<29, 3>(l_read_3);
+
+            FAPI_DBG("Setting up PUMP MODE");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE,
+                                   fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                                   l_pump_mode));
 
             FAPI_DBG("Setting up MASTER_CHIP, FABRIC_GROUP_ID and CHIP_ID");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_SBE_MASTER_CHIP, i_target_chip,
@@ -524,6 +541,20 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             else
             {
                 l_read_scratch_reg.setBit<24>();
+            }
+
+            FAPI_DBG("Reading PUMP MODE");
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE,
+                                   fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                                   l_pump_mode));
+
+            if (l_pump_mode == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_GROUP)
+            {
+                l_read_scratch_reg.setBit<ATTR_PUMP_CHIP_IS_GROUP>();
+            }
+            else
+            {
+                l_read_scratch_reg.clearBit<ATTR_PUMP_CHIP_IS_GROUP>();
             }
 
             FAPI_DBG("Reading ATTR_PROC_FABRIC_GROUP and CHIP_ID");
