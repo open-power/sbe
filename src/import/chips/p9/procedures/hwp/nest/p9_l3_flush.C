@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -55,7 +55,7 @@ extern "C" {
     const uint32_t P9_L3_FLUSH_SIM_CYCLE_DELAY = 1000000;
 
 //If the L3 purge is not completed in P9_L3_FLUSH_TIMEOUT delays, fail with error
-    const uint32_t P9_L3_FLUSH_TIMEOUT_COUNT = 20;
+    const uint32_t P9_L3_FLUSH_TIMEOUT_COUNT = 40;
 
 //--------------------------------------------------------------------------
 //  HWP entry point
