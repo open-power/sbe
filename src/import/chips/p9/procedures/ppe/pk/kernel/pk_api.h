@@ -36,8 +36,6 @@
 
 #define PK_THREADS 32
 
-#define USE_PPE_IMPRECISE_MODE
-
 #define PK_IDLE_THREAD_PRIORITY PK_THREADS
 
 //  Interrupt API
