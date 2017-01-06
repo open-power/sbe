@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -237,7 +237,8 @@ fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
                       SBE_SCOM_FAILURE().
                       set_address(ffdcAddr).
                       set_pcb_pib_rc(l_pibRc),
-                      "getScom:pcb pib error");
+                      "getScom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X]",
+                      l_pibRc,l_addr);
 fapi_try_exit:
     return fapi2::current_err;
 }
@@ -265,7 +266,10 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
                       SBE_SCOM_FAILURE().
                       set_address(ffdcAddr).
                       set_pcb_pib_rc(l_pibRc),
-                      "putScom:pcb pib error");
+                      "putScom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X] "
+                      "Scom_Data[0x%08X%08X]",
+                      l_pibRc,l_addr,(i_data >> 32),
+                      static_cast<uint32_t>(i_data & 0xFFFFFFFF));
 fapi_try_exit:
     return fapi2::current_err;
 }
@@ -318,6 +322,5 @@ uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,
     FAPI_INF("Exiting p9_pibErrRetry");
     return pibErr;
 }
-
 
 };
