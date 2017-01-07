@@ -121,7 +121,6 @@ fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<fapi2::TARGET_TYPE_MCS>
     //              occur if we break cache containment, but hit against the BAR)
     l_mcfirmask_and.flush<1>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_COMMAND_LIST_TIMEOUT>();
-    l_mcfirmask_and.clearBit<MCS_MCFIR_COMMAND_LIST_TIMEOUT_SPEC>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_POWERBUS_PROTOCOL_ERROR>();
