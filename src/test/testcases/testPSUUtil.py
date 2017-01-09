@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -58,7 +58,7 @@ FAILURE = 0
 '''
 This is a simulator obj mapped. Refer simics folks if new objects are needed.
 '''
-simSbeObj  = conf.p9Proc0.sbe.mibo_space
+simSbeObj  = conf.p9Proc0.sbe.scom_space
 simHostObj = conf.p9Proc0.p9_mem_map.host_xscom_device_mm
 simMemObj  = conf.system_cmp0.phys_mem
 
@@ -67,18 +67,18 @@ This is a base MBOX registry address from 0..7
 '''
 # Register MBOX 0..3 SBE side address in order
 REGDATA_SBE = [
-          0x00680500,
-          0x00680510,
-          0x00680520,
-          0x00680530
+          0x000D0050,
+          0x000D0051,
+          0x000D0052,
+          0x000D0053,
           ]
 
 # Register MBOX 4..7 host side address in order
 REGDATA_HOST = [
-          0x00680540,
-          0x00680550,
-          0x00680560,
-          0x00680570
+          0x000D0054,
+          0x000D0055,
+          0x000D0056,
+          0x000D0057,
           ]
 
 # Supporting Class objects
