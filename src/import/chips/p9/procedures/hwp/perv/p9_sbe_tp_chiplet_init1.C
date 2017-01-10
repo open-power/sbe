@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -55,6 +55,8 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
 {
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64;
+    fapi2::buffer<uint64_t> l_data64_perv_ctrl0;
+    fapi2::buffer<uint64_t> l_data64_root_ctrl0;
     fapi2::buffer<uint8_t> l_read_attr;
     FAPI_INF("p9_sbe_tp_chiplet_init1: Entering ...");
 
@@ -63,55 +65,49 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
                            i_target_chip, l_read_attr));
     FAPI_DBG("l_read_attr is %d", l_read_attr);
 
+    //Getting PERV_CTRL0 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
+                            l_data64_perv_ctrl0));
+    //Getting ROOT_CTRL0 register value
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM,
+                            l_data64_root_ctrl0));
+
     if (l_read_attr)
     {
-        //Getting PERV_CTRL0 register value
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
-                                l_data64))
         //PERV_PERV_CTRL0_SET_TP_VITL_ACT_DIS_DC = 1
-        l_data64.setBit<PERV_PERV_CTRL0_SET_TP_VITL_ACT_DIS_DC>();
+        l_data64_perv_ctrl0.setBit<PERV_PERV_CTRL0_SET_TP_VITL_ACT_DIS_DC>();
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM,
-                                l_data64));
+                                l_data64_perv_ctrl0));
     }
 
     FAPI_DBG("Release PCB Reset");
-    //Setting ROOT_CTRL0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
     //PIB.ROOT_CTRL0.PCB_RESET_DC = 0
-    l_data64.clearBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
+    l_data64_root_ctrl0.clearBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64_root_ctrl0));
 
     FAPI_DBG("Enable PCB auto-reset");
     l_data64.flush<0>().setBit<PERV_RESET_REG_TIMEOUT_EN>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_RESET_REG, l_data64));
 
     FAPI_DBG("Set Chiplet Enable");
-    //Setting PERV_CTRL0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
     //PIB.PERV_CTRL0.TP_CHIPLET_EN_DC = 1
-    l_data64.setBit<PERV_PERV_CTRL0_SET_TP_CHIPLET_EN_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
+    l_data64_perv_ctrl0.setBit<PERV_PERV_CTRL0_SET_TP_CHIPLET_EN_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64_perv_ctrl0));
 
     FAPI_DBG("Drop TP Chiplet Fence Enable");
-    //Setting PERV_CTRL0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
     //PIB.PERV_CTRL0.TP_FENCE_EN_DC = 0
-    l_data64.clearBit<PERV_PERV_CTRL0_SET_TP_FENCE_EN_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
+    l_data64_perv_ctrl0.clearBit<PERV_PERV_CTRL0_SET_TP_FENCE_EN_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64_perv_ctrl0));
 
     FAPI_DBG("Drop Global Endpoint reset");
-    //Setting ROOT_CTRL0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
     //PIB.ROOT_CTRL0.GLOBAL_EP_RESET_DC = 0
-    l_data64.clearBit<PERV_ROOT_CTRL0_SET_GLOBAL_EP_RESET_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
+    l_data64_root_ctrl0.clearBit<PERV_ROOT_CTRL0_SET_GLOBAL_EP_RESET_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64_root_ctrl0));
     FAPI_DBG("Switching PIB trace bus to SBE tracing");
 
     FAPI_DBG("Drop OOB Mux");
-    //Setting ROOT_CTRL0 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
-    l_data64.clearBit<PERV_ROOT_CTRL0_SET_OOB_MUX>();  //PIB.ROOT_CTRL0.OOB_MUX = 0
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
+    l_data64_root_ctrl0.clearBit<PERV_ROOT_CTRL0_SET_OOB_MUX>();  //PIB.ROOT_CTRL0.OOB_MUX = 0
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64_root_ctrl0));
 
     FAPI_DBG("Region setup call");
     FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(
