@@ -106,19 +106,17 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
         FAPI_DBG("Reading ATTR_SECURITY_MODE");
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, l_read_1));
+        //Getting CBS_CS register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM,
+                                l_read_reg));
 
         if ( l_read_1.getBit<7>() == 0 )
         {
             FAPI_DBG("Clear Security Access Bit");
-            //Setting CBS_CS register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM, l_data64));
-            l_data64.clearBit<4>();  //PIB.CBS_CS.CBS_CS_SECURE_ACCESS_BIT = 0
-            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CBS_CS_SCOM, l_data64));
+            l_read_reg.clearBit<4>();  //PIB.CBS_CS.CBS_CS_SECURE_ACCESS_BIT = 0
+            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CBS_CS_SCOM, l_read_reg));
         }
 
-        //Getting CBS_CS register value
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM,
-                                l_read_reg)); //l_read_reg = PIB.CBS_CS
 
         l_read_1 = 0;
         l_read_1.writeBit<7>(l_read_reg.getBit<4>());
@@ -148,10 +146,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         }
         else
         {
-            FAPI_DBG("Read Scratch_reg1");
-            //Getting SCRATCH_REGISTER_1 register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_1_SCOM,
-                                    l_read_scratch_reg));
+            l_read_scratch_reg.flush<0>();
 
             FAPI_DBG("Reading ATTR_EQ_GARD, ATTR_EC_GARD");
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EQ_GARD, i_target_chip, l_read_1));
@@ -175,6 +170,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     {
         if ( l_read_scratch8.getBit<1>() )
         {
+
             FAPI_DBG("Reading Scratch_reg2");
             //Getting SCRATCH_REGISTER_2 register value
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_2_SCOM,
@@ -187,10 +183,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         }
         else
         {
-            FAPI_DBG("Reading Scratch_reg2");
-            //Getting SCRATCH_REGISTER_2 register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_2_SCOM,
-                                    l_read_scratch_reg));
+            l_read_scratch_reg.flush<0>();
 
             FAPI_DBG("Reading ATTR_I2C_BUS_DIV_REF");
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_I2C_BUS_DIV_REF, i_target_chip, l_read_4));
@@ -215,7 +208,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_DBG("Reading Scratch_reg3");
             //Getting SCRATCH_REGISTER_3 register value
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_3_SCOM,
-                                    l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_
+                                    l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_3
 
             l_read_scratch_reg.extractToRight<2, 1>(l_is_mpipl);
 
@@ -229,10 +222,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         }
         else
         {
-            FAPI_DBG("Reading Scratch_reg3");
-            //Getting SCRATCH_REGISTER_3 register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_3_SCOM,
-                                    l_read_scratch_reg));
+            l_read_scratch_reg.flush<0>();
 
             FAPI_DBG("Reading the BOOT_FLAGS");
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BOOT_FLAGS, FAPI_SYSTEM, l_read_5));
@@ -260,7 +250,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
         if ( l_read_scratch8.getBit<3>() )
         {
-
             FAPI_DBG("Reading Scratch_Reg4");
             //Getting SCRATCH_REGISTER_4 register value
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_4_SCOM,
@@ -293,10 +282,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         }
         else
         {
-            FAPI_DBG("Reading Scratch_reg4");
-            //Getting SCRATCH_REGISTER_4 register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_4_SCOM,
-                                    l_read_scratch_reg));
+            l_read_scratch_reg.flush<0>();
 
             FAPI_DBG("Reading PLL bypass attributes");
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_FILTER_BYPASS, i_target_chip, l_cp_filter_bypass),
@@ -348,7 +334,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
         if ( l_read_scratch8.getBit<4>() )
         {
-
             FAPI_DBG("Reading Scratch_reg5");
             //Getting SCRATCH_REGISTER_5 register value
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_5_SCOM,
@@ -396,11 +381,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         }
         else
         {
-
-            FAPI_DBG("Reading Scratch_reg5");
-            //Getting SCRATCH_REGISTER_5 register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_5_SCOM,
-                                    l_read_scratch_reg));
+            l_read_scratch_reg.flush<0>();
 
             FAPI_DBG("Reading control flag attributes");
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_system_ipl_phase));
@@ -525,10 +506,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         }
         else
         {
-            FAPI_DBG("Reading Scratch_reg6");
-            //Getting SCRATCH_REGISTER_6 register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_6_SCOM,
-                                    l_read_scratch_reg));
+            l_read_scratch_reg.flush<0>();
 
             FAPI_DBG("Reading attribute for Hostboot slave bit");
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_SBE_MASTER_CHIP, i_target_chip,
