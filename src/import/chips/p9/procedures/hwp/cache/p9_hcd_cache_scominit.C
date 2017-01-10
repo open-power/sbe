@@ -97,6 +97,28 @@ p9_hcd_cache_scominit(
 
     for (auto l_iter = l_ex_targets.begin(); l_iter != l_ex_targets.end(); l_iter++)
     {
+        fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex = *l_iter;
+        auto l_core_targets = l_ex.getChildren<fapi2::TARGET_TYPE_CORE>();
+
+        FAPI_ASSERT((l_core_targets.size() != 0),
+                    fapi2::PMPROC_CACHESCOMINIT_NOGOODCOREINEX().set_QCSR(l_qcsr),
+                    "NO Good Children Cores under this So-Called Good EX!");
+
+        auto l_core = l_core_targets.begin();
+        fapi2::Target<fapi2::TARGET_TYPE_CORE> l_ec   = *l_core;
+        fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
+            l_ec.getParent<fapi2::TARGET_TYPE_PERV>();
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv,
+                               l_attr_chip_unit_pos));
+        l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET;
+        l_exid               = (l_attr_chip_unit_pos >> 1);
+
+        if (!(l_exlist & (0x8000 >> l_exid)))
+        {
+            continue;
+        }
+
         FAPI_EXEC_HWP(l_rc, p9_l2_scom, *l_iter, l_sys);
 
         if (l_rc)
@@ -126,23 +148,6 @@ p9_hcd_cache_scominit(
 
         if (l_attr_sys_force_all_cores)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex = *l_iter;
-            auto l_core_targets = l_ex.getChildren<fapi2::TARGET_TYPE_CORE>();
-
-            FAPI_ASSERT((l_core_targets.size() != 0),
-                        fapi2::PMPROC_CACHESCOMINIT_NOGOODCOREINEX().set_QCSR(l_qcsr),
-                        "NO Good Children Cores under this So-Called Good EX!");
-
-            auto l_core = l_core_targets.begin();
-            fapi2::Target<fapi2::TARGET_TYPE_CORE> l_ec   = *l_core;
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
-                l_ec.getParent<fapi2::TARGET_TYPE_PERV>();
-
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv,
-                                   l_attr_chip_unit_pos));
-            l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET;
-            l_exid               = (l_attr_chip_unit_pos >> 1);
-
             FAPI_DBG("Setup L3-LCO on TARGET_ID[%d] via EX_L3_MODE_REG1[0,2-5,6-21]", l_exid);
             FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG1, l_data64));
             l_data64.insertFromRight<2, 4>(l_exid).insertFromRight<6, 16>(l_exlist);

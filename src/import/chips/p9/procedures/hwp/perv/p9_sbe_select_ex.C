@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,17 +57,22 @@
 ///
 ///   Parameter indicates single core or all (controlled by Cronus/SBE)
 ///
+///     host_eq_found = false
 ///     loop over functional cores {
 ///         if mode == SINGLE {
-///             if first one {
+///             if !host_eq_found {
 ///                 Record the master core, EX and EQ number
 ///                 Add to MC Group 3
+///                 host_eq_found = true
 ///             }
 ///         }
 ///         Set bits in core and EX scoreboard for later updating the OCC
 ///         Set default PFET controller delay values into Core
+///         if host_eq_found (only set in single mode)
+///             break out of core loop
 ///       }
 ///
+///     host_eq_found = false
 ///     loop over functional EQs {
 ///         if mode == SINGLE {
 ///             if master EQ
@@ -77,10 +82,13 @@
 ///                         Add to MC Group 5 if Even (EX0)
 ///                         Add to MC Group 6 if Odd (EX1)
 ///                 }
+///                 host_eq_found = true
 ///             }
-///             Set bit in EQ scoreboard for later updating the OCC
 ///         }
+///         Set bit in EQ scoreboard for later updating the OCC
 ///         Set default PFET controller delay values into EQ
+///         if host_eq_found (only set in single mode)
+///             break out of EQ loop
 ///     }
 ///
 ///   Write resultant scoreboard EQ/Core mask into OCC complex
@@ -158,6 +166,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
     uint8_t attr_force_all = 0;
     bool b_single = true;
     bool b_host_core_found = false;
+    bool b_host_eq_found = false;
 
     uint32_t l_master_ex_num = 0xFF;  // invalid EX number initialized
     uint32_t l_master_eq_num = 0xFF;  // invalid EQ number initialized
@@ -272,6 +281,12 @@ fapi2::ReturnCode p9_sbe_select_ex(
                                 l_data64),
                  "Error: Core PFET Delay register");
 
+        // if b_host_core_found (only set in single mode), break out of core loop
+        if (b_host_core_found)
+        {
+            break;
+        }
+
     } // Core loop
 
     // Process the good EQs
@@ -293,6 +308,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
             if (l_eq_num == l_master_eq_num)
             {
                 FAPI_TRY(select_ex_add_eq_to_mc_group(eq));
+                b_host_eq_found = true;
             }
 
             for (auto i = l_eq_num * NUM_EX_PER_EQ; i < (l_eq_num + 1)*NUM_EX_PER_EQ; ++i)
@@ -321,6 +337,12 @@ fapi2::ReturnCode p9_sbe_select_ex(
                                 l_data64),
                  "Error: EQ PFET Delay register, rc 0x%.8X",
                  (uint32_t)fapi2::current_err);
+
+        // if b_eq_eq_found (only set in single mode), break out of EQ loop
+        if (b_host_eq_found)
+        {
+            break;
+        }
 
     } // EQ loop
 
