@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -30,7 +30,7 @@
 ///   (Done) Drop partial good regional fences(always drop vital and pervasive)
 ///   (Done) Drop vital fence
 ///   (Done) Reset abst clock muxsel, sync muxsel
-///   (TODO) +set fabric node/chip ID (read from nest chiplet)
+///   (Done) set fabric node/chip ID (read from nest chiplet)
 ///   (Done) module align_chiplets
 ///   (Done)  - set flushmode_inh to exit flush mode
 ///   (Done)  - set force_align
@@ -146,7 +146,7 @@ p9_hcd_core_startclocks(
     insertFromRight<52, 12>(0x10);
     FAPI_TRY(putScom(i_target, C_OPCG_ALIGN, l_data64));
 
-    /// @todo partial good information via attribute, drop all fences for now
+    /// @todo RTC158181 partial good information via attribute, drop all fences for now
     FAPI_DBG("Drop partial good fences via CPLT_CTRL1[4-13]");
     FAPI_TRY(putScom(i_target, C_CPLT_CTRL1_CLEAR, MASK_CLR(4, 11, 0x7FF)));
 
@@ -276,7 +276,7 @@ p9_hcd_core_startclocks(
     FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(18)));
 
-    /// @todo ignore xstop checkstop in sim, review for lab
+    /// @todo RTC158181 ignore xstop checkstop in sim, review for lab
     /*
     FAPI_DBG("Check the Global Checkstop FIR");
     FAPI_TRY(getScom(i_target, C_XFIR, l_data64));

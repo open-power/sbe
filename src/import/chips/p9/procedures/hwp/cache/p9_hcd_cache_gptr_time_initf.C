@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,7 +27,7 @@
 /// @brief Load GPTR and Time for EX non-core
 ///
 /// Procedure Summary:
-///   Initfiles in procedure defined on VBU ENGD wiki (TODO add link)
+///   Initfiles in procedure defined on VBU ENGD wiki
 ///     to produce #G VPD contents
 ///   Check for the presence of core override GPTR ring from image
 ///     (this is new fvor P9)

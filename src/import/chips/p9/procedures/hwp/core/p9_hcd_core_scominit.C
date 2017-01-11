@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -66,7 +66,7 @@ p9_hcd_core_scominit(
     fapi2::buffer<uint64_t> l_data64;
     fapi2::ReturnCode l_rc;
 
-    /// @todo how about bit 6?
+    /// @todo RTC158181 how about bit 6?
     FAPI_DBG("Restore SYNC_CONFIG[8] for stop1");
     FAPI_TRY(getScom(i_target, C_SYNC_CONFIG, l_data64));
     FAPI_TRY(putScom(i_target, C_SYNC_CONFIG, DATA_SET(8)));

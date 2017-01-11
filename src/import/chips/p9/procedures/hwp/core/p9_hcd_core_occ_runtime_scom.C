@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,8 +33,7 @@
 /// *HWP Level       : 1
 ///
 /// Procedure Summary:
-///   Run-time updates from OCC code that are put  somewhere TBD
-///   (TODO . revisit with OCC FW team)
+///   Run-time updates from OCC code that are put somewhere revisit with OCC FW team
 ///   OCC FW sets up value in the TBD SCOM section
 ///   This was not leverage in P8 with the demise of CPMs
 ///   Placeholder at this point

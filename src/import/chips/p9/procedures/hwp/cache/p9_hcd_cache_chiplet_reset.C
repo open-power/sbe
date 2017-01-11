@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -80,7 +80,7 @@ enum P9_HCD_CACHE_CHIPLET_RESET_CONSTANTS
     CACHE_GLSMUX_RESET_DELAY_REF_CYCLES = 40
 };
 
-/// @todo RTC 162433
+/// @todo RTC162433 DD2 revisit HW388878
 /// This is going to break on Nimbus DD2.0 and Cumulus SoA testing.
 /// need more discussion in HW/FW interlock on how to handle this.
 enum HW388878_DD1_FIX_CONSTATNS
@@ -158,7 +158,7 @@ p9_hcd_cache_chiplet_reset(
                          MASK_SET(2)));
     }
 
-    /// @todo needs to revisit this sim workaround
+    /// @todo RTC158181 needs to revisit this sim workaround
     FAPI_DBG("Init heartbeat hang counter via HANG_PULSE_6[2]");
     FAPI_TRY(putScom(i_target, EQ_HANG_PULSE_6_REG, MASK_SET(2)));
 
@@ -190,7 +190,7 @@ p9_hcd_cache_chiplet_reset(
     FAPI_DBG("Drop vital thold via NET_CTRL0[16]");
     FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(16)));
 
-    /// @todo optional setup sector buffer strength, pulse mode and pulsed mode enable
+    /// @todo RTC158181 setup sector buffer strength, pulse mode and pulsed mode enable
 
     FAPI_DBG("Drop cache glsmux reset via PPM_CGCR[0]");
     FAPI_TRY(putScom(i_target, EQ_PPM_CGCR, MASK_SET(3)));
@@ -270,13 +270,6 @@ p9_hcd_cache_chiplet_reset(
                                                   p9hcd::SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
     }
 #endif
-
-    /// @todo scan_with_setpulse_module(L3 DCC)
-    //FAPI_DBG("Drop L3 DCC bypass via NET_CTRL1[1]");
-    //FAPI_TRY(putScom(i_target, EQ_NET_CTRL1_WAND, MASK_UNSET(1)));
-    /// @todo add VDM_ENABLE attribute control
-    //FAPI_DBG("Assert vdm enable via CPPM_VDMCR[0]");
-    //FAPI_TRY(putScom(i_target, EQ_PPM_VDMCR_OR, MASK_SET(0)));
 
 fapi_try_exit:
 

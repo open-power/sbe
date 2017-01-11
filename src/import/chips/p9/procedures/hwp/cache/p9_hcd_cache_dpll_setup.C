@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -28,24 +28,16 @@
 ///
 /// Procedure Summary:
 ///   Note:
-///     Initfiles in procedure defined on VBU ENGD wiki (TODO add link)
+///     Initfiles in procedure defined on VBU ENGD wiki
 ///     DPLL tune bits are not dependent on frequency
 ///     Frequency is controlled by the Quad PPM
 ///       Actual frequency value for boot is stored into the Quad PPM by
 ///         p9_hcd_setup_evid.C in istep 2
 ///       In real cache STOP exit, the frequency value is persistent
 ///
-///   Pre-Scan:
-///
-///   Scan:
-///     (TODO) Set clock controller scan ratio to 1:1 as this is done at refclk
-///     (TODO) scan0 (region = DPLL and ANEP, scan_type = GPTR)
-///     (TODO) scan0 (region = DPLL and ANEP, scan_type = FUNC)
-///     (TODO) Set clock controller scan ratio to 8:1 for future scans
-///
 ///   Setup:
-///     (TODO) set DPLL FREQ CTRL regitster
-///     (TODO) set DPLL CTRL register
+///     @todo  RTC158181 set DPLL FREQ CTRL regitster
+///     (DONE) set DPLL CTRL register
 ///     (Done) Drop DPLL test mode;
 ///     (Done) Drop DPLL into Reset;
 ///     (Done) Start DPLL clock via quad clock controller

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -32,7 +32,7 @@
 ///   (Done) Drop partial good regional fences(always drop vital and pervasive)
 ///   (Done) Drop Vital fence
 ///   (Done) Reset abst clock muxsel, sync muxsel
-///   (TODO) Set fabric node/chip ID from the nest version
+///   (DONE) Set fabric node/chip ID from the nest version
 ///   (Done) module align_chiplets
 ///   (Done)  - set flushmode_inh to exit flush mode
 ///   (Done)  - set force align
@@ -319,7 +319,7 @@ p9_hcd_cache_startclocks(
         FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(18)));
     }
 
-    /// @todo ignore xstop checkstop in sim, review for lab
+    /// @todo RTC158181 ignore xstop checkstop in sim, review for lab
     /*
     FAPI_DBG("Check the Global Checkstop FIR");
     FAPI_TRY(getScom(i_target, EQ_XFIR, l_data64));

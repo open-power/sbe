@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -28,8 +28,6 @@
 ///
 /// Procedure Summary:
 ///   Reset core chiplet logic
-///     (TODO: check with Andreas on the effect of a CME based Endpoint reset
-///            relative to the CorePPM path)
 ///   Clocking:
 ///    - setup cache sector buffer strength,
 ///      pulse mode and pulsed mode enable values
@@ -87,12 +85,14 @@ p9_hcd_core_chiplet_reset(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
 {
     FAPI_INF(">>p9_hcd_core_chiplet_reset");
-    fapi2::buffer<uint64_t> l_data64;
-    uint8_t                 l_dpll_bypass;
+    fapi2::buffer<uint64_t>                        l_data64;
+    uint8_t                                        l_attr_dpll_bypass;
+    uint8_t                                        l_attr_vdm_enable;
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+    auto l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
 
-    auto l_parent_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DPLL_BYPASS, l_parent_chip, l_dpll_bypass),
-             "Error from FAPI_ATTR_GET (ATTR_DPLL_BYPASS)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DPLL_BYPASS, l_chip, l_attr_dpll_bypass));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_VDM_ENABLE,  l_sys,  l_attr_vdm_enable));
 
     //--------------------------
     // Reset core chiplet logic
@@ -115,7 +115,7 @@ p9_hcd_core_chiplet_reset(
     FAPI_DBG("Drop vital thold via NET_CTRL0[16]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(16)));
 
-    /// @todo optional setup sector buffer strength, pulse mode and pulsed mode enable
+    /// @todo RTC158181 setup sector buffer strength, pulse mode and pulsed mode enable
 
     FAPI_DBG("Drop core glsmux reset via PPM_CGCR[0]");
     FAPI_TRY(putScom(i_target, C_PPM_CGCR, 0));
@@ -139,7 +139,7 @@ p9_hcd_core_chiplet_reset(
     FAPI_DBG("Drop PCB fence via NET_CTRL0[25]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(25)));
 
-    if (l_dpll_bypass == 0)
+    if (l_attr_dpll_bypass == 0)
     {
         // HW390253: The core clock controller itself is clocked at 2:1 versus the core clock,
         // so it will introduce an additional 2:1 into whatever scan raito is set up. Hence,
@@ -187,9 +187,11 @@ p9_hcd_core_chiplet_reset(
     }
 #endif
 
-    /// @todo add VDM_ENABLE attribute control
-    FAPI_DBG("Assert vdm enable via CPPM_VDMCR[0]");
-    FAPI_TRY(putScom(i_target, C_PPM_VDMCR_OR, MASK_SET(0)));
+    if (l_attr_vdm_enable == fapi2::ENUM_ATTR_VDM_ENABLE_ON)
+    {
+        FAPI_DBG("Assert vdm enable via CPPM_VDMCR[0]");
+        FAPI_TRY(putScom(i_target, C_PPM_VDMCR_OR, MASK_SET(0)));
+    }
 
     // content of p9_hcd_core_dcc_skewadjust below:
 

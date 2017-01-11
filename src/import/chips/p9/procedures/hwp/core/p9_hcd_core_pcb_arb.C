@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -89,7 +89,7 @@ p9_hcd_core_pcb_arb(
 
     FAPI_DBG("Check for PCB Arbiter Granted to Core");
 
-    /// @todo require core to cme target conversion
+    /// @todo RTC158181 require core to cme target conversion
     /*
     fapi2::buffer<uint64_t> l_data64;
     FAPI_TRY(getScom(i_target, EX_0_CME_LCL_SISR_SCOM, l_data64));
@@ -101,7 +101,7 @@ p9_hcd_core_pcb_arb(
     */
     FAPI_DBG("PCB Arbiter is Granted to Core");
 
-    /// @todo MPIPL: if check grant to cme, consider to overide it back to core
+    /// @todo RTC158181 MPIPL: if check grant to cme, consider to overide it back to core
 
 //fapi_try_exit:
 

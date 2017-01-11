@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,12 +27,11 @@
 /// @brief Core scan init
 ///
 /// Procedure Summary:
-///   Initfiles in procedure defined on VBU ENGD wiki (TODO add link)
+///   Initfiles in procedure defined on VBU ENGD wiki
 ///   Check for the presence of core FUNC override rings from image;
 ///   if found, apply;  if not, apply core base FUNC rings from image
 ///   Note:  FASTINIT ring (eg CMSK ring) is setup at this point to limit the
 ///   stumps that participate in FUNC ring scanning (this is new for P9).
-///   (TODO to make sure the image build support is in place)
 ///   Note : if in fused mode, both core rings will be initialized to the same
 ///   values via multicast scans
 
