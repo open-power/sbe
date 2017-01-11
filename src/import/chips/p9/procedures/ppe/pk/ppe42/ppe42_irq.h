@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -204,7 +204,7 @@ typedef struct
     };
 
 #define EXTERNAL_IRQ_TABLE_START \
-    Ppe42IrqHandler __ppe42_irq_handlers[EXTERNAL_IRQS + 1] = \
+    Ppe42IrqHandler __ppe42_irq_handlers[EXTERNAL_IRQS + 1] __attribute__((section (".sdata"))) = \
             {
 
 #else
@@ -220,7 +220,7 @@ typedef struct
 #endif /*STATIC_IRQ_TABLE*/
 
 /// Interrupt handlers for real (implemented interrupts) plus one for the phantom interrupt handler
-extern Ppe42IrqHandler __ppe42_irq_handlers[EXTERNAL_IRQS + 1];
+extern Ppe42IrqHandler __ppe42_irq_handlers[EXTERNAL_IRQS + 1] __attribute__((section (".sdata")));
 
 
 /// The 'phantom interrupt' handler

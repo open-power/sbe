@@ -111,6 +111,9 @@ void pk_set_timebase_rshift(uint32_t timebase_freq_hz)
 // variables. In debugging sessions using RAM-resident PK images it is
 // assumed that the processor may be reset at any time, so we always need to
 // reset everything at initialization.
+#if PK_TRACE_SUPPORT
+    extern PkTimer       g_pk_trace_timer __attribute__((section (".sdata")));
+#endif
 
 int
 pk_initialize(PkAddress     kernel_stack,
@@ -157,8 +160,6 @@ pk_initialize(PkAddress     kernel_stack,
     __pk_time_queue.next_timeout = PK_TIMEBASE_MAX;
 
 #if PK_TRACE_SUPPORT
-    extern PkTimer       g_pk_trace_timer;
-    extern PkTraceBuffer g_pk_trace_buf;
 
     //set the trace timebase HZ
     g_pk_trace_buf.hz = timebase_frequency_hz;

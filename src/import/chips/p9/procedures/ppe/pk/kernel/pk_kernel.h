@@ -167,7 +167,7 @@ size_t __pk_kernel_stack_size;
 
 UNLESS__PK_CORE_C__(extern)
 volatile
-PkThread* __pk_priority_map[PK_THREADS + 1];
+PkThread* __pk_priority_map[PK_THREADS + 1] __attribute__ ((section (".sdata")));
 
 /// The PK time queue structure
 ///
@@ -205,7 +205,7 @@ typedef struct
 } PkTimeQueue;
 
 UNLESS__PK_CORE_C__(extern)
-PkTimeQueue __pk_time_queue;
+PkTimeQueue __pk_time_queue __attribute__ ((section (".sdata")));
 
 /// Return a pointer to the PkThread object of the currently running thread,
 /// or NULL (0) if PK is idle or has not been started.

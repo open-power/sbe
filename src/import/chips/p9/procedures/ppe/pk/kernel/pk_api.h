@@ -973,7 +973,9 @@ pk_bh_schedule(PkBottomHalf* bottom_half)
     }
 
 #define PK_BH_STATIC_CREATE(bh_name, handler, arg) \
-    PkBottomHalf bh_name = PK_BH_INIT(handler, arg)
+    PkBottomHalf bh_name  __attribute__((section (".sdata"))) = \
+            PK_BH_INIT(handler, arg)
+
 
 
 //Trace function prototypes
