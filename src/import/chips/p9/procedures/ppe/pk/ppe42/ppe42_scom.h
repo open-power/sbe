@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -144,6 +144,11 @@ extern inline uint32_t putscom(const uint32_t i_chiplet, const uint32_t i_addres
 extern inline uint32_t getscom(const uint32_t i_chiplet, const uint32_t i_address, uint64_t* o_data)
 {
     return _getscom(i_chiplet, i_address, o_data);
+}
+
+extern inline void putscom_norc(const uint32_t i_address, uint64_t i_data)
+{
+    PPE_STVD(i_address, i_data);
 }
 
 #ifdef __cplusplus
