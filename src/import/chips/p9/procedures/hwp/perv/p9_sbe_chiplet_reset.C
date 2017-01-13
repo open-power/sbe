@@ -126,9 +126,6 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     // Local variable
     uint8_t l_mc_sync_mode = 0;
     uint8_t l_pll_bypass = 0;
-    fapi2::buffer<uint8_t> l_attr_vitl_setup;
-    fapi2::buffer<uint8_t> l_attr_hang_cnt6_setup;
-    fapi2::TargetState l_target_state = fapi2::TARGET_STATE_FUNCTIONAL;
 #ifndef __PPE__
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     uint8_t l_attr_system_ipl_phase;
@@ -212,9 +209,6 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     {
 #endif
 
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_VITL_CLK_SETUP, i_target_chip,
-                               l_attr_vitl_setup));
-
         // NEST OBUS XBUS PCI MC - Functional
         for (auto& targ : l_perv_func_WO_Core_Cache)
         {
@@ -276,82 +270,47 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_TRY(p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup(targ));
         }
 
-        if ( l_attr_vitl_setup )
-        {
-            l_target_state = fapi2::TARGET_STATE_PRESENT;
-        }
 
-        if(fapi2::TARGET_STATE_PRESENT == l_target_state)
+        //Perv
+        for (auto& targ : l_perv_pres)
         {
-            //Perv
-            for (auto& targ : l_perv_pres)
+            uint32_t l_chipletID = targ.getChipletNumber();
+            // Setting up partial good fence drop and resetting chiplet.
+            FAPI_DBG("PLL Setup : Enable pll");
+            FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(targ, true));
+
+            if(l_chipletID == 5)
             {
-                uint32_t l_chipletID = targ.getChipletNumber();
-                // Setting up partial good fence drop and resetting chiplet.
-                FAPI_DBG("PLL Setup : Enable pll");
-                FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(targ, true));
-
-                if(l_chipletID == 5)
-                {
-                    FAPI_DBG("Drop clk async reset for N3 chiplet");
-                    FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(targ));
-                }
-
-                if(l_chipletID >= 7 && l_chipletID <= 8)
-                {
-                    FAPI_DBG("Drop clk async reset for Mc chiplet");
-                    FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(targ, true));
-                }
+                FAPI_DBG("Drop clk async reset for N3 chiplet");
+                FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(targ));
             }
-        }
-        else if(fapi2::TARGET_STATE_FUNCTIONAL == l_target_state)
-        {
-            //Perv
-            for (auto& targ : l_perv_func)
+
+            if(l_chipletID >= 7 && l_chipletID <= 8)
             {
-                uint32_t l_chipletID = targ.getChipletNumber();
-                // Setting up partial good fence drop and resetting chiplet.
-                FAPI_DBG("PLL Setup : Enable pll");
-                FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(targ, true));
-
-                if(l_chipletID == 5)
-                {
-                    FAPI_DBG("Drop clk async reset for N3 chiplet");
-                    FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(targ));
-                }
-
-                if(l_chipletID >= 7 && l_chipletID <= 8)
-                {
-                    FAPI_DBG("Drop clk async reset for Mc chiplet");
-                    FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(targ, true));
-                }
+                FAPI_DBG("Drop clk async reset for Mc chiplet");
+                FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(targ, true));
             }
         }
 
         fapi2::delay(10000, (40 * 400));
 
-        if ( l_attr_vitl_setup )
+        // Perv
+        for (auto& targ : l_perv_pres)
         {
-            l_target_state = fapi2::TARGET_STATE_PRESENT;
+            // Setting up partial good fence drop and resetting chiplet.
+            FAPI_DBG("PLL setup : Disable pll");
+            FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(targ, false));
+        }
 
-            // Perv
-            for (auto& targ : l_perv_pres)
+        for (auto& targ : l_perv_pres)
+        {
+            // MC
+            uint32_t l_chipletID = targ.getChipletNumber();
+
+            if(l_chipletID >= 7 && l_chipletID <= 8)
             {
-                // Setting up partial good fence drop and resetting chiplet.
-                FAPI_DBG("PLL setup : Disable pll");
-                FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(targ, false));
-            }
-
-            for (auto& targ : l_perv_pres)
-            {
-                // MC
-                uint32_t l_chipletID = targ.getChipletNumber();
-
-                if(l_chipletID >= 7 && l_chipletID <= 8)
-                {
-                    FAPI_DBG("Raise clk async reset for Mc chiplet");
-                    FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(targ, false));
-                }
+                FAPI_DBG("Raise clk async reset for Mc chiplet");
+                FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(targ, false));
             }
         }
 
