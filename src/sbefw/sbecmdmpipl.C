@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -117,6 +117,8 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
+    constexpr uint32_t ISTEP_SUBSTEP_22 = 22;
+
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
     sbeResponseFfdc_t l_ffdc;
     sbeRespGenHdr_t l_respHdr;
@@ -129,9 +131,10 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
         // Run isteps
-        const uint8_t isteps[][3] = {
+        const uint8_t isteps[][4] = {
             // Major Num,              Minor Start,       Minor End
             {SBE_ISTEP_MPIPL_CONTINUE, ISTEP_MINOR_START, MPIPL_CONTINUE_MAX_SUBSTEPS},
+            {SBE_ISTEP3,               ISTEP_SUBSTEP_22,  ISTEP_SUBSTEP_22},
             {SBE_ISTEP4,               ISTEP_MINOR_START, ISTEP4_MAX_SUBSTEPS},
             {SBE_ISTEP5,               ISTEP_MINOR_START, ISTEP5_MAX_SUBSTEPS}};
         // Loop through isteps
