@@ -176,20 +176,6 @@ popcount64(uint64_t x)
 #define in32(addr) \
     ({uint32_t __data = *(volatile uint32_t *)(addr); __data;})
 
-#ifdef HWMACRO_GPE
-
-/// 64-bit MMIO Write
-#define out64(addr, data) \
-    do { \
-        uint64_t __data = (data);                               \
-        volatile uint32_t *__addr_hi = (uint32_t *)(addr);      \
-        volatile uint32_t *__addr_lo = __addr_hi + 1;           \
-        *__addr_hi = (__data >> 32);                            \
-        *__addr_lo = (__data & 0xffffffff);                     \
-    } while(0)
-
-#else /* standard PPE's require a 64 bit write */
-
 /// 64-bit MMIO Write
 #define out64(addr, data) \
     {\
@@ -203,21 +189,6 @@ popcount64(uint64_t x)
         ); \
     }
 
-#endif /* HWMACRO_GPE */
-
-#ifdef HWMACRO_GPE
-/// 64-bit MMIO Read
-#define in64(addr) \
-    ({                                                     \
-        uint64_t __data;                                   \
-        volatile uint32_t *__addr_hi = (uint32_t *)(addr); \
-        volatile uint32_t *__addr_lo = __addr_hi + 1;      \
-        __data = *__addr_hi;                               \
-        __data = (__data << 32) | *__addr_lo;              \
-        __data;})
-
-#else /* Standard PPE's require a 64 bit read */
-
 #define in64(addr) \
     ({\
         uint64_t __d; \
@@ -230,8 +201,6 @@ popcount64(uint64_t x)
         ); \
         __d; \
     })
-
-#endif  /* HWMACRO_GPE */
 
 #endif  /* __ASSEMBLER__ */
 
