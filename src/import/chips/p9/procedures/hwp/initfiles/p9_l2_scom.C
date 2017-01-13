@@ -39,6 +39,8 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                              const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>& TGT1)
 {
     {
+        fapi2::ATTR_PROC_FABRIC_PUMP_MODE_Type l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE, TGT1, l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE));
         fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_TGT1_ATTR_SYSTEM_IPL_PHASE;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, TGT1, l_TGT1_ATTR_SYSTEM_IPL_PHASE));
         fapi2::ATTR_PROC_EPS_READ_CYCLES_T0_Type l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0;
@@ -57,6 +59,17 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
 
             constexpr auto l_EXP_L2_L2MISC_L2CERRS_CFG_SYSMAP_SM_NOT_LG_SEL_OFF = 0x0;
             l_scom_buffer.insert<23, 1, 63, uint64_t>(l_EXP_L2_L2MISC_L2CERRS_CFG_SYSMAP_SM_NOT_LG_SEL_OFF );
+
+            if ((l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_GROUP))
+            {
+                constexpr auto l_EXP_L2_L2MISC_L2CERRS_CFG_SKIP_GRP_SCOPE_EN_ON = 0x1;
+                l_scom_buffer.insert<38, 1, 63, uint64_t>(l_EXP_L2_L2MISC_L2CERRS_CFG_SKIP_GRP_SCOPE_EN_ON );
+            }
+            else if ((l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE))
+            {
+                constexpr auto l_EXP_L2_L2MISC_L2CERRS_CFG_SKIP_GRP_SCOPE_EN_OFF = 0x0;
+                l_scom_buffer.insert<38, 1, 63, uint64_t>(l_EXP_L2_L2MISC_L2CERRS_CFG_SKIP_GRP_SCOPE_EN_OFF );
+            }
 
             if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
             {
