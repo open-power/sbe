@@ -391,11 +391,7 @@ attribute tank
   <entry>
            <name>ATTR_CHIP_EC_FEATURE_N3_FLUSH_MODE</name>
            <virtual/>
-  </entry>
-  <entry>
-           <name>ATTR_CHIP_EC_FEATURE_VITL_CLK_SETUP</name>
-            <virtual/>
-  </entry>
+  </entry> 
   <entry>
            <name>ATTR_CHIP_EC_FEATURE_VITL_CLOCK_GATING</name>
            <virtual/>
