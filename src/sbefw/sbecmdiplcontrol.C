@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -184,6 +184,8 @@ ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp );
 
+// Utility function to do TPM reset
+ReturnCode performTpmReset();
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
@@ -775,16 +777,27 @@ ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp)
 //----------------------------------------------------------------------------
 ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp)
 {
+    #define SBE_FUNC "istepCheckSbeMaster "
     ReturnCode rc = FAPI2_RC_SUCCESS;
-    g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
-                SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
-    SBE_INFO("stepCheckSbeMaster g_sbeRole [%x]", g_sbeRole);
-    if(SBE_ROLE_SLAVE == g_sbeRole)
+    do
     {
-        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                        SBE_RUNTIME_EVENT);
-    }
+        rc = performTpmReset();
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" performTpmReset failed");
+            break;
+        }
+        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
+                    SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
+        SBE_INFO(SBE_FUNC"g_sbeRole [%x]", g_sbeRole);
+        if(SBE_ROLE_SLAVE == g_sbeRole)
+        {
+            (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                            SBE_RUNTIME_EVENT);
+        }
+    }while(0);
     return rc;
+    #undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------
@@ -934,9 +947,12 @@ ReturnCode istepMpiplRstClrTpmBits( sbeIstepHwp_t i_hwp)
 {
     #define SBE_FUNC "istepMpiplRstClrTpmBits"
     SBE_ENTER(SBE_FUNC);
-    ReturnCode l_rc = FAPI2_RC_SUCCESS;
 
-    // TODO RTC 150711 - Security milestone
+    ReturnCode l_rc = performTpmReset();
+    if( l_rc != FAPI2_RC_SUCCESS )
+    {
+        SBE_ERROR(SBE_FUNC" performTpmReset failed");
+    }
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;
@@ -1201,3 +1217,49 @@ ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp )
     return rc;
     #undef SBE_FUNC
 }
+
+//----------------------------------------------------------------------------
+ReturnCode performTpmReset()
+{
+    #define SBE_FUNC "performTpmReset "
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        constexpr uint64_t tpmBitMask = 0x0008000000000000ULL;
+        plat_target_handle_t tgtHndl;
+        uint64_t regData = 0;
+        rc = getscom_abs_wrap (&tgtHndl,
+                               PU_PRV_MISC_PPE,
+                               &regData);
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to read SBE internal reg for TPM reset");
+            break;
+        }
+
+        // To do TPM reset, first we should set bit 12 of PU_PRV_MISC_PPE
+        // and then clear it up.
+        regData = regData | tpmBitMask;
+        rc = putscom_abs_wrap(&tgtHndl, PU_PRV_MISC_PPE, regData);
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to set TPM mask");
+            break;
+        }
+
+        regData = regData & ( ~tpmBitMask);
+        rc = putscom_abs_wrap(&tgtHndl, PU_PRV_MISC_PPE, regData);
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to clear TPM mask");
+            break;
+        }
+
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+
