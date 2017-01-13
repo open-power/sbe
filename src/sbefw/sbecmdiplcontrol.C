@@ -100,6 +100,8 @@
 #include "p9_thread_control.H"
 #include "sbecmdcntlinst.H"
 #include "p9_quad_power_off.H"
+#include "p9_hcd_cache_stopclocks.H"
+#include "p9_stopclocks.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
@@ -182,14 +184,14 @@ ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp );
-ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
-ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp );
+ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp );
 
 // Utility function to do TPM reset
 ReturnCode performTpmReset();
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
+p9_stopclocks_FP_t p9_stopclocks_hwp = &p9_stopclocks;
 //p9_thread_control_FP_t threadCntlhwp = &p9_thread_control;
 extern p9_thread_control_FP_t threadCntlhwp;
 #endif
@@ -252,6 +254,14 @@ static istepMap_t g_istepMpiplContinuePtrTbl[MPIPL_CONTINUE_MAX_SUBSTEPS] =
             { istepMpiplQuadPoweroff, { .eqHwp = &p9_quad_power_off} },
             // Set MPIPL mode in Sratch Reg 3
             { &istepMpiplSetMPIPLMode, NULL},
+#endif
+        };
+
+static istepMap_t g_istepStopClockPtrTbl[ISTEP_STOPCLOCK_MAX_SUBSTEPS] =
+        {
+#ifdef SEEPROM_IMAGE
+            // Stop Clock Mpipl
+            { &istepStopClockMpipl, NULL},
 #endif
         };
 
@@ -478,6 +488,11 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
                         g_istepMpiplContinuePtrTbl[i_minor-1].istepHwp);
             break;
 
+        case SBE_ISTEP_STOPCLOCK:
+            rc = (g_istepStopClockPtrTbl[i_minor-1].istepWrapper)(
+                        g_istepStopClockPtrTbl[i_minor-1].istepHwp);
+            break;
+
         // We should never reach here as before calling this validation has
         // been done.
         default:
@@ -563,6 +578,12 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
                     valid = false;
                 }
                 break;
+
+            case SBE_ISTEP_STOPCLOCK:
+                if( i_minor > ISTEP_STOPCLOCK_MAX_SUBSTEPS )
+                {
+                    valid = false;
+                }
 
             default:
                 valid = false;
@@ -1264,7 +1285,6 @@ ReturnCode performTpmReset()
 }
 
 //----------------------------------------------------------------------------
-
 ReturnCode istepLpcInit( sbeIstepHwp_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
@@ -1277,4 +1297,31 @@ ReturnCode istepLpcInit( sbeIstepHwp_t i_hwp)
     return rc;
 }
 
+//----------------------------------------------------------------------------
+ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepStopClockMpipl"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
+    p9_stopclocks_flags l_flags; // Default Flag Values
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+    p9hcd::P9_HCD_CLK_CTRL_CONSTANTS l_clk_regions =
+                p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
+    p9hcd::P9_HCD_EX_CTRL_CONSTANTS l_ex_select = p9hcd::BOTH_EX;
+
+    l_flags.clearAll();
+    l_flags.stop_core_clks = true;
+    l_flags.stop_cache_clks = true;
+
+    SBE_EXEC_HWP(l_fapiRc,
+                 p9_stopclocks_hwp,
+                 l_procTgt,
+                 l_flags,
+                 l_clk_regions,
+                 l_ex_select);
+
+    SBE_EXIT(SBE_FUNC);
+    return l_fapiRc;
+    #undef SBE_FUNC
+}
 

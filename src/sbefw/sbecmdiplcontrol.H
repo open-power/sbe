@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -54,8 +54,10 @@ typedef enum
 // Major MPIPL isteps which are supported
 static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
 static const uint32_t SBE_ISTEP_MPIPL_CONTINUE      = 97;
+static const uint32_t SBE_ISTEP_STOPCLOCK           = 98;
 static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 8;
 static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 3;
+static const uint32_t ISTEP_STOPCLOCK_MAX_SUBSTEPS  = 1;
 
 // constants
 static const uint32_t ISTEP2_MAX_SUBSTEPS = 17;

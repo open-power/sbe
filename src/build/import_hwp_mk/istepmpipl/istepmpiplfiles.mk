@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -45,6 +45,12 @@ ISTEPMPIPL-CPP-SOURCES +=p9_sbe_sequence_drtm.C
 ISTEPMPIPL-CPP-SOURCES +=p9_query_core_access_state.C
 ISTEPMPIPL-CPP-SOURCES +=p9_quad_power_off.C
 ISTEPMPIPL-CPP-SOURCES +=p9_pm_pfet_control.C
+ISTEPMPIPL-CPP-SOURCES +=p9_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_common_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_cplt_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_nest_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_tp_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_check_chiplet_states.C
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 

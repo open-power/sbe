@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -37,7 +37,8 @@ gIstepArray = {
         4:[1, 34],#istep 4.1 to 4.34
         5:[1, 2], #istep 5.1 to 5.2
         96:[1, 8],#istep 96.1 to 96.8
-        97:[1, 3] #istep 97.1 to 97.3
+        97:[1, 3],#istep 97.1 to 97.3
+        98:[1, 1] #istep 98.1 to 98.1
                }
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
