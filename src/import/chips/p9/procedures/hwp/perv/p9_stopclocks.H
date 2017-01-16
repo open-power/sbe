@@ -32,7 +32,7 @@
 // *HWP FW Owner        : Sunil Kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
 // *HWP Level           : 2
-// *HWP Consumed by     : FSP:HB
+// *HWP Consumed by     : FSP:SBE:HB
 //------------------------------------------------------------------------------
 
 
@@ -56,6 +56,7 @@ struct p9_stopclocks_flags
     uint32_t stop_vitl_clks       : 1; //True if PERV VITL clocks should be stopped, else false
     uint32_t stop_cache_clks      : 1; //True if CACHE chiplet clocks should be stopped, else false
     uint32_t stop_core_clks       : 1; //True if CORE chiplet clocks should be stopped, else false
+    uint32_t sync_stop_quad_clks  : 1; //True if CACHE & CORE chiplet clocks should be stopped synchronously, else false
     // Default constructor - fill default values
     p9_stopclocks_flags()
     {
@@ -69,6 +70,7 @@ struct p9_stopclocks_flags
         stop_vitl_clks = false;
         stop_cache_clks = true;
         stop_core_clks = true;
+        sync_stop_quad_clks = true;
     }
     // Set all the flags to false
     void clearAll()
@@ -83,6 +85,7 @@ struct p9_stopclocks_flags
         stop_vitl_clks = false;
         stop_cache_clks = false;
         stop_core_clks = false;
+        sync_stop_quad_clks = true;
     }
 };
 
@@ -96,8 +99,8 @@ extern "C"
     /**
     * @brief p9_stopclocks procedure:  The purpose of this procedure is to stop the clocks of the P9 processor chip
     *
-    * @param[in] i_target                Reference to processor chip target
-    * @param[in] i_flags                 Flags as per the following definition
+    * @param[in] i_target                      Reference to processor chip target
+    * @param[in] i_flags                       Flags as per the following definition
     *            i_flags.stop_nest_clks        True if NEST chiplet clocks should be stopped, else false
     *            i_flags.stop_mc_clks          True if MC   chiplet clocks should be stopped, else false
     *            i_flags.stop_xbus_clks        True if XBUS chiplet clocks should be stopped, else false
@@ -108,8 +111,9 @@ extern "C"
     *            i_flags.stop_vitl_clks        True if PERV VITL clocks should be stopped, else false
     *            i_flags.stop_cache_clks       True if CACHE chiplet clocks should be stopped, else false
     *            i_flags.stop_core_clks        True if CORE chiplet clocks should be stopped, else false
-    * @param[in] i_eq_clk_regions        EQ chiplet clock regions of which clocks should be stopped
-    * @param[in] i_ex_select             EX chiplet selected for clocks stop
+    *            i_flags.sync_stop_quad_clks   True if CACHE & CORE chiplet clocks should be stopped synchronously, else false
+    * @param[in] i_eq_clk_regions              EQ chiplet clock regions of which clocks should be stopped
+    * @param[in] i_ex_select                   EX chiplet selected for clocks stop
     *
     * @return ReturnCode
     */

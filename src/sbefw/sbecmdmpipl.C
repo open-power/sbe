@@ -329,6 +329,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
                                 (p9hcd::CLK_REGION_EX0_REFR |
                                                     p9hcd::CLK_REGION_EX1_REFR);
             }
+            l_flags.sync_stop_quad_clks = false;
             SBE_EXEC_HWP(l_fapiRc, p9_stopclocks_hwp,
                           plat_getChipTarget(),
                           l_flags,
@@ -350,12 +351,13 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
                 {
                     SBE_EXEC_HWP(l_fapiRc,
                                  p9_hcd_core_stopclocks_hwp,
-                                 l_childCore);
+                                 l_childCore,
+                                 false);
                 }
             }
             else
             {
-                SBE_EXEC_HWP(l_fapiRc, p9_hcd_core_stopclocks_hwp, l_tgtHndl);
+                SBE_EXEC_HWP(l_fapiRc, p9_hcd_core_stopclocks_hwp, l_tgtHndl, false);
             }
         }
         // Specific EQ/EX
@@ -376,7 +378,8 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
             SBE_EXEC_HWP(l_fapiRc, p9_hcd_cache_stopclocks_hwp,
                          l_tgtHndl,
                          (p9hcd::P9_HCD_CLK_CTRL_CONSTANTS)l_clk_regions,
-                         (p9hcd::P9_HCD_EX_CTRL_CONSTANTS)l_ex_select);
+                         (p9hcd::P9_HCD_EX_CTRL_CONSTANTS)l_ex_select,
+                         false);
         }
 
         if( l_fapiRc != FAPI2_RC_SUCCESS )
