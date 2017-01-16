@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -42,6 +42,7 @@
 #include "p9_sbe_check_master_stop15.H"
 #include "p9_perv_scom_addresses.H"
 #include "p9_block_wakeup_intr.H"
+#include "sbeTimerSvc.H"
 
 using namespace fapi2;
 
@@ -55,9 +56,7 @@ p9_block_wakeup_intr_FP_t p9_block_wakeup_intr_hwp =
 
 ////////////////////////////////////////////////////////////////////
 //Static initialization of the Dmt Pk timer
-PkTimer g_sbe_pk_dmt_timer;
-// Global Flag to indicate Dmt Timer Expiry
-bool g_SbeDmtTimerExpired = false;
+static timerService g_sbe_pk_dmt_timer;
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
@@ -65,7 +64,6 @@ void sbeDmtPkExpiryCallback(void *)
 {
     #define SBE_FUNC "sbeDmtPkExpiryCallback"
     SBE_INFO(SBE_FUNC" DMT Callback Timer has expired..Checkstop the system ");
-    g_SbeDmtTimerExpired = true;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
     (void)SbeRegAccess::theSbeRegAccess().stateTransition(
@@ -79,9 +77,10 @@ void sbeDmtPkExpiryCallback(void *)
     {
         // Scom failed
         SBE_ERROR(SBE_FUNC "PutScom failed for REG PERV_N3_LOCAL_FIR");
-        // TODO - Store the response in Async Response
-        // RTC:149074
+        pk_halt();
     }
+    // TODO - Store the response in Async Response
+    // RTC:149074
     #undef SBE_FUNC
 }
 
@@ -91,9 +90,7 @@ uint32_t sbeStartCntlDmt()
 {
     #define SBE_FUNC "sbeStartCntlDmt"
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    int l_pkRc = 0;
-    ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
-    g_SbeDmtTimerExpired = false;
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
 
     do
     {
@@ -101,43 +98,27 @@ uint32_t sbeStartCntlDmt()
         uint64_t l_timerVal = 0;
         l_rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
                                     (sizeof(l_timerVal)/sizeof(uint64_t)),
-                                    &l_timerVal);
+                                    &l_timerVal, true );
         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
         {
             SBE_ERROR(SBE_FUNC" Failed to extract SBE_HOST_PSU_MBOX_REG1");
             break;
         }
 
-        // Attach Callback
-        PkTimerCallback l_callback = &sbeDmtPkExpiryCallback;
-
-        // Create Timer with the above value
-        l_pkRc = pk_timer_create(&g_sbe_pk_dmt_timer, l_callback, NULL);
-        if(l_pkRc)
-        {
-            SBE_ERROR(SBE_FUNC" Pk Timer Create failed, RC=[%d]", l_pkRc);
-            l_rc = SBE_SEC_OS_FAILURE;
-            break;
-        }
-
-        // Schedule the timer
-        l_pkRc = pk_timer_schedule(&g_sbe_pk_dmt_timer,
-                                   PK_MILLISECONDS((uint32_t)l_timerVal));
-        if(l_pkRc)
-        {
-            SBE_ERROR(SBE_FUNC" Pk Timer Schedule failed, RC=[%d]", l_pkRc);
-            l_rc = SBE_SEC_OS_FAILURE;
-            break;
-        }
-
-        l_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
-                                (uint64_t*)(&g_sbeSbe2PsuRespHdr),
-                                (sizeof(g_sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
-                                true);
+        l_rc = g_sbe_pk_dmt_timer.startTimer( (uint32_t )l_timerVal,
+                                     (PkTimerCallback)&sbeDmtPkExpiryCallback);
         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
         {
-            SBE_ERROR(SBE_FUNC" Failed to write to "
-                    "SBE_HOST_PSU_MBOX_REG4");
+            g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
+            SBE_ERROR(SBE_FUNC" g_sbe_pk_dmt_timer.startTimer failed");
+            l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+        }
+
+        sbePSUSendResponse(g_sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
+
+        if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to send response to Hostboot ");
             break;
         }
         // Set DMT State
@@ -201,7 +182,7 @@ uint32_t sbeStartCntlDmt()
             // Stop 15 Pending Case
             pk_sleep(PK_MILLISECONDS(SBE_DMT_SLEEP_INTERVAL));
 
-        }while(false == g_SbeDmtTimerExpired); // Inner Loop
+        }while( g_sbe_pk_dmt_timer.isActive()); // Inner Loop
 
     }while(0); // Outer loop
 
@@ -213,47 +194,27 @@ uint32_t sbeStartCntlDmt()
 /////////////////////////////////////////////////////////////////////
 uint32_t sbeStopCntlDmt()
 {
-    #define SBE_FUNC "sbeStopCntlDmt"
+    #define SBE_FUNC "sbeStopCntlDmt "
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    int l_pkRc = 0;
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
 
     do
     {
-        // Stop the Pk Timer - There is no call to check if the timer is
-        // still alive, if i call cancel on already expired timer, it
-        // returns error code.
-        if(false == g_SbeDmtTimerExpired)
-        {
-            SBE_INFO(SBE_FUNC " DmTimer hasn't expired yet.. stop it");
-            l_pkRc = pk_timer_cancel(&g_sbe_pk_dmt_timer);
-            if(l_pkRc)
-            {
-                // Check again if the failure is because of the timer already
-                // expired, in that case don't need to send any error response
-                // to hostboot
-                if(false == g_SbeDmtTimerExpired)
-                {
-                    SBE_ERROR(SBE_FUNC " Pk Timer Cancel failed, RC=[%d]",
-                        l_pkRc);
-                    l_rc = SBE_SEC_OS_FAILURE;
-                }
-                break;
-            }
-        }
-
-        l_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
-                                 (uint64_t*)(&g_sbeSbe2PsuRespHdr),
-                                 (sizeof(g_sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
-                                 true);
-        if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-        {
-            SBE_ERROR(SBE_FUNC" Failed to write to SBE_HOST_PSU_MBOX_REG4");
-            break;
-        }
+         SBE_INFO(SBE_FUNC "Stop Timer.");
+         l_rc = g_sbe_pk_dmt_timer.stopTimer( );
+         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+         {
+             g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
+             SBE_ERROR(SBE_FUNC"g_sbe_pk_dmt_timer.stopTimer failed");
+             l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+             break;
+         }
         // Set Runtime State
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_DMT_COMP_EVENT);
     }while(0);
+    // Send the response
+    sbePSUSendResponse(g_sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
 
     return l_rc;
     #undef SBE_FUNC
@@ -269,6 +230,15 @@ uint32_t sbeControlDeadmanTimer (uint8_t *i_pArg)
 
     do
     {
+        if(g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_START_DMT)
+        {
+            l_rc = sbeStartCntlDmt();
+            if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+            {
+                SBE_ERROR(SBE_FUNC " Failed sbeStartCntlDmt");
+            }
+            break;
+        }
         // Send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
         // This util method will check internally on the mbox0 register if ACK
         // is requested.
@@ -280,29 +250,17 @@ uint32_t sbeControlDeadmanTimer (uint8_t *i_pArg)
             break;
         }
 
-        if(g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_START_DMT)
-        {
-            l_rc = sbeStartCntlDmt();
-            if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-            {
-                SBE_ERROR(SBE_FUNC " Failed sbeStartCntlDmt");
-                break;
-            }
-        }
-        else if(g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_STOP_DMT)
+        if(g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_STOP_DMT)
         {
             l_rc = sbeStopCntlDmt();
             if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
             {
                 SBE_ERROR(SBE_FUNC " Failed sbeStopCntlDmt");
-                break;
             }
+            break;
         }
-        else
-        {
-            SBE_ERROR(SBE_FUNC" Not a valid command ");
-            l_rc = SBE_SEC_COMMAND_NOT_SUPPORTED;
-        }
+        SBE_ERROR(SBE_FUNC" Not a valid command ");
+        l_rc = SBE_SEC_COMMAND_NOT_SUPPORTED;
     }while(0); // End of do-while
 
     SBE_EXIT(SBE_FUNC);
