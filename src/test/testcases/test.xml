@@ -30,7 +30,9 @@
           <testcase>
               <simcmd>p9Proc0.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]</simcmd>
           </testcase>
+          <include>../simics/targets/p9_nimbus/sbeTest/testPSUSetStashPair.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testMatchStashPair.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
           <!-- Memory access testcases -->

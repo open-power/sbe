@@ -38,6 +38,8 @@
 #include "sberegaccess.H"
 #include "sbestates.H"
 #include "sbecmdcntrldmt.H"
+#include "sbeglobals.H"
+
 // TODO Workaround
 #include "plat_target_parms.H"
 
@@ -824,12 +826,12 @@ ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp)
 }
 
 //----------------------------------------------------------------------------
-
 ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
     // Get master Ex
     uint8_t exId = 0;
+    Target< TARGET_TYPE_SYSTEM > sysTgt;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     FAPI_ATTR_GET(fapi2::ATTR_MASTER_EX,proc,exId);
     fapi2::Target<fapi2::TARGET_TYPE_EX >
@@ -838,8 +840,12 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
     P9XipHeader *hdr = getXipHdr();
     P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
 
+    // Update the ATTR_SBE_ADDR_KEY_STASH_ADDR before calling the bootloader,
+    // since it is going to access these data from inside.
+    uint64_t addr = SBE_GLOBAL->sbeKeyAddrPair.fetchStashAddrAttribute();
+    FAPI_ATTR_SET(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR, sysTgt, addr); 
     SBE_EXEC_HWP(rc, p9_sbe_load_bootloader, proc, exTgt, hbblSection->iv_size,
-                                            getSectionAddr(hbblSection) )
+                 getSectionAddr(hbblSection))
     return rc;
 }
 

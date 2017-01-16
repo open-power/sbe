@@ -277,9 +277,53 @@ uint32_t sbeSetFFDCAddr(uint8_t *i_pArg)
 #undef SBE_FUNC
 }
 
-#endif //__SBEFW_SEEPROM__
+//----------------------------------------------------------------------------
+uint32_t sbeStashKeyAddrPair( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbeStashKeyAddrPair"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    do
+    {
+        stashMsg_t l_stashMsg;
+        // Send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1, once both
+        // key/addr is extracted out of MBOX_REG1 and MBOX_REG2
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                  (sizeof(stashMsg_t)/sizeof(uint64_t)),
+                                  (uint64_t*)&l_stashMsg, true);
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to extract "
+                "SBE_HOST_PSU_MBOX_REG1/SBE_HOST_PSU_MBOX_REG2");
+            break;
+        }
 
-#ifndef __SBEFW_SEEPROM__
+        SBE_INFO(SBE_FUNC "Key[0x%08X] Addr[0x%08X %08X]",
+            l_stashMsg.key, SBE::higher32BWord(l_stashMsg.addr),
+            SBE::lower32BWord(l_stashMsg.addr));
+
+        // Update the Key-Addr Pair in local Memory
+        bool update = SBE_GLOBAL->sbeKeyAddrPair.updatePair(l_stashMsg.key,
+                                                            l_stashMsg.addr);
+        if(false == update)
+        {
+            // Update RC to indicate Host that Stash memory is full
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(
+                SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                SBE_SEC_INPUT_BUFFER_OVERFLOW);
+            break;
+        }
+    }while(0);
+
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
 //----------------------------------------------------------------------------
 uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
 {
@@ -318,7 +362,9 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
     return l_rc;
     #undef SBE_FUNC
 }
+#endif //__SBEFW_SEEPROM__
 
+#ifndef __SBEFW_SEEPROM__
 //----------------------------------------------------------------------------
 uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
 {

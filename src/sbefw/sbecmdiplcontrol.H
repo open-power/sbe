@@ -33,6 +33,8 @@
 #define __SBEFW_SBECMDIPLCONTROL_H
 
 #include <stdint.h>
+#include "sbecmdgeneric.H"
+
 
 namespace fapi2
 {

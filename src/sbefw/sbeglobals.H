@@ -30,6 +30,7 @@
 #include "sbeHostMsg.H"
 #include "sbestates.H"
 #include "sbeexeintf.H"
+#include "sbecmdgeneric.H"
 
 #define SBE_GLOBAL sbeGlobal
 
@@ -79,6 +80,8 @@ class SBEGlobalsSingleton
         sbeHostAddr_t hostPassThroughCmdAddr;
         // ffdc address
         sbeHostAddr_t hostFFDCAddr;
+        // Key Addr Pair
+        sbeStashMemoryPair_t sbeKeyAddrPair;
 
         ////////////////////////////////////////////////////////////////
         //// @brief PkThread structure for SBE Command Receiver thread
