@@ -32,7 +32,7 @@
 // *HWP FW Owner        : Sunil Kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
 // *HWP Level           : 2
-// *HWP Consumed by     : FSP:HB
+// *HWP Consumed by     : FSP:SBE:HB
 //------------------------------------------------------------------------------
 
 //## auto_generated
@@ -53,8 +53,8 @@
 
 //------------------------------------------------------------------------------
 // Function definition:  p9_stopclocks
-// parameters: i_target                =>   chip target
-//             i_flags                 =>   flags as per the following definition
+// parameters:  i_target                      =>   chip target
+//              i_flags                       =>   flags as per the following definition
 //              i_flags.stop_nest_clks        =>   True to stop NEST chiplet clocks                              (should default TRUE)
 //              i_flags.stop_mc_clks          =>   True to stop MC chiplet clocks                                (should default TRUE)
 //              i_flags.stop_xbus_clks        =>   True to stop XBUS chiplet clocks                              (should default TRUE)
@@ -65,8 +65,9 @@
 //              i_flags.stop_vitl_clks        =>   True to stop PERVASIVE VITL clocks                            (should default FALSE)
 //              i_flags.stop_cache_clks       =>   True to stop CACHE chiplet clocks                             (should default TRUE)
 //              i_flags.stop_core_clks        =>   True to stop CORE chiplet clocks                              (should default TRUE)
-//             i_eq_clk_regions        =>   EQ chiplet clock regions of which clocks should be stopped    (default ALL_BUT_PLL_REFR)
-//             i_ex_select             =>   EX chiplet selected for clocks stop                           (default BOTH_EX)
+//              i_flags.sync_stop_quad_clks   =>   True to stop CACHE & CORE chiplet clocks synchronously        (should default TRUE)
+//              i_eq_clk_regions              =>   EQ chiplet clock regions of which clocks should be stopped    (default ALL_BUT_PLL_REFR)
+//              i_ex_select                   =>   EX chiplet selected for clocks stop                           (default BOTH_EX)
 // returns: FAPI_RC_SUCCESS if operation was successful, else error
 //------------------------------------------------------------------------------
 
@@ -102,6 +103,8 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     bool tp_ep_rst            = true;
     bool tp_vitl_clk_off      = true;
     bool tp_mesh_clk_en       = false;
+
+    bool sync_quad_stopclocks = i_flags.sync_stop_quad_clks;
 #ifdef __PPE__
     uint8_t l_tp_chiplet_accesible = 0;
 #endif
@@ -118,9 +121,9 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
              i_flags.stop_tp_clks, i_flags.stop_pib_clks,
              i_flags.stop_vitl_clks);
     FAPI_DBG("p9_stopclocks : Input QUAD arguments received are \n\t"
-             "i_stop_cache = %d\n\t i_stop_core = %d\n\t "
+             "i_stop_cache = %d\n\t i_stop_core = %d\n\t i_sync_stop_quad = %d\n\t "
              "i_eq_clk_regions = %#018lx \n\t i_ex_select = %#018lx\n",
-             i_flags.stop_cache_clks, i_flags.stop_core_clks,
+             i_flags.stop_cache_clks, i_flags.stop_core_clks, i_flags.sync_stop_quad_clks,
              (uint64_t)i_eq_clk_regions, (uint64_t)i_ex_select);
 
     FAPI_DBG("p9_stopclocks : Check to see if the Perv Vital clocks are OFF");
@@ -236,7 +239,7 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
                 uint8_t l_attr_unit_pos = 0;
                 FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_target_cplt, l_attr_unit_pos));
 
-                if (l_attr_unit_pos == 0x01)
+                if (l_attr_unit_pos == PERV_CHIPLET_ID)
                 {
 #ifdef __PPE__
 
@@ -273,23 +276,26 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
                     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_TARGET_IS_SCOMMABLE, l_target_cplt, l_cplt_scomable));
 #endif
 
-                    if (l_attr_unit_pos == 0x02 || l_attr_unit_pos == 0x03 || l_attr_unit_pos == 0x04 || l_attr_unit_pos == 0x05)
+                    if (l_attr_unit_pos == N0_CHIPLET_ID || l_attr_unit_pos == N1_CHIPLET_ID || l_attr_unit_pos == N2_CHIPLET_ID
+                        || l_attr_unit_pos == N3_CHIPLET_ID)
                     {
                         nest_cplt_scomable = l_cplt_scomable;
                     }
-                    else if (l_attr_unit_pos == 0x06)
+                    else if (l_attr_unit_pos == XB_CHIPLET_ID)
                     {
                         xbus_cplt_scomable = l_cplt_scomable;
                     }
-                    else if (l_attr_unit_pos == 0x07 || l_attr_unit_pos == 0x08 )
+                    else if (l_attr_unit_pos == MC01_CHIPLET_ID || l_attr_unit_pos == MC23_CHIPLET_ID )
                     {
                         mc_cplt_scomable = l_cplt_scomable;
                     }
-                    else if (l_attr_unit_pos == 0x09 || l_attr_unit_pos == 0x0A || l_attr_unit_pos == 0x0B || l_attr_unit_pos == 0x0C)
+                    else if (l_attr_unit_pos == OB0_CHIPLET_ID || l_attr_unit_pos == OB1_CHIPLET_ID || l_attr_unit_pos == OB2_CHIPLET_ID
+                             || l_attr_unit_pos == OB3_CHIPLET_ID)
                     {
                         obus_cplt_scomable = l_cplt_scomable;
                     }
-                    else if (l_attr_unit_pos == 0x0D || l_attr_unit_pos == 0x0E || l_attr_unit_pos == 0x0F )
+                    else if (l_attr_unit_pos == PCI0_CHIPLET_ID || l_attr_unit_pos == PCI1_CHIPLET_ID
+                             || l_attr_unit_pos == PCI2_CHIPLET_ID )
                     {
                         pcie_cplt_scomable = l_cplt_scomable;
                     }
@@ -301,22 +307,23 @@ fapi2::ReturnCode p9_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
                      obus_cplt_scomable, pcie_cplt_scomable);
 
             // Core stopclocks
-            if(i_flags.stop_core_clks)
+            if(i_flags.stop_core_clks || sync_quad_stopclocks)
             {
+
                 for (const auto& l_target_core : i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
                 {
                     FAPI_INF("p9_stopclocks : Calling p9_hcd_core_stopclocks");
-                    FAPI_TRY(p9_hcd_core_stopclocks(l_target_core));
+                    FAPI_TRY(p9_hcd_core_stopclocks(l_target_core, sync_quad_stopclocks));
                 }
             }
 
             // L2 & Cache stopclocks
-            if(i_flags.stop_cache_clks)
+            if(i_flags.stop_cache_clks || sync_quad_stopclocks)
             {
                 for (const auto& l_target_eq : i_target_chip.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
                 {
                     FAPI_INF("p9_stopclocks : Calling p9_hcd_cache_stopclocks");
-                    FAPI_TRY(p9_hcd_cache_stopclocks(l_target_eq, i_eq_clk_regions, i_ex_select));
+                    FAPI_TRY(p9_hcd_cache_stopclocks(l_target_eq, i_eq_clk_regions, i_ex_select, sync_quad_stopclocks));
                 }
             }
 
