@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -56,8 +56,7 @@ __l1Loader:
         _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest
         _liw     %r9, SBE_SEEPROM_BASE_ORIGIN
         lwz       r5, 4(r3)   #size of image in bytes
-        li     r6, 3
-        srw    r5, r5, r6   # Number of double word transfers
+        srawi    r5, r5, 3   # Number of double word transfers
         mtctr   r5          # set the counter for loop
         lwz    r8, 0(r3)    # offset of l2loader section
         adde    r8, r8, r9  # add base address to offset to get absolute address
@@ -69,6 +68,8 @@ copy_loop:
         addi    r4, r4, 8
         bdnz    copy_loop
 
+        # initilaise empty section of L1 loader with 0
+        bl __initPibmemL1Area
         ############################################################
         # SBE entry function is 4 byte number in image header
         ############################################################
@@ -79,5 +80,25 @@ copy_loop:
         blr
 
         .epilogue __l1Loader
+
+# initialise the PIBMEM section for l1 loader with 0
+
+__initPibmemL1Area:
+        _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
+        _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest
+        lwz       r5, 4(r3)   #size of image in bytes
+        _liw     %r6, SBE_LOADER_BASE_LENGTH   #Max size of loader
+        add r4, r4, r5
+        subf r5, r5, r6
+        srawi    r5, r5, 3   # Number of double word transfers
+        mtctr   r5          # set the counter for loop
+        li r28, 0
+        li r29, 0
+copy_loop_init:
+        stvd    d28, 0(r4)
+        addi    r4, r4, 8
+        bdnz    copy_loop_init
+
+        blr
 
 #include "pibmem_repair.S"
