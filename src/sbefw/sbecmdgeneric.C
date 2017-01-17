@@ -351,7 +351,7 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
             SBE::higher32BWord(l_sysFabricMap),
             SBE::lower32BWord(l_sysFabricMap));
 
-        FAPI_ATTR_SET(fapi2::ATTR_SBE_SYS_CONFIG,
+        PLAT_ATTR_INIT(fapi2::ATTR_SBE_SYS_CONFIG,
                        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
                        l_sysFabricMap);
     }while(0);

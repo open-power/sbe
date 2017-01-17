@@ -49,6 +49,10 @@ namespace fapi2
     ///      attributes
     ReturnCode plat_TargetsInit();
 
+    /// @brief Initializes all platInit attributes (the values for which come
+    // from the scratch registers)
+    ReturnCode plat_AttrInit();
+
     /// @brief Function to apply any gard records set (via
     //  ATTR_EQ_GARD/ATTR_EC_GARD) to mark corresponding targets non functional
     ReturnCode plat_ApplyGards();

@@ -301,6 +301,16 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
+        fapiRc = fapi2::plat_AttrInit();
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC"plat_AttrInit failed");
+            (void)SbeRegAccess::theSbeRegAccess().
+                    stateTransition(SBE_FAILURE_EVENT);
+            // Hard Reset SBE to recover
+            break;
+        }
+
         if(SbeRegAccess::theSbeRegAccess().init())
         {
             SBE_ERROR(SBE_FUNC"Failed to initialize SbeRegAccess.");

@@ -807,7 +807,7 @@ ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
         }
         // Only continue in case of istep4 && fuse core mode
         if(!( (fuseMode) &&
-              (SbeRegAccess::theSbeRegAccess().getSbeMajorIstepNumber() == 
+              (SbeRegAccess::theSbeRegAccess().getSbeMajorIstepNumber() ==
                                                             SBE_ISTEP4) ) )
         {
             break;
@@ -884,7 +884,7 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
         // Update the ATTR_SBE_ADDR_KEY_STASH_ADDR before calling the bootloader,
         // since it is going to access these data from inside.
         uint64_t addr = SBE_GLOBAL->sbeKeyAddrPair.fetchStashAddrAttribute();
-        FAPI_ATTR_SET(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR, sysTgt, addr); 
+        PLAT_ATTR_INIT(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR, sysTgt, addr);
         SBE_EXEC_HWP(rc, p9_sbe_load_bootloader, proc, exTgt, hbblSection->iv_size,
                      getSectionAddr(hbblSection))
         if(rc != FAPI2_RC_SUCCESS)
@@ -1386,8 +1386,8 @@ ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp )
                              "ATTR_EC_GARD [0x%08X]",
                              l_eqMask, l_ecMask);
 
-            FAPI_ATTR_SET(fapi2::ATTR_EQ_GARD, proc, l_eqMask);
-            FAPI_ATTR_SET(fapi2::ATTR_EC_GARD, proc, l_ecMask);
+            PLAT_ATTR_INIT(fapi2::ATTR_EQ_GARD, proc, l_eqMask);
+            PLAT_ATTR_INIT(fapi2::ATTR_EC_GARD, proc, l_ecMask);
 
             // Apply the gard records
             rc = plat_ApplyGards();
@@ -1553,7 +1553,7 @@ ReturnCode updatePhbFunctionalState( void )
         uint8_t pci_id = 0;
         uint8_t phbPerPciCnt = 0;
         uint64_t data = 0;
-       
+
         FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, phbTgt, phb_id);
         if(phb_id == 1 || phb_id == 2)
         {

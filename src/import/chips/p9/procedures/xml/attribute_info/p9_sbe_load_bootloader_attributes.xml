@@ -107,7 +107,6 @@
   <valueType>uint64</valueType>
   <persistRuntime/>
   <platInit/>
-  <writeable/>
   <initToZero/>
 </attribute>
 </attributes>
