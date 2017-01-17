@@ -869,24 +869,46 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_pcie(
     const fapi2::buffer<uint32_t> i_clk_mux_value)
 {
     uint8_t l_attr_unit_pos = 0;
+    uint8_t l_use_ss_pll = 0;
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_chiplet_reset_clk_mux_pcie: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chiplet,
                            l_attr_unit_pos));
 
+    // leverage SS filter PLL to feed PCI PLLs, instead of IO filter PLL
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SLOW_PCI_REF_CLOCK,
+                           i_target_chiplet.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
+                           l_use_ss_pll));
+
     if ( l_attr_unit_pos != 0x0E )
     {
         //Setting NET_CTRL1 register value
         FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
-        l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>((l_attr_unit_pos == 0x0D) ?
-                i_clk_mux_value.getBit<5>() :
-                i_clk_mux_value.getBit<4>());  //NET_CTRL1.PLL_CLKIN_SEL = (l_attr_unit_pos == 0x0D)? i_clk_mux_value.getBit<5>() :  i_clk_mux_value.getBit<4>()
+
+        if (l_use_ss_pll)
+        {
+            l_data64.clearBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>();
+        }
+        else
+        {
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>((l_attr_unit_pos == 0x0D) ?
+                    i_clk_mux_value.getBit<5>() :
+                    i_clk_mux_value.getBit<4>());  //NET_CTRL1.PLL_CLKIN_SEL = (l_attr_unit_pos == 0x0D)? i_clk_mux_value.getBit<5>() :  i_clk_mux_value.getBit<4>()
+        }
 
         if (l_attr_unit_pos == 0x0D)
         {
-            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
-            (i_clk_mux_value.getBit<10>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = (l_attr_unit_pos == 0x0D)? i_clk_mux_value.getBit<10>()
+            if (l_use_ss_pll)
+            {
+                l_data64.setBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>();
+            }
+            else
+            {
+                l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
+                (i_clk_mux_value.getBit<10>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = (l_attr_unit_pos == 0x0D)? i_clk_mux_value.getBit<10>()
+            }
+
             l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>
             (i_clk_mux_value.getBit<11>());  //NET_CTRL1.REFCLK_CLKMUX1_SEL = (l_attr_unit_pos == 0x0D)? i_clk_mux_value.getBit<11>()
         }
