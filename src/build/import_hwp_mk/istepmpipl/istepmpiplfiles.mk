@@ -32,6 +32,12 @@
 
 ISTEPMPIPL-CPP-SOURCES = p9_hcd_core_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES +=p9_hcd_cache_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_common_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_cplt_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_nest_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_tp_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES +=p9_check_chiplet_states.C
 ISTEPMPIPL-CPP-SOURCES +=p9_hcd_l2_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES +=p9_block_wakeup_intr.C
 ISTEPMPIPL-CPP-SOURCES +=p9_adu_setup.C
@@ -45,12 +51,6 @@ ISTEPMPIPL-CPP-SOURCES +=p9_sbe_sequence_drtm.C
 ISTEPMPIPL-CPP-SOURCES +=p9_query_core_access_state.C
 ISTEPMPIPL-CPP-SOURCES +=p9_quad_power_off.C
 ISTEPMPIPL-CPP-SOURCES +=p9_pm_pfet_control.C
-ISTEPMPIPL-CPP-SOURCES +=p9_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_common_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_cplt_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_nest_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_tp_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_check_chiplet_states.C
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 

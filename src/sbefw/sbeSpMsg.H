@@ -551,29 +551,6 @@ typedef struct
     uint32_t       targetType:16;
     uint32_t       reserved:8;
     uint32_t       chipletId:8;
-
-    /**
-     * @brief Validate Target Type for MPIPL Stop Clocks ChipOp
-     *
-     * @return bool, true if validation is success, else false
-     */
-    bool validateInputTargetType()
-    {
-        bool l_validatePassFlag = false;
-        switch(targetType)
-        {
-            case TARGET_CORE:
-            case TARGET_EQ:
-                l_validatePassFlag = true;
-            break;
-
-            default:
-                SBE_ERROR(SBE_FUNC "Invalid TargetType[%d] ChipletId[%d] "
-                    "by User",(uint32_t)targetType,(uint32_t)chipletId);
-            break;
-        }
-        return l_validatePassFlag;
-    }
 }sbeStopClocksReqMsgHdr_t;
 
 /**

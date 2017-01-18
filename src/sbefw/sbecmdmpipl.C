@@ -41,6 +41,7 @@
 
 #include "p9_hcd_core_stopclocks.H"
 #include "p9_hcd_cache_stopclocks.H"
+#include "p9_stopclocks.H"
 #include "fapi2.H"
 
 using namespace fapi2;
@@ -49,6 +50,7 @@ using namespace fapi2;
     // Using function pointer to force long call.
 p9_hcd_cache_stopclocks_FP_t p9_hcd_cache_stopclocks_hwp = &p9_hcd_cache_stopclocks;
 p9_hcd_core_stopclocks_FP_t p9_hcd_core_stopclocks_hwp = &p9_hcd_core_stopclocks;
+p9_stopclocks_FP_t p9_stopclocks_hwp = &p9_stopclocks;
 #endif
 
 ///////////////////////////////////////////////////////////////////////
@@ -178,6 +180,93 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
 // @return  RC from the underlying FIFO utility
 // RTC-161679 : Stop Clocks Chip-op to handle Proc Chip Target
 ///////////////////////////////////////////////////////////////////////
+#define SBE_IS_EX0(chipletId) \
+    (((chipletId - EX_TARGET_OFFSET) & 0x0002) >> 1)
+/* @brief Bitmapped enumeration to identify the stop clock HWP call
+ */
+enum stopClockHWPType
+{
+    SC_NONE     = 0x00,
+    SC_PROC     = 0x01, // Call p9_stopclocks
+    SC_CACHE    = 0x02, // Call p9_hcd_cache_stopclocks
+    SC_CORE     = 0x04, // Call p9_hcd_core_stopclocks
+};
+/* @brief Deduce the type of stop clock procedure to call based on
+ *        target and chiplet id combination
+ *
+ * @param[in] i_targetType  SBE chip-op target type
+ * @param[in] i_chipletId   Chiplet id
+ *
+ * @return Bitmapped stopClockHWPType enum values
+ * */
+static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
+                                  uint32_t i_chipletId)
+{
+    uint32_t l_rc = SC_NONE;
+    TargetType l_fapiTarget = sbeGetFapiTargetType(
+                                                i_targetType,
+                                                i_chipletId);
+    if((l_fapiTarget == TARGET_TYPE_PROC_CHIP) ||
+       (l_fapiTarget == TARGET_TYPE_PERV) ||
+       ((i_targetType == TARGET_CORE) && (i_chipletId == SMT4_ALL_CORES))||
+       ((i_targetType == TARGET_EQ) && (i_chipletId == EQ_ALL_CHIPLETS)) ||
+       ((i_targetType == TARGET_EX) && (i_chipletId == EX_ALL_CHIPLETS)))
+    {
+           l_rc |= SC_PROC;
+    }
+    if((l_fapiTarget == TARGET_TYPE_CORE) ||
+       (l_fapiTarget == TARGET_TYPE_EX))
+    {
+        l_rc |= SC_CORE;
+    }
+    if((l_fapiTarget == TARGET_TYPE_EQ) ||
+       (l_fapiTarget == TARGET_TYPE_EX))
+    {
+        l_rc |= SC_CACHE;
+    }
+    return l_rc;
+}
+/* @brief Prepare Stop clock flags base on Target Type
+ *
+ * @param[in] i_targetType  SBE chip-op target Type
+ *
+ * @return p9_stopclocks_flags
+ */
+static inline p9_stopclocks_flags getStopClocksFlags(
+                                     uint32_t i_targetType)
+{
+    p9_stopclocks_flags l_flags;
+
+    if(i_targetType != TARGET_PROC_CHIP)
+    {
+        // Clear default flags - only in case the target is not PROC_CHIP
+        // Otherwise, for a PROC_CHIP target, we want to keep default flags
+        l_flags.clearAll();
+    }
+    if(i_targetType == TARGET_PERV)
+    {
+        // Keep only tp as true
+        l_flags.stop_tp_clks  = true;
+    }
+    else if(i_targetType == TARGET_CORE)
+    {
+        // Keep only core flag as true
+        l_flags.stop_core_clks = true;
+    }
+    else if(i_targetType == TARGET_EQ)
+    {
+        // Keep only cache flag as true
+        l_flags.stop_cache_clks = true;
+    }
+    else if(i_targetType == TARGET_EX)
+    {
+        // Keep only cache and core as true
+        l_flags.stop_cache_clks = true;
+        l_flags.stop_core_clks = true;
+    }
+
+    return l_flags;
+}
 uint32_t sbeStopClocks(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeStopClocks"
@@ -202,71 +291,86 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
                     (uint16_t)l_reqMsg.targetType,
                     (uint8_t)l_reqMsg.chipletId);
 
-        if(false == l_reqMsg.validateInputTargetType())
+        fapi2::plat_target_handle_t l_tgtHndl;
+        // Keep these default values in sync with p9_stopclocks.H
+        p9hcd::P9_HCD_CLK_CTRL_CONSTANTS l_clk_regions
+                                    = p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
+        p9hcd::P9_HCD_EX_CTRL_CONSTANTS l_ex_select   = p9hcd::BOTH_EX;
+
+        // Get the type of stopclocks procedure to call
+        // based on target and chiplet id
+        uint32_t l_hwpType = getStopClockHWPType(l_reqMsg.targetType,
+                                                        l_reqMsg.chipletId);
+        if(l_hwpType == SC_NONE)
         {
+            // Error in target and chiplet id combination
+            SBE_ERROR(SBE_FUNC "Invalid TargetType[0x%04X] ChipletId[0x%02X]",
+                    (uint32_t)l_reqMsg.targetType,
+                    (uint32_t)l_reqMsg.chipletId);
             l_respHdr.setStatus( SBE_PRI_INVALID_DATA,
                                  SBE_SEC_INVALID_TARGET_TYPE_PASSED );
             break;
         }
-
-        uint64_t l_clk_regions = p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
-        uint8_t l_ex_select   = p9hcd::BOTH_EX;
-
-        if( (l_reqMsg.chipletId == SMT4_ALL_CORES) ||
-            (l_reqMsg.chipletId == EQ_ALL_CHIPLETS) )
+        // All Core/All Cache/All Ex & Perv & Proc are handled here
+        if(l_hwpType & SC_PROC)
         {
-            Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
-            if(l_reqMsg.targetType == TARGET_CORE)
+            SBE_DEBUG(SBE_FUNC " Calling p9_stopclocks");
+            p9_stopclocks_flags l_flags = getStopClocksFlags(
+                                                        l_reqMsg.targetType);
+            if(l_reqMsg.targetType == TARGET_EX)
             {
-                for (auto l_coreTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+                l_clk_regions = static_cast<p9hcd::P9_HCD_CLK_CTRL_CONSTANTS>
+                                (p9hcd::CLK_REGION_EX0_REFR |
+                                                    p9hcd::CLK_REGION_EX1_REFR);
+            }
+            SBE_EXEC_HWP(l_fapiRc, p9_stopclocks_hwp,
+                          plat_getChipTarget(),
+                          l_flags,
+                          l_clk_regions,
+                          l_ex_select);
+        }
+        // Specific CORE/EX
+        if(l_hwpType & SC_CORE)
+        {
+            SBE_DEBUG(SBE_FUNC " Calling p9_hcd_core_stopclocks");
+            sbeGetFapiTargetHandle(l_reqMsg.targetType,
+                                   l_reqMsg.chipletId,
+                                   l_tgtHndl);
+            if(l_reqMsg.targetType == TARGET_EX)
+            {
+                Target<TARGET_TYPE_EX> l_exTgt(l_tgtHndl);
+                for(auto &l_childCore :
+                                    l_exTgt.getChildren<TARGET_TYPE_CORE>())
                 {
-                    SBE_DEBUG(SBE_FUNC " Calling p9_hcd_core_stopclocks");
-                    SBE_EXEC_HWP(l_fapiRc, p9_hcd_core_stopclocks_hwp, l_coreTgt)
-                    if(l_fapiRc != FAPI2_RC_SUCCESS)
-                    {
-                        // break from internal for loop
-                        break;
-                    }
+                    SBE_EXEC_HWP(l_fapiRc,
+                                 p9_hcd_core_stopclocks_hwp,
+                                 l_childCore);
                 }
             }
-            else // Cache
+            else
             {
-                for (auto l_eqTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
-                {
-                    SBE_DEBUG(SBE_FUNC " Calling p9_hcd_cache_stopclocks");
-                    SBE_EXEC_HWP(l_fapiRc, p9_hcd_cache_stopclocks_hwp,
-                                 l_eqTgt,
-                                 (p9hcd::P9_HCD_CLK_CTRL_CONSTANTS)l_clk_regions,
-                                 (p9hcd::P9_HCD_EX_CTRL_CONSTANTS)l_ex_select)
-                    if(l_fapiRc != FAPI2_RC_SUCCESS)
-                    {
-                        // break from internal for loop
-                        break;
-                    }
-                }
+                SBE_EXEC_HWP(l_fapiRc, p9_hcd_core_stopclocks_hwp, l_tgtHndl);
             }
         }
-        else // for a single Core/Cache chiplet
+        // Specific EQ/EX
+        if(l_hwpType & SC_CACHE)
         {
-            // Construct the Target
-            fapi2::plat_target_handle_t l_tgtHndl;
-            // No Need to check the return here, it's already validated
-            sbeGetFapiTargetHandle( l_reqMsg.targetType,
-                                    l_reqMsg.chipletId,
-                                    l_tgtHndl );
-
-            if(l_reqMsg.targetType == TARGET_CORE)
+            SBE_DEBUG(SBE_FUNC " Calling p9_hcd_cache_stopclocks");
+            if(l_reqMsg.targetType == TARGET_EX)
             {
-                SBE_DEBUG(SBE_FUNC " Calling p9_hcd_core_stopclocks");
-                l_fapiRc = p9_hcd_core_stopclocks(l_tgtHndl);
+                // Modify l_clk_regions based on chiplet Id
+                l_clk_regions = SBE_IS_EX0(l_reqMsg.chipletId) ?
+                        p9hcd::CLK_REGION_EX0_REFR : p9hcd::CLK_REGION_EX1_REFR;
+                // Modify l_ex_select based on chiplet ID
+                l_ex_select = SBE_IS_EX0(l_reqMsg.chipletId) ?
+                                            p9hcd::EVEN_EX : p9hcd::ODD_EX;
+                Target<TARGET_TYPE_EX> l_ex_target(l_tgtHndl);
+                l_tgtHndl = l_ex_target.getParent<TARGET_TYPE_EQ>();
             }
-            else //Cache
-            {
-                SBE_DEBUG(SBE_FUNC " Calling p9_hcd_cache_stopclocks");
-                l_fapiRc = p9_hcd_cache_stopclocks(l_tgtHndl,
-                                (p9hcd::P9_HCD_CLK_CTRL_CONSTANTS)l_clk_regions,
-                                (p9hcd::P9_HCD_EX_CTRL_CONSTANTS)l_ex_select);
-            }
+            SBE_EXEC_HWP(l_fapiRc, p9_hcd_cache_stopclocks_hwp,
+                         l_tgtHndl,
+                         (p9hcd::P9_HCD_CLK_CTRL_CONSTANTS)l_clk_regions,
+                         (p9hcd::P9_HCD_EX_CTRL_CONSTANTS)l_ex_select);
         }
 
         if( l_fapiRc != FAPI2_RC_SUCCESS )

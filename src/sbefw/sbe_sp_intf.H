@@ -330,6 +330,14 @@ enum sbeCoreChipletId
 };
 
 /**
+ * @brief EX Chiplet Id Enum
+ */
+enum sbeExChipletId
+{
+    EX_ALL_CHIPLETS     = 0xFF,
+};
+
+/**
  * @brief Thread Num Enum
  */
 enum sbeThreadNum

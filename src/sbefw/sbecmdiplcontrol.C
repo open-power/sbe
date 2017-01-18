@@ -191,7 +191,7 @@ ReturnCode performTpmReset();
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
-p9_stopclocks_FP_t p9_stopclocks_hwp = &p9_stopclocks;
+extern p9_stopclocks_FP_t p9_stopclocks_hwp;
 //p9_thread_control_FP_t threadCntlhwp = &p9_thread_control;
 extern p9_thread_control_FP_t threadCntlhwp;
 #endif

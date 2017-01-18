@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -28,29 +28,38 @@ import testUtil
 err = False
 #from testWrite import *
 
-STOPCLOCK_CORE_TESTDATA =  [0,0,0,0x5,
+STOPCLOCK_CORE_TESTDATA =  [0,0,0,0x3,
                             0,0,0xA9,0x03,
-                            0x0,0x5,0x0,0x20]      # target type/chiplet id
+                            0x0,0x02,0x00,0x20]      # target type/chiplet id
+STOPCLOCK_PROC_TESTDATA =  [0,0,0,0x3,
+                            0,0,0xA9,0x03,
+                            0x0,0x0,0x0,0x00]      # target type/chiplet id
 
-STOPCLOCK_ALL_CORE_TESTDATA =  [0,0,0,0x5,
+STOPCLOCK_ALL_CORE_TESTDATA =  [0,0,0,0x3,
                                 0,0,0xA9,0x03,
                                 0x0,0x5,0x0,0xFF]      # target type/chiplet id
 
-STOPCLOCK_CORE_EXPDATA =   [0xc0,0xde,0xa9,0x03,
+STOPCLOCK_PASS_EXPDATA =   [0xc0,0xde,0xa9,0x03,
                             0x0,0x0,0x0,0x0,
                             0x0,0x0,0x0,0x03];
 
-STOPCLOCK_EQ_TESTDATA =  [0,0,0,0x5,
+STOPCLOCK_EQ_TESTDATA =  [0,0,0,0x3,
                           0,0,0xA9,0x03,
-                          0x0,0x4,0x0,0x10]      # target type/chiplet id
+                          0x0,0x2,0x0,0x10]      # target type/chiplet id
 
-STOPCLOCK_ALL_EQ_TESTDATA =  [0,0,0,0x5,
+STOPCLOCK_ALL_EQ_TESTDATA =  [0,0,0,0x3,
                               0,0,0xA9,0x03,
                               0x0,0x4,0x0,0xFF]      # target type/chiplet id
 
 STOPCLOCK_EQ_EXPDATA =   [0xc0,0xde,0xa9,0x03,
                           0x0,0x0,0x0,0x0,
                           0x0,0x0,0x0,0x03];
+STOPCLOCK_INVALIDTARGET_TESTDATA =  [0,0,0,0x3,
+                            0,0,0xA9,0x03,
+                            0x0,0x09,0x00,0x20]      # target type/chiplet id
+STOPCLOCK_FAIL_EXPDATA =   [0xc0,0xde,0xa9,0x03,
+                            0x0,0x02,0x0,0x04,
+                            0x0,0x0,0x0,0x03];
 
 
 # MAIN Test Run Starts Here...
@@ -60,13 +69,13 @@ def main( ):
 
     testUtil.writeUsFifo( STOPCLOCK_CORE_TESTDATA )
     testUtil.writeEot( )
-    testUtil.readDsFifo( STOPCLOCK_CORE_EXPDATA )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
     testUtil.runCycles( 10000000 )
     testUtil.readEot( )
 
 #    testUtil.writeUsFifo( STOPCLOCK_ALL_CORE_TESTDATA )
 #    testUtil.writeEot( )
-#    testUtil.readDsFifo( STOPCLOCK_CORE_EXPDATA )
+#    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
 #    testUtil.runCycles( 10000000 )
 #    testUtil.readEot( )
 #
@@ -83,6 +92,18 @@ def main( ):
 #    testUtil.readDsFifo( STOPCLOCK_EQ_EXPDATA )
 #    testUtil.runCycles( 10000000 )
 #    testUtil.readEot( )
+
+    testUtil.writeUsFifo( STOPCLOCK_PROC_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
+
+    testUtil.writeUsFifo( STOPCLOCK_INVALIDTARGET_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_FAIL_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
 
 #-------------------------------------------------
 # Calling all test code
