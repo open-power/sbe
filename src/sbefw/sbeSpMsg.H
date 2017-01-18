@@ -629,7 +629,7 @@ typedef struct
         o_threadCntMax = SMT4_THREAD_MAX;
 
         o_core = SMT4_CORE0_ID;
-        o_coreCntMax = SMT4_CORE_ID_MAX;
+        o_coreCntMax = SMT4_CORE_ID_LAST+1;
 
         if( SMT4_ALL_CORES != coreChipletId )
         {
@@ -703,7 +703,7 @@ typedef struct
                 &&( SBE_MAX_REG_ACCESS_REGS >= numRegs )
                 &&( SMT4_THREAD3 >= threadNr )
                 &&( SMT4_CORE0_ID <= coreChiplet )
-                &&( SMT4_CORE_ID_MAX >= coreChiplet )) ? true:false;
+                &&( SMT4_CORE_ID_LAST >= coreChiplet )) ? true:false;
     }
 }sbeRegAccessMsgHdr_t;
 

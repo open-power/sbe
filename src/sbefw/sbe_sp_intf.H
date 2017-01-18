@@ -325,7 +325,7 @@ enum sbeErrorMode
 enum sbeCoreChipletId
 {
     SMT4_CORE0_ID       = 0x20,
-    SMT4_CORE_ID_MAX    = 0x38,
+    SMT4_CORE_ID_LAST   = 0x37,
     SMT4_ALL_CORES      = 0xFF,
 };
 
@@ -384,12 +384,64 @@ typedef enum
 } sbeTargetTypes_t;
 
 /**
+ * @brief Pervasive Chiplet Id Enum
+ */
+enum sbePervChipletId
+{
+    PERV_CHIPLET = 0x01,
+};
+
+/**
+ * @brief Nest Chiplet Id Enum
+ */
+enum sbeNestChipletId
+{
+    NEST_ID_0       = 0x02,
+    NEST_ID_LAST    = 0x05,
+};
+
+/**
+ * @brief XBus Chiplet Id Enum
+ */
+enum sbeXBusChipletId
+{
+    XBUS_ID    = 0x06,
+};
+
+/**
+ * @brief MC Bist Chiplet Id Enum
+ */
+enum sbeMcbistChipletId
+{
+    MCBIST_ID_0     = 0x07,
+    MCBIST_ID_LAST  = 0x08,
+};
+
+/**
+ * @brief OBus Chiplet Id Enum
+ */
+enum sbeObusChipletId
+{
+    OBUS_ID_0       = 0x09,
+    OBUS_ID_LAST    = 0x0C,
+};
+
+/**
+ * @brief PCIe Chiplet Id Enum
+ */
+enum sbePcieChipletId
+{
+    PCIE_ID_0       = 0x0D,
+    PCIE_ID_LAST    = 0x0F,
+};
+
+/**
  * @brief Cache Chiplet Id Enum
  */
 enum sbeCacheChipletId
 {
     EQ_ID_0          = 0x10,
-    EQ_ID_MAX        = 0x06,
+    EQ_ID_LAST       = 0x15,
     EQ_ALL_CHIPLETS  = 0xFF,
 };
 

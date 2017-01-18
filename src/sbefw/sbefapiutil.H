@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -37,18 +38,32 @@
 #include "fapi2.H"
 #include "plat_hw_access.H"
 
+/* @brief - Map SBE target Types to Fapi Target Types
+ *
+ * @param[in] - i_sbeTargetType     SBE target type
+ * @param[in] - i_chipletId         Chiplet Id
+ *
+ * @return    - fapi target type
+ */
+fapi2::TargetType sbeGetFapiTargetType(const uint16_t i_sbeTargetType,
+                const uint16_t i_chipletId);
+
 /*@brief - create fapi target handle for the target type
  *
  * @param[in] - i_taretType - sbe target type
  * @param[in] - i_chipletId - chiplet id
  * @param[out] - o_tgtHndl - fapi target handle
+ * @param[in] - i_fapiTargetMask - expected fapi targets, by default
+ *                            no masking
  *
  * @return - true - on success
  *           false - on failure
  */
-bool sbeGetFapiTargetHandle(uint16_t i_targetType,
-                            uint16_t i_chipletId,
-                            fapi2::plat_target_handle_t &o_tgtHndl);
+bool sbeGetFapiTargetHandle(const uint16_t i_targetType,
+                            const uint16_t i_chipletId,
+                            fapi2::plat_target_handle_t &o_tgtHndl,
+                            const fapi2::TargetType i_fapiTargetMask =
+                                                fapi2::TARGET_TYPE_ALL);
 
 /*@brief - Map sbe ring access modes to fapi ring access modes
  *

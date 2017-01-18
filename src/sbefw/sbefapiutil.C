@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,36 +33,87 @@
 
 using namespace fapi2;
 
-bool sbeGetFapiTargetHandle(uint16_t i_targetType,
-                            uint16_t i_chipletId,
-                            fapi2::plat_target_handle_t &o_tgtHndl)
+fapi2::TargetType sbeGetFapiTargetType(const uint16_t i_sbeTargetType,
+        const uint16_t i_chipletId)
 {
-    bool l_rc = true;
-    switch(i_targetType)
+    TargetType l_fapiTargetType = TARGET_TYPE_NONE;
+    switch(i_sbeTargetType)
     {
         case TARGET_EX:
-            o_tgtHndl = plat_getTargetHandleByChipletNumber
-                            <fapi2::TARGET_TYPE_EX>(i_chipletId);
+            if((i_chipletId >= SMT4_CORE0_ID) &&
+                    (i_chipletId <= SMT4_CORE_ID_LAST))
+            {
+                l_fapiTargetType = fapi2::TARGET_TYPE_EX;
+            }
             break;
         case TARGET_PERV:
-            o_tgtHndl = plat_getTargetHandleByChipletNumber
-                            <fapi2::TARGET_TYPE_PERV>(i_chipletId);
-            break;
-        case TARGET_EQ:
-            o_tgtHndl = plat_getTargetHandleByChipletNumber
-                            <fapi2::TARGET_TYPE_EQ>(i_chipletId);
-            break;
-        case TARGET_CORE:
-            o_tgtHndl = plat_getTargetHandleByChipletNumber
-                            <fapi2::TARGET_TYPE_CORE>(i_chipletId);
+            if((i_chipletId >= EQ_ID_0) && (i_chipletId <= EQ_ID_LAST))
+            {
+                l_fapiTargetType = fapi2::TARGET_TYPE_EQ;
+            }
+            else if((i_chipletId >= SMT4_CORE0_ID) &&
+                    (i_chipletId <= SMT4_CORE_ID_LAST))
+            {
+                l_fapiTargetType = fapi2::TARGET_TYPE_CORE;
+            }
+            else
+            {
+                l_fapiTargetType = fapi2::TARGET_TYPE_PERV;
+            }
             break;
         case TARGET_PROC_CHIP:
-            o_tgtHndl = plat_getChipTarget().get();
-            break;
-        default:
-            l_rc = false;
+            l_fapiTargetType = fapi2::TARGET_TYPE_PROC_CHIP;
             break;
     }
+    return l_fapiTargetType;
+}
+
+bool sbeGetFapiTargetHandle(const uint16_t i_targetType,
+                            const uint16_t i_chipletId,
+                            fapi2::plat_target_handle_t &o_tgtHndl,
+                            const fapi2::TargetType i_fapiTargetMask)
+{
+    bool l_rc = true;
+
+    do
+    {
+        if(((i_targetType == TARGET_TYPE_CORE) &&
+            (i_chipletId == SMT4_ALL_CORES)) ||
+           ((i_targetType == TARGET_TYPE_EQ) &&
+            (i_chipletId == EQ_ALL_CHIPLETS)))
+        {
+            // It's a valid combination for all cores/all EQs
+            break;
+        }
+        fapi2::TargetType l_fapiTargetType = static_cast<TargetType>(
+                                 sbeGetFapiTargetType(i_targetType, i_chipletId)
+                                 & i_fapiTargetMask);
+        switch(l_fapiTargetType)
+        {
+            case fapi2::TARGET_TYPE_EX:
+                o_tgtHndl = plat_getTargetHandleByChipletNumber
+                                <fapi2::TARGET_TYPE_EX>(i_chipletId);
+                break;
+            case fapi2::TARGET_TYPE_PERV:
+                o_tgtHndl = plat_getTargetHandleByChipletNumber
+                                <fapi2::TARGET_TYPE_PERV>(i_chipletId);
+                break;
+            case fapi2::TARGET_TYPE_EQ:
+                o_tgtHndl = plat_getTargetHandleByChipletNumber
+                                <fapi2::TARGET_TYPE_EQ>(i_chipletId);
+                break;
+            case fapi2::TARGET_TYPE_CORE:
+                o_tgtHndl = plat_getTargetHandleByChipletNumber
+                                <fapi2::TARGET_TYPE_CORE>(i_chipletId);
+                break;
+            case fapi2::TARGET_TYPE_PROC_CHIP:
+                o_tgtHndl = plat_getChipTarget().get();
+                break;
+            default:
+                l_rc = false;
+                break;
+        }
+    } while(false);
     return l_rc;
 }
 
