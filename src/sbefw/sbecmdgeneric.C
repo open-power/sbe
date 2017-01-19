@@ -260,6 +260,51 @@ uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
     #undef SBE_FUNC
 }
 
+//---------------------------------------------------------------------------
+uint32_t sbeSetFFDCAddr(uint8_t *i_pArg)
+{
+#define SBE_FUNC "sbeSetFFDCAddr"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
+    sbeSetFFDCAddrReq_t l_req = {};
+
+    do
+    {
+        // Extract the request
+        // and send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                    (sizeof(l_req)/sizeof(uint64_t)),
+                                    (uint64_t*)&l_req,
+                                    true);
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to extract SBE_HOST_PSU_MBOX_REG1 and "
+                    "SBE_HOST_PSU_MBOX_REG2");
+            break;
+        }
+
+        l_req.getFFDCAddr(SBE_GLOBAL->hostFFDCAddr);
+        l_req.getPassThroughCmdAddr(SBE_GLOBAL->hostPassThroughCmdAddr);
+
+        SBE_INFO(SBE_FUNC" Global hostFFDCAddr size[0x%08X] Address[0x%08X%08X]",
+             static_cast<uint32_t>(SBE_GLOBAL->hostFFDCAddr.size),
+             static_cast<uint32_t>(SBE::higher32BWord(SBE_GLOBAL->hostFFDCAddr.addr)),
+             static_cast<uint32_t>(SBE::lower32BWord(SBE_GLOBAL->hostFFDCAddr.addr)));
+        SBE_INFO(SBE_FUNC" Global hostPassCmdAddr size[0x%08X] Address[0x%08X%08X]",
+             static_cast<uint32_t>(SBE_GLOBAL->hostPassThroughCmdAddr.size),
+             static_cast<uint32_t>(SBE::higher32BWord(SBE_GLOBAL->hostPassThroughCmdAddr.addr)),
+             static_cast<uint32_t>(SBE::lower32BWord(SBE_GLOBAL->hostPassThroughCmdAddr.addr)));
+
+    } while(false);
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, rc);
+
+    return rc;
+    SBE_EXIT(SBE_FUNC);
+#undef SBE_FUNC
+}
+
 //----------------------------------------------------------------------------
 uint32_t sbePsuQuiesce( uint8_t *i_pArg )
 {

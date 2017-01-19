@@ -68,6 +68,11 @@ class SBEGlobalsSingleton
         sbeRole SBERole;
         // SBE Frequency. Initially nest frequency is 133 MHZ
         uint32_t sbefreq;
+        // Host specified memory allocations
+        // passthrough command address
+        sbeHostAddr_t hostPassThroughCmdAddr;
+        // ffdc address
+        sbeHostAddr_t hostFFDCAddr;
 
         ////////////////////////////////////////////////////////////////
         //// @brief Stacks for Non-critical Interrupts and Threads

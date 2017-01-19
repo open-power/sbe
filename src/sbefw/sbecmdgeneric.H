@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -60,6 +60,15 @@ uint32_t sbeGetCapabilities(uint8_t *i_pArg);
   * @return    Rc from the FIFO access utility
   */
 uint32_t sbeFifoQuiesce(uint8_t *i_pArg);
+
+/**
+  * @brief SBE Psu Set FFDC Address(0xD704)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the Psu access utility
+  */
+uint32_t sbeSetFFDCAddr(uint8_t *i_pArg);
 
 /**
   * @brief SBE Psu Quiesce (0xD705)

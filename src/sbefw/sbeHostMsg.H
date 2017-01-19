@@ -68,6 +68,37 @@ typedef struct
     }
 } sbePsu2SbeCmdReqHdr_t;
 
+/* @brief Address and size of memory allocated by Host
+ *        for FFDC/pass through commands
+ */
+typedef struct
+{
+    uint32_t size;
+    uint64_t addr;
+} sbeHostAddr_t;
+
+/* @brief Set FFDC Address message
+ */
+typedef struct
+{
+    uint64_t ffdcDataSize:32;
+    uint64_t passCmdDataSize:32;
+    uint64_t ffdcAddr;
+    uint64_t passCmdDataAddr;
+
+    void getFFDCAddr(sbeHostAddr_t &i_hostFFDCAddr)
+    {
+        i_hostFFDCAddr.size = ffdcDataSize;
+        i_hostFFDCAddr.addr = ffdcAddr;
+    }
+
+    void getPassThroughCmdAddr(sbeHostAddr_t &i_hostPassCmdAddr)
+    {
+        i_hostPassCmdAddr.size = passCmdDataSize;
+        i_hostPassCmdAddr.addr = passCmdDataAddr;
+    }
+} sbeSetFFDCAddrReq_t;
+
 /*****************************************************************/
 /*            SBE->PSU response structures                       */
 /*****************************************************************/

@@ -87,6 +87,7 @@ enum sbePsuRingAccessMessages
  */
 enum sbePsuGenericMessages
 {
+    SBE_PSU_GENERIC_MSG_SET_FFDC_ADDR      = 0x04,
     SBE_PSU_GENERIC_MSG_QUIESCE            = 0x05,
     SBE_PSU_GENERIC_MSG_SYSTEM_FABRIC_MAP  = 0x06,
     SBE_PSU_GENERIC_MSG_UNKNOWN            = 0xFF,

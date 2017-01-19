@@ -280,6 +280,11 @@ static sbeCmdStruct_t g_sbePutRingFromImageCmdArray [] =
 //////////////////////////////////////////////////////////////
 static sbeCmdStruct_t g_sbePsuGenericCmdArray[] =
 {
+    {sbeSetFFDCAddr,
+     SBE_PSU_GENERIC_MSG_SET_FFDC_ADDR,
+     SBE_NO_FENCE,
+    },
+
     {sbePsuQuiesce,
      SBE_PSU_GENERIC_MSG_QUIESCE,
      SBE_NO_FENCE,
