@@ -272,7 +272,7 @@
   </entry>
   <entry>
          <name>ATTR_BOOT_FLAGS</name>
-         <value>0x80000000</value>
+         <value>0x00000000</value>
   </entry>
   <entry>
           <name>ATTR_PROC_FABRIC_SYSTEM_ID</name>
