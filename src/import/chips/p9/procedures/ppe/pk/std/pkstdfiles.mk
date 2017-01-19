@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -53,5 +53,5 @@ STD-THREAD-S-SOURCES =
 STD-ASYNC-C-SOURCES =
 STD-ASYNC-S-SOURCES =
 
-STD_OBJECTS += $(STD-C-SOURCES:.c=.o) $(STD-S-SOURCES:.S=.o)
+STD_OBJECTS = $(STD-C-SOURCES:.c=.o) $(STD-S-SOURCES:.S=.o)
 
