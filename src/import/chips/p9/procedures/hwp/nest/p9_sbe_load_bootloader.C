@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -87,6 +87,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     uint32_t l_exception_vector_size = 0;
     uint8_t l_master_core = 0;
     int l_cacheline_num = 0;
+    uint8_t l_is_mpipl = 0x0;
     p9_PBA_oper_flag l_myPbaFlag;
     fapi2::buffer<uint64_t> l_dataBuf;
     fapi2::Target<fapi2::TARGET_TYPE_CORE> l_coreTarget;
@@ -191,7 +192,17 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
 
     // move data using PBA setup/access HWPs
     l_myPbaFlag.setFastMode(true);  // FASTMODE
-    l_myPbaFlag.setOperationType(p9_PBA_oper_flag::LCO); // LCO operation
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_is_mpipl), "fapiGetAttribute of ATTR_IS_MPIPL failed!");
+
+    if (!l_is_mpipl)
+    {
+        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::LCO); // LCO operation
+    }
+    else
+    {
+        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::DMA); // DMA operation
+    }
 
     while (l_target_address < (l_chip_base_address_nm0 + i_payload_size + l_exception_vector_size))
     {
