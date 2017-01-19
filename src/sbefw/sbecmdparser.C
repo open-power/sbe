@@ -49,7 +49,6 @@
 #include "sbecmdmpipl.H"
 #include "sbecmdtracearray.H"
 #include "sbecmdCntrlTimer.H"
-#include "sbecmdfastarray.H"
 
 // Declaration
 static const uint16_t HARDWARE_FENCED_STATE =
@@ -225,8 +224,8 @@ static sbeCmdStruct_t g_sbeRingAccessCmdArray [] =
 ////////////////////////////////////////////////////////////////
 static sbeCmdStruct_t g_sbeArrayAccessCmdArray[] =
 {
-    {sbeControlFastArray,
-     SBE_CMD_CONTROL_FAST_ARRAY,
+    {NULL,
+     SBE_CMD_GET_FAST_ARRAY,
      SBE_FENCE_AT_QUIESCE,
     },
     {sbeControlTraceArray,
