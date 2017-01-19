@@ -166,7 +166,7 @@ p9_hcd_cache_scominit(
             goto fapi_try_exit;
         }
 
-        FAPI_EXEC_HWP(l_rc, p9_ncu_scom, *l_iter, l_sys);
+        FAPI_EXEC_HWP(l_rc, p9_ncu_scom, *l_iter, l_sys, l_chip);
 
         if (l_rc)
         {
