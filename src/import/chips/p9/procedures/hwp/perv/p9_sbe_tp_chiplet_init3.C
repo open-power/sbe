@@ -86,6 +86,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
                 fapi2::TARGET_STATE_FUNCTIONAL)[0];
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
+    fapi2::ATTR_CHIP_EC_FEATURE_HW401184_Type l_disable_tod_hp = 0;
     FAPI_INF("p9_sbe_tp_chiplet_init3: Entering ...");
 
     FAPI_DBG("Reading ATTR_PFET_OFF_CONTROLS");
@@ -187,9 +188,18 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_2_REG, l_data64));
     //Setting HANG_PULSE_3_REG register value (Setting all fields)
     //PERV.HANG_PULSE_3_REG.HANG_PULSE_REG_3 = 0b000001
-    l_data64.insertFromRight<0, 6>(0b000001);
-    l_data64.clearBit<6>();  //PERV.HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0b0
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_3_REG, l_data64));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW401184,
+                           i_target_chip,
+                           l_disable_tod_hp),
+             "Error from ATTR_CHIP_EC_FEATURE_HW401184");
+
+    if (!l_disable_tod_hp)
+    {
+        l_data64.insertFromRight<0, 6>(0b000001);
+        l_data64.clearBit<6>();  //PERV.HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0b0
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_3_REG, l_data64));
+    }
+
     //Setting HANG_PULSE_5_REG register value (Setting all fields)
     //PERV.HANG_PULSE_5_REG.HANG_PULSE_REG_5 = 0b000110
     l_data64.insertFromRight<0, 6>(0b000110);
