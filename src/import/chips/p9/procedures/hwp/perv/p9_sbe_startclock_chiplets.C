@@ -81,7 +81,6 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
                                  fapi2::TARGET_FILTER_XBUS | fapi2::TARGET_FILTER_ALL_PCI),
                          fapi2::TARGET_STATE_FUNCTIONAL);
 
-
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OBUS_RATIO_VALUE, i_target_chip,
                            l_attr_obus_ratio));
 
@@ -137,8 +136,12 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
             FAPI_TRY(p9_sbe_startclock_chiplets_fence_drop(targ));
         }
 
-        FAPI_DBG("call  sbe_common_flushmode for xbus, obus, pcie chiplets");
-        FAPI_TRY(p9_sbe_common_flushmode(targ));
+        // skip dropping flushmode inhbit if PCIE chiplet
+        if (!(l_chipletID >= 13) && (l_chipletID <= 15))
+        {
+            FAPI_DBG("call  sbe_common_flushmode for xbus, obus chiplets");
+            FAPI_TRY(p9_sbe_common_flushmode(targ));
+        }
     }
 
     FAPI_INF("p9_sbe_startclock_chiplets: Exiting ...");
