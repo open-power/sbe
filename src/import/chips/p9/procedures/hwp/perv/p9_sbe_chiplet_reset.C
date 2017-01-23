@@ -120,12 +120,16 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
 static fapi2::ReturnCode p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip);
 
+static fapi2::ReturnCode p9_sbe_chiplet_reset_meshctrl_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet, bool value);
+
 fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     // Local variable
     uint8_t l_mc_sync_mode = 0;
     uint8_t l_pll_bypass = 0;
+    fapi2::buffer<uint8_t> l_read_attr;
 #ifndef __PPE__
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     uint8_t l_attr_system_ipl_phase;
@@ -252,6 +256,32 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             {
                 FAPI_DBG("Mux settings for Pcie chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_pcie(targ, l_read_attr));
+            }
+        }
+
+        FAPI_DBG("Meshctrl setup");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NDL_MESHCTRL_SETUP, i_target_chip,
+                               l_read_attr));
+
+        for (auto& targ : l_perv_func_WO_Core_Cache)
+        {
+            uint32_t l_chipletID = targ.getChipletNumber();
+
+            if (l_chipletID == 9)
+            {
+                FAPI_TRY(p9_sbe_chiplet_reset_meshctrl_setup(targ, l_read_attr.getBit<4>()));
+            }
+            else if (l_chipletID == 10)
+            {
+                FAPI_TRY(p9_sbe_chiplet_reset_meshctrl_setup(targ, l_read_attr.getBit<5>()));
+            }
+            else if (l_chipletID == 11)
+            {
+                FAPI_TRY(p9_sbe_chiplet_reset_meshctrl_setup(targ, l_read_attr.getBit<6>()));
+            }
+            else if (l_chipletID == 12)
+            {
+                FAPI_TRY(p9_sbe_chiplet_reset_meshctrl_setup(targ, l_read_attr.getBit<7>()));
             }
         }
 
@@ -453,6 +483,41 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
 fapi_try_exit:
     return fapi2::current_err;
 
+}
+
+/// @brief meshctrl setup
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     value              0 or 1 to be written into perv_net_ctrl1 reg
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_meshctrl_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet, bool value)
+{
+    fapi2::buffer<uint64_t> l_data;
+    FAPI_INF("p9_sbe_chiplet_reset_meshctrl_setup: Entering ...");
+
+    if ( value )
+    {
+        l_data.flush<0>();
+        l_data.setBit<21>();
+
+        FAPI_DBG("Meshctrl setup");
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1_WOR, l_data));
+    }
+    else
+    {
+        l_data.flush<1>();
+        l_data.clearBit<21>();
+
+        FAPI_DBG("Meshctrl setup");
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1_WAND, l_data));
+
+    }
+
+    FAPI_INF("p9_sbe_chiplet_reset_meshctrl_setup: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
 }
 
 /// @brief Setting up hang pulse counter for all parital good chiplet except for Tp
