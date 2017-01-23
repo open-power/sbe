@@ -43,39 +43,49 @@
 
 enum P9_SETUP_SBE_CONFIG_scratch4
 {
-    // Scratch4 reg bit definitions
-    ATTR_OBUS_RATIO_VALUE_BIT          = 21,
-    ATTR_EQ_GARD_STARTBIT = 0,
-    ATTR_EQ_GARD_LENGTH = 6,
-    ATTR_EC_GARD_STARTBIT = 8,
-    ATTR_EC_GARD_LENGTH = 24,
-    ATTR_I2C_BUS_DIV_REF_STARTBIT = 0,
-    ATTR_I2C_BUS_DIV_REF_LENGTH = 16,
-    ATTR_BOOT_FLAGS_STARTBIT = 0,
-    ATTR_BOOT_FLAGS_LENGTH = 32,
-    ATTR_PUMP_CHIP_IS_GROUP = 23,
-    ATTR_PROC_FABRIC_GROUP_ID_STARTBIT = 26,
-    ATTR_PROC_FABRIC_GROUP_ID_LENGTH = 3,
-    ATTR_PROC_FABRIC_CHIP_ID_STARTBIT = 29,
-    ATTR_PROC_FABRIC_CHIP_ID_LENGTH = 3,
-    ATTR_CC_IPL_BIT = 0,
-    ATTR_INIT_ALL_CORES_BIT = 1,
-    ATTR_RISK_LEVEL_BIT = 2,
-    ATTR_DISABLE_HBBL_VECTORS_BIT = 3,
-    ATTR_MC_SYNC_MODE_BIT = 4,
-    ATTR_PLL_MUX_STARTBIT = 12,
-    ATTR_PLL_MUX_LENGTH = 20,
+    // Scratch_reg_1
+    ATTR_EQ_GARD_STARTBIT              = 0,
+    ATTR_EQ_GARD_LENGTH                = 6,
+    ATTR_EC_GARD_STARTBIT              = 8,
+    ATTR_EC_GARD_LENGTH                = 24,
 
-    // Scratch4 reg bit definitions
+    // Scratch_reg_2
+    ATTR_I2C_BUS_DIV_REF_STARTBIT      = 0,
+    ATTR_I2C_BUS_DIV_REF_LENGTH        = 16,
+    ATTR_NDL_MESHCTRL_SETUP_STARTBIT   = 16,
+    ATTR_NDL_MESHCTRL_SETUP_LENGTH     = 4,
+
+    // Scratch_reg_3
+    ATTR_BOOT_FLAGS_STARTBIT           = 0,
+    ATTR_BOOT_FLAGS_LENGTH             = 32,
+
+    // Scratch_reg_4
     ATTR_BOOT_FREQ_MULT_STARTBIT       = 0,
     ATTR_BOOT_FREQ_MULT_LENGTH         = 16,
     ATTR_NEST_PLL_BUCKET_STARTBIT      = 24,
     ATTR_NEST_PLL_BUCKET_LENGTH        = 8,
+    ATTR_OBUS_RATIO_VALUE_BIT          = 21,
     ATTR_CP_FILTER_BYPASS_BIT          = 16,
     ATTR_SS_FILTER_BYPASS_BIT          = 17,
     ATTR_IO_FILTER_BYPASS_BIT          = 18,
     ATTR_DPLL_BYPASS_BIT               = 19,
     ATTR_NEST_MEM_X_O_PCI_BYPASS_BIT   = 20,
+
+    // Scratch_reg_5
+    ATTR_PLL_MUX_STARTBIT              = 12,
+    ATTR_PLL_MUX_LENGTH                = 20,
+    ATTR_CC_IPL_BIT                    = 0,
+    ATTR_INIT_ALL_CORES_BIT            = 1,
+    ATTR_RISK_LEVEL_BIT                = 2,
+    ATTR_DISABLE_HBBL_VECTORS_BIT      = 3,
+    ATTR_MC_SYNC_MODE_BIT              = 4,
+
+    // Scratch_reg_6
+    ATTR_PUMP_CHIP_IS_GROUP            = 23,
+    ATTR_PROC_FABRIC_GROUP_ID_STARTBIT = 26,
+    ATTR_PROC_FABRIC_GROUP_ID_LENGTH   = 3,
+    ATTR_PROC_FABRIC_CHIP_ID_STARTBIT  = 29,
+    ATTR_PROC_FABRIC_CHIP_ID_LENGTH    = 3,
 };
 
 fapi2::ReturnCode p9_sbe_attr_setup(const
@@ -180,6 +190,11 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
             FAPI_DBG("Setting up ATTR_I2C_BUS_DIV_REF");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_I2C_BUS_DIV_REF, i_target_chip, l_read_4));
+
+            l_read_scratch_reg.extractToRight<16, 4>(l_read_1);
+
+            FAPI_DBG("Setting up ATTR_NDL_MESHCTRL_SETUP");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NDL_MESHCTRL_SETUP, i_target_chip, l_read_1));
         }
         else
         {
@@ -188,7 +203,11 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_DBG("Reading ATTR_I2C_BUS_DIV_REF");
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_I2C_BUS_DIV_REF, i_target_chip, l_read_4));
 
+            FAPI_DBG("Reading ATTR_NDL_MESHCTRL_SETUP");
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NDL_MESHCTRL_SETUP, i_target_chip, l_read_1));
+
             l_read_scratch_reg.insertFromRight< ATTR_I2C_BUS_DIV_REF_STARTBIT, ATTR_I2C_BUS_DIV_REF_LENGTH >(l_read_4);
+            l_read_scratch_reg.insertFromRight< ATTR_NDL_MESHCTRL_SETUP_STARTBIT, ATTR_NDL_MESHCTRL_SETUP_LENGTH >(l_read_1);
 
             FAPI_DBG("Setting up value of Scratch_reg2");
             //Setting SCRATCH_REGISTER_2 register value

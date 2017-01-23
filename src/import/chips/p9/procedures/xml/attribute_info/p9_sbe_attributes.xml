@@ -455,5 +455,9 @@ attribute tank
         <name>ATTR_IS_SP_MODE</name>
         <value>0x0</value>
   </entry>
+  <entry>
+        <name>ATTR_NDL_MESHCTRL_SETUP</name>
+        <value>0x0</value>
+  </entry>
 
 </entries>
