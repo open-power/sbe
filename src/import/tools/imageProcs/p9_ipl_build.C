@@ -72,7 +72,7 @@ std::string getDDSpecificFileName( const char* i_fn,
     // create our dd specific file name
     std::stringstream ss;
     std::string fn = i_fn;
-    auto found = fn.find_last_of("/");
+    size_t found = fn.find_last_of("/");
 
     ss << CHIP_TYPE << std::hex << i_ddLevel << "." << fn.substr(found + 1);
     return ss.str();

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -39,8 +39,6 @@ INCLUDES += -I../../../../hwpf/include/plat/            # ppe: define path varia
 XIP_FLAGS += -DDEBUG_P9_XIP_IMAGE=1
 XIP_FLAGS += -DFAPI2_NO_FFDC
 
-CXX_FLAGS += -std=c++11
-
 ifdef BINDIR
 OBJ_DIR = $(BINDIR)
 else
@@ -53,12 +51,6 @@ endif
 # link with are 32-bit only so we need to force 32-bit mode.
 
 CXX  = g++
-
-CXX_RELEASE = 4.8.2
-CXX_VERSION = $(shell $(CXX) -v 2>&1 | grep "$(CXX_RELEASE)")
-ifeq ($(CXX_VERSION),)
-$(error wrong compiler version. Use $(CXX_RELEASE) compiler. Try: "scl enable devtoolset-2 bash")
-endif
 
 XIP_UTILS = p9_xip_tool
 
