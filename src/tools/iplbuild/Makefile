@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,15 +39,7 @@
 ############################################################################
 include img_defs.mk
 
-GCC-RELEASE = 4.8.2
-GCC-VERSION = $(shell gcc -v 2>&1 | grep "$(GCC-RELEASE)")
-
-
-ifeq ($(GCC-VERSION),)
-$(error wrong compiler version. Use $(GCC-RELEASE) compiler. Try: "scl enable devtoolset-2 bash")
-else
 CXX  = g++
-endif
 
 export VPATH = $(P9_XIP_SRCDIR):$(IMAGEPROCS_SRCDIR):$(IMAGEPROCS_TOOL_DIR)
 export INCLUDES = -I$(P9_XIP_SRCDIR) \
@@ -66,7 +59,7 @@ objdir:
 
 utilities: $(IMG_DIR)/p9_ipl_build
 
-CXXFLAGS =-DFAPI2_NO_FFDC -std=c++11
+CXXFLAGS =-DFAPI2_NO_FFDC
 
 $(P9_XIP_BINDIR)/%.o: %.c
 	$(CXX)  $(INCLUDES) $(CXXFLAGS) -c -o $@ $<

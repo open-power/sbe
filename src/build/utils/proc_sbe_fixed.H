@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -67,7 +67,6 @@
 
 #include "p9_sbe.H"
 #include "plat_target_parms.H"
-#include "attribute_ids.H"
 
 #ifdef __ASSEMBLER__
          .macro     .proc_sbe_fixed_system

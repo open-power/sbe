@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -100,8 +100,7 @@ sb_workon()
         export SBE_INSIDE_WORKON=1
         echo "Setting environment variables..."
         source ./env.bash
-        echo "Spawning new shell with devtoolset 2..."
-        scl enable devtoolset-2 bash
+        bash
     fi
 }
 

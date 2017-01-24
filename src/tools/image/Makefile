@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -51,14 +51,8 @@ else
         cut -d" " -f2 | cut -d. -f1)
 endif
 
-GCC-RELEASE = 4.8.2
-GCC-VERSION = $(shell gcc -v 2>&1 | grep "$(GCC-RELEASE)")
-
-ifeq ($(GCC-VERSION),)
-$(error wrong compiler version. Use $(GCC-RELEASE) compiler. Try: "scl enable devtoolset-2 bash")
-else
+CXXFLAGS        =   -nostdinc++ -fno-rtti -fno-threadsafe-statics -fno-strict-aliasing
 CXX  = g++
-endif
 
 .PHONY : all utilities clean
 
@@ -72,7 +66,7 @@ utilities: $(IMG_DIR)/sbe_default_tool
 CXXFLAGS+=-DFAPI2_NO_FFDC
 
 $(BASE_OBJDIR)/tools/image/%.o: %.c
-	$(CXX) -std=c++11 $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
 
 $(IMG_DIR)/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o $(BASE_OBJDIR)/tools/image/sbe_default_tool.o
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
