@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -63,14 +63,14 @@ SECTIONS
     _header_size = . - _header_origin;
 
     // @TODO via RTC 136215
-    // We have used allignment 0x1000 so that it can be found
+    // We have used allignment 0x200 so that it can be found
     // at fixed location. once otprom loader support is enabled.
     // alligment will not be required.
 
     ////////////////////////////////
     // LOADER_TEXT
     ////////////////////////////////
-    .loader_text ALIGN(0x1000): {
+    .loader_text ALIGN(0x200): {
       _loader_text_origin = .; _loader_text_offset = . - _seeprom_origin;
       *(.loader_text);
     } > seeprom
