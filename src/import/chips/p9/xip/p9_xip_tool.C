@@ -149,9 +149,16 @@ const char* g_usage =
     "section of the image at the time it is deleted, or must be empty. The\n"
     "'delete' command writes the size of the final modified image to stdout.\n"
     "\n"
-    "The 'dissect' command dissects the ring section named by the section argument\n"
-    "and summarizes the content of the ring section.  The second argument to\n"
-    "'dissect', i.e. [table,short,normal(default),long,raw], specifies how much information\n"
+    "The 'dissect' command dissects a ring section. It accepts two different\n"
+    "types of images, namely the regular XIP image and now also stand-alone\n"
+    "ring section images (that have the TOR header). Wrt an XIP image, the\n"
+    "'dissect' command dissects the ring section named by the section argument.\n"
+    "Wrt a stand-alone ring section image, the 'dissect' command dissects\n"
+    "the ring section based on the TOR magic word embedded in the top of the\n"
+    "image. It does so regardless of what the section argument is (so for now\n"
+    "pass it .rings in this argument).  In both cases, 'dissect' summarizes\n"
+    "the content of the ring section. The second argument to 'dissect', i.e.\n"
+    "[table,short,normal(default),long,raw], specifies how much information\n"
     "is included in the listing:\n"
     "   table:  Tabular overview.\n"
     "   short:  The bare necessities.\n"
@@ -1751,9 +1758,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 ///
 /// \param[in] i_ringSection    A pointer to a TOR compliant ring section.
 ///
-/// \param[in] i_imageMagicNo   The image's MAGIC number.
-///
-/// \param[in] i_listingModeId  The listing mode: {table, short, normal(default), long, raw}.
+/// \param[in] i_listingModeId  The listing mode: {table, short, normal(default), long}.
 ///
 /// Assumptions:
 /// - Dissection only works with .rings section. It does not work with .overrides
@@ -1761,13 +1766,14 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 ///
 static
 int dissectRingSectionTor( void*       i_ringSection,
-                           uint64_t    i_imageMagicNo,
                            uint8_t     i_listingModeId )
 {
     int         rc = 0;
     uint32_t    i;
-    uint32_t    numDdLevels;
-    uint8_t     iDdLevel, ddLevel;
+    uint32_t    torMagic = 0xffffffff; // Undefined value
+    uint8_t     chipType = 0xff; // Undefined value
+    uint32_t    numDdLevels = 0; // Undefined value
+    uint8_t     iDdLevel, ddLevel = 0xff; // Undefined value
     uint8_t     ppeType;
     uint8_t     ringId;
     RingType_t  ringType;
@@ -1789,6 +1795,33 @@ int dissectRingSectionTor( void*       i_ringSection,
     double comprRate;
     uint8_t cmskRingIteration = 0;
     char ringSuffix = ' ';
+    uint8_t* buf = (uint8_t*)i_ringSection;
+    TorHeader_t* torHeader = (TorHeader_t*)i_ringSection;
+    int offset = sizeof(TorHeader_t);
+    TorDdBlock_t* torDdBlock;
+
+    //
+    // Get TOR magic, chip type and DD level info from TOR header field
+    //
+    torMagic    = be32toh(torHeader->magic);
+    chipType    = torHeader->chipType;
+    ddLevel     = torHeader->ddLevel;
+    numDdLevels = torHeader->numDdLevels;
+
+    fprintf(stdout, "---------------------------------\n");
+    fprintf(stdout, "*      TOR header summary       *\n");
+    fprintf(stdout, "---------------------------------\n");
+    fprintf(stdout, "TOR magic:      0x%4x=>%c%c%c%c\n", torMagic,
+            (uint8_t)(torMagic >> 24),
+            (uint8_t)(torMagic >> 16),
+            (uint8_t)(torMagic >> 8),
+            (uint8_t)(torMagic));
+    fprintf(stdout, "TOR version:    %d\n", torHeader->version);
+    fprintf(stdout, "Chip type:      %d=>%s\n", chipType, CHIP_TYPE_LIST[chipType].name);
+    fprintf(stdout, "DD level:       0x%x\n", ddLevel);
+    fprintf(stdout, "Num DD levels:  %d\n", numDdLevels);
+    fprintf(stdout, "---------------------------------\n");
+    fprintf(stdout, "\n\n");
 
     if (i_listingModeId != LMID_TABLE)
     {
@@ -1802,20 +1835,6 @@ int dissectRingSectionTor( void*       i_ringSection,
     ringBlockSize = RING_BUF_SIZE_MAX;
     ringBlockPtr = malloc(ringBlockSize);
 
-    //
-    // Get number of DD levels from TOR structure in ring section
-    //
-    if (i_imageMagicNo == P9_XIP_MAGIC_HW)
-    {
-        numDdLevels = htobe32( ( (TorNumDdLevels_t*)i_ringSection )->TorNumDdLevels );
-        fprintf( stderr, "numDdLevels (=%d) read from top of ring section.\n", numDdLevels);
-    }
-    else
-    {
-        numDdLevels = 1;
-        ddLevel = 0xff; // This means it's unknown.
-        fprintf( stderr, "Image contains only one DD level set of rings.\n");
-    }
 
     if (i_listingModeId == LMID_TABLE)
     {
@@ -1826,11 +1845,11 @@ int dissectRingSectionTor( void*       i_ringSection,
     // DD level loop.
     for (iDdLevel = 0; iDdLevel < numDdLevels; iDdLevel++)
     {
-
-        if (i_imageMagicNo == P9_XIP_MAGIC_HW)
+        if (torMagic == TOR_MAGIC_HW)
         {
-            ddLevel = ( ( htobe32( ( ( (TorDdLevelBlock_t*)((uintptr_t)i_ringSection + sizeof(TorNumDdLevels_t)) ) +
-                                     iDdLevel )->TorDdLevelAndOffset ) & 0xff000000 ) >> 24 );
+            torDdBlock = (TorDdBlock_t*)&buf[offset];
+            offset += sizeof(TorDdBlock_t);
+            ddLevel = torDdBlock->ddLevel;
         }
 
         //----------------
@@ -1839,9 +1858,10 @@ int dissectRingSectionTor( void*       i_ringSection,
         for (ppeType = 0; ppeType < NUM_PPE_TYPES; ppeType++)
         {
 
-            if ((i_imageMagicNo == P9_XIP_MAGIC_SGPE    && ppeType != SGPE) ||
-                (i_imageMagicNo == P9_XIP_MAGIC_CME     && ppeType != CME)  ||
-                (i_imageMagicNo == P9_XIP_MAGIC_SEEPROM && ppeType != SBE))
+            if ((torMagic == TOR_MAGIC_SGPE && ppeType != SGPE) ||
+                (torMagic == TOR_MAGIC_CME  && ppeType != CME)  ||
+                (torMagic == TOR_MAGIC_SBE  && ppeType != SBE)  ||
+                (torMagic == TOR_MAGIC_OVRD && ppeType != SBE))
             {
                 continue;
             }
@@ -1849,8 +1869,13 @@ int dissectRingSectionTor( void*       i_ringSection,
             //--------------------
             // Ring variant loop.
             // - Base, cache, risk, override, overlay
-            for (ringVariant = 0; ringVariant < OVERRIDE; ringVariant++)
+            for (ringVariant = 0; ringVariant <= OVERRIDE; ringVariant++)
             {
+                if ((torMagic != TOR_MAGIC_OVRD && ringVariant == OVERRIDE) ||
+                    (torMagic == TOR_MAGIC_OVRD && ringVariant != OVERRIDE))
+                {
+                    continue;
+                }
 
                 //----------------------
                 // Unique ring ID loop.
@@ -1876,7 +1901,6 @@ int dissectRingSectionTor( void*       i_ringSection,
 
                         ringBlockSize = RING_BUF_SIZE_MAX;
                         rc = tor_access_ring( i_ringSection,
-                                              i_imageMagicNo,
                                               (RingID)ringId,
                                               ddLevel,
                                               (PpeType_t)ppeType,
@@ -1894,12 +1918,25 @@ int dissectRingSectionTor( void*       i_ringSection,
                         if (rc == TOR_RING_FOUND)
                         {
                             rs4 = (CompressedScanData*)ringBlockPtr;
-                            ringSize = be16toh(rs4->iv_size);
+
+                            // Sanity check RS4 container's ringId matches the requested.
+                            uint16_t l_ringId = be16toh(rs4->iv_ringId);
+
+                            if ( l_ringId != ringId )
+                            {
+                                fprintf(stderr, "tor_access_ring() was successful and found a ring. But "
+                                        "RS4 header's iv_ringId(=0x%x) differs from requested ringId(=0x%x).\n",
+                                        l_ringId, ringId);
+                                exit(1);
+                            }
+
 
                             // Check ring block size.
+                            ringSize = be16toh(rs4->iv_size);
+
                             if ( ringSize != ringBlockSize || ringSize == 0 )
                             {
-                                fprintf(stderr, "tor_access_ring() was successful and found a ring but "
+                                fprintf(stderr, "tor_access_ring() was successful and found a ring. But "
                                         "RS4 header's iv_size(=0x%04x) is either zero or doesn't match "
                                         "size of ring buffer (ringBlockSize=0x%04x).\n",
                                         ringSize, ringBlockSize);
@@ -2077,6 +2114,8 @@ int dissectRingSectionTor( void*       i_ringSection,
                         }
                         else if (rc == TOR_RING_NOT_FOUND      ||
                                  rc == TOR_INVALID_INSTANCE_ID ||
+                                 rc == TOR_INVALID_CHIPLET     ||
+                                 rc == TOR_INVALID_VARIANT     ||
                                  rc == TOR_AMBIGUOUS_API_PARMS ||
                                  rc == TOR_INVALID_RING_ID)
                         {
@@ -2087,7 +2126,9 @@ int dissectRingSectionTor( void*       i_ringSection,
                         else
                         {
                             fprintf(stderr, "tor_access_ring() returned error code rc=%d\n", rc);
-                            exit(1);
+                            {
+                                exit(1);
+                            }
                         }
 
                     }  // End of for(instanceId)
@@ -2154,60 +2195,101 @@ int dissectRingSection(void*          i_image,
         listingModeName = i_argv[1];
     }
 
-    p9_xip_translate_header(&hostHeader, (P9XipHeader*)i_image);
+    // Determine whether i_image is an XIP image or an isolated TOR ring section image.
+    //
+    if (be64toh(((P9XipHeader*)i_image)->iv_magic) >> 32 == P9_XIP_MAGIC)
+    {
 
-    // Determine P9-XIP ring section ID from the section name, e.g.
-    //         .rings    =>  P9_XIP_SECTION_HW_RINGS
-    if (strcmp(sectionName, ".rings") == 0)
-    {
-        if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
+        p9_xip_translate_header(&hostHeader, (P9XipHeader*)i_image);
+
+        // Determine P9-XIP ring section ID from the section name, e.g.
+        //         .rings    =>  P9_XIP_SECTION_HW_RINGS
+        if (strcmp(sectionName, ".rings") == 0)
         {
-            sectionId = P9_XIP_SECTION_SBE_RINGS;
+            if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
+            {
+                sectionId = P9_XIP_SECTION_SBE_RINGS;
+            }
+            else if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
+            {
+                sectionId = P9_XIP_SECTION_HW_RINGS;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: .rings is not a valid section for image w/magic=0x%016lx\n",
+                        hostHeader.iv_magic);
+                exit(1);
+            }
         }
-        else if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
+        else if (strcmp(sectionName, ".overrides") == 0)
         {
-            sectionId = P9_XIP_SECTION_HW_RINGS;
+            if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
+            {
+                sectionId = P9_XIP_SECTION_SBE_OVERRIDES;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: .overrides is not a valid section for image w/magic=0x%016lx\n",
+                        hostHeader.iv_magic);
+                exit(1);
+            }
+        }
+        else if (strcmp(sectionName, ".overlays") == 0)
+        {
+            if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
+            {
+                sectionId = P9_XIP_SECTION_SBE_OVERLAYS;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: .overlays is not a valid section for image w/magic=0x%016lx\n",
+                        hostHeader.iv_magic);
+                exit(1);
+            }
         }
         else
         {
-            fprintf(stderr, "ERROR: .rings is not a valid section for image w/magic=0x%016lx\n",
-                    hostHeader.iv_magic);
+            fprintf(stderr, "ERROR : %s is an invalid ring section name.\n", sectionName);
+            fprintf(stderr, "Valid ring <section> names for the 'dissect' function are:\n");
+            fprintf(stderr, "\t.rings\n");
+            fprintf(stderr, "\t.overrides\n");
+            fprintf(stderr, "\t.overlays\n");
             exit(1);
         }
+
+        // Get ring section.
+        //
+        rc = p9_xip_get_section( i_image, sectionId, &hostSection);
+
+        if (rc)
+        {
+            fprintf( stderr, "p9_xip_get_section() failed : %s\n", P9_XIP_ERROR_STRING(g_errorStrings, rc));
+            return P9_XIP_DISASSEMBLER_ERROR;
+        }
+
+        if (hostSection.iv_offset == 0)
+        {
+            fprintf( stdout, "Ring section (w/ID=%d) is empty. Nothing to do. Quitting.\n", sectionId);
+            exit(1);
+        }
+
+        if (be32toh(((TorHeader_t*)i_image)->magic) >> 8 != TOR_MAGIC)
+        {
+            fprintf( stderr,
+                     "ERROR:  The XIP section is not a TOR compatible ring section. Possibly, the image is outdated and has the old TOR-headerless layout which is no longer supported. Try dissecting with an older version of p9_xip_tool.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        ringSectionPtr = (void*)(hostSection.iv_offset + (uintptr_t)i_image);
+
     }
-    else if (strcmp(sectionName, ".overrides") == 0)
+    else if (be32toh(((TorHeader_t*)i_image)->magic) >> 8 == TOR_MAGIC)
     {
-        if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
-        {
-            sectionId = P9_XIP_SECTION_SBE_OVERRIDES;
-        }
-        else
-        {
-            fprintf(stderr, "ERROR: .overrides is not a valid section for image w/magic=0x%016lx\n",
-                    hostHeader.iv_magic);
-            exit(1);
-        }
-    }
-    else if (strcmp(sectionName, ".overlays") == 0)
-    {
-        if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
-        {
-            sectionId = P9_XIP_SECTION_SBE_OVERLAYS;
-        }
-        else
-        {
-            fprintf(stderr, "ERROR: .overlays is not a valid section for image w/magic=0x%016lx\n",
-                    hostHeader.iv_magic);
-            exit(1);
-        }
+        ringSectionPtr = i_image;
     }
     else
     {
-        fprintf(stderr, "ERROR : %s is an invalid ring section name.\n", sectionName);
-        fprintf(stderr, "Valid ring <section> names for the 'dissect' function are:\n");
-        fprintf(stderr, "\t.rings\n");
-        fprintf(stderr, "\t.overrides\n");
-        fprintf(stderr, "\t.overlays\n");
+        fprintf(stderr, "ERROR : Input image is neither an XIP image nor an TOR ringSection image.\n");
         exit(1);
     }
 
@@ -2249,25 +2331,7 @@ int dissectRingSection(void*          i_image,
         exit(1);
     }
 
-    // Get ring section.
-    //
-    rc = p9_xip_get_section( i_image, sectionId, &hostSection);
-
-    if (rc)
-    {
-        fprintf( stderr, "p9_xip_get_section() failed : %s\n", P9_XIP_ERROR_STRING(g_errorStrings, rc));
-        return P9_XIP_DISASSEMBLER_ERROR;
-    }
-
-    if (hostSection.iv_offset == 0)
-    {
-        fprintf( stdout, "Ring section (w/ID=%d) is empty. Nothing to do. Quitting.\n", sectionId);
-        exit(1);
-    }
-
-    ringSectionPtr = (void*)(hostSection.iv_offset + (uintptr_t)i_image);
-
-    rc = dissectRingSectionTor(ringSectionPtr, hostHeader.iv_magic, listingModeId);
+    rc = dissectRingSectionTor(ringSectionPtr, listingModeId);
 
     return rc;
 
@@ -2326,7 +2390,8 @@ openAndMap(const char* i_fileName, int i_writable, int* o_fd, void** o_image, co
         exit(1);
     }
 
-    if ( !(i_maskIgnores & P9_XIP_IGNORE_ALL) )
+    if ( !(i_maskIgnores & P9_XIP_IGNORE_ALL) &&
+         (be64toh(((P9XipHeader*)o_image)->iv_magic) >> 32 == P9_XIP_MAGIC) )
     {
         rc = p9_xip_validate2(*o_image, g_imageSize, i_maskIgnores);
 

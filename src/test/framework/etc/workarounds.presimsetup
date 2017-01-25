@@ -29,7 +29,11 @@
 #egrep -v "WSALIAS DEFAULT FIPSLEVEL|WSALIAS DEFAULT SIMICSLEVEL" $BACKING_BUILD/src/simu/data/simicsInfo > $sb/simu/data/simicsInfo
 #echo "WSALIAS DEFAULT FIPSLEVEL env/gfwb/simics-4.2.0/simics-4.2.83/fips/fld36/fi120201a700.42" >> $sb/simu/data/simicsInfo
 #echo "WSALIAS DEFAULT SIMICSLEVEL env/vtechb/simics-4.2.0/simics-4.2.83/bin" >> $sb/simu/data/simicsInfo
+#cp /gsa/ausgsa/home/t/h/thi/public/p9n.hw_image.bin $SANDBOXBASE/src/engd/href/p9n.temp_hw_ref_image.bin
+#cp /gsa/ausgsa/home/t/h/thi/public/p9_ipl_build.exe $SANDBOXBASE/obj/ppc/hwsv/server/buildhwpf2/hwpf2/tools/x86_binaries/p9_ipl_build
 #mkdir -p $SANDBOXBASE/obj/ppc/hwsv/server/buildhwpf2/hwpf2/tools/x86_binaries/
 #mkdir -p $SANDBOXBASE/src/engd/href
-#cp  /gsa/ausgsa/home/t/h/thi/public/p9n.hw_image.bin $SANDBOXBASE/src/engd/href/p9n.temp_hw_ref_image.bin
-#cp  /gsa/ausgsa/home/t/h/thi/public/p9_ipl_build.exe $SANDBOXBASE/obj/ppc/hwsv/server/buildhwpf2/hwpf2/tools/x86_binaries/p9_ipl_build
+#cp /esw/san5/cmolsen/sb/hw/tests/refs/ppe-ci/p9_ipl_build_magic_20170817.exe $SANDBOXBASE/obj/ppc/hwsv/server/buildhwpf2/hwpf2/tools/x86_binaries/p9_ipl_build
+#cp /esw/san5/cmolsen/sb/hw/tests/refs/ppe-ci/p9n.hw_image_magic_20170817.bin $SANDBOXBASE/src/engd/href/p9n.temp_hw_ref_image.bin
+#cp /esw/san5/cmolsen/sb/hw/tests/refs/ppe-ci/p9c.hw_image_magic_20170817.bin $SANDBOXBASE/src/engd/href/p9c.temp_hw_ref_image.bin
+
