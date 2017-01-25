@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -31,7 +32,7 @@
 // *HWP HW Backup Owner : Nick Klazynski <jklazyns@us.ibm.com>
 // *HWP FW Owner        : Nagendra Gurram <nagendra.g@in.ibm.com>
 // *HWP Team            : Chip
-// *HWP Level           : 1
+// *HWP Level           : 2
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
