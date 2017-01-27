@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -94,6 +94,7 @@ static const stateTransitionStr_t stateTransMap[SBE_MAX_TRANSITIONS] = {
     {SBE_STATE_RUNTIME, SBE_QUIESCE_EVENT, SBE_STATE_QUIESCE},
     {SBE_STATE_DMT, SBE_DMT_COMP_EVENT, SBE_STATE_RUNTIME},
     {SBE_STATE_DMT, SBE_QUIESCE_EVENT, SBE_STATE_QUIESCE},
+    {SBE_STATE_DMT, SBE_DUMP_FAILURE_EVENT, SBE_STATE_DUMP},
 };
 
 /**

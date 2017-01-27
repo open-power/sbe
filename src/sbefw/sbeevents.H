@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -59,13 +59,13 @@ enum maxEventPerState
     SBE_STATE_ISTEP_MAX_EVENT   = 3,
     SBE_STATE_MPIPL_MAX_EVENT   = 3,
     SBE_STATE_RUNTIME_MAX_EVENT = 5,
-    SBE_STATE_DMT_MAX_EVENT     = 2,
+    SBE_STATE_DMT_MAX_EVENT     = 3,
     SBE_STATE_DUMP_MAX_EVENT    = 0,
     SBE_STATE_FAILURE_MAX_EVENT = 0,
     SBE_STATE_QUIESCE_MAX_EVENT = 0,
 
     // Total number of State Transition Events, Addition of all the above
-    SBE_MAX_TRANSITIONS = 21,
+    SBE_MAX_TRANSITIONS = 22,
 };
 
 
@@ -81,9 +81,9 @@ enum entryToStateMap
     SBE_STATE_MPIPL_ENTRY_TO_MAP   = SBE_STATE_ISTEP_ENTRY_TO_MAP + SBE_STATE_ISTEP_MAX_EVENT, //11
     SBE_STATE_RUNTIME_ENTRY_TO_MAP = SBE_STATE_MPIPL_ENTRY_TO_MAP + SBE_STATE_MPIPL_MAX_EVENT, //14
     SBE_STATE_DMT_ENTRY_TO_MAP     = SBE_STATE_RUNTIME_ENTRY_TO_MAP + SBE_STATE_RUNTIME_MAX_EVENT, //19
-    SBE_STATE_DUMP_ENTRY_TO_MAP    = SBE_STATE_DMT_ENTRY_TO_MAP + SBE_STATE_DMT_MAX_EVENT, //21
-    SBE_STATE_FAILURE_ENTRY_TO_MAP = SBE_STATE_DUMP_ENTRY_TO_MAP + SBE_STATE_DUMP_MAX_EVENT, //21
-    SBE_STATE_QUIESCE_ENTRY_TO_MAP = SBE_STATE_FAILURE_ENTRY_TO_MAP + SBE_STATE_FAILURE_MAX_EVENT, //21
+    SBE_STATE_DUMP_ENTRY_TO_MAP    = SBE_STATE_DMT_ENTRY_TO_MAP + SBE_STATE_DMT_MAX_EVENT, //22
+    SBE_STATE_FAILURE_ENTRY_TO_MAP = SBE_STATE_DUMP_ENTRY_TO_MAP + SBE_STATE_DUMP_MAX_EVENT, //22
+    SBE_STATE_QUIESCE_ENTRY_TO_MAP = SBE_STATE_FAILURE_ENTRY_TO_MAP + SBE_STATE_FAILURE_MAX_EVENT, //22
 };
 
 #endif //__SBEFW_SBEEVENTS_H
