@@ -204,10 +204,10 @@ fapi2::ReturnCode p9_common_stopclock_is_scommable(
     l_read_attr.extractToRight<4, 10>(l_attr_regions);
     FAPI_DBG("Regions bits from ATTR_PG Value : %#06lX", l_attr_regions);
 
-    FAPI_DBG("Compare region(ANDing Regions bits from SL/NSL/ARY register)"
+    FAPI_DBG("Compare region(ANDing Regions bits from SL/NSL/ARY register ORing with ATTR_PG)"
              " with ATTR_PG");
 
-    if ((l_sl_regions_act & l_nsl_regions_act & l_ary_regions_act)
+    if (((l_sl_regions_act & l_nsl_regions_act & l_ary_regions_act) | l_attr_regions)
         == l_attr_regions)
     {
         FAPI_DBG("o_isScommable is True");
