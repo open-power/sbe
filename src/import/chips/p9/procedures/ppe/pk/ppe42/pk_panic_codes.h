@@ -254,6 +254,10 @@ typedef enum
     // They are listed here to show the valid trap values that
     // can be used.
 
+#ifdef PLATFORM_PANIC_CODES_H
+#include PLATFORM_PANIC_CODES_H
+#endif
+
     //_UNUSED_1c00                      = 0x1c00,
     //_UNUSED_1c01                      = 0x1c01,
     //_UNUSED_1c02                      = 0x1c02,
