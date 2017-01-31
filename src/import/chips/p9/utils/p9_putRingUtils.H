@@ -129,11 +129,11 @@ enum scanType_t
 //
 // Function Definitions
 //
-using namespace RING_TYPES;
-void getRingProperties(const RingID i_ringId,
+//using namespace RING_TYPES;
+void getRingProperties(const RingId_t i_ringId,
                        uint32_t& o_torOffset,
-                       RINGTYPE& o_ringType,
-                       CHIPLET_TYPE& o_type);
+                       RingType_t& o_ringType,
+                       ChipletType_t& o_type);
 
 /// @brief Function to apply the Ring data using the standard-scan method
 /// @param[in] i_target Chiplet Target of Scan
@@ -160,7 +160,7 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                   i_target,
                                   uint64_t i_scanRegion,
                                   const uint8_t i_chipletId,
-                                  const RINGTYPE i_ringType = COMMON_RING);
+                                  const RingType_t i_ringType = COMMON_RING);
 
 
 /// @brief Function to write the header data to the ring.
@@ -203,7 +203,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
     const uint8_t* i_rs4,
     bool i_applyOverride,
     const fapi2::RingMode i_ringMode,
-    const RINGTYPE i_ringType = COMMON_RING);
+    const RingType_t i_ringType = COMMON_RING);
 
 
 /// @brief Function to clean up the scan region and type

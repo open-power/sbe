@@ -34,7 +34,7 @@
 #include <p9_putRingUtils.H>
 #include <p9_scan_compression.H>
 
-using namespace RING_TYPES;
+//using namespace RING_TYPES;
 namespace RS4
 {
 
@@ -159,10 +159,10 @@ uint32_t rs4_revle32(const uint32_t i_x)
 }
 }; //end of namespace
 
-void getRingProperties(const RingID i_ringId,
+void getRingProperties(const RingId_t i_ringId,
                        uint32_t& o_torOffset,
-                       RINGTYPE& o_ringType,
-                       CHIPLET_TYPE& o_chipletType)
+                       RingType_t& o_ringType,
+                       ChipletType_t& o_chipletType)
 {
     do
     {
@@ -171,7 +171,7 @@ void getRingProperties(const RingID i_ringId,
             (INSTANCE_RING_MASK & (RING_PROPERTIES[i_ringId].iv_torOffSet));
         o_chipletType = RING_PROPERTIES[i_ringId].iv_type;
 
-        if(INVALID_RING == o_torOffset)
+        if(INVALID_RING_OFFSET == o_torOffset)
         {
             break;
         }
@@ -387,7 +387,7 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                   i_target,
                                   uint64_t i_scanRegion,
                                   const uint8_t i_chipletId,
-                                  const RINGTYPE i_ringType)
+                                  const RingType_t i_ringType)
 {
     fapi2::ReturnCode l_rc;
     uint32_t l_chiplet =  i_chipletId << 24;
@@ -401,7 +401,7 @@ fapi2::ReturnCode setupScanRegion(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
     }
 
     if ((fapi2::TARGET_TYPE_EX & (i_target.get().getFapiTargetType())) &&
-        (i_ringType != INSTANCE_RING ))
+        (i_ringType != INSTANCE_RING))
     {
         // this gives position of ex (0 or 1)
         uint32_t l_ex_number = i_target.get().getTargetInstance();
@@ -1126,7 +1126,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
     const uint8_t* i_rs4,
     bool i_applyOverride,
     const fapi2::RingMode i_ringMode,
-    const RINGTYPE i_ringType)
+    const RingType_t i_ringType)
 {
     FAPI_INF(">> rs4DecompressionSvc");
     CompressedScanData* l_rs4Header = (CompressedScanData*) i_rs4;
