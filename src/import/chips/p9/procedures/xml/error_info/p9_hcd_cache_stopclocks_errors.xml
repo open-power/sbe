@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2017                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -47,6 +47,17 @@
         cache clock stop timed out.
     </description>
     <ffdc>EQCPLTSTAT</ffdc>
+  </hwpError>
+  <!-- ********************************************************************* -->
+  <hwpError>
+    <rc>RC_QPPM_QCCR_PB_PURGE_DONE_LVL_TIMEOUT</rc>
+    <description>
+    A timeout occured while waiting for Acknowledgement from 
+    Powerbus that the buffers are empty and can safely be
+    fenced and clocked off
+    </description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>EQPPMQCCR</ffdc>
   </hwpError>
   <!-- ********************************************************************* -->
 </hwpErrors>
