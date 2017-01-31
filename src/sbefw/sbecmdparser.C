@@ -128,7 +128,7 @@ static sbeCmdStruct_t g_sbeMemoryAccessCmdArray [] =
 {
     {sbeGetMem,
      SBE_CMD_GETMEM,
-     HARDWARE_FENCED_STATE,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
     },
 
     {sbePutMem,

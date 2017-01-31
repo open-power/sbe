@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -56,7 +56,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
     #define SBE_FUNC " sbeCommandReceiver_routine "
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-
+    sbeInterfaceSrc_t curInterface = SBE_INTERFACE_UNKNOWN;
     // Update SBE msgg reg to indicate that control loop
     // is ready now to receive data on its interfaces
     (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
@@ -104,8 +104,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 //Clear the Interrupt Source bit for PSU
                 g_sbeIntrSource.clearIntrSource(SBE_INTERRUPT_ROUTINE,
                                                 SBE_INTERFACE_PSU);
-                g_sbeIntrSource.setIntrSource(SBE_RX_ROUTINE,
-                                               SBE_INTERFACE_PSU);
+                curInterface = SBE_INTERFACE_PSU;
                 // First clear PSU->SBE DB bit 0
                 l_rc = sbeClearPsu2SbeDbBitX(SBE_PSU2SBE_DOORBELL_CLEAR_BIT0);
                 if (l_rc)
@@ -133,8 +132,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 //Clear the Interrupt Source bit for FIFO
                 g_sbeIntrSource.clearIntrSource(SBE_INTERRUPT_ROUTINE,
                                                 SBE_INTERFACE_FIFO);
-                g_sbeIntrSource.setIntrSource(SBE_RX_ROUTINE,
-                                               SBE_INTERFACE_FIFO);
+                curInterface = SBE_INTERFACE_FIFO;
 
                 // This thread will attempt to unblock the command processor
                 // thread on the following scenarios:
@@ -192,13 +190,11 @@ void sbeCommandReceiver_routine(void *i_pArg)
             {
                 // Command Validation failed;
                 SBE_ERROR(SBE_FUNC"Command validation failed");
-                if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
-                                            SBE_INTERFACE_PSU) )
+                if ( SBE_INTERFACE_PSU == curInterface )
                 {
                     g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,l_rc);
                 }
-                else if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
-                                                 SBE_INTERFACE_FIFO) )
+                else if ( SBE_INTERFACE_FIFO == curInterface )
                 {
                     g_sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND, l_rc);
                 }
@@ -219,13 +215,12 @@ void sbeCommandReceiver_routine(void *i_pArg)
                     "State - [0x%04X] ",l_cmdClass,l_command,
                     SbeRegAccess::theSbeRegAccess().getSbeState());
 
-                if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE, SBE_INTERFACE_PSU) )
+                if ( SBE_INTERFACE_PSU == curInterface )
                 {
                     g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
                                 SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE);
                 }
-                else if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
-                                                SBE_INTERFACE_FIFO) )
+                else if ( SBE_INTERFACE_FIFO == curInterface )
                 {
                     g_sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
                                 SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE);
@@ -237,6 +232,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
         } while (false); // Inner do..while ends
 
+        g_sbeIntrSource.setIntrSource(SBE_RX_ROUTINE, curInterface );
         // If there was a FIFO reset request,
         if (l_rc == SBE_FIFO_RESET_RECEIVED)
         {
@@ -284,33 +280,23 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 // It's likely a code bug or PK failure,
                 // or any other PSU/FIFO access (scom) failure.
 
-                // @TODO via RTC : 129166
-                //       Review if we need to add ASSERT here
-
                 // Add Error trace, collect FFDC and
                 // continue wait for the next interrupt
                 SBE_ERROR(SBE_FUNC"Unexpected failure, "
                     "l_rcPk=[%d], g_sbeSemCmdProcess.count=[%d], l_rc=[%d]",
                     l_rcPk, g_sbeSemCmdProcess.count, l_rc);
+                pk_halt();
             }
-            if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
-                                        SBE_INTERFACE_PSU) )
+            if ( SBE_INTERFACE_PSU == curInterface )
             {
-                if(l_rc == SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE)
-                {
-                    sbeHandlePsuResponse(l_rc);
-                }
+                sbeHandlePsuResponse(l_rc);
                 g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_PSU);
                 pk_irq_enable(SBE_IRQ_HOST_PSU_INTR);
             }
-            else if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
-                                             SBE_INTERFACE_FIFO) )
+            else if ( SBE_INTERFACE_FIFO == curInterface )
             {
-                if(l_rc == SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE)
-                {
-                    sbeHandleFifoResponse(l_rc);
-                }
+                sbeHandleFifoResponse(l_rc);
                 g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO);
                 pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
