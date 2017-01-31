@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -26,8 +27,6 @@
 #define _PLAT_RING_TRAVERSE_H_
 
 #include <p9_putRingUtils.H> // for RS4 decompression utilities
-
-using namespace RING_TYPES;
 
 /// @brief This structure represents the layout of the Section-TOR
 ///        Section-TOR has the offsets to the different chiplet's
@@ -93,9 +92,9 @@ struct SectionTOR
 /// @return FAPI2_RC_SUCCESS on success, else error code.
 ///
 fapi2::ReturnCode findRS4InImageAndApply(
-                    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-                    const RingID i_ringID,
-                    const fapi2::RingMode i_ringMode);
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
+    const RingId_t i_ringID,
+    const fapi2::RingMode i_ringMode);
 ///
 /// @brief This is a plat pecific (SBE Plat) function that locates the
 ///        Ring Container in the image and calls the functin to decompress the
@@ -107,10 +106,10 @@ fapi2::ReturnCode findRS4InImageAndApply(
 /// @return FAPI2_RC_SUCCESS on success, else error code.
 ///
 fapi2::ReturnCode getRS4ImageFromTor(
-                        const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-                        const RingID i_ringID,
-                        SectionTOR *i_sectionTOR,
-                        bool i_applyOverride,
-                        const uint32_t i_sectionOffset,
-                        const fapi2::RingMode i_ringMode);
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
+    const RingId_t i_ringID,
+    SectionTOR* i_sectionTOR,
+    bool i_applyOverride,
+    const uint32_t i_sectionOffset,
+    const fapi2::RingMode i_ringMode);
 #endif

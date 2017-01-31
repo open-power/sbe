@@ -46,9 +46,16 @@
 
 #include "p9_xip_image.h"
 #ifndef __PPE__ // Needed on ppe side to avoid TOR API
-    #include "p9_tor.H"
-    #include "p9_scan_compression.H"
-    using namespace P9_TOR;
+#include "p9_tor.H"
+#include "p9_scan_compression.H"
+namespace P9_RID
+{
+#include "p9_ringId.H"
+};
+namespace CEN_RID
+{
+#include "cen_ringId.H"
+}
 #endif
 
 
@@ -211,15 +218,10 @@ static inline const char* get_sectionName(uint64_t magic, int index)
 {
     switch (magic)
     {
-//      case P9_XIP_MAGIC_BASE:
-//          FIXME
-//          break;
-//      case P9_XIP_MAGIC_CENTAUR:
-//          FIXME
-//          break;
         case P9_XIP_MAGIC_SEEPROM:
             return P9_XIP_SECTION_NAME(g_sectionNamesSbe, index);
 
+        case P9_XIP_MAGIC_CENTAUR:
         case P9_XIP_MAGIC_HW:
             return P9_XIP_SECTION_NAME(g_sectionNamesHw, index);
 
@@ -1770,14 +1772,15 @@ int dissectRingSectionTor( void*       i_ringSection,
 {
     int         rc = 0;
     uint32_t    i;
+    RingId_t    numRingIds = 0;
     uint32_t    torMagic = 0xffffffff; // Undefined value
-    uint8_t     chipType = 0xff; // Undefined value
+    ChipType_t  chipType = 0xff; // Undefined value
     uint32_t    numDdLevels = 0; // Undefined value
     uint8_t     iDdLevel, ddLevel = 0xff; // Undefined value
-    uint8_t     ppeType;
-    uint8_t     ringId;
+    PpeType_t   ppeType;
+    RingId_t    ringId;
     RingType_t  ringType;
-    uint8_t     ringVariant;
+    RingVariant_t ringVariant;
     uint8_t     instanceId;
     void*       ringBlockPtr;
     uint32_t    ringBlockSize;
@@ -1807,6 +1810,28 @@ int dissectRingSectionTor( void*       i_ringSection,
     chipType    = torHeader->chipType;
     ddLevel     = torHeader->ddLevel;
     numDdLevels = torHeader->numDdLevels;
+
+    //
+    // Make some ChipType specific data translations
+    //
+    switch (chipType)
+    {
+        case CT_P9N:
+            numRingIds = P9_RID::NUM_RING_IDS;
+            break;
+
+        case CT_P9C:
+            numRingIds = P9_RID::NUM_RING_IDS;
+            break;
+
+        case CT_CEN:
+            numRingIds = CEN_RID::NUM_RING_IDS;
+            break;
+
+        default:
+            fprintf(stderr, "ERROR: Invalid chipType(=%d)\n", chipType);
+            exit(1);
+    }
 
     fprintf(stdout, "---------------------------------\n");
     fprintf(stdout, "*      TOR header summary       *\n");
@@ -1858,10 +1883,10 @@ int dissectRingSectionTor( void*       i_ringSection,
         for (ppeType = 0; ppeType < NUM_PPE_TYPES; ppeType++)
         {
 
-            if ((torMagic == TOR_MAGIC_SGPE && ppeType != SGPE) ||
-                (torMagic == TOR_MAGIC_CME  && ppeType != CME)  ||
-                (torMagic == TOR_MAGIC_SBE  && ppeType != SBE)  ||
-                (torMagic == TOR_MAGIC_OVRD && ppeType != SBE))
+            if ((torMagic == TOR_MAGIC_SGPE && ppeType != PT_SGPE) ||
+                (torMagic == TOR_MAGIC_CME  && ppeType != PT_CME)  ||
+                (torMagic == TOR_MAGIC_SBE  && ppeType != PT_SBE)  ||
+                (torMagic == TOR_MAGIC_OVRD && ppeType != PT_SBE))
             {
                 continue;
             }
@@ -1879,15 +1904,15 @@ int dissectRingSectionTor( void*       i_ringSection,
 
                 //----------------------
                 // Unique ring ID loop.
-                for (ringId = 0; ringId < NUM_RING_IDS; ringId++)
+                for (ringId = 0; ringId < numRingIds; ringId++)
                 {
 
-                    ringType = (RingType_t)(-1);
+                    ringType = -1;
 
                     //---------------------------
                     // Chiplet instance ID loop.
                     // - Only loop once if ringId is a common ring.
-                    for (instanceId = 0; instanceId <= CHIPLET_ID_MAX && ringType != COMMON; instanceId++)
+                    for (instanceId = 0; instanceId <= CHIPLET_ID_MAX && ringType != COMMON_RING; instanceId++)
                     {
 #ifdef P9_XIP_TOOL_VERBOSE
                         fprintf( stderr, "Processing:  "
@@ -1901,11 +1926,11 @@ int dissectRingSectionTor( void*       i_ringSection,
 
                         ringBlockSize = RING_BUF_SIZE_MAX;
                         rc = tor_access_ring( i_ringSection,
-                                              (RingID)ringId,
+                                              ringId,
                                               ddLevel,
-                                              (PpeType_t)ppeType,
+                                              ppeType,
                                               ringType,            // IO parm
-                                              (RingVariant_t)ringVariant,
+                                              ringVariant,
                                               instanceId,          // IO parm
                                               GET_SINGLE_RING,
                                               &ringBlockPtr,       // IO parm
@@ -2467,7 +2492,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
             // section size
             rc = tor_get_block_of_rings( ringsSection,
                                          i_ddLevel,
-                                         SBE,
+                                         PT_SBE,
                                          l_ringType,
                                          BASE,
                                          unused_parm,

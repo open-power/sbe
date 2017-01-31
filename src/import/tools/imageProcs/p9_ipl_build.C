@@ -53,7 +53,6 @@
 #include <p9_tor.H>
 #include <p9_infrastruct_help.H>
 
-using namespace P9_TOR;
 
 ///
 /// @brief retrieve a block of DD level rings from the unsigned hw image
@@ -105,7 +104,7 @@ int get_dd_level_rings_from_hw_image( char* i_hwImage,
             // Call the first time to get a size of the pending section
             rc = tor_get_block_of_rings( ringsSection,
                                          i_ddLevel,
-                                         SBE,
+                                         PT_SBE,
                                          l_ringType,
                                          BASE,
                                          unused_parm,
@@ -133,7 +132,7 @@ int get_dd_level_rings_from_hw_image( char* i_hwImage,
             {
                 rc = tor_get_block_of_rings( ringsSection,
                                              i_ddLevel,
-                                             SBE,
+                                             PT_SBE,
                                              l_ringType,
                                              BASE,
                                              unused_parm,

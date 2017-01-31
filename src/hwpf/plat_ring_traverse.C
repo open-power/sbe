@@ -33,7 +33,6 @@
 
 // SEEPROM start address
 const uint32_t g_seepromAddr = SBE_SEEPROM_BASE_ORIGIN;
-using namespace RING_TYPES;
 const uint32_t CACHE_CONTAINED_MODE = 4;
 const uint32_t RISK_LEVEL_MODE = 1;
 #define CACHE_CONTAINED_MODE_OFFSET_IN_TOR 1
@@ -51,7 +50,7 @@ const uint32_t RISK_LEVEL_MODE = 1;
 ///
 fapi2::ReturnCode findRS4InImageAndApply(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-    const RingID i_ringID,
+    const RingId_t i_ringID,
     const fapi2::RingMode i_ringMode)
 {
     SBE_TRACE(">> findRS4InImageAndApply");
@@ -75,12 +74,12 @@ fapi2::ReturnCode findRS4InImageAndApply(
         }
 
         uint8_t l_torHdrSz;
-        P9_TOR::TorHeader_t* torHeader = (P9_TOR::TorHeader_t*)(g_seepromAddr +
-                                         l_section->iv_offset);
+        TorHeader_t* torHeader = (TorHeader_t*)(g_seepromAddr +
+                                  l_section->iv_offset);
 
-        if (torHeader->magic == P9_TOR::TOR_MAGIC_SBE)
+        if (torHeader->magic == TOR_MAGIC_SBE)
         {
-            l_torHdrSz = sizeof(P9_TOR::TorHeader_t);
+            l_torHdrSz = sizeof(TorHeader_t);
         }
         else
         {
@@ -90,7 +89,7 @@ fapi2::ReturnCode findRS4InImageAndApply(
             // an error.
             l_torHdrSz = 0;
             SBE_TRACE("TOR magic header (=0x%08x) != TOR_MAGIC_SBE (=0x%08x)",
-                      torHeader->magic, P9_TOR::TOR_MAGIC_SBE);
+                      torHeader->magic, TOR_MAGIC_SBE);
         }
 
         SectionTOR* l_sectionTOR = (SectionTOR*)(g_seepromAddr +
@@ -137,7 +136,7 @@ fapi2::ReturnCode findRS4InImageAndApply(
 
 fapi2::ReturnCode getRS4ImageFromTor(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-    const RingID i_ringID,
+    const RingId_t i_ringID,
     SectionTOR* i_sectionTOR,
     bool i_applyOverride,
     const uint32_t i_sectionOffset,
@@ -146,8 +145,8 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
     // Determine the Offset ID and Ring Type for the given Ring ID.
     uint32_t l_torOffset = 0;
-    RINGTYPE l_ringType = COMMON_RING;
-    CHIPLET_TYPE l_chipLetType;
+    RingType_t l_ringType = COMMON_RING;
+    ChipletType_t l_chipLetType = INVALID_CHIPLET_TYPE;
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
 
     do
@@ -155,7 +154,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
         getRingProperties(i_ringID, l_torOffset, l_ringType, l_chipLetType);
 
-        if(INVALID_RING == l_torOffset)
+        if(INVALID_RING_OFFSET == l_torOffset)
         {
             SBE_TRACE("Invalid Ring ID - %d", i_ringID);
             l_rc = fapi2::FAPI2_RC_INVALID_PARAMETER;
