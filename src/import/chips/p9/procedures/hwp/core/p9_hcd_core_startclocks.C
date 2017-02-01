@@ -273,9 +273,6 @@ p9_hcd_core_startclocks(
     // Cleaning up
     // -------------------------------
 
-    FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
-    FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(18)));
-
     /// @todo RTC158181 ignore xstop checkstop in sim, review for lab
     /*
     FAPI_DBG("Check the Global Checkstop FIR");
