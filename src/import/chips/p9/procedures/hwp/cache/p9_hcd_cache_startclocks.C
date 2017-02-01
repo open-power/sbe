@@ -99,6 +99,7 @@ p9_hcd_cache_startclocks(
     uint8_t                                     l_attr_chip_id       = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
     uint8_t                                     l_attr_system_ipl_phase;
+    uint8_t                                     l_attr_sys_force_all_cores;
     uint8_t                                     l_attr_dd1_skip_flushmode_inhibit_drop;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
@@ -108,6 +109,8 @@ p9_hcd_cache_startclocks(
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE,         l_sys,
                            l_attr_system_ipl_phase));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES,      l_sys,
+                           l_attr_sys_force_all_cores));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW388878, l_chip,
                            l_attr_dd1_skip_flushmode_inhibit_drop));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,     l_chip,
@@ -163,10 +166,22 @@ p9_hcd_cache_startclocks(
 
     if (l_qcsr & BIT64((l_attr_chip_unit_pos << 1) + 1))
     {
-        l_qssr |= (BIT64((l_attr_chip_unit_pos << 1) + 1) |
-                   BIT64(l_attr_chip_unit_pos + 14));
-        l_region_clock |= p9hcd::CLK_REGION_EX1_L2_L3_REFR;
-        l_l2sync_clock |= BIT64(37);
+        // Now we only skip L2 if we are in HB mode(not force_all_cores)
+        // AND we are give second configured EX to process
+        //   (l_l2sync_clock is already initialized by EX0)
+        // Note: more details see comments in p9_hcd_cache_scominit.C
+        if (!l_attr_sys_force_all_cores && l_l2sync_clock)
+        {
+            l_region_clock |= p9hcd::CLK_REGION_EX1_L3_REFR;
+        }
+        else
+        {
+            l_qssr |= (BIT64((l_attr_chip_unit_pos << 1) + 1) |
+                       BIT64(l_attr_chip_unit_pos + 14));
+            l_region_clock |= p9hcd::CLK_REGION_EX1_L2_L3_REFR;
+            l_l2sync_clock |= BIT64(37);
+        }
+
         FAPI_DBG("Sequence EX1 EDRAM enables via QPPM_QCCR[4-7]");
         FAPI_TRY(putScom(i_target, EQ_QPPM_QCCR_WOR, MASK_SET(4)));
         FAPI_TRY(fapi2::delay(12000, 200));

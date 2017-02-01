@@ -95,37 +95,66 @@ p9_hcd_cache_scominit(
         }
     }
 
-    for (auto l_iter = l_ex_targets.begin(); l_iter != l_ex_targets.end(); l_iter++)
+    // EX0 or only one configured EX target given: l_exloop = 0;
+    // possible EX1 when two EX targets are given: l_exloop = 1;
+    // (If you had to ask why not put l_exloop = 0 in the for loop syntax,
+    //  well, the syntax "auto" doesnt allows it.)
+    l_exloop = 0;
+
+    for (auto l_iter = l_ex_targets.begin(); l_iter != l_ex_targets.end(); l_iter++, l_exloop++)
     {
-        fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex = *l_iter;
-        auto l_core_targets = l_ex.getChildren<fapi2::TARGET_TYPE_CORE>();
-
-        FAPI_ASSERT((l_core_targets.size() != 0),
-                    fapi2::PMPROC_CACHESCOMINIT_NOGOODCOREINEX().set_QCSR(l_qcsr),
-                    "NO Good Children Cores under this So-Called Good EX!");
-
-        auto l_core = l_core_targets.begin();
-        fapi2::Target<fapi2::TARGET_TYPE_CORE> l_ec   = *l_core;
-        fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
-            l_ec.getParent<fapi2::TARGET_TYPE_PERV>();
-
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv,
-                               l_attr_chip_unit_pos));
-        l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET;
-        l_exid               = (l_attr_chip_unit_pos >> 1);
-
-        if (!(l_exlist & (0x8000 >> l_exid)))
+        // Hostboot mode(not force_all_cores) is the default IPL mode
+        // That is, one mater core is bought up through istep4 by SBE
+        // and then being powered off along with its cache in istep15
+        // via stop11 function provided by SGPE.
+        //
+        // 1)The defined target pattern being processed by stop11 is
+        //   Core[X]
+        //   L2 of the EX where Core[X] is on
+        //   L3 of EX0 if configured, L3 of EX1 if configured
+        //   Quad where Core[X] is on
+        //   (by defination, the EX with core has to be configured)
+        //
+        // Therefore, hostboot through istep4 has to bring up the
+        // same elements above that will be shutdown by istep15.
+        //
+        // 2)In another word, the targets for istep4 needs to be
+        //   Core[X]
+        //   Both EXs if both configured
+        //     Require following special handling in istep4:
+        //       a) skip the L2 that Core[X] isnt on, but
+        //       b) bring up L3 that Core[X] isnt on(or both L3)
+        //   If only one EX is configured, then it has to be the EX
+        //     that Core[X] is on, bring up both L2+L3 on that EX
+        //   Quad where Core[X] is on
+        //
+        // 3)Master core is defined to be chip's 1st configured core
+        //   Now select_ex in istep3 will provide such targets above
+        //   a) Master core is in the first EX of a quad,
+        //        AND second EX is also configured.
+        //      Set master core in CCSR, set both EXes in QCSR
+        //      (This is the case requires istep4 special handling)
+        //   b) Master core is in the first EX of a quad,
+        //        AND second EX is deconfigured
+        //      Set master core in CCSR, set master EX in QCSR
+        //   c) Master core is in the second EX, by defination,
+        //        the first EX must have been deconfigured
+        //      Set master core in CCSR, set master EX in QCSR
+        //   Note: There wont be any problems on targets or require
+        //   special handling in procedure for case b) and c) above
+        //
+        // Now we only skip L2 if we are in HB mode(not force_all_cores)
+        // AND we are give second configured EX to process(l_exloop==1)
+        if (l_attr_sys_force_all_cores || (!l_exloop))
         {
-            continue;
-        }
+            FAPI_EXEC_HWP(l_rc, p9_l2_scom, *l_iter, l_sys);
 
-        FAPI_EXEC_HWP(l_rc, p9_l2_scom, *l_iter, l_sys);
-
-        if (l_rc)
-        {
-            FAPI_ERR("Error from p9_l2_scom (p9.l2.scom.initfile)");
-            fapi2::current_err = l_rc;
-            goto fapi_try_exit;
+            if (l_rc)
+            {
+                FAPI_ERR("Error from p9_l2_scom (p9.l2.scom.initfile)");
+                fapi2::current_err = l_rc;
+                goto fapi_try_exit;
+            }
         }
 
         FAPI_EXEC_HWP(l_rc, p9_l3_scom, *l_iter, l_sys);
@@ -148,29 +177,51 @@ p9_hcd_cache_scominit(
 
         if (l_attr_sys_force_all_cores)
         {
-            FAPI_DBG("Setup L3-LCO on TARGET_ID[%d] via EX_L3_MODE_REG1[0,2-5,6-21]", l_exid);
-            FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG1, l_data64));
-            l_data64.insertFromRight<2, 4>(l_exid).insertFromRight<6, 16>(l_exlist);
+            fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex = *l_iter;
+            auto l_core_targets = l_ex.getChildren<fapi2::TARGET_TYPE_CORE>();
 
-            if (l_excount > 1)
-            {
-                l_data64.setBit<0>();
-            }
+            FAPI_ASSERT((l_core_targets.size() != 0),
+                        fapi2::PMPROC_CACHESCOMINIT_NOGOODCOREINEX().set_QCSR(l_qcsr),
+                        "NO Good Children Cores under this So-Called Good EX!");
 
-            FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG1, l_data64));
+            auto l_core = l_core_targets.begin();
+            fapi2::Target<fapi2::TARGET_TYPE_CORE> l_ec   = *l_core;
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
+                l_ec.getParent<fapi2::TARGET_TYPE_PERV>();
 
-            FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG0, l_data64));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_perv,
+                                   l_attr_chip_unit_pos));
+            l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET;
+            l_exid               = (l_attr_chip_unit_pos >> 1);
 
-            if (l_excount == 2)
-            {
-                FAPI_DBG("Assert L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
-                FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_SET(9)));
-            }
-            else
-            {
-                FAPI_DBG("Drop L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
-                FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_UNSET(9)));
-            }
+        }
+        else
+        {
+            l_exid = l_exloop;
+        }
+
+        FAPI_DBG("Setup L3-LCO on TARGET_ID[%d] via EX_L3_MODE_REG1[0,2-5,6-21]", l_exid);
+        FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG1, l_data64));
+        l_data64.insertFromRight<2, 4>(l_exid).insertFromRight<6, 16>(l_exlist);
+
+        if (l_excount > 1)
+        {
+            l_data64.setBit<0>();
+        }
+
+        FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG1, l_data64));
+
+        FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG0, l_data64));
+
+        if (l_excount == 2)
+        {
+            FAPI_DBG("Assert L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
+            FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_SET(9)));
+        }
+        else
+        {
+            FAPI_DBG("Drop L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
+            FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_UNSET(9)));
         }
     }
 

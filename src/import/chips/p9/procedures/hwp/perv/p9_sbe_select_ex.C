@@ -223,6 +223,39 @@ fapi2::ReturnCode p9_sbe_select_ex(
         uint32_t l_ex_num = l_core_num / 2;
         uint32_t l_eq_num = l_core_num / 4;
 
+        // if b_host_core_found (only set in single mode), break out of core loop
+        if (b_host_core_found)
+        {
+            // since the very first functional core in chip will be named master core
+            // and if the master core is in second ex of a quad, then the first ex
+            // must be partial bad as there is no functional core found before master core;
+
+            // therefore, only need to check the second ex to be partial good if master core
+            // is in the first ex. if so, add second ex to QCSR so that istep4 can process
+            // hostboot core bring up as a stop11 pattern of l2/l3 in both EXes
+
+            // after found master core but next core still remain in the same ex,
+            // continue to the next core in the loop
+            if (l_ex_num == l_master_ex_num)
+            {
+                continue;
+            }
+            // moved to next ex now, but could be already into next quad
+            // either next ex is in the same quad or next quad, break the loop
+            else
+            {
+                // if still in the same eq, then this is the sibling ex, note it down
+                if (l_eq_num == l_master_eq_num)
+                {
+                    l_quad_config.setBit(l_ex_num);
+                    FAPI_DBG("Sibling EX found, l_ex_num = 0x%02X, QCSR 0x%016llX",
+                             l_ex_num, l_quad_config);
+                }
+
+                break;
+            }
+        }
+
         if (b_single)
         {
             if (!b_host_core_found)
@@ -281,12 +314,6 @@ fapi2::ReturnCode p9_sbe_select_ex(
                                 l_data64),
                  "Error: Core PFET Delay register");
 
-        // if b_host_core_found (only set in single mode), break out of core loop
-        if (b_host_core_found)
-        {
-            break;
-        }
-
     } // Core loop
 
     // Process the good EQs
@@ -317,7 +344,9 @@ fapi2::ReturnCode p9_sbe_select_ex(
                          i, l_master_ex_num, i, l_quad_config.getBit(i));
 
                 // Add to MC group
-                if ((i == l_master_ex_num) && l_quad_config.getBit(i))
+                // under single mode,
+                // l_quad_config should only have master ex and possible sibling ex
+                if (l_quad_config.getBit(i))
                 {
                     FAPI_TRY(select_ex_add_ex_to_mc_groups(eq, i));
                 }
