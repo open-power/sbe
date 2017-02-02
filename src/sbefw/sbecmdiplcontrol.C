@@ -1096,7 +1096,9 @@ ReturnCode istepNoOpStartMpipl( sbeIstepHwp_t i_hwp)
     #define SBE_FUNC "istepNoOpStartMpipl"
     SBE_ENTER(SBE_FUNC);
     (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                          SBE_ENTER_MPIPL_EVENT);
+            SBE_ENTER_MPIPL_EVENT);
+    (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
+
     SBE_EXIT(SBE_FUNC);
     return FAPI2_RC_SUCCESS;
     #undef SBE_FUNC
