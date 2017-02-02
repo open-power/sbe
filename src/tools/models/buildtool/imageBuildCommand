@@ -1,0 +1,3 @@
+#/afs/awd/projects/eclipz/lab/p9/u/srinivan/sbeModel/buildSBEImage.py -m n10_e9067_tp058_ec163uXXa_soa_sc_u190_01 -b Manual -e "__FAPI_DELAY_SIM__=1,SIM_ONLY_OSC_SWC_CHK=1" -i refs/changes/87/11787/7,refs/changes/68/27568/1 -c cac247559332f434263a21de31d39950f6232f81 -p /gsa/boegsa/home/s/r/srinivan
+/afs/awd/projects/eclipz/lab/p9/u/srinivan/sbeModel/buildSBEImage.py  -b Manual -e "__FAPI_DELAY_SIM__=1,SIM_ONLY_OSC_SWC_CHK=1" -i refs/changes/87/11787/7 -p /gsa/boegsa/home/s/r/srinivan
+#/afs/awd/projects/eclipz/lab/p9/u/srinivan/sbeModel/buildSBEImage.py  -b Manual -e "__FAPI_DELAY_SIM__=1,SIM_ONLY_OSC_SWC_CHK=1" -i refs/changes/87/11787/7 -p /gsa/boegsa/home/s/r/srinivan/pibmemHealth
