@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -259,7 +259,7 @@ namespace fapi2
     template<>
     template<TargetType T>
     Target<T, plat_target_handle_t>
-    Target<TARGET_TYPE_PROC_CHIP | TARGET_TYPE_CORE | TARGET_TYPE_EX,
+    Target<TARGET_TYPE_PROC_CHIP | TARGET_TYPE_CORE | TARGET_TYPE_EX | TARGET_TYPE_PERV,
            plat_target_handle_t>::getParent(void) const
     {
         static_assert(((T == TARGET_TYPE_PROC_CHIP) || (T == TARGET_TYPE_EQ)),

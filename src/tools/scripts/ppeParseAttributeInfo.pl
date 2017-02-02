@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -480,28 +480,36 @@ foreach my $entr (@{$entries->{entry}}) {
 
             print AIFILE "const fapi2::TargetType $attr->{id}_TargetType = ";
 
-            # Split on commas
-            my @targTypes = split(',', $attr->{targetType});
-            my $targType = $targTypes[0];
-
-            foreach my $targType (@targTypes)
+            if($attr->{id} eq 'ATTR_CHIP_UNIT_POS')
             {
-                # Remove newlines and leading/trailing whitespace
-                $targType =~ s/\n//;
-                $targType =~ s/^\s+//;
-                $targType =~ s/\s+$//;
+                # Default CHIP_UNIT_POS to all chiplet class targets
+                print AIFILE "TARGET_TYPE_CHIPLETS";
+            }
+            else
+            {
+                # Split on commas
+                my @targTypes = split(',', $attr->{targetType});
+                my $targType = $targTypes[0];
 
-                # Consider only supported target types. The rest are ignored
-                if($targType ~~ ["TARGET_TYPE_PROC_CHIP", "TARGET_TYPE_SYSTEM",
-                    "TARGET_TYPE_CORE", "TARGET_TYPE_MCS", "TARGET_TYPE_PERV",
-                    "TARGET_TYPE_EQ", "TARGET_TYPE_EX"])
+                foreach my $targType (@targTypes)
                 {
-                    print AIFILE "$targType";
-                    last;
-                }
-                else
-                {
-                    next;
+                    # Remove newlines and leading/trailing whitespace
+                    $targType =~ s/\n//;
+                    $targType =~ s/^\s+//;
+                    $targType =~ s/\s+$//;
+
+                    # Consider only supported target types. The rest are ignored
+                    if($targType ~~ ["TARGET_TYPE_PROC_CHIP", "TARGET_TYPE_SYSTEM",
+                        "TARGET_TYPE_CORE", "TARGET_TYPE_MCS", "TARGET_TYPE_PERV",
+                        "TARGET_TYPE_EQ", "TARGET_TYPE_EX"])
+                    {
+                        print AIFILE "$targType";
+                        last;
+                    }
+                    else
+                    {
+                        next;
+                    }
                 }
             }
             print AIFILE ";\n";
