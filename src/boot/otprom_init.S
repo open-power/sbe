@@ -1,4 +1,29 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: src/boot/otprom_init.S $                                      */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
 # # include "pk.h"
+#include "sbe_link.H"
 .set r0 , 0
 .set r1 , 1
 .set r2 , 2
@@ -159,7 +184,7 @@ oos_chk_port_num:
 
 oos_sel_prim_sprm:
 #Read from 0th location of SEEPROM for magic number using FI2C
-                lis r4 , 0x8000
+                lis r4 , OTPROM_SEEPROM_HIGHER_NIBBLE
                 ori r4 , r4 , 0x0000
                 lvd d0 , 0(r4)
 
@@ -175,11 +200,11 @@ oss_load_constant_magic_num:                       #Magic number of seeprom = 0x
                 cmplwbc 0, 2, r1, r3, oos_cmp_magic_fail
 
            ##### Branch to SEEPROM ###################
-                lis r4 , 0x8000                    #Go and fetch the branch address from 0x8000_0001
+                lis r4 , OTPROM_SEEPROM_HIGHER_NIBBLE #Go and fetch the branch address from 0x8000_0001
                 ori r4 , r4 , 0x0008
                 lvd d0 , 0(r4)
                 mtctr r1
-                bctr                               #Branch to fetched address
+                bctr                                 #Branch to fetched address
            ##### Branch to SEEPROM ###################
 
 oos_cmp_magic_fail:
