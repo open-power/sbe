@@ -122,6 +122,10 @@ ifndef ISTEPCOMMON_INFRA_DIR
 export ISTEPCOMMON_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istepcommon
 endif
 
+ifndef ARRAYACCESS_INFRA_DIR
+export ARRAYACCESS_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/arrayaccess
+endif
+
 ifndef BOOT_SRCDIR
 export BOOT_SRCDIR = $(SBE_SRC_DIR)/boot
 endif
@@ -301,6 +305,10 @@ endif
 
 ifndef OBJDIR-ISTEPCOMMON
 export OBJDIR-ISTEPCOMMON = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepcommon
+endif
+
+ifndef OBJDIR-ARRAYACCESS
+export OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/arrayaccess
 endif
 
 GCC-TOOL-PATH = $(CTEPATH)/tools/ppetools/prod

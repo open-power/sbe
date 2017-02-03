@@ -73,3 +73,4 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_l3_flush_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_check_quiesce_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_pm_pfet_control_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_hcd_cache_scominit_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_proc_gettracearray.xml
