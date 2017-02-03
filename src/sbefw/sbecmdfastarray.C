@@ -31,6 +31,8 @@
 #include "sbefapiutil.H"
 #include "fapi2.H"
 
+// TODO via RTC:120758 - Enable once fast array procedures are in ekb
+/*
 #include "p9_sbe_fastarray_setup.H"
 #include "p9_sbe_fastarray_cleanup.H"
 #include "p9_sbe_fastarray_abist_catchup.H"
@@ -44,6 +46,7 @@ p9_sbe_fastarray_cleanup_FP_t p9_sbe_fastarray_cleanup_hwp =
 p9_sbe_fastarray_abist_catchup_FP_t p9_sbe_fastarray_abist_catchup_hwp =
                                             &p9_sbe_fastarray_abist_catchup;
 #endif
+*/
 
 using namespace fapi2;
 
@@ -96,25 +99,34 @@ uint32_t sbeControlFastArray(uint8_t *i_pArg)
                 SBE_INFO(SBE_FUNC" setup:clockregion [0x%08X%08X]",
                     static_cast<uint32_t>(SBE::higher32BWord(l_clock_regions)),
                     static_cast<uint32_t>(SBE::lower32BWord(l_clock_regions)));
+                // TODO via RTC:120758 - Enable once fast array procedures are in ekb
+                /*
                 SBE_EXEC_HWP(l_fapiRc,
                              p9_sbe_fastarray_setup_hwp,
                              l_tgtHndl,
                              l_clock_regions);
+                */
                 break;
             case FASTARRAY_SKIPCYCLES:
                 l_clock_cycles = l_req.lData;
                 SBE_INFO(SBE_FUNC" abist catchup:skipcycles [0x%08X]",
                     static_cast<uint32_t>(l_clock_cycles));
+                // TODO via RTC:120758 - Enable once fast array procedures are in ekb
+                /*
                 SBE_EXEC_HWP(l_fapiRc,
                              p9_sbe_fastarray_abist_catchup_hwp,
                              l_tgtHndl,
                              l_clock_cycles);
+                */
                 break;
             case FASTARRAY_CLEANUP:
                 SBE_INFO(SBE_FUNC" cleanup");
+                // TODO via RTC:120758 - Enable once fast array procedures are in ekb
+                /*
                 SBE_EXEC_HWP(l_fapiRc,
                              p9_sbe_fastarray_cleanup_hwp,
                              l_tgtHndl);
+                */
                 break;
         }
         if(l_fapiRc != FAPI2_RC_SUCCESS)
