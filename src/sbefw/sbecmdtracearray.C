@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,11 +34,23 @@
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
 #include "sbeutil.H"
+#include "sbefapiutil.H"
 #include "fapi2.H"
+
+#include "p9_sbe_tracearray.H"
 
 using namespace fapi2;
 
-static const uint32_t SIZE_OF_LENGTH_INWORDS = 1;
+constexpr uint32_t SBE_TRACE_GRANULE_NUM_ROWS = 1;
+constexpr uint32_t SBE_TRACEARRAY_BYTES_PER_ROW =
+                            (P9_TRACEARRAY_BITS_PER_ROW / 8);
+constexpr uint32_t SBE_TRACE_GRANULE_NUM_WORDS =
+     (SBE_TRACE_GRANULE_NUM_ROWS * SBE_TRACEARRAY_BYTES_PER_ROW) /
+                                                        sizeof(uint32_t);
+
+#ifdef SEEPROM_IMAGE
+p9_sbe_tracearray_FP_t p9_sbe_tracearray_hwp = &p9_sbe_tracearray;
+#endif
 
 uint32_t sbeControlTraceArray(uint8_t *i_pArg)
 {
@@ -69,7 +81,60 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
                          l_req.traceArrayId,
                          l_req.operation);
 
-        // Call trace array HWP in a loop
+        // Construct a Target from Chiplet ID and Target Type
+        fapi2::plat_target_handle_t l_tgtHndl;
+        if(!sbeGetFapiTargetHandle(l_req.targetType, l_req.chipletId,
+                                   l_tgtHndl))
+        {
+            SBE_ERROR(SBE_FUNC "Invalid target type [0x%04x]",
+                                            (uint16_t)l_req.targetType);
+            respHdr.setStatus(SBE_PRI_INVALID_DATA,
+                                    SBE_SEC_INVALID_TARGET_TYPE_PASSED);
+            break;
+        }
+        proc_gettracearray_args l_args = {};
+        // Fill trace array Id
+        l_args.trace_bus = (p9_tracearray_bus_id)l_req.traceArrayId;
+        // Fill control arguments
+        l_args.reset_post_dump      = (l_req.operation & SBE_TA_RESET);
+        l_args.restart_post_dump    = (l_req.operation & SBE_TA_RESTART);
+        l_args.stop_pre_dump        = (l_req.operation & SBE_TA_STOP);
+        l_args.collect_dump         = (l_req.operation & SBE_TA_COLLECT_DUMP);
+        l_args.ignore_mux_setting   = (l_req.operation &
+                                                    SBE_TA_IGNORE_MUX_SETTING);
+
+        uint64_t l_buffer[SBE_TRACE_GRANULE_NUM_WORDS/2] = {};
+        for(uint32_t l_cur_row = 0; l_cur_row < P9_TRACEARRAY_NUM_ROWS;
+                                                                l_cur_row++)
+        {
+            SBE_EXEC_HWP(l_fapiRc, p9_sbe_tracearray_hwp,
+                         l_tgtHndl,
+                         l_args,
+                         l_buffer,
+                         l_cur_row,
+                         SBE_TRACE_GRANULE_NUM_ROWS);
+            if(l_fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("p9_sbe_tracearray failed");
+                // Respond with HWP FFDC
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
+                l_ffdc.setRc(l_fapiRc);
+                break;
+            }
+
+            // If dump is not requested, break from the loop
+            if(!l_args.collect_dump)
+                break;
+
+            // Put the buffer onto Fifo
+            SBE_DEBUG(SBE_FUNC " sending row [%d]", l_cur_row);
+            l_len = SBE_TRACE_GRANULE_NUM_WORDS;
+            l_rc = sbeDownFifoEnq_mult (l_len,
+                                        reinterpret_cast<uint32_t *>(l_buffer));
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+            l_NumWordsRead += SBE_TRACE_GRANULE_NUM_WORDS;
+        }
 
     } while(false);
 
@@ -78,8 +143,9 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
     // instead give the control back to the command processor thread
     if ( SBE_SEC_OPERATION_SUCCESSFUL == l_rc )
     {
-        l_len = SIZE_OF_LENGTH_INWORDS;
-        l_rc = sbeDownFifoEnq_mult (l_len, &(l_NumWordsRead));
+        SBE_INFO(SBE_FUNC " l_NumWordsRead [%d]", l_NumWordsRead);
+        l_len = sizeof(l_NumWordsRead)/sizeof(uint32_t);
+        l_rc = sbeDownFifoEnq_mult (l_len, &l_NumWordsRead);
         if(SBE_SEC_OPERATION_SUCCESSFUL == l_rc)
         {
             l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc);
