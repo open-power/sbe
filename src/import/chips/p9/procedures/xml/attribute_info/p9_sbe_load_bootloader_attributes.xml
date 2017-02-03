@@ -99,4 +99,15 @@
   <platInit/>
   <initToZero/>
 </attribute>
+<attribute>
+  <id>ATTR_SBE_ADDR_KEY_STASH_ADDR</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>Instruction for HB Boatloader to pick the Add-Key Stash Pair
+    from this memory into the exception vector</description>
+  <valueType>uint64</valueType>
+  <persistRuntime/>
+  <platInit/>
+  <writeable/>
+  <initToZero/>
+</attribute>
 </attributes>

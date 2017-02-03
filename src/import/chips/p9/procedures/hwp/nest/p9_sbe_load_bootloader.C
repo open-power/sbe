@@ -389,6 +389,10 @@ get_bootloader_config_data(
     uint64_t l_chip_base_address_m;
     uint64_t l_chip_base_address_mmio;
     uint64_t l_index = 0;
+    // Variable to fetch the Key-Addr Stash Pair
+    uint64_t l_stashAddrAttr = 0;
+    uint8_t* l_stashDataPtr = NULL;
+
     fapi2::buffer<uint64_t> l_cbs_cs;
     BootloaderConfigData_t l_bootloader_config_data;
 
@@ -403,7 +407,7 @@ get_bootloader_config_data(
              l_chip_base_address_mmio),
              "Error from p9_fbc_utils_get_chip_base_address (chip)");
 
-    l_bootloader_config_data.version = MMIO_BARS_ADDED;
+    l_bootloader_config_data.version = ADDR_STASH_SUPPORT_ADDED;
 
     // XSCOM BAR offset
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET,
@@ -467,6 +471,24 @@ get_bootloader_config_data(
     PACK_4B(io_data, l_index, 0x0);
     PACK_8B(io_data, l_index, l_bootloader_config_data.xscomBAR);
     PACK_8B(io_data, l_index, l_bootloader_config_data.lpcBAR);
+
+    // Fetch the address for the stash storage
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR,
+                           FAPI_SYSTEM,
+                           l_stashAddrAttr),
+             "fapiGetAttribute of ATTR_SBE_ADDR_KEY_STASH_ADDR failed!");
+
+    if(l_stashAddrAttr) // If not 0, use this as addr to point to the data
+    {
+        l_stashDataPtr = reinterpret_cast<uint8_t*>(l_stashAddrAttr);
+
+        for(uint8_t l_idx = 0; l_idx < sizeof(keyAddrPair_t); l_idx++)
+        {
+            // Total of 72Bytes will be stashed, First 8Bytes are the keys
+            // Next 8 x 8Bytes are the addresses
+            PACK_1B(io_data, l_index, l_stashDataPtr[l_idx]);
+        }
+    }
 
 fapi_try_exit:
     FAPI_DBG("End");
