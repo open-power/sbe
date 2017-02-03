@@ -29,7 +29,3 @@
 #egrep -v "WSALIAS DEFAULT FIPSLEVEL|WSALIAS DEFAULT SIMICSLEVEL" $BACKING_BUILD/src/simu/data/simicsInfo > $sb/simu/data/simicsInfo
 #echo "WSALIAS DEFAULT FIPSLEVEL env/gfwb/simics-4.2.0/simics-4.2.83/fips/fld36/fi120201a700.42" >> $sb/simu/data/simicsInfo
 #echo "WSALIAS DEFAULT SIMICSLEVEL env/vtechb/simics-4.2.0/simics-4.2.83/bin" >> $sb/simu/data/simicsInfo
-mkdir -p $SANDBOXBASE/obj/ppc/hwsv/server/buildhwpf2/hwpf2/tools/x86_binaries/
-mkdir -p $SANDBOXBASE/src/engd/href
-cp  /esw/san2/cmolsen/sb/hw/tests/refs/images/p9n.hw_image.bin $SANDBOXBASE/src/engd/href/p9n.temp_hw_ref_image.bin
-cp  /esw/san2/cmolsen/sb/hw/tests/refs/p9_ipl_build/p9_ipl_build $SANDBOXBASE/obj/ppc/hwsv/server/buildhwpf2/hwpf2/tools/x86_binaries/
