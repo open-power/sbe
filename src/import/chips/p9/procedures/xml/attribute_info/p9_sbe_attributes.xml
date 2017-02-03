@@ -385,6 +385,10 @@ attribute tank
 
 <!-- Pervasive EC attributes -->
   <entry>
+           <name>ATTR_CHIP_EC_FEATURE_CORE_TRACE_SCOMABLE</name>
+           <virtual/>
+  </entry>
+  <entry>
            <name>ATTR_CHIP_EC_FEATURE_FSI_GP_SHADOWS_OVERWRITE</name>
            <virtual/>
   </entry>
