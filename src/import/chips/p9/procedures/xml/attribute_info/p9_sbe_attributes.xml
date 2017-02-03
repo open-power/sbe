@@ -523,4 +523,8 @@ attribute tank
         <name>ATTR_CHIP_EC_FEATURE_USE_XIVE_HW_RESET</name>
         <virtual/>
   </entry>
+  <entry>
+           <name>ATTR_SBE_ADDR_KEY_STASH_ADDR</name>
+           <value>0x0000000000000000</value>
+  </entry>
 </entries>
