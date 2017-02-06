@@ -41,6 +41,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#undef P9_XIP_TOOL_VERBOSE
+
 #include "p9_xip_image.h"
 #ifdef XIP_TOOL_ENABLE_DISSECT // Needed on ppe side to avoid TOR API
     #include "p9_tor.H"
@@ -1791,13 +1793,13 @@ int dissectRingSectionTor( void*       i_ringSection,
     if (i_imageMagicNo == P9_XIP_MAGIC_HW)
     {
         numDdLevels = htobe32( ( (TorNumDdLevels_t*)i_ringSection )->TorNumDdLevels );
-        fprintf( stdout, "numDdLevels (=%d) read from top of ring section.\n", numDdLevels);
+        fprintf( stderr, "numDdLevels (=%d) read from top of ring section.\n", numDdLevels);
     }
     else
     {
         numDdLevels = 1;
         ddLevel = 0xff; // This means it's unknown.
-        fprintf( stdout, "Image contains only one DD level set of rings.\n");
+        fprintf( stderr, "Image contains only one DD level set of rings.\n");
     }
 
     //----------------
@@ -1835,14 +1837,15 @@ int dissectRingSectionTor( void*       i_ringSection,
                     // - Only loop once if ringId is a common ring.
                     for (instanceId = 0; instanceId <= CHIPLET_ID_MAX && ringType != COMMON; instanceId++)
                     {
-
-                        fprintf( stdout, "Processing:  "
+#ifdef P9_XIP_TOOL_VERBOSE
+                        fprintf( stderr, "Processing:  "
                                  "DD=0x%02x  "
                                  "PPE=%s "
                                  "Variant=%s "
                                  "RingID=%d  "
                                  "InstanceID=0x%02x\n",
                                  ddLevel, ppeTypeName[ppeType], ringVariantName[ringVariant], ringId, instanceId);
+#endif
 
                         ringBlockSize = RING_BUF_SIZE_MAX;
                         rc = tor_access_ring( i_ringSection,
@@ -1979,25 +1982,15 @@ int dissectRingSectionTor( void*       i_ringSection,
                                 sizeListMax = sizeListMax + sizeListIncr;
                                 disList = (char*)realloc( (void*)(disList), sizeListMax);
                             }
-
-                            fprintf(stdout, "%s\n", disList);
-
                         }
-                        else if (rc == TOR_RING_NOT_FOUND)
+                        else if (rc == TOR_RING_NOT_FOUND      ||
+                                 rc == TOR_INVALID_INSTANCE_ID ||
+                                 rc == TOR_AMBIGUOUS_API_PARMS ||
+                                 rc == TOR_INVALID_RING_ID)
                         {
-                            fprintf(stdout, "tor_access_ring() returned rc=%d=TOR_RING_NOT_FOUND\n", rc);
-                        }
-                        else if (rc == TOR_INVALID_INSTANCE_ID)
-                        {
-                            fprintf(stdout, "tor_access_ring() returned rc=%d=TOR_INVALID_INSTANCE_ID\n", rc);
-                        }
-                        else if (rc == TOR_AMBIGUOUS_API_PARMS)
-                        {
-                            fprintf(stdout, "tor_access_ring() returned rc=%d=TOR_AMBIGUOUS_API_PARMS\n", rc);
-                        }
-                        else if (rc == TOR_INVALID_RING_ID)
-                        {
-                            fprintf(stdout, "tor_access_ring() returned rc=%d=TOR_INVALID_RING_ID\n", rc);
+#ifdef P9_XIP_TOOL_VERBOSE
+                            fprintf(stderr, "tor_access_ring() returned error code rc=%d\n", rc);
+#endif
                         }
                         else
                         {
