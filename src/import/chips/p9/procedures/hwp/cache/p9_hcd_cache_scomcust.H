@@ -24,28 +24,25 @@
 /* IBM_PROLOG_END_TAG                                                     */
 ///
 /// @file  p9_hcd_cache_scomcust.H
-/// @brief Cache Customization SCOMs
+/// @brief Core Chiplet PCB Arbitration
 ///
-
-// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
-// *HWP Team               : PM
-// *HWP Consumed by        : SBE:SGPE
-// *HWP Level              : 2
+/// *HWP HWP Owner   : David Du       <daviddu@us.ibm.com>
+/// *HWP FW Owner    : Sangeetha T S  <sangeet2@in.ibm.com>
+/// *HWP Team        : PM
+/// *HWP Consumed by : SBE:SGPE
+/// *HWP Level       : 1
+///
 
 #ifndef __P9_HCD_CACHE_SCOMCUST_H__
 #define __P9_HCD_CACHE_SCOMCUST_H__
-
-#include <fapi2.H>
+extern "C"
+{
 
 /// @typedef p9_hcd_cache_scomcust_FP_t
 /// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p9_hcd_cache_scomcust_FP_t) (
-    const fapi2::Target<fapi2::TARGET_TYPE_EQ>&);
+    typedef fapi2::ReturnCode (*p9_hcd_cache_scomcust_FP_t) (
+        const fapi2::Target<fapi2::TARGET_TYPE_EQ>&);
 
-extern "C"
-{
 
 /// @brief Core Chiplet PCB Arbitration
 ///
@@ -59,6 +56,7 @@ extern "C"
     p9_hcd_cache_scomcust(
         const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target);
 
-}
+
+} // extern C
 
 #endif  // __P9_HCD_CACHE_SCOMCUST_H__
