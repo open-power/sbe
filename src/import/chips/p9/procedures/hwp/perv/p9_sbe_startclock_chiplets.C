@@ -60,6 +60,10 @@ enum P9_SBE_STARTCLOCK_CHIPLETS_Private_Constants
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_fence_drop(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
+static fapi2::ReturnCode p9_sbe_startclock_chiplets_meshctrl_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
+    const bool value);
+
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_set_ob_ratio(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const uint8_t i_attr);
@@ -72,6 +76,7 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
 {
     fapi2::buffer<uint64_t> l_pg_vector;
     fapi2::buffer<uint64_t> l_regions;
+    fapi2::buffer<uint8_t> l_ndl_meshctrl_setup;
     fapi2::buffer<uint8_t> l_attr_obus_ratio;
     fapi2::buffer<uint16_t> l_attr_pg;
     FAPI_INF("p9_sbe_startclock_chiplets: Entering ...");
@@ -80,6 +85,9 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
                          static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_OBUS |
                                  fapi2::TARGET_FILTER_XBUS | fapi2::TARGET_FILTER_ALL_PCI),
                          fapi2::TARGET_STATE_FUNCTIONAL);
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NDL_MESHCTRL_SETUP, i_target_chip,
+                           l_ndl_meshctrl_setup));
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OBUS_RATIO_VALUE, i_target_chip,
                            l_attr_obus_ratio));
@@ -91,6 +99,23 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
 
         if(l_chipletID >= 9 && l_chipletID <= 12)
         {
+            if (l_chipletID == 9)
+            {
+                FAPI_TRY(p9_sbe_startclock_chiplets_meshctrl_setup(obus, l_ndl_meshctrl_setup.getBit<4>()));
+            }
+            else if (l_chipletID == 10)
+            {
+                FAPI_TRY(p9_sbe_startclock_chiplets_meshctrl_setup(obus, l_ndl_meshctrl_setup.getBit<5>()));
+            }
+            else if (l_chipletID == 11)
+            {
+                FAPI_TRY(p9_sbe_startclock_chiplets_meshctrl_setup(obus, l_ndl_meshctrl_setup.getBit<6>()));
+            }
+            else if (l_chipletID == 12)
+            {
+                FAPI_TRY(p9_sbe_startclock_chiplets_meshctrl_setup(obus, l_ndl_meshctrl_setup.getBit<7>()));
+            }
+
             FAPI_TRY(p9_sbe_startclock_chiplets_set_ob_ratio(obus,
                      l_attr_obus_ratio));
         }
@@ -172,6 +197,33 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_fence_drop(
 fapi_try_exit:
     return fapi2::current_err;
 
+}
+
+/// @brief meshctrl setup
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     value              0 or 1 to be written into perv_cplt_ctrl1 reg
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_startclock_chiplets_meshctrl_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet, bool value)
+{
+    fapi2::buffer<uint64_t> l_data = 0;
+    l_data.setBit<21>();
+    FAPI_INF("p9_sbe_startclock_chiplets_meshctrl_setup: Entering ...");
+
+    if ( value )
+    {
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_OR, l_data));
+    }
+    else
+    {
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data));
+    }
+
+    FAPI_INF("p9_sbe_startclock_chiplets_meshctrl_setup: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
 }
 
 /// @brief set obus ratio
