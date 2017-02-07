@@ -182,7 +182,6 @@ ReturnCode istepWithExL3Flush( sbeIstepHwp_t i_hwp );
 ReturnCode istepNoOpStartMpipl( sbeIstepHwp_t i_hwp );
 ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
-ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp );
 ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp );
 
@@ -225,6 +224,7 @@ static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
         {
 #ifdef SEEPROM_IMAGE
             // Place holder for StartMpipl Chip-op, State Change
+            // Set MPIPL mode in Sratch Reg 3
             { &istepNoOpStartMpipl, NULL },
             // Find all the child cores within proc and call set block intr
             { &istepWithCoreSetBlock, { .coreBlockIntrHwp = &p9_block_wakeup_intr }},
@@ -252,8 +252,8 @@ static istepMap_t g_istepMpiplContinuePtrTbl[MPIPL_CONTINUE_MAX_SUBSTEPS] =
             { &istepMpiplSetFunctionalState, NULL},
             // p9_quad_power_off
             { istepMpiplQuadPoweroff, { .eqHwp = &p9_quad_power_off} },
-            // Set MPIPL mode in Sratch Reg 3
-            { &istepMpiplSetMPIPLMode, NULL},
+            // No-op
+            { &istepNoOp, NULL},
 #endif
         };
 
@@ -1097,6 +1097,7 @@ ReturnCode istepNoOpStartMpipl( sbeIstepHwp_t i_hwp)
     SBE_ENTER(SBE_FUNC);
     (void)SbeRegAccess::theSbeRegAccess().stateTransition(
             SBE_ENTER_MPIPL_EVENT);
+    // Set MPIPL mode bit in Scratch Reg 3
     (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
 
     SBE_EXIT(SBE_FUNC);
@@ -1155,16 +1156,6 @@ ReturnCode istepWithProcQuiesceLQASet( sbeIstepHwp_t i_hwp )
     }while(0);
     SBE_EXIT(SBE_FUNC);
     return l_rc;
-    #undef SBE_FUNC
-}
-
-//----------------------------------------------------------------------------
-ReturnCode istepMpiplSetMPIPLMode( sbeIstepHwp_t i_hwp)
-{
-    #define SBE_FUNC "istepMpiplSetMPIPLMode"
-    // Set MPIPL mode bit in Scratch Reg 3
-    (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
-    return FAPI2_RC_SUCCESS;
     #undef SBE_FUNC
 }
 

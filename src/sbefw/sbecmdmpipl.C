@@ -107,7 +107,6 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     #undef SBE_FUNC
 }
 
-// TODO - RTC 133367
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeContinueMpipl Sbe Continue MPIPL function
 //
@@ -119,7 +118,6 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
-    constexpr uint32_t ISTEP_SUBSTEP_22 = 22;
 
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
     sbeResponseFfdc_t l_ffdc;
@@ -132,16 +130,23 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         l_rc = sbeUpFifoDeq_mult (len, NULL);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
+        sbeRole l_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
+                    SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
         // Run isteps
-        const uint8_t isteps[][4] = {
+        const uint8_t isteps[][3] = {
             // Major Num,              Minor Start,       Minor End
             {SBE_ISTEP_MPIPL_CONTINUE, ISTEP_MINOR_START, MPIPL_CONTINUE_MAX_SUBSTEPS},
-            {SBE_ISTEP3,               ISTEP_SUBSTEP_22,  ISTEP_SUBSTEP_22},
             {SBE_ISTEP4,               ISTEP_MINOR_START, ISTEP4_MAX_SUBSTEPS},
             {SBE_ISTEP5,               ISTEP_MINOR_START, ISTEP5_MAX_SUBSTEPS}};
         // Loop through isteps
         for( auto istep : isteps)
         {
+            // This is required here to skip the major istep 4/5 in slave
+            if((SBE_ROLE_SLAVE == l_sbeRole) &&
+               (istep[0] == SBE_ISTEP4 || istep[0] == SBE_ISTEP5))
+            {
+                continue;
+            }
             for(uint8_t l_minor = istep[1]; l_minor <= istep[2]; l_minor++)
             {
                 l_fapiRc = sbeExecuteIstep(istep[0], l_minor);
@@ -178,7 +183,6 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
 // @brief sbeStopClocks Sbe Stop Clocks function
 //
 // @return  RC from the underlying FIFO utility
-// RTC-161679 : Stop Clocks Chip-op to handle Proc Chip Target
 ///////////////////////////////////////////////////////////////////////
 #define SBE_IS_EX0(chipletId) \
     (((chipletId - EX_TARGET_OFFSET) & 0x0002) >> 1)
