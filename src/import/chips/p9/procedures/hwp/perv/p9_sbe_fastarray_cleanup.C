@@ -38,7 +38,8 @@
 //-----------------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------------
-#include <p9_sbe_fastarray_cleanup.H>
+#include "p9_sbe_fastarray_cleanup.H"
+#include "p9_sbe_fastarray_abist_catchup.H"
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 
@@ -50,11 +51,25 @@
 fapi2::ReturnCode p9_sbe_fastarray_cleanup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
-    /* Clean up clock controller */
-    fapi2::buffer<uint64_t> buf = 0;
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CLK_REGION, buf), "Failed to clear clock regions");
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT1, buf), "Failed to clear OPCG_CAPT1");
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT2, buf), "Failed to clear OPCG_CAPT2");
+    fapi2::buffer<uint64_t> l_buf;
+
+    /* Let ABIST engines run to completion */
+    do
+    {
+        FAPI_TRY(p9_sbe_fastarray_abist_catchup(i_target_chiplet, 0xFFF), "Failed to clock ABIST to completion");
+        FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_CPLT_STAT0, l_buf), "Failed to read Chiplet Status 0 Register");
+    }
+    while (!l_buf.getBit<PERV_1_CPLT_STAT0_SRAM_ABIST_DONE_DC>());
+
+    /* Disable ABIST and clock engines so they can cleanly reset */
+    l_buf = 0;
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_BIST,       l_buf), "Failed to clear BIST reg");
+    FAPI_TRY(p9_sbe_fastarray_abist_catchup(i_target_chiplet, 0xFF), "Failed to clock ABIST engine reset");
+
+    /* Clean up the clock controller */
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CLK_REGION, l_buf), "Failed to clear clock regions");
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT1, l_buf), "Failed to clear OPCG_CAPT1");
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT2, l_buf), "Failed to clear OPCG_CAPT2");
 
     return fapi2::FAPI2_RC_SUCCESS;
 
