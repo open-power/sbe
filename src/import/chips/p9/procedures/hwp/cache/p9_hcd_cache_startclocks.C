@@ -328,12 +328,6 @@ p9_hcd_cache_startclocks(
     // Cleaning up
     // -------------------------------
 
-    if (l_attr_system_ipl_phase != fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
-    {
-        FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
-        FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(18)));
-    }
-
     /// @todo RTC158181 ignore xstop checkstop in sim, review for lab
     /*
     FAPI_DBG("Check the Global Checkstop FIR");

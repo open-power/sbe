@@ -24,70 +24,49 @@
 /* IBM_PROLOG_END_TAG                                                     */
 ///
 /// @file  p9_hcd_cache_scomcust.C
-/// @brief Core Chiplet PCB Arbitration
+/// @brief Cache Customization SCOMs
 ///
-/// *HWP HWP Owner   : David Du       <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Sangeetha T S  <sangeet2@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:SGPE
-/// *HWP Level       : 1
-///
-/// Procedure Summary:
-///   If CME, request PCB Mux.
-///     Poll for PCB Mux grant
-///   Else (SBE)
-///     Nop (as the CME is not running in bringing up the first Core)
-///
+
+// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
+// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:SGPE
+// *HWP Level              : 2
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-#include <fapi2.H>
-//#include <common_scom_addresses.H>
-//will be replaced with real scom address header file
+
+#include <p9_quad_scom_addresses.H>
+#include <p9_hcd_common.H>
 #include "p9_hcd_cache_scomcust.H"
 
 //------------------------------------------------------------------------------
 // Constant Definitions: Core Chiplet PCB Arbitration
 //------------------------------------------------------------------------------
 
-extern "C"
+fapi2::ReturnCode
+p9_hcd_cache_scomcust(
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
 {
+    FAPI_INF(">>p9_hcd_cache_scomcust");
+    fapi2::buffer<uint64_t>                     l_data64;
+    uint8_t                                     l_attr_system_ipl_phase;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>    l_sys;
 
-    fapi2::ReturnCode
-    p9_hcd_cache_scomcust(
-        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
+                           l_attr_system_ipl_phase));
+
+    if (l_attr_system_ipl_phase != fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
     {
+        FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
+        FAPI_TRY(putScom(i_target, EQ_NET_CTRL0_WAND, MASK_UNSET(18)));
+    }
 
-#if 0
+fapi_try_exit:
 
-        fapi2::buffer<uint64_t> data;
-
-        //Dynamically built (and installed) routine that is inserted by the .XIP
-        //Customization. process. (New for P9)
-        //(TODO:  this part of the process is a placeholder at this point)
-        //Dynamically built pointer where a NULL is checked before execution
-        //If NULL (a potential early value); return
-        //Else call the function at the pointer;
-        //pointer is filled in by XIP Customization
-        //Customization items:
-        //Epsilon settings scan flush to super safe
-        //Customize Epsilon settings for system config
-        //LCO setup (chiplet specific)
-        //FW setups up based victim caches
-
-        return fapi2::FAPI2_RC_SUCCESS;
-
-        FAPI_CLEANUP();
-        return fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
-
-#endif
-
-        return fapi2::FAPI2_RC_SUCCESS;
-
-    } // Procedure
-
-
-} // extern C
-
+    FAPI_INF("<<p9_hcd_cache_scomcust");
+    return fapi2::current_err;
+}
 
