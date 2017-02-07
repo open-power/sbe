@@ -180,6 +180,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     {
         if ( l_read_scratch8.getBit<1>() )
         {
+            uint8_t l_ndl_meshctrl_setup = 0x0;
 
             FAPI_DBG("Reading Scratch_reg2");
             //Getting SCRATCH_REGISTER_2 register value
@@ -191,10 +192,10 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_DBG("Setting up ATTR_I2C_BUS_DIV_REF");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_I2C_BUS_DIV_REF, i_target_chip, l_read_4));
 
-            l_read_scratch_reg.extractToRight<16, 4>(l_read_1);
-
+            l_read_scratch_reg.extractToRight<16, 4>(l_ndl_meshctrl_setup);
+            l_ndl_meshctrl_setup = (~l_ndl_meshctrl_setup) & 0x0F;
             FAPI_DBG("Setting up ATTR_NDL_MESHCTRL_SETUP");
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NDL_MESHCTRL_SETUP, i_target_chip, l_read_1));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NDL_MESHCTRL_SETUP, i_target_chip, l_ndl_meshctrl_setup));
         }
         else
         {
@@ -208,6 +209,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
             l_read_scratch_reg.insertFromRight< ATTR_I2C_BUS_DIV_REF_STARTBIT, ATTR_I2C_BUS_DIV_REF_LENGTH >(l_read_4);
             l_read_scratch_reg.insertFromRight< ATTR_NDL_MESHCTRL_SETUP_STARTBIT, ATTR_NDL_MESHCTRL_SETUP_LENGTH >(l_read_1);
+            l_read_scratch_reg.flipBit< ATTR_NDL_MESHCTRL_SETUP_STARTBIT, ATTR_NDL_MESHCTRL_SETUP_LENGTH >();
 
             FAPI_DBG("Setting up value of Scratch_reg2");
             //Setting SCRATCH_REGISTER_2 register value
