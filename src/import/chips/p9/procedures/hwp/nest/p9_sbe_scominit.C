@@ -462,6 +462,20 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         }
     }
 
+    {
+        fapi2::buffer<uint64_t> l_data(0);
+        FAPI_DBG("Enable DTS in N1 via THERM_MODE_REG[5,6-9,20]");
+        FAPI_TRY(getScom(i_target, PERV_N1_THERM_MODE_REG, l_data));
+        // DTS sampling enable | sample pulse count | DTS loop0 enable
+        l_data.setBit<5>().insertFromRight<6, 4>(0xF).setBit<20>();
+        FAPI_TRY(putScom(i_target, PERV_N1_THERM_MODE_REG, l_data));
+
+        FAPI_DBG("Enable DTSs (2 of them) in N3 via THERM_MODE_REG[5,6-9,20-21]");
+        FAPI_TRY(getScom(i_target, PERV_N3_THERM_MODE_REG, l_data));
+        // DTS sampling enable | sample pulse count | DTS loop0 and 1 enable
+        l_data.setBit<5>().insertFromRight<6, 4>(0xF).insertFromRight<20, 2>(0x3);
+        FAPI_TRY(putScom(i_target, PERV_N3_THERM_MODE_REG, l_data));
+    }
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");
