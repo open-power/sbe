@@ -39,13 +39,13 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testFifoReset.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testStopClocks.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testExecutorPutRing.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSystemFabricMap.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testArrayAccess.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testFastAccess.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testGetRing.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testExecutorCntrlTimer.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testArrayAccess.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testStopClocks.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testGetRing.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testExecutorPutRing.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testFastAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testQuiesce.xml</include>
           <testcase>
               <simcmd>sbe-trace 0</simcmd>
