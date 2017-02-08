@@ -58,9 +58,10 @@
 //
 enum LISTING_MODE_ID
 {
-    LMID_SHORT  = 0,
-    LMID_NORMAL = 1, // default
-    LMID_LONG   = 2
+    LMID_TABLE,
+    LMID_SHORT,
+    LMID_NORMAL, // default
+    LMID_LONG
 };
 
 // Usage: p9_xip_tool <image> [-<flag> ...] normalize
@@ -73,7 +74,7 @@ enum LISTING_MODE_ID
 //        p9_xip_tool <image> [-<flag> ...] append <section> <file>
 //        p9_xip_tool <image> [-<flag> ...] extract <section> <file>
 //        p9_xip_tool <image> [-<flag> ...] delete <section> [ <section1> ... <sectionN> ]
-//        p9_xip_tool <image> [-<flag> ...] dissect <ring section> [short,normal(default),long]
+//        p9_xip_tool <image> [-<flag> ...] dissect <ring section> [table,short,normal(default),long]
 //        p9_xip_tool <image> [-<flag> ...] disasm <text section>
 //
 // This simple application uses the P9-XIP image APIs to normalize, search
@@ -136,8 +137,9 @@ enum LISTING_MODE_ID
 //
 // The 'dissect' command dissects the ring section named by the section argument
 // and summarizes the content of the ring section.  The second argument to
-// 'dissect', i.e. [short,normal(default),long], specifies how much information
+// 'dissect', i.e. [table,short,normal(default),long], specifies how much information
 // is included in the listing:
+//   table:  Tabular overview.
 //   short:  The bare necessities.
 //   normal: Everything but a raw binary dump of the actual ring block.
 //   long:   Everything inclusing a raw binary dump of the actual ring block.
@@ -165,7 +167,7 @@ const char* g_usage =
     "       p9_xip_tool <image> [-i<flag> ...] extract <section> <file>\n"
     "       p9_xip_tool <image> [-i<flag> ...] delete <section> [ <section1> ... <sectionN> ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] dis <section>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] dissect <ring section> [short,normal(default),long]\n"
+    "       p9_xip_tool <image> [-i<flag> ...] dissect <ring section> [table,short,normal(default),long]\n"
     "       p9_xip_tool <image> [-i<flag> ...] disasm <text section>\n"
     "       p9_xip_tool <image> [-i<flag> ...] check-sbe-ring-section <dd level> <maximum size>\n"
     "\n"
@@ -229,12 +231,13 @@ const char* g_usage =
     "\n"
     "The 'dissect' command dissects the ring section named by the section argument\n"
     "and summarizes the content of the ring section.  The second argument to\n"
-    "'dissect', i.e. [short,normal(default),long], specifies how much information\n"
+    "'dissect', i.e. [table,short,normal(default),long], specifies how much information\n"
     "is included in the listing:\n"
+    "   table:  Tabular overview.\n"
     "   short:  The bare necessities.\n"
     "   normal: Everything but a raw binary dump of the actual ring block.\n"
     "   long:   Everything inclusing a raw binary dump of the actual ring block.\n"
-    "Note that iff the second argument is omitted, a 'normal' listing of the ring\n"
+    "Note that if the second argument is omitted, a 'normal' listing of the ring\n"
     "section will occur.\n"
     "\n"
     "The 'disasm' command disassembles the text section named by the section\n"
@@ -1729,7 +1732,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 ///
 /// \param[in] i_imageMagicNo   The image's MAGIC number.
 ///
-/// \param[in] i_listingModeId  The listing mode: {short, normal(default), long}.
+/// \param[in] i_listingModeId  The listing mode: {table, short, normal(default), long}.
 ///
 /// Assumptions:
 /// - Dissection only works with .rings section. It does not work with .overrides
@@ -1753,9 +1756,19 @@ int dissectRingSectionTor( void*       i_ringSection,
     uint32_t    ringBlockSize;
     char        ringName[32];
     uint32_t    ringSeqNo  = 0; // Ring sequence number
+    CompressedScanData* rs4;
+    uint8_t* data;
+    uint8_t* care;
+    uint32_t bits;
+    int rs4rc;
+    uint16_t ringSize;
+    double comprRate;
 
-    fprintf( stdout, "-----------------------------\n"
-             "*       Ring summary        *\n");
+    if (i_listingModeId != LMID_TABLE)
+    {
+        fprintf( stdout, "-----------------------------\n"
+                 "*       Ring summary        *\n");
+    }
 
     //
     // Allocate large buffer to hold max length ring block.
@@ -1776,6 +1789,11 @@ int dissectRingSectionTor( void*       i_ringSection,
         numDdLevels = 1;
         ddLevel = 0xff; // This means it's unknown.
         fprintf( stderr, "Image contains only one DD level set of rings.\n");
+    }
+
+    if (i_listingModeId == LMID_TABLE)
+    {
+        fprintf(stdout, "\n   #      DD     PPE     Var    Inst       Bits  Compr  Name\n");
     }
 
     //----------------
@@ -1842,19 +1860,48 @@ int dissectRingSectionTor( void*       i_ringSection,
                         //
                         if (rc == TOR_RING_FOUND)
                         {
-                            uint32_t l_ringSize = htobe16(((CompressedScanData*)ringBlockPtr)->iv_size);
+                            rs4 = (CompressedScanData*)ringBlockPtr;
+                            ringSize = be16toh(rs4->iv_size);
 
                             // Check ring block size.
-                            if ( l_ringSize != ringBlockSize || l_ringSize == 0 )
+                            if ( ringSize != ringBlockSize || ringSize == 0 )
                             {
                                 fprintf(stderr, "tor_access_ring() was successful and found a ring but "
-                                        "RS4 header's iv_size(=0x%08x) is either zero or doesn't match "
-                                        "size of ring buffer (ringBlockSize=0x%08x).\n",
-                                        l_ringSize, ringBlockSize);
+                                        "RS4 header's iv_size(=0x%04x) is either zero or doesn't match "
+                                        "size of ring buffer (ringBlockSize=0x%04x).\n",
+                                        ringSize, ringBlockSize);
                                 exit(1);
                             }
 
                             ringSeqNo++;
+
+                            // decompress ring to obtain ring length and to verify compressed string
+                            rs4rc = rs4_decompress(&data, &care, &bits, rs4);
+                            comprRate = (double)ringSize / (double)bits * 100.0;
+
+                            // tabular ring list if "table".
+                            if (i_listingModeId == LMID_TABLE)
+                            {
+                                fprintf(stdout,
+                                        "%4i    "
+                                        "0x%02x    "
+                                        "%4s    "
+                                        "%4s    "
+                                        "0x%02x    "
+                                        "%7d "
+                                        "%6.2f  "
+                                        "%s   ",
+                                        ringSeqNo, ddLevel, ppeTypeName[ppeType],
+                                        ringVariantName[ringVariant], instanceId,
+                                        bits, comprRate, ringName);
+
+                                if (rs4rc != SCAN_COMPRESSION_OK)
+                                {
+                                    fprintf(stdout, "Decompression error %i)", rs4rc);
+                                }
+
+                                fprintf(stdout, "\n");
+                            }
 
                             // Summarize a few key characteristics of the ring block if "short".
                             if (i_listingModeId == LMID_SHORT)
@@ -1905,6 +1952,9 @@ int dissectRingSectionTor( void*       i_ringSection,
                                              (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i))) );
                                 }
                             }
+
+                            free(data);
+                            free(care);
                         }
                         else if (rc == TOR_RING_NOT_FOUND      ||
                                  rc == TOR_INVALID_INSTANCE_ID ||
@@ -1931,8 +1981,10 @@ int dissectRingSectionTor( void*       i_ringSection,
 
     }  // End of for(iDdLevel)
 
-
-    fprintf(stdout, "-----------------------------\n");
+    if (i_listingModeId != LMID_TABLE)
+    {
+        fprintf(stdout, "-----------------------------\n");
+    }
 
     return 0;
 }
@@ -2045,6 +2097,10 @@ int dissectRingSection(void*          i_image,
     if ( listingModeName == NULL )
     {
         listingModeId = LMID_NORMAL;
+    }
+    else if (strcmp(listingModeName, "table") == 0)
+    {
+        listingModeId = LMID_TABLE;
     }
     else if (strcmp(listingModeName, "short") == 0)
     {
