@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2017                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -25,11 +25,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
       <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPutMem.py</simcmd>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testMemPBA.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
-      <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testGetMem_expdata.py</simcmd>
-          <exitonerror>yes</exitonerror>
-      </testcase>
-

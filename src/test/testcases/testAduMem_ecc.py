@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -25,35 +25,45 @@
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
+import testMemUtil as testMemProcUtil
 err = False
-
-LOOP_COUNT = 1
-
-GETMEMADU_TESTDATA_ECC =  [0,0,0,0x6,
-                           0,0,0xA4,0x01,
-                           0,0,0x0,0xAD, #CoreChipletId/EccByte/Flags - CacheInhibit/FastMode/NoTag/Ecc/AutoIncr/Adu/Proc
-                           0,0,0,0,              # Addr Upper 32 bit
-                           0x08,0x00,0x00,0x00,  # Addr Lower 32 bit
-                           0x00,0x00,0x00,0x20]  # length of data
-
-GETMEMADU_EXPDATA_ECC =   [0x00,0x00,0x00,0x24,  # length of data
-                           0xc0,0xde,0xa4,0x01,
-                           0x0,0x0,0x0,0x0,
-                           0x00,0x0,0x0,0x03];
 
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
 def main( ):
     testUtil.runCycles( 10000000 )
 
-    # GetMemAdu with Ecc
-    testUtil.writeUsFifo( GETMEMADU_TESTDATA_ECC)
-    testUtil.writeEot( )
+    #PutMemAdu with ECC
+    data = os.urandom(80)
+    data = [ord(c) for c in data]
+    testMemProcUtil.putmem(0x08000000, data, 0xAD, 0xEF)
+    data = testMemProcUtil.addItagEcc(data,False, True, 0xEF)
 
-    testUtil.readDsEntry ( 9 )
-    testUtil.readDsFifo( GETMEMADU_EXPDATA_ECC)
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
+    # GetMemAdu test with ECC
+    readData = testMemProcUtil.getmem(0x08000000, 80, 0xAD)
+    if(data == readData):
+        print ("Success - Write-Read ADU with ECC")
+    else:
+        print data
+        print readData
+        raise Exception('data mistmach')
+
+    # Partial Write test
+    readData = testMemProcUtil.getmem(0x08000000, 40, 0xAD)
+    data = os.urandom(8)
+    data = [ord(c) for c in data]
+    testMemProcUtil.putmem(0x08000008, data, 0xAD, 0xEF)
+    data = testMemProcUtil.addItagEcc(data,False, True, 0xEF)
+    readBackData = testMemProcUtil.getmem(0x08000000, 40, 0xAD)
+    sandwichData = readData[:9]+data+readData[len(data)+9:]
+    if(sandwichData == readBackData):
+        print ("Success - Write_Part-Read ADU with ECC")
+    else:
+        print readData
+        print data
+        print readBackData
+        print sandwichData
+        raise Exception('data mistmach')
 
 #-------------------------------------------------
 # Calling all test code

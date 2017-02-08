@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -25,6 +25,7 @@
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
+import testMemUtil as testMemProcUtil
 err = False
 
 GETMEMADU_TESTDATA_ITAG =  [0,0,0,0x6,
@@ -44,15 +45,37 @@ GETMEMADU_EXPDATA_ITAG =   [0x00,0x00,0x00,0x48,  # length of data
 def main( ):
     testUtil.runCycles( 10000000 )
 
-    # GetMemAdu with Itag
-    testUtil.writeUsFifo( GETMEMADU_TESTDATA_ITAG )
-    testUtil.writeEot( )
+    #PutMemAdu with Itag
+    data = os.urandom(80)
+    data = [ord(c) for c in data]
+    testMemProcUtil.putmem(0x08000000, data, 0xB5)
+    data = testMemProcUtil.addItagEcc(data,True, False)
 
-    testUtil.readDsEntry ( 18 )
-    testUtil.readDsFifo( GETMEMADU_EXPDATA_ITAG )
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
+    # GetMemAdu test with ECC and Itag
+    readData = testMemProcUtil.getmem(0x08000000, 80, 0xB5)
+    if(data == readData):
+        print ("Success - Write-Read ADU with Itag")
+    else:
+        print data
+        print readData
+        raise Exception('data mistmach')
 
+    # Partial Write test
+    readData = testMemProcUtil.getmem(0x08000000, 40, 0xB5)
+    data = os.urandom(8)
+    data = [ord(c) for c in data]
+    testMemProcUtil.putmem(0x08000008, data, 0xB5, 0xEF)
+    data = testMemProcUtil.addItagEcc(data,True, False)
+    readBackData = testMemProcUtil.getmem(0x08000000, 40, 0xB5)
+    sandwichData = readData[:9]+data+readData[len(data)+9:]
+    if(sandwichData == readBackData):
+        print ("Success - Write_Part-Read ADU with Itag")
+    else:
+        print readData
+        print data
+        print readBackData
+        print sandwichData
+        raise Exception('data mistmach')
 #-------------------------------------------------
 # Calling all test code
 #-------------------------------------------------
