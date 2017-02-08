@@ -258,9 +258,10 @@ fapi2::ReturnCode p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 #endif
 
         // determine base address
-        //      = (chip non-mirrored base address) + (hostboot HRMOR offset)
+        //      = (drawer non-mirrored base address) + (hostboot HRMOR offset)
         //      min MCS base size is 4GB, local HB will always be below
         FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_target,
+                 EFF_FBC_GRP_ID_ONLY,
                  l_chip_base_address_nm0,
                  l_chip_base_address_nm1,
                  l_chip_base_address_m,

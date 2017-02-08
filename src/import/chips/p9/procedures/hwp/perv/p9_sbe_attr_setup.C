@@ -82,6 +82,10 @@ enum P9_SETUP_SBE_CONFIG_scratch4
     ATTR_SLOW_PCI_REF_CLOCK_BIT        = 5,
 
     // Scratch_reg_6
+    ATTR_PROC_EFF_FABRIC_GROUP_ID_STARTBIT = 17,
+    ATTR_PROC_EFF_FABRIC_GROUP_ID_LENGTH = 3,
+    ATTR_PROC_EFF_FABRIC_CHIP_ID_STARTBIT = 20,
+    ATTR_PROC_EFF_FABRIC_CHIP_ID_LENGTH = 3,
     ATTR_PUMP_CHIP_IS_GROUP            = 23,
     ATTR_PROC_FABRIC_GROUP_ID_STARTBIT = 26,
     ATTR_PROC_FABRIC_GROUP_ID_LENGTH   = 3,
@@ -548,6 +552,14 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, i_target_chip,
                                    l_read_3));
 
+            l_read_scratch_reg.extractToRight<17, 3>(l_read_2);
+            l_read_scratch_reg.extractToRight<20, 3>(l_read_3);
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_EFF_FABRIC_GROUP_ID, i_target_chip,
+                                   l_read_2));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, i_target_chip,
+                                   l_read_3));
+
         }
         else
         {
@@ -588,6 +600,17 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
             l_read_scratch_reg.insertFromRight< ATTR_PROC_FABRIC_GROUP_ID_STARTBIT, ATTR_PROC_FABRIC_GROUP_ID_LENGTH >(l_read_1);
             l_read_scratch_reg.insertFromRight< ATTR_PROC_FABRIC_CHIP_ID_STARTBIT, ATTR_PROC_FABRIC_CHIP_ID_LENGTH >(l_read_2);
+
+            FAPI_DBG("Reading ATTR_PROC_EFF_FABRIC_GROUP and CHIP_ID");
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_EFF_FABRIC_GROUP_ID, i_target_chip,
+                                   l_read_1));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, i_target_chip,
+                                   l_read_2));
+
+            l_read_scratch_reg.insertFromRight< ATTR_PROC_EFF_FABRIC_GROUP_ID_STARTBIT, ATTR_PROC_EFF_FABRIC_GROUP_ID_LENGTH >
+            (l_read_1);
+            l_read_scratch_reg.insertFromRight< ATTR_PROC_EFF_FABRIC_CHIP_ID_STARTBIT, ATTR_PROC_EFF_FABRIC_CHIP_ID_LENGTH >
+            (l_read_2);
 
             FAPI_DBG("Setting up value of Scratch_reg6");
             //Setting SCRATCH_REGISTER_6 register value

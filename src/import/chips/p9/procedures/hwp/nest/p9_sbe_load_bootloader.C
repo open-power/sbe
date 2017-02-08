@@ -57,6 +57,7 @@
 const bool PBA_HWP_WRITE_OP = false;
 const int EXCEPTION_VECTOR_NUM_CACHELINES = 96;
 const uint8_t PERV_TO_CORE_POS_OFFSET = 0x20;
+
 //-----------------------------------------------------------------------------------
 // Function definitions
 //-----------------------------------------------------------------------------------
@@ -76,6 +77,9 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     const uint32_t C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0 = 18;
     uint64_t l_bootloader_offset;
     uint64_t l_hostboot_hrmor_offset;
+    uint64_t l_drawer_base_address_nm0, l_drawer_base_address_nm1;
+    uint64_t l_drawer_base_address_m;
+    uint64_t l_drawer_base_address_mmio;
     uint64_t l_chip_base_address_nm0, l_chip_base_address_nm1;
     uint64_t l_chip_base_address_m;
     uint64_t l_chip_base_address_mmio;
@@ -126,26 +130,35 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET, FAPI_SYSTEM, l_hostboot_hrmor_offset),
              "Error from FAPI_ATTR_GET (ATTR_HOSTBOOT_HRMOR_OFFSET)");
 
-    // target base address = (chip non-mirrored base address) +
+    // target base address = (drawer non-mirrored base address) +
     //                       (hostboot HRMOR offset) +
     //                       (bootloader offset)
     FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_master_chip_target,
+             EFF_FBC_GRP_ID_ONLY,
+             l_drawer_base_address_nm0,
+             l_drawer_base_address_nm1,
+             l_drawer_base_address_m,
+             l_drawer_base_address_mmio),
+             "Error from p9_fbc_utils_get_chip_base_address (drawer)");
+
+    FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_master_chip_target,
+             EFF_FBC_GRP_CHIP_IDS,
              l_chip_base_address_nm0,
              l_chip_base_address_nm1,
              l_chip_base_address_m,
              l_chip_base_address_mmio),
-             "Error from p9_fbc_utils_get_chip_base_address");
+             "Error from p9_fbc_utils_get_chip_base_address (chip)");
 
     // add hostboot HRMOR offset and bootloader offset contributions
-    l_chip_base_address_nm0 += l_hostboot_hrmor_offset;
-    l_chip_base_address_nm0 += l_bootloader_offset;
+    l_drawer_base_address_nm0 += l_hostboot_hrmor_offset;
+    l_drawer_base_address_nm0 += l_bootloader_offset;
 
     // check that base address is cacheline aligned
-    FAPI_ASSERT(!(l_chip_base_address_nm0 % FABRIC_CACHELINE_SIZE),
+    FAPI_ASSERT(!(l_drawer_base_address_nm0 % FABRIC_CACHELINE_SIZE),
                 fapi2::P9_SBE_LOAD_BOOTLOADER_INVALID_TARGET_ADDRESS().
                 set_CHIP_TARGET(i_master_chip_target).
                 set_EX_TARGET(i_master_ex_target).
-                set_TARGET_BASE_ADDRESS(l_chip_base_address_nm0).
+                set_TARGET_BASE_ADDRESS(l_drawer_base_address_nm0).
                 set_HRMOR_OFFSET(l_hostboot_hrmor_offset).
                 set_BOOTLOADER_OFFSET(l_bootloader_offset),
                 "Target base address is not cacheline aligned!");
@@ -155,11 +168,11 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_HBBL_EXCEPTION_INSTRUCT, FAPI_SYSTEM, l_exception_instruction),
              "fapiGetAttribute of ATTR_SBE_HBBL_EXCEPTION_INSTRUCT failed!");
 
-    l_target_address = l_chip_base_address_nm0;
+    l_target_address = l_drawer_base_address_nm0;
 
     BootloaderConfigData_t l_bootloader_config_data;
 
-    l_bootloader_config_data.version = SAB_ADDED;
+    l_bootloader_config_data.version = MMIO_BARS_ADDED;
 
     //At address X + 0x8 put whatever is in ATTR_SBE_BOOT_SIDE
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_BOOT_SIDE, FAPI_SYSTEM, l_bootloader_config_data.sbeBootSide),
@@ -196,6 +209,15 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     l_bootloader_config_data.secureAccessBit = l_dataBuf.getBit<4>() ? 1 : 0;
     l_dataBuf.flush<0>();
 
+    // fill in MMIO BARs
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET, FAPI_SYSTEM, l_bootloader_config_data.xscomBAR),
+             "Error from FAPI_ATTR_GET (ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET)");
+    l_bootloader_config_data.xscomBAR += l_chip_base_address_mmio;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET, FAPI_SYSTEM, l_bootloader_config_data.lpcBAR),
+             "Error from FAPI_ATTR_GET (ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET)");
+    l_bootloader_config_data.lpcBAR += l_chip_base_address_mmio;
+
     // move data using PBA setup/access HWPs
     l_myPbaFlag.setFastMode(true);  // FASTMODE
 
@@ -210,7 +232,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
         l_myPbaFlag.setOperationType(p9_PBA_oper_flag::DMA); // DMA operation
     }
 
-    while (l_target_address < (l_chip_base_address_nm0 + i_payload_size + l_exception_vector_size))
+    while (l_target_address < (l_drawer_base_address_nm0 + i_payload_size + l_exception_vector_size))
     {
         // invoke PBA setup HWP to prep stream
         FAPI_TRY(p9_pba_setup( i_master_chip_target,
@@ -224,7 +246,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
 
         // call PBA access HWP per cacheline to move payload data
         while (l_num_cachelines_to_roll &&
-               (l_target_address < (l_chip_base_address_nm0 + i_payload_size + l_exception_vector_size)))
+               (l_target_address < (l_drawer_base_address_nm0 + i_payload_size + l_exception_vector_size)))
         {
             if ((l_cacheline_num == 0) && (l_exception_instruction != 0))
             {
@@ -232,27 +254,27 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                 //The rest of the exception vector is what was in SBE_HBBL_EXCEPTION_INSTRUCT replicated multiple times (until the end of 12KB of exception vector data)
                 for (uint32_t i = 0; i < FABRIC_CACHELINE_SIZE; i++)
                 {
-                    //At address X put whatever is in l_branch_to_12
+                    //At address X (0-3) put whatever is in l_branch_to_12
                     if (i < 4)
                     {
                         l_data_to_pass_to_pba_array[i] = (l_branch_to_12 >> (24 - 8 * i )) & 0xFF;
                     }
-                    //At address X + 0x4 put the HBBL_STRUCT_VERSION
+                    //At address X + 0x4 (4-7) put the HBBL_STRUCT_VERSION
                     else if (i < 8)
                     {
                         l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.version >> (24 - 8 * ((i - 4) % 4))) & 0xFF;
                     }
-                    //At address X + 0x8 put the SBE_BOOT_SIDE
+                    //At address X + 0x8 (8) put the SBE_BOOT_SIDE
                     else if (i == 8)
                     {
                         l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.sbeBootSide;
                     }
-                    //At address X + 0x9 put the PNOR_BOOT_SIDE
+                    //At address X + 0x9 (9) put the PNOR_BOOT_SIDE
                     else if (i  == 9)
                     {
                         l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.pnorBootSide;
                     }
-                    //At address X + 0xA pu the PNOR_SIZE
+                    //At address X + 0xA (10-11) pu the PNOR_SIZE
                     else if (i == 10)
                     {
                         l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.pnorSizeMB >> 8 & 0xFF;
@@ -261,15 +283,25 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                     {
                         l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.pnorSizeMB & 0xFF;
                     }
-                    //At address X + 0xC put the total load size
+                    //At address X + 0xC (12-19) put the total load size
                     else if (i < 20)
                     {
                         l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.blLoadSize >> (56 - 8 * ((i - 12) % 8))) & 0xFF;
                     }
-                    //At address X + 0x14 put the secure access bit
+                    //At address X + 0x14 (20) put the secure access bit
                     else if (i == 20)
                     {
                         l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.secureAccessBit;
+                    }
+                    //At address X + 0x1B (21-28) put the XSCOM BAR
+                    else if (i < 29)
+                    {
+                        l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.xscomBAR >> (56 - 8 * ((i - 21) % 8))) & 0xFF;
+                    }
+                    //At address X + 0x1B (29-36) put the LPC BAR
+                    else if (i < 37)
+                    {
+                        l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.lpcBAR >> (56 - 8 * ((i - 29) % 8))) & 0xFF;
                     }
                     //Fill the rest with the exception vector instruction
                     else
@@ -304,7 +336,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                                    l_firstAccess,
                                    (l_num_cachelines_to_roll == 1) ||
                                    ((l_target_address + FABRIC_CACHELINE_SIZE) >=
-                                    (l_chip_base_address_nm0 + i_payload_size + l_exception_vector_size)),
+                                    (l_drawer_base_address_nm0 + i_payload_size + l_exception_vector_size)),
                                    l_data_to_pass_to_pba_array), "Error from p9_pba_access");
             l_firstAccess = false;
             // decrement count of cachelines remaining in current stream
@@ -337,7 +369,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
         l_dataBuf.flush<0>().setBit<C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0>();
         FAPI_TRY(fapi2::putScom(l_coreTarget, C_0_THREAD_INFO, l_dataBuf),
                  "Error setting thread active for t0");
-        l_dataBuf.flush<0>().insertFromRight<0, 64>(l_chip_base_address_nm0);
+        l_dataBuf.flush<0>().insertFromRight<0, 64>(l_drawer_base_address_nm0);
         //call RamCore put_reg method
         FAPI_TRY(ram.put_reg(REG_SPR, 313, &l_dataBuf), "Error ramming HRMOR");
     }

@@ -50,46 +50,16 @@
 // Constant definitions
 //------------------------------------------------------------------------------
 
-// FBC SCOM register address definitions
-// TODO: these are currently not present in the generated SCOM adddress header
-//       including locally defined address constants here for testing purposes
-const uint64_t PU_FBC_MODE_REG = 0x05011C0A;
-
 // ADU delay/polling constants
 const uint64_t FABRICINIT_DELAY_HW_NS = 1000; // 1us
 const uint64_t FABRICINIT_DELAY_SIM_CYCLES = 200;
 
 // ADU Command Register field/bit definitions
-const uint32_t ALTD_CMD_START_OP_BIT = 2;
-const uint32_t ALTD_CMD_CLEAR_STATUS_BIT = 3;
-const uint32_t ALTD_CMD_RESET_FSM_BIT = 4;
-const uint32_t ALTD_CMD_ADDRESS_ONLY_BIT = 6;
-const uint32_t ALTD_CMD_LOCK_BIT = 11;
-const uint32_t ALTD_CMD_SCOPE_START_BIT = 16;
-const uint32_t ALTD_CMD_SCOPE_END_BIT = 18;
-const uint32_t ALTD_CMD_DROP_PRIORITY_BIT = 20;
-const uint32_t ALTD_CMD_OVERWRITE_PBINIT_BIT = 22;
-const uint32_t ALTD_CMD_TTYPE_START_BIT = 25;
-const uint32_t ALTD_CMD_TTYPE_END_BIT = 31;
-const uint32_t ALTD_CMD_TSIZE_START_BIT = 32;
-const uint32_t ALTD_CMD_TSIZE_END_BIT = 39;
-
-const uint32_t ALTD_CMD_TTYPE_NUM_BITS = (ALTD_CMD_TTYPE_END_BIT - ALTD_CMD_TTYPE_START_BIT + 1);
-const uint32_t ALTD_CMD_TSIZE_NUM_BITS = (ALTD_CMD_TSIZE_END_BIT - ALTD_CMD_TSIZE_START_BIT + 1);
-const uint32_t ALTD_CMD_SCOPE_NUM_BITS = (ALTD_CMD_SCOPE_END_BIT - ALTD_CMD_SCOPE_START_BIT + 1);
-
 const uint32_t ALTD_CMD_TTYPE_PBOP_EN_ALL = 0x3F;
 const uint32_t ALTD_CMD_TSIZE_PBOP_EN_ALL = 0x0B;
 const uint32_t ALTD_CMD_SCOPE_GROUP = 0x3;
 
 // ADU Status Register field/bit definitions
-const uint32_t ALTD_STATUS_ADDR_DONE_BIT = 2;
-const uint32_t ALTD_STATUS_PBINIT_MISSING_BIT = 18;
-const uint32_t ALTD_STATUS_CRESP_START_BIT = 59;
-const uint32_t ALTD_STATUS_CRESP_END_BIT = 63;
-
-const uint32_t ALTD_STATUS_CRESP_NUM_BITS = (ALTD_STATUS_CRESP_END_BIT - ALTD_STATUS_CRESP_START_BIT + 1);
-
 const uint32_t ALTD_STATUS_CRESP_ACK_DONE = 0x04;
 
 
@@ -109,19 +79,40 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     fapi2::buffer<uint64_t> l_hp_mode_data;
     bool l_fbc_is_initialized, l_fbc_is_running;
     fapi2::ATTR_PROC_FABRIC_PUMP_MODE_Type l_pump_mode;
+    fapi2::ATTR_PROC_FABRIC_GROUP_ID_Type l_fbc_group_id_abs;
+    fapi2::ATTR_PROC_EFF_FABRIC_GROUP_ID_Type l_fbc_group_id_eff;
+    fapi2::ATTR_PROC_FABRIC_CHIP_ID_Type l_fbc_chip_id_abs;
+    fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID_Type l_fbc_chip_id_eff;
+    uint8_t l_fbc_xlate_addr_to_id = 0;
 
     // before fabric is initialized, configure resources which live in hotplug registers
     // but which themselves are not hotpluggable
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE, fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(), l_pump_mode),
              "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_PUMP_MODE)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, i_target, l_fbc_group_id_abs),
+             "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_GROUP_ID)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_EFF_FABRIC_GROUP_ID, i_target, l_fbc_group_id_eff),
+             "Error from FAPI_ATTR_GET (ATTR_PROC_EFF_FABRIC_GROUP_ID)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, i_target, l_fbc_chip_id_abs),
+             "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_CHIP_ID)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, i_target, l_fbc_chip_id_eff),
+             "Error from FAPI_ATTR_GET (ATTR_PROC_EFF_FABRIC_CHIP_ID)");
+
     FAPI_TRY(fapi2::getScom(i_target, PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR, l_hp_mode_data),
              "Error from getScom (PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR)");
 
-    l_hp_mode_data.clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_PHYP_IS_GROUP>()    // PHYP_IS_GROUP
-    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_ADDR_BAR>()                   // Large System Map
-    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_DCACHE_CAPP>();               // dsable Dcache CAPP mode
+    // determine HW XOR mask based on fabric ID attributes
+    l_fbc_xlate_addr_to_id =  ((l_fbc_group_id_abs << 3) | l_fbc_chip_id_abs);
+    l_fbc_xlate_addr_to_id ^= ((l_fbc_group_id_eff << 3) | l_fbc_chip_id_eff);
 
-    if (l_pump_mode == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE)
+    l_hp_mode_data.insertFromRight<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_XLATE_ADDR_TO_ID,  // XOR mask
+                                   PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_XLATE_ADDR_TO_ID_LEN>(l_fbc_xlate_addr_to_id);
+
+    l_hp_mode_data.clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_PHYP_IS_GROUP>()          // PHYP is group
+    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_ADDR_BAR>()                         // large system map
+    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_DCACHE_CAPP>();                     // disable Dcache CAPP mode
+
+    if (l_pump_mode == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE)                   // pump mode
     {
         l_hp_mode_data.clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_PUMP>();
     }
@@ -160,27 +151,27 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     // write ADU Command Register to attempt lock acquisition
     // hold lock until finished with sequence
     FAPI_DBG("Lock and reset ADU ...");
-    l_cmd_data.setBit<ALTD_CMD_LOCK_BIT>();
+    l_cmd_data.setBit<PU_ALTD_CMD_REG_FBC_LOCKED>();
     FAPI_TRY(fapi2::putScom(i_target, PU_ALTD_CMD_REG, l_cmd_data),
              "Error writing ADU Command Register to acquire lock");
 
     // clear ADU status/reset state machine
-    l_cmd_data.setBit<ALTD_CMD_CLEAR_STATUS_BIT>()
-    .setBit<ALTD_CMD_RESET_FSM_BIT>();
+    l_cmd_data.setBit<PU_ALTD_CMD_REG_FBC_CLEAR_STATUS>()
+    .setBit<PU_ALTD_CMD_REG_FBC_RESET_FSM>();
     FAPI_TRY(fapi2::putScom(i_target, PU_ALTD_CMD_REG, l_cmd_data),
              "Error writing ADU Command Register to clear status and reset state machine");
 
     // launch init command
     FAPI_INF("Launching fabric init command via ADU ...");
-    l_cmd_data.setBit<ALTD_CMD_START_OP_BIT>()
-    .clearBit<ALTD_CMD_CLEAR_STATUS_BIT>()
-    .clearBit<ALTD_CMD_RESET_FSM_BIT>()
-    .setBit<ALTD_CMD_ADDRESS_ONLY_BIT>()
-    .setBit<ALTD_CMD_DROP_PRIORITY_BIT>()
-    .setBit<ALTD_CMD_OVERWRITE_PBINIT_BIT>();
-    l_cmd_data.insertFromRight<ALTD_CMD_SCOPE_START_BIT, ALTD_CMD_SCOPE_NUM_BITS>(ALTD_CMD_SCOPE_GROUP);
-    l_cmd_data.insertFromRight<ALTD_CMD_TTYPE_START_BIT, ALTD_CMD_TTYPE_NUM_BITS>(ALTD_CMD_TTYPE_PBOP_EN_ALL);
-    l_cmd_data.insertFromRight<ALTD_CMD_TSIZE_START_BIT, ALTD_CMD_TSIZE_NUM_BITS>(ALTD_CMD_TSIZE_PBOP_EN_ALL);
+    l_cmd_data.setBit<PU_ALTD_CMD_REG_FBC_START_OP>()
+    .clearBit<PU_ALTD_CMD_REG_FBC_CLEAR_STATUS>()
+    .clearBit<PU_ALTD_CMD_REG_FBC_RESET_FSM>()
+    .setBit<PU_ALTD_CMD_REG_FBC_AXTYPE>()
+    .setBit<PU_ALTD_CMD_REG_FBC_DROP_PRIORITY>()
+    .setBit<PU_ALTD_CMD_REG_FBC_OVERWRITE_PBINIT>();
+    l_cmd_data.insertFromRight<PU_ALTD_CMD_REG_FBC_SCOPE, PU_ALTD_CMD_REG_FBC_SCOPE_LEN>(ALTD_CMD_SCOPE_GROUP);
+    l_cmd_data.insertFromRight<PU_ALTD_CMD_REG_FBC_TTYPE, PU_ALTD_CMD_REG_FBC_TTYPE_LEN>(ALTD_CMD_TTYPE_PBOP_EN_ALL);
+    l_cmd_data.insertFromRight<PU_ALTD_CMD_REG_FBC_TSIZE, PU_ALTD_CMD_REG_FBC_TSIZE_LEN>(ALTD_CMD_TSIZE_PBOP_EN_ALL);
     FAPI_TRY(fapi2::putScom(i_target, PU_ALTD_CMD_REG, l_cmd_data),
              "Error writing ADU Command Register to launch init operation");
 
@@ -193,8 +184,9 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     FAPI_TRY(fapi2::getScom(i_target, PU_ALTD_STATUS_REG, l_status_data_act),
              "Error polling ADU Status Register");
 
-    l_status_data_exp.setBit<ALTD_STATUS_ADDR_DONE_BIT>();
-    l_status_data_exp.insertFromRight<ALTD_STATUS_CRESP_START_BIT, ALTD_STATUS_CRESP_NUM_BITS>(ALTD_STATUS_CRESP_ACK_DONE);
+    l_status_data_exp.setBit<PU_ALTD_STATUS_REG_FBC_ADDR_DONE>();
+    l_status_data_exp.insertFromRight<PU_ALTD_STATUS_REG_FBC_CRESP_VALUE, PU_ALTD_STATUS_REG_FBC_CRESP_VALUE_LEN>
+    (ALTD_STATUS_CRESP_ACK_DONE);
 
     FAPI_ASSERT(l_status_data_exp == l_status_data_act,
                 fapi2::P9_SBE_FABRICINIT_FAILED_ERR().set_TARGET(i_target).
