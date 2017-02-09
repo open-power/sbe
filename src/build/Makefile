@@ -90,15 +90,10 @@ LLIBS += -listepcommon
 SUBDIRS += $(ARRAYACCESS_INFRA_DIR)
 LIB_DIRS += -L$(OBJDIR-ARRAYACCESS)
 ARRAYACCESS := $(OBJDIR-ARRAYACCESS)/larrayaccess.a
-
 LLIBS += -larrayaccess
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).out
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).map
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 ifeq ($(img), seeprom)
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.out
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.map
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.dis
 endif
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_*.syms
