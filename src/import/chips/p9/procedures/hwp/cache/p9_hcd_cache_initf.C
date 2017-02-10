@@ -60,13 +60,20 @@ p9_hcd_cache_initf(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target)
 {
     FAPI_INF(">>p9_hcd_cache_initf");
-
-#ifndef __PPE__
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
-    uint8_t l_attr_system_ipl_phase;
-    uint8_t l_attr_runn_mode;
     fapi2::buffer<uint64_t> l_data64;
 
+#ifdef __PPE__
+    fapi2::buffer<uint64_t>  l_data64_2;
+    uint8_t                 l_isMpipl = 0;
+    uint8_t                 l_isRingSaveMpipl = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
+        i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+#endif
+
+#ifndef __PPE__
+    uint8_t l_attr_system_ipl_phase;
+    uint8_t l_attr_runn_mode;
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
                            l_attr_system_ipl_phase));
@@ -74,6 +81,13 @@ p9_hcd_cache_initf(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MODE,        l_sys,
                            l_attr_runn_mode));
 
+#endif
+
+#ifdef __PPE__
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, l_sys, l_isMpipl),
+             "fapiGetAttribute of ATTR_IS_MPIPL failed!");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_RING_SAVE_MPIPL, l_chip, l_isRingSaveMpipl),
+             "fapiGetAttribute of ATTR_CHIP_EC_FEATURE_RING_SAVE_MPIPL failed");
 #endif
 
     FAPI_DBG("Scan eq_fure ring");
@@ -136,6 +150,93 @@ p9_hcd_cache_initf(
 
 #endif
 
+#ifdef __PPE__
+
+    if (l_isMpipl && l_isRingSaveMpipl)
+    {
+        l_data64.flush<0>();
+        l_data64.setBit<4>();
+        l_data64.setBit<5>();
+        l_data64.setBit<11>();
+        l_data64.setBit<59>();
+
+        FAPI_TRY(fapi2::putScom(i_target,
+                                EQ_SCAN_REGION_TYPE,
+                                l_data64));
+
+        l_data64.flush<0>().set(0xa5a5a5a5a5a5a5a5);
+        FAPI_TRY(fapi2::putScom(i_target,
+                                EQ_SCAN64,
+                                l_data64));
+
+        for(uint32_t l_spin = 1; l_spin < 10; l_spin++)
+        {
+            /***********G_ring_index***********/
+            //  {0,    0},
+            //  {5039, 0xE000000000000000}, //3
+            //  {5100, 0xC1E061FFED5F0000}, //29
+            //  {5664, 0xE000000000000000}, //3
+            //  {5725, 0xC1E061FFED5F0000}, //29
+            //  {5973, 0xE000000000000000}, //3
+            //  {6034, 0xC1E061FFED5F0000}, //29
+            //  {6282, 0xE000000000000000}, //3
+            //  {6343, 0xC1E061FFED5F0000}, //29
+            //  {17871, 0}
+            /**********************************/
+            uint64_t l_scandata = ((l_spin == 0) || (l_spin == 9)) ? 0x0 : (l_spin & 0x1) ?
+                                  0xE000000000000000 : 0xC1E061FFED5F0000;
+            l_data64.flush<0>().set((G_ring_index[l_spin] - G_ring_index[l_spin - 1]) << 32);
+
+            FAPI_TRY(fapi2::putScom(i_target,
+                                    EQ_SCAN_LONG_ROTATE,
+                                    l_data64));
+            l_data64.flush<0>();
+
+            do
+            {
+                FAPI_TRY(fapi2::getScom(i_target,
+                                        EQ_CPLT_STAT0,
+                                        l_data64));
+            }
+            while (l_data64.getBit<8>() == 0);
+
+            l_data64.flush<0>();
+
+            if (l_spin == 9)
+            {
+                FAPI_TRY(fapi2::getScom(i_target,
+                                        EQ_SCAN64,
+                                        l_data64));
+
+                if(l_data64 != 0xa5a5a5a5a5a5a5a5)
+                {
+                    FAPI_ASSERT(false,
+                                fapi2::P9_HCD_CACHE_INITF_INCORRECT_EQ_SCAN64_VAL()
+                                .set_EQ_SCAN64_VAL(l_data64),
+                                "Incorrect Value from EQ_SCAN64, Expected Value [0xa5a5a5a5a5a5a5a5]");
+                }
+            }
+            else
+            {
+                l_data64.flush<0>();
+                FAPI_TRY(fapi2::getScom(i_target,
+                                        EQ_SCAN64,
+                                        l_data64));
+
+                l_data64_2.set( (l_data64 & ~l_scandata) | G_ring_save[l_spin - 1]);
+                FAPI_TRY(fapi2::putScom(i_target,
+                                        EQ_SCAN64,
+                                        l_data64_2));
+            }
+        }
+
+        l_data64.flush<0>();
+        FAPI_TRY(fapi2::putScom(i_target,
+                                EQ_SCAN_REGION_TYPE,
+                                l_data64));
+    }
+
+#endif
 
 fapi_try_exit:
     FAPI_INF("<<p9_hcd_cache_initf");

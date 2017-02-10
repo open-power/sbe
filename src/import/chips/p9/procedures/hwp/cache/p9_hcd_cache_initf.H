@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,6 +38,7 @@
 #define __P9_HCD_CACHE_INITF_H__
 
 #include <fapi2.H>
+#include <p9_quad_power_off.H>
 
 /// @typedef p9_hcd_cache_initf_FP_t
 /// function pointer typedef definition for HWP call support
