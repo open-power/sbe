@@ -50,8 +50,23 @@
 //-----------------------------------------------------------------------------
 // Constant Definitions
 //-----------------------------------------------------------------------------
-const uint8_t CORE_HANG_DIVIDER_4X  = 0x9F;
-const uint8_t CORE_HANG_DIVIDER_64X = 0x7B;
+
+enum P9_HCD_CORE_SCOMINIT_CONSTANTS
+{
+    CORE_HANG_LIMIT_3_HANG_PULSES   = 0x9F,
+    CORE_HANG_LIMIT_5_HANG_PULSES   = 0x27,
+    CORE_HANG_LIMIT_10_HANG_PULSES  = 0xA1,
+    CORE_HANG_LIMIT_50_HANG_PULSES  = 0x99,
+    CORE_HANG_LIMIT_100_HANG_PULSES = 0x2D,
+    CORE_HANG_LIMIT_150_HANG_PULSES = 0xF6,
+    CORE_HANG_LIMIT_200_HANG_PULSES = 0x64,
+
+    NEST_HANG_LIMIT_20_HANG_PULSES  = 0x5F,
+    NEST_HANG_LIMIT_50_HANG_PULSES  = 0x99,
+    NEST_HANG_LIMIT_100_HANG_PULSES = 0x2D,
+    NEST_HANG_LIMIT_150_HANG_PULSES = 0xF6,
+    NEST_HANG_LIMIT_200_HANG_PULSES = 0x64
+};
 
 //-----------------------------------------------------------------------------
 // Procedure: Core SCOM Inits
@@ -63,8 +78,14 @@ p9_hcd_core_scominit(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
 {
     FAPI_INF(">>p9_hcd_core_scominit");
+    fapi2::ReturnCode       l_rc;
     fapi2::buffer<uint64_t> l_data64;
-    fapi2::ReturnCode l_rc;
+    uint8_t                 l_attr_dd1_core_hang_limit;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
+        i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW399609, l_chip,
+                           l_attr_dd1_core_hang_limit));
 
     /// @todo RTC158181 how about bit 6?
     FAPI_DBG("Restore SYNC_CONFIG[8] for stop1");
@@ -77,7 +98,7 @@ p9_hcd_core_scominit(
     l_data64.setBit<5>().insertFromRight<6, 4>(0xF).insertFromRight<20, 2>(0x3);
     FAPI_TRY(putScom(i_target, C_THERM_MODE_REG, l_data64));
 
-    // invoke core SCOM initfile
+    FAPI_DBG("Invoke Core SCOM Initfile");
     FAPI_EXEC_HWP(l_rc, p9_core_scom, i_target);
 
     if (l_rc)
@@ -87,13 +108,25 @@ p9_hcd_core_scominit(
         goto fapi_try_exit;
     }
 
-    // update core hang pulse dividers
-    FAPI_TRY(getScom(i_target, C_HANG_CONTROL, l_data64),
-             "Error from getScom (C_HANG_CONTROL)");
-    l_data64.insertFromRight<C_HANG_CONTROL_CORE_LIMIT, C_HANG_CONTROL_CORE_LIMIT_LEN>(CORE_HANG_DIVIDER_4X);
-    l_data64.insertFromRight<C_HANG_CONTROL_NEST_LIMIT, C_HANG_CONTROL_NEST_LIMIT_LEN>(CORE_HANG_DIVIDER_64X);
-    FAPI_TRY(putScom(i_target, C_HANG_CONTROL, l_data64),
-             "Error from putScom (C_HANG_CONTROL)");
+    FAPI_DBG("Update Core Hang Pulse Dividers via C_HANG_CONTROL[0-15]");
+    FAPI_TRY(getScom(i_target, C_HANG_CONTROL, l_data64));
+
+    if (l_attr_dd1_core_hang_limit)
+    {
+        l_data64.insertFromRight<C_HANG_CONTROL_CORE_LIMIT,
+                                 C_HANG_CONTROL_CORE_LIMIT_LEN>(CORE_HANG_LIMIT_100_HANG_PULSES);
+    }
+    else
+    {
+        l_data64.insertFromRight<C_HANG_CONTROL_CORE_LIMIT,
+                                 C_HANG_CONTROL_CORE_LIMIT_LEN>(CORE_HANG_LIMIT_3_HANG_PULSES);
+    }
+
+    l_data64.insertFromRight<C_HANG_CONTROL_NEST_LIMIT,
+                             C_HANG_CONTROL_NEST_LIMIT_LEN>(NEST_HANG_LIMIT_100_HANG_PULSES);
+
+    FAPI_TRY(putScom(i_target, C_HANG_CONTROL, l_data64));
+
 
 fapi_try_exit:
 
