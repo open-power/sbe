@@ -346,6 +346,10 @@ attribute tank
            <virtual/>
   </entry>
   <entry>
+           <name>ATTR_CHIP_EC_FEATURE_HW399609</name>
+           <virtual/>
+  </entry>
+  <entry>
           <name>ATTR_CHIP_EC_FEATURE_LPC_RESET_GPIO</name>
           <virtual/>
   </entry>
