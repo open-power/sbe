@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,8 +57,7 @@ class SbeRegAccess
          */
         static SbeRegAccess& theSbeRegAccess()
         {
-            static SbeRegAccess iv_instance;
-            return iv_instance;
+            return cv_instance;
         }
 
         /**
@@ -262,6 +261,7 @@ class SbeRegAccess
         static const uint64_t SBE_MBX8_MBX3_VALID_MASK = 0x2000000000000000ULL;
         static const uint64_t SBE_MBX8_MBX6_VALID_MASK = 0x0400000000000000ULL;
         static const uint64_t SBE_DEV_ID_C4_PIN_MASK = 0x0000000000800000ULL;
+        static SbeRegAccess cv_instance;
 };
 #endif //__SBEFW_SBEREGACCESS_H
 

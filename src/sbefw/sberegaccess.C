@@ -97,6 +97,8 @@ static const stateTransitionStr_t stateTransMap[SBE_MAX_TRANSITIONS] = {
     {SBE_STATE_DMT, SBE_DUMP_FAILURE_EVENT, SBE_STATE_DUMP},
 };
 
+SbeRegAccess SbeRegAccess::cv_instance __attribute__((section (".sbss")));
+
 /**
  * @brief Initizlize the class
  *
