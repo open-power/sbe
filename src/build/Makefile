@@ -99,7 +99,7 @@ endif
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_*.syms
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.xml
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.py
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(SBE_STRINGFILE_NAME)
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeStringFile*
 SIMICS_PPE_TAR_FILES += $(PPETRACEPP_BIN_DIR)/ppe2fsp
 SIMICS_BB_TAR_FILES += $(SIMICSTOOLS_SRCDIR)/*
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/simics-debug-framework.py
@@ -179,6 +179,7 @@ install: all tar
 tar:
 # TODO:Remove this line once Simics supports DD specific files
 	@cp $(IMG_DIR)/sbe_seeprom_DD1.bin $(IMG_DIR)/sbe_seeprom.bin | true
+	@cp $(IMG_DIR)/sbeStringFile_DD1 $(IMG_DIR)/sbeStringFile | true
 	@echo "Installing simics.tar"
 	@rm -rf $(OBJDIR)/simics-tar-dir
 	@mkdir $(OBJDIR)/simics-tar-dir

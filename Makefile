@@ -23,7 +23,7 @@
 #
 # IBM_PROLOG_END_TAG
 BUILD_DIR = src/build
-.PHONY: install all clean tar
+.PHONY: install all clean tar install_DD1 install_DD2 DD1 DD2
 
 del_objects:
 	@rm -rf obj/sbefw
@@ -34,16 +34,19 @@ del_objects:
 
 install: all tar
 
+install_DD1: DD1 tar
+install_DD2: DD2 tar
+
 tar:
 	$(MAKE) -C $(BUILD_DIR) tar
 
-DD1_build:
+DD1:
 	$(MAKE) -C $(BUILD_DIR) all ddlevel=DD1
 
-DD2_build:
+DD2:
 	$(MAKE) -C $(BUILD_DIR) all ddlevel=DD2
 
-all: DD1_build del_objects DD2_build
+all: DD1 del_objects DD2
 
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean
