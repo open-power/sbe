@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -64,22 +64,19 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears(const
     uint8_t l_nest_bypass = 0;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_nest_bypass));
 
-#ifdef __PPE__
-
     // - if we've just switched from refclock->PLL, we need to adjust the
     // i2c bit rate divisor to account for the new frequency (plus
     // check our ability to access the seeprom with this setting)
-    // - if no frequency change has occurred (nest PLL in bypass),
-    // skip all of these steps as the current divisor in place is appropriate
+    // - if no frequency change has occurred (nest PLL in bypass)
     if (l_nest_bypass == 0)
     {
         FAPI_TRY(p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(i_target_chip));
         FAPI_TRY(p9_sbe_gear_switcher_i2c_stop_sequence(i_target_chip));
+#ifdef __PPE__
         FAPI_DBG("Checking Magic number");
         FAPI_TRY(p9_sbe_tp_switch_gears_check_magicnumber(i_target_chip));
-    }
-
 #endif
+    }
 
     if (l_nest_bypass == 0)
     {

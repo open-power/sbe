@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -76,6 +76,11 @@ fapi2::ReturnCode p9_sbe_gear_switcher_apply_i2c_bit_rate_divisor_setting(
     l_data64.insertFromRight< 0, 16 >(l_mb_bit_rate_divisor);
     FAPI_TRY(fapi2::putScom(i_target_chip, PU_MODE_REGISTER_B, l_data64));
 
+    FAPI_DBG("Writing I2C bit rate divisor into mailbox_reg_2");
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_2_SCOM, l_data64));
+    l_data64.insertFromRight< 0, 16 >(l_mb_bit_rate_divisor);
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_2_SCOM, l_data64));
+
     FAPI_DBG("Exiting ...");
 
 fapi_try_exit:
@@ -104,8 +109,7 @@ fapi2::ReturnCode p9_sbe_gear_switcher_i2c_stop_sequence(
     // enable enhance mode
     // Point to port_0 where the Primary SEEPROM Sits
     FAPI_INF("Send a STOP sequence on I2C");
-    //Setting CONTROL_REGISTER_B register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PU_CONTROL_REGISTER_B, l_data64));
+    l_data64.flush<0>();
     l_data64.setBit<3>();  //PIB.CONTROL_REGISTER_B.PIB_CNTR_REG_BIT_WITHSTOP_0 = 1
     //PIB.CONTROL_REGISTER_B.PIB_CNTR_REG_PORT_NUMBER_0 = l_read_attr
     l_data64.insertFromRight<18, 5>(l_read_attr);
