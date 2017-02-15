@@ -584,6 +584,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
                 {
                     valid = false;
                 }
+                break;
 
             default:
                 valid = false;
