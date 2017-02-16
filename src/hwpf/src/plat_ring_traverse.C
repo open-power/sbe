@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -145,6 +145,8 @@ fapi2::ReturnCode getRS4ImageFromTor(
         uint8_t l_chipletID = i_target.getChipletNumber();
         uint16_t l_cpltRingVariantSz = 0;
         uint32_t l_sectionOffset = 0;
+        uint8_t l_CC_offset = 0;
+        uint8_t l_RL_offset = 1;
         switch(l_chipLetType)
         {
             case PERV_TYPE: // PERV
@@ -349,6 +351,8 @@ fapi2::ReturnCode getRS4ImageFromTor(
                  
 
                 l_sectionOffset = i_sectionTOR->TOC_EQ_COMMON_RING;
+                l_CC_offset = 1;
+                l_RL_offset = 2;
                 if(INSTANCE_RING == l_ringType)
                 {
                     l_sectionOffset = i_sectionTOR->TOC_EQ_INSTANCE_RING;
@@ -363,6 +367,8 @@ fapi2::ReturnCode getRS4ImageFromTor(
                                        sizeof(l_cpltRingVariantSz));
 
                 l_sectionOffset = i_sectionTOR->TOC_EC_COMMON_RING;
+                l_CC_offset = 1;
+                l_RL_offset = 2;
                 if(INSTANCE_RING == l_ringType)
                 {
                     l_sectionOffset = i_sectionTOR->TOC_EC_INSTANCE_RING;
@@ -431,7 +437,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
         // 3. Risk Level
 
 
-        SBE_TRACE ("ring tor address %08X\n",(uint32_t)l_ringTorAddr);
+        SBE_TRACE ("ring tor address %08X",(uint32_t)l_ringTorAddr);
 
         // If there are non-base variants of the ring, we'll have to check
         // attributes to determine the sequence of ring apply.
@@ -443,21 +449,25 @@ fapi2::ReturnCode getRS4ImageFromTor(
                           fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> (),
                           l_iplPhase);
 
-            // 4 : Cache Contained mode
-            if(CACHE_CONTAINED_MODE == l_iplPhase)
+            // 4 : Use Cache Contained mode _if_ present, else fall back
+            // to normal ring
+            if((CACHE_CONTAINED_MODE == l_iplPhase)
+               && *(l_ringTorAddr + l_CC_offset))
             {
-                l_ringTorAddr += CACHE_CONTAINED_MODE_OFFSET_IN_TOR;
+                l_ringTorAddr += l_CC_offset;
             }
             else
             {
                 // Check if this is risk-level IPL
+                // _if_ present, else fall back to normal ring
                 uint8_t l_riskLevel;
                 FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL,
                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> (),
                               l_riskLevel);
-                if(RISK_LEVEL_MODE == l_riskLevel)
+                if((RISK_LEVEL_MODE == l_riskLevel) &&
+                   *(l_ringTorAddr + l_RL_offset))
                 {
-                    l_ringTorAddr += RISK_LEVEL_MODE_OFFSET_IN_TOR;
+                    l_ringTorAddr += l_RL_offset;
                 }
             }
         }
