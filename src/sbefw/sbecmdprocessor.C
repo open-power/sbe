@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -217,6 +217,10 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     #define SBE_FUNC " sbeSyncCommandProcessor_routine "
     SBE_ENTER(SBE_FUNC);
 
+    // Update SBE msgg reg to indicate that control loop
+    // is ready now to receive data on its interfaces
+    (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
+    
     // Check the destination bit at the start
     if(SbeRegAccess::theSbeRegAccess().isIstepMode())
     {
