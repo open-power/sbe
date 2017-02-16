@@ -61,7 +61,8 @@ enum LISTING_MODE_ID
     LMID_TABLE,
     LMID_SHORT,
     LMID_NORMAL, // default
-    LMID_LONG
+    LMID_LONG,
+    LMID_RAW
 };
 
 // Usage: p9_xip_tool <image> [-<flag> ...] normalize
@@ -74,7 +75,7 @@ enum LISTING_MODE_ID
 //        p9_xip_tool <image> [-<flag> ...] append <section> <file>
 //        p9_xip_tool <image> [-<flag> ...] extract <section> <file>
 //        p9_xip_tool <image> [-<flag> ...] delete <section> [ <section1> ... <sectionN> ]
-//        p9_xip_tool <image> [-<flag> ...] dissect <ring section> [table,short,normal(default),long]
+//        p9_xip_tool <image> [-<flag> ...] dissect <ring section> [table,short,normal(default),long,raw]
 //        p9_xip_tool <image> [-<flag> ...] disasm <text section>
 //
 // This simple application uses the P9-XIP image APIs to normalize, search
@@ -141,8 +142,9 @@ enum LISTING_MODE_ID
 // is included in the listing:
 //   table:  Tabular overview.
 //   short:  The bare necessities.
-//   normal: Everything but a raw binary dump of the actual ring block.
-//   long:   Everything inclusing a raw binary dump of the actual ring block.
+//   normal: Everything except a binary dump of the ring block.
+//   long:   Everything including a binary dump of the ring block.
+//   raw:    Everything including a dump of the raw decompressed ring.
 // Note that iff the second argument is omitted, a 'normal' listing of the ring
 // section will occur.
 //
@@ -167,7 +169,7 @@ const char* g_usage =
     "       p9_xip_tool <image> [-i<flag> ...] extract <section> <file>\n"
     "       p9_xip_tool <image> [-i<flag> ...] delete <section> [ <section1> ... <sectionN> ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] dis <section>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] dissect <ring section> [table,short,normal(default),long]\n"
+    "       p9_xip_tool <image> [-i<flag> ...] dissect <ring section> [table,short,normal(default),long,raw]\n"
     "       p9_xip_tool <image> [-i<flag> ...] disasm <text section>\n"
     "       p9_xip_tool <image> [-i<flag> ...] check-sbe-ring-section <dd level> <maximum size>\n"
     "\n"
@@ -231,12 +233,13 @@ const char* g_usage =
     "\n"
     "The 'dissect' command dissects the ring section named by the section argument\n"
     "and summarizes the content of the ring section.  The second argument to\n"
-    "'dissect', i.e. [table,short,normal(default),long], specifies how much information\n"
+    "'dissect', i.e. [table,short,normal(default),long,raw], specifies how much information\n"
     "is included in the listing:\n"
     "   table:  Tabular overview.\n"
     "   short:  The bare necessities.\n"
-    "   normal: Everything but a raw binary dump of the actual ring block.\n"
-    "   long:   Everything inclusing a raw binary dump of the actual ring block.\n"
+    "   normal: Everything except a binary dump of the ring block.\n"
+    "   long:   Everything including a binary dump of the ring block.\n"
+    "   raw:    Everything including a dump of the raw decompressed ring.\n"
     "Note that if the second argument is omitted, a 'normal' listing of the ring\n"
     "section will occur.\n"
     "\n"
@@ -1721,6 +1724,60 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 
 #ifdef XIP_TOOL_ENABLE_DISSECT  // Needed on the ppe side to avoid TOR API
 
+
+// This function prints out the raw decompressed ring content in the same
+//   format that it appears as in EKB's ifCompiler generated raw ring
+//   files, i.e. *.bin.srd (DATA) and *.bin.srd.bitsModified (CARE).
+static
+void printRawRing( uint8_t*  data,
+                   uint32_t  bits)
+{
+    uint32_t i;
+    uint8_t  bytePerWordCount = 0; // Nibble count in each word
+    uint32_t bytePerLineCount = 0; // Column count
+    uint8_t  rem = bits % 8;      // Rem raw bits beyond 1-byte boundary
+    uint8_t  nibblesToPrint;      // The last 1 or 2 nibbles to dump
+
+    for (i = 0; i < bits / 8; i++)
+    {
+        fprintf( stdout, "%02x", *(data + i));
+
+        if (++bytePerWordCount == 4)
+        {
+            fprintf( stdout, " ");
+            bytePerWordCount = 0;
+        }
+
+        if (++bytePerLineCount == 32)
+        {
+            fprintf( stdout, "\n");
+            bytePerLineCount = 0;
+        }
+    }
+
+    // Dump remaining bits (in whole nibbles and with any
+    //   unused bits being zeroed)
+    if (rem)
+    {
+        // Ensure the rightmost (8-rem) unused bits are zeroed out
+        nibblesToPrint = (*(data + i) >> (8 - rem)) << (8 - rem);
+
+        if (rem <= 4)
+        {
+            // Content only in first nibble. Dump only first nibble
+            fprintf( stdout, "%01x", nibblesToPrint >> 4);
+        }
+        else
+        {
+            // Content in both nibbles. Dump both nibbles
+            fprintf( stdout, "%02x", nibblesToPrint);
+        }
+    }
+
+    fprintf( stdout, "\n");
+}
+
+
 //@FIXME: This should be improved. Probably defined somewhere else.
 #define CHIPLET_ID_MAX            (uint8_t)0x37
 
@@ -1732,7 +1789,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 ///
 /// \param[in] i_imageMagicNo   The image's MAGIC number.
 ///
-/// \param[in] i_listingModeId  The listing mode: {table, short, normal(default), long}.
+/// \param[in] i_listingModeId  The listing mode: {table, short, normal(default), long, raw}.
 ///
 /// Assumptions:
 /// - Dissection only works with .rings section. It does not work with .overrides
@@ -1918,8 +1975,10 @@ int dissectRingSectionTor( void*       i_ringSection,
                                          ringVariantName[ringVariant], instanceId );
                             }
 
-                            // Summarize all characteristics of the ring block if "normal" or "long" (default).
-                            if ( i_listingModeId == LMID_NORMAL || i_listingModeId == LMID_LONG )
+                            // Summarize all characteristics of the ring block if "normal", "long" or "raw"
+                            if (i_listingModeId == LMID_NORMAL ||
+                                i_listingModeId == LMID_LONG ||
+                                i_listingModeId == LMID_RAW)
                             {
                                 fprintf( stdout,
                                          "-----------------------------\n"
@@ -1930,14 +1989,17 @@ int dissectRingSectionTor( void*       i_ringSection,
                                          "ringName = %s\n"
                                          "ringVariant = %s\n"
                                          "instanceId = 0x%02x\n"
-                                         "ringBlockSize = 0x%08x\n",
+                                         "ringBlockSize = 0x%08x\n"
+                                         "raw bit length = %d\n"
+                                         "compression [%%] = %6.2f\n",
                                          ringSeqNo, ddLevel, ppeTypeName[ppeType], ringId, ringName,
                                          ringVariantName[ringVariant], instanceId,
-                                         ringBlockSize);
+                                         ringBlockSize, bits, comprRate);
                             }
 
-                            // Dump ring block if "long".
-                            if (i_listingModeId == LMID_LONG)
+                            // Dump ring block if "long" or "raw"
+                            if (i_listingModeId == LMID_LONG ||
+                                i_listingModeId == LMID_RAW)
                             {
                                 fprintf(stdout, "Binary ring block dump (LE format):\n");
 
@@ -1951,6 +2013,20 @@ int dissectRingSectionTor( void*       i_ringSection,
                                              (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i)) >> 16),
                                              (uint16_t)( htobe64(*((uint64_t*)ringBlockPtr + i))) );
                                 }
+                            }
+
+                            // Below we dump the raw decompressed ring content in the exact same
+                            //   format that it appears as in EKB's ifCompiler generated raw ring
+                            //   files, i.e. *.bin.srd (DATA) and *.bin.srd.bitsModified (CARE).
+                            if (i_listingModeId == LMID_RAW)
+                            {
+                                fprintf( stdout, "\nRaw decompressed DATA nibbles:\n");
+                                printRawRing( data, bits);
+
+                                fprintf( stdout, "\nRaw decompressed CARE nibbles:\n");
+                                printRawRing( care, bits);
+
+                                fprintf( stdout, "\n");
                             }
 
                             free(data);
@@ -2114,13 +2190,19 @@ int dissectRingSection(void*          i_image,
     {
         listingModeId = LMID_LONG;
     }
+    else if (strcmp(listingModeName, "raw") == 0)
+    {
+        listingModeId = LMID_RAW;
+    }
     else
     {
         fprintf(stderr, "ERROR : %s is an invalid listing mode name.\n", listingModeName);
         fprintf(stderr, "Valid listing mode names the 'dissect' function are:\n");
+        fprintf(stderr, "\ttable\n");
         fprintf(stderr, "\tshort\n");
         fprintf(stderr, "\tnormal (default if omitted)\n");
         fprintf(stderr, "\tlong\n");
+        fprintf(stderr, "\traw\n");
         exit(1);
     }
 
