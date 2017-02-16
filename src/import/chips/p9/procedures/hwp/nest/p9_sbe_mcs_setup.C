@@ -112,13 +112,14 @@ fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<fapi2::TARGET_TYPE_MCS>
     FAPI_TRY(fapi2::putScom(i_target, MCS_MCMODE1, l_mcmode1),
              "Error from putScom (MCS_MCMODE1)");
 
-    // Setup MC FIR
+    // Unmask MC FIR
+
+    // Set MC Fault Isolation Action1 Register
     l_mcaction.setBit<MCS_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR>();
     FAPI_TRY(fapi2::putScom(i_target, MCS_MCFIRACT1, l_mcaction),
              "Error from putScom (MCS_MCFIRACT1)");
 
-    // MCFIRMASK -- unmask command list/channel timeout errors (so a checkstop will
-    //              occur if we break cache containment, but hit against the BAR)
+    // Clear FIR bits in MC Fault Isolation Mask Register
     l_mcfirmask_and.flush<1>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_COMMAND_LIST_TIMEOUT>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR>();
@@ -126,7 +127,6 @@ fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<fapi2::TARGET_TYPE_MCS>
     l_mcfirmask_and.clearBit<MCS_MCFIR_POWERBUS_PROTOCOL_ERROR>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_MULTIPLE_BAR>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_INVALID_ADDRESS>();
-
     FAPI_TRY(fapi2::putScom(i_target, MCS_MCFIRMASK_AND, l_mcfirmask_and),
              "Error from putScom (MCS_MCFIRMASK_AND)");
 
