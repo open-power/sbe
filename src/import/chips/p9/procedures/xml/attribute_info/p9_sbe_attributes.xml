@@ -216,10 +216,6 @@
           <value>0x00</value>
   </entry>
   <entry>
-          <name>ATTR_PROC_FABRIC_ADDR_BAR_MODE</name>
-          <value>0x01</value>
-  </entry>
-  <entry>
           <name>ATTR_MEM_MIRROR_PLACEMENT_POLICY</name>
           <value>0x00</value>
   </entry>
