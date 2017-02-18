@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,6 +23,10 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbeutil.H"
+#include "fapi2.H"
+#include "sbetrace.H"
+// Nest frequency array
+#include "p9_frequency_buckets.H"
 namespace SBE
 {
     bool isSimics() __attribute__((alias("__isSimicsRunning")));
@@ -38,4 +43,18 @@ namespace SBE
         static bool simics = isSimics();
         return simics;
     }
+
+    void updatePkFreq()
+    {
+        using namespace fapi2;
+        Target<TARGET_TYPE_SYSTEM> sys;
+        uint8_t nestPllBkt = 0;
+        FAPI_ATTR_GET( ATTR_NEST_PLL_BUCKET, sys, nestPllBkt );
+        assert( nestPllBkt && (nestPllBkt <= NEST_PLL_FREQ_BUCKETS ));
+        g_sbefreq = ( NEST_PLL_FREQ_LIST[ nestPllBkt - 1 ] * 1000 * 1000 )/
+                                              SBE::SBE_TO_NEST_FREQ_FACTOR;
+        SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", g_sbefreq);
+        pk_timebase_freq_set(g_sbefreq);
+    }
 }
+

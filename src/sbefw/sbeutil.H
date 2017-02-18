@@ -24,8 +24,16 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef SBE_UTIL_H
 #define SBE_UTIL_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "pk.h"
 #include "pk_api.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #define MASK_ZERO_L32B_UINT64(x)    ((x) & 0xFFFFFFFF00000000ull)
 #define MASK_ZERO_H32B_UINT64(x)    ((x) & 0x00000000FFFFFFFFull)
@@ -37,6 +45,11 @@ if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
 { \
     break; \
 }
+
+#define mfdec()                               \
+    ({volatile uint32_t l_dec;                          \
+        asm volatile ("mfdec %0" : "=r" (l_dec)); \
+        l_dec;})
 
 // To handle unused variables compilation error
 static inline void UNUSED(int dummy, ...) {}
@@ -166,6 +179,12 @@ namespace SBE
      * @return - True if sbe is running on simics , false otherwise
      */
     bool isSimicsRunning();
+
+    /*@brief - Update the pk frequcy as per NEST PLL bucket
+     *
+     * @return - void
+     */
+    void updatePkFreq();
 
 } // namespace SBE
 #endif //SBE_UTIL_H

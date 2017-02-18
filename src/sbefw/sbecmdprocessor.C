@@ -45,7 +45,11 @@
 #include "sberegaccess.H"
 #include "sbestates.H"
 #include "fapi2.H"
+#include "sbeutil.H"
+using namespace fapi2;
 
+// Forward declaration for performAttrSetup
+ReturnCode performAttrSetup( );
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
@@ -209,6 +213,26 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
     #undef SBE_FUNC
 }
 
+ReturnCode sbeDestRuntimeSetup()
+{
+    #define SBE_FUNC " sbeDestRuntimeSetup "
+    SBE_ENTER( SBE_FUNC );
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        rc = performAttrSetup();
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC"performAttrSetup failed");
+            break;
+        }
+        SBE::updatePkFreq();
+     }while(0);
+    SBE_EXIT("SBE_FUNC");
+    return rc;
+    #undef SBE_FUNC
+}
+
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -222,20 +246,25 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
     
     // Check the destination bit at the start
-    if(SbeRegAccess::theSbeRegAccess().isIstepMode())
+    if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+    {
+        SBE_INFO(SBE_FUNC"Destination bit tells us to go to runtime");
+        (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(SBE_STATE_RUNTIME);
+        // Do the runtime setup
+        ReturnCode rc = sbeDestRuntimeSetup();
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC"sbeDestRuntimeSetup failed");
+            pk_halt();
+        }
+    }
+    else if(SbeRegAccess::theSbeRegAccess().isIstepMode())
     {
         SBE_INFO(SBE_FUNC"Continuous IPL mode not set, will wait for "
                 "commands...");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_ISTEP);
-    }
-    // If Istep mode is not set, it makes sense to check if we are directly
-    // in runtime.
-    else if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
-    {
-        SBE_INFO(SBE_FUNC"Destination bit tells us to go to runtime");
-        (void)SbeRegAccess::theSbeRegAccess().
-              updateSbeState(SBE_STATE_RUNTIME);
     }
     else
     {

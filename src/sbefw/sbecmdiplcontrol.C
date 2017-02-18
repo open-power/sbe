@@ -87,8 +87,6 @@
 // istep 5 hwp header files
 #include "p9_sbe_instruct_start.H"
 #include "p9_sbe_load_bootloader.H"
-// Nest frequency array
-#include "p9_frequency_buckets.H"
 
 // istep mpipl header files
 #include "p9_block_wakeup_intr.H"
@@ -597,15 +595,15 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
 //----------------------------------------------------------------------------
 
-ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
+ReturnCode performAttrSetup( )
 {
-    SBE_ENTER("istepAttrSetup");
+    #define SBE_FUNC "performAttrSetup "
+    SBE_ENTER("performAttrSetup ");
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     ReturnCode rc = FAPI2_RC_SUCCESS;
     do
     {
-        assert( NULL != i_hwp.procHwp );
-        SBE_EXEC_HWP(rc, i_hwp.procHwp, proc)
+        SBE_EXEC_HWP(rc, p9_sbe_attr_setup, proc)
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;
@@ -613,8 +611,16 @@ ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
         // Apply the gard records
         rc = plat_ApplyGards();
      }while(0);
-    SBE_EXIT("istepAttrSetup");
+    SBE_EXIT(SBE_FUNC);
     return rc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp)
+{
+    return performAttrSetup();
 }
 
 //----------------------------------------------------------------------------
@@ -634,14 +640,7 @@ ReturnCode istepNestFreq( sbeIstepHwp_t i_hwp)
 {
     #define SBE_FUNC "istepNestFreq "
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    fapi2::Target<TARGET_TYPE_SYSTEM> sys;
     ReturnCode rc = FAPI2_RC_SUCCESS;
-    uint8_t nestPllBkt = 0;
-    FAPI_ATTR_GET( ATTR_NEST_PLL_BUCKET, sys, nestPllBkt );
-    assert( nestPllBkt && (nestPllBkt <= NEST_PLL_FREQ_BUCKETS ));
-    g_sbefreq = ( NEST_PLL_FREQ_LIST[ nestPllBkt - 1 ] * 1000 * 1000 )/
-                                              SBE::SBE_TO_NEST_FREQ_FACTOR;
-
     assert( NULL != i_hwp.procHwp );
     do
     {
@@ -650,10 +649,8 @@ ReturnCode istepNestFreq( sbeIstepHwp_t i_hwp)
         {
             break;
         }
-        // This function signature though has return value
-        // But it always return SUCCESS.
-        SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", g_sbefreq);
-        pk_timebase_freq_set(g_sbefreq);
+        // Update PK frequency
+        SBE::updatePkFreq();
     }while(0);
     return rc;
     #undef SBE_FUNC
