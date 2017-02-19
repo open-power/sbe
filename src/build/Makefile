@@ -230,10 +230,7 @@ buildInfo:
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d)
 
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pervasive_attributes.xml
-# TODO via RTC 142708
-# Workaound for ATTR_CHIP_UNIT_POS. Remove Mirror_WA_attributes.xml once fapi
-# support is in.
-ATTRFILES += $(BUILD_DIR)/Mirror_WA_attributes.xml
+ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/unit_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_sbe_load_bootloader_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
