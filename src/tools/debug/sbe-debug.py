@@ -147,9 +147,21 @@ def collectAttr( sbeObjDir, target, node, proc, ddsuffix, file_path ):
        print "ERROR running %s: %d " % ( cmd3, rc )
        return 1
 
-def ppeState( sbeObjDir, target, node, proc ):
+def ppeState( sbeObjDir, target, node, proc, file_path ):
     if(target == 'FILE'):
-        print "Error - not supported for FILE Target"
+        print "File path: ", file_path 
+        fileHandle = open(file_path)
+        l_cnt = 0
+        print '********************************************************************'
+        print 'Reg Number  Reg Value    '
+        while(l_cnt < os.path.getsize(file_path)):
+            str1 = binascii.hexlify(fileHandle.read(2))
+            str3 = binascii.hexlify(fileHandle.read(4))
+            print str(str1).ljust(11),str(str3).ljust(20)
+            l_cnt = l_cnt + 6;
+
+        print '********************************************************************'
+        fileHandle.close()
     else:
         cmd1 = ("p9_ppe_state_wrap.exe -quiet -sbe -snapshot" +\
                 " -n" + str(node) + " -p" + str(proc))
@@ -159,9 +171,47 @@ def ppeState( sbeObjDir, target, node, proc ):
             print "ERROR running %s: %d " % ( cmd1, rc )
             return 1
 
-def sbeState( sbeObjDir, target, node, proc ):
+def sbeLocalRegister( sbeObjDir, target, node, proc, file_path ):
     if(target == 'FILE'):
-        print "Error - not supported for FILE Target"
+        print "File path: ", file_path 
+        fileHandle = open(file_path)
+        l_cnt = 0
+        print '********************************************************************'
+        print 'Reg Number  Reg Value            Reg String'
+        while(l_cnt < os.path.getsize(file_path)):
+            str1 = binascii.hexlify(fileHandle.read(2))
+            str2 = fileHandle.read(32)
+            str3 = binascii.hexlify(fileHandle.read(8))
+            print str(str1).ljust(11),str(str3).ljust(20),str2.ljust(40)
+            l_cnt = l_cnt + 42;
+
+        print '********************************************************************'
+        fileHandle.close()
+    else:
+        cmd1 = ("p9_sbe_localreg_dump_wrap -quiet -sbe -snapshot" +\
+                " -n" + str(node) + " -p" + str(proc))
+        print "cmd1:", cmd1
+        rc = os.system( cmd1 )
+        if ( rc ):
+            print "ERROR running %s: %d " % ( cmd1, rc )
+            return 1
+
+def sbeState( sbeObjDir, target, node, proc, file_path ):
+    if(target == 'FILE'):
+        print "File path: ", file_path 
+        fileHandle = open(file_path)
+        l_cnt = 0
+        print '********************************************************************'
+        print 'Reg Number  Reg Value            Reg String'
+        while(l_cnt < os.path.getsize(file_path)):
+            str1 = binascii.hexlify(fileHandle.read(4))
+            str2 = fileHandle.read(32)
+            str3 = binascii.hexlify(fileHandle.read(8))
+            print str(str1).ljust(11),str(str3).ljust(20),str2.ljust(40)
+            l_cnt = l_cnt + 44;
+
+        print '********************************************************************'
+        fileHandle.close()
     else:
         cmd1 = ("p9_pibms_reg_dump_wrap.exe -quiet" +\
                 " -n" + str(node) + " -p" + str(proc))
@@ -222,14 +272,14 @@ def parsevalue(iValue):
     print "Reserved Bit [24:31] : %s" %(tempVal)
 
 def usage():
-    print "usage: testarg.py [-h] [-l {trace,attr,ppestate,sbestate,sbestatus}]\n\
+    print "usage: testarg.py [-h] [-l {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}]\n\
 \t\t\t\t[-t {AWAN,HW,FILE}] [-n NODE] [-p PROC] [-f FILE_PATH]\n\
 \n\
 SBE Dump Parser\n\
 \n\
 optional arguments:\n\
   -h, --help            show this help message and exitn\n\
-  -l {trace,attr,ppestate,sbestate,sbestatus}, --level {trace,attr,ppestate,sbestate,sbestatus}\n\
+  -l {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}, --level {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}\n\
                         Parser level\n\
   -t {AWAN,HW,FILE}, --target {AWAN,HW,FILE}\n\
                         Target type\n\
@@ -260,10 +310,10 @@ def main( argv ):
             usage()
             exit(1)
         elif opt in ('-l', '--level'):
-            if arg in ('trace','attr','ppestate','sbestate','sbestatus'):
+            if arg in ('trace','attr','ppestate','sbestate','sbestatus','sbelocalregister'):
                 level = arg
             else:
-                print "level should be one of {trace,attr,ppestate,sbestate,sbestatus}"
+                print "level should be one of {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}"
                 exit(1)
         elif opt in ('-t', '--target'):
             if arg in ('AWAN', 'HW', 'FILE'):
@@ -325,16 +375,21 @@ def main( argv ):
         collectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path )
         collectAttr(  sbeObjDir, target, node, proc, ddsuffix, file_path )
         sbeStatus( target, node, proc )
+        ppeState( sbeObjDir, target, node, proc, file_path )
+        sbeState( sbeObjDir, target, node, proc, file_path )
+        sbeLocalRegister( sbeObjDir, target, node, proc, file_path )
     elif ( level == 'trace' ):
         collectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path )
     elif ( level == 'attr' ):
         collectAttr( sbeObjDir, target, node, proc, ddsuffix, file_path )
     elif ( level == 'ppestate' ):
-        ppeState( sbeObjDir, target, node, proc )
+        ppeState( sbeObjDir, target, node, proc, file_path )
     elif ( level == 'sbestate' ):
-        sbeState( sbeObjDir, target, node, proc )
+        sbeState( sbeObjDir, target, node, proc, file_path )
     elif ( level == 'sbestatus' ):
         sbeStatus( target, node, proc )
+    elif ( level == 'sbelocalregister' ):
+        sbeLocalRegister( sbeObjDir, target, node, proc, file_path )
 
     if(target != 'FILE'):
         # On cronus, set the FIFO mode to previous state
