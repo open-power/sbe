@@ -174,6 +174,10 @@ p9_hcd_core_startclocks(
                 "Core Clock Sync Timeout");
     FAPI_DBG("Core clock sync done");
 
+    FAPI_DBG("Assert ABIST_SRAM_MODE_DC to support ABIST Recovery via BIST[1]");
+    FAPI_TRY(getScom(i_target, C_BIST, l_data64));
+    FAPI_TRY(putScom(i_target, C_BIST, DATA_SET(1)));
+
     FAPI_DBG("Reset abstclk & syncclk muxsel(io_clk_sel) via CPLT_CTRL0[0:1]");
     FAPI_TRY(putScom(i_target, C_CPLT_CTRL0_CLEAR, MASK_CLR(0, 2, 3)));
 
