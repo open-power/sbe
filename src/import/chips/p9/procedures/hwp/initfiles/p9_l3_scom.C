@@ -29,8 +29,8 @@
 
 using namespace fapi2;
 
-constexpr uint64_t literal_0 = 0;
-constexpr uint64_t literal_0x001 = 0x001;
+constexpr uint64_t literal_1 = 1;
+constexpr uint64_t literal_8 = 8;
 constexpr uint64_t literal_0b0 = 0b0;
 constexpr uint64_t literal_0b0000 = 0b0000;
 constexpr uint64_t literal_0b0001 = 0b0001;
@@ -56,56 +56,16 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x10011829ull, l_scom_buffer ));
 
-            if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0 != literal_0))
-            {
-                l_scom_buffer.insert<0, 12, 52, uint64_t>(l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0 );
-            }
-            else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0 == literal_0))
-            {
-                l_scom_buffer.insert<0, 12, 52, uint64_t>(literal_0x001 );
-            }
-
-            if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1 != literal_0))
-            {
-                l_scom_buffer.insert<12, 12, 52, uint64_t>(l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1 );
-            }
-            else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1 == literal_0))
-            {
-                l_scom_buffer.insert<12, 12, 52, uint64_t>(literal_0x001 );
-            }
-
-            if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2 != literal_0))
-            {
-                l_scom_buffer.insert<24, 12, 52, uint64_t>(l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2 );
-            }
-            else if ((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2 == literal_0))
-            {
-                l_scom_buffer.insert<24, 12, 52, uint64_t>(literal_0x001 );
-            }
-
+            l_scom_buffer.insert<0, 12, 52, uint64_t>(((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0 / literal_8) + literal_1) );
+            l_scom_buffer.insert<12, 12, 52, uint64_t>(((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T1 / literal_8) + literal_1) );
+            l_scom_buffer.insert<24, 12, 52, uint64_t>(((l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T2 / literal_8) + literal_1) );
             FAPI_TRY(fapi2::putScom(TGT0, 0x10011829ull, l_scom_buffer));
         }
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x1001182aull, l_scom_buffer ));
 
-            if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1 != literal_0))
-            {
-                l_scom_buffer.insert<0, 12, 52, uint64_t>(l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1 );
-            }
-            else if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1 == literal_0))
-            {
-                l_scom_buffer.insert<0, 12, 52, uint64_t>(literal_0x001 );
-            }
-
-            if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2 != literal_0))
-            {
-                l_scom_buffer.insert<12, 12, 52, uint64_t>(l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2 );
-            }
-            else if ((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2 == literal_0))
-            {
-                l_scom_buffer.insert<12, 12, 52, uint64_t>(literal_0x001 );
-            }
-
+            l_scom_buffer.insert<0, 12, 52, uint64_t>(((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T1 / literal_8) + literal_1) );
+            l_scom_buffer.insert<12, 12, 52, uint64_t>(((l_TGT1_ATTR_PROC_EPS_WRITE_CYCLES_T2 / literal_8) + literal_1) );
             l_scom_buffer.insert<34, 1, 63, uint64_t>(literal_0b0 );
             l_scom_buffer.insert<26, 4, 60, uint64_t>(literal_0b0000 );
             l_scom_buffer.insert<30, 4, 60, uint64_t>(literal_0b0001 );
