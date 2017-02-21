@@ -97,9 +97,9 @@ extern "C"
     const uint32_t PBA_SLVRST_IN_PROG_END_BIT = 7;
     const uint32_t PBA_SLVRST_BUSY_START_BIT = 8;
     const uint32_t PBA_SLVRST_BUSY_END_BIT = 11;
-    //mask to check if there is a PBA slave rest in progress and if the PBA Slave Control is busy
-    //if it is not all these bits 4:11 should be set to 0
-    const uint64_t PBA_SLVRST_BUSY_IN_PROG_MASK = 0xFF0000000000000ull;
+    //mask to check if there is a PBA slave rest in progress and if the PBA Slave Control is busy for PBASLVCTL3
+    //if it is not bits 7 and 11 should be set to 0
+    const uint64_t PBA_SLVRST_BUSY_IN_PROG_MASK = 0x0110000000000000ull;
 
 //PBA Read Buffer Valid Status field/bit definitions
     const uint32_t PBA_RD_BUF_VALID_START_BIT = 33;
