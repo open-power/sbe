@@ -43,7 +43,8 @@
 /// @typedef p9_hcd_cache_initf_FP_t
 /// function pointer typedef definition for HWP call support
 typedef fapi2::ReturnCode (*p9_hcd_cache_initf_FP_t) (
-    const fapi2::Target<fapi2::TARGET_TYPE_EQ>&);
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target,
+    const uint64_t* i_ring_save_data);
 
 extern "C"
 {
@@ -51,6 +52,7 @@ extern "C"
 /// @brief EX (non-core) scan init
 ///
 /// @param [in] i_target TARGET_TYPE_EQ target
+/// @param [in] i_ring_save_data ring data EQ pointers for the PB
 ///
 /// @attr
 /// @attritem ATTR_CACHE_L2_FUNC_RING - EX target, uint32
@@ -59,7 +61,8 @@ extern "C"
 /// @retval FAPI_RC_SUCCESS
     fapi2::ReturnCode
     p9_hcd_cache_initf(
-        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target);
+        const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target,
+        const uint64_t* i_ring_save_data);
 
 }
 

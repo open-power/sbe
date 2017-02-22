@@ -38,7 +38,6 @@
 #include "sberegaccess.H"
 #include "sbestates.H"
 #include "sbecmdcntrldmt.H"
-#include "sbeglobals.H"
 
 #include "fapi2.H"
 #include "p9_misc_scom_addresses_fld.H"
@@ -141,6 +140,14 @@ typedef ReturnCode (*sbeIstepHwpSequenceDrtm_t)
                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target,
                      uint8_t & o_status);
 
+typedef ReturnCode (*sbeIstepHwpQuadPoweroff_t)
+                    (const Target<TARGET_TYPE_EQ> & i_target,
+                     uint64_t * o_ring_save_data);
+
+typedef ReturnCode (*sbeIstepHwpCacheInitf_t)
+                    (const Target<TARGET_TYPE_EQ> & i_target,
+                    const uint64_t * i_ring_save_data);
+
 typedef union
 {
     sbeIstepHwpProc_t procHwp;
@@ -151,6 +158,8 @@ typedef union
     sbeIstepHwpCoreBlockIntr_t coreBlockIntrHwp;
     sbeIstepHwpCoreScomState_t coreScomStateHwp;
     sbeIstepHwpSequenceDrtm_t  procSequenceDrtm;
+    sbeIstepHwpQuadPoweroff_t  quadPoweroffHwp;
+    sbeIstepHwpCacheInitf_t    cacheInitfHwp;
 }sbeIstepHwp_t;
 
 // Wrapper function for HWP IPl functions
@@ -170,6 +179,7 @@ ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp);
 ReturnCode istepWithEqConditional( sbeIstepHwp_t i_hwp);
 ReturnCode istepNestFreq( sbeIstepHwp_t i_hwp);
 ReturnCode istepLpcInit( sbeIstepHwp_t i_hwp);
+ReturnCode istepCacheInitf( sbeIstepHwp_t i_hwp );
 
 //MPIPL Specific
 ReturnCode istepWithCoreSetBlock( sbeIstepHwp_t i_hwp );
@@ -183,11 +193,6 @@ ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp );
 ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp );
-// BMC Isteps, No-op in Fsp
-ReturnCode istepMpiplDumpRegs( sbeIstepHwp_t i_hwp );
-ReturnCode istepMpiplQueryQuadAccessState( sbeIstepHwp_t i_hwp );
-ReturnCode istepMpiplHcdCoreStopClocks( sbeIstepHwp_t i_hwp );
-ReturnCode istepMpiplHcdCacheStopClocks( sbeIstepHwp_t i_hwp );
 
 // Utility function to do TPM reset
 ReturnCode performTpmReset();
@@ -220,7 +225,11 @@ static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 33;
 // Globals
 // TODO: via RTC 123602 This global needs to move to a class that will store the
 // SBE FFDC.
-static fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
+fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
+
+uint64_t G_ring_save[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+sbeRole g_sbeRole = SBE_ROLE_MASTER;
 
 static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
         {
@@ -252,16 +261,8 @@ static istepMap_t g_istepMpiplContinuePtrTbl[MPIPL_CONTINUE_MAX_SUBSTEPS] =
 #ifdef SEEPROM_IMAGE
             // Setup EC/EQ guard records
             { &istepMpiplSetFunctionalState, NULL},
-            // Collect master quad regs, BMC Only istep, No-op in FSP
-            { &istepMpiplDumpRegs, NULL},
-            // Query Master quad, BMC Only istep, No-op in Fsp
-            { &istepMpiplQueryQuadAccessState, NULL},
-            // Master Quad Core stop clocks, BMC Only istep, No-op in Fsp
-            { &istepMpiplHcdCoreStopClocks, NULL},
-            // Master Quad Cache stop clocks, BMC Only istep, No-op in Fsp
-            { &istepMpiplHcdCacheStopClocks, NULL},
             // p9_quad_power_off
-            { istepMpiplQuadPoweroff, { .eqHwp = &p9_quad_power_off} },
+            { istepMpiplQuadPoweroff, { .quadPoweroffHwp = &p9_quad_power_off} },
             // No-op
             { &istepNoOp, NULL},
 #endif
@@ -341,7 +342,7 @@ static istepMap_t g_istep4PtrTbl[ ISTEP4_MAX_SUBSTEPS ] =
              { &istepWithEq, { .eqHwp  = &p9_hcd_cache_arrayinit }},
              { &istepNoOp, NULL },  // DFT Only
              { &istepNoOp, NULL },  // DFT Only
-             { &istepWithEq, { .eqHwp = &p9_hcd_cache_initf }},
+             { &istepCacheInitf, { .cacheInitfHwp = &p9_hcd_cache_initf }},
              { &istepWithEqConditional, { .eqHwp = &p9_hcd_cache_startclocks }},
              { &istepWithEqConditional, { .eqHwp = &p9_hcd_cache_scominit }},
              { &istepWithEqConditional, { .eqHwp = &p9_hcd_cache_scomcust }},
@@ -552,7 +553,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
             case SBE_ISTEP3:
                 if( (i_minor > ISTEP3_MAX_SUBSTEPS ) ||
-                    ((SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole) &&
+                    ((SBE_ROLE_SLAVE == g_sbeRole) &&
                     (i_minor > SLAVE_LAST_MINOR_ISTEP)) )
                 {
                     valid = false;
@@ -561,7 +562,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
             case SBE_ISTEP4:
                 if( (i_minor > ISTEP4_MAX_SUBSTEPS ) ||
-                    (SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole) )
+                    (SBE_ROLE_SLAVE == g_sbeRole) )
                 {
                     valid = false;
                 }
@@ -569,7 +570,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
             case SBE_ISTEP5:
                 if( (i_minor > ISTEP5_MAX_SUBSTEPS ) ||
-                    (SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole) )
+                    (SBE_ROLE_SLAVE == g_sbeRole) )
                 {
                     valid = false;
                 }
@@ -683,8 +684,6 @@ ReturnCode istepSelectEx( sbeIstepHwp_t i_hwp)
 }
 
 //----------------------------------------------------------------------------
-
-
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
@@ -705,6 +704,30 @@ ReturnCode istepWithEq( sbeIstepHwp_t i_hwp)
     assert( NULL != i_hwp.eqHwp );
     SBE_EXEC_HWP(rc, i_hwp.eqHwp, eqTgt )
     return rc;
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepCacheInitf (sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepCacheInitf"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+
+    // TODO via RTC 135345
+    fapi2::Target<fapi2::TARGET_TYPE_EQ > eqTgt;
+    // Put this in scope so that vector can be freed up before calling hwp.
+    {
+        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+        auto eqList = proc.getChildren<fapi2::TARGET_TYPE_EQ>();
+        // As it is workaround lets assume there will always be atleast one
+        // functional eq. No need to validate.
+        eqTgt = eqList[0];
+    }
+
+    SBE_EXEC_HWP(l_rc, i_hwp.cacheInitfHwp, eqTgt, G_ring_save)
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------
@@ -819,10 +842,10 @@ ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp)
             SBE_ERROR(SBE_FUNC" performTpmReset failed");
             break;
         }
-        SBE_GLOBAL->SBERole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
+        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
                     SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
-        SBE_INFO(SBE_FUNC"SBE_GLOBAL->SBERole [%x]", SBE_GLOBAL->SBERole);
-        if(SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole)
+        SBE_INFO(SBE_FUNC"g_sbeRole [%x]", g_sbeRole);
+        if(SBE_ROLE_SLAVE == g_sbeRole)
         {
             (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_RUNTIME_EVENT);
@@ -890,7 +913,7 @@ void sbeDoContinuousIpl()
                 // Check if we are at step 3.20 on the slave SBE
                 if(((SBE_ISTEP_LAST_SLAVE == l_major) &&
                         (SLAVE_LAST_MINOR_ISTEP == l_minor)) &&
-                        (SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole))
+                        (SBE_ROLE_SLAVE == g_sbeRole))
                 {
                     l_done = true;
                     break;
@@ -1121,7 +1144,7 @@ ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp)
     #define SBE_FUNC "istepMpiplQuadPoweroff"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
-    if(SBE_GLOBAL->SBERole == SBE_ROLE_MASTER)
+    if(g_sbeRole == SBE_ROLE_MASTER)
     {
         Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
         // Fetch the MASTER_CORE attribute
@@ -1133,7 +1156,7 @@ ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp)
             l_coreId + CORE_CHIPLET_OFFSET));
         fapi2::Target<fapi2::TARGET_TYPE_EQ> l_quad =
                                 l_core.getParent<fapi2::TARGET_TYPE_EQ>();
-        SBE_EXEC_HWP(l_rc, i_hwp.eqHwp, l_quad)
+        SBE_EXEC_HWP(l_rc, i_hwp.quadPoweroffHwp, l_quad, G_ring_save)
     }
     SBE_EXIT(SBE_FUNC);
     return l_rc;
@@ -1328,35 +1351,3 @@ ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp )
     #undef SBE_FUNC
 }
 
-// BMC - Istep
-ReturnCode istepMpiplDumpRegs( sbeIstepHwp_t i_hwp )
-{
-    #define SBE_FUNC "istepMpiplDumpRegs"
-    return FAPI2_RC_SUCCESS;
-    #undef SBE_FUNC
-}
-//----------------------------------------------------------------------------
-// BMC - Istep
-ReturnCode istepMpiplQueryQuadAccessState( sbeIstepHwp_t i_hwp )
-{
-    #define SBE_FUNC "istepMpiplQueryQuadAccessState"
-    return FAPI2_RC_SUCCESS;
-    #undef SBE_FUNC
-}
-//----------------------------------------------------------------------------
-// BMC - Istep
-ReturnCode istepMpiplHcdCoreStopClocks( sbeIstepHwp_t i_hwp )
-{
-    #define SBE_FUNC "istepMpiplHcdCoreStopClocks"
-    return FAPI2_RC_SUCCESS;
-    #undef SBE_FUNC
-}
-//----------------------------------------------------------------------------
-// BMC - Istep
-ReturnCode istepMpiplHcdCacheStopClocks( sbeIstepHwp_t i_hwp )
-{
-    #define SBE_FUNC "istepMpiplHcdCacheStopClocks"
-    return FAPI2_RC_SUCCESS;
-    #undef SBE_FUNC
-}
-//----------------------------------------------------------------------------
