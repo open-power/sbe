@@ -311,6 +311,11 @@
     #define PK_TRACE_ENABLE 1
 #endif
 
+/// Enable PK ctrl  (enabled by default)
+#ifndef PK_TRACE_CTRL_ENABLE
+    #define PK_TRACE_CTRL_ENABLE 1
+#endif
+
 /// Enable PK crit  (disabled by default)
 #ifndef PK_TRACE_CRIT_ENABLE
     #define PK_TRACE_CRIT_ENABLE 0
@@ -336,19 +341,22 @@
 //   override any other trace settings
 #if !PK_TRACE_ENABLE
     #undef PK_TRACE_DBG_SUPPRESS
+    #undef PK_TRACE_CTRL_ENABLE
     #undef PK_TRACE_CRIT_ENABLE
     #undef PK_TRACE_CKPT_ENABLE
 
     #define PK_TRACE_DBG_SUPPRESS 1
+    #define PK_TRACE_CTRL_ENABLE 0
     #define PK_TRACE_CRIT_ENABLE 0
     #define PK_TRACE_CKPT_ENABLE 0
 #endif
 
-// PK TRACE enabled & PK CRIT enabled implies all tracing on.
-// PK TRACE enabled & PK DBUG disabled implies   PK CRIT INFO tracing only.
-// PK TRACE enable & pK CRIT INFO disabled  && PK DBUG disabled implies
+// PK TRACE enabled implies all default tracing on.
+// PK TRACE enabled & PK CKPT DEBUG disabled implies PK CRIT INFO and CTRL ERROR tracing only.
+// PK TRACE enabled & PK CKPT DEBUG and CRIT INFO disabled implies PK CTRL ERROR tracing only.
+// PK TRACE enabled & PK CRIT INFO disabled && PK DEBUG disabled && PK ERROR disabled implies
 //          PK TRACE disabled
-#if PK_TRACE_ENABLE &&  PK_TRACE_DBG_SUPPRESS && !PK_TRACE_CRIT_ENABLE && !PK_TRACE_CKPT_ENABLE
+#if PK_TRACE_ENABLE &&  PK_TRACE_DBG_SUPPRESS && !PK_TRACE_CRIT_ENABLE && !PK_TRACE_CKPT_ENABLE && !PK_TRACE_CTRL_ENABLE
     #undef PK_TRACE_ENABLE
     #define PK_TRACE_ENABLE 0
 #endif
@@ -361,6 +369,12 @@
 #else
     #define PK_TRACE(...) PKTRACE(__VA_ARGS__)
     #define PK_TRACE_BIN(str, bufp, buf_size) PKTRACE_BIN(str, bufp, buf_size)
+#endif
+
+#if !PK_TRACE_CTRL_ENABLE
+    #define PK_TRACE_ERR(...)
+#else
+    #define PK_TRACE_ERR(...) PKTRACE(__VA_ARGS__)
 #endif
 
 #if !PK_TRACE_CRIT_ENABLE
