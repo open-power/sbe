@@ -1114,6 +1114,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
     uint32_t l_scanAddr = rs4_revle32(l_rs4Header->iv_scanAddr);
     uint64_t l_scanRegion = decodeScanRegionData(l_scanAddr);
     uint8_t l_chipletId = (l_scanAddr & 0xFF000000UL) >> 24;
+    uint16_t l_ringId = l_rs4Header->iv_ringId;
     fapi2::ReturnCode l_rc;
     struct restoreOpcgRegisters l_opcgData;
     uint8_t l_mask = 0x08;
@@ -1121,6 +1122,12 @@ fapi2::ReturnCode rs4DecompressionSvc(
 
     do
     {
+        //This is a special case for eq_ana_bndy bucket rings
+        if ((l_ringId >= eq_ana_bndy_bucket_0) && (l_ringId <= eq_ana_bndy_l3dcc_bucket_26))
+        {
+            i_applyOverride = true;
+        }
+
         if ((i_ringMode &  fapi2::RING_MODE_SET_PULSE_NSL) ||
             (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL) ||
             (i_ringMode &  fapi2::RING_MODE_SET_PULSE_ALL))
