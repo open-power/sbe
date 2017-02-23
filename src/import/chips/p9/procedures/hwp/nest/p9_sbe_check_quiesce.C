@@ -891,7 +891,7 @@ extern "C" {
         {
             fapi2::putScom(i_target, l_scrub_addrs[i], 0xA000000000000000);
 
-            for (uint32_t i = 0; i < 10000; i++)
+            for (uint32_t j = 0; j < C_NUM_TRIES_QUIESCE_STATE; j++)
             {
                 fapi2::delay(C_INTP_DELAY_NS, C_INTP_DELAY_CYCLES);
                 fapi2::getScom(i_target, l_scrub_addrs[i], l_scrub_trig_data);
