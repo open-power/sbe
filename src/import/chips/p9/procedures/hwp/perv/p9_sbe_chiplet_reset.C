@@ -215,6 +215,16 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         for (auto& targ : l_perv_func_WO_Core_Cache)
         {
             FAPI_DBG("Configuring multicasting registers for Mc,Nest,Xb,Obus,pcie chiplets");
+
+            // if in ASYNC mode DO NOT add to multicast groups because the chiplet is non
+            // responsive.  Wait until clocks are started up in hostboot
+            uint32_t l_chipletID = targ.getChipletNumber();
+
+            if((l_chipletID >= 7 && l_chipletID <= 8) && (!l_mc_sync_mode))
+            {
+                continue;
+            }
+
             FAPI_TRY(p9_sbe_chiplet_reset_mc_setup(targ));
         }
 
