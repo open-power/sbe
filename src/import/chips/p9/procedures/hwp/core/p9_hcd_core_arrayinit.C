@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,11 +49,15 @@
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
+// simGETFAC B0.C0.S0.P0.E9.TP.TCEC14.CORE.EPS.CC.COMP.OPCG.LPCNTQ.LATC.L2 43 -ox
+//0x000000012B8
+// simGETFAC B0.C0.S0.P0.E9.TP.TCEC14.CORE.EPS.CTRL.COMP.CPLT_STATQ.LATC.L2 24 -ox
+//0x804000
 
 enum P9_HCD_CORE_ARRAYINIT_Private_Constants
 {
     REGIONS_EXCEPT_VITAL = 0x7FF,
-    LOOP_COUNTER = 0x0000000000042FFF,
+    LOOP_COUNTER =       0x00000000000012B8, // Parallel mode must be set!
     SELECT_SRAM = 0x1,
     SELECT_EDRAM = 0x0,
     START_ABIST_MATCH_VALUE = 0x0000000F00000000
@@ -70,6 +74,11 @@ p9_hcd_core_arrayinit(
     FAPI_INF(">>p9_hcd_core_arrayinit");
     fapi2::buffer<uint64_t>                     l_data64;
 
+    // To get proc DD level
+    uint8_t l_parallel_abist_nimbus_dd1_workaround = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
+        i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+
 #if not defined(P9_HCD_STOP_SKIP_FLUSH) || not defined(P9_HCD_STOP_SKIP_ARRAYINIT)
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv =
         i_target.getParent<fapi2::TARGET_TYPE_PERV>();
@@ -79,6 +88,17 @@ p9_hcd_core_arrayinit(
     FAPI_TRY(putScom(i_target, C_CPLT_CONF0_OR, MASK_SET(34)));
 
 #ifndef P9_HCD_STOP_SKIP_ARRAYINIT
+
+    // Only set ABIST engine to parallel mode for DD1 level
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_NDD1_ABIST_PARALLEL, l_chip,
+                           l_parallel_abist_nimbus_dd1_workaround));
+
+    if (l_parallel_abist_nimbus_dd1_workaround != 0)
+    {
+        FAPI_DBG("Scan ec_abst ring");
+        FAPI_TRY(fapi2::putRing(i_target, ec_abst),
+                 "Error from putRing (ec_abst)");
+    }
 
     FAPI_DBG("Arrayinit all regions except vital");
     FAPI_TRY(p9_perv_sbe_cmn_array_init_module(l_perv,
