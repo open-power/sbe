@@ -47,6 +47,7 @@
 #include <p9_quad_scom_addresses.H>
 #include <p9_quad_scom_addresses_fld.H>
 #include <p9_ram_core.H>
+#include <p9_perv_scom_addresses.H>
 
 //-----------------------------------------------------------------------------------
 // Constant definitions
@@ -55,7 +56,6 @@
 // PBA setup/access HWP call constants
 const bool PBA_HWP_WRITE_OP = false;
 const int EXCEPTION_VECTOR_NUM_CACHELINES = 96;
-const uint32_t SBE_BOOTLOADER_VERSION = 0x901;
 const uint8_t PERV_TO_CORE_POS_OFFSET = 0x20;
 //-----------------------------------------------------------------------------------
 // Function definitions
@@ -159,7 +159,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
 
     BootloaderConfigData_t l_bootloader_config_data;
 
-    l_bootloader_config_data.version = SBE_BOOTLOADER_VERSION;
+    l_bootloader_config_data.version = SAB_ADDED;
 
     //At address X + 0x8 put whatever is in ATTR_SBE_BOOT_SIDE
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_BOOT_SIDE, FAPI_SYSTEM, l_bootloader_config_data.sbeBootSide),
@@ -189,6 +189,12 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
 
     // Pass size of load including exception vectors and Bootloader
     l_bootloader_config_data.blLoadSize = l_exception_vector_size + i_payload_size;
+
+    // Get Secure Access Bit
+    FAPI_TRY(fapi2::getScom(i_master_chip_target, PERV_CBS_CS_SCOM, l_dataBuf),
+             "fapiGetScom of PERV_CBS_CS_SCOM failed");
+    l_bootloader_config_data.secureAccessBit = l_dataBuf.getBit<4>() ? 1 : 0;
+    l_dataBuf.flush<0>();
 
     // move data using PBA setup/access HWPs
     l_myPbaFlag.setFastMode(true);  // FASTMODE
@@ -259,6 +265,11 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                     else if (i < 20)
                     {
                         l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.blLoadSize >> (56 - 8 * ((i - 12) % 8))) & 0xFF;
+                    }
+                    //At address X + 0x14 put the secure access bit
+                    else if (i == 20)
+                    {
+                        l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.secureAccessBit;
                     }
                     //Fill the rest with the exception vector instruction
                     else
