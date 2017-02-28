@@ -76,11 +76,10 @@ def main():
         print " \t                                and you want to compile, use this option then only"
         print " \t  -i,--files     = [ Optional ] Firmware Files coma ',' separated input file1,file2"
         print " \t                                Only the pre-define listed files bellow:"
-        print " \t                                sbe_sp_intf.H,simics.tar,sbe_seeprom.bin"
+        print " \t                                sbe_sp_intf.H,simics.tar,"
+        print " \t                                sbe_seeprom_DD1.bin/sbe_seeprom_DD2.bin"
         print " \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)"
         print " \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled"
-        print " \t  -l,--level     = [ Optional ] Flag to determine ddlevel of the image, by default"
-        print " \t                                DD1 image is compiled"
         print " \t  -h,--help      = Help"
         print "  ------------------------------------------------------------------------------------"
 
@@ -115,7 +114,7 @@ def main():
     file_name    = "None"
     rc_file      = "None"
     build        = "1"
-    ddlevel      = "DD1"
+    ddlevel      = "None"
 
     #----------------------------
     # Read command line args
@@ -241,9 +240,11 @@ def main():
             exit_main(rc_shell)
 
     # Files to copy for sbe prime
-    # TODO via RTC:168436 - DD specific images to be updated in CMVC makefiles
-    # PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_"+ddlevel+".bin"
-    PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin"
+    # TODO via RTC:168436 - remove sbe_seeprom.bin
+    if ddlevel == "None":
+        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin,sbe_seeprom_DD1.bin,sbe_seeprom_DD2.bin"
+    else:
+        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin,sbe_seeprom_"+ddlevel+".bin"
 
     #----------------------------------------
     # 4) Copy the files from repo to sandbox

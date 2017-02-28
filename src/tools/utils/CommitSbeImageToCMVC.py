@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -187,8 +187,8 @@ def main():
     #-------------------------------------------------------------
     # CMVC ENV check
     #-------------------------------------------------------------
-    def UserCmvcENV(): 
-        # Assumed the CMVC cofig is there in the user bash ENV 
+    def UserCmvcENV():
+        # Assumed the CMVC cofig is there in the user bash ENV
         # In .bashrc the CMVX ENV would look like this
         # CMVC specific example
         #-----------------------------------------------------------
@@ -197,27 +197,27 @@ def main():
         #export CMVC_AUTH_METHOD=PWD
         #-----------------------------------------------------------
 
-        l_found_cmvc_conf = False 
+        l_found_cmvc_conf = False
         for key in os.environ.keys():
             if "CMVC" in key:
                 print "\t %s : %s" % (key,os.environ[key])
                 l_found_cmvc_conf = True
 
         if l_found_cmvc_conf == False:
-           print "\n [ ERROR SETTING ] :  The CMVC specific ENV is not set" 
-           print " Please add the following CMVC details in ~/.bashrc" 
-           print " ------------------------------------------------------" 
-           print " export CMVC_FAMILY=aix@<yourcmvcdomian>@<portnumber>" 
-           print " export CMVC_BECOME=<your cmvc id>" 
-           print " export CMVC_AUTH_METHOD=PWD" 
+           print "\n [ ERROR SETTING ] :  The CMVC specific ENV is not set"
+           print " Please add the following CMVC details in ~/.bashrc"
+           print " ------------------------------------------------------"
+           print " export CMVC_FAMILY=aix@<yourcmvcdomian>@<portnumber>"
+           print " export CMVC_BECOME=<your cmvc id>"
+           print " export CMVC_AUTH_METHOD=PWD"
            print " ------------------------------------------------------"
            return errorcode.ERROR_SETTING
-     
+
         return errorcode.SUCCESS_EXIT
 
     # Testing CMVC login session.. probe
-    def CheckCmvcAccess(): 
-        cmd='File -view src/sbei/sbfw/img/sbe_seeprom.bin -family aix -release fips910 >/dev/null 2>&1'
+    def CheckCmvcAccess():
+        cmd='File -view src/sbei/sbfw/img/sbe_seeprom_DD1.bin -family aix -release fips910 >/dev/null 2>&1'
         rc = os.system(cmd)
         if rc:
             return errorcode.ERROR_CMVC_LOGIN
