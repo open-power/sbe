@@ -1870,6 +1870,13 @@ int dissectRingSectionTor( void*       i_ringSection,
         for (ppeType = 0; ppeType < NUM_PPE_TYPES; ppeType++)
         {
 
+            if ((i_imageMagicNo == P9_XIP_MAGIC_SGPE    && ppeType != SGPE) ||
+                (i_imageMagicNo == P9_XIP_MAGIC_CME     && ppeType != CME)  ||
+                (i_imageMagicNo == P9_XIP_MAGIC_SEEPROM && ppeType != SBE))
+            {
+                continue;
+            }
+
             //--------------------
             // Ring variant loop.
             // - Base, cache, risk, override, overlay
