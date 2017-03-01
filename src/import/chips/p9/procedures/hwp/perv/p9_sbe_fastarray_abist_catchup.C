@@ -57,11 +57,21 @@ fapi2::ReturnCode p9_sbe_fastarray_abist_catchup(
     /* If we clocked more than a single cycle, do due diligence and wait for OPCG_DONE */
     if( i_clockCyclesMinusOne )
     {
-        do
+        uint32_t l_timeout = 100;
+
+        while (--l_timeout)
         {
             FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_CPLT_STAT0, l_cc_buf), "Failed to read Chiplet Status 0 Register");
+
+            if (l_cc_buf.getBit<PERV_1_CPLT_STAT0_CC_CTRL_OPCG_DONE_DC>())
+            {
+                break;
+            }
+
+            fapi2::delay(1000000, 100000);
         }
-        while (!l_cc_buf.getBit<PERV_1_CPLT_STAT0_CC_CTRL_OPCG_DONE_DC>());
+
+        FAPI_ASSERT(l_timeout, fapi2::FASTARRAY_CLOCK_TIMEOUT(), "Clocking ABIST cycles timed out");
     }
 
     return fapi2::FAPI2_RC_SUCCESS;

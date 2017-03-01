@@ -61,6 +61,10 @@
     <rc>RC_FASTARRAY_HEADER_CHECK_FAILED</rc>
     <description>The header check failed after a scan operation</description>
   </hwpError>
+  <hwpError>
+    <rc>RC_FASTARRAY_CLOCK_TIMEOUT</rc>
+    <description>An attempt to clock ABIST cycles did not complete within 100ms</description>
+  </hwpError>
 <!-- template for copying
   <hwpError>
     <rc>RC_FASTARRAY_</rc>

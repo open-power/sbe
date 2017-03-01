@@ -53,13 +53,28 @@ fapi2::ReturnCode p9_sbe_fastarray_cleanup(
 {
     fapi2::buffer<uint64_t> l_buf;
 
+    /* Drop vital fence so that we can see the ABIST_DONE signal */
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, 0x1000000000000000), "Failed to drop vitl fence");
+
     /* Let ABIST engines run to completion */
-    do
     {
-        FAPI_TRY(p9_sbe_fastarray_abist_catchup(i_target_chiplet, 0xFFF), "Failed to clock ABIST to completion");
-        FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_CPLT_STAT0, l_buf), "Failed to read Chiplet Status 0 Register");
+        uint32_t l_timeout = 16;
+
+        do
+        {
+            FAPI_TRY(p9_sbe_fastarray_abist_catchup(i_target_chiplet, 0xFFF), "Failed to clock ABIST to completion");
+            FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_CPLT_STAT0, l_buf), "Failed to read Chiplet Status 0 Register");
+        }
+        while (--l_timeout && !l_buf.getBit<PERV_1_CPLT_STAT0_SRAM_ABIST_DONE_DC>());
+
+        if (!l_timeout)
+        {
+            FAPI_ERR("Warning: ABIST_DONE not seen! Your dump is probably fine, but this is unexpected.");
+        }
     }
-    while (!l_buf.getBit<PERV_1_CPLT_STAT0_SRAM_ABIST_DONE_DC>());
+
+    /* Raise the vital fence back up */
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_OR, 0x1000000000000000), "Failed to raise vitl fence");
 
     /* Disable ABIST and clock engines so they can cleanly reset */
     l_buf = 0;
