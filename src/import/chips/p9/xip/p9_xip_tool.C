@@ -44,7 +44,7 @@
 #undef P9_XIP_TOOL_VERBOSE
 
 #include "p9_xip_image.h"
-#ifdef XIP_TOOL_ENABLE_DISSECT // Needed on ppe side to avoid TOR API
+#ifndef __PPE__ // Needed on ppe side to avoid TOR API
     #include "p9_tor.H"
     #include "p9_scan_compression.H"
     using namespace P9_TOR;
@@ -1722,7 +1722,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 }
 
 
-#ifdef XIP_TOOL_ENABLE_DISSECT  // Needed on the ppe side to avoid TOR API
+#ifndef __PPE__  // Needed on the ppe side to avoid TOR API
 
 
 // This function prints out the raw decompressed ring content in the same
@@ -2334,7 +2334,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
                                  uint32_t i_maxSize )
 {
     int rc = 0;
-#ifndef __PPE__
+#ifndef __PPE__ // Needed on ppe side to avoid TOR API 
 
     P9XipSection l_ringsSection;
 
@@ -2495,13 +2495,14 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
     {
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
-#ifdef XIP_TOOL_ENABLE_DISSECT // Needed on ppe side to avoid TOR API
+#ifndef __PPE__ // Needed on ppe side to avoid TOR API
         rc = dissectRingSection(image, i_argc - 1, &(i_argv[1]));
 #else
         fprintf(stderr, "\n");
-        fprintf(stderr, "-------------------------------\n");
-        fprintf(stderr, " dissect feature not supported \n");
-        fprintf(stderr, "-------------------------------\n\n");
+        fprintf(stderr, "---------------------------------------------\n");
+        fprintf(stderr, "  dissect feature not supported in PPE repo  \n");
+        fprintf(stderr, "  => Use EKB version of p9_xip_tool          \n");
+        fprintf(stderr, "---------------------------------------------\n\n");
         exit(1);
 #endif
 
