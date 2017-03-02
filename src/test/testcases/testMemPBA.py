@@ -49,7 +49,7 @@ def main( ):
     readData = testMemUtil.getmem(0x08000000, 128*3, 0x02)
     data = os.urandom(128)
     data = [ord(c) for c in data]
-    testMemUtil.putmem(0x08000000+128, data, 0xA5)
+    testMemUtil.putmem(0x08000000+128, data, 0x02)
     readBackData = testMemUtil.getmem(0x08000000, 128*3, 0x02)
     sandwichData = readData[:128]+data+readData[len(data)+128:]
     if(sandwichData == readBackData):
@@ -79,7 +79,7 @@ def main( ):
     readData = testMemUtil.getmem(0x08000000, 128*3, 0x22)
     data = os.urandom(128)
     data = [ord(c) for c in data]
-    testMemUtil.putmem(0x08000000+128, data, 0xA5)
+    testMemUtil.putmem(0x08000000+128, data, 0x22)
     readBackData = testMemUtil.getmem(0x08000000, 128*3, 0x22)
     sandwichData = readData[:128]+data+readData[len(data)+128:]
     if(sandwichData == readBackData):
@@ -96,9 +96,9 @@ def main( ):
     # Put mem PBA - W FMODE, W LCO
     data = os.urandom(128*2)
     data = [ord(c) for c in data]
-    testMemUtil.putmem(0x08000000, data, 0x22)
+    testMemUtil.putmem(0x08000000, data, 0x62)
     # Get mem PBA
-    readData = testMemUtil.getmem(0x08000000, 128*2, 0x22)
+    readData = testMemUtil.getmem(0x08000000, 128*2, 0x62)
     if(data == readData):
         print ("Success - Write-Read PBA - W FMODE, W LCO")
     else:
@@ -109,7 +109,7 @@ def main( ):
     readData = testMemUtil.getmem(0x08000000, 128*3, 0x62)
     data = os.urandom(128)
     data = [ord(c) for c in data]
-    testMemUtil.putmem(0x08000000+128, data, 0xA5)
+    testMemUtil.putmem(0x08000000+128, data, 0x62)
     readBackData = testMemUtil.getmem(0x08000000, 128*3, 0x62)
     sandwichData = readData[:128]+data+readData[len(data)+128:]
     if(sandwichData == readBackData):

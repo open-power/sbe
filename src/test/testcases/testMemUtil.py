@@ -61,9 +61,13 @@ def putmem(addr, data, flags, ecc=0):
     if(len(data) < 8):
         data = data+[0]*(4-len(data))
     totalLen = 5 + len(data)/4
+    coreChipletId = 0x00
+    if (flags & 0x0040):
+        # LCO mode is set, so chiplet id - 0x20
+        coreChipletId = 0x20
     req = (getsingleword(totalLen)
           +[ 0,0,0xA4,0x02]
-          +[0, ecc]
+          +[coreChipletId, ecc]
           +gethalfword(flags)
           #0,0,0x0,0xA5] #CoreChipletId/EccByte/Flags -> NoEccOverride/CacheInhibit/FastMode/NoTag/NoEcc/AutoIncr/Adu/Proc
           + getdoubleword(addr)
