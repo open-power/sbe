@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -64,6 +64,10 @@ p9_hcd_cache_dpll_initf(
     FAPI_DBG("Scan eq_dpll_func ring");
     FAPI_TRY(fapi2::putRing(i_target, eq_dpll_func),
              "Error from putRing (eq_dpll_func)");
+
+    FAPI_DBG("Scan eq_ana_func ring");
+    FAPI_TRY(fapi2::putRing(i_target, eq_ana_func),
+             "Error from putRing (eq_ana_func)");
 
 fapi_try_exit:
     FAPI_INF("<<p9_hcd_cache_dpll_initf");
