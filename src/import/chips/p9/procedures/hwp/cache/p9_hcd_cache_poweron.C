@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -102,6 +102,9 @@ p9_hcd_cache_poweron(
 
     FAPI_DBG("Assert cache glsmux reset via CLOCK_GRID_CTRL[0]");
     FAPI_TRY(putScom(i_target, EQ_PPM_CGCR, MASK_SET(0)));
+
+    FAPI_DBG("Assert analog logic fence via QPPM_PFCS[11]");
+    FAPI_TRY(putScom(i_target, EQ_PPM_PFCS_WOR, MASK_SET(11)));
 
     //-----------------------
     // Power on cache chiplet
