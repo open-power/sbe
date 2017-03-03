@@ -730,6 +730,8 @@ extern "C" {
         uint64_t l_int_vc_eqc_config_mask_verify_vc_syncs_complete = 0x00000000F8000000;
         const uint64_t l_intp_scrub_masks[4] = {PU_INT_VC_IVC_SCRUB_MASK, PU_INT_VC_SBC_SCRUB_MASK, PU_INT_VC_EQC_SCRUB_MASK, PU_INT_PC_VPC_SCRUB_MASK};
 
+        //TODO For DD1 this is broken - readd when fixed in DD2
+#ifdef INT_DD2
         // Read INT_CQ_RST_CTL so that we don't override anything
         fapi2::getScom(i_target, PU_INT_CQ_RST_CTL, l_data);
 
@@ -755,12 +757,16 @@ extern "C" {
                         l_data), "INTP master or slave is not IDLE");
 
         //Set sync_reset in RST_CTL
-        //TODO For DD1 this is broken - readd when fixed in DD2
-#ifdef INT_DD2
         l_data.setBit<PU_INT_CQ_RST_CTL_SYNC_RESET>();
         fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, l_data);
 #else
         //Workaround for the sync reset
+        //------------------------------------------------------------------
+        //Use syncs to make sure no more requests are pending on the queue
+        //------------------------------------------------------------------
+        //Trigger VC Syncs
+        //This is done up in the CAPP unit because we need the fabric
+
         //Verify VC syncs complete and then reset sync done bits
         fapi2::getScom(i_target, PU_INT_VC_EQC_CONFIG, l_data);
         FAPI_ASSERT((l_data & l_int_vc_eqc_config_mask_verify_vc_syncs_complete) ==
