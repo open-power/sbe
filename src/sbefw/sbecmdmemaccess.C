@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -307,6 +307,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                            l_firstGran,
                            l_lastGran,
                            (uint8_t *)&l_dataFifo)
+            l_addr += l_granuleSize;
 
             // if p9_pba_access returns error
             if( l_fapiRc != FAPI2_RC_SUCCESS )
@@ -337,7 +338,6 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         {
             break;
         }
-        l_addr += l_granuleSize * l_granulesCompleted;
     } // End..while (l_granulesCompleted < l_lenCacheAligned);
 
     // Now build and enqueue response into downstream FIFO
@@ -456,6 +456,9 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     SBE_DEBUG(SBE_FUNC "Data Aligned Len / Number of data granules = %d",
         l_lenCacheAligned);
 
+    // 8Byte granule for ADU access
+    uint32_t l_dataFifo[MAX_ADU_BUFFER] = {0};
+
     while (l_granulesCompleted < l_lenCacheAligned)
     {
         // Call the ADU setup HWP
@@ -490,9 +493,6 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         {
             l_numAcc = l_lenCacheAligned - l_granulesCompleted;
         }
-
-        // 8Byte granule for ADU access
-        uint32_t l_dataFifo[MAX_ADU_BUFFER] = {0};
 
         uint64_t l_numCurrAcc = 0;
         while (l_numCurrAcc < l_numAcc)
@@ -558,7 +558,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             {
                 //Adu Read Mode - with either ECC or ITag or Both
                 // Calculate the MODULUS
-                uint8_t l_mod = (l_numCurrAcc % 4);
+                uint8_t l_mod = (l_granulesCompleted % 4);
                 if( (l_mod) && ((l_isEccMode) || (l_isItagMode)) )
                 {
                     // Default Init it for 1byte extra
@@ -590,6 +590,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 l_ffdc.setRc(l_fapiRc);
                 break;
             }
+            l_addr += l_granuleSize;
 
             // If this is a getmem request,
             // need to push the data into the downstream FIFO
@@ -607,10 +608,10 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 //happen to write on DownStream FIFO for each granule.
 
                 //Calculate the MODULUS
-                uint8_t l_mod = (l_numCurrAcc % 4);
+                uint8_t l_mod = (l_granulesCompleted % 4);
                 if((l_isEccMode) || (l_isItagMode))
                 {
-                    if( (l_mod == 3) || (l_lastGran) )
+                    if( (l_mod == 3) || ((l_granulesCompleted+1) == l_lenCacheAligned) )
                     {
                         l_len = calInterAduLenForUpFifo(l_mod,l_isItagMode,
                                                         l_isEccMode);
@@ -640,7 +641,6 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             break;
         }
 
-        l_addr += l_granuleSize * l_granulesCompleted;
     } // End..while (l_granulesCompleted < l_lenCacheAligned);
 
     // Now build and enqueue response into downstream FIFO
