@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,6 +44,11 @@
 
 using namespace fapi2;
 
+#ifdef SEEPROM_IMAGE
+// Using Function pointer to force long call
+p9_pm_ocb_indir_setup_linear_FP_t p9_ocb_setup_linear_access_hwp = &p9_pm_ocb_indir_setup_linear;
+p9_pm_ocb_indir_access_FP_t p9_ocb_indirect_access_hwp = &p9_pm_ocb_indir_access;
+#endif
 
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeOccSramAccess_Wrap Occ Sran Access Wrapper function
@@ -141,7 +146,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         // Setup Needs to be called in Normal and Debug Mode only
         if( (l_req.mode == NORMAL_MODE) || (l_req.mode == DEBUG_MODE) )
         {
-            SBE_EXEC_HWP(l_fapiRc, p9_pm_ocb_indir_setup_linear,l_proc, l_chan,
+            SBE_EXEC_HWP(l_fapiRc, p9_ocb_setup_linear_access_hwp,l_proc, l_chan,
                                                     p9ocb::OCB_TYPE_LINSTR,
                                                     l_req.addr)
             if(l_fapiRc != FAPI2_RC_SUCCESS)
@@ -196,7 +201,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
             // API for access, For circular valid address flag is false, Hwp
             // doesn't need the address field from us.
             SBE_EXEC_HWP(l_fapiRc,
-                    p9_pm_ocb_indir_access,
+                    p9_ocb_indirect_access_hwp,
                     l_proc,
                     l_chan,
                     l_ocb_access, // Get/Put
