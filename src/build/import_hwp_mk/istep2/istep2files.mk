@@ -41,13 +41,6 @@ ISTEP2-CPP-SOURCES +=p9_sbe_tp_chiplet_init2.C
 ISTEP2-CPP-SOURCES +=p9_sbe_tp_arrayinit.C
 ISTEP2-CPP-SOURCES +=p9_sbe_tp_initf.C
 ISTEP2-CPP-SOURCES +=p9_sbe_tp_chiplet_init3.C
-# TODO via RTC 170704
-# These procedures also needed in PIBMEM. Just having a quick fix
-# for lab
-ISTEP2-CPP-SOURCES +=p9_pm_ocb_indir_access.C
-ISTEP2-CPP-SOURCES +=p9_pm_ocb_indir_setup_circular.C
-ISTEP2-CPP-SOURCES +=p9_pm_ocb_indir_setup_linear.C
-ISTEP2-CPP-SOURCES +=p9_pm_ocb_init.C
 ISTEP2-C-SOURCES =
 ISTEP2-S-SOURCES =
 

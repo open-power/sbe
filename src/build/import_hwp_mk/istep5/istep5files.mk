@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +31,8 @@
 ##########################################################################
 
 ISTEP5-CPP-SOURCES = p9_sbe_instruct_start.C
+ISTEP5-CPP-SOURCES +=p9_thread_control.C
+ISTEP5-CPP-SOURCES +=p9_sbe_load_bootloader.C
 ISTEP5-C-SOURCES =
 ISTEP5-S-SOURCES =
 
