@@ -118,16 +118,18 @@ inline uint32_t calInterAduLenForUpFifo(uint8_t i_mod, bool i_itag, bool i_ecc)
 //        Calculate the Final Size which is write/read to/from HWP
 //
 // @param [in] i_numGranules, Number of granules read/write
+// @param [in] i_granuleSize
 // @param [in] i_itag, Itag flag
 // @param [in] i_ecc, Ecc flag
 //
 // @return  Length in bytes for ADU to be put in Upstream FIFO
 ///////////////////////////////////////////////////////////////////////
 inline uint32_t sbeAduLenInUpStreamFifo(uint32_t i_numGranules,
+                                        uint32_t i_granuleSize,
                                         bool i_itag,
                                         bool i_ecc)
 {
-    uint32_t l_respLen = i_numGranules * ADU_GRAN_SIZE_BYTES;
+    uint32_t l_respLen = i_numGranules * i_granuleSize;
     if(i_itag)
     {
         // Add one byte for Itag for Each Granule Completed
@@ -396,9 +398,15 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     uint32_t l_granuleSize = ADU_GRAN_SIZE_BYTES;
 
     p9_ADU_oper_flag l_aduFlag;
+    l_aduFlag.setTransactionSize(p9_ADU_oper_flag::TSIZE_8);
+    if(i_hdr.len < 8)
+    {
+        l_sizeMultiplier = 1;
+        l_granuleSize = i_hdr.len;
+        l_aduFlag.setTransactionSize((p9_ADU_oper_flag::Transaction_size_t)(i_hdr.len));
+    }
     //Default Operation Type is DMA_PARTIAL
     l_aduFlag.setOperationType(p9_ADU_oper_flag::DMA_PARTIAL);
-    l_aduFlag.setTransactionSize(p9_ADU_oper_flag::TSIZE_8);
     l_aduFlag.setLockControl(false);
     l_aduFlag.setOperFailCleanup(true);
     l_aduFlag.setNumLockAttempts(SBE_ADU_LOCK_TRIES);
@@ -409,6 +417,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     {
         l_aduFlag.setFastMode(true);
     }
+    // TODO set DMA_PARTIAL mode by default if CI mode is not set
     if(i_hdr.isCacheInhibitModeFlagSet())
     {
         l_aduFlag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);
@@ -453,11 +462,12 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
     // Input Data length in alignment with PBA (128 Bytes)
     uint64_t l_lenCacheAligned = i_hdr.getDataLenCacheAlign();
-    SBE_DEBUG(SBE_FUNC "Data Aligned Len / Number of data granules = %d",
-        l_lenCacheAligned);
+    SBE_DEBUG(SBE_FUNC "User length [%d], Data Aligned Len / "
+            "Number of data granules = %d",
+            i_hdr.len, l_lenCacheAligned);
 
     // 8Byte granule for ADU access
-    uint32_t l_dataFifo[MAX_ADU_BUFFER] = {0};
+    uint64_t l_dataFifo[MAX_ADU_BUFFER/2] = {0};
 
     while (l_granulesCompleted < l_lenCacheAligned)
     {
@@ -542,6 +552,11 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                         (uint32_t *)&l_dataFifo,
                         false);
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+                SBE_DEBUG("l_dataFifo#1 0x%08x%08x", SBE::higher32BWord(l_dataFifo[0]),
+                                                    SBE::lower32BWord(l_dataFifo[0]));
+                l_dataFifo[0] >>= (l_addr & 0x07) * 8;
+                SBE_DEBUG("l_dataFifo#2 0x%08x%08x", SBE::higher32BWord(l_dataFifo[0]),
+                                                    SBE::lower32BWord(l_dataFifo[0]));
 
                 // Insert the ECC if ECC Mode is set
                 if(l_isEccMode)
@@ -590,7 +605,6 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 l_ffdc.setRc(l_fapiRc);
                 break;
             }
-            l_addr += l_granuleSize;
 
             // If this is a getmem request,
             // need to push the data into the downstream FIFO
@@ -607,10 +621,10 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 //If the below condition is not met then for ADU Read Mode will
                 //happen to write on DownStream FIFO for each granule.
 
-                //Calculate the MODULUS
-                uint8_t l_mod = (l_granulesCompleted % 4);
                 if((l_isEccMode) || (l_isItagMode))
                 {
+                    //Calculate the MODULUS
+                    uint8_t l_mod = (l_granulesCompleted % 4);
                     if( (l_mod == 3) || ((l_granulesCompleted+1) == l_lenCacheAligned) )
                     {
                         l_len = calInterAduLenForUpFifo(l_mod,l_isItagMode,
@@ -627,10 +641,16 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 }
                 if(l_len)
                 {
+                    SBE_DEBUG("l_dataFifo#3 0x%08x%08x", SBE::higher32BWord(l_dataFifo[0]),
+                                                        SBE::lower32BWord(l_dataFifo[0]));
+                    l_dataFifo[0] <<= (l_addr & 0x07) * 8;
+                    SBE_DEBUG("l_dataFifo#4 0x%08x%08x", SBE::higher32BWord(l_dataFifo[0]),
+                                                        SBE::lower32BWord(l_dataFifo[0]));
                     l_rc = sbeDownFifoEnq_mult (l_len, (uint32_t *)&l_dataFifo);
                     CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
                 }
             }
+            l_addr += l_granuleSize;
             l_granulesCompleted++;
             l_numCurrAcc++;
         } // End inner while loop
@@ -661,6 +681,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         uint32_t l_len = 1;
         uint32_t l_respLen = sbeAduLenInUpStreamFifo(
                                        l_granulesCompleted,
+                                       l_granuleSize,
                                        l_isItagMode,
                                        l_isEccMode);
 

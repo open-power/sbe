@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2017                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -38,6 +38,10 @@
       </testcase>
       <testcase>
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testAduMem_noEccNoItag.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testAduMem_124B.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
 

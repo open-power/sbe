@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2017
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,6 +57,9 @@ def addItagEcc(arr, itag, ecc, eccVal=0):
     return arrs
 
 def putmem(addr, data, flags, ecc=0):
+    lenInBytes = len(data)
+    if(len(data) < 8):
+        data = data+[0]*(4-len(data))
     totalLen = 5 + len(data)/4
     req = (getsingleword(totalLen)
           +[ 0,0,0xA4,0x02]
@@ -63,17 +67,16 @@ def putmem(addr, data, flags, ecc=0):
           +gethalfword(flags)
           #0,0,0x0,0xA5] #CoreChipletId/EccByte/Flags -> NoEccOverride/CacheInhibit/FastMode/NoTag/NoEcc/AutoIncr/Adu/Proc
           + getdoubleword(addr)
-          + getsingleword(len(data))  # length of data
+          + getsingleword(lenInBytes)  # length of data
           + data)
     testUtil.writeUsFifo(req)
     testUtil.writeEot( )
     testUtil.runCycles( 10000000 )
-    lenWritten = len(data)
     if(flags & 0x0008):
-        lenWritten += int(len(data)/8)
+        lenInBytes += int(len(data)/8)
     if(flags & 0x0010):
-        lenWritten += int(len(data)/8)
-    expData = (getsingleword(lenWritten)
+        lenInBytes += int(len(data)/8)
+    expData = (getsingleword(lenInBytes)
                +[0xc0,0xde,0xa4,0x02,
                  0x0,0x0,0x0,0x0,
                  0x00,0x0,0x0,0x03])

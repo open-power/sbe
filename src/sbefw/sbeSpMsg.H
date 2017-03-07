@@ -464,7 +464,9 @@ typedef struct
       */
     uint64_t getDataLenCacheAlign() const
     {
-        uint64_t l_len = (len / 8);
+        // Expected length in bytes is 1, 2, 4, or multiples of 8,
+        // won't work for any other values
+        uint64_t l_len = (len < 8) ? (1) : (len / 8);
         if(flags & SBE_MEM_ACCESS_FLAGS_TARGET_PBA)
         {
             l_len = (l_len / 16);
