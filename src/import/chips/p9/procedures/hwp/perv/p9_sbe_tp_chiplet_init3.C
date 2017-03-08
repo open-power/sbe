@@ -57,7 +57,9 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
 {
     START_CMD = 0x1,
     REGIONS_ALL_EXCEPT_PIB_NET_PLL = 0x4FE,
-    CLOCK_TYPES = 0x7,
+    CLOCK_TYPES_ALL = 0x7,
+    REGIONS_PLL = 0x001,
+    CLOCK_TYPES_SL = 0x4,
     HW_NS_DELAY = 100000, // unit is nano seconds
     SIM_CYCLE_DELAY = 1000, // unit is sim cycles
     POLL_COUNT = 300, // Observed Number of times CBS read for CBS_INTERNAL_STATE_VECTOR
@@ -114,7 +116,15 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_DBG("l_regions value: %#018lX", l_regions);
 
     FAPI_TRY(p9_sbe_common_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, l_regions,
-                                            CLOCK_TYPES));
+                                            CLOCK_TYPES_ALL));
+
+    FAPI_DBG("Start perv PLL region SL clocks");
+    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_tpchiplet,
+             REGIONS_PLL, l_regions));
+    FAPI_DBG("l_regions value: %#018lX", l_regions);
+
+    FAPI_TRY(p9_sbe_common_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, l_regions,
+                                            CLOCK_TYPES_SL));
 
     FAPI_DBG("Calling clock_test2");
     FAPI_TRY(p9_sbe_tp_chiplet_init3_clock_test2(i_target_chip));
