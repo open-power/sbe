@@ -1123,7 +1123,9 @@ fapi2::ReturnCode rs4DecompressionSvc(
     do
     {
         //This is a special case for eq_ana_bndy bucket rings
-        if ((l_ringId >= eq_ana_bndy_bucket_0) && (l_ringId <= eq_ana_bndy_l3dcc_bucket_26))
+        if ( ( (l_ringId >= eq_ana_bndy_bucket_0) && (l_ringId <= eq_ana_bndy_bucket_25) ) ||
+             ( l_ringId == eq_ana_bndy_bucket_l3dcc ) ||
+             ( (l_ringId >= eq_ana_bndy_bucket_26) && (l_ringId <= eq_ana_bndy_bucket_41) ) )
         {
             i_applyOverride = true;
         }
