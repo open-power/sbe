@@ -46,6 +46,7 @@
 #include "sbestates.H"
 #include "fapi2.H"
 #include "sbeutil.H"
+#include "sbeglobals.H"
 using namespace fapi2;
 
 // Forward declaration for performAttrSetup
@@ -74,27 +75,27 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
                     break;
                 }
                 // Set primary and secondary status
-                g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND, i_rc);
+                SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND, i_rc);
 
                 // Now Update SBE->PSU Mbx Reg4 with response
-                l_cnt = sizeof(g_sbeSbe2PsuRespHdr)/
+                l_cnt = sizeof(SBE_GLOBAL->sbeSbe2PsuRespHdr)/
                                        sizeof(uint64_t);
                 l_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
                             reinterpret_cast<const uint64_t *>(
-                                &g_sbeSbe2PsuRespHdr), l_cnt, true);
+                                &SBE_GLOBAL->sbeSbe2PsuRespHdr), l_cnt, true);
                 break;
 
             case SBE_SEC_OS_FAILURE:
                 // Set primary and secondary status
-                g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                                i_rc);
 
                 // Now Update SBE->PSU Mbx Reg4 with response
-                l_cnt = sizeof(g_sbeSbe2PsuRespHdr)/
+                l_cnt = sizeof(SBE_GLOBAL->sbeSbe2PsuRespHdr)/
                                        sizeof(uint64_t);
                 l_rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
                             reinterpret_cast<const uint64_t *>(
-                                &g_sbeSbe2PsuRespHdr), l_cnt, true);
+                                &SBE_GLOBAL->sbeSbe2PsuRespHdr), l_cnt, true);
                 break;
 
             case SBE_SEC_OPERATION_SUCCESSFUL:
@@ -280,7 +281,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
         // Wait for new command processing
         int l_rcPk = pk_semaphore_pend (
-                    &g_sbeSemCmdProcess, PK_WAIT_FOREVER);
+                    &SBE_GLOBAL->sbeSemCmdProcess, PK_WAIT_FOREVER);
 
         do
         {
@@ -295,35 +296,35 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
 
             // Check on the Rx Thread Interrupt Bits for Interrupt Status
-            if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
+            if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
                                         SBE_INTERFACE_PSU) )
             {
-                l_rc         = g_sbeSbe2PsuRespHdr.secStatus;
-                l_cmdClass   = g_sbePsu2SbeCmdReqHdr.cmdClass;
-                l_cmdOpCode  = g_sbePsu2SbeCmdReqHdr.command;
+                l_rc         = SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus;
+                l_cmdClass   = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.cmdClass;
+                l_cmdOpCode  = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.command;
                 // Set this here, so that during response handling we know which
                 // interrupt we are processing, need not check for
-                // g_sbeIntrSource again
-                g_sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
+                // SBE_GLOBAL->sbeIntrSource again
+                SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
                                                SBE_INTERFACE_PSU);
             }
-            else if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE,
+            else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
                                              SBE_INTERFACE_FIFO) )
             {
-                l_rc         = g_sbeCmdRespHdr.sec_status;
-                l_cmdClass   = g_sbeFifoCmdHdr.cmdClass;
-                l_cmdOpCode  = g_sbeFifoCmdHdr.command;
+                l_rc         = SBE_GLOBAL->sbeCmdRespHdr.sec_status;
+                l_cmdClass   = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
+                l_cmdOpCode  = SBE_GLOBAL->sbeFifoCmdHdr.command;
                 // Set this here, so that during response handling we know which
                 // interrupt we are processing, need not check for
-                // g_sbeIntrSource again
-                g_sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
+                // SBE_GLOBAL->sbeIntrSource again
+                SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
                                                SBE_INTERFACE_FIFO);
             }
             else // SBE_INTERFACE_FIFO_RESET or SBE_INTERFACE_UNKNOWN
             {
                 SBE_ERROR(SBE_FUNC"Unexpected interrupt communicated to the "
                    "processor thread. Interrupt source: 0x%02X 0x%02X",
-                   g_sbeIntrSource.intrSource, g_sbeIntrSource.rxThrIntrSource);
+                   SBE_GLOBAL->sbeIntrSource.intrSource, SBE_GLOBAL->sbeIntrSource.rxThrIntrSource);
                 assert(false);
                 break;
             }
@@ -332,8 +333,8 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             if (l_rcPk != PK_OK)
             {
                 SBE_ERROR(SBE_FUNC"pk_semaphore_pend failed, "
-                          "l_rcPk=%d, g_sbeSemCmdRecv.count=%d",
-                           l_rcPk, g_sbeSemCmdRecv.count);
+                          "l_rcPk=%d, SBE_GLOBAL->sbeSemCmdRecv.count=%d",
+                           l_rcPk, SBE_GLOBAL->sbeSemCmdRecv.count);
 
                 // If it's a semphore_pend error then update the same to show
                 // internal failure
@@ -357,20 +358,20 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
         SBE_INFO (SBE_FUNC"Command processesed. l_rc=[0x%04X]", l_rc );
 
-        if ( g_sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_PSU) )
+        if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_PSU) )
         {
             sbeHandlePsuResponse (l_rc);
 
             // Enable Host interrupt
-            g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_PSU);
+            SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_PSU);
             pk_irq_enable(SBE_IRQ_HOST_PSU_INTR);
         }
-        else if ( g_sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_FIFO) )
+        else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_FIFO) )
         {
             sbeHandleFifoResponse (l_rc);
 
             // Enable the new data available interrupt
-            g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_FIFO);
+            SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_FIFO);
             pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
             pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
         }

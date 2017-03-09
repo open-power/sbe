@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,6 +38,7 @@
 #include "assert.h"
 #include "sbeFFDC.H"
 #include "hwp_error_info.H"
+#include "sbeglobals.H"
 
 // If we can not perform FIFO operation ( FIFO FULL while writing
 // or EMPTY while reading ) we will sleep for FIFO_WAIT_SLEEP_TIME
@@ -49,6 +50,11 @@ static const uint32_t FIFO_WAIT_SLEEP_TIME = 1;
 static const uint64_t DOWNSTREAM_EOT_DATA = 0x100000000ull;
 
 using namespace fapi2;
+inline uint32_t sbeBuildRespHeaderStatusWordGlobal (void)
+{
+    return ( (((uint32_t)SBE_GLOBAL->sbeCmdRespHdr.prim_status)<<16) |
+                        (SBE_GLOBAL->sbeCmdRespHdr.sec_status) );
+}
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,

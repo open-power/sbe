@@ -43,6 +43,7 @@
 #include "p9_perv_scom_addresses.H"
 #include "p9_block_wakeup_intr.H"
 #include "sbeTimerSvc.H"
+#include "sbeglobals.H"
 
 using namespace fapi2;
 
@@ -109,12 +110,12 @@ uint32_t sbeStartCntlDmt()
                                      (PkTimerCallback)&sbeDmtPkExpiryCallback);
         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
         {
-            g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
             SBE_ERROR(SBE_FUNC" g_sbe_pk_dmt_timer.startTimer failed");
             l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
         }
 
-        sbePSUSendResponse(g_sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
+        sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
 
         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
         {
@@ -204,7 +205,7 @@ uint32_t sbeStopCntlDmt()
          l_rc = g_sbe_pk_dmt_timer.stopTimer( );
          if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
          {
-             g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
+             SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
              SBE_ERROR(SBE_FUNC"g_sbe_pk_dmt_timer.stopTimer failed");
              l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
              break;
@@ -214,7 +215,7 @@ uint32_t sbeStopCntlDmt()
                                             SBE_DMT_COMP_EVENT);
     }while(0);
     // Send the response
-    sbePSUSendResponse(g_sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
 
     return l_rc;
     #undef SBE_FUNC
@@ -230,7 +231,7 @@ uint32_t sbeControlDeadmanTimer (uint8_t *i_pArg)
 
     do
     {
-        if(g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_START_DMT)
+        if(SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_START_DMT)
         {
             l_rc = sbeStartCntlDmt();
             if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
@@ -250,7 +251,7 @@ uint32_t sbeControlDeadmanTimer (uint8_t *i_pArg)
             break;
         }
 
-        if(g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_STOP_DMT)
+        if(SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_STOP_DMT)
         {
             l_rc = sbeStopCntlDmt();
             if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)

@@ -40,6 +40,7 @@
 #include "sbestates.H"
 #include "sbeHostMsg.H"
 #include "sbeHostUtils.H"
+#include "sbeglobals.H"
 
 #include "fapi2.H"
 
@@ -274,8 +275,8 @@ uint32_t sbePsuQuiesce( uint8_t *i_pArg )
                                           SBE_QUIESCE_EVENT);
 
         rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
-                         (uint64_t*)(&g_sbeSbe2PsuRespHdr),
-                         (sizeof(g_sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
+                         (uint64_t*)(&SBE_GLOBAL->sbeSbe2PsuRespHdr),
+                         (sizeof(SBE_GLOBAL->sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
                          true);
         if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
         {
@@ -324,7 +325,7 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
     }while(0);
 
     // Send the response
-    sbePSUSendResponse(g_sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;

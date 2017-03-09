@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -35,6 +35,7 @@
 #include <plat_trace.H>
 #include <target.H>
 #include <sbeutil.H>
+#include <sbeglobals.H>
 
 namespace fapi2
 {
@@ -44,7 +45,7 @@ namespace fapi2
     // frequency till istep 2.7
     inline uint64_t delayCycles(uint64_t i_nanoSeconds )
     {
-        return ( i_nanoSeconds/1000) * ( g_sbefreq /(1000*1000));
+        return ( i_nanoSeconds/1000) * ( SBE_GLOBAL->sbefreq /(1000*1000));
     }
     /// @brief Delay this thread.
     ///

@@ -128,7 +128,6 @@ inline void SBE_MAGIC_INSTRUCTION(int _n)
 void sbeHandleFifoResponse (const uint32_t i_rc);
 
 void sbeHandlePsuResponse (const uint32_t i_rc);
-extern uint32_t g_sbefreq;
 
 namespace SBE
 {

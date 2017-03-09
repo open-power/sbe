@@ -57,8 +57,6 @@ typedef struct
     uint32_t command:8;
 }sbeFifoCmdReqBuf_t;
 
-extern sbeFifoCmdReqBuf_t g_sbeFifoCmdHdr;
-
 /**
   * @brief structure for generic header for fifo response.
   *
@@ -89,19 +87,11 @@ typedef struct
       * @brief set initial values for response header
       *
       * @note  We did not set this in constructor as based on use case
-      *        it is possible that g_sbeFifoCmdHdr does not have proper
+      *        it is possible that SBE_GLOBAL->sbeFifoCmdHdr does not have proper
       *        values at time of object creation.
       *
       */
-    void init()
-    {
-        magicCode = 0xC0DE;
-        cmdClass  = g_sbeFifoCmdHdr.cmdClass;
-        command = g_sbeFifoCmdHdr.command;
-        primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
-        secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
-    }
-
+    void init();
 }sbeRespGenHdr_t;
 
 /**
@@ -504,9 +494,6 @@ typedef struct
         sec_status  = i_sec;
     }
 } sbeCmdRespHdr_t;
-
-extern sbeCmdRespHdr_t g_sbeCmdRespHdr;
-
 
 /**
   * @brief structure for Stop Clocks Chipop (0xA901) contents.

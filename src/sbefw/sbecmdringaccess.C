@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,6 +40,7 @@
 #include "sbefapiutil.H"
 #include "fapi2.H"
 #include "plat_hw_access.H"
+#include "sbeglobals.H"
 
 using namespace fapi2;
 
@@ -77,7 +78,7 @@ uint32_t sbePutRingFromImagePSU (uint8_t *i_pArg)
         {
             SBE_ERROR(SBE_FUNC "Invalid target type [0x%04x]",
                                             (uint16_t)l_cmd.TargetType);
-            g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_DATA,
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_DATA,
                                     SBE_SEC_INVALID_TARGET_TYPE_PASSED);
             break;
         }
@@ -102,7 +103,7 @@ uint32_t sbePutRingFromImagePSU (uint8_t *i_pArg)
     }while(0); // End of do-while
 
     // Send the response
-    sbePSUSendResponse(g_sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;
@@ -260,8 +261,8 @@ uint32_t sbePutRing(uint8_t *i_pArg)
     {
         // Get the length of payload
         // Length is not part of chipop. So take length from total length
-        len = g_sbeFifoCmdHdr.len -
-                        sizeof(g_sbeFifoCmdHdr)/sizeof(uint32_t);
+        len = SBE_GLOBAL->sbeFifoCmdHdr.len -
+                        sizeof(SBE_GLOBAL->sbeFifoCmdHdr)/sizeof(uint32_t);
         uint32_t rs4FifoEntries = len -
                         sizeof(sbePutRingMsgHdr_t)/sizeof(uint32_t);
 

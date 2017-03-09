@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,6 +37,7 @@
 #include "sbeerrorcodes.H"
 #include "assert.h"
 #include "fapi2.H"
+#include "sbeglobals.H"
 
 
 ///////////////////////////////////////////////////////////////////
@@ -109,7 +110,7 @@ uint32_t sbeIntrHostUponRespWaiting ()
 
     // Interrupt the host by setting bit0 in SBE->PSU DB register
     // if the caller requested for it.
-    if (g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_RESP_REQUIRED)
+    if (SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_RESP_REQUIRED)
     {
         l_rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT0);
     }
@@ -124,7 +125,7 @@ uint32_t sbeAcknowledgeHost ()
 
     // Set the Ack bit in SBE->PSU DB register
     // if the caller requested for it.
-    if (g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_ACK_REQUIRED)
+    if (SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_ACK_REQUIRED)
     {
         l_rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT1);
     }
@@ -147,7 +148,7 @@ uint32_t sbeWriteSbe2PsuMbxReg (uint32_t        i_addr,
     assert( (SBE_HOST_PSU_MBOX_REG4 <= i_addr) &&
             (SBE_HOST_PSU_MBOX_REG7 >= (i_addr + i_count - 1)) )
 
-    if( g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_RESP_REQUIRED )
+    if( SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_RESP_REQUIRED )
     {
         while (l_count < i_count)
         {

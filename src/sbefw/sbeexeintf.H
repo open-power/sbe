@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -81,25 +81,6 @@ enum sbeThreadStackSize
     SBE_THREAD_CMD_RECV_STACK_SIZE       = 512,
     SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE  = 2048,
 };
-
-/**
- * @brief Global semaphore : g_sbeSemCmdRecv
- *
- *   This is used to synchronize between the ISR and
- *   the command receiver thread.
- *
- */
-extern PkSemaphore g_sbeSemCmdRecv;
-
-/**
- * @brief Global semaphore : g_sbeSemCmdProcess
- *
- *   This is used to synchronize between command receiver thread
- *   and synchronous command processor thread.
- *
- */
-extern PkSemaphore g_sbeSemCmdProcess;
-
 
 /**
  *  @brief SBE Interface source
@@ -178,8 +159,6 @@ typedef struct
         return l_ret;
     }
 } sbeIntrHandle_t;
-extern sbeIntrHandle_t g_sbeIntrSource ;
-
 
 /**
  * @TODO via RTC : 128658

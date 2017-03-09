@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -105,11 +105,7 @@ extern uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
   * @return     Returns the status word in the response header
   *
   */
-extern inline uint32_t sbeBuildRespHeaderStatusWordGlobal (void)
-{
-    return ( (((uint32_t)g_sbeCmdRespHdr.prim_status)<<16) |
-                        (g_sbeCmdRespHdr.sec_status) );
-}
+extern inline uint32_t sbeBuildRespHeaderStatusWordGlobal (void);
 
 /**
   * @brief sbeBuildRespHeaderStatusWordLocal

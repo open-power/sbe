@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,6 +37,7 @@
 #include "sbeutil.H"
 #include "sbeFifoMsgUtils.H"
 #include "plat_hw_access.H"
+#include "sbeglobals.H"
 
 
 //////////////////////////////////////////////////////
@@ -51,8 +52,8 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
 
     do
     {
-        uint16_t l_primStatus = g_sbeCmdRespHdr.prim_status;
-        uint16_t l_secStatus  = g_sbeCmdRespHdr.sec_status ;
+        uint16_t l_primStatus = SBE_GLOBAL->sbeCmdRespHdr.prim_status;
+        uint16_t l_secStatus  = SBE_GLOBAL->sbeCmdRespHdr.sec_status ;
 
         // Will attempt to dequeue two entries for
         // the scom addresses plus the expected
@@ -141,8 +142,8 @@ uint32_t sbePutScom (uint8_t *i_pArg)
 
     do
     {
-        uint16_t l_primStatus = g_sbeCmdRespHdr.prim_status;
-        uint16_t l_secStatus  = g_sbeCmdRespHdr.sec_status ;
+        uint16_t l_primStatus = SBE_GLOBAL->sbeCmdRespHdr.prim_status;
+        uint16_t l_secStatus  = SBE_GLOBAL->sbeCmdRespHdr.sec_status ;
 
         // Will attempt to dequeue four entries for
         // the scom address (two entries) and the
@@ -226,8 +227,8 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
 
     do
     {
-        uint16_t l_primStatus = g_sbeCmdRespHdr.prim_status;
-        uint16_t l_secStatus  = g_sbeCmdRespHdr.sec_status ;
+        uint16_t l_primStatus = SBE_GLOBAL->sbeCmdRespHdr.prim_status;
+        uint16_t l_secStatus  = SBE_GLOBAL->sbeCmdRespHdr.sec_status ;
 
         // Will attempt to dequeue the following entries:
         // Entry 1 : Operation Mode
@@ -357,8 +358,8 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
 
     do
     {
-        uint16_t l_primStatus = g_sbeCmdRespHdr.prim_status;
-        uint16_t l_secStatus  = g_sbeCmdRespHdr.sec_status ;
+        uint16_t l_primStatus = SBE_GLOBAL->sbeCmdRespHdr.prim_status;
+        uint16_t l_secStatus  = SBE_GLOBAL->sbeCmdRespHdr.sec_status ;
 
         // Will attempt to dequeue the following entries:
         // Entry 1 : Scom Register Address (0..31)

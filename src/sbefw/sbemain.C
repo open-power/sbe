@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -43,42 +43,11 @@
 #include "sbestates.H"
 #include "fapi2.H" // For target init
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
-
-////////////////////////////////////////////////////////////////
-// @brief Global semaphores
-////////////////////////////////////////////////////////////////
-PkSemaphore g_sbeSemCmdRecv;
-PkSemaphore g_sbeSemCmdProcess;
+#include "sbeglobals.H"
 
 // Max defines for Semaphores
 static uint32_t MAX_SEMAPHORE_COUNT = 3;
 
-////////////////////////////////////////////////////////////////
-// @brief Stacks for Non-critical Interrupts and Threads
-////////////////////////////////////////////////////////////////
-uint8_t g_sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];
-uint8_t g_sbeCommandReceiver_stack[SBE_THREAD_CMD_RECV_STACK_SIZE];
-uint8_t g_sbeSyncCommandProcessor_stack[SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE];
-uint8_t g_sbeAsyncCommandProcessor_stack[SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE];
-
-////////////////////////////////////////////////////////////////
-// @brief PkThread structure for SBE Command Receiver thread
-////////////////////////////////////////////////////////////////
-PkThread g_sbeCommandReceiver_thread;
-
-////////////////////////////////////////////////////////////////
-// @brief PkThread structure for SBE Synchronous ChipOps
-//        processing thread
-////////////////////////////////////////////////////////////////
-PkThread g_sbeSyncCommandProcessor_thread;
-
-////////////////////////////////////////////////////////////////
-//// @brief PkThread structure for SBE Asynchronous ChipOps
-////        processing thread
-////////////////////////////////////////////////////////////////
-PkThread g_sbeAsyncCommandProcessor_thread;
-// SBE Frequency. Initially nest frequency is 133 MHZ
-uint32_t g_sbefreq = ( 133 * 1000 * 1000)/SBE::SBE_TO_NEST_FREQ_FACTOR;
 extern "C"
 {
 // These variables are declared in linker script to keep track of
@@ -131,12 +100,12 @@ uint32_t sbeInitSems(void)
 
     do
     {
-        l_rc = pk_semaphore_create(&g_sbeSemCmdRecv, 0, MAX_SEMAPHORE_COUNT);
+        l_rc = pk_semaphore_create(&SBE_GLOBAL->sbeSemCmdRecv, 0, MAX_SEMAPHORE_COUNT);
         if (l_rc)
         {
             break;
         }
-        l_rc = pk_semaphore_create(&g_sbeSemCmdProcess, 0, MAX_SEMAPHORE_COUNT);
+        l_rc = pk_semaphore_create(&SBE_GLOBAL->sbeSemCmdProcess, 0, MAX_SEMAPHORE_COUNT);
         if (l_rc)
         {
             break;
@@ -222,10 +191,10 @@ int sbeInitThreads(void)
     do
     {
         // Initialize Command receiver thread
-        l_rc = createAndResumeThreadHelper(&g_sbeCommandReceiver_thread,
+        l_rc = createAndResumeThreadHelper(&SBE_GLOBAL->sbeCommandReceiver_thread,
                             sbeCommandReceiver_routine,
                             (void *)0,
-                            (PkAddress)g_sbeCommandReceiver_stack,
+                            (PkAddress)SBE_GLOBAL->sbeCommandReceiver_stack,
                             SBE_THREAD_CMD_RECV_STACK_SIZE,
                             THREAD_PRIORITY_5);
         if (l_rc)
@@ -234,10 +203,10 @@ int sbeInitThreads(void)
         }
 
         // Initialize Synchronous Command Processor thread
-        l_rc = createAndResumeThreadHelper(&g_sbeSyncCommandProcessor_thread,
+        l_rc = createAndResumeThreadHelper(&SBE_GLOBAL->sbeSyncCommandProcessor_thread,
                             sbeSyncCommandProcessor_routine,
                             (void *)0,
-                            (PkAddress)g_sbeSyncCommandProcessor_stack,
+                            (PkAddress)SBE_GLOBAL->sbeSyncCommandProcessor_stack,
                             SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE,
                             THREAD_PRIORITY_7);
         if (l_rc)
@@ -246,10 +215,10 @@ int sbeInitThreads(void)
         }
 
         // Initialize Asynchronous Command Processor thread
-        l_rc = createAndResumeThreadHelper(&g_sbeAsyncCommandProcessor_thread,
+        l_rc = createAndResumeThreadHelper(&SBE_GLOBAL->sbeAsyncCommandProcessor_thread,
                             sbeAsyncCommandProcessor_routine,
                             (void *)0,
-                            (PkAddress)g_sbeAsyncCommandProcessor_stack,
+                            (PkAddress)SBE_GLOBAL->sbeAsyncCommandProcessor_stack,
                             SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE,
                             THREAD_PRIORITY_6);
         if (l_rc)
@@ -284,10 +253,10 @@ uint32_t main(int argc, char **argv)
     {
         // initializes kernel data -
         // stack, threads, timebase, timers, etc.
-        l_rc = pk_initialize((PkAddress)g_sbe_Kernel_NCInt_stack,
+        l_rc = pk_initialize((PkAddress)SBE_GLOBAL->sbe_Kernel_NCInt_stack,
              SBE_NONCRITICAL_STACK_SIZE,
              0,
-             g_sbefreq );
+             SBE_GLOBAL->sbefreq );
         if (l_rc)
         {
             break;

@@ -36,6 +36,7 @@
 #include "sbeHostMsg.H"
 #include "sbeHostUtils.H"
 #include "sbeTimerSvc.H"
+#include "sbeglobals.H"
 
 #include "fapi2.H"
 using namespace fapi2;
@@ -78,7 +79,7 @@ uint32_t sbeCntrlTimer( uint8_t *i_pArg )
 
     do
     {
-        if(g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_START_TIMER)
+        if(SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_START_TIMER)
         {
             uint64_t time = 0;
             l_rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
@@ -98,7 +99,7 @@ uint32_t sbeCntrlTimer( uint8_t *i_pArg )
                                      (PkTimerCallback)&sbeTimerExpiryCallback);
             if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
             {
-                g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
+                SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
                 SBE_ERROR(SBE_FUNC" g_hostTimerSvc.startTimer failed");
                 l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
                 break;
@@ -114,13 +115,13 @@ uint32_t sbeCntrlTimer( uint8_t *i_pArg )
             break;
         }
 
-        if(g_sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_STOP_TIMER)
+        if(SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_STOP_TIMER)
         {
             SBE_INFO(SBE_FUNC "Stop Timer.");
             l_rc = g_hostTimerSvc.stopTimer( );
             if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
             {
-                g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
+                SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
                 SBE_ERROR(SBE_FUNC" g_hostTimerSvc.stopTimer failed");
                 l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
                 break;
@@ -128,14 +129,14 @@ uint32_t sbeCntrlTimer( uint8_t *i_pArg )
             break;
         }
 
-        g_sbeSbe2PsuRespHdr.setStatus( SBE_PRI_INVALID_COMMAND,
+        SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus( SBE_PRI_INVALID_COMMAND,
                                        SBE_SEC_COMMAND_NOT_SUPPORTED);
         SBE_ERROR(SBE_FUNC" Not a valid flag 0x%4X",
-                  (uint16_t) g_sbePsu2SbeCmdReqHdr.flags);
+                  (uint16_t) SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags);
     }while(0);
 
     // Send the response
-    sbePSUSendResponse(g_sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;

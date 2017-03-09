@@ -25,6 +25,7 @@
 #include "sbeutil.H"
 #include "fapi2.H"
 #include "sbetrace.H"
+#include "sbeglobals.H"
 // Nest frequency array
 #include "p9_frequency_buckets.H"
 namespace SBE
@@ -51,10 +52,10 @@ namespace SBE
         uint8_t nestPllBkt = 0;
         FAPI_ATTR_GET( ATTR_NEST_PLL_BUCKET, sys, nestPllBkt );
         assert( nestPllBkt && (nestPllBkt <= NEST_PLL_FREQ_BUCKETS ));
-        g_sbefreq = ( NEST_PLL_FREQ_LIST[ nestPllBkt - 1 ] * 1000 * 1000 )/
+        SBE_GLOBAL->sbefreq = ( NEST_PLL_FREQ_LIST[ nestPllBkt - 1 ] * 1000 * 1000 )/
                                               SBE::SBE_TO_NEST_FREQ_FACTOR;
-        SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", g_sbefreq);
-        pk_timebase_freq_set(g_sbefreq);
+        SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
+        pk_timebase_freq_set(SBE_GLOBAL->sbefreq);
     }
 }
 

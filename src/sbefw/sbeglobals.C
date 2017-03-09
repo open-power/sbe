@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/sbestates.H $                                       */
+/* $Source: src/sbefw/sbeglobals.C $                                      */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2017                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,43 +22,12 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-/*
- * @file: ppe/sbe/sbefw/sbestates.H
- *
- * @brief This file contains interfaces pertaining to SBE state/role management
- *
- */
+#include "sbetrace.H"
+#include "sbeglobals.H"
 
-#ifndef __SBEFW_SBESTATES_H
-#define __SBEFW_SBESTATES_H
-
-/**
- * @brief An enumeration of all SBE states
- *
- */
-enum sbeState
+SBEGlobalsSingleton* sbeGlobal = &SBEGlobalsSingleton::getInstance();
+SBEGlobalsSingleton& SBEGlobalsSingleton::getInstance()
 {
-    SBE_STATE_UNKNOWN = 0x0, // Unkown, initial state
-    SBE_STATE_IPLING  = 0x1, // IPL'ing - autonomous mode (transient)
-    SBE_STATE_ISTEP   = 0x2, // ISTEP - Running IPL by steps (transient)
-    SBE_STATE_MPIPL   = 0x3, // MPIPL
-    SBE_STATE_RUNTIME = 0x4, // SBE Runtime
-    SBE_STATE_DMT     = 0x5, // Dead Man Timer State (transient)
-    SBE_STATE_DUMP    = 0x6, // Dumping
-    SBE_STATE_FAILURE = 0x7, // Internal SBE failure
-    SBE_STATE_QUIESCE = 0x8, // Final state - needs SBE reset to get out
-
-    // Max States, Always keep it at the last of the enum and sequential
-    SBE_MAX_STATE     = 0x9,
-    // Don't count this in the state, just to intialize the state variables
-    SBE_INVALID_STATE = 0xF,
-};
-
-enum sbeRole
-{
-    SBE_ROLE_MASTER = 0,
-    SBE_ROLE_SLAVE = 1
-};
-
-#endif //__SBEFW_SBESTATES_H
-
+    static SBEGlobalsSingleton iv_instance;
+    return iv_instance;
+}

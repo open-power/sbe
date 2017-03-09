@@ -42,12 +42,7 @@
 #include "sbeHostUtils.H"
 #include "sberegaccess.H"
 #include "sbeutil.H"
-
-sbeFifoCmdReqBuf_t g_sbeFifoCmdHdr;
-sbeCmdRespHdr_t g_sbeCmdRespHdr;
-sbePsu2SbeCmdReqHdr_t g_sbePsu2SbeCmdReqHdr;
-sbeSbe2PsuRespHdr_t g_sbeSbe2PsuRespHdr;
-sbeIntrHandle_t g_sbeIntrSource;
+#include "sbeglobals.H"
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -66,7 +61,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
         // @TODO via RTC: 128944
         //       Read Scratchpad
         // Wait for new data in FIFO or FIFO reset interrupt or PSU interrupt
-        int l_rcPk = pk_semaphore_pend (&g_sbeSemCmdRecv, PK_WAIT_FOREVER);
+        int l_rcPk = pk_semaphore_pend (&SBE_GLOBAL->sbeSemCmdRecv, PK_WAIT_FOREVER);
 
         do
         {
@@ -86,7 +81,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
             // class and the command opcode parameters.
 
             // Received FIFO Reset interrupt
-            if (  g_sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
+            if (  SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
                                          SBE_INTERFACE_FIFO_RESET) )
             {
                 SBE_ERROR(SBE_FUNC"FIFO reset received");
@@ -95,11 +90,11 @@ void sbeCommandReceiver_routine(void *i_pArg)
             }
 
             // Received PSU interrupt
-            if ( g_sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
+            if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
                                         SBE_INTERFACE_PSU) )
             {
                 //Clear the Interrupt Source bit for PSU
-                g_sbeIntrSource.clearIntrSource(SBE_INTERRUPT_ROUTINE,
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_INTERRUPT_ROUTINE,
                                                 SBE_INTERFACE_PSU);
                 curInterface = SBE_INTERFACE_PSU;
                 // First clear PSU->SBE DB bit 0
@@ -109,25 +104,25 @@ void sbeCommandReceiver_routine(void *i_pArg)
                     break;
                 }
 
-                // Initialize the g_sbePsu2SbeCmdReqHdr
-                g_sbePsu2SbeCmdReqHdr.init();
+                // Initialize the SBE_GLOBAL->sbePsu2SbeCmdReqHdr
+                SBE_GLOBAL->sbePsu2SbeCmdReqHdr.init();
                 // Read the request field from PSU->SBE Mbx Reg0
-                uint8_t l_cnt = sizeof(g_sbePsu2SbeCmdReqHdr)/sizeof(uint64_t);
+                uint8_t l_cnt = sizeof(SBE_GLOBAL->sbePsu2SbeCmdReqHdr)/sizeof(uint64_t);
 
                 l_rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG0, l_cnt,
-                                            (uint64_t *)&g_sbePsu2SbeCmdReqHdr);
+                                            (uint64_t *)&SBE_GLOBAL->sbePsu2SbeCmdReqHdr);
 
-                g_sbeSbe2PsuRespHdr.init();
-                l_cmdClass  = g_sbePsu2SbeCmdReqHdr.cmdClass;
-                l_command   = g_sbePsu2SbeCmdReqHdr.command;
+                SBE_GLOBAL->sbeSbe2PsuRespHdr.init();
+                l_cmdClass  = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.cmdClass;
+                l_command   = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.command;
             } // end if loop for PSU interface chipOp handling
 
             // Received FIFO New Data interrupt
-            else if ( g_sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
+            else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
                                              SBE_INTERFACE_FIFO) )
             {
                 //Clear the Interrupt Source bit for FIFO
-                g_sbeIntrSource.clearIntrSource(SBE_INTERRUPT_ROUTINE,
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_INTERRUPT_ROUTINE,
                                                 SBE_INTERFACE_FIFO);
                 curInterface = SBE_INTERFACE_FIFO;
 
@@ -139,14 +134,14 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 //    validation failure.
                 //  - if there is a need to handle FIFO reset
 
-                // Accordingly, this will update g_sbeCmdRespHdr.prim_status
-                // and g_sbeCmdRespHdr.sec_status for command processor thread
+                // Accordingly, this will update SBE_GLOBAL->sbeCmdRespHdr.prim_status
+                // and SBE_GLOBAL->sbeCmdRespHdr.sec_status for command processor thread
                 // to handle them later in the sequence.
 
-                g_sbeFifoCmdHdr.cmdClass = SBE_CMD_CLASS_UNKNOWN;
-                g_sbeCmdRespHdr.init();
-                uint32_t len = sizeof(g_sbeFifoCmdHdr)/sizeof(uint32_t);
-                l_rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&g_sbeFifoCmdHdr,
+                SBE_GLOBAL->sbeFifoCmdHdr.cmdClass = SBE_CMD_CLASS_UNKNOWN;
+                SBE_GLOBAL->sbeCmdRespHdr.init();
+                uint32_t len = sizeof(SBE_GLOBAL->sbeFifoCmdHdr)/sizeof(uint32_t);
+                l_rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&SBE_GLOBAL->sbeFifoCmdHdr,
                         false );
 
                 // If FIFO reset is requested,
@@ -162,7 +157,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 {
                     SBE_ERROR(SBE_FUNC"sbeUpFifoDeq_mult failure, "
                             " l_rc=[0x%08X]", l_rc);
-                    g_sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_DATA, l_rc);
+                    SBE_GLOBAL->sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_DATA, l_rc);
 
                     // Reassign l_rc to Success to Unblock command processor
                     // thread and let that take the necessary action.
@@ -170,8 +165,8 @@ void sbeCommandReceiver_routine(void *i_pArg)
                     break;
                 }
 
-                l_cmdClass  = g_sbeFifoCmdHdr.cmdClass;
-                l_command   = g_sbeFifoCmdHdr.command;
+                l_cmdClass  = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
+                l_command   = SBE_GLOBAL->sbeFifoCmdHdr.command;
             } // end else if loop for FIFO interface chipOp handling
 
             // Any other FIFO access issue
@@ -189,11 +184,11 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 SBE_ERROR(SBE_FUNC"Command validation failed");
                 if ( SBE_INTERFACE_PSU == curInterface )
                 {
-                    g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,l_rc);
+                    SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,l_rc);
                 }
                 else if ( SBE_INTERFACE_FIFO == curInterface )
                 {
-                    g_sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND, l_rc);
+                    SBE_GLOBAL->sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND, l_rc);
                 }
 
                 // Reassign l_rc to Success to Unblock command processor
@@ -214,12 +209,12 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
                 if ( SBE_INTERFACE_PSU == curInterface )
                 {
-                    g_sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
+                    SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
                                 SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE);
                 }
                 else if ( SBE_INTERFACE_FIFO == curInterface )
                 {
-                    g_sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
+                    SBE_GLOBAL->sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
                                 SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE);
                 }
 
@@ -229,7 +224,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
         } while (false); // Inner do..while ends
 
-        g_sbeIntrSource.setIntrSource(SBE_RX_ROUTINE, curInterface );
+        SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_RX_ROUTINE, curInterface );
         // If there was a FIFO reset request,
         if (l_rc == SBE_FIFO_RESET_RECEIVED)
         {
@@ -243,16 +238,16 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 // Collect FFDC?
             }
 
-            if ( g_sbeIntrSource.isSet(SBE_RX_ROUTINE, SBE_INTERFACE_FIFO) )
+            if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE, SBE_INTERFACE_FIFO) )
             {
-                g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO);
             }
 
-            if ( g_sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
+            if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
                                         SBE_INTERFACE_FIFO_RESET) )
             {
-                g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO_RESET);
             }
 
@@ -265,7 +260,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
         // if we could dequeue the header successfully,
         if ((l_rcPk == PK_OK) && (l_rc == SBE_SEC_OPERATION_SUCCESSFUL))
         {
-            l_rcPk = pk_semaphore_post(&g_sbeSemCmdProcess);
+            l_rcPk = pk_semaphore_post(&SBE_GLOBAL->sbeSemCmdProcess);
         }
 
         // Handle Cmd not in a valid state here
@@ -280,29 +275,29 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 // Add Error trace, collect FFDC and
                 // continue wait for the next interrupt
                 SBE_ERROR(SBE_FUNC"Unexpected failure, "
-                    "l_rcPk=[%d], g_sbeSemCmdProcess.count=[%d], l_rc=[%d]",
-                    l_rcPk, g_sbeSemCmdProcess.count, l_rc);
+                    "l_rcPk=[%d], SBE_GLOBAL->sbeSemCmdProcess.count=[%d], l_rc=[%d]",
+                    l_rcPk, SBE_GLOBAL->sbeSemCmdProcess.count, l_rc);
                 pk_halt();
             }
             if ( SBE_INTERFACE_PSU == curInterface )
             {
                 sbeHandlePsuResponse(l_rc);
-                g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_PSU);
                 pk_irq_enable(SBE_IRQ_HOST_PSU_INTR);
             }
             else if ( SBE_INTERFACE_FIFO == curInterface )
             {
                 sbeHandleFifoResponse(l_rc);
-                g_sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO);
                 pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
             }
             continue;
         }
 
-        SBE_DEBUG(SBE_FUNC"Posted g_sbeSemCmdProcess, "
-               "g_sbeSemCmdProcess.count=[%d]", g_sbeSemCmdProcess.count);
+        SBE_DEBUG(SBE_FUNC"Posted SBE_GLOBAL->sbeSemCmdProcess, "
+               "SBE_GLOBAL->sbeSemCmdProcess.count=[%d]", SBE_GLOBAL->sbeSemCmdProcess.count);
 
     } while (true); // thread always exists
     #undef SBE_FUNC

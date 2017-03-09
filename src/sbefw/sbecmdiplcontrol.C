@@ -38,6 +38,7 @@
 #include "sberegaccess.H"
 #include "sbestates.H"
 #include "sbecmdcntrldmt.H"
+#include "sbeglobals.H"
 
 #include "fapi2.H"
 #include "p9_misc_scom_addresses_fld.H"
@@ -214,9 +215,7 @@ static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 33;
 // Globals
 // TODO: via RTC 123602 This global needs to move to a class that will store the
 // SBE FFDC.
-fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
-
-sbeRole g_sbeRole = SBE_ROLE_MASTER;
+static fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
 
 static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
         {
@@ -540,7 +539,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
             case SBE_ISTEP3:
                 if( (i_minor > ISTEP3_MAX_SUBSTEPS ) ||
-                    ((SBE_ROLE_SLAVE == g_sbeRole) &&
+                    ((SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole) &&
                     (i_minor > SLAVE_LAST_MINOR_ISTEP)) )
                 {
                     valid = false;
@@ -549,7 +548,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
             case SBE_ISTEP4:
                 if( (i_minor > ISTEP4_MAX_SUBSTEPS ) ||
-                    (SBE_ROLE_SLAVE == g_sbeRole) )
+                    (SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole) )
                 {
                     valid = false;
                 }
@@ -557,7 +556,7 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 
             case SBE_ISTEP5:
                 if( (i_minor > ISTEP5_MAX_SUBSTEPS ) ||
-                    (SBE_ROLE_SLAVE == g_sbeRole) )
+                    (SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole) )
                 {
                     valid = false;
                 }
@@ -807,10 +806,10 @@ ReturnCode istepCheckSbeMaster( sbeIstepHwp_t i_hwp)
             SBE_ERROR(SBE_FUNC" performTpmReset failed");
             break;
         }
-        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
+        SBE_GLOBAL->SBERole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
                     SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
-        SBE_INFO(SBE_FUNC"g_sbeRole [%x]", g_sbeRole);
-        if(SBE_ROLE_SLAVE == g_sbeRole)
+        SBE_INFO(SBE_FUNC"SBE_GLOBAL->SBERole [%x]", SBE_GLOBAL->SBERole);
+        if(SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole)
         {
             (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_RUNTIME_EVENT);
@@ -878,7 +877,7 @@ void sbeDoContinuousIpl()
                 // Check if we are at step 3.20 on the slave SBE
                 if(((SBE_ISTEP_LAST_SLAVE == l_major) &&
                         (SLAVE_LAST_MINOR_ISTEP == l_minor)) &&
-                        (SBE_ROLE_SLAVE == g_sbeRole))
+                        (SBE_ROLE_SLAVE == SBE_GLOBAL->SBERole))
                 {
                     l_done = true;
                     break;
@@ -1109,7 +1108,7 @@ ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp)
     #define SBE_FUNC "istepMpiplQuadPoweroff"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
-    if(g_sbeRole == SBE_ROLE_MASTER)
+    if(SBE_GLOBAL->SBERole == SBE_ROLE_MASTER)
     {
         Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
         // Fetch the MASTER_CORE attribute

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -68,9 +68,6 @@ typedef struct
     }
 } sbePsu2SbeCmdReqHdr_t;
 
-extern sbePsu2SbeCmdReqHdr_t g_sbePsu2SbeCmdReqHdr;
-
-
 /*****************************************************************/
 /*            SBE->PSU response structures                       */
 /*****************************************************************/
@@ -118,16 +115,7 @@ typedef struct
       * @brief initialize the response fields contained in PSU Mbx3
       *
       */
-    void init()
-    {
-        primStatus   = SBE_PRI_OPERATION_SUCCESSFUL;
-        secStatus    = SBE_SEC_OPERATION_SUCCESSFUL;
-        seqID        = g_sbePsu2SbeCmdReqHdr.seqID;
-        cmdClass     = g_sbePsu2SbeCmdReqHdr.cmdClass;
-        command      = g_sbePsu2SbeCmdReqHdr.command;
-    }
+    void init();
 } sbeSbe2PsuRespHdr_t;
-
-extern sbeSbe2PsuRespHdr_t g_sbeSbe2PsuRespHdr;
 
 #endif // __SBEFW_SBEHOST_MSG_H
