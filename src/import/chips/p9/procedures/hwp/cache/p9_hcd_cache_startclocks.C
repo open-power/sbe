@@ -93,6 +93,7 @@ p9_hcd_cache_startclocks(
     uint64_t                                    l_l2sync_clock;
     uint64_t                                    l_l2pscom_mask;
     uint64_t                                    l_l3pscom_mask;
+    uint32_t                                    l_scom_addr;
     uint32_t                                    l_timeout;
     uint32_t                                    l_attr_system_id     = 0;
     uint8_t                                     l_attr_group_id      = 0;
@@ -106,6 +107,9 @@ p9_hcd_cache_startclocks(
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_perv =
         i_target.getParent<fapi2::TARGET_TYPE_PERV>();
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>    l_sys;
+    auto l_core_functional_vector =
+        i_target.getChildren<fapi2::TARGET_TYPE_CORE>
+        (fapi2::TARGET_STATE_FUNCTIONAL);
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE,         l_sys,
                            l_attr_system_ipl_phase));
@@ -346,6 +350,20 @@ p9_hcd_cache_startclocks(
     FAPI_DBG("Drop partial good and assert partial bad L2/L3 pscom masks");
     l_data64 = (l_l2pscom_mask | l_l3pscom_mask);
     FAPI_TRY(putScom(i_target, EQ_RING_FENCE_MASK_LATCH_REG, l_data64));
+
+    // Allow the CME to access the PCB Slave NET_CTRL registers
+    for(auto& it : l_core_functional_vector)
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               it.getParent<fapi2::TARGET_TYPE_PERV>(),
+                               l_attr_chip_unit_pos));
+        FAPI_DBG("Drop core[%d] PCB Mux Disable via C_SLAVE_CONFIG[7]",
+                 (l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET));
+        l_scom_addr = (C_SLAVE_CONFIG_REG + (0x1000000 *
+                                             (l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET)));
+        FAPI_TRY(getScom(l_chip, l_scom_addr, l_data64));
+        FAPI_TRY(putScom(l_chip, l_scom_addr, DATA_UNSET(7)));
+    }
 
     // -------------------------------
     // Update Status

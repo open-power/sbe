@@ -64,12 +64,31 @@ p9_hcd_cache_poweron(
 {
     FAPI_INF(">>p9_hcd_cache_poweron");
     fapi2::buffer<uint64_t> l_data64;
-    fapi2::buffer<uint8_t>  l_attr_dd1_vcs_workaround;
+    uint8_t                 l_attr_dd1_vcs_workaround   = 0;
+    uint8_t                 l_attr_chip_unit_pos        = 0;
+    uint32_t                l_scom_addr                 = 0;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    auto l_core_functional_vector =
+        i_target.getChildren<fapi2::TARGET_TYPE_CORE>
+        (fapi2::TARGET_STATE_FUNCTIONAL);
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW388878, l_chip,
                            l_attr_dd1_vcs_workaround));
+
+    // Gate the PCBMux request so scanning doesn't cause random requests
+    for(auto& it : l_core_functional_vector)
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               it.getParent<fapi2::TARGET_TYPE_PERV>(),
+                               l_attr_chip_unit_pos));
+        FAPI_DBG("Assert core[%d] PCB Mux Disable via C_SLAVE_CONFIG[7]",
+                 (l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET));
+        l_scom_addr = (C_SLAVE_CONFIG_REG + (0x1000000 *
+                                             (l_attr_chip_unit_pos - p9hcd::PERV_TO_CORE_POS_OFFSET)));
+        FAPI_TRY(getScom(l_chip, l_scom_addr, l_data64));
+        FAPI_TRY(putScom(l_chip, l_scom_addr, DATA_SET(7)));
+    }
 
     //--------------------------
     // Prepare to power on cache
