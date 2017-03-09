@@ -365,6 +365,10 @@ attribute tank
           <name>ATTR_CHIP_EC_FEATURE_RING_SAVE_MPIPL</name>
           <virtual/>
   </entry>
+  <entry>
+          <name>ATTR_CHIP_EC_FEATURE_NDD1_ABIST_PARALLEL</name>
+          <virtual/>
+  </entry>
 
   <entry>
         <name>ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET</name>
