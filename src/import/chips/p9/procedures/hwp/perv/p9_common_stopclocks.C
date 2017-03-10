@@ -56,7 +56,7 @@ enum P9_common_stopclocks_Private_Constants
 };
 
 /// @brief --Raise partial good fences
-/// --set abstclk muxsel,syncclk_muxsel
+/// --Clear abstclk muxsel & Set syncclk_muxsel
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
@@ -83,8 +83,13 @@ fapi2::ReturnCode p9_common_stopclocks_cplt_ctrl_action_function(
     l_data64.insertFromRight<4, 11>(l_cplt_ctrl_init);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_OR, l_data64));
 
-    FAPI_DBG("set syncclk_muxsel");
-    //Setting CPLT_CTRL0 register value
+    FAPI_DBG("Clear abistclk_muxsel");
+    l_data64.flush<0>();
+    //CPLT_CTRL0.CTRL_CC_ABSTCLK_MUXSEL_DC = 0
+    l_data64.setBit<PERV_1_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL0_CLEAR, l_data64));
+
+    FAPI_DBG("Set syncclk_muxsel");
     l_data64.flush<0>();
     //CPLT_CTRL0.TC_UNIT_SYNCCLK_MUXSEL_DC = 1
     l_data64.setBit<PERV_1_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
