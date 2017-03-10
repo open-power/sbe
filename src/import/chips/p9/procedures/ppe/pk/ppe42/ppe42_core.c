@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -114,17 +114,15 @@ __pk_schedule_hardware_timeout(PkTimebase timeout)
     PkTimebase       diff;
     uint32_t         new_dec;
 
+    now = pk_timebase_get();
+    //update the 64bit accumulator with the current
+    ppe42_64bit_timebase =  now;
+
     if (timeout != PK_TIMEBASE_MAX)
     {
-
-        now = pk_timebase_get();
-
-        //update our 64bit accumulator with the current snapshot
-        ppe42_64bit_timebase = now;
-
         if (timeout <= now)
         {
-            new_dec = 1;
+            new_dec = PK_DEC_MIN;
         }
         else
         {
@@ -137,11 +135,15 @@ __pk_schedule_hardware_timeout(PkTimebase timeout)
             else
             {
                 new_dec = diff;
+
+                if(new_dec < PK_DEC_MIN)
+                {
+                    new_dec = PK_DEC_MIN;
+                }
             }
         }
 
         mtspr(SPRN_DEC, new_dec);
-
     }
 }
 

@@ -234,6 +234,10 @@
 
 #define PK_TIMEBASE_MAX ((PkTimebase)-1)
 
+/// The minimum count the DEC counter can have so as to not overrun PK
+///  with DEC interrupts.
+#define PK_DEC_MIN  32
+
 /// A special value that specifies that the timebase will not be reset during
 /// pk_init().
 
@@ -955,7 +959,10 @@ extern PkDeque _pk_bh_queue;
 static inline void
 pk_bh_schedule(PkBottomHalf* bottom_half)
 {
-    pk_deque_push_back(&_pk_bh_queue, (PkDeque*)bottom_half);
+    if(!pk_deque_is_queued((PkDeque*)bottom_half))
+    {
+        pk_deque_push_back(&_pk_bh_queue, (PkDeque*)bottom_half);
+    }
 }
 
 #define PK_BH_INIT(_handler, _arg) \
