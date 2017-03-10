@@ -105,42 +105,6 @@ typedef struct
 }sbeRespGenHdr_t;
 
 /**
-  * @brief structure for generic Resp header with Len for fifo response.
-  *
-  */
-typedef struct
-{
-    uint32_t respLen;
-    sbeRespGenHdr_t respHdr;
-
-    /**
-      * @brief set response length
-      *
-      * @param[in] i_len   Length
-      *
-      * @return
-      */
-    void setLength( const uint32_t i_len )
-    {
-        respLen = i_len;
-    }
-
-    /**
-      * @brief set initial values for response header
-      *
-      * @note  We did not set this in constructor as based on use case
-      *        it is possible that g_sbeCmdHdr does not have proper
-      *        values at time of object creation.
-      *
-      */
-    void init()
-    {
-        respHdr.init();
-    }
-}sbeRespGenHdrWithLen_t;
-
-
-/**
   * @brief structure for ffdc header for fifo response.
   *
   */

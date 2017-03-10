@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2017                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -25,8 +25,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
       <testcase>
-          <!-- TODO RTC - 150091 - Add the Occ sram test case -->
-          <!--<simcmd>run-python-file targets/p9_nimbus/sbeTest/testSram.py</simcmd>-->
-          <!--<exitonerror>yes</exitonerror>-->
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testSram.py</simcmd>
+          <exitonerror>yes</exitonerror>
       </testcase>
 

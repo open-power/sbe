@@ -68,7 +68,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
 
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
 
-    sbeRespGenHdrWithLen_t l_respHdr;
+    sbeRespGenHdr_t l_respHdr;
     l_respHdr.init();
     sbeResponseFfdc_t l_ffdc;
 
@@ -90,13 +90,8 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                                   (uint32_t *)&l_req,
                                   i_isGetFlag);
 
-        // If FIFO failure
-        if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-        {
-            // Let command processor routine to handle the RC.
-            break;
-        }
 
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         SBE_INFO("mode [0x%08X] addr[0x%08X] len[0x%08X]",
              (uint32_t)l_req.mode,
              (uint32_t)l_req.addr,
@@ -135,13 +130,10 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
             default:
                 SBE_ERROR(SBE_FUNC "Invalid Mode Passed by User");
                 l_rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
-                l_respHdr.respHdr.setStatus( SBE_PRI_INVALID_DATA, l_rc);
+                l_respHdr.setStatus( SBE_PRI_INVALID_DATA, l_rc);
                 break;
         }
-        if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-        {
-            break;
-        }
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
         // Setup Needs to be called in Normal and Debug Mode only
         if( (l_req.mode == NORMAL_MODE) || (l_req.mode == DEBUG_MODE) )
@@ -156,7 +148,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                     l_chan, l_req.addr);
 
                 // Respond with HWP FFDC
-                l_respHdr.respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                          SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
                 l_ffdc.setRc(l_fapiRc);
                 break;
@@ -189,12 +181,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                 l_rc = sbeUpFifoDeq_mult ( l_len2dequeue,
                                            l_getBuf,
                                            false);
-                // If there was an underlying FIFO operation failure
-                if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-                {
-                    // Let command processor routine to handle the RC.
-                    break;
-                }
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
 
             // Don't need to put any check for Linear/Circular - It's the same
@@ -217,7 +204,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                  l_chan, l_req.addr, (l_lenPassedToHwp/SBE_64BIT_ALIGN_FACTOR));
 
                 // Respond with HWP FFDC
-                l_respHdr.respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                          SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
                 l_ffdc.setRc(l_fapiRc);
                 break;
@@ -233,22 +220,14 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                 l_len2dequeue = (l_lenPassedToHwp/SBE_32BIT_ALIGN_FACTOR);
                 // Push this into the downstream FIFO
                 l_rc = sbeDownFifoEnq_mult (l_len2dequeue, l_getBuf);
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-                // If FIFO failure
-                if (SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-                {
-                    // Let command processor routine to handle the RC.
-                    break;
-                }
             }
         } // End of while Put/Get from Hwp
 
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
-        if ( SBE_SEC_OPERATION_SUCCESSFUL != l_rc )
-        {
-            break;
-        }
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
         do
         {
@@ -261,62 +240,23 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                 {
                     l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL,
                                              true, true);
-                    if ( SBE_SEC_OPERATION_SUCCESSFUL != l_rc )
-                    {
-                        break;
-                    }
+                    CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
                 }
                 // For other success paths, just attempt to offload
                 // the next entry, which is supposed to be the EOT entry
                 else
                 {
                     l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL, true);
-                    if ( SBE_SEC_OPERATION_SUCCESSFUL != l_rc )
-                    {
-                        break;
-                    }
+                    CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
                 }
             }
 
-            // Distance to Header is minus the length field in the response
-            // buffer. So when we do sizeof(l_respHdr) It will add an extra byte
-            // for the length. So it compensates for the length, if we start the
-            // distance from hdr as zero.
-            uint32_t l_dist2Hdr = 0;
-
-            // Now enqueue the minimum response header
+            uint32_t l_len = 1;
             // first enqueue the length of data actually written
-            l_respHdr.setLength(l_totalReturnLen);
-            uint32_t l_len = sizeof(l_respHdr) / sizeof(uint32_t);
-            l_rc = sbeDownFifoEnq_mult(l_len, (uint32_t *)(&l_respHdr));
+            l_rc = sbeDownFifoEnq_mult(l_len, (uint32_t *)(&l_totalReturnLen));
 
-            if ( SBE_SEC_OPERATION_SUCCESSFUL != l_rc )
-            {
-                break;
-            }
-
-            l_dist2Hdr += l_len;
-
-            // Enqueue FFDC data if there is one
-            if( l_ffdc.getRc() )
-            {
-                l_len = sizeof(l_ffdc) / sizeof(uint32_t);
-                l_rc = sbeDownFifoEnq_mult (l_len, (uint32_t *)(&l_ffdc));
-                if ( SBE_SEC_OPERATION_SUCCESSFUL != l_rc )
-                {
-                    break;
-                }
-
-                l_dist2Hdr += l_len;
-            }
-
-            l_len = sizeof(l_dist2Hdr) / sizeof(uint32_t);
-            l_rc = sbeDownFifoEnq_mult ( l_len, &l_dist2Hdr);
-
-            if ( SBE_SEC_OPERATION_SUCCESSFUL != l_rc )
-            {
-                break;
-            }
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+            l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
         }while(0);
     }while(0);
 
