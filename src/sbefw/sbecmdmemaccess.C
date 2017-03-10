@@ -417,7 +417,8 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     {
         l_aduFlag.setFastMode(true);
     }
-    // TODO set DMA_PARTIAL mode by default if CI mode is not set
+    // Set DMA_PARTIAL mode by default
+    l_aduFlag.setOperationType(p9_ADU_oper_flag::DMA_PARTIAL);
     if(i_hdr.isCacheInhibitModeFlagSet())
     {
         l_aduFlag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);
