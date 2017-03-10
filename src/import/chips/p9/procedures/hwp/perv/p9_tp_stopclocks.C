@@ -152,14 +152,27 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 
     if(i_stop_pib_clks)
     {
-        FAPI_INF("p9_tp_stopclocks: Raise OOB Mux");
+        FAPI_DBG("p9_tp_stopclocks: Assert CFAM fences");
+        //Setting ROOT_CTRL0 register
+        //CFAM.ROOT_CTRL0.FENCE[0..6]_DC = 1
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE0_DC>();
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE1_DC>();
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE2_DC>();
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE3_DC>();
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE4_DC>();
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE5_DC>();
+        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE6_DC>();
+        FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
+                                        l_data32_root_ctrl0));
+
+        FAPI_DBG("p9_tp_stopclocks: Raise OOB Mux");
         //Setting ROOT_CTRL0 register value
         //CFAM.ROOT_CTRL0.OOB_MUX = 1
         l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_SET_OOB_MUX>();
         FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI,
                                         l_data32_root_ctrl0));
 
-        FAPI_INF("p9_tp_stopclocks: Raise Global Endpoint reset");
+        FAPI_DBG("p9_tp_stopclocks: Raise Global Endpoint reset");
         //Setting ROOT_CTRL0 register value
         //CFAM.ROOT_CTRL0.GLOBAL_EP_RESET_DC = 1
         l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_SET_GLOBAL_EP_RESET_DC>();
