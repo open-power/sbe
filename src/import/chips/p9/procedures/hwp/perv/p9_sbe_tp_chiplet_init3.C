@@ -65,7 +65,9 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
     LFIR_ACTION0_VALUE = 0x0000000000000000,
     LFIR_ACTION1_VALUE = 0x8000000000000000,
     FIR_MASK_VALUE = 0xFFFFFFFFFFC00000,
-    IPOLL_MASK_VALUE = 0xFC00000000000000
+    IPOLL_MASK_VALUE = 0xFC00000000000000,
+    TOD_ERROR_ROUTING = 0x9FC02000F0004000,
+    TOD_ERROR_MASK = 0x0000000003F00000
 };
 
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
@@ -142,8 +144,14 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
 
     //TOD error reg;
+    FAPI_DBG("Set TOD error routing register");
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_ERROR_ROUTING_REG, TOD_ERROR_ROUTING));
     //config TOD error mask reg;
+    FAPI_DBG("Configure TOD error mask register");
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_ERROR_MASK_REG, TOD_ERROR_MASK));
     //clear TOD error reg;
+    FAPI_DBG("Clear TOD error register");
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_ERROR_REG, 0x0));
 
     FAPI_DBG("Clear pervasive LFIR");
     //Setting LOCAL_FIR register value
