@@ -149,6 +149,11 @@ fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
 fapi2::ReturnCode select_ex_add_eq_to_mc_group(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
 
+fapi2::ReturnCode select_ex_update_mc_group(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
+    const uint8_t i_mc_group,
+    const uint64_t i_mc_reg_addr);
+
 // -----------------------------------------------------------------------------
 //  Function definitions
 // -----------------------------------------------------------------------------
@@ -405,16 +410,6 @@ fapi2::ReturnCode select_ex_add_core_to_mc_group(
 {
     FAPI_INF("> add_to_core_mc_group...");
 
-    fapi2::buffer<uint64_t> l_data64 = 0;
-
-    // Add core to functional Chiplets group
-
-    // Entering group
-    l_data64.insertFromRight<0, 3>(0x7);
-    l_data64.insertFromRight<3, 3>(ALL_CHIPLETS_MC_GROUP);
-    // Removed group
-    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
-
 #ifndef __PPE__
     uint8_t l_attr_chip_unit_pos = 0;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
@@ -425,35 +420,19 @@ fapi2::ReturnCode select_ex_add_core_to_mc_group(
              l_attr_chip_unit_pos - PERV_CORE_START,
              ALL_CHIPLETS_MC_GROUP );
 #endif
-    FAPI_TRY(fapi2::putScom(i_target_cplt,
-                            ALL_CHIPLETS_MC_REG,
-                            l_data64),
-             "Error: Core MC group register, rc 0x%.8X",
-             (uint32_t)fapi2::current_err);
 
-    // Add core to functional core group
-    // Entering group
-    l_data64.insertFromRight<0, 3>(0x7);
-    l_data64.insertFromRight<3, 3>(ALL_CORES_MC_GROUP);
-    // Removed group
-    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
-
+    select_ex_update_mc_group(i_target_cplt,
+                              ALL_CHIPLETS_MC_GROUP,
+                              ALL_CHIPLETS_MC_REG);
 #ifndef __PPE__
     FAPI_DBG("Adding Core %d to MC group %d",
              l_attr_chip_unit_pos - PERV_CORE_START,
              ALL_CORES_MC_GROUP );
 #endif
-    FAPI_TRY(fapi2::putScom(i_target_cplt,
-                            ALL_CORES_MC_REG,
-                            l_data64),
-             "Error: Core MC group register, rc 0x%.8X",
-             (uint32_t)fapi2::current_err);
 
-    // Entering group
-    l_data64.insertFromRight<0, 3>(0x7);
-    l_data64.insertFromRight<3, 3>(CORE_STOP_MC_GROUP);
-    // Removed group
-    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
+    select_ex_update_mc_group(i_target_cplt,
+                              ALL_CORES_MC_GROUP,
+                              ALL_CORES_MC_REG);
 
 #ifndef __PPE__
     FAPI_DBG("Adding Core %d to MC group %d",
@@ -461,11 +440,9 @@ fapi2::ReturnCode select_ex_add_core_to_mc_group(
              CORE_STOP_MC_GROUP );
 #endif
 
-    FAPI_TRY(fapi2::putScom(i_target_cplt,
-                            CORE_MC_REG,
-                            l_data64),
-             "Error: Core MC group register, rc 0x%.8X",
-             (uint32_t)fapi2::current_err);
+    select_ex_update_mc_group(i_target_cplt,
+                              CORE_STOP_MC_GROUP,
+                              CORE_MC_REG);
 
 fapi_try_exit:
     FAPI_INF("< add_to_core_mc_group...");
@@ -491,46 +468,29 @@ fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
     // If the Core is in a odd EX, then put the EQ chiplet in the EQ MC group
     // and the EX Odd MC group.
 
-    fapi2::buffer<uint64_t> l_data64 = 0;
-
-    l_data64.insertFromRight<0, 3>(0x7);
-    // Removed group
-    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
-
-    if (i_ex_num % 2)   // Odd EX
+    if(i_ex_num % 2)
     {
-
+#ifndef __PPE__
         FAPI_DBG("Add EX %d (Odd) to MC group %d",
                  i_ex_num,
                  EX_ODD_STOP_MC_GROUP);
-
-        // Entering group
-        l_data64.insertFromRight<3, 3>(EX_ODD_STOP_MC_GROUP);
-
-        FAPI_TRY(fapi2::putScom(i_target_cplt,
-                                EX_ODD_MC_REG,
-                                l_data64),
-                 "Error: EX Odd MC group register, rc 0x%.8X",
-                 (uint32_t)fapi2::current_err);
-
+#endif
+        select_ex_update_mc_group(i_target_cplt,
+                                  EX_ODD_STOP_MC_GROUP,
+                                  EX_ODD_MC_REG);
     }
-    else                // Even EX
+    else
     {
+#ifndef __PPE__
         FAPI_DBG("Add EX %d (Even) to MC group %d",
                  i_ex_num,
                  EX_EVEN_STOP_MC_GROUP);
-
-        // Entering group
-        l_data64.insertFromRight<3, 3>(EX_EVEN_STOP_MC_GROUP);
-
-        FAPI_TRY(fapi2::putScom(i_target_cplt,
-                                EX_EVEN_MC_REG,
-                                l_data64),
-                 "Error: EX Even MC group register, rc 0x%.16X",
-                 (uint32_t)fapi2::current_err);
+#endif
+        select_ex_update_mc_group(i_target_cplt,
+                                  EX_EVEN_STOP_MC_GROUP,
+                                  EX_EVEN_MC_REG);
     }
 
-fapi_try_exit:
     FAPI_INF("< select_ex_add_ex_to_mc_groups...");
     return fapi2::current_err;
 
@@ -545,16 +505,6 @@ fapi2::ReturnCode select_ex_add_eq_to_mc_group(
 {
     FAPI_INF("> select_ex_add_eq_to_mc_group...");
 
-    fapi2::buffer<uint64_t> l_data64;
-
-    // Add EQ to functional chiplets group
-
-    // Entering group
-    l_data64.insertFromRight<0, 3>(0x7);
-    l_data64.insertFromRight<3, 3>(ALL_CHIPLETS_MC_GROUP);
-    // Removed group
-    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
-
 #ifndef __PPE__
     uint8_t l_attr_chip_unit_pos = 0;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
@@ -566,19 +516,9 @@ fapi2::ReturnCode select_ex_add_eq_to_mc_group(
              ALL_CHIPLETS_MC_GROUP );
 #endif
 
-    FAPI_TRY(fapi2::putScom(i_target_cplt,
-                            ALL_CHIPLETS_MC_REG,
-                            l_data64),
-             "Error: EQ All chiplets MC group register, rc 0x%.8X",
-             (uint32_t)fapi2::current_err);
-
-    // Add EQ to EQ STOP group
-
-    // Entering group
-    l_data64.insertFromRight<0, 3>(0x7);
-    l_data64.insertFromRight<3, 3>(EQ_STOP_MC_GROUP);
-    // Removed group
-    l_data64.insertFromRight<19, 3>(BROADCAST_GROUP);
+    select_ex_update_mc_group(i_target_cplt,
+                              ALL_CHIPLETS_MC_GROUP,
+                              ALL_CHIPLETS_MC_REG);
 
 #ifndef __PPE__
     FAPI_DBG("Adding EQ %d to MC group %d",
@@ -586,14 +526,53 @@ fapi2::ReturnCode select_ex_add_eq_to_mc_group(
              EQ_STOP_MC_GROUP );
 #endif
 
-    FAPI_TRY(fapi2::putScom(i_target_cplt,
-                            EQ_MC_REG,
-                            l_data64),
-             "Error: EQ MC group register, rc 0x%.8X",
-             (uint32_t)fapi2::current_err);
+    select_ex_update_mc_group(i_target_cplt,
+                              EQ_STOP_MC_GROUP,
+                              EQ_MC_REG);
 
 fapi_try_exit:
     FAPI_INF("< select_ex_add_eq_to_mc_group...");
     return fapi2::current_err;
 
 }
+
+///-----------------------------------------------------------------------------
+/// @brief Update mc group reg with a read modify write
+///
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode select_ex_update_mc_group(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
+    const uint8_t i_mc_group,
+    const uint64_t i_mc_reg_addr)
+{
+    FAPI_INF("> select_ex_update_mc_group...");
+
+    fapi2::buffer<uint64_t> l_data64;
+    uint8_t l_prevGroup = 0;
+
+    FAPI_TRY(fapi2::getScom(i_target_cplt,
+                            i_mc_reg_addr,
+                            l_data64));
+
+    // Read out the previous group and save it
+    l_data64.extractToRight<uint8_t>(l_prevGroup, 3, 3);
+
+    // adding group
+    l_data64.insertFromRight<0, 3>(0x7);
+    l_data64.insertFromRight<3, 3>(i_mc_group);
+    // Removing group
+    l_data64.insertFromRight<19, 3>(l_prevGroup);
+
+
+    FAPI_TRY(fapi2::putScom(i_target_cplt,
+                            i_mc_reg_addr,
+                            l_data64),
+             "Error: Failed to write multicast group update, rc 0x%.8X",
+             (uint32_t)fapi2::current_err);
+
+fapi_try_exit:
+    FAPI_INF("< select_ex_update_mc_group...");
+    return fapi2::current_err;
+}
+
+
