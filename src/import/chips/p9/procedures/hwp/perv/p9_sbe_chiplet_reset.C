@@ -172,7 +172,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     {
         uint32_t l_chipletID = obus.getChipletNumber();
 
-        if(l_chipletID >= 9 && l_chipletID <= 12)
+        if(l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID)
         {
             FAPI_TRY(p9_sbe_chiplet_reset_all_obus_scan0(obus));
         }
@@ -222,7 +222,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             // responsive.  Wait until clocks are started up in hostboot
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if((l_chipletID >= 7 && l_chipletID <= 8) && (!l_mc_sync_mode))
+            if((l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID) && (!l_mc_sync_mode))
             {
                 continue;
             }
@@ -250,19 +250,19 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             uint32_t l_chipletID = targ.getChipletNumber();
 
             // MC & XBUS
-            if((l_chipletID >= 7 && l_chipletID <= 8) || (l_chipletID == 6))
+            if((l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID) || (l_chipletID == XB_CHIPLET_ID ))
             {
                 FAPI_DBG("Mux settings for Mc/Xbus chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_MC_XBUS(targ, l_read_attr));
             }
             // OBUS
-            else if(l_chipletID >= 9 && l_chipletID <= 12)
+            else if(l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID)
             {
                 FAPI_DBG("Mux settings for OB chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_obus(targ, l_read_attr));
             }
             // PCI
-            else if(l_chipletID >= 13 && l_chipletID <= 15)
+            else if(l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID)
             {
                 FAPI_DBG("Mux settings for Pcie chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_pcie(targ, l_read_attr));
@@ -276,7 +276,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         {
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID >= 2 && l_chipletID <= 5)
+            if(l_chipletID >= N0_CHIPLET_ID && l_chipletID <= N3_CHIPLET_ID)
             {
                 continue;
             }
@@ -293,13 +293,13 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             FAPI_DBG("PLL Setup : Enable pll");
             FAPI_TRY(p9_sbe_chiplet_reset_pll_setup(targ, true));
 
-            if(l_chipletID == 5)
+            if(l_chipletID == N3_CHIPLET_ID)
             {
                 FAPI_DBG("Drop clk async reset for N3 chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(targ));
             }
 
-            if(l_chipletID >= 7 && l_chipletID <= 8)
+            if(l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID)
             {
                 FAPI_DBG("Drop clk async reset for Mc chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(targ, true));
@@ -321,7 +321,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             // MC
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID >= 7 && l_chipletID <= 8)
+            if(l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID)
             {
                 FAPI_DBG("Raise clk async reset for Mc chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_mc_async_reset_setup(targ, false));
@@ -333,7 +333,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             // OBUS
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID >= 9 && l_chipletID <= 12)
+            if(l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID)
             {
                 FAPI_DBG("Drop clk async reset for N3, Mc  and Obus chiplets");
                 FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(targ));
@@ -345,7 +345,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             //MC
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID >= 7 && l_chipletID <= 8)
+            if(l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID)
             {
                 FAPI_DBG("Drop clk_div_bypass for Mc chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_div_clk_bypass(targ));
@@ -379,7 +379,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         {
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID >= 7 && l_chipletID <= 8)
+            if(l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID)
             {
                 continue;
             }
@@ -393,7 +393,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         {
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID >= 2 && l_chipletID <= 5)
+            if(l_chipletID >= N0_CHIPLET_ID && l_chipletID <= N3_CHIPLET_ID)
             {
                 continue;
             }
@@ -411,7 +411,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             //PCI
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID >= 13 && l_chipletID <= 15)
+            if(l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID)
             {
                 FAPI_DBG("Setup IOP Logic for PCIe");
                 FAPI_TRY(p9_sbe_chiplet_reset_setup_iop_logic(targ));
@@ -430,7 +430,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                     // NEST MC
                     uint32_t l_chipletID = targ.getChipletNumber();
 
-                    if((l_chipletID >= 2 && l_chipletID <= 5) || (l_chipletID >= 7 && l_chipletID <= 8))
+                    if((l_chipletID >= N0_CHIPLET_ID && l_chipletID <= N3_CHIPLET_ID) ||
+                       (l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID))
                     {
                         FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio(targ));
                     }
@@ -443,7 +444,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
                     // NEST
                     uint32_t l_chipletID = targ.getChipletNumber();
 
-                    if(l_chipletID >= 2 && l_chipletID <= 5)
+                    if(l_chipletID >= N0_CHIPLET_ID && l_chipletID <= N3_CHIPLET_ID)
                     {
                         FAPI_TRY(p9_sbe_chiplet_reset_opcg_cnfg_scan_ratio(targ));
                     }
@@ -532,27 +533,28 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     uint32_t l_chipletID = i_target_cplt.getChipletNumber();
 
     // MC Perv Targets || PCI Perv Targets
-    if((l_chipletID >= 7 && l_chipletID < 9) || (l_chipletID >= 13 && l_chipletID < 16))
+    if((l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID) || (l_chipletID >= PCI0_CHIPLET_ID
+            && l_chipletID <= PCI2_CHIPLET_ID))
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
         i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X10;
     }
     // OBUS & XBUS Perv Targets
-    else if((l_chipletID == 6) || (l_chipletID >= 9 && l_chipletID < 13))
+    else if((l_chipletID == XB_CHIPLET_ID) || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID))
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
         i_reg1_val = p9SbeChipletReset::HANG_PULSE_0X04;
         i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X10;
     }
     // Core Perv Target
-    else  if(l_chipletID >= 0x20 && l_chipletID < 0x38)
+    else  if(l_chipletID >= EC0_CHIPLET_ID && l_chipletID <= EC23_CHIPLET_ID)
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
         i_reg5_val = p9SbeChipletReset::HANG_PULSE_0X06;
         i_reg6_val = p9SbeChipletReset::HANG_PULSE_0X10;
     }
     // Cache Perv Target
-    else if(l_chipletID >= 0x10 && l_chipletID < 0x16)
+    else if(l_chipletID >= EQ0_CHIPLET_ID && l_chipletID <= EQ5_CHIPLET_ID)
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
         i_reg1_val = p9SbeChipletReset::HANG_PULSE_0X01;
@@ -564,7 +566,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     }
 
     // NEST Perv Target
-    else if(l_chipletID >= 2 && l_chipletID < 6)
+    else if(l_chipletID >= N0_CHIPLET_ID && l_chipletID <= N3_CHIPLET_ID)
     {
         i_reg0_val = p9SbeChipletReset::HANG_PULSE_0X10;
         i_reg5_val = p9SbeChipletReset::HANG_PULSE_0X06;
@@ -642,7 +644,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     }
 
     // Core Perv Target
-    if(l_chipletID >= 0x20 && l_chipletID < 0x38)
+    if(l_chipletID >= EC0_CHIPLET_ID && l_chipletID <= EC23_CHIPLET_ID)
     {
         //Setting HANG_PULSE_1_REG register value (Setting all fields)
         //HANG_PULSE_1_REG.HANG_PULSE_REG_1 = p9SbeChipletReset::HANG_PULSE_0X1A
@@ -652,7 +654,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
     }
 
     // NEST Perv Target
-    if(l_chipletID >= 2 && l_chipletID < 6)
+    if(l_chipletID >= N0_CHIPLET_ID && l_chipletID <= N3_CHIPLET_ID)
     {
         // Collecting partial good and chiplet unit position attribute
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_cplt,
@@ -786,7 +788,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_MC_XBUS(
     FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));
 
     //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<3>()
-    if(l_chipletID >= 7 && l_chipletID < 9) //MC
+    if(l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID) //MC
     {
         l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<3>());
     }
@@ -1080,27 +1082,27 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup(
     uint32_t l_chipletID = i_target_chiplet.getChipletNumber();
 
     // Core
-    if(l_chipletID >= 0x20 && l_chipletID <= 0x37)
+    if(l_chipletID >= EC0_CHIPLET_ID && l_chipletID <= EC23_CHIPLET_ID)
     {
         i_mc_grp1_val = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0;
         i_mc_grp2_val = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP1;
         i_mc_grp3_val = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP3;
     }
     // Nest/Obus/PCI/Xbus
-    else if((l_chipletID == 6) || (l_chipletID >= 9 && l_chipletID <= 12) ||
-            (l_chipletID >= 13 && l_chipletID <= 15) ||
-            (l_chipletID >= 2 && l_chipletID <= 5))
+    else if((l_chipletID == XB_CHIPLET_ID) || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
+            (l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID) ||
+            (l_chipletID >= N0_CHIPLET_ID && l_chipletID <= N3_CHIPLET_ID))
     {
         i_mc_grp1_val = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0;
     }
     // MC
-    else if(l_chipletID >= 7 && l_chipletID <= 8)
+    else if(l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID)
     {
         i_mc_grp1_val = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0;
         i_mc_grp2_val = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP2;
     }
     // Cache
-    else if(l_chipletID >= 0x10 && l_chipletID <= 0x15)
+    else if(l_chipletID >= EQ0_CHIPLET_ID && l_chipletID <= EQ5_CHIPLET_ID)
     {
         i_mc_grp1_val = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0;
         i_mc_grp2_val = p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP4;
@@ -1128,7 +1130,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_mc_setup(
     }
 
     // Only For Cache
-    if(l_chipletID >= 0x10 && l_chipletID <= 0x15)
+    if(l_chipletID >= EQ0_CHIPLET_ID && l_chipletID <= EQ5_CHIPLET_ID)
     {
         uint16_t l_attr_pg = 0;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));

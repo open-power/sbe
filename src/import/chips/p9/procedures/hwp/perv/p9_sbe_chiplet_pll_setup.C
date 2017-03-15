@@ -102,7 +102,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
     {
         uint32_t l_chipletID = mc.getChipletNumber();
 
-        if( l_chipletID == 7 || l_chipletID == 8 )
+        if( l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID )
         {
             FAPI_DBG("Drop PDLY bypass");
             FAPI_TRY(p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass(mc, true, false));
@@ -120,7 +120,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
         // PCIe
         uint32_t l_chipletID = pcie.getChipletNumber();
 
-        if( l_chipletID >= 13 && l_chipletID <= 15 )
+        if( l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID )
         {
             FAPI_DBG("call clock start stop module and drop syncclk muxsel");
             FAPI_TRY(p9_sbe_chiplet_pll_setup_strt_pci_nsl_drp_synclk_mux( pcie ));
@@ -134,8 +134,8 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
             // OBUS, XBUS, MC
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID == 6 || (l_chipletID >= 9 && l_chipletID <= 12) ||
-               ((!l_read_attr) && (l_chipletID == 7 || l_chipletID == 8))  )
+            if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
+               ((!l_read_attr) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
             {
                 FAPI_DBG("release pll test enable for except pcie");
                 FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_test_enable(targ));
@@ -147,9 +147,9 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
             // OBUS, XBUS, PCIe, MC
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID == 6 || (l_chipletID >= 9 && l_chipletID <= 12) ||
-               (l_chipletID >= 13 && l_chipletID <= 15) ||
-               ((!l_read_attr) && (l_chipletID == 7 || l_chipletID == 8))  )
+            if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
+               (l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID) ||
+               ((!l_read_attr) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
             {
                 FAPI_DBG("Release PLL reset");
                 FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_reset(targ));
@@ -161,7 +161,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
             // PCIe
             uint32_t l_chipletID = pcie.getChipletNumber();
 
-            if( l_chipletID >= 13 && l_chipletID <= 15 )
+            if( l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID )
             {
                 FAPI_DBG("Check pll lock for pcie");
                 FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pll_lock(pcie, true));
@@ -173,8 +173,8 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
             // OBUS, XBUS, MC
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if(l_chipletID == 6 || (l_chipletID >= 9 && l_chipletID <= 12) ||
-               ((!l_read_attr) && (l_chipletID == 7 || l_chipletID == 8))  )
+            if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
+               ((!l_read_attr) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
             {
                 FAPI_DBG("check pll lock for Mc,Xb,Ob");
                 FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pll_lock(targ, false));
@@ -187,9 +187,9 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
         // OBUS, XBUS, PCIe, MC
         uint32_t l_chipletID = targ.getChipletNumber();
 
-        if(l_chipletID == 6 || (l_chipletID >= 9 && l_chipletID <= 12) ||
-           (l_chipletID >= 13 && l_chipletID <= 15) ||
-           ((!l_read_attr) && (l_chipletID == 7 || l_chipletID == 8))  )
+        if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
+           (l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID) ||
+           ((!l_read_attr) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
         {
             FAPI_TRY(p9_sbe_chiplet_pll_setup_function(targ, l_bypass));
         }
