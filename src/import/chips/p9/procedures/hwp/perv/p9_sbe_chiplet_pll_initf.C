@@ -40,11 +40,38 @@
 #include "p9_sbe_chiplet_pll_initf.H"
 #include "p9_perv_scom_addresses.H"
 #include <p9_ring_id.h>
+#include "p9_frequency_buckets.H"
 
 fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_INF("p9_sbe_chiplet_pll_initf: Entering ...");
+    uint8_t l_ob0_pll_bucket = 0;
+    uint8_t l_ob1_pll_bucket = 0;
+    uint8_t l_ob2_pll_bucket = 0;
+    uint8_t l_ob3_pll_bucket = 0;
+
+    // determine obus pll buckets
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OB0_PLL_BUCKET, i_target_chip, l_ob0_pll_bucket),
+             "Error from FAPI_ATTR_GET (ATTR_OB0_PLL_BUCKET)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OB1_PLL_BUCKET, i_target_chip, l_ob1_pll_bucket),
+             "Error from FAPI_ATTR_GET (ATTR_OB1_PLL_BUCKET)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OB2_PLL_BUCKET, i_target_chip, l_ob2_pll_bucket),
+             "Error from FAPI_ATTR_GET (ATTR_OB2_PLL_BUCKET)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OB3_PLL_BUCKET, i_target_chip, l_ob3_pll_bucket),
+             "Error from FAPI_ATTR_GET (ATTR_OB3_PLL_BUCKET)");
+
+    FAPI_ASSERT((l_ob0_pll_bucket && (l_ob0_pll_bucket <= OBUS_PLL_FREQ_BUCKETS)) &&
+                (l_ob1_pll_bucket && (l_ob1_pll_bucket <= OBUS_PLL_FREQ_BUCKETS)) &&
+                (l_ob2_pll_bucket && (l_ob2_pll_bucket <= OBUS_PLL_FREQ_BUCKETS)) &&
+                (l_ob3_pll_bucket && (l_ob3_pll_bucket <= OBUS_PLL_FREQ_BUCKETS)),
+                fapi2::P9_SBE_CHIPLET_PLL_INITF_UNSUPPORTED_OBUS_BUCKET().
+                set_TARGET(i_target_chip).
+                set_OB0_BUCKET_INDEX(l_ob0_pll_bucket).
+                set_OB1_BUCKET_INDEX(l_ob1_pll_bucket).
+                set_OB2_BUCKET_INDEX(l_ob2_pll_bucket).
+                set_OB3_BUCKET_INDEX(l_ob3_pll_bucket),
+                "Unsupported OBUS PLL bucket value!");
 
     for (auto& l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_XBUS |
@@ -64,23 +91,79 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
                 break;
 
             case 0x9:
-                FAPI_DBG("Scan ob0_pll_bndy ring");
-                l_ring_id = ob0_pll_bndy;
+                if (l_ob0_pll_bucket == 1)
+                {
+                    FAPI_DBG("Scan ob0_pll_bndy_bucket1 ring");
+                    l_ring_id = ob0_pll_bndy_bucket_1;
+                }
+                else if (l_ob0_pll_bucket == 2)
+                {
+                    FAPI_DBG("Scan ob0_pll_bndy_bucket2 ring");
+                    l_ring_id = ob0_pll_bndy_bucket_2;
+                }
+                else
+                {
+                    FAPI_DBG("Scan ob0_pll_bndy_bucket3 ring");
+                    l_ring_id = ob0_pll_bndy_bucket_3;
+                }
+
                 break;
 
             case 0xa:
-                FAPI_DBG("Scan ob1_pll_bndy ring");
-                l_ring_id = ob1_pll_bndy;
+                if (l_ob1_pll_bucket == 1)
+                {
+                    FAPI_DBG("Scan ob1_pll_bndy_bucket1 ring");
+                    l_ring_id = ob1_pll_bndy_bucket_1;
+                }
+                else if (l_ob1_pll_bucket == 2)
+                {
+                    FAPI_DBG("Scan ob1_pll_bndy_bucket2 ring");
+                    l_ring_id = ob1_pll_bndy_bucket_2;
+                }
+                else
+                {
+                    FAPI_DBG("Scan ob1_pll_bndy_bucket3 ring");
+                    l_ring_id = ob1_pll_bndy_bucket_3;
+                }
+
                 break;
 
             case 0xb:
-                FAPI_DBG("Scan ob2_pll_bndy ring");
-                l_ring_id = ob2_pll_bndy;
+                if (l_ob2_pll_bucket == 1)
+                {
+                    FAPI_DBG("Scan ob2_pll_bndy_bucket1 ring");
+                    l_ring_id = ob2_pll_bndy_bucket_1;
+                }
+                else if (l_ob2_pll_bucket == 2)
+                {
+                    FAPI_DBG("Scan ob2_pll_bndy_bucket2 ring");
+                    l_ring_id = ob2_pll_bndy_bucket_2;
+                }
+                else
+                {
+                    FAPI_DBG("Scan ob2_pll_bndy_bucket3 ring");
+                    l_ring_id = ob2_pll_bndy_bucket_3;
+                }
+
                 break;
 
             case 0xc:
-                FAPI_DBG("Scan ob3_pll_bndy ring");
-                l_ring_id = ob3_pll_bndy;
+                if (l_ob3_pll_bucket == 1)
+                {
+                    FAPI_DBG("Scan ob3_pll_bndy_bucket1 ring");
+                    l_ring_id = ob3_pll_bndy_bucket_1;
+                }
+                else if (l_ob3_pll_bucket == 2)
+                {
+                    FAPI_DBG("Scan ob3_pll_bndy_bucket2 ring");
+                    l_ring_id = ob3_pll_bndy_bucket_2;
+                }
+                else
+                {
+                    FAPI_DBG("Scan ob3_pll_bndy_bucket3 ring");
+                    l_ring_id = ob3_pll_bndy_bucket_3;
+                }
+
                 break;
 
             case 0xd:
