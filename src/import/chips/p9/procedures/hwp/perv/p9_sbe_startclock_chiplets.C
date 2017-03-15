@@ -189,16 +189,16 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
         // XBUS, OBUS, PCIe
         uint32_t l_chipletID = targ.getChipletNumber();
 
-        if(((l_chipletID == 6) && (l_pg_vector.getBit<2>() == 1)) ||
-           ((l_chipletID >= 9 && l_chipletID <= 12) && (l_pg_vector.getBit<3>() == 1)) ||
-           ((l_chipletID >= 13 && l_chipletID <= 15) && (l_pg_vector.getBit<4>() == 1)))
+        if(((l_chipletID == XB_CHIPLET_ID) && (l_pg_vector.getBit<2>() == 1)) ||
+           ((l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) && (l_pg_vector.getBit<3>() == 1)) ||
+           ((l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID) && (l_pg_vector.getBit<4>() == 1)))
         {
             FAPI_DBG("Drop chiplet fence for XB // OBUS // PCIe");
             FAPI_TRY(p9_sbe_startclock_chiplets_fence_drop(targ));
         }
 
         // skip dropping flushmode inhbit if PCIE chiplet
-        if (!(l_chipletID >= 13) && (l_chipletID <= 15))
+        if (!(l_chipletID >= PCI0_CHIPLET_ID) && (l_chipletID <= PCI2_CHIPLET_ID))
         {
             FAPI_DBG("call  sbe_common_flushmode for xbus, obus chiplets");
             FAPI_TRY(p9_sbe_common_flushmode(targ));

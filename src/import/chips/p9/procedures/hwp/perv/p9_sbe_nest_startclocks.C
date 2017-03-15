@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -91,7 +91,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     // NEST WEST
     for (auto& nest : l_perv_nest_mc_func)
     {
-        if(nest.getChipletNumber() == 5)
+        if(nest.getChipletNumber() == N3_CHIPLET_ID)
         {
             FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(nest,
                      REGIONS_ALL_EXCEPT_VITAL_NESTPLL, l_n3_clock_regions));
@@ -107,10 +107,11 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     {
         uint32_t l_chipletID = perv.getChipletNumber();
 
-        if( ((l_chipletID == 5) && (l_pg_vector.getBit<1>() == 1)) ||
-            ((l_chipletID == 2 || l_chipletID == 3 || l_chipletID == 4) && (l_pg_vector.getBit<5>() == 1)) ||
-            (l_read_attr && ((l_chipletID == 7) && (l_pg_vector.getBit<5>() == 1))) ||
-            (l_read_attr && (l_chipletID == 8) && (l_pg_vector.getBit<3>() == 1)) )
+        if( ((l_chipletID == N3_CHIPLET_ID) && (l_pg_vector.getBit<1>() == 1)) ||
+            ((l_chipletID == N0_CHIPLET_ID || l_chipletID == N1_CHIPLET_ID || l_chipletID == N2_CHIPLET_ID)
+             && (l_pg_vector.getBit<5>() == 1)) ||
+            (l_read_attr && ((l_chipletID == MC01_CHIPLET_ID) && (l_pg_vector.getBit<5>() == 1))) ||
+            (l_read_attr && (l_chipletID == MC23_CHIPLET_ID) && (l_pg_vector.getBit<3>() == 1)) )
         {
             FAPI_DBG("Drop chiplet fence for N3 // N0,N1,N2 // MC");
             FAPI_TRY(p9_sbe_nest_startclocks_nest_fence_drop(perv));
@@ -121,7 +122,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     {
         uint32_t l_chipletID = perv.getChipletNumber();
 
-        if(!l_read_attr && (l_chipletID == 7 || l_chipletID == 8))
+        if(!l_read_attr && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))
         {
             continue;
         }
@@ -139,7 +140,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     {
         uint32_t l_chipletID = perv.getChipletNumber();
 
-        if(l_chipletID == 2 || l_chipletID == 3 || l_chipletID == 4)
+        if(l_chipletID == N0_CHIPLET_ID || l_chipletID == N1_CHIPLET_ID || l_chipletID == N2_CHIPLET_ID)
         {
             FAPI_DBG("Regions value: %#018lX", l_clock_regions);
             FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(perv,
@@ -150,7 +151,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
                                                     DONT_STARTMASTER, l_clock_regions, CLOCK_TYPES));
         }
 
-        if(l_chipletID == 5)
+        if(l_chipletID == N3_CHIPLET_ID)
         {
             FAPI_TRY(p9_sbe_common_clock_start_stop(perv, CLOCK_CMD,
                                                     DONT_STARTSLAVE, STARTMASTER, l_n3_clock_regions, CLOCK_TYPES));
@@ -161,7 +162,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     {
         uint32_t l_chipletID = perv.getChipletNumber();
 
-        if(l_chipletID == 2 || l_chipletID == 3 || l_chipletID == 4)
+        if(l_chipletID == N0_CHIPLET_ID || l_chipletID == N1_CHIPLET_ID || l_chipletID == N2_CHIPLET_ID)
         {
             FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(perv,
                      REGIONS_ALL_EXCEPT_VITAL_NESTPLL, l_ccstatus_regions));
@@ -172,7 +173,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
                      l_ccstatus_regions, CLOCK_TYPES));
         }
 
-        if(l_chipletID == 5)
+        if(l_chipletID == N3_CHIPLET_ID)
         {
             FAPI_DBG("Call clockstatus check function for N3");
             FAPI_TRY(p9_sbe_common_check_cc_status_function(perv, CLOCK_CMD,
@@ -185,7 +186,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
         // MC
         uint32_t l_chipletID = perv.getChipletNumber();
 
-        if( l_read_attr && (l_chipletID == 7 || l_chipletID == 8) )
+        if( l_read_attr && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID) )
         {
             FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(perv,
                      REGIONS_ALL_EXCEPT_VITAL_NESTPLL, l_clock_regions));
@@ -201,12 +202,12 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
     {
         uint32_t l_chipletID = perv.getChipletNumber();
 
-        if(l_chipletID == 5 && l_read_flush_attr)
+        if(l_chipletID == N3_CHIPLET_ID && l_read_flush_attr)
         {
             continue;
         }
 
-        if(!l_read_attr && (l_chipletID == 7 || l_chipletID == 8))
+        if(!l_read_attr && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))
         {
             continue;
         }
