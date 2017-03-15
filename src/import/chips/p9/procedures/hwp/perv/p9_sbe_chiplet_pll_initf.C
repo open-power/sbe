@@ -39,6 +39,7 @@
 //## auto_generated
 #include "p9_sbe_chiplet_pll_initf.H"
 #include "p9_perv_scom_addresses.H"
+#include <p9_ring_id.h>
 
 fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
