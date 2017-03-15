@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,6 +41,7 @@
 
 #include <p9_quad_scom_addresses.H>
 #include <p9_quad_scom_addresses_fld.H>
+#include <p9_ring_id.h>
 
 
 fapi2::ReturnCode p9_hcd_cache_chiplet_l3_dcc_setup(const

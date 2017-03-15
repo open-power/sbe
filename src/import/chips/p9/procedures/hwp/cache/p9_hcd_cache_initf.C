@@ -50,6 +50,7 @@
 #include "p9_hcd_cache_initf.H"
 #include <p9_hcd_common.H>
 #include <p9_quad_scom_addresses.H>
+#include <p9_ring_id.h>
 
 //------------------------------------------------------------------------------
 // Procedure: EX (non-core) scan init

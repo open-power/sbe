@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,6 +40,7 @@
 #include "p9_hcd_cache_dcc_skewadjust_setup.H"
 #include <p9_perv_scom_addresses.H>
 #include <p9_quad_scom_addresses.H>
+#include <p9_ring_id.h>
 
 
 

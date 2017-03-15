@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,6 +37,7 @@
 
 #include "p9_sbe_repr_initf.H"
 #include "p9_perv_scom_addresses.H"
+#include <p9_ring_id.h>
 
 
 fapi2::ReturnCode p9_sbe_repr_initf(const
