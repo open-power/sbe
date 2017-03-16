@@ -202,6 +202,7 @@ buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_time `date +%H%M`
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_user `id -un`
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_host `hostname`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set build_tag `git log | grep "Release notes for sbe"| awk '{ print $$NF }' ` |true
 
 add_LoaderAddr: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __l1Loader | cut -f 1 -d " "`
