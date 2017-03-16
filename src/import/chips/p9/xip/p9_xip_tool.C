@@ -1886,7 +1886,8 @@ int dissectRingSectionTor( void*       i_ringSection,
             if ((torMagic == TOR_MAGIC_SGPE && ppeType != PT_SGPE) ||
                 (torMagic == TOR_MAGIC_CME  && ppeType != PT_CME)  ||
                 (torMagic == TOR_MAGIC_SBE  && ppeType != PT_SBE)  ||
-                (torMagic == TOR_MAGIC_OVRD && ppeType != PT_SBE))
+                (torMagic == TOR_MAGIC_OVRD && ppeType != PT_SBE)  ||
+                (torMagic == TOR_MAGIC_CEN  && ppeType != PT_SBE))
             {
                 continue;
             }
@@ -1897,7 +1898,8 @@ int dissectRingSectionTor( void*       i_ringSection,
             for (ringVariant = 0; ringVariant <= OVERRIDE; ringVariant++)
             {
                 if ((torMagic != TOR_MAGIC_OVRD && ringVariant == OVERRIDE) ||
-                    (torMagic == TOR_MAGIC_OVRD && ringVariant != OVERRIDE))
+                    (torMagic == TOR_MAGIC_OVRD && ringVariant != OVERRIDE) ||
+                    (torMagic == TOR_MAGIC_CEN  && ringVariant == CC))
                 {
                     continue;
                 }
@@ -1945,7 +1947,7 @@ int dissectRingSectionTor( void*       i_ringSection,
                             rs4 = (CompressedScanData*)ringBlockPtr;
 
                             // Sanity check RS4 container's ringId matches the requested.
-                            uint16_t l_ringId = be16toh(rs4->iv_ringId);
+                            RingId_t l_ringId = be16toh(rs4->iv_ringId);
 
                             if ( l_ringId != ringId )
                             {
@@ -2182,7 +2184,7 @@ int dissectRingSectionTor( void*       i_ringSection,
 ///         to dissectRingSectionTor which does the actual dissection and
 ///         summarizing of the ring section.
 ///
-/// \param[in] i_image  A pointer to a P9-XIP image in host memory.
+/// \param[in] i_image A pointer to a P9-XIP image or TOR ringSection in host memory.
 ///
 /// \param[in] i_argc  Additional number of arguments beyond "dissect" keyword.
 ///
@@ -2235,7 +2237,8 @@ int dissectRingSection(void*          i_image,
             {
                 sectionId = P9_XIP_SECTION_SBE_RINGS;
             }
-            else if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
+            else if (hostHeader.iv_magic == P9_XIP_MAGIC_HW ||
+                     hostHeader.iv_magic == P9_XIP_MAGIC_CENTAUR)
             {
                 sectionId = P9_XIP_SECTION_HW_RINGS;
             }
@@ -2298,14 +2301,14 @@ int dissectRingSection(void*          i_image,
             exit(1);
         }
 
-        if (be32toh(((TorHeader_t*)i_image)->magic) >> 8 != TOR_MAGIC)
+        ringSectionPtr = (void*)(hostSection.iv_offset + (uintptr_t)i_image);
+
+        if (be32toh(((TorHeader_t*)ringSectionPtr)->magic) >> 8 != TOR_MAGIC)
         {
             fprintf( stderr,
                      "ERROR:  The XIP section is not a TOR compatible ring section. Possibly, the image is outdated and has the old TOR-headerless layout which is no longer supported. Try dissecting with an older version of p9_xip_tool.\n");
             exit(EXIT_FAILURE);
         }
-
-        ringSectionPtr = (void*)(hostSection.iv_offset + (uintptr_t)i_image);
 
     }
     else if (be32toh(((TorHeader_t*)i_image)->magic) >> 8 == TOR_MAGIC)

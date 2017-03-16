@@ -39,7 +39,7 @@
 #endif
 
 #include <utils.H>
-#include <p9_ringId.H>
+#include <common_ringId.H>
 #include <plat_hw_access.H>
 #include "plat_ring_traverse.H" // for findRS4InImageAndApply
 
@@ -279,7 +279,7 @@ __fapi2exit__:
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     template< TargetType K, typename V >
         inline ReturnCode putRing(const Target<K, V>& i_target,
-                                  const RingID i_ringID,
+                                  const RingId_t i_ringID,
                                   const RingMode i_ringMode = RING_MODE_HEADER_CHECK)
         {
             ReturnCode l_rc = FAPI2_RC_SUCCESS;

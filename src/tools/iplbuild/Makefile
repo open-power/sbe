@@ -41,15 +41,17 @@ include img_defs.mk
 
 CXX  = g++
 
-export VPATH = $(P9_XIP_SRCDIR):$(IMAGEPROCS_COMMON_SRCDIR):$(IMAGEPROCS_SRCDIR):$(IMAGEPROCS_TOOL_DIR)
+export VPATH = $(P9_XIP_SRCDIR):$(IMAGEPROCS_COMMON_SRCDIR):$(IMAGEPROCS_P9_SRCDIR):$(IMAGEPROCS_CEN_SRCDIR):$(IMAGEPROCS_TOOL_DIR)
 export INCLUDES = -I$(P9_XIP_SRCDIR) \
 				  -I$(IMAGEPROCS_COMMON_SRCDIR) \
-				  -I$(IMAGEPROCS_SRCDIR) \
+				  -I$(IMAGEPROCS_P9_SRCDIR) \
+				  -I$(IMAGEPROCS_CEN_SRCDIR) \
 		      	  -I$(IMAGEPROCS_TOOL_DIR)
 .PHONY : all utilities clean
 
 OBJS = $(P9_XIP_BINDIR)/p9_xip_image.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_ringId.o \
+	   $(BASE_OBJDIR)/tools/iplbuild/cen_ringId.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_tor.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_ipl_build.o \
 
