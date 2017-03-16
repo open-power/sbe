@@ -120,6 +120,8 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
 static fapi2::ReturnCode p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip);
 
+static fapi2::ReturnCode p9_sbe_chiplet_reset_assert_scan_clk(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
 
 fapi2::ReturnCode p9_sbe_chiplet_reset(const
                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -449,10 +451,23 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             }
         }
 
+        FAPI_DBG("reading ec_level attr HW404176_ASSERT_SCAN_CLK");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW404176_ASSERT_SCAN_CLK,
+                               i_target_chip, l_read_attr));
+
         // Perv without Core/Cache
         for (auto& targ : l_perv_func_WO_Core_Cache)
         {
+
             FAPI_TRY(p9_sbe_chiplet_reset_scan0_call(targ));
+
+            uint32_t l_chipletID = targ.getChipletNumber();
+
+            if((l_read_attr) && (l_chipletID >= 7 && l_chipletID <= 8)) // cumulus chip & MC chiplet
+            {
+                FAPI_DBG("assert SCAN_CLK_USE_EVEN=1 in OPCG_REG1 for cumulus chip Mc chiplet");
+                FAPI_TRY(p9_sbe_chiplet_reset_assert_scan_clk(targ));
+            }
         }
 
 #ifndef __PPE__
@@ -467,6 +482,28 @@ fapi_try_exit:
 
 }
 
+
+/// @brief assert SCAN_CLK_USE_EVEN=1 in OPCG_REG1 for cumulus chip Mc chiplet
+///
+/// @param[in]     i_target_cplt   Reference to TARGET_TYPE_PERV target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_chiplet_reset_assert_scan_clk(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+{
+    FAPI_INF("p9_sbe_chiplet_reset_assert_scan_clk: Entering ...");
+    fapi2::buffer<uint64_t> l_data64;
+
+    FAPI_DBG("assert SCAN_CLK_USE_EVEN=1 in OPCG_REG1 for cumulus chip Mc chiplet");
+    FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_OPCG_REG1, l_data64));
+    l_data64.setBit<PERV_1_OPCG_REG1_SCAN_CLK_USE_EVEN>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_REG1, l_data64));
+
+
+    FAPI_INF("p9_sbe_chiplet_reset_assert_scan_clk: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
 /// @brief Setting up hang pulse counter for all parital good chiplet except for Tp
 ///
 /// @param[in]     i_target_cplt   Reference to TARGET_TYPE_PERV target

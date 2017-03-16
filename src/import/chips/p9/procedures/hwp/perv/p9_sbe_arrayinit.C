@@ -58,7 +58,8 @@ enum P9_SBE_ARRAYINIT_Private_Constants
 
 static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const fapi2::buffer<uint16_t> i_regions);
+    const fapi2::buffer<uint16_t> i_regions,
+    fapi2::buffer<uint8_t> ec_attr_for_cumulus_mc_cplt);
 
 static fapi2::ReturnCode p9_sbe_arrayinit_sdisn_setup(const
         fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
@@ -68,7 +69,11 @@ fapi2::ReturnCode p9_sbe_arrayinit(const
                                    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint16_t> l_regions;
+    fapi2::buffer<uint8_t> l_read_attr;
     FAPI_INF("p9_sbe_arrayinit: Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW406337,
+                           i_target_chip, l_read_attr));
 
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
@@ -86,7 +91,7 @@ fapi2::ReturnCode p9_sbe_arrayinit(const
 
         FAPI_DBG("Call proc_sbe_arryinit_scan0_and_arrayinit_module_function");
         FAPI_TRY(p9_sbe_arrayinit_scan0_and_arrayinit_module_function(l_chplt_trgt,
-                 l_regions));
+                 l_regions, l_read_attr));
 
         FAPI_DBG("clear sdis_n");
         FAPI_TRY(p9_sbe_arrayinit_sdisn_setup(l_chplt_trgt, false));
@@ -108,11 +113,14 @@ fapi_try_exit:
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const fapi2::buffer<uint16_t> i_regions)
+    const fapi2::buffer<uint16_t> i_regions,
+    fapi2::buffer<uint8_t> ec_attr_for_cumulus_mc_cplt)
 {
     bool l_read_reg = false;
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_arrayinit_scan0_and_arrayinit_module_function: Entering ...");
+
+    uint32_t l_chipletID = i_target_chiplet.getChipletNumber();
 
     FAPI_DBG("Check for chiplet enable");
     //Getting NET_CTRL0 register value
@@ -122,9 +130,25 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
 
     if ( l_read_reg )
     {
+        if ( ec_attr_for_cumulus_mc_cplt && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID ))
+        {
+            l_data64.flush<1>();
+            l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
+            FAPI_DBG("Dropping chiplet fence for MC chiplet in Cumulus");
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
+        }
+
         FAPI_DBG("run array_init module for all chiplet except TP, EC, EP");
         FAPI_TRY(p9_perv_sbe_cmn_array_init_module(i_target_chiplet, i_regions,
                  LOOP_COUNTER, SELECT_SRAM, SELECT_EDRAM, START_ABIST_MATCH_VALUE));
+
+        if ( ec_attr_for_cumulus_mc_cplt && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID ) )
+        {
+            l_data64.flush<0>();
+            l_data64.setBit<PERV_1_NET_CTRL0_FENCE_EN>();
+            FAPI_DBG("Raising back chiplet fence for MC chiplet in Cummulus chip");
+            FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WOR, l_data64));
+        }
 
         FAPI_DBG("run scan0 module for region except vital and pll, scan types except GPTR TIME REPR all chiplets except TP, EC, EP");
         FAPI_TRY(p9_perv_sbe_cmn_scan0_module(i_target_chiplet, i_regions,
