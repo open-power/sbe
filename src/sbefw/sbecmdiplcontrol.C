@@ -1209,6 +1209,10 @@ ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp )
         fapi2::buffer<uint8_t> l_eqMask = 0;
         fapi2::buffer<uint32_t> l_ecMask = 0;
         plat_target_handle_t l_hndl;
+
+        // Set MPIPL mode bit in Scratch Reg 3
+        (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
+
         rc = getscom_abs_wrap (&l_hndl,
                                PERV_SCRATCH_REGISTER_8_SCOM,
                                &l_scratchReg8);
