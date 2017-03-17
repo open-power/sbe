@@ -389,7 +389,7 @@ extern "C"
         FAPI_TRY(fapi2::getScom(i_target, PU_PBASLVRST_SCOM, data),
                  "Error reading from the PBA Slave Reset register");
 
-        FAPI_ASSERT(!data.getBit<PU_PBASLVRST_IN_PROG>(),
+        FAPI_ASSERT(!data.getBit < PU_PBASLVRST_IN_PROG + 3 > (),
                     fapi2::P9_PBA_COHERENT_UTILS_RESET_ERR().set_TARGET(i_target).set_RDDATA(
                         data),
                     "Error in resetting the PBA Slave Reset register");
@@ -451,15 +451,13 @@ extern "C"
                     fapi2::P9_PBA_STATUS_ERR_NO_ADDR_ERR().set_TARGET(i_target).set_RDBUF2(
                         rd_buf2_valid).set_RDBUF3(rd_buf3_valid).set_WRBUF0(
                         wr_buf0_valid).set_WRBUF1(wr_buf1_valid).set_SLVRSTDATA(reset_buf),
-                    "Error in checking the PBA Reset, PBA Read Buffer, or PBA Write Buffer Registers");
+                    "Unexpected state in PBA Reset, PBA Read Buffer, or PBA Write Buffer Registers");
 
     fapi_try_exit:
         FAPI_DBG("End");
         return fapi2::current_err;
     }
 
-    // TODO RTC 167768: support pib abort condition on PPE platform
-#ifndef __PPE__
     fapi2::ReturnCode p9_pba_coherent_check_ocb_status(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
         fapi2::ReturnCode rc;
@@ -482,8 +480,12 @@ extern "C"
             !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_DATA_PARITY_ERR>() &&
             !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_FSM_ERR>();
 
-        FAPI_ASSERT(!(l_expected_state), fapi2::P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH().set_TARGET(i_target).set_DATA(
-                        l_ocb_csr_data));
+        FAPI_ASSERT(l_expected_state,
+                    fapi2::P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH()
+                    .set_TARGET(i_target)
+                    .set_DATA(l_ocb_csr_data),
+                    "Error in OCB Status/Control Register State");
+
     fapi_try_exit:
         FAPI_DBG("End");
         return fapi2::current_err;
@@ -518,15 +520,19 @@ extern "C"
 
         if (l_pba_fir_data.getBit<PU_PBAFIR_PB_RDADRERR_FW>() || l_pba_fir_data.getBit<PU_PBAFIR_PB_WRADRERR_FW>())
         {
-            FAPI_ASSERT(!(l_expected_state), fapi2::P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_ADDR_ERR().set_TARGET(i_target).set_DATA(
-                            l_pba_fir_data),
-                        "Error in PBA FIR");
+            FAPI_ASSERT(l_expected_state,
+                        fapi2::P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_ADDR_ERR()
+                        .set_TARGET(i_target)
+                        .set_DATA(l_pba_fir_data),
+                        "Error in PBA FIR, with address error");
         }
         else
         {
-            FAPI_ASSERT(!(l_expected_state), fapi2::P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_NO_ADDR_ERR().set_TARGET(i_target).set_DATA(
-                            l_pba_fir_data),
-                        "Error in PBA FIR");
+            FAPI_ASSERT(l_expected_state,
+                        fapi2::P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_NO_ADDR_ERR()
+                        .set_TARGET(i_target)
+                        .set_DATA(l_pba_fir_data),
+                        "Error in PBA FIR, without address error");
         }
 
     fapi_try_exit:
@@ -538,9 +544,9 @@ extern "C"
     fapi2::ReturnCode p9_pba_coherent_check_status_for_err_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
             i_target)
     {
-        FAPI_TRY(p9_pba_coherent_status_check(i_target), "Error calling p9_pba_coherent_status_check");
-        FAPI_TRY(p9_pba_coherent_check_ocb_status(i_target), "Error calling p9_pba_coherent_check_ocb_status");
-        FAPI_TRY(p9_pba_coherent_check_pba_fir(i_target), "Error calling p9_pba_coherent_check_pba_fir");
+        FAPI_TRY(p9_pba_coherent_status_check(i_target), "Error from p9_pba_coherent_status_check");
+        FAPI_TRY(p9_pba_coherent_check_pba_fir(i_target), "Error from p9_pba_coherent_check_pba_fir");
+        FAPI_TRY(p9_pba_coherent_check_ocb_status(i_target), "Error from p9_pba_coherent_check_ocb_status");
 
     fapi_try_exit:
         FAPI_DBG("End");
@@ -551,7 +557,6 @@ extern "C"
                                            fapi2::ReturnCode& o_rc)
     {
 #ifndef __PPE__
-
         uint64_t l_address = i_address;
         bool l_rnw = i_rnw;
         uint32_t l_flags = i_flags;
@@ -580,7 +585,7 @@ extern "C"
 #endif
     }
 
-
+#ifndef __PPE__
     fapi2::ReturnCode p9_pba_utils_unlock_pib(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
         fapi2::ReturnCode rc;
@@ -635,21 +640,16 @@ extern "C"
     }
 #endif
 
-    fapi2::ReturnCode p9_pba_coherent_error_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
-            fapi2::ReturnCode i_rc)
+    fapi2::ReturnCode p9_pba_coherent_error_handling(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        fapi2::ReturnCode i_rc)
     {
         fapi2::ReturnCode l_return_rc;
-
-
         FAPI_DBG("Start");
-
-        // TODO RTC 167768: support pib abort condition on PPE platform
-#ifndef __PPE__
 
         // analyze failure, attempt to differentiate between SCOM failure due to faulty HW
         // versus failure to return read data, which under some conditions can cause SCOM to fail as well
-        FAPI_ERR("Error from a read or write with the PBA");
-
+#ifndef __PPE__
         // ensure that PIB abort condition (which may have occurred as a result of SCOM read
         // failure) is cleared, so that analysis of HW state is possible
         l_return_rc = p9_pba_utils_unlock_pib(i_target);
@@ -661,10 +661,26 @@ extern "C"
             // (as this represents the first error encountered, and the analysis
             // indicates a HW issue which the PBA operation did not functionally cause)
             FAPI_ERR("Error from p9_pba_utils_unlock_pib, returning original SCOM fail rc");
-            l_return_rc = i_rc;
             FAPI_DBG("End");
-            return l_return_rc;
+            return i_rc;
         }
+
+#else
+
+        // PPE platform expected to clear/handle PIB abort condition, check for
+        // timeout return code to indicate that we should continue analysis
+        if (i_rc != (fapi2::ReturnCode) fapi2::RC_SBE_PIB_TIMEOUT_ERROR)
+        {
+            FAPI_ERR("Returning original SCOM fail rc");
+            FAPI_DBG("End");
+            return i_rc;
+        }
+
+        // ensure PBA region is unlocked, discard/ignore return code
+        fapi2::buffer<uint64_t> l_pba_slv_rst_data;
+        (void) fapi2::getScom(i_target, PU_PBASLVRST_PIB, l_pba_slv_rst_data);
+
+#endif
 
         // PIB is unlocked, analyze state of FIRs/state machines to see if the SCOM
         // failure was a result of a read failure on the fabric launched by PBA
@@ -695,11 +711,8 @@ extern "C"
 
         // no sign of an error in PBA/OCB logic, just return the original return code for the SCOM fail
         FAPI_ERR("No PBA error found, returning original SCOM fail rc");
-#endif
-        l_return_rc = i_rc;
         FAPI_DBG("End");
-        return l_return_rc;
-
+        return i_rc;
     }
 
 } //extern "C"
