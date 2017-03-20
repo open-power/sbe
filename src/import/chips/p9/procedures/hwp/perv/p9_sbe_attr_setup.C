@@ -79,6 +79,7 @@ enum P9_SETUP_SBE_CONFIG_scratch4
     ATTR_RISK_LEVEL_BIT                = 2,
     ATTR_DISABLE_HBBL_VECTORS_BIT      = 3,
     ATTR_MC_SYNC_MODE_BIT              = 4,
+    ATTR_SLOW_PCI_REF_CLOCK_BIT        = 5,
 
     // Scratch_reg_6
     ATTR_PUMP_CHIP_IS_GROUP            = 23,
@@ -352,6 +353,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         uint8_t l_disable_hbbl_vectors = 0;
         uint32_t l_pll_mux = 0;
         uint8_t l_mc_sync_mode = 0;
+        uint8_t l_slow_pci_ref_clock = 0;
 
         if ( l_read_scratch8.getBit<4>() )
         {
@@ -390,6 +392,16 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             }
 
             l_read_scratch_reg.extract<4, 1, 7>(l_mc_sync_mode);
+
+            if (l_read_scratch_reg.getBit<ATTR_SLOW_PCI_REF_CLOCK_BIT>())
+            {
+                l_slow_pci_ref_clock = fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_NORMAL;
+            }
+            else
+            {
+                l_slow_pci_ref_clock = fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_SLOW;
+            }
+
             l_read_scratch_reg.extract<12, 20, 0>(l_pll_mux);
 
             FAPI_DBG("Setting up SYSTEM_IPL_PHASE, RISK_LEVEL, SYS_FORCE_ALL_CORES");
@@ -398,6 +410,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_risk_level));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM, l_disable_hbbl_vectors));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_mc_sync_mode));
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK, FAPI_SYSTEM, l_slow_pci_ref_clock));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_PLL_MUX, i_target_chip, l_pll_mux));
         }
         else
@@ -410,6 +423,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_risk_level));
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM, l_disable_hbbl_vectors));
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_mc_sync_mode));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK, FAPI_SYSTEM, l_slow_pci_ref_clock));
 
             // set cache contained flag
             if (l_system_ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
@@ -459,6 +473,16 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             else
             {
                 l_read_scratch_reg.clearBit<ATTR_MC_SYNC_MODE_BIT>();
+            }
+
+            // set slow PCI ref clock bit
+            if (l_slow_pci_ref_clock == fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_SLOW)
+            {
+                l_read_scratch_reg.clearBit<ATTR_SLOW_PCI_REF_CLOCK_BIT>();
+            }
+            else
+            {
+                l_read_scratch_reg.setBit<ATTR_SLOW_PCI_REF_CLOCK_BIT>();
             }
 
             FAPI_DBG("Reading PLL mux attributes");
