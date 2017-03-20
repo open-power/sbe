@@ -891,6 +891,20 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_pcie(
                            l_use_ss_pll),
              "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_SLOW_PCI_REF_CLOCK_ENABLE)");
 
+    if (l_use_ss_pll)
+    {
+        fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK_Type l_slow_ref_clock;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK,
+                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                               l_slow_ref_clock),
+                 "Error from FAPI_ATTR_GET (ATTR_DD1_SLOW_PCI_REF_CLOCK)");
+
+        if (l_slow_ref_clock != fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_SLOW)
+        {
+            l_use_ss_pll = 0;
+        }
+    }
+
     if ( l_attr_unit_pos != 0x0E )
     {
         //Setting NET_CTRL1 register value
