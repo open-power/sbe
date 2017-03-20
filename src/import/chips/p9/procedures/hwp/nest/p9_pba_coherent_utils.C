@@ -206,9 +206,9 @@ extern "C"
         //mask to mask away bits 37:63 of the input address
         oci_address_mask = 0x7FFFFFFull;
 
-        //subtract the oci part of the address from this maximum number and divide by 8 to get the number of bytes
+        //subtract the oci part of the address from this maximum number
         //then divide by 128 to get the number of 128 bye granules that can be sent
-        o_numGranules = ((maximumAddress - (i_address & oci_address_mask)) / 8) / 128;
+        o_numGranules = (maximumAddress - (i_address & oci_address_mask)) / 128;
         FAPI_DBG("o_numGranules = %016x", o_numGranules);
 
     fapi_try_exit:
