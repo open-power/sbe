@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -115,18 +115,6 @@ namespace fapi2
     // @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
     fapi2::ReturnCode getRing_setup(const uint32_t i_ringAddress,
                              const fapi2::RingMode i_ringMode);
-
-    // This function read the 64 bit data from the hardware
-    // @param[in] i_ringAddress - absolute ring address
-    // @param [out]: 64 bit data
-    // @param [in] i_bitShiftValue - Bit shift value that needs to rotate
-    // @note- If the ring length is divisble by 64, then bitshift will always be
-    // 64, else need to store the ring_length mod 64 and send that value in the
-    // last iteration.
-    // @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    fapi2::ReturnCode getRing_granule_data(const uint32_t i_ringAddress,
-                                    uint64_t *o_data,
-                                    const uint32_t i_bitShiftValue);
 
     // This function verify the check word data is matching or not and will
     // clean up the scan region data

@@ -125,6 +125,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
     ReturnCode l_fapiRc;
     uint32_t l_len = 0;
     uint32_t l_bitSentCnt = 0;
+    const uint32_t LONG_ROTATE_ADDRESS = 0x0003E000;
 
     do
     {
@@ -169,7 +170,11 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
         // fix for the alignment issue
         uint32_t l_buf[NUM_WORDS_PER_GRANULE]__attribute__ ((aligned (8))) ={0};
         uint32_t l_bitShift = 0;
+        uint64_t l_tmpbuf = 0;
         l_len = NUM_WORDS_PER_GRANULE;
+        plat_target_handle_t l_hndl;
+        uint32_t l_chipletId = (uint32_t)(l_reqMsg.ringAddr) & 0xFF000000;
+        uint32_t l_scomAddress = 0;
 
         // Fetch the ring data in bits, each iteration will give you 64bits
         for(uint32_t l_cnt=0; l_cnt < l_loopCnt; l_cnt++)
@@ -180,12 +185,19 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
             }
             else
             {
-                l_bitShift = GETRING_GRANULE_SIZE_IN_BITS;
+                //For the very first call sending F's .. because in the lower
+                //level function.. wiil read the first 64bit data and then
+                //shift. Sending F's only for the first will avoid 2 scom
+                //operation for every getring call.
+                //Note-Read operation flow is SHIFT and then READ.
+                l_bitShift = (l_cnt == 0) ? 0x0: GETRING_GRANULE_SIZE_IN_BITS;
             }
-            // Call getRing_granule_data - read the 64 bit data from the HW
-            l_fapiRc = getRing_granule_data((uint32_t)(l_reqMsg.ringAddr),
-                                            (uint64_t*)&l_buf,
-                                            l_bitShift);
+            l_scomAddress = LONG_ROTATE_ADDRESS | l_chipletId;
+            l_scomAddress |= l_bitShift;
+            l_fapiRc = getscom_abs_wrap (&l_hndl,
+                                         l_scomAddress,
+                                         (uint64_t*)&l_buf);
+
             if( l_fapiRc != FAPI2_RC_SUCCESS )
             {
                 SBE_ERROR(SBE_FUNC" getRing_granule_data failed. "
@@ -195,6 +207,28 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
                         SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
                 l_ffdc.setRc(l_fapiRc);
                 break;
+            }
+
+            //this is only for the first time.
+            if (l_cnt == 0)
+            {
+                l_bitShift = GETRING_GRANULE_SIZE_IN_BITS;
+                l_scomAddress = LONG_ROTATE_ADDRESS | l_chipletId;
+                l_scomAddress |= l_bitShift;
+                l_fapiRc = getscom_abs_wrap (&l_hndl,
+                                         l_scomAddress,
+                                         &l_tmpbuf);
+
+                if( l_fapiRc != FAPI2_RC_SUCCESS )
+                {
+                    SBE_ERROR(SBE_FUNC" getRing_granule_data failed. "
+                       "RingAddress:0x%08X RingMode:0x%04x",
+                        l_reqMsg.ringAddr, l_ringMode);
+                    respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                        SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                    l_ffdc.setRc(l_fapiRc);
+                    break;
+                }
             }
 
             // Send it to DS Fifo
