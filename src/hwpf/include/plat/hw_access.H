@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,8 +39,8 @@
 #endif
 
 #include <utils.H>
+#include <p9_ringId.H>
 #include <plat_hw_access.H>
-#include <fapi2_hw_access.H>
 #include "plat_ring_traverse.H" // for findRS4InImageAndApply
 
 namespace fapi2
@@ -57,14 +57,14 @@ namespace fapi2
 
     /// @brief Sets the PIB error mask - platform dependant
     /// @param[in]  i_mask     The new error mask
-    void setPIBErrorMask(uint8_t i_mask)
+    inline void setPIBErrorMask(uint8_t i_mask)
     {
         PLAT_SET_PIB_ERROR_MASK(i_mask);
     }
 
     /// @brief Gets the PIB error mask - platform dependant
     /// @return uint8_t The current PIB error mask
-    uint8_t getPIBErrorMask(void)
+    inline uint8_t getPIBErrorMask(void)
     {
         PLAT_GET_PIB_ERROR_MASK(o_pib_mask);
         return o_pib_mask;
@@ -288,7 +288,7 @@ __fapi2exit__:
     template< TargetType K, typename V >
         inline ReturnCode putRing(const Target<K, V>& i_target,
                                   const RingID i_ringID,
-                                  const RingMode i_ringMode)
+                                  const RingMode i_ringMode = RING_MODE_HEADER_CHECK)
         {
             ReturnCode l_rc = FAPI2_RC_SUCCESS;
 
