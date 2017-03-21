@@ -87,9 +87,7 @@ __build_date:
 __build_time:
         .long 0
 __build_tag:
-        .asciz "unknown        "                         # 16 Characters
-__header_32_reserved:
-        .long 0
+        .asciz "unknown            "                     # 20 Characters
 
         .xip_toc image_size, P9_XIP_UINT32, __image_size
         .xip_toc build_date, P9_XIP_UINT32, __build_date
