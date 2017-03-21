@@ -25,13 +25,6 @@
 BUILD_DIR = src/build
 .PHONY: install all clean tar install_DD1 install_DD2 DD1 DD2
 
-del_objects:
-	@rm -rf obj/sbefw
-	@rm -rf obj/import_hwp_mk
-	@rm -rf obj/boot
-	@rm -rf obj/build/utils
-	@rm -rf obj/fapi2
-
 install: all tar
 
 install_DD1: DD1 tar
@@ -46,7 +39,7 @@ DD1:
 DD2:
 	$(MAKE) -C $(BUILD_DIR) all ddlevel=DD2
 
-all: DD1 del_objects DD2
+all: DD1 DD2
 
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean

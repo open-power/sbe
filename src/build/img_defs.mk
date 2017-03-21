@@ -45,14 +45,10 @@
 #                      any other non-default setting to GCC, e.g.
 #                      make GCC-O-LEVEL="-Os -fno-branch-count-reg"
 #
-# GCC-TOOL-PREFIX    : The full path (including executable file prefixes) to
-#                      the GCC cross-development tools to use.  The default is
-#                      "ppcnf-mcp5-"
-#
-# CTEPATH            : This variable defaults to the afs/awd CTE tool
-#                      installation - The PORE binutils are stored there. If
-#                      you are not in Austin be sure to define CTEPATH in
-#                      your .profile.
+# CROSS_COMPILER_PATH : Cross-development tool chain path.
+#                       From the SBE package, make must be called like this:
+#                       make LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib CROSS_COMPILER_PATH=$(PPE42_GCC_BIN)
+#                       Defaults to IBM CTE tools path.
 #
 # OBJDIR             : target directory for all generated files
 
@@ -199,7 +195,7 @@ export IMAGEPROCS_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/utils/imageProcs
 endif
 
 ifndef BASE_OBJDIR
-export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj
+export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj/$(IMAGE_SUFFIX)
 endif
 
 ifndef P9_XIP_SRCDIR
@@ -315,25 +311,17 @@ ifndef OBJDIR-ARRAYACCESS
 export OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/arrayaccess
 endif
 
-GCC-TOOL-PATH = $(CTEPATH)/tools/ppetools/prod
-
-# This is used for op-build
-# It has to be passed into make by the openpower SBE package.
-# CTEPATH won't be defined in openpower.
-#
-# From the SBE package, make must be called like this:
-# make LD_LIBRARY_PATH=$(HOST_DIR)/usr/lib PPE42PATH=$(PPE42_GCC_BIN)
-ifdef PPE42PATH
-GCC-TOOL-PREFIX = $(PPE42PATH)/bin/powerpc-eabi-
-BINUTILS-TOOL-PREFIX = $(PPE42PATH)/powerpc-eabi/bin/
+ifndef CROSS_COMPILER_PATH
+$(warning The CROSS_COMPILER_PATH variable is not defined; Defaulting to IBM CTE tools path)
+export CROSS_COMPILER_PATH = /afs/awd/projects/cte/tools/ppetools/prod
 endif
 
 ifndef GCC-TOOL-PREFIX
-GCC-TOOL-PREFIX = $(GCC-TOOL-PATH)/bin/powerpc-eabi-
+GCC-TOOL-PREFIX = $(CROSS_COMPILER_PATH)/bin/powerpc-eabi-
 endif
 
 ifndef BINUTILS-TOOL-PREFIX
-BINUTILS-TOOL-PREFIX = $(CTEPATH)/tools/ppetools/prod/powerpc-eabi/bin/
+BINUTILS-TOOL-PREFIX = $(CROSS_COMPILER_PATH)/powerpc-eabi/bin/
 endif
 
 ifndef FAPI_RC
@@ -359,12 +347,6 @@ CPP     = $(GCC-TOOL-PREFIX)gcc
 
 ifdef P2P_ENABLE
 PCP     = $(P2P_SRCDIR)/ppc-ppe-pcp.py
-endif
-
-
-ifndef CTEPATH
-$(warning The CTEPATH variable is not defined; Defaulting to /afs/awd)
-export CTEPATH = /afs/awd/projects/cte
 endif
 
 ifeq "$(PK_TIMER_SUPPORT)" ""
@@ -442,7 +424,7 @@ GCC-DEFS += -DPK_TRACE_SZ=$(PK_TRACE_SZ)
 endif
 
 DEFS += $(GCC-DEFS)
-export LD_LIBRARY_PATH+=:$(GCC-TOOL-PATH)/lib
+export LD_LIBRARY_PATH+=:$(CROSS_COMPILER_PATH)/lib
 ############################################################################
 
 

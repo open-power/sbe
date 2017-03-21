@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -27,9 +27,10 @@
 # This script will create header file sbe_build_info.H which will have
 # buld information required by SBE code.
 import os
-buildInfoFileName = "../../obj/genfiles/sbe_build_info.H"
+import sys
 
 def buildInfo():
+    buildInfoFileName = sys.argv[1]+"/genfiles/sbe_build_info.H"
     header = \
 "#ifndef SBE_BUILD_INFO_H  \n\
 #define SBE_BUILD_INFO_H  \n\n"

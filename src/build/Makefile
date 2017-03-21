@@ -223,7 +223,7 @@ report: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
 
 # Create build Info file
 buildInfo:
-	python buildInfo.py
+	python buildInfo.py $(OBJDIR)
 
 
 #Create an obj directory if needed
@@ -272,7 +272,7 @@ $(SBE_IPL_TOOLS): $(P9_XIP_TOOL)
 
 # Build the P9-XIP Tool
 $(P9_XIP_TOOL):
-	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile BINDIR=$(P9_XIP_BINDIR)
+	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile BINDIR=$(P9_XIP_BINDIR) CXX_FLAGS=-D__PPE__=1
 	cp $(P9_XIP_TOOL) $(IMG_DIR)/
 
 normalize: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
@@ -310,7 +310,7 @@ tracehash:
 
 #clean the kernel directory first, then the application level clean
 clean:
-	rm -fr $(OBJDIR)
+	rm -fr $(SBE_ROOT_DIR)/obj
 	rm -fr $(IMG_DIR)
 
 #Add dependencies to header files
