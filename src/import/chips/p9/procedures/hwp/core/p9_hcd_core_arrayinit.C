@@ -45,6 +45,7 @@
 #include <p9_perv_sbe_cmn.H>
 #include <p9_hcd_common.H>
 #include "p9_hcd_core_arrayinit.H"
+#include <p9_ring_id.h>
 
 //------------------------------------------------------------------------------
 // Constant Definitions
