@@ -50,6 +50,7 @@
 #include <p9_misc_scom_addresses_fld.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
+#include <p9n2_perv_scom_addresses_fld.H>
 #include <p9_xbus_scom_addresses.H>
 #include <p9_obus_scom_addresses.H>
 #include <p9_sbe_common.H>
@@ -82,7 +83,7 @@ const uint64_t LPC_FIR_MASK    = 0x18F0000000000000ULL;
 // PBA FIR constants
 const uint64_t PBA_FIR_ACTION0 = 0x0000000000000000ULL;
 const uint64_t PBA_FIR_ACTION1 = 0x0C0100600C000000ULL;
-const uint64_t PBA_FIR_MASK = 0x7082448062FC0000ULL;
+const uint64_t PBA_FIR_MASK = 0x3082448062FC0000ULL;
 
 // PPE FIR constants
 // FBC
@@ -97,6 +98,9 @@ const uint64_t XB_PPE_FIR_MASK    = 0x0E38000000000000ULL;
 const uint64_t OB_PPE_FIR_ACTION0 = 0x0000000000000000ULL;
 const uint64_t OB_PPE_FIR_ACTION1 = 0xF1C0000000000000ULL;
 const uint64_t OB_PPE_FIR_MASK    = 0x0E38000000000000ULL;
+
+// nest trace setup constants
+const uint8_t N1_PROBE1_SEL = 0x11;
 
 // nest DTS enablement constants
 const uint8_t NEST_THERM_MODE_SAMPLE_PULSE_COUNT = 0xF;
@@ -475,6 +479,25 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                          "Error from putScom (OBUS_3_IOPPE_PPE_FIR_MASK_REG)");
             }
         }
+    }
+
+    // configure NEST tracing logic
+    {
+        // mux N1 DBG broadcast(1) onto oob(5)
+        fapi2::buffer<uint64_t> l_cplt_conf0;
+        FAPI_TRY(fapi2::getScom(i_target, PERV_N1_CPLT_CONF0, l_cplt_conf0),
+                 "Error from getScom (PERV_N1_CPLT_CONF0)");
+        l_cplt_conf0.insertFromRight<PERV_1_CPLT_CONF0_CTRL_MISC_PROBE1_SEL_DC,
+                                     PERV_1_CPLT_CONF0_CTRL_MISC_PROBE1_SEL_DC_LEN>(N1_PROBE1_SEL);
+        FAPI_TRY(fapi2::putScom(i_target, PERV_N1_CPLT_CONF0, l_cplt_conf0),
+                 "Error from putScom (PERV_N1_CPLT_CONF0)");
+
+        // ungate global broadcast input on N3 DBG
+        FAPI_TRY(fapi2::getScom(i_target, PERV_N3_CPLT_CONF0, l_cplt_conf0),
+                 "Error from getScom (PERV_N3_CPLT_CONF0)");
+        l_cplt_conf0.setBit<P9N2_PERV_1_CPLT_CONF0_TC_PCB_DBG_GLB_BRCST_EN>();
+        FAPI_TRY(fapi2::putScom(i_target, PERV_N3_CPLT_CONF0, l_cplt_conf0),
+                 "Error from putScom (PERV_N3_CPLT_CONF0)");
     }
 
     // configure PCI tracing logic
