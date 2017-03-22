@@ -205,6 +205,37 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
             l_addr.iv_chiplet = i_target.fields.chiplet_num;
             l_addr.iv_satId = (2 * (i_target.getTargetInstance() % 2));
             break;
+        case PPE_TARGET_TYPE_PHB:
+            if(l_addr.iv_chiplet == N2_CHIPLET)
+            {
+                if (i_target.getTargetInstance() == 0)
+                {
+                    l_addr.iv_ring = 0x3;
+                    l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4));
+                }
+                else
+                {
+                    l_addr.iv_ring = (0x3 + (i_target.getTargetInstance() / 3) + 1) & 0xF;
+                    l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4)) +
+                                       ((i_target.getTargetInstance() % 2) ? (0) : (1)) +
+                                       (2 * (i_target.getTargetInstance() / 5));
+                }
+            }
+            else
+            {
+                l_addr.iv_chiplet = i_target.fields.chiplet_num;
+                if (i_target.getTargetInstance() == 0)
+                {
+                    l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4));
+                }
+                else
+                {
+                    l_addr.iv_satId = (((l_addr.iv_satId < 4) ? (1) : (4)) +
+                                       ((i_target.getTargetInstance() % 2) ? (0) : (1)) +
+                                       (2 * (i_target.getTargetInstance() / 5)));
+                }
+            }
+            break;
         default:
             if(0 != i_target.getAddressOverlay())
             {

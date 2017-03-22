@@ -115,6 +115,12 @@ namespace fapi2
     }
 
     template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PHB>()
+    {
+        return PPE_TARGET_TYPE_PHB;
+    }
+
+    template<>
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MCBIST>()
     {
         return PPE_TARGET_TYPE_MCBIST;
@@ -181,7 +187,7 @@ namespace fapi2
         constexpr TargetType TARGET_TYPE_PROC_CHILDREN =
             TARGET_TYPE_EQ | TARGET_TYPE_PERV | TARGET_TYPE_EX |
             TARGET_TYPE_MCBIST | TARGET_TYPE_CORE |
-            TARGET_TYPE_MCS | TARGET_TYPE_PROC_CHIP;
+            TARGET_TYPE_MCS | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB;
 
         static_assert(((
                        ((K & TARGET_TYPE_PROC_CHILDREN) != TARGET_TYPE_NONE) ||

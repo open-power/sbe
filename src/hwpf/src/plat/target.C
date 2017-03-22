@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -134,6 +134,9 @@ namespace fapi2
                 break;
             case PPE_TARGET_TYPE_MCS:
                 l_targetType = TARGET_TYPE_MCS;
+                break;
+            case PPE_TARGET_TYPE_PHB:
+                l_targetType = TARGET_TYPE_PHB;
                 break;
             case PPE_TARGET_TYPE_CORE | PPE_TARGET_TYPE_PERV:
                 l_targetType = TARGET_TYPE_CORE;
@@ -581,6 +584,31 @@ fapi_try_exit:
             }
 
             if(0 == l_attrPg)
+            {
+                static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+                static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
+            }
+
+            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
+        }
+
+        /*
+         * PHB Targets
+         */
+        l_beginning_offset = PHB_TARGET_OFFSET;
+        for (uint32_t i = 0; i < PHB_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_PHB> target_name(createPlatTargetHandle<fapi2::TARGET_TYPE_PHB>(i));
+
+            fapi2::Target<fapi2::TARGET_TYPE_PERV>
+                l_pciTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(target_name.getChipletNumber())));
+
+            constexpr uint16_t l_pciPgArray[] = {0xE1FD, 0xE0FD, 0xE07D};
+            uint16_t l_attrPg = 0;
+
+            FAPI_ATTR_GET(fapi2::ATTR_PG, l_pciTarget, l_attrPg);
+
+            if(l_pciPgArray[target_name.getChipletNumber() - PCI0_CHIPLET] == l_attrPg)
             {
                 static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
                 static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);

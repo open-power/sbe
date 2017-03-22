@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,8 +40,10 @@
 static const uint8_t CORES_PER_QUAD = 4;
 static const uint8_t EX_PER_QUAD = 2;
 static const uint8_t CORES_PER_EX = 2;
+static const uint8_t N2_CHIPLET = 4;
 static const uint8_t N3_CHIPLET = 5;
 static const uint8_t MCS_PER_MCBIST = 2;
+static const uint8_t PCI0_CHIPLET = 0x0D;
 
 //
 // Define what a platform handle looks like. For Hostboot,
@@ -61,6 +63,7 @@ namespace fapi2
         PPE_TARGET_TYPE_PERV              = 0x20,
         PPE_TARGET_TYPE_MCBIST            = 0x40,
         PPE_TARGET_TYPE_SYSTEM            = 0x80,
+        PPE_TARGET_TYPE_PHB               = 0x100,
         PPE_TARGET_TYPE_ALL               = 0xFFF,
     } plat_target_type_t;
 
@@ -265,6 +268,13 @@ namespace fapi2
         {
             l_handle.fields.chiplet_num = N3_CHIPLET - (MCS_PER_MCBIST * (i_plat_argument / MCS_PER_MCBIST));
             l_handle.fields.type = PPE_TARGET_TYPE_MCS;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_PHB)
+        {
+            l_handle.fields.chiplet_num = (0 == i_plat_argument) ? PCI0_CHIPLET :
+                                           (((i_plat_argument / 3) + 1) + PCI0_CHIPLET);
+            l_handle.fields.type = PPE_TARGET_TYPE_PHB;
             l_handle.fields.type_target_num = i_plat_argument;
         }
         else if(K == TARGET_TYPE_ALL)

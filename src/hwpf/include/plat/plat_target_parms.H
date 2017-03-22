@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -70,8 +70,12 @@ CONST_UINT32_T(EX_TARGET_COUNT,         12);
 CONST_UINT32_T(MCS_TARGET_OFFSET, EX_TARGET_OFFSET + EX_TARGET_COUNT);
 CONST_UINT32_T(MCS_TARGET_COUNT,         4);
 
+// PHB Targets
+CONST_UINT32_T(PHB_TARGET_OFFSET, MCS_TARGET_OFFSET + MCS_TARGET_COUNT);
+CONST_UINT32_T(PHB_TARGET_COUNT,         6);
+
 // System Target
-CONST_UINT32_T(SYSTEM_TARGET_OFFSET, MCS_TARGET_OFFSET + MCS_TARGET_COUNT);
+CONST_UINT32_T(SYSTEM_TARGET_OFFSET, PHB_TARGET_OFFSET + PHB_TARGET_COUNT);
 CONST_UINT32_T(SYSTEM_TARGET_COUNT,     1);
 
 CONST_UINT32_T(MCAST_TARGET_OFFSET, SYSTEM_TARGET_OFFSET + SYSTEM_TARGET_COUNT);
@@ -87,6 +91,7 @@ CONST_UINT32_T(TARGET_COUNT,            CHIP_TARGET_COUNT +
                                         PERV_TARGET_COUNT +
                                         EX_TARGET_COUNT +
                                         MCS_TARGET_COUNT +
+                                        PHB_TARGET_COUNT +
                                         SYSTEM_TARGET_COUNT +
                                         MCAST_TARGET_COUNT);
 
