@@ -845,12 +845,14 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_pcie(
     FAPI_INF("p9_sbe_chiplet_reset_clk_mux_pcie: Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target_chiplet,
-                           l_attr_unit_pos));
+                           l_attr_unit_pos),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
 
     // leverage SS filter PLL to feed PCI PLLs, instead of IO filter PLL
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SLOW_PCI_REF_CLOCK,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SLOW_PCI_REF_CLOCK_ENABLE,
                            i_target_chiplet.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
-                           l_use_ss_pll));
+                           l_use_ss_pll),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_SLOW_PCI_REF_CLOCK_ENABLE)");
 
     if ( l_attr_unit_pos != 0x0E )
     {
