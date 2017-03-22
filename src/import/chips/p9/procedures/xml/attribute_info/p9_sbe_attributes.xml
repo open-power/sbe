@@ -354,8 +354,12 @@ attribute tank
           <virtual/>
   </entry>
   <entry>
-          <name>ATTR_CHIP_EC_FEATURE_SLOW_PCI_REF_CLOCK</name>
+          <name>ATTR_CHIP_EC_FEATURE_SLOW_PCI_REF_CLOCK_ENABLE</name>
           <virtual/>
+  </entry>
+  <entry>
+          <name>ATTR_DD1_SLOW_PCI_REF_CLOCK</name>
+          <value>0x01</value>
   </entry>
   <entry>
           <name>ATTR_CHIP_EC_FEATURE_HW401184</name>
