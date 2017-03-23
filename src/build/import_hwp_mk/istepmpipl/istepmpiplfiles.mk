@@ -48,6 +48,7 @@ ISTEPMPIPL-CPP-SOURCES +=p9_sbe_sequence_drtm.C
 ISTEPMPIPL-CPP-SOURCES +=p9_query_core_access_state.C
 ISTEPMPIPL-CPP-SOURCES +=p9_quad_power_off.C
 ISTEPMPIPL-CPP-SOURCES +=p9_pm_pfet_control.C
+ISTEPMPIPL-CPP-SOURCES +=p9_suspend_io.C
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 
