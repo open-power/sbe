@@ -52,6 +52,7 @@
 #include <p9_misc_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 #include <p9_perv_scom_addresses.H>
+#include <p9_suspend_io.H>
 
 #ifndef CAPP_DD2
     #include <p9_thread_control.H>
@@ -284,6 +285,8 @@ extern "C" {
                 fapi2::putScom(i_target, phb_absolute_address_array[i], l_data);
             }
         }
+
+        FAPI_TRY(p9_suspend_io(i_target, true), "ERROR suspending IO");
 
     fapi_try_exit:
         return fapi2::current_err;
