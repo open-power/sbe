@@ -140,14 +140,14 @@ static const uint8_t PERV_CORE_COUNT    = 24;
 // -----------------------------------------------------------------------------
 
 fapi2::ReturnCode select_ex_add_core_to_mc_group(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target_cplt);
 
 fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target_cplt,
     const uint32_t i_ex_num);
 
 fapi2::ReturnCode select_ex_add_eq_to_mc_group(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt);
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target_cplt);
 
 fapi2::ReturnCode select_ex_update_mc_group(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
@@ -177,13 +177,11 @@ fapi2::ReturnCode p9_sbe_select_ex(
     uint32_t l_master_eq_num = 0xFF;  // invalid EQ number initialized
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
-    auto l_core_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_PERV>
-                                    (fapi2::TARGET_FILTER_ALL_CORES,
-                                     fapi2::TARGET_STATE_FUNCTIONAL );
+    auto l_core_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>
+                                    (fapi2::TARGET_STATE_FUNCTIONAL);
 
-    auto l_eq_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_PERV>
-                                  (fapi2::TARGET_FILTER_ALL_CACHES,
-                                   fapi2::TARGET_STATE_FUNCTIONAL );
+    auto l_eq_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_EQ>
+                                  (fapi2::TARGET_STATE_FUNCTIONAL );
 
     // Read the "FORCE_ALL" attribute
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES,
@@ -216,7 +214,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
     {
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                               core,
+                               core.getParent<fapi2::TARGET_TYPE_PERV>(),
                                l_attr_chip_unit_pos));
 
         // Needed as core is a PERV target
@@ -314,7 +312,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
         .insertFromRight<0, 4>(p9power::PFET_DELAY_POWERDOWN_CORE)
         .insertFromRight<4, 4>(p9power::PFET_DELAY_POWERUP_CORE);
 
-        FAPI_TRY(fapi2::putScom(core,
+        FAPI_TRY(fapi2::putScom(core.getParent<fapi2::TARGET_TYPE_PERV>(),
                                 C_PPM_PFDLY - 0x20000000,  // Create chip address base
                                 l_data64),
                  "Error: Core PFET Delay register");
@@ -326,7 +324,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
     {
         uint8_t l_attr_chip_unit_pos = 0; //actual value is read in FAPI_ATTR_GET below
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                               eq,
+                               eq.getParent<fapi2::TARGET_TYPE_PERV>(),
                                l_attr_chip_unit_pos));
 
         // Needed as eq is a PERV target
@@ -366,7 +364,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
         .insertFromRight<0, 4>(p9power::PFET_DELAY_POWERDOWN_EQ)
         .insertFromRight<4, 4>(p9power::PFET_DELAY_POWERUP_EQ);
 
-        FAPI_TRY(fapi2::putScom(eq,
+        FAPI_TRY(fapi2::putScom(eq.getParent<fapi2::TARGET_TYPE_PERV>(),
                                 EQ_PPM_PFDLY - 0x10000000,  // Create chip address base
                                 l_data64),
                  "Error: EQ PFET Delay register, rc 0x%.8X",
@@ -406,14 +404,14 @@ fapi_try_exit:
 ///                                     that is a core
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode select_ex_add_core_to_mc_group(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt)
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target_cplt)
 {
     FAPI_INF("> add_to_core_mc_group...");
 
 #ifndef __PPE__
     uint8_t l_attr_chip_unit_pos = 0;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                           i_target_cplt,
+                           i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                            l_attr_chip_unit_pos));
 
     FAPI_DBG("Adding Core %d to MC group %d",
@@ -421,7 +419,7 @@ fapi2::ReturnCode select_ex_add_core_to_mc_group(
              ALL_CHIPLETS_MC_GROUP );
 #endif
 
-    select_ex_update_mc_group(i_target_cplt,
+    select_ex_update_mc_group(i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                               ALL_CHIPLETS_MC_GROUP,
                               ALL_CHIPLETS_MC_REG);
 #ifndef __PPE__
@@ -430,7 +428,7 @@ fapi2::ReturnCode select_ex_add_core_to_mc_group(
              ALL_CORES_MC_GROUP );
 #endif
 
-    select_ex_update_mc_group(i_target_cplt,
+    select_ex_update_mc_group(i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                               ALL_CORES_MC_GROUP,
                               ALL_CORES_MC_REG);
 
@@ -440,7 +438,7 @@ fapi2::ReturnCode select_ex_add_core_to_mc_group(
              CORE_STOP_MC_GROUP );
 #endif
 
-    select_ex_update_mc_group(i_target_cplt,
+    select_ex_update_mc_group(i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                               CORE_STOP_MC_GROUP,
                               CORE_MC_REG);
 
@@ -457,7 +455,7 @@ fapi_try_exit:
 ///
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt,
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target_cplt,
     const uint32_t i_ex_num)
 {
     FAPI_INF("> select_ex_add_ex_to_mc_groups...");
@@ -475,7 +473,7 @@ fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
                  i_ex_num,
                  EX_ODD_STOP_MC_GROUP);
 #endif
-        select_ex_update_mc_group(i_target_cplt,
+        select_ex_update_mc_group(i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                                   EX_ODD_STOP_MC_GROUP,
                                   EX_ODD_MC_REG);
     }
@@ -486,7 +484,7 @@ fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
                  i_ex_num,
                  EX_EVEN_STOP_MC_GROUP);
 #endif
-        select_ex_update_mc_group(i_target_cplt,
+        select_ex_update_mc_group(i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                                   EX_EVEN_STOP_MC_GROUP,
                                   EX_EVEN_MC_REG);
     }
@@ -501,14 +499,14 @@ fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
 ///
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode select_ex_add_eq_to_mc_group(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt)
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target_cplt)
 {
     FAPI_INF("> select_ex_add_eq_to_mc_group...");
 
 #ifndef __PPE__
     uint8_t l_attr_chip_unit_pos = 0;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                           i_target_cplt,
+                           i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                            l_attr_chip_unit_pos));
 
     FAPI_DBG("Adding EQ %d to MC group %d",
@@ -516,7 +514,7 @@ fapi2::ReturnCode select_ex_add_eq_to_mc_group(
              ALL_CHIPLETS_MC_GROUP );
 #endif
 
-    select_ex_update_mc_group(i_target_cplt,
+    select_ex_update_mc_group(i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                               ALL_CHIPLETS_MC_GROUP,
                               ALL_CHIPLETS_MC_REG);
 
@@ -526,7 +524,7 @@ fapi2::ReturnCode select_ex_add_eq_to_mc_group(
              EQ_STOP_MC_GROUP );
 #endif
 
-    select_ex_update_mc_group(i_target_cplt,
+    select_ex_update_mc_group(i_target_cplt.getParent<fapi2::TARGET_TYPE_PERV>(),
                               EQ_STOP_MC_GROUP,
                               EQ_MC_REG);
 
