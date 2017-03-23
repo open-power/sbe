@@ -75,6 +75,9 @@ fapi2::ReturnCode p9_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     auto l_phb_chiplets_vec = i_target.getChildren<fapi2::TARGET_TYPE_PHB>();
     FAPI_DBG("PHB target vec size: %#x\n", l_phb_chiplets_vec.size());
     uint8_t l_phb_id = 0;
+    uint8_t l_fabric_group_id = 0;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, i_target, l_fabric_group_id))
 
 
     //Loop through all PHBs configured
@@ -82,6 +85,25 @@ fapi2::ReturnCode p9_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     {
         //Get the PHB id
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_phb_chiplets, l_phb_id));
+
+        //TODO SW384392 ZZ workaroud
+        //This HWP is ran on the SBE and the SBE does not know what PHBs are functional or not
+        //This causes this HWP to do scoms to targets that are not functional. This workaround
+        // needs to be removed when the SBE can reliably tell us what PHBs are functional
+        if(l_fabric_group_id == 0)
+        {
+            if(l_phb_id == 0x5)
+            {
+                continue;
+            }
+        }
+        else if(l_fabric_group_id == 1)
+        {
+            if(l_phb_id == 0x5 || l_phb_id == 0x4)
+            {
+                continue;
+            }
+        }
 
         //****************************************************************************************************************
         //STEP #1: nop
