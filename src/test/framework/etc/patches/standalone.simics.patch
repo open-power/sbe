@@ -2,3 +2,5 @@
 < ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "00000000_00000000" 64
 ---
 > ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "80000000_00000000" 64
+51a52
+> ($hb_masterproc).proc_chip.invoke parallel_store FSIMBOX 0x08 "00080000" 32
