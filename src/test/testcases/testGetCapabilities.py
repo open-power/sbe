@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -61,9 +61,9 @@ def main( ):
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( TESTDATA )
     testUtil.writeEot( )
-    # Ignore first two enteries ( major number, minor number
-    # and fw version) as they will keep on changing
-    testUtil.readDsEntry( 2 )
+    # Ignore first 7 enteries ( major number, minor number
+    # and fw version & tag) as they will keep on changing
+    testUtil.readDsEntry( 7 )
     testUtil.readDsFifo( EXPDATA1 )
     testUtil.readDsFifo( EXPDATA2 )
     testUtil.readDsFifo( EXPDATA3 )

@@ -41,8 +41,10 @@
 #include "sbeHostMsg.H"
 #include "sbeHostUtils.H"
 #include "sbeglobals.H"
+#include "sbeXipUtils.H"
 
 #include "fapi2.H"
+//#include "p9_xip_image.h"
 
 using namespace fapi2;
 
@@ -52,6 +54,13 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
     verMajor= SBE_FW_MAJOR_VERSION;
     verMinor = SBE_FW_MINOR_VERSION;
     fwCommitId = SBE_COMMIT_ID;
+    // Get hbbl section
+    P9XipHeader *hdr = getXipHdr();
+    for(uint32_t idx=0; idx<sizeof(hdr->iv_buildTag); idx++)
+    {
+        buildTag[idx] = hdr->iv_buildTag[idx];
+    }
+
     // We can remove this for llop once all capabilities
     // are supported
     for(uint32_t idx = 0; idx < SBE_MAX_CAPABILITIES; idx++ )

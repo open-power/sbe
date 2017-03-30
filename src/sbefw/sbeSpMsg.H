@@ -453,6 +453,7 @@ typedef struct sbeCapabilityRespMsg
     uint32_t verMajor:16;
     uint32_t verMinor:16;
     uint32_t fwCommitId;
+    char     buildTag[20];
     uint32_t capability[SBE_MAX_CAPABILITIES];
     // ctor. constructor will initialise all values.
     sbeCapabilityRespMsg();
