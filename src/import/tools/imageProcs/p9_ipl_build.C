@@ -217,7 +217,8 @@ int append_ring_block_to_image( char* io_sbeImage,
                         i_ringBlock,
                         i_blockSize,
                         io_sbeImageSize,
-                        &unused_parm );
+                        &unused_parm,
+                        0 );
 
     if(rc)
     {
