@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <string>
 
 #undef P9_XIP_TOOL_VERBOSE
 
@@ -72,10 +73,10 @@ enum LISTING_MODE_ID
 //        p9_xip_tool <image> [-<flag> ...] setv <item> <index> <value> [ <item1> <index1> <value1> ... ]
 //        p9_xip_tool <image> [-<flag> ...] report [<regex>]
 //        p9_xip_tool <image> [-<flag> ...] attrdump <attr dump file>
-//        p9_xip_tool <image> [-<flag> ...] append <section> <file>
-//        p9_xip_tool <image> [-<flag> ...] extract <section> <file>
+//        p9_xip_tool <image> [-<flag> ...] append <section> <file> [ <ddSupport> ]
+//        p9_xip_tool <image> [-<flag> ...] extract <section> <file> [ <ddLevel> ]
 //        p9_xip_tool <image> [-<flag> ...] delete <section> [ <section1> ... <sectionN> ]
-//        p9_xip_tool <image> [-<flag> ...] dissect <ring section> [table,short,normal(default),long,raw]
+//        p9_xip_tool <image> [-<flag> ...] dissect <ring section> [ table,short,normal(default),long,raw ]
 //        p9_xip_tool <image> [-<flag> ...] disasm <text section>
 //
 // This simple application uses the P9-XIP image APIs to normalize, search
@@ -127,9 +128,18 @@ enum LISTING_MODE_ID
 // Currently the section must either be the final (highest address) section of
 // the image, or must be empty, in which case the append command creates the
 // section as the final section of the image. The 'append' command writes the
-// relocatable image address where the input file was loaded to stdout.
+// relocatable image address where the input file was loaded to stdout. The
+// last argument, ddSupport, indicates if the section being added has ddLevel
+// metadata support (=1) or not (=0). If this arg is omitted it's assumed
+// to be false (=0).
 //
-// The 'extract' command extracts a sections from the binary image.
+// The 'extract' command extracts a section from the binary image.  The last
+// argument, ddLevel, indicates [in hex] the DD level to be extracted.  If
+// the section doesn't have DD level support, a message is returned stating
+// that and to reissue the command w/o the ddLevel arg.  If the section does
+// have DD support but the specified ddLevel cannot be found, a message is
+// returned stating that and no section is returned.  If the arg is omitted,
+// the entire XIP section is returned
 //
 // The 'delete' command deletes 0 or more sections, starting with <section0>.
 // Each section to be deleted must either be the final (highest address)
@@ -165,11 +175,11 @@ const char* g_usage =
     "       p9_xip_tool <image> [-i<flag> ...] setv <item> <index> <value> [ <item1> <index1> <value1> ... ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] report [<regex>]\n"
     "       p9_xip_tool <image> [-i<flag> ...] attrdump <attr dump file>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] append <section> <file>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] extract <section> <file>\n"
+    "       p9_xip_tool <image> [-i<flag> ...] append <section> <file> [ <ddSupport> ]\n"
+    "       p9_xip_tool <image> [-i<flag> ...] extract <section> <file> [ <ddLevel> ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] delete <section> [ <section1> ... <sectionN> ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] dis <section>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] dissect <ring section> [table,short,normal(default),long,raw]\n"
+    "       p9_xip_tool <image> [-i<flag> ...] dissect <ring section> [ table,short,normal(default),long,raw ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] disasm <text section>\n"
     "       p9_xip_tool <image> [-i<flag> ...] check-sbe-ring-section <dd level> <maximum size>\n"
     "\n"
@@ -222,9 +232,18 @@ const char* g_usage =
     "Currently the section must either be the final (highest address) section of\n"
     "the image, or must be empty, in which case the append command creates the\n"
     "section as the final section of the image. The 'append' command writes the\n"
-    "relocatable image address where the input file was loaded to stdout.\n"
+    "relocatable image address where the input file was loaded to stdout.  The\n"
+    "last argument, ddSupport, indicates if the section being added has ddLevel\n"
+    "metadata support (=1) or not (=0). If this arg is omitted, it's assumed\n"
+    "to be false (=0).\n"
     "\n"
-    "The 'extract' command extracs a sections from a binary image.\n"
+    "The 'extract' command extracts a section from the binary image.  The last\n"
+    "argument, ddLevel, indicates [in hex] the DD level to be extracted.  If\n"
+    "the section doesn't have DD level support, a message is returned stating\n"
+    "that and to reissue the command w/o the ddLevel arg.  If the section does\n"
+    "have DD support but the specified ddLevel cannot be found, a message is\n"
+    "returned stating that and no section is returned.  If the arg is omitted,\n"
+    "the entire XIP section is returned."
     "\n"
     "The 'delete' command deletes 0 or more sections, starting with <section0>.\n"
     "Each section to be deleted must either be the final (highest address)\n"
@@ -322,12 +341,12 @@ static inline const char* get_sectionName(uint64_t magic, int index)
 
 // Determine index of section given by its name in section table
 
-static inline int get_sectionId(uint64_t i_magic, const char* i_section)
+static inline int get_sectionId(uint64_t i_magic, const char* i_sectionName)
 {
     int i;
 
     for (i = 0; i < P9_XIP_SECTIONS; i++)
-        if (strcmp(i_section, get_sectionName(i_magic, i)) == 0)
+        if (strcmp(i_sectionName, get_sectionName(i_magic, i)) == 0)
         {
             return i;
         }
@@ -566,15 +585,16 @@ dumpHeader(void* i_image)
     printf("\n");
 
     printf("Section Table     :\n\n");
-    printf("    Name              Alignment   Start        End          Size\n");
+    printf("    Name            Align   DD   Start        End          Size\n");
     printf("\n");
 
     for (i = 0; i < P9_XIP_SECTIONS; i++)
     {
         section = &(header.iv_section[i]);
-        printf("   %-16s   %d           0x%08x   ",
+        printf("   %-16s %d       %d    0x%08x   ",
                get_sectionName(header.iv_magic, i),
                section->iv_alignment,
+               section->iv_ddSupport,
                section->iv_offset);
 
         if (section->iv_size == 0)
@@ -1090,6 +1110,7 @@ static int
 append(const char* i_imageFile, const int i_imageFd, void* io_image,
        int i_argc, const char** i_argv)
 {
+    uint8_t i_ddSupport = 0;
     int fileFd, newImageFd, sectionId, rc;
     struct stat buf;
     const char* section;
@@ -1105,7 +1126,7 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
 
         // Basic syntax check: <section> <file>
 
-        if (i_argc != 2)
+        if (i_argc != 2 && i_argc != 3)
         {
             fprintf(stderr, g_usage);
             exit(1);
@@ -1113,6 +1134,23 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
 
         section = i_argv[0];
         file = i_argv[1];
+
+        if (i_argc == 3)
+        {
+            if (strcmp(i_argv[2], "1") == 0)
+            {
+                i_ddSupport = 1;
+            }
+            else if (strcmp(i_argv[2], "0") == 0)
+            {
+                i_ddSupport = 0;
+            }
+            else
+            {
+                fprintf(stderr, g_usage);
+                exit(1);
+            }
+        }
 
         p9_xip_translate_header(&header, (P9XipHeader*)io_image);
 
@@ -1190,9 +1228,13 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
         // We will not fail for unaligned addresses, as we have no knowledge
         // of whether or why the user wants the final image address.
 
-        rc = p9_xip_append(newImage, sectionId,
-                           appendImage, buf.st_size,
-                           newSize, &sectionOffset);
+        rc = p9_xip_append(newImage,
+                           sectionId,
+                           appendImage,
+                           buf.st_size,
+                           newSize,
+                           &sectionOffset,
+                           i_ddSupport);
 
         if (rc)
         {
@@ -1248,63 +1290,140 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
     return rc;
 }
 
-// Extract section from a file
+// Extract section from an image incl a DD-specific sub-section within an XIP section.
 static int
 extract(const char* i_imageFile, const int i_imageFd, void* io_image,
         int i_argc, const char** i_argv)
 {
-    int fileFd, sectionId, rc;
+    int rc = 0;
+    const char* i_sectionName;  //Direct copy of input arg, thus i_
+    const char* i_fileName;     //Same
+    std::string i_ddLevelStr;   //Same
+    uint8_t ddLevel = P9_XIP_UNDEFINED_DDLEVEL;
+    bool bDdSuppExpected = false;
+    int fileFd, sectionId;
     void* newImage;
-    const char* section;
-    const char* file;
     P9XipHeader header;
-    P9XipSection* xSection;
-    uint32_t size;
-    uint32_t offset;
+    P9XipSection* xSection;   // XIP section of i_section
+    P9XipSection  xDdSection; // Extracted XIP (self) or Dd section of i_section
 
     do
     {
 
-        if (i_argc != 2)
+        if (i_argc != 2 && i_argc != 3)
         {
             fprintf(stderr, g_usage);
             exit(1);
         }
 
-        section = i_argv[0];
-        file = i_argv[1];
-
-        printf("%s %s\n", section , file);
+        i_sectionName = i_argv[0];
+        i_fileName = i_argv[1];
 
         p9_xip_translate_header(&header, (P9XipHeader*)io_image);
-
-        sectionId = get_sectionId(header.iv_magic, section);
+        sectionId = get_sectionId(header.iv_magic, i_sectionName);
 
         if (sectionId < 0)
         {
-            fprintf(stderr, "Unrecognized section name : '%s;\n", section);
+            fprintf(stderr, "\nUnrecognized section name : '%s;\n", i_sectionName);
             exit(1);
         }
 
         xSection = &(header.iv_section[sectionId]);
 
-        size = xSection->iv_size;
-        offset = xSection->iv_offset;
+        printf("\nInput parms to the \"extract\" command:\n"\
+               "  Section:      %s\n"\
+               "  Output file:  %s\n",
+               i_sectionName, i_fileName);
 
-        printf("%-16s 0x%08x 0x%08x (%d)\n",
-               section, offset, size, size);
+        ddLevel = P9_XIP_UNDEFINED_DDLEVEL;
+        bDdSuppExpected = false;
 
-        newImage = malloc(size);
+        if (i_argc == 3)
+        {
+            i_ddLevelStr = i_argv[2];
+
+            bDdSuppExpected = true;
+
+            printf("  DD level (input): %s\n",
+                   i_ddLevelStr.c_str());
+        }
+
+        if (bDdSuppExpected)
+        {
+            if (xSection->iv_ddSupport)
+            {
+                if (i_ddLevelStr.size() != 2 && i_ddLevelStr.size() != 4)
+                {
+                    fprintf(stderr, "\nThe specified ddLevel \"%s\" has an unsupported format.\n",
+                            i_ddLevelStr.c_str());
+                    fprintf(stderr, "Specify ddLevel in hex format, e.g. \"0x10\" or \"10\"\n\n");
+                    exit(1);
+                }
+
+                ddLevel = strtol(i_ddLevelStr.c_str(), NULL, 16);
+
+                printf("  DD level (hex converted): 0x%x\n",
+                       ddLevel);
+            }
+            else
+            {
+                fprintf(stderr, "\nThe section \"%s\" has no DD level support.\n", i_sectionName);
+                fprintf(stderr, "To extract the entire section, omit the \"ddLevel\" arg.\n\n");
+                exit(1);
+            }
+        }
+
+        printf("\nThe specified XIP section has the following attributes:\n"\
+               "  Offset:       0x%08x\n"\
+               "  Size (size):  0x%08x (%d)\n"\
+               "  DD support:   %d\n",
+               xSection->iv_offset, xSection->iv_size, xSection->iv_size, xSection->iv_ddSupport);
+
+        if (ddLevel == 0)
+        {
+            ddLevel = P9_XIP_UNDEFINED_DDLEVEL;
+            // Even though this may seem like we should just exit here, we'll leave it up
+            // to xip_get_section what to do in this case. Who knows, maybe it'll eventually
+            // return a list of supported DD levels.
+        }
+
+#ifdef __PPE__
+        rc = p9_xip_get_section( io_image, sectionId, &xDdSection);
+#else
+        rc = p9_xip_get_section( io_image, sectionId, &xDdSection, ddLevel);
+#endif
+
+        switch (rc)
+        {
+            case 0:
+                break;
+
+            case P9_XIP_NO_DDLEVEL_SUPPORT:
+                fprintf(stderr, "\nThere is no support for DD level extraction yet.\n");
+                fprintf(stderr, "To extract the entire section, omit the \"ddLevel\" arg.\n\n");
+                exit(1);
+
+            case P9_XIP_DDLEVEL_NOT_FOUND:
+                fprintf(stderr, "\nA sub-section w/the specified ddLevel (=0x%x) was not found.\n", ddLevel);
+                fprintf(stderr, "To extract the entire section, omit the \"ddLevel\" arg.\n\n");
+                exit(1);
+
+            default:
+                fprintf(stderr, "\np9_xip_get_section() failed w/rc = %d\n\n", rc);
+                exit(1);
+        }
+
+        newImage = malloc(xSection->iv_size);
 
         if (newImage == 0)
         {
-            fprintf(stderr, "Can't malloc() a buffer for the new image\n");
+            fprintf(stderr, "\nCan't malloc() a buffer for the new image\n");
             exit(1);
         }
 
-        memcpy(newImage, (void*)((uint64_t)io_image + offset), size);
+        memcpy( newImage, (void*)((uint64_t)io_image + xDdSection.iv_offset), xDdSection.iv_size);
 
-        fileFd = open(file, O_CREAT | O_WRONLY | O_TRUNC, 0755);
+        fileFd = open(i_fileName, O_CREAT | O_WRONLY | O_TRUNC, 0755);
 
         if (fileFd < 0)
         {
@@ -1312,9 +1431,9 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
             exit(1);
         }
 
-        rc = write(fileFd, newImage, size);
+        rc = write(fileFd, newImage, xDdSection.iv_size);
 
-        if ((rc < 0) || ((uint32_t)rc != size))
+        if ((rc < 0) || ((uint32_t)rc != xDdSection.iv_size))
         {
             perror("write() of fixed section : ");
             exit(1);
