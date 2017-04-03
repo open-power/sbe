@@ -85,6 +85,8 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
 {
     fapi2::buffer<uint64_t> l_pg_vector;
     fapi2::buffer<uint64_t> l_regions;
+    fapi2::buffer<uint64_t> l_data64;
+    fapi2::buffer<uint64_t> l_data_cplt_fence;
     fapi2::buffer<uint8_t> l_ndl_meshctrl_setup;
     fapi2::buffer<uint8_t> l_attr_obus_ratio;
     fapi2::buffer<uint16_t> l_attr_pg;
@@ -158,6 +160,16 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
             FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(targ, REGION1_PBIOOA, l_regions));
             FAPI_DBG("Regions value: %#018lX", l_regions);
 
+            FAPI_DBG("Set nv2 iovalid");
+            l_data64.flush<0>();
+            l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_6D>();
+            l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_7D>();
+            l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_8D>();
+            FAPI_TRY(fapi2::putScom(targ, PERV_CPLT_CONF1_OR, l_data64));
+
+            FAPI_DBG("drop chiplet fence for OB");
+            FAPI_TRY(p9_sbe_startclock_chiplets_fence_drop(targ));
+
             FAPI_DBG("Clock start : region 1 pbiooa to propagate the clock select for nv logic");
             FAPI_TRY(p9_sbe_common_clock_start_stop(targ, CLOCK_CMD_START,
                                                     DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
@@ -165,6 +177,15 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
             FAPI_DBG("Clock stop : region 1 pbiooa ");
             FAPI_TRY(p9_sbe_common_clock_start_stop(targ, CLOCK_CMD_STOP,
                                                     DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
+
+            FAPI_DBG("raise chiplet fence for OB");
+            l_data_cplt_fence.flush<0>();
+            l_data_cplt_fence.setBit<PERV_1_NET_CTRL0_FENCE_EN>();
+            FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL0_WOR, l_data_cplt_fence));
+
+            FAPI_DBG("Clear nv2 iovalid");
+            FAPI_TRY(fapi2::putScom(targ, PERV_CPLT_CONF1_CLEAR, l_data64));
+
             FAPI_DBG("Meshctrl setup");
             FAPI_TRY(p9_sbe_startclock_chiplets_meshctrl_setup(targ, ((l_ndl_meshctrl_setup >> (12 - l_chipletID)) & 1)));
 
