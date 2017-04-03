@@ -31,7 +31,7 @@ p9n_EC = ['10']#, '20']
 DD_level = {'10':'DD1', '20':'DD2'}
 
 def usage():
-    print "usage:sbeOpDistribute.py [--root_dir] <root path> [--staging_dir] <staging path> [--img_dir] <images path>"
+    print "usage:sbeOpDistribute.py [--sbe_binary_dir] <sbe binary path> [--img_dir] <images path>"
 
 def run_system_cmd(cmd):
     print 'Cmd:<'+cmd+'>'
@@ -41,19 +41,24 @@ def run_system_cmd(cmd):
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", ['root_dir=', 'staging_dir=', 'img_dir=', 'host_dir=', 'help'])
+        opts, args = getopt.getopt(sys.argv[1:], "", ['sbe_binary_dir=', 'img_dir=', 'buildSbePart=', 'hw_ref_image=', 'sbe_binary_filename=', 'scratch_dir=', 'install', 'help'])
     except getopt.GetoptError as err:
         print str(err)
         usage()
         exit(1)
 
     # Default values
-    root_dir = ''
-    staging_dir = ''
+    mode = "MAKE"
+    sbe_binary_dir = ''
     img_dir = ''
-    host_dir = ''
+    buildSbePart = ''
+    hw_ref_image = ''
+    sbe_binary_filename = ''
+    scratch_dir = ''
 
-    if len(opts)<3:
+    sbe_out_name = ''
+
+    if len(opts)<2:
         usage()
         exit(1)
 
@@ -62,26 +67,53 @@ def main(argv):
         if opt == '--help':
             usage()
             exit(1)
-        elif opt == '--root_dir':
-            root_dir = str(arg)
-            assert os.path.exists(arg), "Did not find the file at,"+str(arg)
-        elif opt == '--staging_dir':
-            staging_dir = str(arg)
-            assert os.path.exists(arg), "Did not find the file at,"+str(arg)
+        elif opt == '--install':
+            mode = "INSTALL"
+        elif opt == '--sbe_binary_dir':
+            sbe_binary_dir = str(arg)
         elif opt == '--img_dir':
             img_dir = str(arg)
             assert os.path.exists(arg), "Did not find the file at,"+str(arg)
-        elif opt == '--host_dir':
-            host_dir = str(arg)
+        elif opt == '--buildSbePart':
+            buildSbePart = str(arg)
+            assert os.path.exists(arg), "Did not find the file at,"+str(arg)
+        elif opt == '--hw_ref_image':
+            hw_ref_image = str(arg)
+            assert os.path.exists(arg), "Did not find the file at,"+str(arg)
+        elif opt == '--sbe_binary_filename':
+            sbe_binary_filename = str(arg)
+            sbe_out_name = sbe_binary_filename.split(".ecc")[0]
+        elif opt == '--scratch_dir':
+            scratch_dir = str(arg)
             assert os.path.exists(arg), "Did not find the file at,"+str(arg)
 
-    SBE_BINARIES_PATH       = staging_dir+'/sbe_binaries'
     SEEPROM_IMAGE           = 'sbe_seeprom.bin'
+    SEEPROM_HDR_BIN         = 'sbe_seeprom.hdr.bin'
 
-    # Create binaries folder
-    run_system_cmd('mkdir -p '+SBE_BINARIES_PATH)
-    for ecLevel in p9n_EC:
-        # Copy sbe raw binary to binaries folder
-        run_system_cmd('cp '+img_dir+'/'+'sbe_seeprom_'+DD_level[ecLevel]+'.bin'+' '+SBE_BINARIES_PATH+'/'+CHIPID+'_'+ecLevel+'.'+SEEPROM_IMAGE)
+    if (mode == "MAKE"):
+        # Create binaries folder
+        run_system_cmd('mkdir -p '+sbe_binary_dir)
+        for ecLevel in p9n_EC:
+            # Copy sbe raw binary to binaries folder
+            run_system_cmd('cp '+img_dir+'/'+'sbe_seeprom_'+DD_level[ecLevel]+'.bin'+' '+sbe_binary_dir+'/'+CHIPID+'_'+ecLevel+'.'+SEEPROM_IMAGE)
+    elif (mode == "INSTALL"):
+        ec_build_sbe_cmd = ''
+        for ecLevel in p9n_EC:
+            basename = CHIPID+'_'+ecLevel+'.sbe_seeprom'
+            ec_build_sbe_cmd += ' --ecImg_'+ecLevel+' '+scratch_dir+'/'+basename+'.hdr.bin'
+            # Copy sbe raw binary to scratch folder
+            run_system_cmd('cp '+sbe_binary_dir+'/'+basename+'.bin'+' '+scratch_dir+'/'+basename+'.bin')
+            # Add HW ref image
+            run_system_cmd('p9_ipl_build '+scratch_dir+'/'+basename+'.bin '+hw_ref_image+' 0x'+ecLevel)
+            #add pnor header
+            run_system_cmd("env echo -en VERSION\\\\0 > "+scratch_dir+"/"+basename+".sha.bin")
+            run_system_cmd("sha512sum "+scratch_dir+"/"+basename+".bin | awk '{print $1}' | xxd -pr -r >> "+scratch_dir+"/"+basename+".sha.bin")
+            run_system_cmd("dd if="+scratch_dir+"/"+basename+".sha.bin of="+scratch_dir+"/"+basename+".hdr.bin ibs=4k conv=sync")
+            run_system_cmd("cat "+scratch_dir+"/"+basename+".bin >> "+scratch_dir+"/"+basename+".hdr.bin")
+
+        # buildSbePart.pl
+        run_system_cmd(buildSbePart+" --sbeOutBin "+scratch_dir+"/"+sbe_out_name+ec_build_sbe_cmd)
+        run_system_cmd("dd if="+scratch_dir+"/"+sbe_out_name+" of="+scratch_dir+"/"+sbe_out_name+".256K ibs=256K conv=sync")
+        run_system_cmd("ecc --inject "+scratch_dir+"/"+sbe_out_name+".256K --output "+scratch_dir+"/"+sbe_out_name+".ecc --p8")
 if __name__ == "__main__":
     main(sys.argv)
