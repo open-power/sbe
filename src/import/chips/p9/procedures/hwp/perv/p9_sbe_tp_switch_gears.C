@@ -31,7 +31,7 @@
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : sunil kumar <skumarj8@in.ibm.com>
 // *HWP Team            : Perv
-// *HWP Level           : 2
+// *HWP Level           : 3
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
@@ -158,7 +158,8 @@ fapi2::ReturnCode p9_sbe_tp_switch_gears_check_magicnumber(
                 fapi2::I2C_BUS_STATUS_BUSY()
                 .set_MASTER_CHIP(i_target_chip)
                 .set_STATUS_REGISTER_B(l_data64)
-                .set_LOOP_COUNT(l_timeout),
+                .set_LOOP_COUNT(BUS_STATUS_BUSY_POLL_COUNT)
+                .set_BACKUP_SEEPROM_ATTR(l_read_attr),
                 "ERROR:BUS_STSTUS_BUSY_0 NOT SET TO 0");
 
     FAPI_DBG("Reading the value of DATA0TO7_REGISTER_B");

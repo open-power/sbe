@@ -32,7 +32,7 @@
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : sunil kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
-// *HWP Level           : 2
+// *HWP Level           : 3
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
@@ -138,8 +138,12 @@ fapi2::ReturnCode p9_sbe_gear_switcher_i2c_stop_sequence(
     FAPI_INF("Loop Count :%d", l_timeout);
 
     FAPI_ASSERT(l_timeout > 0,
-                fapi2::BUS_STATUS_BUSY_0(),
-                "ERROR:BUS_STSTUS_BUSY_0 NOT SET TO 0");
+                fapi2::BUS_STATUS_BUSY_0()
+                .set_TARGET_CHIP(i_target_chip)
+                .set_STATUS_REGISTER_B(l_data64)
+                .set_LOOP_COUNT(BUS_STATUS_BUSY_POLL_COUNT)
+                .set_BACKUP_SEEPROM_ATTR(l_read_attr),
+                "ERROR:BUS_STATUS_BUSY_0 NOT SET TO 0");
 
     FAPI_DBG("Exiting ...");
 
