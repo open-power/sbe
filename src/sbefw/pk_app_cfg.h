@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -140,6 +140,6 @@
 #ifdef PK_TRACE_SZ
 #undef PK_TRACE_SZ
 #endif
-#define PK_TRACE_SZ 2*1024
+#define PK_TRACE_SZ 512
 
 #endif /*__PK_APP_CFG_H__*/
