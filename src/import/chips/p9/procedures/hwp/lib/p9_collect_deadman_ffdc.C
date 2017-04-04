@@ -226,10 +226,11 @@ p9_collect_deadman_ffdc (
 
     // Add FFDC to a single FAPI RC, to avoid code bloat from multiple
     // generated ffdc classes & error info classes per FAPI RC.
-    // Note, we are adding 15 FFDC members. Limit is 20.
+    // Note, we are adding 16 FFDC members. Limit is 20.
     FAPI_ASSERT ( false,
                   fapi2::CHECK_MASTER_STOP15_FAILED ()
                   .set_SBE_CHK_MASTER_STOP15_RC (i_reason)
+                  .set_CORE_TARGET (i_core)
                   .set_PU_OCB_OCI_OCCFLG__PU_OCB_OCI_CCSR (
                       l_dmanFfdcScoms[FFDC_____PU_OCB_OCI_OCCFLG32__CCSR32])
                   .set_PU_OCB_OCI_QCSR__PU_OCB_OCI_QSSR (
