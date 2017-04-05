@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -52,6 +52,7 @@ my %attributeArrayTypes;
 my %getMacros;
 my %setMacros;
 my %targetMacros;
+my %platInitMacros;
 
 
 
@@ -124,12 +125,16 @@ while (<FILE>) {
     $targetMacros{$1} = $2;
 #    print "DEBUG:: attribute = $1 : TARGET = $2\n";
     if ($DEBUG) { print "DEBUG:: attribute = $1 : TARGET = $2\n"; }
+  } elsif (m/\s*const\s*bool\s+(\w+)_PlatInit\s*=\s*true\s*;\s*/) {
+    $platInitMacros{$1} = 'true';
+    if ($DEBUG) { print "DEBUG:: attribute = $1 is platInit\n"; }
   }
+
 }
 
 close (FILE);
 
-#find copy of fapiPlatAttributeService.H
+#find copy of plat_attribute_service.H
 if (!$servicePath) {
   #$CTEPATH/tools/ecmd/$ECMD_RELEASE/ext/fapi/capi
   my $ctepath = $ENV{CTEPATH};
@@ -155,13 +160,13 @@ if (!-d $servicePath) {
   exit 1;
 }
 
-# test that fapiPlatAttributeService.H is in that directory
+# test that plat_attribute_service.H is in that directory
 if (!-f "$servicePath/$fapiPlatAttributeServiceFile") {
   print "ERROR:: $fapiPlatAttributeServiceFile does not exist in $servicePath\n";
   exit 1;
 }
 
-# copy fapiPlatAttributeService.H to local dir
+# copy plat_attribute_service.H to local dir
 #my $systemRc = system("cp $servicePath/$fapiPlatAttributeServiceFile $includePath");
 copy("$servicePath/$fapiPlatAttributeServiceFile","$includePath") or die "Copy failed: $!";
 
@@ -172,7 +177,7 @@ copy("$servicePath/$fapiPlatAttributeServiceFile","$includePath") or die "Copy f
 
 
 
-# look in fapiPlatAttributeService.H for MACROs
+# look in plat_attribute_service.H for MACROs
 open (FILE, $includePath . "/". $fapiPlatAttributeServiceFile) or die "ERROR:: could not open $fapiPlatAttributeServiceFile\n";
 while (<FILE>) {
   if (m/\s*#define\s+(\w+)_GETMACRO\s+(\S+)\s*/) {
@@ -224,6 +229,7 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
 
   my $setMacro = $setMacros{$attribute};
   my $getMacro = $getMacros{$attribute};
+  my $platInitMacro = $platInitMacros{$attribute};
   my $targetMacro = $targetMacros{$attribute};
 
 #  print "$attribute $setMacro $getMacro $targetMacro \n";
@@ -307,10 +313,17 @@ $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = stat
           push(@newTargetImplementations, $targetImplementation);
       }
     }
-    if (!$setMacro) {
-      if ($VERBOSE) { print "INFO:: did not find ${attribute}_SETMACRO\n"; }
-      my $attributeDefine = "#define ${attribute}_SETMACRO ${macroPrefix}SET${macroPostfix}";
-      push(@newAttributeDefines, $attributeDefine);
+    if (!$setMacro || $platInitMacro) {
+      if(!$setMacro) {
+        if ($VERBOSE) { print "INFO:: did not find ${attribute}_SETMACRO\n"; }
+        my $attributeDefine = "#define ${attribute}_SETMACRO ${macroPrefix}SET${macroPostfix}";
+        push(@newAttributeDefines, $attributeDefine);
+      }
+      if($platInitMacro) {
+        if ($VERBOSE) { print "INFO:: Generating plat init macro for ${attribute}\n"; }
+        my $attributeDefine = "#define ${attribute}_PLAT_INIT ${macroPrefix}SET${macroPostfix}";
+        push(@newAttributeDefines, $attributeDefine);
+      }
 
       if(defined $targetMacro) {
 

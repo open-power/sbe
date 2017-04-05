@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <fapi2_target.H>
 #include <plat_target_utils.H>
+#include <p9_perv_scom_addresses.H>
 
 // Global Vector containing ALL targets.  This structure is referenced by
 // fapi2::getChildren to produce the resultant returned vector from that
@@ -46,6 +47,51 @@ fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 namespace fapi2
 {
+    static ReturnCode plat_AttrInit()
+    {
+        union
+        {
+            struct
+            {
+                uint64_t iv_majorEC : 4;
+                uint64_t iv_deviceIdDontCare : 4;
+                uint64_t iv_minorEC : 4;
+                uint64_t iv_chipId : 8;
+                uint64_t iv_deviceIdDontCare2 : 20;
+                uint64_t iv_c4Pin : 1;
+                uint64_t iv_deviceIdDontCare3 : 23;
+            };
+            uint64_t iv_deviceIdReg;
+        } l_deviceId;
+
+        uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
+        uint8_t l_ec = 0;
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chipTarget =
+            plat_getChipTarget();
+
+        FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
+        l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
+        switch(l_deviceId.iv_chipId)
+        {
+            case 0xD1:
+                l_chipName = fapi2::ENUM_ATTR_NAME_NIMBUS;
+                break;
+            case 0xD4:
+                l_chipName = fapi2::ENUM_ATTR_NAME_CUMULUS;
+                break;
+            default:
+                FAPI_ERR("Unsupported chip ID: 0x%02X",
+                         static_cast<uint8_t>(l_deviceId.iv_chipId));
+                assert(false);
+        }
+
+        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
+
+        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC, l_chipTarget, l_ec));
+fapi_try_exit:
+        return fapi2::current_err;
+    }
+
     // Get the plat target handle by chiplet number - For PERV targets
     template<>
     plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(
@@ -350,6 +396,10 @@ namespace fapi2
                         bool & b_present)
     {
 
+        uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
+
+        FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, plat_getChipTarget(), l_chipName));
+
         // TODO via RTC 164026
         // In nimbus all pervasive chiplets (non quad, non core), are present
         // other than OBUS1 and OBUS2. In cumulus all chiplets are present.
@@ -363,9 +413,15 @@ namespace fapi2
         // attribute to differentiate between nimbus versus cumulus config.
         static const size_t OBUS1 = 10;
         static const size_t OBUS2 = 11;
-        if(( i_chiplet_target.getChipletNumber() != OBUS1 ) &&
-            ( i_chiplet_target.getChipletNumber() != OBUS2 ) &&
-            ( i_chiplet_target.getChipletNumber() < EQ_CHIPLET_OFFSET ) )
+        if((OBUS1 == i_chiplet_target.getChipletNumber()) ||
+           (OBUS2 == i_chiplet_target.getChipletNumber()))
+        {
+            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName)
+            {
+                static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
+            }
+        }
+        else if( i_chiplet_target.getChipletNumber() < EQ_CHIPLET_OFFSET )
         {
             static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
         }
@@ -438,6 +494,10 @@ fapi_try_exit:
 
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> chip_target((createPlatTargetHandle<fapi2::TARGET_TYPE_PROC_CHIP>(0)));
         G_vec_targets.at(l_beginning_offset) = revle32((fapi2::plat_target_handle_t)(chip_target.get()));
+
+        // Initialize platform attributes. Needs to be after the chip target is
+        // created.
+        FAPI_TRY(plat_AttrInit());
 
         /*
          * Nest Targets - group 1

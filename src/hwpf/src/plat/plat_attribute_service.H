@@ -46,6 +46,10 @@
 #define PLAT_GET_CHIP_EC_FEATURE_OVERRIDE(ID, PTARGET, VAL) \
       _getEcFeatureOverride<ID##_Type>(ID, PTARGET, VAL)
 
+#define PLAT_ATTR_INIT(ID, TARGET, VAL) \
+    (fapi2::checkIdType<ID##_Type>(ID, VAL), \
+     ID##_PLAT_INIT(ID, TARGET, VAL))
+
 /* INSERT NEW ATTRIBUTES HERE */
 
 
