@@ -51,6 +51,12 @@ __system_reset:
 
 
 __l1Loader:
+        # Update 50009 ( sbe status register) to show sbe in seeprom loader
+        _liw     %r5, 0x50009
+        _liw     %r0, SBE_CODE_SEEPROM_START_MSG
+        li       r1, 0x00
+        stvd     d0, 0(r5)
+
         bl _pibmemRepair
         _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
         _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest

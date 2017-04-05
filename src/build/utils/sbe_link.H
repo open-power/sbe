@@ -103,5 +103,16 @@
 /// Sbe fixed sction for the pibmem repair
 #define SBE_FIXED_SECTION (SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET + 12)
 
+// Macros to use in assembly code in OTPROM/SEEPROM
+// This will be updated in last two bits of messaging register.
+// This will help in debugging sbe boot failures
+//
+// Code reached to OTPROM
+#define SBE_CODE_OTPROM_START_MSG 0x01
+// Code reached to SEEPROM loader
+#define SBE_CODE_SEEPROM_START_MSG 0x02
+// Code reached to PIBMEM Loader ( pibmem c loader )
+#define SBE_CODE_PIBMEM_START_MSG 0x03
+
 #endif  // __SBE_LINK_H
 

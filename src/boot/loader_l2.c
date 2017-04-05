@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -43,6 +43,8 @@ int32_t loadSection( P9XipSection * i_section, uint64_t *i_destAddr )
 int32_t l2_loader()
 {
     int32_t rc  = 0;
+    uint64_t loadValue = (uint64_t)(SBE_CODE_PIBMEM_START_MSG)<<32;
+    PPE_STVD(0x50009, loadValue);
     P9XipHeader *hdr = getXipHdr();
 
     uint64_t *pibMemAddr  = (uint64_t *)g_pibMemAddr;
