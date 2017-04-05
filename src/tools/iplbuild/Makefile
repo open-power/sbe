@@ -50,6 +50,7 @@ export INCLUDES = -I$(P9_XIP_SRCDIR) \
 .PHONY : all utilities clean
 
 OBJS = $(P9_XIP_BINDIR)/p9_xip_image.o \
+	   $(BASE_OBJDIR)/tools/iplbuild/common_ringId.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_ringId.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/cen_ringId.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_tor.o \

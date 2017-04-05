@@ -43,10 +43,10 @@
 #undef P9_XIP_TOOL_VERBOSE
 
 #include "p9_xip_image.h"
+#include "common_ringId.H"
 #ifndef __PPE__ // Needed on ppe side to avoid having to include various APIs
 #include "p9_tor.H"
 #include "p9_scan_compression.H"
-#include "p9_infrastruct_help.H"
 namespace P9_RID
 {
 #include "p9_ringId.H"
@@ -56,7 +56,7 @@ namespace CEN_RID
 #include "cen_ringId.H"
 }
 #include <vector>
-#include <p9_dd_container.h>
+#include "p9_dd_container.h"
 #include <endian.h>
 #endif
 #include "p9_infrastruct_help.H"
@@ -1864,9 +1864,6 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 
 #ifndef __PPE__  // Needed on the ppe side to avoid TOR API
 
-//@FIXME: This should be improved. Probably defined somewhere else.
-#define CHIPLET_ID_MAX            (uint8_t)0x37
-
 /// Function:  dissectRingSectionTor()
 ///
 /// Brief:  Dissects and summarizes content of a ring section.
@@ -1887,12 +1884,11 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     uint32_t    i;
     RingId_t    numRingIds = 0;
     uint32_t    torMagic = 0xffffffff; // Undefined value
-    ChipType_t  chipType = 0xff; // Undefined value
+    ChipType_t  chipType = UNDEFINED_CHIP_TYPE; // Undefined value
     uint32_t    numDdLevels = 0; // Undefined value
     uint8_t     iDdLevel, ddLevel = 0xff; // Undefined value
     PpeType_t   ppeType;
     RingId_t    ringId;
-    RingType_t  ringType;
     RingVariant_t ringVariant;
     uint8_t     instanceId;
     void*       ringBlockPtr;
@@ -2038,12 +2034,12 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
             //--------------------
             // Ring variant loop.
-            // - Base, cache, risk, override, overlay
+            // - Base, cache, risk or just "base" if no ring variant
             for (ringVariant = 0; ringVariant < OVERRIDE; ringVariant++)
             {
-                if ( (torMagic == TOR_MAGIC_OVRD && ringVariant != BASE) ||
-                     (torMagic == TOR_MAGIC_OVLY && ringVariant != BASE) ||
-                     (torMagic == TOR_MAGIC_CEN  && ringVariant == CC) )
+                if ((torMagic == TOR_MAGIC_OVRD && ringVariant != BASE) ||
+                    (torMagic == TOR_MAGIC_OVLY && ringVariant != BASE) ||
+                    (torMagic == TOR_MAGIC_CEN  && ringVariant == CC))
                 {
                     continue;
                 }
@@ -2053,13 +2049,19 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                 for (ringId = 0; ringId < numRingIds; ringId++)
                 {
 
-                    ringType = 0xff;
-
                     //---------------------------
                     // Chiplet instance ID loop.
-                    // - Only loop once if ringId is a common ring.
-                    for (instanceId = 0; instanceId <= CHIPLET_ID_MAX && ringType != COMMON_RING; instanceId++)
+                    // - Only loop once if ringId is a common ring. Determine this by
+                    //   comparing the returned value of instanceId in tor_access_ring()
+                    //   with the input value of instanceId, instanceInputId.
+                    // - Start looping safely from 0 so that if instanceId is adjusted
+                    //   in tor_access_ring, i.e. in case it's an instance ring, it will
+                    //   return a non-zeor value for instanceId.
+                    uint8_t instanceInputId;
+
+                    for (instanceId = 0; instanceId <= INSTANCE_ID_MAX; instanceId++)
                     {
+                        instanceInputId = instanceId;
 #ifdef P9_XIP_TOOL_VERBOSE
                         fprintf( stderr, "Processing:  "
                                  "DD=0x%02x  "
@@ -2075,7 +2077,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                                               ringId,
                                               ddLevel,
                                               ppeType,
-                                              ringType,            // IO parm
                                               ringVariant,
                                               instanceId,          // IO parm
                                               GET_SINGLE_RING,
@@ -2086,7 +2087,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
                         // Gather ring details and print it.
                         //
-                        if (rc == TOR_RING_FOUND)
+                        if (rc == TOR_SUCCESS)
                         {
                             if(bPrintHeader == true )
                             {
@@ -2307,6 +2308,10 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                             }
                             while (cmskRingIteration);
 
+                            if (instanceId != instanceInputId)
+                            {
+                                break;
+                            }
                         }
                         else if (rc == TOR_RING_NOT_FOUND      ||
                                  rc == TOR_INVALID_INSTANCE_ID ||
@@ -2315,9 +2320,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                                  rc == TOR_AMBIGUOUS_API_PARMS ||
                                  rc == TOR_INVALID_RING_ID)
                         {
-#ifdef P9_XIP_TOOL_VERBOSE
-                            fprintf(stderr, "tor_access_ring() returned error code rc=%d\n", rc);
-#endif
                             // All these errors are acceptable in the context of xip_tool dissect.
                             rc = INFRASTRUCT_RC_SUCCESS;
                         }
@@ -2330,14 +2332,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                             operator delete(rs4StumpBuf);
                             operator delete(rs4CmskBuf);
                             exit(EXIT_FAILURE);
-                        }
-
-                        if (rc && ringType == 255)
-                        {
-                            // So here we were unsuccessful in tor_access_ring and never even found a
-                            // ring name match, or ring variant match, or chiplet match. So we can
-                            // safely break the instanceId loop.
-                            break;
                         }
 
                     }  // End of for(instanceId)
@@ -2818,9 +2812,6 @@ int check_sbe_ring_section_size( void* i_hwImage,
 
     P9XipSection l_ringsSection;
 
-    RingType_t l_ringType = ALLRING;
-
-    uint8_t  unused_parm  = 0;
     void**   l_blockPtr   = NULL;
     uint32_t l_blockSize  = 0;
 
@@ -2847,9 +2838,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
             rc = tor_get_block_of_rings( ringsSection,
                                          i_ddLevel,
                                          PT_SBE,
-                                         l_ringType,
-                                         BASE,
-                                         unused_parm,
+                                         NOT_VALID,
                                          l_blockPtr,
                                          l_blockSize);
 

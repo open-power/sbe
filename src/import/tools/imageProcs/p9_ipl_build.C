@@ -74,8 +74,6 @@ int get_dd_level_rings_from_hw_image( char* i_hwImage,
     P9XipSection l_ringsSection;
     *o_ringBlock = NULL;
     o_blockSize = 0;
-    RingType_t l_ringType = ALLRING;
-    uint8_t unused_parm = 0;
 
     // Get the block of rings from the HW image
     rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection);
@@ -105,9 +103,7 @@ int get_dd_level_rings_from_hw_image( char* i_hwImage,
             rc = tor_get_block_of_rings( ringsSection,
                                          i_ddLevel,
                                          PT_SBE,
-                                         l_ringType,
-                                         BASE,
-                                         unused_parm,
+                                         NOT_VALID,
                                          o_ringBlock,
                                          o_blockSize );
 
@@ -133,9 +129,7 @@ int get_dd_level_rings_from_hw_image( char* i_hwImage,
                 rc = tor_get_block_of_rings( ringsSection,
                                              i_ddLevel,
                                              PT_SBE,
-                                             l_ringType,
-                                             BASE,
-                                             unused_parm,
+                                             NOT_VALID,
                                              o_ringBlock,
                                              o_blockSize );
 
