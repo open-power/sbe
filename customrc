@@ -28,7 +28,7 @@
 # If you want to change location of default sandbox root, enable SANDBOXROOT
 export SANDBOXROOT=$SBEROOT
 # If you want to change name of default sandbox, enable SANDBOXNAME
-export SANDBOXNAME=test_sb2
+export SANDBOXNAME=test_sb
 
 #export WORKSPACE=<set it to your root ppe directory. This is required if you
 #                  to use build script locally>
