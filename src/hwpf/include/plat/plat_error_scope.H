@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -47,8 +47,9 @@
 
 #define PLAT_FAPI_TRY_TRACE( __operation__, ... )                       \
     if ((fapi2::current_err = (__operation__)) != fapi2::FAPI2_RC_SUCCESS) \
-    {                                                                   \
-        FAPI_ERR(__VA_ARGS__);                                          \
+    {   /* TODO via RTC 172311 */                                             \
+        /* Enable these traces back again */                                  \
+        /* FAPI_ERR(__VA_ARGS__); */                                         \
         goto fapi_try_exit;                                             \
     }
 
