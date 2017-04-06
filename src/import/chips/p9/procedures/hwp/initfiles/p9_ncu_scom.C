@@ -42,12 +42,29 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         fapi2::ATTR_NAME_Type l_chip_id;
         FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, TGT2, l_chip_id));
         FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, TGT2, l_chip_ec));
+        fapi2::ATTR_PROC_FABRIC_PUMP_MODE_Type l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE, TGT1, l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE));
         fapi2::buffer<uint64_t> l_scom_buffer;
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x1001100aull, l_scom_buffer ));
 
             constexpr auto l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_OFF = 0x0;
             l_scom_buffer.insert<9, 1, 63, uint64_t>(l_EXP_NC_NCMISC_NCSCOMS_SYSMAP_SM_NOT_LG_SEL_OFF );
+
+            if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) )
+            {
+                if ((l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_GROUP))
+                {
+                    constexpr auto l_EXP_NC_NCMISC_NCSCOMS_SKIP_GRP_SCOPE_EN_ON = 0x1;
+                    l_scom_buffer.insert<51, 1, 63, uint64_t>(l_EXP_NC_NCMISC_NCSCOMS_SKIP_GRP_SCOPE_EN_ON );
+                }
+                else if ((l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE))
+                {
+                    constexpr auto l_EXP_NC_NCMISC_NCSCOMS_SKIP_GRP_SCOPE_EN_OFF = 0x0;
+                    l_scom_buffer.insert<51, 1, 63, uint64_t>(l_EXP_NC_NCMISC_NCSCOMS_SKIP_GRP_SCOPE_EN_OFF );
+                }
+            }
+
             FAPI_TRY(fapi2::putScom(TGT0, 0x1001100aull, l_scom_buffer));
         }
         {

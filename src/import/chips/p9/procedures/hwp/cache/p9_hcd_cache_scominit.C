@@ -157,7 +157,7 @@ p9_hcd_cache_scominit(
             }
         }
 
-        FAPI_EXEC_HWP(l_rc, p9_l3_scom, *l_iter, l_sys);
+        FAPI_EXEC_HWP(l_rc, p9_l3_scom, *l_iter, l_sys, l_chip);
 
         if (l_rc)
         {
