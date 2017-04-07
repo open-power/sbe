@@ -39,6 +39,12 @@
     <ffdc>TARGET_TYPE</ffdc>
   </hwpError>
   <hwpError>
+    <rc>RC_FASTARRAY_UNKNOWN_RING</rc>
+    <description>An array specified a ring ID that was not defined in the ring table</description>
+    <ffdc>ARRAY_ID</ffdc>
+    <ffdc>RING_ID</ffdc>
+  </hwpError>
+  <hwpError>
     <rc>RC_RS5_RANGE_OUT_OF_ORDER</rc>
     <description>A range was added to an RS5 care list that violated the "in order of increasing start bit" requirement.</description>
   </hwpError>
@@ -64,6 +70,12 @@
   <hwpError>
     <rc>RC_FASTARRAY_CLOCK_TIMEOUT</rc>
     <description>An attempt to clock ABIST cycles did not complete within 100ms</description>
+  </hwpError>
+  <hwpError>
+    <rc>RC_FASTARRAY_UNKNOWN_CHIP_EC</rc>
+    <description>There is no fastarray control data available for the requested chip type / EC</description>
+    <ffdc>CHIP_NAME</ffdc>
+    <ffdc>CHIP_EC</ffdc>
   </hwpError>
 <!-- template for copying
   <hwpError>
