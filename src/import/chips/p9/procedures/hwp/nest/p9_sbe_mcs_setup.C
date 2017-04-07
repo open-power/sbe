@@ -83,6 +83,7 @@ fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<fapi2::TARGET_TYPE_MCS>
     FAPI_DBG("Start");
     fapi2::buffer<uint64_t> l_mcfgp;
     fapi2::buffer<uint64_t> l_mcmode1;
+    fapi2::buffer<uint64_t> l_mcperf1;
     fapi2::buffer<uint64_t> l_mcfirmask_and;
     fapi2::buffer<uint64_t> l_mcaction;
 
@@ -103,14 +104,24 @@ fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<fapi2::TARGET_TYPE_MCS>
     FAPI_TRY(fapi2::putScom(i_target, MCS_MCFGP, l_mcfgp),
              "Error from putScom (MCS_MCFGP)");
 
-    // MCMODE1 -- disable speculation
+    // MCMODE1 -- disable speculation, cmd bypass, fp command bypass
     FAPI_TRY(fapi2::getScom(i_target, MCS_MCMODE1, l_mcmode1),
              "Error from getScom (MCS_MCMODE1)");
     l_mcmode1.setBit<MCS_MCMODE1_DISABLE_ALL_SPEC_OPS>();
     l_mcmode1.setBit<MCS_MCMODE1_DISABLE_SPEC_OP,
                      MCS_MCMODE1_DISABLE_SPEC_OP_LEN>();
+    l_mcmode1.setBit<MCS_MCMODE1_DISABLE_COMMAND_BYPASS,
+                     MCS_MCMODE1_DISABLE_COMMAND_BYPASS_LEN>();
+    l_mcmode1.setBit<MCS_MCMODE1_DISABLE_FP_COMMAND_BYPASS>();
     FAPI_TRY(fapi2::putScom(i_target, MCS_MCMODE1, l_mcmode1),
              "Error from putScom (MCS_MCMODE1)");
+
+    // MCS_MCPERF1 -- disable fast path
+    FAPI_TRY(fapi2::getScom(i_target, MCS_MCPERF1, l_mcperf1),
+             "Error from getScom (MCS_MCPERF1)");
+    l_mcperf1.setBit<MCS_MCPERF1_DISABLE_FASTPATH>();
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCPERF1, l_mcperf1),
+             "Error from putScom (MCS_MCPERF1)");
 
     // Unmask MC FIR
 
