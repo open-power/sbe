@@ -40,6 +40,7 @@
 #include "p9_sbe_io_initf.H"
 #include "p9_perv_scom_addresses.H"
 #include "p9_perv_scom_addresses_fld.H"
+#include "p9_const_common.H"
 #include <p9_ring_id.h>
 
 fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -87,35 +88,35 @@ fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
         }
 #endif
 
-        if (l_attr_chip_unit_pos == 0x9)/* OBUS0 Chiplet */
+        if (l_attr_chip_unit_pos == OB0_CHIPLET_ID)/* OBUS0 Chiplet */
         {
             FAPI_DBG("Scan ob0_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, ob0_fure),
                      "Error from putRing (ob0_fure)");
         }
 
-        if (l_attr_chip_unit_pos == 0xA)/* OBUS1 Chiplet */
+        if (l_attr_chip_unit_pos == OB1_CHIPLET_ID)/* OBUS1 Chiplet */
         {
             FAPI_DBG("Scan ob1_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, ob1_fure),
                      "Error from putRing (ob1_fure)");
         }
 
-        if (l_attr_chip_unit_pos == 0xB)/* OBUS2 Chiplet */
+        if (l_attr_chip_unit_pos == OB2_CHIPLET_ID)/* OBUS2 Chiplet */
         {
             FAPI_DBG("Scan ob2_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, ob2_fure),
                      "Error from putRing (ob2_fure)");
         }
 
-        if (l_attr_chip_unit_pos == 0xC)/* OBUS3 Chiplet */
+        if (l_attr_chip_unit_pos == OB3_CHIPLET_ID)/* OBUS3 Chiplet */
         {
             FAPI_DBG("Scan ob3_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, ob3_fure),
                      "Error from putRing (ob3_fure)");
         }
 
-        if (l_attr_chip_unit_pos == 0x6)/* XBUS Chiplet */
+        if (l_attr_chip_unit_pos == XB_CHIPLET_ID)/* XBUS Chiplet */
         {
             FAPI_DBG("Scan xb_io1_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, xb_io1_fure),
