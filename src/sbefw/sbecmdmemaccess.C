@@ -35,6 +35,8 @@
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
 #include "sbeutil.H"
+#include "sbeHostUtils.H"
+#include "sbeglobals.H"
 
 #include "fapi2.H"
 
@@ -181,7 +183,33 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
     // Default for PBA
     uint32_t l_granuleSize = PBA_GRAN_SIZE_BYTES;
-    uint64_t l_addr = i_hdr.getAddr();
+    uint64_t l_addr = 0;
+
+    // If not Host Pass through command, simply set the addr from the command
+    if(!i_hdr.isPbaHostPassThroughModeSet())
+    {
+        l_addr = i_hdr.getAddr();
+    }
+    // If it is Host Pass through command, set the address using the Host pass
+    // through address already set in the global and using the addr here in the
+    // command as index to that address
+    else
+    {
+        l_addr = SBE_GLOBAL->hostPassThroughCmdAddr.addr + i_hdr.getAddr();
+        // Check if the size pass in the command is less than the size mentioned
+        // in the Host Pass Through globals
+        if((i_hdr.getAddr() + i_hdr.len) > SBE_GLOBAL->hostPassThroughCmdAddr.size)
+        {
+            // Break out, Invalid Size
+            SBE_ERROR("User size[0x%08X] exceeds the Host Pass Through Mode "
+                "size[0x%08X] Start Index[0x%08X %08X]", 
+                i_hdr.len, SBE_GLOBAL->hostPassThroughCmdAddr.size,
+                SBE::higher32BWord(i_hdr.getAddr()),
+                SBE::lower32BWord(i_hdr.getAddr()));
+            l_respHdr.setStatus( SBE_PRI_INVALID_DATA,
+                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
+        }
+    }
 
     // Default EX Target Init..Not changing it for the time being
     Target<TARGET_TYPE_EX> l_ex(
@@ -237,6 +265,12 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
     while (l_granulesCompleted < l_lenCacheAligned)
     {
+        // Breaking out here if invalid size
+        if(l_respHdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL)
+        {
+            break;
+        }
+
         // If this is putmem request, read input data from the upstream FIFO
         if (!i_isFlagRead)
         {
@@ -298,6 +332,11 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
         l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+        // Indicate the host in put pass through mode via Interrupt
+        if(!l_rc && i_hdr.isPbaHostPassThroughModeSet() && !i_isFlagRead)
+        {
+            l_rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT4);
+        }
     } while(false);
 
     SBE_EXIT(SBE_FUNC);

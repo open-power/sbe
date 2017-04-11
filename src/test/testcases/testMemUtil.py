@@ -119,7 +119,7 @@ def getmem(addr, len, flags):
     testUtil.readEot( )
     return data[:lenExp]
 
-def getmem_failure(addr, len, flags):
+def getmem_failure(addr, len, flags, responseWord):
     req = (getsingleword(6)
          + [0, 0, 0xA4, 0x01]
          + getsingleword(flags)
@@ -127,9 +127,9 @@ def getmem_failure(addr, len, flags):
          + getsingleword(len))
     testUtil.writeUsFifo(req)
     testUtil.writeEot( )
-    expResp =  [0x0, 0x0, 0x0, 0x0,
-                0xc0,0xde,0xa4,0x01,
-                0x0,0x2,0x0,0xa,
-                0x0,0x0,0x0,0x03];
+    expResp =  ([0x0, 0x0, 0x0, 0x0]
+    + [0xc0,0xde,0xa4,0x01]
+    + getsingleword(responseWord)
+    + [0x0,0x0,0x0,0x03])
     testUtil.readDsFifo(expResp)
     testUtil.readEot( )

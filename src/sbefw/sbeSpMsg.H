@@ -428,6 +428,17 @@ typedef struct
         return l_len;
     }
 
+    /**
+      * @brief Determines if it is Host Pass-through Command
+      *
+      * @return Returns True if Host Pass-through mode is set
+      *                 False if Host Pass-through mode is not set
+      */
+    uint32_t isPbaHostPassThroughModeSet() const
+    {
+        return ((flags & SBE_MEM_ACCESS_FLAGS_HOST_PASS_THROUGH) ? true : false);
+    }
+
 }sbeMemAccessReqMsgHdr_t;
 
 /**

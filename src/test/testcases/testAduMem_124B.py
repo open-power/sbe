@@ -82,7 +82,7 @@ def main( ):
 
 # Test case 4: Invalid length - 3
     # GetMemAdu test
-    testMemProcUtil.getmem_failure(0x08000000, 3, 0xA5)
+    testMemProcUtil.getmem_failure(0x08000000, 3, 0xA5, 0x0002000A)
     print ("Success - invalid length test")
 
 #-------------------------------------------------

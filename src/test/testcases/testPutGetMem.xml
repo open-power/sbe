@@ -28,3 +28,8 @@
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testMemPBA.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPsuHostPassThrough.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+

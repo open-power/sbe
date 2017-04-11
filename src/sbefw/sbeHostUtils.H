@@ -93,6 +93,11 @@ typedef enum
     // This would be used to trigger hostboot in istep 16
     SBE_SBE2PSU_DOORBELL_SET_BIT2      = 0x2000000000000000ull,
 
+    // Bit 4 OR flag for SBE->PSU Doorbell Register,
+    // When this is set by SBE, it would trigger an interrupt to host
+    // firmware to inform that Host Pass through command received.
+    SBE_SBE2PSU_DOORBELL_SET_BIT4      = 0x0800000000000000ull,
+
     // Bit 14 OR flag for SBE->PSU Doorbell Register;
     // When this is set by SBE, it would trigger an interrupt to host
     // firmware to inform that timer has expired.
