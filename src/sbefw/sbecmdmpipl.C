@@ -187,7 +187,7 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
 // @return  RC from the underlying FIFO utility
 ///////////////////////////////////////////////////////////////////////
 #define SBE_IS_EX0(chipletId) \
-    (((chipletId - EX_TARGET_OFFSET) & 0x0002) >> 1)
+    (!(((chipletId - CORE_CHIPLET_OFFSET) & 0x0002) >> 1))
 /* @brief Bitmapped enumeration to identify the stop clock HWP call
  */
 enum stopClockHWPType

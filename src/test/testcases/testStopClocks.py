@@ -47,13 +47,18 @@ STOPCLOCK_EQ_TESTDATA =  [0,0,0,0x3,
                           0,0,0xA9,0x03,
                           0x0,0x2,0x0,0x10]      # target type/chiplet id
 
+STOPCLOCK_EX0_TESTDATA =  [0,0,0,0x3,
+                          0,0,0xA9,0x03,
+                          0x0,0x1,0x0,0x24]      # target type/chiplet id
+
+STOPCLOCK_EX1_TESTDATA =  [0,0,0,0x3,
+                          0,0,0xA9,0x03,
+                          0x0,0x1,0x0,0x26]      # target type/chiplet id
+
 STOPCLOCK_ALL_EQ_TESTDATA =  [0,0,0,0x3,
                               0,0,0xA9,0x03,
                               0x0,0x4,0x0,0xFF]      # target type/chiplet id
 
-STOPCLOCK_EQ_EXPDATA =   [0xc0,0xde,0xa9,0x03,
-                          0x0,0x0,0x0,0x0,
-                          0x0,0x0,0x0,0x03];
 STOPCLOCK_INVALIDTARGET_TESTDATA =  [0,0,0,0x3,
                             0,0,0xA9,0x03,
                             0x0,0x09,0x00,0x20]      # target type/chiplet id
@@ -82,14 +87,28 @@ def main( ):
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( STOPCLOCK_EQ_TESTDATA )
     testUtil.writeEot( )
-    testUtil.readDsFifo( STOPCLOCK_EQ_EXPDATA )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
+
+    testUtil.runCycles( 10000000 )
+    testUtil.writeUsFifo( STOPCLOCK_EX0_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
+
+    testUtil.runCycles( 10000000 )
+    testUtil.writeUsFifo( STOPCLOCK_EX1_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
     testUtil.runCycles( 10000000 )
     testUtil.readEot( )
 #
 #    testUtil.runCycles( 10000000 )
 #    testUtil.writeUsFifo( STOPCLOCK_ALL_EQ_TESTDATA )
 #    testUtil.writeEot( )
-#    testUtil.readDsFifo( STOPCLOCK_EQ_EXPDATA )
+#    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
 #    testUtil.runCycles( 10000000 )
 #    testUtil.readEot( )
 
