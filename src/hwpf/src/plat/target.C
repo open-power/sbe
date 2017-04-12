@@ -191,7 +191,7 @@ namespace fapi2
                                          EX_PER_QUAD : CORES_PER_QUAD;
                     l_handle = G_vec_targets
                         [(fields.type_target_num / l_perQuad) +
-                         EX_TARGET_OFFSET];
+                         EQ_TARGET_OFFSET];
                 }
                 break;
             default:
