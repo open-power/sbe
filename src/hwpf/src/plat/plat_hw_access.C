@@ -246,6 +246,39 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
     return l_addr;
 }
 
+static fapi2::ReturnCode pibRcToFapiRc(const uint32_t i_pibRc)
+{
+    fapi2::ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
+    switch(i_pibRc)
+    {
+        case PIB_XSCOM_ERROR:
+            l_fapiRc = RC_SBE_PIB_XSCOM_ERROR;
+            break;
+        case PIB_OFFLINE_ERROR:
+            l_fapiRc = RC_SBE_PIB_OFFLINE_ERROR;
+            break;
+        case PIB_PARTIAL_ERROR:
+            l_fapiRc = RC_SBE_PIB_PARTIAL_ERROR;
+            break;
+        case PIB_ADDRESS_ERROR:
+            l_fapiRc = RC_SBE_PIB_ADDRESS_ERROR;
+            break;
+        case PIB_CLOCK_ERROR:
+            l_fapiRc = RC_SBE_PIB_CLOCK_ERROR;
+            break;
+        case PIB_PARITY_ERROR:
+            l_fapiRc = RC_SBE_PIB_PARITY_ERROR;
+            break;
+        case PIB_TIMEOUT_ERROR:
+            l_fapiRc = RC_SBE_PIB_TIMEOUT_ERROR;
+            break;
+        case PIB_NO_ERROR:
+        default:
+            break;
+    }
+    return l_fapiRc;
+}
+
 fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
                                    const uint32_t i_addr, uint64_t *o_data)
 {
@@ -271,6 +304,12 @@ fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
                       "getScom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X]",
                       l_pibRc,l_addr);
 fapi_try_exit:
+    if(PIB_NO_ERROR != l_pibRc)
+    {
+        // Override FAPI RC based on PIB RC
+        fapi2::current_err = pibRcToFapiRc(l_pibRc);
+        fapi2::g_FfdcData.fapiRc = fapi2::current_err;
+    }
     return fapi2::current_err;
 }
 
@@ -302,6 +341,12 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
                       l_pibRc,l_addr,(i_data >> 32),
                       static_cast<uint32_t>(i_data & 0xFFFFFFFF));
 fapi_try_exit:
+    if(PIB_NO_ERROR != l_pibRc)
+    {
+        // Override FAPI RC based on PIB RC
+        fapi2::current_err = pibRcToFapiRc(l_pibRc);
+        fapi2::g_FfdcData.fapiRc = fapi2::current_err;
+    }
     return fapi2::current_err;
 }
 
