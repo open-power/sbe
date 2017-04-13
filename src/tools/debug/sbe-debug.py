@@ -106,6 +106,68 @@ def collectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path ):
        print "ERROR running %s: %d " % ( cmd4, rc )
        return 1
 
+# Can be used if proper sbe symbol files are not available
+def forcedCollectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path ):
+    # Collect entire PIBMEM
+    offset = "0x00" # PIBMEM BASE
+    len = "0x16400"
+    print "\ncollecting trace with commands -\n"
+    if(target == 'FILE'):
+        createPibmemDumpFile(file_path, offset, len);
+    else:
+        cmd1 = ("p9_pibmem_dump_wrap.exe -quiet -start_byte " + \
+                str(offset) +\
+                 " -num_of_byte " + len + " "
+                 " -n" + str(node) + " -p" + str(proc))
+        print "cmd1:", cmd1
+        rc = os.system( cmd1 )
+        if ( rc ):
+            print "ERROR running %s: %d " % ( cmd1, rc )
+            return 1
+
+    # find offset of trace buffer in PIBMEM dump
+    trace_pattern = [2, 0, 0, 115, 98, 101, 95, 115, 101, 101, 112, 114, 111, 109, 95, 68, 68, 49, 0, 0]
+    data_read     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    trace_index = 0
+    #print trace_pattern
+    with open("DumpPIBMEM", "r") as f:
+        byte = 'x'
+        while byte != "":
+            byte = f.read(1)
+            data_read = data_read[1:]+[ord(byte)]
+            #print data_read
+            if data_read == trace_pattern:
+                trace_index -= 20
+                break
+            trace_index += 1
+        f.close()
+
+    offset = "0x%x" % trace_index
+    len = "0x1000"
+    createPibmemDumpFile("DumpPIBMEM", offset, len);
+    cmd2 = sbeObjDir + "/ppe2fsp DumpPIBMEM sbetrace.bin "
+    cmd3 = (sbeObjDir + "/fsp-trace -s " + sbeObjDir +\
+                         "/sbeStringFile_"+ddsuffix+" sbetrace.bin > "+\
+                         "sbe_"+str(proc)+"_tracMERG")
+    cmd4 = "mv DumpPIBMEM dumpPibMem_trace"
+    print "cmd2:", cmd2
+    rc = os.system( cmd2 )
+    if ( rc ):
+       print "ERROR running %s: %d " % ( cmd2, rc )
+       return 1
+
+    print "cmd3:", cmd3
+    rc = os.system( cmd3 )
+    if ( rc ):
+       print "ERROR running %s: %d " % ( cmd3, rc )
+       return 1
+
+    print "cmd4:", cmd4
+    rc = os.system( cmd4 )
+    if ( rc ):
+       print "ERROR running %s: %d " % ( cmd4, rc )
+       return 1
+
 def collectAttr( sbeObjDir, target, node, proc, ddsuffix, file_path ):
     if (target == 'AWAN'):
         sbeImgFile = "p9n_10.sim.sbe_seeprom.bin"
@@ -149,7 +211,7 @@ def collectAttr( sbeObjDir, target, node, proc, ddsuffix, file_path ):
 
 def ppeState( sbeObjDir, target, node, proc, file_path ):
     if(target == 'FILE'):
-        print "File path: ", file_path 
+        print "File path: ", file_path
         fileHandle = open(file_path)
         l_cnt = 0
         print '********************************************************************'
@@ -173,7 +235,7 @@ def ppeState( sbeObjDir, target, node, proc, file_path ):
 
 def sbeLocalRegister( sbeObjDir, target, node, proc, file_path ):
     if(target == 'FILE'):
-        print "File path: ", file_path 
+        print "File path: ", file_path
         fileHandle = open(file_path)
         l_cnt = 0
         print '********************************************************************'
@@ -198,7 +260,7 @@ def sbeLocalRegister( sbeObjDir, target, node, proc, file_path ):
 
 def sbeState( sbeObjDir, target, node, proc, file_path ):
     if(target == 'FILE'):
-        print "File path: ", file_path 
+        print "File path: ", file_path
         fileHandle = open(file_path)
         l_cnt = 0
         print '********************************************************************'
@@ -230,11 +292,12 @@ def sbeStatus( target, node, proc ):
         print "cmd:", cmd
         output = os.popen(cmd).read()
         output = output.split()
-        if ("ERROR:" in output):
+        expected_out = 'k0:n%1d:s0:p%02d'%(node,proc)
+        if (expected_out not in output):
             print "Error while getting the status register"
             print ' '.join(output)
         else:
-            parsevalue(bin(int(output[6], 16)))
+            parsevalue(bin(int(output[output.index(expected_out)+1], 16)))
 
 def parsevalue(iValue):
     sbeStates = {'0000' : 'SBE_STATE_UNKNOWN' , '0001' : 'SBE_STATE_IPLING' ,
@@ -310,7 +373,7 @@ def main( argv ):
             usage()
             exit(1)
         elif opt in ('-l', '--level'):
-            if arg in ('trace','attr','ppestate','sbestate','sbestatus','sbelocalregister'):
+            if arg in ('trace', 'forced-trace','attr','ppestate','sbestate','sbestatus','sbelocalregister'):
                 level = arg
             else:
                 print "level should be one of {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}"
@@ -380,6 +443,8 @@ def main( argv ):
         sbeLocalRegister( sbeObjDir, target, node, proc, file_path )
     elif ( level == 'trace' ):
         collectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path )
+    elif ( level == 'forced-trace' ):
+        forcedCollectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path )
     elif ( level == 'attr' ):
         collectAttr( sbeObjDir, target, node, proc, ddsuffix, file_path )
     elif ( level == 'ppestate' ):
