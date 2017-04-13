@@ -145,6 +145,8 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
             if((SBE_ROLE_SLAVE == l_sbeRole) &&
                (istep[0] == SBE_ISTEP4 || istep[0] == SBE_ISTEP5))
             {
+                (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                            SBE_RUNTIME_EVENT);
                 continue;
             }
             for(uint8_t l_minor = istep[1]; l_minor <= istep[2]; l_minor++)
