@@ -23,20 +23,24 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbeXipUtils.H"
+#include "sbeDecompression.h"
 
 // Load section to destination address
 int32_t loadSection( P9XipSection * i_section, uint64_t *i_destAddr )
 {
-    uint32_t idx = 0;
-    uint64_t *seepromAddr = (uint64_t *)( g_headerAddr + i_section->iv_offset);
-    uint32_t sectionSize  = i_section->iv_size;
-    for( idx = 0; idx < sectionSize; idx += 8 )
-    {
-        *i_destAddr = *seepromAddr;
-        i_destAddr++; seepromAddr++;
+    uint32_t rc = 0;
+    do {
 
-    }
-    return 0;
+         uint8_t *seepromAddr = (uint8_t *)( g_headerAddr + i_section->iv_offset);
+
+         uint8_t rc = decompress(seepromAddr, (uint8_t *)i_destAddr);
+
+         if (rc != 0 )
+           break;
+ 
+       } while(0);
+
+    return rc;
 }
 
 // Function to load base image into PIBMEM

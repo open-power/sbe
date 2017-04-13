@@ -79,9 +79,9 @@
 #define SBE_LOADER_BASE_SECTION  SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 120
 // Base Loader start address
-#define SBE_LOADER_BASE_ORIGIN 0xFFFFFE00
+#define SBE_LOADER_BASE_ORIGIN 0xFFFFE400
 // Base Loader length
-#define SBE_LOADER_BASE_LENGTH 0x200
+#define SBE_LOADER_BASE_LENGTH 0x1C00
 
 // Base Loader entry function offset in header
 #define SBE_LOADER_ENTRY_HEADER_OFFSET 20

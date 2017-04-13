@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,7 +27,7 @@
 #undef powerpc
 
 #ifndef BASE_LOADER_STACK_SIZE
-#define BASE_LOADER_STACK_SIZE 128
+#define BASE_LOADER_STACK_SIZE 6144
 #endif
 #include "sbe_link.H"
 
@@ -88,8 +88,7 @@ SECTIONS
    .rwdata . : { *(.data) *(.bss) } > sram
 
    _BASE_LOADER_STACK_LIMIT = .;
-   . = . + BASE_LOADER_STACK_SIZE;
-   _BASE_LOADER_STACK_LIMIT = . - 1;
+   _BASE_LOADER_STACK_LIMIT = . + BASE_LOADER_STACK_SIZE - 1;
 
     . = ALIGN(8);
     _loader_end = . - 0;

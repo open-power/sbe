@@ -169,7 +169,7 @@ all: $(OBJDIR) xml \
 endif
 ifeq ($(img), seeprom)
 all: $(OBJDIR) xml $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin \
-	 $(SBE_TOOLS) $(SBE_IPL_TOOLS) normalize defaultset $(IMG_DIR)/fixed.bin \
+	 $(SBE_TOOLS) $(SBE_IPL_TOOLS) normalize compress defaultset $(IMG_DIR)/fixed.bin \
 	 appendloader appendoverrides add_LoaderAddr symbols tracehash buildinfo \
 	 report
 endif
@@ -192,7 +192,7 @@ tar:
 	@rm -rf $(TAR_OBJDIR)
 	@echo "Generated simics.tar in Sbe images Directory"
 
-.PHONY: all normalize defaultset appendloader add_LoaderAddr symbols report \
+.PHONY: all normalize compress defaultset appendloader add_LoaderAddr symbols report \
 		appendoverrides xml tracehash topfixedheaders  $(SUBDIRS) \
 		tar install
 
@@ -278,6 +278,9 @@ $(P9_XIP_TOOL):
 
 normalize: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin normalize
+
+compress:
+	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_SEEPROM_NAME).bin
 
 defaultset:$(SBE_TOOLS) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
