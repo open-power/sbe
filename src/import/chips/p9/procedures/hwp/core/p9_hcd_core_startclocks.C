@@ -102,6 +102,20 @@ p9_hcd_core_startclocks(
         i_target.getParent<fapi2::TARGET_TYPE_PERV>();
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
 
+#ifndef __PPE__
+
+    uint8_t                                     l_attr_is_simulation;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SIMULATION,               l_sys,
+                           l_attr_is_simulation));
+
+#endif
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MODE,                   l_sys,
+                           l_attr_runn_mode));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE,            l_sys,
+                           l_attr_system_ipl_phase));
+
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SDISN_SETUP, l_chip,
                            l_attr_sdisn_setup));
 
@@ -112,12 +126,7 @@ p9_hcd_core_startclocks(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SYSTEM_ID,       l_chip,
                            l_attr_system_id));
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MODE,        l_sys,
-                           l_attr_runn_mode));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys,
-                           l_attr_system_ipl_phase));
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,    l_perv,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,               l_perv,
                            l_attr_chip_unit_pos));
     l_attr_chip_unit_pos = (l_attr_chip_unit_pos -
                             p9hcd::PERV_TO_CORE_POS_OFFSET) % 4;
@@ -283,14 +292,25 @@ p9_hcd_core_startclocks(
         FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(18)));
     }
 
-    /// @todo RTC158181 ignore xstop checkstop in sim, review for lab
-    /*
-    FAPI_DBG("Check the Global Checkstop FIR");
-    FAPI_TRY(getScom(i_target, C_XFIR, l_data64));
-    FAPI_ASSERT(((l_data64 & BITS64(0, 27)) != 0),
-                fapi2::PMPROC_CORE_XSTOP().set_COREXFIR(l_data64),
-                "Core Chiplet Checkstop");
-    */
+#ifndef __PPE__
+
+    // ignore xstop checkstop in sim
+    if (!l_attr_is_simulation && !l_attr_runn_mode)
+    {
+
+#endif
+
+        FAPI_DBG("Check the Global Checkstop FIR of Core Chiplet");
+        FAPI_TRY(getScom(i_target, C_XFIR, l_data64));
+        FAPI_ASSERT(((l_data64 & BITS64(0, 27)) == 0),
+                    fapi2::PMPROC_CORE_XSTOP().set_COREXFIR(l_data64),
+                    "Core Chiplet Checkstop");
+
+#ifndef __PPE__
+
+    }
+
+#endif
 
     FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
     FAPI_TRY(putScom(i_target, C_CPLT_CTRL0_CLEAR, MASK_SET(2)));

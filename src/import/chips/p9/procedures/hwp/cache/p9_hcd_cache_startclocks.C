@@ -111,6 +111,15 @@ p9_hcd_cache_startclocks(
         i_target.getChildren<fapi2::TARGET_TYPE_CORE>
         (fapi2::TARGET_STATE_FUNCTIONAL);
 
+#ifndef __PPE__
+
+    uint8_t                                     l_attr_is_simulation;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SIMULATION,            l_sys,
+                           l_attr_is_simulation));
+
+#endif
+
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE,         l_sys,
                            l_attr_system_ipl_phase));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES,      l_sys,
@@ -332,14 +341,25 @@ p9_hcd_cache_startclocks(
     // Cleaning up
     // -------------------------------
 
-    /// @todo RTC158181 ignore xstop checkstop in sim, review for lab
-    /*
-    FAPI_DBG("Check the Global Checkstop FIR");
-    FAPI_TRY(getScom(i_target, EQ_XFIR, l_data64));
-    FAPI_ASSERT(((l_data64 & BITS64(0, 27)) != 0),
-                fapi2::PMPROC_CACHE_XSTOP().set_EQXFIR(l_data64),
-                "Cache Chiplet Checkstop");
-    */
+#ifndef __PPE__
+
+    // ignore xstop checkstop in sim
+    if (!l_attr_is_simulation)
+    {
+
+#endif
+
+        FAPI_DBG("Check the Global Checkstop FIR of Cache Chiplet");
+        FAPI_TRY(getScom(i_target, EQ_XFIR, l_data64));
+        FAPI_ASSERT(((l_data64 & BITS64(0, 27)) == 0),
+                    fapi2::PMPROC_CACHE_XSTOP().set_EQXFIR(l_data64),
+                    "Cache Chiplet Checkstop");
+
+#ifndef __PPE__
+
+    }
+
+#endif
 
     if (!l_attr_dd1_skip_flushmode_inhibit_drop)
     {
