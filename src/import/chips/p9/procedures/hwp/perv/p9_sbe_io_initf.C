@@ -47,11 +47,13 @@ fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
 {
     FAPI_INF("p9_sbe_io_initf: Entering ...");
     uint8_t l_attr_chip_unit_pos = 0;
+    fapi2::buffer<uint16_t> l_read_attr_pg;
 
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt, l_attr_chip_unit_pos));
-
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, l_chplt_trgt, l_read_attr_pg));
+        FAPI_DBG("ATTR_PG Value : %#04lx", l_read_attr_pg);
 #if 0
         {
             // PCIx FURE rings require deterministic scan enable
@@ -59,7 +61,7 @@ fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
             fapi2::buffer<uint64_t> l_data64;
             l_data64.setBit<PERV_1_CPLT_CTRL0_TC_UNIT_DETERMINISTIC_TEST_ENABLE_DC>();
 
-            if (l_attr_chip_unit_pos == 0xD)/* PCI0 Chiplet */
+            if (l_attr_chip_unit_pos == PCI0_CHIPLET_ID)/* PCI0 Chiplet */
             {
                 FAPI_TRY(fapi2::putScom(l_target_chip, PERV_PCI0_CPLT_CTRL0_OR, l_data64));
                 FAPI_DBG("Scan pci0_fure ring");
@@ -68,7 +70,7 @@ fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                 FAPI_TRY(fapi2::putScom(l_target_chip, PERV_PCI0_CPLT_CTRL0_CLEAR, l_data64));
             }
 
-            if (l_attr_chip_unit_pos == 0xE)/* PCI1 Chiplet */
+            if (l_attr_chip_unit_pos == PCI1_CHIPLET_ID)/* PCI1 Chiplet */
             {
                 FAPI_TRY(fapi2::putScom(l_target_chip, PERV_PCI1_CPLT_CTRL0_OR, l_data64));
                 FAPI_DBG("Scan pci1_fure ring");
@@ -77,7 +79,7 @@ fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                 FAPI_TRY(fapi2::putScom(l_target_chip, PERV_PCI1_CPLT_CTRL0_CLEAR, l_data64));
             }
 
-            if (l_attr_chip_unit_pos == 0xF)/* PCI2 Chiplet */
+            if (l_attr_chip_unit_pos == PCI2_CHIPLET_ID)/* PCI2 Chiplet */
             {
                 FAPI_TRY(fapi2::putScom(l_target_chip, PERV_PCI2_CPLT_CTRL0_OR, l_data64));
                 FAPI_DBG("Scan pci2_fure ring");
@@ -118,12 +120,27 @@ fapi2::ReturnCode p9_sbe_io_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
 
         if (l_attr_chip_unit_pos == XB_CHIPLET_ID)/* XBUS Chiplet */
         {
-            FAPI_DBG("Scan xb_io1_fure ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, xb_io1_fure),
-                     "Error from putRing (xb_io1_fure)");
-            FAPI_DBG("Scan xb_io2_fure ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, xb_io2_fure),
-                     "Error from putRing (xb_io2_fure)");
+            if (!l_read_attr_pg.getBit<5>()) // Cumulus chip - checking for iox0 region
+            {
+                FAPI_DBG("Scan xb_io0_fure ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, xb_io0_fure),
+                         "Error from putRing (xb_io0_fure)");
+            }
+
+            if (!l_read_attr_pg.getBit<6>()) // checking for iox1 region
+            {
+                FAPI_DBG("Scan xb_io1_fure ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, xb_io1_fure),
+                         "Error from putRing (xb_io1_fure)");
+            }
+
+            if (!l_read_attr_pg.getBit<7>()) // checking for iox2 region
+            {
+                FAPI_DBG("Scan xb_io2_fure ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, xb_io2_fure),
+                         "Error from putRing (xb_io2_fure)");
+            }
+
             FAPI_DBG("Scan xb_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, xb_fure),
                      "Error from putRing (xb_fure)");

@@ -37,6 +37,7 @@
 
 #include "p9_sbe_repr_initf.H"
 #include "p9_perv_scom_addresses.H"
+#include "p9_const_common.H"
 #include <p9_ring_id.h>
 
 
@@ -44,6 +45,8 @@ fapi2::ReturnCode p9_sbe_repr_initf(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     uint8_t l_attr_chip_unit_pos = 0;
+    fapi2::buffer<uint16_t> l_read_attr_pg;
+
     FAPI_INF("p9_sbe_repr_initf: Entering ...");
 
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
@@ -54,119 +57,168 @@ fapi2::ReturnCode p9_sbe_repr_initf(const
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt, l_attr_chip_unit_pos));
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, l_chplt_trgt, l_read_attr_pg));
+        FAPI_DBG("ATTR_PG Value : %#04lx", l_read_attr_pg);
 
-        if (l_attr_chip_unit_pos == 0x9)/* OBUS0 Chiplet */
+        if (l_attr_chip_unit_pos == OB0_CHIPLET_ID)/* OBUS0 Chiplet */
         {
             FAPI_DBG("Scan ob0_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, ob0_repr),
                      "Error from putRing (ob0_repr)");
         }
 
-        if (l_attr_chip_unit_pos == 0xA)/* OBUS1 Chiplet */
+        if (l_attr_chip_unit_pos == OB1_CHIPLET_ID)/* OBUS1 Chiplet */
         {
             FAPI_DBG("Scan ob1_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, ob1_repr),
                      "Error from putRing (ob1_repr)");
         }
 
-        if (l_attr_chip_unit_pos == 0xB)/* OBUS2 Chiplet */
+        if (l_attr_chip_unit_pos == OB2_CHIPLET_ID)/* OBUS2 Chiplet */
         {
             FAPI_DBG("Scan ob2_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, ob2_repr),
                      "Error from putRing (ob2_repr)");
         }
 
-        if (l_attr_chip_unit_pos == 0xC)/* OBUS3 Chiplet */
+        if (l_attr_chip_unit_pos == OB3_CHIPLET_ID)/* OBUS3 Chiplet */
         {
             FAPI_DBG("Scan ob3_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, ob3_repr),
                      "Error from putRing (ob3_repr)");
         }
 
-        if (l_attr_chip_unit_pos == 0x6)/* XBUS Chiplet */
+        if (l_attr_chip_unit_pos == XB_CHIPLET_ID)/* XBUS Chiplet */
         {
             FAPI_DBG("Scan xb_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, xb_repr),
                      "Error from putRing (xb_repr)");
-            FAPI_DBG("Scan xb_io1_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, xb_io1_repr),
-                     "Error from putRing (xb_io1_repr)");
-            FAPI_DBG("Scan xb_io2_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, xb_io2_repr),
-                     "Error from putRing (xb_io2_repr)");
+
+            if (!l_read_attr_pg.getBit<5>()) // Cumulus chip - checking for iox1 region
+            {
+                FAPI_DBG("Scan xb_io0_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, xb_io0_repr),
+                         "Error from putRing (xb_io0_repr)");
+            }
+
+            if (!l_read_attr_pg.getBit<6>()) // checking for iox1 region
+            {
+                FAPI_DBG("Scan xb_io1_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, xb_io1_repr),
+                         "Error from putRing (xb_io1_repr)");
+            }
+
+            if (!l_read_attr_pg.getBit<7>()) // checking for iox2 region
+            {
+                FAPI_DBG("Scan xb_io2_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, xb_io2_repr),
+                         "Error from putRing (xb_io2_repr)");
+            }
         }
 
-        if (l_attr_chip_unit_pos == 0xD)/* PCI0 Chiplet */
+        if (l_attr_chip_unit_pos == PCI0_CHIPLET_ID)/* PCI0 Chiplet */
         {
             FAPI_DBG("Scan pci0_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, pci0_repr),
                      "Error from putRing (pci0_repr)");
         }
 
-        if (l_attr_chip_unit_pos == 0xE)/* PCI1 Chiplet */
+        if (l_attr_chip_unit_pos == PCI1_CHIPLET_ID)/* PCI1 Chiplet */
         {
             FAPI_DBG("Scan pci1_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, pci1_repr),
                      "Error from putRing (pci1_repr)");
         }
 
-        if (l_attr_chip_unit_pos == 0xF)/* PCI2 Chiplet */
+        if (l_attr_chip_unit_pos == PCI2_CHIPLET_ID)/* PCI2 Chiplet */
         {
             FAPI_DBG("Scan pci2_repr_ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, pci2_repr),
                      "Error from putRing (pci2_repr)");
         }
 
-        if (l_attr_chip_unit_pos == 0x2)/* N0 Chiplet */
+        if (l_attr_chip_unit_pos == N0_CHIPLET_ID)/* N0 Chiplet */
         {
             FAPI_DBG("Scan n0_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n0_repr),
                      "Error from putRing (n0_repr)");
-            FAPI_DBG("Scan n0_nx_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n0_nx_repr),
-                     "Error from putRing (n0_nx_repr)");
-            FAPI_DBG("Scan n0_cxa0_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n0_cxa0_repr),
-                     "Error from putRing (n0_cxa0_repr)");
+
+            if (!l_read_attr_pg.getBit<5>()) //Check nx is enable
+            {
+                FAPI_DBG("Scan n0_nx_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n0_nx_repr),
+                         "Error from putRing (n0_nx_repr)");
+            }
+
+            if (!l_read_attr_pg.getBit<6>()) //Check cxa0 is enable
+            {
+                FAPI_DBG("Scan n0_cxa0_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n0_cxa0_repr),
+                         "Error from putRing (n0_cxa0_repr)");
+            }
         }
 
-        if (l_attr_chip_unit_pos == 0x3)/* N1 Chiplet */
+        if (l_attr_chip_unit_pos == N1_CHIPLET_ID)/* N1 Chiplet */
         {
             FAPI_DBG("Scan n1_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n1_repr),
                      "Error from putRing (n1_repr)");
-            FAPI_DBG("Scan n1_ioo0_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo0_repr),
-                     "Error from putRing (n1_ioo0_repr)");
-            FAPI_DBG("Scan n1_ioo1_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo1_repr),
-                     "Error from putRing (n1_ioo1_repr)");
-            FAPI_DBG("Scan n1_mcs23_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n1_mcs23_repr),
-                     "Error from putRing (n1_mcs23_repr)");
+
+            if (!l_read_attr_pg.getBit<7>()) //Check pbioo0 is enable
+            {
+                FAPI_DBG("Scan n1_ioo0_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo0_repr),
+                         "Error from putRing (n1_ioo0_repr)");
+            }
+
+            if (!l_read_attr_pg.getBit<8>()) //Check pbioo1 is enable
+            {
+                FAPI_DBG("Scan n1_ioo1_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n1_ioo1_repr),
+                         "Error from putRing (n1_ioo1_repr)");
+            }
+
+            if (!l_read_attr_pg.getBit<9>()) //Check mcs23 is enable
+            {
+                FAPI_DBG("Scan n1_mcs23_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n1_mcs23_repr),
+                         "Error from putRing (n1_mcs23_repr)");
+            }
         }
 
-        if (l_attr_chip_unit_pos == 0x4)/* N2 Chiplet */
+        if (l_attr_chip_unit_pos == N2_CHIPLET_ID)/* N2 Chiplet */
         {
             FAPI_DBG("Scan n2_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n2_repr),
                      "Error from putRing (n2_repr)");
-            FAPI_DBG("Scan n2_cxa1_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n2_cxa1_repr),
-                     "Error from putRing (n2_cxa1_repr)");
+
+            if (!l_read_attr_pg.getBit<5>()) //Check cxa1 is enable
+            {
+                FAPI_DBG("Scan n2_cxa1_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n2_cxa1_repr),
+                         "Error from putRing (n2_cxa1_repr)");
+            }
         }
 
-        if (l_attr_chip_unit_pos == 0x5)/* N3 Chiplet */
+        if (l_attr_chip_unit_pos == N3_CHIPLET_ID)/* N3 Chiplet */
         {
             FAPI_DBG("Scan n3_repr ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n3_repr),
                      "Error from putRing (n3_repr)");
-            FAPI_DBG("Scan n3_mcs01_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n3_mcs01_repr),
-                     "Error from putRing (n3_mcs01_repr)");
-            FAPI_DBG("Scan n3_np_repr ring");
-            FAPI_TRY(fapi2::putRing(i_target_chip, n3_np_repr),
-                     "Error from putRing (n3_np_repr)");
+
+            if (!l_read_attr_pg.getBit<10>()) //Check mcs01 is enable
+            {
+                FAPI_DBG("Scan n3_mcs01_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n3_mcs01_repr),
+                         "Error from putRing (n3_mcs01_repr)");
+            }
+
+            if (!l_read_attr_pg.getBit<7>()) //Check npu is enable
+            {
+                FAPI_DBG("Scan n3_np_repr ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n3_np_repr),
+                         "Error from putRing (n3_np_repr)");
+            }
         }
     }
 
