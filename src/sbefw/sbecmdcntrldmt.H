@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,8 +38,9 @@
 // for DMT functionality in Millisecond
 static const uint8_t  SBE_DMT_SLEEP_INTERVAL = 1;
 
-// Bit-32 used to checkstop the system
-static const uint64_t  N3_FIR_CORE_CHECKSTOP_BIT = 32;
+// Bit-32 used to checkstop the system, since this is directly getting
+// inserted, we need to use bit (63-32) = 31st bit.
+static const uint64_t  N3_FIR_CORE_CHECKSTOP_BIT = 31; // 63-32 = 31
 
 /**
   * @brief Callback for Timer Expiry for DMT

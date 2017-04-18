@@ -73,7 +73,7 @@ void sbeDmtPkExpiryCallback(void *)
     // check stop the system
     plat_target_handle_t l_hndl;
     fapiRc = putscom_abs_wrap(&l_hndl, PERV_N3_LOCAL_FIR_OR,
-                                N3_FIR_CORE_CHECKSTOP_BIT);
+                              ((uint64_t)1 << N3_FIR_CORE_CHECKSTOP_BIT));
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
         // Scom failed

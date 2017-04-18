@@ -219,8 +219,9 @@ static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 3;
 static const uint64_t SBE_LQA_DELAY_HW_US = 1000000ULL; // 1ms
 static const uint64_t SBE_LQA_DELAY_SIM_CYCLES = 0x1ULL;
 
-// Bit-33 used to checkstop the system
-static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 33;
+// Bit-33 used to checkstop the system, Since this is directly getting inserted
+// will have to use bit (63-33) = 30th bit
+static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 30; // 63-33 = 30
 
 // Globals
 // TODO: via RTC 123602 This global needs to move to a class that will store the
@@ -1104,7 +1105,7 @@ ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp)
         // TODO RTC 164425 this needs to be replicated on any MPIPL Hwp failure
         Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
         l_rc = putscom_abs_wrap(&l_proc, PERV_N3_LOCAL_FIR_OR,
-                                    N3_FIR_SYSTEM_CHECKSTOP_BIT);
+                                ((uint64_t)1 << N3_FIR_SYSTEM_CHECKSTOP_BIT));
         if(l_rc != FAPI2_RC_SUCCESS)
         {
             // Scom failed
