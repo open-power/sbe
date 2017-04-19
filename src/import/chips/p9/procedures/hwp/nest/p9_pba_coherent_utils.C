@@ -27,10 +27,10 @@
 /// @file p9_pba_coherent_utils.C
 /// @brief PBA alter/display library functions (FAPI)
 ///
-// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
+// *HWP HWP Owner: Joshua Hannan jlhannan@us.ibm.com
 // *HWP FW Owner: Thi Tran thi@us.ibm.com
 // *HWP Team: Nest
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
 //
 //-----------------------------------------------------------------------------------
@@ -60,72 +60,29 @@ extern "C"
     const uint32_t PBA_BAR_SCOPE_LOCAL_NODE = 0;
 
 //PBA Slave Control register field/bit definitions
-    const uint32_t PBA_SLVCTL_ENABLE_BIT = 0;
-    const uint32_t PBA_SLVCTL_MASTER_ID_MATCH_START_BIT = 1;
-    const uint32_t PBA_SLVCTL_MASTER_ID_MATCH_END_BIT = 3;
-    const uint32_t PBA_SLVCTL_MASTER_ID_CARE_MASK_START_BIT = 5;
-    const uint32_t PBA_SLVCTL_MASTER_ID_CARE_MASK_END_BIT = 7;
-    const uint32_t PBA_SLVCTL_WRITE_TTYPE_START_BIT = 8;
-    const uint32_t PBA_SLVCTL_WRITE_TTYPE_END_BIT = 10;
-    const uint32_t PBA_SLVCTL_READ_TTYPE_BIT = 15;
-    const uint32_t PBA_SLVCTL_READ_PREFETCH_CTL_START_BIT = 16;
-    const uint32_t PBA_SLVCTL_READ_PREFETCH_CTL_END_BIT = 17;
-    const uint32_t PBA_SLVCTL_READ_BUF_INVALIDATE_CTL_BIT = 18;
-    const uint32_t PBA_SLVCTL_WRITE_BUF_PAIR_ALLOCATION_BIT = 19;
-    const uint32_t PBA_SLVCTL_READ_BUF_PAIR_A_ALLOCATION_BIT = 20;
-    const uint32_t PBA_SLVCTL_READ_BUF_PAIR_B_ALLOCATION_BIT = 21;
-    const uint32_t PBA_SLVCTL_READ_BUF_PAIR_C_ALLOCATION_BIT = 22;
-    const uint32_t PBA_SLVCTL_DISABLE_WRITE_GATHER_BIT = 24;
-    const uint32_t PBA_SLVCTL_WRITE_GATHER_TIMEOUT_START_BIT = 25;
-    const uint32_t PBA_SLVCTL_WRITE_GATHER_TIMEOUT_END_BIT = 27;
-    const uint32_t PBA_SLVCTL_WRITE_TSIZE_START_BIT = 28;
-    const uint32_t PBA_SLVCTL_WRITE_TSIZE_END_BIT = 35;
-    const uint32_t PBA_SLVCTL_EXT_ADDR_START_BIT = 36;
-    const uint32_t PBA_SLVCTL_EXT_ADDR_END_BIT = 49;
-
     const uint32_t PBA_SLVCTL_EXTADDR_SHIFT = 27;
     const uint32_t PBA_SLVCTL_EXTADDR_MASK = 0x3fff;
 
 //PBA Slave Reset register field/bit definitions
-    const uint32_t PBA_SLVRST_SET_START_BIT = 0;
-    const uint32_t PBA_SLVRST_SET_END_BIT = 2;
-    const uint32_t PBA_SLVRST_SLVCTL0_IN_PROG = 4;
-    const uint32_t PBA_SLVRST_SLVCTL1_IN_PROG = 5;
-    const uint32_t PBA_SLVRST_SLVCTL2_IN_PROG = 6;
-    const uint32_t PBA_SLVRST_SLVCTL3_IN_PROG = 7;
-    const uint32_t PBA_SLVRST_IN_PROG_START_BIT = 4;
-    const uint32_t PBA_SLVRST_IN_PROG_END_BIT = 7;
-    const uint32_t PBA_SLVRST_BUSY_START_BIT = 8;
-    const uint32_t PBA_SLVRST_BUSY_END_BIT = 11;
     //mask to check if there is a PBA slave rest in progress and if the PBA Slave Control is busy for PBASLVCTL3
     //if it is not bits 7 and 11 should be set to 0
     const uint64_t PBA_SLVRST_BUSY_IN_PROG_MASK = 0x0110000000000000ull;
 
 //PBA Read Buffer Valid Status field/bit definitions
-    const uint32_t PBA_RD_BUF_VALID_START_BIT = 33;
-    const uint32_t PBA_RD_BUF_VALID_END_BIT = 39;
     const uint64_t PBA_RD_BUF_VALID_MASK = 0x7F000000ull;
     const uint64_t PBA_RD_BUF_EMPTY =  0x1000000ull;
     const uint64_t PBA_RD_BUF_VALID =  0x4000000ull;
     const uint64_t PBA_RD_BUF_VALIDWFP = 0x8000000ull;
+    const uint64_t PBA_RD_BUF_CRESPERR = 0x20000000ull;
 
 //PBA Write Buffer Valid Status field/bit definitions
-    const uint32_t PBA_WR_BUF_VALID_START_BIT = 35;
-    const uint32_t PBA_WR_BUF_VALID_END_BIT = 39;
     const uint64_t PBA_WR_BUF_VALID_MASK = 0x1F000000ull;
     const uint64_t PBA_WR_BUF_EMPTY = 0x1000000ull;
+    const uint64_t PBA_WR_BUF_CRESPERR = 0x10000000ull;
 
 //PBA BAR register field/bit definitions
-    const uint32_t PBA_BAR_SCOPE_START_BIT = 0;
-    const uint32_t PBA_BAR_SCOPE_END_BIT = 2;
-    const uint32_t PBA_BAR_BASE_ADDRESS_START_BIT = 8;
-    const uint32_t PBA_BAR_BASE_ADDRESS_END_BIT = 43;
     const uint32_t PBA_BAR_BASE_ADDRESS_SHIFT = 20;
     const uint64_t PBA_BAR_BASE_ADDRESS_MASK = 0xFFFFFFFFFull;
-
-//PBA BAR Mask register field/bit definitions
-    const uint32_t PBA_BAR_MASK_START_BIT = 23;
-    const uint32_t PBA_BAR_MASK_END_BIT = 43;
 
 //OCB3_ADDRESS field/bit definitions
     const uint32_t OCB3_ADDRESS_REG_ADDR_SHIFT = 32;
@@ -261,40 +218,31 @@ extern "C"
 
         //Write the PBA Slave Control Register that controls the tsize, fastmode, etc
         //set bit 0 to enable OCI Base Address Range Enabled
-        pba_slave_ctl_data.setBit<PBA_SLVCTL_ENABLE_BIT>();
+        pba_slave_ctl_data.setBit<PU_PBASLVCTL3_ENABLE>();
         //set bits 1:3 to 110 for setting MasterID Match = OCB
-        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_MASTER_ID_MATCH_START_BIT,
-                                           (PBA_SLVCTL_MASTER_ID_MATCH_END_BIT - PBA_SLVCTL_MASTER_ID_MATCH_START_BIT) + 1 >
-                                           (6);
+        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_MID_MATCH_VALUE, PU_PBASLVCTL3_MID_MATCH_VALUE_LEN >(6);
         //set bits 5:7 to 111 so that MasterID Care Match limits to ONLY the OCB
-        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_MASTER_ID_CARE_MASK_START_BIT,
-                                           (PBA_SLVCTL_MASTER_ID_CARE_MASK_END_BIT -
-                                            PBA_SLVCTL_MASTER_ID_CARE_MASK_START_BIT) + 1 > (7);
+        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_MID_CARE_MASK, PU_PBASLVCTL3_MID_CARE_MASK_LEN > (7);
 
         //set the write ttype bits 8:10 to whatever is in the flags
-        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_WRITE_TTYPE_START_BIT,
-                                           (PBA_SLVCTL_WRITE_TTYPE_END_BIT - PBA_SLVCTL_WRITE_TTYPE_START_BIT) + 1 > (l_operType);
+        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_WRITE_TTYPE, PU_PBASLVCTL3_WRITE_TTYPE_LEN > (l_operType);
 
         //it's not cache-inhibited so set bit 15 to cl_rd_nc (0)
-        pba_slave_ctl_data.clearBit<PBA_SLVCTL_READ_TTYPE_BIT>();
+        pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_READ_TTYPE>();
         //set bits 16:17 to No prefetch 01 TODO May need to change this later if we want to use prefetch
-        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_READ_PREFETCH_CTL_START_BIT,
-                                           (PBA_SLVCTL_READ_PREFETCH_CTL_END_BIT - PBA_SLVCTL_READ_PREFETCH_CTL_START_BIT)
-                                           + 1 > (1);
+        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_READ_PREFETCH_CTL, PU_PBASLVCTL3_READ_PREFETCH_CTL_LEN > (1);
         //unset bit 18 - no auto-invalidate
-        pba_slave_ctl_data.clearBit<PBA_SLVCTL_READ_BUF_INVALIDATE_CTL_BIT>();
+        pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_BUF_INVALIDATE_CTL>();
         //set bit 19 - write buffer pair allocation bit to 1
-        pba_slave_ctl_data.setBit<PBA_SLVCTL_WRITE_BUF_PAIR_ALLOCATION_BIT>();
+        pba_slave_ctl_data.setBit<PU_PBASLVCTL3_BUF_ALLOC_W>();
         //set bit 21 - read buffer pair b allocation bit to 1
-        pba_slave_ctl_data.setBit<PBA_SLVCTL_READ_BUF_PAIR_B_ALLOCATION_BIT>();
+        pba_slave_ctl_data.setBit<PU_PBASLVCTL3_BUF_ALLOC_B>();
         //unset bits 20, 22, and 23
-        pba_slave_ctl_data.clearBit<PBA_SLVCTL_READ_BUF_PAIR_A_ALLOCATION_BIT>().clearBit<PBA_SLVCTL_READ_BUF_PAIR_C_ALLOCATION_BIT>().clearBit<PBA_SLVCTL_READ_BUF_PAIR_C_ALLOCATION_BIT>();
+        pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_BUF_ALLOC_A>().clearBit<PU_PBASLVCTL3_BUF_ALLOC_C>().clearBit<PU_PBASLVCTL3_RESERVED_23>();
         //unset bit 24 to allow write gather
-        pba_slave_ctl_data.clearBit<PBA_SLVCTL_DISABLE_WRITE_GATHER_BIT>();
+        pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_DIS_WRITE_GATHER>();
         //set bits 25:27 to 000 for write gather timeout NA
-        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_WRITE_GATHER_TIMEOUT_START_BIT,
-                                           (PBA_SLVCTL_WRITE_GATHER_TIMEOUT_END_BIT -
-                                            PBA_SLVCTL_WRITE_GATHER_TIMEOUT_START_BIT) + 1 > (0);
+        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_WR_GATHER_TIMEOUT, PU_PBASLVCTL3_WR_GATHER_TIMEOUT_LEN > (0);
 
         //set bits 28:35 for the tsize to 0 - when this is an lco_m write need to do the chiplet ID of the L3 cache in the form of 00cc_ccc0
         if (l_operType == p9_PBA_oper_flag::LCO && !i_rnw)
@@ -303,14 +251,12 @@ extern "C"
             l3_mode_reg1.extractToRight(chiplet_number, 2, 4);
         }
 
-        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_WRITE_TSIZE_START_BIT,
-                                           (PBA_SLVCTL_WRITE_TSIZE_END_BIT - PBA_SLVCTL_WRITE_TSIZE_START_BIT) + 1 > (chiplet_number << 1);
+        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_WRITE_TSIZE, PU_PBASLVCTL3_WRITE_TSIZE_LEN > (chiplet_number << 1);
         //set bits 36:49 to the ext addr
         extaddr = ((uint32_t) (i_address >> PBA_SLVCTL_EXTADDR_SHIFT)) &
                   PBA_SLVCTL_EXTADDR_MASK;
 
-        pba_slave_ctl_data.insertFromRight < PBA_SLVCTL_EXT_ADDR_START_BIT,
-                                           (PBA_SLVCTL_EXT_ADDR_END_BIT - PBA_SLVCTL_EXT_ADDR_START_BIT) + 1 > (extaddr);
+        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_EXTADDR, PU_PBASLVCTL3_EXTADDR_LEN > (extaddr);
 
         FAPI_TRY(fapi2::putScom(i_target, PU_PBASLVCTL3_SCOM, pba_slave_ctl_data),
                  "Error writing the PBA Slave Control Register");
@@ -341,14 +287,12 @@ extern "C"
                     "Base Address exceeds supported fabric real address range");
 
         //set command scope to local node scope
-        pba_bar_data.insertFromRight < PBA_BAR_SCOPE_START_BIT,
-                                     (PBA_BAR_SCOPE_END_BIT - PBA_BAR_SCOPE_START_BIT) + 1 >
-                                     (PBA_BAR_SCOPE_LOCAL_NODE);
+        pba_bar_data.insertFromRight < PU_PBABAR0_CMD_SCOPE, PU_PBABAR0_CMD_SCOPE_LEN >
+        (PBA_BAR_SCOPE_LOCAL_NODE);
 
         //set base address bits 8:43
-        pba_bar_data.insertFromRight < PBA_BAR_BASE_ADDRESS_START_BIT,
-                                     (PBA_BAR_BASE_ADDRESS_END_BIT - PBA_BAR_BASE_ADDRESS_START_BIT) + 1 > ((
-                                             i_baseAddress >> PBA_BAR_BASE_ADDRESS_SHIFT) & PBA_BAR_BASE_ADDRESS_MASK);
+        pba_bar_data.insertFromRight < PU_PBABAR0_ADDR, PU_PBABAR0_ADDR_LEN > ((
+                    i_baseAddress >> PBA_BAR_BASE_ADDRESS_SHIFT) & PBA_BAR_BASE_ADDRESS_MASK);
 
         //write the register
         FAPI_TRY(fapi2::putScom(i_target, PU_PBABAR3, pba_bar_data),
@@ -434,8 +378,7 @@ extern "C"
         fapi2::buffer<uint64_t> data;
 
         //Clean up the PBA register by resetting PBASLVCTL3 by writing to the PBASLVRST
-        data.insertFromRight < PBA_SLVRST_SET_START_BIT,
-                             (PBA_SLVRST_SET_END_BIT - PBA_SLVRST_SET_START_BIT) + 1 > (7);
+        data.insertFromRight < PU_PBASLVRST_SET, PU_PBASLVRST_SET_LEN > (7);
         FAPI_TRY(fapi2::putScom(i_target, PU_PBASLVRST_SCOM, data),
                  "Error writing to the PBA Slave Reset register");
 
@@ -446,7 +389,7 @@ extern "C"
         FAPI_TRY(fapi2::getScom(i_target, PU_PBASLVRST_SCOM, data),
                  "Error reading from the PBA Slave Reset register");
 
-        FAPI_ASSERT(!data.getBit<PBA_SLVRST_SLVCTL3_IN_PROG>(),
+        FAPI_ASSERT(!data.getBit<PU_PBASLVRST_IN_PROG>(),
                     fapi2::P9_PBA_COHERENT_UTILS_RESET_ERR().set_TARGET(i_target).set_RDDATA(
                         data),
                     "Error in resetting the PBA Slave Reset register");
@@ -484,6 +427,18 @@ extern "C"
                  "Error reading from the PBA Slave Reset Register");
 
         //If there are any errors in the Status registers that we got above, collect all of the data and send an error
+        //Make sure that the read buffers are empty, valid, or validwfp
+        //Make sure the write buffers are empty
+        //check if there is a PBA slave rest in progress and if the PBA Slave Control is busy for PBASLVCTL3
+        FAPI_ASSERT(((rd_buf2_valid & PBA_RD_BUF_CRESPERR) != PBA_RD_BUF_CRESPERR) &&
+                    ((rd_buf3_valid & PBA_RD_BUF_CRESPERR) != PBA_RD_BUF_CRESPERR) &&
+                    ((wr_buf0_valid & PBA_WR_BUF_CRESPERR) != PBA_RD_BUF_CRESPERR) &&
+                    ((wr_buf1_valid & PBA_WR_BUF_CRESPERR) != PBA_RD_BUF_CRESPERR),
+                    fapi2::P9_PBA_STATUS_ERR_ADDR_ERR().set_TARGET(i_target).set_RDBUF2(
+                        rd_buf2_valid).set_RDBUF3(rd_buf3_valid).set_WRBUF0(
+                        wr_buf0_valid).set_WRBUF1(wr_buf1_valid).set_SLVRSTDATA(reset_buf),
+                    "Combined response address error in PBA Read Buffer, or PBA Write Buffer Registers");
+
         FAPI_ASSERT((((((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
                        || ((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALID)
                        || ((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALIDWFP)) )
@@ -493,7 +448,7 @@ extern "C"
                      && ((wr_buf0_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
                      && ((wr_buf1_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
                      && ((reset_buf & PBA_SLVRST_BUSY_IN_PROG_MASK) == 0)),
-                    fapi2::P9_PBA_STATUS_ERR().set_TARGET(i_target).set_RDBUF2(
+                    fapi2::P9_PBA_STATUS_ERR_NO_ADDR_ERR().set_TARGET(i_target).set_RDBUF2(
                         rd_buf2_valid).set_RDBUF3(rd_buf3_valid).set_WRBUF0(
                         wr_buf0_valid).set_WRBUF1(wr_buf1_valid).set_SLVRSTDATA(reset_buf),
                     "Error in checking the PBA Reset, PBA Read Buffer, or PBA Write Buffer Registers");
@@ -560,9 +515,20 @@ extern "C"
             !l_pba_fir_data.getBit<PU_PBAFIR_INTERNAL_ERR>() &&
             !l_pba_fir_data.getBit<PU_PBAFIR_ILLEGAL_CACHE_OP>() &&
             !l_pba_fir_data.getBit<PU_PBAFIR_OCI_BAD_REG_ADDR>();
-        FAPI_ASSERT(!(l_expected_state), fapi2::P9_PBA_COHERENT_UTILS_PBA_FIR_ERR().set_TARGET(i_target).set_DATA(
-                        l_pba_fir_data),
-                    "Error in PBA FIR");
+
+        if (l_pba_fir_data.getBit<PU_PBAFIR_PB_RDADRERR_FW>() || l_pba_fir_data.getBit<PU_PBAFIR_PB_WRADRERR_FW>())
+        {
+            FAPI_ASSERT(!(l_expected_state), fapi2::P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_ADDR_ERR().set_TARGET(i_target).set_DATA(
+                            l_pba_fir_data),
+                        "Error in PBA FIR");
+        }
+        else
+        {
+            FAPI_ASSERT(!(l_expected_state), fapi2::P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_NO_ADDR_ERR().set_TARGET(i_target).set_DATA(
+                            l_pba_fir_data),
+                        "Error in PBA FIR");
+        }
+
     fapi_try_exit:
         FAPI_DBG("End");
         return fapi2::current_err;
@@ -581,6 +547,39 @@ extern "C"
         return fapi2::current_err;
     }
 
+    void p9_pba_coherent_append_input_data(const uint64_t i_address, const bool i_rnw, const uint32_t i_flags,
+                                           fapi2::ReturnCode& o_rc)
+    {
+#ifndef __PPE__
+
+        uint64_t l_address = i_address;
+        bool l_rnw = i_rnw;
+        uint32_t l_flags = i_flags;
+        fapi2::ffdc_t ADDRESS;
+        fapi2::ffdc_t RNW;
+        fapi2::ffdc_t FLAGS;
+        ADDRESS.ptr() = static_cast<void*>(&l_address);
+        ADDRESS.size() = sizeof(l_address);
+        RNW.ptr() = static_cast<void*>(&l_rnw);
+        RNW.size() = sizeof(l_rnw);
+        FLAGS.ptr() = static_cast<void*>(&l_flags);
+        FLAGS.size() = sizeof(l_flags);
+
+        if ((o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_INVALID_ARGS)
+            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_RESET_ERR)
+            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR_ADDR_ERR)
+            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR_NO_ADDR_ERR)
+            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_FBC_NOT_INITIALIZED_ERR)
+            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH)
+            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_ADDR_ERR)
+            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_NO_ADDR_ERR))
+        {
+            FAPI_ADD_INFO_TO_HWP_ERROR(o_rc, RC_P9_PBA_COHERENT_UTILS_EXTRA_INPUT_DATA);
+        }
+
+#endif
+    }
+
 
     fapi2::ReturnCode p9_pba_utils_unlock_pib(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
@@ -589,7 +588,7 @@ extern "C"
         fapi2::buffer<uint64_t> l_pba_slv_rst_data;
 
         FAPI_DBG("Start");
-        // unlock PIB :n case of HW229314
+        // unlock PIB in case of HW229314
         FAPI_DBG("Checking FSI2PIB Status Register");
         rc = fapi2::getCfamRegister(i_target, PERV_FSI2PIB_STATUS_FSI, l_cfam_data);
 
@@ -675,9 +674,11 @@ extern "C"
         {
             // check for return codes that this routine can emit which indicate
             // a functional failure in PBA that could result in the SCOM failure as a side-effect
-            if ((l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR) ||
+            if ((l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_ADDR_ERR) ||
+                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_NO_ADDR_ERR) ||
                 (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH) ||
-                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR))
+                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR_ADDR_ERR) ||
+                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR_NO_ADDR_ERR))
             {
                 FAPI_ERR("Error from p9_pba_coherent_check_status_for_err_handling, returning PBA rc");
             }
