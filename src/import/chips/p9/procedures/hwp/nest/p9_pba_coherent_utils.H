@@ -27,10 +27,10 @@
 /// @file p9_pba_coherent_utils.H
 /// @brief Common Code to support PBA get/putmem procedures (FAPI)
 ///
-// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
+// *HWP HWP Owner: Joshua Hannan jlhannan@us.ibm.com
 // *HWP FW Owner: Thi Tran thi@us.ibm.com
 // *HWP Team: Nest
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
 // ---------------------------------------------------------------------------------
 // *! ADDITIONAL COMMENTS :
@@ -303,7 +303,13 @@ extern "C"
     fapi2::ReturnCode p9_pba_coherent_check_status_for_err_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
             i_target);
 
-
+///@brief appends input data to the fapi2 return code if we got an error back
+///@param[in] i_address => address for the read or write
+///@param[in] i_rnw => whether the operation is a read or write
+///@param[in] i_flags => flags that contain information that the PBA needs to know to set up registers
+///@param[inout] o_rc => fapi error code to be appended with input data
+    void p9_pba_coherent_append_input_data(const uint64_t i_address, const bool i_rnw, const uint32_t i_flags,
+                                           fapi2::ReturnCode& o_rc);
 
 } //extern "C"
 

@@ -27,10 +27,10 @@
 /// @file p9_pba_access.C
 /// @brief Read coherent state of memory via the PBA (FAPI)
 ///
-// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
+// *HWP HWP Owner: Joshua Hannan jlhannan@us.ibm.com
 // *HWP FW Owner: Thi Tran thi@us.ibm.com
 // *HWP Team: Nest
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
 //--------------------------------------------------------------------------
 
@@ -56,7 +56,6 @@ extern "C" {
                                     uint8_t io_data[])
     {
         //return codes
-        fapi2::ReturnCode rc;
         fapi2::ReturnCode rc1;
 
         // mark HWP entry
@@ -69,47 +68,51 @@ extern "C" {
         //if read
         if (i_rnw)
         {
-            rc1 = p9_pba_coherent_pba_read(i_target, i_address, io_data);
+            FAPI_TRY(p9_pba_coherent_pba_read(i_target, i_address, io_data),
+                     "p9_pba_coherent_pba_read() returns error l_rc 0x%.8X",
+                     (uint64_t)fapi2::current_err);
         }
         //else if write
         else
         {
-            rc1 = p9_pba_coherent_pba_write(i_target, i_address, io_data);
+            FAPI_TRY(p9_pba_coherent_pba_write(i_target, i_address, io_data),
+                     "p9_pba_coherent_pba_write() returns error l_rc 0x%.8X",
+                     (uint64_t)fapi2::current_err);
+
         }
 
         //If we are not in fastmode or this is the last granule, we want to check the status
-        if (!rc1)
+        if ( i_lastGranule || (l_myPbaFlag.getFastMode() == false) )
         {
-            if ( i_lastGranule || (l_myPbaFlag.getFastMode() == false) )
-            {
-                rc1 = p9_pba_coherent_status_check(i_target);
+            rc1 = p9_pba_coherent_status_check(i_target);
 
-                if (i_lastGranule)
-                {
-                    //Clean up the PBA since it's the last read/write and it has been finished
-                    FAPI_TRY(p9_pba_coherent_cleanup_pba(i_target),
-                             "Error doing p9_pba_coherent_cleanup_pba");
-                }
+            if (i_lastGranule)
+            {
+                //Clean up the PBA since it's the last read/write and it has been finished
+                FAPI_TRY(p9_pba_coherent_cleanup_pba(i_target),
+                         "Error doing p9_pba_coherent_cleanup_pba");
             }
+
+            // No error at this point
+            // Set error to rc1 returned from status check
+            fapi2::current_err = rc1;
         }
 
         // mark HWP exit
     fapi_try_exit:
 
         //Handling error. PBA access is the main error if there's one.
-        if (rc1)
-        {
-            //Commit error from clean up (secondary)
-            if (rc)
-            {
-                //fapi2::fapiLogError(rc, FAPI_ERRL_SEV_RECOVERED);
-            }
+        //Append the input data to an error if we got an error back for non-PPE env
+#ifndef __PPE__
 
-            //Set return error to pba access error
-            fapi2::current_err = rc1;
+        if (fapi2::current_err)
+        {
+            p9_pba_coherent_append_input_data(i_address, i_rnw, i_flags, fapi2::current_err);
         }
 
-        FAPI_DBG("Exit ...\n");
+#endif
+
+        FAPI_DBG("Exiting...");
         return fapi2::current_err;
     }
 

@@ -31,7 +31,7 @@
 // *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
 // *HWP FW Owner: Thi Tran thi@us.ibm.com
 // *HWP Team: Nest
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
 //
 //--------------------------------------------------------------------------
@@ -89,7 +89,18 @@ extern "C"
                  "Error from p9_pba_coherent_utils_get_num_granules");
 
     fapi_try_exit:
+        //Append the input data to an error if we got an error back
+        fapi2::ReturnCode o_rc = fapi2::current_err;
+#ifndef __PPE__
+
+        if (o_rc)
+        {
+            p9_pba_coherent_append_input_data(i_address, i_rnw, i_flags, o_rc);
+        }
+
+#endif
+
         FAPI_DBG("Exiting...");
-        return fapi2::current_err;
+        return o_rc;
     }
 } // extern "C"
