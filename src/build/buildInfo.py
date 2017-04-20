@@ -38,14 +38,14 @@ def buildInfo():
 
     footer = "\n#endif  // SBE_BUILD_INFO_H"
 
-    if 'COMMIT_ID' in os.environ:
-        commitStr = os.environ['COMMIT_ID'][:8]
+    if 'SBE_COMMIT_ID' in os.environ:
+        commitStr = os.environ['SBE_COMMIT_ID'][:8]
     else:
         commitStr = os.popen('git rev-parse --short=8 HEAD').read().rstrip()
     try:
         commitInt = int(commitStr, 16)
     except:
-        print("Failed to get a valid COMMIT_ID")
+        print("Failed to get a valid SBE_COMMIT_ID")
         sys.exit(1)
 
     f = open( buildInfoFileName, 'w')
