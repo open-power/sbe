@@ -36,13 +36,22 @@ def buildInfo():
 #define SBE_BUILD_INFO_H  \n\n"
 
     footer = "\n#endif  // SBE_BUILD_INFO_H"
-    commitId = "0x" + os.popen("git rev-parse --short=8 HEAD").read().rstrip()
+
+    if 'SBE_COMMIT_ID' in os.environ:
+        commitStr = os.environ['SBE_COMMIT_ID'][:8]
+    else:
+        commitStr = os.popen('git rev-parse --short=8 HEAD').read().rstrip()
+    try:
+        commitInt = int(commitStr, 16)
+    except:
+        print("Failed to get a valid SBE_COMMIT_ID")
+        sys.exit(1)
 
     f = open( buildInfoFileName, 'w')
 
     f.write(header)
     f.write("//Define SBE Commit ID \n")
-    f.write("#define SBE_COMMIT_ID " + commitId + "\n")
+    f.write("#define SBE_COMMIT_ID " + hex(commitInt) + "\n")
     f.write(footer)
     f.close()
 
