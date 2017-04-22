@@ -115,7 +115,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_8_SCOM,
                             l_read_scratch8)); //l_read_scratch8 = PIB.SCRATCH_REGISTER_8
 
-    //set_security_acess
+    //set_security_access
     {
         fapi2::buffer<uint64_t> l_read_reg;
 
@@ -125,13 +125,23 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
         FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM,
                                 l_read_reg));
 
-        if ( l_read_1.getBit<7>() == 0 )
+        if (   (!l_read_1)                     // Security override possible
+               && (l_read_scratch8.getBit<2>()) ) // scratch 3 is valid
         {
-            FAPI_DBG("Clear Security Access Bit");
-            l_read_reg.clearBit<4>();  //PIB.CBS_CS.CBS_CS_SECURE_ACCESS_BIT = 0
-            FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CBS_CS_SCOM, l_read_reg));
-        }
+            FAPI_DBG("Reading mailbox scratch register 3 bit 6 to check "
+                     "for external security override request");
 
+            //Getting SCRATCH_REGISTER_3 register value
+            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_3_SCOM,
+                                    l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_3
+
+            if(l_read_scratch_reg.getBit<6>())
+            {
+                FAPI_DBG("Clear Security Access Bit");
+                l_read_reg.clearBit<4>();  //PIB.CBS_CS.CBS_CS_SECURE_ACCESS_BIT = 0
+                FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CBS_CS_SCOM, l_read_reg));
+            }
+        }
 
         l_read_1 = 0;
         l_read_1.writeBit<7>(l_read_reg.getBit<4>());
