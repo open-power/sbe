@@ -33,7 +33,6 @@ constexpr uint64_t literal_1 = 1;
 constexpr uint64_t literal_8 = 8;
 constexpr uint64_t literal_0b0 = 0b0;
 constexpr uint64_t literal_0b0000 = 0b0000;
-constexpr uint64_t literal_0b01 = 0b01;
 constexpr uint64_t literal_0b0001 = 0b0001;
 constexpr uint64_t literal_0b0100 = 0b0100;
 
@@ -126,11 +125,6 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             {
                 constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_CERRS_LRU_DECR_EN_CFG_ON = 0x1;
                 l_scom_buffer.insert<30, 1, 63, uint64_t>(l_EXP_L3_L3_MISC_L3CERRS_L3_CERRS_LRU_DECR_EN_CFG_ON );
-            }
-
-            if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) )
-            {
-                l_scom_buffer.insert<31, 2, 62, uint64_t>(literal_0b01 );
             }
 
             l_scom_buffer.insert<14, 4, 60, uint64_t>(literal_0b0001 );
