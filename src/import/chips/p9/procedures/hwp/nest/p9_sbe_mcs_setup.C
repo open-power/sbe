@@ -152,7 +152,70 @@ template<>
 fapi2::ReturnCode set_hb_dcbz_config(const fapi2::Target<fapi2::TARGET_TYPE_MI>& i_target,
                                      const uint64_t i_chip_base_address)
 {
-    // TODO: implement for Cumulus (MI target)
+    FAPI_DBG("Start");
+    fapi2::buffer<uint64_t> l_mcfgp;
+    fapi2::buffer<uint64_t> l_mcmode1;
+    fapi2::buffer<uint64_t> l_mcperf1;
+    fapi2::buffer<uint64_t> l_mcfirmask_and;
+    fapi2::buffer<uint64_t> l_mcaction;
+
+    // MCFGP -- set BAR valid, configure single MC group with minimum size at chip base address
+    FAPI_TRY(fapi2::getScom(i_target, MCS_MCFGP, l_mcfgp),
+             "Error from getScom (MCS_MCFGP)");
+    l_mcfgp.setBit<MCS_MCFGP_VALID>();
+    l_mcfgp.clearBit<MCS_MCFGP_MC_CHANNELS_PER_GROUP,
+                     MCS_MCFGP_MC_CHANNELS_PER_GROUP_LEN>();
+    l_mcfgp.clearBit<MCS_MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION,
+                     MCS_MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION_LEN>();
+    l_mcfgp.clearBit<MCS_MCFGP_GROUP_SIZE, MCS_MCFGP_GROUP_SIZE_LEN>();
+    // group base address field covers RA 8:31
+    l_mcfgp.insert(i_chip_base_address,
+                   MCS_MCFGP_GROUP_BASE_ADDRESS,
+                   MCS_MCFGP_GROUP_BASE_ADDRESS_LEN,
+                   MCS_MCFGP_BASE_ADDRESS_START_BIT);
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCFGP, l_mcfgp),
+             "Error from putScom (MCS_MCFGP)");
+
+    // MCMODE1 -- disable speculation, cmd bypass, fp command bypass
+    FAPI_TRY(fapi2::getScom(i_target, MCS_MCMODE1, l_mcmode1),
+             "Error from getScom (MCS_MCMODE1)");
+    l_mcmode1.setBit<MCS_MCMODE1_DISABLE_ALL_SPEC_OPS>();
+    l_mcmode1.setBit<MCS_MCMODE1_DISABLE_SPEC_OP,
+                     MCS_MCMODE1_DISABLE_SPEC_OP_LEN>();
+    l_mcmode1.setBit<MCS_MCMODE1_DISABLE_COMMAND_BYPASS,
+                     MCS_MCMODE1_DISABLE_COMMAND_BYPASS_LEN>();
+    l_mcmode1.setBit<MCS_MCMODE1_DISABLE_FP_COMMAND_BYPASS>();
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCMODE1, l_mcmode1),
+             "Error from putScom (MCS_MCMODE1)");
+
+    // MCS_MCPERF1 -- disable fast path
+    FAPI_TRY(fapi2::getScom(i_target, MCS_MCPERF1, l_mcperf1),
+             "Error from getScom (MCS_MCPERF1)");
+    l_mcperf1.setBit<MCS_MCPERF1_DISABLE_FASTPATH>();
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCPERF1, l_mcperf1),
+             "Error from putScom (MCS_MCPERF1)");
+
+    // Unmask MC FIR
+
+    // Set MC Fault Isolation Action1 Register
+    l_mcaction.setBit<MCS_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR>();
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCFIRACT1, l_mcaction),
+             "Error from putScom (MCS_MCFIRACT1)");
+
+    // Clear FIR bits in MC Fault Isolation Mask Register
+    l_mcfirmask_and.flush<1>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_COMMAND_LIST_TIMEOUT>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_POWERBUS_PROTOCOL_ERROR>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_MULTIPLE_BAR>();
+    // There is no MCS_MCFIR_INVALID_ADDRESS for cumulus.
+    // l_mcfirmask_and.clearBit<MCS_MCFIR_INVALID_ADDRESS>();
+    FAPI_TRY(fapi2::putScom(i_target, MCS_MCFIRMASK_AND, l_mcfirmask_and),
+             "Error from putScom (MCS_MCFIRMASK_AND)");
+
+fapi_try_exit:
+    FAPI_DBG("End");
     return fapi2::current_err;
 }
 
@@ -217,11 +280,15 @@ fapi2::ReturnCode p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
                                         l_chip_base_address_nm0),
                      "Error from set_hb_dcbz_config (MCS)");
         }
-        else
+        else if (l_mi_chiplets.size())
         {
             FAPI_TRY(set_hb_dcbz_config(l_mi_chiplets.front(),
                                         l_chip_base_address_nm0),
                      "Error from set_hb_dcbz_config (MI)");
+        }
+        else
+        {
+            FAPI_INF("No MCS/MI targets found! Nothing to do!");
         }
     }
 
