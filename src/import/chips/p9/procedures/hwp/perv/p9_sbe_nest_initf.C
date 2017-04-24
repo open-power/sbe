@@ -160,9 +160,20 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
 
         if (l_attr_chip_unit_pos == N3_CHIPLET_ID)/* N3 Chiplet */
         {
+            uint8_t l_hw388874 = 0;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW388874, i_target_chip, l_hw388874),
+                     "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_HW388874)");
+
             FAPI_DBG("Scan n3_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n3_fure),
                      "Error from putRing (n3_fure)");
+
+            if (!l_hw388874)
+            {
+                FAPI_DBG("Scan n3_br_fure ring");
+                FAPI_TRY(fapi2::putRing(i_target_chip, n3_br_fure),
+                         "Error from putRing (n3_br_fure)");
+            }
 
             if (!l_read_attr.getBit<10>()) //Check mcs01 is enable
             {

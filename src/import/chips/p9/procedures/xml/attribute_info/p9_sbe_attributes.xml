@@ -396,6 +396,11 @@ attribute tank
   </entry>
 
   <entry>
+        <name>ATTR_CHIP_EC_FEATURE_HW388874</name>
+        <virtual/>
+  </entry>
+
+  <entry>
         <name>ATTR_CHIP_EC_FEATURE_NMMU_DMT_DD2</name>
         <virtual/>
   </entry>
