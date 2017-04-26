@@ -69,6 +69,18 @@ __sbe_config_reg:
     .quad   0x000A800030000000
  .endm
 oos_start:
+#######################################################################################
+#   UPDATE bits 30:31 of sbe message register : 0x50009 with 0b01 to indicate OTPROM Control
+#######################################################################################
+                lis r5 , 0x5                       # load r5 with 0x00050000
+                lvd d2 , 0x9(r5)                   # loads data from 0x50009 to d2
+                ori r2 , r2 , 0x0001		   #  set bit 31 to 1
+
+		lis r6 , 0xFFFF			   #  clear bit 30
+		ori r6 , r6 ,0xFFFD
+		and r2 , r2 , r6
+
+		stvd d2 , 0x9(r5)		   # store data back into 0x50009
 
 oos_load_cfg_regs:
 
@@ -99,10 +111,10 @@ oos_load_cfg_regs:
 
 oos_load_reg_addrs:
                 lis r4 , 0xA
-                ori r4 , r4 , 0x0
+                #ori r4 , r4 , 0x0
                 stvd d0 , 1(r4)                    #Write reset reg . A0001
                 lis r5 , 0x5                       #Check the validity of scratch reg and then program the bit rate div
-                ori r5 , r5 , 0x0000
+                #ori r5 , r5 , 0x0000
                 lvd d2 , 0x3F(r5)                  #loads scratch_8 and updates R5 to scratch_1
                 bb0wi r2 , 1 , oos_load_const_brd  #checks if valid bit (bit1) is 1 if yes continue else branch
                 lvd d2 , 0x39(r5)
