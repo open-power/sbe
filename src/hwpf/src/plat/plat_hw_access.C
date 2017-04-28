@@ -355,7 +355,6 @@ uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,
 {
     FAPI_INF("Entering p9_pibErrRetry");
     static const uint8_t MAX_RETRIES = 2;
-    static const uint64_t REG_BIT0 = (uint64_t)(0x1)<<63;
     uint8_t l_retryCount = 0;
     uint32_t pibErr = i_pibErr;
 
@@ -369,13 +368,6 @@ uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,
         }
         for(l_retryCount = 0; l_retryCount < MAX_RETRIES; l_retryCount++)
         {
-            // RESET_PCB: Reset all PCB elements outside of the standby domain
-            pibErr = putscom_abs( PERV_PIB_RESET_REG, REG_BIT0 );
-            if( pibErr ) break;
-            // RESET_PCB: clear it again
-            pibErr = putscom_abs( PERV_PIB_RESET_REG, 0);
-            if( pibErr ) break;
-
             FAPI_DBG( "*** Retry %i ***", l_retryCount );
 
             if ( i_isRead )
