@@ -53,8 +53,8 @@ fapi2::ReturnCode p9_sbe_fastarray_cleanup(
 {
     fapi2::buffer<uint64_t> l_buf;
 
-    /* Drop vital fence so that we can see the ABIST_DONE signal */
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, 0x1000000000000000), "Failed to drop vitl fence");
+    /* Drop vital fence and core region fences so that we can see the ABIST_DONE signal */
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, 0x1E00000000000000), "Failed to drop region fences");
 
     /* Let ABIST engines run to completion */
     {
@@ -73,8 +73,8 @@ fapi2::ReturnCode p9_sbe_fastarray_cleanup(
         }
     }
 
-    /* Raise the vital fence back up */
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_OR, 0x1000000000000000), "Failed to raise vitl fence");
+    /* Raise the region fences back up */
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_OR, 0x1E00000000000000), "Failed to raise region fences");
 
     /* Disable ABIST and clock engines so they can cleanly reset */
     l_buf = 0;
