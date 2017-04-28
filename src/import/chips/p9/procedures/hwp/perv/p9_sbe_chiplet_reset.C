@@ -663,8 +663,8 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_hang_cnt_setup(
             l_data64.setBit<PERV_1_HANG_PULSE_1_REG_SUPPRESS>();  //HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_1_REG, l_data64));
             //Setting HANG_PULSE_2_REG register value (Setting all fields)
-            //HANG_PULSE_2_REG.HANG_PULSE_REG_2 = p9SbeChipletReset::HANG_PULSE_0X23
-            l_data64.insertFromRight<PERV_1_HANG_PULSE_2_REG_2, PERV_1_HANG_PULSE_2_REG_2_LEN>(p9SbeChipletReset::HANG_PULSE_0X23);
+            //HANG_PULSE_2_REG.HANG_PULSE_REG_2 = p9SbeChipletReset::HANG_PULSE_0X22
+            l_data64.insertFromRight<PERV_1_HANG_PULSE_2_REG_2, PERV_1_HANG_PULSE_2_REG_2_LEN>(p9SbeChipletReset::HANG_PULSE_0X22);
             l_data64.setBit<PERV_1_HANG_PULSE_2_REG_SUPPRESS>();  //HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 1
             FAPI_TRY(fapi2::putScom(i_target_cplt, PERV_HANG_PULSE_2_REG, l_data64));
             //Setting HANG_PULSE_3_REG register value (Setting all fields)
@@ -1512,4 +1512,3 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_sectorbuffer_pulsemode_attr_setup(
 fapi_try_exit:
     return fapi2::current_err;
 }
-
