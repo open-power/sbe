@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -114,6 +115,12 @@ namespace fapi2
     }
 
     template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MI>()
+    {
+        return PPE_TARGET_TYPE_MI;
+    }
+
+    template<>
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PHB>()
     {
         return PPE_TARGET_TYPE_PHB;
@@ -123,6 +130,12 @@ namespace fapi2
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MCBIST>()
     {
         return PPE_TARGET_TYPE_MCBIST;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MC>()
+    {
+        return PPE_TARGET_TYPE_MC;
     }
 
     template<>
@@ -186,7 +199,8 @@ namespace fapi2
         constexpr TargetType TARGET_TYPE_PROC_CHILDREN =
             TARGET_TYPE_EQ | TARGET_TYPE_PERV | TARGET_TYPE_EX |
             TARGET_TYPE_MCBIST | TARGET_TYPE_CORE |
-            TARGET_TYPE_MCS | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB;
+            TARGET_TYPE_MCS | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB |
+            TARGET_TYPE_MC | TARGET_TYPE_MI;
 
         static_assert(((
                        ((K & TARGET_TYPE_PROC_CHILDREN) != TARGET_TYPE_NONE) ||
@@ -213,6 +227,12 @@ namespace fapi2
                         "Invalid parent for MCBIST target, must be PERV or "
                         "PROC_CHIP");
 
+        static_assert(!((K == TARGET_TYPE_MC) &&
+                        (T != TARGET_TYPE_PERV) &&
+                        (T != TARGET_TYPE_PROC_CHIP)),
+                        "Invalid parent for MC target, must be PERV or "
+                        "PROC_CHIP");
+
         static_assert(!((K == TARGET_TYPE_CORE) &&
                         (T != TARGET_TYPE_PERV) &&
                         (T != TARGET_TYPE_PROC_CHIP) &&
@@ -233,11 +253,11 @@ namespace fapi2
                         "Invalid parent for EX target, must be PERV or "
                         "PROC_CHIP or EQ");
 
-        if(TARGET_TYPE_PERV == T) // EQ/EC/MCBIST/PERV ===> PERV
+        if(TARGET_TYPE_PERV == T) // EQ/EC/MCBIST/MC/PERV ===> PERV
         {
             return static_cast<V>(this->iv_handle);
         }
-        if(TARGET_TYPE_PROC_CHIP == T) // EQ/EC/EX/MCBIST/PERV ===> PROC
+        if(TARGET_TYPE_PROC_CHIP == T) // EQ/EC/EX/MCBIST/MC/PERV ===> PROC
         {
             return static_cast<V>(G_vec_targets[CHIP_TARGET_OFFSET]);
         }
@@ -326,7 +346,8 @@ namespace fapi2
 
         static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
         static_assert((T == TARGET_TYPE_EQ) || (T == TARGET_TYPE_CORE)
-                || (T == TARGET_TYPE_PERV) || (T == TARGET_TYPE_MCBIST),
+                || (T == TARGET_TYPE_PERV) || (T == TARGET_TYPE_MCBIST)
+                || (T == TARGET_TYPE_MC),
                 "Child target type must be a pervasive chiplet");
 
         std::vector<Target<T> > l_children;

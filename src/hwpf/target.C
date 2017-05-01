@@ -181,6 +181,9 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_MCS:
                 l_targetType = TARGET_TYPE_MCS;
                 break;
+            case PPE_TARGET_TYPE_MI:
+                l_targetType = TARGET_TYPE_MI;
+                break;
             case PPE_TARGET_TYPE_PHB:
                 l_targetType = TARGET_TYPE_PHB;
                 break;
@@ -201,6 +204,9 @@ fapi_try_exit:
                 break;
             case PPE_TARGET_TYPE_MCBIST | PPE_TARGET_TYPE_PERV:
                 l_targetType = TARGET_TYPE_MCBIST;
+                break;
+            case PPE_TARGET_TYPE_MC | PPE_TARGET_TYPE_PERV:
+                l_targetType = TARGET_TYPE_MC;
                 break;
             case PPE_TARGET_TYPE_NONE:
             case PPE_TARGET_TYPE_ALL:
@@ -457,6 +463,9 @@ fapi_try_exit:
     fapi2::ReturnCode plat_TargetsInit()
     {
         bool b_present = false;
+        uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
+        plat_target_handle_t l_platHandle;
+
 
         // Copy fixed section from SEEPROM to PIBMEM
         G_sbe_attrs.G_system_attrs = G_system_attributes;
@@ -499,6 +508,8 @@ fapi_try_exit:
         // created.
         FAPI_TRY(plat_AttrInit());
 
+        FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, plat_getChipTarget(), l_chipName));
+
         /*
          * Nest Targets - group 1
          */
@@ -515,21 +526,29 @@ fapi_try_exit:
         }
 
         /*
-         * Memory Controller Synchronous (MCBIST) Targets
+         * Memory Controller Synchronous (MCBIST/MC) Targets
          */
 
+        // Note: MCBIST/MC have the same offset and counts, so the loop just
+        // uses MCBIST constants
         l_beginning_offset = MCBIST_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCBIST_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_MCBIST> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_MCBIST>(i)));
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv = target_name.getParent<fapi2::TARGET_TYPE_PERV>();
+            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName)
+            {
+                l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MC>(i);
+            }
+            else if(fapi2::ENUM_ATTR_NAME_NIMBUS == l_chipName)
+            {
+                l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MCBIST>(i);
+            }
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
 
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
-
         }
 
         /*
@@ -617,13 +636,22 @@ fapi_try_exit:
         }
 
         /*
-         * MCS Targets
+         * MCS/MI Targets
          */
 
+        // Note: MCS/MI have the same offset and counts, so the loop just uses
+        // MCS constants
         l_beginning_offset = MCS_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_MCS> target_name(createPlatTargetHandle<fapi2::TARGET_TYPE_MCS>(i));
+            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName)
+            {
+                l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MI>(i);
+            }
+            else if(fapi2::ENUM_ATTR_NAME_NIMBUS == l_chipName)
+            {
+                l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MCS>(i);
+            }
 
             fapi2::Target<fapi2::TARGET_TYPE_PERV>
                 l_nestTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(N3_CHIPLET - (MCS_PER_MCBIST * (i / MCS_PER_MCBIST)))));
@@ -645,11 +673,11 @@ fapi_try_exit:
 
             if(0 == l_attrPg)
             {
-                static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
-                static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
+                l_platHandle.setPresent();
+                l_platHandle.setFunctional(true);
             }
 
-            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
+            G_vec_targets.at(l_beginning_offset+i) = l_platHandle;
         }
 
         /*

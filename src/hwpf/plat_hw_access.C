@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -165,6 +166,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
             }
             break;
         case PPE_TARGET_TYPE_MCS:
+        case PPE_TARGET_TYPE_MI:
             l_addr.iv_chiplet = i_target.fields.chiplet_num;
             l_addr.iv_satId = (2 * (i_target.getTargetInstance() % 2));
             break;

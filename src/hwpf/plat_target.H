@@ -43,6 +43,7 @@ static const uint8_t CORES_PER_EX = 2;
 static const uint8_t N2_CHIPLET = 4;
 static const uint8_t N3_CHIPLET = 5;
 static const uint8_t MCS_PER_MCBIST = 2;
+static const uint8_t MI_PER_MC = 2;
 static const uint8_t PCI0_CHIPLET = 0x0D;
 
 //
@@ -64,6 +65,8 @@ namespace fapi2
         PPE_TARGET_TYPE_MCBIST            = 0x40,
         PPE_TARGET_TYPE_SYSTEM            = 0x80,
         PPE_TARGET_TYPE_PHB               = 0x100,
+        PPE_TARGET_TYPE_MI                = 0x200,
+        PPE_TARGET_TYPE_MC                = 0x400,
         PPE_TARGET_TYPE_ALL               = 0xFFF,
     } plat_target_type_t;
 
@@ -265,6 +268,18 @@ namespace fapi2
             l_handle.fields.chiplet_num = (0 == i_plat_argument) ? PCI0_CHIPLET :
                                            (((i_plat_argument / 3) + 1) + PCI0_CHIPLET);
             l_handle.fields.type = PPE_TARGET_TYPE_PHB;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_MC)
+        {
+            l_handle.fields.chiplet_num = i_plat_argument + MC_CHIPLET_OFFSET;
+            l_handle.fields.type = PPE_TARGET_TYPE_MC | PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_MI)
+        {
+            l_handle.fields.chiplet_num = N3_CHIPLET - (MI_PER_MC * (i_plat_argument / MI_PER_MC));
+            l_handle.fields.type = PPE_TARGET_TYPE_MI;
             l_handle.fields.type_target_num = i_plat_argument;
         }
         else if(K == TARGET_TYPE_ALL)

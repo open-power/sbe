@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -40,10 +41,13 @@ CONST_UINT32_T(NEST_GROUP1_TARGET_OFFSET,  CHIP_TARGET_OFFSET + CHIP_TARGET_COUN
 CONST_UINT32_T(NEST_GROUP1_CHIPLET_OFFSET, 0x1);
 CONST_UINT32_T(NEST_GROUP1_TARGET_COUNT,   6);
 
-// MCBIST targets
+// MCBIST/MC targets
 CONST_UINT32_T(MCBIST_TARGET_OFFSET, NEST_GROUP1_TARGET_OFFSET + NEST_GROUP1_TARGET_COUNT);
 CONST_UINT32_T(MCBIST_CHIPLET_OFFSET,      0x7);
 CONST_UINT32_T(MCBIST_TARGET_COUNT,        2);
+CONST_UINT32_T(MC_TARGET_OFFSET, NEST_GROUP1_TARGET_OFFSET + NEST_GROUP1_TARGET_COUNT);
+CONST_UINT32_T(MC_CHIPLET_OFFSET,      0x7);
+CONST_UINT32_T(MC_TARGET_COUNT,        2);
 
 // Nest targets - Group 2
 CONST_UINT32_T(NEST_GROUP2_TARGET_OFFSET, MCBIST_TARGET_OFFSET + MCBIST_TARGET_COUNT);
@@ -65,9 +69,11 @@ CONST_UINT32_T(EX_TARGET_OFFSET, CORE_TARGET_OFFSET + CORE_TARGET_COUNT);
 CONST_UINT32_T(EX_CHIPLET_OFFSET,       0x10);
 CONST_UINT32_T(EX_TARGET_COUNT,         12);
 
-// MCS Targets
+// MCS/MI Targets
 CONST_UINT32_T(MCS_TARGET_OFFSET, EX_TARGET_OFFSET + EX_TARGET_COUNT);
 CONST_UINT32_T(MCS_TARGET_COUNT,         4);
+CONST_UINT32_T(MI_TARGET_OFFSET, EX_TARGET_OFFSET + EX_TARGET_COUNT);
+CONST_UINT32_T(MI_TARGET_COUNT,         4);
 
 // PHB Targets
 CONST_UINT32_T(PHB_TARGET_OFFSET, MCS_TARGET_OFFSET + MCS_TARGET_COUNT);
