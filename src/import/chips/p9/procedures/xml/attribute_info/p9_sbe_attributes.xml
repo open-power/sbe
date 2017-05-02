@@ -114,7 +114,15 @@
     <value>0x00</value>
   </entry>
   <entry>
+    <name>ATTR_PROC_EFF_FABRIC_GROUP_ID</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
     <name>ATTR_PROC_FABRIC_CHIP_ID</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_PROC_EFF_FABRIC_CHIP_ID</name>
     <value>0x00</value>
   </entry>
   <entry>
