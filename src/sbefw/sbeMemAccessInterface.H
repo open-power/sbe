@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -34,9 +35,6 @@
 #include "p9_adu_access.H"
 #include "p9_adu_coherent_utils.H"
 
-constexpr uint32_t PBA_GRANULE_SIZE_BYTES = 128;
-constexpr uint32_t ADU_GRANULE_SIZE_BYTES  = 8;
-
 /* @brief Enum for read or write interface
  * */
 enum sbeMemAccessMode
@@ -56,6 +54,9 @@ enum sbeMemAccessInterfaceType
 class sbeMemAccessInterface
 {
     private:
+        // Bigger of PBA/ADU granules
+        static constexpr uint32_t MEM_INTERFACE_SIZE_BYTES = 128;
+
         // Address to start read/write from
         uint64_t iv_addr;
         // Interface type - PBA/ADU
@@ -75,9 +76,14 @@ class sbeMemAccessInterface
         // Granule size based on interface - PBA/ADU
         uint32_t iv_granuleSize;
         // Buffer size is bigger of the two granules
-        char iv_buffer[PBA_GRANULE_SIZE_BYTES];
-        // Last granule for access
-        bool iv_lastGranule;
+        char iv_buffer[MEM_INTERFACE_SIZE_BYTES];
+        // Interface cleaned up - indicates if the underlying
+        // HWP cleanup is done for the interface.
+        // A new object assumes interface is in cleaned up
+        // state.
+        // If the interface is in cleaned up state,
+        // next access will happen only after the setup.
+        bool iv_intfCleanedUp;
 
         /* @brief Wrapper function to call setup procedures
          *        for the interface. This private API is used
@@ -98,19 +104,28 @@ class sbeMemAccessInterface
          void alignAccessWithBuffer();
 
     public:
+        //Default EX Target ChipletId to be used in PBA by default
+        static constexpr uint32_t PBA_DEFAULT_EX_CHIPLET_ID = 0x20;
+
+        // PBA / ADU Granule size as per the HWP Requirement
+        static constexpr uint32_t PBA_GRAN_SIZE_BYTES  = 128;
+        static constexpr uint32_t ADU_GRAN_SIZE_BYTES  = 8;
+
         /* @brief Constructor
          *
-         * @param[in] i_addr    Address to read/write from
-         * @param[in] i_flags   Pointer to PBA/ADU flags
-         * @param[in] i_mode    Read/Write mode
-         * @param[in] i_ex      EX target[Optional in case of ADU]
+         * @param[in] i_interface   Type of the interface
+         * @param[in] i_addr        Address to read/write from
+         * @param[in] i_flags       Pointer to PBA/ADU flags
+         * @param[in] i_mode        Read/Write mode
+         * @param[in] i_granuleSize Granule size of the interface type
+         * @param[in] i_ex          EX target[Optional in case of ADU]
          */
         sbeMemAccessInterface(
                         sbeMemAccessInterfaceType i_interface,
                         uint64_t i_addr,
                         void *i_flags,
                         sbeMemAccessMode i_mode,
-                        uint32_t i_granuleSize = 0,
+                        uint32_t i_granuleSize,
                         fapi2::Target<fapi2::TARGET_TYPE_EX> i_ex
                         = fapi2::Target<fapi2::TARGET_TYPE_EX>()):
                         iv_addr(i_addr),
@@ -122,7 +137,7 @@ class sbeMemAccessInterface
                         iv_iterator(0),
                         iv_currGranule(0),
                         iv_granuleSize(i_granuleSize),
-                        iv_lastGranule(0)
+                        iv_intfCleanedUp(true)
         {
         }
 
@@ -134,15 +149,19 @@ class sbeMemAccessInterface
 
         /* @brief  Read/Write a single granule on PBA/ADU interface
          *
+         * @param[in] i_isLastAccess    Should the interface be cleaned up
+         *                              after this access
+         *
          * @return fapi rc
          */
-        fapi2::ReturnCode accessGranule();
+        fapi2::ReturnCode accessGranule(const bool i_isLastAccess = false);
 
         /* @brief Read/Write on PBA/ADU interface with the given buffer.
          *
          * @param[in] io_buffer         Pointer to the data to read/write
          * @param[in] i_len             Length of the data to read/write in bytes
-         * @param[in] i_isLastAccess    Is this a last access call on the interface 
+         * @param[in] i_isLastAccess    Should the interface be cleaned up
+         *                              after this access
          *
          * @return fapi rc
          */

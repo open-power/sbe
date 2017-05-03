@@ -47,16 +47,10 @@ using namespace fapi2;
 // Buffer requirement for ADU and PBA on the stack
 constexpr uint32_t MAX_ADU_BUFFER       = 5; // 40bytes
 constexpr uint32_t MAX_PBA_BUFFER       = 32;
-// PBA / ADU Granule size as per the HWP Requirement
-constexpr uint32_t PBA_GRAN_SIZE_BYTES  = 128;
-constexpr uint32_t ADU_GRAN_SIZE_BYTES  = 8;
 
 // Multiplier factor with respect to the FIFO length
 constexpr uint32_t ADU_SIZE_MULTIPLIER_FOR_LEN_ALIGNMENT = 2;
 constexpr uint32_t PBA_SIZE_MULTIPLIER_FOR_LEN_ALIGNMENT = 32;
-
-//Default EX Target ChipletId to be used in PBA by default
-constexpr uint32_t PBA_DEFAULT_EX_CHIPLET_ID = 0x20;
 
 /**
  * @brief static definition of parameters passed in adu chip-ops
@@ -95,7 +89,7 @@ inline uint32_t calInterAduLenForUpFifo(uint8_t i_mod, bool i_itag, bool i_ecc)
 {
     //Default init length with either Ecc or Itag
     uint32_t l_len =
-        ((ADU_GRAN_SIZE_BYTES + 1) * (1 + i_mod));
+        ((sbeMemAccessInterface::ADU_GRAN_SIZE_BYTES + 1) * (1 + i_mod));
     // If ECC and iTag bit is also part of the buffer
     if(i_itag && i_ecc)
     {
@@ -182,7 +176,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     sbeResponseFfdc_t l_ffdc;
 
     // Default for PBA
-    uint32_t l_granuleSize = PBA_GRAN_SIZE_BYTES;
+    uint32_t l_granuleSize = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES;
     uint64_t l_addr = 0;
 
     // If not Host Pass through command, simply set the addr from the command
@@ -214,7 +208,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     // Default EX Target Init..Not changing it for the time being
     Target<TARGET_TYPE_EX> l_ex(
             plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
-                PBA_DEFAULT_EX_CHIPLET_ID));
+                sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
 
     p9_PBA_oper_flag l_myPbaFlag;
     // Determine the access flags
@@ -275,7 +269,8 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         if (!i_isFlagRead)
         {
             // l_sizeMultiplier * 4B Upstream FIFO = Granule size 128B
-            uint32_t l_len2dequeue = PBA_GRANULE_SIZE_BYTES/sizeof(uint32_t);
+            uint32_t l_len2dequeue = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES
+                                                            / sizeof(uint32_t);
             l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
                     (uint32_t *)l_PBAInterface.getBuffer(),
                     false);
@@ -283,7 +278,8 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         }
 
         // Call the PBA HWP
-        l_fapiRc = l_PBAInterface.accessGranule();
+        l_fapiRc = l_PBAInterface.accessGranule(
+                            l_granulesCompleted==(l_lenCacheAligned-1));
         // if error
         if(l_fapiRc != FAPI2_RC_SUCCESS)
         {
@@ -300,7 +296,8 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         {
             // Number of 4Bytes to put, to align with Granule Size
             // l_len*4 = Granule Size
-            uint32_t l_len = PBA_GRANULE_SIZE_BYTES/sizeof(uint32_t);
+            uint32_t l_len = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES
+                                                            / sizeof(uint32_t);
             l_rc = sbeDownFifoEnq_mult (l_len,
                                 (uint32_t *)l_PBAInterface.getBuffer());
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
@@ -369,7 +366,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
     // Default for ADU
     uint32_t l_sizeMultiplier = ADU_SIZE_MULTIPLIER_FOR_LEN_ALIGNMENT;
-    uint32_t l_granuleSize = ADU_GRAN_SIZE_BYTES;
+    uint32_t l_granuleSize = sbeMemAccessInterface::ADU_GRAN_SIZE_BYTES;
 
     // Keeps track of number of granules sent to HWP
     uint64_t l_granulesCompleted = 0;
@@ -454,7 +451,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                                              (i_isFlagRead ?
                                               SBE_MEM_ACCESS_READ :
                                               SBE_MEM_ACCESS_WRITE),
-                                             ADU_GRAN_SIZE_BYTES);
+                                    sbeMemAccessInterface::ADU_GRAN_SIZE_BYTES);
         // 8Byte granule for ADU access
         uint64_t l_dataFifo[MAX_ADU_BUFFER] = {0};
         while (l_granulesCompleted < l_lenCacheAligned)
@@ -528,7 +525,8 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 if( (l_mod) && ((l_isEccMode) || (l_isItagMode)) )
                 {
                     // Default Init it for 1byte extra
-                    l_bufIdx = (ADU_GRAN_SIZE_BYTES * l_mod) + l_mod;
+                    l_bufIdx = (sbeMemAccessInterface::ADU_GRAN_SIZE_BYTES
+                                * l_mod) + l_mod;
                     if((l_isEccMode) && (l_isItagMode))
                     {
                         l_bufIdx = l_bufIdx + l_mod;
@@ -537,7 +535,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             }
             l_fapiRc = l_ADUInterface.accessWithBuffer(
                                 &(((uint8_t *)&(l_dataFifo))[l_bufIdx]),
-                                ADU_GRAN_SIZE_BYTES,
+                                sbeMemAccessInterface::ADU_GRAN_SIZE_BYTES,
                                 (l_granulesCompleted == (l_lenCacheAligned-1)));
             // if error
             if( (l_fapiRc != FAPI2_RC_SUCCESS) )
