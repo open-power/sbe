@@ -150,9 +150,13 @@ def readEntry(obj, address, size):
 
     return value
 
-def extractHWPFFDC(dumpToFile = False):
+def extractHWPFFDC(dumpToFile = False, readData = None):
     '''Header extraction'''
-    data = readDsEntryReturnVal()
+    if(readData != None):
+        data = readData[:4]
+        readData = readData[4:]
+    else:
+        data = readDsEntryReturnVal()
     magicBytes = ((data[0] << 8) | data[1])
     if (magicBytes == 0xFFDC) :
         print ("\nMagic Bytes Match")
@@ -161,13 +165,21 @@ def extractHWPFFDC(dumpToFile = False):
     packLen = ((data[2] << 8) | data[3])
     print ("\nFFDC package length = " + str(packLen))
     # extract Sequence ID, Command class and command
-    data = readDsEntryReturnVal()
+    if(readData != None):
+        data = readData[:4]
+        readData = readData[4:]
+    else:
+        data = readDsEntryReturnVal()
     seqId = ((data[0] << 24) | (data[1] << 16))
     cmdClass = data[2]
     cmd = data[3]
     print ("\n SeqId ["+str(seqId)+"] CmdClass ["+str(cmdClass)+"] Cmd ["+str(cmd)+"]")
 
-    data = readDsEntryReturnVal()
+    if(readData != None):
+        data = readData[:4]
+        readData = readData[4:]
+    else:
+        data = readDsEntryReturnVal()
     fapiRc = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])
     print ("\nFAPI rc = " + str(hex(fapiRc)))
 
@@ -175,12 +187,17 @@ def extractHWPFFDC(dumpToFile = False):
         myBin = open('hwp_ffdc.bin', 'wb')
         print ("\nwriting "+'hwp_ffdc.bin')
     for i in range(0, packLen-3):
-        data = readDsEntryReturnVal()
+        if(readData != None):
+            data = readData[:4]
+            readData = readData[4:]
+        else:
+            data = readDsEntryReturnVal()
         if(dumpToFile):
             myBin.write(bytearray(data))
     if(dumpToFile):
         print("write to a file Done")
         myBin.close()
+    return readData
 
 def read(obj, address, size):
     """ Read from memory space """

@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2017                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -31,5 +31,9 @@
       </testcase>
       <testcase>
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testSbeDump.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testHostFFDC.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>

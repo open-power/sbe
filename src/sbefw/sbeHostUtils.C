@@ -38,7 +38,10 @@
 #include "assert.h"
 #include "fapi2.H"
 #include "sbeglobals.H"
-
+#include "sbeMemAccessInterface.H"
+#include "sbeFFDC.H"
+#include "hwp_error_info.H"
+#include "sberegaccess.H"
 
 ///////////////////////////////////////////////////////////////////
 // PSU->SBE register access utilities
@@ -199,6 +202,7 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
                         uint32_t &io_rc)
 {
 #define SBE_FUNC "sbePSUSendResponse"
+    SBE_ENTER(SBE_FUNC);
     do
     {
         // Making sure the PSU access utility is functional
@@ -206,11 +210,96 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
         {
             break;
         }
-        // TODO via RTC:151555 Generate FFDC
-        if(i_fapiRc != fapi2::FAPI2_RC_SUCCESS)
+
+        uint32_t l_allocatedSize = SBE_GLOBAL->hostFFDCAddr.size;
+        bool l_is_lastAccess = false;
+        // Default EX Target Init..Not changing it for the time being
+        fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex(
+            fapi2::plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>(
+                    sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
+        p9_PBA_oper_flag l_myPbaFlag;
+
+        sbeMemAccessInterface l_PBAInterface(
+                                     SBE_MEM_ACCESS_PBA,
+                                     SBE_GLOBAL->hostFFDCAddr.addr,
+                                     &l_myPbaFlag,
+                                     SBE_MEM_ACCESS_WRITE,
+                                     sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES,
+                                     l_ex);
+
+        bool l_internal_ffdc_present = ((i_sbe2PsuRespHdr.primStatus !=
+                                         SBE_PRI_OPERATION_SUCCESSFUL) ||
+                                        (i_sbe2PsuRespHdr.secStatus !=
+                                         SBE_SEC_OPERATION_SUCCESSFUL));
+
+        // If no ffdc , exit;
+        sbeResponseFfdc_t l_ffdc;
+        l_ffdc.setRc(i_fapiRc);
+        if(l_ffdc.getRc() != fapi2::FAPI2_RC_SUCCESS)
         {
             i_sbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                       SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            l_internal_ffdc_present = true;
+
+            SBE_ERROR( SBE_FUNC" FAPI RC:0x%08X", l_ffdc.getRc());
+            SBE_INFO(SBE_FUNC" FFDC memory - addr[0x%08X%08X] size[%d]bytes",
+                     static_cast<uint32_t>(SBE::higher32BWord(SBE_GLOBAL->hostFFDCAddr.addr)),
+                     static_cast<uint32_t>(SBE::lower32BWord(SBE_GLOBAL->hostFFDCAddr.addr)),
+                     SBE_GLOBAL->hostFFDCAddr.size);
+            uint32_t ffdcDataLenInWords = fapi2::g_FfdcData.ffdcLength
+                                            / sizeof(uint32_t);
+            // Set failed command information
+            l_ffdc.setCmdInfo(i_sbe2PsuRespHdr.seqID,
+                              i_sbe2PsuRespHdr.cmdClass,
+                              i_sbe2PsuRespHdr.command);
+            // Add HWP specific ffdc data length
+            l_ffdc.lenInWords += ffdcDataLenInWords;
+
+            uint32_t len = sizeof(sbeResponseFfdc_t);
+            MEM_AVAILABLE_CHECK(l_allocatedSize, len, l_is_lastAccess);
+            fapi2::ReturnCode l_fapiRc = l_PBAInterface.accessWithBuffer(
+                                                        &l_ffdc,
+                                                        len,
+                                                        l_is_lastAccess);
+            if(l_fapiRc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                io_rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                break;
+            }
+            MEM_AVAILABLE_CHECK(l_allocatedSize,
+                                ffdcDataLenInWords,
+                                l_is_lastAccess);
+            l_is_lastAccess = l_is_lastAccess ||
+                              !l_internal_ffdc_present ||
+                    !SbeRegAccess::theSbeRegAccess().isSendInternalFFDCSet();
+            l_fapiRc = l_PBAInterface.accessWithBuffer(
+                                                &fapi2::g_FfdcData.ffdcData,
+                                                ffdcDataLenInWords,
+                                                l_is_lastAccess);
+            if(l_fapiRc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                io_rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                break;
+            }
+        }
+
+        // Send SBE internal ffdc if there is enough memory allocated
+        if(l_internal_ffdc_present)
+        {
+            SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X",
+                       (uint32_t)i_sbe2PsuRespHdr.primStatus,
+                       (uint32_t)i_sbe2PsuRespHdr.secStatus);
+            // SBE internal FFDC package
+            SbeFFDCPackage sbeFfdc;
+            //Generate all the fields of FFDC package
+            io_rc = sbeFfdc.sendOverHostIntf(i_sbe2PsuRespHdr,
+                                             SBE_FFDC_ALL_DUMP,
+                                             &l_PBAInterface,
+                                             l_allocatedSize);
+            if (io_rc)
+            {
+                break;
+            }
         }
 
         // Send the response header
