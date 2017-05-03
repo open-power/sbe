@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -62,6 +62,14 @@ private:
     sbeResponseFfdc_t iv_sbeFFDCHeader;
     //FFDC user data header
     sbeFFDCDataHeader_t iv_sbeFFDCDataHeader;
+
+    /*
+     * @bried updateUserDataHeader - method to update user data fields
+     *                               based on input config
+     *
+     * @param[in] i_fieldsConfig   - input fields configuration
+     */
+    void updateUserDataHeader(uint32_t i_fieldsConfig);
 
 public:
     /*ctor

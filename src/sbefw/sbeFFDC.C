@@ -29,6 +29,34 @@
 #include "sberegaccess.H"
 #include "sbeFFDC.H"
 #include "sbe_build_info.H"
+#include "sbeglobals.H"
+
+/*
+ * @bried updateUserDataHeader - method to update user data fields
+ *                               based on input config
+ *
+ * @param[in] i_fieldsConfig   - input fields configuration
+ */
+void SbeFFDCPackage::updateUserDataHeader(uint32_t i_fieldsConfig)
+{
+    //Update the user data header with dump fields configuration
+    iv_sbeFFDCDataHeader.dumpFields.set(i_fieldsConfig);
+    iv_sbeFFDCHeader.lenInWords = (sizeof(sbeResponseFfdc_t) +
+                                   sizeof(sbeFFDCDataHeader_t))
+                                   /sizeof(uint32_t);
+    //Update the length in ffdc package header base on required fields
+    for(auto &sbeFFDCUserData:sbeFFDCUserDataArray)
+    {
+        if(sbeFFDCUserData.userDataId.fieldId & i_fieldsConfig)
+        {
+            iv_sbeFFDCHeader.lenInWords +=
+                                    (sbeFFDCUserData.userDataId.fieldLen +
+                                     sizeof(sbeFFDCUserDataIdentifier_t))
+                                     /sizeof(uint32_t);
+        }
+    }
+}
+
 /*
  * @brief sendOverFIFO           - method to pack and send SBE internal FFDC
  *                                 only if isSendInternalFFDCSet() is true
@@ -77,21 +105,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
         // Sequence Id is 0 by default for Fifo interface
         iv_sbeFFDCHeader.setCmdInfo(0, i_hdr.cmdClass, i_hdr.command);
         //Update the user data header with dump fields configuration
-        iv_sbeFFDCDataHeader.dumpFields.set(i_fieldsConfig);
-        iv_sbeFFDCHeader.lenInWords = (sizeof(sbeResponseFfdc_t) +
-                                       sizeof(sbeFFDCDataHeader_t))
-                                       /sizeof(uint32_t);
-        //Update the length in ffdc package header base on required fields
-        for(auto &sbeFFDCUserData:sbeFFDCUserDataArray)
-        {
-            if(sbeFFDCUserData.userDataId.fieldId & i_fieldsConfig)
-            {
-                iv_sbeFFDCHeader.lenInWords +=
-                                        (sbeFFDCUserData.userDataId.fieldLen +
-                                         sizeof(sbeFFDCUserDataIdentifier_t))
-                                         /sizeof(uint32_t);
-            }
-        }
+        updateUserDataHeader(i_fieldsConfig);
 
         //Send FFDC package header
         length = sizeof(iv_sbeFFDCHeader) / sizeof(uint32_t);
