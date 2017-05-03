@@ -47,6 +47,7 @@
 #include <p9_mmu_scom.H>
 
 #include <p9_misc_scom_addresses.H>
+#include <p9_misc_scom_addresses_fld.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 #include <p9_xbus_scom_addresses.H>
@@ -450,8 +451,12 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
     // execute NMMU initfile
     {
-        FAPI_DBG("Executing NMMU initfile");
         fapi2::ReturnCode l_rc;
+        fapi2::buffer<uint64_t> l_scom_data;
+        auto l_ex_targets = i_target.getChildren<fapi2::TARGET_TYPE_EX>();
+        uint8_t l_lco_min;
+
+        FAPI_DBG("Executing NMMU initfile");
         FAPI_EXEC_HWP(l_rc, p9_mmu_scom, i_target, FAPI_SYSTEM);
 
         if (l_rc)
@@ -460,6 +465,51 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
             fapi2::current_err = l_rc;
             goto fapi_try_exit;
         }
+
+        // setup NMMU lco config (for all chips, but lco is only enabled for ndd2+)
+        // > NMMU.MM_FBC.CQ_WRAP.NXCQ_SCOM.LCO_TARG_CONFIG
+        //   enable only valid EXs
+        // > NMMU.MM_FBC.CQ_WRAP.NXCQ_SCOM.LCO_TARG_MIN
+        //   if there are more than 8 EXs, set to 8
+        //   if 8 EXs or less, set to one less than number of EXs
+        //   if 0 EXs or 1 EX, set to zero/one respectively
+        FAPI_TRY(fapi2::getScom(i_target, PU_NMMU_MMCQ_PB_MODE_REG, l_scom_data),
+                 "Error from getScom (PU_NMMU_MMCQ_PB_MODE_REG)");
+
+        for (auto& l_ex : l_ex_targets)
+        {
+            uint8_t l_exid = l_ex.get();
+            FAPI_TRY(l_scom_data.setBit(PU_NMMU_MMCQ_PB_MODE_REG_LCO_TARG_CONFIG + l_exid),
+                     "Error from setBit (l_scom_data, PU_NMMU_MMCQ_PB_MODE_REG_LCO_TARG_CONFIG + l_exid)");
+        }
+
+        switch (l_ex_targets.size())
+        {
+            case 0:
+                l_lco_min = 0;
+                break;
+
+            case 1:
+                l_lco_min = 1;
+                break;
+
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+                l_lco_min = 8;
+                break;
+
+            default:
+                l_lco_min = l_ex_targets.size() - 1;
+                break;
+        }
+
+        l_scom_data.insertFromRight<PU_NMMU_MMCQ_PB_MODE_REG_LCO_TARG_MIN, PU_NMMU_MMCQ_PB_MODE_REG_LCO_TARG_MIN_LEN>
+        (l_lco_min);
+
+        FAPI_TRY(fapi2::putScom(i_target, PU_NMMU_MMCQ_PB_MODE_REG, l_scom_data),
+                 "Error from putScom (PU_NMMU_MMCQ_PB_MODE_REG)");
     }
 
     {
