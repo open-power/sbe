@@ -86,6 +86,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
             {
                 SBE_ERROR(SBE_FUNC"FIFO reset received");
                 l_rc = SBE_FIFO_RESET_RECEIVED;
+                curInterface = SBE_INTERFACE_FIFO_RESET;
                 break;
             }
 
@@ -225,6 +226,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
         } while (false); // Inner do..while ends
 
         SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_RX_ROUTINE, curInterface );
+
         // If there was a FIFO reset request,
         if (l_rc == SBE_FIFO_RESET_RECEIVED)
         {
@@ -244,7 +246,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
                                                  SBE_INTERFACE_FIFO);
             }
 
-            if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
+            if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
                                         SBE_INTERFACE_FIFO_RESET) )
             {
                 SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
