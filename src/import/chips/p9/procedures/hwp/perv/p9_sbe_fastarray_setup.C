@@ -83,6 +83,10 @@ fapi2::ReturnCode p9_sbe_fastarray_setup(
     .insertFromRight<PERV_1_OPCG_CAPT2_SEQ_13_01EVEN, PERV_1_OPCG_CAPT2_SEQ_13_01EVEN_LEN>(0x1C);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT2, buf), "Failed to set up OPCG_CAPT2");
 
+    /* Assert CC_SDIS_DC_N, some arrays don't dump right if we don't set this */
+    buf.flush<0>().setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CONF0_OR, buf), "Failed to set CC_SDIS_DC_N");
+
     return fapi2::FAPI2_RC_SUCCESS;
 
 fapi_try_exit:

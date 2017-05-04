@@ -86,6 +86,10 @@ fapi2::ReturnCode p9_sbe_fastarray_cleanup(
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT1, l_buf), "Failed to clear OPCG_CAPT1");
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_OPCG_CAPT2, l_buf), "Failed to clear OPCG_CAPT2");
 
+    /* Clear CC_SDIS_DC_N */
+    l_buf.flush<0>().setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CONF0_CLEAR, l_buf), "Failed to clear CC_SDIS_DC_N");
+
     return fapi2::FAPI2_RC_SUCCESS;
 
 fapi_try_exit:
