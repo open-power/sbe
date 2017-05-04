@@ -58,15 +58,6 @@ uint64_t stop_decode(const uint8_t* i_rs4Str,
                      uint64_t& o_numRotate);
 
 ///
-/// @brief Return a big-endian-indexed nibble from a byte string
-/// @param[in] i_rs4Str The RS4 scan string
-/// @param[in] i_nibbleIndx Index into i_rs4Str that need to converted
-///                         into a nibble
-/// @return big-endian-indexed nibble
-///
-uint8_t rs4_get_nibble(const uint8_t* i_rs4Str, const uint32_t i_nibbleIndx);
-
-///
 /// @brief Return verbatim data from the RS4 string
 /// @param[in] i_rs4Str The RS4 scan string
 /// @param[in] i_nibbleIndx Index into i_rs4Str that need to converted
@@ -78,6 +69,20 @@ uint8_t rs4_get_nibble(const uint8_t* i_rs4Str, const uint32_t i_nibbleIndx);
 uint64_t rs4_get_verbatim(const uint8_t* i_rs4Str,
                           const uint32_t i_nibbleIndx,
                           const uint8_t i_nibbleCount);
+
+///
+/// @brief Return a big-endian-indexed nibble from a byte string
+/// @param[in] i_rs4Str The RS4 scan string
+/// @param[in] i_nibbleIndx Index into i_rs4Str that need to converted
+///                         into a nibble
+/// @return big-endian-indexed nibble
+///
+inline uint8_t rs4_get_nibble(const uint8_t* i_rs4Str, const uint32_t i_nibbleIndx)
+{
+    uint8_t l_byte = i_rs4Str[i_nibbleIndx >> 1];
+
+    return ((i_nibbleIndx % 2) ? (l_byte & 0x0f) : (l_byte >> 4));
+}
 
 }; // end of RS4 namespace
 
@@ -94,6 +99,14 @@ struct restoreOpcgRegisters
     fapi2::buffer<uint64_t> l_opcgCapt2;
     fapi2::buffer<uint64_t> l_opcgCapt3;
 };
+typedef union  __attribute__((__packed__)) rs4_data
+{
+    uint32_t iv_data;
+    struct
+    {
+        uint8_t val[4];
+    } fields;
+} rs4_data_t;
 
 
 #define SIXTYFOUR_BIT_HEADER 64
@@ -164,12 +177,18 @@ fapi2::ReturnCode writeHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 /// @param[in] i_header The header data that is expected.
 //  @param[in] i_chipletId data from RS4
 //  @param[in] i_ringMode differnet ring mode operations
+//  @param[in] i_bitsDecoded  number of bits rotated and scanned
+//  @param[in] i_ringId    ring Id that we scanned
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                i_target,
                                const uint64_t i_header,
                                const uint8_t i_chipletId,
-                               const fapi2::RingMode i_ringMode);
+                               const fapi2::RingMode i_ringMode,
+                               const uint32_t i_bitsDecoded = 0,
+                               const uint16_t i_ringId = 0);
+
+
 
 
 /// @brief Function to decompress the RS4 and apply the Ring data

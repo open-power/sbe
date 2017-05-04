@@ -37,36 +37,7 @@
 using namespace RING_TYPES;
 namespace RS4
 {
-//
-// Function Definitions
-//
 
-///
-/// @brief Return a big-endian-indexed nibble from a byte string
-/// @param[in] i_rs4Str The RS4 scan string
-/// @param[in] i_nibbleIndx Index into i_rs4Str that need to converted
-///                         into a nibble
-/// @return big-endian-indexed nibble
-///
-uint8_t rs4_get_nibble(const uint8_t* i_rs4Str, const uint32_t i_nibbleIndx)
-{
-    uint8_t l_byte;
-    uint8_t l_nibble;
-
-    l_byte = i_rs4Str[i_nibbleIndx / 2];
-
-
-    if(i_nibbleIndx % 2)
-    {
-        l_nibble = (l_byte & 0x0f);
-    }
-    else
-    {
-        l_nibble = (l_byte >> 4);
-    }
-
-    return l_nibble;
-}
 
 ///
 /// @brief Return verbatim data from the RS4 string
@@ -86,24 +57,32 @@ uint64_t rs4_get_verbatim(const uint8_t* i_rs4Str,
     uint64_t l_doubleWord = 0;
 
     uint32_t l_index = i_nibbleIndx;
+    rs4_data_t l_rs4_data;
+    const uint32_t* l_data =  NULL;
+    uint32_t l_cnt = 0;
+    uint32_t l_offset  = 0;
 
-    for(uint8_t i = 1; i <= i_nibbleCount; i++, l_index++)
+
+    for(uint8_t i = 1; i <= i_nibbleCount; i++)
     {
-        l_byte = i_rs4Str[l_index / 2];
+        l_cnt = l_index >> 1;
 
-        if(l_index % 2)
+        if ( !(l_index %  8) || (i == 1))
         {
-            l_nibble = (l_byte & 0x0f);
+            l_offset = l_cnt - (l_cnt % 4);
+            l_data = reinterpret_cast<uint32_t*> (const_cast<uint8_t*>(i_rs4Str) + l_offset);
+            l_rs4_data.iv_data = *l_data;
         }
-        else
-        {
-            l_nibble = (l_byte >> 4);
-        }
+
+        l_byte = l_rs4_data.fields.val[l_cnt % 4];
+
+        l_nibble = (l_index % 2) ? (l_byte & 0x0f) : (l_byte >> 4);
 
         uint64_t l_tempDblWord = l_nibble;
         l_tempDblWord <<= (64 - (4 * i));
 
         l_doubleWord |= l_tempDblWord;
+        l_index++;
     }
 
     return l_doubleWord;
@@ -123,15 +102,32 @@ uint64_t stop_decode(const uint8_t* i_rs4Str,
     uint64_t l_numNibblesParsed = 0; // No.of nibbles that make up the stop-code
     uint64_t l_numNonZeroNibbles = 0;
     uint8_t l_nibble;
+    uint8_t l_byte;
+    rs4_data_t l_rs4_data;
+    const uint32_t* l_data =  NULL;
+    uint32_t l_cnt = 0;
+    uint32_t l_offset  = 0;
 
     do
     {
-        l_nibble = rs4_get_nibble(i_rs4Str, i_nibbleIndx);
+        l_cnt = i_nibbleIndx >> 1;
+
+        if ( !(i_nibbleIndx %  8) || (l_numNibblesParsed == 0))
+        {
+            l_offset = l_cnt  - (l_cnt % 4);
+            l_data = reinterpret_cast<uint32_t*> (const_cast<uint8_t*>(i_rs4Str) + l_offset);
+
+            l_rs4_data.iv_data = *l_data;
+        }
+
+        l_byte = l_rs4_data.fields.val[l_cnt % 4];
+        l_nibble = (i_nibbleIndx % 2) ? (l_byte & 0x0f) : (l_byte >> 4);
 
         l_numNonZeroNibbles = (l_numNonZeroNibbles * 8) + (l_nibble & 0x07);
 
         i_nibbleIndx++;
         l_numNibblesParsed++;
+
     }
     while((l_nibble & 0x08) == 0);
 
@@ -496,18 +492,21 @@ fapi2::ReturnCode writeHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
     return l_rc;
 
 }
-
 /// @brief Function to reader the header data from the ring and verify it.
 /// @param[in] i_target Chiplet Target of Scan
 /// @param[in] i_header The header data that is expected.
 //  @param[in] i_chipletId data from RS4
 //  @param[in] i_ringMode different ring mode operations
+//  @param[in] i_bitsDecoded  number of bits rotated and scanned
+//  @param[in] i_ringId    ring Id that we scanned
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                i_target,
                                const uint64_t i_header,
                                const uint8_t i_chipletId,
-                               const fapi2::RingMode i_ringMode)
+                               const fapi2::RingMode i_ringMode,
+                               const uint32_t i_bitsDecoded,
+                               const uint16_t i_ringId)
 {
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
 
@@ -1105,8 +1104,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
 {
     FAPI_INF(">> rs4DecompressionSvc");
     CompressedScanData* l_rs4Header = (CompressedScanData*) i_rs4;
-    const uint8_t* l_rs4Str = (i_rs4 + sizeof(CompressedScanData));
-
+    const uint8_t* l_rs4Str = (i_rs4 +  sizeof(CompressedScanData));
     opType_t l_opType = ROTATE;
     uint64_t l_nibbleIndx = 0;
     uint64_t l_bitsDecoded = 0;
@@ -1247,11 +1245,9 @@ fapi2::ReturnCode rs4DecompressionSvc(
                     if(0xF == l_scanCount) // We are parsing RS4 for override rings
                     {
                         i_applyOverride = true;
-                        uint8_t l_careMask =
-                            rs4_get_nibble(l_rs4Str, l_nibbleIndx);
+                        uint8_t l_careMask = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
                         l_nibbleIndx++;
-                        uint8_t l_spyData =
-                            rs4_get_nibble(l_rs4Str, l_nibbleIndx);
+                        uint8_t l_spyData = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
                         l_nibbleIndx++;
 
                         for(uint8_t i = 0; i < 4; i++)
@@ -1410,7 +1406,6 @@ fapi2::ReturnCode rs4DecompressionSvc(
                 {
                     // scan them into the ring
                     uint8_t l_data = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
-
                     l_nibbleIndx += 1;
 
                     for(uint8_t i = 0; i < l_nibble; i++)
