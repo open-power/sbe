@@ -49,7 +49,6 @@ fapi2::ReturnCode p9_hcd_cache_chiplet_l3_dcc_setup(const
 {
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::buffer<uint64_t> l_data64;
-    uint8_t l_read_attr = 0;
     FAPI_DBG("Entering ...");
 
     FAPI_DBG("Scan eq_ana_bndy_bucket_l3dcc ring");
@@ -62,19 +61,6 @@ fapi2::ReturnCode p9_hcd_cache_chiplet_l3_dcc_setup(const
     //NET_CTRL1.CLK_DCC_BYPASS_EN = 0
     l_data64.clearBit<C_NET_CTRL1_CLK_DCC_BYPASS_EN>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, EQ_NET_CTRL1_WAND, l_data64));
-
-    FAPI_DBG("Check if VDMs are to be enabled. If so, power them on");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_VDM_ENABLE, FAPI_SYSTEM,
-                           l_read_attr));
-
-    if( l_read_attr )
-    {
-
-        l_data64.flush<0>();
-        l_data64.setBit<0>();
-        FAPI_TRY(fapi2::putScom(i_target_chiplet, EQ_PPM_VDMCR_OR, l_data64));
-
-    }
 
     FAPI_DBG("Exiting ...");
 

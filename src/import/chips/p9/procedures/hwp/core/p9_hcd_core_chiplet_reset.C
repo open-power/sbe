@@ -87,12 +87,10 @@ p9_hcd_core_chiplet_reset(
     FAPI_INF(">>p9_hcd_core_chiplet_reset");
     fapi2::buffer<uint64_t>                        l_data64;
     uint8_t                                        l_attr_dpll_bypass;
-    uint8_t                                        l_attr_vdm_enable;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     auto l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DPLL_BYPASS, l_chip, l_attr_dpll_bypass));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_VDM_ENABLE,  l_sys,  l_attr_vdm_enable));
 
     //--------------------------
     // Reset core chiplet logic
@@ -186,13 +184,6 @@ p9_hcd_core_chiplet_reset(
                                                   p9hcd::SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
     }
 #endif
-
-    if (l_attr_vdm_enable == fapi2::ENUM_ATTR_VDM_ENABLE_ON)
-    {
-        FAPI_DBG("Assert vdm enable via CPPM_VDMCR[0]");
-        FAPI_TRY(putScom(i_target, C_PPM_VDMCR_OR, MASK_SET(0)));
-    }
-
     // content of p9_hcd_core_dcc_skewadjust below:
 
     FAPI_DBG("Drop core DCC bypass via NET_CTRL[1]");
