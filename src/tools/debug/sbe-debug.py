@@ -126,7 +126,11 @@ def forcedCollectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path ):
             return 1
 
     # find offset of trace buffer in PIBMEM dump
-    trace_pattern = [2, 0, 0, 115, 98, 101, 95, 115, 101, 101, 112, 114, 111, 109, 95, 68, 68, 49, 0, 0]
+    # version = 0x00 0x02
+    # rsvd = 0x00 0x00
+    # image_str = "sbe_seeprom_DD1\0"
+    image_str = "sbe_seeprom_" + ddsuffix
+    trace_pattern = [0, 2, 0, 0] + [ord(a) for a in image_str] + [0]
     data_read     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     trace_index = 0
     #print trace_pattern
@@ -135,7 +139,7 @@ def forcedCollectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path ):
         while byte != "":
             byte = f.read(1)
             data_read = data_read[1:]+[ord(byte)]
-            #print data_read
+            #print [chr(a) for a in data_read]
             if data_read == trace_pattern:
                 trace_index -= 20
                 break
