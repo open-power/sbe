@@ -376,7 +376,7 @@ endif
 # Generate a 16bit trace string hash prefix value based on the name of this image.  This will form
 # the upper 16 bits of the 32 bit trace hash values.
 ifndef PK_TRACE_HASH_PREFIX
-PK_TRACE_HASH_PREFIX := $(shell echo $(IMAGE_SEEPROM_NAME) | md5sum | cut -c1-4 | xargs -i printf "%d" 0x{})
+PK_TRACE_HASH_PREFIX := $(shell echo "SBE_MAIN" | md5sum | cut -c1-4 | xargs -i printf "%d" 0x{})
 endif
 
 ifndef GCC-O-LEVEL
