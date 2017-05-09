@@ -32,7 +32,6 @@
 
 ISTEP5-CPP-SOURCES = p9_sbe_instruct_start.C
 ISTEP5-CPP-SOURCES +=p9_thread_control.C
-ISTEP5-CPP-SOURCES +=p9_sbe_load_bootloader.C
 ISTEP5-C-SOURCES =
 ISTEP5-S-SOURCES =
 

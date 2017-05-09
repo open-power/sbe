@@ -47,6 +47,8 @@ ISTEPCOMMON-CPP-SOURCES +=p9_ram_core.C
 #Istep2 Procedure but this is required to run from PIBMEM
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_tp_switch_gears.C
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_npll_setup.C
+#istep5 Procedure but this is required to run from PIBMEM
+ISTEPCOMMON-CPP-SOURCES +=p9_sbe_load_bootloader.C
 ISTEPCOMMON-C-SOURCES =
 ISTEPCOMMON-S-SOURCES =
 
