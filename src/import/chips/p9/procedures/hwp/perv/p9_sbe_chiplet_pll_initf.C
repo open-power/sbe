@@ -42,14 +42,23 @@
 #include <p9_ring_id.h>
 #include "p9_frequency_buckets.H"
 
+static const uint8_t P9_DEFAULT_NEST_PLL_BUCKET = 1;
+static const uint8_t P9_DEFAULT_MC_PLL_BUCKET = 1;
+
+
 fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_INF("p9_sbe_chiplet_pll_initf: Entering ...");
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     uint8_t l_ob0_pll_bucket = 0;
     uint8_t l_ob1_pll_bucket = 0;
     uint8_t l_ob2_pll_bucket = 0;
     uint8_t l_ob3_pll_bucket = 0;
+    uint8_t l_nest_pll_bucket = 0;
+    uint8_t l_mc_pll_bucket = 0;
+    uint8_t l_sync_mode = 0;
+    uint8_t l_set_mc_bucket = 0;
 
     // determine obus pll buckets
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OB0_PLL_BUCKET, i_target_chip, l_ob0_pll_bucket),
@@ -60,6 +69,33 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
              "Error from FAPI_ATTR_GET (ATTR_OB2_PLL_BUCKET)");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OB3_PLL_BUCKET, i_target_chip, l_ob3_pll_bucket),
              "Error from FAPI_ATTR_GET (ATTR_OB3_PLL_BUCKET)");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_PLL_BUCKET, FAPI_SYSTEM , l_nest_pll_bucket ),
+             "Error from FAPI_ATTR_GET (ATTR_NEST_PLL_BUCKET)");
+
+    if (l_nest_pll_bucket == 0)
+    {
+        l_nest_pll_bucket = P9_DEFAULT_NEST_PLL_BUCKET;
+    }
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_PLL_BUCKET, FAPI_SYSTEM , l_mc_pll_bucket ),
+             "Error from FAPI_ATTR_GET (ATTR_MC_PLL_BUCKET)");
+
+    if (l_mc_pll_bucket == 0)
+    {
+        l_mc_pll_bucket = P9_DEFAULT_MC_PLL_BUCKET;
+    }
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_sync_mode));
+
+    if (l_sync_mode)
+    {
+        l_set_mc_bucket = l_nest_pll_bucket;
+    }
+    else
+    {
+        l_set_mc_bucket = l_mc_pll_bucket;
+    }
 
     FAPI_ASSERT((l_ob0_pll_bucket && (l_ob0_pll_bucket <= OBUS_PLL_FREQ_BUCKETS)) &&
                 (l_ob1_pll_bucket && (l_ob1_pll_bucket <= OBUS_PLL_FREQ_BUCKETS)) &&
@@ -196,9 +232,51 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
 
     for (auto& l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
+
         FAPI_DBG("Scan mc_pll_bndy_bucket_1 ring");
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_pll_bndy_bucket_1, fapi2::RING_MODE_SET_PULSE_NSL),
                  "Error from putRing (mc_pll_bndy)");
+    }
+
+    for (auto& l_chplt_trgt :  i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>(fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+
+        RingID ringID = mc_pll_bndy_bucket_1;
+
+        switch(l_set_mc_bucket)
+        {
+            case 1:
+                ringID = mc_pll_bndy_bucket_1;
+                break;
+
+            case 2:
+                ringID = mc_pll_bndy_bucket_2;
+                break;
+
+            case 3:
+                ringID = mc_pll_bndy_bucket_3;
+                break;
+
+            case 4:
+                ringID = mc_pll_bndy_bucket_4;
+                break;
+
+            case 5:
+                ringID = mc_pll_bndy_bucket_5;
+                break;
+
+            default:
+                FAPI_ASSERT(false,
+                            fapi2::P9_SBE_NPLL_INITF_UNSUPPORTED_BUCKET().
+                            set_TARGET(i_target_chip).
+                            set_BUCKET_INDEX(l_nest_pll_bucket),
+                            "Unsupported Nest PLL bucket value!");
+        }
+
+        FAPI_DBG("Scan mc_pll_bndy_bucket_%d ring", l_nest_pll_bucket);
+        FAPI_TRY(fapi2::putRing(l_chplt_trgt, ringID, fapi2::RING_MODE_SET_PULSE_NSL),
+                 "Error from putRing (mc_pll_bndy, ringID: %d)", ringID);
+
     }
 
 fapi_try_exit:

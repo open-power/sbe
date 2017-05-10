@@ -84,6 +84,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
 {
     uint8_t l_read_attr = 0;
     uint8_t l_bypass = 0;
+    uint8_t l_use_dmi_buckets = 0;
     FAPI_INF("p9_sbe_chiplet_pll_setup: Entering ...");
 
     auto l_mc_io_func = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
@@ -91,6 +92,9 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
                                     fapi2::TARGET_FILTER_ALL_OBUS | fapi2::TARGET_FILTER_XBUS |
                                     fapi2::TARGET_FILTER_ALL_PCI),
                             fapi2::TARGET_STATE_FUNCTIONAL);
+
+    FAPI_DBG("Read ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS ");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS, i_target_chip, l_use_dmi_buckets));
 
     FAPI_DBG("Reading bypass attribute");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_bypass));
@@ -107,7 +111,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
             FAPI_DBG("Drop PDLY bypass");
             FAPI_TRY(p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass(mc, true, false));
 
-            if ( !(l_read_attr) )
+            if ( !(l_read_attr) || l_use_dmi_buckets )
             {
                 FAPI_DBG("Drop DCC  bypass");
                 FAPI_TRY(p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass(mc, false, true));
@@ -135,7 +139,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
             uint32_t l_chipletID = targ.getChipletNumber();
 
             if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
-               ((!l_read_attr) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
+               ((!l_read_attr || l_use_dmi_buckets) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
             {
                 FAPI_DBG("release pll test enable for except pcie");
                 FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_test_enable(targ));
@@ -149,7 +153,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
 
             if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
                (l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID) ||
-               ((!l_read_attr) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
+               ((!l_read_attr || l_use_dmi_buckets) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
             {
                 FAPI_DBG("Release PLL reset");
                 FAPI_TRY(p9_sbe_chiplet_pll_setup_pll_reset(targ));
@@ -174,7 +178,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
             uint32_t l_chipletID = targ.getChipletNumber();
 
             if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
-               ((!l_read_attr) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
+               ((!l_read_attr || l_use_dmi_buckets) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
             {
                 FAPI_DBG("check pll lock for Mc,Xb,Ob");
                 FAPI_TRY(p9_sbe_chiplet_pll_setup_check_pll_lock(targ, false));
@@ -189,7 +193,7 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
 
         if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
            (l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID) ||
-           ((!l_read_attr) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
+           ((!l_read_attr || l_use_dmi_buckets) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
         {
             FAPI_TRY(p9_sbe_chiplet_pll_setup_function(targ, l_bypass));
         }
