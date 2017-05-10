@@ -28,14 +28,13 @@
 /// @brief Peform SCOM initialization required for fabric & HBI operation (FAPI2)
 ///
 /// @author Joe McGill <jmcgill@us.ibm.com>
-/// @author Christy Graves <clgraves@us.ibm.com>
 ///
 
 //
 // *HWP HWP Owner: Joe McGill <jmcgill@us.ibm.com>
 // *HWP FW Owner: Thi Tran <thi@us.ibm.com>
 // *HWP Team: Nest
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
 //
 
@@ -97,6 +96,11 @@ const uint64_t XB_PPE_FIR_MASK    = 0x0E38000000000000ULL;
 const uint64_t OB_PPE_FIR_ACTION0 = 0x0000000000000000ULL;
 const uint64_t OB_PPE_FIR_ACTION1 = 0xF1C0000000000000ULL;
 const uint64_t OB_PPE_FIR_MASK    = 0x0E38000000000000ULL;
+
+// nest DTS enablement constants
+const uint8_t NEST_THERM_MODE_SAMPLE_PULSE_COUNT = 0xF;
+const uint8_t NEST_THERM_MODE_LOOP0_ENABLE = 0x2;
+const uint8_t NEST_THERM_MODE_LOOP1_ENABLE = 0x1;
 
 
 //------------------------------------------------------------------------------
@@ -170,11 +174,13 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         l_xscom_bar += l_xscom_bar_offset;
 
         FAPI_ASSERT((l_xscom_bar & XSCOM_BAR_MASK) == 0,
-                    fapi2::P9_SBE_SCOMINIT_XSCOM_BAR_ATTR_ERR().
-                    set_TARGET(i_target).
-                    set_XSCOM_BAR(l_xscom_bar).
-                    set_XSCOM_BAR_OFFSET(l_xscom_bar_offset).
-                    set_BASE_ADDR_MMIO(l_base_addr_mmio),
+                    fapi2::P9_SBE_SCOMINIT_XSCOM_BAR_ATTR_ERR()
+                    .set_TARGET(i_target)
+                    .set_BAR(l_xscom_bar)
+                    .set_BAR_MASK(XSCOM_BAR_MASK)
+                    .set_BAR_OVERLAP(l_xscom_bar & XSCOM_BAR_MASK)
+                    .set_BAR_OFFSET(l_xscom_bar_offset)
+                    .set_BASE_ADDR_MMIO(l_base_addr_mmio),
                     "Invalid XSCOM BAR configuration!");
 
         FAPI_TRY(fapi2::putScom(i_target, PU_XSCOM_BASE_REG, l_xscom_bar),
@@ -194,11 +200,13 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         l_lpc_bar += l_lpc_bar_offset;
 
         FAPI_ASSERT((l_lpc_bar & LPC_BAR_MASK) == 0,
-                    fapi2::P9_SBE_SCOMINIT_LPC_BAR_ATTR_ERR().
-                    set_TARGET(i_target).
-                    set_LPC_BAR(l_lpc_bar).
-                    set_LPC_BAR_OFFSET(l_lpc_bar_offset).
-                    set_BASE_ADDR_MMIO(l_base_addr_mmio),
+                    fapi2::P9_SBE_SCOMINIT_LPC_BAR_ATTR_ERR()
+                    .set_TARGET(i_target)
+                    .set_BAR(l_lpc_bar)
+                    .set_BAR_MASK(LPC_BAR_MASK)
+                    .set_BAR_OVERLAP(l_lpc_bar & LPC_BAR_MASK)
+                    .set_BAR_OFFSET(l_lpc_bar_offset)
+                    .set_BASE_ADDR_MMIO(l_base_addr_mmio),
                     "Invalid LPC BAR configuration!");
 
         FAPI_TRY(fapi2::putScom(i_target, PU_LPC_BASE_REG, l_lpc_bar),
@@ -345,7 +353,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_target, l_unit_pos),
                      "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
 
-            if (l_unit_pos == 0x05)
+            if (l_unit_pos == N3_CHIPLET_ID)
             {
                 // configure FBC PPE FIRs
                 FAPI_TRY(fapi2::putScom(i_target, PU_PB_PPE_LFIRACT0, FBC_PPE_FIR_ACTION0),
@@ -358,7 +366,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                          "Error from putScom (PU_PB_PPE_LFIRMASK)");
             }
 
-            if (l_unit_pos == 0x06)
+            if (l_unit_pos == XB_CHIPLET_ID)
             {
                 // configure XBUS PPE FIRs
                 FAPI_TRY(fapi2::putScom(i_target, XBUS_IOPPE_PPE_FIR_ACTION0_REG, XB_PPE_FIR_ACTION0),
@@ -371,7 +379,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                          "Error from putScom (XBUS_IOPPE_PPE_FIR_MASK_REG)");
             }
 
-            if (l_unit_pos == 0x09)
+            if (l_unit_pos == OB0_CHIPLET_ID)
             {
                 // configure OBUS0 PPE FIRs
                 FAPI_TRY(fapi2::putScom(i_target, OBUS_0_IOPPE_PPE_FIR_ACTION0_REG, OB_PPE_FIR_ACTION0),
@@ -384,7 +392,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                          "Error from putScom (OBUS_0_IOPPE_PPE_FIR_MASK_REG)");
             }
 
-            if (l_unit_pos == 0x0A)
+            if (l_unit_pos == OB1_CHIPLET_ID)
             {
                 // configure OBUS1 PPE FIRs
                 FAPI_TRY(fapi2::putScom(i_target, OBUS_1_IOPPE_PPE_FIR_ACTION0_REG, OB_PPE_FIR_ACTION0),
@@ -397,7 +405,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                          "Error from putScom (OBUS_1_IOPPE_PPE_FIR_MASK_REG)");
             }
 
-            if (l_unit_pos == 0x0B)
+            if (l_unit_pos == OB2_CHIPLET_ID)
             {
                 // configure OBUS2 PPE FIRs
                 FAPI_TRY(fapi2::putScom(i_target, OBUS_2_IOPPE_PPE_FIR_ACTION0_REG, OB_PPE_FIR_ACTION0),
@@ -410,7 +418,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                          "Error from putScom (OBUS_2_IOPPE_PPE_FIR_MASK_REG)");
             }
 
-            if (l_unit_pos == 0x0C)
+            if (l_unit_pos == OB3_CHIPLET_ID)
             {
                 // configure OBUS3 PPE FIRs
                 FAPI_TRY(fapi2::putScom(i_target, OBUS_3_IOPPE_PPE_FIR_ACTION0_REG, OB_PPE_FIR_ACTION0),
@@ -513,18 +521,27 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                  "Error from putScom (PU_NMMU_MMCQ_PB_MODE_REG)");
     }
 
+    // enable nest DTS function
     {
         fapi2::buffer<uint64_t> l_data(0);
         FAPI_DBG("Enable DTS in N1 via THERM_MODE_REG[5,6-9,20]");
         FAPI_TRY(getScom(i_target, PERV_N1_THERM_MODE_REG, l_data));
         // DTS sampling enable | sample pulse count | DTS loop0 enable
-        l_data.setBit<5>().insertFromRight<6, 4>(0xF).setBit<20>();
+        l_data.setBit<PERV_1_THERM_MODE_REG_DTS_SAMPLE_ENA>()
+        .insertFromRight<PERV_1_THERM_MODE_REG_SAMPLE_PULSE_CNT, PERV_1_THERM_MODE_REG_SAMPLE_PULSE_CNT_LEN>
+        (NEST_THERM_MODE_SAMPLE_PULSE_COUNT)
+        .insertFromRight<PERV_1_THERM_MODE_REG_DTS_ENABLE_L1, PERV_1_THERM_MODE_REG_DTS_ENABLE_L1_LEN>
+        (NEST_THERM_MODE_LOOP0_ENABLE);
         FAPI_TRY(putScom(i_target, PERV_N1_THERM_MODE_REG, l_data));
 
         FAPI_DBG("Enable DTSs (2 of them) in N3 via THERM_MODE_REG[5,6-9,20-21]");
         FAPI_TRY(getScom(i_target, PERV_N3_THERM_MODE_REG, l_data));
         // DTS sampling enable | sample pulse count | DTS loop0 and 1 enable
-        l_data.setBit<5>().insertFromRight<6, 4>(0xF).insertFromRight<20, 2>(0x3);
+        l_data.setBit<PERV_1_THERM_MODE_REG_DTS_SAMPLE_ENA>()
+        .insertFromRight<PERV_1_THERM_MODE_REG_SAMPLE_PULSE_CNT, PERV_1_THERM_MODE_REG_SAMPLE_PULSE_CNT_LEN>
+        (NEST_THERM_MODE_SAMPLE_PULSE_COUNT)
+        .insertFromRight<PERV_1_THERM_MODE_REG_DTS_ENABLE_L1, PERV_1_THERM_MODE_REG_DTS_ENABLE_L1_LEN>
+        (NEST_THERM_MODE_LOOP0_ENABLE | NEST_THERM_MODE_LOOP1_ENABLE);
         FAPI_TRY(putScom(i_target, PERV_N3_THERM_MODE_REG, l_data));
     }
 
