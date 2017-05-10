@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,14 +27,13 @@
 /// @brief Peform SCOM initialization required for fabric & HBI operation (FAPI2)
 ///
 /// @author Joe McGill <jmcgill@us.ibm.com>
-/// @author Christy Graves <clgraves@us.ibm.com>
 ///
 
 //
 // *HWP HWP Owner : Joe McGill <jmcgill@us.ibm.com>
 // *HWP FW Owner : Thi N. Tran <thi@us.ibm.com>
 // *HWP Team : Nest
-// *HWP Level : 2
+// *HWP Level : 3
 // *HWP Consumed by : SBE
 //
 
@@ -66,7 +65,6 @@ extern "C"
 /// @brief Set fabric topology IDs for all configured chipets (outside of EC/EP),
 /// performs BAR setup needed for HBI (XSCOM/LPC), configures selected FIRs in
 /// preparation for fabric init
-/// an init command (ttype=pbop.init_all) from the Alter Display Unit (ADU)
 ///
 /// @param[in] i_target Reference to processor chip target
 /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
