@@ -399,6 +399,15 @@ attribute tank
         <name>ATTR_CHIP_EC_FEATURE_NMMU_DMT_DD2</name>
         <virtual/>
   </entry>
+  <entry>
+        <name>ATTR_CHIP_EC_FEATURE_SKEWADJ_P9NDD1_INIT</name>
+        <virtual/>
+  </entry>
+
+  <entry>
+        <name>ATTR_CHIP_EC_FEATURE_DCADJ_P9NDD1_INIT</name>
+        <virtual/>
+  </entry>
 
   <entry>
         <name>ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET</name>
