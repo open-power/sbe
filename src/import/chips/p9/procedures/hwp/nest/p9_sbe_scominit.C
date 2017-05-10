@@ -329,6 +329,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     // configure chiplet pervasive FIRs / XFIRs
     {
         uint8_t l_mc_sync_mode = 0;
+        uint8_t l_use_dmi_buckets = 0;
         fapi2::TargetFilter l_target_filter = static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_TP |
                                               fapi2::TARGET_FILTER_ALL_NEST |
                                               fapi2::TARGET_FILTER_XBUS |
@@ -338,7 +339,10 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target, l_mc_sync_mode),
                  "Error from FAPI_ATTR_GET (ATTR_MC_SYNC_MODE)");
 
-        if (l_mc_sync_mode)
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS, i_target, l_use_dmi_buckets),
+                 "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS)");
+
+        if (l_mc_sync_mode || l_use_dmi_buckets)
         {
             l_target_filter = static_cast<fapi2::TargetFilter>(l_target_filter | fapi2::TARGET_FILTER_ALL_MC);
         }

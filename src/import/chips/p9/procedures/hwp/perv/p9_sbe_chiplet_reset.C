@@ -136,6 +136,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
 #endif
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     uint8_t attr_force_all = 0;
+    uint8_t l_use_dmi_buckets = 0;
 
     // Created Vectors before hand instead of calling getChildren for each usage
     auto l_perv_func_WO_Core_Cache = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
@@ -163,6 +164,9 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, i_target_chip, l_pll_bypass),
              "Error from FAPI_ATTR_GET (ATTR_NEST_MEM_X_O_PCI_BYPASS)");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS, i_target_chip, l_use_dmi_buckets),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS)");
 
     FAPI_INF("p9_sbe_chiplet_reset: Entering ...");
 
@@ -227,7 +231,8 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             // responsive.  Wait until clocks are started up in hostboot
             uint32_t l_chipletID = targ.getChipletNumber();
 
-            if((l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID) && (!l_mc_sync_mode))
+            if((l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID) &&
+               (!l_mc_sync_mode && !l_use_dmi_buckets))
             {
                 continue;
             }
@@ -428,7 +433,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         // MC:   on pll, if not in bypsas, and if in sync mode
         if (!l_pll_bypass)
         {
-            if (l_mc_sync_mode)
+            if (l_mc_sync_mode || l_use_dmi_buckets)
             {
                 for (auto& targ : l_perv_func)
                 {

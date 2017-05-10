@@ -65,6 +65,7 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     uint8_t l_read_attr = 0;
+    uint8_t l_use_dmi_buckets = 0;
     fapi2::buffer<uint8_t> l_read_flush_attr;
     fapi2::buffer<uint16_t> l_attr_pg;
     fapi2::buffer<uint64_t> l_pg_vector;
@@ -87,6 +88,11 @@ fapi2::ReturnCode p9_sbe_nest_startclocks(const
 
     FAPI_INF("Reading ATTR_MC_SYNC_MODE");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_read_attr));
+
+    FAPI_INF("Read ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS ");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS, i_target_chip, l_use_dmi_buckets));
+
+    l_read_attr |= l_use_dmi_buckets;
 
     // NEST WEST
     for (auto& nest : l_perv_nest_mc_func)
