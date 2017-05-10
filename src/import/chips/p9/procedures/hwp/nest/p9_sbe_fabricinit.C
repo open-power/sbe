@@ -27,14 +27,13 @@
 /// @brief Initialize island-mode fabric configuration (FAPI2)
 ///
 /// @author Joe McGill <jmcgill@us.ibm.com>
-/// @author Christy Graves <clgraves@us.ibm.com>
 ///
 
 //
 // *HWP HWP Owner: Joe McGill <jmcgill@us.ibm.com>
 // *HWP FW Owner: Thi Tran <thi@us.ibm.com>
 // *HWP Team: Nest
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
 //
 
@@ -54,12 +53,12 @@
 const uint64_t FABRICINIT_DELAY_HW_NS = 1000; // 1us
 const uint64_t FABRICINIT_DELAY_SIM_CYCLES = 200;
 
-// ADU Command Register field/bit definitions
+// ADU Command Register field definitions
 const uint32_t ALTD_CMD_TTYPE_PBOP_EN_ALL = 0x3F;
 const uint32_t ALTD_CMD_TSIZE_PBOP_EN_ALL = 0x0B;
 const uint32_t ALTD_CMD_SCOPE_GROUP = 0x3;
 
-// ADU Status Register field/bit definitions
+// ADU Status Register field definitions
 const uint32_t ALTD_STATUS_CRESP_ACK_DONE = 0x04;
 
 
@@ -109,8 +108,8 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                                    PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_XLATE_ADDR_TO_ID_LEN>(l_fbc_xlate_addr_to_id);
 
     l_hp_mode_data.clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_PHYP_IS_GROUP>()          // PHYP is group
-    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_ADDR_BAR>()                         // large system map
-    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_DCACHE_CAPP>();                     // disable Dcache CAPP mode
+    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_ADDR_BAR>()                             // large system map
+    .clearBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_DCACHE_CAPP>();                         // disable Dcache CAPP mode
 
     if (l_pump_mode == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE)                   // pump mode
     {
@@ -144,8 +143,7 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
              "Error from p9_fbc_utils_get_fbc_state");
     FAPI_ASSERT(l_fbc_is_running,
                 fapi2::P9_SBE_FABRICINIT_FBC_STOPPED_ERR().
-                set_TARGET(i_target).
-                set_FBC_RUNNING(l_fbc_is_running),
+                set_TARGET(i_target),
                 "Pervasive stop control is asserted, so fabricinit will not run!");
 
     // write ADU Command Register to attempt lock acquisition
@@ -189,8 +187,8 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     (ALTD_STATUS_CRESP_ACK_DONE);
 
     FAPI_ASSERT(l_status_data_exp == l_status_data_act,
-                fapi2::P9_SBE_FABRICINIT_FAILED_ERR().set_TARGET(i_target).
-                set_ADU_STATUS_EXP(l_status_data_act).
+                fapi2::P9_SBE_FABRICINIT_FAILED_ERR().
+                set_TARGET(i_target).
                 set_ADU_STATUS_ACT(l_status_data_act),
                 "Fabric init failed, or mismatch in expected ADU status!");
 
@@ -206,9 +204,7 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
              "Error from p9_fbc_utils_get_fbc_state");
     FAPI_ASSERT(l_fbc_is_initialized && l_fbc_is_running,
                 fapi2::P9_SBE_FABRICINIT_NO_INIT_ERR().
-                set_TARGET(i_target).
-                set_FBC_INITIALIZED(l_fbc_is_initialized).
-                set_FBC_RUNNING(l_fbc_is_running),
+                set_TARGET(i_target),
                 "ADU command succeded, but fabric was not cleanly initialized!");
 
 fapi_try_exit:
