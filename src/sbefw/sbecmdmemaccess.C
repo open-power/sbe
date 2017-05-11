@@ -45,7 +45,7 @@
 using namespace fapi2;
 
 // Buffer requirement for ADU and PBA on the stack
-constexpr uint32_t MAX_ADU_BUFFER       = 10; // 0bytes
+constexpr uint32_t MAX_ADU_BUFFER       = 5; // 40bytes
 constexpr uint32_t MAX_PBA_BUFFER       = 32;
 // PBA / ADU Granule size as per the HWP Requirement
 constexpr uint32_t PBA_GRAN_SIZE_BYTES  = 128;
@@ -454,9 +454,9 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                                              (i_isFlagRead ?
                                               SBE_MEM_ACCESS_READ :
                                               SBE_MEM_ACCESS_WRITE),
-                                             l_granuleSize);
+                                             ADU_GRAN_SIZE_BYTES);
         // 8Byte granule for ADU access
-        uint32_t l_dataFifo[MAX_ADU_BUFFER] = {0};
+        uint64_t l_dataFifo[MAX_ADU_BUFFER] = {0};
         while (l_granulesCompleted < l_lenCacheAligned)
         {
             // With ECC or ITAG the output length of a granule will become
@@ -495,7 +495,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             // If this is putmem request, read input data from the upstream FIFO
             if (!i_isFlagRead)
             {
-                // l_sizeMultiplier * 4B Upstream FIFO = Granule size 128B
+                // l_sizeMultiplier * 4B Upstream FIFO = Granule size 8B
                 uint32_t l_len2dequeue = l_sizeMultiplier;
                 l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
                         (uint32_t *)&l_dataFifo,
@@ -537,7 +537,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             }
             l_fapiRc = l_ADUInterface.accessWithBuffer(
                                 &(((uint8_t *)&(l_dataFifo))[l_bufIdx]),
-                                l_granuleSize,
+                                ADU_GRAN_SIZE_BYTES,
                                 (l_granulesCompleted == (l_lenCacheAligned-1)));
             // if error
             if( (l_fapiRc != FAPI2_RC_SUCCESS) )

@@ -35,52 +35,26 @@ err = False
 def main( ):
     testUtil.runCycles( 10000000 )
 
-# Test case 1: 1byte access
-    #PutMemAdu Test
-    data = os.urandom(1)
-    data = [ord(c) for c in data]
-    testMemProcUtil.putmem(0x08000000, data, 0xA5)
+# Test case 1: Valid lengths
+    bytes = [1, 2, 4]
+    offsets = {1:(0, 1, 2, 3, 4, 5, 6, 7), 2:(0, 2, 4, 6), 4:(0, 4)}
+    for byte in bytes:
+        for offset in offsets[byte]:
+            #PutMemAdu Test
+            data = os.urandom(byte)
+            data = [ord(c) for c in data]
+            testMemProcUtil.putmem(0x08000000 + offset, data, 0xA5)
 
-    # GetMemAdu test
-    readData = testMemProcUtil.getmem(0x08000000, 1, 0xA5)
-    if(data == readData):
-        print ("Success - Write-Read ADU 1byte")
-    else:
-        print data
-        print readData
-        raise Exception('data mistmach')
+            # GetMemAdu test
+            readData = testMemProcUtil.getmem(0x08000000 + offset, byte, 0xA5)
+            if(data == readData):
+                print ("Success - Write-Read ADU byte["+str(byte)+"] offset[" + str(offset)+"]")
+            else:
+                print [hex(a) for a in data]
+                print [hex(a) for a in readData]
+                raise Exception('data mistmach')
 
-# Test case 2: 2byte access
-    #PutMemAdu Test
-    data = os.urandom(2)
-    data = [ord(c) for c in data]
-    testMemProcUtil.putmem(0x08000000, data, 0xA5)
-
-    # GetMemAdu test
-    readData = testMemProcUtil.getmem(0x08000000, 2, 0xA5)
-    if(data == readData):
-        print ("Success - Write-Read ADU 2byte")
-    else:
-        print data
-        print readData
-        raise Exception('data mistmach')
-
-# Test case 3: 4byte access
-    #PutMemAdu Test
-    data = os.urandom(4)
-    data = [ord(c) for c in data]
-    testMemProcUtil.putmem(0x08000000, data, 0xA5)
-
-    # GetMemAdu test
-    readData = testMemProcUtil.getmem(0x08000000, 4, 0xA5)
-    if(data == readData):
-        print ("Success - Write-Read ADU 4byte")
-    else:
-        print data
-        print readData
-        raise Exception('data mistmach')
-
-# Test case 4: Invalid length - 3
+# Test case 2: Invalid length - 3
     # GetMemAdu test
     testMemProcUtil.getmem_failure(0x08000000, 3, 0xA5, 0x0002000A)
     print ("Success - invalid length test")
