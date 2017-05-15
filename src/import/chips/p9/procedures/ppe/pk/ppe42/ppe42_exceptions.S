@@ -111,12 +111,8 @@ __alignment_exception:
 
         .org __vectors + 0x00E0
 
-        ### Program exceptions are utilized for emulating the system call
-        ### instruction (0x44000002) which is used for doing context
-        ### switches between threads.  They can also be used by the code
-        ### to signal an exception in an error scenario.
 __program_exception:
-        _pk_ctx_push_as_needed  program_exception_handler 
+        _pk_panic   PPE42_ILLEGAL_INSTRUCTION
 
 
         ############################################################
@@ -218,9 +214,6 @@ dec_handler:
 
         bl      __pk_timer_handler
         b       check_for_ext_interrupt
-
-program_exception_handler:
-        _pk_panic   PPE42_ILLEGAL_INSTRUCTION
 
         .global __pk_next_thread_resume
 __pk_next_thread_resume:
