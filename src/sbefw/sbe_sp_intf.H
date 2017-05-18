@@ -473,6 +473,8 @@ typedef enum
     SBE_RING_MODE_SET_PULSE_ALL             = 0x0010, ///< Set pulse with pulse
                                                     ///  to all hold types
     SBE_RING_MODE_FASTARRAY                 = 0x0020, //Fast array mode
+
+    SBE_RING_MODE_APPLY_OVERRIDE            = 0x0040, //override mode
 } sbeRingAccessModes_t;
 
 // Trace array chip-op operation bitmaps

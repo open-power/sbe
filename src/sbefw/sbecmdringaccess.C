@@ -322,11 +322,19 @@ uint32_t sbePutRing(uint8_t *i_pArg)
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
         uint16_t ringMode = sbeToFapiRingMode(hdr.ringMode);
+        bool i_applyOverride = false;
+
+        if (hdr.ringMode & SBE_RING_MODE_APPLY_OVERRIDE)
+        {
+            i_applyOverride = true;
+        }
+
+
 
         Target<TARGET_TYPE_PROC_CHIP> proc = plat_getChipTarget();
         // No need to pass length as platform api takes length from payload.
         fapiRc = rs4DecompressionSvc(proc, (uint8_t *)reqMsg.rs4Payload,
-                                     false, (fapi2::RingMode)ringMode);
+                                     i_applyOverride, (fapi2::RingMode)ringMode);
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" rs4DecompressionSvc failed."

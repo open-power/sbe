@@ -1375,7 +1375,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
                     uint8_t l_spyData = rs4_get_nibble(l_rs4Str, l_nibbleIndx);
                     l_nibbleIndx++;
 
-                    for(uint8_t i = 0; i < 4; i++)
+                    for(uint8_t i = 0; i < (l_nibble & 0x3); i++)
                     {
                         l_bitsDecoded += 1;
                         l_scomData = 0x0;
