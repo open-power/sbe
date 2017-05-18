@@ -56,7 +56,7 @@ extern "C" {
                                     uint8_t io_data[])
     {
         //return codes
-        fapi2::ReturnCode rc1;
+        fapi2::ReturnCode l_statusRc = fapi2::FAPI2_RC_SUCCESS;
 
         // mark HWP entry
         FAPI_DBG("Entering ...\n");
@@ -84,8 +84,9 @@ extern "C" {
         //If we are not in fastmode or this is the last granule, we want to check the status
         if ( i_lastGranule || (l_myPbaFlag.getFastMode() == false) )
         {
-            rc1 = p9_pba_coherent_status_check(i_target);
+            l_statusRc = p9_pba_coherent_status_check(i_target);
 
+            // Clean up PBA regardless of status check returned value.
             if (i_lastGranule)
             {
                 //Clean up the PBA since it's the last read/write and it has been finished
@@ -93,13 +94,16 @@ extern "C" {
                          "Error doing p9_pba_coherent_cleanup_pba");
             }
 
-            // No error at this point
-            // Set error to rc1 returned from status check
-            fapi2::current_err = rc1;
         }
 
         // mark HWP exit
     fapi_try_exit:
+
+        // If error from status check, return it for FFDC
+        if (l_statusRc)
+        {
+            fapi2::current_err = l_statusRc;
+        }
 
         //Handling error. PBA access is the main error if there's one.
         //Append the input data to an error if we got an error back for non-PPE env
