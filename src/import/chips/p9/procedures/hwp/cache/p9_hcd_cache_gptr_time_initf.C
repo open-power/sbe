@@ -35,12 +35,12 @@
 ///     Check for the presence of core override TIME ring from image;
 ///   if found, apply;  if not, apply core base TIME from image
 
-// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:SGPE
-// *HWP Level              : 2
+// *HWP Level              : 3
 
 //------------------------------------------------------------------------------
 // Includes

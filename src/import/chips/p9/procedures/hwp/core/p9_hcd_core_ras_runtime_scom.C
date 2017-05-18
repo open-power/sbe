@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -24,13 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 ///
 /// @file  p9_hcd_core_ras_runtime_scom.C
-/// @brief FSP/Host run-time SCOMS
-///
-/// *HWP HWP Owner   : David Du      <daviddu@us.ibm.com>
-/// *HWP FW Owner    : Reshmi Nair   <resnair5@in.ibm.com>
-/// *HWP Team        : PM
-/// *HWP Consumed by : SBE:CME
-/// *HWP Level       : 1
+/// @brief Core FSP/Host run-time SCOMS
 ///
 /// Procedure Summary:
 ///   Run-time updates from FSP based PRD, etc that are put on the core image
@@ -44,122 +38,37 @@
 ///     Restore Hypervisor, Host PRD, etc. SCOMs
 ///
 
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
+// *HWP Team               : PM
+// *HWP Consumed by        : SBE:CME
+// *HWP Level              : 3
+
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <fapi2.H>
-//#include <common_scom_addresses.H>
-//will be replaced with real scom address header file
+
 #include "p9_hcd_core_ras_runtime_scom.H"
 
 //-----------------------------------------------------------------------------
 // Constant Definitions
 //-----------------------------------------------------------------------------
-#define host_runtime_scom 0
 
 //-----------------------------------------------------------------------------
-// Procedure: FSP/Host run-time SCOMS
+// Procedure: Core FSP/Host run-time SCOMS
 //-----------------------------------------------------------------------------
 
-extern "C"
+fapi2::ReturnCode
+p9_hcd_core_ras_runtime_scom(
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
 {
+    FAPI_INF(">>p9_hcd_core_ras_runtime_scom");
 
-    fapi2::ReturnCode
-    p9_hcd_core_ras_runtime_scom(
-        const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
-    {
+    FAPI_INF("<<p9_hcd_core_ras_runtime_scom");
 
-#if 0
-        fapi2::buffer<uint64_t> data;
+    return fapi2::FAPI2_RC_SUCCESS;
+}
 
-        // Run the SCOM sequence if the SCOM procedure is defined
-        // -   la      A0, sp_runtime_scom
-        // -   ld      D0, 0, A0
-        // -   braz    D0, 1f
-        //FAPI_INF("Launching SP Runtime SCOM routine")
-        // -   bsrd    D0
-        // -   1:
-        //
-
-        // Run the SCOM sequence if the SCOM procedure is defined.
-        // -   la      A0, host_runtime_scom
-        // -   ld      D1, 0, A0
-        // -   braz    D1, 1f
-
-        // Prep P1
-        // -   setp1_mcreadand D0
-#if 0
-        // Disable the AISS to allow the override
-        // -   ld      D0, EX_OHA_MODE_REG_RWx1002000D, P1
-        // -   andi    D0, D0, ~(BIT(1))
-        // - std     D0, EX_OHA_MODE_REG_RWx1002000D, P0
-        // Drop PSCOM fence to allow SCOM and set pm_wake-up to PC to accepts
-        // RAMs (SCOMs actually) in the IPL "Nap" state
-        // -   ld      D0, EX_OHA_AISS_IO_REG_0x10020014, P1
-        // -   ori     D0, D0, (BIT(15))
-        // -   andi    D0, D0, ~(BIT(21))
-        // -   std     D0, EX_OHA_AISS_IO_REG_0x10020014, P0
-#endif
-        // Branch to sub_slw_runtime_scom()
-        FAPI_INF("Launching Host Runtime SCOM routine")
-        // -   bsrd    D1
-
-        // Prep P1
-        // -   setp1_mcreadand D0
-#if 0
-        // Clear regular wake-up and restore PSCOM fence in OHA
-        // These were established in p9_sbe_ex_scominit.S
-        // -   ld      D0, EX_OHA_AISS_IO_REG_0x10020014, P1
-        // -   andi    D0, D0, ~(BIT(15))
-        // -   ori     D0, D0, BIT(21)
-        // -   std     D0, EX_OHA_AISS_IO_REG_0x10020014, P0
-        // Enable the AISS to allow further operation
-        // -   ld      D0, EX_OHA_MODE_REG_RWx1002000D, P1
-        // -   ori     D0, D0, (BIT(1))
-        // -   std     D0, EX_OHA_MODE_REG_RWx1002000D, P0
-#endif
-        // -   bra     2f
-        // -   1:
-        // To accomodate IPL flow, where sub_slw_runtime_scom() is skipped
-        // - setp1_mcreadand D0
-#if 0
-        // Clear regular wake-up and restore PSCOM fence in OHA
-        // These were established in p9_sbe_ex_scominit.S
-        // -   ld      D0, EX_OHA_MODE_REG_RWx1002000D, P1
-        // -   andi    D0, D0, ~BIT(1)
-        // -   std     D0, EX_OHA_MODE_REG_RWx1002000D, P0
-        // -   ld      D0, EX_OHA_AISS_IO_REG_0x10020014, P1
-        // -   andi    D0, D0, ~(BIT(15))
-        // -   ori     D0, D0, BIT(21)
-        // -   std     D0, EX_OHA_AISS_IO_REG_0x10020014, P0
-        // Enable the AISS to allow further operation
-        // -   ld      D0, EX_OHA_MODE_REG_RWx1002000D, P1
-        // -   ori     D0, D0, (BIT(1))
-        // -   std     D0, EX_OHA_MODE_REG_RWx1002000D, P0
-#endif
-        // -   2:
-
-        // If using cv_multicast, we need to set the magic istep number here
-        // -   la      A0, p9_sbe_select_ex_control
-        // -   ldandi  D0, 0, A0, P9_CONTROL_INIT_ALL_EX
-        // -   braz    D0, 3f
-        FAPI_DBG("Setting istep num to magic number because cv_multicast is set")
-        // -   lpcs    P1, MBOX_SBEVITAL_0x0005001C
-        // -   sti     MBOX_SBEVITAL_0x0005001C, P1, (P9_SBE_EX_RAS_RUNTIME_SCOM_MAGIC_ISTEP_NUM << (4+32))
-        // -   3:
-
-        return fapi2::FAPI2_RC_SUCCESS;
-
-        FAPI_CLEANUP();
-        return fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
-
-#endif
-
-        return fapi2::FAPI2_RC_SUCCESS;
-
-    } // Procedure
-
-
-} // extern C
 
 

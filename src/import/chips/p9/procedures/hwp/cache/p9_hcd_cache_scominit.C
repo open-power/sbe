@@ -33,12 +33,12 @@
 ///   DTS Initialization sequense
 ///
 
-// *HWP HWP Owner          : David Du      <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still    <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S <sangeet2@in.ibm.com>
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:SGPE
-// *HWP Level              : 2
+// *HWP Level              : 3
 
 //------------------------------------------------------------------------------
 // Includes
@@ -181,7 +181,9 @@ p9_hcd_cache_scominit(
             auto l_core_targets = l_ex.getChildren<fapi2::TARGET_TYPE_CORE>();
 
             FAPI_ASSERT((l_core_targets.size() != 0),
-                        fapi2::PMPROC_CACHESCOMINIT_NOGOODCOREINEX().set_QCSR(l_qcsr),
+                        fapi2::CACHE_SCOMINIT_NO_GOOD_CORE_IN_EX()
+                        .set_QCSR(l_qcsr)
+                        .set_CACHE_TARGET(i_target),
                         "NO Good Children Cores under this So-Called Good EX!");
 
             auto l_core = l_core_targets.begin();

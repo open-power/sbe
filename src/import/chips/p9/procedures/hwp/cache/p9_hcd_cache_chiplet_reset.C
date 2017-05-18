@@ -35,12 +35,12 @@
 ///    - Drop glsmux async reset
 ///   Scan0 flush entire cache chiplet
 
-// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:SGPE
-// *HWP Level              : 2
+// *HWP Level              : 3
 
 //------------------------------------------------------------------------------
 // Includes
@@ -80,11 +80,13 @@ enum P9_HCD_CACHE_CHIPLET_RESET_CONSTANTS
     CACHE_GLSMUX_RESET_DELAY_REF_CYCLES = 40
 };
 
-/// @todo RTC162433 DD2 revisit HW388878
-/// This is going to break on Nimbus DD2.0 and Cumulus SoA testing.
-/// need more discussion in HW/FW interlock on how to handle this.
+// This workaround is disabled on DD2+, the ring length data below is from DD1
 enum HW388878_DD1_FIX_CONSTATNS
 {
+    CACHE_CLK_START_POLL_TIMEOUT_HW_NS       = 1000000, // 10^6ns = 1ms timeout
+    CACHE_CLK_START_POLL_DELAY_HW_NS         = 10000,   // 10us poll loop delay
+    CACHE_CLK_START_POLL_DELAY_SIM_CYCLE     = 32000,   // 320k sim cycle delay
+
     // Eq_fure + Ex_l2_fure(ex0) + Ex_l2_fure(ex1)
     DD1_EQ_FURE_RING_LENGTH = (46532 + 119192 + 119192)
 };
@@ -291,6 +293,7 @@ p9_hcd_dd1_vcs_workaround(
     fapi2::buffer<uint64_t>                     l_data64;
     uint64_t                                    l_regions;
     uint32_t                                    l_timeout;
+    uint32_t                                    l_poll_loops;
     uint32_t                                    l_loop;
 
 #ifndef __PPE__
@@ -352,23 +355,33 @@ p9_hcd_dd1_vcs_workaround(
         FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
 
         FAPI_DBG("Poll for perv/l20/l21 clocks running via CPLT_STAT0[8]");
-        l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP);
+        l_poll_loops = CACHE_CLK_START_POLL_TIMEOUT_HW_NS /
+                       CACHE_CLK_START_POLL_DELAY_HW_NS;
 
         do
         {
+            fapi2::delay(CACHE_CLK_START_POLL_DELAY_HW_NS,
+                         CACHE_CLK_START_POLL_DELAY_SIM_CYCLE);
+
             FAPI_TRY(getScom(i_target, EQ_CPLT_STAT0, l_data64));
         }
-        while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
+        while((l_data64.getBit<8>() != 1) && ((--l_poll_loops) != 0));
 
-        FAPI_ASSERT((l_timeout != 0),
-                    fapi2::PMPROC_CACHECLKSTART_TIMEOUT().set_EQCPLTSTAT(l_data64),
+        FAPI_ASSERT((l_poll_loops != 0),
+                    fapi2::CACHE_CLK_START_TIMEOUT()
+                    .set_EQ_CPLT_STAT(l_data64)
+                    .set_CACHE_CLK_START_POLL_DELAY_HW_NS(CACHE_CLK_START_POLL_DELAY_HW_NS)
+                    .set_CACHE_CLK_START_POLL_TIMEOUT_HW_NS(CACHE_CLK_START_POLL_TIMEOUT_HW_NS)
+                    .set_CACHE_TARGET(i_target),
                     "perv/l20/l21 Clock Start Timeout");
 
         FAPI_DBG("Check perv/l20/l21 clocks running");
         FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_ARY, l_data64));
 
         FAPI_ASSERT(((l_data64 & l_regions) == 0),
-                    fapi2::PMPROC_CACHECLKSTART_FAILED().set_EQCLKSTAT(l_data64),
+                    fapi2::CACHE_CLK_START_FAILED()
+                    .set_EQ_CLK_STAT(l_data64)
+                    .set_CACHE_TARGET(i_target),
                     "perv/l20/l21 Clock Start Failed");
         FAPI_DBG("perv/l20/l21 clocks running now");
 

@@ -50,12 +50,12 @@
 ///   (Done) Clear flushmode_inh to go into flush mode
 ///   (Done) Check cache/core chiplet_is_aligned
 
-// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:CME
-// *HWP Level              : 2
+// *HWP Level              : 3
 
 //------------------------------------------------------------------------------
 // Includes
@@ -71,9 +71,18 @@
 
 enum P9_HCD_CORE_STARTCLOCKS_CONSTANTS
 {
-    CORE_CLK_SYNC_TIMEOUT_IN_MS       = 1,
-    CORE_CLK_START_TIMEOUT_IN_MS      = 1,
-    CORE_CLK_ALIGN_DELAY_CACHE_CYCLES = 255
+    CORE_CLK_SYNC_POLL_TIMEOUT_HW_NS        = 1000000, // 10^6ns = 1ms timeout
+    CORE_CLK_SYNC_POLL_DELAY_HW_NS          = 10000,   // 10us poll loop delay
+    CORE_CLK_SYNC_POLL_DELAY_SIM_CYCLE      = 32000,   // 320k sim cycle delay
+
+    CORE_CPLT_ALIGN_DELAY_CACHE_CYCLES      = 255,     // in cache cycles
+    CORE_CPLT_ALIGN_POLL_TIMEOUT_HW_NS      = 1000000, // 10^6ns = 1ms timeout
+    CORE_CPLT_ALIGN_POLL_DELAY_HW_NS        = 10000,   // 10us poll loop delay
+    CORE_CPLT_ALIGN_POLL_DELAY_SIM_CYCLE    = 32000,   // 320k sim cycle delay
+
+    CORE_CLK_START_POLL_TIMEOUT_HW_NS       = 1000000, // 10^6ns = 1ms timeout
+    CORE_CLK_START_POLL_DELAY_HW_NS         = 10000,   // 10us poll loop delay
+    CORE_CLK_START_POLL_DELAY_SIM_CYCLE     = 32000    // 320k sim cycle delay
 };
 
 //------------------------------------------------------------------------------
@@ -86,7 +95,7 @@ p9_hcd_core_startclocks(
 {
     FAPI_INF(">>p9_hcd_core_startclocks");
     fapi2::buffer<uint64_t>                     l_data64;
-    uint32_t                                    l_timeout;
+    uint32_t                                    l_poll_loops;
     uint32_t                                    l_attr_system_id = 0;
     uint8_t                                     l_attr_group_id  = 0;
     uint8_t                                     l_attr_chip_id   = 0;
@@ -169,17 +178,24 @@ p9_hcd_core_startclocks(
     FAPI_TRY(putScom(i_target, C_CPPM_CACCR_OR, MASK_SET(15)));
 
     FAPI_DBG("Poll for core clock sync done via CPPM_CACSR[13]");
-    l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
-                CORE_CLK_START_TIMEOUT_IN_MS;
+    l_poll_loops = CORE_CLK_SYNC_POLL_TIMEOUT_HW_NS /
+                   CORE_CLK_SYNC_POLL_DELAY_HW_NS;
 
     do
     {
+        fapi2::delay(CORE_CLK_SYNC_POLL_DELAY_HW_NS,
+                     CORE_CLK_SYNC_POLL_DELAY_SIM_CYCLE);
+
         FAPI_TRY(getScom(i_target, C_CPPM_CACSR, l_data64));
     }
-    while((l_data64.getBit<13>() != 1) && ((--l_timeout) != 0));
+    while((l_data64.getBit<13>() != 1) && ((--l_poll_loops) != 0));
 
-    FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_CORECLKSYNC_TIMEOUT().set_COREPPMCACSR(l_data64),
+    FAPI_ASSERT((l_poll_loops != 0),
+                fapi2::CORE_CLK_SYNC_TIMEOUT()
+                .set_CORE_CPPM_CACSR(l_data64)
+                .set_CORE_CLK_SYNC_POLL_DELAY_HW_NS(CORE_CLK_SYNC_POLL_DELAY_HW_NS)
+                .set_CORE_CLK_SYNC_POLL_TIMEOUT_HW_NS(CORE_CLK_SYNC_POLL_TIMEOUT_HW_NS)
+                .set_CORE_TARGET(i_target),
                 "Core Clock Sync Timeout");
     FAPI_DBG("Core clock sync done");
 
@@ -218,24 +234,30 @@ p9_hcd_core_startclocks(
     FAPI_TRY(putScom(i_target, C_SYNC_CONFIG, DATA_UNSET(7)));
 
     FAPI_TRY(fapi2::delay(
-                 CORE_CLK_ALIGN_DELAY_CACHE_CYCLES * p9hcd::CLK_PERIOD_CORE2CACHE *
+                 CORE_CPLT_ALIGN_DELAY_CACHE_CYCLES * p9hcd::CLK_PERIOD_CORE2CACHE *
                  p9hcd::CLK_PERIOD_250PS / 1000,
-                 CORE_CLK_ALIGN_DELAY_CACHE_CYCLES * p9hcd::CLK_PERIOD_CORE2CACHE *
+                 CORE_CPLT_ALIGN_DELAY_CACHE_CYCLES * p9hcd::CLK_PERIOD_CORE2CACHE *
                  p9hcd::SIM_CYCLE_4U4D));
 
     FAPI_DBG("Poll for core chiplet aligned");
-    l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
-                CORE_CLK_START_TIMEOUT_IN_MS;
+    l_poll_loops = CORE_CPLT_ALIGN_POLL_TIMEOUT_HW_NS /
+                   CORE_CPLT_ALIGN_POLL_DELAY_HW_NS;
 
     do
     {
         FAPI_TRY(getScom(i_target, C_CPLT_STAT0, l_data64));
-    }
-    while((l_data64.getBit<9>() != 1) && ((--l_timeout) != 0));
 
-    FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_CORECPLTALIGN_TIMEOUT()
-                .set_CORECPLTSTAT0(l_data64),
+        fapi2::delay(CORE_CPLT_ALIGN_POLL_DELAY_HW_NS,
+                     CORE_CPLT_ALIGN_POLL_DELAY_SIM_CYCLE);
+    }
+    while((l_data64.getBit<9>() != 1) && ((--l_poll_loops) != 0));
+
+    FAPI_ASSERT((l_poll_loops != 0),
+                fapi2::CORE_CPLT_ALIGN_TIMEOUT()
+                .set_CORE_CPLT_STAT0(l_data64)
+                .set_CORE_CPLT_ALIGN_POLL_DELAY_HW_NS(CORE_CPLT_ALIGN_POLL_DELAY_HW_NS)
+                .set_CORE_CPLT_ALIGN_POLL_TIMEOUT_HW_NS(CORE_CPLT_ALIGN_POLL_TIMEOUT_HW_NS)
+                .set_CORE_TARGET(i_target),
                 "Core Chiplets Aligned Timeout");
     FAPI_DBG("Core chiplets aligned now");
 
@@ -259,24 +281,33 @@ p9_hcd_core_startclocks(
         FAPI_TRY(putScom(i_target, C_CLK_REGION, l_data64));
 
         FAPI_DBG("Poll for core clocks running via CPLT_STAT0[8]");
-        l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
-                    CORE_CLK_START_TIMEOUT_IN_MS;
+        l_poll_loops = CORE_CLK_START_POLL_TIMEOUT_HW_NS /
+                       CORE_CLK_START_POLL_DELAY_HW_NS;
 
         do
         {
+            fapi2::delay(CORE_CLK_START_POLL_DELAY_HW_NS,
+                         CORE_CLK_START_POLL_DELAY_SIM_CYCLE);
+
             FAPI_TRY(getScom(i_target, C_CPLT_STAT0, l_data64));
         }
-        while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
+        while((l_data64.getBit<8>() != 1) && ((--l_poll_loops) != 0));
 
-        FAPI_ASSERT((l_timeout != 0),
-                    fapi2::PMPROC_CORECLKSTART_TIMEOUT().set_CORECPLTSTAT(l_data64),
+        FAPI_ASSERT((l_poll_loops != 0),
+                    fapi2::CORE_CLK_START_TIMEOUT()
+                    .set_CORE_CPLT_STAT(l_data64)
+                    .set_CORE_CLK_START_POLL_DELAY_HW_NS(CORE_CLK_START_POLL_DELAY_HW_NS)
+                    .set_CORE_CLK_START_POLL_TIMEOUT_HW_NS(CORE_CLK_START_POLL_TIMEOUT_HW_NS)
+                    .set_CORE_TARGET(i_target),
                     "Core Clock Start Timeout");
 
         FAPI_DBG("Check core clocks running via CLOCK_STAT_SL[4-13]");
         FAPI_TRY(getScom(i_target, C_CLOCK_STAT_SL, l_data64));
 
         FAPI_ASSERT(((l_data64 & p9hcd::CLK_REGION_ALL_BUT_PLL) == 0),
-                    fapi2::PMPROC_CORECLKSTART_FAILED().set_CORECLKSTAT(l_data64),
+                    fapi2::CORE_CLK_START_FAILED()
+                    .set_CORE_CLK_STAT(l_data64)
+                    .set_CORE_TARGET(i_target),
                     "Core Clock Start Failed");
         FAPI_DBG("Core clocks running now");
 
@@ -303,7 +334,9 @@ p9_hcd_core_startclocks(
         FAPI_DBG("Check the Global Checkstop FIR of Core Chiplet");
         FAPI_TRY(getScom(i_target, C_XFIR, l_data64));
         FAPI_ASSERT(((l_data64 & BITS64(0, 27)) == 0),
-                    fapi2::PMPROC_CORE_XSTOP().set_COREXFIR(l_data64),
+                    fapi2::CORE_CHECKSTOP_AFTER_CLK_START()
+                    .set_CORE_XFIR(l_data64)
+                    .set_CORE_TARGET(i_target),
                     "Core Chiplet Checkstop");
 
 #ifndef __PPE__

@@ -36,12 +36,12 @@
 ///   Note: all caches that are in the Cache Multicast group will be
 ///   initialized to the same values via multicast scans
 
-// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:SGPE
-// *HWP Level              : 2
+// *HWP Level              : 3
 
 //------------------------------------------------------------------------------
 // Includes
@@ -208,8 +208,9 @@ p9_hcd_cache_initf(
                 if(l_data64 != 0xa5a5a5a5a5a5a5a5)
                 {
                     FAPI_ASSERT(false,
-                                fapi2::P9_HCD_CACHE_INITF_INCORRECT_EQ_SCAN64_VAL()
-                                .set_EQ_SCAN64_VAL(l_data64),
+                                fapi2::NDD1_CACHE_INITF_INCORRECT_EQ_SCAN64_VAL()
+                                .set_EQ_SCAN64_VAL(l_data64)
+                                .set_CACHE_TARGET(i_target),
                                 "Incorrect Value from EQ_SCAN64, Expected Value [0xa5a5a5a5a5a5a5a5]");
                 }
             }

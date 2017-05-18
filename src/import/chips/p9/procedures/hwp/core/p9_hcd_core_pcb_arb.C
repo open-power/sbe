@@ -37,9 +37,9 @@
 ///     Nop (as the CME is not running in bringing up the first Core)
 ///
 
-// *HWP HWP Owner          : David Du      <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still    <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S <sangeet2@in.ibm.com>
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:CME
 // *HWP Level              : 2
@@ -47,6 +47,7 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
+
 #include <p9_quad_scom_addresses.H>
 #include <p9_hcd_common.H>
 #include "p9_hcd_core_pcb_arb.H"
@@ -54,7 +55,6 @@
 //-----------------------------------------------------------------------------
 // Constant Definitions: Core Chiplet PCB Arbitration
 //-----------------------------------------------------------------------------
-
 
 fapi2::ReturnCode
 p9_hcd_core_pcb_arb(

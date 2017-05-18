@@ -50,12 +50,12 @@
 /// 2) If grid clock connected to dpll clkout,
 ///    bypass also has to be asserted to allow refclk on grid
 
-// *HWP HWP Owner          : David Du       <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still     <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S  <sangeet2@in.ibm.com>
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:SGPE
-// *HWP Level              : 2
+// *HWP Level              : 3
 
 //-----------------------------------------------------------------------------
 // Includes
@@ -72,9 +72,13 @@
 
 enum P9_HCD_CACHE_DPLL_SETUP_CONSTANTS
 {
-    CACHE_DPLL_LOCK_TIMEOUT_IN_MS      = 1,
-    CACHE_DPLL_CLK_START_TIMEOUT_IN_MS = 1,
-    CACHE_ANEP_CLK_START_TIMEOUT_IN_MS = 1
+    DPLL_LOCK_POLL_TIMEOUT_HW_NS    = 1000000, // 10^6ns = 1ms timeout
+    DPLL_LOCK_POLL_DELAY_HW_NS      = 10000,   // 10us poll loop delay
+    DPLL_LOCK_POLL_DELAY_SIM_CYCLE  = 320000,  // 320k sim cycle delay
+
+    DPLL_START_POLL_TIMEOUT_HW_NS   = 1000000, // 10^6ns = 1ms timeout
+    DPLL_START_POLL_DELAY_HW_NS     = 10000,   // 10us poll loop delay
+    DPLL_START_POLL_DELAY_SIM_CYCLE = 320000   // 320k sim cycle delay
 };
 
 //-----------------------------------------------------------------------------
@@ -88,7 +92,7 @@ p9_hcd_cache_dpll_setup(
     FAPI_INF(">>p9_hcd_cache_dpll_setup");
     fapi2::buffer<uint64_t>                  l_data64;
     uint8_t                                  l_dpll_bypass;
-    uint32_t                                 l_timeout;
+    uint32_t                                 l_poll_loops;
     auto l_parent_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
 
 #ifndef __PPE__
@@ -139,24 +143,33 @@ p9_hcd_cache_dpll_setup(
     FAPI_TRY(putScom(i_target, EQ_CLK_REGION, l_data64));
 
     FAPI_DBG("Poll for DPLL clock running via CPLT_STAT0[8]");
-    l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
-                CACHE_DPLL_CLK_START_TIMEOUT_IN_MS;
+    l_poll_loops = DPLL_START_POLL_TIMEOUT_HW_NS /
+                   DPLL_START_POLL_DELAY_HW_NS;
 
     do
     {
+        fapi2::delay(DPLL_START_POLL_DELAY_HW_NS,
+                     DPLL_START_POLL_DELAY_SIM_CYCLE);
+
         FAPI_TRY(getScom(i_target, EQ_CPLT_STAT0, l_data64));
     }
-    while((l_data64.getBit<8>() != 1) && ((--l_timeout) != 0));
+    while((l_data64.getBit<8>() != 1) && ((--l_poll_loops) != 0));
 
-    FAPI_ASSERT((l_timeout != 0),
-                fapi2::PMPROC_DPLLCLKSTART_TIMEOUT().set_EQCPLTSTAT(l_data64),
+    FAPI_ASSERT((l_poll_loops != 0),
+                fapi2::CACHE_DPLL_CLK_START_TIMEOUT()
+                .set_EQ_CPLT_STAT(l_data64)
+                .set_DPLL_START_POLL_DELAY_HW_NS(DPLL_START_POLL_DELAY_HW_NS)
+                .set_DPLL_START_POLL_TIMEOUT_HW_NS(DPLL_START_POLL_TIMEOUT_HW_NS)
+                .set_CACHE_TARGET(i_target),
                 "DPLL Clock Start Timeout");
 
     FAPI_DBG("Check DPLL clock running via CLOCK_STAT_SL[14]");
     FAPI_TRY(getScom(i_target, EQ_CLOCK_STAT_SL, l_data64));
 
     FAPI_ASSERT((l_data64.getBit<14>() == 0),
-                fapi2::PMPROC_DPLLCLKSTART_FAILED().set_EQCLKSTAT(l_data64),
+                fapi2::CACHE_DPLL_CLK_START_FAILED()
+                .set_EQ_CLK_STAT(l_data64)
+                .set_CACHE_TARGET(i_target),
                 "DPLL Clock Start Failed");
     FAPI_DBG("DPLL clock running now");
 
@@ -165,11 +178,14 @@ p9_hcd_cache_dpll_setup(
     if (l_dpll_bypass == 0)
     {
         FAPI_DBG("Poll for DPLL to lock via QPPM_DPLL_STAT");
-        l_timeout = (p9hcd::CYCLES_PER_MS / p9hcd::INSTS_PER_POLL_LOOP) *
-                    CACHE_DPLL_LOCK_TIMEOUT_IN_MS;
+        l_poll_loops = DPLL_LOCK_POLL_TIMEOUT_HW_NS /
+                       DPLL_LOCK_POLL_DELAY_HW_NS;
 
         do
         {
+            fapi2::delay(DPLL_LOCK_POLL_DELAY_HW_NS,
+                         DPLL_LOCK_POLL_DELAY_SIM_CYCLE);
+
             FAPI_TRY(getScom(i_target, EQ_QPPM_DPLL_STAT, l_data64));
 
 #ifndef __PPE__
@@ -188,11 +204,14 @@ p9_hcd_cache_dpll_setup(
 #endif
 
         }
-        while ((l_data64.getBit<63>() != 1 ) && (--l_timeout != 0));
+        while ((l_data64.getBit<63>() != 1 ) && (--l_poll_loops != 0));
 
-        FAPI_ASSERT((l_timeout != 0),
-                    fapi2::PMPROC_DPLL_LOCK_TIMEOUT()
-                    .set_EQQPPMDPLLSTAT(l_data64),
+        FAPI_ASSERT((l_poll_loops != 0),
+                    fapi2::CACHE_DPLL_LOCK_TIMEOUT()
+                    .set_EQ_QPPM_DPLL_STAT(l_data64)
+                    .set_DPLL_LOCK_POLL_TIMEOUT_HW_NS(DPLL_LOCK_POLL_TIMEOUT_HW_NS)
+                    .set_DPLL_LOCK_POLL_DELAY_HW_NS(DPLL_LOCK_POLL_DELAY_HW_NS)
+                    .set_CACHE_TARGET(i_target),
                     "DPLL Lock Timeout");
         FAPI_DBG("DPLL is locked now");
 

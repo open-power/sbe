@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -31,12 +31,12 @@
 ///   Upon completion, scan0 flush all rings
 ///     except Vital, Repair, GPTR, TIME and DPLL
 
-// *HWP HWP Owner          : David Du      <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still    <stillgs@us.ibm.com>
-// *HWP FW Owner           : Sangeetha T S <sangeet2@in.ibm.com>
+// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:SGPE
-// *HWP Level              : 2
+// *HWP Level              : 3
 
 //-----------------------------------------------------------------------------
 // Includes
