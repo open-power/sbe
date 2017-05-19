@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -81,28 +82,35 @@ ReturnCode sbeMemAccessInterface::accessGranule()
 {
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
 
-    // Check if we need to do a setup before access
-    if(iv_maxGranule == 0)
+    do
     {
-        l_fapiRc = setup();
-    }
-    if(iv_interface == SBE_MEM_ACCESS_PBA)
-    {
-        // Call PBA access for read/write
-        SBE_EXEC_HWP(l_fapiRc,
-                     p9_pba_access,
-                     plat_getChipTarget(),
-                     iv_addr,
-                     (iv_mode == SBE_MEM_ACCESS_READ),
-                     ((p9_PBA_oper_flag*)iv_flags)->setFlag(),
-                     (iv_currGranule == 0),
-                     (iv_lastGranule || (iv_maxGranule == 1)),
-                     (uint8_t *)&iv_buffer);
-    }
-    if(iv_interface == SBE_MEM_ACCESS_ADU)
-    {
-        // Call ADU access HWP for ADU write/read request
-        SBE_EXEC_HWP(l_fapiRc,
+        // Check if we need to do a setup before access
+        if(iv_maxGranule == 0)
+        {
+            l_fapiRc = setup();
+            // if setup returns error
+            if( l_fapiRc != FAPI2_RC_SUCCESS )
+            {
+                break;
+            }
+        }
+        if(iv_interface == SBE_MEM_ACCESS_PBA)
+        {
+            // Call PBA access for read/write
+            SBE_EXEC_HWP(l_fapiRc,
+                         p9_pba_access,
+                         plat_getChipTarget(),
+                         iv_addr,
+                         (iv_mode == SBE_MEM_ACCESS_READ),
+                         ((p9_PBA_oper_flag*)iv_flags)->setFlag(),
+                         (iv_currGranule == 0),
+                         (iv_lastGranule || (iv_maxGranule == 1)),
+                         (uint8_t *)&iv_buffer);
+        }
+        if(iv_interface == SBE_MEM_ACCESS_ADU)
+        {
+            // Call ADU access HWP for ADU write/read request
+            SBE_EXEC_HWP(l_fapiRc,
                      p9_adu_access_hwp,
                      plat_getChipTarget(),
                      iv_addr,
@@ -111,22 +119,20 @@ ReturnCode sbeMemAccessInterface::accessGranule()
                      (iv_currGranule == 0),
                      (iv_lastGranule || (iv_maxGranule == 1)),
                      (uint8_t *)&iv_buffer)
-    }
-
-    // if access returns error
-    if( l_fapiRc != FAPI2_RC_SUCCESS )
-    {
-        SBE_ERROR(SBE_FUNC" access Failed");
-    }
-    else
-    {
+        }
+        if(l_fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC" access HWP failed");
+            break;
+        }
         iv_maxGranule--;
         iv_currGranule++;
         // Advance the address
         iv_addr += iv_granuleSize;
         iv_iterator = (iv_mode == SBE_MEM_ACCESS_READ)?
                         iv_granuleSize : 0;
-    }
+    } while(false);
+
     return l_fapiRc;
 }
 
@@ -181,6 +187,11 @@ ReturnCode sbeMemAccessInterface::accessWithBuffer(const void *io_buffer,
                 }
             }
             l_fapiRc = accessGranule();
+            // Break out on error
+            if(l_fapiRc != FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
         }
 
         if(iv_mode == SBE_MEM_ACCESS_READ)
@@ -209,8 +220,8 @@ ReturnCode sbeMemAccessInterface::accessWithBuffer(const void *io_buffer,
             }
         }
 
-        // Break out on error or if the data is completely sent
-        if((l_fapiRc != FAPI2_RC_SUCCESS) || (l_iterator >= i_len))
+        // data is completely processed
+        if(l_iterator >= i_len)
         {
             break;
         }
