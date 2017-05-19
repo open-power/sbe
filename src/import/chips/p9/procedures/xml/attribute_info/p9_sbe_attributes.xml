@@ -326,7 +326,7 @@ attribute tank
 
 <!-- Pervasive EC attributes -->
   <entry>
-           <name>ATTR_CHIP_EC_FEATURE_CORE_TRACE_SCOMABLE</name>
+           <name>ATTR_CHIP_EC_FEATURE_CORE_TRACE_NOT_SCOMABLE</name>
            <virtual/>
   </entry>
   <entry>
@@ -401,7 +401,7 @@ attribute tank
   </entry>
 
   <entry>
-        <name>ATTR_CHIP_EC_FEATURE_NMMU_DMT_DD2</name>
+        <name>ATTR_CHIP_EC_FEATURE_NMMU_NDD1</name>
         <virtual/>
   </entry>
   <entry>
