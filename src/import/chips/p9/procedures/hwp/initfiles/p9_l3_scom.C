@@ -107,7 +107,7 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                 l_scom_buffer.insert<1, 1, 63, uint64_t>(l_EXP_L3_L3_MISC_L3CERRS_L3_DMAP_CI_EN_CFG_OFF );
             }
 
-            if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) )
+            if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x10)) )
             {
                 if ((l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE == fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_GROUP))
                 {
@@ -121,7 +121,7 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                 }
             }
 
-            if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) )
+            if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x10)) )
             {
                 constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_CERRS_LRU_DECR_EN_CFG_ON = 0x1;
                 l_scom_buffer.insert<30, 1, 63, uint64_t>(l_EXP_L3_L3_MISC_L3CERRS_L3_CERRS_LRU_DECR_EN_CFG_ON );
