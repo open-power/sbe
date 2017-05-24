@@ -294,6 +294,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO);
                 pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
+                pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
             }
             continue;
         }
