@@ -516,13 +516,8 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
 
     if(rc != FAPI2_RC_SUCCESS)
     {
-        // If IPLing State
-        uint64_t l_state = SbeRegAccess::theSbeRegAccess().getSbeState();
-        if(l_state == SBE_STATE_IPLING)
-        {
-            (void)SbeRegAccess::theSbeRegAccess().
-                  stateTransition(SBE_DUMP_FAILURE_EVENT);
-        }
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                                    SBE_DUMP_FAILURE_EVENT);
     }
 
     return rc;

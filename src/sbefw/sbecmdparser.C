@@ -69,19 +69,19 @@ static sbeCmdStruct_t g_sbeScomCmdArray [] =
     },
     {sbePutScom,
      SBE_CMD_PUTSCOM,
-     PUT_HARDWARE_FENCED_STATE,
+     HARDWARE_FENCED_STATE,
     },
     {sbeModifyScom,
      SBE_CMD_MODIFYSCOM,
-     PUT_HARDWARE_FENCED_STATE,
+     HARDWARE_FENCED_STATE,
     },
     {sbePutScomUnderMask,
      SBE_CMD_PUTSCOM_MASK,
-     PUT_HARDWARE_FENCED_STATE,
+     HARDWARE_FENCED_STATE,
     },
     {sbeMultiScom,
      SBE_CMD_MULTISCOM,
-     PUT_HARDWARE_FENCED_STATE,
+     HARDWARE_FENCED_STATE,
     },
 };
 
@@ -155,7 +155,7 @@ static sbeCmdStruct_t g_sbeInstructionCntlCmdArray[] =
 {
     {sbeCntlInst,
      SBE_CMD_CONTROL_INSTRUCTIONS,
-     PUT_HARDWARE_FENCED_STATE,
+     HARDWARE_FENCED_STATE,
     },
 };
 
