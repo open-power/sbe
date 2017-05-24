@@ -319,6 +319,14 @@ ifndef OBJDIR-ARRAYACCESS
 export OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/arrayaccess
 endif
 
+ifndef SECURITY_SRC_DIR
+export SECURITY_SRC_DIR = $(BUILD_DIR)/security
+endif
+
+ifndef SECURITY_LIST
+export SECURITY_LIST = $(IMPORT_SRCDIR)/chips/p9/security/p9_security_white_black_list.csv
+endif
+
 ifndef CROSS_COMPILER_PATH
 $(warning The CROSS_COMPILER_PATH variable is not defined; Defaulting to IBM CTE tools path)
 export CROSS_COMPILER_PATH = /afs/awd/projects/cte/tools/ppetools/prod

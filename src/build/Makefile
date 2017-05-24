@@ -167,12 +167,12 @@ $(LINK_SCRIPT_SBE): $(LINKER_DIR)/linksbe.cmd
 endif
 
 ifeq ($(img), pibmem)
-all: $(OBJDIR) xml \
+all: $(OBJDIR) xml security\
 	$(IMG_DIR)/$(IMAGE_SBE_NAME).bin \
 	 symbols tracehash
 endif
 ifeq ($(img), seeprom)
-all: $(OBJDIR) xml $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin \
+all: $(OBJDIR) xml security $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin \
 	 $(SBE_TOOLS) $(SBE_IPL_TOOLS) normalize compress defaultset $(IMG_DIR)/fixed.bin \
 	 appendloader appendoverrides add_LoaderAddr symbols tracehash buildinfo \
 	 report
@@ -197,7 +197,7 @@ tar:
 	@echo "Generated simics.tar in Sbe images Directory"
 
 .PHONY: all normalize compress defaultset appendloader add_LoaderAddr symbols report \
-		appendoverrides xml tracehash topfixedheaders  $(SUBDIRS) _sbefw_seeprom \
+		appendoverrides xml security tracehash topfixedheaders  $(SUBDIRS) _sbefw_seeprom \
 		tar install
 
 buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
@@ -292,6 +292,9 @@ defaultset:$(SBE_TOOLS) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin normalize
 ppe_trace_bin:
 	$(MAKE) -I $(INCLUDES) -C $(PPETRACEPP_DIR) -f Makefile #$(PK trace util)
 
+# generate whitelist and blacklist security algorithm
+security:
+	python $(SECURITY_SRC_DIR)/securityRegListGen.py -f $(SECURITY_LIST) -o $(GENFILES_DIR)
 
 # Build hwp_error_info.H.  If the script fails then print the contents of
 # the header and then delete whatever garbage the script left to force it to
