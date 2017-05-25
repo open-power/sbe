@@ -101,18 +101,18 @@ namespace """+namespace+"""
 {
     /*
     table 1:
-       keys   = unique 2byte - formed as (start | end) of
+       keys   = 2byte - (start , end) of
                 the ranges in bit 0-7 of the 32-bit address
        values = running count of the paths to table2
 
     for example - if ranges are 0x20-0x37, 0x01-0x01, 0x10-0x17 and has
                   1, 2 and 3 paths respectively to table 2
-    then table 1 will have 0x2037 = 01, 0x0101 = 3, 0x1017 = 7
+    then table 1 will have {0x20,0x37} = 01, {0x01,0x01} = 3, {0x10,0x17} = 7
 
     1 byte for running count - we are good with uint8_t till the
     total paths are less than 256
     */
-    map_t< range_t<uint16_t, uint8_t>, uint8_t > _t1[]  = {
+    map_t< range_t<uint8_t>, uint8_t > _t1[]  = {
     // length of the table = """+s_list_len(table[0])+"""
 """+s_table1_gen(tablename, table[0])+"""
                                                           };
@@ -376,13 +376,13 @@ def get_tables(id, list):
     # -----------------------------------------------------------------#
     """
     table 1:
-       keys   = unique 2byte - formed as (start | end) of
+       keys   = 2byte - (start , end) of
                 the ranges in bit 0-7 of the 32-bit address
        values = running count of the paths to table2
 
     for example - if ranges are 0x20-0x37, 0x01-0x01, 0x10-0x17 and has
                   1, 2 and 3 paths respectively to table 2
-    then table 1 will have 0x2037 = 01, 0x0101 = 3, 0x1017 = 7
+    then table 1 will have {0x20,0x37} = 01, {0x01,0x01} = 3, {0x10,0x17} = 7
 
     1 byte for running count - we are good with uint8_t till the
     total paths are less than 256
@@ -443,7 +443,9 @@ def s_table1_gen(id, table):
     # write table 1 string
     str_table1 = ""
     for i,(key, value) in enumerate(table):
-        str_table1 += '{{0x%04x}, 0x%02x}, ' % (key, value)
+        str_table1 += '{{0x%02x, 0x%02x}, 0x%02x}, ' % ((key & 0xFF00 >> 8),
+                                                        (key & 0x00FF),
+                                                        value)
         if(0 == ((i+1) % 4)):
             str_table1 = str_table1[:-1]
             str_table1 += '\n'

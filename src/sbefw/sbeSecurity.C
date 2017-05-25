@@ -1,0 +1,141 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: src/sbefw/sbeSecurity.C $                                     */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2017                             */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
+#include "sbeSecurity.H"
+#include "sbetrace.H"
+
+#include "sbeSecurityGen.H"
+
+namespace SBE_SECURITY
+{
+
+// Figure out at compile time, the number of shifts required for the mask
+constexpr uint32_t get_shift_len(uint32_t mask, uint8_t shifts = 0)
+{
+    return ((mask>>shifts) & 0x01) ? (shifts) : (get_shift_len(mask, ++shifts));
+}
+
+template <typename Func>
+map_t<bool, uint32_t> binary_search(
+                    const uint32_t search_key,
+                    range_t<uint64_t, uint32_t> x_range,
+                    Func get_element)
+{
+    map_t<bool, uint32_t> ret = {false, 0}; // found=false
+
+    while((x_range.start <= x_range.end) &&
+          (ret.key == false))
+    {
+        uint32_t midpoint = (x_range.start + x_range.end) / 2;
+        uint32_t ele = get_element(midpoint);
+        if(search_key == ele)
+        {
+            ret.key = true;
+            ret.value = midpoint;
+        }
+        else if(search_key < ele)
+        {
+            x_range.end = midpoint - 1;
+        }
+        else
+        {
+            x_range.start = midpoint + 1;
+        }
+    }
+    return ret;
+}
+
+template <typename M1_T, typename M1_U,
+          typename M2_T, typename M2_U,
+          typename T3>
+bool _is_present(const table< map_t< range_t<M1_T>, M1_U > > &table1,
+                 const table< map_t<M2_T, M2_U> > &table2,
+                 const table< T3 > &table3,
+                 const uint32_t i_addr)
+{
+#define SBE_FUNC "SBE_SECURITY::_is_present"
+    SBE_ENTER(SBE_FUNC);
+    for(size_t i = 0; i < table1.size; i++)
+    {
+        M1_U key = (i_addr & table1.mask) >> get_shift_len(table1.mask);
+        if((table1.table[i].key.start <= key) &&
+           (table1.table[i].key.end >= key))
+        {
+            SBE_DEBUG(SBE_FUNC" found key[0x%x] table index[%d]", key, i);
+            // Found the range where key might belong to
+            uint32_t search_key = (i_addr & table2.mask) >>
+                                                get_shift_len(table2.mask);
+            range_t<uint64_t, uint32_t> search_range = {};
+            search_range.start = i ? table1.table[i-1].value : 0;
+            search_range.end = table1.table[i].value - 1;
+            map_t<bool, uint32_t> search_result =
+                binary_search(
+                        search_key,
+                        search_range,
+                        [&table2](uint32_t midpoint) -> uint32_t {
+                            return table2.table[midpoint].key;
+                        });
+            if(search_result.key == true)
+            {
+                // Found the key
+                search_range.start = (search_result.value ?
+                                table2.table[search_result.value-1].value : 0);
+                search_range.end =
+                                table2.table[search_result.value].value - 1;
+                search_key = (i_addr & table3.mask) >>
+                                               get_shift_len(table3.mask);
+                search_result = binary_search(
+                                            search_key,
+                                            search_range,
+                                            [&table3](uint32_t midpoint) -> uint32_t {
+                                                return table3.table[midpoint];
+                                            });
+                if(search_result.key == true)
+                {
+                    // Found the number
+                    return true;
+                }
+            }
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return false;
+#undef SBE_FUNC
+}
+
+bool isAllowed(const uint32_t i_addr, accessType type)
+{
+    bool ret = false;
+    if(type == WRITE)
+        ret =  WHITELIST::isPresent(i_addr);
+    else if(type == READ)
+        ret =  !BLACKLIST::isPresent(i_addr);
+    if(!ret)
+    {
+        SBE_INFO("SBE_SECURITY access[%d] denied addr[0x%08x]",
+                                    type, i_addr);
+    }
+    return ret;
+}
+
+} // namespace SBE_SECURITY
