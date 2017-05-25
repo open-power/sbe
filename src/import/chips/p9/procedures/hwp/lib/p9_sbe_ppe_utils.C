@@ -30,14 +30,13 @@
 /// *HWP HW Backup Owner : Brian Vanderpool <vanderp@us.ibm.com>
 /// *HWP FW Owner        : Amit Tendolkar <amit.tendolkar@in.ibm.com>
 /// *HWP Team            : PM
-/// *HWP Level           : 1
+/// *HWP Level           : 2
 /// *HWP Consumed by     : SBE
 ///
 /// @verbatim
 ///
 /// @endverbatim
 
-#if 0
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
@@ -46,29 +45,18 @@
 #include <p9_hcd_common.H>
 //-----------------------------------------------------------------------------
 
-uint32_t ppe_getMtsprInstruction( const uint16_t i_Rs, const uint16_t i_Spr )
+uint32_t ppe_getMxsprInstruction ( const uint32_t i_opcode,
+                                   const uint16_t i_Rs,
+                                   const uint16_t i_Spr )
 {
-    uint32_t mtsprInstOpcode = 0;
+    uint32_t mxsprInstOpcode = 0;
     uint32_t temp = (( i_Spr & 0x03FF ) << 11);
-    mtsprInstOpcode = ( temp  & 0x0000F800 ) << 5;
-    mtsprInstOpcode |= ( temp & 0x001F0000 ) >> 5;
-    mtsprInstOpcode |= MTSPR_BASE_OPCODE;
-    mtsprInstOpcode |= ( i_Rs & 0x001F ) << 21;
+    mxsprInstOpcode = ( temp  & 0x0000F800 ) << 5;
+    mxsprInstOpcode |= ( temp & 0x001F0000 ) >> 5;
+    mxsprInstOpcode |= i_opcode;
+    mxsprInstOpcode |= ( i_Rs & 0x001F ) << 21;
 
-    return mtsprInstOpcode;
-}
-//-----------------------------------------------------------------------------
-
-uint32_t ppe_getMfsprInstruction( const uint16_t i_Rt, const uint16_t i_Spr )
-{
-    uint32_t mtsprInstOpcode = 0;
-    uint32_t temp = (( i_Spr & 0x03FF ) << 11);
-    mtsprInstOpcode = ( temp  & 0x0000F800 ) << 5;
-    mtsprInstOpcode |= ( temp & 0x001F0000 ) >> 5;
-    mtsprInstOpcode |= MFSPR_BASE_OPCODE;
-    mtsprInstOpcode |= ( i_Rt & 0x001F ) << 21;
-
-    return mtsprInstOpcode;
+    return mxsprInstOpcode;
 }
 //-----------------------------------------------------------------------------
 
@@ -94,7 +82,7 @@ fapi2::ReturnCode ppe_pollHaltState(
 
     FAPI_ASSERT ((l_data64.getBit<0>()),
                  fapi2::SBE_PPE_UTILS_HALT_TIMEOUT_ERR(),
-                 "PPE Halt Timeout. Base Addr: 0x%16llX", i_base_address);
+                 "PPE Halt Timeout!");
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -123,22 +111,19 @@ fapi_try_exit:
 fapi2::ReturnCode ppe_RAMRead(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
     const uint64_t i_base_address,
-    const fapi2::buffer<uint64_t> i_instruction,
+    const fapi2::buffer<uint64_t>& i_instruction,
     fapi2::buffer<uint32_t>& o_data)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_TRY(ppe_pollHaltState(i_target, i_base_address));
     FAPI_TRY(fapi2::putScom(i_target, i_base_address + PPE_XIRAMEDR, i_instruction));
-    FAPI_DBG("    RAMREAD i_instruction: 0X%16llX", i_instruction);
     FAPI_TRY(ppe_pollHaltState(i_target, i_base_address));
     FAPI_TRY(fapi2::getScom(i_target, i_base_address + PPE_XIRAMDBG, l_data64),
              "Error in GETSCOM");
     l_data64.extractToRight(o_data, 32, 32);
-    FAPI_DBG("    RAMREAD o_data: 0X%16llX", o_data);
+    FAPI_DBG("    RAMREAD o_data: 0X%08X", o_data);
 
 fapi_try_exit:
     return fapi2::current_err;
 }
 //-----------------------------------------------------------------------------
-#endif
-

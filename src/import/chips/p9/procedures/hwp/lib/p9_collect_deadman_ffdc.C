@@ -30,13 +30,11 @@
 /// *HWP HW Backup Owner : Brian Vanderpool <vanderp@us.ibm.com>
 /// *HWP FW Owner        : Amit Tendolkar <amit.tendolkar@in.ibm.com>
 /// *HWP Team            : PM
-/// *HWP Level           : 1
+/// *HWP Level           : 2
 /// *HWP Consumed by     : SBE
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#if 0
-
 #include <fapi2.H>
 #include <p9_collect_deadman_ffdc.H>
 #include <p9_sbe_ppe_ffdc.H>
@@ -44,8 +42,6 @@
 #include <p9_eq_clear_atomic_lock.H>
 #include <p9_quad_scom_addresses.H>
 
-static const uint32_t default_32 = 0xDEADC0DE;
-static const uint64_t default_64 = 0xBADFEED0DEADC0DEULL;
 static const uint32_t DM_FFDC_SCOMS_PU_MAX = 4;
 static const uint32_t DM_FFDC_SCOMS_EX_MAX = 3;
 
@@ -53,7 +49,7 @@ static const uint32_t DM_FFDC_SCOMS_EX_MAX = 3;
 //       the array of 64 bit buffers. To optimize on space, relevant SCOM
 //       data bits are packed into bits 0-31 or 32-63 of each element
 //       in the array. SCOMs where all 64 bits are relevant are not packed.
-//       This order and packing matches that of the error xml for
+//       This order and packing matches that of the SCOMs in error xml for
 //       RC_CHECK_MASTER_STOP15_FAILED and if need be, both should change in
 //       lock-step.
 typedef enum
@@ -78,7 +74,7 @@ p9_collect_deadman_ffdc (
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core,
     const p9SbeCheckMasterStop15RC_t              i_reason )
 {
-    FAPI_INF (">> p9_collect_deadman_ffdc RC: 0x%.8X", i_reason);
+    FAPI_IMP (">> p9_collect_deadman_ffdc RC: 0x%.8X", i_reason);
     fapi2::ReturnCode l_rc;
 
     auto l_chip = i_core.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
@@ -108,21 +104,13 @@ p9_collect_deadman_ffdc (
     fapi2::buffer<uint64_t> l_dmanFfdcScoms[FFDC_IDX_SCOM_MAX] = {default_64};
 
     // Vectors to hold PPE state for SGPE and CME
-    std::vector<uint32_t> l_v_sgpe_sprs;
-    std::vector<uint64_t> l_v_sgpe_xirs;
-    std::vector<uint32_t> l_v_cme_sprs;
-    std::vector<uint64_t> l_v_cme_xirs;
-    // Init to hold defaults on ffdc access failures
-    l_v_sgpe_sprs.assign (SPR_IDX_MAX, default_32);
-    l_v_cme_sprs.assign (SPR_IDX_MAX, default_32);
-    l_v_sgpe_xirs.assign (XIR_IDX_MAX, default_64);
-    l_v_cme_xirs.assign (XIR_IDX_MAX, default_64);
+    std::vector<uint64_t> l_v_reg_ffdc_cme;
+    std::vector<uint64_t> l_v_reg_ffdc_sgpe;
 
     // Get SGPE internal state
     l_rc = p9_sbe_ppe_ffdc ( l_chip,
                              SGPE_BASE_ADDRESS,
-                             l_v_sgpe_xirs,
-                             l_v_sgpe_sprs );
+                             l_v_reg_ffdc_sgpe );
 
     // Read and add PU SCOMs to the FFDC buffer
     // Incr address for every whereas buffer index for every other iteration
@@ -145,8 +133,9 @@ p9_collect_deadman_ffdc (
         }
         else // data already defaulted, optimize after debug
         {
-            FAPI_ERR ( "Fail PU SCOM Addr 0x%16llX",
-                       l_dmFfdcPUScomAddrs[l_addrIdx] );
+            FAPI_ERR ( "Fail PU SCOM Addr 0x%08X %08X",
+                       (uint32_t)(l_dmFfdcPUScomAddrs[l_addrIdx] >> 32),
+                       (uint32_t)(l_dmFfdcPUScomAddrs[l_addrIdx] & 0xFFFFFFFF) );
         }
     }
 
@@ -155,7 +144,7 @@ p9_collect_deadman_ffdc (
 
     if (l_rc == fapi2::FAPI2_RC_SUCCESS)
     {
-        FAPI_ERR ("Error grabbing eq atomic lock!");
+        FAPI_IMP ("Grabbed eq atomic lock!");
 
         // Read & add EQ_PPM_SSHSRC bits 0-31 to the FFDC buffer
         l_rc = fapi2::getScom ( l_eq,
@@ -168,10 +157,8 @@ p9_collect_deadman_ffdc (
             l_data64.extract<0, 32, 0> (
                 l_dmanFfdcScoms[FFDC_____EQ_PPM_SSHSRC32__EX_CME_LFIR32] );
         }
-        else // TODO optimize away
-        {
-            FAPI_ERR ( "Fail EQ SCOM Addr 0x%16llX", EQ_PPM_SSHSRC);
-        }
+
+        // else just add the default
 
         // Read & add CME (EX) SCOMs to the FFDC buffer
         // Note that unlike pu scoms above, address and buffer indices increment
@@ -198,11 +185,8 @@ p9_collect_deadman_ffdc (
                     l_dmanFfdcScoms[l_buffIdx] = l_data64;
                 }
             }
-            else // TODO optimize
-            {
-                FAPI_ERR ( "Fail EX SCOM Addr 0x%16llX",
-                           l_dmFfdcEXScomAddrs[l_addrIdx] );
-            }
+
+            // else just add the default
         }
 
         // Read the CME state
@@ -211,8 +195,7 @@ p9_collect_deadman_ffdc (
         uint64_t l_cmeBaseAddr = getCmeBaseAddress (l_exChipUnitPos);
         l_rc = p9_sbe_ppe_ffdc ( l_chip,
                                  l_cmeBaseAddr,
-                                 l_v_cme_xirs,
-                                 l_v_cme_sprs );
+                                 l_v_reg_ffdc_cme );
     }
     else
     {
@@ -234,10 +217,8 @@ p9_collect_deadman_ffdc (
         l_data64.extract<0, 32, 0> (
             l_dmanFfdcScoms[FFDC_____EC0_PPM_SSHSRC32__EC1_PPM_SSHSRC32]);
     }
-    else // TODO clean up
-    {
-        FAPI_ERR ("SCOM to C_PPM_SSHSRC failed!");
-    }
+
+    // else just use the default
 
     // @TODO via RTC: 173949
     // Collect the sibling core register C_PPM_SSHSRC once we have the
@@ -245,8 +226,7 @@ p9_collect_deadman_ffdc (
 
     // Add FFDC to a single FAPI RC, to avoid code bloat from multiple
     // generated ffdc classes & error info classes per FAPI RC.
-    // Note, we are adding 19 FFDC members. Limit is 20.
-    // If needed, consider packing LR+SPRG0, SRR0+SRR1, to get space for 4 more
+    // Note, we are adding 15 FFDC members. Limit is 20.
     FAPI_ASSERT ( false,
                   fapi2::CHECK_MASTER_STOP15_FAILED ()
                   .set_SBE_CHK_MASTER_STOP15_RC (i_reason)
@@ -262,23 +242,17 @@ p9_collect_deadman_ffdc (
                       l_dmanFfdcScoms[FFDC_____EX_CME_SISR_64])
                   .set_C0_PPM_SSHSRC__C1_PPM_SSHSRC (
                       l_dmanFfdcScoms[FFDC_____EC0_PPM_SSHSRC32__EC1_PPM_SSHSRC32])
-                  .set_SGPE_XIR_IAR__XIR_XSR (l_v_sgpe_xirs[XIR_IDX_IAR_XSR])
-                  .set_SGPE_XIR_EDR__XIR_IR (l_v_sgpe_xirs[XIR_IDX_EDR_IR])
-                  .set_SGPE_XIR_SPRG0 (l_v_sgpe_xirs[XIR_IDX_SPRG0])
-                  .set_SGPE_SPR_LR (l_v_sgpe_sprs[SPR_IDX_LR])
-                  .set_SGPE_SPR_SRR0 (l_v_sgpe_sprs[SPR_IDX_SRR0])
-                  .set_SGPE_SPR_SRR1 (l_v_sgpe_sprs[SPR_IDX_SRR1])
-                  .set_CME_XIR_IAR__XIR_XSR (l_v_cme_xirs[XIR_IDX_IAR_XSR])
-                  .set_CME_XIR_EDR__XIR_IR (l_v_cme_xirs[XIR_IDX_EDR_IR])
-                  .set_CME_XIR_SPRG0 (l_v_cme_xirs[XIR_IDX_SPRG0])
-                  .set_CME_SPR_LR (l_v_cme_sprs[SPR_IDX_LR])
-                  .set_CME_SPR_SRR0 (l_v_cme_sprs[SPR_IDX_SRR0])
-                  .set_CME_SPR_SRR1 (l_v_cme_sprs[SPR_IDX_SRR1]),
+                  .set_SGPE_XSR__IAR (l_v_reg_ffdc_sgpe[REG_FFDC_IDX_XSR_IAR])
+                  .set_SGPE_IR__EDR (l_v_reg_ffdc_sgpe[REG_FFDC_IDX_IR_EDR])
+                  .set_SGPE_LR__SPRG0 (l_v_reg_ffdc_sgpe[REG_FFDC_IDX_LR_SPRG0])
+                  .set_SGPE_SRR0__SRR1 (l_v_reg_ffdc_sgpe[REG_FFDC_IDX_SRR0_SRR1])
+                  .set_CME_XSR__IAR (l_v_reg_ffdc_cme[REG_FFDC_IDX_XSR_IAR])
+                  .set_CME_IR__EDR (l_v_reg_ffdc_cme[REG_FFDC_IDX_IR_EDR])
+                  .set_CME_LR__SPRG0 (l_v_reg_ffdc_cme[REG_FFDC_IDX_LR_SPRG0])
+                  .set_CME_SRR0__SRR1 (l_v_reg_ffdc_cme[REG_FFDC_IDX_SRR0_SRR1]),
                   "Check Master STOP15 error 0x%.8X", i_reason );
 
 fapi_try_exit:
-    FAPI_INF ("<< p9_collect_deadman_ffdc");
+    FAPI_IMP ("<< p9_collect_deadman_ffdc");
     return fapi2::current_err;
 }
-#endif
-

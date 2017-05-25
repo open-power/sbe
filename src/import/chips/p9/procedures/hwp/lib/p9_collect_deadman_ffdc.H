@@ -30,10 +30,8 @@
 /// *HWP HW Backup Owner : Brian Vanderpool <vanderp@us.ibm.com>
 /// *HWP FW Owner        : Amit Tendolkar <amit.tendolkar@in.ibm.com>
 /// *HWP Team            : PM
-/// *HWP Level           : 1
+/// *HWP Level           : 2
 /// *HWP Consumed by     : SBE
-
-#if 0
 #ifndef __P9_COLLECT_DEADMAN_FFDC_H__
 #define __P9_COLLECT_DEADMAN_FFDC_H__
 
@@ -74,5 +72,3 @@ p9_collect_deadman_ffdc (
     const p9SbeCheckMasterStop15RC_t              i_reason );
 
 #endif  // __P9_COLLECT_DEADMAN_FFDC_H__
-#endif
-

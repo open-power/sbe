@@ -30,9 +30,8 @@
 /// *HWP HW Backup Owner : Brian Vanderpool <vanderp@us.ibm.com>
 /// *HWP FW Owner        : Amit Tendolkar <amit.tendolkar@in.ibm.com>
 /// *HWP Team            : PM
-/// *HWP Level           : 1
+/// *HWP Level           : 2
 /// *HWP Consumed by     : SBE
-#if 0
 
 #ifndef __P9_SBE_PPE_UTILS_H__
 #define __P9_SBE_PPE_UTILS_H__
@@ -70,20 +69,15 @@ enum PPE_SPRS
 };
 
 /**
- * @brief generates instruction for mtspr
+ * @brief generates instruction for mtspr or mfspr based on i_opcode
+ * @param[in] i_opcode  MTSPR_BASE_OPCODE or MFSPR_BASE_OPCODE
  * @param[in] i_Rs      source register number
- * @param[in] i_Spr represents spr where data is to be moved.
- * @return returns 32 bit instruction representing mtspr instruction.
+ * @param[in] i_Spr     represents spr where data is to be moved
+ * @return returns 32 bit mtspr or mfspr instruction.
  */
-uint32_t ppe_getMtsprInstruction( const uint16_t i_Rs, const uint16_t i_Spr );
-
-/**
- * @brief generates instruction for mfspr
- * @param[in] i_Rt      target register number
- * @param[in] i_Spr represents spr where data is to sourced
- * @return returns 32 bit instruction representing mfspr instruction.
- */
-uint32_t ppe_getMfsprInstruction( const uint16_t i_Rt, const uint16_t i_Spr );
+uint32_t ppe_getMxsprInstruction ( const uint32_t i_opcode,
+                                   const uint16_t i_Rs,
+                                   const uint16_t i_Spr );
 
 /**
  * @brief poll for Halt state
@@ -116,10 +110,8 @@ fapi2::ReturnCode ppe_halt(
 fapi2::ReturnCode ppe_RAMRead(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
     const uint64_t i_base_address,
-    const fapi2::buffer<uint64_t> i_instruction,
+    const fapi2::buffer<uint64_t>& i_instruction,
     fapi2::buffer<uint32_t>& o_data);
 
 
 #endif  // __P9_SBE_PPE_UTILS_H__
-#endif
-

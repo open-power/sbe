@@ -30,7 +30,7 @@
 /// *HWP HW Backup Owner : Brian Vanderpool <vanderp@us.ibm.com>
 /// *HWP FW Owner        : Amit Tendolkar <amit.tendolkar@in.ibm.com>
 /// *HWP Team            : PM
-/// *HWP Level           : 1
+/// *HWP Level           : 2
 /// *HWP Consumed by     : SBE
 ///
 /// @verbatim
@@ -39,7 +39,6 @@
 ///   - Reads a PPE's minimalistic state in terms of select XIRs and SPRs
 ///
 /// @endverbatim
-#if 0
 
 //-----------------------------------------------------------------------------
 // Includes
@@ -48,55 +47,54 @@
 #include <p9_sbe_ppe_ffdc.H>
 #include <p9_sbe_ppe_utils.H>
 
+// @note enum used to loop the SPRs to be rammed from the PPE
+typedef enum
+{
+    SPR_IDX_LR = 0,
+    SPR_IDX_SRR0,
+    SPR_IDX_SRR1,
+    SPR_IDX_MAX
+}   SbePpeFfdcSPRIdx_t;
+
 //-----------------------------------------------------------------------------
-/**
- * @brief Collectes PPE XIRs and SPRs
- * @param[in]    i_target        Chip Target
- * @param[in]    i_base_address  Base address of the PPE to be used for access
- * @param[inout] io_v_ppe_xirs   vector of PPE XIRs collected
- *               On input, initialized with XIR_IDX_MAX elements defaulted
- *               On ouptut, elements updated with actual XIR values read
- * @param[inout] io_v_ppe_sprs   vector of PPE SPRs collected
- *               On input, initialized with SPR_IDX_MAX elements defaulted
- *               On output, elements updated with actual SPR values read
- * @return       FAPI2_RC_SUCCESS
- */
 fapi2::ReturnCode
 p9_sbe_ppe_ffdc (
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
-    const uint64_t i_base_address,
-    std::vector<uint64_t>& io_v_ppe_xirs,
-    std::vector<uint32_t>& io_v_ppe_sprs )
+    const uint64_t                                     i_base_address,
+    std::vector<uint64_t>&                             o_v_ppe_reg_ffdc )
 {
     fapi2::ReturnCode l_rc;
-    FAPI_INF(">> p9_sbe_ppe_ffdc: Base Addr: 0x%08llX", i_base_address);
+    FAPI_INF(">> p9_sbe_ppe_ffdc");
 
     fapi2::buffer<uint64_t> l_raminstr;
     fapi2::buffer<uint64_t> l_data64;
     fapi2::buffer<uint32_t> l_data32;
     bool l_ppe_halt_state = false;
 
+    o_v_ppe_reg_ffdc.clear ();
+    o_v_ppe_reg_ffdc.assign (REG_FFDC_IDX_MAX, default_64);
+
     // Halt the PPE before grabbing the state
     // Ignore a fail here, the halted state is checked after the XIR loop
     l_rc = ppe_halt(i_target, i_base_address);
 
-    FAPI_INF ("Collecting XIRs");
+    FAPI_IMP ("Collecting XIRs");
 
-    for (uint8_t i = XIR_IDX_IAR_XSR; i < XIR_IDX_MAX; ++i)
+    for (uint8_t i = REG_FFDC_IDX_XIR_FIRST ; i < REG_FFDC_IDX_XIR_MAX; ++i)
     {
         uint64_t l_address = 0;
 
         switch (i)
         {
-            case XIR_IDX_IAR_XSR:
+            case REG_FFDC_IDX_XSR_IAR:
                 l_address = i_base_address + PPE_XIDBGPRO;
                 break;
 
-            case XIR_IDX_EDR_IR:
+            case REG_FFDC_IDX_IR_EDR:
                 l_address = i_base_address + PPE_XIRAMEDR;
                 break;
 
-            case XIR_IDX_SPRG0:
+            case REG_FFDC_IDX_LR_SPRG0:
                 l_address = i_base_address + PPE_XIRAMDBG;
                 break;
         }
@@ -105,13 +103,10 @@ p9_sbe_ppe_ffdc (
 
         if (l_rc == fapi2::FAPI2_RC_SUCCESS)
         {
-            io_v_ppe_xirs[i] = l_data64;
+            o_v_ppe_reg_ffdc[i] = l_data64;
         }
 
         // On error, we already have the default on input, continue to next
-
-        FAPI_INF ( "XIR Idx %d Addr 0x%.8X Val: 0x%16llX",
-                   i, l_address, io_v_ppe_xirs[i]);
     } // XIRs Loop
 
     // Optimizing getScom of i_base_address + PPE_XIRAMDBG as we already have
@@ -123,14 +118,18 @@ p9_sbe_ppe_ffdc (
     {
         FAPI_INF ("Collecting SPRs");
 
-        for (uint8_t i = 0; i < SPR_IDX_MAX; ++i)
+        // Collect 3 32 bit SPRs, but pack them into a 64 bit member of
+        // o_v_ppe_reg_ffdc, based on indexes defined in SbePpeRegFfdcIdx_t
+        for (uint8_t i = SPR_IDX_LR; i < SPR_IDX_MAX; ++i)
         {
             uint16_t l_sprNr = 0;
+            uint8_t l_sprFfdcIdx = REG_FFDC_IDX_SRR0_SRR1;
 
             switch (i)
             {
                 case SPR_IDX_LR:
                     l_sprNr = LR;
+                    l_sprFfdcIdx = REG_FFDC_IDX_LR_SPRG0;
                     break;
 
                 case SPR_IDX_SRR0:
@@ -144,9 +143,8 @@ p9_sbe_ppe_ffdc (
 
             // SPR to R0
             l_raminstr.flush<0>().insertFromRight (
-                ppe_getMfsprInstruction(0, l_sprNr), 0, 32 );
+                ppe_getMxsprInstruction(MFSPR_BASE_OPCODE, 0, l_sprNr), 0, 32 );
 
-            // TODO Do we need this for every SPR RAM access?
             l_rc = ppe_pollHaltState(i_target, i_base_address);
 
             if (l_rc != fapi2::FAPI2_RC_SUCCESS)
@@ -160,42 +158,46 @@ p9_sbe_ppe_ffdc (
 
             if (l_rc != fapi2::FAPI2_RC_SUCCESS)
             {
-                FAPI_ERR ("putScom XIRAMEDR fail!. Idx %d SPR#%d Inst 0x%16llX",
-                          i, l_sprNr, l_raminstr);
+                FAPI_ERR ("putScom XIRAMEDR fail!. Idx %d SPR#%d", i, l_sprNr);
                 continue; // try ramming out the next SPR
             }
 
             // R0 to SPRG0
             l_raminstr.flush<0>().insertFromRight (
-                ppe_getMtsprInstruction(0, SPRG0), 0, 32 );
+                ppe_getMxsprInstruction(MTSPR_BASE_OPCODE, 0, SPRG0), 0, 32 );
 
             l_rc = ppe_RAMRead(i_target, i_base_address, l_raminstr, l_data32);
 
             if (l_rc == fapi2::FAPI2_RC_SUCCESS)
             {
-                io_v_ppe_sprs[i] = l_data32;
+                if (i % 2)
+                {
+                    // pack into bits 0-31 of ithe ffdc vector element
+                    o_v_ppe_reg_ffdc[l_sprFfdcIdx] =
+                        (o_v_ppe_reg_ffdc[l_sprFfdcIdx] & 0x00000000FFFFFFFFULL) |
+                        ((uint64_t) l_data32() << 32);
+                }
+                else
+                {
+                    // pack into bits 32-63 of the ffdc vector element
+                    o_v_ppe_reg_ffdc[l_sprFfdcIdx] =
+                        (o_v_ppe_reg_ffdc[l_sprFfdcIdx] & 0xFFFFFFFF00000000ULL) |
+                        (l_data32());
+                }
             }
             else
             {
-                FAPI_ERR ("ppe_RAMRead fail! Idx %d SPR#%d Inst 0x%16llX",
-                          i, l_sprNr, l_raminstr);
+                FAPI_ERR ("ppe_RAMRead fail! Idx %d SPR#%d", i, l_sprNr);
                 continue; // try ramming out the next SPR
             }
 
-            FAPI_INF ( "Idx %d SPR# %d Value= 0x%.8X",
-                       i, l_sprNr, io_v_ppe_sprs[i] );
+            FAPI_IMP ("Idx %d SPR# %d Value= 0x%.8X", i, l_sprNr, l_data32());
         }   // SPR Loop
     }
-    // else .. exit with defaulted SPR values, as PPE is not halted
-    else // TODO cleanup after test, convert FAPI_INF to FAPI_DBG, etc.
-    {
-        FAPI_INF("PPE is not Halted .. not collecting SPRs");
-    }
 
-    FAPI_INF ("<< p9_sbe_ppe_ffdc");
+    // else .. exit with defaulted SPR values, as PPE is not halted
+
+    FAPI_IMP ( "<< p9_sbe_ppe_ffdc: #Regs %d", o_v_ppe_reg_ffdc.size() );
     // Always return success
     return fapi2::FAPI2_RC_SUCCESS;
 }
-
-#endif
-

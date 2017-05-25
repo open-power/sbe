@@ -29,6 +29,7 @@
 ##########################################################################
 # Object Files
 ##########################################################################
+include img_defs.mk
 
 ISTEP4-CPP-SOURCES = p9_hcd_cache_poweron.C
 ISTEP4-CPP-SOURCES +=p9_hcd_cache_chiplet_reset.C
@@ -60,6 +61,12 @@ ISTEP4-CPP-SOURCES +=p9_ncu_scom.C
 ISTEP4-CPP-SOURCES +=p9_l2_scom.C
 ISTEP4-CPP-SOURCES +=p9_l3_scom.C
 ISTEP4-CPP-SOURCES +=p9_common_poweronoff.C
+ifeq  ($(ddlevel), DD2)
+ISTEP4-CPP-SOURCES +=p9_eq_clear_atomic_lock.C
+ISTEP4-CPP-SOURCES +=p9_collect_deadman_ffdc.C
+ISTEP4-CPP-SOURCES +=p9_sbe_ppe_ffdc.C
+ISTEP4-CPP-SOURCES +=p9_sbe_ppe_utils.C
+endif
 ISTEP4-CPP-SOURCES +=p9_sbe_check_master_stop15.C
 ISTEP4-C-SOURCES =
 ISTEP4-S-SOURCES =
