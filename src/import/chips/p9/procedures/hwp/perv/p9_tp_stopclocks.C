@@ -52,8 +52,8 @@ enum P9_TP_STOPCLOCKS_Private_Constants
     DONT_STARTMASTER = 0x0,
     DONT_STARTSLAVE = 0x0,
     REGIONS_ONLY_PIB_NET = 0x300,
-    REGIONS_ALL_EXCEPT_PIB_NET_PLL = 0x4FE,
-    REGIONS_ALL_EXCEPT_PLL = 0x7FE,
+    REGIONS_ALL_EXCEPT_PIB_NET = 0x4FF,
+    REGIONS_ALL_INCLUDING_PLL = 0x7FF,
     STARTMASTER = 0x1,
     STARTSLAVE = 0x1
 };
@@ -109,18 +109,18 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 
     if(i_stop_tp_clks && i_stop_pib_clks)
     {
-        FAPI_DBG("p9_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_PLL");
+        FAPI_DBG("p9_tp_stopclocks: TP regions selected is REGIONS_ALL_INCLUDING_PLL");
         FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
                      i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_EXCEPT_PLL, l_clock_regions));
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_INCLUDING_PLL, l_clock_regions));
         FAPI_DBG("p9_tp_stopclocks: Regions value: %#018lX", l_clock_regions);
     }
     else if(i_stop_tp_clks)
     {
-        FAPI_DBG("p9_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_PIB_NET_PLL");
+        FAPI_DBG("p9_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_PIB_NET");
         FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(
                      i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_EXCEPT_PIB_NET_PLL, l_clock_regions));
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_ALL_EXCEPT_PIB_NET, l_clock_regions));
         FAPI_DBG("p9_tp_stopclocks: Regions value: %#018lX", l_clock_regions);
     }
 
