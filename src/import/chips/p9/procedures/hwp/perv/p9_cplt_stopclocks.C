@@ -54,7 +54,7 @@ enum P9_CPLT_STOPCLOCKS_Private_Constants
     CLOCK_TYPES = 0x7,
     DONT_STARTMASTER = 0x0,
     DONT_STARTSLAVE = 0x0,
-    REGIONS_ALL_EXCEPT_PLL = 0x7FE,
+    REGIONS_ALL_INCLUDING_PLL = 0x7FF,
     STARTMASTER = 0x1,
     STARTSLAVE = 0x1
 };
@@ -110,8 +110,7 @@ fapi2::ReturnCode p9_cplt_stopclocks(const
         FAPI_TRY(p9_common_stopclocks_raise_fence(l_trgt_chplt));
 
         FAPI_DBG("Region setup");
-        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_trgt_chplt, REGIONS_ALL_EXCEPT_PLL,
-                 l_regions));
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(l_trgt_chplt, REGIONS_ALL_INCLUDING_PLL, l_regions));
         FAPI_DBG("Regions value: %#018lX", l_regions);
 
         FAPI_DBG("Call module clock start stop for xbus, obus, pcie, mc chiplets");
