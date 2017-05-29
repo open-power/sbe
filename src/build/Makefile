@@ -44,7 +44,7 @@ SBEFWLIB := $(OBJDIR)/sbefw/libsbefw.a
 LLIBS += -lsbefw
 
 # FAPI2 library
-SUBDIRS += $(PLAT_FAPI2_DIR)/src
+SUBDIRS += $(PLAT_FAPI2_DIR)
 LIB_DIRS += -L$(OBJDIR)/fapi2
 FAPI2LIB := $(OBJDIR)/fapi2/libfapi2.a
 LLIBS += -lfapi2
@@ -247,16 +247,16 @@ $(OBJDIR):
 	mkdir -p $(IMPORT_OBJDIR)
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR)/src/plat --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 topfixedheaders:
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 attrids:
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR)/include $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 platattr:
-	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR)/src/plat --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 # Build the subdirectories
 $(SUBDIRS):

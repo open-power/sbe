@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/hwpf/src/plat/fapi2sbeplatfiles.mk $
+# $Source: src/hwpf/fapi2sbefiles.mk $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2015,2017
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,10 +43,10 @@
 FAPI2PLAT-CPP-SOURCES += plat_hw_access.C
 FAPI2PLAT-CPP-SOURCES += plat_utils.C
 FAPI2PLAT-CPP-SOURCES += target.C
-
+FAPI2PLAT-CPP-SOURCES += ffdc.C
+FAPI2PLAT-CPP-SOURCES += plat_ring_traverse.C
 FAPI2PLAT-C-SOURCES =
 FAPI2PLAT-S-SOURCES =
-
 
 FAPI2PLATLIB_OBJECTS += $(FAPI2PLAT-CPP-SOURCES:.C=.o) $(FAPI2PLAT-C-SOURCES:.c=.o) $(FAPI2PLAT-S-SOURCES:.S=.o)
 

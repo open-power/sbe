@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/hwpf/src/Makefile $
+# $Source: src/hwpf/Makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2015,2017
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,16 +29,13 @@ include img_defs.mk
 include fapi2sbefiles.mk
 
 
-OBJS := $(addprefix $(OBJDIR)/, $(FAPI2LIB_OBJECTS))
+OBJS := $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_OBJECTS))
 
-libfapi2.a: fapi2 hwpf plat
+libfapi2.a: fapi2 hwpf
 	$(AR) crs $(OBJDIR)/libfapi2.a $(OBJDIR)/*.o
 
-.PHONY: clean fapi2 hwpf plat
+.PHONY: clean fapi2 hwpf
 fapi2: $(OBJS)
-
-plat:
-	$(MAKE) -I $(BUILD_DIR) -C $(PLAT_FAPI2_DIR)/src/plat
 
 $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 

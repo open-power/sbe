@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/hwpf/include/plat/plat_attributes.H $                     */
+/* $Source: src/hwpf/multicast.H $                                        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2016                        */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,15 +21,34 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-/**
- * @file plat_attributes.H
- * @brief Platform specific attribute headers
- */
+#ifndef __FAPI2_MULTICAST__
+#define __FAPI2_MULTICAST__
 
-#ifndef __PLAT_ATTTRIBUTE_H__
-#define __PLAT_ATTTRIBUTE_H__
+#include <fapi2_multicast.H>
 
-#include <fapi2_attribute_service.H>
-#include <attribute_ids.H>      // Generated file
+namespace fapi2
+{
 
-#endif  // __PLAT_ATTTRIBUTE_H__
+template<MulticastType M, MulticastGroup G, typename V>
+template<MulticastType O, MulticastGroup N>
+inline void Multicast<M, G, V>::updateHandle(V& i_value)
+{
+    // Update handle only if multicast bit is set in handle, else we leave the
+    // handle unchanged. This enables the same procedure to work with both
+    // multicast and unicast targets
+    if(i_value.fields.is_multicast)
+    {
+        // Update the handle to reflect the new multicast type and group
+        i_value.fields.chiplet_num = (0x40) | (O << 3) | N;
+    }
+}
+
+template<MulticastType M, MulticastGroup G, typename V>
+inline bool Multicast<M, G, V>::isMulticast() const
+{
+    return iv_handle.fields.is_multicast;
+}
+
+}
+
+#endif

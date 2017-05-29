@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/hwpf/include/plat/multicast.H $                           */
+/* $Source: src/hwpf/ffdc.C $                                             */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,34 +21,21 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __FAPI2_MULTICAST__
-#define __FAPI2_MULTICAST__
+/**
+ *  @file ffdc.C
+ *  @brief Implements the ffdc for sbe
+ */
 
-#include <fapi2_multicast.H>
+#include <ffdc.H>
+#include <error_info.H>
+
 
 namespace fapi2
 {
 
-template<MulticastType M, MulticastGroup G, typename V>
-template<MulticastType O, MulticastGroup N>
-inline void Multicast<M, G, V>::updateHandle(V& i_value)
-{
-    // Update handle only if multicast bit is set in handle, else we leave the
-    // handle unchanged. This enables the same procedure to work with both
-    // multicast and unicast targets
-    if(i_value.fields.is_multicast)
-    {
-        // Update the handle to reflect the new multicast type and group
-        i_value.fields.chiplet_num = (0x40) | (O << 3) | N;
-    }
-}
-
-template<MulticastType M, MulticastGroup G, typename V>
-inline bool Multicast<M, G, V>::isMulticast() const
-{
-    return iv_handle.fields.is_multicast;
-}
-
-}
-
+#ifdef MINIMUM_FFDC
+    // buffer used to hold ffdc data
+    SbeFfdcData_t g_FfdcData;
 #endif
+
+};
