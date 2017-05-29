@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -69,7 +70,6 @@ namespace fapi2
     typedef union plat_target_handle {
         uint32_t value;
         struct {
-#ifdef _BIG_ENDIAN
             uint32_t chiplet_num       : 8;
             uint32_t type_target_num   : 8;
             uint32_t present           : 1;
@@ -77,15 +77,6 @@ namespace fapi2
             uint32_t is_multicast      : 1;
             uint32_t valid             : 1;
             uint32_t type              : 12;
-#else
-            uint32_t type              : 12;
-            uint32_t valid             : 1;
-            uint32_t is_multicast      : 1;
-            uint32_t functional        : 1;
-            uint32_t present           : 1;
-            uint32_t type_target_num   : 8;
-            uint32_t chiplet_num       : 8;
-#endif
         } fields;
         ///
         /// @brief Plat target handle constructor

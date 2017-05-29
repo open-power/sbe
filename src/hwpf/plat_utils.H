@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -47,19 +48,5 @@
 /// Create a single bit mask at bit \a b
 #ifndef BIT
     #define BIT(b) BITS((b), 1)
-#endif
-
-#ifdef _BIG_ENDIAN
-
-#define revle16(x) x
-#define revle32(x) x
-#define revle64(x) x
-
-#else
-
-uint16_t revle16(uint16_t i_x);
-uint32_t revle32(uint32_t i_x);
-uint64_t revle64(uint64_t i_x);
-
 #endif
 #endif //_PLAT_UTILS_H_

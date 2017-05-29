@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -492,7 +493,7 @@ fapi_try_exit:
         l_beginning_offset = CHIP_TARGET_OFFSET;
 
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> chip_target((createPlatTargetHandle<fapi2::TARGET_TYPE_PROC_CHIP>(0)));
-        G_vec_targets.at(l_beginning_offset) = revle32((fapi2::plat_target_handle_t)(chip_target.get()));
+        G_vec_targets.at(l_beginning_offset) = (fapi2::plat_target_handle_t)(chip_target.get());
 
         // Initialize platform attributes. Needs to be after the chip target is
         // created.
@@ -510,7 +511,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(target_name, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
         /*
@@ -527,7 +528,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(l_perv.get()));
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
 
         }
 
@@ -544,7 +545,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(target_name, b_present));
 
-            G_vec_targets.at(i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
         /*
@@ -560,7 +561,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(l_perv.get()));
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
         }
 
         /*
@@ -577,7 +578,7 @@ fapi_try_exit:
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(l_perv.get()));
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
         }
 
         /*
@@ -612,7 +613,7 @@ fapi_try_exit:
                 static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
                 static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             }
-            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
         /*
@@ -648,7 +649,7 @@ fapi_try_exit:
                 static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             }
 
-            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
         /*
@@ -673,7 +674,7 @@ fapi_try_exit:
                 static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             }
 
-            G_vec_targets.at(l_beginning_offset+i) = revle32((fapi2::plat_target_handle_t)(target_name.get()));
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
 

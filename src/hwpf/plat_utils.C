@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -136,61 +137,4 @@ namespace fapi2
         FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_target, o_chipEc);
     }
 };
-
-#ifndef _BIG_ENDIAN
-
-/// Byte-reverse a 16-bit integer if on a little-endian machine
-
-uint16_t
-revle16(uint16_t i_x)
-{
-    uint16_t rx;
-    uint8_t *pix = (uint8_t*)(&i_x);
-    uint8_t *prx = (uint8_t*)(&rx);
-
-    prx[0] = pix[1];
-    prx[1] = pix[0];
-
-    return rx;
-}
-
-/// Byte-reverse a 32-bit integer if on a little-endian machine
-
-uint32_t
-revle32(uint32_t i_x)
-{
-    uint32_t rx;
-    uint8_t *pix = (uint8_t*)(&i_x);
-    uint8_t *prx = (uint8_t*)(&rx);
-
-    prx[0] = pix[3];
-    prx[1] = pix[2];
-    prx[2] = pix[1];
-    prx[3] = pix[0];
-
-    return rx;
-}
-
-
-/// Byte-reverse a 64-bit integer if on a little-endian machine
-
-uint64_t
-revle64(const uint64_t i_x)
-{
-    uint64_t rx;
-    uint8_t *pix = (uint8_t*)(&i_x);
-    uint8_t *prx = (uint8_t*)(&rx);
-
-    prx[0] = pix[7];
-    prx[1] = pix[6];
-    prx[2] = pix[5];
-    prx[3] = pix[4];
-    prx[4] = pix[3];
-    prx[5] = pix[2];
-    prx[6] = pix[1];
-    prx[7] = pix[0];
-
-    return rx;
-}
-#endif
 
