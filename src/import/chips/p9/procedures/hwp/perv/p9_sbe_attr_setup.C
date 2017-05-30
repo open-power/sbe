@@ -38,7 +38,7 @@
 
 //## auto_generated
 #include "p9_sbe_attr_setup.H"
-
+#include <p9_sbe_hb_structures.H>
 #include <p9_perv_scom_addresses.H>
 
 enum P9_SETUP_SBE_CONFIG_scratch4
@@ -118,12 +118,13 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     //set_security_access
     {
         fapi2::buffer<uint64_t> l_read_reg;
+        BootloaderSecureSettings l_secure_settings;
+        l_secure_settings.data8 = 0;
 
         FAPI_DBG("Reading ATTR_SECURITY_MODE");
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, l_read_1));
         //Getting CBS_CS register value
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM,
-                                l_read_reg));
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM, l_read_reg));
 
         if (   (!l_read_1)                     // Security override possible
                && (l_read_scratch8.getBit<2>()) ) // scratch 3 is valid
@@ -141,14 +142,24 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
                 l_read_reg.clearBit<4>();  //PIB.CBS_CS.CBS_CS_SECURE_ACCESS_BIT = 0
                 FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CBS_CS_SCOM, l_read_reg));
             }
+
+            FAPI_DBG("Copying mailbox scratch register 3 bits 6,7 to "
+                     "ATTR_SECURE_SETTINGS");
+            l_secure_settings.securityOverride = l_read_scratch_reg.getBit<6>();
+            l_secure_settings.allowAttrOverrides = l_read_scratch_reg.getBit<7>();
         }
+
+        // Include the Secure Access Bit now, but will double check before
+        // setting bootloader data later
+        l_secure_settings.secureAccessBit = l_read_reg.getBit<4>();
+        FAPI_DBG("Setting up ATTR_SECURITY_SETTINGS");
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SECURE_SETTINGS, FAPI_SYSTEM, l_secure_settings.data8));
 
         l_read_1 = 0;
         l_read_1.writeBit<7>(l_read_reg.getBit<4>());
 
         FAPI_DBG("Setting ATTR_SECURITY_ENABLE with the SAB state");
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SECURITY_ENABLE, FAPI_SYSTEM, l_read_1));
-
     }
     //read_scratch1_reg
     {

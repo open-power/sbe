@@ -203,10 +203,13 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     // Pass size of load including exception vectors and Bootloader
     l_bootloader_config_data.blLoadSize = l_exception_vector_size + i_payload_size;
 
-    // Get Secure Access Bit
-    FAPI_TRY(fapi2::getScom(i_master_chip_target, PERV_CBS_CS_SCOM, l_dataBuf),
-             "fapiGetScom of PERV_CBS_CS_SCOM failed");
-    l_bootloader_config_data.secureAccessBit = l_dataBuf.getBit<4>() ? 1 : 0;
+    // Set Secure Settings Byte
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURE_SETTINGS, FAPI_SYSTEM, l_bootloader_config_data.secureSettings.data8));
+
+    // -- re-read Secure Access Bit in case it's changed
+    FAPI_TRY(fapi2::getScom(i_master_chip_target, PERV_CBS_CS_SCOM, l_dataBuf));
+
+    l_bootloader_config_data.secureSettings.secureAccessBit = l_dataBuf.getBit<4>() ? 1 : 0;
     l_dataBuf.flush<0>();
 
     // fill in MMIO BARs
@@ -288,10 +291,10 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                     {
                         l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.blLoadSize >> (56 - 8 * ((i - 12) % 8))) & 0xFF;
                     }
-                    //At address X + 0x14 (20) put the secure access bit
+                    //At address X + 0x14 (20) put the secure access byte
                     else if (i == 20)
                     {
-                        l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.secureAccessBit;
+                        l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.secureSettings.data8;
                     }
                     //At address X + 0x1B (21-28) put the XSCOM BAR
                     else if (i < 29)
