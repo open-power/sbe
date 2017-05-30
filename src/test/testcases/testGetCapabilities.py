@@ -58,6 +58,10 @@ EXPDATA3 = [0xa8,0x0,0x0,0x13, #getcapability/getSbeFFDC/quiesce
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
 def main( ):
+    ( rc, out )  =   quiet_run_command( "sbe-ddlevel 0", output_modes.regular )
+    if(rc == "DD1"):
+        print "Not running Get Capabilities on DD1"
+        return
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( TESTDATA )
     testUtil.writeEot( )

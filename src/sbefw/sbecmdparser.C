@@ -104,10 +104,12 @@ static sbeCmdStruct_t g_sbeIplControlCmdArray [] =
 ////////////////////////////////////////////////////////////////
 static sbeCmdStruct_t g_sbeGenericCmdArray [] =
 {
+#ifdef DD2
     {sbeGetCapabilities,
      SBE_CMD_GET_SBE_CAPABILITIES,
      SBE_NO_FENCE,
     },
+#endif
 
      {sbeGetFfdc,
       SBE_CMD_GET_SBE_FFDC,
@@ -448,9 +450,10 @@ bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
                              const uint8_t i_cmdOpcode)
 {
     #define SBE_FUNC " sbeIsCmdAllowedAtState "
+    bool l_ret = true;
+#ifdef DD2
     uint8_t l_numCmds = 0;
     sbeCmdStruct_t *l_pCmd = NULL;
-    bool l_ret = false;
     l_numCmds = sbeGetCmdStructAttr (i_cmdClass, &l_pCmd);
 
     for (uint8_t l_cnt = 0; l_cnt < l_numCmds; ++l_cnt, ++l_pCmd)
@@ -520,10 +523,13 @@ bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
                     break;
                 }
 
-                default: break;
+                default:
+                    l_ret = false;
+                    break;
             }
         }
     }
+#endif
     // For any other state, which is not handled above, return from here
     return l_ret;
     #undef SBE_FUNC
