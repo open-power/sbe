@@ -31,7 +31,7 @@
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : Sunil Kumar <skumar8j@in.ibm.com>
 // *HWP Team            : Perv
-// *HWP Level           : 2
+// *HWP Level           : 3
 // *HWP Consumed by     : FSP:HB
 //------------------------------------------------------------------------------
 
@@ -349,7 +349,13 @@ fapi2::ReturnCode p9_common_stopclocks_poll_cbs_cmd_complete(const fapi2::Target
         --l_timeout;
     }
 
-    FAPI_ASSERT(l_timeout > 0, fapi2::CBS_ACK_NOT_HIGH_ERR(), "CBS_ACK is not HIGH with in expected time");
+    FAPI_ASSERT(l_timeout > 0, fapi2::CBS_ACK_NOT_SEEN_ERR()
+                .set_TARGET_CHIP(i_target_chip)
+                .set_EXPECTED_ACK_VALUE(1)
+                .set_CBS_CC_STAT(l_data32_cbs_cc_stat)
+                .set_TIMEOUT(CBS_ACK_POLL)
+                .set_DELAY(P9_WAIT_CBS_ACK_HW_NS_DELAY),
+                "CBS_ACK is not HIGH with in expected time");
 
     FAPI_DBG("Lower CBS_REQ");
     FAPI_TRY(fapi2::getCfamRegister(i_target_chip, PERV_ROOT_CTRL0_FSI, l_data32_root_ctrl0));
@@ -373,7 +379,13 @@ fapi2::ReturnCode p9_common_stopclocks_poll_cbs_cmd_complete(const fapi2::Target
         --l_timeout;
     }
 
-    FAPI_ASSERT(l_timeout > 0, fapi2::CBS_ACK_NOT_LOW_ERR(), "CBS_ACK is not LOW with in expected time");
+    FAPI_ASSERT(l_timeout > 0, fapi2::CBS_ACK_NOT_SEEN_ERR()
+                .set_TARGET_CHIP(i_target_chip)
+                .set_EXPECTED_ACK_VALUE(0)
+                .set_CBS_CC_STAT(l_data32_cbs_cc_stat)
+                .set_TIMEOUT(CBS_CMD_COMPLETE_POLL)
+                .set_DELAY(P9_WAIT_CBS_CMD_COMPLETE_HW_NS_DELAY),
+                "CBS_ACK is not LOW with in expected time");
 
     FAPI_INF("Exiting p9_common_stopclocks_poll_cbs_cmd_complete ...");
 
