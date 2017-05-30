@@ -28,7 +28,7 @@
 /// @file p9_pba_setup.C
 /// @brief Setup the registers for a read/write to the PBA
 ///
-// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
+// *HWP HWP Owner: Joe McGill jmcgill@us.ibm.com
 // *HWP FW Owner: Thi Tran thi@us.ibm.com
 // *HWP Team: Nest
 // *HWP Level: 3
