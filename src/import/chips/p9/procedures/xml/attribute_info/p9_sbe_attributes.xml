@@ -322,6 +322,11 @@
            <name>ATTR_VDM_ENABLE</name>
            <value>0x0</value>
   </entry>
+  <entry>
+           <name>ATTR_FUSED_CORE_MODE</name>
+           <value>0x0</value>
+  </entry>
+
   <!-- See chip_attributes.xml for a description of ATTR_EC -->
   <entry>
            <name>ATTR_EC</name>
