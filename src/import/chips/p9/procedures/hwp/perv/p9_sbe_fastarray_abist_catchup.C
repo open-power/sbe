@@ -71,7 +71,8 @@ fapi2::ReturnCode p9_sbe_fastarray_abist_catchup(
             fapi2::delay(1000000, 100000);
         }
 
-        FAPI_ASSERT(l_timeout, fapi2::FASTARRAY_CLOCK_TIMEOUT(), "Clocking ABIST cycles timed out");
+        FAPI_ASSERT(l_timeout, fapi2::FASTARRAY_CLOCK_TIMEOUT().set_TARGET(i_target_chiplet),
+                    "Clocking ABIST cycles timed out");
     }
 
     return fapi2::FAPI2_RC_SUCCESS;
@@ -80,4 +81,3 @@ fapi_try_exit:
     return fapi2::current_err;
 
 }
-

@@ -76,5 +76,5 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_hcd_cache_scominit_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_tracearray_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_hcd_cache_initf_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_quad_power_off_errors.xml
-ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_fastarray.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_fastarray_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_suspend_io_errors.xml

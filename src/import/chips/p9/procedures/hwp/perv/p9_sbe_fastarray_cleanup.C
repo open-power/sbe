@@ -67,10 +67,8 @@ fapi2::ReturnCode p9_sbe_fastarray_cleanup(
         }
         while (--l_timeout && !l_buf.getBit<PERV_1_CPLT_STAT0_SRAM_ABIST_DONE_DC>());
 
-        if (!l_timeout)
-        {
-            FAPI_ERR("Warning: ABIST_DONE not seen! Your dump is probably fine, but this is unexpected.");
-        }
+        FAPI_ASSERT_NOEXIT(l_timeout != 0, fapi2::FASTARRAY_CLEANUP_NOT_DONE().set_TARGET(i_target_chiplet),
+                           "Warning: ABIST_DONE not seen! Your dump is probably fine, but this is unexpected.");
     }
 
     /* Raise the region fences back up */
@@ -95,5 +93,3 @@ fapi2::ReturnCode p9_sbe_fastarray_cleanup(
 fapi_try_exit:
     return fapi2::current_err;
 }
-
-
