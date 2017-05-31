@@ -39,6 +39,22 @@ def check_sbe_tools_path ():
   global SBE_TOOLS_PATH
   SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
 
+def get_dd_level(procNr = 0):
+    cmd = "pipe \"p9Proc"+str(procNr)+".sbe.mibo_space.map\" \"cat > temp.map\""
+    ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
+    if ( rc ):
+        print "simics ERROR running %s: %d "%( cmd, rc )
+    ddlevel = 'DD1'
+    with open('temp.map', 'r') as f:
+        map = f.read()
+        map = map.split()
+        if map[map.index('p9Proc0.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
+            ddlevel = "DD1"
+        if map[map.index('p9Proc0.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
+            ddlevel = "DD2"
+    print "running image - ["+ddlevel+"]"
+    return ddlevel
+
 def register_sbe_debug_framework_tools():
     check_sbe_tools_path ()
     fillSymTable()
@@ -55,23 +71,26 @@ def register_sbe_debug_framework_tools():
                  type = ["sbe-commands"],
                  short = "Runs the debug framework for trace ",
                  doc = "")
-    new_command("sbe-su", collectStackUsage,
+    new_command("sbe-stack", collectStackUsage,
                  args = [arg(int_t, "procNr")],
-                 alias = "susage",
+                 alias = "sstack",
                  type = ["sbe-commands"],
                  short = "Runs the debug framework for stack usage ",
                  doc = "")
+    new_command("sbe-ddlevel", get_dd_level,
+                 args = [arg(int_t, "procNr")],
+                 alias = "sddlevel",
+                 type = ["sbe-commands"],
+                 short = "Runs the debug framework for dd level ",
+                 doc = "")
     print "SBE Debug Framework: Registered tool:", "sbe-istep"
     print "SBE Debug Framework: Registered tool:", "sbe-trace"
-    print "SBE Debug Framework: Registered tool:", "sbe-su"
+    print "SBE Debug Framework: Registered tool:", "sbe-stack"
+    print "SBE Debug Framework: Registered tool:", "sbe-ddlevel"
 
 
 def fillSymTable():
-#    symFile = os.environ['SBE_IMG_OUT_LOC'] +  "/sbe.syms"
-# TODO via RTC:168436 - figure out the DD level from simics flag,
-#                       as of now defaulting to DD1
-    symFile = SBE_TOOLS_PATH + "/sbe_DD1.syms"
-#    symFile = os.environ['sb'] + "/../obj/ppc/sbei/sbfw/simics/sbe.syms"
+    symFile = SBE_TOOLS_PATH + "/sbe_"+get_dd_level()+".syms"
     f = open( symFile, 'r')
     for line in f:
         words = line.split()
@@ -114,8 +133,7 @@ def collectTrace ( procNr ):
   fileName = "sbe_" + `procNr` + "_tracMERG"
   cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
-# TODO via RTC:168436 - figure out the DD level from simics flag, as of now defaulting to DD1
-  cmd3 = "shell \"" + "fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_DD1 sbetrace.bin >" +  fileName + "\""
+  cmd3 = "shell \"" + "fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr)+" sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""
 
   ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
