@@ -34,11 +34,15 @@ err = False
 
 baseAddr = 0xfffe8000
 syms = {};
-if 'SBE_TOOLS_PATH' in os.environ:
-    SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
-else:
-    print "SBE_TOOLS_PATH not defined"
-    exit(1)
+SBE_TOOLS_PATH = ""
+def getSbeObjPath():
+    if 'SBE_TOOLS_PATH' in os.environ:
+        SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
+    else:
+        print "SBE_TOOLS_PATH not defined"
+        exit(1)
+    print "SBE_TOOLS_PATH", SBE_TOOLS_PATH
+    return SBE_TOOLS_PATH
 
 def getTraceFilePath():
     fspTrace = SBE_TOOLS_PATH + "/fsp-trace"
@@ -220,7 +224,7 @@ def collectAttr( sbeObjDir, target, node, proc, ddsuffix, file_path ):
        print "ERROR running %s: %d " % ( cmd3, rc )
        return 1
 
-def ppeState( sbeObjDir, target, node, proc, file_path ):
+def ppeState( target, node, proc, file_path ):
     if(target == 'FILE'):
         print "File path: ", file_path
         fileHandle = open(file_path)
@@ -244,7 +248,7 @@ def ppeState( sbeObjDir, target, node, proc, file_path ):
             print "ERROR running %s: %d " % ( cmd1, rc )
             return 1
 
-def sbeLocalRegister( sbeObjDir, target, node, proc, file_path ):
+def sbeLocalRegister( target, node, proc, file_path ):
     if(target == 'FILE'):
         print "File path: ", file_path
         fileHandle = open(file_path)
@@ -269,7 +273,7 @@ def sbeLocalRegister( sbeObjDir, target, node, proc, file_path ):
             print "ERROR running %s: %d " % ( cmd1, rc )
             return 1
 
-def sbeState( sbeObjDir, target, node, proc, file_path ):
+def sbeState( target, node, proc, file_path ):
     if(target == 'FILE'):
         print "File path: ", file_path
         fileHandle = open(file_path)
@@ -286,7 +290,7 @@ def sbeState( sbeObjDir, target, node, proc, file_path ):
         print '********************************************************************'
         fileHandle.close()
     else:
-        cmd1 = ("p9_pibms_reg_dump_wrap.exe -quiet" +\
+        cmd1 = ("p9_pibms_reg_dump_wrap.exe -verbose" +\
                 " -n" + str(node) + " -p" + str(proc))
         print "cmd1:", cmd1
         rc = os.system( cmd1 )
@@ -441,31 +445,32 @@ def main( argv ):
         # check if the file path exist or not
         assert os.path.exists(arg), "Did not find the file at, "+str(arg)
 
-    sbeObjDir = SBE_TOOLS_PATH;
-    print "sbeObjDir", sbeObjDir
-    fillSymTable(sbeObjDir, target, ddsuffix)
     if ( level == 'all' ):
         print "Parsing everything"
-        collectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path )
-        collectAttr(  sbeObjDir, target, node, proc, ddsuffix, file_path )
+        fillSymTable(getSbeObjPath(), target, ddsuffix)
+        collectTrace( getSbeObjPath(), target, node, proc, ddsuffix, file_path )
+        collectAttr(  getSbeObjPath(), target, node, proc, ddsuffix, file_path )
         sbeStatus( target, node, proc )
-        ppeState( sbeObjDir, target, node, proc, file_path )
-        sbeState( sbeObjDir, target, node, proc, file_path )
-        sbeLocalRegister( sbeObjDir, target, node, proc, file_path )
+        ppeState( target, node, proc, file_path )
+        sbeState(  target, node, proc, file_path )
+        sbeLocalRegister( target, node, proc, file_path )
     elif ( level == 'trace' ):
-        collectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path )
+        fillSymTable(getSbeObjPath(), target, ddsuffix)
+        collectTrace( getSbeObjPath(), target, node, proc, ddsuffix, file_path )
     elif ( level == 'forced-trace' ):
-        forcedCollectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path )
+        fillSymTable(getSbeObjPath(), target, ddsuffix)
+        forcedCollectTrace( getSbeObjPath(), target, node, proc, ddsuffix, file_path )
     elif ( level == 'attr' ):
-        collectAttr( sbeObjDir, target, node, proc, ddsuffix, file_path )
+        fillSymTable(getSbeObjPath(), target, ddsuffix)
+        collectAttr( getSbeObjPath(), target, node, proc, ddsuffix, file_path )
     elif ( level == 'ppestate' ):
-        ppeState( sbeObjDir, target, node, proc, file_path )
+        ppeState( target, node, proc, file_path )
     elif ( level == 'sbestate' ):
-        sbeState( sbeObjDir, target, node, proc, file_path )
+        sbeState(  target, node, proc, file_path )
     elif ( level == 'sbestatus' ):
         sbeStatus( target, node, proc )
     elif ( level == 'sbelocalregister' ):
-        sbeLocalRegister( sbeObjDir, target, node, proc, file_path )
+        sbeLocalRegister( target, node, proc, file_path )
 
     if(target != 'FILE'):
         # On cronus, set the FIFO mode to previous state
