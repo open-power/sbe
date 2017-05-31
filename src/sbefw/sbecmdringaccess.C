@@ -124,7 +124,13 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
     sbeResponseFfdc_t l_ffdc;
     ReturnCode l_fapiRc;
     uint32_t l_len = 0;
-    uint32_t l_bitSentCnt = 0;
+
+    //Note-Read operation flow is SHIFT and then READ.
+    // First time , the shift count will be 0.. because of the way it
+    // works. if we shift 64bits in the very first iteration then we
+    // loose first 64 bit. But still we should update l_bitSentCnt
+    // because we are sending back this data
+    uint32_t l_bitSentCnt = 64;
     const uint32_t LONG_ROTATE_ADDRESS = 0x0003E000;
 
     do
@@ -170,7 +176,6 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
         // fix for the alignment issue
         uint32_t l_buf[NUM_WORDS_PER_GRANULE]__attribute__ ((aligned (8))) ={0};
         uint32_t l_bitShift = 0;
-        uint64_t l_tmpbuf = 0;
         l_len = NUM_WORDS_PER_GRANULE;
         plat_target_handle_t l_hndl;
         uint32_t l_chipletId = (uint32_t)(l_reqMsg.ringAddr) & 0xFF000000;
@@ -179,19 +184,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
         // Fetch the ring data in bits, each iteration will give you 64bits
         for(uint32_t l_cnt=0; l_cnt < l_loopCnt; l_cnt++)
         {
-            if((l_cnt == (l_loopCnt-1)) && (l_mod))
-            {
-                l_bitShift = l_mod;
-            }
-            else
-            {
-                //For the very first call sending F's .. because in the lower
-                //level function.. wiil read the first 64bit data and then
-                //shift. Sending F's only for the first will avoid 2 scom
-                //operation for every getring call.
-                //Note-Read operation flow is SHIFT and then READ.
-                l_bitShift = (l_cnt == 0) ? 0x0: GETRING_GRANULE_SIZE_IN_BITS;
-            }
+
             l_scomAddress = LONG_ROTATE_ADDRESS | l_chipletId;
             l_scomAddress |= l_bitShift;
             l_fapiRc = getscom_abs_wrap (&l_hndl,
@@ -208,29 +201,13 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
                 l_ffdc.setRc(l_fapiRc);
                 break;
             }
-
-            //this is only for the first time.
-            if (l_cnt == 0)
+            // if the length of ring is not divisible by 64 then mod value
+            // should be considered which will match with the length in bits
+            // that passed
+            if((l_cnt == (l_loopCnt -1)) && (l_mod))
             {
-                l_bitShift = GETRING_GRANULE_SIZE_IN_BITS;
-                l_scomAddress = LONG_ROTATE_ADDRESS | l_chipletId;
-                l_scomAddress |= l_bitShift;
-                l_fapiRc = getscom_abs_wrap (&l_hndl,
-                                         l_scomAddress,
-                                         &l_tmpbuf);
-
-                if( l_fapiRc != FAPI2_RC_SUCCESS )
-                {
-                    SBE_ERROR(SBE_FUNC" getRing_granule_data failed. "
-                       "RingAddress:0x%08X RingMode:0x%04x",
-                        l_reqMsg.ringAddr, l_ringMode);
-                    respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                        SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-                    l_ffdc.setRc(l_fapiRc);
-                    break;
-                }
+                l_bitShift = l_mod;
             }
-
             // Send it to DS Fifo
             // If this is the last iteration in the loop, let the full 64bit
             // go, even for 1bit of remaining length. The length passed to
@@ -238,10 +215,35 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
             l_rc = sbeDownFifoEnq_mult (l_len, (uint32_t *)&l_buf);
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             l_bitSentCnt = l_bitSentCnt + l_bitShift;
+            l_bitShift = GETRING_GRANULE_SIZE_IN_BITS;
         }
         if ( (l_fapiRc == FAPI2_RC_SUCCESS) &&
              (l_rc == SBE_SEC_OPERATION_SUCCESSFUL) )
         {
+            if (!l_mod)
+            {
+                l_mod = GETRING_GRANULE_SIZE_IN_BITS;
+            }
+            //Here we need to shift with the mod value to enter into the
+            //starting position of the ring.But the data is already read in the
+            //above for loop.. so here we ignore the data
+            l_scomAddress = LONG_ROTATE_ADDRESS | l_chipletId;
+            l_scomAddress |= l_mod;
+            l_fapiRc = getscom_abs_wrap (&l_hndl,
+                                         l_scomAddress,
+                                         (uint64_t*)&l_buf);
+
+            if( l_fapiRc != FAPI2_RC_SUCCESS )
+            {
+                SBE_ERROR(SBE_FUNC" getRing_granule_data failed. "
+                       "RingAddress:0x%08X RingMode:0x%04x",
+                        l_reqMsg.ringAddr, l_ringMode);
+                    respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                        SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+               l_ffdc.setRc(l_fapiRc);
+               break;
+            }
+
             // Call getRing_verifyAndcleanup - verify the check word data is
             // matching or not and will clean up the scan region data
             l_fapiRc = getRing_verifyAndcleanup((uint32_t)(l_reqMsg.ringAddr),
