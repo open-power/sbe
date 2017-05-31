@@ -32,6 +32,7 @@ import sys
 import binascii
 err = False
 
+baseAddr = 0xfffe8000
 syms = {};
 if 'SBE_TOOLS_PATH' in os.environ:
     SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
@@ -39,7 +40,12 @@ else:
     print "SBE_TOOLS_PATH not defined"
     exit(1)
 
-baseAddr = 0xfffe8000
+def getTraceFilePath():
+    fspTrace = SBE_TOOLS_PATH + "/fsp-trace"
+    if(not os.path.isfile(fspTrace)):
+        fspTrace = "fsp-trace"
+    return fspTrace
+
 
 def fillSymTable(sbeObjDir, target, ddsuffix ):
     if (target == 'AWAN'):
@@ -84,7 +90,7 @@ def collectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path ):
             print "ERROR running %s: %d " % ( cmd1, rc )
             return 1
     cmd2 = sbeObjDir + "/ppe2fsp DumpPIBMEM sbetrace.bin "
-    cmd3 = (sbeObjDir + "/fsp-trace -s " + sbeObjDir +\
+    cmd3 = (getTraceFilePath() + " -s " + sbeObjDir +\
                          "/sbeStringFile_"+ddsuffix+" sbetrace.bin > "+\
                          "sbe_"+str(proc)+"_tracMERG")
     cmd4 = "mv DumpPIBMEM dumpPibMem_trace"
@@ -150,7 +156,8 @@ def forcedCollectTrace( sbeObjDir, target, node, proc, ddsuffix, file_path ):
     len = "0x1000"
     createPibmemDumpFile("DumpPIBMEM", offset, len);
     cmd2 = sbeObjDir + "/ppe2fsp DumpPIBMEM sbetrace.bin "
-    cmd3 = (sbeObjDir + "/fsp-trace -s " + sbeObjDir +\
+
+    cmd3 = (getTraceFilePath() + " -s " + sbeObjDir +\
                          "/sbeStringFile_"+ddsuffix+" sbetrace.bin > "+\
                          "sbe_"+str(proc)+"_tracMERG")
     cmd4 = "mv DumpPIBMEM dumpPibMem_trace"
