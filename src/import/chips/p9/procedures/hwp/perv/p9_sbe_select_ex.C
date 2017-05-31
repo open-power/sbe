@@ -24,15 +24,13 @@
 /* IBM_PROLOG_END_TAG                                                     */
 ///
 /// @file p9_sbe_select_ex.C
-/// @brief Select the Hostboot core from the available cores on the chip
+/// @brief Select the Hostboot core(s) from the available cores on the chip
 ///
 // *HWP HWP Owner: Greg Still <stillgs@us.ibm.com>
-// *HWP FW Owner: Sangeetha T S <sangeet2@in.ibm.com>
+// *HWP FW Owner: Prem Jha <premjha1@in.ibm.com>
 // *HWP Team: PM
 // *HWP Level: 2
 // *HWP Consumed by: SBE
-///
-///
 ///
 /// High-level procedure flow:
 /// @verbatim
@@ -168,13 +166,15 @@ fapi2::ReturnCode p9_sbe_select_ex(
     fapi2::buffer<uint64_t> l_core_config = 0;
     fapi2::buffer<uint64_t> l_quad_config = 0;
     fapi2::buffer<uint64_t> l_data64 = 0;
-    uint8_t attr_force_all = 0;
     bool b_single = true;
     bool b_host_core_found = false;
     bool b_host_eq_found = false;
+    bool b_fused = false;
+    bool b_fused_first_half = false;
 
-    uint32_t l_master_ex_num = 0xFF;  // invalid EX number initialized
-    uint32_t l_master_eq_num = 0xFF;  // invalid EQ number initialized
+    uint32_t l_master_core_num = 0xFF; // invalid Core number initialized
+    uint32_t l_master_ex_num = 0xFF;   // invalid EX number initialized
+    uint32_t l_master_eq_num = 0xFF;   // invalid EQ number initialized
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
     auto l_core_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>
@@ -184,24 +184,38 @@ fapi2::ReturnCode p9_sbe_select_ex(
                                   (fapi2::TARGET_STATE_FUNCTIONAL );
 
     // Read the "FORCE_ALL" attribute
+    fapi2::ATTR_SYS_FORCE_ALL_CORES_Type l_attr_force_all;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES,
                            FAPI_SYSTEM,
-                           attr_force_all));
+                           l_attr_force_all));
 
     // Set the flow mode and respect the force mode
-    if (attr_force_all || i_mode == p9selectex::ALL)
+    if (l_attr_force_all || i_mode == p9selectex::ALL)
     {
         b_single = false;
         FAPI_DBG("All cores mode");
     }
     else
     {
-        FAPI_DBG("Single core mode:  Number of candidate cores = %d, Number of candidate caches = %d",
+        FAPI_DBG("Single/Fused core mode:  Number of candidate cores = %d, Number of candidate caches = %d",
                  l_core_functional_vector.size(),
                  l_eq_functional_vector.size());
+
+        fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
+                               FAPI_SYSTEM,
+                               l_attr_fused_mode));
+
+        if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+        {
+            b_fused = true;
+            FAPI_INF("p9_sbe_select_ex: Fused core mode detected");
+        }
+
     }
 
-    /* Check that we're not trying to force fused cores on a chip where the force mechanism is disabled via eFuses */
+    // Check that we're not trying to force fused cores on a chip where the
+    // force mechanism is disabled via eFuses */
     {
         fapi2::buffer<uint64_t> l_perv_ctrl0;
         fapi2::buffer<uint64_t> l_device_id_reg;
@@ -215,10 +229,17 @@ fapi2::ReturnCode p9_sbe_select_ex(
                     "Failed to force fused core mode because external control has been disabled via eFuses");
     }
 
-    // Loop through the core functional vector.  The first core in the vector
-    // is going to be the hostboot core as the FAPI platform code is expected
-    // to return the vector elements in acsending order; thus, the first vector
-    // entry is the lowest numbered, valid core.
+    // Loop through the core functional vector on the view that the FAPI
+    // platform code is expected to return the vector elements in acsending
+    // order.
+    //
+    // For non-fused mode, the first core in the vector is going to be the
+    // hostboot core.
+    //
+    // For fused core mode, the first core must be even numbered and then
+    // the companion odd numbered one must also be in the vector. If the first
+    // core is odd or the companion odd core to the first even on is not present
+    // are errors.
     //
     // Two buffers track the core and EX configuration as though "ALL" is the
     // mode chosen.  This is done to reduce conditional processing within the
@@ -243,15 +264,34 @@ fapi2::ReturnCode p9_sbe_select_ex(
         // if b_host_core_found (only set in single mode), break out of core loop
         if (b_host_core_found)
         {
-            // since the very first functional core in chip will be named master core
-            // and if the master core is in second ex of a quad, then the first ex
-            // must be partial bad as there is no functional core found before master core;
+            // Check that second half of the EX (fused core) is functional
+            if (b_fused_first_half)
+            {
+                // Check that the second normal core is functional.
+                FAPI_DBG("Odd core check: master core == %d, core num = %d",
+                         l_master_core_num, l_core_num);
+                FAPI_ASSERT(l_core_num == l_master_core_num + 1,
+                            fapi2::SBE_SELECT_EX_FUSED_ODD_ERROR()
+                            .set_CHIP(i_target)
+                            .set_CORE_NUM(l_core_num)
+                            .set_MASTER_NUM(l_master_core_num),
+                            "Odd core within master fused set is not functional");
+                // Add the core to the apppropriate multicast group
+                FAPI_TRY(select_ex_add_core_to_mc_group(core));
+                FAPI_DBG("Odd portion of Fused core found");
+                b_fused_first_half = false;
+            }
 
-            // therefore, only need to check the second ex to be partial good if master core
+            // Since the very first functional core in the chip will be named
+            // master core and if the master core is in second ex of a quad,
+            // then the first EX must be partial bad as there is no functional
+            // core found before master core.
+
+            // Therefore, only need to check the second ex to be partial good if master core
             // is in the first ex. if so, add second ex to QCSR so that istep4 can process
             // hostboot core bring up as a stop11 pattern of l2/l3 in both EXes
 
-            // after found master core but next core still remain in the same ex,
+            // After found master core but next core still remain in the same ex,
             // continue to the next core in the loop
             if (l_ex_num == l_master_ex_num)
             {
@@ -281,6 +321,18 @@ fapi2::ReturnCode p9_sbe_select_ex(
                 l_master_ex_num = l_ex_num;
                 l_master_eq_num = l_eq_num;
 
+                if (b_fused)
+                {
+                    // Check that the first normal core is even.
+                    FAPI_ASSERT(l_core_num % 2 == 0,
+                                fapi2::SBE_SELECT_EX_FUSED_NOT_EVEN_ERROR()
+                                .set_CHIP(i_target)
+                                .set_CORE_NUM(l_core_num),
+                                "The first core found in fused mode was not an even core");
+                    b_fused_first_half = true;
+                    FAPI_DBG("Even portion of Fused core found");
+                }
+
                 uint8_t l_short_core_num = static_cast<uint8_t>(l_core_num);
                 FAPI_TRY(FAPI_ATTR_SET( fapi2::ATTR_MASTER_CORE,
                                         i_target,
@@ -296,6 +348,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
                          l_master_ex_num, l_master_ex_num);
 
                 b_host_core_found = true;
+                l_master_core_num = l_core_num;
 
                 // Add the core to the apppropriate multicast group
                 FAPI_TRY(select_ex_add_core_to_mc_group(core));
@@ -326,12 +379,13 @@ fapi2::ReturnCode p9_sbe_select_ex(
         .insertFromRight<0, 4>(p9power::PFET_DELAY_POWERDOWN_CORE)
         .insertFromRight<4, 4>(p9power::PFET_DELAY_POWERUP_CORE);
 
-        FAPI_TRY(fapi2::putScom(core.getParent<fapi2::TARGET_TYPE_PERV>(),
-                                C_PPM_PFDLY - 0x20000000,  // Create chip address base
-                                l_data64),
-                 "Error: Core PFET Delay register");
-
+        FAPI_TRY(fapi2::putScom(core, C_PPM_PFDLY, l_data64));
     } // Core loop
+
+    FAPI_ASSERT(b_host_core_found,
+                fapi2::SBE_SELECT_EX_NO_CORE_AVAIL_ERROR()
+                .set_CHIP(i_target),
+                "No good cores found to boot with");
 
     // Process the good EQs
     for (auto& eq : l_eq_functional_vector)
@@ -378,11 +432,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
         .insertFromRight<0, 4>(p9power::PFET_DELAY_POWERDOWN_EQ)
         .insertFromRight<4, 4>(p9power::PFET_DELAY_POWERUP_EQ);
 
-        FAPI_TRY(fapi2::putScom(eq.getParent<fapi2::TARGET_TYPE_PERV>(),
-                                EQ_PPM_PFDLY - 0x10000000,  // Create chip address base
-                                l_data64),
-                 "Error: EQ PFET Delay register, rc 0x%.8X",
-                 (uint32_t)fapi2::current_err);
+        FAPI_TRY(fapi2::putScom(eq, EQ_PPM_PFDLY, l_data64));
 
         // if b_eq_eq_found (only set in single mode), break out of EQ loop
         if (b_host_eq_found)
@@ -392,6 +442,10 @@ fapi2::ReturnCode p9_sbe_select_ex(
 
     } // EQ loop
 
+    FAPI_ASSERT(b_host_eq_found,
+                fapi2::SBE_SELECT_EX_CORE_EQ_CONFIG_ERROR()
+                .set_CHIP(i_target),
+                "The cache chiplet associated with the first good core not functional");
 
     // Write to the OCC Core Configuration Status Register
     FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_CCSR_SCOM2, l_core_config));
@@ -399,7 +453,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
     // Write to the OCC Quad Configuration Status Register
     FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_QCSR_SCOM2, l_quad_config));
 
-    // Write default value the OCC Quad Status Status Register
+    // Set (via OR Write) the default value the OCC Quad Status Status Register
     l_data64.flush<0>()
     .setBit<0, 12>()       // L2 Stopped
     .setBit<14, 6>();      // Quad Stopped
