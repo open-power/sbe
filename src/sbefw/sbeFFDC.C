@@ -31,12 +31,6 @@
 #include "sbe_build_info.H"
 #include "sbeglobals.H"
 
-/*
- * @bried updateUserDataHeader - method to update user data fields
- *                               based on input config
- *
- * @param[in] i_fieldsConfig   - input fields configuration
- */
 void SbeFFDCPackage::updateUserDataHeader(uint32_t i_fieldsConfig)
 {
     //Update the user data header with dump fields configuration
@@ -57,24 +51,10 @@ void SbeFFDCPackage::updateUserDataHeader(uint32_t i_fieldsConfig)
     }
 }
 
-/*
- * @brief sendOverFIFO           - method to pack and send SBE internal FFDC
- *                                 only if isSendInternalFFDCSet() is true
- *                                 over FIFO interface
- * @param[in] i_hdr              - Fifo response header
- * @param[in] i_fieldsConfig     - bitmap indicating the field
- *                                 to be sent in FFDC
- * @param[out] o_bytesSent       - number of bytes sent
- * @param[in] i_skipffdcBitCheck - Boolean to indicate whether
- *                                 ffdc bit should be checked or not.
- *                                 By default it is false.
- *
- * @return                       - SBE secondary RC
- */
 uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
-                                      uint32_t i_fieldsConfig,
+                                      const uint32_t i_fieldsConfig,
                                       uint32_t &o_bytesSent,
-                                      bool i_skipffdcBitCheck)
+                                      const bool i_skipffdcBitCheck)
 {
     #define SBE_FUNC "sendOverFIFO"
     SBE_ENTER(SBE_FUNC);
@@ -162,6 +142,108 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
 
         SBE_INFO(SBE_FUNC "Number of words sent [%d]", o_bytesSent);
     } while(false);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+uint32_t SbeFFDCPackage::sendOverHostIntf(const sbeSbe2PsuRespHdr_t &i_hdr,
+                                          const uint32_t i_fieldsConfig,
+                                          sbeMemAccessInterface *i_pMemInterface,
+                                          uint32_t i_allocatedSize,
+                                          const bool i_skipffdcBitCheck)
+{
+    #define SBE_FUNC "sendOverHostIntf"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t length = 0;
+    bool isLastAccess = false;
+    fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
+
+    do
+    {
+        //check if SBE internal FFDC should be generated
+        if(!i_skipffdcBitCheck &&
+           (SbeRegAccess::theSbeRegAccess().isSendInternalFFDCSet()
+            == false))
+        {
+            SBE_INFO(SBE_FUNC" isSendInternalFFDCSet()=false, "
+                    "not generating SBE InternalFFDC");
+            rc = SBE_SEC_OPERATION_SUCCESSFUL;
+            break;
+        }
+
+        // update the primary and secondary status
+        iv_sbeFFDCDataHeader.primaryStatus = i_hdr.primStatus;
+        iv_sbeFFDCDataHeader.secondaryStatus = i_hdr.secStatus;
+        iv_sbeFFDCDataHeader.fwCommitID = SBE_COMMIT_ID;
+        // Set failed command information
+        iv_sbeFFDCHeader.setCmdInfo(i_hdr.seqID, i_hdr.cmdClass, i_hdr.command);
+        //Update the user data header with dump fields configuration
+        updateUserDataHeader(i_fieldsConfig);
+
+        //Send FFDC package header
+        length = sizeof(iv_sbeFFDCHeader);
+        MEM_AVAILABLE_CHECK(i_allocatedSize, length, isLastAccess);
+        fapiRc = i_pMemInterface->accessWithBuffer(&iv_sbeFFDCHeader, length,
+                                                    isLastAccess);
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+            break;
+        }
+
+        //Send FFDC user data header
+        length = sizeof(iv_sbeFFDCDataHeader);
+        MEM_AVAILABLE_CHECK(i_allocatedSize, length, isLastAccess);
+        fapiRc = i_pMemInterface->accessWithBuffer(&iv_sbeFFDCDataHeader,
+                                                   length,
+                                                   isLastAccess);
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+            break;
+        }
+
+        //Send FFDC user data blobs
+        for(auto &sbeFFDCUserData:sbeFFDCUserDataArray)
+        {
+            if(sbeFFDCUserData.userDataId.fieldId & i_fieldsConfig)
+            {
+                //Send User data identifer and length
+                length = sizeof(sbeFFDCUserDataIdentifier_t);
+                MEM_AVAILABLE_CHECK(i_allocatedSize, length, isLastAccess);
+                fapiRc = i_pMemInterface->accessWithBuffer(
+                                            &sbeFFDCUserData.userDataId,
+                                            length,
+                                            isLastAccess);
+                if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+                {
+                    rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                    break;
+                }
+
+                //Send User data
+                length = sbeFFDCUserData.userDataId.fieldLen;
+                MEM_AVAILABLE_CHECK(i_allocatedSize, length, isLastAccess);
+                isLastAccess = isLastAccess ||
+                                 (&sbeFFDCUserData ==
+                                    &sbeFFDCUserDataArray[NUM_USER_DATA_ELE-1]);
+                fapiRc = i_pMemInterface->accessWithBuffer(
+                                            sbeFFDCUserData.userDataPtr,
+                                            length,
+                                            isLastAccess);
+                if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+                {
+                    rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                    break;
+                }
+            }
+        }
+    } while(false);
+    SBE_INFO(SBE_FUNC" [%d] bytes sent",
+                            SBE_GLOBAL->hostFFDCAddr.size - i_allocatedSize);
 
     SBE_EXIT(SBE_FUNC);
     return rc;

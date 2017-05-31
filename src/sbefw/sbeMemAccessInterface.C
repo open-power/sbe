@@ -32,6 +32,17 @@ p9_adu_setup_FP_t p9_adu_setup_hwp = &p9_adu_setup;
 
 using namespace fapi2;
 
+void MEM_AVAILABLE_CHECK(uint32_t &io_available_len,uint32_t &io_len_to_send,bool &io_is_last_access)
+{
+    if(io_len_to_send > io_available_len)
+    {
+        SBE_INFO(SBE_FUNC" Allocated memory is less, truncating the access");
+        io_len_to_send = io_available_len;
+        io_is_last_access = true;
+    }
+    io_available_len -= io_len_to_send;
+}
+
 ReturnCode sbeMemAccessInterface::setup()
 {
 #define SBE_FUNC "sbeMemAccessInterface::setup"

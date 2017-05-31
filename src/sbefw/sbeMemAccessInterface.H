@@ -51,6 +51,16 @@ enum sbeMemAccessInterfaceType
     SBE_MEM_ACCESS_ADU,
 };
 
+// Helper functions
+/*
+ * @brief function to check if the length to send can be
+ * accomodated in the available memory, else make it a last
+ * access on the interface
+ */
+void MEM_AVAILABLE_CHECK(uint32_t &io_available_len,
+                         uint32_t &io_len_to_send,
+                         bool &io_is_last_access);
+
 class sbeMemAccessInterface
 {
     private:

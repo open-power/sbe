@@ -30,6 +30,8 @@
 #include "pk_trace.h"
 #include "sbeFFDCType.H"
 #include "sbeSpMsg.H"
+#include "sbeHostUtils.H"
+#include "sbeMemAccessInterface.H"
 
 //PIBMEM attribute dump
 extern G_sbe_attrs_t G_sbe_attrs;
@@ -49,6 +51,8 @@ const sbeFFDCUserData_t sbeFFDCUserDataArray[] =
                                                 (const void *)&G_sbe_attrs,
                                                 },
                                               };
+
+#define NUM_USER_DATA_ELE (sizeof(sbeFFDCUserDataArray)/sizeof(sbeFFDCUserData_t))
 
 //SBE internal FFDC package class
 class SbeFFDCPackage
@@ -108,27 +112,30 @@ public:
      * @return                       - SBE secondary RC
      */
     uint32_t sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
-                          uint32_t i_fieldsConfig,
+                          const uint32_t i_fieldsConfig,
                           uint32_t &o_bytesSent,
-                          bool i_skipffdcBitCheck = false);
-    /* TODO via RTC:150786
-     * @brief sendOverHOST - method to pack and send SBE internal FFDC
-     *                       only if isSendInternalFFDCSet() is true
-     *                       over HOST interface
+                          const bool i_skipffdcBitCheck = false);
+
+    /* @brief sendOverHostIntf       - method to pack and send SBE internal FFDC
+     *                                 only if isSendInternalFFDCSet() is true
+     *                                 over HOST interface
      *
-     * @param[in] i_primStatus   - Primary status of Chip op
-     * @param[in] i_secStatus    - Secondary status of Chip op
-     * @param[in] i_fieldsConfig - bitmap indicating the field
-     *                             to be sent in FFDC
+     * @param[in] i_hdr              - Host response header
+     * @param[in] i_fieldsConfig     - bitmap indicating the field
+     *                                 to be sent in FFDC
+     * @param[in] i_pMemInterface    - pointer to memory interface object
+     * @param[in] i_allocatedSize    - size allocated for FFDC
+     * @param[in] i_skipffdcBitCheck - Boolean to indicate whether
+     *                                 ffdc bit should be checked or not.
+     *                                 By default it is false.
      *
-     * @param[out] o_bytesSent - number of bytes sent
-     *
-     * @return - SBE secondary RC
+     * @return                       - SBE secondary RC
      */
-    //uint32_t sendOverHOST(uint32_t i_primStatus,
-    //                      uint32_t i_secStatus,
-    //                      uint32_t i_fieldsConfig,
-    //                      uint32_t &o_bytesSent) {};
+    uint32_t sendOverHostIntf(const sbeSbe2PsuRespHdr_t &i_hdr,
+                              const uint32_t i_fieldsConfig,
+                              sbeMemAccessInterface *i_pMemInterface,
+                              uint32_t i_allocatedSize,
+                              const bool i_skipffdcBitCheck = false);
 };
 
 #endif //__SBE_FFDC_H
