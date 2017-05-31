@@ -400,7 +400,7 @@ endif
 # 2 - Error, info
 # 3 - Error, info, entry/exit
 # 4 - Error, info, entry/exit, debug
-SBE_TRACE_LEVEL_DEF = 3
+SBE_TRACE_LEVEL_DEF = 2
 
 GCC-DEFS += -DIMAGE_NAME=$(IMAGE_SEEPROM_NAME)
 GCC-DEFS += -DPK_TIMER_SUPPORT=$(PK_TIMER_SUPPORT)
