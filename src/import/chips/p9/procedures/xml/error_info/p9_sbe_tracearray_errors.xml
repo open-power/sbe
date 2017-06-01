@@ -1,11 +1,11 @@
 <!-- IBM_PROLOG_BEGIN_TAG                                                   -->
 <!-- This is an automatically generated prolog.                             -->
 <!--                                                                        -->
-<!-- $Source: src/import/chips/p9/procedures/xml/error_info/p9_proc_gettracearray.xml $ -->
+<!-- $Source: src/import/chips/p9/procedures/xml/error_info/p9_sbe_tracearray_errors.xml $ -->
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016,2017                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2017                             -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -26,21 +26,53 @@
   <hwpError>
     <rc>RC_PROC_GETTRACEARRAY_INVALID_BUS</rc>
     <description>The specified trace bus ID is invalid.</description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>TRACE_BUS</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
   </hwpError>
   <hwpError>
     <rc>RC_PROC_GETTRACEARRAY_INVALID_TARGET</rc>
     <description>An invalid target type was supplied for the requested trace array.</description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>TRACE_BUS</ffdc>
+    <ffdc>REQUIRED_TYPE</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
   </hwpError>
   <hwpError>
     <rc>RC_PROC_GETTRACEARRAY_CORE_NOT_DUMPABLE</rc>
     <description>An attempt was made to dump a core trace array, but this chip's core cannot be dumped via SCOM.</description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>TRACE_BUS</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
   </hwpError>
   <hwpError>
     <rc>RC_PROC_GETTRACEARRAY_TRACE_RUNNING</rc>
     <description>An attempt was made to dump a trace array while it was still running.</description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>TRACE_BUS</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
   </hwpError>
   <hwpError>
     <rc>RC_PROC_GETTRACEARRAY_TRACE_MUX_INCORRECT</rc>
     <description>The requested trace array's primary trace mux is not set up to capture the requested trace bus.</description>
+    <ffdc>TARGET</ffdc>
+    <ffdc>TRACE_BUS</ffdc>
+    <ffdc>MUX_SELECT</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
   </hwpError>
 </hwpErrors>
