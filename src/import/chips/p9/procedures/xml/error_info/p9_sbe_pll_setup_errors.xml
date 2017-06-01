@@ -1,11 +1,11 @@
 <!-- IBM_PROLOG_BEGIN_TAG                                                   -->
 <!-- This is an automatically generated prolog.                             -->
 <!--                                                                        -->
-<!-- $Source: src/import/chips/p9/procedures/xml/error_info/p9_sbe_chiplet_pll_setup_errors.xml $ -->
+<!-- $Source: src/import/chips/p9/procedures/xml/error_info/p9_sbe_pll_setup_errors.xml $ -->
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2016                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2017                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -33,6 +33,7 @@
       <rc>RC_PLL_LOCK_ERR</rc>
       <description>PLL Lock Not set</description>
       <ffdc>TARGET_CHIPLET</ffdc>
+      <ffdc>PLL_READ</ffdc>
       <collectRegisterFfdc>
 	   <id>NET_CTRL_REGISTERS</id>
 	   <target>TARGET_CHIPLET</target>
@@ -58,7 +59,20 @@
 	  <target>TARGET_CHIP</target>
 	  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
       </collectRegisterFfdc>
-      <ffdc>PLL_READ</ffdc>
+      <callout>
+        <target>TARGET_CHIPLET</target>
+        <priority>HIGH</priority>
+      </callout>
+      <callout>
+        <procedure>CODE</procedure>
+        <priority>MEDIUM</priority>
+      </callout>
+      <deconfigure>
+        <target>TARGET_CHIPLET</target>
+      </deconfigure>
+      <gard>
+        <target>TARGET_CHIPLET</target>
+      </gard>
    </hwpError>
    <!-- ******************************************************************** -->
 </hwpErrors>
