@@ -29,6 +29,7 @@
 
 using namespace fapi2;
 
+constexpr uint64_t literal_3 = 3;
 constexpr uint64_t literal_1 = 1;
 constexpr uint64_t literal_8 = 8;
 constexpr uint64_t literal_0b0 = 0b0;
@@ -44,6 +45,8 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         fapi2::ATTR_NAME_Type l_chip_id;
         FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, TGT2, l_chip_id));
         FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, TGT2, l_chip_ec));
+        fapi2::ATTR_NEST_PLL_BUCKET_Type l_TGT1_ATTR_NEST_PLL_BUCKET;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_PLL_BUCKET, TGT1, l_TGT1_ATTR_NEST_PLL_BUCKET));
         uint64_t l_def_L3_EPS_DIVIDE = literal_1;
         fapi2::ATTR_PROC_EPS_READ_CYCLES_T0_Type l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_EPS_READ_CYCLES_T0, TGT1, l_TGT1_ATTR_PROC_EPS_READ_CYCLES_T0));
@@ -60,6 +63,17 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         fapi2::ATTR_PROC_FABRIC_PUMP_MODE_Type l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE, TGT1, l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE));
         fapi2::buffer<uint64_t> l_scom_buffer;
+        {
+            FAPI_TRY(fapi2::getScom( TGT0, 0x1001180full, l_scom_buffer ));
+
+            if ((l_TGT1_ATTR_NEST_PLL_BUCKET >= literal_3))
+            {
+                constexpr auto l_EXP_L3_L3_CARB_L3CACTL_L3_REF_TIMER_DIVIDE_MINOR_DIV_BY_12 = 0x2;
+                l_scom_buffer.insert<8, 4, 60, uint64_t>(l_EXP_L3_L3_CARB_L3CACTL_L3_REF_TIMER_DIVIDE_MINOR_DIV_BY_12 );
+            }
+
+            FAPI_TRY(fapi2::putScom(TGT0, 0x1001180full, l_scom_buffer));
+        }
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x10011829ull, l_scom_buffer ));
 
