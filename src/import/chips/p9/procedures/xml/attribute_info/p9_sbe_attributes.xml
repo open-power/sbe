@@ -477,5 +477,8 @@ attribute tank
         <name>ATTR_NDL_MESHCTRL_SETUP</name>
         <value>0x0</value>
   </entry>
-
+  <entry>
+           <name>ATTR_CHIP_EC_FEATURE_HW363246</name>
+           <virtual/>
+  </entry>
 </entries>

@@ -24,12 +24,12 @@
 /* IBM_PROLOG_END_TAG                                                     */
 ///
 /// @file p9_suspend_io.H
-/// @brief Procedure to suspend PCIe traffic. (FAPI2)
+/// @brief Procedure to suspend PCIe traffic.
 ///
 // *HWP HWP Owner: Ricardo Mata Jr. ricmata@us.ibm.com
 // *HWP FW Owner: Thi Tran thi@us.ibm.com
 // *HWP Team: Nest
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: HB
 
 #ifndef _P9_SUSPEND_IO_H_
@@ -51,13 +51,14 @@ typedef fapi2::ReturnCode (*p9_suspend_io_FP_t) (const fapi2::Target<fapi2::TARG
 // Constant definitions
 //-----------------------------------------------------------------------------------
 
-const uint8_t PHB_NFIR_REG_SW_DEFINED_FREEZE = 26; //PCI Nest FIR Register bit26 for SW Freeze enablement
-
-const uint32_t MAX_NUM_POLLS = 100; //Maximum number of iterations (So, 20ms * 100 = 2s before timeout)
-const uint64_t PBCQ_NANO_SEC_DELAY =
-    40000000; //(40000000 ns = 20 ms) to wait for PBCQ inbound and outbound to become inactive
-const uint64_t PBCQ_SIM_CYC_DELAY =
-    400000; //400,000 simulation cycles to wait for PBCQ inbound and outbound to become inactive
+// PCI Nest FIR Register bit26 for SW Freeze enablement
+const uint8_t PHB_NFIR_REG_SW_DEFINED_FREEZE = 26;
+//Maximum number of iterations (So, 20ms * 100 = 2s before timeout)
+const uint32_t MAX_NUM_POLLS = 100;
+//(40000000 ns = 20 ms) to wait for PBCQ inbound/outbound to become inactive
+const uint64_t PBCQ_NANO_SEC_DELAY = 40000000;
+//400,000 simulation cycles to wait for PBCQ inbound/outbound to become inactive
+const uint64_t PBCQ_SIM_CYC_DELAY = 400000;
 
 
 extern "C" {
@@ -65,25 +66,17 @@ extern "C" {
 //-----------------------------------------------------------------------------------
 // Function prototype
 //-----------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-// name: p9_suspend_io
-//------------------------------------------------------------------------------
-// purpose:
-// Freeze PEC and drive reset to PHB to suspend all IO traffic.
-//
-// parameters:
-// 'i_target' is reference to chip target
-// 'i_enable_mpipl' is Boolean flag indicating whether you're running this procedure during MPIPL (true) or non-MPIPL (false)
-//
-// returns:
-// FAPI_RC_SUCCESS (success, forced PCIe PHBs into reset)
-// RC_P9_PBCQ_CQ_NOT_IDLE (error, timed out while waiting for traffic to become idle for PBCQ of PCIe controller)
-// (Note: refer to file eclipz/chips/p9/working/procedures/xml/error_info/p9_suspend_io_errors.xml)
-// getscom/putscom fapi errors
-// fapi error assigned from eCMD function failure
-//
-//------------------------------------------------------------------------------
-    fapi2::ReturnCode p9_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target, const bool i_enable_mpipl);
+///
+/// @brief Freeze PEC and drive reset to PHB to suspend all IO traffic
+///
+/// @param[in] i_target        Reference to chip proc target
+/// @param[in] i_enable_mpipl  true = running during MPIPL; false = otherwise.
+///
+/// @return fapi2:ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
+    fapi2::ReturnCode p9_suspend_io(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const bool i_enable_mpipl);
 
 } //extern"C"
 
