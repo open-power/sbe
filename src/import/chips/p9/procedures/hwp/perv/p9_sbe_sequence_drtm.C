@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -158,13 +158,16 @@ fapi2::ReturnCode p9_sbe_sequence_drtm(const fapi2::Target<fapi2::TARGET_TYPE_PR
                 FAPI_DBG("Current Chip on the system not quiesced - %#018lx", (uint64_t(1) << (63 - validchip)));
                 break; //From while loop with PENDING return code
             }
-
+            else
+            {
+                FAPI_IMP("Chip [%#018lx] has LQA set", (uint64_t(1) << (63 - validchip)));
+                FAPI_IMP("Current System configuration : %#010lx - %#x", (l_sys_config >> 32), (uint32_t)l_sys_config);
+            }
         }
 
         validchip++;
 
     } //End of while (validchip <= 63)
-
 
     FAPI_INF("p9_sbe_sequence_drtm : Exiting ...");
 

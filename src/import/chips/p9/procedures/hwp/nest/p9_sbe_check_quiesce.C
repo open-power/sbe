@@ -82,6 +82,7 @@ extern "C" {
     fapi2::ReturnCode p9_sbe_check_quiesce(const
                                            fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        FAPI_IMP("p9_sbe_check_quiesce: Entering..");
         // mark HWP entry
 
         // SBE will check quiesce state for all units on the powerbus on its chip
@@ -110,6 +111,7 @@ extern "C" {
             }
         }
 
+        FAPI_IMP("p9_sbe_check_quiesce: Exiting..");
         return saveError;
     }
 
@@ -122,6 +124,7 @@ extern "C" {
     //---------------------------------------------------------------------------------
     fapi2::ReturnCode p9_capp_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        FAPI_IMP("p9_capp_check_quiesce: Entering ....");
         // mark HWP entry
 
         fapi2::buffer<uint64_t> l_data(0);
@@ -207,6 +210,7 @@ extern "C" {
         }
 
     fapi_try_exit:
+        FAPI_IMP("p9_capp_check_quiesce: Exiting ....");
         return fapi2::current_err;
     }
 
@@ -215,6 +219,7 @@ extern "C" {
     //---------------------------------------------------------------------------------
     fapi2::ReturnCode p9_phb_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        FAPI_IMP("p9_phb_check_quiesce: Entering ...");
         // mark HWP entry
         fapi2::buffer<uint64_t> l_data(0);
         //We want to set bit 0 (the Quiesce DMA bit)
@@ -289,6 +294,7 @@ extern "C" {
         FAPI_TRY(p9_suspend_io(i_target, true), "ERROR suspending IO");
 
     fapi_try_exit:
+        FAPI_IMP("p9_phb_check_quiesce: Exiting ...");
         return fapi2::current_err;
     }
 
@@ -297,6 +303,7 @@ extern "C" {
     //---------------------------------------------------------------------------------
     fapi2::ReturnCode p9_npu_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        FAPI_IMP("p9_npu_check_quiesce: Entering...");
         // mark HWP entry
 
         const uint32_t c_fence_status_reg_size = 6;
@@ -415,6 +422,7 @@ extern "C" {
         }
 
     fapi_try_exit:
+        FAPI_IMP("p9_npu_check_quiesce: Exiting...");
         return fapi2::current_err;
     }
 
@@ -423,6 +431,7 @@ extern "C" {
     //---------------------------------------------------------------------------------
     fapi2::ReturnCode p9_vas_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        FAPI_IMP("p9_vas_check_quiesce: Entering...");
         // mark HWP entry
 
         fapi2::buffer<uint64_t> l_vas_north_misc_ctl_data(0);
@@ -472,6 +481,7 @@ extern "C" {
         fapi2::putScom(i_target, PU_VAS_MISCCTL, l_vas_north_misc_ctl_data);
 
     fapi_try_exit:
+        FAPI_IMP("p9_vas_check_quiesce: Exiting...");
         return fapi2::current_err;
     }
 
@@ -480,6 +490,7 @@ extern "C" {
     //---------------------------------------------------------------------------------
     fapi2::ReturnCode p9_nx_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        FAPI_IMP("p9_nx_check_quiesce: Entering....");
         // mark HWP entry
 
         fapi2::buffer<uint64_t> l_dma_status_reg_data(0);
@@ -671,6 +682,7 @@ extern "C" {
 #endif
 
     fapi_try_exit:
+        FAPI_IMP("p9_nx_check_quiesce: Exiting....");
         return fapi2::current_err;
     }
 
@@ -679,6 +691,7 @@ extern "C" {
     //---------------------------------------------------------------------------------
     fapi2::ReturnCode p9_psihb_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        FAPI_IMP("p9_psihb_check_quiesce: Entering...");
         // mark HWP entry
 
         fapi2::buffer<uint64_t> l_psihb_data(0);
@@ -719,6 +732,7 @@ extern "C" {
         fapi2::putScom(i_target, PU_TRUST_CONTROL, l_psihb_data);
 
     fapi_try_exit:
+        FAPI_IMP("p9_psihb_check_quiesce: Exiting...");
         return fapi2::current_err;
     }
 
@@ -727,6 +741,7 @@ extern "C" {
     //---------------------------------------------------------------------------------
     fapi2::ReturnCode p9_intp_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        FAPI_IMP("p9_intp_check_quiesce: Entering...");
         // mark HWP entry
 
         fapi2::buffer<uint64_t> l_data(0);
@@ -886,6 +901,7 @@ extern "C" {
 #endif
 
     fapi_try_exit:
+        FAPI_IMP("p9_intp_check_quiesce: Exiting...");
         return fapi2::current_err;
     }
 
