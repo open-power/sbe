@@ -1181,6 +1181,15 @@ ReturnCode istepWithProcQuiesceLQASet( sbeIstepHwp_t i_hwp )
                 SBE_ERROR(SBE_FUNC "PutScom failed for PU_SECURITY_SWITCH_REGISTER_SCOM");
                 break;
             }
+            l_data = 0;
+            l_rc = getscom_abs_wrap (&l_proc, PU_SECURITY_SWITCH_REGISTER_SCOM, &l_data);
+            if(l_rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "GetScom failed for PU_SECURITY_SWITCH_REGISTER_SCOM");
+                break;
+            }
+            SBE_INFO(SBE_FUNC "PU_SECURITY_SWITCH_REGISTER_SCOM Data [0x%08X][%08X]",
+                (uint32_t)((l_data >> 32) & 0xFFFFFFFF), (uint32_t)(l_data & 0xFFFFFFFF));
         }
     }while(0);
     SBE_EXIT(SBE_FUNC);

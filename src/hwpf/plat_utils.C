@@ -55,6 +55,7 @@ namespace fapi2
         // about unused variables.
         static_cast<void>(i_nanoSeconds);
         static_cast<void>(i_simCycles);
+        FAPI_IMP("delay enter....");
 
 
 #ifndef __FAPI_DELAY_SIM__
@@ -73,6 +74,12 @@ namespace fapi2
             pk_critical_section_enter(&ctx);
 
             target_time = pk_timebase_get() + delayCycles( i_nanoSeconds);
+            current_time = pk_timebase_get();
+            FAPI_IMP("Target Time 0x%08X %08X Current Time 0x%08X %08X",
+                (uint32_t)((target_time >> 32) & 0xFFFFFFFF),
+                (uint32_t)(target_time & 0xFFFFFFFF),
+                (uint32_t)((current_time >> 32) & 0xFFFFFFFF),
+                (uint32_t)(current_time & 0xFFFFFFFF));
 
             do
             {
@@ -121,6 +128,7 @@ namespace fapi2
 #endif
 
         // replace with platform specific implementation
+        FAPI_IMP("delay exit....");
         return FAPI2_RC_SUCCESS;
     }
 
