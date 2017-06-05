@@ -25,6 +25,15 @@
 #include "sbetrace.H"
 #include "sbeglobals.H"
 
+////////////////////////////////////////////////////////////////
+//// @brief Stacks for Non-critical Interrupts and Threads
+//////////////////////////////////////////////////////////////////
+// Moved it out-side the scope of Global Class for symbol generation in syms
+uint8_t sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];
+uint8_t sbeCommandReceiver_stack[SBE_THREAD_CMD_RECV_STACK_SIZE];
+uint8_t sbeSyncCommandProcessor_stack[SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE];
+uint8_t sbeAsyncCommandProcessor_stack[SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE];
+
 SBEGlobalsSingleton* sbeGlobal = &SBEGlobalsSingleton::getInstance();
 SBEGlobalsSingleton& SBEGlobalsSingleton::getInstance()
 {

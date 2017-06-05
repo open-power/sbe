@@ -194,7 +194,7 @@ int sbeInitThreads(void)
         l_rc = createAndResumeThreadHelper(&SBE_GLOBAL->sbeCommandReceiver_thread,
                             sbeCommandReceiver_routine,
                             (void *)0,
-                            (PkAddress)SBE_GLOBAL->sbeCommandReceiver_stack,
+                            (PkAddress)sbeCommandReceiver_stack,
                             SBE_THREAD_CMD_RECV_STACK_SIZE,
                             THREAD_PRIORITY_5);
         if (l_rc)
@@ -206,7 +206,7 @@ int sbeInitThreads(void)
         l_rc = createAndResumeThreadHelper(&SBE_GLOBAL->sbeSyncCommandProcessor_thread,
                             sbeSyncCommandProcessor_routine,
                             (void *)0,
-                            (PkAddress)SBE_GLOBAL->sbeSyncCommandProcessor_stack,
+                            (PkAddress)sbeSyncCommandProcessor_stack,
                             SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE,
                             THREAD_PRIORITY_7);
         if (l_rc)
@@ -218,7 +218,7 @@ int sbeInitThreads(void)
         l_rc = createAndResumeThreadHelper(&SBE_GLOBAL->sbeAsyncCommandProcessor_thread,
                             sbeAsyncCommandProcessor_routine,
                             (void *)0,
-                            (PkAddress)SBE_GLOBAL->sbeAsyncCommandProcessor_stack,
+                            (PkAddress)sbeAsyncCommandProcessor_stack,
                             SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE,
                             THREAD_PRIORITY_6);
         if (l_rc)
@@ -253,7 +253,7 @@ uint32_t main(int argc, char **argv)
     {
         // initializes kernel data -
         // stack, threads, timebase, timers, etc.
-        l_rc = pk_initialize((PkAddress)SBE_GLOBAL->sbe_Kernel_NCInt_stack,
+        l_rc = pk_initialize((PkAddress)sbe_Kernel_NCInt_stack,
              SBE_NONCRITICAL_STACK_SIZE,
              0,
              SBE_GLOBAL->sbefreq );

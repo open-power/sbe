@@ -33,6 +33,12 @@
 
 #define SBE_GLOBAL sbeGlobal
 
+// Extern declartion, Defined in sbeglobal.C
+extern uint8_t sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];
+extern uint8_t sbeCommandReceiver_stack[SBE_THREAD_CMD_RECV_STACK_SIZE];
+extern uint8_t sbeSyncCommandProcessor_stack[SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE];
+extern uint8_t sbeAsyncCommandProcessor_stack[SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE];
+
 class SBEGlobalsSingleton
 {
     public:
@@ -73,14 +79,6 @@ class SBEGlobalsSingleton
         sbeHostAddr_t hostPassThroughCmdAddr;
         // ffdc address
         sbeHostAddr_t hostFFDCAddr;
-
-        ////////////////////////////////////////////////////////////////
-        //// @brief Stacks for Non-critical Interrupts and Threads
-        //////////////////////////////////////////////////////////////////
-        uint8_t sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];
-        uint8_t sbeCommandReceiver_stack[SBE_THREAD_CMD_RECV_STACK_SIZE];
-        uint8_t sbeSyncCommandProcessor_stack[SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE];
-        uint8_t sbeAsyncCommandProcessor_stack[SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE];
 
         ////////////////////////////////////////////////////////////////
         //// @brief PkThread structure for SBE Command Receiver thread

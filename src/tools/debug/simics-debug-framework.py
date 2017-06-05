@@ -104,10 +104,10 @@ def fillSymTable():
 # the first memory address where the pattern('0xEFCDAB03') is broken,
 # will be the deepest stack usage point of tht thread during the run
 def collectStackUsage ( procNr ):
-  threads = ('g_sbeSyncCommandProcessor_stack',
-             'g_sbeCommandReceiver_stack',
-             'g_sbe_Kernel_NCInt_stack',
-             'g_sbeAsyncCommandProcessor_stack')
+  threads = ('sbeSyncCommandProcessor_stack',
+             'sbeCommandReceiver_stack',
+             'sbe_Kernel_NCInt_stack',
+             'sbeAsyncCommandProcessor_stack')
   print "==================================Stack usage==================================="
   # Dump stack memory to binary files
   for thread in threads:

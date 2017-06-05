@@ -30,6 +30,7 @@ import random
 import getopt
 import sys
 import binascii
+import struct
 err = False
 
 baseAddr = 0xfffe8000
@@ -224,6 +225,47 @@ def collectAttr( sbeObjDir, target, node, proc, ddsuffix, file_path ):
        print "ERROR running %s: %d " % ( cmd3, rc )
        return 1
 
+def collectStackUsage (node, proc ):
+    threads = ('sbeSyncCommandProcessor_stack',
+               'sbeCommandReceiver_stack',
+               'sbe_Kernel_NCInt_stack',
+               'sbeAsyncCommandProcessor_stack')
+    for thread in threads:
+        offset = getOffset( thread );
+        len = "0x" + syms[thread][1];
+        cmd1 = ("p9_pibmem_dump_wrap.exe -quiet -start_byte " + \
+                str(offset) +\
+                " -num_of_byte " + len + " "
+                " -n" + str(node) + " -p" + str(proc))
+        print "cmd1:", cmd1
+        rc = os.system( cmd1 )
+        if ( rc ):
+            print "ERROR running %s: %d " % ( cmd1, rc )
+            return 1
+
+        # Dump stack memory to binary file
+        cmd2 = "cat DumpPIBMEM >>"+thread
+        print "cmd2:", cmd2
+        rc = os.system( cmd2 )
+        if (rc):
+            print "ERROR running %s: %d " % ( cmd2, rc )
+            return 1
+
+    print "==================================Stack usage==================================="
+    print "Thread".ljust(40)+"Least Available[bytes]".ljust(30)+"Max usage[%]"
+    for thread in threads:
+        with open(thread, "rb") as f:
+            word = struct.unpack('I', f.read(4))[0]
+            leastAvailable = 0
+            while (1):
+                if (word == int("0xEFCDAB03", 16)):
+                    leastAvailable += 4
+                    word = struct.unpack('I', f.read(4))[0]
+                else:
+                    break
+            print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
+
+
 def ppeState( target, node, proc, file_path ):
     if(target == 'FILE'):
         print "File path: ", file_path
@@ -357,7 +399,7 @@ SBE Dump Parser\n\
 \n\
 optional arguments:\n\
   -h, --help            show this help message and exitn\n\
-  -l {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}, --level {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}\n\
+  -l {trace,attr,stack,ppestate,sbestate,sbestatus,sbelocalregister}, --level {trace,attr,stack,ppestate,sbestate,sbestatus,sbelocalregister}\n\
                         Parser level\n\
   -t {AWAN,HW,FILE}, --target {AWAN,HW,FILE}\n\
                         Target type\n\
@@ -388,10 +430,10 @@ def main( argv ):
             usage()
             exit(1)
         elif opt in ('-l', '--level'):
-            if arg in ('trace', 'forced-trace','attr','ppestate','sbestate','sbestatus','sbelocalregister'):
+            if arg in ('trace', 'forced-trace','attr','stack','ppestate','sbestate','sbestatus','sbelocalregister'):
                 level = arg
             else:
-                print "level should be one of {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister}"
+                print "level should be one of {trace,attr,stack,ppestate,sbestate,sbestatus,sbelocalregister}"
                 exit(1)
         elif opt in ('-t', '--target'):
             if arg in ('AWAN', 'HW', 'FILE'):
@@ -471,6 +513,9 @@ def main( argv ):
         sbeStatus( target, node, proc )
     elif ( level == 'sbelocalregister' ):
         sbeLocalRegister( target, node, proc, file_path )
+    elif ( level == 'stack' ):
+        fillSymTable(getSbeObjPath(), target, ddsuffix)
+	    collectStackUsage( node, proc )
 
     if(target != 'FILE'):
         # On cronus, set the FIFO mode to previous state
