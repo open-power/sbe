@@ -1742,60 +1742,6 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 
 #ifndef __PPE__  // Needed on the ppe side to avoid TOR API
 
-
-// This function prints out the raw decompressed ring content in the same
-//   format that it appears as in EKB's ifCompiler generated raw ring
-//   files, i.e. *.bin.srd (DATA) and *.bin.srd.bitsModified (CARE).
-static
-void printRawRing( uint8_t*  data,
-                   uint32_t  bits)
-{
-    uint32_t i;
-    uint8_t  bytePerWordCount = 0; // Nibble count in each word
-    uint32_t bytePerLineCount = 0; // Column count
-    uint8_t  rem = bits % 8;      // Rem raw bits beyond 1-byte boundary
-    uint8_t  nibblesToPrint;      // The last 1 or 2 nibbles to dump
-
-    for (i = 0; i < bits / 8; i++)
-    {
-        fprintf( stdout, "%02x", *(data + i));
-
-        if (++bytePerWordCount == 4)
-        {
-            fprintf( stdout, " ");
-            bytePerWordCount = 0;
-        }
-
-        if (++bytePerLineCount == 32)
-        {
-            fprintf( stdout, "\n");
-            bytePerLineCount = 0;
-        }
-    }
-
-    // Dump remaining bits (in whole nibbles and with any
-    //   unused bits being zeroed)
-    if (rem)
-    {
-        // Ensure the rightmost (8-rem) unused bits are zeroed out
-        nibblesToPrint = (*(data + i) >> (8 - rem)) << (8 - rem);
-
-        if (rem <= 4)
-        {
-            // Content only in first nibble. Dump only first nibble
-            fprintf( stdout, "%01x", nibblesToPrint >> 4);
-        }
-        else
-        {
-            // Content in both nibbles. Dump both nibbles
-            fprintf( stdout, "%02x", nibblesToPrint);
-        }
-    }
-
-    fprintf( stdout, "\n");
-}
-
-
 //@FIXME: This should be improved. Probably defined somewhere else.
 #define CHIPLET_ID_MAX            (uint8_t)0x37
 
@@ -2115,10 +2061,10 @@ int dissectRingSectionTor( void*       i_ringSection,
                                 if (i_listingModeId == LMID_RAW)
                                 {
                                     fprintf( stdout, "\nRaw decompressed DATA nibbles:\n");
-                                    printRawRing( data, bits);
+                                    print_raw_ring( data, bits);
 
                                     fprintf( stdout, "\nRaw decompressed CARE nibbles:\n");
-                                    printRawRing( care, bits);
+                                    print_raw_ring( care, bits);
 
                                     fprintf( stdout, "\n");
                                 }
