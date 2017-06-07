@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -146,6 +147,19 @@ namespace fapi2
     fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
                                     const uint32_t i_addr, uint64_t i_data);
 
+    ///
+    /// @brief Plat implementation of putScomUnderMask
+    ///
+    /// @param [in] i_target Pointer to fapi2::Target as a void*
+    /// @param [in] i_addr The SCOM address
+    /// @param [in] i_data The data to write (after applying the mask)
+    /// @param [in] i_mask The data mask
+    ///
+    /// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+    fapi2::ReturnCode putscom_under_mask(const void *i_target,
+                                         uint32_t i_addr,
+                                         uint64_t i_data,
+                                         uint64_t i_mask);
     ///
     /// @brief Platform wrapper to retry scom for parity/timeout errors
     ///

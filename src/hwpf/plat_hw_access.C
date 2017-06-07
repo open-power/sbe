@@ -315,6 +315,32 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+
+fapi2::ReturnCode putscom_under_mask(const void *i_target,
+                                     uint32_t i_addr,
+                                     uint64_t i_data,
+                                     uint64_t i_mask)
+{
+    uint64_t l_read = 0;
+    fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
+
+    do
+    {
+        l_rc = getscom_abs_wrap(i_target, i_addr, &l_read);
+
+        if(l_rc)
+        {
+            break;
+        }
+
+        l_read = (l_read & ~i_mask) | (i_data & i_mask);
+
+        l_rc = putscom_abs_wrap(i_target, i_addr, l_read);
+    } while (false);
+
+    return l_rc;
+}
+
 uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,
                          const uint8_t i_pibErr, const bool i_isRead)
 {

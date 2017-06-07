@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -151,6 +152,7 @@ namespace fapi2
                                  const buffer<uint64_t> i_data,
                                  const ChipOpModifyMode i_modifyMode)
     {
+        static_assert(does_plat_allow<K, V>::value, "modifyScom not suppported");
         fapi2::buffer<uint64_t> l_modifyDataBuffer;
 
         fapi2::ReturnCode l_rc;
@@ -197,23 +199,11 @@ __fapi2exit__:
     template< TargetType K, typename V >
     inline ReturnCode putScomUnderMask( const Target<K, V>& i_target,
                                         const uint64_t i_address,
-                                        buffer<uint64_t> i_data,
-                                        buffer<uint64_t> i_mask)
+                                        const buffer<uint64_t> i_data,
+                                        const buffer<uint64_t> i_mask)
     {
-        // TODO: via RTC: 160143: Fix the plat implementation
-        static_assert(does_plat_allow<K, V>::value, "putScomUnderMask not suppported");
-        fapi2::buffer<uint64_t> l_modifyDataBuffer = i_data;
-
-        l_modifyDataBuffer &= i_mask;
-
-        fapi2::ReturnCode l_rc;
-        PLAT_PUTSCOM(l_rc,
-                     i_target,
-                    (uint32_t)(i_address & BITS(40,24)),
-                     l_modifyDataBuffer());
-
-        return l_rc;
-
+        return fapi2::putscom_under_mask(&i_target, i_address, i_data(),
+                                         i_mask());
     }
 
 
@@ -229,6 +219,7 @@ __fapi2exit__:
                                const uint32_t i_address,
                                buffer<uint32_t>& o_data)
     {
+        static_assert(does_plat_allow<K, V>::value, "getCfamRegister not suppported");
         PLAT_GETCFAM(i_target.get(),
                     (uint32_t)(i_address & BITS(40,24)),
                     &(o_data()));
@@ -248,6 +239,7 @@ __fapi2exit__:
                                const uint32_t i_address,
                                buffer<uint32_t>& i_data)
     {
+        static_assert(does_plat_allow<K, V>::value, "putCfamRegister not suppported");
         PLAT_PUTCFAM(i_target.get(),
                     (uint32_t)(i_address & BITS(40,24)),
                     &(i_data()));
@@ -269,6 +261,7 @@ __fapi2exit__:
                                          const buffer<uint32_t>& i_data,
                                          const ChipOpModifyMode i_modifyMode)
     {
+        static_assert(does_plat_allow<K, V>::value, "modifyCfamRegister not suppported");
         PLAT_MODCFAM(i_target.get(),
                     (uint32_t)(i_address & BITS(40,24)),
                     &(i_data()),
