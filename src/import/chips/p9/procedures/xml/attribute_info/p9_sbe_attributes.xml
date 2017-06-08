@@ -359,6 +359,10 @@ attribute tank
            <virtual/>
   </entry>
   <entry>
+           <name>ATTR_CHIP_EC_FEATURE_TRCTRL_HAS_NO_RUN_BITS</name>
+           <virtual/>
+  </entry>
+  <entry>
            <name>ATTR_CHIP_EC_FEATURE_FSI_GP_SHADOWS_OVERWRITE</name>
            <virtual/>
   </entry>
