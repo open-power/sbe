@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,71 +22,57 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-//------------------------------------------------------------------------------------
-//
+
+///
 /// @file p9_sbe_load_bootloader.H
-/// @brief Shift HB bootloader payload from SEEPROM to L3 cache of master core via PBA
-//
-// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
-// *HWP HWP Writer: Murey A Luna Torres malunato@us.ibm.com, Joseph McGill jmcgill@us.ibm.com
+/// @brief Shift HB bootloader payload from SEEPROM to L3 cache of master core
+/// via PBA
+///
+
+// *HWP HWP Owner: Joseph McGill jmcgill@us.ibm.com
 // *HWP FW Owner: Thi Tran thi@us.ibm.com
 // *HWP Team: Nest
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
-//-----------------------------------------------------------------------------------
-// *! ADDITIONAL COMMENTS:
-// *!
-// *! This hardware procedure is used to load a bootloader image from seeprom into
-// *! L3 of master core via PBA unit.
-// *!
-// *! Successful operation assumes that:
-// *! PBA communication is available
-// *!
-// *! High-level procedure flow:
-// *!
-//------------------------------------------------------------------------------------
 
 #ifndef _SBE_BOOTLOADER_H_
 #define _SBE_BOOTLOADER_H_
 
-//-----------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Includes
-//-----------------------------------------------------------------------------------
-
+//------------------------------------------------------------------------------
 #include <fapi2.H>
-#include <p9_sbe_hb_structures.H>
-//-----------------------------------------------------------------------------------
-// Structure definitions
-//-----------------------------------------------------------------------------------
 
-//function pointer typedef definition for HWP call support
+//------------------------------------------------------------------------------
+// Structure definitions
+//------------------------------------------------------------------------------
+// function pointer typedef definition for HWP call support
 typedef fapi2::ReturnCode(*p9_sbe_load_bootloader_FP_t) (
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
     const fapi2::Target<fapi2::TARGET_TYPE_EX>&,
     const uint64_t,
     uint8_t*);
 
-//-----------------------------------------------------------------------------------
-// Constant definitions
-//-----------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// Function prototype
+//------------------------------------------------------------------------------
+//
 
 extern "C" {
 
-    //-----------------------------------------------------------------------------------
-    // Function prototype
-    //-----------------------------------------------------------------------------------
-    //
-/// @brief Shift HB bootloader payload from SEEPROM to L3 cache of master core via PBA
+///
+/// @brief Shift HB bootloader payload from SEEPROM to L3 cache of master core
+///        via PBA
 /// @param[in] i_master_chip_target Reference to master processor chip target
-/// @param[in] i_master_ex_target Reference to master ex unit target
-/// @param[in] i_payload_size Size of image payload load to load, in B
+/// @param[in] i_master_ex_target Reference to master EX unit target
+/// @param[in] i_payload_size Size of image payload data, in B
 /// @param[in] i_payload_data Pointer to image payload data
 ///
 /// @return FAPI_RC_SUCCESS if success, else error code
 ///
     fapi2::ReturnCode p9_sbe_load_bootloader(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_master_chip_target,
-        const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_master_eq_target,
+        const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_master_ex_target,
         const uint64_t i_payload_size,
         uint8_t* i_payload_data);
 
