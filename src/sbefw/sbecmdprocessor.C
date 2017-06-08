@@ -245,7 +245,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     // Update SBE msgg reg to indicate that control loop
     // is ready now to receive data on its interfaces
     (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
-    
+
     // Check the destination bit at the start
     if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
     {

@@ -126,48 +126,90 @@ uint32_t sbeStartCntlDmt()
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_DMT_ENTER_EVENT);
 
-        // Fetch the master core
         Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
-
-        // Fetch the MASTER_CORE attribute
-        uint8_t l_coreId = 0;
-        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,l_procTgt,l_coreId);
-
-        // Construct the Master Core Target
-        Target<TARGET_TYPE_CORE> l_coreTgt(
-                plat_getTargetHandleByChipletNumber<TARGET_TYPE_CORE>(
-                    CORE_CHIPLET_OFFSET + l_coreId));
+        // Fetch the Master EX
+        uint8_t exId = 0;
+        uint8_t fuseMode = 0;
+        FAPI_ATTR_GET(fapi2::ATTR_MASTER_EX,l_procTgt,exId);
+        FAPI_ATTR_GET(ATTR_FUSED_CORE_MODE, Target<TARGET_TYPE_SYSTEM>(), fuseMode);
+        fapi2::Target<fapi2::TARGET_TYPE_EX >
+            exTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_EX>(exId));
 
         // Call Hwp p9_sbe_check_master_stop15 and loop
         // Go around a loop till you get FAPI2_RC_SUCCESS
         do
         {
-            SBE_EXEC_HWP(l_fapiRc, p9_sbe_check_master_stop15_hwp, l_coreTgt);
-            //Conversion is required here, since ReturnCode doesn't support
-            //comparision '!=' or '=='
-            //TODO RTC:149021
-            uint32_t l_rcFapi = l_fapiRc;
-            if( (l_rcFapi != fapi2::RC_CHECK_MASTER_STOP15_PENDING) &&
-                    (l_rcFapi != FAPI2_RC_SUCCESS))
+            //Initilise both core's fapirc with Success, If it's a non-fused
+            //mode then only Core0's fapiRC will get modified below, second
+            //fapiRc will remain Success
+            uint32_t rcFapi[2] = {FAPI2_RC_SUCCESS};
+            uint8_t coreCnt = 0;
+            for (auto &coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
             {
-                SBE_ERROR(SBE_FUNC" p9_sbe_check_master_stop15 "
-                        "returned failure");
-                // Async Response to be stored
-                // RTC:149074
-                break;
+                // Core0 is assumed to be the master core
+                SBE_INFO(SBE_FUNC "Executing p9_sbe_check_master_stop15_hwp for Core[%d]",
+                    coreTgt.get().getTargetInstance());
+                
+                SBE_EXEC_HWP(l_fapiRc, p9_sbe_check_master_stop15_hwp, coreTgt);
+                rcFapi[coreCnt++] = l_fapiRc;
+                if( (l_fapiRc != fapi2::RC_CHECK_MASTER_STOP15_PENDING) &&
+                    (l_fapiRc != FAPI2_RC_SUCCESS))
+                {
+                    SBE_ERROR(SBE_FUNC" p9_sbe_check_master_stop15 returned "
+                        "failure for Core[%d]",coreTgt.get().getTargetInstance());
+                    // Async Response to be stored
+                    // RTC:149074
+                    break;
+                }
+                if(!fuseMode)
+                {
+                    // This is non-fuse mode, so break here, no need to do the
+                    // p9_sbe_check_master_stop15_hwp on second core.
+                    break;
+                }
+            }
+            // Break from do..while(timer.active), if error already happened
+            if( (l_fapiRc != fapi2::RC_CHECK_MASTER_STOP15_PENDING) &&
+                (l_fapiRc != FAPI2_RC_SUCCESS) )
+            {
+                break; //do..while(timer.active)
             }
 
-            // Only for Pending and Success case
-            if(RC_CHECK_MASTER_STOP15_PENDING != l_rcFapi) // Success
+            // Only for Pending and Success case, 
+            // If non-fuse core mode then single core status is Pending/Success,
+            // if fuse core mode then both core's status is pending/success
+           
+            if(RC_CHECK_MASTER_STOP15_PENDING != rcFapi[0] &&
+                RC_CHECK_MASTER_STOP15_PENDING != rcFapi[1]) // Success
             {
-                SBE_EXEC_HWP(l_fapiRc, p9_block_wakeup_intr_hwp, l_coreTgt,
-                                                p9pmblockwkup::CLEAR);
-                if( l_fapiRc )
+                for (auto coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
                 {
-                    SBE_ERROR(SBE_FUNC" p9_block_wakeup_intr failed ");
-                    // TODO via RTC 149074
-                    // Async Response to be stored.
-                    // Also checkstop the system.
+                    SBE_INFO(SBE_FUNC "Executing p9_block_wakeup_intr_hwp for Core[%d]",
+                        coreTgt.get().getTargetInstance());
+                    SBE_EXEC_HWP(l_fapiRc, p9_block_wakeup_intr_hwp, coreTgt,
+                                                p9pmblockwkup::CLEAR);
+                    if( l_fapiRc )
+                    {
+                        SBE_ERROR(SBE_FUNC" p9_block_wakeup_intr failed for "
+                            "Core[%d]",coreTgt.get().getTargetInstance());
+                        // TODO via RTC 149074
+                        // Async Response to be stored.
+                        // Also checkstop the system.
+                        break;
+                    }
+                    // If Success for the First core & it's a Fuse core then
+                    // continue here for the Second core then go on to press the
+                    // Door Bell
+                    if(!fuseMode)
+                    {
+                        break;
+                    }
+                }
+                
+                // Break out for the p9_block_wakeup_intr failure above
+                // Dont press the Door bell
+                if(l_fapiRc)
+                {
                     break;
                 }
                 // indicate the Host via Bit SBE_SBE2PSU_DOORBELL_SET_BIT2
@@ -176,7 +218,7 @@ uint32_t sbeStartCntlDmt()
                 if(l_rc)
                 {
                     SBE_ERROR(SBE_FUNC " Failed to Write "
-                            "SBE_SBE2PSU_DOORBELL_SET_BIT2");
+                         "SBE_SBE2PSU_DOORBELL_SET_BIT2");
                 }
                 break; // Breakout from do..while()
             }

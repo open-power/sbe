@@ -59,13 +59,16 @@ namespace fapi2
                 uint64_t iv_chipId : 8;
                 uint64_t iv_deviceIdDontCare2 : 20;
                 uint64_t iv_c4Pin : 1;
-                uint64_t iv_deviceIdDontCare3 : 23;
+                uint64_t iv_deviceIdDontCare3 :17;
+                uint64_t iv_fusedMode : 1;
+                uint64_t iv_deviceIdDontCare4 :5;
             };
             uint64_t iv_deviceIdReg;
         } l_deviceId;
 
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         uint8_t l_ec = 0;
+        uint8_t fusedMode = 0;
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chipTarget =
             plat_getChipTarget();
 
@@ -84,10 +87,12 @@ namespace fapi2
                          static_cast<uint8_t>(l_deviceId.iv_chipId));
                 assert(false);
         }
-
+        fusedMode = (uint8_t)l_deviceId.iv_fusedMode;
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
-
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC, l_chipTarget, l_ec));
+        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
+                                fapi2::Target<TARGET_TYPE_SYSTEM>(),
+                                fusedMode));
 fapi_try_exit:
         return fapi2::current_err;
     }

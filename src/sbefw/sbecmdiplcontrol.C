@@ -40,6 +40,7 @@
 #include "sbecmdcntrldmt.H"
 // TODO Workaround
 #include "plat_target_parms.H"
+
 #include "fapi2.H"
 #include "p9_misc_scom_addresses_fld.H"
 // Pervasive HWP Header Files ( istep 2)
@@ -736,26 +737,40 @@ ReturnCode istepCacheInitf (sbeIstepHwp_t i_hwp )
 }
 
 //----------------------------------------------------------------------------
-
 ReturnCode istepWithCore( sbeIstepHwp_t i_hwp)
 {
+    #define SBE_FUNC "istepWithCore"
     ReturnCode rc = FAPI2_RC_SUCCESS;
-    // TODO via RTC 135345
-    // Curently we are passing Hard code core target. Finally it is
-    // going to be a multicast target. Once multicast support is
-    // present, use the right target.
-    fapi2::Target<fapi2::TARGET_TYPE_CORE > coreTgt;
-    // Put this in scope so that vector can be freed up before calling hwp.
-    {
-        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-        auto coreList = proc.getChildren<fapi2::TARGET_TYPE_CORE>();
-        // As it is workaround lets assume there will always be atleast one
-        // functional ec. No need to validate.
-        coreTgt = coreList[0];
-    }
+
+    // Get master Ex
+    uint8_t exId = 0;
+    uint8_t fuseMode = 0;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    FAPI_ATTR_GET(fapi2::ATTR_MASTER_EX,proc,exId);
+    FAPI_ATTR_GET(ATTR_FUSED_CORE_MODE, Target<TARGET_TYPE_SYSTEM>(), fuseMode);
+    fapi2::Target<fapi2::TARGET_TYPE_EX >
+        exTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_EX>(exId));
     assert( NULL != i_hwp.coreHwp );
-    SBE_EXEC_HWP(rc, i_hwp.coreHwp, coreTgt )
+
+    for (auto &coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        // Core0 is assumed to be the master core
+        SBE_EXEC_HWP(rc, i_hwp.coreHwp, coreTgt)
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " istepWithCore failed, RC=[0x%08X]", rc);
+            break;
+        }
+        // Only continue in case of istep4 && fuse core mode
+        if(!( (fuseMode) &&
+              (SbeRegAccess::theSbeRegAccess().getSbeMajorIstepNumber() == 
+                                                            SBE_ISTEP4) ) )
+        {
+            break;
+        }
+    }
     return rc;
+    #undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------

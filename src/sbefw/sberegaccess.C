@@ -34,6 +34,7 @@
 #include "fapi2.H"
 #include <ppe42_scom.h>
 #include <p9_perv_scom_addresses.H>
+#include <p9_misc_scom_addresses.H>
 
 using namespace fapi2;
 
@@ -189,19 +190,20 @@ uint32_t SbeRegAccess::init()
                 break;
             }
         }
+
         // If the master/slave bit is 0 (either default or read from mbx6),
         // check the C4 board pin to determine role
+        // Read device ID register
+        uint64_t l_sbeDevIdReg = 0;
+        l_rc = getscom_abs(PERV_DEVICE_ID_REG, &l_sbeDevIdReg);
+        if(PCB_ERROR_NONE != l_rc)
+        {
+            SBE_ERROR(SBE_FUNC"Failed reading device id reg, RC: 0x%08X.",l_rc);
+            break;
+        }
+
         if(0 == iv_isSlave)
         {
-            uint64_t l_sbeDevIdReg = 0;
-            // Read device ID register
-            l_rc = getscom_abs(PERV_DEVICE_ID_REG, &l_sbeDevIdReg);
-            if(PCB_ERROR_NONE != l_rc)
-            {
-                SBE_ERROR(SBE_FUNC"Failed reading device id reg, RC: 0x%08X. "
-                          l_rc);
-                break;
-            }
             iv_isSlave = l_sbeDevIdReg & SBE_DEV_ID_C4_PIN_MASK;
             SBE_INFO(SBE_FUNC"Overriding master/slave with data read from "
                       "C4 pin: HI: 0x%08X, LO: 0x%08X",

@@ -198,6 +198,17 @@ class SbeRegAccess
         }
 
         /**
+         * @brief Get the SBE major istep number
+         *
+         * @return SBE current major istep number
+         *
+         */
+        uint8_t getSbeMajorIstepNumber() const
+        {
+            return iv_majorStep;
+        }
+
+        /**
          * @brief Update the SBE State as per the transition event
          *
          * @param [in] i_event Transition Event
@@ -261,6 +272,7 @@ class SbeRegAccess
         static const uint64_t SBE_MBX8_MBX3_VALID_MASK = 0x2000000000000000ULL;
         static const uint64_t SBE_MBX8_MBX6_VALID_MASK = 0x0400000000000000ULL;
         static const uint64_t SBE_DEV_ID_C4_PIN_MASK = 0x0000000000800000ULL;
+        static const uint64_t SBE_PERV_DEVICE_ID_REG_BIT58_MASK = 0x0000000000000020ULL;
         static SbeRegAccess cv_instance;
 };
 #endif //__SBEFW_SBEREGACCESS_H
