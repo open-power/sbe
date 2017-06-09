@@ -296,15 +296,20 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                     {
                         l_data_to_pass_to_pba_array[i] = l_bootloader_config_data.secureSettings.data8;
                     }
-                    //At address X + 0x1B (21-28) put the XSCOM BAR
-                    else if (i < 29)
+                    //At address X + 0x15 (21-27) put a zero
+                    else if (i < 28)
                     {
-                        l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.xscomBAR >> (56 - 8 * ((i - 21) % 8))) & 0xFF;
+                        l_data_to_pass_to_pba_array[i] = 0;
                     }
-                    //At address X + 0x1B (29-36) put the LPC BAR
-                    else if (i < 37)
+                    //At address X + 0x1B (28-35) put the XSCOM BAR
+                    else if (i < 36)
                     {
-                        l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.lpcBAR >> (56 - 8 * ((i - 29) % 8))) & 0xFF;
+                        l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.xscomBAR >> (56 - 8 * ((i - 28) % 8))) & 0xFF;
+                    }
+                    //At address X + 0x1B (36-43) put the LPC BAR
+                    else if (i < 44)
+                    {
+                        l_data_to_pass_to_pba_array[i] = (l_bootloader_config_data.lpcBAR >> (56 - 8 * ((i - 36) % 8))) & 0xFF;
                     }
                     //Fill the rest with the exception vector instruction
                     else
