@@ -515,7 +515,7 @@ def main( argv ):
         sbeLocalRegister( target, node, proc, file_path )
     elif ( level == 'stack' ):
         fillSymTable(getSbeObjPath(), target, ddsuffix)
-	    collectStackUsage( node, proc )
+        collectStackUsage( node, proc )
 
     if(target != 'FILE'):
         # On cronus, set the FIFO mode to previous state
