@@ -64,6 +64,7 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
     SIM_CYCLE_DELAY = 1000, // unit is sim cycles
     POLL_COUNT = 300, // Observed Number of times CBS read for CBS_INTERNAL_STATE_VECTOR
     OSC_ERROR_MASK = 0xF700000000000000, // Mask OSC errors
+    P9C_OSC_ERROR_MASK = 0xF300000000000000,
     LFIR_ACTION0_VALUE = 0x0000000000000000,
     LFIR_ACTION1_VALUE = 0x8000000000000000,
     FIR_MASK_VALUE = 0xFFFFFFFFFFC00000,
@@ -73,7 +74,7 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
 };
 
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, uint8_t cumulus_only_ec_attr);
 
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_region_fence_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
@@ -91,7 +92,10 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
     fapi2::ATTR_CHIP_EC_FEATURE_HW401184_Type l_disable_tod_hp = 0;
+    uint8_t l_read_attr;
     FAPI_INF("p9_sbe_tp_chiplet_init3: Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY, i_target_chip, l_read_attr));
 
     FAPI_DBG("Reading ATTR_PFET_OFF_CONTROLS");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PFET_OFF_CONTROLS, i_target_chip,
@@ -127,7 +131,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
                                             CLOCK_TYPES_SL));
 
     FAPI_DBG("Calling clock_test2");
-    FAPI_TRY(p9_sbe_tp_chiplet_init3_clock_test2(i_target_chip));
+    FAPI_TRY(p9_sbe_tp_chiplet_init3_clock_test2(i_target_chip, l_read_attr));
 
     FAPI_DBG("Drop FSI fence 5");
     //Setting ROOT_CTRL0 register value
@@ -148,7 +152,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_DBG("Drop EDRAM control gate and pfet_force_off");
     //Setting ROOT_CTRL2 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
-    l_data64.clearBit<16>();  //PIB.ROOT_CTRL2.ROOT_CTRL2_16_FREE_USAGE = 0
+    l_data64.clearBit<PERV_ROOT_CTRL2_TPFSI_TP_EDRAM_CTRL_GATE>();  //PIB.ROOT_CTRL2.ROOT_CTRL2_16_FREE_USAGE = 0
     //PIB.ROOT_CTRL2.TPFSI_TP_PFET_FORCE_OFF_DC = 0
     l_data64.clearBit<PERV_ROOT_CTRL2_SET_TPFSI_TP_PFET_FORCE_OFF_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL2_SCOM, l_data64));
@@ -191,18 +195,18 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_DBG("Setup Pervasive Hangcounter 0:Thermal, 1:OCC/SBE, 2:PBA hang, 3:Nest freq for TOD hang, 5:malefunction alert");
     //Setting HANG_PULSE_0_REG register value (Setting all fields)
     //PERV.HANG_PULSE_0_REG.HANG_PULSE_REG_0 = 0b010000
-    l_data64.insertFromRight<0, 6>(0b010000);
-    l_data64.clearBit<6>();  //PERV.HANG_PULSE_0_REG.SUPPRESS_HANG_0 = 0b0
+    l_data64.insertFromRight<PERV_1_HANG_PULSE_0_REG_0, PERV_1_HANG_PULSE_0_REG_0_LEN>(0b010000);
+    l_data64.clearBit<PERV_1_HANG_PULSE_0_REG_SUPPRESS>();  //PERV.HANG_PULSE_0_REG.SUPPRESS_HANG_0 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_0_REG, l_data64));
     //Setting HANG_PULSE_1_REG register value (Setting all fields)
     //PERV.HANG_PULSE_1_REG.HANG_PULSE_REG_1 = 0b000100
-    l_data64.insertFromRight<0, 6>(0b000100);
-    l_data64.clearBit<6>();  //PERV.HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0b1
+    l_data64.insertFromRight<PERV_1_HANG_PULSE_1_REG_1, PERV_1_HANG_PULSE_1_REG_1_LEN>(0b000100);
+    l_data64.clearBit<PERV_1_HANG_PULSE_1_REG_SUPPRESS>();  //PERV.HANG_PULSE_1_REG.SUPPRESS_HANG_1 = 0b1
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_1_REG, l_data64));
     //Setting HANG_PULSE_2_REG register value (Setting all fields)
     //PERV.HANG_PULSE_2_REG.HANG_PULSE_REG_2 = 0b010010
-    l_data64.insertFromRight<0, 6>(0b010010);
-    l_data64.clearBit<6>();  //PERV.HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0b0
+    l_data64.insertFromRight<PERV_1_HANG_PULSE_2_REG_2, PERV_1_HANG_PULSE_2_REG_2_LEN>(0b010010);
+    l_data64.clearBit<PERV_1_HANG_PULSE_2_REG_SUPPRESS>();  //PERV.HANG_PULSE_2_REG.SUPPRESS_HANG_2 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_2_REG, l_data64));
     //Setting HANG_PULSE_3_REG register value (Setting all fields)
     //PERV.HANG_PULSE_3_REG.HANG_PULSE_REG_3 = 0b000001
@@ -213,15 +217,15 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
 
     if (!l_disable_tod_hp)
     {
-        l_data64.insertFromRight<0, 6>(0b000001);
-        l_data64.clearBit<6>();  //PERV.HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0b0
+        l_data64.insertFromRight<PERV_1_HANG_PULSE_3_REG_3, PERV_1_HANG_PULSE_3_REG_3_LEN>(0b000001);
+        l_data64.clearBit<PERV_1_HANG_PULSE_3_REG_SUPPRESS>();  //PERV.HANG_PULSE_3_REG.SUPPRESS_HANG_3 = 0b0
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_3_REG, l_data64));
     }
 
     //Setting HANG_PULSE_5_REG register value (Setting all fields)
     //PERV.HANG_PULSE_5_REG.HANG_PULSE_REG_5 = 0b000110
-    l_data64.insertFromRight<0, 6>(0b000110);
-    l_data64.clearBit<6>();  //PERV.HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0b0
+    l_data64.insertFromRight<PERV_1_HANG_PULSE_5_REG_5, PERV_1_HANG_PULSE_5_REG_5_LEN>(0b000110);
+    l_data64.clearBit<PERV_1_HANG_PULSE_5_REG_SUPPRESS>();  //PERV.HANG_PULSE_5_REG.SUPPRESS_HANG_5 = 0b0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_HANG_PULSE_5_REG, l_data64));
 
 
@@ -232,7 +236,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
     FAPI_DBG("Start  calibration");
     //Setting KVREF_AND_VMEAS_MODE_STATUS_REG register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
-    l_data64.setBit<0>();  //KVREF_AND_VMEAS_MODE_STATUS_REG.KVREF_START_CAL = 0b1
+    l_data64.setBit<PERV_1_KVREF_AND_VMEAS_MODE_STATUS_REG_START_CAL>();  //KVREF_AND_VMEAS_MODE_STATUS_REG.KVREF_START_CAL = 0b1
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
 
     FAPI_DBG("Check for calibration done");
@@ -244,7 +248,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init3(const
         //Getting KVREF_AND_VMEAS_MODE_STATUS_REG register value
         FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
         //bool l_poll_data = KVREF_AND_VMEAS_MODE_STATUS_REG.KVREF_CAL_DONE
-        bool l_poll_data = l_data64.getBit<16>();
+        bool l_poll_data = l_data64.getBit<PERV_1_KVREF_AND_VMEAS_MODE_STATUS_REG_CAL_DONE>();
 
         if (l_poll_data == 1)
         {
@@ -274,7 +278,7 @@ fapi_try_exit:
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, uint8_t cumulus_only_ec_attr)
 {
     fapi2::buffer<uint64_t> l_read ;
     fapi2::buffer<uint64_t> l_data64;
@@ -283,7 +287,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     FAPI_DBG("unfence 281D");
     //Setting ROOT_CTRL0 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
-    l_data64.clearBit<0>();  //PIB.ROOT_CTRL0.TPFSI_SBE_FENCE_VTLIO_DC_UNUSED = 0
+    l_data64.clearBit<PERV_ROOT_CTRL0_FENCE0_DC>();  //PIB.ROOT_CTRL0.TPFSI_SBE_FENCE_VTLIO_DC_UNUSED = 0
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64));
 
     //Getting ROOT_CTRL3 register value
@@ -315,47 +319,88 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     //PIB.ROOT_CTRL3 = l_read
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_SCOM, l_read));
 
-    FAPI_DBG("Mask OSC err");
-    //Setting OSCERR_MASK register value
-    //PIB.OSCERR_MASK = OSC_ERROR_MASK
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_MASK, OSC_ERROR_MASK));
+    if (cumulus_only_ec_attr)  //Cumulus only
+    {
+        FAPI_DBG("Cumulus - Mask OSC err");
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_MASK, P9C_OSC_ERROR_MASK));
+    }
+    else
+    {
+        FAPI_DBG("Mask OSC err");
+        //Setting OSCERR_MASK register value
+        //PIB.OSCERR_MASK = OSC_ERROR_MASK
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_MASK, OSC_ERROR_MASK));
+    }
 
     FAPI_DBG("reset osc-error_reg");
     //Setting OSCERR_HOLD register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OSCERR_HOLD, l_data64));
-    l_data64.clearBit<4, 4>();  //PERV.OSCERR_HOLD.OSCERR_MEM = 0000
+    l_data64.clearBit<PERV_1_OSCERR_HOLD_MEM, PERV_1_OSCERR_HOLD_MEM_LEN>();  //PERV.OSCERR_HOLD.OSCERR_MEM = 0000
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_HOLD, l_data64));
 
     FAPI_DBG("Resets FIR");
     //Setting LOCAL_FIR register value
     l_data64.flush<1>();
-    l_data64.clearBit<36>();
-    l_data64.clearBit<37>();
+    l_data64.clearBit<PERV_1_LOCAL_FIR_IN36>();
+    l_data64.clearBit<PERV_1_LOCAL_FIR_IN37>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_AND, l_data64));
 
 #ifndef SIM_ONLY_OSC_SWC_CHK
 
-    FAPI_DBG("check for OSC ok");
-    //Getting SNS1LTH register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM,
-                            l_read)); //l_read = PIB.SNS1LTH
+    if (cumulus_only_ec_attr)  //Cumulus only
+    {
+        FAPI_DBG("Cumulus - check for OSC ok");
+        //Getting SNS1LTH register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM,
+                                l_read)); //l_read = PIB.SNS1LTH
 
-    FAPI_ASSERT(l_read.getBit<21>() == 0 && l_read.getBit<28>() == 1,
-                fapi2::MF_OSC_NOT_TOGGLE()
-                .set_MASTER_CHIP(i_target_chip)
-                .set_READ_SNS1LTH(l_read),
-                "MF oscillator not toggling");
+        FAPI_ASSERT(l_read.getBit<21>() == 0 && l_read.getBit<26>() == 1,
+                    fapi2::MF_OSC_NOT_TOGGLE()
+                    .set_MASTER_CHIP(i_target_chip)
+                    .set_READ_SNS1LTH(l_read),
+                    "MF oscillator(OSC0) not toggling");
 
-    FAPI_DBG("Osc error active");
-    //Getting OSCERR_HOLD register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OSCERR_HOLD,
-                            l_read)); //l_read = PERV.OSCERR_HOLD
+        FAPI_ASSERT(l_read.getBit<23>() == 0 && l_read.getBit<27>() == 1,
+                    fapi2::MF_OSC_NOT_TOGGLE()
+                    .set_MASTER_CHIP(i_target_chip)
+                    .set_READ_SNS1LTH(l_read),
+                    "MF oscillator(OSC1) not toggling");
 
-    FAPI_ASSERT(l_read.getBit<4>() == 0,
-                fapi2::MF_OSC_ERR()
-                .set_MASTER_CHIP(i_target_chip)
-                .set_READ_OSCERR_HOLD(l_read),
-                "MF oscillator error active");
+        FAPI_DBG("Cumulus - check Osc error active");
+        //Getting OSCERR_HOLD register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OSCERR_HOLD,
+                                l_read)); //l_read = PERV.OSCERR_HOLD
+
+        FAPI_ASSERT(l_read.getBit<4>() == 0 && l_read.getBit<5>() == 0,
+                    fapi2::MF_OSC_ERR()
+                    .set_MASTER_CHIP(i_target_chip)
+                    .set_READ_OSCERR_HOLD(l_read),
+                    "MF oscillator error active");
+    }
+    else
+    {
+        FAPI_DBG("check for OSC ok");
+        //Getting SNS1LTH register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM,
+                                l_read)); //l_read = PIB.SNS1LTH
+
+        FAPI_ASSERT(l_read.getBit<21>() == 0 && l_read.getBit<28>() == 1,
+                    fapi2::MF_OSC_NOT_TOGGLE()
+                    .set_MASTER_CHIP(i_target_chip)
+                    .set_READ_SNS1LTH(l_read),
+                    "MF oscillator not toggling");
+
+        FAPI_DBG("Osc error active");
+        //Getting OSCERR_HOLD register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OSCERR_HOLD,
+                                l_read)); //l_read = PERV.OSCERR_HOLD
+
+        FAPI_ASSERT(l_read.getBit<4>() == 0,
+                    fapi2::MF_OSC_ERR()
+                    .set_MASTER_CHIP(i_target_chip)
+                    .set_READ_OSCERR_HOLD(l_read),
+                    "MF oscillator error active");
+    }
 
 #endif
 
