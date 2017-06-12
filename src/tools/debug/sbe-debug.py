@@ -293,15 +293,92 @@ def collectStackUsage (node, proc ):
 
 def ppeState( target, node, proc, file_path ):
     if(target == 'FILE'):
+        regNameMapSPR = {
+                         # SPRs and XIR
+                         9 : ["CTR", False],
+                         316 : ["DACR", False],
+                         308 : ["DBCR", False],
+                         22 : ["DEC", False],
+                         61 : ["EDR", False],
+                         63 : ["IVPR", False],
+                         62 : ["ISR", False],
+                         8 : ["LR", False],
+                         286 : ["PIR", False],
+                         287 : ["PVR", False],
+                         272 : ["SPRG0", False],
+                         26 : ["SRR0", False],
+                         27 : ["SRR1", False],
+                         340 : ["TCR", False],
+                         336 : ["TSR", False],
+                         1 : ["XER", False],
+                         4200 : ["XSR", False],
+                         2 : ["IAR", False],
+                         3 : ["IR", False],
+                         42 : ["MSR", False],
+                         420 : ["CR", False],
+                        0x800:["FI2C_CFG", False],
+                        0x820:["FI2C_STAT", False],
+                        0x860:["FI2C_SCFG0", False],
+                        0x880:["FI2C_SCFG1", False],
+                        0x8A0:["FI2C_SCFG2", False],
+                        0x8C0:["FI2C_SCFG3", False],
+                        0x1000:["SBE_SCRATCH0", False],
+                        0x1020:["SBE_SCRATCH1", False],
+                        0x1040:["SBE_SCRATCH2", False],
+                        0x1060:["SBE_SCRATCH3", False],
+                        0x2000:["SBE_MISC", False],
+                        0x0000:["SBE_EISR", False],
+                        0x0020:["SBE_EIMR", False],
+                        0x0040:["SBE_EIPR", False],
+                        0x0060:["SBE_EITR", False],
+                        0x0080:["SBE_EISTR", False],
+                        0x00A0:["SBE_EINR", False],
+                        0x0100:["SBE_TSEL", False],
+                        0x0120:["SBE_DBG", False],
+                        0x0140:["SBE_TBR", False],
+                        0x0160:["SBE_IVPR", False],
+                         }
+
+        regNameMapGPR = {
+                         # GPRs
+                         0 : ["R0", False] ,
+                         1 : ["R1", False] ,
+                         2 : ["R2", False] ,
+                         3 : ["R3", False] ,
+                         4 : ["R4", False] ,
+                         5 : ["R5", False] ,
+                         6 : ["R6", False] ,
+                         7 : ["R7", False] ,
+                         8 : ["R8", False] ,
+                         9 : ["R9", False] ,
+                         10 : ["R10", False],
+                         13 : ["R13", False],
+                         28 : ["R28", False],
+                         29 : ["R29", False],
+                         30 : ["R30", False],
+                         31 : ["R31", False]
+                     }
         print "File path: ", file_path
         fileHandle = open(file_path)
         l_cnt = 0
         print '********************************************************************'
-        print 'Reg Number  Reg Value    '
+        print 'Reg'.ljust(15),'Reg Value'.ljust(20)
+        print '--------------------------------------------------------------------'
         while(l_cnt < os.path.getsize(file_path)):
-            str1 = binascii.hexlify(fileHandle.read(2))
+            regNum = int(binascii.hexlify(fileHandle.read(2)), 16)
+            str1 = ''
+            try:
+                if((regNum in regNameMapSPR.keys())
+                    and (regNameMapSPR[regNum][1] == False)):
+                    str1 = regNameMapSPR[regNum][0]
+                    regNameMapSPR[regNum][1] = True
+                else:
+                    str1 = regNameMapGPR[regNum][0]
+                    regNameMapGPR[regNum][1] = True
+            except:
+                str1 = hex(regNum)
             str3 = binascii.hexlify(fileHandle.read(4))
-            print str(str1).ljust(11),str(str3).ljust(20)
+            print str(str1).ljust(15),str(str3).ljust(20)
             l_cnt = l_cnt + 6;
 
         print '********************************************************************'
