@@ -188,7 +188,7 @@ ReturnCode istepMpiplRstClrTpmBits( sbeIstepHwp_t i_hwp );
 ReturnCode istepWithProcQuiesceLQASet( sbeIstepHwp_t i_hwp );
 ReturnCode istepWithExL2Flush( sbeIstepHwp_t i_hwp );
 ReturnCode istepWithExL3Flush( sbeIstepHwp_t i_hwp );
-ReturnCode istepNoOpStartMpipl( sbeIstepHwp_t i_hwp );
+ReturnCode istepStartMpipl( sbeIstepHwp_t i_hwp );
 ReturnCode istepWithProcSequenceDrtm( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( sbeIstepHwp_t i_hwp );
@@ -196,6 +196,10 @@ ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp );
 
 // Utility function to do TPM reset
 ReturnCode performTpmReset();
+
+//Utility function to update PHB functional State
+ReturnCode updatePhbFunctionalState( void );
+
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
@@ -219,6 +223,9 @@ static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 25;
 static const uint64_t SBE_LQA_DELAY_HW_US = 1000000ULL; // 1ms
 static const uint64_t SBE_LQA_DELAY_SIM_CYCLES = 0x1ULL;
 
+static const uint32_t PEC_PHB_IOVALID_BIT_SHIFT = 59;
+static const uint64_t PEC_PHB_IOVALID_BIT_MASK = 0x1ULL;
+
 // Bit-33 used to checkstop the system, Since this is directly getting inserted
 // will have to use bit (63-33) = 30th bit
 static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 30; // 63-33 = 30
@@ -235,9 +242,9 @@ sbeRole g_sbeRole = SBE_ROLE_MASTER;
 static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
         {
 #ifdef SEEPROM_IMAGE
-            // Place holder for StartMpipl Chip-op, State Change
+            // Place holder for StartMpipl, State Change, PHB State Update
             // Set MPIPL mode in Sratch Reg 3
-            { &istepNoOpStartMpipl, NULL },
+            { &istepStartMpipl, NULL },
             // Find all the child cores within proc and call set block intr
             { &istepWithCoreSetBlock, { .coreBlockIntrHwp = &p9_block_wakeup_intr }},
             // Find all the child cores within proc and call hwp to know the
@@ -1120,17 +1127,25 @@ fapi_try_exit:
 }
 
 //----------------------------------------------------------------------------
-ReturnCode istepNoOpStartMpipl( sbeIstepHwp_t i_hwp)
+ReturnCode istepStartMpipl( sbeIstepHwp_t i_hwp)
 {
-    #define SBE_FUNC "istepNoOpStartMpipl"
+    #define SBE_FUNC "istepStartMpipl"
     SBE_ENTER(SBE_FUNC);
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+
     (void)SbeRegAccess::theSbeRegAccess().stateTransition(
             SBE_ENTER_MPIPL_EVENT);
     // Set MPIPL mode bit in Scratch Reg 3
     (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
 
+    rc = updatePhbFunctionalState();
+    if(rc != FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC "updatePhbFunctionalState failed");
+    }
+
     SBE_EXIT(SBE_FUNC);
-    return FAPI2_RC_SUCCESS;
+    return rc;
     #undef SBE_FUNC
 }
 
@@ -1358,5 +1373,51 @@ ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp )
     SBE_EXIT(SBE_FUNC);
     return l_fapiRc;
     #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode updatePhbFunctionalState( void )
+{
+    #define SBE_FUNC "updatePhbFunctionalState"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    const uint64_t pci_cplt_conf1[3] = {PEC_0_CPLT_CONF1, PEC_1_CPLT_CONF1, PEC_2_CPLT_CONF1};
+
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+    auto phbTgt = procTgt.getChildren<fapi2::TARGET_TYPE_PHB>();
+
+    uint8_t phbCnt = 0;
+    for (uint8_t pciCnt=0; pciCnt<3; pciCnt++)
+    {
+        uint64_t data = 0;
+        uint8_t phbPerPciCnt = 0;
+
+        rc = getscom_abs_wrap (&procTgt, pci_cplt_conf1[pciCnt], &data);
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to read Pec[%d] Chiplet Config1 register",pciCnt);
+            break;
+        }
+
+        do
+        {
+            // Fetch bit4 from D000009 for PHB0
+            // Fetch bit4/5 from E000009 for PHB1/2
+            // Fetch bit4/5/6 from F000009 for PHB3/4/5
+            if( ((data >> (PEC_PHB_IOVALID_BIT_SHIFT - phbPerPciCnt)) &
+                        PEC_PHB_IOVALID_BIT_MASK) )
+            {
+                static_cast<plat_target_handle_t&>(phbTgt[phbCnt++].operator ()()).setFunctional(true);
+            }
+            else
+            {
+                static_cast<plat_target_handle_t&>(phbTgt[phbCnt++].operator ()()).setFunctional(false);
+            }
+        }while(++phbPerPciCnt<=pciCnt);
+    }
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+#undef SBE_FUNC
 }
 
