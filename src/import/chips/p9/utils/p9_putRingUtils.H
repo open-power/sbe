@@ -141,13 +141,15 @@ void getRingProperties(const RingID i_ringId,
 /// @param[in] i_operation Type of operation to perform - ROTATE/SCAN
 /// @param[in] i_opVal Number of bits for the operation
 /// @param[in] i_scanData This value has to be scanned when i_operation is SCAN
+/// @param[in] i_ringId Ring id value for debug info
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode standardScan(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
     const uint8_t i_chipletId,
     opType_t i_operation,
     uint64_t i_opVal,
-    uint64_t i_scanData = 0);
+    uint64_t i_scanData = 0,
+    const uint16_t i_ringId = 0);
 
 /// @brief Function to set the Scan Region
 /// @param[in] i_target Chiplet Target of Scan
