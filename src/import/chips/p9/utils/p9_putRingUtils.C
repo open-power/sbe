@@ -219,7 +219,8 @@ fapi2::ReturnCode standardScan(
     const uint8_t i_chipletId,
     opType_t i_operation,
     uint64_t i_opVal,
-    uint64_t i_scanData)
+    uint64_t i_scanData,
+    const uint16_t i_ringId)
 {
     FAPI_INF(">> standardScan");
 
@@ -332,7 +333,16 @@ fapi2::ReturnCode standardScan(
                 {
                     l_rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
                     FAPI_ERR("Max attempts exceeded checking OPCG_DONE");
-                    break;
+                    FAPI_ASSERT(false,
+                                fapi2::P9_PUTRING_OPCG_DONE_TIMEOUT()
+                                .set_TARGET(l_parent)
+                                .set_CHIPLET_ID(l_chiplet)
+                                .set_SCOM_ADDRESS(l_scomAddress)
+                                .set_SCOM_DATA(l_scomData)
+                                .set_ROTATE_COUNT(l_rotateCount)
+                                .set_RINGID(i_ringId)
+                                .set_RETURN_CODE(l_rc),
+                                "ROTATE operation failed  due to timeout");
                 }
             }// end of for loop
         }
@@ -361,6 +371,8 @@ fapi2::ReturnCode standardScan(
         } // end of if(SCAN == i_operation)
     }
     while(0);
+
+fapi_try_exit:
 
     FAPI_INF("<< standardScan");
     return l_rc;
@@ -546,9 +558,21 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 
         if(l_readHeader != i_header)
         {
-            FAPI_ERR("Read header(%016x) data incorrect", uint64_t(l_readHeader));
+            FAPI_ERR("Read CHECKWORD (%016x) data incorrect and total bit decoded 0x%016x",
+                     uint64_t(l_readHeader), (uint64_t)i_bitsDecoded);
             l_rc = fapi2::FAPI2_RC_PLAT_ERR_RING_HEADER_CHECK;
-            break;
+            FAPI_ASSERT(false,
+                        fapi2::P9_PUTRING_CHECKWORD_DATA_MISMATCH()
+                        .set_TARGET(i_target)
+                        .set_CHIPLET_ID(l_chiplet)
+                        .set_SCOM_ADDRESS(l_scomAddress)
+                        .set_SCOM_DATA(l_readHeader)
+                        .set_BITS_DECODED(i_bitsDecoded)
+                        .set_RINGID(i_ringId)
+                        .set_RINGMODE(i_ringMode)
+                        .set_RETURN_CODE(l_rc),
+                        "CHECKWORD DATA mismatch");
+
         }
 
         if ((i_ringMode &  fapi2::RING_MODE_SET_PULSE_NSL))
@@ -565,7 +589,7 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 
             if(l_rc != fapi2::FAPI2_RC_SUCCESS)
             {
-                FAPI_ERR("Error during writing header %016x", l_header);
+                FAPI_ERR("Error during writing header %016x for NSL mode", l_header);
                 break;
             }
 
@@ -573,6 +597,7 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
     }
     while(0);
 
+fapi_try_exit:
     return l_rc;
 
 }
@@ -1449,7 +1474,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
         }
 
         // Verify header
-        l_rc = verifyHeader(i_target, l_header, l_chipletId, i_ringMode);
+        l_rc = verifyHeader(i_target, l_header, l_chipletId, i_ringMode, l_bitsDecoded, l_ringId);
 
         if(l_rc)
         {

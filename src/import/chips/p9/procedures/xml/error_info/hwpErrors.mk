@@ -80,3 +80,4 @@ ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_fastarray_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_suspend_io_errors.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_ppe_utils.xml
 ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_suspend_powman_errors.xml
+ERROR_XML_FILES += $(PERV_CURR_DIR)/p9_sbe_ring_errors.xml
