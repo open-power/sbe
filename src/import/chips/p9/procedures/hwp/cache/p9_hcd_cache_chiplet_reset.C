@@ -51,9 +51,7 @@
 #include <p9_perv_sbe_cmn.H>
 #include <p9_hcd_common.H>
 #include "p9_hcd_cache_chiplet_reset.H"
-
 #include <p9_common_poweronoff.H>
-#include <p9_common_poweronoff.C>
 
 //------------------------------------------------------------------------------
 // Constant Definitions

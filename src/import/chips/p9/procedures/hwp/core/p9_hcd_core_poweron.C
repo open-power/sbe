@@ -46,7 +46,6 @@
 #include <p9_quad_scom_addresses.H>
 #include <p9_hcd_common.H>
 #include <p9_common_poweronoff.H>
-#include <p9_common_poweronoff.C>
 #include "p9_hcd_core_poweron.H"
 
 //-----------------------------------------------------------------------------
