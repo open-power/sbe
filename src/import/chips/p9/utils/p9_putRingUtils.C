@@ -747,9 +747,12 @@ fapi2::ReturnCode setupScanRegionForSetPulse(
         // Add the chiplet ID in the Scom Address
         l_scomAddress |= l_chiplet;
 
+        // Maintain SCAN_CLK_USE_EVEN bit 49
+        fapi2::buffer<uint64_t> l_opcgReg1Mask(0xFFFFFFFFFFFFBFFFull);
+
         fapi2::buffer<uint64_t> l_opcgReg1(l_opcg_reg1);
 
-        l_rc = fapi2::putScom(l_parent, l_scomAddress, l_opcgReg1);
+        l_rc = fapi2::putScomUnderMask(l_parent, l_scomAddress, l_opcgReg1, l_opcgReg1Mask);
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
