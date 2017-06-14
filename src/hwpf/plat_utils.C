@@ -62,31 +62,20 @@ namespace fapi2
 
         PkTimebase  target_time;
         PkTimebase  current_time;
-        PkMachineContext  ctx;
 
 
         // Only execute if nanoSeconds is non-zero (eg a real wait)
         if (i_nanoSeconds)
         {
-            // The critical section enter/exit set is done to ensure the timebase
-            // operations are non-interrupible.
-
-            pk_critical_section_enter(&ctx);
 
             target_time = pk_timebase_get() + delayCycles( i_nanoSeconds);
             current_time = pk_timebase_get();
-            FAPI_IMP("Target Time 0x%08X %08X Current Time 0x%08X %08X",
-                (uint32_t)((target_time >> 32) & 0xFFFFFFFF),
-                (uint32_t)(target_time & 0xFFFFFFFF),
-                (uint32_t)((current_time >> 32) & 0xFFFFFFFF),
-                (uint32_t)(current_time & 0xFFFFFFFF));
 
             do
             {
                 current_time = pk_timebase_get();
             } while (target_time > current_time);
 
-            pk_critical_section_exit(&ctx);
         }
 #else
 
