@@ -26,6 +26,7 @@ import sys
 sys.path.append("targets/p9_nimbus/sbeTest")
 import testUtil
 err = False
+import testScomUtil
 #from testWrite import *
 
 TESTDATA = [0, 0, 0, 2,
@@ -39,6 +40,10 @@ EXPDATA = [0xc0, 0xde, 0xa8, 0x01,
 #-------------------------------------------------
 def main():
     testUtil.runCycles(10000000)
+
+    # Generate FSPI rc
+    testScomUtil.getscom(0x0A000000, [0x00, 0xFE, 0x00, 0x11], True)
+
     testUtil.writeUsFifo(TESTDATA)
     testUtil.writeEot()
 

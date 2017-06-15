@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -22,98 +22,12 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+import os
 import sys
-sys.path.append("targets/p9_nimbus/sbeTest" )
-import testUtil
-err = False
-#from testWrite import *
+import struct
+import testScomUtil
 
-# @TODO via RTC : 141905
-#       Modify the test sequence in such a way that
-#       the test does not leave the Register value altered.
-
-PUTSCOM_TESTDATA = [0,0,0,6,
-                    0,0,0xA2,0x02,
-                    0,0,0x0,0x00,
-                    0,0x05,0x00,0x3E, #scratch reg 7 (32-bit)
-                    0xde,0xca,0xff,0xee,
-                    0x00,0x00,0x00,0x00 ]
-
-PUTSCOM_TESTDATA_INVALID = [0,0,0,6,
-                            0,0,0xA2,0x02,
-                            0,0,0x0,0x00,
-                            # TODO via RTC 152952: This address is invalid for
-                            # Nimbus but not for Cumulus
-                            0x0a,0x00,0x00,0x00,
-                            0xde,0xca,0xff,0xee,
-                            0x00,0x00,0x00,0x00 ]
-
-PUTSCOM_EXPDATA = [0xc0,0xde,0xa2,0x02,
-                   0x0,0x0,0x0,0x0,
-                   0x00,0x0,0x0,0x03];
-
-PUTSCOM_EXPDATA_INVALID = [0xc0,0xde,0xa2,0x02,
-                           0x0,0xfe,0x0,0x11]
-GETSCOM_TESTDATA = [0,0,0,4,
-                    0,0,0xA2,0x01,
-                    0,0,0x0,0x00,
-                    0,0x05,0x0,0x3E]
-
-GETSCOM_TESTDATA_INVALID = [0,0,0,4,
-                            0,0,0xA2,0x01,
-                            0,0,0x0,0x00,
-                            # TODO via RTC: 152952: This address is invalid for
-                            # Nimbus but not for Cumulus
-                            0x0a,0x0,0x0,0x0]
-
-GETSCOM_EXPDATA = [0xde,0xca,0xff,0xee,
-                   0x00,0x00,0x00,0x00,
-                   0xc0,0xde,0xa2,0x01,
-                   0x0,0x0,0x0,0x0,
-                   0x00,0x0,0x0,0x03];
-
-GETSCOM_EXPDATA_INVALID = [0xc0,0xde,0xa2,0x01,
-                           0x0,0xfe,0x0,0x11]
-# MAIN Test Run Starts Here...
-#-------------------------------------------------
-def main( ):
-    testUtil.runCycles( 10000000 )
-    print ("\nStarting putscom test")
-    testUtil.writeUsFifo( PUTSCOM_TESTDATA )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( PUTSCOM_EXPDATA )
-    testUtil.readEot( )
-    print ("\nStarting invalid putscom test")
-    testUtil.writeUsFifo( PUTSCOM_TESTDATA_INVALID )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( PUTSCOM_EXPDATA_INVALID )
-    testUtil.extractHWPFFDC( )
-    #flush out distance
-    testUtil.readDsEntryReturnVal()
-    testUtil.readEot( )
-    print ("\nStarting getscom test")
-    testUtil.writeUsFifo( GETSCOM_TESTDATA )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( GETSCOM_EXPDATA )
-    testUtil.readEot( )
-    print ("\nStarting invalid getscom test")
-    testUtil.writeUsFifo( GETSCOM_TESTDATA_INVALID )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( GETSCOM_EXPDATA_INVALID )
-    testUtil.extractHWPFFDC( )
-    #flush out distance
-    testUtil.readDsEntryReturnVal()
-    testUtil.readEot( )
-
-#-------------------------------------------------
-# Calling all test code
-#-------------------------------------------------
-main()
-
-if err:
-    print ("\nTest Suite completed with error(s)")
-    #sys.exit(1)
-else:
-    print ("\nTest Suite completed with no errors")
-    #sys.exit(0);
-
+# getscom success
+testScomUtil.getscom(0x0204001A)
+# putscom success
+testScomUtil.putscom(0x000F001A, testScomUtil.getscom(0x000F001A))

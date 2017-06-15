@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -36,11 +37,11 @@ namespace SBE_SECURITY
 
     // type to define a range
     template <typename T>
-    struct
+    struct range_t
     {
         T start;
         T end;
-    } range;
+    };
 
     // key-value map used for the tables
     template <typename T, typename U>

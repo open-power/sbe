@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -23,6 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbeSecurity.H"
 #include "sbetrace.H"
+#include "sbeglobals.H"
 
 #include "sbeSecurityGen.H"
 
@@ -38,7 +40,7 @@ constexpr uint32_t get_shift_len(uint32_t mask, uint8_t shifts = 0)
 template <typename Func>
 map_t<bool, uint32_t> binary_search(
                     const uint32_t search_key,
-                    range_t<uint64_t, uint32_t> x_range,
+                    range_t<uint32_t> x_range,
                     Func get_element)
 {
     map_t<bool, uint32_t> ret = {false, 0}; // found=false
@@ -77,15 +79,15 @@ bool _is_present(const table< map_t< range_t<M1_T>, M1_U > > &table1,
     SBE_ENTER(SBE_FUNC);
     for(size_t i = 0; i < table1.size; i++)
     {
-        M1_U key = (i_addr & table1.mask) >> get_shift_len(table1.mask);
-        if((table1.table[i].key.start <= key) &&
-           (table1.table[i].key.end >= key))
+        uint32_t search_key = (i_addr & table1.mask) >> get_shift_len(table1.mask);
+        if((table1.table[i].key.start <= search_key) &&
+           (table1.table[i].key.end >= search_key))
         {
-            SBE_DEBUG(SBE_FUNC" found key[0x%x] table index[%d]", key, i);
+            SBE_DEBUG(SBE_FUNC" table1:found key[0x%x] table index[%d]",
+                                                        search_key, i);
             // Found the range where key might belong to
-            uint32_t search_key = (i_addr & table2.mask) >>
-                                                get_shift_len(table2.mask);
-            range_t<uint64_t, uint32_t> search_range = {};
+            search_key = (i_addr & table2.mask) >> get_shift_len(table2.mask);
+            range_t<uint32_t> search_range = {};
             search_range.start = i ? table1.table[i-1].value : 0;
             search_range.end = table1.table[i].value - 1;
             map_t<bool, uint32_t> search_result =
@@ -97,6 +99,9 @@ bool _is_present(const table< map_t< range_t<M1_T>, M1_U > > &table1,
                         });
             if(search_result.key == true)
             {
+                SBE_DEBUG(SBE_FUNC" table2:found key[0x%x] table index[%d]",
+                                                search_key,
+                                                search_result.value);
                 // Found the key
                 search_range.start = (search_result.value ?
                                 table2.table[search_result.value-1].value : 0);
@@ -112,6 +117,9 @@ bool _is_present(const table< map_t< range_t<M1_T>, M1_U > > &table1,
                                             });
                 if(search_result.key == true)
                 {
+                    SBE_DEBUG(SBE_FUNC" table3:found key[0x%x] table index[%d]",
+                                                search_key,
+                                                search_result.value);
                     // Found the number
                     return true;
                 }
@@ -125,15 +133,18 @@ bool _is_present(const table< map_t< range_t<M1_T>, M1_U > > &table1,
 
 bool isAllowed(const uint32_t i_addr, accessType type)
 {
-    bool ret = false;
-    if(type == WRITE)
-        ret =  WHITELIST::isPresent(i_addr);
-    else if(type == READ)
-        ret =  !BLACKLIST::isPresent(i_addr);
-    if(!ret)
+    bool ret = true;
+    if(SBE_GLOBAL->sbeFWSecurityEnabled)
     {
-        SBE_INFO("SBE_SECURITY access[%d] denied addr[0x%08x]",
-                                    type, i_addr);
+        if(type == WRITE)
+            ret =  WHITELIST::isPresent(i_addr);
+        else if(type == READ)
+            ret =  !BLACKLIST::isPresent(i_addr);
+        if(!ret)
+        {
+            SBE_INFO("SBE_SECURITY access[%d] denied addr[0x%08x]",
+                                        type, i_addr);
+        }
     }
     return ret;
 }

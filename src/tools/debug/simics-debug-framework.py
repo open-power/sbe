@@ -50,9 +50,9 @@ def get_dd_level(procNr = 0):
     with open('temp.map', 'r') as f:
         map = f.read()
         map = map.split()
-        if map[map.index('p9Proc0.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
+        if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
             ddlevel = "DD1"
-        if map[map.index('p9Proc0.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
+        if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
             ddlevel = "DD2"
     print "running image - ["+ddlevel+"]"
     return ddlevel

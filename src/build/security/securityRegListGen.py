@@ -71,7 +71,7 @@ def exit(error, msg = ''):
     else:
         if(DEBUG):
             print "unknown error:exiting"
-    sys.exit()
+    sys.exit(1)
 
 def remove_duplicates(xlist):
     xlist = list(set(xlist))
@@ -95,6 +95,14 @@ def gen_file(whitelist_tables, blacklist_tables):
     tables = (('WHITELIST', 'whitelist', whitelist_tables),
               ('BLACKLIST', 'blacklist', blacklist_tables))
     body = ''
+    # table 1 range and running count type
+    table1_range_type = "uint8_t"
+    table1_index_type = "uint8_t"
+    # table 2 value and running count type
+    table2_value_type = "uint8_t"
+    table2_index_type = "uint8_t"
+    # table 3 value type
+    table3_value_type = "uint16_t"
     for namespace, tablename, table in tables:
         body += ("""
 namespace """+namespace+"""
@@ -112,7 +120,7 @@ namespace """+namespace+"""
     1 byte for running count - we are good with uint8_t till the
     total paths are less than 256
     */
-    map_t< range_t<uint8_t>, uint8_t > _t1[]  = {
+    map_t< range_t<"""+table1_range_type+""">, """+table1_index_type+""" > _t1[]  = {
     // length of the table = """+s_list_len(table[0])+"""
 """+s_table1_gen(tablename, table[0])+"""
                                                           };
@@ -131,7 +139,7 @@ namespace """+namespace+"""
     We are good with uint8_t,
     till the number of paths to table 3 from each key is less than 256
     */
-    map_t< uint8_t, uint8_t > _t2[] = {
+    map_t< """+table2_value_type+""", """+table2_index_type+""" > _t2[] = {
     // length of the table = """+s_list_len(table[1])+"""
 """+s_table2_gen(tablename, table[1])+"""
                                       };
@@ -139,22 +147,29 @@ namespace """+namespace+"""
     table 3
        values = 2 byte value bit 16-31 of the 32-bit address
     */
-    uint16_t _t3[] = {
+    """+table3_value_type+""" _t3[] = {
     // length of the table = """+s_list_len(table[2])+"""
 """+s_table3_gen(tablename, table[2])+"""
                       };
-    table< map_t< range_t<uint16_t, uint8_t>, uint8_t > > t1 =
-                         {sizeof(_t1)/sizeof(uint8_t), 0xFF000000, _t1};
-    table< map_t< uint8_t, uint8_t > > t2 =
-                         {sizeof(_t2)/sizeof(uint16_t), 0x00FF0000, _t2};
-    table<uint16_t> t3 = {sizeof(_t3)/sizeof(uint16_t), 0x0000FFFF, _t3};
+    table< map_t< range_t<"""+table1_range_type+""">, """+table1_index_type+""" > > t1 =
+            {sizeof(_t1)/sizeof(map_t< range_t<"""+table1_range_type+""">, """+table1_index_type+""" >),
+             0xFF000000,
+             _t1};
+    table< map_t< """+table2_value_type+""", """+table2_index_type+""" > > t2 =
+            {sizeof(_t2)/sizeof(map_t< """+table2_value_type+""", """+table2_index_type+""" >),
+             0x00FF0000,
+             _t2};
+    table<"""+table3_value_type+"""> t3 =
+            {sizeof(_t3)/sizeof("""+table3_value_type+"""),
+             0x0000FFFF,
+             _t3};
 
     bool isPresent(uint32_t i_addr)
     {
         return SBE_SECURITY::_is_present
-                          < uint16_t, uint8_t, uint8_t,
-                            uint8_t, uint8_t,
-                            uint16_t>
+                          < """+table1_range_type+""", """+table1_index_type+""",
+                            """+table2_value_type+""", """+table2_index_type+""",
+                            """+table3_value_type+""">
                           (t1, t2, t3, i_addr);
     }
 }""")
@@ -339,9 +354,9 @@ def get_tables(id, list):
     # Eg: {0102 : [ABCDEF], 0405 : [ABCDEF, UVWXYZ], 1020 : [UVWXYZ]}  #
     #                           ||                                     #
     #                           \/                                     #
-    #               {0102 : {AB : [CD, EF]},                           #
-    #                0405 : {AB : [CD, EF], UV : [WX, YZ]},            #
-    #                1020 : {UV : [WX, YZ]}}                           #
+    #               {0102 : {AB : [CDEF]},                             #
+    #                0405 : {AB : [CDEF], UV : [WXYZ]},                #
+    #                1020 : {UV : [WXYZ]}}                             #
     # -----------------------------------------------------------------#
     table_range_to_key_to_base = []
     for key, values in table_range_to_base.items():
@@ -536,9 +551,9 @@ def main(argv):
         reader = csv.DictReader(f)
         for idx, row in enumerate(reader):
             try:
-                if(version == 'unknown'):
+                if(version.lower() == 'unknown'):
                     version = row[TAG_VERSION]
-                base_addr = row[TAG_BASE_ADDR]
+                base_addr = row[TAG_BASE_ADDR].lower().split('0x')[-1]
                 # Append 0s for numbers represented by less than 8 chars
                 base_addr = '0'*(8-len(base_addr))+base_addr
                 # Extract the least 32 bit number for base address
@@ -550,7 +565,12 @@ def main(argv):
                 # Empty range field considered as error
                 if(chiplet_range[0] == ''):
                     exit(PRINT_AND_EXIT, "Missing chiplet id range")
-                if(chiplet_range[0] != '0x00'):
+                if(chiplet_range[0].lower() != '0x00'):
+                    if(chiplet_range[0].lower() != '0x%02x' % (get_chiplet(base_addr))):
+                        print "base_addr",hex(base_addr)
+                        print "get_chiplet(base_addr)",hex(get_chiplet(base_addr))
+                        print "chiplet_range[0]", chiplet_range[0]
+                        exit(PRINT_AND_EXIT, "Base address is not consistent")
                     base_addr = base_addr & 0x00FFFFFF
                 chiplet_range = [int(ele, 16) for ele in chiplet_range]
                 # Expand base address with ranges
@@ -561,12 +581,12 @@ def main(argv):
                 expanded_line = get_effective_address(row[TAG_CHIPLET], expanded_line)
                 if(VERBOSE):
                     print s_list_hex("range:", expanded_range, 8)
-                if(row[TAG_TYPE] == TAG_NAME_WHITELIST):
+                if(row[TAG_TYPE].lower() == TAG_NAME_WHITELIST):
                     whitelist_line = expanded_line
                     if(VERBOSE):
                         print s_list_hex("whitelist_line:", whitelist_line, 8)
                     whitelist += whitelist_line
-                elif(row[TAG_TYPE] == TAG_NAME_BLACKLIST):
+                elif(row[TAG_TYPE].lower() == TAG_NAME_BLACKLIST):
                     blacklist_line = expanded_line
                     if(VERBOSE):
                         print s_list_hex("blacklist_line:", blacklist_line, 8)

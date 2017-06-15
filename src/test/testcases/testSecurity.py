@@ -25,6 +25,7 @@
 import os
 import sys
 import struct
+import testScomUtil
 
 SECURITY_FILE = "../../src/import/chips/p9/security/p9_security_white_black_list.csv"
 SECURITY_SCRIPT = "../../src/build/security/securityRegListGen.py"
@@ -78,11 +79,53 @@ def main():
                         whitelist_table1,
                         whitelist_table2,
                         whitelist_table3)
+            print "generated whitelist validation passed"
             test_normal('blacklist',
                         blacklist,
                         blacklist_table1,
                         blacklist_table2,
                         blacklist_table3)
+            print "generated blacklist validation passed"
+
+        # getscom success
+        testScomUtil.getscom(0x0204001A)
+        print "getscom success testcase - passed"
+        # getscom failure
+        testScomUtil.getscom(eval(blacklist[0]), [0x00, 0x05, 0x00, 0x0B])
+        print "getscom failure testcase - passed"
+        # putscom success
+        testScomUtil.putscom(eval(whitelist[0]), testScomUtil.getscom(eval(whitelist[0])))
+        print "putscom success testcase - passed"
+        # putscom failure
+        while(True):
+            random_addr = struct.unpack('>L', os.urandom(4))[0]
+            if random_addr not in [eval(a) for a in whitelist]:
+                testScomUtil.putscom(random_addr, 0, [0x00, 0x05, 0x00, 0x0B])
+                break
+        print "putscom failure testcase - passed"
+        # modify scom success
+        dataWritten = testScomUtil.getscom(0x00040006)
+        testScomUtil.modifyScom(0x01, 0x00040006, 0x0)
+        dataRead = testScomUtil.getscom(0x00040006)
+        if(dataRead != dataWritten):
+            raise Exception('modify scom failed %x != %x' % (dataRead, dataWritten))
+        print "modify scom success testcase - passed"
+        # putscom under mask success
+        dataWritten = testScomUtil.getscom(0x00040006)
+        testScomUtil.putScomUnderMask(0x00040006, dataWritten, 0xFFFFFFFFFFFFFFFF)
+        dataRead = testScomUtil.getscom(0x00040006)
+        if(dataRead != dataWritten):
+            raise Exception('PutScom under mask failed %x != %x' % (dataRead, dataWritten))
+        print "putscom under mask success testcase - passed"
+        # indirect scom test
+        dataWritten = testScomUtil.getscom(0x8000000D06010C3F)
+        dataiActWritten = (dataWritten & 0x00000000FFFFFFFF) | (0xDECAFFEE00000000)
+        testScomUtil.putscom(0x8000000D06010C3F, dataiActWritten)
+        dataRead = testScomUtil.getscom(0x8000000D06010C3F)
+        if(dataRead != dataWritten):
+            raise Exception('indirect scom test failed %x != %x' % (dataRead, dataWritten))
+        print "Indirect scom success testcase - passed"
+
     except Exception, error:
         raise Exception(error)
 

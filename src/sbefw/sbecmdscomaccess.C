@@ -49,12 +49,12 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
 
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     sbeGetScomReqMsg_t l_getScomReqMsg;
+    sbeRespGenHdr_t l_hdr;
+    l_hdr.init();
+    sbeResponseFfdc_t l_ffdc;
 
     do
     {
-        uint16_t l_primStatus = SBE_GLOBAL->sbeCmdRespHdr.prim_status;
-        uint16_t l_secStatus  = SBE_GLOBAL->sbeCmdRespHdr.sec_status ;
-
         // Will attempt to dequeue two entries for
         // the scom addresses plus the expected
         // EOT entry at the end
@@ -69,9 +69,6 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
             break;
         }
 
-        sbeRespGenHdr_t l_hdr;
-        l_hdr.init();
-        sbeResponseFfdc_t l_ffdc;
         uint32_t l_len2enqueue  = 0;
         uint32_t l_sbeDownFifoRespBuf[2] = {0};
 
@@ -80,17 +77,16 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
         uint64_t l_scomData = 0;
         SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
                             l_getScomReqMsg.hiAddr, l_getScomReqMsg.lowAddr);
-        l_rc = checkIndirectAndDoScom(true, l_addr,
-                                      l_scomData,
-                                      &l_ffdc);
+        checkIndirectAndDoScom(true, l_addr,
+                               l_scomData, &l_hdr,
+                               &l_ffdc);
 
-        if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+        if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
         {
             SBE_ERROR(SBE_FUNC"getscom failed, "
                 "scomAddr[0x%08X%08X]",
                 l_getScomReqMsg.hiAddr, l_getScomReqMsg.lowAddr);
-            l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-            l_secStatus  = l_rc;
+            break;
         }
         else // successful scom
         {
@@ -112,18 +108,15 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
             }
         } // end successful scom
 
-        // Build the response header packet
-
-        l_hdr.setStatus(l_primStatus, l_secStatus);
-        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
-        if (l_rc)
-        {
-           // will let command processor routine
-           // handle the failure
-           break;
-        }
-
     } while(false);
+
+    if(l_rc == SBE_SEC_OPERATION_SUCCESSFUL)
+    {
+        // Build the response header packet
+        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
+       // will let command processor routine
+       // handle the failure
+    }
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;
@@ -139,12 +132,12 @@ uint32_t sbePutScom (uint8_t *i_pArg)
 
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     sbePutScomReqMsg_t l_putScomReqMsg;
+    sbeRespGenHdr_t l_hdr;
+    l_hdr.init();
+    sbeResponseFfdc_t l_ffdc;
 
     do
     {
-        uint16_t l_primStatus = SBE_GLOBAL->sbeCmdRespHdr.prim_status;
-        uint16_t l_secStatus  = SBE_GLOBAL->sbeCmdRespHdr.sec_status ;
-
         // Will attempt to dequeue four entries for
         // the scom address (two entries) and the
         // corresponding data (two entries) plus
@@ -161,9 +154,6 @@ uint32_t sbePutScom (uint8_t *i_pArg)
         }
 
         uint64_t l_scomData = 0;
-        sbeRespGenHdr_t l_hdr;
-        l_hdr.init();
-        sbeResponseFfdc_t l_ffdc;
         // successfully dequeued two entries for
         // scom address followed by the EOT entry
 
@@ -179,10 +169,10 @@ uint32_t sbePutScom (uint8_t *i_pArg)
                                         l_putScomReqMsg.lowAddr;
         SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
                             l_putScomReqMsg.hiAddr, l_putScomReqMsg.lowAddr);
-        l_rc = checkIndirectAndDoScom(false, l_addr,
-                                      l_scomData, &l_ffdc);
+        checkIndirectAndDoScom(false, l_addr,
+                               l_scomData, &l_hdr, &l_ffdc);
 
-        if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+        if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
         {
             SBE_ERROR(SBE_FUNC"putscom failure data, "
                           "scomAddr[0x%08X%08X], "
@@ -191,22 +181,18 @@ uint32_t sbePutScom (uint8_t *i_pArg)
                           l_putScomReqMsg.lowAddr,
                           SBE::higher32BWord(l_scomData),
                           SBE::lower32BWord(l_scomData));
-            l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-            l_secStatus  = l_rc;
-        }
-
-        // Build the response header packet
-
-        l_hdr.setStatus(l_primStatus, l_secStatus);
-        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
-        if (l_rc)
-        {
-           // will let command processor routine
-           // handle the failure
-           break;
+            break;
         }
 
     } while(false);
+
+    if(l_rc == SBE_SEC_OPERATION_SUCCESSFUL)
+    {
+        // Build the response header packet
+        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
+       // will let command processor routine
+       // handle the failure
+    }
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;
@@ -224,12 +210,12 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
 
     sbeModifyScomReqMsg_t l_modifyScomMsg;
+    sbeRespGenHdr_t l_hdr;
+    l_hdr.init();
+    sbeResponseFfdc_t l_ffdc;
 
     do
     {
-        uint16_t l_primStatus = SBE_GLOBAL->sbeCmdRespHdr.prim_status;
-        uint16_t l_secStatus  = SBE_GLOBAL->sbeCmdRespHdr.sec_status ;
-
         // Will attempt to dequeue the following entries:
         // Entry 1 : Operation Mode
         // Entry 2 : Scom Register Address (0..31)
@@ -247,10 +233,6 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
             // Let command processor routine to handle the RC.
             break;
         }
-
-        sbeRespGenHdr_t l_hdr;
-        l_hdr.init();
-        sbeResponseFfdc_t l_ffdc;
 
         // Modifying Data
         uint64_t l_modifyingData = l_modifyScomMsg.getModifyingData();
@@ -274,8 +256,8 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                 {
                     // Invalid Data passed
                     SBE_ERROR(SBE_FUNC"Invalid OpMode");
-                    l_primStatus = SBE_PRI_INVALID_DATA;
-                    l_secStatus  = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                    l_hdr.setStatus(SBE_PRI_INVALID_DATA,
+                                    SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
                     break;
                 }
 
@@ -284,16 +266,14 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                 uint64_t l_scomData = 0;
                 SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X]",
                               l_modifyScomMsg.hiAddr, l_modifyScomMsg.lowAddr);
-                l_rc = checkIndirectAndDoScom(true, l_addr,
-                                      l_scomData, &l_ffdc);
+                checkIndirectAndDoScom(true, l_addr,
+                                      l_scomData, &l_hdr, &l_ffdc);
 
-                if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+                if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
                 {
                     SBE_ERROR(SBE_FUNC"getscom failed,"
                         " ScomAddress[0x%08X %08X]",
                         l_modifyScomMsg.hiAddr, l_modifyScomMsg.lowAddr);
-                    l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                    l_secStatus  = l_rc;
                     break;
                 }
 
@@ -311,10 +291,10 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                 }
 
                 // Write the modified data
-                l_rc = checkIndirectAndDoScom(false, l_addr,
-                                      l_modifyingData, &l_ffdc);
+                checkIndirectAndDoScom(false, l_addr,
+                                      l_modifyingData, &l_hdr, &l_ffdc);
 
-                if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+                if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
                 {
                     SBE_ERROR(SBE_FUNC"putscom failed,"
                         " ScomAddress[0x%08X%08X]",
@@ -322,21 +302,20 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                     SBE_ERROR(SBE_FUNC"modifyingData[0x%08X%08X]",
                               SBE::higher32BWord(l_modifyingData),
                               SBE::lower32BWord(l_modifyingData));
-                    l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                    l_secStatus  = l_rc;
                     break;
                 }
         } while (false);
 
-        // Build the response header packet
-
-        l_hdr.setStatus(l_primStatus, l_secStatus);
-        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
-        if (l_rc)
+        if(l_rc == SBE_SEC_OPERATION_SUCCESSFUL)
         {
-           // will let command processor routine
-           // handle the failure
-           break;
+            // Build the response header packet
+            l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
+            if (l_rc)
+            {
+               // will let command processor routine
+               // handle the failure
+               break;
+            }
         }
 
     } while(false);
@@ -355,12 +334,12 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
 
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     sbePutScomUnderMaskReqMsg_t l_putScomUmaskMsg;
+    sbeRespGenHdr_t l_hdr;
+    l_hdr.init();
+    sbeResponseFfdc_t l_ffdc;
 
     do
     {
-        uint16_t l_primStatus = SBE_GLOBAL->sbeCmdRespHdr.prim_status;
-        uint16_t l_secStatus  = SBE_GLOBAL->sbeCmdRespHdr.sec_status ;
-
         // Will attempt to dequeue the following entries:
         // Entry 1 : Scom Register Address (0..31)
         // Entry 2 : Scom Register Address (32..63)
@@ -381,10 +360,6 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
             break;
         }
 
-        sbeRespGenHdr_t l_hdr;
-        l_hdr.init();
-        sbeResponseFfdc_t l_ffdc;
-
         SBE_DEBUG(SBE_FUNC"scomAddr[0x%08X%08X],"
                      "modifyingData[0x%08X%08X]",
                       l_putScomUmaskMsg.hiAddr,
@@ -404,19 +379,19 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
 
             uint64_t l_addr = ( (uint64_t) l_putScomUmaskMsg.hiAddr << 32) |
                                            l_putScomUmaskMsg.lowAddr;
-            l_rc = checkIndirectAndDoScom(true, l_addr,
-                                          l_scomData, &l_ffdc);
+            checkIndirectAndDoScom(true, l_addr,
+                                   l_scomData, &l_hdr, &l_ffdc);
 
-            if (l_rc == SBE_SEC_OPERATION_SUCCESSFUL) // scom success
+            if (l_hdr.secondaryStatus == SBE_SEC_OPERATION_SUCCESSFUL) // scom success
             {
                 l_putScomUmaskMsg.getScomData(l_scomData);
 
                 // Write the modified data
-                l_rc = checkIndirectAndDoScom(false, l_addr,
-                                          l_scomData, &l_ffdc);
+                checkIndirectAndDoScom(false, l_addr,
+                                       l_scomData, &l_hdr, &l_ffdc);
             }
 
-            if (l_rc != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+            if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
             {
                 SBE_ERROR(SBE_FUNC"scom failed, "
                     "ScomAddress[0x%08X%08X]",
@@ -429,22 +404,18 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
                     l_putScomUmaskMsg.hiMaskData,
                     l_putScomUmaskMsg.lowMaskData);
 
-                l_primStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                l_secStatus  = l_rc;
                 break;
             }
         } while (false);
-
-        // Build the response header packet
-        l_hdr.setStatus(l_primStatus, l_secStatus);
-        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
-        if (l_rc)
-        {
-           // will let command processor routine
-           // handle the failure
-           break;
-        }
     } while(false);
+
+    if(l_rc == SBE_SEC_OPERATION_SUCCESSFUL)
+    {
+        // Build the response header packet
+        l_rc = sbeDsSendRespHdr(l_hdr, &l_ffdc);
+       // will let command processor routine
+       // handle the failure
+    }
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;

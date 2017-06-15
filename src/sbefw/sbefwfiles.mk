@@ -54,6 +54,7 @@ SBEFW-CPP-SOURCES += sbeSpMsg.C
 SBEFW-CPP-SOURCES += sbeglobals.C
 SBEFW-CPP-SOURCES += sbeMemAccessInterface.C
 SBEFW-CPP-SOURCES += sbeSecureMemRegionManager.C
+SBEFW-CPP-SOURCES += sbeSecurity.C
 
 SBEFW-C-SOURCES =
 SBEFW-S-SOURCES =

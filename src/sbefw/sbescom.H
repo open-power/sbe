@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -30,11 +30,12 @@
   * @param[in]  i_isRead True if read operation, false otherwise
   * @param[in]  i_addr scom addess
   * @param[in]  io_data data for scom operation. For read, it is output operand.
+  * @param[out] o_hdr response header object
   * @param[out] o_ffdc ffdc object
   *
-  * @return     seconday error code.
   */
-uint32_t checkIndirectAndDoScom( const bool i_isRead,
+void checkIndirectAndDoScom( const bool i_isRead,
                                  const uint64_t i_addr,
                                  uint64_t & io_data,
+                                 sbeRespGenHdr_t *const o_hdr,
                                  sbeResponseFfdc_t *const o_ffdc);

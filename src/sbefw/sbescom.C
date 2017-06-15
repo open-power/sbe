@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -29,6 +29,7 @@
 #include "plat_hw_access.H"
 #include "plat_target.H"
 #include "sbescom.H"
+#include "sbeSecurity.H"
 
 using namespace fapi2;
 /**
@@ -66,14 +67,14 @@ enum sbeScomType
     SBE_SCOM_TYPE_INDIRECT_2 = 2,  // Indirect scom. New form
 };
 
-uint32_t checkIndirectAndDoScom( const bool i_isRead,
-                                 const uint64_t i_addr,
-                                 uint64_t & io_data,
-                                 sbeResponseFfdc_t *const o_ffdc)
+void checkIndirectAndDoScom( const bool i_isRead,
+                             const uint64_t i_addr,
+                             uint64_t & io_data,
+                             sbeRespGenHdr_t *const o_hdr,
+                             sbeResponseFfdc_t *const o_ffdc)
 {
 
     #define SBE_FUNC " checkIndirectAndDoScom "
-    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t elapsedIndScomTimeNs = 0;
     uint64_t tempBuffer = io_data;
     sbeScomType scomType = SBE_SCOM_TYPE_DIRECT;
@@ -85,6 +86,11 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         {
             plat_target_handle_t l_hndl;
             SBE_INFO(SBE_FUNC "Performing Direct scom.");
+            CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
+                        static_cast<uint32_t>(i_addr),
+                        (i_isRead ? SBE_SECURITY::READ : SBE_SECURITY::WRITE),
+                        o_hdr->primaryStatus,
+                        o_hdr->secondaryStatus)
             if( i_isRead )
             {
                 fapiRc = getscom_abs_wrap (&l_hndl, (uint32_t)i_addr,
@@ -106,7 +112,8 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
             {
                 // Not allowed write on new format.
                 SBE_ERROR(SBE_FUNC "Read not allowed in new form");
-                l_rc = SBE_SEC_INVALID_ADDRESS_PASSED;
+                o_hdr->primaryStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
+                o_hdr->secondaryStatus = SBE_SEC_INVALID_ADDRESS_PASSED;
                 break;
             }
             // Zero out the indirect address location.. leave the 52bits of data
@@ -134,6 +141,11 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         // bit 48-63 - local addr
         uint64_t tempAddr = i_addr & 0x000000007FFFFFFF;
         plat_target_handle_t l_hndl;
+        CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
+                        static_cast<uint32_t>(tempAddr),
+                        (i_isRead ? SBE_SECURITY::READ : SBE_SECURITY::WRITE),
+                        o_hdr->primaryStatus,
+                        o_hdr->secondaryStatus)
 
         // If we are doing a read. We need to do a write first..
         if( i_isRead)
@@ -191,7 +203,8 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
         if( ! scomout.done)
         {
             SBE_ERROR(SBE_FUNC "Indirect scom timeout.");
-            l_rc = SBE_SEC_HW_OP_TIMEOUT;
+            o_hdr->primaryStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
+            o_hdr->secondaryStatus = SBE_SEC_HW_OP_TIMEOUT;
             break;
         }
 
@@ -199,11 +212,11 @@ uint32_t checkIndirectAndDoScom( const bool i_isRead,
 
     if  (fapiRc != FAPI2_RC_SUCCESS)
     {
-        l_rc = SBE_SEC_PCB_PIB_ERR;
+        o_hdr->primaryStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
+        o_hdr->secondaryStatus = SBE_SEC_PCB_PIB_ERR;
         if(o_ffdc) o_ffdc->setRc(fapiRc);
     }
 
-    SBE_DEBUG(SBE_FUNC "fapiRc:%u l_rc:0x%08X", fapiRc, l_rc);
-    return l_rc;
+    SBE_DEBUG(SBE_FUNC "fapiRc:%u o_hdr->secondaryStatus:0x%08X", fapiRc, o_hdr->secondaryStatus);
 }
 

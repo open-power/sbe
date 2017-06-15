@@ -46,6 +46,14 @@ if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
     break; \
 }
 
+#define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, prim, sec) \
+if (!SBE_SECURITY::isAllowed(addr, op)) \
+{ \
+    prim = SBE_PRI_UNSECURE_ACCESS_DENIED; \
+    sec = SBE_SEC_BLACKLISTED_REG_ACCESS; \
+    break; \
+}
+
 #define mfdec()                               \
     ({volatile uint32_t l_dec;                          \
         asm volatile ("mfdec %0" : "=r" (l_dec)); \
