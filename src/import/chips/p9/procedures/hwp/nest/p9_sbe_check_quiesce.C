@@ -249,9 +249,23 @@ extern "C" {
             }
             else if (l_pci_id == 0xe)
             {
-                num_phbs = 2;
-                phb_absolute_address_array[0] = PHB_1_PHB4_SCOM_HVIAR;
-                phb_absolute_address_array[1] = PHB_2_PHB4_SCOM_HVIAR;
+                //Need to make sure that tc_pci1_iovalid(2) is 0b1 to access PHB2
+                fapi2::buffer<uint64_t> l_perv_pci1_cplt_conf1_data(0);
+                fapi2::getScom(i_target, PEC_1_CPLT_CONF1, l_perv_pci1_cplt_conf1_data);
+
+                if(l_perv_pci1_cplt_conf1_data.getBit<PEC_CPLT_CONF1_IOVALID_5D>())
+                {
+                    // PHB 2 is enabled
+                    num_phbs = 2;
+                    phb_absolute_address_array[0] = PHB_1_PHB4_SCOM_HVIAR;
+                    phb_absolute_address_array[1] = PHB_2_PHB4_SCOM_HVIAR;
+                }
+                else
+                {
+                    // PHB2 is disabled
+                    num_phbs = 1;
+                    phb_absolute_address_array[0] = PHB_1_PHB4_SCOM_HVIAR;
+                }
             }
             else if (l_pci_id == 0xf)
             {
