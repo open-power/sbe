@@ -55,30 +55,6 @@
 
 using namespace P9_TOR;
 
-// prefix of our debug file name
-const char* CHIP_TYPE = "p9_";
-
-///
-/// @brief Create a filename containing the DD level and chip type
-///
-/// @param[in]   i_fn SBE image file name
-/// @param[in]   i_ddLevel - DD level of ring
-///
-/// @retval  std::string - holding the newly created file name.
-///
-std::string getDDSpecificFileName( const char* i_fn,
-                                   uint32_t i_ddLevel )
-{
-    // create our dd specific file name
-    std::stringstream ss;
-    std::string fn = i_fn;
-    size_t found = fn.find_last_of("/");
-
-    ss << CHIP_TYPE << std::hex << i_ddLevel << "." << fn.substr(found + 1);
-    return ss.str();
-}
-
-
 ///
 /// @brief retrieve a block of DD level rings from the unsigned hw image
 ///
@@ -248,10 +224,7 @@ int ipl_build( char* i_fnSbeImage,
     int   rc          = 0;
 
 
-    std::string ddSpecificFileName = getDDSpecificFileName(i_fnSbeImage, i_ddLevel);
-
     std::ifstream  sbeImageFile;
-    std::ofstream  ddSpecificImage;
 
     sbeImageFile.open(i_fnSbeImage, std::ios::binary | std::ios::in | std::ios::out);
 
@@ -334,30 +307,11 @@ int ipl_build( char* i_fnSbeImage,
 
                 if(rc == IMGBUILD_SUCCESS)
                 {
-                    // looks like it worked, create a debug file and write the
-                    // customized image to it
-                    ddSpecificImage.open(ddSpecificFileName.c_str(), std::ios::binary | std::ios::out);
-
-                    if(!ddSpecificImage)
-                    {
-                        MY_ERR("failed to open %s for writing\n", ddSpecificFileName.c_str());
-                        rc = IMGBUILD_ERR_FILE_ACCESS;
-                    }
-                    else
-                    {
-                        std::filebuf* outbuf = ddSpecificImage.rdbuf();
-
-                        outbuf->sputn(sbeImage, sbeImageSize);
-
-                        MY_INF("DD specific file created as %s\n", ddSpecificFileName.c_str());
-
-                        // rewind to the beginning of the original file and write this
-                        // into it.
-                        pbuf->pubseekpos(0, sbeImageFile.in);
-
-                        pbuf->sputn(sbeImage, sbeImageSize);
-
-                    }
+                    MY_INF("SUCCESS! DD specific SBE image created successfully!\n");
+                    // rewind to the beginning of the original file and write this
+                    // into it.
+                    pbuf->pubseekpos(0, sbeImageFile.in);
+                    pbuf->sputn(sbeImage, sbeImageSize);
                 }
                 else
                 {
@@ -370,7 +324,6 @@ int ipl_build( char* i_fnSbeImage,
         free(sbeImage);
         free(l_ringBlock);
 
-        ddSpecificImage.close();
         sbeImageFile.close();
     }
 
