@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -34,6 +34,8 @@ if [ -f $TOOLSDIR/pre-commit-actions ]; then
 elif [ -f $TOOLSDIR/pre-commit-prologs ]; then
     $TOOLSDIR/pre-commit-prologs
 else
-    echo "Missing pre-commit files"
+    echo "Error: environment not setup properly..."
+    echo "Run 'source env.bash' or './sb workon' based on your current environment"
+    echo "For more info run './sb --help'"
     exit -1
 fi
