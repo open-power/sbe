@@ -933,6 +933,8 @@ void sbeDoContinuousIpl()
                     SBE_ERROR(SBE_FUNC"Failed istep execution in plck mode: "
                             "Major: %d, Minor: %d", l_major, l_minor);
                     l_done = true;
+                    (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(
+                                                                          true);
                     break;
                 }
                 // Check if we are at step 3.20 on the slave SBE

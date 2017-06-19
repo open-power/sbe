@@ -214,6 +214,13 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
         }
         rc = sbeDsSendRespHdr(respHdr);
 
+        if (rc)
+        {
+            break;
+        }
+        // If we are able to send ffdc, turn off asny ffdc bit
+        (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(false);
+
     }while(0);
 
     if( rc )

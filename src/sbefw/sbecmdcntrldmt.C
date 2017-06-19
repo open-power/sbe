@@ -80,6 +80,7 @@ void sbeDmtPkExpiryCallback(void *)
         SBE_ERROR(SBE_FUNC "PutScom failed for REG PERV_N3_LOCAL_FIR");
         pk_halt();
     }
+    (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(true);
     // TODO - Store the response in Async Response
     // RTC:149074
     #undef SBE_FUNC

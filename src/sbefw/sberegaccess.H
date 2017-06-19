@@ -215,6 +215,17 @@ class SbeRegAccess
          */
         void stateTransition(const sbeEvent &i_event);
 
+        /**
+         * @brief Update the async bit into the SBE messaging register. The
+         * function does a read-modify-write, so any bits other than the async
+         * bits are retained.
+         *
+         * @param [in] i_on True to turn on bit, false to turn off
+         *
+         * @return RC indicating success/failure.
+         *
+         */
+        uint32_t updateAsyncFFDCBit( bool i_on );
     private:
 
         /**
@@ -256,7 +267,8 @@ class SbeRegAccess
             struct
             {
                 uint64_t iv_sbeBooted : 1;
-                uint64_t iv_reserved1 : 3;
+                uint64_t iv_asyncFFDC : 1;
+                uint64_t iv_reserved1 : 2;
                 uint64_t iv_prevState : 4;
                 uint64_t iv_currState : 4;
                 uint64_t iv_majorStep : 8; // Max major is 97
