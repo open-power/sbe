@@ -157,7 +157,7 @@ fapi2::ReturnCode p9_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
         //CFAM.ROOT_CTRL0.FENCE[0..6]_DC = 1
         l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE0_DC>();
         l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE1_DC>();
-        l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE2_DC>();
+        // Not raising PERV_ROOT_CTRL0_FENCE2_DC because we need FSI2PIB <- PERV EPS connectivity
         l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE3_DC>();
         l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE4_DC>();
         l_data32_root_ctrl0.setBit<PERV_ROOT_CTRL0_FENCE5_DC>();
