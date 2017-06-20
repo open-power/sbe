@@ -105,6 +105,7 @@
 #include "p9_hcd_cache_stopclocks.H"
 #include "p9_stopclocks.H"
 #include "p9_suspend_powman.H"
+#include "p9_suspend_io.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
@@ -213,6 +214,7 @@ p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
 extern p9_stopclocks_FP_t p9_stopclocks_hwp;
 //p9_thread_control_FP_t threadCntlhwp = &p9_thread_control;
 extern p9_thread_control_FP_t threadCntlhwp;
+p9_suspend_io_FP_t p9_suspend_io_hwp = &p9_suspend_io;
 #endif
 
 //structure for mapping SBE wrapper and HWP functions
@@ -858,7 +860,7 @@ ReturnCode istepStartInstruction( sbeIstepHwp_t i_hwp)
     if(rc == FAPI2_RC_SUCCESS)
     {
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                          SBE_RUNTIME_EVENT);
+                SBE_RUNTIME_EVENT);
     }
     return rc;
 }
@@ -1510,3 +1512,63 @@ ReturnCode resetCrespErrLatch( void )
     return rc;
 #undef SBE_FUNC
 }
+
+///////////////////////////////////////////////////////////////////////
+// @brief sbeHandleSuspendIO Sbe suspend IO function
+//
+// @return  RC from the underlying FIFO utility
+///////////////////////////////////////////////////////////////////////
+uint32_t sbeHandleSuspendIO(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeHandleSuspendIO "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    uint32_t len = 0;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+    sbeResponseFfdc_t ffdc;
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+
+    do
+    {
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        // Update the PHB functional State before suspend io procedure
+        fapiRc = updatePhbFunctionalState();
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "updatePhbFunctionalState failed");
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+
+        SBE_EXEC_HWP(fapiRc, p9_suspend_io_hwp, procTgt, false);
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "p9_suspend_io hwp failed");
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+    }while(0);
+
+    // Create the Response to caller
+    do
+    {
+        // If there was a FIFO error, will skip sending the response,
+        // instead give the control back to the command processor thread
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+    }while(0);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+

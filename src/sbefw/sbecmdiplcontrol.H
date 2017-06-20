@@ -121,5 +121,13 @@ uint32_t sbeGetSbeFfdc(uint8_t *i_pArg);
   */
 uint32_t sbeGetFreqSupported(uint8_t *i_pArg);
 
+/**
+  * @brief execute suspend IO chip-op (0xA102)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeHandleSuspendIO(uint8_t *i_pArg);
 
 #endif // __SBEFW_SBECMDIPLCONTROL_H

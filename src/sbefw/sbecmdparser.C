@@ -94,7 +94,10 @@ static sbeCmdStruct_t g_sbeIplControlCmdArray [] =
     {sbeHandleIstep,
      SBE_CMD_EXECUTE_ISTEP,
      HARDWARE_FENCED_STATE|SBE_FENCE_AT_DUMPING,
-     // TODO - Issue 157287 - Allow MPIIPL in Isteps state
+    },
+    {sbeHandleSuspendIO,
+     SBE_CMD_SUSPEND_IO,
+     SBE_FENCE_AT_DUMPING,
     },
 };
 

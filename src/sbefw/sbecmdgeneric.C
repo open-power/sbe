@@ -71,7 +71,8 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
     // @TODO via RTC : 160602
     // Update Capability flags based on lastes spec.
     capability[IPL_CAPABILITY_START_IDX] =
-                                EXECUTE_ISTEP_SUPPPORTED;
+                                EXECUTE_ISTEP_SUPPPORTED |
+                                SUSPEND_IO_SUPPPORTED;
 
     capability[SCOM_CAPABILITY_START_IDX] =
                                 GET_SCOM_SUPPPORTED |

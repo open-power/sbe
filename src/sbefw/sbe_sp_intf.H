@@ -72,6 +72,7 @@ static const uint8_t SBE_CMD_UNKNOWN = 0x00;
 enum sbeIplControlCommands
 {
     SBE_CMD_EXECUTE_ISTEP      = 0x01, /* Execute istep */
+    SBE_CMD_SUSPEND_IO         = 0x02, /* Suspend IO */
 };
 
 /**
@@ -257,7 +258,7 @@ enum
     ADDRESS_BLACKLISTING_SUPPPORTED     = 0x00000004,
     FIFO_RESET_SUPPPORTED               = 0x00000008,
     EXECUTE_ISTEP_SUPPPORTED            = 0xA1000001,
-    IS_SBE_DONE_SUPPPORTED              = 0xA1000002,
+    SUSPEND_IO_SUPPPORTED               = 0xA1000002,
     GET_SCOM_SUPPPORTED                 = 0xA2000001,
     PUT_SCOM_SUPPPORTED                 = 0xA2000002,
     MODIFY_SCOM_SUPPPORTED              = 0xA2000004,
