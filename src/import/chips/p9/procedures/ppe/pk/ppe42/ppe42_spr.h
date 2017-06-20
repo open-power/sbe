@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -134,8 +134,8 @@ typedef union
 ///  Note that \a sprn must be a compile-time constant.
 
 #define mfspr(sprn)                                             \
-    ({volatile uint32_t __value;                                          \
-        asm volatile ("mfspr %0, %1" : "=r" (__value) : "i" (sprn)); \
+    ({uint32_t __value;                                          \
+        asm volatile ("mfspr %0, %1" : "=r" (__value) : "i" (sprn) : "memory"); \
         __value;})
 
 
@@ -144,8 +144,8 @@ typedef union
 ///  Note that \a sprn must be a compile-time constant.
 
 #define mtspr(sprn, value)                                        \
-    ({volatile uint32_t __value = (value);                                  \
-        asm volatile ("mtspr %0, %1" : : "i" (sprn), "r" (__value)); \
+    ({uint32_t __value = (value);                                  \
+        asm volatile ("mtspr %0, %1" : : "i" (sprn), "r" (__value) : "memory"); \
     })
 
 

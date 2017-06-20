@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,7 +34,7 @@
 #include "pk.h"
 #include "pk_trace.h"
 
-#if (PK_TRACE_SUPPORT && PK_TIMER_SUPPORT)
+#if (PK_TRACE_SUPPORT)
 void pk_trace_big(uint32_t i_hash_and_count,
                   uint64_t i_parm1, uint64_t i_parm2)
 {
