@@ -40,6 +40,7 @@
 #include "p9_sbe_tp_chiplet_init1.H"
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
+#include <p9n2_perv_scom_addresses_fld.H>
 #include <p9_perv_sbe_cmn.H>
 
 
@@ -125,6 +126,10 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
                  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
                          fapi2::TARGET_STATE_FUNCTIONAL)[0], l_regions,
                  SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
+
+    FAPI_DBG("Set TP_TCPERV_SRAM_ENABLE_DC");
+    l_data64_perv_ctrl0.setBit<P9N2_PERV_PERV_CTRL0_TP_TCPERV_SRAM_ENABLE_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64_perv_ctrl0));
 
     FAPI_INF("p9_sbe_tp_chiplet_init1: Exiting ...");
 
