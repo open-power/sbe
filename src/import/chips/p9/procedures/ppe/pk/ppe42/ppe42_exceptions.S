@@ -412,6 +412,11 @@ __get_ext_irq:
         ## This is HW Macro specific code that is responsible for finding the
         ## IRQ # and storing it in r4 (phantom IRQ's are assigned a value of EXTERNAL_IRQS).
 
+        // restore MSR in interrupt context, for imprecise mode performance
+        _liwa   %r5, PPE42_MSR_INITIAL
+        mtmsr   %r5
+        sync
+
         hwmacro_get_ext_irq
 
         ## An active or phantom IRQ was found. 
