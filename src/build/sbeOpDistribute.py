@@ -27,7 +27,7 @@ import sys
 import getopt
 
 CHIPID = 'p9n'
-p9n_EC = ['10']#, '20']
+p9n_EC = ['10', '20']
 DD_level = {'10':'DD1', '20':'DD2'}
 
 def usage():
@@ -113,7 +113,6 @@ def main(argv):
 
         # buildSbePart.pl
         run_system_cmd(buildSbePart+" --sbeOutBin "+scratch_dir+"/"+sbe_out_name+ec_build_sbe_cmd)
-        run_system_cmd("dd if="+scratch_dir+"/"+sbe_out_name+" of="+scratch_dir+"/"+sbe_out_name+".256K ibs=256K conv=sync")
-        run_system_cmd("ecc --inject "+scratch_dir+"/"+sbe_out_name+".256K --output "+scratch_dir+"/"+sbe_out_name+".ecc --p8")
+        run_system_cmd("ecc --inject "+scratch_dir+"/"+sbe_out_name+" --output "+scratch_dir+"/"+sbe_out_name+".ecc --p8")
 if __name__ == "__main__":
     main(sys.argv)
