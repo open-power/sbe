@@ -499,5 +499,9 @@ attribute tank
         <name>ATTR_SYSTEM_CORECACHE_DCADJ_DISABLE</name>
         <value>0x0</value>
   </entry>
+  <entry>
+        <name>ATTR_MC_PLL_BUCKET</name>
+        <value>0x05</value>
+  </entry>
 
 </entries>
