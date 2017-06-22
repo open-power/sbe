@@ -1385,36 +1385,41 @@ ReturnCode updatePhbFunctionalState( void )
     const uint64_t pci_cplt_conf1[3] = {PEC_0_CPLT_CONF1, PEC_1_CPLT_CONF1, PEC_2_CPLT_CONF1};
 
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
-    auto phbTgt = procTgt.getChildren<fapi2::TARGET_TYPE_PHB>();
+    auto phbTgt_vec = procTgt.getChildren<fapi2::TARGET_TYPE_PHB>();
 
-    uint8_t phbCnt = 0;
-    for (uint8_t pciCnt=0; pciCnt<3; pciCnt++)
+    for (auto &phbTgt : phbTgt_vec)
     {
-        uint64_t data = 0;
+        //Get the PHB id
+        uint8_t phb_id = 0;
+        uint8_t pci_id = 0;
         uint8_t phbPerPciCnt = 0;
-
-        rc = getscom_abs_wrap (&procTgt, pci_cplt_conf1[pciCnt], &data);
+        uint64_t data = 0;
+       
+        FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, phbTgt, phb_id);
+        if(phb_id == 1 || phb_id == 2)
+        {
+            pci_id = 1;
+            phbPerPciCnt = phb_id - 1; // To rotate per phb cnt within PCI from 0 to 1
+        }
+        else if(phb_id > 2)
+        {
+            pci_id = 2;
+            phbPerPciCnt = phb_id - 3; // To rotate per phb cnt within PCI from 0 to 1
+        }
+        rc = getscom_abs_wrap (&procTgt, pci_cplt_conf1[pci_id], &data);
         if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC" Failed to read Pec[%d] Chiplet Config1 register",pciCnt);
+            SBE_ERROR(SBE_FUNC" Failed to read Pec[%d] Chiplet Config1 register",pci_id);
             break;
         }
-
-        do
+        // Fetch bit4 from D000009 for PHB0
+        // Fetch bit4/5 from E000009 for PHB1/2
+        // Fetch bit4/5/6 from F000009 for PHB3/4/5
+        if( !((data >> (PEC_PHB_IOVALID_BIT_SHIFT - phbPerPciCnt)) & PEC_PHB_IOVALID_BIT_MASK) )
         {
-            // Fetch bit4 from D000009 for PHB0
-            // Fetch bit4/5 from E000009 for PHB1/2
-            // Fetch bit4/5/6 from F000009 for PHB3/4/5
-            if( ((data >> (PEC_PHB_IOVALID_BIT_SHIFT - phbPerPciCnt)) &
-                        PEC_PHB_IOVALID_BIT_MASK) )
-            {
-                static_cast<plat_target_handle_t&>(phbTgt[phbCnt++].operator ()()).setFunctional(true);
-            }
-            else
-            {
-                static_cast<plat_target_handle_t&>(phbTgt[phbCnt++].operator ()()).setFunctional(false);
-            }
-        }while(++phbPerPciCnt<=pciCnt);
+            SBE_INFO(SBE_FUNC "PHB[%d] setting up as Non-Functional", phb_id);
+            static_cast<plat_target_handle_t&>(phbTgt.operator ()()).setFunctional(false);
+        }
     }
 
     SBE_EXIT(SBE_FUNC);
