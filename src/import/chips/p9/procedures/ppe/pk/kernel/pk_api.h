@@ -309,6 +309,10 @@
     #define PK_NANOSECONDS(n) ( (PkInterval)( ( ((PK_BASE_FREQ_MHZ<<10)/1000) * (n) ) >> 10) )
 #endif
 
+/// Enable PK application tracing for latency measurments
+#ifndef PK_TRACE_PERF_ENABLE
+    #define PK_TRACE_PERF_ENABLE 0
+#endif
 
 /// Enable PK application tracing (enabled by default)
 #ifndef PK_TRACE_ENABLE
@@ -367,6 +371,12 @@
 
 
 //Application trace macros
+#if !PK_TRACE_PERF_ENABLE
+    #define PK_TRACE_PERF(...)
+#else
+    #define PK_TRACE_PERF(...) PKTRACE(__VA_ARGS__)
+#endif
+
 #if PK_TRACE_DBG_SUPPRESS
     #define PK_TRACE(...)
     #define PK_TRACE_BIN(str, bufp, buf_size)
