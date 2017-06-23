@@ -177,20 +177,19 @@ endif
 install: all tar
 
 tar:
-# TODO:Remove this line once Simics supports DD specific files
-	@cp $(IMG_DIR)/sbe_seeprom_DD1.bin $(IMG_DIR)/sbe_seeprom.bin | true
-	@cp $(IMG_DIR)/sbeStringFile_DD1 $(IMG_DIR)/sbeStringFile | true
+	@cp $(IMG_DIR)/sbe_seeprom_DD1.bin $(IMG_DIR)/sbe_seeprom.bin || true
+	@cp $(IMG_DIR)/$(SBE_SYMBOLS_NAME) $(IMG_DIR)/sbeStringFile || true
 	@echo "Installing simics.tar"
-	@rm -rf $(OBJDIR)/simics-tar-dir
-	@mkdir $(OBJDIR)/simics-tar-dir
-	@mkdir $(OBJDIR)/simics-tar-dir/ppetracepp
-	@mkdir $(OBJDIR)/simics-tar-dir/parserplugins
-	@cp  $(SIMICS_PPE_TAR_FILES) $(OBJDIR)/simics-tar-dir
-	@cp  $(SIMICS_BB_TAR_FILES) $(OBJDIR)/simics-tar-dir
-	@cp  $(SIMICS_PPETRACEPP_TAR_FILES) $(OBJDIR)/simics-tar-dir/ppetracepp
-	@cp  $(SIMICS_PARSERPLUGINS_TAR_FILES) $(OBJDIR)/simics-tar-dir/parserplugins
-	@cd  $(OBJDIR)/simics-tar-dir && tar -cvf simics.tar * && mv simics.tar $(IMG_DIR) && cd ..
-	@rm -rf $(OBJDIR)/simics-tar-dir
+	@rm -rf $(TAR_OBJDIR)
+	@mkdir $(TAR_OBJDIR)
+	@mkdir $(TAR_OBJDIR)/ppetracepp
+	@mkdir $(TAR_OBJDIR)/parserplugins
+	@cp  $(SIMICS_PPE_TAR_FILES) $(TAR_OBJDIR)
+	@cp  $(SIMICS_BB_TAR_FILES) $(TAR_OBJDIR)
+	@cp  $(SIMICS_PPETRACEPP_TAR_FILES) $(TAR_OBJDIR)/ppetracepp
+	@cp  $(SIMICS_PARSERPLUGINS_TAR_FILES) $(TAR_OBJDIR)/parserplugins
+	@cd  $(TAR_OBJDIR) && tar -cvf simics.tar * && mv simics.tar $(IMG_DIR) && cd ..
+	@rm -rf $(TAR_OBJDIR)
 	@echo "Generated simics.tar in Sbe images Directory"
 
 .PHONY: all normalize defaultset appendloader add_LoaderAddr symbols report \

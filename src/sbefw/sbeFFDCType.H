@@ -30,6 +30,12 @@
 #define SBE_FFDC_TRACE_DUMP     0x0002
 #define SBE_FFDC_ALL_DUMP       0xFFFF
 
+enum SBE_FFDC_DD_LEVEL
+{
+    SBE_FFDC_DD1 = 0,
+    SBE_FFDC_DD2 = 1
+};
+
 /* Structure indicating the contents of FFDC package
  * value 'true' - field present;value 'false' - field not present
  * bit_0 - attribute dump
@@ -96,6 +102,7 @@ typedef struct
     uint32_t primaryStatus:16;//Chip Op Primary status
     uint32_t secondaryStatus:16;//Chip Op Secondary status
     uint32_t fwCommitID;// FW commit ID
+    uint32_t ddLevel;// DD level of the SBE
     sbeFFDCDumpFields_t dumpFields;//bitmapped dumpFields
 } sbeFFDCDataHeader_t;
 

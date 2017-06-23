@@ -101,6 +101,12 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
         iv_sbeFFDCDataHeader.primaryStatus = i_hdr.primaryStatus;
         iv_sbeFFDCDataHeader.secondaryStatus = i_hdr.secondaryStatus;
         iv_sbeFFDCDataHeader.fwCommitID = SBE_COMMIT_ID;
+#ifdef DD1
+        iv_sbeFFDCDataHeader.ddLevel = SBE_FFDC_DD1;
+#endif
+#ifdef DD2
+        iv_sbeFFDCDataHeader.ddLevel = SBE_FFDC_DD2;
+#endif
         // Set failed command information
         // Sequence Id is 0 by default for Fifo interface
         iv_sbeFFDCHeader.setCmdInfo(0, i_hdr.cmdClass, i_hdr.command);

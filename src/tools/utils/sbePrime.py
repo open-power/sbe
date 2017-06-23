@@ -240,11 +240,10 @@ def main():
             exit_main(rc_shell)
 
     # Files to copy for sbe prime
-    # TODO via RTC:168436 - remove sbe_seeprom.bin
     if ddlevel == "None":
-        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin,sbe_seeprom_DD1.bin,sbe_seeprom_DD2.bin"
+        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_DD1.bin,sbe_seeprom_DD2.bin"
     else:
-        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin,sbe_seeprom_"+ddlevel+".bin"
+        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_"+ddlevel+".bin"
 
     #----------------------------------------
     # 4) Copy the files from repo to sandbox

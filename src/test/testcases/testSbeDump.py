@@ -76,6 +76,10 @@ def main():
     print ("\ncommitID = " + str(hex(commitID)))
 
     data = testUtil.readDsEntryReturnVal()
+    ddLevel = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])
+    print ("\nddLevel = " + str(hex(ddLevel)))
+
+    data = testUtil.readDsEntryReturnVal()
     header = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])
     print ("\nHeader = " + str(hex(header)))
 

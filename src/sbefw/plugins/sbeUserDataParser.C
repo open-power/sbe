@@ -43,7 +43,7 @@
 #define SBE_ATTR_DUMP_HEADLINE          "SBE Attributes Dump"
 #define P9_XIP_ATTR_CMD                 "-ifs attrdump"
 #define SBE_STRING_FILE                 "sbeStringFile"
-#define SBE_SEEPROM_BIN                 "sbe_seeprom.bin"
+std::string SBE_SEEPROM_BIN = "sbe_seeprom_DD1.bin";
 
 #define SBE_PARSER_MAX_LOCAL_BUFFER     8192
 
@@ -176,6 +176,10 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
                 (uint16_t)l_pData.secondaryStatus);
         i_parser.PrintNumber("FW Commit ID ", "0x%08X",
                 (uint32_t)l_pData.fwCommitID);
+        if(l_pData.ddLevel == SBE_FFDC_DD2)
+        {
+            SBE_SEEPROM_BIN = "sbe_seeprom_DD2.bin";
+        }
         //loop through the number of fields configured
         uint32_t l_dumpFields = l_pData.dumpFields.get();
         while(l_dumpFields && !l_rc)
@@ -240,7 +244,7 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
                     // -ifs attrdump <attr dump file> 2>&1
                     l_strCmd1 << findSbeFile(P9_XIP_TOOL)
                               << " "
-                              << findSbeFile(SBE_SEEPROM_BIN)
+                              << findSbeFile(SBE_SEEPROM_BIN.c_str())
                               << " "
                               << P9_XIP_ATTR_CMD
                               << " "

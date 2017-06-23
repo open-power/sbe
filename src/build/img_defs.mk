@@ -198,6 +198,10 @@ ifndef BASE_OBJDIR
 export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj/$(IMAGE_SUFFIX)
 endif
 
+ifndef TAR_OBJDIR
+export TAR_OBJDIR = $(SBE_ROOT_DIR)/obj/simics-tar-dir
+endif
+
 ifndef P9_XIP_SRCDIR
 export P9_XIP_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/xip
 endif
