@@ -523,6 +523,7 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
 
     if(rc != FAPI2_RC_SUCCESS)
     {
+        SBE_ERROR( SBE_FUNC" FAPI RC:0x%08X", rc);
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                                     SBE_DUMP_FAILURE_EVENT);
     }
