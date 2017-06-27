@@ -22,7 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-#if (!defined(PSTATE_GPE) || NIMBUS_DD_LEVEL==1)
+#if (!defined(PSTATE_GPE) || NIMBUS_DD_LEVEL==10)
     .nolist
 #include "ppe42_asm.h"
     .list
