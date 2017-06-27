@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -45,6 +45,7 @@
 #include <fapi2.H>
 #include <p9_pm.H>
 #include <p9_quad_scom_addresses.H>
+#include <p9_quad_scom_addresses_fld.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions
