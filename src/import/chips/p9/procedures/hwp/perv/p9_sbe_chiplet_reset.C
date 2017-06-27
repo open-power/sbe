@@ -1422,6 +1422,8 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
     FAPI_DBG("Force PLL out enable for PLLs");
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WOR, l_data));
 
+    fapi2::delay(10000, (40 * 400));
+
     l_data.flush<1>();
     l_data.clearBit<PERV_1_NET_CTRL0_PCB_EP_RESET>();
     FAPI_DBG("Release endpoint reset");
