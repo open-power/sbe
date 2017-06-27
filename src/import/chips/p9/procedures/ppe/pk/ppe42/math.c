@@ -38,7 +38,7 @@ extern "C"
 
 
 #ifdef PSTATE_GPE
-#if (NIMBUS_DD_LEVEL != 1)
+#if (NIMBUS_DD_LEVEL != 10)
 
 #include "ocb_register_addresses.h"
 #define out64(addr, data) \
