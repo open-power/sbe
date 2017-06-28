@@ -38,7 +38,8 @@
 #include "sberegaccess.H"
 #include "sbestates.H"
 #include "sbecmdcntrldmt.H"
-
+// TODO Workaround
+#include "plat_target_parms.H"
 #include "fapi2.H"
 #include "p9_misc_scom_addresses_fld.H"
 // Pervasive HWP Header Files ( istep 2)
@@ -1383,7 +1384,8 @@ ReturnCode updatePhbFunctionalState( void )
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
     const uint64_t pci_cplt_conf1[3] = {PEC_0_CPLT_CONF1, PEC_1_CPLT_CONF1, PEC_2_CPLT_CONF1};
-
+    // TODO workaround
+    extern std::vector<fapi2::plat_target_handle_t> G_vec_targets;
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
     auto phbTgt_vec = procTgt.getChildren<fapi2::TARGET_TYPE_PHB>();
 
@@ -1419,9 +1421,9 @@ ReturnCode updatePhbFunctionalState( void )
         {
             SBE_INFO(SBE_FUNC "PHB[%d] setting up as Non-Functional", phb_id);
             static_cast<plat_target_handle_t&>(phbTgt.operator ()()).setFunctional(false);
+            G_vec_targets.at(PHB_TARGET_OFFSET+ phb_id) = (fapi2::plat_target_handle_t)(phbTgt.get());
         }
     }
-
     SBE_EXIT(SBE_FUNC);
     return rc;
 #undef SBE_FUNC
