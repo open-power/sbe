@@ -613,12 +613,16 @@ foreach my $entr (@{$entries->{entry}}) {
         # hasFeature with the attribute specific logic
         if (exists $attr->{chipEcFeature})
         {
-            my $chipCount = 0;
+            my $chipCount     = 0;
+            my $falseIfMatch  = exists $attr->{chipEcFeature}->{falseIfMatch};
+            my $noMatchValue  = $falseIfMatch ? 1 : 0;
+            my $yesMatchValue = $falseIfMatch ? 0 : 1;
+
             print ECHFILE " inline uint8_t hasFeature(int2Type<$attr->{id}>,\n";
             print ECHFILE "                       fapi2::ATTR_NAME_Type i_name,\n";
             print ECHFILE "                       fapi2::ATTR_EC_Type i_ec)\n";
             print ECHFILE " {\n";
-            print ECHFILE "    uint8_t hasFeature = 0;\n\n";
+            print ECHFILE "    uint8_t hasFeature = $noMatchValue;\n\n";
             print ECHFILE "    if(";
 
             foreach my $chip (@{$attr->{chipEcFeature}->{chip}})
@@ -690,7 +694,7 @@ foreach my $entr (@{$entries->{entry}}) {
             }
             print ECHFILE ")\n";
             print ECHFILE "     {\n";
-            print ECHFILE "         hasFeature = 1;\n";
+            print ECHFILE "         hasFeature = $yesMatchValue;\n";
             print ECHFILE "     }\n";
             print ECHFILE "     return hasFeature;\n";
             print ECHFILE " };\n";
