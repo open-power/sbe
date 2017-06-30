@@ -357,29 +357,61 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     }
 
     {
-        //instantiate the basic RamCore class
-        RamCore ram(l_coreTarget, 0);
 
-        //Set the HRMOR
+        fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
+                               FAPI_SYSTEM,
+                               l_attr_fused_mode));
+        l_dataBuf.flush<0>();
+
         //Override PM_EXIT on master core bit 4 is for core 0 bit 5 is for core 1
-        if (l_master_core % 2 == 0)
+        if ( (l_master_core % 2 == 0) ||
+             (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED))
         {
-            l_dataBuf.flush<0>().setBit<EQ_CME_SCOM_SICR_PM_EXIT_C0>();
-        }
-        else
-        {
-            l_dataBuf.flush<0>().setBit<EQ_CME_SCOM_SICR_PM_EXIT_C1>();
+            l_dataBuf.setBit<EQ_CME_SCOM_SICR_PM_EXIT_C0>();
         }
 
-        FAPI_TRY(fapi2::putScom(i_master_ex_target, EX_0_CME_SCOM_SICR_SCOM2, l_dataBuf),
-                 "Error overriding PM_EXIT");
-        //Set ram_thread_active for t0
-        l_dataBuf.flush<0>().setBit<C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0>();
-        FAPI_TRY(fapi2::putScom(l_coreTarget, C_0_THREAD_INFO, l_dataBuf),
-                 "Error setting thread active for t0");
-        l_dataBuf.flush<0>().insertFromRight<0, 64>(l_drawer_base_address_nm0);
-        //call RamCore put_reg method
-        FAPI_TRY(ram.put_reg(REG_SPR, 313, &l_dataBuf), "Error ramming HRMOR");
+        if ( (l_master_core % 2 != 0) ||
+             (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED))
+        {
+            l_dataBuf.setBit<EQ_CME_SCOM_SICR_PM_EXIT_C1>();
+        }
+
+        FAPI_TRY(fapi2::putScom(i_master_ex_target, EX_0_CME_SCOM_SICR_SCOM2,
+                                l_dataBuf) )
+
+        for (auto& coreTgt : i_master_ex_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+        {
+
+            // In non-fused mode, set HRMOR for master core only
+            if ((l_attr_fused_mode != fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED) &&
+                (( coreTgt != l_coreTarget)))
+            {
+                continue;
+            }
+
+            //instantiate the basic RamCore class
+            RamCore ram(coreTgt, 0);
+            //Set the HRMOR
+
+            //Set ram_thread_active for t0
+            l_dataBuf.flush<0>().setBit<C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0>();
+            FAPI_TRY(fapi2::putScom(coreTgt, C_0_THREAD_INFO, l_dataBuf),
+                     "Error setting thread active for t0");
+
+            if( coreTgt == l_coreTarget )
+            {
+                l_dataBuf.flush<0>().insertFromRight<0, 64>(l_drawer_base_address_nm0);
+            }
+            else
+            {
+                l_dataBuf.flush<0>().insertFromRight<0, 64>(
+                    l_drawer_base_address_nm0 - l_bootloader_offset);
+            }
+
+            //call RamCore put_reg method
+            FAPI_TRY(ram.put_reg(REG_SPR, 313, &l_dataBuf), "Error ramming HRMOR");
+        }
     }
 
 fapi_try_exit:
