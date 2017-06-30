@@ -30,7 +30,6 @@
 # Object Files
 ##########################################################################
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_common.C
-ISTEPCOMMON-CPP-SOURCES +=p9_perv_sbe_cmn.C
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_gear_switcher.C
 ISTEPCOMMON-CPP-SOURCES +=p9_fbc_utils.C
 ISTEPCOMMON-CPP-SOURCES +=p9_pba_access.C
