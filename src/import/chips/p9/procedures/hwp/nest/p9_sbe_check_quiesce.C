@@ -54,7 +54,7 @@
 #include <p9_perv_scom_addresses.H>
 #include <p9_suspend_io.H>
 
-#ifndef CAPP_DD2
+#ifndef DD2
     #include <p9_thread_control.H>
     #include <p9_fbc_utils.H>
     #include <p9_adu_setup.H>
@@ -131,7 +131,7 @@ extern "C" {
 
         //This part is actually used for the intp quiesce DD1 workaround but needs to be here because after this
         //the fabric is finished
-#ifndef CAPP_DD2
+#ifndef DD2
         uint64_t l_notify_page_addr = 0x0ull;
         uint32_t l_numGranules;
         p9_ADU_oper_flag l_adu_flag;
@@ -325,7 +325,7 @@ extern "C" {
         fapi2::buffer<uint64_t> l_data(0);
         const uint32_t CQ_fence_status_regs[c_fence_status_reg_size] = {0x00090500, 0x000B0500, 0x00190500, 0x001B0500, 0x00290500, 0x002B0500};
         const uint32_t c_config_size = 6;
-#ifndef NPU_DD2
+#ifndef DD2
         const uint32_t c_GPU_Memory_BARs_size = 12;
         const uint32_t c_memory_bars_size = 36;
         const uint64_t l_GPU_Memory_BARs[c_GPU_Memory_BARs_size] = {PU_NPU0_SM0_GPU_BAR, PU_NPU0_SM1_GPU_BAR, PU_NPU0_SM2_GPU_BAR, PU_NPU0_SM3_GPU_BAR, PU_NPU1_SM0_GPU_BAR, PU_NPU1_SM1_GPU_BAR, PU_NPU1_SM2_GPU_BAR, PU_NPU1_SM3_GPU_BAR, PU_NPU2_SM0_GPU_BAR, PU_NPU2_SM1_GPU_BAR, PU_NPU2_SM2_GPU_BAR, PU_NPU2_SM3_GPU_BAR};
@@ -336,13 +336,13 @@ extern "C" {
         const uint32_t c_memory_bars_size_dd2 = 48;
         const uint32_t l_GPU_Memory_BARs_DD2[c_GPU_Memory_BARs_DD2_size] = {0x5011004, 0x5011034, 0x5011064, 0x5011094, 0x5011204, 0x5011234, 0x5011264, 0x5011294, 0x5011404, 0x5011434, 0x5011464, 0x5011494, 0x5011005, 0x5011035, 0x5011065, 0x5011095, 0x5011205, 0x5011235, 0x5011265, 0x5011295, 0x5011405, 0x5011435, 0x5011465, 0x5011495};
         const uint32_t l_memory_bars_dd2[c_memory_bars_size_dd2] = {0x501100D, 0x501103D, 0x501106D, 0x501109D, 0x501100E, 0x501103E, 0x501106E, 0x501109E, 0x501120D, 0x501123D, 0x501126D, 0x501129D, 0x501120E, 0x501123E, 0x501126E, 0x501129E, 0x501140D, 0x501143D, 0x501146D, 0x501149D, 0x501140E, 0x501143E, 0x501146E, 0x501149E, 0x5011406, 0x5011436, 0x5011466, 0x5011496, 0x5011206, 0x5011236, 0x5011266, 0x5011296, 0x5011007, 0x5011037, 0x5011067, 0x5011097, 0x5011207, 0x5011237, 0x5011267, 0x5011297, 0x5011407, 0x5011437, 0x5011467, 0x5011497, 0x5011006, 0x5011036, 0x5011366, 0x5011396};
-        const uint32_t l_NTL_config_addrs_DD2[c_config_size] = {0x5011128, 0x5011148, 0x5011328, 0x5011348, 0x5011528, 0x5011548}
+        const uint32_t l_NTL_config_addrs_DD2[c_config_size] = {0x5011128, 0x5011148, 0x5011328, 0x5011348, 0x5011528, 0x5011548};
 #endif
         uint32_t l_GPU_Memory_BARs_size_for_loop = 0;
         uint32_t l_memory_bars_size_for_loop = 0;
 
 
-#ifndef NPU_DD2
+#ifndef DD2
         l_GPU_Memory_BARs_size_for_loop = c_GPU_Memory_BARs_size;
         l_memory_bars_size_for_loop = c_memory_bars_size;
 #else
@@ -354,13 +354,13 @@ extern "C" {
         // Set bits 8:9 in the NTL Misc Config 1 registers to place NTLs in Reset state
         for (uint32_t i = 0; i < c_config_size; i++)
         {
-#ifndef NPU_DD2
+#ifndef DD2
             fapi2::getScom(i_target, l_NTL_config_addrs[i], l_data);
 #else
             fapi2::getScom(i_target, l_NTL_config_addrs_DD2[i], l_data);
 #endif
             l_data.insertFromRight<NV_CONFIG1_NTL_RESET, NV_CONFIG1_NTL_RESET_LEN>(0x3);
-#ifndef NPU_DD2
+#ifndef DD2
             fapi2::putScom(i_target, l_NTL_config_addrs[i], l_data);
 #else
             fapi2::putScom(i_target, l_NTL_config_addrs_DD2[i], l_data);
@@ -375,7 +375,7 @@ extern "C" {
                 l_data.flush<0>().insertFromRight<PU_NPU_CTL_DA_ADDR_MISC, PU_NPU_CTL_DA_ADDR_MISC_LEN>
                 (CQ_fence_status_regs[i]);
 
-#ifndef NPU_DD2
+#ifndef DD2
                 fapi2::putScom(i_target, PU_NPU_CTL_DA_ADDR, l_data);
                 fapi2::getScom(i_target, PU_NPU_CTL_DA_DATA, l_data);
 #else
@@ -400,13 +400,15 @@ extern "C" {
         // Set bits 0:5 in the NPU Fence State register to place all bricks into Fence State
         l_data.setBit<PU_NPU_CTL_FENCE_STATE_BRK0>().setBit<PU_NPU_CTL_FENCE_STATE_BRK1>().setBit<PU_NPU_CTL_FENCE_STATE_BRK2>().setBit<PU_NPU_CTL_FENCE_STATE_BRK3>().setBit<PU_NPU_CTL_FENCE_STATE_BRK4>().setBit<PU_NPU_CTL_FENCE_STATE_BRK5>();
 
-#ifndef NPU_DD2
+#ifndef DD2
         fapi2::putScom(i_target, PU_NPU_CTL_FENCE_STATE, l_data);
 #else
-        fapi2::buffer<uint64_t> l_npu_interrupt_reg_data(0);
-        fapi2::putScom(i_target, 0x5011696, l_data);
-        //Write bits 0:22 of the NPU Interrupt Request register to eliminate any interrupt requests that occurred between steps 1 and 2.
-        fapi2::putScom(i_target, 0x5011697, l_npu_interrupt_reg_data);
+        {
+            fapi2::buffer<uint64_t> l_npu_interrupt_reg_data(0);
+            fapi2::putScom(i_target, 0x5011696, l_data);
+            //Write bits 0:22 of the NPU Interrupt Request register to eliminate any interrupt requests that occurred between steps 1 and 2.
+            fapi2::putScom(i_target, 0x5011697, l_npu_interrupt_reg_data);
+        }
 #endif
 
         // 3) Disable all NPU BAR registers
@@ -415,7 +417,7 @@ extern "C" {
         for (uint32_t i = 0; i < l_GPU_Memory_BARs_size_for_loop; i++)
         {
             l_data.flush<0>().clearBit<PU_NPU0_SM0_GPU_BAR_CONFIG_GPU0_ENABLE>().clearBit<PU_NPU0_SM0_GPU_BAR_CONFIG_GPU1_ENABLE>();
-#ifndef NPU_DD2
+#ifndef DD2
             fapi2::putScom(i_target, l_GPU_Memory_BARs[i], l_data);
 #else
             fapi2::putScom(i_target, l_GPU_Memory_BARs_DD2[i], l_data);
@@ -428,7 +430,7 @@ extern "C" {
         for (uint32_t i = 0; i < l_memory_bars_size_for_loop; i++)
         {
             l_data.flush<0>().clearBit<PU_NPU0_SM0_NDT0_BAR_CONFIG_ENABLE>();
-#ifndef NPU_DD2
+#ifndef DD2
             fapi2::putScom(i_target, l_memory_bars[i], l_data);
 #else
             fapi2::putScom(i_target, l_memory_bars_dd2[i], l_data);
@@ -671,7 +673,7 @@ extern "C" {
 
         // Write to UMAC Control register(bits 4:6) with '100'
         //TODO RTC 160710 for DD1 this is broken, will readd when we are on DD2
-#ifdef NX_DD2
+#ifdef DD2
         fapi2::getScom(i_target, PU_UMAC_STATUS_CONTROL, l_data);
         l_data.setBit<PU_UMAC_STATUS_CONTROL_QUIESCE_REQUEST>().clearBit<PU_UMAC_STATUS_CONTROL_QUIESCE_ACHEIVED>().clearBit<PU_UMAC_STATUS_CONTROL_QUIESCE_FAILED>();
         fapi2::putScom(i_target, PU_UMAC_STATUS_CONTROL, l_data);
@@ -759,11 +761,9 @@ extern "C" {
         // mark HWP entry
 
         fapi2::buffer<uint64_t> l_data(0);
-        uint64_t l_int_vc_eqc_config_mask_verify_vc_syncs_complete = 0x00000000F8000000;
-        const uint64_t l_intp_scrub_masks[4] = {PU_INT_VC_IVC_SCRUB_MASK, PU_INT_VC_SBC_SCRUB_MASK, PU_INT_VC_EQC_SCRUB_MASK, PU_INT_PC_VPC_SCRUB_MASK};
 
         //TODO For DD1 this is broken - readd when fixed in DD2
-#ifdef INT_DD2
+#ifdef DD2
         // Read INT_CQ_RST_CTL so that we don't override anything
         fapi2::getScom(i_target, PU_INT_CQ_RST_CTL, l_data);
 
@@ -792,6 +792,8 @@ extern "C" {
         l_data.setBit<PU_INT_CQ_RST_CTL_SYNC_RESET>();
         fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, l_data);
 #else
+        uint64_t l_int_vc_eqc_config_mask_verify_vc_syncs_complete = 0x00000000F8000000;
+        const uint64_t l_intp_scrub_masks[4] = {PU_INT_VC_IVC_SCRUB_MASK, PU_INT_VC_SBC_SCRUB_MASK, PU_INT_VC_EQC_SCRUB_MASK, PU_INT_PC_VPC_SCRUB_MASK};
         //Workaround for the sync reset
         //------------------------------------------------------------------
         //Use syncs to make sure no more requests are pending on the queue
