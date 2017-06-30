@@ -382,7 +382,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
         FAPI_TRY(fapi2::putScom(core, C_PPM_PFDLY, l_data64));
     } // Core loop
 
-    FAPI_ASSERT(b_host_core_found,
+    FAPI_ASSERT(!b_single || b_host_core_found,
                 fapi2::SBE_SELECT_EX_NO_CORE_AVAIL_ERROR()
                 .set_CHIP(i_target),
                 "No good cores found to boot with");
@@ -442,7 +442,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
 
     } // EQ loop
 
-    FAPI_ASSERT(b_host_eq_found,
+    FAPI_ASSERT(!b_single || b_host_eq_found,
                 fapi2::SBE_SELECT_EX_CORE_EQ_CONFIG_ERROR()
                 .set_CHIP(i_target),
                 "The cache chiplet associated with the first good core not functional");
