@@ -52,8 +52,9 @@ namespace p9selectex
 // valid domain options
 enum  MODE
 {
-    SINGLE,       // Only the first core
-    ALL           // All Core
+    SINGLE,         // Only the first core
+    SINGLE_NONE_OK, // Only the first core, don't error if none are present
+    ALL             // All Core
 };
 
 } // namespace p9selectex
