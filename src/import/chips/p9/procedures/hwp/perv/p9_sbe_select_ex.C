@@ -167,6 +167,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
     fapi2::buffer<uint64_t> l_quad_config = 0;
     fapi2::buffer<uint64_t> l_data64 = 0;
     bool b_single = true;
+    bool b_skip_hb_checks = false;
     bool b_host_core_found = false;
     bool b_host_eq_found = false;
     bool b_fused = false;
@@ -193,10 +194,16 @@ fapi2::ReturnCode p9_sbe_select_ex(
     if (l_attr_force_all || i_mode == p9selectex::ALL)
     {
         b_single = false;
+        b_skip_hb_checks = true;
         FAPI_DBG("All cores mode");
     }
     else
     {
+        if (i_mode == p9selectex::SINGLE_NONE_OK)
+        {
+            b_skip_hb_checks = true;
+        }
+
         FAPI_DBG("Single/Fused core mode:  Number of candidate cores = %d, Number of candidate caches = %d",
                  l_core_functional_vector.size(),
                  l_eq_functional_vector.size());
@@ -382,7 +389,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
         FAPI_TRY(fapi2::putScom(core, C_PPM_PFDLY, l_data64));
     } // Core loop
 
-    FAPI_ASSERT(!b_single || b_host_core_found,
+    FAPI_ASSERT(b_skip_hb_checks || b_host_core_found,
                 fapi2::SBE_SELECT_EX_NO_CORE_AVAIL_ERROR()
                 .set_CHIP(i_target),
                 "No good cores found to boot with");
@@ -442,7 +449,7 @@ fapi2::ReturnCode p9_sbe_select_ex(
 
     } // EQ loop
 
-    FAPI_ASSERT(!b_single || b_host_eq_found,
+    FAPI_ASSERT(b_skip_hb_checks || b_host_eq_found,
                 fapi2::SBE_SELECT_EX_CORE_EQ_CONFIG_ERROR()
                 .set_CHIP(i_target),
                 "The cache chiplet associated with the first good core not functional");
