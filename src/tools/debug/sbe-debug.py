@@ -235,7 +235,7 @@ def collectAttr( target, node, proc, ddsuffix, file_path ):
     # TODO via RTC 158861
     # For multi-node system we need to convert node/proc to absolute
     # proc number.
-    cmd3 = ( getFilePath("/p9_xip_tool")+" "+getFilePath(sbeImgFile) + " -ifs attrdump sbeAttr.bin > "+\
+    cmd3 = ( getFilePath("p9_xip_tool")+" "+getFilePath(sbeImgFile) + " -ifs attrdump sbeAttr.bin > "+\
              "sbe_"+str(proc)+"_attrs")
 
     print "cmd2:", cmd2
