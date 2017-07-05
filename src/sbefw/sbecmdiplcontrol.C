@@ -271,6 +271,10 @@ static istepMap_t g_istepMpiplContinuePtrTbl[MPIPL_CONTINUE_MAX_SUBSTEPS] =
 #ifdef SEEPROM_IMAGE
             // Setup EC/EQ guard records
             { &istepMpiplSetFunctionalState, NULL},
+             { &istepNoOp, NULL },  // Witherspoon only (mpipl_dump_reg)
+             { &istepNoOp, NULL },  // Witherspoon only (mpipl_query_quad_access_state)
+             { &istepNoOp, NULL },  // Witherspoon only (mpipl_hcd_core_stopclocks)
+             { &istepNoOp, NULL },  // Witherspoon only (mpipl_hcd_cache_stopclocks)
             // p9_quad_power_off
             { istepMpiplQuadPoweroff, { .quadPoweroffHwp = &p9_quad_power_off} },
             // No-op
