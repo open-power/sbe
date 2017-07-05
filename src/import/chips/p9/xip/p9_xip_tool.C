@@ -576,7 +576,14 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
             printf("Chip type          : 0x%02x \"%s\"\n",
                    torHeader->chipType, CHIP_TYPE_LIST[torHeader->chipType].name);
             printf("DD level           : 0x%02x\n", torHeader->ddLevel);
-            printf("Number DD levels   : %d\n", torHeader->numDdLevels);
+#ifdef TORV3_SUPPORT
+
+            if (torHeader->version < 5)
+            {
+                fprintf(stdout, "Number DD levels   : %d\n", torHeader->numDdLevels);
+            }
+
+#endif
             printf("Image size         : 0x%08x (%d)\n",
                    be32toh(torHeader->size), be32toh(torHeader->size));
 
@@ -1408,11 +1415,7 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
             // return a list of supported DD levels.
         }
 
-#ifdef __PPE__
-        rc = p9_xip_get_section( io_image, sectionId, &xDdSection);
-#else
         rc = p9_xip_get_section( io_image, sectionId, &xDdSection, ddLevel);
-#endif
 
         switch (rc)
         {
@@ -1776,7 +1779,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
         // Try p9_xip_get_section against the translated header
 
         p9_xip_translate_header(&header, (P9XipHeader*)io_image);
-        rc = p9_xip_get_section(io_image, P9_XIP_SECTION_TOC, &section);
+        rc = p9_xip_get_section(io_image, P9_XIP_SECTION_TOC, &section, UNDEFINED_DD_LEVEL);
         BOMB_IF_RC;
         BOMB_IF((section.iv_size !=
                  header.iv_section[P9_XIP_SECTION_TOC].iv_size));
@@ -1885,15 +1888,18 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     RingId_t    numRingIds = 0;
     uint32_t    torMagic = 0xffffffff; // Undefined value
     ChipType_t  chipType = UNDEFINED_CHIP_TYPE;
+#ifdef TORV3_SUPPORT
     uint32_t    numDdLevels = 0; // Undefined value
-    uint8_t     iDdLevel, ddLevel = UNDEFINED_DD_LEVEL;
+#endif
+    uint8_t     iDdLevel;
+    uint8_t     ddLevel = UNDEFINED_DD_LEVEL;
     PpeType_t   ppeType;
     RingId_t    ringId;
     RingVariant_t ringVariant;
     uint8_t     instanceId;
     void*       ringBlockPtr;
     uint32_t    ringBlockSize;
-    char        ringName[50];
+    char        ringName[MAX_RING_NAME_LENGTH];
     uint32_t    ringSeqNo  = 0; // Ring sequence number
     CompressedScanData* rs4 = NULL;
     CompressedScanData* rs4ForDisplay = NULL;
@@ -1912,15 +1918,37 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     uint8_t     cmskRingIteration = 0;
     char        ringSuffix = ' ';
 
-    TorHeader_t* torHeader = reinterpret_cast<TorHeader_t*>(i_ringSection);
 
     //
     // Get TOR header fields
     //
+    TorHeader_t* torHeader = reinterpret_cast<TorHeader_t*>(i_ringSection);
     torMagic    = be32toh(torHeader->magic);
     chipType    = torHeader->chipType;
     ddLevel     = torHeader->ddLevel;
-    numDdLevels = torHeader->numDdLevels;
+
+#ifdef TORV3_SUPPORT
+    TorDdBlock_t* torDdBlock = NULL;
+
+    if (torMagic == TOR_MAGIC_HW)
+    {
+        if (torHeader->version < 5)
+        {
+            numDdLevels = torHeader->numDdLevels;
+            // move past the tor header to the tor blocks
+            torDdBlock = reinterpret_cast<TorDdBlock_t*>(i_ringSection + sizeof(TorHeader_t));
+        }
+        else
+        {
+            numDdLevels = 1;
+        }
+    }
+    else
+    {
+        numDdLevels = 1;
+    }
+
+#endif
 
     //
     // Make some ChipType specific data translations
@@ -1997,21 +2025,24 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     bool bRingsFound = true;
     bool bPrintHeader = true;
 
-    // Needed if TOR_MAGIC_HW
-    TorDdBlock_t* torDdBlock = reinterpret_cast<TorDdBlock_t*>(i_ringSection + sizeof(TorHeader_t));
-
+#ifdef TORV3_SUPPORT
 
     //----------------
     // DD level loop.
     for (iDdLevel = 0; iDdLevel < numDdLevels; iDdLevel++)
     {
-        if (torMagic == TOR_MAGIC_HW)
+        if ( torMagic == TOR_MAGIC_HW && torHeader->version < 5 )
         {
             ddLevel = torDdBlock->ddLevel;
             //point to the next DD block
             torDdBlock++;
         }
+        else
+        {
+            ddLevel = torHeader->ddLevel;
+        }
 
+#endif
         // assume no rings will be found so on the next loop so we can print
         // the info
         bRingsFound = false;
@@ -2347,7 +2378,11 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
             fprintf(stdout, "No rings for DD level: 0x%x\n", ddLevel);
         }
 
+#ifdef TORV3_SUPPORT
+
     }  // End of for(iDdLevel)
+
+#endif
 
     if (i_listingModeId == LMID_TABLE)
     {
@@ -2397,7 +2432,7 @@ dissectRingSection(void*                      i_image,
     P9XipHeader     hostHeader;
     P9XipSection    hostSection;
     image_section_type_t l_imageSectionType = IST_UNDEFINED;
-    bool            bEcLvlSupported = false;
+    myBoolean_t     bEcLvlSupported = UNDEFINED_BOOLEAN;
     void*           ringSection = NULL;
     std::vector<void*>ringSectionPtrs;
 
@@ -2494,7 +2529,13 @@ dissectRingSection(void*                      i_image,
 
             // Determine if XIP section has DD support
             //
-            rc = p9_xip_dd_section_support( i_image, sectionId, bEcLvlSupported );
+            rc = p9_xip_dd_section_support( i_image, sectionId, &bEcLvlSupported );
+
+            if (rc)
+            {
+                fprintf(stderr, "p9_xip_dd_section_support() failed w/rc=0x%08x (1)\n", (uint32_t)rc );
+                exit(EXIT_FAILURE);
+            }
 
             if( bEcLvlSupported )
             {
@@ -2814,9 +2855,34 @@ int check_sbe_ring_section_size( void* i_hwImage,
 
     void**   l_blockPtr   = NULL;
     uint32_t l_blockSize  = 0;
+    myBoolean_t  l_bDdSupport = UNDEFINED_BOOLEAN;
 
-    // Get the full .rings section from the HW image
-    rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection);
+    // Determine if there's rings dd support
+    rc = p9_xip_dd_section_support(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_bDdSupport);
+
+    if (rc)
+    {
+        fprintf(stderr, "p9_xip_dd_section_support() failed w/rc=0x%08x (2)\n", (uint32_t)rc );
+        return rc;
+    }
+
+    if (l_bDdSupport)
+    {
+        rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection, i_ddLevel);
+
+        if (rc)
+        {
+            fprintf(stderr, "ERROR: p9_xip_get_section() failed w/rc=0x%x while getting "
+                    "DD (=0x%x) specific ring section.\n",
+                    (uint32_t)rc, i_ddLevel);
+            exit (EXIT_FAILURE);
+        }
+    }
+    else
+    {
+        // Get the full .rings section from the HW image
+        rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection);
+    }
 
     if (!rc)
     {
