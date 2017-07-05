@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -36,6 +36,7 @@ INCLUDES += -I.
 INCLUDES += -I../../../hwpf/fapi2/include/plat
 INCLUDES += -I../utils/imageProcs
 INCLUDES += -I../../common/utils/imageProcs
+INCLUDES += -I../../p9/utils/imageProcs
 
 ifeq ($(PROJECT_NAME),sbe)
 XIP_FLAGS+=-D__PPE__
@@ -69,13 +70,16 @@ all: $(OBJ_DIR) $(XIP_EXECUTABLES)
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
+$(OBJ_DIR)/%.o: $(IMAGEPROCS_P9_SRCDIR)/%.c
+	$(CXX) $(CXX_FLAGS) $(INCLUDES) $(XIP_FLAGS) -c -o $@ $<
+
 $(OBJ_DIR)/%.o: %.c
 	$(CXX) $(CXX_FLAGS) $(INCLUDES) $(XIP_FLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/%.o: %.C
 	$(CXX) $(CXX_FLAGS) $(INCLUDES) $(XIP_FLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/p9_xip_tool: $(OBJ_DIR)/p9_xip_image.o  $(OBJ_DIR)/p9_xip_tool.o
+$(OBJ_DIR)/p9_xip_tool: $(OBJ_DIR)/p9_xip_image.o  $(OBJ_DIR)/p9_xip_tool.o $(OBJ_DIR)/p9_dd_container.o
 	$(CXX) -o $@ $^
 
 clean:

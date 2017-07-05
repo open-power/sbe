@@ -390,12 +390,6 @@ ifdef __FAPI_DELAY_SIM__
 GCC-DEFS += -D__FAPI_DELAY_SIM__=1
 endif
 
-ifdef __AWAN_SIM_ENV__
-GCC-DEFS += -D__FAPI_DELAY_SIM__=1
-# allow invalid scoms in AWAN run to let regression test cases run
-GCC-DEFS += -D__ALLOW_INVALID_SCOMS__=1
-endif
-
 # Generate a 16bit trace string hash prefix value based on the name of this image.  This will form
 # the upper 16 bits of the 32 bit trace hash values.
 ifndef PK_TRACE_HASH_PREFIX
@@ -462,7 +456,6 @@ INCLUDES += -I$(BUILDDATA_SRCDIR)
 INCLUDES += -I$(PK_SRCDIR)/trace
 INCLUDES += -I$(PPETRACEPP_DIR)
 INCLUDES += -I$(IMPORT_COMMON_DIR)/include
-#INCLUDES += -I$(IMPORT_UTILS_DIR)/imageProcs
 INCLUDES += -I$(IMPORT_UTILS_DIR)/
 INCLUDES += -I$(IMPORT_SRCDIR)/tools/imageProcs
 

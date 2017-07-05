@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -55,6 +55,7 @@ OBJS = $(P9_XIP_BINDIR)/p9_xip_image.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/cen_ringId.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_tor.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_ipl_build.o \
+	   $(BASE_OBJDIR)/tools/iplbuild/p9_dd_container.o \
 
 all:objdir utilities
 
@@ -66,7 +67,10 @@ utilities: $(IMG_DIR)/p9_ipl_build
 CXXFLAGS =-DFAPI2_NO_FFDC
 
 $(P9_XIP_BINDIR)/%.o: %.c
-	$(CXX)  $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
+
+$(BASE_OBJDIR)/tools/iplbuild/%.o: $(IMAGEPROCS_P9_SRCDIR)/%.c
+	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
 
 $(BASE_OBJDIR)/tools/iplbuild/%.o: %.C
 	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<

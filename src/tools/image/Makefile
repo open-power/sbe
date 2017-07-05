@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -65,10 +65,13 @@ utilities: $(IMG_DIR)/sbe_default_tool
 
 CXXFLAGS+=-DFAPI2_NO_FFDC
 
+$(BASE_OBJDIR)/tools/image/%.o: $(IMAGEPROCS_P9_SRCDIR)/%.c
+	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
+
 $(BASE_OBJDIR)/tools/image/%.o: %.c
 	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
 
-$(IMG_DIR)/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o $(BASE_OBJDIR)/tools/image/sbe_default_tool.o
+$(IMG_DIR)/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o $(BASE_OBJDIR)/tools/image/sbe_default_tool.o $(BASE_OBJDIR)/tools/image/p9_dd_container.o
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
 
 clean:
