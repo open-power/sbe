@@ -146,13 +146,10 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
         FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_13, fapi2::RING_MODE_SET_PULSE_NSL),
                  "Error from putRing (eq_ana_bndy_bucket_13)");
 
-        if( l_attr_dcadj_p9dd1_init )
-        {
-            FAPI_DBG("Release DCC bypass");
-            l_data64.flush<1>();
-            l_data64.clearBit<1>();
-            FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL1_WAND, l_data64));
-        }
+        FAPI_DBG("Release DCC bypass");
+        l_data64.flush<1>();
+        l_data64.clearBit<1>();
+        FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL1_WAND, l_data64));
 
         FAPI_DBG("Scan eq_ana_bndy_bucket_14 ring");
         FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_14, fapi2::RING_MODE_SET_PULSE_NSL),
@@ -161,23 +158,6 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
         FAPI_DBG("Scan eq_ana_bndy_bucket_15 ring");
         FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_15, fapi2::RING_MODE_SET_PULSE_NSL),
                  "Error from putRing (eq_ana_bndy_bucket_15)");
-
-        if(! l_attr_dcadj_p9dd1_init ) //DD2 bucket_16, 17 -- dcadso
-        {
-
-            FAPI_DBG("Release DCC bypass");
-            l_data64.flush<1>();
-            l_data64.clearBit<1>();
-            FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL1_WAND, l_data64));
-
-            FAPI_DBG("Scan eq_ana_bndy_bucket_16 ring");
-            FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_16, fapi2::RING_MODE_SET_PULSE_NSL),
-                     "Error from putRing (eq_ana_bndy_bucket_16)");
-
-            FAPI_DBG("Scan eq_ana_bndy_bucket_17 ring");
-            FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_17, fapi2::RING_MODE_SET_PULSE_NSL),
-                     "Error from putRing (eq_ana_bndy_bucket_17)");
-        }
     }
 
 
@@ -191,16 +171,13 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SKEWADJ_P9NDD1_INIT,
                                l_chip, l_attr_skewadj_p9dd1_init));
 
-        if( l_attr_skewadj_p9dd1_init )   //DD1 bucket_16, 17 -- skewadjust
-        {
-            FAPI_DBG("Scan eq_ana_bndy_bucket_16 ring");
-            FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_16, fapi2::RING_MODE_SET_PULSE_NSL),
-                     "Error from putRing (eq_ana_bndy_bucket_16)");
+        FAPI_DBG("Scan eq_ana_bndy_bucket_16 ring");
+        FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_16, fapi2::RING_MODE_SET_PULSE_NSL),
+                 "Error from putRing (eq_ana_bndy_bucket_16)");
 
-            FAPI_DBG("Scan eq_ana_bndy_bucket_17 ring");
-            FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_17, fapi2::RING_MODE_SET_PULSE_NSL),
-                     "Error from putRing (eq_ana_bndy_bucket_17)");
-        }
+        FAPI_DBG("Scan eq_ana_bndy_bucket_17 ring");
+        FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_17, fapi2::RING_MODE_SET_PULSE_NSL),
+                 "Error from putRing (eq_ana_bndy_bucket_17)");
 
         FAPI_DBG("Scan eq_ana_bndy_bucket_18 ring");
         FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_18, fapi2::RING_MODE_SET_PULSE_NSL),
@@ -292,6 +269,11 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
             FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_37, fapi2::RING_MODE_SET_PULSE_NSL),
                      "Error from putRing (eq_ana_bndy_bucket_37)");
 
+            FAPI_DBG("Release Progdly bypass");
+            l_data64.flush<1>();
+            l_data64.clearBit<2>();
+            FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL1_WAND, l_data64));
+
             FAPI_DBG("Scan eq_ana_bndy_bucket_38 ring");
             FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_38, fapi2::RING_MODE_SET_PULSE_NSL),
                      "Error from putRing (eq_ana_bndy_bucket_38)");
@@ -299,19 +281,6 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
             FAPI_DBG("Scan eq_ana_bndy_bucket_39 ring");
             FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_39, fapi2::RING_MODE_SET_PULSE_NSL),
                      "Error from putRing (eq_ana_bndy_bucket_39)");
-
-            FAPI_DBG("Release Progdly bypass");
-            l_data64.flush<1>();
-            l_data64.clearBit<2>();
-            FAPI_TRY(fapi2::putScom(l_perv, PERV_NET_CTRL1_WAND, l_data64));
-
-            FAPI_DBG("Scan eq_ana_bndy_bucket_40 ring");
-            FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_40, fapi2::RING_MODE_SET_PULSE_NSL),
-                     "Error from putRing (eq_ana_bndy_bucket_40)");
-
-            FAPI_DBG("Scan eq_ana_bndy_bucket_41 ring");
-            FAPI_TRY(fapi2::putRing(i_cache, eq_ana_bndy_bucket_41, fapi2::RING_MODE_SET_PULSE_NSL),
-                     "Error from putRing (eq_ana_bndy_bucket_41)");
         }
     }
 
