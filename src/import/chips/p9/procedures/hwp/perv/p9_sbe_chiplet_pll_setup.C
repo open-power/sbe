@@ -64,7 +64,8 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_check_pll_lock(
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const bool i_bypass);
+    const bool i_bypass,
+    const bool i_unmask);
 
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_mc_pdly_dcc_bypass(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
@@ -85,6 +86,8 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
     uint8_t l_read_attr = 0;
     uint8_t l_bypass = 0;
     uint8_t l_use_dmi_buckets = 0;
+    uint8_t l_hw415692 = 0;
+
     FAPI_INF("p9_sbe_chiplet_pll_setup: Entering ...");
 
     auto l_mc_io_func = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
@@ -101,6 +104,8 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
 
     FAPI_DBG("Reading ATTR_mc_sync_mode");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_read_attr));
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW415692, i_target_chip, l_hw415692));
 
     for (auto& mc : l_mc_io_func)
     {
@@ -190,12 +195,13 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_setup(const
     {
         // OBUS, XBUS, PCIe, MC
         uint32_t l_chipletID = targ.getChipletNumber();
+        bool l_unmask = !(l_hw415692 && (l_chipletID == XB_CHIPLET_ID));
 
         if(l_chipletID == XB_CHIPLET_ID || (l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID) ||
            (l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID) ||
            ((!l_read_attr || l_use_dmi_buckets) && (l_chipletID == MC01_CHIPLET_ID || l_chipletID == MC23_CHIPLET_ID))  )
         {
-            FAPI_TRY(p9_sbe_chiplet_pll_setup_function(targ, l_bypass));
+            FAPI_TRY(p9_sbe_chiplet_pll_setup_function(targ, l_bypass, l_unmask));
         }
     }
 
@@ -253,10 +259,12 @@ fapi_try_exit:
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 /// @param[in]     i_bypass           Leave PLL in bypass?
+/// @param[in]     i_unmask           Unmask PLL error reporting?
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const bool i_bypass)
+    const bool i_bypass,
+    const bool i_unmask)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_chiplet_pll_setup_function: Entering ...");
@@ -281,10 +289,14 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
     //Setting ERROR_REG register value
     //ERROR_REG = 0xFFFFFFFFFFFFFFFF
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_ERROR_REG, 0xFFFFFFFFFFFFFFFF));
-    FAPI_DBG(" Unmasking pll unlock error in   Pcb slave config reg");
-    FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_SLAVE_CONFIG_REG, l_data64));
-    l_data64.clearBit<12>();
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_SLAVE_CONFIG_REG, l_data64));
+
+    if (i_unmask)
+    {
+        FAPI_DBG(" Unmasking pll unlock error in   Pcb slave config reg");
+        FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_SLAVE_CONFIG_REG, l_data64));
+        l_data64.clearBit<12>();
+        FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_SLAVE_CONFIG_REG, l_data64));
+    }
 
     FAPI_INF("p9_sbe_chiplet_pll_setup_function: Exiting ...");
 
