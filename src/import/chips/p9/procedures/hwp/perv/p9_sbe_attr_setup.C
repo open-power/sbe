@@ -233,6 +233,30 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             l_read_scratch_reg.extractToRight<ATTR_OB2_PLL_BUCKET_STARTBIT, ATTR_OB2_PLL_BUCKET_LENGTH>(l_ob2_pll_bucket);
             l_read_scratch_reg.extractToRight<ATTR_OB3_PLL_BUCKET_STARTBIT, ATTR_OB3_PLL_BUCKET_LENGTH>(l_ob3_pll_bucket);
 
+            // Workaround to handle backward compatibilty
+            // Old drivers will keep MBX OBUS PLL bucket value as zero. So
+            // change it to 1 to make old drivers compatible with new SBE
+            // image
+            if( 0 == l_ob0_pll_bucket )
+            {
+                l_ob0_pll_bucket = 1;
+            }
+
+            if( 0 == l_ob1_pll_bucket )
+            {
+                l_ob1_pll_bucket = 1;
+            }
+
+            if( 0 == l_ob2_pll_bucket )
+            {
+                l_ob2_pll_bucket = 1;
+            }
+
+            if( 0 == l_ob3_pll_bucket )
+            {
+                l_ob3_pll_bucket = 1;
+            }
+
             FAPI_DBG("Setting up ATTR_I2C_BUS_DIV_REF");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_I2C_BUS_DIV_REF, i_target_chip, l_read_4));
 
