@@ -492,6 +492,10 @@ attribute tank
            <virtual/>
   </entry>
   <entry>
+           <name>ATTR_CHIP_EC_FEATURE_HW414700</name>
+           <virtual/>
+  </entry>
+  <entry>
         <name>ATTR_SYSTEM_CORECACHE_SKEWADJ_DISABLE</name>
         <value>0x0</value>
   </entry>
