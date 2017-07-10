@@ -319,7 +319,7 @@
            <value>0x0</value>
   </entry>
   <entry>
-           <name>ATTR_VDM_ENABLE</name>
+           <name>ATTR_VDM_ENABLED</name>
            <value>0x0</value>
   </entry>
   <entry>

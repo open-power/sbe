@@ -178,7 +178,7 @@ install: all tar
 
 tar:
 	@cp $(IMG_DIR)/sbe_seeprom_DD1.bin $(IMG_DIR)/sbe_seeprom.bin || true
-	@cp $(IMG_DIR)/$(SBE_STRINGFILE_NAME) $(IMG_DIR)/sbeStringFile || true
+	@cp $(IMG_DIR)/$(SBE_SYMBOLS_NAME) $(IMG_DIR)/sbeStringFile || true
 	@echo "Installing simics.tar"
 	@rm -rf $(TAR_OBJDIR)
 	@mkdir $(TAR_OBJDIR)
@@ -235,6 +235,7 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_sbe_load_bootloader_attributes.
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_plat_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_hwp_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_cache_contained_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/chip_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/chip_ec_attributes.xml
