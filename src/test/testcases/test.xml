@@ -33,13 +33,16 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testScom.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
+          <!-- Memory access testcases -->
+          <include>../simics/targets/p9_nimbus/sbeTest/testUnsecureMemRegionsOpen.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testPutGetMem.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testPSUSetFFDCAddr.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testUnsecureMemRegionsClose.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSram.xml</include>
           <!-- TODO add testCntlInstruction.xml -->
           <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testFifoReset.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testPSUSetFFDCAddr.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSystemFabricMap.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testExecutorCntrlTimer.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testArrayAccess.xml</include>

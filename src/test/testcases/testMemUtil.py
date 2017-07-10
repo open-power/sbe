@@ -26,6 +26,8 @@ import sys
 import os
 import struct
 sys.path.append("targets/p9_nimbus/sbeTest" )
+import testPSUUtil
+import testRegistry as reg
 import testUtil
 err = False
 
@@ -133,3 +135,26 @@ def getmem_failure(addr, len, flags, responseWord):
     + [0x0,0x0,0x0,0x03])
     testUtil.readDsFifo(expResp)
     testUtil.readEot( )
+
+def setUnsecureMemRegion(addr, size, controlFlag, responseWord):
+    req = (["write", reg.REG_MBOX0,"0"*(8-len(hex(controlFlag).split('0x')[-1]))+hex(controlFlag).split('0x')[-1] +"00F0D601", 8, "None", "Writing to MBOX0 address"],
+           ["write", reg.REG_MBOX1, "0"*(16-len(hex(size).split('0x')[-1]))+hex(size).split('0x')[-1], 8, "None", "Writing to MBOX1 address"],
+           ["write", reg.REG_MBOX2, "0"*(16-len(hex(addr).split('0x')[-1]))+hex(addr).split('0x')[-1], 8, "None", "Writing to MBOX1 address"],
+           ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 8, "None", "Update SBE Doorbell register to interrupt SBE"])
+
+    host_polling_data = (
+                            ["read", reg.PSU_HOST_DOORBELL_REG_WO_OR, "0", 8, "8000000000000000", "Reading Host Doorbell for Interrupt"],
+                        )
+
+    # Host to SBE req
+    regObj = testPSUUtil.registry()
+    regObj.ExecuteTestOp(testPSUUtil.simSbeObj, req)
+    print "\n  Poll on Host side for INTR  ...\n"
+    #Poll on HOST DoorBell Register for interrupt
+    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5)
+
+    response = (
+                    ["read", reg.REG_MBOX4, "0", 8, "0"*(8-len(hex(responseWord).split('0x')[-1]))+hex(responseWord).split('0x')[-1]+"00F0D601", "Reading Host MBOX4 data to Validate"],
+                )
+    #SBE->HOST data set execution
+    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, response)

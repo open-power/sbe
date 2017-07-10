@@ -273,6 +273,18 @@ static sbeCmdStruct_t g_sbePutRingFromImageCmdArray [] =
      PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_QUIESCE,
     },
 };
+//
+//////////////////////////////////////////////////////////////
+// @brief g_sbePsuGenericCmdArray
+//
+//////////////////////////////////////////////////////////////
+static sbeCmdStruct_t g_sbePsuMemRegionCmdArray[] =
+{
+    {sbeUpdateMemAccessRegion,
+     SBE_PSU_MSG_UPDATE_MEM_REGION,
+     SBE_FENCE_AT_QUIESCE,
+    },
+};
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbePsuGenericCmdArray
@@ -379,6 +391,12 @@ uint8_t sbeGetCmdStructAttr (const uint8_t  i_cmdClass,
             l_numCmds = sizeof(g_sbePsuGenericCmdArray) /
                         sizeof(sbeCmdStruct_t);
             *o_ppCmd  = (sbeCmdStruct_t*)g_sbePsuGenericCmdArray;
+            break;
+
+        case SBE_PSU_CMD_CLASS_SECURITY_CONTROL_MSG:
+            l_numCmds = sizeof(g_sbePsuMemRegionCmdArray) /
+                        sizeof(sbeCmdStruct_t);
+            *o_ppCmd  = (sbeCmdStruct_t*)g_sbePsuMemRegionCmdArray;
             break;
 
         case  SBE_PSU_CMD_CLASS_CNTRL_TIMER:

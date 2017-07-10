@@ -34,7 +34,7 @@
 #include <stdint.h>
 
 /**
- * $Version: Conforms to HOST-SBE Interface Spec v0.5a
+ * $Version: Conforms to HOST-SBE Interface Spec v0.9b
  */
 
 /*
@@ -48,11 +48,12 @@ static const uint16_t SBE_SBEFW_HOST_MINOR_VERSION = 0;
   */
 enum sbePsuCommandClass
  {
-    SBE_PSU_CMD_CLASS_UNKNOWN       = 0,
-    SBE_PSU_CMD_CLASS_CORE_STATE    = 0xD1,
-    SBE_PSU_CMD_CLASS_RING_ACCESS   = 0xD3,
-    SBE_PSU_CMD_CLASS_CNTRL_TIMER   = 0xD4,
-    SBE_PSU_CMD_CLASS_GENERIC       = 0xD7,
+    SBE_PSU_CMD_CLASS_UNKNOWN               = 0,
+    SBE_PSU_CMD_CLASS_CORE_STATE            = 0xD1,
+    SBE_PSU_CMD_CLASS_RING_ACCESS           = 0xD3,
+    SBE_PSU_CMD_CLASS_CNTRL_TIMER           = 0xD4,
+    SBE_PSU_CMD_CLASS_SECURITY_CONTROL_MSG  = 0xD6,
+    SBE_PSU_CMD_CLASS_GENERIC               = 0xD7,
  };
 
 /**
@@ -80,6 +81,14 @@ enum sbePsuRingAccessMessages
 {
     SBE_PSU_MSG_PUT_RING_FROM_IMAGE = 0x01,
     SBE_PSU_MSG_UNKNOWN             = 0xFF,
+};
+
+/**
+ * @brief enums for SBE-Host interface for unsecure memory regions commands
+ */
+enum sbePsuUpdateMemoryRegionMessages
+{
+    SBE_PSU_MSG_UPDATE_MEM_REGION      = 0x01,
 };
 
 /**
@@ -113,6 +122,13 @@ enum sbePsuCntrlTimerFlags
 {
     SBE_PSU_FLAGS_START_TIMER       = 0x0001,
     SBE_PSU_FLAGS_STOP_TIMER        = 0x0002,
+};
+
+enum sbeUnsecureMemRegionControlFlags
+{
+    SBE_MEM_REGION_OPEN_RO = 0x0011,
+    SBE_MEM_REGION_OPEN_RW = 0x0012,
+    SBE_MEM_REGION_CLOSE   = 0x0020,
 };
 
 #endif // __SBEFW_SBE_HOST_INTF_H

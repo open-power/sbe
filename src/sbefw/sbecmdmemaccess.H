@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,6 +33,22 @@
 #define __SBEFW_SBECMDMEMACCESS_H
 
 #include <stdint.h>
+
+typedef struct
+{
+    uint64_t reserved:32;
+    uint64_t size:32;
+    uint64_t startAddress:64;
+} sbeMemRegionReq_t;
+
+/**
+ * @brief sbeUpdateMemAccessRegion - manage the unsecure memory regions
+ *
+ * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+ *
+ * @return    Rc from the FIFO access utility
+ */
+uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg);
 
 /**
   * @brief sbeGetMem : Implements SBE Get Memory ChipOp

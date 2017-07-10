@@ -704,3 +704,38 @@ uint32_t sbeGetMem (uint8_t *i_pArg)
     return sbeMemAccess_Wrap (true);
 }
 
+uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg)
+{
+    #define SBE_FUNC "sbeManageMemAccessRegion"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    sbeMemRegionReq_t req = {};
+
+    do
+    {
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                    (sizeof(req)/sizeof(uint64_t)),
+                                    (uint64_t*)&req,
+                                    true);
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to extract SBE_HOST_PSU_MBOX_REG1 and "
+                    "SBE_HOST_PSU_MBOX_REG2");
+            break;
+        }
+
+        SBE_INFO(SBE_FUNC" Addr[0x%08x%08x] size[0x%08x] flags[0x%04x]",
+                  SBE::higher32BWord(req.startAddress),
+                  SBE::lower32BWord(req.startAddress),
+                  req.size,
+                  SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags);
+    } while(false);
+
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
