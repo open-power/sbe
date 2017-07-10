@@ -178,6 +178,11 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         }
     }
 
+    // Setup Perv into MCG0
+    FAPI_DBG("Adding PERV to Multicast group 0");
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_MULTICAST_GROUP_1,
+                            p9SbeChipletReset::MCGR_CNFG_SETTING_GROUP0));
+
     // Setup cache/cores multicast groups only in FORCE_ALL_CORE mode.
     // If not in FORCE_ALL_CORE mode, cache/core multicast groups will be setup
     // in preparation of p9_sbe_select_ex in preparation of istep 4.
