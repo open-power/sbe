@@ -178,7 +178,7 @@ install: all tar
 
 tar:
 	@cp $(IMG_DIR)/sbe_seeprom_DD1.bin $(IMG_DIR)/sbe_seeprom.bin || true
-	@cp $(IMG_DIR)/$(SBE_SYMBOLS_NAME) $(IMG_DIR)/sbeStringFile || true
+	@cp $(IMG_DIR)/$(SBE_STRINGFILE_NAME) $(IMG_DIR)/sbeStringFile || true
 	@echo "Installing simics.tar"
 	@rm -rf $(TAR_OBJDIR)
 	@mkdir $(TAR_OBJDIR)
