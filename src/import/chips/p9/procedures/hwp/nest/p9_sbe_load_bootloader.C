@@ -136,7 +136,7 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     //                       (hostboot HRMOR offset) +
     //                       (bootloader offset)
     FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_master_chip_target,
-             EFF_FBC_GRP_ID_ONLY,
+             ABS_FBC_GRP_ID_ONLY,
              l_drawer_base_address_nm0,
              l_drawer_base_address_nm1,
              l_drawer_base_address_m,
