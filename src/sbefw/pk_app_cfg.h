@@ -140,9 +140,5 @@
 #ifdef PK_TRACE_SZ
 #undef PK_TRACE_SZ
 #endif
-#ifdef DD2
 #define PK_TRACE_SZ 512
-#else
-#define PK_TRACE_SZ 128
-#endif
 #endif /*__PK_APP_CFG_H__*/

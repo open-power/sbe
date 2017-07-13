@@ -395,10 +395,6 @@ endif
 
 FAPI_TRACE_LEVEL_DEF = 2
 
-ifeq ($(ddlevel), DD1)
-FAPI_TRACE_LEVEL_DEF = 0
-endif
-
 ifdef FAPI_TRACE_LEVEL_ENV
 FAPI_TRACE_LEVEL_DEF = $(FAPI_TRACE_LEVEL_ENV)
 endif
