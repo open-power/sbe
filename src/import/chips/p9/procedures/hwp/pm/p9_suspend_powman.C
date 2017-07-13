@@ -76,6 +76,7 @@ extern "C" {
         FAPI_INF("NOTE: This is not the full pm_suspend @todo RTC 147282, 168889");
 
         fapi2::buffer<uint64_t> l_qpmmr_data(0);
+        fapi2::buffer<uint64_t> l_cpmmr_data(0);
 
         l_qpmmr_data.setBit<EQ_QPPM_QPMMR_CME_INTERPPM_IVRM_ENABLE>();
         l_qpmmr_data.setBit<EQ_QPPM_QPMMR_CME_INTERPPM_ACLK_ENABLE>();
@@ -83,6 +84,7 @@ extern "C" {
         l_qpmmr_data.setBit<EQ_QPPM_QPMMR_CME_INTERPPM_DPLL_ENABLE>();
 
         auto l_quad_vector = i_target.getChildren<fapi2::TARGET_TYPE_EQ>();
+        auto l_core_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>();
 
         for (auto quad_it : l_quad_vector)
         {
@@ -90,6 +92,15 @@ extern "C" {
             FAPI_TRY(fapi2::putScom(quad_it, EQ_QPPM_QPMMR_CLEAR, l_qpmmr_data), "Error writing to QPMMR");
         }
 
+
+        l_cpmmr_data.setBit<C_CPPM_CPMMR_PPM_WRITE_DISABLE>();
+
+
+        for (auto core_it : l_core_vector)
+        {
+            FAPI_TRY(fapi2::putScom(core_it, C_CPPM_CPMMR_CLEAR, l_cpmmr_data), "Error writing to CPMMR");
+
+        }
 
 
         // Real code that will be re-enabled with the todos.
