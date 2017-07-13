@@ -27,11 +27,10 @@
 ///
 /// *HWP HW Owner        : Adam Hale <Adam.Samuel.Hale@ibm.com>
 /// *HWP HW Backup Owner : Brian Vanderpool <vanderp@us.ibm.com>
-/// *HWP FW Owner        : Raja Das
+/// *HWP FW Owner        : Raja Das <rajadas2@in.ibm.com>
 /// *HWP Team            : PM
 /// *HWP Level           : 3
 /// *HWP Consumed by     : SBE
-#if 0 // tmp change to enable manual mirror to ppe
 #ifndef __P9_COLLECT_SUSPEND_FFDC_H__
 #define __P9_COLLECT_SUSPEND_FFDC_H__
 
@@ -65,5 +64,3 @@ p9_collect_suspend_ffdc (
 );
 
 #endif  // __P9_COLLECT_SUSPEND_FFDC_H__
-#endif
-

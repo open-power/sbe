@@ -27,20 +27,19 @@
 /// @file p9_suspend_powman.H
 /// @brief Suspend the OCC/PM
 //
-// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
-// *HWP FW Owner: Thi Tran thi@us.ibm.com
+// *HWP HWP Owner: Adam Hale Adam.Samuel.Hale@ibm.com
+// *HWP FW Owner: Raja Das rajadas2@in.ibm.com
 // *HWP Team: PM
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
 // ----------------------------------------------------------------------------------
 
 #ifndef P9_SUSPEND_POWMAN__
-#define P9_SUSPEND_POWMAN_
+#define P9_SUSPEND_POWMAN__
 
 //-------------------------------------------------------
 // Includes
 //-------------------------------------------------------
-
 #include <fapi2.H>
 
 //-------------------------------------------------------

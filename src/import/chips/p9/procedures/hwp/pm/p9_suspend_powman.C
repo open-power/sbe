@@ -28,10 +28,10 @@
 /// @file p9_suspend_powman.C
 /// @brief Suspend the OCC/PM
 ///
-// *HWP HWP Owner Christina Graves clgraves@us.ibm.com
-// *HWP FW Owner: Thi Tran thi@us.ibm.com
+// *HWP HWP Owner Adam Hale Adam.Samuel.Hale@ibm.com
+// *HWP FW Owner: Raja Das rajadas2@in.ibm.com
 // *HWP Team: PM
-// *HWP Level: 2
+// *HWP Level: 3
 // *HWP Consumed by: SBE
 //
 //--------------------------------------------------------------------------
@@ -53,10 +53,7 @@
 #include <p9_quad_scom_addresses.H>
 #include <p9_quad_scom_addresses_fld.H>
 #include <p9_pm_hcd_flags.h>
-
-static const uint64_t GPE2_BASE_ADDRESS = 0x00064010;
-static const uint64_t GPE3_BASE_ADDRESS = 0x00066010;
-static const uint64_t CME_BASE_ADDRESS  = 0x10012010;
+#include <p9_collect_suspend_ffdc.H>
 
 static const uint64_t POLLTIME_US = 1;
 static const uint64_t POLLTIME_MCYCLES = 4000;
@@ -75,13 +72,10 @@ extern "C" {
     fapi2::ReturnCode p9_suspend_powman(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
         FAPI_DBG("Entering p9_suspend_powman...\n")
-
         fapi2::buffer<uint64_t> l_occflg_data(0);
         fapi2::buffer<uint64_t> l_occs2_data(0);
         fapi2::buffer<uint64_t> l_ocr_reg_data(0);
         fapi2::buffer<uint64_t> l_pgpe_xsr(0);
-        auto l_quad_vector = i_target.getChildren<fapi2::TARGET_TYPE_EQ>();
-        auto l_core_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>();
 
         bool l_pgpe_in_safe_mode = false;
         bool l_pgpe_suspended = false;
@@ -132,14 +126,6 @@ extern "C" {
                 }
             }
 
-            // if timeout, hwp fails
-            /*FAPI_ASSERT(l_pgpe_in_safe_mode,
-            fapi2::P9_PGPE_SAFEMODE_TIMEOUT().set_PROC_CHIP_TARGET(i_target).set_PPE_BASE_ADDRESSES(ppe_addresses),
-            "PGPE did not signal that it entered safe mode");
-            */
-            //FAPI_DBG("Entered Safe Mode Successfully!\n");
-
-
             //SBE issues "halt OCC complex" to stop OCC instructions
             l_ocr_reg_data.setBit<PU_OCB_PIB_OCR_OCC_DBG_HALT>();
             FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCR_OR, l_ocr_reg_data), "Error writing to OCR register");
@@ -165,9 +151,13 @@ extern "C" {
             }
 
             //if timeout, hwp fails
-            FAPI_ASSERT(l_pgpe_suspended,
-                        fapi2::P9_PGPE_SUSPEND_TIMEOUT().set_PROC_CHIP_TARGET(i_target),
-                        "PGPE did not signal that PM Complex Suspend Finished");
+            if(!l_pgpe_suspended)
+            {
+                FAPI_ERR("PGPE did not signal that PM Complex Suspend Finished");
+                FAPI_TRY ( p9_collect_suspend_ffdc (
+                               i_target));
+            }
+
             FAPI_DBG("Suspend Power Management Successful!\n");
         }
         else

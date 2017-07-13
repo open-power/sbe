@@ -22,23 +22,23 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#if 0 //  tmp dummy file to enable ppe manual mirror
 #include <fapi2.H>
 #include <p9_collect_suspend_ffdc.H>
-#include <p9_sbe_ppe_ffdc.H>
-#include <p9_ppe_defs.H>
+#include <p9_misc_scom_addresses.H>
+#include <p9_quad_scom_addresses.H>
+
+#ifdef DD2 // PPE RAMming is supported on SBE only for DD2
+    #include <p9_sbe_ppe_ffdc.H>
+    #include <p9_ppe_defs.H>
+#endif
 
 #define NUM_SCOMS       28
 #define NUM_LOC_VARS    19
 #define NUM_BYTE_RANGES 52
 #define CME_OFF         0x00000000BADCE0FF
 
-uint32_t g_scom = 0;
-uint32_t g_byte = 8;
-uint64_t g_ffdcScoms[NUM_LOC_VARS];
-uint32_t g_index = 0;
 
-const uint32_t g_byteranges[NUM_BYTE_RANGES] =
+const uint32_t byteranges[NUM_BYTE_RANGES] =
 {
     0x07, //PGPE XIR
     0x07, //PGPE XIR
@@ -65,48 +65,41 @@ const uint32_t g_byteranges[NUM_BYTE_RANGES] =
     0x47, 0x47, 0x47, 0x47, 0x47, 0x47, //CME[0-5]  IAR
     0x47, 0x47, 0x47, 0x47, 0x47, 0x47  //CME[6-11] IAR
 }; //
-const uint64_t masks[8] =
-{
-    0xFF,
-    0xFFFF,
-    0xFFFFFF,
-    0xFFFFFFFF,
-    0xFFFFFFFFFF,
-    0xFFFFFFFFFFFF,
-    0xFFFFFFFFFFFFFF,
-    0xFFFFFFFFFFFFFFFF
-};
+
 uint64_t extract(uint64_t data, uint32_t low, uint32_t high)
 {
-    return ((data >> (56 - (high << 3))) & masks[(high - low)]);
+    uint32_t bitshift = (high - low) * 8;
+    return ((data >> (56 - (high << 3))) & (0xFFFFFFFFFFFFFFFF >> (56 - bitshift)));
 }
-void add_data(uint64_t l_data64)
+
+void add_data(uint64_t l_data64, uint32_t& index, uint32_t& byte, uint32_t& scom, uint64_t* ffdcScoms)
 {
-    //first nibble hold2 low g_byte
-    uint32_t low = g_byteranges[g_index] >> 4;
-    //second nibble holds high g_byte
-    uint32_t high = g_byteranges[g_index] & 0xFF;
-    g_index++;
+    //first nibble hold2 low byte
+    uint32_t low = byteranges[index] >> 4;
+    //second nibble holds high byte
+    uint32_t high = byteranges[index] & 0xFF;
+    index++;
     uint32_t length = (high - low) + 1;
-    //gets data between low and high g_byte inclusive
+    //gets data between low and high byte inclusive
     uint64_t data = extract(l_data64, low, high);
 
-    if(g_byte - length < 0)//if length of data greater than remaining space in current local variable
+    if(byte - length < 0)//if length of data greater than remaining space in current local variable
     {
-        length -= g_byte;
-        g_ffdcScoms[g_scom] |= (data >> (length << 3)); //stores what will fit in current variable
-        data &= masks[length]; //sets up remaining data to be stored in next variable
-        g_scom++;
-        g_byte = 8;
+        length -= byte;
+        ffdcScoms[scom] |= (data >> (length << 3)); //stores what will fit in current variable
+        uint32_t bitshift = (high - low) * 8;
+        data &= (0xFFFFFFFFFFFFFFFF >> (56 - bitshift)); //sets up remaining data to be stored in next variable
+        scom++;
+        byte = 8;
     }
 
-    g_ffdcScoms[g_scom] |= (data << ((length - g_byte) << 3)); //stores data in current variable
-    g_byte -= length;
+    ffdcScoms[scom] |= (data << ((length - byte) << 3)); //stores data in current variable
+    byte -= length;
 
-    if(!g_byte) //if no space left in current local variable move to next
+    if(!byte) //if no space left in current local variable move to next
     {
-        g_scom++;
-        g_byte = 8;
+        scom++;
+        byte = 8;
     }
 }
 
@@ -114,6 +107,10 @@ fapi2::ReturnCode
 p9_collect_suspend_ffdc (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 {
     FAPI_INF (">> p9_collect_suspend_ffdc.exe");
+    uint32_t scom = 0;
+    uint32_t byte = 8;
+    uint64_t ffdcScoms[NUM_LOC_VARS];
+    uint32_t index = 0;
 
     fapi2::buffer<uint64_t> l_data64;
     std::vector<uint64_t> ppe_regs;
@@ -121,9 +118,11 @@ p9_collect_suspend_ffdc (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_ta
 
     for(sbe_index = 0; sbe_index < NUM_LOC_VARS; sbe_index++)
     {
-        g_ffdcScoms[sbe_index] = 0;
+        ffdcScoms[sbe_index] = 0xDEADC0DEDEADC0DE;
     }
 
+// SBE does not support ppe ffdc on DD1
+#ifdef DD2
     ///Collect PGPE Data
     p9_sbe_ppe_ffdc ( i_target,
                       PGPE_BASE_ADDRESS,
@@ -131,7 +130,7 @@ p9_collect_suspend_ffdc (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_ta
 
     for(sbe_index = 0; sbe_index < ppe_regs.size(); sbe_index++)
     {
-        add_data(ppe_regs[sbe_index]);
+        add_data(ppe_regs[sbe_index], index, byte, scom, ffdcScoms);
     }
 
     //Collect SGPE Data
@@ -141,8 +140,15 @@ p9_collect_suspend_ffdc (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_ta
 
     for(sbe_index = 0; sbe_index < ppe_regs.size(); sbe_index++)
     {
-        add_data(ppe_regs[sbe_index]);
+        add_data(ppe_regs[sbe_index], index, byte, scom, ffdcScoms);
     }
+
+#else
+    // Each call to p9_sbe_ppe_ffdc would add REG_FFDC_IDX_MAX elements.
+    // These are defaulted in DD1 on SBE, so simply account for those in the
+    // ffdcScoms index by incrementing accordingly
+    index += 8; // (REG_FFDC_IDX_MAX * 2);
+#endif // DD2
 
     //Collect All other SCOMs
     uint32_t scoms[NUM_SCOMS]     =
@@ -166,7 +172,7 @@ p9_collect_suspend_ffdc (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_ta
         fapi2::getScom (     i_target,
                              scoms[getscom_index],
                              l_data64 );
-        add_data(l_data64);
+        add_data(l_data64, index, byte, scom, ffdcScoms);
 
     }
 
@@ -195,11 +201,11 @@ p9_collect_suspend_ffdc (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_ta
             fapi2::getScom(  i_target,
                              DBGPRO[ex],
                              l_data64 );
-            add_data(l_data64);
+            add_data(l_data64, index, byte, scom, ffdcScoms);
         }
         else
         {
-            add_data(CME_OFF); //inject data which informs cme is offline
+            add_data(CME_OFF, index, byte, scom, ffdcScoms); //inject data which informs cme is offline
         }
     }
 
@@ -207,31 +213,28 @@ p9_collect_suspend_ffdc (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_ta
     FAPI_ASSERT ( false,
                   fapi2::SUSPEND_FFDC()
                   .set_PROC_CHIP_TARGET                             (i_target)
-                  .set_PGPE_XSR_AND_IAR                             (g_ffdcScoms[0])
-                  .set_PGPE_IR_AND_EDR                              (g_ffdcScoms[1])
-                  .set_PGPE_LR_AND_SPRG0                            (g_ffdcScoms[2])
-                  .set_PGPE_SRR0_AND_SRR1                           (g_ffdcScoms[3])
-                  .set_SGPE_XSR_AND_IAR                             (g_ffdcScoms[4])
-                  .set_SGPE_IR_AND_EDR                              (g_ffdcScoms[5])
-                  .set_SGPE_LR_AND_SPRG0                            (g_ffdcScoms[6])
-                  .set_SGPE_SRR0_AND_SRR1                           (g_ffdcScoms[7])
-                  .set_OCCS2_AND_OCCFLG                             (g_ffdcScoms[8])
-                  .set_OPIT2C_0_THROUGH_7_B0                        (g_ffdcScoms[9])
-                  .set_OPIT2C_8_THROUGH_15_B0                       (g_ffdcScoms[10])
-                  .set_OPIT2C_16_THROUGH_23_B0                      (g_ffdcScoms[11])
-                  .set_QCSR_B0_TO_B1_AND_CCSR_B0_TO_B2_AND_3B_EMPTY (g_ffdcScoms[12])
-                  .set_CME0_IAR_AND_CME1_IAR                        (g_ffdcScoms[13])
-                  .set_CME2_IAR_AND_CME3_IAR                        (g_ffdcScoms[14])
-                  .set_CME4_IAR_AND_CME5_IAR                        (g_ffdcScoms[15])
-                  .set_CME6_IAR_AND_CME7_IAR                        (g_ffdcScoms[16])
-                  .set_CME8_IAR_AND_CME9_IAR                        (g_ffdcScoms[17])
-                  .set_CME10_IAR_AND_CME11_IAR                      (g_ffdcScoms[18]),
+                  .set_PGPE_XSR_AND_IAR                             (ffdcScoms[0])
+                  .set_PGPE_IR_AND_EDR                              (ffdcScoms[1])
+                  .set_PGPE_LR_AND_SPRG0                            (ffdcScoms[2])
+                  .set_PGPE_SRR0_AND_SRR1                           (ffdcScoms[3])
+                  .set_SGPE_XSR_AND_IAR                             (ffdcScoms[4])
+                  .set_SGPE_IR_AND_EDR                              (ffdcScoms[5])
+                  .set_SGPE_LR_AND_SPRG0                            (ffdcScoms[6])
+                  .set_SGPE_SRR0_AND_SRR1                           (ffdcScoms[7])
+                  .set_OCCS2_AND_OCCFLG                             (ffdcScoms[8])
+                  .set_OPIT2C_0_THROUGH_7_B0                        (ffdcScoms[9])
+                  .set_OPIT2C_8_THROUGH_15_B0                       (ffdcScoms[10])
+                  .set_OPIT2C_16_THROUGH_23_B0                      (ffdcScoms[11])
+                  .set_QCSR_B0_TO_B1_AND_CCSR_B0_TO_B2_AND_3B_EMPTY (ffdcScoms[12])
+                  .set_CME0_IAR_AND_CME1_IAR                        (ffdcScoms[13])
+                  .set_CME2_IAR_AND_CME3_IAR                        (ffdcScoms[14])
+                  .set_CME4_IAR_AND_CME5_IAR                        (ffdcScoms[15])
+                  .set_CME6_IAR_AND_CME7_IAR                        (ffdcScoms[16])
+                  .set_CME8_IAR_AND_CME9_IAR                        (ffdcScoms[17])
+                  .set_CME10_IAR_AND_CME11_IAR                      (ffdcScoms[18]),
                   "Suspend FFDC");
 
 fapi_try_exit:
     FAPI_INF ("<< p9_collect_suspend_ffdc");
     return fapi2::current_err;
 }
-
-#endif
-
