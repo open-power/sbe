@@ -55,8 +55,6 @@ namespace fapi2
         // about unused variables.
         static_cast<void>(i_nanoSeconds);
         static_cast<void>(i_simCycles);
-        FAPI_IMP("delay enter....");
-
 
 #ifndef __FAPI_DELAY_SIM__
 
@@ -117,7 +115,6 @@ namespace fapi2
 #endif
 
         // replace with platform specific implementation
-        FAPI_IMP("delay exit....");
         return FAPI2_RC_SUCCESS;
     }
 
