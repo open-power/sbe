@@ -220,7 +220,7 @@ typedef struct
 
 // constants
 static const uint32_t SBE_ROLE_MASK = 0x00000002;
-static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 25;
+static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 20000;
 
 static const uint64_t SBE_LQA_DELAY_HW_US = 1000000ULL; // 1ms
 static const uint64_t SBE_LQA_DELAY_SIM_CYCLES = 0x1ULL;
