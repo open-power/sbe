@@ -43,7 +43,6 @@
   */
 uint32_t sbeGetFfdc(uint8_t *i_pArg);
 
-#ifdef DD2
 /**
   * @brief SBE Generic capabilities  (0xA802)
   *
@@ -52,7 +51,6 @@ uint32_t sbeGetFfdc(uint8_t *i_pArg);
   * @return    Rc from the FIFO access utility
   */
 uint32_t sbeGetCapabilities(uint8_t *i_pArg);
-#endif
 
 /**
   * @brief SBE Fifo Quiesce (0xA806)

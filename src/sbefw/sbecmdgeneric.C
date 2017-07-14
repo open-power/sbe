@@ -102,7 +102,6 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 }
 // Functions
 //----------------------------------------------------------------------------
-#ifdef DD2
 uint32_t sbeGetCapabilities (uint8_t *i_pArg)
 {
     #define SBE_FUNC "sbeGetCapabilities "
@@ -142,8 +141,6 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
     return rc;
     #undef SBE_FUNC
 }
-#endif
-
 
 // Functions
 //----------------------------------------------------------------------------
