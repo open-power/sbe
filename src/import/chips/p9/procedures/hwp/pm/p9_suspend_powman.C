@@ -82,16 +82,6 @@ extern "C" {
         auto l_quad_vector = i_target.getChildren<fapi2::TARGET_TYPE_EQ>();
         auto l_core_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>();
 
-        std::vector<uint64_t> ppe_addresses;
-        ppe_addresses.push_back(GPE2_BASE_ADDRESS);
-        ppe_addresses.push_back(GPE3_BASE_ADDRESS);
-
-        for(uint32_t q = 0; q < 6; q++)
-        {
-            ppe_addresses.push_back(CME_BASE_ADDRESS | (q << 24));
-            ppe_addresses.push_back(CME_BASE_ADDRESS | (q << 24) | (1 << 10));
-        }
-
         bool l_pgpe_in_safe_mode = false;
         bool l_pgpe_suspended = false;
 
@@ -169,7 +159,7 @@ extern "C" {
 
         //if timeout, hwp fails
         FAPI_ASSERT(l_pgpe_suspended,
-                    fapi2::P9_PGPE_SUSPEND_TIMEOUT().set_PROC_CHIP_TARGET(i_target).set_PPE_BASE_ADDRESSES(ppe_addresses),
+                    fapi2::P9_PGPE_SUSPEND_TIMEOUT().set_PROC_CHIP_TARGET(i_target),
                     "PGPE did not signal that PM Complex Suspend Finished");
         FAPI_DBG("Suspend Power Management Successful!\n");
     fapi_try_exit:
