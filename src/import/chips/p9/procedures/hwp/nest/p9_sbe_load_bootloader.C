@@ -74,7 +74,9 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
     //                      0      6                   29 30 31
     //bit 30 is for absolute address (since it is not set this is relative)
     const uint32_t l_branch_to_12 = 0x48003000ull;
-    const uint32_t C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0 = 18;
+    const uint32_t C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T2 = 20;
+    const uint32_t C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T3 = 21;
+    const uint64_t HOSTBOOT_PSSCR_VALUE = 0x00000000003F00FF;
     uint64_t l_bootloader_offset;
     uint64_t l_hostboot_hrmor_offset;
     uint64_t l_drawer_base_address_nm0, l_drawer_base_address_nm1;
@@ -391,13 +393,18 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
             }
 
             //instantiate the basic RamCore class
-            RamCore ram(coreTgt, 0);
-            //Set the HRMOR
+            RamCore ram2(coreTgt, 2);
+            RamCore ram3(coreTgt, 3);
+            //Set the HRMOR (core) and PSSCR (threads 2,3).  The PSSCR must be
+            //set on threads 2,3 as in fused mode Hostboot will never execute
+            //on them, but CME checks bits in them to perform STOP11 request
+            //in istep 16
 
             //Set ram_thread_active for t0
-            l_dataBuf.flush<0>().setBit<C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T0>();
+            l_dataBuf.flush<0>().setBit<C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T2>();
+            l_dataBuf.setBit<C_0_THREAD_INFO_RAM_THREAD_ACTIVE_T3>();
             FAPI_TRY(fapi2::putScom(coreTgt, C_0_THREAD_INFO, l_dataBuf),
-                     "Error setting thread active for t0");
+                     "Error setting thread active for t2,3");
 
             if( coreTgt == l_coreTarget )
             {
@@ -409,8 +416,12 @@ fapi2::ReturnCode p9_sbe_load_bootloader(
                     l_drawer_base_address_nm0 - l_bootloader_offset);
             }
 
-            //call RamCore put_reg method
-            FAPI_TRY(ram.put_reg(REG_SPR, 313, &l_dataBuf), "Error ramming HRMOR");
+            //call RamCore put_reg method -- can use thread 2 for HRMOR as applies to
+            //full core
+            FAPI_TRY(ram2.put_reg(REG_SPR, 313, &l_dataBuf), "Error ramming HRMOR");
+            l_dataBuf.flush<0>().insertFromRight<0, 64>(HOSTBOOT_PSSCR_VALUE);
+            FAPI_TRY(ram2.put_reg(REG_SPR, 855, &l_dataBuf), "Error ramming PSSCR thread 2");
+            FAPI_TRY(ram3.put_reg(REG_SPR, 855, &l_dataBuf), "Error ramming PSSCR thread 3");
         }
     }
 
