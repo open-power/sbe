@@ -102,6 +102,7 @@
 #include "p9_quad_power_off.H"
 #include "p9_hcd_cache_stopclocks.H"
 #include "p9_stopclocks.H"
+#include "p9_suspend_powman.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
@@ -247,8 +248,8 @@ static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
             // Place holder for StartMpipl, State Change, PHB State Update
             // Set MPIPL mode in Sratch Reg 3
             { &istepStartMpipl, NULL },
-            // Find all the child cores within proc and call set block intr
-            { &istepWithCoreSetBlock, { .coreBlockIntrHwp = &p9_block_wakeup_intr }},
+            // Call suspend powerman
+            { &istepWithProc, { .procHwp = &p9_suspend_powman }},
             // Find all the child cores within proc and call hwp to know the
             // scom state and call instruction control
             { &istepWithCoreState, { .coreScomStateHwp = &p9_query_core_access_state }},
