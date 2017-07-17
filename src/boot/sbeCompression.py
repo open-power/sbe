@@ -30,7 +30,7 @@ import random
 import sys
 import binascii
 import fileinput
-import argparse
+import getopt
 import struct
 import operator
 err = False
@@ -86,7 +86,7 @@ def compress(inputFile, compressedFile):
     strBits = ""
     count = 0
 
-    #Create a bitmap for each four bytes of binary. 
+    #Create a bitmap for each four bytes of binary.
     for i in range(0, os.stat(inputFile).st_size / 4 ):
 
        fourByt = f.read(4)
@@ -128,15 +128,35 @@ def compress(inputFile, compressedFile):
     f.close()
     fW.close()
 
+def usage():
+    print "usage: sbeCompression.py [-h] [-l <path>] [-i <image>]"
+    print "SBE Compression Parser"
+    print "Arguments:"
+    print "-h, --help\t\tshow this help message and exit"
+    print "-l, --imageLoc\t\tSeeprom Binary Location"
+    print "-i, --image\t\tSeeprom Binary"
+    return 1
+
 def main( argv ):
 
-    parser = argparse.ArgumentParser( description = "SBE Compression Parser" )
-    parser.add_argument( '-l', '--imageLoc', type=str, help = 'Seeprom Binary Location' )
-    parser.add_argument( '-i', '--image', type=str, help = 'Seeprom Binary ' )
+    try:
+        opts, args = getopt.getopt(argv[1:], "l:i:h", ['imageLoc=', 'image=', 'help'])
+    except getopt.GetoptError as err:
+        print str(err)
+        usage()
+        exit(1)
 
-    args = parser.parse_args()
-    imagePath = args.imageLoc
-    image = args.image
+    imagePath = ''
+    image = ''
+
+    for opt, arg in opts:
+        if opt in ('-l', '--imageLoc'):
+            imagePath = arg
+        elif opt in ('-i', '--image'):
+            image = arg
+        else:
+            usage()
+            exit(1)
 
     #Make a copy of SEEPROM binary.
     cmd1 = "cp " + imagePath + "/" + image + " " + imagePath +  "/" + image + ".orig"
