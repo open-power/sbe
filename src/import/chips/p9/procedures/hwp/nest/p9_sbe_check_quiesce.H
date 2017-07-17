@@ -126,6 +126,12 @@ extern "C" {
     fapi2::ReturnCode p9_intp_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
+    /// @brief Helper function to ensure SP_WAKEUPS are quiesced
+    /// @param[in] i_target       => P9 chip target
+    /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
+    fapi2::ReturnCode p9_pm_check_quiesce(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
+
     fapi2::ReturnCode p9_int_scrub_caches(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
 } //extern "C"
