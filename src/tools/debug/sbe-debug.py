@@ -47,7 +47,8 @@ def getFilePath(filename):
         retPath = os.path.join(dir, filename)
         if(os.path.exists(retPath)):
             return os.path.abspath(retPath)
-    return None
+    print "ERROR: file " + filename +" not found"
+    return 1
 
 def getTraceFilePath():
     fspTrace = getFilePath("fsp-trace")
