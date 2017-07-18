@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,17 +22,18 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-//-----------------------------------------------------------------------------------
+
+///-----------------------------------------------------------------------------
 ///
 /// @file p9_l3_flush.H
 /// @brief Initiates an L3 purge request
-//
-// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
-// *HWP FW Owner: Thi Tran thi@us.ibm.com
-// *HWP Team: Nest
-// *HWP Level: 2
-// *HWP Consumed by: HB
-// ----------------------------------------------------------------------------------
+///
+/// *HWP HWP Owner: Benjamin Gass <bgass@us.ibm.com>
+/// *HWP FW Owner: Thi Tran thi@us.ibm.com
+/// *HWP Team: Nest
+/// *HWP Level: 3
+/// *HWP Consumed by: FSP and SBE
+/// ----------------------------------------------------------------------------
 
 #ifndef P9_L3_FLUSH_
 #define P9_L3_FLUSH_
@@ -40,48 +41,42 @@
 //-------------------------------------------------------
 // Includes
 //-------------------------------------------------------
-
 #include <fapi2.H>
 
-//-------------------------------------------------------
-// Structure definitions
-//-------------------------------------------------------
-
-//Function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode
-(*p9_l3_flush_FP_t) (const fapi2::Target<fapi2::TARGET_TYPE_EX>&,
-                     const uint32_t,
-                     const uint32_t);
-
-
-//-------------------------------------------------------
+//--------------------------------------------------------------------------
 // Constant definitions
-//-------------------------------------------------------
-
+//--------------------------------------------------------------------------
 // L3 Purge ttype dials
-const uint32_t L3_FULL_PURGE = 0;
-const uint32_t L3_SINGLE_PURGE = 1;
-const uint32_t L3_SINGLE_DELETE = 2;
+const uint32_t L3_FULL_PURGE       = 0;
+const uint32_t L3_SINGLE_PURGE     = 1;
+const uint32_t L3_SINGLE_DELETE    = 2;
 const uint32_t L3_FULL_BLIND_PURGE = 4;
-const uint32_t L3_DYNAMIC_PURGE = 5;
+const uint32_t L3_DYNAMIC_PURGE    = 5;
 
 //--------------------------------------------------------
 // Function prototypes
 //--------------------------------------------------------
+//Function pointer typedef definition for HWP call support
+typedef fapi2::ReturnCode (*p9_l3_flush_FP_t)
+(const fapi2::Target<fapi2::TARGET_TYPE_EX>&,
+ const uint32_t,
+ const uint32_t);
 
 extern "C"
 {
 
 /// @brief Initiates an L3 purge request and spins until completion
+///
 /// @param[in] i_target       => EX chiplet target
 /// @param[in] i_purge_type   => type of purge to execute
 /// @param[in] i_purge_addr   => directory address to begin the purge
-/// @return FAPI_RC_SUCCESS if the read/write completes successfully
+///
+/// @return FAPI_RC_SUCCESS if the purge operation completes successfully
+///
     fapi2::ReturnCode p9_l3_flush(
         const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_target,
         const uint32_t i_purge_type,
         const uint32_t i_purge_addr);
-
 
 }//extern "C"
 
