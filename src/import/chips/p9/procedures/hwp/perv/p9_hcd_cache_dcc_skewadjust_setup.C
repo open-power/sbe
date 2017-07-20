@@ -57,10 +57,10 @@ fapi2::ReturnCode p9_hcd_cache_dcc_skewadjust_setup(const
     fapi2::buffer<uint8_t> l_attr_dcadj_disable;
     fapi2::buffer<uint8_t> l_attr_skewadj_disable;
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_CORECACHE_SKEWADJ_DISABLE,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_CORECACHE_DCADJ_DISABLE,
                            l_sys, l_attr_dcadj_disable));
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_CORECACHE_DCADJ_DISABLE,
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_CORECACHE_SKEWADJ_DISABLE,
                            l_sys, l_attr_skewadj_disable));
 
     FAPI_DBG("Entering ...");
