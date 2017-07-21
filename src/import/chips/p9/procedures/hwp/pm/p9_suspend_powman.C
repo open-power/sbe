@@ -79,92 +79,106 @@ extern "C" {
         fapi2::buffer<uint64_t> l_occflg_data(0);
         fapi2::buffer<uint64_t> l_occs2_data(0);
         fapi2::buffer<uint64_t> l_ocr_reg_data(0);
+        fapi2::buffer<uint64_t> l_pgpe_xsr(0);
         auto l_quad_vector = i_target.getChildren<fapi2::TARGET_TYPE_EQ>();
         auto l_core_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>();
 
         bool l_pgpe_in_safe_mode = false;
         bool l_pgpe_suspended = false;
 
-        // SBE waits for PGPE to set OCC Scratch2[PGPE_SAFE_MODE_ACTIVE]
-        for(uint32_t method = 0; method < 2; method++)
+        FAPI_TRY(fapi2::getScom(i_target, PU_GPE2_GPEXIXSR_SCOM, l_pgpe_xsr),
+                 "Error checking PGPE XSR");
+
+        if(!(l_pgpe_xsr >> 63))
         {
-            if(method == 0)
+
+            // SBE waits for PGPE to set OCC Scratch2[PGPE_SAFE_MODE_ACTIVE]
+            for(uint32_t method = 0; method < 2; method++)
             {
-                // SBE requests OCC enter safe state by setting OCC_Flag[REQUEST_OCC_SAFE_STATE]
-                // OCC polls this bit every 500us,
-                // if detected heartbeat stop PGPE is interrupted and enters suspend
-                l_occflg_data.setBit<p9hcd::REQUEST_OCC_SAFE_STATE>();
-                FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data),
-                         "Error setting OCC Flag register bit REQUEST_OCC_SAFE_STATE");
-            }
-            else
-            {
-                FAPI_DBG("Safe Mode bit failed after requesting occ safe state\n Requesting in PGPE...\n");
-                l_occflg_data.flush<0>().setBit<p9hcd::PGPE_SAFE_MODE>();
-                //PGPE polls this bit on a reduced FIT timer period
-                //if detected enters safe mode
-                FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data), "Error setting OCC Flag register bit 2");
+                if(method == 0)
+                {
+                    // SBE requests OCC enter safe state by setting OCC_Flag[REQUEST_OCC_SAFE_STATE]
+                    // OCC polls this bit every 500us,
+                    // if detected heartbeat stop PGPE is interrupted and enters suspend
+                    l_occflg_data.setBit<p9hcd::REQUEST_OCC_SAFE_STATE>();
+                    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data),
+                             "Error setting OCC Flag register bit REQUEST_OCC_SAFE_STATE");
+                }
+                else
+                {
+                    FAPI_DBG("Safe Mode bit failed after requesting occ safe state\n Requesting in PGPE...\n");
+                    l_occflg_data.flush<0>().setBit<p9hcd::PGPE_SAFE_MODE>();
+                    //PGPE polls this bit on a reduced FIT timer period
+                    //if detected enters safe mode
+                    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data), "Error setting OCC Flag register bit 2");
+                }
+
+                for (uint32_t i = 0; i < c_tries_before_timeout; i++)
+                {
+                    FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCS2_SCOM, l_occs2_data), "Error reading OCC Scratch 2 register");
+
+                    if(l_occs2_data.getBit<p9hcd::PGPE_SAFE_MODE_ACTIVE>())
+                    {
+                        l_pgpe_in_safe_mode = true;
+                        break;
+                    }
+
+                    fapi2::delay(POLLTIME_US * 1000, POLLTIME_MCYCLES * 1000 * 1000);
+                }
+
+                if(l_pgpe_in_safe_mode)
+                {
+                    break;
+                }
             }
 
+            // if timeout, hwp fails
+            /*FAPI_ASSERT(l_pgpe_in_safe_mode,
+            fapi2::P9_PGPE_SAFEMODE_TIMEOUT().set_PROC_CHIP_TARGET(i_target).set_PPE_BASE_ADDRESSES(ppe_addresses),
+            "PGPE did not signal that it entered safe mode");
+            */
+            //FAPI_DBG("Entered Safe Mode Successfully!\n");
+
+
+            //SBE issues "halt OCC complex" to stop OCC instructions
+            l_ocr_reg_data.setBit<PU_OCB_PIB_OCR_OCC_DBG_HALT>();
+            FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCR_OR, l_ocr_reg_data), "Error writing to OCR register");
+
+            //PGPE polls this bit on a reduced FIT timer period
+            //if detected executes PGPE pm_suspend flow
+            l_occflg_data.flush<0>().setBit<p9hcd::PM_COMPLEX_SUSPEND>();
+            FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data), "Error setting OCC Flag register bit 3");
+
+            //This should cause the PGPE to observe a OCC Heartbeat interrupt,
+            //causing it to enter PGPE pm_suspend flow
             for (uint32_t i = 0; i < c_tries_before_timeout; i++)
             {
                 FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCS2_SCOM, l_occs2_data), "Error reading OCC Scratch 2 register");
 
-                if(l_occs2_data.getBit<p9hcd::PGPE_SAFE_MODE_ACTIVE>())
+                if(l_occs2_data.getBit<p9hcd::PM_COMPLEX_SUSPENDED>())
                 {
-                    l_pgpe_in_safe_mode = true;
+                    l_pgpe_suspended = true;
                     break;
                 }
 
                 fapi2::delay(POLLTIME_US * 1000, POLLTIME_MCYCLES * 1000 * 1000);
             }
 
-            if(l_pgpe_in_safe_mode)
-            {
-                break;
-            }
+            //if timeout, hwp fails
+            FAPI_ASSERT(l_pgpe_suspended,
+                        fapi2::P9_PGPE_SUSPEND_TIMEOUT().set_PROC_CHIP_TARGET(i_target),
+                        "PGPE did not signal that PM Complex Suspend Finished");
+            FAPI_DBG("Suspend Power Management Successful!\n");
         }
-
-        // if timeout, hwp fails
-        /*FAPI_ASSERT(l_pgpe_in_safe_mode,
-        fapi2::P9_PGPE_SAFEMODE_TIMEOUT().set_PROC_CHIP_TARGET(i_target).set_PPE_BASE_ADDRESSES(ppe_addresses),
-        "PGPE did not signal that it entered safe mode");
-        */
-        //FAPI_DBG("Entered Safe Mode Successfully!\n");
-
-
-        //SBE issues "halt OCC complex" to stop OCC instructions
-        l_ocr_reg_data.setBit<PU_OCB_PIB_OCR_OCC_DBG_HALT>();
-        FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCR_OR, l_ocr_reg_data), "Error writing to OCR register");
-
-        //PGPE polls this bit on a reduced FIT timer period
-        //if detected executes PGPE pm_suspend flow
-        l_occflg_data.flush<0>().setBit<p9hcd::PM_COMPLEX_SUSPEND>();
-        FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data), "Error setting OCC Flag register bit 3");
-
-        //This should cause the PGPE to observe a OCC Heartbeat interrupt,
-        //causing it to enter PGPE pm_suspend flow
-        for (uint32_t i = 0; i < c_tries_before_timeout; i++)
+        else
         {
-            FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCS2_SCOM, l_occs2_data), "Error reading OCC Scratch 2 register");
-
-            if(l_occs2_data.getBit<p9hcd::PM_COMPLEX_SUSPENDED>())
-            {
-                l_pgpe_suspended = true;
-                break;
-            }
-
-            fapi2::delay(POLLTIME_US * 1000, POLLTIME_MCYCLES * 1000 * 1000);
+            FAPI_INF("WARNING! PGPE Already Halted, skipping procedure");
         }
 
-        //if timeout, hwp fails
-        FAPI_ASSERT(l_pgpe_suspended,
-                    fapi2::P9_PGPE_SUSPEND_TIMEOUT().set_PROC_CHIP_TARGET(i_target),
-                    "PGPE did not signal that PM Complex Suspend Finished");
-        FAPI_DBG("Suspend Power Management Successful!\n");
     fapi_try_exit:
         FAPI_DBG("Exiting p9_suspend_powman...");
         return fapi2::current_err;
+
     }
 } // extern "C"
 
