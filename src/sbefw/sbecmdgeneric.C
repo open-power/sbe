@@ -48,6 +48,7 @@
 
 using namespace fapi2;
 
+#ifdef __SBEFW_SEEPROM__
 // Forward declaration
 sbeCapabilityRespMsg::sbeCapabilityRespMsg()
 {
@@ -352,7 +353,9 @@ uint32_t sbePsuQuiesce( uint8_t *i_pArg )
     return rc;
     #undef SBE_FUNC
 }
+#endif //__SBEFW_SEEPROM__
 
+#ifndef __SBEFW_SEEPROM__
 //----------------------------------------------------------------------------
 uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
 {
@@ -391,4 +394,5 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
     return l_rc;
     #undef SBE_FUNC
 }
+#endif //not __SBEFW_SEEPROM__
 

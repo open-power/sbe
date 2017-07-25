@@ -43,6 +43,10 @@ LIB_DIRS += -L$(OBJDIR)/sbefw
 SBEFWLIB := $(OBJDIR)/sbefw/libsbefw.a
 LLIBS += -lsbefw
 
+LIB_DIRS += -L$(OBJDIR)/sbefwseeprom
+SBEFWLIB := $(OBJDIR)/sbefwseeprom/libsbefwseeprom.a
+LLIBS += -lsbefwseeprom
+
 # FAPI2 library
 SUBDIRS += $(PLAT_FAPI2_DIR)
 LIB_DIRS += -L$(OBJDIR)/fapi2
@@ -134,7 +138,7 @@ $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis: $(IMG
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
 
 #create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) _sbefw_seeprom  $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
 		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(BOOT_OBJECTS) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group
@@ -154,7 +158,7 @@ $(IMG_DIR)/$(IMAGE_SBE_NAME).bin $(IMG_DIR)/$(IMAGE_SBE_NAME).dis: $(IMG_DIR)/$(
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SBE_NAME).dis
 
 # create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) _sbefw_seeprom $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(IMG_DIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(BUILDDATA_OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
@@ -193,7 +197,7 @@ tar:
 	@echo "Generated simics.tar in Sbe images Directory"
 
 .PHONY: all normalize compress defaultset appendloader add_LoaderAddr symbols report \
-		appendoverrides xml tracehash topfixedheaders  $(SUBDIRS) \
+		appendoverrides xml tracehash topfixedheaders  $(SUBDIRS) _sbefw_seeprom \
 		tar install
 
 buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
@@ -258,6 +262,8 @@ platattr:
 # Build the subdirectories
 $(SUBDIRS):
 	$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
+_sbefw_seeprom:
+	$(MAKE) -I $(INCLUDES) -C ../sbefw -f MakefileSeeprom
 
 
 #Build the SBE XIP Tools
