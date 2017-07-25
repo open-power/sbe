@@ -31,9 +31,7 @@
 ##########################################################################
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_common.C
 ISTEPCOMMON-CPP-SOURCES +=p9_sbe_gear_switcher.C
-
-# Moved to istep2 to save some space in PIBMEM
-#ISTEPCOMMON-CPP-SOURCES +=p9_fbc_utils.C
+ISTEPCOMMON-CPP-SOURCES +=p9_fbc_utils.C
 ISTEPCOMMON-CPP-SOURCES +=p9_pba_access.C
 ISTEPCOMMON-CPP-SOURCES +=p9_pba_coherent_utils.C
 ISTEPCOMMON-CPP-SOURCES +=p9_pba_setup.C
