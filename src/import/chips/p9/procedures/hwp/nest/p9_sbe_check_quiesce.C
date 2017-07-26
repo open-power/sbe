@@ -55,13 +55,13 @@
 #include <p9_suspend_io.H>
 #include <p9n2_misc_scom_addresses.H>
 
-#ifndef DD2
-    #include <p9_thread_control.H>
-    #include <p9_fbc_utils.H>
-    #include <p9_adu_setup.H>
-    #include <p9_adu_access.H>
-    #include <p9_adu_coherent_utils.H>
-#endif
+//Needed for SW reset of XIVE unit
+#include <p9_thread_control.H>
+#include <p9_fbc_utils.H>
+#include <p9_adu_setup.H>
+#include <p9_adu_access.H>
+#include <p9_adu_coherent_utils.H>
+
 
 extern "C" {
 
@@ -134,55 +134,62 @@ extern "C" {
 
         fapi2::buffer<uint64_t> l_data(0);
 
-        //This part is actually used for the intp quiesce DD1 workaround but needs to be here because after this
-        //the fabric is finished
-#ifndef DD2
-        uint64_t l_notify_page_addr = 0x0ull;
-        uint32_t l_numGranules;
-        p9_ADU_oper_flag l_adu_flag;
-        uint8_t l_write_data[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        uint8_t l_useXiveHwReset;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_USE_XIVE_HW_RESET,
+                               i_target,
+                               l_useXiveHwReset));
 
-        //Read the Interrupt Controller BAR to figure out the Notify Port page address
-        //Notify Port Page is the second page off the IC BAR
-        //bit 1 will tell whether we need to add a 4K offset (if bit 1 = '0') or 64K offset (if bit 1 = '1')
-        //Add this to the address (bits 8:48 of the IC BAR)
-        fapi2::getScom(i_target, PU_INT_CQ_IC_BAR, l_data);
-        l_notify_page_addr = (l_data & 0x00FFFFFFFFFF8000ull) + 0x1000;
-
-        if (l_data.getBit<1>() != 0)
+        //TODO RTC:177741 HW Reset for XIVE isnt working , use this workaround until it does
+        if(!l_useXiveHwReset)
         {
-            l_notify_page_addr = l_notify_page_addr + 0xF000;
-        }
+            //This part is actually used for the intp quiesce DD1 workaround but needs to be here because after this
+            //the fabric is finished
+            uint64_t l_notify_page_addr = 0x0ull;
+            uint32_t l_numGranules;
+            p9_ADU_oper_flag l_adu_flag;
+            uint8_t l_write_data[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-        //---------------------
-        // Use syncs to mak sure no more requests are pending on the queues
-        //---------------------
-        //Trigger VC syncs
-        //write IPI trigger sync
-        l_adu_flag.setAutoIncrement(false);
-        l_adu_flag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);
-        l_adu_flag.setLockControl(true);
-        l_adu_flag.setOperFailCleanup(true);
-        l_adu_flag.setFastMode(false);
-        l_adu_flag.setItagMode(false);
-        l_adu_flag.setEccMode(false);
-        l_adu_flag.setEccItagOverrideMode(false);
-        l_adu_flag.setTransactionSize(static_cast<p9_ADU_oper_flag::Transaction_size_t>(0x8));
-        FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xC00), false, l_adu_flag.setFlag(), l_numGranules));
-        FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xC00), false, l_adu_flag.setFlag(), true, true, l_write_data));
-        //write HW trigger sync
-        FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xC80), false, l_adu_flag.setFlag(), l_numGranules));
-        FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xC80), false, l_adu_flag.setFlag(), true, true, l_write_data));
-        //write OS trigger sync
-        FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xD00), false, l_adu_flag.setFlag(), l_numGranules));
-        FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xD00), false, l_adu_flag.setFlag(), true, true, l_write_data));
-        //write Hyp trigger sync
-        FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xD80), false, l_adu_flag.setFlag(), l_numGranules));
-        FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xD80), false, l_adu_flag.setFlag(), true, true, l_write_data));
-        //Write Redist trigger sync
-        FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xE00), false, l_adu_flag.setFlag(), l_numGranules));
-        FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xE00), false, l_adu_flag.setFlag(), true, true, l_write_data));
-#endif
+            //Read the Interrupt Controller BAR to figure out the Notify Port page address
+            //Notify Port Page is the second page off the IC BAR
+            //bit 1 will tell whether we need to add a 4K offset (if bit 1 = '0') or 64K offset (if bit 1 = '1')
+            //Add this to the address (bits 8:48 of the IC BAR)
+            fapi2::getScom(i_target, PU_INT_CQ_IC_BAR, l_data);
+            l_notify_page_addr = (l_data & 0x00FFFFFFFFFF8000ull) + 0x1000;
+
+            if (l_data.getBit<1>() != 0)
+            {
+                l_notify_page_addr = l_notify_page_addr + 0xF000;
+            }
+
+            //---------------------
+            // Use syncs to mak sure no more requests are pending on the queues
+            //---------------------
+            //Trigger VC syncs
+            //write IPI trigger sync
+            l_adu_flag.setAutoIncrement(false);
+            l_adu_flag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);
+            l_adu_flag.setLockControl(true);
+            l_adu_flag.setOperFailCleanup(true);
+            l_adu_flag.setFastMode(false);
+            l_adu_flag.setItagMode(false);
+            l_adu_flag.setEccMode(false);
+            l_adu_flag.setEccItagOverrideMode(false);
+            l_adu_flag.setTransactionSize(static_cast<p9_ADU_oper_flag::Transaction_size_t>(0x8));
+            FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xC00), false, l_adu_flag.setFlag(), l_numGranules));
+            FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xC00), false, l_adu_flag.setFlag(), true, true, l_write_data));
+            //write HW trigger sync
+            FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xC80), false, l_adu_flag.setFlag(), l_numGranules));
+            FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xC80), false, l_adu_flag.setFlag(), true, true, l_write_data));
+            //write OS trigger sync
+            FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xD00), false, l_adu_flag.setFlag(), l_numGranules));
+            FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xD00), false, l_adu_flag.setFlag(), true, true, l_write_data));
+            //write Hyp trigger sync
+            FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xD80), false, l_adu_flag.setFlag(), l_numGranules));
+            FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xD80), false, l_adu_flag.setFlag(), true, true, l_write_data));
+            //Write Redist trigger sync
+            FAPI_TRY(p9_adu_setup(i_target, (l_notify_page_addr + 0xE00), false, l_adu_flag.setFlag(), l_numGranules));
+            FAPI_TRY(p9_adu_access(i_target, (l_notify_page_addr + 0xE00), false, l_adu_flag.setFlag(), true, true, l_write_data));
+        }
 
         fapi2::getScom(i_target, CAPP_FLUSHSHUE, l_data);
 
@@ -766,160 +773,169 @@ extern "C" {
         // mark HWP entry
 
         fapi2::buffer<uint64_t> l_data(0);
+        uint8_t l_useXiveHwReset;
 
-        //TODO For DD1 this is broken - readd when fixed in DD2
-#ifdef DD2
-        // Read INT_CQ_RST_CTL so that we don't override anything
-        fapi2::getScom(i_target, PU_INT_CQ_RST_CTL, l_data);
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_USE_XIVE_HW_RESET,
+                               i_target,
+                               l_useXiveHwReset));
 
-        // Set bit in INT_CQ_RST_CTL to request quiesce
-        l_data.setBit<PU_INT_CQ_RST_CTL_QUIESCE_PB>();
-        fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, l_data);
-
-        // Poll master and slave quiesced via bits in RST_CTL
-        for (uint32_t i = 0; i < C_NUM_TRIES_QUIESCE_STATE; i++)
+        //TODO RTC:177741 HW reset for INT is not working, need to retest this
+        //if we ever think the hw is fixed
+        if(l_useXiveHwReset)
         {
+            // Read INT_CQ_RST_CTL so that we don't override anything
             fapi2::getScom(i_target, PU_INT_CQ_RST_CTL, l_data);
 
-            if (l_data.getBit<PU_INT_CQ_RST_CTL_MASTER_IDLE>() && l_data.getBit<PU_INT_CQ_RST_CTL_SLAVE_IDLE>())
+            // Set bit in INT_CQ_RST_CTL to request quiesce
+            l_data.setBit<PU_INT_CQ_RST_CTL_QUIESCE_PB>();
+            fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, l_data);
+
+            // Poll master and slave quiesced via bits in RST_CTL
+            for (uint32_t i = 0; i < C_NUM_TRIES_QUIESCE_STATE; i++)
             {
-                break;
+                fapi2::getScom(i_target, PU_INT_CQ_RST_CTL, l_data);
+
+                if (l_data.getBit<PU_INT_CQ_RST_CTL_MASTER_IDLE>() && l_data.getBit<PU_INT_CQ_RST_CTL_SLAVE_IDLE>())
+                {
+                    break;
+                }
+
+                fapi2::delay(C_INTP_DELAY_NS, C_INTP_DELAY_CYCLES);
             }
 
-            fapi2::delay(C_INTP_DELAY_NS, C_INTP_DELAY_CYCLES);
+            FAPI_ASSERT((l_data.getBit<PU_INT_CQ_RST_CTL_MASTER_IDLE>()
+                         && l_data.getBit<PU_INT_CQ_RST_CTL_SLAVE_IDLE>()), fapi2::P9_INTP_QUIESCE_TIMEOUT().set_TARGET(i_target).set_DATA(
+                            l_data), "INTP master or slave is not IDLE");
+
+            //Set sync_reset in RST_CTL
+            l_data.setBit<PU_INT_CQ_RST_CTL_SYNC_RESET>();
+            fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, l_data);
         }
-
-        FAPI_ASSERT((l_data.getBit<PU_INT_CQ_RST_CTL_MASTER_IDLE>()
-                     && l_data.getBit<PU_INT_CQ_RST_CTL_SLAVE_IDLE>()), fapi2::P9_INTP_QUIESCE_TIMEOUT().set_TARGET(i_target).set_DATA(
-                        l_data), "INTP master or slave is not IDLE");
-
-        //Set sync_reset in RST_CTL
-        l_data.setBit<PU_INT_CQ_RST_CTL_SYNC_RESET>();
-        fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, l_data);
-#else
-        uint64_t l_int_vc_eqc_config_mask_verify_vc_syncs_complete = 0x00000000F8000000;
-        const uint64_t l_intp_scrub_masks[4] = {PU_INT_VC_IVC_SCRUB_MASK, PU_INT_VC_SBC_SCRUB_MASK, PU_INT_VC_EQC_SCRUB_MASK, PU_INT_PC_VPC_SCRUB_MASK};
-        //Workaround for the sync reset
-        //------------------------------------------------------------------
-        //Use syncs to make sure no more requests are pending on the queue
-        //------------------------------------------------------------------
-        //Trigger VC Syncs
-        //This is done up in the CAPP unit because we need the fabric
-
-        //Verify VC syncs complete and then reset sync done bits
-        fapi2::getScom(i_target, PU_INT_VC_EQC_CONFIG, l_data);
-        FAPI_ASSERT((l_data & l_int_vc_eqc_config_mask_verify_vc_syncs_complete) ==
-                    l_int_vc_eqc_config_mask_verify_vc_syncs_complete,
-                    fapi2::P9_INT_WORKAROUND_ERR().set_TARGET(i_target).set_ADDRESS(PU_INT_VC_EQC_CONFIG).set_DATA(l_data),
-                    "Error with VC syncs not being set as expected");
-        l_data.clearBit<32>().clearBit<33>().clearBit<34>().clearBit<35>().clearBit<36>();
-        fapi2::putScom(i_target, PU_INT_VC_EQC_CONFIG, l_data);
-
-        //---------------------------
-        //Scrub all Int caches
-        //---------------------------
-        //Fill the scrub mask regs to 0
-        for (uint32_t i = 0; i < 4; i++)
+        else
         {
-            fapi2::putScom(i_target, l_intp_scrub_masks[i], 0x0000000000000000);
+            uint64_t l_int_vc_eqc_config_mask_verify_vc_syncs_complete = 0x00000000F8000000;
+            const uint64_t l_intp_scrub_masks[4] = {PU_INT_VC_IVC_SCRUB_MASK, PU_INT_VC_SBC_SCRUB_MASK, PU_INT_VC_EQC_SCRUB_MASK, PU_INT_PC_VPC_SCRUB_MASK};
+            //Workaround for the sync reset
+            //------------------------------------------------------------------
+            //Use syncs to make sure no more requests are pending on the queue
+            //------------------------------------------------------------------
+            //Trigger VC Syncs
+            //This is done up in the CAPP unit because we need the fabric
+
+            //Verify VC syncs complete and then reset sync done bits
+            fapi2::getScom(i_target, PU_INT_VC_EQC_CONFIG, l_data);
+            FAPI_ASSERT((l_data & l_int_vc_eqc_config_mask_verify_vc_syncs_complete) ==
+                        l_int_vc_eqc_config_mask_verify_vc_syncs_complete,
+                        fapi2::P9_INT_WORKAROUND_ERR().set_TARGET(i_target).set_ADDRESS(PU_INT_VC_EQC_CONFIG).set_DATA(l_data),
+                        "Error with VC syncs not being set as expected");
+            l_data.clearBit<32>().clearBit<33>().clearBit<34>().clearBit<35>().clearBit<36>();
+            fapi2::putScom(i_target, PU_INT_VC_EQC_CONFIG, l_data);
+
+            //---------------------------
+            //Scrub all Int caches
+            //---------------------------
+            //Fill the scrub mask regs to 0
+            for (uint32_t i = 0; i < 4; i++)
+            {
+                fapi2::putScom(i_target, l_intp_scrub_masks[i], 0x0000000000000000);
+            }
+
+            //Start the scrub operation in all caches andPoll for completion
+            FAPI_TRY(p9_int_scrub_caches(i_target), "Error scrubbing the caches");
+
+            //----------------------------
+            //Change all VSDs to invalid
+            //----------------------------
+            //Change all VC VSDs
+            //Do the IVE VC VSD
+            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8000000000000000);
+
+            for (uint32_t i = 0; i < 16; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //Do the ESB VC VSD
+            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8001000000000000);
+
+            for (uint32_t i = 0; i < 16; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //Do the EQD VC VSD
+            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8002000000000000);
+
+            for (uint32_t i = 0; i < 16; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //Do the VPD VC VSD
+            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8003000000000000);
+
+            for (uint32_t i = 0; i < 32; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //Do the IRQ VC VSD
+            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8004000000000000);
+
+            for (uint32_t i = 0; i < 6; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //Change all PC VSDs
+            //Do the IVE PC VSD
+            fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_ADDR, 0x8000000000000000);
+
+            for (uint32_t i = 0; i < 16; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //Do the ESB PC VSD
+            fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_ADDR, 0x8001000000000000);
+
+            for (uint32_t i = 0; i < 16; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //Do the EQD PC VSD
+            fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_ADDR, 0x8002000000000000);
+
+            for (uint32_t i = 0; i < 16; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //Do the VPD PC VSD
+            fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_ADDR, 0x8002000000000000);
+
+            for (uint32_t i = 0; i < 32; i++)
+            {
+                fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_DATA, 0x0000000000000000);
+            }
+
+            //----------------------------
+            //Re-scrub all Int caches
+            //----------------------------
+            //Start the scrub operation in all caches and Poll for completion
+            FAPI_TRY(p9_int_scrub_caches(i_target), "Error re-scrubbing the caches");
+            //----------------------------
+            //Disable all thread contexts (this will also trigger an internal reset)
+            //----------------------------
+            fapi2::putScom(i_target, PU_INT_TCTXT_EN0, 0x0000000000000000);
+            fapi2::putScom(i_target, PU_INT_TCTXT_EN1, 0x0000000000000000);
+
+            //----------------------------
+            //Reset Quiesce
+            //----------------------------
+            fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, 0x0000000000000000);
         }
-
-        //Start the scrub operation in all caches andPoll for completion
-        FAPI_TRY(p9_int_scrub_caches(i_target), "Error scrubbing the caches");
-
-        //----------------------------
-        //Change all VSDs to invalid
-        //----------------------------
-        //Change all VC VSDs
-        //Do the IVE VC VSD
-        fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8000000000000000);
-
-        for (uint32_t i = 0; i < 16; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //Do the ESB VC VSD
-        fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8001000000000000);
-
-        for (uint32_t i = 0; i < 16; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //Do the EQD VC VSD
-        fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8002000000000000);
-
-        for (uint32_t i = 0; i < 16; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //Do the VPD VC VSD
-        fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8003000000000000);
-
-        for (uint32_t i = 0; i < 32; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //Do the IRQ VC VSD
-        fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_ADDR, 0x8004000000000000);
-
-        for (uint32_t i = 0; i < 6; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_VC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //Change all PC VSDs
-        //Do the IVE PC VSD
-        fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_ADDR, 0x8000000000000000);
-
-        for (uint32_t i = 0; i < 16; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //Do the ESB PC VSD
-        fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_ADDR, 0x8001000000000000);
-
-        for (uint32_t i = 0; i < 16; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //Do the EQD PC VSD
-        fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_ADDR, 0x8002000000000000);
-
-        for (uint32_t i = 0; i < 16; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //Do the VPD PC VSD
-        fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_ADDR, 0x8002000000000000);
-
-        for (uint32_t i = 0; i < 32; i++)
-        {
-            fapi2::putScom(i_target, PU_INT_PC_VSD_TABLE_DATA, 0x0000000000000000);
-        }
-
-        //----------------------------
-        //Re-scrub all Int caches
-        //----------------------------
-        //Start the scrub operation in all caches and Poll for completion
-        FAPI_TRY(p9_int_scrub_caches(i_target), "Error re-scrubbing the caches");
-        //----------------------------
-        //Disable all thread contexts (this will also trigger an internal reset)
-        //----------------------------
-        fapi2::putScom(i_target, PU_INT_TCTXT_EN0, 0x0000000000000000);
-        fapi2::putScom(i_target, PU_INT_TCTXT_EN1, 0x0000000000000000);
-
-        //----------------------------
-        //Reset Quiesce
-        //----------------------------
-        fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, 0x0000000000000000);
-#endif
 
     fapi_try_exit:
         FAPI_IMP("p9_intp_check_quiesce: Exiting...");
