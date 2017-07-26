@@ -519,5 +519,8 @@ attribute tank
         <name>ATTR_MC_PLL_BUCKET</name>
         <value>0x05</value>
   </entry>
-
+  <entry>
+        <name>ATTR_CHIP_EC_FEATURE_USE_XIVE_HW_RESET</name>
+        <virtual/>
+  </entry>
 </entries>
