@@ -1,7 +1,7 @@
 <!-- IBM_PROLOG_BEGIN_TAG                                                   -->
 <!-- This is an automatically generated prolog.                             -->
 <!--                                                                        -->
-<!-- $Source: src/test/testcases/testUnsecureMemRegionsOpen.xml $           -->
+<!-- $Source: src/test/testcases/testUnsecureMemRegions.xml $               -->
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
@@ -24,7 +24,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
       <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testUnsecureMemRegionsOpen.py</simcmd>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testUnsecureMemRegions.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
 

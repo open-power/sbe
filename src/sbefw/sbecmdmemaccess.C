@@ -37,6 +37,7 @@
 #include "sbeutil.H"
 #include "sbeHostUtils.H"
 #include "sbeglobals.H"
+#include "sbeSecureMemRegionManager.H"
 
 #include "fapi2.H"
 
@@ -57,6 +58,7 @@ constexpr uint32_t PBA_SIZE_MULTIPLIER_FOR_LEN_ALIGNMENT = 32;
  */
 constexpr uint32_t SBE_ADU_LOCK_TRIES = 3;
 
+#ifndef __SBEFW_SEEPROM__
 ///////////////////////////////////////////////////////////////////////
 // @brief align4ByteWordLength - Internal Method to this file
 //        Align the length passed and return number of words
@@ -132,15 +134,15 @@ inline uint32_t sbeAduLenInUpStreamFifo(uint32_t i_numGranules,
 // @brief flushUpstreamFifo - Internal Method to this file, to flush
 //        out the upstream fifo
 //
-// @param [in] i_fapiRc, Fapi RC
+// @param [in] i_primaryStatus, Fapi RC
 //
 // @return  RC from the underlying FIFO utility
 ///////////////////////////////////////////////////////////////////////
-inline uint32_t flushUpstreamFifo (const uint32_t &i_fapiRc)
+inline uint32_t flushUpstreamFifo (const uint32_t &i_primaryStatus)
 {
     uint32_t l_len2dequeue = 0;
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    if ( i_fapiRc != FAPI2_RC_SUCCESS )
+    if ( i_primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL)
     {
         l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL,
                              true, true);
@@ -178,133 +180,147 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
     // Default for PBA
     uint32_t l_granuleSize = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES;
     uint64_t l_addr = 0;
-
-    // If not Host Pass through command, simply set the addr from the command
-    if(!i_hdr.isPbaHostPassThroughModeSet())
-    {
-        l_addr = i_hdr.getAddr();
-    }
-    // If it is Host Pass through command, set the address using the Host pass
-    // through address already set in the global and using the addr here in the
-    // command as index to that address
-    else
-    {
-        l_addr = SBE_GLOBAL->hostPassThroughCmdAddr.addr + i_hdr.getAddr();
-        // Check if the size pass in the command is less than the size mentioned
-        // in the Host Pass Through globals
-        if((i_hdr.getAddr() + i_hdr.len) > SBE_GLOBAL->hostPassThroughCmdAddr.size)
-        {
-            // Break out, Invalid Size
-            SBE_ERROR("User size[0x%08X] exceeds the Host Pass Through Mode "
-                "size[0x%08X] Start Index[0x%08X %08X]", 
-                i_hdr.len, SBE_GLOBAL->hostPassThroughCmdAddr.size,
-                SBE::higher32BWord(i_hdr.getAddr()),
-                SBE::lower32BWord(i_hdr.getAddr()));
-            l_respHdr.setStatus( SBE_PRI_INVALID_DATA,
-                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
-        }
-    }
-
-    // Default EX Target Init..Not changing it for the time being
-    Target<TARGET_TYPE_EX> l_ex(
-            plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
-                sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
-
-    p9_PBA_oper_flag l_myPbaFlag;
-    // Determine the access flags
-    // Fast mode flag
-    if(i_hdr.isFastModeSet())
-    {
-        l_myPbaFlag.setFastMode(true);
-        SBE_INFO(SBE_FUNC "Fast Mode is set");
-    }
-
-    // inject mode flag
-    if(i_hdr.isPbaInjectModeSet())
-    {
-        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ); // Inject operation
-        SBE_INFO(SBE_FUNC "inject Mode is set");
-    }
-
-    // By default, ex_chipletId printed below won't be used unless accompanied
-    // by LCO_mode (LCO Mode for PBA-Put)
-    if(i_hdr.isPbaLcoModeSet())
-    {
-        SBE_INFO(SBE_INFO "LCO Mode is set with Ex ChipletId[%d]",
-            (i_hdr.coreChipletId)/2);
-        //Derive the EX target from the input Core Chiplet Id
-        //Core0/1 -> EX0, Core2/3 -> EX1, Core4/5 -> EX2, Core6/7 -> EX3
-        //..so on
-        l_ex = plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>
-                (i_hdr.coreChipletId);
-        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::LCO); // LCO operation
-    }
-
     // Keeps track of number of granules sent to HWP
     uint64_t l_granulesCompleted = 0;
-
     // Input Data length in alignment with PBA (128 Bytes)
-    uint64_t l_lenCacheAligned = i_hdr.getDataLenCacheAlign();
-    SBE_DEBUG(SBE_FUNC "Data Aligned Len / Number of data granules = %d",
-        l_lenCacheAligned);
+    uint64_t l_lenCacheAligned = 0;
 
-    sbeMemAccessInterface l_PBAInterface(SBE_MEM_ACCESS_PBA,
-                                         l_addr,
-                                         &l_myPbaFlag,
-                                         (i_isFlagRead ?
-                                          SBE_MEM_ACCESS_READ:
-                                          SBE_MEM_ACCESS_WRITE),
-                                         l_granuleSize,
-                                         l_ex);
-
-    while (l_granulesCompleted < l_lenCacheAligned)
+    do
     {
-        // Breaking out here if invalid size
-        if(l_respHdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL)
+        // If not Host Pass through command, simply set the addr from the command
+        if(!i_hdr.isPbaHostPassThroughModeSet())
         {
-            break;
+            l_addr = i_hdr.getAddr();
+            // Check if the access to the address is allowed
+            l_respHdr.secondaryStatus = SBESecMemRegionManager->isAccessAllowed(
+                                               {l_addr,
+                                                i_hdr.len,
+                 (i_isFlagRead ? static_cast<uint8_t>(memRegionMode::READ):
+                                 static_cast<uint8_t>(memRegionMode::WRITE))});
+            if(l_respHdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL)
+            {
+                l_respHdr.primaryStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
+                break;
+            }
+        }
+        // If it is Host Pass through command, set the address using the Host pass
+        // through address already set in the global and using the addr here in the
+        // command as index to that address
+        else
+        {
+            l_addr = SBE_GLOBAL->hostPassThroughCmdAddr.addr + i_hdr.getAddr();
+            // Check if the size pass in the command is less than the size mentioned
+            // in the Host Pass Through globals
+            if((i_hdr.getAddr() + i_hdr.len) > SBE_GLOBAL->hostPassThroughCmdAddr.size)
+            {
+                // Break out, Invalid Size
+                SBE_ERROR("User size[0x%08X] exceeds the Host Pass Through Mode "
+                    "size[0x%08X] Start Index[0x%08X %08X]", 
+                    i_hdr.len, SBE_GLOBAL->hostPassThroughCmdAddr.size,
+                    SBE::higher32BWord(i_hdr.getAddr()),
+                    SBE::lower32BWord(i_hdr.getAddr()));
+                l_respHdr.setStatus( SBE_PRI_INVALID_DATA,
+                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
+            }
         }
 
-        // If this is putmem request, read input data from the upstream FIFO
-        if (!i_isFlagRead)
+        // Default EX Target Init..Not changing it for the time being
+        Target<TARGET_TYPE_EX> l_ex(
+                plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
+                    sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
+
+        p9_PBA_oper_flag l_myPbaFlag;
+        // Determine the access flags
+        // Fast mode flag
+        if(i_hdr.isFastModeSet())
         {
-            // l_sizeMultiplier * 4B Upstream FIFO = Granule size 128B
-            uint32_t l_len2dequeue = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES
-                                                            / sizeof(uint32_t);
-            l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
-                    (uint32_t *)l_PBAInterface.getBuffer(),
-                    false);
-            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+            l_myPbaFlag.setFastMode(true);
+            SBE_INFO(SBE_FUNC "Fast Mode is set");
         }
 
-        // Call the PBA HWP
-        l_fapiRc = l_PBAInterface.accessGranule(
-                            l_granulesCompleted==(l_lenCacheAligned-1));
-        // if error
-        if(l_fapiRc != FAPI2_RC_SUCCESS)
+        // inject mode flag
+        if(i_hdr.isPbaInjectModeSet())
         {
-            // Respond with HWP FFDC
-            l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
-            l_ffdc.setRc(l_fapiRc);
-            break;
+            l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ); // Inject operation
+            SBE_INFO(SBE_FUNC "inject Mode is set");
         }
 
-        // If this is a getmem request,
-        // need to push the data into the downstream FIFO
-        if (i_isFlagRead)
+        // By default, ex_chipletId printed below won't be used unless accompanied
+        // by LCO_mode (LCO Mode for PBA-Put)
+        if(i_hdr.isPbaLcoModeSet())
         {
-            // Number of 4Bytes to put, to align with Granule Size
-            // l_len*4 = Granule Size
-            uint32_t l_len = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES
-                                                            / sizeof(uint32_t);
-            l_rc = sbeDownFifoEnq_mult (l_len,
-                                (uint32_t *)l_PBAInterface.getBuffer());
-            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+            SBE_INFO(SBE_INFO "LCO Mode is set with Ex ChipletId[%d]",
+                (i_hdr.coreChipletId)/2);
+            //Derive the EX target from the input Core Chiplet Id
+            //Core0/1 -> EX0, Core2/3 -> EX1, Core4/5 -> EX2, Core6/7 -> EX3
+            //..so on
+            l_ex = plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>
+                    (i_hdr.coreChipletId);
+            l_myPbaFlag.setOperationType(p9_PBA_oper_flag::LCO); // LCO operation
         }
 
-        l_granulesCompleted++;
-    } // End..while (l_granulesCompleted < l_lenCacheAligned);
+        l_lenCacheAligned = i_hdr.getDataLenCacheAlign();
+        SBE_DEBUG(SBE_FUNC "Data Aligned Len / Number of data granules = %d",
+            l_lenCacheAligned);
+
+        sbeMemAccessInterface l_PBAInterface(SBE_MEM_ACCESS_PBA,
+                                             l_addr,
+                                             &l_myPbaFlag,
+                                             (i_isFlagRead ?
+                                              SBE_MEM_ACCESS_READ:
+                                              SBE_MEM_ACCESS_WRITE),
+                                             l_granuleSize,
+                                             l_ex);
+
+        while (l_granulesCompleted < l_lenCacheAligned)
+        {
+            // Breaking out here if invalid size
+            if(l_respHdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL)
+            {
+                break;
+            }
+
+            // If this is putmem request, read input data from the upstream FIFO
+            if (!i_isFlagRead)
+            {
+                // l_sizeMultiplier * 4B Upstream FIFO = Granule size 128B
+                uint32_t l_len2dequeue = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES
+                                                                / sizeof(uint32_t);
+                l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
+                        (uint32_t *)l_PBAInterface.getBuffer(),
+                        false);
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+            }
+
+            // Call the PBA HWP
+            l_fapiRc = l_PBAInterface.accessGranule(
+                                l_granulesCompleted==(l_lenCacheAligned-1));
+            // if error
+            if(l_fapiRc != FAPI2_RC_SUCCESS)
+            {
+                // Respond with HWP FFDC
+                l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
+                l_ffdc.setRc(l_fapiRc);
+                break;
+            }
+
+            // If this is a getmem request,
+            // need to push the data into the downstream FIFO
+            if (i_isFlagRead)
+            {
+                // Number of 4Bytes to put, to align with Granule Size
+                // l_len*4 = Granule Size
+                uint32_t l_len = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES
+                                                                / sizeof(uint32_t);
+                l_rc = sbeDownFifoEnq_mult (l_len,
+                                    (uint32_t *)l_PBAInterface.getBuffer());
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+            }
+
+            l_granulesCompleted++;
+        } // End..while (l_granulesCompleted < l_lenCacheAligned);
+    } while(0);
 
     // Now build and enqueue response into downstream FIFO
     do
@@ -316,7 +332,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // need to Flush out upstream FIFO, until EOT arrives
         if (!i_isFlagRead)
         {
-            l_rc = flushUpstreamFifo(l_fapiRc);
+            l_rc = flushUpstreamFifo(l_respHdr.primaryStatus);
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
 
@@ -452,6 +468,17 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                                               SBE_MEM_ACCESS_READ :
                                               SBE_MEM_ACCESS_WRITE),
                                     sbeMemAccessInterface::ADU_GRAN_SIZE_BYTES);
+        // Check if the access to the address is allowed
+        l_respHdr.secondaryStatus = SBESecMemRegionManager->isAccessAllowed(
+                                           {l_addr,
+                                            i_hdr.len,
+             (i_isFlagRead ? static_cast<uint8_t>(memRegionMode::READ):
+                             static_cast<uint8_t>(memRegionMode::WRITE))});
+        if(l_respHdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            l_respHdr.primaryStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
+            break;
+        }
         // 8Byte granule for ADU access
         uint64_t l_dataFifo[MAX_ADU_BUFFER] = {0};
         while (l_granulesCompleted < l_lenCacheAligned)
@@ -610,7 +637,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // need to Flush out upstream FIFO, until EOT arrives
         if (!i_isFlagRead)
         {
-            l_rc = flushUpstreamFifo(l_fapiRc);
+            l_rc = flushUpstreamFifo(l_respHdr.primaryStatus);
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
 
@@ -703,12 +730,14 @@ uint32_t sbeGetMem (uint8_t *i_pArg)
 {
     return sbeMemAccess_Wrap (true);
 }
+#endif //not __SBEFW_SEEPROM__
+#ifdef __SBEFW_SEEPROM__
 
 uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg)
 {
     #define SBE_FUNC "sbeManageMemAccessRegion"
     SBE_ENTER(SBE_FUNC);
-    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
     sbeMemRegionReq_t req = {};
 
@@ -730,6 +759,35 @@ uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg)
                   SBE::lower32BWord(req.startAddress),
                   req.size,
                   SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags);
+
+        uint16_t mode = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & 0x00FF;
+        if(mode == SBE_MEM_REGION_CLOSE)
+        {
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus =
+            SBESecMemRegionManager->remove(req.startAddress);
+        }
+        else
+        {
+            uint8_t memMode = 0;
+            if(mode == SBE_MEM_REGION_OPEN_RO)
+            {
+                memMode = static_cast<uint8_t>(memRegionMode::READ);
+            }
+            else if(mode == SBE_MEM_REGION_OPEN_RW)
+            {
+                memMode = static_cast<uint8_t>(memRegionMode::READ) |
+                          static_cast<uint8_t>(memRegionMode::WRITE);
+            }
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus =
+            SBESecMemRegionManager->add(req.startAddress,
+                                        req.size,
+                                        memMode);
+        }
+        if(SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus !=
+                                    SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.primStatus = SBE_PRI_USER_ERROR;
+        }
     } while(false);
 
     // Send the response
@@ -739,3 +797,4 @@ uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg)
     return rc;
     #undef SBE_FUNC
 }
+#endif //__SBEFW_SEEPROM__

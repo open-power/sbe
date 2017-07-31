@@ -109,6 +109,9 @@
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
+
+#include "p9_fbc_utils.H"
+#include "sbeSecureMemRegionManager.H"
 // Forward declaration
 using namespace fapi2;
 
@@ -828,6 +831,7 @@ ReturnCode istepWithCoreConditional( sbeIstepHwp_t i_hwp)
 }
 
 //----------------------------------------------------------------------------
+constexpr uint32_t HB_MEM_WINDOW_SIZE = 32*1024*1024; //32 MB
 ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
@@ -842,12 +846,50 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
     P9XipHeader *hdr = getXipHdr();
     P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
 
-    // Update the ATTR_SBE_ADDR_KEY_STASH_ADDR before calling the bootloader,
-    // since it is going to access these data from inside.
-    uint64_t addr = SBE_GLOBAL->sbeKeyAddrPair.fetchStashAddrAttribute();
-    FAPI_ATTR_SET(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR, sysTgt, addr); 
-    SBE_EXEC_HWP(rc, p9_sbe_load_bootloader, proc, exTgt, hbblSection->iv_size,
-                 getSectionAddr(hbblSection))
+    uint64_t drawer_base_address_nm0, drawer_base_address_nm1;
+    uint64_t drawer_base_address_m;
+    uint64_t drawer_base_address_mmio;
+    uint64_t l_hostboot_hrmor_offset;
+    do
+    {
+        // Update the ATTR_SBE_ADDR_KEY_STASH_ADDR before calling the bootloader,
+        // since it is going to access these data from inside.
+        uint64_t addr = SBE_GLOBAL->sbeKeyAddrPair.fetchStashAddrAttribute();
+        FAPI_ATTR_SET(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR, sysTgt, addr); 
+        SBE_EXEC_HWP(rc, p9_sbe_load_bootloader, proc, exTgt, hbblSection->iv_size,
+                     getSectionAddr(hbblSection))
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(" p9_sbe_load_bootloader failed");
+            break;
+        }
+
+        // Open HB Dump memory Region
+        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+        FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
+                      FAPI_SYSTEM,
+                      l_hostboot_hrmor_offset);
+        rc = p9_fbc_utils_get_chip_base_address(
+                                    proc,
+                                    ABS_FBC_GRP_ID_ONLY,
+                                    drawer_base_address_nm0,
+                                    drawer_base_address_nm1,
+                                    drawer_base_address_m,
+                                    drawer_base_address_mmio);
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(" p9_fbc_utils_get_chip_base_address failed");
+            break;
+        }
+        drawer_base_address_nm0 += l_hostboot_hrmor_offset;
+        SBE_INFO("istep 5.1 HB Dump mem Region [0x%08X%08X]",
+                                SBE::higher32BWord(drawer_base_address_nm0),
+                                SBE::lower32BWord(drawer_base_address_nm0));
+        SBESecMemRegionManager->add(drawer_base_address_nm0,
+                                    HB_MEM_WINDOW_SIZE,
+                                    static_cast<uint8_t>(memRegionMode::READ));
+
+    } while(0);
     return rc;
 }
 
@@ -1172,6 +1214,8 @@ ReturnCode istepStartMpipl( sbeIstepHwp_t i_hwp)
             SBE_ENTER_MPIPL_EVENT);
     // Set MPIPL mode bit in Scratch Reg 3
     (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
+    // Close all non-secure memory regions
+    SBESecMemRegionManager->closeAllRegions();
 
     do
     {

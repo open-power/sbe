@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2016                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2017                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -319,6 +319,11 @@
       </testcase>
       <testcase>
           <simcmd>sbe-istep 5 2</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>
+      <!-- Stash address test case -->
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testMatchStashPair.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
       <!-- Invalid Istep Test case -->
