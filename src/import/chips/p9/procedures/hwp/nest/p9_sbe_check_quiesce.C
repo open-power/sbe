@@ -982,14 +982,6 @@ extern "C" {
         // Special wakeup sources
         static const uint64_t  SPWKUP_SRC_REGS[4] = {C_PPM_SPWKUP_OTR, C_PPM_SPWKUP_FSP, C_PPM_SPWKUP_HYP, C_PPM_SPWKUP_OCC};
 
-        //TODO: RTC 166888 Remove unneeded consts when p9_pm_suspend gets pulled into MPIPL flow
-        // Bits 1:3 are XCR control of the PPE_XIXCR, we want to HALT which = 0x010
-        static const uint64_t  PPE_XIXCR_XCR_HALT      = 0x6000000000000000;
-        // Bit 0 in each C_CPPMR register controls the DISABLE_WRITE functionality
-        static const uint64_t CLEAR_DISABLE_WRITE      = 0x8000000000000000;
-        //XIXCR scom regs that control the OCC's GPEs
-        static const uint64_t  GPE_XIXCR_REGS[4] = {P9N2_PU_GPE0_GPENXIXCR_SCOM, P9N2_PU_GPE1_GPENXIXCR_SCOM, P9N2_PU_GPE2_GPENXIXCR_SCOM, P9N2_PU_GPE3_GPENXIXCR_SCOM};
-
         FAPI_IMP("p9_pm_check_quiesce: Entering...");
 
         //Loop over cores and set the WKUP_NOTIFY_SELECT bit and clear out
@@ -1007,19 +999,6 @@ extern "C" {
                 FAPI_TRY(fapi2::putScom(l_childCore, SPWKUP_SRC_REGS[i] , CLEAR_SPWKUP));
             }
 
-            //TODO: RTC 166888 Remove clearing WRITE_DISABLE once p9_powman_suspend is added to MPIPL flow
-            //This scom clears the WRITE_DISABLE bit, this step enables SBE writes
-            FAPI_TRY(fapi2::putScom(l_childCore, C_CPPM_CPMMR_CLEAR, CLEAR_DISABLE_WRITE ));
-
-        }
-
-        //TODO: RTC 166888 Remove GPE halts once p9_powman_suspend is added to MPIPL flow
-        //Need to halt the GPEs so wakeups are handled correctly later on
-        //Loop over the differnt GPE XIXCR scom regs and send the halt command
-        // to each by writing 0x6 to bits 1:3 of the XIXCR register
-        for(uint8_t i = 0; i < 4; i++)
-        {
-            FAPI_TRY(fapi2::putScom(i_target, GPE_XIXCR_REGS[i], PPE_XIXCR_XCR_HALT));
         }
 
     fapi_try_exit:
