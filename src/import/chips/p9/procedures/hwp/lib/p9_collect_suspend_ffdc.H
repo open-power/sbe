@@ -66,3 +66,4 @@ p9_collect_suspend_ffdc (
 
 #endif  // __P9_COLLECT_SUSPEND_FFDC_H__
 #endif
+
