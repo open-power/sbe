@@ -50,8 +50,10 @@ enum P9_SETUP_CLOCK_TERM_Public_Constants
     OSCSWITCH_RC3 = 0x0080C000,
     OSCSWITCH_RC4 = 0x0,
     DISABLE_WRITE_PROTECTION = 0x4453FFFF,
-    P9C_OSCSWITCH_RC3_CP0_CP2 = 0x00009000,
-    P9C_OSCSWITCH_RC3_CP1_CP3 = 0x00006000
+    P9C_OSCSWITCH_RC3_BOTHSRC0 = 0x00009000,
+    P9C_OSCSWITCH_RC3_BOTHSRC1 = 0x00006000,
+    P9C_OSCSWITCH_RC3_SRC0 = 0x0000C000,
+    P9C_OSCSWITCH_RC3_SRC1 = 0x00003000
 };
 }
 
@@ -82,7 +84,7 @@ typedef fapi2::ReturnCode (*p9_setup_clock_term_FP_t)(const
 extern "C"
 {
     fapi2::ReturnCode p9_setup_clock_term(const
-                                          fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, const pci_clk_req_enum  i_pci_clk_req);
+                                          fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, const pci_clk_req_enum  i_pci_clk_req = BOTH_SRC0 );
 }
 
 #endif
