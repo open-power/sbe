@@ -203,6 +203,8 @@ ReturnCode performTpmReset();
 //Utility function to update PHB functional State
 ReturnCode updatePhbFunctionalState( void );
 
+//Utility function to clear crest error latch
+ReturnCode resetCrespErrLatch( void );
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
@@ -245,7 +247,8 @@ sbeRole g_sbeRole = SBE_ROLE_MASTER;
 static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
         {
 #ifdef SEEPROM_IMAGE
-            // Place holder for StartMpipl, State Change, PHB State Update
+            // Place holder for StartMpipl, State Change, PHB State Update,
+            // Clear CRESP error latch register.
             // Set MPIPL mode in Sratch Reg 3
             { &istepStartMpipl, NULL },
             // Call suspend powerman
@@ -1162,11 +1165,21 @@ ReturnCode istepStartMpipl( sbeIstepHwp_t i_hwp)
     // Set MPIPL mode bit in Scratch Reg 3
     (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
 
-    rc = updatePhbFunctionalState();
-    if(rc != FAPI2_RC_SUCCESS)
+    do
     {
-        SBE_ERROR(SBE_FUNC "updatePhbFunctionalState failed");
-    }
+        rc = updatePhbFunctionalState();
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "updatePhbFunctionalState failed");
+            break;
+        }
+        rc = resetCrespErrLatch();
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "resetCrespErrLatch failed");
+            break;
+        }
+    }while(0);
 
     SBE_EXIT(SBE_FUNC);
     return rc;
@@ -1451,3 +1464,43 @@ ReturnCode updatePhbFunctionalState( void )
 #undef SBE_FUNC
 }
 
+//----------------------------------------------------------------------------
+ReturnCode resetCrespErrLatch( void )
+{
+    #define SBE_FUNC "resetCrespErrLatch"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    static const uint64_t BIT_63_MASK = 0x01;
+    do
+    {
+        Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+        uint64_t data;
+        rc = getscom_abs_wrap (&procTgt, PU_PB_CENT_SM0_PB_CENT_MODE,
+                                                &data);
+        if( rc )
+        {
+            break;
+        }
+        data = data | BIT_63_MASK;
+        rc = putscom_abs_wrap (&procTgt, PU_PB_CENT_SM0_PB_CENT_MODE,
+                                               data);
+        if( rc )
+        {
+            break;
+        }
+        data = data &(~BIT_63_MASK);
+        rc = putscom_abs_wrap (&procTgt, PU_PB_CENT_SM0_PB_CENT_MODE,
+                                              data);
+        if( rc )
+        {
+            break;
+        }
+    }while(0);
+    if( rc )
+    {
+        SBE_ERROR(SBE_FUNC" Failed to reset Cresp error latch");
+    }
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+#undef SBE_FUNC
+}
