@@ -27,22 +27,22 @@
 /// @file p9_sbe_check_quiesce.H
 /// @brief Check quiesce state for all units on the powerbus
 ///
-// *HWP HWP Owner: Christina Graves clgraves@us.ibm.com
+// *HWP HWP Owner: Joe McGill <jmcgill@us.ibm.com>
 // *HWP FW Owner: Thi Tran thi@us.ibm.com
 // *HWP Team: Nest
-// *HWP Level: 1
-// *HWP Consumed by:
+// *HWP Level: 3
+// *HWP Consumed by: SBE
 // ----------------------------------------------------------------------------------
 //
 // *! ADDITIONAL COMMENTS :
 // *!
-// *! The purpose of this procedure is to check quiesce state for all units on the
-// *! powerbus on its chip if the queisce fails then this HWP will checkstop the system
+// *! The purpose of this procedure is to check quiesce state for all units on
+// *! the powerbus on its chip if the quiesce fails then this HWP will checkstop
+// *! the system
 // *!
 // *! Succcessful operation assumes that:
 // *!   o System clocks are running
 // *!   o Fabric is initalized
-// *!
 // *!
 //-----------------------------------------------------------------------------------
 
@@ -52,7 +52,6 @@
 //-----------------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------------
-
 #include <fapi2.H>
 
 //-----------------------------------------------------------------------------------
@@ -60,17 +59,8 @@
 //-----------------------------------------------------------------------------------
 
 //function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode
-(*p9_sbe_check_quiesce_FP_t) (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
-                             );
-
-//-----------------------------------------------------------------------------------
-// Constant definitions
-//-----------------------------------------------------------------------------------
-const uint32_t PHB_HV_IND_ADDR_VALID_BIT    = 0;
-const uint32_t PHB_HV_IND_ADDR_START_BIT = 52;
-const uint32_t PHB_HV_IND_ADDR_LEN = 12;
-
+typedef fapi2::ReturnCode (*p9_sbe_check_quiesce_FP_t)
+(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 
 extern "C" {
 
@@ -78,7 +68,9 @@ extern "C" {
 // Function prototype
 //-----------------------------------------------------------------------------------
 
-    /// @brief SBE will check quiesce state for all units on the powerbus on its chip if the queisce fails then this HWP will checkstop the system
+    /// @brief SBE will check quiesce state for all units on the powerbus on
+    ///        its chip. If the quiesce fails then this HWP will checkstop
+    ///        the system
     /// @param[in] i_target       => P9 chip target
     /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
     fapi2::ReturnCode p9_sbe_check_quiesce(
@@ -132,9 +124,12 @@ extern "C" {
     fapi2::ReturnCode p9_pm_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
-    fapi2::ReturnCode p9_int_scrub_caches(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
+    /// @brief Helper function to scrub all the caches for Int
+    /// @param[in] i_target       => P9 chip target
+    /// @return FAPI_RC_SUCCESS if the scrube completes successfully
+    fapi2::ReturnCode p9_int_scrub_caches(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
 } //extern "C"
 
 #endif //_P9_SBE_CHECK_QUIESCE_H_
-
