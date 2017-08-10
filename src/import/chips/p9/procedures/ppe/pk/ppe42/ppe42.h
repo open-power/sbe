@@ -428,7 +428,12 @@ uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
 /// the 'panic' macros and the default DBCR0 setup.
 
 #ifndef PPE42_DBCR_INITIAL
-#define PPE42_DBCR_INITIAL DBCR_TRAP
+#define PPE42_DBCR_INITIAL (DBCR_TRAP | DBCR_IACE)
+#endif
+
+
+#ifndef PPE42_DACR_INITIAL
+#define PPE42_DACR_INITIAL 0
 #endif
 
 /// This is the value of the MSR used during initialization.  Once PK threads
