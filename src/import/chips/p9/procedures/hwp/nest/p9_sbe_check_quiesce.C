@@ -238,83 +238,24 @@ extern "C" {
         //This is the data that will be passed in to set the PHB Quiesce DMA register
 
         //The address of the PHB Quiesce DMA Register is 0x0888 (found in PHB spec)
-        uint8_t l_pci_id = 0;
-        uint64_t phb_absolute_address_array[3];
-        uint32_t num_phbs = 0;
 
-        auto l_pci_chiplets_vec = i_target.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_ALL_PCI,
-                                  fapi2::TARGET_STATE_FUNCTIONAL);
+        auto l_phb_chiplets_vec = i_target.getChildren<fapi2::TARGET_TYPE_PHB>();
 
-        for (auto& l_pci_chiplet : l_pci_chiplets_vec)
+        for (auto& l_phb_chiplet : l_phb_chiplets_vec)
         {
-            //Get the PCI ID
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_pci_chiplet, l_pci_id));
-
-            //There are a different number and different PHBs associated with each PCI ID
-            //PHB 0 is attached to PCI0
-            //PHB 1 and PHB 2 are attached to PCI1
-            //PHB 3 and PHB 4 and PHB 5 are attached to PCI2
-            if (l_pci_id == 0xd)
-            {
-                num_phbs = 1;
-                phb_absolute_address_array[0] = PHB_0_PHB4_SCOM_HVIAR;
-            }
-            else if (l_pci_id == 0xe)
-            {
-                //Need to make sure that tc_pci1_iovalid(2) is 0b1 to access PHB2
-                fapi2::buffer<uint64_t> l_perv_pci1_cplt_conf1_data(0);
-                fapi2::getScom(i_target, PEC_1_CPLT_CONF1, l_perv_pci1_cplt_conf1_data);
-
-                if(l_perv_pci1_cplt_conf1_data.getBit<PEC_CPLT_CONF1_IOVALID_5D>())
-                {
-                    // PHB 2 is enabled
-                    num_phbs = 2;
-                    phb_absolute_address_array[0] = PHB_1_PHB4_SCOM_HVIAR;
-                    phb_absolute_address_array[1] = PHB_2_PHB4_SCOM_HVIAR;
-                }
-                else
-                {
-                    // PHB2 is disabled
-                    num_phbs = 1;
-                    phb_absolute_address_array[0] = PHB_1_PHB4_SCOM_HVIAR;
-                }
-            }
-            else if (l_pci_id == 0xf)
-            {
-                //Need to make sure that tc_pci2_iovalid(2) is 0b1 to access PHB5
-                fapi2::buffer<uint64_t> l_perv_pci2_cplt_conf1_data(0);
-                fapi2::getScom(i_target, PEC_2_CPLT_CONF1, l_perv_pci2_cplt_conf1_data);
-
-                if (l_perv_pci2_cplt_conf1_data.getBit<PEC_CPLT_CONF1_IOVALID_6D>())
-                {
-                    num_phbs = 3;
-                    phb_absolute_address_array[2] = PHB_5_PHB4_SCOM_HVIAR;
-                }
-                else
-                {
-                    num_phbs = 2;
-                }
-
-                phb_absolute_address_array[0] = PHB_3_PHB4_SCOM_HVIAR;
-                phb_absolute_address_array[1] = PHB_4_PHB4_SCOM_HVIAR;
-            }
-
-            for (uint32_t i = 0; i < num_phbs; i++)
-            {
-                //Clear contents of PHB HV Indirect Address Register
-                l_data.flush<0>();
-                fapi2::putScom(i_target, phb_absolute_address_array[i], l_data);
-                //Setup the PHB HV registers for the write
-                l_data.insertFromRight<PHB_HV_IND_ADDR_START_BIT, PHB_HV_IND_ADDR_LEN>(0x888);
-                l_data.setBit<PHB_HV_IND_ADDR_VALID_BIT>();
-                fapi2::putScom(i_target, phb_absolute_address_array[i], l_data);
-                //Setup PHB HV Indirect for write access
-                l_data.flush<0>().insertFromRight<0, 63>(0x8000000000000000);
-                fapi2::putScom(i_target, (phb_absolute_address_array[i] + 1), l_data);
-                //Clear contents of PHB HV Indirect Address Register
-                l_data.flush<0>();
-                fapi2::putScom(i_target, phb_absolute_address_array[i], l_data);
-            }
+            //Clear contents of PHB HV Indirect Address Register
+            l_data.flush<0>();
+            fapi2::putScom(l_phb_chiplet , PHB_PHB4_SCOM_HVIAR, l_data);
+            //Setup the PHB HV registers for the write
+            l_data.insertFromRight<PHB_HV_IND_ADDR_START_BIT, PHB_HV_IND_ADDR_LEN>(0x888);
+            l_data.setBit<PHB_HV_IND_ADDR_VALID_BIT>();
+            fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIAR, l_data);
+            //Setup PHB HV Indirect for write access
+            l_data.flush<0>().insertFromRight<0, 63>(0x8000000000000000);
+            fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIDR, l_data);
+            //Clear contents of PHB HV Indirect Address Register
+            l_data.flush<0>();
+            fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIAR, l_data);
         }
 
         FAPI_TRY(p9_suspend_io(i_target, true), "ERROR suspending IO");
