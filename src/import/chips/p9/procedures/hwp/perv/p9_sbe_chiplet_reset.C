@@ -221,6 +221,10 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED) //Skip for cache contained.
     {
 #endif
+        uint8_t l_is_p9c;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY,
+                               i_target_chip,
+                               l_is_p9c));
 
         // NEST OBUS XBUS PCI MC - Functional
         for (auto& targ : l_perv_func_WO_Core_Cache)
@@ -478,6 +482,20 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             {
                 FAPI_DBG("assert SCAN_CLK_USE_EVEN=1 in OPCG_REG1 for cumulus chip Mc chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_assert_scan_clk(targ));
+            }
+        }
+
+        for (auto& targ : l_perv_func)
+        {
+            //MC
+            uint32_t l_chipletID = targ.getChipletNumber();
+
+            if (l_is_p9c && (l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID))
+            {
+                FAPI_DBG("Set TC_IOM_FASTX2_RATIO_DC");
+                FAPI_TRY(fapi2::putScom(targ,
+                                        PERV_CPLT_CONF1_OR,
+                                        p9SbeChipletReset::MC_CPLT_CONF1_FASTX2_RATIO_MASK));
             }
         }
 
