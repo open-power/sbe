@@ -273,80 +273,79 @@ extern "C" {
         FAPI_IMP("p9_npu_check_quiesce: Entering...");
         // mark HWP entry
 
-        const uint32_t c_fence_status_reg_size = 6;
+        const uint32_t l_numNTLs = 6;
 
         fapi2::buffer<uint64_t> l_data(0);
-        const uint32_t CQ_fence_status_regs[c_fence_status_reg_size] = {0x00090500, 0x000B0500, 0x00190500, 0x001B0500, 0x00290500, 0x002B0500};
-        const uint32_t c_config_size = 6;
+        const uint32_t CQ_fence_status_regs[l_numNTLs] = {0x00090500, 0x000B0500, 0x00190500, 0x001B0500, 0x00290500, 0x002B0500};
 #ifndef DD2
         const uint32_t c_GPU_Memory_BARs_size = 12;
         const uint32_t c_memory_bars_size = 36;
         const uint64_t l_GPU_Memory_BARs[c_GPU_Memory_BARs_size] = {PU_NPU0_SM0_GPU_BAR, PU_NPU0_SM1_GPU_BAR, PU_NPU0_SM2_GPU_BAR, PU_NPU0_SM3_GPU_BAR, PU_NPU1_SM0_GPU_BAR, PU_NPU1_SM1_GPU_BAR, PU_NPU1_SM2_GPU_BAR, PU_NPU1_SM3_GPU_BAR, PU_NPU2_SM0_GPU_BAR, PU_NPU2_SM1_GPU_BAR, PU_NPU2_SM2_GPU_BAR, PU_NPU2_SM3_GPU_BAR};
         const uint64_t l_memory_bars[c_memory_bars_size] = {PU_NPU0_SM0_NDT0_BAR, PU_NPU0_SM1_NDT0_BAR, PU_NPU0_SM2_NDT0_BAR, PU_NPU0_SM3_NDT0_BAR, PU_NPU1_SM0_NDT0_BAR, PU_NPU1_SM1_NDT0_BAR, PU_NPU1_SM2_NDT0_BAR, PU_NPU1_SM3_NDT0_BAR, PU_NPU2_SM0_NDT0_BAR, PU_NPU2_SM1_NDT0_BAR, PU_NPU2_SM2_NDT0_BAR, PU_NPU2_SM3_NDT0_BAR, PU_NPU0_SM0_NDT1_BAR, PU_NPU0_SM1_NDT1_BAR, PU_NPU0_SM2_NDT1_BAR, PU_NPU0_SM3_NDT1_BAR, PU_NPU1_SM0_NDT1_BAR, PU_NPU1_SM1_NDT1_BAR, PU_NPU1_SM2_NDT1_BAR, PU_NPU1_SM3_NDT1_BAR, PU_NPU2_SM0_NDT1_BAR, PU_NPU2_SM1_NDT1_BAR, PU_NPU2_SM2_NDT1_BAR, PU_NPU2_SM3_NDT1_BAR, PU_NPU0_SM0_PHY_BAR, PU_NPU0_SM1_PHY_BAR, PU_NPU0_SM2_PHY_BAR, PU_NPU0_SM3_PHY_BAR, PU_NPU1_SM0_PHY_BAR, PU_NPU1_SM1_PHY_BAR, PU_NPU1_SM2_PHY_BAR, PU_NPU1_SM3_PHY_BAR, PU_NPU2_SM0_PHY_BAR, PU_NPU2_SM1_PHY_BAR, PU_NPU2_SM2_PHY_BAR, PU_NPU2_SM3_PHY_BAR };
-        const uint64_t l_NTL_config_addrs[c_config_size] = {NV_0_CONFIG1, NV_1_CONFIG1, NV_2_CONFIG1, NV_3_CONFIG1, PU_NPU2_NTL0_CONFIG1, PU_NPU2_NTL1_CONFIG1};
+        const uint64_t l_NTL_config1_addrs[l_numNTLs] = {NV_0_CONFIG1, NV_1_CONFIG1, NV_2_CONFIG1, NV_3_CONFIG1, PU_NPU2_NTL0_CONFIG1, PU_NPU2_NTL1_CONFIG1};
+        const uint64_t l_NTL_config2_addrs[l_numNTLs] = {NV_0_CONFIG2, NV_1_CONFIG2, NV_2_CONFIG2, NV_3_CONFIG2, PU_NPU2_NTL0_CONFIG2, PU_NPU2_NTL1_CONFIG2};
 #else
-        const uint32_t c_GPU_Memory_BARs_DD2_size = 24;
-        const uint32_t c_memory_bars_size_dd2 = 48;
-        const uint32_t l_GPU_Memory_BARs_DD2[c_GPU_Memory_BARs_DD2_size] = {0x5011004, 0x5011034, 0x5011064, 0x5011094, 0x5011204, 0x5011234, 0x5011264, 0x5011294, 0x5011404, 0x5011434, 0x5011464, 0x5011494, 0x5011005, 0x5011035, 0x5011065, 0x5011095, 0x5011205, 0x5011235, 0x5011265, 0x5011295, 0x5011405, 0x5011435, 0x5011465, 0x5011495};
-        const uint32_t l_memory_bars_dd2[c_memory_bars_size_dd2] = {0x501100D, 0x501103D, 0x501106D, 0x501109D, 0x501100E, 0x501103E, 0x501106E, 0x501109E, 0x501120D, 0x501123D, 0x501126D, 0x501129D, 0x501120E, 0x501123E, 0x501126E, 0x501129E, 0x501140D, 0x501143D, 0x501146D, 0x501149D, 0x501140E, 0x501143E, 0x501146E, 0x501149E, 0x5011406, 0x5011436, 0x5011466, 0x5011496, 0x5011206, 0x5011236, 0x5011266, 0x5011296, 0x5011007, 0x5011037, 0x5011067, 0x5011097, 0x5011207, 0x5011237, 0x5011267, 0x5011297, 0x5011407, 0x5011437, 0x5011467, 0x5011497, 0x5011006, 0x5011036, 0x5011366, 0x5011396};
-        const uint32_t l_NTL_config_addrs_DD2[c_config_size] = {0x5011128, 0x5011148, 0x5011328, 0x5011348, 0x5011528, 0x5011548};
+        const uint32_t c_GPU_Memory_BARs_size = 24;
+        const uint32_t c_memory_bars_size = 48;
+        const uint32_t l_GPU_Memory_BARs[c_GPU_Memory_BARs_size] = {0x5011004, 0x5011034, 0x5011064, 0x5011094, 0x5011204, 0x5011234, 0x5011264, 0x5011294, 0x5011404, 0x5011434, 0x5011464, 0x5011494, 0x5011005, 0x5011035, 0x5011065, 0x5011095, 0x5011205, 0x5011235, 0x5011265, 0x5011295, 0x5011405, 0x5011435, 0x5011465, 0x5011495};
+        const uint32_t l_memory_bars[c_memory_bars_size] = {0x501100D, 0x501103D, 0x501106D, 0x501109D, 0x501100E, 0x501103E, 0x501106E, 0x501109E, 0x501120D, 0x501123D, 0x501126D, 0x501129D, 0x501120E, 0x501123E, 0x501126E, 0x501129E, 0x501140D, 0x501143D, 0x501146D, 0x501149D, 0x501140E, 0x501143E, 0x501146E, 0x501149E, 0x5011406, 0x5011436, 0x5011466, 0x5011496, 0x5011206, 0x5011236, 0x5011266, 0x5011296, 0x5011007, 0x5011037, 0x5011067, 0x5011097, 0x5011207, 0x5011237, 0x5011267, 0x5011297, 0x5011407, 0x5011437, 0x5011467, 0x5011497, 0x5011006, 0x5011036, 0x5011366, 0x5011396};
+        const uint32_t l_NTL_config1_addrs[l_numNTLs] = {0x5011128, 0x5011148, 0x5011328, 0x5011348, 0x5011528, 0x5011548};
+        const uint32_t l_NTL_config2_addrs[l_numNTLs] = {0x5011110, 0x5011130, 0x5011310, 0x5011330, 0x5011510, 0x5011530};
 #endif
-        uint32_t l_GPU_Memory_BARs_size_for_loop = 0;
-        uint32_t l_memory_bars_size_for_loop = 0;
 
-
-#ifndef DD2
-        l_GPU_Memory_BARs_size_for_loop = c_GPU_Memory_BARs_size;
-        l_memory_bars_size_for_loop = c_memory_bars_size;
-#else
-        l_GPU_Memory_BARs_size_for_loop = c_GPU_Memory_BARs_DD2_size;
-        l_memory_bars_size_for_loop = c_memory_bars_size_dd2;
-#endif
 
         // 1) Place all six of the NTLs into Reset State
         // Set bits 8:9 in the NTL Misc Config 1 registers to place NTLs in Reset state
-        for (uint32_t i = 0; i < c_config_size; i++)
+        for (uint32_t i = 0; i < l_numNTLs; i++)
         {
-#ifndef DD2
-            fapi2::getScom(i_target, l_NTL_config_addrs[i], l_data);
-#else
-            fapi2::getScom(i_target, l_NTL_config_addrs_DD2[i], l_data);
-#endif
-            l_data.insertFromRight<NV_CONFIG1_NTL_RESET, NV_CONFIG1_NTL_RESET_LEN>(0x3);
-#ifndef DD2
-            fapi2::putScom(i_target, l_NTL_config_addrs[i], l_data);
-#else
-            fapi2::putScom(i_target, l_NTL_config_addrs_DD2[i], l_data);
-#endif
+            //First check if the NTL was initialized before attempting to reset
+            fapi2::getScom(i_target, l_NTL_config2_addrs[i], l_data);
+
+            if(l_data.getBit<0>())
+            {
+                fapi2::getScom(i_target, l_NTL_config1_addrs[i], l_data);
+                l_data.insertFromRight<NV_CONFIG1_NTL_RESET, NV_CONFIG1_NTL_RESET_LEN>(0x3);
+                fapi2::putScom(i_target, l_NTL_config1_addrs[i], l_data);
+            }
         }
 
         //Poll the CQ Fence Status Registers util "Value" is detected to verify that NTLs are in Reset State
-        for (uint32_t i = 0; i < c_fence_status_reg_size; i++)
+        for (uint32_t i = 0; i < l_numNTLs; i++)
         {
-            for (uint32_t j = 0; j < CAPP_CAPP_ERR_STATUS_CONTROL_QUIESCE_DONE; j++)
+            //First check if NTL was initialized before polling for reset
+            fapi2::getScom(i_target, l_NTL_config2_addrs[i], l_data);
+
+            if(l_data.getBit<0>())
             {
-                l_data.flush<0>().insertFromRight<PU_NPU_CTL_DA_ADDR_MISC, PU_NPU_CTL_DA_ADDR_MISC_LEN>
-                (CQ_fence_status_regs[i]);
+                for (uint32_t j = 0; j < CAPP_CAPP_ERR_STATUS_CONTROL_QUIESCE_DONE; j++)
+                {
+                    //Set address of CQ fence status reg in the indirect address "sddr" reg
+                    //also set bits 24 and 25 to indicate in the request we want 8 bytes  back
+                    l_data.flush<0>().insertFromRight<PU_NPU_CTL_DA_ADDR_MISC, PU_NPU_CTL_DA_ADDR_MISC_LEN>
+                    (CQ_fence_status_regs[i]).setBit<24>().setBit<25>();
 
 #ifndef DD2
-                fapi2::putScom(i_target, PU_NPU_CTL_DA_ADDR, l_data);
-                fapi2::getScom(i_target, PU_NPU_CTL_DA_DATA, l_data);
+                    fapi2::putScom(i_target, PU_NPU_CTL_DA_ADDR, l_data);
+                    fapi2::getScom(i_target, PU_NPU_CTL_DA_DATA, l_data);
 #else
-                fapi2::putScom(i_target, 0x501168E, l_data);
-                fapi2::getScom(i_target, 0x501168F, l_data);
+                    fapi2::putScom(i_target, 0x501168E, l_data);
+                    fapi2::getScom(i_target, 0x501168F, l_data);
 #endif
 
-                if (l_data.getBit<0>() && l_data.getBit<1>())
-                {
-                    break;
+                    //If bit 0 and 1 are set on the CQ fence status that indicates the reset was
+                    //successful
+                    if (l_data.getBit<0>() && l_data.getBit<1>())
+                    {
+                        break;
+                    }
+
+                    fapi2::delay(C_NPU_DELAY_NS, C_NPU_DELAY_CYCLES);
                 }
 
-                fapi2::delay(C_NPU_DELAY_NS, C_NPU_DELAY_CYCLES);
+                FAPI_ASSERT((l_data.getBit<0>()
+                             && l_data.getBit<1>()), fapi2::P9_NTL_NOT_IN_RESET().set_TARGET(i_target).set_NTL_ADDR(
+                                CQ_fence_status_regs[i]).set_NTL_DATA(l_data), "One of the NTLS are not in the reset state");
             }
-
-            FAPI_ASSERT((l_data.getBit<0>()
-                         && l_data.getBit<1>()), fapi2::P9_NTL_NOT_IN_RESET().set_TARGET(i_target).set_NTL_ADDR(
-                            CQ_fence_status_regs[i]).set_NTL_DATA(l_data), "One of the NTLS are not in the reset state");
         }
 
         // 2) Place all NV-Link Bricks into Fence State
@@ -367,27 +366,20 @@ extern "C" {
         // 3) Disable all NPU BAR registers
         // Reset bits 0 and 32 in the GPU-Memory BARs to stop NPU from responding to accesses to GPU memory
 
-        for (uint32_t i = 0; i < l_GPU_Memory_BARs_size_for_loop; i++)
+        for (uint32_t i = 0; i < c_GPU_Memory_BARs_size; i++)
         {
             l_data.flush<0>().clearBit<PU_NPU0_SM0_GPU_BAR_CONFIG_GPU0_ENABLE>().clearBit<PU_NPU0_SM0_GPU_BAR_CONFIG_GPU1_ENABLE>();
-#ifndef DD2
             fapi2::putScom(i_target, l_GPU_Memory_BARs[i], l_data);
-#else
-            fapi2::putScom(i_target, l_GPU_Memory_BARs_DD2[i], l_data);
-#endif
         }
 
         // Reset bit 0 in the NTL0/NDL0 Memory BARs and NTL1/NDL1 Memory BARs to stop NPU from responding to accesses to NTL/NDL registers
         // Reset bit 0 in PHY0/PHY1/NPU MMIO BAR for stack 0 and stack 1 to stop NPU from responding to PHY register accesses
         // Reset bit 0 in PHY0/PHY1/NPU MMIO BARs in stack 2 to stop NPU from responding to NPU MMIO register accesses
-        for (uint32_t i = 0; i < l_memory_bars_size_for_loop; i++)
+        for (uint32_t i = 0; i < c_memory_bars_size; i++)
         {
             l_data.flush<0>().clearBit<PU_NPU0_SM0_NDT0_BAR_CONFIG_ENABLE>();
-#ifndef DD2
             fapi2::putScom(i_target, l_memory_bars[i], l_data);
-#else
-            fapi2::putScom(i_target, l_memory_bars_dd2[i], l_data);
-#endif
+
         }
 
     fapi_try_exit:
