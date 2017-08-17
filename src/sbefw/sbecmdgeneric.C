@@ -277,47 +277,6 @@ uint32_t sbeSetFFDCAddr(uint8_t *i_pArg)
 #undef SBE_FUNC
 }
 
-//----------------------------------------------------------------------------
-uint32_t sbePsuQuiesce( uint8_t *i_pArg )
-{
-    #define SBE_FUNC "sbePsuQuiesce"
-    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-
-    do
-    {
-        // Send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
-        // This util method will check internally on the mbox0 register if
-        // ACK is requested.
-        rc = sbeAcknowledgeHost();
-        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            SBE_ERROR(SBE_FUNC " Failed to Sent Ack to Host over "
-                "SBE_SBE2PSU_DOORBELL_SET_BIT1");
-            break;
-        }
-
-        // Set Quiesce State
-        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                          SBE_QUIESCE_EVENT);
-
-        rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
-                         (uint64_t*)(&SBE_GLOBAL->sbeSbe2PsuRespHdr),
-                         (sizeof(SBE_GLOBAL->sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
-                         true);
-        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            SBE_ERROR(SBE_FUNC" Failed to write SBE_HOST_PSU_MBOX_REG4");
-            // Not Breaking here since we can't revert back on the set state
-        }
-    }while(0);
-
-    if( rc )
-    {
-        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
-    }
-    return rc;
-    #undef SBE_FUNC
-}
 #endif //__SBEFW_SEEPROM__
 
 #ifndef __SBEFW_SEEPROM__
@@ -395,5 +354,46 @@ uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
     #undef SBE_FUNC
 }
 
+//----------------------------------------------------------------------------
+uint32_t sbePsuQuiesce( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbePsuQuiesce"
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    do
+    {
+        // Send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
+        // This util method will check internally on the mbox0 register if
+        // ACK is requested.
+        rc = sbeAcknowledgeHost();
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC " Failed to Sent Ack to Host over "
+                "SBE_SBE2PSU_DOORBELL_SET_BIT1");
+            break;
+        }
+
+        // Set Quiesce State
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                          SBE_QUIESCE_EVENT);
+
+        rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
+                         (uint64_t*)(&SBE_GLOBAL->sbeSbe2PsuRespHdr),
+                         (sizeof(SBE_GLOBAL->sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
+                         true);
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to write SBE_HOST_PSU_MBOX_REG4");
+            // Not Breaking here since we can't revert back on the set state
+        }
+    }while(0);
+
+    if( rc )
+    {
+        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
+    }
+    return rc;
+    #undef SBE_FUNC
+}
 #endif //not __SBEFW_SEEPROM__
 
