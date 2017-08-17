@@ -232,41 +232,6 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
     #undef SBE_FUNC
 }
 
-//----------------------------------------------------------------------------
-uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
-{
-    #define SBE_FUNC "sbeFifoQuiesce"
-    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    uint32_t len = 0;
-    sbeRespGenHdr_t respHdr;
-    respHdr.init();
-
-    do
-    {
-        // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-
-        // Set Quiesce State
-        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                          SBE_QUIESCE_EVENT);
-
-        rc = sbeDsSendRespHdr(respHdr);
-        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            SBE_ERROR(SBE_FUNC "sbeDsSendRespHdr failed");
-            // Not Breaking here since we can't revert back on the set state
-        }
-    }while(0);
-
-    if( rc )
-    {
-        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
-    }
-    return rc;
-    #undef SBE_FUNC
-}
-
 //---------------------------------------------------------------------------
 uint32_t sbeSetFFDCAddr(uint8_t *i_pArg)
 {
@@ -394,5 +359,41 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
     return l_rc;
     #undef SBE_FUNC
 }
+
+//----------------------------------------------------------------------------
+uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbeFifoQuiesce"
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t len = 0;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+
+    do
+    {
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        // Set Quiesce State
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                          SBE_QUIESCE_EVENT);
+
+        rc = sbeDsSendRespHdr(respHdr);
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC "sbeDsSendRespHdr failed");
+            // Not Breaking here since we can't revert back on the set state
+        }
+    }while(0);
+
+    if( rc )
+    {
+        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
+    }
+    return rc;
+    #undef SBE_FUNC
+}
+
 #endif //not __SBEFW_SEEPROM__
 
