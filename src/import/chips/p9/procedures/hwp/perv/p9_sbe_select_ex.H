@@ -46,6 +46,7 @@
 #include <p9_quad_scom_addresses.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9n2_perv_scom_addresses_fld.H>
+#include <p9_quad_scom_addresses_fld.H>
 
 namespace p9selectex
 {

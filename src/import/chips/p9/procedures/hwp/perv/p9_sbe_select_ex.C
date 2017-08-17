@@ -378,6 +378,13 @@ fapi2::ReturnCode p9_sbe_select_ex(
         FAPI_DBG("Scoreboard values for OCC: Core 0x%016llX  EX 0x%016llX",
                  l_core_config, l_quad_config);
 
+        // Prior to writing to PFET_DELAY register, ensure that the PPM write disable
+        // bit on the Core Power Management Mode Register is cleared
+        FAPI_DBG("Clearing WRITE_DISABLE bit in core %d", l_core_num);
+        l_data64.flush<0>().setBit<C_CPPM_CPMMR_PPM_WRITE_DISABLE>();
+
+        FAPI_TRY(fapi2::putScom(core, C_CPPM_CPMMR_CLEAR , l_data64));
+
         // Write the default PFET Controller Delay values for the Core
         // as it will be used for istep 4
         FAPI_DBG("Setting PFET Delays in core %d", l_core_num);
