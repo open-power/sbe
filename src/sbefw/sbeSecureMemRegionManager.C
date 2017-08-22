@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -24,6 +25,7 @@
 #include "sbeSecureMemRegionManager.H"
 #include "sbetrace.H"
 #include "sbeutil.H"
+#include "sbeglobals.H"
 
 #ifndef __SBEFW_SEEPROM__
 
@@ -154,30 +156,33 @@ sbeSecondaryResponse SBESecureMemRegionManager::isAccessAllowed(
 {
     #define SBE_FUNC "SBESecureMemRegionManager::isAccessAllowed"
     sbeSecondaryResponse rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    while(i_region.size > 0)
+    if(SBE_GLOBAL->sbeFWSecurityEnabled)
     {
-        secureMemRegion_t foundregion = getPartialRegionSize(i_region);
-        // Check if the found region has allowable access level
-        // and that the region overlap is from the beginning itself
-        if((i_region.mode & foundregion.mode) &&
-                (i_region.startAddress == foundregion.startAddress))
+        while(i_region.size > 0)
         {
-            SBE_INFO(SBE_FUNC" foundRegion Mem[0x%08X%08X], size[0x%08X]",
-                    SBE::higher32BWord(foundregion.startAddress),
-                    SBE::lower32BWord(foundregion.startAddress),
-                    foundregion.size);
-            i_region.size -= foundregion.size;
-            i_region.startAddress += foundregion.size;
-        }
-        else
-        {
-            SBE_ERROR(SBE_FUNC" Non secure access to memory blocked "
-                      "Addr[0x%08X%08X] Size[0x%08X]",
-                      SBE::higher32BWord(i_region.startAddress),
-                      SBE::lower32BWord(i_region.startAddress),
-                      i_region.size);
-            rc = SBE_SEC_BLACKLISTED_MEM_ACCESS;
-            break;
+            secureMemRegion_t foundregion = getPartialRegionSize(i_region);
+            // Check if the found region has allowable access level
+            // and that the region overlap is from the beginning itself
+            if((i_region.mode & foundregion.mode) &&
+                    (i_region.startAddress == foundregion.startAddress))
+            {
+                SBE_INFO(SBE_FUNC" foundRegion Mem[0x%08X%08X], size[0x%08X]",
+                        SBE::higher32BWord(foundregion.startAddress),
+                        SBE::lower32BWord(foundregion.startAddress),
+                        foundregion.size);
+                i_region.size -= foundregion.size;
+                i_region.startAddress += foundregion.size;
+            }
+            else
+            {
+                SBE_ERROR(SBE_FUNC" Non secure access to memory blocked "
+                          "Addr[0x%08X%08X] Size[0x%08X]",
+                          SBE::higher32BWord(i_region.startAddress),
+                          SBE::lower32BWord(i_region.startAddress),
+                          i_region.size);
+                rc = SBE_SEC_BLACKLISTED_MEM_ACCESS;
+                break;
+            }
         }
     }
     return rc;

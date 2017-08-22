@@ -82,6 +82,8 @@ class SBEGlobalsSingleton
         sbeHostAddr_t hostFFDCAddr;
         // Key Addr Pair
         sbeStashMemoryPair_t sbeKeyAddrPair;
+        // SBE FW security enabled; 0 - disabled; 1 - enabled
+        uint8_t sbeFWSecurityEnabled;
 
         ////////////////////////////////////////////////////////////////
         //// @brief PkThread structure for SBE Command Receiver thread
@@ -109,7 +111,8 @@ class SBEGlobalsSingleton
             sbeSemCmdRecv(),
             sbeSemCmdProcess(),
             SBERole(SBE_ROLE_MASTER),
-            sbefreq(( 133 * 1000 * 1000)/SBE::SBE_TO_NEST_FREQ_FACTOR)
+            sbefreq(( 133 * 1000 * 1000)/SBE::SBE_TO_NEST_FREQ_FACTOR),
+            sbeFWSecurityEnabled(1)
         {
         }
 };

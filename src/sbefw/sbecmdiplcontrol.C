@@ -39,7 +39,6 @@
 #include "sbestates.H"
 #include "sbecmdcntrldmt.H"
 #include "sbeglobals.H"
-
 // TODO Workaround
 #include "plat_target_parms.H"
 
@@ -644,6 +643,11 @@ ReturnCode performAttrSetup( )
         }
         // Apply the gard records
         rc = plat_ApplyGards();
+
+        // Fetch FW security status
+        FAPI_ATTR_GET(fapi2::ATTR_SECURITY_ENABLE,
+                      fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                      SBE_GLOBAL->sbeFWSecurityEnabled);
      }while(0);
     SBE_EXIT(SBE_FUNC);
     return rc;
