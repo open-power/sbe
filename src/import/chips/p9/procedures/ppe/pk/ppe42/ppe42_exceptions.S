@@ -61,6 +61,20 @@ __machine_check:
         PPE42_MACHINE_CHECK_HANDLER
 
         ############################################################
+        # 0x0020 : set MSR function
+        ############################################################
+
+        # If the MSR_WE bit is set, the PPE engine enters WAIT mode (idle)
+        # and this function provides a known address for the idle state.
+
+        ############################################################
+        .global __set_msr
+        .org __vectors + 0x0028
+__set_msr:
+        mtmsr   %r3
+        blr
+
+        ############################################################
         # 0x0040 : System Reset
         ############################################################
         .global __system_reset
@@ -185,7 +199,10 @@ __pk_idle_thread_from_bootloader:
 
         _lwzsd  %r3, __pk_thread_machine_context_default
         _oriwa  %r3, %r3, MSR_WE
-        mtmsr   %r3
+        bl     __set_msr
+
+        # The following jump-to-self is for SIMICS, which does not
+        # support or detect MSR_WE
         b       .
 
         ## pk_halt() is implemented on the ppe42 by writing a value of 0x3 to

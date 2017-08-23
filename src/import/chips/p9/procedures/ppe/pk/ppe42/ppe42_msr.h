@@ -112,6 +112,10 @@
 #define wrtee(other_msr) \
     asm volatile ("wrtee %0" : : "r" (other_msr) : "memory")
 
+extern void __set_msr(unsigned int i_msr_value);
+
+#define ppe_idle() __set_msr(mfmsr() | MSR_WE | MSR_EE);
+
 #endif /* __ASSEMBLER__ */
 
 #endif /* __PPE42_MSR_H__ */
