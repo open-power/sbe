@@ -268,12 +268,12 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
     {
 
         FAPI_DBG(" Reset PCB error reg");
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ERROR_REG, l_read_reg));
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_ERROR_REG, l_read_reg));
 
         FAPI_DBG(" Unmasking pll unlock error in   Pcb slave config reg");
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SLAVE_CONFIG_REG, l_read_reg));
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_SLAVE_CONFIG_REG, l_read_reg));
         l_read_reg.clearBit<12>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SLAVE_CONFIG_REG, l_read_reg));
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_SLAVE_CONFIG_REG, l_read_reg));
     }
 
 
