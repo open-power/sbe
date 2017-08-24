@@ -46,12 +46,29 @@
 
 using namespace fapi2;
 
+// Defines for stop clock
+#define SBE_IS_EX0(chipletId) \
+    (!(((chipletId - CORE_CHIPLET_OFFSET) & 0x0002) >> 1))
+
+/* @brief Bitmapped enumeration to identify the stop clock HWP call
+ */
+enum stopClockHWPType
+{
+    SC_NONE     = 0x00,
+    SC_PROC     = 0x01, // Call p9_stopclocks
+    SC_CACHE    = 0x02, // Call p9_hcd_cache_stopclocks
+    SC_CORE     = 0x04, // Call p9_hcd_core_stopclocks
+};
+
+#ifdef __SBEFW_SEEPROM__
+
 #ifdef SEEPROM_IMAGE
     // Using function pointer to force long call.
 p9_hcd_cache_stopclocks_FP_t p9_hcd_cache_stopclocks_hwp = &p9_hcd_cache_stopclocks;
 p9_hcd_core_stopclocks_FP_t p9_hcd_core_stopclocks_hwp = &p9_hcd_core_stopclocks;
 p9_stopclocks_FP_t p9_stopclocks_hwp = &p9_stopclocks;
 #endif
+
 
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeEnterMpipl Sbe enter MPIPL function
@@ -182,21 +199,6 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
 }
 
 ///////////////////////////////////////////////////////////////////////
-// @brief sbeStopClocks Sbe Stop Clocks function
-//
-// @return  RC from the underlying FIFO utility
-///////////////////////////////////////////////////////////////////////
-#define SBE_IS_EX0(chipletId) \
-    (!(((chipletId - CORE_CHIPLET_OFFSET) & 0x0002) >> 1))
-/* @brief Bitmapped enumeration to identify the stop clock HWP call
- */
-enum stopClockHWPType
-{
-    SC_NONE     = 0x00,
-    SC_PROC     = 0x01, // Call p9_stopclocks
-    SC_CACHE    = 0x02, // Call p9_hcd_cache_stopclocks
-    SC_CORE     = 0x04, // Call p9_hcd_core_stopclocks
-};
 /* @brief Deduce the type of stop clock procedure to call based on
  *        target and chiplet id combination
  *
@@ -204,9 +206,10 @@ enum stopClockHWPType
  * @param[in] i_chipletId   Chiplet id
  *
  * @return Bitmapped stopClockHWPType enum values
- * */
+ */
+///////////////////////////////////////////////////////////////////////
 static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
-                                  uint32_t i_chipletId)
+                                           uint32_t i_chipletId)
 {
     uint32_t l_rc = SC_NONE;
     TargetType l_fapiTarget = sbeGetFapiTargetType(
@@ -232,14 +235,16 @@ static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
     }
     return l_rc;
 }
+
+///////////////////////////////////////////////////////////////////////
 /* @brief Prepare Stop clock flags base on Target Type
  *
  * @param[in] i_targetType  SBE chip-op target Type
  *
  * @return p9_stopclocks_flags
  */
-static inline p9_stopclocks_flags getStopClocksFlags(
-                                     uint32_t i_targetType)
+///////////////////////////////////////////////////////////////////////
+static inline p9_stopclocks_flags getStopClocksFlags(uint32_t i_targetType)
 {
     p9_stopclocks_flags l_flags;
 
@@ -273,6 +278,12 @@ static inline p9_stopclocks_flags getStopClocksFlags(
 
     return l_flags;
 }
+
+///////////////////////////////////////////////////////////////////////
+// @brief sbeStopClocks Sbe Stop Clocks function
+//
+// @return  RC from the underlying FIFO utility
+///////////////////////////////////////////////////////////////////////
 uint32_t sbeStopClocks(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeStopClocks"
@@ -408,4 +419,4 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
     #undef SBE_FUNC
 }
 
-
+#endif //__SBEFW_SEEPROM__

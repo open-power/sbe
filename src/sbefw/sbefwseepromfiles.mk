@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2017
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +23,7 @@
 #
 # IBM_PROLOG_END_TAG
 SBEFWSEEPROM-CPP-SOURCES = sbecmdgeneric.C
+SBEFWSEEPROM-CPP-SOURCES += sbecmdmpipl.C
 
 SBEFWSEEPROM-C-SOURCES =
 SBEFWSEEPROM-S-SOURCES =
