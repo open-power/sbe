@@ -251,7 +251,7 @@ def collectAttr( target, node, proc, ddsuffix, file_path ):
        print "ERROR running %s: %d " % ( cmd3, rc )
        return 1
 
-def collectStackUsage (node, proc ):
+def collectStackUsage (target, node, proc, file_path ):
     threads = ('sbeSyncCommandProcessor_stack',
                'sbeCommandReceiver_stack',
                'sbe_Kernel_NCInt_stack',
@@ -259,15 +259,18 @@ def collectStackUsage (node, proc ):
     for thread in threads:
         offset = getOffset( thread );
         length = "0x" + syms[thread][1];
-        cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
+        if(target == 'FILE'):
+            createPibmemDumpFile(file_path, offset, length)
+        else:
+            cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
                 str(offset) +\
                 " -num_of_byte " + length + " "
                 " -n" + str(node) + " -p" + str(proc))
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
+            print "cmd1:", cmd1
+            rc = os.system( cmd1 )
+            if ( rc ):
+                print "ERROR running %s: %d " % ( cmd1, rc )
+                return 1
 
         # Dump stack memory to binary file
         cmd2 = "cat DumpPIBMEM >>"+thread
@@ -622,7 +625,7 @@ def main( argv ):
         sbeLocalRegister( target, node, proc, file_path )
     elif ( level == 'stack' ):
         fillSymTable(target, ddsuffix)
-        collectStackUsage( node, proc )
+        collectStackUsage( target, node, proc, file_path )
     elif ( level == 'sym' ):
         fillSymTable(target, ddsuffix)
         getSymbolVal(target, node, proc, symbol, file_path)
