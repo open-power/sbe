@@ -165,7 +165,7 @@ print ECHFILE "    operator ReturnCode (){return value;}\n";
 print ECHFILE "    private:\n";
 print ECHFILE "    uint32_t value;\n";
 print ECHFILE "};\n";
-print ECHFILE "void queryChipEcAndName(\n";
+print ECHFILE "ReturnCode queryChipEcAndName(\n";
 print ECHFILE "                    const Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,\n";
 print ECHFILE "                    fapi2::ATTR_NAME_Type& , fapi2::ATTR_EC_Type & );\n\n";
 print ECHFILE "template<int T>\n";
