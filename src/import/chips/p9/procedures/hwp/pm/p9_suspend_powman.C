@@ -75,15 +75,18 @@ extern "C" {
         fapi2::buffer<uint64_t> l_occflg_data(0);
         fapi2::buffer<uint64_t> l_occs2_data(0);
         fapi2::buffer<uint64_t> l_ocr_reg_data(0);
-        fapi2::buffer<uint64_t> l_pgpe_xsr(0);
+        fapi2::buffer<uint64_t> l_xsr(0);
+        fapi2::buffer<uint64_t> l_data64 = 0;
+        auto l_core_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>();
+        static const uint64_t  PPE_XIXCR_XCR_HALT      = 0x1000000000000000;
 
         bool l_pgpe_in_safe_mode = false;
         bool l_pgpe_suspended = false;
 
-        FAPI_TRY(fapi2::getScom(i_target, PU_GPE2_GPEXIXSR_SCOM, l_pgpe_xsr),
+        FAPI_TRY(fapi2::getScom(i_target, PU_GPE2_GPEXIXSR_SCOM, l_xsr),
                  "Error checking PGPE XSR");
 
-        if(!(l_pgpe_xsr >> 63))
+        if(!(l_xsr >> 63))
         {
 
             // SBE waits for PGPE to set OCC Scratch2[PGPE_SAFE_MODE_ACTIVE]
@@ -162,7 +165,28 @@ extern "C" {
         }
         else
         {
-            FAPI_INF("WARNING! PGPE Already Halted, skipping procedure");
+            FAPI_TRY(fapi2::getScom(i_target, PU_GPE3_GPEXIXSR_SCOM, l_xsr),
+                     "Error reading SGPE XSR");
+
+            //Make sure that the SGPE is not halted before requesting halt
+            if(!(l_xsr >> 63))
+            {
+                FAPI_INF("WARNING! PGPE Already Halted, halting SGPE via XIXSR");
+                FAPI_TRY(fapi2::putScom(i_target, PU_GPE3_GPEXIXCR_SCOM, PPE_XIXCR_XCR_HALT));
+            }
+            else
+            {
+                FAPI_INF("WARNING! SGPE and PGPE Already Halted, skipping procedure");
+            }
+        }
+
+        // Ensure that the PPM write disable bit on the Core Power Management Mode Register
+        // is cleared for all cores
+        for (auto& core : l_core_vector)
+        {
+            FAPI_INF("Clearing WRITE_DISABLE bit in core %d", core.getChipletNumber());
+            l_data64.flush<0>().setBit<C_CPPM_CPMMR_PPM_WRITE_DISABLE>();
+            FAPI_TRY(fapi2::putScom(core, C_CPPM_CPMMR_CLEAR , l_data64));
         }
 
     fapi_try_exit:
