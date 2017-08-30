@@ -184,15 +184,6 @@ fapi2::ReturnCode p9_sbe_select_ex(
     auto l_eq_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_EQ>
                                   (fapi2::TARGET_STATE_FUNCTIONAL );
 
-    // Prior to writing to PM registers, ensure that the PPM write disable
-    // bit on the Core Power Management Mode Register is cleared for all cores
-    for (auto& core : l_core_functional_vector)
-    {
-        FAPI_DBG("Clearing WRITE_DISABLE bit in core %d", core.getChipletNumber());
-        l_data64.flush<0>().setBit<C_CPPM_CPMMR_PPM_WRITE_DISABLE>();
-        FAPI_TRY(fapi2::putScom(core, C_CPPM_CPMMR_CLEAR , l_data64));
-    }
-
     // Read the "FORCE_ALL" attribute
     fapi2::ATTR_SYS_FORCE_ALL_CORES_Type l_attr_force_all;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES,
