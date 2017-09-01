@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -58,7 +58,7 @@ class Multicast
 
         ///
         /// @brief Create a Multicast value with a target value
-        /// @param[in] Value the value (i.e., specific element this
+        /// @param[in] value the value (i.e., specific element this
         /// target represents, or pointer)
         /// @note Platforms can will update the handle value with
         /// information on the multicast type and group
