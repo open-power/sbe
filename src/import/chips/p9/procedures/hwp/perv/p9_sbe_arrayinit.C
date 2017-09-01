@@ -134,7 +134,7 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
         {
             l_data64.flush<1>();
             l_data64.clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
-            FAPI_DBG("Dropping chiplet fence for MC chiplet in Cumulus");
+            FAPI_DBG("Dropping chiplet fence for MC chiplet in Cumulus and on further chips");
             FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
         }
 
@@ -146,7 +146,7 @@ static fapi2::ReturnCode p9_sbe_arrayinit_scan0_and_arrayinit_module_function(
         {
             l_data64.flush<0>();
             l_data64.setBit<PERV_1_NET_CTRL0_FENCE_EN>();
-            FAPI_DBG("Raising back chiplet fence for MC chiplet in Cummulus chip");
+            FAPI_DBG("Raising back chiplet fence for MC chiplet in Cummulus and on further chips");
             FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WOR, l_data64));
         }
 
