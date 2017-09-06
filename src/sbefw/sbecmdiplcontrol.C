@@ -211,16 +211,23 @@ ReturnCode updatePhbFunctionalState( void );
 
 //Utility function to clear crest error latch
 ReturnCode resetCrespErrLatch( void );
-//Utility function to mask special attention
-inline ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target );
 
 #ifdef SEEPROM_IMAGE
+
+//Utility function to mask special attention
+inline ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target );
 // Using function pointer to force long call.
-p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
 extern p9_stopclocks_FP_t p9_stopclocks_hwp;
-//p9_thread_control_FP_t threadCntlhwp = &p9_thread_control;
 extern p9_thread_control_FP_t threadCntlhwp;
+#ifndef __SBEFW_SEEPROM__
 p9_suspend_io_FP_t p9_suspend_io_hwp = &p9_suspend_io;
+p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
+#endif
+#ifdef __SBEFW_SEEPROM__
+extern p9_suspend_io_FP_t p9_suspend_io_hwp;
+extern p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp;
+#endif
+
 #endif
 
 //structure for mapping SBE wrapper and HWP functions
@@ -245,15 +252,25 @@ static const uint64_t PEC_PHB_IOVALID_BIT_MASK = 0x1ULL;
 // will have to use bit (63-33) = 30th bit
 static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 30; // 63-33 = 30
 
+#ifndef __SBEFW_SEEPROM__
+sbeRole g_sbeRole = SBE_ROLE_MASTER;
+
+uint64_t G_ring_save[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
 // Globals
 // TODO: via RTC 123602 This global needs to move to a class that will store the
 // SBE FFDC.
 fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
+#endif
 
-uint64_t G_ring_save[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+#ifdef __SBEFW_SEEPROM__
+extern sbeRole g_sbeRole;
+extern uint64_t G_ring_save[8];
+extern fapi2::ReturnCode g_iplFailRc;
+#endif
 
-sbeRole g_sbeRole = SBE_ROLE_MASTER;
 
+#ifndef __SBEFW_SEEPROM__
 static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
         {
 #ifdef SEEPROM_IMAGE
@@ -406,8 +423,11 @@ static istepMap_t g_istep5PtrTbl[ ISTEP5_MAX_SUBSTEPS ]
              { &istepStartInstruction,  { .coreHwp = &p9_sbe_instruct_start }},
 #endif
          };
+#endif //#ifndef __SBEFW_SEEPROM__
+
 
 // Functions
+#ifndef __SBEFW_SEEPROM__
 //----------------------------------------------------------------------------
 uint32_t sbeHandleIstep (uint8_t *i_pArg)
 {
@@ -1015,8 +1035,10 @@ void sbeDoContinuousIpl()
     SBE_EXIT(SBE_FUNC);
     #undef SBE_FUNC
 }
+#endif // #ifndef __SBEFW_SEEPROM__
 
 // MPIPL Specific
+#ifdef __SBEFW_SEEPROM__
 //----------------------------------------------------------------------------
 ReturnCode istepWithCoreSetBlock( sbeIstepHwp_t i_hwp)
 {
@@ -1397,6 +1419,65 @@ ReturnCode istepMpiplSetFunctionalState( sbeIstepHwp_t i_hwp )
 }
 
 //----------------------------------------------------------------------------
+ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp )
+{
+    #define SBE_FUNC "istepStopClockMpipl"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
+    p9_stopclocks_flags l_flags; // Default Flag Values
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+    p9hcd::P9_HCD_CLK_CTRL_CONSTANTS l_clk_regions =
+                p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
+    p9hcd::P9_HCD_EX_CTRL_CONSTANTS l_ex_select = p9hcd::BOTH_EX;
+
+    l_flags.clearAll();
+    l_flags.stop_core_clks = true;
+    l_flags.stop_cache_clks = true;
+
+    SBE_EXEC_HWP(l_fapiRc,
+                 p9_stopclocks_hwp,
+                 l_procTgt,
+                 l_flags,
+                 l_clk_regions,
+                 l_ex_select);
+
+    SBE_EXIT(SBE_FUNC);
+    return l_fapiRc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+inline ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target )
+{
+#define SBE_FUNC "maskSpecialAttn "
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        uint64_t maskData = 0;
+        const  uint64_t ecMask = 0xffc0000000000000;
+        rc = getscom_abs_wrap (&i_target, P9N2_EX_SPA_MASK, &maskData );
+        if( rc )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to read P9N2_EX_SPA_MASK");
+            break;
+        }
+        maskData = maskData | ecMask;
+        rc = putscom_abs_wrap (&i_target, P9N2_EX_SPA_MASK, maskData );
+        if( rc )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to write P9N2_EX_SPA_MASK");
+            break;
+        }
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+#undef SBE_FUNC
+}
+#endif //#ifdef __SBEFW_SEEPROM__
+
+#ifndef __SBEFW_SEEPROM__
+//----------------------------------------------------------------------------
 ReturnCode performTpmReset()
 {
     #define SBE_FUNC "performTpmReset "
@@ -1451,34 +1532,6 @@ ReturnCode istepLpcInit( sbeIstepHwp_t i_hwp)
         SBE_EXEC_HWP(rc, i_hwp.procHwp,proc);
     }
     return rc;
-}
-
-//----------------------------------------------------------------------------
-ReturnCode istepStopClockMpipl( sbeIstepHwp_t i_hwp )
-{
-    #define SBE_FUNC "istepStopClockMpipl"
-    SBE_ENTER(SBE_FUNC);
-    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
-    p9_stopclocks_flags l_flags; // Default Flag Values
-    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
-    p9hcd::P9_HCD_CLK_CTRL_CONSTANTS l_clk_regions =
-                p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
-    p9hcd::P9_HCD_EX_CTRL_CONSTANTS l_ex_select = p9hcd::BOTH_EX;
-
-    l_flags.clearAll();
-    l_flags.stop_core_clks = true;
-    l_flags.stop_cache_clks = true;
-
-    SBE_EXEC_HWP(l_fapiRc,
-                 p9_stopclocks_hwp,
-                 l_procTgt,
-                 l_flags,
-                 l_clk_regions,
-                 l_ex_select);
-
-    SBE_EXIT(SBE_FUNC);
-    return l_fapiRc;
-    #undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------
@@ -1574,34 +1627,6 @@ ReturnCode resetCrespErrLatch( void )
 #undef SBE_FUNC
 }
 
-//----------------------------------------------------------------------------
-inline ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target )
-{
-#define SBE_FUNC "maskSpecialAttn "
-    SBE_ENTER(SBE_FUNC);
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-    do
-    {
-        uint64_t maskData = 0;
-        const  uint64_t ecMask = 0xffc0000000000000;
-        rc = getscom_abs_wrap (&i_target, P9N2_EX_SPA_MASK, &maskData );
-        if( rc )
-        {
-            SBE_ERROR(SBE_FUNC" Failed to read P9N2_EX_SPA_MASK");
-            break;
-        }
-        maskData = maskData | ecMask;
-        rc = putscom_abs_wrap (&i_target, P9N2_EX_SPA_MASK, maskData );
-        if( rc )
-        {
-            SBE_ERROR(SBE_FUNC" Failed to write P9N2_EX_SPA_MASK");
-            break;
-        }
-    }while(0);
-    SBE_EXIT(SBE_FUNC);
-    return rc;
-#undef SBE_FUNC
-}
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeHandleSuspendIO Sbe suspend IO function
 //
@@ -1660,4 +1685,5 @@ uint32_t sbeHandleSuspendIO(uint8_t *i_pArg)
     return rc;
     #undef SBE_FUNC
 }
+#endif //#ifndef __SBEFW_SEEPROM__
 
