@@ -261,10 +261,6 @@ extern "C"
     fapi2::ReturnCode p9_pba_coherent_utils_check_args(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address);
-/// @brief this checks the PBA/OCB status registers - this is for use at the end of each write/read or at the end of each stream
-/// @return FAPI_RC_SUCCESS if the status check is a success
-    fapi2::ReturnCode p9_pba_coherent_status_check(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
 /// @brief this does any cleanup for the PBA after all reads/writes have been done
 /// @param[in] i_target => P9 chip target
@@ -300,7 +296,7 @@ extern "C"
 ///@brief calls all of the error checking procedures (ocb_status, check_pba_fir, and status_check)
 ///@param[in] i_target => P9 chip target
 ///@return FAPI_RC_SUCCESS if no errors are detected on the PBA
-    fapi2::ReturnCode p9_pba_coherent_check_status_for_err_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
+    fapi2::ReturnCode p9_pba_coherent_check_status(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
             i_target);
 
 ///@brief appends input data to the fapi2 return code if we got an error back
