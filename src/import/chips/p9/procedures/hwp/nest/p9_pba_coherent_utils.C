@@ -399,65 +399,6 @@ extern "C"
         return fapi2::current_err;
     }
 
-    fapi2::ReturnCode p9_pba_coherent_status_check(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
-    {
-        FAPI_DBG("Start");
-
-        fapi2::buffer<uint64_t> rd_buf2_valid;
-        fapi2::buffer<uint64_t> rd_buf3_valid;
-        fapi2::buffer<uint64_t> wr_buf0_valid;
-        fapi2::buffer<uint64_t> wr_buf1_valid;
-        fapi2::buffer<uint64_t> reset_buf;
-
-        //Check the 2 PBA Read Buffer Valid Status (2 and 3 since we set Buffer pair "B")by reading the read buffer status (bits 33:39) and making sure it's 1
-        FAPI_TRY(fapi2::getScom(i_target, PU_PBARBUFVAL2, rd_buf2_valid),
-                 "Error reading from the PBA Read Buffer Valid 2 Status Register");
-        FAPI_TRY(fapi2::getScom(i_target, PU_PBARBUFVAL3, rd_buf3_valid),
-                 "Error reading from the PBA Read Buffer Valid 3 Status Register");
-
-        //Check the 2 PBA Write Buffer Valid Status by reading the write buffer status (bits 35:39) and making sure it's 1
-        FAPI_TRY(fapi2::getScom(i_target, PU_PBAWBUFVAL0, wr_buf0_valid),
-                 "Error reading from the PBA Write Buffer Valid 0 Status Register");
-        FAPI_TRY(fapi2::getScom(i_target, PU_PBAWBUFVAL1, wr_buf1_valid),
-                 "Error reading from the PBA Write Buffer Valid 1 Status Register");
-
-        //Check the PBA Slave Reset Register for if things are still in progress
-        FAPI_TRY(fapi2::getScom(i_target, PU_PBASLVRST_SCOM, reset_buf),
-                 "Error reading from the PBA Slave Reset Register");
-
-        //If there are any errors in the Status registers that we got above, collect all of the data and send an error
-        //Make sure that the read buffers are empty, valid, or validwfp
-        //Make sure the write buffers are empty
-        //check if there is a PBA slave rest in progress and if the PBA Slave Control is busy for PBASLVCTL3
-        FAPI_ASSERT(((rd_buf2_valid & PBA_RD_BUF_CRESPERR) != PBA_RD_BUF_CRESPERR) &&
-                    ((rd_buf3_valid & PBA_RD_BUF_CRESPERR) != PBA_RD_BUF_CRESPERR) &&
-                    ((wr_buf0_valid & PBA_WR_BUF_CRESPERR) != PBA_RD_BUF_CRESPERR) &&
-                    ((wr_buf1_valid & PBA_WR_BUF_CRESPERR) != PBA_RD_BUF_CRESPERR),
-                    fapi2::P9_PBA_STATUS_ERR_ADDR_ERR().set_TARGET(i_target).set_RDBUF2(
-                        rd_buf2_valid).set_RDBUF3(rd_buf3_valid).set_WRBUF0(
-                        wr_buf0_valid).set_WRBUF1(wr_buf1_valid).set_SLVRSTDATA(reset_buf),
-                    "Combined response address error in PBA Read Buffer, or PBA Write Buffer Registers");
-
-        FAPI_ASSERT((((((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
-                       || ((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALID)
-                       || ((rd_buf2_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALIDWFP)) )
-                     && (((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_EMPTY)
-                         || ((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALID)
-                         || ((rd_buf3_valid & PBA_RD_BUF_VALID_MASK) == PBA_RD_BUF_VALIDWFP)  )
-                     && ((wr_buf0_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
-                     && ((wr_buf1_valid & PBA_WR_BUF_VALID_MASK) == PBA_WR_BUF_EMPTY)
-                     && ((reset_buf & PBA_SLVRST_BUSY_IN_PROG_MASK) == 0)),
-                    fapi2::P9_PBA_STATUS_ERR_NO_ADDR_ERR().set_TARGET(i_target).set_RDBUF2(
-                        rd_buf2_valid).set_RDBUF3(rd_buf3_valid).set_WRBUF0(
-                        wr_buf0_valid).set_WRBUF1(wr_buf1_valid).set_SLVRSTDATA(reset_buf),
-                    "Unexpected state in PBA Reset, PBA Read Buffer, or PBA Write Buffer Registers");
-
-    fapi_try_exit:
-        FAPI_DBG("End");
-        return fapi2::current_err;
-    }
-
     fapi2::ReturnCode p9_pba_coherent_check_ocb_status(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
         fapi2::ReturnCode rc;
@@ -541,10 +482,9 @@ extern "C"
 
     }
 
-    fapi2::ReturnCode p9_pba_coherent_check_status_for_err_handling(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
+    fapi2::ReturnCode p9_pba_coherent_check_status(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
             i_target)
     {
-        FAPI_TRY(p9_pba_coherent_status_check(i_target), "Error from p9_pba_coherent_status_check");
         FAPI_TRY(p9_pba_coherent_check_pba_fir(i_target), "Error from p9_pba_coherent_check_pba_fir");
         FAPI_TRY(p9_pba_coherent_check_ocb_status(i_target), "Error from p9_pba_coherent_check_ocb_status");
 
@@ -572,8 +512,6 @@ extern "C"
 
         if ((o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_INVALID_ARGS)
             || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_RESET_ERR)
-            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR_ADDR_ERR)
-            || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR_NO_ADDR_ERR)
             || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_FBC_NOT_INITIALIZED_ERR)
             || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH)
             || (o_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_ADDR_ERR)
@@ -684,7 +622,7 @@ extern "C"
 
         // PIB is unlocked, analyze state of FIRs/state machines to see if the SCOM
         // failure was a result of a read failure on the fabric launched by PBA
-        l_return_rc = p9_pba_coherent_check_status_for_err_handling(i_target);
+        l_return_rc = p9_pba_coherent_check_status(i_target);
 
         if (l_return_rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -692,16 +630,14 @@ extern "C"
             // a functional failure in PBA that could result in the SCOM failure as a side-effect
             if ((l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_ADDR_ERR) ||
                 (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_PBA_FIR_ERR_NO_ADDR_ERR) ||
-                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH) ||
-                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR_ADDR_ERR) ||
-                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_STATUS_ERR_NO_ADDR_ERR))
+                (l_return_rc == (fapi2::ReturnCode) fapi2::RC_P9_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH))
             {
-                FAPI_ERR("Error from p9_pba_coherent_check_status_for_err_handling, returning PBA rc");
+                FAPI_ERR("Error from p9_pba_coherent_check_status, returning PBA rc");
             }
             // none of these match, return the original return code as it was the first error
             else
             {
-                FAPI_ERR("Error from p9_pba_coherent_check_status_for_err_handling, returning original SCOM fail rc");
+                FAPI_ERR("Error from p9_pba_coherent_check_status, returning original SCOM fail rc");
                 l_return_rc = i_rc;
             }
 

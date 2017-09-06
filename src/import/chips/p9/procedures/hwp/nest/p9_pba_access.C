@@ -84,7 +84,7 @@ extern "C" {
         //If we are not in fastmode or this is the last granule, we want to check the status
         if ( i_lastGranule || (l_myPbaFlag.getFastMode() == false) )
         {
-            l_statusRc = p9_pba_coherent_status_check(i_target);
+            l_statusRc = p9_pba_coherent_check_status(i_target);
 
             // Clean up PBA regardless of status check returned value.
             if (i_lastGranule)

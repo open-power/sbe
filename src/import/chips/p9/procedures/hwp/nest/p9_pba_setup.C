@@ -71,9 +71,6 @@ extern "C"
         //reset the PBA - cleanup just calls reset
         FAPI_TRY(p9_pba_coherent_cleanup_pba(i_target), "Error from p9_pba_cleanup_pba");
 
-        //Check to make sure that it's ready for another write
-        FAPI_TRY(p9_pba_coherent_status_check(i_target), "Error from p9_pba_coherent_status_check");
-
         //The PBA Bar and PBA Bar Mask need to be setup before getting the number of granules because how they get setup affects the number of granules that can be read/written
         //setup the PBA Bar
         FAPI_TRY(p9_pba_coherent_setup_pba_bar(i_target, i_address),
