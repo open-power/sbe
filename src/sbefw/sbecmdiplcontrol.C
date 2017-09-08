@@ -44,6 +44,7 @@
 
 #include "fapi2.H"
 #include "p9_misc_scom_addresses_fld.H"
+#include "p9n2_quad_scom_addresses.H"
 // Pervasive HWP Header Files ( istep 2)
 #include <p9_sbe_attr_setup.H>
 #include <p9_sbe_tp_chiplet_init1.H>
@@ -210,6 +211,9 @@ ReturnCode updatePhbFunctionalState( void );
 
 //Utility function to clear crest error latch
 ReturnCode resetCrespErrLatch( void );
+//Utility function to mask special attention
+inline ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target );
+
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p9_sbe_select_ex_FP_t p9_sbe_select_ex_hwp = &p9_sbe_select_ex;
@@ -260,7 +264,8 @@ static istepMap_t g_istepMpiplStartPtrTbl[MPIPL_START_MAX_SUBSTEPS] =
             // Call suspend powerman
             { &istepWithProc, { .procHwp = &p9_suspend_powman }},
             // Find all the child cores within proc and call hwp to know the
-            // scom state and call instruction control
+            // scom state and call instruction control. Also mask spl attention
+            // from core.
             { &istepWithCoreState, { .coreScomStateHwp = &p9_query_core_access_state }},
             //  Reset the TPM and clear the TPM deconfig bit, it's not a
             //  procedure but local SBE function
@@ -1074,6 +1079,13 @@ ReturnCode istepWithCoreState( sbeIstepHwp_t i_hwp)
                     break;
                 }
             }while(++l_thread < SMT4_THREAD_MAX);
+
+            l_rc = maskSpecialAttn(l_coreTgt);
+            if( l_rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "maskSpecialAttn failed");
+                break;
+            }
         }
     }
     SBE_EXIT(SBE_FUNC);
@@ -1235,6 +1247,7 @@ ReturnCode istepStartMpipl( sbeIstepHwp_t i_hwp)
             SBE_ERROR(SBE_FUNC "resetCrespErrLatch failed");
             break;
         }
+
     }while(0);
 
     SBE_EXIT(SBE_FUNC);
@@ -1561,6 +1574,34 @@ ReturnCode resetCrespErrLatch( void )
 #undef SBE_FUNC
 }
 
+//----------------------------------------------------------------------------
+inline ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target )
+{
+#define SBE_FUNC "maskSpecialAttn "
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        uint64_t maskData = 0;
+        const  uint64_t ecMask = 0xffc0000000000000;
+        rc = getscom_abs_wrap (&i_target, P9N2_EX_SPA_MASK, &maskData );
+        if( rc )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to read P9N2_EX_SPA_MASK");
+            break;
+        }
+        maskData = maskData | ecMask;
+        rc = putscom_abs_wrap (&i_target, P9N2_EX_SPA_MASK, maskData );
+        if( rc )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to write P9N2_EX_SPA_MASK");
+            break;
+        }
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+#undef SBE_FUNC
+}
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeHandleSuspendIO Sbe suspend IO function
 //
