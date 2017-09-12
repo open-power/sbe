@@ -57,9 +57,9 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,MC,0x8000CC050701103F,0x07-0x08,HWSV,,lib/phy/write_cntrl.H,write_whitelist,
 ,MC,0x8000CC060701103F,0x07-0x08,HWSV,,lib/phy/write_cntrl.H,write_whitelist,
 ,TP,90000,0x00,HB,Alter/Display Control Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
-,TP,90001,0x01,HB,Alter/Display Command Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
-,TP,90002,0x02,HB,Alter/Display Special Option Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
-,TP,90021,0x03,HB,pMisc Mode Register,,write_whitelist,
+,TP,90001,0x00,HB,Alter/Display Command Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
+,TP,90002,0x00,HB,Alter/Display Special Option Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
+,TP,90021,0x00,HB,pMisc Mode Register,,write_whitelist,
 ,TP,00000000000F0042,0x00,HB,??,,write_whitelist,
 ,Nest 1,3010805,0x03,HB,MC FIR Mask Register (MC23 PBIO 1),TODO via:HB story 177597 SBE story 177901,write_whitelist,
 ,Nest 1,000000000301080A,0x03,HB,MC Primary Memory Config Register,,write_whitelist,
@@ -69,55 +69,55 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,Nest 1,000000000301088A,0x03,HB,MC Primary Memory Config Register (MC23.PBI23),,write_whitelist,
 ,Nest 1,3010890,0x03,HB,MC Performance Register 1 (MC23.PBI23),,write_whitelist,
 ,Nest 1,3010892,0x03,HB,MC Mode1 Register (MC23.PBI23),,write_whitelist,
-,Nest 3,5010805,0x03,HB,MC FIR Mask Register (MC01.PBIO1),TODO via:HB story 177597 SBE story 177901,write_whitelist,
-,Nest 3,000000000501080A,0x03,HB,MC Primary Memory Config Register (MC01.PBIO1),,write_whitelist,
-,Nest 3,5010810,0x03,HB,MC Performance Register 1  (MC01.PBIO1),,write_whitelist,
-,Nest 3,5010812,0x03,HB,MC Mode1 Register  (MC01.PBIO1),,write_whitelist,
-,Nest 3,5010885,0x03,HB,MC FIR Mask Register (MC01.PBI23),TODO via:HB story 177597 SBE story 177901,write_whitelist,
-,Nest 3,000000000501088A,0x03,HB,MC Primary Memory Config Register (MC01.PBI23),,write_whitelist,
-,Nest 3,5010890,0x03,HB,MC Performance Register 1 (MC01.PBI23),,write_whitelist,
-,Nest 3,5010892,0x03,HB,MC Mode1 Register (MC01.PBI23),,write_whitelist,
-,Nest 3,000000000501180A,0x03,HB,PB PowerBus PB WEST Mode Config reg,,write_whitelist,
-,Nest 3,000000000501180B,0x03,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
-,Nest 3,000000000501180C,0x03,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
-,Nest 3,000000000501180D,0x03,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
-,Nest 3,000000000501180E,0x03,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
-,Nest 3,000000000501180F,0x03,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
-,Nest 3,5011810,0x03,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
-,Nest 3,0000000005011C0A,0x03,HB,PB PowerBus PB CENT Mode Config reg,,write_whitelist,
-,Nest 3,0000000005011C0B,0x03,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
-,Nest 3,0000000005011C0C,0x03,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
-,Nest 3,0000000005011C0D,0x03,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
-,Nest 3,0000000005011C0E,0x03,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
-,Nest 3,0000000005011C0F,0x03,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
-,Nest 3,0000000005011C10,0x03,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
-,Nest 3,0000000005011C26,0x03,HB,PB PowerBus PB CENT GP CMD RATE DP0 reg,,write_whitelist,
-,Nest 3,0000000005011C27,0x03,HB,PB PowerBus PB CENT GP CMD RATE DP1 reg,,write_whitelist,
-,Nest 3,0000000005011C28,0x03,HB,PB PowerBus PB CENT RGP CMD RATE DP0 reg,,write_whitelist,
-,Nest 3,0000000005011C29,0x03,HB,PB PowerBus PB CENT RGP CMD RATE DP1 reg,,write_whitelist,
-,Nest 3,0000000005011C2A,0x03,HB,PB PowerBus PB CENT SP CMD RATE DP0 reg,,write_whitelist,
-,Nest 3,0000000005011C2B,0x03,HB,PB PowerBus PB CENT SP CMD RATE DP1 reg,,write_whitelist,
-,Nest 3,0000000005011C32,0x03,HB,PB PowerBus EXTFIR mask registers,TODO via:HB story 177597 SBE story 177901,write_whitelist,write_whitelist
-,Nest 3,0000000005011C34,0x03,HB,PB PowerBus EXTFIR Action 0 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,write_whitelist
-,Nest 3,0000000005011C35,0x03,HB,PB PowerBus EXTFIR Action 1 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,write_whitelist
-,Nest 3,000000000501200A,0x03,HB,PB PowerBus PB east Mode Config reg,,write_whitelist,
-,Nest 3,000000000501200B,0x03,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
-,Nest 3,000000000501200C,0x03,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
-,Nest 3,000000000501200D,0x03,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
-,Nest 3,000000000501200E,0x03,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
-,Nest 3,000000000501200F,0x03,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
-,Nest 3,5012010,0x03,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
-,Nest 3,5013403,0x03,HB,PB PowerBus PBEN IOX domain FIR0 Mask Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,write_whitelist
-,Nest 3,5013406,0x03,HB,PowerBus PBEN IOX domain FIR Action 0 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
-,Nest 3,5013407,0x03,HB,PowerBus PBEN IOX domain FIR Action 1 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
-,Nest 3,000000000501340A,0x03,HB,PB PowerBus Electrical Framer/Parser 01 Config Register,,write_whitelist,
-,Nest 3,000000000501340B,0x03,HB,PB PowerBus Electrical Framer/Parser 23 Config Register,,write_whitelist,
-,Nest 3,000000000501340C,0x03,HB,PB PowerBus Electrical Framer/Parser 45 Config Register,,write_whitelist,
-,Nest 3,5013410,0x03,HB,PB PowerBus Electrical Link Data Buffer 01 Config Register,,write_whitelist,
-,Nest 3,5013411,0x03,HB,PB PowerBus Electrical Link Data Buffer 23 Config Register,,write_whitelist,
-,Nest 3,5013412,0x03,HB,PB PowerBus Electrical Link Data Buffer 45 Config Register,,write_whitelist,
-,Nest 3,5013423,0x03,HB,PB PowerBus Electrical Miscellaneous Config Register,,write_whitelist,
-,Nest 3,5013424,0x03,HB,PB PowerBus Electrical Link Trace Config Register,,write_whitelist,
+,Nest 3,5010805,0x05,HB,MC FIR Mask Register (MC01.PBIO1),TODO via:HB story 177597 SBE story 177901,write_whitelist,
+,Nest 3,000000000501080A,0x05,HB,MC Primary Memory Config Register (MC01.PBIO1),,write_whitelist,
+,Nest 3,5010810,0x05,HB,MC Performance Register 1  (MC01.PBIO1),,write_whitelist,
+,Nest 3,5010812,0x05,HB,MC Mode1 Register  (MC01.PBIO1),,write_whitelist,
+,Nest 3,5010885,0x05,HB,MC FIR Mask Register (MC01.PBI23),TODO via:HB story 177597 SBE story 177901,write_whitelist,
+,Nest 3,000000000501088A,0x05,HB,MC Primary Memory Config Register (MC01.PBI23),,write_whitelist,
+,Nest 3,5010890,0x05,HB,MC Performance Register 1 (MC01.PBI23),,write_whitelist,
+,Nest 3,5010892,0x05,HB,MC Mode1 Register (MC01.PBI23),,write_whitelist,
+,Nest 3,000000000501180A,0x05,HB,PB PowerBus PB WEST Mode Config reg,,write_whitelist,
+,Nest 3,000000000501180B,0x05,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
+,Nest 3,000000000501180C,0x05,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
+,Nest 3,000000000501180D,0x05,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
+,Nest 3,000000000501180E,0x05,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
+,Nest 3,000000000501180F,0x05,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
+,Nest 3,5011810,0x05,HB,PB PowerBus PB west HP Mode Config reg,,write_whitelist,
+,Nest 3,0000000005011C0A,0x05,HB,PB PowerBus PB CENT Mode Config reg,,write_whitelist,
+,Nest 3,0000000005011C0B,0x05,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
+,Nest 3,0000000005011C0C,0x05,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
+,Nest 3,0000000005011C0D,0x05,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
+,Nest 3,0000000005011C0E,0x05,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
+,Nest 3,0000000005011C0F,0x05,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
+,Nest 3,0000000005011C10,0x05,HB,PB PowerBus PB CENT HP Mode Config reg,,write_whitelist,
+,Nest 3,0000000005011C26,0x05,HB,PB PowerBus PB CENT GP CMD RATE DP0 reg,,write_whitelist,
+,Nest 3,0000000005011C27,0x05,HB,PB PowerBus PB CENT GP CMD RATE DP1 reg,,write_whitelist,
+,Nest 3,0000000005011C28,0x05,HB,PB PowerBus PB CENT RGP CMD RATE DP0 reg,,write_whitelist,
+,Nest 3,0000000005011C29,0x05,HB,PB PowerBus PB CENT RGP CMD RATE DP1 reg,,write_whitelist,
+,Nest 3,0000000005011C2A,0x05,HB,PB PowerBus PB CENT SP CMD RATE DP0 reg,,write_whitelist,
+,Nest 3,0000000005011C2B,0x05,HB,PB PowerBus PB CENT SP CMD RATE DP1 reg,,write_whitelist,
+,Nest 3,0000000005011C32,0x05,HB,PB PowerBus EXTFIR mask registers,TODO via:HB story 177597 SBE story 177901,write_whitelist,write_whitelist
+,Nest 3,0000000005011C34,0x05,HB,PB PowerBus EXTFIR Action 0 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,write_whitelist
+,Nest 3,0000000005011C35,0x05,HB,PB PowerBus EXTFIR Action 1 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,write_whitelist
+,Nest 3,000000000501200A,0x05,HB,PB PowerBus PB east Mode Config reg,,write_whitelist,
+,Nest 3,000000000501200B,0x05,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
+,Nest 3,000000000501200C,0x05,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
+,Nest 3,000000000501200D,0x05,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
+,Nest 3,000000000501200E,0x05,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
+,Nest 3,000000000501200F,0x05,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
+,Nest 3,5012010,0x05,HB,PB PowerBus PB east HP Mode Config reg,,write_whitelist,
+,Nest 3,5013403,0x05,HB,PB PowerBus PBEN IOX domain FIR0 Mask Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,write_whitelist
+,Nest 3,5013406,0x05,HB,PowerBus PBEN IOX domain FIR Action 0 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
+,Nest 3,5013407,0x05,HB,PowerBus PBEN IOX domain FIR Action 1 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
+,Nest 3,000000000501340A,0x05,HB,PB PowerBus Electrical Framer/Parser 01 Config Register,,write_whitelist,
+,Nest 3,000000000501340B,0x05,HB,PB PowerBus Electrical Framer/Parser 23 Config Register,,write_whitelist,
+,Nest 3,000000000501340C,0x05,HB,PB PowerBus Electrical Framer/Parser 45 Config Register,,write_whitelist,
+,Nest 3,5013410,0x05,HB,PB PowerBus Electrical Link Data Buffer 01 Config Register,,write_whitelist,
+,Nest 3,5013411,0x05,HB,PB PowerBus Electrical Link Data Buffer 23 Config Register,,write_whitelist,
+,Nest 3,5013412,0x05,HB,PB PowerBus Electrical Link Data Buffer 45 Config Register,,write_whitelist,
+,Nest 3,5013423,0x05,HB,PB PowerBus Electrical Miscellaneous Config Register,,write_whitelist,
+,Nest 3,5013424,0x05,HB,PB PowerBus Electrical Link Trace Config Register,,write_whitelist,
 ,XBUS,6000019,0x06,HB,XB Chiplet Config Register 1,,write_whitelist,
 ,XBUS,6011803,0x06,HB,PowerBus ELL FIR Mask Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
 ,XBUS,6011806,0x06,HB,PowerBus ELL FIR Action 0 Register,TODO via:HB story 177597 SBE story 177901,write_whitelist,
@@ -822,3 +822,55 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,MC23,8010A6A,0x08,,Port 1 Array Access Data Register,,read_blacklist,
 ,MC23,8010AAA,0x08,,Port 2 Array Access Data Register,,read_blacklist,
 ,MC23,8010AEA,0x08,,Port 3 Array Access Data Register,,read_blacklist,
+,,06011C0A,0x06,HB,,TODO,write_whitelist,
+,,06011C18,0x06,HB,,TODO,write_whitelist,
+,,06011C19,0x06,HB,,TODO,write_whitelist,
+,,06011C06,0x06,HB,,TODO,write_whitelist,
+,,06011C07,0x06,HB,,TODO,write_whitelist,
+,,06011C03,0x06,HB,,TODO,write_whitelist,
+,,0601200A,0x06,HB,,TODO,write_whitelist,
+,,06012018,0x06,HB,,TODO,write_whitelist,
+,,06012019,0x06,HB,,TODO,write_whitelist,
+,,06012006,0x06,HB,,TODO,write_whitelist,
+,,06012007,0x06,HB,,TODO,write_whitelist,
+,,06012003,0x06,HB,,TODO,write_whitelist,
+,,05013010,0x05,HB,,TODO,write_whitelist,
+,,0601103f,0x06,HB,,TODO,write_whitelist,
+,,0601143f,0x06,HB,,TODO,write_whitelist,
+,,05013805,0x05,HB,,TODO,write_whitelist,
+,,09010805,0x09,HB,,TODO,write_whitelist,
+,,0C010805,0x0C,HB,,TODO,write_whitelist,
+,,200f010b,0x20-0x37,,,TODO,write_whitelist
+,,00040022,0x00,,,TODO,write_whitelist
+,,00040030,0x00,,,TODO,write_whitelist
+,,00040032,0x00,,,TODO,write_whitelist
+,,04000029,0x04,,,TODO,write_whitelist
+,,04011041,0x04,,,TODO,write_whitelist
+,,04011042,0x04,,,TODO,write_whitelist
+,,04011481,0x04,,,TODO,write_whitelist
+,,04011482,0x04,,,TODO,write_whitelist
+,,05012802,0x05,,,TODO,write_whitelist
+,,05012810,0x05,,,TODO,write_whitelist
+,,05012813,0x05,,,TODO,write_whitelist
+,,05012818,0x05,,,TODO,write_whitelist
+,,0501281b,0x05,,,TODO,write_whitelist
+,,0501290a,0x05,,,TODO,write_whitelist
+,,0501290b,0x05,,,TODO,write_whitelist
+,,0501290e,0x05,,,TODO,write_whitelist
+,,05012916,0x05,,,TODO,write_whitelist
+,,05013010,0x05,,,TODO,write_whitelist
+,,05013179,0x05,,,TODO,write_whitelist
+,,060f0042,0x06,,,TODO,write_whitelist
+,,0e01084a,0x0e,,,TODO,write_whitelist
+,,0e010900,0x0e,,,TODO,write_whitelist
+,,0e010901,0x0e,,,TODO,write_whitelist
+,,0f01088a,0x0f,,,TODO,write_whitelist
+,,0f010940,0x0f,,,TODO,write_whitelist
+,,0f010941,0x0f,,,TODO,write_whitelist
+,,06011406,0x06,,,TODO,write_whitelist
+,,06011407,0x06,,,TODO,write_whitelist
+,,06011006,0x06,,,TODO,write_whitelist
+,,06011007,0x06,,,TODO,write_whitelist
+,,06011003,0x06,,,TODO,write_whitelist
+,,06011403,0x06,,,TODO,write_whitelist
+,,230f0100,0x23,,,TODO,write_whitelist
