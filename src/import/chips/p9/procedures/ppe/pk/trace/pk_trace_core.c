@@ -62,7 +62,7 @@ PkTraceBuffer g_pk_trace_buf __attribute__ ((section (".sdata"))) =
     trace_ppe_hash("PARTIAL TRACE ENTRY. HASH_ID = %d", PK_TRACE_HASH_PREFIX),
     .size               = PK_TRACE_SZ,
     .max_time_change    = PK_TRACE_MTBT,
-    .hz                 = 500000000, //default. Actual is set in pk_init.c
+    .hz                 = 25000000, //Actula value set by pk_trace_set_freq()
     .time_adj64         = 0,
     .state.word64       = 0,
     .cb                 = {0}
@@ -143,6 +143,7 @@ void pk_trace_timer_callback(void* arg)
     pk_timer_schedule(&g_pk_trace_timer,
                       PK_TRACE_TIMER_PERIOD);
 }
+#endif  // PK_TIMER_SUPPORT (timed callback support)
 
 // Use this function to synchronize the timebase between multiple PPEs.
 // PPE A can send PPE B it's current timebase and then PPE B can set that
@@ -154,5 +155,9 @@ void pk_trace_set_timebase(PkTimebase timebase)
 {
     g_pk_trace_buf.time_adj64 = timebase - pk_timebase_get();
 }
-#endif  // PK_TIMER_SUPPORT
+
+void pk_trace_set_freq(uint32_t i_frequency)
+{
+    g_pk_trace_buf.hz = i_frequency;
+}
 #endif  // PK_TRACE_SUPPORT

@@ -995,6 +995,8 @@ void pk_trace_big(uint32_t i_hash_and_count,
 void pk_trace_binary(uint32_t i_hash_and_size, void* bufp);
 void pk_trace_set_timebase(PkTimebase timebase);
 
+// set the frequency (hz) of the timebase for trace timestamps
+void pk_trace_set_freq(uint32_t i_frequency);
 
 /// Cast a pointer to another type, in a way that won't cause warnings
 
