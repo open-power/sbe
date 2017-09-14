@@ -413,7 +413,7 @@ def sbeLocalRegister( target, node, proc, file_path ):
         print '********************************************************************'
         fileHandle.close()
     else:
-        cmd1 = (getFilePath("p9_sbe_localreg_dump_wrap.exe")+" -quiet -sbe -snapshot"+
+        cmd1 = (getFilePath("p9_sbe_localreg_dump_wrap.exe")+" -verbose -halt"+
                 " -n" + str(node) + " -p" + str(proc))
         print "cmd1:", cmd1
         rc = os.system( cmd1 )
