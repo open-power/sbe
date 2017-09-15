@@ -222,7 +222,8 @@ fapi2::ReturnCode p9_sbe_select_ex(
     }
 
     // Check that we're not trying to force fused cores on a chip where the
-    // force mechanism is disabled via eFuses */
+    // force mechanism is disabled via eFuses AND we are not already in
+    // fused mode
     {
         fapi2::buffer<uint64_t> l_perv_ctrl0;
         fapi2::buffer<uint64_t> l_device_id_reg;
@@ -231,7 +232,8 @@ fapi2::ReturnCode p9_sbe_select_ex(
         FAPI_TRY(fapi2::getScom(i_target, PERV_DEVICE_ID_REG, l_device_id_reg));
 
         FAPI_ASSERT(!(l_perv_ctrl0.getBit<P9N2_PERV_PERV_CTRL0_TP_OTP_SCOM_FUSED_CORE_MODE>()
-                      && l_device_id_reg.getBit<P9N2_PERV_DEVICE_ID_REG_HW_MODE_SEL>()),
+                      && l_device_id_reg.getBit<P9N2_PERV_DEVICE_ID_REG_HW_MODE_SEL>() &&
+                      !l_device_id_reg.getBit<P9N2_PERV_DEVICE_ID_REG_TP_EX_FUSE_SMT8_CTYPE_EN>()),
                     fapi2::SBE_SELECT_EX_FORCE_FUSED_CORES_DISABLED(),
                     "Failed to force fused core mode because external control has been disabled via eFuses");
     }
