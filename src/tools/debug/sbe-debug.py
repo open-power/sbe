@@ -528,7 +528,7 @@ def main( argv ):
     target = 'HW'
     node = 0
     proc = 0
-    ddsuffix = 'DD1'
+    ddsuffix = 'DD2'
     file_path = ""
     symbol = ''
 
