@@ -105,6 +105,7 @@ const bool PBA_HWP_WRITE_OP = false;
 const uint8_t PERV_TO_CORE_POS_OFFSET = 0x20;
 
 // RAM constants
+const uint8_t THREAD_1 = 1;
 const uint8_t THREAD_2 = 2;
 const uint8_t THREAD_3 = 3;
 const uint32_t HRMOR_SPR_NUMBER = 313;
@@ -206,6 +207,7 @@ ram_sprs(
     // but CME checks bits in them to perform STOP11 request in step 16
     for (auto& l_master_core_target : l_master_core_targets)
     {
+        RamCore l_ram_t1(l_master_core_target, THREAD_1);
         RamCore l_ram_t2(l_master_core_target, THREAD_2);
         RamCore l_ram_t3(l_master_core_target, THREAD_3);
         fapi2::buffer<uint64_t> l_sicr = 0;
@@ -236,6 +238,7 @@ ram_sprs(
 
         // override to PC state is required to RAM given current
         // core state -- set RAM_THREAD_ACTIVE
+        l_thread_info.setBit < C_THREAD_INFO_RAM_THREAD_ACTIVE + THREAD_1 > ();
         l_thread_info.setBit < C_THREAD_INFO_RAM_THREAD_ACTIVE + THREAD_2 > ();
         l_thread_info.setBit < C_THREAD_INFO_RAM_THREAD_ACTIVE + THREAD_3 > ();
         FAPI_TRY(fapi2::putScom(l_master_core_target,
@@ -254,6 +257,8 @@ ram_sprs(
                  "Error ramming HRMOR (T2)!");
         // set PSSCR via thread specific instances
         l_ram_data = HOSTBOOT_PSSCR_VALUE;
+        FAPI_TRY(l_ram_t1.put_reg(REG_SPR, PSSCR_SPR_NUMBER, &l_ram_data),
+                 "Error ramming PSSCR (T1)!");
         FAPI_TRY(l_ram_t2.put_reg(REG_SPR, PSSCR_SPR_NUMBER, &l_ram_data),
                  "Error ramming PSSCR (T2)!");
         FAPI_TRY(l_ram_t3.put_reg(REG_SPR, PSSCR_SPR_NUMBER, &l_ram_data),
