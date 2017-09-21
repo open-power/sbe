@@ -176,7 +176,6 @@ fapi2::ReturnCode writeHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 
 /// @brief Function to reader the header data from the ring and verify it.
 /// @param[in] i_target Chiplet Target of Scan
-/// @param[in] i_header The header data that is expected.
 //  @param[in] i_chipletId data from RS4
 //  @param[in] i_ringMode differnet ring mode operations
 //  @param[in] i_bitsDecoded  number of bits rotated and scanned
@@ -184,7 +183,6 @@ fapi2::ReturnCode writeHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                i_target,
-                               const uint64_t i_header,
                                const uint8_t i_chipletId,
                                const fapi2::RingMode i_ringMode,
                                const uint32_t i_bitsDecoded = 0,
