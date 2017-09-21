@@ -506,7 +506,6 @@ fapi2::ReturnCode writeHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 }
 /// @brief Function to reader the header data from the ring and verify it.
 /// @param[in] i_target Chiplet Target of Scan
-/// @param[in] i_header The header data that is expected.
 //  @param[in] i_chipletId data from RS4
 //  @param[in] i_ringMode different ring mode operations
 //  @param[in] i_bitsDecoded  number of bits rotated and scanned
@@ -514,7 +513,6 @@ fapi2::ReturnCode writeHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
                                i_target,
-                               const uint64_t i_header,
                                const uint8_t i_chipletId,
                                const fapi2::RingMode i_ringMode,
                                const uint32_t i_bitsDecoded,
@@ -550,13 +548,13 @@ fapi2::ReturnCode verifyHeader(const fapi2::Target<fapi2::TARGET_TYPE_ALL>&
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
-            FAPI_ERR("Error during reading header %016x", i_header);
+            FAPI_ERR("Error during reading header");
             break;
         }
 
         FAPI_INF("Got header - %016x", uint64_t(l_readHeader));
 
-        if(l_readHeader != i_header)
+        if(l_readHeader != 0xa5a5a5a5a5a5a5a5)
         {
             FAPI_ERR("Read CHECKWORD (%016x) data incorrect and total bit decoded 0x%016x",
                      uint64_t(l_readHeader), (uint64_t)i_bitsDecoded);
@@ -1474,7 +1472,7 @@ fapi2::ReturnCode rs4DecompressionSvc(
         }
 
         // Verify header
-        l_rc = verifyHeader(i_target, l_header, l_chipletId, i_ringMode, l_bitsDecoded, l_ringId);
+        l_rc = verifyHeader(i_target, l_chipletId, i_ringMode, l_bitsDecoded, l_ringId);
 
         if(l_rc)
         {

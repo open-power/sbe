@@ -114,8 +114,7 @@ ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
     do
     {
         // Verify header
-        uint64_t l_header = 0xa5a5a5a5a5a5a5a5;
-        l_rc = verifyHeader(l_proc, l_header, l_chipletId,i_ringMode);
+        l_rc = verifyHeader(l_proc,l_chipletId,i_ringMode);
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
             break;
