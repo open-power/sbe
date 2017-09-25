@@ -113,9 +113,17 @@ p9_hcd_cache_dpll_setup(
     FAPI_DBG("Drop analog logic fence via QPPM_PFCS[11]");
     FAPI_TRY(putScom(i_target, EQ_PPM_PFCS_WCLEAR, MASK_SET(11)));
 
-    FAPI_DBG("Assert DPLL in mode 1,set slew rate via QPPM_DPLL_CTRL[2,6-15]");
+    FAPI_DBG("Assert DPLL in mode 1,set slew rate via QPPM_DPLL_CTRL[1,2,16,6-15,22-23]");
     l_data64.flush<0>().setBit<2>().insertFromRight<6, 10>(0x01);
     FAPI_TRY(putScom(i_target, EQ_QPPM_DPLL_CTRL_OR, l_data64));
+
+    // make sure mode1 by clearing
+    // 1) enable_jump_protect
+    // 16)ss_enable
+    // 22)enable_fmin_target
+    // 23)enable_fmax_target
+    l_data64.flush<0>().setBit<1>().setBit<16>().setBit<22>().setBit<23>();
+    FAPI_TRY(putScom(i_target, EQ_QPPM_DPLL_CTRL_CLEAR, l_data64));
 
     FAPI_DBG("Drop flushmode_inhibit via CPLT_CTRL0[2]");
     FAPI_TRY(putScom(i_target, EQ_CPLT_CTRL0_CLEAR, MASK_SET(2)));
