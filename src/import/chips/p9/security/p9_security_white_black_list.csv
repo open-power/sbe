@@ -829,48 +829,68 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,,06011C07,0x06,HB,,TODO,write_whitelist,
 ,,06011C03,0x06,HB,,TODO,write_whitelist,
 ,,0601200A,0x06,HB,,TODO,write_whitelist,
-,,06012018,0x06,HB,,TODO,write_whitelist,
-,,06012019,0x06,HB,,TODO,write_whitelist,
-,,06012006,0x06,HB,,TODO,write_whitelist,
-,,06012007,0x06,HB,,TODO,write_whitelist,
-,,06012003,0x06,HB,,TODO,write_whitelist,
-,,05013010,0x05,HB,,TODO,write_whitelist,
+,,6012018,0x06,HB,,TODO,write_whitelist,
+,,6012019,0x06,HB,,TODO,write_whitelist,
+,,6012006,0x06,HB,,TODO,write_whitelist,
+,,6012007,0x06,HB,,TODO,write_whitelist,
+,,6012003,0x06,HB,,TODO,write_whitelist,
+,,5013010,0x05,HB,,TODO,write_whitelist,
 ,,0601103f,0x06,HB,,TODO,write_whitelist,
 ,,0601143f,0x06,HB,,TODO,write_whitelist,
-,,05013805,0x05,HB,,TODO,write_whitelist,
-,,09010805,0x09,HB,,TODO,write_whitelist,
+,,5013805,0x05,HB,,TODO,write_whitelist,
+,,9010805,0x09,HB,,TODO,write_whitelist,
 ,,0C010805,0x0C,HB,,TODO,write_whitelist,
-,,200f010b,0x20-0x37,,,TODO,write_whitelist
-,,00040022,0x00,,,TODO,write_whitelist
-,,00040030,0x00,,,TODO,write_whitelist
-,,00040032,0x00,,,TODO,write_whitelist
-,,04000029,0x04,,,TODO,write_whitelist
-,,04011041,0x04,,,TODO,write_whitelist
-,,04011042,0x04,,,TODO,write_whitelist
-,,04011481,0x04,,,TODO,write_whitelist
-,,04011482,0x04,,,TODO,write_whitelist
-,,05012802,0x05,,,TODO,write_whitelist
-,,05012810,0x05,,,TODO,write_whitelist
-,,05012813,0x05,,,TODO,write_whitelist
-,,05012818,0x05,,,TODO,write_whitelist
-,,0501281b,0x05,,,TODO,write_whitelist
-,,0501290a,0x05,,,TODO,write_whitelist
-,,0501290b,0x05,,,TODO,write_whitelist
-,,0501290e,0x05,,,TODO,write_whitelist
-,,05012916,0x05,,,TODO,write_whitelist
-,,05013010,0x05,,,TODO,write_whitelist
-,,05013179,0x05,,,TODO,write_whitelist
-,,060f0042,0x06,,,TODO,write_whitelist
-,,0e01084a,0x0e,,,TODO,write_whitelist
-,,0e010900,0x0e,,,TODO,write_whitelist
-,,0e010901,0x0e,,,TODO,write_whitelist
-,,0f01088a,0x0f,,,TODO,write_whitelist
-,,0f010940,0x0f,,,TODO,write_whitelist
-,,0f010941,0x0f,,,TODO,write_whitelist
-,,06011406,0x06,,,TODO,write_whitelist
-,,06011407,0x06,,,TODO,write_whitelist
-,,06011006,0x06,,,TODO,write_whitelist
-,,06011007,0x06,,,TODO,write_whitelist
-,,06011003,0x06,,,TODO,write_whitelist
-,,06011403,0x06,,,TODO,write_whitelist
-,,230f0100,0x23,,,TODO,write_whitelist
+,,40022,0x00,,,TODO,write_whitelist,
+,,40030,0x00,,,TODO,write_whitelist,
+,,40032,0x00,,,TODO,write_whitelist,
+,,4000029,0x04,,,TODO,write_whitelist,
+,,4011041,0x04,,,TODO,write_whitelist,
+,,4011042,0x04,,,TODO,write_whitelist,
+,,4011481,0x04,,,TODO,write_whitelist,
+,,4011482,0x04,,,TODO,write_whitelist,
+,,5012802,0x05,,,TODO,write_whitelist,
+,,5012810,0x05,,,TODO,write_whitelist,
+,,5012813,0x05,,,TODO,write_whitelist,
+,,5012818,0x05,,,TODO,write_whitelist,
+,,0501281b,0x05,,,TODO,write_whitelist,
+,,0501290a,0x05,,,TODO,write_whitelist,
+,,0501290b,0x05,,,TODO,write_whitelist,
+,,0501290e,0x05,,,TODO,write_whitelist,
+,,5012916,0x05,,,TODO,write_whitelist,
+,,5013010,0x05,,,TODO,write_whitelist,
+,,5013179,0x05,,,TODO,write_whitelist,
+,,060f0042,0x06,,,TODO,write_whitelist,
+,,0e01084a,0x0e,,,TODO,write_whitelist,
+,,0e010900,0x0e,,,TODO,write_whitelist,
+,,0e010901,0x0e,,,TODO,write_whitelist,
+,,0f01088a,0x0f,,,TODO,write_whitelist,
+,,0f010940,0x0f,,,TODO,write_whitelist,
+,,0f010941,0x0f,,,TODO,write_whitelist,
+,,6011406,0x06,,,TODO,write_whitelist,
+,,6011407,0x06,,,TODO,write_whitelist,
+,,6011006,0x06,,,TODO,write_whitelist,
+,,6011007,0x06,,,TODO,write_whitelist,
+,,6011003,0x06,,,TODO,write_whitelist,
+,,6011403,0x06,,,TODO,write_whitelist,
+,TP,0x000F001A, 0x00, HWSV, SPL_WKUP system checkstop indicator register,p9_cpu_special_wakeup_lib.H,write_whitelist,
+,TP,0x0006C08A, 0x00, HWSV, SPL_WKUP OCC Flag Register register,p9_cpu_special_wakeup_lib.H,write_whitelist,
+,Core,200F010A,0x20-0x37,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F010B,0x20-0x37,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F010C,0x20-0x37,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F010D,0x20-0x37,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F010A,0x10-0x15,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F010B,0x10-0x15,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F010C,0x10-0x15,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F010D,0x10-0x15,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F0111,0x20-0x37,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F0112,0x20-0x37,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F0113,0x20-0x37,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F0114,0x20-0x37,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F0111,0x10-0x15,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F0112,0x10-0x15,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F0113,0x10-0x15,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F0114,0x10-0x15,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F0040,0x20-0x37,HWSV,  SPL_WKUP-special wakeups Network Control registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F0040,0x10-0x15,HWSV,  SPL_WKUP-special wakeups Network Control registers, p9_cpu_special_wakeup.H, write_whitelist,
+,Core,200F0100,0x20-0x37,HWSV,  SPL_WKUP-special wakeups GPMMR registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F0100,0x10-0x15,HWSV,  SPL_WKUP-special wakeups GPMMR registers, p9_cpu_special_wakeup.H, write_whitelist,
