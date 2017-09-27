@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,7 +33,7 @@
 // *HWP HWP Owner   : Abhishek Agarwal <abagarw8@in.ibm.com>
 // *HWP FW Owner    : Brian Silver <bsilver@us.ibm.com>
 // *HWP Team        : Perv
-// *HWP Level       : 2
+// *HWP Level       : 3
 // *HWP Consumed by : SBE
 //------------------------------------------------------------------------------
 

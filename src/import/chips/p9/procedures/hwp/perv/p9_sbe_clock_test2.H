@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -31,7 +31,7 @@
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
 // *HWP FW Owner        : Sunil Kumar <skumarj8@in.ibm.com>
 // *HWP Team            : Perv
-// *HWP Level           : 1
+// *HWP Level           : 3
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
