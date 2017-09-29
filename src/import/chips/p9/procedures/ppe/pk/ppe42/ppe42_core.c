@@ -128,9 +128,12 @@ __pk_schedule_hardware_timeout(PkTimebase timeout)
         {
             diff = (timeout - now);
 
-            if (diff > 0xfffffffful)
+            // Makeing the maximum DEC counter too big runs the risk
+            // of the time period being longer than a cycle of the
+            // external time base register.
+            if (diff > 0xffff0000ull)
             {
-                new_dec = 0xffffffff;
+                new_dec = 0xffff0000;
             }
             else
             {
