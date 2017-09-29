@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -25,7 +25,8 @@
 //------------------------------------------------------------------------------
 /// @file  p9_sbe_tp_enable_ridi.C
 ///
-/// @brief enables ridi bits in RC regs after scan initialize and start clock the pervasive chiplet
+/// @brief This is a method stub, the real functionality has been moved to
+///        p9_sbe_nest_enable_ridi.C
 //------------------------------------------------------------------------------
 // *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
@@ -35,30 +36,12 @@
 // *HWP Consumed by      : SBE
 //------------------------------------------------------------------------------
 
-
 //## auto_generated
 #include "p9_sbe_tp_enable_ridi.H"
-
-#include "p9_perv_scom_addresses.H"
-
 
 fapi2::ReturnCode p9_sbe_tp_enable_ridi(const
                                         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    fapi2::buffer<uint64_t> l_data64;
-    FAPI_DBG("p9_sbe_tp_enable_ridi: Entering ...");
-
-    FAPI_INF("Enable Recievers, Drivers DI1 & DI2");
-    //Setting ROOT_CTRL1 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL1_SCOM, l_data64));
-    l_data64.setBit<19>();  //PIB.ROOT_CTRL1.TP_RI_DC_B = 1
-    l_data64.setBit<20>();  //PIB.ROOT_CTRL1.TP_DI1_DC_B = 1
-    l_data64.setBit<21>();  //PIB.ROOT_CTRL1.TP_DI2_DC_B = 1
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL1_SCOM, l_data64));
-
-    FAPI_DBG("p9_sbe_tp_enable_ridi: Exiting ...");
-
-fapi_try_exit:
+    // This function is now a stub, functionality has been moved to p9_sbe_nest_enable_ridi.C
     return fapi2::current_err;
-
 }

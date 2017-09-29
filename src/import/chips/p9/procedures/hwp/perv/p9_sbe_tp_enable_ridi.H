@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -25,7 +25,8 @@
 //------------------------------------------------------------------------------
 /// @file  p9_sbe_tp_enable_ridi.H
 ///
-/// @brief enables ridi bits in RC regs after scan initialize and start clock the pervasive chiplet
+/// @brief This is a method stub, the real functionality has been moved to
+///        p9_sbe_nest_enable_ridi.C
 //------------------------------------------------------------------------------
 // *HWP HW Owner        : Abhishek Agarwal <abagarw8@in.ibm.com>
 // *HWP HW Backup Owner : Srinivas V Naga <srinivan@in.ibm.com>
@@ -46,7 +47,8 @@
 typedef fapi2::ReturnCode (*p9_sbe_tp_enable_ridi_FP_t)(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 
-/// @brief Enable drivers/receivers for PRV chiplet
+/// @brief This is a method stub, the real functionality has been moved to
+///        p9_sbe_nest_enable_ridi.C
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
