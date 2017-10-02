@@ -38,10 +38,33 @@
 
 //## auto_generated
 #include "p9_sbe_tp_enable_ridi.H"
+#include "p9_perv_scom_addresses.H"
 
 fapi2::ReturnCode p9_sbe_tp_enable_ridi(const
                                         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    // This function is now a stub, functionality has been moved to p9_sbe_nest_enable_ridi.C
+    // outside of Cronus cache contained mode, this function is now a stub,
+    // functionality for the mainline IPL has been moved to p9_sbe_nest_enable_ridi.C
+#ifndef __PPE_
+    fapi2::buffer<uint64_t> l_data64;
+    uint8_t l_system_ipl_phase;
+    FAPI_DBG("Entering ...");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(), l_system_ipl_phase),
+             "Error from FAPI_ATTR_GET (ATTR_SYSTEM_IPL_PHASE)");
+
+    if (l_system_ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CACHE_CONTAINED)
+    {
+        FAPI_INF("Enable Recievers, Drivers DI1 & DI2");
+        //Setting ROOT_CTRL1 register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL1_SCOM, l_data64));
+        l_data64.setBit<19>();  //PIB.ROOT_CTRL1.TP_RI_DC_B = 1
+        l_data64.setBit<20>();  //PIB.ROOT_CTRL1.TP_DI1_DC_B = 1
+        l_data64.setBit<21>();  //PIB.ROOT_CTRL1.TP_DI2_DC_B = 1
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL1_SCOM, l_data64));
+        FAPI_DBG("Exiting ...");
+    }
+
+fapi_try_exit:
+#endif
     return fapi2::current_err;
 }
