@@ -39,6 +39,16 @@
 
 namespace fapi2
 {
+#ifdef __FAPI_DELAY_SIM__
+    void sim_delay_loop(uint64_t delay_loop_count) __attribute__ ((aligned (8)));
+    void sim_delay_loop(uint64_t delay_loop_count)
+    {
+        for (auto i = delay_loop_count; i > 0; --i) {
+            // Force compiler not to optimize for loop
+             asm("");
+        }
+    }
+#endif
 
     // Define own function rather than using PK function
     // This is required as PK function does not scale well for low
@@ -107,10 +117,7 @@ namespace fapi2
             ((l_adjusted_simcycles - (NUM_OVERHEAD_INSTRS * __FAPI_DELAY_PPE_SIM_CYCLES__)) /
                         (NUM_LOOP_INSTRS * __FAPI_DELAY_PPE_SIM_CYCLES__));
 
-        for (auto i = delay_loop_count; i > 0; --i) {
-            // Force compiler not to optimize for loop
-             asm("");
-        }
+        sim_delay_loop(delay_loop_count);
 
 #endif
 
