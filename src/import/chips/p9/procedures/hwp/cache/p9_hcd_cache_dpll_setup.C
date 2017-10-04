@@ -246,9 +246,6 @@ p9_hcd_cache_dpll_setup(
 
         FAPI_DBG("Clear PLL unlock errors in PCB slave, unmask FIR propagation");
         FAPI_TRY(putScom(i_target, EQ_ERROR_REG, 0xFFFFFFFFFFFFFFFF));
-        FAPI_TRY(getScom(i_target, EQ_SLAVE_CONFIG_REG, l_data64));
-        l_data64.clearBit<12>();
-        FAPI_TRY(putScom(i_target, EQ_SLAVE_CONFIG_REG, l_data64));
     }
 
     FAPI_DBG("Drop skew/duty cycle adjust func_clksel via NET_CTRL0[22]");
