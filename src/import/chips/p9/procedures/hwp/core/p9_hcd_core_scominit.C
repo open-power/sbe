@@ -119,7 +119,7 @@ p9_hcd_core_scominit(
     else
     {
         l_data64.insertFromRight<C_HANG_CONTROL_CORE_LIMIT,
-                                 C_HANG_CONTROL_CORE_LIMIT_LEN>(CORE_HANG_LIMIT_3_HANG_PULSES);
+                                 C_HANG_CONTROL_CORE_LIMIT_LEN>(CORE_HANG_LIMIT_10_HANG_PULSES);
     }
 
     l_data64.insertFromRight<C_HANG_CONTROL_NEST_LIMIT,
