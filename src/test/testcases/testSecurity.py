@@ -56,6 +56,9 @@ DEBUG = False
 # Number of random addresses for negative testcase
 NUM_RANDOM_ADDR = 100000
 
+WHITELISTED_REG_FOR_WRITE_TEST = "0x05013419"
+BLACKLISTED_REG_FOR_READ_TEST  = "0x07012316"
+
 def main():
     whitelist = getlist('-w')
     whitelist_table1 = getmap('-W 1')
@@ -91,10 +94,10 @@ def main():
         testScomUtil.getscom(0x0204001A)
         print "getscom success testcase - passed"
         # getscom failure
-        testScomUtil.getscom(eval(blacklist[0]), [0x00, 0x05, 0x00, 0x0B])
+        testScomUtil.getscom(eval(BLACKLISTED_REG_FOR_READ_TEST), [0x00, 0x05, 0x00, 0x0B])
         print "getscom failure testcase - passed"
         # putscom success
-        testScomUtil.putscom(eval(whitelist[0]), testScomUtil.getscom(eval(whitelist[0])))
+        testScomUtil.putscom(eval(WHITELISTED_REG_FOR_WRITE_TEST), testScomUtil.getscom(eval(WHITELISTED_REG_FOR_WRITE_TEST)))
         print "putscom success testcase - passed"
         # putscom failure
         while(True):

@@ -458,7 +458,7 @@ def s_table1_gen(id, table):
     # write table 1 string
     str_table1 = ""
     for i,(key, value) in enumerate(table):
-        str_table1 += '{{0x%02x, 0x%02x}, 0x%02x}, ' % ((key & 0xFF00 >> 8),
+        str_table1 += '{{0x%02x, 0x%02x}, 0x%02x}, ' % (((key & 0xFF00) >> 8),
                                                         (key & 0x00FF),
                                                         value)
         if(0 == ((i+1) % 4)):
