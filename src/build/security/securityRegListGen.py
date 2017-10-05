@@ -551,9 +551,9 @@ def main(argv):
         reader = csv.DictReader(f)
         for idx, row in enumerate(reader):
             try:
-                if(version.lower() == 'unknown'):
+                if(version.strip().lower() == 'unknown'):
                     version = row[TAG_VERSION]
-                base_addr = row[TAG_BASE_ADDR].lower().split('0x')[-1]
+                base_addr = row[TAG_BASE_ADDR].strip().lower().split('0x')[-1]
                 # Append 0s for numbers represented by less than 8 chars
                 base_addr = '0'*(8-len(base_addr))+base_addr
                 # Extract the least 32 bit number for base address
@@ -565,8 +565,8 @@ def main(argv):
                 # Empty range field considered as error
                 if(chiplet_range[0] == ''):
                     exit(PRINT_AND_EXIT, "Missing chiplet id range")
-                if(chiplet_range[0].lower() != '0x00'):
-                    if(chiplet_range[0].lower() != '0x%02x' % (get_chiplet(base_addr))):
+                if(chiplet_range[0].strip().lower() != '0x00'):
+                    if(chiplet_range[0].strip().lower() != '0x%02x' % (get_chiplet(base_addr))):
                         print "base_addr",hex(base_addr)
                         print "get_chiplet(base_addr)",hex(get_chiplet(base_addr))
                         print "chiplet_range[0]", chiplet_range[0]
@@ -581,12 +581,12 @@ def main(argv):
                 expanded_line = get_effective_address(row[TAG_CHIPLET], expanded_line)
                 if(VERBOSE):
                     print s_list_hex("range:", expanded_range, 8)
-                if(row[TAG_TYPE].lower() == TAG_NAME_WHITELIST):
+                if(row[TAG_TYPE].strip().lower() == TAG_NAME_WHITELIST):
                     whitelist_line = expanded_line
                     if(VERBOSE):
                         print s_list_hex("whitelist_line:", whitelist_line, 8)
                     whitelist += whitelist_line
-                elif(row[TAG_TYPE].lower() == TAG_NAME_BLACKLIST):
+                elif(row[TAG_TYPE].strip().lower() == TAG_NAME_BLACKLIST):
                     blacklist_line = expanded_line
                     if(VERBOSE):
                         print s_list_hex("blacklist_line:", blacklist_line, 8)
