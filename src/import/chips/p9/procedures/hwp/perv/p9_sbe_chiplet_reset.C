@@ -363,6 +363,11 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
             {
                 FAPI_DBG("Drop clk_div_bypass for Mc chiplet");
                 FAPI_TRY(p9_sbe_chiplet_reset_div_clk_bypass(targ));
+
+                //Setting VITL_AL config bit to disable listening to cross-chiplet DDR sync signal
+                FAPI_DBG("Set VITL_AL for MC chiplet");
+                FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL0_WOR,
+                                        p9SbeChipletReset::NET_CNTL0_SET_VITL_AL));
             }
         }
 
