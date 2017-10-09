@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -26,7 +26,7 @@
 #define __STRING_H
 
 #include <stdint.h>
-typedef uint32_t size_t;
+#include <stddef.h>
 
 #ifndef NULL
     #ifdef __cplusplus
