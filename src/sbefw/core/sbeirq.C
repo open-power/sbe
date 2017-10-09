@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -35,6 +36,7 @@
 #include "sbeglobals.H"
 #include "ppe42_scom.h"
 #include "p9_misc_scom_addresses.H"
+#include "sbeirqregistersave.H"
 
 ////////////////////////////////////////////////////////////////
 // @brief:     SBE control loop ISR:
@@ -225,6 +227,94 @@ extern "C" void i2c_reset()
     }
 }
 
+///////////////////////////////////////////////////////////////////
+// SBE handler to save off specific registers
+///////////////////////////////////////////////////////////////////
+registersave_t __g_register_ffdc;
+uint64_t __g_address_for_register_ffdc = (uint32_t)&__g_register_ffdc;
+
+extern "C" void __sbe_register_saveoff()
+{
+    asm(
+    "# Save r4, r5, r6 to stack, since it is going to be used\n"
+    "# inside here, move the stack by 12\n"
+    "stwu %r1, -12(%r1)\n"
+    "# Store r4 into stack\n"
+    "stw  %r4, 0(%r1)\n"
+    "# Store r5 into stack\n"
+    "stw  %r5, 4(%r1)\n"
+    "# Store r6 into stack\n"
+    "stw  %r6, 8(%r1)\n"
+    "# Write zero to r4,r5,r6 to clear off the content\n"
+    "lis %r4, 0\n"
+    "lis %r5, 0\n"
+    "lis %r6, 0\n"
+
+    "# Check for loop condition if this branch is happening repetitively\n"
+    "# load first 4bytes of __g_register_ffdc, it should be initialized\n"
+    "# with zero, if not zero than this is repetitive entry, exit now\n"
+    "lvd %d5, __g_register_ffdc@sda21(0)\n"
+    "# if r5 and r4 not equal, then it's loop inside loop, exit condition\n"
+    "cmplwbne %r4, %r5, __goto_exit\n"
+
+    "# Start gathering registers into FFDC\n"
+    "# Read SRR0 into r4\n"
+    "mfsrr0  %r4\n"
+    "stw %r4, __g_register_ffdc+4@sda21(0)\n"
+
+    "# Read SRR1 into r4\n"
+    "mfsrr1  %r4\n"
+    "stw %r4, __g_register_ffdc+8@sda21(0)\n"
+
+    "# Read ISR into r4\n"
+    "mfisr  %r4\n"
+    "stw %r4, __g_register_ffdc+12@sda21(0)\n"
+
+    "# Load address to r4\n"
+    "lis %r4, 0xC000\n"
+    "ori %r4, %r4, 0x0800\n"
+    "# getscom 0xC0000800\n"
+    "lvd %d5, 0(%r4)\n"
+    "stw %r5, __g_register_ffdc+16@sda21(0)\n"
+    "stw %r6, __g_register_ffdc+20@sda21(0)\n"
+
+    "# Load address to r4\n"
+    "lis %r4, 0xC000\n"
+    "ori %r4, %r4, 0x0820\n"
+    "# getscom 0xC0000820\n"
+    "lvd %d5, 0(%r4)\n"
+    "stw %r5, __g_register_ffdc+24@sda21(0)\n"
+    "stw %r6, __g_register_ffdc+28@sda21(0)\n"
+
+    "# Read LR into r4\n"
+    "mflr  %r4\n"
+    "stw %r4, __g_register_ffdc+32@sda21(0)\n"
+
+    "# Write versioning into the lower 32bit of d5 i.e. r6\n"
+    "#lvd %d5, __g_sbe_register_save_version@sda21(0)\n"
+    "# Directly load Versioninfo into upper 16bits in r4 \n"
+    "# RTC:183752, Remove this hard-coding of versioning\n"
+    "lis %r4, 0x11\n"
+    "#rlwinm %r4, %r6, 16, 0, 0x1F\n"
+    "# Write magicbyte and validbyte in the lower 16bits\n"
+    "ori %r4, %r4, 0xA501\n"
+    "stw %r4, __g_register_ffdc@sda21(0)\n"
+
+    "# Get the address of the register ffdc struct and store it in sprg0\n"
+    "lvd %d5, __g_address_for_register_ffdc@sda21(0)\n"
+    "# Store the content of r6 read above into sprg0\n"
+    "mtsprg0 %r6\n"
+
+    "__goto_exit:\n"
+    "# Get back the original value of the registers stored in stack\n"
+    "lwz %r6, 8(%r1)\n"
+    "lwz %r5, 4(%r1)\n"
+    "lwz %r4, 0(%r1)\n"
+    "addi %r1, %r1, 12\n"
+    "b pk_halt\n"
+    );
+}
+
 ////////////////////////////////////////////////////////////////
 // SBE handler for the PPE machine check interrupt
 ////////////////////////////////////////////////////////////////
@@ -274,7 +364,8 @@ extern "C" void __sbe_machine_check_handler()
     "blt __scom_error\n"
     "# Else, halt the SBE\n"
     "__halt_sbe:\n"
-    "b pk_halt\n"
+    "# Save-off Register FFDC and Halt\n"
+    "b __sbe_register_saveoff\n"
     "__scom_error:\n"
     "# The srr0 contains the address of the instruction that caused the machine\n"
     "# check (since the the interrupt is raised *before* the instruction\n"
@@ -313,4 +404,5 @@ extern "C" void __sbe_machine_check_handler()
     "rfi\n"
     );
 }
+
 
