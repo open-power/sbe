@@ -51,7 +51,8 @@ if (!SBE_SECURITY::isAllowed(addr, op)) \
 { \
     prim = SBE_PRI_UNSECURE_ACCESS_DENIED; \
     sec = SBE_SEC_BLACKLISTED_REG_ACCESS; \
-    break; \
+    /* TODO via RTC 180983:Enable this once the BL/WL registers are settled */ \
+    /*break;*/ \
 }
 
 #define mfdec()                               \
