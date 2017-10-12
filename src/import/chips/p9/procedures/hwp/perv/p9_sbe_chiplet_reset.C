@@ -60,11 +60,11 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_cplt_net_cntl_setup(
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_MC_XBUS(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const fapi2::buffer<uint32_t> i_clk_mux_value);
+    const fapi2::buffer<uint32_t> i_clk_mux_value, uint8_t axone_only);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_obus(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const fapi2::buffer<uint32_t> i_clk_mux_value);
+    const fapi2::buffer<uint32_t> i_clk_mux_value, uint8_t axone_only);
 
 static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_pcie(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
@@ -129,6 +129,7 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
     // Local variable
     uint8_t l_mc_sync_mode = 0;
     uint8_t l_pll_bypass = 0;
+    uint8_t l_attr_axone_only;
     fapi2::buffer<uint8_t> l_read_attr;
 #ifndef __PPE__
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
@@ -261,19 +262,20 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
         {
             fapi2::buffer<uint32_t> l_read_attr;
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_PLL_MUX, i_target_chip, l_read_attr));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9A_LOGIC_ONLY, i_target_chip, l_attr_axone_only));
             uint32_t l_chipletID = targ.getChipletNumber();
 
             // MC & XBUS
             if((l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID) || (l_chipletID == XB_CHIPLET_ID ))
             {
                 FAPI_DBG("Mux settings for Mc/Xbus chiplet");
-                FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_MC_XBUS(targ, l_read_attr));
+                FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_MC_XBUS(targ, l_read_attr, l_attr_axone_only));
             }
             // OBUS
             else if(l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID)
             {
                 FAPI_DBG("Mux settings for OB chiplet");
-                FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_obus(targ, l_read_attr));
+                FAPI_TRY(p9_sbe_chiplet_reset_clk_mux_obus(targ, l_read_attr, l_attr_axone_only));
             }
             // PCI
             else if(l_chipletID >= PCI0_CHIPLET_ID && l_chipletID <= PCI2_CHIPLET_ID)
@@ -806,7 +808,7 @@ fapi_try_exit:
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_MC_XBUS(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const fapi2::buffer<uint32_t> i_clk_mux_value)
+    const fapi2::buffer<uint32_t> i_clk_mux_value, uint8_t axone_only)
 {
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_chiplet_reset_clk_mux_MC_XBUS: Entering ...");
@@ -818,9 +820,16 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_MC_XBUS(
     //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<3>()
     if(l_chipletID >= MC01_CHIPLET_ID && l_chipletID <= MC23_CHIPLET_ID) //MC
     {
-        l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<3>());
+        if (axone_only)
+        {
+            FAPI_DBG("Mux setings n/a for Axone for MC chiplet");
+        }
+        else // Nimbus, Cumulus
+        {
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<3>());
+        }
     }
-    else // XBUS
+    else // XBUS  // Nimbus, Cumulus, Axone
     {
         l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<8>());
     }
@@ -842,7 +851,7 @@ fapi_try_exit:
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_obus(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const fapi2::buffer<uint32_t> i_clk_mux_value)
+    const fapi2::buffer<uint32_t> i_clk_mux_value, uint8_t axone_only)
 {
     uint8_t l_attr_unit_pos = 0;
     fapi2::buffer<uint64_t> l_data64;
@@ -854,38 +863,69 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_obus(
 
     if ( l_attr_unit_pos == OB0_CHIPLET_ID )
     {
-        //Setting NET_CTRL1 register value
-        //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<6>()
-        l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<6>());
-        l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
-        (i_clk_mux_value.getBit<13>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = i_clk_mux_value.getBit<13>()
-        l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>
-        (i_clk_mux_value.getBit<15>());  //NET_CTRL1.REFCLK_CLKMUX1_SEL = i_clk_mux_value.getBit<15>()
+        if (axone_only)
+        {
+            FAPI_DBG("mux settings for OB0 - Axone");
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<22>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>(i_clk_mux_value.getBit<28>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>(i_clk_mux_value.getBit<29>());
+        }
+        else  // Nimbus, Cumulus
+        {
+            //Setting NET_CTRL1 register value
+            //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<6>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<6>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
+            (i_clk_mux_value.getBit<13>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = i_clk_mux_value.getBit<13>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>
+            (i_clk_mux_value.getBit<15>());  //NET_CTRL1.REFCLK_CLKMUX1_SEL = i_clk_mux_value.getBit<15>()
+        }
     }
 
     else if ( l_attr_unit_pos == OB1_CHIPLET_ID )
     {
-        //Setting NET_CTRL1 register value
-        l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>
-        (i_clk_mux_value.getBit<16>());  //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<16>()
+        if (axone_only)
+        {
+            FAPI_DBG("Mux settings n/a for OB1 - Axone");
+        }
+        else
+        {
+            //Setting NET_CTRL1 register value
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>
+            (i_clk_mux_value.getBit<16>());  //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<16>()
+        }
     }
 
     else if ( l_attr_unit_pos == OB2_CHIPLET_ID )
     {
-        //Setting NET_CTRL1 register value
-        l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>
-        (i_clk_mux_value.getBit<17>());  //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<17>()
+        if (axone_only)
+        {
+            FAPI_DBG("Mux settings n/a for OB2 - Axone");
+        }
+        else
+        {
+            //Setting NET_CTRL1 register value
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>
+            (i_clk_mux_value.getBit<17>());  //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<17>()
+        }
     }
 
     else if ( l_attr_unit_pos == OB3_CHIPLET_ID )
     {
-        //Setting NET_CTRL1 register value
-        //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<7>()
-        l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<7>());
-        l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
-        (i_clk_mux_value.getBit<9>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = i_clk_mux_value.getBit<9>()
-        l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>
-        (i_clk_mux_value.getBit<14>());  //NET_CTRL1.REFCLK_CLKMUX1_SEL = i_clk_mux_value.getBit<14>()
+        if (axone_only)
+        {
+            FAPI_DBG("Mux settings n/a for OB3 - Axone");
+        }
+        else
+        {
+            //Setting NET_CTRL1 register value
+            //NET_CTRL1.PLL_CLKIN_SEL = i_clk_mux_value.getBit<7>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<7>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>
+            (i_clk_mux_value.getBit<9>());  //NET_CTRL1.REFCLK_CLKMUX0_SEL = i_clk_mux_value.getBit<9>()
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>
+            (i_clk_mux_value.getBit<14>());  //NET_CTRL1.REFCLK_CLKMUX1_SEL = i_clk_mux_value.getBit<14>()
+        }
     }
 
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL1, l_data64));

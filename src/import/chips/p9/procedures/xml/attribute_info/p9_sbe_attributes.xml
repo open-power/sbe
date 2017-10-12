@@ -458,6 +458,16 @@ attribute tank
   </entry>
 
   <entry>
+        <name>ATTR_CHIP_EC_FEATURE_P9A_LOGIC_ONLY</name>
+        <virtual/>
+  </entry>
+
+  <entry>
+        <name>ATTR_CHIP_EC_FEATURE_IOF0PLL_INITF</name>
+        <virtual/>
+  </entry>
+
+  <entry>
         <name>ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET</name>
         <value>0x000003FC00000000</value>
   </entry>
