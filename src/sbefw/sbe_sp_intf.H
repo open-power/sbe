@@ -217,6 +217,7 @@ enum sbeSecondaryResponse
     SBE_SEC_MAXIMUM_MEM_REGION_EXCEEDED       = 0x16,
     SBE_SEC_MEM_REGION_AMEND_ATTEMPTED        = 0x17,
     SBE_SEC_INPUT_BUFFER_OVERFLOW             = 0x18,
+    SBE_SEC_INVALID_PARAMS                    = 0x19,
 };
 
 /**

@@ -156,4 +156,12 @@ uint32_t sbeSetSystemFabricMap(uint8_t *i_pArg);
   */
 uint32_t sbeStashKeyAddrPair(uint8_t *i_pArg);
 
+/**
+  * @brief Read the data from SBE memory (0xD703)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the Psu access utility
+  */
+uint32_t sbeReadMem(uint8_t *i_pArg);
 #endif // __SBEFW_SBECMDGENERIC_H

@@ -218,6 +218,7 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
             fapi2::plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>(
                     sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
         p9_PBA_oper_flag l_myPbaFlag;
+        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ);
 
         sbeMemAccessInterface l_PBAInterface(
                                      SBE_MEM_ACCESS_PBA,

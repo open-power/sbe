@@ -86,7 +86,7 @@ class sbeMemAccessInterface
         // Granule size based on interface - PBA/ADU
         uint32_t iv_granuleSize;
         // Buffer size is bigger of the two granules
-        char iv_buffer[MEM_INTERFACE_SIZE_BYTES];
+        char iv_buffer[MEM_INTERFACE_SIZE_BYTES]  __attribute__ ((aligned (8)));
         // Interface cleaned up - indicates if the underlying
         // HWP cleanup is done for the interface.
         // A new object assumes interface is in cleaned up

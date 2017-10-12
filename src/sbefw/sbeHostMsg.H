@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include "sbe_host_intf.H"
 #include "sbe_sp_intf.H"
+#include "sbe_link.H"
 
 /*****************************************************************/
 /*            SBE->PSU request structures                        */
@@ -98,6 +99,38 @@ typedef struct
         i_hostPassCmdAddr.addr = passCmdDataAddr;
     }
 } sbeSetFFDCAddrReq_t;
+
+/* @brief Read SBE MEM structure
+ */
+typedef struct
+{
+    uint64_t offset:32;
+    uint64_t size:32;
+    uint64_t responseAddr;
+
+    // validate request parameters
+    bool validateReq()
+    {
+        // On ppe reading 8 bytes is optimal. So offset
+        // should be multiple of 8.
+        uint32_t const OFFSET_ALLIGNMENT = 8;
+        // As we use PBA operation, size should be multiple
+        // of 128bytes.
+        uint32_t const SIZE_ALLIGNMENT = 128;
+        // There are 4 seeprom devices each of 64KB,
+        // aso there is 1 ecc byte per 8 bytes of data
+        uint32_t const MAX_SEEPROM_SIZE = ((65536 - (65536 % 9)) / 9) * 8 * 4;
+
+        return ( !(( offset % OFFSET_ALLIGNMENT != 0) ||
+                  ( size % SIZE_ALLIGNMENT != 0 ) ||
+                  ( ( offset + size ) > MAX_SEEPROM_SIZE )) );
+    }
+    // Return effective seeprom address
+    uint64_t * getEffectiveAddr()
+    {
+        return ( uint64_t *)( SBE_SEEPROM_BASE_ORIGIN + offset );
+    }
+} sbeReadMemReq_t;
 
 /*****************************************************************/
 /*            SBE->PSU response structures                       */

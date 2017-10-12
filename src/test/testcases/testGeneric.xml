@@ -37,3 +37,7 @@
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testHostFFDC.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
+      <testcase>
+          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPSUReadSbeMem.py</simcmd>
+          <exitonerror>yes</exitonerror>
+      </testcase>

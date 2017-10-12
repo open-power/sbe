@@ -295,6 +295,11 @@ static sbeCmdStruct_t g_sbePsuMemRegionCmdArray[] =
 //////////////////////////////////////////////////////////////
 static sbeCmdStruct_t g_sbePsuGenericCmdArray[] =
 {
+    {sbeReadMem,
+     SBE_PSU_GENERIC_MSG_READ_SBE_MEM,
+     (uint16_t)(~SBE_FENCE_AT_RUNTIME),
+    },
+
     {sbeSetFFDCAddr,
      SBE_PSU_GENERIC_MSG_SET_FFDC_ADDR,
      SBE_NO_FENCE,
