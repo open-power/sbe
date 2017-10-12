@@ -53,6 +53,10 @@ ISTEPMPIPL-CPP-SOURCES +=p9_perv_sbe_cmn.C
 ISTEPMPIPL-CPP-SOURCES +=p9_suspend_powman.C
 ISTEPMPIPL-CPP-SOURCES +=p9_collect_suspend_ffdc.C
 ISTEPMPIPL-CPP-SOURCES +=p9_eq_clear_atomic_lock.C
+# Fast array procedures are moved here to locate it on seeprom
+ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_abist_catchup.C
+ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_cleanup.C
+ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_setup.C
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 

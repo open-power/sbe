@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016,2017
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,9 +31,6 @@
 ##########################################################################
 
 ARRAYACCESS-CPP-SOURCES = p9_sbe_tracearray.C
-ARRAYACCESS-CPP-SOURCES += p9_sbe_fastarray_abist_catchup.C
-ARRAYACCESS-CPP-SOURCES += p9_sbe_fastarray_cleanup.C
-ARRAYACCESS-CPP-SOURCES += p9_sbe_fastarray_setup.C
 ARRAYACCESS-C-SOURCES =
 ARRAYACCESS-S-SOURCES =
 
