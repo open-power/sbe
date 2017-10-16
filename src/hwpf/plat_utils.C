@@ -40,7 +40,7 @@
 namespace fapi2
 {
 #ifdef __FAPI_DELAY_SIM__
-    void sim_delay_loop(uint64_t delay_loop_count) __attribute__ ((aligned (8)));
+    void sim_delay_loop(uint64_t delay_loop_count) __attribute__ ((aligned (32)));
     void sim_delay_loop(uint64_t delay_loop_count)
     {
         for (auto i = delay_loop_count; i > 0; --i) {
