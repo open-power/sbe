@@ -124,41 +124,59 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
     //set_security_access
     {
-        fapi2::buffer<uint64_t> l_read_reg;
+        fapi2::buffer<uint64_t> read_cbs_reg;
         BootloaderSecureSettings l_secure_settings;
         l_secure_settings.data8 = 0;
 
         FAPI_DBG("Reading ATTR_SECURITY_MODE");
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, l_read_1));
         //Getting CBS_CS register value
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM, l_read_reg));
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM, read_cbs_reg));
 
-        if (   (!l_read_1)                     // Security override possible
-               && (l_read_scratch8.getBit<2>()) ) // scratch 3 is valid
+        /*
+        ------------------------------------------------------------------------------------------------------------
+        Jumper val/SMD Value   SBE Security override policy    scratch reg 3 bit 6        Result
+        ------------------------------------------------------------------------------------------------------------
+        1(request disable)     x(don't care)                   x(don't care)              Non-secure
+        0(don't req disable)   x(invalid scratch 3)            x                          Secure
+        0                      1(don't check mbox)             x                          Secure
+        0                      0(check mbox - dev only)        0(don't ask for disable)   Secure
+        0                      0                               1(ask for disable)         Non-secure
+        ------------------------------------------------------------------------------------------------------------
+        */
+        if (read_cbs_reg.getBit<5>() == 0)
         {
-            FAPI_DBG("Reading mailbox scratch register 3 bit 6 to check "
-                     "for external security override request");
-
-            //Getting SCRATCH_REGISTER_3 register value
-            FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_3_SCOM,
-                                    l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_3
-
-            if(l_read_scratch_reg.getBit<6>())
+            if (   (!l_read_1)                     // Security override possible
+                   && (l_read_scratch8.getBit<2>()) ) // scratch 3 is valid
             {
-                FAPI_DBG("Clear Security Access Bit");
-                l_read_reg.clearBit<4>();  //PIB.CBS_CS.CBS_CS_SECURE_ACCESS_BIT = 0
-                FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CBS_CS_SCOM, l_read_reg));
-            }
+                FAPI_DBG("Reading mailbox scratch register 3 bit 6 to check "
+                         "for external security override request");
 
-            FAPI_DBG("Copying mailbox scratch register 3 bits 6,7 to "
-                     "ATTR_SECURE_SETTINGS");
-            l_secure_settings.securityOverride = l_read_scratch_reg.getBit<6>();
-            l_secure_settings.allowAttrOverrides = l_read_scratch_reg.getBit<7>();
+                //Getting SCRATCH_REGISTER_3 register value
+                FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_3_SCOM,
+                                        l_read_scratch_reg)); //l_read_scratch_reg = PIB.SCRATCH_REGISTER_3
+
+                read_cbs_reg.writeBit<4>(!l_read_scratch_reg.getBit<6>());
+
+                FAPI_DBG("Copying mailbox scratch register 3 bits 6,7 to "
+                         "ATTR_SECURE_SETTINGS");
+                l_secure_settings.securityOverride = l_read_scratch_reg.getBit<6>();
+                l_secure_settings.allowAttrOverrides = l_read_scratch_reg.getBit<7>();
+
+            }
+            else
+            {
+                // Enable secure mode
+                read_cbs_reg.setBit<4>();
+            }
         }
+
+        // Update CBS_CS register
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CBS_CS_SCOM, read_cbs_reg));
 
         // Include the Secure Access Bit now, but will double check before
         // setting bootloader data later
-        l_secure_settings.secureAccessBit = l_read_reg.getBit<4>();
+        l_secure_settings.secureAccessBit = read_cbs_reg.getBit<4>();
         FAPI_DBG("Setting up ATTR_SECURITY_SETTINGS");
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SECURE_SETTINGS, FAPI_SYSTEM, l_secure_settings.data8));
     }
