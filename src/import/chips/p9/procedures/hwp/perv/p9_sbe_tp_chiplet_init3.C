@@ -43,6 +43,7 @@
 
 //## auto_generated
 #include "p9_sbe_tp_chiplet_init3.H"
+#include "p9_setup_clock_term.H"
 //## auto_generated
 #include "p9_const_common.H"
 
@@ -280,6 +281,7 @@ fapi_try_exit:
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, uint8_t cumulus_only_ec_attr)
 {
+    fapi2::buffer<uint32_t> l_data32;
     fapi2::buffer<uint64_t> l_read ;
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p9_sbe_tp_chiplet_init3_clock_test2: Entering ...");
@@ -345,6 +347,11 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     l_data64.clearBit<PERV_1_LOCAL_FIR_IN37>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_AND, l_data64));
 
+    FAPI_DBG("To get info about scr0,src1,both_src0,both_src1 from Root_ctrl3");
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL3_SCOM, l_data64));
+    l_data64.extractToRight<0, 32>(l_data32);
+    l_data32 &= 0x0000F000;
+
 #ifndef SIM_ONLY_OSC_SWC_CHK
 
     if (cumulus_only_ec_attr)  //Cumulus only
@@ -354,17 +361,28 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
         FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM,
                                 l_read)); //l_read = PIB.SNS1LTH
 
-        FAPI_ASSERT(l_read.getBit<21>() == 0 && l_read.getBit<26>() == 1,
-                    fapi2::MF_OSC_NOT_TOGGLE()
-                    .set_MASTER_CHIP(i_target_chip)
-                    .set_READ_SNS1LTH(l_read),
-                    "MF oscillator(OSC0) not toggling");
+        if (l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
+            || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
+            || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC0)
+        {
+            FAPI_ASSERT(l_read.getBit<21>() == 0 && l_read.getBit<28>() == 1,
+                        fapi2::MF_OSC_NOT_TOGGLE()
+                        .set_MASTER_CHIP(i_target_chip)
+                        .set_READ_SNS1LTH(l_read),
+                        "MF oscillator(OSC0) not toggling");
 
-        FAPI_ASSERT(l_read.getBit<23>() == 0 && l_read.getBit<27>() == 1,
-                    fapi2::MF_OSC_NOT_TOGGLE()
-                    .set_MASTER_CHIP(i_target_chip)
-                    .set_READ_SNS1LTH(l_read),
-                    "MF oscillator(OSC1) not toggling");
+        }
+
+        if (l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
+            || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
+            || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC1 )
+        {
+            FAPI_ASSERT(l_read.getBit<23>() == 0 && l_read.getBit<29>() == 1,
+                        fapi2::MF_OSC_NOT_TOGGLE()
+                        .set_MASTER_CHIP(i_target_chip)
+                        .set_READ_SNS1LTH(l_read),
+                        "MF oscillator(OSC1) not toggling");
+        }
 
         FAPI_DBG("Cumulus - check Osc error active");
         //Getting OSCERR_HOLD register value
