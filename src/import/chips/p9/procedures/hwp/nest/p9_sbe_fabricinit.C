@@ -44,6 +44,8 @@
 #include <p9_fbc_utils.H>
 #include <p9_misc_scom_addresses.H>
 #include <p9_misc_scom_addresses_fld.H>
+#include <p9n2_misc_scom_addresses.H>
+#include <p9n2_misc_scom_addresses_fld.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions
@@ -75,14 +77,19 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     fapi2::buffer<uint64_t> l_cmd_data;
     fapi2::buffer<uint64_t> l_status_data_act;
     fapi2::buffer<uint64_t> l_status_data_exp;
+    fapi2::buffer<uint64_t> l_mode_data;
     fapi2::buffer<uint64_t> l_hp_mode_data;
+    fapi2::buffer<uint64_t> l_nmmu_cqmode_data;
     bool l_fbc_is_initialized, l_fbc_is_running;
     fapi2::ATTR_PROC_FABRIC_PUMP_MODE_Type l_pump_mode;
     fapi2::ATTR_PROC_FABRIC_GROUP_ID_Type l_fbc_group_id_abs;
     fapi2::ATTR_PROC_EFF_FABRIC_GROUP_ID_Type l_fbc_group_id_eff;
     fapi2::ATTR_PROC_FABRIC_CHIP_ID_Type l_fbc_chip_id_abs;
     fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID_Type l_fbc_chip_id_eff;
+    fapi2::ATTR_CHIP_EC_FEATURE_EXTENDED_ADDRESSING_MODE_Type l_extended_addressing_mode;
     uint8_t l_fbc_xlate_addr_to_id = 0;
+    uint8_t l_addr_extension_group_id = 0;
+    uint8_t l_addr_extension_chip_id = 0;
 
     // before fabric is initialized, configure resources which live in hotplug registers
     // but which themselves are not hotpluggable
@@ -96,14 +103,60 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
              "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_CHIP_ID)");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, i_target, l_fbc_chip_id_eff),
              "Error from FAPI_ATTR_GET (ATTR_PROC_EFF_FABRIC_CHIP_ID)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_EXTENDED_ADDRESSING_MODE, i_target, l_extended_addressing_mode),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_EXTENDED_ADDRESSING_MODE)");
+
+    // sample center mode and hotplug mode registers
+    FAPI_TRY(fapi2::getScom(i_target, PU_PB_CENT_SM0_PB_CENT_MODE, l_mode_data),
+             "Error from getScom (PU_PB_CENT_SM0_PB_CENT_MODE)");
 
     FAPI_TRY(fapi2::getScom(i_target, PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR, l_hp_mode_data),
              "Error from getScom (PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR)");
+
+    // update mode register content
+    if (l_extended_addressing_mode)
+    {
+        fapi2::ATTR_CHIP_EC_FEATURE_HW423589_OPTION2_Type l_hw423589_option2;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW423589_OPTION2, i_target, l_hw423589_option2),
+                 "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_HW423589_OPTION2)");
+
+        if (l_hw423589_option2)
+        {
+            l_addr_extension_group_id = CHIP_ADDRESS_EXTENSION_GROUP_ID_MASK_HW423589_OPTION2;
+            l_addr_extension_chip_id = CHIP_ADDRESS_EXTENSION_CHIP_ID_MASK_HW423589_OPTION2;
+        }
+
+        // enable extended addressing mode, seed attributes from defaults
+        // and use attribute values to configure fabric -- should allow for testing
+        // alternate configurations via Cronus with const attribute overrides
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID,
+                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                               l_addr_extension_group_id),
+                 "Error from FAPI_ATTR_SET (ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID)");
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID,
+                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                               l_addr_extension_chip_id),
+                 "Error from FAPI_ATTR_SET (ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID)");
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID,
+                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                               l_addr_extension_group_id),
+                 "Error from FAPI_ATTR_GET (ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID)");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID,
+                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                               l_addr_extension_chip_id),
+                 "Error from FAPI_ATTR_GET (ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID)");
+
+        l_mode_data.insertFromRight<P9N2_PU_PB_CENT_SM0_PB_CENT_MODE_CFG_CHIP_ADDR_EXTENSION_MASK,
+                                    P9N2_PU_PB_CENT_SM0_PB_CENT_MODE_CFG_CHIP_ADDR_EXTENSION_MASK_LEN>
+                                    ((l_addr_extension_group_id << 3) | l_addr_extension_chip_id);
+    }
 
     // determine HW XOR mask based on fabric ID attributes
     l_fbc_xlate_addr_to_id =  ((l_fbc_group_id_abs << 3) | l_fbc_chip_id_abs);
     l_fbc_xlate_addr_to_id ^= ((l_fbc_group_id_eff << 3) | l_fbc_chip_id_eff);
 
+    // update hotplug mode register content
     l_hp_mode_data.insertFromRight<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_XLATE_ADDR_TO_ID,  // XOR mask
                                    PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_XLATE_ADDR_TO_ID_LEN>(l_fbc_xlate_addr_to_id);
 
@@ -120,7 +173,17 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         l_hp_mode_data.setBit<PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR_CFG_PUMP>();
     }
 
-    // write back to all hotplug registers (EAST/CENTER/WEST, NEXT & CURR)
+    // write back to all mode registers (EAST/CENTER/WEST)
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_MODE, l_mode_data),
+             "Error from putScom (PU_PB_CENT_SM0_PB_CENT_MODE)");
+
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_EAST_MODE, l_mode_data),
+             "Error from putScom (PU_PB_EAST_MODE)");
+
+    FAPI_TRY(fapi2::putScom(i_target, PU_PB_WEST_SM0_PB_WEST_MODE, l_mode_data),
+             "Error from putScom (PU_PB_WEST_SM0_PB_WEST_MODE)");
+
+    // write back to all hotplug mode registers (EAST/CENTER/WEST, NEXT & CURR)
     FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR, l_hp_mode_data),
              "Error from putScom (PU_PB_CENT_SM0_PB_CENT_HP_MODE_CURR)");
     FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_HP_MODE_NEXT, l_hp_mode_data),
@@ -135,6 +198,18 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
              "Error from putScom (PU_PB_WEST_SM0_PB_WEST_HP_MODE_CURR)");
     FAPI_TRY(fapi2::putScom(i_target, PU_PB_WEST_SM0_PB_WEST_HP_MODE_NEXT, l_hp_mode_data),
              "Error from putScom (PU_PB_WEST_SM0_PB_WEST_HP_MODE_NEXT)");
+
+    // set NMMU extended addressing configuration prior to fabric init
+    if (l_extended_addressing_mode)
+    {
+        FAPI_TRY(fapi2::getScom(i_target, P9N2_PU_NMMU_MMCQ_PB_MODE_REG, l_nmmu_cqmode_data),
+                 "Error from getScom (P9N2_PU_NMMU_MMCQ_PB_MODE_REG)");
+        l_nmmu_cqmode_data.insertFromRight<P9N2_PU_NMMU_MMCQ_PB_MODE_REG_ADDR_EXT_MASK,
+                                           P9N2_PU_NMMU_MMCQ_PB_MODE_REG_ADDR_EXT_MASK_LEN>
+                                           ((l_addr_extension_group_id << 3) | l_addr_extension_chip_id);
+        FAPI_TRY(fapi2::putScom(i_target, P9N2_PU_NMMU_MMCQ_PB_MODE_REG, l_nmmu_cqmode_data),
+                 "Error from getScom (P9N2_PU_NMMU_MMCQ_PB_MODE_REG)");
+    }
 
     // check state of fabric pervasive stop control signal
     // if set, this would prohibit all fabric commands from being broadcast

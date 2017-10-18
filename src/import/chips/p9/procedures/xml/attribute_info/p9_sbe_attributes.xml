@@ -510,6 +510,14 @@ attribute tank
            <virtual/>
   </entry>
   <entry>
+           <name>ATTR_CHIP_EC_FEATURE_HW423589_OPTION2</name>
+           <virtual/>
+  </entry>
+  <entry>
+           <name>ATTR_CHIP_EC_FEATURE_EXTENDED_ADDRESSING_MODE</name>
+           <virtual/>
+  </entry>
+  <entry>
            <name>ATTR_CHIP_EC_FEATURE_HW414700</name>
            <virtual/>
   </entry>
@@ -540,5 +548,13 @@ attribute tank
   <entry>
            <name>ATTR_SBE_ADDR_KEY_STASH_ADDR</name>
            <value>0x0000000000000000</value>
+  </entry>
+  <entry>
+           <name>ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID</name>
+           <value>0x00</value>
+  </entry>
+  <entry>
+           <name>ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID</name>
+           <value>0x00</value>
   </entry>
 </entries>

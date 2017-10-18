@@ -165,7 +165,7 @@ p9_hcd_cache_scominit(
         // AND we are give second configured EX to process(l_exloop==1)
         if (l_attr_sys_force_all_cores || (!l_exloop))
         {
-            FAPI_EXEC_HWP(l_rc, p9_l2_scom, *l_iter, l_sys);
+            FAPI_EXEC_HWP(l_rc, p9_l2_scom, *l_iter, l_sys, l_chip);
 
             if (l_rc)
             {

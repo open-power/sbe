@@ -310,12 +310,13 @@ calc_image_footprint(
     // target base address = (drawer non-mirrored base address) +
     //                       (hostboot HRMOR offset) +
     //                       (bootloader offset)
-    FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_master_chip_target,
-             ABS_FBC_GRP_ID_ONLY,
-             l_drawer_base_address_nm0,
-             l_drawer_base_address_nm1,
-             l_drawer_base_address_m,
-             l_drawer_base_address_mmio),
+    FAPI_TRY(p9_fbc_utils_get_chip_base_address_no_aliases(
+                 i_master_chip_target,
+                 ABS_FBC_GRP_ID_ONLY,
+                 l_drawer_base_address_nm0,
+                 l_drawer_base_address_nm1,
+                 l_drawer_base_address_m,
+                 l_drawer_base_address_mmio),
              "Error from p9_fbc_utils_get_chip_base_address (drawer)");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
@@ -404,7 +405,7 @@ get_bootloader_config_data(
     FAPI_DBG("Start");
 
     // read platform initialized attributes to determine struct content
-    FAPI_TRY(p9_fbc_utils_get_chip_base_address(i_master_chip_target,
+    FAPI_TRY(p9_fbc_utils_get_chip_base_address_no_aliases(i_master_chip_target,
              EFF_FBC_GRP_CHIP_IDS,
              l_chip_base_address_nm0,
              l_chip_base_address_nm1,

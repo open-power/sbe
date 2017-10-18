@@ -906,7 +906,7 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
         FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
                       FAPI_SYSTEM,
                       l_hostboot_hrmor_offset);
-        rc = p9_fbc_utils_get_chip_base_address(
+        rc = p9_fbc_utils_get_chip_base_address_no_aliases(
                                     proc,
                                     ABS_FBC_GRP_ID_ONLY,
                                     drawer_base_address_nm0,
