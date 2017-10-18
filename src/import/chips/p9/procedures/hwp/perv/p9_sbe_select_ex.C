@@ -457,16 +457,19 @@ fapi2::ReturnCode p9_sbe_select_ex(
                 "The cache chiplet associated with the first good core not functional");
 
     // Write to the OCC Core Configuration Status Register
-    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_CCSR_SCOM2, l_core_config));
+    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_CCSR_SCOM, l_core_config));
 
     // Write to the OCC Quad Configuration Status Register
-    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_QCSR_SCOM2, l_quad_config));
+    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_QCSR_SCOM, l_quad_config));
 
-    // Set (via OR Write) the default value the OCC Quad Status Status Register
+    // Write the default value of the OCC Quad Status Status Register
+    // Note: on the MPIPL path, this also clears any trapped "in-progress" bits
+    // *INDENT-OFF*
     l_data64.flush<0>()
-    .setBit<0, 12>()       // L2 Stopped
-    .setBit<14, 6>();      // Quad Stopped
-    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_QSSR_SCOM2, l_data64));
+            .setBit<0, 12>()       // L2 Stopped
+            .setBit<14, 6>();      // Quad Stopped
+    // *INDENT-ON*
+    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_QSSR_SCOM, l_data64));
 
 fapi_try_exit:
     FAPI_INF("< p9_sbe_select_ex");
