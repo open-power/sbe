@@ -199,11 +199,14 @@ extern "C"
 
         //Write the OCB3 Status Control Register
         //Configure linear stream mode (auto-increment +8 with each data register read/write)
-        //set bit 4 and unset bit 5 of OCB3 Status Control Register
-        ocb_status_ctl_data.flush<0>().setBit<5>();
+        // Set bits 0:1 to clear PULL_READ_UNDERFLOW and PUSH_WRITE_OVERFLOW
+        // Set bit 5 to clear stream type (enables linear mode)
+        // Set bits 6:15 to clear other errors
+        ocb_status_ctl_data.flush<0>().setBit<0, 2>().setBit<5, 11>();
         FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBCSR3_CLEAR,
                                 ocb_status_ctl_data),
                  "Error writing to the OCB3 Status Control Register with and mask");
+        // Set bit 4 to enable stream mode
         ocb_status_ctl_data.flush<0>().setBit<4>();
         FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBCSR3_OR,
                                 ocb_status_ctl_data),
