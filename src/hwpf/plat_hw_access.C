@@ -252,7 +252,7 @@ fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
     l_pibRc = getscom_abs(l_addr, o_data);
     if( PIB_NO_ERROR != l_pibRc )
     {
-        l_pibRc = p9_pibErrRetry( l_addr, o_data, l_pibRc, true);
+        l_pibRc = p9_handlePibErr( l_addr, o_data, l_pibRc, true);
     }
     FAPI_INF("getScom: returned pibRc: 0x%08X, data HI: 0x%08X, "
              "data LO: 0x%08X", l_pibRc, (*o_data >> 32),
@@ -289,7 +289,7 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
     l_pibRc = putscom_abs(l_addr, i_data);
     if( PIB_NO_ERROR != l_pibRc )
     {
-        l_pibRc = p9_pibErrRetry( l_addr, &i_data, l_pibRc, false);
+        l_pibRc = p9_handlePibErr( l_addr, &i_data, l_pibRc, false);
     }
     FAPI_INF("putScom: returned pibRc: 0x%08X", l_pibRc);
     fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
@@ -340,16 +340,37 @@ fapi2::ReturnCode putscom_under_mask(const void *i_target,
     return l_rc;
 }
 
-uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,
+uint32_t p9_handlePibErr( const uint32_t i_addr, uint64_t *io_data,
                          const uint8_t i_pibErr, const bool i_isRead)
 {
-    FAPI_INF("Entering p9_pibErrRetry");
+    FAPI_INF("Entering p9_handlePibErr");
     static const uint8_t MAX_RETRIES = 2;
     uint8_t l_retryCount = 0;
     uint32_t pibErr = i_pibErr;
 
+    // the format for scom is
+    // 0   1  2  3   4   5  6  7  8  9  10  11  12  13  14  15
+    // WR  MC [MC Type]  [MC gp]  [PIB M Addr]  [Port Number ]
+    //        [slave addr(MC=0)]
+    // 16 17 18 19 20 21 22 23 24 25 26  27  28  29  30   31
+    // [          Local addr                               ]
+
+    // For multicast address address bit 1 should be 1
+    static const uint32_t MULTICAST_MASK = 0x40000000;
+
     do
     {
+        // There is a HW bug where if any chiplet is offline, we can get
+        // PIB_OFFLINE_ERROR on multicast address  though data is valid.
+        // In this case SBE should treat it as success.
+        if((  i_pibErr == PIB_OFFLINE_ERROR ) &&
+           (i_addr & MULTICAST_MASK))
+        {
+            FAPI_INF("PIB_OFFLINE_ERROR on Multicast scom addr:0x%08X. "
+                    "Ignoring error", i_addr );
+            pibErr = PIB_NO_ERROR;
+            break;
+        }
         // Only retry for parity and timeout errors
         if (( i_pibErr != PIB_PARITY_ERROR )
             && ( i_pibErr !=  PIB_TIMEOUT_ERROR ))
@@ -377,7 +398,7 @@ uint32_t p9_pibErrRetry( const uint32_t i_addr, uint64_t *io_data,
             if ( pibErr != i_pibErr ) break;
         }
     }while(0);
-    FAPI_INF("Exiting p9_pibErrRetry");
+    FAPI_INF("Exiting p9_handlePibErr");
     return pibErr;
 }
 
