@@ -55,7 +55,8 @@ namespace CEN_RID
 #include "cen_ringId.H"
 }
 #endif
-
+#include "p9_infrastruct_help.H"
+#include "p9_dd_container.h"
 
 #define LINE_SIZE_MAX  1024     // Max size of a single snprintf dump.
 #define RING_BUF_SIZE_MAX  1000000
@@ -66,7 +67,7 @@ enum LISTING_MODE_ID
 {
     LMID_TABLE,
     LMID_SHORT,
-    LMID_NORMAL, // default
+    LMID_NORMAL,
     LMID_LONG,
     LMID_RAW
 };
@@ -83,7 +84,7 @@ const char* g_usage =
     "       p9_xip_tool <image> [-i<flag> ...] extract <section> <file> [ <ddLevel> ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] delete <section> [ <section1> ... <sectionN> ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] dis <section>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] dissect [ .rings(default),.overlays,.overrides,(none) ] [ table,short,normal(default),long,raw ]\n"
+    "       p9_xip_tool <image> [-i<flag> ...] dissect <section={.rings,.overlays,.overrides,(none)}> [ table,short,normal(default),long,raw ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] check-sbe-ring-section <dd level> <maximum size>\n"
     "\n"
     "This simple application uses the P9-XIP image APIs to normalize, search\n"
@@ -189,9 +190,6 @@ P9_XIP_SECTION_NAMES_PGPE(g_sectionNamesPgpe);
 P9_XIP_SECTION_NAMES_IOPPE(g_sectionNamesIoppe);
 P9_XIP_SECTION_NAMES_FPPE(g_sectionNamesFppe);
 P9_XIP_SECTION_NAMES_SBE(g_sectionNamesSbe);
-
-// Disassembler error support.
-DIS_ERROR_STRINGS(g_errorStringsDis);
 
 #define ERRBUF_SIZE 60
 
@@ -444,129 +442,246 @@ tocListing(void* i_image,
     return rc;
 }
 
+
+/// Function: resolve_image_section_type
+///
+/// Brief: Resolves the type of the input image section, e.g. XIP image.
+///
+/// \param[in]  i_image             A pointer to the image section.
+///
+/// \param[out] o_imageSectionType  The resolved image section type.
+///
+static void
+resolve_image_section_type( const void* i_image,
+                            image_section_type_t& o_imageSectionType )
+{
+
+    if (be64toh(((P9XipHeader*)i_image)->iv_magic) >> 32 == P9_XIP_MAGIC)
+    {
+        o_imageSectionType = IST_XIP;
+    }
+
+#ifndef __PPE__
+    else if (be32toh(((TorHeader_t*)i_image)->magic) >> 8 == TOR_MAGIC)
+    {
+        o_imageSectionType = IST_TOR;
+    }
+    else if (be32toh(((DdContHeader_t*)i_image)->iv_magic) == DD_CONTAINER_MAGIC)
+    {
+        o_imageSectionType = IST_DDCO;
+    }
+
+#endif
+    else
+    {
+        o_imageSectionType = IST_UNDEFINED;
+    }
+
+    return;
+}
+
+
 // Dump the image header, including the section table
 
-static int
-dumpHeader(void* i_image)
+static void
+dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
 {
     int i;
     P9XipHeader header;
     P9XipSection* section;
+#ifndef __PPE__
+    TorHeader_t* torHeader = (TorHeader_t*)i_image;
+    DdContHeader_t* ddContHeader = (DdContHeader_t*)i_image;
+#endif
     char magicString[9];
 
-    // Dump header information. Since the TOC may not exist we need to get
-    // the information from the header explicitly.
-
-    p9_xip_translate_header(&header, (P9XipHeader*)i_image);
-
-    memcpy(magicString, (char*)(&(((P9XipHeader*)i_image)->iv_magic)), 8);
-    magicString[8] = 0;
-
-    printf("Magic Number      : 0x%016lx \"%s\"\n",
-           header.iv_magic, magicString);
-    printf("Header Version    : 0x%02x\n", header.iv_headerVersion);
-    printf("Link Address      : 0x%016lx\n", header.iv_linkAddress);
-    printf("L1 Loader Address : 0x%08x\n", (uint32_t)header.iv_L1LoaderAddr);
-    printf("L2 Loader Address : 0x%08x\n", (uint32_t)header.iv_L2LoaderAddr);
-    printf("Kernel Address    : 0x%08x\n", (uint32_t)header.iv_kernelAddr);
-    printf("Image Size        : 0x%08x (%d)\n",
-           header.iv_imageSize, header.iv_imageSize);
-    printf("Normalized        : %s\n", header.iv_normalized ? "Yes" : "No");
-    printf("TOC Sorted        : %s\n", header.iv_tocSorted ? "Yes" : "No");
-    printf("Build Date        : %02d/%02d/%04d\n",
-           (header.iv_buildDate / 100) % 100,
-           header.iv_buildDate % 100,
-           header.iv_buildDate / 10000);
-    printf("Build Time        : %02d:%02d\n",
-           header.iv_buildTime / 100,
-           header.iv_buildTime % 100);
-    printf("Build User        : %s\n", header.iv_buildUser);
-    printf("Build Host        : %s\n", header.iv_buildHost);
-    printf("Build Tag         : %s\n", header.iv_buildTag);
-    printf("\n");
-
-    printf("Section Table     :\n\n");
-    printf("    Name            Align   DD   Start        End          Size\n");
-    printf("\n");
-
-    for (i = 0; i < P9_XIP_SECTIONS; i++)
+    switch (i_imageSectionType)
     {
-        section = &(header.iv_section[i]);
-        printf("   %-16s %d       %d    0x%08x   ",
-               get_sectionName(header.iv_magic, i),
-               section->iv_alignment,
-               section->iv_ddSupport,
-               section->iv_offset);
 
-        if (section->iv_size == 0)
-        {
-            printf("          ");
-        }
-        else
-        {
-            printf("0x%08x", section->iv_offset + section->iv_size - 1);
-        }
+        case IST_XIP:
 
-        printf("   0x%08x (%d)\n", section->iv_size, section->iv_size);
+            // Dump header information. Since the TOC may not exist we need to get
+            // the information from the header explicitly.
+
+            p9_xip_translate_header(&header, (P9XipHeader*)i_image);
+
+            memcpy(magicString, (char*)(&(((P9XipHeader*)i_image)->iv_magic)), 8);
+            magicString[8] = 0;
+
+            printf("Image section type : 0x%02x \"XIP image\"\n", i_imageSectionType);
+            printf("Magic number       : 0x%016lx \"%s\"\n",
+                   header.iv_magic, magicString);
+            printf("Header version     : 0x%02x\n", header.iv_headerVersion);
+            printf("Link Address       : 0x%016lx\n", header.iv_linkAddress);
+            printf("L1 Loader Address  : 0x%08x\n", (uint32_t)header.iv_L1LoaderAddr);
+            printf("L2 Loader Address  : 0x%08x\n", (uint32_t)header.iv_L2LoaderAddr);
+            printf("Kernel Address     : 0x%08x\n", (uint32_t)header.iv_kernelAddr);
+            printf("Image size         : 0x%08x (%d)\n",
+                   header.iv_imageSize, header.iv_imageSize);
+            printf("Normalized         : %s\n", header.iv_normalized ? "Yes" : "No");
+            printf("TOC Sorted         : %s\n", header.iv_tocSorted ? "Yes" : "No");
+            printf("Build Date         : %02d/%02d/%04d\n",
+                   (header.iv_buildDate / 100) % 100,
+                   header.iv_buildDate % 100,
+                   header.iv_buildDate / 10000);
+            printf("Build Time         : %02d:%02d\n",
+                   header.iv_buildTime / 100,
+                   header.iv_buildTime % 100);
+            printf("Build User         : %s\n", header.iv_buildUser);
+            printf("Build Host         : %s\n", header.iv_buildHost);
+            printf("Build Tag          : %s\n", header.iv_buildTag);
+            printf("\n");
+
+            printf("Section Table      :\n\n");
+            printf("    Name            Align   DD   Start        End          Size\n");
+            printf("\n");
+
+            for (i = 0; i < P9_XIP_SECTIONS; i++)
+            {
+                section = &(header.iv_section[i]);
+                printf("   %-16s %d       %d    0x%08x   ",
+                       get_sectionName(header.iv_magic, i),
+                       section->iv_alignment,
+                       section->iv_ddSupport,
+                       section->iv_offset);
+
+                if (section->iv_size == 0)
+                {
+                    printf("          ");
+                }
+                else
+                {
+                    printf("0x%08x", section->iv_offset + section->iv_size - 1);
+                }
+
+                printf("   0x%08x (%d)\n", section->iv_size, section->iv_size);
+            }
+
+            break;
+
+#ifndef __PPE__
+
+        case IST_TOR:
+
+            memcpy(magicString, (char*) & (torHeader->magic), 4);
+            magicString[4] = 0;
+
+            printf("Image section type : 0x%02x \"TOR ring section\"\n", i_imageSectionType);
+            printf("Magic number       : 0x%08x \"%s\"\n",
+                   be32toh(torHeader->magic), magicString);
+            printf("Header version     : 0x%02x\n", torHeader->version);
+            printf("Chip type          : 0x%02x \"%s\"\n",
+                   torHeader->chipType, CHIP_TYPE_LIST[torHeader->chipType].name);
+            printf("DD level           : 0x%02x\n", torHeader->ddLevel);
+            printf("Number DD levels   : %d\n", torHeader->numDdLevels);
+            printf("Image size         : 0x%08x (%d)\n",
+                   be32toh(torHeader->size), be32toh(torHeader->size));
+
+            break;
+
+        case IST_DDCO:
+
+            memcpy(magicString, (char*) & (ddContHeader->iv_magic), 4);
+            magicString[4] = 0;
+
+            printf("Image section type : 0x%02x \"DDCO image section\"\n", i_imageSectionType);
+            printf("Magic number       : 0x%08x \"%s\"\n",
+                   be32toh(ddContHeader->iv_magic), magicString);
+            printf("Number DD levels   : %d\n", ddContHeader->iv_num);
+
+            break;
+#endif
+
+        default:
+
+            fprintf(stderr,
+                    "\nERROR: In dumpHeader(): Invalid image section type (=%d)\n",
+                    i_imageSectionType);
+            uint64_t l_magic = *((uint64_t*)i_image);
+            fprintf(stderr, "Here's the first 8 bytes of the image section (LE): 0x%016lx ",
+                    be64toh(l_magic));
+            fprintf(stderr, "\"%c%c%c%c%c%c%c%c\"\n",
+                    *(((uint8_t*)&l_magic) + 0),
+                    *(((uint8_t*)&l_magic) + 1),
+                    *(((uint8_t*)&l_magic) + 2),
+                    *(((uint8_t*)&l_magic) + 3),
+                    *(((uint8_t*)&l_magic) + 4),
+                    *(((uint8_t*)&l_magic) + 5),
+                    *(((uint8_t*)&l_magic) + 6),
+                    *(((uint8_t*)&l_magic) + 7));
+            fprintf(stderr,
+                    "If you're seeing \"TOR\" or \"DDCO\" in the first 8 bytes, you're probably using the PPE version of p9_xip_tool. Use the EKB version instead!\n");
+            exit(EXIT_FAILURE);
+
     }
 
-    printf("\n");
-
-    return 0;
+    return;
 }
 
 
 // Print a report
 
 static int
-report(void* io_image, const int i_argc, const char** i_argv)
+report(void*                      io_image,
+       const int                  i_argc,
+       const char**               i_argv,
+       const image_section_type_t i_imageSectionType)
 {
-    int rc;
+    int rc = INFRASTRUCT_RC_SUCCESS;
     ReportControl control;
     char errbuf[ERRBUF_SIZE];
 
     do
     {
 
-        // Basic syntax check : [<regexp>]
-
-        if (i_argc > 1)
+        if (i_imageSectionType == IST_XIP)
         {
-            fprintf(stderr, g_usage);
-            exit(1);
-        }
 
-        // Compile a regular expression if supplied
+            // Basic syntax check : [<regexp>]
 
-        if (i_argc == 1)
-        {
-            rc = regcomp(&(control.preg), i_argv[0], REG_NOSUB);
-
-            if (rc)
+            if (i_argc > 1)
             {
-                regerror(rc, &(control.preg), errbuf, ERRBUF_SIZE);
-                fprintf(stderr, "Error from regcomp() : %s\n", errbuf);
+                fprintf(stderr, g_usage);
                 exit(1);
             }
 
-            control.regex = 1;
+            // Compile a regular expression if supplied
+
+            if (i_argc == 1)
+            {
+                rc = regcomp(&(control.preg), i_argv[0], REG_NOSUB);
+
+                if (rc)
+                {
+                    regerror(rc, &(control.preg), errbuf, ERRBUF_SIZE);
+                    fprintf(stderr, "Error from regcomp() : %s\n", errbuf);
+                    exit(1);
+                }
+
+                control.regex = 1;
+            }
+            else
+            {
+                control.regex = 0;
+
+                dumpHeader(io_image, IST_XIP);
+                printf("\nTOC Report\n\n");
+            }
+
+            // Map the TOC with the mapReport() function
+
+            control.index = 0;
+            rc = p9_xip_map_toc(io_image, tocListing, (void*)(&control));
+
+            if (rc)
+            {
+                break;
+            }
         }
         else
         {
-            control.regex = 0;
-
-            dumpHeader(io_image);
-            printf("TOC Report\n\n");
-        }
-
-        // Map the TOC with the mapReport() function
-
-        control.index = 0;
-        rc = p9_xip_map_toc(io_image, tocListing, (void*)(&control));
-
-        if (rc)
-        {
-            break;
+            dumpHeader(io_image, i_imageSectionType);
+            printf("\n");
         }
 
     }
@@ -1797,7 +1912,7 @@ int dissectRingSectionTor( void*       i_ringSection,
     TorDdBlock_t* torDdBlock;
 
     //
-    // Get TOR magic, chip type and DD level info from TOR header field
+    // Get TOR magic and DD level info from TOR header field
     //
     torMagic    = be32toh(torHeader->magic);
     chipType    = torHeader->chipType;
@@ -1829,15 +1944,7 @@ int dissectRingSectionTor( void*       i_ringSection,
     fprintf(stdout, "---------------------------------\n");
     fprintf(stdout, "*      TOR header summary       *\n");
     fprintf(stdout, "---------------------------------\n");
-    fprintf(stdout, "TOR magic:      0x%4x=>%c%c%c%c\n", torMagic,
-            (uint8_t)(torMagic >> 24),
-            (uint8_t)(torMagic >> 16),
-            (uint8_t)(torMagic >> 8),
-            (uint8_t)(torMagic));
-    fprintf(stdout, "TOR version:    %d\n", torHeader->version);
-    fprintf(stdout, "Chip type:      %d=>%s\n", chipType, CHIP_TYPE_LIST[chipType].name);
-    fprintf(stdout, "DD level:       0x%x\n", ddLevel);
-    fprintf(stdout, "Num DD levels:  %d\n", numDdLevels);
+    dumpHeader(i_ringSection, IST_TOR);
     fprintf(stdout, "---------------------------------\n");
     fprintf(stdout, "\n\n");
 
@@ -2183,12 +2290,15 @@ int dissectRingSectionTor( void*       i_ringSection,
 ///
 /// \param[in] i_argv  Additional arguments beyond "dissect" keyword.
 ///
+/// \param[in] i_imageSectionType  Image section type, e.g. IST_XIP or IST_TOR.
+///
 /// Assumptions:
 ///
-static
-int dissectRingSection(void*          i_image,
-                       int            i_argc,
-                       const char**   i_argv)
+static int
+dissectRingSection(void*                      i_image,
+                   int                        i_argc,
+                   const char**               i_argv,
+                   const image_section_type_t i_imageSectionType)
 {
     int             rc = 0;
     const char*     sectionName;
@@ -2197,138 +2307,173 @@ int dissectRingSection(void*          i_image,
     P9XipHeader     hostHeader;
     P9XipSection    hostSection;
     void*           ringSectionPtr;
+    image_section_type_t l_imageSectionType = IST_UNDEFINED;
 
 
-    // Determine whether i_image is an XIP image or an isolated TOR ring section image.
     //
-    if (be64toh(((P9XipHeader*)i_image)->iv_magic) >> 32 == P9_XIP_MAGIC)
+    // Treat input image section according to its type.
+    //
+
+    switch(i_imageSectionType)
     {
 
-        if (i_argc == 1)
-        {
-            sectionName = i_argv[0];
-        }
-        else if (i_argc == 2)
-        {
-            sectionName = i_argv[0];
-            listingModeName = i_argv[1];
-        }
-        else
-        {
+        case IST_XIP:
+
+            if (i_argc == 1)
+            {
+                sectionName = i_argv[0];
+            }
+            else if (i_argc == 2)
+            {
+                sectionName = i_argv[0];
+                listingModeName = i_argv[1];
+            }
+            else
+            {
+                fprintf(stderr,
+                        "\nERROR:  The number of sub arguments (=%d) is too few or too many for the 'dissect' command for an XIP image\n",
+                        i_argc);
+                exit(EXIT_FAILURE);
+            }
+
+            p9_xip_translate_header(&hostHeader, (P9XipHeader*)i_image);
+
+            // Determine P9-XIP ring section ID from the section name, e.g.
+            //         .rings    =>  P9_XIP_SECTION_HW_RINGS
+            if (strcmp(sectionName, ".rings") == 0)
+            {
+                if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
+                {
+                    sectionId = P9_XIP_SECTION_SBE_RINGS;
+                }
+                else if (hostHeader.iv_magic == P9_XIP_MAGIC_HW ||
+                         hostHeader.iv_magic == P9_XIP_MAGIC_CENTAUR)
+                {
+                    sectionId = P9_XIP_SECTION_HW_RINGS;
+                }
+                else
+                {
+                    fprintf(stderr,
+                            "\nERROR: .rings is not a valid section for image w/magic=0x%016lx\n",
+                            hostHeader.iv_magic);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if (strcmp(sectionName, ".overrides") == 0)
+            {
+                if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
+                {
+                    sectionId = P9_XIP_SECTION_SBE_OVERRIDES;
+                }
+                else
+                {
+                    fprintf(stderr,
+                            "\nERROR: .overrides is not a valid section for image w/magic=0x%016lx\n",
+                            hostHeader.iv_magic);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if (strcmp(sectionName, ".overlays") == 0)
+            {
+                if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
+                {
+                    sectionId = P9_XIP_SECTION_SBE_OVERLAYS;
+                }
+                else
+                {
+                    fprintf(stderr,
+                            "\nERROR: .overlays is not a valid section for image w/magic=0x%016lx\n",
+                            hostHeader.iv_magic);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else
+            {
+                fprintf(stderr,
+                        "\nERROR : %s is an invalid ring section name.\n", sectionName);
+                fprintf(stderr, "Valid ring <section> names for the 'dissect' function are:\n");
+                fprintf(stderr, "\t.rings\n");
+                fprintf(stderr, "\t.overrides\n");
+                fprintf(stderr, "\t.overlays\n");
+                fprintf(stderr, "\n");
+                exit(EXIT_FAILURE);
+            }
+
+            // Get ring section.
+            //
+            rc = p9_xip_get_section( i_image, sectionId, &hostSection);
+
+            if (rc)
+            {
+                fprintf( stderr, "p9_xip_get_section() failed : %s\n", P9_XIP_ERROR_STRING(g_errorStrings, rc));
+                return P9_XIP_DISASSEMBLER_ERROR;
+            }
+
+            if (hostSection.iv_offset == 0)
+            {
+                fprintf( stdout, "Ring section (w/ID=%d) is empty. Nothing to do. Quitting.\n", sectionId);
+                exit(EXIT_FAILURE);
+            }
+
+            ringSectionPtr = (void*)((uintptr_t)i_image + hostSection.iv_offset);
+
+            resolve_image_section_type( ringSectionPtr, l_imageSectionType);
+
+            if (l_imageSectionType != IST_TOR)
+            {
+                fprintf( stderr,
+                         "\nERROR:  The XIP section's ring section type (=%d) is not a TOR ring section type (=%d). Possibly, you may be attempting to dissect one of the other XIP ring section types, such as DDCO, but which have no dissect support yet.\n",
+                         l_imageSectionType, IST_TOR);
+                exit(EXIT_FAILURE);
+            }
+
+            break;
+
+        case IST_TOR:
+
+            if (i_argc == 1)
+            {
+                listingModeName = i_argv[0];
+            }
+            else
+            {
+                fprintf(stderr,
+                        "\nERROR:  The number of sub arguments (=%d) is too few or too many for the 'dissect' command for a TOR section\n",
+                        i_argc);
+                exit(EXIT_FAILURE);
+            }
+
+            ringSectionPtr = i_image;
+
+            break;
+
+        case IST_DDCO:
+
             fprintf(stderr,
-                    "ERROR:  The number of sub arguments (=%d) is too few or too many for the 'dissect' command for an XIP image\n\n",
-                    i_argc);
-            fprintf(stderr, g_usage);
+                    "\nERROR:  No support for DDCO image section type yet.\n");
             exit(EXIT_FAILURE);
-        }
 
-        p9_xip_translate_header(&hostHeader, (P9XipHeader*)i_image);
+        default:
 
-        // Determine P9-XIP ring section ID from the section name, e.g.
-        //         .rings    =>  P9_XIP_SECTION_HW_RINGS
-        if (strcmp(sectionName, ".rings") == 0)
-        {
-            if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
-            {
-                sectionId = P9_XIP_SECTION_SBE_RINGS;
-            }
-            else if (hostHeader.iv_magic == P9_XIP_MAGIC_HW ||
-                     hostHeader.iv_magic == P9_XIP_MAGIC_CENTAUR)
-            {
-                sectionId = P9_XIP_SECTION_HW_RINGS;
-            }
-            else
-            {
-                fprintf(stderr, "ERROR: .rings is not a valid section for image w/magic=0x%016lx\n",
-                        hostHeader.iv_magic);
-                exit(1);
-            }
-        }
-        else if (strcmp(sectionName, ".overrides") == 0)
-        {
-            if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
-            {
-                sectionId = P9_XIP_SECTION_SBE_OVERRIDES;
-            }
-            else
-            {
-                fprintf(stderr, "ERROR: .overrides is not a valid section for image w/magic=0x%016lx\n",
-                        hostHeader.iv_magic);
-                exit(1);
-            }
-        }
-        else if (strcmp(sectionName, ".overlays") == 0)
-        {
-            if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
-            {
-                sectionId = P9_XIP_SECTION_SBE_OVERLAYS;
-            }
-            else
-            {
-                fprintf(stderr, "ERROR: .overlays is not a valid section for image w/magic=0x%016lx\n",
-                        hostHeader.iv_magic);
-                exit(1);
-            }
-        }
-        else
-        {
-            fprintf(stderr, "ERROR : %s is an invalid ring section name.\n", sectionName);
-            fprintf(stderr, "Valid ring <section> names for the 'dissect' function are:\n");
-            fprintf(stderr, "\t.rings\n");
-            fprintf(stderr, "\t.overrides\n");
-            fprintf(stderr, "\t.overlays\n");
-            exit(1);
-        }
-
-        // Get ring section.
-        //
-        rc = p9_xip_get_section( i_image, sectionId, &hostSection);
-
-        if (rc)
-        {
-            fprintf( stderr, "p9_xip_get_section() failed : %s\n", P9_XIP_ERROR_STRING(g_errorStrings, rc));
-            return P9_XIP_DISASSEMBLER_ERROR;
-        }
-
-        if (hostSection.iv_offset == 0)
-        {
-            fprintf( stdout, "Ring section (w/ID=%d) is empty. Nothing to do. Quitting.\n", sectionId);
-            exit(1);
-        }
-
-        ringSectionPtr = (void*)(hostSection.iv_offset + (uintptr_t)i_image);
-
-        if (be32toh(((TorHeader_t*)ringSectionPtr)->magic) >> 8 != TOR_MAGIC)
-        {
-            fprintf( stderr,
-                     "ERROR:  The XIP section is not a TOR compatible ring section. Possibly, the image is outdated and has the old TOR-headerless layout which is no longer supported. Try dissecting with an older version of p9_xip_tool.\n");
-            exit(EXIT_FAILURE);
-        }
-
-    }
-    else if (be32toh(((TorHeader_t*)i_image)->magic) >> 8 == TOR_MAGIC)
-    {
-
-        if (i_argc == 1)
-        {
-            listingModeName = i_argv[0];
-        }
-        else
-        {
             fprintf(stderr,
-                    "ERROR:  The number of sub arguments (=%d) is too few or too many for the 'dissect' command for a TOR section\n\n",
-                    i_argc);
-            fprintf(stderr, g_usage);
+                    "\nERROR : In dissectRingSection(): Invalid image section type (=0x%02x)\n",
+                    i_imageSectionType);
+
+            uint64_t l_magic = *((uint64_t*)i_image);
+            fprintf(stderr, "Here's the first 8 bytes of the image section (LE): 0x%016lx ",
+                    be64toh(l_magic));
+            fprintf(stderr, "\"%c%c%c%c%c%c%c%c\"\n",
+                    *(((uint8_t*)&l_magic) + 0),
+                    *(((uint8_t*)&l_magic) + 1),
+                    *(((uint8_t*)&l_magic) + 2),
+                    *(((uint8_t*)&l_magic) + 3),
+                    *(((uint8_t*)&l_magic) + 4),
+                    *(((uint8_t*)&l_magic) + 5),
+                    *(((uint8_t*)&l_magic) + 6),
+                    *(((uint8_t*)&l_magic) + 7));
+            fprintf(stderr,
+                    "If you're seeing \"TOR\" or \"DDCO\" in the first 8 bytes, you're probably using the PPE version of p9_xip_tool. Use the EKB version instead!\n");
             exit(EXIT_FAILURE);
-        }
-
-        ringSectionPtr = i_image;
-
-    }
-    else
-    {
-        fprintf(stderr, "ERROR : Input image is neither an XIP image nor an TOR ringSection image.\n");
-        exit(1);
     }
 
     // Determine mode of listing.
@@ -2359,14 +2504,16 @@ int dissectRingSection(void*          i_image,
     }
     else
     {
-        fprintf(stderr, "ERROR : %s is an invalid listing mode name.\n", listingModeName);
+        fprintf(stderr,
+                "\nERROR : %s is an invalid listing mode name.\n", listingModeName);
         fprintf(stderr, "Valid listing mode names the 'dissect' function are:\n");
         fprintf(stderr, "\ttable\n");
         fprintf(stderr, "\tshort\n");
         fprintf(stderr, "\tnormal (default if omitted)\n");
         fprintf(stderr, "\tlong\n");
         fprintf(stderr, "\traw\n");
-        exit(1);
+        fprintf(stderr, "\n");
+        exit(EXIT_FAILURE);
     }
 
     rc = dissectRingSectionTor(ringSectionPtr, listingModeId);
@@ -2407,6 +2554,7 @@ openAndMap(const char* i_fileName, int i_writable, int* o_fd, void** o_image, co
     if (*o_fd < 0)
     {
         perror("open() of the image failed : ");
+        fprintf(stderr, "ERROR: open() failed for filename=%s failed : ", i_fileName);
         exit(1);
     }
 
@@ -2550,39 +2698,54 @@ int check_sbe_ring_section_size( void* i_hwImage,
 static void
 command(const char* i_imageFile, const int i_argc, const char** i_argv, const uint32_t i_maskIgnores)
 {
+    int rc = INFRASTRUCT_RC_SUCCESS;
     void* image;
     void* attrDump;
-    int fd, rc = 0;
+    int fd;
+    image_section_type_t l_imageSectionType = IST_UNDEFINED;
 
-    if (strcmp(i_argv[0], "normalize") == 0)
+    // First, determine image section type, IST, of the supplied input image.
+    //
+    openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
+    resolve_image_section_type(image, l_imageSectionType);
+    close(fd);
+
+    // Second, determine the command action and act accordingly.
+    //
+    if ( strcmp(i_argv[0], "normalize") == 0 &&
+         l_imageSectionType == IST_XIP )
     {
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
         rc = normalize(image, i_argc - 1, &(i_argv[1]), i_maskIgnores);
 
     }
-    else if (strcmp(i_argv[0], "set") == 0)
+    else if ( strcmp(i_argv[0], "set") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
         rc = set(image, i_argc - 1, &(i_argv[1]), 0);
 
     }
-    else if (strcmp(i_argv[0], "setv") == 0)
+    else if ( strcmp(i_argv[0], "setv") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
         rc = set(image, i_argc - 1, &(i_argv[1]), 1);
 
     }
-    else if (strcmp(i_argv[0], "get") == 0)
+    else if ( strcmp(i_argv[0], "get") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
         rc = get(image, i_argc - 1, &(i_argv[1]), 0);
 
     }
-    else if (strcmp(i_argv[0], "getv") == 0)
+    else if ( strcmp(i_argv[0], "getv") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
@@ -2593,10 +2756,11 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
     {
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
-        rc = report(image, i_argc - 1, &(i_argv[1]));
+        rc = report(image, i_argc - 1, &(i_argv[1]), l_imageSectionType);
 
     }
-    else if (strcmp(i_argv[0], "attrdump") == 0)
+    else if ( strcmp(i_argv[0], "attrdump") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
@@ -2608,21 +2772,24 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
         rc = reportAttr(image, imageSize, attrDump);
 
     }
-    else if (strcmp(i_argv[0], "append") == 0)
+    else if ( strcmp(i_argv[0], "append") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
         rc = append(i_imageFile, fd, image, i_argc - 1, &(i_argv[1]));
 
     }
-    else if (strcmp(i_argv[0], "extract") == 0)
+    else if ( strcmp(i_argv[0], "extract") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
         rc = extract(i_imageFile, fd, image, i_argc - 1, &(i_argv[1]));
 
     }
-    else if (strcmp(i_argv[0], "delete") == 0)
+    else if ( strcmp(i_argv[0], "delete") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
@@ -2635,23 +2802,25 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
 #ifndef __PPE__ // Needed on ppe side to avoid TOR API
-        rc = dissectRingSection(image, i_argc - 1, &(i_argv[1]));
+        rc = dissectRingSection(image, i_argc - 1, &(i_argv[1]), l_imageSectionType);
 #else
         fprintf(stderr, "\n");
         fprintf(stderr, "---------------------------------------------\n");
         fprintf(stderr, "  dissect feature not supported in PPE repo  \n");
         fprintf(stderr, "  => Use EKB version of p9_xip_tool          \n");
         fprintf(stderr, "---------------------------------------------\n\n");
-        exit(1);
+        exit(EXIT_FAILURE);
 #endif
 
     }
-    else if (strcmp(i_argv[0], "check-sbe-ring-section") == 0)
+    else if ( strcmp(i_argv[0], "check-sbe-ring-section") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
+
         if(i_argc != 3)
         {
             fprintf(stderr, g_usage);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
@@ -2666,8 +2835,10 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
         // validate that the dd level specific .rings section generated for the
         // sbe image will not exceed the given size.
         rc = check_sbe_ring_section_size(image, l_ddLevel, l_maxSize) ;
+
     }
-    else if (strcmp(i_argv[0], "TEST") == 0)
+    else if ( strcmp(i_argv[0], "TEST") == 0 &&
+              l_imageSectionType == IST_XIP )
     {
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
@@ -2676,15 +2847,18 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
     }
     else
     {
+
         fprintf(stderr, g_usage);
-        exit(1);
+        exit(EXIT_FAILURE);
+
     }
 
     if (rc)
     {
-        fprintf(stderr, "Command failed : %s\n",
+        fprintf(stderr,
+                "\nERROR: In command(): Command failed : %s\n",
                 P9_XIP_ERROR_STRING(g_errorStrings, rc));
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 

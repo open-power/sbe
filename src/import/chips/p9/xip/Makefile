@@ -33,8 +33,8 @@
 
 #  Locations of required headers.
 INCLUDES += -I.
-INCLUDES += -I../../../hwpf/fapi2/include/plat          # ekb: define path variable covering ekb and ppe
-INCLUDES += -I../../../../hwpf/include/plat/            # ppe: define path variable covering ekb and ppe
+INCLUDES += -I../../../hwpf/fapi2/include/plat
+INCLUDES += -I../utils/imageProcs
 
 ifeq ($(PROJECT_NAME),sbe)
 XIP_FLAGS+=-D__PPE__
