@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -1483,9 +1483,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_all_obus_scan0(
     FAPI_DBG("Force PLL out enable for PLLs");
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WOR, l_data));
 
-#ifdef SIM_ONLY_DELAY
     fapi2::delay(10000, (40 * 400));
-#endif
 
     l_data.flush<1>();
     l_data.clearBit<PERV_1_NET_CTRL0_PCB_EP_RESET>();
