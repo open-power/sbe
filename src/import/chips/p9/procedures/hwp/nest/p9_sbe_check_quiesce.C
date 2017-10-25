@@ -238,26 +238,30 @@ extern "C" {
         FAPI_DBG("p9_phb_check_quiesce: Entering ...");
         fapi2::buffer<uint64_t> l_data(0);
 
-        //We want to set bit 0 (the Quiesce DMA bit)
-        //This is the data that will be passed in to set the PHB Quiesce DMA register
-        //The address of the PHB Quiesce DMA Register is 0x0888 (found in PHB spec)
+        // If ETU is not already in reset, use indirect register to quiesce DMAs
+        // The address of the PHB Quiesce DMA Register is 0x0888 (found in PHB spec)
         auto l_phb_chiplets_vec = i_target.getChildren<fapi2::TARGET_TYPE_PHB>();
 
         for (auto& l_phb_chiplet : l_phb_chiplets_vec)
         {
-            //Clear contents of PHB HV Indirect Address Register
-            l_data.flush<0>();
-            FAPI_TRY(fapi2::putScom(l_phb_chiplet , PHB_PHB4_SCOM_HVIAR, l_data));
-            //Setup the PHB HV registers for the write
-            l_data.insertFromRight<PHB_HV_IND_ADDR_START_BIT, PHB_HV_IND_ADDR_LEN>(0x888);
-            l_data.setBit<PHB_HV_IND_ADDR_VALID_BIT>();
-            FAPI_TRY(fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIAR, l_data));
-            //Setup PHB HV Indirect for write access
-            l_data.flush<0>().insertFromRight<0, 63>(0x8000000000000000);
-            FAPI_TRY(fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIDR, l_data));
-            //Clear contents of PHB HV Indirect Address Register
-            l_data.flush<0>();
-            FAPI_TRY(fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIAR, l_data));
+            FAPI_TRY(fapi2::getScom(l_phb_chiplet, PHB_PHBRESET_REG, l_data));
+
+            if (!l_data.getBit<PHB_PHBRESET_REG_PE_ETU_RESET>())
+            {
+                //Clear contents of PHB HV Indirect Address Register
+                l_data.flush<0>();
+                FAPI_TRY(fapi2::putScom(l_phb_chiplet , PHB_PHB4_SCOM_HVIAR, l_data));
+                //Setup the PHB HV registers for the write
+                l_data.insertFromRight<PHB_HV_IND_ADDR_START_BIT, PHB_HV_IND_ADDR_LEN>(0x888);
+                l_data.setBit<PHB_HV_IND_ADDR_VALID_BIT>();
+                FAPI_TRY(fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIAR, l_data));
+                //Setup PHB HV Indirect for write access
+                l_data.flush<0>().insertFromRight<0, 63>(0x8000000000000000);
+                FAPI_TRY(fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIDR, l_data));
+                //Clear contents of PHB HV Indirect Address Register
+                l_data.flush<0>();
+                FAPI_TRY(fapi2::putScom(l_phb_chiplet, PHB_PHB4_SCOM_HVIAR, l_data));
+            }
         }
 
         FAPI_TRY(p9_suspend_io(i_target, true), "ERROR suspending IO");
