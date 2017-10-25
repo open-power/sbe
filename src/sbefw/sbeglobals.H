@@ -31,8 +31,12 @@
 #include "sbestates.H"
 #include "sbeexeintf.H"
 #include "sbecmdgeneric.H"
+#include "sbeSecureMemRegionManager.H"
 
 #define SBE_GLOBAL sbeGlobal
+
+constexpr size_t MAX_MAIN_STORE_REGIONS = 8;
+constexpr size_t MAX_OCC_SRAM_REGIONS   = 2;
 
 // Extern declartion, Defined in sbeglobal.C
 extern uint8_t sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];
@@ -87,6 +91,11 @@ class SBEGlobalsSingleton
 
         // SBE commit id
         static uint32_t fwCommitId;
+
+        // Secure memory window arrays
+        static secureMemRegion_t mainMemRegions[MAX_MAIN_STORE_REGIONS];
+        static secureMemRegion_t occSramRegions[MAX_OCC_SRAM_REGIONS];
+
         ////////////////////////////////////////////////////////////////
         //// @brief PkThread structure for SBE Command Receiver thread
         //////////////////////////////////////////////////////////////////

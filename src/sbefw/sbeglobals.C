@@ -42,3 +42,6 @@ SBEGlobalsSingleton& SBEGlobalsSingleton::getInstance()
 }
 // SBE commit id
 uint32_t SBEGlobalsSingleton::fwCommitId = SBE_COMMIT_ID;
+
+secureMemRegion_t SBEGlobalsSingleton::mainMemRegions[MAX_MAIN_STORE_REGIONS] = {};
+secureMemRegion_t SBEGlobalsSingleton::occSramRegions[MAX_OCC_SRAM_REGIONS] = {};

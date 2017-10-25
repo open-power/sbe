@@ -922,7 +922,7 @@ ReturnCode istepLoadBootLoader( sbeIstepHwp_t i_hwp)
         SBE_INFO("istep 5.1 HB Dump mem Region [0x%08X%08X]",
                                 SBE::higher32BWord(drawer_base_address_nm0),
                                 SBE::lower32BWord(drawer_base_address_nm0));
-        SBESecMemRegionManager->add(drawer_base_address_nm0,
+        mainStoreSecMemRegionManager.add(drawer_base_address_nm0,
                                     HB_MEM_WINDOW_SIZE,
                                     static_cast<uint8_t>(memRegionMode::READ));
 
@@ -1261,7 +1261,7 @@ ReturnCode istepStartMpipl( sbeIstepHwp_t i_hwp)
     // Set MPIPL mode bit in Scratch Reg 3
     (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
     // Close all non-secure memory regions
-    SBESecMemRegionManager->closeAllRegions();
+    mainStoreSecMemRegionManager.closeAllRegions();
 
     do
     {

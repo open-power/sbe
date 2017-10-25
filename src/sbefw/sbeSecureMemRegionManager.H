@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -41,16 +42,19 @@ typedef struct
     uint32_t mode;
 } secureMemRegion_t;
 
-constexpr size_t MAX_NONSECURE_MEM_REGIONS = 8;
+// OCC SRAM Command buffer
+constexpr uint64_t OCC_CMD_ADDR = 0xFFFBE000ull;
+constexpr uint32_t OCC_CMD_SIZE = 0xFFFBEFFF - 0xFFFBE000;
+// OCC SRAM Response buffer
+constexpr uint64_t OCC_RESP_ADDR = 0xFFFBF000ull;
+constexpr uint32_t OCC_RESP_SIZE = 0xFFFBFFFF- 0xFFFBF000;
 
 class SBESecureMemRegionManager
 {
-    secureMemRegion_t iv_memRegions[MAX_NONSECURE_MEM_REGIONS];
+    protected:
+    secureMemRegion_t *iv_memRegions;
+    const size_t iv_maxRegions;
     size_t iv_regionsOpenCnt;
-
-    SBESecureMemRegionManager():iv_memRegions{0}
-    {
-    }
 
     /*
      * @brief getPartialRegionSize - get the overlapping region
@@ -66,11 +70,16 @@ class SBESecureMemRegionManager
     secureMemRegion_t getPartialRegionSize(const secureMemRegion_t i_region);
 
     public:
+    SBESecureMemRegionManager(secureMemRegion_t *i_regions,
+                              size_t i_maxRegions):
+                              iv_memRegions(i_regions),
+                              iv_maxRegions(i_maxRegions)
+    {
+    }
+
     // Disable copy constructors
     SBESecureMemRegionManager(const SBESecureMemRegionManager&) = delete;
     SBESecureMemRegionManager& operator=(const SBESecureMemRegionManager&) = delete;
-
-    static SBESecureMemRegionManager& getInstance();
 
     /*
      * @brief add - Open a new memory region
@@ -110,4 +119,31 @@ class SBESecureMemRegionManager
     }
 };
 
-extern SBESecureMemRegionManager* SBESecMemRegionManager;
+class SBEOccSramSecMemRegionManager : public SBESecureMemRegionManager
+{
+    public:
+        SBEOccSramSecMemRegionManager(secureMemRegion_t *i_regions,
+                                  size_t i_maxRegions):
+        SBESecureMemRegionManager(i_regions,
+                                  i_maxRegions)
+        {
+            add(OCC_CMD_ADDR,
+                OCC_CMD_SIZE,
+                static_cast<uint8_t>( memRegionMode::WRITE) |
+                static_cast<uint8_t>(memRegionMode::READ));
+            add(OCC_RESP_ADDR,
+                OCC_RESP_SIZE,
+                static_cast<uint8_t>(memRegionMode::READ));
+        }
+
+        // Disable copy constructors
+        SBEOccSramSecMemRegionManager(const SBEOccSramSecMemRegionManager&) = delete;
+        SBEOccSramSecMemRegionManager& operator=(const SBEOccSramSecMemRegionManager&) = delete;
+        // Disable delete functions
+        sbeSecondaryResponse remove(const uint64_t i_startAddr) = delete;
+        void closeAllRegions() = delete;
+
+};
+
+extern SBESecureMemRegionManager mainStoreSecMemRegionManager;
+extern SBEOccSramSecMemRegionManager occSramSecRegionManager;

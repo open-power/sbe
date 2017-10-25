@@ -192,7 +192,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         {
             l_addr = i_hdr.getAddr();
             // Check if the access to the address is allowed
-            l_respHdr.secondaryStatus = SBESecMemRegionManager->isAccessAllowed(
+            l_respHdr.secondaryStatus = mainStoreSecMemRegionManager.isAccessAllowed(
                                                {l_addr,
                                                 i_hdr.len,
                  (i_isFlagRead ? static_cast<uint8_t>(memRegionMode::READ):
@@ -469,7 +469,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                                               SBE_MEM_ACCESS_WRITE),
                                     sbeMemAccessInterface::ADU_GRAN_SIZE_BYTES);
         // Check if the access to the address is allowed
-        l_respHdr.secondaryStatus = SBESecMemRegionManager->isAccessAllowed(
+        l_respHdr.secondaryStatus = mainStoreSecMemRegionManager.isAccessAllowed(
                                            {l_addr,
                                             i_hdr.len,
              (i_isFlagRead ? static_cast<uint8_t>(memRegionMode::READ):
@@ -764,7 +764,7 @@ uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg)
         if(mode == SBE_MEM_REGION_CLOSE)
         {
             SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus =
-            SBESecMemRegionManager->remove(req.startAddress);
+            mainStoreSecMemRegionManager.remove(req.startAddress);
         }
         else
         {
@@ -779,7 +779,7 @@ uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg)
                           static_cast<uint8_t>(memRegionMode::WRITE);
             }
             SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus =
-            SBESecMemRegionManager->add(req.startAddress,
+            mainStoreSecMemRegionManager.add(req.startAddress,
                                         req.size,
                                         memMode);
         }

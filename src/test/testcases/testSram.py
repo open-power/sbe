@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -23,98 +23,138 @@
 #
 # IBM_PROLOG_END_TAG
 import sys
+import os
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
 err = False
 #from testWrite import *
 
-LOOP_COUNT = 1
+def gethalfword(dataInInt):
+    hex_string = '0'*(4-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
+    return list(struct.unpack('<BB',hex_string.decode('hex')))
+def getsingleword(dataInInt):
+    hex_string = '0'*(8-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
+    return list(struct.unpack('<BBBB',hex_string.decode('hex')))
+def getdoubleword(dataInInt):
+    hex_string = '0'*(16-len(str(hex(dataInInt))[:18][2:])) + str(hex(dataInInt))[:18][2:]
+    return list(struct.unpack('<BBBBBBBB',hex_string.decode('hex')))
 
-PUTSRAM_OCC_CNTLDATA =  [0,0,0,0x20,
-                         0,0,0xa4,0x04, #magic
-                         0,0,0,0x01,
-                         0xe7,0xf0,0x00,0x00, #addr
-                         0,0,0x01,0x00]  # length
+def putsram(addr, mode, data, primStatus, secStatus):
+    req = (getsingleword(5 + (len(data)/4))
+           + [0, 0, 0xA4, 0x04]
+           + getsingleword(mode)
+           + getsingleword(addr)
+           + getsingleword(len(data))
+           + data)
 
-PUTSRAM_OCC_TESTDATA =  [0xab,0xcd,0xef,0x12,
-                         0xba,0xdc,0xfe,0x21,
-                         0x34,0x56,0x78,0x9a,
-                         0x43,0x65,0x87,0xa9,
-                         0xab,0xcd,0xef,0x12,
-                         0xba,0xdc,0xfe,0x21,
-                         0x34,0x56,0x78,0x9a,
-                         0x43,0x65,0x87,0xa9]
+    testUtil.runCycles( 10000000 )
+    testUtil.writeUsFifo( req )
+    testUtil.writeEot( )
 
-PUTSRAM_OCC_EXP_CNTLDATA  =  [0,0,0x01,0x00,
-                              0xc0,0xde,0xa4,0x04,
-                              0x0,0x0,0x0,0x0,
-                              0x00,0x0,0x0,0x03]
+    if((primStatus != 0) or (secStatus != 0)):
+        data = []
+    expData = (getsingleword(len(data))
+               + [0xc0, 0xde, 0xa4, 0x04]
+               + gethalfword(primStatus)
+               + gethalfword(secStatus)
+               + getsingleword(0x03))
+    testUtil.readDsFifo(expData)
+    testUtil.readEot( )
 
-GETSRAM_OCC_CNTLDATA =  [0,0,0,0x5,
-                         0,0,0xa4,0x03,
-                         0,0,0,0x01,
-                         0xe7,0xf0,0x00,0x00,  #address
-                         0x00,0x00,0x01,0x00]  # length of data
+def getsram(addr, mode, length, primStatus, secStatus):
+    req = (getsingleword(0x05)
+           + getsingleword(0xa403)
+           + getsingleword(mode)
+           + getsingleword(addr)
+           + getsingleword(length))
 
-GETSRAM_OCC_EXP_TESTDATA =  [0xab,0xcd,0xef,0x12,  #data
-                             0xba,0xdc,0xfe,0x21,
-                             0x34,0x56,0x78,0x9a,
-                             0x43,0x65,0x87,0xa9,
-                             0xab,0xcd,0xef,0x12,
-                             0xba,0xdc,0xfe,0x21,
-                             0x34,0x56,0x78,0x9a,
-                             0x43,0x65,0x87,0xa9]
+    testUtil.runCycles( 10000000 )
+    testUtil.writeUsFifo( req )
+    testUtil.writeEot( )
 
-GETSRAM_OCC_EXP_CNTLDATA =   [0x00,0x00,0x01,0x00,  # length
-                              0xc0,0xde,0xa4,0x03,
-                              0x0,0x0,0x0,0x0,
-                              0x00,0x0,0x0,0x03];
+    data = []
+    if((primStatus != 0) or (secStatus != 0)):
+        length = 0
+    for i in range(0, int(-(-float(length)//4))):
+        data += list(testUtil.readDsEntryReturnVal())
+    readLen = testUtil.readDsEntryReturnVal()
+    if(getsingleword(length) != list(readLen)):
+        print getsingleword(length)
+        print list(readLen)
+        raise Exception("Invalid Length")
 
+    expResp = (getsingleword(0xc0dea403)
+               + gethalfword(primStatus)
+               + gethalfword(secStatus)
+               + getsingleword(0x03))
+    testUtil.readDsFifo(expResp)
+    testUtil.readEot( )
+
+    return data[:length]
 
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
 def main( ):
-    testUtil.runCycles( 10000000 )
+    testcase = ""
+    try:
+        testUtil.runCycles( 10000000 )
 
-    # Put Occ Sram test - Linear - Can be tested over Normal
-    # Debug mode
-    testUtil.writeUsFifo( PUTSRAM_OCC_CNTLDATA )
-    # Write 32 bytes of data 8 times => 32*8 = 256 = 0x100
-    i_cnt = 0
-    while i_cnt < 8:
-        testUtil.writeUsFifo( PUTSRAM_OCC_TESTDATA )
-        i_cnt = i_cnt+1
+        # Put Occ Sram test - Linear - Can be tested over Normal
+        # Debug mode
+        data = os.urandom(128*2)
+        data = [ord(c) for c in data]
+        putsram(0xFFFBE000, 0x01, data, 0, 0)
 
-    testUtil.writeEot( )
+        readData = getsram(0xFFFBE000, 0x01, 128*2, 0, 0)
 
-    # Read the expected data for put sram
-    testUtil.readDsFifo( PUTSRAM_OCC_EXP_CNTLDATA )
-    testUtil.readEot( )
+        if(data == readData):
+            print("Success: put - get sram")
+        else:
+            print data
+            print readData
+            raise Exception('data mistmach')
 
-    # Get Sram Linear
-    testUtil.writeUsFifo( GETSRAM_OCC_CNTLDATA )
-    testUtil.writeEot( )
+        # secure mem - write to disallowed mem
+        # start and end completely outside
+        testcase = "sec put test 1"
+        putsram(0xFFFBE000-256, 0x01, data, 0x0005, 0x0014)
+        print("Success: "+testcase)
+        # start outside and end inside the window
+        testcase = "sec put test 2"
+        putsram(0xFFFBE000-128, 0x01, data, 0x0005, 0x0014)
+        print("Success: "+testcase)
+        # start inside and end outside the window
+        testcase = "sec put test 3"
+        putsram(0xFFFBE000-128, 0x01, data, 0x0005, 0x0014)
+        print("Success: "+testcase)
 
-    # Read the Expected Data for get Sram
-    i_cnt = 0
-    while i_cnt < 8:
-        testUtil.readDsFifo( GETSRAM_OCC_EXP_TESTDATA )
-        i_cnt = i_cnt+1
+        # secure mem - read on disallowed mem
+        # start and end completely outside
+        testcase = "sec get test 1"
+        getsram(0xFFFBE000-256, 0x01, 256, 0x0005, 0x0014)
+        print("Success: "+testcase)
+        # start outside and end inside the window
+        testcase = "sec get test 2"
+        getsram(0xFFFBE000-128, 0x01, 256, 0x0005, 0x0014)
+        print("Success: "+testcase)
+        # start inside and end outside the window
+        testcase = "sec get test 3"
+        getsram(0xFFFBE000-128, 0x01, 256, 0x0005, 0x0014)
+        print("Success: "+testcase)
 
-    testUtil.readDsFifo( GETSRAM_OCC_EXP_CNTLDATA )
-    testUtil.readEot( )
-
-    # Put Occ Sram test - Circular - Can be enabled once we get
-    # valid address range to read the circular data
-    #testUtil.writeUsFifo( PUTSRAM_OCC_TESTDATA_1 )
-    #testUtil.writeEot( )
-    #testUtil.readDsFifo( PUTSRAM_OCC_EXPDATA_1 )
-    #testUtil.readEot( )
-    #testUtil.writeUsFifo( GETSRAM_OCC_TESTDATA_1 )
-    #testUtil.writeEot( )
-    #testUtil.readDsFifo( GETSRAM_OCC_EXPDATA_1 )
-    #testUtil.readEot( )
-
+        # Put Occ Sram test - Circular - Can be enabled once we get
+        # valid address range to read the circular data
+        #testUtil.writeUsFifo( PUTSRAM_OCC_TESTDATA_1 )
+        #testUtil.writeEot( )
+        #testUtil.readDsFifo( PUTSRAM_OCC_EXPDATA_1 )
+        #testUtil.readEot( )
+        #testUtil.writeUsFifo( GETSRAM_OCC_TESTDATA_1 )
+        #testUtil.writeEot( )
+        #testUtil.readDsFifo( GETSRAM_OCC_EXPDATA_1 )
+        #testUtil.readEot( )
+    except:
+        print "FAILED Test Case:"+str(testcase)
+        raise Exception('Failure')
 
 #-------------------------------------------------
 # Calling all test code

@@ -28,15 +28,12 @@
 #include "sbeglobals.H"
 
 #ifndef __SBEFW_SEEPROM__
-
-SBESecureMemRegionManager* SBESecMemRegionManager =
-                                     &SBESecureMemRegionManager::getInstance();
-
-SBESecureMemRegionManager& SBESecureMemRegionManager::getInstance()
-{
-    static SBESecureMemRegionManager iv_instance;
-    return iv_instance;
-}
+SBESecureMemRegionManager mainStoreSecMemRegionManager(
+                                    &SBE_GLOBAL->mainMemRegions[0],
+                                    MAX_MAIN_STORE_REGIONS);
+SBEOccSramSecMemRegionManager occSramSecRegionManager(
+                                    &SBE_GLOBAL->occSramRegions[0],
+                                    MAX_OCC_SRAM_REGIONS);
 
 secureMemRegion_t SBESecureMemRegionManager::getPartialRegionSize(
                                             const secureMemRegion_t i_region)
@@ -91,7 +88,7 @@ sbeSecondaryResponse SBESecureMemRegionManager::add(const uint64_t i_startAddr,
             rc = SBE_SEC_MEM_REGION_AMEND_ATTEMPTED;
             break;
         }
-        if(iv_regionsOpenCnt  >= MAX_NONSECURE_MEM_REGIONS)
+        if(iv_regionsOpenCnt  >= iv_maxRegions)
         {
             SBE_ERROR(SBE_FUNC" SBE_SEC_MAXIMUM_MEM_REGION_EXCEEDED");
             rc = SBE_SEC_MAXIMUM_MEM_REGION_EXCEEDED;

@@ -35,6 +35,7 @@
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
 #include "sberegaccess.H"
+#include "sbeSecureMemRegionManager.H"
 
 #include "fapi2.H"
 #include "p9_pm_ocb_init.H"
@@ -81,11 +82,11 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
     // Check if True - Get / False - Put
     p9ocb::PM_OCB_ACCESS_OP l_ocb_access =
             (i_isGetFlag)? p9ocb::OCB_GET : p9ocb::OCB_PUT;
+    // Get the Req Struct Size Data from upstream Fifo
+    uint32_t l_len2dequeue  = sizeof(l_req) / sizeof(uint32_t);
 
     do
     {
-        // Get the Req Struct Size Data from upstream Fifo
-        uint32_t l_len2dequeue  = sizeof(l_req) / sizeof(uint32_t);
         l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
                                   (uint32_t *)&l_req,
                                   i_isGetFlag);
@@ -134,6 +135,20 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                 break;
         }
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+        // Check if the access to the address is allowed
+        if(l_validAddrForFirstAccess)
+        {
+            l_respHdr.secondaryStatus = occSramSecRegionManager.isAccessAllowed(
+                        {static_cast<uint64_t>(l_req.addr)&(0x00000000FFFFFFFFull),
+                        l_req.len,
+                        (i_isGetFlag? static_cast<uint8_t>(memRegionMode::READ):
+                        static_cast<uint8_t>(memRegionMode::WRITE))});
+            if(l_respHdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL)
+            {
+                l_respHdr.primaryStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
+                break;
+            }
+        }
 
         // Setup Needs to be called in Normal and Debug Mode only
         if( (l_req.mode == NORMAL_MODE) || (l_req.mode == DEBUG_MODE) )
@@ -224,40 +239,39 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
 
             }
         } // End of while Put/Get from Hwp
+    }while(0);
 
+    do
+    {
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-
-        do
+        l_len2dequeue = 0;
+        if (!i_isGetFlag)
         {
-            l_len2dequeue = 0;
-            if (!i_isGetFlag)
+            // If there was a HWP failure for put sram occ request,
+            // need to Flush out upstream FIFO, until EOT arrives
+            if ( l_respHdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL)
             {
-                // If there was a HWP failure for put sram occ request,
-                // need to Flush out upstream FIFO, until EOT arrives
-                if ( l_fapiRc != FAPI2_RC_SUCCESS )
-                {
-                    l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL,
-                                             true, true);
-                    CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-                }
-                // For other success paths, just attempt to offload
-                // the next entry, which is supposed to be the EOT entry
-                else
-                {
-                    l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL, true);
-                    CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-                }
+                l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL,
+                                         true, true);
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
+            // For other success paths, just attempt to offload
+            // the next entry, which is supposed to be the EOT entry
+            else
+            {
+                l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL, true);
+                CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+            }
+        }
 
-            uint32_t l_len = 1;
-            // first enqueue the length of data actually written
-            l_rc = sbeDownFifoEnq_mult(l_len, (uint32_t *)(&l_totalReturnLen));
+        uint32_t l_len = 1;
+        // first enqueue the length of data actually written
+        l_rc = sbeDownFifoEnq_mult(l_len, (uint32_t *)(&l_totalReturnLen));
 
-            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-            l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
-        }while(0);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
     }while(0);
 
     SBE_EXIT(SBE_FUNC);
