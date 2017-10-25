@@ -219,7 +219,7 @@ static sbeCmdStruct_t g_sbeRingAccessCmdArray [] =
 
     {sbePutRing,
      SBE_CMD_PUTRING,
-     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_QUIESCE,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_QUIESCE,
     },
 };
 
