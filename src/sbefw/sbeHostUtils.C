@@ -238,6 +238,12 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
         l_ffdc.setRc(i_fapiRc);
         if(l_ffdc.getRc() != fapi2::FAPI2_RC_SUCCESS)
         {
+            // Clear global fapi2::current_err so that
+            // FFDC can be sent over PBA interface.
+            // We are good with HWP ffdc, as
+            // g_FfdcData.fapiRc is a copy of current_err
+            fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
+
             i_sbe2PsuRespHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                       SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             l_internal_ffdc_present = true;
