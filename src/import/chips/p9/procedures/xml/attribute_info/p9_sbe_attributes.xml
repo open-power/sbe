@@ -518,6 +518,10 @@ attribute tank
            <virtual/>
   </entry>
   <entry>
+           <name>ATTR_CHIP_EC_FEATURE_HW423589_OPTION1</name>
+           <virtual/>
+  </entry>
+  <entry>
            <name>ATTR_CHIP_EC_FEATURE_EXTENDED_ADDRESSING_MODE</name>
            <virtual/>
   </entry>

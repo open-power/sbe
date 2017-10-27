@@ -279,9 +279,25 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                  "Error from putScom (PU_PB_EAST_FIR_MASK_REG)");
     }
 
-    // configure PBA FIRs
+    // configure PBA mode switches & FIRs
     {
         fapi2::buffer<uint64_t> l_scom_data;
+        uint8_t l_hw423589_option1;
+
+        // set PBACFG
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW423589_OPTION1,
+                               i_target,
+                               l_hw423589_option1));
+        l_scom_data = 0;
+
+        if (l_hw423589_option1)
+        {
+            l_scom_data.setBit<PU_PBACFG_CHSW_DIS_GROUP_SCOPE>();
+        }
+
+        FAPI_DBG("Resetting PBACFG with value = 0x%16llX", uint64_t(l_scom_data));
+        FAPI_TRY(fapi2::putScom(i_target, PU_PBACFG, l_scom_data),
+                 "Error from putScom (PU_PBACFG)");
 
         // clear FIR
         FAPI_DBG("Configuring PBA FIR");
