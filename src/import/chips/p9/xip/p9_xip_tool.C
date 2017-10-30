@@ -24,10 +24,8 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 /// \file p9_xip_tool.c
-/// \brief P9-XIP image search/edit tool
+/// \brief P9 XIP image search and edit tool
 ///
-/// Note: This file was originally stored under .../procedures/ipl/sbe.  It
-/// was moved here at version 1.19.
 
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -85,8 +83,7 @@ const char* g_usage =
     "       p9_xip_tool <image> [-i<flag> ...] extract <section> <file> [ <ddLevel> ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] delete <section> [ <section1> ... <sectionN> ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] dis <section>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] dissect <ring section> [ table,short,normal(default),long,raw ]\n"
-    "       p9_xip_tool <image> [-i<flag> ...] disasm <text section>\n"
+    "       p9_xip_tool <image> [-i<flag> ...] dissect [ .rings(default),.overlays,.overrides,(none) ] [ table,short,normal(default),long,raw ]\n"
     "       p9_xip_tool <image> [-i<flag> ...] check-sbe-ring-section <dd level> <maximum size>\n"
     "\n"
     "This simple application uses the P9-XIP image APIs to normalize, search\n"
@@ -156,27 +153,23 @@ const char* g_usage =
     "section of the image at the time it is deleted, or must be empty. The\n"
     "'delete' command writes the size of the final modified image to stdout.\n"
     "\n"
-    "The 'dissect' command dissects a ring section. It accepts two different\n"
-    "types of images, namely the regular XIP image and now also stand-alone\n"
-    "ring section images (that have the TOR header). Wrt an XIP image, the\n"
-    "'dissect' command dissects the ring section named by the section argument.\n"
-    "Wrt a stand-alone ring section image, the 'dissect' command dissects\n"
-    "the ring section based on the TOR magic word embedded in the top of the\n"
-    "image. It does so regardless of what the section argument is (so for now\n"
-    "pass it .rings in this argument).  In both cases, 'dissect' summarizes\n"
-    "the content of the ring section. The second argument to 'dissect', i.e.\n"
-    "[table,short,normal(default),long,raw], specifies how much information\n"
-    "is included in the listing:\n"
-    "   table:  Tabular overview.\n"
-    "   short:  The bare necessities.\n"
-    "   normal: Everything except a binary dump of the ring block.\n"
-    "   long:   Everything including a binary dump of the ring block.\n"
-    "   raw:    Everything including a dump of the raw decompressed ring.\n"
-    "Note that if the second argument is omitted, a 'normal' listing of the ring\n"
-    "section will occur.\n"
-    "\n"
-    "The 'disasm' command disassembles the text section named by the section\n"
-    "argument.\n"
+    "The 'dissect' command summarizes the content of a ring section. It\n"
+    "accepts two different types of images:  1) The regular XIP image and 2)\n"
+    "a stand-alone ring section image (that has the TOR header). Wrt an XIP\n"
+    "image, the ring section named by the ring section argument is summarized.\n"
+    "Wrt a stand-alone ring section image, the ring section based on the TOR\n"
+    "magic word in the image, is summarized. (Hint. To find out what type of\n"
+    "image file you're supplying, run \"p9_xip_tool.exe <image file> report\"\n"
+    "on it first.) Note that the first sub-argument must be PASSED for an XIP\n"
+    "image but must be OMITTED for a stand-alone image. For either image, the\n"
+    "second sub-argument is optional and offers the following listing choices:\n"
+    "   table:           Tabular overview. No dump of ring block.\n"
+    "   short:           Key header info. No dump of ring block.\n"
+    "   normal(default): All header info. No dump of ring block.\n"
+    "   long:            All header info and binary dump of ring block.\n"
+    "   raw:             All header info and binary+raw dump of ring block.\n"
+    "Note that if the second sub-argument is omitted, a 'normal' listing of\n"
+    "the ring section is chosen.\n"
     "\n"
     "-i<flag>:\n"
     "\t-ifs  Causes the validation step to ignore image size check against the\n"
@@ -2206,26 +2199,28 @@ int dissectRingSection(void*          i_image,
     void*           ringSectionPtr;
 
 
-    if (i_argc != 1 && i_argc != 2)
-    {
-        fprintf(stderr, g_usage);
-        exit(1);
-    }
-
-    if (i_argc == 1)
-    {
-        sectionName = i_argv[0];
-    }
-    else
-    {
-        sectionName = i_argv[0];
-        listingModeName = i_argv[1];
-    }
-
     // Determine whether i_image is an XIP image or an isolated TOR ring section image.
     //
     if (be64toh(((P9XipHeader*)i_image)->iv_magic) >> 32 == P9_XIP_MAGIC)
     {
+
+        if (i_argc == 1)
+        {
+            sectionName = i_argv[0];
+        }
+        else if (i_argc == 2)
+        {
+            sectionName = i_argv[0];
+            listingModeName = i_argv[1];
+        }
+        else
+        {
+            fprintf(stderr,
+                    "ERROR:  The number of sub arguments (=%d) is too few or too many for the 'dissect' command for an XIP image\n\n",
+                    i_argc);
+            fprintf(stderr, g_usage);
+            exit(EXIT_FAILURE);
+        }
 
         p9_xip_translate_header(&hostHeader, (P9XipHeader*)i_image);
 
@@ -2313,7 +2308,22 @@ int dissectRingSection(void*          i_image,
     }
     else if (be32toh(((TorHeader_t*)i_image)->magic) >> 8 == TOR_MAGIC)
     {
+
+        if (i_argc == 1)
+        {
+            listingModeName = i_argv[0];
+        }
+        else
+        {
+            fprintf(stderr,
+                    "ERROR:  The number of sub arguments (=%d) is too few or too many for the 'dissect' command for a TOR section\n\n",
+                    i_argc);
+            fprintf(stderr, g_usage);
+            exit(EXIT_FAILURE);
+        }
+
         ringSectionPtr = i_image;
+
     }
     else
     {
@@ -2634,15 +2644,6 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
         fprintf(stderr, "---------------------------------------------\n\n");
         exit(1);
 #endif
-
-    }
-    else if (strcmp(i_argv[0], "disasm") == 0)
-    {
-
-        //openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
-        //rc = disassembleSection(image, i_argc - 1, &(i_argv[1]));
-        fprintf(stderr, "not supported\n");
-        exit(1);
 
     }
     else if (strcmp(i_argv[0], "check-sbe-ring-section") == 0)
