@@ -29,6 +29,7 @@
 #include <fapi2_target.H>
 #include <plat_target_utils.H>
 #include <p9_perv_scom_addresses.H>
+#include <p9_perv_scom_addresses_fld.H>
 
 // Global Vector containing ALL targets.  This structure is referenced by
 // fapi2::getChildren to produce the resultant returned vector from that
@@ -369,6 +370,23 @@ namespace fapi2
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
                                 fapi2::Target<TARGET_TYPE_SYSTEM>(),
                                 fusedMode));
+
+        { // scope initializer to resolve compile issues
+
+        // if bit 17 of PERV_SB_CS_SCOM is set, set attribute
+        // which suggest backup seeprom is selected for boot.
+        FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SB_CS_SCOM,
+                                l_tempReg));
+        fapi2::buffer<uint8_t> attrSeepromSlct = 0;
+
+        if( l_tempReg.getBit(PERV_SB_CS_SELECT_SECONDARY_SEEPROM))
+        {
+            attrSeepromSlct.setBit<7>();
+        }
+
+        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_BACKUP_SEEPROM_SELECT,
+                    l_chipTarget, attrSeepromSlct));
+        } // end of scope initializer
 fapi_try_exit:
         return fapi2::current_err;
     }
