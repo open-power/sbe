@@ -58,6 +58,8 @@ __vectors:
         ### will be forwarded to the program exception handler.
 __machine_check:
 
+        PPE_CAPTURE_INTERRUPT_FFDC
+
         PPE42_MACHINE_CHECK_HANDLER
 
         ############################################################
@@ -89,6 +91,8 @@ __system_reset:
         .org __vectors + 0x0060
 __data_storage:
 
+        PPE_CAPTURE_INTERRUPT_FFDC
+
         PPE42_DATA_STORAGE_HANDLER
 
         ############################################################
@@ -97,6 +101,8 @@ __data_storage:
 
         .org __vectors + 0x0080
 __instruction_storage:
+
+        PPE_CAPTURE_INTERRUPT_FFDC
 
         PPE42_INSTRUCTION_STORAGE_HANDLER
 
@@ -116,8 +122,9 @@ __external_interrupt_vector:
         .org __vectors + 0x00C0
 __alignment_exception:
 
-        PPE42_ALIGNMENT_HANDLER
+        PPE_CAPTURE_INTERRUPT_FFDC
 
+        PPE42_ALIGNMENT_HANDLER
 
         ############################################################
         # 0x00E0 : Program Interrupt
@@ -126,8 +133,10 @@ __alignment_exception:
         .org __vectors + 0x00E0
 
 __program_exception:
-        _pk_panic   PPE42_ILLEGAL_INSTRUCTION
 
+        PPE_CAPTURE_INTERRUPT_FFDC
+
+        _pk_panic   PPE42_ILLEGAL_INSTRUCTION
 
         ############################################################
         # 0x0100 : DEC Interrupts
