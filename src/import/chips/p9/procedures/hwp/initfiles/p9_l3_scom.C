@@ -66,6 +66,8 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, TGT1, l_TGT1_ATTR_SYSTEM_IPL_PHASE));
         fapi2::ATTR_PROC_FABRIC_PUMP_MODE_Type l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE, TGT1, l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE));
+        fapi2::ATTR_ENABLE_MEM_EARLY_DATA_SCOM_Type l_TGT1_ATTR_ENABLE_MEM_EARLY_DATA_SCOM;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ENABLE_MEM_EARLY_DATA_SCOM, TGT1, l_TGT1_ATTR_ENABLE_MEM_EARLY_DATA_SCOM));
         fapi2::buffer<uint64_t> l_scom_buffer;
         {
             if (((l_chip_id == 0x5) && (l_chip_ec == 0x21)) || ((l_chip_id == 0x5) && (l_chip_ec == 0x22)) || ((l_chip_id == 0x6)
@@ -156,6 +158,21 @@ fapi2::ReturnCode p9_l3_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             {
                 constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_CERRS_LRU_DECR_EN_CFG_ON = 0x1;
                 l_scom_buffer.insert<30, 1, 63, uint64_t>(l_EXP_L3_L3_MISC_L3CERRS_L3_CERRS_LRU_DECR_EN_CFG_ON );
+            }
+
+            if (((l_chip_id == 0x5) && (l_chip_ec == 0x21)) || ((l_chip_id == 0x5) && (l_chip_ec == 0x22)) || ((l_chip_id == 0x6)
+                    && (l_chip_ec == 0x10)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x11)) )
+            {
+                if ((l_TGT1_ATTR_ENABLE_MEM_EARLY_DATA_SCOM == fapi2::ENUM_ATTR_ENABLE_MEM_EARLY_DATA_SCOM_OFF))
+                {
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_SCOM_CP_ME_DROP_OVERRIDE_ON = 0x1;
+                    l_scom_buffer.insert<6, 1, 63, uint64_t>(l_EXP_L3_L3_MISC_L3CERRS_L3_SCOM_CP_ME_DROP_OVERRIDE_ON );
+                }
+                else if ((l_TGT1_ATTR_ENABLE_MEM_EARLY_DATA_SCOM == fapi2::ENUM_ATTR_ENABLE_MEM_EARLY_DATA_SCOM_ON))
+                {
+                    constexpr auto l_EXP_L3_L3_MISC_L3CERRS_L3_SCOM_CP_ME_DROP_OVERRIDE_OFF = 0x0;
+                    l_scom_buffer.insert<6, 1, 63, uint64_t>(l_EXP_L3_L3_MISC_L3CERRS_L3_SCOM_CP_ME_DROP_OVERRIDE_OFF );
+                }
             }
 
             l_scom_buffer.insert<14, 4, 60, uint64_t>(literal_0b0001 );
