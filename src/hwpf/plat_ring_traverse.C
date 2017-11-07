@@ -152,14 +152,18 @@ fapi2::ReturnCode getRS4ImageFromTor(
     do
     {
 
-        getRingProperties(i_ringID, l_torOffset, l_ringType, l_chipLetType);
-
-        if(INVALID_RING_OFFSET == l_torOffset)
+        if((i_ringID >= NUM_RING_IDS))
         {
             SBE_TRACE("Invalid Ring ID - %d", i_ringID);
             l_rc = fapi2::FAPI2_RC_INVALID_PARAMETER;
             break;
         }
+
+        l_torOffset   = (INSTANCE_RING_MASK & (RING_PROPERTIES[i_ringID].iv_torOffSet));
+        l_ringType    = (INSTANCE_RING_MARK & RING_PROPERTIES[i_ringID].iv_torOffSet) ?
+                        INSTANCE_RING : COMMON_RING;
+        l_chipLetType = RING_PROPERTIES[i_ringID].iv_type;
+
 
         ChipletData_t l_chipletData;
         l_chipletData.iv_base_chiplet_number = 0;
