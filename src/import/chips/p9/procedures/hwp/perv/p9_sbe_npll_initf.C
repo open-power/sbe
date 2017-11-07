@@ -40,51 +40,104 @@
 #include "p9_sbe_npll_initf.H"
 #include <p9_ring_id.h>
 
-fapi2::ReturnCode p9_sbe_npll_initf(const
-                                    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+fapi2::ReturnCode p9_sbe_npll_initf(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_INF("p9_sbe_npll_initf: Entering ...");
 
-    uint8_t l_read_attr = 0;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    RingID ringID = perv_pll_bndy_bucket_1;
+    uint8_t l_npll_bucket = 0;
+    RingID l_npll_ring_id = perv_pll_bndy_bucket_1;
+    uint8_t l_fpll_bucket = 0;
+    RingID l_fpll_ring_id = perv_pll_bndy_flt_1;
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_PLL_BUCKET, FAPI_SYSTEM , l_read_attr),
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_PLL_BUCKET,
+                           FAPI_SYSTEM ,
+                           l_npll_bucket),
              "Error from FAPI_ATTR_GET (ATTR_NEST_PLL_BUCKET)");
 
-    switch(l_read_attr)
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FILTER_PLL_BUCKET,
+                           i_target_chip,
+                           l_fpll_bucket),
+             "Error from FAPI_ATTR_GET (ATTR_FILTER_PLL_BUCKET)");
+
+    switch (l_npll_bucket)
     {
         case 1:
-            ringID = perv_pll_bndy_bucket_1;
+            l_npll_ring_id = perv_pll_bndy_bucket_1;
             break;
 
         case 2:
-            ringID = perv_pll_bndy_bucket_2;
+            l_npll_ring_id = perv_pll_bndy_bucket_2;
             break;
 
         case 3:
-            ringID = perv_pll_bndy_bucket_3;
+            l_npll_ring_id = perv_pll_bndy_bucket_3;
             break;
 
         case 4:
-            ringID = perv_pll_bndy_bucket_4;
+            l_npll_ring_id = perv_pll_bndy_bucket_4;
             break;
 
         case 5:
-            ringID = perv_pll_bndy_bucket_5;
+            l_npll_ring_id = perv_pll_bndy_bucket_5;
             break;
 
         default:
             FAPI_ASSERT(false,
-                        fapi2::P9_SBE_NPLL_INITF_UNSUPPORTED_BUCKET().
+                        fapi2::P9_SBE_NPLL_INITF_UNSUPPORTED_NPLL_BUCKET().
                         set_TARGET(i_target_chip).
-                        set_BUCKET_INDEX(l_read_attr),
+                        set_BUCKET_INDEX(l_npll_bucket),
                         "Unsupported Nest PLL bucket value!");
     }
 
-    FAPI_DBG("Scan perv_pll_bndy_bucket_%d ring", l_read_attr);
-    FAPI_TRY(fapi2::putRing(i_target_chip, ringID, fapi2::RING_MODE_SET_PULSE_NSL),
-             "Error from putRing (perv_pll_bndy, ringID: %d)", ringID);
+    // scan PLL ring once to establish nest PLL
+    FAPI_DBG("Scan perv_pll_bndy_bucket_%d ring",
+             l_npll_bucket);
+    FAPI_TRY(fapi2::putRing(i_target_chip,
+                            l_npll_ring_id,
+                            fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (perv_pll_bndy, l_npll_ring_id: %d)",
+             l_npll_ring_id);
+
+    if (l_fpll_bucket)
+    {
+        switch (l_fpll_bucket)
+        {
+            case 1:
+                l_fpll_ring_id = perv_pll_bndy_flt_1;
+                break;
+
+            case 2:
+                l_fpll_ring_id = perv_pll_bndy_flt_2;
+                break;
+
+            case 3:
+                l_fpll_ring_id = perv_pll_bndy_flt_3;
+                break;
+
+            case 4:
+                l_fpll_ring_id = perv_pll_bndy_flt_4;
+                break;
+
+            default:
+                FAPI_ASSERT(false,
+                            fapi2::P9_SBE_NPLL_INITF_UNSUPPORTED_FPLL_BUCKET().
+                            set_TARGET(i_target_chip).
+                            set_BUCKET_INDEX(l_fpll_bucket),
+                            "Unsupported Filter PLL bucket value!");
+        }
+
+        // re-scan PLL ring to apply overlay containing filter PLL BGoffset
+        // selected from MVPD
+        FAPI_DBG("Re-scan perv_pll_bndy to apply perv_pll_bndy_flt_%d ring",
+                 l_fpll_bucket);
+        FAPI_TRY(fapi2::putRing(i_target_chip,
+                                l_fpll_ring_id,
+                                fapi2::RING_MODE_SET_PULSE_NSL),
+                 "Error from putRing (perv_pll_bndy, l_fpll_ring_id: %d)",
+                 l_fpll_ring_id);
+    }
 
 fapi_try_exit:
     FAPI_INF("p9_sbe_npll_initf: Exiting ...");

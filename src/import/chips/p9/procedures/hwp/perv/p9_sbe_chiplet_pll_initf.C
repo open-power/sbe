@@ -267,10 +267,10 @@ fapi2::ReturnCode p9_sbe_chiplet_pll_initf(const
 
             default:
                 FAPI_ASSERT(false,
-                            fapi2::P9_SBE_NPLL_INITF_UNSUPPORTED_BUCKET().
+                            fapi2::P9_SBE_CHIPLET_PLL_INITF_UNSUPPORTED_MC_BUCKET().
                             set_TARGET(i_target_chip).
-                            set_BUCKET_INDEX(l_nest_pll_bucket),
-                            "Unsupported Nest PLL bucket value!");
+                            set_BUCKET_INDEX(l_set_mc_bucket),
+                            "Unsupported MC PLL bucket value!");
         }
 
         FAPI_DBG("Scan mc_pll_bndy_bucket_%d ring", l_nest_pll_bucket);
