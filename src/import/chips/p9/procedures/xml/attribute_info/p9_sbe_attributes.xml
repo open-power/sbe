@@ -62,6 +62,10 @@
     <value>0x05</value>
   </entry>
   <entry>
+    <name>ATTR_FILTER_PLL_BUCKET</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
     <name>ATTR_OB0_PLL_BUCKET</name>
     <value>0x01</value>
   </entry>
