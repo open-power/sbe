@@ -24,7 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbetrace.H"
 #include "sbeglobals.H"
-
+#include "sbe_build_info.H"
 ////////////////////////////////////////////////////////////////
 //// @brief Stacks for Non-critical Interrupts and Threads
 //////////////////////////////////////////////////////////////////
@@ -40,3 +40,5 @@ SBEGlobalsSingleton& SBEGlobalsSingleton::getInstance()
     static SBEGlobalsSingleton iv_instance;
     return iv_instance;
 }
+// SBE commit id
+uint32_t SBEGlobalsSingleton::fwCommitId = SBE_COMMIT_ID;

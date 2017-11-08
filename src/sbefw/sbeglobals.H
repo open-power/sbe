@@ -85,6 +85,8 @@ class SBEGlobalsSingleton
         // SBE FW security enabled; 0 - disabled; 1 - enabled
         uint8_t sbeFWSecurityEnabled;
 
+        // SBE commit id
+        static uint32_t fwCommitId;
         ////////////////////////////////////////////////////////////////
         //// @brief PkThread structure for SBE Command Receiver thread
         //////////////////////////////////////////////////////////////////

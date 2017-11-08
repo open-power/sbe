@@ -73,6 +73,17 @@ def getOffset( symbol ):
     offset = int(symAddr, base = 16) - baseAddr;
     return hex(offset)
 
+def getSymbolInfo( symbol ):
+    symAddr = ''
+    length = 0
+    for key, val in syms.items():
+        if(re.search(symbol, key)!= None):
+            symAddr = val[0]
+            length = val[1]
+    print "\n symAddress :", symAddr
+    offset = int(symAddr, base = 16) - baseAddr;
+    return (hex(offset), length)
+
 def createPibmemDumpFile( file_path, offset, length ):
     fileHandle = open(file_path)
     fileHandle.seek(int(offset, 16))
@@ -257,8 +268,7 @@ def collectStackUsage (target, node, proc, file_path ):
                'sbe_Kernel_NCInt_stack',
                'sbeAsyncCommandProcessor_stack')
     for thread in threads:
-        offset = getOffset( thread );
-        length = "0x" + syms[thread][1];
+        (offset, length) = getSymbolInfo( thread );
         if(target == 'FILE'):
             createPibmemDumpFile(file_path, offset, length)
         else:
@@ -273,7 +283,7 @@ def collectStackUsage (target, node, proc, file_path ):
                 return 1
 
         # Dump stack memory to binary file
-        cmd2 = "cat DumpPIBMEM >>"+thread
+        cmd2 = "cat DumpPIBMEM >"+thread
         print "cmd2:", cmd2
         rc = os.system( cmd2 )
         if (rc):
@@ -289,11 +299,33 @@ def collectStackUsage (target, node, proc, file_path ):
             while (1):
                 if (word == int("0xEFCDAB03", 16)):
                     leastAvailable += 4
-                    word = struct.unpack('I', f.read(4))[0]
+                    try:
+                        word = struct.unpack('I', f.read(4))[0]
+                    except:
+                        break
                 else:
                     break
             print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
 
+def getSbeCommit(target, node, proc, file_path ):
+    (offset, length) = getSymbolInfo( 'SBEGlobalsSingleton.*fwCommitId' );
+    if(target == 'FILE'):
+        createPibmemDumpFile(file_path, offset, length)
+    else:
+        cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
+                str(offset) +\
+                " -num_of_byte " + length + " "
+                " -n" + str(node) + " -p" + str(proc))
+        print "cmd1:", cmd1
+        rc = os.system( cmd1 )
+        if ( rc ):
+            print "ERROR running %s: %d " % ( cmd1, rc )
+            return 1
+
+    with open("DumpPIBMEM", "rb") as f:
+        # Big Endian word
+        word = struct.unpack('>I', f.read(4))[0]
+        print "SBE commit:", hex(word)
 
 def ppeState( target, node, proc, file_path ):
     if(target == 'FILE'):
@@ -497,6 +529,8 @@ def parsevalue(iValue):
     tempVal = iValue[28:34]
     print "Reserved Bit [26:31] : %s" %(tempVal)
 
+LEVELS_ARRAY = ('trace', 'forced-trace','attr','stack','ppestate','sbestate','sbestatus','sbelocalregister', 'sym', 'sbecommit')
+
 def usage():
     print "usage: testarg.py [-h] [-l {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister, sym}]\n\
 \t\t\t\t[-t {AWAN,HW,FILE}] [-n NODE] [-p PROC] [-s SYMBOL] [-f FILE_PATH]\n\
@@ -505,7 +539,7 @@ SBE Dump Parser\n\
 \n\
 optional arguments:\n\
   -h, --help            show this help message and exitn\n\
-  -l {trace,attr,stack,ppestate,sbestate,sbestatus,sbelocalregister,sym}, --level {trace,attr,stack,ppestate,sbestate,sbestatus,sbelocalregisteri,sym}\n\
+  -l "+str(LEVELS_ARRAY)+", --level "+str(LEVELS_ARRAY)+"\n\
                         Parser level\n\
   -t {AWAN,HW,FILE}, --target {AWAN,HW,FILE}\n\
                         Target type\n\
@@ -538,7 +572,7 @@ def main( argv ):
             usage()
             exit(1)
         elif opt in ('-l', '--level'):
-            if arg in ('trace', 'forced-trace','attr','stack','ppestate','sbestate','sbestatus','sbelocalregister', 'sym'):
+            if arg in LEVELS_ARRAY:
                 level = arg
             else:
                 print "level should be one of {trace,attr,stack,ppestate,sbestate,sbestatus,sbelocalregister, sym}"
@@ -629,6 +663,9 @@ def main( argv ):
     elif ( level == 'sym' ):
         fillSymTable(target, ddsuffix)
         getSymbolVal(target, node, proc, symbol, file_path)
+    elif ( level == 'sbecommit' ):
+        fillSymTable(target, ddsuffix)
+        getSbeCommit(target, node, proc, file_path)
 
     if(target != 'FILE'):
         # On cronus, set the FIFO mode to previous state
