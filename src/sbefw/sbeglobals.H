@@ -88,6 +88,10 @@ class SBEGlobalsSingleton
         sbeStashMemoryPair_t sbeKeyAddrPair;
         // SBE FW security enabled; 0 - disabled; 1 - enabled
         uint8_t sbeFWSecurityEnabled;
+        // Instance of Master EX core to be used for DMT FFDC collection
+        uint8_t deadmanCore;
+        // Cached HWP Return Code that hints at what HWP FFDC to collect
+        uint32_t asyncFfdcRC;
 
         // SBE commit id
         static uint32_t fwCommitId;

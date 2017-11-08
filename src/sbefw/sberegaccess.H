@@ -198,6 +198,18 @@ class SbeRegAccess
         }
 
         /**
+         * @brief Get the SBE previous State
+         *
+         * @return SBE previous State, sbeState enum
+         *
+         */
+        uint64_t getSbePrevState() const
+        {
+            return iv_prevState;
+        }
+
+
+        /**
          * @brief Get the SBE major istep number
          *
          * @return SBE current major istep number

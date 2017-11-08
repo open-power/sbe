@@ -98,6 +98,14 @@ public:
     }
 
     /*
+     * @brief collectAsyncHwpFfdc    - method to check and force collect
+     *                                 HWP FFDC to SBE global FFDC region,
+     *                                 asynchronous to the HWP execution
+     * @return                       - SBE secondary RC
+     */
+    uint32_t collectAsyncHwpFfdc (void);
+
+    /*
      * @brief sendOverFIFO           - method to pack and send SBE internal FFDC
      *                                 only if isSendInternalFFDCSet() is true
      *                                 over FIFO interface

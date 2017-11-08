@@ -167,7 +167,12 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
         }
 
         SbeFFDCPackage sbeFfdcPack;
-        sbeResponseFfdc_t l_ffdc ;
+        sbeResponseFfdc_t l_ffdc;
+
+        // If need be, force collect HWP FFDC async to the real HWP fail.
+        // Else, just send back what the SBE already has.
+        sbeFfdcPack.collectAsyncHwpFfdc ();
+
         l_ffdc.setRc(g_FfdcData.fapiRc);
         SBE_INFO(SBE_FUNC"FAPI RC is %x", g_FfdcData.fapiRc);
         // If no ffdc , exit;
@@ -220,8 +225,9 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
         {
             break;
         }
-        // If we are able to send ffdc, turn off asny ffdc bit
+        // If we are able to send ffdc, turn off async ffdc bit
         (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(false);
+        SBE_GLOBAL->asyncFfdcRC = FAPI2_RC_SUCCESS;
 
     }while(0);
 

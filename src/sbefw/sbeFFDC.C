@@ -30,6 +30,7 @@
 #include "sbeFFDC.H"
 #include "sbe_build_info.H"
 #include "sbeglobals.H"
+#include "sbecmdcntrldmt.H"
 
 void SbeFFDCPackage::updateUserDataHeader(uint32_t i_fieldsConfig)
 {
@@ -49,6 +50,29 @@ void SbeFFDCPackage::updateUserDataHeader(uint32_t i_fieldsConfig)
                                      /sizeof(uint32_t);
         }
     }
+}
+
+uint32_t SbeFFDCPackage::collectAsyncHwpFfdc (void)
+{
+    #define SBE_FUNC "collectAsyncHwpFfdc"
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    switch (SBE_GLOBAL->asyncFfdcRC)
+    {
+        case fapi2::RC_CHECK_MASTER_STOP15_DEADMAN_TIMEOUT:
+        case fapi2::RC_CHECK_MASTER_STOP15_INVALID_STATE:
+        case fapi2::RC_BLOCK_WAKEUP_INTR_CHECK_FAIL:
+            SBE_INFO (SBE_FUNC "Collecting DMT Async FFDC for RC 0x%08x",
+                      SBE_GLOBAL->asyncFfdcRC);
+            l_rc = sbeCollectDeadmanFfdc ();
+            break;
+        default:
+            SBE_INFO (SBE_FUNC"No specific Async FFDC to collect");
+            break;
+    }
+
+    return l_rc;
+    #undef SBE_FUNC
 }
 
 uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,

@@ -50,6 +50,13 @@ static const uint64_t  N3_FIR_CORE_CHECKSTOP_BIT = 31; // 63-32 = 31
 void sbeDmtPkExpiryCallback(void *arg);
 
 /**
+  * @brief  Called to collect FFDC for the Deadman loop timeout
+  *         into the SBE global HWP FFDC region
+  * @return SBE Secondary RC
+  */
+uint32_t sbeCollectDeadmanFfdc (void);
+
+/**
   * @brief Control Deadman Timer command (0xD101)
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)

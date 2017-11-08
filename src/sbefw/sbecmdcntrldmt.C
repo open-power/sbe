@@ -40,6 +40,9 @@
 #include "fapi2.H"
 #include "plat_hw_access.H"
 #include "p9_sbe_check_master_stop15.H"
+#ifdef DD2
+#include "p9_collect_deadman_ffdc.H"
+#endif
 #include "p9_perv_scom_addresses.H"
 #include "p9_block_wakeup_intr.H"
 #include "sbeTimerSvc.H"
@@ -50,9 +53,9 @@ using namespace fapi2;
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
 p9_sbe_check_master_stop15_FP_t p9_sbe_check_master_stop15_hwp =
-                                            &p9_sbe_check_master_stop15;
+                                &p9_sbe_check_master_stop15;
 p9_block_wakeup_intr_FP_t p9_block_wakeup_intr_hwp =
-                                            &p9_block_wakeup_intr;
+                          &p9_block_wakeup_intr;
 #endif
 
 ////////////////////////////////////////////////////////////////////
@@ -64,7 +67,7 @@ static timerService g_sbe_pk_dmt_timer;
 void sbeDmtPkExpiryCallback(void *)
 {
     #define SBE_FUNC "sbeDmtPkExpiryCallback"
-    SBE_INFO(SBE_FUNC" DMT Callback Timer has expired..Checkstop the system ");
+    SBE_INFO (SBE_FUNC "DMT Callback Timer has expired..Checkstop the system");
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
     (void)SbeRegAccess::theSbeRegAccess().stateTransition(
@@ -77,12 +80,42 @@ void sbeDmtPkExpiryCallback(void *)
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
         // Scom failed
-        SBE_ERROR(SBE_FUNC "PutScom failed for REG PERV_N3_LOCAL_FIR");
+        SBE_ERROR (SBE_FUNC "PutScom failed: REG PERV_N3_LOCAL_FIR");
         pk_halt();
     }
+
     (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(true);
-    // TODO - Store the response in Async Response
-    // RTC:149074
+    #undef SBE_FUNC
+}
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+uint32_t sbeCollectDeadmanFfdc (void)
+{
+    #define SBE_FUNC "sbeCollectDeadmanFfdc"
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    // trace the saved aync ffdc reason and SBE state as info for debug
+    SBE_INFO (SBE_FUNC "FFDC Reason: 0x%08X States - Curr: %d Prev: %d",
+              SBE_GLOBAL->asyncFfdcRC,
+              SbeRegAccess::theSbeRegAccess().getSbeState(),
+              SbeRegAccess::theSbeRegAccess().getSbePrevState());
+
+    fapi2::Target<fapi2::TARGET_TYPE_CORE> coreTarget (
+           plat_getTargetHandleByChipletNumber <fapi2::TARGET_TYPE_CORE> (
+           (SBE_GLOBAL->deadmanCore + CORE_CHIPLET_OFFSET) ));
+
+#ifdef DD2
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    // p9_collect_deadman_ffdc collects the required ffdc into the fapi rc
+    // which will be available in the SBE Global HWP FFDC region
+    SBE_EXEC_HWP ( fapiRc,
+                   p9_collect_deadman_ffdc,
+                   coreTarget,
+                   SBE_GLOBAL->asyncFfdcRC );
+#endif
+
+    return rc;
     #undef SBE_FUNC
 }
 
@@ -123,9 +156,13 @@ uint32_t sbeStartCntlDmt()
             SBE_ERROR(SBE_FUNC" Failed to send response to Hostboot ");
             break;
         }
+
         // Set DMT State
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_DMT_ENTER_EVENT);
+        // To start, assume no errors will hit when starting DMT and hence
+        // default to potential timeout in stopping DMT for FFDC
+        SBE_GLOBAL->asyncFfdcRC = RC_CHECK_MASTER_STOP15_DEADMAN_TIMEOUT;
 
         Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
         // Fetch the Master EX
@@ -136,99 +173,113 @@ uint32_t sbeStartCntlDmt()
         fapi2::Target<fapi2::TARGET_TYPE_EX >
             exTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_EX>(exId));
 
-        // Call Hwp p9_sbe_check_master_stop15 and loop
-        // Go around a loop till you get FAPI2_RC_SUCCESS
+        bool hwpFailed = false;
+        // Initialise both cores with fapi2::RC_CHECK_MASTER_STOP15_PENDING
+        uint32_t rcFapi[2] = {RC_CHECK_MASTER_STOP15_PENDING};
+
+        // Call HWP p9_sbe_check_master_stop15 in a loop as long as the timer is
+        // active and HWP returns RC_CHECK_MASTER_STOP15_PENDING
         do
         {
-            //Initilise both core's fapirc with Success, If it's a non-fused
-            //mode then only Core0's fapiRC will get modified below, second
-            //fapiRc will remain Success
-            uint32_t rcFapi[2] = {FAPI2_RC_SUCCESS};
             uint8_t coreCnt = 0;
+
             for (auto &coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
             {
-                // Core0 is assumed to be the master core
-                SBE_INFO(SBE_FUNC "Executing p9_sbe_check_master_stop15_hwp for Core[%d]",
-                    coreTgt.get().getTargetInstance());
-                
-                SBE_EXEC_HWP(l_fapiRc, p9_sbe_check_master_stop15_hwp, coreTgt);
-                rcFapi[coreCnt++] = l_fapiRc;
-                if( (l_fapiRc != fapi2::RC_CHECK_MASTER_STOP15_PENDING) &&
-                    (l_fapiRc != FAPI2_RC_SUCCESS))
+                // Skip calling on core that already entered stop15
+                if (rcFapi[coreCnt] == RC_CHECK_MASTER_STOP15_PENDING)
                 {
-                    SBE_ERROR(SBE_FUNC" p9_sbe_check_master_stop15 returned "
-                        "failure for Core[%d]",coreTgt.get().getTargetInstance());
-                    // Async Response to be stored
-                    // RTC:149074
-                    break;
+                    SBE_GLOBAL->deadmanCore = coreTgt.get().getTargetInstance();
+                    // Core0 is assumed to be the master core
+                    SBE_INFO ( SBE_FUNC
+                               "Executing p9_sbe_check_master_stop15_hwp for"
+                               " Core[%d]", SBE_GLOBAL->deadmanCore );
+                    SBE_EXEC_HWP ( l_fapiRc,
+                                   p9_sbe_check_master_stop15_hwp,
+                                   coreTgt);
+                    rcFapi[coreCnt++] = l_fapiRc;
+
+                    if (! ((FAPI2_RC_SUCCESS == l_fapiRc) ||
+                           (RC_CHECK_MASTER_STOP15_PENDING == l_fapiRc)) )
+                    {
+                        hwpFailed = true;
+                        // Mark the failure point ..
+                        SBE_GLOBAL->asyncFfdcRC =
+                                    RC_CHECK_MASTER_STOP15_INVALID_STATE;
+                        SBE_ERROR ( SBE_FUNC" p9_sbe_check_master_stop15 failed"
+                                    "on core[%d]", SBE_GLOBAL->deadmanCore );
+                        break;
+                    }
+
+                    if (!fuseMode)
+                    {   // mark odd core as succeeded & exit the core loop
+                        rcFapi[coreCnt] = FAPI2_RC_SUCCESS;
+                        break;
+                    }
                 }
-                if(!fuseMode)
-                {
-                    // This is non-fuse mode, so break here, no need to do the
-                    // p9_sbe_check_master_stop15_hwp on second core.
-                    break;
-                }
-            }
-            // Break from do..while(timer.active), if error already happened
-            if( (l_fapiRc != fapi2::RC_CHECK_MASTER_STOP15_PENDING) &&
-                (l_fapiRc != FAPI2_RC_SUCCESS) )
-            {
-                break; //do..while(timer.active)
+            }   // Core loop for check master stop 15
+
+            // Either Core failed or Both Cores succeeded
+            if ( hwpFailed || ((FAPI2_RC_SUCCESS == rcFapi[0]) &&
+                               (FAPI2_RC_SUCCESS == rcFapi[1])))
+            {   // Exit timer loop
+                break;
             }
 
-            // Only for Pending and Success case, 
-            // If non-fuse core mode then single core status is Pending/Success,
-            // if fuse core mode then both core's status is pending/success
-           
-            if(RC_CHECK_MASTER_STOP15_PENDING != rcFapi[0] &&
-                RC_CHECK_MASTER_STOP15_PENDING != rcFapi[1]) // Success
-            {
-                for (auto coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
-                {
-                    SBE_INFO(SBE_FUNC "Executing p9_block_wakeup_intr_hwp for Core[%d]",
-                        coreTgt.get().getTargetInstance());
-                    SBE_EXEC_HWP(l_fapiRc, p9_block_wakeup_intr_hwp, coreTgt,
-                                                p9pmblockwkup::CLEAR);
-                    if( l_fapiRc )
-                    {
-                        SBE_ERROR(SBE_FUNC" p9_block_wakeup_intr failed for "
-                            "Core[%d]",coreTgt.get().getTargetInstance());
-                        // TODO via RTC 149074
-                        // Async Response to be stored.
-                        // Also checkstop the system.
-                        break;
-                    }
-                    // If Success for the First core & it's a Fuse core then
-                    // continue here for the Second core then go on to press the
-                    // Door Bell
-                    if(!fuseMode)
-                    {
-                        break;
-                    }
-                }
-                
-                // Break out for the p9_block_wakeup_intr failure above
-                // Dont press the Door bell
-                if(l_fapiRc)
-                {
-                    break;
-                }
-                // indicate the Host via Bit SBE_SBE2PSU_DOORBELL_SET_BIT2
-                // that Stop15 exit
-                l_rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT2);
-                if(l_rc)
-                {
-                    SBE_ERROR(SBE_FUNC " Failed to Write "
-                         "SBE_SBE2PSU_DOORBELL_SET_BIT2");
-                }
-                break; // Breakout from do..while()
-            }
-            // Stop 15 Pending Case
+            // Wait if either or both cores are pending to enter stop 15
+            // and no error on either cores
             pk_sleep(PK_MILLISECONDS(SBE_DMT_SLEEP_INTERVAL));
 
-        }while( g_sbe_pk_dmt_timer.isActive()); // Inner Loop
+            // loop back only if timer is still active
+        }   while (g_sbe_pk_dmt_timer.isActive());
 
-    }while(0); // Outer loop
+        if (hwpFailed)
+        {   // exit the do .. while (0) outermost loop
+            break;
+        }
+
+        // Both cores entered stop 15 successfully, now unblock interrupts
+        for (auto coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+        {
+            SBE_GLOBAL->deadmanCore = coreTgt.get().getTargetInstance();
+            SBE_INFO(SBE_FUNC "Executing p9_block_wakeup_intr_hwp for Core[%d]",
+                SBE_GLOBAL->deadmanCore);
+            SBE_EXEC_HWP(l_fapiRc, p9_block_wakeup_intr_hwp, coreTgt,
+                                        p9pmblockwkup::CLEAR);
+            if (l_fapiRc)
+            {
+                // Mark the failure point .. SBE waits for DMT timer to expire
+                SBE_GLOBAL->asyncFfdcRC = RC_BLOCK_WAKEUP_INTR_CHECK_FAIL;
+                SBE_ERROR(SBE_FUNC" p9_block_wakeup_intr failed for "
+                    "Core[%d]", SBE_GLOBAL->deadmanCore);
+
+                break;
+            }
+            // If Success for the First core & it's a Fuse core then
+            // continue here for the Second core then go on to press the
+            // Door Bell
+            if(!fuseMode)
+            {
+                break;
+            }
+        }
+
+        // Break out for the p9_block_wakeup_intr failure above
+        // Dont press the Door bell
+        if(l_fapiRc)
+        {
+            break;
+        }
+
+        // Entered stop15 and unblocked interrupts ..
+        // Indicate the Host via Bit SBE_SBE2PSU_DOORBELL_SET_BIT2
+        // that Stop15 exit
+        l_rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT2);
+        if(l_rc)
+        {
+            SBE_ERROR(SBE_FUNC " Failed to Write "
+                 "SBE_SBE2PSU_DOORBELL_SET_BIT2");
+        }
+    }   while(0); // Outer loop
 
     return l_rc;
     #undef SBE_FUNC
@@ -244,15 +295,19 @@ uint32_t sbeStopCntlDmt()
 
     do
     {
-         SBE_INFO(SBE_FUNC "Stop Timer.");
-         l_rc = g_sbe_pk_dmt_timer.stopTimer( );
-         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-         {
-             SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
-             SBE_ERROR(SBE_FUNC"g_sbe_pk_dmt_timer.stopTimer failed");
-             l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-             break;
-         }
+        SBE_INFO(SBE_FUNC "Stop Timer.");
+        l_rc = g_sbe_pk_dmt_timer.stopTimer( );
+        if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+        {
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus ( SBE_PRI_INTERNAL_ERROR,
+                                                      l_rc );
+            SBE_ERROR(SBE_FUNC"g_sbe_pk_dmt_timer.stopTimer failed");
+            l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+            break;
+        }
+
+        // Reset Async FFDC RC to default success
+        SBE_GLOBAL->asyncFfdcRC = FAPI2_RC_SUCCESS;
         // Set Runtime State
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_DMT_COMP_EVENT);
