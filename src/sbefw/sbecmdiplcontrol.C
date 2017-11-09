@@ -44,6 +44,7 @@
 
 #include "fapi2.H"
 #include "p9_misc_scom_addresses_fld.H"
+#include "p9_perv_scom_addresses_fld.H"
 #include "p9n2_quad_scom_addresses.H"
 // Pervasive HWP Header Files ( istep 2)
 #include <p9_sbe_attr_setup.H>
@@ -669,10 +670,17 @@ ReturnCode performAttrSetup( )
         // Apply the gard records
         rc = plat_ApplyGards();
 
-        // Fetch FW security status
-        FAPI_ATTR_GET(fapi2::ATTR_SECURITY_ENABLE,
-                      fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
-                      SBE_GLOBAL->sbeFWSecurityEnabled);
+        //Getting CBS_CS register value
+        fapi2::buffer<uint64_t> tempReg = 0;
+        plat_target_handle_t hndl;
+        rc = getscom_abs_wrap(&hndl,
+                              PERV_CBS_CS_SCOM, tempReg.pointer());
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+        SBE_GLOBAL->sbeFWSecurityEnabled =
+                    tempReg.getBit<PERV_CBS_CS_SECURE_ACCESS_BIT>();
      }while(0);
     SBE_EXIT(SBE_FUNC);
     return rc;
