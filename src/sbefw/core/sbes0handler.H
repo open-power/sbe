@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/sbecmdmpipl.H $                           */
+/* $Source: src/sbefw/core/sbes0handler.H $                               */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -23,68 +23,34 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/src/sbefw/sbecmdmpipl.H
+ * @file: ppe/src/sbefw/sbes0handler.H
  *
- * @brief This file contains the Interfaces for MPIPL chip-ops
+ * @brief This file contains the Interfaces for S0 Handlers
  *
  */
 
-#ifndef __SBEFW_SBECMDMPIPL_H
-#define __SBEFW_SBECMDMPIPL_H
+#ifndef __SBEFW_SBES0HANDLER_H
+#define __SBEFW_SBES0HANDLER_H
 
 #include <stdint.h>
-#include "sbestates.H"
+#include <sbeexeintf.H>
 
 /**
-  * @brief  Handles Sbe Enter Mpipl chip-op (0xA901)
+  * @brief  Handles Sbe S0 Interrupt
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
   *
-  * @return    Rc from the FIFO access utility
+  * @return    Rc from the function
   */
-uint32_t sbeEnterMpipl(uint8_t *i_pArg);
+uint32_t sbeHandleS0(uint8_t *i_pArg);
 
 /**
-  * @brief  Handles Sbe Continue Mpipl chip-op (0xA902)
+  * @brief  Clear S0 interrupt source bit in PERV_SB_CS_SCOM
   *
-  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  * @param[in] i_pArg Interrupt bit to identify S0
   *
-  * @return    Rc from the FIFO access utility
+  * @return    Rc from the function
   */
-uint32_t sbeContinueMpipl(uint8_t *i_pArg);
+uint32_t clearS0interrupt();
 
-/**
-  * @brief  Handles Sbe Stop Clocks chip-op (0xA903)
-  *
-  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
-  *
-  * @return    Rc from the FIFO access utility
-  */
-uint32_t sbeStopClocks(uint8_t *i_pArg);
-
-/**
-  * @brief  Handles Sbe Start MPIPL iSteps
-  *
-  * @return    Rc from the FIFO access utility
-  */
-fapi2::ReturnCode startMpiplIstepsExecute(void);
-
-/**
-  * @brief  Handles Sbe Continue MPIPL iSteps based on Master/Slave SBE
-  *
-  * @param[in] i_sbeRole Master/Slave SBE
-  *
-  * @return    Rc from the FIFO access utility
-  */
-fapi2::ReturnCode continueMpiplIstepsExecute(const sbeRole i_sbeRole);
-
-#ifdef _S0_
-/**
-  * @brief  Handles Sbe Stop Clock (Core/Cache) procedure in S0 context
-  *
-  * @return    Rc from the FIFO access utility
-  */
-fapi2::ReturnCode stopClockS0();
-#endif
-
-#endif /* __SBEFW_SBECMDMPIPL_H */
+#endif /* __SBEFW_SBES0HANDLER_H */

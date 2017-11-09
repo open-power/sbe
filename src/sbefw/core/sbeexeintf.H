@@ -87,10 +87,13 @@ enum sbeThreadStackSize
  */
 typedef enum
 {
-    SBE_INTERFACE_UNKNOWN = 0x00,
-    SBE_INTERFACE_FIFO    = 0x01,
-    SBE_INTERFACE_PSU     = 0x02,
+    SBE_INTERFACE_UNKNOWN       = 0x00,
+    SBE_INTERFACE_FIFO          = 0x01,
+    SBE_INTERFACE_PSU           = 0x02,
     SBE_INTERFACE_FIFO_RESET    = 0x04,
+#ifdef _S0_
+    SBE_INTERFACE_S0            = 0x08,
+#endif
 } sbeInterfaceSrc_t;
 
 /*

@@ -222,6 +222,9 @@ enum sbeSecondaryResponse
     SBE_SEC_DMT_TIMEOUT                       = 0x21,
     SBE_SEC_SYSTEM_CHECKSTOP                  = 0x22,
     SBE_SEC_BLACKLISTED_REG_ACCESS_BLOCKED    = 0x23,
+    SBE_SEC_S0_START_MPIPL_FAILED             = 0x24,
+    SBE_SEC_S0_STOP_CLOCK_FAILED              = 0x25,
+    SBE_SEC_S0_CONTINUE_MPIPL_FAILED          = 0x26,
 };
 
 /**

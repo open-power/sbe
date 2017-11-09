@@ -43,6 +43,10 @@
 #include "sbeutil.H"
 #include "sbeglobals.H"
 
+#ifdef _S0_
+#include "sbes0handler.H"
+#endif
+
 #include "core/chipop_handler.H"
 
 //////////////////////////////////////////////////////
@@ -61,7 +65,8 @@ void sbeCommandReceiver_routine(void *i_pArg)
     {
         // @TODO via RTC: 128944
         //       Read Scratchpad
-        // Wait for new data in FIFO or FIFO reset interrupt or PSU interrupt
+        // Wait for new data in FIFO or FIFO reset interrupt or PSU interrupt or
+        // s0/s1 interrupt
         int l_rcPk = pk_semaphore_pend (&SBE_GLOBAL->sbeSemCmdRecv, PK_WAIT_FOREVER);
 
         do
@@ -171,6 +176,21 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 l_command   = SBE_GLOBAL->sbeFifoCmdHdr.command;
             } // end else if loop for FIFO interface chipOp handling
 
+#ifdef _S0_ 
+            // Received S0 interrupt
+            else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
+                                        SBE_INTERFACE_S0) )
+            {
+                //Clear interrupt source bit PERV_SB_CS_SCOM
+                clearS0interrupt();
+                //Clear the Interrupt Source bit for S0
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_INTERRUPT_ROUTINE,
+                                                SBE_INTERFACE_S0);
+                curInterface = SBE_INTERFACE_S0;
+                // Break out from Command/Class validation, post to processor
+                break;
+            }
+#endif
             // Any other FIFO access issue
             if ( l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
             {

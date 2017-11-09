@@ -43,6 +43,8 @@
 //               - FIFO new data available
 //               - FIFO reset request
 //               - PSU new data available
+//               - S0 Interrupt
+//               - S1 Interrupt
 //
 // @param[in]  i_pArg - Unused
 // @param[in]  i_irq  - IRQ number as defined in sbeirq.h
@@ -73,7 +75,12 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
                                             SBE_INTERFACE_FIFO_RESET);
             pk_irq_disable(SBE_IRQ_SBEFIFO_DATA);
             break;
-
+#ifdef _S0_
+        case SBE_IRQ_INTR0:
+            SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
+                                            SBE_INTERFACE_S0);
+            break;
+#endif
         default:
             SBE_ERROR(SBE_FUNC"Unknown IRQ, assert");
             assert(0);
@@ -95,61 +102,55 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
     #undef SBE_FUNC
 }
 
+// Interrupts which are available in SBE, in an array
+static uint32_t G_supported_irqs[] = {
+                                        SBE_IRQ_HOST_PSU_INTR,
+                                        SBE_IRQ_SBEFIFO_DATA,
+                                        SBE_IRQ_SBEFIFO_RESET,
+#ifdef _S0_
+                                        SBE_IRQ_INTR0,
+#endif
+                                     };
+
+// Create the Vector mask for all the interrupts in SBE,
+// required to call disable/enable with this vector mask
+constexpr uint64_t getVectorMask ( size_t index )
+{
+    return (index >= (sizeof(G_supported_irqs)/sizeof(uint32_t))? 
+        0:STD_IRQ_MASK64(G_supported_irqs[index])|getVectorMask(index + 1));
+}
+
 ////////////////////////////////////////////////////////////////
 // See sbeexeintf.h for more details
 ////////////////////////////////////////////////////////////////
 int sbeIRQSetup (void)
 {
     #define SBE_FUNC " sbeIRQSetup "
-    int l_rc = 0;
-    PkIrqId l_irq;
+    int rc = 0;
+    uint64_t vector_mask = getVectorMask(0);
 
     // Disable the relevant IRQs while we set them up
-    pk_irq_disable(SBE_IRQ_HOST_PSU_INTR);
-    pk_irq_disable(SBE_IRQ_SBEFIFO_DATA);
-    pk_irq_disable(SBE_IRQ_SBEFIFO_RESET);
+    pk_irq_vec_disable(vector_mask);
 
-    do
+    for(uint32_t cnt=0; cnt<sizeof(G_supported_irqs)/sizeof(uint32_t); cnt++)
     {
         // Register the IRQ handler with PK
-
-        // PSU New data available interrupt
-        l_irq = SBE_IRQ_HOST_PSU_INTR;
-        l_rc = pk_irq_handler_set(l_irq, sbe_interrupt_handler, NULL);
-        if(l_rc)
+        rc = pk_irq_handler_set(G_supported_irqs[cnt], sbe_interrupt_handler, NULL);
+        if(rc)
         {
+            SBE_ERROR (SBE_FUNC "pk_irq_handler_set failed, IRQ=[0x%02X], "
+                "rc=[%d]", G_supported_irqs[cnt], rc);
             break;
         }
-
-        // FIFO New data available interrupt
-        l_irq = SBE_IRQ_SBEFIFO_DATA;
-        l_rc = pk_irq_handler_set(l_irq, sbe_interrupt_handler, NULL);
-        if(l_rc)
-        {
-            break;
-        }
-
-        // FIFO Reset request
-        l_irq = SBE_IRQ_SBEFIFO_RESET;
-        l_rc = pk_irq_handler_set(l_irq, sbe_interrupt_handler, NULL);
-        if(l_rc)
-        {
-            break;
-        }
-
-        // Enable the IRQ
-        pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
-        pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
-        pk_irq_enable(SBE_IRQ_HOST_PSU_INTR);
-    } while(false);
-
-    if (l_rc)
-    {
-        SBE_ERROR (SBE_FUNC"pk_irq_handler_set failed, IRQ=[0x%02X], "
-            "rc=[%d]", l_irq, l_rc);
     }
 
-    return l_rc;
+    if(!rc)
+    {
+        // Enable the IRQ
+        pk_irq_vec_enable(vector_mask);
+    }
+
+    return rc;
     #undef SBE_FUNC
 }
 

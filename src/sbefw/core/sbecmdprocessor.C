@@ -48,6 +48,11 @@
 #include "sbeglobals.H"
 #include "core/chipop_handler.H"
 #include "core/ipl.H"
+
+#ifdef _S0_
+#include "sbes0handler.H"
+#endif
+
 using namespace fapi2;
 
 // Forward declaration for performAttrSetup
@@ -325,6 +330,16 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
                 SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
                                                SBE_INTERFACE_FIFO);
             }
+#ifdef _S0_
+            else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
+                                             SBE_INTERFACE_S0) )
+            {
+                SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
+                                               SBE_INTERFACE_S0);
+                l_rc = sbeHandleS0((uint8_t *)i_pArg);
+                break;
+            }
+#endif
             else // SBE_INTERFACE_FIFO_RESET or SBE_INTERFACE_UNKNOWN
             {
                 SBE_ERROR(SBE_FUNC"Unexpected interrupt communicated to the "
@@ -380,6 +395,15 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
             pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
         }
+#ifdef _S0_
+        else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_S0) )
+        {
+            // No Response to handle here, Async response
+            // Enable Host interrupt
+            SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_S0);
+            pk_irq_enable(SBE_IRQ_INTR0);
+        }
+#endif
     } while(true); // Thread always exists
     SBE_EXIT(SBE_FUNC);
 }

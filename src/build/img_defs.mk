@@ -467,6 +467,11 @@ endif
 ifeq ($(img), pibmem)
 GCC-DEFS += -DPIBMEM_ONLY_IMAGE
 endif
+
+ifeq ($(SBE_S0_SUPPORT), 1)
+GCC-DEFS += -D_S0_=$(SBE_S0_SUPPORT)
+endif
+
 ############################################################################
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)

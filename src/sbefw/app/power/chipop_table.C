@@ -42,7 +42,6 @@
 #include "sbecmdtracearray.H"
 #include "sbecmdCntrlTimer.H"
 #include "sbecmdfastarray.H"
-
 #include "core/chipop_handler.H"
 #include "app/common/sbecmdgeneric.H"
 

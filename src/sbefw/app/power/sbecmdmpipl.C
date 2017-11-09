@@ -81,6 +81,71 @@ static const uint32_t ISTEP_MINOR_START             = 1;
 static const uint32_t ISTEP4_MAX_SUBSTEPS           = 34;
 static const uint32_t ISTEP5_MAX_SUBSTEPS           = 2;
 
+ReturnCode startMpiplIstepsExecute(void)
+{
+    #define SBE_FUNC " startMpiplIstepsExecute "
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+
+    uint32_t minor = 1;
+    do
+    {
+        fapiRc = sbeExecuteIstep(SBE_ISTEP_MPIPL_START, minor);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "Failed in StartMpipl Minor Isteps[%d]", minor);
+            break;
+        }
+        ++minor;
+    }while(minor<=MPIPL_START_MAX_SUBSTEPS);
+
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+    #undef SBE_FUNC
+}
+
+static const uint8_t g_continuempipl_isteps[3][3] = {
+    // Major Num,              Minor Start,       Minor End
+    {SBE_ISTEP_MPIPL_CONTINUE, ISTEP_MINOR_START, MPIPL_CONTINUE_MAX_SUBSTEPS},
+    {SBE_ISTEP4,               ISTEP_MINOR_START, ISTEP4_MAX_SUBSTEPS},
+    {SBE_ISTEP5,               ISTEP_MINOR_START, ISTEP5_MAX_SUBSTEPS}};
+
+
+ReturnCode continueMpiplIstepsExecute(const sbeRole i_sbeRole)
+{
+    #define SBE_FUNC " continueMpiplIstepsExecute "
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+ 
+    // Loop through isteps
+    for( auto istep : g_continuempipl_isteps )
+    {
+        for(uint8_t minor = istep[1]; minor <= istep[2]; minor++)
+        {
+            fapiRc = sbeExecuteIstep(istep[0], minor);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "Failed in Master ContinueMpipl Isteps "
+                    "Major[%d] Minor[%d]", istep[0], minor);
+                break;
+            }
+        }
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            break;
+        }
+        if(i_sbeRole == SBE_ROLE_SLAVE)
+        {
+            (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                    SBE_RUNTIME_EVENT);
+            break;
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+    #undef SBE_FUNC
+}
+
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeEnterMpipl Sbe enter MPIPL function
 //
@@ -90,49 +155,42 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeEnterMpipl "
     SBE_ENTER(SBE_FUNC);
-    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
-    sbeRespGenHdr_t l_respHdr;
-    l_respHdr.init();
-    sbeResponseFfdc_t l_ffdc;
+
+    sbeResponseFfdc_t ffdc;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
 
     do
     {
         // Dequeue the EOT entry as no more data is expected.
-        l_rc = sbeUpFifoDeq_mult (len, NULL);
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+        rc = sbeUpFifoDeq_mult (len, NULL);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
-        uint32_t l_minor = 1;
-        do
+        fapiRc = startMpiplIstepsExecute();
+        bool checkstop = isSystemCheckstop();
+        if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
         {
-            l_fapiRc = sbeExecuteIstep(SBE_ISTEP_MPIPL_START, l_minor);
-            bool checkstop = isSystemCheckstop();
-            if((l_fapiRc != FAPI2_RC_SUCCESS) || checkstop)
+            SBE_ERROR(SBE_FUNC "Failed in Mpipl Start in ChipOp Mode");
+            if(checkstop)
             {
-                SBE_ERROR(SBE_FUNC "Failed in Mpipl Start in ChipOp Mode "
-                    "Minor: %d", l_minor);
-                if(checkstop)
-                {
-                    l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                         SBE_SEC_SYSTEM_CHECKSTOP);
-                }
-                else
-                {
-                    l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-                    l_ffdc.setRc(l_fapiRc);
-                }
-                // reset attribute. We do not want to reset register, so do not
-                // use setMpIplMode
-                uint8_t isMpipl = 0;
-                PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(),
-                                                              isMpipl);
-                break;
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                   SBE_SEC_SYSTEM_CHECKSTOP);
             }
-            ++l_minor;
-        }while(l_minor<=MPIPL_START_MAX_SUBSTEPS);
-
+            else
+            {
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                   SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                ffdc.setRc(fapiRc);
+            }
+            // reset attribute. We do not want to reset register, so do not
+            // use setMpIplMode
+            uint8_t isMpipl = 0;
+            PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
+            break;
+        }
     }while(0);
 
     // Create the Response to caller
@@ -140,12 +198,12 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     {
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }while(0);
 
     SBE_EXIT(SBE_FUNC);
-    return l_rc;
+    return rc;
     #undef SBE_FUNC
 }
 
@@ -158,66 +216,42 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeContinueMpipl "
     SBE_ENTER(SBE_FUNC);
-    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
 
-    ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
-    sbeResponseFfdc_t l_ffdc;
-    sbeRespGenHdr_t l_respHdr;
-    l_respHdr.init();
+    sbeResponseFfdc_t ffdc;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
 
     do
     {
         // Dequeue the EOT entry as no more data is expected.
-        l_rc = sbeUpFifoDeq_mult (len, NULL);
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+        rc = sbeUpFifoDeq_mult (len, NULL);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
-        sbeRole l_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
+        sbeRole sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
                     SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
 
-        // Run isteps
-        const uint8_t isteps[][3] = {
-            // Major Num,              Minor Start,       Minor End
-            {SBE_ISTEP_MPIPL_CONTINUE, ISTEP_MINOR_START, MPIPL_CONTINUE_MAX_SUBSTEPS},
-            {SBE_ISTEP4,               ISTEP_MINOR_START, ISTEP4_MAX_SUBSTEPS},
-            {SBE_ISTEP5,               ISTEP_MINOR_START, ISTEP5_MAX_SUBSTEPS}};
-        // Loop through isteps
-        for( auto istep : isteps)
+        fapiRc = continueMpiplIstepsExecute(sbeRole);
+        bool checkstop = isSystemCheckstop();
+        if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
         {
-            // This is required here to skip the major istep 4/5 in slave
-            if((SBE_ROLE_SLAVE == l_sbeRole) &&
-               (istep[0] == 4 || istep[0] == 5))
+            SBE_ERROR(SBE_FUNC "Failed in Continue Mpipl in ChipOp Mode, "
+                "SBE Role[%d]", sbeRole);
+            if(checkstop)
             {
-                (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                            SBE_RUNTIME_EVENT);
-                continue;
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                     SBE_SEC_SYSTEM_CHECKSTOP);
             }
-            for(uint8_t l_minor = istep[1]; l_minor <= istep[2]; l_minor++)
+            else
             {
-                l_fapiRc = sbeExecuteIstep(istep[0], l_minor);
-                bool checkstop = isSystemCheckstop();
-                if((l_fapiRc != FAPI2_RC_SUCCESS) || checkstop)
-                {
-                    SBE_ERROR(SBE_FUNC "Failed in Mpipl continue in ChipOp "
-                        "Mode Major [%d] Minor [%d]", istep[0], l_minor);
-                    if(checkstop)
-                    {
-                        l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                             SBE_SEC_SYSTEM_CHECKSTOP);
-                    }
-                    else
-                    {
-                        l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                         SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-                        l_ffdc.setRc(l_fapiRc);
-                    }
-                    break;
-                }
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                        SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                ffdc.setRc(fapiRc);
+                // Async Response to be stored
             }
-            if(l_ffdc.getRc() != FAPI2_RC_SUCCESS)
-            {
-                break;
-            }
+            break;
         }
     }while(0);
 
@@ -228,15 +262,52 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
-    if(SBE_SEC_OPERATION_SUCCESSFUL == l_rc)
+    if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
     {
-        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }
     SBE_EXIT(SBE_FUNC);
-    return l_rc;
+    return rc;
     #undef SBE_FUNC
 }
 
+#ifdef _S0_
+///////////////////////////////////////////////////////////////////////
+// @brief stopClockS0 Sbe StopClock S0 interface function
+//
+// @return  RC from the underlying FIFO utility
+///////////////////////////////////////////////////////////////////////
+ReturnCode stopClockS0()
+{
+#define SBE_FUNC "stopClockS0"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    p9_stopclocks_flags flags;
+
+    p9hcd::P9_HCD_CLK_CTRL_CONSTANTS clk_regions =
+        p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
+    p9hcd::P9_HCD_EX_CTRL_CONSTANTS ex_select = p9hcd::BOTH_EX;
+
+    flags.clearAll();
+    flags.sync_stop_quad_clks = false;
+    flags.stop_core_clks = true; 
+    flags.stop_cache_clks = true;
+    
+    SBE_EXEC_HWP(fapiRc, p9_stopclocks_hwp,
+            plat_getChipTarget(),
+            flags,
+            clk_regions,
+            ex_select);
+    if(fapiRc != FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC "Failed in StopClock S0S1 Interface");
+    }
+
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+#undef SBE_FUNC
+}
+#endif
 ///////////////////////////////////////////////////////////////////////
 /* @brief Deduce the type of stop clock procedure to call based on
  *        target and chiplet id combination
