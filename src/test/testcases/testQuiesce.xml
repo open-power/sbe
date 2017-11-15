@@ -5,7 +5,8 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2017                        -->
+<!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
 <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
@@ -38,8 +39,14 @@
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPutGetScom.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
+      <!-- Taking out this test-case since this requires clock now, and we have
+           already done stop clock before quiesce. Somehow there is dependency
+           of clock with ADU, this used to work in DD1.
+           We can't move stopclock testcase below this since stop clock is from
+           seeprom region and quiesce prohibits seeprom access.
+           Disabling ADU access after quiesce operation. -->
       <!-- An Adu put chip-op should succeed post the Quiesce  -->
-      <testcase>
+      <!--<testcase>
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testAduMem_noEccNoItag.py</simcmd>
           <exitonerror>yes</exitonerror>
-      </testcase>
+      </testcase> -->

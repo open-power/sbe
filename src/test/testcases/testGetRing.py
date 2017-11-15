@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2017
 # [+] International Business Machines Corp.
 #
 #
@@ -34,10 +34,10 @@ LOOP_COUNT = 1
 GETRING_TESTDATA =  [0,0,0,0x6,
                      0,0,0xA3,0x01,
                      0x20,0x03,0x70,0x01,      # address
-                     0,0,0x4D,0xF1,           # length of data in bits
+                     0,0,0x54,0xA5,           # length of data in bits
                      0x00,0x00,0x00,0x01]
 
-GETRING_EXPDATA =   [0,0,0x4D,0xF1,  # length of data in bits
+GETRING_EXPDATA =   [0,0,0x54,0xA5,  # length of data in bits
                      0xc0,0xde,0xa3,0x01,
                      0x0,0x0,0x0,0x0,
                      0x00,0x0,0x0,0x03];
@@ -51,7 +51,7 @@ def main( ):
     # GetRing test - Aligned Data
     testUtil.writeUsFifo( GETRING_TESTDATA )
     testUtil.writeEot( )
-    testUtil.readDsEntry ( 624 )  ## 6242 entries
+    testUtil.readDsEntry ( 678 )  ## 6242 entries
     testUtil.readDsFifo( GETRING_EXPDATA )
     testUtil.runCycles( 10000000 )
     testUtil.readEot( )
