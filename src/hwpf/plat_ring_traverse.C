@@ -72,7 +72,7 @@ fapi2::ReturnCode findRS4InImageAndApply(
             SBE_TRACE("No ring data in .RING section");
             break;
         }
-        
+
         uint8_t l_torHdrSz;
         TorHeader_t* torHeader = (TorHeader_t*)(g_seepromAddr +
                                                 l_section->iv_offset);
@@ -83,13 +83,10 @@ fapi2::ReturnCode findRS4InImageAndApply(
         }
         else
         {
-            // Note that after the merge of this code and after the TOR
-            // magic merge on the HB side has settled down, the code
-            // inside these bracket will be replaced with the return of
-            // an error.
-            l_torHdrSz = 0;
-            SBE_TRACE("TOR magic header (=0x%08x) != TOR_MAGIC_SBE (=0x%08x)",
+            SBE_ERROR("ERROR: TOR magic header (=0x%08x) != TOR_MAGIC_SBE (=0x%08x)",
                       torHeader->magic, TOR_MAGIC_SBE);
+            l_rc = fapi2::FAPI2_RC_PLAT_TOR_HEADER_DATA_INVALID;
+            break;
         }
 
         SectionTOR* l_sectionTOR = (SectionTOR*)(g_seepromAddr +
