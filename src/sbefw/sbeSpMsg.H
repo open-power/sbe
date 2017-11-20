@@ -52,7 +52,8 @@
 typedef struct
 {
     uint32_t len;
-    uint32_t reserved:16;
+    uint32_t reserved:12;
+    uint32_t clientId:4;
     uint32_t cmdClass:8;
     uint32_t command:8;
 }sbeFifoCmdReqBuf_t;

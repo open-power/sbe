@@ -502,6 +502,18 @@ typedef enum
     FASTARRAY_CLEANUP    = 0x03,
 } sbeFastArrayControlModes_t;
 
+/*
+ * @brief enums for SBE client ID
+ */
+typedef enum
+{
+    CLIENT_DEFAULT      = 0x0,
+    CLIENT_SP           = 0x1,
+    CLIENT_HOST         = 0x2,
+    CLIENT_LAB          = 0x3,
+    CLIENT_OCC          = 0x4,
+} sbeClientId_t;
+
 #ifdef __cplusplus
 }
 #endif

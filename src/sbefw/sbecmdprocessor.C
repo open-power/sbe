@@ -314,6 +314,8 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
                 l_rc         = SBE_GLOBAL->sbeCmdRespHdr.sec_status;
                 l_cmdClass   = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
                 l_cmdOpCode  = SBE_GLOBAL->sbeFifoCmdHdr.command;
+                SBE_INFO(SBE_FUNC"Processing command from client :0x%01X",
+                            (uint32_t)(SBE_GLOBAL->sbeFifoCmdHdr.clientId));
                 // Set this here, so that during response handling we know which
                 // interrupt we are processing, need not check for
                 // SBE_GLOBAL->sbeIntrSource again
