@@ -47,6 +47,7 @@ namespace SBE
 
     void updatePkFreq()
     {
+        #define SBE_FUNC "updatePkFreq "
         using namespace fapi2;
         Target<TARGET_TYPE_SYSTEM> sys;
         uint8_t nestPllBkt = 0;
@@ -56,6 +57,7 @@ namespace SBE
                                               SBE::SBE_TO_NEST_FREQ_FACTOR;
         SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
         pk_timebase_freq_set(SBE_GLOBAL->sbefreq);
+        #undef SBE_FUNC
     }
 }
 
