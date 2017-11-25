@@ -346,18 +346,6 @@ fapi2::ReturnCode p9_sbe_chiplet_reset(const
 
         for (auto& targ : l_perv_func)
         {
-            // OBUS
-            uint32_t l_chipletID = targ.getChipletNumber();
-
-            if(l_chipletID >= OB0_CHIPLET_ID && l_chipletID <= OB3_CHIPLET_ID)
-            {
-                FAPI_DBG("Drop clk async reset for N3, Mc  and Obus chiplets");
-                FAPI_TRY(p9_sbe_chiplet_reset_nest_ob_async_reset(targ));
-            }
-        }
-
-        for (auto& targ : l_perv_func)
-        {
             //MC
             uint32_t l_chipletID = targ.getChipletNumber();
 
