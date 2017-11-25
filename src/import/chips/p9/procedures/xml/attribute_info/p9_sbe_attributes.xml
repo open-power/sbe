@@ -534,6 +534,10 @@ attribute tank
         <virtual/>
   </entry>
   <entry>
+        <name>ATTR_CHIP_EC_FEATURE_HW404391_SCOM</name>
+        <virtual/>
+  </entry>
+  <entry>
            <name>ATTR_SBE_ADDR_KEY_STASH_ADDR</name>
            <value>0x0000000000000000</value>
   </entry>

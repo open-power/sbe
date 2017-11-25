@@ -66,6 +66,9 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_meshctrl_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const bool value);
 
+static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_async_reset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
+
 static fapi2::ReturnCode p9_sbe_startclock_chiplets_set_ob_ratio(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const uint8_t i_attr);
@@ -91,6 +94,7 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
     fapi2::buffer<uint8_t> l_attr_obus_ratio;
     fapi2::buffer<uint16_t> l_attr_pg;
     bool l_obus_chiplets = false;
+    uint8_t l_hw404391_scom = false;
 
     FAPI_DBG("p9_sbe_startclock_chiplets: Entering ...");
 
@@ -104,6 +108,9 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_OBUS_RATIO_VALUE, i_target_chip,
                            l_attr_obus_ratio));
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW404391_SCOM, i_target_chip,
+                           l_hw404391_scom));
 
     FAPI_TRY(p9_sbe_common_get_pg_vector(i_target_chip, l_pg_vector));
     FAPI_DBG("partial good targets vector: %#018lX", l_pg_vector);
@@ -156,38 +163,43 @@ fapi2::ReturnCode p9_sbe_startclock_chiplets(const
         // OBUS
         if(l_obus_chiplets)
         {
+            if (l_hw404391_scom)
+            {
+                FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(targ, REGION1_PBIOOA, l_regions));
+                FAPI_DBG("Regions value: %#018lX", l_regions);
 
-            FAPI_TRY(p9_perv_sbe_cmn_regions_setup_64(targ, REGION1_PBIOOA, l_regions));
-            FAPI_DBG("Regions value: %#018lX", l_regions);
+                FAPI_DBG("Set nv2 iovalid");
+                l_data64.flush<0>();
+                l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_6D>();
+                l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_7D>();
+                l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_8D>();
+                FAPI_TRY(fapi2::putScom(targ, PERV_CPLT_CONF1_OR, l_data64));
 
-            FAPI_DBG("Set nv2 iovalid");
-            l_data64.flush<0>();
-            l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_6D>();
-            l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_7D>();
-            l_data64.setBit<PERV_1_CPLT_CONF1_IOVALID_8D>();
-            FAPI_TRY(fapi2::putScom(targ, PERV_CPLT_CONF1_OR, l_data64));
+                FAPI_DBG("drop chiplet fence for OB");
+                FAPI_TRY(p9_sbe_startclock_chiplets_fence_drop(targ));
 
-            FAPI_DBG("drop chiplet fence for OB");
-            FAPI_TRY(p9_sbe_startclock_chiplets_fence_drop(targ));
+                FAPI_DBG("Clock start : region 1 pbiooa to propagate the clock select for nv logic");
+                FAPI_TRY(p9_sbe_common_clock_start_stop(targ, CLOCK_CMD_START,
+                                                        DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
 
-            FAPI_DBG("Clock start : region 1 pbiooa to propagate the clock select for nv logic");
-            FAPI_TRY(p9_sbe_common_clock_start_stop(targ, CLOCK_CMD_START,
-                                                    DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
+                FAPI_DBG("Clock stop : region 1 pbiooa ");
+                FAPI_TRY(p9_sbe_common_clock_start_stop(targ, CLOCK_CMD_STOP,
+                                                        DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
 
-            FAPI_DBG("Clock stop : region 1 pbiooa ");
-            FAPI_TRY(p9_sbe_common_clock_start_stop(targ, CLOCK_CMD_STOP,
-                                                    DONT_STARTSLAVE, DONT_STARTMASTER, l_regions, CLOCK_TYPES));
+                FAPI_DBG("raise chiplet fence for OB");
+                l_data_cplt_fence.flush<0>();
+                l_data_cplt_fence.setBit<PERV_1_NET_CTRL0_FENCE_EN>();
+                FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL0_WOR, l_data_cplt_fence));
 
-            FAPI_DBG("raise chiplet fence for OB");
-            l_data_cplt_fence.flush<0>();
-            l_data_cplt_fence.setBit<PERV_1_NET_CTRL0_FENCE_EN>();
-            FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL0_WOR, l_data_cplt_fence));
-
-            FAPI_DBG("Clear nv2 iovalid");
-            FAPI_TRY(fapi2::putScom(targ, PERV_CPLT_CONF1_CLEAR, l_data64));
+                FAPI_DBG("Clear nv2 iovalid");
+                FAPI_TRY(fapi2::putScom(targ, PERV_CPLT_CONF1_CLEAR, l_data64));
+            }
 
             FAPI_DBG("Meshctrl setup");
             FAPI_TRY(p9_sbe_startclock_chiplets_meshctrl_setup(targ, ((l_ndl_meshctrl_setup >> (12 - l_chipletID)) & 1)));
+
+            FAPI_DBG("Drop clk async reset for Obus chiplets");
+            FAPI_TRY(p9_sbe_startclock_chiplets_ob_async_reset(targ));
 
             FAPI_DBG("Reset syncclk muxsel for obus chiplets");
             FAPI_TRY(p9_sbe_startclock_chiplets_reset_syncclk_muxsel(targ));
@@ -281,6 +293,29 @@ static fapi2::ReturnCode p9_sbe_startclock_chiplets_meshctrl_setup(
 
 fapi_try_exit:
     return fapi2::current_err;
+}
+
+/// @brief Dropping the net_ctrl0 clock_async_reset
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p9_sbe_startclock_chiplets_ob_async_reset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_INF("p9_sbe_startclock_chiplets_ob_async_reset: Entering ...");
+
+    //Setting NET_CTRL0 register value
+    l_data64.flush<1>();
+    //NET_CTRL0.CLK_ASYNC_RESET = 0
+    l_data64.clearBit<PERV_1_NET_CTRL0_CLK_ASYNC_RESET>();
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_NET_CTRL0_WAND, l_data64));
+
+    FAPI_INF("p9_sbe_startclock_chiplets_ob_async_reset: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
 }
 
 /// @brief set obus ratio
