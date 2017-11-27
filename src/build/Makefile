@@ -38,14 +38,23 @@ LLIBS += -lpk
 SUBDIRS += $(BOOT_SRCDIR)
 SUBDIRS += $(BUILDDATA_SRCDIR)
 
-SUBDIRS += ../sbefw
-LIB_DIRS += -L$(OBJDIR)/sbefw
-SBEFWLIB := $(OBJDIR)/sbefw/libsbefw.a
-LLIBS += -lsbefw
+SUBDIRS += ../sbefw/core
+LIB_DIRS += -L$(OBJDIR)/sbefw/core
+SBECORELIB := $(OBJDIR)/sbefw/core/libsbecore.a
+LLIBS += -lsbecore
 
-LIB_DIRS += -L$(OBJDIR)/sbefwseeprom
-SBEFWLIB := $(OBJDIR)/sbefwseeprom/libsbefwseeprom.a
-LLIBS += -lsbefwseeprom
+LIB_DIRS += -L$(OBJDIR)/sbefw/coreseeprom
+SBECORESEEPROMLIB := $(OBJDIR)/sbefw/sbecoreseeprom/libsbecoreseeprom.a
+LLIBS += -lsbecoreseeprom
+
+SUBDIRS += ../sbefw/app
+LIB_DIRS += -L$(OBJDIR)/sbefw/app
+SBEAPPLIB := $(OBJDIR)/sbefw/app/libsbeapp.a
+LLIBS += -lsbeapp
+
+LIB_DIRS += -L$(OBJDIR)/sbefw/appseeprom
+SBECORESEEPROMLIB := $(OBJDIR)/sbefw/sbeappseeprom/libsbeappseeprom.a
+LLIBS += -lsbeappseeprom
 
 # FAPI2 library
 SUBDIRS += $(PLAT_FAPI2_DIR)
@@ -114,8 +123,8 @@ SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/ppe2fsp.c
 SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/ppe2fsp_cmd.c
 SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/trac_interface.h
 SIMICS_PPETRACEPP_TAR_FILES += $(PK_SRCDIR)/trace/pk_trace.h
-SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/plugins/sbeUserDataParser.C
-SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/sbeFFDCType.H
+SIMICS_PARSERPLUGINS_TAR_FILES += $(SBECORE_FW_DIR)/plugins/sbeUserDataParser.C
+SIMICS_PARSERPLUGINS_TAR_FILES += $(SBECORE_FW_DIR)/sbeFFDCType.H
 
 SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
 SBE_IPL_TOOLS := $(IMG_DIR)/p9_ipl_build
@@ -138,7 +147,7 @@ $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis: $(IMG
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
 
 #create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) _sbefw_seeprom  $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) _sbecore_seeprom _sbeapp_seeprom  $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
 		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(BOOT_OBJECTS) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group
@@ -158,7 +167,7 @@ $(IMG_DIR)/$(IMAGE_SBE_NAME).bin $(IMG_DIR)/$(IMAGE_SBE_NAME).dis: $(IMG_DIR)/$(
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SBE_NAME).dis
 
 # create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) _sbefw_seeprom $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) _sbecore_seeprom _sbeapp_seeprom $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(IMG_DIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(BUILDDATA_OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
@@ -197,7 +206,7 @@ tar:
 	@echo "Generated simics.tar in Sbe images Directory"
 
 .PHONY: all normalize compress defaultset appendloader add_LoaderAddr symbols report \
-		appendoverrides xml security tracehash topfixedheaders  $(SUBDIRS) _sbefw_seeprom \
+		appendoverrides xml security tracehash topfixedheaders  $(SUBDIRS) _sbecore_seeprom _sbeapp_seeprom\
 		tar install
 
 buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
@@ -262,8 +271,10 @@ platattr:
 # Build the subdirectories
 $(SUBDIRS):
 	$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
-_sbefw_seeprom:
-	$(MAKE) -I $(INCLUDES) -C ../sbefw -f MakefileSeeprom
+_sbecore_seeprom:
+	$(MAKE) -I $(INCLUDES) -C ../sbefw/core -f MakefileSeeprom
+_sbeapp_seeprom:
+	$(MAKE) -I $(INCLUDES) -C ../sbefw/app -f MakefileSeeprom
 
 
 #Build the SBE XIP Tools

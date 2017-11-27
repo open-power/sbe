@@ -78,8 +78,8 @@ ifndef SBE_SRC_DIR
 export SBE_SRC_DIR = $(SBE_ROOT_DIR)/src
 endif
 
-ifndef SBE_FW_DIR
-export SBE_FW_DIR = $(SBE_SRC_DIR)/sbefw
+ifndef SBECORE_FW_DIR
+export SBECORE_FW_DIR = $(SBE_SRC_DIR)/sbefw/core
 endif
 
 ifndef BUILD_DIR
@@ -466,7 +466,7 @@ INCLUDES += -I$(PK_SRCDIR)/../include/std
 INCLUDES += -I$(PK_SRCDIR)/kernel
 INCLUDES += -I$(PK_SRCDIR)/ppe
 INCLUDES += -I$(PK_SRCDIR)/ppe42
-INCLUDES += -I$(SBE_FW_DIR)
+INCLUDES += -I$(SBECORE_FW_DIR)
 INCLUDES += -I$(BOOT_SRCDIR)
 INCLUDES += -I$(BUILDDATA_SRCDIR)
 INCLUDES += -I$(PK_SRCDIR)/trace
