@@ -75,10 +75,16 @@ p9_hcd_cache_scominit(
     uint8_t                                     l_excount = 0;
     uint8_t                                     l_attr_chip_unit_pos = 0;
     uint8_t                                     l_attr_sys_force_all_cores = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>    l_sys;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
         i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>    l_sys;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_eq_perv =
+        i_target.getParent<fapi2::TARGET_TYPE_PERV>();
     auto l_ex_targets = i_target.getChildren<fapi2::TARGET_TYPE_EX>();
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_eq_perv,
+                           l_attr_chip_unit_pos));
+    l_attr_chip_unit_pos = l_attr_chip_unit_pos - p9hcd::PERV_TO_EQ_POS_OFFSET;
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES, l_sys,
                            l_attr_sys_force_all_cores));
@@ -92,6 +98,18 @@ p9_hcd_cache_scominit(
         if (l_exlist & BIT16(l_exloop))
         {
             l_excount++;
+        }
+    }
+
+    for (l_exloop = 0; l_exloop < 2; l_exloop++)
+    {
+        if (!(l_exlist & BIT16((l_exloop + (l_attr_chip_unit_pos << 1)))))
+        {
+            FAPI_DBG("Apply EQ_FIR_MASK to Deconfigured EQ[%x]EX[%x]",
+                     l_attr_chip_unit_pos, l_exloop);
+            FAPI_TRY(getScom(i_target, EQ_FIR_MASK, l_data64));
+            l_data64 |= ((BIT64(4) | BIT64(6) | BIT64(8) | BIT64(11)) >> l_exloop);
+            FAPI_TRY(putScom(i_target, EQ_FIR_MASK, l_data64));
         }
     }
 
