@@ -50,6 +50,7 @@
 #include "sbecmdtracearray.H"
 #include "sbecmdCntrlTimer.H"
 #include "sbecmdfastarray.H"
+#include "sbeglobals.H"
 
 // Declaration
 static const uint16_t HARDWARE_FENCED_STATE =
@@ -170,12 +171,12 @@ static sbeCmdStruct_t g_sbeRegAccessCmdArray [] =
 {
     {sbeGetReg,
      SBE_CMD_GETREG,
-     HARDWARE_FENCED_STATE,
+     HARDWARE_FENCED_STATE | SBE_FENCE_AT_SECURE_MODE,
     },
 
     {sbePutReg,
      SBE_CMD_PUTREG,
-     PUT_HARDWARE_FENCED_STATE,
+     PUT_HARDWARE_FENCED_STATE | SBE_FENCE_AT_SECURE_MODE,
     },
 };
 
@@ -475,11 +476,12 @@ uint8_t sbeValidateCmdClass (const uint8_t i_cmdClass,
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
-bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
-                             const uint8_t i_cmdOpcode)
+sbeChipOpRc_t sbeIsCmdAllowed (const uint8_t i_cmdClass,
+                               const uint8_t i_cmdOpcode)
 {
     #define SBE_FUNC " sbeIsCmdAllowedAtState "
     bool l_ret = true;
+    sbeChipOpRc_t retRc;
     uint8_t l_numCmds = 0;
     sbeCmdStruct_t *l_pCmd = NULL;
     l_numCmds = sbeGetCmdStructAttr (i_cmdClass, &l_pCmd);
@@ -555,10 +557,25 @@ bool sbeIsCmdAllowedAtState (const uint8_t i_cmdClass,
                     l_ret = false;
                     break;
             }
+
+            if(false == l_ret)
+            {
+                retRc.primStatus = SBE_PRI_INVALID_COMMAND;
+                retRc.secStatus  = SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE;
+                break;
+            }
+            // Check if the command is allowed in current security mode
+            if((SBE_GLOBAL->sbeFWSecurityEnabled)
+                && (SBE_FENCE_AT_SECURE_MODE & l_pCmd->cmd_state_fence))
+            {
+                retRc.primStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
+                retRc.secStatus  = SBE_SEC_BLACKLISTED_CHIPOP_ACCESS;
+                break;
+            }
+            break;
         }
     }
-    // For any other state, which is not handled above, return from here
-    return l_ret;
+    return retRc;
     #undef SBE_FUNC
 }
 

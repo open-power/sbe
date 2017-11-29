@@ -201,28 +201,29 @@ void sbeCommandReceiver_routine(void *i_pArg)
             // Need to return from receiver thread itself for fenced rejection
             // of command, but there might be contention on the response sent
             // over FIFO/Mailbox usage.
-            if(false == sbeIsCmdAllowedAtState(l_cmdClass, l_command))
+            sbeChipOpRc_t cmdAllowedStatus = sbeIsCmdAllowed(l_cmdClass, l_command);
+            if( !cmdAllowedStatus.success() && !SBE::isSimicsRunning() )
             {
-                // This command is not allowed in this state
-                SBE_ERROR("Chip-Op CmdClass[0x%02X] Cmd[0x%02X] not allowed in "
-                    "State - [0x%04X] ",l_cmdClass,l_command,
+                SBE_ERROR("Chip-Op CmdClass[0x%02X] Cmd[0x%02X] not allowed "
+                    "secondary status[0x%04X] State - [0x%02X]",
+                    l_cmdClass,l_command,
+                    cmdAllowedStatus.secStatus,
                     SbeRegAccess::theSbeRegAccess().getSbeState());
 
                 if ( SBE_INTERFACE_PSU == curInterface )
                 {
-                    SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
-                                SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE);
+                    SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(cmdAllowedStatus.primStatus,
+                                cmdAllowedStatus.secStatus);
                 }
                 else if ( SBE_INTERFACE_FIFO == curInterface )
                 {
-                    SBE_GLOBAL->sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND,
-                                SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE);
+                    SBE_GLOBAL->sbeCmdRespHdr.setStatus(cmdAllowedStatus.primStatus,
+                                cmdAllowedStatus.secStatus);
                 }
 
-                l_rc = SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE;
+                l_rc = cmdAllowedStatus.secStatus;
                 break;
             }
-
         } while (false); // Inner do..while ends
 
         SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_RX_ROUTINE, curInterface );
