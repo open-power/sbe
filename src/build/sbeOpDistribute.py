@@ -27,8 +27,7 @@ import sys
 import getopt
 
 CHIPID = 'p9n'
-p9n_EC = ['10', '20', '21']
-DD_level = {'10':'DD1', '20':'DD2', '21':'DD2'}
+p9n_EC = {'20':'DD2', '21':'DD2', '22':'DD2'}
 
 def usage():
     print "usage:sbeOpDistribute.py [--sbe_binary_dir] <sbe binary path> [--img_dir] <images path>"
@@ -93,12 +92,12 @@ def main(argv):
     if (mode == "MAKE"):
         # Create binaries folder
         run_system_cmd('mkdir -p '+sbe_binary_dir)
-        for ecLevel in p9n_EC:
+        for ecLevel, ddLevel in p9n_EC.items():
             # Copy sbe raw binary to binaries folder
-            run_system_cmd('cp '+img_dir+'/'+'sbe_seeprom_'+DD_level[ecLevel]+'.bin'+' '+sbe_binary_dir+'/'+CHIPID+'_'+ecLevel+'.'+SEEPROM_IMAGE)
+            run_system_cmd('cp '+img_dir+'/'+'sbe_seeprom_'+ddLevel+'.bin'+' '+sbe_binary_dir+'/'+CHIPID+'_'+ecLevel+'.'+SEEPROM_IMAGE)
     elif (mode == "INSTALL"):
         ec_build_sbe_cmd = ''
-        for ecLevel in p9n_EC:
+        for ecLevel, ddLevel in p9n_EC.items():
             basename = CHIPID+'_'+ecLevel+'.sbe_seeprom'
             ec_build_sbe_cmd += ' --ecImg_'+ecLevel+' '+scratch_dir+'/'+basename+'.hdr.bin'
             # Copy sbe raw binary to scratch folder
