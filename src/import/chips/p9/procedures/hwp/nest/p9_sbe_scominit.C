@@ -44,6 +44,7 @@
 #include <p9_sbe_scominit.H>
 #include <p9_fbc_utils.H>
 #include <p9_mmu_scom.H>
+#include <p9_xbus_fir_utils.H>
 
 #include <p9_misc_scom_addresses.H>
 #include <p9_misc_scom_addresses_fld.H>
@@ -238,6 +239,14 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG, l_scom_data),
                  "Error from putScom (PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG)");
 
+        // set spare/masked FIR bit as a signal to HB that the SBE will handle
+        // setup of XBUS related FIRs
+        FAPI_TRY(fapi2::getScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_REG, l_scom_data),
+                 "Error from getScom (PU_PB_CENT_SM0_PB_CENT_FIR_REG)");
+        l_scom_data.setBit<PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG_SPARE_13>();
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_REG, l_scom_data),
+                 "Error from putScom (PU_PB_CENT_SM0_PB_CENT_FIR_REG)");
+
         // WEST
         FAPI_DBG("Configuring FBC WEST FIR");
         // clear FIR
@@ -277,6 +286,20 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         l_scom_data = FBC_EAST_FIR_MASK;
         FAPI_TRY(fapi2::putScom(i_target, PU_PB_EAST_FIR_MASK_REG, l_scom_data),
                  "Error from putScom (PU_PB_EAST_FIR_MASK_REG)");
+
+        // EXTFIR
+        FAPI_DBG("Configuring FBC EXTFIR");
+        // clear FIR
+        l_scom_data = 0;
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM1_EXTFIR_REG, l_scom_data),
+                 "Error from putScom (PU_PB_CENT_SM1_EXTFIR_REG)");
+        // configure action/mask
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM1_EXTFIR_ACTION0_REG, FBC_EXT_FIR_ACTION0),
+                 "Error from putScom (PU_PB_CENT_SM1_EXTFIR_ACTION0_REG)");
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM1_EXTFIR_ACTION1_REG, FBC_EXT_FIR_ACTION1),
+                 "Error from putScom (PU_PB_CENT_SM1_EXTFIR_ACTION1_REG)");
+        FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM1_EXTFIR_MASK_REG, FBC_EXT_FIR_MASK),
+                 "Error from putScom (PU_PB_CENT_SM1_EXTFIR_MASK_REG)");
     }
 
     // configure PBA mode switches & FIRs
@@ -343,7 +366,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                  "Error from putScom (PU_SYNC_FIR_MASK_REG)");
     }
 
-    // configure chiplet pervasive FIRs / XFIRs
+    // configure chiplet pervasive FIRs / LFIRs / XFIRs
     {
         uint8_t l_mc_sync_mode = 0;
         uint8_t l_use_dmi_buckets = 0;
@@ -564,6 +587,109 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         .insertFromRight<PERV_1_THERM_MODE_REG_DTS_ENABLE_L1, PERV_1_THERM_MODE_REG_DTS_ENABLE_L1_LEN>
         (NEST_THERM_MODE_LOOP0_ENABLE | NEST_THERM_MODE_LOOP1_ENABLE);
         FAPI_TRY(putScom(i_target, PERV_N3_THERM_MODE_REG, l_data));
+    }
+
+    // configure XBUS FIRs
+    {
+        bool l_xbus_chiplet_good = false;
+        fapi2::buffer<uint64_t> l_zero = 0;
+        fapi2::buffer<uint64_t> l_ones;
+        l_ones.flush<1>();
+
+        for (auto& l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_XBUS),
+              fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            l_xbus_chiplet_good = true;
+            fapi2::buffer<uint16_t> l_attr_pg = 0;
+
+            // obtain partial good information to determine viable X links
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, l_chplt_target, l_attr_pg),
+                     "Error from FAPI_ATTR_GET (ATTR_PG)");
+
+            // IOX0
+            if (!l_attr_pg.getBit<X_PG_IOX0_REGION_BIT>() && !l_attr_pg.getBit<X_PG_PBIOX0_REGION_BIT>())
+            {
+                // XBUS0 FBC DL
+                FAPI_TRY(putScom(i_target, XBUS_0_LL0_LL0_LL0_IOEL_FIR_REG, l_zero),
+                         "Error from putScom (XBUS_0_LL0_IOEL_FIR_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_0_LL0_IOEL_FIR_ACTION0_REG, FBC_IOE_DL_FIR_ACTION0),
+                         "Error from putScom (XBUS_0_LL0_IOEL_FIR_ACTION0_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_0_LL0_IOEL_FIR_ACTION1_REG, FBC_IOE_DL_FIR_ACTION1),
+                         "Error from putScom (XBUS_0_LL0_IOEL_FIR_ACTION1_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_0_LL0_LL0_LL0_IOEL_FIR_MASK_REG, FBC_IOE_DL_FIR_MASK),
+                         "Error from putScom (XBUS_0_LL0_IOEL_FIR_MASK_REG)");
+
+                // XBUS0 PHY
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_FIR_REG, l_zero),
+                         "Error from putScom (XBUS_FIR_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_FIR_ACTION0_REG, XBUS_PHY_FIR_ACTION0),
+                         "Error from putScom (XBUS_FIR_ACTION0_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_FIR_ACTION1_REG, XBUS_PHY_FIR_ACTION1),
+                         "Error from putScom (XBUS_FIR_ACTION1_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_FIR_MASK_REG, XBUS_PHY_FIR_MASK),
+                         "Error from putScom (XBUS_FIR_MASK_REG)");
+            }
+
+            // IOX1
+            if (!l_attr_pg.getBit<X_PG_IOX1_REGION_BIT>() && !l_attr_pg.getBit<X_PG_PBIOX1_REGION_BIT>())
+            {
+                // XBUS1 FBC DL
+                FAPI_TRY(putScom(i_target, XBUS_1_LL1_LL1_LL1_IOEL_FIR_REG, l_zero),
+                         "Error from putScom (XBUS_1_LL1_IOEL_FIR_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_1_LL1_IOEL_FIR_ACTION0_REG, FBC_IOE_DL_FIR_ACTION0),
+                         "Error from putScom (XBUS_1_LL1_IOEL_FIR_ACTION0_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_1_LL1_IOEL_FIR_ACTION1_REG, FBC_IOE_DL_FIR_ACTION1),
+                         "Error from putScom (XBUS_1_LL1_IOEL_FIR_ACTION1_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_1_LL1_LL1_LL1_IOEL_FIR_MASK_REG, FBC_IOE_DL_FIR_MASK),
+                         "Error from putScom (XBUS_1_LL1_IOEL_FIR_MASK_REG)");
+
+                // XBUS1 PHY
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_1_FIR_REG, l_zero),
+                         "Error from putScom (XBUS_1_FIR_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_1_FIR_ACTION0_REG, XBUS_PHY_FIR_ACTION0),
+                         "Error from putScom (XBUS_1_FIR_ACTION0_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_1_FIR_ACTION1_REG, XBUS_PHY_FIR_ACTION1),
+                         "Error from putScom (XBUS_1_FIR_ACTION1_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_1_FIR_MASK_REG, XBUS_PHY_FIR_MASK),
+                         "Error from putScom (XBUS_1_FIR_MASK_REG)");
+            }
+
+            // IOX2
+            if (!l_attr_pg.getBit<X_PG_IOX2_REGION_BIT>() && !l_attr_pg.getBit<X_PG_PBIOX2_REGION_BIT>())
+            {
+                // XBUS2 FBC DL
+                FAPI_TRY(putScom(i_target, XBUS_2_LL2_LL2_LL2_IOEL_FIR_REG, l_zero),
+                         "Error from putScom (XBUS_2_LL2_IOEL_FIR_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_2_LL2_IOEL_FIR_ACTION0_REG, FBC_IOE_DL_FIR_ACTION0),
+                         "Error from putScom (XBUS_2_LL2_IOEL_FIR_ACTION0_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_2_LL2_IOEL_FIR_ACTION1_REG, FBC_IOE_DL_FIR_ACTION1),
+                         "Error from putScom (XBUS_2_LL2_IOEL_FIR_ACTION1_REG)");
+                FAPI_TRY(putScom(i_target, XBUS_2_LL2_LL2_LL2_IOEL_FIR_MASK_REG, FBC_IOE_DL_FIR_MASK),
+                         "Error from putScom (XBUS_2_LL2_IOEL_FIR_MASK_REG)");
+
+                // XBUS2 PHY
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_2_FIR_REG, l_zero),
+                         "Error from putScom (XBUS_2_FIR_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_2_FIR_ACTION0_REG, XBUS_PHY_FIR_ACTION0),
+                         "Error from putScom (XBUS_2_FIR_ACTION0_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_2_FIR_ACTION1_REG, XBUS_PHY_FIR_ACTION1),
+                         "Error from putScom (XBUS_2_FIR_ACTION1_REG)");
+                FAPI_TRY(fapi2::putScom(i_target, XBUS_2_FIR_MASK_REG, XBUS_PHY_FIR_MASK),
+                         "Error from putScom (XBUS_2_FIR_MASK_REG)");
+            }
+        }
+
+        // XBUS FBC TL
+        FAPI_TRY(putScom(i_target, PU_PB_IOE_FIR_REG, l_zero),
+                 "Error from putScom (PU_PB_IOE_FIR_REG)");
+        FAPI_TRY(putScom(i_target, PU_PB_IOE_FIR_ACTION0_REG, FBC_IOE_TL_FIR_ACTION0),
+                 "Error from putScom (PU_PB_IOE_FIR_ACTION0_REG)");
+        FAPI_TRY(putScom(i_target, PU_PB_IOE_FIR_ACTION1_REG, FBC_IOE_TL_FIR_ACTION1),
+                 "Error from putScom (PU_PB_IOE_FIR_ACTION1_REG)");
+        FAPI_TRY(putScom(i_target, PU_PB_IOE_FIR_MASK_REG,
+                         (l_xbus_chiplet_good) ? (FBC_IOE_TL_FIR_MASK) : (l_ones())),
+                 "Error from putScom (PU_PB_IOE_FIR_MASK_REG)");
     }
 
 fapi_try_exit:
