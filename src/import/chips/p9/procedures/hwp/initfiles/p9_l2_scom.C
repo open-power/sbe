@@ -29,6 +29,7 @@
 
 using namespace fapi2;
 
+constexpr uint64_t literal_0 = 0;
 constexpr uint64_t literal_0b0001 = 0b0001;
 constexpr uint64_t literal_0b1000 = 0b1000;
 constexpr uint64_t literal_1 = 1;
@@ -47,6 +48,8 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_PUMP_MODE, TGT1, l_TGT1_ATTR_PROC_FABRIC_PUMP_MODE));
         fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_TGT1_ATTR_SYSTEM_IPL_PHASE;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, TGT1, l_TGT1_ATTR_SYSTEM_IPL_PHASE));
+        fapi2::ATTR_CHIP_EC_FEATURE_HW415945_Type l_TGT2_ATTR_CHIP_EC_FEATURE_HW415945;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW415945, TGT2, l_TGT2_ATTR_CHIP_EC_FEATURE_HW415945));
         fapi2::ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID_Type l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID, TGT1, l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID));
         fapi2::ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID_Type l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID;
@@ -86,7 +89,8 @@ fapi2::ReturnCode p9_l2_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                 l_scom_buffer.insert<21, 1, 63, uint64_t>(l_EXP_L2_L2MISC_L2CERRS_CFG_HASH_L3_ADDR_EN_ON );
             }
 
-            if ((l_TGT1_ATTR_SYSTEM_IPL_PHASE == ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME))
+            if (((l_TGT1_ATTR_SYSTEM_IPL_PHASE == ENUM_ATTR_SYSTEM_IPL_PHASE_HB_RUNTIME)
+                 && (l_TGT2_ATTR_CHIP_EC_FEATURE_HW415945 == literal_0)))
             {
                 constexpr auto l_EXP_L2_L2MISC_L2CERRS_CFG_CAC_ERR_REPAIR_EN_ON = 0x1;
                 l_scom_buffer.insert<15, 1, 63, uint64_t>(l_EXP_L2_L2MISC_L2CERRS_CFG_CAC_ERR_REPAIR_EN_ON );
