@@ -43,6 +43,8 @@
 #include <fapi2.H>
 #include <p9_sbe_ppe_utils.H>
 #include <p9_hcd_common.H>
+#include <p9_misc_scom_addresses_fld.H>
+
 //-----------------------------------------------------------------------------
 
 uint32_t ppe_getMxsprInstruction ( const uint32_t i_opcode,
@@ -77,11 +79,13 @@ fapi2::ReturnCode ppe_pollHaltState(
                            l_data64 ),
                  "Failed reading XIRAMDBG register!" );
     }
-    while ((! l_data64.getBit<0>()) &&
+    while ((! l_data64.getBit<PU_PPE_XIRAMDBG_XSR_HS>()) &&
            (--l_timeout_count != 0));
 
-    FAPI_ASSERT ((l_data64.getBit<0>()),
-                 fapi2::SBE_PPE_UTILS_HALT_TIMEOUT_ERR(),
+    FAPI_ASSERT ((l_data64.getBit<PU_PPE_XIRAMDBG_XSR_HS>()),
+                 fapi2::SBE_PPE_UTILS_HALT_TIMEOUT_ERR()
+                 .set_TARGET(i_target)
+                 .set_ADDRESS(i_base_address),
                  "PPE Halt Timeout!");
 
 fapi_try_exit:
@@ -94,14 +98,23 @@ fapi2::ReturnCode ppe_halt(
     const uint64_t i_base_address)
 {
     fapi2::buffer<uint64_t> l_data64;
+    FAPI_TRY ( getScom ( i_target,
+                         i_base_address + PPE_XIRAMDBG,
+                         l_data64 ),
+               "Error reading PPE Halt State" );
 
-    FAPI_INF("   Send HALT command via XCR...");
-    l_data64.flush<0>().insertFromRight(p9hcd::HALT, 1, 3);
+    // Halt the PPE only if it is not already halted
+    if (! l_data64.getBit<PU_PPE_XIRAMDBG_XSR_HS>())
+    {
+        FAPI_INF("   Send HALT command via XCR...");
+        l_data64.flush<0>().insertFromRight(p9hcd::HALT, PU_PPE_XIXCR_XCR,
+                                            PU_PPE_XIXCR_XCR_LEN);
 
-    FAPI_TRY(putScom(i_target, i_base_address + PPE_XIXCR, l_data64),
-             "Error in PUTSCOM in XCR to generate Halt condition");
+        FAPI_TRY(putScom(i_target, i_base_address + PPE_XIXCR, l_data64),
+                 "Error in PUTSCOM in XCR to generate Halt condition");
 
-    FAPI_TRY(ppe_pollHaltState(i_target, i_base_address));
+        FAPI_TRY(ppe_pollHaltState(i_target, i_base_address));
+    }
 
 fapi_try_exit:
     return fapi2::current_err;

@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2017                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -55,6 +55,54 @@
         core clock stop timed out.
     </description>
     <ffdc>CORECPLTSTAT</ffdc>
+  </hwpError>
+  <!-- ********************************************************************* -->
+  <hwpError>
+    <rc>RC_CORE_STOPCLKS_PGPE_HALT_TIMEOUT</rc>
+    <description>
+    A timeout occured while waiting the PGPE to halt
+    </description>
+    <ffdc>CHIP</ffdc>
+    <callout>
+      <target>CHIP</target>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- ********************************************************************* -->
+  <hwpError>
+    <rc>RC_CORE_STOPCLKS_SGPE_HALT_TIMEOUT</rc>
+    <description>
+    A timeout occured while waiting the SGPE to halt
+    </description>
+    <ffdc>CHIP</ffdc>
+    <callout>
+      <target>CHIP</target>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- ********************************************************************* -->
+  <hwpError>
+    <rc>RC_CORE_STOPCLKS_ATOMIC_LOCK_FAIL</rc>
+    <description>
+    Failed attempt to clear the atomic lock to the cache chiplet
+    </description>
+    <ffdc>EQ</ffdc>
+    <callout>
+      <target>EQ</target>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- ********************************************************************* -->
+  <hwpError>
+    <rc>RC_CORE_STOPCLKS_CME_HALT_TIMEOUT</rc>
+    <description>
+    A timeout occured while waiting a CME to halt
+    </description>
+    <ffdc>EX</ffdc>
+    <callout>
+      <target>EX</target>
+      <priority>HIGH</priority>
+    </callout>
   </hwpError>
   <!-- ********************************************************************* -->
 </hwpErrors>
