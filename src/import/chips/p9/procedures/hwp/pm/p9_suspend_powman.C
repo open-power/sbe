@@ -55,8 +55,11 @@
 #include <p9_pm_hcd_flags.h>
 #include <p9_collect_suspend_ffdc.H>
 
-static const uint64_t POLLTIME_US = 1;
+// 1000000 nanosecond = 1 millisecond
+// total timeout = 10 milliseconds
+static const uint64_t POLLTIME_NS = 1000000;
 static const uint64_t POLLTIME_MCYCLES = 4000;
+static const uint32_t TRIES_BEFORE_TIMEOUT = 10;
 
 extern "C" {
 
@@ -64,7 +67,7 @@ extern "C" {
 // Constant definitions
 //--------------------------------------------------------------------------
 
-    const uint32_t c_tries_before_timeout = 10;
+
 
 //--------------------------------------------------------------------------
 //  HWP entry point
@@ -110,7 +113,7 @@ extern "C" {
                     FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data), "Error setting OCC Flag register bit 2");
                 }
 
-                for (uint32_t i = 0; i < c_tries_before_timeout; i++)
+                for (uint32_t i = 0; i < TRIES_BEFORE_TIMEOUT; i++)
                 {
                     FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCS2_SCOM, l_occs2_data), "Error reading OCC Scratch 2 register");
 
@@ -120,7 +123,7 @@ extern "C" {
                         break;
                     }
 
-                    fapi2::delay(POLLTIME_US * 1000, POLLTIME_MCYCLES * 1000 * 1000);
+                    fapi2::delay(POLLTIME_NS , POLLTIME_MCYCLES * 1000 * 1000);
                 }
 
                 if(l_pgpe_in_safe_mode)
@@ -140,7 +143,7 @@ extern "C" {
 
             //This should cause the PGPE to observe a OCC Heartbeat interrupt,
             //causing it to enter PGPE pm_suspend flow
-            for (uint32_t i = 0; i < c_tries_before_timeout; i++)
+            for (uint32_t i = 0; i < TRIES_BEFORE_TIMEOUT; i++)
             {
                 FAPI_TRY(fapi2::getScom(i_target, PU_OCB_OCI_OCCS2_SCOM, l_occs2_data), "Error reading OCC Scratch 2 register");
 
@@ -150,7 +153,7 @@ extern "C" {
                     break;
                 }
 
-                fapi2::delay(POLLTIME_US * 1000, POLLTIME_MCYCLES * 1000 * 1000);
+                fapi2::delay(POLLTIME_NS, POLLTIME_MCYCLES * 1000 * 1000);
             }
 
             //if timeout, hwp fails
