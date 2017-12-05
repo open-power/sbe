@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbecmdparser.H $                               */
+/* $Source: src/sbefw/core/chipop_handler.H $                             */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -21,17 +21,10 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-/*
- * @file: ppe/sbe/sbefw/sbecmdparser.H
- *
- * @brief This file contains the SBE command details
- *
- */
-
-#ifndef __SBEFW_SBECMDPARSER_H
-#define __SBEFW_SBECMDPARSER_H
+#pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include "sbe_sp_intf.H"
 
 // Chip-op response codes
@@ -131,5 +124,92 @@ typedef uint32_t ( *sbeCmdFunc_t ) (uint8_t *i_pArg);
 sbeCmdFunc_t sbeFindCmdFunc (const uint8_t i_cmdClass,
                              const uint8_t i_cmdOpcode);
 
+////////////////////////////CHIP-OP table helper////////////////////////////
+typedef struct {
+    sbeChipOpFunc_t  cmd_func;         /* Command function pointer */
+    uint8_t          cmd_opcode;       /* Command opcode */
+    uint16_t         cmd_state_fence;  /* Command fencing based on SBE state */
+} cmdStruct_t;
 
-#endif // __SBEFW_SBECMDPARSER_H
+typedef struct {
+    cmdStruct_t* cmdArr;
+    size_t len;
+} cmdStructTable_t;
+
+typedef struct
+{
+    uint8_t cmdClass;
+    cmdStructTable_t* cmdTable;
+} cmdClass_t;
+
+typedef struct
+{
+    cmdClass_t* cmdClassArr;
+    size_t len;
+} cmdClassTable_t;
+
+extern cmdClassTable_t cmdClassTable;
+extern cmdStructTable_t cmdTable;
+
+///////////////Auto population of chip-op table in project files///////////////
+#define CMD_CLASS(cmdClass) \
+        { 0x##cmdClass, cmdStructP_t<0x##cmdClass>::value }
+
+template <int T>
+struct cmdStructP_t
+{
+    static constexpr cmdStructTable_t* value = NULL;
+};
+
+#define CMD_ARR(cmdclass, ...) \
+    cmdStruct_t cmdClassArr_##cmdclass[] = \
+    { \
+        __VA_ARGS__ \
+    }; \
+    \
+    cmdStructTable_t cmdClassArr_table_##cmdclass = { \
+        cmdClassArr_##cmdclass, \
+        sizeof(cmdClassArr_##cmdclass)/sizeof(cmdClassArr_##cmdclass[0]) \
+    }; \
+    template <> \
+    struct cmdStructP_t<0x##cmdclass> \
+    { \
+        static constexpr cmdStructTable_t* value = &cmdClassArr_table_##cmdclass; \
+    };
+
+// Keep this hash updated with the cmdClassArr
+#define HASH_KEY(key) (key < 0xD1 ? (key-0xA1) : (key-0xD1+0x09))
+
+#define CMD_CLASS_DEFAULT_INTIALISATION \
+constexpr cmdClass_t cmdClassArr[] = { \
+    CMD_CLASS(A1), \
+    CMD_CLASS(A2), \
+    CMD_CLASS(A3), \
+    CMD_CLASS(A4), \
+    CMD_CLASS(A5), \
+    CMD_CLASS(A6), \
+    CMD_CLASS(A7), \
+    CMD_CLASS(A8), \
+    CMD_CLASS(A9), \
+    CMD_CLASS(D1), \
+    CMD_CLASS(D2), \
+    CMD_CLASS(D3), \
+    CMD_CLASS(D4), \
+    CMD_CLASS(D5), \
+    CMD_CLASS(D6), \
+    CMD_CLASS(D7), \
+}; \
+\
+cmdClassTable_t cmdClassTable = { \
+    const_cast<cmdClass_t*>(cmdClassArr), \
+    sizeof(cmdClassArr)/sizeof(cmdClassArr[0]) \
+}; \
+\
+constexpr bool validateCmdClassHash(uint8_t index) { \
+    return (index >= sizeof(cmdClassArr)/sizeof(cmdClassArr[0])) || \
+            ((HASH_KEY(cmdClassArr[index].cmdClass)) == index && \
+             validateCmdClassHash(index + 1)); \
+} \
+\
+static_assert(validateCmdClassHash(0), "Bad chipop_table, check cmdclass hashes");
+

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -47,14 +47,14 @@ LIB_DIRS += -L$(OBJDIR)/sbefw/coreseeprom
 SBECORESEEPROMLIB := $(OBJDIR)/sbefw/sbecoreseeprom/libsbecoreseeprom.a
 LLIBS += -lsbecoreseeprom
 
-SUBDIRS += ../sbefw/app
-LIB_DIRS += -L$(OBJDIR)/sbefw/app
-SBEAPPLIB := $(OBJDIR)/sbefw/app/libsbeapp.a
-LLIBS += -lsbeapp
+SUBDIRS += ../sbefw/app/power
+LIB_DIRS += -L$(OBJDIR)/sbefw/app/power_pibmem
+SBEAPPLIB := $(OBJDIR)/sbefw/app/libsbeapppowerpibmem.a
+LLIBS += -lsbeapppowerpibmem
 
-LIB_DIRS += -L$(OBJDIR)/sbefw/appseeprom
-SBECORESEEPROMLIB := $(OBJDIR)/sbefw/sbeappseeprom/libsbeappseeprom.a
-LLIBS += -lsbeappseeprom
+LIB_DIRS += -L$(OBJDIR)/sbefw/app/power_seeprom
+SBECORESEEPROMLIB := $(OBJDIR)/sbefw/sbeappseeprom/libsbeapppowerseeprom.a
+LLIBS += -lsbeapppowerseeprom
 
 # FAPI2 library
 SUBDIRS += $(PLAT_FAPI2_DIR)
@@ -123,8 +123,8 @@ SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/ppe2fsp.c
 SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/ppe2fsp_cmd.c
 SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/trac_interface.h
 SIMICS_PPETRACEPP_TAR_FILES += $(PK_SRCDIR)/trace/pk_trace.h
-SIMICS_PARSERPLUGINS_TAR_FILES += $(SBECORE_FW_DIR)/plugins/sbeUserDataParser.C
-SIMICS_PARSERPLUGINS_TAR_FILES += $(SBECORE_FW_DIR)/sbeFFDCType.H
+SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/plugins/sbeUserDataParser.C
+SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/sbeFFDCType.H
 
 SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
 SBE_IPL_TOOLS := $(IMG_DIR)/p9_ipl_build
@@ -274,7 +274,7 @@ $(SUBDIRS):
 _sbecore_seeprom:
 	$(MAKE) -I $(INCLUDES) -C ../sbefw/core -f MakefileSeeprom
 _sbeapp_seeprom:
-	$(MAKE) -I $(INCLUDES) -C ../sbefw/app -f MakefileSeeprom
+	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/power -f Makefile img_mem=seeprom
 
 
 #Build the SBE XIP Tools

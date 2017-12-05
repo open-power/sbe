@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +26,6 @@ SBECORE-CPP-SOURCES = sbemain.C
 SBECORE-CPP-SOURCES += sbeirq.C
 SBECORE-CPP-SOURCES += sbecmdreceiver.C
 SBECORE-CPP-SOURCES += sbecmdprocessor.C
-SBECORE-CPP-SOURCES += sbecmdparser.C
 SBECORE-CPP-SOURCES += sbecmdscomaccess.C
 SBECORE-CPP-SOURCES += sbecmdiplcontrol.C
 SBECORE-CPP-SOURCES += pool.C
@@ -53,6 +53,7 @@ SBECORE-CPP-SOURCES += sbeglobals.C
 SBECORE-CPP-SOURCES += sbeMemAccessInterface.C
 SBECORE-CPP-SOURCES += sbeSecureMemRegionManager.C
 SBECORE-CPP-SOURCES += sbeSecurity.C
+SBECORE-CPP-SOURCES += chipop_handler.C
 
 SBECORE-C-SOURCES =
 SBECORE-S-SOURCES =

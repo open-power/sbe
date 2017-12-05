@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -78,8 +78,8 @@ ifndef SBE_SRC_DIR
 export SBE_SRC_DIR = $(SBE_ROOT_DIR)/src
 endif
 
-ifndef SBECORE_FW_DIR
-export SBECORE_FW_DIR = $(SBE_SRC_DIR)/sbefw/core
+ifndef SBE_FW_DIR
+export SBE_FW_DIR = $(SBE_SRC_DIR)/sbefw
 endif
 
 ifndef BUILD_DIR
@@ -466,7 +466,9 @@ INCLUDES += -I$(PK_SRCDIR)/../include/std
 INCLUDES += -I$(PK_SRCDIR)/kernel
 INCLUDES += -I$(PK_SRCDIR)/ppe
 INCLUDES += -I$(PK_SRCDIR)/ppe42
-INCLUDES += -I$(SBECORE_FW_DIR)
+INCLUDES += -I$(SBE_FW_DIR)
+INCLUDES += -I$(SBE_FW_DIR)/core
+INCLUDES += -I$(SBE_FW_DIR)/app
 INCLUDES += -I$(BOOT_SRCDIR)
 INCLUDES += -I$(BUILDDATA_SRCDIR)
 INCLUDES += -I$(PK_SRCDIR)/trace

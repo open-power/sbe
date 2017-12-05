@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -31,7 +32,6 @@
 
 #include "sbeexeintf.H"
 #include "sbefifo.H"
-#include "sbecmdparser.H"
 #include "sbeirq.H"
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
@@ -46,6 +46,7 @@
 #include "fapi2.H"
 #include "sbeutil.H"
 #include "sbeglobals.H"
+#include "core/chipop_handler.H"
 using namespace fapi2;
 
 // Forward declaration for performAttrSetup

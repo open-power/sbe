@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/sbeapp/Makefile $
+# $Source: src/sbefw/app/power/Makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2016,2018
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,26 +23,31 @@
 # IBM_PROLOG_END_TAG
 #export P2P_ENABLE = 1
 
-export SUB_OBJDIR = /sbefw/appseeprom
-
-include img_defs.mk
-include sbeappseepromfiles.mk
-
+ifneq ($(img_mem), seeprom)
+export SUB_OBJDIR = /sbefw/app/power_pibmem
+OBJS = $(addprefix $(OBJDIR)/, $(APPPOWERPIBMEM_OBJECTS))
+LIBNAME = libsbeapppowerpibmem
+else
+export SUB_OBJDIR = /sbefw/app/power_seeprom
 GCC-CFLAGS += -mlongcall
 GCC-DEFS += -D__SBEFW_SEEPROM__=1
-OBJS := $(addprefix $(OBJDIR)/, $(SBEAPPSEEPROM_OBJECTS))
+OBJS = $(addprefix $(OBJDIR)/, $(APPPOWERSEEPROM_OBJECTS))
+LIBNAME = libsbeapppowerseeprom
+endif
 
-libsbeappseeprom.a: $(OBJS)
-	$(AR) crs $(OBJDIR)/libsbeappseeprom.a $(OBJDIR)/*.o
+include img_defs.mk
+include apppowerfiles.mk
 
-.PHONY: clean sbeappseeprom
-sbeappseeprom: $(OBJS)
+$(LIBNAME).a: $(OBJS)
+	$(AR) crs $(OBJDIR)/$(LIBNAME).a $(OBJDIR)/*.o
+
+.PHONY: clean sbeapppower
+sbeapppower: $(OBJS)
 
 $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
-
 
 #clean the kernel directory first, then the application level clean
 clean:

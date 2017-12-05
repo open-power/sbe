@@ -1,11 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/sbefw/app/sbeappfiles.mk $
+# $Source: src/sbefw/app/power/apppowerfiles.mk $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,16 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-SBEAPP-CPP-SOURCES = sbeapp.C
+APPPOWERPIBMEM-CPP-SOURCES = chipop_table.C
 
-SBEAPP-C-SOURCES =
-SBEAPP-S-SOURCES =
+APPPOWERPIBMEM-C-SOURCES =
+APPPOWERPIBMEM-S-SOURCES =
 
-SBEAPP_OBJECTS = $(SBEAPP-C-SOURCES:.c=.o) $(SBEAPP-CPP-SOURCES:.C=.o) $(SBEAPP-S-SOURCES:.S=.o)
+APPPOWERPIBMEM_OBJECTS = $(APPPOWERPIBMEM-C-SOURCES:.c=.o) $(APPPOWERPIBMEM-CPP-SOURCES:.C=.o) $(APPPOWERPIBMEM-S-SOURCES:.S=.o)
+
+APPPOWERSEEPROM-CPP-SOURCES = sbeapp.C
+
+APPPOWERSEEPROM-C-SOURCES =
+APPPOWERSEEPROM-S-SOURCES =
+
+APPPOWERSEEPROM_OBJECTS = $(APPPOWERSEEPROM-C-SOURCES:.c=.o) $(APPPOWERSEEPROM-CPP-SOURCES:.C=.o) $(APPPOWERSEEPROM-S-SOURCES:.S=.o)
