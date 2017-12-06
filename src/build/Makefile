@@ -39,21 +39,21 @@ SUBDIRS += $(BOOT_SRCDIR)
 SUBDIRS += $(BUILDDATA_SRCDIR)
 
 SUBDIRS += ../sbefw/core
-LIB_DIRS += -L$(OBJDIR)/sbefw/core
-SBECORELIB := $(OBJDIR)/sbefw/core/libsbecore.a
-LLIBS += -lsbecore
+LIB_DIRS += -L$(OBJDIR)/sbefw/core_pibmem
+SBECORELIB := $(OBJDIR)/sbefw/core_pibmem/libsbecorepibmem.a
+LLIBS += -lsbecorepibmem
 
-LIB_DIRS += -L$(OBJDIR)/sbefw/coreseeprom
-SBECORESEEPROMLIB := $(OBJDIR)/sbefw/sbecoreseeprom/libsbecoreseeprom.a
+LIB_DIRS += -L$(OBJDIR)/sbefw/core_seeprom
+SBECORESEEPROMLIB := $(OBJDIR)/sbefw/core_seeprom/libsbecoreseeprom.a
 LLIBS += -lsbecoreseeprom
 
 SUBDIRS += ../sbefw/app/power
 LIB_DIRS += -L$(OBJDIR)/sbefw/app/power_pibmem
-SBEAPPLIB := $(OBJDIR)/sbefw/app/libsbeapppowerpibmem.a
+SBEAPPLIB := $(OBJDIR)/sbefw/app/power_pibmem/libsbeapppowerpibmem.a
 LLIBS += -lsbeapppowerpibmem
 
 LIB_DIRS += -L$(OBJDIR)/sbefw/app/power_seeprom
-SBECORESEEPROMLIB := $(OBJDIR)/sbefw/sbeappseeprom/libsbeapppowerseeprom.a
+SBECORESEEPROMLIB := $(OBJDIR)/sbefw/app/power_seeprom/libsbeapppowerseeprom.a
 LLIBS += -lsbeapppowerseeprom
 
 # FAPI2 library
@@ -272,7 +272,7 @@ platattr:
 $(SUBDIRS):
 	$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
 _sbecore_seeprom:
-	$(MAKE) -I $(INCLUDES) -C ../sbefw/core -f MakefileSeeprom
+	$(MAKE) -I $(INCLUDES) -C ../sbefw/core -f Makefile img_mem=seeprom
 _sbeapp_seeprom:
 	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/power -f Makefile img_mem=seeprom
 

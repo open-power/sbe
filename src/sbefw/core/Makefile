@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,15 +24,23 @@
 # IBM_PROLOG_END_TAG
 #export P2P_ENABLE = 1
 
-export SUB_OBJDIR = /sbefw/core
+ifneq ($(img_mem), seeprom)
+export SUB_OBJDIR = /sbefw/core_pibmem
+OBJS = $(addprefix $(OBJDIR)/, $(COREPIBMEM_OBJECTS))
+LIBNAME = libsbecorepibmem
+else
+export SUB_OBJDIR = /sbefw/core_seeprom
+GCC-CFLAGS += -mlongcall
+GCC-DEFS += -D__SBEFW_SEEPROM__=1
+OBJS = $(addprefix $(OBJDIR)/, $(CORESEEPROM_OBJECTS))
+LIBNAME = libsbecoreseeprom
+endif
 
 include img_defs.mk
-include sbecorefiles.mk
+include corefiles.mk
 
-OBJS := $(addprefix $(OBJDIR)/, $(SBECORE_OBJECTS))
-
-libsbecore.a: $(OBJS)
-	$(AR) crs $(OBJDIR)/libsbecore.a $(OBJDIR)/*.o
+$(LIBNAME).a: $(OBJS)
+	$(AR) crs $(OBJDIR)/$(LIBNAME).a $(OBJDIR)/*.o
 
 .PHONY: clean sbecore
 sbecore: $(OBJS)
