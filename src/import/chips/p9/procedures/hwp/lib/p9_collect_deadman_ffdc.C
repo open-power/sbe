@@ -72,7 +72,7 @@ typedef enum
 fapi2::ReturnCode
 p9_collect_deadman_ffdc (
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core,
-    const p9SbeCheckMasterStop15RC_t              i_reason )
+    const uint32_t                                i_reason )
 {
     FAPI_IMP (">> p9_collect_deadman_ffdc RC: 0x%.8X", i_reason);
     fapi2::ReturnCode l_rc;
@@ -127,9 +127,11 @@ p9_collect_deadman_ffdc (
         if (l_rc == fapi2::FAPI2_RC_SUCCESS)
         {
             // Copy bits 0-31 of SCOM data to the FFDC buffer entry at bits:
-            (l_addrIdx % 2) ? // even iteration?
-            (l_data64.extract<0, 32, 0> (l_dmanFfdcScoms[l_buffIdx])) : // 0-31
-            (l_data64.extract<0, 32, 32>(l_dmanFfdcScoms[l_buffIdx])); // 32-63
+            (l_addrIdx & 0x01) ?
+            // Odd Index: Copy data bits 0-31 to bits 32-63 of buffer
+            (l_data64.extract<0, 32, 32> (l_dmanFfdcScoms[l_buffIdx])) :
+            // Even Indiex: Copy data bits 0-31 to bits 0-31 of buffer
+            (l_data64.extract<0, 32, 0>  (l_dmanFfdcScoms[l_buffIdx]));  // 0-31
         }
         else // data already defaulted, optimize after debug
         {
@@ -206,30 +208,66 @@ p9_collect_deadman_ffdc (
     l_rc = fapi2::getScom ( l_eq, EQ_ATOMIC_LOCK_REG,
                             l_dmanFfdcScoms[FFDC_____EQ_ATOMIC_LOCK_REG] );
 
-    // Read & add Core SCOM to the FFDC buffer
-    l_rc = fapi2::getScom ( i_core,
-                            C_PPM_SSHSRC,
-                            l_data64 );
+    // Read & add Core SCOM(s) to the FFDC buffer
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
+    FAPI_ATTR_GET ( fapi2::ATTR_FUSED_CORE_MODE,
+                    FAPI_SYSTEM,
+                    l_attr_fused_mode );
 
-    if (l_rc == fapi2::FAPI2_RC_SUCCESS)
+    for ( auto& l_core : l_ex.getChildren <fapi2::TARGET_TYPE_CORE>
+          (fapi2::TARGET_STATE_FUNCTIONAL) )
     {
-        // C0: pack bits 0-31 of SCOM data to bits 0-31 of buffer entry
-        l_data64.extract<0, 32, 0> (
-            l_dmanFfdcScoms[FFDC_____EC0_PPM_SSHSRC32__EC1_PPM_SSHSRC32]);
+        bool l_read = false;
+
+        if (l_core == i_core)
+        {
+            // always read the core that was saved away
+            l_read = true;
+        }
+        else
+        {
+            // read sibling core data only if in fused mode
+            if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+            {
+                l_read = true;
+            }
+        }
+
+        if (l_read == true)
+        {
+            l_rc = fapi2::getScom ( l_core,
+                                    C_PPM_SSHSRC,
+                                    l_data64 );
+
+            if (l_rc == fapi2::FAPI2_RC_SUCCESS)
+            {
+                uint8_t l_chipUnitPos = 0;
+                FAPI_ATTR_GET ( fapi2::ATTR_CHIP_UNIT_POS,
+                                l_core,
+                                l_chipUnitPos );
+
+                (l_chipUnitPos & 0x01) ?
+                // Odd: pack bits 0-31 of SCOM data to bits 32-63 of buffer entry
+                (l_data64.extract<0, 32, 32> (
+                     l_dmanFfdcScoms[FFDC_____EC0_PPM_SSHSRC32__EC1_PPM_SSHSRC32] )) :
+                // Even: pack bits 0-31 of SCOM data to bits 0-31 of buffer entry
+                (l_data64.extract<0, 32, 0> (
+                     l_dmanFfdcScoms[FFDC_____EC0_PPM_SSHSRC32__EC1_PPM_SSHSRC32] ));
+            }
+
+            // else just use the default
+        }
+
+        // else just use the default
     }
-
-    // else just use the default
-
-    // @TODO via RTC: 173949
-    // Collect the sibling core register C_PPM_SSHSRC once we have the
-    // ATTR_FUSED_CORE_MODE function
 
     // Add FFDC to a single FAPI RC, to avoid code bloat from multiple
     // generated ffdc classes & error info classes per FAPI RC.
     // Note, we are adding 16 FFDC members. Limit is 20.
     FAPI_ASSERT ( false,
-                  fapi2::CHECK_MASTER_STOP15_FAILED ()
-                  .set_SBE_CHK_MASTER_STOP15_RC (i_reason)
+                  fapi2::CHECK_MASTER_STOP15_DEADMAN_TIMEOUT ()
+                  .set_DEADMAN_TIMEOUT_REASON (i_reason)
                   .set_CORE_TARGET (i_core)
                   .set_PU_OCB_OCI_OCCFLG__PU_OCB_OCI_CCSR (
                       l_dmanFfdcScoms[FFDC_____PU_OCB_OCI_OCCFLG32__CCSR32])
@@ -241,6 +279,8 @@ p9_collect_deadman_ffdc (
                       l_dmanFfdcScoms[FFDC_____EX_CME_SICR_64])
                   .set_EX_CME_LCL_SISR_SCOM (
                       l_dmanFfdcScoms[FFDC_____EX_CME_SISR_64])
+                  .set_EQ_ATOMIC_LOCK_REG (
+                      l_dmanFfdcScoms[FFDC_____EQ_ATOMIC_LOCK_REG])
                   .set_C0_PPM_SSHSRC__C1_PPM_SSHSRC (
                       l_dmanFfdcScoms[FFDC_____EC0_PPM_SSHSRC32__EC1_PPM_SSHSRC32])
                   .set_SGPE_XSR__IAR (l_v_reg_ffdc_sgpe[REG_FFDC_IDX_XSR_IAR])

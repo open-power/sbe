@@ -170,19 +170,21 @@ p9_sbe_ppe_ffdc (
 
             if (l_rc == fapi2::FAPI2_RC_SUCCESS)
             {
-                if (i % 2)
+                if (i & 0x01)
                 {
-                    // pack into bits 0-31 of ithe ffdc vector element
-                    o_v_ppe_reg_ffdc[l_sprFfdcIdx] =
-                        (o_v_ppe_reg_ffdc[l_sprFfdcIdx] & 0x00000000FFFFFFFFULL) |
-                        ((uint64_t) l_data32() << 32);
-                }
-                else
-                {
+                    // Odd Index
                     // pack into bits 32-63 of the ffdc vector element
                     o_v_ppe_reg_ffdc[l_sprFfdcIdx] =
                         (o_v_ppe_reg_ffdc[l_sprFfdcIdx] & 0xFFFFFFFF00000000ULL) |
                         (l_data32());
+                }
+                else
+                {
+                    // Even Index
+                    // pack into bits 0-31 of ithe ffdc vector element
+                    o_v_ppe_reg_ffdc[l_sprFfdcIdx] =
+                        (o_v_ppe_reg_ffdc[l_sprFfdcIdx] & 0x00000000FFFFFFFFULL) |
+                        ((uint64_t) l_data32() << 32);
                 }
             }
             else

@@ -30,7 +30,7 @@
 /// *HWP HW Backup Owner : Brian Vanderpool <vanderp@us.ibm.com>
 /// *HWP FW Owner        : Amit Tendolkar <amit.tendolkar@in.ibm.com>
 /// *HWP Team            : PM
-/// *HWP Level           : 2
+/// *HWP Level           : 3
 /// *HWP Consumed by     : SBE
 #ifndef __P9_COLLECT_DEADMAN_FFDC_H__
 #define __P9_COLLECT_DEADMAN_FFDC_H__
@@ -41,25 +41,18 @@
 #include <return_code.H>
 #include <hwp_return_codes.H>
 
-typedef enum
-{
-    CHECK_MASTER_STOP15_INVALID_STATE,
-    CHECK_MASTER_STOP15_TIMEDOUT,
-    CHECK_MASTER_STOP15_UNKNOWN
-}   p9SbeCheckMasterStop15RC_t;
-
-/// @typedef p9_ppe_state_FP_t
+/// @typedef p9_collect_deadman_ffdc_FP_t
 /// function pointer typedef definition for HWP call support
 typedef fapi2::ReturnCode (*p9_collect_deadman_ffdc_FP_t) (
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>&,
-    const p9SbeCheckMasterStop15RC_t
+    const uint32_t
 );
 
 //------------------------------------------------------------------------------
 // Function prototypes
 //------------------------------------------------------------------------------
 
-/// @brief Collects FFDC related to the deadman failure
+/// @brief Collects FFDC related to the deadman timeout failure
 /// @param [in] i_target Master core target which failed entering STOP15
 /// @param [in] i_reason Reason code to be added to the FFDC data
 /// @return On success, a ReturnCode object with the input HWP return code
@@ -69,6 +62,6 @@ typedef fapi2::ReturnCode (*p9_collect_deadman_ffdc_FP_t) (
 fapi2::ReturnCode
 p9_collect_deadman_ffdc (
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
-    const p9SbeCheckMasterStop15RC_t              i_reason );
+    const uint32_t                                i_reason );
 
 #endif  // __P9_COLLECT_DEADMAN_FFDC_H__
