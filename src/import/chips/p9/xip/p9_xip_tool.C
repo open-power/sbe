@@ -1954,10 +1954,8 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     switch (chipType)
     {
         case CT_P9N:
-            numRingIds = P9_RID::NUM_RING_IDS;
-            break;
-
         case CT_P9C:
+        case CT_P9A:
             numRingIds = P9_RID::NUM_RING_IDS;
             break;
 
