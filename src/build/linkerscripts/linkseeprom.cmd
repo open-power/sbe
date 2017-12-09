@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -98,7 +98,7 @@ SECTIONS
     ////////////////////////////////
     .text ALIGN(8): {
          _text_origin = .; _text_offset = . - _seeprom_origin;
-        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) *\libistepmpipl.a:(.text* ) *\libistep5.a:(.text* ) *\libsbecoreseeprom.a:(.text* ) } > seeprom
+        *\libistep2.a:(.text* ) *\libistep3.a:(.text* ) *\libistep4.a:(.text* ) *\libistepmpipl.a:(.text* ) *\libistep5.a:(.text* ) *\libsbecoreseeprom.a:(.text* ) *\libsbeapppowerseeprom.a:(.text* ) *\libsbeappcommonseeprom.a:(.text* ) } > seeprom
      _text_size = . - _text_origin;
 
    ////////////////////////////////

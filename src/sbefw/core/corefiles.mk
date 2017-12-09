@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +28,6 @@ COREPIBMEM-CPP-SOURCES += sbecmdreceiver.C
 COREPIBMEM-CPP-SOURCES += sbecmdprocessor.C
 COREPIBMEM-CPP-SOURCES += sbecmdparser.C
 COREPIBMEM-CPP-SOURCES += sbecmdscomaccess.C
-COREPIBMEM-CPP-SOURCES += sbecmdiplcontrol.C
 COREPIBMEM-CPP-SOURCES += pool.C
 COREPIBMEM-CPP-SOURCES += sbecmdgeneric.C
 COREPIBMEM-CPP-SOURCES += sbeFifoMsgUtils.C
@@ -53,7 +53,9 @@ COREPIBMEM-CPP-SOURCES += sbeglobals.C
 COREPIBMEM-CPP-SOURCES += sbeMemAccessInterface.C
 COREPIBMEM-CPP-SOURCES += sbeSecureMemRegionManager.C
 COREPIBMEM-CPP-SOURCES += sbeSecurity.C
+COREPIBMEM-CPP-SOURCES += sbecmdiplcontrol.C
 COREPIBMEM-CPP-SOURCES += chipop_handler.C
+COREPIBMEM-CPP-SOURCES += ipl.C
 
 COREPIBMEM-C-SOURCES =
 COREPIBMEM-S-SOURCES =
@@ -63,9 +65,9 @@ COREPIBMEM_OBJECTS = $(COREPIBMEM-C-SOURCES:.c=.o) $(COREPIBMEM-CPP-SOURCES:.C=.
 # seeprom objects
 CORESEEPROM-CPP-SOURCES = sbecmdgeneric.C
 CORESEEPROM-CPP-SOURCES += sbecmdmpipl.C
+CORESEEPROM-CPP-SOURCES += sbecmdiplcontrol.C
 CORESEEPROM-CPP-SOURCES += sbecmdmemaccess.C
 CORESEEPROM-CPP-SOURCES += sbeSecureMemRegionManager.C
-CORESEEPROM-CPP-SOURCES += sbecmdiplcontrol.C
 CORESEEPROM-CPP-SOURCES += sbecmdfastarray.C
 
 CORESEEPROM-C-SOURCES =

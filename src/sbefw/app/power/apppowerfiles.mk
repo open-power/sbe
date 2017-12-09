@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,14 +22,16 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-APPPOWERPIBMEM-CPP-SOURCES = chipop_table.C
+APPPOWERPIBMEM-CPP-SOURCES  = chipop_table.C
+APPPOWERPIBMEM-CPP-SOURCES += ipl_table.C
+APPPOWERPIBMEM-CPP-SOURCES += istep.C
 
 APPPOWERPIBMEM-C-SOURCES =
 APPPOWERPIBMEM-S-SOURCES =
 
 APPPOWERPIBMEM_OBJECTS = $(APPPOWERPIBMEM-C-SOURCES:.c=.o) $(APPPOWERPIBMEM-CPP-SOURCES:.C=.o) $(APPPOWERPIBMEM-S-SOURCES:.S=.o)
 
-APPPOWERSEEPROM-CPP-SOURCES = sbeapp.C
+APPPOWERSEEPROM-CPP-SOURCES =  ipl_table.C
 
 APPPOWERSEEPROM-C-SOURCES =
 APPPOWERSEEPROM-S-SOURCES =

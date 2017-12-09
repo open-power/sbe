@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/sbeapp.C $                                */
+/* $Source: src/sbefw/core/ipl.H $                                        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -21,14 +21,65 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __SBEFW_SEEPROM__
-void helloWorld()
-{
-}
-#endif
+#pragma once
 
-#ifdef __SBEFW_SEEPROM__
-void helloWorldSeeprom()
+#include "fapi2.H"
+#include "sbestates.H"
+
+extern sbeRole g_sbeRole;
+extern fapi2::ReturnCode g_iplFailRc;
+/**
+ * @brief Support function to execute specific istep
+ *
+ * @param[in] i_major Major Istep Number
+ * @param[in] i_minor Minor Istep Number
+ *
+ * @return FAPI2_RC_SUCCESS if success, else error code.
+ */
+fapi2::ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
+
+/**
+ * @brief Executes IPL steps in continuous mode.
+ *
+ * @par On the master SBE, this will run
+ *      all steps from 2.2 to 5.2. On the slave SBE, it runs all steps from 2.2
+ *      to 3.18.
+ *      In case an error is encountered, the execution is aborted.
+ */
+void sbeDoContinuousIpl();
+
+using voidfuncptr_t = void (*)(void);
+using iStep_t = fapi2::ReturnCode (*)( voidfuncptr_t );
+
+struct istepMap_t
 {
-}
-#endif
+    iStep_t         istepWrapper;
+    voidfuncptr_t   istepHwp;
+};
+
+struct istepTableEntry_t
+{
+    uint8_t         istepMajorNum;
+    istepMap_t*     istepMinorArr;
+    size_t          len;
+};
+
+struct istepTable_t
+{
+    istepTableEntry_t*  istepMajorArr;
+    size_t              len;
+};
+
+#define ISTEP_MAP(wrapper, hwp) \
+    {wrapper, reinterpret_cast<voidfuncptr_t>(hwp)}
+
+#define ISTEP_ENTRY(majornum, entrytable) \
+    {majornum, entrytable, sizeof(entrytable)/sizeof(entrytable[0])}
+
+#define REGISTER_ISTEP_TABLE(entries) \
+    istepTable_t istepTable = { \
+        entries, \
+        sizeof(entries)/sizeof(entries[0]) \
+    };
+
+extern istepTable_t istepTable;

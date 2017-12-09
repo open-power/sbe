@@ -47,6 +47,7 @@
 #include "sbeutil.H"
 #include "sbeglobals.H"
 #include "core/chipop_handler.H"
+#include "core/ipl.H"
 using namespace fapi2;
 
 // Forward declaration for performAttrSetup

@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -43,6 +44,8 @@
 #include "sbecmdfastarray.H"
 
 #include "core/chipop_handler.H"
+
+#include "power/istep.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
@@ -83,7 +86,7 @@ CMD_ARR(
 ////////////////////////////////////////////////////////////////
 CMD_ARR(
     A1,
-    {sbeHandleIstep,
+    {SBEAPP_POWER::sbeHandleIstep,
      SBE_CMD_EXECUTE_ISTEP,
      HARDWARE_FENCED_STATE|SBE_FENCE_AT_DUMPING,
     },

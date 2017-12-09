@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -43,6 +44,8 @@
 #include "p9_stopclocks.H"
 #include "fapi2.H"
 
+#include "core/ipl.H"
+
 using namespace fapi2;
 
 // Defines for stop clock
@@ -68,6 +71,10 @@ p9_hcd_core_stopclocks_FP_t p9_hcd_core_stopclocks_hwp = &p9_hcd_core_stopclocks
 p9_stopclocks_FP_t p9_stopclocks_hwp = &p9_stopclocks;
 #endif
 
+static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
+static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 8;
+static const uint32_t SBE_ISTEP_MPIPL_CONTINUE      = 97;
+static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 7;
 
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeEnterMpipl Sbe enter MPIPL function
@@ -153,18 +160,19 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
 
         sbeRole l_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
                     SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
+
         // Run isteps
         const uint8_t isteps[][3] = {
             // Major Num,              Minor Start,       Minor End
-            {SBE_ISTEP_MPIPL_CONTINUE, ISTEP_MINOR_START, MPIPL_CONTINUE_MAX_SUBSTEPS},
-            {SBE_ISTEP4,               ISTEP_MINOR_START, ISTEP4_MAX_SUBSTEPS},
-            {SBE_ISTEP5,               ISTEP_MINOR_START, ISTEP5_MAX_SUBSTEPS}};
+            {SBE_ISTEP_MPIPL_CONTINUE, 1, MPIPL_CONTINUE_MAX_SUBSTEPS},
+            {4,               1, 34},
+            {5,               1, 2}};
         // Loop through isteps
         for( auto istep : isteps)
         {
             // This is required here to skip the major istep 4/5 in slave
             if((SBE_ROLE_SLAVE == l_sbeRole) &&
-               (istep[0] == SBE_ISTEP4 || istep[0] == SBE_ISTEP5))
+               (istep[0] == 4 || istep[0] == 5))
             {
                 (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_RUNTIME_EVENT);
