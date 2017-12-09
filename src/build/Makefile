@@ -22,7 +22,20 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+############################################################################
+# Image settings
+# pass argument img=seeprom/pibmem
+# By default seeprom image is built
+ifndef img
+export img = seeprom
+endif
 
+# pass argument project=power/zthemis
+# By default power image is built
+ifndef project
+export project = power
+endif
+###########################################################################
 
 #Pull in the definitions that affect all makefiles for this image
 include img_defs.mk
@@ -152,7 +165,7 @@ LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
 # ---- SEEPROM Image  ------
 # This removes all unecessary headers from the ELF executable
 $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis: $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out
-	./parsAndCutElf.py $(IMAGE_SUFFIX)
+	./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR)
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
 
 #create a linked ELF executable
@@ -240,7 +253,7 @@ report: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
 
 # Create build Info file
 buildInfo:
-	python buildInfo.py $(OBJDIR)
+	python buildInfo.py $(GENFILES_DIR)
 
 
 #Create an obj directory if needed
@@ -341,7 +354,7 @@ tracehash:
 #clean the kernel directory first, then the application level clean
 clean:
 	rm -fr $(SBE_ROOT_DIR)/obj
-	rm -fr $(IMG_DIR)
+	rm -fr $(IMG_ROOT_DIR)
 
 #Add dependencies to header files
 ifneq ($(MAKECMDGOALS),clean)

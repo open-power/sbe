@@ -51,17 +51,9 @@
 #                       Defaults to IBM CTE tools path.
 #
 # OBJDIR             : target directory for all generated files
-
-IMAGE_SUFFIX := DD2
-GCC-DEFS += -DDD2
-IMAGE_SEEPROM_NAME := sbe_seeprom_$(IMAGE_SUFFIX)
-IMAGE_SBE_NAME := sbe_pibmem_$(IMAGE_SUFFIX)
-IMAGE_LOADER_NAME := sbe_loader
-IMAGE_OTPROM_NAME := sbe_otprom_$(IMAGE_SUFFIX)
-IMAGE_BASE_PPE_HEADER := base_ppe_header
-
-SBE_SYMBOLS_NAME := sbe_$(IMAGE_SUFFIX).syms
-SBE_STRINGFILE_NAME := sbeStringFile_$(IMAGE_SUFFIX)
+ifeq ($(project),power)
+include power_defs.mk
+endif
 
 ifndef PPE_TYPE
 PPE_TYPE := std
@@ -82,45 +74,45 @@ endif
 ifndef BUILD_DIR
 export BUILD_DIR = $(SBE_SRC_DIR)/build
 endif
-# Required for pk/std/makefile
-ifndef IMAGE_SRCDIR
-export IMAGE_SRCDIR = $(BUILD_DIR)
-endif
 
 ifndef BUILDDATA_SRCDIR
 export BUILDDATA_SRCDIR = $(BUILD_DIR)/utils
 endif
 
 ifndef LINKER_DIR
-export LINKER_DIR = $(BUILD_DIR)/linkerscripts
+export LINKER_DIR = $(BUILD_DIR)/linkerscripts/$(project)
+endif
+
+ifndef IMPORT_HWP_MK_DIR
+export IMPORT_HWP_MK_DIR = $(BUILD_DIR)/import_hwp_mk/$(project)
 endif
 
 ifndef ISTEP2_INFRA_DIR
-export ISTEP2_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep2
+export ISTEP2_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep2
 endif
 
 ifndef ISTEP3_INFRA_DIR
-export ISTEP3_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep3
+export ISTEP3_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep3
 endif
 
 ifndef ISTEP4_INFRA_DIR
-export ISTEP4_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep4
+export ISTEP4_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep4
 endif
 
 ifndef ISTEP5_INFRA_DIR
-export ISTEP5_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istep5
+export ISTEP5_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep5
 endif
 
 ifndef ISTEPMPIPL_INFRA_DIR
-export ISTEPMPIPL_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istepmpipl
+export ISTEPMPIPL_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepmpipl
 endif
 
 ifndef ISTEPCOMMON_INFRA_DIR
-export ISTEPCOMMON_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/istepcommon
+export ISTEPCOMMON_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepcommon
 endif
 
 ifndef ARRAYACCESS_INFRA_DIR
-export ARRAYACCESS_INFRA_DIR = $(BUILD_DIR)/import_hwp_mk/arrayaccess
+export ARRAYACCESS_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/arrayaccess
 endif
 
 ifndef BOOT_SRCDIR
@@ -231,8 +223,12 @@ ifndef BUILDDATA_OBJDIR
 export BUILDDATA_OBJDIR = $(BASE_OBJDIR)/build/utils
 endif
 
+ifndef IMG_ROOT_DIR
+export IMG_ROOT_DIR = $(SBE_ROOT_DIR)/images
+endif
+
 ifndef IMG_DIR
-export IMG_DIR = $(SBE_ROOT_DIR)/images
+export IMG_DIR = $(IMG_ROOT_DIR)
 endif
 
 ifndef PK_SRCDIR
@@ -410,19 +406,9 @@ GCC-O-LEVEL = -Os
 endif
 endif
 
-FAPI_TRACE_LEVEL_DEF = 2
-
 ifdef FAPI_TRACE_LEVEL_ENV
 FAPI_TRACE_LEVEL_DEF = $(FAPI_TRACE_LEVEL_ENV)
 endif
-
-# Levels of SBE logging
-# 0 - No tracing
-# 1 - Error
-# 2 - Error, info
-# 3 - Error, info, entry/exit
-# 4 - Error, info, entry/exit, debug
-SBE_TRACE_LEVEL_DEF = 2
 
 GCC-DEFS += -DIMAGE_NAME=$(IMAGE_SEEPROM_NAME)
 GCC-DEFS += -DPK_TIMER_SUPPORT=$(PK_TIMER_SUPPORT)
@@ -451,7 +437,6 @@ export LD_LIBRARY_PATH+=:$(CROSS_COMPILER_PATH)/lib
 
 
 INCLUDES += $(IMG_INCLUDES)
-INCLUDES += -I$(BUILD_DIR)/../../include
 INCLUDES += -I$(HWPLIB_SRCDIR)
 INCLUDES += -I$(GENFILES_DIR)
 INCLUDES += -I$(PLAT_FAPI2_DIR)
@@ -521,13 +506,6 @@ GCC-CFLAGS += -mcpu=ppe42
 GCC-CFLAGS += -ffunction-sections
 GCC-CFLAGS += -fdata-sections
 endif
-############################################################################
-# Image settings
-# pass argument img=seeprom/pibmem
-# By default seeprom image is built
-ifndef img
-img = seeprom
-endif
 
 ifeq ($(img), seeprom)
 GCC-DEFS += -DSEEPROM_IMAGE
@@ -535,10 +513,7 @@ endif
 ifeq ($(img), pibmem)
 GCC-DEFS += -DPIBMEM_ONLY_IMAGE
 endif
-
-###########################################################################
-
-
+############################################################################
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
 
@@ -617,4 +592,3 @@ $(OBJDIR)/%.d: %.S $(FAPI_RC)
 	$(CC_ASM) -MM $(INCLUDES) $(CPPFLAGS) $(DEFS) $< >> $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
-

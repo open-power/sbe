@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -33,11 +33,12 @@ import sys
 def parserElf(argv):
     try:
         ddlevel = argv[1]
+        outdir  = argv[2]
     except:
-        print "Missing DD level name"
+        print "Missing argument : arg[0] ddlevel; arg[1] output directory"
         exit(-1)
-    SBE_SEEPROM_OUT = "../../images/sbe_seeprom_"+ddlevel+".out"
-    SBE_SEEPROM_BIN = "../../images/sbe_seeprom_"+ddlevel+".bin"
+    SBE_SEEPROM_OUT = outdir+"/sbe_seeprom_"+ddlevel+".out"
+    SBE_SEEPROM_BIN = outdir+"/sbe_seeprom_"+ddlevel+".bin"
     cmd = "readelf -S "+SBE_SEEPROM_OUT
     firstSection = ".header"
     cmd1 = "nm "+SBE_SEEPROM_OUT+" | grep  _sbe_image_size"
@@ -74,4 +75,3 @@ def parserElf(argv):
        exit(-1)
 
 parserElf(sys.argv)
-

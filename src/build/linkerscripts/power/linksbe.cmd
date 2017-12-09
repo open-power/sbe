@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/build/linkerscripts/linkloader.cmd $                      */
+/* $Source: src/build/linkerscripts/power/linksbe.cmd $                   */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -26,8 +25,8 @@
 // Need to do this so that elf32-powerpc is not modified!
 #undef powerpc
 
-#ifndef BASE_LOADER_STACK_SIZE
-#define BASE_LOADER_STACK_SIZE 6144
+#ifndef INITIAL_STACK_SIZE
+#define INITIAL_STACK_SIZE 256
 #endif
 #include "sbe_link.H"
 
@@ -35,12 +34,16 @@ OUTPUT_FORMAT(elf32-powerpc);
 
 MEMORY
 {
- sram : ORIGIN = SBE_LOADER_BASE_ORIGIN, LENGTH = SBE_LOADER_BASE_LENGTH
+ pibmem : ORIGIN = SBE_BASE_ORIGIN, LENGTH = SBE_BASE_LENGTH
 }
 
 SECTIONS
 {
-    . = SBE_LOADER_BASE_ORIGIN;
+    . = SBE_BASE_ORIGIN;
+
+    .vectors : {. = ALIGN(512); *(.vectors)} > pibmem
+    .fixed . : {. = ALIGN(512); *(.fixed) } > pibmem
+    .text . : {. = ALIGN(512); *(.text)} > pibmem
 
     ////////////////////////////////
     // Read-only Data
@@ -49,20 +52,21 @@ SECTIONS
     . = ALIGN(8);
     _RODATA_SECTION_BASE = .;
 
-   .text . : { *(.text) } > sram
-   .data  . : { *(.data) } > sram
-
     // SDA2 constant sections .sdata2 and .sbss2 must be adjacent to each
     // other.  Our SDATA sections are small so we'll use strictly positive
     // offsets.
 
     _SDA2_BASE_ = .;
-   .sdata2 . : { *(.sdata2) } > sram
-   .sbss2  . : { *(.sbss2) } > sram
+   .sdata2 . : { *(.sdata2*) } > pibmem
+   .sbss2  . : { *(.sbss2*) } > pibmem
 
    // Other read-only data.
 
-   .rodata . : { *(.rodata*) *(.got2) } > sram
+    . = ALIGN(8);
+    .rodata . : { ctor_start_address = .;
+                  *(.ctors) *(.ctors.*)
+                  ctor_end_address = .;
+                  *(rodata*) *(.got2) } > pibmem
 
     _RODATA_SECTION_SIZE = . - _RODATA_SECTION_BASE;
 
@@ -78,19 +82,23 @@ SECTIONS
     // offsets.
 
     _SDA_BASE_ = .;
-    .sdata  . : { *(.sdata)  } > sram
-    .sbss   . : { *(.sbss)   } > sram
+    .sdata  . : { *(.sdata*)  } > pibmem
+    _sbss_start = .;
+    .sbss   . : { *(.sbss*)   } > pibmem
+    _sbss_end = .;
 
     // Other read-write data
     // It's not clear why boot.S is generating empty .glink,.iplt
 
-   .rela   . : { *(.rela*) } > sram
-   .rwdata . : { *(.data) *(.bss) } > sram
-
-   _BASE_LOADER_STACK_LIMIT = .;
-   _BASE_LOADER_STACK_LIMIT = . + BASE_LOADER_STACK_SIZE - 1;
+   .rela   . : { *(.rela*) } > pibmem
+   .rwdata . : { *(.data*) *(.bss*) } > pibmem
 
     . = ALIGN(8);
-    _loader_end = . - 0;
+   _PK_INITIAL_STACK_LIMIT = .;
+   . = . + INITIAL_STACK_SIZE;
+   _PK_INITIAL_STACK = . - 1;
+
+    . = ALIGN(8);
+    _sbe_end = . - 0;
 
 }

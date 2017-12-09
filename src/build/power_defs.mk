@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/import_hwp_mk/istep5/istep5files.mk $
+# $Source: src/build/power_defs.mk $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2017,2018
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,19 +21,24 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-#  @file istep5files.mk
-#
-#  @brief mk for including istep5 object files
-#
-##########################################################################
-# Object Files
-##########################################################################
+# Levels of SBE logging
+# 0 - No tracing
+# 1 - Error
+# 2 - Error, info
+# 3 - Error, info, entry/exit
+# 4 - Error, info, entry/exit, debug
+SBE_TRACE_LEVEL_DEF = 2
 
-ISTEP5-CPP-SOURCES = p9_sbe_instruct_start.C
-ISTEP5-CPP-SOURCES +=p9_thread_control.C
-ISTEP5-C-SOURCES =
-ISTEP5-S-SOURCES =
+FAPI_TRACE_LEVEL_DEF = 2
 
-ISTEP5_OBJECTS += $(ISTEP5-CPP-SOURCES:.C=.o)
-ISTEP5_OBJECTS += $(ISTEP5-C-SOURCES:.c=.o)
-ISTEP5_OBJECTS += $(ISTEP5-S-SOURCES:.S=.o)
+IMAGE_SUFFIX := DD2
+GCC-DEFS += -DDD2
+IMAGE_SEEPROM_NAME := sbe_seeprom_$(IMAGE_SUFFIX)
+IMAGE_SBE_NAME := sbe_pibmem_$(IMAGE_SUFFIX)
+
+IMAGE_LOADER_NAME := sbe_loader
+IMAGE_OTPROM_NAME := sbe_otprom_$(IMAGE_SUFFIX)
+IMAGE_BASE_PPE_HEADER := base_ppe_header
+
+SBE_SYMBOLS_NAME := sbe_$(IMAGE_SUFFIX).syms
+SBE_STRINGFILE_NAME := sbeStringFile_$(IMAGE_SUFFIX)

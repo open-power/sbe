@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/import_hwp_mk/istep3/Makefile $
+# $Source: src/build/import_hwp_mk/power/istepmpipl/Makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2016,2018
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,34 +25,34 @@
 # "*.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/*
-export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istep3
+export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istepmpipl
 
 include img_defs.mk
-include istep3files.mk
+include istepmpiplfiles.mk
 
-export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR)
+export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(HWPLIB_SRCDIR)
 
 ifneq ($(ddlevel), DD2)
 GCC-CFLAGS += -mlongcall
 endif
 
-OBJSISTEP3 := $(addprefix $(OBJDIR-ISTEP3)/, $(ISTEP3_OBJECTS))
+OBJSISTEPMPIPL := $(addprefix $(OBJDIR-ISTEPMPIPL)/, $(ISTEPMPIPL_OBJECTS))
 
-.PHONY: clean istep3
+.PHONY: clean istepmpipl
 
-libistep3.a: istep3
-	$(AR) crs $(OBJDIR-ISTEP3)/libistep3.a $(OBJDIR-ISTEP3)/*.o
+libistepmpipl.a: istepmpipl
+	$(AR) crs $(OBJDIR-ISTEPMPIPL)/libistepmpipl.a $(OBJDIR-ISTEPMPIPL)/*.o
 
-istep3: $(OBJSISTEP3)
+istepmpipl: $(OBJSISTEPMPIPL)
 
-$(OBJSISTEP3) $(OBJSISTEP3:.o=.d): | $(OBJDIR-ISTEP3)
+$(OBJSISTEPMPIPL) $(OBJSISTEPMPIPL:.o=.d): | $(OBJDIR-ISTEPMPIPL)
 
-$(OBJDIR-ISTEP3):
-	mkdir -p $(OBJDIR-ISTEP3)
+$(OBJDIR-ISTEPMPIPL):
+	mkdir -p $(OBJDIR-ISTEPMPIPL)
 
 clean:
-	rm -fr $(OBJDIR-ISTEP3)
+	rm -fr $(OBJDIR-ISTEPMPIPL)
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(OBJSISTEP3:.o=.d)
+include $(OBJSISTEPMPIPL:.o=.d)
 endif

@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/import_hwp_mk/istep2/Makefile $
+# $Source: src/build/import_hwp_mk/power/arrayaccess/Makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2016,2018
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,33 +25,32 @@
 # "*.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/*
-export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istep2
+export SUB_OBJDIR = /arrayaccess
 
 include img_defs.mk
-include istep2files.mk
+include arrayaccessfiles.mk
 
 export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR)
 
-ifneq ($(ddlevel), DD2)
 GCC-CFLAGS += -mlongcall
-endif
 
-OBJSISTEP2 := $(addprefix $(OBJDIR-ISTEP2)/, $(ISTEP2_OBJECTS))
+OBJSARRAYACCESS := $(addprefix $(OBJDIR-ARRAYACCESS)/, $(ARRAYACCESS_OBJECTS))
 
-.PHONY: clean istep2
+.PHONY: clean arrayaccess
 
-libistep2.a: istep2
-	$(AR) crs $(OBJDIR-ISTEP2)/libistep2.a $(OBJDIR-ISTEP2)/*.o
+libarrayaccess.a: arrayaccess
+	$(AR) crs $(OBJDIR-ARRAYACCESS)/libarrayaccess.a $(OBJDIR-ARRAYACCESS)/*.o
 
-istep2: $(OBJSISTEP2)
-$(OBJSISTEP2) $(OBJSISTEP2:.o=.d): | $(OBJDIR-ISTEP2)
+arrayaccess: $(OBJSARRAYACCESS)
 
-$(OBJDIR-ISTEP2):
-	mkdir -p $(OBJDIR-ISTEP2)
+$(OBJSARRAYACCESS) $(OBJSARRAYACCESS:.o=.d): | $(OBJDIR-ARRAYACCESS)
+
+$(OBJDIR-ARRAYACCESS):
+	mkdir -p $(OBJDIR-ARRAYACCESS)
 
 clean:
-	rm -fr $(OBJDIR-ISTEP2)
+	rm -fr $(OBJDIR-ARRAYACCESS)
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(OBJSISTEP2:.o=.d)
+include $(OBJSARRAYACCESS:.o=.d)
 endif

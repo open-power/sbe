@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] Google Inc.
 # [+] International Business Machines Corp.
 #
@@ -31,7 +31,7 @@ import os
 import sys
 
 def buildInfo():
-    buildInfoFileName = sys.argv[1]+"/genfiles/sbe_build_info.H"
+    buildInfoFileName = sys.argv[1]+"/sbe_build_info.H"
     header = \
 "#ifndef SBE_BUILD_INFO_H  \n\
 #define SBE_BUILD_INFO_H  \n\n"
