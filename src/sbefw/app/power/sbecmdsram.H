@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbecmdfastarray.H $                            */
+/* $Source: src/sbefw/app/power/sbecmdsram.H $                            */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -21,31 +21,44 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __SBE_CMDFASTARRAY_H
-#define __SBE_CMDFASTARRAY_H
+/*
+ * @file: ppe/sbe/sbefw/sbecmdsram.H
+ *
+ * @brief This file contains the Interfaces for the Sram Access chip-ops
+ *
+ */
+
+#ifndef __SBEFW_SBECMDSRAM_H
+#define __SBEFW_SBECMDSRAM_H
 
 #include <stdint.h>
 
+static const uint8_t SBE_32BIT_ALIGN_FACTOR = 4;
+static const uint8_t SBE_64BIT_ALIGN_FACTOR = 8;
+
+static const uint64_t SBE_FWCTRLFLG3_FSP_ATTACHED = 0X1000000000000000;
+
 /*
- * @brief Fast array command structure
- *
- * */
-typedef struct
-{
-    uint32_t targetType:16;
-    uint32_t chipletId:8;
-    uint32_t mode:8;
-    uint32_t hData;
-    uint32_t lData;
-} sbeControlFastArrayCMD_t;
+ * @brief Granule size in Bytes for 'Get from Hwp'/'Put to Hwp'
+ */
+static const uint32_t SBE_OCC_SRAM_GRANULE = 128;
 
 /**
- * @brief Control Fast Array Command (0xA601)
- *
- * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
- *
- * @return    RC from the FIFO access utility
- */
-uint32_t sbeControlFastArray(uint8_t *i_pArg);
+  * @brief sbeGetOccSram : Implements SBE Get Occ Sram ChipOp
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeGetOccSram (uint8_t *i_pArg);
 
-#endif //__SBE_CMDFASTARRAY_H
+/**
+  * @brief sbePutOccSram : Implements SBE Put Occ Sram ChipOp
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbePutOccSram  (uint8_t *i_pArg);
+
+#endif /* __SBEFW_SBECMDSRAM_H */

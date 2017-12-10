@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbecmdcntrldmt.H $                             */
+/* $Source: src/sbefw/app/power/sbecmdcntlinst.H $                        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,46 +22,29 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/sbe/sbefw/sbecmdcntrldmt.H
+ * @file: ppe/sbe/sbefw/sbecmdcntlinst.H
  *
- * @brief This file contains the Core State Control Messages API header
+ * @brief This file contains the Interfaces for Control Instructions chip-ops
  *
  */
 
-#ifndef __SBEFW_SBECMDCNTRLDMT_H
-#define __SBEFW_SBECMDCNTRLDMT_H
+#ifndef __SBEFW_SBECMDCNTLINST_H
+#define __SBEFW_SBECMDCNTLINST_H
 
 #include <stdint.h>
 
-// Define for the Sleep interval between continuous HWP calls
-// for DMT functionality in Millisecond
-static const uint8_t  SBE_DMT_SLEEP_INTERVAL = 1;
 
-// Bit-32 used to checkstop the system, since this is directly getting
-// inserted, we need to use bit (63-32) = 31st bit.
-static const uint64_t  N3_FIR_CORE_CHECKSTOP_BIT = 31; // 63-32 = 31
+// This is used to find out the array index in g_control_reg_map in
+// p9_thread_control.C
+static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
 
 /**
-  * @brief Callback for Timer Expiry for DMT
-  *
-  * @return void
-  */
-void sbeDmtPkExpiryCallback(void *arg);
-
-/**
-  * @brief  Called to collect FFDC for the Deadman loop timeout
-  *         into the SBE global HWP FFDC region
-  * @return SBE Secondary RC
-  */
-uint32_t sbeCollectDeadmanFfdc (void);
-
-/**
-  * @brief Control Deadman Timer command (0xD101)
+  * @brief sbeCntlInst : Implements SBE Control instructions ChipOp
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
   *
-  * @return    RC from the PSU access utility
+  * @return    Rc from the FIFO access utility
   */
-uint32_t sbeControlDeadmanTimer(uint8_t *i_pArg);
+uint32_t sbeCntlInst (uint8_t *i_pArg);
 
-#endif // __SBEFW_SBECMDCNTRLDMT_H
+#endif /* __SBEFW_SBECMDCNTLINST_H */

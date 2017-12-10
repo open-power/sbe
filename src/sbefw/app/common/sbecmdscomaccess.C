@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbecmdscomaccess.C $                           */
+/* $Source: src/sbefw/app/common/sbecmdscomaccess.C $                     */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -38,7 +38,8 @@
 #include "plat_hw_access.H"
 #include "sbeglobals.H"
 
-
+namespace SBE_COMMON
+{
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 uint32_t sbeGetScom (uint8_t *i_pArg)
@@ -429,4 +430,4 @@ uint32_t sbeMultiScom (uint8_t *i_pArg)
     return 0;
     #undef SBE_FUNC
 }
-
+} // namespace SBE_COMMON

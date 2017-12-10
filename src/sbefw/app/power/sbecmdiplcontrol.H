@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbecmdringaccess.H $                           */
+/* $Source: src/sbefw/app/power/sbecmdiplcontrol.H $                      */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,50 +22,37 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/sbe/sbefw/sbecmdringaccess.H
+ * @file: ppe/sbe/sbefw/sbecmdiplcontrol.H
  *
- * @brief This file contains the Interfaces for the RING Access chip-ops
+ * @brief This file contains the SBE command details
  *
  */
 
-#ifndef __SBEFW_SBECMDRINGACCESS_H
-#define __SBEFW_SBECMDRINGACCESS_H
+#ifndef __SBEFW_SBECMDIPLCONTROL_H
+#define __SBEFW_SBECMDIPLCONTROL_H
 
 #include <stdint.h>
-
-typedef struct
-{
-    uint64_t TargetType:16;
-    uint64_t ChipletID:16;
-    uint64_t RingID:16;
-    uint64_t RingMode:16;
-} sbePSUPutRingCMD_t;
+#include "sbecmdgeneric.H"
+#include "fapi2.H"
 
 /**
- * @brief Put Ring From Image Command (0xD301)
- *
- * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
- *
- * @return    RC from the PSU access utility
- */
-uint32_t sbePutRingFromImagePSU(uint8_t *i_pArg);
-
-/**
-  * @brief sbeGetRing : Get the ring data
+  * @brief execute suspend IO chip-op (0xA102)
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
   *
   * @return    Rc from the FIFO access utility
   */
-uint32_t sbeGetRing(uint8_t *i_pArg);
+uint32_t sbeHandleSuspendIO(uint8_t *i_pArg);
 
-/**
- * @brief Put Ring Command
- *
- * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
- *
- * @return    RC from the FIFO access utility
- */
-uint32_t sbePutRing(uint8_t *i_pArg);
+// Utility function to do TPM reset
+fapi2::ReturnCode performTpmReset();
 
-#endif /* __SBEFW_SBECMDRINGACCESS_H */
+//Utility function to update PHB functional State
+fapi2::ReturnCode updatePhbFunctionalState( void );
+
+//Utility function to clear crest error latch
+fapi2::ReturnCode resetCrespErrLatch( void );
+
+fapi2::ReturnCode performAttrSetup( void );
+
+#endif // __SBEFW_SBECMDIPLCONTROL_H

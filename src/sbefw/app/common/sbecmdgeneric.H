@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbecmdgeneric.H $                              */
+/* $Source: src/sbefw/app/common/sbecmdgeneric.H $                        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -155,12 +155,4 @@ uint32_t sbeSetSystemFabricMap(uint8_t *i_pArg);
   */
 uint32_t sbeStashKeyAddrPair(uint8_t *i_pArg);
 
-/**
-  * @brief Read the data from SBE memory (0xD703)
-  *
-  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
-  *
-  * @return    Rc from the Psu access utility
-  */
-uint32_t sbeReadMem(uint8_t *i_pArg);
 #endif // __SBEFW_SBECMDGENERIC_H

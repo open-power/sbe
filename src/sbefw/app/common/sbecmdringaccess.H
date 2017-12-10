@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbecmdCntrlTimer.H $                           */
+/* $Source: src/sbefw/app/common/sbecmdringaccess.H $                     */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,24 +22,50 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/sbe/sbefw/sbecmdCntrlTimer.H
+ * @file: ppe/sbe/sbefw/sbecmdringaccess.H
  *
- * @brief This file contains the SBE control timer command details
+ * @brief This file contains the Interfaces for the RING Access chip-ops
  *
  */
 
-#ifndef __SBEFW_SBECMD_CNTRL_TIMER_H
-#define __SBEFW_SBECMD_CNTRL_TIMER_H
+#ifndef __SBEFW_SBECMDRINGACCESS_H
+#define __SBEFW_SBECMDRINGACCESS_H
 
 #include <stdint.h>
 
+typedef struct
+{
+    uint64_t TargetType:16;
+    uint64_t ChipletID:16;
+    uint64_t RingID:16;
+    uint64_t RingMode:16;
+} sbePSUPutRingCMD_t;
+
 /**
-  * @brief SBE Psu Control timer chipop (0xD401)
+ * @brief Put Ring From Image Command (0xD301)
+ *
+ * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+ *
+ * @return    RC from the PSU access utility
+ */
+uint32_t sbePutRingFromImagePSU(uint8_t *i_pArg);
+
+/**
+  * @brief sbeGetRing : Get the ring data
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
   *
-  * @return    Rc from the Psu access utility
+  * @return    Rc from the FIFO access utility
   */
-uint32_t sbeCntrlTimer( uint8_t *i_pArg );
+uint32_t sbeGetRing(uint8_t *i_pArg);
 
-#endif // __SBEFW_SBECMD_CNTRL_TIMER_H
+/**
+ * @brief Put Ring Command
+ *
+ * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+ *
+ * @return    RC from the FIFO access utility
+ */
+uint32_t sbePutRing(uint8_t *i_pArg);
+
+#endif /* __SBEFW_SBECMDRINGACCESS_H */

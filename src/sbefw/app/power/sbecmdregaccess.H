@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbecmdtracearray.H $                           */
+/* $Source: src/sbefw/app/power/sbecmdregaccess.H $                       */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,33 +22,35 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 /*
- * @file: ppe/sbe/sbefw/sbecmdtracearray.H
+ * @file: ppe/sbe/sbefw/sbecmdregaccess.H
  *
- * @brief This file contains the Interfaces for the Tracearray Control chip-op
+ * @brief This file contains the Interfaces for the SCOM Access chip-ops
  *
  */
 
-#ifndef __SBEFW_SBECMDTRACEARRAY_H
-#define __SBEFW_SBECMDTRACEARRAY_H
+#ifndef __SBEFW_SBECMDREGACCESS_H
+#define __SBEFW_SBECMDREGACCESS_H
 
 #include <stdint.h>
 
-typedef struct
-{
-    uint32_t targetType:16;
-    uint32_t reserved:8;
-    uint32_t chipletId:8;
-    uint32_t traceArrayId:16;
-    uint32_t operation:16;
-} sbeControlTraceArrayCMD_t;
+/**
+  * @brief sbeGetRegs : Get the reg data
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeGetReg(uint8_t *i_pArg);
+
 
 /**
- * @brief Control Trace Array Command (0xA602)
- *
- * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
- *
- * @return    RC from the FIFO access utility
- */
-uint32_t sbeControlTraceArray(uint8_t *i_pArg);
+  * @brief sbePutRegs : Put the reg data
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbePutReg(uint8_t *i_pArg);
 
-#endif //__SBEFW_SBECMDTRACEARRAY_H
+
+#endif /* __SBEFW_SBECMDREGACCESS_H */
