@@ -129,4 +129,10 @@ jump_to_kernel:
         mtlr  r6
         blr
 
-#include "pibmem_repair.S"
+#ifdef PIBMEM_REPAIR_SCOM_P9
+#include "pibmem_repair/scom_repair_p9/pibmem_repair.S"
+#endif
+
+#ifdef PIBMEM_REPAIR_SCOM_AXONE
+#include "pibmem_repair/scom_repair_axone/pibmem_repair.S"
+#endif

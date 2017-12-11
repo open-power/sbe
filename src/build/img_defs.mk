@@ -509,6 +509,13 @@ include z_defs.mk
 endif
 
 ############################################################################
+ifeq ($(PIBMEM_REPAIR_SCOM_P9), 1)
+PPE-CFLAGS += -DPIBMEM_REPAIR_SCOM_P9=1
+endif
+ifeq ($(PIBMEM_REPAIR_SCOM_AXONE), 1)
+PPE-CFLAGS += -DPIBMEM_REPAIR_SCOM_AXONE=1
+endif
+###########################################################################
 
 #override the GNU Make implicit rule for going from a .C to a .o
 %.o: %.C
