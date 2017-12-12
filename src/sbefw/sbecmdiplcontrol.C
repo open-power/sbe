@@ -122,6 +122,9 @@ bool validateIstep (uint8_t i_major, uint8_t i_minor);
 typedef ReturnCode (*sbeIstepHwpProc_t)
                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
 
+typedef ReturnCode (*sbeIstepHwpTpSwitchGears_t)
+                    (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
+
 typedef ReturnCode (*sbeIstepHwpEq_t)
                     (const Target<TARGET_TYPE_EQ> & i_target);
 
@@ -177,6 +180,7 @@ typedef ReturnCode (*sbeIstep_t)( sbeIstepHwp_t );
 
 // Wrapper function which will call HWP.
 ReturnCode istepWithProc( sbeIstepHwp_t i_hwp );
+ReturnCode istepHwpTpSwitchGears( sbeIstepHwp_t i_hwp);
 ReturnCode istepAttrSetup( sbeIstepHwp_t i_hwp );
 ReturnCode istepNoOp( sbeIstepHwp_t i_hwp );
 ReturnCode istepWithEq( sbeIstepHwp_t i_hwp);
@@ -334,7 +338,7 @@ static istepMap_t g_istep2PtrTbl[ ISTEP2_MAX_SUBSTEPS ] =
              { &istepNoOp, NULL },  // DFT only
              { &istepWithProc, { .procHwp = &p9_sbe_npll_initf }},
              { &istepNestFreq, { .procHwp = &p9_sbe_npll_setup }},
-             { &istepWithProc, { .procHwp = &p9_sbe_tp_switch_gears }},
+             { &istepHwpTpSwitchGears, { .procHwp = &p9_sbe_tp_switch_gears }},
              { &istepWithProc, { .procHwp = &p9_sbe_clock_test2 }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_chiplet_reset }},
              { &istepWithProc, { .procHwp = &p9_sbe_tp_repr_initf }},
@@ -702,6 +706,21 @@ ReturnCode istepWithProc( sbeIstepHwp_t i_hwp)
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp.procHwp );
     SBE_EXEC_HWP(rc, i_hwp.procHwp,proc)
+    return rc;
+}
+//----------------------------------------------------------------------------
+
+ReturnCode istepHwpTpSwitchGears( sbeIstepHwp_t i_hwp)
+{
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    assert( NULL != i_hwp.procHwp );
+    SBE_EXEC_HWP(rc, i_hwp.procHwp,proc)
+
+    // backup i2c mode register
+    uint32_t reg_address = PU_MODE_REGISTER_B;
+    PPE_LVD( reg_address, SBE_GLOBAL->i2cModeRegister);
+
     return rc;
 }
 

@@ -34,6 +34,8 @@
 #include "sbetrace.H"
 #include "assert.h"
 #include "sbeglobals.H"
+#include "ppe42_scom.h"
+#include "p9_misc_scom_addresses.H"
 
 ////////////////////////////////////////////////////////////////
 // @brief:     SBE control loop ISR:
@@ -150,6 +152,80 @@ int sbeIRQSetup (void)
     #undef SBE_FUNC
 }
 
+// SBE I2C reset sequence
+uint32_t __max_i2c_reset_retrials = 3;
+
+// bit 0
+#define I2CM_RESET_BIT              (0x8000000000000000ull)
+// bit 7
+#define I2C_CMD_COMPLETE_BIT        (0x0100000000000000ull)
+// bit 3
+#define I2C_STOP_BIT                (0x1000000000000000ull)
+// bit 16-21
+#define I2C_MODE_REG_PORT_BITS      (0xFFFF03FFFFFFFFFFull)
+// bit 8
+#define I2C_MODE_FGAT_BIT           (0x8000000000000000ull)
+
+#define POLL_BEFORE_I2C_RESET       (25600)
+#define I2C_CMD_COMPLETE_POLL       (0x00003FFF)
+
+extern "C" void i2c_reset()
+{
+    // empty cycles before i2c reset
+    for (auto i = POLL_BEFORE_I2C_RESET; i > 0; --i) {
+        // Force compiler not to optimize for loop
+         asm("");
+    }
+
+    uint32_t reg_address = 0;
+    uint64_t value = 0ull;
+
+    // reset I2CM register - 0x000A0001
+    reg_address = PU_RESET_REGISTER_B;
+    value = I2CM_RESET_BIT;
+    PPE_STVD( reg_address, value);
+
+    // forcefully reset port busy register - 0x000A000E
+    reg_address = PU_I2C_BUSY_REGISTER_B;
+    value = I2CM_RESET_BIT;
+    PPE_STVD( reg_address, value);
+
+    // clear bit 16-21 of mode register
+    SBE_GLOBAL->i2cModeRegister &= I2C_MODE_REG_PORT_BITS;
+    // set enchanced mode - fgat bit - 28
+    SBE_GLOBAL->i2cModeRegister |= I2C_MODE_FGAT_BIT;
+
+    for( auto port=0; port < 2; port++ )
+    {
+        // write mode register - 0x000A0006
+        reg_address = PU_MODE_REGISTER_B;
+        SBE_GLOBAL->i2cModeRegister |= ((uint64_t)port << 42);
+        PPE_STVD( reg_address, SBE_GLOBAL->i2cModeRegister );
+
+        // write command control register - 0x000A0005
+        reg_address = PU_COMMAND_REGISTER_B;
+        value = I2C_STOP_BIT;
+        PPE_STVD( reg_address, value );
+
+        // poll cmd complete register 0x000A000B
+        uint64_t status = 0;
+        for( auto i=0; i < I2C_CMD_COMPLETE_POLL; i--)
+        {
+            reg_address = PU_IMM_RESET_I2C_B;
+            PPE_LVD( reg_address, status );
+            if( status & I2C_CMD_COMPLETE_BIT )
+            {
+                // cmd complete
+                break;
+            }
+        }
+        if(!( status & I2C_CMD_COMPLETE_BIT ))
+        {
+            pk_halt();
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////
 // SBE handler for the PPE machine check interrupt
 ////////////////////////////////////////////////////////////////
@@ -159,10 +235,31 @@ int sbeIRQSetup (void)
 extern "C" void __sbe_machine_check_handler()
 {
     asm(
-    "# Save r4 to stack, since it is going to be used by\n"
+    "# reclaim function callstack\n"
+    "lwz     %r0,12(%r1)\n"
+    "mtlr    %r0\n"
+    "addi    %r1,%r1,8\n"
+
+    "# Save r0, r1, r2, r3,r4, r5, r6, r7, r8, r9, r10, r13, r28, r29, r30, r31\n"
+    "# lr to stack, since it is going to be used by\n"
     "# this handler\n"
-    "stwu %r1, -8(%r1)\n"
-    "stw  %r4, 0(%r1)\n"
+    "stwu %r1, -68(%r1)\n"
+    "stw  %r0, 0(%r1)\n"
+    "stw  %r2, 4(%r1)\n"
+    "stw  %r3, 8(%r1)\n"
+    "stw  %r4, 12(%r1)\n"
+    "stw  %r5, 16(%r1)\n"
+    "stw  %r6, 20(%r1)\n"
+    "stw  %r7, 24(%r1)\n"
+    "stw  %r8, 28(%r1)\n"
+    "stw  %r9, 32(%r1)\n"
+    "stw  %r10, 36(%r1)\n"
+    "stw  %r13, 40(%r1)\n"
+    "stw  %r28, 44(%r1)\n"
+    "stw  %r29, 48(%r1)\n"
+    "stw  %r30, 52(%r1)\n"
+    "stw  %r31, 56(%r1)\n"
+
     "# Check the MCS bits (29:31) in the ISR to determine the cause for the machine check\n"
     "# For a data machine check, the MCS should be 0x001 to 0x011\n"
     "mfisr %r4\n"
@@ -187,8 +284,33 @@ extern "C" void __sbe_machine_check_handler()
     "mfsrr0 %r4\n"
     "addi %r4, %r4, 4\n"
     "mtsrr0 %r4\n"
-    "lwz %r4, 0(%r1)\n"
-    "addi %r1, %r1, 8\n"
+    "b __exit\n"
+    "__sbe_i2c_reset_sequence:\n"
+    "mflr %r0\n"
+    "stw  %r0, 60(%r1)\n");
+    i2c_reset();
+    asm(
+    "lwz %r0, 60(%r1)\n"
+    "mtlr %r0\n"
+    "stw   %r10, __max_i2c_reset_retrials@sda21(0)\n"
+    "__exit:\n"
+    "lwz %r0, 0(%r1)\n"
+    "lwz %r2, 4(%r1)\n"
+    "lwz %r3, 8(%r1)\n"
+    "lwz %r4, 12(%r1)\n"
+    "lwz %r5, 16(%r1)\n"
+    "lwz %r6, 20(%r1)\n"
+    "lwz %r7, 24(%r1)\n"
+    "lwz %r8, 28(%r1)\n"
+    "lwz %r9, 32(%r1)\n"
+    "lwz %r10, 36(%r1)\n"
+    "lwz %r13, 40(%r1)\n"
+    "lwz %r28, 44(%r1)\n"
+    "lwz %r29, 48(%r1)\n"
+    "lwz %r30, 52(%r1)\n"
+    "lwz %r31, 56(%r1)\n"
+    "addi %r1, %r1, 68\n"
+
     "rfi\n"
     );
 }

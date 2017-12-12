@@ -44,6 +44,7 @@
 #include "fapi2.H" // For target init
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
 #include "sbeglobals.H"
+#include "p9_misc_scom_addresses.H"
 
 // Max defines for Semaphores
 static uint32_t MAX_SEMAPHORE_COUNT = 3;
@@ -244,6 +245,10 @@ uint32_t main(int argc, char **argv)
     #define SBE_FUNC "main "
     SBE_ENTER(SBE_FUNC);
     int l_rc = 0;
+
+    // backup i2c mode register
+    uint32_t reg_address = PU_MODE_REGISTER_B;
+    PPE_LVD( reg_address, SBE_GLOBAL->i2cModeRegister);
 
     // @TODO via RTC : 128818
     //       Explore on reclaiming the stack

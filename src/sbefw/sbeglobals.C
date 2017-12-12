@@ -45,3 +45,5 @@ uint32_t SBEGlobalsSingleton::fwCommitId = SBE_COMMIT_ID;
 
 secureMemRegion_t SBEGlobalsSingleton::mainMemRegions[MAX_MAIN_STORE_REGIONS] = {};
 secureMemRegion_t SBEGlobalsSingleton::occSramRegions[MAX_OCC_SRAM_REGIONS] = {};
+
+uint64_t SBEGlobalsSingleton::i2cModeRegister = 0x004D000000000000ull;

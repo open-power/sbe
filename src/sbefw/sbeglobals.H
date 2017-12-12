@@ -100,6 +100,9 @@ class SBEGlobalsSingleton
         static secureMemRegion_t mainMemRegions[MAX_MAIN_STORE_REGIONS];
         static secureMemRegion_t occSramRegions[MAX_OCC_SRAM_REGIONS];
 
+        // i2c mode register register
+        static uint64_t i2cModeRegister;
+
         ////////////////////////////////////////////////////////////////
         //// @brief PkThread structure for SBE Command Receiver thread
         //////////////////////////////////////////////////////////////////
