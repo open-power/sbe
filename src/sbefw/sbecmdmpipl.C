@@ -103,6 +103,11 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
                 l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                  SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
                 l_ffdc.setRc(l_fapiRc);
+                // reset attribute. We do not want to reset register, so do not
+                // use setMpIplMode
+                uint8_t isMpipl = 0;
+                PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(),
+                                                              isMpipl);
                 break;
             }
             ++l_minor;
@@ -186,6 +191,10 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         }
     }while(0);
 
+    // reset attribute. We do not want to reset register, so do not
+    // use setMpIplMode
+    uint8_t isMpipl = 0;
+    PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
