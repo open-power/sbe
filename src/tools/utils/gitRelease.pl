@@ -1651,6 +1651,13 @@ sub gerrit_query_commit
 
     my $query_result = gerrit_query("$commit project:$project ".
                                     "branch:".$globals{"branch"});
+
+    if ($query_result eq "")
+    {
+        $query_result = gerrit_query("$commit project:$project ".
+                                     "branch:master");
+    }
+
     foreach my $result (@{$query_result})
     {
         if ($result->{id} eq $commit  ||
