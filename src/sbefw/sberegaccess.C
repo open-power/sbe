@@ -319,6 +319,13 @@ uint32_t SbeRegAccess::setMpIplMode(const bool i_set)
     #define SBE_FUNC "SbeRegAccess::setMpIplMode"
     uint32_t rc = 0;
     uint8_t l_set = i_set;
+    rc = getscom_abs(PERV_SCRATCH_REGISTER_3_SCOM, &iv_mbx3);
+    if(rc)
+    {
+        SBE_ERROR(SBE_FUNC"Failed read PERV_SCRATCH_REGISTER_3_SCOM "
+                "RC: 0x%08X", rc);
+    }
+
     iv_mpiplMode = i_set;
     PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), l_set);
     rc = putscom_abs(PERV_SCRATCH_REGISTER_3_SCOM, iv_mbx3);
