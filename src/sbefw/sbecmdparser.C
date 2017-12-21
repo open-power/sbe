@@ -171,7 +171,7 @@ static sbeCmdStruct_t g_sbeRegAccessCmdArray [] =
 {
     {sbeGetReg,
      SBE_CMD_GETREG,
-     HARDWARE_FENCED_STATE | SBE_FENCE_AT_SECURE_MODE,
+     HARDWARE_FENCED_STATE,
     },
 
     {sbePutReg,
