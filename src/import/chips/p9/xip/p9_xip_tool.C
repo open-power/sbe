@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -1320,7 +1320,7 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
     const char* i_sectionName;  //Direct copy of input arg, thus i_
     const char* i_fileName;     //Same
     std::string i_ddLevelStr;   //Same
-    uint8_t ddLevel = P9_XIP_UNDEFINED_DDLEVEL;
+    uint8_t ddLevel = UNDEFINED_DD_LEVEL;
     bool bDdSuppExpected = false;
     int fileFd, sectionId;
     void* newImage;
@@ -1356,7 +1356,7 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
                "  Output file:  %s\n",
                i_sectionName, i_fileName);
 
-        ddLevel = P9_XIP_UNDEFINED_DDLEVEL;
+        ddLevel = UNDEFINED_DD_LEVEL;
         bDdSuppExpected = false;
 
         if (i_argc == 3)
@@ -1402,7 +1402,7 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
 
         if (ddLevel == 0)
         {
-            ddLevel = P9_XIP_UNDEFINED_DDLEVEL;
+            ddLevel = UNDEFINED_DD_LEVEL;
             // Even though this may seem like we should just exit here, we'll leave it up
             // to xip_get_section what to do in this case. Who knows, maybe it'll eventually
             // return a list of supported DD levels.
@@ -1884,9 +1884,9 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     uint32_t    i;
     RingId_t    numRingIds = 0;
     uint32_t    torMagic = 0xffffffff; // Undefined value
-    ChipType_t  chipType = UNDEFINED_CHIP_TYPE; // Undefined value
+    ChipType_t  chipType = UNDEFINED_CHIP_TYPE;
     uint32_t    numDdLevels = 0; // Undefined value
-    uint8_t     iDdLevel, ddLevel = 0xff; // Undefined value
+    uint8_t     iDdLevel, ddLevel = UNDEFINED_DD_LEVEL;
     PpeType_t   ppeType;
     RingId_t    ringId;
     RingVariant_t ringVariant;
