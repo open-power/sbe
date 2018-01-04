@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -422,12 +423,6 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         {
             l_aduFlag.setFastMode(true);
         }
-        // Set DMA_PARTIAL mode by default
-        l_aduFlag.setOperationType(p9_ADU_oper_flag::DMA_PARTIAL);
-        if(i_hdr.isCacheInhibitModeFlagSet())
-        {
-            l_aduFlag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);
-        }
         if(i_hdr.isItagFlagSet())
         {
             l_aduFlag.setItagMode(true);
@@ -453,6 +448,8 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             }
         }
 
+        i_hdr.setADUOperationType(l_aduFlag);
+
         // Input Data length in alignment with ADU
         // 1 for 1/2/4 Bytes else number of multiples of 8 Bytes
         uint64_t l_lenCacheAligned = i_hdr.getDataLenCacheAlign();
@@ -467,16 +464,19 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                                               SBE_MEM_ACCESS_READ :
                                               SBE_MEM_ACCESS_WRITE),
                                     sbeMemAccessInterface::ADU_GRAN_SIZE_BYTES);
-        // Check if the access to the address is allowed
-        l_respHdr.secondaryStatus = mainStoreSecMemRegionManager.isAccessAllowed(
-                                           {l_addr,
-                                            i_hdr.len,
-             (i_isFlagRead ? static_cast<uint8_t>(memRegionMode::READ):
-                             static_cast<uint8_t>(memRegionMode::WRITE))});
-        if(l_respHdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL)
+        if(false == i_hdr.isTrustedOp())
         {
-            l_respHdr.primaryStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
-            break;
+            // Check if the access to the address is allowed
+            l_respHdr.secondaryStatus = mainStoreSecMemRegionManager.isAccessAllowed(
+                                               {l_addr,
+                                                i_hdr.len,
+                 (i_isFlagRead ? static_cast<uint8_t>(memRegionMode::READ):
+                                 static_cast<uint8_t>(memRegionMode::WRITE))});
+            if(l_respHdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL)
+            {
+                l_respHdr.primaryStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
+                break;
+            }
         }
         // 8Byte granule for ADU access
         uint64_t l_dataFifo[MAX_ADU_BUFFER] = {0};

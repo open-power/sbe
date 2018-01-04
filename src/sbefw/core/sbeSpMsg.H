@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -33,6 +34,8 @@
 #define __SBEFW_SBESP_MSG_H
 
 #include "sbe_sp_intf.H"
+
+#include "p9_adu_coherent_utils.H"
 
 // @NOTE Make sure all FIFO structures are 32 bit alligned ( the largest
 // member should be atleast 4 byte). It is required as in sbe fifo
@@ -345,17 +348,6 @@ typedef struct
     }
 
     /**
-      * @brief Determines if Cache Inhibited mode is set
-      *
-      * @return Returns True if Cache Inhibited Mode flag is set
-      *                 False if Cache Inhibited Mode flag is not set
-      */
-    bool isCacheInhibitModeFlagSet() const
-    {
-        return ((flags & SBE_MEM_ACCESS_FLAGS_CACHE_INHIBIT) ? true : false);
-    }
-
-    /**
       * @brief Determines if PBA flag is set
       *
       * @return Returns True if PBA Flag is set
@@ -437,6 +429,63 @@ typedef struct
     uint32_t isPbaHostPassThroughModeSet() const
     {
         return ((flags & SBE_MEM_ACCESS_FLAGS_HOST_PASS_THROUGH) ? true : false);
+    }
+
+    /**
+      * @brief Map SBE mem access flags to ADU operation type flag
+      *
+      */
+    void setADUOperationType(p9_ADU_oper_flag &o_aduFlag) const
+    {
+        if(flags & SBE_MEM_ACCESS_FLAGS_CACHE_INHIBIT)
+        {
+            o_aduFlag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);
+        }
+        else if(flags & SBE_MEM_ACCESS_FLAGS_PB_DIS)
+        {
+            o_aduFlag.setOperationType(p9_ADU_oper_flag::PB_DIS_OPER);
+        }
+        else if(flags & SBE_MEM_ACCESS_FLAGS_SWITCH)
+        {
+            o_aduFlag.setOperationType(p9_ADU_oper_flag::PMISC_OPER);
+        }
+        else if(flags & SBE_MEM_ACCESS_FLAGS_PB_INIT)
+        {
+            o_aduFlag.setOperationType(p9_ADU_oper_flag::PB_INIT_OPER);
+        }
+        else if(flags & SBE_MEM_ACCESS_FLAGS_PRESWITCH_AB)
+        {
+            o_aduFlag.setOperationType(p9_ADU_oper_flag::PRE_SWITCH_AB);
+        }
+        else if(flags & SBE_MEM_ACCESS_FLAGS_PRESWITCH_CD)
+        {
+            o_aduFlag.setOperationType(p9_ADU_oper_flag::PRE_SWITCH_CD);
+        }
+        else if(flags & SBE_MEM_ACCESS_FLAGS_POSTSWITCH)
+        {
+            o_aduFlag.setOperationType(p9_ADU_oper_flag::POST_SWITCH);
+        }
+    }
+
+    /**
+      * @brief check if the given flags are trusted operations,
+      *        which doesn't work with address and data passed
+      *
+      */
+    bool isTrustedOp() const
+    {
+        bool trusted = false;
+        if(flags &
+                (SBE_MEM_ACCESS_FLAGS_PB_DIS |
+                 SBE_MEM_ACCESS_FLAGS_SWITCH |
+                 SBE_MEM_ACCESS_FLAGS_PB_INIT |
+                 SBE_MEM_ACCESS_FLAGS_PRESWITCH_AB |
+                 SBE_MEM_ACCESS_FLAGS_PRESWITCH_CD |
+                 SBE_MEM_ACCESS_FLAGS_POSTSWITCH))
+        {
+            trusted = true;
+        }
+        return trusted;
     }
 
 }sbeMemAccessReqMsgHdr_t;

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -292,17 +293,23 @@ enum
  */
 enum sbeMemoryAccessFlags
 {
-    SBE_MEM_ACCESS_FLAGS_TARGET_PROC        = 0x0001, //required in ADU
-    SBE_MEM_ACCESS_FLAGS_TARGET_PBA         = 0x0002, //required in PBA
-    SBE_MEM_ACCESS_FLAGS_AUTO_INCR_ON       = 0x0004,
-    SBE_MEM_ACCESS_FLAGS_ECC_REQUIRED       = 0x0008, //required only in ADU-GET
-    SBE_MEM_ACCESS_FLAGS_ECC_OVERRIDE       = 0x0008, //required only in ADU-PUT
-    SBE_MEM_ACCESS_FLAGS_ITAG               = 0x0010, //ITAG Mode in ADU
-    SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON       = 0x0020,
-    SBE_MEM_ACCESS_FLAGS_LCO_ENABLED        = 0x0040, //required only in PBA-PUT
-    SBE_MEM_ACCESS_FLAGS_CACHE_INHIBIT      = 0x0080, //required in I/O oper ADU
-    SBE_MEM_ACCESS_FLAGS_HOST_PASS_THROUGH  = 0x0100, // Host pass through mode (PBA)
-    SBE_MEM_ACCESS_FLAGS_INJECT_ON          = 0x0200, // Inject mode ( PBA put )
+    SBE_MEM_ACCESS_FLAGS_TARGET_PROC        = 0x00000001, //required in ADU
+    SBE_MEM_ACCESS_FLAGS_TARGET_PBA         = 0x00000002, //required in PBA
+    SBE_MEM_ACCESS_FLAGS_AUTO_INCR_ON       = 0x00000004,
+    SBE_MEM_ACCESS_FLAGS_ECC_REQUIRED       = 0x00000008, //required only in ADU-GET
+    SBE_MEM_ACCESS_FLAGS_ECC_OVERRIDE       = 0x00000008, //required only in ADU-PUT
+    SBE_MEM_ACCESS_FLAGS_ITAG               = 0x00000010, //ITAG Mode in ADU
+    SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON       = 0x00000020,
+    SBE_MEM_ACCESS_FLAGS_LCO_ENABLED        = 0x00000040, //required only in PBA-PUT
+    SBE_MEM_ACCESS_FLAGS_CACHE_INHIBIT      = 0x00000080, //required in I/O oper ADU
+    SBE_MEM_ACCESS_FLAGS_HOST_PASS_THROUGH  = 0x00000100, // Host pass through mode (PBA)
+    SBE_MEM_ACCESS_FLAGS_INJECT_ON          = 0x00000200, // Inject mode ( PBA put )
+    SBE_MEM_ACCESS_FLAGS_PB_DIS             = 0x00000400,
+    SBE_MEM_ACCESS_FLAGS_SWITCH             = 0x00000800,
+    SBE_MEM_ACCESS_FLAGS_PB_INIT            = 0x00001000,
+    SBE_MEM_ACCESS_FLAGS_PRESWITCH_CD       = 0x00002000,
+    SBE_MEM_ACCESS_FLAGS_PRESWITCH_AB       = 0x00004000,
+    SBE_MEM_ACCESS_FLAGS_POSTSWITCH         = 0x00008000,
 };
 
 /**
