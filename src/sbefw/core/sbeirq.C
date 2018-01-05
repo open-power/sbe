@@ -172,6 +172,13 @@ uint32_t __max_i2c_reset_retrials = 3;
 
 extern "C" void i2c_reset()
 {
+    // check if we exhausted the number of retrials
+    if(!__max_i2c_reset_retrials)
+    {
+        asm("b __halt_sbe\n");
+    }
+    __max_i2c_reset_retrials--;
+
     // empty cycles before i2c reset
     for (auto i = POLL_BEFORE_I2C_RESET; i > 0; --i) {
         // Force compiler not to optimize for loop
@@ -353,7 +360,7 @@ extern "C" void __sbe_machine_check_handler()
     "# For a data machine check, the MCS should be 0x001 to 0x011\n"
     "mfisr %r4\n"
     "andi. %r4, %r4, 0x0007\n"
-    "bwz %r4, __halt_sbe\n"
+    "bwz %r4, __instruction_machine_check\n"
     "cmpwibgt %r4, 0x0003, __halt_sbe\n"
     "# The EDR contains the address that caused the machine check\n"
     "mfedr %r4\n"
@@ -375,6 +382,15 @@ extern "C" void __sbe_machine_check_handler()
     "addi %r4, %r4, 4\n"
     "mtsrr0 %r4\n"
     "b __exit\n"
+    "__instruction_machine_check:\n"
+    "# The EDR contains the address that caused the machine check\n"
+    "mfedr %r4\n"
+    "srawi %r4, %r4, 16\n"
+    "# If the address is not SEEPROM address, go for halt\n");
+    asm(
+    "andi. %r4, %r4, 0xFF80\n"
+    "cmplwi %r4, 0xFF80\n"
+    "bne __halt_sbe\n"
     "__sbe_i2c_reset_sequence:\n"
     "mflr %r0\n"
     "stw  %r0, 60(%r1)\n");
@@ -382,7 +398,6 @@ extern "C" void __sbe_machine_check_handler()
     asm(
     "lwz %r0, 60(%r1)\n"
     "mtlr %r0\n"
-    "stw   %r10, __max_i2c_reset_retrials@sda21(0)\n"
     "__exit:\n"
     "lwz %r0, 0(%r1)\n"
     "lwz %r2, 4(%r1)\n"
