@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -58,8 +58,10 @@ __vectors:
         ### will be forwarded to the program exception handler.
 __machine_check:
 
-        PPE_CAPTURE_INTERRUPT_FFDC
-
+        ### PPE_CAPTURE_INTERRUPT_FFDC is called within machine_check_handler
+        ### There is a branch issue if the PPE_CAPTURE_INTERRUPT_FFDC is called
+        ### from outside, so an work around, FFDC is captured within machine
+        ### check handler.
         PPE42_MACHINE_CHECK_HANDLER
 
         ############################################################
@@ -105,7 +107,6 @@ __instruction_storage:
         PPE_CAPTURE_INTERRUPT_FFDC
 
         PPE42_INSTRUCTION_STORAGE_HANDLER
-
 
         ############################################################
         # 0x00A0 : External Interrupt
