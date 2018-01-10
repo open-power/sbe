@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -47,6 +48,14 @@ fapi2::ReturnCode sbeExecuteIstep (uint8_t i_major, uint8_t i_minor);
  *      In case an error is encountered, the execution is aborted.
  */
 void sbeDoContinuousIpl();
+
+/*
+ * @brief Check for the system checkstop based on
+ *        P9N2_PERV_ATTN_INTERRUPT_REG bit 3
+ *
+ * @return if the system is checkstop or not
+ */
+bool isSystemCheckstop();
 
 using voidfuncptr_t = void (*)(void);
 using iStep_t = fapi2::ReturnCode (*)( voidfuncptr_t );

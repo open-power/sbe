@@ -167,15 +167,25 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
         }
 
         fapiRc = sbeExecuteIstep( req.major, req.minor );
-        if( fapiRc != FAPI2_RC_SUCCESS )
+        bool checkstop = isSystemCheckstop();
+        if(( fapiRc != FAPI2_RC_SUCCESS ) || (checkstop))
         {
             SBE_ERROR(SBE_FUNC" sbeExecuteIstep() Failed. major:0x%08x"
                                       " minor:0x%08x",
                                      (uint32_t)req.major,
                                      (uint32_t)req.minor);
-            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-            ffdc.setRc(fapiRc);
+            if(checkstop)
+            {
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                   SBE_SEC_SYSTEM_CHECKSTOP );
+            }
+            else
+            {
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                   SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
+                ffdc.setRc(fapiRc);
+            }
+
             break;
         }
 

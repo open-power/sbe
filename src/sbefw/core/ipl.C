@@ -28,6 +28,9 @@
 #include "sbeFFDC.H"
 
 #include "ipl.H"
+#include "sbeglobals.H"
+
+#include "p9n2_perv_scom_addresses.H"
 
 using namespace fapi2;
 
@@ -40,12 +43,26 @@ uint64_t G_ring_save[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 // SBE FFDC.
 fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
 
+bool isSystemCheckstop()
+{
+    bool checkstop = false;
+    fapi2::buffer<uint64_t> attnReg = 0;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    plat_target_handle_t hndl;
+    fapiRc = getscom_abs_wrap(&hndl,
+                              P9N2_PERV_ATTN_INTERRUPT_REG,
+                              attnReg.pointer());
+    if( fapiRc == FAPI2_RC_SUCCESS )
+    {
+        checkstop = attnReg.getBit<2>();
+    }
+    return checkstop;
+}
+
 //----------------------------------------------------------------------------
 // @note This is the responsibilty of caller to verify major/minor
 //       number before calling this function
 
-// @TODO via RTC 129077.
-// This function should check for system checkstop as well.
 ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
 {
     #define SBE_FUNC "sbeExecuteIstep "
@@ -78,7 +95,7 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
     else
     {
         (void)SbeRegAccess::theSbeRegAccess().updateSbeStep(i_major, i_minor);
-    } 
+    }
 
     return rc;
     #undef SBE_FUNC
@@ -106,14 +123,18 @@ void sbeDoContinuousIpl()
                 {
                     rc = istepMap->istepWrapper(istepMap->istepHwp);
                 }
-                if(rc != FAPI2_RC_SUCCESS)
+                bool checkstop = isSystemCheckstop();
+                if((rc != FAPI2_RC_SUCCESS) || checkstop )
                 {
                     SBE_ERROR(SBE_FUNC"Failed istep execution in plck mode: "
                             "Major: %d, Minor: %d",
                             istepTableEntry->istepMajorNum, step);
 
+                    uint32_t secRc = checkstop ? SBE_SEC_SYSTEM_CHECKSTOP:
+                                        SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+
                     captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                                     secRc);
                     // exit outer loop as well
                     entry = istepTable.len;
                     break;

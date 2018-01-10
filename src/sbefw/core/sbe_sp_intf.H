@@ -220,6 +220,7 @@ enum sbeSecondaryResponse
     SBE_SEC_INVALID_PARAMS                    = 0x19,
     SBE_SEC_BLACKLISTED_CHIPOP_ACCESS         = 0x20,
     SBE_SEC_DMT_TIMEOUT                       = 0x21,
+    SBE_SEC_SYSTEM_CHECKSTOP                  = 0x22,
 };
 
 /**

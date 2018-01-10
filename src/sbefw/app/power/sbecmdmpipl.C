@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -74,6 +75,11 @@ static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
 static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 8;
 static const uint32_t SBE_ISTEP_MPIPL_CONTINUE      = 97;
 static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 7;
+static const uint32_t SBE_ISTEP4                    = 4;
+static const uint32_t SBE_ISTEP5                    = 5;
+static const uint32_t ISTEP_MINOR_START             = 1;
+static const uint32_t ISTEP4_MAX_SUBSTEPS           = 34;
+static const uint32_t ISTEP5_MAX_SUBSTEPS           = 2;
 
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeEnterMpipl Sbe enter MPIPL function
@@ -163,9 +169,9 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         // Run isteps
         const uint8_t isteps[][3] = {
             // Major Num,              Minor Start,       Minor End
-            {SBE_ISTEP_MPIPL_CONTINUE, 1, MPIPL_CONTINUE_MAX_SUBSTEPS},
-            {4,               1, 34},
-            {5,               1, 2}};
+            {SBE_ISTEP_MPIPL_CONTINUE, ISTEP_MINOR_START, MPIPL_CONTINUE_MAX_SUBSTEPS},
+            {SBE_ISTEP4,               ISTEP_MINOR_START, ISTEP4_MAX_SUBSTEPS},
+            {SBE_ISTEP5,               ISTEP_MINOR_START, ISTEP5_MAX_SUBSTEPS}};
         // Loop through isteps
         for( auto istep : isteps)
         {
