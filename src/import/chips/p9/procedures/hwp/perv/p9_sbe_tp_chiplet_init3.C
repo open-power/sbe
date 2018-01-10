@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -376,14 +376,19 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     {
         if (cumulus_only_ec_attr)  //Cumulus only
         {
+            bool l_useosc0 = (l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
+                              || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
+                              || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC0);
+            bool l_useosc1 = (l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
+                              || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
+                              || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC1 );
+
             FAPI_DBG("Cumulus - check for OSC ok");
             //Getting SNS1LTH register value
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM,
                                     l_read)); //l_read = PIB.SNS1LTH
 
-            if (l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
-                || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
-                || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC0)
+            if (l_useosc0)
             {
                 FAPI_ASSERT(l_read.getBit<21>() == 0 && l_read.getBit<28>() == 1,
                             fapi2::MF_OSC_NOT_TOGGLE()
@@ -393,9 +398,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
 
             }
 
-            if (l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
-                || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
-                || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC1 )
+            if (l_useosc1)
             {
                 FAPI_ASSERT(l_read.getBit<23>() == 0 && l_read.getBit<29>() == 1,
                             fapi2::MF_OSC_NOT_TOGGLE()
@@ -409,7 +412,8 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OSCERR_HOLD,
                                     l_read)); //l_read = PERV.OSCERR_HOLD
 
-            FAPI_ASSERT(l_read.getBit<4>() == 0 && l_read.getBit<5>() == 0,
+            FAPI_ASSERT((l_read.getBit<4>() == 0 || !l_useosc0)
+                        && (l_read.getBit<5>() == 0 || !l_useosc1),
                         fapi2::MF_OSC_ERR()
                         .set_MASTER_CHIP(i_target_chip)
                         .set_READ_OSCERR_HOLD(l_read),
