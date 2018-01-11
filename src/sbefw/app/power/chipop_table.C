@@ -145,6 +145,7 @@ CMD_ARR(
     }
 )
 
+#ifdef DD2
 //////////////////////////////////////////////////////////////
 // @brief g_sbeInstructionCntlCmdArray
 //
@@ -156,6 +157,7 @@ CMD_ARR(
      HARDWARE_FENCED_STATE,
     }
 )
+#endif
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbeRegAccessCmdArray
@@ -284,6 +286,7 @@ CMD_ARR(
     }
 )
 
+#ifdef DD2
 //////////////////////////////////////////////////////////////
 // @brief g_sbePsuGenericCmdArray
 //
@@ -315,6 +318,7 @@ CMD_ARR(
      SBE_NO_FENCE,
     }
 )
+#endif
 
 // Mandatory macro inclusion
 CMD_CLASS_DEFAULT_INTIALISATION
