@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -219,6 +220,16 @@ class SbeRegAccess
             return iv_majorStep;
         }
 
+        /**
+         * @brief Get the SBE minor istep number
+         *
+         * @return SBE current minor istep number
+         *
+         */
+        uint8_t getSbeMinorIstepNumber() const
+        {
+            return iv_minorStep;
+        }
         /**
          * @brief Update the SBE State as per the transition event
          *

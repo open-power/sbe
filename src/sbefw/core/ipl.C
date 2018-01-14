@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -66,14 +67,16 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
         }
     }
 
-    (void)SbeRegAccess::theSbeRegAccess().updateSbeStep(i_major, i_minor);
-
     if(rc != FAPI2_RC_SUCCESS)
     {
         SBE_ERROR( SBE_FUNC" FAPI RC:0x%08X", rc);
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                                     SBE_DUMP_FAILURE_EVENT);
     }
+    else
+    {
+        (void)SbeRegAccess::theSbeRegAccess().updateSbeStep(i_major, i_minor);
+    } 
 
     return rc;
     #undef SBE_FUNC

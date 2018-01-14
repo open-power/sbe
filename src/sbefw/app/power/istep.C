@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -44,19 +45,18 @@ using namespace fapi2;
 //----------------------------------------------------------------------------
 bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 {
-    bool valid = true;
+    #define SBE_FUNC "validateIstep "
+    bool valid = false;
     do
     {
         if( 0 == i_minor )
         {
-            valid = false;
             break;
         }
         // istep 2.1 loads image to PIBMEM
         // So SBE control loop can not execute istep 2.1.
         if(( i_major == 2 ) && ( i_minor == 1) )
         {
-            valid = false;
             break;
         }
 
@@ -65,26 +65,66 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
             if(( i_major == 3 && i_minor > SLAVE_LAST_MINOR_ISTEP ) ||
                ( i_major > 3 ))
             {
-                valid = false;
                 break;
             }
         }
 
+        uint32_t prevMajorNumber =
+                    SbeRegAccess::theSbeRegAccess().getSbeMajorIstepNumber();
+        uint32_t prevMinorNumber =
+                    SbeRegAccess::theSbeRegAccess().getSbeMinorIstepNumber();
+        SBE_INFO(SBE_FUNC"prevMajorNumber:%u prevMinorNumber:%u ",
+                         prevMajorNumber, prevMinorNumber );
+        if( 0 == prevMajorNumber )
+        {
+            prevMajorNumber = 2;
+            prevMinorNumber = 1;
+        }
+
+        uint32_t nextMajorIstep = prevMajorNumber;
+        uint32_t nextMinorIstep = prevMinorNumber + 1;
+
         for(size_t entry = 0; entry < istepTable.len; entry++)
         {
             auto istepTableEntry = &istepTable.istepMajorArr[entry];
+            if( istepTableEntry->istepMajorNum == prevMajorNumber)
+            {
+                if( prevMinorNumber == istepTableEntry->len )
+                {
+                    nextMajorIstep = prevMajorNumber + 1;
+                    nextMinorIstep =  1;
+                }
+            }
             if( i_major == istepTableEntry->istepMajorNum )
             {
                 if( i_minor > istepTableEntry->len )
                 {
-                    valid = false;
+                    break;
                 }
+                // If secuirty is not enabled, no further chacks asre required
+                if( !SBE_GLOBAL->sbeFWSecurityEnabled)
+                {
+                    valid = true;
+                    break;
+                }
+
+                if( ( i_major != nextMajorIstep) ||
+                    ( i_minor != nextMinorIstep) )
+                {
+                    SBE_ERROR("Secuity validation failed for executing istep "
+                           "Skipping istep or MPIPL via istep not allowed "
+                           "in secure mode. nextMajorIstep:%u "
+                           "nextMinorIstep:%u", nextMajorIstep, nextMinorIstep);
+                    break;
+                }
+                valid = true;
                 break;
             }
         }
     } while(0);
 
     return valid;
+    #undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------
