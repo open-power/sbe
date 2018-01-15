@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -57,6 +58,8 @@ static const uint32_t MAX_INDSCOM_TIMEOUT_NS = 100000; //0.1 ns
 
 static const uint64_t DIRECT_SCOM_ADDR_MASK = 0x8000000000000000;
 static const uint64_t INDIRECT_SCOM_NEW_ADDR_MASK = 0x9000000000000000;
+static const uint64_t SCOM_SBE_ADDR_MASK = 0x80000000;
+static const uint64_t SCOM_MASTER_ID_MASK = 0x00F00000;
 
 // Scom types
 enum sbeScomType
@@ -80,6 +83,17 @@ void checkIndirectAndDoScom( const bool i_isRead,
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     do
     {
+        // Do address validation
+        // SBE throws data storage exception if Master ID field is not 0. Also
+        // we halt sbe for SBE address space errors. So check these registers
+        // at top level so that we do not halt SBE in these cases.
+        if(( i_addr & SCOM_SBE_ADDR_MASK) || ( i_addr & SCOM_MASTER_ID_MASK ))
+        {
+            SBE_ERROR(SBE_FUNC "Invalid scom");
+            o_hdr->primaryStatus = SBE_PRI_USER_ERROR ;
+            o_hdr->secondaryStatus = SBE_SEC_INVALID_ADDRESS_PASSED ;
+            break;
+        }
         // If the indirect scom bit is 0, then doing a regular scom
         if( (i_addr & DIRECT_SCOM_ADDR_MASK) == 0)
         {
