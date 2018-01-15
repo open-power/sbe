@@ -6,7 +6,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +35,7 @@ This data are the values or strings that needs to be validated for the test.
 '''
 '''
 #------------------------------------------------------------------------------------------------------------------------------
-# SBE side test data - 200 ms timer
+# SBE side test data - 512000us timer
 #------------------------------------------------------------------------------------------------------------------------------
 '''
 sbe_test_startTimer = (
@@ -42,7 +43,7 @@ sbe_test_startTimer = (
     #   OP      Reg                               ValueToWrite         size    Test Expected Data       Description
     #-----------------------------------------------------------------------------------------------------
     ["write", reg.REG_MBOX0, "0000010100F0D401", 	 8, 	"None", 		"Writing to MBOX0 address"],
-    ["write", reg.REG_MBOX1, "0000000000000200", 	 8, 	"None", 			"Writing to MBOX1 address"],
+    ["write", reg.REG_MBOX1, "000000000007D000", 	 8, 	"None", 			"Writing to MBOX1 address"],
     ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
     )
 '''
@@ -129,7 +130,7 @@ def main():
         regObj.pollingOn( testPSUUtil.simSbeObj, timer_polling_data, 20 )
     except:
         isTimerFired = False
-    
+
     if isTimerFired:
         print "\n  Problem. Timer not cancelled\n"
         raise Exception('Timer Not cancelled ');

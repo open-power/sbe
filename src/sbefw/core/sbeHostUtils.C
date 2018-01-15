@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -150,28 +151,28 @@ uint32_t sbeWriteSbe2PsuMbxReg (uint32_t        i_addr,
     assert( (SBE_HOST_PSU_MBOX_REG4 <= i_addr) &&
             (SBE_HOST_PSU_MBOX_REG7 >= (i_addr + i_count - 1)) )
 
-    if( SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_RESP_REQUIRED )
+    while (l_count < i_count)
     {
-        while (l_count < i_count)
+        SBE_DEBUG(SBE_FUNC"l_data=[0x%08X%08X]",
+                        SBE::higher32BWord(*(i_pData+l_count)),
+                        SBE::lower32BWord(*(i_pData+l_count)));
+
+        l_rc = putscom_abs ( i_addr, *(i_pData+l_count) );
+        if (l_rc)
         {
-            SBE_DEBUG(SBE_FUNC"l_data=[0x%08X%08X]",
-                            SBE::higher32BWord(*(i_pData+l_count)),
-                            SBE::lower32BWord(*(i_pData+l_count)));
-
-            l_rc = putscom_abs ( i_addr, *(i_pData+l_count) );
-            if (l_rc)
-            {
-                // Error while reading from PSU->SBE mbx register
-                SBE_ERROR(SBE_FUNC"putscom_abs failed,"
-                        "l_rc=[0x%08X], i_addr=[0x%08X]",
-                        l_rc, i_addr);
-                break;
-            }
-
-            ++l_count;
-            ++i_addr;
+            // Error while reading from PSU->SBE mbx register
+            SBE_ERROR(SBE_FUNC"putscom_abs failed,"
+                    "l_rc=[0x%08X], i_addr=[0x%08X]",
+                    l_rc, i_addr);
+            break;
         }
 
+        ++l_count;
+        ++i_addr;
+    }
+
+    if( SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_RESP_REQUIRED )
+    {
         if( (i_setBit0ToIntrHB) && (SBE_SEC_OPERATION_SUCCESSFUL == l_rc) )
         {
             // indicate the Host via Bit SBE_SBE2PSU_DOORBELL_SET_BIT0

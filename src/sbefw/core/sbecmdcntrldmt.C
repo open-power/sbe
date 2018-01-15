@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -139,7 +140,7 @@ uint32_t sbeStartCntlDmt()
             break;
         }
 
-        l_rc = g_sbe_pk_dmt_timer.startTimer( (uint32_t )l_timerVal,
+        l_rc = g_sbe_pk_dmt_timer.startTimer( (uint32_t )l_timerVal*1000,
                                      (PkTimerCallback)&sbeDmtPkExpiryCallback);
         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
         {

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -59,7 +60,7 @@ uint32_t timerService::startTimer(uint32_t i_time, PkTimerCallback i_callBack )
         }
         // Schedule the timer
         l_pkRc = pk_timer_schedule(&fixedTimer,
-                        PK_MILLISECONDS((uint32_t)i_time));
+                        PK_MICROSECONDS((uint32_t)i_time));
         if(l_pkRc)
         {
             SBE_ERROR(SBE_FUNC" Pk Timer Schedule failed, RC=[%d]", l_pkRc);

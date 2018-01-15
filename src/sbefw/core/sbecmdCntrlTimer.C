@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -91,8 +92,17 @@ uint32_t sbeCntrlTimer( uint8_t *i_pArg )
                 break;
             }
 
-            SBE_INFO(SBE_FUNC "Start Timer. Time: [%08X]",
+            SBE_INFO(SBE_FUNC "Start Timer. Time: [%08X]us",
                                         SBE::lower32BWord(time));
+
+            l_rc = g_hostTimerSvc.stopTimer( );
+            if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+            {
+                SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
+                SBE_ERROR(SBE_FUNC" g_hostTimerSvc.stopTimer failed");
+                l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+                break;
+            }
 
             l_rc = g_hostTimerSvc.startTimer( (uint32_t )time,
                                      (PkTimerCallback)&sbeTimerExpiryCallback);
