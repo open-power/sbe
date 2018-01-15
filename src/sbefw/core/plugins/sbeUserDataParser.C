@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -56,24 +57,20 @@ SBE_PARSER_PRINT_DELIMITER }
 
 std::string findSbeFile(const char *name)
 {
+    std::string tmp = getenv("PATH");
 #ifdef CONTEXT_x86_nfp
-    //TODO via RTC:157433
-    std::string tmp = getenv("bb");
-    tmp += "obj/x86.nfp/sbei/sbfw/img/";
-    std::string file = tmp + name;
-
-    struct  stat    l_stat;
-    if(stat(file.c_str(), &l_stat) < 0)
+    char *bb = getenv("bb");
+    if(bb != NULL)
     {
-        //Can't find the file
+        std::string bbstr(bb);
+        tmp += ":" + bbstr + "/src/sbei/sbfw/img" +
+               ":" + bbstr + "/obj/x86.nfp/sbei/sbfw/simics" +
+               ":" + bbstr + "/obj/ppc/hwsv/server/buildhwpfimport/hwpf2/tools/x86_binaries";
     }
-
-    return file;
 #endif
 #ifdef CONTEXT_ppc
-    std::string tmp = getenv("PATH");
     tmp += ":/nfs:/maint";
-
+#endif
     char *path = strdup(tmp.c_str());
     char *dir = NULL;
 
@@ -101,7 +98,6 @@ std::string findSbeFile(const char *name)
     path = NULL;        //sm05c
 
     return file;
-#endif
 }
 
 void sbeParserSysCall(const char *cmd)
@@ -158,7 +154,7 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
         l_buflen -= sizeof(fapiRc);
         l_pBuffer += sizeof(fapiRc);
         l_mem >> fapiRc;
-        i_parser.PrintNumber("FAPI RC ", "0x%08X", fapiRc);
+        i_parser.PrintNumber("FAPI RC ", "0x%08X", ntohl(fapiRc));
 
         if(l_buflen < sizeof(l_pData))
         {
@@ -170,16 +166,18 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
         l_mem >> l_pData;
 
         i_parser.PrintNumber("Primary Status ", "0x%04X",
-                (uint16_t)l_pData.primaryStatus);
+                (uint16_t)ntohs(l_pData.primaryStatus));
         i_parser.PrintNumber("Secondary Status ", "0x%04X",
-                (uint16_t)l_pData.secondaryStatus);
+                (uint16_t)ntohs(l_pData.secondaryStatus));
         i_parser.PrintNumber("FW Commit ID ", "0x%08X",
-                (uint32_t)l_pData.fwCommitID);
-        if(l_pData.ddLevel == SBE_FFDC_DD2)
+                (uint32_t)ntohl(l_pData.fwCommitID));
+        if(ntohl(l_pData.ddLevel) == SBE_FFDC_DD2)
         {
             SBE_SEEPROM_BIN = "sbe_seeprom_DD2.bin";
         }
         //loop through the number of fields configured
+        uint32_t *data = (uint32_t *)&l_pData.dumpFields;
+        *data = ntohl(*data);
         uint32_t l_dumpFields = l_pData.dumpFields.get();
         while(l_dumpFields && !l_rc)
         {
@@ -199,17 +197,20 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
 
                 // TODO via RTC:158462 continue even for attribute dump
                 // Need to extend p9_xip_tool for partial attr dump handling
-                if((l_buflen < l_ffdcUserDataId.fieldLen) &&
-                    (l_ffdcUserDataId.fieldId != SBE_FFDC_TRACE_DUMP))
+                uint16_t fieldLen = ntohs(l_ffdcUserDataId.fieldLen);
+                uint16_t fieldId = ntohs(l_ffdcUserDataId.fieldId);
+
+                if((l_buflen < fieldLen) &&
+                    (fieldId != SBE_FFDC_TRACE_DUMP))
                 {
                     i_parser.PrintHexDump(l_pBuffer, l_buflen);
                     break;
                 }
 
-                l_buflen -= l_ffdcUserDataId.fieldLen;
-                l_pBuffer += l_ffdcUserDataId.fieldLen;
+                l_buflen -= fieldLen;
+                l_pBuffer += fieldLen;
 
-                l_mem.read(l_buffer, l_ffdcUserDataId.fieldLen);
+                l_mem.read(l_buffer, fieldLen);
                 std::ostringstream  l_strFile;
                 //Generate temp dump file name
                 l_strFile << SBE_TEMP_DUMP_FILE;
@@ -224,17 +225,17 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
                     l_errlHndl->commit(HWSV_COMP_ID, ERRL_ACTION_REPORT);
                     delete l_errlHndl;
                     l_errlHndl = NULL;
-                    i_parser.PrintHexDump(l_buffer, l_ffdcUserDataId.fieldLen);
-                    return -1;
+                    i_parser.PrintHexDump(l_buffer, fieldLen);
+                    break;
                 }
                 else
                 {
-                    l_fileObj.write( l_buffer, l_ffdcUserDataId.fieldLen);
+                    l_fileObj.write( l_buffer, fieldLen);
                     l_fileObj.Close();
                 }
 
                 //Specific handling
-                if(l_ffdcUserDataId.fieldId == SBE_FFDC_ATTR_DUMP)
+                if(fieldId == SBE_FFDC_ATTR_DUMP)
                 {
                     SBE_PARSER_PRINT_HEADING(SBE_ATTR_DUMP_HEADLINE)
                     //command
@@ -254,7 +255,7 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
                     //Call out the command
                     sbeParserSysCall( l_strCmd1.str().c_str() );
                 }
-                else if(l_ffdcUserDataId.fieldId == SBE_FFDC_TRACE_DUMP)
+                else if(fieldId == SBE_FFDC_TRACE_DUMP)
                 {
                     SBE_PARSER_PRINT_HEADING(SBE_TRACE_HEADLINE)
                     //command

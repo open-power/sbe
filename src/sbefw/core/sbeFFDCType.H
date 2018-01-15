@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -23,6 +24,8 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef __SBE_FFDC_TYPE_H
 #define __SBE_FFDC_TYPE_H
+
+#include <endian.h>
 
 //Bit mapped identifiers
 #define SBE_FFDC_ATTR_DUMP      0x0001
@@ -43,9 +46,15 @@ enum SBE_FFDC_DD_LEVEL
  */
 typedef struct
 {
+#if __BYTE_ORDER == __BIG_ENDIAN
     uint32_t attrField:1;
     uint32_t traceField:1;
     uint32_t reserved:30;
+#else
+    uint32_t reserved:30;
+    uint32_t traceField:1;
+    uint32_t attrField:1;
+#endif
     /* @breif - set dump fields
      *
      * @param[in] - uint32_t value to be updated
