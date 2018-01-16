@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -33,7 +33,7 @@ err = False
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
 def main():
-    testUtil.runCycles( 10000000 )
+    testUtil.runCycles( 50000000 )
 
     try:
         # Close the HB dump region
