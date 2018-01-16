@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -77,7 +77,7 @@ def main():
         print " \t  -i,--files     = [ Optional ] Firmware Files coma ',' separated input file1,file2"
         print " \t                                Only the pre-define listed files bellow:"
         print " \t                                sbe_sp_intf.H,simics.tar,"
-        print " \t                                sbe_seeprom_DD1.bin/sbe_seeprom_DD2.bin"
+        print " \t                                sbe_seeprom_DD2.bin"
         print " \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)"
         print " \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled"
         print " \t  -h,--help      = Help"
@@ -241,7 +241,7 @@ def main():
 
     # Files to copy for sbe prime
     if ddlevel == "None":
-        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_DD1.bin,sbe_seeprom_DD2.bin"
+        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_DD2.bin"
     else:
         PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_"+ddlevel+".bin"
 

@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -217,7 +217,7 @@ def main():
 
     # Testing CMVC login session.. probe
     def CheckCmvcAccess():
-        cmd='File -view src/sbei/sbfw/img/sbe_seeprom_DD1.bin -family aix -release fips910 >/dev/null 2>&1'
+        cmd='File -view src/sbei/sbfw/img/sbe_seeprom_DD2.bin -family aix -release fips910 >/dev/null 2>&1'
         rc = os.system(cmd)
         if rc:
             return errorcode.ERROR_CMVC_LOGIN

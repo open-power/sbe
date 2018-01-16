@@ -52,11 +52,8 @@
 #
 # OBJDIR             : target directory for all generated files
 
-IMAGE_SUFFIX := DD1
-ifeq ($(ddlevel), DD2)
 IMAGE_SUFFIX := DD2
 GCC-DEFS += -DDD2
-endif
 IMAGE_SEEPROM_NAME := sbe_seeprom_$(IMAGE_SUFFIX)
 IMAGE_SBE_NAME := sbe_pibmem_$(IMAGE_SUFFIX)
 IMAGE_LOADER_NAME := sbe_loader

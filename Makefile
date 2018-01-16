@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -27,19 +27,13 @@ BUILD_DIR = src/build
 
 install: all tar
 
-install_DD1: DD1 tar
-install_DD2: DD2 tar
-
 tar:
 	$(MAKE) -C $(BUILD_DIR) tar
-
-DD1:
-	$(MAKE) -C $(BUILD_DIR) all ddlevel=DD1
 
 DD2:
 	$(MAKE) -C $(BUILD_DIR) all ddlevel=DD2
 
-all: DD1 DD2
+all: DD2
 
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean

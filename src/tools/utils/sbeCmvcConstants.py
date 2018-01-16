@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -66,8 +66,8 @@ SUCCESS_TRACK_STATE     = 53
 SUCCESS_CI_TRIGGER      = 54
 
 # This is a default files list to Check-in
-CMVC_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin,sbe_seeprom_DD1.bin,sbe_seeprom_DD2.bin,releaseNotes.html"
-CMVC_FILE_UNDO_LIST  ="src/sbei/sbfw/sbe_sp_intf.H src/sbei/sbfw/simics.tar src/sbei/sbfw/img/sbe_seeprom.bin src/sbefw/sbe_seeprom_DD1.bin src/sbefw/sbe_seeprom_DD2.bin src/sbei/sbfw/releaseNotes.html"
+CMVC_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom.bin,sbe_seeprom_DD2.bin,releaseNotes.html"
+CMVC_FILE_UNDO_LIST  ="src/sbei/sbfw/sbe_sp_intf.H src/sbei/sbfw/simics.tar src/sbei/sbfw/img/sbe_seeprom.bin src/sbefw/sbe_seeprom_DD2.bin src/sbei/sbfw/releaseNotes.html"
 
 CMVC_DIR_CREATE ="sandbox_"
 
@@ -82,4 +82,4 @@ ERROR_SANDBOX_EXIST = 200 # Sandbox doesnt exist
 ERROR_FILE_INPUT    = 201 # User have entered no file
 ERROR_BUILD_FAILED  = 202 # Compilation failed
 ERROR_HOOKING_FILE  = 203 # Error while building shell hooks
-FILE_LOOKUP_LIST  ="src/sbei/sbfw/sbe_sp_intf.H,src/sbei/sbfw/simics.tar,src/sbei/sbfw/img/sbe_seeprom.bin,src/sbei/sbfw/img/sbe_seeprom_DD1.bin,src/sbei/sbfw/img/sbe_seeprom_DD2.bin,src/sbei/sbfw/releaseNotes.html"
+FILE_LOOKUP_LIST  ="src/sbei/sbfw/sbe_sp_intf.H,src/sbei/sbfw/simics.tar,src/sbei/sbfw/img/sbe_seeprom.bin,src/sbei/sbfw/img/sbe_seeprom_DD2.bin,src/sbei/sbfw/releaseNotes.html"
