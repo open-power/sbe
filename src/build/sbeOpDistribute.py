@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -85,9 +85,6 @@ def main(argv):
         elif opt == '--scratch_dir':
             scratch_dir = str(arg)
             assert os.path.exists(arg), "Did not find the file at,"+str(arg)
-
-    SEEPROM_IMAGE           = 'sbe_seeprom.bin'
-    SEEPROM_HDR_BIN         = 'sbe_seeprom.hdr.bin'
 
     if (mode == "MAKE"):
         # Create binaries folder
