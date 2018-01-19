@@ -905,4 +905,5 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,TP,0x0006C733,0x00,HB,AVSBus O2SCTRL1  Bus 1 Bridge B,p9_setup_evid.C,write_whitelist,
 ,TP,0x0006C737,0x00,HB,AVSBus O2SCMD Bus 1 Bridge B,p9_setup_evid.C,write_whitelist,
 ,TP,0x0006C738,0x00,HB,AVSBus O2SWD  Bus 1 Bridge B,p9_setup_evid.C,write_whitelist,
-
+,CACHE,0x100F0151,0x10-0x16,HBFW,QPPM DPLL Frequency Control Register,p9_setup_evid.C,write_whitelist,
+,CACHE,0x100F01B6,0x10-0x16,HBFW,QPPM VDM Config Register,p9_setup_evid.C,write_whitelist,
