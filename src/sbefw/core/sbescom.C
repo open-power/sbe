@@ -83,6 +83,7 @@ void checkIndirectAndDoScom( const bool i_isRead,
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     do
     {
+        #ifndef __ALLOW_INVALID_SCOMS__
         // Do address validation
         // SBE throws data storage exception if Master ID field is not 0. Also
         // we halt sbe for SBE address space errors. So check these registers
@@ -94,6 +95,7 @@ void checkIndirectAndDoScom( const bool i_isRead,
             o_hdr->secondaryStatus = SBE_SEC_INVALID_ADDRESS_PASSED ;
             break;
         }
+        #endif  // __ALLOW_INVALID_SCOMS__
         // If the indirect scom bit is 0, then doing a regular scom
         if( (i_addr & DIRECT_SCOM_ADDR_MASK) == 0)
         {
