@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -562,7 +563,7 @@ ReturnCode istepWithCoreConditional( voidfuncptr_t i_hwp)
 }
 
 //----------------------------------------------------------------------------
-constexpr uint32_t HB_MEM_WINDOW_SIZE = 32*1024*1024; //32 MB
+constexpr uint32_t HB_MEM_WINDOW_SIZE = 10*1024*1024; //10 MB
 ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
