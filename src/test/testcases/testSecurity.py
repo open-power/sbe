@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -94,7 +94,7 @@ def main():
         testScomUtil.getscom(0x0204001A)
         print "getscom success testcase - passed"
         # getscom failure
-        testScomUtil.getscom(eval(BLACKLISTED_REG_FOR_READ_TEST), [0x00, 0x05, 0x00, 0x0B])
+        testScomUtil.getscom(eval(BLACKLISTED_REG_FOR_READ_TEST), [0x00, 0x05, 0x00, 0x23])
         print "getscom failure testcase - passed"
         # putscom success
         testScomUtil.putscom(eval(WHITELISTED_REG_FOR_WRITE_TEST), testScomUtil.getscom(eval(WHITELISTED_REG_FOR_WRITE_TEST)))
@@ -103,8 +103,9 @@ def main():
         while(True):
             random_addr = struct.unpack('>L', os.urandom(4))[0]
             if random_addr not in [eval(a) for a in whitelist]:
-                testScomUtil.putscom(random_addr, 0, [0x00, 0x05, 0x00, 0x0B])
-                break
+                if not ((random_addr & 0x80000000) or (random_addr & 0x00F00000)):
+                    testScomUtil.putscom(random_addr, 0, [0x00, 0x05, 0x00, 0x23])
+                    break
         print "putscom failure testcase - passed"
         # modify scom success
         dataWritten = testScomUtil.getscom(0x00040006)

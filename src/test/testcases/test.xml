@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2017                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2018                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -33,6 +33,7 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testPSUSetStashPair.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSuspendIO.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testSecurity.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
           <!-- Memory access testcases -->
           <include>../simics/targets/p9_nimbus/sbeTest/testUnsecureMemRegions.xml</include>

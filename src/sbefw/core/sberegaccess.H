@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include "sbestates.H"
 #include "sbeevents.H"
+#include "fapi2.H"
 
 /**
  * @brief Utility singleton that SBEFW can use to read write various scratch
@@ -257,6 +258,19 @@ class SbeRegAccess
          */
         bool isSbeRegressionBit();
 
+        /*
+         * @brief Get disable scom filtering bit
+         *
+         * @return scom filtering disable allowed
+         */
+        bool disableScomFiltering()
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+            uint8_t readData;
+            FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, readData);
+            return (!readData &&
+                    iv_disableScomFiltering);
+        }
     private:
 
         /**
@@ -275,9 +289,10 @@ class SbeRegAccess
                 uint64_t iv_fspAttached : 1;
                 uint64_t iv_collectFFDC : 1;
                 uint64_t iv_sendFFDC : 1;
-                uint64_t iv_mbx3DontCare1 : 6;
+                uint64_t iv_mbx3DontCare1 : 5;
+                uint64_t iv_disableScomFiltering : 1;
                 uint64_t iv_disableInvalidScomAddrCheck : 1;
-                uint64_t iv_mbx3DontCare : 19;
+                uint64_t iv_mbx3DontCare2 : 19;
                 uint64_t iv_mbx3Unused : 32;
             };
             uint64_t iv_mbx3;
