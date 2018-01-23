@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -36,6 +36,16 @@ err = False
 #-------------------------------------------------
 def main( ):
     testUtil.runCycles( 10000000 )
+
+    # PutMemAdu - Secure operations
+    data = os.urandom(4)
+    data = [ord(c) for c in data]
+    testMemProcUtil.putmem(0x00000000, data, 0x00002001)
+    testMemProcUtil.putmem(0x00000000, data, 0x00000801)
+    testMemProcUtil.putmem(0x00000000, data, 0x00008001)
+    testMemProcUtil.putmem(0x00000000, data, 0x00000401)
+    testMemProcUtil.putmem(0x00000000, data, 0x00004001)
+    print ("Success - ADU secure operations")
 
     #PutMemAdu Test
     data = os.urandom(80)
