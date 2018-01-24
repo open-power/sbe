@@ -546,10 +546,6 @@ attribute tank
         <value>0x05</value>
   </entry>
   <entry>
-        <name>ATTR_CHIP_EC_FEATURE_USE_XIVE_HW_RESET</name>
-        <virtual/>
-  </entry>
-  <entry>
         <name>ATTR_CHIP_EC_FEATURE_HW415945</name>
         <virtual/>
   </entry>
