@@ -406,7 +406,7 @@ ringid_get_chiplet(RingId_t i_ringId);
 // as determined by ringId
 void
 ringid_get_chiplet_properties(
-    ChipletType_t      i_chiplet,
+    ChipletType_t      i_chipletType,
     ChipletData_t**    o_cpltData,
     GenRingIdList**    o_ringComm,
     GenRingIdList**    o_ringInst,
