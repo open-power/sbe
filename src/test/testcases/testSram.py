@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -127,20 +127,21 @@ def main( ):
         testcase = "sec put test 3"
         putsram(0xFFFBE000-128, 0x01, data, 0x0005, 0x0014)
         print("Success: "+testcase)
-
+    
+        # comment out -ve tests for security wisnidw as we allow read always
         # secure mem - read on disallowed mem
         # start and end completely outside
-        testcase = "sec get test 1"
-        getsram(0xFFFBE000-256, 0x01, 256, 0x0005, 0x0014)
-        print("Success: "+testcase)
+        #testcase = "sec get test 1"
+        #getsram(0xFFFBE000-256, 0x01, 256, 0x0005, 0x0014)
+        #print("Success: "+testcase)
         # start outside and end inside the window
-        testcase = "sec get test 2"
-        getsram(0xFFFBE000-128, 0x01, 256, 0x0005, 0x0014)
-        print("Success: "+testcase)
+        #testcase = "sec get test 2"
+        #getsram(0xFFFBE000-128, 0x01, 256, 0x0005, 0x0014)
+        #print("Success: "+testcase)
         # start inside and end outside the window
-        testcase = "sec get test 3"
-        getsram(0xFFFBE000-128, 0x01, 256, 0x0005, 0x0014)
-        print("Success: "+testcase)
+        #testcase = "sec get test 3"
+        #getsram(0xFFFBE000-128, 0x01, 256, 0x0005, 0x0014)
+        #print("Success: "+testcase)
 
         # Put Occ Sram test - Circular - Can be enabled once we get
         # valid address range to read the circular data

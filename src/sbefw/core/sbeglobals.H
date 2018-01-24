@@ -36,7 +36,7 @@
 #define SBE_GLOBAL sbeGlobal
 
 constexpr size_t MAX_MAIN_STORE_REGIONS = 8;
-constexpr size_t MAX_OCC_SRAM_REGIONS   = 2;
+constexpr size_t MAX_OCC_SRAM_REGIONS   = 1;
 
 // Extern declartion, Defined in sbeglobal.C
 extern uint8_t sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];

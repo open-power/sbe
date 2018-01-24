@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -135,7 +136,8 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         }
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         // Check if the access to the address is allowed
-        if(l_validAddrForFirstAccess)
+        // For read access no checking is required
+        if( (l_validAddrForFirstAccess) && !( i_isGetFlag ))
         {
             l_respHdr.secondaryStatus = occSramSecRegionManager.isAccessAllowed(
                         {static_cast<uint64_t>(l_req.addr)&(0x00000000FFFFFFFFull),

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017                             */
+/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -41,12 +42,9 @@ typedef struct
     uint32_t mode;
 } secureMemRegion_t;
 
-// OCC SRAM Command buffer
+// OCC SRAM Command buffer ( R/W access )
 constexpr uint64_t OCC_CMD_ADDR = 0xFFFBE000ull;
 constexpr uint32_t OCC_CMD_SIZE = 0xFFFBEFFF - 0xFFFBE000;
-// OCC SRAM Response buffer
-constexpr uint64_t OCC_RESP_ADDR = 0xFFFBF000ull;
-constexpr uint32_t OCC_RESP_SIZE = 0xFFFBFFFF- 0xFFFBF000;
 
 class SBESecureMemRegionManager
 {
@@ -129,9 +127,6 @@ class SBEOccSramSecMemRegionManager : public SBESecureMemRegionManager
             add(OCC_CMD_ADDR,
                 OCC_CMD_SIZE,
                 static_cast<uint8_t>( memRegionMode::WRITE) |
-                static_cast<uint8_t>(memRegionMode::READ));
-            add(OCC_RESP_ADDR,
-                OCC_RESP_SIZE,
                 static_cast<uint8_t>(memRegionMode::READ));
         }
 
