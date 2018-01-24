@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017                             */
+/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -46,3 +47,9 @@ secureMemRegion_t SBEGlobalsSingleton::mainMemRegions[MAX_MAIN_STORE_REGIONS] = 
 secureMemRegion_t SBEGlobalsSingleton::occSramRegions[MAX_OCC_SRAM_REGIONS] = {};
 
 uint64_t SBEGlobalsSingleton::i2cModeRegister = 0x004D000000000000ull;
+
+uint16_t SBEGlobalsSingleton::failedPrimStatus = SBE_PRI_OPERATION_SUCCESSFUL;
+uint16_t SBEGlobalsSingleton::failedSecStatus  = SBE_SEC_OPERATION_SUCCESSFUL;
+uint16_t SBEGlobalsSingleton::failedSeqId      = 0;
+uint8_t  SBEGlobalsSingleton::failedCmdClass   = 0;
+uint8_t  SBEGlobalsSingleton::failedCmd        = 0;

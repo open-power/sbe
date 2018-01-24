@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -154,12 +155,20 @@ typedef struct
   */
 typedef struct
 {
+    private:
     // mbxReg 4
-    uint64_t  primStatus:16;
-    uint64_t  secStatus:16;
-    uint64_t  seqID:16;
-    uint64_t  cmdClass:8;
-    uint64_t  command:8;
+    uint64_t  _primStatus:16;
+    uint64_t  _secStatus:16;
+    uint64_t  _seqID:16;
+    uint64_t  _cmdClass:8;
+    uint64_t  _command:8;
+
+    public:
+    const uint16_t primStatus() const { return _primStatus; }
+    const uint16_t secStatus() const  { return _secStatus; }
+    const uint16_t seqID() const  { return _seqID; }
+    const uint8_t cmdClass() const  { return _cmdClass; }
+    const uint8_t command() const  { return _command; }
 
     /**
       * @brief set the primary and secondary status
@@ -168,11 +177,7 @@ typedef struct
       * @param[in] i_sec   Secondary status
       *
       */
-    void setStatus(const uint16_t i_prim, const uint16_t i_sec)
-    {
-        primStatus = i_prim;
-        secStatus  = i_sec;
-    }
+    void setStatus(const uint16_t i_prim, const uint16_t i_sec);
 
     /**
       * @brief initialize the response fields contained in PSU Mbx3

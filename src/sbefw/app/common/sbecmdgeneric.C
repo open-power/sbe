@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -130,10 +131,8 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
                                             / sizeof(uint32_t);
             // Set failed command information
             // Sequence Id is 0 by default for Fifo interface
-            // @TODO via RTC : 149074
-            // primary and secondary status should be picked
-            // from the globals.
-            l_ffdc.setCmdInfo(0, respHdr.cmdClass, respHdr.command);
+            l_ffdc.setCmdInfo(0, SBE_GLOBAL->failedCmdClass,
+                                 SBE_GLOBAL->failedCmd);
             // Add HWP specific ffdc data length
             l_ffdc.lenInWords += ffdcDataLenInWords;
             len = sizeof(sbeResponseFfdc_t)/sizeof(uint32_t);
@@ -152,13 +151,7 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
 
         }
         //Send the FFDC data over FIFO.
-        // @TODO via RTC : 149074
-        // primary and secondary status should be picked
-        // from the globals.
-        // Check for Primary and Secondary Status from Globals and then send
-        // internal FFDC.
-        rc = sbeFfdcPack.sendOverFIFO(respHdr,
-                                      SBE_FFDC_ALL_DUMP,
+        rc = sbeFfdcPack.sendOverFIFO(SBE_FFDC_ALL_DUMP,
                                       len,
                                       true);
         if (rc)

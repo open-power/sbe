@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -81,7 +82,7 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
                                l_scomData, &l_hdr,
                                &l_ffdc);
 
-        if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+        if (l_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
         {
             SBE_ERROR(SBE_FUNC"getscom failed, "
                 "scomAddr[0x%08X%08X]",
@@ -172,7 +173,7 @@ uint32_t sbePutScom (uint8_t *i_pArg)
         checkIndirectAndDoScom(false, l_addr,
                                l_scomData, &l_hdr, &l_ffdc);
 
-        if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+        if (l_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
         {
             SBE_ERROR(SBE_FUNC"putscom failure data, "
                           "scomAddr[0x%08X%08X], "
@@ -269,7 +270,7 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                 checkIndirectAndDoScom(true, l_addr,
                                       l_scomData, &l_hdr, &l_ffdc);
 
-                if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+                if (l_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
                 {
                     SBE_ERROR(SBE_FUNC"getscom failed,"
                         " ScomAddress[0x%08X %08X]",
@@ -294,7 +295,7 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
                 checkIndirectAndDoScom(false, l_addr,
                                       l_modifyingData, &l_hdr, &l_ffdc);
 
-                if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+                if (l_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
                 {
                     SBE_ERROR(SBE_FUNC"putscom failed,"
                         " ScomAddress[0x%08X%08X]",
@@ -382,7 +383,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
             checkIndirectAndDoScom(true, l_addr,
                                    l_scomData, &l_hdr, &l_ffdc);
 
-            if (l_hdr.secondaryStatus == SBE_SEC_OPERATION_SUCCESSFUL) // scom success
+            if (l_hdr.secondaryStatus() == SBE_SEC_OPERATION_SUCCESSFUL) // scom success
             {
                 l_putScomUmaskMsg.getScomData(l_scomData);
 
@@ -391,7 +392,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
                                        l_scomData, &l_hdr, &l_ffdc);
             }
 
-            if (l_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
+            if (l_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
             {
                 SBE_ERROR(SBE_FUNC"scom failed, "
                     "ScomAddress[0x%08X%08X]",

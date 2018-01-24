@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -191,14 +192,15 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         {
             l_addr = i_hdr.getAddr();
             // Check if the access to the address is allowed
-            l_respHdr.secondaryStatus = mainStoreSecMemRegionManager.isAccessAllowed(
+            uint16_t sbeRc = mainStoreSecMemRegionManager.isAccessAllowed(
                                                {l_addr,
                                                 i_hdr.len,
                  (i_isFlagRead ? static_cast<uint8_t>(memRegionMode::READ):
                                  static_cast<uint8_t>(memRegionMode::WRITE))});
-            if(l_respHdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL)
+            if(sbeRc != SBE_SEC_OPERATION_SUCCESSFUL)
             {
-                l_respHdr.primaryStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
+                l_respHdr.setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED,
+                                    sbeRc);
                 break;
             }
         }
@@ -274,7 +276,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         while (l_granulesCompleted < l_lenCacheAligned)
         {
             // Breaking out here if invalid size
-            if(l_respHdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL)
+            if(l_respHdr.primaryStatus() != SBE_PRI_OPERATION_SUCCESSFUL)
             {
                 break;
             }
@@ -331,7 +333,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // need to Flush out upstream FIFO, until EOT arrives
         if (!i_isFlagRead)
         {
-            l_rc = flushUpstreamFifo(l_respHdr.primaryStatus);
+            l_rc = flushUpstreamFifo(l_respHdr.primaryStatus());
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
 
@@ -466,14 +468,15 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         if(false == i_hdr.isTrustedOp())
         {
             // Check if the access to the address is allowed
-            l_respHdr.secondaryStatus = mainStoreSecMemRegionManager.isAccessAllowed(
+            uint16_t sbeRc = mainStoreSecMemRegionManager.isAccessAllowed(
                                                {l_addr,
                                                 i_hdr.len,
                  (i_isFlagRead ? static_cast<uint8_t>(memRegionMode::READ):
                                  static_cast<uint8_t>(memRegionMode::WRITE))});
-            if(l_respHdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL)
+            if(sbeRc != SBE_SEC_OPERATION_SUCCESSFUL)
             {
-                l_respHdr.primaryStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
+                l_respHdr.setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED,
+                                    sbeRc);
                 break;
             }
         }
@@ -635,7 +638,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // need to Flush out upstream FIFO, until EOT arrives
         if (!i_isFlagRead)
         {
-            l_rc = flushUpstreamFifo(l_respHdr.primaryStatus);
+            l_rc = flushUpstreamFifo(l_respHdr.primaryStatus());
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
 
@@ -759,10 +762,10 @@ uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg)
                   SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags);
 
         uint16_t mode = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & 0x00FF;
+        uint16_t sbeRc = SBE_SEC_OPERATION_SUCCESSFUL;
         if(mode == SBE_MEM_REGION_CLOSE)
         {
-            SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus =
-            mainStoreSecMemRegionManager.remove(req.startAddress);
+            sbeRc = mainStoreSecMemRegionManager.remove(req.startAddress);
         }
         else
         {
@@ -776,15 +779,14 @@ uint32_t sbeUpdateMemAccessRegion (uint8_t *i_pArg)
                 memMode = static_cast<uint8_t>(memRegionMode::READ) |
                           static_cast<uint8_t>(memRegionMode::WRITE);
             }
-            SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus =
-            mainStoreSecMemRegionManager.add(req.startAddress,
+            sbeRc = mainStoreSecMemRegionManager.add(req.startAddress,
                                         req.size,
                                         memMode);
         }
-        if(SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus !=
-                                    SBE_SEC_OPERATION_SUCCESSFUL)
+        if(sbeRc != SBE_SEC_OPERATION_SUCCESSFUL)
         {
-            SBE_GLOBAL->sbeSbe2PsuRespHdr.primStatus = SBE_PRI_USER_ERROR;
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_USER_ERROR,
+                                                    sbeRc);
         }
     } while(false);
 

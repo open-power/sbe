@@ -91,8 +91,8 @@ void checkIndirectAndDoScom( const bool i_isRead,
         if(( i_addr & SCOM_SBE_ADDR_MASK) || ( i_addr & SCOM_MASTER_ID_MASK ))
         {
             SBE_ERROR(SBE_FUNC "Invalid scom");
-            o_hdr->primaryStatus = SBE_PRI_USER_ERROR ;
-            o_hdr->secondaryStatus = SBE_SEC_INVALID_ADDRESS_PASSED ;
+            o_hdr->setStatus(SBE_PRI_USER_ERROR,
+                             SBE_SEC_INVALID_ADDRESS_PASSED);
             break;
         }
         #endif  // __ALLOW_INVALID_SCOMS__
@@ -104,8 +104,7 @@ void checkIndirectAndDoScom( const bool i_isRead,
             CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
                         static_cast<uint32_t>(i_addr),
                         (i_isRead ? SBE_SECURITY::READ : SBE_SECURITY::WRITE),
-                        o_hdr->primaryStatus,
-                        o_hdr->secondaryStatus)
+                        o_hdr)
             if( i_isRead )
             {
                 fapiRc = getscom_abs_wrap (&l_hndl, (uint32_t)i_addr,
@@ -127,8 +126,8 @@ void checkIndirectAndDoScom( const bool i_isRead,
             {
                 // Not allowed write on new format.
                 SBE_ERROR(SBE_FUNC "Read not allowed in new form");
-                o_hdr->primaryStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-                o_hdr->secondaryStatus = SBE_SEC_INVALID_ADDRESS_PASSED;
+                o_hdr->setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                 SBE_SEC_INVALID_ADDRESS_PASSED);
                 break;
             }
             // Zero out the indirect address location.. leave the 52bits of data
@@ -159,8 +158,7 @@ void checkIndirectAndDoScom( const bool i_isRead,
         CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
                         static_cast<uint32_t>(tempAddr),
                         (i_isRead ? SBE_SECURITY::READ : SBE_SECURITY::WRITE),
-                        o_hdr->primaryStatus,
-                        o_hdr->secondaryStatus)
+                        o_hdr)
 
         // If we are doing a read. We need to do a write first..
         if( i_isRead)
@@ -218,8 +216,8 @@ void checkIndirectAndDoScom( const bool i_isRead,
         if( ! scomout.done)
         {
             SBE_ERROR(SBE_FUNC "Indirect scom timeout.");
-            o_hdr->primaryStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-            o_hdr->secondaryStatus = SBE_SEC_HW_OP_TIMEOUT;
+            o_hdr->setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                             SBE_SEC_HW_OP_TIMEOUT);
             break;
         }
 
@@ -227,11 +225,11 @@ void checkIndirectAndDoScom( const bool i_isRead,
 
     if  (fapiRc != FAPI2_RC_SUCCESS)
     {
-        o_hdr->primaryStatus = SBE_PRI_GENERIC_EXECUTION_FAILURE;
-        o_hdr->secondaryStatus = SBE_SEC_PCB_PIB_ERR;
+        o_hdr->setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                         SBE_SEC_PCB_PIB_ERR);
         if(o_ffdc) o_ffdc->setRc(fapiRc);
     }
 
-    SBE_DEBUG(SBE_FUNC "fapiRc:%u o_hdr->secondaryStatus:0x%08X", fapiRc, o_hdr->secondaryStatus);
+    SBE_DEBUG(SBE_FUNC "fapiRc:%u o_hdr->secondaryStatus:0x%08X", fapiRc, o_hdr->secondaryStatus());
 }
 

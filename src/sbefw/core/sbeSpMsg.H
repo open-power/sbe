@@ -66,12 +66,18 @@ typedef struct
   */
 typedef struct
 {
-    uint32_t magicCode:16;
-    uint32_t cmdClass:8;
-    uint32_t command:8;
-    uint32_t primaryStatus:16;
-    uint32_t secondaryStatus:16;
+    private:
+    uint32_t _magicCode:16;
+    uint32_t _cmdClass:8;
+    uint32_t _command:8;
+    uint32_t _primaryStatus:16;
+    uint32_t _secondaryStatus:16;
 
+    public:
+    const uint8_t  cmdClass() const        { return _cmdClass; }
+    const uint8_t  command() const         { return _command; }
+    const uint16_t primaryStatus() const   { return _primaryStatus; }
+    const uint16_t secondaryStatus() const { return _secondaryStatus; }
     /**
       * @brief set the primary and secondary status
       *
@@ -80,11 +86,7 @@ typedef struct
       *
       * @return
       */
-    void setStatus( const uint16_t i_prim, const uint16_t i_sec)
-    {
-        primaryStatus = i_prim;
-        secondaryStatus = i_sec;
-    }
+    void setStatus( const uint16_t i_prim, const uint16_t i_sec);
 
     /**
       * @brief set initial values for response header
@@ -545,15 +547,12 @@ typedef struct
     /**
      * @brief set the primary and secondary status
      *
-     * @param[in] i_prim  Primary status
-     * @param[in] i_sec   Secondary status
+     * @param[in] i_prim      Primary status
+     * @param[in] i_sec       Secondary status
      *
      **/
-    void setStatus(const uint16_t i_prim, const uint16_t i_sec)
-    {
-        prim_status = i_prim;
-        sec_status  = i_sec;
-    }
+    void setStatus(const uint16_t i_prim,
+                   const uint16_t i_sec);
 } sbeCmdRespHdr_t;
 
 /**

@@ -103,6 +103,13 @@ class SBEGlobalsSingleton
         // i2c mode register register
         static uint64_t i2cModeRegister;
 
+        // Last failed rc's - for SBE internal ffdc
+        static uint16_t failedPrimStatus;
+        static uint16_t failedSecStatus;
+        static uint16_t failedSeqId;
+        static uint8_t  failedCmdClass;
+        static uint8_t  failedCmd;
+
         ////////////////////////////////////////////////////////////////
         //// @brief PkThread structure for SBE Command Receiver thread
         //////////////////////////////////////////////////////////////////

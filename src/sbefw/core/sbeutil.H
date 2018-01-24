@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -45,11 +46,11 @@ if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
     break; \
 }
 
-#define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, prim, sec) \
+#define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, resp) \
 if (!SBE_SECURITY::isAllowed(addr, op)) \
 { \
-    prim = SBE_PRI_UNSECURE_ACCESS_DENIED; \
-    sec = SBE_SEC_BLACKLISTED_REG_ACCESS; \
+    resp->setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED, \
+                    SBE_SEC_BLACKLISTED_REG_ACCESS); \
     /* TODO via RTC 180983:Enable this once the BL/WL registers are settled */ \
     /*break;*/ \
 }

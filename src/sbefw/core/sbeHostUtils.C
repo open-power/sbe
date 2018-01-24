@@ -228,9 +228,9 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
                                      sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES,
                                      l_ex);
 
-        bool l_internal_ffdc_present = ((i_sbe2PsuRespHdr.primStatus !=
+        bool l_internal_ffdc_present = ((i_sbe2PsuRespHdr.primStatus() !=
                                          SBE_PRI_OPERATION_SUCCESSFUL) ||
-                                        (i_sbe2PsuRespHdr.secStatus !=
+                                        (i_sbe2PsuRespHdr.secStatus() !=
                                          SBE_SEC_OPERATION_SUCCESSFUL));
 
         // If no ffdc , exit;
@@ -256,9 +256,9 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
             uint32_t ffdcDataLenInWords = fapi2::g_FfdcData.ffdcLength
                                             / sizeof(uint32_t);
             // Set failed command information
-            l_ffdc.setCmdInfo(i_sbe2PsuRespHdr.seqID,
-                              i_sbe2PsuRespHdr.cmdClass,
-                              i_sbe2PsuRespHdr.command);
+            l_ffdc.setCmdInfo(i_sbe2PsuRespHdr.seqID(),
+                              i_sbe2PsuRespHdr.cmdClass(),
+                              i_sbe2PsuRespHdr.command());
             // Add HWP specific ffdc data length
             l_ffdc.lenInWords += ffdcDataLenInWords;
 
@@ -294,13 +294,12 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
         if(l_internal_ffdc_present)
         {
             SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X",
-                       (uint32_t)i_sbe2PsuRespHdr.primStatus,
-                       (uint32_t)i_sbe2PsuRespHdr.secStatus);
+                       (uint32_t)i_sbe2PsuRespHdr.primStatus(),
+                       (uint32_t)i_sbe2PsuRespHdr.secStatus());
             // SBE internal FFDC package
             SbeFFDCPackage sbeFfdc;
             //Generate all the fields of FFDC package
-            io_rc = sbeFfdc.sendOverHostIntf(i_sbe2PsuRespHdr,
-                                             SBE_FFDC_ALL_DUMP,
+            io_rc = sbeFfdc.sendOverHostIntf(SBE_FFDC_ALL_DUMP,
                                              &l_PBAInterface,
                                              l_allocatedSize);
             if (io_rc)

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017                             */
+/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -27,9 +28,23 @@
 
 void sbeSbe2PsuRespHdr_t::init(void)
 {
-    primStatus   = SBE_PRI_OPERATION_SUCCESSFUL;
-    secStatus    = SBE_SEC_OPERATION_SUCCESSFUL;
-    seqID        = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.seqID;
-    cmdClass     = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.cmdClass;
-    command      = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.command;
+    _primStatus   = SBE_PRI_OPERATION_SUCCESSFUL;
+    _secStatus    = SBE_SEC_OPERATION_SUCCESSFUL;
+    _seqID        = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.seqID;
+    _cmdClass     = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.cmdClass;
+    _command      = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.command;
+}
+void sbeSbe2PsuRespHdr_t::setStatus(const uint16_t i_prim, const uint16_t i_sec)
+{
+    _primStatus = i_prim;
+    _secStatus  = i_sec;
+
+    if(i_prim != SBE_PRI_OPERATION_SUCCESSFUL)
+    {
+        SBE_GLOBAL->failedPrimStatus = _primStatus;
+        SBE_GLOBAL->failedSecStatus  = _secStatus;
+        SBE_GLOBAL->failedSeqId      = _seqID;
+        SBE_GLOBAL->failedCmdClass   = _cmdClass;
+        SBE_GLOBAL->failedCmd        = _command;
+    }
 }

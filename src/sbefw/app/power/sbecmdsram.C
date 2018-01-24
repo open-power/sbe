@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -138,14 +139,15 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         // For read access no checking is required
         if( (l_validAddrForFirstAccess) && !( i_isGetFlag ))
         {
-            l_respHdr.secondaryStatus = occSramSecRegionManager.isAccessAllowed(
+            uint16_t sbeRc = occSramSecRegionManager.isAccessAllowed(
                         {static_cast<uint64_t>(l_req.addr)&(0x00000000FFFFFFFFull),
                         l_req.len,
                         (i_isGetFlag? static_cast<uint8_t>(memRegionMode::READ):
                         static_cast<uint8_t>(memRegionMode::WRITE))});
-            if(l_respHdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL)
+            if(sbeRc != SBE_SEC_OPERATION_SUCCESSFUL)
             {
-                l_respHdr.primaryStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
+                l_respHdr.setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED,
+                                    sbeRc);
                 break;
             }
         }
@@ -251,7 +253,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         {
             // If there was a HWP failure for put sram occ request,
             // need to Flush out upstream FIFO, until EOT arrives
-            if ( l_respHdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL)
+            if ( l_respHdr.primaryStatus() != SBE_PRI_OPERATION_SUCCESSFUL)
             {
                 l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL,
                                          true, true);

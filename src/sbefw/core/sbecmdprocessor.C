@@ -302,7 +302,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
                                         SBE_INTERFACE_PSU) )
             {
-                l_rc         = SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus;
+                l_rc         = SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus();
                 l_cmdClass   = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.cmdClass;
                 l_cmdOpCode  = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.command;
                 // Set this here, so that during response handling we know which

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -346,7 +347,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
                                             / sizeof(uint32_t);
             // Set failed command information
             // Sequence Id is 0 by default for Fifo interface
-            i_ffdc->setCmdInfo(0, i_hdr.cmdClass, i_hdr.command);
+            i_ffdc->setCmdInfo(0, i_hdr.cmdClass(), i_hdr.command());
             // Add HWP specific ffdc data length
             i_ffdc->lenInWords += ffdcDataLenInWords;
             len = sizeof(sbeResponseFfdc_t)/sizeof(uint32_t);
@@ -368,18 +369,17 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         }
 
         // If there is a SBE internal failure
-        if((i_hdr.primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL) ||\
-           (i_hdr.secondaryStatus != SBE_SEC_OPERATION_SUCCESSFUL))
+        if((i_hdr.primaryStatus() != SBE_PRI_OPERATION_SUCCESSFUL) ||\
+           (i_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL))
         {
             SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X",
-                       (uint32_t)i_hdr.primaryStatus,
-                       (uint32_t)i_hdr.secondaryStatus);
+                       (uint32_t)i_hdr.primaryStatus(),
+                       (uint32_t)i_hdr.secondaryStatus());
 
             //Add FFDC data as well.
             //Generate all the fields of FFDC package
             SbeFFDCPackage sbeFfdc;
-            rc = sbeFfdc.sendOverFIFO(i_hdr,
-                                      SBE_FFDC_ALL_DUMP,
+            rc = sbeFfdc.sendOverFIFO(SBE_FFDC_ALL_DUMP,
                                       len);
             if (rc)
             {

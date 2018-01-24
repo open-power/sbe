@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -30,6 +31,7 @@
 #include "sbeFFDCType.H"
 #include "sbeSpMsg.H"
 #include "sbeHostUtils.H"
+#include "sbe_build_info.H"
 #include "sbeMemAccessInterface.H"
 
 //PIBMEM attribute dump
@@ -90,6 +92,8 @@ public:
 
         iv_sbeFFDCDataHeader.primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
         iv_sbeFFDCDataHeader.secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
+        iv_sbeFFDCDataHeader.fwCommitID = SBE_COMMIT_ID;
+        iv_sbeFFDCDataHeader.ddLevel = SBE_FFDC_DD2;
 
         //length and dumpFields will be filled up depending on the fields
         //to be sent in send APIs
@@ -108,7 +112,6 @@ public:
      * @brief sendOverFIFO           - method to pack and send SBE internal FFDC
      *                                 only if isSendInternalFFDCSet() is true
      *                                 over FIFO interface
-     * @param[in] i_hdr              - Fifo response header
      * @param[in] i_fieldsConfig     - bitmap indicating the field
      *                                 to be sent in FFDC
      * @param[out] o_bytesSent       - number of bytes sent
@@ -118,8 +121,7 @@ public:
      *
      * @return                       - SBE secondary RC
      */
-    uint32_t sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
-                          const uint32_t i_fieldsConfig,
+    uint32_t sendOverFIFO(const uint32_t i_fieldsConfig,
                           uint32_t &o_bytesSent,
                           const bool i_skipffdcBitCheck = false);
 
@@ -127,7 +129,6 @@ public:
      *                                 only if isSendInternalFFDCSet() is true
      *                                 over HOST interface
      *
-     * @param[in] i_hdr              - Host response header
      * @param[in] i_fieldsConfig     - bitmap indicating the field
      *                                 to be sent in FFDC
      * @param[in] i_pMemInterface    - pointer to memory interface object
@@ -138,8 +139,7 @@ public:
      *
      * @return                       - SBE secondary RC
      */
-    uint32_t sendOverHostIntf(const sbeSbe2PsuRespHdr_t &i_hdr,
-                              const uint32_t i_fieldsConfig,
+    uint32_t sendOverHostIntf(const uint32_t i_fieldsConfig,
                               sbeMemAccessInterface *i_pMemInterface,
                               uint32_t i_allocatedSize,
                               const bool i_skipffdcBitCheck = false);

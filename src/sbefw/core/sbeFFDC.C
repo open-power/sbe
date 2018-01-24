@@ -28,12 +28,18 @@
 #include "sbeFifoMsgUtils.H"
 #include "sberegaccess.H"
 #include "sbeFFDC.H"
-#include "sbe_build_info.H"
 #include "sbeglobals.H"
 #include "sbecmdcntrldmt.H"
 
 void SbeFFDCPackage::updateUserDataHeader(uint32_t i_fieldsConfig)
 {
+    // Set failed command information
+    iv_sbeFFDCDataHeader.primaryStatus = SBE_GLOBAL->failedPrimStatus;
+    iv_sbeFFDCDataHeader.secondaryStatus = SBE_GLOBAL->failedSecStatus;
+    iv_sbeFFDCHeader.setCmdInfo(SBE_GLOBAL->failedSeqId,
+                                SBE_GLOBAL->failedCmdClass,
+                                SBE_GLOBAL->failedCmd);
+
     //Update the user data header with dump fields configuration
     iv_sbeFFDCDataHeader.dumpFields.set(i_fieldsConfig);
     iv_sbeFFDCHeader.lenInWords = (sizeof(sbeResponseFfdc_t) +
@@ -75,8 +81,7 @@ uint32_t SbeFFDCPackage::collectAsyncHwpFfdc (void)
     #undef SBE_FUNC
 }
 
-uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
-                                      const uint32_t i_fieldsConfig,
+uint32_t SbeFFDCPackage::sendOverFIFO(const uint32_t i_fieldsConfig,
                                       uint32_t &o_bytesSent,
                                       const bool i_skipffdcBitCheck)
 {
@@ -101,14 +106,6 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
             break;
         }
 
-        // update the primary and secondary status
-        iv_sbeFFDCDataHeader.primaryStatus = i_hdr.primaryStatus;
-        iv_sbeFFDCDataHeader.secondaryStatus = i_hdr.secondaryStatus;
-        iv_sbeFFDCDataHeader.fwCommitID = SBE_COMMIT_ID;
-        iv_sbeFFDCDataHeader.ddLevel = SBE_FFDC_DD2;
-        // Set failed command information
-        // Sequence Id is 0 by default for Fifo interface
-        iv_sbeFFDCHeader.setCmdInfo(0, i_hdr.cmdClass, i_hdr.command);
         //Update the user data header with dump fields configuration
         updateUserDataHeader(i_fieldsConfig);
 
@@ -167,8 +164,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const sbeRespGenHdr_t &i_hdr,
     #undef SBE_FUNC
 }
 
-uint32_t SbeFFDCPackage::sendOverHostIntf(const sbeSbe2PsuRespHdr_t &i_hdr,
-                                          const uint32_t i_fieldsConfig,
+uint32_t SbeFFDCPackage::sendOverHostIntf(const uint32_t i_fieldsConfig,
                                           sbeMemAccessInterface *i_pMemInterface,
                                           uint32_t i_allocatedSize,
                                           const bool i_skipffdcBitCheck)
@@ -193,12 +189,6 @@ uint32_t SbeFFDCPackage::sendOverHostIntf(const sbeSbe2PsuRespHdr_t &i_hdr,
             break;
         }
 
-        // update the primary and secondary status
-        iv_sbeFFDCDataHeader.primaryStatus = i_hdr.primStatus;
-        iv_sbeFFDCDataHeader.secondaryStatus = i_hdr.secStatus;
-        iv_sbeFFDCDataHeader.fwCommitID = SBE_COMMIT_ID;
-        // Set failed command information
-        iv_sbeFFDCHeader.setCmdInfo(i_hdr.seqID, i_hdr.cmdClass, i_hdr.command);
         //Update the user data header with dump fields configuration
         updateUserDataHeader(i_fieldsConfig);
 

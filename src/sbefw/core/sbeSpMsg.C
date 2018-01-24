@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017                             */
+/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -28,9 +29,39 @@
 
 void sbeRespGenHdr_t::init(void)
 {
-    magicCode = 0xC0DE;
-    cmdClass  = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
-    command = SBE_GLOBAL->sbeFifoCmdHdr.command;
-    primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
-    secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
+    _magicCode = 0xC0DE;
+    _cmdClass  = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
+    _command = SBE_GLOBAL->sbeFifoCmdHdr.command;
+    _primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
+    _secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
+}
+
+void sbeCmdRespHdr_t::setStatus(const uint16_t i_prim,
+                                const uint16_t i_sec)
+{
+    prim_status = i_prim;
+    sec_status  = i_sec;
+    if(i_prim != SBE_PRI_OPERATION_SUCCESSFUL)
+    {
+        SBE_GLOBAL->failedPrimStatus = i_prim;
+        SBE_GLOBAL->failedSecStatus  = i_sec;
+        SBE_GLOBAL->failedSeqId      = 0;
+        SBE_GLOBAL->failedCmdClass   = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
+        SBE_GLOBAL->failedCmd        = SBE_GLOBAL->sbeFifoCmdHdr.command;
+    }
+}
+
+void sbeRespGenHdr_t::setStatus( const uint16_t i_prim, const uint16_t i_sec)
+{
+    _primaryStatus = i_prim;
+    _secondaryStatus = i_sec;
+
+    if(i_prim != SBE_PRI_OPERATION_SUCCESSFUL)
+    {
+        SBE_GLOBAL->failedPrimStatus = _primaryStatus;
+        SBE_GLOBAL->failedSecStatus  = _secondaryStatus;
+        SBE_GLOBAL->failedSeqId      = 0;
+        SBE_GLOBAL->failedCmdClass   = _cmdClass;
+        SBE_GLOBAL->failedCmd        = _command;
+    }
 }
