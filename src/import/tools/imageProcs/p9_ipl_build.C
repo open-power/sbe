@@ -126,7 +126,7 @@ int get_dd_level_rings_from_hw_image( char* i_hwImage,
     rc = tor_get_block_of_rings( ringsSection,
                                  i_ddLevel,
                                  PT_SBE,
-                                 NOT_VALID,
+                                 UNDEFINED_RING_VARIANT,
                                  o_ringBlock,
                                  o_blockSize );
 
@@ -152,7 +152,7 @@ int get_dd_level_rings_from_hw_image( char* i_hwImage,
         rc = tor_get_block_of_rings( ringsSection,
                                      i_ddLevel,
                                      PT_SBE,
-                                     NOT_VALID,
+                                     UNDEFINED_RING_VARIANT,
                                      o_ringBlock,
                                      o_blockSize );
 

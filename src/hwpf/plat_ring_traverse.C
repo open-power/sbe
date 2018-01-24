@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,7 +38,6 @@ const uint32_t RISK_LEVEL_MODE = 1;
 #define CACHE_CONTAINED_MODE_OFFSET_IN_TOR 1
 #define RISK_LEVEL_MODE_OFFSET_IN_TOR      2
 #define OVERRIDE_VARIANT_SIZE 1
-
 
 ///
 /// @brief This is a plat pecific (SBE Plat) function that locates the
@@ -73,15 +72,9 @@ fapi2::ReturnCode findRS4InImageAndApply(
             break;
         }
 
-        uint8_t l_torHdrSz;
         TorHeader_t* torHeader = (TorHeader_t*)(g_seepromAddr +
                                                 l_section->iv_offset);
-
-        if (torHeader->magic == TOR_MAGIC_SBE)
-        {
-            l_torHdrSz = sizeof(TorHeader_t);
-        }
-        else
+        if (torHeader->magic != TOR_MAGIC_SBE)
         {
             SBE_ERROR("ERROR: TOR magic header (=0x%08x) != TOR_MAGIC_SBE (=0x%08x)",
                       torHeader->magic, TOR_MAGIC_SBE);
@@ -90,12 +83,11 @@ fapi2::ReturnCode findRS4InImageAndApply(
         }
 
         SectionTOR* l_sectionTOR = (SectionTOR*)(g_seepromAddr +
-                                                 l_section->iv_offset +
-                                                 l_torHdrSz);
+                                                 l_section->iv_offset);
 
         l_rc = getRS4ImageFromTor(i_target, i_ringID, l_sectionTOR,
                                   l_applyOverride,
-                                  l_section->iv_offset + l_torHdrSz,
+                                  l_section->iv_offset,
                                   i_ringMode);
 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
@@ -105,7 +97,6 @@ fapi2::ReturnCode findRS4InImageAndApply(
 
         //Apply scanring from .ring section
         l_applyOverride = true;
-        l_section = NULL;
         l_section =
             &(l_hdr->iv_section[P9_XIP_SECTION_SBE_OVERRIDES]);
 
@@ -115,15 +106,13 @@ fapi2::ReturnCode findRS4InImageAndApply(
             break;
         }
 
-        l_sectionTOR = NULL;
         l_sectionTOR = (SectionTOR*)(g_seepromAddr +
-                                     l_section->iv_offset +
-                                     l_torHdrSz);
+                                     l_section->iv_offset);
 
 
         l_rc = getRS4ImageFromTor(i_target, i_ringID, l_sectionTOR,
                                   l_applyOverride,
-                                  l_section->iv_offset + l_torHdrSz,
+                                  l_section->iv_offset,
                                   i_ringMode);
     }
     while(0);
@@ -140,10 +129,15 @@ fapi2::ReturnCode getRS4ImageFromTor(
     const fapi2::RingMode i_ringMode)
 {
 
+    uint8_t l_torHdrSz = sizeof(TorHeader_t);
+    uint8_t l_torVersion = ((TorHeader_t*)i_sectionTOR)->version;
+    SectionTOR* l_sectionTOR = (SectionTOR*)((uint8_t*)i_sectionTOR + l_torHdrSz);
+    uint8_t l_numVarAdjust = 0;
+     
     // Determine the Offset ID and Ring Type for the given Ring ID.
     uint32_t l_torOffset = 0;
     RingType_t l_ringType = COMMON_RING;
-    ChipletType_t l_chipLetType = INVALID_CHIPLET_TYPE;
+    ChipletType_t l_chipLetType = UNDEFINED_CHIPLET_TYPE;
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
 
     do
@@ -177,154 +171,132 @@ fapi2::ReturnCode getRS4ImageFromTor(
         {
             case PERV_TYPE: // PERV
                 l_chipletData = PERV::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_PERV_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_PERV_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_PERV_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_PERV_INSTANCE_RING;
                 }
 
                 break;
 
             case N0_TYPE: // Nest - N0
                 l_chipletData = N0::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_N0_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_N0_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_N0_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_N0_INSTANCE_RING;
                 }
 
                 break;
 
             case N1_TYPE: // Nest - N1
                 l_chipletData = N1::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_N1_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_N1_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_N1_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_N1_INSTANCE_RING;
                 }
 
                 break;
 
             case N2_TYPE: // Nest - N2
                 l_chipletData = N2::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_N2_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_N2_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_N2_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_N2_INSTANCE_RING;
                 }
 
                 break;
 
             case N3_TYPE: // Nest - N3
                 l_chipletData = N3::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_N3_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_N3_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_N3_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_N3_INSTANCE_RING;
                 }
 
                 break;
 
             case XB_TYPE: // XB - XBus2
                 l_chipletData = XB::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_XB_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_XB_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_XB_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_XB_INSTANCE_RING;
                 }
 
                 break;
 
             case MC_TYPE: // MC - MC23
                 l_chipletData = MC::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_MC_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_MC_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_MC_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_MC_INSTANCE_RING;
                 }
 
                 break;
 
             case OB0_TYPE: // OB0
                 l_chipletData = OB0::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_OB0_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_OB0_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_OB0_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_OB0_INSTANCE_RING;
                 }
 
                 break;
 
             case OB1_TYPE: // OB1
                 l_chipletData = OB1::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_OB1_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_OB1_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_OB1_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_OB1_INSTANCE_RING;
                 }
 
                 break;
 
             case OB2_TYPE: // OB2
                 l_chipletData = OB2::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_OB2_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_OB2_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_OB2_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_OB2_INSTANCE_RING;
                 }
 
                 break;
 
             case OB3_TYPE: // OB3
                 l_chipletData = OB3::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_OB3_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_OB3_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_OB3_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_OB3_INSTANCE_RING;
                 }
 
                 break;
@@ -332,75 +304,72 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             case PCI0_TYPE: // PCI - PCI0
                 l_chipletData = PCI0::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_PCI0_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_PCI0_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_PCI0_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_PCI0_INSTANCE_RING;
                 }
 
                 break;
 
             case PCI1_TYPE: // PCI - PCI1
                 l_chipletData = PCI1::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_PCI1_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_PCI1_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_PCI1_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_PCI1_INSTANCE_RING;
                 }
 
                 break;
 
             case PCI2_TYPE: // PCI - PCI2
                 l_chipletData = PCI2::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
 
-                l_sectionOffset = i_sectionTOR->TOC_PCI2_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_PCI2_COMMON_RING;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_PCI2_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_PCI2_INSTANCE_RING;
                 }
 
                 break;
 
             case EQ_TYPE: // EQ - Quad 0 - Quad 5
                 l_chipletData = EQ::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
+                if (l_torVersion < 6)
+                {
+                    l_numVarAdjust = 1;
+                }
 
-
-                l_sectionOffset = i_sectionTOR->TOC_EQ_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_EQ_COMMON_RING;
                 l_CC_offset = 1;
                 l_RL_offset = 2;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_EQ_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_EQ_INSTANCE_RING;
                 }
 
                 break;
 
             case EC_TYPE: // EC - Core 0 - 23
                 l_chipletData = EC::g_chipletData;
-                l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                                      l_chipletData.iv_num_ring_variants;
+                if (l_torVersion < 6)
+                {
+                    l_numVarAdjust = 1;
+                }
 
-                l_sectionOffset = i_sectionTOR->TOC_EC_COMMON_RING;
+                l_sectionOffset = l_sectionTOR->TOC_EC_COMMON_RING;
                 l_CC_offset = 1;
                 l_RL_offset = 2;
 
                 if(INSTANCE_RING == l_ringType)
                 {
-                    l_sectionOffset = i_sectionTOR->TOC_EC_INSTANCE_RING;
+                    l_sectionOffset = l_sectionTOR->TOC_EC_INSTANCE_RING;
                 }
 
                 break;
@@ -416,11 +385,14 @@ fapi2::ReturnCode getRS4ImageFromTor(
         {
             break;
         }
+                
+        l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
+                              (l_chipletData.iv_num_ring_variants - l_numVarAdjust);
 
         FAPI_INF("l_sectionOffset %08x", l_sectionOffset);
         // Determine the section TOR address for the ring
         uint32_t* l_sectionAddr = reinterpret_cast<uint32_t*>(g_seepromAddr +
-                                  i_sectionOffset + l_sectionOffset);
+                                  i_sectionOffset + l_torHdrSz + l_sectionOffset);
 
         SBE_TRACE ("l_sectionAddr %08X", (uint32_t)l_sectionAddr);
 
