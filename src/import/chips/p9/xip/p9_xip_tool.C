@@ -40,8 +40,6 @@
 #include <unistd.h>
 #include <string>
 
-#undef P9_XIP_TOOL_VERBOSE
-
 #include "p9_xip_image.h"
 #include "common_ringId.H"
 #ifndef __PPE__ // Needed on ppe side to avoid having to include various APIs
@@ -2066,17 +2064,17 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
             //--------------------
             // Ring variant loop.
             // - Base, cache, risk or just "base" if no ring variant
-            for (ringVariant = 0; ringVariant < OVERRIDE; ringVariant++)
+            for (ringVariant = 0; ringVariant < NUM_RING_VARIANTS; ringVariant++)
             {
-                if ((torMagic == TOR_MAGIC_OVRD && ringVariant != BASE) ||
-                    (torMagic == TOR_MAGIC_OVLY && ringVariant != BASE) ||
-                    (torMagic == TOR_MAGIC_CEN  && ringVariant == CC))
+                if ((torMagic == TOR_MAGIC_OVRD && ringVariant != RV_BASE) ||
+                    (torMagic == TOR_MAGIC_OVLY && ringVariant != RV_BASE) ||
+                    (torMagic == TOR_MAGIC_CEN  && ringVariant == RV_CC))
                 {
                     continue;
                 }
 
                 //----------------------
-                // Unique ring ID loop.
+                // Ring ID loop.
                 for (ringId = 0; ringId < numRingIds; ringId++)
                 {
 
@@ -2087,21 +2085,12 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                     //   with the input value of instanceId, instanceInputId.
                     // - Start looping safely from 0 so that if instanceId is adjusted
                     //   in tor_access_ring, i.e. in case it's an instance ring, it will
-                    //   return a non-zeor value for instanceId.
+                    //   return a non-zero value for instanceId.
                     uint8_t instanceInputId;
 
                     for (instanceId = 0; instanceId <= INSTANCE_ID_MAX; instanceId++)
                     {
                         instanceInputId = instanceId;
-#ifdef P9_XIP_TOOL_VERBOSE
-                        fprintf( stderr, "Processing:  "
-                                 "DD=0x%02x  "
-                                 "PPE=%s "
-                                 "Variant=%s "
-                                 "RingID=%d  "
-                                 "InstanceID=0x%02x\n",
-                                 ddLevel, ppeTypeName[ppeType], ringVariantName[ringVariant], ringId, instanceId);
-#endif
 
                         ringBlockSize = MAX_RING_BUF_SIZE_TOOL;
                         rc = tor_access_ring( i_ringSection,
@@ -2904,7 +2893,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
             rc = tor_get_block_of_rings( ringsSection,
                                          i_ddLevel,
                                          PT_SBE,
-                                         NOT_VALID,
+                                         UNDEFINED_RING_VARIANT,
                                          l_blockPtr,
                                          l_blockSize);
 
