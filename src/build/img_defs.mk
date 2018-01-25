@@ -75,6 +75,11 @@ ifndef BUILD_DIR
 export BUILD_DIR = $(SBE_SRC_DIR)/build
 endif
 
+# Required for pk/std/makefile
+ifndef IMAGE_SRCDIR
+export IMAGE_SRCDIR = $(BUILD_DIR)
+endif
+
 ifndef BUILDDATA_SRCDIR
 export BUILDDATA_SRCDIR = $(BUILD_DIR)/utils
 endif
