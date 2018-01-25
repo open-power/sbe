@@ -114,7 +114,7 @@ def step_2(branch, cmvc_feature):
 # after ci pass
 def step_3(branch, track):
     # integrate track
-    cmd = 'Track -integrate -feature '+track+' -release '+RELEASE[branch]
+    cmd = 'Track -integrate -feature '+track+' -release fips'+RELEASE[branch]
     os.system(cmd)
     print cmd
 
