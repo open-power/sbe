@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -52,6 +52,9 @@ enum P9_SBE_NPLL_SETUP_Private_Constants
 };
 
 static fapi2::ReturnCode p9_sbe_npll_setup_sectorbuffer_pulsemode_settings(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+
+static fapi2::ReturnCode enable_spread_spectrum_via_tod(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 fapi2::ReturnCode p9_sbe_npll_setup(const
@@ -112,8 +115,24 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
         FAPI_ASSERT(l_read_reg.getBit<0>(),
                     fapi2::SS_PLL_LOCK_ERR()
                     .set_MASTER_CHIP(i_target_chip)
-                    .set_SS_PLL_READ(l_read_reg),
-                    "ERROR:SS PLL LOCK NOT SET");
+                    .set_SS_PLL_READ(l_read_reg)
+                    .set_AFTER_SPREAD_ENABLE(false),
+                    "ERROR:SS PLL LOCK NOT SET BEFORE ENABLING SPREAD SPECTRUM");
+
+        FAPI_TRY(enable_spread_spectrum_via_tod(i_target_chip));
+        fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
+
+        FAPI_DBG("check SS PLL lock again after enabling spread spectrum");
+        //Getting PLL_LOCK_REG register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG,
+                                l_read_reg)); //l_read_reg = PERV.PLL_LOCK_REG
+
+        FAPI_ASSERT(l_read_reg.getBit<0>(),
+                    fapi2::SS_PLL_LOCK_ERR()
+                    .set_MASTER_CHIP(i_target_chip)
+                    .set_SS_PLL_READ(l_read_reg)
+                    .set_AFTER_SPREAD_ENABLE(true),
+                    "ERROR:SS PLL LOCK NOT SET AFTER ENABLING SPREAD SPECTRUM");
 
         FAPI_DBG("Release SS PLL Bypass");
         //Setting ROOT_CTRL8 register value
@@ -323,6 +342,48 @@ static fapi2::ReturnCode p9_sbe_npll_setup_sectorbuffer_pulsemode_settings(
     }
 
     FAPI_INF("p9_sbe_npll_setup_sectorbuffer_pulsemode_settings:Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+/// @brief Enable the TOD's spread spectrum enable output
+///
+/// Set the TOD timer to a nonzero value to arm it and briefly start the
+/// TOD so that is passes the set timer value. The TOD will stop in ERROR
+/// state due to missing SYNC pulses but we don't care about that and
+/// clear out the error afterwards. The spread spectrum enable will stay set.
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode enable_spread_spectrum_via_tod(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    fapi2::buffer<uint64_t> l_data;
+
+    FAPI_DBG("Enable Spread Spectrum via TOD");
+
+    // Set up the TOD timer unit to trigger on a TOD value of one
+    l_data.flush<0>().insertFromRight<PERV_TOD_TIMER_REG_VALUE, PERV_TOD_TIMER_REG_VALUE_LEN>(1ULL);
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_TIMER_REG, l_data));
+
+    // Reset the TOD and set it to a value of one to trigger the timer
+    l_data.flush<0>().setBit<PERV_TOD_LOAD_TOD_MOD_REG_FSM_TRIGGER>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_LOAD_TOD_MOD_REG, l_data));
+    l_data.flush<0>()
+    .insertFromRight<PERV_TOD_LOAD_TOD_REG_VALUE, PERV_TOD_LOAD_TOD_REG_VALUE_LEN>(1ULL)
+    .setBit<63>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_LOAD_TOD_REG, l_data));
+
+    // Check that the TOD timer turned its SSCGEN output on
+    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TOD_TIMER_REG, l_data));
+
+    // If the Assertion fails, don't exit; we can keep trucking without Spread Spectrum
+    FAPI_ASSERT_NOEXIT(l_data.getBit<PERV_TOD_TIMER_REG_STATUS>(),
+                       fapi2::SPREAD_SPECTRUM_ENABLE_ERR()
+                       .set_MASTER_CHIP(i_target_chip)
+                       .set_TOD_TIMER_REG(l_data),
+                       "Spread Spectrum enable signal not set");
 
 fapi_try_exit:
     return fapi2::current_err;
