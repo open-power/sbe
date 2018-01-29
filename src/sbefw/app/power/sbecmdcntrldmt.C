@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -39,9 +40,7 @@
 #include "fapi2.H"
 #include "plat_hw_access.H"
 #include "p9_sbe_check_master_stop15.H"
-#ifdef DD2
 #include "p9_collect_deadman_ffdc.H"
-#endif
 #include "p9_perv_scom_addresses.H"
 #include "p9_block_wakeup_intr.H"
 #include "sbeTimerSvc.H"
@@ -104,7 +103,6 @@ uint32_t sbeCollectDeadmanFfdc (void)
            plat_getTargetHandleByChipletNumber <fapi2::TARGET_TYPE_CORE> (
            (SBE_GLOBAL->deadmanCore + CORE_CHIPLET_OFFSET) ));
 
-#ifdef DD2
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     // p9_collect_deadman_ffdc collects the required ffdc into the fapi rc
     // which will be available in the SBE Global HWP FFDC region
@@ -112,7 +110,6 @@ uint32_t sbeCollectDeadmanFfdc (void)
                    p9_collect_deadman_ffdc,
                    coreTarget,
                    SBE_GLOBAL->asyncFfdcRC );
-#endif
 
     return rc;
     #undef SBE_FUNC

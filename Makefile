@@ -23,7 +23,7 @@
 #
 # IBM_PROLOG_END_TAG
 BUILD_DIR = src/build
-.PHONY: install all clean tar install_DD1 install_DD2 DD1 DD2
+.PHONY: install
 
 install: all tar
 
@@ -31,7 +31,7 @@ tar:
 	$(MAKE) -C $(BUILD_DIR) tar
 
 DD2:
-	$(MAKE) -C $(BUILD_DIR) all ddlevel=DD2
+	$(MAKE) -C $(BUILD_DIR) all
 
 all: DD2
 

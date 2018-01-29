@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,12 +61,10 @@ ISTEP4-CPP-SOURCES +=p9_ncu_scom.C
 ISTEP4-CPP-SOURCES +=p9_l2_scom.C
 ISTEP4-CPP-SOURCES +=p9_l3_scom.C
 ISTEP4-CPP-SOURCES +=p9_common_poweronoff.C
-ifeq  ($(ddlevel), DD2)
 ISTEP4-CPP-SOURCES +=p9_eq_clear_atomic_lock.C
 ISTEP4-CPP-SOURCES +=p9_collect_deadman_ffdc.C
 ISTEP4-CPP-SOURCES +=p9_sbe_ppe_ffdc.C
 ISTEP4-CPP-SOURCES +=p9_sbe_ppe_utils.C
-endif
 ISTEP4-CPP-SOURCES +=p9_sbe_check_master_stop15.C
 ISTEP4-C-SOURCES =
 ISTEP4-S-SOURCES =

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -64,14 +64,8 @@
 #define SBE_XIP_TOC_OFFSET 8*8
 
 /// The link address of the P9 SBE Base image
-#define SBE_SEEPROM_BASE_ORIGIN 0x80000000
-#define OTPROM_SEEPROM_HIGHER_NIBBLE 0x8000
-#ifdef DD2
-#undef SBE_SEEPROM_BASE_ORIGIN
 #define SBE_SEEPROM_BASE_ORIGIN 0xFF800000
-#undef OTPROM_SEEPROM_HIGHER_NIBBLE
 #define OTPROM_SEEPROM_HIGHER_NIBBLE 0xFF80
-#endif
 
 ///  This Index depends upon XIP HEADER File
 ///  Each section table entry is 12 bytes(SIZE_OF_SBE_XIP_SECTION) size,
