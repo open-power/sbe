@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -43,7 +43,7 @@
 #include <fapi2.H>
 
 fapi2::ReturnCode p9_common_stopclocks_cplt_ctrl_action_function(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet, fapi2::buffer<uint64_t> i_regions = 0xFFFFFFFFFFFFFFFF);
 
 fapi2::ReturnCode p9_common_stopclocks_raise_fence(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet);

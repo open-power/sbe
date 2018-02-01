@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -59,20 +59,28 @@ enum P9_common_stopclocks_Private_Constants
 /// --Clear abstclk muxsel & Set syncclk_muxsel
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
+/// @param[in]     i_regions          Input clock regions
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode p9_common_stopclocks_cplt_ctrl_action_function(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet, fapi2::buffer<uint64_t> i_regions)
 {
     // Local variable and constant definition
     fapi2::buffer <uint16_t> l_cplt_ctrl_init;
     fapi2::buffer<uint16_t> l_attr_pg;
+    fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64;
+
     FAPI_INF("Entering p9_common_stopclocks_cplt_ctrl_action_function...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, i_target_chiplet, l_attr_pg));
 
     l_attr_pg.invert();
-    l_attr_pg.extractToRight<4, 11>(l_cplt_ctrl_init);
+    FAPI_DBG("Masking with regions bits enabled : %#018lX ", i_regions);
+    i_regions.extractToRight<53, 11>(l_regions);
+    l_regions = (l_attr_pg >> 1) & l_regions;
+    FAPI_DBG("Effective l_regions :  %#06lX", l_regions);
+
+    l_regions.extractToRight<5, 11>(l_cplt_ctrl_init);
 
     FAPI_DBG("Raise partial good fences");
     //Setting CPLT_CTRL1 register value
