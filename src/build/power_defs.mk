@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2017,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +32,52 @@ SBE_TRACE_LEVEL_DEF = 2
 
 FAPI_TRACE_LEVEL_DEF = 2
 
+ISTEP2_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep2
+ISTEP3_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep3
+ISTEP4_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep4
+ISTEP5_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep5
+ISTEPMPIPL_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepmpipl
+ISTEPCOMMON_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepcommon
+ARRAYACCESS_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/arrayaccess
+
+OBJDIR-ISTEP2 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep2
+OBJDIR-ISTEP3 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep3
+OBJDIR-ISTEP4 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep4
+OBJDIR-ISTEP5 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep5
+OBJDIR-ISTEPMPIPL = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepmpipl
+OBJDIR-ISTEPCOMMON = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepcommon
+OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/arrayaccess
+
+PROJ_SUBDIRS += $(ISTEP2_INFRA_DIR)
+PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP2)
+PROJ_LLIBS += -listep2
+
+PROJ_SUBDIRS += $(ISTEP3_INFRA_DIR)
+PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP3)
+PROJ_LLIBS += -listep3
+
+PROJ_SUBDIRS += $(ISTEP4_INFRA_DIR)
+PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP4)
+PROJ_LLIBS += -listep4
+
+PROJ_SUBDIRS += $(ISTEP5_INFRA_DIR)
+PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP5)
+PROJ_LLIBS += -listep5
+
+PROJ_SUBDIRS += $(ISTEPMPIPL_INFRA_DIR)
+PROJ_LIB_DIRS += -L$(OBJDIR-ISTEPMPIPL)
+PROJ_LLIBS += -listepmpipl
+
+PROJ_SUBDIRS += $(ISTEPCOMMON_INFRA_DIR)
+PROJ_LIB_DIRS += -L$(OBJDIR-ISTEPCOMMON)
+PROJ_LLIBS += -listepcommon
+
+PROJ_SUBDIRS += $(ARRAYACCESS_INFRA_DIR)
+PROJ_LIB_DIRS += -L$(OBJDIR-ARRAYACCESS)
+PROJ_LLIBS += -larrayaccess
+#########################################################
+# mandatory defines                                     #
+#########################################################
 IMAGE_SUFFIX := DD2
 GCC-DEFS += -DDD2
 IMAGE_SEEPROM_NAME := sbe_seeprom_$(IMAGE_SUFFIX)
@@ -42,3 +89,7 @@ IMAGE_BASE_PPE_HEADER := base_ppe_header
 
 SBE_SYMBOLS_NAME := sbe_$(IMAGE_SUFFIX).syms
 SBE_STRINGFILE_NAME := sbeStringFile_$(IMAGE_SUFFIX)
+
+PROJECT_APP_DIR := power
+PROJECT_APP_PIBMEM_LIB := sbeapppowerpibmem
+PROJECT_APP_SEEPROM_LIB := sbeapppowerseeprom

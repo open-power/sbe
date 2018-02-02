@@ -60,14 +60,14 @@ LIB_DIRS += -L$(OBJDIR)/sbefw/core_seeprom
 SBECORESEEPROMLIB := $(OBJDIR)/sbefw/core_seeprom/libsbecoreseeprom.a
 LLIBS += -lsbecoreseeprom
 
-SUBDIRS += ../sbefw/app/power
-LIB_DIRS += -L$(OBJDIR)/sbefw/app/power_pibmem
-SBEAPPLIB := $(OBJDIR)/sbefw/app/power_pibmem/libsbeapppowerpibmem.a
-LLIBS += -lsbeapppowerpibmem
+SUBDIRS += ../sbefw/app/$(PROJECT_APP_DIR)
+LIB_DIRS += -L$(OBJDIR)/sbefw/app/$(PROJECT_APP_DIR)_pibmem
+SBEAPPLIB := $(OBJDIR)/sbefw/app/$(PROJECT_APP_DIR)_pibmem/lib$(PROJECT_APP_PIBMEM_LIB).a
+LLIBS += -l$(PROJECT_APP_PIBMEM_LIB)
 
-LIB_DIRS += -L$(OBJDIR)/sbefw/app/power_seeprom
-SBECORESEEPROMLIB := $(OBJDIR)/sbefw/app/power_seeprom/libsbeapppowerseeprom.a
-LLIBS += -lsbeapppowerseeprom
+LIB_DIRS += -L$(OBJDIR)/sbefw/app/$(PROJECT_APP_DIR)_seeprom
+SBECORESEEPROMLIB := $(OBJDIR)/sbefw/app/$(PROJECT_APP_DIR)_seeprom/lib$(PROJECT_APP_SEEPROM_LIB).a
+LLIBS += -l$(PROJECT_APP_SEEPROM_LIB)
 
 SUBDIRS += ../sbefw/app/common
 LIB_DIRS += -L$(OBJDIR)/sbefw/app/common_pibmem
@@ -92,40 +92,9 @@ LIB_DIRS += -L$(OBJDIR)/utils
 UTILSLIB := $(OBJDIR)/utils/libutils.a
 LLIBS += -lutils
 
-SUBDIRS += $(ISTEP2_INFRA_DIR)
-LIB_DIRS += -L$(OBJDIR-ISTEP2)
-ISTEP2LIB := $(OBJDIR-ISTEP2)/libistep2.a
-LLIBS += -listep2
-
-SUBDIRS += $(ISTEP3_INFRA_DIR)
-LIB_DIRS += -L$(OBJDIR-ISTEP3)
-ISTEP3LIB := $(OBJDIR-ISTEP3)/libistep3.a
-LLIBS += -listep3
-
-SUBDIRS += $(ISTEP4_INFRA_DIR)
-LIB_DIRS += -L$(OBJDIR-ISTEP4)
-ISTEP4LIB := $(OBJDIR-ISTEP4)/libistep4.a
-LLIBS += -listep4
-
-SUBDIRS += $(ISTEP5_INFRA_DIR)
-LIB_DIRS += -L$(OBJDIR-ISTEP5)
-ISTEP5LIB := $(OBJDIR-ISTEP5)/libistep5.a
-LLIBS += -listep5
-
-SUBDIRS += $(ISTEPMPIPL_INFRA_DIR)
-LIB_DIRS += -L$(OBJDIR-ISTEPMPIPL)
-ISTEPMPIPL := $(OBJDIR-ISTEPMPIPL)/libistepmpipl.a
-LLIBS += -listepmpipl
-
-SUBDIRS += $(ISTEPCOMMON_INFRA_DIR)
-LIB_DIRS += -L$(OBJDIR-ISTEPCOMMON)
-ISTEPCOMMON := $(OBJDIR-ISTEPCOMMON)/libistepcommon.a
-LLIBS += -listepcommon
-
-SUBDIRS += $(ARRAYACCESS_INFRA_DIR)
-LIB_DIRS += -L$(OBJDIR-ARRAYACCESS)
-ARRAYACCESS := $(OBJDIR-ARRAYACCESS)/larrayaccess.a
-LLIBS += -larrayaccess
+SUBDIRS += $(PROJ_SUBDIRS)
+LIB_DIRS += $(PROJ_LIB_DIRS)
+LLIBS += $(PROJ_LLIBS)
 
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 ifeq ($(img), seeprom)
@@ -296,7 +265,7 @@ _sbecore_seeprom:
 	$(MAKE) -I $(INCLUDES) -C ../sbefw/core -f Makefile img_mem=seeprom
 _sbeapp_seeprom:
 	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/common -f Makefile img_mem=seeprom
-	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/power -f Makefile img_mem=seeprom
+	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/$(PROJECT_APP_DIR) -f Makefile img_mem=seeprom
 
 
 #Build the SBE XIP Tools

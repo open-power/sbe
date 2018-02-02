@@ -51,10 +51,6 @@
 #                       Defaults to IBM CTE tools path.
 #
 # OBJDIR             : target directory for all generated files
-ifeq ($(project),power)
-include power_defs.mk
-endif
-
 ifndef PPE_TYPE
 PPE_TYPE := std
 endif
@@ -91,35 +87,6 @@ endif
 ifndef IMPORT_HWP_MK_DIR
 export IMPORT_HWP_MK_DIR = $(BUILD_DIR)/import_hwp_mk/$(project)
 endif
-
-ifndef ISTEP2_INFRA_DIR
-export ISTEP2_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep2
-endif
-
-ifndef ISTEP3_INFRA_DIR
-export ISTEP3_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep3
-endif
-
-ifndef ISTEP4_INFRA_DIR
-export ISTEP4_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep4
-endif
-
-ifndef ISTEP5_INFRA_DIR
-export ISTEP5_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep5
-endif
-
-ifndef ISTEPMPIPL_INFRA_DIR
-export ISTEPMPIPL_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepmpipl
-endif
-
-ifndef ISTEPCOMMON_INFRA_DIR
-export ISTEPCOMMON_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepcommon
-endif
-
-ifndef ARRAYACCESS_INFRA_DIR
-export ARRAYACCESS_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/arrayaccess
-endif
-
 ifndef BOOT_SRCDIR
 export BOOT_SRCDIR = $(SBE_SRC_DIR)/boot
 endif
@@ -295,34 +262,6 @@ endif
 
 ifndef IMPORT_OBJDIR
 export IMPORT_OBJDIR= import_hwp_mk
-endif
-
-ifndef OBJDIR-ISTEP2
-export OBJDIR-ISTEP2 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep2
-endif
-
-ifndef OBJDIR-ISTEP3
-export OBJDIR-ISTEP3 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep3
-endif
-
-ifndef OBJDIR-ISTEP4
-export OBJDIR-ISTEP4 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep4
-endif
-
-ifndef OBJDIR-ISTEP5
-export OBJDIR-ISTEP5 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep5
-endif
-
-ifndef OBJDIR-ISTEPMPIPL
-export OBJDIR-ISTEPMPIPL = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepmpipl
-endif
-
-ifndef OBJDIR-ISTEPCOMMON
-export OBJDIR-ISTEPCOMMON = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepcommon
-endif
-
-ifndef OBJDIR-ARRAYACCESS
-export OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/arrayaccess
 endif
 
 ifndef SECURITY_SRC_DIR
@@ -539,6 +478,12 @@ ifdef P2P_ENABLE
 #use this to disable optimizations (fused compare/branch etc.)
 PCP-FLAG    =  -b
 endif
+###########################################################################
+# project specific include
+ifeq ($(project),power)
+include power_defs.mk
+endif
+
 ############################################################################
 
 #override the GNU Make implicit rule for going from a .C to a .o
