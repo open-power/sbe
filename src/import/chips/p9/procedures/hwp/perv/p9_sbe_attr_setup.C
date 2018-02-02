@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -86,7 +86,6 @@ enum P9_SETUP_SBE_CONFIG_scratch4
     ATTR_PLL_MUX_LENGTH                = 20,
     ATTR_CC_IPL_BIT                    = 0,
     ATTR_INIT_ALL_CORES_BIT            = 1,
-    ATTR_RISK_LEVEL_BIT                = 2,
     ATTR_DISABLE_HBBL_VECTORS_BIT      = 3,
     ATTR_MC_SYNC_MODE_BIT              = 4,
     ATTR_SLOW_PCI_REF_CLOCK_BIT        = 5,
@@ -325,7 +324,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
         uint8_t l_system_ipl_phase = 0;
         uint8_t l_force_all_cores = 0;
-        uint8_t l_risk_level = 0;
         uint8_t l_disable_hbbl_vectors = 0;
         uint32_t l_pll_mux = 0;
         uint8_t l_mc_sync_mode = 0;
@@ -357,7 +355,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             FAPI_DBG("Reading control flag attributes");
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_system_ipl_phase));
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES, FAPI_SYSTEM, l_force_all_cores));
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_risk_level));
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM, l_disable_hbbl_vectors));
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_SYNC_MODE, i_target_chip, l_mc_sync_mode));
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK, FAPI_SYSTEM, l_slow_pci_ref_clock));
@@ -380,16 +377,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             else
             {
                 l_read_scratch_reg.clearBit<ATTR_INIT_ALL_CORES_BIT>();
-            }
-
-            // set risk level flag
-            if (l_risk_level == fapi2::ENUM_ATTR_RISK_LEVEL_TRUE)
-            {
-                l_read_scratch_reg.setBit<ATTR_RISK_LEVEL_BIT>();
-            }
-            else
-            {
-                l_read_scratch_reg.clearBit<ATTR_RISK_LEVEL_BIT>();
             }
 
             // set disable of HBBL exception vector flag

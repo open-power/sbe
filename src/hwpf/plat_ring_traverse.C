@@ -34,7 +34,7 @@
 // SEEPROM start address
 const uint32_t g_seepromAddr = SBE_SEEPROM_BASE_ORIGIN;
 const uint32_t CACHE_CONTAINED_MODE = 4;
-const uint32_t RISK_LEVEL_MODE = 1;
+const uint32_t RISK_LEVEL_ZERO = 0;
 #define CACHE_CONTAINED_MODE_OFFSET_IN_TOR 1
 #define RISK_LEVEL_MODE_OFFSET_IN_TOR      2
 #define OVERRIDE_VARIANT_SIZE 1
@@ -468,7 +468,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> (),
                               l_riskLevel);
 
-                if((RISK_LEVEL_MODE == l_riskLevel) &&
+                if((RISK_LEVEL_ZERO != l_riskLevel) &&
                    *(l_ringTorAddr + l_RL_offset))
                 {
                     l_ringTorAddr += l_RL_offset;
