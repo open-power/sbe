@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -58,6 +58,9 @@
 #include "pk_port.h"
 #include "pk_kernel.h"
 //#include "pk_io.h"
+
+#define compile_assert(name,e) \
+    enum { compile_assert__##name = 1/(e) };
 
 #ifndef __ASSEMBLER__
 

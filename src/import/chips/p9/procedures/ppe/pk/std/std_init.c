@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,30 +40,22 @@
 void
 __hwmacro_setup(void)
 {
-    //mask all interrupts
-    out64(STD_LCL_EIMR_OR, 0xffffffffffffffffull);
-
-    //Set all interrupts to active low, level sensitive by default
-    out64(STD_LCL_EIPR_CLR, 0xffffffffffffffffull);
-    out64(STD_LCL_EITR_CLR, 0xffffffffffffffffull);
-
-    //set up the configured type
-    out64(STD_LCL_EITR_OR, g_ext_irqs_type);
+    //mask all interrupts to prevent spurious pulse to PPE
+    out64(STD_LCL_EIMR, 0xffffffffffffffffull);
 
     //set up the configured polarity
-    out64(STD_LCL_EIPR_OR, g_ext_irqs_polarity);
+    out64(STD_LCL_EIPR, g_ext_irqs_polarity);
 
-    //clear the status of all active-high interrupts (has no affect on
-    //level sensitive interrupts)
-    out64(STD_LCL_EISR_CLR, g_ext_irqs_polarity);
+    //set up the configured type
+    out64(STD_LCL_EITR, g_ext_irqs_type);
 
-    //clear the status of all active-low interrupts (has no affect on
-    //level sensitive interrupts)
-    out64(STD_LCL_EISR_OR, ~g_ext_irqs_polarity);
+    //clear the status of all edge interrupts
+    out64(STD_LCL_EISR_CLR, g_ext_irqs_type);
 
     //unmask the interrupts that are to be enabled by default
     out64(STD_LCL_EIMR_CLR, g_ext_irqs_enable);
 
     //wait for the last operation to complete
     sync();
+
 }

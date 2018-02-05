@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -24,6 +24,26 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef _MATH_H
 #define _MATH_H
+
+// Provide a way to use the native 16-bit multiply instruction
+// Unfortunately the compiler does not know to use it
+/// Signed 16 bit multiply, 32 bit product
+#define muls16(x,y) \
+    ({\
+        int32_t __x = (x); \
+        int32_t __y = (y); \
+        int32_t __z; \
+        asm volatile ("mullhw %0,%1,%2" : "=r" (__z) : "r" (__x), "r" (__y) : "cc"); \
+        __z;})
+
+/// Unsigned 16 bit multiply, 32 bit product
+#define mulu16(x,y) \
+    ({\
+        uint32_t __x = (x); \
+        uint32_t __y = (y); \
+        uint32_t __z; \
+        asm volatile("mullhwu %0,%1,%2" : "=r" (__z) : "r" (__x), "r" (__y) : "cc"); \
+        __z;})
 
 #ifdef __cplusplus
 extern "C"
