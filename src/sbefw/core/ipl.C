@@ -24,6 +24,8 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #include "fapi2.H"
 #include "sberegaccess.H"
+#include "sbe_sp_intf.H"
+#include "sbeFFDC.H"
 
 #include "ipl.H"
 
@@ -109,8 +111,9 @@ void sbeDoContinuousIpl()
                     SBE_ERROR(SBE_FUNC"Failed istep execution in plck mode: "
                             "Major: %d, Minor: %d",
                             istepTableEntry->istepMajorNum, step);
-                    (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(
-                                                                          true);
+
+                    captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
                     // exit outer loop as well
                     entry = istepTable.len;
                     break;

@@ -45,6 +45,7 @@
 #include "p9_block_wakeup_intr.H"
 #include "sbeTimerSvc.H"
 #include "sbeglobals.H"
+#include "sbeFFDC.H"
 
 using namespace fapi2;
 
@@ -82,7 +83,8 @@ void sbeDmtPkExpiryCallback(void *)
         pk_halt();
     }
 
-    (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(true);
+    captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                     SBE_SEC_DMT_TIMEOUT);
     #undef SBE_FUNC
 }
 

@@ -31,6 +31,15 @@
 #include "sbeglobals.H"
 #include "sbecmdcntrldmt.H"
 
+void captureAsyncFFDC(uint32_t primRc, uint32_t secRc)
+{
+    SBE_GLOBAL->failedPrimStatus = primRc;
+    SBE_GLOBAL->failedSecStatus  = secRc;
+
+    // Set async ffdc bit
+    (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(true);
+}
+
 void SbeFFDCPackage::updateUserDataHeader(uint32_t i_fieldsConfig)
 {
     // Set failed command information

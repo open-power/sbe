@@ -37,6 +37,16 @@
 //PIBMEM attribute dump
 extern G_sbe_attrs_t G_sbe_attrs;
 
+/*
+ * @brief - Capture Async failure FFDC
+ *
+ * @param[in] primRc Primary failure rc
+ * @param[in] secRc  Secondary failure rc
+ *
+ */
+void captureAsyncFFDC(uint32_t primRc,
+                      uint32_t secRc);
+
 //Configuration of user data blobs present in SBE FFDC
 //Data is sent in the order defined here
 //Definition - Identifier
