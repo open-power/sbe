@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -78,11 +78,13 @@ namespace fapi2
         fapi2::buffer<uint16_t> l_read4 = 0;
         fapi2::buffer<uint32_t> l_read5 = 0;
         fapi2::buffer<uint64_t> l_deviceIdReg = 0;
+        uint8_t l_riskLvl  = 0;
         bool l_isSlave = false;
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chipTarget =
             plat_getChipTarget();
         const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_riskLvl));
         //Getting SCRATCH_REGISTER_8 register value
         FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_8_SCOM,
                                 l_scratch8Reg));
@@ -193,6 +195,7 @@ namespace fapi2
 
             FAPI_DBG("Setting up ATTR_IS_SP_MODE");
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE, l_chipTarget, l_isSpMode));
+            l_tempReg.extractToRight<28, 4>(l_riskLvl);
         }
 
         if ( l_scratch8Reg.getBit<3>() )
@@ -238,7 +241,6 @@ namespace fapi2
         if ( l_scratch8Reg.getBit<4>() )
         {
             uint8_t l_forceAllCores = 0;
-            uint8_t l_riskLevel = 0;
             uint8_t l_disableHbblVectors = 0;
             uint32_t l_pllMux = 0;
             uint8_t l_mcSyncMode = 0;
@@ -253,11 +255,7 @@ namespace fapi2
 
             if (l_tempReg.getBit<2>())
             {
-                l_riskLevel = fapi2::ENUM_ATTR_RISK_LEVEL_TRUE;
-            }
-            else
-            {
-                l_riskLevel = fapi2::ENUM_ATTR_RISK_LEVEL_FALSE;
+                l_riskLvl = 1;
             }
 
             if (l_tempReg.getBit<3>())
@@ -282,9 +280,7 @@ namespace fapi2
                 l_slowPciRefClock = fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_SLOW;
             }
 
-            FAPI_DBG("Setting up RISK_LEVEL, SYS_FORCE_ALL_CORES");
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_SYS_FORCE_ALL_CORES, FAPI_SYSTEM, l_forceAllCores));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_riskLevel));
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM, l_disableHbblVectors));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_SYNC_MODE, l_chipTarget, l_mcSyncMode));
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK, FAPI_SYSTEM, l_slowPciRefClock));
@@ -348,7 +344,8 @@ namespace fapi2
                                    l_read3));
         }
 
-
+        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM,
+                               l_riskLvl));
         FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
         l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
         switch(l_deviceId.iv_chipId)
