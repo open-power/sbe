@@ -50,6 +50,7 @@
 enum P9_SBE_TP_ARRAYINIT_Private_Constants
 {
     REGIONS_EXCEPT_PIB_NET_PLL = 0x4FE,
+    REGIONS_EXCEPT_PIB_NET_SBE_PLL = 0x4DE,
     SCAN_TYPES = 0xDCF,
     LOOP_COUNTER = 0x0000000000042FFF,
     START_ABIST_MATCH_VALUE = 0x0000000F00000000,
@@ -67,7 +68,15 @@ fapi2::ReturnCode p9_sbe_tp_arrayinit(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint16_t> l_regions;
+#if defined(SBE_AXONE_CONFIG) || !defined(__PPE__)
+    fapi2::buffer<uint8_t>  l_is_axone;
+#endif
+
     FAPI_INF("p9_sbe_tp_arrayinit: Entering ...");
+
+#if defined(SBE_AXONE_CONFIG) || !defined(__PPE__)
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9A_SBE_REGION, i_target_chip, l_is_axone));
+#endif
 
     FAPI_DBG("Exclude PIBMEM from TP array init");
     //Setting PIBMEM_REPAIR_REGISTER_0 register value
@@ -79,10 +88,23 @@ fapi2::ReturnCode p9_sbe_tp_arrayinit(const
                  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
                          fapi2::TARGET_STATE_FUNCTIONAL)[0], true));
 
-    FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(
-                 i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
-                         fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_EXCEPT_PIB_NET_PLL, l_regions));
-    FAPI_DBG("l_regions value: %#018lX", l_regions);
+#if defined(SBE_AXONE_CONFIG) || !defined(__PPE__)
+
+    if (l_is_axone)
+    {
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(
+                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_EXCEPT_PIB_NET_SBE_PLL, l_regions));
+        FAPI_DBG("l_regions value: %#018lX", l_regions);
+    }
+    else
+#endif
+    {
+        FAPI_TRY(p9_perv_sbe_cmn_regions_setup_16(
+                     i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP,
+                             fapi2::TARGET_STATE_FUNCTIONAL)[0], REGIONS_EXCEPT_PIB_NET_PLL, l_regions));
+        FAPI_DBG("l_regions value: %#018lX", l_regions);
+    }
 
     FAPI_DBG("Call ARRAY INIT Module for Pervasive Chiplet");
     FAPI_TRY(p9_perv_sbe_cmn_array_init_module(
