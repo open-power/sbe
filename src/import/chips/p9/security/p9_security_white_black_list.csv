@@ -815,6 +815,8 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,MC23,8010AEA,0x08,,Port 3 Array Access Data Register,,read_blacklist,
 ,TP,0x000F001A, 0x00, HWSV, SPL_WKUP system checkstop indicator register,p9_cpu_special_wakeup_lib.H,write_whitelist,
 ,TP,0x0006C08A, 0x00, HWSV, SPL_WKUP OCC Flag Register register,p9_cpu_special_wakeup_lib.H,write_whitelist,
+,TP,0x0006C08B, 0x00, HWSV, I2C LockActions with OCC Flag CLEAR Register,hwsvVpdSyncSvc.C,write_whitelist,
+,TP,0x0006C08C, 0x00, HWSV, I2C LockActions with OCC Flag OR Register,hwsvVpdSyncSvc.C,write_whitelist,
 ,Core,200F010A,0x20-0x37,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
 ,Core,200F010B,0x20-0x37,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
 ,Core,200F010C,0x20-0x37,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_whitelist,
