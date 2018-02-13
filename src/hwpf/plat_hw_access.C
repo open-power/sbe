@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -347,7 +347,7 @@ uint32_t p9_handlePibErr( const uint32_t i_addr, uint64_t *io_data,
     static const uint8_t MAX_RETRIES = 2;
     uint8_t l_retryCount = 0;
     uint32_t pibErr = i_pibErr;
-
+    uint32_t retryOnOffline = false;
     // the format for scom is
     // 0   1  2  3   4   5  6  7  8  9  10  11  12  13  14  15
     // WR  MC [MC Type]  [MC gp]  [PIB M Addr]  [Port Number ]
@@ -357,7 +357,7 @@ uint32_t p9_handlePibErr( const uint32_t i_addr, uint64_t *io_data,
 
     // For multicast address address bit 1 should be 1
     static const uint32_t MULTICAST_MASK = 0x40000000;
-
+    PkMachineContext  ctx = {};
     do
     {
         // There is a HW bug where if any chiplet is offline, we can get
@@ -369,11 +369,18 @@ uint32_t p9_handlePibErr( const uint32_t i_addr, uint64_t *io_data,
             FAPI_INF("PIB_OFFLINE_ERROR on Multicast scom addr:0x%08X. "
                     "Ignoring error", i_addr );
             pibErr = PIB_NO_ERROR;
-            break;
+            retryOnOffline = true;
+            // The critical section enter/exit set is done to ensure
+            // PIB OFFILE mask is not propogated to any other context.
+            pk_critical_section_enter(&ctx);
+            // bit 2 of MSR. PLAT_SET_PIB_ERROR_MASK shifts mask by 24bits
+            static const uint32_t i_mask = 0x20;
+            PLAT_SET_PIB_ERROR_MASK(i_mask);
         }
         // Only retry for parity and timeout errors
         if (( i_pibErr != PIB_PARITY_ERROR )
-            && ( i_pibErr !=  PIB_TIMEOUT_ERROR ))
+            && ( i_pibErr !=  PIB_TIMEOUT_ERROR )
+            && ( ! retryOnOffline ) )
         {
             break;
         }
@@ -390,14 +397,23 @@ uint32_t p9_handlePibErr( const uint32_t i_addr, uint64_t *io_data,
                 pibErr = putscom_abs(i_addr, *io_data);
             }
 
-            if( PIB_NO_ERROR == pibErr )
+            if(( PIB_NO_ERROR == pibErr ) ||
+               ( ( PIB_OFFLINE_ERROR == pibErr )  && retryOnOffline ))
             {
+                pibErr = PIB_NO_ERROR;
                 FAPI_INF("Read/Write Retry Successful");
                 break;
             }
             if ( pibErr != i_pibErr ) break;
         }
     }while(0);
+    if (retryOnOffline )
+    {
+        // bit 2 of MSR. PLAT_SET_PIB_ERROR_MASK shifts mask by 24bits
+        static const uint32_t i_mask = 0x00;
+        PLAT_SET_PIB_ERROR_MASK(i_mask);
+        pk_critical_section_exit(&ctx);
+    }
     FAPI_INF("Exiting p9_handlePibErr");
     return pibErr;
 }
