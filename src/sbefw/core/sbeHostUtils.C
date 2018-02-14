@@ -201,8 +201,10 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
                         uint32_t &i_fapiRc,
                         uint32_t &io_rc)
 {
+
 #define SBE_FUNC "sbePSUSendResponse"
     SBE_ENTER(SBE_FUNC);
+    #if HOST_INTERFACE_AVAILABLE
     do
     {
         // Making sure the PSU access utility is functional
@@ -319,5 +321,8 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
                     "SBE_HOST_PSU_MBOX_REG4");
         }
     } while(0);
+    #else
+    io_rc = SBE_SEC_COMMAND_NOT_SUPPORTED;
+    #endif
 #undef SBE_FUNC
 }

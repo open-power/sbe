@@ -361,6 +361,7 @@ ifdef FAPI_TRACE_LEVEL_ENV
 FAPI_TRACE_LEVEL_DEF = $(FAPI_TRACE_LEVEL_ENV)
 endif
 
+
 GCC-DEFS += -DIMAGE_NAME=$(IMAGE_SEEPROM_NAME)
 GCC-DEFS += -DPK_TIMER_SUPPORT=$(PK_TIMER_SUPPORT)
 GCC-DEFS += -DPK_THREAD_SUPPORT=$(PK_THREAD_SUPPORT)
@@ -376,6 +377,7 @@ GCC-DEFS += -DSBE_TRACE_LEVEL=$(SBE_TRACE_LEVEL_DEF)
 GCC-DEFS += -DPLAT_NO_THREAD_LOCAL_STORAGE=1
 # disable assert
 GCC-DEFS += -DNDEBUG
+GCC-DEFS += -DHOST_INTERFACE_AVAILABLE=$(HOST_INTERFACE_AVAILABLE)
 
 # use the default settings in the code unless a size is defined
 ifdef PK_TRACE_SZ
@@ -482,6 +484,10 @@ endif
 # project specific include
 ifeq ($(project),power)
 include power_defs.mk
+endif
+
+ifeq ($(project),z)
+include z_defs.mk
 endif
 
 ############################################################################

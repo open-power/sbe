@@ -180,6 +180,7 @@ uint32_t SbeFFDCPackage::sendOverHostIntf(const uint32_t i_fieldsConfig,
 {
     #define SBE_FUNC "sendOverHostIntf"
     SBE_ENTER(SBE_FUNC);
+    #if HOST_INTERFACE_AVAILABLE
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t length = 0;
     bool isLastAccess = false;
@@ -263,6 +264,9 @@ uint32_t SbeFFDCPackage::sendOverHostIntf(const uint32_t i_fieldsConfig,
     SBE_INFO(SBE_FUNC" [%d] bytes sent",
                             SBE_GLOBAL->hostFFDCAddr.size - i_allocatedSize);
 
+    #else  //HOST_INTERFACE_AVAILABLE
+    uint32_t rc = SBE_SEC_COMMAND_NOT_SUPPORTED;
+    #endif //HOST_INTERFACE_AVAILABLE
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,6 +23,8 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbeMemAccessInterface.H"
+
+#ifdef HOST_INTERFACE_AVAILABLE
 
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
@@ -268,3 +271,5 @@ void sbeMemAccessInterface::alignAccessWithBuffer()
     }
 #undef SBE_FUNC
 }
+
+#endif
