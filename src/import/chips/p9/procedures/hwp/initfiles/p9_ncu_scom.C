@@ -29,11 +29,11 @@
 
 using namespace fapi2;
 
-constexpr uint64_t literal_0x3 = 0x3;
+constexpr uint64_t literal_0xF = 0xF;
+constexpr uint64_t literal_0x10 = 0x10;
 constexpr uint64_t literal_0x4 = 0x4;
 constexpr uint64_t literal_0b0001 = 0b0001;
 constexpr uint64_t literal_0b1000 = 0b1000;
-constexpr uint64_t literal_0x10 = 0x10;
 constexpr uint64_t literal_0x40 = 0x40;
 constexpr uint64_t literal_0x8 = 0x8;
 constexpr uint64_t literal_6 = 6;
@@ -96,14 +96,14 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                     && (l_chip_ec == 0x22)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x10)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x11))
                 || ((l_chip_id == 0x7) && (l_chip_ec == 0x10)) )
             {
-                l_scom_buffer.insert<19, 8, 56, uint64_t>(literal_0x3 );
+                l_scom_buffer.insert<19, 8, 56, uint64_t>(literal_0xF );
             }
 
             if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) || ((l_chip_id == 0x5) && (l_chip_ec == 0x21)) || ((l_chip_id == 0x5)
                     && (l_chip_ec == 0x22)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x10)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x11))
                 || ((l_chip_id == 0x7) && (l_chip_ec == 0x10)) )
             {
-                l_scom_buffer.insert<11, 8, 56, uint64_t>(literal_0x4 );
+                l_scom_buffer.insert<11, 8, 56, uint64_t>(literal_0x10 );
             }
 
             if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) || ((l_chip_id == 0x5) && (l_chip_ec == 0x21)) || ((l_chip_id == 0x5)
