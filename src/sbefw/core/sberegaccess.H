@@ -248,12 +248,21 @@ class SbeRegAccess
          *
          */
         uint32_t updateAsyncFFDCBit( bool i_on );
+
+        /**
+         * @brief Check if Invalid Scom Addr Check is not required
+         *
+         * @return true  - skip invalid scom address check
+         *         false - do invalid scom address check
+         */
+        bool isSbeRegressionBit();
+
     private:
 
         /**
          * @brief Constructor
          */
-        SbeRegAccess() : iv_mbx3(0), iv_mbx6(0), iv_messagingReg(0)
+        SbeRegAccess() : iv_mbx3(0), iv_mbx6(0), iv_messagingReg(0), iv_mbx8(0)
         {}
 
         union
@@ -266,7 +275,9 @@ class SbeRegAccess
                 uint64_t iv_fspAttached : 1;
                 uint64_t iv_collectFFDC : 1;
                 uint64_t iv_sendFFDC : 1;
-                uint64_t iv_mbx3DontCare : 26;
+                uint64_t iv_mbx3DontCare1 : 6;
+                uint64_t iv_disableInvalidScomAddrCheck : 1;
+                uint64_t iv_mbx3DontCare : 19;
                 uint64_t iv_mbx3Unused : 32;
             };
             uint64_t iv_mbx3;
@@ -301,10 +312,21 @@ class SbeRegAccess
             uint64_t iv_messagingReg;
         };
 
+        union
+        {
+            struct
+            {
+                uint64_t iv_mbox8Reserve1 : 2;
+                uint64_t iv_mbx3_valid : 1;
+                uint64_t iv_mbox8Reserve2 : 2;
+                uint64_t iv_mbx6_valid : 1;
+                uint64_t iv_mbox8Reserve3 : 58;
+            };
+            uint64_t iv_mbx8;
+        };
+
         // Bit masks defining bits in the above registers that the SBE is
         // interested in
-        static const uint64_t SBE_MBX8_MBX3_VALID_MASK = 0x2000000000000000ULL;
-        static const uint64_t SBE_MBX8_MBX6_VALID_MASK = 0x0400000000000000ULL;
         static const uint64_t SBE_DEV_ID_C4_PIN_MASK = 0x0000000000800000ULL;
         static const uint64_t SBE_PERV_DEVICE_ID_REG_BIT58_MASK = 0x0000000000000020ULL;
         static SbeRegAccess cv_instance;

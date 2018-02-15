@@ -30,6 +30,7 @@
 #include "plat_target.H"
 #include "sbescom.H"
 #include "sbeSecurity.H"
+#include "sberegaccess.H"
 
 using namespace fapi2;
 /**
@@ -88,12 +89,17 @@ void checkIndirectAndDoScom( const bool i_isRead,
         // SBE throws data storage exception if Master ID field is not 0. Also
         // we halt sbe for SBE address space errors. So check these registers
         // at top level so that we do not halt SBE in these cases.
-        if(( i_addr & SCOM_SBE_ADDR_MASK) || ( i_addr & SCOM_MASTER_ID_MASK ))
+
+        // Override bit check for invalid Scom Addr check
+        if(!SbeRegAccess::theSbeRegAccess().isSbeRegressionBit())
         {
-            SBE_ERROR(SBE_FUNC "Invalid scom");
-            o_hdr->setStatus(SBE_PRI_USER_ERROR,
-                             SBE_SEC_INVALID_ADDRESS_PASSED);
-            break;
+            if(( i_addr & SCOM_SBE_ADDR_MASK) || ( i_addr & SCOM_MASTER_ID_MASK ))
+            {
+                SBE_ERROR(SBE_FUNC "Invalid scom");
+                o_hdr->setStatus(SBE_PRI_USER_ERROR,
+                        SBE_SEC_INVALID_ADDRESS_PASSED);
+                break;
+            }
         }
         #endif  // __ALLOW_INVALID_SCOMS__
         // If the indirect scom bit is 0, then doing a regular scom

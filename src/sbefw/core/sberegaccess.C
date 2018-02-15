@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -135,7 +136,7 @@ uint32_t SbeRegAccess::init()
     #define SBE_FUNC "SbeRegAccess::SbeRegAccess "
     static bool l_initDone = false;
     uint32_t rc = 0;
-    uint64_t l_mbx8 = 0;
+
     do
     {
         if(l_initDone)
@@ -150,16 +151,14 @@ uint32_t SbeRegAccess::init()
                       rc);
             break;
         }
-        // Read Mailbox register 8 to check if the mailbox registers 3 and 6 are
-        // valid
-        rc = getscom_abs(PERV_SCRATCH_REGISTER_8_SCOM, &l_mbx8);
+        // Read Mailbox register 8 to check if mbox registers 3 and 6 are valid
+        rc = getscom_abs(PERV_SCRATCH_REGISTER_8_SCOM, &iv_mbx8);
         if(PCB_ERROR_NONE != rc)
         {
-            SBE_ERROR(SBE_FUNC"Failed reading mailbox reg 7, RC: 0x%08X. ",
-                      rc);
+            SBE_ERROR(SBE_FUNC"Failed reading mailbox reg 8, RC: 0x%08X. ", rc);
             break;
         }
-        if(l_mbx8 & SBE_MBX8_MBX3_VALID_MASK)
+        if(iv_mbx3_valid)
         {
             // Read MBX3
             rc = getscom_abs(PERV_SCRATCH_REGISTER_3_SCOM, &iv_mbx3);
@@ -178,7 +177,7 @@ uint32_t SbeRegAccess::init()
                           l_attr);
             iv_mbx3 = ((uint64_t) l_attr ) << 32;
         }
-        if(l_mbx8 & SBE_MBX8_MBX6_VALID_MASK)
+        if(iv_mbx6_valid)
         {
             // Read MBX6
             rc = getscom_abs(PERV_SCRATCH_REGISTER_6_SCOM, &iv_mbx6);
@@ -212,7 +211,7 @@ uint32_t SbeRegAccess::init()
     } while(false);
 
     SBE_INFO(SBE_FUNC"Read mailbox registers: mbx8: 0x%08X, mbx3: 0x%08X, "
-              "mbx6: 0x%08X", (uint32_t)(l_mbx8 >> 32),
+              "mbx6: 0x%08X", (uint32_t)(iv_mbx8 >> 32),
               (uint32_t)(iv_mbx3 >> 32), (uint32_t)(iv_mbx6 >> 32));
     l_initDone = true;
     return rc;
@@ -354,3 +353,18 @@ uint32_t SbeRegAccess::updateAsyncFFDCBit( bool i_on )
     #undef SBE_FUNC
 }
 
+bool SbeRegAccess::isSbeRegressionBit()
+{
+    #define SBE_FUNC "SbeRegAccess::isSbeRegressionBit"
+    bool isDisableInvalidScomAddrCheck = false;
+    uint8_t readData;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+
+    FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, readData);
+    if((iv_mbx3_valid) && !readData && iv_disableInvalidScomAddrCheck)
+    {
+        isDisableInvalidScomAddrCheck = true;
+    }
+    return isDisableInvalidScomAddrCheck;
+    #undef SBE_FUNC
+}
