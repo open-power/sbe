@@ -186,7 +186,7 @@ determine_args();
 if (defined $dir)
 {
 
-    $build = $build . $dir; # default to put at top of string file
+    $build = $build . substr($dir, 0, 120); # default to put at top of string file
     if($collect)
     {
 	collect_files($dir);
