@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,6 +49,7 @@
 #include <p9_quad_scom_addresses.H>
 #include <p9_hcd_common.H>
 #include "p9_hcd_core_scomcust.H"
+#include <p9_quad_scom_addresses_fld.H>
 
 //-----------------------------------------------------------------------------
 // Constant Definitions: Core Customization SCOMs
@@ -63,6 +64,15 @@ p9_hcd_core_scomcust(
 
     FAPI_DBG("Drop chiplet fence via NET_CTRL0[18]");
     FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(18)));
+
+    //Given auto special wakeup is enabled. Special wake-up signal must be
+    //routed toward CME HW asserts DONE bit without CME Firmware's intervention.
+    fapi2::ATTR_CHIP_UNIT_POS_Type l_corePos;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_target, l_corePos));
+    FAPI_DBG("Enabling Auto Special Wakeup For Core %d", l_corePos );
+
+    l_data64.flush<0>().setBit(EX_CPPM_CPMMR_WKUP_NOTIFY_SELECT);
+    FAPI_TRY(putScom(i_target, C_CPPM_CPMMR_CLEAR, l_data64));
 
 fapi_try_exit:
 
