@@ -584,4 +584,8 @@ attribute tank
            <!-- HOST, till something better is defined for SBE -->
            <value>0x1</value>
   </entry>
+  <entry>
+        <name>ATTR_CHIP_EC_FEATURE_P9A_SBE_REGION</name>
+        <virtual/>
+  </entry>
 </entries>
