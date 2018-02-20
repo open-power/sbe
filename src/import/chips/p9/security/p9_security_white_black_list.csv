@@ -837,6 +837,7 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,EQ,100F0040,0x10-0x15,HWSV,  SPL_WKUP-special wakeups Network Control registers, p9_cpu_special_wakeup.H, write_whitelist,
 ,Core,200F0100,0x20-0x37,HWSV,  SPL_WKUP-special wakeups GPMMR registers, p9_cpu_special_wakeup.H, write_whitelist,
 ,EQ,100F0100,0x10-0x15,HWSV,  SPL_WKUP-special wakeups GPMMR registers, p9_cpu_special_wakeup.H, write_whitelist,
+,EQ,100F03FF,0x10-0x15,HWSV,  EQ Atomic Lock register for special wakeup ffdc collection, p9_eq_clear_atomic_lock, write_whitelist,
 ,,0x050107D0,0x05,DUMP,,for performance dumps,write_whitelist,
 ,PERV,0x000107D0,0x00-0x37,DUMP,,Local checkstops: Stop trace on all perv chiplets,write_whitelist,
 ,,0x05011C0A,0x05,DUMP,, MPIPL: restart traces ,write_whitelist,
