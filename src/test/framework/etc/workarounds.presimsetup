@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -38,3 +38,5 @@
 #cp /esw/san5/cmolsen/sb/hw/tests/refs/ppe-ci/p9c.hw_image_magic_20170817.bin $SANDBOXBASE/src/engd/href/p9c.temp_hw_ref_image.bin
 mkdir -p $SANDBOXBASE/src/simu/data/cec-chip
 cp /esw/user/nfs/prasrang/powermgmt.act $SANDBOXBASE/src/simu/data/cec-chip/
+sbex -t 1048349
+
