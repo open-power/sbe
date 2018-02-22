@@ -573,4 +573,8 @@ attribute tank
           <name>ATTR_ENABLE_MEM_EARLY_DATA_SCOM</name>
           <value>0x0</value>
   </entry>
+  <entry>
+          <name>ATTR_PROC_CHIP_MEM_TO_USE</name>
+          <value>0x00</value>
+  </entry>
 </entries>
