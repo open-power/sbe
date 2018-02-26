@@ -74,32 +74,35 @@ enum LISTING_MODE_ID
 };
 
 const char* g_usage =
-    "Usage: p9_xip_tool <image> [-i<flag> ...] normalize\n"
-    "       p9_xip_tool <image> [-i<flag> ...] get <item>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] getv <item> <index>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] set <item> <value> [ <item1> <value1> ... ]\n"
-    "       p9_xip_tool <image> [-i<flag> ...] setv <item> <index> <value> [ <item1> <index1> <value1> ... ]\n"
-    "       p9_xip_tool <image> [-i<flag> ...] report [<regex>]\n"
-    "       p9_xip_tool <image> [-i<flag> ...] attrdump <attr dump file>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] append <section> <file> [ <ddSupport> ]\n"
-    "       p9_xip_tool <image> [-i<flag> ...] extract <section> <file> [ <ddLevel> ]\n"
-    "       p9_xip_tool <image> [-i<flag> ...] delete <section> [ <section1> ... <sectionN> ]\n"
-    "       p9_xip_tool <image> [-i<flag> ...] dis <section>\n"
-    "       p9_xip_tool <image> [-i<flag> ...] dissect <section={.rings,.overlays,.overrides,(none)}> [ table,short,normal(default),long,raw ]\n"
-    "       p9_xip_tool <image> [-i<flag> ...] check-sbe-ring-section <dd level> <maximum size>\n"
+    "Usage: p9_xip_tool <image> [-i<flag>...] normalize\n"
+    "       p9_xip_tool <image> [-i<flag>...] get <item>\n"
+    "       p9_xip_tool <image> [-i<flag>...] getv <item> <index>\n"
+    "       p9_xip_tool <image> [-i<flag>...] set <item> <value> [<item1> <value1>...]\n"
+    "       p9_xip_tool <image> [-i<flag>...] setv <item> <index> <value> [<item1> <index1> <value1>...]\n"
+    "       p9_xip_tool <image> [-i<flag>...] report [<regex>]\n"
+    "       p9_xip_tool <image> [-i<flag>...] attrdump <file>\n"
+    "       p9_xip_tool <image> [-i<flag>...] append <section> <file> [<ddSupport>]\n"
+    "       p9_xip_tool <image> [-i<flag>...] extract <section={<section>,(none)}> [<ddLevel>] <file>\n"
+    "       p9_xip_tool <image> [-i<flag>...] delete <section> [<section1>...<sectionN>]\n"
+    "       p9_xip_tool <image> [-i<flag>...] dissect <section={.rings,.overlays,.overrides,(none)}> [table,short,normal(default),long,raw]\n"
+    "       p9_xip_tool <image> [-i<flag>...] check-sbe-ring-section <ddLevel> <maximum size>\n"
     "\n"
     "This simple application uses the P9-XIP image APIs to normalize, search\n"
     "update and edit P9-XIP images. This program encapsulates several commands\n"
-    "in a common command framework which requires an image to operate on, a\n"
-    "command name, and command arguments that vary by command.  Commands that\n"
-    "modify the image always rewrite the image in-place in the filesystem;\n"
-    "however the original image is only modified if the command has completed\n"
-    "without error.\n"
+    "in a common command framework which requires a supported binary image to\n"
+    "operate on, a command name, and command arguments that vary by command.\n"
+    "Commands that modify the image always rewrite the image in-place in the\n"
+    "filesystem. However the original image is only modified if the command has\n"
+    "completed without error.\n"
     "\n"
-    "The program operates on a P9-XIP format binary image, which must be\n"
-    "normalized - unless the tool is being called to normalize the image in the\n"
-    "first place using the 'normalize' command. The tool also validates the\n"
+    "The program operates predominantly on a P9-XIP formatted binary image, which\n"
+    "must be normalized - unless the tool is being called to normalize the image\n"
+    "in the first place with the 'normalize' command. The tool also validates the\n"
     "image prior to operating on the image.\n"
+    "\n"
+    "The program also operates in socalled standalone ring section images but\n"
+    "which can only be used in the context of the following commands: 'report',\n"
+    "'extract' and 'dissect'.\n"
     "\n"
     "The 'get' command retrieves a scalar value from the image and prints its\n"
     "representation on stdout (followed by a newline).  Scalar integer values\n"
@@ -143,12 +146,12 @@ const char* g_usage =
     "to be false (=0).\n"
     "\n"
     "The 'extract' command extracts a section from the binary image.  The last\n"
-    "argument, ddLevel, indicates [in hex] the DD level to be extracted.  If\n"
+    "argument, ddLevel, indicates (in hex) the DD level to be extracted.  If\n"
     "the section doesn't have DD level support, a message is returned stating\n"
     "that and to reissue the command w/o the ddLevel arg.  If the section does\n"
     "have DD support but the specified ddLevel cannot be found, a message is\n"
     "returned stating that and no section is returned.  If the arg is omitted,\n"
-    "the entire XIP section is returned."
+    "the entire section is returned."
     "\n"
     "The 'delete' command deletes 0 or more sections, starting with <section0>.\n"
     "Each section to be deleted must either be the final (highest address)\n"
@@ -157,13 +160,13 @@ const char* g_usage =
     "\n"
     "The 'dissect' command summarizes the content of a ring section. It\n"
     "accepts two different types of images:  1) The regular XIP image and 2)\n"
-    "a stand-alone ring section image (that has the TOR header). Wrt an XIP\n"
+    "a standalone ring section image (that has the TOR header). Wrt an XIP\n"
     "image, the ring section named by the ring section argument is summarized.\n"
-    "Wrt a stand-alone ring section image, the ring section based on the TOR\n"
+    "Wrt a standalone ring section image, the ring section based on the TOR\n"
     "magic word in the image, is summarized. (Hint. To find out what type of\n"
     "image file you're supplying, run \"p9_xip_tool.exe <image file> report\"\n"
     "on it first.) Note that the first sub-argument must be PASSED for an XIP\n"
-    "image but must be OMITTED for a stand-alone image. For either image, the\n"
+    "image and must be OMITTED for a standalone image. For either image, the\n"
     "second sub-argument is optional and offers the following listing choices:\n"
     "   table:           Tabular overview. No dump of ring block.\n"
     "   short:           Key header info. No dump of ring block.\n"
@@ -172,6 +175,10 @@ const char* g_usage =
     "   raw:             All header info and binary+raw dump of ring block.\n"
     "Note that if the second sub-argument is omitted, a 'normal' listing of\n"
     "the ring section is chosen.\n"
+    "\n"
+    "The 'check-sbe-ring-section' command checks that the size of the SBE ring\n"
+    "section, within the .rings section of the HW image, of the specified\n"
+    "ddLevel (in hex), does not exceed the specified <maximum size>\n"
     "\n"
     "-i<flag>:\n"
     "\t-ifs  Causes the validation step to ignore image size check against the\n"
@@ -610,7 +617,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
                     *(((uint8_t*)&l_magic) + 6),
                     *(((uint8_t*)&l_magic) + 7));
             fprintf(stderr,
-                    "If you're seeing \"TOR\" or \"DDCO\" in the first 8 bytes, you're probably using the PPE version of p9_xip_tool. Use the EKB version instead!\n\n");
+                    "If you're seeing \"TOR\" or \"DDCO\" in the first 8 bytes, you're probably using the PPE compiled version of p9_xip_tool. Use the EKB version instead!\n\n");
             exit(EXIT_FAILURE);
 
     }
@@ -1308,126 +1315,154 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
     return rc;
 }
 
-// Extract section from an image incl a DD-specific sub-section within an XIP section.
+// Extract section from an image incl a DD-specific sub-section.
 static int
-extract(const char* i_imageFile, const int i_imageFd, void* io_image,
-        int i_argc, const char** i_argv)
+extract(void* i_image,
+        int i_argc,
+        const char** i_argv,
+        image_section_type_t i_imageSectionType)
 {
-    int rc = 0;
+    int rc = INFRASTRUCT_RC_SUCCESS;
     const char* i_sectionName;  //Direct copy of input arg, thus i_
     const char* i_fileName;     //Same
     std::string i_ddLevelStr;   //Same
     uint8_t ddLevel = UNDEFINED_DD_LEVEL;
-    bool bDdSuppExpected = false;
+    MyBool_t  bDdSupportExpected = UNDEFINED_BOOLEAN;
+    MyBool_t  bDdSupport = UNDEFINED_BOOLEAN;
     int fileFd, sectionId;
-    void* newImage;
-    P9XipHeader header;
-    P9XipSection* xSection;   // XIP section of i_section
-    P9XipSection  xDdSection; // Extracted XIP (self) or Dd section of i_section
+    P9XipHeader  xipHeader;
+    P9XipSection xipSection;
+    uint8_t*     ddcoSection;
+    uint8_t*     finalSection; // Final (whole or DD specific) section to copy to file
+    uint32_t     finalSectionSize;
+    void*        newImage;
 
     do
     {
 
-        if (i_argc != 2 && i_argc != 3)
+        if (i_imageSectionType == IST_XIP)
         {
-            fprintf(stderr, g_usage);
-            exit(1);
-        }
-
-        i_sectionName = i_argv[0];
-        i_fileName = i_argv[1];
-
-        p9_xip_translate_header(&header, (P9XipHeader*)io_image);
-        sectionId = get_sectionId(header.iv_magic, i_sectionName);
-
-        if (sectionId < 0)
-        {
-            fprintf(stderr, "\nUnrecognized section name : '%s;\n", i_sectionName);
-            exit(1);
-        }
-
-        xSection = &(header.iv_section[sectionId]);
-
-        printf("\nInput parms to the \"extract\" command:\n"\
-               "  Section:      %s\n"\
-               "  Output file:  %s\n",
-               i_sectionName, i_fileName);
-
-        ddLevel = UNDEFINED_DD_LEVEL;
-        bDdSuppExpected = false;
-
-        if (i_argc == 3)
-        {
-            i_ddLevelStr = i_argv[2];
-
-            bDdSuppExpected = true;
-
-            printf("  DD level (input): %s\n",
-                   i_ddLevelStr.c_str());
-        }
-
-        if (bDdSuppExpected)
-        {
-            if (xSection->iv_ddSupport)
+            if (i_argc == 2)
             {
-                if (i_ddLevelStr.size() != 2 && i_ddLevelStr.size() != 4)
-                {
-                    fprintf(stderr, "\nThe specified ddLevel \"%s\" has an unsupported format.\n",
-                            i_ddLevelStr.c_str());
-                    fprintf(stderr, "Specify ddLevel in hex format, e.g. \"0x10\" or \"10\"\n\n");
-                    exit(1);
-                }
+                i_sectionName = i_argv[0];
+                i_fileName = i_argv[1];
 
+                bDdSupportExpected = false;
+            }
+            else if (i_argc == 3)
+            {
+                i_sectionName = i_argv[0];
+                i_ddLevelStr = i_argv[1];
+                i_fileName = i_argv[2];
+                bDdSupportExpected = true;
                 ddLevel = strtol(i_ddLevelStr.c_str(), NULL, 16);
-
-                printf("  DD level (hex converted): 0x%x\n",
-                       ddLevel);
             }
             else
             {
-                fprintf(stderr, "\nThe section \"%s\" has no DD level support.\n", i_sectionName);
-                fprintf(stderr, "To extract the entire section, omit the \"ddLevel\" arg.\n\n");
-                exit(1);
+                fprintf(stderr, "\nToo few or too many arguments passed to the 'extract' for an XIP image.\n");
+                fprintf(stderr,
+                        "The 'extract' command must be followed by a valid XIP section name (e.g., .rings), then optionally a ddLevel (in hex format), and then a filename.\n");
+                exit(EXIT_FAILURE);
+            }
+
+            p9_xip_translate_header(&xipHeader, (P9XipHeader*)i_image);
+            sectionId = get_sectionId(xipHeader.iv_magic, i_sectionName);
+
+            if (sectionId < 0)
+            {
+                fprintf(stderr, "\nUnrecognized section name : '%s;\n", i_sectionName);
+                exit(EXIT_FAILURE);
+            }
+
+            printf("\nInput parms to the 'extract' command:\n"
+                   "  Section:      %s\n", i_sectionName);
+
+            if (bDdSupportExpected)
+            {
+                printf("  DD level (numerical hex value): %s (0x%x)\n",
+                       i_ddLevelStr.c_str(), ddLevel);
+            }
+
+            printf("  Output file:  %s\n", i_fileName);
+
+            rc = p9_xip_dd_section_support(i_image, sectionId, &bDdSupport);
+
+            if (rc)
+            {
+                fprintf(stderr, "\np9_xip_dd_section_support() failed w/rc=0x%x\n", rc);
+                exit(EXIT_FAILURE);
+            }
+
+            if (bDdSupportExpected && !bDdSupport)
+            {
+                fprintf(stderr, "\nSection \"%s\" has no DD level support.\n", i_sectionName);
+                fprintf(stderr, "To extract the entire section, omit the <ddLevel> arg.\n");
+                exit(EXIT_FAILURE);
+            }
+
+            // Get the XIP section
+            rc = p9_xip_get_section(i_image, sectionId, &xipSection, UNDEFINED_DD_LEVEL);
+
+            if (rc)
+            {
+                fprintf(stderr, "\np9_xip_get_section() failed w/rc=0x%x\n", rc);
+                exit(EXIT_FAILURE);
+            }
+
+            if (bDdSupportExpected)
+            {
+                ddcoSection = (uint8_t*)i_image + xipSection.iv_offset;
+            }
+            else
+            {
+                finalSection = (uint8_t*)i_image + xipSection.iv_offset;
+                finalSectionSize = xipSection.iv_size;
             }
         }
-
-        printf("\nThe specified XIP section has the following attributes:\n"\
-               "  Offset:       0x%08x\n"\
-               "  Size (size):  0x%08x (%d)\n"\
-               "  DD support:   %d\n",
-               xSection->iv_offset, xSection->iv_size, xSection->iv_size, xSection->iv_ddSupport);
-
-        if (ddLevel == 0)
+        else if (i_imageSectionType == IST_DDCO)
         {
-            ddLevel = UNDEFINED_DD_LEVEL;
-            // Even though this may seem like we should just exit here, we'll leave it up
-            // to xip_get_section what to do in this case. Who knows, maybe it'll eventually
-            // return a list of supported DD levels.
+            if (i_argc == 2)
+            {
+                i_ddLevelStr = i_argv[0];
+                i_fileName = i_argv[1];
+            }
+            else
+            {
+                fprintf(stderr, "\nToo few or too many arguments passed to the 'extract' command for a DDCO image.\n");
+                fprintf(stderr, "The 'extract' command must be followed by a ddLevel (in hex format) and then a filename.\n");
+                exit(EXIT_FAILURE);
+            }
+
+            ddLevel = strtol(i_ddLevelStr.c_str(), NULL, 16);
+            printf("\nInput parms to the 'extract' command:\n"
+                   "  DD level (converted value): %s (0x%x)\n"
+                   "  Output file:  %s\n",
+                   i_ddLevelStr.c_str(), ddLevel, i_fileName);
+
+            bDdSupportExpected = true;
+
+            ddcoSection = (uint8_t*)i_image;
+        }
+        else if (i_imageSectionType == IST_TOR)
+        {
+            fprintf(stderr, "\nNothing to do for a TOR image. Image is already fully extracted.\n");
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            fprintf(stderr, "\nUnsupported image section type (=%d)\n",
+                    i_imageSectionType);
+            exit(EXIT_FAILURE);
         }
 
-        rc = p9_xip_get_section( io_image, sectionId, &xDdSection, ddLevel);
-
-        switch (rc)
+        // Extract the DD specific section
+        if (bDdSupportExpected)
         {
-            case 0:
-                break;
-
-            case P9_XIP_NO_DDLEVEL_SUPPORT:
-                fprintf(stderr, "\nThere is no support for DD level extraction yet.\n");
-                fprintf(stderr, "To extract the entire section, omit the \"ddLevel\" arg.\n\n");
-                exit(1);
-
-            case P9_XIP_DDLEVEL_NOT_FOUND:
-                fprintf(stderr, "\nA sub-section w/the specified ddLevel (=0x%x) was not found.\n", ddLevel);
-                fprintf(stderr, "To extract the entire section, omit the \"ddLevel\" arg.\n\n");
-                exit(1);
-
-            default:
-                fprintf(stderr, "\np9_xip_get_section() failed w/rc = %d\n\n", rc);
-                exit(1);
+            rc = p9_dd_get(ddcoSection, ddLevel, &finalSection, &finalSectionSize);
         }
 
-        newImage = malloc(xSection->iv_size);
+        // Copy the final section into the file
+        newImage = malloc(finalSectionSize);
 
         if (newImage == 0)
         {
@@ -1435,7 +1470,7 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
             exit(1);
         }
 
-        memcpy( newImage, (void*)((uint64_t)io_image + xDdSection.iv_offset), xDdSection.iv_size);
+        memcpy(newImage, finalSection, finalSectionSize);
 
         fileFd = open(i_fileName, O_CREAT | O_WRONLY | O_TRUNC, 0755);
 
@@ -1445,12 +1480,12 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
             exit(1);
         }
 
-        rc = write(fileFd, newImage, xDdSection.iv_size);
+        rc = write(fileFd, newImage, finalSectionSize);
 
-        if ((rc < 0) || ((uint32_t)rc != xDdSection.iv_size))
+        if (rc < 0 || (uint32_t)rc != finalSectionSize)
         {
             perror("write() of fixed section : ");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         rc = close(fileFd);
@@ -1458,7 +1493,7 @@ extract(const char* i_imageFile, const int i_imageFd, void* io_image,
         if (rc)
         {
             perror("close() of fixed section : ");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
     }
@@ -2330,6 +2365,98 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 }
 
 
+/// Function:  unpack_ddco_image()
+///
+/// Brief:  Unpacks DDCO image and puts DD sections into vector iterator.
+///
+/// \param[in]  i_ddcoImage    A pointer to a DDCO type image.
+///
+/// \param[in]  i_sectionName  The name of the XIP section (if any).
+///
+/// \param[out] o_ringSectionPtrs  Vector containing ptrs to the individual DD sub-sections in DDCO.
+///
+/// Assumptions:
+///
+static int
+unpack_ddco_image( const void* i_ddcoImage,
+                   const char* i_sectionName,
+                   std::vector<void*>& o_ringSectionPtrs )
+{
+    int     rc = INFRASTRUCT_RC_SUCCESS;
+    struct  p9_dd_block* block;
+    struct  p9_dd_block  block_he;
+    struct  p9_dd_iter iter = {NULL, 0};
+    uint8_t*  ringSection = NULL;
+    uint32_t  ringSectionSize;
+    image_section_type_t  imageSectionType = IST_UNDEFINED;
+
+    // Initialize our iterator to the beginning of the DDCO container
+    iter.iv_cont = (struct p9_dd_cont*)i_ddcoImage;
+
+    fprintf(stdout, "----------------------------------------------\n");
+
+    fprintf(stdout, "*            DD container summary            *\n");
+
+    fprintf(stdout, "----------------------------------------------\n");
+
+    if (i_sectionName == NULL)
+    {
+        fprintf(stdout, "XIP section   : Standalone (not an XIP section)\n");
+    }
+    else
+    {
+        fprintf(stdout, "XIP section   : %s\n", i_sectionName);
+    }
+
+    fprintf(stdout, "Num DD levels : %d\n", iter.iv_cont->iv_num);
+
+    fprintf(stdout, "----------------------------------------------\n");
+
+    fprintf(stdout, "\n");
+
+    // For each DD specific block, grab the TOR ringSection
+    while ((block = p9_dd_next(&iter)))
+    {
+        p9_dd_betoh(block, &block_he);
+
+        rc = p9_dd_get((uint8_t*)i_ddcoImage, block_he.iv_dd, &ringSection, &ringSectionSize);
+
+        if (rc)
+        {
+            fprintf(stderr, "ERROR: Failed getting ddLevel=0x%#x sub-section from DDCO "
+                    "image w/rc=%d\n",
+                    block_he.iv_dd, rc);
+            exit(EXIT_FAILURE);
+        }
+
+        if (block_he.iv_dd != ((TorHeader_t*)ringSection)->ddLevel)
+        {
+            //Error trace and exit.
+            fprintf(stderr, "ERROR: Incorrect DD level returned from container.\n"
+                    "\tExpected:0x%#x  Got:0x%#x\n",
+                    block_he.iv_dd, ((TorHeader_t*)ringSection)->ddLevel);
+            exit(EXIT_FAILURE);
+        }
+
+        resolve_image_section_type( (void*)ringSection, imageSectionType);
+
+        if (imageSectionType != IST_TOR)
+        {
+            fprintf( stderr, "\nERROR: The DDCO sub-section's type (=%d) is not the "
+                     "TOR type (=%d).\n",
+                     imageSectionType, IST_TOR);
+            exit(EXIT_FAILURE);
+        }
+
+        // Finally, we're good. Let's put the ring section on the stack.
+        o_ringSectionPtrs.push_back((void*)ringSection);
+
+    }
+
+    return rc;
+}
+
+
 /// Function:  dissectRingSection()
 ///
 /// Brief:  Processes XIP tool input parms and prepares parameters to be passed
@@ -2353,13 +2480,13 @@ dissectRingSection(void*                      i_image,
                    const image_section_type_t i_imageSectionType)
 {
     int             rc = 0;
-    const char*     sectionName;
+    const char*     sectionName = NULL;
     const char*     listingModeName = NULL;
     uint8_t         sectionId, listingModeId;
     P9XipHeader     hostHeader;
     P9XipSection    hostSection;
     image_section_type_t l_imageSectionType = IST_UNDEFINED;
-    myBoolean_t     bEcLvlSupported = UNDEFINED_BOOLEAN;
+    MyBool_t        bEcLvlSupported = UNDEFINED_BOOLEAN;
     void*           ringSection = NULL;
     std::vector<void*>ringSectionPtrs;
 
@@ -2445,7 +2572,7 @@ dissectRingSection(void*                      i_image,
             else
             {
                 fprintf(stderr,
-                        "\nERROR : %s is an invalid ring section name.\n", sectionName);
+                        "\nERROR : %s is an invalid XIP [ring] section name.\n", sectionName);
                 fprintf(stderr, "Valid ring <section> names for the 'dissect' function are:\n");
                 fprintf(stderr, "\t.rings\n");
                 fprintf(stderr, "\t.overrides\n");
@@ -2466,64 +2593,27 @@ dissectRingSection(void*                      i_image,
 
             if( bEcLvlSupported )
             {
-                struct p9_dd_block* block;
-                struct p9_dd_block  block_he;
-
                 rc = p9_xip_get_section( i_image, sectionId, &hostSection);
 
                 if (rc)
                 {
-                    fprintf(stderr, "ERROR: error getting the multi-ec level %s section "
-                            "(rc=%d)\n", sectionName, rc);
+                    fprintf(stderr, "ERROR: Failed getting %s [DDCO] section w/rc=%d\n",
+                            sectionName, rc);
                     exit(EXIT_FAILURE);
                 }
 
-                struct p9_dd_iter iter = {NULL, 0};
+                void*  l_ddcoImage = NULL;
+                l_ddcoImage = (void*)((uint8_t*)i_image + hostSection.iv_offset);
 
-                // Initialize our iterator to the beginning of the container
-                iter.iv_cont = (struct p9_dd_cont*)(((uint8_t*)i_image) + hostSection.iv_offset);
+                rc = unpack_ddco_image( l_ddcoImage, sectionName, ringSectionPtrs);
 
-                fprintf(stdout, "\n");
-
-                fprintf(stdout, "----------------------------------------------\n");
-
-                fprintf(stdout, "*            DD container summary            *\n");
-
-                fprintf(stdout, "----------------------------------------------\n");
-
-                fprintf(stdout, "DD Container type:  %s\n", sectionName);
-
-                fprintf(stdout, "Num DD levels:      %d\n", iter.iv_cont->iv_num);
-
-                fprintf(stdout, "----------------------------------------------\n");
-
-                fprintf(stdout, "\n");
-
-                // For each DD specific block, grab the TOR ringSection
-                while ((block = p9_dd_next(&iter)))
+                if (rc)
                 {
-                    p9_dd_betoh(block, &block_he);
-
-                    rc = p9_xip_get_section(i_image, sectionId, &hostSection, block_he.iv_dd);
-
-                    if (rc)
-                    {
-                        fprintf(stderr, "ERROR: Failed getting DD specific %s section for dd=%#x "
-                                "(rc=%d)\n", sectionName, block_he.iv_dd, rc);
-                        exit(EXIT_FAILURE);
-                    }
-
-                    ringSection = (void*)(hostSection.iv_offset + (uintptr_t)i_image);
-                    ringSectionPtrs.push_back(ringSection);
-
-                    if (block_he.iv_dd != ((TorHeader_t*)ringSection)->ddLevel)
-                    {
-                        //Error trace and exit.
-                        fprintf(stderr, "ERROR: Incorrect DD level returned from container.\n\tExpected:%#x Got:%#x\n",
-                                block_he.iv_dd, ((TorHeader_t*)ringSection)->ddLevel);
-                        exit(EXIT_FAILURE);
-                    }
+                    fprintf(stderr, "ERROR: Failed unpacking DDCO image w/rc=%d\n",
+                            rc);
+                    exit(EXIT_FAILURE);
                 }
+
             }
             else
             {
@@ -2531,28 +2621,31 @@ dissectRingSection(void*                      i_image,
 
                 if (rc)
                 {
-                    fprintf( stderr, "p9_xip_get_section() failed : %s\n", P9_XIP_ERROR_STRING(g_errorStrings, rc));
+                    fprintf(stderr, "ERROR: Failed getting %s section w/rc=%d\n",
+                            sectionName, rc);
                     exit(EXIT_FAILURE);
                 }
 
                 if (hostSection.iv_offset == 0)
                 {
-                    fprintf( stdout, "Ring section (w/ID=%d) is empty. Nothing to do. Quitting.\n", sectionId);
+                    fprintf(stdout, "ERROR: Ring section (ID=%d) is empty. Nothing to do. Quitting.\n",
+                            sectionId);
                     exit(EXIT_FAILURE);
                 }
 
                 ringSection = (void*)((uintptr_t)i_image + hostSection.iv_offset);
                 ringSectionPtrs.push_back(ringSection);
-            }
 
-            resolve_image_section_type( ringSection, l_imageSectionType);
+                resolve_image_section_type( ringSection, l_imageSectionType);
 
-            if (l_imageSectionType != IST_TOR)
-            {
-                fprintf( stderr,
-                         "\nERROR:  The XIP section's ring section type (=%d) is not a TOR ring section type (=%d). Possibly, you may be attempting to dissect one of the other XIP ring section types, such as DDCO, but which have no dissect support yet.\n",
-                         l_imageSectionType, IST_TOR);
-                exit(EXIT_FAILURE);
+                if (l_imageSectionType != IST_TOR)
+                {
+                    fprintf( stderr,
+                             "\nERROR:  The XIP section's section type (=%d) is not the TOR ring section type (=%d).\n",
+                             l_imageSectionType, IST_TOR);
+                    exit(EXIT_FAILURE);
+                }
+
             }
 
             break;
@@ -2571,7 +2664,7 @@ dissectRingSection(void*                      i_image,
             else
             {
                 fprintf(stderr,
-                        "\nERROR:  The number of sub-arguments (=%d) is too few or too many for the 'dissect' command for a TOR section\n\n",
+                        "\nERROR:  The number of sub-arguments (=%d) is too few or too many for the 'dissect' command for a standalone TOR section\n\n",
                         i_argc);
                 exit(EXIT_FAILURE);
             }
@@ -2583,9 +2676,33 @@ dissectRingSection(void*                      i_image,
 
         case IST_DDCO:
 
-            fprintf(stderr,
-                    "\nERROR:  No support for standalone DDCO image section type yet.\n");
-            exit(EXIT_FAILURE);
+            if (i_argc == 0)
+            {
+                // Nothing TBD. It's legal to pass no sub-arguments to 'dissect' for standalone
+                // DDCO ring section file. Default value for listingMode will be used.
+            }
+            else if (i_argc == 1)
+            {
+                listingModeName = i_argv[0];
+            }
+            else
+            {
+                fprintf(stderr,
+                        "\nERROR:  The number of sub-arguments (=%d) is too few or too many for the 'dissect' command for a standalone DDCO section\n\n",
+                        i_argc);
+                exit(EXIT_FAILURE);
+            }
+
+            rc = unpack_ddco_image( i_image, sectionName, ringSectionPtrs);
+
+            if (rc)
+            {
+                fprintf(stderr, "ERROR: Failed unpacking DDCO image w/rc=%d\n",
+                        rc);
+                exit(EXIT_FAILURE);
+            }
+
+            break;
 
         default:
 
@@ -2782,7 +2899,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
 
     void**   l_blockPtr   = NULL;
     uint32_t l_blockSize  = 0;
-    myBoolean_t  l_bDdSupport = UNDEFINED_BOOLEAN;
+    MyBool_t l_bDdSupport = UNDEFINED_BOOLEAN;
 
     // Determine if there's rings dd support
     rc = p9_xip_dd_section_support(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_bDdSupport);
@@ -2956,12 +3073,11 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
         rc = append(i_imageFile, fd, image, i_argc - 1, &(i_argv[1]));
 
     }
-    else if ( strcmp(i_argv[0], "extract") == 0 &&
-              l_imageSectionType == IST_XIP )
+    else if ( strcmp(i_argv[0], "extract") == 0)
     {
 
         openAndMapWritable(i_imageFile, &fd, &image, i_maskIgnores);
-        rc = extract(i_imageFile, fd, image, i_argc - 1, &(i_argv[1]));
+        rc = extract(image, i_argc - 1, &(i_argv[1]), l_imageSectionType);
 
     }
     else if ( strcmp(i_argv[0], "delete") == 0 &&

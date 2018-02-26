@@ -74,7 +74,7 @@ int get_dd_level_rings_from_hw_image( char* i_hwImage,
     P9XipSection l_ringsSection;
     *o_ringBlock = NULL;
     o_blockSize = 0;
-    myBoolean_t l_bDdSupport = UNDEFINED_BOOLEAN;
+    MyBool_t l_bDdSupport = UNDEFINED_BOOLEAN;
 
     // Determine if there's rings dd support
     rc = p9_xip_dd_section_support(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_bDdSupport);
