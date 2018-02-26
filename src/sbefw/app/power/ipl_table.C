@@ -187,7 +187,6 @@ ReturnCode istepStartInstruction( voidfuncptr_t i_hwp);
 ReturnCode istepWithCoreConditional( voidfuncptr_t i_hwp);
 ReturnCode istepWithEqConditional( voidfuncptr_t i_hwp);
 ReturnCode istepNestFreq( voidfuncptr_t i_hwp);
-ReturnCode istepLpcInit( voidfuncptr_t i_hwp);
 ReturnCode istepCacheInitf( voidfuncptr_t i_hwp );
 
 //MPIPL Specific
@@ -301,7 +300,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p9_sbe_io_initf ),
              ISTEP_MAP( istepWithProc, p9_sbe_startclock_chiplets ),
              ISTEP_MAP( istepWithProc, p9_sbe_scominit ),
-             ISTEP_MAP( istepLpcInit,  p9_sbe_lpc_init ),
+             ISTEP_MAP( istepWithProc, p9_sbe_lpc_init ),
              ISTEP_MAP( istepWithProc, p9_sbe_fabricinit ),
              ISTEP_MAP( istepCheckSbeMaster, NULL ),
              ISTEP_MAP( istepWithProc, p9_sbe_mcs_setup ),
@@ -672,18 +671,6 @@ ReturnCode istepNoOp( voidfuncptr_t i_hwp)
     return FAPI2_RC_SUCCESS ;
 }
 
-//----------------------------------------------------------------------------
-ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
-{
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    assert( NULL != i_hwp );
-    if( !(SbeRegAccess::theSbeRegAccess().isSbeSlave()) )
-    {
-        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ),proc);
-    }
-    return rc;
-}
 /*
  * end PIBMEMCODE -----------------------------------------------
  */
