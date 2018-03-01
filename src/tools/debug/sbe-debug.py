@@ -31,6 +31,10 @@ import getopt
 import sys
 import binascii
 import struct
+
+from ctypes import *
+import ctypes
+
 err = False
 
 baseAddr = 0xfffe8000
@@ -84,7 +88,7 @@ def getSymbolInfo( symbol ):
     offset = int(symAddr, base = 16) - baseAddr;
     return (hex(offset), length)
 
-def createPibmemDumpFile( file_path, offset, length, output_path ): 
+def createPibmemDumpFile( file_path, offset, length, output_path ):
     fileHandle = open(file_path)
     fileHandle.seek(int(offset, 16))
     fileData = fileHandle.read(int(length, 16))
@@ -92,7 +96,7 @@ def createPibmemDumpFile( file_path, offset, length, output_path ):
     fileHandle = open(output_path +"DumpPIBMEM", 'w')
     fileHandle.write(fileData)
     fileHandle.close()
-    
+
 def getSymbolVal(target, node, proc, symbol, file_path, output_path):
     if(symbol in syms.keys()):
         offset = getOffset(symbol)
@@ -104,7 +108,7 @@ def getSymbolVal(target, node, proc, symbol, file_path, output_path):
                     " -quiet -start_byte "+str(offset)+
                     " -num_of_byte " + length +
                     " -n" + str(node) + " -p" + str(proc)+ " -path "+output_path)
-            
+
             print "cmd1: ",cmd1
             rc = os.system(cmd1)
             if ( rc ):
@@ -128,8 +132,8 @@ def collectTrace( target, node, proc, ddsuffix, file_path, output_path ):
         cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
                 str(offset) +\
                 " -num_of_byte " + length + " "
-                " -n" + str(node) + " -p" + str(proc) + " -path " + output_path)	
-        
+                " -n" + str(node) + " -p" + str(proc) + " -path " + output_path)
+
         print "cmd1:", cmd1
         rc = os.system( cmd1 )
         if ( rc ):
@@ -175,7 +179,7 @@ def forcedCollectTrace( target, node, proc, ddsuffix, file_path, output_path ):
                 str(offset) +\
                 " -num_of_byte " + length + " "
                 " -n" + str(node) + " -p" + str(proc) + " -path " + output_path)
-        
+
         print "cmd1:", cmd1
         rc = os.system( cmd1 )
         if ( rc ):
@@ -247,7 +251,7 @@ def collectAttr( target, node, proc, ddsuffix, file_path, output_path ):
                 str(offset) +\
                 " -num_of_byte " + length + " "
                 " -n" + str(node) + " -p" + str(proc) + " -path "+ output_path)
-        
+
         print "cmd1:", cmd1
         rc = os.system( cmd1 )
         if ( rc ):
@@ -262,7 +266,7 @@ def collectAttr( target, node, proc, ddsuffix, file_path, output_path ):
 
     cmd3 = ( getFilePath("p9_xip_tool")+" "+getFilePath(sbeImgFile) + " -ifs attrdump "+ output_path +"sbeAttr.bin > "+\
              output_path+"sbe_"+str(proc)+"_attrs")
-    
+
     print "cmd2:", cmd2
     rc = os.system( cmd2 )
     if ( rc ):
@@ -289,7 +293,7 @@ def collectStackUsage (target, node, proc, file_path, output_path ):
                     str(offset) +\
                     " -num_of_byte " + length + " "
                     " -n" + str(node) + " -p" + str(proc)+ " -path "+output_path)
-            
+
             print "cmd1:", cmd1
             rc = os.system( cmd1 )
             if ( rc ):
@@ -330,7 +334,7 @@ def getSbeCommit(target, node, proc, file_path, output_path ):
                 str(offset) +\
                 " -num_of_byte " + length + " "
                 " -n" + str(node) + " -p" + str(proc)+ " -path "+ output_path)
-        
+
         print "cmd1:", cmd1
         rc = os.system( cmd1 )
         if ( rc ):
@@ -341,6 +345,63 @@ def getSbeCommit(target, node, proc, file_path, output_path ):
         # Big Endian word
         word = struct.unpack('>I', f.read(4))[0]
         print "SBE commit:", hex(word)
+
+def ppeStateFfdc(target, node, proc, file_path, output_path ):
+    # Keep this structure in sync with src/sbefw/core/sbeirqregistersave.H
+    class registersave_t(BigEndianStructure):
+        _fields_ = [
+                ("version", c_uint16),
+                ("magicbyte", c_uint8),
+                ("validbyte", c_uint8),
+                ("register_SRR0", c_uint32),
+                ("register_SRR1", c_uint32),
+                ("register_ISR", c_uint32),
+                ("register_FI2C_CONFIG_LOWER_32BITS", c_uint32),
+                ("register_FI2C_CONFIG_UPPER_32BITS", c_uint32),
+                ("register_FI2C_STAT_LOWER_32BITS", c_uint32),
+                ("register_FI2C_STAT_UPPER_32BITS", c_uint32),
+                ("register_LR", c_uint32),
+                ]
+    ppestateffdc = registersave_t()
+
+    (offset, length) = getSymbolInfo( '__g_register_ffdc' );
+    if(target == 'FILE'):
+        createPibmemDumpFile(file_path, offset, length, output_path)
+    else:
+        cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
+                str(offset) +\
+                " -num_of_byte " + length + " "
+                " -n" + str(node) + " -p" + str(proc)+ " -path "+ output_path)
+
+        print "cmd1:", cmd1
+        rc = os.system( cmd1 )
+        if ( rc ):
+            print "ERROR running %s: %d " % ( cmd1, rc )
+            return 1
+
+    with open(output_path+"DumpPIBMEM", "rb") as f:
+        data = f.read()
+        ctypes.memmove(ctypes.addressof(ppestateffdc), data, ctypes.sizeof(ppestateffdc))
+
+        print '''
+---------------------------------------------------------------------------------
+Please verify sbe_DD2.syms is valid for this dump, before depending on the values
+---------------------------------------------------------------------------------'''
+        if ppestateffdc.validbyte == 0x1 and ppestateffdc.magicbyte == 0xA5:
+            print "ppestateffdc.version                             0x%04X" % ppestateffdc.version
+            print "ppestateffdc.magicbyte                           0x%02X" % ppestateffdc.magicbyte
+            print "ppestateffdc.validbyte                           0x%02X" % ppestateffdc.validbyte
+            print "ppestateffdc.register_SRR0                       0x%08X" % ppestateffdc.register_SRR0
+            print "ppestateffdc.register_SRR1                       0x%08X" % ppestateffdc.register_SRR0
+            print "ppestateffdc.register_ISR                        0x%08X" % ppestateffdc.register_ISR
+            print "ppestateffdc.register_FI2C_CONFIG_LOWER_32BITS   0x%08X" % ppestateffdc.register_FI2C_CONFIG_LOWER_32BITS
+            print "ppestateffdc.register_FI2C_CONFIG_UPPER_32BITS   0x%08X" % ppestateffdc.register_FI2C_CONFIG_UPPER_32BITS
+            print "ppestateffdc.register_FI2C_STAT_LOWER_32BITS     0x%08X" % ppestateffdc.register_FI2C_STAT_LOWER_32BITS
+            print "ppestateffdc.register_FI2C_STAT_UPPER_32BITS     0x%08X" % ppestateffdc.register_FI2C_STAT_UPPER_32BITS
+            print "ppestateffdc.register_LR                         0x%08X" % ppestateffdc.register_LR
+        else:
+            print "Register ffdc is not valid, probably SBE has not hit any internal halt condition"
+        print '''---------------------------------------------------------------------------------'''
 
 def ppeState( target, node, proc, file_path ):
     if(target == 'FILE'):
@@ -544,26 +605,30 @@ def parsevalue(iValue):
     tempVal = iValue[28:34]
     print "Reserved Bit [26:31] : %s" %(tempVal)
 
-LEVELS_ARRAY = ('trace', 'forced-trace','attr','stack','ppestate','sbestate','sbestatus','sbelocalregister', 'sym', 'sbecommit')
+LEVELS_ARRAY = ('trace', 'forced-trace','attr','stack','ppestate','sbestate',
+                'sbestatus','sbelocalregister', 'sym', 'sbecommit', 'ppestateffdc')
 
 def usage():
-    print "usage: testarg.py [-h] [-l {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister, sym}]\n\
-\t\t\t\t[-t {AWAN,HW,FILE}] [-n NODE] [-p PROC] [-s SYMBOL] [-f FILE_PATH]\n\
-\n\
-SBE Dump Parser\n\
-\n\
-optional arguments:\n\
-  -h, --help            show this help message and exitn\n\
-  -l "+str(LEVELS_ARRAY)+", --level "+str(LEVELS_ARRAY)+"\n\
-                        Parser level\n\
-  -t {AWAN,HW,FILE}, --target {AWAN,HW,FILE}\n\
-                        Target type\n\
-  -n NODE, --node NODE  Node Number\n\
-  -p PROC, --proc PROC  Proc Number\n\
-  -d DDLEVEL, --ddlevel DD Specific image identifier\n\
-  -s SYMBOL, --symbol  Get value of symbol from PIBMEM for level 'sym'\n\
-  -f FILE_PATH, --file_path FILE_PATH Path of the file if Target is FILE\n\
-  -o Output_path, --output_path Path to put the outfiles"
+    print(
+    '''
+usage: testarg.py [-h] [-l {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister, sym}]
+[-t {AWAN,HW,FILE}] [-n NODE] [-p PROC] [-s SYMBOL] [-f FILE_PATH]
+
+SBE Dump Parser
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -l, --level           Parser level
+                        '''+str(LEVELS_ARRAY)+'''
+  -t, --target          Target type
+                        {AWAN,HW,FILE}
+  -n, --node NODE       Node Number
+  -p, --proc PROC       Proc Number
+  -d, --ddlevel         DD Specific image identifier
+  -s, --symbol          Get value of symbol from PIBMEM for level 'sym'
+  -f, --file_path       Path of the file if Target is FILE
+  -o, --output_path     Path to put the outfiles
+  ''')
 
 def main( argv ):
     try:
@@ -690,6 +755,9 @@ def main( argv ):
     elif ( level == 'sbecommit' ):
         fillSymTable(target, ddsuffix)
         getSbeCommit(target, node, proc, file_path, output_path)
+    elif ( level == 'ppestateffdc' ):
+        fillSymTable(target, ddsuffix)
+        ppeStateFfdc(target, node, proc, file_path, output_path)
 
     if(target != 'FILE'):
         # On cronus, set the FIFO mode to previous state
