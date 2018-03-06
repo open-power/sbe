@@ -96,6 +96,7 @@ enum sbePsuUpdateMemoryRegionMessages
  */
 enum sbePsuGenericMessages
 {
+    SBE_PSU_GENERIC_MSG_GET_CAPABILITIES   = 0x02,
     SBE_PSU_GENERIC_MSG_READ_SBE_MEM       = 0x03,
     SBE_PSU_GENERIC_MSG_SET_FFDC_ADDR      = 0x04,
     SBE_PSU_GENERIC_MSG_QUIESCE            = 0x05,
@@ -131,6 +132,75 @@ enum sbeUnsecureMemRegionControlFlags
     SBE_MEM_REGION_OPEN_RO = 0x0011,
     SBE_MEM_REGION_OPEN_RW = 0x0012,
     SBE_MEM_REGION_CLOSE   = 0x0020,
+};
+
+/**
+  * @brief capabilities index values.
+  *        Get Capability response will return 18 capabilities. This
+  *        enum tells the index for each capability. Currently each generic
+  *        functionality( scom, IPL ) etc span across two capabilities.
+  */
+enum PSU_CAPABILITIES_INDEX
+{
+    PSU_GENERIC_CAPABILTITY_START_IDX           = 0,
+    PSU_CORE_CONTROL_CAPABILITY_START_IDX       = 2,
+    PSU_SCOM_CAPABILITY_START_IDX               = 4,
+    PSU_RING_CAPABILITY_START_IDX               = 6,
+    PSU_TIMER_CAPABILITY_START_IDX              = 8,
+    PSU_MPIPL_CAPABILITY_START_IDX              = 10,
+    PSU_SECURITY_CONTROL_CAPABILITY_START_IDX   = 12,
+    PSU_GENERIC_CHIPOP_CAPABILITY_START_IDX     = 14,
+    // Keep in sync with the spec
+    CAPABILITIES_LAST_INDEX_PSU                 = 15,
+};
+/**
+  * @brief capabilities enum values.
+  *
+  */
+enum PSU_CAPABILITIES
+{
+    // Capabilities 0, 1
+    PSU_HWP_FFDC_COLLECTION_SUPPORTED       = 0xD0000001,
+    PSU_SBE_FFDC_COLLECTION_SUPPORTED       = 0xD0000002,
+    PSU_ADDRESS_BLACKLIST_SUPPORTED         = 0xD0000004,
+    PSU_HOST_COMMAND_INTERFACE_SUPPORTED    = 0xD0000008,
+    PSU_SP_LESS_MPIPL_SUPPORTED             = 0xD0000010,
+    PSU_RESERVED_0                          = 0xD0000000,
+
+    // Capabilities 2, 3
+    PSU_CONTROL_DEADMAN_LOOP                = 0xD1000001,
+    PSU_RESERVED_1                          = 0xD1000000,
+
+    // Capabilities 4, 5
+    PSU_EXECUTE_MULTI_SCOM_SUPPORTED        = 0xD2000001,
+    PSU_RESERVED_2                          = 0xD2000000,
+
+    // Capabilites 6, 7
+    PSU_PUT_RING_FROM_IMAGE_SUPPORTED       = 0xD3000001,
+    PSU_RESERVED_3                          = 0xD3000000,
+
+    // Capabilities 8, 9
+    PSU_CONTROL_TIMER_SUPPORTED             = 0xD4000001,
+    PSU_RESERVED_4                          = 0xD4000000,
+
+    // Capabilities 10, 11
+    PSU_GET_ARCHITECTED_REG_SUPPORTED       = 0xD5000001,
+    PSU_CLEAR_ARCHITECTED_REG_SUPPORTED     = 0xD5000002,
+    PSU_RESERVED_5                          = 0xD5000000,
+
+    // Capabilities 12, 13
+    PSU_UNSECURE_MEM_REGION_SUPPORTED       = 0xD6000001,
+    PSU_RESERVED_6                          = 0xD6000000,
+
+    // Capabilities 14, 15
+    PSU_GET_SBE_FFDC_SUPPPORTED             = 0xD7000001,
+    PSU_GET_SBE_CAPABILITIES_SUPPPORTED     = 0xD7000002,
+    PSU_READ_SBE_SEEPROM_SUPPORTED          = 0xD7000004,
+    PSU_SET_FFDC_ADDRESS_SUPPORTED          = 0xD7000008,
+    PSU_QUISCE_SUPPORTED                    = 0xD7000010,
+    PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED  = 0xD7000020,
+    PSU_STASH_MPIPL_CONFIG_SUPPORTED        = 0xD7000040,
+    PSU_RESERVED_7                          = 0xD7000000,
 };
 
 #endif // __SBEFW_SBE_HOST_INTF_H

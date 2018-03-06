@@ -91,14 +91,30 @@ typedef struct stashMsg
     uint64_t addr;
 }stashMsg_t;
 
+// SBE PSU get capabilities request
+typedef struct
+{
+    uint64_t size;
+    uint64_t address;
+} sbePsuGetCapabilitiesReq_t;
+
 /**
  * @brief Update Fifo capabilities
  *
- * @param[in] capability Pointer to capcbility array
+ * @param[in] capability Pointer to capability array
  *
  * @return void
  */
 void updateFifoCapabilities(uint32_t * capability);
+
+/**
+ * @brief Update PSU capabilities
+ *
+ * @param[in] capability Pointer to capability array
+ *
+ * @return void
+ */
+void updatePsuCapabilities(uint32_t * capability);
 
 /**
   * @brief retrieve SBE FFDC on request from FSP.  (0xA801)
@@ -162,6 +178,7 @@ uint32_t sbeSetSystemFabricMap(uint8_t *i_pArg);
   * @return    Rc from the Psu access utility
   */
 uint32_t sbeStashKeyAddrPair(uint8_t *i_pArg);
+
 /**
   * @brief Read the data from SBE memory (0xD703)
   *
@@ -170,3 +187,12 @@ uint32_t sbeStashKeyAddrPair(uint8_t *i_pArg);
   * @return    Rc from the Psu access utility
   */
 uint32_t sbeReadMem(uint8_t *i_pArg);
+
+/**
+ * @brief SBE Psu get capabilities(0xD702)
+ *
+ * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+ *
+ * @return    Rc from the Psu access utility
+ */
+uint32_t sbePsuGetCapabilities(uint8_t *i_pArg);

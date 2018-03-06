@@ -50,6 +50,36 @@ using namespace fapi2;
 
 #ifdef __SBEFW_SEEPROM__
 
+void updatePsuCapabilities(uint32_t * capability)
+{
+    capability[PSU_GENERIC_CAPABILTITY_START_IDX] =
+                                      PSU_HWP_FFDC_COLLECTION_SUPPORTED |
+                                      PSU_SBE_FFDC_COLLECTION_SUPPORTED |
+                                      PSU_ADDRESS_BLACKLIST_SUPPORTED |
+                                      PSU_HOST_COMMAND_INTERFACE_SUPPORTED;
+
+    capability[PSU_CORE_CONTROL_CAPABILITY_START_IDX] =
+                                      PSU_CONTROL_DEADMAN_LOOP;
+
+    capability[PSU_RING_CAPABILITY_START_IDX] =
+                                      PSU_PUT_RING_FROM_IMAGE_SUPPORTED;
+
+    capability[PSU_TIMER_CAPABILITY_START_IDX] =
+                                      PSU_CONTROL_TIMER_SUPPORTED;
+
+    capability[PSU_SECURITY_CONTROL_CAPABILITY_START_IDX] =
+                                      PSU_UNSECURE_MEM_REGION_SUPPORTED;
+
+    capability[PSU_GENERIC_CHIPOP_CAPABILITY_START_IDX] =
+                                      PSU_GET_SBE_FFDC_SUPPPORTED |
+                                      PSU_GET_SBE_CAPABILITIES_SUPPPORTED |
+                                      PSU_READ_SBE_SEEPROM_SUPPORTED |
+                                      PSU_SET_FFDC_ADDRESS_SUPPORTED |
+                                      PSU_QUISCE_SUPPORTED |
+                                      PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED |
+                                      PSU_STASH_MPIPL_CONFIG_SUPPORTED;
+
+}
 void updateFifoCapabilities(uint32_t * capability)
 {
     // @TODO via RTC : 160602
@@ -90,4 +120,3 @@ void updateFifoCapabilities(uint32_t * capability)
 
 #ifndef __SBEFW_SEEPROM__
 #endif //not __SBEFW_SEEPROM__
-

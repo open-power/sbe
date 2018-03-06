@@ -291,7 +291,12 @@ CMD_ARR(
 //////////////////////////////////////////////////////////////
 CMD_ARR(
     D7,
-   {sbeReadMem,
+    {sbePsuGetCapabilities,
+     SBE_PSU_GENERIC_MSG_GET_CAPABILITIES,
+     SBE_NO_FENCE,
+    },
+
+    {sbeReadMem,
      SBE_PSU_GENERIC_MSG_READ_SBE_MEM,
      SBE_NO_FENCE,
     },

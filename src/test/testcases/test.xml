@@ -40,6 +40,10 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testPutGetMem.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testPSUSetFFDCAddr.xml</include>
+          <testcase>
+              <simcmd>run-python-file targets/p9_nimbus/sbeTest/testPSUGetCapabilities.py</simcmd>
+              <exitonerror>yes</exitonerror>
+          </testcase>
           <include>../simics/targets/p9_nimbus/sbeTest/testSram.xml</include>
           <!-- we want to start hostboot after our memory testcases -->
           <testcase>

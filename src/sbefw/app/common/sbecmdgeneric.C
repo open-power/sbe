@@ -42,6 +42,7 @@
 #include "sbeHostUtils.H"
 #include "sbeglobals.H"
 #include "sbeXipUtils.H"
+#include "sbeMemAccessInterface.H"
 
 #include "fapi2.H"
 //#include "p9_xip_image.h"
@@ -54,6 +55,10 @@ static const uint32_t SBE_CAPABILITES_LEN_FIFO  =
             sizeof(sbeCapabilityRespMsg_t) -
             (sizeof(uint32_t) *
              (SBE_MAX_CAPABILITIES - CAPABILITIES_LAST_INDEX_FIFO - 1));
+static const uint32_t SBE_CAPABILITES_LEN_PSU  =
+            sizeof(sbeCapabilityRespMsg_t) -
+            (sizeof(uint32_t) *
+             (SBE_MAX_CAPABILITIES - CAPABILITIES_LAST_INDEX_PSU - 1));
 
 sbeCapabilityRespMsg::sbeCapabilityRespMsg() : capability{}
 {
@@ -69,6 +74,68 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg() : capability{}
 }
 // Functions
 //----------------------------------------------------------------------------
+uint32_t sbePsuGetCapabilities(uint8_t *i_pArg)
+{
+    #define SBE_FUNC "sbePsuGetCapabilities "
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
+
+    sbePsuGetCapabilitiesReq_t req = {};
+
+    sbeCapabilityRespMsg_t capMsg;
+    updatePsuCapabilities(capMsg.capability);
+
+    do
+    {
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                  sizeof(req)/sizeof(uint64_t),
+                                  (uint64_t*)&req,
+                                  true);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        SBE_DEBUG(SBE_FUNC "at addr[0x%08X%08X] len[0x%08X%08X]",
+                    SBE::higher32BWord(req.address),
+                    SBE::lower32BWord(req.address),
+                    SBE::higher32BWord(req.size),
+                    SBE::lower32BWord(req.size));
+
+        if((req.size < SBE_CAPABILITES_LEN_PSU) ||
+                (req.size % sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES))
+        {
+            SBE_ERROR(SBE_FUNC " incorrect memory allocation");
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_DATA,
+                                                    SBE_SEC_INVALID_PARAMS);
+            break;
+        }
+        p9_PBA_oper_flag l_myPbaFlag;
+        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ);
+
+        sbeMemAccessInterface l_PBAInterface(
+                                SBE_MEM_ACCESS_PBA,
+                                req.address,
+                                &l_myPbaFlag,
+                                SBE_MEM_ACCESS_WRITE,
+                                sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
+        l_fapiRc = l_PBAInterface.accessWithBuffer(
+                                            &capMsg,
+                                            SBE_CAPABILITES_LEN_PSU,
+                                            true);
+        if(l_fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "failed in writing to host memory");
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(
+                                     SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            break;
+        }
+    } while(false);
+
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, rc);
+    return rc;
+    #undef SBE_FUNC
+}
+
 uint32_t sbeGetCapabilities (uint8_t *i_pArg)
 {
     #define SBE_FUNC "sbeGetCapabilities "
@@ -490,4 +557,3 @@ uint32_t sbeReadMem( uint8_t *i_pArg )
     #undef SBE_FUNC
 }
 #endif //not __SBEFW_SEEPROM__
-
