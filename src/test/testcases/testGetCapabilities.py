@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -50,6 +50,8 @@ EXPDATA2 = [0xa4,0x0,0x0,0x0f, #GetMemPba/PutMemPba/GetSramOcc/PutSramOcc
 
 EXPDATA3 = [0xa8,0x0,0x0,0x13, #getcapability/getSbeFFDC/quiesce
            0x0,0x0,0x0,0x0,
+           0, 0, 0, 0, #MPIPL related
+           0, 0, 0, 0,
            0xc0,0xde,0xa8,0x02,
            0x0,0x0,0x0,0x0,
            0x00,0x0,0x0,0x3];

@@ -49,25 +49,9 @@
 using namespace fapi2;
 
 #ifdef __SBEFW_SEEPROM__
-// Forward declaration
-sbeCapabilityRespMsg::sbeCapabilityRespMsg()
-{
-    verMajor= SBE_FW_MAJOR_VERSION;
-    verMinor = SBE_FW_MINOR_VERSION;
-    fwCommitId = SBE_COMMIT_ID;
-    // Get hbbl section
-    P9XipHeader *hdr = getXipHdr();
-    for(uint32_t idx=0; idx<sizeof(hdr->iv_buildTag); idx++)
-    {
-        buildTag[idx] = hdr->iv_buildTag[idx];
-    }
 
-    // We can remove this for llop once all capabilities
-    // are supported
-    for(uint32_t idx = 0; idx < SBE_MAX_CAPABILITIES; idx++ )
-    {
-        capability[idx] = 0;
-    }
+void updateFifoCapabilities(uint32_t * capability)
+{
     // @TODO via RTC : 160602
     // Update Capability flags based on lastes spec.
     capability[IPL_CAPABILITY_START_IDX] =

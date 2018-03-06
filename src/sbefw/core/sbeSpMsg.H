@@ -503,8 +503,8 @@ typedef struct
     uint32_t len;                   // Length of Data in Bytes
 }sbeOccSramAccessReqMsgHdr_t;
 
-// Maximum number of capabilities
-static const uint32_t SBE_MAX_CAPABILITIES = 18;
+// Maximum number of capabilities - max of FIFO and PSU capabilities
+static const uint32_t SBE_MAX_CAPABILITIES      = 20;
 
 /**
   * @brief structure for SBE Get Capabilities chipop (0xA802) contents.

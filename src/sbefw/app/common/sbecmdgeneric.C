@@ -49,6 +49,24 @@
 using namespace fapi2;
 
 #ifdef __SBEFW_SEEPROM__
+
+static const uint32_t SBE_CAPABILITES_LEN_FIFO  =
+            sizeof(sbeCapabilityRespMsg_t) -
+            (sizeof(uint32_t) *
+             (SBE_MAX_CAPABILITIES - CAPABILITIES_LAST_INDEX_FIFO - 1));
+
+sbeCapabilityRespMsg::sbeCapabilityRespMsg() : capability{}
+{
+    verMajor= SBE_FW_MAJOR_VERSION;
+    verMinor = SBE_FW_MINOR_VERSION;
+    fwCommitId = SBE_COMMIT_ID;
+    // Get xip header
+    P9XipHeader *hdr = getXipHdr();
+    for(uint32_t idx=0; idx<sizeof(hdr->iv_buildTag); idx++)
+    {
+        buildTag[idx] = hdr->iv_buildTag[idx];
+    }
+}
 // Functions
 //----------------------------------------------------------------------------
 uint32_t sbeGetCapabilities (uint8_t *i_pArg)
@@ -59,6 +77,7 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
     sbeRespGenHdr_t respHdr;
     respHdr.init();
     sbeCapabilityRespMsg_t capMsg;
+    updateFifoCapabilities(capMsg.capability);
 
     do
     {
@@ -73,7 +92,7 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
             break;
         }
 
-        len = sizeof(capMsg)/sizeof(uint32_t);
+        len = SBE_CAPABILITES_LEN_FIFO / sizeof(uint32_t);
         rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &capMsg);
         if (rc)
         {

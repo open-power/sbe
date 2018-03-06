@@ -92,6 +92,15 @@ typedef struct stashMsg
 }stashMsg_t;
 
 /**
+ * @brief Update Fifo capabilities
+ *
+ * @param[in] capability Pointer to capcbility array
+ *
+ * @return void
+ */
+void updateFifoCapabilities(uint32_t * capability);
+
+/**
   * @brief retrieve SBE FFDC on request from FSP.  (0xA801)
   *
   * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
