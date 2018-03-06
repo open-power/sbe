@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -27,9 +28,7 @@
  * @brief This file contains the SBE Generic command details
  *
  */
-
-#ifndef __SBEFW_SBECMDGENERIC_H
-#define __SBEFW_SBECMDGENERIC_H
+#pragma once
 
 #include <stdint.h>
 #include <p9_sbe_hb_structures.H>
@@ -154,5 +153,11 @@ uint32_t sbeSetSystemFabricMap(uint8_t *i_pArg);
   * @return    Rc from the Psu access utility
   */
 uint32_t sbeStashKeyAddrPair(uint8_t *i_pArg);
-
-#endif // __SBEFW_SBECMDGENERIC_H
+/**
+  * @brief Read the data from SBE memory (0xD703)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the Psu access utility
+  */
+uint32_t sbeReadMem(uint8_t *i_pArg);

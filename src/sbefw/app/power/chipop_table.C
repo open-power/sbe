@@ -44,6 +44,7 @@
 #include "sbecmdfastarray.H"
 
 #include "core/chipop_handler.H"
+#include "app/common/sbecmdgeneric.H"
 
 #include "power/istep.H"
 
