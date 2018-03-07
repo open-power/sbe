@@ -36,6 +36,10 @@ void captureAsyncFFDC(uint32_t primRc, uint32_t secRc)
     SBE_GLOBAL->failedPrimStatus = primRc;
     SBE_GLOBAL->failedSecStatus  = secRc;
 
+    // Transition to dump state
+    (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                           SBE_DUMP_FAILURE_EVENT);
+
     // Set async ffdc bit
     (void)SbeRegAccess::theSbeRegAccess().updateAsyncFFDCBit(true);
 }

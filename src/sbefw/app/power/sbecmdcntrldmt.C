@@ -69,8 +69,9 @@ void sbeDmtPkExpiryCallback(void *)
     SBE_INFO (SBE_FUNC "DMT Callback Timer has expired..Checkstop the system");
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
-    (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                            SBE_DUMP_FAILURE_EVENT);
+    // SBE async ffdc
+    captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                     SBE_SEC_DMT_TIMEOUT);
 
     // check stop the system
     plat_target_handle_t l_hndl;
@@ -83,8 +84,6 @@ void sbeDmtPkExpiryCallback(void *)
         pk_halt();
     }
 
-    captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                     SBE_SEC_DMT_TIMEOUT);
     #undef SBE_FUNC
 }
 
