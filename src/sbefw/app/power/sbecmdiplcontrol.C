@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -103,6 +104,21 @@ ReturnCode performTpmReset()
         constexpr uint64_t tpmBitMask = 0x0008000000000000ULL;
         plat_target_handle_t tgtHndl;
         uint64_t regData = 0;
+
+        // Clear TPM deconfig bit here.
+        // It is possible that PHYP did TPM deconfig. start cbs clears this
+        // bit. But in MPIPL this bit is not cleared, so HB IPL will fail.
+        // bit 12 of PU_SECURITY_SWITCH_REGISTER_SCOM1 clear TPM deconfig
+        // state.
+        constexpr uint64_t tpmDeconfigMask = 0x0008000000000000ULL;
+        rc = putscom_abs_wrap(&tgtHndl, PU_SECURITY_SWITCH_REGISTER_SCOM1,
+                              tpmDeconfigMask);
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC" Failed to clear TPM deconfig bit");
+            break;
+        }
+
         rc = getscom_abs_wrap (&tgtHndl,
                                PU_PRV_MISC_PPE,
                                &regData);
