@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -91,11 +91,18 @@ def register_sbe_debug_framework_tools():
                  type = ["sbe-commands"],
                  short = "Runs the debug framework for runtime attribute dump ",
                  doc = "")
+    new_command("sbe-regffdc", collectRegFfdc,
+                 args = [arg(int_t, "procNr")],
+                 alias = "sregffdc",
+                 type = ["sbe-commands"],
+                 short = "Runs the debug framework for register ffdc ",
+                 doc = "")
     print "SBE Debug Framework: Registered tool:", "sbe-istep"
     print "SBE Debug Framework: Registered tool:", "sbe-trace"
     print "SBE Debug Framework: Registered tool:", "sbe-stack"
     print "SBE Debug Framework: Registered tool:", "sbe-ddlevel"
     print "SBE Debug Framework: Registered tool:", "sbe-attrdump"
+    print "SBE Debug Framework: Registered tool:", "sbe-regffdc"
 
 
 def fillSymTable():
@@ -139,13 +146,28 @@ def collectStackUsage ( procNr ):
         print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
 
 def collectAttr( procNr ):
-  cmd1= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> pibmemdump.bin\""
+  cmd1= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
   ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
   if ( rc ):
     print "simics ERROR running %s: %d "%( cmd1, rc )
   ddlevel = get_dd_level(procNr)
-  sbeDebug.fillSymTable('FILE', ddlevel)
-  sbeDebug.collectAttr('FILE', 0, procNr, ddlevel, 'pibmemdump.bin')
+  sbeDebug.ddsuffix = ddlevel
+  sbeDebug.target = 'FILE'
+  sbeDebug.file_path = 'DumpFullPIBMEM'
+  sbeDebug.fillSymTable()
+  sbeDebug.collectAttr()
+
+def collectRegFfdc( procNr ):
+  cmd1= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
+  if ( rc ):
+    print "simics ERROR running %s: %d "%( cmd1, rc )
+  ddlevel = get_dd_level(procNr)
+  sbeDebug.ddsuffix = ddlevel
+  sbeDebug.target = 'FILE'
+  sbeDebug.file_path = 'DumpFullPIBMEM'
+  sbeDebug.fillSymTable()
+  sbeDebug.ppeStateFfdc()
 
 def collectTrace ( procNr ):
   fileName = "sbe_" + `procNr` + "_tracMERG"

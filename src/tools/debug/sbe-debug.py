@@ -46,6 +46,18 @@ if 'SBE_TOOLS_PATH' in os.environ:
 # preference is SBE_TOOLS_PATH, current woring directory and then system path
 PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']
 
+target = 'HW'
+node = 0
+proc = 0
+ddsuffix = 'DD2'
+file_path = ""
+output_path = os.getcwd()+"/"
+
+'''
+-----------------------------------------------------------------------------
+                        Internal helper functions
+-----------------------------------------------------------------------------
+'''
 def getFilePath(filename):
     for dir in PATH.split(os.pathsep):
         retPath = os.path.join(dir, filename)
@@ -60,22 +72,19 @@ def getTraceFilePath():
         fspTrace = "fsp-trace"
     return fspTrace
 
-def fillSymTable(target, ddsuffix ):
-    if (target == 'AWAN'):
-        symFile = getFilePath("sim.sbe.syms")
-    else:
-        symFile = getFilePath("sbe_"+ddsuffix+".syms")
-    f = open( symFile, 'r' )
-    for line in f:
-        words = line.split()
-        if( len( words ) == 4 ):
-            syms[words[3]] = [words[0], words[1]]
-
-def getOffset( symbol ):
-    symAddr = syms[ symbol][0]
-    print "\n symAddress :", symAddr
-    offset = int(symAddr, base = 16) - baseAddr;
-    return hex(offset)
+def fillSymTable():
+    try:
+        if (target == 'AWAN'):
+            symFile = getFilePath("sim.sbe.syms")
+        else:
+            symFile = getFilePath("sbe_"+ddsuffix+".syms")
+        f = open( symFile, 'r' )
+        for line in f:
+            words = line.split()
+            if( len( words ) == 4 ):
+                syms[words[3]] = [words[0], words[1]]
+    except:
+        print "Symbol file not found, limited commands avaliable"
 
 def getSymbolInfo( symbol ):
     symAddr = ''
@@ -88,8 +97,10 @@ def getSymbolInfo( symbol ):
     offset = int(symAddr, base = 16) - baseAddr;
     return (hex(offset), length)
 
-def createPibmemDumpFile( file_path, offset, length, output_path ):
-    fileHandle = open(file_path)
+def createPibmemDumpFile( offset, length, input_file=None):
+    if input_file is None:
+        input_file = file_path
+    fileHandle = open(input_file)
     fileHandle.seek(int(offset, 16))
     fileData = fileHandle.read(int(length, 16))
     fileHandle.close()
@@ -97,94 +108,57 @@ def createPibmemDumpFile( file_path, offset, length, output_path ):
     fileHandle.write(fileData)
     fileHandle.close()
 
-def getSymbolVal(target, node, proc, symbol, file_path, output_path):
-    if(symbol in syms.keys()):
-        offset = getOffset(symbol)
-        length = '0x'+syms[symbol][1]
-        if(target == 'FILE'):
-            createPibmemDumpFile(file_path, offset, length, output_path)
-        else:
-            cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+
-                    " -quiet -start_byte "+str(offset)+
-                    " -num_of_byte " + length +
-                    " -n" + str(node) + " -p" + str(proc)+ " -path "+output_path)
+def createPibmemDump(offset, length):
+    invokeOsCmd( getFilePath("p9_pibmem_dump_wrap.exe")+
+            " -quiet -start_byte "+str(offset)+
+            " -num_of_byte " + length +
+            " -n" + str(node) + " -p" + str(proc)+ " -path "+output_path )
 
-            print "cmd1: ",cmd1
-            rc = os.system(cmd1)
-            if ( rc ):
-                print "ERROR running %s: %d " % ( cmd1, rc )
-                return 1
-        cmd2 = ("hexdump -C "+ output_path +"DumpPIBMEM")
-        rc = os.system(cmd2)
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd2, rc )
-            return 1
+
+def getSymbolVal(symbol, hexdump=False):
+    (offset, length) = getSymbolInfo( symbol )
+    if(length != 0):
+        if(target == 'FILE'):
+            createPibmemDumpFile(offset, length)
+        else:
+            createPibmemDump( offset, length )
+        if hexdump:
+            invokeOsCmd( "hexdump -C "+ output_path +"DumpPIBMEM" )
     else:
         print "symbol not found"
 
-def collectTrace( target, node, proc, ddsuffix, file_path, output_path ):
-    offset = getOffset( 'g_pk_trace_buf' );
-    length = "0x" + syms['g_pk_trace_buf'][1];
-    print "\ncollecting trace with commands -\n"
-    if(target == 'FILE'):
-        createPibmemDumpFile(file_path, offset, length, output_path);
-    else:
-        cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
-                str(offset) +\
-                " -num_of_byte " + length + " "
-                " -n" + str(node) + " -p" + str(proc) + " -path " + output_path)
+def invokeOsCmd(cmd):
+    print "Running command [" + cmd + "]"
+    rc = os.system( cmd )
+    if ( rc ):
+       print "ERROR running command: %d " % ( rc )
+       return 1
 
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
+'''
+--------------------------------------------------------------------------------
+                Command functions
+--------------------------------------------------------------------------------
+'''
+def collectTrace():
+    getSymbolVal('g_pk_trace_buf' )
 
-    cmd2 = getFilePath("ppe2fsp")+ " " + output_path + "DumpPIBMEM "+\
-            output_path +"sbetrace.bin "
-    cmd3 = (getTraceFilePath() + " -s " +
+    invokeOsCmd( getFilePath("ppe2fsp")+ " " + output_path + "DumpPIBMEM "+\
+            output_path +"sbetrace.bin " )
+    invokeOsCmd( getTraceFilePath() + " -s " +
             getFilePath("sbeStringFile_"+ddsuffix)+ " "+ output_path +"sbetrace.bin > "+\
-            output_path+"sbe_"+str(proc)+"_tracMERG")
-
-    cmd4 = "mv " + output_path +"DumpPIBMEM "+\
-            output_path +"dumpPibMem_trace"
-    print "cmd2:", cmd2
-    rc = os.system( cmd2 )
-    if ( rc ):
-       print "ERROR running %s: %d " % ( cmd2, rc )
-       return 1
-
-    print "cmd3:", cmd3
-    rc = os.system( cmd3 )
-    if ( rc ):
-       print "ERROR running %s: %d " % ( cmd3, rc )
-       return 1
-
-    print "cmd4:", cmd4
-    rc = os.system( cmd4 )
-    if ( rc ):
-       print "ERROR running %s: %d " % ( cmd4, rc )
-       return 1
+            output_path+"sbe_"+str(proc)+"_tracMERG" )
+    invokeOsCmd( "mv " + output_path +"DumpPIBMEM "+\
+            output_path +"dumpPibMem_trace" )
 
 # Can be used if proper sbe symbol files are not available
-def forcedCollectTrace( target, node, proc, ddsuffix, file_path, output_path ):
+def forcedCollectTrace():
     # Collect entire PIBMEM
     offset = "0x00" # PIBMEM BASE
     length = "0x16400"
-    print "\ncollecting trace with commands -\n"
     if(target == 'FILE'):
-        createPibmemDumpFile(file_path, offset, length, output_path);
+        createPibmemDumpFile( offset, length );
     else:
-        cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
-                str(offset) +\
-                " -num_of_byte " + length + " "
-                " -n" + str(node) + " -p" + str(proc) + " -path " + output_path)
-
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
+        createPibmemDump( offset, length )
 
     # find offset of trace buffer in PIBMEM dump
     # version = 0x00 0x02
@@ -209,104 +183,40 @@ def forcedCollectTrace( target, node, proc, ddsuffix, file_path, output_path ):
 
     offset = "0x%x" % (trace_index)
     length = "0x1000"
-    createPibmemDumpFile(output_path+"DumpPIBMEM", offset, length, output_path);
-    cmd2 = getFilePath("ppe2fsp")+ " " + output_path + "DumpPIBMEM "+\
-            output_path +"sbetrace.bin "
+    createPibmemDumpFile( offset, length, output_path+"DumpPIBMEM");
+    invokeOsCmd( getFilePath("ppe2fsp")+ " " + output_path + "DumpPIBMEM "+\
+            output_path +"sbetrace.bin " )
 
-    cmd3 = (getTraceFilePath() + " -s " +
+    invokeOsCmd( getTraceFilePath() + " -s " +
             getFilePath("sbeStringFile_"+ddsuffix)+" "+ output_path +"sbetrace.bin > "+\
-            output_path+"sbe_"+str(proc)+"_tracMERG")
-    cmd4 = "mv "+ output_path +"DumpPIBMEM "+\
-            output_path +"dumpPibMem_trace"
-    print "cmd2:", cmd2
-    rc = os.system( cmd2 )
-    if ( rc ):
-       print "ERROR running %s: %d " % ( cmd2, rc )
-       return 1
+            output_path+"sbe_"+str(proc)+"_tracMERG" )
+    invokeOsCmd( "mv "+ output_path +"DumpPIBMEM "+\
+            output_path +"dumpPibMem_trace" )
 
-    print "cmd3:", cmd3
-    rc = os.system( cmd3 )
-    if ( rc ):
-       print "ERROR running %s: %d " % ( cmd3, rc )
-       return 1
-
-    print "cmd4:", cmd4
-    rc = os.system( cmd4 )
-    if ( rc ):
-       print "ERROR running %s: %d " % ( cmd4, rc )
-       return 1
-
-def collectAttr( target, node, proc, ddsuffix, file_path, output_path ):
+def collectAttr():
     if (target == 'AWAN'):
         sbeImgFile = "p9n_10.sim.sbe_seeprom.bin"
     else:
         sbeImgFile = "sbe_seeprom_"+ddsuffix+".bin"
-    offset = getOffset( 'G_sbe_attrs' );
-    length = "0x" + syms['G_sbe_attrs'][1];
-    print "\ncollecting attributes with commands -\n"
-    if(target == 'FILE'):
-        createPibmemDumpFile(file_path, offset, length, output_path);
-    else:
-        cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte "+
-                str(offset) +\
-                " -num_of_byte " + length + " "
-                " -n" + str(node) + " -p" + str(proc) + " -path "+ output_path)
-
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
-
-    cmd2 = "mv "+ output_path + "DumpPIBMEM " +\
-            output_path +"sbeAttr.bin"
+    getSymbolVal( 'G_sbe_attrs' )
+    invokeOsCmd( "mv "+ output_path + "DumpPIBMEM " +\
+            output_path +"sbeAttr.bin" )
     # TODO via RTC 158861
     # For multi-node system we need to convert node/proc to absolute
     # proc number.
-
-    cmd3 = ( getFilePath("p9_xip_tool")+" "+getFilePath(sbeImgFile) + " -ifs attrdump "+ output_path +"sbeAttr.bin > "+\
+    invokeOsCmd( getFilePath("p9_xip_tool")+" "+getFilePath(sbeImgFile) + " -ifs attrdump "+ output_path +"sbeAttr.bin > "+\
              output_path+"sbe_"+str(proc)+"_attrs")
 
-    print "cmd2:", cmd2
-    rc = os.system( cmd2 )
-    if ( rc ):
-       print "ERROR running %s: %d " % ( cmd2, rc )
-       return 1
-
-    print "cmd3:", cmd3
-    rc = os.system( cmd3 )
-    if ( rc ):
-       print "ERROR running %s: %d " % ( cmd3, rc )
-       return 1
-
-def collectStackUsage (target, node, proc, file_path, output_path ):
+def collectStackUsage():
     threads = ('sbeSyncCommandProcessor_stack',
                'sbeCommandReceiver_stack',
                'sbe_Kernel_NCInt_stack',
                'sbeAsyncCommandProcessor_stack')
     for thread in threads:
-        (offset, length) = getSymbolInfo( thread );
-        if(target == 'FILE'):
-            createPibmemDumpFile(file_path, offset, length, output_path)
-        else:
-            cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
-                    str(offset) +\
-                    " -num_of_byte " + length + " "
-                    " -n" + str(node) + " -p" + str(proc)+ " -path "+output_path)
-
-            print "cmd1:", cmd1
-            rc = os.system( cmd1 )
-            if ( rc ):
-                print "ERROR running %s: %d " % ( cmd1, rc )
-                return 1
+        getSymbolVal( thread )
 
         # Dump stack memory to binary file
-        cmd2 = "cat "+ output_path +"DumpPIBMEM >"+ output_path + thread
-        print "cmd2:", cmd2
-        rc = os.system( cmd2 )
-        if (rc):
-            print "ERROR running %s: %d " % ( cmd2, rc )
-            return 1
+        invokeOsCmd( "cat "+ output_path +"DumpPIBMEM >"+ output_path + thread )
 
     print "==================================Stack usage==================================="
     print "Thread".ljust(40)+"Least Available[bytes]".ljust(30)+"Max usage[%]"
@@ -325,28 +235,15 @@ def collectStackUsage (target, node, proc, file_path, output_path ):
                     break
             print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
 
-def getSbeCommit(target, node, proc, file_path, output_path ):
-    (offset, length) = getSymbolInfo( 'SBEGlobalsSingleton.*fwCommitId' );
-    if(target == 'FILE'):
-        createPibmemDumpFile(file_path, offset, length, output_path)
-    else:
-        cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
-                str(offset) +\
-                " -num_of_byte " + length + " "
-                " -n" + str(node) + " -p" + str(proc)+ " -path "+ output_path)
-
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
+def getSbeCommit():
+    getSymbolVal( 'SBEGlobalsSingleton.*fwCommitId' )
 
     with open(output_path+"DumpPIBMEM", "rb") as f:
         # Big Endian word
         word = struct.unpack('>I', f.read(4))[0]
         print "SBE commit:", hex(word)
 
-def ppeStateFfdc(target, node, proc, file_path, output_path ):
+def ppeStateFfdc():
     # Keep this structure in sync with src/sbefw/core/sbeirqregistersave.H
     class registersave_t(BigEndianStructure):
         _fields_ = [
@@ -364,21 +261,7 @@ def ppeStateFfdc(target, node, proc, file_path, output_path ):
                 ]
     ppestateffdc = registersave_t()
 
-    (offset, length) = getSymbolInfo( '__g_register_ffdc' );
-    if(target == 'FILE'):
-        createPibmemDumpFile(file_path, offset, length, output_path)
-    else:
-        cmd1 = (getFilePath("p9_pibmem_dump_wrap.exe")+" -quiet -start_byte " +
-                str(offset) +\
-                " -num_of_byte " + length + " "
-                " -n" + str(node) + " -p" + str(proc)+ " -path "+ output_path)
-
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
-
+    getSymbolVal( '__g_register_ffdc' )
     with open(output_path+"DumpPIBMEM", "rb") as f:
         data = f.read()
         ctypes.memmove(ctypes.addressof(ppestateffdc), data, ctypes.sizeof(ppestateffdc))
@@ -403,7 +286,7 @@ Please verify sbe_DD2.syms is valid for this dump, before depending on the value
             print "Register ffdc is not valid, probably SBE has not hit any internal halt condition"
         print '''---------------------------------------------------------------------------------'''
 
-def ppeState( target, node, proc, file_path ):
+def ppeState():
     if(target == 'FILE'):
         regNameMapSPR = {
                          # SPRs and XIR
@@ -496,15 +379,10 @@ def ppeState( target, node, proc, file_path ):
         print '********************************************************************'
         fileHandle.close()
     else:
-        cmd1 = (getFilePath("p9_ppe_state_wrap.exe")+" -verbose -sbe -snapshot"+
+        invokeOsCmd(getFilePath("p9_ppe_state_wrap.exe")+" -verbose -sbe -snapshot"+
                 " -n" + str(node) + " -p" + str(proc))
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
 
-def sbeLocalRegister( target, node, proc, file_path ):
+def sbeLocalRegister():
     if(target == 'FILE'):
         print "File path: ", file_path
         fileHandle = open(file_path)
@@ -521,15 +399,10 @@ def sbeLocalRegister( target, node, proc, file_path ):
         print '********************************************************************'
         fileHandle.close()
     else:
-        cmd1 = (getFilePath("p9_sbe_localreg_dump_wrap.exe")+" -verbose -halt"+
+        invokeOsCmd(getFilePath("p9_sbe_localreg_dump_wrap.exe")+" -verbose -halt"+
                 " -n" + str(node) + " -p" + str(proc))
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
 
-def sbeState( target, node, proc, file_path ):
+def sbeState():
     if(target == 'FILE'):
         print "File path: ", file_path
         fileHandle = open(file_path)
@@ -546,15 +419,10 @@ def sbeState( target, node, proc, file_path ):
         print '********************************************************************'
         fileHandle.close()
     else:
-        cmd1 = (getFilePath("p9_pibms_reg_dump_wrap.exe")+" -verbose" +\
+        invokeOsCmd(getFilePath("p9_pibms_reg_dump_wrap.exe")+" -verbose" +\
                 " -n" + str(node) + " -p" + str(proc))
-        print "cmd1:", cmd1
-        rc = os.system( cmd1 )
-        if ( rc ):
-            print "ERROR running %s: %d " % ( cmd1, rc )
-            return 1
 
-def sbeStatus( target, node, proc ):
+def sbeStatus():
     if(target == 'FILE'):
         print "Error - not supported for FILE Target"
     else:
@@ -605,13 +473,19 @@ def parsevalue(iValue):
     tempVal = iValue[28:34]
     print "Reserved Bit [26:31] : %s" %(tempVal)
 
-LEVELS_ARRAY = ('trace', 'forced-trace','attr','stack','ppestate','sbestate',
+
+'''
+-----------------------------------------------------------------------------
+                        Main Application
+-----------------------------------------------------------------------------
+'''
+LEVELS_ARRAY = ('all', 'trace', 'forced-trace','attr','stack','ppestate','sbestate',
                 'sbestatus','sbelocalregister', 'sym', 'sbecommit', 'ppestateffdc')
 
 def usage():
     print(
     '''
-usage: testarg.py [-h] [-l {trace,attr,ppestate,sbestate,sbestatus,sbelocalregister, sym}]
+usage: testarg.py [-h] [-l '''+str(LEVELS_ARRAY)+''']
 [-t {AWAN,HW,FILE}] [-n NODE] [-p PROC] [-s SYMBOL] [-f FILE_PATH]
 
 SBE Dump Parser
@@ -639,14 +513,9 @@ def main( argv ):
         exit(1)
 
     # Default values
+    global target, node, proc, ddsuffix, file_path, output_path
     level = 'trace'
-    target = 'HW'
-    node = 0
-    proc = 0
-    ddsuffix = 'DD2'
-    file_path = ""
     symbol = ''
-    output_path = os.getcwd()+"/"
 
     # Parse the command line arguments
     for opt, arg in opts:
@@ -657,7 +526,7 @@ def main( argv ):
             if arg in LEVELS_ARRAY:
                 level = arg
             else:
-                print "level should be one of {trace,attr,stack,ppestate,sbestate,sbestatus,sbelocalregister, sym}"
+                print "level should be one of " + str(LEVELS_ARRAY)
                 exit(1)
         elif opt in ('-t', '--target'):
             if arg in ('AWAN', 'HW', 'FILE'):
@@ -710,63 +579,48 @@ def main( argv ):
            return 1
         cmdFifoLastState = regEx.group(1).split()[0]
         # On cronus, disabe FIFO mode
-        cmdFifoOff = "setconfig USE_SBE_FIFO off"
-        rc = os.system( cmdFifoOff )
-        if ( rc ):
-           print "ERROR running %s: %d " % ( cmdFifoOff, rc )
-           return 1
+        invokeOsCmd("setconfig USE_SBE_FIFO off")
 
     if(target == 'FILE'):
         # check if the file path exist or not
         assert os.path.exists(file_path), "Did not find the file at, "+str(arg)
 
+    fillSymTable()
+
     if ( level == 'all' ):
         print "Parsing everything"
-        fillSymTable(target, ddsuffix)
-        collectTrace(target, node, proc, ddsuffix, file_path, output_path )
-        collectAttr(target, node, proc, ddsuffix, file_path, output_path )
-        sbeStatus( target, node, proc )
-        ppeState( target, node, proc, file_path )
-        sbeState(  target, node, proc, file_path )
-        sbeLocalRegister( target, node, proc, file_path )
+        collectTrace()
+        collectAttr()
+        sbeStatus()
+        ppeState()
+        sbeState()
+        sbeLocalRegister()
     elif ( level == 'trace' ):
-        fillSymTable(target, ddsuffix)
-        collectTrace(target, node, proc, ddsuffix, file_path, output_path )
+        collectTrace()
     elif ( level == 'forced-trace' ):
-        fillSymTable(target, ddsuffix)
-        forcedCollectTrace( target, node, proc, ddsuffix, file_path, output_path )
+        forcedCollectTrace()
     elif ( level == 'attr' ):
-        fillSymTable(target, ddsuffix)
-        collectAttr( target, node, proc, ddsuffix, file_path, output_path )
+        collectAttr()
     elif ( level == 'ppestate' ):
-        ppeState( target, node, proc, file_path )
+        ppeState()
     elif ( level == 'sbestate' ):
-        sbeState(  target, node, proc, file_path )
+        sbeState()
     elif ( level == 'sbestatus' ):
-        sbeStatus( target, node, proc )
+        sbeStatus()
     elif ( level == 'sbelocalregister' ):
-        sbeLocalRegister( target, node, proc, file_path )
+        sbeLocalRegister()
     elif ( level == 'stack' ):
-        fillSymTable(target, ddsuffix)
-        collectStackUsage( target, node, proc, file_path, output_path )
+        collectStackUsage()
     elif ( level == 'sym' ):
-        fillSymTable(target, ddsuffix)
-        getSymbolVal(target, node, proc, symbol, file_path, output_path)
+        getSymbolVal(symbol, True)
     elif ( level == 'sbecommit' ):
-        fillSymTable(target, ddsuffix)
-        getSbeCommit(target, node, proc, file_path, output_path)
+        getSbeCommit()
     elif ( level == 'ppestateffdc' ):
-        fillSymTable(target, ddsuffix)
-        ppeStateFfdc(target, node, proc, file_path, output_path)
+        ppeStateFfdc()
 
     if(target != 'FILE'):
         # On cronus, set the FIFO mode to previous state
-        cmdFifoLastState = "setconfig USE_SBE_FIFO " + cmdFifoLastState
-        rc = os.system( cmdFifoLastState )
-        if ( rc ):
-           print "ERROR running %s: %d " % ( cmdFifoLastState, rc )
-           return 1
+        invokeOsCmd("setconfig USE_SBE_FIFO " + cmdFifoLastState)
 
 if __name__ == "__main__":
     main( sys.argv )
-

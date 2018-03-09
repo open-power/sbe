@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2018                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -28,6 +28,12 @@
     <subtest>
         <testcase>
             <simcmd>sbe-trace 0</simcmd>
+        </testcase>
+        <testcase>
+            <simcmd>sbe-stack 0</simcmd>
+        </testcase>
+        <testcase>
+            <simcmd>sbe-regffdc 0</simcmd>
         </testcase>
         <testcase>
             <simcmd>p9Proc0.sbe.ppe->ppe_state</simcmd>
