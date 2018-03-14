@@ -41,6 +41,11 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testAduMem.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testPSUSetFFDCAddr.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSram.xml</include>
+          <!-- we want to start hostboot after our memory testcases -->
+          <testcase>
+              <simcmd>sbe-istep 5 2</simcmd>
+              <exitonerror>yes</exitonerror>
+          </testcase>
           <!-- TODO add testCntlInstruction.xml -->
           <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testFifoReset.xml</include>

@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2017                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2018                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -315,10 +315,6 @@
       </testcase>
       <testcase>
           <simcmd>sbe-istep 5 1</simcmd>
-          <exitonerror>yes</exitonerror>
-      </testcase>
-      <testcase>
-          <simcmd>sbe-istep 5 2</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
       <!-- Stash address test case -->
