@@ -229,6 +229,7 @@ buildInfo:
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d)
 
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pervasive_attributes.xml
+ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/system_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/unit_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_sbe_load_bootloader_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml

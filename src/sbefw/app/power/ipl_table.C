@@ -101,6 +101,7 @@
 #include "p9_hcd_cache_stopclocks.H"
 #include "p9_stopclocks.H"
 #include "p9_suspend_powman.H"
+#include "p9_query_cache_access_state.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
@@ -780,23 +781,53 @@ ReturnCode istepWithExL2Flush( voidfuncptr_t i_hwp)
 {
     #define SBE_FUNC "istepWithExL2Flush"
     SBE_ENTER(SBE_FUNC);
-    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    ReturnCode rc = FAPI2_RC_SUCCESS;
 
-    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
-    for (auto l_exTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+    for (auto& exTgt : procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
     {
-        p9core::purgeData_t l_purgeData;
-        // TODO RTC 164425 need to check if L2 is Scomable
-        // This will come from the HWP team.
-        SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpExL2Flush_t>(i_hwp), l_exTgt, l_purgeData)
-        if(l_rc != FAPI2_RC_SUCCESS)
+        bool l2IsScomable[MAX_L2_PER_QUAD] = {false};
+        bool l2IsScanable[MAX_L2_PER_QUAD] = {false};
+        bool l3IsScomable[MAX_L3_PER_QUAD] = {false};
+        bool l3IsScanable[MAX_L3_PER_QUAD] = {false};
+
+        // Get EQ Parent to figure if this EX's L2 is scommable
+        fapi2::Target<fapi2::TARGET_TYPE_EQ> eqTgt =
+                                exTgt.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        rc = p9_query_cache_access_state(eqTgt,
+                                         l2IsScomable,
+                                         l2IsScanable,
+                                         l3IsScomable,
+                                         l3IsScanable);
+        if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC " p9_l2_flush failed, RC=[0x%08X]", l_rc);
+            SBE_ERROR(SBE_FUNC " p9_query_cache_access_state failed, "
+                "RC=[0x%08X]", rc);
             break;
+        }
+        // check the position of EX i.e. Ex0 or Ex1
+        if(l2IsScomable[((exTgt.getChipletNumber()) % 2)])
+        {
+            p9core::purgeData_t l_purgeData;
+            SBE_EXEC_HWP(rc,
+                         reinterpret_cast<sbeIstepHwpExL2Flush_t>(i_hwp),
+                         exTgt,
+                         l_purgeData)
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC " p9_l2_flush failed, RC=[0x%08X]", rc);
+                break;
+            }
+        }
+        else
+        {
+            SBE_INFO(SBE_FUNC "Ex chipletId [%d] not l2 scomable, so no purge",
+                exTgt.getChipletNumber());
         }
     }
     SBE_EXIT(SBE_FUNC);
-    return l_rc;
+    return rc;
     #undef SBE_FUNC
 }
 
@@ -805,22 +836,51 @@ ReturnCode istepWithExL3Flush( voidfuncptr_t i_hwp)
 {
     #define SBE_FUNC "istepWithExL3Flush"
     SBE_ENTER(SBE_FUNC);
-    ReturnCode l_rc = FAPI2_RC_SUCCESS;
+    ReturnCode rc = FAPI2_RC_SUCCESS;
 
-    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
-    for (auto l_exTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+    for (auto& exTgt : procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
     {
-        // TODO RTC 164425 need to check if L3 is Scomable
-        // This will come from the HWP team.
-        SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpExL3Flush_t>(i_hwp), l_exTgt, L3_FULL_PURGE, 0x0)
-        if(l_rc != FAPI2_RC_SUCCESS)
+        bool l2IsScomable[MAX_L2_PER_QUAD] = {false};
+        bool l2IsScanable[MAX_L2_PER_QUAD] = {false};
+        bool l3IsScomable[MAX_L3_PER_QUAD] = {false};
+        bool l3IsScanable[MAX_L3_PER_QUAD] = {false};
+
+        // Get EQ Parent to figure if this EX's L3 is scommable
+        fapi2::Target<fapi2::TARGET_TYPE_EQ> eqTgt =
+                                exTgt.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        rc = p9_query_cache_access_state(eqTgt,
+                                         l2IsScomable,
+                                         l2IsScanable,
+                                         l3IsScomable,
+                                         l3IsScanable);
+        if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC " p9_l3_flush failed, RC=[0x%08X]", l_rc);
+            SBE_ERROR(SBE_FUNC " p9_query_cache_access_state failed, "
+                "RC=[0x%08X]", rc);
             break;
+        }
+
+        // check the position of EX i.e. Ex0 or Ex1
+        if(l3IsScomable[((exTgt.getChipletNumber()) % 2)])
+        {
+            SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpExL3Flush_t>(i_hwp),
+                         exTgt, L3_FULL_PURGE, 0x0)
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC " p9_l3_flush failed, RC=[0x%08X]", rc);
+                break;
+            }
+        }
+        else
+        {
+            SBE_INFO(SBE_FUNC "Ex chipletId [%d] not l2 scomable, so no purge",
+                exTgt.getChipletNumber());
         }
     }
     SBE_EXIT(SBE_FUNC);
-    return l_rc;
+    return rc;
     #undef SBE_FUNC
 }
 
