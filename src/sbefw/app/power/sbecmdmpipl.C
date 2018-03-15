@@ -107,13 +107,22 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         do
         {
             l_fapiRc = sbeExecuteIstep(SBE_ISTEP_MPIPL_START, l_minor);
-            if(l_fapiRc != FAPI2_RC_SUCCESS)
+            bool checkstop = isSystemCheckstop();
+            if((l_fapiRc != FAPI2_RC_SUCCESS) || checkstop)
             {
                 SBE_ERROR(SBE_FUNC "Failed in Mpipl Start in ChipOp Mode "
                     "Minor: %d", l_minor);
-                l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-                l_ffdc.setRc(l_fapiRc);
+                if(checkstop)
+                {
+                    l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                         SBE_SEC_SYSTEM_CHECKSTOP);
+                }
+                else
+                {
+                    l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                    l_ffdc.setRc(l_fapiRc);
+                }
                 // reset attribute. We do not want to reset register, so do not
                 // use setMpIplMode
                 uint8_t isMpipl = 0;
@@ -186,13 +195,22 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
             for(uint8_t l_minor = istep[1]; l_minor <= istep[2]; l_minor++)
             {
                 l_fapiRc = sbeExecuteIstep(istep[0], l_minor);
-                if(l_fapiRc != FAPI2_RC_SUCCESS)
+                bool checkstop = isSystemCheckstop();
+                if((l_fapiRc != FAPI2_RC_SUCCESS) || checkstop)
                 {
                     SBE_ERROR(SBE_FUNC "Failed in Mpipl continue in ChipOp "
                         "Mode Major [%d] Minor [%d]", istep[0], l_minor);
-                    l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                     SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-                    l_ffdc.setRc(l_fapiRc);
+                    if(checkstop)
+                    {
+                        l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                             SBE_SEC_SYSTEM_CHECKSTOP);
+                    }
+                    else
+                    {
+                        l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                         SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                        l_ffdc.setRc(l_fapiRc);
+                    }
                     break;
                 }
             }
