@@ -105,6 +105,19 @@ extern fapi2::ReturnCode
             plat_getChipTarget();
         const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
+        const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_VALID_BIT = 0;
+        const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_GROUP_ID_STARTBIT = 1;
+        const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_CHIP_ID_STARTBIT = 4;
+        const size_t ATTR_PROC_MEM_TO_USE_GROUP_ID_STARTBIT = 0;
+        const size_t ATTR_PROC_MEM_TO_USE_CHIP_ID_STARTBIT = 3;
+        const size_t ATTR_PROC_FABRIC_GROUP_ID_LENGTH   = 3;
+        const size_t ATTR_PROC_FABRIC_CHIP_ID_LENGTH    = 3;
+        uint8_t l_proc_chip_mem_to_use_valid = 0;
+        uint8_t l_proc_chip_mem_to_use_group_id = 0;
+        uint8_t l_proc_chip_mem_to_use_chip_id = 0;
+        fapi2::buffer<uint8_t> l_proc_chip_mem_to_use_attr = 0;
+
+
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_riskLvl));
         //Getting SCRATCH_REGISTER_8 register value
         FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_8_SCOM,
@@ -308,6 +321,12 @@ extern fapi2::ReturnCode
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_CLOCK_PLL_MUX, l_chipTarget, l_pllMux));
         }
 
+        FAPI_DBG("Reading ATTR_PROC_FABRIC_GROUP and CHIP_ID");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, l_chipTarget,
+                               l_proc_chip_mem_to_use_group_id));
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, l_chipTarget,
+                               l_proc_chip_mem_to_use_chip_id));
+
         if ( l_scratch8Reg.getBit<5>() )
         {
             uint8_t l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE;
@@ -316,6 +335,20 @@ extern fapi2::ReturnCode
             //Getting SCRATCH_REGISTER_6 register value
             FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_6_SCOM,
                                     l_tempReg));
+
+            l_tempReg.extract<SCRATCH_PROC_CHIP_MEM_TO_USE_VALID_BIT,
+                              1, 0>(l_proc_chip_mem_to_use_valid);
+            if (l_proc_chip_mem_to_use_valid)
+            {
+                l_proc_chip_mem_to_use_group_id = 0;
+                l_proc_chip_mem_to_use_chip_id = 0;
+                l_tempReg.extract<SCRATCH_PROC_CHIP_MEM_TO_USE_GROUP_ID_STARTBIT,
+                                  ATTR_PROC_FABRIC_GROUP_ID_LENGTH,
+                                  0>(l_proc_chip_mem_to_use_group_id);
+                l_tempReg.extract<SCRATCH_PROC_CHIP_MEM_TO_USE_CHIP_ID_STARTBIT,
+                                  ATTR_PROC_FABRIC_CHIP_ID_LENGTH,
+                                  0>(l_proc_chip_mem_to_use_chip_id);
+            }
 
             l_read1 = 0;
             l_isSlave = l_tempReg.getBit<24>();
@@ -364,6 +397,19 @@ extern fapi2::ReturnCode
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, l_chipTarget,
                                    l_read3));
         }
+        l_proc_chip_mem_to_use_attr.insertFromRight
+                                    <ATTR_PROC_MEM_TO_USE_GROUP_ID_STARTBIT,
+                                     ATTR_PROC_FABRIC_GROUP_ID_LENGTH>
+                                    (l_proc_chip_mem_to_use_group_id);
+        l_proc_chip_mem_to_use_attr.insertFromRight
+                                    <ATTR_PROC_MEM_TO_USE_CHIP_ID_STARTBIT,
+                                     ATTR_PROC_FABRIC_CHIP_ID_LENGTH>
+                                    (l_proc_chip_mem_to_use_chip_id);
+
+        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_MEM_TO_USE,
+                                l_chipTarget,
+                                l_proc_chip_mem_to_use_attr));
+
 
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM,
                                l_riskLvl));
