@@ -51,7 +51,7 @@
 void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
 {
     #define SBE_FUNC " sbe_interrupt_handler "
-    SBE_ENTER(SBE_FUNC"i_irq=[0x%02X]",i_irq);
+    SBE_INFO(SBE_FUNC"i_irq=[0x%02X]",i_irq);
 
     int l_rc = 0;
 

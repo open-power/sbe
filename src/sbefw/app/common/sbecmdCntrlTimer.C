@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -42,7 +43,6 @@ using namespace fapi2;
 
 // Global instance to track PK timer
 static timerService g_hostTimerSvc;
-
 // Callback
 void sbeTimerExpiryCallback(void *)
 {
@@ -80,38 +80,49 @@ uint32_t sbeCntrlTimer( uint8_t *i_pArg )
     {
         if(SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_START_TIMER)
         {
-            uint64_t time = 0;
-            l_rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+            // Disable interrupts before sending the ACK for timer chipop.
+            // Otherwise other high priority thread can interrupt it if
+            // there is a interrupt on slow soft-fsi based systems,
+            // taking initial data from FIFO may take time in command receiver
+            // thread.
+            PkMachineContext  ctx;
+            pk_critical_section_enter(&ctx);
+            do
+            {
+                uint64_t time = 0;
+                l_rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
                                         (sizeof(time)/sizeof(uint64_t)),
                                         &time, true);
 
-            if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-            {
-                SBE_ERROR(SBE_FUNC" Failed to extract SBE_HOST_PSU_MBOX_REG1");
-                break;
-            }
+                if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+                {
+                    SBE_ERROR(SBE_FUNC" Failed to extract "
+                                                "SBE_HOST_PSU_MBOX_REG1");
+                    break;
+                }
 
-            SBE_INFO(SBE_FUNC "Start Timer. Time: [%08X]us",
-                                        SBE::lower32BWord(time));
+                l_rc = g_hostTimerSvc.stopTimer( );
+                if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+                {
+                    SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(
+                                            SBE_PRI_INTERNAL_ERROR, l_rc);
+                    SBE_ERROR(SBE_FUNC" g_hostTimerSvc.stopTimer failed");
+                    l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+                    break;
+                }
 
-            l_rc = g_hostTimerSvc.stopTimer( );
-            if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-            {
-                SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
-                SBE_ERROR(SBE_FUNC" g_hostTimerSvc.stopTimer failed");
-                l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-                break;
-            }
-
-            l_rc = g_hostTimerSvc.startTimer( (uint32_t )time,
+                l_rc = g_hostTimerSvc.startTimer( (uint32_t )time,
                                      (PkTimerCallback)&sbeTimerExpiryCallback);
-            if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
-            {
-                SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, l_rc);
-                SBE_ERROR(SBE_FUNC" g_hostTimerSvc.startTimer failed");
-                l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-                break;
-            }
+                if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
+                {
+                    SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(
+                                            SBE_PRI_INTERNAL_ERROR, l_rc);
+                    SBE_ERROR(SBE_FUNC" g_hostTimerSvc.startTimer failed");
+                    l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+                    break;
+                }
+            }while(0);
+            pk_critical_section_exit(&ctx);
             break;
         }
         // Acknowledge host
