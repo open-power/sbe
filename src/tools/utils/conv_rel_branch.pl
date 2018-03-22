@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -239,6 +239,11 @@ sub get_power_platform
     else
     {
         ($power_platform) = $reference =~ /fips(.*)[0-9][0-9]/;
+        if ( !$power_platform )
+        {
+            ($power_platform) = $reference =~ /op(.*)[0-9][0-9]/;
+        }
+
         if ( $power_platform )
         {
             $power_platform = "p$power_platform";
@@ -276,7 +281,7 @@ sub branchExists
 #       fips-release => gerrit-branch
 # Example:
 #   p9 =>
-#       fips910 => master
+#       fips920 => master
 #
 sub build_relations
 {
@@ -322,15 +327,35 @@ sub build_relations
         # order, it will be the next in order release. It is done this way
         # to avoid issues when fips releases are ahead of gerrit branches. In
         # other words it is possible to have fips releases past gerrit master.
+        my $flag     = 0;
+        my $prev_rel = "";
         foreach my $release (sort keys %{$relations{$power_platform}})
         {
             if ($relations{$power_platform}{$release} eq "")
             {
-                if (branchExists($master))
+                if (branchExists($master) and ($flag == 0))
                 {
                     $relations{$power_platform}{$release} = $master;
+                    if ( $prev_rel ne "" )
+                    {
+                        $relations{$power_platform}{$prev_rel} = "";
+                    }
+                    $prev_rel = $release;
+                    $flag     = 1;
                 }
-                last;
+                elsif (branchExists($master) and ($flag == 1))
+                {
+                    $relations{$power_platform}{$release}  = $master;
+                    $relations{$power_platform}{$prev_rel} = "";
+                    $prev_rel                              = $release;
+                    $flag                                  = 0;
+                }
+                else
+                {
+                    ## Release branch could not be found
+                    print "Warning: Release branch for $release couldn't be found in current repo for $power_platform\n" if $debug;
+                }
+                #last;
             }
         }
     }
