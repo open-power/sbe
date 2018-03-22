@@ -60,6 +60,12 @@ extern fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 extern fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
+// For PhyP system, HRMOR is set to 128MB, which is multiple of 64MB Granule * 2
+// For OPAL system, it needs the HRMOR in the range of 4GB, so that HB reloading
+// doesn't stamp on the OPAL/HostLinux Data. 64MB Granule * 64 = 4096MB, 64 is
+// the multipler.
+#define HRMOR_FOR_SPLESS_MODE 0x100000000ull //4096 * 1024 * 1024
+
 #endif // else __SBEFW_SEEPROM__
 
 namespace fapi2
@@ -105,7 +111,6 @@ extern fapi2::ReturnCode
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chipTarget =
             plat_getChipTarget();
         const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-
         const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_VALID_BIT = 0;
         const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_GROUP_ID_STARTBIT = 1;
         const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_CHIP_ID_STARTBIT = 4;
@@ -215,22 +220,27 @@ extern fapi2::ReturnCode
 
         if ( l_scratch8Reg.getBit<2>() )
         {
-            uint8_t l_isMpIpl = 0;
-            uint8_t l_isSpMode = 0;
+            uint8_t isMpIpl = 0;
+            uint8_t isSpMode = 0;
             FAPI_DBG("Reading Scratch_reg3");
             //Getting SCRATCH_REGISTER_3 register value
             FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_3_SCOM,
                                     l_tempReg));
 
-            l_tempReg.extractToRight<2, 1>(l_isMpIpl);
+            l_tempReg.extractToRight<2, 1>(isMpIpl);
 
             FAPI_DBG("Setting up ATTR_IS_MPIPL");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_isMpIpl));
+            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, isMpIpl));
 
-            l_tempReg.extractToRight<3, 1>(l_isSpMode);
-
-            FAPI_DBG("Setting up ATTR_IS_SP_MODE");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE, l_chipTarget, l_isSpMode));
+            l_tempReg.extractToRight<3, 1>(isSpMode);
+            if(!isSpMode)
+            {
+                FAPI_DBG("Set up ATTR_HOSTBOOT_HRMOR_OFFSET in SPless mode");
+                uint64_t hrmor = HRMOR_FOR_SPLESS_MODE;
+                FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
+                                        FAPI_SYSTEM, hrmor));
+            }
+            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE, l_chipTarget, isSpMode));
             l_tempReg.extractToRight<28, 4>(l_riskLvl);
         }
 

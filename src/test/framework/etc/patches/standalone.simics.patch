@@ -1,8 +1,13 @@
-63c63,65
+70c70,77
 < ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "00000000_00000000" 64
 ---
-> ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "80000000_00000000" 64
+> # Set the Fsp bit in MBOX3 reg (bit 3), This is to make SBE pick default HRMOR
+> # i.e. 128MB instead of FspLess HRMOR address. Action files in simics are
+> # hardcoded to support 128MB presently. we need to update Simic Action file to
+> # be flexible and pick HRMOR basis this Fsp bit.
+> # TODO - RTC 196986
+> ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "90000000_00000000" 64
 > # Set security enabled bit
 > ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x00050001 "0C000002_00000000" 64
-67a70
+74a82
 > ($hb_masterproc).proc_chip.invoke parallel_store FSIMBOX 0x08 "00080000" 32
