@@ -603,7 +603,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
                       l_hostboot_hrmor_offset);
         rc = p9_fbc_utils_get_chip_base_address_no_aliases(
                                     proc,
-                                    ABS_FBC_GRP_ID_ONLY,
+                                    HB_GRP_CHIP_IDS,
                                     drawer_base_address_nm0,
                                     drawer_base_address_nm1,
                                     drawer_base_address_m,
@@ -807,24 +807,23 @@ ReturnCode istepWithExL2Flush( voidfuncptr_t i_hwp)
             break;
         }
         // check the position of EX i.e. Ex0 or Ex1
-        if(!(l2IsScomable[((exTgt.getChipletNumber()) % 2)]))
+        if(l2IsScomable[((exTgt.getChipletNumber()) % 2)])
+        {
+            p9core::purgeData_t l_purgeData;
+            SBE_EXEC_HWP(rc,
+                         reinterpret_cast<sbeIstepHwpExL2Flush_t>(i_hwp),
+                         exTgt,
+                         l_purgeData)
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC " p9_l2_flush failed, RC=[0x%08X]", rc);
+                break;
+            }
+        }
+        else
         {
             SBE_INFO(SBE_FUNC "Ex chipletId [%d] not l2 scomable, so no purge",
-               exTgt.getChipletNumber());
-            // TODO via RTC 191254 
-            // Enable this code back once stop states are enabled
-            // This is temporary hack to debug SW422447
-            // continue;
-        }
-        p9core::purgeData_t l_purgeData;
-        SBE_EXEC_HWP(rc,
-                     reinterpret_cast<sbeIstepHwpExL2Flush_t>(i_hwp),
-                     exTgt,
-                     l_purgeData)
-        if(rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR(SBE_FUNC " p9_l2_flush failed, RC=[0x%08X]", rc);
-            break;
+                exTgt.getChipletNumber());
         }
     }
     SBE_EXIT(SBE_FUNC);
@@ -864,22 +863,20 @@ ReturnCode istepWithExL3Flush( voidfuncptr_t i_hwp)
         }
 
         // check the position of EX i.e. Ex0 or Ex1
-        if(!(l3IsScomable[((exTgt.getChipletNumber()) % 2)]))
+        if(l3IsScomable[((exTgt.getChipletNumber()) % 2)])
         {
-            SBE_INFO(SBE_FUNC "Ex chipletId [%d] not l3 scomable, so no purge",
-               exTgt.getChipletNumber());
-            // TODO via RTC 191254 
-            // Enable this code back once stop states are enabled
-            // This is temporary hack to debug SW422447
-            // continue;
+            SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpExL3Flush_t>(i_hwp),
+                         exTgt, L3_FULL_PURGE, 0x0)
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC " p9_l3_flush failed, RC=[0x%08X]", rc);
+                break;
+            }
         }
-
-        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpExL3Flush_t>(i_hwp),
-                     exTgt, L3_FULL_PURGE, 0x0)
-        if(rc != FAPI2_RC_SUCCESS)
+        else
         {
-            SBE_ERROR(SBE_FUNC " p9_l3_flush failed, RC=[0x%08X]", rc);
-            break;
+            SBE_INFO(SBE_FUNC "Ex chipletId [%d] not l2 scomable, so no purge",
+                exTgt.getChipletNumber());
         }
     }
     SBE_EXIT(SBE_FUNC);

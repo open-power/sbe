@@ -312,7 +312,7 @@ calc_image_footprint(
     //                       (bootloader offset)
     FAPI_TRY(p9_fbc_utils_get_chip_base_address_no_aliases(
                  i_master_chip_target,
-                 ABS_FBC_GRP_ID_ONLY,
+                 HB_GRP_CHIP_IDS,
                  l_drawer_base_address_nm0,
                  l_drawer_base_address_nm1,
                  l_drawer_base_address_m,
@@ -406,7 +406,7 @@ get_bootloader_config_data(
 
     // read platform initialized attributes to determine struct content
     FAPI_TRY(p9_fbc_utils_get_chip_base_address_no_aliases(i_master_chip_target,
-             EFF_FBC_GRP_CHIP_IDS,
+             HB_GRP_CHIP_IDS,
              l_chip_base_address_nm0,
              l_chip_base_address_nm1,
              l_chip_base_address_m,

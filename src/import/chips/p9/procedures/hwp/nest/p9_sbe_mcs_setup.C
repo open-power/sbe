@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -227,7 +227,7 @@ p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         //   = (drawer non-mirrored base address) + (hostboot HRMOR offset)
         //   min MCS base size is 4GB, local HB will always be below
         FAPI_TRY(p9_fbc_utils_get_chip_base_address_no_aliases(i_target,
-                 ABS_FBC_GRP_ID_ONLY,
+                 HB_GRP_CHIP_IDS,
                  l_chip_base_address_nm0,
                  l_chip_base_address_nm1,
                  l_chip_base_address_m,
