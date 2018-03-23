@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -413,7 +413,7 @@ get_bootloader_config_data(
              l_chip_base_address_mmio),
              "Error from p9_fbc_utils_get_chip_base_address (chip)");
 
-    l_bootloader_config_data.version = ADDR_STASH_SUPPORT_ADDED;
+    l_bootloader_config_data.version = SBE_BACKDOOR_BIT_ADDED;
 
     // XSCOM BAR offset
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET,

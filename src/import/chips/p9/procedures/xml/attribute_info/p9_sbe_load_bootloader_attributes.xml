@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2017                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2018                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -81,7 +81,8 @@
   <id>ATTR_SECURE_SETTINGS</id>
   <targetType>TARGET_TYPE_SYSTEM</targetType>
   <description>Byte collecting Security Overrides
-               bits 0:4 - reserved
+               bits 0:3 - reserved
+               bit 4 - SBE Security Backdoor Enabled
                bit 5 - Allow Attribute Overrides in Securemode
                bit 6 - Override Security Setting
                bit 7 - Secure Access Bit

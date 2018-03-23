@@ -129,6 +129,11 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
         FAPI_DBG("Reading ATTR_SECURITY_MODE");
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, l_read_1));
+
+        //Transfer SBE Security Backdoor Bit
+        //Need to invert the bit since 1 == Secure mode == Backdoor disabled
+        //                             0 == Unsecure mode == Backdoor enabled
+        l_secure_settings.secBackdoorBit = !l_read_1;
         //Getting CBS_CS register value
         FAPI_TRY(fapi2::getScom(i_target_chip, PERV_CBS_CS_SCOM, read_cbs_reg));
 
