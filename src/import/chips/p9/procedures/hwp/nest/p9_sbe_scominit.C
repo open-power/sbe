@@ -99,6 +99,13 @@ const uint64_t OB_PPE_FIR_ACTION0 = 0x0000000000000000ULL;
 const uint64_t OB_PPE_FIR_ACTION1 = 0xF1C0000000000000ULL;
 const uint64_t OB_PPE_FIR_MASK    = 0x0E38000000000000ULL;
 
+// FBC XBUS PPE psave constants
+const uint8_t PB_PSAVE_CFG_HUT = 0x3;
+const uint8_t PB_PSAVE_CFG_LUT = 0x1;
+const uint8_t PB_PSAVE_CFG_HUC = 0x1;
+const uint8_t PB_PSAVE_CFG_LUC = 0xff;
+const uint8_t PB_PSAVE_CFG_WSIZE = 0x1;
+
 // nest trace setup constants
 const uint8_t N1_PROBE1_SEL = 0x11;
 
@@ -612,9 +619,10 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         FAPI_TRY(putScom(i_target, PERV_N3_THERM_MODE_REG, l_data));
     }
 
-    // configure XBUS FIRs
+    // configure XBUS FIRs & PPE
     {
         bool l_xbus_chiplet_good = false;
+        fapi2::buffer<uint64_t> l_psave_cfg;
         fapi2::buffer<uint64_t> l_zero = 0;
         fapi2::buffer<uint64_t> l_ones;
         l_ones.flush<1>();
@@ -713,6 +721,26 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         FAPI_TRY(putScom(i_target, PU_PB_IOE_FIR_MASK_REG,
                          (l_xbus_chiplet_good) ? (FBC_IOE_TL_FIR_MASK) : (l_ones())),
                  "Error from putScom (PU_PB_IOE_FIR_MASK_REG)");
+
+        // PPE psave config
+        FAPI_TRY(fapi2::getScom(i_target,
+                                PU_PB_PSAVE_CFG,
+                                l_psave_cfg),
+                 "Error from getScom (PU_PB_PSAVE_CFG)");
+
+        l_psave_cfg.setBit<PU_PB_PSAVE_CFG_X0_ACT>()
+        .setBit<PU_PB_PSAVE_CFG_X1_ACT>()
+        .setBit<PU_PB_PSAVE_CFG_X2_ACT>();
+        l_psave_cfg.insertFromRight<PU_PB_PSAVE_CFG_HUT, PU_PB_PSAVE_CFG_HUT_LEN>(0x3);
+        l_psave_cfg.insertFromRight<PU_PB_PSAVE_CFG_LUT, PU_PB_PSAVE_CFG_LUT_LEN>(0x1);
+        l_psave_cfg.insertFromRight<PU_PB_PSAVE_CFG_HUC, PU_PB_PSAVE_CFG_HUC_LEN>(0x1);
+        l_psave_cfg.insertFromRight<PU_PB_PSAVE_CFG_LUC, PU_PB_PSAVE_CFG_LUC_LEN>(0xff);
+        l_psave_cfg.insertFromRight<PU_PB_PSAVE_CFG_WSIZE, PU_PB_PSAVE_CFG_WSIZE_LEN>(0x1);
+
+        FAPI_TRY(fapi2::putScom(i_target,
+                                PU_PB_PSAVE_CFG,
+                                l_psave_cfg),
+                 "Error from putScom (PU_PB_PSAVE_CFG)");
     }
 
 fapi_try_exit:
