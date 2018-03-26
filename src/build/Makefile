@@ -84,6 +84,10 @@ LIB_DIRS += -L$(OBJDIR)/fapi2
 FAPI2LIB := $(OBJDIR)/fapi2/libfapi2.a
 LLIBS += -lfapi2
 
+LIB_DIRS += -L$(OBJDIR)/fapi2_seeprom
+FAPI2LIB := $(OBJDIR)/fapi2/libfapi2seeprom.a
+LLIBS += -lfapi2seeprom
+
 include $(HWPERR_SRCDIR)/hwpErrors.mk
 
 # Common Utils library
@@ -138,7 +142,7 @@ $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis: $(IMG
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
 
 #create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) _sbecore_seeprom _sbeapp_seeprom  $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) _seeprom_libs $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
 		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(BOOT_OBJECTS) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group
@@ -158,7 +162,7 @@ $(IMG_DIR)/$(IMAGE_SBE_NAME).bin $(IMG_DIR)/$(IMAGE_SBE_NAME).dis: $(IMG_DIR)/$(
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SBE_NAME).dis
 
 # create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) _sbecore_seeprom _sbeapp_seeprom $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) _seeprom_libs $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(IMG_DIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(BUILDDATA_OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
@@ -196,7 +200,7 @@ tar:
 	@echo "Generated simics.tar in Sbe images Directory"
 
 .PHONY: all normalize compress defaultset appendloader add_LoaderAddr symbols report \
-		appendoverrides xml security tracehash topfixedheaders  $(SUBDIRS) _sbecore_seeprom _sbeapp_seeprom\
+		appendoverrides xml security tracehash topfixedheaders  $(SUBDIRS) _seeprom_libs \
 		tar install
 
 buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
@@ -262,9 +266,9 @@ platattr:
 # Build the subdirectories
 $(SUBDIRS):
 	$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
-_sbecore_seeprom:
+_seeprom_libs:
+	$(MAKE) -I $(INCLUDES) -C ../hwpf -f Makefile img_mem=seeprom
 	$(MAKE) -I $(INCLUDES) -C ../sbefw/core -f Makefile img_mem=seeprom
-_sbeapp_seeprom:
 	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/common -f Makefile img_mem=seeprom
 	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/$(PROJECT_APP_DIR) -f Makefile img_mem=seeprom
 

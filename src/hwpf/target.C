@@ -31,6 +31,7 @@
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 
+#ifndef __SBEFW_SEEPROM__
 // Global Vector containing ALL targets.  This structure is referenced by
 // fapi2::getChildren to produce the resultant returned vector from that
 // call.
@@ -46,8 +47,28 @@ fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
+#else // __SBEFW_SEEPROM__
+extern std::vector<fapi2::plat_target_handle_t> G_vec_targets;
+
+// Global variable for fixed section in pibmem
+extern G_sbe_attrs_t G_sbe_attrs;
+
+extern fapi2attr::SystemAttributes_t*    G_system_attributes_ptr;
+extern fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr;
+extern fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
+extern fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
+extern fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
+extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
+
+#endif // else __SBEFW_SEEPROM__
+
 namespace fapi2
 {
+#ifdef __SBEFW_SEEPROM__
+extern fapi2::ReturnCode
+    plat_TargetPresent( fapi2::Target<fapi2::TARGET_TYPE_PERV> & i_chiplet_target,
+                                    bool & b_present);
+
     ReturnCode plat_AttrInit()
     {
         union
@@ -387,6 +408,9 @@ namespace fapi2
 fapi_try_exit:
         return fapi2::current_err;
     }
+#endif //__SBEFW_SEEPROM__
+
+#ifndef __SBEFW_SEEPROM__
 
     // Get the plat target handle by chiplet number - For PERV targets
     template<>
@@ -753,6 +777,9 @@ fapi_try_exit:
         return fapi2::current_err;
     }
 
+#endif // not __SBEFW_SEEPROM__
+
+#ifdef __SBEFW_SEEPROM__
 
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes ///  this will move to plat_target.H formally
@@ -1006,6 +1033,9 @@ fapi_try_exit:
         return fapi2::current_err;
     }
 
+#endif // __SBEFW_SEEPROM__
+#ifndef __SBEFW_SEEPROM__
+
     /// @brief Function to initialize the G_targets vector based on partial good
     ///        attributes
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> plat_getChipTarget()
@@ -1075,4 +1105,5 @@ fapi_try_exit:
 fapi_try_exit:
         return fapi2::current_err;
     }
+#endif //not __SBEFW_SEEPROM__
 } // fapi2

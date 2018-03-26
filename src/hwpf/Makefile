@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,16 +24,22 @@
 # IBM_PROLOG_END_TAG
 # This Makefile is designed to be invoked with the -I argument
 
+ifneq ($(img_mem), seeprom)
 export SUB_OBJDIR = /fapi2
+OBJS = $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_OBJECTS))
+LIBNAME = libfapi2
+else
+export SUB_OBJDIR = /fapi2_seeprom
+GCC-DEFS += -D__SBEFW_SEEPROM__=1
+OBJS = $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_SEEPROM_OBJECTS))
+LIBNAME = libfapi2seeprom
+endif
 
 include img_defs.mk
 include fapi2sbefiles.mk
 
-
-OBJS := $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_OBJECTS))
-
-libfapi2.a: fapi2 hwpf
-	$(AR) crs $(OBJDIR)/libfapi2.a $(OBJDIR)/*.o
+$(LIBNAME).a: $(OBJS)
+	$(AR) crs $(OBJDIR)/$(LIBNAME).a $(OBJDIR)/*.o
 
 .PHONY: clean fapi2 hwpf
 fapi2: $(OBJS)

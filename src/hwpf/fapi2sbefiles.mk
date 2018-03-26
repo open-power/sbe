@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,3 +51,5 @@ FAPI2PLAT-S-SOURCES =
 
 FAPI2PLATLIB_OBJECTS += $(FAPI2PLAT-CPP-SOURCES:.C=.o) $(FAPI2PLAT-C-SOURCES:.c=.o) $(FAPI2PLAT-S-SOURCES:.S=.o)
 
+FAPI2PLAT-SEEPROM-CPP-SOURCES += target.C
+FAPI2PLATLIB_SEEPROM_OBJECTS += $(FAPI2PLAT-SEEPROM-CPP-SOURCES:.C=.o)
