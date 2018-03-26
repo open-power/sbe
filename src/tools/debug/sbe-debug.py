@@ -112,7 +112,8 @@ def createPibmemDump(offset, length):
     invokeOsCmd( getFilePath("p9_pibmem_dump_wrap.exe")+
             " -quiet -start_byte "+str(offset)+
             " -num_of_byte " + length +
-            " -n" + str(node) + " -p" + str(proc)+ " -path "+output_path )
+            " -n" + str(node) + " -p" + str(proc)+ " -path "+output_path +
+            " -ecc_enable")
 
 
 def getSymbolVal(symbol, hexdump=False):
