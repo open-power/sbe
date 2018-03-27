@@ -30,6 +30,9 @@
           <testcase>
               <simcmd>p9Proc0.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]</simcmd>
           </testcase>
+          <testcase>
+              <simcmd>run-python-file targets/p9_nimbus/sbeTest/testRunTillSbeBooted.py</simcmd>
+          </testcase>
           <include>../simics/targets/p9_nimbus/sbeTest/testPSUSetStashPair.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSuspendIO.xml</include>
