@@ -37,7 +37,10 @@ constexpr uint64_t literal_0b1000 = 0b1000;
 constexpr uint64_t literal_0x40 = 0x40;
 constexpr uint64_t literal_0x8 = 0x8;
 constexpr uint64_t literal_6 = 6;
+constexpr uint64_t literal_0 = 0;
+constexpr uint64_t literal_15 = 15;
 constexpr uint64_t literal_4 = 4;
+constexpr uint64_t literal_0x01 = 0x01;
 constexpr uint64_t literal_0x0F = 0x0F;
 
 fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
@@ -54,6 +57,8 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID, TGT1, l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID));
         fapi2::ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID_Type l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID, TGT1, l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID));
+        fapi2::ATTR_CHIP_EC_FEATURE_HW440920_Type l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW440920, TGT2, l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920));
         fapi2::buffer<uint64_t> l_scom_buffer;
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x1001100aull, l_scom_buffer ));
@@ -147,8 +152,25 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             constexpr auto l_EXP_NC_NCMISC_NCSCOMS_TLBIE_STALL_EN_ON = 0x1;
             l_scom_buffer.insert<0, 1, 63, uint64_t>(l_EXP_NC_NCMISC_NCSCOMS_TLBIE_STALL_EN_ON );
             l_scom_buffer.insert<1, 3, 61, uint64_t>(literal_6 );
-            l_scom_buffer.insert<4, 4, 60, uint64_t>(literal_4 );
-            l_scom_buffer.insert<8, 8, 56, uint64_t>(literal_0x0F );
+
+            if ((l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920 != literal_0))
+            {
+                l_scom_buffer.insert<4, 4, 60, uint64_t>(literal_15 );
+            }
+            else if (( true ))
+            {
+                l_scom_buffer.insert<4, 4, 60, uint64_t>(literal_4 );
+            }
+
+            if ((l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920 != literal_0))
+            {
+                l_scom_buffer.insert<8, 8, 56, uint64_t>(literal_0x01 );
+            }
+            else if (( true ))
+            {
+                l_scom_buffer.insert<8, 8, 56, uint64_t>(literal_0x0F );
+            }
+
             FAPI_TRY(fapi2::putScom(TGT0, 0x1001100cull, l_scom_buffer));
         }
 
