@@ -565,7 +565,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
                    be32toh(torHeader->magic), magicString);
             printf("Header version     : 0x%02x\n", torHeader->version);
             printf("Chip type          : 0x%02x \"%s\"\n",
-                   torHeader->chipId  , (chipIdIsMap[torHeader->chipId]).c_str());
+                   torHeader->chipId  , (chipIdToTypeMap[torHeader->chipId]).c_str());
             printf("DD level           : 0x%02x\n", torHeader->ddLevel);
             printf("Image size         : 0x%08x (%d)\n",
                    be32toh(torHeader->size), be32toh(torHeader->size));
