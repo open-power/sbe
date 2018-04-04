@@ -116,6 +116,7 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,XBUS,000000000601180A,0x06,HB,PowerBus ELL Config register,,write_whitelist,
 ,XBUS,6011818,0x06,HB,PowerBus ELL Replay Threshold register,,write_whitelist,
 ,XBUS,6011819,0x06,HB,PowerBus ELL SL ECC Threshold register,,write_whitelist,
+,XBUS,000000000601180B,0x06,HB,PowerBus ELL Control register,,write_whitelist,
 ,XBUS,0000000006011C0B,0x06,HB,PowerBus ELL Control register,,write_whitelist,
 ,XBUS,000000000601200B,0x06,HB,PowerBus ELL Control register,,write_whitelist,
 ,Core,0000000020010A9C,0x20-0x37,HB,Direct injects into logic - no latches!!,,write_whitelist,
