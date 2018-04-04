@@ -577,4 +577,11 @@ attribute tank
           <name>ATTR_PROC_CHIP_MEM_TO_USE</name>
           <value>0x00</value>
   </entry>
+  <!-- See system_attributes.xml for a description of ATTR_EXECUTION_PLATFORM -->
+  <entry>
+           <name>ATTR_EXECUTION_PLATFORM</name>
+           <!-- RTC: -->
+           <!-- HOST, till something better is defined for SBE -->
+           <value>0x1</value>
+  </entry>
 </entries>
