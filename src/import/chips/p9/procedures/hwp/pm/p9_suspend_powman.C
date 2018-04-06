@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -59,7 +59,7 @@
 // total timeout = 10 milliseconds
 static const uint64_t POLLTIME_NS = 1000000;
 static const uint64_t POLLTIME_MCYCLES = 4000;
-static const uint32_t TRIES_BEFORE_TIMEOUT = 10;
+static const uint32_t TRIES_BEFORE_TIMEOUT = 500;
 
 extern "C" {
 
