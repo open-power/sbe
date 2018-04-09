@@ -38,6 +38,7 @@ const uint32_t RISK_LEVEL_ZERO = 0;
 #define CACHE_CONTAINED_MODE_OFFSET_IN_TOR 1
 #define RISK_LEVEL_MODE_OFFSET_IN_TOR      2
 #define OVERRIDE_VARIANT_SIZE 1
+#define INSTANCE_VARIANT_SIZE 1 // TOR v7 specific
 
 ///
 /// @brief This is a plat pecific (SBE Plat) function that locates the
@@ -340,9 +341,9 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             case EQ_TYPE: // EQ - Quad 0 - Quad 5
                 l_chipletData = EQ::g_chipletData;
-                if (l_torVersion < 6)
+                if (l_torVersion < 7)
                 {
-                    l_numVarAdjust = 1;
+                    l_numVarAdjust = 3;
                 }
 
                 l_sectionOffset = l_sectionTOR->TOC_EQ_COMMON_RING;
@@ -358,9 +359,9 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             case EC_TYPE: // EC - Core 0 - 23
                 l_chipletData = EC::g_chipletData;
-                if (l_torVersion < 6)
+                if (l_torVersion < 7)
                 {
-                    l_numVarAdjust = 1;
+                    l_numVarAdjust = 3;
                 }
 
                 l_sectionOffset = l_sectionTOR->TOC_EC_COMMON_RING;
@@ -385,9 +386,23 @@ fapi2::ReturnCode getRS4ImageFromTor(
         {
             break;
         }
-                
-        l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE :
-                              (l_chipletData.iv_num_ring_variants - l_numVarAdjust);
+
+        // If TOR v7 image, adjust variant size according to Common vs Instance ring type
+        // since there is only BASE variant support for Instance (repr) rings in v7
+        if (l_torVersion < 7)
+        {
+            l_cpltRingVariantSz = (l_chipletData.iv_num_common_ring_variants - l_numVarAdjust);
+        }
+        else
+        {
+            l_cpltRingVariantSz = (l_ringType == INSTANCE_RING) ?
+                                  INSTANCE_VARIANT_SIZE :
+                                  (l_chipletData.iv_num_common_ring_variants - l_numVarAdjust);
+        }
+
+        // Subsequently, re-adjust variant size according to whether override or flush ring
+        // (Note, no TOR version dependency here.)
+        l_cpltRingVariantSz = i_applyOverride ? OVERRIDE_VARIANT_SIZE : l_cpltRingVariantSz;
 
         FAPI_INF("l_sectionOffset %08x", l_sectionOffset);
         // Determine the section TOR address for the ring
