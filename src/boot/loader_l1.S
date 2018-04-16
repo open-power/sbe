@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,7 +57,14 @@ __l1Loader:
         li       r1, 0x00
         stvd     d0, 0(r5)
 
+        # If hreset of SBE, jump directly to kernel, as all the pibmem contents
+        # are already populated
+        _liw     %r3, 0x50008
+        lvd      d3,0(r3)
+        bb1wi    r3,13,jump_to_kernel
+
         bl _pibmemRepair
+
         _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
         _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest
         _liw     %r9, SBE_SEEPROM_BASE_ORIGIN
@@ -105,6 +112,21 @@ copy_loop_init:
         addi    r4, r4, 8
         bdnz    copy_loop_init
 
+        blr
+
+jump_to_kernel:
+        # setup IVPR before jumping to kernel
+        _liw    %r8, SBE_BASE_ORIGIN
+        li      r9,0
+        _liw    %r10, 0xC0000160
+        stvd    d8,0(r10)
+        ############################################################
+        # SBE entry function is 4 byte number in image header
+        ############################################################
+
+        _liw     %r3,  SBE_SEEPROM_BASE_ORIGIN + SBE_KERNEL_ENTRY_HEADER_OFFSET
+        lwz      r6, 0(r3)
+        mtlr  r6
         blr
 
 #include "pibmem_repair.S"

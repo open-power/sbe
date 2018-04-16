@@ -203,5 +203,17 @@ namespace SBE
      */
     void updatePkFreq();
 
+    /* @brief - Check if the boot is on HRESET of SBE
+     *
+     * @return - True if HRESET, false otherwise
+     */
+    bool isHreset(void);
+
+    /* @brief - Clear HRESET BIT
+     *
+     * @return - void
+     */
+    void clearHresetBit(void);
+
 } // namespace SBE
 #endif //SBE_UTIL_H

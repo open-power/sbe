@@ -79,6 +79,8 @@
 
 // Base Loader entry function offset in header
 #define SBE_LOADER_ENTRY_HEADER_OFFSET 20
+// PK boot offset in header
+#define SBE_KERNEL_ENTRY_HEADER_OFFSET 28
 
 /// The physical address offset where SBE-SEEPROM code is loaded
 ///

@@ -258,9 +258,17 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     // is ready now to receive data on its interfaces
     (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
 
-    // Check the destination bit at the start
-    if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+    if (SBE_GLOBAL->isHreset)
     {
+        SBE::clearHresetBit();
+        SBE_INFO(SBE_FUNC"Hreset, going back to the state before reset");
+        (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(
+                (sbeState)SbeRegAccess::theSbeRegAccess().getSbeState());
+    }
+    else if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
+    {
+        // Check the destination bit at the start
         SBE_INFO(SBE_FUNC"Destination bit tells us to go to runtime");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_RUNTIME);

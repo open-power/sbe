@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -67,21 +68,29 @@ extern uint64_t _sbss_end __attribute__ ((section (".sbss")));
 // false in future.
 void __eabi()
 {
-    // Initialise sbss section
-    uint64_t *startAddr = &_sbss_start;
-    while ( startAddr != &_sbss_end )
+    do
     {
-        *startAddr = 0;
-        startAddr++;
-    }
-
-    // Call global constructors
-    void(**ctors)() = &ctor_start_address;
-    while( ctors != &ctor_end_address)
-    {
-        (*ctors)();
-        ctors++;
-    }
+        SBE_GLOBAL->isHreset = SBE::isHreset();
+        if (SBE_GLOBAL->isHreset)
+        {
+            // skip constructors
+            break;
+        }
+        // Initialise sbss section
+        uint64_t *startAddr = &_sbss_start;
+        while ( startAddr != &_sbss_end )
+        {
+            *startAddr = 0;
+            startAddr++;
+        }
+        // Call global constructors
+        void(**ctors)() = &ctor_start_address;
+        while( ctors != &ctor_end_address)
+        {
+            (*ctors)();
+            ctors++;
+        }
+    } while (false);
 }
 } // end extern "C"
 
@@ -289,47 +298,50 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
-        // TODO via RTC 126146.
-        //  Check if we should call plat_TargetsInit in some other thread.
-        //  We may want to keep only PK init in main and can move
-        //  plat init to some other thread. Only if this is required by more
-        //  than one thread and there can be some race condition, we will
-        //  keep it here before starting other threads.
-        fapi2::ReturnCode fapiRc = fapi2::plat_TargetsInit();
-        if( fapiRc != fapi2::FAPI2_RC_SUCCESS )
+        if (!SBE_GLOBAL->isHreset)
         {
-            SBE_ERROR(SBE_FUNC"plat_TargetsInit failed");
-            (void)SbeRegAccess::theSbeRegAccess().
-                    stateTransition(SBE_FAILURE_EVENT);
-            // Hard Reset SBE to recover
-            break;
+            // TODO via RTC 126146.
+            //  Check if we should call plat_TargetsInit in some other thread.
+            //  We may want to keep only PK init in main and can move
+            //  plat init to some other thread. Only if this is required by more
+            //  than one thread and there can be some race condition, we will
+            //  keep it here before starting other threads.
+            fapi2::ReturnCode fapiRc = fapi2::plat_TargetsInit();
+            if( fapiRc != fapi2::FAPI2_RC_SUCCESS )
+            {
+                SBE_ERROR(SBE_FUNC"plat_TargetsInit failed");
+                (void)SbeRegAccess::theSbeRegAccess().
+                        stateTransition(SBE_FAILURE_EVENT);
+                // Hard Reset SBE to recover
+                break;
+            }
+
+            fapiRc = fapi2::plat_AttrInit();
+            if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC"plat_AttrInit failed");
+                (void)SbeRegAccess::theSbeRegAccess().
+                        stateTransition(SBE_FAILURE_EVENT);
+                // Hard Reset SBE to recover
+                break;
+            }
+
+            if(SbeRegAccess::theSbeRegAccess().init())
+            {
+                SBE_ERROR(SBE_FUNC"Failed to initialize SbeRegAccess.");
+                // init failure could mean the below will fail too, but attempt it
+                // anyway
+                (void)SbeRegAccess::theSbeRegAccess().stateTransition(
+                                                     SBE_FAILURE_EVENT);
+                // Hard Reset SBE to recover
+                break;
+            }
+            if(SBE::isSimicsRunning())
+            {
+               SBE_INFO("SBE is running on simics");
+            }
         }
 
-        fapiRc = fapi2::plat_AttrInit();
-        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR(SBE_FUNC"plat_AttrInit failed");
-            (void)SbeRegAccess::theSbeRegAccess().
-                    stateTransition(SBE_FAILURE_EVENT);
-            // Hard Reset SBE to recover
-            break;
-        }
-
-        if(SbeRegAccess::theSbeRegAccess().init())
-        {
-            SBE_ERROR(SBE_FUNC"Failed to initialize SbeRegAccess.");
-            // init failure could mean the below will fail too, but attempt it
-            // anyway
-            (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                                 SBE_FAILURE_EVENT);
-            // Hard Reset SBE to recover
-            break;
-        }
-
-         if(SBE::isSimicsRunning())
-         {
-            SBE_INFO("SBE is running on simics");
-         }
         // Start running the highest priority thread.
         // This function never returns
         pk_start_threads();

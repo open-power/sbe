@@ -58,9 +58,6 @@ void sbeCommandReceiver_routine(void *i_pArg)
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     sbeInterfaceSrc_t curInterface = SBE_INTERFACE_UNKNOWN;
 
-    // Set Current State to First State i.e. Unknown
-    (void)SbeRegAccess::theSbeRegAccess().updateSbeState(SBE_STATE_UNKNOWN);
-
     do
     {
         // @TODO via RTC: 128944

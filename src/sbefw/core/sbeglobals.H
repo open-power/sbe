@@ -96,6 +96,9 @@ class SBEGlobalsSingleton
         // SBE commit id
         static uint32_t fwCommitId;
 
+        // hreset flow
+        static bool isHreset;
+
         // Secure memory window arrays
         static secureMemRegion_t mainMemRegions[MAX_MAIN_STORE_REGIONS];
         static secureMemRegion_t occSramRegions[MAX_OCC_SRAM_REGIONS];
