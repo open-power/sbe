@@ -582,6 +582,14 @@ attribute tank
            <value>0x00</value>
   </entry>
   <entry>
+        <name>ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED</name>
+        <virtual/>
+  </entry>
+  <entry>
+           <name>ATTR_SMF_CONFIG</name>
+           <value>0x00</value>
+  </entry>
+  <entry>
           <name>ATTR_ENABLE_MEM_EARLY_DATA_SCOM</name>
           <value>0x0</value>
   </entry>
