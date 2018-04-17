@@ -54,8 +54,8 @@ enum P9_SETUP_SBE_CONFIG_scratch4
     ATTR_I2C_BUS_DIV_REF_LENGTH        = 16,
     ATTR_NDL_MESHCTRL_SETUP_STARTBIT   = 16,
     ATTR_NDL_MESHCTRL_SETUP_LENGTH     = 4,
-    ATTR_MC_PLL_BUCKET_STARTBIT      = 21,
-    ATTR_MC_PLL_BUCKET_LENGTH        = 3,
+    ATTR_MC_PLL_BUCKET_STARTBIT        = 21,
+    ATTR_MC_PLL_BUCKET_LENGTH          = 3,
     ATTR_OB0_PLL_BUCKET_STARTBIT       = 24,
     ATTR_OB0_PLL_BUCKET_LENGTH         = 2,
     ATTR_OB1_PLL_BUCKET_STARTBIT       = 26,
@@ -91,15 +91,16 @@ enum P9_SETUP_SBE_CONFIG_scratch4
     ATTR_SLOW_PCI_REF_CLOCK_BIT        = 5,
 
     // Scratch_reg_6
+    ATTR_SMF_CONFIG                        = 16,
     ATTR_PROC_EFF_FABRIC_GROUP_ID_STARTBIT = 17,
-    ATTR_PROC_EFF_FABRIC_GROUP_ID_LENGTH = 3,
-    ATTR_PROC_EFF_FABRIC_CHIP_ID_STARTBIT = 20,
-    ATTR_PROC_EFF_FABRIC_CHIP_ID_LENGTH = 3,
-    ATTR_PUMP_CHIP_IS_GROUP            = 23,
-    ATTR_PROC_FABRIC_GROUP_ID_STARTBIT = 26,
-    ATTR_PROC_FABRIC_GROUP_ID_LENGTH   = 3,
-    ATTR_PROC_FABRIC_CHIP_ID_STARTBIT  = 29,
-    ATTR_PROC_FABRIC_CHIP_ID_LENGTH    = 3,
+    ATTR_PROC_EFF_FABRIC_GROUP_ID_LENGTH   = 3,
+    ATTR_PROC_EFF_FABRIC_CHIP_ID_STARTBIT  = 20,
+    ATTR_PROC_EFF_FABRIC_CHIP_ID_LENGTH    = 3,
+    ATTR_PUMP_CHIP_IS_GROUP                = 23,
+    ATTR_PROC_FABRIC_GROUP_ID_STARTBIT     = 26,
+    ATTR_PROC_FABRIC_GROUP_ID_LENGTH       = 3,
+    ATTR_PROC_FABRIC_CHIP_ID_STARTBIT      = 29,
+    ATTR_PROC_FABRIC_CHIP_ID_LENGTH        = 3,
 };
 
 fapi2::ReturnCode p9_sbe_attr_setup(const
@@ -429,6 +430,7 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
     }
     //read_scratch6_reg
     {
+        uint8_t l_smf_config;
         uint8_t l_pump_mode;
 
         if ( !l_read_scratch8.getBit<5>() )
@@ -446,6 +448,20 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             else
             {
                 l_read_scratch_reg.setBit<24>();
+            }
+
+            FAPI_DBG("Reading SMF_CONFIG");
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SMF_CONFIG,
+                                   fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                                   l_smf_config));
+
+            if (l_smf_config == fapi2::ENUM_ATTR_SMF_CONFIG_ENABLED)
+            {
+                l_read_scratch_reg.setBit<ATTR_SMF_CONFIG>();
+            }
+            else
+            {
+                l_read_scratch_reg.clearBit<ATTR_SMF_CONFIG>();
             }
 
             FAPI_DBG("Reading PUMP MODE");

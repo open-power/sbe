@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -117,13 +117,25 @@ p9_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     if (l_extended_addressing_mode)
     {
         fapi2::ATTR_CHIP_EC_FEATURE_HW423589_OPTION2_Type l_hw423589_option2;
+        fapi2::ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED_Type l_smf_supported;
+        fapi2::ATTR_SMF_CONFIG_Type l_smf_config;
+
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW423589_OPTION2, i_target, l_hw423589_option2),
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_HW423589_OPTION2)");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED, i_target, l_smf_supported),
+                 "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED)");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SMF_CONFIG, fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(), l_smf_config),
+                 "Error from FAPI_ATTR_GET (ATTR_SMF_CONFIG)");
 
         if (l_hw423589_option2)
         {
             l_addr_extension_group_id = CHIP_ADDRESS_EXTENSION_GROUP_ID_MASK_HW423589_OPTION2;
             l_addr_extension_chip_id = CHIP_ADDRESS_EXTENSION_CHIP_ID_MASK_HW423589_OPTION2;
+        }
+
+        if (l_smf_config && l_smf_supported)
+        {
+            l_addr_extension_group_id |= CHIP_ADDRESS_EXTENSION_GROUP_ID_MASK_SMF_ENABLE;
         }
 
         // enable extended addressing mode, seed attributes from defaults

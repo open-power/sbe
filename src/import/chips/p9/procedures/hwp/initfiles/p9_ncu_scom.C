@@ -36,6 +36,7 @@ constexpr uint64_t literal_0b0001 = 0b0001;
 constexpr uint64_t literal_0b1000 = 0b1000;
 constexpr uint64_t literal_0x40 = 0x40;
 constexpr uint64_t literal_0x8 = 0x8;
+constexpr uint64_t literal_0b10 = 0b10;
 constexpr uint64_t literal_6 = 6;
 constexpr uint64_t literal_0 = 0;
 constexpr uint64_t literal_15 = 15;
@@ -57,6 +58,8 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID, TGT1, l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_GROUP_ID));
         fapi2::ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID_Type l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID, TGT1, l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID));
+        fapi2::ATTR_SMF_CONFIG_Type l_TGT1_ATTR_SMF_CONFIG;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SMF_CONFIG, TGT1, l_TGT1_ATTR_SMF_CONFIG));
         fapi2::ATTR_CHIP_EC_FEATURE_HW440920_Type l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW440920, TGT2, l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920));
         fapi2::buffer<uint64_t> l_scom_buffer;
@@ -140,6 +143,15 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         }
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x1001100cull, l_scom_buffer ));
+
+            if (((l_chip_id == 0x5) && (l_chip_ec == 0x22)) || ((l_chip_id == 0x5) && (l_chip_ec == 0x23)) || ((l_chip_id == 0x6)
+                    && (l_chip_ec == 0x12)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x13)) || ((l_chip_id == 0x7) && (l_chip_ec == 0x10)) )
+            {
+                if ((l_TGT1_ATTR_SMF_CONFIG == fapi2::ENUM_ATTR_SMF_CONFIG_ENABLED))
+                {
+                    l_scom_buffer.insert<20, 2, 62, uint64_t>(literal_0b10 );
+                }
+            }
 
             if (((l_chip_id == 0x5) && (l_chip_ec == 0x20)) || ((l_chip_id == 0x5) && (l_chip_ec == 0x21)) || ((l_chip_id == 0x5)
                     && (l_chip_ec == 0x22)) || ((l_chip_id == 0x5) && (l_chip_ec == 0x23)) || ((l_chip_id == 0x6) && (l_chip_ec == 0x10))
