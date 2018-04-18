@@ -134,7 +134,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
     uint8_t l_torVersion = ((TorHeader_t*)i_sectionTOR)->version;
     SectionTOR* l_sectionTOR = (SectionTOR*)((uint8_t*)i_sectionTOR + l_torHdrSz);
     uint8_t l_numVarAdjust = 0;
-     
+
     // Determine the Offset ID and Ring Type for the given Ring ID.
     uint32_t l_torOffset = 0;
     RingType_t l_ringType = COMMON_RING;
@@ -143,6 +143,14 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
     do
     {
+
+        if (l_torVersion > TOR_VERSION)
+        {
+            SBE_TRACE("Image TOR version (=%d) > code TOR version (=%d) not allowed",
+                      l_torVersion, TOR_VERSION);
+            l_rc = fapi2::FAPI2_RC_INVALID_PARAMETER;
+            break;
+        }
 
         if((i_ringID >= NUM_RING_IDS))
         {
