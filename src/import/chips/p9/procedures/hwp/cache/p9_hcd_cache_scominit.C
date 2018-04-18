@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -224,7 +224,7 @@ p9_hcd_cache_scominit(
         FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG1, l_data64));
         l_data64.insertFromRight<2, 4>(l_exid).insertFromRight<6, 16>(l_exlist);
 
-        if (l_excount > 1)
+        if (l_attr_sys_force_all_cores && (l_excount > 1))
         {
             l_data64.setBit<0>();
         }
