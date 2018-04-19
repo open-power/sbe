@@ -115,6 +115,7 @@ extern fapi2::ReturnCode
         uint8_t l_proc_chip_mem_to_use_valid = 0;
         uint8_t l_proc_chip_mem_to_use_group_id = 0;
         uint8_t l_proc_chip_mem_to_use_chip_id = 0;
+        bool l_proc_chip_mem_to_use_set = false;
         fapi2::buffer<uint8_t> l_proc_chip_mem_to_use_attr = 0;
 
 
@@ -321,12 +322,6 @@ extern fapi2::ReturnCode
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_CLOCK_PLL_MUX, l_chipTarget, l_pllMux));
         }
 
-        FAPI_DBG("Reading ATTR_PROC_FABRIC_GROUP and CHIP_ID");
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, l_chipTarget,
-                               l_proc_chip_mem_to_use_group_id));
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, l_chipTarget,
-                               l_proc_chip_mem_to_use_chip_id));
-
         if ( l_scratch8Reg.getBit<5>() )
         {
             uint8_t l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE;
@@ -348,6 +343,7 @@ extern fapi2::ReturnCode
                 l_tempReg.extract<SCRATCH_PROC_CHIP_MEM_TO_USE_CHIP_ID_STARTBIT,
                                   ATTR_PROC_FABRIC_CHIP_ID_LENGTH,
                                   0>(l_proc_chip_mem_to_use_chip_id);
+                l_proc_chip_mem_to_use_set = true;
             }
 
             l_read1 = 0;
@@ -397,6 +393,13 @@ extern fapi2::ReturnCode
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, l_chipTarget,
                                    l_read3));
         }
+        if (!l_proc_chip_mem_to_use_set)
+        {
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,
+                                   l_chipTarget,
+                                   l_proc_chip_mem_to_use_group_id));
+        }
+
         l_proc_chip_mem_to_use_attr.insertFromRight
                                     <ATTR_PROC_MEM_TO_USE_GROUP_ID_STARTBIT,
                                      ATTR_PROC_FABRIC_GROUP_ID_LENGTH>
