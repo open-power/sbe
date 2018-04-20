@@ -406,7 +406,7 @@ get_bootloader_config_data(
 
     // read platform initialized attributes to determine struct content
     FAPI_TRY(p9_fbc_utils_get_chip_base_address_no_aliases(i_master_chip_target,
-             HB_GRP_CHIP_IDS,
+             EFF_FBC_GRP_CHIP_IDS,
              l_chip_base_address_nm0,
              l_chip_base_address_nm1,
              l_chip_base_address_m,
