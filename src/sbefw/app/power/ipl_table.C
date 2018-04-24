@@ -815,6 +815,10 @@ ReturnCode istepWithExL2Flush( voidfuncptr_t i_hwp)
             // Enable this code back once stop states are enabled
             // This is temporary hack to debug SW422447
             // continue;
+            SBE_ERROR(SBE_FUNC "Ex chipletId [%d] not l2 scomable, so no purge",
+                exTgt.getChipletNumber());
+            rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA | 0x11;
+            break;
         }
         p9core::purgeData_t l_purgeData;
         SBE_EXEC_HWP(rc,
@@ -872,6 +876,10 @@ ReturnCode istepWithExL3Flush( voidfuncptr_t i_hwp)
             // Enable this code back once stop states are enabled
             // This is temporary hack to debug SW422447
             // continue;
+            SBE_INFO(SBE_FUNC "Ex chipletId [%d] not l2 scomable, so no purge",
+                exTgt.getChipletNumber());
+            rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA | 0x12;
+            break;
         }
 
         SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpExL3Flush_t>(i_hwp),
