@@ -145,6 +145,10 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
         {
             l_primStatus = SBE_PRI_INVALID_DATA;
         }
+        else if (i_rc == SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE)
+        {
+            l_primStatus = SBE_PRI_INVALID_COMMAND;
+        }
 
         uint32_t l_len2dequeue            = 0;
         sbeRespGenHdr_t l_hdr;

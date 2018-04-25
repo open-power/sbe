@@ -223,7 +223,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
             // of command, but there might be contention on the response sent
             // over FIFO/Mailbox usage.
             sbeChipOpRc_t cmdAllowedStatus = sbeIsCmdAllowed(l_cmdClass, l_command);
-            if( !cmdAllowedStatus.success() && !SBE::isSimicsRunning() )
+            if( !cmdAllowedStatus.success() )
             {
                 SBE_ERROR("Chip-Op CmdClass[0x%02X] Cmd[0x%02X] not allowed "
                     "secondary status[0x%04X] State - [0x%02X]",

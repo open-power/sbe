@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -189,8 +190,8 @@ sbeChipOpRc_t sbeIsCmdAllowed (const uint8_t i_cmdClass,
 
                 case SBE_STATE_QUIESCE:
                 {
-                    l_ret = ((l_pCmd->cmd_state_fence &
-                              SBE_FENCE_AT_QUIESCE)? false:true);
+                    // fence off all the chip-ops in quiesce state
+                    l_ret = false;
                     break;
                 }
 
@@ -206,7 +207,8 @@ sbeChipOpRc_t sbeIsCmdAllowed (const uint8_t i_cmdClass,
             }
             // Check if the command is allowed in current security mode
             if((SBE_GLOBAL->sbeFWSecurityEnabled)
-                && (SBE_FENCE_AT_SECURE_MODE & l_pCmd->cmd_state_fence))
+                && (SBE_FENCE_AT_SECURE_MODE & l_pCmd->cmd_state_fence)
+                && (!SBE::isSimicsRunning()))
             {
                 retRc.primStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
                 retRc.secStatus  = SBE_SEC_BLACKLISTED_CHIPOP_ACCESS;

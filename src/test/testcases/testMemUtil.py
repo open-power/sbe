@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -149,7 +149,7 @@ def getmem(addr, len, flags):
     testUtil.readEot( )
     return data[:lenExp]
 
-def getmem_failure(addr, len, flags, responseWord):
+def getmem_failure(addr, len, flags, responseWord, withLen = True):
     testUtil.runCycles( 10000000 )
     req = (getsingleword(6)
          + [0, 0, 0xA4, 0x01]
@@ -158,7 +158,10 @@ def getmem_failure(addr, len, flags, responseWord):
          + getsingleword(len))
     testUtil.writeUsFifo(req)
     testUtil.writeEot( )
-    expResp =  ([0x0, 0x0, 0x0, 0x0]
+    lenWord = []
+    if withLen:
+        lenWord = [0x0, 0x0, 0x0, 0x0]
+    expResp =  (lenWord
     + [0xc0,0xde,0xa4,0x01]
     + getsingleword(responseWord)
     + [0x0,0x0,0x0,0x03])

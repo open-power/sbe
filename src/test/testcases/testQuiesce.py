@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,7 @@
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
+import testMemUtil
 err = False
 
 TESTDATA = [0,0,0,2,
@@ -42,6 +44,9 @@ def main( ):
     testUtil.writeEot( )
     testUtil.readDsFifo( EXPDATA )
     testUtil.readEot( )
+
+    # fail get mem in quiesce state
+    testMemUtil.getmem_failure(0x08000000, 128*2, 0x02, 0x00010008, False)
 
 #-------------------------------------------------
 # Calling all test code
