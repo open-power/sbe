@@ -331,18 +331,16 @@ extern fapi2::ReturnCode
             FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_6_SCOM,
                                     l_tempReg));
 
-            l_tempReg.extract<SCRATCH_PROC_CHIP_MEM_TO_USE_VALID_BIT,
-                              1, 0>(l_proc_chip_mem_to_use_valid);
+            l_tempReg.extractToRight<SCRATCH_PROC_CHIP_MEM_TO_USE_VALID_BIT,
+                              1>(l_proc_chip_mem_to_use_valid);
             if (l_proc_chip_mem_to_use_valid)
             {
                 l_proc_chip_mem_to_use_group_id = 0;
                 l_proc_chip_mem_to_use_chip_id = 0;
-                l_tempReg.extract<SCRATCH_PROC_CHIP_MEM_TO_USE_GROUP_ID_STARTBIT,
-                                  ATTR_PROC_FABRIC_GROUP_ID_LENGTH,
-                                  0>(l_proc_chip_mem_to_use_group_id);
-                l_tempReg.extract<SCRATCH_PROC_CHIP_MEM_TO_USE_CHIP_ID_STARTBIT,
-                                  ATTR_PROC_FABRIC_CHIP_ID_LENGTH,
-                                  0>(l_proc_chip_mem_to_use_chip_id);
+                l_tempReg.extractToRight<SCRATCH_PROC_CHIP_MEM_TO_USE_GROUP_ID_STARTBIT,
+                                  ATTR_PROC_FABRIC_GROUP_ID_LENGTH>(l_proc_chip_mem_to_use_group_id);
+                l_tempReg.extractToRight<SCRATCH_PROC_CHIP_MEM_TO_USE_CHIP_ID_STARTBIT,
+                                  ATTR_PROC_FABRIC_CHIP_ID_LENGTH>(l_proc_chip_mem_to_use_chip_id);
                 l_proc_chip_mem_to_use_set = true;
             }
 
