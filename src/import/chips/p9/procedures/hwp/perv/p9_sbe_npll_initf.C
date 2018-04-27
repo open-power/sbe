@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -128,8 +128,7 @@ fapi2::ReturnCode p9_sbe_npll_initf(
                             "Unsupported Filter PLL bucket value!");
         }
 
-        // re-scan PLL ring to apply overlay containing filter PLL BGoffset
-        // selected from MVPD
+        // re-scan PLL ring to apply selected filter PLL overlay
         FAPI_DBG("Re-scan perv_pll_bndy to apply perv_pll_bndy_flt_%d ring",
                  l_fpll_bucket);
         FAPI_TRY(fapi2::putRing(i_target_chip,
