@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017                             */
+/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,11 +41,14 @@
 // Includes
 //------------------------------------------------------------------------------
 
+extern "C"
+{
+
 /// @typedef p9_collect_suspend_ffdc_FP_t
 /// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p9_collect_suspend_ffdc_FP_t) (
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
-);
+    typedef fapi2::ReturnCode (*p9_collect_suspend_ffdc_FP_t) (
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
+    );
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -58,9 +61,11 @@ typedef fapi2::ReturnCode (*p9_collect_suspend_ffdc_FP_t) (
 ///         On failure, a ReturnCode object with the input HWP return code
 ///                     and partial or default FFDC added to it
 ///
-fapi2::ReturnCode
-p9_collect_suspend_ffdc (
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target
-);
+    fapi2::ReturnCode
+    p9_collect_suspend_ffdc (
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target
+    );
+
+}
 
 #endif  // __P9_COLLECT_SUSPEND_FFDC_H__
