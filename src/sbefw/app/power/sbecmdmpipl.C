@@ -230,15 +230,21 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         rc = sbeUpFifoDeq_mult (len, NULL);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
-        sbeRole sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
+        // Refresh SBE role and proc chip mem attribute
+        // to handle failover of FSP and with it the switchover of
+        // master proc SBE
+        fapi2::plat_AttrInit();
+        SbeRegAccess::theSbeRegAccess().init(true);
+
+        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
                     SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
 
-        fapiRc = continueMpiplIstepsExecute(sbeRole);
+        fapiRc = continueMpiplIstepsExecute(g_sbeRole);
         bool checkstop = isSystemCheckstop();
         if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
         {
             SBE_ERROR(SBE_FUNC "Failed in Continue Mpipl in ChipOp Mode, "
-                "SBE Role[%d]", sbeRole);
+                "SBE Role[%d]", g_sbeRole);
             if(checkstop)
             {
                 respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,

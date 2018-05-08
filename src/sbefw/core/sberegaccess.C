@@ -131,7 +131,7 @@ void SbeRegAccess::stateTransition(const sbeEvent &i_event)
     #undef SBE_FUNC
 }
 
-uint32_t SbeRegAccess::init()
+uint32_t SbeRegAccess::init(bool forced)
 {
     #define SBE_FUNC "SbeRegAccess::SbeRegAccess "
     static bool l_initDone = false;
@@ -139,7 +139,7 @@ uint32_t SbeRegAccess::init()
 
     do
     {
-        if(l_initDone)
+        if(l_initDone && !forced)
         {
             break;
         }

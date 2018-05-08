@@ -64,10 +64,14 @@ class SbeRegAccess
         /**
          * @brief Initializes the class for use
          *
+         * @param [in] forced Forcefully initialise reg access
+         *                    singleton.
+         *                    Default argument set to false.
+         *
          * @return An RC indicating success/failure
          *
          */
-        uint32_t init();
+        uint32_t init(bool forced=false);
 
         /**
          * @brief Update the SBE states into the SBE messaging register. The
