@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -158,6 +158,10 @@ foreach my $entr (@{$entries->{entry}}) {
 
                 foreach my $target (@targets)
                 {
+                    # Remove newlines and leading/trailing whitespace
+                    $target =~ s/\n//;
+                    $target =~ s/^\s+//;
+                    $target =~ s/\s+$//;
 
                     if ($target eq "TARGET_TYPE_SYSTEM") {
 
