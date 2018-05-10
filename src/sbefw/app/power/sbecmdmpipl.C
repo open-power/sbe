@@ -91,7 +91,8 @@ ReturnCode startMpiplIstepsExecute(void)
     do
     {
         fapiRc = sbeExecuteIstep(SBE_ISTEP_MPIPL_START, minor);
-        if(fapiRc != FAPI2_RC_SUCCESS)
+        bool checkstop = isSystemCheckstop();
+        if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
         {
             SBE_ERROR(SBE_FUNC "Failed in StartMpipl Minor Isteps[%d]", minor);
             break;
@@ -116,21 +117,23 @@ ReturnCode continueMpiplIstepsExecute(const sbeRole i_sbeRole)
     #define SBE_FUNC " continueMpiplIstepsExecute "
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
- 
+
     // Loop through isteps
     for( auto istep : g_continuempipl_isteps )
     {
+        bool checkstop = false;
         for(uint8_t minor = istep[1]; minor <= istep[2]; minor++)
         {
             fapiRc = sbeExecuteIstep(istep[0], minor);
-            if(fapiRc != FAPI2_RC_SUCCESS)
+            checkstop = isSystemCheckstop();
+            if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
             {
                 SBE_ERROR(SBE_FUNC "Failed in Master ContinueMpipl Isteps "
                     "Major[%d] Minor[%d]", istep[0], minor);
                 break;
             }
         }
-        if(fapiRc != FAPI2_RC_SUCCESS)
+        if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
         {
             break;
         }
