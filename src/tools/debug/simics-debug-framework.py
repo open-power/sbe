@@ -34,15 +34,36 @@ import struct
 testIstepAuto = imp.load_source("testIstepAuto", os.environ['SBE_TOOLS_PATH'] + "/testIstepAuto.py")
 sbeDebug = imp.load_source("sbeDebug", os.environ['SBE_TOOLS_PATH'] + "/sbe-debug.py")
 err = False
+g_isFleetwood = 0
 
 syms = {};
 
 def check_sbe_tools_path ():
   global SBE_TOOLS_PATH
+  global g_isFleetwood
   SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
+  #Figure out if it's a fleetwood system
+  cmd1 = "pipe \"echo $cec_type\" \"cat > temp1.map\""
+  ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
+  if ( rc ):
+    print "simics ERROR running %s: %d "%( cmd1, rc )
+  with open('temp1.map', 'r') as f:
+    map = f.read().strip()
+    if(map == "p9_fleetwood"):
+        g_isFleetwood = 1
+    else:
+        g_isFleetwood = 0
 
-def get_dd_level(procNr = 0):
-    cmd = "pipe \"p9Proc"+str(procNr)+".sbe.mibo_space.map\" \"cat > temp.map\""
+def get_dd_level(procNr = 0, nodeNr = 0):
+    global g_isFleetwood
+
+    if g_isFleetwood:
+        node = nodeNr + 1
+        cmd = "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.map\" \"cat > temp.map\""
+    else:
+        cmd = "pipe \"p9Proc"+str(procNr)+".sbe.mibo_space.map\" \"cat > temp.map\""
+    
+    print "simics running %s: "%( cmd)
     ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
     if ( rc ):
         print "simics ERROR running %s: %d "%( cmd, rc )
@@ -50,10 +71,16 @@ def get_dd_level(procNr = 0):
     with open('temp.map', 'r') as f:
         map = f.read()
         map = map.split()
-        if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
-            ddlevel = "DD1"
-        if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
-            ddlevel = "DD2"
+        if g_isFleetwood:
+            if map[map.index('D'+str(node)+'Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
+                ddlevel = "DD1"
+            if map[map.index('D'+str(node)+'Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
+                ddlevel = "DD2"
+        else:
+            if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
+                ddlevel = "DD1"
+            if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
+                ddlevel = "DD2"
     print "running image - ["+ddlevel+"]"
     return ddlevel
 
@@ -61,42 +88,43 @@ def register_sbe_debug_framework_tools():
     check_sbe_tools_path ()
     fillSymTable()
     # Create command hook.
-    new_command("sbe-istep",testIstepAuto.sbe_istep_func,
-                 args = [arg(float_t, "Major/start istep"), arg(float_t, "Minor/end istep")],
+    new_command("sbe-istep",istep_func,
+                 args = [arg(float_t, "Major/start istep"), arg(float_t, "Minor/end istep"), arg(int_t, "arg", "?", 0)],
                  alias = "istep",
                  type = ["sbe-commands"],
                  short = "Runs the debug framework for istep ",
                  doc = "")
     new_command("sbe-trace", collectTrace,
-                 args = [arg(int_t, "procNr")],
-                 alias = "strace",
-                 type = ["sbe-commands"],
-                 short = "Runs the debug framework for trace ",
-                 doc = "")
+                args = [arg(int_t, "procNr"), arg(int_t, "arg", "?", 0)],
+                alias = "strace",
+                type = ["sbe-commands"],
+                short = "Runs the debug framework for trace ",
+                doc = "")
     new_command("sbe-stack", collectStackUsage,
-                 args = [arg(int_t, "procNr")],
-                 alias = "sstack",
-                 type = ["sbe-commands"],
-                 short = "Runs the debug framework for stack usage ",
-                 doc = "")
+                args = [arg(int_t, "procNr"), arg(int_t, "arg", "?", 0)],
+                alias = "sstack",
+                type = ["sbe-commands"],
+                short = "Runs the debug framework for stack usage ",
+                doc = "")
     new_command("sbe-ddlevel", get_dd_level,
-                 args = [arg(int_t, "procNr")],
-                 alias = "sddlevel",
-                 type = ["sbe-commands"],
-                 short = "Runs the debug framework for dd level ",
-                 doc = "")
+                args = [arg(int_t, "procNr"), arg(int_t, "arg", "?", 0)],
+                alias = "sddlevel",
+                type = ["sbe-commands"],
+                short = "Runs the debug framework for dd level ",
+                doc = "")
     new_command("sbe-attrdump", collectAttr,
-                 args = [arg(int_t, "procNr")],
-                 alias = "sattrdump",
-                 type = ["sbe-commands"],
-                 short = "Runs the debug framework for runtime attribute dump ",
-                 doc = "")
+                args = [arg(int_t, "procNr"), arg(int_t, "arg", "?", 0)],
+                alias = "sattrdump",
+                type = ["sbe-commands"],
+                short = "Runs the debug framework for runtime attribute dump ",
+                doc = "")
     new_command("sbe-regffdc", collectRegFfdc,
-                 args = [arg(int_t, "procNr")],
-                 alias = "sregffdc",
-                 type = ["sbe-commands"],
-                 short = "Runs the debug framework for register ffdc ",
-                 doc = "")
+                args = [arg(int_t, "procNr"), arg(int_t, "arg", "?", 0)],
+                alias = "sregffdc",
+                type = ["sbe-commands"],
+                short = "Runs the debug framework for register ffdc ",
+                doc = "")
+
     print "SBE Debug Framework: Registered tool:", "sbe-istep"
     print "SBE Debug Framework: Registered tool:", "sbe-trace"
     print "SBE Debug Framework: Registered tool:", "sbe-stack"
@@ -119,7 +147,8 @@ def fillSymTable():
 # So while traversing the stack, starting from lowest memory to the top,
 # the first memory address where the pattern('0xEFCDAB03') is broken,
 # will be the deepest stack usage point of tht thread during the run
-def collectStackUsage ( procNr ):
+def collectStackUsage ( procNr, nodeNr=0 ):
+  global g_isFleetwood
   threads = ('sbeSyncCommandProcessor_stack',
              'sbeCommandReceiver_stack',
              'sbe_Kernel_NCInt_stack',
@@ -127,7 +156,12 @@ def collectStackUsage ( procNr ):
   print "==================================Stack usage==================================="
   # Dump stack memory to binary files
   for thread in threads:
-    cmd = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
+    if g_isFleetwood:
+        node = nodeNr + 1
+        cmd = "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
+    else:
+        cmd = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
+    print "simics running %s: "%( cmd)
     ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
     if ( rc ):
         print "simics ERROR running %s: %d "%( cmd, rc )
@@ -145,37 +179,60 @@ def collectStackUsage ( procNr ):
                 break
         print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
 
-def collectAttr( procNr ):
-  cmd1= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
-  ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
+def collectAttr( procNr, nodeNr=0 ):
+  global g_isFleetwood
+  if g_isFleetwood:
+    node = nodeNr + 1
+    cmd= "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  else:
+    cmd= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  print "simics running %s: "%( cmd)
+  ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
   if ( rc ):
-    print "simics ERROR running %s: %d "%( cmd1, rc )
-  ddlevel = get_dd_level(procNr)
+    print "simics ERROR running %s: %d "%( cmd, rc )
+  ddlevel = get_dd_level(procNr, nodeNr)
   sbeDebug.ddsuffix = ddlevel
   sbeDebug.target = 'FILE'
   sbeDebug.file_path = 'DumpFullPIBMEM'
   sbeDebug.fillSymTable()
   sbeDebug.collectAttr()
 
-def collectRegFfdc( procNr ):
-  cmd1= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
-  ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
+def collectRegFfdc( procNr, nodeNr=0 ):
+  global g_isFleetwood
+  if g_isFleetwood:
+    node = nodeNr + 1
+    cmd= "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  else:
+    cmd= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  print "simics running %s: "%( cmd)
+  ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
   if ( rc ):
-    print "simics ERROR running %s: %d "%( cmd1, rc )
-  ddlevel = get_dd_level(procNr)
+    print "simics ERROR running %s: %d "%( cmd, rc )
+  ddlevel = get_dd_level(procNr, nodeNr)
   sbeDebug.ddsuffix = ddlevel
   sbeDebug.target = 'FILE'
   sbeDebug.file_path = 'DumpFullPIBMEM'
   sbeDebug.fillSymTable()
   sbeDebug.ppeStateFfdc()
 
-def collectTrace ( procNr ):
-  fileName = "sbe_" + `procNr` + "_tracMERG"
-  cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
+def istep_func ( majorIstep, minorIstep, nodeNr=0 ):
+  global g_isFleetwood
+  testIstepAuto.sbe_istep_func(majorIstep, minorIstep, nodeNr, g_isFleetwood)
+
+def collectTrace ( procNr, nodeNr=0 ):
+  global g_isFleetwood
+  if g_isFleetwood:
+    node = nodeNr + 1
+    fileName = "sbe_" + `nodeNr`+"_"+`procNr` + "_tracMERG"
+    cmd1 = "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
+  else:
+    fileName = "sbe_" + `procNr` + "_tracMERG"
+    cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
-  cmd3 = "shell \"" + "fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr)+" sbetrace.bin >" +  fileName + "\""
+  cmd3 = "shell \"" + "fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr, nodeNr)+" sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""
 
+  print "simics running %s: "%( cmd1)
   ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
   if ( rc ):
     print "simics ERROR running %s: %d "%( cmd1, rc )

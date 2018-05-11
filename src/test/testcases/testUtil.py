@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -28,23 +28,45 @@ from sim_commands import *
 
 waitItrCount = 10000000;
 cyclesPerIter = 20000;
-#err = False
-lbus = conf.p9Proc0.proc_lbus_map
-def writeUsFifo( data):
+
+def getLbus( node, isfleetwood ):
+    #This is non-fleetwood system, where node is 0 by default
+    if (isfleetwood == 0):
+        lbus=conf.p9Proc0.proc_lbus_map
+    else:
+        # This is fleetwood system
+        if(node == 0):
+            lbus=conf.D1Proc0.proc_lbus_map
+        if(node == 1):
+            lbus=conf.D2Proc0.proc_lbus_map
+        if(node == 2):
+            lbus=conf.D3Proc0.proc_lbus_map
+        if(node == 3):
+            lbus=conf.D4Proc0.proc_lbus_map
+   
+    return lbus
+
+#Default parameters are for single node, node 0
+def writeUsFifo( data, node=0, isfleetwood=0):
     """Main test Loop"""
+    lbus = getLbus(node, isfleetwood)
     loopCount = len(data)/4;
     for i in range (loopCount):
         idx = i * 4;
         writeEntry(lbus, 0x2400, (data[idx], data[idx+1], data[idx+2], data[idx+3]) )
 
-def readDsFifo(data):
+#Default parameters are for single node, node 0
+def readDsFifo(data, node=0, isfleetwood=0):
     """Main test Loop"""
+    lbus = getLbus(node, isfleetwood)
     loopCount = len(data)/4;
     for i in range (loopCount):
         idx = i * 4;
         checkEqual(readEntry(lbus, 0x2440, 4), (data[idx], data[idx+1], data[idx+2], data[idx+3]))
 
-def writeEot():
+#Default parameters are for single node, node 0
+def writeEot(node=0, isfleetwood=0):
+    lbus = getLbus(node, isfleetwood)
     write(lbus, 0x2408, (0, 0, 0, 1) )
 
 def write(obj, address, value ):
@@ -52,21 +74,29 @@ def write(obj, address, value ):
     iface = SIM_get_interface(obj, "memory_space")
     iface.write(None, address, value, 0x0)
 
-def readEot():
+#Default parameters are for single node, node 0
+def readEot(node=0, isfleetwood=0):
     """ Read from memory space """
+    lbus = getLbus(node, isfleetwood)
     status = read(lbus, 0x2444, 4)
     checkEqual( (status[3] & 0x80), 0x80 );
     read(lbus, 0x2440, 4)
 
-def resetFifo():
+#Default parameters are for single node, node 0
+def resetFifo(node=0, isfleetwood=0):
+    lbus = getLbus(node, isfleetwood)
     write(lbus, 0x240C, (0, 0, 0, 1))
     return
 
-def readUsFifoStatus():
+#Default parameters are for single node, node 0
+def readUsFifoStatus(node=0, isfleetwood=0):
+    lbus = getLbus(node, isfleetwood)
     status = read(lbus, 0x2404, 4)
     return status
 
-def readDsFifoStatus():
+#Default parameters are for single node, node 0
+def readDsFifoStatus(node=0, isfleetwood=0):
+    lbus = getLbus(node, isfleetwood)
     status = read(lbus, 0x2444, 4)
     return status
 
@@ -101,12 +131,15 @@ def waitTillDsFifoEmpty():
 
 # This function will only read the entry but will not compare it
 # with anything. This can be used to flush out enteries.
-def readDsEntry(entryCount):
+#Default parameters are for single node, node 0
+def readDsEntry(entryCount, node=0, isfleetwood=0):
+    lbus = getLbus(node, isfleetwood)
     for i in range (entryCount):
         readEntry(lbus, 0x2440, 4)
 
-def writeEntry(obj, address, value ):
-
+#Default parameters are for single node, node 0
+def writeEntry(obj, address, value, node=0, isfleetwood=0 ):
+    lbus = getLbus(node, isfleetwood)
     loop = 1;
     count = 0;
     while( loop ):
@@ -124,13 +157,19 @@ def writeEntry(obj, address, value ):
             loop = 0
 
     return value
-def readDsEntryReturnVal():
+
+#Default parameters are for single node, node 0
+def readDsEntryReturnVal(node=0, isfleetwood=0):
+    lbus = getLbus(node, isfleetwood)
     data = readEntry(lbus, 0x2440, 4)
     runCycles(200000)
     return data
-def readEntry(obj, address, size):
+
+#Default parameters are for single node, node 0
+def readEntry(obj, address, size, node=0, isfleetwood=0):
 
     """ Read from memory space """
+    lbus = getLbus(node, isfleetwood)
     loop = 1;
     count = 0;
     value = (0,0,0,0)

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -42,7 +42,7 @@ gIstepArray = {
                }
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
-def sbe_istep_func( inum1, inum2):
+def sbe_istep_func( inum1, inum2, node=0, isfleetwood=0):
     # Convert float number to string, which would help extracting
     # decimal and integral part separately
     # Interpretation:
@@ -86,10 +86,10 @@ def sbe_istep_func( inum1, inum2):
                              0,0,0xA1,0x01,
                             0,major,0,minor ]
                 testUtil.runCycles( 10000000 )
-                testUtil.writeUsFifo( TESTDATA )
-                testUtil.writeEot( )
-                testUtil.readDsFifo( EXPDATA )
-                testUtil.readEot( )
+                testUtil.writeUsFifo( TESTDATA, node, isfleetwood )
+                testUtil.writeEot( node, isfleetwood )
+                testUtil.readDsFifo( EXPDATA, node, isfleetwood )
+                testUtil.readEot( node, isfleetwood )
 
             except:
                 print ("\nTest completed with error(s). Raise error")

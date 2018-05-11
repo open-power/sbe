@@ -147,7 +147,7 @@ def collectTrace():
             output_path +"sbetrace.bin " )
     invokeOsCmd( getTraceFilePath() + " -s " +
             getFilePath("sbeStringFile_"+ddsuffix)+ " "+ output_path +"sbetrace.bin > "+\
-            output_path+"sbe_"+str(proc)+"_tracMERG" )
+            output_path+"sbe_"+str(node)+"_"+str(proc)+"_tracMERG" )
     invokeOsCmd( "mv " + output_path +"DumpPIBMEM "+\
             output_path +"dumpPibMem_trace" )
 
@@ -190,7 +190,7 @@ def forcedCollectTrace():
 
     invokeOsCmd( getTraceFilePath() + " -s " +
             getFilePath("sbeStringFile_"+ddsuffix)+" "+ output_path +"sbetrace.bin > "+\
-            output_path+"sbe_"+str(proc)+"_tracMERG" )
+            output_path+"sbe_"+str(node)+"_"+str(proc)+"_tracMERG" )
     invokeOsCmd( "mv "+ output_path +"DumpPIBMEM "+\
             output_path +"dumpPibMem_trace" )
 
@@ -202,11 +202,8 @@ def collectAttr():
     getSymbolVal( 'G_sbe_attrs' )
     invokeOsCmd( "mv "+ output_path + "DumpPIBMEM " +\
             output_path +"sbeAttr.bin" )
-    # TODO via RTC 158861
-    # For multi-node system we need to convert node/proc to absolute
-    # proc number.
     invokeOsCmd( getFilePath("p9_xip_tool")+" "+getFilePath(sbeImgFile) + " -ifs attrdump "+ output_path +"sbeAttr.bin > "+\
-             output_path+"sbe_"+str(proc)+"_attrs")
+             output_path+"sbe_"+str(node)+"_"+str(proc)+"_attrs")
 
 def collectStackUsage():
     threads = ('sbeSyncCommandProcessor_stack',
