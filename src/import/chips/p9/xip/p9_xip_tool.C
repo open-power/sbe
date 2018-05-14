@@ -43,19 +43,10 @@
 #include "p9_xip_image.h"
 #include "common_ringId.H"
 #ifndef __PPE__ // Needed on ppe side to avoid having to include various APIs
-#include "p9_tor.H"
-#include "p9_scan_compression.H"
-namespace P9_RID
-{
-#include "p9_ringId.H"
-};
-namespace CEN_RID
-{
-#include "cen_ringId.H"
-}
-#include <vector>
-#include "p9_dd_container.h"
-#include <endian.h>
+    #include "p9_tor.H"
+    #include "p9_scan_compression.H"
+    #include <vector>
+    #include <endian.h>
 #endif
 #include "p9_infrastruct_help.H"
 #include "p9_dd_container.h"
@@ -567,7 +558,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
 
             break;
 
-#ifndef __PPE__
+#if !defined(__PPE__) && !defined(FIPSODE)
 
         case IST_TOR:
 
@@ -579,7 +570,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
                    be32toh(torHeader->magic), magicString);
             printf("Header version     : 0x%02x\n", torHeader->version);
             printf("Chip type          : 0x%02x \"%s\"\n",
-                   torHeader->chipType, CHIP_TYPE_LIST[torHeader->chipType].name);
+                   torHeader->chipId  , (chipIdIsMap[torHeader->chipId]).c_str());
             printf("DD level           : 0x%02x\n", torHeader->ddLevel);
             printf("Image size         : 0x%08x (%d)\n",
                    be32toh(torHeader->size), be32toh(torHeader->size));
@@ -1908,16 +1899,17 @@ static
 int dissectRingSectionTor( uint8_t*    i_ringSection,
                            uint8_t     i_listingModeId )
 {
-    int         rc = 0;
+    int         rc = INFRASTRUCT_RC_SUCCESS;
     uint32_t    i;
     RingId_t    numRingIds = 0;
     uint32_t    torMagic = 0xffffffff; // Undefined value
-    ChipType_t  chipType = UNDEFINED_CHIP_TYPE;
+    ChipId_t    chipId = UNDEFINED_CHIP_ID;
     uint8_t     ddLevel = UNDEFINED_DD_LEVEL;
     PpeType_t   ppeType;
     RingId_t    ringId;
     RingVariant_t ringVariant;
     uint8_t     instanceId;
+    RingProperties_t* ringProps = NULL;
     void*       ringBlockPtr;
     uint32_t    ringBlockSize;
     char        ringName[MAX_RING_NAME_LENGTH];
@@ -1945,27 +1937,30 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     //
     TorHeader_t* torHeader = reinterpret_cast<TorHeader_t*>(i_ringSection);
     torMagic    = be32toh(torHeader->magic);
-    chipType    = torHeader->chipType;
+    chipId      = torHeader->chipId;
     ddLevel     = torHeader->ddLevel;
 
     //
-    // Make some ChipType specific data translations
+    // Get some chip ID specific metadata
     //
-    switch (chipType)
+    rc = ringid_get_num_ring_ids( chipId,
+                                  &numRingIds );
+
+    if (rc)
     {
-        case CT_P9N:
-        case CT_P9C:
-        case CT_P9A:
-            numRingIds = P9_RID::NUM_RING_IDS;
-            break;
+        fprintf(stderr, "ringid_get_num_ring_ids() failed w/rc=0x%08x for chipId=%d\n",
+                (uint32_t)rc, chipId);
+        exit(EXIT_FAILURE);
+    }
 
-        case CT_CEN:
-            numRingIds = CEN_RID::NUM_RING_IDS;
-            break;
+    rc = ringid_get_ringProps( chipId,
+                               &ringProps );
 
-        default:
-            fprintf(stderr, "ERROR: Invalid chipType(=%d)\n", chipType);
-            exit(1);
+    if (rc)
+    {
+        fprintf(stderr, "ringid_get_ringProps() failed w/rc=0x%08x for chipId=%d\n",
+                (uint32_t)rc, chipId);
+        exit(EXIT_FAILURE);
     }
 
     //
@@ -2117,26 +2112,43 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
                         if ( l_ringId != ringId )
                         {
-                            fprintf(stderr, "tor_access_ring() was successful and found a ring. But "
-                                    "RS4 header's iv_ringId(=0x%x) differs from requested ringId(=0x%x).\n",
-                                    l_ringId, ringId);
-                            operator delete(ringBlockPtr);
-                            operator delete(dataBuf);
-                            operator delete(careBuf);
-                            operator delete(rs4StumpBuf);
-                            operator delete(rs4CmskBuf);
-                            exit(EXIT_FAILURE);
+                            if ( (ringProps[l_ringId].ringClass & RCLS_ROOT_RING) !=
+                                 (ringProps[ringId].ringClass & RCLS_ROOT_RING) )
+                            {
+                                fprintf(stderr, "IMPORTANT: Found a ring. But the requested ringId"
+                                        " and the RS4 header ringId differ. However, since"
+                                        " one, and only one, of the rings is a ROOT ring,"
+                                        " it's not a valid find and we'll skip it.\n"
+                                        "Requested ringId: 0x%x\n"
+                                        "RS4 headr ringId: 0x%x\n",
+                                        ringId, l_ringId);
+                            }
+                            else
+                            {
+                                fprintf(stderr, "tor_access_ring() was successful and found a ring."
+                                        " But RS4 header ringId(=0x%x) differs from requested"
+                                        " ringId(=0x%x). Other info:\n"
+                                        "ringVariant: %d\n"
+                                        "instanceId: %d\n"
+                                        "ppeType: %d\n",
+                                        l_ringId, ringId, ringVariant, instanceId, ppeType);
+                                operator delete(ringBlockPtr);
+                                operator delete(dataBuf);
+                                operator delete(careBuf);
+                                operator delete(rs4StumpBuf);
+                                operator delete(rs4CmskBuf);
+                                exit(EXIT_FAILURE);
+                            }
                         }
-
 
                         // Check ring block size.
                         ringSize = be16toh(rs4->iv_size);
 
                         if ( ringSize != ringBlockSize || ringSize == 0 )
                         {
-                            fprintf(stderr, "tor_access_ring() was successful and found a ring. But "
-                                    "RS4 header's iv_size(=0x%04x) is either zero or doesn't match "
-                                    "size of ring buffer (ringBlockSize=0x%04x).\n",
+                            fprintf(stderr, "tor_access_ring() was successful and found a ring. But"
+                                    " RS4 header size(=0x%04x) is either zero or doesn't match"
+                                    " size of ring buffer (ringBlockSize=0x%04x).\n",
                                     ringSize, ringBlockSize);
                             operator delete(ringBlockPtr);
                             operator delete(dataBuf);
@@ -2278,6 +2290,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                             {
                                 fprintf(stdout, "Binary ring block dump (LE format):\n");
 
+                                // Output 8 bytes per line (in 2 byte chunks)
                                 for (i = 0; i < ringBlockSize / 8; i++)
                                 {
                                     fprintf( stdout,
@@ -2288,6 +2301,27 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                                              (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 16),
                                              (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i))) );
                                 }
+
+                                // Output rem above 8 bytes (in 2 byte chunks, 1 byte resolution)
+                                uint8_t l_rem = ringBlockSize - ringBlockSize / 8 * 8;
+
+                                if (l_rem)
+                                {
+                                    fprintf( stdout, "%04x:", i * 8);
+
+                                    for (uint8_t ii = 0; ii < l_rem; ii++)
+                                    {
+                                        if ( (ii - ii / 2 * 2) == 0 )
+                                        {
+                                            fprintf( stdout, " ");
+                                        }
+
+                                        fprintf( stdout, "%02x",
+                                                 (uint8_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> (56 - ii * 8)) );
+                                    }
+                                }
+
+                                fprintf( stdout, "\n");
                             }
 
                             // Below we dump the raw decompressed ring content in the exact same
@@ -2312,12 +2346,13 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                             break;
                         }
                     }
-                    else if (rc == TOR_RING_NOT_FOUND      ||
-                             rc == TOR_INVALID_INSTANCE_ID ||
-                             rc == TOR_INVALID_CHIPLET     ||
-                             rc == TOR_INVALID_VARIANT     ||
-                             rc == TOR_AMBIGUOUS_API_PARMS ||
-                             rc == TOR_INVALID_RING_ID)
+                    else if ( rc == TOR_RING_IS_EMPTY        ||
+                              rc == TOR_RING_HAS_NO_TOR_SLOT ||
+                              rc == TOR_INVALID_INSTANCE_ID  ||
+                              rc == TOR_INVALID_CHIPLET_TYPE ||
+                              rc == TOR_INVALID_VARIANT      ||
+                              rc == TOR_AMBIGUOUS_API_PARMS  ||
+                              rc == TOR_INVALID_RING_ID )
                     {
                         // All these errors are acceptable in the context of xip_tool dissect.
                         rc = INFRASTRUCT_RC_SUCCESS;
@@ -2906,7 +2941,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
 
     if (rc)
     {
-        fprintf(stderr, "p9_xip_dd_section_support() failed w/rc=0x%08x (2)\n", (uint32_t)rc );
+        fprintf(stderr, "p9_xip_dd_section_support failed w/rc=0x%08x (2)\n", (uint32_t)rc );
         return rc;
     }
 
@@ -2916,7 +2951,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
 
         if (rc)
         {
-            fprintf(stderr, "ERROR: p9_xip_get_section() failed w/rc=0x%x while getting "
+            fprintf(stderr, "p9_xip_tool: p9_xip_get_section failed w/rc=0x%x while getting "
                     "DD (=0x%x) specific ring section.\n",
                     (uint32_t)rc, i_ddLevel);
             exit (EXIT_FAILURE);
@@ -2933,7 +2968,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
         // verify the .rings section is populated
         if (l_ringsSection.iv_size == 0)
         {
-            fprintf(stderr, "Ring section size in HW image is zero.\n");
+            fprintf(stderr, "p9_xip_tool: Ring section size in HW image is zero.\n");
             rc = P9_XIP_DATA_NOT_PRESENT;
             return rc;
         }
@@ -2943,29 +2978,28 @@ int check_sbe_ring_section_size( void* i_hwImage,
 
         do
         {
-            // Call the tor function will a null block pointer to get the
-            // section size
+            // Call the tor function will a null block pointer to get the section size
 
             rc = tor_get_block_of_rings( ringsSection,
                                          i_ddLevel,
                                          PT_SBE,
-                                         UNDEFINED_RING_VARIANT,
                                          l_blockPtr,
-                                         l_blockSize);
+                                         l_blockSize );
 
             if(rc)
             {
-                fprintf(stderr, "error calling tor API rc = %d\n", rc);
+                fprintf(stderr, "p9_xip_tool: tor_get_block_of_rings failed w/rc = %d\n", rc);
+                rc = P9_XIP_TOR_API_ERROR;
                 break;
             }
 
             if( l_blockSize == 0 )
             {
-                fprintf(stderr, "No rings for dd_level %#02x found\n", i_ddLevel);
+                fprintf(stderr, "p9_xip_tool: No rings for dd_level 0x%x found\n", i_ddLevel);
                 break;
             }
 
-            fprintf(stderr, " SBE .ring section size for DD level %#02x ", i_ddLevel);
+            fprintf(stderr, "p9_xip_tool: SBE .rings section size for DD level 0x%x ", i_ddLevel);
 
             // return failure if the block size would exceed the maximum allowed size
             if( l_blockSize > i_maxSize )

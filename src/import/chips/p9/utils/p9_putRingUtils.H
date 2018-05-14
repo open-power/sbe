@@ -131,7 +131,7 @@ enum scanType_t
 //
 //using namespace RING_TYPES;
 void getRingProperties(const RingId_t i_ringId,
-                       uint32_t& o_torOffset,
+                       RingId_t& o_torOffset,
                        RingType_t& o_ringType,
                        ChipletType_t& o_type);
 

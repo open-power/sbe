@@ -159,25 +159,23 @@ uint32_t rs4_revle32(const uint32_t i_x)
 }
 }; //end of namespace
 
-void getRingProperties(const RingId_t i_ringId,
-                       uint32_t& o_torOffset,
-                       RingType_t& o_ringType,
-                       ChipletType_t& o_chipletType)
+void getRingProperties(const RingId_t  i_ringId,
+                       RingId_t&       o_torOffset,
+                       RingType_t&     o_ringType,
+                       ChipletType_t&  o_chipletType)
 {
     do
     {
-        // Determine the TOR ID
-        o_torOffset =
-            (INSTANCE_RING_MASK & (RING_PROPERTIES[i_ringId].iv_torOffSet));
-        o_chipletType = RING_PROPERTIES[i_ringId].iv_type;
+        o_torOffset = RING_PROPERTIES[i_ringId].idxRing;
 
+        // Check for valid ring index
         if(INVALID_RING_OFFSET == o_torOffset)
         {
             break;
         }
 
         // Determine Ring Type
-        if(INSTANCE_RING_MARK & (RING_PROPERTIES[i_ringId].iv_torOffSet))
+        if(INSTANCE_RING_MARK & o_torOffset)
         {
             o_ringType = INSTANCE_RING;
         }
@@ -185,6 +183,11 @@ void getRingProperties(const RingId_t i_ringId,
         {
             o_ringType = COMMON_RING;
         }
+
+        // Now that we know ringType, get the effective torOffset
+        o_torOffset = INSTANCE_RING_MASK & o_torOffset;
+
+        o_chipletType = RING_PROPERTIES[i_ringId].chipletType;
     }
     while(0);
 }
@@ -1146,7 +1149,9 @@ fapi2::ReturnCode rs4DecompressionSvc(
 
     do
     {
-        //This is a special case for eq_ana_bndy bucket rings
+        // Treat rings that assume NONFLUSH ring status as override rings:
+        // - eq_ana_bndy bucket rings (RCLS_EKB_FSM_RING) and
+        // - perv_pll_bndy_flt rings (RCLS_EKB_NONFLUSH_RING)
         if ( ( (l_ringId >= eq_ana_bndy_bucket_0) && (l_ringId <= eq_ana_bndy_bucket_25) ) ||
              ( l_ringId == eq_ana_bndy_bucket_l3dcc ) ||
              ( (l_ringId >= eq_ana_bndy_bucket_26) && (l_ringId <= eq_ana_bndy_bucket_41) ) ||
