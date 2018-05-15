@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -47,13 +47,15 @@ namespace p9SetupClockTerm
 {
 enum P9_SETUP_CLOCK_TERM_Public_Constants
 {
-    OSCSWITCH_RC3 = 0x0080C000,
-    OSCSWITCH_RC4 = 0x0,
     DISABLE_WRITE_PROTECTION = 0x4453FFFF,
+    P9N_OSCSWITCH_RC3 = 0x0080C000,
+    P9C_OSCSWITCH_RC3_BASE = 0x09010000,
     P9C_OSCSWITCH_RC3_BOTHSRC0 = 0x00009000,
     P9C_OSCSWITCH_RC3_BOTHSRC1 = 0x00006000,
-    P9C_OSCSWITCH_RC3_SRC0 = 0x0000C000,
-    P9C_OSCSWITCH_RC3_SRC1 = 0x00003000
+    P9C_OSCSWITCH_RC3_SRC0 =     0x0000C000,
+    P9C_OSCSWITCH_RC3_SRC1 =     0x00003000,
+    OSCSWITCH_RC4 = 0x80100000,
+    OSCSWITCH_RC5 = 0x0030, /* Lower half of RC5 */
 };
 }
 
