@@ -76,6 +76,15 @@ class SBEGlobalsSingleton
          *
          */
         PkSemaphore sbeSemCmdProcess;
+
+        /**
+         * @brief Global semaphore for async task
+         *
+         *   This is used to send invoke commands on Async process
+         *
+         */
+        PkSemaphore sbeSemAsyncProcess;
+
         sbeRole SBERole;
         // SBE Frequency. Initially nest frequency is 133 MHZ
         uint32_t sbefreq;
@@ -138,6 +147,7 @@ class SBEGlobalsSingleton
             sbeIntrSource(),
             sbeSemCmdRecv(),
             sbeSemCmdProcess(),
+            sbeSemAsyncProcess(),
             SBERole(SBE_ROLE_MASTER),
             sbefreq(( 133 * 1000 * 1000)/SBE::SBE_TO_NEST_FREQ_FACTOR),
             sbeFWSecurityEnabled(1)

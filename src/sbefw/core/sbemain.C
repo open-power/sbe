@@ -49,6 +49,9 @@
 // Max defines for Semaphores
 static uint32_t MAX_SEMAPHORE_COUNT = 3;
 
+// As periodic timer expire in 24 hours count should never
+// be more than 1.
+static uint32_t MAX_PERIODIC_TIMER_SEMAPHORE_COUNT = 1;
 extern "C"
 {
 // These variables are declared in linker script to keep track of
@@ -115,6 +118,12 @@ uint32_t sbeInitSems(void)
             break;
         }
         l_rc = pk_semaphore_create(&SBE_GLOBAL->sbeSemCmdProcess, 0, MAX_SEMAPHORE_COUNT);
+        if (l_rc)
+        {
+            break;
+        }
+        l_rc = pk_semaphore_create(&SBE_GLOBAL->sbeSemAsyncProcess, 0,
+                                         MAX_PERIODIC_TIMER_SEMAPHORE_COUNT);
         if (l_rc)
         {
             break;

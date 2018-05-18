@@ -225,6 +225,7 @@ enum sbeSecondaryResponse
     SBE_SEC_S0_START_MPIPL_FAILED             = 0x24,
     SBE_SEC_S0_STOP_CLOCK_FAILED              = 0x25,
     SBE_SEC_S0_CONTINUE_MPIPL_FAILED          = 0x26,
+    SBE_SEC_PERIODIC_IO_TOGGLE_FAILED         = 0x27,
 };
 
 /**

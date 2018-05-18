@@ -58,6 +58,8 @@ ISTEPMPIPL-CPP-SOURCES +=p9_query_cache_access_state.C
 ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_abist_catchup.C
 ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_cleanup.C
 ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_setup.C
+# io eol toggle procedure moved here to locate it on seeprom
+ISTEPMPIPL-CPP-SOURCES += p9_sbe_io_eol_toggle.C
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 

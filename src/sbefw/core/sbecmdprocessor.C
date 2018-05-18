@@ -48,10 +48,17 @@
 #include "sbeglobals.H"
 #include "core/chipop_handler.H"
 #include "core/ipl.H"
+#include "sbeFFDC.H"
 
 #ifdef _S0_
 #include "sbes0handler.H"
 #endif
+
+#if PERIODIC_IO_TOGGLE_SUPPORTED
+#include "p9_sbe_io_eol_toggle.H"
+#endif
+
+const uint32_t PERIODIC_TIMER_INTERVAL_MS = 24*60*60*1000; // 24 hours
 
 using namespace fapi2;
 
@@ -418,18 +425,45 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 #endif
     } while(true); // Thread always exists
     SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
 }
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 void sbeAsyncCommandProcessor_routine(void *arg)
 {
-    SBE_INFO("sbeAsyncCommandProcessor Thread started");
-
+    #define SBE_FUNC "sbeAsyncCommandProcessor"
+    SBE_INFO(SBE_FUNC " Thread started");
+    #if PERIODIC_IO_TOGGLE_SUPPORTED
     do
     {
-        //  @TODO RTC via : 130392
-        //        Add infrastructure for host interface
+        // Since currently there is only one async job
+        // - IO EOL toggle, this task runs every
+        // PERIODIC_TIMER_INTERVAL_MS and performs the
+        // operation. Modify this implementation by introducing job
+        // queue, if there are more asynchronous jobs.
+        int l_rcPk = pk_semaphore_pend (
+                    &SBE_GLOBAL->sbeSemAsyncProcess,
+                    PK_MILLISECONDS(PERIODIC_TIMER_INTERVAL_MS));
+        // PK API failure
+        if ((-l_rcPk) != PK_SEMAPHORE_PEND_TIMED_OUT)
+        {
+            SBE_ERROR(SBE_FUNC" pk_semaphore_pend failed, "
+                          "l_rcPk=-%04x", -l_rcPk );
+            // Ignore the failure
+        }
 
-    } while(0);
+        ReturnCode rc = FAPI2_RC_SUCCESS;
+        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+        SBE_EXEC_HWP(rc, p9_sbe_io_eol_toggle, proc)
+        if (rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " p9_sbe_io_eol_toggle failed");
+            // SBE async ffdc
+            captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                             SBE_SEC_PERIODIC_IO_TOGGLE_FAILED);
+        }
+    } while(1);
+    #endif // PERIODIC_IO_TOGGLE_SUPPORTED
+    #undef SBE_FUNC
 }
