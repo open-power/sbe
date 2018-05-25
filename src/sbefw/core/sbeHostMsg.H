@@ -186,4 +186,25 @@ typedef struct
     void init();
 } sbeSbe2PsuRespHdr_t;
 
+/* @brief Format of PIR */
+typedef struct
+{
+    uint32_t procGrpId:21;
+    uint32_t procChipId:3;
+    uint32_t chipUnitNum:6;
+    uint32_t thread:2;
+} sbe_pir_t;
+
+/* @brief Format to dump out the architected register on the host memory
+ * Host may use this format to fetch all the register data/state
+ */
+typedef struct
+{
+    sbe_pir_t pir;        // PIR value of thread corrsponding to the register
+    uint32_t  coreState:8; // State of core in which this thread is present
+    uint32_t  reserved:8;  // Reserved
+    uint32_t  regNum:16;   // Register Number
+    uint64_t  regVal;      // Register Value
+} sbeArchRegDumpFormat_t;
+
 #endif // __SBEFW_SBEHOST_MSG_H

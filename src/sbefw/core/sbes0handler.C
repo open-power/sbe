@@ -40,6 +40,7 @@
 #include "sbecmdmpipl.H"
 #include "sbeFFDC.H"
 #include "sbes0handler.H"
+#include "sbearchregdump.H"
 
 #include "fapi2.H"
 #include "p9_perv_scom_addresses.H"
@@ -67,6 +68,15 @@ uint32_t sbeHandleS0(uint8_t *i_pArg)
         {
             rc = SBE_SEC_S0_START_MPIPL_FAILED;
             SBE_ERROR(SBE_FUNC "Failed in Start Mpipl S0 Interface");
+            break;
+        }
+
+        // Collect Architected Register Dump
+        fapiRc = sbeDumpArchRegs();
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            rc = SBE_SEC_S0_ARCH_REG_DUMP_FAILED;
+            SBE_ERROR(SBE_FUNC "Failed to collect ArchRegDump S0 Interface");
             break;
         }
 

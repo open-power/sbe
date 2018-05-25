@@ -228,6 +228,7 @@ enum sbeSecondaryResponse
     SBE_SEC_PERIODIC_IO_TOGGLE_FAILED         = 0x27,
     SBE_SEC_SPECIAL_WAKEUP_TIMEOUT            = 0x28,
     SBE_SEC_SPECIAL_WAKEUP_SCOM_FAILURE       = 0x29,
+    SBE_SEC_S0_ARCH_REG_DUMP_FAILED           = 0x2A,
 };
 
 /**
