@@ -74,6 +74,8 @@ p9_hcd_core_scomcust(
     l_data64.flush<0>().setBit(EX_CPPM_CPMMR_WKUP_NOTIFY_SELECT);
     FAPI_TRY(putScom(i_target, C_CPPM_CPMMR_CLEAR, l_data64));
 
+    FAPI_TRY(putScom(i_target, C_SPATTN_MASK, 0x2222222200000000ULL));
+
 fapi_try_exit:
 
     FAPI_INF("<<p9_hcd_core_scomcust");
