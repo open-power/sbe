@@ -96,6 +96,9 @@ def getCapabilities(addr, size, exp_status):
         #----------------------------------------------------------------------------------------------------------------
         ["read", reg.PSU_HOST_DOORBELL_REG_WO_OR, 		"0", 		8, 	"8000000000000000", "Reading Host Doorbell for Interrupt"],
         )
+    length = 0
+    if exp_status == 0:
+        length = 92
     '''
 #---------------------
 # Host side test data
@@ -106,6 +109,7 @@ def getCapabilities(addr, size, exp_status):
         #   OP     Reg                                 ValueToWrite        size    Test Expected Data        Description
         #----------------------------------------------------------------------------------------------------------------
     ["read", reg.REG_MBOX4, 		"0", 	 	 8, 	getdoubleword((exp_status << 32)+0x00F0D702), "Reading Host MBOX4 data to Validate"],
+    ["read", reg.REG_MBOX5, 		"0", 	 	 8, 	getdoubleword(length), "Reading Host MBOX4 data to Validate"],
     )
     # HOST->SBE data set execution - Less length setup
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data )

@@ -107,6 +107,28 @@ uint32_t sbePsuGetCapabilities(uint8_t *i_pArg)
                                                     SBE_SEC_INVALID_PARAMS);
             break;
         }
+
+        // Set MBOX response words
+        uint64_t data = (uint64_t)SBE_CAPABILITES_LEN_PSU & 0x00000000FFFFFFFFull;
+        rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG5,
+                                   &data,
+                                   sizeof(data)/sizeof(uint64_t));
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to write to "
+                                "SBE_HOST_PSU_MBOX_REG5");
+            break;
+        }
+        rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG6,
+                                   (uint64_t*)&capMsg,
+                                   1);
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to write to "
+                                "SBE_HOST_PSU_MBOX_REG6");
+            break;
+        }
+
         p9_PBA_oper_flag l_myPbaFlag;
         l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ);
 
