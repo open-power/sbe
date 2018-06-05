@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -1646,39 +1646,43 @@ sub gerrit_query
 sub gerrit_query_commit
 {
     my $commit = shift;
+    my $flag   = 0;       ## use to check for commit in master branch if needed
 
-    my $project = config_project();
+    my $project      = config_project();
+    my $query_result = gerrit_query( "$commit project:$project " . "branch:" . $globals{"branch"} );
 
-    my $query_result = gerrit_query("$commit project:$project ".
-                                    "branch:".$globals{"branch"});
-
-    if ($query_result eq "")
+    do
     {
-        $query_result = gerrit_query("$commit project:$project ".
-                                     "branch:master");
-    }
-
-    foreach my $result (@{$query_result})
-    {
-        if ($result->{id} eq $commit  ||
-            $result->{currentPatchSet}->{revision} =~ m/$commit/)
+        foreach my $result ( @{$query_result} )
         {
-            return $result;
-        }
-        else
-        {
-            # If all patchsets queried, search all of them for the commit
-            foreach my $patchset (@{$result->{patchSets}})
+            if (   $result->{id} eq $commit
+                || $result->{currentPatchSet}->{revision} =~ m/$commit/ )
             {
-                if ($patchset->{revision} =~ m/$commit/)
+                return $result;
+            }
+            else
+            {
+                # If all patchsets queried, search all of them for the commit
+                foreach my $patchset ( @{ $result->{patchSets} } )
                 {
-                    return $result;
+                    if ( $patchset->{revision} =~ m/$commit/ )
+                    {
+                        return $result;
+                    }
                 }
             }
         }
-    }
 
-    die "Cannot find $commit in $project/$globals{\"branch\"}";
+        if ( $flag == 0 )
+        {
+            $query_result = gerrit_query( "$commit project:$project " . "branch:master" );
+            $flag         = 1;
+        }
+        else
+        {
+            die "Cannot find $commit in $project/$globals{\"branch\"}";
+        }
+    } while (1);
 }
 
 # sub gerrit_is_patch
