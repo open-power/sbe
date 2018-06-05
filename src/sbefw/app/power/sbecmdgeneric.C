@@ -52,32 +52,45 @@ using namespace fapi2;
 
 void updatePsuCapabilities(uint32_t * capability)
 {
-    capability[PSU_GENERIC_CAPABILTITY_START_IDX] =
-                                      PSU_HWP_FFDC_COLLECTION_SUPPORTED |
-                                      PSU_SBE_FFDC_COLLECTION_SUPPORTED |
-                                      PSU_ADDRESS_BLACKLIST_SUPPORTED |
-                                      PSU_HOST_COMMAND_INTERFACE_SUPPORTED;
-
     capability[PSU_CORE_CONTROL_CAPABILITY_START_IDX] =
                                       PSU_CONTROL_DEADMAN_LOOP;
+    capability[PSU_CORE_CONTROL_CAPABILITY_START_IDX+1] =
+                                      PSU_RESERVED_1;
+
+    capability[PSU_SCOM_CAPABILITY_START_IDX] =
+                                      PSU_DEFAULT_CAPABILITY_D2;
+    capability[PSU_SCOM_CAPABILITY_START_IDX+1] =
+                                      PSU_RESERVED_2;
 
     capability[PSU_RING_CAPABILITY_START_IDX] =
                                       PSU_PUT_RING_FROM_IMAGE_SUPPORTED;
+    capability[PSU_RING_CAPABILITY_START_IDX+1] =
+                                      PSU_RESERVED_3;
 
     capability[PSU_TIMER_CAPABILITY_START_IDX] =
                                       PSU_CONTROL_TIMER_SUPPORTED;
+    capability[PSU_TIMER_CAPABILITY_START_IDX+1] =
+                                      PSU_RESERVED_4;
+
+    capability[PSU_MPIPL_CAPABILITY_START_IDX] =
+                                      PSU_DEFAULT_CAPABILITY_D5;
+    capability[PSU_MPIPL_CAPABILITY_START_IDX+1] =
+                                      PSU_RESERVED_5;
 
     capability[PSU_SECURITY_CONTROL_CAPABILITY_START_IDX] =
                                       PSU_UNSECURE_MEM_REGION_SUPPORTED;
+    capability[PSU_SECURITY_CONTROL_CAPABILITY_START_IDX+1] =
+                                      PSU_RESERVED_6;
 
     capability[PSU_GENERIC_CHIPOP_CAPABILITY_START_IDX] =
-                                      PSU_GET_SBE_FFDC_SUPPPORTED |
                                       PSU_GET_SBE_CAPABILITIES_SUPPPORTED |
                                       PSU_READ_SBE_SEEPROM_SUPPORTED |
                                       PSU_SET_FFDC_ADDRESS_SUPPORTED |
                                       PSU_QUISCE_SUPPORTED |
                                       PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED |
                                       PSU_STASH_MPIPL_CONFIG_SUPPORTED;
+    capability[PSU_GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
+                                      PSU_RESERVED_7;
 
 }
 void updateFifoCapabilities(uint32_t * capability)
@@ -87,34 +100,62 @@ void updateFifoCapabilities(uint32_t * capability)
     capability[IPL_CAPABILITY_START_IDX] =
                                 EXECUTE_ISTEP_SUPPPORTED |
                                 SUSPEND_IO_SUPPPORTED;
+    capability[IPL_CAPABILITY_START_IDX+1] =
+                                RESERVED_A1_CAPABILITIES;
 
     capability[SCOM_CAPABILITY_START_IDX] =
                                 GET_SCOM_SUPPPORTED |
                                 PUT_SCOM_SUPPPORTED |
                                 MODIFY_SCOM_SUPPPORTED |
                                 PUT_SCOM_UNDER_MASK_SUPPPORTED ;
+    capability[SCOM_CAPABILITY_START_IDX+1] =
+                                RESERVED_A2_CAPABILITIES;
 
-    capability[GENERIC_CHIPOP_CAPABILITY_START_IDX] =
-                                GET_SBE_FFDC_SUPPPORTED |
-                                GET_SBE_CAPABILITIES_SUPPPORTED|
-                                SBE_QUIESCE;
+    capability[RING_CAPABILITY_START_IDX] =
+                                GET_RING_SUPPPORTED |
+                                PUT_RING_SUPPPORTED |
+                                PUT_RING_FROM_IMAGE_SUPPPORTED;
+    capability[RING_CAPABILITY_START_IDX+1] =
+                                RESERVED_A3_CAPABILITIES;
 
     capability[MEMORY_CAPABILITY_START_IDX] =
                                 GET_MEMORY_SUPPPORTED |
                                 PUT_MEMORY_SUPPPORTED |
                                 GET_SRAM_OCC_SUPPPORTED |
                                 PUT_SRAM_OCC_SUPPPORTED;
-
-    capability[INSTRUCTION_CTRL_CAPABILITY_START_IDX] =
-                                CONTROL_INSTRUCTIONS_SUPPPORTED;
+    capability[MEMORY_CAPABILITY_START_IDX+1] =
+                                RESERVED_A4_CAPABILITIES;
 
     capability[REGISTER_CAPABILITY_START_IDX] =
                                 GET_REGISTER_SUPPPORTED |
                                 PUT_REGISTER_SUPPPORTED ;
+    capability[REGISTER_CAPABILITY_START_IDX+1] =
+                                RESERVED_A5_CAPABILITIES;
 
-    capability[RING_CAPABILITY_START_IDX] =
-                                GET_RING_SUPPPORTED |
-                                PUT_RING_SUPPPORTED;
+    capability[ARRAY_CAPABILITY_START_IDX] =
+                                CONTROL_FAST_ARRAY_SUPPPORTED |
+                                CONTROL_TRACE_ARRAY_SUPPPORTED;
+    capability[ARRAY_CAPABILITY_START_IDX+1] =
+                                RESERVED_A6_CAPABILITIES;
+
+    capability[INSTRUCTION_CTRL_CAPABILITY_START_IDX] =
+                                CONTROL_INSTRUCTIONS_SUPPPORTED;
+    capability[INSTRUCTION_CTRL_CAPABILITY_START_IDX+1] =
+                                RESERVED_A7_CAPABILITIES;
+
+    capability[GENERIC_CHIPOP_CAPABILITY_START_IDX] =
+                                GET_SBE_FFDC_SUPPPORTED |
+                                SBE_QUIESCE;
+    capability[GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
+                                RESERVED_A8_CAPABILITIES;
+
+    capability[MPIPL_CAPABILITY_START_IDX] =
+                                ENTER_MPIPL_SUPPORTED |
+                                CONTINUE_MPIPL_SUPPORTED |
+                                STOP_CLOCKS_MPIPL_SUPPORTED;
+    capability[MPIPL_CAPABILITY_START_IDX+1] =
+                                RESERVED_A9_CAPABILITIES;
+
 }
 #endif //__SBEFW_SEEPROM__
 

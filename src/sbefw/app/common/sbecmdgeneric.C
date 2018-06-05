@@ -71,6 +71,16 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg() : capability{}
     {
         buildTag[idx] = hdr->iv_buildTag[idx];
     }
+
+    capability[GENERIC_CAPABILTITY_START_IDX] =
+                        HWP_FFDC_COLLECTION_SUPPPORTED |
+                        SBE_FFDC_COLLECTION_SUPPPORTED |
+                        ADDRESS_BLACKLISTING_SUPPPORTED |
+                        FIFO_RESET_SUPPPORTED |
+                        HOST_CMD_INTERFACE_SUPPORTED |
+                        SP_LESS_MPIPL_SUPPORTED;
+    capability[GENERIC_CAPABILTITY_START_IDX + 1] =
+                        RESERVED_GENERIC_CAPABILITIES;
 }
 // Functions
 //----------------------------------------------------------------------------

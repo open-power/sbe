@@ -159,38 +159,32 @@ enum PSU_CAPABILITIES_INDEX
   */
 enum PSU_CAPABILITIES
 {
-    // Capabilities 0, 1
-    PSU_HWP_FFDC_COLLECTION_SUPPORTED       = 0xD0000001,
-    PSU_SBE_FFDC_COLLECTION_SUPPORTED       = 0xD0000002,
-    PSU_ADDRESS_BLACKLIST_SUPPORTED         = 0xD0000004,
-    PSU_HOST_COMMAND_INTERFACE_SUPPORTED    = 0xD0000008,
-    PSU_SP_LESS_MPIPL_SUPPORTED             = 0xD0000010,
-    PSU_RESERVED_0                          = 0xD0000000,
-
     // Capabilities 2, 3
     PSU_CONTROL_DEADMAN_LOOP                = 0xD1000001,
-    PSU_RESERVED_1                          = 0xD1000000,
+    PSU_RESERVED_1                          = 0xD1800000,
 
     // Capabilities 4, 5
+    PSU_DEFAULT_CAPABILITY_D2               = 0xD2000000,
     PSU_EXECUTE_MULTI_SCOM_SUPPORTED        = 0xD2000001,
-    PSU_RESERVED_2                          = 0xD2000000,
+    PSU_RESERVED_2                          = 0xD2800000,
 
     // Capabilites 6, 7
     PSU_PUT_RING_FROM_IMAGE_SUPPORTED       = 0xD3000001,
-    PSU_RESERVED_3                          = 0xD3000000,
+    PSU_RESERVED_3                          = 0xD3800000,
 
     // Capabilities 8, 9
     PSU_CONTROL_TIMER_SUPPORTED             = 0xD4000001,
-    PSU_RESERVED_4                          = 0xD4000000,
+    PSU_RESERVED_4                          = 0xD4800000,
 
     // Capabilities 10, 11
+    PSU_DEFAULT_CAPABILITY_D5               = 0xD5000000,
     PSU_GET_ARCHITECTED_REG_SUPPORTED       = 0xD5000001,
     PSU_CLEAR_ARCHITECTED_REG_SUPPORTED     = 0xD5000002,
-    PSU_RESERVED_5                          = 0xD5000000,
+    PSU_RESERVED_5                          = 0xD5800000,
 
     // Capabilities 12, 13
     PSU_UNSECURE_MEM_REGION_SUPPORTED       = 0xD6000001,
-    PSU_RESERVED_6                          = 0xD6000000,
+    PSU_RESERVED_6                          = 0xD6800000,
 
     // Capabilities 14, 15
     PSU_GET_SBE_FFDC_SUPPPORTED             = 0xD7000001,
@@ -200,7 +194,7 @@ enum PSU_CAPABILITIES
     PSU_QUISCE_SUPPORTED                    = 0xD7000010,
     PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED  = 0xD7000020,
     PSU_STASH_MPIPL_CONFIG_SUPPORTED        = 0xD7000040,
-    PSU_RESERVED_7                          = 0xD7000000,
+    PSU_RESERVED_7                          = 0xD7800000,
 };
 
 #endif // __SBEFW_SBE_HOST_INTF_H

@@ -46,22 +46,22 @@ def getdoubleword(dataInInt):
 '''
 Capabilities structure
 '''
-capMsg = (getsingleword(0xD000000F) +
-          getsingleword(0x00) +
+capMsg = (getsingleword(0xC000003F) +
+          getsingleword(0xC8000000) +
           getsingleword(0xD1000001) +
-          getsingleword(0x0) +
-          getsingleword(0x0) +
-          getsingleword(0x0) +
+          getsingleword(0xD1800000) +
+          getsingleword(0xD2000000) +
+          getsingleword(0xD2800000) +
           getsingleword(0xD3000001) +
-          getsingleword(0x0) +
+          getsingleword(0xD3800000) +
           getsingleword(0xD4000001) +
-          getsingleword(0x0) +
-          getsingleword(0x0) +
-          getsingleword(0x0) +
+          getsingleword(0xD4800000) +
+          getsingleword(0xD5000000) +
+          getsingleword(0xD5800000) +
           getsingleword(0xD6000001) +
-          getsingleword(0x0) +
-          getsingleword(0xD700007F) +
-          getsingleword(0x0))
+          getsingleword(0xD6800000) +
+          getsingleword(0xD700007E) +
+          getsingleword(0xD7800000))
 
 def getCapabilities(addr, size, exp_status):
     # Intialize the class obj instances
