@@ -402,11 +402,27 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                 fapi2::TARGET_STATE_FUNCTIONAL))
         {
             uint8_t l_unit_pos = 0;
+            fapi2::ATTR_CHIP_EC_FEATURE_SW432374_Type l_sw432374;
+            fapi2::buffer<uint64_t> l_tp_lfir_mask_and;
+
             FAPI_INF("Call p9_sbe_common_configure_chiplet_FIR");
             FAPI_TRY(p9_sbe_common_configure_chiplet_FIR(l_chplt_target));
 
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_target, l_unit_pos),
                      "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
+
+            if (l_unit_pos == PERV_CHIPLET_ID)
+            {
+                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SW432374, i_target, l_sw432374),
+                         "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_SW432374)");
+
+                if (l_sw432374)
+                {
+                    l_tp_lfir_mask_and.flush<1>().clearBit<PERV_1_LOCAL_FIR_IN37>();
+                    FAPI_TRY(fapi2::putScom(i_target, PERV_TP_LOCAL_FIR_MASK_AND, l_tp_lfir_mask_and),
+                             "Error from putScom (PERV_TP_LOCAL_FIR_MASK_AND)");
+                }
+            }
 
             if (l_unit_pos == N3_CHIPLET_ID)
             {
