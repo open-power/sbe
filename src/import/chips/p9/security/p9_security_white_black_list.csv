@@ -953,3 +953,4 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,TP,0x0006C738,0x00,HB,AVSBus O2SWD  Bus 1 Bridge B,p9_setup_evid.C,write_whitelist,
 ,CACHE,0x100F0151,0x10-0x16,HBFW,QPPM DPLL Frequency Control Register,p9_setup_evid.C,write_whitelist,
 ,CACHE,0x100F01B6,0x10-0x16,HBFW,QPPM VDM Config Register,p9_setup_evid.C,write_whitelist,
+,,0x8002200f09010c3f,0x09-0x0C,HWSV,,p9_io_obus_dccal and other O bus procedures,write_whitelist,
