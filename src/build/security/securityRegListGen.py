@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -100,7 +100,7 @@ def gen_file(whitelist_tables, blacklist_tables):
     table1_index_type = "uint8_t"
     # table 2 value and running count type
     table2_value_type = "uint8_t"
-    table2_index_type = "uint8_t"
+    table2_index_type = "uint16_t"
     # table 3 value type
     table3_value_type = "uint16_t"
     for namespace, tablename, table in tables:
@@ -135,9 +135,9 @@ namespace """+namespace+"""
     then table 1 will have a = 1, b = 1, c = 4
 
     1 byte for key
-    1 byte for number of paths
-    We are good with uint8_t,
-    till the number of paths to table 3 from each key is less than 256
+    2 byte for number of paths
+    We are good with uint16_t,
+    till the number of paths to table 3 from each key is less than 65536
     */
     map_t< """+table2_value_type+""", """+table2_index_type+""" > _t2[] = {
     // length of the table = """+s_list_len(table[1])+"""
