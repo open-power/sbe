@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -74,6 +74,12 @@ fapi2::ReturnCode p9_sbe_check_master_stop15(
     uint32_t l_stop_requested_level = 0; // Running Level
     uint32_t l_stop_actual_level = 0;    // Running Level
 
+#ifndef __PPE__
+    auto l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    auto l_ex = i_target.getParent<fapi2::TARGET_TYPE_EX>();
+    auto l_eq = i_target.getParent<fapi2::TARGET_TYPE_EQ>();
+#endif
+
     // Read the "Other" STOP History Register
     FAPI_TRY(fapi2::getScom(i_target, C_PPM_SSHOTR, l_data64));
 
@@ -111,12 +117,23 @@ fapi2::ReturnCode p9_sbe_check_master_stop15(
         (l_stop_gated ==  p9ssh::SSH_GATED &&
          l_stop_transition != p9ssh::SSH_COMPLETE))
     {
+#ifndef __PPE__
+        /* On non-SBE platforms, the RC is handled via regular FAPI_ASSERT */
+        FAPI_ASSERT(false,
+                    fapi2::CHECK_MASTER_STOP15_PENDING ()
+                    .set_PU(l_chip)
+                    .set_EQ(l_eq)
+                    .set_EX(l_ex)
+                    .set_EC(i_target),
+                    "Core still transitioning to STOP 15 ..");
+#else
         /*
          * Don't use FAPI_ASSERT() here as this is a "try again" return code
          * used inside a polling loop. We don't want to spam logs with something
          * that's not an error really.
          */
         return fapi2::RC_CHECK_MASTER_STOP15_PENDING;
+#endif
     }
 
     if (l_stop_gated == p9ssh::SSH_GATED &&
@@ -127,31 +144,24 @@ fapi2::ReturnCode p9_sbe_check_master_stop15(
     }
     else
     {
+#ifndef __PPE__
+        /* On non-SBE platforms, the RC is handled via regular FAPI_ASSERT */
+        FAPI_ASSERT(false,
+                    fapi2::CHECK_MASTER_STOP15_INVALID_STATE ()
+                    .set_PU(l_chip)
+                    .set_EQ(l_eq)
+                    .set_EX(l_ex)
+                    .set_EC(i_target),
+                    "Core Failed entering STOP 15!");
+#else
         /*
          * This is a fail code,however, FFDC should be collected via a separate
          * call to p9_collect_deadman_ffdc. Avoiding FAPI_ASSERT() as an
          * optimization
          */
         return fapi2::RC_CHECK_MASTER_STOP15_INVALID_STATE;
+#endif
     }
-
-// @todo RTC 162331 These should work but don't..... follow-up later
-//     // Check for valid pending condition (which includes running)
-//     FAPI_ASSERT((l_stop_gated == p9ssh::SSH_RUNNING ||
-//                   (l_stop_gated ==  p9ssh::SSH_GATED &&
-//                    l_stop_transition != p9ssh::SSH_COMPLETE)),
-//                 fapi2::CHECK_MASTER_STOP15_PENDING(),
-//                 "STOP 15 is still pending");
-
-//     // Assert gated, completion and the proper STOP actual level.  If not, something is off.
-//     FAPI_ASSERT((l_stop_gated == p9ssh::SSH_GATED &&
-//                  l_stop_transition == p9ssh::SSH_COMPLETE &&
-//                  (l_stop_actual_level == 11 || l_stop_actual_level == 15)),
-//                 fapi2::CHECK_MASTER_STOP15_INVALID_STATE()
-//                 .set_STOP_HISTORY(l_data64),
-//     }            "STOP 15 error");
-
-
 
 fapi_try_exit:
     FAPI_INF("< p9_sbe_check_master_stop15");

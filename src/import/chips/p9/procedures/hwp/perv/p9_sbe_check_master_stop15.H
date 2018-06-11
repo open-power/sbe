@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -30,7 +30,7 @@
 // *HWP FW Owner    : Prem S Jha <premjha2@in.ibm.com>
 // *HWP Team        : PM
 // *HWP Level       : 3
-// *HWP Consumed by : SBE
+// *HWP Consumed by : SBE, FSP
 //------------------------------------------------------------------------------
 
 
@@ -51,9 +51,11 @@ typedef fapi2::ReturnCode (*p9_sbe_check_master_stop15_FP_t)(const
 /// @return     STOP15_PENDING  STOP 15 not reached, but no error
 ///             HW state (still in progress)
 /// @return     Others indicate hardware failure
-/// @note       On timeout or other FW controlled errors, related to but
-///             outside scope of this HWP, please use p9_collect_deadman_ffdc
-///             to generate the appropriate RC with FFDC
+/// @note       On non-SBE platforms, regular FAPI_ASSERT based error handling
+///             and related FFDC and callouts
+///             On SBE, for code space optimization, FAPI_ASSERT is not used.
+///             Please use p9_collect_deadman_ffdc to generate appropriate RC
+///             and FFDC
 ///
 extern "C"
 {
