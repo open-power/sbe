@@ -250,13 +250,16 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG, l_scom_data),
                  "Error from putScom (PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG)");
 
-        // set spare/masked FIR bit as a signal to HB that the SBE will handle
-        // setup of XBUS related FIRs
+        // set spare/masked FIRs bit as a signal to HB that the SBE will handle
+        // setup of XBUS/OBUS related EXTIR bits
+#ifdef __PPE__
         FAPI_TRY(fapi2::getScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_REG, l_scom_data),
                  "Error from getScom (PU_PB_CENT_SM0_PB_CENT_FIR_REG)");
         l_scom_data.setBit<PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG_SPARE_13>();
+        l_scom_data.setBit<PU_PB_CENT_SM0_PB_CENT_FIR_MASK_REG_SPARE_14>();
         FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM0_PB_CENT_FIR_REG, l_scom_data),
                  "Error from putScom (PU_PB_CENT_SM0_PB_CENT_FIR_REG)");
+#endif
 
         // WEST
         FAPI_DBG("Configuring FBC WEST FIR");
@@ -309,8 +312,10 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                  "Error from putScom (PU_PB_CENT_SM1_EXTFIR_ACTION0_REG)");
         FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM1_EXTFIR_ACTION1_REG, FBC_EXT_FIR_ACTION1),
                  "Error from putScom (PU_PB_CENT_SM1_EXTFIR_ACTION1_REG)");
+#ifdef __PPE__
         FAPI_TRY(fapi2::putScom(i_target, PU_PB_CENT_SM1_EXTFIR_MASK_REG, FBC_EXT_FIR_MASK),
                  "Error from putScom (PU_PB_CENT_SM1_EXTFIR_MASK_REG)");
+#endif
     }
 
     // configure PBA mode switches & FIRs
