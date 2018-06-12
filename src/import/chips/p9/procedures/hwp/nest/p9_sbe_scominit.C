@@ -45,6 +45,7 @@
 #include <p9_fbc_utils.H>
 #include <p9_mmu_scom.H>
 #include <p9_xbus_fir_utils.H>
+#include <p9_setup_clock_term.H>
 
 #include <p9_misc_scom_addresses.H>
 #include <p9_misc_scom_addresses_fld.H>
@@ -409,6 +410,7 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
             uint8_t l_unit_pos = 0;
             fapi2::ATTR_CHIP_EC_FEATURE_SW432374_Type l_sw432374;
             fapi2::buffer<uint64_t> l_tp_lfir_mask_and;
+            fapi2::buffer<uint64_t> l_root_ctrl3;
 
             FAPI_INF("Call p9_sbe_common_configure_chiplet_FIR");
             FAPI_TRY(p9_sbe_common_configure_chiplet_FIR(l_chplt_target));
@@ -423,9 +425,16 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
                 if (l_sw432374)
                 {
-                    l_tp_lfir_mask_and.flush<1>().clearBit<PERV_1_LOCAL_FIR_IN37>();
-                    FAPI_TRY(fapi2::putScom(i_target, PERV_TP_LOCAL_FIR_MASK_AND, l_tp_lfir_mask_and),
-                             "Error from putScom (PERV_TP_LOCAL_FIR_MASK_AND)");
+                    FAPI_TRY(fapi2::getScom(i_target, PERV_ROOT_CTRL3_SCOM, l_root_ctrl3),
+                             "Error from getScom (PERV_ROOT_CTRL3_SCOM)");
+
+                    if (((l_root_ctrl3() & p9SetupClockTerm::P9C_OSCSWITCH_RC3_MASK) == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0) ||
+                        ((l_root_ctrl3() & p9SetupClockTerm::P9C_OSCSWITCH_RC3_MASK) == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1))
+                    {
+                        l_tp_lfir_mask_and.flush<1>().clearBit<PERV_1_LOCAL_FIR_IN37>();
+                        FAPI_TRY(fapi2::putScom(i_target, PERV_TP_LOCAL_FIR_MASK_AND, l_tp_lfir_mask_and),
+                                 "Error from putScom (PERV_TP_LOCAL_FIR_MASK_AND)");
+                    }
                 }
             }
 
