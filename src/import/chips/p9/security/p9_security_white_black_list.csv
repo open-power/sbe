@@ -19,6 +19,7 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,Nest 3,0x05013419,0x05,HWSV,PB Electrical Round-Trip Delay Control Register,p9_tod_setup.C,write_whitelist,
 ,TP,0x00040010,0x00,HWSV,TOD chip control register,p9_tod_setup.C,write_whitelist,
 ,TP,0x00040022,0x00,HWSV,TOD start fsm register,p9_tod_init.C,write_whitelist,
+,NEST,0x05013819,0x05,HWSV,TOD delay register,p9_tod_setup.C,write_whitelist,
 ,Nest 3,0x05012913,0x05,HWSV,PSI Host Bridge Control/Status Register(CLEAR),hwcoProcPsiInit.C,write_whitelist,
 ,Nest 3,0x0501290E,0x05,HWSV,PSI Host Bridge Control/Status Register,hwcoProcPsiInit.C,write_whitelist,
 ,Nest 2,0x04011830,0x04,HWSV,PSI Tx Cntl Reg,hwcoProcPsiInit.C,write_whitelist,
