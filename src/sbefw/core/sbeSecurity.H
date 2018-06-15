@@ -88,5 +88,18 @@ namespace SBE_SECURITY
                      const table< map_t<M2_T, M2_U> > &table2,
                      const table< T3 > &table3,
                      const uint32_t i_addr);
+
+    /* @brief _is_present     - Look up tables to find if the given
+     *                          address with mask is present
+     * @param[in] table1      - table 1 - map with a range and running count
+     * @param[in] i_addr      - given address to look up
+     * @param[in] mask        - mask to look up
+     *
+     * @return                - boolean to denote if the address in present
+     */
+    template <typename T1, typename T2 >
+    bool _is_present(const table< map_t< T1, T2 > > &table1,
+                     const T1 i_addr,
+                     const T2 i_mask);
 }
 #endif //__SBE_SECURITY_H

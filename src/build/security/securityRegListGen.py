@@ -44,8 +44,10 @@ TAG_CHIPLET       = 'Chiplet'
 TAG_CHIPLET_RANGE = 'Chiplet Id - range'
 TAG_VERSION       = 'Version'
 TAG_TYPE          = 'Type'
+TAG_BIT_MASK      = 'Bit Mask'
 
 TAG_NAME_WHITELIST = 'write_whitelist'
+TAG_NAME_GREYLIST = 'write_greylist'
 TAG_NAME_BLACKLIST = 'read_blacklist'
 
 def usage():
@@ -84,7 +86,7 @@ def remove_zeroes(list):
             out_list += [a]
     return out_list
 
-def gen_file(whitelist_tables, blacklist_tables):
+def gen_file(whitelist_tables, blacklist_tables, greyList):
     global GEN_FILE
 
     header = ("#ifndef __SBE_SECURITY_GEN_H\n"+
@@ -174,6 +176,32 @@ namespace """+namespace+"""
     }
 }""")
 
+    greylist_addr_type = "uint32_t"
+    greylist_mask_type = "uint64_t"
+    body += ("""
+namespace GREYLIST
+{
+    /*
+    table 1:
+       Address   = 4 byte
+       Mask      = 8 byte
+    */
+    map_t< """+greylist_addr_type+""", """+greylist_mask_type+""" > _t1[] = {
+"""+s_greylist_table_gen(greyList)+"""
+                                      };
+
+    table< map_t< """+greylist_addr_type+""", """+greylist_mask_type+""" > > t1 =
+            {sizeof(_t1)/sizeof(map_t< """+greylist_addr_type+""", """+greylist_mask_type+""" >),
+             0xFFFFFFFF,
+             _t1};
+
+    bool isPresent(uint32_t i_addr, uint64_t i_mask)
+    {
+        return SBE_SECURITY::_is_present
+                          < """+greylist_addr_type+""", """+greylist_mask_type+""">
+                          (t1, i_addr, i_mask);
+    }
+}""")
     footer = "\n#endif //__SBE_SECURITY_GEN_H"
 
     with open(GEN_FILE, 'w') as o_f:
@@ -498,7 +526,18 @@ def s_table3_gen(id, table):
         print str_table3
     return str_table3
 
+def s_greylist_table_gen( greyList):
+    # write greylist string
+    str_table = ""
+    for ele in greyList:
+        str_table += '{0x%08x, 0x%016xull}, ' % (ele[0], ele[1])
+    str_table = str_table[:-1]
+    if(VERBOSE):
+        print " greylist table"
+        print str_table
+    return str_table
 def main(argv):
+
     try:
         opts, args = getopt.getopt(sys.argv[1:],
                 "f:o:wbidvhW:B:",
@@ -547,6 +586,7 @@ def main(argv):
     version   = 'unknown'
     whitelist = []
     blacklist = []
+    greylist = []
     with open(SECURITY_LIST, 'rbU') as f:
         reader = csv.DictReader(f)
         for idx, row in enumerate(reader):
@@ -561,6 +601,12 @@ def main(argv):
                 base_addr = int(base_addr, 16)
                 if(VERBOSE):
                     print "base["+'0x%08x' % base_addr + "]"
+                bit_mask = row[TAG_BIT_MASK].strip()
+                if not bit_mask:
+                    bit_mask = 0
+                else:
+                    bit_mask = int( bit_mask.lower().split('0x')[-1], 16)
+
                 chiplet_range = row[TAG_CHIPLET_RANGE].split('-')
                 # Empty range field considered as error
                 if(chiplet_range[0] == ''):
@@ -581,7 +627,16 @@ def main(argv):
                 expanded_line = get_effective_address(row[TAG_CHIPLET], expanded_line)
                 if(VERBOSE):
                     print s_list_hex("range:", expanded_range, 8)
-                if(row[TAG_TYPE].strip().lower() == TAG_NAME_WHITELIST):
+                if(row[TAG_TYPE].strip().lower() == TAG_NAME_GREYLIST):
+                   if(( bit_mask == 0 ) or ( bit_mask == 0xffffffffffffffff)):
+                        exit(PRINT_AND_EXIT, "Wrong mask for Greylist")
+                   greylist_line = expanded_line
+                   if(VERBOSE):
+                        print s_list_hex("greylist_line:", greylist_line, 8)
+                        print "mask:", bit_mask
+                   for ele in greylist_line:
+                        greylist.append((ele, bit_mask))
+                elif(row[TAG_TYPE].strip().lower() == TAG_NAME_WHITELIST):
                     whitelist_line = expanded_line
                     if(VERBOSE):
                         print s_list_hex("whitelist_line:", whitelist_line, 8)
@@ -602,6 +657,8 @@ def main(argv):
     blacklist = remove_duplicates(blacklist)
     blacklist = remove_zeroes(blacklist)
     blacklist.sort()
+    greylist = remove_duplicates(greylist)
+    greylist.sort()
 
     if(print_info == 'version'):
         exit(PRINT_AND_EXIT, "security list version ["+version+"]")
@@ -617,6 +674,7 @@ def main(argv):
         print "security list version ["+version+"]"
         print "Whitelist len ["+s_list_len(whitelist)+"]"
         print "Blacklist len ["+s_list_len(blacklist)+"]"
+        print "Greylist len ["+s_list_len(greylist)+"]"
 
     whitelist_tables = get_tables("Whitelist", whitelist)
     blacklist_tables = get_tables("Blacklist", blacklist)
@@ -627,7 +685,7 @@ def main(argv):
         exit(PRINT_AND_EXIT, "blacklist_table["+str(bt-1)+"]" + str(blacklist_tables[bt-1]))
 
     # Generate output file
-    gen_file(whitelist_tables, blacklist_tables)
+    gen_file(whitelist_tables, blacklist_tables, greylist)
 
     exit(SUCCESS)
 

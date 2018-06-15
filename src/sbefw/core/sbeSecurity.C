@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017                             */
+/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -139,6 +140,30 @@ bool _is_present(const table< map_t< range_t<M1_T>, M1_U > > &table1,
 #undef SBE_FUNC
 }
 
+template <typename T1, typename T2 >
+bool _is_present(const table< map_t< T1, T2 > > &table1,
+                 const T1 i_addr,
+                 const T2 i_mask)
+{
+#define SBE_FUNC "SBE_SECURITY::_is_present "
+    SBE_ENTER(SBE_FUNC"Searching address/mask table");
+    bool ret = false;
+    for(size_t i = 0; i < table1.size; i++)
+    {
+        // Not using mask in table for search
+        if((table1.table[i].key ==  i_addr) &&
+           (( i_mask & (~table1.table[i].value)) == 0 ))
+        {
+            SBE_DEBUG(SBE_FUNC" table1:found addr[0x%x] table index[%d]",
+                                                        i_addr, i);
+            ret = true;
+            break;
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return ret;
+#undef SBE_FUNC
+}
 bool isAllowed(const uint32_t i_addr, accessType type)
 {
     bool ret = true;
