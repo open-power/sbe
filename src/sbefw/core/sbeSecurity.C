@@ -164,17 +164,23 @@ bool _is_present(const table< map_t< T1, T2 > > &table1,
     return ret;
 #undef SBE_FUNC
 }
-bool isAllowed(const uint32_t i_addr, accessType type)
+bool isAllowed(const uint32_t i_addr, uint64_t i_mask,  accessType i_type)
 {
     bool ret = true;
     if(SBE_GLOBAL->sbeFWSecurityEnabled)
     {
-        if(type == WRITE)
+        if(i_type == WRITE)
+        {
             ret =  WHITELIST::isPresent(i_addr);
-        else if(type == READ)
+            if( (ret == false ) && (i_mask != 0xffffffffffffffffull ))
+            {
+                ret = GREYLIST::isPresent(i_addr, i_mask);
+            }
+        }
+        else if(i_type == READ)
             ret =  !BLACKLIST::isPresent(i_addr);
         SBE_INFO("SBE_SECURITY access[%d] allowed[%d] addr[0x%08x]",
-                                        type, ret, i_addr);
+                                        i_type, ret, i_addr);
     }
     return ret;
 }

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -31,10 +32,12 @@
   * @param[in]  io_data data for scom operation. For read, it is output operand.
   * @param[out] o_hdr response header object
   * @param[out] o_ffdc ffdc object
+  * @param[in]  i_mask mask for data
   *
   */
 void checkIndirectAndDoScom( const bool i_isRead,
                                  const uint64_t i_addr,
                                  uint64_t & io_data,
                                  sbeRespGenHdr_t *const o_hdr,
-                                 sbeResponseFfdc_t *const o_ffdc);
+                                 sbeResponseFfdc_t *const o_ffdc,
+                                 uint64_t i_mask = 0xffffffffffffffffull);

@@ -36,7 +36,6 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testPSUSetStashPair.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testIstep.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSuspendIO.xml</include>
-          <include>../simics/targets/p9_nimbus/sbeTest/testSecurity.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGeneric.xml</include>
           <!-- Memory access testcases -->
           <include>../simics/targets/p9_nimbus/sbeTest/testUnsecureMemRegions.xml</include>
@@ -59,6 +58,7 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testSystemFabricMap.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testExecutorCntrlTimer.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testArrayAccess.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testSecurity.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testStopClocks.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testGetRing.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testExecutorPutRing.xml</include>

@@ -46,8 +46,8 @@ if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
     break; \
 }
 
-#define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, resp) \
-if (!SBE_SECURITY::isAllowed(addr, op)) \
+#define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, resp, mask) \
+if (!SBE_SECURITY::isAllowed(addr,mask,op)) \
 { \
     /* TODO via RTC 180983:Enable this once the BL/WL registers are settled */ \
     if(SbeRegAccess::theSbeRegAccess().disableScomFiltering()) \

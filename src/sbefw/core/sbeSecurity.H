@@ -64,12 +64,14 @@ namespace SBE_SECURITY
      *                          for a given type of access
      *
      * @param[in] i_addr      - given address to verify
-     * @param[in] accessType  - access type - READ/WRITE
+     * @param[in] i_mask      - mask for data
+     * @param[in] i_type      - access type - READ/WRITE
      *
      * @return                - boolean to denote if the access on the address
      *                          is allowed or not
      */
-    bool isAllowed(const uint32_t i_addr, accessType type);
+    bool isAllowed(const uint32_t i_addr, const uint64_t i_mask,
+                   accessType i_type);
 
     /* @brief _is_present     - Look up tables to find if the given
      *                          address is present

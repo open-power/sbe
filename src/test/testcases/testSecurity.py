@@ -121,6 +121,19 @@ def main():
         if(dataRead != dataWritten):
             raise Exception('PutScom under mask failed %x != %x' % (dataRead, dataWritten))
         print "putscom under mask success testcase - passed"
+
+        # Greylist test cases
+        dataWritten = testScomUtil.getscom(0x0901080B)
+        # Do putScomUnderMask with wrong mask
+        testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xF0FFFFFFFFFFFFFF, [0x00, 0x05, 0x00, 0x23])
+        # Do putScom on grey list register
+        testScomUtil.putscom(0x0901080B, 0, [0x00, 0x05, 0x00, 0x23])
+        # Do putScomUnderMask with exact mask
+        testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF0FFFFFFFFFFFFF)
+        # Do putScomUnderMask with superset mask
+        testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF00FFFFFFFFFFFF)
+        print "Greylist testcases - passed"
+
         # indirect scom test
         dataWritten = testScomUtil.getscom(0x8000000D06010C3F)
         dataiActWritten = (dataWritten & 0x00000000FFFFFFFF) | (0xDECAFFEE00000000)

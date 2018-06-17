@@ -389,7 +389,8 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
 
                 // Write the modified data
                 checkIndirectAndDoScom(false, l_addr,
-                                       l_scomData, &l_hdr, &l_ffdc);
+                                       l_scomData, &l_hdr, &l_ffdc,
+                                       l_putScomUmaskMsg.getInputMask());
             }
 
             if (l_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL) // scom failed
