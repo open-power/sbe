@@ -563,6 +563,19 @@ ReturnCode istepWithCoreConditional( voidfuncptr_t i_hwp)
 }
 
 //----------------------------------------------------------------------------
+ReturnCode istepNoOp( voidfuncptr_t i_hwp)
+{
+    SBE_INFO("istepNoOp");
+    return FAPI2_RC_SUCCESS ;
+}
+
+/*
+ * end PIBMEMCODE -----------------------------------------------
+ */
+#endif // #ifndef __SBEFW_SEEPROM__
+
+#ifdef __SBEFW_SEEPROM__
+//----------------------------------------------------------------------------
 constexpr uint32_t HB_MEM_WINDOW_SIZE = 10*1024*1024; //10 MB
 ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 {
@@ -665,19 +678,6 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
     #undef SBE_FUNC
 }
 
-//----------------------------------------------------------------------------
-ReturnCode istepNoOp( voidfuncptr_t i_hwp)
-{
-    SBE_INFO("istepNoOp");
-    return FAPI2_RC_SUCCESS ;
-}
-
-/*
- * end PIBMEMCODE -----------------------------------------------
- */
-#endif // #ifndef __SBEFW_SEEPROM__
-
-#ifdef __SBEFW_SEEPROM__
 /*
  * --------------------------------------------- start SEEPROM CODE
  */
