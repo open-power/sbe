@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -35,7 +36,8 @@ vectorMemPool_t g_pool[G_POOLSIZE];
 vectorMemPool_t * allocMem()
 {
     vectorMemPool_t *pool = NULL;
-    for( size_t idx = 0; idx < G_POOLSIZE; idx++ )
+    size_t idx;
+    for( idx = 0; idx < G_POOLSIZE; idx++ )
     {
         if( 0 == g_pool[idx].refCount )
         {
@@ -44,7 +46,11 @@ vectorMemPool_t * allocMem()
             break;
         }
     }
-    SBE_DEBUG(" Giving pool 0x%08X", pool);
+    if(NULL == pool )
+    {
+        SBE_ERROR("NULL pool idx:%u", idx);
+        pk_halt();
+    }
     return pool;
 }
 

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -29,10 +30,10 @@ namespace SBEVECTORPOOL
 {
 
 // Size of a block  for a vector
-static const size_t G_BLOCKSIZE = 512;
+static const size_t G_BLOCKSIZE = 256;
 
 //Pool size
-static const size_t G_POOLSIZE = 4;
+static const size_t G_POOLSIZE = 6;
 
 typedef struct
 {
