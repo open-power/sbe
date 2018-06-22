@@ -311,17 +311,6 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     l_data64.setBit<PERV_ROOT_CTRL6_SET_TPFSI_OSCSW1_PGOOD>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL6_SCOM, l_data64));
 
-    //Getting ROOT_CTRL3 register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL3_SCOM,
-                            l_read)); //l_read = PIB.ROOT_CTRL3
-
-    l_read.clearBit<17>();
-
-    FAPI_DBG("turn off use_osc_1_0");
-    //Setting ROOT_CTRL3 register value
-    //PIB.ROOT_CTRL3 = l_read
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_SCOM, l_read));
-
     if (cumulus_only_ec_attr)  //Cumulus only
     {
         FAPI_DBG("Cumulus - Mask OSC err");
@@ -329,6 +318,17 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     }
     else
     {
+        //Getting ROOT_CTRL3 register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL3_SCOM,
+                                l_read)); //l_read = PIB.ROOT_CTRL3
+
+        l_read.clearBit<17>();
+
+        FAPI_DBG("turn off use_osc_1_0");
+        //Setting ROOT_CTRL3 register value
+        //PIB.ROOT_CTRL3 = l_read
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_SCOM, l_read));
+
         FAPI_DBG("Mask OSC err");
         //Setting OSCERR_MASK register value
         //PIB.OSCERR_MASK = OSC_ERROR_MASK
