@@ -58,7 +58,7 @@
 #include "p9_sbe_io_eol_toggle.H"
 #endif
 
-const uint32_t PERIODIC_TIMER_INTERVAL_MS = 24*60*60*1000; // 24 hours
+const uint64_t PERIODIC_TIMER_INTERVAL_SECONDS = 24*60*60; // 24 hours
 
 using namespace fapi2;
 
@@ -444,7 +444,7 @@ void sbeAsyncCommandProcessor_routine(void *arg)
         // queue, if there are more asynchronous jobs.
         int l_rcPk = pk_semaphore_pend (
                     &SBE_GLOBAL->sbeSemAsyncProcess,
-                    PK_MILLISECONDS(PERIODIC_TIMER_INTERVAL_MS));
+                    PK_SECONDS(PERIODIC_TIMER_INTERVAL_SECONDS));
         // PK API failure
         if ((-l_rcPk) != PK_SEMAPHORE_PEND_TIMED_OUT)
         {
