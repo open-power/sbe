@@ -434,21 +434,26 @@ uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
         rc = sbeUpFifoDeq_mult (len, NULL);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
+        // Suspend async task
+        int pkRc = pk_thread_suspend(&SBE_GLOBAL->sbeAsyncCommandProcessor_thread);
+        if (pkRc != PK_OK)
+        {
+            SBE_ERROR(SBE_FUNC "async thread suspend failed");
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_OS_FAILURE);
+            break;
+        }
+
         // Set Quiesce State
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                           SBE_QUIESCE_EVENT);
 
-        rc = sbeDsSendRespHdr(respHdr);
-        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            SBE_ERROR(SBE_FUNC "sbeDsSendRespHdr failed");
-            // Not Breaking here since we can't revert back on the set state
-        }
     }while(0);
 
-    if( rc )
+    rc = sbeDsSendRespHdr(respHdr);
+    if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
     {
-        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
+        SBE_ERROR( SBE_FUNC"sbeDsSendRespHdr failed. rc[0x%X]", rc);
     }
     return rc;
     #undef SBE_FUNC
@@ -473,24 +478,30 @@ uint32_t sbePsuQuiesce( uint8_t *i_pArg )
             break;
         }
 
+        // Suspend async task
+        int pkRc = pk_thread_suspend(&SBE_GLOBAL->sbeAsyncCommandProcessor_thread);
+        if (pkRc == PK_OK)
+        {
+            SBE_ERROR(SBE_FUNC "async thread suspend failed");
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(
+                    SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                    SBE_SEC_OS_FAILURE);
+            break;
+        }
+
         // Set Quiesce State
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                           SBE_QUIESCE_EVENT);
 
-        rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
-                         (uint64_t*)(&SBE_GLOBAL->sbeSbe2PsuRespHdr),
-                         (sizeof(SBE_GLOBAL->sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
-                         true);
-        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            SBE_ERROR(SBE_FUNC" Failed to write SBE_HOST_PSU_MBOX_REG4");
-            // Not Breaking here since we can't revert back on the set state
-        }
     }while(0);
 
-    if( rc )
+    rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
+                     (uint64_t*)(&SBE_GLOBAL->sbeSbe2PsuRespHdr),
+                     (sizeof(SBE_GLOBAL->sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
+                     true);
+    if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
     {
-        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
+        SBE_ERROR( SBE_FUNC"Failed to write SBE_HOST_PSU_MBOX_REG4. rc[0x%X]", rc);
     }
     return rc;
     #undef SBE_FUNC
