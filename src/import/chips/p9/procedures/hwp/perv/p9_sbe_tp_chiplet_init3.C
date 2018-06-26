@@ -64,8 +64,9 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
     HW_NS_DELAY = 100000, // unit is nano seconds
     SIM_CYCLE_DELAY = 1000, // unit is sim cycles
     POLL_COUNT = 300, // Observed Number of times CBS read for CBS_INTERNAL_STATE_VECTOR
-    OSC_ERROR_MASK = 0xF700000000000000, // Mask OSC errors
-    P9C_OSC_ERROR_MASK = 0xF300000000000000,
+    OSC_ERROR_MASK_BASE = 0xF300000000000000, // Mask OSC errors
+    OSC_ERROR_MASK_OSC0_BAD = 0x0800000000000000,
+    OSC_ERROR_MASK_OSC1_BAD = 0x0400000000000000,
     LFIR_ACTION0_VALUE = 0x0000000000000000,
     LFIR_ACTION1_VALUE = 0x8000000000000000,
     FIR_MASK_VALUE = 0xFFFFFFFFFFC00000,
@@ -281,9 +282,10 @@ fapi_try_exit:
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, uint8_t cumulus_only_ec_attr)
 {
-    fapi2::buffer<uint32_t> l_data32;
+    fapi2::buffer<uint32_t> l_pci_useosc;
     fapi2::buffer<uint64_t> l_read ;
     fapi2::buffer<uint64_t> l_data64;
+    bool l_useosc0, l_useosc1;
     bool skipOscCheck = false;
     FAPI_INF("p9_sbe_tp_chiplet_init3_clock_test2: Entering ...");
 
@@ -296,6 +298,16 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     //Getting ROOT_CTRL3 register value
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL3_SCOM,
                             l_read)); //l_read = PIB.ROOT_CTRL3
+
+    FAPI_DBG("To get info about scr0,src1,both_src0,both_src1 from Root_ctrl3");
+    l_read.extractToRight<0, 32>(l_pci_useosc);
+    l_pci_useosc &= p9SetupClockTerm::P9C_OSCSWITCH_RC3_MASK;
+    l_useosc0 = (l_pci_useosc == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
+                 || l_pci_useosc == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
+                 || l_pci_useosc == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC0);
+    l_useosc1 = (l_pci_useosc == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
+                 || l_pci_useosc == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
+                 || l_pci_useosc == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC1 );
 
     l_read.setBit<27>();
 
@@ -314,7 +326,19 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     if (cumulus_only_ec_attr)  //Cumulus only
     {
         FAPI_DBG("Cumulus - Mask OSC err");
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_MASK, P9C_OSC_ERROR_MASK));
+        uint64_t l_osc_err_mask = OSC_ERROR_MASK_BASE;
+
+        if (!l_useosc0)
+        {
+            l_osc_err_mask |= OSC_ERROR_MASK_OSC0_BAD;
+        }
+
+        if (!l_useosc1)
+        {
+            l_osc_err_mask |= OSC_ERROR_MASK_OSC1_BAD;
+        }
+
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_MASK, l_osc_err_mask));
     }
     else
     {
@@ -332,7 +356,7 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
         FAPI_DBG("Mask OSC err");
         //Setting OSCERR_MASK register value
         //PIB.OSCERR_MASK = OSC_ERROR_MASK
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_MASK, OSC_ERROR_MASK));
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OSCERR_MASK, OSC_ERROR_MASK_BASE | OSC_ERROR_MASK_OSC1_BAD));
     }
 
     FAPI_DBG("reset osc-error_reg");
@@ -347,11 +371,6 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     l_data64.clearBit<PERV_1_LOCAL_FIR_IN36>();
     l_data64.clearBit<PERV_1_LOCAL_FIR_IN37>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_AND, l_data64));
-
-    FAPI_DBG("To get info about scr0,src1,both_src0,both_src1 from Root_ctrl3");
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL3_SCOM, l_data64));
-    l_data64.extractToRight<0, 32>(l_data32);
-    l_data32 &= 0x0000F000;
 
 #ifdef __PPE__
 #ifdef __FAPI_DELAY_SIM__
@@ -376,13 +395,6 @@ static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
     {
         if (cumulus_only_ec_attr)  //Cumulus only
         {
-            bool l_useosc0 = (l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
-                              || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
-                              || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC0);
-            bool l_useosc1 = (l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC0
-                              || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_BOTHSRC1
-                              || l_data32 == p9SetupClockTerm::P9C_OSCSWITCH_RC3_SRC1 );
-
             FAPI_DBG("Cumulus - check for OSC ok");
             //Getting SNS1LTH register value
             FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM,
