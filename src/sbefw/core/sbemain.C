@@ -226,7 +226,7 @@ int sbeInitThreads(void)
                             (void *)0,
                             (PkAddress)sbeSyncCommandProcessor_stack,
                             SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE,
-                            THREAD_PRIORITY_7);
+                            THREAD_PRIORITY_6);
         if (l_rc)
         {
             break;
@@ -238,7 +238,7 @@ int sbeInitThreads(void)
                             (void *)0,
                             (PkAddress)sbeAsyncCommandProcessor_stack,
                             SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE,
-                            THREAD_PRIORITY_6);
+                            THREAD_PRIORITY_7);
         if (l_rc)
         {
             break;
