@@ -163,30 +163,20 @@ def main():
     # Test case 11: access memory spanning across two windows
     testcase = 11
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0x40, 0x40, 0x0111, 0)
-    testUtil.runCycles(100000)
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0x80, 0x40, 0x0111, 0)
-    testUtil.runCycles(100000)
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0xC0, 0x40, 0x0111, 0)
-    testUtil.runCycles(1000000)
     # start and end on edges
     testMemProcUtil.getmem(MEM_WINDOWS_BASE_ADDRESS+0x40, 0x80, 0xA5)
-    testUtil.runCycles(100000)
     # start in between and end on edge
     testMemProcUtil.getmem(MEM_WINDOWS_BASE_ADDRESS+0x60, 0x60, 0xA5)
-    testUtil.runCycles(100000)
     # start on edge and end in between
     testMemProcUtil.getmem(MEM_WINDOWS_BASE_ADDRESS+0x40, 0x60, 0xA5)
-    testUtil.runCycles(100000)
     # start on edge and end in between - 3rd window
     testMemProcUtil.getmem(MEM_WINDOWS_BASE_ADDRESS+0x40, 0xA0, 0xA5)
-    testUtil.runCycles(100000)
 
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0x40, 0x40, 0x0120, 0)
-    testUtil.runCycles(100000)
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0x80, 0x40, 0x0120, 0)
-    testUtil.runCycles(100000)
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0xC0, 0x40, 0x0120, 0)
-    testUtil.runCycles(100000)
 
     # Test case 12: read access in read-write window - ADU
     testcase = 12
@@ -211,16 +201,12 @@ def main():
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0x80, 128, 0x0120, 0)
     # Test case 16: access memory for which a partial window is open
     testcase = 16
-    testUtil.runCycles(1000000)
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0x40, 0x30, 0x0111, 0)
     # start in between and end outside
-    testUtil.runCycles(1000000)
     testMemProcUtil.getmem_failure(MEM_WINDOWS_BASE_ADDRESS+0x60, 0x40, 0xA5, 0x00050014)
     # start on edge and end outside
-    testUtil.runCycles(1000000)
     testMemProcUtil.getmem_failure(MEM_WINDOWS_BASE_ADDRESS+0x40, 0x40, 0xA5, 0x00050014)
     # start and end within
-    testUtil.runCycles(1000000)
     testMemProcUtil.getmem(MEM_WINDOWS_BASE_ADDRESS+0x50, 0x10, 0xA5)
     testMemProcUtil.setUnsecureMemRegion(MEM_WINDOWS_BASE_ADDRESS+0x40, 0x30, 0x0120, 0)
 #-------------------------------------------------

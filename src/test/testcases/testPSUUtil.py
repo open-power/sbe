@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -113,9 +113,9 @@ class registry(object):
         address = self.regAddr
         value   = self.stringToByte(self.regVal)
         size    = self.regSize
-        print "  WData  : 0x%s -> Byte Data %s"% (self.regVal,value)
-        print "  Addr   :", hex(address)
-        print "  Size   : %s Bytes"% size
+#        print "  WData  : 0x%s -> Byte Data %s"% (self.regVal,value)
+#        print "  Addr   :", hex(address)
+#        print "  Size   : %s Bytes"% size
 
         self.__write(objType,address,value,size)
         return
@@ -130,8 +130,8 @@ class registry(object):
         size = 8
         for i in range (entryCount):
             value = stringToByte(data[i])
-            print "\n   Writting ", hex(REGDATA_SBE[i])
-            print "   %x %x %x %x %x %x %x %x" % (value[0],value[1],value[2],value[3],value[4],value[5],value[6],value[7])
+#            print "\n   Writting ", hex(REGDATA_SBE[i])
+#            print "   %x %x %x %x %x %x %x %x" % (value[0],value[1],value[2],value[3],value[4],value[5],value[6],value[7])
             simObj.write(None, REGDATA_SBE[regIndex],
                         (value[0],value[1],value[2],value[3],value[4],value[5],value[6],value[7]),
                         size)
@@ -161,10 +161,10 @@ class registry(object):
         address = self.regAddr
         size    = self.regSize
         value   = self.regVal
-        if int(value) !=0:
-            print "  RData  :", value
-        print "  Addr   :", hex(address)
-        print "  Size   : %s Bytes"% size
+#        if int(value) !=0:
+#            print "  RData  :", value
+#        print "  Addr   :", hex(address)
+#        print "  Size   : %s Bytes"% size
 
         value = self.__read(objType,address,size)
         return value
@@ -181,20 +181,20 @@ class registry(object):
         value   = self.regVal     # Max lentgth it should read
 
         MaxAddr  = address + value   # This is the addres range it could read
-        print "  MaxAddr Range:",hex(MaxAddr)
+#        print "  MaxAddr Range:",hex(MaxAddr)
         OffsetAddr = address
-        print "  OffsetAddr:",hex(OffsetAddr)
+#        print "  OffsetAddr:",hex(OffsetAddr)
 
-        print "  Memory Entries to be read : %d" % (value/8)
-        print "  Match Magic Number : ", magicNum
+#        print "  Memory Entries to be read : %d" % (value/8)
+#        print "  Match Magic Number : ", magicNum
 
         while ( OffsetAddr <= MaxAddr):
             sim_data = self.__read(objType,OffsetAddr,size)
-            print " ", hex(OffsetAddr),self.joinListDataToHex(sim_data).upper()
+#            print " ", hex(OffsetAddr),self.joinListDataToHex(sim_data).upper()
             OffsetAddr += 8
 
             if self.validateTestMemOp(sim_data,magicNum) == True:
-                        print "  Test validated .. [ OK ]"
+#                        print "  Test validated .. [ OK ]"
                         return SUCCESS
 
         return FAILURE # Failed validation
@@ -251,8 +251,8 @@ class registry(object):
         #--------------------------------------------
         for l_params in test_bucket:
         #--------------------------------------------
-            print "  Desc   : %s "  % l_params[5]
-            print "  Op     : %s "  % l_params[0]
+#            print "  Desc   : %s "  % l_params[5]
+#            print "  Op     : %s "  % l_params[0]
             if "func" == l_params[0]:
                 print "  Func    : %s "  % l_params[1]
             if l_params[4] != "None":
@@ -269,9 +269,6 @@ class registry(object):
             # ---------------------------------------------
             if "read" == l_params[0]:
                 sim_data = self.readFromReg(testOp)
-                print "  ++++++++++++++++++++++++++++++++++++++++++"
-                print "  simics Data  : ", sim_data
-                print "  simics Hex   : ", self.joinListDataToHex(sim_data).upper()
 
                 # Validate the test data
                 '''
@@ -282,11 +279,14 @@ class registry(object):
                     if self.validateTestOp(sim_data,l_params[4]) == True:
                         print "  Test validated .. [ OK ]"
                     else:
+                        print "  ++++++++++++++++++++++++++++++++++++++++++"
+                        print "  simics Data  : ", sim_data
+                        print "  simics Hex   : ", self.joinListDataToHex(sim_data).upper()
                         if(raiseException == True):
                             raise Exception('Data mistmach');
                         return FAILURE # Failed validation
-                else:
-                    print "  ++++++++++++++++++++++++++++++++++++++++++"
+#                else:
+#                    print "  ++++++++++++++++++++++++++++++++++++++++++"
             elif "write" == l_params[0]:
                 self.writeToReg(testOp)
             elif "memRead" == l_params[0]:
@@ -351,13 +351,10 @@ class registry(object):
     def pollingOn(self, simObj, test_data, retries=20):
         for l_param in test_data:
             while True:
-                print "\n*****  Polling On result - retrials left [%d] " % retries
-                print "\n"
                 testUtil.runCycles( 1000000);
                 test_d = (l_param,)
                 rc = self.ExecuteTestOp(simObj, test_d, False)
                 if rc == SUCCESS:
-                    print ('Polling Successful for - ' + l_param[5])
                     break
                 elif retries <= 0:
                     print "  Retrials exhausted... Exiting polling"
@@ -365,6 +362,10 @@ class registry(object):
                     break
                 else:
                     retries = retries - 1
+
+        # TODO: cleanup this handling
+        test_data = (["write", test_data[0][1], "0000000000000000" ,8, None, "Reading Host Doorbell for Interrupt"],)
+        self.ExecuteTestOp(simObj, test_data)
         return SUCCESS
 
     #----------------------------------------------------

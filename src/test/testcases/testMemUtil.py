@@ -31,6 +31,8 @@ import testRegistry as reg
 import testUtil
 err = False
 
+RUN_CYCLES = 1
+
 def gethalfword(dataInInt):
     hex_string = '0'*(4-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
     return list(struct.unpack('<BB',hex_string.decode('hex')))
@@ -77,7 +79,7 @@ def putmem(addr, data, flags, ecc=0):
           + data)
     testUtil.writeUsFifo(req)
     testUtil.writeEot( )
-    testUtil.runCycles( 10000000 )
+    testUtil.runCycles( RUN_CYCLES )
     if(flags & 0x0008):
         lenInBytes += int(len(data)/8)
     if(flags & 0x0010):
@@ -108,7 +110,7 @@ def putmem_failure(addr, data, flags, responseWord, ecc=0):
           + data)
     testUtil.writeUsFifo(req)
     testUtil.writeEot( )
-    testUtil.runCycles( 10000000 )
+    testUtil.runCycles( RUN_CYCLES )
     expResp =  ([0x0, 0x0, 0x0, 0x0]
     + [0xc0,0xde,0xa4,0x02]
     + getsingleword(responseWord)
@@ -117,7 +119,7 @@ def putmem_failure(addr, data, flags, responseWord, ecc=0):
     testUtil.readEot( )
 
 def getmem(addr, len, flags):
-    testUtil.runCycles( 10000000 )
+    testUtil.runCycles( RUN_CYCLES )
     req = (getsingleword(6)
          + [0, 0, 0xA4, 0x01]
          + getsingleword(flags)
@@ -150,7 +152,7 @@ def getmem(addr, len, flags):
     return data[:lenExp]
 
 def getmem_failure(addr, len, flags, responseWord, withLen = True):
-    testUtil.runCycles( 10000000 )
+    testUtil.runCycles( RUN_CYCLES )
     req = (getsingleword(6)
          + [0, 0, 0xA4, 0x01]
          + getsingleword(flags)
@@ -169,7 +171,7 @@ def getmem_failure(addr, len, flags, responseWord, withLen = True):
     testUtil.readEot( )
 
 def setUnsecureMemRegion(addr, size, controlFlag, responseWord):
-    testUtil.runCycles( 10000000 )
+    testUtil.runCycles( RUN_CYCLES )
     req = (["write", reg.REG_MBOX0,"0"*(8-len(hex(controlFlag).split('0x')[-1]))+hex(controlFlag).split('0x')[-1] +"00F0D601", 8, "None", "Writing to MBOX0 address"],
            ["write", reg.REG_MBOX1, "0"*(16-len(hex(size).split('0x')[-1]))+hex(size).split('0x')[-1], 8, "None", "Writing to MBOX1 address"],
            ["write", reg.REG_MBOX2, "0"*(16-len(hex(addr).split('0x')[-1]))+hex(addr).split('0x')[-1], 8, "None", "Writing to MBOX1 address"],
