@@ -608,4 +608,8 @@ attribute tank
         <name>ATTR_CHIP_EC_FEATURE_P9A_SBE_REGION</name>
         <virtual/>
   </entry>
+  <entry>
+        <name>ATTR_CHIP_EC_FEATURE_HW403111</name>
+        <virtual/>
+  </entry>
 </entries>
