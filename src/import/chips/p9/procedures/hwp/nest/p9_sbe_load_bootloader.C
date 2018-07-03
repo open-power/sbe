@@ -43,6 +43,7 @@
 
 #include <p9_quad_scom_addresses.H>
 #include <p9_quad_scom_addresses_fld.H>
+#include <p9n2_quad_scom_addresses.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 
@@ -108,7 +109,7 @@ const uint8_t PERV_TO_CORE_POS_OFFSET = 0x20;
 const uint8_t THREAD_1 = 1;
 const uint8_t THREAD_2 = 2;
 const uint8_t THREAD_3 = 3;
-const uint32_t HRMOR_SPR_NUMBER = 313;
+const uint32_t MSR_SPR_NUMBER   = 2001;
 const uint32_t PSSCR_SPR_NUMBER = 855;
 const uint64_t HOSTBOOT_PSSCR_VALUE = 0x00000000003F00FFULL;
 
@@ -202,9 +203,10 @@ ram_sprs(
                 .set_FUSED_MODE(l_fused_core_mode),
                 "Error finding the master core target!");
 
-    // set the HRMOR (core) and PSSCR (threads 2/3).  The PSSCR must be
-    // set on these threads as in fused mode HB will never execute on them,
-    // but CME checks bits in them to perform STOP11 request in step 16
+    // set the HRMOR and URMOR [if SMF inits] (core) and PSSCR (threads 2/3).
+    // The PSSCR must be set on these threads as in fused mode HB will never
+    // execute on them, but CME checks bits in them to perform STOP11 request
+    // in step 16
     for (auto& l_master_core_target : l_master_core_targets)
     {
         RamCore l_ram_t1(l_master_core_target, THREAD_1);
@@ -213,7 +215,10 @@ ram_sprs(
         fapi2::buffer<uint64_t> l_sicr = 0;
         fapi2::buffer<uint64_t> l_thread_info = 0;
         fapi2::buffer<uint64_t> l_ram_data = i_master_hrmor;
+        fapi2::buffer<uint64_t> l_msr = 0;
+
         uint8_t l_core_unit_pos = 0;
+
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
                                l_master_core_target,
@@ -252,11 +257,26 @@ ram_sprs(
             l_ram_data -= l_bootloader_offset;
         }
 
-        // set HRMOR via thread 2 instance -- core level SPR
-        FAPI_TRY(l_ram_t2.put_reg(REG_SPR, HRMOR_SPR_NUMBER, &l_ram_data),
-                 "Error ramming HRMOR (T2)!");
+        // set HRMOR -- core level SPR
+        FAPI_TRY(fapi2::putScom( i_master_ex_target, P9N2_C_HRMOR, l_ram_data ),
+                 "Error Writing To HRMOR");
+        FAPI_DBG("Wrote HRMOR with 0x%016lX", (uint64_t)l_ram_data);
+
+        // get MSR to determine if need to set URMOR
+        FAPI_TRY(l_ram_t2.get_reg(REG_SPR, MSR_SPR_NUMBER, &l_msr),
+                 "Error ramming MSR (T2)!");
+
+        // set URMOR to the HRMOR value if SMF is enabled
+        if(l_msr.getBit <41>()) // SMF is on
+        {
+            FAPI_TRY(fapi2::putScom(i_master_ex_target, P9N2_C_URMOR, l_ram_data ),
+                     "Error Writing To URMOR");
+            FAPI_DBG("Wrote URMOR with 0x%016lX", (uint64_t)l_ram_data );
+        }
+
         // set PSSCR via thread specific instances
         l_ram_data = HOSTBOOT_PSSCR_VALUE;
+        FAPI_DBG("PSSCR with 0x%16llX", (uint64_t)l_ram_data);
         FAPI_TRY(l_ram_t1.put_reg(REG_SPR, PSSCR_SPR_NUMBER, &l_ram_data),
                  "Error ramming PSSCR (T1)!");
         FAPI_TRY(l_ram_t2.put_reg(REG_SPR, PSSCR_SPR_NUMBER, &l_ram_data),

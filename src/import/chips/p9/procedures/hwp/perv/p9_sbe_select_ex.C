@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -152,6 +152,10 @@ fapi2::ReturnCode select_ex_update_mc_group(
     const uint8_t i_mc_group,
     const uint64_t i_mc_reg_addr);
 
+fapi2::ReturnCode select_ex_update_ppms(
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target_core,
+    const uint32_t i_core_num);
+
 // -----------------------------------------------------------------------------
 //  Function definitions
 // -----------------------------------------------------------------------------
@@ -287,17 +291,19 @@ fapi2::ReturnCode p9_sbe_select_ex(
                             "Odd core within master fused set is not functional");
                 // Add the core to the apppropriate multicast group
                 FAPI_TRY(select_ex_add_core_to_mc_group(core));
-                FAPI_DBG("Odd portion of Fused core found");
+                // Setup the Core PPM
+                FAPI_TRY(select_ex_update_ppms(core, l_core_num));
+                FAPI_DBG("Odd portion of Fused core found and setup");
                 b_fused_first_half = false;
             }
 
             // Since the very first functional core in the chip will be named
             // master core and if the master core is in second ex of a quad,
-            // then the first EX must be partial bad as there is no functional
-            // core found before master core.
+            // then the first EX must be partial bad as there was no functional
+            // core found before the master core.
 
             // Therefore, only need to check the second ex to be partial good if master core
-            // is in the first ex. if so, add second ex to QCSR so that istep4 can process
+            // is in the first ex. If so, add second ex to QCSR so that istep4 can process
             // hostboot core bring up as a stop11 pattern of l2/l3 in both EXes
 
             // After found master core but next core still remain in the same ex,
@@ -380,15 +386,9 @@ fapi2::ReturnCode p9_sbe_select_ex(
         FAPI_DBG("Scoreboard values for OCC: Core 0x%016llX  EX 0x%016llX",
                  l_core_config, l_quad_config);
 
-        // Write the default PFET Controller Delay values for the Core
-        // as it will be used for istep 4
-        FAPI_DBG("Setting PFET Delays in core %d", l_core_num);
+        // Setup the Core PPM
+        FAPI_TRY(select_ex_update_ppms(core, l_core_num));
 
-        l_data64.flush<0>()
-        .insertFromRight<0, 4>(p9power::PFET_DELAY_POWERDOWN_CORE)
-        .insertFromRight<4, 4>(p9power::PFET_DELAY_POWERUP_CORE);
-
-        FAPI_TRY(fapi2::putScom(core, C_PPM_PFDLY, l_data64));
     } // Core loop
 
     FAPI_ASSERT(b_skip_hb_checks || b_host_core_found,
@@ -486,7 +486,7 @@ fapi_try_exit:
 fapi2::ReturnCode select_ex_add_core_to_mc_group(
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target_cplt)
 {
-    FAPI_INF("> add_to_core_mc_group...");
+    FAPI_DBG("> add_to_core_mc_group...");
 
 #ifndef __PPE__
     uint8_t l_attr_chip_unit_pos = 0;
@@ -523,7 +523,7 @@ fapi2::ReturnCode select_ex_add_core_to_mc_group(
                               CORE_MC_REG);
 
 fapi_try_exit:
-    FAPI_INF("< add_to_core_mc_group...");
+    FAPI_DBG("< add_to_core_mc_group...");
     return fapi2::current_err;
 
 }
@@ -538,7 +538,7 @@ fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target_cplt,
     const uint32_t i_ex_num)
 {
-    FAPI_INF("> select_ex_add_ex_to_mc_groups...");
+    FAPI_DBG("> select_ex_add_ex_to_mc_groups...");
 
     // If the Core is in a even EX, then put the EQ chiplet in the EQ MC group
     // and the EX Even MC group.
@@ -569,7 +569,7 @@ fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
                                   EX_EVEN_MC_REG);
     }
 
-    FAPI_INF("< select_ex_add_ex_to_mc_groups...");
+    FAPI_DBG("< select_ex_add_ex_to_mc_groups...");
     return fapi2::current_err;
 
 }
@@ -581,7 +581,7 @@ fapi2::ReturnCode select_ex_add_ex_to_mc_groups(
 fapi2::ReturnCode select_ex_add_eq_to_mc_group(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_target_cplt)
 {
-    FAPI_INF("> select_ex_add_eq_to_mc_group...");
+    FAPI_DBG("> select_ex_add_eq_to_mc_group...");
 
 #ifndef __PPE__
     uint8_t l_attr_chip_unit_pos = 0;
@@ -609,7 +609,7 @@ fapi2::ReturnCode select_ex_add_eq_to_mc_group(
                               EQ_MC_REG);
 
 fapi_try_exit:
-    FAPI_INF("< select_ex_add_eq_to_mc_group...");
+    FAPI_DBG("< select_ex_add_eq_to_mc_group...");
     return fapi2::current_err;
 
 }
@@ -623,7 +623,7 @@ fapi2::ReturnCode select_ex_update_mc_group(
     const uint8_t i_mc_group,
     const uint64_t i_mc_reg_addr)
 {
-    FAPI_INF("> select_ex_update_mc_group...");
+    FAPI_DBG("> select_ex_update_mc_group...");
 
     fapi2::buffer<uint64_t> l_data64;
     uint8_t l_prevGroup = 0;
@@ -649,7 +649,46 @@ fapi2::ReturnCode select_ex_update_mc_group(
              (uint32_t)fapi2::current_err);
 
 fapi_try_exit:
-    FAPI_INF("< select_ex_update_mc_group...");
+    FAPI_DBG("< select_ex_update_mc_group...");
+    return fapi2::current_err;
+}
+
+///-----------------------------------------------------------------------------
+/// @brief Update the PPMs for enabled cores
+///
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode select_ex_update_ppms(
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target_core,
+    const uint32_t i_core_num)
+{
+
+    fapi2::buffer<uint64_t> l_data64 = 0;
+
+    FAPI_DBG("> select_ex_update_ppms...");
+
+    // Write the default PFET Controller Delay values for the Core
+    // as it will be used for istep 4
+    FAPI_DBG("Setting PFET Delays in core %d", i_core_num);
+
+    // *INDENT-OFF*
+    l_data64.flush<0>()
+            .insertFromRight<0, 4>(p9power::PFET_DELAY_POWERDOWN_CORE)
+            .insertFromRight<4, 4>(p9power::PFET_DELAY_POWERUP_CORE);
+    // *INDENT-ON*
+
+    FAPI_TRY(fapi2::putScom(i_target_core, C_PPM_PFDLY, l_data64));
+
+    // Clear CPPMR[Runtime Wakeup Mode](3) to force SMF enabled systems to
+    // start Hostboot in UV mode
+
+    // @todo This bit should come from p9_pm_hcd_flags.h but it is presently
+    // not mirrored.
+    l_data64.flush<0>().setBit<3>();
+    FAPI_TRY(fapi2::putScom(i_target_core, C_CPPM_CPMMR_CLEAR, l_data64));
+    FAPI_DBG("Clearing CPPMR[Runtime Wakeup Mode] in core %d", i_core_num);
+
+fapi_try_exit:
+    FAPI_DBG("< select_ex_update_ppms...");
     return fapi2::current_err;
 }
 
