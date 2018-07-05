@@ -1108,14 +1108,17 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
                 break;
             }
 
-            // TODO via RTC 135345
-            // Once multicast targets are supported, we may need to pass
-            // p9selectex::ALL as input.
-            SBE_EXEC_HWP(rc, reinterpret_cast<p9_sbe_select_ex_FP_t>(i_hwp), proc, p9selectex::SINGLE)
-            if( rc != FAPI2_RC_SUCCESS )
+            if (g_sbeRole == SBE_ROLE_MASTER)
             {
-                SBE_ERROR(SBE_FUNC" Failed hwp p9_sbe_select_ex_hwp");
-                break;
+                // TODO via RTC 135345
+                // Once multicast targets are supported, we may need to pass
+                // p9selectex::ALL as input.
+                SBE_EXEC_HWP(rc, reinterpret_cast<p9_sbe_select_ex_FP_t>(i_hwp), proc, p9selectex::SINGLE)
+                if( rc != FAPI2_RC_SUCCESS )
+                {
+                    SBE_ERROR(SBE_FUNC" Failed hwp p9_sbe_select_ex_hwp");
+                    break;
+                }
             }
         }
         else
