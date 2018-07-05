@@ -887,3 +887,9 @@ Version,Chiplet,Base Address,Chiplet Id - range,User,Register Name,Description/U
 ,TP,0x0006C738,0x00,HB,AVSBus O2SWD  Bus 1 Bridge B,p9_setup_evid.C,write_whitelist,
 ,CACHE,0x100F0151,0x10-0x16,HBFW,QPPM DPLL Frequency Control Register,p9_setup_evid.C,write_whitelist,
 ,CACHE,0x100F01B6,0x10-0x16,HBFW,QPPM VDM Config Register,p9_setup_evid.C,write_whitelist,
+,EX,0x1001200A,0x10-0x15,,HWSV,CME SRAM Control register,dump cme sram,write_whitelist,
+,EX,0x1001240A,0x10-0x15,,HWSV,CME SRAM Control register,dump cme sram,write_whitelist,
+,EX,0x1001200D,0x10-0x15,,HWSV,CME SRAM Address register,dump cme sram,write_whitelist,
+,EX,0x1001240D,0x10-0x15,,HWSV,CME SRAM Address register,dump cme sram,write_whitelist,
+
+
