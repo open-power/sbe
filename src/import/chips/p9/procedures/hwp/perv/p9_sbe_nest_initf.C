@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -42,6 +42,108 @@
 #include "p9_perv_scom_addresses_fld.H"
 #include "p9_const_common.H"
 #include <p9_ring_id.h>
+
+fapi2::ReturnCode
+p9_sbe_nest_initf_sw430383_wa(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    FAPI_DBG("Start");
+
+    fapi2::ATTR_CHIP_EC_FEATURE_SW430383_Type l_sw430383;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SW430383,
+                           i_target,
+                           l_sw430383),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_SW430383");
+
+    if (l_sw430383)
+    {
+        fapi2::buffer<uint64_t> l_scan_region;
+        fapi2::buffer<uint64_t> l_scan_data;
+
+        // ring:
+        //   n2_fure                             0x04035C0F   96269        N    Y     Y     Y NESTN2            OFF
+        //
+        // bits to set:
+        //   1    4083   92185 0 PE2.PB2.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2(0)
+        //   1   45823   50445 0 PE1.PB1.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2(0)
+        //   1   70000   26268 0 PE0.PB0.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2(0)
+
+        // inject header
+        l_scan_region.setBit<PERV_1_SCAN_REGION_TYPE_PERV>().  // PERV
+        setBit<PERV_1_SCAN_REGION_TYPE_UNIT2>().           // PCIS0
+        setBit<PERV_1_SCAN_REGION_TYPE_UNIT3>().           // PCIS1
+        setBit<PERV_1_SCAN_REGION_TYPE_UNIT4>().           // PCIS2
+        setBit<PERV_1_SCAN_REGION_TYPE_FUNC>().            // FUNC
+        setBit<PERV_1_SCAN_REGION_TYPE_REGF>();            // REGF
+        FAPI_TRY(fapi2::putScom(i_target, PERV_N2_SCAN_REGION_TYPE, l_scan_region));
+        l_scan_data = 0xA5A5A5A5A5A5A5A5;
+        FAPI_TRY(fapi2::putScom(i_target, PERV_N2_SCAN32, l_scan_data));
+
+        // scan 0..4083 (37*110 + 13)
+        for (auto ii = 0; ii < 37; ii++)
+        {
+            FAPI_TRY(fapi2::getScom(i_target, PERV_N2_SCAN32 + 0x6E, l_scan_data));
+        }
+
+        FAPI_TRY(fapi2::getScom(i_target, PERV_N2_SCAN32 + 0x0D, l_scan_data));
+
+        // flip PE2.PB2.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2
+        FAPI_DBG("Flip PE2.PB2.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2");
+        l_scan_data.setBit<0>();
+        FAPI_TRY(fapi2::putScom(i_target, PERV_N2_SCAN32, l_scan_data));
+
+        // scan 4083..45823 (379*110 + 50)
+        for (auto ii = 0; ii < 379; ii++)
+        {
+            FAPI_TRY(fapi2::getScom(i_target, PERV_N2_SCAN32 + 0x6E, l_scan_data));
+        }
+
+        FAPI_TRY(fapi2::getScom(i_target, PERV_N2_SCAN32 + 0x32, l_scan_data));
+
+        // flip PE1.PB1.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2(0)
+        FAPI_DBG("Flip PE1.PB1.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2(0)");
+        l_scan_data.setBit<0>();
+        FAPI_TRY(fapi2::putScom(i_target, PERV_N2_SCAN32, l_scan_data));
+
+        // scan 45823..70000 (219*110 + 87)
+        for (auto ii = 0; ii < 219; ii++)
+        {
+            FAPI_TRY(fapi2::getScom(i_target, PERV_N2_SCAN32 + 0x6E, l_scan_data));
+        }
+
+        FAPI_TRY(fapi2::getScom(i_target, PERV_N2_SCAN32 + 0x57, l_scan_data));
+
+        // flip PE0.PB0.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2(0)
+        FAPI_DBG("Flip PE0.PB0.PBCQ.PELDST.SPARE_LAT.SPARE_0.LATC.L2(0)");
+        l_scan_data.setBit<0>();
+        FAPI_TRY(fapi2::putScom(i_target, PERV_N2_SCAN32, l_scan_data));
+
+        // scan 70000..96269 (238*110 + 89)
+        for (auto ii = 0; ii < 238; ii++)
+        {
+            FAPI_TRY(fapi2::getScom(i_target, PERV_N2_SCAN32 + 0x6E, l_scan_data));
+        }
+
+        FAPI_TRY(fapi2::getScom(i_target, PERV_N2_SCAN32 + 0x59, l_scan_data));
+
+        // check header
+        FAPI_ASSERT((l_scan_data == 0xA5A5A5A5A5A5A5A5),
+                    fapi2::P9_PUTRING_CHECKWORD_DATA_MISMATCH().
+                    set_TARGET(i_target).
+                    set_CHIPLET_ID(0x02).
+                    set_SCOM_ADDRESS(PERV_N2_SCAN32).
+                    set_SCOM_DATA(l_scan_data()).
+                    set_BITS_DECODED(0).
+                    set_RINGID(n2_fure).
+                    set_RINGMODE(fapi2::RING_MODE_HEADER_CHECK).
+                    set_RETURN_CODE(0),
+                    "Error rotating n2_fure for sw430383");
+    }
+
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}
+
 
 fapi2::ReturnCode p9_sbe_nest_initf(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -149,6 +251,9 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
             FAPI_DBG("Scan n2_fure ring");
             FAPI_TRY(fapi2::putRing(i_target_chip, n2_fure),
                      "Error from putRing (n2_fure)");
+
+            FAPI_TRY(p9_sbe_nest_initf_sw430383_wa(i_target_chip),
+                     "Error from p9_sbe_nest_initf_sw430383_wa");
 
             if (!l_read_attr.getBit<9>()) //Check iopsi is enable
             {
