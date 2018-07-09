@@ -401,6 +401,8 @@ get_bootloader_config_data(
 
     fapi2::buffer<uint64_t> l_cbs_cs;
     BootloaderConfigData_t l_bootloader_config_data;
+    fapi2::ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED_Type l_smf_supported;
+    fapi2::ATTR_SMF_CONFIG_Type l_smf_config;
 
     FAPI_DBG("Start");
 
@@ -420,7 +422,21 @@ get_bootloader_config_data(
                            FAPI_SYSTEM,
                            l_bootloader_config_data.xscomBAR),
              "Error from FAPI_ATTR_GET (ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED,
+                           i_master_chip_target,
+                           l_smf_supported),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SMF_CONFIG,
+                           FAPI_SYSTEM,
+                           l_smf_config),
+             "Error from FAPI_ATTR_GET (ATTR_SMF_CONFIG)");
+
     l_bootloader_config_data.xscomBAR += l_chip_base_address_mmio;
+
+    if (l_smf_config && l_smf_supported)
+    {
+        l_bootloader_config_data.xscomBAR += XSCOM_BAR_SMF_OFFSET;
+    }
 
     // LPC BAR offset
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET,

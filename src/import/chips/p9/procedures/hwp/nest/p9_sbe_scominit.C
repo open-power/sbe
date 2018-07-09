@@ -178,13 +178,24 @@ p9_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
         fapi2::buffer<uint64_t> l_xscom_bar;
         uint64_t l_xscom_bar_offset;
+        fapi2::ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED_Type l_smf_supported;
+        fapi2::ATTR_SMF_CONFIG_Type l_smf_config;
 
         FAPI_DBG("Configuring XSCOM BAR");
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET, FAPI_SYSTEM, l_xscom_bar_offset),
                  "Error from FAPI_ATTR_GET (ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET)");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED, i_target, l_smf_supported),
+                 "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_SMF_SUPPORTED)");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SMF_CONFIG, fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(), l_smf_config),
+                 "Error from FAPI_ATTR_GET (ATTR_SMF_CONFIG)");
 
         l_xscom_bar = l_base_addr_mmio;
         l_xscom_bar += l_xscom_bar_offset;
+
+        if (l_smf_config && l_smf_supported)
+        {
+            l_xscom_bar += XSCOM_BAR_SMF_OFFSET;
+        }
 
         FAPI_ASSERT((l_xscom_bar & XSCOM_BAR_MASK) == 0,
                     fapi2::P9_SBE_SCOMINIT_XSCOM_BAR_ATTR_ERR()
