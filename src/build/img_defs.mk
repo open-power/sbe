@@ -172,7 +172,7 @@ export IMAGEPROCS_CEN_SRCDIR = $(IMPORT_SRCDIR)/chips/centaur/utils/imageProcs
 endif
 
 ifndef BASE_OBJDIR
-export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj/$(IMAGE_SUFFIX)
+export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj/$(project)/$(IMAGE_SUFFIX)
 endif
 
 ifndef TAR_OBJDIR
@@ -477,6 +477,10 @@ ifeq ($(SBE_S0_SUPPORT), 1)
 GCC-DEFS += -D_S0_=$(SBE_S0_SUPPORT)
 endif
 
+ifeq ($(project),power_axone)
+GCC-DEFS += -DSBE_AXONE_CONFIG
+endif
+
 ############################################################################
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
@@ -494,6 +498,10 @@ endif
 # project specific include
 ifeq ($(project),power)
 include power_defs.mk
+endif
+
+ifeq ($(project),power_axone)
+include power_axone_defs.mk
 endif
 
 ifeq ($(project),z)

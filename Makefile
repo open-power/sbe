@@ -33,7 +33,10 @@ tar:
 DD2:
 	$(MAKE) -C $(BUILD_DIR) all
 
-all: DD2
+axone:
+	$(MAKE) -C $(BUILD_DIR) all project=power_axone
+
+all: DD2 axone
 
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean

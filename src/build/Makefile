@@ -30,7 +30,7 @@ ifndef img
 export img = seeprom
 endif
 
-# pass argument project=power/zthemis
+# pass argument project=power/power_axone/zthemis
 # By default power image is built
 ifndef project
 export project = power
@@ -56,6 +56,7 @@ LIB_DIRS += -L$(OBJDIR)/sbefw/core_pibmem
 SBECORELIB := $(OBJDIR)/sbefw/core_pibmem/libsbecorepibmem.a
 LLIBS += -lsbecorepibmem
 
+SEEPROM_SUBDIRS += targetseeprom_../sbefw/core
 LIB_DIRS += -L$(OBJDIR)/sbefw/core_seeprom
 SBECORESEEPROMLIB := $(OBJDIR)/sbefw/core_seeprom/libsbecoreseeprom.a
 LLIBS += -lsbecoreseeprom
@@ -65,6 +66,7 @@ LIB_DIRS += -L$(OBJDIR)/sbefw/app/$(PROJECT_APP_DIR)_pibmem
 SBEAPPLIB := $(OBJDIR)/sbefw/app/$(PROJECT_APP_DIR)_pibmem/lib$(PROJECT_APP_PIBMEM_LIB).a
 LLIBS += -l$(PROJECT_APP_PIBMEM_LIB)
 
+SEEPROM_SUBDIRS += targetseeprom_../sbefw/app/$(PROJECT_APP_DIR)
 LIB_DIRS += -L$(OBJDIR)/sbefw/app/$(PROJECT_APP_DIR)_seeprom
 SBECORESEEPROMLIB := $(OBJDIR)/sbefw/app/$(PROJECT_APP_DIR)_seeprom/lib$(PROJECT_APP_SEEPROM_LIB).a
 LLIBS += -l$(PROJECT_APP_SEEPROM_LIB)
@@ -74,6 +76,7 @@ LIB_DIRS += -L$(OBJDIR)/sbefw/app/common_pibmem
 SBEAPPLIB := $(OBJDIR)/sbefw/app/common_pibmem/libsbeappcommonpibmem.a
 LLIBS += -lsbeappcommonpibmem
 
+SEEPROM_SUBDIRS += targetseeprom_../sbefw/app/common
 LIB_DIRS += -L$(OBJDIR)/sbefw/app/common_seeprom
 SBECORESEEPROMLIB := $(OBJDIR)/sbefw/app/common_seeprom/libsbeappcommonseeprom.a
 LLIBS += -lsbeappcommonseeprom
@@ -84,6 +87,7 @@ LIB_DIRS += -L$(OBJDIR)/fapi2
 FAPI2LIB := $(OBJDIR)/fapi2/libfapi2.a
 LLIBS += -lfapi2
 
+SEEPROM_SUBDIRS += targetseeprom_$(PLAT_FAPI2_DIR)
 LIB_DIRS += -L$(OBJDIR)/fapi2_seeprom
 FAPI2LIB := $(OBJDIR)/fapi2/libfapi2seeprom.a
 LLIBS += -lfapi2seeprom
@@ -142,7 +146,7 @@ $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis: $(IMG
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
 
 #create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) _seeprom_libs $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
+$(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out: ppe_trace_bin buildInfo $(SUBDIRS) $(SEEPROM_SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SEEPROM)
 	$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
 		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(BOOT_OBJDIR)/$(BOOT_OBJECTS) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group
@@ -162,7 +166,7 @@ $(IMG_DIR)/$(IMAGE_SBE_NAME).bin $(IMG_DIR)/$(IMAGE_SBE_NAME).dis: $(IMG_DIR)/$(
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SBE_NAME).dis
 
 # create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) _seeprom_libs $(LINK_OBJS) $(LINK_SCRIPT_SBE)
+$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) $(SEEPROM_SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SBE)
 	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(IMG_DIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(BUILDDATA_OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
 
 # pass the link command file through the C preprocessor to evaluate macros and remove comments
@@ -200,7 +204,7 @@ tar:
 	@echo "Generated simics.tar in Sbe images Directory"
 
 .PHONY: all normalize compress defaultset appendloader add_LoaderAddr symbols report \
-		appendoverrides xml security tracehash topfixedheaders  $(SUBDIRS) _seeprom_libs \
+		appendoverrides xml security tracehash topfixedheaders  $(SUBDIRS) $(SEEPROM_SUBDIRS) \
 		tar install
 
 buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
@@ -266,12 +270,8 @@ platattr:
 # Build the subdirectories
 $(SUBDIRS):
 	$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
-_seeprom_libs:
-	$(MAKE) -I $(INCLUDES) -C ../hwpf -f Makefile img_mem=seeprom
-	$(MAKE) -I $(INCLUDES) -C ../sbefw/core -f Makefile img_mem=seeprom
-	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/common -f Makefile img_mem=seeprom
-	$(MAKE) -I $(INCLUDES) -C ../sbefw/app/$(PROJECT_APP_DIR) -f Makefile img_mem=seeprom
-
+$(SEEPROM_SUBDIRS):
+	$(MAKE) -I $(INCLUDES) -C $(subst targetseeprom_,, $@) -f Makefile img_mem=seeprom
 
 #Build the SBE XIP Tools
 $(SBE_TOOLS): $(P9_XIP_TOOL)
