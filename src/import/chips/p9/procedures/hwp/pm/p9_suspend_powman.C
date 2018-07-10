@@ -48,6 +48,7 @@
 //--------------------------------------------------------------------------
 #include <p9_suspend_powman.H>
 #include <p9_misc_scom_addresses.H>
+#include <p9n2_misc_scom_addresses.H>
 #include <p9_misc_scom_addresses_fld.H>
 #include <p9_query_cache_access_state.H>
 #include <p9_quad_scom_addresses.H>
@@ -85,6 +86,12 @@ extern "C" {
 
         bool l_pgpe_in_safe_mode = false;
         bool l_pgpe_suspended = false;
+
+        // by default disable malf alert handling in PM suspend to avoid
+        // spurious alerts
+        l_data64.flush<0>().setBit<p9hcd::STOP_RECOVERY_TRIGGER_ENABLE>();
+        FAPI_TRY(fapi2::putScom (i_target, P9N2_PU_OCB_OCI_OCCFLG2_SCOM1,
+                                 l_data64));
 
         FAPI_TRY(fapi2::getScom(i_target, PU_GPE2_GPEXIXSR_SCOM, l_xsr),
                  "Error checking PGPE XSR");
