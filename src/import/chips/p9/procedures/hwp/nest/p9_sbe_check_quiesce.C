@@ -776,6 +776,9 @@ extern "C" {
         FAPI_DBG("p9_intp_check_quiesce: Entering...");
         fapi2::buffer<uint64_t> l_data(0);
 
+        //Start the scrub operation in all caches andPoll for completion
+        FAPI_TRY(p9_int_scrub_caches(i_target), "Error scrubbing the caches");
+
         // Read INT_CQ_RST_CTL so that we don't override anything
         FAPI_TRY(fapi2::getScom(i_target, PU_INT_CQ_RST_CTL, l_data));
 
@@ -809,6 +812,47 @@ extern "C" {
 
     fapi_try_exit:
         FAPI_DBG("p9_intp_check_quiesce: Exiting...");
+        return fapi2::current_err;
+    }
+
+    //---------------------------------------------------------------------------------
+    // NOTE: description in header
+    //---------------------------------------------------------------------------------
+    fapi2::ReturnCode p9_int_scrub_caches(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        fapi2::buffer<uint64_t> l_scrub_trig_data(0);
+        const uint64_t l_scrub_addrs[4] =
+        {
+            PU_INT_PC_VPC_SCRUB_TRIG, PU_INT_VC_SBC_SCRUB_TRIG,
+            PU_INT_VC_EQC_SCRUB_TRIG, PU_INT_VC_IVC_SCRUB_TRIG
+        };
+
+        //Start the scrub operation in all caches
+        for (uint32_t i = 0; i < 4; i++)
+        {
+            fapi2::putScom(i_target, l_scrub_addrs[i], 0xA000000000000000);
+
+            for (uint32_t j = 0; j < C_NUM_TRIES_QUIESCE_STATE; j++)
+            {
+                FAPI_TRY(fapi2::delay(C_INTP_DELAY_NS, C_INTP_DELAY_CYCLES));
+                FAPI_TRY(fapi2::getScom(i_target, l_scrub_addrs[i], l_scrub_trig_data));
+
+                if (!l_scrub_trig_data.getBit<0>())
+                {
+                    break;
+                }
+            }
+
+            FAPI_ASSERT(!l_scrub_trig_data.getBit<0>(),
+                        fapi2::P9_INT_SCRUB_NOT_FINISHED_ERR()
+                        .set_TARGET(i_target)
+                        .set_ADDRESS(l_scrub_addrs[i])
+                        .set_DATA(l_scrub_trig_data),
+                        "INT scrub operation still busy");
+        }
+
+    fapi_try_exit:
         return fapi2::current_err;
     }
 

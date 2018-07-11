@@ -124,6 +124,12 @@ extern "C" {
     fapi2::ReturnCode p9_pm_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
+    /// @brief Helper function to scrub all the caches for Int
+    /// @param[in] i_target       => P9 chip target
+    /// @return FAPI_RC_SUCCESS if the scrube completes successfully
+    fapi2::ReturnCode p9_int_scrub_caches(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
+
 } //extern "C"
 
 #endif //_P9_SBE_CHECK_QUIESCE_H_
