@@ -438,7 +438,7 @@ uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
         int pkRc = pk_thread_suspend(&SBE_GLOBAL->sbeAsyncCommandProcessor_thread);
         if (pkRc != PK_OK)
         {
-            SBE_ERROR(SBE_FUNC "async thread suspend failed");
+            SBE_ERROR(SBE_FUNC "async thread suspend failed. pkRc:%u", (-pkRc));
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_OS_FAILURE);
             break;
@@ -464,6 +464,7 @@ uint32_t sbePsuQuiesce( uint8_t *i_pArg )
 {
     #define SBE_FUNC "sbePsuQuiesce"
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
 
     do
     {
@@ -480,9 +481,9 @@ uint32_t sbePsuQuiesce( uint8_t *i_pArg )
 
         // Suspend async task
         int pkRc = pk_thread_suspend(&SBE_GLOBAL->sbeAsyncCommandProcessor_thread);
-        if (pkRc == PK_OK)
+        if (pkRc != PK_OK)
         {
-            SBE_ERROR(SBE_FUNC "async thread suspend failed");
+            SBE_ERROR(SBE_FUNC "async thread suspend failed. pkRc:%u", (-pkRc));
             SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(
                     SBE_PRI_GENERIC_EXECUTION_FAILURE,
                     SBE_SEC_OS_FAILURE);
@@ -495,10 +496,7 @@ uint32_t sbePsuQuiesce( uint8_t *i_pArg )
 
     }while(0);
 
-    rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG4,
-                     (uint64_t*)(&SBE_GLOBAL->sbeSbe2PsuRespHdr),
-                     (sizeof(SBE_GLOBAL->sbeSbe2PsuRespHdr)/sizeof(uint64_t)),
-                     true);
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
     if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
     {
         SBE_ERROR( SBE_FUNC"Failed to write SBE_HOST_PSU_MBOX_REG4. rc[0x%X]", rc);
