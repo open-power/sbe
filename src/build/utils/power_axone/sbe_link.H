@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/build/utils/sbe_link.H $                                  */
+/* $Source: src/build/utils/power_axone/sbe_link.H $                      */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2018                        */
-/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -54,9 +53,9 @@
 #define OTPROM_CODE_SIZE (1 * OTPROM_BLOCK_SIZE)
 
 /// The link address of the P9 SBE Base image
-#define SBE_BASE_ORIGIN 0xFFFE8000
-/// SBE base image length ( 96 KB - 512 bytes for loader)
-#define SBE_BASE_LENGTH 0x17DFF
+#define SBE_BASE_ORIGIN 0xFFFC8000
+/// SBE base image length ( 224 KB - 512 bytes for loader)
+#define SBE_BASE_LENGTH ((224 * 1024) - 512)
 
 ///This Index depends upon XIP HEADER File
 // Start offset of sectionTable in XIP header. There are 8 entries
@@ -93,8 +92,8 @@
 /// The link address of the PIBMEM image
 #define PIBMEM_ORIGIN 0
 
-/// The amount of space available in the PIBMEM, in bytes (96KB)
-#define PIBMEM_SIZE (96 * 1024)
+/// The amount of space available in the PIBMEM, in bytes (224KB)
+#define PIBMEM_SIZE (224 * 1024)
 
 /// The fixed section of Otprom
 #define OTPROM_FIXED_SIZE (OTPROM_ORIGIN + 0x340)
