@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -66,9 +66,6 @@ p9_hcd_core_poweron(
     //-------------------------
     // Prepare to power on core
     //-------------------------
-
-    FAPI_DBG("Drop chiplet enable via NET_CTRL0[0]");
-    FAPI_TRY(putScom(i_target, C_NET_CTRL0_WAND, MASK_UNSET(0)));
 
     FAPI_DBG("Assert core glsmux reset via PPM_CGCR[0]");
     FAPI_TRY(putScom(i_target, C_PPM_CGCR, MASK_SET(0)));
