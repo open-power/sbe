@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -81,6 +81,7 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
 
     }
 
+    // mcbist - Nimbus
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>
          (fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -96,7 +97,7 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
                  "Error from putRing (mc_time)");
     }
 
-    // mcbist0
+    // mcbist0 - Nimbus
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>
          (fapi2::TARGET_FILTER_MC_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -115,7 +116,7 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
         }
     }
 
-    // mcbist1
+    // mcbist1 - Nimbus
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>
          (fapi2::TARGET_FILTER_MC_EAST, fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -134,6 +135,65 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
         }
     }
 
+    // mc - Cumulus
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>
+         (fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_DBG("Scan mc_gptr ring");
+        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_gptr),
+                 "Error from putRing (mc_gptr)");
+
+        FAPI_DBG("Scan mc_pll_gptr ring");
+        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_pll_gptr),
+                 "Error from putRing (mc_pll_gptr)");
+        FAPI_DBG("Scan mc_time ring");
+        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_time),
+                 "Error from putRing (mc_time)");
+    }
+
+    // mc - Cumulus
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>
+         (fapi2::TARGET_FILTER_MC_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        if ( mc01_iom01)
+        {
+            FAPI_DBG("Scan mc_iom01_gptr ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom01_gptr),
+                     "Error from putRing (mc_iom01_gptr)");
+        }
+
+        if( mc01_iom23 )
+        {
+            FAPI_DBG("Scan mc_iom23_gptr ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom23_gptr),
+                     "Error from putRing (mc_iom23_gptr)");
+            FAPI_DBG("Scan mc_iom23_time ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom23_time),
+                     "Error from putRing (mc_iom23_time)");
+        }
+    }
+
+    // mc - Cumulus
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>
+         (fapi2::TARGET_FILTER_MC_EAST, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        if ( mc23_iom01 )
+        {
+            FAPI_DBG("Scan mc_iom01_gptr ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom01_gptr),
+                     "Error from putRing (mc_iom01_gptr)");
+        }
+
+        if( mc23_iom23 )
+        {
+            FAPI_DBG("Scan mc_iom23_gptr ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom23_gptr),
+                     "Error from putRing (mc_iom23_gptr)");
+            FAPI_DBG("Scan mc_iom23_time ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom23_time),
+                     "Error from putRing (mc_iom23_time)");
+        }
+    }
 
     for( auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          ( fapi2::TARGET_STATE_FUNCTIONAL))
