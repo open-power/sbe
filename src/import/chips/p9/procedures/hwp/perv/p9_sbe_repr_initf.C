@@ -46,12 +46,69 @@ fapi2::ReturnCode p9_sbe_repr_initf(const
 {
     uint8_t l_attr_chip_unit_pos = 0;
     fapi2::buffer<uint16_t> l_read_attr_pg;
+    bool mc01_iom23 = false;
+    bool mc23_iom23 = false;
+    uint8_t l_read_attr_cumulus_only;
 
     FAPI_INF("p9_sbe_repr_initf: Entering ...");
 
+    FAPI_DBG("Reading ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY\n");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY, i_target_chip, l_read_attr_cumulus_only));
+
+    for( auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+         ( fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_chplt_trgt, l_attr_chip_unit_pos));
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, l_chplt_trgt, l_read_attr_pg));
+
+        if((l_attr_chip_unit_pos == MC01_CHIPLET_ID) && (!l_read_attr_pg.getBit<7>()))
+        {
+            mc01_iom23 = true;
+        }
+
+        if((l_attr_chip_unit_pos == MC23_CHIPLET_ID) && (!l_read_attr_pg.getBit<7>()))
+        {
+            mc23_iom23 = true;
+        }
+
+    }
+
+    // mcbist - Nimbus
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_repr));
+    }
+
+    // mc - Cumulus
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>(fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_repr));
+    }
+
+    // mc - Cumulus
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>
+         (fapi2::TARGET_FILTER_MC_WEST, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+
+        if( mc01_iom23 && l_read_attr_cumulus_only )
+        {
+            FAPI_DBG("Scan mc_iom23_repr ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom23_repr),
+                     "Error from putRing (mc_iom23_repr)");
+        }
+    }
+
+    // mc - Cumulus
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>
+         (fapi2::TARGET_FILTER_MC_EAST, fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+
+        if( mc23_iom23 && l_read_attr_cumulus_only )
+        {
+            FAPI_DBG("Scan mc_iom23_repr ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_iom23_repr),
+                     "Error from putRing (mc_iom23_repr)");
+        }
     }
 
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
