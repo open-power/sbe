@@ -589,7 +589,6 @@ typedef struct
         bool l_validatePassFlag = true;
         // Validate Thread Command / Thread Num / Error Mode
         if((threadOps > THREAD_SRESET_INS) ||
-           (mode > IGNORE_HW_ERRORS) ||
            !((threadNum <= SMT4_THREAD3) || (threadNum == SMT4_THREAD_ALL)))
         {
             SBE_ERROR(SBE_FUNC "Invalid Parameter by User, ThreadOps[%d] "
@@ -631,6 +630,16 @@ typedef struct
             o_threadCnt = threadNum;
             o_threadCntMax = threadNum;
         }
+    }
+
+    /**
+     * @brief Special wakeup required for this request
+     *
+     * @return true if required, else false
+     */
+    bool isSpecialWakeUpRequired()
+    {
+        return (mode & SPECIAL_WAKEUP);
     }
 }sbeCntlInstRegMsgHdr_t;
 

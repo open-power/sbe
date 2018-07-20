@@ -226,6 +226,8 @@ enum sbeSecondaryResponse
     SBE_SEC_S0_STOP_CLOCK_FAILED              = 0x25,
     SBE_SEC_S0_CONTINUE_MPIPL_FAILED          = 0x26,
     SBE_SEC_PERIODIC_IO_TOGGLE_FAILED         = 0x27,
+    SBE_SEC_SPECIAL_WAKEUP_TIMEOUT            = 0x28,
+    SBE_SEC_SPECIAL_WAKEUP_SCOM_FAILURE       = 0x29,
 };
 
 /**
@@ -359,12 +361,13 @@ enum sbeSramAccessMode
 static const uint32_t SBE_MAX_REG_ACCESS_REGS = 64;
 
 /**
- * @brief Error Mode enum
+ * @brief Error Mode enum - bitmapped fields
  */
 enum sbeErrorMode
 {
-    EXIT_ON_FIRST_ERROR = 0x0,   // Bail out on first error
+    EXIT_ON_FIRST_ERROR = 0x00,   // Bail out on first error
     IGNORE_HW_ERRORS    = 0x01,  // Attempt best case
+    SPECIAL_WAKEUP      = 0x02,  // Special wakeup core before stop instruction
 };
 
 /**
