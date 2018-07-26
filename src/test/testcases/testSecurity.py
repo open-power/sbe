@@ -129,9 +129,9 @@ def main():
         # Do putScom on grey list register
         testScomUtil.putscom(0x0901080B, 0, [0x00, 0x05, 0x00, 0x23])
         # Do putScomUnderMask with exact mask
-        testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF0FFFFFFFFFFFFF)
+        testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF0FFFFFFF0FFFFF)
         # Do putScomUnderMask with superset mask
-        testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF00FFFFFFFFFFFF)
+        testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF00FFFFFF0FFFFF)
         print "Greylist testcases - passed"
 
         # indirect scom test
