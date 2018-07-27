@@ -117,22 +117,9 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                     .set_MASTER_CHIP(i_target_chip)
                     .set_SS_PLL_READ(l_read_reg)
                     .set_AFTER_SPREAD_ENABLE(false),
-                    "ERROR:SS PLL LOCK NOT SET BEFORE ENABLING SPREAD SPECTRUM");
+                    "ERROR:SS PLL LOCK NOT SET");
 
         FAPI_TRY(enable_spread_spectrum_via_tod(i_target_chip));
-        fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
-
-        FAPI_DBG("check SS PLL lock again after enabling spread spectrum");
-        //Getting PLL_LOCK_REG register value
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG,
-                                l_read_reg)); //l_read_reg = PERV.PLL_LOCK_REG
-
-        FAPI_ASSERT(l_read_reg.getBit<0>(),
-                    fapi2::SS_PLL_LOCK_ERR()
-                    .set_MASTER_CHIP(i_target_chip)
-                    .set_SS_PLL_READ(l_read_reg)
-                    .set_AFTER_SPREAD_ENABLE(true),
-                    "ERROR:SS PLL LOCK NOT SET AFTER ENABLING SPREAD SPECTRUM");
 
         FAPI_DBG("Release SS PLL Bypass");
         //Setting ROOT_CTRL8 register value
@@ -360,6 +347,27 @@ static fapi2::ReturnCode enable_spread_spectrum_via_tod(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint64_t> l_data;
+    uint8_t l_sync_spread = 0;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FORCE_SYNC_SS_PLL_SPREAD,
+                           fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                           l_sync_spread),
+             "Error from FAPI_ATTR_GET (ATTR_FORCE_SYNC_SS_PLL_SPREAD)");
+
+    if (l_sync_spread)
+    {
+        goto fapi_try_exit;
+    }
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SYNC_SS_PLL_SPREAD,
+                           i_target_chip,
+                           l_sync_spread),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_SYNC_SS_PLL_SPREAD)");
+
+    if (l_sync_spread)
+    {
+        goto fapi_try_exit;
+    }
 
     FAPI_DBG("Enable Spread Spectrum via TOD");
 
@@ -384,6 +392,21 @@ static fapi2::ReturnCode enable_spread_spectrum_via_tod(
                        .set_MASTER_CHIP(i_target_chip)
                        .set_TOD_TIMER_REG(l_data),
                        "Spread Spectrum enable signal not set");
+
+    fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
+
+    FAPI_DBG("check SS PLL lock again after enabling spread spectrum");
+    //Getting PLL_LOCK_REG register value
+    FAPI_TRY(fapi2::getScom(i_target_chip,
+                            PERV_TP_PLL_LOCK_REG,
+                            l_data));
+
+    FAPI_ASSERT(l_data.getBit<0>(),
+                fapi2::SS_PLL_LOCK_ERR()
+                .set_MASTER_CHIP(i_target_chip)
+                .set_SS_PLL_READ(l_data)
+                .set_AFTER_SPREAD_ENABLE(true),
+                "ERROR:SS PLL LOCK NOT SET AFTER ENABLING SPREAD SPECTRUM");
 
 fapi_try_exit:
     return fapi2::current_err;

@@ -597,6 +597,14 @@ attribute tank
           <name>ATTR_PROC_MEM_TO_USE</name>
           <value>0x00</value>
   </entry>
+  <entry>
+          <name>ATTR_FORCE_SYNC_SS_PLL_SPREAD</name>
+          <value>0x00</value>
+  </entry>
+  <entry>
+          <name>ATTR_CHIP_EC_FEATURE_SYNC_SS_PLL_SPREAD</name>
+          <virtual/>
+  </entry>
   <!-- See system_attributes.xml for a description of ATTR_EXECUTION_PLATFORM -->
   <entry>
            <name>ATTR_EXECUTION_PLATFORM</name>
