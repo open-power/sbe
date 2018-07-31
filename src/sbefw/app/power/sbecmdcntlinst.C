@@ -74,10 +74,9 @@ inline bool getWarnCheckFlag(const sbeCntlInstRegMsgHdr_t & i_req)
     return l_warnCheck;
 }
 
-static const uint64_t SGPE_ACTIVE = 0x0080000000000000ull;
-static const uint64_t SPWKUP_ASSERT   = 0x1000000000000000ull;
+static const uint64_t SPWKUP_ASSERT   = 0x8000000000000000ull;
 static const uint64_t SPWKUP_DEASSERT = 0x0000000000000000ull;
-static const uint64_t GPMMR_SPWKUP_DONE = 0x1000000000000000ull;
+static const uint64_t GPMMR_SPWKUP_DONE = 0x8000000000000000ull;
 static const uint32_t SPECIAL_WAKE_UP_POLL_INTERVAL_NS = 1000000;   //1ms
 static const uint32_t SPECIAL_WAKE_UP_POLL_INTERVAL_SIMICS = 1000000;
 static const uint32_t SPECIAL_WAKEUP_TIMEOUT_COUNT = 100; // 100 * 1ms
