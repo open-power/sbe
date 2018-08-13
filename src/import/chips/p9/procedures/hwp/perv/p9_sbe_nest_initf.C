@@ -56,6 +56,9 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
     bool mc23_iom01 = false;
     bool mc23_iom23 = false;
 #endif
+    uint8_t l_read_attr_axone_only;
+    FAPI_DBG("Reading ATTR_CHIP_EC_FEATURE_P9A_LOGIC_ONLY\n");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9A_LOGIC_ONLY, i_target_chip, l_read_attr_axone_only));
 
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -192,10 +195,35 @@ fapi2::ReturnCode p9_sbe_nest_initf(const
         }
     }
 
+    // mc - Nimbus
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_fure));
     }
+
+    // mc - Cumulus, Axone
+    for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>(fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_DBG("Scan mc_fure ring");
+        FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_fure));
+
+        // Axone only
+        if (l_read_attr_axone_only)
+        {
+            FAPI_DBG("Scan mc_omi0_fure ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omi0_fure));
+
+            FAPI_DBG("Scan mc_omi1_fure ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omi1_fure));
+
+            FAPI_DBG("Scan mc_omi2_fure ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omi2_fure));
+
+            FAPI_DBG("Scan mc_omippe_fure ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omippe_fure));
+        }
+    }
+
 
 #if 0
 
