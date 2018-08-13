@@ -50,8 +50,12 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
     bool mc01_iom23 = false;
     bool mc23_iom01 = false;
     bool mc23_iom23 = false;
+    uint8_t l_read_attr_axone_only;
 
     FAPI_INF("p9_sbe_gptr_time_initf: Entering ...");
+
+    FAPI_DBG("Reading ATTR_CHIP_EC_FEATURE_P9A_LOGIC_ONLY\n");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9A_LOGIC_ONLY, i_target_chip, l_read_attr_axone_only));
 
     for( auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          ( fapi2::TARGET_STATE_FUNCTIONAL))
@@ -135,7 +139,7 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
         }
     }
 
-    // mc - Cumulus
+    // mc - Cumulus, Axone
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>
          (fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -149,6 +153,26 @@ fapi2::ReturnCode p9_sbe_gptr_time_initf(const
         FAPI_DBG("Scan mc_time ring");
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_time),
                  "Error from putRing (mc_time)");
+
+        // Axone only
+        if (l_read_attr_axone_only)
+        {
+            FAPI_DBG("Scan mc_omi0_gptr, mc_omi1_gptr, mc_omi2_gptr ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omi0_gptr),
+                     "Error from putRing (mc_omi0_gptr)");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omi1_gptr),
+                     "Error from putRing (mc_omi1_gptr)");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omi2_gptr),
+                     "Error from putRing (mc_omi2_gptr)");
+
+            FAPI_DBG("Scan mc_omippe_gptr ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omippe_gptr),
+                     "Error from putRing (mc_omippe_gptr)");
+
+            FAPI_DBG("Scan mc_omippe_time ring");
+            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omippe_time),
+                     "Error from putRing (mc_omippe_time)");
+        }
     }
 
     // mc - Cumulus
