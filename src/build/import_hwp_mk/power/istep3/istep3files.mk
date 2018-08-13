@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016,2018
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +45,7 @@ ISTEP3-CPP-SOURCES +=p9_sbe_nest_enable_ridi.C
 ISTEP3-CPP-SOURCES +=p9_sbe_io_initf.C
 ISTEP3-CPP-SOURCES +=p9_sbe_startclock_chiplets.C
 ISTEP3-CPP-SOURCES +=p9_sbe_scominit.C
+ISTEP3-CPP-SOURCES +=p9_lpc_utils.C
 ISTEP3-CPP-SOURCES +=p9_sbe_lpc_init.C
 ISTEP3-CPP-SOURCES +=p9_sbe_fabricinit.C
 ISTEP3-CPP-SOURCES +=p9_sbe_mcs_setup.C
