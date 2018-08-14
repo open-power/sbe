@@ -258,7 +258,7 @@ ram_sprs(
         }
 
         // set HRMOR -- core level SPR
-        FAPI_TRY(fapi2::putScom( i_master_ex_target, P9N2_C_HRMOR, l_ram_data ),
+        FAPI_TRY(fapi2::putScom(l_master_core_target , P9N2_C_HRMOR, l_ram_data ),
                  "Error Writing To HRMOR");
         FAPI_DBG("Wrote HRMOR with 0x%016lX", (uint64_t)l_ram_data);
 
@@ -269,7 +269,7 @@ ram_sprs(
         // set URMOR to the HRMOR value if SMF is enabled
         if(l_msr.getBit <41>()) // SMF is on
         {
-            FAPI_TRY(fapi2::putScom(i_master_ex_target, P9N2_C_URMOR, l_ram_data ),
+            FAPI_TRY(fapi2::putScom(l_master_core_target, P9N2_C_URMOR, l_ram_data ),
                      "Error Writing To URMOR");
             FAPI_DBG("Wrote URMOR with 0x%016lX", (uint64_t)l_ram_data );
         }
