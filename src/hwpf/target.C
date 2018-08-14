@@ -101,6 +101,7 @@ extern fapi2::ReturnCode
         fapi2::buffer<uint64_t> l_deviceIdReg = 0;
         uint8_t l_riskLvl  = 0;
         bool l_isSlave = false;
+        uint8_t l_smfConfig = 0;
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chipTarget =
             plat_getChipTarget();
         const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
@@ -369,6 +370,12 @@ extern fapi2::ReturnCode
 
             l_tempReg.extractToRight<26, 3>(l_read2);
             l_tempReg.extractToRight<29, 3>(l_read3);
+
+            l_smfConfig = l_tempReg.getBit<16>();
+            FAPI_DBG("Setting up SMF CONFIG");
+            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_SMF_CONFIG,
+                                    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                                    l_smfConfig));
 
             FAPI_DBG("Setting up PUMP MODE");
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_PUMP_MODE,
