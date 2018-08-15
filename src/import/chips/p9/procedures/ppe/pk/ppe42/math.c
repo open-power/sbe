@@ -23,6 +23,8 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 #include "ppe42math.h"
+#include "ppe42_msr.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -71,6 +73,8 @@ unsigned long udivmodsi4(unsigned long long _a,
                          unsigned long _mod)
 {
 
+    uint32_t ctx = mfmsr();
+    wrteei(0);
     out64(OCB_DERP, _a);
 
     do
@@ -78,6 +82,8 @@ unsigned long udivmodsi4(unsigned long long _a,
         _a = in64(OCB_DORP);
     }
     while((~_a) == 0);
+
+    mtmsr(ctx);
 
     if(_mod)
     {
