@@ -49,15 +49,11 @@ fapi2::ReturnCode p9_sbe_repr_initf(const
     bool mc01_iom23 = false;
     bool mc23_iom23 = false;
     uint8_t l_read_attr_cumulus_only;
-    uint8_t l_read_attr_axone_only;
 
     FAPI_INF("p9_sbe_repr_initf: Entering ...");
 
     FAPI_DBG("Reading ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY\n");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY, i_target_chip, l_read_attr_cumulus_only));
-
-    FAPI_DBG("Reading ATTR_CHIP_EC_FEATURE_P9A_LOGIC_ONLY\n");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9A_LOGIC_ONLY, i_target_chip, l_read_attr_axone_only));
 
     for( auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          ( fapi2::TARGET_STATE_FUNCTIONAL))
@@ -83,17 +79,10 @@ fapi2::ReturnCode p9_sbe_repr_initf(const
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_repr));
     }
 
-    // mc - Cumulus, Axone
+    // mc - Cumulus
     for (auto& l_chplt_trgt : i_target_chip.getChildren<fapi2::TARGET_TYPE_MC>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
         FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_repr));
-
-        // Axone only
-        if (l_read_attr_axone_only)
-        {
-            FAPI_TRY(fapi2::putRing(l_chplt_trgt, mc_omippe_repr),
-                     "Error from putRing (mc_omippe_repr)");
-        }
     }
 
     // mc - Cumulus
