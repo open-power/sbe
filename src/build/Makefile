@@ -208,7 +208,7 @@ tar:
 		tar install
 
 buildinfo: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
-	./updateBuildTag.py $(P9_XIP_TOOL) $(IMG_DIR) $(IMAGE_SEEPROM_NAME)
+	if [ -z "$(REPRODUCIBLE)" ]; then ./updateBuildTag.py $(P9_XIP_TOOL) $(IMG_DIR) $(IMAGE_SEEPROM_NAME); fi
 
 add_LoaderAddr: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __l1Loader | cut -f 1 -d " "`
