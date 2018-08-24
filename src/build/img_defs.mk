@@ -172,7 +172,7 @@ export IMAGEPROCS_CEN_SRCDIR = $(IMPORT_SRCDIR)/chips/centaur/utils/imageProcs
 endif
 
 ifndef BASE_OBJDIR
-export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj/$(project)/$(IMAGE_SUFFIX)
+export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj/$(project)
 endif
 
 ifndef TAR_OBJDIR
@@ -366,7 +366,7 @@ FAPI_TRACE_LEVEL_DEF = $(FAPI_TRACE_LEVEL_ENV)
 endif
 
 
-GCC-DEFS += -DIMAGE_NAME=$(IMAGE_SEEPROM_NAME)
+GCC-DEFS += -DIMAGE_NAME=SBE_TRACE
 GCC-DEFS += -DPK_TIMER_SUPPORT=$(PK_TIMER_SUPPORT)
 GCC-DEFS += -DPK_THREAD_SUPPORT=$(PK_THREAD_SUPPORT)
 GCC-DEFS += -DPK_TRACE_SUPPORT=$(PK_TRACE_SUPPORT)
@@ -389,7 +389,6 @@ ifdef PK_TRACE_SZ
 GCC-DEFS += -DPK_TRACE_SZ=$(PK_TRACE_SZ)
 endif
 
-DEFS += $(GCC-DEFS)
 export LD_LIBRARY_PATH+=:$(CROSS_COMPILER_PATH)/lib
 ############################################################################
 
@@ -477,10 +476,6 @@ ifeq ($(SBE_S0_SUPPORT), 1)
 GCC-DEFS += -D_S0_=$(SBE_S0_SUPPORT)
 endif
 
-ifeq ($(project),power_axone)
-GCC-DEFS += -DSBE_AXONE_CONFIG
-endif
-
 ############################################################################
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
@@ -515,6 +510,8 @@ endif
 ifeq ($(PIBMEM_REPAIR_SCOM_AXONE), 1)
 PPE-CFLAGS += -DPIBMEM_REPAIR_SCOM_AXONE=1
 endif
+
+DEFS += $(GCC-DEFS)
 ###########################################################################
 
 #override the GNU Make implicit rule for going from a .C to a .o
