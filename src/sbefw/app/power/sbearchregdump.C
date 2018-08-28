@@ -45,12 +45,13 @@
 
 using namespace fapi2;
 
-p9_query_core_access_state_FP_t p9_query_core_access_state_hwp = &p9_query_core_access_state;
 #define SPR_LIST_SIZE 63
 #define GPR_LIST_SIZE 32
 // This is defined in Hostboot src/include/usr/sbeio/sbeioif.H, this is just a
 // copy, so that SBE refers to the same count.
 #define STASH_KEY_CNT_FOR_ARCH_DUMP_ADDR 0x4
+
+#define SSHSRC_STOP_GATED_BIT 0
 
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeFetchRegDumpAddrFromStash
@@ -129,8 +130,7 @@ ReturnCode sbeDumpArchRegs()
         // Go for each core under this Proc
         for(auto &coreTgt : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
-            bool isScanEn = false;
-            bool isScomEn = false;
+            bool doRamming = false;
             uint8_t chipUnitNum = 0;
             uint8_t procGrpId = 0;
             uint8_t procChipId = 0;
@@ -139,75 +139,117 @@ ReturnCode sbeDumpArchRegs()
             FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, procTgt, procGrpId);
             FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, procTgt, procChipId);
 
-            // Check for Scommable states for each core
-            SBE_EXEC_HWP(fapiRc, p9_query_core_access_state_hwp, coreTgt,
-                         isScomEn, isScanEn)
-            if(fapiRc != FAPI2_RC_SUCCESS)
+            // Fetch the core state
+            uint8_t coreState = 0;
+            fapi2::buffer<uint64_t> ppm_ssh_buf = 0;
+            fapiRc = getscom_abs_wrap (&coreTgt, C_PPM_SSHSRC, &ppm_ssh_buf());
+            if( fapiRc != FAPI2_RC_SUCCESS )
             {
-                SBE_ERROR(SBE_FUNC "p9_query_core_access_state failed, "
-                    "For Proc [0x%02X ]Core [0x%02X]", procChipId, chipUnitNum);
-                // We should be able to get the scom states true/false, if not
-                // there is an issue please return.
+                SBE_ERROR(SBE_FUNC "Failed to read SSHSRC for Core[%d]",
+                    chipUnitNum);
                 continue;
             }
-            // If core not scommable, simply skip entry for the same in the
-            // reserved space. Hostboot will be able to identify this basis PIR
-            if(isScomEn) //true
+            //Check for Stop-gated (to check if corestate is valid)
+            if (ppm_ssh_buf.getBit<SSHSRC_STOP_GATED_BIT>() == 1)
             {
-                // Fetch the core state
-                uint8_t coreState = 0;
-                fapi2::buffer<uint64_t> ppm_ssh_buf = 0;
-                fapiRc = getscom_abs_wrap (&coreTgt, C_PPM_SSHSRC, &ppm_ssh_buf());
+                // CoreState may be 2/4/5/11
+                ppm_ssh_buf.extractToRight<uint8_t>(coreState, 8, 4);
+                // StopState Enabled, skip ramming, but need to send out
+                // holes inplace of register/values.
+                SBE_INFO(SBE_FUNC "StopGated Set for Core [%d] StopState[%d], "
+                    "no ramming", chipUnitNum, coreState);
+            }
+            else // not stop gated
+            {
+                // CoreState may be 0/1, we need to identify which one.
+                // Only for coreState 0, we need to enable ramming.
+                // Double check the core isn't in stop 1
+                auto exTgt = coreTgt.getParent<fapi2::TARGET_TYPE_EX>();
+                fapi2::buffer<uint64_t> sisr_buf = 0;
+                fapiRc = getscom_abs_wrap (&exTgt, EX_CME_LCL_SISR_SCOM, &sisr_buf());
                 if( fapiRc != FAPI2_RC_SUCCESS )
                 {
-                    SBE_ERROR(SBE_FUNC "Failed to read SSH");
+                    SBE_ERROR(SBE_FUNC "Failed to read SISR for Core[%d]",
+                        chipUnitNum);
                     continue;
                 }
-                ppm_ssh_buf.extractToRight<uint8_t>(coreState, 8, 4);
-
-                for(uint8_t thread = SMT4_THREAD0; thread < SMT4_THREAD_MAX; thread++)
+                uint32_t pos = chipUnitNum % 2;
+                if (pos == 0 && sisr_buf.getBit<EX_CME_LCL_SISR_PM_STATE_ACTIVE_C0>())
                 {
-                    RamCore ramCore( coreTgt, thread );
+                    sisr_buf.extractToRight<uint8_t>(coreState,
+                                               EX_CME_LCL_SISR_PM_STATE_C0,
+                                               EX_CME_LCL_SISR_PM_STATE_C0_LEN);
+                }
+                if (pos == 1 && sisr_buf.getBit<EX_CME_LCL_SISR_PM_STATE_ACTIVE_C1>())
+                {
+                    sisr_buf.extractToRight<uint8_t>(coreState,
+                                               EX_CME_LCL_SISR_PM_STATE_C1,
+                                               EX_CME_LCL_SISR_PM_STATE_C1_LEN);
+                }
+                if(coreState == 0)
+                {
+                    // Enable ramming for core state 0
+                    doRamming = true;
+                    SBE_INFO(SBE_FUNC "StopGated not set for Core[%d] StopState"
+                        " [%d], so yes ramming", chipUnitNum);
+                }
+                else
+                {
+                    SBE_INFO(SBE_FUNC "StopGated not set for Core[%d] StopState"
+                        " [%d], so no ramming", chipUnitNum, coreState);
+                }
+            }
+
+            for(uint8_t thread = SMT4_THREAD0; thread < SMT4_THREAD_MAX; thread++)
+            {
+                RamCore ramCore( coreTgt, thread );
+                if(doRamming == true)
+                {
                     SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_setup)
                     if( fapiRc != FAPI2_RC_SUCCESS )
                     {
-                        SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%2X "
+                        SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%2X"
                             "coreChipletId:0x%02X Proc:0x%02X",
                             thread, chipUnitNum, procChipId);
-                        // Skip this thread since ram setup failed, try to get
-                        // data for the Next Thread, but what about this fapiRc
-                        continue;
+                            // Skip this thread since ram setup failed, try
+                            // to get data for the Next Thread, but what
+                            // about this fapiRc
+                            continue;
                     }
-                    // If setup passes, then go for get_reg()
-                    Enum_RegType type = REG_SPR;
-                    // Construct PIR for the thread
-                    pir.procGrpId = procGrpId;
-                    pir.procChipId = procChipId;
-                    pir.chipUnitNum = chipUnitNum;
-                    pir.thread = thread;
+                }
+                // If setup passes, then go for get_reg()
+                Enum_RegType type = REG_SPR;
+                // Construct PIR for the thread
+                pir.procGrpId = procGrpId;
+                pir.procChipId = procChipId;
+                pir.chipUnitNum = chipUnitNum;
+                pir.thread = thread;
 
-                    // Loop over the combined list of registers
-                    for( uint32_t regIdx=0; regIdx<(sizeof(SPR_GPR_list)/sizeof(uint16_t)); regIdx++ )
+                // Loop over the combined list of registers
+                for( uint32_t regIdx=0; regIdx<(sizeof(SPR_GPR_list)/sizeof(uint16_t)); regIdx++ )
+                {
+                    // Switch to GPRs once SPRs are over in the list
+                    if(regIdx >= SPR_LIST_SIZE)
                     {
-                        // Switch to GPRs once SPRs are over in the list
-                        if(regIdx >= SPR_LIST_SIZE)
-                        {
-                            type = REG_GPR;
-                        }
-                        // Start filling up the rest of data structure
-                        dump.pir = pir;
-                        dump.coreState = coreState;
-                        dump.regNum = SPR_GPR_list[regIdx];
+                        type = REG_GPR;
+                    }
+                    // Start filling up the rest of data structure
+                    dump.pir = pir;
+                    dump.coreState = coreState;
+                    dump.regNum = SPR_GPR_list[regIdx];
+                    dump.regVal = 0;
 
+                    if(doRamming == true)
+                    {
                         fapi2::buffer<uint64_t> data64;
                         SBE_EXEC_HWP(fapiRc, ramCore.get_reg, type,
-                            SPR_GPR_list[regIdx], &data64, true)
+                                SPR_GPR_list[regIdx], &data64, true)
                         if( fapiRc != FAPI2_RC_SUCCESS )
                         {
                             SBE_ERROR(SBE_FUNC" get_reg failed. threadNr:0x%x "
-                             "coreChipletId:0x%02x, regNr:%u regType:%u ",
-                             thread, chipUnitNum, SPR_GPR_list[regIdx], type);
-                            // If get_reg fails, we need to indicate hostboot
+                                "coreChipletId:0x%02x, regNr:%u regType:%u",
+                                thread, chipUnitNum, SPR_GPR_list[regIdx], type);
+                            // If get_reg fails,we need to indicate hostboot
                             // that data fetch failed, use this signature
                             dump.regVal = 0xDEADBEEFDEADBEEFULL;
                         }
@@ -215,24 +257,28 @@ ReturnCode sbeDumpArchRegs()
                         {
                             dump.regVal = data64;
                         }
-                        // PBA it to the stash address
-                        fapiRc = PBAInterface.accessWithBuffer(
-                                                    &dump,
-                                                    sizeof(dump),
-                                                    false);
-                        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
-                        {
-                            SBE_ERROR(SBE_FUNC "failed in writing to hostboot");
-                            break;
-                        }
                     }
-                    if(fapiRc)
+
+                    // PBA it to the stash address
+                    fapiRc = PBAInterface.accessWithBuffer(
+                                                &dump,
+                                                sizeof(dump),
+                                                false);
+                    if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
                     {
+                        SBE_ERROR(SBE_FUNC "failed in writing to hostboot");
                         break;
                     }
-                    // HWP team does not care about cleanup for failure case.i
-                    // So call cleaup only for success case.
-                    // Clean up the ram core setup
+                }
+                if(fapiRc)
+                {
+                    break;
+                }
+                // HWP team does not care about cleanup for failure case.i
+                // So call cleaup only for success case.
+                // Clean up the ram core setup
+                if(doRamming == true)
+                {
                     SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_cleanup)
                     if( fapiRc != FAPI2_RC_SUCCESS )
                     {
@@ -241,15 +287,10 @@ ReturnCode sbeDumpArchRegs()
                         // Don't break, continue for the next thread
                     }
                 }
-                if(fapiRc)
-                {
-                    break;
-                }
             }
-            else
+            if(fapiRc)
             {
-                SBE_ERROR(SBE_FUNC "sbeDumpArchRegs - Core[%d] Not Scommable ",
-                    chipUnitNum);
+                break;
             }
         }
         // Just see that we are pushing the last PBA Frame here so as to flush
