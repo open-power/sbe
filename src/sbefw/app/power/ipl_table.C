@@ -109,6 +109,8 @@
 #include "p9_fbc_utils.H"
 #include "sbeSecureMemRegionManager.H"
 
+#include "sbeConsole.H"
+
 // Forward declaration
 using namespace fapi2;
 
@@ -176,6 +178,7 @@ using  sbeIstepHwpCacheInitf_t = ReturnCode (*)
 // Forward declarations
 // Wrapper function which will call HWP.
 ReturnCode istepWithProc( voidfuncptr_t i_hwp );
+ReturnCode istepLpcInit( voidfuncptr_t i_hwp );
 ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp);
 ReturnCode istepAttrSetup( voidfuncptr_t i_hwp );
 ReturnCode istepNoOp( voidfuncptr_t i_hwp );
@@ -301,7 +304,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p9_sbe_io_initf ),
              ISTEP_MAP( istepWithProc, p9_sbe_startclock_chiplets ),
              ISTEP_MAP( istepWithProc, p9_sbe_scominit ),
-             ISTEP_MAP( istepWithProc, p9_sbe_lpc_init ),
+             ISTEP_MAP( istepLpcInit, p9_sbe_lpc_init ),
              ISTEP_MAP( istepWithProc, p9_sbe_fabricinit ),
              ISTEP_MAP( istepCheckSbeMaster, NULL ),
              ISTEP_MAP( istepWithProc, p9_sbe_mcs_setup ),
@@ -385,6 +388,19 @@ ReturnCode istepWithProc( voidfuncptr_t i_hwp)
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
     SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+    return rc;
+}
+//----------------------------------------------------------------------------
+
+ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
+{
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    assert( NULL != i_hwp );
+    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+    SBE_UART_INIT;
+    SBE_MSG_CONSOLE( SBE_CONSOLE_WELCOME_MSG );
+
     return rc;
 }
 //----------------------------------------------------------------------------
@@ -643,6 +659,9 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 ReturnCode istepStartInstruction( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
+
+    SBE_MSG_CONSOLE("SBE starting hostboot");
+    SBE_UART_DISABLE;
     rc = istepWithCore(i_hwp);
     if(rc == FAPI2_RC_SUCCESS)
     {

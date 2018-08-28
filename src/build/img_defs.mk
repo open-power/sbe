@@ -512,6 +512,10 @@ ifeq ($(PIBMEM_REPAIR_SCOM_AXONE), 1)
 PPE-CFLAGS += -DPIBMEM_REPAIR_SCOM_AXONE=1
 endif
 
+ifdef SBE_CONSOLE_SUPPORT
+GCC-DEFS += -DSBE_CONSOLE_SUPPORT
+endif
+
 DEFS += $(GCC-DEFS)
 ###########################################################################
 

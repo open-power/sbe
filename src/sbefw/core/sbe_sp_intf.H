@@ -229,6 +229,7 @@ enum sbeSecondaryResponse
     SBE_SEC_SPECIAL_WAKEUP_TIMEOUT            = 0x28,
     SBE_SEC_SPECIAL_WAKEUP_SCOM_FAILURE       = 0x29,
     SBE_SEC_S0_ARCH_REG_DUMP_FAILED           = 0x2A,
+    SBE_SEC_LPC_ACCESS_FAILED                 = 0x2B,
 };
 
 /**

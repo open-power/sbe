@@ -85,6 +85,12 @@ class SBEGlobalsSingleton
          */
         PkSemaphore sbeSemAsyncProcess;
 
+        #ifdef SBE_CONSOLE_SUPPORT
+        // Binary semaphore to protect uart access
+        PkSemaphore sbeUartBinSem;
+        static bool sbeUartActive;
+        #endif
+
         sbeRole SBERole;
         // SBE Frequency. Initially nest frequency is 133 MHZ
         uint32_t sbefreq;

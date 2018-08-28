@@ -55,3 +55,7 @@ uint8_t  SBEGlobalsSingleton::failedCmdClass   = 0;
 uint8_t  SBEGlobalsSingleton::failedCmd        = 0;
 
 bool  SBEGlobalsSingleton::isHreset = false;
+
+#ifdef SBE_CONSOLE_SUPPORT
+bool SBEGlobalsSingleton::sbeUartActive = false;
+#endif

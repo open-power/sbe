@@ -128,6 +128,13 @@ uint32_t sbeInitSems(void)
         {
             break;
         }
+        #ifdef SBE_CONSOLE_SUPPORT
+        l_rc = pk_semaphore_create(&SBE_GLOBAL->sbeUartBinSem, 1, 1);
+        if (l_rc)
+        {
+            break;
+        }
+        #endif
     } while (false);
 
     if (l_rc)
