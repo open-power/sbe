@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2018                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -34,16 +35,34 @@
     _SBE_MSG_CONSOLE(msg); \
     _SBE_MSG_CONSOLE("\n\r"); \
     SBE_UART_UNLOCK;
+
 #define SBE_MSG_CONSOLE_2(msg1, msg2) \
     SBE_UART_LOCK; \
     _SBE_MSG_CONSOLE(msg1); \
-    _SBE_MSG_CONSOLE(" "); \
     _SBE_MSG_CONSOLE(msg2); \
     _SBE_MSG_CONSOLE("\n\r"); \
     SBE_UART_UNLOCK;
+
+#define SBE_MSG_CONSOLE_3(msg1, msg2, msg3) \
+    SBE_UART_LOCK; \
+    _SBE_MSG_CONSOLE(msg1); \
+    _SBE_MSG_CONSOLE(msg2); \
+    _SBE_MSG_CONSOLE(msg3); \
+    _SBE_MSG_CONSOLE("\n\r"); \
+    SBE_UART_UNLOCK;
+
+#define SBE_MSG_CONSOLE_4(msg1, msg2, msg3, msg4) \
+    SBE_UART_LOCK; \
+    _SBE_MSG_CONSOLE(msg1); \
+    _SBE_MSG_CONSOLE(msg2); \
+    _SBE_MSG_CONSOLE(msg3); \
+    _SBE_MSG_CONSOLE(msg4); \
+    _SBE_MSG_CONSOLE("\n\r"); \
+    SBE_UART_UNLOCK;
+
 #define SBE_MSG_CONSOLE_HELPER_CALL(count, ...) SBE_MSG_CONSOLE_ ## count(__VA_ARGS__)
 #define SBE_MSG_CONSOLE_HELPER(count, ...) SBE_MSG_CONSOLE_HELPER_CALL(count, __VA_ARGS__)
-#define SBE_MSG_CONSOLE(...) SBE_MSG_CONSOLE_HELPER(VARG_COUNT(__VA_ARGS__), __VA_ARGS__)
+#define SBE_MSG_CONSOLE(...) SBE_MSG_CONSOLE_CHECK(__VA_ARGS__)
 
 #ifndef SBE_CONSOLE_SUPPORT
 
@@ -52,6 +71,7 @@
 #define SBE_UART_LOCK
 #define SBE_UART_UNLOCK
 #define _SBE_MSG_CONSOLE(msg)
+#define SBE_MSG_CONSOLE_CHECK(...)
 
 #else
 
@@ -60,11 +80,16 @@
 #define SBE_UART_LOCK uartLock()
 #define SBE_UART_UNLOCK uartUnLock()
 
+#define SBE_MSG_CONSOLE_CHECK(...) \
+    if(SBE_GLOBAL->sbeUartActive) \
+    { \
+        SBE_MSG_CONSOLE_HELPER(VARG_COUNT(__VA_ARGS__), __VA_ARGS__) \
+    }
 // SBE messages
 #define SBE_CONSOLE_WELCOME_MSG ("\n\r--== Welcome to SBE - CommitId[" STRINGIFY(SBE_COMMIT_ID) "] ==--")
 
-#define _SBE_MSG_CONSOLE(msg) \
-    sbeMsgConsole(msg)
+#define _SBE_MSG_CONSOLE(msg) sbeMsgConsole(msg)
+
 #define LPC_IO_SPACE        0xD0010000
 #define LPC_MAX_IO_SPACE    (64*1024)
 
@@ -73,6 +98,7 @@ void uartDisable(void);
 void uartLock(void);
 void uartUnLock(void);
 void sbeMsgConsole(char const *msg);
+void sbeMsgConsole(uint32_t num);
 //
 /** UART Register Offsets */
 enum

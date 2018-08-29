@@ -28,6 +28,7 @@
 #include "sbeFFDC.H"
 
 #include "ipl.H"
+#include "sbeConsole.H"
 #include "sbeglobals.H"
 
 #include "p9n2_perv_scom_addresses.H"
@@ -121,6 +122,7 @@ void sbeDoContinuousIpl()
                 auto istepMap = &istepTableEntry->istepMinorArr[step-1];
                 if(istepMap->istepWrapper != NULL)
                 {
+                    SBE_MSG_CONSOLE("istep ", istepTableEntry->istepMajorNum, ".", step);
                     rc = istepMap->istepWrapper(istepMap->istepHwp);
                 }
                 bool checkstop = isSystemCheckstop();

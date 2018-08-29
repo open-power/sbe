@@ -246,16 +246,40 @@ void uartUnLock(void)
         pk_halt();
     }
 }
+
+void sbeMsgConsole(uint32_t num)
+{
+    // 8 chars for max unit32_t and a null terminator
+    char num_str[9] = {};
+
+    int i = 0;
+    if(num == 0)
+        num_str[0] = '0';
+    while(num)
+    {
+        num_str[i++] = (num % 10) + '0';
+        num /= 10;
+    }
+
+    // reverse string
+    char *start = num_str, *end = num_str + i-1;
+    while(start < end)
+    {
+        char temp = *start;
+        *start = *end;
+        *end = temp;
+        start++;
+        end--;
+    }
+
+    sbeMsgConsole((char*)(num_str));
+}
+
 void sbeMsgConsole(char const *msg)
 {
-    if(SBE_GLOBAL->sbeUartActive)
+    size_t c = 0;
+    while(msg[c] != '\0')
     {
-        size_t c = 0;
-        while(msg[c] != '\0')
-        {
-            uartPutChar(msg[c++]);
-        }
+        uartPutChar(msg[c++]);
     }
-    else
-        SBE_DEBUG("uart is not active");
 }
