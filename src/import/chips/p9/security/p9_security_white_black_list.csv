@@ -207,6 +207,8 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register Name,Desc
 ,OBUS,0000000009010810,0x09-0x0C,,HWSV,PowerBus OLL TX0 Lane Control register,,write_whitelist,
 ,OBUS,0000000009010811,0x09-0x0C,,HWSV,PowerBus OLL TX1 Lane Control register,,write_whitelist,
 ,OBUS,000000000901081A,0x09-0x0C,,HWSV,PowerBus OLL Retrain Threshold register,,write_whitelist,
+,OBUS,0000000009011050,0x09-0x0C,,HWSV,PPE External Interface XCR register,,write_whitelist,
+,OBUS,8000080009010C3F,0x09-0x0C,,HWSV,rx(tx)_lane_ana_pdwn rx_lane_dig_pdwn and rx_lane_disabled,,write_whitelist,
 ,Core,0000000020010A9C,0x20-0x37,,HB,Direct injects into logic - no latches!!,,write_whitelist,
 ,Core,0000000020010A9D,0x20-0x37,,HB,RAS Mode Register,,write_whitelist,
 ,XBUS,8000000006010C3F,0x06,,HB,,,write_whitelist,
