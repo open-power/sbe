@@ -25,7 +25,9 @@
 BUILD_DIR = src/build
 .PHONY: install
 
-install: all tar
+install:
+	$(MAKE) all
+	$(MAKE) tar
 
 tar:
 	$(MAKE) -C $(BUILD_DIR) tar

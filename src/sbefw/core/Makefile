@@ -50,7 +50,6 @@ $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-
 #clean the kernel directory first, then the application level clean
 clean:
 	rm -fr $(OBJDIR)

@@ -515,32 +515,45 @@ endif
 DEFS += $(GCC-DEFS)
 ###########################################################################
 
+ifdef BUILD_VERBOSE
+C1=
+C2=@true || echo
+else
+C1=@
+C2=@echo
+MAKE+= --no-print-directory
+endif
+
 #override the GNU Make implicit rule for going from a .C to a .o
 %.o: %.C
 
 # -Wno-conversion-null is necesary to allow mapping of NULL to TARGET_TYPE_SYSTEM
 #   for attribute accesses
 $(OBJDIR)/%.s: %.C
-	$(TCC) $(PPE-CFLAGS) $(DEFS) -Wno-conversion-null -S $(CXXFLAGS) -o $@ $<
+	$(C2) "    CC         $(notdir $<)"
+	$(C1)$(TCC) $(PPE-CFLAGS) $(DEFS) -Wno-conversion-null -S $(CXXFLAGS) -o $@ $<
 
 
 #override the GNU Make implicit rule for going from a .c to a .o
 %.o: %.c
 
 $(OBJDIR)/%.s: %.c
-	$(CC) $(PPE-CFLAGS) $(DEFS) -S -o $@ $<
+	$(C2) "    C          $(notdir $<)"
+	$(C1)$(CC) $(PPE-CFLAGS) $(DEFS) -S -o $@ $<
 
 #override the GNU Make implicit rule for going from a .S to a .o
 %.o: %.S
 
 $(OBJDIR)/%.s: %.S
-	$(TCPP) $(PPE-CFLAGS) $(DEFS) $(CPPFLAGS) -o $@ $<
+	$(C2) "    ASM        $(notdir $<)"
+	$(C1)$(TCPP) $(PPE-CFLAGS) $(DEFS) $(CPPFLAGS) -o $@ $<
 .PRECIOUS: $(OBJDIR)/%.s
 
 ifndef P2P_ENABLE
 
 $(OBJDIR)/%.o: $(OBJDIR)/%.s
-	$(AS) $(ASFLAGS) -o $@ $<
+	$(C2) "    ASM        $(notdir $<)"
+	$(C1)$(AS) $(ASFLAGS) -o $@ $<
 
 else
 
@@ -552,30 +565,3 @@ $(OBJDIR)/%.o: $(OBJDIR)/%.es
 	$(AS) $(ASFLAGS) -o $@ $<
 
 endif
-
-# From the GNU 'Make' manual - these scripts uses the preprocessor to
-# create dependency files (*.d), then mungs them slightly to make them
-# work as Make targets. The *.d files are include-ed in the
-# subdirectory Makefiles.
-
-$(OBJDIR)/%.d: %.C $(FAPI_RC)
-	@set -e; rm -f $@; \
-	echo -n "$(OBJDIR)/" > $@.$$$$; \
-	$(CC_ASM) -MM $(INCLUDES) $(CPPFLAGS) $(DEFS) $< >> $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
-$(OBJDIR)/%.d: %.c $(FAPI_RC)
-	@set -e; rm -f $@; \
-	echo -n "$(OBJDIR)/" > $@.$$$$; \
-	echo "$(INCLUDES)"; \
-	$(CC_ASM) -MM $(INCLUDES) $(CPPFLAGS) $(DEFS) $< >> $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
-$(OBJDIR)/%.d: %.S $(FAPI_RC)
-	@set -e; rm -f $@; \
-	echo -n "$(OBJDIR)/" > $@.$$$$; \
-	$(CC_ASM) -MM $(INCLUDES) $(CPPFLAGS) $(DEFS) $< >> $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
