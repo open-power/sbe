@@ -165,9 +165,9 @@ def forcedCollectTrace():
     # version = 0x00 0x02
     # rsvd = 0x00 0x00
     # image_str = "sbe_seeprom_DD1\0"
-    image_str = "sbe_seeprom_" + ddsuffix
+    image_str = "SBE_TRACE"
     trace_pattern = [0, 2, 0, 0] + [ord(a) for a in image_str] + [0]
-    data_read     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    data_read     = [0] * len(trace_pattern)
     trace_index = 0
     #print trace_pattern
     with open(output_path+"DumpPIBMEM", "r") as f:
