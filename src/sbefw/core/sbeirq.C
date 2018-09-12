@@ -166,7 +166,7 @@ uint32_t __max_i2c_reset_retrials = 3;
 // bit 16-21
 #define I2C_MODE_REG_PORT_BITS      (0xFFFF03FFFFFFFFFFull)
 // bit 8
-#define I2C_MODE_FGAT_BIT           (0x8000000000000000ull)
+#define I2C_MODE_FGAT_BIT           (0x0000000800000000ull)
 
 #define POLL_BEFORE_I2C_RESET       (25600)
 #define I2C_CMD_COMPLETE_POLL       (0x00003FFF)
@@ -199,8 +199,6 @@ extern "C" void i2c_reset()
     value = I2CM_RESET_BIT;
     PPE_STVD( reg_address, value);
 
-    // clear bit 16-21 of mode register
-    SBE_GLOBAL->i2cModeRegister &= I2C_MODE_REG_PORT_BITS;
     // set enchanced mode - fgat bit - 28
     SBE_GLOBAL->i2cModeRegister |= I2C_MODE_FGAT_BIT;
 
@@ -208,6 +206,8 @@ extern "C" void i2c_reset()
     {
         // write mode register - 0x000A0006
         reg_address = PU_MODE_REGISTER_B;
+        // set port number in bits 16-21 of mode register
+        SBE_GLOBAL->i2cModeRegister &= I2C_MODE_REG_PORT_BITS;
         SBE_GLOBAL->i2cModeRegister |= ((uint64_t)port << 42);
         PPE_STVD( reg_address, SBE_GLOBAL->i2cModeRegister );
 
@@ -384,8 +384,8 @@ extern "C" void __sbe_machine_check_handler()
     "mtsrr0 %r4\n"
     "b __exit\n"
     "__instruction_machine_check:\n"
-    "# The EDR contains the address that caused the machine check\n"
-    "mfedr %r4\n"
+    "# The srr0 contains the address that caused the instruction machine check\n"
+    "mfsrr0 %r4\n"
     "srawi %r4, %r4, 16\n"
     "# If the address is not SEEPROM address, go for halt\n");
     asm(
@@ -420,5 +420,3 @@ extern "C" void __sbe_machine_check_handler()
     "rfi\n"
     );
 }
-
-
