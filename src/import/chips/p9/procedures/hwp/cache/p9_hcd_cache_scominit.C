@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -224,25 +224,13 @@ p9_hcd_cache_scominit(
         FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG1, l_data64));
         l_data64.insertFromRight<2, 4>(l_exid).insertFromRight<6, 16>(l_exlist);
 
-        if (l_excount > 1)
+        if (l_attr_sys_force_all_cores && (l_excount > 2))
         {
             l_data64.setBit<0>();
         }
 
         FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG1, l_data64));
 
-        FAPI_TRY(getScom(*l_iter, EX_L3_MODE_REG0, l_data64));
-
-        if (l_excount == 2)
-        {
-            FAPI_DBG("Assert L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
-            FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_SET(9)));
-        }
-        else
-        {
-            FAPI_DBG("Drop L3_DYN_LCO_BLK_DIS_CFG on TARGET_ID[%d] via EX_L3_MODE_REG0[9]", l_exid);
-            FAPI_TRY(putScom(*l_iter, EX_L3_MODE_REG0, DATA_UNSET(9)));
-        }
     }
 
     FAPI_DBG("Enable DTS via THERM_MODE_REG[5,6-9,20-21]");
