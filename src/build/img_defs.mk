@@ -524,22 +524,16 @@ C2=@echo
 MAKE+= --no-print-directory
 endif
 
-#override the GNU Make implicit rule for going from a .C to a .o
-%.o: %.C
-
 # -Wno-conversion-null is necesary to allow mapping of NULL to TARGET_TYPE_SYSTEM
 #   for attribute accesses
-$(OBJDIR)/%.s: %.C
+$(OBJDIR)/%.o: %.C
 	$(C2) "    CC         $(notdir $<)"
-	$(C1)$(TCC) $(PPE-CFLAGS) $(DEFS) -Wno-conversion-null -S $(CXXFLAGS) -o $@ $<
+	$(C1)$(TCC) $(PPE-CFLAGS) $(DEFS) -Wno-conversion-null  $(CXXFLAGS) -o $@ $<
 
 
-#override the GNU Make implicit rule for going from a .c to a .o
-%.o: %.c
-
-$(OBJDIR)/%.s: %.c
+$(OBJDIR)/%.o: %.c
 	$(C2) "    C          $(notdir $<)"
-	$(C1)$(CC) $(PPE-CFLAGS) $(DEFS) -S -o $@ $<
+	$(C1)$(CC) $(PPE-CFLAGS) $(DEFS) -o $@ $<
 
 #override the GNU Make implicit rule for going from a .S to a .o
 %.o: %.S
