@@ -245,7 +245,7 @@ export PPETRACEPP_DIR = $(TOOLS_SRCDIR)/trace
 endif
 
 ifndef PPETRACEPP_BIN_DIR
-export PPETRACEPP_BIN_DIR = $(IMG_DIR)
+export PPETRACEPP_BIN_DIR = $(BASE_OBJDIR)/genfiles
 endif
 
 ifndef GENFILES_DIR
