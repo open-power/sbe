@@ -183,8 +183,8 @@ P9_XIP_TYPE_ABBREVS(g_typeAbbrevs);
 
 P9_XIP_SECTION_NAMES_HW(g_sectionNamesHw);
 P9_XIP_SECTION_NAMES_SBE(g_sectionNamesSbe);
-P9_XIP_SECTION_NAMES_CME(g_sectionNamesCme);
-P9_XIP_SECTION_NAMES_SGPE(g_sectionNamesSgpe);
+P9_XIP_SECTION_NAMES_QME(g_sectionNamesQme);
+P9_XIP_SECTION_NAMES_XGPE(g_sectionNamesXgpe);
 P9_XIP_SECTION_NAMES_PGPE(g_sectionNamesPgpe);
 P9_XIP_SECTION_NAMES_RESTORE(g_sectionNamesRestore);
 P9_XIP_SECTION_NAMES_IOPPE(g_sectionNamesIoppe);
@@ -207,23 +207,23 @@ static inline const char* get_sectionName(uint64_t magic, int index)
 {
     switch (magic)
     {
-        case P9_XIP_MAGIC_SEEPROM:
-            return P9_XIP_SECTION_NAME(g_sectionNamesSbe, index);
-
         case P9_XIP_MAGIC_HW:
             return P9_XIP_SECTION_NAME(g_sectionNamesHw, index);
 
-        case P9_XIP_MAGIC_SGPE:
-            return P9_XIP_SECTION_NAME(g_sectionNamesSgpe, index);
+        case P9_XIP_MAGIC_SEEPROM:
+            return P9_XIP_SECTION_NAME(g_sectionNamesSbe, index);
 
-        case P9_XIP_MAGIC_RESTORE:
-            return P9_XIP_SECTION_NAME(g_sectionNamesRestore, index);
+        case P9_XIP_MAGIC_QME:
+            return P9_XIP_SECTION_NAME(g_sectionNamesQme, index);
 
-        case P9_XIP_MAGIC_CME:
-            return P9_XIP_SECTION_NAME(g_sectionNamesCme, index);
+        case P9_XIP_MAGIC_XGPE:
+            return P9_XIP_SECTION_NAME(g_sectionNamesXgpe, index);
 
         case P9_XIP_MAGIC_PGPE:
             return P9_XIP_SECTION_NAME(g_sectionNamesPgpe, index);
+
+        case P9_XIP_MAGIC_RESTORE:
+            return P9_XIP_SECTION_NAME(g_sectionNamesRestore, index);
 
         case P9_XIP_MAGIC_IOPPE:
             return P9_XIP_SECTION_NAME(g_sectionNamesIoppe, index);
@@ -2518,12 +2518,8 @@ dissectRingSection(void*                      i_image,
                         sectionId = P9_XIP_SECTION_SBE_RINGS;
                         break;
 
-                    case P9_XIP_MAGIC_CME:
-                        sectionId = P9_XIP_SECTION_CME_RINGS;
-                        break;
-
-                    case P9_XIP_MAGIC_SGPE:
-                        sectionId = P9_XIP_SECTION_SGPE_RINGS;
+                    case P9_XIP_MAGIC_QME:
+                        sectionId = P9_XIP_SECTION_QME_RINGS;
                         break;
 
                     default:
