@@ -233,7 +233,7 @@ extern fapi2::ReturnCode
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, isMpIpl));
 
             l_tempReg.extractToRight<3, 1>(isSpMode);
-            if(!isSpMode)
+            if(!isSpMode && !SBE::isSimicsRunning())
             {
                 FAPI_DBG("Set up ATTR_HOSTBOOT_HRMOR_OFFSET in SPless mode");
                 uint64_t hrmor = HRMOR_FOR_SPLESS_MODE;
