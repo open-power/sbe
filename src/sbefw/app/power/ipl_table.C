@@ -189,6 +189,7 @@ ReturnCode istepWithCoreConditional( voidfuncptr_t i_hwp);
 ReturnCode istepWithEqConditional( voidfuncptr_t i_hwp);
 ReturnCode istepNestFreq( voidfuncptr_t i_hwp);
 ReturnCode istepCacheInitf( voidfuncptr_t i_hwp );
+ReturnCode istepLpcInit( voidfuncptr_t i_hwp );
 
 //MPIPL Specific
 ReturnCode istepWithCoreSetBlock( voidfuncptr_t i_hwp );
@@ -301,7 +302,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p9_sbe_io_initf ),
              ISTEP_MAP( istepWithProc, p9_sbe_startclock_chiplets ),
              ISTEP_MAP( istepWithProc, p9_sbe_scominit ),
-             ISTEP_MAP( istepWithProc, p9_sbe_lpc_init ),
+             ISTEP_MAP( istepLpcInit, p9_sbe_lpc_init ),
              ISTEP_MAP( istepWithProc, p9_sbe_fabricinit ),
              ISTEP_MAP( istepCheckSbeMaster, NULL ),
              ISTEP_MAP( istepWithProc, p9_sbe_mcs_setup ),
@@ -635,6 +636,21 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
                                     static_cast<uint8_t>(memRegionMode::READ));
 
     } while(0);
+    return rc;
+}
+
+//----------------------------------------------------------------------------
+
+ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
+{
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    // Only call lpc init if we are on master proc or
+    // are in mnfg mode.
+    if( !(SbeRegAccess::theSbeRegAccess().isSbeSlave()) ||
+        (SbeRegAccess::theSbeRegAccess().isMnfgMode()))
+    {
+        rc = istepWithProc(i_hwp);
+    }
     return rc;
 }
 

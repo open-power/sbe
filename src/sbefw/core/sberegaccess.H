@@ -146,6 +146,17 @@ class SbeRegAccess
         }
 
         /**
+         * @brief Check if we are in mnfg mode
+         *
+         * @return true if in mnfg mode, false otherwise
+         *
+         */
+        inline bool isMnfgMode() const
+        {
+            return iv_mnfgMode;
+        }
+
+        /**
          * @brief Check if SBE should directly go to runtime state
          *
          * @return true if SBE should go directly to runtime state,
@@ -296,7 +307,8 @@ class SbeRegAccess
                 uint64_t iv_mbx3DontCare1 : 5;
                 uint64_t iv_disableScomFiltering : 1;
                 uint64_t iv_disableInvalidScomAddrCheck : 1;
-                uint64_t iv_mbx3DontCare2 : 19;
+                uint64_t iv_mnfgMode : 1;
+                uint64_t iv_mbx3DontCare2 : 18;
                 uint64_t iv_mbx3Unused : 32;
             };
             uint64_t iv_mbx3;
