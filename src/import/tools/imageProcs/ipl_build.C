@@ -64,110 +64,44 @@
 ///
 /// @return IMGBUILD_SUCCESS, or failure value.
 ///
-int get_dd_level_rings_from_hw_image( char* i_hwImage,
-                                      uint32_t i_ddLevel,
-                                      void** o_ringBlock,
-                                      uint32_t& o_blockSize )
+int get_dd_level_rings_from_sbe_image( char* i_hwImage,
+                                       uint32_t i_ddLevel,
+                                       void** o_ringBlock,
+                                       uint32_t& o_blockSize )
 {
     int rc = IMGBUILD_SUCCESS;
 
     P9XipSection l_ringsSection;
     *o_ringBlock = NULL;
     o_blockSize = 0;
-    MyBool_t l_bDdSupport = UNDEFINED_BOOLEAN;
 
-    // Determine if there's rings dd support
-    rc = p9_xip_dd_section_support(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_bDdSupport);
+    rc = p9_xip_get_sub_section( i_hwImage,
+                                 P9_XIP_SECTION_HW_SBE,
+                                 P9_XIP_SECTION_SBE_RINGS,
+                                 &l_ringsSection,
+                                 i_ddLevel);
 
     if (rc)
     {
-        MY_ERR("p9_xip_dd_section_support() failed w/rc=0x%08x.\n", (uint32_t)rc );
-        rc = IMGBUILD_ERR_XIP_DD_SUPPORT;
+        MY_ERR("ERROR: p9_xip_get_sub_section failed w/rc=0x%08x getting DD(=0x%x) specific"
+               " ring section\n",
+               i_ddLevel, (uint32_t)rc);
+        rc = IMGBUILD_ERR_XIP_GET_SECTION;
         return rc;
-    }
-
-    if (l_bDdSupport)
-    {
-        rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection, i_ddLevel);
-
-        if (rc)
-        {
-            MY_ERR("ERROR: error getting dd (=%x) specific ring section w/rc=0x%08x.\n",
-                   i_ddLevel, (uint32_t)rc);
-            rc = IMGBUILD_ERR_XIP_GET_SECTION;
-            return rc;
-        }
-    }
-    else
-    {
-        // Get the block of rings from the HW image
-        rc = p9_xip_get_section(i_hwImage, P9_XIP_SECTION_HW_RINGS, &l_ringsSection);
-
-        if (rc)
-        {
-            MY_ERR("Call to p9_xip_get_section ID(%d) failed rc=%d\n", P9_XIP_SECTION_HW_RINGS, rc);
-            rc = IMGBUILD_ERR_XIP_GET_SECTION;
-            return rc;
-        }
     }
 
     // Check if any content in .rings
     if (l_ringsSection.iv_size == 0)
     {
-        MY_ERR("Ring section size in HW image is zero. No TOR. We need rings here.\n");
+        MY_ERR("Ring section size in SBE image is zero for ddLevel=0x%x."
+               " We need rings here to proceed.\n", i_ddLevel);
         rc = IMGBUILD_EMPTY_RING_SECTION;
         return rc;
     }
 
     // Make a pointer to the start of the rings section
-    void* ringsSection = i_hwImage + l_ringsSection.iv_offset;
-
-    // Call the first time to get a size of the pending section
-    rc = tor_get_block_of_rings( ringsSection,
-                                 i_ddLevel,
-                                 PT_SBE,
-                                 o_ringBlock,
-                                 o_blockSize );
-
-    if(rc)
-    {
-        MY_ERR("error calling tor API rc = %d\n", rc);
-        rc = IMGBUILD_ERR_SECTION_SIZING;
-        return rc;
-    }
-
-    if( o_blockSize == 0 )
-    {
-        rc = IMGBUILD_NO_RINGS_FOUND;
-        MY_INF("No rings for dd_level %#02x found\n", i_ddLevel);
-        return rc;
-    }
-
-    // *o_ringBlock is freed by caller of this function
-    *o_ringBlock = malloc(o_blockSize);
-
-    if (*o_ringBlock != NULL)
-    {
-        rc = tor_get_block_of_rings( ringsSection,
-                                     i_ddLevel,
-                                     PT_SBE,
-                                     o_ringBlock,
-                                     o_blockSize );
-
-        if(rc)
-        {
-            MY_ERR("error calling tor API rc = %d\n", rc);
-            free(*o_ringBlock);
-            rc = IMGBUILD_ERR_RING_SEARCH;
-            return rc;
-        }
-    }
-    else
-    {
-        MY_ERR("failed to allocate memory for ring block\n");
-        rc = IMGBUILD_ERR_MEMORY;
-        return rc;
-    }
+    *o_ringBlock = (void*)(i_hwImage + l_ringsSection.iv_offset);
+    o_blockSize = l_ringsSection.iv_size;
 
     MY_DBG("o_blockSize = %d\n", o_blockSize);
     MY_DBG("*o_ringBlock = %p\n", *o_ringBlock);
@@ -289,10 +223,10 @@ int ipl_build( char* i_fnSbeImage,
 
             char* hwImagePtr = static_cast<char*>(i_hwImage);
 
-            rc = get_dd_level_rings_from_hw_image( hwImagePtr,
-                                                   i_ddLevel,
-                                                   &l_ringBlock,
-                                                   l_blockSize );
+            rc = get_dd_level_rings_from_sbe_image( hwImagePtr,
+                                                    i_ddLevel,
+                                                    &l_ringBlock,
+                                                    l_blockSize );
 
             if(rc == IMGBUILD_SUCCESS)
             {
@@ -335,7 +269,6 @@ int ipl_build( char* i_fnSbeImage,
         while(0);
 
         free(sbeImage);
-        free(l_ringBlock);
 
         sbeImageFile.close();
     }
