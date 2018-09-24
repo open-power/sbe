@@ -616,4 +616,8 @@ attribute tank
         <name>ATTR_CHIP_EC_FEATURE_HW403111</name>
         <virtual/>
   </entry>
+  <entry>
+          <name>ATTR_LPC_CONSOLE_CNFG</name>
+          <value>0x00</value>
+  </entry>
 </entries>
