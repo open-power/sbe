@@ -186,6 +186,22 @@ typedef struct
     void init();
 } sbeSbe2PsuRespHdr_t;
 
+/* @brief Format to dump out the architected register on the host memory
+ * Host may use this format to fetch all the register data/state
+ */
+
+#define DUMP_STRUCT_VERSION_ID 0x1
+
+/* Processor architected dump header. This header is per processor*/
+typedef struct { 
+    uint8_t  ownerId;        /* FSP or SBE */
+    uint8_t  version;        /* Interface version number*/
+    uint16_t core_cnt;       /* Cores per chip */
+    uint16_t thread_count;   /* Max Threads per proc chip */
+    uint16_t reg_cnt;        /* Max number of registers per thread */
+} sbeArchRegDumpProcHdr_t;   //8Bytes
+
+
 /* @brief Format of PIR */
 typedef struct
 {
@@ -193,18 +209,53 @@ typedef struct
     uint32_t procChipId:3;
     uint32_t chipUnitNum:6;
     uint32_t thread:2;
-} sbe_pir_t;
+} sbe_pir_t; //4Bytes
 
-/* @brief Format to dump out the architected register on the host memory
- * Host may use this format to fetch all the register data/state
+/*Thread Specific header*/
+typedef struct
+{
+    sbe_pir_t pir;           // PIR value of thread corrsponding to the register
+    uint32_t  coreState:8;   // State of core in which this thread is present
+                             // Expect register data only if core status is '0'
+    uint32_t  reserved:24;
+} sbeArchRegDumpThreadHdr_t; //8Bytes
+
+
+/**
+ *  @brief Defines the structure for storing the SPR/GPR register data  
+ *  
+ *  @var isRegDataValid   :'1'- Variable regVal will contain valid register data
+ *                         '0'- Variable regVal will contain fapiRC value
+ *
+ *  @var isLastReg        :'1' - Data is collected for the last SPR/GPR register
+ *                         '0' - otherwise.
+ *
+ *  @var isFfdcPresent    :'1' - Failing FAPI FFDC is shared
+ *                         '0' - Failing FFDC is not present
+ *
+ *  @var reserved0        :Reserved for future use and padding
+ *
+ *  @var regType          :Indicates type of register(SPR/GPR)  
+ *
+ *  @var reserved1        :Reserved for future use and padding
+ *
+ *  @var regNum           :Address of the SPR/GPR register
+ *
+ *  @var regVal           :if isRegDataValid is '0'  - Valid Register value
+ *                            isRegDataValid is '!=0'- fapiRC value.
  */
 typedef struct
 {
-    sbe_pir_t pir;        // PIR value of thread corrsponding to the register
-    uint32_t  coreState:8; // State of core in which this thread is present
-    uint32_t  reserved:8;  // Reserved
-    uint32_t  regNum:16;   // Register Number
-    uint64_t  regVal;      // Register Value
-} sbeArchRegDumpFormat_t;
+    uint64_t isRegDataValid:1;
+    uint64_t isLastReg:1;
+    uint64_t isFfdcPresent:1;
+    uint64_t reseverd0:5;
+    uint64_t regType:8;
+    uint64_t reserved1:16;
+    uint64_t regNum:32;
+    uint64_t regVal;
+} sbeArchRegDumpEntries_t;
+
+
 
 #endif // __SBEFW_SBEHOST_MSG_H
