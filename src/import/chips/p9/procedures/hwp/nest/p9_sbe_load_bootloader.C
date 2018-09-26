@@ -257,11 +257,6 @@ ram_sprs(
             l_ram_data -= l_bootloader_offset;
         }
 
-        // set HRMOR -- core level SPR
-        FAPI_TRY(fapi2::putScom(l_master_core_target , P9N2_C_HRMOR, l_ram_data ),
-                 "Error Writing To HRMOR");
-        FAPI_DBG("Wrote HRMOR with 0x%016lX", (uint64_t)l_ram_data);
-
         // get MSR to determine if need to set URMOR
         FAPI_TRY(l_ram_t2.get_reg(REG_SPR, MSR_SPR_NUMBER, &l_msr),
                  "Error ramming MSR (T2)!");
@@ -273,6 +268,13 @@ ram_sprs(
                      "Error Writing To URMOR");
             FAPI_DBG("Wrote URMOR with 0x%016lX", (uint64_t)l_ram_data );
         }
+
+        // set HRMOR -- core level SPR
+        // Must not set bit 15 in HRMOR.  Only applies to URMOR.
+        l_ram_data.clearBit<15>();
+        FAPI_TRY(fapi2::putScom(l_master_core_target , P9N2_C_HRMOR, l_ram_data ),
+                 "Error Writing To HRMOR");
+        FAPI_DBG("Wrote HRMOR with 0x%016lX", (uint64_t)l_ram_data);
 
         // set PSSCR via thread specific instances
         l_ram_data = HOSTBOOT_PSSCR_VALUE;
