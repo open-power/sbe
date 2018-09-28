@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -65,7 +65,7 @@ __header_64_reserved:
         .xip_section strings
 
         .xip_section loader_text,          4
-        .xip_section loader_data,          8, empty=1
+        .xip_section pibrepr_data,         8, empty=1
         .xip_section text,                 4
         .xip_section data,                 8, empty=1
         .xip_section base,                 4
@@ -130,7 +130,7 @@ __header_string_reserved:
 
     .section .fixed, "a", @progbits
     .section .fixed_toc, "a", @progbits
-    .section .loader_data, "a", @progbits
+    .section .pibrepr_data, "a", @progbits
     .section .loader_text, "a", @progbits
 
     .section .toc, "a", @progbits
