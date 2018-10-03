@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -921,7 +921,7 @@ if (!hashtab.empty())
     time_t tt = time(NULL);
     sprintf(buf, "%s", asctime(localtime(&tt)));
     buf[strlen(buf)-1] = '\0'; // chop off extra newline
-	fprintf(TRC, "#FSP_TRACE_v2|||%s|||BUILD:%.120s", buf, pwd.c_str());
+	fprintf(TRC, "#FSP_TRACE_v2|||%s|||BUILD:%.120s\n", buf, pwd.c_str());
 
 	string srch_str = "||";
 	srch_str += source;
