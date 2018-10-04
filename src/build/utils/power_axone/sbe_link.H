@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -72,9 +73,9 @@
 #define SBE_LOADER_BASE_SECTION  SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 120
 // Base Loader start address
-#define SBE_LOADER_BASE_ORIGIN 0xFFFFE400
+#define SBE_LOADER_BASE_ORIGIN 0xFFFFD400
 // Base Loader length
-#define SBE_LOADER_BASE_LENGTH 0x1C00
+#define SBE_LOADER_BASE_LENGTH 0x2C00
 
 // Base Loader entry function offset in header
 #define SBE_LOADER_ENTRY_HEADER_OFFSET 20
