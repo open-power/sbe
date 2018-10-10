@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -348,7 +348,7 @@ $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = stat
 # if file is missing any GET or SET MACROs
 if (@newAttributeDefines != 0) {
 
-  my $updatedFapiPlatAttributeServiceFile = "$fapiPlatAttributeServiceFile.temp";
+  my $updatedFapiPlatAttributeServiceFile = "$includePath/$fapiPlatAttributeServiceFile.temp";
   open (OUTFILE, ">$updatedFapiPlatAttributeServiceFile") or die "ERROR:: could not open $updatedFapiPlatAttributeServiceFile\n";
   open (FILE, $includePath . "/" . $fapiPlatAttributeServiceFile) or die "ERROR:: could not open $fapiPlatAttributeServiceFile\n";
 
