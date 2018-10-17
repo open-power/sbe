@@ -545,10 +545,10 @@ def main( argv ):
                 print "proc should be an integer number"
                 exit(1)
         elif opt in ('-d', '--ddlevel'):
-            if arg in ('DD1', 'DD2'):
+            if arg in ('DD1', 'DD2', 'AXONE'):
                 ddsuffix = arg
             else:
-                print "target should be one of {DD1, DD2}"
+                print "target should be one of {DD1, DD2, AXONE}"
                 exit(1)
         elif opt in ('-f', '--file_path'):
             try:
