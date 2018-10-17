@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -649,6 +649,11 @@ sub assimilate_file($) {
 
 	while (defined $line) {
 	    chop $line;         # remove EOL
+        if(! $line)
+        {
+	        $line = <FH>;
+            next;
+        }
 	    if($version eq "1")
 	    {
 		($l_hash, $l_file ,$l_str) = split(/\|\|/, $line);
@@ -672,7 +677,7 @@ sub assimilate_file($) {
 		}
 		if ($hashstr1 ne $hashstr2)
 		{
-		    print "*** ERROR: HASH Collision! (a_f)\n",
+		    print "*** assimilate_file: ERROR: HASH Collision! (a_f)\n",
 			  "    Two different strings have the same hash value ($l_hash)\n",
 			  "    String 1: $hash_strings_array{$l_hash}\n",
 			  "    String 2: $newstring\n";
