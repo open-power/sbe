@@ -119,7 +119,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
         l_data64_perv_ctrl0.clearBit<PERV_PERV_CTRL0_SET_TP_FENCE_EN_DC>();
         FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64_perv_ctrl0));
 
-        FAPI_DBG("Drop NET and PIB region fence")
+        FAPI_DBG("Drop NET and PIB region fence");
         FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_CPLT_CTRL1, l_data64_cplt_ctrl1));
         l_data64_cplt_ctrl1.clearBit<PERV_1_CPLT_CTRL1_UNUSED_5B>();
         l_data64_cplt_ctrl1.clearBit<PERV_1_CPLT_CTRL1_UNUSED_6B>();
@@ -130,7 +130,7 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
         FAPI_DBG("l_clk_regions value: %#018lX", l_clk_regions);
         FAPI_TRY(p9_sbe_common_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, l_clk_regions, CLOCK_TYPES_ALL));
 
-        FAPI_DBG("Switching to PCB2PCB path")
+        FAPI_DBG("Switching to PCB2PCB path");
         FAPI_TRY(p9_perv_sbe_cmn_switch_to_pcb2pcb_path_scom(
                      i_target_chip));
 
