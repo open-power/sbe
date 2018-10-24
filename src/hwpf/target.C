@@ -441,6 +441,9 @@ extern fapi2::ReturnCode
             case 0xD4:
                 l_chipName = fapi2::ENUM_ATTR_NAME_CUMULUS;
                 break;
+            case 0xD9:
+                l_chipName = fapi2::ENUM_ATTR_NAME_AXONE;
+                break;
             default:
                 FAPI_ERR("Unsupported chip ID: 0x%02X",
                          static_cast<uint8_t>(l_deviceId.iv_chipId));
@@ -921,7 +924,7 @@ fapi_try_exit:
         l_beginning_offset = MCBIST_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCBIST_TARGET_COUNT; ++i)
         {
-            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName)
+            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName || fapi2::ENUM_ATTR_NAME_AXONE == l_chipName)
             {
                 l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MC>(i);
             }
@@ -1031,7 +1034,7 @@ fapi_try_exit:
         l_beginning_offset = MCS_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
         {
-            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName)
+            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName || fapi2::ENUM_ATTR_NAME_AXONE == l_chipName)
             {
                 l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MI>(i);
             }
