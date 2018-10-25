@@ -810,8 +810,54 @@ extern "C" {
         l_data.setBit<PU_INT_CQ_RST_CTL_SYNC_RESET>();
         FAPI_TRY(fapi2::putScom(i_target, PU_INT_CQ_RST_CTL, l_data));
 
+        FAPI_TRY(p9_clear_int_fir_regs(i_target), "error clearing int_cq firs");
+
     fapi_try_exit:
         FAPI_DBG("p9_intp_check_quiesce: Exiting...");
+        return fapi2::current_err;
+    }
+
+    //---------------------------------------------------------------------------------
+    // NOTE: description in header
+    //---------------------------------------------------------------------------------
+    fapi2::ReturnCode p9_clear_int_fir_regs(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        // Number of register we need to read in order to clear INT_CQ firs
+        const uint8_t l_numRegs = 20;
+        const uint64_t l_fir_reg_addrs_to_read_to_clear[l_numRegs] =
+        {
+            PU_INT_PC_ERR0_WOF, PU_INT_PC_ERR0_FATAL,
+            PU_INT_PC_ERR0_RECOV, PU_INT_PC_ERR0_INFO,
+            PU_INT_PC_ERR1_WOF, PU_INT_PC_ERR1_FATAL,
+            PU_INT_PC_ERR1_RECOV, PU_INT_PC_ERR1_INFO,
+            PU_INT_PC_VPC_WOF_ERR, PU_INT_PC_VPC_FATAL_ERR,
+            PU_INT_PC_VPC_RECOV_ERR, PU_INT_PC_VPC_INFO_ERR,
+            PU_INT_VC_WOF_ERR_G0, PU_INT_VC_WOF_ERR_G1,
+            PU_INT_VC_FATAL_ERR_G1, PU_INT_VC_FATAL_ERR_G0,
+            PU_INT_VC_RECOV_ERR_G0, PU_INT_VC_RECOV_ERR_G1,
+            PU_INT_VC_INFO_ERR_G0, PU_INT_VC_INFO_ERR_G1
+        };
+
+        fapi2::buffer<uint64_t> l_fir_clear_data(0);
+
+        // Read from each register in order to clear it (per scomdef)
+        // We don't care what was read out.
+        for (uint8_t i = 0; i < l_numRegs; i++)
+        {
+            FAPI_TRY(fapi2::getScom(i_target, l_fir_reg_addrs_to_read_to_clear[i], l_fir_clear_data));
+        }
+
+        // Clean up data buffer incase data was read
+        l_fir_clear_data.flush<0>();
+
+        // clear PU_INT_CQ_WOF via write (any write to this reg should clear)
+        FAPI_TRY(fapi2::putScom(i_target, PU_INT_CQ_WOF, l_fir_clear_data));
+
+        // Write all 0's to PU_INT_CQ_FIR to get rid of any stale firs
+        FAPI_TRY(fapi2::putScom(i_target, PU_INT_CQ_FIR, l_fir_clear_data));
+
+    fapi_try_exit:
         return fapi2::current_err;
     }
 

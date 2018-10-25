@@ -130,6 +130,11 @@ extern "C" {
     fapi2::ReturnCode p9_int_scrub_caches(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
+    /// @brief Helper function to clear out all INT_CQ firs
+    /// @param[in] i_target       => P9 chip target
+    /// @return FAPI_RC_SUCCESS if the fir regs were cleared correctly
+    fapi2::ReturnCode p9_clear_int_fir_regs(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 } //extern "C"
 
 #endif //_P9_SBE_CHECK_QUIESCE_H_
