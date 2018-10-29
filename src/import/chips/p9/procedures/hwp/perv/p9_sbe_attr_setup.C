@@ -206,7 +206,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
 
             FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_1_SCOM,
                                     l_read_scratch_reg));
-            l_read_scratch8.setBit<0>();
         }
     }
     //read_scratch2_reg
@@ -249,7 +248,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             //Setting SCRATCH_REGISTER_2 register value
             FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_2_SCOM,
                                     l_read_scratch_reg));
-            l_read_scratch8.setBit<1>();
         }
     }
 
@@ -268,8 +266,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             //Setting SCRATCH_REGISTER_3 register value
             FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_3_SCOM,
                                     l_read_scratch_reg));
-
-            l_read_scratch8.setBit<2>();
         }
     }
 
@@ -321,8 +317,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             //Setting SCRATCH_REGISTER_4 register value
             FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_4_SCOM,
                                     l_read_scratch_reg));
-
-            l_read_scratch8.setBit<3>();
         }
     }
     //read_scratch5_reg
@@ -424,8 +418,6 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             //Setting SCRATCH_REGISTER_5 register value
             FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_5_SCOM,
                                     l_read_scratch_reg));
-
-            l_read_scratch8.setBit<4>();
         }
     }
     //read_scratch6_reg
@@ -502,16 +494,13 @@ fapi2::ReturnCode p9_sbe_attr_setup(const
             //Setting SCRATCH_REGISTER_6 register value
             FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_6_SCOM,
                                     l_read_scratch_reg));
-
-            l_read_scratch8.setBit<5>();
         }
     }
 
-    FAPI_DBG("Setting Scratch8 for validity of Scratch register");
-    //Setting SCRATCH_REGISTER_8 register value
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_8_SCOM,
-                            l_read_scratch8));
-
+    //To allow hostboot to know if there is an actual override, leave
+    //scratch 8 in the same state the SBE found it (prior to starting
+    //Hostboot all scratch regs have either been overriden or filled
+    //in by SBE... always)
 
     FAPI_INF("p9_sbe_attr_setup: Exiting ...");
 
