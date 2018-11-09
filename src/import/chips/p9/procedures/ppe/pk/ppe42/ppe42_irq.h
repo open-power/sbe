@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -32,7 +32,6 @@
 /// inherently non-portable, however PK defines APIs that may be useful among
 /// different machines.
 ///
-
 
 // Define pseudo-IRQ numbers for PPE42 built-in interrupts.  These numbers
 // will appear in bits 16:23 of SPRG0 (__PkKernelContext) when the handlers

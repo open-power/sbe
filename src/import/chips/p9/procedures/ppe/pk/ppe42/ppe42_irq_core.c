@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,7 +34,49 @@
 
 #define __PPE42_IRQ_CORE_C__
 
+
 #include "pk.h"
+
+uint32_t G_pib_reset_flag = 0;
+
+#ifdef __PPE__
+
+void
+__ppe42_pib_reset_handler()
+{
+    //PK_TRACE("Entered 1 ppe42_pib_reset_handler");
+    uint32_t srr1 = mfspr(SPRN_SRR1);
+
+    // assuming pib is being reset thus give timeout error
+    if (((srr1 & MSR_SIBRC) == MSR_SIBRC))
+    {
+        // if already waited for pib to reset, panic as still fail
+        if (G_pib_reset_flag == 10 )
+        {
+            G_pib_reset_flag = 0;
+            PK_PANIC(PPE42_PIB_RESET_NOT_RECOVER);
+        }
+
+        // note pib reset is being detected
+        // this flag will be cleared by fit timer if pib reset recovers
+        G_pib_reset_flag++;
+
+        // DELAY to wait pib reset to complete
+        volatile uint32_t loop;
+
+        for(loop = 0; loop < 6400; loop++);
+
+        PK_TRACE_INF("PIB reset flag value %x", G_pib_reset_flag);
+
+    }
+    else
+    {
+        // panic for all other pib return codes
+        PK_PANIC(PPE42_MACHINE_CHECK_PANIC);
+    }
+}
+#endif
+
 
 #ifndef STATIC_IRQ_TABLE
     Ppe42IrqHandler __ppe42_irq_handlers[EXTERNAL_IRQS + 1];

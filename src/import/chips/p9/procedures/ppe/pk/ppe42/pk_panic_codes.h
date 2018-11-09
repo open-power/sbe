@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,7 +49,7 @@ typedef enum
     PK_DEFAULT_SPECIAL_HANDLER          = 0x0007,
     PPE42_PHANTOM_INTERRUPT             = 0x0008,
     PPE42_ILLEGAL_INSTRUCTION           = 0x0009,
-    PK_UNUSED_000a                      = 0x000a,
+    PPE42_PIB_RESET_NOT_RECOVER         = 0x000a,
     PK_UNUSED_000d                      = 0x000d,
     PK_UNUSED_001c                      = 0x001c,
     PK_UNUSED_001d                      = 0x001d,

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -47,6 +47,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 
 /// PPE Load Virtual Double operation
@@ -149,6 +150,9 @@ extern inline uint32_t getscom(const uint32_t i_chiplet, const uint32_t i_addres
 extern inline void putscom_norc(const uint32_t i_address, uint64_t i_data)
 {
     PPE_STVD(i_address, i_data);
+#ifdef PK_MACHINE_HANDLER_SUPPPORT
+    asm volatile ("sync");
+#endif
 }
 
 #ifdef __cplusplus
