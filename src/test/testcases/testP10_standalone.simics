@@ -1,0 +1,151 @@
+#!/bin/sh
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: src/test/testcases/testP10_standalone.simics $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2018,2019
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
+
+backplane0.proc0.pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
+
+echo "*******************Run testRunTillSbeBooted.py************************"
+
+run-python-file targets/p10_standalone/sbeTest/testRunTillSbeBooted.py
+
+echo "*******************Run testPSUSetStashPair.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testPSUSetStashPair.py
+
+echo "*******************Run testIstep.xml*******************"
+
+sbe-istep 2.2 5.1
+
+run-python-file targets/p10_standalone/sbeTest/testMatchStashPair.py
+
+run-python-file targets/p10_standalone/sbeTest/testIstepInvalid.py
+
+run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
+
+echo "*******************Run testSuspendIO.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testSuspendIO.py
+
+echo "*******************Run testGeneric.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testGetCapabilities.py
+
+run-python-file targets/p10_standalone/sbeTest/testSbeDump.py
+
+run-python-file targets/p10_standalone/sbeTest/testHostFFDC.py
+
+run-python-file targets/p10_standalone/sbeTest/testPSUReadSbeMem.py
+
+echo "*******************Run testUnsecureMemRegions.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testUnsecureMemRegions.py
+
+echo "*******************Run testPutGetMem.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testMemPBA.py
+
+run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
+
+echo "*******************Run testAduMem.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_ecc.py
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_itag.py
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_withEccItag.py
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
+
+echo "*******************Run testPSUSetFFDCAddr.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
+
+echo "*******************Run testPSUGetCapabilities.py*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
+
+echo "*******************Run testSram.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testSram.py
+
+echo "*******************Run istep 5.2*******************"
+sbe-istep 5 2
+
+echo "*******************Run testRegAccess.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testStopInstruction.py
+
+run-python-file targets/p10_standalone/sbeTest/testPutGetRegGpr.py
+
+run-python-file targets/p10_standalone/sbeTest/testPutGetRegFpr.py
+
+run-python-file targets/p10_standalone/sbeTest/testPutGetRegSpr.py
+
+run-python-file targets/p10_standalone/sbeTest/testStartInstruction.py
+
+echo "*******************Run testFifoReset.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
+
+run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
+
+echo "*******************Run testSystemFabricMap.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testSystemFabricMap.py
+
+echo "*******************Run testExecutorCntrlTimer.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testExecutorCntrlTimer.py
+
+run-python-file targets/p10_standalone/sbeTest/testExecutorStopTimer.py
+
+echo "*******************Run testSecurity.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testSecurity.py
+
+echo "*******************Run testStopClocks.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testStopClocks.py
+
+echo "*******************Run testGetRing.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testGetRing.py
+
+echo "*******************Run testExecutorPutRing.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testExecutorPutRing.py
+
+echo "*******************Run testFastAccess.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testFastArray.py
+
+echo "*******************Run testQuiesce.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
+
+echo "*******************Run sbe-trace*******************"
+
+sbe-trace 0

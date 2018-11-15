@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2018
+# Contributors Listed Below - COPYRIGHT 2017,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -25,10 +25,12 @@
 import os
 import sys
 import struct
+sys.path.append("targets/p10_standalone/sbeTest" )
+import testUtil
 import testScomUtil
 
-SECURITY_FILE = "../../src/import/chips/p9/security/p9_security_white_black_list.csv"
-SECURITY_SCRIPT = "../../src/build/security/securityRegListGen.py"
+SECURITY_FILE = "targets/p10_standalone/sbeTest/p9_security_white_black_list.csv"
+SECURITY_SCRIPT = "targets/p10_standalone/sbeTest/securityRegListGen.py"
 
 def getlist(cmd):
     os.system("python "+SECURITY_SCRIPT+" "+cmd+" -f "+SECURITY_FILE+" > temp")
@@ -253,9 +255,11 @@ def binary_search(item, list, first, last, isMap = False):
 # Calling all test code
 #-------------------------------------------------
 if __name__=="__main__":
-    main()
+    try:
+        main()
+    except:
+        print ( "\nTest Suite completed with error(s)" )
+        testUtil.collectFFDC()
+        raise()
 
-    if err:
-       print ("\nTest Suite completed with error(s)")
-    else:
-       print ("\nTest Suite completed with no errors")
+    print ( "\nTest Suite completed with no errors" )

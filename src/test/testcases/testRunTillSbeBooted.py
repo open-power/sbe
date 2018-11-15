@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018
+# Contributors Listed Below - COPYRIGHT 2018,2019
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,14 +24,15 @@
 # IBM_PROLOG_END_TAG
 import os
 import sys
-sys.path.append("targets/p9_nimbus/sbeTest" )
+sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
 err = False
 
 import testScomUtil
 
 from sim_commands import *
-lbus = conf.p9Proc0.proc_lbus_map
+
+lbus = conf.backplane0.proc0.cfam_cmp.lbus_map
 
 while True:
     try:

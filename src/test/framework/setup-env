@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -25,61 +25,15 @@
 # IBM_PROLOG_END_TAG
 
 export CITESTPATH=${SBEROOT}/src/test/framework
-export PATH=${CITESTPATH}:${PATH}
-
-# If we are running under Jenkins we need to pick a random-ish sandbox name
-# so that the autoipl tools do not have a /tmp name collision.
-if [ -z $JOB_NAME -o -z $BUILD_NUMBER ];
-then
-    SBECI_SANDBOX="test_sb"
-else
-    export RUNNING_UNDER_JENKINS=1
-    SBECI_SANDBOX=`echo $JOB_NAME $BUILD_NUMBER | md5sum | head -c10`
-fi
-
-# Setup sandbox location variables.
-if [ -z $SANDBOXROOT ];
-then
-    export SANDBOXROOT=${SBEROOT}
-fi
-
-if [ -z $SANDBOXNAME ] || [ "$RUNNING_UNDER_JENKINS" = "1" ];
-then
-    export SANDBOXNAME=${SBECI_SANDBOX}
-fi
-
-export SANDBOXBASE=${SANDBOXROOT}/${SANDBOXNAME}
-
-if [ -z $SANDBOXRC ];
-then
-    export SANDBOXRC=${SANDBOXROOT}/sbesandboxrc
-fi
-# Useful utility function.
-execute_in_sandbox()
-{
-    WORKON_CMD="workon -rc ${SANDBOXRC} -sb ${SANDBOXNAME} -m $2 "
-    echo $1 > ${SANDBOXBASE}/src/sandbox_execute_cmd
-    chmod 700 ${SANDBOXBASE}/src/sandbox_execute_cmd
-
-    TEST="${WORKON_CMD} -c ./sandbox_execute_cmd "
-    echo $TEST
-    ${WORKON_CMD} -c ./sandbox_execute_cmd
-
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-
-    rm ${SANDBOXBASE}/src/sandbox_execute_cmd
-}
-export -f execute_in_sandbox
+export PATH=${CITESTPATH}:${PATH}:$MCP_PATH/opt/fsp/usr/bin/
 
 # Setup machine type.
 export MACHINE=${MACHINE:-$DEFAULT_MACHINE}
 
-export SBETESTDIR=$SANDBOXBASE/simics/targets/p9_nimbus/sbeTest
-export SBEFW_DIR=$SANDBOXBASE/src/sbei/sbfw/
-export SBEFW_IMG_DIR=$SANDBOXBASE/src/sbei/sbfw/img
-export AUTOSIM_FFDC_XML=$SBETESTDIR/ffdc.xml
-export SBE_TEST_XML=$SBETESTDIR/test.xml
+export SBETESTDIR=${SBEROOT}/simics/targets/p10_standalone/sbeTest/
+export SBEROMDIR=${SBEROOT}/simics/import/boot_roms/
+export SBEBINIMAGE=${SBEROOT}/images/sbe_seeprom_DD1.bin
+export SBEECCIMAGE=$SBEROMDIR/sbe_seeprom_p10.bin.ecc
+
 # Indicate we setup the CI environment.
 export SBE_CI_ENV_SETUP=1

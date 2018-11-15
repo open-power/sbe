@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -24,37 +24,53 @@
 #
 # IBM_PROLOG_END_TAG
 
-# Ensure sandbox exists (create-sandbox has been called).
-if [ -z $SANDBOXBASE ];
+if [ -z $SBE_CI_ENV_SETUP ];
 then
-    echo "SANDBOXBASE variable uninitialized.."
-    exit -1
-fi
-
-if [ ! -d "$SANDBOXBASE" ];
-then
-    echo "Cannot find sandbox: $SANDBOXBASE"
-    exit -1
+    source "$SBEROOT/src/test/framework/setup-env"
 fi
 
 # Create test directory.
 mkdir -p $SBETESTDIR || exit -1
 
-# Create test directory.
-mkdir -p $SBEFW_IMG_DIR || exit -1
-
-# Copy sbe binaries
-cp  $SBEROOT/images/*.bin $SBEFW_IMG_DIR/ || exit -1
-cp  $SBEROOT/images/simics.tar $SBEFW_DIR/ || exit -1
-# Compile sbe code in sandbox to copy binaries at right place
-echo "---Setup sandbox for sbe binaries."
-
-execute_in_sandbox "cd $SBEFW_DIR; mk -a" \
-                   "ppc" || exit -1
-
-execute_in_sandbox "cd $SBEFW_DIR; mk install_all" \
-                   "ppc" || exit -1
+echo "Untar simics.tar.gz into the sandbox"
+tar -xf $SIMICS_TAR/simics.tar.gz -C $SBEROOT/simics/ || exit -1
 
 
-# Copy test files.
-cp  -r $SBEROOT/src/test/testcases/* $SBETESTDIR/ || exit -1
+echo "Add ecc to the binary workspace"
+#Check that the binary exists before adding ecc to it.
+if [ ! -f $SBEBINIMAGE ]; then
+    echo "ERROR: Could not find binary image - \"$SBEBINIMAGE\""
+    exit 2
+fi
+
+#TODO: Add Ring section into the SBE image before adding the ECC
+ecc --inject $SBEBINIMAGE --output  $SBEECCIMAGE --p8 || exit -1
+
+echo "Copy engd (scandef.abr) from backing build"
+mkdir -p $SBEROOT/simics/import/cec-chip/
+cp $BACKING_BUILD/obj/ppc/simu/data/cec-chip/scandef.abr $SBEROOT/simics/import/cec-chip/scandef.abr || exit -1
+
+echo  "Copy test files."
+cp -r $SBEROOT/src/test/testcases/* $SBETESTDIR/ || exit -1
+cp $SBEROOT/src/tools/debug/simics-debug-framework.py $SBETESTDIR/ || exit -1
+cp $SBEROOT/src/tools/debug/sbe-debug.py $SBETESTDIR/ || exit -1
+cp $SBEROOT/src/import/chips/p9/security/p9_security_white_black_list.csv $SBETESTDIR/ || exit -1
+cp $SBEROOT/src/build/security/securityRegListGen.py $SBETESTDIR/ || exit -1
+cp $SBEROOT/src/tools/debug/simics/sbe_startup_p10_standalone.simics $SBETESTDIR/ || exit -1
+cp $SBEROOT/src/test/testcases/testP10_standalone.simics $SBETESTDIR/ || exit -1
+cp $SBEROOT/images/sbe_DD1.syms $SBETESTDIR/ || exit -1
+cp $SBEROOT/images/*.bin $SBETESTDIR/ || exit -1
+cp $SBEROOT/images/*.dis $SBETESTDIR/ || exit -1
+cp $SBEROOT/images/sbeStringFile_DD1 $SBETESTDIR/ || exit -1
+cp $SBEROOT/obj/power/genfiles/ppe2fsp $SBETESTDIR/ || exit -1
+echo "Copy OTPROM image"
+cp -f $SBEROOT/images/sbe_otprom_DD1.bin $SBEROOT/simics/import/boot_roms/sbe_otprom_p10.bin|| exit 
+
+echo "Copy fsp-trace"
+cp $MCP_PATH/opt/fsp/usr/bin/fsp-trace $SBETESTDIR || exit -1
+
+echo "Install simics"
+$SBEROOT/simics/INSTALL.sh || exit -1
+
+
+

@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -61,37 +61,18 @@ echo    "$0"
 echo    "VERBOSE                    = $VERBOSE"
 echo    "NOWIN                      = $NOWIN"
 echo    "BACKING_TREE               = $DRIVER"
-echo    "SANDBOXRC                  = $SANDBOXRC"
 echo    "SBXHOME                    = $SBXHOME"
-echo    "AUTOSIM_FFDC_XML           = $AUTOSIM_FFDC_XML"
 echo    "current directory is " `pwd`
 
 
 timestamp=`date +'%H:%M:%S'`
 echo "$timestamp Starting SBE test..."
 
-# Check preconditions for run-fsp-it
-# This is just workaround. It is expected
-# that user already either have this file
-# or tokens have been taken by klog command.
-# This is just to make run-fsp-it work in user
-# sandbox
-if [ -z $RUNNING_UNDER_JENKINS ]
-then
-    mkdir -p ~/private
-    if [ ! -f  ~/private/.p ]; then
-        echo "Creating p file"
-        touch ~/private/.p
-    fi
-
-    if [ ! -f  ~/private/password ]; then
-        echo "Creating passwd file"
-        touch ~/private/password
-        echo "dummy" > ~/private/password
-    fi
-fi
-
-execute_in_sandbox "run-fsp-it $NOWIN --machine $MACHINE $SBE_TEST_XML"  "ppc" || exit -1
+curDir=`pwd`
+cd simics/
+#TODO: Test cases should be enabled using following command
+#./runsim -m p10_standalone sbe_boot_mem='seeprom' sbe_seeprom_img="$SBEROMDIR/sbe_seeprom_p10.bin.ecc" sbe_script_to_run=targets/p10_standalone/sbeTest/sbe_startup_p10_standalone.simics sbe_scripts_path=targets/p10_standalone/sbeTest/ sbe_ci=TRUE sbe_ci_script=targets/p10_standalone/sbeTest/testP10_standalone.simics || exit -1
+cd $curDir
 
 exit 0
 

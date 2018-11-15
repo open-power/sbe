@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2018
+# Contributors Listed Below - COPYRIGHT 2017,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -25,7 +25,7 @@
 import sys
 import os
 import struct
-sys.path.append("targets/p9_nimbus/sbeTest" )
+sys.path.append("targets/p10_standalone/sbeTest" )
 import testPSUUtil
 import testRegistry as reg
 import testUtil

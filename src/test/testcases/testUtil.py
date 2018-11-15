@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -32,7 +32,7 @@ cyclesPerIter = 20000;
 def getLbus( node, isfleetwood ):
     #This is non-fleetwood system, where node is 0 by default
     if (isfleetwood == 0):
-        lbus=conf.p9Proc0.proc_lbus_map
+        lbus=conf.backplane0.proc0.cfam_cmp.lbus_map
     else:
         # This is fleetwood system
         if(node == 0):
@@ -259,3 +259,10 @@ def checkEqual( data, expdata ):
         print "Expected Data", expdata
         raise Exception('data mistmach');
 
+def collectFFDC():
+        simics.SIM_run_command('sbe-trace 0')
+        simics.SIM_run_command('sbe-stack 0')
+        simics.SIM_run_command('sbe-regffdc 0')
+        simics.SIM_run_command('backplane0.proc0.pib_cmp.sbe_ppe->ppe_state')
+        simics.SIM_run_command('backplane0.proc0.cfam_cmp.sbe_fifo->upstream_hw_fifo')
+        simics.SIM_run_command('backplane0.proc0.cfam_cmp.sbe_fifo->downstream_hw_fifo')

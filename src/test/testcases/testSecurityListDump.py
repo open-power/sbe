@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2019
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,12 +93,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    if err:
-    	print ( "\nTest Suite completed with error(s)" )
-    	#sys.exit(1)
-    else:
-    	print ( "\nTest Suite completed with no errors" )
-	#sys.exit(0);
+    try:
+        main()
+    except:
+        print ( "\nTest Suite completed with error(s)" )
+        testUtil.collectFFDC()
+        raise()
+
+    print ( "\nTest Suite completed with no errors" )
 
 

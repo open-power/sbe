@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -24,7 +24,7 @@
 # IBM_PROLOG_END_TAG
 
 import sys
-sys.path.append("targets/p9_nimbus/sbeTest" )
+sys.path.append("targets/p10_standalone/sbeTest" )
 import testPSUUtil
 import testRegistry as reg
 import testUtil
@@ -133,12 +133,11 @@ def main():
     print ("Success - Wrote an invalid size which failed")
 
 if __name__ == "__main__":
-    main()
-    if err:
-    	print ( "\nTest Suite completed with error(s)" )
-    	#sys.exit(1)
-    else:
-    	print ( "\nTest Suite completed with no errors" )
-	#sys.exit(0);
+    try:
+        main()
+    except:
+        print ( "\nTest Suite completed with error(s)" )
+        testUtil.collectFFDC()
+        raise()
 
-
+    print ( "\nTest Suite completed with no errors" )

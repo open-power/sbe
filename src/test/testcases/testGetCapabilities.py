@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -23,7 +23,7 @@
 #
 # IBM_PROLOG_END_TAG
 import sys
-sys.path.append("targets/p9_nimbus/sbeTest" )
+sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
 err = False
 
@@ -61,9 +61,6 @@ EXPDATA3 = [0xa8,0x0,0x0,0x03, #getcapability/getSbeFFDC/quiesce
 #-------------------------------------------------
 def main( ):
     ( rc, out )  =   quiet_run_command( "sbe-ddlevel 0", output_modes.regular )
-    if(rc == "DD1"):
-        print "Not running Get Capabilities on DD1"
-        return
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( TESTDATA )
     testUtil.writeEot( )
@@ -78,12 +75,11 @@ def main( ):
 #-------------------------------------------------
 # Calling all test code
 #-------------------------------------------------
-main()
+try:
+    main()
+except:
+    print ( "\nTest Suite completed with error(s)" )
+    testUtil.collectFFDC()
+    raise()
 
-if err:
-    print ("\nTest Suite completed with error(s)")
-    #sys.exit(1)
-else:
-    print ("\nTest Suite completed with no errors")
-    #sys.exit(0);
-
+print ( "\nTest Suite completed with no errors" )

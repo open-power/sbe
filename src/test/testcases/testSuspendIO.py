@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2019
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +24,7 @@
 # IBM_PROLOG_END_TAG
 
 import sys
-sys.path.append("targets/p9_nimbus/sbeTest" )
+sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
 err = False
 
@@ -47,12 +48,12 @@ def main( ):
 #-------------------------------------------------
 # Calling all test code
 #-------------------------------------------------
-main()
+try:
+    main()
+except:
+    print ( "\nTest Suite completed with error(s)" )
+    testUtil.collectFFDC()
+    raise()
 
-if err:
-    print ("\nTest Suite completed with error(s)")
-    #sys.exit(1)
-else:
-    print ("\nTest Suite completed with no errors")
-    #sys.exit(0);
+print ( "\nTest Suite completed with no errors" )
 
