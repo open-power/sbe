@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -91,7 +91,14 @@ then
     fi
 fi
 
-execute_in_sandbox "run-fsp-it $NOWIN --machine $MACHINE $SBE_TEST_XML"  "ppc" || exit -1
+if [ "$MACHINE_TYPE" = "NIMBUS" ]; then
+    execute_in_sandbox "run-fsp-it $NOWIN --machine $MACHINE_TYPE $SBE_TEST_XML"  "ppc" || exit -1
 
+elif [ "$MACHINE_TYPE" = "AXONE" ]; then
+    curDir=`pwd`
+    cd $SANDBOXBASE/simics/
+    ./runsim -m axone sbe_script_to_run=$SBETESTDIRAXONE/sbe_startupAxone.simics sbe_scripts_path=$SBETESTDIRAXONE sbe_ci=TRUE sbe_ci_script=$SBETESTDIRAXONE/testAxone.simics || exit -1
+    cd $curDir
+fi
 exit 0
 

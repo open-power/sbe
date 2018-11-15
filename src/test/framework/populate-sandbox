@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -57,4 +57,37 @@ execute_in_sandbox "cd $SBEFW_DIR; mk install_all" \
 
 
 # Copy test files.
-cp  -r $SBEROOT/src/test/testcases/* $SBETESTDIR/ || exit -1
+if [ "$MACHINE_TYPE" = "NIMBUS" ]; then
+
+    cp  -r $SBEROOT/src/test/testcases/* $SBETESTDIR/ || exit -1
+
+elif [ "$MACHINE_TYPE" = "AXONE" ]; then
+
+    echo "Untar simics.tar.gz into the sandbox"
+    tar -xf $SIMICS_TAR/simics.tar.gz -C $SANDBOXBASE/simics/ || exit -1
+
+    echo "Create the test directory for axone"
+    mkdir -p $SANDBOXBASE/simics/targets/p9_axone/sbeTest/ || exit -1
+
+    echo "Copy binary to simics workspace"
+    cp $SANDBOXBASE/images/ppc/lab/flash/sbe_seeprom_p9a_10.bin.ecc $SBEROMDIRAXONE/ || exit -1
+
+    echo "Copy engd (scandef.abr) from backing build"
+    cp $BACKING_BUILD/obj/ppc/simu/data/cec-chip/scandef.abr $SANDBOXBASE/simics/import/cec-chip/scandef.abr || exit -1
+
+    echo  "Copy test files."
+    cp $SANDBOXBASE/obj/ppc/simu/scripts/sbfw/* $SBETESTDIRAXONE/ || exit -1
+    cp $SBEROOT/src/import/chips/p9/security/p9_security_white_black_list.csv $SBETESTDIRAXONE/ || exit -1
+    cp $SBEROOT/src/build/security/securityRegListGen.py $SBETESTDIRAXONE/ || exit -1
+    cp $SBEROOT/src/tools/debug/simics/sbe_startupAxone.simics $SBETESTDIRAXONE/ || exit -1
+    cp $SBEROOT/src/test/testcases/testAxone.simics $SBETESTDIRAXONE/ || exit -1
+
+    echo "Copy fsp-trace"
+    execute_in_sandbox "which fsp-trace > $SBETESTDIRAXONE/.fsp_trace_path"  "ppc" || exit -1
+    fsp_trace_path=`cat $SBETESTDIRAXONE/.fsp_trace_path` || exit -1
+    rm $SBETESTDIRAXONE/.fsp_trace_path || exit -1
+    cp $fsp_trace_path $SBETESTDIRAXONE || exit -1
+
+    echo "Install simics"
+    $SANDBOXBASE/simics/INSTALL.sh || exit -1
+fi

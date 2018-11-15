@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -53,22 +53,24 @@ export sb=$SANDBOXBASE/src
 
 execute_in_sandbox "ecc --inject ${SBE_IMG_OUT_LOC}/sbe_seeprom.bin --output  ${SBE_IMG_OUT_LOC}/sbe_seeprom.bin.ecc --p8 "  "ppc" || exit -1
 
-# Run presimsetup workarounds.
-echo "----Running presimsetup workarounds."
-if [ -f ${CITESTPATH}/etc/workarounds.presimsetup ];
-then
-    ${CITESTPATH}/etc/workarounds.presimsetup || exit -1
+echo $MACHINE_TYPE
+if [ "$MACHINE_TYPE" = "NIMBUS" ]; then
+    # Run presimsetup workarounds.
+    echo "----Running presimsetup workarounds."
+    if [ -f ${CITESTPATH}/etc/workarounds.presimsetup ];
+    then
+        ${CITESTPATH}/etc/workarounds.presimsetup || exit -1
+    fi
+
+    # Run start_simics to populate simics directories.
+    echo "----Setting up simics."
+    execute_in_sandbox "start_simics -no_start -machine $MACHINE_TYPE -batch_mode" \
+                       "ppc" || exit -1
+
+    # Run postsimsetup workarounds.
+    echo "----Running postsimsetup workarounds."
+    if [ -f ${CITESTPATH}/etc/workarounds.postsimsetup ];
+    then
+        ${CITESTPATH}/etc/workarounds.postsimsetup || exit -1
+    fi
 fi
-
-# Run start_simics to populate simics directories.
-echo "----Setting up simics."
-execute_in_sandbox "start_simics -no_start -machine $MACHINE -batch_mode" \
-                   "ppc" || exit -1
-
-# Run postsimsetup workarounds.
-echo "----Running postsimsetup workarounds."
-if [ -f ${CITESTPATH}/etc/workarounds.postsimsetup ];
-then
-    ${CITESTPATH}/etc/workarounds.postsimsetup || exit -1
-fi
-

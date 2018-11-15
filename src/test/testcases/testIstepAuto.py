@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -26,8 +26,32 @@ import sys
 import copy
 from sim_commands import *
 import imp
+
 err = False
-testUtil = imp.load_source("testUtil", os.environ['SBE_TOOLS_PATH'] + "/testUtil.py")
+
+def getMachineName():
+    try:
+        sbeScriptsPath = simenv.sbe_scripts_path
+        macineType = "axone"
+    except:
+        macineType = "nimbus"
+    finally:
+        return macineType
+
+def collectFFDC():
+    if getMachineName() == "axone":
+        simics.SIM_run_command('sbe-trace 0')
+        simics.SIM_run_command('sbe-stack 0')
+        simics.SIM_run_command('sbe-regffdc 0')
+        simics.SIM_run_command('backplane0.proc0.pib_cmp.sbe_ppe->ppe_state')
+        simics.SIM_run_command('backplane0.proc0.cfam_cmp.sbe_fifo->upstream_hw_fifo')
+        simics.SIM_run_command('backplane0.proc0.cfam_cmp.sbe_fifo->downstream_hw_fifo')
+
+if getMachineName() == "axone":
+    SBE_TOOLS_PATH = simenv.sbe_scripts_path
+else:
+    SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH']
+testUtil = imp.load_source("testUtil", SBE_TOOLS_PATH + "/testUtil.py")
 EXPDATA = [0xc0,0xde,0xa1,0x01,
            0x0,0x0,0x0,0x0,
            0x00,0x0,0x0,0x03];
@@ -88,11 +112,14 @@ def sbe_istep_func( inum1, inum2, node=0, isfleetwood=0):
                 testUtil.runCycles( 10000000 )
                 testUtil.writeUsFifo( TESTDATA, node, isfleetwood )
                 testUtil.writeEot( node, isfleetwood )
+                testUtil.runCycles( 10000 )
                 testUtil.readDsFifo( EXPDATA, node, isfleetwood )
+                testUtil.runCycles( 10000 )
                 testUtil.readEot( node, isfleetwood )
 
             except:
                 print ("\nTest completed with error(s). Raise error")
+                collectFFDC()
                 # TODO via RTC 142706
                 # Currently simics commands created using hooks always return
                 # success. Need to check from simics command a way to return
@@ -101,4 +128,6 @@ def sbe_istep_func( inum1, inum2, node=0, isfleetwood=0):
                 raise
     print ("\nTest completed with no errors")
         #sys.exit(0);
+
+
 

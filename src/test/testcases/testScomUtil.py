@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2019
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +26,7 @@ import sys
 import os
 import struct
 sys.path.append("targets/p9_nimbus/sbeTest" )
+sys.path.append("targets/p9_axone/sbeTest" )
 import testUtil
 err = False
 

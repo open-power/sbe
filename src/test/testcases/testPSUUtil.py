@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -58,8 +58,10 @@ FAILURE = 0
 '''
 This is a simulator obj mapped. Refer simics folks if new objects are needed.
 '''
-simSbeObj  = conf.p9Proc0.sbe.scom_space
-simHostObj = conf.p9Proc0.p9_mem_map.host_xscom_device_mm
+if testUtil.getMachineName() == "axone":
+    simSbeObj  = conf.backplane0.proc0.pib_cmp.sbe_scom_space
+else:
+    simSbeObj  = conf.p9Proc0.sbe.scom_space
 simMemObj  = conf.system_cmp0.phys_mem
 
 '''

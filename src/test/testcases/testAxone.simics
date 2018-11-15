@@ -1,0 +1,126 @@
+backplane0.proc0.pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
+
+echo "*******************Run testRunTillSbeBooted.py************************"
+
+run-python-file targets/p9_axone/sbeTest/testRunTillSbeBooted.py
+
+echo "*******************Run testPSUSetStashPair.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testPSUSetStashPair.py
+
+echo "*******************Run testIstep.xml*******************"
+
+sbe-istep 2.2 5.1
+
+run-python-file targets/p9_axone/sbeTest/testMatchStashPair.py
+
+run-python-file targets/p9_axone/sbeTest/testIstepInvalid.py
+
+run-python-file targets/p9_axone/sbeTest/testIstepInvalidFenced.py
+
+echo "*******************Run testSuspendIO.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testSuspendIO.py
+
+echo "*******************Run testGeneric.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testGetCapabilities.py
+
+run-python-file targets/p9_axone/sbeTest/testSbeDump.py
+
+run-python-file targets/p9_axone/sbeTest/testHostFFDC.py
+
+run-python-file targets/p9_axone/sbeTest/testPSUReadSbeMem.py
+
+echo "*******************Run testUnsecureMemRegions.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testUnsecureMemRegions.py
+
+echo "*******************Run testPutGetMem.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testMemPBA.py
+
+run-python-file targets/p9_axone/sbeTest/testPsuHostPassThrough.py
+
+echo "*******************Run testAduMem.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testAduMem_ecc.py
+
+run-python-file targets/p9_axone/sbeTest/testAduMem_itag.py
+
+run-python-file targets/p9_axone/sbeTest/testAduMem_withEccItag.py
+
+run-python-file targets/p9_axone/sbeTest/testAduMem_noEccNoItag.py
+
+run-python-file targets/p9_axone/sbeTest/testAduMem_124B.py
+
+echo "*******************Run testPSUSetFFDCAddr.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testPSUSetFFDCAddr.py
+
+echo "*******************Run testPSUGetCapabilities.py*******************"
+
+run-python-file targets/p9_axone/sbeTest/testPSUGetCapabilities.py
+
+echo "*******************Run testSram.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testSram.py
+
+echo "*******************Run istep 5.2*******************"
+sbe-istep 5 2
+
+echo "*******************Run testRegAccess.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testStopInstruction.py
+
+run-python-file targets/p9_axone/sbeTest/testPutGetRegGpr.py
+
+run-python-file targets/p9_axone/sbeTest/testPutGetRegFpr.py
+
+run-python-file targets/p9_axone/sbeTest/testPutGetRegSpr.py
+
+run-python-file targets/p9_axone/sbeTest/testStartInstruction.py
+
+echo "*******************Run testFifoReset.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testFifoReset.py
+
+run-python-file targets/p9_axone/sbeTest/testIstepInvalidFenced.py
+
+echo "*******************Run testSystemFabricMap.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testSystemFabricMap.py
+
+echo "*******************Run testExecutorCntrlTimer.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testExecutorCntrlTimer.py
+
+run-python-file targets/p9_axone/sbeTest/testExecutorStopTimer.py
+
+echo "*******************Run testSecurity.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testSecurity.py
+
+echo "*******************Run testStopClocks.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testStopClocks.py
+
+echo "*******************Run testGetRing.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testGetRing.py
+
+echo "*******************Run testExecutorPutRing.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testExecutorPutRing.py
+
+echo "*******************Run testFastAccess.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testFastArray.py
+
+echo "*******************Run testQuiesce.xml*******************"
+
+run-python-file targets/p9_axone/sbeTest/testQuiesce.py
+
+echo "*******************Run sbe-trace*******************"
+
+sbe-trace 0

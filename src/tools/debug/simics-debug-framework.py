@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -31,56 +31,78 @@ import sys
 import imp
 import struct
 
-testIstepAuto = imp.load_source("testIstepAuto", os.environ['SBE_TOOLS_PATH'] + "/testIstepAuto.py")
-sbeDebug = imp.load_source("sbeDebug", os.environ['SBE_TOOLS_PATH'] + "/sbe-debug.py")
+def getMachineName():
+   try:
+       sbeScriptsPath = simenv.sbe_scripts_path
+       macineType = "axone"
+   except:
+       macineType = "nimbus"
+   finally:
+       return macineType
+
+if getMachineName() == "axone":
+    SBE_TOOLS_PATH = simenv.sbe_scripts_path
+else:
+    SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH']
+print "SBE_TOOLS_PATH = " +  SBE_TOOLS_PATH
+
+testIstepAuto = imp.load_source("testIstepAuto", SBE_TOOLS_PATH + "/testIstepAuto.py")
+sbeDebug = imp.load_source("sbeDebug", SBE_TOOLS_PATH + "/sbe-debug.py")
 err = False
 g_isFleetwood = 0
 
 syms = {};
 
 def check_sbe_tools_path ():
-  global SBE_TOOLS_PATH
-  global g_isFleetwood
-  SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
-  #Figure out if it's a fleetwood system
-  cmd1 = "pipe \"echo $cec_type\" \"cat > temp1.map\""
-  ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
-  if ( rc ):
-    print "simics ERROR running %s: %d "%( cmd1, rc )
-  with open('temp1.map', 'r') as f:
-    map = f.read().strip()
-    if(map == "p9_fleetwood"):
-        g_isFleetwood = 1
-    else:
+    global g_isFleetwood
+    #Figure out if it's a fleetwood system
+
+    #TODO: Assuming that axone cannot be fleetwood (multinode system). Confirm
+    #this before merging the code.
+    if getMachineName() == "axone":
         g_isFleetwood = 0
+    else:
+        cmd1 = "pipe \"echo $cec_type\" \"cat > temp1.map\""
+        ( rc, out )  =   quiet_run_command( cmd1, output_modes.regular )
+        if ( rc ):
+          print "simics ERROR running %s: %d "%( cmd1, rc )
+        with open('temp1.map', 'r') as f:
+          map = f.read().strip()
+          if(map == "p9_fleetwood"):
+              g_isFleetwood = 1
+          else:
+              g_isFleetwood = 0
 
 def get_dd_level(procNr = 0, nodeNr = 0):
     global g_isFleetwood
 
-    if g_isFleetwood:
-        node = nodeNr + 1
-        cmd = "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.map\" \"cat > temp.map\""
+    if getMachineName() == "axone":
+        ddlevel = 'AXONE'
     else:
-        cmd = "pipe \"p9Proc"+str(procNr)+".sbe.mibo_space.map\" \"cat > temp.map\""
-    
-    print "simics running %s: "%( cmd)
-    ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
-    if ( rc ):
-        print "simics ERROR running %s: %d "%( cmd, rc )
-    ddlevel = 'DD1'
-    with open('temp.map', 'r') as f:
-        map = f.read()
-        map = map.split()
         if g_isFleetwood:
-            if map[map.index('D'+str(node)+'Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
-                ddlevel = "DD1"
-            if map[map.index('D'+str(node)+'Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
-                ddlevel = "DD2"
+            node = nodeNr + 1
+            cmd = "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.map\" \"cat > temp.map\""
         else:
-            if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
-                ddlevel = "DD1"
-            if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
-                ddlevel = "DD2"
+            cmd = "pipe \"p9Proc"+str(procNr)+".sbe.mibo_space.map\" \"cat > temp.map\""
+
+        print "simics running %s: "%( cmd)
+        ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
+        if ( rc ):
+            print "simics ERROR running %s: %d "%( cmd, rc )
+        ddlevel = 'DD1'
+        with open('temp.map', 'r') as f:
+            map = f.read()
+            map = map.split()
+            if g_isFleetwood:
+                if map[map.index('D'+str(node)+'Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
+                    ddlevel = "DD1"
+                if map[map.index('D'+str(node)+'Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
+                    ddlevel = "DD2"
+            else:
+                if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0x80000000':
+                    ddlevel = "DD1"
+                if map[map.index('p9Proc'+str(procNr)+'.sbe.fi2c_bo:fi2cfsm')-1] == '0xff800000':
+                    ddlevel = "DD2"
     print "running image - ["+ddlevel+"]"
     return ddlevel
 
@@ -160,7 +182,10 @@ def collectStackUsage ( procNr, nodeNr=0 ):
         node = nodeNr + 1
         cmd = "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
     else:
-        cmd = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
+        if getMachineName() == "axone":
+            cmd = "pipe \"backplane0.proc" + `procNr` + ".pib_cmp.sbe_mibo.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
+        else:
+            cmd = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
     print "simics running %s: "%( cmd)
     ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
     if ( rc ):
@@ -203,7 +228,10 @@ def collectRegFfdc( procNr, nodeNr=0 ):
     node = nodeNr + 1
     cmd= "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
   else:
-    cmd= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+    if getMachineName() == "axone":
+      cmd = "pipe \"backplane0.proc" + `procNr` + ".pib_cmp.sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+    else:
+      cmd= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
   print "simics running %s: "%( cmd)
   ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
   if ( rc ):
@@ -227,9 +255,15 @@ def collectTrace ( procNr, nodeNr=0 ):
     cmd1 = "pipe \"D"+str(node)+"Proc"+str(procNr)+".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   else:
     fileName = "sbe_" + `procNr` + "_tracMERG"
-    cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
+    if getMachineName() == "axone":
+        cmd1 = "pipe \"backplane0.proc" + `procNr` + ".pib_cmp.sbe_mibo.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
+    else:
+        cmd1 = "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
-  cmd3 = "shell \"" + "fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr, nodeNr)+" sbetrace.bin >" +  fileName + "\""
+  if getMachineName() == "axone":
+    cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr, nodeNr)+" sbetrace.bin >" +  fileName + "\""
+  else:
+    cmd3 = "shell \"fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr, nodeNr)+" sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""
 
   print "simics running %s: "%( cmd1)

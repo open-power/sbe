@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -24,6 +24,7 @@
 # IBM_PROLOG_END_TAG
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
+sys.path.append("targets/p9_axone/sbeTest" )
 import testUtil
 err = False
 
@@ -71,12 +72,22 @@ def main( ):
 #-------------------------------------------------
 # Calling all test code
 #-------------------------------------------------
-main()
+if testUtil.getMachineName() == "axone":
+    try:
+        main()
+    except:
+        print ( "\nTest Suite completed with error(s)" )
+        testUtil.collectFFDC()
+        raise()
 
-if err:
-    print ("\nTest Suite completed with error(s)")
-    #sys.exit(1)
+    print ( "\nTest Suite completed with no errors" )
 else:
-    print ("\nTest Suite completed with no errors")
-    #sys.exit(0);
+    main()
+
+    if err:
+        print ("\nTest Suite completed with error(s)")
+        #sys.exit(1)
+    else:
+        print ("\nTest Suite completed with no errors")
+        #sys.exit(0);
 
