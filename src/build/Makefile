@@ -340,6 +340,7 @@ $(IMG_DIR)/fixed.bin: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
 
 appendloader:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .hbbl $(BACKING_BUILD)/obj/ppc/hbfw/img/hbbl.bin
 
 # collect all of the trace hash files for this image into a single sbeStringFile
 tracehash:
