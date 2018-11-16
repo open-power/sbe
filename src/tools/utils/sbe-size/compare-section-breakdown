@@ -1,0 +1,66 @@
+#!/bin/bash
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: src/tools/utils/sbe-size/compare-section-breakdown $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2018
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
+
+if [ -z "$1" ]; then
+    echo "Will compare section/symbol sizes between a *.o or *.map file"
+    echo "and its counterpart in the ref/ subdirectory."
+    echo "Usage: $0 current_file"
+    exit 1
+fi
+
+MYDIR=$(dirname $0)
+CROSS_COMPILER_PATH=${CROSS_COMPILER_PATH:-/afs/awd/projects/cte/tools/ppetools/prod}
+OBJDUMP=$CROSS_COMPILER_PATH/powerpc-eabi/bin/objdump
+DIFF=${DIFF:-tkdiff}
+TMPFILEa=$(mktemp)
+TMPFILEb=$(mktemp)
+
+cleanup() {
+    rm -f $TMPFILEa $TMPFILEb
+}
+trap cleanup EXIT
+
+if [[ $1 == *.map ]]; then
+    perl -pe 's/0x[0-9a-f]{16}/0xHIDDENHIDDENHIDD/' ref/$1 > $TMPFILEa
+    perl -pe 's/0x[0-9a-f]{16}/0xHIDDENHIDDENHIDD/' $1 > $TMPFILEb
+elif [[ $1 == *.o ]]; then
+    python3 $MYDIR/section-breakdown.py ref/$1 | c++filt | sort -k2 > $TMPFILEa
+    python3 $MYDIR/section-breakdown.py $1 | c++filt | sort -k2 > $TMPFILEb
+elif [[ $1 == *.su ]]; then
+    cat ref/$1 > $TMPFILEa
+    cat $1 > $TMPFILEb
+elif [[ $1 == *.dis ]]; then
+    $OBJDUMP -dr ref/${1%.dis}.o | perl -pe 's/^\s*[0-9a-fA-F]+:/xxxx:/' > $TMPFILEa
+    $OBJDUMP -dr ${1%.dis}.o | perl -pe 's/^\s*[0-9a-fA-F]+:/xxxx:/' > $TMPFILEb
+elif [[ $1 == *.diss ]]; then
+    $OBJDUMP -Sr ref/${1%.diss}.o > $TMPFILEa
+    $OBJDUMP -Sr ${1%.diss}.o > $TMPFILEb
+else
+    echo "This script can only compare *.map, *.o or *.su files so far."
+    exit 1
+fi
+
+$DIFF $TMPFILEa $TMPFILEb

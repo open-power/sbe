@@ -467,6 +467,7 @@ PIPE-CFLAGS = -pipe
 GCC-CFLAGS += -mcpu=ppe42
 GCC-CFLAGS += -ffunction-sections
 GCC-CFLAGS += -fdata-sections
+GCC-CFLAGS += -fstack-usage
 endif
 
 ifeq ($(img), seeprom)

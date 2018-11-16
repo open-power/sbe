@@ -1,0 +1,52 @@
+These tools aim to answer two questions:
+  1. How do the individual modules of SBE contribute to code/data size?
+  2. How does my code change affect the size across modules?
+  3. Which symbols ended up increasing/decreasing in size?
+
+They do so by collecting code/data size per object file and allowing
+you to plot them in a stacked bar graph, or to compare two such statistics
+in a similar graph.
+
+The graphs use the object file name on the X axis, sorted alphabetically
+so that each object file is at the same X location every time you generate
+the graph. This should help compare similar graphs.
+
+The tools are currently special-cased to look at a DD2 build only. This can
+easily be changed by modifying collect-section-sizes.
+
+Usage:
+  0. Add the scripts to your PATH:
+     export PATH=$PATH:$PWD/tools/utils/sbe-size
+  1. Fully build your reference commit once
+  2. mkdir ref; cp -av images obj ref
+     Copy the reference build artifacts somewhere safe
+  3. SBEROOT=$PWD/ref collect-section-sizes > ref/sizes.txt
+     This will collect the code/data sizes for all reference object files
+     into a file 'sizes.txt'. It's an ASCII file, happy viewing.
+  4. Hack away at the code, rebuild.
+     If you changed common header files, do a "make clean" before you build
+     since the build system doesn't reliably rebuild all dependent files.
+  5. collect-section-sizes > sizes.txt
+     This will collect the code/data sizes for your changed build.
+  6. view-section-sizes sizes.txt
+     This will plot the sizes from sizes.txt using gnuplot. If your gnuplot
+     supports zooming, you can zoom around the plot to examine it. When
+     you're done, exit gnuplot by hitting Ctrl-D at the 'gnuplot>' prompt.
+  7. compare-section-sizes ref/sizes.txt sizes.txt
+     Compare two sizes files against one another. The plot will show size
+     reductions as bars below the zero line, size increases as bars above.
+  8. compare-section-breakdown images/sbe_seeprom_DD2.map
+     Compare maps for ref/images/sbe_seeprom_DD2.map and
+     images/sbe_seeprom_DD2.map, replacing addresses by a constant value
+     so only the sizes are compared.
+  9. compare-section-breakdown obj/power/fapi2/target.o
+     Compare section sizes for ref/obj/power/fapi2/target.o and
+     obj/power/fapi2/target.o - or any other object file of course.
+     This will filter the C++ mangled names too.
+ 10. compare-section-breakdown obj/power/fapi2/target.su
+     compare-section-breakdown obj/power/fapi2/target.dis
+     compare-section-breakdown obj/power/fapi2/target.diss
+     The same for stack usage, disassembly (with addresses normalized for
+     better diffing) and assembly with source.
+
+If you have questions, ask fenkes@de.ibm.com.
