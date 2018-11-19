@@ -66,29 +66,45 @@ namespace fapi2
         PPE_TARGET_TYPE_NONE              = 0x00,
         PPE_TARGET_TYPE_PROC_CHIP         = 0x01,
         PPE_TARGET_TYPE_MCS               = 0x02,
-        PPE_TARGET_TYPE_CORE              = 0x04,
-        PPE_TARGET_TYPE_EQ                = 0x08,
-        PPE_TARGET_TYPE_EX                = 0x10,
-        PPE_TARGET_TYPE_PERV              = 0x20,
-        PPE_TARGET_TYPE_MCBIST            = 0x40,
-        PPE_TARGET_TYPE_SYSTEM            = 0x80,
-        PPE_TARGET_TYPE_PHB               = 0x100,
-        PPE_TARGET_TYPE_MI                = 0x200,
-        PPE_TARGET_TYPE_MC                = 0x400,
-        PPE_TARGET_TYPE_ALL               = 0xFFF,
+        PPE_TARGET_TYPE_CORE              = 0x03,
+        PPE_TARGET_TYPE_EQ                = 0x04,
+        PPE_TARGET_TYPE_EX                = 0x05,
+        PPE_TARGET_TYPE_PERV              = 0x06,
+        PPE_TARGET_TYPE_MCBIST            = 0x07,
+        PPE_TARGET_TYPE_SYSTEM            = 0x08,
+        PPE_TARGET_TYPE_PHB               = 0x09,
+        PPE_TARGET_TYPE_MI                = 0x0A,
+        PPE_TARGET_TYPE_MC                = 0x0B,
     } plat_target_type_t;
 
     typedef union plat_target_handle {
         uint32_t value;
         struct {
-            uint32_t chiplet_num       : 8;
-            uint32_t type_target_num   : 8;
-            uint32_t present           : 1;
-            uint32_t functional        : 1;
-            uint32_t is_multicast      : 1;
-            uint32_t valid             : 1;
-            uint32_t type              : 12;
-        } fields;
+            /* chiplet number is overloaded for multicast vs. unicast targets */
+            union {
+                uint32_t chiplet_num     :8;
+                struct {
+                    uint32_t                 :1; // unused in the multicast case, must be zero for unicast targets
+                    uint32_t is_multicast    :1; // used for targeting
+                    uint32_t mcast_type      :3; // used for targeting
+                    uint32_t mcast_group     :3; // used for targeting
+                } __attribute__((packed));
+            } __attribute__((packed));
+            uint32_t type_target_num :8; // used internally
+            /* lower 16 bits start here */
+            uint32_t core_select     :4; // used for targeting
+            uint32_t                 :2;
+            uint32_t present         :1; // used internally
+            uint32_t functional      :1; // used internally
+            uint32_t                 :4;
+            uint32_t type            :4; // used internally
+        } fields __attribute__((packed));
+
+		/* Return the target value with all internal bits masked away */
+		uint32_t getPIBAddress() {
+			return value & 0x7F00F000;
+		}
+
         ///
         /// @brief Plat target handle constructor
         ///
@@ -120,9 +136,9 @@ namespace fapi2
         ///
         /// @return The plat target type as a fapi2::TargetType
         ///
-        TargetType getTargetType() const
+        plat_target_type getTargetType() const
         {
-            return static_cast<TargetType>(fields.type);
+            return static_cast<plat_target_type>(fields.type);
         }
 
         ///
@@ -208,6 +224,11 @@ namespace fapi2
                          std::vector<plat_target_handle>& o_children) const;
 
         ///
+        /// @brief Is this also usable as a PERV target?
+        ///
+        bool isPerv() const;
+
+        ///
         /// @brief Gets the plat target handle as a uint32
         ///
         /// @return Plat target handle as a uint32_t
@@ -217,19 +238,13 @@ namespace fapi2
 
     typedef plat_target_handle_t plat_target_argument_t;
 
-    template<TargetType K, bool MULTICAST = false>
+    template<TargetType K>
     plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
     {
-        static_assert((MULTICAST != true) || (K == TARGET_TYPE_PROC_CHIP),
-                "Only PROC_CHIP types can be multicast");
+        static_assert(K != TARGET_TYPE_ALL, "Target instances cannot be of type ALL");
         plat_target_handle_t l_handle;
 
-        if(MULTICAST == true)
-        {
-            // Simply set the is multicast flag
-            l_handle.fields.is_multicast = 1;
-        }
-        else if(K & TARGET_TYPE_PROC_CHIP)
+        if(K & TARGET_TYPE_PROC_CHIP)
         {
             l_handle.fields.chiplet_num = 0;
             l_handle.fields.type = PPE_TARGET_TYPE_PROC_CHIP;
@@ -244,13 +259,13 @@ namespace fapi2
         else if(K & TARGET_TYPE_CORE)
         {
             l_handle.fields.chiplet_num = i_plat_argument + CORE_CHIPLET_OFFSET;
-            l_handle.fields.type = PPE_TARGET_TYPE_CORE | PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type = PPE_TARGET_TYPE_CORE;
             l_handle.fields.type_target_num = i_plat_argument;
         }
         else if(K & TARGET_TYPE_EQ)
         {
             l_handle.fields.chiplet_num = i_plat_argument + EQ_CHIPLET_OFFSET;
-            l_handle.fields.type = PPE_TARGET_TYPE_EQ | PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type = PPE_TARGET_TYPE_EQ;
             l_handle.fields.type_target_num = i_plat_argument;
         }
         else if(K & TARGET_TYPE_EX)
@@ -262,7 +277,7 @@ namespace fapi2
         else if(K & TARGET_TYPE_MCBIST)
         {
             l_handle.fields.chiplet_num = i_plat_argument + MCBIST_CHIPLET_OFFSET;
-            l_handle.fields.type = PPE_TARGET_TYPE_MCBIST | PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type = PPE_TARGET_TYPE_MCBIST;
             l_handle.fields.type_target_num = i_plat_argument;
         }
         else if(K & TARGET_TYPE_MCS)
@@ -281,7 +296,7 @@ namespace fapi2
         else if(K & TARGET_TYPE_MC)
         {
             l_handle.fields.chiplet_num = i_plat_argument + MC_CHIPLET_OFFSET;
-            l_handle.fields.type = PPE_TARGET_TYPE_MC | PPE_TARGET_TYPE_PERV;
+            l_handle.fields.type = PPE_TARGET_TYPE_MC;
             l_handle.fields.type_target_num = i_plat_argument;
         }
         else if(K & TARGET_TYPE_MI)
@@ -290,13 +305,7 @@ namespace fapi2
             l_handle.fields.type = PPE_TARGET_TYPE_MI;
             l_handle.fields.type_target_num = i_plat_argument;
         }
-        else if(K == TARGET_TYPE_ALL)
-        {
-            l_handle.fields.chiplet_num = i_plat_argument;
-            l_handle.fields.type = PPE_TARGET_TYPE_ALL;
-        }
 
-        l_handle.fields.valid = 1;
         return l_handle;
     }
 

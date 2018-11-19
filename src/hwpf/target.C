@@ -570,10 +570,10 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_PHB:
                 l_targetType = TARGET_TYPE_PHB;
                 break;
-            case PPE_TARGET_TYPE_CORE | PPE_TARGET_TYPE_PERV:
+            case PPE_TARGET_TYPE_CORE:
                 l_targetType = TARGET_TYPE_CORE;
                 break;
-            case PPE_TARGET_TYPE_EQ | PPE_TARGET_TYPE_PERV:
+            case PPE_TARGET_TYPE_EQ:
                 l_targetType = TARGET_TYPE_EQ;
                 break;
             case PPE_TARGET_TYPE_EX:
@@ -585,14 +585,13 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_SYSTEM:
                 l_targetType = TARGET_TYPE_SYSTEM;
                 break;
-            case PPE_TARGET_TYPE_MCBIST | PPE_TARGET_TYPE_PERV:
+            case PPE_TARGET_TYPE_MCBIST:
                 l_targetType = TARGET_TYPE_MCBIST;
                 break;
-            case PPE_TARGET_TYPE_MC | PPE_TARGET_TYPE_PERV:
+            case PPE_TARGET_TYPE_MC:
                 l_targetType = TARGET_TYPE_MC;
                 break;
             case PPE_TARGET_TYPE_NONE:
-            case PPE_TARGET_TYPE_ALL:
             default:
                 assert(false);
                 break;
@@ -610,19 +609,18 @@ fapi_try_exit:
                 l_handle = G_vec_targets[CHIP_TARGET_OFFSET];
                 break;
             case TARGET_TYPE_PERV:
-                assert(fields.type & PPE_TARGET_TYPE_PERV);
+                assert(isPerv());
                 l_handle = *this;
                 break;
             case TARGET_TYPE_EX:
-                assert(fields.type & PPE_TARGET_TYPE_CORE);
+                assert(fields.type == PPE_TARGET_TYPE_CORE);
                 l_handle = G_vec_targets
                     [(fields.type_target_num / EX_PER_QUAD) + EX_TARGET_OFFSET];
                 break;
             case TARGET_TYPE_EQ:
-                assert(fields.type &
-                       (PPE_TARGET_TYPE_EX | PPE_TARGET_TYPE_CORE));
+                assert(fields.type == PPE_TARGET_TYPE_EX || fields.type == PPE_TARGET_TYPE_CORE);
                 {
-                    uint32_t l_perQuad = (fields.type & PPE_TARGET_TYPE_EX) ?
+                    uint32_t l_perQuad = (fields.type == PPE_TARGET_TYPE_EX) ?
                                          EX_PER_QUAD : CORES_PER_QUAD;
                     l_handle = G_vec_targets
                         [(fields.type_target_num / l_perQuad) +
@@ -693,7 +691,7 @@ fapi_try_exit:
             plat_target_handle_t l_temp =
                 G_vec_targets.at((this->fields.type_target_num *
                             l_childPerChiplet) + l_childTargetOffset + i);
-            if ((l_temp.fields.type & i_platType) == i_platType)
+            if (l_temp.fields.type == i_platType)
             {
                 switch (i_state)
                 {
@@ -734,7 +732,7 @@ fapi_try_exit:
             {
                 plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx + NEST_GROUP1_CHIPLET_OFFSET);
 
-                if(l_targetHandle.fields.type & PPE_TARGET_TYPE_PERV) // Can be an assertion?
+                if(l_targetHandle.isPerv()) // Can be an assertion?
                 {
                     switch (i_state)
                     {
@@ -756,6 +754,29 @@ fapi_try_exit:
                  }
              }
          }
+    }
+
+    bool plat_target_handle::isPerv() const
+    {
+        static const bool l_truth_table[] = {
+            false, // PPE_TARGET_TYPE_NONE
+            false, // PPE_TARGET_TYPE_PROC_CHIP
+            false, // PPE_TARGET_TYPE_MCS
+            true,  // PPE_TARGET_TYPE_CORE
+            true,  // PPE_TARGET_TYPE_EQ
+            false, // PPE_TARGET_TYPE_EX
+            true,  // PPE_TARGET_TYPE_PERV
+            true,  // PPE_TARGET_TYPE_MCBIST
+            false, // PPE_TARGET_TYPE_SYSTEM
+            false, // PPE_TARGET_TYPE_PHB
+            false, // PPE_TARGET_TYPE_MI
+            true,  // PPE_TARGET_TYPE_MC
+            false, // 0x0C
+            false, // 0x0D
+            false, // 0x0E
+            false, // 0x0F
+        };
+        return l_truth_table[fields.type];
     }
 
     #ifndef __noRC__
