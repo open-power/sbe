@@ -58,7 +58,7 @@ SECTIONS
     // Header
     ////////////////////////////////
     .header : {
-        _header_origin = .; _header_offset = . - _seeprom_origin; *(.header);
+        _header_origin = .; _header_offset = . - _seeprom_origin; KEEP(*(.header));
     } > seeprom
     _header_size = . - _header_origin;
 
@@ -72,7 +72,7 @@ SECTIONS
     ////////////////////////////////
     .loader_text ALIGN(0x200): {
       _loader_text_origin = .; _loader_text_offset = . - _seeprom_origin;
-      *(.loader_text);
+      KEEP(*(.loader_text));
     } > seeprom
      _loader_text_size = . - _loader_text_origin;
 
@@ -89,7 +89,7 @@ SECTIONS
     ////////////////////////////////
     .fixed  ALIGN(0x200) : {
       _fixed_origin = .; _fixed_offset = . - _seeprom_origin;
-     *(.fixed)
+     KEEP(*(.fixed))
     } > seeprom
      _fixed_size = . - _fixed_origin;
 
@@ -105,7 +105,7 @@ SECTIONS
     // FIXED_TOC
     ////////////////////////////////
     .fixed_toc ALIGN(8) : {
-        _fixed_toc_origin = .; _fixed_toc_offset = . - _seeprom_origin;  *(.fixed_toc);
+        _fixed_toc_origin = .; _fixed_toc_offset = . - _seeprom_origin;  KEEP(*(.fixed_toc));
     } > seeprom
     _fixed_toc_size = . - _fixed_toc_origin;
 
@@ -113,7 +113,7 @@ SECTIONS
     // TOC
     ////////////////////////////////
     .toc ALIGN(4): {
-        _toc_origin = .; _toc_offset = . - _seeprom_origin;  *(.toc);
+        _toc_origin = .; _toc_offset = . - _seeprom_origin;  KEEP(*(.toc));
     } > seeprom
     _toc_size = . - _toc_origin;
 
@@ -121,7 +121,7 @@ SECTIONS
     // STRING
     ////////////////////////////////
     .strings : {
-         _strings_origin = .; _strings_offset = . - _seeprom_origin; *(.strings);
+         _strings_origin = .; _strings_offset = . - _seeprom_origin; KEEP(*(.strings));
     } > seeprom
     _strings_size = . - _strings_origin;
 
@@ -161,9 +161,9 @@ SECTIONS
     . = ALIGN(8);
     .rodata . : {
                   ctor_start_address = .;
-                  *(.ctors) *(.ctors.*)
+                  KEEP(*(.ctors)) KEEP(*(.ctors.*))
                   ctor_end_address = .;
-                  *(.rodata*) *(.got2);
+                  KEEP(*(.rodata*)) KEEP(*(.got2));
      } > pibmem
     _RODATA_SECTION_SIZE = . - _RODATA_SECTION_BASE;
 

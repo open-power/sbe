@@ -147,9 +147,9 @@ build_sbe_image: $(SUBDIRS) $(SEEPROM_SUBDIRS)
 
 output_sbe_image:
 	$(C2) "Generating $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out"
-	$(C1)$(LD) -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
+	$(C1)$(LD) -e __system_reset -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
 		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(BOOT_OBJECTS)) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
-	    --start-group $(LLIBS) --end-group
+	    --start-group $(LLIBS) --end-group --gc-sections
 	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR)
 	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
 
