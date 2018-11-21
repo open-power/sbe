@@ -22,12 +22,6 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-ifdef PIBMEM_REPAIR_SCOM_P9
-BOOTTOP-S-SOURCES += pibmem_repair/scom_repair_p9/pibmem_repair.S
-endif
-ifdef PIBMEM_REPAIR_SCOM_AXONE
-BOOTTOP-S-SOURCES += pibmem_repair/scom_repair_axone/pibmem_repair.S
-endif
 BOOTTOP-S-SOURCES += loader_l1.S
 
 BOOT_OBJECTS += $(BOOTTOP-C-SOURCES:.c=.o) $(BOOTTOP-S-SOURCES:.S=.o)
