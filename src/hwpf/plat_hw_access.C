@@ -245,107 +245,20 @@ static fapi2::ReturnCode pibRcToFapiRc(const uint32_t i_pibRc)
     return l_fapiRc;
 }
 
-fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
-                                   const uint32_t i_addr, uint64_t *o_data)
+///
+/// @brief Platform wrapper to handle pib errors on scoms
+///
+/// @param [in] i_addr    The SCOM address
+/// @param [io] io_data   The data pointer
+/// @param [in] i_pibErr  PIB error code
+/// @param [in] i_isRead  True if read operation, false otherwise
+///
+/// @return PCB-PIB return code
+///
+static uint32_t recoverPibErr( const uint32_t i_addr, uint64_t *io_data,
+        const uint8_t i_pibErr, const bool i_isRead)
 {
-    uint32_t l_pibRc = 0;
-    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
-    FAPI_INF("getScom: address: 0x%08X", l_addr);
-    l_pibRc = getscom_abs(l_addr, o_data);
-    if( PIB_NO_ERROR != l_pibRc )
-    {
-        l_pibRc = p9_handlePibErr( l_addr, o_data, l_pibRc, true);
-    }
-    FAPI_INF("getScom: returned pibRc: 0x%08X, data HI: 0x%08X, "
-             "data LO: 0x%08X", l_pibRc, (*o_data >> 32),
-             static_cast<uint32_t>(*o_data & 0xFFFFFFFF));
-    fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
-    // Setting 64bit address in ffdc package as the parsers are
-    // hard coded to read 64bit address
-    const uint64_t ffdcAddr = l_addr;
-    PLAT_FAPI_ASSERT( PIB_NO_ERROR == l_pibRc,
-                      SBE_SCOM_FAILURE().
-                      set_address(ffdcAddr).
-                      set_pcb_pib_rc(l_pibRc),
-                      "getScom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X]",
-                      l_pibRc,l_addr);
-fapi_try_exit:
-    if(PIB_NO_ERROR != l_pibRc)
-    {
-        // Override FAPI RC based on PIB RC
-        fapi2::current_err = pibRcToFapiRc(l_pibRc);
-        fapi2::g_FfdcData.fapiRc = fapi2::current_err;
-    }
-    return fapi2::current_err;
-}
-
-fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
-                                    const uint32_t i_addr, uint64_t i_data)
-{
-    uint32_t l_pibRc = 0;
-    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target,
-                                                                    i_addr);
-    FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X",
-             l_addr, (i_data >> 32),
-             static_cast<uint32_t>(i_data & 0xFFFFFFFF));
-    l_pibRc = putscom_abs(l_addr, i_data);
-    if( PIB_NO_ERROR != l_pibRc )
-    {
-        l_pibRc = p9_handlePibErr( l_addr, &i_data, l_pibRc, false);
-    }
-    FAPI_INF("putScom: returned pibRc: 0x%08X", l_pibRc);
-    fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
-    // Setting 64bit address in ffdc package as the parsers are
-    // hard coded to read 64bit address
-    const uint64_t ffdcAddr = l_addr;
-    PLAT_FAPI_ASSERT( PIB_NO_ERROR == l_pibRc,
-                      SBE_SCOM_FAILURE().
-                      set_address(ffdcAddr).
-                      set_pcb_pib_rc(l_pibRc),
-                      "putScom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X] "
-                      "Scom_Data[0x%08X%08X]",
-                      l_pibRc,l_addr,(i_data >> 32),
-                      static_cast<uint32_t>(i_data & 0xFFFFFFFF));
-fapi_try_exit:
-    if(PIB_NO_ERROR != l_pibRc)
-    {
-        // Override FAPI RC based on PIB RC
-        fapi2::current_err = pibRcToFapiRc(l_pibRc);
-        fapi2::g_FfdcData.fapiRc = fapi2::current_err;
-    }
-    return fapi2::current_err;
-}
-
-
-fapi2::ReturnCode putscom_under_mask(const void *i_target,
-                                     uint32_t i_addr,
-                                     uint64_t i_data,
-                                     uint64_t i_mask)
-{
-    uint64_t l_read = 0;
-    fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
-
-    do
-    {
-        l_rc = getscom_abs_wrap(i_target, i_addr, &l_read);
-
-        if(l_rc)
-        {
-            break;
-        }
-
-        l_read = (l_read & ~i_mask) | (i_data & i_mask);
-
-        l_rc = putscom_abs_wrap(i_target, i_addr, l_read);
-    } while (false);
-
-    return l_rc;
-}
-
-uint32_t p9_handlePibErr( const uint32_t i_addr, uint64_t *io_data,
-                         const uint8_t i_pibErr, const bool i_isRead)
-{
-    FAPI_INF("Entering p9_handlePibErr");
+    FAPI_INF("Entering recoverPibErr");
     static const uint8_t MAX_RETRIES = 2;
     uint8_t l_retryCount = 0;
     uint32_t pibErr = i_pibErr;
@@ -416,8 +329,89 @@ uint32_t p9_handlePibErr( const uint32_t i_addr, uint64_t *io_data,
         PLAT_SET_PIB_ERROR_MASK(i_mask);
         pk_critical_section_exit(&ctx);
     }
-    FAPI_INF("Exiting p9_handlePibErr");
+    FAPI_INF("Exiting recoverPibErr");
     return pibErr;
+}
+
+static fapi2::ReturnCode handle_scom_error(const uint32_t i_addr, uint64_t *io_data,
+        uint8_t i_pibRc, const bool i_isRead)
+{
+    /* Attempt recovery */
+    i_pibRc = recoverPibErr( i_addr, io_data, i_pibRc, i_isRead );
+    if (PIB_NO_ERROR == i_pibRc)
+    {
+        return FAPI2_RC_SUCCESS;
+    }
+
+    PLAT_FAPI_ASSERT( false,
+                      SBE_SCOM_FAILURE().
+                      set_address(i_addr).
+                      set_pcb_pib_rc(i_pibRc),
+                      "getScom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X]"
+                      "Scom_Data[0x%08X%08X]",
+                      i_pibRc, i_addr, (*io_data >> 32), (*io_data & 0xFFFFFFFF));
+fapi_try_exit:
+    // Override FAPI RC based on PIB RC
+    fapi2::current_err = pibRcToFapiRc(i_pibRc);
+    fapi2::g_FfdcData.fapiRc = fapi2::current_err;
+    return fapi2::current_err;
+}
+
+fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
+                                   const uint32_t i_addr, uint64_t *o_data)
+{
+    uint32_t l_pibRc = 0;
+    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
+    FAPI_INF("getScom: address: 0x%08X", l_addr);
+    l_pibRc = getscom_abs(l_addr, o_data);
+    FAPI_INF("getScom: returned pibRc: 0x%08X, data HI: 0x%08X, "
+             "data LO: 0x%08X", l_pibRc, (*o_data >> 32),
+             static_cast<uint32_t>(*o_data & 0xFFFFFFFF));
+
+    return (l_pibRc == PIB_NO_ERROR) ? fapi2::ReturnCode(FAPI2_RC_SUCCESS) :
+            handle_scom_error(i_addr, o_data, l_pibRc, true);
+}
+
+fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
+                                    const uint32_t i_addr, uint64_t i_data)
+{
+    uint32_t l_pibRc = 0;
+    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target,
+                                                                    i_addr);
+    FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X",
+             l_addr, (i_data >> 32),
+             static_cast<uint32_t>(i_data & 0xFFFFFFFF));
+    l_pibRc = putscom_abs(l_addr, i_data);
+    FAPI_INF("putScom: returned pibRc: 0x%08X", l_pibRc);
+
+    return (l_pibRc == PIB_NO_ERROR) ? fapi2::ReturnCode(FAPI2_RC_SUCCESS) :
+            handle_scom_error(i_addr, &i_data, l_pibRc, false);
+}
+
+
+fapi2::ReturnCode putscom_under_mask(const void *i_target,
+                                     uint32_t i_addr,
+                                     uint64_t i_data,
+                                     uint64_t i_mask)
+{
+    uint64_t l_read = 0;
+    fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
+
+    do
+    {
+        l_rc = getscom_abs_wrap(i_target, i_addr, &l_read);
+
+        if(l_rc)
+        {
+            break;
+        }
+
+        l_read = (l_read & ~i_mask) | (i_data & i_mask);
+
+        l_rc = putscom_abs_wrap(i_target, i_addr, l_read);
+    } while (false);
+
+    return l_rc;
 }
 
 };

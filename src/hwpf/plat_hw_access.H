@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -160,18 +160,6 @@ namespace fapi2
                                          uint32_t i_addr,
                                          uint64_t i_data,
                                          uint64_t i_mask);
-    ///
-    /// @brief Platform wrapper to handle pib errors on scoms
-    ///
-    /// @param [in] i_addr    The SCOM address
-    /// @param [io] io_data   The data pointer
-    /// @param [in] i_pibErr  PIB error code
-    /// @param [in] i_isRead  True if read operation, false otherwise
-    ///
-    /// @return PCB-PIB return code
-    ///
-    uint32_t p9_handlePibErr( const uint32_t i_addr, uint64_t *io_data,
-                             const uint8_t i_pibErr, const bool i_isRead);
 }
 
 
