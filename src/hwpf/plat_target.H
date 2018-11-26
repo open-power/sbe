@@ -77,32 +77,38 @@ namespace fapi2
         PPE_TARGET_TYPE_MC                = 0x0B,
     } plat_target_type_t;
 
+    /*
+     * The plat_target_handle bit layout is designed so that when the bits
+     * used for internal bookkeeping are masked off, we end up with a PIB
+     * base address that can be ORed onto a register address constant to
+     * yield a final PIB address.
+     */
     typedef union plat_target_handle {
         uint32_t value;
         struct {
             /* chiplet number is overloaded for multicast vs. unicast targets */
             union {
-                uint32_t chiplet_num     :8;
+                uint32_t chiplet_num      :8; // used for targeting
                 struct {
-                    uint32_t                 :1; // unused in the multicast case, must be zero for unicast targets
-                    uint32_t is_multicast    :1; // used for targeting
-                    uint32_t mcast_type      :3; // used for targeting
-                    uint32_t mcast_group     :3; // used for targeting
+                    uint32_t              :1; // unused in the multicast case, must be zero for unicast targets
+                    uint32_t is_multicast :1; // used for targeting
+                    uint32_t mcast_type   :3; // used for targeting
+                    uint32_t mcast_group  :3; // used for targeting
                 } __attribute__((packed));
             } __attribute__((packed));
-            uint32_t type_target_num :8; // used internally
+            uint32_t type_target_num      :8; // used internally
             /* lower 16 bits start here */
-            uint32_t core_select     :4; // used for targeting
-            uint32_t                 :2;
-            uint32_t present         :1; // used internally
-            uint32_t functional      :1; // used internally
-            uint32_t                 :4;
-            uint32_t type            :4; // used internally
+            uint32_t core_select          :4; // used for targeting
+            uint32_t ring_id              :2; // used for targeting
+            uint32_t sat_id               :4; // used for targeting
+            uint32_t present              :1; // used internally
+            uint32_t functional           :1; // used internally
+            uint32_t type                 :4; // used internally
         } fields __attribute__((packed));
 
 		/* Return the target value with all internal bits masked away */
-		uint32_t getPIBAddress() {
-			return value & 0x7F00F000;
+		uint32_t getPIBAddress() const {
+			return value & 0x7F00FFC0;
 		}
 
         ///
@@ -235,7 +241,6 @@ namespace fapi2
         ///
         operator uint32_t() const {return value;}
     } plat_target_handle_t;
-
 };
 
 #endif

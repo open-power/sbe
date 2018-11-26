@@ -165,51 +165,26 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
             {
                assert(false);
             }
-            break;
-        case PPE_TARGET_TYPE_MCS:
-        case PPE_TARGET_TYPE_MI:
-            l_addr.iv_chiplet = i_target.fields.chiplet_num;
-            l_addr.iv_satId = (2 * (i_target.getTargetInstance() % 2));
-            break;
+            return l_addr;
         case PPE_TARGET_TYPE_PHB:
+            static const uint8_t ring_id_map[] = { 3, 3, 4, 3, 4, 5 };
+            static const uint8_t sat_id_map[]  = { 1, 1, 2, 1, 2, 3 };
             if(l_addr.iv_chiplet == N2_CHIPLET)
             {
-                if (i_target.getTargetInstance() == 0)
-                {
-                    l_addr.iv_ring = 0x3;
-                    l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4));
-                }
-                else
-                {
-                    l_addr.iv_ring = (0x3 + (i_target.getTargetInstance() / 3) + 1) & 0xF;
-                    l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4)) +
-                                       ((i_target.getTargetInstance() % 2) ? (0) : (1)) +
-                                       (2 * (i_target.getTargetInstance() / 5));
-                }
+                l_addr.iv_ring = ring_id_map[i_target.getTargetInstance()];
             }
             else
             {
                 l_addr.iv_chiplet = i_target.fields.chiplet_num;
-                if (i_target.getTargetInstance() == 0)
-                {
-                    l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4));
-                }
-                else
-                {
-                    l_addr.iv_satId = (((l_addr.iv_satId < 4) ? (1) : (4)) +
-                                       ((i_target.getTargetInstance() % 2) ? (0) : (1)) +
-                                       (2 * (i_target.getTargetInstance() / 5)));
-                }
             }
-            break;
+            l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4)) +
+                    sat_id_map[i_target.getTargetInstance()];
+            return l_addr;
+        case PPE_TARGET_TYPE_PROC_CHIP:
+            return i_addr;
         default:
-            if(0 != i_target.getAddressOverlay())
-            {
-                l_addr.iv_chiplet = i_target.fields.chiplet_num;
-            }
-            break;
+            return i_target.getPIBAddress() | i_addr;
     }
-    return l_addr;
 }
 
 static fapi2::ReturnCode pibRcToFapiRc(const uint32_t i_pibRc)
