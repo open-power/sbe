@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2018                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2019                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -329,6 +329,10 @@
   <entry>
            <name>ATTR_FUSED_CORE_MODE</name>
            <value>0x0</value>
+  </entry>
+  <entry>
+           <name>ATTR_SBE_NVDIMM_IN_PORT</name>
+           <value>0x00</value>
   </entry>
 
   <!-- See chip_attributes.xml for a description of ATTR_EC -->
