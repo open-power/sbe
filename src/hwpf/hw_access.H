@@ -96,6 +96,21 @@ namespace fapi2
     }
 
     //--------------------------------------------------------------------------
+    // Multicast mapping functions
+    //--------------------------------------------------------------------------
+
+    /// @brief Set up or replace the multicast group mapping for a given chip
+    /// @param[in] i_chip     The chip whose multicast map is to be replaced
+    /// @param[in] i_mappings A list of multicast group mappings
+    /// @return FAPI2_RC_SUCCESS if the map was updated, otherwise error code.
+    template< MulticastType M, typename V >
+    inline ReturnCode setMulticastGroupMap(Target<TARGET_TYPE_PROC_CHIP, M, V> i_chip,
+                                           std::vector< MulticastGroupMapping > i_mappings)
+    {
+        return plat_setMcMap(i_mappings);
+    }
+
+    //--------------------------------------------------------------------------
     // HW Communication Functions
     //--------------------------------------------------------------------------
 

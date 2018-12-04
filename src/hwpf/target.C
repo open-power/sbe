@@ -71,10 +71,53 @@ extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 namespace fapi2
 {
 
+#ifdef __SBEFW_SEEPROM__
+const uint8_t MC_UNDEFINED = 0xFF;
+uint8_t multicast_group_map[MCGROUP_COUNT];
+
+plat_target_handle_t createPlatMCHandle(const plat_target_type_t i_plat_type, const MulticastGroup i_group, uint8_t i_core_select)
+{
+    assert((i_plat_type != PPE_TARGET_TYPE_CORE) || (i_core_select != 0));
+
+    plat_target_handle_t l_handle;
+
+    l_handle.fields.is_multicast = 1;
+    l_handle.fields.core_select = i_core_select;
+    l_handle.fields.mcast_group = multicast_group_map[i_group];
+    assert(l_handle.fields.mcast_group != MC_UNDEFINED);
+    l_handle.fields.type = i_plat_type;
+    l_handle.fields.type_target_num = i_group;
+
+    return l_handle;
+}
+
+static inline void clear_mc_map()
+{
+    for (unsigned int i = 0; i < MCGROUP_COUNT; i++)
+    {
+        multicast_group_map[i] = MC_UNDEFINED;
+    }
+}
+
+ReturnCode plat_setMcMap(std::vector< MulticastGroupMapping > i_mappings)
+{
+    clear_mc_map();
+
+    for (auto mapping : i_mappings)
+    {
+        if (mapping.abstractGroup >= MCGROUP_COUNT || mapping.hwValue > 7)
+            return FAPI2_RC_INVALID_PARAMETER;
+        multicast_group_map[mapping.abstractGroup] = mapping.hwValue;
+    }
+    return FAPI2_RC_SUCCESS;
+}
+#endif // __SBEFW_SEEPROM__
+
 template<TargetType K>
 plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
 {
     static_assert(K != TARGET_TYPE_ALL, "Target instances cannot be of type ALL");
+    static_assert(!(K & TARGET_TYPE_MULTICAST), "Cannot create multicast handles here");
     plat_target_handle_t l_handle;
 
     if(K & TARGET_TYPE_PROC_CHIP)
@@ -719,21 +762,30 @@ fapi_try_exit:
         uint32_t l_childPerChiplet = 0;
         uint32_t l_childTargetOffset = 0;
         uint32_t l_loopCount = G_vec_targets.size();
+        buffer<uint64_t> l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
         TargetType l_targetType = i_parentType;
 
-        if((i_parentType & ~(TARGET_TYPE_PROC_CHIP)) != 0)
+        if(i_parentType & TARGET_TYPE_MULTICAST)
         {
-            // For composite targets, if multicast, treat as PROC_CHIP, else
-            // treat as other target
-            if(this->fields.is_multicast)
+            if (this->fields.is_multicast)
             {
+                // If a real multicast target, loop over all targets in the chip
+                // but filter for multicast group members.
                 l_targetType = TARGET_TYPE_PROC_CHIP;
+                getScom(Target<TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST, MULTICAST_BITX>(*this),
+                        0xF0001, l_enabledTargets);
             }
             else
             {
-                l_targetType =
-                    static_cast<TargetType>(l_targetType & ~(TARGET_TYPE_PROC_CHIP));
+                // Otherwise just return this one target.
+                o_children.push_back(*this);
             }
+        }
+        else if((i_parentType & ~(TARGET_TYPE_PROC_CHIP)) != 0)
+        {
+            // For composite targets, treat as other target
+            l_targetType =
+                static_cast<TargetType>(l_targetType & ~(TARGET_TYPE_PROC_CHIP));
         }
 
         // EQ ==> EX
@@ -767,7 +819,7 @@ fapi_try_exit:
             plat_target_handle_t l_temp =
                 G_vec_targets.at((this->fields.type_target_num *
                             l_childPerChiplet) + l_childTargetOffset + i);
-            if (l_temp.fields.type == i_platType)
+            if ((l_temp.isType(i_platType)) && (l_enabledTargets.getBit(i)))
             {
                 switch (i_state)
                 {
@@ -946,6 +998,8 @@ fapi_try_exit:
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         plat_target_handle_t l_platHandle;
 
+        // Initialize multicast group mappings to "undefined"
+        clear_mc_map();
 
         // Copy fixed section from SEEPROM to PIBMEM
         G_sbe_attrs.G_system_attrs = G_system_attributes;

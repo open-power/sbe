@@ -56,10 +56,7 @@ namespace fapi2
 {
     template<TargetType K, MulticastType M, typename V>
     static constexpr void plat_apply_target_limits(void)
-    {
-        static_assert(!(K & TARGET_TYPE_MULTICAST),
-                "Multicast targets are not supported on this platform");
-    }
+    {}
 
     typedef enum plat_target_type
     {
@@ -233,6 +230,14 @@ namespace fapi2
         /// @brief Is this also usable as a PERV target?
         ///
         bool isPerv() const;
+
+        ///
+        /// @brief Is this target usable as type i_type?
+        ///
+        bool isType(const plat_target_type_t i_type) const
+        {
+            return (PPE_TARGET_TYPE_PERV == i_type) ? isPerv() : (fields.type == i_type);
+        }
 
         ///
         /// @brief Gets the plat target handle as a uint32
