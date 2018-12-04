@@ -70,6 +70,80 @@ extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 namespace fapi2
 {
+
+template<TargetType K>
+plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
+{
+    static_assert(K != TARGET_TYPE_ALL, "Target instances cannot be of type ALL");
+    plat_target_handle_t l_handle;
+
+    if(K & TARGET_TYPE_PROC_CHIP)
+    {
+        l_handle.fields.chiplet_num = 0;
+        l_handle.fields.type = PPE_TARGET_TYPE_PROC_CHIP;
+        l_handle.fields.type_target_num = 0;
+    }
+    else if(K & TARGET_TYPE_PERV)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + NEST_GROUP1_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_PERV;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_CORE)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + CORE_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_CORE;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_EQ)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + EQ_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_EQ;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_EX)
+    {
+        l_handle.fields.chiplet_num = (i_plat_argument / 2) + EX_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_EX;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_MCBIST)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + MCBIST_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_MCBIST;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_MCS)
+    {
+        l_handle.fields.chiplet_num = N3_CHIPLET - (MCS_PER_MCBIST * (i_plat_argument / MCS_PER_MCBIST));
+        l_handle.fields.type = PPE_TARGET_TYPE_MCS;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_PHB)
+    {
+        static const uint8_t chiplet_map[6] =
+            {PCI0_CHIPLET,   PCI0_CHIPLET+1, PCI0_CHIPLET+1,
+             PCI0_CHIPLET+2, PCI0_CHIPLET+2, PCI0_CHIPLET+2};
+        l_handle.fields.chiplet_num = chiplet_map[i_plat_argument];
+        l_handle.fields.type = PPE_TARGET_TYPE_PHB;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_MC)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + MC_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_MC;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_MI)
+    {
+        l_handle.fields.chiplet_num = N3_CHIPLET - (MI_PER_MC * (i_plat_argument / MI_PER_MC));
+        l_handle.fields.type = PPE_TARGET_TYPE_MI;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+
+    return l_handle;
+}
+
 #ifdef __SBEFW_SEEPROM__
 extern fapi2::ReturnCode
     plat_TargetPresent( fapi2::Target<fapi2::TARGET_TYPE_PERV> & i_chiplet_target,
