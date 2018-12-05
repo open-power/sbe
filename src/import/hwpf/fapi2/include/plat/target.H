@@ -32,19 +32,28 @@
 
 #include <plat_target.H>
 #include <fapi2_target.H>
-#include <multicast.H>
 #include <stdio.h>
 
 namespace fapi2
 {
+
+template<TargetType K, MulticastType M, typename V>
+static constexpr void plat_apply_target_limits(void)
+{
+    static_assert(!(K & TARGET_TYPE_MULTICAST),
+                  "Multicast targets are not supported on this platform");
+}
+
+template<TargetType T, MulticastType M, typename V>
+inline void Target<T, M, V>::mcUpdateHandle() {};
 
 ///
 /// @brief Assignment Operator.
 /// @param[in] i_right Reference to Target to assign from.
 /// @return Reference to 'this' Target
 ///
-template<TargetType K, typename V>
-Target<K, V>& Target<K, V>::operator=(const Target& i_right)
+template<TargetType K, MulticastType M, typename V>
+Target<K, M, V>& Target<K, M, V>::operator=(const Target& i_right)
 {
     iv_handle = i_right.iv_handle;
     return *this;
@@ -57,8 +66,8 @@ Target<K, V>& Target<K, V>::operator=(const Target& i_right)
 /// @note Platforms need to define this so that the physical
 /// targets are determined to be equivilent rather than just the handles
 ///
-template<TargetType K, typename V>
-bool Target<K, V>::operator==(const Target& i_right) const
+template<TargetType K, MulticastType M, typename V>
+bool Target<K, M, V>::operator==(const Target& i_right) const
 {
     return i_right.iv_handle == iv_handle;
 }
@@ -70,8 +79,8 @@ bool Target<K, V>::operator==(const Target& i_right) const
 /// @note Platforms need to define this so that the physical
 /// targets are determined to be equivilent rather than just the handles
 ///
-template<TargetType K, typename V>
-bool Target<K, V>::operator!=(const Target& i_right) const
+template<TargetType K, MulticastType M, typename V>
+bool Target<K, M, V>::operator!=(const Target& i_right) const
 {
     return i_right.iv_handle != iv_handle;
 }
@@ -83,8 +92,8 @@ bool Target<K, V>::operator!=(const Target& i_right) const
 /// @note Platforms need to define this so that the physical
 /// targets are determined to be less than rather than just the handles
 ///
-template<TargetType K, typename V>
-bool Target<K, V>::operator<(const Target& i_right) const
+template<TargetType K, MulticastType M, typename V>
+bool Target<K, M, V>::operator<(const Target& i_right) const
 {
     return i_right.iv_handle < iv_handle;
 }
@@ -94,12 +103,12 @@ bool Target<K, V>::operator<(const Target& i_right) const
 /// @tparam T The type of the parent
 /// @return Target<T> a target representing the parent
 ///
-template<TargetType K, typename V>
+template<TargetType K, MulticastType M, typename V>
 template<TargetType T>
-inline Target<T, V> Target<K, V>::getParent(void) const
+inline Target<T, M, V> Target<K, M, V>::getParent(void) const
 {
     // For testing
-    return Target<T, V>(iv_handle);
+    return Target<T, M, V>(iv_handle);
 }
 
 ///
@@ -111,15 +120,15 @@ inline Target<T, V> Target<K, V>::getParent(void) const
 /// @warning The children of EX's (cores) are expected to be returned
 /// in order. That is, core 0 is std::vector[0].
 ///
-template<TargetType K, typename V>
-template< TargetType T>
-inline std::vector<Target<T, V> >
-Target<K, V>::getChildren(const TargetState i_state) const
+template<TargetType K, MulticastType M, typename V>
+template<TargetType T>
+inline std::vector<Target<T, M, V> >
+Target<K, M, V>::getChildren(const TargetState i_state) const
 {
     // To keep the compiler quiet about unused variables
     static_cast<void>(i_state);
     // For testing
-    return {Target<T, V>(), Target<T, V>()};
+    return {Target<T, M, V>(), Target<T, M, V>()};
 }
 // Specialization of getChildren, filtered for pervasive targets.
 template<>
@@ -146,16 +155,16 @@ Target<TARGET_TYPE_PERV>::getChildren(const TargetFilter i_filter,
 /// @note o_target is only valid if return is FAPI2_RC_SUCCESS
 ///
 
-template<TargetType K, typename V>
+template<TargetType K, MulticastType M, typename V>
 template<TargetType T>
 inline fapi2::ReturnCodes
-Target<K, V>::getOtherEnd(Target<T, V>& o_target,
-                          const TargetState i_state) const
+Target<K, M, V>::getOtherEnd(Target<T, M, V>& o_target,
+                             const TargetState i_state) const
 {
     // To keep the compiler quiet about unused variables
     static_cast<void>(i_state);
 
-    o_target = Target<T, V>();
+    o_target = Target<T, M, V>();
 
     return FAPI2_RC_SUCCESS;
 }
@@ -165,9 +174,9 @@ Target<K, V>::getOtherEnd(Target<T, V>& o_target,
 /// @return true if target is functional, false if non-functional
 ///
 
-template<TargetType K, typename V>
+template<TargetType K, MulticastType M, typename V>
 inline bool
-Target<K, V>::isFunctional(void) const
+Target<K, M, V>::isFunctional(void) const
 {
     // Platform check if target is good
     // Could check ATTR_FUNCTIONAL or ATTR_PG_*
@@ -181,9 +190,9 @@ Target<K, V>::isFunctional(void) const
 /// @note For logical targets such as the EX, the chiplet number of
 /// their immediate parent chiplet is returned
 ///
-template<TargetType K, typename V>
+template<TargetType K, MulticastType M, typename V>
 inline uint8_t
-Target<K, V>::getChipletNumber(void) const
+Target<K, M, V>::getChipletNumber(void) const
 {
     // Platform can return the chiplet number stored in it's Target handle
     return 0;
@@ -199,11 +208,11 @@ Target<K, V>::getChipletNumber(void) const
 /// @post The contents of the buffer is replaced with the string
 /// representation of the target
 ///
-template< TargetType T, typename V >
-inline void toString(const Target<T, V>& i_target,
+template<TargetType T, MulticastType M, typename V >
+inline void toString(const Target<T, M, V>& i_target,
                      char* i_buffer, size_t i_bsize)
 {
-    snprintf(i_buffer, i_bsize, "Target 0x%lX/0x%.16lX", i_target.get(), T);
+    snprintf(i_buffer, i_bsize, "Target 0x%lX/0x%.16lX/0x%X", i_target.get(), T, M);
 }
 
 ///
@@ -217,11 +226,11 @@ inline void toString(const Target<T, V>& i_target,
 /// @post The contents of the buffer is replaced with the string
 /// representation of the target
 ///
-template< TargetType T, typename V >
-inline void toString(const Target<T, V>* i_target,
+template< TargetType T, MulticastType M, typename V >
+inline void toString(const Target<T, M, V>* i_target,
                      char* i_buffer, size_t i_bsize)
 {
-    snprintf(i_buffer, i_bsize, "Target 0x%lx/0x%x", i_target->get(), T);
+    toString(*i_target, i_buffer, i_bsize);
 }
 
 ///
@@ -231,12 +240,13 @@ inline void toString(const Target<T, V>* i_target,
 /// the desired target
 /// @return Target<T> the target requested
 ///
-template<TargetType T, typename V>
-inline Target<T, V> getTarget(uint64_t Ordinal)
+template<TargetType T, MulticastType M, typename V>
+inline Target<T, M, V> getTarget(uint64_t Ordinal)
 {
     // For testing
-    return Target<T, V>(Ordinal);
+    return Target<T, M, V>(Ordinal);
 }
+
 }
 
 #endif

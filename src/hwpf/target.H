@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,7 +33,6 @@
 #include <plat_target.H>
 #include <plat_target_parms.H>
 #include <fapi2_target.H>
-#include <multicast.H>
 #include <plat_trace.H>
 #include <utils.H>
 #include <stdint.h>
@@ -149,8 +148,8 @@ namespace fapi2
     /// @param[in] i_right Reference to Target to assign from.
     /// @return Reference to 'this' Target
     ///
-    template<TargetType K, typename V>
-    Target<K, V>& Target<K, V>::operator=(const Target& i_right)
+    template<TargetType K, MulticastType M, typename V>
+    Target<K, M, V>& Target<K, M, V>::operator=(const Target& i_right)
         {
             this->iv_handle.value = i_right.iv_handle.value;
             return *this;
@@ -162,8 +161,8 @@ namespace fapi2
     /// @note Platforms need to define this so that the physical
     /// targets are determined to be equivilent rather than just the handles
     ///
-    template<TargetType K, typename V>
-    bool Target<K, V>::operator==(const Target& i_right) const
+    template<TargetType K, MulticastType M, typename V>
+    bool Target<K, M, V>::operator==(const Target& i_right) const
     {
         if (this->iv_handle.value == i_right.iv_handle.value)
             return true;
@@ -178,8 +177,8 @@ namespace fapi2
     /// @note Platforms need to define this so that the physical
     /// targets are determined to be equivilent rather than just the handles
     ///
-    template<TargetType K, typename V>
-    bool Target<K, V>::operator!=(const Target& i_right) const
+    template<TargetType K, MulticastType M, typename V>
+    bool Target<K, M, V>::operator!=(const Target& i_right) const
     {
         if (this->iv_handle.value != i_right.iv_handle.value)
             return true;
@@ -190,11 +189,11 @@ namespace fapi2
     ///
     /// @brief Get this target's immediate parent
     /// @tparam T The type of the parent
-    /// @return Target<T, V> a target representing the parent
+    /// @return Target<T, M, V> a target representing the parent
     ///
-    template<TargetType K, typename V>
+    template<TargetType K, MulticastType M, typename V>
     template<TargetType T>
-    inline Target<T, V> Target<K, V>::getParent(void) const
+    inline Target<T, M, V> Target<K, M, V>::getParent(void) const
     {
         constexpr TargetType TARGET_TYPE_PROC_CHILDREN =
             TARGET_TYPE_EQ | TARGET_TYPE_PERV | TARGET_TYPE_EX |
@@ -273,23 +272,11 @@ namespace fapi2
         {
             return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / CORES_PER_EX) + EX_TARGET_OFFSET]);
         }
-    }
-
-    ///
-    /// @brief Get this target's immediate parent - specialization for compound
-    //         target (PROC_CHIP | CORE | EX)
-    /// @tparam T The type of the parent
-    /// @return Target<T, plat_target_handle_t> a target representing the parent
-    ///
-    template<>
-    template<TargetType T>
-    Target<T, plat_target_handle_t>
-    Target<TARGET_TYPE_PROC_CHIP | TARGET_TYPE_CORE | TARGET_TYPE_EX | TARGET_TYPE_PERV,
-           plat_target_handle_t>::getParent(void) const
-    {
-        static_assert(((T == TARGET_TYPE_PROC_CHIP) || (T == TARGET_TYPE_EQ)),
-                      "Wrong parent target type");
-        return static_cast<plat_target_handle_t>(get()).getParent(T);
+        constexpr TargetType TARGET_TYPE_CORE_OR_EX = TARGET_TYPE_CORE | TARGET_TYPE_EX;
+        if((TARGET_TYPE_EQ == T) && ((K & (TARGET_TYPE_CORE_OR_EX)) != TARGET_TYPE_NONE))
+        {
+            return get().getParent(T);
+        }
     }
 
     /// @brief Get this target's children - handles EQ/EX/EC conversions
@@ -297,19 +284,19 @@ namespace fapi2
     /// @tparam V The plat target handle type
     /// @tparam T The type of child
     /// @param[in] i_state The desired TargetState of the children
-    /// @return std::vector<Target<T, V> > a vector of present/functional
+    /// @return std::vector<Target<T, M, V> > a vector of present/functional
     /// children
     /// @warning The children are returned in order, ex child[0] is
     /// std::vector[0]
-    template<TargetType K, typename V>
+    template<TargetType K, MulticastType M, typename V>
     template<TargetType T>
-    std::vector<Target<T, V>>
-    Target<K, V>::getChildren(const TargetState i_state) const
+    std::vector<Target<T, M, V>>
+    Target<K, M, V>::getChildren(const TargetState i_state) const
     {
         constexpr TargetType L = static_cast<TargetType>(K & ~(TARGET_TYPE_PROC_CHIP));
         constexpr plat_target_type_t P = fapiTargetTypeToPlatTargetType<T>();
 
-        static_assert(sizeof(Target<T, V>) == sizeof(plat_target_handle_t),
+        static_assert(sizeof(Target<T, M, V>) == sizeof(plat_target_handle_t),
                       "Sizes of plat target and FAPI target must match");
 
         static_assert(((L == TARGET_TYPE_EQ) || (L == TARGET_TYPE_EX) || (K == TARGET_TYPE_PROC_CHIP)),
@@ -329,19 +316,19 @@ namespace fapi2
                       "improper child of fapi2::TARGET_TYPE_EX");
 
 
-        std::vector<Target<T, V> > l_children;
+        std::vector<Target<T, M, V> > l_children;
         static_cast<plat_target_handle_t>(get()).getChildren(K, T, P, i_state, reinterpret_cast<std::vector<plat_target_handle>&>(l_children));
         return l_children;
     }
 
     // Specialization of getChildren, filtered for the chip target
-    template<TargetType K, typename V>
+    template<TargetType K, MulticastType M, typename V>
     template<TargetType T>
-    std::vector<Target<T, V> >
-    Target<K, V>::getChildren(const TargetFilter i_filter,
+    std::vector<Target<T, M, V> >
+    Target<K, M, V>::getChildren(const TargetFilter i_filter,
                                           const TargetState i_state) const
     {
-        static_assert(sizeof(Target<T, V>) == sizeof(plat_target_handle_t),
+        static_assert(sizeof(Target<T, M, V>) == sizeof(plat_target_handle_t),
                       "Sizes of plat target and FAPI target must match");
 
         static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
@@ -361,9 +348,9 @@ namespace fapi2
     /// @brief Is the target functional?
     /// @return true if target is functional, false if non-functional
     ///
-    template<TargetType K, typename V>
+    template<TargetType K, MulticastType M, typename V>
     inline bool
-    Target<K, V>::isFunctional(void) const
+    Target<K, M, V>::isFunctional(void) const
     {
         return static_cast<plat_target_handle_t>(get()).getFunctional();
     }
@@ -372,9 +359,9 @@ namespace fapi2
     /// @brief Returns the chiplet number for this Target
     /// @return The chiplet number
     ///
-    template<TargetType K, typename V>
+    template<TargetType K, MulticastType M, typename V>
     inline uint8_t
-    Target<K, V>::getChipletNumber(void) const
+    Target<K, M, V>::getChipletNumber(void) const
     {
         return static_cast<plat_target_handle_t>(iv_handle).fields.chiplet_num;
     }
@@ -389,8 +376,8 @@ namespace fapi2
     /// @post The contents of the buffer is replaced with the string
     /// representation of the target
     ///
-    template< TargetType T, typename V >
-    inline void toString(const Target<T, V>& i_target, char* i_buffer, size_t i_bsize)
+    template< TargetType T, MulticastType M, typename V >
+    inline void toString(const Target<T, M, V>& i_target, char* i_buffer, size_t i_bsize)
     {
         snprintf(i_buffer, i_bsize, "Target 0x%lx/0x%x", i_target.get(), T);
     }
@@ -399,15 +386,15 @@ namespace fapi2
     /// @brief Return the string interpretation of this target
     /// @tparam T The type of the target
     /// @tparam B The type of the buffer
-    /// @param[in] A pointer to the Target<T, V>
+    /// @param[in] A pointer to the Target<T, M, V>
     /// @param[in] i_buffer buffer to write in to
     /// @param[in] i_bsize size of the buffer
     /// @return void
     /// @post The contents of the buffer is replaced with the string
     /// representation of the target
     ///
-    template< TargetType T, typename V >
-    inline void toString(const Target<T, V>* i_target, char* i_buffer, size_t i_bsize)
+    template< TargetType T, MulticastType M, typename V >
+    inline void toString(const Target<T, M, V>* i_target, char* i_buffer, size_t i_bsize)
     {
         snprintf(i_buffer, i_bsize, "Target 0x%lx/0x%x", i_target->get(), T);
     }
@@ -417,14 +404,17 @@ namespace fapi2
     /// @tparam T The type of the target
     /// @param[in] Ordinal representing the ordinal number of
     /// the desired target
-    /// @return Target<T, V> the target requested
+    /// @return Target<T, M, V> the target requested
     ///
-    template<TargetType T, typename V>
-    inline Target<T, V> getTarget(uint64_t Ordinal)
+    template<TargetType T, MulticastType M, typename V>
+    inline Target<T, M, V> getTarget(uint64_t Ordinal)
     {
         // For testing
-        return Target<T, V>(Ordinal);
+        return Target<T, M, V>(Ordinal);
     }
+
+    template<TargetType T, MulticastType M, typename V>
+    inline void Target<T, M, V>::mcUpdateHandle() {};
 }
 
 #endif

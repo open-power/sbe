@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -105,9 +105,9 @@ namespace fapi2
     /// @param[in]  i_address    SCOM register address to read from.
     /// @param[out] o_data       Buffer that holds data read from HW target.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
+    template< TargetType K, MulticastType M, typename V >
         __attribute__((always_inline))
-        inline ReturnCode  getScom(const Target<K, V>& i_target, const uint64_t i_address,
+        inline ReturnCode  getScom(const Target<K, M, V>& i_target, const uint64_t i_address,
                 buffer<uint64_t>& o_data)
         {
             fapi2::ReturnCode l_rc;
@@ -125,9 +125,9 @@ namespace fapi2
     /// @param[in] i_address    SCOM register address to write to.
     /// @param[in] i_data       Buffer that holds data to write into address.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
+    template< TargetType K, MulticastType M, typename V >
     __attribute__((always_inline))
-    inline ReturnCode  putScom(const Target<K, V>& i_target, const uint64_t i_address,
+    inline ReturnCode  putScom(const Target<K, M, V>& i_target, const uint64_t i_address,
                        const buffer<uint64_t> i_data)
     {
         fapi2::ReturnCode l_rc;
@@ -146,8 +146,8 @@ namespace fapi2
     /// @param[in] i_data       Buffer that holds data to be modified.
     /// @param[in] i_modifyMode The modify mode (or/and/xor).
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
-    inline ReturnCode modifyScom(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode modifyScom(const Target<K, M, V>& i_target,
                                  const uint64_t i_address,
                                  const buffer<uint64_t> i_data,
                                  const ChipOpModifyMode i_modifyMode)
@@ -196,8 +196,8 @@ __fapi2exit__:
     /// @param[in] i_data       Buffer that holds data to write into address.
     /// @param[in] i_mask       Buffer that holds the mask value.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
-    inline ReturnCode putScomUnderMask( const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode putScomUnderMask( const Target<K, M, V>& i_target,
                                         const uint64_t i_address,
                                         const buffer<uint64_t> i_data,
                                         const buffer<uint64_t> i_mask)
@@ -214,8 +214,8 @@ __fapi2exit__:
     /// @param[in]  i_address CFAM register address to read from.
     /// @param[out] o_data    Buffer that holds data read from HW target.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
-    inline ReturnCode getCfamRegister(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode getCfamRegister(const Target<K, M, V>& i_target,
                                const uint32_t i_address,
                                buffer<uint32_t>& o_data)
     {
@@ -234,8 +234,8 @@ __fapi2exit__:
     /// @param[in] i_address CFAM register address to write to.
     /// @param[in] i_data    Buffer that holds data to write into address.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
-    inline ReturnCode putCfamRegister(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode putCfamRegister(const Target<K, M, V>& i_target,
                                const uint32_t i_address,
                                buffer<uint32_t>& i_data)
     {
@@ -255,8 +255,8 @@ __fapi2exit__:
     /// @param[in] i_data       Buffer that holds data to be modified.
     /// @param[in] i_modifyMode The modify mode (or/and/xor).
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
-    inline ReturnCode modifyCfamRegister(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode modifyCfamRegister(const Target<K, M, V>& i_target,
                                          const uint32_t i_address,
                                          const buffer<uint32_t>& i_data,
                                          const ChipOpModifyMode i_modifyMode)
@@ -277,8 +277,8 @@ __fapi2exit__:
     /// @param[in] i_ringID   Ring ID that will identify the Ring in the image.
     /// @param[in] i_ringMode Ring operation mode.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
-        inline ReturnCode putRing(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+        inline ReturnCode putRing(const Target<K, M, V>& i_target,
                                   const RingId_t i_ringID,
                                   const RingMode i_ringMode = RING_MODE_HEADER_CHECK)
         {
@@ -299,8 +299,8 @@ __fapi2exit__:
     /// @param[out] o_data     Buffer that holds data read from HW target.
     /// @param[in]  i_ringMode Ring operation mode.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
-    inline ReturnCode getRing(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode getRing(const Target<K, M, V>& i_target,
                        const scanRingId_t i_address,
                        variable_buffer& o_data,
                        const RingMode i_ringMode = 0)
@@ -329,8 +329,8 @@ __fapi2exit__:
     /// @param[in] i_modifyMode The modify mode (or/and/xor)
     /// @param[in] i_ringMode   Ring operation mode.
     /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-    template< TargetType K, typename V >
-    inline ReturnCode modifyRing(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode modifyRing(const Target<K, M, V>& i_target,
                                  const scanRingId_t i_address,
                                  variable_buffer& i_data,
                                  const ChipOpModifyMode i_modifyMode,
@@ -382,8 +382,8 @@ __fapi2exit__:
     ///         SCOM_BULK_WRITE_MODE operations are not supported due to
     ///         hardware limitations.
     ///
-    template< TargetType K, typename V >
-    fapi2::ReturnCode multiScom (const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    fapi2::ReturnCode multiScom (const Target<K, M, V>& i_target,
                                  MultiScom&  io_multiScomObj)
     {
     }
@@ -436,8 +436,8 @@ __fapi2exit__:
     ///       the quotes for the cronus environment
     ///
 #ifdef FAPI_SUPPORT_SPY_AS_ENUM
-    template< TargetType K, typename V >
-    inline ReturnCode getSpy(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode getSpy(const Target<K, M, V>& i_target,
                              const spyId_t i_spyId,
                              variable_buffer& o_data)
     {
@@ -446,8 +446,8 @@ __fapi2exit__:
     }
 #endif
 #ifdef FAPI_SUPPORT_SPY_AS_STRING
-    template< TargetType K, typename V >
-    inline ReturnCode getSpy(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode getSpy(const Target<K, M, V>& i_target,
                              const char * const i_spyId,
                              variable_buffer& o_data)
     {
@@ -495,8 +495,8 @@ __fapi2exit__:
     ///         the quotes for the cronus environment
     ///
 #ifdef FAPI_SUPPORT_SPY_AS_ENUM
-    template< TargetType K, typename V >
-    inline ReturnCode putSpy(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode putSpy(const Target<K, M, V>& i_target,
                              const spyId_t i_spyId,
                              variable_buffer& i_data)
     {
@@ -505,8 +505,8 @@ __fapi2exit__:
     }
 #endif
 #ifdef FAPI_SUPPORT_SPY_AS_STRING
-    template< TargetType K, typename V >
-    inline ReturnCode putSpy(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode putSpy(const Target<K, M, V>& i_target,
                              const char* const i_spyId,
                              variable_buffer& i_data)
     {
@@ -535,8 +535,8 @@ __fapi2exit__:
     ///         See fapiPutSpy for details on spy id specifics.
     ///
 #ifdef FAPI_SUPPORT_SPY_AS_ENUM
-    template< TargetType K, typename V >
-    inline ReturnCode putSpyImage(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode putSpyImage(const Target<K, M, V>& i_target,
                                   const spyId_t i_spyId,
                                   const variable_buffer& i_data,
                                   variable_buffer& o_imageData)
@@ -546,8 +546,8 @@ __fapi2exit__:
     }
 #endif
 #ifdef FAPI_SUPPORT_SPY_AS_STRING
-    template< TargetType K, typename V >
-    inline ReturnCode putSpyImage(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode putSpyImage(const Target<K, M, V>& i_target,
                                   const char* const i_spyId,
                                   const variable_buffer& i_data,
                                   variable_buffer& o_imageData)
@@ -574,8 +574,8 @@ __fapi2exit__:
     ///         See fapiPutSpy for details on spy id specifics.
     ///
 #ifdef FAPI_SUPPORT_SPY_AS_ENUM
-    template< TargetType K, typename V >
-    inline ReturnCode getSpyImage(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode getSpyImage(const Target<K, M, V>& i_target,
                                   const spyId_t i_spyId,
                                   variable_buffer& o_data,
                                   const variable_buffer& i_imageData)
@@ -585,8 +585,8 @@ __fapi2exit__:
     }
 #endif
 #ifdef FAPI_SUPPORT_SPY_AS_STRING
-    template< TargetType K, typename V >
-    inline ReturnCode getSpyImage(const Target<K, V>& i_target,
+    template< TargetType K, MulticastType M, typename V >
+    inline ReturnCode getSpyImage(const Target<K, M, V>& i_target,
                                   const char * const i_spyId,
                                   variable_buffer& o_data,
                                   const variable_buffer& i_imageData)

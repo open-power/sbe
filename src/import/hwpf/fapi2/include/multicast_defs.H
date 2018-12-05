@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/hwpf/fapi2/include/fapi2_multicast_defs.H $        */
+/* $Source: src/import/hwpf/fapi2/include/multicast_defs.H $              */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -29,11 +29,11 @@ namespace fapi2
 {
 enum MulticastType
 {
-    MULTICAST_WRITE,
-    MULTICAST_READAND,
-    MULTICAST_READOR,
-    MULTICAST_READBITX,
-    MULTICAST_READCOMPARE,
+    // Code points picked according to PCB spec
+    MULTICAST_OR      = 0,
+    MULTICAST_AND     = 1,
+    MULTICAST_BITX    = 2,
+    MULTICAST_COMPARE = 4,
 };
 
 typedef uint32_t MulticastGroup;

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,6 +33,7 @@
 #include <stdint.h>
 #include <target_types.H>
 #include <target_states.H>
+#include <multicast_defs.H>
 #include <assert.h>
 #include <plat_target_parms.H>
 #include <vector>
@@ -53,6 +54,13 @@ static const uint8_t PCI0_CHIPLET = 0x0D;
 //
 namespace fapi2
 {
+    template<TargetType K, MulticastType M, typename V>
+    static constexpr void plat_apply_target_limits(void)
+    {
+        static_assert(!(K & TARGET_TYPE_MULTICAST),
+                "Multicast targets are not supported on this platform");
+    }
+
     typedef enum plat_target_type
     {
         PPE_TARGET_TYPE_NONE              = 0x00,
