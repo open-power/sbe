@@ -809,7 +809,8 @@ fapi_try_exit:
         if((OBUS1 == i_chiplet_target.getChipletNumber()) ||
            (OBUS2 == i_chiplet_target.getChipletNumber()))
         {
-            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName)
+            if((fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName) ||
+               (fapi2::ENUM_ATTR_NAME_AXONE == l_chipName))
             {
                 static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
             }
