@@ -44,7 +44,7 @@
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 #include <p9_sbe_common.H>
-
+#include <target_filters.H>
 
 enum P9_SBE_CHIPLET_PLL_SETUP_Private_Constants
 {

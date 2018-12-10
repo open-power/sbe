@@ -51,6 +51,8 @@
 #endif
 #include <p9_hcd_common.H>
 
+#include <target_filters.H>
+
 //------------------------------------------------------------------------------
 // Function definition:  p9_stopclocks
 // parameters:  i_target                      =>   chip target

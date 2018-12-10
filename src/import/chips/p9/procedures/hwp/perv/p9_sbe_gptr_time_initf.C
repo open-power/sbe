@@ -40,6 +40,7 @@
 #include "p9_perv_scom_addresses.H"
 #include <p9_ring_id.h>
 
+#include <target_filters.H>
 
 fapi2::ReturnCode p9_sbe_gptr_time_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)

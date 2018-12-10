@@ -54,7 +54,7 @@
 #include <p9_xbus_scom_addresses.H>
 #include <p9_obus_scom_addresses.H>
 #include <p9_sbe_common.H>
-
+#include <target_filters.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions

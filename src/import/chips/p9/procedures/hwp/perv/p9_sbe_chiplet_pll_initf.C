@@ -42,6 +42,8 @@
 #include <p9_ring_id.h>
 #include "p9_frequency_buckets.H"
 
+#include <target_filters.H>
+
 static const uint8_t P9_DEFAULT_NEST_PLL_BUCKET = 1;
 static const uint8_t P9_DEFAULT_MC_PLL_BUCKET = 1;
 

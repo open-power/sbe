@@ -37,6 +37,7 @@
 
 #include "p9_sbe_io_eol_toggle.H"
 #include "p9_perv_scom_addresses.H"
+#include <target_filters.H>
 
 fapi2::ReturnCode run_p9_cplt_conf0_eol_toggle(const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_cplt)
 {

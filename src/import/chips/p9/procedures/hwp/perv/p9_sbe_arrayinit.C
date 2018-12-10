@@ -44,7 +44,7 @@
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 #include <p9_perv_sbe_cmn.H>
-
+#include <target_filters.H>
 
 enum P9_SBE_ARRAYINIT_Private_Constants
 {
