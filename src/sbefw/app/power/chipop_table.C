@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -93,6 +93,10 @@ CMD_ARR(
     {sbeHandleSuspendIO,
      SBE_CMD_SUSPEND_IO,
      SBE_FENCE_AT_DUMPING,
+    },
+    {sbeHandleFlushNVDIMM,
+     SBE_CMD_FLUSH_NVDIMM,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_DUMPING,
     }
 )
 

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -73,6 +73,7 @@ enum sbeIplControlCommands
 {
     SBE_CMD_EXECUTE_ISTEP      = 0x01, /* Execute istep */
     SBE_CMD_SUSPEND_IO         = 0x02, /* Suspend IO */
+    SBE_CMD_FLUSH_NVDIMM       = 0x03, /* Flush NVDIMM */
 };
 
 /**
@@ -230,6 +231,7 @@ enum sbeSecondaryResponse
     SBE_SEC_SPECIAL_WAKEUP_SCOM_FAILURE       = 0x29,
     SBE_SEC_S0_ARCH_REG_DUMP_FAILED           = 0x2A,
     SBE_SEC_LPC_ACCESS_FAILED                 = 0x2B,
+    SBE_SEC_HWP_FAILURE                       = 0x2C,
 };
 
 /**
@@ -280,6 +282,7 @@ enum
 
     EXECUTE_ISTEP_SUPPPORTED            = 0xA1000001,
     SUSPEND_IO_SUPPPORTED               = 0xA1000002,
+    FLUSH_NVDIMM_SUPPPORTED             = 0xA1000003,
     RESERVED_A1_CAPABILITIES            = 0xA1800000,
 
     GET_SCOM_SUPPPORTED                 = 0xA2000001,

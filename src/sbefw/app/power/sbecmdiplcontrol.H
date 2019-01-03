@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -43,6 +44,15 @@
   * @return    Rc from the FIFO access utility
   */
 uint32_t sbeHandleSuspendIO(uint8_t *i_pArg);
+
+/**
+  * @brief execute flush NVDIMM chip-op (0xA103)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeHandleFlushNVDIMM(uint8_t *i_pArg);
 
 // Utility function to do TPM reset
 fapi2::ReturnCode performTpmReset();
