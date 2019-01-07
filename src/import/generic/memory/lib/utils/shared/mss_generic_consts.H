@@ -130,8 +130,6 @@ enum generic_ffdc_codes
     BASE_MODULE_TYPE = 0x101C,
     BAD_SPD_DATA = 0x101D,
     SET_FIELD = 0x101E,
-
-    // mss_freq functions
     SELECT_SUPPORTED_FREQ = 0x101F,
     FREQ_SCOREBOARD_REMOVE_FREQS_ABOVE_LIMIT = 0x1020,
     FREQ_SCOREBOARD_REMOVE_FREQS_ABOVE_LIMIT_VECTOR = 0x1021,
@@ -139,6 +137,12 @@ enum generic_ffdc_codes
     FREQ_SCOREBOARD_MAX_SUPPORTED_FREQ = 0x1023,
     FREQ_SCOREBOARD_SUPPORTED_FREQS = 0x1024,
     LIMIT_FREQ_BY_VPD = 0x1025,
+    SET_DIMM_TYPE = 0x1026,
+    SET_DRAM_GEN = 0x1027,
+    SET_HYBRID = 0x1027,
+    SET_HYBRID_MEDIA = 0x1028,
+    SET_MRANKS = 0x1029,
+    SET_DIMM_RANKS_CNFG = 0x1039,
 };
 
 ///
@@ -308,6 +312,31 @@ struct procTraits<proc_type::AXONE>
     {
         EXP_PORTS_PER_OCMB = 1,
         DIMMS_PER_PORT = 2,
+    };
+};
+
+///
+/// @brief Trait classes for proc_type
+///
+template< proc_type P >
+class procTraits;
+
+///
+/// @brief Trait classes for proc_type - NIMBUS specialization
+///
+template< >
+struct procTraits<proc_type::NIMBUS>
+{
+    enum
+    {
+        MC_PER_MODULE = 2,
+        MCS_PER_MC = 2,
+        MCS_PER_PROC = MC_PER_MODULE * MCS_PER_MC,
+        PORTS_PER_MCBIST = 4,
+        PORTS_PER_MCS = 2,
+        DIMMS_PER_PORT = 2,
+        DIMMS_PER_MCS = PORTS_PER_MCS * DIMMS_PER_PORT,
+        DIMMS_PER_MCBIST = PORTS_PER_MCBIST * DIMMS_PER_PORT,
     };
 };
 
