@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -203,7 +203,7 @@ template< TargetType T, typename V >
 inline void toString(const Target<T, V>& i_target,
                      char* i_buffer, size_t i_bsize)
 {
-    snprintf(i_buffer, i_bsize, "Target 0x%lx/0x%x", i_target.get(), T);
+    snprintf(i_buffer, i_bsize, "Target 0x%lX/0x%.16lX", i_target.get(), T);
 }
 
 ///
