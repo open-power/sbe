@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -107,6 +107,7 @@ static fapi2::ReturnCode tp_enable_ridi(const
     l_data64.setBit<PERV_ROOT_CTRL1_TP_RI_DC_B>();   // 19
     l_data64.setBit<PERV_ROOT_CTRL1_TP_DI1_DC_B>();  // 20
     l_data64.setBit<PERV_ROOT_CTRL1_TP_DI2_DC_B>();  // 21
+    l_data64.setBit<29>();  // HW476237: Lift inhibit on PCIe refclk drivers
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL1_SCOM, l_data64));
 
     FAPI_DBG("tp_enable_ridi: Exiting ...");
