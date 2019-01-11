@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -60,6 +60,7 @@ ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_cleanup.C
 ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_setup.C
 # io eol toggle procedure moved here to locate it on seeprom
 ISTEPMPIPL-CPP-SOURCES += p9_sbe_io_eol_toggle.C
+ISTEPMPIPL-CPP-SOURCES += nvdimm_workarounds.C
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 

@@ -47,7 +47,6 @@
 #include "p9n2_quad_scom_addresses.H"
 
 #include "p9_suspend_io.H"
-//#include "nvdimm_workarounds.H"
 
 #include <p9_sbe_attr_setup.H>
 
@@ -286,59 +285,6 @@ uint32_t sbeHandleSuspendIO(uint8_t *i_pArg)
             SBE_ERROR(SBE_FUNC "p9_suspend_io hwp failed");
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-            ffdc.setRc(fapiRc);
-            break;
-        }
-    }while(0);
-
-    // Create the Response to caller
-    do
-    {
-        // If there was a FIFO error, will skip sending the response,
-        // instead give the control back to the command processor thread
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-        rc = sbeDsSendRespHdr( respHdr, &ffdc);
-    }while(0);
-
-    SBE_EXIT(SBE_FUNC);
-    return rc;
-    #undef SBE_FUNC
-}
-//----------------------------------------------------------------------------
-
-///////////////////////////////////////////////////////////////////////
-// @brief sbeHandleFlushNVDIMM Sbe flush NVDIMM function
-//
-// @return  RC from the underlying FIFO utility
-///////////////////////////////////////////////////////////////////////
-
-//mss::workarounds::nvdimm::p9_flush_nvdimm_FP_t p9_flush_nvdimm_hwp = &mss::workarounds::nvdimm::trigger_csave; 
-
-uint32_t sbeHandleFlushNVDIMM(uint8_t *i_pArg)
-{
-
-    #define SBE_FUNC " sbeHandleFlushNVDIMM "
-    SBE_ENTER(SBE_FUNC);
-    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-    uint32_t len = 0;
-    sbeRespGenHdr_t respHdr;
-    respHdr.init();
-    sbeResponseFfdc_t ffdc;
-    //Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
-
-    do
-    {
-        // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-
-        //SBE_EXEC_HWP(fapiRc, p9_flush_nvdimm_hwp,  procTgt);
-        if( fapiRc != FAPI2_RC_SUCCESS )
-        {
-            SBE_ERROR(SBE_FUNC "p9_flush_NVDIMM_hwp failed");
-            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                               SBE_SEC_HWP_FAILURE);
             ffdc.setRc(fapiRc);
             break;
         }

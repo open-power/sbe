@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -32,6 +32,7 @@ APPPOWERPIBMEM-CPP-SOURCES += sbecmdcntrldmt.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdsram.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdgeneric.C
 APPPOWERPIBMEM-CPP-SOURCES += istep.C
+APPPOWERPIBMEM-CPP-SOURCES += sbecmdflushnvdimm.C
 
 APPPOWERPIBMEM-C-SOURCES =
 APPPOWERPIBMEM-S-SOURCES =
@@ -47,6 +48,7 @@ APPPOWERSEEPROM-CPP-SOURCES += sbecmdgeneric.C
 APPPOWERSEEPROM-CPP-SOURCES += sbecmdtracearray.C
 APPPOWERSEEPROM-CPP-SOURCES += sbearchregdump.C
 APPPOWERSEEPROM-CPP-SOURCES += sbecmdcntlinst.C
+APPPOWERSEEPROM-CPP-SOURCES += sbecmdflushnvdimm.C
 
 APPPOWERSEEPROM-C-SOURCES =
 APPPOWERSEEPROM-S-SOURCES =

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -258,6 +258,7 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_cache_contained_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/chip_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/chip_ec_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_hcode_image_build_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/memory_mcs_attributes.xml
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -110,6 +110,7 @@
 #include "sbeSecureMemRegionManager.H"
 
 #include "sbeConsole.H"
+#include "sbecmdflushnvdimm.H"
 
 // Forward declaration
 using namespace fapi2;
@@ -128,7 +129,6 @@ static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 30; // 63-33 = 30
 // Externs
 extern p9_thread_control_FP_t threadCntlhwp;
 extern uint64_t G_ring_save[8];
-
 //Utility function to mask special attention
 extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target );
 
@@ -997,6 +997,12 @@ ReturnCode istepStartMpipl( voidfuncptr_t i_hwp)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC "resetCrespErrLatch failed");
+            break;
+        }
+        rc = flushNVDIMM();
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "flushNVDIMM failed");
             break;
         }
 

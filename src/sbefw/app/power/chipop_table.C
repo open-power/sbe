@@ -24,6 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbecmdscomaccess.H"
 #include "sbecmdiplcontrol.H"
+#include "sbecmdflushnvdimm.H"
 #include "sbecmdgeneric.H"
 #include "sbecmdmemaccess.H"
 #include "sbecmdregaccess.H"

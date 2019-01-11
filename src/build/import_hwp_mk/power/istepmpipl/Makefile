@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -31,7 +31,7 @@ export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istepmpipl
 include img_defs.mk
 include istepmpiplfiles.mk
 
-export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(IO_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(HWPLIB_SRCDIR)
+export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(IO_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(HWPLIB_SRCDIR):$(MEMHWP_SRCDIR)
 
 OBJSISTEPMPIPL := $(addprefix $(OBJDIR-ISTEPMPIPL)/, $(ISTEPMPIPL_OBJECTS))
 
