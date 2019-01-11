@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -196,3 +196,12 @@ uint32_t sbeReadMem(uint8_t *i_pArg);
  * @return    Rc from the Psu access utility
  */
 uint32_t sbePsuGetCapabilities(uint8_t *i_pArg);
+
+/**
+ * @brief SBE Psu Send Security List Binary Dump (0xD708)
+ *
+ * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+ *
+ * @return    Rc from the Psu access utility
+ */
+uint32_t sbeSecurityListBinDump(uint8_t *i_pArg);

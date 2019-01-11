@@ -88,7 +88,8 @@ void updatePsuCapabilities(uint32_t * capability)
                                       PSU_SET_FFDC_ADDRESS_SUPPORTED |
                                       PSU_QUISCE_SUPPORTED |
                                       PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED |
-                                      PSU_STASH_MPIPL_CONFIG_SUPPORTED;
+                                      PSU_STASH_MPIPL_CONFIG_SUPPORTED |
+                                      PSU_SECURITY_LIST_BIN_DUMP_SUPPORTED;
     capability[PSU_GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
                                       PSU_RESERVED_7;
 

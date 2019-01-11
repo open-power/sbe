@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -426,6 +426,46 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
     return l_rc;
     #undef SBE_FUNC
 }
+
+//----------------------------------------------------------------------------
+uint32_t sbeSecurityListBinDump( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbeSecurityListBinDump"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+
+    do
+    {
+        uint64_t dumpAddr = 0;
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                    (sizeof(dumpAddr)/sizeof(uint64_t)),
+                                    &dumpAddr, true);
+
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to extract SBE_HOST_PSU_MBOX_REG1");
+            break;
+        }
+
+        SBE_INFO(SBE_FUNC "Security Dump Addr [0x%08X][%08X]",
+            SBE::higher32BWord(dumpAddr),
+            SBE::lower32BWord(dumpAddr));
+
+        ////////////////////////////////////////////////////////
+        // Do your processing here with dumpAddr
+        ////////////////////////////////////////////////////////
+
+    }while(0);
+
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
 #endif //__SBEFW_SEEPROM__
 
 #ifndef __SBEFW_SEEPROM__

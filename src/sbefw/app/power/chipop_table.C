@@ -323,6 +323,11 @@ CMD_ARR(
     {sbeStashKeyAddrPair,
      SBE_PSU_GENERIC_MSG_STASH_MPIPL_CONFIG,
      SBE_NO_FENCE,
+    },
+
+    {sbeSecurityListBinDump,
+     SBE_PSU_GENERIC_MSG_SECURITY_LIST_BIN_DUMP,
+     SBE_NO_FENCE,
     }
 )
 

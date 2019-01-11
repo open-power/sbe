@@ -57,6 +57,7 @@
           <include>../simics/targets/p9_nimbus/sbeTest/testRegAccess.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testFifoReset.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testSystemFabricMap.xml</include>
+          <include>../simics/targets/p9_nimbus/sbeTest/testSecurityListDump.xml</include>
           <include>../simics/targets/p9_nimbus/sbeTest/testExecutorCntrlTimer.xml</include>
           <!-- temporarily disable in preparation for an update to the trace bus IDs <include>../simics/targets/p9_nimbus/sbeTest/testArrayAccess.xml</include> -->
           <include>../simics/targets/p9_nimbus/sbeTest/testSecurity.xml</include>

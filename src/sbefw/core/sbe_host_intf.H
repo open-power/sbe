@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -102,6 +102,7 @@ enum sbePsuGenericMessages
     SBE_PSU_GENERIC_MSG_QUIESCE            = 0x05,
     SBE_PSU_GENERIC_MSG_SYSTEM_FABRIC_MAP  = 0x06,
     SBE_PSU_GENERIC_MSG_STASH_MPIPL_CONFIG = 0x07,
+    SBE_PSU_GENERIC_MSG_SECURITY_LIST_BIN_DUMP  = 0x08,
     SBE_PSU_GENERIC_MSG_UNKNOWN            = 0xFF,
 };
 
@@ -194,6 +195,7 @@ enum PSU_CAPABILITIES
     PSU_QUISCE_SUPPORTED                    = 0xD7000010,
     PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED  = 0xD7000020,
     PSU_STASH_MPIPL_CONFIG_SUPPORTED        = 0xD7000040,
+    PSU_SECURITY_LIST_BIN_DUMP_SUPPORTED    = 0xD7000080,
     PSU_RESERVED_7                          = 0xD7800000,
 };
 
