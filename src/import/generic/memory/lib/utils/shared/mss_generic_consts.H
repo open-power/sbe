@@ -206,7 +206,7 @@ enum rev : uint8_t
     GEN_SEC_MAX = V1_1,
     RDIMM_MAX = V1_1,
     LRDIMM_MAX = V1_2,
-    DDIMM_MAX = V1_0,
+    DDIMM_MAX = V0_0,
 };
 
 ///
@@ -254,6 +254,21 @@ enum guard_band : uint16_t
 };
 
 }// spd
+
+namespace efd
+{
+
+
+///
+/// @brief EFD Module identifier
+/// @note helps distinguish the EFD identifier
+///
+enum id
+{
+    DDR4_CUSTOM_MICROCHIP = 0x11,
+};
+
+}//efd
 
 ///
 /// @brief DIMM nibble mask
