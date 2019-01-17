@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,6 +44,8 @@ enum MemVpdData
     MP, //! Memory Power related info
     DQ, //! DQ/DQS pin assignments
     CK, //! CKE pin assignments
+    EFD, //! Extended Function Descriptor data for OCMB
+    BUFFER, //! Buffer data for OCMB
 };
 
 typedef MemVpdData MemVpdData_t;

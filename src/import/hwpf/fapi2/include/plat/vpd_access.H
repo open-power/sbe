@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -42,6 +42,14 @@ namespace fapi2
 // specialization for MCS target
 template<> fapi2::ReturnCode getVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target,
                                     VPDInfo<fapi2::TARGET_TYPE_MCS>& io_vpd_info,
+                                    uint8_t* o_blob)
+{
+    return platGetVPD( i_target, io_vpd_info, o_blob );
+}
+
+// specialization for MCS target
+template<> fapi2::ReturnCode getVPD(const fapi2::Target<fapi2::TARGET_TYPE_OCMB_CHIP>& i_target,
+                                    VPDInfo<fapi2::TARGET_TYPE_OCMB_CHIP>& io_vpd_info,
                                     uint8_t* o_blob)
 {
     return platGetVPD( i_target, io_vpd_info, o_blob );
