@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -238,7 +238,7 @@ extern "C" void i2c_reset()
 ///////////////////////////////////////////////////////////////////
 // SBE handler to save off specific registers
 ///////////////////////////////////////////////////////////////////
-registersave_t __g_register_ffdc;
+registersave_t __g_register_ffdc __attribute__((section (".sbss")));
 uint64_t __g_address_for_register_ffdc = (uint32_t)&__g_register_ffdc;
 
 extern "C" void __sbe_register_saveoff()
