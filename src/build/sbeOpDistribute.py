@@ -27,7 +27,7 @@ import sys
 import getopt
 
 CHIPID = 'p9n'
-p9n_EC = {'20':'DD2', '21':'DD2', '22':'DD2'}
+p9n_EC = {'21':'DD2', '22':'DD2', '23':'DD2'}
 
 def usage():
     print "usage:sbeOpDistribute.py [--sbe_binary_dir] <sbe binary path> [--img_dir] <images path>"
