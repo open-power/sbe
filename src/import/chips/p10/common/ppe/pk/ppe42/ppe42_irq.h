@@ -98,6 +98,22 @@ typedef void (*PkIrqHandler)(void* arg, PkIrqId irq);
 
 #define PK_IRQ_HANDLER(f) void f(void* arg, PkIrqId irq)
 
+#define PK_IRQ_SETUP(irq, polarity, trigger)                           \
+    rc = pk_irq_setup(irq, polarity, trigger);                         \
+    if (rc) {                                                          \
+        PK_TRACE("pk_irq_setup(irq) failed w/rc=0x%08x", rc);          \
+        pk_halt();                                                     \
+    }
+
+#define PK_IRQ_HANDLER_SET(irq, handler, sem)                          \
+    rc = pk_irq_handler_set(irq,                                       \
+                            handler,                                   \
+                            (void*)&sem);                              \
+    if (rc) {                                                          \
+        PK_TRACE("pk_irq_handler_set(irq) failed w/rc=0x%08x", rc);    \
+        pk_halt();                                                     \
+    }
+
 int pk_irq_setup(PkIrqId irq,
                  int      polarity,
                  int      trigger);

@@ -25,6 +25,20 @@
 #ifndef _PPE42_MATH_H
 #define _PPE42_MATH_H
 
+#define MIN(X, Y)                               \
+    ({                                          \
+        typeof (X) __x = (X);                   \
+        typeof (Y) __y = (Y);                   \
+        (__x < __y) ? __x : __y; })
+
+#define MAX(X, Y)                               \
+    ({                                          \
+        typeof (X) __x = (X);                   \
+        typeof (Y) __y = (Y);                   \
+        (__x > __y) ? __x : __y;                \
+    })
+
+
 // Provide a way to use the native 16-bit multiply instruction
 // Unfortunately the compiler does not know to use it
 /// Signed 16 bit multiply, 32 bit product
@@ -76,6 +90,10 @@ int __divsi3(int _a, int _b);
  */
 unsigned long __umodsi3(unsigned long a, unsigned long b);
 
+
+// Only PPE42A instuction set does not have native 32 bit mult.
+#if defined(__PPE42A__)
+
 /** 32 bit unsigned multiply
  * @param[in] multiplier
  * @param[in] multiplier
@@ -89,6 +107,8 @@ unsigned long __umulsi3(unsigned long _a, unsigned long _b);
  * @return product
  */
 unsigned int __mulsi3(unsigned int _a, unsigned int _b);
+
+#endif // __PPE42A__
 
 /** 64 bit signed multiply
  * @param[in] multiplier

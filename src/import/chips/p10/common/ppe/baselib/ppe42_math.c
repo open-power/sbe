@@ -144,6 +144,8 @@ int __divsi3(int _a, int _b)
     return c;
 }
 
+// Only PPE42A instruction set does not have native 32 bit multiply.
+#if defined(__PPE42A__)
 
 // 32 bit unsigned mutiply
 unsigned long __umulsi3(unsigned long _a, unsigned long _b)
@@ -200,6 +202,8 @@ unsigned int __mulsi3(unsigned int _a, unsigned int _b)
 
     return d;
 }
+
+#endif //__PPE42A__
 
 // 64 bit signed multiply
 unsigned long long __muldi3(unsigned long long _a, unsigned long long _b)
