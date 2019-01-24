@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -25,145 +25,13 @@
 #include "sbeSecurity.H"
 #include "sbetrace.H"
 #include "sbeglobals.H"
+#include "fapi2.H"
 
 #include "sbeSecurityGen.H"
 
 namespace SBE_SECURITY
 {
-
-// Figure out at compile time, the number of shifts required for the mask
-constexpr uint32_t get_shift_len(uint32_t mask, uint8_t shifts = 0)
-{
-    return ((mask>>shifts) & 0x01) ? (shifts) : (get_shift_len(mask, ++shifts));
-}
-
-template <typename Func>
-map_t<bool, int32_t> binary_search(
-                    const uint32_t search_key,
-                    range_t<int32_t> x_range,
-                    Func get_element)
-{
-    map_t<bool, int32_t> ret = {false, 0}; // found=false
-
-    while((x_range.start <= x_range.end) &&
-          (ret.key == false))
-    {
-        int32_t midpoint = (x_range.start + x_range.end) / 2;
-        SBE_DEBUG("binary_search : midpoint[0x%08x]",
-                midpoint);
-        uint32_t ele = get_element(midpoint);
-        SBE_DEBUG("binary_search : search_key[0x%08x] ele[0x%08x]",
-                search_key,
-                ele);
-        if(search_key == ele)
-        {
-            ret.key = true;
-            ret.value = midpoint;
-        }
-        else if(search_key < ele)
-        {
-            x_range.end = midpoint - 1;
-        }
-        else
-        {
-            x_range.start = midpoint + 1;
-        }
-        SBE_DEBUG("binary_search : x_range.start[0x%08x] x_range.end[0x%08x]",
-                                   x_range.start,
-                                   x_range.end);
-    }
-    SBE_DEBUG("binary_search : ret[%d]",ret.key);
-    return ret;
-}
-
-template <typename M1_T, typename M1_U,
-          typename M2_T, typename M2_U,
-          typename T3>
-bool _is_present(const table< map_t< range_t<M1_T>, M1_U > > &table1,
-                 const table< map_t<M2_T, M2_U> > &table2,
-                 const table< T3 > &table3,
-                 const uint32_t i_addr)
-{
-#define SBE_FUNC "SBE_SECURITY::_is_present"
-    SBE_ENTER(SBE_FUNC);
-    for(size_t i = 0; i < table1.size; i++)
-    {
-        uint32_t search_key = (i_addr & table1.mask) >> get_shift_len(table1.mask);
-        if((table1.table[i].key.start <= search_key) &&
-           (table1.table[i].key.end >= search_key))
-        {
-            SBE_DEBUG(SBE_FUNC" table1:found key[0x%x] table index[%d]",
-                                                        search_key, i);
-            // Found the range where key might belong to
-            search_key = (i_addr & table2.mask) >> get_shift_len(table2.mask);
-            range_t<int32_t> search_range = {};
-            search_range.start = i ? table1.table[i-1].value : 0;
-            search_range.end = table1.table[i].value - 1;
-            map_t<bool, int32_t> search_result =
-                binary_search(
-                        search_key,
-                        search_range,
-                        [&table2](int32_t midpoint) -> uint32_t {
-                            return table2.table[midpoint].key;
-                        });
-            if(search_result.key == true)
-            {
-                SBE_DEBUG(SBE_FUNC" table2:found key[0x%x] table index[%d]",
-                                                search_key,
-                                                search_result.value);
-                // Found the key
-                search_range.start = (search_result.value ?
-                                table2.table[search_result.value-1].value : 0);
-                search_range.end =
-                                table2.table[search_result.value].value - 1;
-                search_key = (i_addr & table3.mask) >>
-                                               get_shift_len(table3.mask);
-                search_result = binary_search(
-                                            search_key,
-                                            search_range,
-                                            [&table3](int32_t midpoint) -> uint32_t {
-                                                return table3.table[midpoint];
-                                            });
-                if(search_result.key == true)
-                {
-                    SBE_DEBUG(SBE_FUNC" table3:found key[0x%x] table index[%d]",
-                                                search_key,
-                                                search_result.value);
-                    // Found the number
-                    return true;
-                }
-            }
-        }
-    }
-    SBE_EXIT(SBE_FUNC);
-    return false;
-#undef SBE_FUNC
-}
-
-template <typename T1, typename T2 >
-bool _is_present(const table< map_t< T1, T2 > > &table1,
-                 const T1 i_addr,
-                 const T2 i_mask)
-{
-#define SBE_FUNC "SBE_SECURITY::_is_present "
-    SBE_ENTER(SBE_FUNC"Searching address/mask table");
-    bool ret = false;
-    for(size_t i = 0; i < table1.size; i++)
-    {
-        // Not using mask in table for search
-        if((table1.table[i].key ==  i_addr) &&
-           (( i_mask & (~table1.table[i].value)) == 0 ))
-        {
-            SBE_DEBUG(SBE_FUNC" table1:found addr[0x%x] table index[%d]",
-                                                        i_addr, i);
-            ret = true;
-            break;
-        }
-    }
-    SBE_EXIT(SBE_FUNC);
-    return ret;
-#undef SBE_FUNC
-}
+//----------------------------------------------------------------------------
 bool isAllowed(const uint32_t i_addr, uint64_t i_mask,  accessType i_type)
 {
     bool ret = true;
@@ -183,6 +51,188 @@ bool isAllowed(const uint32_t i_addr, uint64_t i_mask,  accessType i_type)
                                         i_type, ret, i_addr);
     }
     return ret;
+}
+//----------------------------------------------------------------------------
+uint32_t updateAndSendSecTOCHdr( sbeMemAccessInterface *i_pMemInterface )
+{
+    #define SBE_FUNC "updateAndSendSecTOCHdr"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t fapiRc = fapi2::FAPI2_RC_SUCCESS;
+
+    sec_header_dump_t l_secListDumpHdr;
+    /// Send the list of _T1, _T2 and _T3 header count
+    l_secListDumpHdr.wl_t1_count = WHITELIST::t1.size;
+    l_secListDumpHdr.wl_t2_count = WHITELIST::t2.size;
+    l_secListDumpHdr.wl_t3_count = WHITELIST::t3.size;
+
+    l_secListDumpHdr.bl_t1_count = BLACKLIST::t1.size;
+    l_secListDumpHdr.bl_t2_count = BLACKLIST::t2.size;
+    l_secListDumpHdr.bl_t3_count = BLACKLIST::t3.size;
+
+    l_secListDumpHdr.gl_t1_count = GREYLIST::t1.size;
+
+    SBE_INFO("SBE_SECURITY whitelist t1[%d] t2[%d] t3[0x%d] ",
+              WHITELIST::t1.size, WHITELIST::t2.size, WHITELIST::t3.size);
+    SBE_INFO("SBE_SECURITY blacklist t1[%d] t2[%d] t3[0x%d] ",
+              BLACKLIST::t1.size, BLACKLIST::t2.size, BLACKLIST::t3.size);
+    SBE_INFO("SBE_SECURITY greylist t1[%d] ", GREYLIST::t1.size);
+
+    fapiRc = i_pMemInterface->accessWithBuffer(&l_secListDumpHdr,
+                                               sizeof(l_secListDumpHdr),
+                                               false);
+    if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC "Failed to write accessWithBuffer to hostboot");
+    }
+
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+uint32_t sbeSecurityWhiteBlackListDump( sbeMemAccessInterface *i_pMemInterface,
+                                   const secListType &i_listType  )
+{
+    #define SBE_FUNC "sbeSecurityWhiteBlackListDump"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t fapiRc = fapi2::FAPI2_RC_SUCCESS;
+    _t1_t * t1 = NULL;
+    uint32_t t1_size = 0;
+    _t2_t * t2 = NULL;
+    uint32_t t2_size = 0;
+    _t3_t * t3 = NULL;
+    uint32_t t3_size = 0;
+    if( i_listType == SEC_WHITE_LIST )
+    {
+        t1 = WHITELIST::_t1;
+        t1_size = WHITELIST::t1.size;
+
+        t2 = WHITELIST::_t2;
+        t2_size = WHITELIST::t2.size;
+
+        t3 = WHITELIST::_t3;
+        t3_size = WHITELIST::t3.size;
+    }
+    else if( i_listType == SEC_BLACK_LIST )
+    {
+        t1 = BLACKLIST::_t1;
+        t1_size = BLACKLIST::t1.size;
+
+        t2 = BLACKLIST::_t2;
+        t2_size = BLACKLIST::t2.size;
+
+        t3 = BLACKLIST::_t3;
+        t3_size = BLACKLIST::t3.size;
+    }
+    do
+    {
+        // Update and Send the whitelist T1
+        for( uint32_t i = 0; i < t1_size; i++)
+        {
+            fapiRc = i_pMemInterface->accessWithBuffer(&t1[i].key_start,
+                                          sizeof(uint8_t), false);
+            if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+            fapiRc = i_pMemInterface->accessWithBuffer(&t1[i].key_end,
+                                          sizeof(uint8_t), false);
+            if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+            fapiRc = i_pMemInterface->accessWithBuffer(&t1[i].value,
+                                          sizeof(uint8_t), false);
+            if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+        }
+
+        // Update and Send the whitelist T2
+        for( uint32_t i = 0; i < t2_size; i++)
+        {
+            fapiRc = i_pMemInterface->accessWithBuffer(&t2[i].key,
+                                          sizeof(uint8_t), false);
+            if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+            fapiRc = i_pMemInterface->accessWithBuffer(&t2[i].value,
+                                          sizeof(uint16_t), false);
+            if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+        }
+
+        // Update and Send the whitelist T3
+        for( uint32_t i = 0; i < t3_size; i++)
+        {
+            fapiRc = i_pMemInterface->accessWithBuffer(&t3[i].value,
+                                                sizeof(uint16_t), false);
+            if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+        }
+    }
+    while(0);
+    if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC "Failed to send Black/WhiteListDump to hostboot");
+    }
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+    #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+uint32_t sbeSecurityGreyListDump( sbeMemAccessInterface *i_pMemInterface )
+{
+    #define SBE_FUNC "sbeSecurityGreyListDump"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t fapiRc = fapi2::FAPI2_RC_SUCCESS;
+
+    // Update and Send the blacklist T1
+    for(uint32_t i = 0; i < GREYLIST::t1.size; i++)
+    {
+        fapiRc = i_pMemInterface->accessWithBuffer(&GREYLIST::_t1[i].key,
+                                          sizeof(uint32_t), false);
+        if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+        fapiRc = i_pMemInterface->accessWithBuffer(&GREYLIST::_t1[i].value,
+                                          sizeof(uint64_t), false);
+        if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+    }
+
+    if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC "Failed to send GreyListDump to hostboot");
+    }
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+    #undef SBE_FUNC
+}
+//----------------------------------------------------------------------------
+uint32_t  sendSecurityListDumpToHB(sbeMemAccessInterface *i_pMemInterface)
+{
+    #define SBE_FUNC "sendSecurityListDumpToHB"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t fapiRc = fapi2::FAPI2_RC_SUCCESS;
+    do
+    {
+        // Update and Send the list of TOC of _T1, _T2 and _T3 header count
+        fapiRc = updateAndSendSecTOCHdr(i_pMemInterface);
+        if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+
+        // Update and Send the whitelist T1,T2 and T3 data
+        fapiRc = sbeSecurityWhiteBlackListDump(i_pMemInterface, SEC_WHITE_LIST);
+        if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+
+        // Update and Send the blacklist T1,T2 and T3 data
+        fapiRc = sbeSecurityWhiteBlackListDump(i_pMemInterface,SEC_BLACK_LIST);
+        if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+
+        // Update and Send the greylist T1 data
+        fapiRc = sbeSecurityGreyListDump(i_pMemInterface);
+        if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+        uint8_t l_endOfdump = 0;
+        fapiRc = i_pMemInterface->accessWithBuffer(&l_endOfdump,
+                                               sizeof(l_endOfdump),
+                                               true);
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
+    }
+    while(0);
+    if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC "Failed to write SecData Dump to hostboot");
+    }
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+    #undef SBE_FUNC
 }
 
 } // namespace SBE_SECURITY

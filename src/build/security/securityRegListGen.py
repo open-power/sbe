@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2018
+# Contributors Listed Below - COPYRIGHT 2017,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -58,6 +58,7 @@ arguments:\n\
 -o, --output             output directory\n\
 -w, --whitelist          print whitelist read from csv\n\
 -b, --blacklist          print blacklist read from csv\n\
+-g, --greylist           print greylist read from csv\n\
 -i, --info               get version info of the security list\n\
 -d, --debug              enable debug traces\n\
 -v, --verbose            enable verbose traces"
@@ -92,6 +93,7 @@ def gen_file(whitelist_tables, blacklist_tables, greyList):
     header = ("#ifndef __SBE_SECURITY_GEN_H\n"+
               "#define __SBE_SECURITY_GEN_H\n\n"+
               "#include \"sbeSecurity.H\"\n\n"+
+              "#include \"securityAlgo.H\"\n\n"+
               "using namespace SBE_SECURITY;\n\n")
 
     tables = (('WHITELIST', 'whitelist', whitelist_tables),
@@ -122,7 +124,7 @@ namespace """+namespace+"""
     1 byte for running count - we are good with uint8_t till the
     total paths are less than 256
     */
-    map_t< range_t<"""+table1_range_type+""">, """+table1_index_type+""" > _t1[]  = {
+    _t1_t _t1[]  = {
     // length of the table = """+s_list_len(table[0])+"""
 """+s_table1_gen(tablename, table[0])+"""
                                                           };
@@ -141,7 +143,7 @@ namespace """+namespace+"""
     We are good with uint16_t,
     till the number of paths to table 3 from each key is less than 65536
     */
-    map_t< """+table2_value_type+""", """+table2_index_type+""" > _t2[] = {
+    _t2_t _t2[] = {
     // length of the table = """+s_list_len(table[1])+"""
 """+s_table2_gen(tablename, table[1])+"""
                                       };
@@ -149,30 +151,26 @@ namespace """+namespace+"""
     table 3
        values = 2 byte value bit 16-31 of the 32-bit address
     */
-    """+table3_value_type+""" _t3[] = {
+    _t3_t _t3[] = {
     // length of the table = """+s_list_len(table[2])+"""
 """+s_table3_gen(tablename, table[2])+"""
                       };
-    table< map_t< range_t<"""+table1_range_type+""">, """+table1_index_type+""" > > t1 =
-            {sizeof(_t1)/sizeof(map_t< range_t<"""+table1_range_type+""">, """+table1_index_type+""" >),
+    _t1_table_t t1 =
+            {sizeof(_t1)/sizeof(_t1_t),
              0xFF000000,
              _t1};
-    table< map_t< """+table2_value_type+""", """+table2_index_type+""" > > t2 =
-            {sizeof(_t2)/sizeof(map_t< """+table2_value_type+""", """+table2_index_type+""" >),
+    _t2_table_t t2 =
+            {sizeof(_t2)/sizeof(_t2_t),
              0x00FF0000,
              _t2};
-    table<"""+table3_value_type+"""> t3 =
-            {sizeof(_t3)/sizeof("""+table3_value_type+"""),
+    _t3_table_t t3 =
+            {sizeof(_t3)/sizeof(_t3_t),
              0x0000FFFF,
              _t3};
 
     bool isPresent(uint32_t i_addr)
     {
-        return SBE_SECURITY::_is_present
-                          < """+table1_range_type+""", """+table1_index_type+""",
-                            """+table2_value_type+""", """+table2_index_type+""",
-                            """+table3_value_type+""">
-                          (t1, t2, t3, i_addr);
+        return _is_present(t1, t2, t3, i_addr);
     }
 }""")
 
@@ -186,20 +184,18 @@ namespace GREYLIST
        Address   = 4 byte
        Mask      = 8 byte
     */
-    map_t< """+greylist_addr_type+""", """+greylist_mask_type+""" > _t1[] = {
+    _gl_t1_t _t1[] = {
 """+s_greylist_table_gen(greyList)+"""
                                       };
 
-    table< map_t< """+greylist_addr_type+""", """+greylist_mask_type+""" > > t1 =
-            {sizeof(_t1)/sizeof(map_t< """+greylist_addr_type+""", """+greylist_mask_type+""" >),
+    _gl_t1_table_t t1 =
+            {sizeof(_t1)/sizeof(_gl_t1_t),
              0xFFFFFFFF,
              _t1};
 
     bool isPresent(uint32_t i_addr, uint64_t i_mask)
     {
-        return SBE_SECURITY::_is_present
-                          < """+greylist_addr_type+""", """+greylist_mask_type+""">
-                          (t1, i_addr, i_mask);
+        return _is_present(t1, i_addr, i_mask);
     }
 }""")
     footer = "\n#endif //__SBE_SECURITY_GEN_H"
@@ -486,7 +482,7 @@ def s_table1_gen(id, table):
     # write table 1 string
     str_table1 = ""
     for i,(key, value) in enumerate(table):
-        str_table1 += '{{0x%02x, 0x%02x}, 0x%02x}, ' % (((key & 0xFF00) >> 8),
+        str_table1 += '{0x%02x, 0x%02x, 0x%02x}, ' % (((key & 0xFF00) >> 8),
                                                         (key & 0x00FF),
                                                         value)
         if(0 == ((i+1) % 4)):
@@ -540,8 +536,8 @@ def main(argv):
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                "f:o:wbidvhW:B:",
-                                   ['file=', 'output=', 'whitelist', 'blacklist', 'info', 'debug', 'verbose', 'help', 'wt=', 'bt='])
+                "f:o:wbgidvhW:B:",
+                                   ['file=', 'output=', 'whitelist', 'blacklist', 'greylist', 'info', 'debug', 'verbose', 'help', 'wt=', 'bt='])
     except getopt.GetoptError as err:
         exit(INVALID_USAGE, str(err))
 
@@ -565,6 +561,8 @@ def main(argv):
             print_info = "whitelist"
         elif opt in ('-b', '--blacklist'):
             print_info = "blacklist"
+        elif opt in ('-g', '--greylist'):
+            print_info = "greylist"
         elif opt in ('-f', '--file'):
             assert os.path.exists(arg), "file doesn't exist at:"+str(arg)
             SECURITY_LIST = str(arg)
@@ -666,6 +664,8 @@ def main(argv):
         exit(PRINT_AND_EXIT, s_list_hex("whitelist:", whitelist, 8))
     if(print_info == 'blacklist'):
         exit(PRINT_AND_EXIT, s_list_hex("blacklist:", blacklist, 8))
+    if(print_info == 'greylist'):
+        exit(PRINT_AND_EXIT, greylist)
 
     if(VERBOSE):
         print s_list_hex("whitelist:", whitelist, 8)

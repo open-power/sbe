@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -26,38 +26,28 @@
 #define __SBE_SECURITY_H
 
 #include <stdint.h>
+#include <securityAlgo.H>
+#include "sbeMemAccessInterface.H"
 
 namespace SBE_SECURITY
 {
+
     typedef enum
     {
         READ = 0,
         WRITE
     } accessType;
 
-    // type to define a range
-    template <typename T>
-    struct range_t
+    /**
+     * @brief An enumeration of all Security list types
+     */
+    enum secListType
     {
-        T start;
-        T end;
-    };
-
-    // key-value map used for the tables
-    template <typename T, typename U>
-    struct map_t
-    {
-        T key;
-        U value;
-    };
-
-    // table data structure
-    template <typename T>
-    struct table
-    {
-        uint32_t size;
-        uint32_t mask;
-        T *table;
+        SEC_WHITE_LIST = 0x0,
+        SEC_BLACK_LIST = 0x1,
+        SEC_GREY_LIST  = 0x2,
+        // Don't count this in the list type, just to intialize the list type
+        SEC_INVALID_LIST = 0xF,
     };
 
     /* @brief isAllowed       - Public function used for address verification
@@ -73,35 +63,13 @@ namespace SBE_SECURITY
     bool isAllowed(const uint32_t i_addr, const uint64_t i_mask,
                    accessType i_type);
 
-    /* @brief _is_present     - Look up tables to find if the given
-     *                          address is present
-     * @param[in] table1      - table 1 - map with a range and running count
-     * @param[in] table2      - table 2 - map with value and running count
-     * @param[in] table3      - table 3 - array with values
-     * @param[in] i_addr      - given address to look up
+    /* @brief sendSecurityListDumpToHB - Public function used for sending
+     *                         security dump to hostboot
      *
-     * @return                - boolean to denote if the address in present
-     *                          in the list of tables
-     */
-    template <typename M1_T, typename M1_U,
-              typename M2_T, typename M2_U,
-              typename T3>
-    bool _is_present(const table< map_t< range_t<M1_T>, M1_U > > &table1,
-                     const table< map_t<M2_T, M2_U> > &table2,
-                     const table< T3 > &table3,
-                     const uint32_t i_addr);
-
-    /* @brief _is_present     - Look up tables to find if the given
-     *                          address with mask is present
-     * @param[in] table1      - table 1 - map with a range and running count
-     * @param[in] i_addr      - given address to look up
-     * @param[in] mask        - mask to look up
+     * @param[in] i_pMemInterface - pointer to memory interface object
      *
-     * @return                - boolean to denote if the address in present
+     * @return                - SBE secondary RC
      */
-    template <typename T1, typename T2 >
-    bool _is_present(const table< map_t< T1, T2 > > &table1,
-                     const T1 i_addr,
-                     const T2 i_mask);
+    uint32_t  sendSecurityListDumpToHB(sbeMemAccessInterface *i_pMemInterface);
 }
 #endif //__SBE_SECURITY_H
