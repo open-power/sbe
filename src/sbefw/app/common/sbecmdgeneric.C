@@ -43,6 +43,7 @@
 #include "sbeglobals.H"
 #include "sbeXipUtils.H"
 #include "sbeMemAccessInterface.H"
+#include "sbeSecurity.H"
 
 #include "fapi2.H"
 //#include "p9_xip_image.h"
@@ -441,21 +442,32 @@ uint32_t sbeSecurityListBinDump( uint8_t *i_pArg )
         rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
                                     (sizeof(dumpAddr)/sizeof(uint64_t)),
                                     &dumpAddr, true);
-
         if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
         {
             SBE_ERROR(SBE_FUNC" Failed to extract SBE_HOST_PSU_MBOX_REG1");
             break;
         }
-
         SBE_INFO(SBE_FUNC "Security Dump Addr [0x%08X][%08X]",
-            SBE::higher32BWord(dumpAddr),
-            SBE::lower32BWord(dumpAddr));
+                 SBE::higher32BWord(dumpAddr),
+                 SBE::lower32BWord(dumpAddr));
+        /// Initialise the PBA with the above address from stash,
+        /// The access API would use it in auto-increment mode.
+        p9_PBA_oper_flag pbaFlag;
+        pbaFlag.setOperationType(p9_PBA_oper_flag::INJ);
+        sbeMemAccessInterface PBAInterface(
+                                SBE_MEM_ACCESS_PBA,
+                                dumpAddr,
+                               &pbaFlag,
+                                SBE_MEM_ACCESS_WRITE,
+                                sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
 
-        ////////////////////////////////////////////////////////
-        // Do your processing here with dumpAddr
-        ////////////////////////////////////////////////////////
-
+        /// Send TOC of table header count and  list of _T1, _T2 and _T3 data
+        fapiRc = SBE_SECURITY::sendSecurityListDumpToHB(&PBAInterface);
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC"Failed to send security table data to hostboot");
+            break;
+        }
     }while(0);
 
     // Send the response
