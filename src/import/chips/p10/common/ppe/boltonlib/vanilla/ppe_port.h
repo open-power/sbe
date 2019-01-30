@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/common/ppe/boltonlib/gpe/gpe_timebase.h $ */
+/* $Source: src/import/chips/p10/common/ppe/boltonlib/vanilla/ppe_port.h $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2019                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,39 +22,15 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __GPE_TIMEBASE_H__
-#define __GPE_TIMEBASE_H__
+#ifndef __PPE_PORT_H__
+#define __PPE_PORT_H__
 
-/// \file gpe_timebase.h
-/// \brief support for using the OCB 32 bit timebase register
-///
-/// The OCB timebase register is a 32 bit count-up register that is shared
-/// by all GPE's in the OCC complex.
+/// \file pk_port.h
+/// \brief The top-level CME environment header for PPE.
 
+#define HWMACRO_PPE
 
-#include "ppe42_mmio.h"
-#include "ocb_register_addresses.h"
+#include "ppe42.h"
+#include "ppe_timebase.h"
 
-#ifndef __ASSEMBLER__
-
-#ifdef APPCFG_USE_EXT_TIMEBASE
-static inline
-uint32_t pk_timebase32_get(void)
-{
-    return in32(OCB_OTBR);
-}
-
-#else
-//assembly function is defined in ppe42_timebase.S
-uint32_t pk_timebase32_get(void);
-
-#endif /* APPCFG_USE_EXT_TIMEBASE */
-
-#else
-
-.macro _pk_timebase32_get rT, rA
-_lwzi \rT, \rA, OCB_OTBR
-.endm
-#endif  /* __ASSEMBLER__ */
-
-#endif /* __GPE_TIMEBASE_H__ */
+#endif /* __PPE_PORT_H__ */

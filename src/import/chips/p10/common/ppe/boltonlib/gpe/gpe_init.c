@@ -30,7 +30,12 @@
 /// code space can be deallocated and reassigned after application
 /// initialization if required.
 
-#include "pk.h"
+#if defined(__PK__)
+    #include "pk.h"
+#elif defined(__IOTA__)
+    #include "iota.h"
+#endif
+
 #include "ocb_register_addresses.h"
 
 /// GPE environment initial setup.
@@ -51,7 +56,7 @@ __hwmacro_setup(void)
     if((mfspr(SPRN_PIR) & PIR_PPE_INSTANCE_MASK) != APPCFG_OCC_INSTANCE_ID)
     {
         //APPCFG_OCC_INSTANCE_ID does not match actual instance ID!
-        PK_PANIC(OCCHW_INSTANCE_MISMATCH);
+        APPCFG_PANIC(OCCHW_INSTANCE_MISMATCH);
     }
 
 #if (APPCFG_OCC_INSTANCE_ID == OCCHW_IRQ_ROUTE_OWNER)
@@ -59,7 +64,7 @@ __hwmacro_setup(void)
     //then write the routing registers for all OCC interrupts.
     //This instance must be the first instance to run within the OCC
     //This will be done while all external interrupts are masked.
-    PKTRACE("Initializing External Interrupt Routing Registers");
+    APPCFG_TRACE("Initializing External Interrupt Routing Registers");
     out32(OCB_OIMR0_OR, 0xffffffff);
     out32(OCB_OIMR1_OR, 0xffffffff);
     out32(OCB_OIRR0A, (uint32_t)(g_ext_irqs_routeA >> 32));
@@ -102,7 +107,7 @@ __hwmacro_setup(void)
     if((owned_actual & g_ext_irqs_owned) != g_ext_irqs_owned)
     {
         //IRQ's were not routed to us correctly.
-        PK_PANIC(OCCHW_IRQ_ROUTING_ERROR);
+        APPCFG_PANIC(OCCHW_IRQ_ROUTING_ERROR);
     }
 
     //Mask all external interrupts owned by this instance

@@ -28,7 +28,7 @@
 /// \file std_register_addresses.h
 /// \brief Symbolic addresses for a standard PPE
 
-#include "pk.h"
+
 
 // Define the base address for the external interrupt controller registers
 // This can be overridden in the pk_app_cfg.h file

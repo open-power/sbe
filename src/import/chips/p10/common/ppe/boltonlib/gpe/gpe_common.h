@@ -50,6 +50,8 @@
 #endif
 
 #ifdef __ASSEMBLER__
+    #ifdef __PK__
+        #include "pk.h"
 // *INDENT-OFF*
 /// This macro contains GPE specific code for determining what IRQ caused the
 /// external exception handler to be invoked by the PPE
@@ -88,14 +90,13 @@
 
     .endm
 
-
+#endif /* __PK__ */
 /// Redirect the .hwmacro_irq_cfg_bitmaps macro to call our macro that is common for both
 /// GPE's and the 405 inside the OCC complex.  This is called from the ppe42_exceptions.S
 /// file.
     .macro .hwmacro_irq_cfg_bitmaps
         .occhw_irq_cfg_bitmaps
     .endm
-
 // *INDENT-ON*
 #endif /* __ASSEMBLER__ */
 

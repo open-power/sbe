@@ -30,7 +30,11 @@
 /// code space can be deallocated and reassigned after application
 /// initialization if required.
 
-#include "pk.h"
+#if defined(__PK__)
+    #include "pk.h"
+#elif defined(__IOTA__)
+    #include "iota.h"
+#endif
 
 /// Standard PPE environment initial setup.
 ///

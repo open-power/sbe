@@ -34,7 +34,6 @@
 #endif
 
 //#include "cmehw_interrupts.h"
-#include "pk.h"
 #include "std_irq_config.h"
 
 #ifdef __ASSEMBLER__

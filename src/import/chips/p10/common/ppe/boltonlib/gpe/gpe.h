@@ -45,16 +45,5 @@
 
 #include "pba_register_addresses.h"
 
-/*
-#include "pcbs_register_addresses.h"
-#include "pcbs_firmware_registers.h"
-
-#include "tod_register_addresses.h"
-#include "tod_firmware_registers.h"
-
-#include "plb_arbiter_register_addresses.h"
-#include "plb_arbiter_firmware_registers.h"
-
-*/
 
 #endif  /* __GPE_H__ */

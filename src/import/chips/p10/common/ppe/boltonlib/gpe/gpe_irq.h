@@ -47,11 +47,28 @@
 
 #ifndef __ASSEMBLER__
 
+#if !defined(__PK__)
+    typedef uint32_t IrqId;
+#else
+    typedef PkIrqId IrqId;
+    #define pk_irq_enable ppe_irq_enable
+    #define pk_irq_vec_enable ppe_irq_vec_enable
+    #define pk_irq_disable ppe_irq_disable
+    #define pk_irq_vec_disable ppe_irq_vec_disable
+    #define pk_irq_status_clear ppe_irq_status_clear
+    #define pk_irq_status_get ppe_irq_status_get
+    #define pk_irq_status_set ppe_irq_status_set
+    #define _pk_irq_enable _ppe_irq_enable
+    #define _pk_irq_disable _ppe_irq_disable
+    #define _pk_irq_status_clear _ppe_irq_status_clear
+    #define _pk_irq_status_set _ppe_irq_status_set
+#endif /* __PK__ */
+
 /// Enable an interrupt by clearing the mask bit.
 
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline void
-pk_irq_enable(PkIrqId irq)
+ppe_irq_enable(IrqId irq)
 {
     out32(OCCHW_OIMR_CLR(irq), OCCHW_IRQ_MASK32(irq));
 }
@@ -61,7 +78,7 @@ pk_irq_enable(PkIrqId irq)
 
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline void
-pk_irq_vec_enable(uint64_t irq_vec_mask)
+ppe_irq_vec_enable(uint64_t irq_vec_mask)
 {
     out32(OCB_OIMR0_CLR, (uint32_t)(irq_vec_mask >> 32));
     out32(OCB_OIMR1_CLR, (uint32_t)irq_vec_mask);
@@ -73,11 +90,11 @@ pk_irq_vec_enable(uint64_t irq_vec_mask)
 /*
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline void
-pk_irq_vec_restore( PkMachineContext *context, uint64_t irq_vec_mask)
+ppe_irq_vec_restore( PkMachineContext *context, uint64_t irq_vec_mask)
 {
-    pk_critical_section_enter(context);
+    ppe_critical_section_enter(context);
     out64( OCB_OIMR, irq_vec_mask);
-    pk_critical_section_exit(context);
+    ppe_critical_section_exit(context);
 }
 */
 
@@ -86,7 +103,7 @@ pk_irq_vec_restore( PkMachineContext *context, uint64_t irq_vec_mask)
 
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline void
-pk_irq_disable(PkIrqId irq)
+ppe_irq_disable(IrqId irq)
 {
     out32(OCCHW_OIMR_OR(irq), OCCHW_IRQ_MASK32(irq));
 }
@@ -96,7 +113,7 @@ pk_irq_disable(PkIrqId irq)
 
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline void
-pk_irq_vec_disable(uint64_t irq_vec_mask)
+ppe_irq_vec_disable(uint64_t irq_vec_mask)
 {
     out32(OCB_OIMR0_OR, (uint32_t)(irq_vec_mask >> 32));
     out32(OCB_OIMR1_OR, (uint32_t)irq_vec_mask);
@@ -108,7 +125,7 @@ pk_irq_vec_disable(uint64_t irq_vec_mask)
 
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline void
-pk_irq_status_clear(PkIrqId irq)
+ppe_irq_status_clear(IrqId irq)
 {
     out32(OCCHW_OISR_CLR(irq), OCCHW_IRQ_MASK32(irq));
 }
@@ -119,7 +136,7 @@ pk_irq_status_clear(PkIrqId irq)
 
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline void
-pk_irq_vec_status_clear(uint64_t irq_vec_mask)
+ppe_irq_vec_status_clear(uint64_t irq_vec_mask)
 {
     out32(OCB_OISR0_CLR, (uint32_t)(irq_vec_mask >> 32));
     out32(OCB_OISR1_CLR, (uint32_t)irq_vec_mask);
@@ -130,7 +147,7 @@ pk_irq_vec_status_clear(uint64_t irq_vec_mask)
 
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline int
-pk_irq_status_get(PkIrqId irq)
+ppe_irq_status_get(IrqId irq)
 {
     return (in32(OCCHW_OISR(irq)) & OCCHW_IRQ_MASK32(irq)) != 0;
 }
@@ -140,7 +157,7 @@ pk_irq_status_get(PkIrqId irq)
 
 UNLESS__PPE42_IRQ_CORE_C__(extern)
 inline void
-pk_irq_status_set(PkIrqId irq, int value)
+ppe_irq_status_set(IrqId irq, int value)
 {
     if (value)
     {
@@ -176,11 +193,11 @@ pk_irq_status_set(PkIrqId irq, int value)
 ///
 /// Forms:
 ///
-/// \b _pk_irq_enable \a rirq, \a rmask, \a raddr - Enable an \c irq. \n
-/// \b _pk_irq_disable \a rirq, \a rmask, \a raddr - Disable an \c irq. \n
-/// \b _pk_irq_status_clear \a rirq, \a rmask, \a raddr - Clear \c irq
+/// \b _ppe_irq_enable \a rirq, \a rmask, \a raddr - Enable an \c irq. \n
+/// \b _ppe_irq_disable \a rirq, \a rmask, \a raddr - Disable an \c irq. \n
+/// \b _ppe_irq_status_clear \a rirq, \a rmask, \a raddr - Clear \c irq
 ///                          interrupt status. \n
-/// \b _pk_irq_status_set \a rirq, \a rmask, \a raddr, \a imm - Set \c irq status
+/// \b _ppe_irq_status_set \a rirq, \a rmask, \a raddr, \a imm - Set \c irq status
 ///                        with an immediate (0/non-0) value. \n
 ///
 /// \todo Once the logic design is locked down, revisit whether these macros
@@ -234,7 +251,7 @@ pk_irq_status_set(PkIrqId irq, int value)
         .endm
 
 
-        .macro  _pk_irq_enable, rirq:req, rmask:req, raddr:req
+        .macro  _ppe_irq_enable, rirq:req, rmask:req, raddr:req
         .three_unique \rirq, \rmask, \raddr
 
         andi.   \raddr, \rirq, 0x20
@@ -250,7 +267,7 @@ pk_irq_status_set(PkIrqId irq, int value)
         .endm
 
 
-        .macro  _pk_irq_disable, rirq:req, rmask:req, raddr:req
+        .macro  _ppe_irq_disable, rirq:req, rmask:req, raddr:req
         .three_unique \rirq, \rmask, \raddr
 
         andi.   \raddr, \rirq, 0x20
@@ -266,7 +283,7 @@ pk_irq_status_set(PkIrqId irq, int value)
         .endm
 
 
-        .macro  _pk_irq_status_clear, rirq:req, rmask:req, raddr:req
+        .macro  _ppe_irq_status_clear, rirq:req, rmask:req, raddr:req
         .three_unique \rirq, \rmask, \raddr
 
         andi.   \raddr, \rirq, 0x20
@@ -282,7 +299,7 @@ pk_irq_status_set(PkIrqId irq, int value)
         .endm
 
 
-        .macro  _pk_irq_status_set, rirq:req, rmask:req, raddr:req, imm:req
+        .macro  _ppe_irq_status_set, rirq:req, rmask:req, raddr:req, imm:req
         .three_unique \rirq, \rmask, \raddr
 
         andi.   \raddr, \rirq, 0x20

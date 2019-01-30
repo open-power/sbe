@@ -30,6 +30,7 @@
 ///  eliminated/deallocated by the application to free up storage if they are
 ///  no longer needed after initialization.
 
+#if defined(__PK__)
 #include "pk.h"
 
 /// Define the polarity and trigger condition for an interrupt.
@@ -128,3 +129,5 @@ pk_irq_handler_set(PkIrqId      irq,
 
     return PK_OK;
 }
+
+#endif /* __PK__ */

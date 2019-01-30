@@ -31,7 +31,8 @@
 /// Each standard PPE has it's own timebase register that runs at a constant
 /// frequency.
 
-#include "pk.h"
+#include "ppe42_mmio.h"
+#include "std_register_addresses.h"
 
 #ifndef __ASSEMBLER__
 

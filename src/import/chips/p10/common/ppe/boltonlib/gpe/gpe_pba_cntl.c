@@ -50,7 +50,8 @@
 #include "pba_register_addresses.h"
 #include "pba_firmware_registers.h"
 #include "gpe_pba_cntl.h"
-
+// TODO these are duplicated elsewhere
+// Need common location.. ppe42.h ??
 #define PPE_LVD(_m_address, _m_data) \
     asm volatile \
     ( \

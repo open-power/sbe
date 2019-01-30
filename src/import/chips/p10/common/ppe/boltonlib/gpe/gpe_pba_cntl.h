@@ -25,7 +25,6 @@
 #ifndef __GPE_PBA_CNTL_H__
 #define __GPE_PBA_CNTL_H__
 
-#include "pk.h"
 #include "occhw_pba_common.h"
 
 #define PBA_BUF_W 0x000008000
