@@ -130,6 +130,7 @@ typedef union
 
 #ifndef __ASSEMBLER__
 
+
 /// Move From SPR
 ///
 ///  Note that \a sprn must be a compile-time constant.
@@ -170,6 +171,15 @@ typedef union
 
 #define andc_spr(sprn, x) \
     mtspr(sprn, mfspr(sprn) & ~(x))
+
+// set dbcr
+#define mtdbcr(value) \
+    asm volatile ("mtdbcr %0" : : "r" (value) : "memory")
+
+// set tcr
+#define mttcr(value) \
+    asm volatile ("mttcr %0" : : "r" (value) : "memory")
+
 
 #endif  /* __ASSEMBLER__ */
 

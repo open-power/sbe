@@ -23,24 +23,30 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 #include "ppe42_math.h"
+#include "ppe42_msr.h"
+#include <stdint.h>
+
+#if defined(__PPE_QME)
+    #include "qme_register_addresses.h"
+    #define OCB_DERP QME_DERP
+    #define OCB_DORP QME_DORP
+
+#elif defined(APPCFG_OCC_INSTANCE_ID)
+    #include "ocb_register_addresses.h"
+    #define OCB_DERP OCB_DERPN(APPCFG_OCC_INSTANCE_ID)
+    #define OCB_DORP OCB_DORPN(APPCFG_OCC_INSTANCE_ID)
+
+#else
+    #define _DERPDORP_NOT_AVAILABLE 1
+#endif
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-// 64 bit divide.  Note: TBD add when needed
-//unsigned long long __udivdi3(unsigned long long a, unsigned long long b)
-//{
-//    unsigned long long c = 0;
-//    return c;
-//}
+#if !defined(_DERPDORP_NOT_AVAILABLE)
 
-
-#ifdef PSTATE_GPE
-#if (NIMBUS_DD_LEVEL != 10)
-
-#include "ocb_register_addresses.h"
 #define out64(addr, data) \
     {\
         unsigned long long __d = (data); \
@@ -71,6 +77,8 @@ unsigned long udivmodsi4(unsigned long long _a,
                          unsigned long _mod)
 {
 
+    uint32_t ctx = mfmsr();
+    wrteei(0);
     out64(OCB_DERP, _a);
 
     do
@@ -78,6 +86,8 @@ unsigned long udivmodsi4(unsigned long long _a,
         _a = in64(OCB_DORP);
     }
     while((~_a) == 0);
+
+    mtmsr(ctx);
 
     if(_mod)
     {
@@ -104,7 +114,8 @@ unsigned long __umodsi3(unsigned long _a, unsigned long _b)
     return udivmodsi4(v, 1);
 }
 #endif
-#endif
+// if DERP/DORP not available then use __udivsi3/_umodsi3 defined in div32.S
+// by including div32.o in your objects.
 
 // 32 bit signed divide
 int __divsi3(int _a, int _b)

@@ -30,6 +30,12 @@
 ///
 
 #include <stdint.h>
+#if defined(__PK__)
+    #include "pk.h"
+#elif defined(__IOTA__)
+    #include "iota.h"
+#endif
+
 
 #define PK_TRACE_VERSION 2
 

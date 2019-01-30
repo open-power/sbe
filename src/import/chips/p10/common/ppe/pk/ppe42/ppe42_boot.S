@@ -68,7 +68,6 @@
         .global __reset_trap
 
 __pk_boot:
-
         ## Trap the reset for the debugger.  Set R0 to a non-zero value in the
         ## debugger to continue.
 
@@ -79,37 +78,27 @@ __reset_trap:
         beq     __reset_trap
         .endif
 
-        ## Set up PowerPC EABI constant registers.  These registers are never
-        ## again touched by the PK kernel or the application (if they are
-        ## behaving).
-
-        _liw    %r2, _SDA2_BASE_
-        _liw    %r13, _SDA_BASE_
-
         ## Clear the timer control register.  This masks all timer interrupts.
 
         li      %r3, 0
         mttcr   %r3
 
-        ## The stack pointer is initialized for use by the remainder of the
-        ## initialization, including the application main(). The linker script
-        ## defines the initial stack area.
-        ##
-        ## Stacks are always 8-byte aligned.  A '0' is stored at the
-        ## stack pointer to indicate the end of the stack chain. Stack frames
-        ## always consist of at least 8 bytes - the backchain pointer and the
-        ## slot above the backchain pointer for the callee's LR.
+        # Setup small data area pointers
+        _liw    %r2, _SDA2_BASE_
+        _liw    %r13, _SDA_BASE_
 
+        # Setup the stack pointer. The linker script defines _PK_INITIAL_STACK
+        # which must be 8 byte aligned.
         _liw    %r1, _PK_INITIAL_STACK
-        _clrfield %r1, %r1, 3, 29 # 8-byte align
-        li      %r3, 0
+        rlwinm  r1,r1,0,0,28
+
+        ## Create first stack frame with zero back-chain
         stwu    %r3, -8(%r1)
 
         ## SPRG0 (__PkKernelContext) is initialized to 0
         ## indicating that the PK kernel is not in thread mode, and no
         ## interrupts are active.
 
-        li      %r3, 0
         mtsprg0 %r3
 
         ## Set up the initial value of Debug Control Register 0.  Note that
@@ -169,6 +158,7 @@ copy_loop:
 
 
         ## Call the system setup code.
+        ## Note: gpr(3-10) not preserved
 
         bl      __ppe42_system_setup
 

@@ -30,7 +30,6 @@
 ///
 
 
-#include "pk.h"
 #include "pk_trace.h"
 
 #if (PK_TRACE_SUPPORT)

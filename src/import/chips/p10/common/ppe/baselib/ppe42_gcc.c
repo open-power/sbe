@@ -37,7 +37,6 @@
 /// no structure definitions or lines of executable code were copied from the
 /// GCC sources.
 
-#include "pk.h"
 #include "ppe42_gcc.h"
 
 /// A 64-bit logical right shift.

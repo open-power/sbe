@@ -33,7 +33,6 @@
 /// and the parameter size is 16 bits or smaller.
 ///
 
-#include "pk.h"
 #include "pk_trace.h"
 
 

@@ -31,7 +31,6 @@
 /// that is larger than 16 bits to the PK_TRACE(...) macro.
 ///
 
-#include "pk.h"
 #include "pk_trace.h"
 
 #if (PK_TRACE_SUPPORT)

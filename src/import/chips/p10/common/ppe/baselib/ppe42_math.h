@@ -22,8 +22,8 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef _MATH_H
-#define _MATH_H
+#ifndef _PPE42_MATH_H
+#define _PPE42_MATH_H
 
 // Provide a way to use the native 16-bit multiply instruction
 // Unfortunately the compiler does not know to use it
