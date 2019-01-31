@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -33,8 +33,10 @@ OBJS := $(addprefix $(OBJDIR)/, $(BOOT_OBJECTS))
 LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
 LINK_SCRIPT_OTPROM =  $(addprefix $(OBJDIR)/, linkscriptotprom)
 
+ifneq ($(img), pibmem)
 all: $(OBJS) \
      $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin
+endif
 
 $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 

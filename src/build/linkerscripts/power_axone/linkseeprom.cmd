@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,12 +34,27 @@ OUTPUT_FORMAT(elf32-powerpc);
 MEMORY
 {
     pibmem : ORIGIN = SBE_BASE_ORIGIN, LENGTH = SBE_BASE_LENGTH
+    #ifndef PIBMEM_ONLY_IMAGE
     seeprom : ORIGIN = SBE_SEEPROM_BASE_ORIGIN, LENGTH = 0x40000
+    #endif
 }
+
+//MEMORY_REGION is a substitute constant used for pibmem or seeprom. Its value
+//would be pibmem for pibmem_only image. Else it would be seeprom.
+
+#ifdef PIBMEM_ONLY_IMAGE
+//Everything should get in to pibmem
+#define MEMORY_REGION pibmem
+BASE_ORIGIN = SBE_BASE_ORIGIN;
+
+#else
+#define MEMORY_REGION seeprom
+BASE_ORIGIN = SBE_SEEPROM_BASE_ORIGIN;
+#endif
 
 SECTIONS
 {
-    . = SBE_SEEPROM_BASE_ORIGIN;
+    . = BASE_ORIGIN;
       _sbe_image_start_addr = . + SIZEOF_HEADERS;
 
       // TODO via RTC 149153
@@ -51,16 +66,23 @@ SECTIONS
 
      // Get the image offset after elf header
      _sbe_image_start_offset = _sbe_image_start_addr - .;
-     _seeprom_origin = . - 0;
+     _origin = . - 0;
      _pibmem_origin = SBE_BASE_ORIGIN;
 
     ////////////////////////////////
     // Header
     ////////////////////////////////
     .header : {
-        _header_origin = .; _header_offset = . - _seeprom_origin; KEEP(*(.header));
-    } > seeprom
+        _header_origin = .; _header_offset = . - _origin; KEEP(*(.header));
+    } > MEMORY_REGION
     _header_size = . - _header_origin;
+ 
+    #ifdef PIBMEM_ONLY_IMAGE
+    //pkVector should be at top of pibmem memory after XIP header.
+    .pkVectors ALIGN(0x200) : {
+            *(.vectors)
+    } > pibmem
+    #endif
 
     // @TODO via RTC 136215
     // We have used allignment 0x200 so that it can be found
@@ -71,15 +93,18 @@ SECTIONS
     // LOADER_TEXT
     ////////////////////////////////
     .loader_text ALIGN(0x200): {
-      _loader_text_origin = .; _loader_text_offset = . - _seeprom_origin;
+      _loader_text_origin = .; _loader_text_offset = . - _origin;
+      //Loader text should not be loaded for pibmem only image
+      #ifndef PIBMEM_ONLY_IMAGE
       KEEP(*(.loader_text));
-    } > seeprom
+      #endif
+    } > MEMORY_REGION
      _loader_text_size = . - _loader_text_origin;
 
     // @TODO via RTC 136215
     // loader_text section should come after fixed and related
     // sections as we want fixed section at knowon offset. Currently we
-    // have shared SEEPROM start address ( IVPR register value ) with
+    // have shared MEMORY_REGION start address ( IVPR register value ) with
     // multiple teams. So keeping loader_text as first section. Once
     // WE have otprom loader support, we will put loader_text at right
     // position
@@ -88,44 +113,47 @@ SECTIONS
     // FIXED
     ////////////////////////////////
     .fixed  ALIGN(0x200) : {
-      _fixed_origin = .; _fixed_offset = . - _seeprom_origin;
+      _fixed_origin = .; _fixed_offset = . - _origin;
      KEEP(*(.fixed))
-    } > seeprom
+    } > MEMORY_REGION
      _fixed_size = . - _fixed_origin;
 
     ////////////////////////////////
     // text
     ////////////////////////////////
     .text ALIGN(8): {
-         _text_origin = .; _text_offset = . - _seeprom_origin;
-         } > seeprom
+         _text_origin = .; _text_offset = . - _origin;
+         } > MEMORY_REGION
      _text_size = . - _text_origin;
 
    ////////////////////////////////
     // FIXED_TOC
     ////////////////////////////////
     .fixed_toc ALIGN(8) : {
-        _fixed_toc_origin = .; _fixed_toc_offset = . - _seeprom_origin;  KEEP(*(.fixed_toc));
-    } > seeprom
+        _fixed_toc_origin = .; _fixed_toc_offset = . - _origin;  KEEP(*(.fixed_toc));
+    } > MEMORY_REGION
     _fixed_toc_size = . - _fixed_toc_origin;
 
    ////////////////////////////////
     // TOC
     ////////////////////////////////
     .toc ALIGN(4): {
-        _toc_origin = .; _toc_offset = . - _seeprom_origin;  KEEP(*(.toc));
-    } > seeprom
+        _toc_origin = .; _toc_offset = . - _origin;  KEEP(*(.toc));
+    } > MEMORY_REGION
     _toc_size = . - _toc_origin;
 
    ////////////////////////////////
     // STRING
     ////////////////////////////////
     .strings : {
-         _strings_origin = .; _strings_offset = . - _seeprom_origin; KEEP(*(.strings));
-    } > seeprom
+         _strings_origin = .; _strings_offset = . - _origin; KEEP(*(.strings));
+    } > MEMORY_REGION
     _strings_size = . - _strings_origin;
 
-    _seeprom_size = . - _seeprom_origin;
+    //No need to calculate seeprom size, if pibmem only image is being built
+    #ifndef PIBMEM_ONLY_IMAGE
+    _seeprom_origin = _origin;
+    _seeprom_size = . - _origin;
 
     // TODO via RTC 149153
     // It seems when we jump across memory region, elf creates 32 byte offset.
@@ -136,12 +164,22 @@ SECTIONS
 
 
     . = _pibmem_origin;
+
+    #else
+    _seeprom_size = 0;
+    . = ALIGN(4);
+    #endif
+
     _base_origin = .;
     _base_offset = . - _base_origin + _seeprom_size;
 
+    //We are at the beginning of the pibmem memory if seeprom image is being
+    //built. So add .pkVector section here.
+    #ifndef PIBMEM_ONLY_IMAGE
     .pkVectors ALIGN(32) : {
             *(.vectors)
      } > pibmem
+     #endif
 
     .base . : {
                 *(.text*) *(.eh_frame) *(.dtors*);
@@ -176,7 +214,7 @@ SECTIONS
     .sdata  . : { *(.sdata*)  } > pibmem
     . = ALIGN(8);
 
-    // We do not want to store bss section in sbe image as laoder will take
+    // We do not want to store bss section in sbe image as loader will take
     // care of it while loading image on PIBMEM. It will save us space in
     // SEEPROM. So define XIP image related variables here so that SBE image
     // finishes here.

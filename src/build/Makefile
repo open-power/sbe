@@ -43,6 +43,14 @@ include img_defs.mk
 include $(BOOT_SRCDIR)/bootfiles.mk
 include $(BUILDDATA_SRCDIR)/utils.mk
 
+ifeq ($(img), pibmem)
+IMAGE_NAME = $(IMAGE_SBE_NAME)
+endif
+
+ifeq ($(img), seeprom)
+IMAGE_NAME = $(IMAGE_SEEPROM_NAME)
+endif
+
 SUBDIRS := $(PK_SRCDIR)/$(PPE_TYPE)
 LIB_DIRS += -L$(OBJDIR)/pk
 PKLIB := $(OBJDIR)/pk/libpk.a
@@ -138,51 +146,33 @@ LINK_OBJS = $(OBJS)
 OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
 LINK_OBJS += $(OBJS) $(GCCLIBS)
 
-LINK_SCRIPT_SEEPROM = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptseeprom_$(IMAGE_SUFFIX))
-LINK_SCRIPT_SBE = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
+ifeq ($(img),seeprom)
+IN_LINK_SCRIPT = linkseeprom.cmd
+OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptseeprom_$(IMAGE_SUFFIX))
+endif
 
-# ---- SEEPROM Image  ------
+ifeq ($(img),pibmem)
+IN_LINK_SCRIPT = linkseeprom.cmd
+OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
+endif
+
 pre_sbe_image: xml ppe_trace_bin buildInfo linker_seeprom $(SBE_TOOLS) $(SBE_IPL_TOOLS) $(P9_XIP_TOOL) security
 build_sbe_image: $(SUBDIRS) $(SEEPROM_SUBDIRS)
 
 output_sbe_image:
-	$(C2) "Generating $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out"
-	$(C1)$(LD) -e __system_reset -n -T$(LINK_SCRIPT_SEEPROM) -Map $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).map \
-		-Bstatic -o $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(BOOT_OBJECTS)) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
+	$(C2) "Generating $(IMG_DIR)/$(IMAGE_NAME).out"
+	$(C1)$(LD) -e __system_reset -n -T$(OUT_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_NAME).map \
+		-Bstatic -o $(IMG_DIR)/$(IMAGE_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(BOOT_OBJECTS)) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group --gc-sections
-	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR)
-	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).dis
+	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) $(img)
+	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_NAME).out > $(IMG_DIR)/$(IMAGE_NAME).dis
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments
 linker_seeprom:
 	@mkdir -p $(OBJDIR)/build
-	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/linkseeprom.cmd -o $(LINK_SCRIPT_SEEPROM)
+	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/$(IN_LINK_SCRIPT) -o $(OUT_LINK_SCRIPT)
 
-ifeq ($(img), pibmem)
-# ---- PIBMEM Image  ------
-#This removes all unecessary headers from the ELF executable
-$(IMG_DIR)/$(IMAGE_SBE_NAME).bin $(IMG_DIR)/$(IMAGE_SBE_NAME).dis: $(IMG_DIR)/$(IMAGE_SBE_NAME).out
-	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_SBE_NAME).bin --pad-to \
-	      0x`/usr/bin/nm $(IMG_DIR)/$(IMAGE_SBE_NAME).out | grep "A _sbe_end" \
-		  | cut -d " " -f 1`
-	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_SBE_NAME).dis
-
-# create a linked ELF executable
-$(IMG_DIR)/$(IMAGE_SBE_NAME).out: ppe_trace_bin  buildInfo $(SUBDIRS) $(SEEPROM_SUBDIRS) $(LINK_OBJS) $(LINK_SCRIPT_SBE)
-	$(LD) -e __system_reset  -T$(LINK_SCRIPT_SBE) -Map $(IMG_DIR)/$(IMAGE_SBE_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_SBE_NAME).out $(LIB_DIRS) $(BUILDDATA_OBJDIR)/base_sbe_fixed.o  --start-group $(LLIBS) --end-group
-
-# pass the link command file through the C preprocessor to evaluate macros and remove comments
-$(LINK_SCRIPT_SBE): $(LINKER_DIR)/linksbe.cmd
-	$(C2) "    CMD        $(notdir $<)"
-	$(C1)$(CPP) -E -x c++ -I $(INCLUDES) -P $(DEFS) $(LINKER_DIR)/linksbe.cmd -o $(LINK_SCRIPT_SBE)
-endif
-
-ifeq ($(img), pibmem)
-all: $(OBJDIR) xml security\
-	$(IMG_DIR)/$(IMAGE_SBE_NAME).bin \
-	 symbols tracehash
-endif
 ifeq ($(img), seeprom)
 all:
 	$(MAKE) $(OBJDIR)
@@ -196,6 +186,27 @@ all:
 	$(MAKE) add_LoaderAddr
 	$(MAKE) symbols tracehash buildtag
 	$(MAKE) report
+
+add_LoaderAddr:
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __l1Loader | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L2_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __pk_boot | cut -f 1 -d " "`
+endif
+
+ifeq ($(img), pibmem)
+all:
+	$(MAKE) $(OBJDIR)
+	$(MAKE) pre_sbe_image
+	$(MAKE) build_sbe_image
+	$(MAKE) output_sbe_image
+	$(MAKE) normalize
+	$(MAKE) defaultset
+	$(MAKE) add_LoaderAddr
+	$(MAKE) symbols tracehash buildtag
+	$(MAKE) report
+
+add_LoaderAddr:
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __vectors | cut -f 1 -d " "`
 endif
 
 tar:
@@ -217,30 +228,25 @@ tar:
 		appendoverrides xml security tracehash topfixedheaders \
 		tar install
 
-add_LoaderAddr:
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __l1Loader | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set L2_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out | grep __pk_boot | cut -f 1 -d " "`
-
 ifeq ($(img), seeprom)
 symbols:
-	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
+	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
 	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_LOADER_NAME).out >> $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
 endif
 ifeq ($(img), pibmem)
-symbols: $(IMG_DIR)/$(IMAGE_SBE_NAME).out
-	$(NM) $(IMG_DIR)/$(IMAGE_SBE_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
+symbols:
+	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
 endif
 
-report: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin report > $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).rpt
+report: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin report > $(IMG_DIR)/$(IMAGE_NAME).rpt
 
 # Create build Info file
 buildInfo:
 	python buildInfo.py $(GENFILES_DIR)
 
 buildtag:
-	./updateBuildTag.py $(P9_XIP_TOOL) $(IMG_DIR) $(IMAGE_SEEPROM_NAME)
+	./updateBuildTag.py $(P9_XIP_TOOL) $(IMG_DIR) $(IMAGE_NAME)
 
 
 #Create an obj directory if needed
@@ -298,13 +304,13 @@ $(P9_XIP_TOOL):
 	cp -f $(P9_XIP_TOOL) $(IMG_DIR)/
 
 normalize:
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin normalize
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin normalize
 
-compress: $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_SEEPROM_NAME).bin
+compress: $(IMG_DIR)/$(IMAGE_NAME).bin
+	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin
 
 defaultset:
-	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
 
 # Build the trace utilities
 ppe_trace_bin:
@@ -324,11 +330,11 @@ xml: $(FAPI_RC)
 $(FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
 	$(IMPORT_TOOLS_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=$(GENFILES_DIR) $(ERROR_XML_FILES)
 
-$(IMG_DIR)/fixed.bin: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin extract .fixed $(IMG_DIR)/fixed.bin
+$(IMG_DIR)/fixed.bin: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin extract .fixed $(IMG_DIR)/fixed.bin
 
 appendloader:
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_SEEPROM_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
+	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
 
 # collect all of the trace hash files for this image into a single sbeStringFile
 tracehash:

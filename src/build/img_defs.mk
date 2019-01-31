@@ -470,9 +470,9 @@ GCC-CFLAGS += -fdata-sections
 GCC-CFLAGS += -fstack-usage
 endif
 
-ifeq ($(img), seeprom)
+# Since pibmem is bigger in axone, we will build everything for pibmem image.
 GCC-DEFS += -DSEEPROM_IMAGE
-endif
+
 ifeq ($(img), pibmem)
 GCC-DEFS += -DPIBMEM_ONLY_IMAGE
 endif

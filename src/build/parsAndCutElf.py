@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -34,14 +34,15 @@ def parserElf(argv):
     try:
         ddlevel = argv[1]
         outdir  = argv[2]
+        img     = argv[3]
     except:
-        print "Missing argument : arg[0] ddlevel; arg[1] output directory"
+        print "Missing argument : arg[0] ddlevel; arg[1] output directory; arg[2] img (seeprom/pibmem)"
         exit(-1)
-    SBE_SEEPROM_OUT = outdir+"/sbe_seeprom_"+ddlevel+".out"
-    SBE_SEEPROM_BIN = outdir+"/sbe_seeprom_"+ddlevel+".bin"
-    cmd = "readelf -S "+SBE_SEEPROM_OUT
+    SBE_OUT = outdir+"/sbe_"+img+"_"+ddlevel+".out"
+    SBE_BIN = outdir+"/sbe_"+img+"_"+ddlevel+".bin"
+    cmd = "readelf -S "+SBE_OUT
     firstSection = ".header"
-    cmd1 = "nm "+SBE_SEEPROM_OUT+" | grep  _sbe_image_size"
+    cmd1 = "nm "+SBE_OUT+" | grep  _sbe_image_size"
     output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     i = 0;
     for line in output.stdout:
@@ -68,7 +69,7 @@ def parserElf(argv):
         exit(-1)
 
     # cut the image
-    cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if="+SBE_SEEPROM_OUT+" of="+SBE_SEEPROM_BIN+" bs=1"
+    cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if="+SBE_OUT+" of="+SBE_BIN+" bs=1"
     rc = os.system(cmd1)
     if ( rc ):
        print "ERROR running %s: %d "%( cmd1, rc )
