@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -221,20 +221,24 @@ extern "C"
 /// @param[in] i_target => P9 chip target
 /// @param[in] i_address => address for this write
 /// @param[in] i_write_data => the data that is to be written to the PBA
+/// @param[in] i_ttype => ttype to use for write access
 /// @return FAPI_RC_SUCCESS if writing the PBA is a success
     fapi2::ReturnCode p9_pba_coherent_pba_write(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
-        const uint8_t i_write_data[]);
+        const uint8_t i_write_data[],
+        const p9_PBA_oper_flag::OperationType_t i_ttype);
 
 /// @brief does the read for the PBA
 /// @param[in] i_target => P9 chip target
 /// @param[in] i_address => address for this write
+/// @param[in] i_ttype => ttype to use for read access
 /// @param[out] o_read_data => the data that is read from the PBA
 /// @return FAPI_RC_SUCCESS if reading the PBA is a success
     fapi2::ReturnCode p9_pba_coherent_pba_read(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
+        const p9_PBA_oper_flag::OperationType_t i_ttype,
         uint8_t o_read_data[]);
 
 /// @brief calculates the number of 128 byte granules that can be read/written before setup needs to be run again
@@ -257,10 +261,11 @@ extern "C"
 /// @brief check that the address is cacheline aligned and within the fabric real address range
 /// @param[in] i_target => P9 chip target
 /// @param[in] i_address => starting address for PBA operation
+/// @param[in] i_flags => flags that contain information that the PBA needs to know to set up registers
 /// @return FAPI_RC_SUCCESS if arguments are valid
     fapi2::ReturnCode p9_pba_coherent_utils_check_args(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
-        const uint64_t i_address);
+        const uint64_t i_address, const uint32_t i_flags);
 
 /// @brief this does any cleanup for the PBA after all reads/writes have been done
 /// @param[in] i_target => P9 chip target

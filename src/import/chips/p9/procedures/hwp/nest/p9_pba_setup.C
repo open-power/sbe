@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -61,7 +61,7 @@ extern "C"
         FAPI_DBG("Entering ...\n");
 
         //check arguments
-        FAPI_TRY(p9_pba_coherent_utils_check_args(i_target, i_address),
+        FAPI_TRY(p9_pba_coherent_utils_check_args(i_target, i_address, i_flags),
                  "Error from p9_pba_coherent_utils_check_args");
 
         //ensure fabric is running

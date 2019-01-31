@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -68,14 +68,17 @@ extern "C" {
         //if read
         if (i_rnw)
         {
-            FAPI_TRY(p9_pba_coherent_pba_read(i_target, i_address, io_data),
+            FAPI_TRY(p9_pba_coherent_pba_read(i_target, i_address,
+                                              l_myPbaFlag.getOperationType(),
+                                              io_data),
                      "p9_pba_coherent_pba_read() returns error l_rc 0x%.8X",
                      (uint64_t)fapi2::current_err);
         }
         //else if write
         else
         {
-            FAPI_TRY(p9_pba_coherent_pba_write(i_target, i_address, io_data),
+            FAPI_TRY(p9_pba_coherent_pba_write(i_target, i_address, io_data,
+                                               l_myPbaFlag.getOperationType()),
                      "p9_pba_coherent_pba_write() returns error l_rc 0x%.8X",
                      (uint64_t)fapi2::current_err);
 

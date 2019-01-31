@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -51,7 +51,6 @@ extern "C"
     //---------------------------------------------------------------------------------
     // Constant definitions
     //---------------------------------------------------------------------------------
-
     //PBA Delay Constants
     const uint32_t PBA_SLVRST_DELAY_HW_NS = 1000;
     const uint32_t PBA_SLVRST_DELAY_SIM_CYCLES = 200;
@@ -88,22 +87,42 @@ extern "C"
     const uint32_t OCB3_ADDRESS_REG_ADDR_SHIFT = 32;
 
     const uint32_t FSI2PIB_RESET_PIB_RESET_BIT = 0;
+
+//PBA CI ttype limited to 8B transfers via OCB indirect-access (others don't go through)
+    const uint64_t PBA_CI_TTYPE_ADDR_MASK = 0x7ul;
     //---------------------------------------------------------------------------------
     // Function definitions
     //---------------------------------------------------------------------------------
 
     fapi2::ReturnCode p9_pba_coherent_utils_check_args(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
-        const uint64_t i_address)
+        const uint64_t i_address, const uint32_t i_flags)
     {
+        p9_PBA_oper_flag l_myPbaFlag;
+        p9_PBA_oper_flag::OperationType_t l_operType;
 
         FAPI_DBG("Start");
 
-        //Check the address alignment
-        FAPI_ASSERT(!(i_address & P9_FBC_UTILS_CACHELINE_MASK),
-                    fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
-                        i_address),
-                    "Address is not cacheline aligned");
+        // Process input flag
+        l_myPbaFlag.getFlag(i_flags);
+        l_operType = l_myPbaFlag.getOperationType();
+
+        if (l_operType == p9_PBA_oper_flag::CI)
+        {
+            //Check the address alignment
+            FAPI_ASSERT(!(i_address & PBA_CI_TTYPE_ADDR_MASK),
+                        fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
+                            i_address),
+                        "Address is not 8B aligned for cache-inhibited access");
+        }
+        else
+        {
+            //Check the address alignment
+            FAPI_ASSERT(!(i_address & P9_FBC_UTILS_CACHELINE_MASK),
+                        fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
+                            i_address),
+                        "Address is not cacheline aligned");
+        }
 
         //Make sure the address is within the PBA bounds
         FAPI_ASSERT(i_address <= P9_FBC_UTILS_FBC_MAX_ADDRESS,
@@ -230,8 +249,16 @@ extern "C"
         //set the write ttype bits 8:10 to whatever is in the flags
         pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_WRITE_TTYPE, PU_PBASLVCTL3_WRITE_TTYPE_LEN > (l_operType);
 
-        //it's not cache-inhibited so set bit 15 to cl_rd_nc (0)
-        pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_READ_TTYPE>();
+        // PBA read_ttype: 0=CL_RD_NC, 1=CI_PR_RD
+        if (l_operType == p9_PBA_oper_flag::CI && i_rnw)
+        {
+            pba_slave_ctl_data.setBit<PU_PBASLVCTL3_READ_TTYPE>();
+        }
+        else
+        {
+            pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_READ_TTYPE>();
+        }
+
         //set bits 16:17 to No prefetch 01 TODO May need to change this later if we want to use prefetch
         pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_READ_PREFETCH_CTL, PU_PBASLVCTL3_READ_PREFETCH_CTL_LEN > (1);
         //unset bit 18 - no auto-invalidate
@@ -277,18 +304,6 @@ extern "C"
 
         FAPI_DBG("Start");
 
-        //Validate the input parameters
-        //Check the address alignment
-        FAPI_ASSERT(!(i_baseAddress & P9_FBC_UTILS_CACHELINE_MASK),
-                    fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
-                        i_baseAddress),
-                    "Base Address is not cacheline aligned");
-        //Make sure the address is within the PBA bounds
-        FAPI_ASSERT(i_baseAddress <= P9_FBC_UTILS_FBC_MAX_ADDRESS,
-                    fapi2::P9_PBA_COHERENT_UTILS_INVALID_ARGS().set_TARGET(i_target).set_ADDRESS(
-                        i_baseAddress),
-                    "Base Address exceeds supported fabric real address range");
-
         //set command scope to local node scope
         pba_bar_data.insertFromRight < PU_PBABAR0_CMD_SCOPE, PU_PBABAR0_CMD_SCOPE_LEN >
         (PBA_BAR_SCOPE_LOCAL_NODE);
@@ -310,7 +325,8 @@ extern "C"
     fapi2::ReturnCode p9_pba_coherent_pba_write(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
-        const uint8_t i_write_data[])
+        const uint8_t i_write_data[],
+        const p9_PBA_oper_flag::OperationType_t i_ttype)
     {
         fapi2::ReturnCode rc;
         uint64_t write_data = 0x0ull;
@@ -335,6 +351,12 @@ extern "C"
                 rc = p9_pba_coherent_error_handling(i_target, rc);
                 break;
             }
+
+            // PBA cache-inhibited operations are limited to 8B
+            if (i_ttype == p9_PBA_oper_flag::CI)
+            {
+                break;
+            }
         }
 
         FAPI_DBG("End");
@@ -344,6 +366,7 @@ extern "C"
     fapi2::ReturnCode p9_pba_coherent_pba_read(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
+        const p9_PBA_oper_flag::OperationType_t i_ttype,
         uint8_t o_read_data[])
     {
         fapi2::ReturnCode rc;
@@ -366,6 +389,12 @@ extern "C"
             for (int j = 0; j < 8; j++)
             {
                 o_read_data[(i * 8) + j] = (data >> (56 - (j * 8))) & 0xFFull;;
+            }
+
+            // PBA cache-inhibited operations are limited to 8B
+            if (i_ttype == p9_PBA_oper_flag::CI)
+            {
+                break;
             }
         }
 
