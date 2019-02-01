@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -72,7 +72,7 @@ enum P9_SBE_TP_CHIPLET_INIT3_Private_Constants
     FIR_MASK_VALUE = 0xFFFFFFFFFFC00000,
     IPOLL_MASK_VALUE = 0xFC00000000000000,
     TOD_ERROR_ROUTING = 0x9FC02000F0004000,
-    TOD_ERROR_MASK = 0x0000000003F00000
+    TOD_ERROR_MASK = 0x0000000003F00002
 };
 
 static fapi2::ReturnCode p9_sbe_tp_chiplet_init3_clock_test2(
