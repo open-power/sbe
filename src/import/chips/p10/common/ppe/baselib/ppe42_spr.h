@@ -66,6 +66,7 @@
 #define DBCR_DACE_ST     0x00040000 /* Data Address Compare Enable: 01=store */
 #define DBCR_DACE_LD     0x00080000 /* Data Address Compare Enable: 10=load */
 #define DBCR_DACE_STLD   0x000C0000 /* Data Address Compare Enable: 11=both */
+#define DBCR_ZACE        0x00000004 /* Zero Address Compare Enable */
 
 /* TCR - Timer Control Register */
 

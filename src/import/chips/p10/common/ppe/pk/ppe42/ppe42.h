@@ -428,7 +428,7 @@ uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
 /// the 'panic' macros and the default DBCR0 setup.
 
 #ifndef PPE42_DBCR_INITIAL
-#define PPE42_DBCR_INITIAL (DBCR_TRAP | DBCR_IACE)
+#define PPE42_DBCR_INITIAL (DBCR_TRAP | DBCR_IACE | DBCR_ZACE)
 #endif
 
 
