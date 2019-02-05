@@ -773,6 +773,15 @@ ReturnCode istepWithCoreState( voidfuncptr_t i_hwp)
             }
         }
     }
+    if( l_rc == FAPI2_RC_SUCCESS )
+    {
+        l_rc = flushNVDIMM();
+        if( l_rc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "flushNVDIMM failed");
+        }
+    }
+
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
@@ -997,12 +1006,6 @@ ReturnCode istepStartMpipl( voidfuncptr_t i_hwp)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC "resetCrespErrLatch failed");
-            break;
-        }
-        rc = flushNVDIMM();
-        if( rc != FAPI2_RC_SUCCESS )
-        {
-            SBE_ERROR(SBE_FUNC "flushNVDIMM failed");
             break;
         }
 
