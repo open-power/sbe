@@ -1,0 +1,54 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: src/import/chips/p10/procedures/hwp/perv/p10_sbe_dft_probe_setup_1.H $ */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
+//------------------------------------------------------------------------------
+/// @file  p10_sbe_dft_probe_setup_1.H
+///
+/// @brief Setup DFT probe points
+//------------------------------------------------------------------------------
+// *HWP HW Maintainer   : Anusha Reddy (anusrang@in.ibm.com)
+// *HWP FW Maintainer   : Raja Das (rajadas2@in.ibm.com)
+// *HWP Consumed by     : SBE
+//------------------------------------------------------------------------------
+
+
+#ifndef _P10_SBE_DFT_PROBE_SETUP_1_H_
+#define _P10_SBE_DFT_PROBE_SETUP_1_H_
+
+
+#include <fapi2.H>
+
+
+typedef fapi2::ReturnCode (*p10_sbe_dft_probe_setup_1_FP_t)(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
+
+/// @brief Only run in DFT mode, no-op in normal cronus/SBE, DFT mode is controlled with IPL option.
+///
+/// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+extern "C"
+{
+    fapi2::ReturnCode p10_sbe_dft_probe_setup_1(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chiplet);
+}
+
+#endif
