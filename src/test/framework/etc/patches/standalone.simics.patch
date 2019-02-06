@@ -1,13 +1,19 @@
-70c70,77
-< ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "00000000_00000000" 64
----
-> # Set the Fsp bit in MBOX3 reg (bit 3), This is to make SBE pick default HRMOR
-> # i.e. 128MB instead of FspLess HRMOR address. Action files in simics are
-> # hardcoded to support 128MB presently. we need to update Simic Action file to
-> # be flexible and pick HRMOR basis this Fsp bit.
-> # TODO - RTC 196986
-> ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "90000000_00000000" 64
-> # Set security enabled bit
-> ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x00050001 "0C000002_00000000" 64
-74a82
-> ($hb_masterproc).proc_chip.invoke parallel_store FSIMBOX 0x08 "00080000" 32
+--- standalone.simics	2019-02-05 02:31:38.785109846 -0600
++++ standalone_930.simics	2019-02-05 02:30:55.445109859 -0600
+@@ -108,7 +108,15 @@
+     # Set mailbox scratch registers so that the SBE starts in plck mode
+     # Set Boot Freq valid bit (bit 3) and valid data bit (bit 7)
+     ($hb_masterproc_cecchip).invoke parallel_store SCOM 0x5003F "31000000_00000000" 64
+-    ($hb_masterproc_cecchip).invoke parallel_store SCOM 0x5003A "00000000_00000000" 64
++
++    # Set the Fsp bit in MBOX3 reg (bit 3), This is to make SBE pick default HRMOR
++    # i.e. 128MB instead of FspLess HRMOR address. Action files in simics are
++    # hardcoded to support 128MB presently. we need to update Simic Action file to
++    # be flexible and pick HRMOR basis this Fsp bit.
++    # TODO - RTC 196986
++    ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x5003A "90000000_00000000" 64
++    # Set security enabled bit
++    ($hb_masterproc).proc_chip.invoke parallel_store SCOM 0x00050001 "0C000002_00000000" 64
+ 
+     # Set the Nest PLL Bucket ID to 5 in the 4th byte of Mbox Scratch Reg 4
+     ($hb_masterproc_cecchip).invoke parallel_store SCOM 0x5003B "00000005_00000000" 64
