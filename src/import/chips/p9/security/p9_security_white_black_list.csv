@@ -211,6 +211,8 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register Name,Desc
 ,OBUS,0000000009010816,0x09-0x0C,,HWSV,PowerBus OLL Link0 Error Status register,,write_whitelist,
 ,OBUS,0000000009010817,0x09-0x0C,,HWSV,PowerBus OLL Link1 Error Status register,,write_whitelist,
 ,OBUS,000000000901081A,0x09-0x0C,,HWSV,PowerBus OLL Retrain Threshold register,,write_whitelist,
+,OBUS,0000000009010822,0x09-0x0C,,HWSV,PowerBus OLL Link0 Syndrome Capture register,,write_whitelist,
+,OBUS,0000000009010823,0x09-0x0C,,HWSV,PowerBus OLL Link1 Syndrome Capture register,,write_whitelist,
 ,OBUS,0000000009011050,0x09-0x0C,,HWSV,PPE External Interface XCR register,,write_whitelist,
 ,OBUS,8000080009010C3F,0x09-0x0C,,HWSV,rx(tx)_lane_ana_pdwn rx_lane_dig_pdwn and rx_lane_disabled,,write_whitelist,
 ,Core,0000000020010A9C,0x20-0x37,,HB,Direct injects into logic - no latches!!,,write_whitelist,
