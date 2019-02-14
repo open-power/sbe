@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -91,6 +91,13 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
 
     if (l_attr_ss_filter == 0x0 )
     {
+        /*
+         * If we enable spread spectrum, do it before we drop the PLL reset
+         * to avoid glitches due to the asynchronous crossing of the control
+         * signal into the PLL core.
+         */
+        FAPI_TRY(enable_spread_spectrum_via_tod(i_target_chip));
+
         FAPI_DBG("Drop PLL test enable for Spread Spectrum PLL");
         //Setting ROOT_CTRL8 register value
         //PIB.ROOT_CTRL8.TP_SS0_PLL_TEST_EN = 0
@@ -118,8 +125,6 @@ fapi2::ReturnCode p9_sbe_npll_setup(const
                     .set_SS_PLL_READ(l_read_reg)
                     .set_AFTER_SPREAD_ENABLE(false),
                     "ERROR:SS PLL LOCK NOT SET");
-
-        FAPI_TRY(enable_spread_spectrum_via_tod(i_target_chip));
 
         FAPI_DBG("Release SS PLL Bypass");
         //Setting ROOT_CTRL8 register value
@@ -392,21 +397,6 @@ static fapi2::ReturnCode enable_spread_spectrum_via_tod(
                        .set_MASTER_CHIP(i_target_chip)
                        .set_TOD_TIMER_REG(l_data),
                        "Spread Spectrum enable signal not set");
-
-    fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
-
-    FAPI_DBG("check SS PLL lock again after enabling spread spectrum");
-    //Getting PLL_LOCK_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip,
-                            PERV_TP_PLL_LOCK_REG,
-                            l_data));
-
-    FAPI_ASSERT(l_data.getBit<0>(),
-                fapi2::SS_PLL_LOCK_ERR()
-                .set_MASTER_CHIP(i_target_chip)
-                .set_SS_PLL_READ(l_data)
-                .set_AFTER_SPREAD_ENABLE(true),
-                "ERROR:SS PLL LOCK NOT SET AFTER ENABLING SPREAD SPECTRUM");
 
 fapi_try_exit:
     return fapi2::current_err;
