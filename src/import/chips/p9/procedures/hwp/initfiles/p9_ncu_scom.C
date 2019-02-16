@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -60,8 +60,8 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID, TGT1, l_TGT1_ATTR_FABRIC_ADDR_EXTENSION_CHIP_ID));
         fapi2::ATTR_SMF_CONFIG_Type l_TGT1_ATTR_SMF_CONFIG;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SMF_CONFIG, TGT1, l_TGT1_ATTR_SMF_CONFIG));
-        fapi2::ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY_Type l_TGT2_ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY;
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY, TGT2, l_TGT2_ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY));
+        fapi2::ATTR_CHIP_EC_FEATURE_HW440920_Type l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW440920, TGT2, l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920));
         fapi2::buffer<uint64_t> l_scom_buffer;
         {
             FAPI_TRY(fapi2::getScom( TGT0, 0x1001100aull, l_scom_buffer ));
@@ -166,7 +166,7 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
             l_scom_buffer.insert<0, 1, 63, uint64_t>(l_EXP_NC_NCMISC_NCSCOMS_TLBIE_STALL_EN_ON );
             l_scom_buffer.insert<1, 3, 61, uint64_t>(literal_6 );
 
-            if ((l_TGT2_ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY != literal_0))
+            if ((l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920 != literal_0))
             {
                 l_scom_buffer.insert<4, 4, 60, uint64_t>(literal_15 );
             }
@@ -175,7 +175,7 @@ fapi2::ReturnCode p9_ncu_scom(const fapi2::Target<fapi2::TARGET_TYPE_EX>& TGT0,
                 l_scom_buffer.insert<4, 4, 60, uint64_t>(literal_4 );
             }
 
-            if ((l_TGT2_ATTR_CHIP_EC_FEATURE_P9C_LOGIC_ONLY != literal_0))
+            if ((l_TGT2_ATTR_CHIP_EC_FEATURE_HW440920 != literal_0))
             {
                 l_scom_buffer.insert<8, 8, 56, uint64_t>(literal_0x01 );
             }
