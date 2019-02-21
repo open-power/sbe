@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -30,6 +30,7 @@
  */
 
 #include "sbecmdcntlinst.H"
+#include "sbecmdiplcontrol.H"
 #include "sbefifo.H"
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
@@ -37,8 +38,13 @@
 
 #include "fapi2.H"
 #include "p9_thread_control.H"
+#include "p9_query_core_access_state.H"
+
 
 using namespace fapi2;
+
+//Utility function to mask special attention
+extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target);
 
 // TODO via RTC 152424
 // Currently all proecdures in core directory are in seeprom.
@@ -157,6 +163,73 @@ static uint32_t specialWakeUpCoreDeAssert(
     } while(false);
 
     return rc;
+    #undef SBE_FUNC
+}
+
+///////////////////////////////////////////////////////////////////////
+// @brief stopAllCoreInstructions  Stop all core instructions function
+//
+// @return  RC from the underlying FIFO utility
+///////////////////////////////////////////////////////////////////////
+ReturnCode stopAllCoreInstructions( )
+{
+    #define SBE_FUNC "stopAllCoreInstructions"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+    for (auto l_coreTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        bool l_isCoreScomEnabled = false;
+        if(SBE::isSimicsRunning())
+        {
+            l_isCoreScomEnabled = true;
+        }
+        else
+        {
+            bool l_isScanEnable = false;
+            SBE_EXEC_HWP(l_fapiRc, p9_query_core_access_state, l_coreTgt,
+                    l_isCoreScomEnabled, l_isScanEnable)
+            if(l_fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC " p9_query_core_access_state failed, "
+                        "RC=[0x%08X]", l_fapiRc);
+                break;
+            }
+        }
+        if(l_isCoreScomEnabled) //true
+        {
+            uint8_t l_thread = SMT4_THREAD0;
+            fapi2::buffer<uint64_t> l_data64;
+            uint64_t l_state;
+            bool l_warnCheck = true;
+            do
+            {
+                // Call instruction control stop
+                // TODO RTC 164425 - Can we pass in 1111 i.e. all threads at the
+                // same time instead of individual threads
+                SBE_EXEC_HWP(l_fapiRc,
+                             threadCntlhwp,
+                             l_coreTgt,
+                             (SINGLE_THREAD_BIT_MASK >> l_thread),
+                             PTC_CMD_STOP, l_warnCheck,l_data64, l_state)
+                if(l_fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR(SBE_FUNC "p9_thread_control stop Failed for "
+                        "Core Thread  RC[0x%08X]", l_fapiRc);
+                    break;
+                }
+            }while(++l_thread < SMT4_THREAD_MAX);
+
+            l_fapiRc = maskSpecialAttn(l_coreTgt);
+            if( l_fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "maskSpecialAttn failed");
+                break;
+            }
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return l_fapiRc;
     #undef SBE_FUNC
 }
 

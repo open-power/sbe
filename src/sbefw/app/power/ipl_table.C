@@ -222,7 +222,7 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             // Find all the child cores within proc and call hwp to know the
             // scom state and call instruction control. Also mask spl attention
             // from core.
-            ISTEP_MAP( istepWithCoreState, p9_query_core_access_state ),
+            ISTEP_MAP( istepWithCoreState, NULL ),
             //  Reset the TPM and clear the TPM deconfig bit, it's not a
             //  procedure but local SBE function
             ISTEP_MAP( istepMpiplRstClrTpmBits, NULL ),
@@ -728,51 +728,8 @@ ReturnCode istepWithCoreState( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepWithCoreState"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
-    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
-    for (auto l_coreTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
-    {
-        bool l_isScanEnable = false;
-        bool l_isCoreScomEnabled = false;
-        SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpCoreScomState_t>( i_hwp ), l_coreTgt,
-                     l_isCoreScomEnabled, l_isScanEnable)
-        if(l_rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR(SBE_FUNC " p9_query_core_access_state failed, "
-               "RC=[0x%08X]", l_rc);
-            break;
-        }
-        if(l_isCoreScomEnabled) //true
-        {
-            uint8_t l_thread = SMT4_THREAD0;
-            fapi2::buffer<uint64_t> l_data64;
-            uint64_t l_state;
-            bool l_warnCheck = true;
-            do
-            {
-                // Call instruction control stop
-                // TODO RTC 164425 - Can we pass in 1111 i.e. all threads at the
-                // same time instead of individual threads
-                SBE_EXEC_HWP(l_rc,
-                             threadCntlhwp,
-                             l_coreTgt,
-                             (SINGLE_THREAD_BIT_MASK >> l_thread),
-                             PTC_CMD_STOP, l_warnCheck,l_data64, l_state)
-                if(l_rc != FAPI2_RC_SUCCESS)
-                {
-                    SBE_ERROR(SBE_FUNC "p9_thread_control stop Failed for "
-                        "Core Thread  RC[0x%08X]", l_rc);
-                    break;
-                }
-            }while(++l_thread < SMT4_THREAD_MAX);
 
-            l_rc = maskSpecialAttn(l_coreTgt);
-            if( l_rc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR(SBE_FUNC "maskSpecialAttn failed");
-                break;
-            }
-        }
-    }
+    l_rc = stopAllCoreInstructions();
     if( l_rc == FAPI2_RC_SUCCESS )
     {
         l_rc = flushNVDIMM();
@@ -780,6 +737,11 @@ ReturnCode istepWithCoreState( voidfuncptr_t i_hwp)
         {
             SBE_ERROR(SBE_FUNC "flushNVDIMM failed");
         }
+    }
+    else
+    {
+        SBE_ERROR(SBE_FUNC "Stop all core instructions is failed, "
+                 "RC=[0x%08X]", l_rc);
     }
 
     SBE_EXIT(SBE_FUNC);

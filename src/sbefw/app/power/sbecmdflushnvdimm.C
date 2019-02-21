@@ -34,6 +34,7 @@
 #include "sbeFifoMsgUtils.H"
 #include "nvdimm_workarounds.H"
 #include "sbecmdflushnvdimm.H"
+#include "sbecmdcntlinst.H"
 
 using namespace fapi2;
 
@@ -66,6 +67,15 @@ uint32_t sbeHandleFlushNVDIMM(uint8_t *i_pArg)
         rc = sbeUpFifoDeq_mult (len, NULL);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
+        fapiRc = stopAllCoreInstructions();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "stop all core instructions was failed");
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_HWP_FAILURE);
+            ffdc.setRc(fapiRc);
+            break;
+        }
         fapiRc = flushNVDIMM();
         if( fapiRc != FAPI2_RC_SUCCESS )
         {

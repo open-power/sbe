@@ -6,6 +6,7 @@
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
 <!-- Contributors Listed Below - COPYRIGHT 2017,2019                        -->
+<!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
 <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
@@ -27,4 +28,3 @@
           <simcmd>run-python-file targets/p9_nimbus/sbeTest/testFlushNVDIMM.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
-
