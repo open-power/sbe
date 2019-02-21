@@ -63,6 +63,19 @@ enum ffdc_codes
     READ_SENSOR_CACHE_STRUCT = 0x0004,
 };
 
+///
+/// @brief constants for getecid procedure
+///
+enum ecid_consts
+{
+    FUSE_ARRAY_SIZE = 14,
+    DATA_IN_SIZE = 16,
+    // TK - Will need to be changed once ATTR_ECID is made larger
+    ATTR_ECID_SIZE = 2,
+    // 32 bit registers with getScom/putScom use the right-most 32 bits
+    REG_BIT_OFFSET = 32,
+};
+
 namespace i2c
 {
 
