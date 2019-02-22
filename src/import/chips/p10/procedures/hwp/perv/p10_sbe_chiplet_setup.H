@@ -1,0 +1,70 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: src/import/chips/p10/procedures/hwp/perv/p10_sbe_chiplet_setup.H $ */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
+//------------------------------------------------------------------------------
+/// @file  p10_sbe_chiplet_setup.H
+///
+/// @brief Steps:-
+///     1) Identify Partical good chiplet and configure Multicasting register
+///     2) Configure hang pulse counter for Nest/MC/OBus/XBus/PCIe
+//------------------------------------------------------------------------------
+// *HWP HW Maintainer   : Anusha Reddy (anusrang@in.ibm.com)
+// *HWP FW Maintainer   : Raja Das (rajadas2@in.ibm.com)
+// *HWP Consumed by     : FSP
+//------------------------------------------------------------------------------
+
+
+#ifndef _P10_SBE_CHIPLET_SETUP_H_
+#define _P10_SBE_CHIPLET_SETUP_H_
+
+
+#include <fapi2.H>
+
+
+namespace p10SbeChipletSetup
+{
+enum P10_SBE_CHIPLET_SETUP_Public_Constants
+{
+    /**************************************************/
+    NET_CNTL0_HW_INIT_VALUE = 0x7C0E222000000000ull,
+    NET_CNTL1_HW_INIT_VALUE = 0x7200000000000000ull,
+    /**************************************************/
+
+};
+}
+
+typedef fapi2::ReturnCode (*p10_sbe_chiplet_setup_FP_t)(const
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
+
+
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+extern "C"
+{
+    fapi2::ReturnCode p10_sbe_chiplet_setup(const
+                                            fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+}
+
+#endif
