@@ -1,11 +1,11 @@
 <!-- IBM_PROLOG_BEGIN_TAG                                                   -->
 <!-- This is an automatically generated prolog.                             -->
 <!--                                                                        -->
-<!-- $Source: src/import/chips/p9/procedures/xml/error_info/p9_sbe_pll_setup_errors.xml $ -->
+<!-- $Source: src/import/chips/p10/procedures/xml/error_info/p10_sbe_chiplet_pll_setup_errors.xml $ -->
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2017                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -22,11 +22,7 @@
 <!-- permissions and limitations under the License.                         -->
 <!--                                                                        -->
 <!-- IBM_PROLOG_END_TAG                                                     -->
-<!-- This is an automatically generated file. -->
-<!-- File: p9_sbe_chiplet_pll_setup_errors.xml. -->
-<!-- Halt codes for p9_sbe_chiplet_pll_setup -->
-<hwpErrors>
-   <sbeTarget>TARGET_CHIP</sbeTarget>
+<hwpErrors> 
    <!-- ******************************************************************** -->
    <hwpError>
       <sbeError/>
@@ -34,45 +30,6 @@
       <description>PLL Lock Not set</description>
       <ffdc>TARGET_CHIPLET</ffdc>
       <ffdc>PLL_READ</ffdc>
-      <collectRegisterFfdc>
-	   <id>NET_CTRL_REGISTERS</id>
-	   <target>TARGET_CHIPLET</target>
-	   <targetType>TARGET_TYPE_PERV</targetType>
-      </collectRegisterFfdc>
-      <collectRegisterFfdc>
-	  <id>CPLT_CTRL_REGISTERS</id>
-	  <target>TARGET_CHIPLET</target>
-	  <targetType>TARGET_TYPE_PERV</targetType>
-      </collectRegisterFfdc>
-      <collectRegisterFfdc>
-	  <id>PLL_LOCK_REG</id>
-	  <target>TARGET_CHIPLET</target>
-	  <targetType>TARGET_TYPE_PERV</targetType>
-      </collectRegisterFfdc>
-      <collectRegisterFfdc>
-	  <id>ROOT_CTRL_REGISTERS</id>
-	  <target>TARGET_CHIP</target>
-	  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
-      </collectRegisterFfdc>
-      <collectRegisterFfdc>
-	  <id>PERV_CTRL_REGISTERS</id>
-	  <target>TARGET_CHIP</target>
-	  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
-      </collectRegisterFfdc>
-      <callout>
-        <target>TARGET_CHIPLET</target>
-        <priority>HIGH</priority>
-      </callout>
-      <callout>
-        <procedure>CODE</procedure>
-        <priority>MEDIUM</priority>
-      </callout>
-      <deconfigure>
-        <target>TARGET_CHIPLET</target>
-      </deconfigure>
-      <gard>
-        <target>TARGET_CHIPLET</target>
-      </gard>
    </hwpError>
    <!-- ******************************************************************** -->
 </hwpErrors>
