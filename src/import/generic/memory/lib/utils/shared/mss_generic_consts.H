@@ -282,6 +282,7 @@ enum nibble_mask
 };
 
 
+
 ///
 /// @brief Trait classes for proc_type - AXONE specialization
 ///
@@ -295,7 +296,6 @@ struct procTraits<proc_type::AXONE>
         DIMMS_PER_PORT = 2,
     };
 };
-
 
 }// mss
 
