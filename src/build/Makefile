@@ -299,6 +299,9 @@ $(SBE_IPL_TOOLS): $(P9_XIP_TOOL)
 	$(MAKE) -I $(INCLUDES) -C $(IPL_BUILD_DIR) -f Makefile
 
 # Build the P9-XIP Tool
+# .PARALLEL = Forces Parallel
+# .NOTPARALLEL = forces serial execution of makefile target..
+.NOTPARALLEL: $(P9_XIP_TOOL)
 $(P9_XIP_TOOL):
 	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile BINDIR=$(P9_XIP_BINDIR) CXX_FLAGS=-D__PPE__=1
 	cp -f $(P9_XIP_TOOL) $(IMG_DIR)/
