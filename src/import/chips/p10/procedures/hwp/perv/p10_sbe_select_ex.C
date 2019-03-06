@@ -34,8 +34,7 @@
 /// High-level procedure flow:
 /// @verbatim
 ///
-///   Prerequisite:  istep 2 will setup the all MC groups with ALL good
-///                  elements represented.
+///   Prerequisite:  MCGROUP_GOOD_EQ has been setup in all EQ chiplets
 ///
 /// Two modes are supported:
 /// - SINGLE: select 1 core based on type (normal or fused) and then 8MB of
@@ -46,46 +45,50 @@
 /// Additionally, default PFET controller delays are written into all good
 /// cores so that future power-on operations will succeed.
 ///
-/// Parameter indicates single core or all (controlled by Cronus/SBE)
+/// Attributes control the procedure behavior
+///     ATTR_ACTIVE_CORES_NUM:      required number of active NORMAL cores
+///       for fused mode, this number / 2 is the number of fused cores required
+///       for fused mode, this number must be even
+///     ATTR_BACKING_CACHES_NUM:    required number of 4MB backing MB caches
+///     ATTR_ACTIVE_CORES_VEC:      bit vector of active cores (overridable attribute)
+///     ATTR_BACKING_CACHES_VEC:    bit vector of backing caches (overridable attribute)
+///     ATTR_FUSED_MODE:            needed for error checking
 ///
-/// first_core = true
-/// second_core = false
-/// first_backing = false
-/// second_backing = false
+/// num_active = 0
+/// num_backing = 0
+/// fused_first_half = false;
+/// active_config = 0
+/// backing_config = 0
+/// cores_config = 0    // superset of active_configured and backing_configured
 /// Loop over functional cores
-///     if (single)
-///         if (first_core)
-///             set bit c in core_configure buffer
-///             set MASTER_CORE attribute
-///             first_core = false
-///             if (fused)
-///                 second_core = true
+///     if num_active < ATTR_ACTIVE_CORES_NUM
+///         if fused_mode
+///             if fused_first_half
+///                 ASSERT(core_num == first_core_num+1)
+///                 fused_first_half = false
 ///             else
-///                 first_backing = true
-///             next
+///                 fused_first_half = true
+///                 fused_first_core = core_num
+///         set bit c in core_config buffer
+///         set bit c in active_config buffer
+///         configure partial good and multicast(core)
+///         ++num_active
+///         next
+///     if num_backing < ATTR_BACKING_CACHES_NUM
+///         set bit c in core_config buffer
+///         set bit c in backing_config buffer
+///         configure partial good and multicast(core)
+///         ++num_backing
+///         next
 ///
-///         if (second_core)
-///             check that second one is paired
-///             set bit c in core_configure buffer
-///             second_core = false
-///             first_backing = true;
-///             next
+/// ATTR_SET(ATTR_ACTIVE_CORES_VEC, active_config)
+/// ATTR_GET(ATTR_ACTIVE_CORES_VEC, active_config)     // May return override
 ///
-///         if (first_backing)
-///             set bit c in core_configure buffer
-///             set BACKING_CACHE[0] attribute
-///             first_backing = false;
-///             second_backing = true;
-///             next
+/// ATTR_SET(ATTR_BACKING_CACHES_VEC, backing_config)
+/// ATTR_GET(ATTR_BACKING_CACHES_VEC, backing_config)  // May return override
 ///
-///         if (second_backing)
-///             check that second one is paired
-///             set bit c in core_configure buffer
-///             set BACKING_CACHE[1] attribute
-///             second_backing = false;
-///             next
-///      else
-///          set bit c in core_configure buffer
+/// needed_config = active_config | backing_config
+/// ASSERT(needed_config & config_cores == needed_config)
 ///
 /// Write resultant scoreboard Core mask into OCC complex
 ///   - This is the "master record " of the enabled cores/quad in the system
@@ -97,10 +100,14 @@
 //  Includes
 // -----------------------------------------------------------------------------
 #include "p10_sbe_select_ex.H"
-#if 0
-    #include "p10_common_poweronoff.H"
-    #include <multicast_group_defs.H>
-#endif
+#include "p10_hcd_common.H"
+#include <multicast_group_defs.H>
+
+#include "p10_scom_proc_5.H"
+#include "p10_scom_eq_a.H"
+#include "p10_scom_eq_c.H"
+#include "p10_scom_c_d.H"
+
 // -----------------------------------------------------------------------------
 //  Definitions
 // -----------------------------------------------------------------------------
@@ -114,6 +121,10 @@ const static uint32_t NUM_OF_QUADS = 8;
 fapi2::ReturnCode select_ex_pfet_delay(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
+fapi2::ReturnCode select_ex_config(
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_eq_target,
+    const uint32_t i_core_num);
+
 // -----------------------------------------------------------------------------
 //  Function definitions
 // -----------------------------------------------------------------------------
@@ -123,79 +134,78 @@ fapi2::ReturnCode p10_sbe_select_ex(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
     const selectex::MODE i_mode)
 {
-#if 0
-    FAPI_IMP("> p10_sbe_select_ex");
+    using namespace scomt::proc;
 
-    fapi2::buffer<uint32_t> l_core_config = 0;
+    FAPI_INF("> p10_sbe_select_ex");
+
+    fapi2::buffer<uint32_t> l_core_config_bvec = 0;
+    fapi2::buffer<uint32_t> l_active_config_bvec = 0;
+    fapi2::buffer<uint32_t> l_backing_config_bvec = 0;
+    fapi2::buffer<uint32_t> l_needed_config_bvec = 0;
     fapi2::buffer<uint64_t> l_data64;
 
-    bool b_skip_hb_checks = false;
-    bool b_single = true;
+    uint32_t l_attr_num_active = 0;
+    uint32_t l_attr_num_backing = 0;
+    uint32_t l_num_active = 0;
+    uint32_t l_num_backing = 0;
     bool b_fused = false;
-    bool b_first_core = true;
-    bool b_second_core = false;
-    bool b_first_backing = false;
-    bool b_second_backing = false;
+    bool b_fused_first_half = false;
+    uint32_t l_fused_core_num_base = 0;
 
-    uint32_t l_master_core_num = 0xFF; // invalid Core number initialized
-    uint32_t l_backing_caches[2] = { 255, 255 };
+    fapi2::ATTR_ACTIVE_CORES_VEC_Type l_attr_active_cores_bvec;
+    fapi2::ATTR_BACKING_CACHES_VEC_Type l_attr_backing_caches_bvec;
+
+    fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq_target;
 
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     auto l_core_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>
                                     (fapi2::TARGET_STATE_FUNCTIONAL);
 
-    // Read the "FORCE_ALL" attribute
-    fapi2::ATTR_SYS_FORCE_ALL_CORES_Type l_attr_force_all;
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYS_FORCE_ALL_CORES,
+
+    fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
                            FAPI_SYSTEM,
-                           l_attr_force_all));
+                           l_attr_fused_mode));
 
-    // Set the flow mode and respect the force mode
-    if (l_attr_force_all || i_mode == selectex::ALL)
+    if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
     {
-        b_single = false;
-        b_skip_hb_checks = true;
-        FAPI_DBG("All cores mode");
-    }
-    else
-    {
-        if (i_mode == selectex::SINGLE_NONE_OK)
-        {
-            b_skip_hb_checks = true;
-        }
+        b_fused = true;
+        FAPI_INF("p10_sbe_select_ex: Fused core mode detected");
 
-        FAPI_DBG("Single/Fused core mode:  Number of candidate normal cores = %d",
-                 l_core_functional_vector.size());
+        // Check that we're not trying to force fused cores on a chip where the
+        // force mechanism is disabled via eFuses AND we are not already in
+        // fused mode
 
-        fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
-                               FAPI_SYSTEM,
-                               l_attr_fused_mode));
-
-        if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
-        {
-            b_fused = true;
-            FAPI_INF("p10_sbe_select_ex: Fused core mode detected");
-        }
-
-    }
-
-    // Check that we're not trying to force fused cores on a chip where the
-    // force mechanism is disabled via eFuses AND we are not already in
-    // fused mode
-//    {
+        // @todo RTC 207903
+        // Update the following P9 fields with the P10 variants
 //         fapi2::buffer<uint64_t> l_perv_ctrl0;
 //         fapi2::buffer<uint64_t> l_device_id_reg;
 //
 //         FAPI_TRY(fapi2::getScom(i_target, PERV_PERV_CTRL0_SCOM, l_perv_ctrl0));
 //         FAPI_TRY(fapi2::getScom(i_target, PERV_DEVICE_ID_REG, l_device_id_reg));
 //
-//         FAPI_ASSERT(!(l_perv_ctrl0.getBit<p10N2_PERV_PERV_CTRL0_TP_OTP_SCOM_FUSED_CORE_MODE>()
-//                       && l_device_id_reg.getBit<p10N2_PERV_DEVICE_ID_REG_HW_MODE_SEL>() &&
-//                       !l_device_id_reg.getBit<p10N2_PERV_DEVICE_ID_REG_TP_EX_FUSE_SMT8_CTYPE_EN>()),
+//         FAPI_ASSERT(!(l_perv_ctrl0.getBit<P9N2_PERV_PERV_CTRL0_TP_OTP_SCOM_FUSED_CORE_MODE>()
+//                       && l_device_id_reg.getBit<P9N2_PERV_DEVICE_ID_REG_HW_MODE_SEL>() &&
+//                       !l_device_id_reg.getBit<P9N2_PERV_DEVICE_ID_REG_TP_EX_FUSE_SMT8_CTYPE_EN>()),
 //                     fapi2::SBE_SELECT_EX_FORCE_FUSED_CORES_DISABLED(),
 //                     "Failed to force fused core mode because external control has been disabled via eFuses");
-//     }
+    }
+
+    {
+        fapi2::ATTR_ACTIVE_CORES_NUM_Type l_ATTR_ACTIVE_CORES_NUM;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_NUM,
+                               i_target,
+                               l_ATTR_ACTIVE_CORES_NUM));
+        l_attr_num_active = (uint32_t)l_ATTR_ACTIVE_CORES_NUM;
+        FAPI_DBG("p10_sbe_select_ex: ATTR_ACTIVE_CORES_NUM = %d", l_ATTR_ACTIVE_CORES_NUM);
+
+        fapi2::ATTR_BACKING_CACHES_NUM_Type l_ATTR_BACKING_CACHES_NUM;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
+                               i_target,
+                               l_ATTR_BACKING_CACHES_NUM));
+        l_attr_num_backing = (uint32_t)l_ATTR_BACKING_CACHES_NUM;
+        FAPI_DBG("p10_sbe_select_ex: ATTR_BACKING_CACHES_NUM = %d", l_ATTR_BACKING_CACHES_NUM);
+    }
 
     // Loop through the core functional vector on the view that the FAPI
     // platform code is expected to return the vector elements in acsending
@@ -206,15 +216,13 @@ fapi2::ReturnCode p10_sbe_select_ex(
     //
     // For fused core mode, the first core must be even numbered and then
     // the companion odd numbered one must also be in the vector. This is repeated
-    // for the next 2 core so that we have 2 fused cores to have the necessary
-    // back cache.  // If the first or third core in the vector is odd or the
+    // for subsequent cores so that we have 2 fused cores to have the necessary
+    // back cache.
+    //
+    // If the first or third core in the vector is odd or the
     // companion odd core to the first and second even one is not present, raise
     // errors.
     //
-    // A buffer track the core configuration as though "ALL" is the mode chosen.
-    // This is done to reduce conditional processing within the vector loop to
-    // allow for better prefetch utilization.
-
     for (auto& core : l_core_functional_vector)
     {
         fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
@@ -224,102 +232,129 @@ fapi2::ReturnCode p10_sbe_select_ex(
 
         uint32_t l_core_num  = (uint32_t)l_attr_chip_unit_pos;
 
-        if (b_single)
+        l_eq_target = core.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        if (b_fused)
         {
-            if (b_first_core)
+            if (b_fused_first_half)
             {
-                l_core_config.setBit(l_core_num);
-                l_master_core_num = l_core_num;
-                FAPI_TRY(FAPI_ATTR_SET( fapi2::ATTR_MASTER_CORE,
-                                        i_target,
-                                        l_master_core_num));
-                FAPI_DBG("MASTER core chiplet %d", l_master_core_num);
-                b_first_core = false;
-
-                if (b_fused)
-                {
-                    // Check that the first normal core is even.
-                    FAPI_ASSERT(l_core_num % 2 == 0,
-                                fapi2::SBE_SELECT_EX_FUSED_NOT_EVEN_ERROR()
-                                .set_CHIP(i_target)
-                                .set_CORE_NUM(l_core_num),
-                                "The first core found in fused mode was not an even core");
-                    b_second_core = true;
-                }
-                else
-                {
-                    b_first_backing = true;
-                }
-
-                continue;  // next core
-            }
-
-            if (b_second_core)
-            {
+                FAPI_DBG("Fused core second half = %d", l_core_num);
                 // Check that the second normal core is functional.
-                FAPI_DBG("Odd core check: master core == %d, core num = %d",
-                         l_master_core_num, l_core_num);
-                FAPI_ASSERT(l_core_num == l_master_core_num + 1,
+                FAPI_DBG("Odd core check: base core == %d, core num = %d",
+                         l_fused_core_num_base, l_core_num);
+                FAPI_ASSERT(l_core_num == l_fused_core_num_base + 1,
                             fapi2::SBE_SELECT_EX_FUSED_ODD_ERROR()
                             .set_CHIP(i_target)
                             .set_CORE_NUM(l_core_num)
-                            .set_MASTER_NUM(l_master_core_num),
-                            "Odd core within master fused set is not functional");
-                l_core_config.setBit(l_core_num);
-                b_second_core = false;
-                b_first_backing = true;
-                continue;  // next core
+                            .set_FUSED_CORE_NUM_BASE(l_fused_core_num_base),
+                            "Odd core within fused set is not functional");
             }
-
-            if (b_first_backing)
+            else
             {
-                l_backing_caches[0] = l_core_num;
-                l_core_config.setBit(l_core_num);
-                b_first_backing = false;
-                b_second_backing = true;
-                continue;  // next core
-            }
-
-            if (b_second_backing)
-            {
-                l_backing_caches[1] = l_core_num;
-                l_core_config.setBit(l_core_num);
-                b_second_backing = false;
-                continue;  // next core
+                // Check that the first normal core is even.
+                FAPI_ASSERT(l_core_num % 2 == 0,
+                            fapi2::SBE_SELECT_EX_FUSED_NOT_EVEN_ERROR()
+                            .set_CHIP(i_target)
+                            .set_CORE_NUM(l_core_num),
+                            "The first core found in fused mode was not an even core");
+                b_fused_first_half = true;
+                l_fused_core_num_base = l_core_num;
             }
         }
-        else  // All cores
+
+        if (l_num_active < l_attr_num_active)
         {
-            l_core_config.setBit(l_core_num);
+            l_core_config_bvec.setBit(l_core_num);
+            l_active_config_bvec.setBit(l_core_num);
+            FAPI_TRY(select_ex_config(l_eq_target, l_core_num));
+            ++l_num_active;
+            continue;  // next core
         }
 
-        FAPI_DBG("Scoreboard values for OCC: Core 0x%08X", l_core_config);
+        if (l_num_backing < l_attr_num_backing)
+        {
+            l_core_config_bvec.setBit(l_core_num);
+            l_backing_config_bvec.setBit(l_core_num);
+            FAPI_TRY(select_ex_config(l_eq_target, l_core_num));
+            ++l_num_backing;
+            continue;  // next core
+        }
+
+        FAPI_DBG("Scoreboard values for OCC: Core 0x%08X", l_core_config_bvec);
 
     } // Core loop
 
-    FAPI_ASSERT(b_skip_hb_checks || l_core_config != 0,
-                fapi2::SBE_SELECT_EX_NO_CORE_AVAIL_ERROR()
-                .set_CHIP(i_target),
-                "No good cores found to boot with");
+    FAPI_ASSERT(l_num_active == l_attr_num_active,
+                fapi2::SBE_SELECT_EX_INSUFFICIENT_ACTIVE_CORES_ERROR()
+                .set_CHIP(i_target)
+                .set_CORE_CONFIG(l_core_config_bvec)
+                .set_ATTR_ACTIVE_CORES_NUM(l_attr_num_active)
+                .set_ACTIVE_CORES_NUM(l_num_active)
+                .set_ACTIVE_CORES_VEC(l_active_config_bvec),
+                "Insuffient backing caches found");
 
-    if (b_single)
-    {
-        FAPI_TRY(FAPI_ATTR_SET( fapi2::ATTR_BACKING_CACHES,
-                                i_target,
-                                l_backing_caches));
-        FAPI_DBG("Backing caches = %d", l_backing_caches[0], l_backing_caches[1]);
-    }
+    FAPI_ASSERT(l_num_backing == l_attr_num_backing,
+                fapi2::SBE_SELECT_EX_INSUFFICIENT_BACKING_CACHES_ERROR()
+                .set_CHIP(i_target)
+                .set_CORE_CONFIG(l_core_config_bvec)
+                .set_ATTR_ACTIVE_CORES_NUM(l_attr_num_active)
+                .set_ATTR_BACKING_CACHES_NUM(l_attr_num_backing)
+                .set_ACTIVE_CORES_NUM(l_num_active)
+                .set_BACKING_CACHES_NUM(l_num_backing)
+                .set_ACTIVE_CORES_VEC(l_active_config_bvec)
+                .set_BACKING_CACHES_VEC(l_backing_config_bvec),
+                "Insuffient backing caches found");
 
-    // Setup the Core PFET delays with multicast
+
+    // Set active cores attribute
+    FAPI_TRY(FAPI_ATTR_SET( fapi2::ATTR_ACTIVE_CORES_VEC,
+                            i_target,
+                            l_active_config_bvec));
+    FAPI_DBG("Set ATTR_ACTIVE_CORES_VEC   => 0x%08X", l_active_config_bvec);
+
+    // Get active cores attribute to pickup any overrides
+    FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_ACTIVE_CORES_VEC,
+                            i_target,
+                            l_attr_active_cores_bvec));
+    FAPI_DBG("Get ATTR_ACTIVE_CORES_VEC   => 0x%08X", l_attr_active_cores_bvec);
+
+    // Set backing caches attribute
+    FAPI_TRY(FAPI_ATTR_SET( fapi2::ATTR_BACKING_CACHES_VEC,
+                            i_target,
+                            l_backing_config_bvec));
+    FAPI_DBG("Set ATTR_BACKING_CACHES_VEC => 0x%08X", l_backing_config_bvec);
+
+    // Get backing caches attribute to pickup any overrides
+    FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_BACKING_CACHES_VEC,
+                            i_target,
+                            l_attr_backing_caches_bvec));
+    FAPI_DBG("Get ATTR_BACKING_CACHES_VEC => 0x%08X", l_attr_backing_caches_bvec);
+
+    l_needed_config_bvec = l_attr_active_cores_bvec | l_attr_backing_caches_bvec;
+
+    FAPI_ASSERT((l_needed_config_bvec & l_core_config_bvec) == l_needed_config_bvec,
+                fapi2::SBE_SELECT_EX_NEEDED_CONFIG_ERROR()
+                .set_CHIP(i_target)
+                .set_NEEDED_CONFIG(l_needed_config_bvec)
+                .set_CORE_CONFIG(l_core_config_bvec)
+                .set_ATTR_ACTIVE_CORES_NUM(l_attr_num_active)
+                .set_ATTR_BACKING_CACHES_NUM(l_attr_num_backing)
+                .set_ACTIVE_CORES_NUM(l_num_active)
+                .set_BACKING_CACHES_NUM(l_num_backing)
+                .set_ACTIVE_CORES_VEC(l_active_config_bvec)
+                .set_BACKING_CACHES_VEC(l_backing_config_bvec),
+                "Need configuration not satisified");
+
+    // Setup all Cores PFET delays
     FAPI_TRY(select_ex_pfet_delay(i_target));
 
     // Write to the OCC Core Configuration Status Register
-    l_data64.flush<0>().insertFromRight<0, 32>(l_core_config);
-    FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_CCSR_SCOM, l_data64));
+    l_data64.flush<0>().insertFromRight<0, 32>(l_core_config_bvec);
+    FAPI_TRY(fapi2::putScom(i_target, TP_TPCHIP_OCC_OCI_OCB_CCSR_RW, l_data64));
+    FAPI_DBG("Write OCI CCSR to 0x%16llX", l_data64);
 
 fapi_try_exit:
     FAPI_INF("< p10_sbe_select_ex");
-#endif
     return fapi2::current_err;
 } // END p10_sbe_select_ex
 
@@ -330,68 +365,45 @@ fapi_try_exit:
 fapi2::ReturnCode select_ex_pfet_delay(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 {
-#if 0
+    using namespace scomt::c;
+
     FAPI_DBG("> select_ex_pfet_delay...");
 
     fapi2::buffer<uint64_t> l_data64;
-
-    fapi2::MulticastGroupMapping l_mapping;
-    std::vector< fapi2::MulticastGroupMapping > l_mappings;
     fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_core_mc;
-
-    l_mapping.abstractGroup = fapi2::MCGROUP_GOOD;
-    l_mapping.hwValue = 0;
-    l_mappings.push_back(l_mapping);
-
-    l_mapping.abstractGroup = fapi2::MCGROUP_GOOD_NO_TP;
-    l_mapping.hwValue = 1;
-    l_mappings.push_back(l_mapping);
-
-    l_mapping.abstractGroup = fapi2::MCGROUP_GOOD_MEMCTL;
-    l_mapping.hwValue = 2;
-    l_mappings.push_back(l_mapping);
-
-    l_mapping.abstractGroup = fapi2::MCGROUP_GOOD_OBUS;
-    l_mapping.hwValue = 3;
-    l_mappings.push_back(l_mapping);
-
-    l_mapping.abstractGroup = fapi2::MCGROUP_NEST;
-    l_mapping.hwValue = 4;
-    l_mappings.push_back(l_mapping);
-
-    l_mapping.abstractGroup = fapi2::MCGROUP_GOOD_PCI;
-    l_mapping.hwValue = 5;
-    l_mappings.push_back(l_mapping);
-
-    l_mapping.abstractGroup = fapi2::MCGROUP_GOOD_EQ;
-    l_mapping.hwValue = 6;
-    l_mappings.push_back(l_mapping);
-
-    l_mapping.abstractGroup = fapi2::MCGROUP_ALL;
-    l_mapping.hwValue = 7;
-    l_mappings.push_back(l_mapping);
-    FAPI_TRY(fapi2::setMulticastGroupMap(i_target, l_mappings));
 
     l_core_mc = i_target.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
 
-    // Write the default PFET Controller Delay values to the Cores
-    FAPI_DBG("Setting PFET Delays in all cores");
-
     // *INDENT-OFF*
     l_data64.flush<0>()
-            .insertFromRight<0,  4>(p10power::PFET_DELAY_POWERDOWN)
-            .insertFromRight<4,  4>(p10power::PFET_DELAY_POWERUP_L3)
-            .insertFromRight<8,  4>(p10power::PFET_DELAY_POWERUP_CL2)
-            .insertFromRight<12, 4>(p10power::PFET_DELAY_POWERUP_MMA);
+            .insertFromRight<0,  4>(HCD_PFET_DELAY_POWERDOWN)
+            .insertFromRight<4,  4>(HCD_PFET_DELAY_POWERUP_L3)
+            .insertFromRight<8,  4>(HCD_PFET_DELAY_POWERUP_CL2)
+            .insertFromRight<12, 4>(HCD_PFET_DELAY_POWERUP_MMA);
     // *INDENT-ON*
 
-    FAPI_TRY(fapi2::putScom(l_core_mc, CPMS0_CPMS_PFETDLY_SCOM, l_data64));
+#ifdef UNICAST_ONLY
+    auto l_core_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>
+                                    (fapi2::TARGET_STATE_FUNCTIONAL);
+    // UNICAST
+    FAPI_DBG("Setting PFET Delays in each core with unicast");
+
+    for (auto& core : l_core_functional_vector)
+    {
+        FAPI_TRY(fapi2::putScom(core, CPMS_PFETDLY, l_data64));
+    }
+
+#else
+    // MULTICAST
+    FAPI_DBG("Setting PFET Delays in all cores via multicast");
+    FAPI_TRY(fapi2::putScom(l_core_mc, CPMS_PFETDLY, l_data64));
+#endif
 
     // Clear QME Scratch 1[Runtime Wakeup Mode](3) to force SMF enabled systems
-    // tp start Hostboot in UV mode
+    // to start Hostboot in UV mode
 
-
-    // @todo This bit should come from p10_pm_hcd_flags.h but it is presently
+    // @todo RTC 207903
+    // This bit should come from p10_pm_hcd_flags.h but it is presently
     // not mirrored.
 //    l_data64.flush<0>().setBit<31>();
 //     FAPI_TRY(fapi2::putScom(i_target_core, C_CPPM_CPMMR_CLEAR, l_data64));
@@ -399,6 +411,36 @@ fapi2::ReturnCode select_ex_pfet_delay(
 
 fapi_try_exit:
     FAPI_DBG("< select_ex_pfet_delay...");
-#endif
+    return fapi2::current_err;
+}
+
+///-----------------------------------------------------------------------------
+/// @brief Configure a core/L3 cache set for use
+///
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+inline
+fapi2::ReturnCode select_ex_config(
+    const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_eq_target,
+    const uint32_t i_core_num)
+{
+    using namespace scomt::eq;
+
+    FAPI_DBG("> select_ex_config for core/L3 %d", i_core_num);
+
+    fapi2::buffer<uint64_t> l_data64;
+
+    l_data64.flush<0>();
+    l_data64.setBit(5  + (i_core_num & 0x3)); // Core
+    l_data64.setBit(9  + (i_core_num & 0x3)); // L3
+    l_data64.setBit(15 + (i_core_num & 0x3)); // MMA
+
+    // Partial Good
+    FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL2_WO_OR, l_data64));
+
+    // PSCOM enable
+    FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL3_WO_OR, l_data64));
+
+fapi_try_exit:
+    FAPI_DBG("< select_ex_config...");
     return fapi2::current_err;
 }
