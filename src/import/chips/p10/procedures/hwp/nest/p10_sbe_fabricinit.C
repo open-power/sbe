@@ -35,6 +35,9 @@
 // Includes
 //------------------------------------------------------------------------------
 #include <p10_sbe_fabricinit.H>
+#include <p10_adu_setup.H>
+#include <p10_adu_access.H>
+#include <p10_adu_utils.H>
 #include <p9_misc_scom_addresses.H>
 #include <p9_misc_scom_addresses_fld.H>
 
@@ -42,16 +45,8 @@
 // Constant definitions
 //------------------------------------------------------------------------------
 
-// Alter/display completion timers
-const uint32_t ALTD_STATUS_DELAY_HW_NS = 1000;
-const uint32_t ALTD_STATUS_DELAY_SIM_CYCLES = 200;
-const uint32_t ALTD_STATUS_MAX_WAIT_LOOPS = 10;
-
-// Alter/display register field constants
-const uint32_t FBC_ALTD_TTYPE_PBOPERATION = 0x3F; // pbop.enable_all
-const uint32_t FBC_ALTD_TSIZE_PBOPERATION = 0x0B; // fastpath enabled
-const uint32_t FBC_ALTD_SCOPE_GROUP = 0x03;
-const uint32_t FBC_ALTD_CRESP_VALUE_ACK_DONE = 0x04;
+// adu should never be locked prior to calling sbe fabricinit
+const uint8_t ALTD_MAX_LOCK_ATTEMPTS = 1;
 
 //------------------------------------------------------------------------------
 // Function definitions
@@ -63,9 +58,10 @@ p10_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     FAPI_INF("Start p10_sbe_fabricinit...");
 
     fapi2::buffer<uint64_t> l_data;
-    fapi2::buffer<uint64_t> l_data_exp;
-
-    uint32_t altd_status_loop_count = 0;
+    adu_operationFlag l_aduFlags;
+    uint32_t l_fabricinit_flags;
+    uint32_t l_numGranules;     // dummy variable
+    uint8_t l_rwData[8] = {0};  // dummy variable
 
     // check state of pb_stop; it will prohibit all fabric commands from being broadcast if asserted
     FAPI_DBG("Check that fabric is in a healthy state");
@@ -76,96 +72,33 @@ p10_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                 .set_TARGET(i_target),
                 "Pervasive stop control (pb_stop) is asserted, so fabric init will not run!");
 
-    // obtain lock
-    FAPI_DBG("Obtain adu lock via alter/display command register");
-    l_data.flush<0>().setBit<PU_ALTD_CMD_REG_FBC_LOCKED>();
-    FAPI_TRY(putScom(i_target, PU_ALTD_CMD_REG, l_data), "Error obtaining adu lock via Alter/Display Command Register");
+    // setup adu utils parms for fabric init operation
+    FAPI_DBG("Determine adu_utils parms for a fabric init operation");
+    l_aduFlags.setOperationType(adu_operationFlag::PB_INIT_OPER);
+    l_aduFlags.setLockControl(true);
+    l_aduFlags.setNumLockAttempts(ALTD_MAX_LOCK_ATTEMPTS);
 
-    // clear/reset
-    FAPI_DBG("Clear and reset adu state machine and status registers");
-    l_data.setBit<PU_ALTD_CMD_REG_FBC_CLEAR_STATUS>()
-    .setBit<PU_ALTD_CMD_REG_FBC_RESET_FSM>();
-    FAPI_TRY(putScom(i_target, PU_ALTD_CMD_REG, l_data), "Error resetting adu via Alter/Display Command Register");
+    l_fabricinit_flags = l_aduFlags.setFlag();
 
-    // launch command
-    FAPI_DBG("Launch fabric init command via alter/display command register");
-    l_data.flush<0>().setBit<PU_ALTD_CMD_REG_FBC_START_OP>()
-    .setBit<PU_ALTD_CMD_REG_FBC_AXTYPE>()
-    .setBit<PU_ALTD_CMD_REG_FBC_LOCKED>()
-    .insertFromRight<PU_ALTD_CMD_REG_FBC_SCOPE, PU_ALTD_CMD_REG_FBC_SCOPE_LEN>(FBC_ALTD_SCOPE_GROUP)
-    .setBit<PU_ALTD_CMD_REG_FBC_DROP_PRIORITY>()
-    .setBit<PU_ALTD_CMD_REG_FBC_OVERWRITE_PBINIT>()
-    .insertFromRight<PU_ALTD_CMD_REG_FBC_TTYPE, PU_ALTD_CMD_REG_FBC_TTYPE_LEN>(FBC_ALTD_TTYPE_PBOPERATION)
-    .insertFromRight<PU_ALTD_CMD_REG_FBC_TSIZE, PU_ALTD_CMD_REG_FBC_TSIZE_LEN>(FBC_ALTD_TSIZE_PBOPERATION);
-    FAPI_TRY(putScom(i_target, PU_ALTD_CMD_REG, l_data), "Error launching adu command via Alter/Display Command Register");
+    // obtain adu lock, clear/reset state machines, setup and launch command
+    FAPI_DBG("Setup and launch fabric init command via alter/display command register");
+    FAPI_TRY(p10_adu_setup(i_target, 0, true, l_fabricinit_flags, l_numGranules),
+             "Error setting up fabric init command via p10_adu_setup");
 
-    // check status
+    // check adu command status
     FAPI_DBG("Check adu status register for command completion");
-    FAPI_TRY(getScom(i_target, PU_ALTD_STATUS_REG, l_data), "Error checking adu status via Alter/Display Status Register");
-
-    l_data_exp.flush<0>().setBit<PU_ALTD_STATUS_REG_FBC_ADDR_DONE>()
-    .insertFromRight<PU_ALTD_STATUS_REG_FBC_CRESP_VALUE, PU_ALTD_STATUS_REG_FBC_CRESP_VALUE_LEN>
-    (FBC_ALTD_CRESP_VALUE_ACK_DONE);
-
-    while(l_data != l_data_exp)
-    {
-        fapi2::delay(ALTD_STATUS_DELAY_HW_NS, ALTD_STATUS_DELAY_SIM_CYCLES);
-        FAPI_TRY(getScom(i_target, PU_ALTD_STATUS_REG, l_data), "Error checking adu status via Alter/Display Status Register");
-
-        altd_status_loop_count++;
-
-        FAPI_ASSERT(altd_status_loop_count < ALTD_STATUS_MAX_WAIT_LOOPS,
-                    fapi2::P10_SBE_FABRICINIT_BAD_ADU_STATUS()
-                    .set_TARGET(i_target)
-                    .set_ADU_STATUS_ACT(l_data)
-                    .set_ADU_STATUS_EXP(l_data_exp)
-                    .set_WAIT_TIME_NS(ALTD_STATUS_DELAY_HW_NS * ALTD_STATUS_MAX_WAIT_LOOPS),
-                    "Fabric failed to initialize with the expected status within a reasonable timeframe!");
-    }
+    FAPI_TRY(p10_adu_access(i_target, 0, true, l_fabricinit_flags, true, true, l_rwData),
+             "Error checking the adu status via p10_adu_access");
 
     FAPI_DBG("Fabric init command from adu successfully completed!");
 
-    // release lock
-    FAPI_DBG("Release adu lock via alter/display command register");
-    FAPI_TRY(putScom(i_target, PU_ALTD_CMD_REG, l_data.flush<0>()),
-             "Error releasing adu lock via Alter/Display Command Register");
-
-    // TODO: Scom access to check pb_init not working on vbu model yet, placeholder code below (RTC 205266)
-    /*
-    // confirm success
-    FAPI_DBG("Verify fabric is in a functional state");
-    FAPI_TRY(getScom(i_target, 0x301100A, l_data), "Error reading pb_init from Powerbus ES3 Mode Config Register");
-
-    FAPI_ASSERT((l_data && 0x8000000000000000) == 1,
-                fapi2::P9_SBE_FABRICINIT_FBC_NOT_RUNNING()
-                .set_TARGET(i_target),
-                "Init command was successfully issued, but fabric is not in an initialized state!");
-
-    FAPI_DBG("Verify fabric is in a functional state");
-    FAPI_TRY(getScom(i_target, PU_PB_ES3_MODE, l_data), "Error reading pb_init from Powerbus ES3 Mode Config Register");
-
-    FAPI_ASSERT(l_data.getBit<PU_PB_ES3_MODE_PBIXXX_INIT>() == 1,
-                fapi2::P9_SBE_FABRICINIT_FBC_NOT_RUNNING()
-                .set_TARGET(i_target),
-                "Init command was successfully issued, but fabric is not in an initialized state!");
-    */
-
-    FAPI_TRY(getScom(i_target, PU_SND_MODE_REG, l_data), "Error reading pb_stop from pMisc Mode Register");
-
-    FAPI_ASSERT(l_data.getBit<PU_SND_MODE_REG_PB_STOP>() == 0,
-                fapi2::P10_SBE_FABRICINIT_FBC_NOT_RUNNING()
-                .set_TARGET(i_target),
-                "Pervasive stop control (pb_stop) is asserted, so fabric will not function!");
+    // check state of fabric
+    FAPI_TRY(p10_adu_utils_check_fbc_state(i_target),
+             "Error checking state of fabric via p10_adu_utils_check_fbc_state");
 
     FAPI_DBG("Fabric is successfully initialized and running!");
 
 fapi_try_exit:
-
-    // cleanup in case we errored in the middle of fabric init process
-    FAPI_DBG("Cleaning up adu by ensuring adu lock is released");
-    FAPI_TRY(putScom(i_target, PU_ALTD_CMD_REG, l_data.flush<0>()),
-             "Error releasing adu lock via Alter/Display Command Register");
-
     FAPI_INF("End p10_sbe_fabricinit...");
     return fapi2::current_err;
 }
