@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/corecache/p10_hcd_cache_startclocks.H $ */
+/* $Source: src/import/chips/p10/procedures/hwp/corecache/p10_hcd_corecache_clock_control.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -24,9 +24,8 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 
-
-#ifndef _P10_HCD_CACHE_STARTCLOCKS_H_
-#define _P10_HCD_CACHE_STARTCLOCKS_H_
+#ifndef _P10_HCD_CORECACHE_CLOCK_CONTROL_H_
+#define _P10_HCD_CORECACHE_CLOCK_CONTROL_H_
 
 //------------------------------------------------------------------------------
 // Includes
@@ -38,11 +37,11 @@
 //------------------------------------------------------------------------------
 
 /// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p10_hcd_cache_startclocks_FP_t) (
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+typedef fapi2::ReturnCode (*p10_hcd_corecache_clock_control_FP_t) (
+    const fapi2::Target < fapi2::TARGET_TYPE_EQ |
     fapi2::TARGET_TYPE_MULTICAST,
     fapi2::MULTICAST_AND > &,
-    uint32_t);
+    uint32_t, uint32_t);
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -52,17 +51,20 @@ extern "C"
 {
 
 ///
-/// @brief
+/// @brief Initialize fabric (in single chip 'island mode' configuration) by mastering
+/// an init command (ttype=pbop.init_all) from the Alter Display Unit (ADU)
 ///
-/// @param[in] i_target       Reference to fapi2::TARGET_TYPE_CORE|fapi2::TARGET_TYPE_MULTICAST
+/// @param[in] i_target       Reference to processor chip target
+/// @param[in] i_command      bit0:stop, bit1:start, bit2:slave, bit3:master
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
 ///
-    fapi2::ReturnCode p10_hcd_cache_startclocks(
-        const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+    fapi2::ReturnCode p10_hcd_corecache_clock_control(
+        const fapi2::Target < fapi2::TARGET_TYPE_EQ |
         fapi2::TARGET_TYPE_MULTICAST,
         fapi2::MULTICAST_AND > & i_target,
-        uint32_t i_regions);
+        uint32_t i_regions,
+        uint32_t i_command);
 
 } // extern "C"
 
-#endif // _P10_HCD_CACHE_STARTCLOCKS_H_
+#endif // _P10_HCD_CORECACHE_CLOCK_CONTROL_H_
