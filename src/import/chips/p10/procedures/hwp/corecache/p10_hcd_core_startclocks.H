@@ -38,8 +38,11 @@
 //------------------------------------------------------------------------------
 
 /// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p10_hcd_core_startclocks_FP_t) (const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-        fapi2::TARGET_TYPE_MULTICAST > &);
+typedef fapi2::ReturnCode (*p10_hcd_core_startclocks_FP_t) (
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+    fapi2::TARGET_TYPE_MULTICAST,
+    fapi2::MULTICAST_AND > &,
+    uint32_t);
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -54,8 +57,11 @@ extern "C"
 /// @param[in] i_target       Reference to fapi2::TARGET_TYPE_CORE|fapi2::TARGET_TYPE_MULTICAST
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
 ///
-    fapi2::ReturnCode p10_hcd_core_startclocks(const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST
-            > & i_target);
+    fapi2::ReturnCode p10_hcd_core_startclocks(
+        const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+        fapi2::TARGET_TYPE_MULTICAST,
+        fapi2::MULTICAST_AND > & i_target,
+        uint32_t i_regions);
 
 } // extern "C"
 
