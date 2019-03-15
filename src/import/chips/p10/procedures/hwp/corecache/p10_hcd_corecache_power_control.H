@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/corecache/p10_hcd_cache_poweron.C $ */
+/* $Source: src/import/chips/p10/procedures/hwp/corecache/p10_hcd_corecache_power_control.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -25,65 +25,45 @@
 
 
 
-///
-/// @file  p10_hcd_cache_poweron.C
-/// @brief Fencing L3, power on L3 VDD+VCS PFET headers
-///
-
-
-// *HWP HWP Owner          : David Du               <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still             <stillgs@us.ibm.com>
-// *HWP FW Owner           : Prasad Brahmasamurdra  <prasadbgr@in.ibm.com>
-// *HWP Team               : PM
-// *HWP Consumed by        : SBE:QME
-// *HWP Level              : 2
-
+#ifndef _P10_HCD_CORECACHE_POWERON_H_
+#define _P10_HCD_CORECACHE_POWERON_H_
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-
-#include "p10_hcd_cache_poweron.H"
-#include "p10_hcd_corecache_power_control.H"
-#include "p10_hcd_common.H"
-
+#include <fapi2.H>
 
 //------------------------------------------------------------------------------
-// Constant Definitions
+// Structure definitions
 //------------------------------------------------------------------------------
 
+/// function pointer typedef definition for HWP call support
+typedef fapi2::ReturnCode (*p10_hcd_corecache_power_control_FP_t) (
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+    fapi2::TARGET_TYPE_MULTICAST,
+    fapi2::MULTICAST_AND > &,
+    uint32_t);
 
 //------------------------------------------------------------------------------
-// Procedure: p10_hcd_cache_poweron
+// Function prototypes
 //------------------------------------------------------------------------------
 
-
-fapi2::ReturnCode
-p10_hcd_cache_poweron(
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target,
-    uint32_t i_regions)
+extern "C"
 {
-    fapi2::buffer<uint64_t> l_data64  = 0;
-//     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
-//         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-    fapi2::Target < fapi2::TARGET_TYPE_EQ > eq_target =
-        i_target.getParent < fapi2::TARGET_TYPE_EQ > ();
 
-    FAPI_INF(">>p10_hcd_cache_poweron");
+///
+/// @brief
+///
+/// @param[in] i_target       Reference to fapi2::TARGET_TYPE_CORE|fapi2::TARGET_TYPE_MULTICAST
+/// @param[in] i_command      bit29[L3:1/CL2:0], bit30[VCS:1/VDD:0], bit31[ON:1/OFF:0]
+/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
+///
+    fapi2::ReturnCode p10_hcd_corecache_power_control(
+        const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+        fapi2::TARGET_TYPE_MULTICAST,
+        fapi2::MULTICAST_AND > & i_target,
+        uint32_t i_command);
 
-    FAPI_DBG("Assert L3 Glsmux Reset via CPMS_CGCSR[4:L3_CLKGLM_ASYNC_RESET]");
-    FAPI_TRY( putScom( i_target, G_QME_CPMS_CGCSR_OR, MASK_SET(4) ) );
+} // extern "C"
 
-    FAPI_DBG("Enable L3 Regional Fences via CPLT_CTRL1[9-12:L3_FENCES] to regions 0x%08X", i_regions);
-    FAPI_TRY( putScom( eq_target, G_CPLT_CTRL1_OR, MASK_H32(i_regions) ) );
-
-    // VDD on first, VCS on after
-    FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_L3_ON ) );
-
-fapi_try_exit:
-
-    FAPI_INF("<<p10_hcd_cache_poweron");
-
-    return fapi2::current_err;
-
-}
+#endif // _P10_HCD_CORECACHE_POWERON_H_
