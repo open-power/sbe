@@ -27,16 +27,16 @@
 
 ///
 /// @file  p10_hcd_core_poweron.C
-/// @brief
+/// @brief Fencing Core+L2, Power on Core+L2 VDD+VCS PFET headers
 ///
 
 
-// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
-// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
+// *HWP HWP Owner          : David Du               <daviddu@us.ibm.com>
+// *HWP Backup HWP Owner   : Greg Still             <stillgs@us.ibm.com>
+// *HWP FW Owner           : Prasad Brahmasamurdra  <prasadbgr@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:QME
-// *HWP Level              : 1
+// *HWP Level              : 2
 
 
 //------------------------------------------------------------------------------
@@ -44,7 +44,8 @@
 //------------------------------------------------------------------------------
 
 #include "p10_hcd_core_poweron.H"
-
+#include "p10_hcd_corecache_power_control.H"
+#include "p10_hcd_common.H"
 
 //------------------------------------------------------------------------------
 // Constant Definitions
@@ -58,12 +59,31 @@
 
 fapi2::ReturnCode
 p10_hcd_core_poweron(
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target,
+    uint32_t i_regions)
 {
+    fapi2::buffer<uint64_t> l_data64  = 0;
+//     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
+//         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+    fapi2::Target < fapi2::TARGET_TYPE_EQ > eq_target =
+        i_target.getParent < fapi2::TARGET_TYPE_EQ > ();
+
+
     FAPI_INF(">>p10_hcd_core_poweron");
 
+    FAPI_DBG("Assert ECL2 Glsmux Reset via CPMS_CGCSR[8:CL2_CLKGLM_ASYNC_RESET]");
+    FAPI_TRY( putScom( i_target, G_QME_CPMS_CGCSR_OR, MASK_SET(8) ) );
 
+    FAPI_DBG("Enable ECL2 Regional Fences via CPLT_CTRL1[5-8:ECL2_FENCES] to regions 0x%08X", i_regions);
+    FAPI_TRY( putScom( eq_target, G_CPLT_CTRL1_OR, MASK_H32(i_regions) ) );
+
+    // VDD on first, VCS on after
+    FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_CL2_ON ) );
+
+fapi_try_exit:
 
     FAPI_INF("<<p10_hcd_core_poweron");
+
     return fapi2::current_err;
+
 }
