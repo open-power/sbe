@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,6 +38,7 @@
 #include "sberegaccess.H"
 #include "sbefapiutil.H"
 #include "sbecmdiplcontrol.H"
+#include "sbearchregdump.H"
 
 #include "p9_hcd_core_stopclocks.H"
 #include "p9_hcd_cache_stopclocks.H"
@@ -275,6 +276,52 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
     {
         rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+///////////////////////////////////////////////////////////////////////
+// @brief sbeCollectDumpMpipl: Sbe Collect Dump in MPIPL function
+//
+// @return  RC from the underlying FIFO utility
+///////////////////////////////////////////////////////////////////////
+uint32_t sbeCollectDumpMpipl(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeCollectDumpMpipl "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    uint32_t len = 0;
+
+    sbeResponseFfdc_t ffdc;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+    do
+    {
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        // Collect Architected Register Dump
+        fapiRc = sbeDumpArchRegs();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "Failed sbeDumpArchRegs while sbeCollectDumpMpipl in progress");
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                        SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+    }while(0);
+    // Create the Response to caller
+    // If there was a FIFO error, will skip sending the response,
+    // instead give the control back to the command processor thread
+    if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
+    {
+        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+    }
+
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC

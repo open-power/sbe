@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -52,6 +52,16 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg);
   * @return    Rc from the FIFO access utility
   */
 uint32_t sbeContinueMpipl(uint8_t *i_pArg);
+
+/**
+  * @brief  Handles Sbe Collect Dump chip-op in the MPIPL flow for OPAL
+  *         based systems (0xA904)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeCollectDumpMpipl(uint8_t *i_pArg);
 
 /**
   * @brief  Handles Sbe Stop Clocks chip-op (0xA903)

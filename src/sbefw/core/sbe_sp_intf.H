@@ -168,6 +168,7 @@ enum sbeMpIplCommands
     SBE_CMD_MPIPL_ENTER    = 0x01, /* Enter MPIPL */
     SBE_CMD_MPIPL_CONTINUE = 0x02, /* Continue MPIPL */
     SBE_CMD_MPIPL_STOPCLOCKS = 0x03, /* Stop Clocks */
+    SBE_CMD_MPIPL_COLLECT_DUMP = 0x04, /* Collect Dump */
 };
 
 /**
@@ -323,6 +324,7 @@ enum
     ENTER_MPIPL_SUPPORTED               = 0xA9000001,
     CONTINUE_MPIPL_SUPPORTED            = 0xA9000002,
     STOP_CLOCKS_MPIPL_SUPPORTED         = 0xA9000004,
+    MPIPL_COLLECT_DUMP_SUPPORTED        = 0xA9000008,
     RESERVED_A9_CAPABILITIES            = 0xA9800000,
 };
 

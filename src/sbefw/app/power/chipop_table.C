@@ -202,7 +202,14 @@ CMD_ARR(
     {sbeStopClocks,
      SBE_CMD_MPIPL_STOPCLOCKS,
      HARDWARE_FENCED_STATE|SBE_FENCE_AT_DUMPING,
-    }
+    },
+
+    {sbeCollectDumpMpipl,
+     SBE_CMD_MPIPL_COLLECT_DUMP,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_DUMPING,
+     // Only allowed State is MPIPL
+     }
 )
 
 //////////////////////////////////////////////////////////////

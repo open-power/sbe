@@ -154,7 +154,8 @@ void updateFifoCapabilities(uint32_t * capability)
     capability[MPIPL_CAPABILITY_START_IDX] =
                                 ENTER_MPIPL_SUPPORTED |
                                 CONTINUE_MPIPL_SUPPORTED |
-                                STOP_CLOCKS_MPIPL_SUPPORTED;
+                                STOP_CLOCKS_MPIPL_SUPPORTED |
+                                MPIPL_COLLECT_DUMP_SUPPORTED;
     capability[MPIPL_CAPABILITY_START_IDX+1] =
                                 RESERVED_A9_CAPABILITIES;
 
