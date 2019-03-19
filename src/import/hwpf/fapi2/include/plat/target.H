@@ -198,6 +198,14 @@ Target<K, M, V>::getChipletNumber(void) const
     return 0;
 }
 
+template<TargetType K, MulticastType M, typename V>
+inline MulticastCoreSelect
+Target<K, M, V>::_getCoreSelect(void) const
+{
+    // Platform can return the core select value stored in it's Target handle
+    return MCCORE_0;
+}
+
 ///
 /// @brief Return the string interpretation of this target
 /// @tparam T The type of the target
