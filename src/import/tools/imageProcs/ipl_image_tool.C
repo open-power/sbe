@@ -48,7 +48,7 @@
     #include <vector>
     #include <endian.h>
 #endif
-#include "p9_infrastruct_help.H"
+#include "p10_infrastruct_help.H"
 #include "p10_ddco.H"
 
 #define LINE_SIZE_MAX  1024     // Max size of a single snprintf dump.
@@ -75,7 +75,7 @@ const char* g_usage =
     "       ipl_image_tool <image> [-i<flag>...] append <section> <file> [<ddSupport>]\n"
     "       ipl_image_tool <image> [-i<flag>...] extract <section={<section>,(none)}> [<ddLevel>] <file>\n"
     "       ipl_image_tool <image> [-i<flag>...] delete <section> [<section1>...<sectionN>]\n"
-    "       ipl_image_tool <image> [-i<flag>...] dissect <section={.rings,.overlays,.overrides,(none)}> [table,short,normal(default),long,raw]\n"
+    "       ipl_image_tool <image> [-i<flag>...] dissect <section={.rings,.overlays,.dyninits,.overrides,,(none)}> [table,short,normal(default),long,raw]\n"
     "       ipl_image_tool <image> [-i<flag>...] check-sbe-ring-section <ddLevel> <maximum size>\n"
     "\n"
     "This simple application uses the P9-XIP image APIs to normalize, search\n"
@@ -1869,10 +1869,6 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 ///
 /// \param[in] i_listingModeId  The listing mode: {table, short, normal(default), long}.
 ///
-/// Assumptions:
-/// - Dissection only works with .rings section. It does not work with .overrides
-///   until we get TOR magic (RTC157744).
-///
 static
 int dissectRingSectionTor( uint8_t*    i_ringSection,
                            uint8_t     i_listingModeId )
@@ -2529,20 +2525,6 @@ dissectRingSection(void*                      i_image,
                         exit(EXIT_FAILURE);
                 }
             }
-            else if (strcmp(sectionName, ".overrides") == 0)
-            {
-                if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
-                {
-                    sectionId = P9_XIP_SECTION_SBE_OVERRIDES;
-                }
-                else
-                {
-                    fprintf(stderr,
-                            "\nERROR: .overrides is not a valid section for image w/magic=0x%016lx\n",
-                            hostHeader.iv_magic);
-                    exit(EXIT_FAILURE);
-                }
-            }
             else if (strcmp(sectionName, ".overlays") == 0)
             {
                 if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
@@ -2557,14 +2539,43 @@ dissectRingSection(void*                      i_image,
                     exit(EXIT_FAILURE);
                 }
             }
+            else if (strcmp(sectionName, ".dyninits") == 0)
+            {
+                if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
+                {
+                    sectionId = P9_XIP_SECTION_HW_DYNINITS;
+                }
+                else
+                {
+                    fprintf(stderr,
+                            "\nERROR: .dyninits is not a valid section for image w/magic=0x%016lx\n",
+                            hostHeader.iv_magic);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if (strcmp(sectionName, ".overrides") == 0)
+            {
+                if (hostHeader.iv_magic == P9_XIP_MAGIC_SEEPROM)
+                {
+                    sectionId = P9_XIP_SECTION_SBE_OVERRIDES;
+                }
+                else
+                {
+                    fprintf(stderr,
+                            "\nERROR: .overrides is not a valid section for image w/magic=0x%016lx\n",
+                            hostHeader.iv_magic);
+                    exit(EXIT_FAILURE);
+                }
+            }
             else
             {
                 fprintf(stderr,
                         "\nERROR : %s is an invalid XIP [ring] section name.\n", sectionName);
                 fprintf(stderr, "Valid ring <section> names for the 'dissect' function are:\n");
                 fprintf(stderr, "\t.rings\n");
-                fprintf(stderr, "\t.overrides\n");
                 fprintf(stderr, "\t.overlays\n");
+                fprintf(stderr, "\t.dyninits\n");
+                fprintf(stderr, "\t.overrides\n");
                 fprintf(stderr, "\n");
                 exit(EXIT_FAILURE);
             }
