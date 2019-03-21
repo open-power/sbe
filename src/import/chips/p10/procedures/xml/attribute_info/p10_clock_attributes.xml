@@ -52,6 +52,7 @@
   <targetType>TARGET_TYPE_PROC_CHIP</targetType>
   <description>setup clock mux settings</description>
   <valueType>uint64</valueType>
+  <writeable/>
 </attribute>
 <!-- ********************************************************************** -->
 <attribute>
