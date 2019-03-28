@@ -263,7 +263,7 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_sbe_load_bootloader_attributes
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_hwp_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_cache_contained_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/chip_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/chip_ec_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_chip_ec_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_hcode_image_build_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/memory_mcs_attributes.xml
 
