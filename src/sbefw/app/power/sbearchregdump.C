@@ -80,6 +80,7 @@ uint64_t sbeFetchRegDumpAddrFromStash(void)
     #undef SBE_FUNC
 }
 
+#if 0
 ReturnCode checkCoreStateForRam(
         const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_coreTgt,
         bool  & o_isRamming,
@@ -87,7 +88,6 @@ ReturnCode checkCoreStateForRam(
 {
     #define SBE_FUNC " checkCoreStateForRam "
     SBE_ENTER(SBE_FUNC);
-
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint8_t chipUnitNum = 0;
     o_isRamming = false;
@@ -154,11 +154,11 @@ ReturnCode checkCoreStateForRam(
                     " [%d], so no ramming", chipUnitNum, o_coreState);
         }
     }while(0);
-
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
     #undef SBE_FUNC
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeDumpArchRegs Dump out the architected registers
 //
@@ -168,6 +168,7 @@ ReturnCode sbeDumpArchRegs()
     #define SBE_FUNC " sbeDumpArchRegs "
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+#if 0
     uint64_t dumpAddr = 0;
     sbeArchRegDumpProcHdr_t dumpProcHdr = {};
     sbeArchRegDumpThreadHdr_t dumpThreadHdr = {};
@@ -412,7 +413,7 @@ ReturnCode sbeDumpArchRegs()
 
     }while(0);
     SBE_EXIT(SBE_FUNC);
-
+#endif
     return fapiRc;
     #undef SBE_FUNC
 }

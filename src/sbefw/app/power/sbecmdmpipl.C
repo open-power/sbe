@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,9 +39,9 @@
 #include "sbefapiutil.H"
 #include "sbecmdiplcontrol.H"
 
-#include "p9_hcd_core_stopclocks.H"
-#include "p9_hcd_cache_stopclocks.H"
-#include "p9_stopclocks.H"
+//#include "p9_hcd_core_stopclocks.H"
+//#include "p9_hcd_cache_stopclocks.H"
+//#include "p9_stopclocks.H"
 #include "fapi2.H"
 
 #include "core/ipl.H"
@@ -66,9 +66,9 @@ enum stopClockHWPType
 
 #ifdef SEEPROM_IMAGE
     // Using function pointer to force long call.
-p9_hcd_cache_stopclocks_FP_t p9_hcd_cache_stopclocks_hwp = &p9_hcd_cache_stopclocks;
-p9_hcd_core_stopclocks_FP_t p9_hcd_core_stopclocks_hwp = &p9_hcd_core_stopclocks;
-p9_stopclocks_FP_t p9_stopclocks_hwp = &p9_stopclocks;
+//p9_hcd_cache_stopclocks_FP_t p9_hcd_cache_stopclocks_hwp = &p9_hcd_cache_stopclocks;
+//p9_hcd_core_stopclocks_FP_t p9_hcd_core_stopclocks_hwp = &p9_hcd_core_stopclocks;
+//p9_stopclocks_FP_t p9_stopclocks_hwp = &p9_stopclocks;
 #endif
 
 static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
@@ -291,6 +291,7 @@ ReturnCode stopClockS0()
 #define SBE_FUNC "stopClockS0"
     SBE_ENTER(SBE_FUNC);
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
+#if 0
     p9_stopclocks_flags flags;
 
     p9hcd::P9_HCD_CLK_CTRL_CONSTANTS clk_regions =
@@ -311,7 +312,7 @@ ReturnCode stopClockS0()
     {
         SBE_ERROR(SBE_FUNC "Failed in StopClock S0S1 Interface");
     }
-
+#endif
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
 #undef SBE_FUNC
@@ -327,6 +328,7 @@ ReturnCode stopClockS0()
  * @return Bitmapped stopClockHWPType enum values
  */
 ///////////////////////////////////////////////////////////////////////
+#if 0
 static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
                                            uint32_t i_chipletId)
 {
@@ -398,6 +400,7 @@ static inline p9_stopclocks_flags getStopClocksFlags(uint32_t i_targetType)
     return l_flags;
 }
 
+#endif
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeStopClocks Sbe Stop Clocks function
 //
@@ -408,6 +411,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
     #define SBE_FUNC " sbeStopClocks"
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+#if 0
     uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
     uint32_t l_len = 0;
     sbeResponseFfdc_t l_ffdc;
@@ -532,7 +536,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
     {
         l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
     }
-
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

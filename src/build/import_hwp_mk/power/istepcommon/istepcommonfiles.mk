@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -29,25 +29,26 @@
 ##########################################################################
 # Object Files
 ##########################################################################
-ISTEPCOMMON-CPP-SOURCES +=p9_sbe_common.C
-ISTEPCOMMON-CPP-SOURCES +=p9_sbe_gear_switcher.C
-ISTEPCOMMON-CPP-SOURCES +=p9_fbc_utils.C
-ISTEPCOMMON-CPP-SOURCES +=p9_pba_access.C
-ISTEPCOMMON-CPP-SOURCES +=p9_pba_coherent_utils.C
-ISTEPCOMMON-CPP-SOURCES +=p9_pba_setup.C
-ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_access.C
-ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_circular.C
-ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_linear.C
-ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_init.C
-ISTEPCOMMON-CPP-SOURCES +=p9_adu_setup.C
-ISTEPCOMMON-CPP-SOURCES +=p9_adu_coherent_utils.C
-ISTEPCOMMON-CPP-SOURCES +=p9_adu_access.C
-ISTEPCOMMON-CPP-SOURCES +=p9_ram_core.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_sbe_common.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_sbe_gear_switcher.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_fbc_utils.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_pba_access.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_pba_coherent_utils.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_pba_setup.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_access.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_circular.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_linear.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_init.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_adu_setup.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_adu_coherent_utils.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_adu_access.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_ram_core.C
 #Istep2 Procedure but this is required to run from PIBMEM
-ISTEPCOMMON-CPP-SOURCES +=p9_sbe_tp_switch_gears.C
-ISTEPCOMMON-CPP-SOURCES +=p9_sbe_npll_setup.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_sbe_tp_switch_gears.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_sbe_npll_setup.C
 #istep5 Procedure but this is required to run from PIBMEM
-ISTEPCOMMON-CPP-SOURCES +=p9_sbe_load_bootloader.C
+#ISTEPCOMMON-CPP-SOURCES +=p9_sbe_load_bootloader.C
+ISTEPCOMMON-CPP-SOURCES =
 ISTEPCOMMON-C-SOURCES =
 ISTEPCOMMON-S-SOURCES =
 

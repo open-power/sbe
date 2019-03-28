@@ -170,9 +170,13 @@ ifndef IMAGEPROCS_P9_SRCDIR
 export IMAGEPROCS_P9_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/utils/imageProcs
 endif
 
-ifndef IMAGEPROCS_CEN_SRCDIR
-export IMAGEPROCS_CEN_SRCDIR = $(IMPORT_SRCDIR)/chips/centaur/utils/imageProcs
+ifndef IMAGEPROCS_P10_SRCDIR
+export IMAGEPROCS_P10_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/utils/imageProcs
 endif
+
+#ifndef IMAGEPROCS_CEN_SRCDIR
+#export IMAGEPROCS_CEN_SRCDIR = $(IMPORT_SRCDIR)/chips/centaur/utils/imageProcs
+#endif
 
 ifndef BASE_OBJDIR
 export BASE_OBJDIR = $(SBE_ROOT_DIR)/obj/$(project)
@@ -232,7 +236,7 @@ export IPL_BUILD_DIR = $(TOOLS_SRCDIR)/iplbuild
 endif
 
 ifndef IMPORT_XML_DIR
-export IMPORT_XML_DIR = $(IMPORT_SRCDIR)/chips/p9/procedures/xml
+export IMPORT_XML_DIR = $(IMPORT_SRCDIR)/chips/p10/procedures/xml
 endif
 
 ifndef IMPORT_UTILS_DIR
@@ -421,6 +425,8 @@ INCLUDES += -I$(PPETRACEPP_DIR)
 INCLUDES += -I$(IMPORT_COMMON_DIR)/include
 INCLUDES += -I$(IMPORT_UTILS_DIR)/
 INCLUDES += -I$(IMPORT_SRCDIR)/tools/imageProcs
+INCLUDES += -I$(IMPORT_SRCDIR)/chips/p9/xip/
+INCLUDES += -I$(IMPORT_SRCDIR)/chips/p10/utils/imageProcs
 
 GCC-CFLAGS += -Wall -Werror -Wno-unused-label
 GCC-CFLAGS += -msoft-float
@@ -470,7 +476,7 @@ GCC-CFLAGS += -fdata-sections
 GCC-CFLAGS += -fstack-usage
 endif
 
-# Since pibmem is bigger in axone, we will build everything for pibmem image.
+# Since pibmem is bigger in P10, we will build everything for pibmem image.
 GCC-DEFS += -DSEEPROM_IMAGE
 
 ifeq ($(img), pibmem)
@@ -500,22 +506,11 @@ ifeq ($(project),power)
 include power_defs.mk
 endif
 
-ifeq ($(project),power_axone)
-include power_axone_defs.mk
-endif
-
 ifeq ($(project),z)
 include z_defs.mk
 endif
 
 ############################################################################
-ifeq ($(PIBMEM_REPAIR_SCOM_P9), 1)
-PPE-CFLAGS += -DPIBMEM_REPAIR_SCOM_P9=1
-endif
-ifeq ($(PIBMEM_REPAIR_SCOM_AXONE), 1)
-PPE-CFLAGS += -DPIBMEM_REPAIR_SCOM_AXONE=1
-endif
-
 ifdef SBE_CONSOLE_SUPPORT
 GCC-DEFS += -DSBE_CONSOLE_SUPPORT
 endif

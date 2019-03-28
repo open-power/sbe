@@ -41,14 +41,14 @@
 // TODO Workaround
 #include "plat_target_parms.H"
 
-#include "p9_misc_scom_addresses.H"
-#include "p9_perv_scom_addresses.H"
-#include "p9_perv_scom_addresses_fld.H"
-#include "p9n2_quad_scom_addresses.H"
+//#include "p9_misc_scom_addresses.H"
+//#include "p9_perv_scom_addresses.H"
+//#include "p9_perv_scom_addresses_fld.H"
+//#include "p9n2_quad_scom_addresses.H"
 
-#include "p9_suspend_io.H"
+//#include "p9_suspend_io.H"
 
-#include <p9_sbe_attr_setup.H>
+//#include <p9_sbe_attr_setup.H>
 
 using namespace fapi2;
 
@@ -64,6 +64,7 @@ ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target )
 #define SBE_FUNC "maskSpecialAttn "
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     do
     {
         uint64_t maskData = 0;
@@ -83,6 +84,7 @@ ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target )
         }
     }while(0);
     SBE_EXIT(SBE_FUNC);
+#endif
     return rc;
 #undef SBE_FUNC
 }
@@ -91,7 +93,7 @@ ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target )
 
 #ifndef __SBEFW_SEEPROM__
 /* ----------------------------------- start PIBMEM CODE */
-p9_suspend_io_FP_t p9_suspend_io_hwp = &p9_suspend_io;
+//p9_suspend_io_FP_t p9_suspend_io_hwp = &p9_suspend_io;
 
 //----------------------------------------------------------------------------
 ReturnCode performTpmReset()
@@ -99,6 +101,7 @@ ReturnCode performTpmReset()
     #define SBE_FUNC "performTpmReset "
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     do
     {
         constexpr uint64_t tpmBitMask = 0x0008000000000000ULL;
@@ -148,6 +151,7 @@ ReturnCode performTpmReset()
 
     }while(0);
     SBE_EXIT(SBE_FUNC);
+#endif
     return rc;
     #undef SBE_FUNC
 }
@@ -158,6 +162,7 @@ ReturnCode updatePhbFunctionalState( void )
     #define SBE_FUNC "updatePhbFunctionalState"
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     const uint64_t pci_cplt_conf1[3] = {PEC_0_CPLT_CONF1, PEC_1_CPLT_CONF1, PEC_2_CPLT_CONF1};
     // TODO workaround
     extern std::vector<fapi2::plat_target_handle_t> G_vec_targets;
@@ -199,6 +204,7 @@ ReturnCode updatePhbFunctionalState( void )
             G_vec_targets.at(PHB_TARGET_OFFSET+ phb_id) = (fapi2::plat_target_handle_t)(phbTgt.get());
         }
     }
+#endif
     SBE_EXIT(SBE_FUNC);
     return rc;
 #undef SBE_FUNC
@@ -210,6 +216,7 @@ ReturnCode resetCrespErrLatch( void )
     #define SBE_FUNC "resetCrespErrLatch"
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     static const uint64_t BIT_63_MASK = 0x01;
     do
     {
@@ -241,6 +248,7 @@ ReturnCode resetCrespErrLatch( void )
         SBE_ERROR(SBE_FUNC" Failed to reset Cresp error latch");
     }
     SBE_EXIT(SBE_FUNC);
+#endif
     return rc;
 #undef SBE_FUNC
 }
@@ -255,6 +263,7 @@ uint32_t sbeHandleSuspendIO(uint8_t *i_pArg)
     #define SBE_FUNC " sbeHandleSuspendIO "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+#if 0
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
     sbeRespGenHdr_t respHdr;
@@ -298,7 +307,7 @@ uint32_t sbeHandleSuspendIO(uint8_t *i_pArg)
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
         rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }while(0);
-
+#endif
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -309,8 +318,9 @@ ReturnCode performAttrSetup( )
 {
     #define SBE_FUNC "performAttrSetup "
     SBE_ENTER("performAttrSetup ");
-    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     do
     {
         SBE_EXEC_HWP(rc, p9_sbe_attr_setup, proc)
@@ -334,6 +344,7 @@ ReturnCode performAttrSetup( )
                     tempReg.getBit<PERV_CBS_CS_SECURE_ACCESS_BIT>();
      }while(0);
     SBE_EXIT(SBE_FUNC);
+#endif
     return rc;
     #undef SBE_FUNC
 }

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -56,6 +56,7 @@ namespace SBE
 
     void updatePkFreq()
     {
+#if 0
         #define SBE_FUNC "updatePkFreq "
         using namespace fapi2;
         Target<TARGET_TYPE_SYSTEM> sys;
@@ -67,6 +68,7 @@ namespace SBE
         SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
         pk_timebase_freq_set(SBE_GLOBAL->sbefreq);
         #undef SBE_FUNC
+#endif
     }
 
     bool isHreset(void)

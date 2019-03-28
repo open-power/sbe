@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -37,8 +37,8 @@ OBJSISTEP4 := $(addprefix $(OBJDIR-ISTEP4)/, $(ISTEP4_OBJECTS))
 
 .PHONY: clean istep4
 
-libistep4.a: istep4
-	$(AR) crs $(OBJDIR-ISTEP4)/libistep4.a $(OBJDIR-ISTEP4)/*.o
+#libistep4.a: istep4
+#	$(AR) crs $(OBJDIR-ISTEP4)/libistep4.a $(OBJDIR-ISTEP4)/*.o
 
 istep4: $(OBJSISTEP4)
 

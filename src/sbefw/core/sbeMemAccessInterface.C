@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -28,8 +28,8 @@
 
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
-p9_adu_access_FP_t p9_adu_access_hwp = &p9_adu_access;
-p9_adu_setup_FP_t p9_adu_setup_hwp = &p9_adu_setup;
+//p9_adu_access_FP_t p9_adu_access_hwp = &p9_adu_access;
+//p9_adu_setup_FP_t p9_adu_setup_hwp = &p9_adu_setup;
 #endif
 
 using namespace fapi2;
@@ -50,7 +50,7 @@ ReturnCode sbeMemAccessInterface::setup()
 #define SBE_FUNC "sbeMemAccessInterface::setup"
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-
+#if 0
     // Reset the current granule count
     iv_currGranule = 0;
     iv_intfCleanedUp = false;
@@ -91,6 +91,7 @@ ReturnCode sbeMemAccessInterface::setup()
         SBE_INFO(SBE_FUNC "Hwp returned iv_maxGranule=[0x%08X]",
                                              iv_maxGranule);
     }
+#endif
     return fapiRc;
 #undef SBE_FUNC
 }
@@ -100,7 +101,7 @@ ReturnCode sbeMemAccessInterface::accessGranule(const bool i_isLastAccess)
 #define SBE_FUNC "sbeMemAccessInterface::accessGranule"
     SBE_DEBUG(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-
+#if 0
     do
     {
         // Check if we need to do a setup before access
@@ -152,7 +153,7 @@ ReturnCode sbeMemAccessInterface::accessGranule(const bool i_isLastAccess)
         iv_iterator = (iv_mode == SBE_MEM_ACCESS_READ)?
                         iv_granuleSize : 0;
     } while(false);
-
+#endif
     return fapiRc;
 #undef SBE_FUNC
 }
@@ -164,6 +165,7 @@ ReturnCode sbeMemAccessInterface::accessWithBuffer(const void *io_buffer,
 #define SBE_FUNC "sbeMemAccessInterface::accessWithBuffer"
     SBE_DEBUG(SBE_FUNC" len[%d]",i_len);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+#if 0
     uint32_t iterator = 0;
     bool is_lastGranule = false;
 
@@ -251,7 +253,7 @@ ReturnCode sbeMemAccessInterface::accessWithBuffer(const void *io_buffer,
             break;
         }
     } while(true);
-
+#endif
     return fapiRc;
 #undef SBE_FUNC
 }

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -97,6 +98,7 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
         {
             break;
         }
+#if 0
         uint8_t core = regReqMsg.coreChiplet;
 #ifdef SEEPROM_IMAGE
         RamCore ramCore( plat_getTargetHandleByChipletNumber
@@ -114,7 +116,6 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
             ffdc.setRc(fapiRc);
             break;
         }
-
         fapi2::buffer<uint64_t> data64;
         uint64_t respData = 0;
         for( uint32_t regIdx = 0; regIdx < regReqMsg.numRegs; regIdx++ )
@@ -156,6 +157,7 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
              ffdc.setRc(fapiRc);
          }
+#endif
     }while(false);
 
     if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
@@ -213,6 +215,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
         {
             break;
         }
+#if 0
         uint8_t core = regReqMsg.coreChiplet;
 #ifdef SEEPROM_IMAGE
         RamCore ramCore( plat_getTargetHandleByChipletNumber
@@ -266,7 +269,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
              ffdc.setRc(fapiRc);
          }
-
+#endif
     }while(false);
 
     if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )

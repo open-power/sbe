@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -47,8 +47,8 @@ using namespace fapi2;
 
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
-p9_pm_ocb_indir_setup_linear_FP_t p9_ocb_setup_linear_access_hwp = &p9_pm_ocb_indir_setup_linear;
-p9_pm_ocb_indir_access_FP_t p9_ocb_indirect_access_hwp = &p9_pm_ocb_indir_access;
+//p9_pm_ocb_indir_setup_linear_FP_t p9_ocb_setup_linear_access_hwp = &p9_pm_ocb_indir_setup_linear;
+//p9_pm_ocb_indir_access_FP_t p9_ocb_indirect_access_hwp = &p9_pm_ocb_indir_access;
 #endif
 
 ///////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
     SBE_ENTER(SBE_FUNC);
 
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-
+#if 0
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
 
     sbeRespGenHdr_t l_respHdr;
@@ -275,7 +275,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
     }while(0);
-
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

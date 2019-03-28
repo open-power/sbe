@@ -32,7 +32,7 @@
 #include "sbetrace.H"
 #include "sbe_sp_intf.H"
 #include "sbeFifoMsgUtils.H"
-#include "nvdimm_workarounds.H"
+//#include "nvdimm_workarounds.H"
 #include "sbecmdflushnvdimm.H"
 #include "sbecmdcntlinst.H"
 
@@ -47,7 +47,7 @@ using namespace fapi2;
 // @return  RC from the underlying FIFO utility
 ///////////////////////////////////////////////////////////////////////
 
-mss::workarounds::nvdimm::p9_flush_nvdimm_FP_t p9_flush_nvdimm_hwp = &mss::workarounds::nvdimm::trigger_csave; 
+//mss::workarounds::nvdimm::p9_flush_nvdimm_FP_t p9_flush_nvdimm_hwp = &mss::workarounds::nvdimm::trigger_csave; 
 
 uint32_t sbeHandleFlushNVDIMM(uint8_t *i_pArg)
 {
@@ -55,6 +55,7 @@ uint32_t sbeHandleFlushNVDIMM(uint8_t *i_pArg)
     #define SBE_FUNC " sbeHandleFlushNVDIMM "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+#if 0
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
     sbeRespGenHdr_t respHdr;
@@ -96,7 +97,7 @@ uint32_t sbeHandleFlushNVDIMM(uint8_t *i_pArg)
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
         rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }while(0);
-
+#endif
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -108,6 +109,7 @@ fapi2::ReturnCode flushNVDIMM()
     #define SBE_FUNC "flushNVDIMM "
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+#if 0
     Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
     do
     {
@@ -120,7 +122,8 @@ fapi2::ReturnCode flushNVDIMM()
 
     }while(0);
     SBE_EXIT(SBE_FUNC);
-    return fapiRc;
+#endif
+        return fapiRc;
     #undef SBE_FUNC
 }
 

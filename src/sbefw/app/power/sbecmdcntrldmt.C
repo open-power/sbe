@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,6 +49,7 @@
 
 using namespace fapi2;
 
+#if 0
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
 p9_sbe_check_master_stop15_FP_t p9_sbe_check_master_stop15_hwp =
@@ -60,6 +61,7 @@ p9_block_wakeup_intr_FP_t p9_block_wakeup_intr_hwp =
 ////////////////////////////////////////////////////////////////////
 //Static initialization of the Dmt Pk timer
 static timerService g_sbe_pk_dmt_timer;
+#endif
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
@@ -67,6 +69,7 @@ void sbeDmtPkExpiryCallback(void *)
 {
     #define SBE_FUNC "sbeDmtPkExpiryCallback"
     SBE_INFO (SBE_FUNC "DMT Callback Timer has expired..Checkstop the system");
+#if 0
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
     // SBE async ffdc
@@ -83,7 +86,7 @@ void sbeDmtPkExpiryCallback(void *)
         SBE_ERROR (SBE_FUNC "PutScom failed: REG PERV_N3_LOCAL_FIR");
         pk_halt();
     }
-
+#endif
     #undef SBE_FUNC
 }
 
@@ -103,7 +106,7 @@ uint32_t sbeCollectDeadmanFfdc (void)
     fapi2::Target<fapi2::TARGET_TYPE_CORE> coreTarget (
            plat_getTargetHandleByChipletNumber <fapi2::TARGET_TYPE_CORE> (
            (SBE_GLOBAL->deadmanCore + CORE_CHIPLET_OFFSET) ));
-
+#if 0
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     // p9_collect_deadman_ffdc collects the required ffdc into the fapi rc
     // which will be available in the SBE Global HWP FFDC region
@@ -111,7 +114,7 @@ uint32_t sbeCollectDeadmanFfdc (void)
                    p9_collect_deadman_ffdc,
                    coreTarget,
                    SBE_GLOBAL->asyncFfdcRC );
-
+#endif
     return rc;
     #undef SBE_FUNC
 }
@@ -122,8 +125,8 @@ uint32_t sbeStartCntlDmt()
 {
     #define SBE_FUNC "sbeStartCntlDmt"
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+#if 0
     uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
-
     do
     {
         // Fetch the Timer Value and Start a Pk Timer
@@ -277,7 +280,7 @@ uint32_t sbeStartCntlDmt()
                  "SBE_SBE2PSU_DOORBELL_SET_BIT2");
         }
     }   while(0); // Outer loop
-
+#endif
     return l_rc;
     #undef SBE_FUNC
 }
@@ -288,6 +291,7 @@ uint32_t sbeStopCntlDmt()
 {
     #define SBE_FUNC "sbeStopCntlDmt "
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+#if 0
     uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
 
     do
@@ -311,7 +315,7 @@ uint32_t sbeStopCntlDmt()
     }while(0);
     // Send the response
     sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
-
+#endif
     return l_rc;
     #undef SBE_FUNC
 }

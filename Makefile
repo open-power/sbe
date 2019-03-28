@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -35,10 +35,7 @@ tar:
 DD2:
 	$(MAKE) -C $(BUILD_DIR) all
 
-axone:
-	$(MAKE) -C $(BUILD_DIR) all project=power_axone
-
-all: DD2 axone
+all: DD2
 
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean

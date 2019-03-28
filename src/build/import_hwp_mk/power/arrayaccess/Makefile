@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,8 +39,8 @@ OBJSARRAYACCESS := $(addprefix $(OBJDIR-ARRAYACCESS)/, $(ARRAYACCESS_OBJECTS))
 
 .PHONY: clean arrayaccess
 
-libarrayaccess.a: arrayaccess
-	$(AR) crs $(OBJDIR-ARRAYACCESS)/libarrayaccess.a $(OBJDIR-ARRAYACCESS)/*.o
+#libarrayaccess.a: arrayaccess
+#	$(AR) crs $(OBJDIR-ARRAYACCESS)/libarrayaccess.a $(OBJDIR-ARRAYACCESS)/*.o
 
 arrayaccess: $(OBJSARRAYACCESS)
 

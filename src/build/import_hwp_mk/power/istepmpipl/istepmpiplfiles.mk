@@ -30,37 +30,38 @@
 # Object Files
 ##########################################################################
 
-ISTEPMPIPL-CPP-SOURCES = p9_hcd_core_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_hcd_cache_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_common_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_cplt_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_nest_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_tp_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_check_chiplet_states.C
-ISTEPMPIPL-CPP-SOURCES +=p9_hcd_l2_stopclocks.C
-ISTEPMPIPL-CPP-SOURCES +=p9_block_wakeup_intr.C
-ISTEPMPIPL-CPP-SOURCES +=p9_l2_flush.C
-ISTEPMPIPL-CPP-SOURCES +=p9_l3_flush.C
-ISTEPMPIPL-CPP-SOURCES +=p9_sbe_check_quiesce.C
-ISTEPMPIPL-CPP-SOURCES +=p9_inject_local_xstop.C
-ISTEPMPIPL-CPP-SOURCES +=p9_sbe_sequence_drtm.C
-ISTEPMPIPL-CPP-SOURCES +=p9_query_core_access_state.C
-ISTEPMPIPL-CPP-SOURCES +=p9_quad_power_off.C
-ISTEPMPIPL-CPP-SOURCES +=p9_pm_pfet_control.C
-ISTEPMPIPL-CPP-SOURCES +=p9_suspend_io.C
-ISTEPMPIPL-CPP-SOURCES +=p9_perv_sbe_cmn.C
-ISTEPMPIPL-CPP-SOURCES +=p9_suspend_powman.C
-ISTEPMPIPL-CPP-SOURCES +=p9_collect_suspend_ffdc.C
-ISTEPMPIPL-CPP-SOURCES +=p9_eq_clear_atomic_lock.C
-ISTEPMPIPL-CPP-SOURCES +=p9_query_cache_access_state.C
+#ISTEPMPIPL-CPP-SOURCES = p9_hcd_core_stopclocks.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_hcd_cache_stopclocks.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_stopclocks.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_common_stopclocks.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_cplt_stopclocks.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_nest_stopclocks.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_tp_stopclocks.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_check_chiplet_states.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_hcd_l2_stopclocks.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_block_wakeup_intr.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_l2_flush.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_l3_flush.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_sbe_check_quiesce.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_inject_local_xstop.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_sbe_sequence_drtm.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_query_core_access_state.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_quad_power_off.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_pm_pfet_control.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_suspend_io.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_perv_sbe_cmn.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_suspend_powman.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_collect_suspend_ffdc.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_eq_clear_atomic_lock.C
+#ISTEPMPIPL-CPP-SOURCES +=p9_query_cache_access_state.C
 # Fast array procedures are moved here to locate it on seeprom
-ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_abist_catchup.C
-ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_cleanup.C
-ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_setup.C
+#ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_abist_catchup.C
+#ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_cleanup.C
+#ISTEPMPIPL-CPP-SOURCES += p9_sbe_fastarray_setup.C
 # io eol toggle procedure moved here to locate it on seeprom
-ISTEPMPIPL-CPP-SOURCES += p9_sbe_io_eol_toggle.C
-ISTEPMPIPL-CPP-SOURCES += nvdimm_workarounds.C
+#ISTEPMPIPL-CPP-SOURCES += p9_sbe_io_eol_toggle.C
+#ISTEPMPIPL-CPP-SOURCES += nvdimm_workarounds.C
+ISTEPMPIPL-CPP-SOURCES =
 ISTEPMPIPL-C-SOURCES =
 ISTEPMPIPL-S-SOURCES =
 

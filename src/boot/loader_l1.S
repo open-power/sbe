@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -129,10 +129,4 @@ jump_to_kernel:
         mtlr  r6
         blr
 
-#ifdef PIBMEM_REPAIR_SCOM_P9
-#include "pibmem_repair/scom_repair_p9/pibmem_repair.S"
-#endif
-
-#ifdef PIBMEM_REPAIR_SCOM_AXONE
-#include "pibmem_repair/scom_repair_axone/pibmem_repair.S"
-#endif
+#include "pibmem_repair/scom_repair_p10/pibmem_repair.S"

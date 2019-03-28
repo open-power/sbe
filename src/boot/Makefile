@@ -72,12 +72,7 @@ $(IMG_DIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
 $(LINK_SCRIPT_LOADER): $(LINKER_DIR)/linkloader.cmd
 	$(CPP) -I$(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/linkloader.cmd -o $(LINK_SCRIPT_LOADER)
 
-ifdef PIBMEM_REPAIR_SCOM_P9
-PIBMEM_REPAIR_OBJDIR = $(OBJDIR)/pibmem_repair/scom_repair_p9
-endif
-ifdef PIBMEM_REPAIR_SCOM_AXONE
-PIBMEM_REPAIR_OBJDIR = $(OBJDIR)/pibmem_repair/scom_repair_axone
-endif
+PIBMEM_REPAIR_OBJDIR = $(OBJDIR)/pibmem_repair/scom_repair_p10
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

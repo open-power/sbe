@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -96,7 +96,7 @@ extern fapi2::ReturnCode
 
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         uint8_t l_ec = 0;
-        uint8_t fusedMode = 0;
+        //uint8_t fusedMode = 0;
         fapi2::buffer<uint64_t> l_tempReg = 0;
         fapi2::buffer<uint64_t> l_scratch8Reg = 0;
         fapi2::buffer<uint8_t> l_read1 = 0;
@@ -107,7 +107,7 @@ extern fapi2::ReturnCode
         fapi2::buffer<uint64_t> l_deviceIdReg = 0;
         uint8_t l_riskLvl  = 0;
         bool l_isSlave = false;
-        uint8_t l_smfConfig = 0;
+        //uint8_t l_smfConfig = 0;
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chipTarget =
             plat_getChipTarget();
         const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
@@ -125,7 +125,7 @@ extern fapi2::ReturnCode
         fapi2::buffer<uint8_t> l_proc_chip_mem_to_use_attr = 0;
 
 
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_riskLvl));
+        //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_riskLvl));
         //Getting SCRATCH_REGISTER_8 register value
         FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_8_SCOM,
                                 l_scratch8Reg));
@@ -150,8 +150,8 @@ extern fapi2::ReturnCode
             l_tempReg.extract<8, 24>(l_read5);
 
             FAPI_DBG("Setting up ATTR_EQ_GARD, ATTR_EC_GARD");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EQ_GARD, l_chipTarget, l_read1));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC_GARD, l_chipTarget, l_read5));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EQ_GARD, l_chipTarget, l_read1));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC_GARD, l_chipTarget, l_read5));
 
             l_read1 = 0;
             l_read5 = 0;
@@ -201,7 +201,7 @@ extern fapi2::ReturnCode
             }
 
             FAPI_DBG("Setting up ATTR_I2C_BUS_DIV_REF");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_I2C_BUS_DIV_REF, l_chipTarget, l_read4));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_I2C_BUS_DIV_REF, l_chipTarget, l_read4));
 
             l_tempReg.extractToRight<16, 4>(l_ndlMeshctrlSetup);
             l_ndlMeshctrlSetup = (~l_ndlMeshctrlSetup) & 0x0F;
@@ -209,13 +209,13 @@ extern fapi2::ReturnCode
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NDL_MESHCTRL_SETUP, l_chipTarget, l_ndlMeshctrlSetup));
 
             FAPI_DBG("Setting up ATTR_MC_PLL_BUCKET");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_MC_PLL_BUCKET, FAPI_SYSTEM, l_read1));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_MC_PLL_BUCKET, FAPI_SYSTEM, l_read1));
 
             FAPI_DBG("Setting up ATTR_OBX_PLL_BUCKET");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB0_PLL_BUCKET, l_chipTarget, l_ob0PllBucket));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB1_PLL_BUCKET, l_chipTarget, l_ob1PllBucket));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB2_PLL_BUCKET, l_chipTarget, l_ob2PllBucket));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB3_PLL_BUCKET, l_chipTarget, l_ob3PllBucket));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB0_PLL_BUCKET, l_chipTarget, l_ob0PllBucket));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB1_PLL_BUCKET, l_chipTarget, l_ob1PllBucket));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB2_PLL_BUCKET, l_chipTarget, l_ob2PllBucket));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB3_PLL_BUCKET, l_chipTarget, l_ob3PllBucket));
         }
 
         if ( l_scratch8Reg.getBit<2>() )
@@ -268,17 +268,17 @@ extern fapi2::ReturnCode
             l_tempReg.extractToRight<24, 8>(l_read1);
 
             FAPI_DBG("Setting up PLL bypass attributes");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_CP_FILTER_BYPASS, l_chipTarget, l_cpFilterBypass));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_SS_FILTER_BYPASS, l_chipTarget, l_ssFilterBypass));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IO_FILTER_BYPASS, l_chipTarget, l_ioFilterBypass));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DPLL_BYPASS, l_chipTarget, l_dpllBypass));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, l_chipTarget, l_nestMemXOPciBypass));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_CP_FILTER_BYPASS, l_chipTarget, l_cpFilterBypass));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_SS_FILTER_BYPASS, l_chipTarget, l_ssFilterBypass));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IO_FILTER_BYPASS, l_chipTarget, l_ioFilterBypass));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DPLL_BYPASS, l_chipTarget, l_dpllBypass));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NEST_MEM_X_O_PCI_BYPASS, l_chipTarget, l_nestMemXOPciBypass));
             FAPI_DBG("Setting up ATTR_BOOT_FREQ_MULT, ATTR_NEST_PLL_BUCKET");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_BOOT_FREQ_MULT, l_chipTarget, l_read4));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NEST_PLL_BUCKET, FAPI_SYSTEM, l_read1));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_BOOT_FREQ_MULT, l_chipTarget, l_read4));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NEST_PLL_BUCKET, FAPI_SYSTEM, l_read1));
 
             FAPI_DBG("Setting up ATTR_OBUS_RATIO_VALUE");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OBUS_RATIO_VALUE, l_chipTarget, l_attrObusRatio));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OBUS_RATIO_VALUE, l_chipTarget, l_attrObusRatio));
 
             l_read1 = 0;
             l_read4 = 0;
@@ -290,7 +290,7 @@ extern fapi2::ReturnCode
             uint8_t l_disableHbblVectors = 0;
             uint32_t l_pllMux = 0;
             uint8_t l_mcSyncMode = 0;
-            uint8_t l_slowPciRefClock = 0;
+            //uint8_t l_slowPciRefClock = 0;
 
             FAPI_DBG("Reading Scratch_reg5");
             //Getting SCRATCH_REGISTER_5 register value
@@ -317,25 +317,25 @@ extern fapi2::ReturnCode
 
             l_tempReg.extract<4, 1, 7>(l_mcSyncMode);
 
-            if (l_tempReg.getBit<5>())
-            {
-                l_slowPciRefClock = fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_NORMAL;
-            }
-            else
-            {
-                l_slowPciRefClock = fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_SLOW;
-            }
+            //if (l_tempReg.getBit<5>())
+            //{
+            //    l_slowPciRefClock = fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_NORMAL;
+            //}
+            //else
+            //{
+            //    l_slowPciRefClock = fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_SLOW;
+            //}
 
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_SYS_FORCE_ALL_CORES, FAPI_SYSTEM, l_forceAllCores));
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM, l_disableHbblVectors));
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_SYNC_MODE, l_chipTarget, l_mcSyncMode));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK, FAPI_SYSTEM, l_slowPciRefClock));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_CLOCK_PLL_MUX, l_chipTarget, l_pllMux));
+            //FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_SYNC_MODE, l_chipTarget, l_mcSyncMode));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK, FAPI_SYSTEM, l_slowPciRefClock));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_CLOCK_PLL_MUX, l_chipTarget, l_pllMux));
         }
 
         if ( l_scratch8Reg.getBit<5>() )
         {
-            uint8_t l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE;
+            //uint8_t l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE;
 
             FAPI_DBG("Reading Scratch_reg6");
             //Getting SCRATCH_REGISTER_6 register value
@@ -369,50 +369,50 @@ extern fapi2::ReturnCode
                 }
             }
 
-            if (l_tempReg.getBit<23>())
-            {
-                l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_GROUP;
-            }
-            else
-            {
-                l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE;
-            }
+            //if (l_tempReg.getBit<23>())
+            //{
+            //    l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_GROUP;
+            //}
+            //else
+           // {
+           //     l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE;
+            //}
 
             l_tempReg.extractToRight<26, 3>(l_read2);
             l_tempReg.extractToRight<29, 3>(l_read3);
 
-            l_smfConfig = l_tempReg.getBit<16>();
+            //l_smfConfig = l_tempReg.getBit<16>();
             FAPI_DBG("Setting up SMF CONFIG");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_SMF_CONFIG,
-                                    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
-                                    l_smfConfig));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_SMF_CONFIG,
+             //                       fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+             //                       l_smfConfig));
 
             FAPI_DBG("Setting up PUMP MODE");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_PUMP_MODE,
-                                    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
-                                    l_pumpMode));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_PUMP_MODE,
+            //                        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+            //                        l_pumpMode));
 
             FAPI_DBG("Setting up MASTER_CHIP, FABRIC_GROUP_ID and CHIP_ID");
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_SBE_MASTER_CHIP, l_chipTarget,
                                    l_read1));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_GROUP_ID, l_chipTarget,
-                                   l_read2));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_CHIP_ID, l_chipTarget,
-                                   l_read3));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_GROUP_ID, l_chipTarget,
+            //                       l_read2));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_CHIP_ID, l_chipTarget,
+            //                       l_read3));
 
             l_tempReg.extractToRight<17, 3>(l_read2);
             l_tempReg.extractToRight<20, 3>(l_read3);
 
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_EFF_FABRIC_GROUP_ID, l_chipTarget,
-                                   l_read2));
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, l_chipTarget,
-                                   l_read3));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_EFF_FABRIC_GROUP_ID, l_chipTarget,
+            //                       l_read2));
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, l_chipTarget,
+            //                       l_read3));
         }
         if (!l_proc_chip_mem_to_use_set)
         {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,
-                                   l_chipTarget,
-                                   l_proc_chip_mem_to_use_group_id));
+            //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,
+            //                       l_chipTarget,
+            //                       l_proc_chip_mem_to_use_group_id));
         }
 
         l_proc_chip_mem_to_use_attr.insertFromRight
@@ -424,37 +424,31 @@ extern fapi2::ReturnCode
                                      ATTR_PROC_FABRIC_CHIP_ID_LENGTH>
                                     (l_proc_chip_mem_to_use_chip_id);
 
-        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_MEM_TO_USE,
-                                l_chipTarget,
-                                l_proc_chip_mem_to_use_attr));
+        //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_MEM_TO_USE,
+        //                        l_chipTarget,
+        //                        l_proc_chip_mem_to_use_attr));
 
 
-        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM,
-                               l_riskLvl));
+        //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM,
+        //                       l_riskLvl));
         FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
         l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
         switch(l_deviceId.iv_chipId)
         {
             case 0xD1:
-                l_chipName = fapi2::ENUM_ATTR_NAME_NIMBUS;
-                break;
-            case 0xD4:
-                l_chipName = fapi2::ENUM_ATTR_NAME_CUMULUS;
-                break;
-            case 0xD9:
-                l_chipName = fapi2::ENUM_ATTR_NAME_AXONE;
+                l_chipName = fapi2::ENUM_ATTR_NAME_P10;
                 break;
             default:
                 FAPI_ERR("Unsupported chip ID: 0x%02X",
                          static_cast<uint8_t>(l_deviceId.iv_chipId));
                 assert(false);
         }
-        fusedMode = (uint8_t)l_deviceId.iv_fusedMode;
+        //fusedMode = (uint8_t)l_deviceId.iv_fusedMode;
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC, l_chipTarget, l_ec));
-        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
-                                fapi2::Target<TARGET_TYPE_SYSTEM>(),
-                                fusedMode));
+        //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
+        //                        fapi2::Target<TARGET_TYPE_SYSTEM>(),
+        //                        fusedMode));
 
         { // scope initializer to resolve compile issues
 
@@ -770,7 +764,7 @@ fapi_try_exit:
                                           bool & o_present)
      {
         o_present = false;
-        uint16_t attr_value = 0;
+        uint32_t attr_value = 0;
         FAPI_ATTR_GET(fapi2::ATTR_PG,
                 i_target,
                 attr_value);
@@ -806,14 +800,10 @@ fapi_try_exit:
         // attribute to differentiate between nimbus versus cumulus config.
         static const size_t OBUS1 = 10;
         static const size_t OBUS2 = 11;
-        if((OBUS1 == i_chiplet_target.getChipletNumber()) ||
-           (OBUS2 == i_chiplet_target.getChipletNumber()))
+        if(OBUS1 == i_chiplet_target.getChipletNumber() ||
+            OBUS2 == i_chiplet_target.getChipletNumber() )
         {
-            if((fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName) ||
-               (fapi2::ENUM_ATTR_NAME_AXONE == l_chipName))
-            {
-                static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
-            }
+            static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
         }
         else if( i_chiplet_target.getChipletNumber() < EQ_CHIPLET_OFFSET )
         {
@@ -925,13 +915,9 @@ fapi_try_exit:
         l_beginning_offset = MCBIST_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCBIST_TARGET_COUNT; ++i)
         {
-            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName || fapi2::ENUM_ATTR_NAME_AXONE == l_chipName)
+            if( fapi2::ENUM_ATTR_NAME_P10 == l_chipName )
             {
                 l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MC>(i);
-            }
-            else if(fapi2::ENUM_ATTR_NAME_NIMBUS == l_chipName)
-            {
-                l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MCBIST>(i);
             }
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
@@ -1003,7 +989,7 @@ fapi_try_exit:
             fapi2::Target<fapi2::TARGET_TYPE_EQ> l_parent = target_name.getParent<fapi2::TARGET_TYPE_EQ>();
 
             // Get the parent EQ's ATTR_PG
-            uint16_t l_eqAttrPg = 0;
+            uint32_t l_eqAttrPg = 0;
             FAPI_ATTR_GET(fapi2::ATTR_PG, l_parent.getParent<TARGET_TYPE_PERV>(), l_eqAttrPg);
 
             // Check if this EX's L2 and L3 regions are marked "good"
@@ -1035,19 +1021,15 @@ fapi_try_exit:
         l_beginning_offset = MCS_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
         {
-            if(fapi2::ENUM_ATTR_NAME_CUMULUS == l_chipName || fapi2::ENUM_ATTR_NAME_AXONE == l_chipName)
+            if( fapi2::ENUM_ATTR_NAME_P10 == l_chipName )
             {
                 l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MI>(i);
-            }
-            else if(fapi2::ENUM_ATTR_NAME_NIMBUS == l_chipName)
-            {
-                l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MCS>(i);
             }
 
             fapi2::Target<fapi2::TARGET_TYPE_PERV>
                 l_nestTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(N3_CHIPLET - (MCS_PER_MCBIST * (i / MCS_PER_MCBIST)))));
 
-            uint16_t l_attrPg = 0;
+            uint32_t l_attrPg = 0;
 
             FAPI_ATTR_GET(fapi2::ATTR_PG, l_nestTarget, l_attrPg);
 
@@ -1083,7 +1065,7 @@ fapi_try_exit:
                 l_pciTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(target_name.getChipletNumber())));
 
             constexpr uint16_t l_pciPgArray[] = {0xE1FD, 0xE0FD, 0xE07D};
-            uint16_t l_attrPg = 0;
+            uint32_t l_attrPg = 0;
 
             FAPI_ATTR_GET(fapi2::ATTR_PG, l_pciTarget, l_attrPg);
 
@@ -1121,11 +1103,11 @@ fapi_try_exit:
         uint32_t l_ecGards = 0;
         static const uint32_t l_mask = 0x80000000;
         bool l_coreGroupNonFunctional = true;
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = plat_getChipTarget();
+        //fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = plat_getChipTarget();
 
         // Read the EQ and EC gard attributes from the chip target
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EQ_GARD, l_chip, l_eqGards));
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EC_GARD, l_chip, l_ecGards));
+        //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EQ_GARD, l_chip, l_eqGards));
+        //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EC_GARD, l_chip, l_ecGards));
 
         FAPI_DBG("ATTR_EQ_GARD:: 0x%08x", l_eqGards);
         FAPI_DBG("ATTR_EC_GARD:: 0x%08x", l_ecGards);

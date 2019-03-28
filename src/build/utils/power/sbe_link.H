@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -53,9 +54,9 @@
 #define OTPROM_CODE_SIZE (1 * OTPROM_BLOCK_SIZE)
 
 /// The link address of the P9 SBE Base image
-#define SBE_BASE_ORIGIN 0xFFFE8000
-/// SBE base image length ( 96 KB - 512 bytes for loader)
-#define SBE_BASE_LENGTH 0x17DFF
+#define SBE_BASE_ORIGIN 0xFFFC8000
+/// SBE base image length ( 224 KB - 512 bytes for loader)
+#define SBE_BASE_LENGTH ((224 * 1024) - 512)
 
 ///This Index depends upon XIP HEADER File
 // Start offset of sectionTable in XIP header. There are 8 entries
@@ -72,14 +73,19 @@
 #define SBE_LOADER_BASE_SECTION  SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 120
 // Base Loader start address
-#define SBE_LOADER_BASE_ORIGIN 0xFFFFE400
+#define SBE_LOADER_BASE_ORIGIN 0xFFFFD400
 // Base Loader length
-#define SBE_LOADER_BASE_LENGTH 0x1C00
+#define SBE_LOADER_BASE_LENGTH 0x2C00
 
 // Base Loader entry function offset in header
 #define SBE_LOADER_ENTRY_HEADER_OFFSET 20
 // PK boot offset in header
 #define SBE_KERNEL_ENTRY_HEADER_OFFSET 28
+
+// Pibmem Repair Section XIP HDR
+// Each section table entry is 12Bytes size, Pibmem repair is 6th section
+#define SBE_PIBMEM_REPAIR_SECTION SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
+                                    + 72
 
 /// The physical address offset where SBE-SEEPROM code is loaded
 ///
@@ -92,8 +98,8 @@
 /// The link address of the PIBMEM image
 #define PIBMEM_ORIGIN 0
 
-/// The amount of space available in the PIBMEM, in bytes (96KB)
-#define PIBMEM_SIZE (96 * 1024)
+/// The amount of space available in the PIBMEM, in bytes (224KB)
+#define PIBMEM_SIZE (224 * 1024)
 
 /// The fixed section of Otprom
 #define OTPROM_FIXED_SIZE (OTPROM_ORIGIN + 0x340)

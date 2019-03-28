@@ -37,8 +37,8 @@ OBJSISTEPMPIPL := $(addprefix $(OBJDIR-ISTEPMPIPL)/, $(ISTEPMPIPL_OBJECTS))
 
 .PHONY: clean istepmpipl
 
-libistepmpipl.a: istepmpipl
-	$(AR) crs $(OBJDIR-ISTEPMPIPL)/libistepmpipl.a $(OBJDIR-ISTEPMPIPL)/*.o
+#libistepmpipl.a: istepmpipl
+#	$(AR) crs $(OBJDIR-ISTEPMPIPL)/libistepmpipl.a $(OBJDIR-ISTEPMPIPL)/*.o
 
 istepmpipl: $(OBJSISTEPMPIPL)
 

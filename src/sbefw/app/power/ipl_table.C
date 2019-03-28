@@ -38,70 +38,72 @@
 #include "plat_target_parms.H"
 
 #include "fapi2.H"
-#include "p9_misc_scom_addresses_fld.H"
-#include "p9_perv_scom_addresses_fld.H"
-#include "p9n2_quad_scom_addresses.H"
+
+//#include "p9_misc_scom_addresses_fld.H"
+//#include "p9_perv_scom_addresses_fld.H"
+//#include "p9n2_quad_scom_addresses.H"
+
 // Pervasive HWP Header Files ( istep 2)
-#include <p9_sbe_attr_setup.H>
-#include <p9_sbe_tp_chiplet_init1.H>
-#include <p9_sbe_tp_gptr_time_initf.H>
-#include <p9_sbe_npll_initf.H>
-#include <p9_sbe_npll_setup.H>
-#include <p9_sbe_tp_switch_gears.H>
-#include <p9_sbe_clock_test2.H>
-#include <p9_sbe_tp_chiplet_reset.H>
-#include <p9_sbe_tp_repr_initf.H>
-#include <p9_sbe_tp_chiplet_init2.H>
-#include <p9_sbe_tp_arrayinit.H>
-#include <p9_sbe_tp_initf.H>
-#include <p9_sbe_tp_chiplet_init3.H>
+//#include <p9_sbe_attr_setup.H>
+//#include <p9_sbe_tp_chiplet_init1.H>
+//#include <p9_sbe_tp_gptr_time_initf.H>
+//#include <p9_sbe_npll_initf.H>
+//#include <p9_sbe_npll_setup.H>
+//#include <p9_sbe_tp_switch_gears.H>
+//#include <p9_sbe_clock_test2.H>
+//#include <p9_sbe_tp_chiplet_reset.H>
+//#include <p9_sbe_tp_repr_initf.H>
+//#include <p9_sbe_tp_chiplet_init2.H>
+//#include <p9_sbe_tp_arrayinit.H>
+//#include <p9_sbe_tp_initf.H>
+//#include <p9_sbe_tp_chiplet_init3.H>
 
 // Pervasive HWP Header Files ( istep 3)
-#include <p9_sbe_chiplet_reset.H>
-#include <p9_sbe_gptr_time_initf.H>
-#include <p9_sbe_chiplet_init.H>
-#include <p9_sbe_chiplet_pll_initf.H>
-#include <p9_sbe_chiplet_pll_setup.H>
-#include <p9_sbe_repr_initf.H>
-#include <p9_sbe_arrayinit.H>
-#include <p9_sbe_tp_enable_ridi.H>
-#include <p9_sbe_setup_boot_freq.H>
-#include <p9_sbe_nest_initf.H>
-#include <p9_sbe_nest_startclocks.H>
-#include <p9_sbe_io_initf.H>
-#include <p9_sbe_nest_enable_ridi.H>
-#include <p9_sbe_startclock_chiplets.H>
-#include <p9_sbe_scominit.H>
-#include <p9_sbe_lpc_init.H>
-#include <p9_sbe_fabricinit.H>
-#include <p9_sbe_mcs_setup.H>
-#include <p9_sbe_select_ex.H>
+//#include <p9_sbe_chiplet_reset.H>
+//#include <p9_sbe_gptr_time_initf.H>
+//#include <p9_sbe_chiplet_init.H>
+//#include <p9_sbe_chiplet_pll_initf.H>
+//#include <p9_sbe_chiplet_pll_setup.H>
+//#include <p9_sbe_repr_initf.H>
+//#include <p9_sbe_arrayinit.H>
+//#include <p9_sbe_tp_enable_ridi.H>
+//#include <p9_sbe_setup_boot_freq.H>
+//#include <p9_sbe_nest_initf.H>
+//#include <p9_sbe_nest_startclocks.H>
+//#include <p9_sbe_io_initf.H>
+//#include <p9_sbe_nest_enable_ridi.H>
+//#include <p9_sbe_startclock_chiplets.H>
+//#include <p9_sbe_scominit.H>
+//#include <p9_sbe_lpc_init.H>
+//#include <p9_sbe_fabricinit.H>
+//#include <p9_sbe_mcs_setup.H>
+//#include <p9_sbe_select_ex.H>
 // Cache HWP header file
-#include <p9_hcd_cache.H>
-#include <p9_hcd_cache_dcc_skewadjust_setup.H>
-#include <p9_hcd_cache_chiplet_l3_dcc_setup.H>
-#include <p9_hcd_cache_dpll_initf.H>
+//#include <p9_hcd_cache.H>
+//#include <p9_hcd_cache_dcc_skewadjust_setup.H>
+//#include <p9_hcd_cache_chiplet_l3_dcc_setup.H>
+//#include <p9_hcd_cache_dpll_initf.H>
 // Core HWP header file
-#include <p9_hcd_core.H>
+//#include <p9_hcd_core.H>
 
 // istep 5 hwp header files
-#include "p9_sbe_instruct_start.H"
-#include "p9_sbe_load_bootloader.H"
+//#include "p9_sbe_instruct_start.H"
+//#include "p9_sbe_load_bootloader.H"
 
 // istep mpipl header files
-#include "p9_block_wakeup_intr.H"
-#include "p9_query_core_access_state.H"
-#include "p9_sbe_check_quiesce.H"
-#include "p9_l2_flush.H"
-#include "p9_l3_flush.H"
-#include "p9_sbe_sequence_drtm.H"
-#include "p9_thread_control.H"
-#include "sbecmdcntlinst.H"
-#include "p9_quad_power_off.H"
-#include "p9_hcd_cache_stopclocks.H"
-#include "p9_stopclocks.H"
-#include "p9_suspend_powman.H"
-#include "p9_query_cache_access_state.H"
+//#include "p9_block_wakeup_intr.H"
+//#include "p9_query_core_access_state.H"
+//#include "p9_sbe_check_quiesce.H"
+//#include "p9_l2_flush.H"
+//#include "p9_l3_flush.H"
+//#include "p9_sbe_sequence_drtm.H"
+//#include "p9_thread_control.H"
+//#include "sbecmdcntlinst.H"
+//#include "p9_quad_power_off.H"
+//#include "p9_hcd_cache_stopclocks.H"
+//#include "p9_stopclocks.H"
+//#include "p9_suspend_powman.H"
+//#include "p9_query_cache_access_state.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
@@ -127,12 +129,13 @@ static const uint64_t SBE_LQA_DELAY_SIM_CYCLES = 0x1ULL;
 static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 30; // 63-33 = 30
 
 // Externs
-extern p9_thread_control_FP_t threadCntlhwp;
 extern uint64_t G_ring_save[8];
 //Utility function to mask special attention
 extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target );
 
 // Aliases
+#if 0
+extern p9_thread_control_FP_t threadCntlhwp;
 using  sbeIstepHwpProc_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
 
@@ -174,7 +177,7 @@ using  sbeIstepHwpQuadPoweroff_t = ReturnCode (*)
 using  sbeIstepHwpCacheInitf_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_EQ> & i_target,
                     const uint64_t * i_ring_save_data);
-
+#endif
 // Forward declarations
 // Wrapper function which will call HWP.
 ReturnCode istepWithProc( voidfuncptr_t i_hwp );
@@ -218,7 +221,7 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             // Set MPIPL mode in Sratch Reg 3
             ISTEP_MAP( istepStartMpipl, NULL ),
             // Call suspend powerman
-            ISTEP_MAP( istepWithProc, p9_suspend_powman ),
+            ISTEP_MAP( istepWithProc, NULL ),
             // Find all the child cores within proc and call hwp to know the
             // scom state and call instruction control. Also mask spl attention
             // from core.
@@ -227,26 +230,26 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             //  procedure but local SBE function
             ISTEP_MAP( istepMpiplRstClrTpmBits, NULL ),
             // quiesce state for all units on the powerbus on its chip
-            ISTEP_MAP( istepWithProcQuiesceLQASet, p9_sbe_check_quiesce ),
+            ISTEP_MAP( istepWithProcQuiesceLQASet, NULL ),
             // L2 cache flush via purge engine on each EX
-            ISTEP_MAP( istepWithExL2Flush, p9_l2_flush ),
+            ISTEP_MAP( istepWithExL2Flush, NULL ),
             // L3 cache flush via purge engine on each EX
-            ISTEP_MAP( istepWithExL3Flush, p9_l3_flush ),
+            ISTEP_MAP( istepWithExL3Flush, NULL ),
             // Check on Quiescing of all Chips in a System by Local SBE
-            ISTEP_MAP( istepWithProcSequenceDrtm, p9_sbe_sequence_drtm ),
+            ISTEP_MAP( istepWithProcSequenceDrtm, NULL ),
 #endif
         };
 static istepMap_t g_istepMpiplContinuePtrTbl[] =
         {
 #ifdef SEEPROM_IMAGE
             // Setup EC/EQ guard records
-            ISTEP_MAP( istepMpiplSetFunctionalState, p9_sbe_select_ex),
+            ISTEP_MAP( istepMpiplSetFunctionalState, NULL),
              ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_dump_reg)
              ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_query_quad_access_state)
              ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_core_stopclocks)
              ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_cache_stopclocks)
             // p9_quad_power_off
-            ISTEP_MAP( istepMpiplQuadPoweroff, p9_quad_power_off ),
+            ISTEP_MAP( istepMpiplQuadPoweroff, NULL),
             // No-op
             ISTEP_MAP( istepNoOp, NULL ),
 #endif
@@ -256,7 +259,7 @@ static istepMap_t g_istepStopClockPtrTbl[] =
         {
 #ifdef SEEPROM_IMAGE
             // Stop Clock Mpipl
-            ISTEP_MAP( istepStopClockMpipl, p9_stopclocks ),
+            ISTEP_MAP( istepStopClockMpipl, NULL),
 #endif
         };
 
@@ -265,88 +268,87 @@ static istepMap_t g_istep2PtrTbl[] =
          {
 #ifdef SEEPROM_IMAGE
              ISTEP_MAP( NULL, NULL ),
-             ISTEP_MAP( istepAttrSetup, p9_sbe_attr_setup ),
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_chiplet_init1 ),
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_gptr_time_initf ),
+             ISTEP_MAP( istepAttrSetup, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
              ISTEP_MAP( istepNoOp, NULL ),  // DFT only
-             ISTEP_MAP( istepWithProc, p9_sbe_npll_initf ),
-             ISTEP_MAP( istepNestFreq, p9_sbe_npll_setup ),
-             ISTEP_MAP( istepHwpTpSwitchGears, p9_sbe_tp_switch_gears ),
-             ISTEP_MAP( istepWithProc, p9_sbe_clock_test2 ),
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_chiplet_reset ),
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_repr_initf ),
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_chiplet_init2 ),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepNestFreq, NULL),
+             ISTEP_MAP( istepHwpTpSwitchGears, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
              ISTEP_MAP( istepNoOp, NULL ),  // DFT only
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_arrayinit ),
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_initf ),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
              ISTEP_MAP( istepNoOp, NULL ), // DFT only
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_chiplet_init3 ),
+             ISTEP_MAP( istepWithProc, NULL),
 #endif
          };
 
 static istepMap_t g_istep3PtrTbl[] =
          {
 #ifdef SEEPROM_IMAGE
-             ISTEP_MAP( istepWithProc, p9_sbe_chiplet_reset ),
-             ISTEP_MAP( istepWithProc, p9_sbe_gptr_time_initf ),
-             ISTEP_MAP( istepWithProc, p9_sbe_chiplet_pll_initf ),
-             ISTEP_MAP( istepWithProc, p9_sbe_chiplet_pll_setup ),
-             ISTEP_MAP( istepWithProc, p9_sbe_repr_initf ),
-             ISTEP_MAP( istepWithProc, p9_sbe_chiplet_init ),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
              ISTEP_MAP( istepNoOp, NULL ), // DFT only
-             ISTEP_MAP( istepWithProc, p9_sbe_arrayinit ),
+             ISTEP_MAP( istepWithProc, NULL),
              ISTEP_MAP( istepNoOp, NULL ), // DFT only
-             ISTEP_MAP( istepWithProc, p9_sbe_tp_enable_ridi ),
-             ISTEP_MAP( istepWithProc, p9_sbe_setup_boot_freq ),
-             ISTEP_MAP( istepWithProc, p9_sbe_nest_initf ),
-             ISTEP_MAP( istepWithProc, p9_sbe_nest_startclocks ),
-             ISTEP_MAP( istepWithProc, p9_sbe_nest_enable_ridi ),
-             ISTEP_MAP( istepWithProc, p9_sbe_io_initf ),
-             ISTEP_MAP( istepWithProc, p9_sbe_startclock_chiplets ),
-             ISTEP_MAP( istepWithProc, p9_sbe_scominit ),
-             ISTEP_MAP( istepLpcInit, p9_sbe_lpc_init ),
-             ISTEP_MAP( istepWithProc, p9_sbe_fabricinit ),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepLpcInit, NULL),
+             ISTEP_MAP( istepWithProc, NULL),
              ISTEP_MAP( istepCheckSbeMaster, NULL ),
-             ISTEP_MAP( istepWithProc, p9_sbe_mcs_setup ),
-             ISTEP_MAP( istepSelectEx, p9_sbe_select_ex ),
+             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepSelectEx, NULL),
 #endif
          };
 static istepMap_t g_istep4PtrTbl[] =
          {
 #ifdef SEEPROM_IMAGE
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_poweron ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_chiplet_reset ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_chiplet_l3_dcc_setup ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_gptr_time_initf ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_dpll_initf ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_dpll_setup ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_dcc_skewadjust_setup ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_chiplet_init ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_repair_initf ),
-             ISTEP_MAP( istepWithEq, p9_hcd_cache_arrayinit ),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
+             ISTEP_MAP( istepWithEq, NULL),
              ISTEP_MAP( istepNoOp, NULL ),  // DFT Only
              ISTEP_MAP( istepNoOp, NULL ),  // DFT Only
-             ISTEP_MAP( istepCacheInitf, p9_hcd_cache_initf ),
-             ISTEP_MAP( istepWithEqConditional, p9_hcd_cache_startclocks ),
-             ISTEP_MAP( istepWithEqConditional, p9_hcd_cache_scominit ),
-             ISTEP_MAP( istepWithEqConditional, p9_hcd_cache_scomcust ),
+             ISTEP_MAP( istepCacheInitf, NULL),
+             ISTEP_MAP( istepWithEqConditional, NULL),
+             ISTEP_MAP( istepWithEqConditional, NULL),
+             ISTEP_MAP( istepWithEqConditional, NULL),
              ISTEP_MAP( istepNoOp, NULL ), // Runtime only
              ISTEP_MAP( istepNoOp, NULL ), // Runtime only
              ISTEP_MAP( istepNoOp, NULL ), // stub for SBE
              ISTEP_MAP( istepNoOp, NULL ),  // stub for SBE
-             ISTEP_MAP( istepWithCore, p9_hcd_core_poweron ),
-             ISTEP_MAP( istepWithCore, p9_hcd_core_chiplet_reset ),
-             ISTEP_MAP( istepWithCore, p9_hcd_core_gptr_time_initf ),
-             ISTEP_MAP( istepWithCore, p9_hcd_core_chiplet_init ),
-             ISTEP_MAP( istepWithCore, p9_hcd_core_repair_initf ),
-             ISTEP_MAP( istepWithCore, p9_hcd_core_arrayinit ),
+             ISTEP_MAP( istepWithCore, NULL),
+             ISTEP_MAP( istepWithCore, NULL),
+             ISTEP_MAP( istepWithCore, NULL),
+             ISTEP_MAP( istepWithCore, NULL),
+             ISTEP_MAP( istepWithCore, NULL),
+             ISTEP_MAP( istepWithCore, NULL),
              ISTEP_MAP( istepNoOp, NULL ),  // DFT Only
              ISTEP_MAP( istepNoOp, NULL ),  // DFT Only
-             ISTEP_MAP( istepWithCore, p9_hcd_core_initf ),
-             ISTEP_MAP( istepWithCoreConditional,
-                              p9_hcd_core_startclocks ),
-             ISTEP_MAP( istepWithCoreConditional, p9_hcd_core_scominit ),
-             ISTEP_MAP( istepWithCoreConditional, p9_hcd_core_scomcust ),
+             ISTEP_MAP( istepWithCore, NULL),
+             ISTEP_MAP( istepWithCoreConditional, NULL),
+             ISTEP_MAP( istepWithCoreConditional, NULL),
+             ISTEP_MAP( istepWithCoreConditional, NULL),
              ISTEP_MAP( istepNoOp, NULL ),
              ISTEP_MAP( istepNoOp, NULL ),
 #endif
@@ -358,7 +360,7 @@ static istepMap_t g_istep5PtrTbl[]
          {
 #ifdef SEEPROM_IMAGE
              ISTEP_MAP( istepLoadBootLoader, NULL ),
-             ISTEP_MAP( istepStartInstruction,  p9_sbe_instruct_start ),
+             ISTEP_MAP( istepStartInstruction,  NULL),
 #endif
          };
 
@@ -385,9 +387,11 @@ ReturnCode istepAttrSetup( voidfuncptr_t i_hwp)
 ReturnCode istepWithProc( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
-    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+    //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+#endif
     return rc;
 }
 //----------------------------------------------------------------------------
@@ -395,12 +399,13 @@ ReturnCode istepWithProc( voidfuncptr_t i_hwp)
 ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
-    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+    //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
     SBE_UART_INIT;
     SBE_MSG_CONSOLE( SBE_CONSOLE_WELCOME_MSG );
-
+#endif
     return rc;
 }
 //----------------------------------------------------------------------------
@@ -408,14 +413,15 @@ ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
 ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
-    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpTpSwitchGears_t>( i_hwp ), proc)
+    //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpTpSwitchGears_t>( i_hwp ), proc)
 
     // backup i2c mode register
     uint32_t reg_address = PU_MODE_REGISTER_B;
     PPE_LVD( reg_address, SBE_GLOBAL->i2cModeRegister);
-
+#endif
     return rc;
 }
 
@@ -424,12 +430,14 @@ ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp)
 ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
 {
     #define SBE_FUNC "istepNestFreq "
-    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     ReturnCode rc = FAPI2_RC_SUCCESS;
+
+#if 0
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
     do
     {
-        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ),proc)
+        //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ),proc)
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;
@@ -437,6 +445,7 @@ ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
         // Update PK frequency
         SBE::updatePkFreq();
     }while(0);
+#endif
     return rc;
     #undef SBE_FUNC
 }
@@ -446,11 +455,13 @@ ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
 ReturnCode istepSelectEx( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     // TODO via RTC 135345
     // Once multicast targets are supported, we may need to pass
     // p9selectex::ALL as input.
-    SBE_EXEC_HWP(rc, reinterpret_cast<p9_sbe_select_ex_FP_t>(i_hwp), proc, p9selectex::SINGLE)
+    //SBE_EXEC_HWP(rc, reinterpret_cast<p9_sbe_select_ex_FP_t>(i_hwp), proc, p9selectex::SINGLE)
+#endif
     return rc;
 }
 
@@ -458,6 +469,7 @@ ReturnCode istepSelectEx( voidfuncptr_t i_hwp)
 ReturnCode istepWithEq( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     // TODO via RTC 135345
     // Curently we are passing Hard code eq target. Finally it is
     // going to be a multicast target. Once multicast support is
@@ -473,7 +485,8 @@ ReturnCode istepWithEq( voidfuncptr_t i_hwp)
     }
 
     assert( NULL != i_hwp);
-    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpEq_t>(i_hwp), eqTgt )
+    //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpEq_t>(i_hwp), eqTgt )
+#endif
     return rc;
 }
 
@@ -484,6 +497,7 @@ ReturnCode istepCacheInitf (voidfuncptr_t i_hwp )
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
 
+#if 0
     // TODO via RTC 135345
     fapi2::Target<fapi2::TARGET_TYPE_EQ > eqTgt;
     // Put this in scope so that vector can be freed up before calling hwp.
@@ -495,7 +509,8 @@ ReturnCode istepCacheInitf (voidfuncptr_t i_hwp )
         eqTgt = eqList[0];
     }
 
-    SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpCacheInitf_t>( i_hwp ), eqTgt, G_ring_save)
+    //SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpCacheInitf_t>( i_hwp ), eqTgt, G_ring_save)
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
@@ -507,6 +522,7 @@ ReturnCode istepWithCore( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepWithCore"
     ReturnCode rc = FAPI2_RC_SUCCESS;
 
+#if 0
     // Get master Ex
     uint8_t exId = 0;
     uint8_t fuseMode = 0;
@@ -520,7 +536,7 @@ ReturnCode istepWithCore( voidfuncptr_t i_hwp)
     for (auto &coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         // Core0 is assumed to be the master core
-        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpCore_t>(i_hwp), coreTgt)
+        //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpCore_t>(i_hwp), coreTgt)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " istepWithCore failed, RC=[0x%08X]", rc);
@@ -534,6 +550,7 @@ ReturnCode istepWithCore( voidfuncptr_t i_hwp)
             break;
         }
     }
+#endif
     return rc;
     #undef SBE_FUNC
 }
@@ -542,8 +559,9 @@ ReturnCode istepWithCore( voidfuncptr_t i_hwp)
 ReturnCode istepWithEqConditional( voidfuncptr_t i_hwp)
 {
     SBE_ENTER("istepWithEqCondtional");
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM > sysTgt;
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM > sysTgt;
     do
     {
         uint8_t iplPhase = ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL;
@@ -554,6 +572,7 @@ ReturnCode istepWithEqConditional( voidfuncptr_t i_hwp)
         }
         rc = istepWithEq(i_hwp);
      }while(0);
+#endif
     SBE_EXIT("istepWithEqCondtional");
     return rc;
 }
@@ -562,8 +581,9 @@ ReturnCode istepWithEqConditional( voidfuncptr_t i_hwp)
 ReturnCode istepWithCoreConditional( voidfuncptr_t i_hwp)
 {
     SBE_ENTER("istepWithCoreCondtional");
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM > sysTgt;
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM > sysTgt;
     do
     {
         uint8_t iplPhase = ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL;
@@ -574,6 +594,7 @@ ReturnCode istepWithCoreConditional( voidfuncptr_t i_hwp)
         }
         rc = istepWithCore(i_hwp);
      }while(0);
+#endif
     SBE_EXIT("istepWithCoreCondtional");
     return rc;
 }
@@ -597,6 +618,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
     // Get master Ex
+#if 0
     uint8_t exId = 0;
     Target< TARGET_TYPE_SYSTEM > sysTgt;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
@@ -617,8 +639,8 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         // since it is going to access these data from inside.
         uint64_t addr = SBE_GLOBAL->sbeKeyAddrPair.fetchStashAddrAttribute();
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR, sysTgt, addr);
-        SBE_EXEC_HWP(rc, p9_sbe_load_bootloader, proc, exTgt, hbblSection->iv_size,
-                     getSectionAddr(hbblSection))
+        //SBE_EXEC_HWP(rc, p9_sbe_load_bootloader, proc, exTgt, hbblSection->iv_size,
+        //             getSectionAddr(hbblSection))
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(" p9_sbe_load_bootloader failed");
@@ -630,13 +652,13 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
                       FAPI_SYSTEM,
                       l_hostboot_hrmor_offset);
-        rc = p9_fbc_utils_get_chip_base_address_no_aliases(
-                                    proc,
-                                    HB_GRP_CHIP_IDS,
-                                    drawer_base_address_nm0,
-                                    drawer_base_address_nm1,
-                                    drawer_base_address_m,
-                                    drawer_base_address_mmio);
+        //rc = p9_fbc_utils_get_chip_base_address_no_aliases(
+        //                            proc,
+        //                            HB_GRP_CHIP_IDS,
+        //                            drawer_base_address_nm0,
+        //                            drawer_base_address_nm1,
+        //                            drawer_base_address_m,
+        //                            drawer_base_address_mmio);
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(" p9_fbc_utils_get_chip_base_address failed");
@@ -651,6 +673,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
                                     static_cast<uint8_t>(memRegionMode::READ));
 
     } while(0);
+#endif
     return rc;
 }
 
@@ -676,6 +699,7 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
 {
     #define SBE_FUNC "istepCheckSbeMaster "
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
     do
     {
         rc = performTpmReset();
@@ -693,6 +717,7 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
                                             SBE_RUNTIME_EVENT);
         }
     }while(0);
+#endif
     return rc;
     #undef SBE_FUNC
 }
@@ -706,10 +731,11 @@ ReturnCode istepWithCoreSetBlock( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepWithCoreSetBlock"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
+#if 0
     Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
     for (auto l_coreTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
-        SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpCoreBlockIntr_t>( i_hwp ), l_coreTgt, p9pmblockwkup::SET)
+        //SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpCoreBlockIntr_t>( i_hwp ), l_coreTgt, p9pmblockwkup::SET)
         if(l_rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " p9_block_wakeup_intr failed, RC=[0x%08X]",
@@ -717,6 +743,7 @@ ReturnCode istepWithCoreSetBlock( voidfuncptr_t i_hwp)
             break;
         }
     }
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
@@ -729,6 +756,7 @@ ReturnCode istepWithCoreState( voidfuncptr_t i_hwp)
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
 
+#if 0
     l_rc = stopAllCoreInstructions();
     if( l_rc == FAPI2_RC_SUCCESS )
     {
@@ -743,7 +771,7 @@ ReturnCode istepWithCoreState( voidfuncptr_t i_hwp)
         SBE_ERROR(SBE_FUNC "Stop all core instructions is failed, "
                  "RC=[0x%08X]", l_rc);
     }
-
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
@@ -772,7 +800,7 @@ ReturnCode istepWithExL2Flush( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepWithExL2Flush"
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
-
+#if 0
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
     for (auto& exTgt : procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
     {
@@ -786,11 +814,11 @@ ReturnCode istepWithExL2Flush( voidfuncptr_t i_hwp)
         fapi2::Target<fapi2::TARGET_TYPE_EQ> eqTgt =
                                 exTgt.getParent<fapi2::TARGET_TYPE_EQ>();
 
-        rc = p9_query_cache_access_state(eqTgt,
-                                         l2IsScomable,
-                                         l2IsScanable,
-                                         l3IsScomable,
-                                         l3IsScanable);
+        //rc = p9_query_cache_access_state(eqTgt,
+        //                                 l2IsScomable,
+        //                                 l2IsScanable,
+        //                                 l3IsScomable,
+        //                                 l3IsScanable);
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " p9_query_cache_access_state failed, "
@@ -809,16 +837,17 @@ ReturnCode istepWithExL2Flush( voidfuncptr_t i_hwp)
         }
 
         p9core::purgeData_t l_purgeData;
-        SBE_EXEC_HWP(rc,
-                     reinterpret_cast<sbeIstepHwpExL2Flush_t>(i_hwp),
-                     exTgt,
-                     l_purgeData)
+        //SBE_EXEC_HWP(rc,
+        //             reinterpret_cast<sbeIstepHwpExL2Flush_t>(i_hwp),
+        //             exTgt,
+        //             l_purgeData)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " p9_l2_flush failed, RC=[0x%08X]", rc);
             break;
         }
     }
+#endif
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -830,7 +859,7 @@ ReturnCode istepWithExL3Flush( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepWithExL3Flush"
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
-
+#if 0
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
     for (auto& exTgt : procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
     {
@@ -844,11 +873,11 @@ ReturnCode istepWithExL3Flush( voidfuncptr_t i_hwp)
         fapi2::Target<fapi2::TARGET_TYPE_EQ> eqTgt =
                                 exTgt.getParent<fapi2::TARGET_TYPE_EQ>();
 
-        rc = p9_query_cache_access_state(eqTgt,
-                                         l2IsScomable,
-                                         l2IsScanable,
-                                         l3IsScomable,
-                                         l3IsScanable);
+        //rc = p9_query_cache_access_state(eqTgt,
+        //                                 l2IsScomable,
+        //                                 l2IsScanable,
+        //                                 l3IsScomable,
+        //                                 l3IsScanable);
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " p9_query_cache_access_state failed, "
@@ -866,17 +895,18 @@ ReturnCode istepWithExL3Flush( voidfuncptr_t i_hwp)
             continue;
         }
 
-        SBE_EXEC_HWP(rc,
-                     reinterpret_cast<sbeIstepHwpExL3Flush_t>(i_hwp),
-                     exTgt,
-                     L3_FULL_PURGE,
-                     0x0)
+        //SBE_EXEC_HWP(rc,
+        //            reinterpret_cast<sbeIstepHwpExL3Flush_t>(i_hwp),
+        //             exTgt,
+        //             L3_FULL_PURGE,
+        //             0x0)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " p9_l3_flush failed, RC=[0x%08X]", rc);
             break;
         }
     }
+#endif
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -888,13 +918,14 @@ ReturnCode istepWithProcSequenceDrtm( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepWithProcSequenceDrtm"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
-    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+#if 0
+        Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
 
     uint8_t l_status = 0;
     size_t l_timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
     while(l_timeOut)
     {
-        SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpSequenceDrtm_t>(i_hwp), l_procTgt, l_status)
+        //SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpSequenceDrtm_t>(i_hwp), l_procTgt, l_status)
         if(l_rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC "p9_sbe_sequence_drtm failed, RC=[0x%08X]",l_rc);
@@ -937,6 +968,7 @@ fapi_try_exit:
     {
         l_rc = fapi2::current_err;
     }
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
@@ -984,6 +1016,7 @@ ReturnCode istepMpiplQuadPoweroff( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepMpiplQuadPoweroff"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
+#if 0
     if(g_sbeRole == SBE_ROLE_MASTER)
     {
         Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
@@ -996,8 +1029,9 @@ ReturnCode istepMpiplQuadPoweroff( voidfuncptr_t i_hwp)
             l_coreId + CORE_CHIPLET_OFFSET));
         fapi2::Target<fapi2::TARGET_TYPE_EQ> l_quad =
                                 l_core.getParent<fapi2::TARGET_TYPE_EQ>();
-        SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpQuadPoweroff_t>(i_hwp), l_quad, G_ring_save)
+        //SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpQuadPoweroff_t>(i_hwp), l_quad, G_ring_save)
     }
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
@@ -1009,6 +1043,7 @@ ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp )
     #define SBE_FUNC "istepWithProcQuiesceLQASet"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
+#if 0
     do
     {
         l_rc = istepWithProc(i_hwp);
@@ -1036,6 +1071,7 @@ ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp )
                 (uint32_t)((l_data >> 32) & 0xFFFFFFFF), (uint32_t)(l_data & 0xFFFFFFFF));
         }
     }while(0);
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
@@ -1046,8 +1082,9 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
 {
     #define SBE_FUNC "istepMpiplSetFunctionalState"
     SBE_ENTER(SBE_FUNC);
-    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     ReturnCode rc = FAPI2_RC_SUCCESS;
+#if 0
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     do
     {
         // Read the EQ and EC gard attributes from the chip target
@@ -1117,6 +1154,7 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
                     "not applying gard records");
         }
      }while(0);
+#endif
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -1128,6 +1166,7 @@ ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp )
     #define SBE_FUNC "istepStopClockMpipl"
     SBE_ENTER(SBE_FUNC);
     uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
+#if 0
     p9_stopclocks_flags l_flags; // Default Flag Values
     Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
     p9hcd::P9_HCD_CLK_CTRL_CONSTANTS l_clk_regions =
@@ -1138,13 +1177,13 @@ ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp )
     l_flags.stop_core_clks = true;
     l_flags.stop_cache_clks = true;
 
-    SBE_EXEC_HWP(l_fapiRc,
-                 reinterpret_cast<p9_stopclocks_FP_t>(i_hwp),
-                 l_procTgt,
-                 l_flags,
-                 l_clk_regions,
-                 l_ex_select);
-
+    //SBE_EXEC_HWP(l_fapiRc,
+     //            reinterpret_cast<p9_stopclocks_FP_t>(i_hwp),
+     //            l_procTgt,
+     //            l_flags,
+     //            l_clk_regions,
+     //            l_ex_select);
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_fapiRc;
     #undef SBE_FUNC

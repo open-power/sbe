@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -29,7 +29,7 @@
 #include <sbeXipUtils.H>
 #include <fapi2_attribute_service.H> // for FAPI_ATTR_GET
 #include <plat_target_utils.H> // for plat_getChipTarget
-#include <p9_tor.H>
+#include <p10_tor.H>
 
 // SEEPROM start address
 const uint32_t g_seepromAddr = SBE_SEEPROM_BASE_ORIGIN;
@@ -136,7 +136,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
     uint8_t l_numVarAdjust = 0;
 
     // Determine the Offset ID and Ring Type for the given Ring ID.
-    uint32_t l_torOffset = 0;
+    uint32_t l_idxRing = 0;
     RingType_t l_ringType = COMMON_RING;
     ChipletType_t l_chipLetType = UNDEFINED_CHIPLET_TYPE;
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
@@ -159,16 +159,16 @@ fapi2::ReturnCode getRS4ImageFromTor(
             break;
         }
 
-        l_torOffset   = (INSTANCE_RING_MASK & (RING_PROPERTIES[i_ringID].iv_torOffSet));
-        l_ringType    = (INSTANCE_RING_MARK & RING_PROPERTIES[i_ringID].iv_torOffSet) ?
+        l_idxRing   = (INSTANCE_RING_MASK & (RING_PROPERTIES[i_ringID].idxRing));
+        l_ringType    = (INSTANCE_RING_MARK & RING_PROPERTIES[i_ringID].idxRing) ?
                         INSTANCE_RING : COMMON_RING;
-        l_chipLetType = RING_PROPERTIES[i_ringID].iv_type;
+        l_chipLetType = RING_PROPERTIES[i_ringID].chipletType;
 
 
         ChipletData_t l_chipletData;
-        l_chipletData.iv_base_chiplet_number = 0;
-        l_chipletData.iv_num_common_rings = 0;
-        l_chipletData.iv_num_instance_rings = 0;
+        l_chipletData.chipletBaseId = 0;
+        l_chipletData.numCommonRings = 0;
+        l_chipletData.numInstanceRings = 0;
 
         uint8_t l_chipletID = i_target.getChipletNumber();
         uint16_t l_cpltRingVariantSz = 0;
@@ -399,13 +399,13 @@ fapi2::ReturnCode getRS4ImageFromTor(
         // since there is only BASE variant support for Instance (repr) rings in v7
         if (l_torVersion < 7)
         {
-            l_cpltRingVariantSz = (l_chipletData.iv_num_common_ring_variants - l_numVarAdjust);
+            l_cpltRingVariantSz = (l_chipletData.numCommonRingVariants - l_numVarAdjust);
         }
         else
         {
             l_cpltRingVariantSz = (l_ringType == INSTANCE_RING) ?
                                   INSTANCE_VARIANT_SIZE :
-                                  (l_chipletData.iv_num_common_ring_variants - l_numVarAdjust);
+                                  (l_chipletData.numCommonRingVariants - l_numVarAdjust);
         }
 
         // Subsequently, re-adjust variant size according to whether override or flush ring
@@ -424,10 +424,10 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
         if(INSTANCE_RING == l_ringType)
         {
-            if ( l_chipletID >= l_chipletData.iv_base_chiplet_number)
+            if ( l_chipletID >= l_chipletData.chipletBaseId)
             {
                 uint8_t l_chipletOffset =
-                    (l_chipletID - l_chipletData.iv_base_chiplet_number);
+                    (l_chipletID - l_chipletData.chipletBaseId);
 
                 if (l_chipLetType == EQ_TYPE)
                 {
@@ -441,20 +441,20 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
                 SBE_TRACE ("l_chipletID %u l_chipletOffset %u", l_chipletID, l_chipletOffset);
                 l_ringTorAddr =  reinterpret_cast<uint16_t*>(l_sectionAddr ) + ((l_chipletOffset *
-                                 (l_chipletData.iv_num_instance_rings * l_cpltRingVariantSz)) + (l_torOffset * l_cpltRingVariantSz));
+                                 (l_chipletData.numInstanceRings * l_cpltRingVariantSz)) + (l_idxRing * l_cpltRingVariantSz));
 
             }
             else
             {
                 l_ringTorAddr = reinterpret_cast<uint16_t*>(l_sectionAddr) +
-                                (l_torOffset * l_cpltRingVariantSz);
+                                (l_idxRing * l_cpltRingVariantSz);
             }
         }
         else
         {
             // TOR records of Ring TOR are 2 bytes in size.
             l_ringTorAddr = reinterpret_cast<uint16_t*>(l_sectionAddr) +
-                            (l_torOffset * l_cpltRingVariantSz);
+                            (l_idxRing * l_cpltRingVariantSz);
         }
 
         // The ring variants in section TOR are expected to be in the sequence -
@@ -486,10 +486,10 @@ fapi2::ReturnCode getRS4ImageFromTor(
             {
                 // Check if this is risk-level IPL
                 // _if_ present, else fall back to normal ring
-                uint8_t l_riskLevel;
-                FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL,
-                              fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> (),
-                              l_riskLevel);
+                uint8_t l_riskLevel = 0;
+                //FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL,
+                //              fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> (),
+                //              l_riskLevel);
 
                 if((RISK_LEVEL_ZERO != l_riskLevel) &&
                    *(l_ringTorAddr + l_RL_offset))

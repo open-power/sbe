@@ -49,9 +49,19 @@ extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target);
 // TODO via RTC 152424
 // Currently all proecdures in core directory are in seeprom.
 // So we have to use function pointer to force a long call.
+#if 0
 #ifdef SEEPROM_IMAGE
 p9_thread_control_FP_t threadCntlhwp = &p9_thread_control;
 #endif
+
+static const uint64_t SPWKUP_ASSERT   = 0x8000000000000000ull;
+static const uint64_t SPWKUP_DEASSERT = 0x0000000000000000ull;
+static const uint64_t GPMMR_SPWKUP_DONE = 0x8000000000000000ull;
+static const uint32_t SPECIAL_WAKE_UP_POLL_INTERVAL_NS = 1000000;   //1ms
+static const uint32_t SPECIAL_WAKE_UP_POLL_INTERVAL_SIMICS = 1000000;
+static const uint32_t SPECIAL_WAKEUP_TIMEOUT_COUNT = 100; // 100 * 1ms
+
+
 
 /* @brief Map User Thread Command to Hwp ThreadCommands Enum */
 ThreadCommands getThreadCommand(const sbeCntlInstRegMsgHdr_t & i_req)
@@ -79,13 +89,6 @@ inline bool getWarnCheckFlag(const sbeCntlInstRegMsgHdr_t & i_req)
     }
     return l_warnCheck;
 }
-
-static const uint64_t SPWKUP_ASSERT   = 0x8000000000000000ull;
-static const uint64_t SPWKUP_DEASSERT = 0x0000000000000000ull;
-static const uint64_t GPMMR_SPWKUP_DONE = 0x8000000000000000ull;
-static const uint32_t SPECIAL_WAKE_UP_POLL_INTERVAL_NS = 1000000;   //1ms
-static const uint32_t SPECIAL_WAKE_UP_POLL_INTERVAL_SIMICS = 1000000;
-static const uint32_t SPECIAL_WAKEUP_TIMEOUT_COUNT = 100; // 100 * 1ms
 
 static uint32_t specialWakeUpCoreAssert(
         const Target<TARGET_TYPE_CORE>& i_target, ReturnCode &o_fapiRc)
@@ -165,7 +168,7 @@ static uint32_t specialWakeUpCoreDeAssert(
     return rc;
     #undef SBE_FUNC
 }
-
+#endif
 ///////////////////////////////////////////////////////////////////////
 // @brief stopAllCoreInstructions  Stop all core instructions function
 //
@@ -176,6 +179,7 @@ ReturnCode stopAllCoreInstructions( )
     #define SBE_FUNC "stopAllCoreInstructions"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
+#if 0
     Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
     for (auto l_coreTgt : l_procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
@@ -228,6 +232,7 @@ ReturnCode stopAllCoreInstructions( )
             }
         }
     }
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_fapiRc;
     #undef SBE_FUNC
@@ -242,8 +247,8 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeCntlInst "
     SBE_ENTER(SBE_FUNC);
-
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+#if 0
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
     sbeRespGenHdr_t l_respHdr;
     l_respHdr.init();
@@ -410,7 +415,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
 
         l_rc = sbeDsSendRespHdr(l_respHdr, &l_ffdc);
     }while(0);
-
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

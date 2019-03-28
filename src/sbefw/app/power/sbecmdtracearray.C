@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -48,7 +49,7 @@ constexpr uint32_t SBE_TRACE_GRANULE_NUM_WORDS =
                                                         sizeof(uint32_t);
 
 #ifdef SEEPROM_IMAGE
-p9_sbe_tracearray_FP_t p9_sbe_tracearray_hwp = &p9_sbe_tracearray;
+//p9_sbe_tracearray_FP_t p9_sbe_tracearray_hwp = &p9_sbe_tracearray;
 #endif
 
 uint32_t sbeControlTraceArray(uint8_t *i_pArg)
@@ -56,7 +57,7 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
     #define SBE_FUNC " sbeControlTraceArray"
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-
+#if 0
     sbeControlTraceArrayCMD_t l_req = {};
     sbeRespGenHdr_t respHdr;
     respHdr.init();
@@ -150,6 +151,7 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
             l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc);
         }
     }
+    #endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

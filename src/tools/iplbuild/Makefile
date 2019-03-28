@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -41,20 +41,20 @@ include img_defs.mk
 
 CXX  = g++
 
-export VPATH = $(P9_XIP_SRCDIR):$(IMAGEPROCS_COMMON_SRCDIR):$(IMAGEPROCS_P9_SRCDIR):$(IMAGEPROCS_CEN_SRCDIR):$(IMAGEPROCS_TOOL_DIR)
+export VPATH = $(P9_XIP_SRCDIR):$(IMAGEPROCS_COMMON_SRCDIR):$(IMAGEPROCS_P9_SRCDIR):$(IMAGEPROCS_P10_SRCDIR):$(IMAGEPROCS_CEN_SRCDIR):$(IMAGEPROCS_TOOL_DIR)
 export INCLUDES = -I$(P9_XIP_SRCDIR) \
 				  -I$(IMAGEPROCS_COMMON_SRCDIR) \
 				  -I$(IMAGEPROCS_P9_SRCDIR) \
 				  -I$(IMAGEPROCS_CEN_SRCDIR) \
-		      	  -I$(IMAGEPROCS_TOOL_DIR)
+		      	  -I$(IMAGEPROCS_TOOL_DIR) \
+				  -I$(IMAGEPROCS_P10_SRCDIR)
 .PHONY : all utilities clean
 
 OBJS = $(P9_XIP_BINDIR)/p9_xip_image.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/common_ringId.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_ringId.o \
-	   $(BASE_OBJDIR)/tools/iplbuild/cen_ringId.o \
-	   $(BASE_OBJDIR)/tools/iplbuild/p9_tor.o \
-	   $(BASE_OBJDIR)/tools/iplbuild/p9_ipl_build.o \
+	   $(BASE_OBJDIR)/tools/iplbuild/p10_tor.o \
+	   $(BASE_OBJDIR)/tools/iplbuild/ipl_build.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p9_dd_container.o \
 
 all:objdir utilities
@@ -62,9 +62,9 @@ all:objdir utilities
 objdir:
 	mkdir -p $(BASE_OBJDIR)/tools/iplbuild
 
-utilities: $(IMG_DIR)/p9_ipl_build
+utilities: $(IMG_DIR)/ipl_build
 
-CXXFLAGS =-DFAPI2_NO_FFDC
+CXXFLAGS = -std=c++11 -DFAPI2_NO_FFDC
 
 $(P9_XIP_BINDIR)/%.o: %.c
 	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
@@ -72,12 +72,15 @@ $(P9_XIP_BINDIR)/%.o: %.c
 $(BASE_OBJDIR)/tools/iplbuild/%.o: $(IMAGEPROCS_P9_SRCDIR)/%.c
 	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
 
+$(BASE_OBJDIR)/tools/iplbuild/%.o: $(IMAGEPROCS_P10_SRCDIR)/%.C
+	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
+
 $(BASE_OBJDIR)/tools/iplbuild/%.o: %.C
 	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
 
-$(IMG_DIR)/p9_ipl_build: $(OBJS)
+$(IMG_DIR)/ipl_build: $(OBJS)
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
 
 clean:
 	rm -rf $(BASE_OBJDIR)/tools/iplbuild
-	rm -f $(IMG_DIR)/p9_ipl_build
+	rm -f $(IMG_DIR)/ipl_build

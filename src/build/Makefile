@@ -30,7 +30,7 @@ ifndef img
 export img = seeprom
 endif
 
-# pass argument project=power/power_axone/zthemis
+# pass argument project=power/zthemis
 # By default power image is built
 ifndef project
 export project = power
@@ -136,7 +136,7 @@ SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/plugins/sbeUserDataParser.C
 SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/sbeFFDCType.H
 
 SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
-SBE_IPL_TOOLS := $(IMG_DIR)/p9_ipl_build
+SBE_IPL_TOOLS := $(IMG_DIR)/ipl_build
 
 P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
 
@@ -252,34 +252,35 @@ buildtag:
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d)
 
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pervasive_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_pervasive_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/system_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/unit_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_sbe_load_bootloader_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_plat_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_hwp_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_cache_contained_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_ipl_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_sbe_load_bootloader_attributes.xml
+#ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
+#ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
+#ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_plat_attributes.xml
+#ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_hwp_attributes.xml
+#ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_cache_contained_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/chip_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/chip_ec_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_hcode_image_build_attributes.xml
-ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/memory_mcs_attributes.xml
+#ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_hcode_image_build_attributes.xml
+#ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/memory_mcs_attributes.xml
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 	mkdir -p $(IMG_DIR)
 	mkdir -p $(GENFILES_DIR)
 	mkdir -p $(IMPORT_OBJDIR)
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 topfixedheaders:
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
 
 attrids:
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR) $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
 
 platattr:
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
@@ -313,7 +314,7 @@ compress: $(IMG_DIR)/$(IMAGE_NAME).bin
 	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin
 
 defaultset:
-	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
 
 # Build the trace utilities
 ppe_trace_bin:

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2018
+# Contributors Listed Below - COPYRIGHT 2017,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -58,31 +58,31 @@ OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/arrayaccess
 
 PROJ_SUBDIRS += $(ISTEP2_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP2)
-PROJ_LLIBS += -listep2
+#PROJ_LLIBS += -listep2
 
 PROJ_SUBDIRS += $(ISTEP3_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP3)
-PROJ_LLIBS += -listep3
+#PROJ_LLIBS += -listep3
 
 PROJ_SUBDIRS += $(ISTEP4_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP4)
-PROJ_LLIBS += -listep4
+#PROJ_LLIBS += -listep4
 
 PROJ_SUBDIRS += $(ISTEP5_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP5)
-PROJ_LLIBS += -listep5
+#PROJ_LLIBS += -listep5
 
 PROJ_SUBDIRS += $(ISTEPMPIPL_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ISTEPMPIPL)
-PROJ_LLIBS += -listepmpipl
+#PROJ_LLIBS += -listepmpipl
 
 PROJ_SUBDIRS += $(ISTEPCOMMON_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ISTEPCOMMON)
-PROJ_LLIBS += -listepcommon
+#PROJ_LLIBS += -listepcommon
 
 PROJ_SUBDIRS += $(ARRAYACCESS_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ARRAYACCESS)
-PROJ_LLIBS += -larrayaccess
+#PROJ_LLIBS += -larrayaccess
 #########################################################
 # mandatory defines                                     #
 #########################################################

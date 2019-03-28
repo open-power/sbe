@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,8 +37,8 @@ OBJSISTEP5 := $(addprefix $(OBJDIR-ISTEP5)/, $(ISTEP5_OBJECTS))
 
 .PHONY: clean istep5
 
-libistep5.a: istep5
-	$(AR) crs $(OBJDIR-ISTEP5)/libistep5.a $(OBJDIR-ISTEP5)/*.o
+#libistep5.a: istep5
+#	$(AR) crs $(OBJDIR-ISTEP5)/libistep5.a $(OBJDIR-ISTEP5)/*.o
 
 istep5: $(OBJSISTEP5)
 

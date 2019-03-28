@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -33,7 +34,7 @@
 #include "p9_sbe_fastarray_setup.H"
 #include "p9_sbe_fastarray_cleanup.H"
 #include "p9_sbe_fastarray_abist_catchup.H"
-
+#if 0
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
 p9_sbe_fastarray_setup_FP_t p9_sbe_fastarray_setup_hwp =
@@ -43,6 +44,7 @@ p9_sbe_fastarray_cleanup_FP_t p9_sbe_fastarray_cleanup_hwp =
 p9_sbe_fastarray_abist_catchup_FP_t p9_sbe_fastarray_abist_catchup_hwp =
                                             &p9_sbe_fastarray_abist_catchup;
 #endif
+#endif
 
 using namespace fapi2;
 
@@ -51,7 +53,7 @@ uint32_t sbeControlFastArray(uint8_t *i_pArg)
     #define SBE_FUNC " sbeControlFastArray"
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-
+#if 0
     sbeControlFastArrayCMD_t l_req = {};
     sbeRespGenHdr_t respHdr;
     respHdr.init();
@@ -139,6 +141,7 @@ uint32_t sbeControlFastArray(uint8_t *i_pArg)
     {
         l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc);
     }
+#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

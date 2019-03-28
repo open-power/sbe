@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,8 +37,8 @@ OBJSISTEPCOMMON := $(addprefix $(OBJDIR-ISTEPCOMMON)/, $(ISTEPCOMMON_OBJECTS))
 
 .PHONY: clean istepcommon
 
-libistepcommon.a: istepcommon
-	$(AR) crs $(OBJDIR-ISTEPCOMMON)/libistepcommon.a $(OBJDIR-ISTEPCOMMON)/*.o
+#libistepcommon.a: istepcommon
+#	$(AR) crs $(OBJDIR-ISTEPCOMMON)/libistepcommon.a $(OBJDIR-ISTEPCOMMON)/*.o
 
 istepcommon: $(OBJSISTEPCOMMON)
 

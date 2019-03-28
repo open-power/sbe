@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -453,13 +453,13 @@ void sbeAsyncCommandProcessor_routine(void *arg)
             // Ignore the failure
         }
 
+#if 0
         ReturnCode rc = FAPI2_RC_SUCCESS;
         Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
 
         // Run the procedure atomically
         PkMachineContext  ctx;
         pk_critical_section_enter(&ctx);
-
         SBE_EXEC_HWP(rc, p9_sbe_io_eol_toggle, proc)
         if (rc != FAPI2_RC_SUCCESS)
         {
@@ -468,8 +468,8 @@ void sbeAsyncCommandProcessor_routine(void *arg)
             captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                              SBE_SEC_PERIODIC_IO_TOGGLE_FAILED);
         }
-
         pk_critical_section_exit(&ctx);
+#endif
     } while(1);
     #endif // PERIODIC_IO_TOGGLE_SUPPORTED
     #undef SBE_FUNC
