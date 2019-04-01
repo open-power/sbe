@@ -32,6 +32,10 @@
 #define PBA_BUF_B 0x000002000
 #define PBA_BUF_C 0x000001000
 
+#ifndef PBASLVCTLN
+    #define PBASLVCTLN 0
+#endif
+
 /**
  * Reset PBA slave
  * @note global PBASLVCTLN selects with slave (0-3) default is 0

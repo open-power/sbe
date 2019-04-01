@@ -52,13 +52,14 @@ libpk.a: kernel ppe42 trace gpe
 gpe: $(OBJS)
 
 trace:
-	$(MAKE) -I $(IMAGE_SRCDIR) -C ../trace
+	$(MAKE) -I $(IMAGE_SRCDIR) -C ../../ppetrace
 
 kernel:
-	$(MAKE) -I $(IMAGE_SRCDIR) -C ../kernel
+	$(MAKE) -I $(IMAGE_SRCDIR) -C ../../pk/kernel
 
 ppe42:
-	$(MAKE) -I $(IMAGE_SRCDIR) -C ../ppe42
+	$(MAKE) -I $(IMAGE_SRCDIR) -C ../../pk/ppe42
+	$(MAKE) -I $(IMAGE_SRCDIR) -C ../../baselib
 
 
 $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
