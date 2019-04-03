@@ -1,11 +1,11 @@
 <!-- IBM_PROLOG_BEGIN_TAG                                                   -->
 <!-- This is an automatically generated prolog.                             -->
 <!--                                                                        -->
-<!-- $Source: src/import/chips/p9/procedures/xml/error_info/p9_sbe_lpc_init_errors.xml $ -->
+<!-- $Source: src/import/chips/p10/procedures/xml/error_info/p10_sbe_lpc_init_errors.xml $ -->
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2018                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -51,7 +51,7 @@
     <description>After LPC initialization, the OPB master indicated an error.</description>
     <ffdc>FFDC_TARGET_CHIP</ffdc>
     <!-- TODO RTC: 198639 Handle collectFfdc xml tags in fapi error xml in FIFO FFDC buffer -->
-    <!-- <collectFfdc>p9_collect_lpc_regs, FFDC_TARGET_CHIP</collectFfdc> -->
+    <!-- <collectFfdc>p10_collect_lpc_regs, FFDC_TARGET_CHIP</collectFfdc> -->
     <callout>
       <procedure>CODE</procedure>
       <priority>HIGH</priority>
