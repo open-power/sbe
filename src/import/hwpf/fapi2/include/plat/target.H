@@ -198,6 +198,8 @@ Target<K, M, V>::getChipletNumber(void) const
     return 0;
 }
 
+#ifdef FAPI2_ENABLE_PLATFORM_GET_CORE_SELECT
+
 template<TargetType K, MulticastType M, typename V>
 inline MulticastCoreSelect
 Target<K, M, V>::_getCoreSelect(void) const
@@ -205,6 +207,8 @@ Target<K, M, V>::_getCoreSelect(void) const
     // Platform can return the core select value stored in it's Target handle
     return MCCORE_0;
 }
+
+#endif // FAPI2_ENABLE_PLATFORM_GET_CORE_SELECT
 
 ///
 /// @brief Return the string interpretation of this target
