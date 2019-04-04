@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -61,10 +61,11 @@ extern fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 // For PhyP system, HRMOR is set to 128MB, which is multiple of 64MB Granule * 2
-// For OPAL system, it needs the HRMOR in the range of 4GB, so that HB reloading
-// doesn't stamp on the OPAL/HostLinux Data. 64MB Granule * 64 = 4096MB, 64 is
-// the multipler.
-#define HRMOR_FOR_SPLESS_MODE 0x100000000ull //4096 * 1024 * 1024
+// For OPAL system, HRMOR needs to be lower than 4GB, so that HB reloading
+// doesn't stamp on the OPAL/HostLinux Data .Its made lower than 4GB instead of 
+// 4GB inorder to make it fit it into the scratch register. 
+// 64MB Granule * 62 = 4096MB, 62 is the multipler
+#define HRMOR_FOR_SPLESS_MODE 0xF8000000ull //3968 * 1024 * 1024
 
 #endif // else __SBEFW_SEEPROM__
 
