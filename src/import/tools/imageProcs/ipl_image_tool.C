@@ -1876,11 +1876,9 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     int         rc = INFRASTRUCT_RC_SUCCESS;
     uint32_t    i;
     RingId_t    numRingIds = 0;
-    uint32_t    torMagic = 0xffffffff; // Undefined value
     ChipId_t    chipId = UNDEFINED_CHIP_ID;
     uint8_t     ddLevel = UNDEFINED_DD_LEVEL;
     RingId_t    ringId;
-    RingVariant_t ringVariant;
     uint8_t     instanceId;
     RingProperties_t* ringProps = NULL;
     void*       ringBlockPtr;
@@ -1909,7 +1907,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     // Get TOR header fields
     //
     TorHeader_t* torHeader = reinterpret_cast<TorHeader_t*>(i_ringSection);
-    torMagic    = be32toh(torHeader->magic);
     chipId      = torHeader->chipId;
     ddLevel     = torHeader->ddLevel;
 
@@ -1993,117 +1990,86 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     // the info
     bRingsFound = false;
 
-    //--------------------
-    // Ring variant loop.
-    // - Base, cache, risk or just "base" if no ring variant
-    for (ringVariant = 0; ringVariant < NUM_RING_VARIANTS; ringVariant++)
+    //----------------------
+    // Ring ID loop.
+    for (ringId = 0; ringId < numRingIds; ringId++)
     {
-        if ((torMagic == TOR_MAGIC_OVRD && ringVariant != RV_BASE) ||
-            (torMagic == TOR_MAGIC_OVLY && ringVariant != RV_BASE))
-        {
-            continue;
-        }
+        //---------------------------
+        // Chiplet instance ID loop.
+        // - Only loop once if ringId is a common ring. Determine this by
+        //   comparing the returned value of instanceId in tor_access_ring()
+        //   with the input value of instanceId, instanceInputId.
+        // - Start looping safely from 0 so that if instanceId is adjusted
+        //   in tor_access_ring, i.e. in case it's an instance ring, it will
+        //   return a non-zero value for instanceId.
+        uint8_t instanceInputId;
 
-        //----------------------
-        // Ring ID loop.
-        for (ringId = 0; ringId < numRingIds; ringId++)
+        for (instanceId = 0; instanceId <= INSTANCE_ID_MAX; instanceId++)
         {
-            //---------------------------
-            // Chiplet instance ID loop.
-            // - Only loop once if ringId is a common ring. Determine this by
-            //   comparing the returned value of instanceId in tor_access_ring()
-            //   with the input value of instanceId, instanceInputId.
-            // - Start looping safely from 0 so that if instanceId is adjusted
-            //   in tor_access_ring, i.e. in case it's an instance ring, it will
-            //   return a non-zero value for instanceId.
-            uint8_t instanceInputId;
+            instanceInputId = instanceId;
 
-            for (instanceId = 0; instanceId <= INSTANCE_ID_MAX; instanceId++)
+            ringBlockSize = MAX_RING_BUF_SIZE_TOOL;
+            rc = tor_access_ring( i_ringSection,
+                                  ringId,
+                                  ddLevel,
+                                  instanceId,          // IO parm
+                                  GET_SINGLE_RING,
+                                  &ringBlockPtr,       // IO parm
+                                  ringBlockSize,       // IO parm
+                                  ringName,
+                                  0 );
+
+            // Gather ring details and print it.
+            //
+            if (rc == TOR_SUCCESS)
             {
-                instanceInputId = instanceId;
-
-                ringBlockSize = MAX_RING_BUF_SIZE_TOOL;
-                rc = tor_access_ring( i_ringSection,
-                                      ringId,
-                                      ddLevel,
-                                      ringVariant,
-                                      instanceId,          // IO parm
-                                      GET_SINGLE_RING,
-                                      &ringBlockPtr,       // IO parm
-                                      ringBlockSize,       // IO parm
-                                      ringName,
-                                      0 );
-
-                // Gather ring details and print it.
-                //
-                if (rc == TOR_SUCCESS)
+                if(bPrintHeader == true )
                 {
-                    if(bPrintHeader == true )
+                    // print the table header info
+                    if (i_listingModeId == LMID_TABLE)
                     {
-                        // print the table header info
-                        if (i_listingModeId == LMID_TABLE)
-                        {
-                            fprintf(stdout, "-----------------------------------------------------------------------\n");
-                            fprintf(stdout, "*                            Ring table                               *\n");
-                            fprintf(stdout, "-----------------------------------------------------------------------\n");
-                            fprintf(stdout, "   #      DD    Var   Inst      Bits   Compr   Name\n");
-                            fprintf(stdout, "-----------------------------------------------------------------------\n");
-                        }
-                        else
-                        {
-                            fprintf( stdout, "-----------------------------\n"
-                                     "*       Ring summary        *\n");
-                        }
-
-                        bPrintHeader = false;
+                        fprintf(stdout, "-----------------------------------------------------------------------\n");
+                        fprintf(stdout, "*                            Ring table                               *\n");
+                        fprintf(stdout, "-----------------------------------------------------------------------\n");
+                        fprintf(stdout, "   #      DD    Var   Inst      Bits   Compr   Name\n");
+                        fprintf(stdout, "-----------------------------------------------------------------------\n");
+                    }
+                    else
+                    {
+                        fprintf( stdout, "-----------------------------\n"
+                                 "*       Ring summary        *\n");
                     }
 
-                    bRingsFound = true;
+                    bPrintHeader = false;
+                }
 
-                    rs4 = (CompressedScanData*)ringBlockPtr;
+                bRingsFound = true;
 
-                    // Sanity check RS4 container's ringId matches the requested.
-                    RingId_t l_ringId = be16toh(rs4->iv_ringId);
+                rs4 = (CompressedScanData*)ringBlockPtr;
 
-                    if ( l_ringId != ringId )
+                // Sanity check RS4 container's ringId matches the requested.
+                RingId_t l_ringId = be16toh(rs4->iv_ringId);
+
+                if ( l_ringId != ringId )
+                {
+                    if ( (ringProps[l_ringId].ringClass & RCLS_ROOT_RING) !=
+                         (ringProps[ringId].ringClass & RCLS_ROOT_RING) )
                     {
-                        if ( (ringProps[l_ringId].ringClass & RCLS_ROOT_RING) !=
-                             (ringProps[ringId].ringClass & RCLS_ROOT_RING) )
-                        {
-                            fprintf(stderr, "IMPORTANT: Found a ring. But the requested ringId"
-                                    " and the RS4 header ringId differ. However, since"
-                                    " one, and only one, of the rings is a ROOT ring,"
-                                    " it's not a valid find and we'll skip it.\n"
-                                    "Requested ringId: 0x%x\n"
-                                    "RS4 headr ringId: 0x%x\n",
-                                    ringId, l_ringId);
-                        }
-                        else
-                        {
-                            fprintf(stderr, "tor_access_ring() was successful and found a ring."
-                                    " But RS4 header ringId(=0x%x) differs from requested"
-                                    " ringId(=0x%x). Other info:\n"
-                                    "ringVariant: %d\n"
-                                    "instanceId: %d\n",
-                                    l_ringId, ringId, ringVariant, instanceId);
-                            operator delete(ringBlockPtr);
-                            operator delete(dataBuf);
-                            operator delete(careBuf);
-                            operator delete(rs4StumpBuf);
-                            operator delete(rs4CmskBuf);
-                            exit(EXIT_FAILURE);
-                        }
+                        fprintf(stderr, "IMPORTANT: Found a ring. But the requested ringId"
+                                " and the RS4 header ringId differ. However, since"
+                                " one, and only one, of the rings is a ROOT ring,"
+                                " it's not a valid find and we'll skip it.\n"
+                                "Requested ringId: 0x%x\n"
+                                "RS4 headr ringId: 0x%x\n",
+                                ringId, l_ringId);
                     }
-
-                    // Check ring block size.
-                    ringSize = be16toh(rs4->iv_size);
-
-                    if ( ringSize != ringBlockSize || ringSize == 0 )
+                    else
                     {
-                        fprintf(stderr, "tor_access_ring() was successful and found a ring. But"
-                                " RS4 header size(=0x%04x) is either zero or doesn't match"
-                                " size of ring buffer (ringBlockSize=0x%04x).\n",
-                                ringSize, ringBlockSize);
+                        fprintf(stderr, "tor_access_ring() was successful and found a ring."
+                                " But RS4 header ringId(=0x%x) differs from requested"
+                                " ringId(=0x%x). Other info:\n"
+                                "instanceId: %d\n",
+                                l_ringId, ringId, instanceId);
                         operator delete(ringBlockPtr);
                         operator delete(dataBuf);
                         operator delete(careBuf);
@@ -2111,206 +2077,17 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                         operator delete(rs4CmskBuf);
                         exit(EXIT_FAILURE);
                     }
-
-                    ringSeqNo++;
-
-                    // This do-while loop is for cmsk support to display
-                    // both rs4 stump ring and rs4 cmsk ring else this
-                    // loop would run only once
-                    cmskRingIteration = 0;
-
-                    do
-                    {
-                        data = (uint8_t*)dataBuf;
-                        care = (uint8_t*)careBuf;
-
-                        // decompress ring to obtain ring length and to verify compressed string
-                        // check for cmsk ring
-                        if (rs4_is_cmsk(rs4))
-                        {
-                            if (!cmskRingIteration)
-                            {
-                                // Extract Stump & Cmsk rings from hybrid RS4 ring. Then
-                                // decompress each to get ring length and trace out
-                                rs4Stump = (CompressedScanData*)rs4StumpBuf;
-                                rs4Cmsk  = (CompressedScanData*)rs4CmskBuf;
-                                rc = _rs4_extract_cmsk(rs4, maxRingBufSize, rs4Stump, rs4Cmsk);
-
-                                if (rc)
-                                {
-                                    fprintf(stderr, "CMSK extract error %d\n", rc);
-                                    exit(EXIT_FAILURE);
-                                }
-
-                                cmskRingIteration++;
-                                ringSuffix = 's';
-                                rs4ForDisplay = rs4Stump;    //For 'raw' & 'long' display
-                                ringBlockSize = be16toh(rs4Stump->iv_size);
-                                rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4Stump);
-
-                                if (rc)
-                                {
-                                    fprintf(stderr, "rs4Stump decompress error %d\n", rc);
-                                    exit(EXIT_FAILURE);
-                                }
-                            }
-                            else
-                            {
-                                cmskRingIteration--;
-                                ringSuffix = 'c';
-                                rs4ForDisplay = rs4Cmsk;    //For 'raw' & 'long' display
-                                ringBlockSize = be16toh(rs4Cmsk->iv_size);
-                                rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4Cmsk);
-
-                                if (rc)
-                                {
-                                    fprintf(stderr, "rs4Cmsk decompress error %d\n", rc);
-                                    exit(EXIT_FAILURE);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            ringSuffix = ' ';
-                            rs4ForDisplay = rs4;
-                            rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4);
-
-                            if (rc)
-                            {
-                                fprintf(stderr, "rs4 decompress error %d\n", rc);
-                                exit(EXIT_FAILURE);
-                            }
-                        }
-
-                        comprRate = (double)ringSize / (double)bits * 100.0;
-
-                        // tabular ring list if "table".
-                        if (i_listingModeId == LMID_TABLE)
-                        {
-                            fprintf(stdout,
-                                    "%4i%c   "
-                                    "0x%02x   "
-                                    "%4s   "
-                                    "0x%02x   "
-                                    "%7d  "
-                                    "%6.2f   "
-                                    "%s\n",
-                                    ringSeqNo, ringSuffix, ddLevel,
-                                    ringVariantName[ringVariant], instanceId,
-                                    bits, comprRate, ringName);
-                        }
-
-                        // Summarize a few key characteristics of the ring block if "short".
-                        if (i_listingModeId == LMID_SHORT)
-                        {
-                            fprintf( stdout,
-                                     "-----------------------------\n"
-                                     "%i.%c\n"
-                                     "ddLevel = 0x%02x\n"
-                                     "ringName = %s\n"
-                                     "ringVariant = %s\n"
-                                     "instanceId = 0x%02x\n",
-                                     ringSeqNo, ringSuffix, ddLevel, ringName,
-                                     ringVariantName[ringVariant], instanceId );
-                        }
-
-                        // Summarize all characteristics of the ring block if "normal", "long" or "raw"
-                        if (i_listingModeId == LMID_NORMAL ||
-                            i_listingModeId == LMID_LONG ||
-                            i_listingModeId == LMID_RAW)
-                        {
-                            fprintf( stdout,
-                                     "-----------------------------\n"
-                                     "%i.%c\n"
-                                     "ddLevel = 0x%02x\n"
-                                     "ringId = %u\n"
-                                     "ringName = %s\n"
-                                     "ringVariant = %s\n"
-                                     "instanceId = 0x%02x\n"
-                                     "ringBlockSize = 0x%08x\n"
-                                     "raw bit length = %d\n"
-                                     "compression [%%] = %6.2f\n",
-                                     ringSeqNo, ringSuffix, ddLevel, ringId, ringName,
-                                     ringVariantName[ringVariant], instanceId,
-                                     ringBlockSize, bits, comprRate);
-                        }
-
-                        // Dump ring block if "long" or "raw"
-                        if (i_listingModeId == LMID_LONG ||
-                            i_listingModeId == LMID_RAW)
-                        {
-                            fprintf(stdout, "Binary ring block dump (LE format):\n");
-
-                            // Output 8 bytes per line (in 2 byte chunks)
-                            for (i = 0; i < ringBlockSize / 8; i++)
-                            {
-                                fprintf( stdout,
-                                         "%04x: %04x %04x %04x %04x\n",
-                                         i * 8,
-                                         (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 48),
-                                         (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 32),
-                                         (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 16),
-                                         (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i))) );
-                            }
-
-                            // Output rem above 8 bytes (in 2 byte chunks, 1 byte resolution)
-                            uint8_t l_rem = ringBlockSize - ringBlockSize / 8 * 8;
-
-                            if (l_rem)
-                            {
-                                fprintf( stdout, "%04x:", i * 8);
-
-                                for (uint8_t ii = 0; ii < l_rem; ii++)
-                                {
-                                    if ( (ii - ii / 2 * 2) == 0 )
-                                    {
-                                        fprintf( stdout, " ");
-                                    }
-
-                                    fprintf( stdout, "%02x",
-                                             (uint8_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> (56 - ii * 8)) );
-                                }
-                            }
-
-                            fprintf( stdout, "\n");
-                        }
-
-                        // Below we dump the raw decompressed ring content in the exact same
-                        //   format that it appears as in EKB's ifCompiler generated raw ring
-                        //   files, i.e. *.bin.srd (DATA) and *.bin.srd.bitsModified (CARE).
-                        if (i_listingModeId == LMID_RAW)
-                        {
-                            fprintf( stdout, "\nRaw decompressed DATA nibbles:\n");
-                            print_raw_ring( data, bits);
-
-                            fprintf( stdout, "\nRaw decompressed CARE nibbles:\n");
-                            print_raw_ring( care, bits);
-
-                            fprintf( stdout, "\n");
-                        }
-
-                    }
-                    while (cmskRingIteration);
-
-                    if (instanceId != instanceInputId)
-                    {
-                        break;
-                    }
                 }
-                else if ( rc == TOR_RING_IS_EMPTY        ||
-                          rc == TOR_RING_HAS_NO_TOR_SLOT ||
-                          rc == TOR_INVALID_INSTANCE_ID  ||
-                          rc == TOR_INVALID_CHIPLET_TYPE ||
-                          rc == TOR_INVALID_VARIANT      ||
-                          rc == TOR_AMBIGUOUS_API_PARMS  ||
-                          rc == TOR_INVALID_RING_ID )
+
+                // Check ring block size.
+                ringSize = be16toh(rs4->iv_size);
+
+                if ( ringSize != ringBlockSize || ringSize == 0 )
                 {
-                    // All these errors are acceptable in the context of ipl_image_tool dissect.
-                    rc = INFRASTRUCT_RC_SUCCESS;
-                }
-                else
-                {
-                    fprintf(stderr, "CODE BUG: tor_access_ring() returned invalid error code rc=%d\n", rc);
+                    fprintf(stderr, "tor_access_ring() was successful and found a ring. But"
+                            " RS4 header size(=0x%04x) is either zero or doesn't match"
+                            " size of ring buffer (ringBlockSize=0x%04x).\n",
+                            ringSize, ringBlockSize);
                     operator delete(ringBlockPtr);
                     operator delete(dataBuf);
                     operator delete(careBuf);
@@ -2319,11 +2096,213 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                     exit(EXIT_FAILURE);
                 }
 
-            }  // End of for(instanceId)
+                ringSeqNo++;
 
-        }  // End of for(ringId)
+                // This do-while loop is for cmsk support to display
+                // both rs4 stump ring and rs4 cmsk ring else this
+                // loop would run only once
+                cmskRingIteration = 0;
 
-    }  // End of for(ringVariant)
+                do
+                {
+                    data = (uint8_t*)dataBuf;
+                    care = (uint8_t*)careBuf;
+
+                    // decompress ring to obtain ring length and to verify compressed string
+                    // check for cmsk ring
+                    if (rs4_is_cmsk(rs4))
+                    {
+                        if (!cmskRingIteration)
+                        {
+                            // Extract Stump & Cmsk rings from hybrid RS4 ring. Then
+                            // decompress each to get ring length and trace out
+                            rs4Stump = (CompressedScanData*)rs4StumpBuf;
+                            rs4Cmsk  = (CompressedScanData*)rs4CmskBuf;
+                            rc = _rs4_extract_cmsk(rs4, maxRingBufSize, rs4Stump, rs4Cmsk);
+
+                            if (rc)
+                            {
+                                fprintf(stderr, "CMSK extract error %d\n", rc);
+                                exit(EXIT_FAILURE);
+                            }
+
+                            cmskRingIteration++;
+                            ringSuffix = 's';
+                            rs4ForDisplay = rs4Stump;    //For 'raw' & 'long' display
+                            ringBlockSize = be16toh(rs4Stump->iv_size);
+                            rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4Stump);
+
+                            if (rc)
+                            {
+                                fprintf(stderr, "rs4Stump decompress error %d\n", rc);
+                                exit(EXIT_FAILURE);
+                            }
+                        }
+                        else
+                        {
+                            cmskRingIteration--;
+                            ringSuffix = 'c';
+                            rs4ForDisplay = rs4Cmsk;    //For 'raw' & 'long' display
+                            ringBlockSize = be16toh(rs4Cmsk->iv_size);
+                            rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4Cmsk);
+
+                            if (rc)
+                            {
+                                fprintf(stderr, "rs4Cmsk decompress error %d\n", rc);
+                                exit(EXIT_FAILURE);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ringSuffix = ' ';
+                        rs4ForDisplay = rs4;
+                        rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4);
+
+                        if (rc)
+                        {
+                            fprintf(stderr, "rs4 decompress error %d\n", rc);
+                            exit(EXIT_FAILURE);
+                        }
+                    }
+
+                    comprRate = (double)ringSize / (double)bits * 100.0;
+
+                    // tabular ring list if "table".
+                    if (i_listingModeId == LMID_TABLE)
+                    {
+                        fprintf(stdout,
+                                "%4i%c   "
+                                "0x%02x   "
+                                "0x%02x   "
+                                "%7d  "
+                                "%6.2f   "
+                                "%s\n",
+                                ringSeqNo, ringSuffix, ddLevel,
+                                instanceId,
+                                bits, comprRate, ringName);
+                    }
+
+                    // Summarize a few key characteristics of the ring block if "short".
+                    if (i_listingModeId == LMID_SHORT)
+                    {
+                        fprintf( stdout,
+                                 "-----------------------------\n"
+                                 "%i.%c\n"
+                                 "ddLevel = 0x%02x\n"
+                                 "ringName = %s\n"
+                                 "instanceId = 0x%02x\n",
+                                 ringSeqNo, ringSuffix, ddLevel, ringName,
+                                 instanceId );
+                    }
+
+                    // Summarize all characteristics of the ring block if "normal", "long" or "raw"
+                    if (i_listingModeId == LMID_NORMAL ||
+                        i_listingModeId == LMID_LONG ||
+                        i_listingModeId == LMID_RAW)
+                    {
+                        fprintf( stdout,
+                                 "-----------------------------\n"
+                                 "%i.%c\n"
+                                 "ddLevel = 0x%02x\n"
+                                 "ringId = %u\n"
+                                 "ringName = %s\n"
+                                 "instanceId = 0x%02x\n"
+                                 "ringBlockSize = 0x%08x\n"
+                                 "raw bit length = %d\n"
+                                 "compression [%%] = %6.2f\n",
+                                 ringSeqNo, ringSuffix, ddLevel, ringId, ringName,
+                                 instanceId,
+                                 ringBlockSize, bits, comprRate);
+                    }
+
+                    // Dump ring block if "long" or "raw"
+                    if (i_listingModeId == LMID_LONG ||
+                        i_listingModeId == LMID_RAW)
+                    {
+                        fprintf(stdout, "Binary ring block dump (LE format):\n");
+
+                        // Output 8 bytes per line (in 2 byte chunks)
+                        for (i = 0; i < ringBlockSize / 8; i++)
+                        {
+                            fprintf( stdout,
+                                     "%04x: %04x %04x %04x %04x\n",
+                                     i * 8,
+                                     (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 48),
+                                     (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 32),
+                                     (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 16),
+                                     (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i))) );
+                        }
+
+                        // Output rem above 8 bytes (in 2 byte chunks, 1 byte resolution)
+                        uint8_t l_rem = ringBlockSize - ringBlockSize / 8 * 8;
+
+                        if (l_rem)
+                        {
+                            fprintf( stdout, "%04x:", i * 8);
+
+                            for (uint8_t ii = 0; ii < l_rem; ii++)
+                            {
+                                if ( (ii - ii / 2 * 2) == 0 )
+                                {
+                                    fprintf( stdout, " ");
+                                }
+
+                                fprintf( stdout, "%02x",
+                                         (uint8_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> (56 - ii * 8)) );
+                            }
+                        }
+
+                        fprintf( stdout, "\n");
+                    }
+
+                    // Below we dump the raw decompressed ring content in the exact same
+                    //   format that it appears as in EKB's ifCompiler generated raw ring
+                    //   files, i.e. *.bin.srd (DATA) and *.bin.srd.bitsModified (CARE).
+                    if (i_listingModeId == LMID_RAW)
+                    {
+                        fprintf( stdout, "\nRaw decompressed DATA nibbles:\n");
+                        print_raw_ring( data, bits);
+
+                        fprintf( stdout, "\nRaw decompressed CARE nibbles:\n");
+                        print_raw_ring( care, bits);
+
+                        fprintf( stdout, "\n");
+                    }
+
+                }
+                while (cmskRingIteration);
+
+                if (instanceId != instanceInputId)
+                {
+                    break;
+                }
+            }
+            else if ( rc == TOR_RING_IS_EMPTY        ||
+                      rc == TOR_RING_HAS_NO_TOR_SLOT ||
+                      rc == TOR_INVALID_INSTANCE_ID  ||
+                      rc == TOR_INVALID_CHIPLET_TYPE ||
+                      rc == TOR_INVALID_VARIANT      ||
+                      rc == TOR_AMBIGUOUS_API_PARMS  ||
+                      rc == TOR_INVALID_RING_ID )
+            {
+                // All these errors are acceptable in the context of ipl_image_tool dissect.
+                rc = INFRASTRUCT_RC_SUCCESS;
+            }
+            else
+            {
+                fprintf(stderr, "CODE BUG: tor_access_ring() returned invalid error code rc=%d\n", rc);
+                operator delete(ringBlockPtr);
+                operator delete(dataBuf);
+                operator delete(careBuf);
+                operator delete(rs4StumpBuf);
+                operator delete(rs4CmskBuf);
+                exit(EXIT_FAILURE);
+            }
+
+        }  // End of for(instanceId)
+
+    }  // End of for(ringId)
 
     if( bRingsFound == false )
     {
