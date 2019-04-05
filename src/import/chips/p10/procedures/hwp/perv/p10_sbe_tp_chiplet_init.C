@@ -44,6 +44,7 @@
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 #include <p10_perv_sbe_cmn.H>
+#include <p10_hang_pulse_mc_setup_tables.H>
 #include <target_filters.H>
 
 enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
@@ -73,7 +74,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint64_t> l_data64;
-    uint32_t base_address = 0x000D0070;
+    const uint32_t BASE_ADDRESS = 0x000D0070;
     uint8_t pre_divider;
     uint32_t l_attr_pau_freq_mhz;
     int l_timeout = 0;
@@ -137,7 +138,8 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_DBG("Setup constant freq hangpulses");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_pau_freq_mhz));
     pre_divider =  ((l_attr_pau_freq_mhz + 125) / 250);
-    FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, base_address, pre_divider));
+    FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, true, BASE_ADDRESS, pre_divider,
+             SETUP_HANG_PULSE_FREQ));
 
     FAPI_DBG("Start  calibration");
     //Setting KVREF_AND_VMEAS_MODE_STATUS_REG register value

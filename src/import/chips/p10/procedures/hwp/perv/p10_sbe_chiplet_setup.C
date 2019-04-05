@@ -26,7 +26,7 @@
 /// @file  p10_sbe_chiplet_setup.C
 ///
 /// @brief Steps:-
-///     1) Identify Partical good chiplet and configure Multicasting register
+///     1) Identify Partial good chiplet and configure Multicasting register
 ///     2) Configure hang pulse counter for Nest/MC/PCIe/PAU/AXON/CQ
 //------------------------------------------------------------------------------
 // *HWP HW Maintainer   : Anusha Reddy (anusrang@in.ibm.com)
@@ -42,6 +42,7 @@
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 #include <multicast_group_defs.H>
+#include <p10_hang_pulse_mc_setup_tables.H>
 
 fapi2::ReturnCode p10_sbe_chiplet_setup_net_ctrl_setup(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target);
@@ -51,37 +52,46 @@ fapi2::ReturnCode p10_sbe_chiplet_setup(const
 {
 
     fapi2::buffer<uint64_t> l_data64;
-    uint32_t base_address = 0x000F0020;
-    uint8_t pre_divider = 0x1;
 
-    auto l_perv_func = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
-                           static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_EQ |
-                                   fapi2::TARGET_FILTER_ALL_MC  |  fapi2::TARGET_FILTER_ALL_NEST |
-                                   fapi2::TARGET_FILTER_ALL_PAU |  fapi2::TARGET_FILTER_ALL_PCI  |
-                                   fapi2::TARGET_FILTER_ALL_IOHS), fapi2::TARGET_STATE_FUNCTIONAL);
+    const uint8_t PRE_DIVIDER = 0x1;
+
+    auto l_n0       = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_NEST_NORTH,
+                      fapi2::TARGET_STATE_PRESENT)[0];
+    auto l_n1       = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_NEST_SOUTH,
+                      fapi2::TARGET_STATE_PRESENT)[0];
 
     FAPI_INF("p10_sbe_chiplet_setup: Entering ...");
 
     FAPI_DBG("Setup multicast groups for istep s3");
-    FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target_chip));
+    FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target_chip, ISTEP3_MC_GROUPS));
 
     {
 
         auto l_mc_all = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
+        auto l_mc_mctrl = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_MC);
+        auto l_mc_pau   = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PAU);
+        auto l_mc_iohs  = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_IOHS);
+        auto l_mc_pci   = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PCI);
+        auto l_mc_eq    = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
 
         FAPI_DBG("Restore NET_CTRL0&1 init value - for all chiplets except TP");
         FAPI_TRY(p10_sbe_chiplet_setup_net_ctrl_setup(l_mc_all));
-    }
 
-    // Setup hang counters - for N0, N1, PCI, MC, PAU, AXON, EQ
-    // TODO - SETUP_HANG_COUNTERS module to support MC target
-    // will getChipletnumber work on MC target?
-    // Using current unicast Hangpulse module
-    FAPI_DBG("Setup hangcounters");
-
-    for (auto& targ : l_perv_func)
-    {
-        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(targ, base_address, pre_divider));
+        FAPI_DBG("Setup hangcounters");
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_n0,       false, PERV_HANG_PULSE_0_REG,
+                 PRE_DIVIDER, SETUP_HANG_COUNTERS_N0));
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_n1,       false, PERV_HANG_PULSE_0_REG,
+                 PRE_DIVIDER, SETUP_HANG_COUNTERS_N1));
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_pci,   false, PERV_HANG_PULSE_0_REG,
+                 PRE_DIVIDER, SETUP_HANG_COUNTERS_PCI));
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_mctrl, false, PERV_HANG_PULSE_0_REG,
+                 PRE_DIVIDER, SETUP_HANG_COUNTERS_MC));
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_pau,   false, PERV_HANG_PULSE_0_REG,
+                 PRE_DIVIDER, SETUP_HANG_COUNTERS_PAU));
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_iohs,  false, PERV_HANG_PULSE_0_REG,
+                 PRE_DIVIDER, SETUP_HANG_COUNTERS_IOHS));
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_eq,    false, PERV_HANG_PULSE_0_REG,
+                 PRE_DIVIDER, SETUP_HANG_COUNTERS_EQ));
     }
 
     FAPI_INF("p10_sbe_chiplet_setup: Exiting ...");

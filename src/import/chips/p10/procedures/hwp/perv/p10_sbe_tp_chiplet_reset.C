@@ -38,6 +38,7 @@
 #include <p9n2_perv_scom_addresses_fld.H>
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
+#include <p10_hang_pulse_mc_setup_tables.H>
 
 enum P10_SBE_TP_CHIPLET_RESET_Private_Constants
 {
@@ -49,8 +50,8 @@ enum P10_SBE_TP_CHIPLET_RESET_Private_Constants
 fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    uint32_t base_address = 0x000F0020;
-    uint8_t pre_divider = 0x1;
+    const uint32_t BASE_ADDRESS = 0x000F0020;
+    const uint8_t PRE_DIVIDER = 0x1;
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64;
     fapi2::buffer<uint32_t> l_read_attr_pg;
@@ -82,7 +83,8 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SCOM, l_data64));
 
     FAPI_DBG("Setup hang counters for Perv chiplet");
-    FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, base_address, pre_divider));
+    FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, false, BASE_ADDRESS, PRE_DIVIDER,
+             SETUP_HANG_COUNTERS_PERV));
 
     FAPI_INF("p10_sbe_tp_chiplet_reset: Exiting ...");
 
