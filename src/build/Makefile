@@ -210,6 +210,7 @@ add_LoaderAddr:
 endif
 
 tar:
+	@cp -f $(P9_XIP_TOOL) $(IMG_DIR)/
 	@cp $(IMG_DIR)/$(SBE_STRINGFILE_NAME) $(IMG_DIR)/sbeStringFile || true
 	@echo "Installing simics.tar"
 	@rm -rf $(TAR_OBJDIR)
@@ -304,13 +305,12 @@ $(SBE_IPL_TOOLS): $(P9_XIP_TOOL)
 .NOTPARALLEL: $(P9_XIP_TOOL)
 $(P9_XIP_TOOL):
 	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile BINDIR=$(P9_XIP_BINDIR) CXX_FLAGS=-D__PPE__=1
-	cp -f $(P9_XIP_TOOL) $(IMG_DIR)/
 
 normalize:
 	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin normalize
 
 compress: $(IMG_DIR)/$(IMAGE_NAME).bin
-	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin
+	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin -p $(P9_XIP_TOOL)
 
 defaultset:
 	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p9_sbe_attributes.xml $(ATTRFILES)
