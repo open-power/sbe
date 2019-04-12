@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_putmemproc.H $   */
+/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_getmemproc.H $   */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,18 +22,17 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-
 ///
-/// @file p10_putmemproc.H
-/// @brief Invoke ADU putmem chipop.
+/// @file p10_getmemproc.H
+/// @brief Invoke ADU getmem chip-op
 ///
 /// *HWP HW Maintainer: Thi Tran <thi@us.ibm.com>
 /// *HWP FW Maintainer: Ilya Smirnov <ismirno@us.ibm.com>
 /// *HWP Consumed by: HB
 ///
 
-#ifndef _P10_PUTMEMPROC_H_
-#define _P10_PUTMEMPROC_H_
+#ifndef _P10_GETMEMPROC_H_
+#define _P10_GETMEMPROC_H_
 
 //------------------------------------------------------------------------------
 // Includes
@@ -44,7 +43,7 @@
 // Structure definitions
 //------------------------------------------------------------------------------
 // function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode(*p10_putmemproc_FP_t) (
+typedef fapi2::ReturnCode(*p10_getmemproc_FP_t) (
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
     const uint64_t,
     const uint32_t,
@@ -59,17 +58,17 @@ typedef fapi2::ReturnCode(*p10_putmemproc_FP_t) (
 extern "C" {
 
 ///
-/// @brief Invoke ADU putmem chipop
+/// @brief Invoke ADU getmem chipop
 ///
 /// @param[in] i_target Reference to processor chip target
 /// @param[in] i_address Base address for write operation
 /// @param[in] i_bytes Size of write data, in B
-/// @param[in] i_data Pointer to write data
+/// @param[out] i_data Pointer to read data
 /// @param[in] i_mem_flags Flags to pass to chipop
 ///
 /// @return FAPI_RC_SUCCESS if success, else error code
 ///
-    fapi2::ReturnCode p10_putmemproc(
+    fapi2::ReturnCode p10_getmemproc(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         const uint32_t i_bytes,
@@ -78,4 +77,4 @@ extern "C" {
 
 } //extern "C"
 
-#endif //_P10_PUTMEMPROC_H_
+#endif //_P10_GETMEMPROC_H_

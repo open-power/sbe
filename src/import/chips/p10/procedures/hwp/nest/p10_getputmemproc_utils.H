@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_putmemproc.H $   */
+/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_getputmemproc_utils.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,60 +22,57 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+#ifndef _P10_GETPUTMEMPROC_UTILS_H_
+#define _P10_GETPUTMEMPROC_UTILS_H_
 
 ///
-/// @file p10_putmemproc.H
-/// @brief Invoke ADU putmem chipop.
+/// @file p10_getputmemproc_utils.H
+///
+/// @brief Common code to support get/putmemproc procedures.
+///        Note: This file is not intended to be imported to SBE platform
+///              to save its space.
 ///
 /// *HWP HW Maintainer: Thi Tran <thi@us.ibm.com>
-/// *HWP FW Maintainer: Ilya Smirnov <ismirno@us.ibm.com>
-/// *HWP Consumed by: HB
+/// *HWP FW Maintainer: N/A
+/// *HWP Consumed by: Cronus, HB
 ///
-
-#ifndef _P10_PUTMEMPROC_H_
-#define _P10_PUTMEMPROC_H_
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
 #include <fapi2.H>
-
-//------------------------------------------------------------------------------
-// Structure definitions
-//------------------------------------------------------------------------------
-// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode(*p10_putmemproc_FP_t) (
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
-    const uint64_t,
-    const uint32_t,
-    uint8_t*,
-    const uint32_t);
+#include <p10_adu_utils.H>
 
 //------------------------------------------------------------------------------
 // Function prototype
 //------------------------------------------------------------------------------
-//
-
 extern "C" {
 
-///
-/// @brief Invoke ADU putmem chipop
-///
-/// @param[in] i_target Reference to processor chip target
-/// @param[in] i_address Base address for write operation
-/// @param[in] i_bytes Size of write data, in B
-/// @param[in] i_data Pointer to write data
-/// @param[in] i_mem_flags Flags to pass to chipop
-///
-/// @return FAPI_RC_SUCCESS if success, else error code
-///
-    fapi2::ReturnCode p10_putmemproc(
+/// @brief Verify input sbeMemoryAccessFlags is valid for a ADU operation.
+/// @param[in] i_target         Reference to processor chip target
+/// @param[in] i_address        Address for the read or write
+/// @param[in] i_bytes          Tsize
+/// @param[in] i_flags          SBE memory access flag value
+/// @return FAPI_RC_SUCCESS if flag is valid; otherwise, error
+    fapi2::ReturnCode p10_validateSbeMemoryAccessFlagsADU(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_address,
         const uint32_t i_bytes,
-        uint8_t* i_data,
         const uint32_t i_mem_flags);
+
+/// @brief Create ADU flags from sbeMemoryAccessFlags info
+/// @param[in] i_target         Reference to processor chip target
+/// @param[in] i_address        Address for the read or write
+/// @param[in] i_bytes          Tsize
+/// @param[in] i_flags          SBE memory access flag value
+/// @return FAPI_RC_SUCCESS if flag is valid; otherwise, error
+    fapi2::ReturnCode p10_getADUFlags(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const uint64_t i_address,
+        const uint32_t i_bytes,
+        const uint32_t i_mem_flags,
+        adu_operationFlag& o_aduFlags);
 
 } //extern "C"
 
-#endif //_P10_PUTMEMPROC_H_
+#endif //_P10_GETPUTMEMPROC_UTILS_H_

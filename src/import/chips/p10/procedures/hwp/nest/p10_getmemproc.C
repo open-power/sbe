@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_putmemproc.C $   */
+/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_getmemproc.C $   */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,10 +22,9 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-
 ///
-/// @file p10_putmemproc.C
-/// @brief Invoke ADU putmem chipop.
+/// @file p10_getmemproc.C
+/// @brief Invoke ADU getmem chip-op.
 ///
 /// *HWP HW Maintainer: Thi Tran <thi@us.ibm.com>
 /// *HWP FW Maintainer: Ilya Smirnov <ismirno@us.ibm.com>
@@ -35,7 +34,7 @@
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-#include <p10_putmemproc.H>
+#include <p10_getmemproc.H>
 #include <p10_adu_setup.H>
 #include <p10_adu_access.H>
 #include <p10_getputmemproc_utils.H>
@@ -43,13 +42,12 @@
 //------------------------------------------------------------------------------
 // Function definitions
 //------------------------------------------------------------------------------
-
 /// NOTE: doxygen in header
-fapi2::ReturnCode p10_putmemproc(
+fapi2::ReturnCode p10_getmemproc(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
     const uint64_t i_address,
     const uint32_t i_bytes,
-    uint8_t* i_data,
+    uint8_t* o_data,
     const uint32_t i_mem_flags)
 {
     adu_operationFlag l_flags;
@@ -61,20 +59,19 @@ fapi2::ReturnCode p10_putmemproc(
 
     FAPI_DBG("Start");
 
-    // Validate flags
     FAPI_TRY(p10_validateSbeMemoryAccessFlagsADU(i_target, i_address, i_bytes, i_mem_flags),
              "Error returned from p10_validateSbeMemoryAccessFlagsADU()");
 
     FAPI_TRY(p10_getADUFlags(i_target, i_address, i_bytes, i_mem_flags, l_flags),
              "Error returned from p10_getADUFlags()");
 
-    // Write data
+    // Read data
     while (l_target_address < l_end_address)
     {
         // invoke ADU setup HWP to prepare current stream of contiguous granules
         FAPI_TRY(p10_adu_setup(i_target,
                                l_target_address,
-                               false,
+                               true,  // rnw = true
                                l_flags.setFlag(),
                                l_granules_before_setup),
                  "Error from p10_adu_setup");
@@ -85,22 +82,13 @@ fapi2::ReturnCode p10_putmemproc(
 
         while (l_granules_before_setup && (l_target_address < l_end_address))
         {
-            // invoke ADU access HWP to move one granule (8B)
             uint8_t l_data[8];
             memset(l_data, 0, 8);
 
-            // Prepare data array for writing, 8 bytes at a time
-            // Depends on TSIZE, data in array needs to be right aligned.
-            uint8_t l_startIndex = l_target_address % 8;
-
-            for (uint32_t ii = 0; ii < l_flags.getTransactionSize(); ii++)
-            {
-                l_data[l_startIndex + ii] = i_data[( (l_granule * l_flags.getTransactionSize()) + ii)];
-            }
-
+            // invoke ADU access HWP to read one granule (8B)
             FAPI_TRY(p10_adu_access(i_target,
                                     l_target_address,
-                                    false,
+                                    true,  // rnw = true
                                     l_flags.setFlag(),
                                     l_first_access,
                                     (l_granules_before_setup == 1) ||
@@ -108,6 +96,15 @@ fapi2::ReturnCode p10_putmemproc(
                                      l_end_address),
                                     l_data),
                      "Error from p10_adu_access");
+
+            // Load 8-byte data into array.
+            // Depends on TSIZE, data in array needs to be right aligned.
+            uint8_t l_startIndex = l_target_address % 8;
+
+            for (uint32_t ii = 0; ii < l_flags.getTransactionSize(); ii++)
+            {
+                o_data[(l_granule * l_flags.getTransactionSize()) + ii] = l_data[l_startIndex + ii];
+            }
 
             l_first_access = false;
             l_granules_before_setup--;
