@@ -71,7 +71,7 @@ enum
     SCAN_REGION_ECL0            =   0x04000000,
     SCAN_REGION_L30             =   0x00400000,
     SCAN_REGION_MMA0            =   0x00010000,
-    CHIPLET_ID_MASK             =   0xff000000,
+    CHIPLET_MASK                =   0xff000000,
     SUPER_CHIPLET_MASK          =   0x20000000,
 };
 
@@ -840,7 +840,7 @@ fapi2::ReturnCode p10_putRingUtils(
         l_scanAddr      =   rev_32( l_rs4Header->iv_scanAddr );
         l_ringId        =   rev_16(l_rs4Header->iv_ringId);
         l_scanRegion    =   decodeScanRegionData( i_target, l_scanAddr, l_ringId );
-        l_chipletMask   =   ( l_scanAddr  & CHIPLET_ID_MASK );
+        l_chipletMask   =   ( l_scanAddr  & CHIPLET_MASK );
 
         if( SUPER_CHIPLET_MASK ==  l_chipletMask )
         {
