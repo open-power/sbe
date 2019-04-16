@@ -2123,8 +2123,8 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
                 if ( l_ringId != ringId )
                 {
-                    if ( (ringProps[l_ringId].ringClass & RCLS_ROOT_RING) !=
-                         (ringProps[ringId].ringClass & RCLS_ROOT_RING) )
+                    if ( (ringProps[l_ringId].ringClass & RMRK_ROOT) !=
+                         (ringProps[ringId].ringClass & RMRK_ROOT) )
                     {
                         fprintf(stderr, "COND in ipl_image_tool: Found a ring. But the"
                                 " requested ringId"
