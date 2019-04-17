@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -35,7 +35,7 @@
 
 
 #include "sbe_link.H"
-#include "p9_xip_image.h"
+#include "p10_ipl_image.H"
 //#include "sbe_xip_header.H"
 
 /// Macros for generating the .fixed section

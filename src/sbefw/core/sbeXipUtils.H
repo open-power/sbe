@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -24,7 +25,7 @@
 #ifndef SBE_XIP_UTILS_H
 #define SBE_XIP_UTILS_H
 
-#include "p9_xip_image.h"
+#include "p10_ipl_image.H"
 #include "ppe42_scom.h"  // for PPE_STVD
 #include "sbe_link.H"  // for SBE_BASE_ORIGIN, SBE_SEEPROM_BASE_ORIGIN
 

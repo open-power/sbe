@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -31,7 +31,7 @@ import socket
 from datetime import datetime
 
 # Update the build tag/time/data/user/host in the
-# sbe_seeprom_DD1.bin/the sbe_seeprom_DD2.bin binary image
+# sbe_seeprom_DD1.bin binary image
 def updateBuildTag(argv):
     try:
         xip_tool = argv[1]

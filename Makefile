@@ -32,10 +32,10 @@ install:
 tar:
 	$(MAKE) -C $(BUILD_DIR) tar
 
-DD2:
+DD1:
 	$(MAKE) -C $(BUILD_DIR) all
 
-all: DD2
+all: DD1
 
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean

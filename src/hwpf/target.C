@@ -205,13 +205,13 @@ extern fapi2::ReturnCode
 
             l_tempReg.extractToRight<16, 4>(l_ndlMeshctrlSetup);
             l_ndlMeshctrlSetup = (~l_ndlMeshctrlSetup) & 0x0F;
-            FAPI_DBG("Setting up ATTR_NDL_MESHCTRL_SETUP");
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NDL_MESHCTRL_SETUP, l_chipTarget, l_ndlMeshctrlSetup));
+            //FAPI_DBG("Setting up ATTR_NDL_MESHCTRL_SETUP");
+            //FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NDL_MESHCTRL_SETUP, l_chipTarget, l_ndlMeshctrlSetup));
 
-            FAPI_DBG("Setting up ATTR_MC_PLL_BUCKET");
+            //FAPI_DBG("Setting up ATTR_MC_PLL_BUCKET");
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_MC_PLL_BUCKET, FAPI_SYSTEM, l_read1));
 
-            FAPI_DBG("Setting up ATTR_OBX_PLL_BUCKET");
+            //FAPI_DBG("Setting up ATTR_OBX_PLL_BUCKET");
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB0_PLL_BUCKET, l_chipTarget, l_ob0PllBucket));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB1_PLL_BUCKET, l_chipTarget, l_ob1PllBucket));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB2_PLL_BUCKET, l_chipTarget, l_ob2PllBucket));
@@ -235,10 +235,12 @@ extern fapi2::ReturnCode
             l_tempReg.extractToRight<3, 1>(isSpMode);
             if(!isSpMode && !SBE::isSimicsRunning())
             {
+#if 0
                 FAPI_DBG("Set up ATTR_HOSTBOOT_HRMOR_OFFSET in SPless mode");
                 uint64_t hrmor = HRMOR_FOR_SPLESS_MODE;
                 FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
                                         FAPI_SYSTEM, hrmor));
+#endif
             }
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE, l_chipTarget, isSpMode));
             l_tempReg.extractToRight<28, 4>(l_riskLvl);

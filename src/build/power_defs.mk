@@ -86,8 +86,8 @@ PROJ_LIB_DIRS += -L$(OBJDIR-ARRAYACCESS)
 #########################################################
 # mandatory defines                                     #
 #########################################################
-IMAGE_SUFFIX := DD2
-GCC-DEFS += -DDD2
+IMAGE_SUFFIX := DD1
+GCC-DEFS += -DDD1
 IMAGE_SEEPROM_NAME := sbe_seeprom_$(IMAGE_SUFFIX)
 IMAGE_SBE_NAME := sbe_pibmem_$(IMAGE_SUFFIX)
 

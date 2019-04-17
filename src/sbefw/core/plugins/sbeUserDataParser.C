@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -171,9 +171,9 @@ int parseSbeFFDC(ErrlUsrParser & i_parser, const void * i_pBuffer,
                 (uint16_t)ntohs(l_pData.secondaryStatus));
         i_parser.PrintNumber("FW Commit ID ", "0x%08X",
                 (uint32_t)ntohl(l_pData.fwCommitID));
-        if(ntohl(l_pData.ddLevel) == SBE_FFDC_DD2)
+        if(ntohl(l_pData.ddLevel) == SBE_FFDC_DD1)
         {
-            SBE_SEEPROM_BIN = "sbe_seeprom_DD2.bin";
+            SBE_SEEPROM_BIN = "sbe_seeprom_DD1.bin";
         }
         //loop through the number of fields configured
         uint32_t *data = (uint32_t *)&l_pData.dumpFields;

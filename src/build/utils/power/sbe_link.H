@@ -54,9 +54,9 @@
 #define OTPROM_CODE_SIZE (1 * OTPROM_BLOCK_SIZE)
 
 /// The link address of the P9 SBE Base image
-#define SBE_BASE_ORIGIN 0xFFFC8000
-/// SBE base image length ( 224 KB - 512 bytes for loader)
-#define SBE_BASE_LENGTH ((224 * 1024) - 512)
+#define SBE_BASE_ORIGIN 0xFFF80000
+/// SBE base image length ( 512 KB - 512 bytes for loader)
+#define SBE_BASE_LENGTH ((512 * 1024) - 512)
 
 ///This Index depends upon XIP HEADER File
 // Start offset of sectionTable in XIP header. There are 8 entries
@@ -99,7 +99,7 @@
 #define PIBMEM_ORIGIN 0
 
 /// The amount of space available in the PIBMEM, in bytes (224KB)
-#define PIBMEM_SIZE (224 * 1024)
+#define PIBMEM_SIZE (512 * 1024)
 
 /// The fixed section of Otprom
 #define OTPROM_FIXED_SIZE (OTPROM_ORIGIN + 0x340)

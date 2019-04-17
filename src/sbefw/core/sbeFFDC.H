@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -103,7 +103,7 @@ public:
         iv_sbeFFDCDataHeader.primaryStatus = SBE_PRI_OPERATION_SUCCESSFUL;
         iv_sbeFFDCDataHeader.secondaryStatus = SBE_SEC_OPERATION_SUCCESSFUL;
         iv_sbeFFDCDataHeader.fwCommitID = SBE_COMMIT_ID;
-        iv_sbeFFDCDataHeader.ddLevel = SBE_FFDC_DD2;
+        iv_sbeFFDCDataHeader.ddLevel = SBE_FFDC_DD1;
 
         //length and dumpFields will be filled up depending on the fields
         //to be sent in send APIs

@@ -23,7 +23,7 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "p9_xip_image.h"
+#include "p10_ipl_image.H"
 #include "proc_sbe_fixed.H"
 
     .macro    P9XipHeader, magic, link_address, image_size
@@ -70,8 +70,8 @@ __header_64_reserved:
         .xip_section data,                 8, empty=1
         .xip_section base,                 4
         .xip_section baseloader,           8, empty=1
-        .xip_section overrides,            8, empty=1
         .xip_section rings,                8, empty=1
+        .xip_section overrides,            8, empty=1
         .xip_section overlay,              8, empty=1
         .xip_section hbbl,                 8, empty=1
 
@@ -100,7 +100,7 @@ __build_tag:
         //////////////////////////////////////////////////////////////////////
 
 __header_version:
-        .byte P9_XIP_HEADER_VERSION
+        .byte IPL_IMAGE_HEADER_VERSION
 __toc_normalized:
         .byte 0
 __toc_sorted:
@@ -137,11 +137,7 @@ __header_string_reserved:
     .section .strings, "aS", @progbits
     .section .base, "a", @progbits
 
-    #ifdef PIBMEM_ONLY_IMAGE
-    P9XipHeader P9_XIP_MAGIC_SEEPROM, SBE_BASE_ORIGIN, _sbe_image_size
-    #else
     P9XipHeader P9_XIP_MAGIC_SEEPROM, SBE_SEEPROM_BASE_ORIGIN, _sbe_image_size
-    #endif
 
     // Create the .fixed section
     .proc_sbe_fixed_system

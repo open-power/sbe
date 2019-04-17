@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,8 +34,7 @@
 
 enum SBE_FFDC_DD_LEVEL
 {
-    SBE_FFDC_DD1 = 0,
-    SBE_FFDC_DD2 = 1
+    SBE_FFDC_DD1 = 1,
 };
 
 /* Structure indicating the contents of FFDC package

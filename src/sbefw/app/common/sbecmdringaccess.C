@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -40,6 +41,7 @@
 #include "fapi2.H"
 #include "plat_hw_access.H"
 #include "sbeglobals.H"
+#include "p10_ring_id.H"
 
 using namespace fapi2;
 
@@ -322,6 +324,7 @@ uint32_t sbePutRing(uint8_t *i_pArg)
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
+#if 0
         uint16_t ringMode = sbeToFapiRingMode(hdr.ringMode);
         bool i_applyOverride = false;
 
@@ -329,7 +332,6 @@ uint32_t sbePutRing(uint8_t *i_pArg)
         {
             i_applyOverride = true;
         }
-
 
 
         Target<TARGET_TYPE_PROC_CHIP> proc = plat_getChipTarget();
@@ -345,6 +347,7 @@ uint32_t sbePutRing(uint8_t *i_pArg)
             ffdc.setRc(fapiRc);
             break;
         }
+#endif
     }while(false);
 
     // Now build and enqueue response into downstream FIFO

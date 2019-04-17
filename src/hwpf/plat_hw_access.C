@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,12 +27,12 @@
 #include "hw_access.H"
 #include "plat_hw_access.H"
 #include "p9_perv_scom_addresses.H"
-#include <p9_putRingUtils.H>
+//#include <p9_putRingUtils.H>
 
 namespace fapi2
 {
 
-struct restoreOpcgRegisters g_opcgData;
+//struct restoreOpcgRegisters g_opcgData;
 
 uint64_t decodeScanRegionData(const uint32_t i_ringAddress)
 {
@@ -56,6 +56,7 @@ ReturnCode getRing_setup(const uint32_t i_ringAddress,
                              const RingMode i_ringMode)
 {
     fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
+#if 0
     uint64_t l_scanRegion = 0;
     uint32_t l_chipletId = i_ringAddress >> 24;
 
@@ -99,7 +100,7 @@ ReturnCode getRing_setup(const uint32_t i_ringAddress,
         }
 
     }while(0);
-
+#endif
     return l_rc;
 }
 
@@ -107,6 +108,7 @@ ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
                                     const RingMode i_ringMode)
 {
     fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
+#if 0
     uint32_t l_chipletId = i_ringAddress >> 24;
 
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc;
@@ -136,7 +138,7 @@ ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
         }
 
     }while(0);
-
+#endif
     return l_rc;
 }
 

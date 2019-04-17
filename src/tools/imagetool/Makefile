@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/tools/iplbuild/Makefile $
+# $Source: src/tools/imagetool/Makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2019
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +21,6 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-############################################################################
-
 # Makefile for image tools
 # works on X86 Linux hosts.
 
@@ -43,21 +40,21 @@ CXX  = g++
 
 export VPATH = $(IMAGEPROCS_COMMON_SRCDIR):$(IMAGEPROCS_P10_SRCDIR):$(IMAGEPROCS_TOOL_DIR)
 export INCLUDES = -I$(IMAGEPROCS_COMMON_SRCDIR) \
-				  -I$(IMAGEPROCS_P9_SRCDIR) \
 				  -I$(IMAGEPROCS_P10_SRCDIR) \
+				  -I$(IMAGEPROCS_P9_SRCDIR) \
 				  -I$(IMAGEPROCS_TOOL_DIR)
 .PHONY : all utilities clean
 
 OBJS = $(P10_IMAGE_TOOL_BINDIR)/p10_ipl_image.o  \
-	   $(BASE_OBJDIR)/tools/iplbuild/ipl_build.o \
-	   $(BASE_OBJDIR)/tools/iplbuild/p10_ddco.o \
+       $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool.o \
+	   $(P10_IMAGE_TOOL_BINDIR)/p10_ddco.o
 
 all:objdir utilities
 
 objdir:
-	mkdir -p $(BASE_OBJDIR)/tools/iplbuild
+	mkdir -p $(P10_IMAGE_TOOL_BINDIR)
 
-utilities: $(IMG_DIR)/ipl_build
+utilities: $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool
 
 CXXFLAGS = -DFAPI2_NO_FFDC -D__PPE__
 
@@ -67,15 +64,9 @@ $(P10_IMAGE_TOOL_BINDIR)/%.o: $(IMAGEPROCS_TOOL_DIR)/%.C
 $(P10_IMAGE_TOOL_BINDIR)/%.o: $(IMAGEPROCS_P10_SRCDIR)/%.C
 	$(CXX) $(INCLUDES) $(DEFS) $(CXXFLAGS) -c -o $@ $<
 
-$(BASE_OBJDIR)/tools/iplbuild/%.o: $(IMAGEPROCS_P9_SRCDIR)/%.c
-	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
-
-$(BASE_OBJDIR)/tools/iplbuild/%.o: %.C
-	$(CXX) $(INCLUDES) $(DEFS) $(CXXFLAGS) -c -o $@ $<
-
-$(IMG_DIR)/ipl_build: $(OBJS)
+$(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool: $(OBJS)
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
 
 clean:
-	rm -rf $(BASE_OBJDIR)/tools/iplbuild
-	rm -f $(IMG_DIR)/ipl_build
+	rm -rf $(P10_IMAGE_TOOL_BINDIR)
+	rm -f $(IMG_DIR)/ipl_image_tool

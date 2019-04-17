@@ -25,7 +25,7 @@
 
 #include <plat_ring_traverse.H>
 
-#include <p9_putRingUtils.H> // for RS4 decompression utilities
+//#include <p9_putRingUtils.H> // for RS4 decompression utilities
 #include <sbeXipUtils.H>
 #include <fapi2_attribute_service.H> // for FAPI_ATTR_GET
 #include <plat_target_utils.H> // for plat_getChipTarget
@@ -56,8 +56,8 @@ fapi2::ReturnCode findRS4InImageAndApply(
     SBE_TRACE(">> findRS4InImageAndApply");
 
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
+#if 0
     bool l_applyOverride = false;
-
     do
     {
         //Apply scanring from .ring section
@@ -117,10 +117,11 @@ fapi2::ReturnCode findRS4InImageAndApply(
                                   i_ringMode);
     }
     while(0);
-
+#endif
     return l_rc;
 }
 
+#if 0
 fapi2::ReturnCode getRS4ImageFromTor(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
     const RingId_t i_ringID,
@@ -526,4 +527,4 @@ fapi2::ReturnCode getRS4ImageFromTor(
     SBE_TRACE("<< findRS4InImageAndApply Exit for ringId %d", i_ringID);
     return l_rc;
 }
-
+#endif

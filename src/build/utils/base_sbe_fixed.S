@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -25,7 +25,7 @@
 /// \file sbefixed.S
 /// \brief code to generated fixed section in pibmem image
 ///
-#include "p9_xip_image.h"
+#include "p10_ipl_image.H"
 #include "proc_sbe_fixed.H"
 
 

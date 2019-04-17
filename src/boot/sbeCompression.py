@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -166,7 +166,7 @@ def main( argv ):
       sys.exit()
 
     #Extract base from SEEPROM binary.
-    cmd2 = imagePath + "/p9_xip_tool " + imagePath + "/" + image + " extract .base " + imagePath + "/" + image + ".base"
+    cmd2 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " extract .base " + imagePath + "/" + image + ".base"
     rc = os.system(cmd2)
     if rc:
       print "Unable to extract the base from seeprom binary"
@@ -176,14 +176,14 @@ def main( argv ):
     compress(imagePath + "/" + image + ".base", imagePath + "/" + image + ".base.compressed")
 
     #Delete the base section from SEEPEOM binary.
-    cmd3 = imagePath + "/p9_xip_tool " + imagePath + "/" + image + " delete .base"
+    cmd3 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " delete .base"
     rc = os.system(cmd3)
     if rc:
       print "Unable to delete base section from seeprom binary"
       sys.exit()
 
     #Append the base section from SEEPEOM binary.
-    cmd4 = imagePath + "/p9_xip_tool " + imagePath +  "/" + image + " append .base " + imagePath + "/" + image + ".base.compressed"
+    cmd4 = imagePath + "/ipl_image_tool " + imagePath +  "/" + image + " append .base " + imagePath + "/" + image + ".base.compressed"
     rc = os.system(cmd4)
     if rc:
       print "Unable to append the base section"

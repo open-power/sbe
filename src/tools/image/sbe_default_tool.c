@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,7 +41,7 @@
 
 #define __PPE__
 #include "proc_sbe_fixed.H"
-#include "p9_xip_image.h"
+#include "p10_ipl_image.H"
 
 const char* g_usage =
 "Usage: sbe_default_tool <image> <attribute> <value> <target type> <index>\n"

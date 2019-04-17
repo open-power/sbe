@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -65,13 +65,16 @@ utilities: $(IMG_DIR)/sbe_default_tool
 
 CXXFLAGS+=-DFAPI2_NO_FFDC
 
+$(BASE_OBJDIR)/tools/image/%.o: $(IMAGEPROCS_P10_SRCDIR)/%.C
+	$(CXX) $(INCLUDES) $(DEFS) $(CXXFLAGS) -c -o $@ $<
+
 $(BASE_OBJDIR)/tools/image/%.o: $(IMAGEPROCS_P9_SRCDIR)/%.c
-	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(INCLUDES) $(DEFS) $(CXXFLAGS) -c -o $@ $<
 
 $(BASE_OBJDIR)/tools/image/%.o: %.c
-	$(CXX) $(INCLUDES) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(INCLUDES) $(DEFS) $(CXXFLAGS) -c -o $@ $<
 
-$(IMG_DIR)/sbe_default_tool: $(P9_XIP_BINDIR)/p9_xip_image.o $(BASE_OBJDIR)/tools/image/sbe_default_tool.o $(BASE_OBJDIR)/tools/image/p9_dd_container.o
+$(IMG_DIR)/sbe_default_tool: $(BASE_OBJDIR)/tools/image/p10_ipl_image.o $(BASE_OBJDIR)/tools/image/sbe_default_tool.o $(BASE_OBJDIR)/tools/image/p10_ddco.o
 	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
 
 clean:

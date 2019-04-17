@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -26,8 +26,8 @@
 #ifndef _PLAT_RING_TRAVERSE_H_
 #define _PLAT_RING_TRAVERSE_H_
 
-#include <p9_putRingUtils.H> // for RS4 decompression utilities
-
+//#include <p9_putRingUtils.H> // for RS4 decompression utilities
+#include <fapi2.H>
 /// @brief This structure represents the layout of the Section-TOR
 ///        Section-TOR has the offsets to the different chiplet's
 ///        Common Ring section and Instance Ring section
@@ -105,6 +105,7 @@ fapi2::ReturnCode findRS4InImageAndApply(
 /// @param i_applyOverride override is enabled or not
 /// @return FAPI2_RC_SUCCESS on success, else error code.
 ///
+#if 0
 fapi2::ReturnCode getRS4ImageFromTor(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
     const RingId_t i_ringID,
@@ -112,4 +113,5 @@ fapi2::ReturnCode getRS4ImageFromTor(
     bool i_applyOverride,
     const uint32_t i_sectionOffset,
     const fapi2::RingMode i_ringMode);
+#endif
 #endif

@@ -106,7 +106,7 @@ include $(HWPERR_SRCDIR)/hwpErrors.mk
 SUBDIRS += $(UTILS_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/utils
 UTILSLIB := $(OBJDIR)/utils/libutils.a
-LLIBS += -lutils
+#LLIBS += -lutils
 
 SUBDIRS += $(PROJ_SUBDIRS)
 LIB_DIRS += $(PROJ_LIB_DIRS)
@@ -138,7 +138,7 @@ SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/sbeFFDCType.H
 SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
 SBE_IPL_TOOLS := $(IMG_DIR)/ipl_build
 
-P9_XIP_TOOL := $(P9_XIP_BINDIR)/p9_xip_tool
+IPL_IMAGE_TOOL := $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool
 
 LINK_OBJS = $(OBJS)
 
@@ -156,7 +156,7 @@ IN_LINK_SCRIPT = linkseeprom.cmd
 OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
 endif
 
-pre_sbe_image: xml ppe_trace_bin buildInfo linker_seeprom $(SBE_TOOLS) $(SBE_IPL_TOOLS) $(P9_XIP_TOOL) security
+pre_sbe_image: xml ppe_trace_bin buildInfo linker_seeprom $(SBE_TOOLS) $(SBE_IPL_TOOLS) $(IPL_IMAGE_TOOL) security
 build_sbe_image: $(SUBDIRS) $(SEEPROM_SUBDIRS)
 
 output_sbe_image:
@@ -188,9 +188,9 @@ all:
 	$(MAKE) report
 
 add_LoaderAddr:
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __l1Loader | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L2_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __pk_boot | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __l1Loader | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L2_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 endif
 
 ifeq ($(img), pibmem)
@@ -206,7 +206,7 @@ all:
 	$(MAKE) report
 
 add_LoaderAddr:
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __vectors | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __vectors | cut -f 1 -d " "`
 endif
 
 tar:
@@ -238,15 +238,15 @@ symbols:
 	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
 endif
 
-report: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin report > $(IMG_DIR)/$(IMAGE_NAME).rpt
+report: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin report > $(IMG_DIR)/$(IMAGE_NAME).rpt
 
 # Create build Info file
 buildInfo:
 	python buildInfo.py $(GENFILES_DIR)
 
 buildtag:
-	./updateBuildTag.py $(P9_XIP_TOOL) $(IMG_DIR) $(IMAGE_NAME)
+	./updateBuildTag.py $(IPL_IMAGE_TOOL) $(IMG_DIR) $(IMAGE_NAME)
 
 
 #Create an obj directory if needed
@@ -292,23 +292,24 @@ $(SEEPROM_SUBDIRS): ppe_trace_bin
 	$(C1)$(MAKE) -I $(INCLUDES) -C $(subst targetseeprom_,, $@) -f Makefile img_mem=seeprom
 
 #Build the SBE XIP Tools
-$(SBE_TOOLS): $(P9_XIP_TOOL)
+$(SBE_TOOLS): $(IPL_IMAGE_TOOL)
 	$(MAKE) -I $(INCLUDES) -C $(TOOLS_IMAGE_DIR) -f Makefile
 
 #Build the IPL Build Tools
-$(SBE_IPL_TOOLS): $(P9_XIP_TOOL)
-	$(MAKE) -I $(INCLUDES) -C $(IPL_BUILD_DIR) -f Makefile
+$(SBE_IPL_TOOLS): $(IPL_IMAGE_TOOL)
+	$(MAKE) -I $(INCLUDES) -C $(IPL_BUILD_DIR) -f Makefile CXX_FLAGS=-D__PPE__=1
 
 # Build the P9-XIP Tool
 # .PARALLEL = Forces Parallel
 # .NOTPARALLEL = forces serial execution of makefile target..
-.NOTPARALLEL: $(P9_XIP_TOOL)
-$(P9_XIP_TOOL):
-	$(MAKE) -I $(P9_XIP_SRCDIR) -C $(P9_XIP_SRCDIR) -f Makefile BINDIR=$(P9_XIP_BINDIR) CXX_FLAGS=-D__PPE__=1
-	cp -f $(P9_XIP_TOOL) $(IMG_DIR)/
+#.NOTPARALLEL: $(IPL_IMAGE_TOOL)
+$(IPL_IMAGE_TOOL):
+	$(MAKE) -I $(INCLUDES) -C $(IPL_IMAGE_BUILD_DIR) -f Makefile BINDIR=$(P10_IPL_IMAGE_BINDIR) CXX_FLAGS=-D__PPE__=1
+#$(MAKE) -I $(IMAGEPROCS_TOOL_DIR) -C $(IPL_IMAGE_BUILD_DIR) -f Makefile BINDIR=$(P10_IPL_IMAGE_BINDIR) CXX_FLAGS=-D__PPE__=1
+	cp -f $(IPL_IMAGE_TOOL) $(IMG_DIR)/
 
 normalize:
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin normalize
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin normalize
 
 compress: $(IMG_DIR)/$(IMAGE_NAME).bin
 	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin
@@ -334,11 +335,11 @@ xml: $(FAPI_RC)
 $(FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
 	$(IMPORT_TOOLS_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=$(GENFILES_DIR) $(ERROR_XML_FILES)
 
-$(IMG_DIR)/fixed.bin: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin extract .fixed $(IMG_DIR)/fixed.bin
+$(IMG_DIR)/fixed.bin: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin extract .fixed $(IMG_DIR)/fixed.bin
 
 appendloader:
-	$(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
 
 # collect all of the trace hash files for this image into a single sbeStringFile
 tracehash:
