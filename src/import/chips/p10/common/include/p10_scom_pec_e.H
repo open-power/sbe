@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/common/include/p10_scom_pec.H $          */
+/* $Source: src/import/chips/p10/common/include/p10_scom_pec_e.H $        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -25,24 +25,35 @@
 
 #include "proc_scomt.H"
 
-#ifndef __p10_scom_pec_H_
-#define __p10_scom_pec_H_
+#ifndef __p10_scom_pec_e_H_
+#define __p10_scom_pec_e_H_
 
-#include "p10_scom_pec_0.H"
-#include "p10_scom_pec_1.H"
-#include "p10_scom_pec_2.H"
-#include "p10_scom_pec_3.H"
-#include "p10_scom_pec_4.H"
-#include "p10_scom_pec_5.H"
-#include "p10_scom_pec_6.H"
-#include "p10_scom_pec_7.H"
-#include "p10_scom_pec_8.H"
-#include "p10_scom_pec_9.H"
-#include "p10_scom_pec_a.H"
-#include "p10_scom_pec_b.H"
-#include "p10_scom_pec_c.H"
-#include "p10_scom_pec_d.H"
-#include "p10_scom_pec_e.H"
-#include "p10_scom_pec_f.H"
 
+namespace scomt
+{
+namespace pec
+{
+
+
+static const uint64_t SLAVE_CONFIG_REG = 0x080f001eull;
+
+static const uint32_t SLAVE_CONFIG_REG_DISABLE_PERV_THOLD_CHECK = 0;
+static const uint32_t SLAVE_CONFIG_REG_DISABLE_MALF_PULSE_GEN = 1;
+static const uint32_t SLAVE_CONFIG_REG_STOP_HANG_CNT_SYS_XSTP = 2;
+static const uint32_t SLAVE_CONFIG_REG_DISABLE_CL_ATOMIC_LOCK = 3;
+static const uint32_t SLAVE_CONFIG_REG_DISABLE_HEARTBEAT = 4;
+static const uint32_t SLAVE_CONFIG_REG_DISABLE_FORCE_TO_ZERO = 5;
+static const uint32_t SLAVE_CONFIG_REG_PM_DISABLE = 6;
+static const uint32_t SLAVE_CONFIG_REG_PM_MUX_DISABLE = 7;
+static const uint32_t SLAVE_CONFIG_REG_MASK_REG_PARITY_ERRS = 8;
+static const uint32_t SLAVE_CONFIG_REG_MASK_PCB_IF_ERRS = 9;
+static const uint32_t SLAVE_CONFIG_REG_MASK_HEARTBEAT_ERRS = 10;
+static const uint32_t SLAVE_CONFIG_REG_MASK_PCBSL_ERRS = 11;
+static const uint32_t SLAVE_CONFIG_REG_MASK_PLL_ERRS = 12;
+static const uint32_t SLAVE_CONFIG_REG_MASK_PLL_ERRS_LEN = 8;
+// pec/reg00210.H
+
+}
+}
+#include "pec/reg00210.H"
 #endif

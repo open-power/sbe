@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/common/include/p10_scom_pec.H $          */
+/* $Source: src/import/chips/p10/common/include/p10_scom_pec_4.H $        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -25,24 +25,17 @@
 
 #include "proc_scomt.H"
 
-#ifndef __p10_scom_pec_H_
-#define __p10_scom_pec_H_
+#ifndef __p10_scom_pec_4_H_
+#define __p10_scom_pec_4_H_
 
-#include "p10_scom_pec_0.H"
-#include "p10_scom_pec_1.H"
-#include "p10_scom_pec_2.H"
-#include "p10_scom_pec_3.H"
-#include "p10_scom_pec_4.H"
-#include "p10_scom_pec_5.H"
-#include "p10_scom_pec_6.H"
-#include "p10_scom_pec_7.H"
-#include "p10_scom_pec_8.H"
-#include "p10_scom_pec_9.H"
-#include "p10_scom_pec_a.H"
-#include "p10_scom_pec_b.H"
-#include "p10_scom_pec_c.H"
-#include "p10_scom_pec_d.H"
-#include "p10_scom_pec_e.H"
-#include "p10_scom_pec_f.H"
 
+namespace scomt
+{
+namespace pec
+{
+
+
+}
+}
+#include "pec/reg00200.H"
 #endif
