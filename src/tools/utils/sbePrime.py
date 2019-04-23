@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -241,7 +241,7 @@ def main():
 
     # Files to copy for sbe prime
     if ddlevel == "None":
-        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_DD2.bin"
+        PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_DD1.bin"
     else:
         PRIME_FILE_LIST  ="sbe_sp_intf.H,simics.tar,sbe_seeprom_"+ddlevel+".bin"
 
