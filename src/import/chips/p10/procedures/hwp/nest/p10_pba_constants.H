@@ -67,6 +67,10 @@ extern "C"
         // 0b01100010: XOR
         // Format corresponds to PBASLVCTL[write_tsize]
         FLAG_PBA_ATOMIC_OPTYPE = 0x0ff00000ull,
+
+        // Flag invalid bit
+        FLAG_PBA_INVALID_BIT  = 0x00000001,       // Bit 31
+
     };
 
 // TTYPE shift position

@@ -69,11 +69,12 @@ extern "C"
             enum OperationType_t
             {
                 // Note: Encodes used directly for PBASLVCTL[write_ttype]
-                DMA            = 0,
-                LCO            = 1,
-                ATOMIC         = 2,
-                INJ            = 3,
-                CI             = 4,
+                DMA               = 0,
+                LCO               = 1,
+                ATOMIC            = 2,
+                INJ               = 3,
+                CI                = 4,
+                ILLEGAL_OPER_TYPE = CI + 1, // Must be last entry.
             };
 
             enum AtomicOpType_t : std::uint8_t
@@ -87,7 +88,7 @@ extern "C"
 
             // Constructor
             inline p10_PBA_oper_flag(): iv_operType(DMA), iv_atomicOp(ADD),
-                iv_fastMode(false)
+                iv_fastMode(false), iv_flagInvalid(false)
             {
             }
 
@@ -101,6 +102,16 @@ extern "C"
             inline void setAtomicOpType(const AtomicOpType_t i_type)
             {
                 iv_atomicOp = i_type;
+
+                if ( (iv_atomicOp != ADD) &&
+                     (iv_atomicOp != AND) &&
+                     (iv_atomicOp != OR) &&
+                     (iv_atomicOp != XOR) )
+                {
+                    FAPI_ERR("Invalid Atomic Operation type (%d)", iv_atomicOp);
+                    setFlagInvalid();
+                }
+
                 return;
             }
 
@@ -124,6 +135,13 @@ extern "C"
             inline void setOperationType(const OperationType_t i_type)
             {
                 iv_operType = i_type;
+
+                if (iv_operType >= ILLEGAL_OPER_TYPE)
+                {
+                    FAPI_ERR("Invalid PBA Operation type (%d)", iv_operType);
+                    setFlagInvalid();
+                }
+
                 return;
             }
 
@@ -181,12 +199,28 @@ extern "C"
             ///
             inline void getFlag(uint32_t i_flag);
 
+            /// @brief Return flag valid status
+            /// @return true if flag is valid
+            inline bool isFlagValid()
+            {
+                return (!iv_flagInvalid);
+            }
+
         private:
+
+            /// @brief Set the flag invalid bit
+            /// @return void
+            inline void setFlagInvalid()
+            {
+                iv_flagInvalid = true;
+                return;
+            }
 
             // Class variables
             OperationType_t iv_operType;         // Operation type
             AtomicOpType_t iv_atomicOp;
             bool iv_fastMode;                    // Fast PBA read/write mode
+            bool iv_flagInvalid;                 // True if flag is invalid
     };
 
 ///
@@ -198,7 +232,11 @@ extern "C"
 
         // Operation type
         l_pbaFlag |= (iv_operType << FLAG_PBA_TTYPE_SHIFT);
-        l_pbaFlag |= (iv_atomicOp << FLAG_PBA_ATOMIC_OPTYPE_SHIFT);
+
+        if (iv_operType == p10_PBA_oper_flag::ATOMIC)
+        {
+            l_pbaFlag |= (iv_atomicOp << FLAG_PBA_ATOMIC_OPTYPE_SHIFT);
+        }
 
         // Fast mode
         if (iv_fastMode == true)
@@ -206,10 +244,16 @@ extern "C"
             l_pbaFlag |= FLAG_PBA_FASTMODE;
         }
 
+        // Set flag validity
+        if (iv_flagInvalid == true)
+        {
+            l_pbaFlag |= FLAG_PBA_INVALID_BIT;
+        }
+
         // Debug trace
         FAPI_DBG("p10_PBA_oper_flag::setFlag()");
-        FAPI_DBG("    iv_operType 0x%.8X, iv_fastMode 0x%.8X, iv_atomicOp 0x%.8X",
-                 iv_operType, iv_fastMode, iv_atomicOp);
+        FAPI_DBG("    iv_operType 0x%.8X, iv_fastMode 0x%.8X, iv_atomicOp 0x%.8X, iv_flagInvalid 0x%.8X",
+                 iv_operType, iv_fastMode, iv_atomicOp, iv_flagInvalid);
         FAPI_DBG("   PBA Flag value: 0x%.8X", l_pbaFlag);
 
         return l_pbaFlag;
@@ -223,16 +267,25 @@ extern "C"
         // Decode Operation type
         iv_operType = static_cast<OperationType_t>
                       ( (i_flag & FLAG_PBA_TTYPE) >> FLAG_PBA_TTYPE_SHIFT);
-        iv_atomicOp = static_cast<AtomicOpType_t>
-                      ( (i_flag & FLAG_PBA_ATOMIC_OPTYPE) >> FLAG_PBA_ATOMIC_OPTYPE_SHIFT);
+
+        if (iv_operType == p10_PBA_oper_flag::ATOMIC)
+        {
+            iv_atomicOp = static_cast<AtomicOpType_t>
+                          ( (i_flag & FLAG_PBA_ATOMIC_OPTYPE) >> FLAG_PBA_ATOMIC_OPTYPE_SHIFT);
+        }
 
         // Fast mode
         iv_fastMode = (i_flag & FLAG_PBA_FASTMODE);
 
+        // Flag validity
+        iv_flagInvalid = (i_flag & FLAG_PBA_INVALID_BIT);
+
         // Debug trace
+        FAPI_DBG("Input flag value: 0x%.8X", i_flag);
         FAPI_DBG("p10_PBA_oper_flag::getFlag() - Flag value 0x%.8X", i_flag);
-        FAPI_DBG("    iv_operType 0x%.8X, iv_fastMode 0x%.8X, iv_atomicOp 0x%.8X",
-                 iv_operType, iv_fastMode, iv_atomicOp);
+        FAPI_DBG("    iv_operType 0x%.8X, iv_fastMode 0x%.8X, iv_atomicOp 0x%.8X, iv_flagInvalid 0x%.8X",
+                 iv_operType, iv_fastMode, iv_atomicOp, iv_flagInvalid);
+
         return;
     }
 

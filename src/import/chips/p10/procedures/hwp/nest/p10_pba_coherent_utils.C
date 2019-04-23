@@ -36,6 +36,8 @@
 // Includes
 //-----------------------------------------------------------------------------------
 #include <p10_pba_coherent_utils.H>
+#include <fapi2_mem_access.H>
+
 #include <p10_pba_utils_TEMP_DEFINES.H> // FIXME
 // FIXME #include <p10_misc_scom_addresses.H>
 // FIXME #include <p10_quad_scom_addresses.H>
@@ -175,7 +177,6 @@ extern "C"
         FAPI_TRY(fapi2::putScom(i_target, PU_PBABARMSK3, pba_bar_mask_data),
                  "Error writing to the PBA Bar Mask Attribute");
 
-
         //maximum size before we need to rerun setup - this is the number if the PBA Bar Mask is set with bits 23:43 to 0b1
         maximumAddress = 0x8000000ull;
         //mask to mask away bits 37:63 of the input address
@@ -214,6 +215,13 @@ extern "C"
 
         // Process input flag
         l_myPbaFlag.getFlag(i_flags);
+
+        // Verify flag is valid
+        FAPI_ASSERT(l_myPbaFlag.isFlagValid(),
+                    fapi2::P10_PBA_UTILS_INVALID_FLAG()
+                    .set_FLAGS(i_flags),
+                    "There was an invalid argument passed in when building PBA flag.  Check error trace!");
+
         l_operType = l_myPbaFlag.getOperationType();
         l_atomicOp = l_myPbaFlag.getAtomicOpType();
 

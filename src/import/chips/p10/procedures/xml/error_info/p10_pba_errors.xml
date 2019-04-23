@@ -184,4 +184,19 @@
     <ffdc>RNW</ffdc>
     <ffdc>FLAGS</ffdc>
   </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <sbeError/>
+    <rc>RC_P10_PBA_UTILS_INVALID_FLAG</rc>
+    <description>
+      There was an invalid argument passed in when building PBA flag.
+      Procedure: p10_pba_coherent_utils
+    </description>
+    <ffdc>FLAGS</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+
 </hwpErrors>
