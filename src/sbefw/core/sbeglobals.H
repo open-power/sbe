@@ -85,6 +85,10 @@ class SBEGlobalsSingleton
          */
         PkSemaphore sbeSemAsyncProcess;
 
+        #ifdef SBE_IPL_STATUS_LPC_SUPPORT
+        static bool sbeLPCActive;
+        #endif
+
         #ifdef SBE_CONSOLE_SUPPORT
         // Binary semaphore to protect uart access
         PkSemaphore sbeUartBinSem;
