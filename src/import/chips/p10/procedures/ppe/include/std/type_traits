@@ -1,0 +1,110 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: src/import/chips/p10/procedures/ppe/include/std/type_traits $ */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
+#if !defined(_TYPE_TRAITS)
+#define _TYPE_TRAITS
+
+namespace std
+{
+    /// integral_constant
+    template<typename _Tp, _Tp __v>
+        struct integral_constant
+        {
+            static const _Tp                      value = __v;
+            typedef _Tp                           value_type;
+            typedef integral_constant<_Tp, __v>   type;
+        };
+
+    /// typedef for true_type
+    typedef integral_constant<bool, true>     true_type;
+
+    /// typedef for false_type
+    typedef integral_constant<bool, false>    false_type;
+
+    template<typename _Tp, _Tp __v>
+        const _Tp integral_constant<_Tp, __v>::value;
+
+    /// remove_const
+    template<typename _Tp>
+        struct remove_const
+        { typedef _Tp     type; };
+
+    /// remove_volatile
+    template<typename _Tp>
+        struct remove_volatile
+        { typedef _Tp     type; };
+
+    /// remove_cv
+    template<typename _Tp>
+        struct remove_cv
+        {
+            typedef typename
+                remove_const<typename remove_volatile<_Tp>::type>::type     type;
+        };
+
+    template<typename> struct _is_integral_type : public false_type { };
+    template<> struct _is_integral_type<bool>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<char>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<signed char>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<unsigned char>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<short>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<unsigned short>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<int>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<unsigned int>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<long>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<unsigned long>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<long long>: public integral_constant<bool,true> {};
+    template<> struct _is_integral_type<unsigned long long>: public integral_constant<bool,true> {};
+
+    /// is_integral
+    template<typename _Tp>
+        struct is_integral
+        : public integral_constant<bool, (_is_integral_type<typename
+                                          remove_cv<_Tp>::type>::value)>
+    { };
+  /// is_same
+  template<typename, typename>
+    struct is_same
+    : public false_type { };
+
+  template<typename _Tp>
+    struct is_same<_Tp, _Tp>
+    : public true_type { };
+
+  template<typename>
+    struct __is_pointer_helper
+    : public false_type { };
+
+  template<typename _Tp>
+    struct __is_pointer_helper<_Tp*>
+    : public true_type { };
+
+  /// is_pointer
+  template<typename _Tp>
+    struct is_pointer
+    : public integral_constant<bool, (__is_pointer_helper<typename
+                      remove_cv<_Tp>::type>::value)>
+    { };
+}
+#endif
