@@ -48,7 +48,10 @@
 #include "p10_hcd_common.H"
 
 #ifdef __PPE_QME
-    #include "p10_hcd_addresses.H"
+    #include "p10_scom_eq.H"
+    #include "p10_ppe_c.H"
+    using namespace scomt::eq;
+    using namespace scomt::ppe_c;
 #else
     #include "p10_scom_eq.H"
     #include "p10_scom_c.H"
