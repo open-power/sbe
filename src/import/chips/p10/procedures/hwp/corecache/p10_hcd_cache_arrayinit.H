@@ -38,8 +38,10 @@
 //------------------------------------------------------------------------------
 
 /// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p10_hcd_cache_arrayinit_FP_t) (const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-        fapi2::TARGET_TYPE_MULTICAST > &);
+typedef fapi2::ReturnCode (*p10_hcd_cache_arrayinit_FP_t) (
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+    fapi2::TARGET_TYPE_MULTICAST,
+    fapi2::MULTICAST_AND > &);
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -52,10 +54,29 @@ extern "C"
 /// @brief
 ///
 /// @param[in] i_target       Reference to fapi2::TARGET_TYPE_CORE|fapi2::TARGET_TYPE_MULTICAST
+/// @param[in] i_regions      Mask of the regions to be affected by the arrayinit
+///                           Bit   Region
+///                           4:    #0  : perv
+///                           5:    #1  : EC/L2  0
+///                           6:    #2  : EC/L2  1
+///                           7:    #3  : EC/L2  2
+///                           8:    #4  : EC/L2  3
+///                           9:    #5  : L3 0
+///                           10:   #6  : L3 1
+///                           11:   #7  : L3 2
+///                           12:   #8  : L3 3
+///                           13:   #9  : QME
+///                           14:   #10 : CLKADJ
+///                           15:   #11 : MMA 0
+///                           16:   #12 : MMA 1
+///                           17:   #13 : MMA 2
+///                           18:   #14 : MMA 3
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
 ///
-    fapi2::ReturnCode p10_hcd_cache_arrayinit(const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST >
-            & i_target);
+    fapi2::ReturnCode p10_hcd_cache_arrayinit(
+        const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+        fapi2::TARGET_TYPE_MULTICAST,
+        fapi2::MULTICAST_AND > & i_target);
 
 } // extern "C"
 
