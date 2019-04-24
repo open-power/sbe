@@ -47,6 +47,15 @@
 #include "p10_hcd_corecache_power_control.H"
 #include "p10_hcd_common.H"
 
+#ifdef __PPE_QME
+    #include "p10_hcd_addresses.H"
+#else
+    #include "p10_scom_eq.H"
+    #include "p10_scom_c.H"
+    using namespace scomt::eq;
+    using namespace scomt::c;
+#endif
+
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
@@ -59,23 +68,21 @@
 
 fapi2::ReturnCode
 p10_hcd_core_poweron(
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target,
-    uint32_t i_regions)
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target)
 {
-    fapi2::buffer<uint64_t> l_data64  = 0;
-//     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
-//         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-    fapi2::Target < fapi2::TARGET_TYPE_EQ > eq_target =
-        i_target.getParent < fapi2::TARGET_TYPE_EQ > ();
-
+    fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
+        i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+    uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
+    fapi2::buffer<uint64_t> l_scomData = 0;
+    fapi2::buffer<buffer_t> l_mmioData = 0;
 
     FAPI_INF(">>p10_hcd_core_poweron");
 
     FAPI_DBG("Assert ECL2 Glsmux Reset via CPMS_CGCSR[8:CL2_CLKGLM_ASYNC_RESET]");
-    FAPI_TRY( putScom( i_target, G_QME_CPMS_CGCSR_OR, MASK_SET(8) ) );
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(8) ) );
 
-    FAPI_DBG("Enable ECL2 Regional Fences via CPLT_CTRL1[5-8:ECL2_FENCES] to regions 0x%08X", i_regions);
-    FAPI_TRY( putScom( eq_target, G_CPLT_CTRL1_OR, MASK_H32(i_regions) ) );
+    FAPI_DBG("Enable ECL2 Regional Fences via CPLT_CTRL1[5-8:ECL2_FENCES] to regions 0x%08X", l_regions);
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_OR, SCOM_LOAD32H(l_regions) ) );
 
     // VDD on first, VCS on after
     FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_CL2_ON ) );
