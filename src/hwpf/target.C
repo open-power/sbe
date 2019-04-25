@@ -407,7 +407,6 @@ extern fapi2::ReturnCode
 
         if ( l_scratch8Reg.getBit<4>() )
         {
-            uint8_t l_forceAllCores = 0;
             uint8_t l_disableHbblVectors = 0;
             uint32_t l_pllMux = 0;
             uint8_t l_mcSyncMode = 0;
@@ -417,8 +416,6 @@ extern fapi2::ReturnCode
             //Getting SCRATCH_REGISTER_5 register value
             FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_5_SCOM,
                                     l_tempReg));
-
-            l_tempReg.extract<1, 1, 7>(l_forceAllCores);
 
             if (l_tempReg.getBit<2>())
             {
@@ -447,7 +444,6 @@ extern fapi2::ReturnCode
             //    l_slowPciRefClock = fapi2::ENUM_ATTR_DD1_SLOW_PCI_REF_CLOCK_SLOW;
             //}
 
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_SYS_FORCE_ALL_CORES, FAPI_SYSTEM, l_forceAllCores));
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DISABLE_HBBL_VECTORS, FAPI_SYSTEM, l_disableHbblVectors));
             //FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_SYNC_MODE, l_chipTarget, l_mcSyncMode));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK, FAPI_SYSTEM, l_slowPciRefClock));
