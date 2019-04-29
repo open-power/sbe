@@ -102,6 +102,7 @@
       Explorer status code for command ID EXP_FW_STATUS
       did not return SUCCESS
     </description>
+    <ffdc>TARGET</ffdc>
     <ffdc>STATUS_CODE</ffdc>
     <ffdc>CMD_ID</ffdc>
     <callout>
@@ -123,6 +124,7 @@
       Received FW_BUSY status after polling timeout for
       command ID EXP_FW_STATUS
     </description>
+    <ffdc>TARGET</ffdc>
     <ffdc>STATUS_CODE</ffdc>
     <callout>
       <procedure>CODE</procedure>
@@ -143,6 +145,7 @@
       Received incorrect boot stage from
       command ID EXP_FW_STATUS
     </description>
+    <ffdc>TARGET</ffdc>
     <ffdc>BOOT_STAGE</ffdc>
     <ffdc>EXPECTED_BOOT_STAGE</ffdc>
     <callout>
