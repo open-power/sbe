@@ -26,27 +26,26 @@
   <!-- This will collect all the status/error registers for PBA -->
   <registerFfdc>
     <id>REG_FFDC_PBA_REGISTERS</id>
-    <scomRegister>PU_PBAMODE_PIB</scomRegister>
-    <scomRegister>PU_PBASLVRST_PIB</scomRegister>
-    <scomRegister>PU_PBASLVCTL3_PIB</scomRegister>
-    <scomRegister>PU_PBABAR3</scomRegister>
-    <scomRegister>PU_PBABARMSK3</scomRegister>
-    <scomRegister>PU_PBACFG</scomRegister>
-    <scomRegister>PU_PBAERRRPT0</scomRegister>
-    <scomRegister>PU_PBAERRRPT1</scomRegister>
-    <scomRegister>PU_PBAERRRPT2</scomRegister>
-    <scomRegister>PU_PBAFIR</scomRegister>
-    <scomRegister>PU_PBAFIRMASK</scomRegister>
-    <scomRegister>PU_PBAOCCACT</scomRegister>
-    <scomRegister>PU_PBARBUFVAL2</scomRegister>
-    <scomRegister>PU_PBARBUFVAL3</scomRegister>
-    <scomRegister>PU_PBAWBUFVAL0</scomRegister>
-    <scomRegister>PU_PBAWBUFVAL1</scomRegister>
-    <scomRegister>PU_PBAFIRACT0</scomRegister>
-    <scomRegister>PU_PBAFIRACT1</scomRegister>
-    <scomRegister>PU_OCB_PIB_OCBAR3</scomRegister>
-    <scomRegister>PU_OCB_PIB_OCBCSR3_RO</scomRegister>
-    <scomRegister>PU_OCB_PIB_OCBESR3</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAMODE</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBASLVRST</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBASLVCTL3</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBABAR3</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBABARMSK3</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAOCFG</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAFIR_RWX</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAFIRMASK_RW</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAFIRACT0</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAFIRACT1</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAERRRPT1</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAERRRPT2</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAOCCACT</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBARBUFVAL0</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBARBUFVAL1</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBARBUFVAL2</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBARBUFVAL3</scomRegister>
+    <scomRegister>scomt::proc::TP_TPCHIP_OCC_OCI_OCB_PIB_OCBAR3</scomRegister>
+    <scomRegister>scomt::proc::TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_SCOM</scomRegister>
+    <scomRegister>scomt::proc::TP_TPCHIP_OCC_OCI_OCB_PIB_OCBESR3</scomRegister>
   </registerFfdc>
 
   <!-- ******************************************************************** -->
