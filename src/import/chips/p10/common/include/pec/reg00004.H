@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/common/include/p10_scom_pec_1.H $        */
+/* $Source: src/import/chips/p10/common/include/pec/reg00004.H $          */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,12 +22,10 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+#include "fapi2.H"
 
-#include "proc_scomt.H"
-
-#ifndef __p10_scom_pec_1_H_
-#define __p10_scom_pec_1_H_
-
+#ifndef __PEC_REG00004_H_
+#define __PEC_REG00004_H_
 
 namespace scomt
 {
@@ -35,15 +33,8 @@ namespace pec
 {
 
 
-static const uint64_t HEARTBEAT_REG = 0x080f0018ull;
-
-static const uint32_t HEARTBEAT_REG_HEARTBEAT_DEAD = 0;
-// pec/reg00001.H
-
-static const uint64_t RECOV_INTERRUPT_REG = 0x080f001bull;
-// pec/reg00001.H
 
 }
 }
-#include "pec/reg00001.H"
+
 #endif
