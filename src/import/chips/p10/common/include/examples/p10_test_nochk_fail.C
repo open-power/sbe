@@ -49,6 +49,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(init(i_target));
 
     FAPI_TRY(GET_CLK_REGION(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_CLK_REGION_CLOCK_CMD(0xFull, l_data);
     SET_CLK_REGION_SLAVE_MODE(l_data);
     SET_CLK_REGION_MASTER_MODE(l_data);
@@ -80,6 +84,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CONF0_RW(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CONF0_WO_CLEAR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CONF0_WO_CLEAR(i_target, l_data));
 
     l_data.flush<0>();
@@ -87,6 +95,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CONF0_WO_OR(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL0_RW(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL0_RW(i_target, l_data));
 
     l_data.flush<0>();
@@ -94,6 +106,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL0_WO_CLEAR(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL0_WO_OR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL0_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
@@ -106,6 +122,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_DBG_INST1_COND_REG_2(i_target, l_data));
 
     FAPI_TRY(GET_EPS_DBG_INST2_COND_REG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_DBG_INST2_COND_REG_2_CROSS_COUPLE_SELECT_1_A(0xFull, l_data);
     SET_EPS_DBG_INST2_COND_REG_2_CROSS_COUPLE_SELECT_1_B(0xFull, l_data);
     SET_EPS_DBG_INST2_COND_REG_2_CROSS_COUPLE_SELECT_2_A(0xFull, l_data);
@@ -119,6 +139,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_DBG_XTRA_TRACE_MODE(i_target, l_data));
 
     FAPI_TRY(GET_EPS_FIR_MODE_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_FIR_MODE_REG_00(l_data);
     SET_EPS_FIR_MODE_REG_01(l_data);
     SET_EPS_FIR_MODE_REG_02(l_data);
@@ -145,6 +169,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB_DTS_TRC_RESULT(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_ERR_STATUS_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_THERM_WSUB_ERR_STATUS_REG(i_target, l_data));
 
     l_data.flush<0>();
@@ -206,6 +234,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_HOSTATTN(i_target, l_data));
 
     FAPI_TRY(GET_HOSTATTN_MASK(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_HOSTATTN_MASK_01(l_data);
     SET_HOSTATTN_MASK_02(l_data);
     SET_HOSTATTN_MASK_03(l_data);
@@ -268,6 +300,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR1_CONFIG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA0_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA0_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -297,6 +333,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR1_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR1_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA1_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_2(i_target, l_data));
@@ -308,6 +348,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR0_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR0_CONFIG_3_C(0xFull, l_data);
     SET_L3TRA3_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_3(i_target, l_data));
@@ -330,6 +374,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_OPCG_ALIGN(i_target, l_data));
 
     FAPI_TRY(GET_SCAN_CAPTUREDR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_SCAN_CAPTUREDR(i_target, l_data));
 
     l_data.flush<0>();
@@ -339,6 +387,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA1_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA1_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -355,6 +407,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR1_TRACE_HI_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
@@ -365,6 +421,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR0_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR0_CONFIG_3_C(0xFull, l_data);
     SET_TRA3_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_3(i_target, l_data));
@@ -376,6 +436,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR1_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR1_CONFIG_4_A(0xFull, l_data);
     SET_TRA5_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_4(i_target, l_data));
@@ -396,6 +460,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR1_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR1_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR1_CONFIG_3_C(0xFull, l_data);
     SET_TRA6_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_3(i_target, l_data));
@@ -416,6 +484,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA7_TR0_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA7_TR0_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA7_TR0_CONFIG_5_C(0xFull, l_data);
     SET_TRA7_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_5(i_target, l_data));
@@ -445,6 +517,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DBG_CBS_CC(i_target, l_data));
 
     FAPI_TRY(GET_EPS_PSC_ADDR_TRAP_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_PSC_ADDR_TRAP_REG_PCB_ADDRESS_OF_LAST_TRANSACTION_WITH_ERROR(0xFull, l_data);
     SET_EPS_PSC_ADDR_TRAP_REG_PCB_READ_NOTWRITE_OF_LAST_TRANSACTION_WITH_ERROR(l_data);
     SET_EPS_PSC_ADDR_TRAP_REG_RESERVED_ADDR_LAST_TRAP_LT(l_data);
@@ -469,6 +545,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_PSC_PSCOM_MODE_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_DTS_TRC_RESULT(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB2_DTS_TRC_RESULT_TIMESTAMP_COUNTER_VALUE(0xFull, l_data);
     SET_EPS_THERM_WSUB2_DTS_TRC_RESULT_TIMESTAMP_COUNTER_OVERFLOW_ERR(l_data);
     SET_EPS_THERM_WSUB2_DTS_TRC_RESULT_DTS_1_RESULT(0xFull, l_data);
@@ -479,6 +559,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_ERR_STATUS_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_SKITTER_DATA1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_DATA1(i_target, l_data));
 
     l_data.flush<0>();
@@ -487,6 +571,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_HEARTBEAT_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR1_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR1_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA0_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR1_CONFIG_2(i_target, l_data));
@@ -498,6 +586,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR0_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR0_CONFIG_3_C(0xFull, l_data);
     SET_L3TRA2_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR0_CONFIG_3(i_target, l_data));
@@ -509,6 +601,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_OPCG_CAPT3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_OPCG_CAPT3_07EVEN(0xFull, l_data);
     SET_OPCG_CAPT3_07ODD(0xFull, l_data);
     SET_OPCG_CAPT3_08EVEN(0xFull, l_data);
@@ -528,6 +624,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_RECOV_INTERRUPT_REG(i_target, l_data));
 
     FAPI_TRY(GET_SCAN32(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_SCAN32(i_target, l_data));
 
     l_data.flush<0>();
@@ -535,6 +635,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_SCAN64(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR0_TRACE_HI_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
@@ -545,6 +649,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR0_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR0_CONFIG_4_A(0xFull, l_data);
     SET_TRA1_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_4(i_target, l_data));
@@ -556,6 +664,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_3(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA3_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA3_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -572,6 +684,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR1_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR1_CONFIG_4_A(0xFull, l_data);
     SET_TRA4_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_4(i_target, l_data));
@@ -583,6 +699,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR0_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR0_CONFIG_5_C(0xFull, l_data);
     SET_TRA6_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_5(i_target, l_data));
@@ -635,6 +755,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_STAT0(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_MODE_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB2_MODE_REG_THERM_DIS_CPM_BUBBLE_CORR(l_data);
     SET_EPS_THERM_WSUB2_MODE_REG_THERM_FORCE_THRES_ACT(l_data);
     SET_EPS_THERM_WSUB2_MODE_REG_THERM_THRES_TRIP_ENA(0xFull, l_data);
@@ -656,6 +780,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR1_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR1_CONFIG_5_C(0xFull, l_data);
     SET_L3TRA0_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR1_CONFIG_5(i_target, l_data));
@@ -667,6 +795,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG_3(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR0_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR0_CONFIG_4_A(0xFull, l_data);
     SET_L3TRA2_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR0_CONFIG_4(i_target, l_data));
@@ -683,6 +815,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR0_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR1_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR1_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA3_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_2(i_target, l_data));
@@ -692,6 +828,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_SPATTN_NCX(i_target, l_data));
 
     FAPI_TRY(GET_SPATTN_ROX(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_SPATTN_ROX(i_target, l_data));
 
     l_data.flush<0>();
@@ -701,6 +841,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR0_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR0_CONFIG_3_C(0xFull, l_data);
     SET_TRA1_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_3(i_target, l_data));
@@ -712,6 +856,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR1_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR1_CONFIG_2_A(0xFull, l_data);
     SET_TRA3_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_2(i_target, l_data));
@@ -722,6 +870,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR1_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR1_CONFIG_3_C(0xFull, l_data);
     SET_TRA4_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_3(i_target, l_data));
@@ -733,6 +885,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR0_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR0_CONFIG_2_A(0xFull, l_data);
     SET_TRA6_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_2(i_target, l_data));
@@ -757,6 +913,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CLOCK_STAT_NSL(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_CTRL_RW(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_CTRL_RW(i_target, l_data));
 
     l_data.flush<0>();
@@ -764,6 +924,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_CTRL_WO_CLEAR(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_CTRL_WO_OR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_CTRL_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
@@ -772,6 +936,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB_DTS_RESULT2(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_SKITTER_DATA1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_DATA1(i_target, l_data));
 
     l_data.flush<0>();
@@ -792,6 +960,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB_MODE_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_DTS_RESULT0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB2_DTS_RESULT0_0_RESULT(0xFull, l_data);
     SET_EPS_THERM_WSUB2_DTS_RESULT0_1_RESULT(0xFull, l_data);
     SET_EPS_THERM_WSUB2_DTS_RESULT0_2_RESULT(0xFull, l_data);
@@ -804,6 +976,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_INJECT_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR0_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR0_CONFIG_3_C(0xFull, l_data);
     SET_L3TRA0_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_3(i_target, l_data));
@@ -820,6 +996,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR1_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR1_CONFIG_5_C(0xFull, l_data);
     SET_L3TRA1_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_5(i_target, l_data));
@@ -830,6 +1010,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR0_CONFIG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA2_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA2_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -850,6 +1034,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR0_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR0_CONFIG_4_A(0xFull, l_data);
     SET_L3TRA3_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_4(i_target, l_data));
@@ -870,6 +1058,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_LOCAL_XSTOP(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_LOCAL_XSTOP_ANY_LOCAL_XSTOP(l_data);
     SET_LOCAL_XSTOP_RESERVED1L(l_data);
     SET_LOCAL_XSTOP_RESERVED2L(l_data);
@@ -893,6 +1085,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_LXSTOP_INTERRUPT_REG(i_target, l_data));
 
     FAPI_TRY(GET_MULTICAST_GROUP_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_MULTICAST_GROUP_1_MULTICAST1_GROUP(0xFull, l_data);
     FAPI_TRY(PUT_MULTICAST_GROUP_1(i_target, l_data));
 
@@ -901,6 +1097,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_NET_CTRL0_RWX(i_target, l_data));
 
     FAPI_TRY(GET_NET_CTRL0_RWX_WAND(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_NET_CTRL0_RWX_WAND(i_target, l_data));
 
     l_data.flush<0>();
@@ -908,6 +1108,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_NET_CTRL0_RWX_WOR(i_target, l_data));
 
     FAPI_TRY(GET_PHASE_COUNTER_RESET(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_PHASE_COUNTER_RESET_PHASECOUNTER_RESET(l_data);
     FAPI_TRY(PUT_PHASE_COUNTER_RESET(i_target, l_data));
 
@@ -916,6 +1120,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_PLL_LOCK_REG(i_target, l_data));
 
     FAPI_TRY(GET_RFIR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_RFIR_ANY_RECOV(l_data);
     SET_RFIR_RECOV_ANY_LOCAL_XSTOP(l_data);
     SET_RFIR_RESERVED2R(l_data);
@@ -1012,6 +1220,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_SPATTN_MASK(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR0_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR0_CONFIG_3_C(0xFull, l_data);
     SET_TRA0_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_3(i_target, l_data));
@@ -1023,6 +1235,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR1_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR1_CONFIG_2_A(0xFull, l_data);
     SET_TRA2_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_2(i_target, l_data));
@@ -1034,6 +1250,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR0_CONFIG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA4_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA4_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -1054,6 +1274,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA5_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA5_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -1079,6 +1303,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR1_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR1_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR1_CONFIG_3_C(0xFull, l_data);
     SET_TRA5_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_3(i_target, l_data));
@@ -1089,6 +1317,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR1_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR1_CONFIG_4_A(0xFull, l_data);
     SET_TRA6_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_4(i_target, l_data));
@@ -1100,6 +1332,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_CLOCK_STAT_ARY(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_CLOCK_STAT_ARY_PERV_ARY(l_data);
     SET_CLOCK_STAT_ARY_UNIT1_ARY(l_data);
     SET_CLOCK_STAT_ARY_UNIT2_ARY(l_data);
@@ -1124,6 +1360,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB_INJECT_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_SKITTER_CLKSRC_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB2_SKITTER_CLKSRC_REG_CLKSRC(0xFull, l_data);
     SET_EPS_THERM_WSUB2_SKITTER_CLKSRC_REG_DELAY_SELECT(0xFull, l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_CLKSRC_REG(i_target, l_data));
@@ -1135,6 +1375,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR1_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR0_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR0_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA1_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG_2(i_target, l_data));
@@ -1146,6 +1390,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR0_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR1_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR1_CONFIG_3_C(0xFull, l_data);
     SET_L3TRA3_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_3(i_target, l_data));
@@ -1162,6 +1410,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_OPCG_REG2(i_target, l_data));
 
     FAPI_TRY(GET_PCB_OPCG_GO(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_PCB_OPCG_GO_PCB_OPCGGO(l_data);
     FAPI_TRY(PUT_PCB_OPCG_GO(i_target, l_data));
 
@@ -1177,6 +1429,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR0_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR1_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR1_CONFIG_4_A(0xFull, l_data);
     SET_TRA0_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_4(i_target, l_data));
@@ -1188,6 +1444,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR0_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR0_CONFIG_5_C(0xFull, l_data);
     SET_TRA2_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_5(i_target, l_data));
@@ -1198,6 +1458,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR1_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR1_CONFIG_3_C(0xFull, l_data);
     SET_TRA3_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_3(i_target, l_data));
@@ -1209,6 +1473,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR0_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR0_CONFIG_4_A(0xFull, l_data);
     SET_TRA5_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_4(i_target, l_data));
@@ -1220,6 +1488,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_3(i_target, l_data));
 
     FAPI_TRY(GET_XSTOP1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_XSTOP1_XSTOP1_MASK_B(l_data);
     SET_XSTOP1_ALIGNED_XSTOP1(l_data);
     SET_XSTOP1_TRIGGER_OPCG_ON_XSTOP1(l_data);
@@ -1270,6 +1542,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_FIR_GXSTOP3_MASK_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_SKITTER_DATA0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_DATA0(i_target, l_data));
 
     l_data.flush<0>();
@@ -1284,6 +1560,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_MODE_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_DTS_RESULT1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB2_DTS_RESULT1_4_RESULT(0xFull, l_data);
     SET_EPS_THERM_WSUB2_DTS_RESULT1_5_RESULT(0xFull, l_data);
     SET_EPS_THERM_WSUB2_DTS_RESULT1_6_RESULT(0xFull, l_data);
@@ -1322,6 +1602,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_ERROR_STATUS(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR0_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR0_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA0_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_2(i_target, l_data));
@@ -1333,6 +1617,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR1_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR1_CONFIG_3_C(0xFull, l_data);
     SET_L3TRA2_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_3(i_target, l_data));
@@ -1344,6 +1632,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_NET_CTRL1_RWX(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_NET_CTRL1_RWX(i_target, l_data));
 
     l_data.flush<0>();
@@ -1351,6 +1643,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_NET_CTRL1_RWX_WAND(i_target, l_data));
 
     FAPI_TRY(GET_NET_CTRL1_RWX_WOR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_NET_CTRL1_RWX_WOR(i_target, l_data));
 
     l_data.flush<0>();
@@ -1358,6 +1654,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_SCAN_LONG_ROTATE(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR0_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR0_CONFIG_2_A(0xFull, l_data);
     SET_TRA0_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_2(i_target, l_data));
@@ -1368,6 +1668,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR1_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR1_CONFIG_4_A(0xFull, l_data);
     SET_TRA1_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_4(i_target, l_data));
@@ -1388,6 +1692,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR0_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA2_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA2_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -1404,6 +1712,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_3(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR0_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR0_CONFIG_5_C(0xFull, l_data);
     SET_TRA3_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_5(i_target, l_data));
@@ -1424,6 +1736,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR1_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR0_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR0_CONFIG_4_A(0xFull, l_data);
     SET_TRA4_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_4(i_target, l_data));
@@ -1435,6 +1751,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR1_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR1_CONFIG_5_C(0xFull, l_data);
     SET_TRA6_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_5(i_target, l_data));
@@ -1446,6 +1766,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_3(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CONF1_RW(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CONF1_RW(i_target, l_data));
 
     l_data.flush<0>();
@@ -1453,6 +1777,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CONF1_WO_CLEAR(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CONF1_WO_OR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CONF1_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
@@ -1460,6 +1788,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL1_RW(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL1_WO_CLEAR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL1_WO_CLEAR(i_target, l_data));
 
     l_data.flush<0>();
@@ -1467,6 +1799,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL1_WO_OR(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_CTRL_RW(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_CTRL_RW(i_target, l_data));
 
     l_data.flush<0>();
@@ -1474,6 +1810,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_CTRL_WO_CLEAR(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_CTRL_WO_OR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_CTRL_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
@@ -1481,6 +1821,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_DBG_INST1_COND_REG_3(i_target, l_data));
 
     FAPI_TRY(GET_EPS_DBG_INST2_COND_REG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_DBG_INST2_COND_REG_3(i_target, l_data));
 
     l_data.flush<0>();
@@ -1511,6 +1855,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_FIR_GXSTOP0_MASK_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_PSC_PSCOM_STATUS_ERROR_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_PSC_PSCOM_STATUS_ERROR_REG_ACCUMULATED_PCB_WDATA_PARITY_ERROR(l_data);
     SET_EPS_PSC_PSCOM_STATUS_ERROR_REG_ACCUMULATED_PCB_ADDRESS_PARITY_ERROR(l_data);
     SET_EPS_PSC_PSCOM_STATUS_ERROR_REG_ACCUMULATED_DL_RETURN_WDATA_PARITY_ERROR(l_data);
@@ -1555,6 +1903,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_PSC_RING_FENCE_MASK_LATCH_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ_VALUE(0xFull, l_data);
     SET_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ_OVERFLOW_ERR(l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ(i_target, l_data));
@@ -1566,6 +1918,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR1_TRACE_HI_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
@@ -1576,6 +1932,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_3(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_L3TRA2_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_L3TRA2_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -1592,6 +1952,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR0_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR0_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA3_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_2(i_target, l_data));
@@ -1616,6 +1980,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_LOCAL_XSTOP_MASK(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR0_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR0_CONFIG_5_C(0xFull, l_data);
     SET_TRA0_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_5(i_target, l_data));
@@ -1636,6 +2004,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR1_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR0_CONFIG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA1_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA1_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -1656,6 +2028,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_3(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR1_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR1_CONFIG_4_A(0xFull, l_data);
     SET_TRA2_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_4(i_target, l_data));
@@ -1667,6 +2043,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_2(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR0_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR0_CONFIG_3_C(0xFull, l_data);
     SET_TRA4_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_3(i_target, l_data));
@@ -1677,6 +2057,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR1_CONFIG_5(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR1_CONFIG_5_C(0xFull, l_data);
     SET_TRA5_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_5(i_target, l_data));
@@ -1693,6 +2077,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR1_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR1_CONFIG_2_A(0xFull, l_data);
     SET_TRA6_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_2(i_target, l_data));
@@ -1704,6 +2092,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_CONTROL_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_THERM_WSUB_CONTROL_REG(i_target, l_data));
 
     l_data.flush<0>();
@@ -1713,6 +2105,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_CLKSRC_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_SKITTER_DATA0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_DATA0(i_target, l_data));
 
     l_data.flush<0>();
@@ -1727,6 +2123,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_MODE_REG(i_target, l_data));
 
     FAPI_TRY(GET_FIR_MASK(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_FIR_MASK_01(l_data);
     SET_FIR_MASK_02(l_data);
     SET_FIR_MASK_03(l_data);
@@ -1789,6 +2189,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_HANG_PULSE_0_REG(i_target, l_data));
 
     FAPI_TRY(GET_HANG_PULSE_1_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_HANG_PULSE_1_REG_HANG_PULSE_REG_1(0xFull, l_data);
     SET_HANG_PULSE_1_REG_SUPPRESS_HANG_1(l_data);
     FAPI_TRY(PUT_HANG_PULSE_1_REG(i_target, l_data));
@@ -1800,6 +2204,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_HANG_PULSE_2_REG(i_target, l_data));
 
     FAPI_TRY(GET_HANG_PULSE_3_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_HANG_PULSE_3_REG_HANG_PULSE_REG_3(0xFull, l_data);
     SET_HANG_PULSE_3_REG_SUPPRESS_HANG_3(l_data);
     FAPI_TRY(PUT_HANG_PULSE_3_REG(i_target, l_data));
@@ -1811,6 +2219,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_HANG_PULSE_4_REG(i_target, l_data));
 
     FAPI_TRY(GET_HANG_PULSE_5_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_HANG_PULSE_5_REG_HANG_PULSE_REG_5(0xFull, l_data);
     SET_HANG_PULSE_5_REG_SUPPRESS_HANG_5(l_data);
     FAPI_TRY(PUT_HANG_PULSE_5_REG(i_target, l_data));
@@ -1822,6 +2234,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_HANG_PULSE_6_REG(i_target, l_data));
 
     FAPI_TRY(GET_HOSTATTN_INTERRUPT_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_HOSTATTN_INTERRUPT_REG(i_target, l_data));
 
     l_data.flush<0>();
@@ -1836,6 +2252,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR1_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR1_CONFIG_3_C(0xFull, l_data);
     SET_L3TRA0_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR1_CONFIG_3(i_target, l_data));
@@ -1847,6 +2267,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR0_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR0_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA2_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR0_CONFIG_2(i_target, l_data));
@@ -1857,6 +2281,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR1_CONFIG_4(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR1_CONFIG_4_A(0xFull, l_data);
     SET_L3TRA3_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_4(i_target, l_data));
@@ -1878,6 +2306,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_OPCG_CAPT2(i_target, l_data));
 
     FAPI_TRY(GET_SCAN_UPDATEDR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_SCAN_UPDATEDR(i_target, l_data));
 
     l_data.flush<0>();
@@ -1897,6 +2329,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_SYNC_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR1_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR1_CONFIG_3_C(0xFull, l_data);
     SET_TRA0_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_3(i_target, l_data));
@@ -1908,6 +2344,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR0_CONFIG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR0_CONFIG_2_A(0xFull, l_data);
     SET_TRA2_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_2(i_target, l_data));
@@ -1919,6 +2359,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA4_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA4_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -1935,6 +2379,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_5(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR0_CONFIG_3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR0_CONFIG_3_C(0xFull, l_data);
     SET_TRA5_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_3(i_target, l_data));
@@ -1946,6 +2394,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_4(i_target, l_data));
 
     FAPI_TRY(GET_XFIR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_XFIR_ANY_XSTOP(l_data);
     SET_XFIR_SYSTEM_XSTOP(l_data);
     SET_XFIR_XSTOP_ANY_SPATTN(l_data);
@@ -2007,6 +2459,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_ASSIST_INTERRUPT_REG(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_STAT(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_DPLL_CNTL_PAU_REGS_STAT_FREQOUT(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_STAT_HIRES_FREQOUT(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_STAT_UPDATE_COMPLETE(l_data);
@@ -2021,6 +2477,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EDRAM_STATUS(i_target, l_data));
 
     FAPI_TRY(GET_EPS_DBG_TRACE_REG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_DBG_TRACE_REG_0_INST1_COND3_ENABLE(l_data);
     SET_EPS_DBG_TRACE_REG_0_INST2_COND3_ENABLE(l_data);
     SET_EPS_DBG_TRACE_REG_0_INST3_COND3_ENABLE(l_data);
@@ -2073,6 +2533,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_FIR_GXSTOP1_MASK_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_FIR_LOCAL_ACTION0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_FIR_LOCAL_ACTION0_00(l_data);
     SET_EPS_FIR_LOCAL_ACTION0_01(l_data);
     SET_EPS_FIR_LOCAL_ACTION0_02(l_data);
@@ -2147,6 +2611,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_PSC_PSCOM_ERROR_MASK(i_target, l_data));
 
     FAPI_TRY(GET_EPS_PSC_WRITE_PROTECT_RINGS_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_PSC_WRITE_PROTECT_RINGS_REG_WRITE_PROTECT_RINGS(0xFull, l_data);
     FAPI_TRY(PUT_EPS_PSC_WRITE_PROTECT_RINGS_REG(i_target, l_data));
 
@@ -2177,6 +2645,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_ERROR_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR0_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG_0(i_target, l_data));
 
@@ -2203,6 +2675,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR1_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_1(i_target, l_data));
 
@@ -2225,6 +2701,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_OPCG_REG0(i_target, l_data));
 
     FAPI_TRY(GET_SCAN_CAPTUREDR_LONG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_SCAN_CAPTUREDR_LONG(i_target, l_data));
 
     l_data.flush<0>();
@@ -2263,6 +2743,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_SCAN_REGION_TYPE(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR0_CONFIG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA0_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA0_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -2282,6 +2766,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA1_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA1_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -2307,6 +2795,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR1_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR1_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA1_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA1_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -2333,6 +2825,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR1_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_1(i_target, l_data));
 
@@ -2359,6 +2855,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR1_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_0(i_target, l_data));
 
@@ -2368,6 +2868,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_XSTOP3(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_XSTOP3_XSTOP3_MASK_B(l_data);
     SET_XSTOP3_ALIGNED_XSTOP3(l_data);
     SET_XSTOP3_TRIGGER_OPCG_ON_XSTOP3(l_data);
@@ -2395,6 +2899,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL4_RW(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL4_WO_CLEAR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL4_WO_CLEAR(i_target, l_data));
 
     l_data.flush<0>();
@@ -2402,6 +2910,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL4_WO_OR(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_FREQ(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_DPLL_CNTL_NEST_REGS_FREQ_FMAX(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_FREQ_HIRES_FMAX(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_FREQ_FF_MAX_MULT_FRAC7(l_data);
@@ -2421,6 +2933,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB_DTS_RESULT1(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_SKITTER_DATA2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_DATA2(i_target, l_data));
 
     l_data.flush<0>();
@@ -2429,6 +2945,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_FORCE_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_SKITTER_FORCE_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB2_SKITTER_FORCE_REG_F_SKITTER_READ(l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_FORCE_REG(i_target, l_data));
 
@@ -2438,6 +2958,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR1_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_L3TRA0_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_L3TRA0_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -2464,6 +2988,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_MULTICAST_GROUP_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_MULTICAST_GROUP_2_MULTICAST2_GROUP(0xFull, l_data);
     FAPI_TRY(PUT_MULTICAST_GROUP_2(i_target, l_data));
 
@@ -2473,6 +3001,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR1_TRACE_HI_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
@@ -2499,6 +3031,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR1_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_1(i_target, l_data));
 
@@ -2514,6 +3050,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR0_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR0_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA5_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA5_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -2540,6 +3080,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_TRA7_TR0_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA7_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_1(i_target, l_data));
 
@@ -2550,6 +3094,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CC_PROTECT_MODE_REG(i_target, l_data));
 
     FAPI_TRY(GET_CLOCK_STAT_SL(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_CLOCK_STAT_SL_PERV_SL(l_data);
     SET_CLOCK_STAT_SL_UNIT1_SL(l_data);
     SET_CLOCK_STAT_SL_UNIT2_SL(l_data);
@@ -2572,6 +3120,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL3_RW(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL3_WO_CLEAR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL3_WO_CLEAR(i_target, l_data));
 
     l_data.flush<0>();
@@ -2579,6 +3131,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL3_WO_OR(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_ECHAR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_DPLL_CNTL_PAU_REGS_ECHAR_DYNAMIC_ENCODED_DATA(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ECHAR_MIN_ENCODED_DATA(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ECHAR_MAX_ENCODED_DATA(0xFull, l_data);
@@ -2591,6 +3147,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_TESTSEL(i_target, l_data));
 
     FAPI_TRY(GET_EPS_DBG_INST1_COND_REG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_DBG_INST1_COND_REG_1_COND1_SEL_A(0xFull, l_data);
     SET_EPS_DBG_INST1_COND_REG_1_COND1_SEL_B(0xFull, l_data);
     SET_EPS_DBG_INST1_COND_REG_1_COND2_SEL_A(0xFull, l_data);
@@ -2640,6 +3200,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_DBG_INST2_COND_REG_1(i_target, l_data));
 
     FAPI_TRY(GET_EPS_PSC_ATOMIC_LOCK_MASK_LATCH_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_PSC_ATOMIC_LOCK_MASK_LATCH_REG_ATOMIC_LOCK_MASK(0xFull, l_data);
     FAPI_TRY(PUT_EPS_PSC_ATOMIC_LOCK_MASK_LATCH_REG(i_target, l_data));
 
@@ -2649,6 +3213,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR1_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_1(i_target, l_data));
 
@@ -2658,6 +3226,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_L3TRA3_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_L3TRA3_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -2690,6 +3262,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR1_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_1(i_target, l_data));
 
@@ -2699,6 +3275,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR1_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA3_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA3_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -2725,6 +3305,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR1_TRACE_HI_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
@@ -2751,6 +3335,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR1_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_0(i_target, l_data));
 
@@ -2766,6 +3354,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA7_TR0_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_ATOMIC_LOCK_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_ATOMIC_LOCK_REG_LOCK_ENABLE(l_data);
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
     SET_ATOMIC_LOCK_REG_ACTIVITY(0xFull, l_data);
@@ -2776,6 +3368,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_ATTN_INTERRUPT_REG(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_ICHAR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_DPLL_CNTL_PAU_REGS_ICHAR_FREQIN_AVG(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ICHAR_HIRES_FREQIN_AVG(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ICHAR_FREQIN_MAX(0xFull, l_data);
@@ -2795,6 +3391,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_OCHAR(i_target, l_data));
 
     FAPI_TRY(GET_EPS_DBG_TRACE_MODE_REG_2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_DBG_TRACE_MODE_REG_2_RUNN_COUNT_COMPARE_VALUE(0xFull, l_data);
     SET_EPS_DBG_TRACE_MODE_REG_2_IMM_FREEZE_MODE(l_data);
     SET_EPS_DBG_TRACE_MODE_REG_2_STOP_ON_ERR(l_data);
@@ -2833,6 +3433,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_FIR_GXSTOP2_MASK_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_FIR_LOCAL_MASK_RW(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_FIR_LOCAL_MASK_RW(i_target, l_data));
 
     l_data.flush<0>();
@@ -2840,6 +3444,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_FIR_LOCAL_MASK_WO_AND(i_target, l_data));
 
     FAPI_TRY(GET_EPS_FIR_LOCAL_MASK_WO_OR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_FIR_LOCAL_MASK_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
@@ -2847,6 +3455,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_CONTROL_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_SKITTER_DATA2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_DATA2(i_target, l_data));
 
     l_data.flush<0>();
@@ -2855,6 +3467,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR1_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_L3TRA1_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_L3TRA1_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -2870,6 +3486,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR0_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR1_TRACE_HI_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
@@ -2896,6 +3516,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_LOCAL_FIR_RWX(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_LOCAL_FIR_RWX(i_target, l_data));
 
     l_data.flush<0>();
@@ -2903,6 +3527,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_LOCAL_FIR_WOX_AND(i_target, l_data));
 
     FAPI_TRY(GET_LOCAL_FIR_WOX_OR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_LOCAL_FIR_WOX_OR(i_target, l_data));
 
     l_data.flush<0>();
@@ -2911,6 +3539,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR0_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_0(i_target, l_data));
 
@@ -2930,6 +3562,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR1_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR1_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA2_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA2_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -2966,6 +3602,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR0_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR0_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_1(i_target, l_data));
 
@@ -2981,6 +3621,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR0_TRACE_HI_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
@@ -3007,6 +3651,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL2_RW(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL2_RW(i_target, l_data));
 
     l_data.flush<0>();
@@ -3014,6 +3662,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL2_WO_CLEAR(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL2_WO_OR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL2_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
@@ -3022,6 +3674,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_MASK0(i_target, l_data));
 
     FAPI_TRY(GET_CTRL_PROTECT_MODE_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_CTRL_PROTECT_MODE_REG_READ_PROTECT_ENABLE(l_data);
     SET_CTRL_PROTECT_MODE_REG_WRITE_PROTECT_ENABLE(l_data);
     FAPI_TRY(PUT_CTRL_PROTECT_MODE_REG(i_target, l_data));
@@ -3032,6 +3688,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_TESTSEL(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_FREQ(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_DPLL_CNTL_PAU_REGS_FREQ_FMAX(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_FREQ_HIRES_FMAX(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_FREQ_FF_MAX_MULT_FRAC7(l_data);
@@ -3059,6 +3719,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_DBG_MODE_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_FIR_GXSTOP4_MASK_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_FIR_GXSTOP4_MASK_REG_SUM_XSTOP(l_data);
     SET_EPS_FIR_GXSTOP4_MASK_REG_SUM_RECOV(l_data);
     SET_EPS_FIR_GXSTOP4_MASK_REG_SUM_SPATTN(l_data);
@@ -3091,6 +3755,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_PSC_WRITE_PROTECT_ENABLE_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR0_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_L3TRA1_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_L3TRA1_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -3117,6 +3785,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR0_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_1(i_target, l_data));
 
@@ -3126,6 +3798,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_MULTICAST_GROUP_4(i_target, l_data));
 
     FAPI_TRY(GET_PCB_OPCG_STOP(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_PCB_OPCG_STOP_PCB_OPCGSTOP(l_data);
     FAPI_TRY(PUT_PCB_OPCG_STOP(i_target, l_data));
 
@@ -3135,6 +3811,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_PRE_COUNTER_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA0_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA0_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -3167,6 +3847,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_TRA1_TR1_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA1_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_0(i_target, l_data));
 
@@ -3176,6 +3860,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR0_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_1(i_target, l_data));
 
@@ -3185,6 +3873,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR1_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA4_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA4_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -3211,6 +3903,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_XSTOP_INTERRUPT_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_XSTOP_INTERRUPT_REG(i_target, l_data));
 
     l_data.flush<0>();
@@ -3221,6 +3917,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CC_ATOMIC_LOCK_REG(i_target, l_data));
 
     FAPI_TRY(GET_CTRL_ATOMIC_LOCK_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_CTRL_ATOMIC_LOCK_REG_LOCK_ENABLE(l_data);
     SET_CTRL_ATOMIC_LOCK_REG_ID(0xFull, l_data);
     SET_CTRL_ATOMIC_LOCK_REG_ACTIVITY(0xFull, l_data);
@@ -3237,6 +3937,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_STAT(i_target, l_data));
 
     FAPI_TRY(GET_EPS_DBG_DEBUG_TRACE_CONTROL(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_EPS_DBG_DEBUG_TRACE_CONTROL(i_target, l_data));
 
     l_data.flush<0>();
@@ -3249,6 +3953,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_FIR_SUM_MASK_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_TIMESTAMP_COUNTER_READ(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB2_TIMESTAMP_COUNTER_READ_VALUE(0xFull, l_data);
     SET_EPS_THERM_WSUB2_TIMESTAMP_COUNTER_READ_OVERFLOW_ERR(l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB2_TIMESTAMP_COUNTER_READ(i_target, l_data));
@@ -3276,6 +3984,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR1_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR1_CONFIG_0(i_target, l_data));
 
@@ -3285,6 +3997,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR0_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR1_CONFIG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA2_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA2_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -3314,6 +4030,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_OPCG_CAPT1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_OPCG_CAPT1_COUNT(0xFull, l_data);
     SET_OPCG_CAPT1_SEQ_01(0xFull, l_data);
     SET_OPCG_CAPT1_SEQ_02(0xFull, l_data);
@@ -3334,6 +4054,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_PRIMARY_ADDRESS_REG(i_target, l_data));
 
     FAPI_TRY(GET_SCAN_UPDATEDR_LONG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_SCAN_UPDATEDR_LONG(i_target, l_data));
 
     l_data.flush<0>();
@@ -3359,6 +4083,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR1_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_0(i_target, l_data));
 
@@ -3368,6 +4096,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA2_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA2_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -3383,6 +4115,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR1_CONFIG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA4_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA4_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -3412,6 +4148,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR0_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR0_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_0(i_target, l_data));
 
@@ -3438,6 +4178,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_ICHAR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_DPLL_CNTL_NEST_REGS_ICHAR_FREQIN_AVG(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_ICHAR_HIRES_FREQIN_AVG(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_ICHAR_FREQIN_MAX(0xFull, l_data);
@@ -3457,6 +4201,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_OCHAR(i_target, l_data));
 
     FAPI_TRY(GET_EPS_DBG_TRACE_REG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_DBG_TRACE_REG_1_1_CONDITION1_ACTION_DO(0xFull, l_data);
     SET_EPS_DBG_TRACE_REG_1_1_CONDITION2_ACTION_DO(0xFull, l_data);
     SET_EPS_DBG_TRACE_REG_1_1_C2_TIMEOUT_ACTION_DO(0xFull, l_data);
@@ -3535,6 +4283,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_FIR_LOCAL_ACTION1(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR0_CONFIG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA0_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA0_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -3554,6 +4306,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR0_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA1_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG_1(i_target, l_data));
 
@@ -3573,6 +4329,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_L3TRA2_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_L3TRA2_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -3605,6 +4365,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR1_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_0(i_target, l_data));
 
@@ -3625,6 +4389,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_OPCG_REG1(i_target, l_data));
 
     FAPI_TRY(GET_SLAVE_CONFIG_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_SLAVE_CONFIG_REG_DISABLE_PERV_THOLD_CHECK(l_data);
     SET_SLAVE_CONFIG_REG_DISABLE_MALF_PULSE_GEN(l_data);
     SET_SLAVE_CONFIG_REG_STOP_HANG_CNT_SYS_XSTP(l_data);
@@ -3646,6 +4414,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_TRA3_TR0_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA3_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA3_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA3_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -3672,6 +4444,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_TRA4_TR1_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA4_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_1(i_target, l_data));
 
@@ -3681,6 +4457,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA5_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA6_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA6_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -3706,6 +4486,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR0_CONFIG(i_target, l_data));
 
     FAPI_TRY(GET_TRA6_TR0_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA6_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_0(i_target, l_data));
 
@@ -3732,6 +4516,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_XSTOP2(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_XSTOP2_XSTOP2_MASK_B(l_data);
     SET_XSTOP2_ALIGNED_XSTOP2(l_data);
     SET_XSTOP2_TRIGGER_OPCG_ON_XSTOP2(l_data);
@@ -3778,6 +4566,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_BIST(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL5_RW(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL5_RW(i_target, l_data));
 
     l_data.flush<0>();
@@ -3785,6 +4577,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_CPLT_CTRL5_WO_CLEAR(i_target, l_data));
 
     FAPI_TRY(GET_CPLT_CTRL5_WO_OR(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     FAPI_TRY(PUT_CPLT_CTRL5_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
@@ -3796,6 +4592,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_ECHAR(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_DTS_RESULT0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_EPS_THERM_WSUB_DTS_RESULT0_0_RESULT(0xFull, l_data);
     SET_EPS_THERM_WSUB_DTS_RESULT0_1_RESULT(0xFull, l_data);
     SET_EPS_THERM_WSUB_DTS_RESULT0_2_RESULT(0xFull, l_data);
@@ -3807,6 +4607,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_DTS_RESULT2(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA0_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_L3TRA0_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_L3TRA0_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -3822,6 +4626,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_1(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA2_TR0_CONFIG_9(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA2_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_L3TRA2_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_L3TRA2_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -3848,6 +4656,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_0(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA3_TR1_TRACE_HI_DATA_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_L3TRA3_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
@@ -3857,6 +4669,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_MULTICAST_GROUP_3(i_target, l_data));
 
     FAPI_TRY(GET_PROTECT_MODE_REG(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_PROTECT_MODE_REG_READ_PROTECT_ENABLE(l_data);
     SET_PROTECT_MODE_REG_WRITE_PROTECT_ENABLE(l_data);
     FAPI_TRY(PUT_PROTECT_MODE_REG(i_target, l_data));
@@ -3866,6 +4682,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TIMEOUT_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA0_TR0_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA0_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_1(i_target, l_data));
 
@@ -3892,6 +4712,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_9(i_target, l_data));
 
     FAPI_TRY(GET_TRA2_TR1_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA2_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_0(i_target, l_data));
 
@@ -3907,6 +4731,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA4_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA5_TR1_CONFIG_1(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA5_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_1(i_target, l_data));
 
@@ -3916,6 +4744,10 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_TRA7_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
     FAPI_TRY(GET_TRA7_TR0_CONFIG_0(i_target, l_data));
+
+
+    SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
+
     SET_TRA7_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_0(i_target, l_data));
 

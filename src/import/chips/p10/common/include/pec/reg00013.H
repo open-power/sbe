@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/common/include/p10_scom_pec_9.H $        */
+/* $Source: src/import/chips/p10/common/include/pec/reg00013.H $          */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,12 +22,10 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+#include "fapi2.H"
 
-#include "proc_scomt.H"
-
-#ifndef __p10_scom_pec_9_H_
-#define __p10_scom_pec_9_H_
-
+#ifndef __PEC_REG00013_H_
+#define __PEC_REG00013_H_
 
 namespace scomt
 {
@@ -35,13 +33,52 @@ namespace pec
 {
 
 
-static const uint64_t MULTICAST_GROUP_2 = 0x080f0002ull;
+template< fapi2::TargetType K, fapi2::MulticastType M, typename V >
+static inline fapi2::ReturnCode PREP_PRIMARY_ADDRESS_REG(const fapi2::Target<K, M, V>& i_target)
+{
+#ifdef SCOM_CHECKING
+    FAPI_TRY(scomt::init(i_target));
+    scomt::last_scom = 0x80f0000;
+#endif
+    return fapi2::current_err;
+#ifdef SCOM_CHECKING
+fapi_try_exit:
+    return fapi2::current_err;
+#endif
+}
 
-static const uint32_t MULTICAST_GROUP_2_MULTICAST2_GROUP = 3;
-static const uint32_t MULTICAST_GROUP_2_MULTICAST2_GROUP_LEN = 3;
-// pec/reg00009.H
+template< fapi2::TargetType K, fapi2::MulticastType M, typename V >
+static inline fapi2::ReturnCode GET_PRIMARY_ADDRESS_REG(const fapi2::Target<K, M, V>& i_target,
+        fapi2::buffer<uint64_t>& o_data)
+{
+#ifdef SCOM_CHECKING
+    FAPI_TRY(scomt::init(i_target));
+    scomt::last_scom = 0x80f0000;
+#endif
+    return fapi2::getScom(i_target, PRIMARY_ADDRESS_REG, o_data);
+#ifdef SCOM_CHECKING
+fapi_try_exit:
+    return fapi2::current_err;
+#endif
+}
+
+template< fapi2::TargetType K, fapi2::MulticastType M, typename V >
+static inline fapi2::ReturnCode PUT_PRIMARY_ADDRESS_REG(const fapi2::Target<K, M, V>& i_target, const uint64_t i_data)
+{
+#ifdef SCOM_CHECKING
+    FAPI_TRY(scomt::init(i_target));
+    FAPI_TRY(scomt::chkReg(0x80f0000));
+#endif
+    return fapi2::putScom(i_target, PRIMARY_ADDRESS_REG, i_data);
+#ifdef SCOM_CHECKING
+fapi_try_exit:
+    return fapi2::current_err;
+#endif
+}
+
+
 
 }
 }
-#include "pec/reg00009.H"
+
 #endif

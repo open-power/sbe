@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/common/include/p10_scom_pec_9.H $        */
+/* $Source: src/import/chips/p10/common/include/pec/reg00010.H $          */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,12 +22,10 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+#include "fapi2.H"
 
-#include "proc_scomt.H"
-
-#ifndef __p10_scom_pec_9_H_
-#define __p10_scom_pec_9_H_
-
+#ifndef __PEC_REG00010_H_
+#define __PEC_REG00010_H_
 
 namespace scomt
 {
@@ -35,13 +33,8 @@ namespace pec
 {
 
 
-static const uint64_t MULTICAST_GROUP_2 = 0x080f0002ull;
-
-static const uint32_t MULTICAST_GROUP_2_MULTICAST2_GROUP = 3;
-static const uint32_t MULTICAST_GROUP_2_MULTICAST2_GROUP_LEN = 3;
-// pec/reg00009.H
 
 }
 }
-#include "pec/reg00009.H"
+
 #endif
