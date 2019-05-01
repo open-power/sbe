@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/common/include/p10_scom_phb_f.H $        */
+/* $Source: src/import/chips/p10/common/include/phb/reg00015.H $          */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,12 +22,10 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+#include "fapi2.H"
 
-#include "proc_scomt.H"
-
-#ifndef __p10_scom_phb_f_H_
-#define __p10_scom_phb_f_H_
-
+#ifndef __PHB_REG00015_H_
+#define __PHB_REG00015_H_
 
 namespace scomt
 {
@@ -35,7 +33,8 @@ namespace phb
 {
 
 
+
 }
 }
-#include "phb/reg00015.H"
+
 #endif
