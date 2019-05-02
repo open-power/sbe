@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2018
+# Contributors Listed Below - COPYRIGHT 2017,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -25,9 +25,6 @@
 import os
 import sys
 import getopt
-
-CHIPID = 'p9n'
-p9n_EC = {'21':'DD2', '22':'DD2', '23':'DD2'}
 
 def usage():
     print "usage:sbeOpDistribute.py [--sbe_binary_dir] <sbe binary path> [--img_dir] <images path>"
@@ -89,15 +86,25 @@ def main(argv):
     SEEPROM_IMAGE           = 'sbe_seeprom.bin'
     SEEPROM_HDR_BIN         = 'sbe_seeprom.hdr.bin'
 
+    #Default chipId for Nimbus chips as this script can be called without the
+    #input SBE binary name.
+    CHIPID = 'p9n'
+    eclist = {'21':'DD2', '22':'DD2', '23':'DD2'}
+
+    #Update if the script is called for Axone chips
+    if (sbe_binary_filename == "axone_sbe.img.ecc"):
+      CHIPID = 'p9a'
+      eclist = {'10':'AXONE'}
+
     if (mode == "MAKE"):
         # Create binaries folder
         run_system_cmd('mkdir -p '+sbe_binary_dir)
-        for ecLevel, ddLevel in p9n_EC.items():
+        for ecLevel, ddLevel in eclist.items():
             # Copy sbe raw binary to binaries folder
             run_system_cmd('cp '+img_dir+'/'+'sbe_seeprom_'+ddLevel+'.bin'+' '+sbe_binary_dir+'/'+CHIPID+'_'+ecLevel+'.'+SEEPROM_IMAGE)
     elif (mode == "INSTALL"):
         ec_build_sbe_cmd = ''
-        for ecLevel, ddLevel in p9n_EC.items():
+        for ecLevel, ddLevel in eclist.items():
             basename = CHIPID+'_'+ecLevel+'.sbe_seeprom'
             ec_build_sbe_cmd += ' --ecImg_'+ecLevel+' '+scratch_dir+'/'+basename+'.hdr.bin'
             # Copy sbe raw binary to scratch folder
