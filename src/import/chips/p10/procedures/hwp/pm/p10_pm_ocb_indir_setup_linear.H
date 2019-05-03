@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/pm/p10_pm.H $             */
+/* $Source: src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_setup_linear.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,10 +22,8 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-///
-/// @file p10_pm.H
-/// @brief Common header for Power Manangement procedures
-///
+/// @file p10_pm_ocb_indir_setup_linear.C
+/// @brief  Configure OCB Channel for Linear Streaming or Non-streaming mode
 
 // *HWP Backup HWP Owner: Greg Still <stillgs@us.ibm.com>
 // *HWP FW Owner        : Amit Tendolkar <amit.tendolkar@in.ibm.com>
@@ -33,71 +31,37 @@
 // *HWP Level           : 2
 // *HWP Consumed by     : HS
 
-#ifndef _PM_H_
-#define _PM_H_
+#ifndef _PM_OCB_INDIR_SETUP_LINEAR_H_
+#define _PM_OCB_INDIR_SETUP_LINEAR_H_
 
-//------------------------------------------------------------------------------
-// Includes
-//------------------------------------------------------------------------------
+#include <fapi2.H>
+#include <p10_pm_ocb_init.H>
 
-//------------------------------------------------------------------------------
-// Macro Defintions
-//------------------------------------------------------------------------------
+typedef fapi2::ReturnCode (*p10_pm_ocb_indir_setup_linear_FP_t)
+(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
+ const ocb::PM_OCB_CHAN_NUM,
+ const ocb::PM_OCB_CHAN_TYPE,
+ const uint32_t);
 
-extern const char* PM_FLOW_MODE_NAME[];
-
-#define PM_FLOW_MODE_NAME   \
-    {                           \
-        "PM_HALT",              \
-        "PM_START",             \
-        "PM_SETUP",             \
-        "PM_SETUP_PIB",         \
-        "PM_SETUP_ALL",         \
-        "PM_RESET_SOFT",        \
-        "PM_INIT_SOFT",         \
-        "PM_INIT_SPECIAL"       \
-    }
-
-#define PM_MODE_NAME_VAR PM_FLOW_MODE_NAME[] = PM_FLOW_MODE_NAME
-
-#define PM_MODE_NAME(_mi_mode)(         \
-                                        PM_FLOW_MODE_NAME[_mi_mode-1]    \
-                              )
-
-
-
-
-// Incase the attribute does not a have a value previously assigned,
-// assign the user given default value
-#define GETATTR_DEFAULT(_i_attr, _i_attr_name, _i_target, _i_value, _i_defVal){\
-        FAPI_ATTR_GET(_i_attr, _i_target, _i_value); \
-        if (!_i_value) \
-        { \
-            FAPI_DBG("Attribute %s set to default = 0x%x",_i_attr_name,_i_defVal); \
-            _i_value = _i_defVal;\
-        } \
-        FAPI_INF("Value read from attribute %s = 0x%x", _i_attr_name,_i_value);\
-    }
-
-//------------------------------------------------------------------------------
-// Constant definitions
-//------------------------------------------------------------------------------
-namespace pm
+extern "C"
 {
 
-enum PM_FLOW_MODE
-{
-    PM_HALT         = 0x1,
-    PM_START        = 0x2,
-    PM_SETUP        = 0x3,
-    PM_SETUP_PIB    = 0x4,
-    PM_SETUP_ALL    = 0x5,
-    PM_RESET_SOFT   = 0x6,
-    PM_INIT_SOFT    = 0x7,
-    PM_INIT_SPECIAL = 0x8,
-};
+//------------------------------------------------------------------------------
+// Function prototype
+//------------------------------------------------------------------------------
+/// @brief  Configure OCB Channel for Linear Streaming or Non-streaming mode
+/// @param[in]  i_target   Chip Target
+/// @param[in]  i_ocb_chan select channel 0-3 to set up      (see p10_ocb_init.H)
+/// @param[in]  i_ocb_type linear streaming or non-streaming (see p10_ocb_init.H)
+/// @param[in]  i_ocb_bar  32-bit channel base address (29 bits + "000")
+/// @return FAPI2_RC_SUCCESS on success, else error.
 
-} // end of namespace pm
+    fapi2::ReturnCode p10_pm_ocb_indir_setup_linear(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const ocb::PM_OCB_CHAN_NUM  i_ocb_chan,
+        const ocb::PM_OCB_CHAN_TYPE i_ocb_type,
+        const uint32_t              i_ocb_bar);
 
+} // extern "C"
 
-#endif // _PM_H_
+#endif
