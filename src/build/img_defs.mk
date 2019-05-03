@@ -239,8 +239,8 @@ ifndef IMPORT_UTILS_DIR
 export IMPORT_UTILS_DIR = $(IMPORT_SRCDIR)/chips/p9/utils
 endif
 
-ifndef IMPORT_COMMON_DIR
-export IMPORT_COMMON_DIR = $(IMPORT_SRCDIR)/chips/p9/common
+ifndef IMPORT_COMMON_DIRS
+export IMPORT_COMMON_DIRS = $(IMPORT_SRCDIR)/chips/p9/common $(IMPORT_SRCDIR)/chips/p10/common
 endif
 
 ifndef PPETRACEPP_DIR
@@ -418,7 +418,7 @@ INCLUDES += -I$(BUILDDATA_SRCDIR)
 INCLUDES += -I$(BUILDDATA_SRCDIR)/$(project)
 INCLUDES += -I$(PK_SRCDIR)/trace
 INCLUDES += -I$(PPETRACEPP_DIR)
-INCLUDES += -I$(IMPORT_COMMON_DIR)/include
+INCLUDES += $(patsubst %,-I%/include,$(IMPORT_COMMON_DIRS))
 INCLUDES += -I$(IMPORT_UTILS_DIR)/
 INCLUDES += -I$(IMPORT_SRCDIR)/tools/imageProcs
 INCLUDES += -I$(IMPORT_SRCDIR)/chips/p10/utils/imageProcs
