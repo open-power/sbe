@@ -49,7 +49,7 @@
 enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
 {
     START_CMD = 0x1,
-    REGIONS_ALL_EXCEPT_PIB_NET_PLL = 0x6B8F, // Exclude NEST_DPLL, PAU_DPLL
+    REGIONS_PERV_OCC = 0x4800,
     CLOCK_TYPES_ALL = 0x7,
     REGIONS_PLL = 0x0010,
     CLOCK_TYPES_SL = 0x4,
@@ -73,7 +73,6 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint64_t> l_data64;
-    fapi2::buffer<uint64_t> l_regions;
     uint32_t base_address = 0x000D0070;
     uint8_t pre_divider;
     uint32_t l_attr_pau_freq_mhz;
@@ -94,7 +93,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(p10_sbe_tp_chiplet_init_region_fence_setup(l_tpchiplet));
 
     FAPI_DBG("Start clocks for all regions except Pib, Net and Pll ");
-    FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_ALL_EXCEPT_PIB_NET_PLL,
+    FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV_OCC,
              CLOCK_TYPES_ALL));
 
     // startclocks for pll  - This is no longer necessary for P10
@@ -113,22 +112,23 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_ERROR_REG, TOD_ERROR_REG));
 
     FAPI_DBG("Clear pervasive LFIR");
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_AND, 0));
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040100, 0));
 
     FAPI_DBG("Configure pervasive LFIR" );
     //Setting LOCAL_FIR_ACTION0 register value
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_ACTION0,
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040106,
                             LFIR_ACTION0_VALUE));
     //Setting LOCAL_FIR_ACTION1 register value
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_ACTION1,
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040107,
                             LFIR_ACTION1_VALUE));
     //Setting LOCAL_FIR_MASK register value
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_LOCAL_FIR_MASK, FIR_MASK_VALUE));
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040103, FIR_MASK_VALUE));
 
-    // Enables any checkstop if set, to propogate to FSP and get notified
-    FAPI_DBG("Unmask CFIR Mask");
-    //Setting FIR_MASK register value
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_FIR_MASK, FIR_MASK_VALUE));
+    FAPI_DBG("Unmask RFIR, XFIR Mask");
+    // XSTOP_MASK
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040040, 0));
+    // RECOV_MASK
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040041, 0));
 
     FAPI_DBG("Setup IPOLL mask register");
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_HOST_MASK_REG, IPOLL_MASK_VALUE));

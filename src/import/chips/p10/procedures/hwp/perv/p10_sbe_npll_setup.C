@@ -58,7 +58,7 @@ static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_pulsemode_settings(
 fapi2::ReturnCode p10_sbe_npll_setup(const
                                      fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    fapi2::buffer<uint64_t> l_data64_root_ctrl3, l_read_reg;
+    fapi2::buffer<uint64_t> l_data64_root_ctrl3, l_read_reg, l_data64_root_ctrl4;
     fapi2::buffer<uint8_t> l_attr_filter1_bypass, l_attr_filter2_bypass, l_attr_filter3_bypass, l_attr_filter4_bypass,
           l_attr_cp_refclk_select, l_attr_pau_dpll_bypass, l_attr_nest_dpll_bypass;
     fapi2::buffer<uint32_t> l_attr_pau_freq, l_attr_core_boot_freq;
@@ -214,13 +214,18 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                     "ERROR:NEST DPLL LOCK NOT SET");
     }
 
-    FAPI_DBG("PAU DPLL + NEST DPLL: Release test_enable, PAU DPLL + NEST DPLL: Release bypass ");
+    FAPI_DBG("PAU DPLL + NEST DPLL: Release test_enable ");
     l_data64_root_ctrl3.flush<0>();
     l_data64_root_ctrl3.writeBit<25>(!(l_attr_pau_dpll_bypass.getBit<7>()));
     l_data64_root_ctrl3.writeBit<26>(!(l_attr_nest_dpll_bypass.getBit<7>()));
     l_data64_root_ctrl3.writeBit<29>(!(l_attr_pau_dpll_bypass.getBit<7>()));
     l_data64_root_ctrl3.writeBit<30>(!(l_attr_nest_dpll_bypass.getBit<7>()));
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_root_ctrl3));
+
+    FAPI_DBG("PAU DPLL + NEST DPLL: Release bypass ");
+    l_data64_root_ctrl4.flush<0>();
+    l_data64_root_ctrl4.writeBit<21>(!(l_attr_pau_dpll_bypass.getBit<7>()));
+    l_data64_root_ctrl4.writeBit<23>(!(l_attr_nest_dpll_bypass.getBit<7>()));
 
     // Clear Perv pcb slave error register
     FAPI_DBG(" Reset PCB error reg");
