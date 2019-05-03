@@ -75,7 +75,7 @@ fapi2::ReturnCode set_hb_dcbz_config(
     const uint64_t i_chip_base_address)
 {
     using namespace scomt;
-    using namespace scomt::mi;
+    using namespace scomt::mc;
 
     fapi2::buffer<uint64_t> l_mcfgp;
     fapi2::buffer<uint64_t> l_mcmode0;

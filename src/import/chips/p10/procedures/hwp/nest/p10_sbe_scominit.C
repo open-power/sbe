@@ -38,6 +38,7 @@
 #include <p10_fbc_utils.H>
 
 #include <p10_scom_perv.H>
+#include <p10_scom_nmmu_4.H>
 #include <p10_scom_proc_3.H>
 #include <p10_scom_proc_6.H>
 #include <p10_scom_proc_7.H>
@@ -384,7 +385,7 @@ fapi2::ReturnCode p10_sbe_scominit_trace(const fapi2::Target<fapi2::TARGET_TYPE_
 fapi2::ReturnCode p10_sbe_scominit_nmmu(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 {
     using namespace scomt;
-    using namespace scomt::proc;
+    using namespace scomt::nmmu;
 
     FAPI_DBG("Entering ...");
 
@@ -415,15 +416,15 @@ fapi2::ReturnCode p10_sbe_scominit_nmmu(const fapi2::Target<fapi2::TARGET_TYPE_P
             uint8_t l_lco_min;
             uint8_t l_lco_min_threshold;
 
-            FAPI_TRY(GET_MM0_MM_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG(l_nmmu, l_scom_data),
+            FAPI_TRY(GET_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG(l_nmmu, l_scom_data),
                      "Error from getScom (PU_NMMU_MMCQ_PB_MODE_REG)");
 
             // lco_targ_config: enable only valid L3s
             for (auto& l_core : l_core_targets)
             {
                 uint8_t l_coreid = l_core.get();
-                FAPI_TRY(l_scom_data.setBit(MM0_MM_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_CONFIG + l_coreid),
-                         "Error from setBit (l_scom_data, MM0_MM_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_CONFIG + l_coreid)");
+                FAPI_TRY(l_scom_data.setBit(FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_CONFIG + l_coreid),
+                         "Error from setBit (l_scom_data, FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_CONFIG + l_coreid)");
             }
 
             // lco_targ_min:
@@ -446,9 +447,9 @@ fapi2::ReturnCode p10_sbe_scominit_nmmu(const fapi2::Target<fapi2::TARGET_TYPE_P
                 l_lco_min = l_lco_min_threshold;
             }
 
-            SET_MM0_MM_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_MIN(l_lco_min, l_scom_data);
+            SET_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_MIN(l_lco_min, l_scom_data);
 
-            FAPI_TRY(PUT_MM0_MM_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG(l_nmmu, l_scom_data),
+            FAPI_TRY(PUT_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG(l_nmmu, l_scom_data),
                      "Error from putScom (PU_NMMU_MMCQ_PB_MODE_REG)");
         }
     }
