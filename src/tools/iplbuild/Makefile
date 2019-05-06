@@ -49,7 +49,6 @@ export INCLUDES = -I$(IMAGEPROCS_COMMON_SRCDIR) \
 .PHONY : all utilities clean
 
 OBJS = $(P10_IMAGE_TOOL_BINDIR)/p10_ipl_image.o  \
-	   $(BASE_OBJDIR)/tools/iplbuild/ipl_build.o \
 	   $(BASE_OBJDIR)/tools/iplbuild/p10_ddco.o \
 
 all:objdir utilities
@@ -57,7 +56,7 @@ all:objdir utilities
 objdir:
 	mkdir -p $(BASE_OBJDIR)/tools/iplbuild
 
-utilities: $(IMG_DIR)/ipl_build
+utilities:
 
 CXXFLAGS = -DFAPI2_NO_FFDC -D__PPE__
 
@@ -73,9 +72,5 @@ $(BASE_OBJDIR)/tools/iplbuild/%.o: $(IMAGEPROCS_P9_SRCDIR)/%.c
 $(BASE_OBJDIR)/tools/iplbuild/%.o: %.C
 	$(CXX) $(INCLUDES) $(DEFS) $(CXXFLAGS) -c -o $@ $<
 
-$(IMG_DIR)/ipl_build: $(OBJS)
-	$(CXX) $(CXXFLAGS) ${INCLUDES} -o $@ $^
-
 clean:
 	rm -rf $(BASE_OBJDIR)/tools/iplbuild
-	rm -f $(IMG_DIR)/ipl_build

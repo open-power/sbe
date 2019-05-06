@@ -136,7 +136,6 @@ SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/plugins/sbeUserDataParser.C
 SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/sbeFFDCType.H
 
 SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
-SBE_IPL_TOOLS := $(IMG_DIR)/ipl_build
 
 IPL_IMAGE_TOOL := $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool
 
@@ -156,7 +155,7 @@ IN_LINK_SCRIPT = linkseeprom.cmd
 OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
 endif
 
-pre_sbe_image: xml ppe_trace_bin buildInfo linker_seeprom $(SBE_TOOLS) $(SBE_IPL_TOOLS) $(IPL_IMAGE_TOOL) security
+pre_sbe_image: xml ppe_trace_bin buildInfo linker_seeprom $(SBE_TOOLS) $(IPL_IMAGE_TOOL) security
 build_sbe_image: $(SUBDIRS) $(SEEPROM_SUBDIRS)
 
 output_sbe_image:
@@ -294,10 +293,6 @@ $(SEEPROM_SUBDIRS): ppe_trace_bin
 #Build the SBE XIP Tools
 $(SBE_TOOLS): $(IPL_IMAGE_TOOL)
 	$(MAKE) -I $(INCLUDES) -C $(TOOLS_IMAGE_DIR) -f Makefile
-
-#Build the IPL Build Tools
-$(SBE_IPL_TOOLS): $(IPL_IMAGE_TOOL)
-	$(MAKE) -I $(INCLUDES) -C $(IPL_BUILD_DIR) -f Makefile CXX_FLAGS=-D__PPE__=1
 
 # Build the P9-XIP Tool
 # .PARALLEL = Forces Parallel
