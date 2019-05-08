@@ -39,45 +39,40 @@
 
 #include "fapi2.H"
 
-//#include "p9_misc_scom_addresses_fld.H"
+#include "p9_misc_scom_addresses.H"
 //#include "p9_perv_scom_addresses_fld.H"
 //#include "p9n2_quad_scom_addresses.H"
 
 // Pervasive HWP Header Files ( istep 2)
-//#include <p9_sbe_attr_setup.H>
-//#include <p9_sbe_tp_chiplet_init1.H>
-//#include <p9_sbe_tp_gptr_time_initf.H>
-//#include <p9_sbe_npll_initf.H>
-//#include <p9_sbe_npll_setup.H>
-//#include <p9_sbe_tp_switch_gears.H>
-//#include <p9_sbe_clock_test2.H>
-//#include <p9_sbe_tp_chiplet_reset.H>
-//#include <p9_sbe_tp_repr_initf.H>
-//#include <p9_sbe_tp_chiplet_init2.H>
-//#include <p9_sbe_tp_arrayinit.H>
-//#include <p9_sbe_tp_initf.H>
-//#include <p9_sbe_tp_chiplet_init3.H>
+#include <p10_sbe_attr_setup.H>
+#include <p10_sbe_tp_chiplet_reset.H>
+#include <p10_sbe_tp_gptr_time_initf.H>
+#include <p10_sbe_dft_probe_setup_1.H>
+#include <p10_sbe_npll_initf.H>
+#include <p10_sbe_rcs_setup.H>
+#include <p10_sbe_tp_switch_gears.H>
+#include <p10_sbe_npll_setup.H>
+#include <p10_sbe_tp_repr_initf.H>
+#include <p10_sbe_tp_abist_setup.H>
+#include <p10_sbe_tp_arrayinit.H>
+#include <p10_sbe_tp_initf.H>
+#include <p10_sbe_dft_probe_setup_2.H>
+#include <p10_sbe_tp_chiplet_init.H>
 
 // Pervasive HWP Header Files ( istep 3)
-//#include <p9_sbe_chiplet_reset.H>
-//#include <p9_sbe_gptr_time_initf.H>
-//#include <p9_sbe_chiplet_init.H>
-//#include <p9_sbe_chiplet_pll_initf.H>
-//#include <p9_sbe_chiplet_pll_setup.H>
-//#include <p9_sbe_repr_initf.H>
-//#include <p9_sbe_arrayinit.H>
-//#include <p9_sbe_tp_enable_ridi.H>
-//#include <p9_sbe_setup_boot_freq.H>
-//#include <p9_sbe_nest_initf.H>
-//#include <p9_sbe_nest_startclocks.H>
-//#include <p9_sbe_io_initf.H>
-//#include <p9_sbe_nest_enable_ridi.H>
-//#include <p9_sbe_startclock_chiplets.H>
-//#include <p9_sbe_scominit.H>
-//#include <p9_sbe_lpc_init.H>
-//#include <p9_sbe_fabricinit.H>
-//#include <p9_sbe_mcs_setup.H>
-//#include <p9_sbe_select_ex.H>
+#include <p10_sbe_chiplet_setup.H>
+#include <p10_sbe_chiplet_clk_config.H>
+#include <p10_sbe_chiplet_reset.H>
+#include <p10_sbe_gptr_time_initf.H>
+#include <p10_sbe_chiplet_pll_initf.H>
+#include <p10_sbe_chiplet_pll_setup.H>
+#include <p10_sbe_repr_initf.H>
+#include <p10_sbe_arrayinit.H>
+#include <p10_sbe_initf.H>
+#include <p10_sbe_startclocks.H>
+#include <p10_sbe_chiplet_init.H>
+#include <p10_sbe_nest_enable_ridi.H>
+#include <p10_sbe_select_ex.H>
 // Cache HWP header file
 //#include <p9_hcd_cache.H>
 //#include <p9_hcd_cache_dcc_skewadjust_setup.H>
@@ -134,14 +129,13 @@ extern uint64_t G_ring_save[8];
 extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target );
 
 // Aliases
-#if 0
-extern p9_thread_control_FP_t threadCntlhwp;
-using  sbeIstepHwpProc_t = ReturnCode (*)
-                    (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
-
 using sbeIstepHwpTpSwitchGears_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
 
+using  sbeIstepHwpProc_t = ReturnCode (*)
+                    (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
+#if 0
+extern p9_thread_control_FP_t threadCntlhwp;
 using  sbeIstepHwpEq_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_EQ> & i_target);
 
@@ -268,50 +262,47 @@ static istepMap_t g_istep2PtrTbl[] =
          {
 #ifdef SEEPROM_IMAGE
              ISTEP_MAP( NULL, NULL ),
-             ISTEP_MAP( istepAttrSetup, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepNoOp, NULL ),  // DFT only
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepNestFreq, NULL),
-             ISTEP_MAP( istepHwpTpSwitchGears, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepNoOp, NULL ),  // DFT only
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepNoOp, NULL ), // DFT only
-             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepAttrSetup, p10_sbe_attr_setup),
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_chiplet_reset),
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_gptr_time_initf),
+             ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_1),// DFT only
+             ISTEP_MAP( istepWithProc, p10_sbe_npll_initf),
+             ISTEP_MAP( istepWithProc, p10_sbe_rcs_setup),
+             ISTEP_MAP( istepHwpTpSwitchGears, p10_sbe_tp_switch_gears),
+             ISTEP_MAP( istepNestFreq, p10_sbe_npll_setup),
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_repr_initf),
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_abist_setup),
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_arrayinit),
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_initf),
+             ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_2), //DFT only
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_chiplet_init),
 #endif
          };
 
 static istepMap_t g_istep3PtrTbl[] =
          {
 #ifdef SEEPROM_IMAGE
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_setup),
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_clk_config),
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_reset),
+             ISTEP_MAP( istepWithProc, p10_sbe_gptr_time_initf),
+             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_chiplet_pll_initf
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_setup),
+             ISTEP_MAP( istepWithProc, p10_sbe_repr_initf),
              ISTEP_MAP( istepNoOp, NULL ), // DFT only
-             ISTEP_MAP( istepWithProc, NULL),
+             ISTEP_MAP( istepWithProc, p10_sbe_arrayinit),
              ISTEP_MAP( istepNoOp, NULL ), // DFT only
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepLpcInit, NULL),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepCheckSbeMaster, NULL ),
-             ISTEP_MAP( istepWithProc, NULL),
-             ISTEP_MAP( istepSelectEx, NULL),
+             ISTEP_MAP( istepWithProc, p10_sbe_initf),
+             ISTEP_MAP( istepWithProc, p10_sbe_startclocks),
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_init),
+             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_skew_adjust_setup
+             ISTEP_MAP( istepWithProc, p10_sbe_nest_enable_ridi),
+             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_scominit
+             ISTEP_MAP( istepLpcInit, NULL),  //p10_sbe_lpc
+             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_fabricinit
+             ISTEP_MAP( istepCheckSbeMaster, NULL ),//p10_sbe_check_master
+             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_mcs_setup
+             ISTEP_MAP( istepSelectEx, NULL), //p10_sbe_select_ex),
 #endif
          };
 static istepMap_t g_istep4PtrTbl[] =
@@ -387,11 +378,9 @@ ReturnCode istepAttrSetup( voidfuncptr_t i_hwp)
 ReturnCode istepWithProc( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
-    //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
-#endif
+    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
     return rc;
 }
 //----------------------------------------------------------------------------
@@ -413,15 +402,13 @@ ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
 ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
-    //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpTpSwitchGears_t>( i_hwp ), proc)
+    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpTpSwitchGears_t>( i_hwp ), proc)
 
     // backup i2c mode register
     uint32_t reg_address = PU_MODE_REGISTER_B;
     PPE_LVD( reg_address, SBE_GLOBAL->i2cModeRegister);
-#endif
     return rc;
 }
 
@@ -432,12 +419,11 @@ ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepNestFreq "
     ReturnCode rc = FAPI2_RC_SUCCESS;
 
-#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
     do
     {
-        //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ),proc)
+        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ),proc)
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;
@@ -445,7 +431,6 @@ ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
         // Update PK frequency
         SBE::updatePkFreq();
     }while(0);
-#endif
     return rc;
     #undef SBE_FUNC
 }
@@ -455,13 +440,11 @@ ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
 ReturnCode istepSelectEx( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     // TODO via RTC 135345
     // Once multicast targets are supported, we may need to pass
     // p9selectex::ALL as input.
-    //SBE_EXEC_HWP(rc, reinterpret_cast<p9_sbe_select_ex_FP_t>(i_hwp), proc, p9selectex::SINGLE)
-#endif
+    SBE_EXEC_HWP(rc, reinterpret_cast<p10_sbe_select_ex_FP_t>(i_hwp), proc, selectex::SINGLE)
     return rc;
 }
 

@@ -100,6 +100,7 @@ LIB_DIRS += -L$(OBJDIR)/fapi2_seeprom
 FAPI2LIB := $(OBJDIR)/fapi2/libfapi2seeprom.a
 LLIBS += -lfapi2seeprom
 
+include $(P9_HWPERR_SRCDIR)/hwpErrors.mk
 include $(HWPERR_SRCDIR)/hwpErrors.mk
 
 # Common Utils library
@@ -256,8 +257,10 @@ ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/system_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/unit_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_ipl_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_sbe_load_bootloader_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_clock_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_freq_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/core_attributes.xml
-#ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/nest_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_nest_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_plat_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/pm_hwp_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_cache_contained_attributes.xml

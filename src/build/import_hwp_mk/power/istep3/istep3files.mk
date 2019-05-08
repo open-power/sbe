@@ -30,29 +30,19 @@
 # Object Files
 ##########################################################################
 
-#ISTEP3-CPP-SOURCES = p9_sbe_chiplet_reset.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_gptr_time_initf.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_chiplet_pll_initf.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_chiplet_pll_setup.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_repr_initf.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_chiplet_init.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_arrayinit.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_tp_enable_ridi.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_setup_boot_freq.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_nest_initf.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_nest_startclocks.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_nest_enable_ridi.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_io_initf.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_startclock_chiplets.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_scominit.C
-#ISTEP3-CPP-SOURCES +=p9_lpc_utils.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_lpc_init.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_fabricinit.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_mcs_setup.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_setup_boot_freq.C
-#ISTEP3-CPP-SOURCES +=p9_sbe_select_ex.C
-#ISTEP3-CPP-SOURCES +=p9_mmu_scom.C
-ISTEP3-CPP-SOURCES =
+ISTEP3-CPP-SOURCES = p10_sbe_chiplet_setup.C
+ISTEP3-CPP-SOURCES += p10_sbe_chiplet_clk_config.C
+ISTEP3-CPP-SOURCES += p10_sbe_chiplet_reset.C
+ISTEP3-CPP-SOURCES += p10_sbe_gptr_time_initf.C
+ISTEP3-CPP-SOURCES +=p10_sbe_chiplet_pll_initf.C
+ISTEP3-CPP-SOURCES +=p10_sbe_chiplet_pll_setup.C
+ISTEP3-CPP-SOURCES +=p10_sbe_repr_initf.C
+ISTEP3-CPP-SOURCES +=p10_sbe_arrayinit.C
+ISTEP3-CPP-SOURCES +=p10_sbe_initf.C
+ISTEP3-CPP-SOURCES +=p10_sbe_startclocks.C
+ISTEP3-CPP-SOURCES +=p10_sbe_chiplet_init.C
+ISTEP3-CPP-SOURCES +=p10_sbe_nest_enable_ridi.C
+#ISTEP3-CPP-SOURCES +=p10_sbe_select_ex.C
 ISTEP3-C-SOURCES =
 ISTEP3-S-SOURCES =
 

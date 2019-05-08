@@ -41,14 +41,14 @@
 // TODO Workaround
 #include "plat_target_parms.H"
 
-//#include "p9_misc_scom_addresses.H"
-//#include "p9_perv_scom_addresses.H"
-//#include "p9_perv_scom_addresses_fld.H"
+#include "p9_misc_scom_addresses.H"
+#include "p9_perv_scom_addresses.H"
+#include "p9_perv_scom_addresses_fld.H"
 //#include "p9n2_quad_scom_addresses.H"
 
 //#include "p9_suspend_io.H"
 
-//#include <p9_sbe_attr_setup.H>
+#include <p10_sbe_attr_setup.H>
 
 using namespace fapi2;
 
@@ -319,11 +319,11 @@ ReturnCode performAttrSetup( )
     #define SBE_FUNC "performAttrSetup "
     SBE_ENTER("performAttrSetup ");
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
+    
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     do
     {
-        SBE_EXEC_HWP(rc, p9_sbe_attr_setup, proc)
+        SBE_EXEC_HWP(rc, p10_sbe_attr_setup, proc)
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;
@@ -344,7 +344,6 @@ ReturnCode performAttrSetup( )
                     tempReg.getBit<PERV_CBS_CS_SECURE_ACCESS_BIT>();
      }while(0);
     SBE_EXIT(SBE_FUNC);
-#endif
     return rc;
     #undef SBE_FUNC
 }

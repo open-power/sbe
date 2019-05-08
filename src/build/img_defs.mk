@@ -126,12 +126,20 @@ ifndef CORE_SRCDIR
 export CORE_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/core
 endif
 
+ifndef P9_PERV_SRCDIR
+export P9_PERV_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/perv
+endif
+
 ifndef PERV_SRCDIR
-export PERV_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/perv
+export PERV_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/procedures/hwp/perv
+endif
+
+ifndef P9_HWPERR_SRCDIR
+export P9_HWPERR_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/xml/error_info
 endif
 
 ifndef HWPERR_SRCDIR
-export HWPERR_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/xml/error_info
+export HWPERR_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/procedures/xml/error_info
 endif
 
 ifndef NEST_SRCDIR
@@ -151,7 +159,11 @@ export INITFILES_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/initfiles
 endif
 
 ifndef HWPLIB_SRCDIR
-export HWPLIB_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/lib
+export HWPLIB_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/procedures/hwp/lib
+endif
+
+ifndef P9_HWPLIB_SRCDIR
+export P9_HWPLIB_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/hwp/lib
 endif
 
 ifndef HWPFFDC_SRCDIR
@@ -166,12 +178,20 @@ ifndef IMAGEPROCS_COMMON_SRCDIR
 export IMAGEPROCS_COMMON_SRCDIR = $(IMPORT_SRCDIR)/chips/common/utils/imageProcs
 endif
 
+ifndef IMAGEPROCS_COMMON_SCOM_SRCDIR
+export IMAGEPROCS_COMMON_SCOM_SRCDIR = $(IMPORT_SRCDIR)/chips/common/utils/scomt
+endif
+
 ifndef IMAGEPROCS_P9_SRCDIR
 export IMAGEPROCS_P9_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/utils/imageProcs
 endif
 
 ifndef IMAGEPROCS_P10_SRCDIR
 export IMAGEPROCS_P10_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/utils/imageProcs
+endif
+
+ifndef IMAGEPROCS_COMMON_INCDIR
+export IMAGEPROCS_COMMON_INCDIR = $(IMPORT_SRCDIR)/chips/p10/common/include/
 endif
 
 ifndef BASE_OBJDIR
@@ -187,7 +207,7 @@ export P10_IMAGE_TOOL_BINDIR = $(BASE_OBJDIR)/image_tool
 endif
 
 ifndef IMG_INCLUDES
-export IMG_INCLUDES = -I$(IMAGEPROCS_COMMON_SRCDIR) -I$(IMAGEPROCS_P9_SRCDIR) -I$(IMAGEPROCS_CEN_SRCDIR) -I$(IMAGEPROCS_TOOL_DIR) -I$(BUILD_DIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(NEST_SRCDIR)  -I$(IO_SRCDIR) -I$(PM_SRCDIR) -I$(INITFILES_SRCDIR) -I$(HWPLIB_SRCDIR) -I$(HWPFFDC_SRCDIR) -I$(MEMHWP_SRCDIR)
+export IMG_INCLUDES = -I$(IMAGEPROCS_COMMON_SRCDIR) -I$(IMAGEPROCS_P9_SRCDIR) -I$(IMAGEPROCS_P10_SRCDIR) -I$(IMAGEPROCS_CEN_SRCDIR) -I$(IMAGEPROCS_TOOL_DIR) -I$(BUILD_DIR) -I$(CACHE_SRCDIR) -I$(CORE_SRCDIR) -I$(PERV_SRCDIR) -I$(P9_PERV_SRCDIR) -I$(NEST_SRCDIR)  -I$(IO_SRCDIR) -I$(PM_SRCDIR) -I$(INITFILES_SRCDIR) -I$(HWPLIB_SRCDIR) -I$(P9_HWPLIB_SRCDIR) -I$(HWPFFDC_SRCDIR) -I$(MEMHWP_SRCDIR) -I$(IMAGEPROCS_COMMON_SCOM_SRCDIR) -I$(IMAGEPROCS_COMMON_INCDIR)
 endif
 
 ifndef BOOT_OBJDIR

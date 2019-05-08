@@ -30,18 +30,22 @@
 # Object Files
 ##########################################################################
 
-#ISTEP2-CPP-SOURCES = p9_sbe_attr_setup.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_tp_chiplet_init1.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_tp_gptr_time_initf.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_npll_initf.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_clock_test2.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_tp_chiplet_reset.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_tp_repr_initf.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_tp_chiplet_init2.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_tp_arrayinit.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_tp_initf.C
-#ISTEP2-CPP-SOURCES +=p9_sbe_tp_chiplet_init3.C
-ISTEP2-CPP-SOURCES =
+ISTEP2-CPP-SOURCES = p10_sbe_attr_setup.C
+ISTEP2-CPP-SOURCES +=p10_sbe_tp_chiplet_reset.C
+ISTEP2-CPP-SOURCES +=p10_sbe_tp_gptr_time_initf.C
+ISTEP2-CPP-SOURCES +=p10_sbe_dft_probe_setup_1.C
+ISTEP2-CPP-SOURCES +=p10_sbe_npll_initf.C
+ISTEP2-CPP-SOURCES +=p10_sbe_rcs_setup.C
+ISTEP2-CPP-SOURCES +=p10_sbe_tp_switch_gears.C
+ISTEP2-CPP-SOURCES +=p10_sbe_npll_setup.C
+ISTEP2-CPP-SOURCES +=p10_sbe_tp_repr_initf.C
+ISTEP2-CPP-SOURCES +=p10_sbe_tp_abist_setup.C
+ISTEP2-CPP-SOURCES +=p10_sbe_tp_arrayinit.C
+ISTEP2-CPP-SOURCES +=p10_sbe_tp_initf.C
+ISTEP2-CPP-SOURCES +=p10_sbe_dft_probe_setup_2.C
+ISTEP2-CPP-SOURCES +=p10_sbe_tp_chiplet_init.C
+ISTEP2-CPP-SOURCES +=p10_perv_sbe_cmn.C
+
 ISTEP2-C-SOURCES =
 ISTEP2-S-SOURCES =
 

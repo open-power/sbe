@@ -30,7 +30,7 @@
 # Error Files
 ##########################################################################
 
-P9_PERV_CURR_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+PERV_CURR_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 # This variable name must not change
-ERROR_XML_FILES += $(wildcard $(P9_PERV_CURR_DIR)/*.xml)
+ERROR_XML_FILES += $(wildcard $(PERV_CURR_DIR)/*.xml)
