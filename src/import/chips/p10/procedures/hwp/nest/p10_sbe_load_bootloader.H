@@ -46,7 +46,7 @@
 // function pointer typedef definition for HWP call support
 typedef fapi2::ReturnCode(*p10_sbe_load_bootloader_FP_t) (
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
-    const fapi2::Target<fapi2::TARGET_TYPE_EX>&,
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>&,
     const uint64_t,
     uint8_t*);
 
@@ -61,7 +61,7 @@ extern "C" {
 /// @brief Shift HB bootloader payload from SEEPROM to L3 cache of master core
 ///        via PBA
 /// @param[in] i_master_chip_target Reference to master processor chip target
-/// @param[in] i_master_ex_target Reference to master EX unit target
+/// @param[in] i_master_core_target Reference to master Core unit target
 /// @param[in] i_payload_size Size of image payload data, in B
 /// @param[in] i_payload_data Pointer to image payload data
 ///
@@ -69,7 +69,7 @@ extern "C" {
 ///
     fapi2::ReturnCode p10_sbe_load_bootloader(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_master_chip_target,
-        const fapi2::Target<fapi2::TARGET_TYPE_EX>& i_master_ex_target,
+        const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_master_core_target,
         const uint64_t i_payload_size,
         uint8_t* i_payload_data);
 
