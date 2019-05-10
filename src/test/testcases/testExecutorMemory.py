@@ -36,7 +36,7 @@
 #      1.0     gkeishin     29/03/16     Initial create
 #############################################################
 '''
-
+from __future__ import print_function
 import testClass as testObj
 import testRegistry as reg
 sys.path.append("targets/p9_nimbus/sbeTest" )
@@ -67,17 +67,17 @@ sbe_test_data = (
 def main():
 
     # Intialize the class obj instances
-    print "\n  Initializing Registry instances ...."
+    print("\n  Initializing Registry instances ....")
     regObj = testObj.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test set  [ Indirect Commands ] ...\n"
+    print("\n  Execute SBE Test set  [ Indirect Commands ] ...\n")
                                    # Sim obj Target    Test set 
     rc_test = regObj.ExecuteTestOp(testObj.simMemObj,sbe_test_data)
     if rc_test != testObj.SUCCESS:
-        print "  SBE Test data set .. [ FAILED ] .."
+        print("  SBE Test data set .. [ FAILED ] ..")
     else:
-        print "  SBE Test data set .. [ SUCCESS ] "
-    print "\n"
+        print("  SBE Test data set .. [ SUCCESS ] ")
+    print("\n")
 
 if __name__=="__main__":
     if testUtil.getMachineName() == "axone":

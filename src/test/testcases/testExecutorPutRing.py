@@ -143,7 +143,7 @@ def main():
     # Intialize the class obj instances
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test set1  [ Put Ring ] ...\n"
+    print("\n  Execute SBE Test set1  [ Put Ring ] ...\n")
 
     '''
     Test Case 1
@@ -151,7 +151,7 @@ def main():
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data1 )
 
-    print "\n  Poll on Host side for INTR  ...\n"
+    print("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 
@@ -160,56 +160,56 @@ def main():
 
 #   Commenting out test cases for perv and proc chiplets, as there is no
 #   way to stop cloks for these chiplets from the test framework
-#    print "\n  Execute SBE Test set2  [ Put Ring ] ...\n"
+#    print("\n  Execute SBE Test set2  [ Put Ring ] ...\n")
 #    '''
 #    Test Case 2
 #    '''
 #    # HOST->SBE data set execution
 #    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data2 )
 #
-#    print "\n  Poll on Host side for INTR  ...\n"
+#    print("\n  Poll on Host side for INTR  ...\n")
 #    #Poll on HOST DoorBell Register for interrupt
 #    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 #
 #    #SBE->HOST data set execution
 #    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
 #
-#    print "\n  Execute SBE Test set3 [ Put Ring ] ...\n"
+#    print("\n  Execute SBE Test set3 [ Put Ring ] ...\n")
 #    '''
 #    Test Case 3
 #    '''
 #    # HOST->SBE data set execution
 #    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data3 )
 #
-#    print "\n  Poll on Host side for INTR  ...\n"
+#    print("\n  Poll on Host side for INTR  ...\n")
 #    #Poll on HOST DoorBell Register for interrupt
 #    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 #
 #    #SBE->HOST data set execution
 #    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
 #
-    print "\n  Execute SBE Test set4  [ Put Ring ] ...\n"
+    print("\n  Execute SBE Test set4  [ Put Ring ] ...\n")
     '''
     Test Case 4
     '''
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data4 )
 
-    print "\n  Poll on Host side for INTR  ...\n"
+    print("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
 
-    print "\n  Execute SBE Test set5  [ Put Ring ] ...\n"
+    print("\n  Execute SBE Test set5  [ Put Ring ] ...\n")
     '''
     Test Case 5
     '''
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data5 )
 
-    print "\n  Poll on Host side for INTR  ...\n"
+    print("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 

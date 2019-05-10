@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 import copy
 from sim_commands import *
@@ -103,7 +104,7 @@ def sbe_istep_func( inum1, inum2, node=0, isfleetwood=0):
         lIstepArray[startMajor][1] = lIstepArray[startMajor][0]
     for major in range(startMajor, endMajor+1):
         for minor in range(lIstepArray[major][0], lIstepArray[major][1] + 1):
-            print "Running:"+str(major)+"."+str(minor)
+            print("Running:"+str(major)+"."+str(minor))
 
             try:
                 TESTDATA = [0,0,0,3,

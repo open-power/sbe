@@ -22,7 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-
+from __future__ import print_function
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 sys.path.append("targets/p9_axone/sbeTest" )
@@ -88,7 +88,7 @@ def readSeeprom(offset, size, destAddr, primStatus, secStatus):
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data )
 
-    print "\n  Poll on Host side for INTR  ...\n"
+    print("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 
@@ -102,13 +102,13 @@ def main():
     # Run Simics initially
     testUtil.runCycles( 10000000 );
 
-    print "\n  Execute SBE Test - Read SBE Mem\n"
+    print("\n  Execute SBE Test - Read SBE Mem\n")
 
     '''
     Test Case 1
     '''
     readSeeprom(0, 128, 0x08000000, 0, 0)
-    print "SUCCESS: read seeprom valid"
+    print("SUCCESS: read seeprom valid")
 
     # Read data from cache and verify its contents
     # seeprom header
@@ -118,34 +118,34 @@ def main():
 
     for byte in range(len(seepprmHdr)):
         if( ord(seepprmHdr[byte]) != readData[byte ]):
-             print "Data mismtach at: ",  byte ;
-             print " expected: ", ord(seepprmHdr[byte]);
-             print " Actual: ", readData[byte];
+             print("Data mismtach at: ",  byte)
+             print(" expected: ", ord(seepprmHdr[byte]))
+             print(" Actual: ", readData[byte])
              raise Exception('data mistmach');
 
     '''
     Test Case 2
     '''
     readSeeprom(0x38CA0, 0x180, 0x8973780, 0, 0)
-    print "SUCCESS: read seeprom HB testcase"
+    print("SUCCESS: read seeprom HB testcase")
 
     '''
     Test Case 3
     '''
     readSeeprom(0x0, 0x40, 0x08000000, 0x03, 0x19)
-    print "SUCCESS: read seeprom size not aligned"
+    print("SUCCESS: read seeprom size not aligned")
 
     '''
     Test Case 4
     '''
     readSeeprom(0x3fe80, 0x180, 0x08000000, 0x03, 0x19)
-    print "SUCCESS: read seeprom size exceeded"
+    print("SUCCESS: read seeprom size exceeded")
 
     '''
     Test Case 5
     '''
     readSeeprom(0x7, 0x40, 0x08000000, 0x03, 0x19)
-    print "SUCCESS: read seeprom offset not aligned"
+    print("SUCCESS: read seeprom offset not aligned")
 
 if __name__ == "__main__":
     if testUtil.getMachineName() == "axone":

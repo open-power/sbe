@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 sys.path.append("targets/p9_axone/sbeTest" )
@@ -43,8 +44,8 @@ def main( ):
     if(data == readData):
         print ("Success - Write-Read PBA - WO FMODE, WO LCO")
     else:
-        print data
-        print readData
+        print(data)
+        print(readData)
         raise Exception('data mistmach')
     # Partial Write test
     readData = testMemUtil.getmem(0x08000000, 128*3, 0x02)
@@ -56,10 +57,10 @@ def main( ):
     if(sandwichData == readBackData):
         print ("Success - Write_Part-Read PBA - WO FMODE, WO LCO")
     else:
-        print readData
-        print data
-        print readBackData
-        print sandwichData
+        print(readData)
+        print(data)
+        print(readBackData)
+        print(sandwichData)
         raise Exception('data mistmach')
 
 # Second Case with Fast Mode without LCO
@@ -73,8 +74,8 @@ def main( ):
     if(data == readData):
         print ("Success - Write-Read PBA - W FMODE, WO LCO")
     else:
-        print data
-        print readData
+        print(data)
+        print(readData)
         raise Exception('data mistmach')
     # Partial Write test
     readData = testMemUtil.getmem(0x08000000, 128*3, 0x22)
@@ -86,10 +87,10 @@ def main( ):
     if(sandwichData == readBackData):
         print ("Success - Write_Part-Read PBA - W FMODE, WO LCO")
     else:
-        print readData
-        print data
-        print readBackData
-        print sandwichData
+        print(readData)
+        print(data)
+        print(readBackData)
+        print(sandwichData)
         raise Exception('data mistmach')
 
 # Third Case with Fast Mode with LCO
@@ -103,8 +104,8 @@ def main( ):
     if(data == readData):
         print ("Success - Write-Read PBA - W FMODE, W LCO")
     else:
-        print data
-        print readData
+        print(data)
+        print(readData)
         raise Exception('data mistmach')
     # Partial Write test
     readData = testMemUtil.getmem(0x08000000, 128*3, 0x62)
@@ -116,10 +117,10 @@ def main( ):
     if(sandwichData == readBackData):
         print ("Success - Write_Part-Read PBA - W FMODE, W LCO")
     else:
-        print readData
-        print data
-        print readBackData
-        print sandwichData
+        print(readData)
+        print(data)
+        print(readBackData)
+        print(sandwichData)
         raise Exception('data mistmach')
 
 #-------------------------------------------------
