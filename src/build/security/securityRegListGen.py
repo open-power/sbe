@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -26,6 +26,7 @@ import getopt
 import sys
 import os
 import csv
+import io
 
 # Exit codes
 SUCCESS       = 0
@@ -585,7 +586,7 @@ def main(argv):
     whitelist = []
     blacklist = []
     greylist = []
-    with open(SECURITY_LIST, 'rbU') as f:
+    with io.open(SECURITY_LIST, 'r', encoding="utf8") as f:
         reader = csv.DictReader(f)
         for idx, row in enumerate(reader):
             try:
