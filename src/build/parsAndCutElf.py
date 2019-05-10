@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -46,7 +46,7 @@ def parserElf(argv):
     output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     i = 0;
     for line in output.stdout:
-        line = line.strip()
+        line = str(line.strip())
 
         if not line: continue
 
