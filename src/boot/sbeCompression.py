@@ -55,7 +55,7 @@ def compress(inputFile, compressedFile):
       sys.exit(1)
 
     instDict = dict()
-    for i in range(0, os.stat(inputFile).st_size / 4 ):
+    for i in range(0, os.stat(inputFile).st_size // 4 ):
 
        fourByt = f.read(4)
 
@@ -88,7 +88,7 @@ def compress(inputFile, compressedFile):
     count = 0
 
     #Create a bitmap for each four bytes of binary.
-    for i in range(0, os.stat(inputFile).st_size / 4 ):
+    for i in range(0, os.stat(inputFile).st_size // 4 ):
 
        fourByt = f.read(4)
        if fourByt in instList:
@@ -97,7 +97,7 @@ def compress(inputFile, compressedFile):
        else :
           strBits += '0'
 
-       if ((len(strBits) == 32) or (i == (os.stat(inputFile).st_size / 4) - 1)):
+       if ((len(strBits) == 32) or (i == (os.stat(inputFile).st_size // 4) - 1)):
           value = int(strBits, 2)
           fW.write(struct.pack('>I', value))
           strBits = ""
@@ -115,7 +115,7 @@ def compress(inputFile, compressedFile):
 
     f.seek(0, 0)
 
-    for i in range(0, os.stat(inputFile).st_size / 4 ):
+    for i in range(0, os.stat(inputFile).st_size // 4 ):
 
        fourByt = f.read(4)
 
