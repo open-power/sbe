@@ -69,7 +69,10 @@ def compress(inputFile, compressedFile):
           iCount = 1
           instDict[fourByt] = iCount
 
-    sortedList =  sorted(instDict.iteritems(), key=operator.itemgetter(1), reverse = True)
+    try:
+        sortedList = sorted(instDict.iteritems(), key=operator.itemgetter(1), reverse = True)
+    except AttributeError:
+        sortedList = sorted(instDict.items(), key=operator.itemgetter(1), reverse = True)
 
     sortedList[256:] = []
     instList = []
