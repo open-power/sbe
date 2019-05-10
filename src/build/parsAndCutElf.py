@@ -47,7 +47,7 @@ def parserElf(argv):
     output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     i = 0;
     for line in output.stdout:
-        line = line.strip()
+        line = str(line.strip())
 
         if not line: continue
 
