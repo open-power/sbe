@@ -51,14 +51,14 @@ def updateBuildTag(argv):
 
     tag_exist_cmd = "git log | grep \"Release notes for sbe\"| awk '{ print $NF }'"
     proc = subprocess.Popen(tag_exist_cmd, shell=True, stdout=subprocess.PIPE)
-    build_tag = proc.stdout.read()
+    build_tag = str(proc.stdout.read())
     if ( build_tag ):
         cmd_build_tag = cmd_build_tag+" "+build_tag
 
     else:
         commit_id_cmd = "git log |grep commit -m1 |awk '{ print $NF }' |awk '{print substr ($0, 0, 17)}'"
         proc = subprocess.Popen(commit_id_cmd, shell=True, stdout=subprocess.PIPE)
-        commit_id = proc.stdout.read()
+        commit_id = str(proc.stdout.read())
         cmd_build_tag = cmd_build_tag+" "+commit_id
 
     proc = subprocess.Popen(cmd_build_tag, shell=True, stdout=subprocess.PIPE)
@@ -68,7 +68,7 @@ def updateBuildTag(argv):
     proc = subprocess.Popen(cmd_build_time, shell=True, stdout=subprocess.PIPE)
     cmd_temp = "id -un"
     proc = subprocess.Popen(cmd_temp, shell=True, stdout=subprocess.PIPE)
-    cmd_build_user = cmd_build_user+" "+proc.stdout.read() 
+    cmd_build_user = cmd_build_user+" "+str(proc.stdout.read())
     proc = subprocess.Popen(cmd_build_user, shell=True, stdout=subprocess.PIPE)
     cmd_build_host = cmd_build_host+" "+socket.gethostname()
     proc = subprocess.Popen(cmd_build_host, shell=True, stdout=subprocess.PIPE)
