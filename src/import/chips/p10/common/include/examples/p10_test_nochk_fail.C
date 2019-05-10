@@ -36,6 +36,7 @@
 #include "p10_scom_perv.H"
 #include "p10_scom_pec.H"
 #include "p10_scom_nmmu.H"
+#include "p10_scom_pau.H"
 #include "p10_scom_pauc.H"
 #include "p10_scom_proc.H"
 
