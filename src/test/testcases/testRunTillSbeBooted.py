@@ -21,6 +21,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import os
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
@@ -35,11 +36,11 @@ lbus = conf.p9Proc0.proc_lbus_map
 while True:
     try:
         if testUtil.read(lbus, 0x2824, 4)[0] & 0x80 :
-            print "SBE is booted, continue"
+            print("SBE is booted, continue")
             break
         else:
-            print "SBE is still not booted"
+            print("SBE is still not booted")
 
     except:
-        print "."
+        print(".")
     testUtil.runCycles( 10000000 )

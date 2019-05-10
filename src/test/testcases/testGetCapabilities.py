@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
@@ -62,7 +63,7 @@ EXPDATA3 = [0xa8,0x0,0x0,0x03, #getcapability/getSbeFFDC/quiesce
 def main( ):
     ( rc, out )  =   quiet_run_command( "sbe-ddlevel 0", output_modes.regular )
     if(rc == "DD1"):
-        print "Not running Get Capabilities on DD1"
+        print("Not running Get Capabilities on DD1")
         return
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( TESTDATA )

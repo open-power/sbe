@@ -22,7 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-
+from __future__ import print_function
 import sys
 import os
 import struct
@@ -113,7 +113,7 @@ def getCapabilities(addr, size, exp_status):
     )
     # HOST->SBE data set execution - Less length setup
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
@@ -126,12 +126,12 @@ def main():
     # Run Simics initially
     testUtil.runCycles( 100000000 )
 
-    print "\n  Execute SBE Test - negative testcase - less size\n"
+    print("\n  Execute SBE Test - negative testcase - less size\n")
     getCapabilities(0x08000000, 30, 0x00020019)
-    print "\n  Execute SBE Test - negative testcase - not multiple of PBA\n"
+    print("\n  Execute SBE Test - negative testcase - not multiple of PBA\n")
     getCapabilities(0x08000000, 129, 0x00020019)
 
-    print "\n  Execute SBE Test - positive testcase \n"
+    print("\n  Execute SBE Test - positive testcase \n")
     getCapabilities(0x08000000, 128, 0)
 
     testUtil.runCycles( 100000000 );
@@ -144,8 +144,8 @@ def main():
     if(capMsg == readData):
         print ("Success - PSU get capabilities")
     else:
-        print capMsg
-        print readData
+        print(capMsg)
+        print(readData)
         raise Exception('data mistmach')
 
 if __name__ == "__main__":

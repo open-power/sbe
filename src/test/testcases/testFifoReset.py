@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest")
 import testUtil

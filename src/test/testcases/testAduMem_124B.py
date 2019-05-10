@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 import os
 import struct
@@ -50,8 +51,8 @@ def main( ):
             if(data == readData):
                 print ("Success - Write-Read ADU byte["+str(byte)+"] offset[" + str(offset)+"]")
             else:
-                print [hex(a) for a in data]
-                print [hex(a) for a in readData]
+                print([hex(a) for a in data])
+                print([hex(a) for a in readData])
                 raise Exception('data mistmach')
 
 # Test case 2: Invalid length - 3

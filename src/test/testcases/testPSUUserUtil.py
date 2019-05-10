@@ -37,7 +37,7 @@
 #      1.0     gkeishin     29/03/16     Initial create
 #############################################################
 '''
-
+from __future__ import print_function
 import testPSUUtil
 
 '''
@@ -55,5 +55,5 @@ either SUCCESS or FAILURE as an end result for generalization purpose.
 ##########################################################################
 def classUtilFuncSample(i_paramArray):
     for input in i_paramArray:
-        print "  classUtilFuncSample : parm: ",input
+        print("  classUtilFuncSample : parm: ",input)
     return testPSUUtil.SUCCESS 

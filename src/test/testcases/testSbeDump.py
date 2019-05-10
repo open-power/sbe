@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest")
 import testUtil
@@ -92,7 +93,7 @@ def main():
         #read user data id
         data = testUtil.readDsEntryReturnVal()
         id = (data[0] << 8) | data[1]
-        print "User data Id ["+str(hex(id))+"]"
+        print("User data Id ["+str(hex(id))+"]")
         len = (data[2] << 8) | data[3]
         #if it is trace field SBE_FFDC_TRACE_DUMP
         fileName = ""

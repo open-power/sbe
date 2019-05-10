@@ -23,7 +23,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-
+from __future__ import print_function
 import os
 import sys
 import subprocess
@@ -38,7 +38,7 @@ def updateBuildTag(argv):
         image_dir = argv[2]
         seeprom_name = argv[3]
     except:
-        print "Missing Xip Tool Path/Image Directory/Seeprom Binary Name"
+        print("Missing Xip Tool Path/Image Directory/Seeprom Binary Name")
         exit(-1)
 
     # Commandline cmds getting formed here

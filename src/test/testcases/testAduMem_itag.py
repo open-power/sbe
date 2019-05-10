@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 sys.path.append("targets/p9_nimbus/sbeTest" )
 import testUtil
@@ -56,8 +57,8 @@ def main( ):
     if(data == readData):
         print ("Success - Write-Read ADU with Itag")
     else:
-        print data
-        print readData
+        print(data)
+        print(readData)
         raise Exception('data mistmach')
 
     # Partial Write test
@@ -71,10 +72,10 @@ def main( ):
     if(sandwichData == readBackData):
         print ("Success - Write_Part-Read ADU with Itag")
     else:
-        print readData
-        print data
-        print readBackData
-        print sandwichData
+        print(readData)
+        print(data)
+        print(readBackData)
+        print(sandwichData)
         raise Exception('data mistmach')
 #-------------------------------------------------
 # Calling all test code

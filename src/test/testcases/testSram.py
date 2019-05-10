@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 import os
 sys.path.append("targets/p9_nimbus/sbeTest" )
@@ -79,8 +80,8 @@ def getsram(addr, mode, length, primStatus, secStatus):
         data += list(testUtil.readDsEntryReturnVal())
     readLen = testUtil.readDsEntryReturnVal()
     if(getsingleword(length) != list(readLen)):
-        print getsingleword(length)
-        print list(readLen)
+        print(getsingleword(length))
+        print(list(readLen))
         raise Exception("Invalid Length")
 
     expResp = (getsingleword(0xc0dea403)
@@ -110,8 +111,8 @@ def main( ):
         if(data == readData):
             print("Success: put - get sram")
         else:
-            print data
-            print readData
+            print(data)
+            print(readData)
             raise Exception('data mistmach')
 
         # secure mem - write to disallowed mem
@@ -154,7 +155,7 @@ def main( ):
         #testUtil.readDsFifo( GETSRAM_OCC_EXPDATA_1 )
         #testUtil.readEot( )
     except:
-        print "FAILED Test Case:"+str(testcase)
+        print("FAILED Test Case:"+str(testcase))
         raise Exception('Failure')
 
 #-------------------------------------------------
