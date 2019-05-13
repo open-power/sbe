@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -902,7 +902,10 @@ static fapi2::ReturnCode p9_sbe_chiplet_reset_clk_mux_obus(
     {
         if (axone_only)
         {
-            FAPI_DBG("Mux settings n/a for OB3 - Axone");
+            FAPI_DBG("mux settings for OB3 - Axone");
+            l_data64.writeBit<PERV_1_NET_CTRL1_PLL_CLKIN_SEL>(i_clk_mux_value.getBit<23>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL>(i_clk_mux_value.getBit<27>());
+            l_data64.writeBit<PERV_1_NET_CTRL1_REFCLK_CLKMUX1_SEL>(i_clk_mux_value.getBit<30>());
         }
         else
         {
