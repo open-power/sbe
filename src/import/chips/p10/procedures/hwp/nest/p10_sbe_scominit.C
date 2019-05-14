@@ -47,6 +47,7 @@
 #include <p10_scom_proc_b.H>
 #include <p10_scom_proc_c.H>
 #include <p10_scom_proc_f.H>
+#include <p10_scom_proc_5.H>
 #include <target_filters.H>
 
 //------------------------------------------------------------------------------
@@ -82,49 +83,6 @@ const uint8_t MAX_L3_TARGETS = 32;
 //------------------------------------------------------------------------------
 // Function definitions
 //------------------------------------------------------------------------------
-
-/// @brief Configures fabric topology IDs in each pervasive chiplet
-/// @param[in] i_target       Reference to processor chip target
-/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode p10_sbe_scominit_topology(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
-{
-    using namespace scomt;
-    using namespace scomt::perv;
-
-    FAPI_DBG("Entering ...");
-
-    fapi2::buffer<uint64_t> l_cplt_conf0;
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    fapi2::ATTR_PROC_FABRIC_TOPOLOGY_ID_Type l_fbc_topology_id;
-    fapi2::TargetFilter l_target_filter = static_cast<fapi2::TargetFilter>(
-            fapi2::TARGET_FILTER_TP |
-            fapi2::TARGET_FILTER_ALL_EQ |
-            fapi2::TARGET_FILTER_ALL_NEST |
-            fapi2::TARGET_FILTER_ALL_IOHS |
-            fapi2::TARGET_FILTER_ALL_PAU |
-            fapi2::TARGET_FILTER_ALL_MC |
-            fapi2::TARGET_FILTER_ALL_PCI);
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_TOPOLOGY_ID, i_target, l_fbc_topology_id),
-             "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_TOPOLOGY_ID)");
-
-    for (auto& l_chplt_target : i_target.getChildren<fapi2::TARGET_TYPE_PERV>(l_target_filter,
-            fapi2::TARGET_STATE_FUNCTIONAL))
-    {
-        FAPI_TRY(GET_CPLT_CONF0_RW(l_chplt_target, l_cplt_conf0), "Error from getScom (PERV_CPLT_CONF0)");
-
-        SET_CPLT_CONF0_TC_TOPOLOGY_ID_DC_48G(l_fbc_topology_id >> 3, l_cplt_conf0);
-        SET_CPLT_CONF0_TC_TOPOLOGY_ID_DC_49G(l_fbc_topology_id >> 2, l_cplt_conf0);
-        SET_CPLT_CONF0_TC_TOPOLOGY_ID_DC_50G(l_fbc_topology_id >> 1, l_cplt_conf0);
-        SET_CPLT_CONF0_TC_TOPOLOGY_ID_DC_51G(l_fbc_topology_id, l_cplt_conf0);
-
-        FAPI_TRY(PUT_CPLT_CONF0_RW(l_chplt_target, l_cplt_conf0), "Error from putScom (PERV_CPLT_CONF0)");
-    }
-
-fapi_try_exit:
-    FAPI_DBG("Exiting ...");
-    return fapi2::current_err;
-}
 
 /// @brief Configures fabric mode registers
 /// @param[in] i_target       Reference to processor chip target
@@ -327,18 +285,18 @@ fapi2::ReturnCode p10_sbe_scominit_firs(const fapi2::Target<fapi2::TARGET_TYPE_P
 
     // configure PB ES3 FIRs
     FAPI_DBG("Configuring PB ES3 FIR");
-    FAPI_TRY(PUT_PB_COM_ES3_FIR_REG_RWX(i_target, l_zeroes),
+    FAPI_TRY(PUT_PB_COM_ES3_FIR_REG_RW(i_target, l_zeroes),
              "Error from putScom (PB_COM_ES3_FIR_REG_RWX)");
     FAPI_TRY(PUT_PB_COM_ES3_FIR_ACTION0_REG(i_target, PU_PB_ES3_FIR_ACTION0),
              "Error from putScom (PB_COM_ES3_FIR_ACTION0_REG)");
     FAPI_TRY(PUT_PB_COM_ES3_FIR_ACTION1_REG(i_target, PU_PB_ES3_FIR_ACTION1),
              "Error from putScom (PB_COM_ES3_FIR_ACTION1_REG)");
-    FAPI_TRY(PUT_PB_COM_ES3_FIR_MASK_REG_RWX(i_target, PU_PB_ES3_FIR_MASK),
+    FAPI_TRY(PUT_PB_COM_ES3_FIR_MASK_REG_RW(i_target, PU_PB_ES3_FIR_MASK),
              "Error from putScom (PB_COM_ES3_FIR_MASK_REG_RWX)");
 
     // configure PBA FIRs
     FAPI_DBG("Configuring PBA FIR");
-    FAPI_TRY(PUT_TP_TPBR_PBA_PBAF_PBAFIR_RWX(i_target, l_zeroes),
+    FAPI_TRY(PUT_TP_TPBR_PBA_PBAF_PBAFIR_RW(i_target, l_zeroes),
              "Error from putScom (TP_TPBR_PBA_PBAF_PBAFIR_RWX)");
     FAPI_TRY(PUT_TP_TPBR_PBA_PBAF_PBAFIRACT0(i_target, PBA_FIR_ACTION0),
              "Error from putScom (TP_TPBR_PBA_PBAF_PBAFIRACT0)");
@@ -464,7 +422,6 @@ fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 {
     FAPI_DBG("Entering ...");
 
-    FAPI_TRY(p10_sbe_scominit_topology(i_target), "Error from p10_sbe_scominit_topology\n");
     FAPI_TRY(p10_sbe_scominit_fbc(i_target), "Error from p10_sbe_scominit_fbc\n");
     FAPI_TRY(p10_sbe_scominit_bars(i_target), "Error from p10_sbe_scominit_bars\n");
     FAPI_TRY(p10_sbe_scominit_firs(i_target), "Error from p10_sbe_scominit_firs\n");

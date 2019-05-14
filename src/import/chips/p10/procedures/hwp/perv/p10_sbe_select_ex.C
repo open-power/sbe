@@ -410,13 +410,13 @@ fapi2::ReturnCode select_ex_pfet_delay(
 
     for (auto& core : l_core_functional_vector)
     {
-        FAPI_TRY(fapi2::putScom(core, CPMS_PFETDLY, l_data64));
+        FAPI_TRY(fapi2::putScom(core, CPMS_PFETDLY_RW, l_data64));
     }
 
 #else
     // MULTICAST
     FAPI_DBG("Setting PFET Delays in all cores via multicast");
-    FAPI_TRY(fapi2::putScom(l_core_mc, CPMS_PFETDLY, l_data64));
+    FAPI_TRY(fapi2::putScom(l_core_mc, CPMS_PFETDLY_RW, l_data64));
 #endif
 
     // Clear QME Scratch 1[Runtime Wakeup Mode](3) to force SMF enabled systems
