@@ -124,22 +124,22 @@ fapi2::ReturnCode p10_acs(
 
     l_data.flush<0>();
     FAPI_TRY(PREP_EPS_FIR_MODE_REG(i_target));
-    SET_EPS_FIR_MODE_REG_00(l_data);
-    SET_EPS_FIR_MODE_REG_01(l_data);
-    SET_EPS_FIR_MODE_REG_02(l_data);
-    SET_EPS_FIR_MODE_REG_03(l_data);
-    SET_EPS_FIR_MODE_REG_04(l_data);
-    SET_EPS_FIR_MODE_REG_05(l_data);
-    SET_EPS_FIR_MODE_REG_06(l_data);
-    SET_EPS_FIR_MODE_REG_07(l_data);
-    SET_EPS_FIR_MODE_REG_08(l_data);
-    SET_EPS_FIR_MODE_REG_09(l_data);
-    SET_EPS_FIR_MODE_REG_10(l_data);
-    SET_EPS_FIR_MODE_REG_11(l_data);
-    SET_EPS_FIR_MODE_REG_12(l_data);
-    SET_EPS_FIR_MODE_REG_13(l_data);
-    SET_EPS_FIR_MODE_REG_14(l_data);
-    SET_EPS_FIR_MODE_REG_15(l_data);
+    SET_EPS_FIR_MODE_REG_XSTOP_LOCK(l_data);
+    SET_EPS_FIR_MODE_REG_XSTOP_LOCK_RECOV(l_data);
+    SET_EPS_FIR_MODE_REG_XSTOP_LOCK_SPATTN(l_data);
+    SET_EPS_FIR_MODE_REG_XSTOP_LOCK_LXSTOP(l_data);
+    SET_EPS_FIR_MODE_REG_XSTOP_LOCK_HOSTATTN(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG05(l_data);
+    SET_EPS_FIR_MODE_REG_DISABLE_IOPB_ERR(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG07(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG08(l_data);
+    SET_EPS_FIR_MODE_REG_MASK_DIRECT_ERROR(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG10(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG11(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG12(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG13(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG14(l_data);
+    SET_EPS_FIR_MODE_REG_MODE_REG15(l_data);
     FAPI_TRY(PUT_EPS_FIR_MODE_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_DTS_TRC_RESULT(i_target, l_data));
@@ -163,154 +163,175 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_SCOM(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_1_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_1_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_12_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_12_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_1_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_1_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_1_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_1_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_1_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_1_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_12_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_12_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_12_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_12_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_12_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_12_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_RCS_EL0_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL0_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_RCS_EL0_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL0_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_RCS_EL0_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL0_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL6_COPY_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_COPY_FSI(i_target, l_data));
+
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_COPY_RW(i_target));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_COPY_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_COPY_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL6_COPY_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_COPY_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL8_RW(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL8_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL8_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL8_RW(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_RW(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL8_CLEAR_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_CLEAR_FSI(i_target, l_data));
+
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL8_CLEAR_WO_CLEAR(i_target));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL8_CLEAR_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_CLEAR_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL8_CLEAR_WO_CLEAR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL8_COPY_RW(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_COPY_RW(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL8_COPY_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_COPY_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL8_COPY_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_COPY_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_HOSTATTN(i_target));
-    SET_HOSTATTN_ANY_HOST_ATTN(l_data);
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL8_COPY_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_COPY_RW(i_target, l_data));
+
+    FAPI_TRY(GET_HOSTATTN(i_target, l_data));
+    SET_HOSTATTN_ANY_HOSTATTN(l_data);
     SET_HOSTATTN_RESERVED1H(l_data);
     SET_HOSTATTN_RESERVED2H(l_data);
     SET_HOSTATTN_RESERVED3H(l_data);
-    SET_HOSTATTN_HOST_ATTN_PERV(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN05(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN06(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN07(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN08(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN09(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN10(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN11(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN12(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN13(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN14(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN15(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN16(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN17(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN18(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN19(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN20(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN21(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN22(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN23(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN24(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN25(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN26(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN27(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN28(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN29(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN30(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN31(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN32(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN33(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN34(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN35(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN36(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN37(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN38(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN39(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN40(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN41(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN42(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN43(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN44(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN45(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN46(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN47(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN48(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN49(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN50(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN51(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN52(l_data);
-    SET_HOSTATTN_HOST_ATTN_IN53(l_data);
+    SET_HOSTATTN_HOSTATTN_PERV(l_data);
+    SET_HOSTATTN_HOSTATTN_IN05(l_data);
+    SET_HOSTATTN_HOSTATTN_IN06(l_data);
+    SET_HOSTATTN_HOSTATTN_IN07(l_data);
+    SET_HOSTATTN_HOSTATTN_IN08(l_data);
+    SET_HOSTATTN_HOSTATTN_IN09(l_data);
+    SET_HOSTATTN_HOSTATTN_IN10(l_data);
+    SET_HOSTATTN_HOSTATTN_IN11(l_data);
+    SET_HOSTATTN_HOSTATTN_IN12(l_data);
+    SET_HOSTATTN_HOSTATTN_IN13(l_data);
+    SET_HOSTATTN_HOSTATTN_IN14(l_data);
+    SET_HOSTATTN_HOSTATTN_IN15(l_data);
+    SET_HOSTATTN_HOSTATTN_IN16(l_data);
+    SET_HOSTATTN_HOSTATTN_IN17(l_data);
+    SET_HOSTATTN_HOSTATTN_IN18(l_data);
+    SET_HOSTATTN_HOSTATTN_IN19(l_data);
+    SET_HOSTATTN_HOSTATTN_IN20(l_data);
+    SET_HOSTATTN_HOSTATTN_IN21(l_data);
+    SET_HOSTATTN_HOSTATTN_IN22(l_data);
+    SET_HOSTATTN_HOSTATTN_IN23(l_data);
+    SET_HOSTATTN_HOSTATTN_IN24(l_data);
+    SET_HOSTATTN_HOSTATTN_IN25(l_data);
+    SET_HOSTATTN_HOSTATTN_IN26(l_data);
+    SET_HOSTATTN_HOSTATTN_IN27(l_data);
+    SET_HOSTATTN_HOSTATTN_IN28(l_data);
+    SET_HOSTATTN_HOSTATTN_IN29(l_data);
+    SET_HOSTATTN_HOSTATTN_IN30(l_data);
+    SET_HOSTATTN_HOSTATTN_IN31(l_data);
+    SET_HOSTATTN_HOSTATTN_IN32(l_data);
+    SET_HOSTATTN_HOSTATTN_IN33(l_data);
+    SET_HOSTATTN_HOSTATTN_IN34(l_data);
+    SET_HOSTATTN_HOSTATTN_IN35(l_data);
+    SET_HOSTATTN_HOSTATTN_IN36(l_data);
+    SET_HOSTATTN_HOSTATTN_IN37(l_data);
+    SET_HOSTATTN_HOSTATTN_IN38(l_data);
+    SET_HOSTATTN_HOSTATTN_IN39(l_data);
+    SET_HOSTATTN_HOSTATTN_IN40(l_data);
+    SET_HOSTATTN_HOSTATTN_IN41(l_data);
+    SET_HOSTATTN_HOSTATTN_IN42(l_data);
+    SET_HOSTATTN_HOSTATTN_IN43(l_data);
+    SET_HOSTATTN_HOSTATTN_IN44(l_data);
+    SET_HOSTATTN_HOSTATTN_IN45(l_data);
+    SET_HOSTATTN_HOSTATTN_IN46(l_data);
+    SET_HOSTATTN_HOSTATTN_IN47(l_data);
+    SET_HOSTATTN_HOSTATTN_IN48(l_data);
+    SET_HOSTATTN_HOSTATTN_IN49(l_data);
+    SET_HOSTATTN_HOSTATTN_IN50(l_data);
+    SET_HOSTATTN_HOSTATTN_IN51(l_data);
+    SET_HOSTATTN_HOSTATTN_IN52(l_data);
+    SET_HOSTATTN_HOSTATTN_IN53(l_data);
     FAPI_TRY(PUT_HOSTATTN(i_target, l_data));
 
-    FAPI_TRY(GET_HOSTATTN_MASK(i_target, l_data));
-    SET_HOSTATTN_MASK_01(l_data);
-    SET_HOSTATTN_MASK_02(l_data);
-    SET_HOSTATTN_MASK_03(l_data);
-    SET_HOSTATTN_MASK_04(l_data);
-    SET_HOSTATTN_MASK_05(l_data);
-    SET_HOSTATTN_MASK_06(l_data);
-    SET_HOSTATTN_MASK_07(l_data);
-    SET_HOSTATTN_MASK_08(l_data);
-    SET_HOSTATTN_MASK_09(l_data);
-    SET_HOSTATTN_MASK_10(l_data);
-    SET_HOSTATTN_MASK_11(l_data);
-    SET_HOSTATTN_MASK_12(l_data);
-    SET_HOSTATTN_MASK_13(l_data);
-    SET_HOSTATTN_MASK_14(l_data);
-    SET_HOSTATTN_MASK_15(l_data);
-    SET_HOSTATTN_MASK_16(l_data);
-    SET_HOSTATTN_MASK_17(l_data);
-    SET_HOSTATTN_MASK_18(l_data);
-    SET_HOSTATTN_MASK_19(l_data);
-    SET_HOSTATTN_MASK_20(l_data);
-    SET_HOSTATTN_MASK_21(l_data);
-    SET_HOSTATTN_MASK_22(l_data);
-    SET_HOSTATTN_MASK_23(l_data);
-    SET_HOSTATTN_MASK_24(l_data);
-    SET_HOSTATTN_MASK_25(l_data);
-    SET_HOSTATTN_MASK_26(l_data);
-    SET_HOSTATTN_MASK_27(l_data);
-    SET_HOSTATTN_MASK_28(l_data);
-    SET_HOSTATTN_MASK_29(l_data);
-    SET_HOSTATTN_MASK_30(l_data);
-    SET_HOSTATTN_MASK_31(l_data);
-    SET_HOSTATTN_MASK_32(l_data);
-    SET_HOSTATTN_MASK_33(l_data);
-    SET_HOSTATTN_MASK_34(l_data);
-    SET_HOSTATTN_MASK_35(l_data);
-    SET_HOSTATTN_MASK_36(l_data);
-    SET_HOSTATTN_MASK_37(l_data);
-    SET_HOSTATTN_MASK_38(l_data);
-    SET_HOSTATTN_MASK_39(l_data);
-    SET_HOSTATTN_MASK_40(l_data);
-    SET_HOSTATTN_MASK_41(l_data);
-    SET_HOSTATTN_MASK_42(l_data);
-    SET_HOSTATTN_MASK_43(l_data);
-    SET_HOSTATTN_MASK_44(l_data);
-    SET_HOSTATTN_MASK_45(l_data);
-    SET_HOSTATTN_MASK_46(l_data);
-    SET_HOSTATTN_MASK_47(l_data);
-    SET_HOSTATTN_MASK_48(l_data);
-    SET_HOSTATTN_MASK_49(l_data);
-    SET_HOSTATTN_MASK_50(l_data);
-    SET_HOSTATTN_MASK_51(l_data);
-    SET_HOSTATTN_MASK_52(l_data);
-    SET_HOSTATTN_MASK_53(l_data);
-    FAPI_TRY(PUT_HOSTATTN_MASK(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_HOSTATTN_MASK_RW(i_target));
+    FAPI_TRY(PUT_HOSTATTN_MASK_RW(i_target, l_data));
+
+    FAPI_TRY(GET_HOSTATTN_MASK_WO_CLEAR(i_target, l_data));
+    FAPI_TRY(PUT_HOSTATTN_MASK_WO_CLEAR(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA0_TR0_CONFIG_4(i_target));
+    FAPI_TRY(PREP_HOSTATTN_MASK_WO_OR(i_target));
+    FAPI_TRY(PUT_HOSTATTN_MASK_WO_OR(i_target, l_data));
+
+    FAPI_TRY(GET_L3TRA0_TR0_CONFIG_4(i_target, l_data));
     SET_L3TRA0_TR0_CONFIG_4_A(0xFull, l_data);
     SET_L3TRA0_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_4(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA0_TR1_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA0_TR1_CONFIG(i_target));
     SET_L3TRA0_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA0_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA0_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -324,8 +345,7 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA0_TR1_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_L3TRA0_TR1_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA1_TR0_CONFIG(i_target));
+    FAPI_TRY(GET_L3TRA1_TR0_CONFIG(i_target, l_data));
     SET_L3TRA1_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA1_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA1_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -339,24 +359,24 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA1_TR0_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA1_TR1_CONFIG_2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA1_TR1_CONFIG_2(i_target));
     SET_L3TRA1_TR1_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA1_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA2_TR1_CONFIG_5(i_target));
+    FAPI_TRY(GET_L3TRA2_TR1_CONFIG_5(i_target, l_data));
     SET_L3TRA2_TR1_CONFIG_5_C(0xFull, l_data);
     SET_L3TRA2_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_5(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA3_TR0_CONFIG_3(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA3_TR0_CONFIG_3(i_target));
     SET_L3TRA3_TR0_CONFIG_3_C(0xFull, l_data);
     SET_L3TRA3_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_3(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_OPCG_ALIGN(i_target));
+    FAPI_TRY(GET_OPCG_ALIGN(i_target, l_data));
     SET_OPCG_ALIGN_INOP_ALIGN(0xFull, l_data);
     SET_OPCG_ALIGN_SNOP_ALIGN(0xFull, l_data);
     SET_OPCG_ALIGN_ENOP_ALIGN(0xFull, l_data);
@@ -372,7 +392,8 @@ fapi2::ReturnCode p10_acs(
     SET_OPCG_ALIGN_OPCG_WAIT_CYCLES(0xFull, l_data);
     FAPI_TRY(PUT_OPCG_ALIGN(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST14_REG3(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST14_REG3(i_target));
     SET_REC_ERR_MST14_REG3_48_MST14_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST14_REG3_48_MST14_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST14_REG3_49_MST14_RESPONSE_BIT(l_data);
@@ -407,8 +428,7 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST14_REG3_63_MST14_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST14_REG3(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST2_REG3(i_target));
+    FAPI_TRY(GET_REC_ERR_MST2_REG3(i_target, l_data));
     SET_REC_ERR_MST2_REG3_48_MST2_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST2_REG3_48_MST2_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST2_REG3_49_MST2_RESPONSE_BIT(l_data);
@@ -443,7 +463,8 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST2_REG3_63_MST2_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST2_REG3(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST6_REG2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST6_REG2(i_target));
     SET_REC_ERR_MST6_REG2_32_MST6_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST6_REG2_32_MST6_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST6_REG2_33_MST6_RESPONSE_BIT(l_data);
@@ -478,8 +499,7 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST6_REG2_47_MST6_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST6_REG2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST8_REG2(i_target));
+    FAPI_TRY(GET_REC_ERR_MST8_REG2(i_target, l_data));
     SET_REC_ERR_MST8_REG2_32_MST8_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST8_REG2_32_MST8_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST8_REG2_33_MST8_RESPONSE_BIT(l_data);
@@ -514,53 +534,54 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST8_REG2_47_MST8_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST8_REG2(i_target, l_data));
 
-    FAPI_TRY(GET_RESET_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_RESET_REG(i_target));
     SET_RESET_REG_RESET_PCB(l_data);
     SET_RESET_REG_RESET_ENDPOINTS(l_data);
     SET_RESET_REG_TIMEOUT_RESET_EN(l_data);
     FAPI_TRY(PUT_RESET_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SCAN_CAPTUREDR(i_target));
+    FAPI_TRY(GET_SCAN_CAPTUREDR(i_target, l_data));
     FAPI_TRY(PUT_SCAN_CAPTUREDR(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG110(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG110(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG110_REGISTER110(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG110(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG127(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG127(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG127_REGISTER127(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG127(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG29(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG29(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG29_REGISTER29(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG29(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG36(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG36(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG36_REGISTER36(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG36(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG48(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG48(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG48_REGISTER48(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG48(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG57(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG57(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG57_REGISTER57(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG57(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG60(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG60(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG60_REGISTER60(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG60(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG95(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG95(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG95_REGISTER95(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG95(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_MISC_RESET_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_MISC_RESET_REG(i_target));
     SET_TOD_MISC_RESET_REG_M_PATH_0_STEP_CREATE_THRESHOLD_RESET_ENABLE(l_data);
     SET_TOD_MISC_RESET_REG_M_PATH_0_STEP_ALIGN_THRESHOLD_RESET_ENABLE(l_data);
     SET_TOD_MISC_RESET_REG_M_PATH_1_STEP_CREATE_THRESHOLD_RESET_ENABLE(l_data);
@@ -586,8 +607,7 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_MISC_RESET_REG_REG_0X0B_SPARE_33_39(0xFull, l_data);
     FAPI_TRY(PUT_TOD_MISC_RESET_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_SEC_PORT_0_CTRL_REG(i_target));
+    FAPI_TRY(GET_TOD_SEC_PORT_0_CTRL_REG(i_target, l_data));
     SET_TOD_SEC_PORT_0_CTRL_REG_SEC_PORT_0_RX_SELECT(0xFull, l_data);
     SET_TOD_SEC_PORT_0_CTRL_REG_REG_0X03_SPARE_03(l_data);
     SET_TOD_SEC_PORT_0_CTRL_REG_SEC_X0_PORT_0_TX_SELECT(0xFull, l_data);
@@ -610,13 +630,13 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_SEC_PORT_0_CTRL_REG_SEC_I_PATH_DELAY_VALUE(0xFull, l_data);
     FAPI_TRY(PUT_TOD_SEC_PORT_0_CTRL_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA0_TR0_CONFIG_4(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA0_TR0_CONFIG_4(i_target));
     SET_TRA0_TR0_CONFIG_4_A(0xFull, l_data);
     SET_TRA0_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_4(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA1_TR0_TRACE_LO_DATA_REG(i_target));
+    FAPI_TRY(GET_TRA1_TR0_TRACE_LO_DATA_REG(i_target, l_data));
     SET_TRA1_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA1_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA1_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -626,39 +646,40 @@ fapi2::ReturnCode p10_acs(
     SET_TRA1_TR0_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR0_TRACE_LO_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA1_TR1_CONFIG_2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA1_TR1_CONFIG_2(i_target));
     SET_TRA1_TR1_CONFIG_2_A(0xFull, l_data);
     SET_TRA1_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA2_TR1_TRACE_HI_DATA_REG(i_target));
+    FAPI_TRY(GET_TRA2_TR1_TRACE_HI_DATA_REG(i_target, l_data));
     SET_TRA2_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA2_TR1_CONFIG_5(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA2_TR1_CONFIG_5(i_target));
     SET_TRA2_TR1_CONFIG_5_C(0xFull, l_data);
     SET_TRA2_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_5(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA3_TR0_CONFIG_3(i_target));
+    FAPI_TRY(GET_TRA3_TR0_CONFIG_3(i_target, l_data));
     SET_TRA3_TR0_CONFIG_3_C(0xFull, l_data);
     SET_TRA3_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_3(i_target, l_data));
 
-    FAPI_TRY(GET_TRA4_TR0_CONFIG_2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA4_TR0_CONFIG_2(i_target));
     SET_TRA4_TR0_CONFIG_2_A(0xFull, l_data);
     SET_TRA4_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA5_TR1_CONFIG_4(i_target));
+    FAPI_TRY(GET_TRA5_TR1_CONFIG_4(i_target, l_data));
     SET_TRA5_TR1_CONFIG_4_A(0xFull, l_data);
     SET_TRA5_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_4(i_target, l_data));
 
-    FAPI_TRY(GET_TRA6_TR1_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA6_TR1_CONFIG(i_target));
     SET_TRA6_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA6_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA6_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -672,13 +693,13 @@ fapi2::ReturnCode p10_acs(
     SET_TRA6_TR1_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA6_TR1_CONFIG_3(i_target));
+    FAPI_TRY(GET_TRA6_TR1_CONFIG_3(i_target, l_data));
     SET_TRA6_TR1_CONFIG_3_C(0xFull, l_data);
     SET_TRA6_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_3(i_target, l_data));
 
-    FAPI_TRY(GET_TRA7_TR0_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA7_TR0_CONFIG(i_target));
     SET_TRA7_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA7_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA7_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -692,11 +713,21 @@ fapi2::ReturnCode p10_acs(
     SET_TRA7_TR0_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA7_TR0_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA7_TR0_CONFIG_5(i_target));
+    FAPI_TRY(GET_TRA7_TR0_CONFIG_5(i_target, l_data));
     SET_TRA7_TR0_CONFIG_5_C(0xFull, l_data);
     SET_TRA7_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_5(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_XSTOP_MASK_RW(i_target));
+    FAPI_TRY(PUT_XSTOP_MASK_RW(i_target, l_data));
+
+    FAPI_TRY(GET_XSTOP_MASK_WO_CLEAR(i_target, l_data));
+    FAPI_TRY(PUT_XSTOP_MASK_WO_CLEAR(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_XSTOP_MASK_WO_OR(i_target));
+    FAPI_TRY(PUT_XSTOP_MASK_WO_OR(i_target, l_data));
 
     FAPI_TRY(GET_COMP_P_0_LSTAT(i_target, l_data));
     FAPI_TRY(PUT_COMP_P_0_LSTAT(i_target, l_data));
@@ -763,43 +794,99 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_DATA1(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_15_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_15_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_15_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_15_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_2_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_2_RWX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_8_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_8_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_11_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_11_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_15_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_15_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_4_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_4_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_15_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_15_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_ROX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_2_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_2_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_2_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_2_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_2_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_2_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_8_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_8_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_8_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_8_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_8_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_8_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_11_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_11_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_11_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_11_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_11_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_11_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_4_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_4_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_4_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_4_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_4_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_4_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_A_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_RO(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_B_RO(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL7_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL7_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL7_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_RW(i_target, l_data));
 
     FAPI_TRY(GET_HEARTBEAT_REG(i_target, l_data));
     SET_HEARTBEAT_REG_HEARTBEAT_DEAD(l_data);
@@ -1006,11 +1093,9 @@ fapi2::ReturnCode p10_acs(
     SET_CPLT_STAT0_CC_CTRL_PARALLEL_SCAN_COMPARE_HEADER_ERR(l_data);
     SET_CPLT_STAT0_IOPCI_TC_HSSPRTREADYB(l_data);
     SET_CPLT_STAT0_FREE_USAGE_12I(l_data);
-    SET_CPLT_STAT0_ANES_TP_VMEAS_CLK_STOPPED(l_data);
     SET_CPLT_STAT0_ANEQ_TP_VMEAS_CLK_STOPPED(l_data);
     SET_CPLT_STAT0_MC_TC_0_FIR_HOST_ATTN(l_data);
     SET_CPLT_STAT0_FREE_USAGE_13I(l_data);
-    SET_CPLT_STAT0_ANES_TP_VMEAS_RESULT_OUT(0xFull, l_data);
     SET_CPLT_STAT0_ANEQ_TP_VMEAS_RESULT_OUT(0xFull, l_data);
     SET_CPLT_STAT0_MC_TC_1_FIR_HOST_ATTN(l_data);
     SET_CPLT_STAT0_FREE_USAGE_14I(l_data);
@@ -1030,8 +1115,15 @@ fapi2::ReturnCode p10_acs(
     SET_CPLT_STAT0_FREE_USAGE_21I(l_data);
     SET_CPLT_STAT0_FREE_USAGE_22I(l_data);
     SET_CPLT_STAT0_FREE_USAGE_23I(l_data);
-    SET_CPLT_STAT0_ANES_TP_VMEAS_RESULT_VALID(l_data);
     SET_CPLT_STAT0_ANEQ_TP_VMEAS_RESULT_VALID(l_data);
+    SET_CPLT_STAT0_FREE_USAGE_24I(l_data);
+    SET_CPLT_STAT0_FREE_USAGE_25I(l_data);
+    SET_CPLT_STAT0_FREE_USAGE_26I(l_data);
+    SET_CPLT_STAT0_FREE_USAGE_27I(l_data);
+    SET_CPLT_STAT0_FREE_USAGE_28I(l_data);
+    SET_CPLT_STAT0_FREE_USAGE_29I(l_data);
+    SET_CPLT_STAT0_FREE_USAGE_30I(l_data);
+    SET_CPLT_STAT0_FREE_USAGE_31I(l_data);
     FAPI_TRY(PUT_CPLT_STAT0(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_MODE_REG(i_target, l_data));
@@ -1051,46 +1143,109 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_MODE_REG(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_12_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_12_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_12_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_12_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_5_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_5_RWX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_9_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_9_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_3_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_3_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_12_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_12_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_ROX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_ROX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_12_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_12_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_5_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_5_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_ROX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_ROX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_5_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_5_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_5_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_5_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_9_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_9_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_9_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_9_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_9_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_9_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_3_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_3_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_3_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_3_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_3_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_3_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_RO(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_B_RO(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_A_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL0_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL0_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL0_RW(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_RW(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL0_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL0_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_FSI_BYTE(i_target, l_data));
+
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL0_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SNS1LTH_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SNS1LTH_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SNS1LTH_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SNS1LTH_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SNS1LTH_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SNS1LTH_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_L3TRA0_TR1_TRACE_HI_DATA_REG(i_target));
@@ -1281,20 +1436,52 @@ fapi2::ReturnCode p10_acs(
     SET_SINGLE_OTP_ROM_OTPROM_REG82_REGISTER82(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG82(i_target, l_data));
 
-    FAPI_TRY(GET_SPATTN_NCX(i_target, l_data));
-    FAPI_TRY(PUT_SPATTN_NCX(i_target, l_data));
+    FAPI_TRY(GET_SPATTN(i_target, l_data));
+    SET_SPATTN_ANY_SPATTN(l_data);
+    SET_SPATTN_RESERVED1S(l_data);
+    SET_SPATTN_RESERVED2S(l_data);
+    SET_SPATTN_RESERVED3S(l_data);
+    SET_SPATTN_SPATTN_PERV(l_data);
+    SET_SPATTN_SPATTN_IN05(l_data);
+    SET_SPATTN_SPATTN_IN06(l_data);
+    SET_SPATTN_SPATTN_IN07(l_data);
+    SET_SPATTN_SPATTN_IN08(l_data);
+    SET_SPATTN_SPATTN_IN09(l_data);
+    SET_SPATTN_SPATTN_IN10(l_data);
+    SET_SPATTN_SPATTN_IN11(l_data);
+    SET_SPATTN_SPATTN_IN12(l_data);
+    SET_SPATTN_SPATTN_IN13(l_data);
+    SET_SPATTN_SPATTN_IN14(l_data);
+    SET_SPATTN_SPATTN_IN15(l_data);
+    SET_SPATTN_SPATTN_IN16(l_data);
+    SET_SPATTN_SPATTN_IN17(l_data);
+    SET_SPATTN_SPATTN_IN18(l_data);
+    SET_SPATTN_SPATTN_IN19(l_data);
+    SET_SPATTN_SPATTN_IN20(l_data);
+    SET_SPATTN_SPATTN_IN21(l_data);
+    SET_SPATTN_SPATTN_IN22(l_data);
+    SET_SPATTN_SPATTN_IN23(l_data);
+    SET_SPATTN_SPATTN_IN24(l_data);
+    SET_SPATTN_SPATTN_IN25(l_data);
+    SET_SPATTN_SPATTN_IN26(l_data);
+    SET_SPATTN_SPATTN_IN27(l_data);
+    SET_SPATTN_SPATTN_IN28(l_data);
+    SET_SPATTN_SPATTN_IN29(l_data);
+    SET_SPATTN_SPATTN_IN30(l_data);
+    SET_SPATTN_SPATTN_IN31(l_data);
+    SET_SPATTN_SPATTN_IN32(l_data);
+    SET_SPATTN_SPATTN_IN33(l_data);
+    SET_SPATTN_SPATTN_IN34(l_data);
+    SET_SPATTN_SPATTN_IN35(l_data);
+    FAPI_TRY(PUT_SPATTN(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_SPATTN_ROX(i_target));
-    FAPI_TRY(PUT_SPATTN_ROX(i_target, l_data));
-
-    FAPI_TRY(GET_TOD_LOAD_REG(i_target, l_data));
+    FAPI_TRY(PREP_TOD_LOAD_REG(i_target));
     SET_TOD_LOAD_REG_LOAD_TOD_VALUE(0xFull, l_data);
     SET_TOD_LOAD_REG_WOF(0xFull, l_data);
     FAPI_TRY(PUT_TOD_LOAD_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_PRI_PORT_1_CTRL_REG(i_target));
+    FAPI_TRY(GET_TOD_PRI_PORT_1_CTRL_REG(i_target, l_data));
     SET_TOD_PRI_PORT_1_CTRL_REG_PRI_PORT_1_RX_SELECT(0xFull, l_data);
     SET_TOD_PRI_PORT_1_CTRL_REG_REG_0X02_SPARE_03(l_data);
     SET_TOD_PRI_PORT_1_CTRL_REG_PRI_X0_PORT_1_TX_SELECT(0xFull, l_data);
@@ -1316,50 +1503,51 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_PRI_PORT_1_CTRL_REG_REG_0X02_SPARE_28_31(0xFull, l_data);
     FAPI_TRY(PUT_TOD_PRI_PORT_1_CTRL_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA0_TR1_CONFIG_5(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA0_TR1_CONFIG_5(i_target));
     SET_TRA0_TR1_CONFIG_5_C(0xFull, l_data);
     SET_TRA0_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_5(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA1_TR0_CONFIG_3(i_target));
+    FAPI_TRY(GET_TRA1_TR0_CONFIG_3(i_target, l_data));
     SET_TRA1_TR0_CONFIG_3_C(0xFull, l_data);
     SET_TRA1_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_3(i_target, l_data));
 
-    FAPI_TRY(GET_TRA2_TR0_CONFIG_4(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA2_TR0_CONFIG_4(i_target));
     SET_TRA2_TR0_CONFIG_4_A(0xFull, l_data);
     SET_TRA2_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_4(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA3_TR1_CONFIG_2(i_target));
+    FAPI_TRY(GET_TRA3_TR1_CONFIG_2(i_target, l_data));
     SET_TRA3_TR1_CONFIG_2_A(0xFull, l_data);
     SET_TRA3_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_2(i_target, l_data));
 
-    FAPI_TRY(GET_TRA4_TR0_TRACE_HI_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA4_TR0_TRACE_HI_DATA_REG(i_target));
     SET_TRA4_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA4_TR1_CONFIG_3(i_target));
+    FAPI_TRY(GET_TRA4_TR1_CONFIG_3(i_target, l_data));
     SET_TRA4_TR1_CONFIG_3_C(0xFull, l_data);
     SET_TRA4_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_3(i_target, l_data));
 
-    FAPI_TRY(GET_TRA5_TR0_CONFIG_5(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA5_TR0_CONFIG_5(i_target));
     SET_TRA5_TR0_CONFIG_5_C(0xFull, l_data);
     SET_TRA5_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_5(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA6_TR0_CONFIG_2(i_target));
+    FAPI_TRY(GET_TRA6_TR0_CONFIG_2(i_target, l_data));
     SET_TRA6_TR0_CONFIG_2_A(0xFull, l_data);
     SET_TRA6_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_2(i_target, l_data));
 
-    FAPI_TRY(GET_CLOCK_STAT_NSL(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_CLOCK_STAT_NSL(i_target));
     SET_CLOCK_STAT_NSL_PERV_NSL(l_data);
     SET_CLOCK_STAT_NSL_UNIT1_NSL(l_data);
     SET_CLOCK_STAT_NSL_UNIT2_NSL(l_data);
@@ -1377,21 +1565,29 @@ fapi2::ReturnCode p10_acs(
     SET_CLOCK_STAT_NSL_UNIT14_NSL(l_data);
     FAPI_TRY(PUT_CLOCK_STAT_NSL(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_DEVICE_ID_REG(i_target));
+    FAPI_TRY(GET_DEVICE_ID_REG(i_target, l_data));
     SET_DEVICE_ID_REG_SOCKET_ID(0xFull, l_data);
     SET_DEVICE_ID_REG_CHIPPOS_ID(l_data);
     FAPI_TRY(PUT_DEVICE_ID_REG(i_target, l_data));
 
-    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_CTRL_RW(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_CTRL_RW(i_target));
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_CTRL_RW(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_CTRL_WO_CLEAR(i_target));
+    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_CTRL_WO_CLEAR(i_target, l_data));
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_CTRL_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_CTRL_WO_OR(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_CTRL_WO_OR(i_target));
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_CTRL_WO_OR(i_target, l_data));
+
+    FAPI_TRY(GET_EPS_FIR_ANY_LOCAL_ERR_MASK(i_target, l_data));
+    SET_EPS_FIR_ANY_LOCAL_ERR_MASK_XSTOP_TO_PCB(l_data);
+    SET_EPS_FIR_ANY_LOCAL_ERR_MASK_RECOV_TO_PCB(l_data);
+    SET_EPS_FIR_ANY_LOCAL_ERR_MASK_SPATTN_TO_PCB(l_data);
+    SET_EPS_FIR_ANY_LOCAL_ERR_MASK_LOCAL_XSTOP_TO_PCB(l_data);
+    SET_EPS_FIR_ANY_LOCAL_ERR_MASK_HOSTATTN_TO_PCB(l_data);
+    FAPI_TRY(PUT_EPS_FIR_ANY_LOCAL_ERR_MASK(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_EPS_THERM_WSUB_DTS_RESULT2(i_target));
@@ -1441,47 +1637,100 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_SCOM(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_11_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_11_RWX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_6_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_6_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_15_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_15_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_ROX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_ROX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_RWX_WOR(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_RWX_WOR(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_WOX_CLEAR(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_WOX_CLEAR(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_11_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_11_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL1_CLEAR_WO_CLEAR(i_target));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_11_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_11_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_11_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_11_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_6_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_6_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_6_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_6_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_6_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_6_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_15_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_15_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_15_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_15_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_15_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_15_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_RW_WOR(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_RW_WOR(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_WO_CLEAR(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_SLAVE_A_DOORBELL_INTERRUPT_MASK_WO_CLEAR(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_RO(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_RO(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL1_CLEAR_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_CLEAR_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL1_CLEAR_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_CLEAR_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL1_CLEAR_WO_CLEAR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL3_COPY_RW(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_COPY_RW(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_COPY_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_COPY_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL3_COPY_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_COPY_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA0_TR0_CONFIG_3(i_target));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_COPY_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_COPY_RW(i_target, l_data));
+
+    FAPI_TRY(GET_L3TRA0_TR0_CONFIG_3(i_target, l_data));
     SET_L3TRA0_TR0_CONFIG_3_C(0xFull, l_data);
     SET_L3TRA0_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG_3(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA1_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA1_TR1_TRACE_LO_DATA_REG(i_target));
     SET_L3TRA1_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_L3TRA1_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_L3TRA1_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -1491,18 +1740,17 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA1_TR1_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA1_TR1_CONFIG_5(i_target));
+    FAPI_TRY(GET_L3TRA1_TR1_CONFIG_5(i_target, l_data));
     SET_L3TRA1_TR1_CONFIG_5_C(0xFull, l_data);
     SET_L3TRA1_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_5(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA2_TR0_TRACE_HI_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA2_TR0_TRACE_HI_DATA_REG(i_target));
     SET_L3TRA2_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA2_TR0_CONFIG(i_target));
+    FAPI_TRY(GET_L3TRA2_TR0_CONFIG(i_target, l_data));
     SET_L3TRA2_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA2_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA2_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -1516,18 +1764,19 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA2_TR0_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_L3TRA2_TR0_CONFIG(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA2_TR1_CONFIG_2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA2_TR1_CONFIG_2(i_target));
     SET_L3TRA2_TR1_CONFIG_2_A(0xFull, l_data);
     SET_L3TRA2_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA3_TR0_CONFIG_4(i_target));
+    FAPI_TRY(GET_L3TRA3_TR0_CONFIG_4(i_target, l_data));
     SET_L3TRA3_TR0_CONFIG_4_A(0xFull, l_data);
     SET_L3TRA3_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_4(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA3_TR1_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA3_TR1_CONFIG(i_target));
     SET_L3TRA3_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA3_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA3_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -1541,8 +1790,7 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA3_TR1_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_LOCAL_XSTOP(i_target));
+    FAPI_TRY(GET_LOCAL_XSTOP(i_target, l_data));
     SET_LOCAL_XSTOP_ANY_LOCAL_XSTOP(l_data);
     SET_LOCAL_XSTOP_RESERVED1L(l_data);
     SET_LOCAL_XSTOP_RESERVED2L(l_data);
@@ -1561,38 +1809,39 @@ fapi2::ReturnCode p10_acs(
     SET_LOCAL_XSTOP_LOCAL_XSTOP_IN15(l_data);
     FAPI_TRY(PUT_LOCAL_XSTOP(i_target, l_data));
 
-    FAPI_TRY(GET_LXSTOP_INTERRUPT_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_LXSTOP_INTERRUPT_REG(i_target));
     FAPI_TRY(PUT_LXSTOP_INTERRUPT_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_MULTICAST_GROUP_1(i_target));
+    FAPI_TRY(GET_MULTICAST_GROUP_1(i_target, l_data));
     SET_MULTICAST_GROUP_1_MULTICAST1_GROUP(0xFull, l_data);
     FAPI_TRY(PUT_MULTICAST_GROUP_1(i_target, l_data));
 
-    FAPI_TRY(GET_NET_CTRL0_RWX(i_target, l_data));
-    FAPI_TRY(PUT_NET_CTRL0_RWX(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_NET_CTRL0_RW(i_target));
+    FAPI_TRY(PUT_NET_CTRL0_RW(i_target, l_data));
+
+    FAPI_TRY(GET_NET_CTRL0_RW_WAND(i_target, l_data));
+    FAPI_TRY(PUT_NET_CTRL0_RW_WAND(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_NET_CTRL0_RWX_WAND(i_target));
-    FAPI_TRY(PUT_NET_CTRL0_RWX_WAND(i_target, l_data));
+    FAPI_TRY(PREP_NET_CTRL0_RW_WOR(i_target));
+    FAPI_TRY(PUT_NET_CTRL0_RW_WOR(i_target, l_data));
 
-    FAPI_TRY(GET_NET_CTRL0_RWX_WOR(i_target, l_data));
-    FAPI_TRY(PUT_NET_CTRL0_RWX_WOR(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_OTPC_M_MEASURE_REG11(i_target));
+    FAPI_TRY(GET_OTPC_M_MEASURE_REG11(i_target, l_data));
     SET_OTPC_M_MEASURE_REG11_SEEPROM_MEASUREMENT11_DATA(0xFull, l_data);
     FAPI_TRY(PUT_OTPC_M_MEASURE_REG11(i_target, l_data));
 
-    FAPI_TRY(GET_PHASE_COUNTER_RESET(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_PHASE_COUNTER_RESET(i_target));
     SET_PHASE_COUNTER_RESET_PHASECOUNTER_RESET(l_data);
     FAPI_TRY(PUT_PHASE_COUNTER_RESET(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_PLL_LOCK_REG(i_target));
+    FAPI_TRY(GET_PLL_LOCK_REG(i_target, l_data));
     FAPI_TRY(PUT_PLL_LOCK_REG(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST3_REG2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST3_REG2(i_target));
     SET_REC_ERR_MST3_REG2_32_MST3_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST3_REG2_32_MST3_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST3_REG2_33_MST3_RESPONSE_BIT(l_data);
@@ -1627,8 +1876,7 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST3_REG2_47_MST3_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST3_REG2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST7_REG3(i_target));
+    FAPI_TRY(GET_REC_ERR_MST7_REG3(i_target, l_data));
     SET_REC_ERR_MST7_REG3_48_MST7_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST7_REG3_48_MST7_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST7_REG3_49_MST7_RESPONSE_BIT(l_data);
@@ -1663,7 +1911,8 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST7_REG3_63_MST7_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST7_REG3(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST9_REG3(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST9_REG3(i_target));
     SET_REC_ERR_MST9_REG3_48_MST9_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST9_REG3_48_MST9_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST9_REG3_49_MST9_RESPONSE_BIT(l_data);
@@ -1697,64 +1946,6 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST9_REG3_63_MST9_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST9_REG3_63_MST9_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST9_REG3(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_RFIR(i_target));
-    SET_RFIR_ANY_RECOV(l_data);
-    SET_RFIR_RECOV_ANY_LOCAL_XSTOP(l_data);
-    SET_RFIR_RESERVED2R(l_data);
-    SET_RFIR_RESERVED3R(l_data);
-    SET_RFIR_RECOV_PERV(l_data);
-    SET_RFIR_RECOV_IN05(l_data);
-    SET_RFIR_RECOV_IN06(l_data);
-    SET_RFIR_RECOV_IN07(l_data);
-    SET_RFIR_RECOV_IN08(l_data);
-    SET_RFIR_RECOV_IN09(l_data);
-    SET_RFIR_RECOV_IN10(l_data);
-    SET_RFIR_RECOV_IN11(l_data);
-    SET_RFIR_RECOV_IN12(l_data);
-    SET_RFIR_RECOV_IN13(l_data);
-    SET_RFIR_RECOV_IN14(l_data);
-    SET_RFIR_RECOV_IN15(l_data);
-    SET_RFIR_RECOV_IN16(l_data);
-    SET_RFIR_RECOV_IN17(l_data);
-    SET_RFIR_RECOV_IN18(l_data);
-    SET_RFIR_RECOV_IN19(l_data);
-    SET_RFIR_RECOV_IN20(l_data);
-    SET_RFIR_RECOV_IN21(l_data);
-    SET_RFIR_RECOV_IN22(l_data);
-    SET_RFIR_RECOV_IN23(l_data);
-    SET_RFIR_RECOV_IN24(l_data);
-    SET_RFIR_RECOV_IN25(l_data);
-    SET_RFIR_RECOV_IN26(l_data);
-    SET_RFIR_RECOV_IN27(l_data);
-    SET_RFIR_RECOV_IN28(l_data);
-    SET_RFIR_RECOV_IN29(l_data);
-    SET_RFIR_RECOV_IN30(l_data);
-    SET_RFIR_RECOV_IN31(l_data);
-    SET_RFIR_RECOV_IN32(l_data);
-    SET_RFIR_RECOV_IN33(l_data);
-    SET_RFIR_RECOV_IN34(l_data);
-    SET_RFIR_RECOV_IN35(l_data);
-    SET_RFIR_RECOV_IN36(l_data);
-    SET_RFIR_RECOV_IN37(l_data);
-    SET_RFIR_RECOV_IN38(l_data);
-    SET_RFIR_RECOV_IN39(l_data);
-    SET_RFIR_RECOV_IN40(l_data);
-    SET_RFIR_RECOV_IN41(l_data);
-    SET_RFIR_RECOV_IN42(l_data);
-    SET_RFIR_RECOV_IN43(l_data);
-    SET_RFIR_RECOV_IN44(l_data);
-    SET_RFIR_RECOV_IN45(l_data);
-    SET_RFIR_RECOV_IN46(l_data);
-    SET_RFIR_RECOV_IN47(l_data);
-    SET_RFIR_RECOV_IN48(l_data);
-    SET_RFIR_RECOV_IN49(l_data);
-    SET_RFIR_RECOV_IN50(l_data);
-    SET_RFIR_RECOV_IN51(l_data);
-    SET_RFIR_RECOV_IN52(l_data);
-    SET_RFIR_RECOV_IN53(l_data);
-    FAPI_TRY(PUT_RFIR(i_target, l_data));
 
     FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG108(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG108_REGISTER108(0xFull, l_data);
@@ -1801,43 +1992,15 @@ fapi2::ReturnCode p10_acs(
     SET_SINGLE_OTP_ROM_OTPROM_REG92_REGISTER92(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG92(i_target, l_data));
 
-    FAPI_TRY(GET_SPATTN_MASK(i_target, l_data));
-    SET_SPATTN_MASK_01(l_data);
-    SET_SPATTN_MASK_02(l_data);
-    SET_SPATTN_MASK_03(l_data);
-    SET_SPATTN_MASK_04(l_data);
-    SET_SPATTN_MASK_05(l_data);
-    SET_SPATTN_MASK_06(l_data);
-    SET_SPATTN_MASK_07(l_data);
-    SET_SPATTN_MASK_08(l_data);
-    SET_SPATTN_MASK_09(l_data);
-    SET_SPATTN_MASK_10(l_data);
-    SET_SPATTN_MASK_11(l_data);
-    SET_SPATTN_MASK_12(l_data);
-    SET_SPATTN_MASK_13(l_data);
-    SET_SPATTN_MASK_14(l_data);
-    SET_SPATTN_MASK_15(l_data);
-    SET_SPATTN_MASK_16(l_data);
-    SET_SPATTN_MASK_17(l_data);
-    SET_SPATTN_MASK_18(l_data);
-    SET_SPATTN_MASK_19(l_data);
-    SET_SPATTN_MASK_20(l_data);
-    SET_SPATTN_MASK_21(l_data);
-    SET_SPATTN_MASK_22(l_data);
-    SET_SPATTN_MASK_23(l_data);
-    SET_SPATTN_MASK_24(l_data);
-    SET_SPATTN_MASK_25(l_data);
-    SET_SPATTN_MASK_26(l_data);
-    SET_SPATTN_MASK_27(l_data);
-    SET_SPATTN_MASK_28(l_data);
-    SET_SPATTN_MASK_29(l_data);
-    SET_SPATTN_MASK_30(l_data);
-    SET_SPATTN_MASK_31(l_data);
-    SET_SPATTN_MASK_32(l_data);
-    SET_SPATTN_MASK_33(l_data);
-    SET_SPATTN_MASK_34(l_data);
-    SET_SPATTN_MASK_35(l_data);
-    FAPI_TRY(PUT_SPATTN_MASK(i_target, l_data));
+    FAPI_TRY(GET_SPATTN_MASK_RW(i_target, l_data));
+    FAPI_TRY(PUT_SPATTN_MASK_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SPATTN_MASK_WO_CLEAR(i_target));
+    FAPI_TRY(PUT_SPATTN_MASK_WO_CLEAR(i_target, l_data));
+
+    FAPI_TRY(GET_SPATTN_MASK_WO_OR(i_target, l_data));
+    FAPI_TRY(PUT_SPATTN_MASK_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_TRA0_TR0_CONFIG_3(i_target));
@@ -1961,32 +2124,88 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_CLKSRC_REG(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_13_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_13_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_13_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_13_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_4_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_4_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_13_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_13_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_8_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_8_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_13_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_13_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_2_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_2_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_4_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_4_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_4_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_4_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_4_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_4_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_8_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_8_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_8_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_8_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_8_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_8_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_2_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_2_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_2_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_2_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_2_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_2_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL1_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL1_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL1_RW(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_RW(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL1_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL1_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_FSI_BYTE(i_target, l_data));
+
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL1_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_5_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_5_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_5_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_5_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_5_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_5_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_5_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_5_RW(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_L3TRA0_TR1_CONFIG_4(i_target));
@@ -2309,46 +2528,46 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_XSTOP1(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_INTR_INTERRUPT1_REG_RWX(i_target));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT1_REG_RWX(i_target, l_data));
+    FAPI_TRY(PREP_COMP_INTR_INTERRUPT1_REG_RW(i_target));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT1_REG_RW(i_target, l_data));
 
-    FAPI_TRY(GET_COMP_INTR_INTERRUPT1_REG_WOX_AND(i_target, l_data));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT1_REG_WOX_AND(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_INTR_INTERRUPT1_REG_WOX_OR(i_target));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT1_REG_WOX_OR(i_target, l_data));
-
-    FAPI_TRY(GET_COMP_INTR_INTERRUPT2_REG_RWX(i_target, l_data));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT2_REG_RWX(i_target, l_data));
+    FAPI_TRY(GET_COMP_INTR_INTERRUPT1_REG_WO_AND(i_target, l_data));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT1_REG_WO_AND(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_INTR_INTERRUPT2_REG_WOX_AND(i_target));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT2_REG_WOX_AND(i_target, l_data));
+    FAPI_TRY(PREP_COMP_INTR_INTERRUPT1_REG_WO_OR(i_target));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT1_REG_WO_OR(i_target, l_data));
 
-    FAPI_TRY(GET_COMP_INTR_INTERRUPT2_REG_WOX_OR(i_target, l_data));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT2_REG_WOX_OR(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_INTR_INTERRUPT3_REG_RWX(i_target));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT3_REG_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_COMP_INTR_INTERRUPT3_REG_WOX_AND(i_target, l_data));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT3_REG_WOX_AND(i_target, l_data));
+    FAPI_TRY(GET_COMP_INTR_INTERRUPT2_REG_RW(i_target, l_data));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT2_REG_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_INTR_INTERRUPT3_REG_WOX_OR(i_target));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT3_REG_WOX_OR(i_target, l_data));
+    FAPI_TRY(PREP_COMP_INTR_INTERRUPT2_REG_WO_AND(i_target));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT2_REG_WO_AND(i_target, l_data));
 
-    FAPI_TRY(GET_COMP_INTR_INTERRUPT4_REG_RWX(i_target, l_data));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT4_REG_RWX(i_target, l_data));
+    FAPI_TRY(GET_COMP_INTR_INTERRUPT2_REG_WO_OR(i_target, l_data));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT2_REG_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_INTR_INTERRUPT4_REG_WOX_AND(i_target));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT4_REG_WOX_AND(i_target, l_data));
+    FAPI_TRY(PREP_COMP_INTR_INTERRUPT3_REG_RW(i_target));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT3_REG_RW(i_target, l_data));
 
-    FAPI_TRY(GET_COMP_INTR_INTERRUPT4_REG_WOX_OR(i_target, l_data));
-    FAPI_TRY(PUT_COMP_INTR_INTERRUPT4_REG_WOX_OR(i_target, l_data));
+    FAPI_TRY(GET_COMP_INTR_INTERRUPT3_REG_WO_AND(i_target, l_data));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT3_REG_WO_AND(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_COMP_INTR_INTERRUPT3_REG_WO_OR(i_target));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT3_REG_WO_OR(i_target, l_data));
+
+    FAPI_TRY(GET_COMP_INTR_INTERRUPT4_REG_RW(i_target, l_data));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT4_REG_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_COMP_INTR_INTERRUPT4_REG_WO_AND(i_target));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT4_REG_WO_AND(i_target, l_data));
+
+    FAPI_TRY(GET_COMP_INTR_INTERRUPT4_REG_WO_OR(i_target, l_data));
+    FAPI_TRY(PUT_COMP_INTR_INTERRUPT4_REG_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_COMP_INTR_INTERRUPT_TYPE_MASK_REG_RW(i_target));
@@ -2371,31 +2590,31 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_COMP_P_0_STAT_RDDAT_ERRES(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_FIR_GXSTOP3_MASK_REG(i_target));
-    SET_EPS_FIR_GXSTOP3_MASK_REG_SUM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_SUM_RECOV(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_SUM_SPATTN(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_SUM_LOCAL_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_SUM_TYPE4(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_SYSTEM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_OOB1(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_DBG_FIR_XSTOP_ON_TRIG(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP10(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP11(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP12(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP13(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP14(l_data);
-    SET_EPS_FIR_GXSTOP3_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP15(l_data);
-    FAPI_TRY(PUT_EPS_FIR_GXSTOP3_MASK_REG(i_target, l_data));
+    FAPI_TRY(PREP_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1(i_target));
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_ANY_XSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_ANY_RECOV_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_ANY_SPATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_ANY_LXSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_ANY_HOSTATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_SYSTEM_XSTOP(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_OOB1(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_DBG_FIR_XSTOP_ON_TRIG(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP10(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP11(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP12(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP13(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP14(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1_UNIT_TC_FIR_LOCAL_XSTOP15(l_data);
+    FAPI_TRY(PUT_EPS_FIR_CLKSTOP_ON_XSTOP_MASK1(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB_SKITTER_DATA0(i_target, l_data));
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_DATA0(i_target, l_data));
@@ -2449,22 +2668,64 @@ fapi2::ReturnCode p10_acs(
     SET_ERROR_STATUS_OPCG_STOPPED_BY_PCB_ERR(l_data);
     FAPI_TRY(PUT_ERROR_STATUS(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_1_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_1_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_1_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_1_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_10_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_10_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_1_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_1_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_7_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_7_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_1_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_1_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_14_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_14_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_10_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_10_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_ERROR_STATUS_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_ERROR_STATUS_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_10_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_10_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_10_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_10_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_7_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_7_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_7_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_7_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_7_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_7_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_14_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_14_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_14_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_14_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_14_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_14_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_ERROR_STATUS_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_ERROR_STATUS_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_ERROR_STATUS_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_ERROR_STATUS_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_ERROR_STATUS_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_ERROR_STATUS_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL7_COPY_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_COPY_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL7_COPY_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_COPY_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL7_COPY_RW(i_target));
@@ -2492,15 +2753,15 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA3_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_5(i_target, l_data));
 
-    FAPI_TRY(GET_NET_CTRL1_RWX(i_target, l_data));
-    FAPI_TRY(PUT_NET_CTRL1_RWX(i_target, l_data));
+    FAPI_TRY(GET_NET_CTRL1_RW(i_target, l_data));
+    FAPI_TRY(PUT_NET_CTRL1_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_NET_CTRL1_RWX_WAND(i_target));
-    FAPI_TRY(PUT_NET_CTRL1_RWX_WAND(i_target, l_data));
+    FAPI_TRY(PREP_NET_CTRL1_RW_WAND(i_target));
+    FAPI_TRY(PUT_NET_CTRL1_RW_WAND(i_target, l_data));
 
-    FAPI_TRY(GET_NET_CTRL1_RWX_WOR(i_target, l_data));
-    FAPI_TRY(PUT_NET_CTRL1_RWX_WOR(i_target, l_data));
+    FAPI_TRY(GET_NET_CTRL1_RW_WOR(i_target, l_data));
+    FAPI_TRY(PUT_NET_CTRL1_RW_WOR(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_OTPC_M_MEASURE_REG10(i_target));
@@ -2822,34 +3083,7 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PREP_EPS_DBG_INST2_COND_REG_3(i_target));
     FAPI_TRY(PUT_EPS_DBG_INST2_COND_REG_3(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_FIR_GXSTOP0_MASK_REG(i_target, l_data));
-    SET_EPS_FIR_GXSTOP0_MASK_REG_SUM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_SUM_RECOV(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_SUM_SPATTN(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_SUM_LOCAL_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_SUM_TYPE4(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_SYSTEM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_OOB1(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_DBG_FIR_XSTOP_ON_TRIG(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP10(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP11(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP12(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP13(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP14(l_data);
-    SET_EPS_FIR_GXSTOP0_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP15(l_data);
-    FAPI_TRY(PUT_EPS_FIR_GXSTOP0_MASK_REG(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_PSC_PSCOM_STATUS_ERROR_REG(i_target));
+    FAPI_TRY(GET_EPS_PSC_PSCOM_STATUS_ERROR_REG(i_target, l_data));
     SET_EPS_PSC_PSCOM_STATUS_ERROR_REG_ACCUMULATED_PCB_WDATA_PARITY_ERROR(l_data);
     SET_EPS_PSC_PSCOM_STATUS_ERROR_REG_ACCUMULATED_PCB_ADDRESS_PARITY_ERROR(l_data);
     SET_EPS_PSC_PSCOM_STATUS_ERROR_REG_ACCUMULATED_DL_RETURN_WDATA_PARITY_ERROR(l_data);
@@ -2888,44 +3122,90 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_PSC_PSCOM_STATUS_ERROR_REG_TRAPPED_SATELLITE_ACKNOWLEDGE_INVALID_REGISTER(l_data);
     FAPI_TRY(PUT_EPS_PSC_PSCOM_STATUS_ERROR_REG(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_PSC_RING_FENCE_MASK_LATCH_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_PSC_RING_FENCE_MASK_LATCH_REG(i_target));
     SET_EPS_PSC_RING_FENCE_MASK_LATCH_REG_RING_FENCE_ENABLE_MASK(0xFull, l_data);
     FAPI_TRY(PUT_EPS_PSC_RING_FENCE_MASK_LATCH_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ(i_target));
+    FAPI_TRY(GET_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ(i_target, l_data));
     SET_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ_VALUE(0xFull, l_data);
     SET_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ_OVERFLOW_ERR(l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB_TIMESTAMP_COUNTER_READ(i_target, l_data));
 
-    FAPI_TRY(GET_FIRST_REPLY_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FIRST_REPLY_REG(i_target));
     SET_FIRST_REPLY_REG_FIRST_REPLY_REGISTER(0xFull, l_data);
     FAPI_TRY(PUT_FIRST_REPLY_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_6_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_6_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_0_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_0_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_6_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_6_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_13_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_13_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_6_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_6_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_ROX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_6_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_6_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_0_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_0_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_0_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_0_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_0_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_0_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_13_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_13_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_13_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_13_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_13_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_13_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_A_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_B_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_RCS_EL1_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL1_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_RCS_EL1_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL1_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_RCS_EL1_RO(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL1_RO(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL2_COPY_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_COPY_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL2_COPY_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_COPY_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL2_COPY_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_COPY_RW(i_target, l_data));
@@ -2968,25 +3248,22 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_2(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_LOCAL_XSTOP_MASK(i_target));
-    SET_LOCAL_XSTOP_MASK_01(l_data);
-    SET_LOCAL_XSTOP_MASK_02(l_data);
-    SET_LOCAL_XSTOP_MASK_03(l_data);
-    SET_LOCAL_XSTOP_MASK_04(l_data);
-    SET_LOCAL_XSTOP_MASK_05(l_data);
-    SET_LOCAL_XSTOP_MASK_06(l_data);
-    SET_LOCAL_XSTOP_MASK_07(l_data);
-    SET_LOCAL_XSTOP_MASK_08(l_data);
-    SET_LOCAL_XSTOP_MASK_09(l_data);
-    SET_LOCAL_XSTOP_MASK_10(l_data);
-    SET_LOCAL_XSTOP_MASK_11(l_data);
-    SET_LOCAL_XSTOP_MASK_12(l_data);
-    SET_LOCAL_XSTOP_MASK_13(l_data);
-    SET_LOCAL_XSTOP_MASK_14(l_data);
-    SET_LOCAL_XSTOP_MASK_15(l_data);
-    FAPI_TRY(PUT_LOCAL_XSTOP_MASK(i_target, l_data));
+    FAPI_TRY(PREP_LOCAL_XSTOP_MASK_RW(i_target));
+    FAPI_TRY(PUT_LOCAL_XSTOP_MASK_RW(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST14_REG2(i_target, l_data));
+    FAPI_TRY(GET_LOCAL_XSTOP_MASK_WO_CLEAR(i_target, l_data));
+    FAPI_TRY(PUT_LOCAL_XSTOP_MASK_WO_CLEAR(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_LOCAL_XSTOP_MASK_WO_OR(i_target));
+    FAPI_TRY(PUT_LOCAL_XSTOP_MASK_WO_OR(i_target, l_data));
+
+    FAPI_TRY(GET_LOCAL_XSTOP_UNMASKED(i_target, l_data));
+    SET_LOCAL_XSTOP_UNMASKED_LOCAL_XSTOP_UNMASKED_IN(0xFull, l_data);
+    FAPI_TRY(PUT_LOCAL_XSTOP_UNMASKED(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST14_REG2(i_target));
     SET_REC_ERR_MST14_REG2_32_MST14_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST14_REG2_32_MST14_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST14_REG2_33_MST14_RESPONSE_BIT(l_data);
@@ -3021,8 +3298,7 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST14_REG2_47_MST14_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST14_REG2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST2_REG2(i_target));
+    FAPI_TRY(GET_REC_ERR_MST2_REG2(i_target, l_data));
     SET_REC_ERR_MST2_REG2_32_MST2_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST2_REG2_32_MST2_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST2_REG2_33_MST2_RESPONSE_BIT(l_data);
@@ -3057,7 +3333,8 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST2_REG2_47_MST2_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST2_REG2(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST6_REG3(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST6_REG3(i_target));
     SET_REC_ERR_MST6_REG3_48_MST6_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST6_REG3_48_MST6_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST6_REG3_49_MST6_RESPONSE_BIT(l_data);
@@ -3092,8 +3369,7 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST6_REG3_63_MST6_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST6_REG3(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST8_REG3(i_target));
+    FAPI_TRY(GET_REC_ERR_MST8_REG3(i_target, l_data));
     SET_REC_ERR_MST8_REG3_48_MST8_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST8_REG3_48_MST8_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST8_REG3_49_MST8_RESPONSE_BIT(l_data);
@@ -3128,66 +3404,66 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST8_REG3_63_MST8_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST8_REG3(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG111(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG111(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG111_REGISTER111(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG111(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG126(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG126(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG126_REGISTER126(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG126(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG28(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG28(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG28_REGISTER28(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG28(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG37(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG37(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG37_REGISTER37(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG37(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG49(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG49(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG49_REGISTER49(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG49(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG56(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG56(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG56_REGISTER56(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG56(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG61(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG61(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG61_REGISTER61(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG61(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG94(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG94(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG94_REGISTER94(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG94(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_M_PATH_0_STEP_STEER_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_M_PATH_0_STEP_STEER_REG(i_target));
     SET_TOD_M_PATH_0_STEP_STEER_REG_MODE(l_data);
     SET_TOD_M_PATH_0_STEP_STEER_REG_RATE(0xFull, l_data);
     SET_TOD_M_PATH_0_STEP_STEER_REG_COUNTER_LOAD_FLAG(l_data);
     SET_TOD_M_PATH_0_STEP_STEER_REG_COUNTER_LOAD_VALUE(0xFull, l_data);
     FAPI_TRY(PUT_TOD_M_PATH_0_STEP_STEER_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_M_PATH_STATUS_REG(i_target));
+    FAPI_TRY(GET_TOD_M_PATH_STATUS_REG(i_target, l_data));
     SET_TOD_M_PATH_STATUS_REG_0_STEP_ALIGN_THRESHOLD(0xFull, l_data);
     SET_TOD_M_PATH_STATUS_REG_0_CPS(0xFull, l_data);
     SET_TOD_M_PATH_STATUS_REG_1_STEP_ALIGN_THRESHOLD(0xFull, l_data);
     SET_TOD_M_PATH_STATUS_REG_1_CPS(0xFull, l_data);
     FAPI_TRY(PUT_TOD_M_PATH_STATUS_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_PROBE_SELECT_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_PROBE_SELECT_REG(i_target));
     SET_TOD_PROBE_SELECT_REG_0_DATA_SELECT(0xFull, l_data);
     SET_TOD_PROBE_SELECT_REG_1_DATA_SELECT(0xFull, l_data);
     SET_TOD_PROBE_SELECT_REG_2_DATA_SELECT(0xFull, l_data);
     SET_TOD_PROBE_SELECT_REG_3_DATA_SELECT(0xFull, l_data);
     FAPI_TRY(PUT_TOD_PROBE_SELECT_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_PSS_MSS_CTRL_REG(i_target));
+    FAPI_TRY(GET_TOD_PSS_MSS_CTRL_REG(i_target, l_data));
     SET_TOD_PSS_MSS_CTRL_REG_PRI_M_PATH_SELECT(l_data);
     SET_TOD_PSS_MSS_CTRL_REG_PRI_M_S_TOD_SELECT(l_data);
     SET_TOD_PSS_MSS_CTRL_REG_PRI_M_S_DRAWER_SELECT(l_data);
@@ -3213,17 +3489,18 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_PSS_MSS_CTRL_REG_REG_0X07_SPARE_22_31(0xFull, l_data);
     FAPI_TRY(PUT_TOD_PSS_MSS_CTRL_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_RX_TTYPE_CTRL_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_RX_TTYPE_CTRL_REG(i_target));
     SET_TOD_RX_TTYPE_CTRL_REG_RX_TTYPE_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TOD_RX_TTYPE_CTRL_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA0_TR0_CONFIG_5(i_target));
+    FAPI_TRY(GET_TRA0_TR0_CONFIG_5(i_target, l_data));
     SET_TRA0_TR0_CONFIG_5_C(0xFull, l_data);
     SET_TRA0_TR0_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_5(i_target, l_data));
 
-    FAPI_TRY(GET_TRA0_TR1_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA0_TR1_CONFIG(i_target));
     SET_TRA0_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA0_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA0_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -3237,8 +3514,7 @@ fapi2::ReturnCode p10_acs(
     SET_TRA0_TR1_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA0_TR1_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA1_TR0_CONFIG(i_target));
+    FAPI_TRY(GET_TRA1_TR0_CONFIG(i_target, l_data));
     SET_TRA1_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA1_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA1_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -3252,39 +3528,40 @@ fapi2::ReturnCode p10_acs(
     SET_TRA1_TR0_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA1_TR0_CONFIG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA1_TR1_CONFIG_3(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA1_TR1_CONFIG_3(i_target));
     SET_TRA1_TR1_CONFIG_3_C(0xFull, l_data);
     SET_TRA1_TR1_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_3(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA2_TR1_CONFIG_4(i_target));
+    FAPI_TRY(GET_TRA2_TR1_CONFIG_4(i_target, l_data));
     SET_TRA2_TR1_CONFIG_4_A(0xFull, l_data);
     SET_TRA2_TR1_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_4(i_target, l_data));
 
-    FAPI_TRY(GET_TRA3_TR0_CONFIG_2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA3_TR0_CONFIG_2(i_target));
     SET_TRA3_TR0_CONFIG_2_A(0xFull, l_data);
     SET_TRA3_TR0_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA4_TR0_CONFIG_3(i_target));
+    FAPI_TRY(GET_TRA4_TR0_CONFIG_3(i_target, l_data));
     SET_TRA4_TR0_CONFIG_3_C(0xFull, l_data);
     SET_TRA4_TR0_CONFIG_3_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_3(i_target, l_data));
 
-    FAPI_TRY(GET_TRA5_TR0_TRACE_HI_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA5_TR0_TRACE_HI_DATA_REG(i_target));
     SET_TRA5_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA5_TR1_CONFIG_5(i_target));
+    FAPI_TRY(GET_TRA5_TR1_CONFIG_5(i_target, l_data));
     SET_TRA5_TR1_CONFIG_5_C(0xFull, l_data);
     SET_TRA5_TR1_CONFIG_5_D(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_5(i_target, l_data));
 
-    FAPI_TRY(GET_TRA6_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA6_TR1_TRACE_LO_DATA_REG(i_target));
     SET_TRA6_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA6_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA6_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -3294,31 +3571,31 @@ fapi2::ReturnCode p10_acs(
     SET_TRA6_TR1_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA6_TR1_CONFIG_2(i_target));
+    FAPI_TRY(GET_TRA6_TR1_CONFIG_2(i_target, l_data));
     SET_TRA6_TR1_CONFIG_2_A(0xFull, l_data);
     SET_TRA6_TR1_CONFIG_2_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_2(i_target, l_data));
 
-    FAPI_TRY(GET_TRA7_TR0_CONFIG_4(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA7_TR0_CONFIG_4(i_target));
     SET_TRA7_TR0_CONFIG_4_A(0xFull, l_data);
     SET_TRA7_TR0_CONFIG_4_B(0xFull, l_data);
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_4(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_THERM_WSUB_CONTROL_REG(i_target));
+    FAPI_TRY(GET_EPS_THERM_WSUB_CONTROL_REG(i_target, l_data));
     FAPI_TRY(PUT_EPS_THERM_WSUB_CONTROL_REG(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_THERM_WSUB_SKITTER_CLKSRC_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_THERM_WSUB_SKITTER_CLKSRC_REG(i_target));
     SET_EPS_THERM_WSUB_SKITTER_CLKSRC_REG_CLKSRC(0xFull, l_data);
     SET_EPS_THERM_WSUB_SKITTER_CLKSRC_REG_DELAY_SELECT(0xFull, l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_CLKSRC_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_THERM_WSUB2_SKITTER_DATA0(i_target));
+    FAPI_TRY(GET_EPS_THERM_WSUB2_SKITTER_DATA0(i_target, l_data));
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_DATA0(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_THERM_WSUB2_SKITTER_MODE_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_THERM_WSUB2_SKITTER_MODE_REG(i_target));
     SET_EPS_THERM_WSUB2_SKITTER_MODE_REG_SKITTER_HOLD_SAMPLE(l_data);
     SET_EPS_THERM_WSUB2_SKITTER_MODE_REG_DISABLE_SKITTER_STICKINESS(l_data);
     SET_EPS_THERM_WSUB2_SKITTER_MODE_REG_SKITTER_HOLD_DBGTRIG_SEL(0xFull, l_data);
@@ -3328,97 +3605,110 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_THERM_WSUB2_SKITTER_MODE_REG_SKITTER_DATA_V_LT(l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_MODE_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FIR_MASK(i_target));
-    SET_FIR_MASK_01(l_data);
-    SET_FIR_MASK_02(l_data);
-    SET_FIR_MASK_03(l_data);
-    SET_FIR_MASK_04(l_data);
-    SET_FIR_MASK_05(l_data);
-    SET_FIR_MASK_06(l_data);
-    SET_FIR_MASK_07(l_data);
-    SET_FIR_MASK_08(l_data);
-    SET_FIR_MASK_09(l_data);
-    SET_FIR_MASK_10(l_data);
-    SET_FIR_MASK_11(l_data);
-    SET_FIR_MASK_12(l_data);
-    SET_FIR_MASK_13(l_data);
-    SET_FIR_MASK_14(l_data);
-    SET_FIR_MASK_15(l_data);
-    SET_FIR_MASK_16(l_data);
-    SET_FIR_MASK_17(l_data);
-    SET_FIR_MASK_18(l_data);
-    SET_FIR_MASK_19(l_data);
-    SET_FIR_MASK_20(l_data);
-    SET_FIR_MASK_21(l_data);
-    SET_FIR_MASK_22(l_data);
-    SET_FIR_MASK_23(l_data);
-    SET_FIR_MASK_24(l_data);
-    SET_FIR_MASK_25(l_data);
-    SET_FIR_MASK_26(l_data);
-    SET_FIR_MASK_27(l_data);
-    SET_FIR_MASK_28(l_data);
-    SET_FIR_MASK_29(l_data);
-    SET_FIR_MASK_30(l_data);
-    SET_FIR_MASK_31(l_data);
-    SET_FIR_MASK_32(l_data);
-    SET_FIR_MASK_33(l_data);
-    SET_FIR_MASK_34(l_data);
-    SET_FIR_MASK_35(l_data);
-    SET_FIR_MASK_36(l_data);
-    SET_FIR_MASK_37(l_data);
-    SET_FIR_MASK_38(l_data);
-    SET_FIR_MASK_39(l_data);
-    SET_FIR_MASK_40(l_data);
-    SET_FIR_MASK_41(l_data);
-    SET_FIR_MASK_42(l_data);
-    SET_FIR_MASK_43(l_data);
-    SET_FIR_MASK_44(l_data);
-    SET_FIR_MASK_45(l_data);
-    SET_FIR_MASK_46(l_data);
-    SET_FIR_MASK_47(l_data);
-    SET_FIR_MASK_48(l_data);
-    SET_FIR_MASK_49(l_data);
-    SET_FIR_MASK_50(l_data);
-    SET_FIR_MASK_51(l_data);
-    SET_FIR_MASK_52(l_data);
-    SET_FIR_MASK_53(l_data);
-    FAPI_TRY(PUT_FIR_MASK(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_14_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_14_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_14_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_14_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_3_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_3_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_14_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_14_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_9_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_9_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_14_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_14_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_10_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_10_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_3_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_3_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_5_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_5_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_3_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_3_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_3_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_3_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_9_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_9_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_9_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_9_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_9_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_9_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_10_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_10_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_10_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_10_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_10_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_10_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_5_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_5_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_5_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_5_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_5_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_5_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL0_SET_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_SET_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL0_SET_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_SET_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL0_SET_WO_OR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_SET_WO_OR(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL1_SET_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_SET_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL1_SET_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_SET_FSI_BYTE(i_target, l_data));
+
     FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL1_SET_WO_OR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_SET_WO_OR(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL6_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_FSI_BYTE(i_target, l_data));
+
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL6_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RW(i_target, l_data));
 
     FAPI_TRY(GET_HANG_PULSE_0_REG(i_target, l_data));
     SET_HANG_PULSE_0_REG_HANG_PULSE_REG_0(0xFull, l_data);
@@ -3524,7 +3814,11 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_OTPC_M_RESET_REGISTER(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST4_REG0(i_target));
+    FAPI_TRY(PREP_RECOV_UNMASKED(i_target));
+    SET_RECOV_UNMASKED_RECOV_UNMASKED_IN(0xFull, l_data);
+    FAPI_TRY(PUT_RECOV_UNMASKED(i_target, l_data));
+
+    FAPI_TRY(GET_REC_ERR_MST4_REG0(i_target, l_data));
     SET_REC_ERR_MST4_REG0_MASTER_MST4_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST4_REG0_MASTER_MST4_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST4_REG0_SLAVE1_MST4_RESPONSE_BIT(l_data);
@@ -3559,49 +3853,54 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST4_REG0_SLAVE15_MST4_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST4_REG0(i_target, l_data));
 
-    FAPI_TRY(GET_SCAN_UPDATEDR(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SCAN_UPDATEDR(i_target));
     FAPI_TRY(PUT_SCAN_UPDATEDR(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG0(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG0(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG0_REGISTER0(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG0(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG10(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG10(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG10_REGISTER10(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG10(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG101(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG101(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG101_REGISTER101(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG101(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG27(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG27(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG27_REGISTER27(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG27(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG38(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG38(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG38_REGISTER38(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG38(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG46(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG46(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG46_REGISTER46(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG46(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG59(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG59(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG59_REGISTER59(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG59(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG71(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG71(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG71_REGISTER71(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG71(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG84(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG84(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG84_REGISTER84(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG84(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SPATTN_UNMASKED(i_target));
+    SET_SPATTN_UNMASKED_SPATTN_UNMASKED_IN(0xFull, l_data);
+    FAPI_TRY(PUT_SPATTN_UNMASKED(i_target, l_data));
 
     FAPI_TRY(GET_SYNC_CONFIG(i_target, l_data));
     SET_SYNC_CONFIG_SYNC_PULSE_DELAY(0xFull, l_data);
@@ -3609,7 +3908,7 @@ fapi2::ReturnCode p10_acs(
     SET_SYNC_CONFIG_SYNC_PULSE_INPUT_SEL(l_data);
     SET_SYNC_CONFIG_USE_SYNC_FOR_SCAN(l_data);
     SET_SYNC_CONFIG_CLEAR_CHIPLET_IS_ALIGNED(l_data);
-    SET_SYNC_CONFIG_UNIT_REGION_CLKCMD_ENABLE(l_data);
+    SET_SYNC_CONFIG_PCB_NOT_BLOCKED_BY_CLKCMD(l_data);
     SET_SYNC_CONFIG_DISABLE_PCB_ITR(l_data);
     SET_SYNC_CONFIG_CONT_SCAN_DISABLE(l_data);
     SET_SYNC_CONFIG_SYNC_PULSE_OUT_DIS(l_data);
@@ -3848,71 +4147,14 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_4(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_XFIR(i_target));
-    SET_XFIR_ANY_XSTOP(l_data);
-    SET_XFIR_SYSTEM_XSTOP(l_data);
-    SET_XFIR_XSTOP_ANY_SPATTN(l_data);
-    SET_XFIR_DBG_FIR_XSTOP_ON_TRIG(l_data);
-    SET_XFIR_XSTOP_PERV(l_data);
-    SET_XFIR_XSTOP_IN05(l_data);
-    SET_XFIR_XSTOP_IN06(l_data);
-    SET_XFIR_XSTOP_IN07(l_data);
-    SET_XFIR_XSTOP_IN08(l_data);
-    SET_XFIR_XSTOP_IN09(l_data);
-    SET_XFIR_XSTOP_IN10(l_data);
-    SET_XFIR_XSTOP_IN11(l_data);
-    SET_XFIR_XSTOP_IN12(l_data);
-    SET_XFIR_XSTOP_IN13(l_data);
-    SET_XFIR_XSTOP_IN14(l_data);
-    SET_XFIR_XSTOP_IN15(l_data);
-    SET_XFIR_XSTOP_IN16(l_data);
-    SET_XFIR_XSTOP_IN17(l_data);
-    SET_XFIR_XSTOP_IN18(l_data);
-    SET_XFIR_XSTOP_IN19(l_data);
-    SET_XFIR_XSTOP_IN20(l_data);
-    SET_XFIR_XSTOP_IN21(l_data);
-    SET_XFIR_XSTOP_IN22(l_data);
-    SET_XFIR_XSTOP_IN23(l_data);
-    SET_XFIR_XSTOP_IN24(l_data);
-    SET_XFIR_XSTOP_IN25(l_data);
-    SET_XFIR_XSTOP_IN26(l_data);
-    SET_XFIR_XSTOP_IN27(l_data);
-    SET_XFIR_XSTOP_IN28(l_data);
-    SET_XFIR_XSTOP_IN29(l_data);
-    SET_XFIR_XSTOP_IN30(l_data);
-    SET_XFIR_XSTOP_IN31(l_data);
-    SET_XFIR_XSTOP_IN32(l_data);
-    SET_XFIR_XSTOP_IN33(l_data);
-    SET_XFIR_XSTOP_IN34(l_data);
-    SET_XFIR_XSTOP_IN35(l_data);
-    SET_XFIR_XSTOP_IN36(l_data);
-    SET_XFIR_XSTOP_IN37(l_data);
-    SET_XFIR_XSTOP_IN38(l_data);
-    SET_XFIR_XSTOP_IN39(l_data);
-    SET_XFIR_XSTOP_IN40(l_data);
-    SET_XFIR_XSTOP_IN41(l_data);
-    SET_XFIR_XSTOP_IN42(l_data);
-    SET_XFIR_XSTOP_IN43(l_data);
-    SET_XFIR_XSTOP_IN44(l_data);
-    SET_XFIR_XSTOP_IN45(l_data);
-    SET_XFIR_XSTOP_IN46(l_data);
-    SET_XFIR_XSTOP_IN47(l_data);
-    SET_XFIR_XSTOP_IN48(l_data);
-    SET_XFIR_XSTOP_IN49(l_data);
-    SET_XFIR_XSTOP_IN50(l_data);
-    SET_XFIR_XSTOP_IN51(l_data);
-    SET_XFIR_XSTOP_IN52(l_data);
-    SET_XFIR_XSTOP_IN53(l_data);
-    FAPI_TRY(PUT_XFIR(i_target, l_data));
-
-    FAPI_TRY(GET_ASSIST_INTERRUPT_REG(i_target, l_data));
+    FAPI_TRY(PREP_ASSIST_INTERRUPT_REG(i_target));
     FAPI_TRY(PUT_ASSIST_INTERRUPT_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_P_0_CRSIM(i_target));
+    FAPI_TRY(GET_COMP_P_0_CRSIM(i_target, l_data));
     FAPI_TRY(PUT_COMP_P_0_CRSIM(i_target, l_data));
 
-    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_STAT(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_STAT(i_target));
     SET_DPLL_CNTL_PAU_REGS_STAT_FREQOUT(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_STAT_HIRES_FREQOUT(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_STAT_UPDATE_COMPLETE(l_data);
@@ -3921,12 +4163,12 @@ fapi2::ReturnCode p10_acs(
     SET_DPLL_CNTL_PAU_REGS_STAT_LOCK(l_data);
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_STAT(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EDRAM_STATUS(i_target));
+    FAPI_TRY(GET_EDRAM_STATUS(i_target, l_data));
     SET_EDRAM_STATUS_EDRAM_STAT(0xFull, l_data);
     FAPI_TRY(PUT_EDRAM_STATUS(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_DBG_TRACE_REG_0(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_DBG_TRACE_REG_0(i_target));
     SET_EPS_DBG_TRACE_REG_0_INST1_COND3_ENABLE(l_data);
     SET_EPS_DBG_TRACE_REG_0_INST2_COND3_ENABLE(l_data);
     SET_EPS_DBG_TRACE_REG_0_INST3_COND3_ENABLE(l_data);
@@ -3950,33 +4192,6 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_DBG_TRACE_REG_0_TRIG0_LEVEL_SEL(0xFull, l_data);
     SET_EPS_DBG_TRACE_REG_0_TRIG1_LEVEL_SEL(0xFull, l_data);
     FAPI_TRY(PUT_EPS_DBG_TRACE_REG_0(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_FIR_GXSTOP1_MASK_REG(i_target));
-    SET_EPS_FIR_GXSTOP1_MASK_REG_SUM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_SUM_RECOV(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_SUM_SPATTN(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_SUM_LOCAL_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_SUM_TYPE4(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_SYSTEM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_OOB1(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_DBG_FIR_XSTOP_ON_TRIG(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP10(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP11(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP12(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP13(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP14(l_data);
-    SET_EPS_FIR_GXSTOP1_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP15(l_data);
-    FAPI_TRY(PUT_EPS_FIR_GXSTOP1_MASK_REG(i_target, l_data));
 
     FAPI_TRY(GET_EPS_FIR_LOCAL_ACTION0(i_target, l_data));
     SET_EPS_FIR_LOCAL_ACTION0_00(l_data);
@@ -4028,6 +4243,21 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_FIR_LOCAL_ACTION0_46(l_data);
     SET_EPS_FIR_LOCAL_ACTION0_47(l_data);
     SET_EPS_FIR_LOCAL_ACTION0_48(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_49(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_50(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_51(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_52(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_53(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_54(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_55(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_56(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_57(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_58(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_59(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_60(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_61(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_62(l_data);
+    SET_EPS_FIR_LOCAL_ACTION0_63(l_data);
     FAPI_TRY(PUT_EPS_FIR_LOCAL_ACTION0(i_target, l_data));
 
     l_data.flush<0>();
@@ -4078,6 +4308,7 @@ fapi2::ReturnCode p10_acs(
     SET_ERROR_REG_INT_TYPE_ERROR(l_data);
     SET_ERROR_REG_CL_DATA_ERROR(l_data);
     SET_ERROR_REG_INFO_ERROR(l_data);
+    SET_ERROR_REG_SEQ_ERROR(l_data);
     SET_ERROR_REG_CHIPLET_ATOMIC_LOCK_ERROR(l_data);
     SET_ERROR_REG_PCB_INTERFACE_ERROR(l_data);
     SET_ERROR_REG_CHIPLET_OFFLINE(l_data);
@@ -4088,49 +4319,116 @@ fapi2::ReturnCode p10_acs(
     SET_ERROR_REG_CONFIG_REG_PARITY_ERROR(l_data);
     SET_ERROR_REG_DIV_REG_PARITY_ERROR(l_data);
     SET_ERROR_REG_PLL_UNLOCK_ERROR(0xFull, l_data);
+    SET_ERROR_REG_QME_INTERFACE_PARITY_ERROR(l_data);
+    SET_ERROR_REG_QME_DATA_PARITY_ERROR(l_data);
+    SET_ERROR_REG_QME_ADDR_PARITY_ERROR(l_data);
+    SET_ERROR_REG_QME_FSM_ERROR(l_data);
     FAPI_TRY(PUT_ERROR_REG(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_11_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_11_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_11_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_11_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_6_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_6_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_11_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_11_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_15_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_15_RWX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_0_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_0_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_11_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_11_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_6_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_6_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_6_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_6_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_6_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_6_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_ERROR_STATUS_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_ERROR_STATUS_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_15_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_15_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_15_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_15_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_15_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_15_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_0_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_0_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_0_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_0_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_0_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_0_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_2_A_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_RO(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_B_RO(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_ERROR_STATUS_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_ERROR_STATUS_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_ERROR_STATUS_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_ERROR_STATUS_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_ERROR_STATUS_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_ERROR_STATUS_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL1_COPY_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_COPY_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL1_COPY_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_COPY_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL1_COPY_RW(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_COPY_RW(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL3_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_FSI_BYTE(i_target, l_data));
+
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL3_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_7_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_7_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_7_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_7_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_7_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_7_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_7_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_7_RW(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA1_TR0_CONFIG_0(i_target, l_data));
     SET_L3TRA1_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
@@ -4537,58 +4835,144 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_FREQ(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_THERM_WSUB_DTS_RESULT1(i_target));
+    FAPI_TRY(PREP_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3(i_target));
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_ANY_XSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_ANY_RECOV_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_ANY_SPATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_ANY_LXSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_ANY_HOSTATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_SYSTEM_XSTOP(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_OOB1(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_DBG_FIR_XSTOP_ON_TRIG(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP010(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP011(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP012(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP013(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP014(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3_UNIT_TC_FIR_LOCAL_XSTOP015(l_data);
+    FAPI_TRY(PUT_EPS_FIR_CLKSTOP_ON_XSTOP_MASK3(i_target, l_data));
+
+    FAPI_TRY(GET_EPS_THERM_WSUB_DTS_RESULT1(i_target, l_data));
     SET_EPS_THERM_WSUB_DTS_RESULT1_4_RESULT(0xFull, l_data);
     SET_EPS_THERM_WSUB_DTS_RESULT1_5_RESULT(0xFull, l_data);
     SET_EPS_THERM_WSUB_DTS_RESULT1_6_RESULT(0xFull, l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB_DTS_RESULT1(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_THERM_WSUB_SKITTER_DATA2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_THERM_WSUB_SKITTER_DATA2(i_target));
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_DATA2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_THERM_WSUB_SKITTER_FORCE_REG(i_target));
+    FAPI_TRY(GET_EPS_THERM_WSUB_SKITTER_FORCE_REG(i_target, l_data));
     SET_EPS_THERM_WSUB_SKITTER_FORCE_REG_F_SKITTER_READ(l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB_SKITTER_FORCE_REG(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_THERM_WSUB2_SKITTER_FORCE_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_THERM_WSUB2_SKITTER_FORCE_REG(i_target));
     SET_EPS_THERM_WSUB2_SKITTER_FORCE_REG_F_SKITTER_READ(l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB2_SKITTER_FORCE_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_ENVSTAT_ROX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_ENVSTAT_ROX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_9_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_9_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_ENVSTAT_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_ENVSTAT_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_12_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_12_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_ENVSTAT_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_ENVSTAT_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_3_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_3_RWX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_5_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_5_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_ENVSTAT_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_ENVSTAT_RO(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_RWX_WCLEAR(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_RWX_WCLEAR(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_9_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_9_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_9_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_9_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_9_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_9_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_12_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_12_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_12_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_12_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_12_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_12_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_3_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_3_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_3_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_3_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_3_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_3_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_5_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_5_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_5_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_5_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_5_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_5_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_RW_WCLEAR(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_A_DOORBELL_INTERRUPT_RW_WCLEAR(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL1_COPY_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_COPY_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL1_COPY_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_COPY_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL1_COPY_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_COPY_RW(i_target, l_data));
 
     l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL7_CLEAR_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_CLEAR_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL7_CLEAR_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_CLEAR_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL7_CLEAR_WO_CLEAR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RW(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_IGNORE_PAR_REG(i_target));
@@ -4596,6 +4980,7 @@ fapi2::ReturnCode p10_acs(
     SET_IGNORE_PAR_REG_DISABLE_ECC_CORRECTION(l_data);
     SET_IGNORE_PAR_REG_ECC_S_BIT_ERROR(l_data);
     SET_IGNORE_PAR_REG_ENABLE_BNDY_LATS(l_data);
+    SET_IGNORE_PAR_REG_ENABLE_EXTENDED_RSP(l_data);
     FAPI_TRY(PUT_IGNORE_PAR_REG(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR0_CONFIG_0(i_target, l_data));
@@ -4870,12 +5255,70 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_1(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_CC_PROTECT_MODE_REG(i_target));
+    FAPI_TRY(PREP_XSTOP(i_target));
+    SET_XSTOP_ANY_XSTOP(l_data);
+    SET_XSTOP_SYSTEM_XSTOP(l_data);
+    SET_XSTOP_XSTOP_ANY_SPATTN(l_data);
+    SET_XSTOP_DBG_FIR_XSTOP_ON_TRIG(l_data);
+    SET_XSTOP_XSTOP_PERV(l_data);
+    SET_XSTOP_XSTOP_IN05(l_data);
+    SET_XSTOP_XSTOP_IN06(l_data);
+    SET_XSTOP_XSTOP_IN07(l_data);
+    SET_XSTOP_XSTOP_IN08(l_data);
+    SET_XSTOP_XSTOP_IN09(l_data);
+    SET_XSTOP_XSTOP_IN10(l_data);
+    SET_XSTOP_XSTOP_IN11(l_data);
+    SET_XSTOP_XSTOP_IN12(l_data);
+    SET_XSTOP_XSTOP_IN13(l_data);
+    SET_XSTOP_XSTOP_IN14(l_data);
+    SET_XSTOP_XSTOP_IN15(l_data);
+    SET_XSTOP_XSTOP_IN16(l_data);
+    SET_XSTOP_XSTOP_IN17(l_data);
+    SET_XSTOP_XSTOP_IN18(l_data);
+    SET_XSTOP_XSTOP_IN19(l_data);
+    SET_XSTOP_XSTOP_IN20(l_data);
+    SET_XSTOP_XSTOP_IN21(l_data);
+    SET_XSTOP_XSTOP_IN22(l_data);
+    SET_XSTOP_XSTOP_IN23(l_data);
+    SET_XSTOP_XSTOP_IN24(l_data);
+    SET_XSTOP_XSTOP_IN25(l_data);
+    SET_XSTOP_XSTOP_IN26(l_data);
+    SET_XSTOP_XSTOP_IN27(l_data);
+    SET_XSTOP_XSTOP_IN28(l_data);
+    SET_XSTOP_XSTOP_IN29(l_data);
+    SET_XSTOP_XSTOP_IN30(l_data);
+    SET_XSTOP_XSTOP_IN31(l_data);
+    SET_XSTOP_XSTOP_IN32(l_data);
+    SET_XSTOP_XSTOP_IN33(l_data);
+    SET_XSTOP_XSTOP_IN34(l_data);
+    SET_XSTOP_XSTOP_IN35(l_data);
+    SET_XSTOP_XSTOP_IN36(l_data);
+    SET_XSTOP_XSTOP_IN37(l_data);
+    SET_XSTOP_XSTOP_IN38(l_data);
+    SET_XSTOP_XSTOP_IN39(l_data);
+    SET_XSTOP_XSTOP_IN40(l_data);
+    SET_XSTOP_XSTOP_IN41(l_data);
+    SET_XSTOP_XSTOP_IN42(l_data);
+    SET_XSTOP_XSTOP_IN43(l_data);
+    SET_XSTOP_XSTOP_IN44(l_data);
+    SET_XSTOP_XSTOP_IN45(l_data);
+    SET_XSTOP_XSTOP_IN46(l_data);
+    SET_XSTOP_XSTOP_IN47(l_data);
+    SET_XSTOP_XSTOP_IN48(l_data);
+    SET_XSTOP_XSTOP_IN49(l_data);
+    SET_XSTOP_XSTOP_IN50(l_data);
+    SET_XSTOP_XSTOP_IN51(l_data);
+    SET_XSTOP_XSTOP_IN52(l_data);
+    SET_XSTOP_XSTOP_IN53(l_data);
+    FAPI_TRY(PUT_XSTOP(i_target, l_data));
+
+    FAPI_TRY(GET_CC_PROTECT_MODE_REG(i_target, l_data));
     SET_CC_PROTECT_MODE_REG_READ_PROTECT_ENABLE(l_data);
     SET_CC_PROTECT_MODE_REG_WRITE_PROTECT_ENABLE(l_data);
     FAPI_TRY(PUT_CC_PROTECT_MODE_REG(i_target, l_data));
 
-    FAPI_TRY(GET_CLOCK_STAT_SL(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_CLOCK_STAT_SL(i_target));
     SET_CLOCK_STAT_SL_PERV_SL(l_data);
     SET_CLOCK_STAT_SL_UNIT1_SL(l_data);
     SET_CLOCK_STAT_SL_UNIT2_SL(l_data);
@@ -4893,34 +5336,33 @@ fapi2::ReturnCode p10_acs(
     SET_CLOCK_STAT_SL_UNIT14_SL(l_data);
     FAPI_TRY(PUT_CLOCK_STAT_SL(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_P_0_RSIC(i_target));
+    FAPI_TRY(GET_COMP_P_0_RSIC(i_target, l_data));
     FAPI_TRY(PUT_COMP_P_0_RSIC(i_target, l_data));
 
-    FAPI_TRY(GET_CPLT_CTRL3_RW(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_CPLT_CTRL3_RW(i_target));
     FAPI_TRY(PUT_CPLT_CTRL3_RW(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_CPLT_CTRL3_WO_CLEAR(i_target));
+    FAPI_TRY(GET_CPLT_CTRL3_WO_CLEAR(i_target, l_data));
     FAPI_TRY(PUT_CPLT_CTRL3_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_CPLT_CTRL3_WO_OR(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_CPLT_CTRL3_WO_OR(i_target));
     FAPI_TRY(PUT_CPLT_CTRL3_WO_OR(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_ECHAR(i_target));
+    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_ECHAR(i_target, l_data));
     SET_DPLL_CNTL_PAU_REGS_ECHAR_DYNAMIC_ENCODED_DATA(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ECHAR_MIN_ENCODED_DATA(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ECHAR_MAX_ENCODED_DATA(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ECHAR_INVERTED_DYNAMIC_ENCODE_INJECT(0xFull, l_data);
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_ECHAR(i_target, l_data));
 
-    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_TESTSEL(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_TESTSEL(i_target));
     SET_DPLL_CNTL_PAU_REGS_TESTSEL_DPLL_TESTSEL_TEST_SEL(0xFull, l_data);
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_TESTSEL(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_DBG_INST1_COND_REG_1(i_target));
+    FAPI_TRY(GET_EPS_DBG_INST1_COND_REG_1(i_target, l_data));
     SET_EPS_DBG_INST1_COND_REG_1_COND1_SEL_A(0xFull, l_data);
     SET_EPS_DBG_INST1_COND_REG_1_COND1_SEL_B(0xFull, l_data);
     SET_EPS_DBG_INST1_COND_REG_1_COND2_SEL_A(0xFull, l_data);
@@ -4944,7 +5386,8 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_DBG_INST1_COND_REG_1_RESET_C3_SELECT(0xFull, l_data);
     FAPI_TRY(PUT_EPS_DBG_INST1_COND_REG_1(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_DBG_INST2_COND_REG_1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_DBG_INST2_COND_REG_1(i_target));
     SET_EPS_DBG_INST2_COND_REG_1_COND1_SEL_A(0xFull, l_data);
     SET_EPS_DBG_INST2_COND_REG_1_COND1_SEL_B(0xFull, l_data);
     SET_EPS_DBG_INST2_COND_REG_1_COND2_SEL_A(0xFull, l_data);
@@ -4968,61 +5411,146 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_DBG_INST2_COND_REG_1_RESET_C3_SELECT(0xFull, l_data);
     FAPI_TRY(PUT_EPS_DBG_INST2_COND_REG_1(i_target, l_data));
 
+    FAPI_TRY(GET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4(i_target, l_data));
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_ANY_XSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_ANY_RECOV_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_ANY_SPATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_ANY_LXSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_ANY_HOSTATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_SYSTEM_XSTOP(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_OOB1(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_DBG_FIR_XSTOP_ON_TRIG(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP10(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP11(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP12(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP13(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP14(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4_UNIT_TC_FIR_LOCAL_XSTOP15(l_data);
+    FAPI_TRY(PUT_EPS_FIR_CLKSTOP_ON_XSTOP_MASK4(i_target, l_data));
+
     l_data.flush<0>();
     FAPI_TRY(PREP_EPS_PSC_ATOMIC_LOCK_MASK_LATCH_REG(i_target));
     SET_EPS_PSC_ATOMIC_LOCK_MASK_LATCH_REG_ATOMIC_LOCK_MASK(0xFull, l_data);
     FAPI_TRY(PUT_EPS_PSC_ATOMIC_LOCK_MASK_LATCH_REG(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_15_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_15_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_15_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_15_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_4_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_4_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_15_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_15_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_2_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_2_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_15_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_15_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_11_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_11_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_4_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_4_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_8_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_8_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_4_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_4_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_4_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_4_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_2_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_2_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_2_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_2_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_2_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_2_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_11_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_11_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_11_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_11_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_11_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_11_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_8_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_8_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_8_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_8_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_8_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_8_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_WO_CLEAR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_RCS_EL3_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL3_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_RCS_EL3_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL3_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_RCS_EL3_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL3_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SB_CS_FSI(i_target));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_CS_FSI(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_CS_FSI_BYTE(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SB_CS_FSI_BYTE(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS_FSI_BYTE(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SB_CS_SCOM(i_target));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_CS_SCOM(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS_SCOM(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA0_TR0_TRACE_HI_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA0_TR0_TRACE_HI_DATA_REG(i_target));
     SET_L3TRA0_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA0_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA1_TR1_CONFIG_1(i_target));
+    FAPI_TRY(GET_L3TRA1_TR1_CONFIG_1(i_target, l_data));
     SET_L3TRA1_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG_1(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA3_TR0_CONFIG_0(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA3_TR0_CONFIG_0(i_target));
     SET_L3TRA3_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_0(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA3_TR1_TRACE_LO_DATA_REG(i_target));
+    FAPI_TRY(GET_L3TRA3_TR1_TRACE_LO_DATA_REG(i_target, l_data));
     SET_L3TRA3_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_L3TRA3_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_L3TRA3_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -5032,7 +5560,8 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA3_TR1_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA3_TR1_CONFIG_9(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA3_TR1_CONFIG_9(i_target));
     SET_L3TRA3_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_L3TRA3_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_L3TRA3_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -5053,12 +5582,12 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA3_TR1_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_9(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_OTPC_M_MEASURE_REG15(i_target));
+    FAPI_TRY(GET_OTPC_M_MEASURE_REG15(i_target, l_data));
     SET_OTPC_M_MEASURE_REG15_SEEPROM_MEASUREMENT15_DATA(0xFull, l_data);
     FAPI_TRY(PUT_OTPC_M_MEASURE_REG15(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST14_REG0(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST14_REG0(i_target));
     SET_REC_ERR_MST14_REG0_MASTER_MST14_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST14_REG0_MASTER_MST14_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST14_REG0_SLAVE1_MST14_RESPONSE_BIT(l_data);
@@ -5093,8 +5622,7 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST14_REG0_SLAVE15_MST14_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST14_REG0(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST2_REG0(i_target));
+    FAPI_TRY(GET_REC_ERR_MST2_REG0(i_target, l_data));
     SET_REC_ERR_MST2_REG0_MASTER_MST2_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST2_REG0_MASTER_MST2_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST2_REG0_SLAVE1_MST2_RESPONSE_BIT(l_data);
@@ -5129,7 +5657,8 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST2_REG0_SLAVE15_MST2_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST2_REG0(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST6_REG1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST6_REG1(i_target));
     SET_REC_ERR_MST6_REG1_16_MST6_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST6_REG1_16_MST6_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST6_REG1_17_MST6_RESPONSE_BIT(l_data);
@@ -5164,8 +5693,7 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST6_REG1_31_MST6_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST6_REG1(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST8_REG1(i_target));
+    FAPI_TRY(GET_REC_ERR_MST8_REG1(i_target, l_data));
     SET_REC_ERR_MST8_REG1_16_MST8_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST8_REG1_16_MST8_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST8_REG1_17_MST8_RESPONSE_BIT(l_data);
@@ -5200,39 +5728,39 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST8_REG1_31_MST8_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST8_REG1(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG113(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG113(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG113_REGISTER113(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG113(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG124(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG124(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG124_REGISTER124(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG124(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG35(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG35(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG35_REGISTER35(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG35(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG54(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG54(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG54_REGISTER54(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG54(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG63(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG63(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG63_REGISTER63(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG63(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG89(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG89(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG89_REGISTER89(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG89(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG96(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG96(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG96_REGISTER96(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG96(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_ERROR_REG(i_target));
+    FAPI_TRY(GET_TOD_ERROR_REG(i_target, l_data));
     SET_TOD_ERROR_REG_REG_0X00_DATA_PARITY_ERROR(l_data);
     SET_TOD_ERROR_REG_M_PATH_0_PARITY_ERROR(l_data);
     SET_TOD_ERROR_REG_M_PATH_1_PARITY_ERROR(l_data);
@@ -5297,22 +5825,22 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_ERROR_REG_SPARE_ERROR_63(l_data);
     FAPI_TRY(PUT_TOD_ERROR_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_VALUE_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_VALUE_REG(i_target));
     SET_TOD_VALUE_REG_TOD_VALUE(0xFull, l_data);
     SET_TOD_VALUE_REG_WOF_COUNTER_VALUE(0xFull, l_data);
     FAPI_TRY(PUT_TOD_VALUE_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA1_TR1_CONFIG_1(i_target));
+    FAPI_TRY(GET_TRA1_TR1_CONFIG_1(i_target, l_data));
     SET_TRA1_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_1(i_target, l_data));
 
-    FAPI_TRY(GET_TRA3_TR0_CONFIG_0(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA3_TR0_CONFIG_0(i_target));
     SET_TRA3_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_0(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA3_TR1_CONFIG_9(i_target));
+    FAPI_TRY(GET_TRA3_TR1_CONFIG_9(i_target, l_data));
     SET_TRA3_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA3_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA3_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -5333,16 +5861,17 @@ fapi2::ReturnCode p10_acs(
     SET_TRA3_TR1_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_9(i_target, l_data));
 
-    FAPI_TRY(GET_TRA4_TR0_CONFIG_1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA4_TR0_CONFIG_1(i_target));
     SET_TRA4_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_1(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA4_TR1_TRACE_HI_DATA_REG(i_target));
+    FAPI_TRY(GET_TRA4_TR1_TRACE_HI_DATA_REG(i_target, l_data));
     SET_TRA4_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA6_TR0_CONFIG_9(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA6_TR0_CONFIG_9(i_target));
     SET_TRA6_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA6_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA6_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -5363,12 +5892,12 @@ fapi2::ReturnCode p10_acs(
     SET_TRA6_TR0_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_9(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA6_TR1_CONFIG_0(i_target));
+    FAPI_TRY(GET_TRA6_TR1_CONFIG_0(i_target, l_data));
     SET_TRA6_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_0(i_target, l_data));
 
-    FAPI_TRY(GET_TRA7_TR0_TRACE_LO_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA7_TR0_TRACE_LO_DATA_REG(i_target));
     SET_TRA7_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA7_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA7_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -5378,26 +5907,25 @@ fapi2::ReturnCode p10_acs(
     SET_TRA7_TR0_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_TRA7_TR0_TRACE_LO_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_ATOMIC_LOCK_REG(i_target));
+    FAPI_TRY(GET_ATOMIC_LOCK_REG(i_target, l_data));
     SET_ATOMIC_LOCK_REG_LOCK_ENABLE(l_data);
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
     SET_ATOMIC_LOCK_REG_ACTIVITY(0xFull, l_data);
     FAPI_TRY(PUT_ATOMIC_LOCK_REG(i_target, l_data));
 
-    FAPI_TRY(GET_ATTN_INTERRUPT_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_ATTN_INTERRUPT_REG(i_target));
     FAPI_TRY(PUT_ATTN_INTERRUPT_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_INTR_INTERRUPT_HOLD_REG(i_target));
+    FAPI_TRY(GET_COMP_INTR_INTERRUPT_HOLD_REG(i_target, l_data));
     SET_COMP_INTR_INTERRUPT_HOLD_REG_INTERRUPT_HOLD(0xFull, l_data);
     FAPI_TRY(PUT_COMP_INTR_INTERRUPT_HOLD_REG(i_target, l_data));
 
-    FAPI_TRY(GET_COMP_P_0_CRSIS(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_COMP_P_0_CRSIS(i_target));
     FAPI_TRY(PUT_COMP_P_0_CRSIS(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_ICHAR(i_target));
+    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_ICHAR(i_target, l_data));
     SET_DPLL_CNTL_PAU_REGS_ICHAR_FREQIN_AVG(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ICHAR_HIRES_FREQIN_AVG(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_ICHAR_FREQIN_MAX(0xFull, l_data);
@@ -5406,7 +5934,8 @@ fapi2::ReturnCode p10_acs(
     SET_DPLL_CNTL_PAU_REGS_ICHAR_HIRES_FREQIN_MIN(0xFull, l_data);
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_ICHAR(i_target, l_data));
 
-    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_OCHAR(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_OCHAR(i_target));
     SET_DPLL_CNTL_PAU_REGS_OCHAR_FREQOUT_MAX(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_OCHAR_HIRES_FREQOUT_MAX(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_OCHAR_FREQOUT_AVG(0xFull, l_data);
@@ -5415,8 +5944,7 @@ fapi2::ReturnCode p10_acs(
     SET_DPLL_CNTL_PAU_REGS_OCHAR_HIRES_FREQOUT_MIN(0xFull, l_data);
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_OCHAR(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_DBG_TRACE_MODE_REG_2(i_target));
+    FAPI_TRY(GET_EPS_DBG_TRACE_MODE_REG_2(i_target, l_data));
     SET_EPS_DBG_TRACE_MODE_REG_2_RUNN_COUNT_COMPARE_VALUE(0xFull, l_data);
     SET_EPS_DBG_TRACE_MODE_REG_2_IMM_FREEZE_MODE(l_data);
     SET_EPS_DBG_TRACE_MODE_REG_2_STOP_ON_ERR(l_data);
@@ -5426,32 +5954,6 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_DBG_TRACE_MODE_REG_2_FRZ_COUNT_ON(l_data);
     SET_EPS_DBG_TRACE_MODE_REG_2_EXTEND_BANK(0xFull, l_data);
     FAPI_TRY(PUT_EPS_DBG_TRACE_MODE_REG_2(i_target, l_data));
-
-    FAPI_TRY(GET_EPS_FIR_GXSTOP2_MASK_REG(i_target, l_data));
-    SET_EPS_FIR_GXSTOP2_MASK_REG_SUM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_SUM_RECOV(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_SUM_SPATTN(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_SUM_LOCAL_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_SUM_TYPE4(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_SYSTEM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_OOB1(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_DBG_FIR_XSTOP_ON_TRIG(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP10(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP11(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP12(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP13(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP14(l_data);
-    SET_EPS_FIR_GXSTOP2_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP15(l_data);
-    FAPI_TRY(PUT_EPS_FIR_GXSTOP2_MASK_REG(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_EPS_FIR_LOCAL_MASK_RW(i_target));
@@ -5483,32 +5985,74 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_FIRST_ERR_REG(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_1_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_1_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_1_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_1_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_12_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_12_RWX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_7_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_7_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_1_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_1_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_1_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_1_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_12_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_12_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_12_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_12_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_12_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_12_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_7_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_7_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_7_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_7_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_7_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_7_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_B_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_1_A_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL4_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL4_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL4_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL4_COPY_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_COPY_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL4_COPY_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_COPY_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL4_COPY_RW(i_target));
@@ -5560,15 +6104,15 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_L3TRA2_TR1_CONFIG_9(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_LOCAL_FIR_RWX(i_target));
-    FAPI_TRY(PUT_LOCAL_FIR_RWX(i_target, l_data));
+    FAPI_TRY(PREP_LOCAL_FIR_RW(i_target));
+    FAPI_TRY(PUT_LOCAL_FIR_RW(i_target, l_data));
 
-    FAPI_TRY(GET_LOCAL_FIR_WOX_AND(i_target, l_data));
-    FAPI_TRY(PUT_LOCAL_FIR_WOX_AND(i_target, l_data));
+    FAPI_TRY(GET_LOCAL_FIR_WO_AND(i_target, l_data));
+    FAPI_TRY(PUT_LOCAL_FIR_WO_AND(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_LOCAL_FIR_WOX_OR(i_target));
-    FAPI_TRY(PUT_LOCAL_FIR_WOX_OR(i_target, l_data));
+    FAPI_TRY(PREP_LOCAL_FIR_WO_OR(i_target));
+    FAPI_TRY(PUT_LOCAL_FIR_WO_OR(i_target, l_data));
 
     FAPI_TRY(GET_MCAST_GRP_1_SLAVES_REG(i_target, l_data));
     SET_MCAST_GRP_1_SLAVES_REG_SLAVES_MCAST_GROUP_1(0xFull, l_data);
@@ -5587,7 +6131,7 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PREP_OTPC_M_EXPORT_REGL_CTRL(i_target));
     SET_OTPC_M_EXPORT_REGL_CTRL_TP_NX_ALLOW_CRYPTO_DC(l_data);
     SET_OTPC_M_EXPORT_REGL_CTRL_TP_EX_FUSE_VMX_CRYPTO_DIS_DC(l_data);
-    SET_OTPC_M_EXPORT_REGL_CTRL_TP_EX_FUSE_FP_THROTTLE_EN_DC(l_data);
+    SET_OTPC_M_EXPORT_REGL_CTRL_TP_EX_EFUSE_EXTENDED_MEMORY_DISABLE_DC(l_data);
     SET_OTPC_M_EXPORT_REGL_CTRL_TP_PB_FUSE_TOPOLOGY_2CHIP(l_data);
     SET_OTPC_M_EXPORT_REGL_CTRL_TP_PB_FUSE_TOPOLOGY_GROUP(0xFull, l_data);
     SET_OTPC_M_EXPORT_REGL_CTRL_TP_NP_NVLINK_DISABLE(l_data);
@@ -5597,12 +6141,13 @@ fapi2::ReturnCode p10_acs(
     SET_OTPC_M_EXPORT_REGL_CTRL_TP_MC_ALLOW_CRYPTO_DC(l_data);
     SET_OTPC_M_EXPORT_REGL_CTRL_OTP_SPIM_MEAS_SEEPROM_LOCK_DC(l_data);
     SET_OTPC_M_EXPORT_REGL_CTRL_TP_PAU_POWER_HEADER_DISABLE_DC(0xFull, l_data);
+    SET_OTPC_M_EXPORT_REGL_CTRL_TP_EX_FUSE_FLOP_THROTTLE_EN_DC(0xFull, l_data);
     FAPI_TRY(PUT_OTPC_M_EXPORT_REGL_CTRL(i_target, l_data));
 
     FAPI_TRY(GET_OTPC_M_EXPORT_REGL_STATUS(i_target, l_data));
     SET_OTPC_M_EXPORT_REGL_STATUS_TP_NX_ALLOW_CRYPTO_DC(l_data);
     SET_OTPC_M_EXPORT_REGL_STATUS_TP_EX_FUSE_VMX_CRYPTO_DIS_DC(l_data);
-    SET_OTPC_M_EXPORT_REGL_STATUS_TP_EX_FUSE_FP_THROTTLE_EN_DC(l_data);
+    SET_OTPC_M_EXPORT_REGL_STATUS_TP_EX_EFUSE_EXTENDED_MEMORY_DISABLE_DC(l_data);
     SET_OTPC_M_EXPORT_REGL_STATUS_TP_PB_FUSE_TOPOLOGY_2CHIP(l_data);
     SET_OTPC_M_EXPORT_REGL_STATUS_TP_PB_FUSE_TOPOLOGY_GROUP(0xFull, l_data);
     SET_OTPC_M_EXPORT_REGL_STATUS_TP_NP_NVLINK_DISABLE(l_data);
@@ -5613,6 +6158,7 @@ fapi2::ReturnCode p10_acs(
     SET_OTPC_M_EXPORT_REGL_STATUS_TP_MC_ALLOW_CRYPTO_DC(l_data);
     SET_OTPC_M_EXPORT_REGL_STATUS_OTP_SPIM_MEAS_SEEPROM_LOCK_DC(l_data);
     SET_OTPC_M_EXPORT_REGL_STATUS_TP_PAU_POWER_HEADER_DISABLE_DC(0xFull, l_data);
+    SET_OTPC_M_EXPORT_REGL_STATUS_TP_EX_FUSE_FLOP_THROTTLE_EN_DC(0xFull, l_data);
     FAPI_TRY(PUT_OTPC_M_EXPORT_REGL_STATUS(i_target, l_data));
 
     l_data.flush<0>();
@@ -5620,12 +6166,69 @@ fapi2::ReturnCode p10_acs(
     SET_OTPC_M_MEASURE_REG1_SEEPROM_MEASUREMENT1_DATA(0xFull, l_data);
     FAPI_TRY(PUT_OTPC_M_MEASURE_REG1(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ACK_REG(i_target, l_data));
+    FAPI_TRY(GET_RECOV(i_target, l_data));
+    SET_RECOV_ANY_RECOV(l_data);
+    SET_RECOV_RESERVED1R(l_data);
+    SET_RECOV_RECOV_ANY_LOCAL_XSTOP(l_data);
+    SET_RECOV_RESERVED3R(l_data);
+    SET_RECOV_RECOV_PERV(l_data);
+    SET_RECOV_RECOV_IN05(l_data);
+    SET_RECOV_RECOV_IN06(l_data);
+    SET_RECOV_RECOV_IN07(l_data);
+    SET_RECOV_RECOV_IN08(l_data);
+    SET_RECOV_RECOV_IN09(l_data);
+    SET_RECOV_RECOV_IN10(l_data);
+    SET_RECOV_RECOV_IN11(l_data);
+    SET_RECOV_RECOV_IN12(l_data);
+    SET_RECOV_RECOV_IN13(l_data);
+    SET_RECOV_RECOV_IN14(l_data);
+    SET_RECOV_RECOV_IN15(l_data);
+    SET_RECOV_RECOV_IN16(l_data);
+    SET_RECOV_RECOV_IN17(l_data);
+    SET_RECOV_RECOV_IN18(l_data);
+    SET_RECOV_RECOV_IN19(l_data);
+    SET_RECOV_RECOV_IN20(l_data);
+    SET_RECOV_RECOV_IN21(l_data);
+    SET_RECOV_RECOV_IN22(l_data);
+    SET_RECOV_RECOV_IN23(l_data);
+    SET_RECOV_RECOV_IN24(l_data);
+    SET_RECOV_RECOV_IN25(l_data);
+    SET_RECOV_RECOV_IN26(l_data);
+    SET_RECOV_RECOV_IN27(l_data);
+    SET_RECOV_RECOV_IN28(l_data);
+    SET_RECOV_RECOV_IN29(l_data);
+    SET_RECOV_RECOV_IN30(l_data);
+    SET_RECOV_RECOV_IN31(l_data);
+    SET_RECOV_RECOV_IN32(l_data);
+    SET_RECOV_RECOV_IN33(l_data);
+    SET_RECOV_RECOV_IN34(l_data);
+    SET_RECOV_RECOV_IN35(l_data);
+    SET_RECOV_RECOV_IN36(l_data);
+    SET_RECOV_RECOV_IN37(l_data);
+    SET_RECOV_RECOV_IN38(l_data);
+    SET_RECOV_RECOV_IN39(l_data);
+    SET_RECOV_RECOV_IN40(l_data);
+    SET_RECOV_RECOV_IN41(l_data);
+    SET_RECOV_RECOV_IN42(l_data);
+    SET_RECOV_RECOV_IN43(l_data);
+    SET_RECOV_RECOV_IN44(l_data);
+    SET_RECOV_RECOV_IN45(l_data);
+    SET_RECOV_RECOV_IN46(l_data);
+    SET_RECOV_RECOV_IN47(l_data);
+    SET_RECOV_RECOV_IN48(l_data);
+    SET_RECOV_RECOV_IN49(l_data);
+    SET_RECOV_RECOV_IN50(l_data);
+    SET_RECOV_RECOV_IN51(l_data);
+    SET_RECOV_RECOV_IN52(l_data);
+    SET_RECOV_RECOV_IN53(l_data);
+    FAPI_TRY(PUT_RECOV(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ACK_REG(i_target));
     SET_REC_ACK_REG_RECEIVE_ACKNOWLEDGE_REGISTER(0xFull, l_data);
     FAPI_TRY(PUT_REC_ACK_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST4_REG2(i_target));
+    FAPI_TRY(GET_REC_ERR_MST4_REG2(i_target, l_data));
     SET_REC_ERR_MST4_REG2_32_MST4_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST4_REG2_32_MST4_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST4_REG2_33_MST4_RESPONSE_BIT(l_data);
@@ -5660,79 +6263,80 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST4_REG2_47_MST4_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST4_REG2(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG103(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG103(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG103_REGISTER103(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG103(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG12(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG12(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG12_REGISTER12(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG12(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG2(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG2_REGISTER2(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG25(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG25(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG25_REGISTER25(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG25(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG44(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG44(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG44_REGISTER44(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG44(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG73(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG73(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG73_REGISTER73(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG73(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG86(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG86(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG86_REGISTER86(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG86(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG99(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG99(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG99_REGISTER99(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG99(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_TX_TTYPE_0_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_TX_TTYPE_0_REG(i_target));
     SET_TOD_TX_TTYPE_0_REG_TX_TTYPE_0_TRIGGER(l_data);
     FAPI_TRY(PUT_TOD_TX_TTYPE_0_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_TX_TTYPE_1_REG(i_target));
+    FAPI_TRY(GET_TOD_TX_TTYPE_1_REG(i_target, l_data));
     SET_TOD_TX_TTYPE_1_REG_TX_TTYPE_1_TRIGGER(l_data);
     FAPI_TRY(PUT_TOD_TX_TTYPE_1_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_TX_TTYPE_2_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_TX_TTYPE_2_REG(i_target));
     SET_TOD_TX_TTYPE_2_REG_TX_TTYPE_2_TRIGGER(l_data);
     FAPI_TRY(PUT_TOD_TX_TTYPE_2_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_TX_TTYPE_3_REG(i_target));
+    FAPI_TRY(GET_TOD_TX_TTYPE_3_REG(i_target, l_data));
     SET_TOD_TX_TTYPE_3_REG_TX_TTYPE_3_TRIGGER(l_data);
     FAPI_TRY(PUT_TOD_TX_TTYPE_3_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_TX_TTYPE_4_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_TX_TTYPE_4_REG(i_target));
     SET_TOD_TX_TTYPE_4_REG_TX_TTYPE_4_TRIGGER(l_data);
     FAPI_TRY(PUT_TOD_TX_TTYPE_4_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_TX_TTYPE_5_REG(i_target));
+    FAPI_TRY(GET_TOD_TX_TTYPE_5_REG(i_target, l_data));
     SET_TOD_TX_TTYPE_5_REG_TX_TTYPE_5_TRIGGER(l_data);
     FAPI_TRY(PUT_TOD_TX_TTYPE_5_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA0_TR1_CONFIG_1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA0_TR1_CONFIG_1(i_target));
     SET_TRA0_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_1(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA2_TR0_CONFIG_0(i_target));
+    FAPI_TRY(GET_TRA2_TR0_CONFIG_0(i_target, l_data));
     SET_TRA2_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_0(i_target, l_data));
 
-    FAPI_TRY(GET_TRA2_TR1_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA2_TR1_CONFIG(i_target));
     SET_TRA2_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA2_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA2_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -5746,8 +6350,7 @@ fapi2::ReturnCode p10_acs(
     SET_TRA2_TR1_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA2_TR1_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA2_TR1_CONFIG_9(i_target));
+    FAPI_TRY(GET_TRA2_TR1_CONFIG_9(i_target, l_data));
     SET_TRA2_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA2_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA2_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -5768,7 +6371,8 @@ fapi2::ReturnCode p10_acs(
     SET_TRA2_TR1_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA2_TR1_CONFIG_9(i_target, l_data));
 
-    FAPI_TRY(GET_TRA3_TR0_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA3_TR0_CONFIG(i_target));
     SET_TRA3_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA3_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA3_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -5782,12 +6386,12 @@ fapi2::ReturnCode p10_acs(
     SET_TRA3_TR0_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA5_TR0_CONFIG_1(i_target));
+    FAPI_TRY(GET_TRA5_TR0_CONFIG_1(i_target, l_data));
     SET_TRA5_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_1(i_target, l_data));
 
-    FAPI_TRY(GET_TRA5_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA5_TR1_TRACE_LO_DATA_REG(i_target));
     SET_TRA5_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA5_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA5_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -5797,12 +6401,12 @@ fapi2::ReturnCode p10_acs(
     SET_TRA5_TR1_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA6_TR0_TRACE_HI_DATA_REG(i_target));
+    FAPI_TRY(GET_TRA6_TR0_TRACE_HI_DATA_REG(i_target, l_data));
     SET_TRA6_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA7_TR0_CONFIG_9(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA7_TR0_CONFIG_9(i_target));
     SET_TRA7_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA7_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA7_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -5823,33 +6427,32 @@ fapi2::ReturnCode p10_acs(
     SET_TRA7_TR0_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA7_TR0_CONFIG_9(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_CPLT_CTRL2_RW(i_target));
+    FAPI_TRY(GET_CPLT_CTRL2_RW(i_target, l_data));
     FAPI_TRY(PUT_CPLT_CTRL2_RW(i_target, l_data));
 
-    FAPI_TRY(GET_CPLT_CTRL2_WO_CLEAR(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_CPLT_CTRL2_WO_CLEAR(i_target));
     FAPI_TRY(PUT_CPLT_CTRL2_WO_CLEAR(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_CPLT_CTRL2_WO_OR(i_target));
+    FAPI_TRY(GET_CPLT_CTRL2_WO_OR(i_target, l_data));
     FAPI_TRY(PUT_CPLT_CTRL2_WO_OR(i_target, l_data));
 
-    FAPI_TRY(GET_CPLT_MASK0(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_CPLT_MASK0(i_target));
     SET_CPLT_MASK0_ITR_MASK(0xFull, l_data);
     FAPI_TRY(PUT_CPLT_MASK0(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_CTRL_PROTECT_MODE_REG(i_target));
+    FAPI_TRY(GET_CTRL_PROTECT_MODE_REG(i_target, l_data));
     SET_CTRL_PROTECT_MODE_REG_READ_PROTECT_ENABLE(l_data);
     SET_CTRL_PROTECT_MODE_REG_WRITE_PROTECT_ENABLE(l_data);
     FAPI_TRY(PUT_CTRL_PROTECT_MODE_REG(i_target, l_data));
 
-    FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_TESTSEL(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_DPLL_CNTL_NEST_REGS_TESTSEL(i_target));
     SET_DPLL_CNTL_NEST_REGS_TESTSEL_DPLL_TESTSEL_TEST_SEL(0xFull, l_data);
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_TESTSEL(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_DPLL_CNTL_PAU_REGS_FREQ(i_target));
+    FAPI_TRY(GET_DPLL_CNTL_PAU_REGS_FREQ(i_target, l_data));
     SET_DPLL_CNTL_PAU_REGS_FREQ_FMAX(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_FREQ_HIRES_FMAX(0xFull, l_data);
     SET_DPLL_CNTL_PAU_REGS_FREQ_FF_MAX_MULT_FRAC7(l_data);
@@ -5861,13 +6464,15 @@ fapi2::ReturnCode p10_acs(
     SET_DPLL_CNTL_PAU_REGS_FREQ_FF_MIN_MULT_FRAC7(l_data);
     FAPI_TRY(PUT_DPLL_CNTL_PAU_REGS_FREQ(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_DBG_MODE_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_DBG_MODE_REG(i_target));
     SET_EPS_DBG_MODE_REG_GLB_BRCST_MODE(0xFull, l_data);
     SET_EPS_DBG_MODE_REG_TRACE_SEL_MODE(0xFull, l_data);
     SET_EPS_DBG_MODE_REG_TRIG_SEL_MODE(0xFull, l_data);
     SET_EPS_DBG_MODE_REG_STOP_ON_XSTOP_SELECTION(l_data);
     SET_EPS_DBG_MODE_REG_STOP_ON_RECOV_ERR_SELECTION(l_data);
     SET_EPS_DBG_MODE_REG_STOP_ON_SPATTN_SELECTION(l_data);
+    SET_EPS_DBG_MODE_REG_STOP_ON_HOSTATTN_SELECTION(l_data);
     SET_EPS_DBG_MODE_REG_FREEZE_SEL_MODE(l_data);
     SET_EPS_DBG_MODE_REG_TRACE_RUN_STATUS(0xFull, l_data);
     SET_EPS_DBG_MODE_REG_IS_FROZEN_STATUS(l_data);
@@ -5875,114 +6480,202 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_DBG_MODE_REG_INST2_CONDITION_HISTORY_STATUS(0xFull, l_data);
     FAPI_TRY(PUT_EPS_DBG_MODE_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_FIR_GXSTOP4_MASK_REG(i_target));
-    SET_EPS_FIR_GXSTOP4_MASK_REG_SUM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_SUM_RECOV(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_SUM_SPATTN(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_SUM_LOCAL_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_SUM_TYPE4(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_SYSTEM_XSTOP(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_OOB1(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_DBG_FIR_XSTOP_ON_TRIG(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP10(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP11(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP12(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP13(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP14(l_data);
-    SET_EPS_FIR_GXSTOP4_MASK_REG_UNIT_TC_FIR_LOCAL_XSTOP15(l_data);
-    FAPI_TRY(PUT_EPS_FIR_GXSTOP4_MASK_REG(i_target, l_data));
+    FAPI_TRY(GET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5(i_target, l_data));
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_ANY_XSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_ANY_RECOV_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_ANY_SPATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_ANY_LXSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_ANY_HOSTATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_SYSTEM_XSTOP(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_OOB1(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_DBG_FIR_XSTOP_ON_TRIG(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP10(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP11(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP12(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP13(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP14(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5_UNIT_TC_FIR_LOCAL_XSTOP15(l_data);
+    FAPI_TRY(PUT_EPS_FIR_CLKSTOP_ON_XSTOP_MASK5(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_PSC_WRITE_PROTECT_ENABLE_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_PSC_WRITE_PROTECT_ENABLE_REG(i_target));
     SET_EPS_PSC_WRITE_PROTECT_ENABLE_REG_ENABLE_RING_LOCKING(l_data);
     SET_EPS_PSC_WRITE_PROTECT_ENABLE_REG_RESERVED_RING_LOCKING(l_data);
     FAPI_TRY(PUT_EPS_PSC_WRITE_PROTECT_ENABLE_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_CS_FSI(i_target));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_CS_FSI(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_CS_FSI_BYTE(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_CS_FSI_BYTE(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS_FSI_BYTE(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_CS_SCOM(i_target));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_CS_SCOM(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS_SCOM(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_STAT_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_STAT_ROX(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_STAT_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_STAT_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_STAT_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_STAT_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_ROX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_ROX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_STAT_RO(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_STAT_RO(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_HIST_FSI(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_HIST_FSI(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST_FSI(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_HIST_FSI_BYTE(i_target));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_HIST_FSI_BYTE(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_HIST_SCOM(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_HIST_SCOM(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST_SCOM(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_5_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_5_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_3_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_3_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_10_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_10_RWX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_9_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_9_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_5_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_5_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_ROX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_5_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_5_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_RWX_WOR(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_RWX_WOR(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_5_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_5_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_WOX_CLEAR(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_WOX_CLEAR(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_3_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_3_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_3_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_3_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_3_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_3_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_10_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_10_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_10_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_10_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_10_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_10_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_9_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_9_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_9_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_9_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_9_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_9_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_RO(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_1_HEADER_COMMAND_0_B_RO(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_2_HEADER_COMMAND_0_A_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_FSI0(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_FSI0(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_MAILBOX_SLAVE_B_DOORBELL_INTERRUPT_MASK_1_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL0_COPY_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_COPY_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL0_COPY_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_COPY_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL0_COPY_RW(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_COPY_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SNS2LTH_ROX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SNS2LTH_ROX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_RCS_EL2_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL2_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_RCS_EL2_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL2_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_RCS_EL2_RO(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_RCS_EL2_RO(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SNS2LTH_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SNS2LTH_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SNS2LTH_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SNS2LTH_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SNS2LTH_RO(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SNS2LTH_RO(i_target, l_data));
+
+    FAPI_TRY(GET_HOSTATTN_UNMASKED(i_target, l_data));
+    SET_HOSTATTN_UNMASKED_HOSTATTN_UNMASKED_IN(0xFull, l_data);
+    FAPI_TRY(PUT_HOSTATTN_UNMASKED(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_L3TRA1_TR0_CONFIG_9(i_target));
@@ -6175,39 +6868,42 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST8_REG0_SLAVE15_MST8_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST8_REG0(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG112(i_target, l_data));
+    FAPI_TRY(GET_SCAN64CONTSCAN(i_target, l_data));
+    FAPI_TRY(PUT_SCAN64CONTSCAN(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG112(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG112_REGISTER112(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG112(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG125(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG125(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG125_REGISTER125(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG125(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG34(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG34(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG34_REGISTER34(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG34(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG55(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG55(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG55_REGISTER55(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG55(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG62(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG62(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG62_REGISTER62(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG62(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG88(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG88(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG88_REGISTER88(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG88(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG97(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG97(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG97_REGISTER97(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG97(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_PRI_PORT_0_CTRL_REG(i_target));
+    FAPI_TRY(GET_TOD_PRI_PORT_0_CTRL_REG(i_target, l_data));
     SET_TOD_PRI_PORT_0_CTRL_REG_PRI_PORT_0_RX_SELECT(0xFull, l_data);
     SET_TOD_PRI_PORT_0_CTRL_REG_REG_0X01_SPARE_03(l_data);
     SET_TOD_PRI_PORT_0_CTRL_REG_PRI_X0_PORT_0_TX_SELECT(0xFull, l_data);
@@ -6230,7 +6926,8 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_PRI_PORT_0_CTRL_REG_PRI_I_PATH_DELAY_VALUE(0xFull, l_data);
     FAPI_TRY(PUT_TOD_PRI_PORT_0_CTRL_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA0_TR1_TRACE_LO_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA0_TR1_TRACE_LO_DATA_REG(i_target));
     SET_TRA0_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA0_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA0_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -6240,8 +6937,7 @@ fapi2::ReturnCode p10_acs(
     SET_TRA0_TR1_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA1_TR0_CONFIG_9(i_target));
+    FAPI_TRY(GET_TRA1_TR0_CONFIG_9(i_target, l_data));
     SET_TRA1_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA1_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA1_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -6262,25 +6958,26 @@ fapi2::ReturnCode p10_acs(
     SET_TRA1_TR0_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_9(i_target, l_data));
 
-    FAPI_TRY(GET_TRA1_TR1_CONFIG_0(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA1_TR1_CONFIG_0(i_target));
     SET_TRA1_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR1_CONFIG_0(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA3_TR0_TRACE_HI_DATA_REG(i_target));
+    FAPI_TRY(GET_TRA3_TR0_TRACE_HI_DATA_REG(i_target, l_data));
     SET_TRA3_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA3_TR0_CONFIG_1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA3_TR0_CONFIG_1(i_target));
     SET_TRA3_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_1(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA4_TR0_CONFIG_0(i_target));
+    FAPI_TRY(GET_TRA4_TR0_CONFIG_0(i_target, l_data));
     SET_TRA4_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR0_CONFIG_0(i_target, l_data));
 
-    FAPI_TRY(GET_TRA4_TR1_CONFIG_9(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA4_TR1_CONFIG_9(i_target));
     SET_TRA4_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA4_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA4_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -6301,37 +6998,36 @@ fapi2::ReturnCode p10_acs(
     SET_TRA4_TR1_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_9(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA6_TR1_CONFIG_1(i_target));
+    FAPI_TRY(GET_TRA6_TR1_CONFIG_1(i_target, l_data));
     SET_TRA6_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_1(i_target, l_data));
 
-    FAPI_TRY(GET_XSTOP_INTERRUPT_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_XSTOP_INTERRUPT_REG(i_target));
     FAPI_TRY(PUT_XSTOP_INTERRUPT_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_CC_ATOMIC_LOCK_REG(i_target));
+    FAPI_TRY(GET_CC_ATOMIC_LOCK_REG(i_target, l_data));
     SET_CC_ATOMIC_LOCK_REG_LOCK_ENABLE(l_data);
     SET_CC_ATOMIC_LOCK_REG_ID(0xFull, l_data);
     SET_CC_ATOMIC_LOCK_REG_ACTIVITY(0xFull, l_data);
     FAPI_TRY(PUT_CC_ATOMIC_LOCK_REG(i_target, l_data));
 
-    FAPI_TRY(GET_COMP_P_0_CMD_WRDAT(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_COMP_P_0_CMD_WRDAT(i_target));
     SET_COMP_P_0_CMD_WRDAT_WRITE_NOT_READ(l_data);
     FAPI_TRY(PUT_COMP_P_0_CMD_WRDAT(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_P_0_RSIM(i_target));
+    FAPI_TRY(GET_COMP_P_0_RSIM(i_target, l_data));
     FAPI_TRY(PUT_COMP_P_0_RSIM(i_target, l_data));
 
-    FAPI_TRY(GET_CTRL_ATOMIC_LOCK_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_CTRL_ATOMIC_LOCK_REG(i_target));
     SET_CTRL_ATOMIC_LOCK_REG_LOCK_ENABLE(l_data);
     SET_CTRL_ATOMIC_LOCK_REG_ID(0xFull, l_data);
     SET_CTRL_ATOMIC_LOCK_REG_ACTIVITY(0xFull, l_data);
     FAPI_TRY(PUT_CTRL_ATOMIC_LOCK_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_DPLL_CNTL_NEST_REGS_STAT(i_target));
+    FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_STAT(i_target, l_data));
     SET_DPLL_CNTL_NEST_REGS_STAT_FREQOUT(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_STAT_HIRES_FREQOUT(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_STAT_UPDATE_COMPLETE(l_data);
@@ -6340,17 +7036,9 @@ fapi2::ReturnCode p10_acs(
     SET_DPLL_CNTL_NEST_REGS_STAT_LOCK(l_data);
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_STAT(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_DBG_DEBUG_TRACE_CONTROL(i_target, l_data));
-    FAPI_TRY(PUT_EPS_DBG_DEBUG_TRACE_CONTROL(i_target, l_data));
-
     l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_FIR_SUM_MASK_REG(i_target));
-    SET_EPS_FIR_SUM_MASK_REG_XSTOP_TO_PCB(l_data);
-    SET_EPS_FIR_SUM_MASK_REG_RECOV_TO_PCB(l_data);
-    SET_EPS_FIR_SUM_MASK_REG_SPATTN_TO_PCB(l_data);
-    SET_EPS_FIR_SUM_MASK_REG_LOCAL_XSTOP_TO_PCB(l_data);
-    SET_EPS_FIR_SUM_MASK_REG_HOSTATTN_TO_PCB(l_data);
-    FAPI_TRY(PUT_EPS_FIR_SUM_MASK_REG(i_target, l_data));
+    FAPI_TRY(PREP_EPS_DBG_DEBUG_TRACE_CONTROL(i_target));
+    FAPI_TRY(PUT_EPS_DBG_DEBUG_TRACE_CONTROL(i_target, l_data));
 
     FAPI_TRY(GET_EPS_THERM_WSUB2_TIMESTAMP_COUNTER_READ(i_target, l_data));
     SET_EPS_THERM_WSUB2_TIMESTAMP_COUNTER_READ_VALUE(0xFull, l_data);
@@ -6368,22 +7056,64 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_HIST_SCOM(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_HIST_SCOM(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_13_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_13_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_6_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_6_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_13_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_13_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_13_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_13_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_13_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_13_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_6_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_6_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_6_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_6_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_6_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_6_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL0_COPY_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_COPY_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL0_COPY_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_COPY_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL0_COPY_RW(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_COPY_RW(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL5_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_FSI_BYTE(i_target, l_data));
+
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL5_RW(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_WO_CLEAR(i_target));
@@ -6400,8 +7130,15 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_MSG_SCOM(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RW(i_target, l_data));
 
     FAPI_TRY(GET_L3TRA0_TR0_CONFIG_9(i_target, l_data));
     SET_L3TRA0_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
@@ -6502,7 +7239,17 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PUT_PRIMARY_ADDRESS_REG(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST4_REG3(i_target));
+    FAPI_TRY(PREP_RECOV_MASK_RW(i_target));
+    FAPI_TRY(PUT_RECOV_MASK_RW(i_target, l_data));
+
+    FAPI_TRY(GET_RECOV_MASK_WO_CLEAR(i_target, l_data));
+    FAPI_TRY(PUT_RECOV_MASK_WO_CLEAR(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_RECOV_MASK_WO_OR(i_target));
+    FAPI_TRY(PUT_RECOV_MASK_WO_OR(i_target, l_data));
+
+    FAPI_TRY(GET_REC_ERR_MST4_REG3(i_target, l_data));
     SET_REC_ERR_MST4_REG3_48_MST4_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST4_REG3_48_MST4_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST4_REG3_49_MST4_RESPONSE_BIT(l_data);
@@ -6537,53 +7284,54 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST4_REG3_63_MST4_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST4_REG3(i_target, l_data));
 
-    FAPI_TRY(GET_SCAN_UPDATEDR_LONG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SCAN_UPDATEDR_LONG(i_target));
     FAPI_TRY(PUT_SCAN_UPDATEDR_LONG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG102(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG102(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG102_REGISTER102(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG102(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG13(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG13(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG13_REGISTER13(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG13(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG24(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG24(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG24_REGISTER24(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG24(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG3(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG3(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG3_REGISTER3(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG3(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG45(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG45(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG45_REGISTER45(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG45(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG72(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG72(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG72_REGISTER72(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG72(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG87(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG87(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG87_REGISTER87(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG87(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG98(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG98(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG98_REGISTER98(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG98(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_FSM_REG(i_target));
+    FAPI_TRY(GET_TOD_FSM_REG(i_target, l_data));
     SET_TOD_FSM_REG_I_PATH_FSM_STATE(0xFull, l_data);
     SET_TOD_FSM_REG_TOD_IS_RUNNING(l_data);
     SET_TOD_FSM_REG_REG_0X24_SPARE_05_07(0xFull, l_data);
     FAPI_TRY(PUT_TOD_FSM_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_PSS_MSS_STATUS_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_PSS_MSS_STATUS_REG(i_target));
     SET_TOD_PSS_MSS_STATUS_REG_PRI_SEC_SELECT(0xFull, l_data);
     SET_TOD_PSS_MSS_STATUS_REG_REG_0X08_SPARE_03(l_data);
     SET_TOD_PSS_MSS_STATUS_REG_M_PATH_0_OSC_NOT_VALID_STATUS(l_data);
@@ -6616,8 +7364,7 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_PSS_MSS_STATUS_REG_M_PATH_SWITCH_TRIGGER(l_data);
     FAPI_TRY(PUT_TOD_PSS_MSS_STATUS_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_S_PATH_STATUS_REG(i_target));
+    FAPI_TRY(GET_TOD_S_PATH_STATUS_REG(i_target, l_data));
     SET_TOD_S_PATH_STATUS_REG_M_PATH_0_STEP_ALIGN_FSM_STATE(0xFull, l_data);
     SET_TOD_S_PATH_STATUS_REG_M_PATH_1_STEP_ALIGN_FSM_STATE(0xFull, l_data);
     SET_TOD_S_PATH_STATUS_REG_I_PATH_DELAY_ADJUST_RATIO(0xFull, l_data);
@@ -6628,7 +7375,8 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_S_PATH_STATUS_REG_S_PATH_1_REMOTE_SYNC_LATE_COUNT(0xFull, l_data);
     FAPI_TRY(PUT_TOD_S_PATH_STATUS_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA0_TR0_CONFIG_9(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA0_TR0_CONFIG_9(i_target));
     SET_TRA0_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA0_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA0_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -6649,17 +7397,16 @@ fapi2::ReturnCode p10_acs(
     SET_TRA0_TR0_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA0_TR0_CONFIG_9(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA0_TR1_CONFIG_0(i_target));
+    FAPI_TRY(GET_TRA0_TR1_CONFIG_0(i_target, l_data));
     SET_TRA0_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA0_TR1_CONFIG_0(i_target, l_data));
 
-    FAPI_TRY(GET_TRA1_TR1_TRACE_HI_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA1_TR1_TRACE_HI_DATA_REG(i_target));
     SET_TRA1_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA2_TR0_TRACE_LO_DATA_REG(i_target));
+    FAPI_TRY(GET_TRA2_TR0_TRACE_LO_DATA_REG(i_target, l_data));
     SET_TRA2_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA2_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA2_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -6669,12 +7416,12 @@ fapi2::ReturnCode p10_acs(
     SET_TRA2_TR0_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR0_TRACE_LO_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA2_TR0_CONFIG_1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA2_TR0_CONFIG_1(i_target));
     SET_TRA2_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA2_TR0_CONFIG_1(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA4_TR1_CONFIG(i_target));
+    FAPI_TRY(GET_TRA4_TR1_CONFIG(i_target, l_data));
     SET_TRA4_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA4_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA4_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -6688,7 +7435,8 @@ fapi2::ReturnCode p10_acs(
     SET_TRA4_TR1_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA4_TR1_CONFIG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA5_TR0_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA5_TR0_CONFIG(i_target));
     SET_TRA5_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA5_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA5_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -6702,12 +7450,12 @@ fapi2::ReturnCode p10_acs(
     SET_TRA5_TR0_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA5_TR0_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA5_TR0_CONFIG_0(i_target));
+    FAPI_TRY(GET_TRA5_TR0_CONFIG_0(i_target, l_data));
     SET_TRA5_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR0_CONFIG_0(i_target, l_data));
 
-    FAPI_TRY(GET_TRA5_TR1_CONFIG_9(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA5_TR1_CONFIG_9(i_target));
     SET_TRA5_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA5_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA5_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -6728,11 +7476,11 @@ fapi2::ReturnCode p10_acs(
     SET_TRA5_TR1_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA5_TR1_CONFIG_9(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_COMP_P_0_RSIS(i_target));
+    FAPI_TRY(GET_COMP_P_0_RSIS(i_target, l_data));
     FAPI_TRY(PUT_COMP_P_0_RSIS(i_target, l_data));
 
-    FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_ICHAR(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_DPLL_CNTL_NEST_REGS_ICHAR(i_target));
     SET_DPLL_CNTL_NEST_REGS_ICHAR_FREQIN_AVG(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_ICHAR_HIRES_FREQIN_AVG(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_ICHAR_FREQIN_MAX(0xFull, l_data);
@@ -6741,8 +7489,7 @@ fapi2::ReturnCode p10_acs(
     SET_DPLL_CNTL_NEST_REGS_ICHAR_HIRES_FREQIN_MIN(0xFull, l_data);
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_ICHAR(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_DPLL_CNTL_NEST_REGS_OCHAR(i_target));
+    FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_OCHAR(i_target, l_data));
     SET_DPLL_CNTL_NEST_REGS_OCHAR_FREQOUT_MAX(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_OCHAR_HIRES_FREQOUT_MAX(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_OCHAR_FREQOUT_AVG(0xFull, l_data);
@@ -6751,7 +7498,8 @@ fapi2::ReturnCode p10_acs(
     SET_DPLL_CNTL_NEST_REGS_OCHAR_HIRES_FREQOUT_MIN(0xFull, l_data);
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_OCHAR(i_target, l_data));
 
-    FAPI_TRY(GET_EPS_DBG_TRACE_REG_1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_EPS_DBG_TRACE_REG_1(i_target));
     SET_EPS_DBG_TRACE_REG_1_1_CONDITION1_ACTION_DO(0xFull, l_data);
     SET_EPS_DBG_TRACE_REG_1_1_CONDITION2_ACTION_DO(0xFull, l_data);
     SET_EPS_DBG_TRACE_REG_1_1_C2_TIMEOUT_ACTION_DO(0xFull, l_data);
@@ -6776,8 +7524,7 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_DBG_TRACE_REG_1_2_CHECKSTOP_MODE_SELECTOR(l_data);
     FAPI_TRY(PUT_EPS_DBG_TRACE_REG_1(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_EPS_FIR_LOCAL_ACTION1(i_target));
+    FAPI_TRY(GET_EPS_FIR_LOCAL_ACTION1(i_target, l_data));
     SET_EPS_FIR_LOCAL_ACTION1_00(l_data);
     SET_EPS_FIR_LOCAL_ACTION1_01(l_data);
     SET_EPS_FIR_LOCAL_ACTION1_02(l_data);
@@ -6827,48 +7574,140 @@ fapi2::ReturnCode p10_acs(
     SET_EPS_FIR_LOCAL_ACTION1_46(l_data);
     SET_EPS_FIR_LOCAL_ACTION1_47(l_data);
     SET_EPS_FIR_LOCAL_ACTION1_48(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_49(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_50(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_51(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_52(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_53(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_54(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_55(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_56(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_57(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_58(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_59(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_60(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_61(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_62(l_data);
+    SET_EPS_FIR_LOCAL_ACTION1_63(l_data);
     FAPI_TRY(PUT_EPS_FIR_LOCAL_ACTION1(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_GPWRP_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_GPWRP_RWX(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_GPWRP_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_GPWRP_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_GPWRP_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_GPWRP_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_10_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_10_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_GPWRP_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_GPWRP_RW(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_7_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_7_RWX(i_target, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_14_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_14_RWX(i_target, l_data));
-
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_1_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_1_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_10_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_10_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_WO_CLEAR(i_target));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_10_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_10_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_10_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_10_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_7_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_7_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_7_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_7_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_7_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_7_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_14_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_14_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_14_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_14_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_14_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_14_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_1_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_1_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2B_DATA_AREA_1_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_1_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2B_DATA_AREA_1_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2B_DATA_AREA_1_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_WO_CLEAR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL2_RW(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL2_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL2_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL2_RW(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_RW(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL2_CLEAR_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_CLEAR_FSI(i_target, l_data));
+
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL2_CLEAR_WO_CLEAR(i_target));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL2_CLEAR_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_CLEAR_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL2_CLEAR_WO_CLEAR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL5_COPY_RW(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_COPY_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_COPY_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL5_COPY_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_COPY_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_COPY_RW(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_COPY_RW(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL8_SET_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_SET_FSI(i_target, l_data));
+
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL8_SET_WO_OR(i_target));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL8_SET_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_SET_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL8_SET_WO_OR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL8_SET_WO_OR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RWX(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA0_TR0_CONFIG(i_target));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RW(i_target, l_data));
+
+    FAPI_TRY(GET_L3TRA0_TR0_CONFIG(i_target, l_data));
     SET_L3TRA0_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA0_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA0_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -6882,16 +7721,17 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA0_TR0_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_L3TRA0_TR0_CONFIG(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA1_TR0_TRACE_HI_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA1_TR0_TRACE_HI_DATA_REG(i_target));
     SET_L3TRA1_TR0_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR0_TRACE_HI_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA1_TR0_CONFIG_1(i_target));
+    FAPI_TRY(GET_L3TRA1_TR0_CONFIG_1(i_target, l_data));
     SET_L3TRA1_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA1_TR0_CONFIG_1(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA1_TR1_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA1_TR1_CONFIG(i_target));
     SET_L3TRA1_TR1_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_L3TRA1_TR1_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_L3TRA1_TR1_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -6905,8 +7745,7 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA1_TR1_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_L3TRA1_TR1_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA2_TR1_TRACE_LO_DATA_REG(i_target));
+    FAPI_TRY(GET_L3TRA2_TR1_TRACE_LO_DATA_REG(i_target, l_data));
     SET_L3TRA2_TR1_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_L3TRA2_TR1_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_L3TRA2_TR1_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -6916,7 +7755,8 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA2_TR1_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA2_TR1_TRACE_LO_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_L3TRA3_TR0_CONFIG_9(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_L3TRA3_TR0_CONFIG_9(i_target));
     SET_L3TRA3_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_L3TRA3_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_L3TRA3_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -6937,12 +7777,12 @@ fapi2::ReturnCode p10_acs(
     SET_L3TRA3_TR0_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_L3TRA3_TR0_CONFIG_9(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_L3TRA3_TR1_CONFIG_0(i_target));
+    FAPI_TRY(GET_L3TRA3_TR1_CONFIG_0(i_target, l_data));
     SET_L3TRA3_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_L3TRA3_TR1_CONFIG_0(i_target, l_data));
 
-    FAPI_TRY(GET_OPCG_REG1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_OPCG_REG1(i_target));
     SET_OPCG_REG1_SCAN_COUNT(0xFull, l_data);
     SET_OPCG_REG1_MISR_A_VAL(0xFull, l_data);
     SET_OPCG_REG1_MISR_B_VAL(0xFull, l_data);
@@ -6957,19 +7797,18 @@ fapi2::ReturnCode p10_acs(
     SET_OPCG_REG1_NSL_FILL_COUNT(0xFull, l_data);
     FAPI_TRY(PUT_OPCG_REG1(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_OTPC_M_MEASURE_REG7(i_target));
+    FAPI_TRY(GET_OTPC_M_MEASURE_REG7(i_target, l_data));
     SET_OTPC_M_MEASURE_REG7_SEEPROM_MEASUREMENT7_DATA(0xFull, l_data);
     FAPI_TRY(PUT_OTPC_M_MEASURE_REG7(i_target, l_data));
 
-    FAPI_TRY(GET_OTPC_M_MODE_REGISTER(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_OTPC_M_MODE_REGISTER(i_target));
     SET_OTPC_M_MODE_REGISTER_DCOMP_ENABLE(l_data);
     SET_OTPC_M_MODE_REGISTER_ECC_ENABLE(l_data);
     SET_OTPC_M_MODE_REGISTER_ECC_CHK_DISABLE(l_data);
     FAPI_TRY(PUT_OTPC_M_MODE_REGISTER(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_MST1_REG3(i_target));
+    FAPI_TRY(GET_REC_ERR_MST1_REG3(i_target, l_data));
     SET_REC_ERR_MST1_REG3_48_MST1_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST1_REG3_48_MST1_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST1_REG3_49_MST1_RESPONSE_BIT(l_data);
@@ -7004,7 +7843,8 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST1_REG3_63_MST1_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST1_REG3(i_target, l_data));
 
-    FAPI_TRY(GET_REC_ERR_MST5_REG2(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_REC_ERR_MST5_REG2(i_target));
     SET_REC_ERR_MST5_REG2_32_MST5_RESPONSE_BIT(l_data);
     SET_REC_ERR_MST5_REG2_32_MST5_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_MST5_REG2_33_MST5_RESPONSE_BIT(l_data);
@@ -7039,8 +7879,7 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_MST5_REG2_47_MST5_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_MST5_REG2(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_REC_ERR_REG1(i_target));
+    FAPI_TRY(GET_REC_ERR_REG1(i_target, l_data));
     SET_REC_ERR_REG1_16_RESPONSE_BIT(l_data);
     SET_REC_ERR_REG1_16_ERROR_CODE(0xFull, l_data);
     SET_REC_ERR_REG1_17_RESPONSE_BIT(l_data);
@@ -7075,39 +7914,39 @@ fapi2::ReturnCode p10_acs(
     SET_REC_ERR_REG1_31_ERROR_CODE(0xFull, l_data);
     FAPI_TRY(PUT_REC_ERR_REG1(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG105(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG105(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG105_REGISTER105(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG105(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG14(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG14(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG14_REGISTER14(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG14(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG23(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG23(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG23_REGISTER23(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG23(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG4(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG4(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG4_REGISTER4(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG4(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG42(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG42(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG42_REGISTER42(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG42(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG75(i_target));
+    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG75(i_target, l_data));
     SET_SINGLE_OTP_ROM_OTPROM_REG75_REGISTER75(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG75(i_target, l_data));
 
-    FAPI_TRY(GET_SINGLE_OTP_ROM_OTPROM_REG80(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_SINGLE_OTP_ROM_OTPROM_REG80(i_target));
     SET_SINGLE_OTP_ROM_OTPROM_REG80_REGISTER80(0xFull, l_data);
     FAPI_TRY(PUT_SINGLE_OTP_ROM_OTPROM_REG80(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_SLAVE_CONFIG_REG(i_target));
+    FAPI_TRY(GET_SLAVE_CONFIG_REG(i_target, l_data));
     SET_SLAVE_CONFIG_REG_DISABLE_PERV_THOLD_CHECK(l_data);
     SET_SLAVE_CONFIG_REG_DISABLE_MALF_PULSE_GEN(l_data);
     SET_SLAVE_CONFIG_REG_STOP_HANG_CNT_SYS_XSTP(l_data);
@@ -7121,15 +7960,17 @@ fapi2::ReturnCode p10_acs(
     SET_SLAVE_CONFIG_REG_MASK_HEARTBEAT_ERRS(l_data);
     SET_SLAVE_CONFIG_REG_MASK_PCBSL_ERRS(l_data);
     SET_SLAVE_CONFIG_REG_MASK_PLL_ERRS(0xFull, l_data);
+    SET_SLAVE_CONFIG_REG_QME_PAR_DIS(l_data);
+    SET_SLAVE_CONFIG_REG_FORCE_0_QME(l_data);
     FAPI_TRY(PUT_SLAVE_CONFIG_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_LOW_ORDER_STEP_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_LOW_ORDER_STEP_REG(i_target));
     SET_TOD_LOW_ORDER_STEP_REG_LOW_ORDER_STEP_COUNTER_VALUE(0xFull, l_data);
     SET_TOD_LOW_ORDER_STEP_REG_REG_0X23_SPARE_06_07(0xFull, l_data);
     FAPI_TRY(PUT_TOD_LOW_ORDER_STEP_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_SEC_PORT_1_CTRL_REG(i_target));
+    FAPI_TRY(GET_TOD_SEC_PORT_1_CTRL_REG(i_target, l_data));
     SET_TOD_SEC_PORT_1_CTRL_REG_SEC_PORT_1_RX_SELECT(0xFull, l_data);
     SET_TOD_SEC_PORT_1_CTRL_REG_REG_0X04_SPARE_03(l_data);
     SET_TOD_SEC_PORT_1_CTRL_REG_SEC_X0_PORT_1_TX_SELECT(0xFull, l_data);
@@ -7151,7 +7992,8 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_SEC_PORT_1_CTRL_REG_REG_0X04_SPARE_28_31(0xFull, l_data);
     FAPI_TRY(PUT_TOD_SEC_PORT_1_CTRL_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TOD_S_PATH_CTRL_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TOD_S_PATH_CTRL_REG(i_target));
     SET_TOD_S_PATH_CTRL_REG_PRI_S_PATH_SELECT(l_data);
     SET_TOD_S_PATH_CTRL_REG_REG_0X05_SPARE_01(l_data);
     SET_TOD_S_PATH_CTRL_REG_S_PATH_M_CPS_ENABLE(l_data);
@@ -7172,8 +8014,7 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_S_PATH_CTRL_REG_S_PATH_REMOTE_SYNC_MISS_COUNT_MAX(0xFull, l_data);
     FAPI_TRY(PUT_TOD_S_PATH_CTRL_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TOD_TX_TTYPE_CTRL_REG(i_target));
+    FAPI_TRY(GET_TOD_TX_TTYPE_CTRL_REG(i_target, l_data));
     SET_TOD_TX_TTYPE_CTRL_REG_MOVE_TOD_TO_TB_CORE_ADDRESS(0xFull, l_data);
     SET_TOD_TX_TTYPE_CTRL_REG_MOVE_TOD_TO_TB_CORE_ID(0xFull, l_data);
     SET_TOD_TX_TTYPE_CTRL_REG_TX_TTYPE_4_SEND_MODE(l_data);
@@ -7184,12 +8025,12 @@ fapi2::ReturnCode p10_acs(
     SET_TOD_TX_TTYPE_CTRL_REG_TX_TTYPE_PIB_FSM_STATE(0xFull, l_data);
     FAPI_TRY(PUT_TOD_TX_TTYPE_CTRL_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA1_TR0_CONFIG_1(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA1_TR0_CONFIG_1(i_target));
     SET_TRA1_TR0_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA1_TR0_CONFIG_1(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA3_TR0_CONFIG_9(i_target));
+    FAPI_TRY(GET_TRA3_TR0_CONFIG_9(i_target, l_data));
     SET_TRA3_TR0_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA3_TR0_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA3_TR0_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -7210,21 +8051,21 @@ fapi2::ReturnCode p10_acs(
     SET_TRA3_TR0_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA3_TR0_CONFIG_9(i_target, l_data));
 
-    FAPI_TRY(GET_TRA3_TR1_CONFIG_0(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA3_TR1_CONFIG_0(i_target));
     SET_TRA3_TR1_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA3_TR1_CONFIG_0(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA4_TR1_CONFIG_1(i_target));
+    FAPI_TRY(GET_TRA4_TR1_CONFIG_1(i_target, l_data));
     SET_TRA4_TR1_CONFIG_1_CMP_MSK_LT_B_64_TO_87(0xFull, l_data);
     FAPI_TRY(PUT_TRA4_TR1_CONFIG_1(i_target, l_data));
 
-    FAPI_TRY(GET_TRA5_TR1_TRACE_HI_DATA_REG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA5_TR1_TRACE_HI_DATA_REG(i_target));
     SET_TRA5_TR1_TRACE_HI_DATA_REG_TRACE_HI_DATA(0xFull, l_data);
     FAPI_TRY(PUT_TRA5_TR1_TRACE_HI_DATA_REG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA6_TR0_TRACE_LO_DATA_REG(i_target));
+    FAPI_TRY(GET_TRA6_TR0_TRACE_LO_DATA_REG(i_target, l_data));
     SET_TRA6_TR0_TRACE_LO_DATA_REG_LO_DATA(0xFull, l_data);
     SET_TRA6_TR0_TRACE_LO_DATA_REG_ADDRESS(0xFull, l_data);
     SET_TRA6_TR0_TRACE_LO_DATA_REG_LAST_BANK(0xFull, l_data);
@@ -7234,7 +8075,8 @@ fapi2::ReturnCode p10_acs(
     SET_TRA6_TR0_TRACE_LO_DATA_REG_HOLD_ADDRESS(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR0_TRACE_LO_DATA_REG(i_target, l_data));
 
-    FAPI_TRY(GET_TRA6_TR0_CONFIG(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA6_TR0_CONFIG(i_target));
     SET_TRA6_TR0_CONFIG_STORE_ON_TRIG_MODE(l_data);
     SET_TRA6_TR0_CONFIG_WRITE_ON_RUN_MODE(l_data);
     SET_TRA6_TR0_CONFIG_EXTEND_TRIG_MODE(0xFull, l_data);
@@ -7248,12 +8090,12 @@ fapi2::ReturnCode p10_acs(
     SET_TRA6_TR0_CONFIG_DISABLE_BANK_EDGE_DETECT(l_data);
     FAPI_TRY(PUT_TRA6_TR0_CONFIG(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_TRA6_TR0_CONFIG_0(i_target));
+    FAPI_TRY(GET_TRA6_TR0_CONFIG_0(i_target, l_data));
     SET_TRA6_TR0_CONFIG_0_CMP_MSK_LT_B_0_TO_63(0xFull, l_data);
     FAPI_TRY(PUT_TRA6_TR0_CONFIG_0(i_target, l_data));
 
-    FAPI_TRY(GET_TRA6_TR1_CONFIG_9(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_TRA6_TR1_CONFIG_9(i_target));
     SET_TRA6_TR1_CONFIG_9_DISABLE_COMPRESSION(l_data);
     SET_TRA6_TR1_CONFIG_9_ERROR_BIT_COMPRESSION_CARE_MASK(l_data);
     SET_TRA6_TR1_CONFIG_9_MATCHA_MUXSEL(0xFull, l_data);
@@ -7274,8 +8116,7 @@ fapi2::ReturnCode p10_acs(
     SET_TRA6_TR1_CONFIG_9_DD1_STRETCH_TRIGGER_PULSES(l_data);
     FAPI_TRY(PUT_TRA6_TR1_CONFIG_9(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_XSTOP2(i_target));
+    FAPI_TRY(GET_XSTOP2(i_target, l_data));
     SET_XSTOP2_XSTOP2_MASK_B(l_data);
     SET_XSTOP2_ALIGNED_XSTOP2(l_data);
     SET_XSTOP2_TRIGGER_OPCG_ON_XSTOP2(l_data);
@@ -7298,7 +8139,8 @@ fapi2::ReturnCode p10_acs(
     SET_XSTOP2_XSTOP2_WAIT_CYCLES(0xFull, l_data);
     FAPI_TRY(PUT_XSTOP2(i_target, l_data));
 
-    FAPI_TRY(GET_BIST(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_BIST(i_target));
     SET_BIST_TC_BIST_START_TEST_DC(l_data);
     SET_BIST_TC_SRAM_ABIST_MODE_DC(l_data);
     SET_BIST_TC_IOBIST_MODE_DC(l_data);
@@ -7320,31 +8162,57 @@ fapi2::ReturnCode p10_acs(
     SET_BIST_BIST_STROBE_WINDOW_EN(l_data);
     FAPI_TRY(PUT_BIST(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_BIT_SEL_REG_2(i_target));
+    FAPI_TRY(GET_BIT_SEL_REG_2(i_target, l_data));
     SET_BIT_SEL_REG_2_BIT_SELECT_REGISTER_FSP2PIB(0xFull, l_data);
     FAPI_TRY(PUT_BIT_SEL_REG_2(i_target, l_data));
 
-    FAPI_TRY(GET_COMP_P_0_CRSIC(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_COMP_P_0_CRSIC(i_target));
     FAPI_TRY(PUT_COMP_P_0_CRSIC(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_CPLT_CTRL5_RW(i_target));
+    FAPI_TRY(GET_CPLT_CTRL5_RW(i_target, l_data));
     FAPI_TRY(PUT_CPLT_CTRL5_RW(i_target, l_data));
 
-    FAPI_TRY(GET_CPLT_CTRL5_WO_CLEAR(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_CPLT_CTRL5_WO_CLEAR(i_target));
     FAPI_TRY(PUT_CPLT_CTRL5_WO_CLEAR(i_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(PREP_CPLT_CTRL5_WO_OR(i_target));
+    FAPI_TRY(GET_CPLT_CTRL5_WO_OR(i_target, l_data));
     FAPI_TRY(PUT_CPLT_CTRL5_WO_OR(i_target, l_data));
 
-    FAPI_TRY(GET_DPLL_CNTL_NEST_REGS_ECHAR(i_target, l_data));
+    l_data.flush<0>();
+    FAPI_TRY(PREP_DPLL_CNTL_NEST_REGS_ECHAR(i_target));
     SET_DPLL_CNTL_NEST_REGS_ECHAR_DYNAMIC_ENCODED_DATA(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_ECHAR_MIN_ENCODED_DATA(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_ECHAR_MAX_ENCODED_DATA(0xFull, l_data);
     SET_DPLL_CNTL_NEST_REGS_ECHAR_INVERTED_DYNAMIC_ENCODE_INJECT(0xFull, l_data);
     FAPI_TRY(PUT_DPLL_CNTL_NEST_REGS_ECHAR(i_target, l_data));
+
+    FAPI_TRY(GET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2(i_target, l_data));
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_ANY_XSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_ANY_RECOV_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_ANY_SPATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_ANY_LXSTOP_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_ANY_HOSTATTN_ERR(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_SYSTEM_XSTOP(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_OOB1(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_DBG_FIR_XSTOP_ON_TRIG(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP01(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP02(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP03(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP04(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP05(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP06(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP07(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP08(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP09(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP010(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP011(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP012(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP013(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP014(l_data);
+    SET_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2_UNIT_TC_FIR_LOCAL_XSTOP015(l_data);
+    FAPI_TRY(PUT_EPS_FIR_CLKSTOP_ON_XSTOP_MASK2(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_EPS_THERM_WSUB_DTS_RESULT0(i_target));
@@ -7368,43 +8236,127 @@ fapi2::ReturnCode p10_acs(
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_SCOM(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_SCOM(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_13_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_13_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_FSI_BYTE(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_2_RWX(i_target, l_data));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_2_RWX(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_RW(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_4_RWX(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_4_RWX(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_13_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_13_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_13_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_13_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_13_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_13_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_2_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_2_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_2_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_2_FSI_BYTE(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_2_RW(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M1B_DATA_AREA_2_RW(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_4_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_4_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_M2A_DATA_AREA_4_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_4_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_M2A_DATA_AREA_4_RW(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_M2A_DATA_AREA_4_RW(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL0_SET_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_SET_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL0_SET_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_SET_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL0_SET_WO_OR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL0_SET_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL1_SET_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_SET_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL1_SET_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_SET_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL1_SET_WO_OR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL1_SET_WO_OR(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL2_SET_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_SET_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL2_SET_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_SET_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL2_SET_WO_OR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL2_SET_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL4_SET_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_SET_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL4_SET_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_SET_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL4_SET_WO_OR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL4_SET_WO_OR(i_target, l_data));
 
     l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_FSI_BYTE(i_target, l_data));
+
+    l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target, l_data));
 
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_FSI(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_FSI_BYTE(i_target, l_data));
+
     FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target, l_data));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL7_SET_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_SET_FSI(i_target, l_data));
+
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_ROOT_CTRL7_SET_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL7_SET_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL7_SET_WO_OR(i_target));
@@ -7740,6 +8692,11 @@ fapi2::ReturnCode p10_acs(
 
     FAPI_TRY(GET_VITAL_SCAN_OUT(i_target, l_data));
     FAPI_TRY(PUT_VITAL_SCAN_OUT(i_target, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(PREP_XSTOP_UNMASKED(i_target));
+    SET_XSTOP_UNMASKED_XSTOP_UNMASKED_IN(0xFull, l_data);
+    FAPI_TRY(PUT_XSTOP_UNMASKED(i_target, l_data));
 
 fapi_try_exit:
     return fapi2::current_err;
