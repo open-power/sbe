@@ -38,12 +38,9 @@
 #include <p10_pba_coherent_utils.H>
 #include <fapi2_mem_access.H>
 
-#include <p10_pba_utils_TEMP_DEFINES.H> // FIXME
-// FIXME #include <p10_misc_scom_addresses.H>
-// FIXME #include <p10_quad_scom_addresses.H>
-// FIXME #include <p10_misc_scom_addresses_fld.H>
-// FIXME #include <p10_perv_scom_addresses_fld.H>
-// FIXME #include <p10_perv_scom_addresses.H>
+#include <p10_scom_c.H>
+#include <p10_scom_perv.H>
+#include <p10_scom_proc.H>
 #include <p10_fbc_utils.H>
 
 extern "C"
@@ -161,21 +158,21 @@ extern "C"
         const uint64_t i_address,
         uint32_t& o_numGranules)
     {
+        using namespace scomt::proc;
+
         uint64_t oci_address_mask;
         uint64_t maximumAddress;
         //First set up the pba_bar_mask
         fapi2::buffer<uint64_t> pba_bar_mask_data;
         //Set the PBA BAR mask to allow as much of the OCI address to pass through directly as possible
         //by setting bits 23:43 to 0b1.
-        uint64_t pba_bar_mask_attr = 0x1FFFFF00000ull;
+        uint64_t pba_bar_mask_attr = 0x1FFFFFull;
 
         FAPI_DBG("Start");
 
-        pba_bar_mask_data.insertFromRight<0, 64>(pba_bar_mask_attr);
-
-        //write the PBA Bar Mask Register
-        FAPI_TRY(fapi2::putScom(i_target, PU_PBABARMSK3, pba_bar_mask_data),
-                 "Error writing to the PBA Bar Mask Attribute");
+        FAPI_TRY(PREP_TP_TPBR_PBA_PBAO_PBABARMSK3(i_target));
+        SET_TP_TPBR_PBA_PBAO_PBABARMSK3_PBABARMSK3_MSK(pba_bar_mask_attr, pba_bar_mask_data);
+        FAPI_TRY(PUT_TP_TPBR_PBA_PBAO_PBABARMSK3(i_target, pba_bar_mask_data));
 
         //maximum size before we need to rerun setup - this is the number if the PBA Bar Mask is set with bits 23:43 to 0b1
         maximumAddress = 0x8000000ull;
@@ -199,11 +196,13 @@ extern "C"
         const bool i_rnw,
         const uint32_t i_flags)
     {
+        using namespace scomt::c;
+        using namespace scomt::proc;
+
         uint32_t extaddr;
         uint64_t ocb3_addr_data;
         uint64_t chiplet_number = 0x0ull;
         fapi2::buffer<uint64_t> ocb_status_ctl_data;
-        fapi2::buffer<uint64_t> ocb3_addr;
         fapi2::buffer<uint64_t> pba_slave_ctl_data;
         fapi2::buffer<uint64_t> l3_mode_reg1;
 
@@ -230,80 +229,94 @@ extern "C"
         // Set bits 0:1 to clear PULL_READ_UNDERFLOW and PUSH_WRITE_OVERFLOW
         // Set bit 5 to clear stream type (enables linear mode)
         // Set bits 6:15 to clear other errors
-        ocb_status_ctl_data.flush<0>().setBit<0, 2>().setBit<5, 11>();
-        FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBCSR3_CLEAR,
-                                ocb_status_ctl_data),
-                 "Error writing to the OCB3 Status Control Register with and mask");
+        FAPI_TRY(PREP_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_WO_CLEAR(i_target));
+        ocb_status_ctl_data.flush<0>();
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_PULL_READ_UNDERFLOW(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_PUSH_WRITE_OVERFLOW(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_STREAM_TYPE(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_OCI_TIMEOUT(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_OCI_READ_DATA_PARITY(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_OCI_SLAVE_ERROR(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_PIB_ADDR_PARITY_ERR(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_PIB_DATA_PARITY_ERR(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_FSM_ERR(ocb_status_ctl_data);
+        FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_WO_CLEAR(i_target, ocb_status_ctl_data));
+
         // Set bit 4 to enable stream mode
-        ocb_status_ctl_data.flush<0>().setBit<4>();
-        FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBCSR3_OR,
-                                ocb_status_ctl_data),
-                 "Error writing to the OCB3 Status Control Register with or mask");
+        FAPI_TRY(PREP_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_WO_OR(i_target));
+        ocb_status_ctl_data.flush<0>();
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_STREAM_MODE(ocb_status_ctl_data);
+        FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_WO_OR(i_target, ocb_status_ctl_data));
 
         //Write the address to OCB3_ADDRESS Register
+        FAPI_TRY(PREP_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBAR3(i_target));
         ocb3_addr_data = 0xB000000000000000 | ((i_address & 0x7FFFFFFull) << OCB3_ADDRESS_REG_ADDR_SHIFT);
-        ocb3_addr.insertFromRight<0, 64>(ocb3_addr_data);
-
-        FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCBAR3, ocb3_addr),
-                 "Error writing the OCB3_ADDRESS Register");
+        FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBAR3(i_target, ocb3_addr_data));
 
         //Write the PBA Slave Control Register that controls the tsize, fastmode, etc
+        FAPI_TRY(PREP_TP_TPBR_PBA_PBAO_PBASLVCTL3(i_target));
         //set bit 0 to enable OCI Base Address Range Enabled
-        pba_slave_ctl_data.setBit<PU_PBASLVCTL3_ENABLE>();
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_ENABLE(pba_slave_ctl_data);
         //set bits 1:3 to 110 for setting MasterID Match = OCB
-        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_MID_MATCH_VALUE, PU_PBASLVCTL3_MID_MATCH_VALUE_LEN >(6);
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_MID_MATCH_VALUE(6, pba_slave_ctl_data);
         //set bits 5:7 to 111 so that MasterID Care Match limits to ONLY the OCB
-        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_MID_CARE_MASK, PU_PBASLVCTL3_MID_CARE_MASK_LEN > (7);
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_MID_CARE_MASK(7, pba_slave_ctl_data);
 
         //set the write ttype bits 8:10 to whatever is in the flags
-        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_WRITE_TTYPE, PU_PBASLVCTL3_WRITE_TTYPE_LEN > (l_operType);
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_WRITE_TTYPE(l_operType, pba_slave_ctl_data);
 
         // PBA read_ttype: 0=CL_RD_NC, 1=CI_PR_RD
         if (l_operType == p10_PBA_oper_flag::CI && i_rnw)
         {
-            pba_slave_ctl_data.setBit<PU_PBASLVCTL3_READ_TTYPE>();
+            SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_READ_TTYPE(pba_slave_ctl_data);
         }
         else
         {
-            pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_READ_TTYPE>();
+            CLEAR_TP_TPBR_PBA_PBAO_PBASLVCTL3_READ_TTYPE(pba_slave_ctl_data);
         }
 
         //set bits 16:17 to No prefetch 01
-        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_READ_PREFETCH_CTL, PU_PBASLVCTL3_READ_PREFETCH_CTL_LEN > (1);
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_READ_PREFETCH_CTL(1, pba_slave_ctl_data);
         //unset bit 18 - no auto-invalidate
-        pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_BUF_INVALIDATE_CTL>();
+        CLEAR_TP_TPBR_PBA_PBAO_PBASLVCTL3_BUF_INVALIDATE_CTL(pba_slave_ctl_data);
         //set bit 19 - write buffer pair allocation bit to 1
-        pba_slave_ctl_data.setBit<PU_PBASLVCTL3_BUF_ALLOC_W>();
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_BUF_ALLOC_W(pba_slave_ctl_data);
         //set bit 21 - read buffer pair b allocation bit to 1
-        pba_slave_ctl_data.setBit<PU_PBASLVCTL3_BUF_ALLOC_B>();
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_BUF_ALLOC_B(pba_slave_ctl_data);
         //unset bits 20, 22, and 23
-        pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_BUF_ALLOC_A>().clearBit<PU_PBASLVCTL3_BUF_ALLOC_C>().clearBit<PU_PBASLVCTL3_RESERVED_23>();
+        CLEAR_TP_TPBR_PBA_PBAO_PBASLVCTL3_BUF_ALLOC_A(pba_slave_ctl_data);
+        CLEAR_TP_TPBR_PBA_PBAO_PBASLVCTL3_BUF_ALLOC_C(pba_slave_ctl_data);
+        CLEAR_TP_TPBR_PBA_PBAO_PBASLVCTL3_RESERVED_23(pba_slave_ctl_data);
         //unset bit 24 to allow write gather
-        pba_slave_ctl_data.clearBit<PU_PBASLVCTL3_DIS_WRITE_GATHER>();
+        CLEAR_TP_TPBR_PBA_PBAO_PBASLVCTL3_DIS_WRITE_GATHER(pba_slave_ctl_data);
         //set bits 25:27 to 000 for write gather timeout NA
-        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_WR_GATHER_TIMEOUT, PU_PBASLVCTL3_WR_GATHER_TIMEOUT_LEN > (0);
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_WR_GATHER_TIMEOUT(0, pba_slave_ctl_data);
 
-        //set bits 28:35 for the tsize to 0 - when this is an lco_m write need to do the chiplet ID of the L3 cache in the form of 00cc_ccc0
+        //set bits 28:35 for the tsize to 0 - when this is an lco_m write need
+        //to do the chiplet ID of the L3 cache in the form of 00cc_ccc0
         if (l_operType == p10_PBA_oper_flag::LCO && !i_rnw)
         {
-            FAPI_TRY(fapi2::getScom(i_core_target, EX_L3_MODE_REG1, l3_mode_reg1), "Error reading from the L3 Mode Register");
-            l3_mode_reg1.extractToRight(chiplet_number, 1, 5);
-            pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_WRITE_TSIZE, PU_PBASLVCTL3_WRITE_TSIZE_LEN > (chiplet_number << 1);
+            FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(i_core_target, l3_mode_reg1));
+            GET_L3_MISC_L3CERRS_MODE_REG1_MY_LCO_TARGET_ID_CFG(l3_mode_reg1, chiplet_number);
+
+            // Re-prep scomtools for manipulating the PBA register
+            PREP_TP_TPBR_PBA_PBAO_PBASLVCTL3(i_target);
+
+            SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_WRITE_TSIZE(chiplet_number << 1, pba_slave_ctl_data);
         }
         else if (l_operType == p10_PBA_oper_flag::ATOMIC && !i_rnw)
         {
             // Use atomic operation specified in flags
-            pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_WRITE_TSIZE, PU_PBASLVCTL3_WRITE_TSIZE_LEN > (l_atomicOp);
+            SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_WRITE_TSIZE(l_atomicOp, pba_slave_ctl_data);
         }
 
         //set bits 36:49 to the ext addr
         extaddr = ((uint32_t) (i_address >> PBA_SLVCTL_EXTADDR_SHIFT)) &
                   PBA_SLVCTL_EXTADDR_MASK;
 
-        pba_slave_ctl_data.insertFromRight < PU_PBASLVCTL3_EXTADDR, PU_PBASLVCTL3_EXTADDR_LEN > (extaddr);
+        SET_TP_TPBR_PBA_PBAO_PBASLVCTL3_EXTADDR(extaddr, pba_slave_ctl_data);
 
-        FAPI_TRY(fapi2::putScom(i_target, PU_PBASLVCTL3_SCOM, pba_slave_ctl_data),
-                 "Error writing the PBA Slave Control Register");
+        FAPI_TRY(PUT_TP_TPBR_PBA_PBAO_PBASLVCTL3(i_target, pba_slave_ctl_data));
 
     fapi_try_exit:
         FAPI_DBG("End");
@@ -314,21 +327,22 @@ extern "C"
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
         const uint64_t i_baseAddress)
     {
+        using namespace scomt::proc;
+
         fapi2::buffer<uint64_t> pba_bar_data;
 
         FAPI_DBG("Start");
 
+        FAPI_TRY(PREP_TP_TPBR_PBA_PBAO_PBABAR3(i_target));
         //set command scope to local node scope
-        pba_bar_data.insertFromRight < PU_PBABAR0_CMD_SCOPE, PU_PBABAR0_CMD_SCOPE_LEN >
-        (PBA_BAR_SCOPE_LOCAL_NODE);
+        SET_TP_TPBR_PBA_PBAO_PBABAR3_CMD_SCOPE(PBA_BAR_SCOPE_LOCAL_NODE, pba_bar_data);
 
         //set base address bits 8:43
-        pba_bar_data.insertFromRight < PU_PBABAR0_ADDR, PU_PBABAR0_ADDR_LEN > ((
-                    i_baseAddress >> PBA_BAR_BASE_ADDRESS_SHIFT) & PBA_BAR_BASE_ADDRESS_MASK);
+        SET_TP_TPBR_PBA_PBAO_PBABAR3_ADDR((i_baseAddress >> PBA_BAR_BASE_ADDRESS_SHIFT)
+                                          & PBA_BAR_BASE_ADDRESS_MASK, pba_bar_data);
 
         //write the register
-        FAPI_TRY(fapi2::putScom(i_target, PU_PBABAR3, pba_bar_data),
-                 "Error writing the PBA Bar Register");
+        FAPI_TRY(PUT_TP_TPBR_PBA_PBAO_PBABAR3(i_target, pba_bar_data));
 
     fapi_try_exit:
         FAPI_DBG("End");
@@ -342,6 +356,8 @@ extern "C"
         const uint8_t i_write_data[],
         const p10_PBA_oper_flag::OperationType_t i_ttype)
     {
+        using namespace scomt::proc;
+
         fapi2::ReturnCode rc;
         uint64_t write_data = 0x0ull;
         FAPI_DBG("Start");
@@ -357,7 +373,7 @@ extern "C"
             }
 
             fapi2::buffer<uint64_t> data(write_data);
-            rc = fapi2::putScom(i_target, PU_OCB_PIB_OCBDR3, data);
+            rc = fapi2::putScom(i_target, TP_TPCHIP_OCC_OCI_OCB_PIB_OCBDR3, data);
 
             if (rc)
             {
@@ -384,6 +400,8 @@ extern "C"
         const p10_PBA_oper_flag::OperationType_t i_ttype,
         uint8_t o_read_data[])
     {
+        using namespace scomt::proc;
+
         fapi2::ReturnCode rc;
         fapi2::buffer<uint64_t> data;
 
@@ -392,7 +410,7 @@ extern "C"
         //Perform a 128B read -- need to do 16 8B reads since it's in linear mode which can only do 8B...
         for (int i = 0; i < 16; i++)
         {
-            rc = fapi2::getScom(i_target, PU_OCB_PIB_OCBDR3, data);
+            rc = fapi2::getScom(i_target, TP_TPCHIP_OCC_OCI_OCB_PIB_OCBDR3, data);
 
             if (rc)
             {
@@ -421,23 +439,25 @@ extern "C"
     fapi2::ReturnCode p10_pba_coherent_cleanup_pba(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        using namespace scomt::proc;
+
         FAPI_DBG("Start");
 
         fapi2::buffer<uint64_t> data;
 
         //Clean up the PBA register by resetting PBASLVCTL3 by writing to the PBASLVRST
-        data.insertFromRight < PU_PBASLVRST_SET, PU_PBASLVRST_SET_LEN > (7);
-        FAPI_TRY(fapi2::putScom(i_target, PU_PBASLVRST_SCOM, data),
-                 "Error writing to the PBA Slave Reset register");
+        FAPI_TRY(PREP_TP_TPBR_PBA_PBAO_PBASLVRST(i_target));
+
+        SET_TP_TPBR_PBA_PBAO_PBASLVRST_SET(7, data);
+        FAPI_TRY(PUT_TP_TPBR_PBA_PBAO_PBASLVRST(i_target, data));
 
         //Wait a little bit and make sure that the reset is no longer in progress
         FAPI_TRY(fapi2::delay(PBA_SLVRST_DELAY_HW_NS, PBA_SLVRST_DELAY_SIM_CYCLES),
                  "Error from PBA Slave Reset delay");
 
-        FAPI_TRY(fapi2::getScom(i_target, PU_PBASLVRST_SCOM, data),
-                 "Error reading from the PBA Slave Reset register");
+        FAPI_TRY(GET_TP_TPBR_PBA_PBAO_PBASLVRST(i_target, data));
 
-        FAPI_ASSERT(!data.getBit < PU_PBASLVRST_IN_PROG + 3 > (),
+        FAPI_ASSERT(!data.getBit < TP_TPBR_PBA_PBAO_PBASLVRST_IN_PROG + 3 > (),
                     fapi2::P10_PBA_COHERENT_UTILS_RESET_ERR().set_TARGET(i_target).set_RDDATA(
                         data),
                     "Error in resetting the PBA Slave Reset register");
@@ -449,25 +469,25 @@ extern "C"
 
     fapi2::ReturnCode p10_pba_coherent_check_ocb_status(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        using namespace scomt::proc;
+
         fapi2::ReturnCode rc;
         fapi2::buffer<uint64_t> l_ocb_csr_data;
         bool l_expected_state;
 
         // read OCB3 Status/Control register
         FAPI_DBG("proc_pba_coherent_utils_check_ocb_status: Reading OCB3 Status/Control register");
-        FAPI_TRY(fapi2::getScom(i_target, PU_OCB_PIB_OCBCSR3_RO, l_ocb_csr_data),
-                 "Error reading from OCB Control/Status Register");
+        FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_RO(i_target, l_ocb_csr_data));
 
         // check for any bits set (outside of status/reserved fields)
-        l_expected_state =
-            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_PULL_READ_UNDERFLOW>() &&
-            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_PUSH_WRITE_OVERFLOW>() &&
-            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_OCI_TIMEOUT>() &&
-            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_OCI_READ_DATA_PARITY>() &&
-            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_OCI_SLAVE_ERROR>() &&
-            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_ADDR_PARITY_ERR>() &&
-            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_DATA_PARITY_ERR>() &&
-            !l_ocb_csr_data.getBit<PU_OCB_PIB_OCBCSR3_FSM_ERR>();
+        l_expected_state = (!GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_PULL_READ_UNDERFLOW(l_ocb_csr_data)
+                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_PUSH_WRITE_OVERFLOW(l_ocb_csr_data)
+                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_OCI_TIMEOUT(l_ocb_csr_data)
+                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_OCI_READ_DATA_PARITY(l_ocb_csr_data)
+                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_OCI_SLAVE_ERROR(l_ocb_csr_data)
+                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_PIB_ADDR_PARITY_ERR(l_ocb_csr_data)
+                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_PIB_DATA_PARITY_ERR(l_ocb_csr_data)
+                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_FSM_ERR(l_ocb_csr_data));
 
         FAPI_ASSERT(l_expected_state,
                     fapi2::P10_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH()
@@ -482,37 +502,38 @@ extern "C"
 
     fapi2::ReturnCode p10_pba_coherent_check_pba_fir(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
-        fapi2::buffer<uint64_t> l_pba_fir_data;
+        using namespace scomt::proc;
+
+        fapi2::buffer<uint64_t> l_pbaf_fir_data;
+        fapi2::buffer<uint64_t> l_pbao_fir_data;
         bool l_expected_state;
 
-        // read PBA FIR register
-        FAPI_DBG("proc_pba_coherent_utils_check_pba_fir: Reading PBA FIR register");
-        FAPI_TRY(fapi2::getScom(i_target, PU_PBAFIR, l_pba_fir_data), "Error reading PBA Fir register");
+        FAPI_TRY(GET_TP_TPBR_PBA_PBAO_PBAFIR_RW(i_target, l_pbao_fir_data));
+        l_expected_state = (!GET_TP_TPBR_PBA_PBAO_PBAFIR_OCI_APAR_ERR(l_pbao_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAO_PBAFIR_OCI_SLAVE_INIT(l_pbao_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAO_PBAFIR_OCI_WRPAR_ERR(l_pbao_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAO_PBAFIR_OCI_BAD_REG_ADDR(l_pbao_fir_data));
 
-        // check for unexpected state
-        l_expected_state =
-            !l_pba_fir_data.getBit<PU_PBAFIR_OCI_APAR_ERR>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_PB_RDADRERR_FW>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_PB_RDDATATO_FW>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_OCI_SLAVE_INIT>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_OCI_WRPAR_ERR>() &&
-            //l_pba_fir_data.getBit<PBA_FIR_OCI_REREQTO_BIT>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_PB_UNEXPCRESP>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_PB_UNEXPDATA>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_PB_PARITY_ERR>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_PB_WRADRERR_FW>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_PB_BADCRESP>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_PB_ACKDEAD_FW_RD>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_INTERNAL_ERR>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_ILLEGAL_CACHE_OP>() &&
-            !l_pba_fir_data.getBit<PU_PBAFIR_OCI_BAD_REG_ADDR>();
+        FAPI_TRY(GET_TP_TPBR_PBA_PBAF_PBAFIR_RW(i_target, l_pbaf_fir_data));
+        l_expected_state = (l_expected_state
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_RDADRERR_FW(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_RDDATATO_FW(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_UNEXPCRESP(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_UNEXPDATA(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_PARITY_ERR(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_WRADRERR_FW(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_BADCRESP(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_ACKDEAD_FW_RD(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_INTERNAL_ERR(l_pbaf_fir_data)
+                            && !GET_TP_TPBR_PBA_PBAF_PBAFIR_ILLEGAL_CACHE_OP(l_pbaf_fir_data));
 
-        if (l_pba_fir_data.getBit<PU_PBAFIR_PB_RDADRERR_FW>() || l_pba_fir_data.getBit<PU_PBAFIR_PB_WRADRERR_FW>())
+        if (GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_RDADRERR_FW(l_pbaf_fir_data)
+            || GET_TP_TPBR_PBA_PBAF_PBAFIR_PB_WRADRERR_FW(l_pbaf_fir_data))
         {
             FAPI_ASSERT(l_expected_state,
                         fapi2::P10_PBA_COHERENT_UTILS_PBA_FIR_ERR_ADDR_ERR()
                         .set_TARGET(i_target)
-                        .set_DATA(l_pba_fir_data),
+                        .set_DATA(l_pbaf_fir_data),
                         "Error in PBA FIR, with address error");
         }
         else
@@ -520,14 +541,13 @@ extern "C"
             FAPI_ASSERT(l_expected_state,
                         fapi2::P10_PBA_COHERENT_UTILS_PBA_FIR_ERR_NO_ADDR_ERR()
                         .set_TARGET(i_target)
-                        .set_DATA(l_pba_fir_data),
+                        .set_DATA(l_pbaf_fir_data),
                         "Error in PBA FIR, without address error");
         }
 
     fapi_try_exit:
         FAPI_DBG("End");
         return fapi2::current_err;
-
     }
 
     fapi2::ReturnCode p10_pba_coherent_check_status(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&
@@ -574,6 +594,9 @@ extern "C"
 #ifndef __PPE__
     fapi2::ReturnCode p10_pba_utils_unlock_pib(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
+        using namespace scomt::perv;
+        using namespace scomt::proc;
+
         fapi2::ReturnCode rc;
         fapi2::buffer<uint32_t> l_cfam_data;
         fapi2::buffer<uint64_t> l_pba_slv_rst_data;
@@ -581,7 +604,7 @@ extern "C"
         FAPI_DBG("Start");
         // unlock PIB in case of HW229314
         FAPI_DBG("Checking FSI2PIB Status Register");
-        rc = fapi2::getCfamRegister(i_target, PERV_FSI2PIB_STATUS_FSI, l_cfam_data);
+        rc = fapi2::getCfamRegister(i_target, TP_TPVSB_FSI_W_FSI2PIB_STATUS_FSI, l_cfam_data);
 
         if (rc != fapi2::FAPI2_RC_SUCCESS)
         {
@@ -589,7 +612,7 @@ extern "C"
             return rc;
         }
 
-        if (l_cfam_data.getBit(PERV_FSI2PIB_STATUS_PIB_ABORT))
+        if (l_cfam_data.getBit(TP_TPVSB_FSI_W_FSI2PIB_STATUS_PIB_ABORT))
         {
             FAPI_DBG("Performing PIB reset");
 
@@ -597,7 +620,7 @@ extern "C"
             l_cfam_data.flush<0>();
             l_cfam_data.setBit(FSI2PIB_RESET_PIB_RESET_BIT);
             const fapi2::buffer<uint32_t> l_const_cfam_data = l_cfam_data;
-            rc = fapi2::putCfamRegister(i_target, PERV_FSI2PIB_RESET_FSI, l_const_cfam_data);
+            rc = fapi2::putCfamRegister(i_target, TP_TPVSB_FSI_W_FSI2PIB_RESET_FSI, l_const_cfam_data);
 
             if (rc != fapi2::FAPI2_RC_SUCCESS)
             {
@@ -606,9 +629,9 @@ extern "C"
             }
 
             // ensure PBA region is unlocked, discard/ignore return code
-            (void) fapi2::getScom(i_target, PU_PBASLVRST_PIB, l_pba_slv_rst_data);
+            (void) fapi2::getScom(i_target, TP_TPBR_PBA_PBAO_PBASLVRST, l_pba_slv_rst_data);
 
-            rc = fapi2::putCfamRegister(i_target, PERV_FSI2PIB_RESET_FSI, l_const_cfam_data);
+            rc = fapi2::putCfamRegister(i_target, TP_TPVSB_FSI_W_FSI2PIB_RESET_FSI, l_const_cfam_data);
 
             if (rc != fapi2::FAPI2_RC_SUCCESS)
             {
@@ -619,7 +642,7 @@ extern "C"
         else
         {
             // ensure PBA region is unlocked, discard/ignore return code
-            (void) fapi2::getScom(i_target, PU_PBASLVRST_PIB, l_pba_slv_rst_data);
+            (void) fapi2::getScom(i_target, TP_TPBR_PBA_PBAO_PBASLVRST, l_pba_slv_rst_data);
         }
 
         return rc;
@@ -664,7 +687,7 @@ extern "C"
 
         // ensure PBA region is unlocked, discard/ignore return code
         fapi2::buffer<uint64_t> l_pba_slv_rst_data;
-        (void) fapi2::getScom(i_target, PU_PBASLVRST_PIB, l_pba_slv_rst_data);
+        (void) fapi2::getScom(i_target, TP_TPBR_PBA_PBAO_PBASLVRST_PIB, l_pba_slv_rst_data);
 
 #endif
 
