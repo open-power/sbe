@@ -549,6 +549,8 @@ $(OBJDIR)/%.o: %.c
 $(OBJDIR)/%.s: %.S
 	$(C2) "    ASM        $(notdir $<)"
 	$(C1)$(TCPP) $(PPE-CFLAGS) $(DEFS) $(CPPFLAGS) -o $@ $<
+.NOTPARALLEL: $(OBJDIR)/%.s
+.INTERMEDIATE: $(OBJDIR)/%.s
 .PRECIOUS: $(OBJDIR)/%.s
 
 ifndef P2P_ENABLE
