@@ -75,7 +75,7 @@ extern "C" {
         const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core_target,
         const uint64_t i_address,
         const uint32_t i_bytes,
-        uint8_t* i_data,
+        const uint8_t* i_data,
         const uint32_t i_mem_flags);
 
 } //extern "C"
