@@ -39,6 +39,9 @@
 #include "p10_scom_pau.H"
 #include "p10_scom_pauc.H"
 #include "p10_scom_proc.H"
+#include "p10_ppe_eq.H"
+#include "p10_ppe_c.H"
+#include "p10_oci_proc.H"
 
 fapi2::ReturnCode p10_test_nochk_fail(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
@@ -181,23 +184,23 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PREP_EPS_THERM_WSUB_ERR_STATUS_REG(i_target));
     FAPI_TRY(PUT_EPS_THERM_WSUB_ERR_STATUS_REG(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_FSI(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_FSI_BYTE(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_SCOM(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_FSI_BYTE(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_SCOM(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_1A_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_7_FSI(i_target));
@@ -2071,23 +2074,23 @@ fapi2::ReturnCode p10_test_nochk_fail(
     SET_EPS_THERM_WSUB2_INJECT_REG_MODE(0xFull, l_data);
     FAPI_TRY(PUT_EPS_THERM_WSUB2_INJECT_REG(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_FSI(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_FSI_BYTE(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_SCOM(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_FSI_BYTE(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_SCOM(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_DOORBELL_STATUS_CONTROL_2A_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_M1B_DATA_AREA_0_FSI(i_target));
@@ -5756,8 +5759,8 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_OTPC_M_MEASURE_REG6(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_OTPC_M_SECURITY_SWITCH_REGISTER_SCOM(i_target));
-    FAPI_TRY(PUT_OTPC_M_SECURITY_SWITCH_REGISTER_SCOM(i_target, l_data));
+    FAPI_TRY(PREP_OTPC_M_SECURITY_SWITCH_REGISTER(i_target));
+    FAPI_TRY(PUT_OTPC_M_SECURITY_SWITCH_REGISTER(i_target, l_data));
 
     FAPI_TRY(GET_OTPC_M_SECURITY_SWITCH_REGISTER_SCOM1(i_target, l_data));
 
@@ -7051,23 +7054,23 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_CS_FSI(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_CS(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SB_CS_FSI_BYTE(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SB_CS_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_CS_SCOM(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_CS_FSI_BYTE(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS_SCOM(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_CS_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_L3TRA0_TR0_TRACE_HI_DATA_REG(i_target));
@@ -8265,23 +8268,23 @@ fapi2::ReturnCode p10_test_nochk_fail(
     SET_EPS_PSC_WRITE_PROTECT_ENABLE_REG_RESERVED_RING_LOCKING(l_data);
     FAPI_TRY(PUT_EPS_PSC_WRITE_PROTECT_ENABLE_REG(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_CS_FSI(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_CS(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_CS_FSI_BYTE(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_CS_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_CS_SCOM(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_CS_FSI_BYTE(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS_SCOM(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_CS_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_STAT_FSI(i_target));
@@ -8317,19 +8320,19 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_RO(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_HIST_FSI(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST_FSI(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_HIST(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_HIST_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_HIST_FSI(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_HIST_SCOM(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST_SCOM(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_HIST_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_HIST_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_M1B_DATA_AREA_14_FSI(i_target, l_data));
 
@@ -8967,19 +8970,19 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_TIMESTAMP_COUNTER_READ(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_HIST_FSI(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_HIST_FSI(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_HIST(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_HIST(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_EL_HIST_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_EL_HIST_FSI(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_HIST_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_HIST_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_HIST_SCOM(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_HIST_SCOM(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_HIST_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_HIST_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_0_FSI(i_target, l_data));
 
@@ -9080,23 +9083,23 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_WO_CLEAR(i_target));
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_WO_CLEAR(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_MSG_FSI(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_MSG(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_MSG_FSI(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_MSG(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SB_MSG_FSI_BYTE(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_MSG_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_SB_MSG_FSI(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_MSG_FSI(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_MSG_SCOM(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_SB_MSG_FSI_BYTE(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_MSG_SCOM(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_SB_MSG_FSI_BYTE(i_target, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_FSI(i_target));
@@ -10435,19 +10438,19 @@ fapi2::ReturnCode p10_test_nochk_fail(
     FAPI_TRY(PUT_EPS_THERM_WSUB2_DTS_RESULT2(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_FSI(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_FSI(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL(i_target, l_data));
 
-    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_EL_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(GET_FSXCOMP_FSXLOG_CBS_EL_FSI(i_target, l_data));
 
 
     SET_ATOMIC_LOCK_REG_ID(0xFull, l_data);
 
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_FSI_BYTE(i_target, l_data));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_FSI(i_target, l_data));
 
     l_data.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_SCOM(i_target));
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_SCOM(i_target, l_data));
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_CBS_EL_FSI_BYTE(i_target));
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_CBS_EL_FSI_BYTE(i_target, l_data));
 
     FAPI_TRY(GET_FSXCOMP_FSXLOG_M1A_DATA_AREA_8_FSI(i_target, l_data));
 

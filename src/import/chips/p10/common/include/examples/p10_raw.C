@@ -126,14 +126,14 @@ fapi2::ReturnCode p10_raw(
     l_data.flush<0>();
     FAPI_TRY(fapi2::putScom(i_target, 0x00050013ull, l_data));
 
-    FAPI_TRY(fapi2::getScom(i_target, 0x00002824ull, l_data));
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002824ull, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002890ull, l_data));
-
     FAPI_TRY(fapi2::getScom(i_target, 0x00050020ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00050020ull, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002824ull, l_data));
+
+    FAPI_TRY(fapi2::getScom(i_target, 0x00002890ull, l_data));
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002890ull, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(fapi2::putScom(i_target, 0x00002887ull, l_data));
@@ -1496,14 +1496,14 @@ fapi2::ReturnCode p10_raw(
     l_data.insertFromRight<2, 2>(0xFull);
     FAPI_TRY(fapi2::putScom(i_target, 0x00050031ull, l_data));
 
-    FAPI_TRY(fapi2::getScom(i_target, 0x0000282cull, l_data));
-    FAPI_TRY(fapi2::putScom(i_target, 0x0000282cull, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::putScom(i_target, 0x000028b0ull, l_data));
-
     FAPI_TRY(fapi2::getScom(i_target, 0x00050028ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00050028ull, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(fapi2::putScom(i_target, 0x0000282cull, l_data));
+
+    FAPI_TRY(fapi2::getScom(i_target, 0x000028b0ull, l_data));
+    FAPI_TRY(fapi2::putScom(i_target, 0x000028b0ull, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(fapi2::putScom(i_target, 0x00002880ull, l_data));
@@ -5126,14 +5126,14 @@ fapi2::ReturnCode p10_raw(
     l_data.flush<0>();
     FAPI_TRY(fapi2::putScom(i_target, 0x00050133ull, l_data));
 
-    FAPI_TRY(fapi2::getScom(i_target, 0x00002808ull, l_data));
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002808ull, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002820ull, l_data));
-
     FAPI_TRY(fapi2::getScom(i_target, 0x00050008ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00050008ull, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002808ull, l_data));
+
+    FAPI_TRY(fapi2::getScom(i_target, 0x00002820ull, l_data));
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002820ull, l_data));
 
     l_data.flush<0>();
     l_data.insertFromRight<0, 64>(0xFull);
@@ -6055,14 +6055,14 @@ fapi2::ReturnCode p10_raw(
     l_data.setBit<1>();
     FAPI_TRY(fapi2::putScom(i_target, 0x00010005ull, l_data));
 
-    FAPI_TRY(fapi2::getScom(i_target, 0x00002801ull, l_data));
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002801ull, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002804ull, l_data));
-
     FAPI_TRY(fapi2::getScom(i_target, 0x00050001ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00050001ull, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002801ull, l_data));
+
+    FAPI_TRY(fapi2::getScom(i_target, 0x00002804ull, l_data));
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002804ull, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(fapi2::putScom(i_target, 0x0000280bull, l_data));
@@ -6083,13 +6083,13 @@ fapi2::ReturnCode p10_raw(
     FAPI_TRY(fapi2::putScom(i_target, 0x00050002ull, l_data));
 
     l_data.flush<0>();
+    FAPI_TRY(fapi2::putScom(i_target, 0x00050005ull, l_data));
+
+    FAPI_TRY(fapi2::getScom(i_target, 0x00002805ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00002805ull, l_data));
 
-    FAPI_TRY(fapi2::getScom(i_target, 0x00002814ull, l_data));
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002814ull, l_data));
-
     l_data.flush<0>();
-    FAPI_TRY(fapi2::putScom(i_target, 0x00050005ull, l_data));
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002814ull, l_data));
 
     FAPI_TRY(fapi2::getScom(i_target, 0x0000288eull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x0000288eull, l_data));
@@ -6548,13 +6548,13 @@ fapi2::ReturnCode p10_raw(
     FAPI_TRY(fapi2::putScom(i_target, 0x0005003cull, l_data));
 
     l_data.flush<0>();
+    FAPI_TRY(fapi2::putScom(i_target, 0x00050006ull, l_data));
+
+    FAPI_TRY(fapi2::getScom(i_target, 0x00002806ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00002806ull, l_data));
 
-    FAPI_TRY(fapi2::getScom(i_target, 0x00002818ull, l_data));
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002818ull, l_data));
-
     l_data.flush<0>();
-    FAPI_TRY(fapi2::putScom(i_target, 0x00050006ull, l_data));
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002818ull, l_data));
 
     FAPI_TRY(fapi2::getScom(i_target, 0x00002840ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00002840ull, l_data));
@@ -6610,14 +6610,14 @@ fapi2::ReturnCode p10_raw(
     l_data.flush<0>();
     FAPI_TRY(fapi2::putScom(i_target, 0x00050136ull, l_data));
 
-    FAPI_TRY(fapi2::getScom(i_target, 0x00002809ull, l_data));
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002809ull, l_data));
-
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::putScom(i_target, 0x00002824ull, l_data));
-
     FAPI_TRY(fapi2::getScom(i_target, 0x00050009ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00050009ull, l_data));
+
+    l_data.flush<0>();
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002809ull, l_data));
+
+    FAPI_TRY(fapi2::getScom(i_target, 0x00002824ull, l_data));
+    FAPI_TRY(fapi2::putScom(i_target, 0x00002824ull, l_data));
 
     l_data.flush<0>();
     FAPI_TRY(fapi2::putScom(i_target, 0x00002838ull, l_data));
@@ -7656,13 +7656,13 @@ fapi2::ReturnCode p10_raw(
     FAPI_TRY(fapi2::putScom(i_target, 0x00050022ull, l_data));
 
     l_data.flush<0>();
+    FAPI_TRY(fapi2::putScom(i_target, 0x00050003ull, l_data));
+
+    FAPI_TRY(fapi2::getScom(i_target, 0x00002803ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00002803ull, l_data));
 
-    FAPI_TRY(fapi2::getScom(i_target, 0x0000280cull, l_data));
-    FAPI_TRY(fapi2::putScom(i_target, 0x0000280cull, l_data));
-
     l_data.flush<0>();
-    FAPI_TRY(fapi2::putScom(i_target, 0x00050003ull, l_data));
+    FAPI_TRY(fapi2::putScom(i_target, 0x0000280cull, l_data));
 
     FAPI_TRY(fapi2::getScom(i_target, 0x00002848ull, l_data));
     FAPI_TRY(fapi2::putScom(i_target, 0x00002848ull, l_data));
