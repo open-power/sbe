@@ -82,13 +82,13 @@ p10_hcd_cache_reset(
     FAPI_INF(">>p10_hcd_cache_reset");
 
     FAPI_DBG("Assert Cache DC Bypass via NET_CTRL1[0-3]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RWX_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(3)) ) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(3)) ) ) );
 
     FAPI_DBG("Assert Cache PDLY Bypass via NET_CTRL1[8-11]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RWX_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(11)) ) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(11)) ) ) );
 
     FAPI_DBG("Assert Cache Skewadjust Reset via NET_CTRL1[16-19]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RWX_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(19)) ) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(19)) ) ) );
 
     FAPI_DBG("Switch L3 Glsmux to DPLL via CPMS_CGCSR[7:L3_CLKGLM_SEL]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(7) ) );
