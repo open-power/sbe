@@ -83,13 +83,13 @@ p10_hcd_core_reset(
     FAPI_INF(">>p10_hcd_core_reset");
 
     FAPI_DBG("Assert ECL2 DC Bypass via NET_CTRL1[4-7]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RWX_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(7)) ) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(7)) ) ) );
 
     FAPI_DBG("Assert ECL2 PDLY Bypass via NET_CTRL1[12-15]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RWX_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(15)) ) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(15)) ) ) );
 
     FAPI_DBG("Assert ECL2 DCC Reset via NET_CTRL1[20-23]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RWX_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(23)) ) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(23)) ) ) );
 
     FAPI_DBG("Switch ECL2 Glsmux to DPLL via CPMS_CGCSR[11:CL2_CLKGLM_SEL]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(11) ) );
