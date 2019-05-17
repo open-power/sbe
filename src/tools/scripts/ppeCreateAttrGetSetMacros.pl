@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -284,6 +284,9 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
       }
     }
 
+    my $indexLen = length( $arrayType ) - 2;
+    my $index = substr $arrayType, 1, $indexLen;
+
     if (!$getMacro) {
       if ($VERBOSE) { print "INFO:: did not find ${attribute}_GETMACRO\n"; }
       my $attributeDefine = "#define ${attribute}_GETMACRO ${macroPrefix}GET${macroPostfix}";
@@ -297,8 +300,12 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
 
           my $targetImplementation = "";
           if($targetMacro eq "TARGET_TYPE_PROC_CHIP" | $targetMacro eq "TARGET_TYPE_SYSTEM") {
-
-              $targetImplementation .= "\n" . $targetFunction . "\n{\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute};\n}\n";
+              if ($arrayType =~ m/none/) {
+                  $targetImplementation .= "\n" . $targetFunction . "\n{\n   *o_pvalue = object->fapi2attr::${macroTarget}::${attribute};\n}\n";
+              }
+              else{
+                  $targetImplementation .= "\n" . $targetFunction . "\n{\n   for( $type iCount = 0; iCount < $index; iCount++)\n   {\n       o_pvalue[iCount] = object->fapi2attr::${macroTarget}::${attribute}[iCount];\n   }\n}\n";
+              }
 
           } elsif($targetMacro eq "TARGET_TYPE_PERV") {
 
@@ -333,8 +340,12 @@ $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = stat
           my $targetImplementation = "";
 
           if($targetMacro eq "TARGET_TYPE_PROC_CHIP" | $targetMacro eq "TARGET_TYPE_SYSTEM") {
-
-              $targetImplementation = "\n" . $targetFunction . "\n{\n  object->fapi2attr::${macroTarget}::${attribute} = i_pvalue;\n}\n";
+              if ($arrayType =~ m/none/) {
+                  $targetImplementation = "\n" . $targetFunction . "\n{\n  object->fapi2attr::${macroTarget}::${attribute} = i_pvalue;\n}\n";
+              }
+              else{
+                  $targetImplementation = "\n" . $targetFunction . "\n{\n  for( $type iCount = 0; iCount < $index; iCount++)\n   {\n      const uint8_t *temp = &i_pvalue;\n      object->fapi2attr::${macroTarget}::${attribute}[iCount] = temp[iCount];;\n   }\n}\n";
+              }
           } else {
               $targetImplementation = "\n" . $targetFunction . "\n{\n   uint32_t index = static_cast<plat_target_handle_t>(i_ptarget.get()).getTargetInstance();\n   object->fapi2attr::${macroTarget}::${attribute}[index] = i_pvalue;\n}\n";
           }

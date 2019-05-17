@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -226,9 +226,17 @@ print SYFILE "#define __PROC_SBE_FIXED_SYSTEM_H__\n\n";
 foreach my $attr (@attrSystemIds)
 {
 
+    #Check if the attribute is an array type.
     my $value = uc $attr->{valueType};
-    print SYFILE "PROC_SBE_FIXED_$value($attr->{id});\n"
+    if($attr->{array} == "")
+    {
 
+        print SYFILE "PROC_SBE_FIXED_$value($attr->{id});\n"
+    }
+    else
+    {
+        print SYFILE "PROC_SBE_FIXED_$value\_VECTOR($attr->{id}, $attr->{array});\n"
+    }
 
 }
 print SYFILE "\n#endif  // __PROC_SBE_FIXED_SYSTEM_H__";
