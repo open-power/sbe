@@ -24,7 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 ///
 /// @file p10_sbe_dts_init.C
-/// @brief Select the Hostboot core(s) from the available cores on the chip
+/// @brief Run the initization sequence on the DTS macros on the chip
 ///
 /// *HWP HWP Owner: Greg Still <stillgs@us.ibm.com>
 /// *HWP FW Owner: Prem Jha <premjha1@in.ibm.com>
@@ -88,37 +88,40 @@ fapi2::ReturnCode p10_sbe_dts_init(
 {
 
     FAPI_INF("> p10_sbe_dts_init");
-#if 0
+
     fapi2::buffer<uint64_t> l_data64;
 
-    auto l_eq_mc = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
-    auto l_pau_mc = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
+    auto l_eq_mc =
+        i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
+    auto l_pau_mc =
+        i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PAU);
+
+    // Enable Thermal Macros in chiplets that have DTSs via the Therm Mode Reg.
+    // Setup the macros up to sample the DTSs on a defined time scale and enable
+    // the sensors on each loop that have DTSs attached.
 
     {
         using namespace scomt::eq;
 
         FAPI_DBG("Enable Core/Cache/Racetrack DTSs in EQs");
 
+        // Core 0 on Loop1 (3 sensors), Core 1 on Loop2 (3 sensors), Racetrack on Loop3 (1 sensor)
         l_data64 = 0;
         FAPI_TRY(PREP_EPS_THERM_WSUB_MODE_REG(l_eq_mc));
         SET_EPS_THERM_WSUB_MODE_REG_THERM_DTS_SAMPLE_ENA(l_data64);
         SET_EPS_THERM_WSUB_MODE_REG_THERM_SAMPLE_PULSE_CNT(l_sample_time, l_data64);
-        // Core 0
         SET_EPS_THERM_WSUB_MODE_REG_THERM_DTS_ENABLE_L1(0b111, l_data64);
-        // Core 1
-        SET_EPS_THERM_WSUB_MODE_REG_THERM_DTS_ENABLE_L2(0b110, l_data64);
-        // Racetrack
-        SET_EPS_THERM_WSUB_MODE_REG_THERM_DTS_ENABLE_L3(0b100, l_data64);
+        SET_EPS_THERM_WSUB_MODE_REG_THERM_DTS_ENABLE_L2(0b111, l_data64);
+        SET_EPS_THERM_WSUB_MODE_REG_THERM_DTS_ENABLE_L3(l_data64);
         FAPI_TRY(fapi2::putScom(l_eq_mc, EPS_THERM_WSUB_MODE_REG,  l_data64));
 
+        // Core 2 on Loop1 (3 sensors), Core 3 on Loop2 (3 sensors), Loop 3 not used
         l_data64 = 0;
         FAPI_TRY(PREP_EPS_THERM_WSUB2_MODE_REG(l_eq_mc));
         SET_EPS_THERM_WSUB2_MODE_REG_THERM_DTS_SAMPLE_ENA(l_data64);
         SET_EPS_THERM_WSUB2_MODE_REG_THERM_SAMPLE_PULSE_CNT(l_sample_time, l_data64);
-        // Core 2
-        SET_EPS_THERM_WSUB2_MODE_REG_THERM_DTS_ENABLE_L1(0b110, l_data64);
-        // Core 3
-        SET_EPS_THERM_WSUB2_MODE_REG_THERM_DTS_ENABLE_L2(0b110, l_data64);
+        SET_EPS_THERM_WSUB2_MODE_REG_THERM_DTS_ENABLE_L1(0b111, l_data64);
+        SET_EPS_THERM_WSUB2_MODE_REG_THERM_DTS_ENABLE_L2(0b111, l_data64);
         FAPI_TRY(fapi2::putScom(l_eq_mc, EPS_THERM_WSUB2_MODE_REG,  l_data64));
 
     } // namespace
@@ -142,7 +145,7 @@ fapi2::ReturnCode p10_sbe_dts_init(
 
         FAPI_DBG("Enable Endcap DTSs in the NO and N1");
 
-        // N0
+        // N0 on Loop 1 (1 sensor)
         l_data64 = 0;
         FAPI_TRY(PREP_TP_TCN0_N0_EPS_THERM_WSUB_MODE_REG(i_target));
         SET_TP_TCN0_N0_EPS_THERM_WSUB_MODE_REG_THERM_DTS_SAMPLE_ENA(l_data64);
@@ -150,7 +153,7 @@ fapi2::ReturnCode p10_sbe_dts_init(
         SET_TP_TCN0_N0_EPS_THERM_WSUB_MODE_REG_THERM_DTS_ENABLE_L1(0b100, l_data64);
         FAPI_TRY(fapi2::putScom(i_target, TP_TCN0_N0_EPS_THERM_WSUB_MODE_REG, l_data64));
 
-        // N1
+        // N1 on Loop 1 (1 sensor)
         l_data64 = 0;
         FAPI_TRY(PREP_TP_TCN1_N1_EPS_THERM_WSUB_MODE_REG(i_target));
         SET_TP_TCN1_N1_EPS_THERM_WSUB_MODE_REG_THERM_DTS_SAMPLE_ENA(l_data64);
@@ -161,7 +164,6 @@ fapi2::ReturnCode p10_sbe_dts_init(
     } // namespace
 
 fapi_try_exit:
-#endif
     FAPI_INF("< p10_sbe_dts_init");
     return fapi2::current_err;
 } // END p10_sbe_dts_init
