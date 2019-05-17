@@ -26,9 +26,9 @@
   <!-- This will collect all the status/error registers for PBA -->
   <registerFfdc>
     <id>REG_FFDC_PBA_REGISTERS</id>
-    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAMODE_PIB</scomRegister>
-    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBASLVRST_PIB</scomRegister>
-    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBASLVCTL3_PIB</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAMODE</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBASLVRST</scomRegister>
+    <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBASLVCTL3</scomRegister>
     <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBABAR3</scomRegister>
     <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBABARMSK3</scomRegister>
     <scomRegister>scomt::proc::TP_TPBR_PBA_PBAO_PBAOCFG</scomRegister>
