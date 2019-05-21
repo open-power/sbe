@@ -302,9 +302,9 @@ get_bootloader_config_data(
 
     // re-read Secure Access Bit in case it's changed
     FAPI_TRY(fapi2::getScom(i_master_chip_target,
-                            scomt::proc::TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS_SCOM,
+                            scomt::proc::TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS,
                             l_cbs_cs),
-             "Error from getScom (TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS_SCOM)");
+             "Error from getScom (TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS)");
     l_bootloader_config_data.secureSettings.secureAccessBit =
         scomt::proc::GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT(l_cbs_cs);
 
