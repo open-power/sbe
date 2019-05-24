@@ -59,7 +59,8 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                                      fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint64_t> l_data64_root_ctrl3, l_read_reg, l_data64_root_ctrl4;
-    fapi2::buffer<uint8_t> l_attr_filter1_bypass, l_attr_filter2_bypass, l_attr_filter3_bypass, l_attr_filter4_bypass,
+    fapi2::buffer<uint8_t> l_attr_plltodflt_bypass, l_attr_pllnestflt_bypass, l_attr_pllioflt_bypass,
+          l_attr_plliossflt_bypass,
           l_attr_cp_refclk_select, l_attr_pau_dpll_bypass, l_attr_nest_dpll_bypass;
     fapi2::buffer<uint32_t> l_attr_pau_freq, l_attr_core_boot_freq;
     fapi2::buffer<uint16_t> freq_calculated;
@@ -74,25 +75,25 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     FAPI_DBG("Sector buffer strength and pulse mode setup");
     FAPI_TRY(p10_sbe_npll_setup_sectorbuffer_pulsemode_settings(i_target_chip));
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_FILTER_1_BYPASS, i_target_chip, l_attr_filter1_bypass));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_FILTER_2_BYPASS, i_target_chip, l_attr_filter2_bypass));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_FILTER_3_BYPASS, i_target_chip, l_attr_filter3_bypass));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_FILTER_4_BYPASS, i_target_chip, l_attr_filter4_bypass));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_PLLTODFLT_BYPASS, i_target_chip, l_attr_plltodflt_bypass));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_PLLNESTFLT_BYPASS, i_target_chip, l_attr_pllnestflt_bypass));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_PLLIOFLT_BYPASS, i_target_chip, l_attr_pllioflt_bypass));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_PLLIOSSFLT_BYPASS, i_target_chip, l_attr_plliossflt_bypass));
 
     FAPI_DBG("Release PLL test enable for filter PLLs");
     l_data64_root_ctrl3.flush<0>();
-    l_data64_root_ctrl3.writeBit<10>(!(l_attr_filter1_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<14>(!(l_attr_filter2_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<18>(!(l_attr_filter3_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<22>(!(l_attr_filter4_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<10>(!(l_attr_plltodflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<14>(!(l_attr_pllnestflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<18>(!(l_attr_pllioflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<22>(!(l_attr_plliossflt_bypass.getBit<7>()));
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_root_ctrl3));
 
     FAPI_DBG("Release PLL reset for filter PLLs");
     l_data64_root_ctrl3.flush<0>();
-    l_data64_root_ctrl3.writeBit<8>(!(l_attr_filter1_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<12>(!(l_attr_filter2_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<16>(!(l_attr_filter3_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<20>(!(l_attr_filter4_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<8>(!(l_attr_plltodflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<12>(!(l_attr_pllnestflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<16>(!(l_attr_pllioflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<20>(!(l_attr_plliossflt_bypass.getBit<7>()));
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_root_ctrl3));
 
     fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
@@ -100,7 +101,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     FAPI_DBG("Check filter PLL lock");
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG, l_read_reg));
 
-    if(!l_attr_filter1_bypass)
+    if(!l_attr_plltodflt_bypass)
     {
         FAPI_ASSERT(l_read_reg.getBit<2>(),
                     fapi2::FILT_PLL_LOCK_ERR()
@@ -108,7 +109,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                     "ERROR:FILTER0 PLL LOCK NOT SET");
     }
 
-    if(!l_attr_filter2_bypass)
+    if(!l_attr_pllnestflt_bypass)
     {
         FAPI_ASSERT(l_read_reg.getBit<3>(),
                     fapi2::FILT_PLL_LOCK_ERR()
@@ -116,7 +117,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                     "ERROR:FILTER1 PLL LOCK NOT SET");
     }
 
-    if(!l_attr_filter3_bypass)
+    if(!l_attr_pllioflt_bypass)
     {
         FAPI_ASSERT(l_read_reg.getBit<4>(),
                     fapi2::FILT_PLL_LOCK_ERR()
@@ -124,7 +125,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                     "ERROR:FILTER2 PLL LOCK NOT SET");
     }
 
-    if(!l_attr_filter4_bypass)
+    if(!l_attr_plliossflt_bypass)
     {
         FAPI_ASSERT(l_read_reg.getBit<5>(),
                     fapi2::FILT_PLL_LOCK_ERR()
@@ -134,10 +135,10 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_DBG("Release PLL bypass for filter PLLs");
     l_data64_root_ctrl3.flush<0>();
-    l_data64_root_ctrl3.writeBit<9>(!(l_attr_filter1_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<13>(!(l_attr_filter2_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<17>(!(l_attr_filter3_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<21>(!(l_attr_filter4_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<9>(!(l_attr_plltodflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<13>(!(l_attr_pllnestflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<17>(!(l_attr_pllioflt_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<21>(!(l_attr_plliossflt_bypass.getBit<7>()));
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_root_ctrl3));
 
     FAPI_DBG("PAU DPLL: Initialize to mode1");
@@ -241,10 +242,10 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     l_read_reg.writeBit<12>(!(l_attr_cp_refclk_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1));
     l_read_reg.writeBit<13>(!(l_attr_cp_refclk_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0));
 
-    l_read_reg.writeBit<14>(l_attr_filter1_bypass.getBit<7>());
-    l_read_reg.writeBit<15>(l_attr_filter2_bypass.getBit<7>());
-    l_read_reg.writeBit<16>(l_attr_filter3_bypass.getBit<7>());
-    l_read_reg.writeBit<17>(l_attr_filter4_bypass.getBit<7>());
+    l_read_reg.writeBit<14>(l_attr_plltodflt_bypass.getBit<7>());
+    l_read_reg.writeBit<15>(l_attr_pllnestflt_bypass.getBit<7>());
+    l_read_reg.writeBit<16>(l_attr_pllioflt_bypass.getBit<7>());
+    l_read_reg.writeBit<17>(l_attr_plliossflt_bypass.getBit<7>());
     l_read_reg.writeBit<18>(l_attr_pau_dpll_bypass.getBit<7>());
     l_read_reg.writeBit<19>(l_attr_nest_dpll_bypass.getBit<7>());
 
