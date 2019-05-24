@@ -105,7 +105,7 @@ namespace fapi2
     /// @return FAPI2_RC_SUCCESS if the map was updated, otherwise error code.
     template< MulticastType M, typename V >
     inline ReturnCode setMulticastGroupMap(Target<TARGET_TYPE_PROC_CHIP, M, V> i_chip,
-                                           std::vector< MulticastGroupMapping > i_mappings)
+                                           const std::vector< MulticastGroupMapping > &i_mappings)
     {
         return plat_setMcMap(i_mappings);
     }

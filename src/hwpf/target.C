@@ -99,7 +99,7 @@ static inline void clear_mc_map()
     }
 }
 
-ReturnCode plat_setMcMap(std::vector< MulticastGroupMapping > i_mappings)
+ReturnCode plat_setMcMap(const std::vector< MulticastGroupMapping > &i_mappings)
 {
     clear_mc_map();
 

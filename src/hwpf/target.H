@@ -480,7 +480,7 @@ namespace fapi2
     /// @param[in] i_mappings A list of multicast group mappings
     ///
     /// @return FAPI2_RC_SUCCESS if the map was updated, otherwise error code.
-    ReturnCode plat_setMcMap(std::vector< MulticastGroupMapping > i_mappings);
+    ReturnCode plat_setMcMap(const std::vector< MulticastGroupMapping > &i_mappings);
 }
 
 #endif
