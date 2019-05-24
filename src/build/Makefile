@@ -336,6 +336,7 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_chip_ec_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/memory_mcs_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_bars_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_memory_bars_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_runn_attributes.xml
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

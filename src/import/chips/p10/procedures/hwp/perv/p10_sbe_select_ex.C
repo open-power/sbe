@@ -117,6 +117,12 @@ const static uint32_t NUM_OF_QUADS = 8;
 //  Function prototypes
 // -----------------------------------------------------------------------------
 
+fapi2::ReturnCode select_ex_calc_active_backing_nums(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+    const std::vector<fapi2::Target<fapi2::TARGET_TYPE_CORE>>& i_core_functional_vector,
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_active_cores_num,
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_backing_caches_num);
+
 fapi2::ReturnCode select_ex_pfet_delay(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
@@ -143,8 +149,9 @@ fapi2::ReturnCode p10_sbe_select_ex(
     fapi2::buffer<uint32_t> l_needed_config_bvec = 0;
     fapi2::buffer<uint64_t> l_data64;
 
-    uint32_t l_attr_num_active = 0;
-    uint32_t l_attr_num_backing = 0;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type l_attr_num_active = 0;
+    fapi2::ATTR_BACKING_CACHES_NUM_Type l_attr_num_backing = 0;
     uint32_t l_num_active = 0;
     uint32_t l_num_backing = 0;
     bool b_master_found = false;
@@ -192,32 +199,19 @@ fapi2::ReturnCode p10_sbe_select_ex(
     }
 
     {
-        fapi2::ATTR_ACTIVE_CORES_NUM_Type l_ATTR_ACTIVE_CORES_NUM;
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_NUM,
-                               i_target,
-                               l_ATTR_ACTIVE_CORES_NUM));
-        l_attr_num_active = (uint32_t)l_ATTR_ACTIVE_CORES_NUM;
-        FAPI_DBG("ATTR_ACTIVE_CORES_NUM   = %d", l_ATTR_ACTIVE_CORES_NUM);
+        FAPI_TRY(select_ex_calc_active_backing_nums(i_target,
+                 l_core_functional_vector,
+                 l_attr_num_active,
+                 l_attr_num_backing),
+                 "Error from select_ex_calc_active_backing_nums");
 
-        fapi2::ATTR_IS_MPIPL_Type l_ATTR_IS_MPIPL;
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL,
-                               FAPI_SYSTEM,
-                               l_ATTR_IS_MPIPL));
+        FAPI_DBG("ATTR_ACTIVE_CORES_NUM   = %d", l_attr_num_active);
+        FAPI_DBG("ATTR_BACKING_CACHES_NUM = %d", l_attr_num_backing);
 
-        if ( l_ATTR_IS_MPIPL == fapi2::ENUM_ATTR_IS_MPIPL_TRUE)
-        {
-            l_attr_num_backing = 0;
-            FAPI_INF("Backing caches set to 0 for MPIPL");
-        }
-        else
-        {
-            fapi2::ATTR_BACKING_CACHES_NUM_Type l_ATTR_BACKING_CACHES_NUM;
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
-                                   i_target,
-                                   l_ATTR_BACKING_CACHES_NUM));
-            l_attr_num_backing = (uint32_t)l_ATTR_BACKING_CACHES_NUM;
-            FAPI_DBG("ATTR_BACKING_CACHES_NUM = %d", l_ATTR_BACKING_CACHES_NUM);
-        }
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_ACTIVE_CORES_NUM, i_target, l_attr_num_active),
+                 "Error from FAPI_ATTR_SET (ATTR_ACTIVE_CORES_NUM)");
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_BACKING_CACHES_NUM, i_target, l_attr_num_backing),
+                 "Error from FAPI_ATTR_SET (ATTR_BACKING_CACHES_NUM)");
     }
 
     // Loop through the core functional vector on the view that the FAPI
@@ -339,29 +333,37 @@ fapi2::ReturnCode p10_sbe_select_ex(
                 "Insufficient backing caches found");
 
 
+    // get chip contained specific attribute overrides for active/backing setup
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
+             "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
+
+    if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP)
+    {
+        FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC,
+                                i_target,
+                                l_attr_active_cores_bvec));
+
+        FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC,
+                                i_target,
+                                l_attr_backing_caches_bvec));
+    }
+    else
+    {
+        l_attr_active_cores_bvec = l_active_config_bvec;
+        l_attr_backing_caches_bvec = l_backing_config_bvec;
+    }
+
     // Set active cores attribute
     FAPI_TRY(FAPI_ATTR_SET( fapi2::ATTR_ACTIVE_CORES_VEC,
                             i_target,
-                            l_active_config_bvec));
-    FAPI_DBG("Set ATTR_ACTIVE_CORES_VEC   => 0x%08X", l_active_config_bvec);
-
-    // Get active cores attribute to pickup any overrides
-    FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_ACTIVE_CORES_VEC,
-                            i_target,
                             l_attr_active_cores_bvec));
-    FAPI_DBG("Get ATTR_ACTIVE_CORES_VEC   => 0x%08X", l_attr_active_cores_bvec);
+    FAPI_DBG("Set ATTR_ACTIVE_CORES_VEC   => 0x%08X", l_attr_active_cores_bvec);
 
     // Set backing caches attribute
     FAPI_TRY(FAPI_ATTR_SET( fapi2::ATTR_BACKING_CACHES_VEC,
                             i_target,
-                            l_backing_config_bvec));
-    FAPI_DBG("Set ATTR_BACKING_CACHES_VEC => 0x%08X", l_backing_config_bvec);
-
-    // Get backing caches attribute to pickup any overrides
-    FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_BACKING_CACHES_VEC,
-                            i_target,
                             l_attr_backing_caches_bvec));
-    FAPI_DBG("Get ATTR_BACKING_CACHES_VEC => 0x%08X", l_attr_backing_caches_bvec);
+    FAPI_DBG("Set ATTR_BACKING_CACHES_VEC => 0x%08X", l_attr_backing_caches_bvec);
 
     l_needed_config_bvec = l_attr_active_cores_bvec | l_attr_backing_caches_bvec;
 
@@ -390,6 +392,107 @@ fapi_try_exit:
     FAPI_INF("< p10_sbe_select_ex");
     return fapi2::current_err;
 } // END p10_sbe_select_ex
+
+
+///-----------------------------------------------------------------------------
+/// @brief Compute the number of active cores/backing caches to be configured
+///        by SBE, based on IPL type/parameters
+///
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode select_ex_calc_active_backing_nums(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+    const std::vector<fapi2::Target<fapi2::TARGET_TYPE_CORE>>& i_core_functional_vector,
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_active_cores_num,
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_backing_caches_num)
+{
+    FAPI_DBG("> select_ex_calc_active_backing_nums...");
+
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
+    fapi2::ATTR_IS_MPIPL_Type l_attr_is_mpipl;
+    fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_core_mode;
+    fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC_Type l_attr_chip_contained_active_cores_vec;
+    fapi2::ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC_Type l_attr_chip_contained_backing_caches_vec;
+    fapi2::ATTR_SBE_SELECT_EX_POLICY_Type l_attr_sbe_select_ex_policy;
+
+    uint8_t l_functional_cores_num = i_core_functional_vector.size();
+    o_active_cores_num = 0;
+    o_backing_caches_num = 0;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
+             "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_attr_is_mpipl),
+             "Error from FAPI_ATTR_GET (ATTR_IS_MPIPL)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE, FAPI_SYSTEM, l_attr_fused_core_mode),
+             "Error from FAPI_ATTR_GET (ATTR_FUSED_CORE_MODE)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_SELECT_EX_POLICY, FAPI_SYSTEM, l_attr_sbe_select_ex_policy),
+             "Error from FAPI_ATTR_GET (ATTR_SBE_SELECT_EX_POLICY)");
+
+    if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE)
+    {
+        o_active_cores_num = l_functional_cores_num;
+        o_backing_caches_num = 0;
+    }
+    else if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP)
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC, i_target, l_attr_chip_contained_active_cores_vec),
+                 "Error from FAPI_ATTR_GET (ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC)");
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC, i_target,
+                               l_attr_chip_contained_backing_caches_vec),
+                 "Error from FAPI_ATTR_GET (ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC)");
+
+        for (auto l_bit = 0; l_bit < 32; l_bit++)
+        {
+            o_active_cores_num += (l_attr_chip_contained_active_cores_vec & 0x1);
+            o_backing_caches_num += (l_attr_chip_contained_backing_caches_vec & 0x1);
+            l_attr_chip_contained_active_cores_vec = l_attr_chip_contained_active_cores_vec >> 1;
+            l_attr_chip_contained_backing_caches_vec = l_attr_chip_contained_backing_caches_vec >> 1;
+        }
+    }
+    else
+    {
+        if (l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_CRONUS_MAX_ACTIVE)
+        {
+            o_active_cores_num = l_functional_cores_num;
+            o_backing_caches_num = 0;
+        }
+        else
+        {
+            // default to minset of active cores / backing caches
+            o_active_cores_num = ((l_attr_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED) ? (2) : (1));
+            o_backing_caches_num = 2;
+
+            if ((l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_MAX_FOOTPRINT) ||
+                (l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_MAX_FOOTPRINT_MAX_THREADS))
+            {
+                // maximal set of backing caches
+                // backing cache configuration can only grow in powers of 2
+                while (((o_backing_caches_num * 2) + o_active_cores_num) <=
+                       l_functional_cores_num)
+                {
+                    o_backing_caches_num *= 2;
+                }
+            }
+
+            if ((l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_MAX_THREADS) ||
+                (l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_MAX_FOOTPRINT_MAX_THREADS))
+            {
+                // maximal set of active cores
+                o_active_cores_num = (l_functional_cores_num - o_backing_caches_num);
+            }
+        }
+
+        if (l_attr_is_mpipl)
+        {
+            o_backing_caches_num = 0;
+        }
+    }
+
+fapi_try_exit:
+    FAPI_DBG("< select_ex_calc_active_backing_nums...");
+    return fapi2::current_err;
+}
+
 
 ///-----------------------------------------------------------------------------
 /// @brief Update the QMEs PFET delays

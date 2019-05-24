@@ -73,78 +73,36 @@ fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
     auto l_mc_pci = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PCI);
     auto l_mc_mc = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_MC);
 
+    fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_Type l_attr_clock_mux_iohs_lcpll_input = { 0 };
+    fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_Type l_attr_clock_mux_pci_lcpll_input = { 0 };
+
+
     FAPI_DBG("Setup Axon clock muxing");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_iohs_lcpll_input),
+             "Error from FAPI_ATTR_GET (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT)");
 
     for (auto& targ : l_perv_iohs)
     {
         uint32_t l_chipletID = targ.getChipletNumber();
 
         FAPI_TRY(fapi2::getScom(targ, PERV_NET_CTRL1, l_data64_nc1));
-
-        if (l_chipletID == 0x18) // IOHS0 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX15_IOHS0_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_iohs);
-        }
-        else if (l_chipletID == 0x19) // IOHS1 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX16_IOHS1_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_iohs);
-        }
-        else if (l_chipletID == 0x1A) // IOHS2 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX17_IOHS2_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_iohs);
-        }
-        else if (l_chipletID == 0x1B) // IOHS3 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX18_IOHS3_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_iohs);
-        }
-        else if (l_chipletID == 0x1C) // IOHS4 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX19_IOHS4_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_iohs);
-        }
-        else if (l_chipletID == 0x1D) // IOHS5 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX20_IOHS5_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_iohs);
-        }
-        else if (l_chipletID == 0x1E) // IOHS6 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX21_IOHS6_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_iohs);
-        }
-        else if (l_chipletID == 0x1F) // IOHS7 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX22_IOHS7_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_iohs);
-        }
-
+        l_data64_nc1.insertFromRight<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_clock_mux_iohs_lcpll_input[l_chipletID -
+                0x18]);
         FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL1, l_data64_nc1));
     }
 
 
     FAPI_DBG("Setup PCI clock muxing");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_pci_lcpll_input),
+             "Error from FAPI_ATTR_GET (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT)");
 
     for (auto& targ : l_perv_pci)
     {
         uint32_t l_chipletID = targ.getChipletNumber();
 
         FAPI_TRY(fapi2::getScom(targ, PERV_NET_CTRL1, l_data64_nc1));
-
-        if (l_chipletID == 0x8) // PCI0 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX24_PCI0_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_pci);
-        }
-        else if (l_chipletID == 0x9) // PCI1 cplt
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX25_PCI1_LCPLL_INPUT, i_target_chip, l_attr_mux_iohs));
-            l_data64_nc1.insertFromRight< PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_mux_pci);
-        }
-
+        l_data64_nc1.insertFromRight<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_clock_mux_pci_lcpll_input[l_chipletID -
+                0x08]);
         FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL1, l_data64_nc1));
     }
 

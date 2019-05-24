@@ -38,15 +38,15 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_INF("p10_sbe_chiplet_pll_initf: Entering ...");
-    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
-    uint8_t l_mc_pll_bucket[4], l_iohs_pll_bucket[8] ;
+    fapi2::ATTR_MC_PLL_BUCKET_Type l_attr_mc_pll_bucket;
+    fapi2::ATTR_IOHS_PLL_BUCKET_Type l_attr_iohs_pll_bucket;
 
     // determine mc pll buckets
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_PLL_BUCKET, FAPI_SYSTEM, l_mc_pll_bucket),
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_PLL_BUCKET, i_target_chip, l_attr_mc_pll_bucket),
              "Error from FAPI_ATTR_GET (ATTR_MC_PLL_BUCKET)");
     // determine iohs pll buckets
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IOHS_PLL_BUCKET, FAPI_SYSTEM, l_iohs_pll_bucket),
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IOHS_PLL_BUCKET, i_target_chip, l_attr_iohs_pll_bucket),
              "Error from FAPI_ATTR_GET (ATTR_IOHS_PLL_BUCKET)");
 
 fapi_try_exit:
