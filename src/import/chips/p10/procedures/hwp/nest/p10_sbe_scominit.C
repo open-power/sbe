@@ -39,15 +39,16 @@
 
 #include <p10_scom_perv.H>
 #include <p10_scom_nmmu_4.H>
-#include <p10_scom_proc_3.H>
+#include <p10_scom_proc_2.H>
 #include <p10_scom_proc_6.H>
 #include <p10_scom_proc_7.H>
 #include <p10_scom_proc_9.H>
 #include <p10_scom_proc_a.H>
 #include <p10_scom_proc_b.H>
-#include <p10_scom_proc_c.H>
+#include <p10_scom_proc_4.H>
 #include <p10_scom_proc_f.H>
 #include <p10_scom_proc_5.H>
+#include <p10_scom_proc_c.H>
 #include <target_filters.H>
 
 //------------------------------------------------------------------------------
@@ -109,24 +110,25 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_ipl_phase),
              "Error from FAPI_ATTR_GET (ATTR_SYSTEM_IPL_PHASE)");
 
-    FAPI_TRY(GET_PB_COM_ES3_MODE(i_target, l_pb_mode_data), "Error from getScom (PB_COM_ES3_MODE)");
+    FAPI_TRY(GET_PB_COM_SCOM_ES3_STATION_MODE(i_target, l_pb_mode_data),
+             "Error from getScom (PB_COM_SCOM_ES3_STATION_MODE)");
 
     // configure broadcast mode
     switch(l_broadcast_mode)
     {
         case fapi2::ENUM_ATTR_PROC_FABRIC_BROADCAST_MODE_1HOP_CHIP_IS_GROUP:
-            CLEAR_PB_COM_ES3_MODE_CFG_HOP_MODE_ES3(l_pb_mode_data);
-            SET_PB_COM_ES3_MODE_CFG_PUMP_MODE_ES3(l_pb_mode_data);
+            CLEAR_PB_COM_SCOM_ES3_STATION_MODE_CFG_HOP_MODE_ES3(l_pb_mode_data);
+            SET_PB_COM_SCOM_ES3_STATION_MODE_CFG_PUMP_MODE_ES3(l_pb_mode_data);
             break;
 
         case fapi2::ENUM_ATTR_PROC_FABRIC_BROADCAST_MODE_1HOP_CHIP_IS_NODE:
-            CLEAR_PB_COM_ES3_MODE_CFG_HOP_MODE_ES3(l_pb_mode_data);
-            CLEAR_PB_COM_ES3_MODE_CFG_PUMP_MODE_ES3(l_pb_mode_data);
+            CLEAR_PB_COM_SCOM_ES3_STATION_MODE_CFG_HOP_MODE_ES3(l_pb_mode_data);
+            CLEAR_PB_COM_SCOM_ES3_STATION_MODE_CFG_PUMP_MODE_ES3(l_pb_mode_data);
             break;
 
         case fapi2::ENUM_ATTR_PROC_FABRIC_BROADCAST_MODE_2HOP_CHIP_IS_NODE:
-            SET_PB_COM_ES3_MODE_CFG_HOP_MODE_ES3(l_pb_mode_data);
-            CLEAR_PB_COM_ES3_MODE_CFG_PUMP_MODE_ES3(l_pb_mode_data);
+            SET_PB_COM_SCOM_ES3_STATION_MODE_CFG_HOP_MODE_ES3(l_pb_mode_data);
+            CLEAR_PB_COM_SCOM_ES3_STATION_MODE_CFG_PUMP_MODE_ES3(l_pb_mode_data);
             break;
 
         default:
@@ -139,7 +141,7 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     }
 
     // configure sl chip domain for all ipl types
-    SET_PB_COM_ES3_MODE_CFG_SL_DOMAIN_SIZE_ES3(l_pb_mode_data);
+    SET_PB_COM_SCOM_ES3_STATION_MODE_CFG_SL_DOMAIN_SIZE_ES3(l_pb_mode_data);
 
     // configure first mc as source for mca ratio if HBI and a valid mc exists, else override mc async
     if((l_ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL) && l_mc_chiplets.size())
@@ -147,11 +149,11 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_mc_chiplets.front(), l_chiplet_pos),
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
 
-        SET_PB_COM_ES3_MODE_CFG_MCA_RATIO_SEL_ES3(l_chiplet_pos, l_pb_mode_data);
+        SET_PB_COM_SCOM_ES3_STATION_MODE_CFG_MCA_RATIO_SEL_ES3(l_chiplet_pos, l_pb_mode_data);
     }
     else
     {
-        SET_PB_COM_ES3_MODE_CFG_MCA_RATIO_OVERRIDE_ES3(PB_CFG_MCA_RATIO_OVERRIDE, l_pb_mode_data);
+        SET_PB_COM_SCOM_ES3_STATION_MODE_CFG_MCA_RATIO_OVERRIDE_ES3(PB_CFG_MCA_RATIO_OVERRIDE, l_pb_mode_data);
     }
 
     // configure first pau as source for pau ratio if HBI and a valid pau exists, else override pau async
@@ -161,14 +163,15 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
 
         // @FIXME TODO RTC209723 Replace with iopau target type when available
-        SET_PB_COM_ES3_MODE_CFG_PAU_STEP_SEL_ES3(l_chiplet_pos / 2, l_pb_mode_data);
+        SET_PB_COM_SCOM_ES3_STATION_MODE_CFG_PAU_STEP_SEL_ES3(l_chiplet_pos / 2, l_pb_mode_data);
     }
     else
     {
-        SET_PB_COM_ES3_MODE_CFG_PAU_STEP_OVERRIDE_ES3(l_pb_mode_data);
+        SET_PB_COM_SCOM_ES3_STATION_MODE_CFG_PAU_STEP_OVERRIDE_ES3(l_pb_mode_data);
     }
 
-    FAPI_TRY(PUT_PB_COM_ES3_MODE(i_target, l_pb_mode_data), "Error from putScom (PB_COM_ES3_MODE)");
+    FAPI_TRY(PUT_PB_COM_SCOM_ES3_STATION_MODE(i_target, l_pb_mode_data),
+             "Error from putScom (PB_COM_SCOM_ES3_STATION_MODE)");
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");
@@ -285,14 +288,14 @@ fapi2::ReturnCode p10_sbe_scominit_firs(const fapi2::Target<fapi2::TARGET_TYPE_P
 
     // configure PB ES3 FIRs
     FAPI_DBG("Configuring PB ES3 FIR");
-    FAPI_TRY(PUT_PB_COM_ES3_FIR_REG_RW(i_target, l_zeroes),
-             "Error from putScom (PB_COM_ES3_FIR_REG_RWX)");
-    FAPI_TRY(PUT_PB_COM_ES3_FIR_ACTION0_REG(i_target, PU_PB_ES3_FIR_ACTION0),
-             "Error from putScom (PB_COM_ES3_FIR_ACTION0_REG)");
-    FAPI_TRY(PUT_PB_COM_ES3_FIR_ACTION1_REG(i_target, PU_PB_ES3_FIR_ACTION1),
-             "Error from putScom (PB_COM_ES3_FIR_ACTION1_REG)");
-    FAPI_TRY(PUT_PB_COM_ES3_FIR_MASK_REG_RW(i_target, PU_PB_ES3_FIR_MASK),
-             "Error from putScom (PB_COM_ES3_FIR_MASK_REG_RWX)");
+    FAPI_TRY(PUT_PB_COM_SCOM_ES3_STATION_FIR_REG_RW(i_target, l_zeroes),
+             "Error from putScom (PB_COM_SCOM_ES3_STATION_FIR_REG_RWX)");
+    FAPI_TRY(PUT_PB_COM_SCOM_ES3_STATION_FIR_ACTION0_REG(i_target, PU_PB_ES3_FIR_ACTION0),
+             "Error from putScom (PB_COM_SCOM_ES3_STATION_FIR_ACTION0_REG)");
+    FAPI_TRY(PUT_PB_COM_SCOM_ES3_STATION_FIR_ACTION1_REG(i_target, PU_PB_ES3_FIR_ACTION1),
+             "Error from putScom (PB_COM_SCOM_ES3_STATION_FIR_ACTION1_REG)");
+    FAPI_TRY(PUT_PB_COM_SCOM_ES3_STATION_FIR_MASK_REG_RW(i_target, PU_PB_ES3_FIR_MASK),
+             "Error from putScom (PB_COM_SCOM_ES3_STATION_FIR_MASK_REG_RWX)");
 
     // configure PBA FIRs
     FAPI_DBG("Configuring PBA FIR");
