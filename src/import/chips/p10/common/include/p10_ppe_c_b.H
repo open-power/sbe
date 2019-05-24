@@ -35,7 +35,7 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_L3_PFETSTAT = 0x00000006c001e240ull;
+static const uint32_t CPMS_L3_PFETSTAT = 0xc001e240ull;
 
 static const uint32_t CPMS_L3_PFETSTAT_VDD_PFETS_ENABLED_SENSE = 0;
 static const uint32_t CPMS_L3_PFETSTAT_VDD_PFETS_DISABLED_SENSE = 1;
@@ -48,7 +48,7 @@ static const uint32_t CPMS_L3_PFETSTAT_VCS_PFET_ENABLE_ACTUAL_LEN = 8;
 static const uint32_t CPMS_L3_PFETSTAT_SRAM_ENABLE_ACTUAL = 63;
 // ppe_c/reg00011.H
 
-static const uint64_t QME_PSCRS1 = 0x00000006c0018540ull;
+static const uint32_t QME_PSCRS1 = 0xc0018540ull;
 
 static const uint32_t QME_PSCRS1_DPDES_EXIT_ENABLE = 0;
 static const uint32_t QME_PSCRS1_SD = 1;

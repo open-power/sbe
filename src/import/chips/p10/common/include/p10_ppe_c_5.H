@@ -35,7 +35,7 @@ namespace ppe_c
 {
 
 
-static const uint64_t QME_CIIR = 0x00000006c0018740ull;
+static const uint32_t QME_CIIR = 0xc0018740ull;
 
 static const uint32_t QME_CIIR__INTR_INJECT = 28;
 static const uint32_t QME_CIIR__INTR_INJECT_LEN = 4;
@@ -43,16 +43,16 @@ static const uint32_t QME_CIIR_U_INTR_INJECT = 60;
 static const uint32_t QME_CIIR_U_INTR_INJECT_LEN = 4;
 // ppe_c/reg00005.H
 
-static const uint64_t QME_RMOR = 0x00000006c0018680ull;
+static const uint32_t QME_RMOR = 0xc0018680ull;
 
 static const uint32_t QME_RMOR_DATA = 0;
 static const uint32_t QME_RMOR_DATA_LEN = 63;
 static const uint32_t QME_RMOR_URMOR_SELECT = 63;
 // ppe_c/reg00005.H
 
-static const uint64_t QME_SCR_RW = 0x00000006c00180c0ull;
-static const uint64_t QME_SCR_WO_CLEAR = 0x00000006c00180f0ull;
-static const uint64_t QME_SCR_WO_OR = 0x00000006c00180e0ull;
+static const uint32_t QME_SCR_RW = 0xc00180c0ull;
+static const uint32_t QME_SCR_WO_CLEAR = 0xc00180f0ull;
+static const uint32_t QME_SCR_WO_OR = 0xc00180e0ull;
 
 static const uint32_t QME_SCR_QME_SCR_DATA = 0;
 static const uint32_t QME_SCR_QME_SCR_DATA_LEN = 64;

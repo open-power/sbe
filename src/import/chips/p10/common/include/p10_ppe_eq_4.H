@@ -38,12 +38,12 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_EISTR = 0x00000006c0002700ull;
+static const uint32_t QME_EISTR = 0xc0002700ull;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
-static const uint64_t QME_LFIRACT0 = 0x00000006c0000080ull;
+static const uint32_t QME_LFIRACT0 = 0xc0000080ull;
 
 static const uint32_t QME_LFIRACT0_QME_LFIRACT0_FIR_ACTION1 = 0;
 static const uint32_t QME_LFIRACT0_QME_LFIRACT0_FIR_ACTION1_LEN = 28;
@@ -52,13 +52,13 @@ static const uint32_t QME_LFIRACT0_QME_LFIRACT0_FIR_ACTION1_LEN = 28;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_PLSR = 0x00000006c0001480ull;
+static const uint32_t QME_PLSR = 0xc0001480ull;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_QHB = 0x00000006c0000800ull;
+static const uint32_t QME_QHB = 0xc0000800ull;
 
 static const uint32_t QME_QHB_COUNT = 0;
 static const uint32_t QME_QHB_COUNT_LEN = 16;
@@ -69,9 +69,9 @@ static const uint32_t QME_QHB_LOSS_THROTTLE_ENABLE = 17;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RCSCR = 0x00000006c0001840ull;
-static const uint64_t QME_RCSCR_WO_CLEAR = 0x00000006c0001870ull;
-static const uint64_t QME_RCSCR_WO_OR = 0x00000006c0001860ull;
+static const uint32_t QME_RCSCR = 0xc0001840ull;
+static const uint32_t QME_RCSCR_WO_CLEAR = 0xc0001870ull;
+static const uint32_t QME_RCSCR_WO_OR = 0xc0001860ull;
 
 static const uint32_t QME_RCSCR__OFF_REQ = 0;
 static const uint32_t QME_RCSCR__OFF_REQ_LEN = 4;
@@ -96,7 +96,7 @@ static const uint32_t QME_RCSCR_3_TARGET_INDEX_LEN = 5;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RS4BAR = 0x00000006c0001600ull;
+static const uint32_t QME_RS4BAR = 0xc0001600ull;
 
 static const uint32_t QME_RS4BAR_QME_RS4BAR_BASE = 0;
 static const uint32_t QME_RS4BAR_QME_RS4BAR_BASE_LEN = 32;
@@ -105,7 +105,7 @@ static const uint32_t QME_RS4BAR_QME_RS4BAR_BASE_LEN = 32;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RS4DBGD = 0x00000006c0001580ull;
+static const uint32_t QME_RS4DBGD = 0xc0001580ull;
 
 static const uint32_t QME_RS4DBGD_QME_RS4DBGD_SCAN_DATA_IN = 0;
 static const uint32_t QME_RS4DBGD_QME_RS4DBGD_SCAN_DATA_IN_LEN = 64;

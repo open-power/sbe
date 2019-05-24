@@ -37,7 +37,7 @@ namespace ppe_eq
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
-static const uint64_t QME_PCBQBI = 0x00000006c00003c0ull;
+static const uint32_t QME_PCBQBI = 0xc00003c0ull;
 
 static const uint32_t QME_PCBQBI_ENTRY_VALID = 0;
 static const uint32_t QME_PCBQBI_MERGING_SCHEME = 2;
@@ -52,7 +52,7 @@ static const uint32_t QME_PCBQBI_ADDR_LEN = 16;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RCPTR = 0x00000006c0001880ull;
+static const uint32_t QME_RCPTR = 0xc0001880ull;
 
 static const uint32_t QME_RCPTR_TARGET_PSTATE = 0;
 static const uint32_t QME_RCPTR_TARGET_PSTATE_LEN = 8;
@@ -64,7 +64,7 @@ static const uint32_t QME_RCPTR_TARGET_INDEX_LEN = 5;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIMEM = 0x00000006c00021c0ull;
+static const uint32_t QME_SCOM_XIMEM = 0xc00021c0ull;
 
 static const uint32_t QME_SCOM_XIMEM_ADDR = 0;
 static const uint32_t QME_SCOM_XIMEM_ADDR_LEN = 32;
@@ -83,7 +83,7 @@ static const uint32_t QME_SCOM_XIMEM_DATAOP_PENDING = 63;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIVDR30 = 0x00000006c00029c0ull;
+static const uint32_t QME_SCOM_XIVDR30 = 0xc00029c0ull;
 
 static const uint32_t QME_SCOM_XIVDR30_0 = 0;
 static const uint32_t QME_SCOM_XIVDR30_0_LEN = 32;
@@ -94,7 +94,7 @@ static const uint32_t QME_SCOM_XIVDR30_1_LEN = 32;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_TTSR = 0x00000006c0001380ull;
+static const uint32_t QME_TTSR = 0xc0001380ull;
 // ppe_eq/reg00011.H
 
 }

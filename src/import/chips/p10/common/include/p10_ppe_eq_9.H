@@ -38,7 +38,7 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_DB2 = 0x00000006c0001080ull;
+static const uint32_t QME_DB2 = 0xc0001080ull;
 
 static const uint32_t QME_DB2_QME_DB2_MESSAGE_NUMBER = 0;
 static const uint32_t QME_DB2_QME_DB2_MESSAGE_NUMBER_LEN = 8;
@@ -47,7 +47,7 @@ static const uint32_t QME_DB2_QME_DB2_MESSAGE_NUMBER_LEN = 8;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_PSSUM = 0x00000006c0001340ull;
+static const uint32_t QME_PSSUM = 0xc0001340ull;
 
 static const uint32_t QME_PSSUM_CORE_PARTIAL_GOOD = 48;
 static const uint32_t QME_PSSUM_CORE_PARTIAL_GOOD_LEN = 4;

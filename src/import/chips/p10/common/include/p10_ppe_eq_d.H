@@ -38,9 +38,9 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_EIMR_RW = 0x00000006c0002640ull;
-static const uint64_t QME_EIMR_WO_CLEAR = 0x00000006c0002670ull;
-static const uint64_t QME_EIMR_WO_OR = 0x00000006c0002660ull;
+static const uint32_t QME_EIMR_RW = 0xc0002640ull;
+static const uint32_t QME_EIMR_WO_CLEAR = 0xc0002670ull;
+static const uint32_t QME_EIMR_WO_OR = 0xc0002660ull;
 
 static const uint32_t QME_EIMR_QME_EIMR_INTERRUPT_MASK = 0;
 static const uint32_t QME_EIMR_QME_EIMR_INTERRUPT_MASK_LEN = 64;
@@ -48,7 +48,7 @@ static const uint32_t QME_EIMR_QME_EIMR_INTERRUPT_MASK_LEN = 64;
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
-static const uint64_t QME_PIG = 0x00000006c0000300ull;
+static const uint32_t QME_PIG = 0xc0000300ull;
 
 static const uint32_t QME_PIG_REQ_INTR_TYPE = 1;
 static const uint32_t QME_PIG_REQ_INTR_TYPE_LEN = 4;
@@ -68,17 +68,17 @@ static const uint32_t QME_PIG_GRANTED_PACKET_LEN = 24;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_QSCR_RW = 0x00000006c0000700ull;
-static const uint64_t QME_QSCR_WO_CLEAR = 0x00000006c0000730ull;
-static const uint64_t QME_QSCR_WO_OR = 0x00000006c0000720ull;
+static const uint32_t QME_QSCR_RW = 0xc0000700ull;
+static const uint32_t QME_QSCR_WO_CLEAR = 0xc0000730ull;
+static const uint32_t QME_QSCR_WO_OR = 0xc0000720ull;
 // ppe_eq/reg00013.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RCMR = 0x00000006c0001800ull;
-static const uint64_t QME_RCMR_WO_CLEAR = 0x00000006c0001830ull;
-static const uint64_t QME_RCMR_WO_OR = 0x00000006c0001820ull;
+static const uint32_t QME_RCMR = 0xc0001800ull;
+static const uint32_t QME_RCMR_WO_CLEAR = 0xc0001830ull;
+static const uint32_t QME_RCMR_WO_OR = 0xc0001820ull;
 
 static const uint32_t QME_RCMR_MR_STEP_ENABLE = 0;
 static const uint32_t QME_RCMR_MR_AUTO_ACK_ENABLE = 1;

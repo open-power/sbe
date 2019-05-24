@@ -35,9 +35,9 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_CL2_PFETCNTL = 0x00000006c001e280ull;
-static const uint64_t CPMS_CL2_PFETCNTL_WO_CLEAR = 0x00000006c001e2a0ull;
-static const uint64_t CPMS_CL2_PFETCNTL_WO_OR = 0x00000006c001e2b0ull;
+static const uint32_t CPMS_CL2_PFETCNTL = 0xc001e280ull;
+static const uint32_t CPMS_CL2_PFETCNTL_WO_CLEAR = 0xc001e2a0ull;
+static const uint32_t CPMS_CL2_PFETCNTL_WO_OR = 0xc001e2b0ull;
 
 static const uint32_t CPMS_CL2_PFETCNTL_VDD_PFET_SEQ_STATE = 0;
 static const uint32_t CPMS_CL2_PFETCNTL_VDD_PFET_SEQ_STATE_LEN = 2;
@@ -67,16 +67,16 @@ static const uint32_t CPMS_CL2_PFETCNTL_VCS_PG_SEL_LEN = 4;
 static const uint32_t CPMS_CL2_PFETCNTL_SRAM_ENABLE = 63;
 // ppe_c/reg00003.H
 
-static const uint64_t QME_CDBA = 0x00000006c0018000ull;
+static const uint32_t QME_CDBA = 0xc0018000ull;
 
 static const uint32_t QME_CDBA_QME_CDBA_MESSAGE_NUMBER = 0;
 static const uint32_t QME_CDBA_QME_CDBA_MESSAGE_NUMBER_LEN = 8;
 // ppe_c/reg00003.H
 
-static const uint64_t QME_CSIR = 0x00000006c00187c0ull;
+static const uint32_t QME_CSIR = 0xc00187c0ull;
 
-static const uint32_t QME_CSIR_QME_CSIR_DATA = 0;
-static const uint32_t QME_CSIR_QME_CSIR_DATA_LEN = 64;
+static const uint32_t QME_CSIR_QME_CSIR_PMSR_INSTR_DATA = 36;
+static const uint32_t QME_CSIR_QME_CSIR_PMSR_INSTR_DATA_LEN = 23;
 // ppe_c/reg00003.H
 
 }

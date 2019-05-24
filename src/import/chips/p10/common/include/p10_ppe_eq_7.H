@@ -37,7 +37,7 @@ namespace ppe_eq
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
-static const uint64_t QME_ERR = 0x00000006c0000100ull;
+static const uint32_t QME_ERR = 0xc0000100ull;
 
 static const uint32_t QME_ERR_PPE_INTERNAL_ERROR = 0;
 static const uint32_t QME_ERR_PPE_EXTERNAL_ERROR = 1;
@@ -68,9 +68,9 @@ static const uint32_t QME_ERR_SPARE_LEN = 4;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_QMCR = 0x00000006c0000880ull;
-static const uint64_t QME_QMCR_WO_CLEAR = 0x00000006c00008b0ull;
-static const uint64_t QME_QMCR_WO_OR = 0x00000006c00008a0ull;
+static const uint32_t QME_QMCR = 0xc0000880ull;
+static const uint32_t QME_QMCR_WO_CLEAR = 0xc00008b0ull;
+static const uint32_t QME_QMCR_WO_OR = 0xc00008a0ull;
 
 static const uint32_t QME_QMCR_PMCR_OVERRIDE_EN = 0;
 static const uint32_t QME_QMCR_PSCR_OVERRIDE_EN = 1;
@@ -105,7 +105,7 @@ static const uint32_t QME_QMCR_CORE_PARTIAL_GOOD_LEN = 4;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RS4DBGC = 0x00000006c0001540ull;
+static const uint32_t QME_RS4DBGC = 0xc0001540ull;
 
 static const uint32_t QME_RS4DBGC_SCAN_DATA_OUT = 0;
 static const uint32_t QME_RS4DBGC_SCAN_DATA_OUT_LEN = 56;
@@ -115,7 +115,7 @@ static const uint32_t QME_RS4DBGC_LAST_CMD_TYPE = 63;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIDBGINF = 0x00000006c00023c0ull;
+static const uint32_t QME_SCOM_XIDBGINF = 0xc00023c0ull;
 
 static const uint32_t QME_SCOM_XIDBGINF_SRR0_TOP = 0;
 static const uint32_t QME_SCOM_XIDBGINF_SRR0_TOP_LEN = 30;
@@ -126,7 +126,7 @@ static const uint32_t QME_SCOM_XIDBGINF_LR_LEN = 32;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SWPR1 = 0x00000006c0000940ull;
+static const uint32_t QME_SWPR1 = 0xc0000940ull;
 
 static const uint32_t QME_SWPR1_BAR = 0;
 static const uint32_t QME_SWPR1_BAR_LEN = 27;

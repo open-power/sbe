@@ -38,7 +38,7 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_DB1 = 0x00000006c0001040ull;
+static const uint32_t QME_DB1 = 0xc0001040ull;
 
 static const uint32_t QME_DB1_NUMBER = 0;
 static const uint32_t QME_DB1_NUMBER_LEN = 8;
@@ -48,13 +48,13 @@ static const uint32_t QME_DB1_DATA_LEN = 56;
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
-static const uint64_t QME_PCBSID = 0x00000006c0000340ull;
+static const uint32_t QME_PCBSID = 0xc0000340ull;
 // ppe_eq/reg00003.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RS4DBGS = 0x00000006c00015c0ull;
+static const uint32_t QME_RS4DBGS = 0xc00015c0ull;
 
 static const uint32_t QME_RS4DBGS_ACTUAL_BITS = 16;
 static const uint32_t QME_RS4DBGS_ACTUAL_BITS_LEN = 16;
@@ -76,7 +76,7 @@ static const uint32_t QME_RS4DBGS_SCAN_COUNT_LEN = 6;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIVDR4 = 0x00000006c0002880ull;
+static const uint32_t QME_SCOM_XIVDR4 = 0xc0002880ull;
 
 static const uint32_t QME_SCOM_XIVDR4_4 = 0;
 static const uint32_t QME_SCOM_XIVDR4_4_LEN = 32;
@@ -87,7 +87,7 @@ static const uint32_t QME_SCOM_XIVDR4_5_LEN = 32;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIXCR = 0x00000006c0002000ull;
+static const uint32_t QME_SCOM_XIXCR = 0xc0002000ull;
 
 static const uint32_t QME_SCOM_XIXCR_QME_SCOM_XIXCR_CTR = 32;
 static const uint32_t QME_SCOM_XIXCR_QME_SCOM_XIXCR_CTR_LEN = 32;

@@ -38,7 +38,7 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_PPEBAR = 0x00000006c0000500ull;
+static const uint32_t QME_PPEBAR = 0xc0000500ull;
 
 static const uint32_t QME_PPEBAR_BASE = 8;
 static const uint32_t QME_PPEBAR_BASE_LEN = 36;
@@ -49,7 +49,7 @@ static const uint32_t QME_PPEBAR_SIZE_LEN = 3;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RCTAR2 = 0x00000006c0001980ull;
+static const uint32_t QME_RCTAR2 = 0xc0001980ull;
 
 static const uint32_t QME_RCTAR2_QME_RCTAR2_DATA = 0;
 static const uint32_t QME_RCTAR2_QME_RCTAR2_DATA_LEN = 64;
@@ -58,7 +58,7 @@ static const uint32_t QME_RCTAR2_QME_RCTAR2_DATA_LEN = 64;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_PBTXTR3 = 0x00000006c0000430ull;
+static const uint32_t QME_SCOM_PBTXTR3 = 0xc0000430ull;
 
 static const uint32_t QME_SCOM_PBTXTR3__VALID = 0;
 static const uint32_t QME_SCOM_PBTXTR3__VALID_LEN = 8;
@@ -83,7 +83,7 @@ static const uint32_t QME_SCOM_PBTXTR3_7_LEN = 4;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIRAMEDR = 0x00000006c0002100ull;
+static const uint32_t QME_SCOM_XIRAMEDR = 0xc0002100ull;
 
 static const uint32_t QME_SCOM_XIRAMEDR_IR = 0;
 static const uint32_t QME_SCOM_XIRAMEDR_IR_LEN = 32;
@@ -94,7 +94,7 @@ static const uint32_t QME_SCOM_XIRAMEDR_EDR_LEN = 32;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIVDR2 = 0x00000006c0002840ull;
+static const uint32_t QME_SCOM_XIVDR2 = 0xc0002840ull;
 
 static const uint32_t QME_SCOM_XIVDR2_2 = 0;
 static const uint32_t QME_SCOM_XIVDR2_2_LEN = 32;

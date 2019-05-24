@@ -38,7 +38,7 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_BCEBAR1 = 0x00000006c0000640ull;
+static const uint32_t QME_BCEBAR1 = 0xc0000640ull;
 
 static const uint32_t QME_BCEBAR1_BASE = 8;
 static const uint32_t QME_BCEBAR1_BASE_LEN = 36;
@@ -49,9 +49,9 @@ static const uint32_t QME_BCEBAR1_SIZE_LEN = 3;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_FLAGS_RW = 0x00000006c0001200ull;
-static const uint64_t QME_FLAGS_WO_CLEAR = 0x00000006c0001230ull;
-static const uint64_t QME_FLAGS_WO_OR = 0x00000006c0001220ull;
+static const uint32_t QME_FLAGS_RW = 0xc0001200ull;
+static const uint32_t QME_FLAGS_WO_CLEAR = 0xc0001230ull;
+static const uint32_t QME_FLAGS_WO_OR = 0xc0001220ull;
 
 static const uint32_t QME_FLAGS_QME_FLAGS_DATA = 0;
 static const uint32_t QME_FLAGS_QME_FLAGS_DATA_LEN = 64;
@@ -60,9 +60,9 @@ static const uint32_t QME_FLAGS_QME_FLAGS_DATA_LEN = 64;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_PPEDBG_RW = 0x00000006c0002440ull;
-static const uint64_t QME_PPEDBG_WO_CLEAR = 0x00000006c0002470ull;
-static const uint64_t QME_PPEDBG_WO_OR = 0x00000006c0002460ull;
+static const uint32_t QME_PPEDBG_RW = 0xc0002440ull;
+static const uint32_t QME_PPEDBG_WO_CLEAR = 0xc0002470ull;
+static const uint32_t QME_PPEDBG_WO_OR = 0xc0002460ull;
 
 static const uint32_t QME_PPEDBG_EN_DBG = 0;
 static const uint32_t QME_PPEDBG_HALT_ON_XSTOP = 1;
@@ -86,13 +86,13 @@ static const uint32_t QME_PPEDBG_TRACE_DATA_SEL_LEN = 4;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_PTSR = 0x00000006c00013c0ull;
+static const uint32_t QME_PTSR = 0xc00013c0ull;
 // ppe_eq/reg00012.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RCIMR = 0x00000006c00018c0ull;
+static const uint32_t QME_RCIMR = 0xc00018c0ull;
 
 static const uint32_t QME_RCIMR_P0 = 0;
 static const uint32_t QME_RCIMR_P0_LEN = 8;
@@ -115,7 +115,7 @@ static const uint32_t QME_RCIMR_X3_LEN = 5;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_RCTAR1 = 0x00000006c0001940ull;
+static const uint32_t QME_RCTAR1 = 0xc0001940ull;
 
 static const uint32_t QME_RCTAR1_QME_RCTAR1_DATA = 0;
 static const uint32_t QME_RCTAR1_QME_RCTAR1_DATA_LEN = 64;
@@ -124,7 +124,7 @@ static const uint32_t QME_RCTAR1_QME_RCTAR1_DATA_LEN = 64;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_PBTXTR0 = 0x00000006c0000400ull;
+static const uint32_t QME_SCOM_PBTXTR0 = 0xc0000400ull;
 
 static const uint32_t QME_SCOM_PBTXTR0__VALID = 0;
 static const uint32_t QME_SCOM_PBTXTR0__VALID_LEN = 8;
@@ -149,13 +149,13 @@ static const uint32_t QME_SCOM_PBTXTR0_7_LEN = 4;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIRAMDBG = 0x00000006c00020c0ull;
+static const uint32_t QME_SCOM_XIRAMDBG = 0xc00020c0ull;
 // ppe_eq/reg00012.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIRAMGA = 0x00000006c0002080ull;
+static const uint32_t QME_SCOM_XIRAMGA = 0xc0002080ull;
 
 static const uint32_t QME_SCOM_XIRAMGA_QME_SCOM_XIRAMEDR_IR = 0;
 static const uint32_t QME_SCOM_XIRAMGA_QME_SCOM_XIRAMEDR_IR_LEN = 32;
@@ -164,7 +164,7 @@ static const uint32_t QME_SCOM_XIRAMGA_QME_SCOM_XIRAMEDR_IR_LEN = 32;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XISIB = 0x00000006c0002180ull;
+static const uint32_t QME_SCOM_XISIB = 0xc0002180ull;
 
 static const uint32_t QME_SCOM_XISIB_ADDR = 0;
 static const uint32_t QME_SCOM_XISIB_ADDR_LEN = 32;

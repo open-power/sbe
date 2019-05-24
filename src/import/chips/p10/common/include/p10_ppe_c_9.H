@@ -35,7 +35,7 @@ namespace ppe_c
 {
 
 
-static const uint64_t QME_CDBB = 0x00000006c0018040ull;
+static const uint32_t QME_CDBB = 0xc0018040ull;
 
 static const uint32_t QME_CDBB_QME_CDBB_MESSAGE_NUMBER = 0;
 static const uint32_t QME_CDBB_QME_CDBB_MESSAGE_NUMBER_LEN = 8;

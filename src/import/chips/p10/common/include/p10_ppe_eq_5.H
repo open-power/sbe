@@ -38,7 +38,7 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_DB0 = 0x00000006c0001000ull;
+static const uint32_t QME_DB0 = 0xc0001000ull;
 
 static const uint32_t QME_DB0_NUMBER = 0;
 static const uint32_t QME_DB0_NUMBER_LEN = 8;
@@ -49,9 +49,9 @@ static const uint32_t QME_DB0_DATA_LEN = 56;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_EITR_RW = 0x00000006c00026c0ull;
-static const uint64_t QME_EITR_WO_CLEAR = 0x00000006c00026f0ull;
-static const uint64_t QME_EITR_WO_OR = 0x00000006c00026e0ull;
+static const uint32_t QME_EITR_RW = 0xc00026c0ull;
+static const uint32_t QME_EITR_WO_CLEAR = 0xc00026f0ull;
+static const uint32_t QME_EITR_WO_OR = 0xc00026e0ull;
 
 static const uint32_t QME_EITR_QME_EITR_INTERRUPT_TYPE = 0;
 static const uint32_t QME_EITR_QME_EITR_INTERRUPT_TYPE_LEN = 64;

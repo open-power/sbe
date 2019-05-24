@@ -38,21 +38,21 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_PBCR_RW = 0x00000006c0000440ull;
-static const uint64_t QME_PBCR_WO_CLEAR = 0x00000006c0000470ull;
-static const uint64_t QME_PBCR_WO_OR = 0x00000006c0000460ull;
+static const uint32_t QME_PBCR_RW = 0xc0000440ull;
+static const uint32_t QME_PBCR_WO_CLEAR = 0xc0000470ull;
+static const uint32_t QME_PBCR_WO_OR = 0xc0000460ull;
 // ppe_eq/reg00015.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_QSAR = 0x00000006c0000740ull;
+static const uint32_t QME_QSAR = 0xc0000740ull;
 // ppe_eq/reg00015.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_SCOM_XIVDR6 = 0x00000006c00028c0ull;
+static const uint32_t QME_SCOM_XIVDR6 = 0xc00028c0ull;
 
 static const uint32_t QME_SCOM_XIVDR6_6 = 0;
 static const uint32_t QME_SCOM_XIVDR6_6_LEN = 32;

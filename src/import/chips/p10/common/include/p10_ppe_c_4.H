@@ -35,9 +35,9 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_RVCSR = 0x00000006c001e040ull;
-static const uint64_t CPMS_RVCSR_WO_CLEAR = 0x00000006c001e060ull;
-static const uint64_t CPMS_RVCSR_WO_OR = 0x00000006c001e070ull;
+static const uint32_t CPMS_RVCSR = 0xc001e040ull;
+static const uint32_t CPMS_RVCSR_WO_CLEAR = 0xc001e060ull;
+static const uint32_t CPMS_RVCSR_WO_OR = 0xc001e070ull;
 
 static const uint32_t CPMS_RVCSR_RVID_ENABLE = 0;
 static const uint32_t CPMS_RVCSR_RVID_OVERRIDE = 1;
@@ -47,25 +47,25 @@ static const uint32_t CPMS_RVCSR_RVID_ACTIVE = 32;
 static const uint32_t CPMS_RVCSR_BYPASS_ACTIVE = 33;
 // ppe_c/reg00004.H
 
-static const uint64_t QME_SPWU_FSP = 0x00000006c0018340ull;
+static const uint32_t QME_SPWU_FSP = 0xc0018340ull;
 
 static const uint32_t QME_SPWU_FSP_REQ = 0;
 static const uint32_t QME_SPWU_FSP_DONE = 4;
 // ppe_c/reg00004.H
 
-static const uint64_t QME_SPWU_HYP = 0x00000006c00183c0ull;
+static const uint32_t QME_SPWU_HYP = 0xc00183c0ull;
 
 static const uint32_t QME_SPWU_HYP_REQ = 0;
 static const uint32_t QME_SPWU_HYP_DONE = 4;
 // ppe_c/reg00004.H
 
-static const uint64_t QME_SPWU_OCC = 0x00000006c0018380ull;
+static const uint32_t QME_SPWU_OCC = 0xc0018380ull;
 
 static const uint32_t QME_SPWU_OCC_REQ = 0;
 static const uint32_t QME_SPWU_OCC_DONE = 4;
 // ppe_c/reg00004.H
 
-static const uint64_t QME_SSH_FSP = 0x00000006c0018240ull;
+static const uint32_t QME_SSH_FSP = 0xc0018240ull;
 
 static const uint32_t QME_SSH_FSP_STOP_GATED = 0;
 static const uint32_t QME_SSH_FSP_SPECIAL_WKUP_DONE = 1;
@@ -81,7 +81,7 @@ static const uint32_t QME_SSH_FSP_DEEPEST_ACT_STOP_LEVEL = 16;
 static const uint32_t QME_SSH_FSP_DEEPEST_ACT_STOP_LEVEL_LEN = 4;
 // ppe_c/reg00004.H
 
-static const uint64_t QME_SSH_HYP = 0x00000006c00182c0ull;
+static const uint32_t QME_SSH_HYP = 0xc00182c0ull;
 
 static const uint32_t QME_SSH_HYP_STOP_GATED = 0;
 static const uint32_t QME_SSH_HYP_SPECIAL_WKUP_DONE = 1;
@@ -97,7 +97,7 @@ static const uint32_t QME_SSH_HYP_DEEPEST_ACT_STOP_LEVEL = 16;
 static const uint32_t QME_SSH_HYP_DEEPEST_ACT_STOP_LEVEL_LEN = 4;
 // ppe_c/reg00004.H
 
-static const uint64_t QME_SSH_OCC = 0x00000006c0018280ull;
+static const uint32_t QME_SSH_OCC = 0xc0018280ull;
 
 static const uint32_t QME_SSH_OCC_STOP_GATED = 0;
 static const uint32_t QME_SSH_OCC_SPECIAL_WKUP_DONE = 1;

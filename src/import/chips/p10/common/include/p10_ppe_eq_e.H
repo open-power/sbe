@@ -38,7 +38,7 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_CRCR = 0x00000006c0003000ull;
+static const uint32_t QME_CRCR = 0xc0003000ull;
 
 static const uint32_t QME_CRCR_QME_CRCR_CYCLE_REPRO_COMPARE_VALUE = 1;
 static const uint32_t QME_CRCR_QME_CRCR_CYCLE_REPRO_COMPARE_VALUE_LEN = 7;
@@ -47,7 +47,7 @@ static const uint32_t QME_CRCR_QME_CRCR_CYCLE_REPRO_COMPARE_VALUE_LEN = 7;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_DERP = 0x00000006c0002500ull;
+static const uint32_t QME_DERP = 0xc0002500ull;
 
 static const uint32_t QME_DERP_DEND = 0;
 static const uint32_t QME_DERP_DEND_LEN = 32;
@@ -58,7 +58,7 @@ static const uint32_t QME_DERP_SOR_LEN = 32;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint64_t QME_EINR = 0x00000006c0002740ull;
+static const uint32_t QME_EINR = 0xc0002740ull;
 
 static const uint32_t QME_EINR_QME_EINR_INTERRUPT_INPUT = 0;
 static const uint32_t QME_EINR_QME_EINR_INTERRUPT_INPUT_LEN = 64;
@@ -66,9 +66,9 @@ static const uint32_t QME_EINR_QME_EINR_INTERRUPT_INPUT_LEN = 64;
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
-static const uint64_t QME_LFIR_RW = 0x00000006c0000000ull;
-static const uint64_t QME_LFIR_WO_AND = 0x00000006c0000010ull;
-static const uint64_t QME_LFIR_WO_OR = 0x00000006c0000020ull;
+static const uint32_t QME_LFIR_RW = 0xc0000000ull;
+static const uint32_t QME_LFIR_WO_AND = 0xc0000010ull;
+static const uint32_t QME_LFIR_WO_OR = 0xc0000020ull;
 
 static const uint32_t QME_LFIR_PPE_HALT_ERROR = 0;
 static const uint32_t QME_LFIR_DEBUG_TRIGGER = 1;
@@ -102,7 +102,7 @@ static const uint32_t QME_LFIR_SPARE27 = 27;
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
-static const uint64_t QME_PCBSII = 0x00000006c0000380ull;
+static const uint32_t QME_PCBSII = 0xc0000380ull;
 // ppe_eq/reg00014.H
 
 }

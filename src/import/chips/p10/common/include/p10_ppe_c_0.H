@@ -35,9 +35,9 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_L3_PFETCNTL = 0x00000006c001e200ull;
-static const uint64_t CPMS_L3_PFETCNTL_WO_CLEAR = 0x00000006c001e220ull;
-static const uint64_t CPMS_L3_PFETCNTL_WO_OR = 0x00000006c001e230ull;
+static const uint32_t CPMS_L3_PFETCNTL = 0xc001e200ull;
+static const uint32_t CPMS_L3_PFETCNTL_WO_CLEAR = 0xc001e220ull;
+static const uint32_t CPMS_L3_PFETCNTL_WO_OR = 0xc001e230ull;
 
 static const uint32_t CPMS_L3_PFETCNTL_VDD_PFET_SEQ_STATE = 0;
 static const uint32_t CPMS_L3_PFETCNTL_VDD_PFET_SEQ_STATE_LEN = 2;
@@ -66,13 +66,13 @@ static const uint32_t CPMS_L3_PFETCNTL_VCS_PG_SEL_LEN = 4;
 static const uint32_t CPMS_L3_PFETCNTL_SRAM_ENABLE = 63;
 // ppe_c/reg00000.H
 
-static const uint64_t QME_SPWU_OTR = 0x00000006c0018300ull;
+static const uint32_t QME_SPWU_OTR = 0xc0018300ull;
 
 static const uint32_t QME_SPWU_OTR_REQ = 0;
 static const uint32_t QME_SPWU_OTR_DONE = 4;
 // ppe_c/reg00000.H
 
-static const uint64_t QME_SSH_OTR = 0x00000006c0018200ull;
+static const uint32_t QME_SSH_OTR = 0xc0018200ull;
 
 static const uint32_t QME_SSH_OTR_STOP_GATED = 0;
 static const uint32_t QME_SSH_OTR_SPECIAL_WKUP_DONE = 1;
@@ -94,7 +94,7 @@ static const uint32_t QME_SSH_OTR_DEEPEST_STOP_ENTRY = 24;
 static const uint32_t QME_SSH_OTR_DEEPEST_STOP_ENTRY_LEN = 4;
 // ppe_c/reg00000.H
 
-static const uint64_t QME_SSH_SRC = 0x00000006c00181c0ull;
+static const uint32_t QME_SSH_SRC = 0xc00181c0ull;
 
 static const uint32_t QME_SSH_SRC_STOP_GATED = 0;
 static const uint32_t QME_SSH_SRC_SPECIAL_WKUP_DONE = 1;

@@ -35,9 +35,9 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_MMAR_RW = 0x00000006c001e380ull;
-static const uint64_t CPMS_MMAR_WO_CLEAR = 0x00000006c001e3a0ull;
-static const uint64_t CPMS_MMAR_WO_OR = 0x00000006c001e3b0ull;
+static const uint32_t CPMS_MMAR_RW = 0xc001e380ull;
+static const uint32_t CPMS_MMAR_WO_CLEAR = 0xc001e3a0ull;
+static const uint32_t CPMS_MMAR_WO_OR = 0xc001e3b0ull;
 
 static const uint32_t CPMS_MMAR_AVAILABLE = 0;
 static const uint32_t CPMS_MMAR_FUNC_RESET = 1;

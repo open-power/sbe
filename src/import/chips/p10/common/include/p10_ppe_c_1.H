@@ -35,7 +35,7 @@ namespace ppe_c
 {
 
 
-static const uint64_t QME_DCSR = 0x00000006c0018700ull;
+static const uint32_t QME_DCSR = 0xc0018700ull;
 
 static const uint32_t QME_DCSR_PLS_T0 = 0;
 static const uint32_t QME_DCSR_PLS_T0_LEN = 4;
@@ -56,19 +56,21 @@ static const uint32_t QME_DCSR_SL_T3_LEN = 2;
 static const uint32_t QME_DCSR_SRESET_MSR_S = 24;
 // ppe_c/reg00001.H
 
-static const uint64_t QME_PMCRS = 0x00000006c0018600ull;
+static const uint32_t QME_PMCRS = 0xc0018600ull;
 
 static const uint32_t QME_PMCRS_QME_PMCRS_DATA = 0;
 static const uint32_t QME_PMCRS_QME_PMCRS_DATA_LEN = 64;
 // ppe_c/reg00001.H
 
-static const uint64_t QME_PMSRS = 0x00000006c0018640ull;
+static const uint32_t QME_PMSRS = 0xc0018640ull;
 
-static const uint32_t QME_PMSRS_QME_PMSRS_DATA = 0;
-static const uint32_t QME_PMSRS_QME_PMSRS_DATA_LEN = 64;
+static const uint32_t QME_PMSRS_PSTATE_DATA = 0;
+static const uint32_t QME_PMSRS_PSTATE_DATA_LEN = 36;
+static const uint32_t QME_PMSRS_VERSION = 59;
+static const uint32_t QME_PMSRS_VERSION_LEN = 5;
 // ppe_c/reg00001.H
 
-static const uint64_t QME_PSCRS2 = 0x00000006c0018580ull;
+static const uint32_t QME_PSCRS2 = 0xc0018580ull;
 
 static const uint32_t QME_PSCRS2_DPDES_EXIT_ENABLE = 0;
 static const uint32_t QME_PSCRS2_SD = 1;

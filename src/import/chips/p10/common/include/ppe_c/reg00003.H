@@ -1260,47 +1260,47 @@ fapi_try_exit:
 }
 
 
-static inline fapi2::buffer<uint64_t>& SET_QME_CSIR_QME_CSIR_DATA(fapi2::buffer<uint64_t>& i_data,
+static inline fapi2::buffer<uint64_t>& SET_QME_CSIR_QME_CSIR_PMSR_INSTR_DATA(fapi2::buffer<uint64_t>& i_data,
         fapi2::buffer<uint64_t>& o_data)
 {
 #ifdef SCOM_CHECKING
     FAPI_TRY(scomt::chkReg(QME_CSIR));
 #endif
-    return o_data.insertFromRight<QME_CSIR_QME_CSIR_DATA,
-           QME_CSIR_QME_CSIR_DATA_LEN>(i_data);
+    return o_data.insertFromRight<QME_CSIR_QME_CSIR_PMSR_INSTR_DATA,
+           QME_CSIR_QME_CSIR_PMSR_INSTR_DATA_LEN>(i_data);
 #ifdef SCOM_CHECKING
 fapi_try_exit:
-    FAPI_ERR("Invalid dial access QME_CSIR_QME_CSIR_DATA chip: %x, ec: %x", scomt::chip, scomt::ec);
+    FAPI_ERR("Invalid dial access QME_CSIR_QME_CSIR_PMSR_INSTR_DATA chip: %x, ec: %x", scomt::chip, scomt::ec);
     return o_data;
 #endif
 }
 
-static inline fapi2::buffer<uint64_t>& SET_QME_CSIR_QME_CSIR_DATA(const uint64_t i_data,
+static inline fapi2::buffer<uint64_t>& SET_QME_CSIR_QME_CSIR_PMSR_INSTR_DATA(const uint64_t i_data,
         fapi2::buffer<uint64_t>& o_data)
 {
 #ifdef SCOM_CHECKING
     FAPI_TRY(scomt::chkReg(QME_CSIR));
 #endif
-    return o_data.insertFromRight<QME_CSIR_QME_CSIR_DATA,
-           QME_CSIR_QME_CSIR_DATA_LEN>(i_data);
+    return o_data.insertFromRight<QME_CSIR_QME_CSIR_PMSR_INSTR_DATA,
+           QME_CSIR_QME_CSIR_PMSR_INSTR_DATA_LEN>(i_data);
 #ifdef SCOM_CHECKING
 fapi_try_exit:
-    FAPI_ERR("Invalid dial access QME_CSIR_QME_CSIR_DATA chip: %x, ec: %x", scomt::chip, scomt::ec);
+    FAPI_ERR("Invalid dial access QME_CSIR_QME_CSIR_PMSR_INSTR_DATA chip: %x, ec: %x", scomt::chip, scomt::ec);
     return o_data;
 #endif
 }
 
-static inline fapi2::buffer<uint64_t>& GET_QME_CSIR_QME_CSIR_DATA(fapi2::buffer<uint64_t>& i_data,
+static inline fapi2::buffer<uint64_t>& GET_QME_CSIR_QME_CSIR_PMSR_INSTR_DATA(fapi2::buffer<uint64_t>& i_data,
         uint64_t& o_data)
 {
 #ifdef SCOM_CHECKING
     FAPI_TRY(scomt::chkReg(QME_CSIR));
 #endif
-    return i_data.extractToRight<QME_CSIR_QME_CSIR_DATA,
-           QME_CSIR_QME_CSIR_DATA_LEN>(o_data);
+    return i_data.extractToRight<QME_CSIR_QME_CSIR_PMSR_INSTR_DATA,
+           QME_CSIR_QME_CSIR_PMSR_INSTR_DATA_LEN>(o_data);
 #ifdef SCOM_CHECKING
 fapi_try_exit:
-    FAPI_ERR("Invalid dial access QME_CSIR_QME_CSIR_DATA chip: %x, ec: %x", scomt::chip, scomt::ec);
+    FAPI_ERR("Invalid dial access QME_CSIR_QME_CSIR_PMSR_INSTR_DATA chip: %x, ec: %x", scomt::chip, scomt::ec);
     return i_data;
 #endif
 }

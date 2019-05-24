@@ -35,7 +35,7 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_CERR = 0x00000006c001e100ull;
+static const uint32_t CPMS_CERR = 0xc001e100ull;
 
 static const uint32_t CPMS_CERR_L3_PFET_SEQ_ERR = 0;
 static const uint32_t CPMS_CERR_CL2_PFET_SEQ_ERR = 1;
@@ -50,9 +50,9 @@ static const uint32_t CPMS_CERR_FTC_DEBUG_EVENT = 9;
 static const uint32_t CPMS_CERR_FTC_DEBUG_EVENT_LEN = 3;
 // ppe_c/reg00006.H
 
-static const uint64_t CPMS_MMA_PFETCNTL = 0x00000006c001e300ull;
-static const uint64_t CPMS_MMA_PFETCNTL_WO_CLEAR = 0x00000006c001e320ull;
-static const uint64_t CPMS_MMA_PFETCNTL_WO_OR = 0x00000006c001e330ull;
+static const uint32_t CPMS_MMA_PFETCNTL = 0xc001e300ull;
+static const uint32_t CPMS_MMA_PFETCNTL_WO_CLEAR = 0xc001e320ull;
+static const uint32_t CPMS_MMA_PFETCNTL_WO_OR = 0xc001e330ull;
 
 static const uint32_t CPMS_MMA_PFETCNTL_VDD_PFET_SEQ_STATE = 0;
 static const uint32_t CPMS_MMA_PFETCNTL_VDD_PFET_SEQ_STATE_LEN = 2;

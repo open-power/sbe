@@ -35,9 +35,9 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_CGCSR = 0x00000006c001e000ull;
-static const uint64_t CPMS_CGCSR_WO_CLEAR = 0x00000006c001e020ull;
-static const uint64_t CPMS_CGCSR_WO_OR = 0x00000006c001e030ull;
+static const uint32_t CPMS_CGCSR = 0xc001e000ull;
+static const uint32_t CPMS_CGCSR_WO_CLEAR = 0xc001e020ull;
+static const uint32_t CPMS_CGCSR_WO_OR = 0xc001e030ull;
 
 static const uint32_t CPMS_CGCSR_L3_CLK_SYNC_ENABLE = 0;
 static const uint32_t CPMS_CGCSR_CL2_CLK_SYNC_ENABLE = 1;

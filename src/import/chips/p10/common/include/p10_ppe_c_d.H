@@ -35,7 +35,7 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_MMA_PFETSTAT = 0x00000006c001e340ull;
+static const uint32_t CPMS_MMA_PFETSTAT = 0xc001e340ull;
 
 static const uint32_t CPMS_MMA_PFETSTAT_S_ENABLED_SENSE = 0;
 static const uint32_t CPMS_MMA_PFETSTAT_S_DISABLED_SENSE = 1;
@@ -43,7 +43,7 @@ static const uint32_t CPMS_MMA_PFETSTAT__ENABLE_ACTUAL = 16;
 static const uint32_t CPMS_MMA_PFETSTAT__ENABLE_ACTUAL_LEN = 8;
 // ppe_c/reg00013.H
 
-static const uint64_t CPMS_PFETDLY = 0x00000006c001e1c0ull;
+static const uint32_t CPMS_PFETDLY = 0xc001e1c0ull;
 
 static const uint32_t CPMS_PFETDLY_POWDN_DLY = 0;
 static const uint32_t CPMS_PFETDLY_POWDN_DLY_LEN = 4;
@@ -55,7 +55,7 @@ static const uint32_t CPMS_PFETDLY_MMA_POWUP_DLY = 12;
 static const uint32_t CPMS_PFETDLY_MMA_POWUP_DLY_LEN = 4;
 // ppe_c/reg00013.H
 
-static const uint64_t QME_PSCRS0 = 0x00000006c0018500ull;
+static const uint32_t QME_PSCRS0 = 0xc0018500ull;
 
 static const uint32_t QME_PSCRS0_DPDES_EXIT_ENABLE = 0;
 static const uint32_t QME_PSCRS0_SD = 1;

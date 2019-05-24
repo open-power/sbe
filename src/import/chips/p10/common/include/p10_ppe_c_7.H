@@ -35,7 +35,7 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_CERRMSK = 0x00000006c001e140ull;
+static const uint32_t CPMS_CERRMSK = 0xc001e140ull;
 
 static const uint32_t CPMS_CERRMSK_PFET_SEQ_ERR_MASK = 0;
 static const uint32_t CPMS_CERRMSK_DDS_ERR_MASK = 1;
@@ -46,7 +46,7 @@ static const uint32_t CPMS_CERRMSK_FTC_EVENT_MASK = 5;
 static const uint32_t CPMS_CERRMSK_FTC_EVENT_MASK_LEN = 3;
 // ppe_c/reg00007.H
 
-static const uint64_t QME_PSCRS3 = 0x00000006c00185c0ull;
+static const uint32_t QME_PSCRS3 = 0xc00185c0ull;
 
 static const uint32_t QME_PSCRS3_DPDES_EXIT_ENABLE = 0;
 static const uint32_t QME_PSCRS3_SD = 1;
@@ -70,9 +70,9 @@ static const uint32_t QME_PSCRS3_PLS = 24;
 static const uint32_t QME_PSCRS3_PLS_LEN = 4;
 // ppe_c/reg00007.H
 
-static const uint64_t QME_SCSR = 0x00000006c0018400ull;
-static const uint64_t QME_SCSR_PPE1 = 0x00000006c0018430ull;
-static const uint64_t QME_SCSR_PPE2 = 0x00000006c0018420ull;
+static const uint32_t QME_SCSR = 0xc0018400ull;
+static const uint32_t QME_SCSR_PPE1 = 0xc0018430ull;
+static const uint32_t QME_SCSR_PPE2 = 0xc0018420ull;
 
 static const uint32_t QME_SCSR_ASSERT_PM_BLOCK_INTR = 0;
 static const uint32_t QME_SCSR_ASSERT_PM_EXIT = 1;
@@ -127,9 +127,9 @@ static const uint32_t QME_SCSR_PM_STATE = 60;
 static const uint32_t QME_SCSR_PM_STATE_LEN = 4;
 // ppe_c/reg00007.H
 
-static const uint64_t QME_TFCSR = 0x00000006c0018800ull;
-static const uint64_t QME_TFCSR_PPE1 = 0x00000006c0018830ull;
-static const uint64_t QME_TFCSR_PPE2 = 0x00000006c0018820ull;
+static const uint32_t QME_TFCSR = 0xc0018800ull;
+static const uint32_t QME_TFCSR_PPE1 = 0xc0018830ull;
+static const uint32_t QME_TFCSR_PPE2 = 0xc0018820ull;
 
 static const uint32_t QME_TFCSR_XFER_START = 0;
 static const uint32_t QME_TFCSR_TFAC_RESET = 1;

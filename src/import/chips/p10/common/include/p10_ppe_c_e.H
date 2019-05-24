@@ -35,7 +35,7 @@ namespace ppe_c
 {
 
 
-static const uint64_t CPMS_ASSR = 0x00000006c001e180ull;
+static const uint32_t CPMS_ASSR = 0xc001e180ull;
 
 static const uint32_t CPMS_ASSR_L3_PFETSTAT_VDD_PFETS_ENABLED_SENSE = 0;
 static const uint32_t CPMS_ASSR_L3_PFETSTAT_VDD_PFETS_DISABLED_SENSE = 1;
@@ -56,7 +56,7 @@ static const uint32_t CPMS_ASSR_CGCSR_L3_CLK_SYNC_DONE = 18;
 static const uint32_t CPMS_ASSR_CGCSR_CL2_CLK_SYNC_DONE = 19;
 // ppe_c/reg00014.H
 
-static const uint64_t QME_CISR = 0x00000006c0018780ull;
+static const uint32_t QME_CISR = 0xc0018780ull;
 
 static const uint32_t QME_CISR_HYP_INTR_PRESENT = 0;
 static const uint32_t QME_CISR_HYP_INTR_PRESENT_LEN = 4;
