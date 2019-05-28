@@ -286,7 +286,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_clk_config),
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_reset),
              ISTEP_MAP( istepWithProc, p10_sbe_gptr_time_initf),
-             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_chiplet_pll_initf
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_initf),
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_setup),
              ISTEP_MAP( istepWithProc, p10_sbe_repr_initf),
              ISTEP_MAP( istepNoOp, NULL ), // DFT only
@@ -302,7 +302,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, NULL), //p10_sbe_fabricinit
              ISTEP_MAP( istepCheckSbeMaster, NULL ),//p10_sbe_check_master
              ISTEP_MAP( istepWithProc, NULL), //p10_sbe_mcs_setup
-             ISTEP_MAP( istepSelectEx, NULL), //p10_sbe_select_ex),
+             ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
 #endif
          };
 static istepMap_t g_istep4PtrTbl[] =

@@ -42,7 +42,7 @@ ISTEP3-CPP-SOURCES +=p10_sbe_initf.C
 ISTEP3-CPP-SOURCES +=p10_sbe_startclocks.C
 ISTEP3-CPP-SOURCES +=p10_sbe_chiplet_init.C
 ISTEP3-CPP-SOURCES +=p10_sbe_nest_enable_ridi.C
-#ISTEP3-CPP-SOURCES +=p10_sbe_select_ex.C
+ISTEP3-CPP-SOURCES +=p10_sbe_select_ex.C
 ISTEP3-C-SOURCES =
 ISTEP3-S-SOURCES =
 
