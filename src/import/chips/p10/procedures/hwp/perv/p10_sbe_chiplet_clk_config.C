@@ -53,7 +53,7 @@ fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
     fapi2::buffer<uint64_t> l_data64_nc1, l_data64_nc0;
     fapi2::buffer<uint8_t> l_attr_mux_iohs, l_attr_mux_pci;
 
-    FAPI_INF("p10_sbe_chiplet_clk_config: Exiting ...");
+    FAPI_INF("p10_sbe_chiplet_clk_config: Entering ...");
 
     auto l_perv_iohs = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
                            static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_IOHS),
@@ -168,6 +168,17 @@ fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
             l_data64_nc1.flush<1>().writeBit<2>(l_attr_pg.getBit<13>()).writeBit<3>(l_attr_pg.getBit<14>());
             FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL1_WAND, l_data64_nc1));
         }
+    }
+
+    FAPI_DBG("Drop clk_async_reset for AXON chiplets");
+
+    for (auto& targ : l_perv_iohs)
+    {
+        fapi2::buffer<uint32_t> l_attr_pg;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, targ, l_attr_pg));
+
+        l_data64_nc0.flush<1>().writeBit<PERV_1_NET_CTRL0_CLK_ASYNC_RESET>(l_attr_pg.getBit<16>());
+        FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL0_WAND, l_data64_nc0));
     }
 
     FAPI_DBG("Force PLL out enable for IO PLLs(IOHS, PCIE, MC)");

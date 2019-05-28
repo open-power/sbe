@@ -56,7 +56,7 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     fapi2::buffer<uint32_t> l_read_attr_pg;
     fapi2::buffer<uint64_t> l_data64_nc0, l_data64;
 
-    FAPI_INF("p10_sbe_chiplet_reset: Exiting ...");
+    FAPI_INF("p10_sbe_chiplet_reset: Entering ...");
 
     auto l_perv_eq_nest_func = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
                                    static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_EQ | fapi2::TARGET_FILTER_ALL_NEST),
@@ -103,7 +103,6 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
 
         FAPI_TRY(fapi2::putScom(targ, 0x00000002, l_data64));
         FAPI_TRY(fapi2::putScom(targ, 0x00000003, l_data64));
-        FAPI_TRY(fapi2::putScom(targ, 0x00000005, l_data64));
     }
 
     FAPI_DBG("Transfer PGOOD attribute into region good,region enable and power gate register : ALL EQ");
@@ -113,7 +112,6 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
 
     FAPI_TRY(fapi2::putScom(l_mc_eq, 0x00000002, l_data64));
     FAPI_TRY(fapi2::putScom(l_mc_eq, 0x00000003, l_data64));
-    FAPI_TRY(fapi2::putScom(l_mc_eq, 0x00000005, l_data64));
 
     FAPI_DBG("Initialize OPCG_ALIGN regs with default values");
     FAPI_TRY(fapi2::putScom(l_mc_all, PERV_OPCG_ALIGN, p10SbeChipletReset::OPCG_ALIGN_DEFAULT_VAL));

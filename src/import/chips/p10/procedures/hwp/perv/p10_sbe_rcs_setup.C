@@ -143,12 +143,17 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
     fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
 
+    FAPI_DBG("Clear RCS errors");
+    l_data64_rc5.flush<0>().setBit<7, 2>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_SET_SCOM, l_data64_rc5));
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
+
     FAPI_DBG("Check for clock errors");
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM, l_read_reg));
 
     if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
     {
-        FAPI_ASSERT(l_read_reg.getBit<2>(),
+        FAPI_ASSERT(((l_read_reg.getBit<0>() == 0) && (l_read_reg.getBit<2>() == 0)),
                     fapi2::RCS_CLOCK_ERR()
                     .set_READ_SNS1LTH(l_read_reg)
                     .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
@@ -157,7 +162,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
     if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
     {
-        FAPI_ASSERT(l_read_reg.getBit<3>(),
+        FAPI_ASSERT(((l_read_reg.getBit<1>() == 0) && (l_read_reg.getBit<3>() == 0)),
                     fapi2::RCS_CLOCK_ERR()
                     .set_READ_SNS1LTH(l_read_reg)
                     .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
@@ -194,8 +199,8 @@ static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
 
     FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM, l_data64));
 
-    check_clockA = set_rcs_clock_test_in ? (l_data64.getBit<0>() == 1) : (l_data64.getBit<0>() == 0) ;
-    check_clockB = set_rcs_clock_test_in ? (l_data64.getBit<1>() == 1) : (l_data64.getBit<1>() == 0) ;
+    check_clockA = set_rcs_clock_test_in ? (l_data64.getBit<4>() == 1) : (l_data64.getBit<4>() == 0) ;
+    check_clockB = set_rcs_clock_test_in ? (l_data64.getBit<5>() == 1) : (l_data64.getBit<5>() == 0) ;
 
     if (! (i_attr_cp_refclock_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
     {

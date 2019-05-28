@@ -47,7 +47,7 @@ namespace p10SbeChipletSetup
 enum P10_SBE_CHIPLET_SETUP_Public_Constants
 {
     /**************************************************/
-    NET_CNTL0_HW_INIT_VALUE = 0x7C0E222000000000ull,
+    NET_CNTL0_HW_INIT_VALUE = 0x7C0E202000000000ull,
     NET_CNTL1_HW_INIT_VALUE = 0x7200000000000000ull,
     /**************************************************/
 
