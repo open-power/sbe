@@ -166,6 +166,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
                assert(false);
             }
             return l_addr;
+#if 0
         case PPE_TARGET_TYPE_PHB:
             static const uint8_t ring_id_map[] = { 3, 3, 4, 3, 4, 5 };
             static const uint8_t sat_id_map[]  = { 1, 1, 2, 1, 2, 3 };
@@ -180,6 +181,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
             l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4)) +
                     sat_id_map[i_target.getTargetInstance()];
             return l_addr;
+#endif            
         case PPE_TARGET_TYPE_PROC_CHIP:
             return i_addr;
         default:

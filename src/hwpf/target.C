@@ -128,59 +128,80 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
     }
     else if(K & TARGET_TYPE_PERV)
     {
-        l_handle.fields.chiplet_num = i_plat_argument + NEST_GROUP1_CHIPLET_OFFSET;
+        l_handle.fields.chiplet_num = i_plat_argument;
         l_handle.fields.type = PPE_TARGET_TYPE_PERV;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+   
     else if(K & TARGET_TYPE_CORE)
     {
-        l_handle.fields.chiplet_num = i_plat_argument + CORE_CHIPLET_OFFSET;
+        l_handle.fields.chiplet_num = (i_plat_argument / 4) + EQ_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_CORE;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+    
     else if(K & TARGET_TYPE_EQ)
     {
         l_handle.fields.chiplet_num = i_plat_argument + EQ_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_EQ;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+    
     else if(K & TARGET_TYPE_EX)
     {
-        l_handle.fields.chiplet_num = (i_plat_argument / 2) + EX_CHIPLET_OFFSET;
+        l_handle.fields.chiplet_num = (i_plat_argument / 2) + EQ_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_EX;
         l_handle.fields.type_target_num = i_plat_argument;
     }
-    else if(K & TARGET_TYPE_MCBIST)
-    {
-        l_handle.fields.chiplet_num = i_plat_argument + MCBIST_CHIPLET_OFFSET;
-        l_handle.fields.type = PPE_TARGET_TYPE_MCBIST;
-        l_handle.fields.type_target_num = i_plat_argument;
-    }
-    else if(K & TARGET_TYPE_MCS)
-    {
-        l_handle.fields.chiplet_num = N3_CHIPLET - (MCS_PER_MCBIST * (i_plat_argument / MCS_PER_MCBIST));
-        l_handle.fields.type = PPE_TARGET_TYPE_MCS;
-        l_handle.fields.type_target_num = i_plat_argument;
-        l_handle.fields.sat_id = (2 * (i_plat_argument & 1));
-    }
+    
     else if(K & TARGET_TYPE_PHB)
     {
-        static const uint8_t chiplet_map[6] =
-            {PCI0_CHIPLET,   PCI0_CHIPLET+1, PCI0_CHIPLET+1,
-             PCI0_CHIPLET+2, PCI0_CHIPLET+2, PCI0_CHIPLET+2};
-        l_handle.fields.chiplet_num = chiplet_map[i_plat_argument];
+        l_handle.fields.chiplet_num = (i_plat_argument / 3) + PHB_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_PHB;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+   
+    else if(K & TARGET_TYPE_MCS)
+    {
+        //l_handle.fields.chiplet_num = N3_CHIPLET - (MCS_PER_MCBIST * (i_plat_argument / MCS_PER_MCBIST));
+        l_handle.fields.chiplet_num = (i_plat_argument / MCS_PER_MCBIST) + MCBIST_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_MCS;
+        l_handle.fields.type_target_num = i_plat_argument;
+        l_handle.fields.sat_id = (2 * (i_plat_argument & 1)); 
+    }
+
     else if(K & TARGET_TYPE_MC)
     {
         l_handle.fields.chiplet_num = i_plat_argument + MC_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_MC;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+
+    else if(K & TARGET_TYPE_MCBIST)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + MCBIST_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_MCBIST;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    
+    else if(K & TARGET_TYPE_PAU)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + PAU_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_PAU;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    
+    else if(K & TARGET_TYPE_IOHS)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + IOHS_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_IOHS;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    
     else if(K & TARGET_TYPE_MI)
     {
-        l_handle.fields.chiplet_num = N3_CHIPLET - (MI_PER_MC * (i_plat_argument / MI_PER_MC));
+        //l_handle.fields.chiplet_num = N3_CHIPLET - (MI_PER_MC * (i_plat_argument / MI_PER_MC));
+        l_handle.fields.chiplet_num = (i_plat_argument / MI_PER_MC) + MC_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_MI;
         l_handle.fields.type_target_num = i_plat_argument;
         l_handle.fields.sat_id = (2 * (i_plat_argument & 1));
@@ -190,10 +211,13 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
 }
 
 #ifdef __SBEFW_SEEPROM__
+
 extern fapi2::ReturnCode
     plat_TargetPresent( fapi2::Target<fapi2::TARGET_TYPE_PERV> & i_chiplet_target,
                                     bool & b_present);
 
+//TODO - Clean-up this function, since most of the things are in
+// proc_sbe_attr_setup istep istep 2.2
     ReturnCode plat_AttrInit()
     {
         union
@@ -215,7 +239,7 @@ extern fapi2::ReturnCode
 
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         uint8_t l_ec = 0;
-        //uint8_t fusedMode = 0;
+        uint8_t fusedMode = 0;
         fapi2::buffer<uint64_t> l_tempReg = 0;
         fapi2::buffer<uint64_t> l_scratch8Reg = 0;
         fapi2::buffer<uint8_t> l_read1 = 0;
@@ -224,24 +248,24 @@ extern fapi2::ReturnCode
         fapi2::buffer<uint16_t> l_read4 = 0;
         fapi2::buffer<uint32_t> l_read5 = 0;
         fapi2::buffer<uint64_t> l_deviceIdReg = 0;
-        uint8_t l_riskLvl  = 0;
+        //uint8_t l_riskLvl  = 0;
         bool l_isSlave = false;
         //uint8_t l_smfConfig = 0;
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chipTarget =
             plat_getChipTarget();
         const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-        const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_VALID_BIT = 0;
-        const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_GROUP_ID_STARTBIT = 1;
-        const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_CHIP_ID_STARTBIT = 4;
-        const size_t ATTR_PROC_MEM_TO_USE_GROUP_ID_STARTBIT = 0;
-        const size_t ATTR_PROC_MEM_TO_USE_CHIP_ID_STARTBIT = 3;
-        const size_t ATTR_PROC_FABRIC_GROUP_ID_LENGTH   = 3;
-        const size_t ATTR_PROC_FABRIC_CHIP_ID_LENGTH    = 3;
-        uint8_t l_proc_chip_mem_to_use_valid = 0;
-        uint8_t l_proc_chip_mem_to_use_group_id = 0;
-        uint8_t l_proc_chip_mem_to_use_chip_id = 0;
-        bool l_proc_chip_mem_to_use_set = false;
-        fapi2::buffer<uint8_t> l_proc_chip_mem_to_use_attr = 0;
+        //const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_VALID_BIT = 0;
+        //const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_GROUP_ID_STARTBIT = 1;
+        //const size_t SCRATCH_PROC_CHIP_MEM_TO_USE_CHIP_ID_STARTBIT = 4;
+        //const size_t ATTR_PROC_MEM_TO_USE_GROUP_ID_STARTBIT = 0;
+        //const size_t ATTR_PROC_MEM_TO_USE_CHIP_ID_STARTBIT = 3;
+        //const size_t ATTR_PROC_FABRIC_GROUP_ID_LENGTH   = 3;
+        //const size_t ATTR_PROC_FABRIC_CHIP_ID_LENGTH    = 3;
+        //uint8_t l_proc_chip_mem_to_use_valid = 0;
+        //uint8_t l_proc_chip_mem_to_use_group_id = 0;
+        //uint8_t l_proc_chip_mem_to_use_chip_id = 0;
+        //bool l_proc_chip_mem_to_use_set = false;
+        //fapi2::buffer<uint8_t> l_proc_chip_mem_to_use_attr = 0;
 
 
         //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_riskLvl));
@@ -262,21 +286,19 @@ extern fapi2::ReturnCode
         {
             FAPI_DBG("Reading Scratch_reg1");
             //Getting SCRATCH_REGISTER_1 register value
-            FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_1_SCOM,
-                                    l_tempReg));
+            //FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_1_SCOM,
+            //                        l_tempReg));
 
-            l_tempReg.extract<0, 6>(l_read1);
-            l_tempReg.extract<8, 24>(l_read5);
+            //l_tempReg.extract<0, 31>(l_read1);
 
-            FAPI_DBG("Setting up ATTR_EQ_GARD, ATTR_EC_GARD");
-            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EQ_GARD, l_chipTarget, l_read1));
-            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC_GARD, l_chipTarget, l_read5));
+            //FAPI_DBG("Setting up ATTR_CORE_GARD");
+            //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_CORE_GARD, l_chipTarget, l_read1));
 
             l_read1 = 0;
-            l_read5 = 0;
         }
         if ( l_scratch8Reg.getBit<1>() )
         {
+#if 0
             uint8_t l_ob0PllBucket = 0;
             uint8_t l_ob1PllBucket = 0;
             uint8_t l_ob2PllBucket = 0;
@@ -335,6 +357,7 @@ extern fapi2::ReturnCode
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB1_PLL_BUCKET, l_chipTarget, l_ob1PllBucket));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB2_PLL_BUCKET, l_chipTarget, l_ob2PllBucket));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_OB3_PLL_BUCKET, l_chipTarget, l_ob3PllBucket));
+#endif
         }
 
         if ( l_scratch8Reg.getBit<2>() )
@@ -362,11 +385,12 @@ extern fapi2::ReturnCode
 #endif
             }
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE, l_chipTarget, isSpMode));
-            l_tempReg.extractToRight<28, 4>(l_riskLvl);
+            //l_tempReg.extractToRight<28, 4>(l_riskLvl);
         }
 
         if ( l_scratch8Reg.getBit<3>() )
         {
+#if 0
             uint8_t l_cpFilterBypass = 0;
             uint8_t l_ssFilterBypass = 0;
             uint8_t l_ioFilterBypass = 0;
@@ -403,10 +427,12 @@ extern fapi2::ReturnCode
 
             l_read1 = 0;
             l_read4 = 0;
+#endif
         }
 
         if ( l_scratch8Reg.getBit<4>() )
         {
+#if 0
             uint8_t l_disableHbblVectors = 0;
             uint32_t l_pllMux = 0;
             uint8_t l_mcSyncMode = 0;
@@ -448,6 +474,7 @@ extern fapi2::ReturnCode
             //FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_SYNC_MODE, l_chipTarget, l_mcSyncMode));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_DD1_SLOW_PCI_REF_CLOCK, FAPI_SYSTEM, l_slowPciRefClock));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_CLOCK_PLL_MUX, l_chipTarget, l_pllMux));
+#endif
         }
 
         if ( l_scratch8Reg.getBit<5>() )
@@ -459,6 +486,7 @@ extern fapi2::ReturnCode
             FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_6_SCOM,
                                     l_tempReg));
 
+#if 0
             l_tempReg.extractToRight<SCRATCH_PROC_CHIP_MEM_TO_USE_VALID_BIT,
                               1>(l_proc_chip_mem_to_use_valid);
             if (l_proc_chip_mem_to_use_valid)
@@ -471,7 +499,7 @@ extern fapi2::ReturnCode
                                   ATTR_PROC_FABRIC_CHIP_ID_LENGTH>(l_proc_chip_mem_to_use_chip_id);
                 l_proc_chip_mem_to_use_set = true;
             }
-
+#endif
             l_read1 = 0;
             l_isSlave = l_tempReg.getBit<24>();
 
@@ -486,6 +514,10 @@ extern fapi2::ReturnCode
                 }
             }
 
+            FAPI_DBG("Setting up MASTER_CHIP, FABRIC_GROUP_ID and CHIP_ID");
+            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_SBE_MASTER_CHIP, l_chipTarget,
+                                   l_read1));
+#if 0
             //if (l_tempReg.getBit<23>())
             //{
             //    l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_GROUP;
@@ -509,9 +541,6 @@ extern fapi2::ReturnCode
             //                        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
             //                        l_pumpMode));
 
-            FAPI_DBG("Setting up MASTER_CHIP, FABRIC_GROUP_ID and CHIP_ID");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_SBE_MASTER_CHIP, l_chipTarget,
-                                   l_read1));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_GROUP_ID, l_chipTarget,
             //                       l_read2));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_CHIP_ID, l_chipTarget,
@@ -524,7 +553,9 @@ extern fapi2::ReturnCode
             //                       l_read2));
             //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_EFF_FABRIC_CHIP_ID, l_chipTarget,
             //                       l_read3));
+#endif        
         }
+#if 0
         if (!l_proc_chip_mem_to_use_set)
         {
             //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID,
@@ -548,6 +579,7 @@ extern fapi2::ReturnCode
 
         //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM,
         //                       l_riskLvl));
+#endif
         FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
         l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
         switch(l_deviceId.iv_chipId)
@@ -560,12 +592,13 @@ extern fapi2::ReturnCode
                          static_cast<uint8_t>(l_deviceId.iv_chipId));
                 assert(false);
         }
-        //fusedMode = (uint8_t)l_deviceId.iv_fusedMode;
+        
+        fusedMode = (uint8_t)l_deviceId.iv_fusedMode;
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC, l_chipTarget, l_ec));
-        //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
-        //                        fapi2::Target<TARGET_TYPE_SYSTEM>(),
-        //                        fusedMode));
+        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
+                                fapi2::Target<TARGET_TYPE_SYSTEM>(),
+                                fusedMode));
 
         { // scope initializer to resolve compile issues
 
@@ -598,16 +631,40 @@ fapi_try_exit:
         uint32_t l_idx = 0;
 
         if((i_chipletNumber > 0) &&
-           (i_chipletNumber < (EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT)))
+           (i_chipletNumber < (NEST_CHIPLET_OFFSET + NEST_TARGET_COUNT)))
         {
-            l_idx = (i_chipletNumber - NEST_GROUP1_CHIPLET_OFFSET) +
-                NEST_GROUP1_TARGET_OFFSET;
+            l_idx = (i_chipletNumber - NEST_CHIPLET_OFFSET) +
+                NEST_TARGET_OFFSET;
         }
-        else if((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT)))
+        else if((i_chipletNumber >= PCI_CHIPLET_OFFSET) && 
+               (i_chipletNumber < PCI_CHIPLET_OFFSET + PCI_TARGET_COUNT))
         {
-            l_idx = (i_chipletNumber - CORE_CHIPLET_OFFSET) +
-                CORE_TARGET_OFFSET;
+            l_idx = (i_chipletNumber - PCI_CHIPLET_OFFSET) +
+                PCI_TARGET_OFFSET;
+        }
+        else if((i_chipletNumber >= MC_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (MC_CHIPLET_OFFSET + MC_TARGET_COUNT)))
+        {
+            l_idx = (i_chipletNumber - MC_CHIPLET_OFFSET) +
+                MC_TARGET_OFFSET;
+        }
+        else if((i_chipletNumber >= PAU_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (PAU_CHIPLET_OFFSET + PAU_TARGET_COUNT)))
+        {
+            l_idx = (i_chipletNumber - PAU_CHIPLET_OFFSET) +
+                PAU_TARGET_OFFSET;
+        }
+        else if((i_chipletNumber >= IOHS_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (IOHS_CHIPLET_OFFSET + IOHS_TARGET_COUNT)))
+        {
+            l_idx = (i_chipletNumber - IOHS_CHIPLET_OFFSET) +
+                IOHS_TARGET_OFFSET;
+        }
+        else if((i_chipletNumber >= EQ_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT)))
+        {
+            l_idx = (i_chipletNumber - EQ_CHIPLET_OFFSET) +
+                EQ_TARGET_OFFSET;
         }
         else
         {
@@ -628,7 +685,7 @@ fapi_try_exit:
                 EQ_TARGET_OFFSET;
         return G_vec_targets[l_idx];
     }
-
+    
     // Get the plat target handle by chiplet number - For CORE targets
     template<>
     plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_CORE>(
@@ -648,11 +705,39 @@ fapi_try_exit:
     plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
             const uint8_t i_chipletNumber)
     {
-        assert(((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT))));
+        assert(((i_chipletNumber >= EX_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (EX_CHIPLET_OFFSET + EX_TARGET_COUNT))));
 
-        uint32_t l_idx = ((i_chipletNumber - CORE_CHIPLET_OFFSET) / 2) +
+        uint32_t l_idx = (i_chipletNumber - EX_CHIPLET_OFFSET) +
                  EX_TARGET_OFFSET;
+
+        return G_vec_targets[l_idx];
+    }
+
+    // Get the plat target handle by chiplet number - For PAU targets
+    template<>
+    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PAU>(
+            const uint8_t i_chipletNumber)
+    {
+        assert(((i_chipletNumber >= PAU_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (PAU_CHIPLET_OFFSET + PAU_TARGET_COUNT))));
+
+        uint32_t l_idx = (i_chipletNumber - PAU_CHIPLET_OFFSET) +
+                 PAU_TARGET_OFFSET;
+
+        return G_vec_targets[l_idx];
+    }
+
+    // Get the plat target handle by chiplet number - For IOHS targets
+    template<>
+    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_IOHS>(
+            const uint8_t i_chipletNumber)
+    {
+        assert(((i_chipletNumber >= IOHS_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (IOHS_CHIPLET_OFFSET + IOHS_TARGET_COUNT))));
+
+        uint32_t l_idx = (i_chipletNumber - IOHS_CHIPLET_OFFSET) +
+                 IOHS_TARGET_OFFSET;
 
         return G_vec_targets[l_idx];
     }
@@ -667,6 +752,16 @@ fapi_try_exit:
         return G_vec_targets[i_targetNum + EX_TARGET_OFFSET];
     }
 
+    // Get plat target handle by instance number - For Core targets
+    template <>
+    plat_target_handle_t plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(
+            const uint8_t i_targetNum)
+    {
+        assert(i_targetNum < CORE_TARGET_COUNT);
+
+        return G_vec_targets[i_targetNum + CORE_TARGET_OFFSET];
+    }
+
 
     TargetType plat_target_handle_t::getFapiTargetType() const
     {
@@ -675,12 +770,6 @@ fapi_try_exit:
         {
             case PPE_TARGET_TYPE_PROC_CHIP:
                 l_targetType = TARGET_TYPE_PROC_CHIP;
-                break;
-            case PPE_TARGET_TYPE_MCS:
-                l_targetType = TARGET_TYPE_MCS;
-                break;
-            case PPE_TARGET_TYPE_MI:
-                l_targetType = TARGET_TYPE_MI;
                 break;
             case PPE_TARGET_TYPE_PHB:
                 l_targetType = TARGET_TYPE_PHB;
@@ -700,11 +789,23 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_SYSTEM:
                 l_targetType = TARGET_TYPE_SYSTEM;
                 break;
+            case PPE_TARGET_TYPE_MC:
+                l_targetType = TARGET_TYPE_MC;
+                break;
             case PPE_TARGET_TYPE_MCBIST:
                 l_targetType = TARGET_TYPE_MCBIST;
                 break;
-            case PPE_TARGET_TYPE_MC:
-                l_targetType = TARGET_TYPE_MC;
+            case PPE_TARGET_TYPE_PAU:
+                l_targetType = TARGET_TYPE_PAU;
+                break;
+            case PPE_TARGET_TYPE_IOHS:
+                l_targetType = TARGET_TYPE_IOHS;
+                break;
+            case PPE_TARGET_TYPE_MCS:
+                l_targetType = TARGET_TYPE_MCS;
+                break;
+            case PPE_TARGET_TYPE_MI:
+                l_targetType = TARGET_TYPE_MI;
                 break;
             case PPE_TARGET_TYPE_NONE:
             default:
@@ -727,19 +828,10 @@ fapi_try_exit:
                 assert(isPerv());
                 l_handle = *this;
                 break;
-            case TARGET_TYPE_EX:
-                assert(fields.type == PPE_TARGET_TYPE_CORE);
-                l_handle = G_vec_targets
-                    [(fields.type_target_num / EX_PER_QUAD) + EX_TARGET_OFFSET];
-                break;
             case TARGET_TYPE_EQ:
-                assert(fields.type == PPE_TARGET_TYPE_EX || fields.type == PPE_TARGET_TYPE_CORE);
+                assert(fields.type == PPE_TARGET_TYPE_CORE);
                 {
-                    uint32_t l_perQuad = (fields.type == PPE_TARGET_TYPE_EX) ?
-                                         EX_PER_QUAD : CORES_PER_QUAD;
-                    l_handle = G_vec_targets
-                        [(fields.type_target_num / l_perQuad) +
-                         EQ_TARGET_OFFSET];
+                    l_handle = G_vec_targets[(fields.type_target_num / CORES_PER_QUAD) + EQ_TARGET_OFFSET];
                 }
                 break;
             default:
@@ -748,6 +840,7 @@ fapi_try_exit:
         return l_handle;
     }
 
+    // TODO - Need to check this
     void plat_target_handle_t::getChildren(const TargetType i_parentType,
                                            const TargetType i_childType,
                                            const plat_target_type_t i_platType,
@@ -784,14 +877,6 @@ fapi_try_exit:
                 static_cast<TargetType>(l_targetType & ~(TARGET_TYPE_PROC_CHIP));
         }
 
-        // EQ ==> EX
-        if((l_targetType == TARGET_TYPE_EQ) && (i_childType == TARGET_TYPE_EX))
-        {
-            l_childPerChiplet = EX_PER_QUAD;
-            l_childTargetOffset = EX_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-
         // EQ ==> EC
         if((l_targetType == TARGET_TYPE_EQ) && (i_childType == TARGET_TYPE_CORE))
         {
@@ -800,13 +885,6 @@ fapi_try_exit:
             l_loopCount = l_childPerChiplet;
         }
 
-        // EX ==> EC
-        if((l_targetType == TARGET_TYPE_EX) && (i_childType == TARGET_TYPE_CORE))
-        {
-            l_childPerChiplet = CORES_PER_EX;
-            l_childTargetOffset = CORE_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
         // else it is TARGET_TYPE_PROC_CHIP ==> anything, and we iterate over
         // all the targets
 
@@ -838,10 +916,12 @@ fapi_try_exit:
         }
     }
 
-    void plat_target_handle_t::getChildren(const TargetFilter i_filter,
-                                           const TargetState i_state,
-                                           std::vector<plat_target_handle_t>
-                                           &o_children) const
+    
+    // TODO - Need to check this
+    void plat_target_handle_t::getChildren(
+                const TargetFilter i_filter,
+                const TargetState i_state,
+                std::vector<plat_target_handle_t> &o_children) const
     {
         static const uint64_t mask = 1;
 
@@ -854,7 +934,7 @@ fapi_try_exit:
         {
             if (i_filter & (mask << (((sizeof(TargetFilter)*8)-1) - l_idx)))
             {
-                plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx + NEST_GROUP1_CHIPLET_OFFSET);
+                plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx);
 
                 if(l_targetHandle.isPerv()) // Can be an assertion?
                 {
@@ -886,7 +966,7 @@ fapi_try_exit:
             false, // PPE_TARGET_TYPE_NONE
             false, // PPE_TARGET_TYPE_PROC_CHIP
             false, // PPE_TARGET_TYPE_MCS
-            true,  // PPE_TARGET_TYPE_CORE
+            false,  // PPE_TARGET_TYPE_CORE
             true,  // PPE_TARGET_TYPE_EQ
             false, // PPE_TARGET_TYPE_EX
             true,  // PPE_TARGET_TYPE_PERV
@@ -895,8 +975,8 @@ fapi_try_exit:
             false, // PPE_TARGET_TYPE_PHB
             false, // PPE_TARGET_TYPE_MI
             true,  // PPE_TARGET_TYPE_MC
-            false, // 0x0C
-            false, // 0x0D
+            true,  // PPE_TARGET_TYPE_PAU
+            true, // PPE_TARGET_TYPE_IOHS
             false, // 0x0E
             false, // 0x0F
         };
@@ -934,27 +1014,12 @@ fapi_try_exit:
 
         FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, plat_getChipTarget(), l_chipName));
 
-        // TODO via RTC 164026
-        // In nimbus all pervasive chiplets (non quad, non core), are present
-        // other than OBUS1 and OBUS2. In cumulus all chiplets are present.
-        // Though on field parts, all chiplets which are present should be
-        // functional. But in lab when we can get partial good parts, its
-        // possible that few chiplets are not functional. So we need to
-        // differentiate between present versus functional chiplets.
-        // We need to see if we need to use same strategy for cores/caches as
-        // well.
-        // Also in current code we are hard coding the chiplets. We need to use
-        // attribute to differentiate between nimbus versus cumulus config.
-        static const size_t OBUS1 = 10;
-        static const size_t OBUS2 = 11;
-        if(OBUS1 == i_chiplet_target.getChipletNumber() ||
-            OBUS2 == i_chiplet_target.getChipletNumber() )
+        // TODO - Check if this is required. Should we do all the Perv Targets
+        // with PG Record ??
+        if( i_chiplet_target.getChipletNumber() < EQ_CHIPLET_OFFSET )
         {
             static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
-        }
-        else if( i_chiplet_target.getChipletNumber() < EQ_CHIPLET_OFFSET )
-        {
-            static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setPresent();
+            static_cast<plat_target_handle_t&>((i_chiplet_target.operator()())).setFunctional(true);
         }
         // Find the PERV target number in the partial good initialization
         // array
@@ -1041,56 +1106,89 @@ fapi_try_exit:
         FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, plat_getChipTarget(), l_chipName));
 
         /*
-         * Nest Targets - group 1
+         * Nest Targets
          */
-        l_beginning_offset = NEST_GROUP1_TARGET_OFFSET;
-        for (uint32_t i = 0; i < NEST_GROUP1_TARGET_COUNT; ++i)
+        l_beginning_offset = NEST_TARGET_OFFSET;
+        for (uint32_t i = 0; i < NEST_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PERV>(i)));
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PERV>(i + NEST_CHIPLET_OFFSET)));
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
             FAPI_TRY(plat_TargetPresent(target_name, b_present));
 
-            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
+            G_vec_targets.at(i + l_beginning_offset) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
         /*
-         * Memory Controller Synchronous (MCBIST/MC) Targets
+         * PCI Targets
          */
 
-        // Note: MCBIST/MC have the same offset and counts, so the loop just
-        // uses MCBIST constants
-        l_beginning_offset = MCBIST_TARGET_OFFSET;
-        for (uint32_t i = 0; i < MCBIST_TARGET_COUNT; ++i)
+        l_beginning_offset = PCI_TARGET_OFFSET;
+        for (uint32_t i = 0; i < PCI_TARGET_COUNT; ++i)
         {
-            if( fapi2::ENUM_ATTR_NAME_P10 == l_chipName )
-            {
-                l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MC>(i);
-            }
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PERV>(i + PCI_CHIPLET_OFFSET)));
+
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            FAPI_TRY(plat_TargetPresent(target_name, b_present));
+
+            G_vec_targets.at(i + l_beginning_offset) = (fapi2::plat_target_handle_t)(target_name.get());
+        }
+
+        /*
+         * Note: MCBIST/MC have the same offset and counts, so the loop just
+         *       uses MC constants
+         */
+
+        l_beginning_offset = MC_TARGET_OFFSET;
+        for (uint32_t i = 0; i < MC_TARGET_COUNT; ++i)
+        {
+            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MC>(i);
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
+            //FAPI_TRY(plat_TargetPresent(target_name, b_present));
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
 
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
         }
 
         /*
-         * Nest Targets - group 2
+         * PAU Targets
          */
-        l_beginning_offset = NEST_GROUP2_TARGET_OFFSET;
-        for (uint32_t i = NEST_GROUP2_TARGET_OFFSET;
-                i < (NEST_GROUP2_TARGET_OFFSET + NEST_GROUP2_TARGET_COUNT); ++i)
+
+        l_beginning_offset = PAU_TARGET_OFFSET;
+        for (uint32_t i = 0; i < PAU_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PERV>(i - 1)));
+            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_PAU>(i);
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
-            FAPI_TRY(plat_TargetPresent(target_name, b_present));
+            //FAPI_TRY(plat_TargetPresent(target_name, b_present));
+            FAPI_TRY(plat_TargetPresent(l_perv, b_present));
 
-            G_vec_targets.at(i) = (fapi2::plat_target_handle_t)(target_name.get());
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
+        }
+
+        /*
+         * IOHS Targets
+         */
+
+        l_beginning_offset = IOHS_TARGET_OFFSET;
+        for (uint32_t i = 0; i < IOHS_TARGET_COUNT; ++i)
+        {
+            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_IOHS>(i);
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
+
+            // Determine if the chiplet is present and, thus, functional
+            // via partial good attributes
+            //FAPI_TRY(plat_TargetPresent(target_name, b_present));
+            FAPI_TRY(plat_TargetPresent(l_perv, b_present));
+
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
         }
 
         /*
@@ -1099,11 +1197,12 @@ fapi_try_exit:
         l_beginning_offset = EQ_TARGET_OFFSET;
         for (uint32_t i = 0; i < EQ_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_EQ> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_EQ>(i)));
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv = target_name.getParent<fapi2::TARGET_TYPE_PERV>();
+            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_EQ>(i);
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
+            //FAPI_TRY(plat_TargetPresent(target_name, b_present));
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
 
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
@@ -1117,47 +1216,31 @@ fapi_try_exit:
         for (uint32_t i = 0; i < CORE_TARGET_COUNT; ++i)
         {
             fapi2::Target<fapi2::TARGET_TYPE_CORE> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_CORE>(i)));
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv = target_name.getParent<fapi2::TARGET_TYPE_PERV>();
+            
+            // Get the parent CORE's ATTR_PG
+            // TODO - Fix this
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
 
-            // Determine if the chiplet is present and, thus, functional
-            // via partial good attributes
-            FAPI_TRY(plat_TargetPresent(l_perv, b_present));
-
-            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
         /*
          * EX Targets
          */
-
         l_beginning_offset = EX_TARGET_OFFSET;
         for (uint32_t i = 0; i < EX_TARGET_COUNT; ++i)
         {
             fapi2::Target<fapi2::TARGET_TYPE_EX> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_EX>(i)));
 
-            fapi2::Target<fapi2::TARGET_TYPE_EQ> l_parent = target_name.getParent<fapi2::TARGET_TYPE_EQ>();
+            //fapi2::Target<fapi2::TARGET_TYPE_EQ> l_parent = target_name.getParent<fapi2::TARGET_TYPE_EQ>();
 
             // Get the parent EQ's ATTR_PG
-            uint32_t l_eqAttrPg = 0;
-            FAPI_ATTR_GET(fapi2::ATTR_PG, l_parent.getParent<TARGET_TYPE_PERV>(), l_eqAttrPg);
+            // TODO - Fix this
 
-            // Check if this EX's L2 and L3 regions are marked "good"
-            if(0 == (i % EX_PER_QUAD))
-            {
-                // Bits 6 and 8 need to be 0
-                l_eqAttrPg &= 0x0280;
-            }
-            else
-            {
-                // Bits 7 and 9 need to be 0
-                l_eqAttrPg &= 0x0140;
-            }
-
-            if(0 == l_eqAttrPg)
-            {
-                static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
-                static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
-            }
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
+            
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
@@ -1170,13 +1253,10 @@ fapi_try_exit:
         l_beginning_offset = MCS_TARGET_OFFSET;
         for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
         {
-            if( fapi2::ENUM_ATTR_NAME_P10 == l_chipName )
-            {
-                l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MI>(i);
-            }
+            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MI>(i);
 
             fapi2::Target<fapi2::TARGET_TYPE_PERV>
-                l_nestTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(N3_CHIPLET - (MCS_PER_MCBIST * (i / MCS_PER_MCBIST)))));
+                l_nestTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>( (i/MCS_PER_MCBIST) + MCBIST_CHIPLET_OFFSET)));
 
             uint32_t l_attrPg = 0;
 
@@ -1201,7 +1281,7 @@ fapi_try_exit:
 
             G_vec_targets.at(l_beginning_offset+i) = l_platHandle;
         }
-
+        
         /*
          * PHB Targets
          */
@@ -1211,22 +1291,14 @@ fapi_try_exit:
             fapi2::Target<fapi2::TARGET_TYPE_PHB> target_name(createPlatTargetHandle<fapi2::TARGET_TYPE_PHB>(i));
 
             fapi2::Target<fapi2::TARGET_TYPE_PERV>
-                l_pciTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(target_name.getChipletNumber())));
+                l_pciTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(target_name.getChipletNumber()/3)));
 
-            constexpr uint16_t l_pciPgArray[] = {0xE1FD, 0xE0FD, 0xE07D};
-            uint32_t l_attrPg = 0;
-
-            FAPI_ATTR_GET(fapi2::ATTR_PG, l_pciTarget, l_attrPg);
-
-            if(l_pciPgArray[target_name.getChipletNumber() - PCI0_CHIPLET] == l_attrPg)
-            {
-                static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
-                static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
-            }
+            // Get the PHB's ATTR_PG
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
 
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
-
 
 fapi_try_exit:
         return fapi2::current_err;
@@ -1248,6 +1320,7 @@ fapi_try_exit:
     //  ATTR_EQ_GARD/ATTR_EC_GARD) to mark corresponding targets non functional
     ReturnCode plat_ApplyGards()
     {
+#if 0
         uint8_t l_eqGards = 0;
         uint32_t l_ecGards = 0;
         static const uint32_t l_mask = 0x80000000;
@@ -1302,6 +1375,7 @@ fapi_try_exit:
             }
         }
 fapi_try_exit:
+#endif
         return fapi2::current_err;
     }
 #endif //not __SBEFW_SEEPROM__

@@ -139,6 +139,18 @@ namespace fapi2
     }
 
     template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PAU>()
+    {
+        return PPE_TARGET_TYPE_PAU;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_IOHS>()
+    {
+        return PPE_TARGET_TYPE_IOHS;
+    }
+
+    template<>
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PERV>()
     {
         return PPE_TARGET_TYPE_PERV;
@@ -201,7 +213,7 @@ namespace fapi2
             TARGET_TYPE_EQ | TARGET_TYPE_PERV | TARGET_TYPE_EX |
             TARGET_TYPE_MCBIST | TARGET_TYPE_CORE |
             TARGET_TYPE_MCS | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB |
-            TARGET_TYPE_MC | TARGET_TYPE_MI;
+            TARGET_TYPE_MC | TARGET_TYPE_MI | TARGET_TYPE_PAU | TARGET_TYPE_IOHS;
 
         static_assert(((
                        ((K & TARGET_TYPE_PROC_CHILDREN) != TARGET_TYPE_NONE) ||
@@ -217,6 +229,19 @@ namespace fapi2
                         (T != TARGET_TYPE_PROC_CHIP)),
                         "Invalid parent for EQ target, must be PERV or "
                         "PROC_CHIP");
+
+        static_assert(!((K == TARGET_TYPE_IOHS) &&
+                        (T != TARGET_TYPE_PERV) &&
+                        (T != TARGET_TYPE_PROC_CHIP)),
+                        "Invalid parent for IOHS target, must be PERV or "
+                        "PROC_CHIP");
+
+        static_assert(!((K == TARGET_TYPE_PAU) &&
+                        (T != TARGET_TYPE_PERV) &&
+                        (T != TARGET_TYPE_IOHS) &&
+                        (T != TARGET_TYPE_PROC_CHIP)),
+                        "Invalid parent for PAU target, must be PERV or "
+                        "PROC_CHIP or IOHS");
 
         static_assert(!((T == TARGET_TYPE_PROC_CHIP) &&
                         ((K & TARGET_TYPE_PROC_CHILDREN) == TARGET_TYPE_NONE)),

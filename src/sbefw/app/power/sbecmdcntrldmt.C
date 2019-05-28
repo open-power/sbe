@@ -103,10 +103,10 @@ uint32_t sbeCollectDeadmanFfdc (void)
               SbeRegAccess::theSbeRegAccess().getSbeState(),
               SbeRegAccess::theSbeRegAccess().getSbePrevState());
 
+#if 0
     fapi2::Target<fapi2::TARGET_TYPE_CORE> coreTarget (
            plat_getTargetHandleByChipletNumber <fapi2::TARGET_TYPE_CORE> (
            (SBE_GLOBAL->deadmanCore + CORE_CHIPLET_OFFSET) ));
-#if 0
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     // p9_collect_deadman_ffdc collects the required ffdc into the fapi rc
     // which will be available in the SBE Global HWP FFDC region

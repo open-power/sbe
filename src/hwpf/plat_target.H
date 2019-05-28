@@ -41,11 +41,10 @@
 static const uint8_t CORES_PER_QUAD = 4;
 static const uint8_t EX_PER_QUAD = 2;
 static const uint8_t CORES_PER_EX = 2;
-static const uint8_t N2_CHIPLET = 4;
-static const uint8_t N3_CHIPLET = 5;
+static const uint8_t NEST_CHIPLET = 2;
+static const uint8_t PCI_CHIPLET = 2;
 static const uint8_t MCS_PER_MCBIST = 2;
 static const uint8_t MI_PER_MC = 2;
-static const uint8_t PCI0_CHIPLET = 0x0D;
 
 //
 // Define what a platform handle looks like. For Hostboot,
@@ -72,6 +71,8 @@ namespace fapi2
         PPE_TARGET_TYPE_PHB               = 0x09,
         PPE_TARGET_TYPE_MI                = 0x0A,
         PPE_TARGET_TYPE_MC                = 0x0B,
+        PPE_TARGET_TYPE_PAU               = 0x0C,
+        PPE_TARGET_TYPE_IOHS              = 0x0D,
     } plat_target_type_t;
 
     /*
