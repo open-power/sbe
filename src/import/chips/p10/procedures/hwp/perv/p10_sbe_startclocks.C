@@ -73,7 +73,7 @@ fapi2::ReturnCode p10_sbe_startclocks(const
             fapi2::TARGET_STATE_FUNCTIONAL);
 
     auto l_mc_all = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
-    auto l_mc_eq = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
+    auto l_mc_eq = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST,
           fapi2::MULTICAST_COMPARE > l_mcast_cmp_target = l_mc_all;
 
