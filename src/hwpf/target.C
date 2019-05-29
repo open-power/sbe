@@ -552,7 +552,7 @@ extern fapi2::ReturnCode
         l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
         switch(l_deviceId.iv_chipId)
         {
-            case 0xD1:
+            case 0xD9:
                 l_chipName = fapi2::ENUM_ATTR_NAME_P10;
                 break;
             default:

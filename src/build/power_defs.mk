@@ -91,7 +91,7 @@ GCC-DEFS += -DDD1
 IMAGE_SEEPROM_NAME := sbe_seeprom_$(IMAGE_SUFFIX)
 IMAGE_SBE_NAME := sbe_pibmem_$(IMAGE_SUFFIX)
 
-IMAGE_LOADER_NAME := sbe_loader
+IMAGE_LOADER_NAME := sbe_loader_$(IMAGE_SUFFIX)
 IMAGE_OTPROM_NAME := sbe_otprom_$(IMAGE_SUFFIX)
 IMAGE_BASE_PPE_HEADER := base_ppe_header
 

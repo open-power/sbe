@@ -98,7 +98,7 @@
 /// The link address of the PIBMEM image
 #define PIBMEM_ORIGIN 0
 
-/// The amount of space available in the PIBMEM, in bytes (224KB)
+/// The amount of space available in the PIBMEM, in bytes (512KB)
 #define PIBMEM_SIZE (512 * 1024)
 
 /// The fixed section of Otprom
