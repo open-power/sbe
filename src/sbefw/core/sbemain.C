@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -261,6 +261,91 @@ int sbeInitThreads(void)
     return l_rc;
 }
 
+#ifdef PIBMEM_ONLY_IMAGE
+void pib_init_sequence(void)
+{
+    uint64_t loadValue = 0x200000000ULL;
+    PPE_STVD(0x50120, loadValue);
+
+    loadValue = 0x200000000000ULL;
+    PPE_STVD(0x50120, loadValue);
+
+    loadValue = 0x900000000000ULL;
+    PPE_STVD(0x50130, loadValue);
+
+    loadValue = 0x200000000ULL;
+    PPE_STVD(0x50130, loadValue);
+
+    loadValue = 0x5000000000000020ULL;
+    PPE_STVD(0x1030001, loadValue);
+
+    loadValue = 0x4000000000ULL;
+    PPE_STVD(0x50134, loadValue);
+
+    loadValue = 0x8000000000000000ULL;
+    PPE_STVD(0x5012A, loadValue);
+
+    loadValue = 0x200000000000ULL;
+    PPE_STVD(0x5013A, loadValue);
+
+    loadValue = 0x280000000000000ULL;
+    PPE_STVD(0x1000021, loadValue);
+
+    loadValue = 0x2000000000000000ULL;
+    PPE_STVD(0x1000010, loadValue);
+
+    loadValue = 0x0ULL;
+    PPE_STVD(0x1030005, loadValue);
+
+    loadValue = 0x428000000000E000ULL;
+    PPE_STVD(0x1030006, loadValue);
+
+    // Compare the values
+    uint64_t fetchValue = 0; 
+    loadValue = 0xC0000000000000ULL;
+    PPE_LVD(0x1000100, fetchValue);
+    if(fetchValue != loadValue)
+    {
+        pk_halt();
+    }
+    loadValue = 0xFFFE00000000000ULL;
+    fetchValue = 0;
+    PPE_LVD(0x1000002, fetchValue);
+    if(fetchValue != loadValue)
+    {
+        pk_halt();
+    }
+    loadValue = 0xF97FFFFFFFFFFFFFULL;
+    fetchValue = 0;
+    PPE_LVD(0x1030008, fetchValue);
+    if(fetchValue != loadValue)
+    {
+        pk_halt();
+    }
+    fetchValue = 0;
+    PPE_LVD(0x1030009, fetchValue);
+    if(fetchValue != loadValue)
+    {
+        pk_halt();
+    }
+    fetchValue = 0;
+    PPE_LVD(0x103000A, fetchValue);
+    if(fetchValue != loadValue)
+    {
+        pk_halt();
+    }
+
+    loadValue = 0x200000000ULL;
+    PPE_STVD(0x50120, loadValue);
+    loadValue = 0x100000000000ULL;
+    PPE_STVD(0x50120, loadValue);
+    loadValue = 0xA00000000000ULL;
+    PPE_STVD(0x50130, loadValue);
+    loadValue = 0x200000000ULL;
+    PPE_STVD(0x50130, loadValue);
+}
+#endif
+
 ////////////////////////////////////////////////////////////////
 // @brief - main : SBE Application main
 ////////////////////////////////////////////////////////////////
@@ -273,6 +358,10 @@ uint32_t main(int argc, char **argv)
     // backup i2c mode register
     uint32_t reg_address = PU_MODE_REGISTER_B;
     PPE_LVD( reg_address, SBE_GLOBAL->i2cModeRegister);
+
+#ifdef PIBMEM_ONLY_IMAGE
+    pib_init_sequence();
+#endif
 
     // @TODO via RTC : 128818
     //       Explore on reclaiming the stack
