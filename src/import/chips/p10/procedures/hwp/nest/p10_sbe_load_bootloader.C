@@ -98,6 +98,13 @@ const uint32_t EXCEPTION_VECTOR_BRANCH = 0x48000000 |
 const bool PBA_HWP_WRITE_OP = false;
 
 //------------------------------------------------------------------------------
+// Namespace declarations
+//------------------------------------------------------------------------------
+
+using namespace scomt;
+using namespace scomt::proc;
+
+//------------------------------------------------------------------------------
 // Function definitions
 //------------------------------------------------------------------------------
 
@@ -262,7 +269,7 @@ get_bootloader_config_data(
 
     if (l_smf_config)
     {
-        l_scom.setBit<FABRIC_ADDR_SMF_BIT>();
+        l_scom.flush<0>().setBit<FABRIC_ADDR_SMF_BIT>();
         l_bootloader_config_data.xscomBAR += l_scom();
     }
 
@@ -301,12 +308,10 @@ get_bootloader_config_data(
              "Error from FAPI_ATTR_GET (ATTR_SECURE_SETTINGS)");
 
     // re-read Secure Access Bit in case it's changed
-    FAPI_TRY(fapi2::getScom(i_master_chip_target,
-                            scomt::proc::TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS,
-                            l_cbs_cs),
-             "Error from getScom (TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS)");
+    FAPI_TRY(GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS(i_master_chip_target, l_cbs_cs),
+             "Error from GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS");
     l_bootloader_config_data.secureSettings.secureAccessBit =
-        scomt::proc::GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT(l_cbs_cs);
+        GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT(l_cbs_cs);
 
     // initialize cacheline storage
     PACK_4B(io_data, l_index, EXCEPTION_VECTOR_BRANCH);
@@ -362,7 +367,7 @@ get_exception_vector_data(
 
     FAPI_DBG("Start");
 
-    // read attribute to determine if we should populate the exception vectors
+    // read attribute to get background pattern for cacheline
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_HBBL_EXCEPTION_INSTRUCT,
                            fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
                            l_exception_instruction),
@@ -455,9 +460,10 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
             // position in load sequence
             if (l_load_exception_vector && (l_cacheline_num == 0))
             {
-                // write bootloader configuration data in first cacheline
+                // set background data for initial cacheline to exception instruction fill pattern
                 FAPI_TRY(get_exception_vector_data(l_data),
                          "Error from get_exception_vector_data");
+                // write bootloader configuration data in first cacheline
                 FAPI_TRY(get_bootloader_config_data(i_master_chip_target,
                                                     l_load_size,
                                                     l_data),
