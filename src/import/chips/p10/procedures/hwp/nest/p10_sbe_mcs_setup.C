@@ -48,13 +48,6 @@
 const uint8_t MC0_PBI01_SCOMFIR_MCFGP0_BASE_ADDRESS_START_BIT = 8;
 const uint8_t NUMBER_MCS = 4;
 
-const uint8_t MCFIR_COMMAND_LIST_TIMEOUT = 8;
-const uint8_t MCFIR_MC_INTERNAL_RECOVERABLE_ERROR = 0;
-const uint8_t MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR = 1;
-const uint8_t MCFIR_POWERBUS_PROTOCOL_ERROR = 2;
-const uint8_t MCFIR_MULTIPLE_BAR = 4;
-const uint8_t MCFIR_INVALID_SMF_ACCESS = 22;
-
 //------------------------------------------------------------------------------
 // Function definitions
 //------------------------------------------------------------------------------
@@ -147,43 +140,35 @@ fapi2::ReturnCode set_hb_dcbz_config(
     FAPI_TRY(GET_SCOMFIR_MCFIRMASK_RW(i_target_mc, l_mcfirmask));
     l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCFIRMASK] = l_mcfirmask;
 
-    //// TODO: RTC: 209749
-    // Still need to use clearBit until these are defined in scom headers//////
     l_mcfirmask.flush<1>();
-    l_mcfirmask.clearBit<MCFIR_COMMAND_LIST_TIMEOUT>();
-    l_mcfirmask.clearBit<MCFIR_MC_INTERNAL_RECOVERABLE_ERROR>();
-    l_mcfirmask.clearBit<MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR>();
-    l_mcfirmask.clearBit<MCFIR_POWERBUS_PROTOCOL_ERROR>();
-    l_mcfirmask.clearBit<MCFIR_MULTIPLE_BAR>();
-    l_mcfirmask.clearBit<MCFIR_INVALID_SMF_ACCESS>();
+    PREP_SCOMFIR_MCFIR_RW(i_target_mc);
+    CLEAR_SCOMFIR_MCFIR_COMMAND_LIST_TIMEOUT(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_POWERBUS_PROTOCOL_ERROR(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_MULTIPLE_BAR_HIT(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_INVALID_SMF_ACCESS(l_mcfirmask);
 
+    PREP_SCOMFIR_MCFIRMASK_RW(i_target_mc);
     FAPI_TRY(PUT_SCOMFIR_MCFIRMASK_RW(i_target_mc, l_mcfirmask));
 
-
-    // TODO: RTC: 209497
-    // HW487308
     // Unmask MC FIR
     // Set MC Fault Isolation Action0 Register/////////////////////////////////
-//    FAPI_TRY(fapi2::getScom(i_target_mc, scomt::mi::SCOMFIR_MCFIRACT0,
-//                            l_mcaction0),
-//             "Error from getScom (MCFIRACT0)");
-//    l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCFIRACT0] = l_mcaction0;
-//
-//    l_mcaction0.flush<0>();
-//    FAPI_TRY(fapi2::putScom(i_target_mc, scomt::mi::SCOMFIR_MCFIRACT0,
-//                            l_mcaction0),
-//             "Error from putScom (MCFIRACT0)");
-    // Set MC Fault Isolation Action1 Register
-//    FAPI_TRY(fapi2::getScom(i_target_mc, scomt::mi::SCOMFIR_MCFIRACT1,
-//                            l_mcaction1),
-//             "Error from getScom (MCFIRACT1)");
-//    l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCFIRACT1] = l_mcaction1;
-//    l_mcaction1.flush<0>();
-//    l_mcaction1.insertFromRight(scomt::omi::MC0_PBI01_MCFIRACT1
-//    FAPI_TRY(fapi2::putScom(i_target_mc, MCFIRACT1, l_mcaction0),
-//             "Error from putScom (MCFIRACT1)");
+    FAPI_TRY(GET_SCOMFIR_MCFIRACT0(i_target_mc, l_mcaction0));
+    l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCFIRACT0] = l_mcaction0;
+    l_mcaction0.flush<0>();
+    FAPI_TRY(PUT_SCOMFIR_MCFIRACT0(i_target_mc, l_mcaction0));
 
-    // MCTO ////////////////////////////////////////////////////////////////////
+    // Set MC Fault Isolation Action1 Register/////////////////////////////////
+    FAPI_TRY(GET_SCOMFIR_MCFIRACT1(i_target_mc, l_mcaction1));
+    l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCFIRACT1] = l_mcaction1;
+    l_mcaction1.flush<0>();
+    PREP_SCOMFIR_MCFIR_RW(i_target_mc);
+    SET_SCOMFIR_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR(l_mcaction1);
+    PREP_SCOMFIR_MCFIRACT1(i_target_mc);
+    FAPI_TRY(PUT_SCOMFIR_MCFIRACT1(i_target_mc, l_mcaction1));
+
+    // MCTO ///////////////////////////////////////////////////////////////////
     FAPI_TRY(GET_SCOMFIR_MCTO(i_target_mc, l_mcto));
     l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCTO] = l_mcto;
 
@@ -258,8 +243,8 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                          fapi2::TARGET_FILTER_ALL_MC),
                      fapi2::TARGET_STATE_FUNCTIONAL))
             {
-                uint8_t l_attr_chip_unit_pos = 0;
-                uint16_t l_pg = 0xFFFF;
+                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+                fapi2::ATTR_PG_Type l_pg = 0xFFFF;
                 FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
                                        l_tgt,
                                        l_attr_chip_unit_pos),
@@ -276,7 +261,7 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
             }
 
             FAPI_ASSERT(false,
-                        fapi2::P10_SBE_MI_SETUP_NO_MC_FOUND_ERR()
+                        fapi2::P10_SBE_MCS_SETUP_NO_MC_FOUND_ERR()
                         .set_CHIP(i_target)
                         .set_IS_MASTER_SBE(l_is_master_sbe)
                         .set_IS_MPIPL(l_is_mpipl)
