@@ -164,6 +164,9 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_MODE, l_pb_mode_data),
              "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_MODE)");
 
+    // initialize topology table attribute for SBE platform
+    FAPI_TRY(topo::init_topology_id_table(i_target));
+
 fapi_try_exit:
     FAPI_DBG("Exiting ...");
     return fapi2::current_err;
