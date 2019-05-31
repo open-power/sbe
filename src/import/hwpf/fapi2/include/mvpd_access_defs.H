@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -123,6 +123,7 @@ enum MvpdKeyword
     MVPD_KEYWORD_L8  = 0x2b,
     MVPD_KEYWORD_PDW = 0x2c,
     MVPD_KEYWORD_AW  = 0x2d,
+    MVPD_KEYWORD_CI  = 0x2e,
     MVPD_KEYWORD_LAST, //useful for testcases
     MVPD_KEYWORD_FIRST = MVPD_KEYWORD_VD, //useful for testcases
 };
