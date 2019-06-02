@@ -378,6 +378,7 @@ static fapi2::ReturnCode enable_spread_spectrum_via_tod(
 
     // Set up the TOD timer unit to trigger on a TOD value of one
     l_data.flush<0>().insertFromRight<PERV_TOD_TIMER_REG_VALUE, PERV_TOD_TIMER_REG_VALUE_LEN>(1ULL);
+    l_data.setBit<60>().setBit<61>();
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_TIMER_REG, l_data));
 
     // Reset the TOD and set it to a value of one to trigger the timer
