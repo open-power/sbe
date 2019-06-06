@@ -268,6 +268,7 @@ ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/chip_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_chip_ec_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p9_hcode_image_build_attributes.xml
 #ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/memory_mcs_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_bars_attributes.xml
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

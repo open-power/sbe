@@ -72,6 +72,8 @@
 #include <p10_sbe_startclocks.H>
 #include <p10_sbe_chiplet_init.H>
 #include <p10_sbe_nest_enable_ridi.H>
+#include <p10_sbe_lpc_init.H>
+#include <p10_sbe_fabricinit.H>
 #include <p10_sbe_select_ex.H>
 // Cache HWP header file
 //#include <p9_hcd_cache.H>
@@ -298,8 +300,8 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, NULL), //p10_sbe_skew_adjust_setup
              ISTEP_MAP( istepWithProc, p10_sbe_nest_enable_ridi),
              ISTEP_MAP( istepWithProc, NULL), //p10_sbe_scominit
-             ISTEP_MAP( istepLpcInit, NULL),  //p10_sbe_lpc
-             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_fabricinit
+             ISTEP_MAP( istepLpcInit, p10_sbe_lpc_init),
+             ISTEP_MAP( istepWithProc, p10_sbe_fabricinit),
              ISTEP_MAP( istepCheckSbeMaster, NULL ),//p10_sbe_check_master
              ISTEP_MAP( istepWithProc, NULL), //p10_sbe_mcs_setup
              ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
@@ -388,13 +390,11 @@ ReturnCode istepWithProc( voidfuncptr_t i_hwp)
 ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
-    //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
     SBE_UART_INIT;
     SBE_MSG_CONSOLE( SBE_CONSOLE_WELCOME_MSG );
-#endif
     return rc;
 }
 //----------------------------------------------------------------------------
