@@ -75,7 +75,7 @@ const char* g_usage =
     "       ipl_image_tool <image> [-i<flag>...] append <section> <file> [<ddSupport>]\n"
     "       ipl_image_tool <image> [-i<flag>...] extract <section={<section>,(none)}> [<ddLevel>] <file>\n"
     "       ipl_image_tool <image> [-i<flag>...] delete <section> [<section1>...<sectionN>]\n"
-    "       ipl_image_tool <image> [-i<flag>...] dissect <section={.rings,.overlays,.dyninits,.overrides,,(none)}> [table,short,normal(default),long,raw]\n"
+    "       ipl_image_tool <image> [-i<flag>...] dissect <section={.rings,.overlays,.dynamic,.overrides,,(none)}> [table,short,normal(default),long,raw]\n"
     "       ipl_image_tool <image> [-i<flag>...] check-sbe-ring-section <ddLevel> <maximum size>\n"
     "\n"
     "This simple application uses the P9-XIP image APIs to normalize, search\n"
@@ -2518,7 +2518,7 @@ dissectRingSection(void*                      i_image,
                     exit(EXIT_FAILURE);
                 }
             }
-            else if (strcmp(sectionName, ".dyninits") == 0)
+            else if (strcmp(sectionName, ".dynamic") == 0)
             {
                 if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
                 {
@@ -2527,7 +2527,7 @@ dissectRingSection(void*                      i_image,
                 else
                 {
                     fprintf(stderr,
-                            "\nERROR: .dyninits is not a valid section for image w/magic=0x%016lx\n",
+                            "\nERROR: .dynamic is not a valid section for image w/magic=0x%016lx\n",
                             hostHeader.iv_magic);
                     exit(EXIT_FAILURE);
                 }
@@ -2553,7 +2553,7 @@ dissectRingSection(void*                      i_image,
                 fprintf(stderr, "Valid ring <section> names for the 'dissect' function are:\n");
                 fprintf(stderr, "\t.rings\n");
                 fprintf(stderr, "\t.overlays\n");
-                fprintf(stderr, "\t.dyninits\n");
+                fprintf(stderr, "\t.dynamic\n");
                 fprintf(stderr, "\t.overrides\n");
                 fprintf(stderr, "\n");
                 exit(EXIT_FAILURE);
