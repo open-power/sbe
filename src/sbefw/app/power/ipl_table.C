@@ -72,6 +72,7 @@
 #include <p10_sbe_startclocks.H>
 #include <p10_sbe_chiplet_init.H>
 #include <p10_sbe_nest_enable_ridi.H>
+#include <p10_sbe_scominit.H>
 #include <p10_sbe_lpc_init.H>
 #include <p10_sbe_fabricinit.H>
 #include <p10_sbe_select_ex.H>
@@ -297,12 +298,12 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_initf),
              ISTEP_MAP( istepWithProc, p10_sbe_startclocks),
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_init),
+             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_chiplet_fir_init
              ISTEP_MAP( istepWithProc, NULL), //p10_sbe_skew_adjust_setup
              ISTEP_MAP( istepWithProc, p10_sbe_nest_enable_ridi),
-             ISTEP_MAP( istepWithProc, NULL), //p10_sbe_scominit
-             ISTEP_MAP( istepLpcInit, p10_sbe_lpc_init),
+             ISTEP_MAP( istepWithProc, p10_sbe_scominit),
+             ISTEP_MAP( istepLpcInit,  p10_sbe_lpc_init),
              ISTEP_MAP( istepWithProc, p10_sbe_fabricinit),
-             ISTEP_MAP( istepCheckSbeMaster, NULL ),//p10_sbe_check_master
              ISTEP_MAP( istepWithProc, NULL), //p10_sbe_mcs_setup
              ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
 #endif
