@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -496,7 +496,8 @@ foreach my $entr (@{$entries->{entry}}) {
                 if($targType ~~ ["TARGET_TYPE_PROC_CHIP", "TARGET_TYPE_SYSTEM",
                     "TARGET_TYPE_CORE", "TARGET_TYPE_MCS", "TARGET_TYPE_PERV",
                     "TARGET_TYPE_EQ", "TARGET_TYPE_EX", "TARGET_TYPE_PHB",
-                    "TARGET_TYPE_MCBIST", "TARGET_TYPE_MC", "TARGET_TYPE_MI"])
+                    "TARGET_TYPE_MCBIST", "TARGET_TYPE_MC", "TARGET_TYPE_MI",
+                    "TARGET_TYPE_PAUC"])
                 {
                     if($targetTypeCount != 0)
                     {

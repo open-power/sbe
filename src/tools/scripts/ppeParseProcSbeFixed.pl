@@ -248,9 +248,17 @@ print CHFILE "#define __PROC_SBE_FIXED_PROC_CHIP_H__\n\n";
 foreach my $attr (@attrChipIds)
 {
 
+    #Check if the attribute is an array type.
     my $value = uc $attr->{valueType};
-    print CHFILE "PROC_SBE_FIXED_$value($attr->{id});\n"
+    if($attr->{array} == "")
+    {
 
+        print CHFILE "PROC_SBE_FIXED_$value($attr->{id});\n"
+    }
+    else
+    {
+        print CHFILE "PROC_SBE_FIXED_$value\_VECTOR($attr->{id}, $attr->{array});\n"
+    }
 
 }
 print CHFILE "\n#endif  // __PROC_SBE_FIXED_PROC_CHIP_H__";

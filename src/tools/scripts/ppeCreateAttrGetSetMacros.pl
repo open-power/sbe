@@ -344,7 +344,7 @@ $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = stat
                   $targetImplementation = "\n" . $targetFunction . "\n{\n  object->fapi2attr::${macroTarget}::${attribute} = i_pvalue;\n}\n";
               }
               else{
-                  $targetImplementation = "\n" . $targetFunction . "\n{\n  for( $type iCount = 0; iCount < $index; iCount++)\n   {\n      const uint8_t *temp = &i_pvalue;\n      object->fapi2attr::${macroTarget}::${attribute}[iCount] = temp[iCount];;\n   }\n}\n";
+                  $targetImplementation = "\n" . $targetFunction . "\n{\n  for( $type iCount = 0; iCount < $index; iCount++)\n   {\n      const $type *temp = &i_pvalue;\n      object->fapi2attr::${macroTarget}::${attribute}[iCount] = temp[iCount];;\n   }\n}\n";
               }
           } else {
               $targetImplementation = "\n" . $targetFunction . "\n{\n   uint32_t index = static_cast<plat_target_handle_t>(i_ptarget.get()).getTargetInstance();\n   object->fapi2attr::${macroTarget}::${attribute}[index] = i_pvalue;\n}\n";
