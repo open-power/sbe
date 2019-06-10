@@ -628,4 +628,9 @@ attribute tank
           <name>ATTR_LPC_CONSOLE_CNFG</name>
           <value>0x00</value>
   </entry>
+  <entry>
+        <name>ATTR_CHIP_EC_FEATURE_I2CM_INTERNAL_CLK_DIV2</name>
+        <virtual/>
+  </entry>
+
 </entries>
