@@ -23,6 +23,12 @@
 #
 # IBM_PROLOG_END_TAG
 PROCEDURE=p10_contained_load
+
+lib$(PROCEDURE)_EXTRALIBS+=p10_l3_flush
+lib$(PROCEDURE)_EXTRALIBS+=p10_putmempba
+
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/nest)
+$(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/nest)
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
+
 $(call BUILD_PROCEDURE)

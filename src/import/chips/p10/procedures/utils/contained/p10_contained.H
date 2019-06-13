@@ -28,6 +28,41 @@
 
 #include <fapi2.H>
 
-/* STUB */
+const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> SYS;
+
+///
+/// @brief Read attribute(s) to determine if clocks should be started in RUNN
+///        or free-running mode
+///
+/// @param[io] io_is_runn Indicates clocks should be started in RUNN mode
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+fapi2::ReturnCode get_contained_run_mode(bool& is_runn);
+
+///
+/// @brief Read attribute(s) to determine contained IPL type
+///
+/// @param[io] io_is_cache_contained Indicates cache-contained boot
+/// @param[io] io_is_chip_contained Indiciates chip-contained boot
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+fapi2::ReturnCode get_contained_ipl_type(bool& io_is_cache_contained,
+        bool& io_is_chip_contained);
+
+///
+/// @brief Determine if a core's cache is configured as "active"
+///
+/// @param[in] i_corenum Number of core to check (0-31)
+/// @param[in] i_active_bvec Bitvector of cores configured to be active
+///
+/// @return true if core is configured as active else false
+///
+inline bool is_active_core(const size_t& i_corenum, const uint32_t& i_active_bvec)
+{
+    return ((1ul << (31 - i_corenum)) & i_active_bvec);
+}
+
 
 #endif

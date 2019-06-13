@@ -36,14 +36,19 @@ typedef fapi2::ReturnCode(*p10_contained_load_FP_t) (const fapi2::Target<fapi2::
 
 extern "C" {
     ///
-    /// @brief
+    /// @brief Load test content for cache- and chip-contained mode IPLs
+    ///        Optionally, load QME image in chip-contained mode
     /// @param[in] i_target             Reference to chip target
-    /// @param[in] i_cache_img_bytes    Size of the cache image to load in bytes
+    /// @param[in] i_cache_start_addr   Start address for where to start loading cache image
+    /// @param[in] i_cache_img_bytes    Size of the cache image to load in bytes (MUST be 128B aligned)
     /// @param[in] i_cache_img          Pointer to the cache image to load
     /// @param[in] i_qme_img_bytes      Size of the QME image to load in bytes
-    /// @param[in] i_qme_img            Pointer to the QME image to load
-    /// @return FAPI2_RC_SUCCESS on success, error otherwise
+    /// @param[in] i_qme_img            Pointer to the QME image to load (or NULL)
+    ///
+    /// @return FAPI2_RC_SUCCESS if success else error code
+    ///
     fapi2::ReturnCode p10_contained_load(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+                                         const uint64_t& i_cache_img_start_addr,
                                          const uint64_t& i_cache_img_bytes,
                                          const uint8_t* i_cache_img,
                                          const uint64_t& i_qme_img_bytes,
