@@ -48,7 +48,7 @@ typedef fapi2::ReturnCode(*p10_putmempba_FP_t) (
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core_target,
     const uint64_t,
     const uint32_t,
-    uint8_t*,
+    const uint8_t*,
     const uint32_t);
 
 //------------------------------------------------------------------------------

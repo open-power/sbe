@@ -97,6 +97,7 @@ fapi2::ReturnCode p10_putmempba(
 
         while (l_granules_before_setup && (l_target_address < l_end_address))
         {
+            size_t l_byte;
             // invoke PBA access HWP to move one granule
             uint8_t l_data[l_granuleSize];
             memset(l_data, 0, l_granuleSize);
@@ -104,7 +105,12 @@ fapi2::ReturnCode p10_putmempba(
             // Load data into array to write.
             for (uint32_t ii = 0; ii < l_granuleSize; ii++)
             {
-                l_data[ii] = i_data[(l_granule * l_granuleSize) + ii];
+                l_byte = (l_granule * l_granuleSize) + ii;
+
+                if (l_byte < i_bytes)
+                {
+                    l_data[ii] = i_data[l_byte];
+                }
             }
 
             FAPI_TRY(p10_pba_access(i_target,
