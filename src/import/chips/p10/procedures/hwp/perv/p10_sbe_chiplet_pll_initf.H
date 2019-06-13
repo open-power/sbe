@@ -25,7 +25,7 @@
 //------------------------------------------------------------------------------
 /// @file  p10_sbe_chiplet_pll_initf.H
 ///
-/// @brief procedure for scan initializing PLL config bits for IOHS, PCI, MC Chiplets
+/// @brief procedure for scan initializing PLL bndy rings for IOHS, PCI, MC Chiplets
 //------------------------------------------------------------------------------
 // *HWP HW Maintainer   : Anusha Reddy (anusrang@in.ibm.com)
 // *HWP FW Maintainer   : Raja Das (rajadas2@in.ibm.com)
@@ -43,9 +43,7 @@
 typedef fapi2::ReturnCode (*p10_sbe_chiplet_pll_initf_FP_t)(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 
-/// @brief If TRUE then skip MC chiplet
-/// run scan0 module  (scan region = PLL, scan_types = GPTR)
-/// run scan0 module  (scan region = PLL, scan_types = BNDY/FUNC)
+/// @brief
 /// Scan initialize PLL BNDY chain (chiplet =[CPLT], scan ring = PLL, scan type = BNDY)
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target

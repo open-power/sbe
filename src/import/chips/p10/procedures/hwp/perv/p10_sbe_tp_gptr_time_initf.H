@@ -38,7 +38,6 @@
 
 #include <fapi2.H>
 
-
 typedef fapi2::ReturnCode (*p10_sbe_tp_gptr_time_initf_FP_t)(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 

@@ -33,14 +33,41 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_initf.H"
+#include "p10_perv_sbe_cmn.H"
+
+static const ring_setup_t ISTEP3_FURE_RINGS[] =
+{
+    { n0_fure,        IGNORE_PG, TARGET_CHIP,    0x2,  0x2,  0},
+    { n1_fure,        IGNORE_PG, TARGET_CHIP,    0x3,  0x3,  0},
+    { n1_nmmu1_fure,  0x9,       TARGET_CHIP,    0x3,  0x3,  0},
+    { pci_fure,       IGNORE_PG, TARGET_CHIPLET, 0x8,  0x9,  0},
+    { pci_ph5_fure,   IGNORE_PG, TARGET_CHIPLET, 0x8,  0x9,  0},
+    { mc_fure,        IGNORE_PG, TARGET_CHIPLET, 0xC,  0xF,  0},
+    { mc_emo_fure,    IGNORE_PG, TARGET_CHIPLET, 0xC,  0xF,  0},
+    { iohs_fure,      IGNORE_PG, TARGET_CHIPLET, 0x18, 0x1F, 0},
+    { iohs_pdl_fure,  IGNORE_PG, TARGET_CHIPLET, 0x18, 0x1F, 0},
+    { iohs_ndl_fure,  0x8,       TARGET_CHIPLET, 0x18, 0x1F, 0},
+    { pau0_fure,      IGNORE_PG, TARGET_CHIP,    0x10, 0x10, 0},
+    { pau1_fure,      IGNORE_PG, TARGET_CHIP,    0x11, 0x11, 0},
+    { pau2_fure,      IGNORE_PG, TARGET_CHIP,    0x12, 0x12, 0},
+    { pau3_fure,      IGNORE_PG, TARGET_CHIP,    0x13, 0x13, 0},
+    { pau0_pau0_fure, 0x5,       TARGET_CHIP,    0x10, 0x10, 0},
+    { pau1_pau3_fure, 0x5,       TARGET_CHIP,    0x11, 0x11, 0},
+    { pau2_pau4_fure, 0x5,       TARGET_CHIP,    0x12, 0x12, 0},
+    { pau2_pau5_fure, 0x6,       TARGET_CHIP,    0x12, 0x12, 0},
+    { pau3_pau6_fure, 0x5,       TARGET_CHIP,    0x13, 0x13, 0},
+    { pau3_pau7_fure, 0x6,       TARGET_CHIP,    0x13, 0x13, 0},
+    { eq_fure,        IGNORE_PG, TARGET_CHIPLET, 0x20, 0x27, 1},
+};
 
 fapi2::ReturnCode p10_sbe_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_INF("p10_sbe_initf: Entering ...");
 
-    // TODO : scan IO rings
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_FURE_RINGS));
 
     FAPI_INF("p10_sbe_initf: Exiting ...");
 
-    return fapi2::FAPI2_RC_SUCCESS;
+fapi_try_exit:
+    return fapi2::current_err;
 }

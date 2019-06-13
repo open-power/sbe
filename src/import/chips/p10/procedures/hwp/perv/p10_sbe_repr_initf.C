@@ -33,17 +33,43 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_repr_initf.H"
+#include "p10_perv_sbe_cmn.H"
+
+static const ring_setup_t ISTEP3_REPR_RINGS[] =
+{
+    { n0_repr,              IGNORE_PG,   TARGET_CHIP,    0x2,  0x2,  0},
+    { n1_repr,              IGNORE_PG,   TARGET_CHIP,    0x3,  0x3,  0},
+    { n1_nmmu1_repr,        0x9,         TARGET_CHIP,    0x3,  0x3,  0},
+    { pci_repr,             IGNORE_PG,   TARGET_CHIPLET, 0x8,  0x9,  0},
+    { pci_ph5_repr,         IGNORE_PG,   TARGET_CHIPLET, 0x8,  0x9,  0},
+    { mc_repr,              IGNORE_PG,   TARGET_CHIPLET, 0xC,  0xF,  0},
+    { mc_emo_repr,          IGNORE_PG,   TARGET_CHIPLET, 0xC,  0xF,  0},
+    { iohs_repr,            IGNORE_PG,   TARGET_CHIPLET, 0x18, 0x1F, 0},
+    { iohs_pdl_repr,        IGNORE_PG,   TARGET_CHIPLET, 0x18, 0x1F, 0},
+    { iohs_ndl_repr,        0x8,         TARGET_CHIPLET, 0x18, 0x1F, 0},
+    { pau0_repr,            IGNORE_PG,   TARGET_CHIP,    0x10, 0x10, 0},
+    { pau1_repr,            IGNORE_PG,   TARGET_CHIP,    0x11, 0x11, 0},
+    { pau2_repr,            IGNORE_PG,   TARGET_CHIP,    0x12, 0x12, 0},
+    { pau3_repr,            IGNORE_PG,   TARGET_CHIP,    0x13, 0x13, 0},
+    { pau0_pau0_repr,       0x5,         TARGET_CHIP,    0x10, 0x10, 0},
+    { pau1_pau3_repr,       0x5,         TARGET_CHIP,    0x11, 0x11, 0},
+    { pau2_pau4_repr,       0x5,         TARGET_CHIP,    0x12, 0x12, 0},
+    { pau2_pau5_repr,       0x6,         TARGET_CHIP,    0x12, 0x12, 0},
+    { pau3_pau6_repr,       0x5,         TARGET_CHIP,    0x13, 0x13, 0},
+    { pau3_pau7_repr,       0x6,         TARGET_CHIP,    0x13, 0x13, 0},
+    { eq_repr,              IGNORE_PG,   TARGET_CHIPLET, 0x20, 0x27, 1},
+};
 
 fapi2::ReturnCode p10_sbe_repr_initf(const
                                      fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-
     FAPI_INF("p10_sbe_repr_initf: Entering ...");
 
-    // TODO : scan all perv chiplets repr rings
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_REPR_RINGS));
 
     FAPI_INF("p10_sbe_repr_initf: Exiting ...");
 
-    return fapi2::FAPI2_RC_SUCCESS;
+fapi_try_exit:
+    return fapi2::current_err;
 
 }

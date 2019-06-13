@@ -33,14 +33,25 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_tp_initf.H"
+#include "p10_perv_sbe_cmn.H"
+
+static const ring_setup_t ISTEP2_FURE_RINGS[] =
+{
+    { perv_fure,      IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
+    // perv & occ regions are merged for all ring types other than fure
+    { occ_fure,  IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 1},
+};
 
 fapi2::ReturnCode p10_sbe_tp_initf(const
                                    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_INF("p10_sbe_tp_initf: Entering ...");
 
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP2_FURE_RINGS, true));
 
     FAPI_INF("p10_sbe_tp_initf: Exiting ...");
 
-    return fapi2::FAPI2_RC_SUCCESS;
+fapi_try_exit:
+    return fapi2::current_err;
+
 }
