@@ -253,20 +253,35 @@ p10_hcd_cache_scominit_sbe (
         // 0. setup the the L3 and NCU topology id tables
         FAPI_TRY(init_topo_id_tables(c, l_topo_scoms));
 
-        FAPI_TRY(GET_L3_MISC_L3CERRS_LCO_TARGET_ID_CTL_REG(c, l_data));
-        // 1. enable castout to backing caches
-        SET_L3_MISC_L3CERRS_LCO_TARGET_ID_CTL_REG_CASTOUT_TO_BACKING_L3_EN_CFG((l_attr_backing_vec != 0), l_data);
-        // 2. configure the number of backing caches
-        SET_L3_MISC_L3CERRS_LCO_TARGET_ID_CTL_REG_BACKING_CNT_CFG(l_attr_backing_num, l_data);
-        FAPI_TRY(PUT_L3_MISC_L3CERRS_LCO_TARGET_ID_CTL_REG(c, l_data));
+        if (l_attr_backing_num)
+        {
+            FAPI_TRY(GET_L3_MISC_L3CERRS_LCO_TARGET_ID_CTL_REG(c, l_data));
+            // 1. enable castout to backing caches
+            SET_L3_MISC_L3CERRS_LCO_TARGET_ID_CTL_REG_CASTOUT_TO_BACKING_L3_EN_CFG((l_attr_backing_vec != 0), l_data);
+            // 2. configure the number of backing caches
+            SET_L3_MISC_L3CERRS_LCO_TARGET_ID_CTL_REG_BACKING_CNT_CFG(l_attr_backing_num, l_data);
+            FAPI_TRY(PUT_L3_MISC_L3CERRS_LCO_TARGET_ID_CTL_REG(c, l_data));
+        }
 
         FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
-        // 3. assign sequential LCO IDs starting at nbacking
-        SET_L3_MISC_L3CERRS_MODE_REG1_MY_LCO_TARGET_ID_CFG(l_lco_id++, l_data);
-        // 4. clear the LCO targets
+
+        // 3. clear the LCO targets
         SET_L3_MISC_L3CERRS_MODE_REG1_LCO_TARGETS_CFG(0, l_data);
-        // 5. enable LCOs
-        SET_L3_MISC_L3CERRS_MODE_REG1_LCO_ENABLE_CFG(l_data);
+
+        if (l_attr_backing_num)
+        {
+            // 4. assign sequential LCO IDs starting at nbacking
+            SET_L3_MISC_L3CERRS_MODE_REG1_MY_LCO_TARGET_ID_CFG(l_lco_id++, l_data);
+            // 5. enable LCOs
+            SET_L3_MISC_L3CERRS_MODE_REG1_LCO_ENABLE_CFG(l_data);
+        }
+        else
+        {
+            // 4. assign LCO ID matching core number
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, c, l_attr_chip_unit_pos));
+            SET_L3_MISC_L3CERRS_MODE_REG1_MY_LCO_TARGET_ID_CFG(l_attr_chip_unit_pos, l_data);
+        }
+
         FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
     }
 
