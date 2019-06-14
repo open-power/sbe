@@ -1,0 +1,112 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.H $ */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* [+] International Business Machines Corp.                              */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
+///
+/// @file p10_sbe_exit_cache_contained.H
+/// @brief Execute sequence of HWP calls on SBE to exit HB cache
+///        containment
+///        - Stop instruction on active cores
+///        - Revert MC setup in place to support HB execution in cache
+///          contained footprint
+///        - Configures MC/MCD BAR resources on all sockets, via XSCOM
+///        - Purges active/backing caches and resets contained mode
+///          configuration
+///        - Restarts instructions on master core to relaunch HB from
+///          main memory
+
+//
+// *HWP HW Maintainer: Nicholas Landi <nlandi@ibm.com>
+// *HWP FW Maintainer: Raja Das <rajadas2@in.ibm.com>
+// *HWP Consumed by  : SBE
+//
+
+#ifndef _P10_SBE_EXIT_CACHE_CONTAINED_H_
+#define _P10_SBE_EXIT_CACHE_CONTAINED_H_
+
+//------------------------------------------------------------------------------
+// Includes
+//------------------------------------------------------------------------------
+#include <fapi2.H>
+
+//------------------------------------------------------------------------------
+// Structure definitions
+//------------------------------------------------------------------------------
+
+// permit step based execution of flow
+enum class p10_sbe_exit_cache_contained_step_t : uint8_t
+{
+    STOP_HB            = 0x01,
+    REVERT_MCS_SETUP   = 0x02,
+    SETUP_MEMORY_BARS  = 0x04,
+    PURGE_HB           = 0x08,
+    RESUME_HB          = 0x10,
+    RUN_ALL            = 0x1F,
+    SKIP_ALL           = 0x00
+};
+
+constexpr enum p10_sbe_exit_cache_contained_step_t operator | (p10_sbe_exit_cache_contained_step_t a,
+        p10_sbe_exit_cache_contained_step_t b)
+{
+    return (enum p10_sbe_exit_cache_contained_step_t)(uint8_t(a) | uint8_t(b));
+}
+
+constexpr enum p10_sbe_exit_cache_contained_step_t operator & (p10_sbe_exit_cache_contained_step_t a,
+        p10_sbe_exit_cache_contained_step_t b)
+{
+    return (enum p10_sbe_exit_cache_contained_step_t)(uint8_t(a) & uint8_t(b));
+}
+
+// Function pointer typedef definition for HWP call support
+typedef fapi2::ReturnCode (*p10_sbe_exit_cache_contained_FP_t)(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
+    const std::vector<std::pair<uint64_t, uint64_t>>&,
+    const p10_sbe_exit_cache_contained_step_t);
+
+//------------------------------------------------------------------------------
+// Function prototypes
+//------------------------------------------------------------------------------
+extern "C"
+{
+
+///
+/// @brief Executes sequence of HWP calls to exit HB cache containment
+///
+/// @param[in] i_target    Reference to processor chip target
+/// @param[in] i_reg_inits Set of register inits to be performed via XSCOM
+///                        Each pair is expected to contain a fully
+///                        formed XSCOM address (first) + associated data
+///                        (second)
+/// @param[in] i_steps     Enum defining steps of HWP sequence which should
+///                        be run
+///
+/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
+    fapi2::ReturnCode p10_sbe_exit_cache_contained(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+        const std::vector<std::pair<uint64_t, uint64_t>>& i_reg_inits,
+        const p10_sbe_exit_cache_contained_step_t i_steps);
+
+} // extern "C"
+
+#endif // _P10_SBE_EXIT_CACHE_CONTAINED_H_
