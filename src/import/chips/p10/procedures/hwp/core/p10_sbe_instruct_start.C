@@ -26,35 +26,45 @@
 ///
 /// @file p10_sbe_instruct_start.C
 ///
-/// @brief Issue start instruction to thread0 of master processor
-///        See detailed description in header file.
+/// @brief Start instructions via p10_thread control
+///        Use to start thread instruction execution as part of
+//         istep proc_sbe_instruct_start / proc_exit_cache_contained
 ///
 /// *HWP HW Maintainer: Nicholas Landi <nlandi@ibm.com>
 /// *HWP FW Maintainer: Raja Das <rajadas2@in.ibm.com>
 /// *HWP Consumed by  : SBE
 ///----------------------------------------------------------------------------
+
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
 #include <p10_sbe_instruct_start.H>
 
-extern "C"
+//------------------------------------------------------------------------------
+// Function definitions
+//------------------------------------------------------------------------------
+
+
+fapi2::ReturnCode p10_sbe_instruct_start(
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
+    const ThreadSpecifier i_thread_mask)
 {
-    fapi2::ReturnCode p10_sbe_instruct_start(
-        const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target)
-    {
-        fapi2::buffer<uint64_t> l_rasStatusReg(0);
-        uint64_t l_state = 0;
-        FAPI_DBG("Entering ...");
+    fapi2::buffer<uint64_t> l_ras_status;
+    uint64_t l_thread_state;
+    FAPI_DBG("Entering ...");
 
-        FAPI_INF("Starting instruction on thread 0");
-        FAPI_TRY(p10_thread_control(i_target, THREAD0, PTC_CMD_START, false,
-                                    l_rasStatusReg, l_state),
-                 "p10_thread_control() returns an error");
+    FAPI_INF("Starting instruction using thread mask: 0x%X",
+             static_cast<uint8_t>(i_thread_mask));
 
-    fapi_try_exit:
-        FAPI_DBG("Exiting ...");
-        return fapi2::current_err;
-    }
+    FAPI_TRY(p10_thread_control(i_target,
+                                i_thread_mask,
+                                PTC_CMD_START,
+                                false,
+                                l_ras_status,
+                                l_thread_state),
+             "Error from p10_thread_control");
 
-} // extern "C"
+fapi_try_exit:
+    FAPI_DBG("Exiting ...");
+    return fapi2::current_err;
+}
