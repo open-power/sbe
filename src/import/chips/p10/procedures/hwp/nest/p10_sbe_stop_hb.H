@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_revert_sbe_mcs_setup.H $ */
+/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_sbe_stop_hb.H $  */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -23,58 +23,51 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 ///
-/// @file p10_revert_sbe_mcs_setup.H
-/// @brief Revert MC configuration applied by SBE (FAPI2)
-///
-/// Reset memory controller configuration written by SBE in order to
-/// enable initial phase of hostboot execution (providing lpc_ack for dcbz
-/// prior to initialization of memory).  Registers touched by SBE will
-/// be reset to flush state by this procedure.
-///
-/// @author Joe McGill <jmcgill@us.ibm.com>
-///
+/// @file p10_sbe_stop_hb.H
+/// @brief Stop instructions on any active cores, as part of HB cache contained
+///        exit sequence
 
 //
 // *HWP HW Maintainer: Nicholas Landi <nlandi@ibm.com>
-// *HWP FW Maintainer: Ilya Smirnov <ismirno@us.ibm.com>
-// *HWP Consumed by  : HB
+// *HWP FW Maintainer: Raja Das <rajadas2@in.ibm.com>
+// *HWP Consumed by  : SBE
 //
 
-#ifndef _P10_REVERT_SBE_MCS_SETUP_H_
-#define _P10_REVERT_SBE_MCS_SETUP_H_
+#ifndef _P10_SBE_STOP_HB_H_
+#define _P10_SBE_STOP_HB_H_
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
 #include <fapi2.H>
-#include <p10_scom_mc.H>
 
 //------------------------------------------------------------------------------
 // Structure definitions
 //------------------------------------------------------------------------------
 
-/// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p10_revert_sbe_mcs_setup_FP_t) (
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
-
+// Function pointer typedef definition for HWP call support
+typedef fapi2::ReturnCode (*p10_sbe_stop_hb_FP_t)(
+    const std::vector<fapi2::Target<fapi2::TARGET_TYPE_CORE>>&);
 
 //------------------------------------------------------------------------------
 // Function prototypes
 //------------------------------------------------------------------------------
-
 extern "C"
 {
 
 ///
-/// @brief Disable MC configuration written by SBE to enable initial phase
-/// of hostboot execution
+/// @brief Stop isntructions on master core, as part of HB cache contained
+///        exit sequence
 ///
-/// @param[in] i_target Reference to processor chip target
-/// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+/// @param[out] i_active_core_targets  Set of targets to process which are
+///                                    associated with active cores
+///                                    (running HB code)
 ///
-    fapi2::ReturnCode p10_revert_sbe_mcs_setup(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
+/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+///
+    fapi2::ReturnCode p10_sbe_stop_hb(
+        const std::vector<fapi2::Target<fapi2::TARGET_TYPE_CORE>>& i_active_core_targets);
 
 } // extern "C"
 
-#endif // _P10_REVERT_SBE_MCS_SETUP_H_
+#endif // _P10_SBE_STOP_HB_H_
