@@ -77,7 +77,7 @@ extern "C"
                 ILLEGAL_OPER_TYPE = CI + 1, // Must be last entry.
             };
 
-            enum AtomicOpType_t : std::uint8_t
+            enum AtomicOpType_t : uint8_t
             {
                 // Note: Encodes used directly for PBASLVCTL[write_tsize]
                 ADD = 0b00000010,
