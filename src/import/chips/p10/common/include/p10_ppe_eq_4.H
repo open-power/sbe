@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_eq_4_H_
 #define __p10_ppe_eq_4_H_
@@ -113,5 +115,7 @@ static const uint32_t QME_RS4DBGD_QME_RS4DBGD_SCAN_DATA_IN_LEN = 64;
 
 }
 }
-#include "ppe_eq/reg00004.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_eq/reg00004.H"
+#endif
 #endif

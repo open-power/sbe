@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_eq_7_H_
 #define __p10_ppe_eq_7_H_
@@ -136,5 +138,7 @@ static const uint32_t QME_SWPR1_SIZE_LEN = 15;
 
 }
 }
-#include "ppe_eq/reg00007.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_eq/reg00007.H"
+#endif
 #endif

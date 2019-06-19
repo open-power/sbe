@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_c_e_H_
 #define __p10_ppe_c_e_H_
@@ -35,7 +37,7 @@ namespace ppe_c
 {
 
 
-static const uint32_t CPMS_ASSR = 0xc001e180ull;
+static const uint32_t CPMS_ASSR = 0xc000e180ull;
 
 static const uint32_t CPMS_ASSR_L3_PFETSTAT_VDD_PFETS_ENABLED_SENSE = 0;
 static const uint32_t CPMS_ASSR_L3_PFETSTAT_VDD_PFETS_DISABLED_SENSE = 1;
@@ -56,7 +58,51 @@ static const uint32_t CPMS_ASSR_CGCSR_L3_CLK_SYNC_DONE = 18;
 static const uint32_t CPMS_ASSR_CGCSR_CL2_CLK_SYNC_DONE = 19;
 // ppe_c/reg00014.H
 
-static const uint32_t QME_CISR = 0xc0018780ull;
+static const uint32_t CPMS_DESR = 0xc000e5c0ull;
+
+static const uint32_t CPMS_DESR_COUNTA_FTC_ACTIVITY_SEL = 0;
+static const uint32_t CPMS_DESR_COUNTA_FTC_ACTIVITY_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_COUNTA_FTC_EVENT_SEL = 3;
+static const uint32_t CPMS_DESR_COUNTA_FTC_EVENT_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_COUNTB_FTC_ACTIVITY_SEL = 6;
+static const uint32_t CPMS_DESR_COUNTB_FTC_ACTIVITY_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_COUNTB_FTC_EVENT_SEL = 9;
+static const uint32_t CPMS_DESR_COUNTB_FTC_EVENT_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_COUNTC_FTC_ACTIVITY_SEL = 12;
+static const uint32_t CPMS_DESR_COUNTC_FTC_ACTIVITY_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_COUNTC_FTC_EVENT_SEL = 15;
+static const uint32_t CPMS_DESR_COUNTC_FTC_EVENT_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_COUNTA_FTC_STATE_SELECT = 18;
+static const uint32_t CPMS_DESR_COUNTA_FTC_STATE_SELECT_LEN = 3;
+static const uint32_t CPMS_DESR_COUNTB_FTC_STATE_SELECT = 21;
+static const uint32_t CPMS_DESR_COUNTB_FTC_STATE_SELECT_LEN = 3;
+static const uint32_t CPMS_DESR_COUNTC_FTC_STATE_SELECT = 24;
+static const uint32_t CPMS_DESR_COUNTC_FTC_STATE_SELECT_LEN = 3;
+static const uint32_t CPMS_DESR_FTC_INVERT_SEL = 27;
+static const uint32_t CPMS_DESR_FTC_INVERT_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_FTC_SPARE = 30;
+static const uint32_t CPMS_DESR_FTC_SPARE_LEN = 2;
+static const uint32_t CPMS_DESR_FTC_EVENT_INVERT = 32;
+static const uint32_t CPMS_DESR_FTC_EVENT_INVERT_LEN = 3;
+static const uint32_t CPMS_DESR_STATEW_ENABLE = 35;
+static const uint32_t CPMS_DESR_STATEW_ENABLE_LEN = 3;
+static const uint32_t CPMS_DESR_STATEZ_ENABLE = 38;
+static const uint32_t CPMS_DESR_STATEZ_ENABLE_LEN = 3;
+static const uint32_t CPMS_DESR_SPARE_COUNT_SEL = 41;
+static const uint32_t CPMS_DESR_SPARE_COUNT_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_SECONDARY_EVENT_SEL = 44;
+static const uint32_t CPMS_DESR_SECONDARY_EVENT_SEL_LEN = 2;
+// ppe_c/reg00014.H
+
+static const uint32_t CPMS_DTTR = 0xc000e880ull;
+
+static const uint32_t CPMS_DTTR_RATE_LIMIT = 0;
+static const uint32_t CPMS_DTTR_RATE_LIMIT_LEN = 8;
+static const uint32_t CPMS_DTTR_INFLIGHT_LIMIT = 32;
+static const uint32_t CPMS_DTTR_INFLIGHT_LIMIT_LEN = 8;
+// ppe_c/reg00014.H
+
+static const uint32_t QME_CISR = 0xc0008780ull;
 
 static const uint32_t QME_CISR_HYP_INTR_PRESENT = 0;
 static const uint32_t QME_CISR_HYP_INTR_PRESENT_LEN = 4;
@@ -97,5 +143,7 @@ static const uint32_t QME_CISR_REG_WKUP_REQUESTED = 63;
 
 }
 }
-#include "ppe_c/reg00014.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_c/reg00014.H"
+#endif
 #endif

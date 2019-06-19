@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_eq_9_H_
 #define __p10_ppe_eq_9_H_
@@ -57,5 +59,7 @@ static const uint32_t QME_PSSUM_PMCR_RECENT_MODE = 53;
 
 }
 }
-#include "ppe_eq/reg00009.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_eq/reg00009.H"
+#endif
 #endif

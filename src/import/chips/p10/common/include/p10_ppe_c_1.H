@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_c_1_H_
 #define __p10_ppe_c_1_H_
@@ -35,7 +37,7 @@ namespace ppe_c
 {
 
 
-static const uint32_t QME_DCSR = 0xc0018700ull;
+static const uint32_t QME_DCSR = 0xc0008700ull;
 
 static const uint32_t QME_DCSR_PLS_T0 = 0;
 static const uint32_t QME_DCSR_PLS_T0_LEN = 4;
@@ -56,13 +58,13 @@ static const uint32_t QME_DCSR_SL_T3_LEN = 2;
 static const uint32_t QME_DCSR_SRESET_MSR_S = 24;
 // ppe_c/reg00001.H
 
-static const uint32_t QME_PMCRS = 0xc0018600ull;
+static const uint32_t QME_PMCRS = 0xc0008600ull;
 
 static const uint32_t QME_PMCRS_QME_PMCRS_DATA = 0;
 static const uint32_t QME_PMCRS_QME_PMCRS_DATA_LEN = 64;
 // ppe_c/reg00001.H
 
-static const uint32_t QME_PMSRS = 0xc0018640ull;
+static const uint32_t QME_PMSRS = 0xc0008640ull;
 
 static const uint32_t QME_PMSRS_PSTATE_DATA = 0;
 static const uint32_t QME_PMSRS_PSTATE_DATA_LEN = 36;
@@ -70,7 +72,7 @@ static const uint32_t QME_PMSRS_VERSION = 59;
 static const uint32_t QME_PMSRS_VERSION_LEN = 5;
 // ppe_c/reg00001.H
 
-static const uint32_t QME_PSCRS2 = 0xc0018580ull;
+static const uint32_t QME_PSCRS2 = 0xc0008580ull;
 
 static const uint32_t QME_PSCRS2_DPDES_EXIT_ENABLE = 0;
 static const uint32_t QME_PSCRS2_SD = 1;
@@ -96,5 +98,7 @@ static const uint32_t QME_PSCRS2_PLS_LEN = 4;
 
 }
 }
-#include "ppe_c/reg00001.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_c/reg00001.H"
+#endif
 #endif

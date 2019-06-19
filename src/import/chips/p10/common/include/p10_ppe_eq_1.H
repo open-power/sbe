@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_eq_1_H_
 #define __p10_ppe_eq_1_H_
@@ -178,5 +180,7 @@ static const uint32_t QME_TBR_CYCLES_LEN = 32;
 
 }
 }
-#include "ppe_eq/reg00001.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_eq/reg00001.H"
+#endif
 #endif

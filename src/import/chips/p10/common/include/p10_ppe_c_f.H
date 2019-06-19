@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_c_f_H_
 #define __p10_ppe_c_f_H_
@@ -35,9 +37,27 @@ namespace ppe_c
 {
 
 
-static const uint32_t CPMS_MMAR_RW = 0xc001e380ull;
-static const uint32_t CPMS_MMAR_WO_CLEAR = 0xc001e3a0ull;
-static const uint32_t CPMS_MMAR_WO_OR = 0xc001e3b0ull;
+static const uint32_t CPMS_ACCR = 0xc000e780ull;
+
+static const uint32_t CPMS_ACCR_COUNT_MODE = 0;
+static const uint32_t CPMS_ACCR_COUNT_MODE_LEN = 2;
+static const uint32_t CPMS_ACCR_COUNT_TYPE = 2;
+static const uint32_t CPMS_ACCR_COUNT_TYPE_LEN = 2;
+static const uint32_t CPMS_ACCR_COUNT_ENABLE_SEL = 4;
+static const uint32_t CPMS_ACCR_COUNT_ENABLE_SEL_LEN = 2;
+static const uint32_t CPMS_ACCR_INVERT_COUNT_ENABLE = 6;
+static const uint32_t CPMS_ACCR_COUNT_ALWAYS_SAMPLED = 7;
+static const uint32_t CPMS_ACCR_HI_THRESHOLD = 8;
+static const uint32_t CPMS_ACCR_HI_THRESHOLD_LEN = 8;
+static const uint32_t CPMS_ACCR_LO_THRESHOLD = 16;
+static const uint32_t CPMS_ACCR_LO_THRESHOLD_LEN = 8;
+static const uint32_t CPMS_ACCR_SPARE = 24;
+static const uint32_t CPMS_ACCR_SPARE_LEN = 2;
+// ppe_c/reg00015.H
+
+static const uint32_t CPMS_MMAR_RW = 0xc000e380ull;
+static const uint32_t CPMS_MMAR_WO_CLEAR = 0xc000e3a0ull;
+static const uint32_t CPMS_MMAR_WO_OR = 0xc000e3b0ull;
 
 static const uint32_t CPMS_MMAR_AVAILABLE = 0;
 static const uint32_t CPMS_MMAR_FUNC_RESET = 1;
@@ -45,5 +65,7 @@ static const uint32_t CPMS_MMAR_FUNC_RESET = 1;
 
 }
 }
-#include "ppe_c/reg00015.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_c/reg00015.H"
+#endif
 #endif

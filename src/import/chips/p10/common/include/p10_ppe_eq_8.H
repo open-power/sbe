@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_eq_8_H_
 #define __p10_ppe_eq_8_H_
@@ -96,5 +98,7 @@ static const uint32_t QME_SCRA_QME_SCRA_DATA_LEN = 32;
 
 }
 }
-#include "ppe_eq/reg00008.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_eq/reg00008.H"
+#endif
 #endif

@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_eq_c_H_
 #define __p10_ppe_eq_c_H_
@@ -180,5 +182,7 @@ static const uint32_t QME_SCOM_XISIB_DATAOP_PENDING = 63;
 
 }
 }
-#include "ppe_eq/reg00012.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_eq/reg00012.H"
+#endif
 #endif

@@ -23,7 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include "proc_scomt.H"
+#ifndef __PPE_HCODE__
+    #include "proc_scomt.H"
+#endif
 
 #ifndef __p10_ppe_c_c_H_
 #define __p10_ppe_c_c_H_
@@ -35,9 +37,9 @@ namespace ppe_c
 {
 
 
-static const uint32_t CPMS_CGCSR = 0xc001e000ull;
-static const uint32_t CPMS_CGCSR_WO_CLEAR = 0xc001e020ull;
-static const uint32_t CPMS_CGCSR_WO_OR = 0xc001e030ull;
+static const uint32_t CPMS_CGCSR = 0xc000e000ull;
+static const uint32_t CPMS_CGCSR_WO_CLEAR = 0xc000e020ull;
+static const uint32_t CPMS_CGCSR_WO_OR = 0xc000e030ull;
 
 static const uint32_t CPMS_CGCSR_L3_CLK_SYNC_ENABLE = 0;
 static const uint32_t CPMS_CGCSR_CL2_CLK_SYNC_ENABLE = 1;
@@ -53,7 +55,30 @@ static const uint32_t CPMS_CGCSR_L3_CLK_SYNC_DONE = 32;
 static const uint32_t CPMS_CGCSR_CL2_CLK_SYNC_DONE = 33;
 // ppe_c/reg00012.H
 
+static const uint32_t CPMS_DCSR = 0xc000e640ull;
+
+static const uint32_t CPMS_DCSR_0_COUNT = 0;
+static const uint32_t CPMS_DCSR_0_COUNT_LEN = 24;
+static const uint32_t CPMS_DCSR_1_COUNT = 32;
+static const uint32_t CPMS_DCSR_1_COUNT_LEN = 24;
+// ppe_c/reg00012.H
+
+static const uint32_t CPMS_DHCR = 0xc000e540ull;
+
+static const uint32_t CPMS_DHCR_FREEZE_HISTORY_ON_LARGE = 0;
+static const uint32_t CPMS_DHCR_RESET_DHDR_ON_FDIR_WRITE = 1;
+static const uint32_t CPMS_DHCR_ADJACENT_WARN_RECORD_MODE = 2;
+static const uint32_t CPMS_DHCR_SPARE = 3;
+static const uint32_t CPMS_DHCR_SPARE_LEN = 2;
+static const uint32_t CPMS_DHCR_EVENT_HISTORY_SELECT = 5;
+static const uint32_t CPMS_DHCR_EVENT_HISTORY_SELECT_LEN = 3;
+static const uint32_t CPMS_DHCR_EVENT_COUNT = 8;
+static const uint32_t CPMS_DHCR_EVENT_COUNT_LEN = 8;
+// ppe_c/reg00012.H
+
 }
 }
-#include "ppe_c/reg00012.H"
+#ifndef __PPE_HCODE__
+    #include "ppe_c/reg00012.H"
+#endif
 #endif
