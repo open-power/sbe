@@ -199,12 +199,25 @@ fapi2::ReturnCode p10_sbe_select_ex(
         l_attr_num_active = (uint32_t)l_ATTR_ACTIVE_CORES_NUM;
         FAPI_DBG("ATTR_ACTIVE_CORES_NUM   = %d", l_ATTR_ACTIVE_CORES_NUM);
 
-        fapi2::ATTR_BACKING_CACHES_NUM_Type l_ATTR_BACKING_CACHES_NUM;
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
-                               i_target,
-                               l_ATTR_BACKING_CACHES_NUM));
-        l_attr_num_backing = (uint32_t)l_ATTR_BACKING_CACHES_NUM;
-        FAPI_DBG("ATTR_BACKING_CACHES_NUM = %d", l_ATTR_BACKING_CACHES_NUM);
+        fapi2::ATTR_IS_MPIPL_Type l_ATTR_IS_MPIPL;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL,
+                               FAPI_SYSTEM,
+                               l_ATTR_IS_MPIPL));
+
+        if ( l_ATTR_IS_MPIPL == fapi2::ENUM_ATTR_IS_MPIPL_TRUE)
+        {
+            l_attr_num_backing = 0;
+            FAPI_INF("Backing caches set to 0 for MPIPL");
+        }
+        else
+        {
+            fapi2::ATTR_BACKING_CACHES_NUM_Type l_ATTR_BACKING_CACHES_NUM;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
+                                   i_target,
+                                   l_ATTR_BACKING_CACHES_NUM));
+            l_attr_num_backing = (uint32_t)l_ATTR_BACKING_CACHES_NUM;
+            FAPI_DBG("ATTR_BACKING_CACHES_NUM = %d", l_ATTR_BACKING_CACHES_NUM);
+        }
     }
 
     // Loop through the core functional vector on the view that the FAPI
