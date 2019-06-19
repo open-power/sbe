@@ -42,6 +42,7 @@
 
 #include "p10_hcd_cache_scominit.H"
 #include <p10_scom_c.H>
+#include <p10_scom_proc.H>
 #include <p10_fbc_utils.H>
 
 //------------------------------------------------------------------------------
@@ -102,11 +103,15 @@ p10_hcd_cache_scominit_qme(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
     using namespace scomt::c;
+    using namespace scomt::proc;
 
     fapi2::buffer<uint64_t> l_data;
     fapi2::ATTR_PROC_FABRIC_SL_DOMAIN_Type l_attr_sl_domain;
+    fapi2::ATTR_PROC_CHIP_LCO_TARGETS_Type l_attr_chip_lco_targets;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > l_eq =
+        i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
           fapi2::MULTICAST_OR > c_mc_or = i_target;
 
@@ -114,89 +119,55 @@ p10_hcd_cache_scominit_qme(
     // Get the register values for the SCOMs to setup the topology id table
     FAPI_TRY(topo::get_topology_table_scoms(l_chip, l_topo_scoms));
     // Setup the topology id tables for L3 and NCU via multicast
-    FAPI_TRY(init_topo_id_tables(c, l_topo_scoms));
+    FAPI_TRY(init_topo_id_tables(i_target, l_topo_scoms));
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SL_DOMAIN, l_chip, l_attr_sl_domain));
 
     if (l_attr_sl_domain == fapi2::ENUM_ATTR_PROC_FABRIC_SL_DOMAIN_CHIP)
     {
-        unsigned num_caches;
-        fapi2::ATTR_PROC_CHIP_LCO_TARGETS_Type l_attr_chip_lco_targets;
-
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_CHIP_LCO_TARGETS, l_chip, l_attr_chip_lco_targets));
-
-        num_caches = __builtin_popcount(l_attr_chip_lco_targets);
-
-        // No point in setting up LCO with only one or two caches
-        // (note: for two caches LCO requires a mode bit which is scan-only)
-        if (num_caches < 3)
-        {
-            goto fapi_try_exit;
-        }
-
-        for (const auto& c : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, c, l_attr_chip_unit_pos));
-
-            FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
-            // 1. core-num is LCO ID
-            SET_L3_MISC_L3CERRS_MODE_REG1_MY_LCO_TARGET_ID_CFG(l_attr_chip_unit_pos, l_data);
-            FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
-        }
-
-        // can write the targets and enable via multicast :D
-        l_data = 0;
-        // 2. all-good cores makeup the LCO targets
-        SET_L3_MISC_L3CERRS_MODE_REG1_LCO_TARGETS_CFG(l_attr_chip_lco_targets, l_data);
-        // 3. LCO enable multicast
-        SET_L3_MISC_L3CERRS_MODE_REG1_LCO_ENABLE_CFG(l_data);
-        FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c_mc_or, l_data));
     }
     else
     {
-        unsigned hemisphere_num_caches[2] = {0};
-        uint32_t hemisphere_lco_targets[2] = {0};
-        std::vector<fapi2::Target<fapi2::TARGET_TYPE_CORE>> hemisphere_caches[2];
+        // Read which EQ this QME is on
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_eq, l_attr_chip_unit_pos));
 
-        // Figure out which caches are in which hemisphere of the chip
-        for (const auto& c : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
-        {
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, c, l_attr_chip_unit_pos));
+        // Chip is split into hemispheres by even/odd EQ
+        size_t hemisphere = l_attr_chip_unit_pos % 2;
 
-            // Chip is split into hemispheres by even/odd EQ
-            size_t hemisphere = (l_attr_chip_unit_pos / 4) % 2;
+        // Read Core Configuration
+        FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_OCB_CCSR_RW(l_chip, l_data));
 
-            hemisphere_lco_targets[hemisphere] |= 1 << (31 - l_attr_chip_unit_pos);
-            hemisphere_caches[hemisphere].emplace_back(c);
-        }
-
-        for (auto i(0u); i < 2; ++i)
-        {
-            hemisphere_num_caches[i] = __builtin_popcount(hemisphere_lco_targets[i]);
-
-            // No point in setting up LCO with only one or two caches
-            // (note: for two caches LCO requires a mode bit which is scan-only)
-            if (hemisphere_num_caches[i] < 3)
-            {
-                continue;
-            }
-
-            for (const auto& c : hemisphere_caches[i])
-            {
-                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, c, l_attr_chip_unit_pos));
-
-                FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
-                // 1. core-num is LCO id
-                SET_L3_MISC_L3CERRS_MODE_REG1_MY_LCO_TARGET_ID_CFG(l_attr_chip_unit_pos, l_data);
-                // 2. all-good caches in hemisphere makeup the LCO targets
-                SET_L3_MISC_L3CERRS_MODE_REG1_LCO_TARGETS_CFG(hemisphere_lco_targets[i], l_data);
-
-                // 3. set LCO enable
-                SET_L3_MISC_L3CERRS_MODE_REG1_LCO_ENABLE_CFG(l_data);
-                FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
-            }
-        }
+        // l_attr_chip_lco_targets = hemisphere caches
+        l_attr_chip_lco_targets = (l_data >> 32) & (0xF0F0F0F0 >> (hemisphere << 2));
     }
+
+    unsigned num_caches = __builtin_popcount(l_attr_chip_lco_targets);
+
+    // No point in setting up LCO with only one or two caches
+    // (note: for two caches LCO requires a mode bit which is scan-only)
+    if (num_caches < 3)
+    {
+        goto fapi_try_exit;
+    }
+
+    for (const auto& c : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, c, l_attr_chip_unit_pos));
+
+        FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
+        // 1. core-num is LCO ID
+        SET_L3_MISC_L3CERRS_MODE_REG1_MY_LCO_TARGET_ID_CFG(l_attr_chip_unit_pos, l_data);
+        FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
+    }
+
+    // can write the targets and enable via multicast :D
+    l_data = 0;
+    // 2. all-good cores makeup the LCO targets
+    SET_L3_MISC_L3CERRS_MODE_REG1_LCO_TARGETS_CFG(l_attr_chip_lco_targets, l_data);
+    // 3. LCO enable multicast
+    SET_L3_MISC_L3CERRS_MODE_REG1_LCO_ENABLE_CFG(l_data);
+    FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c_mc_or, l_data));
 
 fapi_try_exit:
     return fapi2::current_err;
