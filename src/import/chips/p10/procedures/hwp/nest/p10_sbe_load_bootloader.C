@@ -234,6 +234,7 @@ get_bootloader_config_data(
     // Variable to fetch the Key-Addr Stash Pair
     uint64_t l_stashAddrAttr = 0;
     uint8_t* l_stashDataPtr = NULL;
+    uint8_t  l_numBackingCaches = 0;
 
     fapi2::buffer<uint64_t> l_cbs_cs;
     fapi2::buffer<uint64_t> l_scom;
@@ -251,8 +252,7 @@ get_bootloader_config_data(
              l_chip_base_address_mmio),
              "Error from p10_fbc_utils_get_chip_base_address (chip)");
 
-    //FIXME @RTC202058 -- @Raja -- should this be reset to 0 for p10?
-    l_bootloader_config_data.version = SBE_BACKDOOR_BIT_ADDED;
+    l_bootloader_config_data.version = INIT;
 
     // XSCOM BAR offset
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET,
@@ -286,17 +286,24 @@ get_bootloader_config_data(
                            l_bootloader_config_data.sbeBootSide),
              "Error from FAPI_ATTR_GET (ATTR_SBE_BOOT_SIDE)");
 
-    // PNOR boot side
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PNOR_BOOT_SIDE,
-                           FAPI_SYSTEM,
-                           l_bootloader_config_data.pnorBootSide),
-             "Error from FAPI_ATTR_GET (ATTR_PNOR_BOOT_SIDE)");
+    // Cache Size available to hostboot
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
+                           i_master_chip_target,
+                           l_numBackingCaches),
+             "Error from FAPI_ATTR_GET (ATTR_BACKING_CACHES_NUM)");
+    l_bootloader_config_data.cacheSizeMB = (4 * l_numBackingCaches);
 
-    // PNOR size
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PNOR_SIZE,
+    // LPC Console Enable
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_LPC_CONSOLE_INITIALIZED,
                            FAPI_SYSTEM,
-                           l_bootloader_config_data.pnorSizeMB),
-             "Error from FAPI_ATTR_GET (ATTR_PNOR_SIZE)");
+                           l_bootloader_config_data.lpcConsoleEnable),
+             "Error from FAPI_ATTR_GET (ATTR_LPC_CONSOLE_INITIALIZED)");
+
+    // Number of Key-Addr Pair
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NUM_KEY_ADDR_PAIR,
+                           FAPI_SYSTEM,
+                           l_bootloader_config_data.numKeyAddrPair),
+             "Error from FAPI_ATTR_GET (ATTR_NUM_KEY_ADDR_PAIR)");
 
     // pass size of load including exception vectors and bootloader
     l_bootloader_config_data.blLoadSize = i_load_size;
@@ -317,13 +324,13 @@ get_bootloader_config_data(
     PACK_4B(io_data, l_index, EXCEPTION_VECTOR_BRANCH);
     PACK_4B(io_data, l_index, l_bootloader_config_data.version);
     PACK_1B(io_data, l_index, l_bootloader_config_data.sbeBootSide);
-    PACK_1B(io_data, l_index, l_bootloader_config_data.pnorBootSide);
-    PACK_2B(io_data, l_index, l_bootloader_config_data.pnorSizeMB);
+    PACK_1B(io_data, l_index, l_bootloader_config_data.lpcConsoleEnable);
+    PACK_2B(io_data, l_index, l_bootloader_config_data.cacheSizeMB);
     PACK_8B(io_data, l_index, l_bootloader_config_data.blLoadSize);
     PACK_1B(io_data, l_index, l_bootloader_config_data.secureSettings.data8);
-    PACK_1B(io_data, l_index, 0x0);
     PACK_2B(io_data, l_index, 0x0);
     PACK_4B(io_data, l_index, 0x0);
+    PACK_1B(io_data, l_index, l_bootloader_config_data.numKeyAddrPair);
     PACK_8B(io_data, l_index, l_bootloader_config_data.xscomBAR);
     PACK_8B(io_data, l_index, l_bootloader_config_data.lpcBAR);
 
@@ -337,6 +344,8 @@ get_bootloader_config_data(
     {
         l_stashDataPtr = reinterpret_cast<uint8_t*>(l_stashAddrAttr);
 
+        // This will continue to write all 72 bytes i.e. (8 + 8*8), Hostboot
+        // to use numKeyAddrPair as index here.
         for(uint8_t l_idx = 0; l_idx < sizeof(keyAddrPair_t); l_idx++)
         {
             // Total of 72Bytes will be stashed, First 8Bytes are the keys
