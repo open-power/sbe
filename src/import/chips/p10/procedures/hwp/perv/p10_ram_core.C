@@ -35,16 +35,35 @@
 // Includes
 //-----------------------------------------------------------------------------------
 #include <p10_ram_core.H>
-// FIXME @RTC 202251 -- port over to P10
-#include <p9_quad_scom_addresses.H>
-#include <p9_quad_scom_addresses_fld.H>
+#include <p10_thread_control.H>
+#include <p10_scom_c.H>
+// FIXME RTC 211536 -- remove this TEMP file
+#include <p10_ram_core_TEMP_DEFINES.H>
 
-// identifiers for special registers
-const uint32_t RAM_REG_NIA   = 2000;
-const uint32_t RAM_REG_MSR   = 2001;
-const uint32_t RAM_REG_CR    = 2002;
-const uint32_t RAM_REG_FPSCR = 2003;
-const uint32_t RAM_REG_VSCR  = 2004;
+// shift/mask for inserting SPR num into opcode
+const uint32_t SPR_NUM_OPCODE_SHIFT  = 11;
+const uint32_t SPR_NUM_MASK_LOWER    = 0x0000001F;
+const uint32_t SPR_NUM_MASK_UPPER    = 0x000003E0;
+const uint32_t SPR_NUM_MASK          = (SPR_NUM_MASK_UPPER | SPR_NUM_MASK_LOWER);
+const uint32_t SPR_NUM_LOWER_SHIFT_L = 5;
+const uint32_t SPR_NUM_UPPER_SHIFT_R = 5;
+
+// encode the SPR number suitable for bitwise-OR into an opcode
+#define ENCODE_SPR_NUM_OPCODE(_spr_num) \
+    ((((_spr_num & SPR_NUM_MASK_LOWER) << SPR_NUM_LOWER_SHIFT_L) | \
+      ((_spr_num & SPR_NUM_MASK_UPPER) >> SPR_NUM_UPPER_SHIFT_R)) \
+     << SPR_NUM_OPCODE_SHIFT)
+
+// SPR numbers
+const uint32_t XER             =   1;
+const uint32_t SPR_NUM_SPRG2   = 274;
+
+// opcode pattern masks
+const uint32_t OPCODE_MASK_TYPE = 0xFC000000;
+const uint32_t OPCODE_MASK      = 0xFC0007FE;
+const uint32_t OPCODE_L         = 0x00010000;
+const uint32_t OPCODE_MASK_L    = (OPCODE_MASK | OPCODE_L);
+const uint32_t OPCODE_MASK_SPR  = (OPCODE_MASK | (SPR_NUM_MASK << SPR_NUM_OPCODE_SHIFT));
 
 // opcode for ramming
 const uint32_t OPCODE_MTSPR_FROM_GPR0_TO_SPRD      = 0x7C1543A6;
@@ -63,20 +82,7 @@ const uint32_t OPCODE_MTVSRDD_FROM_GPR1_0_TO_VSR0  = 0x7C010366;
 const uint32_t OPCODE_MTVSRDD_FROM_GPR1_0_TO_VSR32 = 0x7C010367;
 const uint32_t OPCODE_MFSPR_FROM_LR_TO_GPR0        = 0x7C0802A6;
 const uint32_t OPCODE_MTSPR_FROM_GPR0_TO_LR        = 0x7C0803A6;
-const uint32_t OPCODE_MTMSR_L0                     = 0x7C000124;
-const uint32_t OPCODE_MTMSRD_L0                    = 0x7C000164;
-const uint32_t OPCODE_MTSPR_IAMR                   = 0x7C1D0BA6;
-const uint32_t OPCODE_MTSPR_PIDR                   = 0x7C100BA6;
-const uint32_t OPCODE_MTSPR_LPIDR                  = 0x7C1F4BA6;
-const uint32_t OPCODE_MTSPR_LPCR                   = 0x7C1E4BA6;
-const uint32_t OPCODE_MTSPR_MMCRA                  = 0x7C12C3A6;
-const uint32_t OPCODE_MTSPR_MMCR1                  = 0x7C1EC3A6;
-const uint32_t OPCODE_MTSPR_SEIDBAR                = 0x7C1F7BA6;
-const uint32_t OPCODE_MTSPR_XER                    = 0x7C0103A6;
-const uint32_t OPCODE_MFSPR_XER                    = 0x7C0102A6;
 const uint32_t OPCODE_MFFS                         = 0xFC00048E;
-const uint32_t OPCODE_SLBMFEE                      = 0x7C000726;
-const uint32_t OPCODE_SLBMFEV                      = 0x7C0006A6;
 const uint32_t OPCODE_DCBZ                         = 0x7C0007EC;
 const uint32_t OPCODE_DCBF                         = 0x7C0000AC;
 const uint32_t OPCODE_LD                           = 0xE8000000;
@@ -88,6 +94,7 @@ const uint32_t OPCODE_STVX                         = 0x7C0001CE;
 const uint32_t OPCODE_LXVD2X                       = 0x7C000698;
 const uint32_t OPCODE_STXVD2X                      = 0x7C000798;
 const uint32_t OPCODE_MFMSR_TO_GPR0                = 0x7C0000A6;
+const uint32_t OPCODE_MFMSR                        = 0x7C0000A6;
 const uint32_t OPCODE_MFOCRF_TO_GPR0               = 0x7C100026;
 const uint32_t OPCODE_MTOCRF_FROM_GPR0             = 0x7C100120;
 const uint32_t OPCODE_MTFSF_FROM_FPR0              = 0xFE00058E;
@@ -100,9 +107,29 @@ const uint32_t OPCODE_VSR_MOVE_HI                  = 0x00000110;
 const uint32_t OPCODE_VSR_MOVE_LO                  = 0x00000210;
 const uint32_t OPCODE_XER_MOVE                     = 0x00000310;
 const uint32_t OPCODE_CR_MOVE                      = 0x00000410;
+const uint32_t OPCODE_MFSPR                        = 0x7C0002A6;
+const uint32_t OPCODE_MTSPR                        = 0x7C0003A6;
+const uint32_t OPCODE_SLBMFEE                      = 0x7C000726;
+const uint32_t OPCODE_SLBMFEV                      = 0x7C0006A6;
+const uint32_t OPCODE_MTMSR                        = 0x7C000124;
+const uint32_t OPCODE_MTMSR_L1                     = (OPCODE_MTMSR | OPCODE_L);
+const uint32_t OPCODE_MTMSRD                       = 0x7C000164;
+const uint32_t OPCODE_MTMSRD_L0                    = OPCODE_MTMSRD;
+const uint32_t OPCODE_MTMSRD_L1                    = (OPCODE_MTMSRD | OPCODE_L);
+const uint32_t OPCODE_MFSPR_SPRG2 = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_SPRG2) ; // 0x7C1242A6;
+const uint32_t OPCODE_MTSPR_SPRG2 = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_SPRG2) ; // 0x7C1243A6;
+const uint32_t OPCODE_MTSPR_XER   = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(XER);  // 0x7C0103A6;
+const uint32_t OPCODE_MFSPR_XER   = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(XER);  // 0x7C0102A6;
 
 // poll count for check ram status
 const uint32_t RAM_CORE_STAT_POLL_CNT = 10;
+
+//-----------------------------------------------------------------------------------
+// Namespace declarations
+//-----------------------------------------------------------------------------------
+
+using namespace scomt;
+using namespace scomt::c;
 
 //-----------------------------------------------------------------------------------
 // Function definitions
@@ -119,14 +146,14 @@ RamCore::RamCore(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
     iv_ram_err       = false;
     iv_write_gpr0    = false;
     iv_write_gpr1    = false;
-    iv_backup_buf0   = 0;
-    iv_backup_buf1   = 0;
-    iv_backup_buf2   = 0;
+    iv_backup_scr0   = 0;
+    iv_backup_gpr0   = 0;
+    iv_backup_gpr1   = 0;
 }
 
-// Sequence of operations in put reg and get reg
+// Sequence of operations in put_reg and get_reg
 // functions follow the below template of a putscom
-// before the opcode ramming and a getscom post that
+// before the opcode ramming and a getscom post-ramming,
 // or a combination of these. This structure can be
 // used to streamline these operations with an array
 // of this structure.
@@ -149,47 +176,86 @@ RamCore::~RamCore()
     }
 }
 
-//-----------------------------------------------------------------------------------
+// See doxygen comments in header file
 fapi2::ReturnCode RamCore::ram_setup()
 {
     FAPI_DBG("Start ram setup");
     fapi2::buffer<uint64_t> l_data = 0;
     uint32_t l_opcode = 0;
     bool l_thread_active = false;
-    uint8_t l_thread_stop = 0;
+    ThreadSpecifier l_thread = NO_THREADS;
+    fapi2::buffer<uint64_t> l_ras_status;
+    uint64_t l_thread_state = 0;
+    fapi2::ReturnCode rc_fapi(fapi2::FAPI2_RC_SUCCESS);
 
-    // set RAM_MODEREG Scom to enable RAM mode
-    FAPI_TRY(fapi2::getScom(iv_target, C_RAM_MODEREG, l_data));
-    l_data.setBit<C_RAM_MODEREG_MODE_ENABLE>();
-    FAPI_TRY(fapi2::putScom(iv_target, C_RAM_MODEREG, l_data));
+    // set RAM_MODEREG via Scom to enable RAM mode
+    FAPI_TRY(GET_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
+    SET_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
+    FAPI_TRY(PUT_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
 
-    // read RAS_STATUS Scom to check the thread is stopped for ramming
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::getScom(iv_target, C_RAS_STATUS, l_data));
-    FAPI_DBG("RAS_STATUS:%#lx", l_data());
-    FAPI_TRY(l_data.extractToRight(l_thread_stop,
-                                   C_RAS_STATUS_T0_CORE_MAINT + 8 * iv_thread, 2));
-    FAPI_ASSERT(l_thread_stop == 3,
+    // FIXME RTC 211536 -- could p10_thread_control be enhanced to take iv_thread directly ?
+    switch (iv_thread)
+    {
+        case 0:
+            l_thread = THREAD0;
+            break;
+
+        case 1:
+            l_thread = THREAD1;
+            break;
+
+        case 2:
+            l_thread = THREAD2;
+            break;
+
+        case 3:
+            l_thread = THREAD3;
+            break;
+
+        default:
+            l_thread = NO_THREADS ;
+            break;
+    }
+
+    FAPI_ASSERT(l_thread != NO_THREADS,
+                fapi2::P10_RAM_THREAD_INVALID_ERR()
+                .set_CORE_TARGET(iv_target)
+                .set_THREAD(iv_thread),
+                "Invalid ram thread specified.");
+
+    // query thread to check the thread is stopped for ramming
+    FAPI_EXEC_HWP(rc_fapi,
+                  p10_thread_control,
+                  iv_target,
+                  l_thread,
+                  PTC_CMD_QUERY,
+                  false,
+                  l_ras_status,
+                  l_thread_state);
+
+    FAPI_ASSERT((l_thread_state & THREAD_STATE_STOP) == THREAD_STATE_STOP,
                 fapi2::P10_RAM_THREAD_NOT_STOP_ERR()
                 .set_CORE_TARGET(iv_target)
                 .set_THREAD(iv_thread),
                 "Thread to perform ram is not stopped. "
-                "C_RAS_STATUS reg 0x%.16llX", l_data);
+                "RAS_STATUS register : 0x%.16llX", l_ras_status());
 
-    // read THREAD_INFO Scom to check the thread is active for ramming
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::getScom(iv_target, C_THREAD_INFO, l_data));
-    FAPI_DBG("THREAD_INFO:%#lx", l_data());
+    // If thread not already active, then make thread active
+    FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+    FAPI_DBG("EC_PC_PMC_THREAD_INFO: 0x%.16llX", l_data());
+    // FIXME RTC 211536 convert extract to GET_* when scomt supports it.
     FAPI_TRY(l_data.extractToRight(l_thread_active,
-                                   C_THREAD_INFO_VTID0_V + iv_thread, 1));
+                                   EC_PC_PMC_THREAD_INFO_VTID0_V + iv_thread, 1));
 
     if (!l_thread_active)
     {
-        FAPI_TRY(l_data.setBit(C_THREAD_INFO_RAM_THREAD_ACTIVE + iv_thread));
-        FAPI_TRY(fapi2::putScom(iv_target, C_THREAD_INFO, l_data));
-        FAPI_TRY(fapi2::getScom(iv_target, C_THREAD_INFO, l_data));
+        // FIXME RTC 211536 -- convert setBit to SET_* when scomt supports it
+        FAPI_TRY(l_data.setBit(EC_PC_PMC_THREAD_INFO_RAM_THREAD_ACTIVE + iv_thread));
+        FAPI_TRY(PUT_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+        FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+        // FIXME RTC 211536 convert extract to GET_* when scomt supports it.
         FAPI_TRY(l_data.extractToRight(l_thread_active,
-                                       C_THREAD_INFO_VTID0_V + iv_thread, 1));
+                                       EC_PC_PMC_THREAD_INFO_VTID0_V + iv_thread, 1));
     }
 
     FAPI_ASSERT(l_thread_active,
@@ -197,41 +263,54 @@ fapi2::ReturnCode RamCore::ram_setup()
                 .set_CORE_TARGET(iv_target)
                 .set_THREAD(iv_thread),
                 "Thread to perform ram is inactive. "
-                "C_THREAD_INFO reg 0x%.16llX", l_data);
+                "EC_PC_PMC_THREAD_INFO reg 0x%.16llX", l_data);
 
     iv_ram_enable = true;
 
-    // backup registers SCR0/GPR0/GPR1
-    //SCR0->iv_backup_buf0
-    FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, iv_backup_buf0));
+    //
+    // backup Core registers SCR0/GPR0/GPR1 since they can be overwritten during the
+    // RAM opcode procedures.
+    //
+
+    //
+    // backup SCR0
+    //
+    FAPI_TRY(GET_EC_PC_SCR0(iv_target, iv_backup_scr0));
     iv_ram_scr0_save = true;
 
-    //GPR0->iv_backup_buf1
-    //1.setup SPRC to use SCRO as SPRD
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::getScom(iv_target, C_SPR_MODE, l_data));
-    l_data.insertFromRight<C_SPR_MODE_MODEREG_SPRC_LT0_SEL, 8>(0xFF);
-    FAPI_TRY(fapi2::putScom(iv_target, C_SPR_MODE, l_data));
+    //
+    // backup GPR0
+    //
 
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::getScom(iv_target, C_SCOMC, l_data));
-    l_data.insertFromRight<C_SCOMC_MODE_CX, C_SCOMC_MODE_CX_LEN>(0);
-    FAPI_TRY(fapi2::putScom(iv_target, C_SCOMC, l_data));
+    // set Enable bits to allow a single SCOM write to SCOMC to be broadcast
+    // to all of the per-logical thread SPRC registers
+    FAPI_TRY(GET_EC_PC_COMMON_SPR_MODE(iv_target, l_data));
+    l_data.insertFromRight<EC_PC_COMMON_SPR_MODE_SPRC_LT0_SEL,
+                           EC_PC_COMMON_SPR_MODE_SPRC_LTX_SEL_WIDTH>(EC_PC_COMMON_SPR_MODE_SPRC_LTX_SEL_MASK);
+    FAPI_TRY(PUT_EC_PC_COMMON_SPR_MODE(iv_target, l_data));
+
+    //1.setup SPRC to use SPRD as an alias to SCR0
+    FAPI_TRY(GET_EC_PC_COMMON_SPR_SCOMC(iv_target, l_data));
+    SET_EC_PC_COMMON_SPR_SCOMC_MODE_CX_SCOMC(EC_PC_COMMON_SPR_SCOMC_MODE_CX_SCR0, l_data);
+    FAPI_TRY(PUT_EC_PC_COMMON_SPR_SCOMC(iv_target, l_data));
 
     //2.create mtsprd<gpr0> opcode, ram into thread to get GPR0
     l_opcode = OPCODE_MTSPR_FROM_GPR0_TO_SPRD;
     FAPI_TRY(ram_opcode(l_opcode, true));
 
     //3.get GPR0 from SCR0
-    FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, iv_backup_buf1));
+    FAPI_TRY(GET_EC_PC_SCR0(iv_target, iv_backup_gpr0));
 
-    //GPR1->iv_backup_buf2
+    //
+    // backup GPR1
+    //
+
     //1.create mtsprd<gpr1> opcode, ram into thread to get GPR1
     l_opcode = OPCODE_MTSPR_FROM_GPR1_TO_SPRD;
     FAPI_TRY(ram_opcode(l_opcode, true));
 
     //2.get GPR1 from SCR0
-    FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, iv_backup_buf2));
+    FAPI_TRY(GET_EC_PC_SCR0(iv_target, iv_backup_gpr1));
 
     iv_ram_setup = true;
 
@@ -241,14 +320,15 @@ fapi_try_exit:
     // Do not use "FAPI_TRY" to avoid endless loop
     if((fapi2::current_err != fapi2::FAPI2_RC_SUCCESS) && iv_ram_scr0_save)
     {
-        fapi2::putScom(iv_target, C_SCR0, iv_backup_buf0);
+        PREP_EC_PC_SCR0(iv_target);
+        PUT_EC_PC_SCR0(iv_target, iv_backup_scr0);
     }
 
     FAPI_DBG("Exiting ram setup");
     return fapi2::current_err;
 }
 
-//-----------------------------------------------------------------------------------
+// See doxygen comments in header file
 fapi2::ReturnCode RamCore::ram_cleanup()
 {
     FAPI_DBG("Start ram cleanup");
@@ -258,24 +338,32 @@ fapi2::ReturnCode RamCore::ram_cleanup()
     FAPI_ASSERT(iv_ram_setup,
                 fapi2::P10_RAM_NOT_SETUP_ERR()
                 .set_CORE_TARGET(iv_target),
-                "Attempting to cleanup ram without setup before");
+                "Attempting to call ram_cleanup without calling ram_setup before");
 
-    // setup SPRC to use SCRO as SPRD
-    FAPI_TRY(fapi2::getScom(iv_target, C_SPR_MODE, l_data));
-    l_data.insertFromRight<C_SPR_MODE_MODEREG_SPRC_LT0_SEL, 8>(0xFF);
-    FAPI_TRY(fapi2::putScom(iv_target, C_SPR_MODE, l_data));
+    // set Enable bits to allow a single SCOM write to SCOMC to be broadcast
+    // to all of the per-logical thread SPRC registers
+    FAPI_TRY(GET_EC_PC_COMMON_SPR_MODE(iv_target, l_data));
+    l_data.insertFromRight<EC_PC_COMMON_SPR_MODE_SPRC_LT0_SEL,
+                           EC_PC_COMMON_SPR_MODE_SPRC_LTX_SEL_WIDTH>(EC_PC_COMMON_SPR_MODE_SPRC_LTX_SEL_MASK);
+    FAPI_TRY(PUT_EC_PC_COMMON_SPR_MODE(iv_target, l_data));
 
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::getScom(iv_target, C_SCOMC, l_data));
-    l_data.insertFromRight<C_SCOMC_MODE_CX, C_SCOMC_MODE_CX_LEN>(0);
-    FAPI_TRY(fapi2::putScom(iv_target, C_SCOMC, l_data));
+    // setup SPRC to use SPRD as an alias to SCR0
+    FAPI_TRY(GET_EC_PC_COMMON_SPR_SCOMC(iv_target, l_data));
+    SET_EC_PC_COMMON_SPR_SCOMC_MODE_CX_SCOMC(EC_PC_COMMON_SPR_SCOMC_MODE_CX_SCR0, l_data);
+    FAPI_TRY(PUT_EC_PC_COMMON_SPR_SCOMC(iv_target, l_data));
+
+    //
+    // restore Core registers SCR0/GPR0/GPR1 since they can be overwritten during the
+    // RAM opcode procedures.
+    //
 
     // restore GPR1
     if(!iv_write_gpr1)
     {
-        //iv_backup_buf2->GPR1
+        //iv_backup_gpr1->GPR1
         //1.put restore data into SCR0
-        FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, iv_backup_buf2));
+        PREP_EC_PC_SCR0(iv_target);
+        FAPI_TRY(PUT_EC_PC_SCR0(iv_target, iv_backup_gpr1));
 
         //2.create mfsprd<gpr1> opcode, ram into thread to restore GPR1
         l_opcode = OPCODE_MFSPR_FROM_SPRD_TO_GPR1;
@@ -285,23 +373,24 @@ fapi2::ReturnCode RamCore::ram_cleanup()
     // restore GPR0
     if(!iv_write_gpr0)
     {
-        //iv_backup_buf1->GPR0
+        //iv_backup_gpr0->GPR0
         //1.put restore data into SCR0
-        FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, iv_backup_buf1));
+        PREP_EC_PC_SCR0(iv_target);
+        FAPI_TRY(PUT_EC_PC_SCR0(iv_target, iv_backup_gpr0));
 
         //2.create mfsprd<gpr0> opcode, ram into thread to restore GPR0
         l_opcode = OPCODE_MFSPR_FROM_SPRD_TO_GPR0;
         FAPI_TRY(ram_opcode(l_opcode, true));
     }
 
-    //iv_backup_buf0->SCR0
-    FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, iv_backup_buf0));
+    // restore SCR0
+    PREP_EC_PC_SCR0(iv_target);
+    FAPI_TRY(PUT_EC_PC_SCR0(iv_target, iv_backup_scr0));
 
     // set RAM_MODEREG Scom to clear RAM mode
-    l_data.flush<0>();
-    FAPI_TRY(fapi2::getScom(iv_target, C_RAM_MODEREG, l_data));
-    l_data.clearBit<C_RAM_MODEREG_MODE_ENABLE>();
-    FAPI_TRY(fapi2::putScom(iv_target, C_RAM_MODEREG, l_data));
+    FAPI_TRY(GET_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
+    CLEAR_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
+    FAPI_TRY(PUT_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
 
     iv_ram_enable    = false;
     iv_ram_scr0_save = false;
@@ -314,7 +403,7 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-//-----------------------------------------------------------------------------------
+// See doxygen comments in header file
 fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
                                       const bool i_allow_mult)
 {
@@ -339,38 +428,38 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
                 "Attempting to ram opcode without enable RAM mode before");
 
     // write RAM_CTRL Scom for ramming the opcode
-    l_data.insertFromRight<C_RAM_CTRL_RAM_VTID, C_RAM_CTRL_RAM_VTID_LEN>(iv_thread);
+    PREP_EC_PC_FIR_RAM_CTRL(iv_target);
+    l_data.flush<0>();
+    l_data.insertFromRight<EC_PC_FIR_RAM_CTRL_RAM_VTID, EC_PC_FIR_RAM_CTRL_RAM_VTID_LEN>(iv_thread);
     l_predecode = gen_predecode(i_opcode);
-    l_data.insertFromRight<C_RAM_CTRL_PPC_PREDCD, C_RAM_CTRL_PPC_PREDCD_LEN>(l_predecode);
-    l_data.insertFromRight<C_RAM_CTRL_PPC_INSTR, C_RAM_CTRL_PPC_INSTR_LEN>(i_opcode);
-    FAPI_TRY(fapi2::putScom(iv_target, C_RAM_CTRL, l_data));
+    l_data.insertFromRight<EC_PC_FIR_RAM_CTRL_PPC_PREDCD, EC_PC_FIR_RAM_CTRL_PPC_PREDCD_LEN>(l_predecode);
+    l_data.insertFromRight<EC_PC_FIR_RAM_CTRL_PPC_INSTR, EC_PC_FIR_RAM_CTRL_PPC_INSTR_LEN>(i_opcode);
+    FAPI_TRY(PUT_EC_PC_FIR_RAM_CTRL(iv_target, l_data));
 
     // poll RAM_STATUS_REG Scom for the completion
-    l_data.flush<0>();
-
     while(1)
     {
-        FAPI_TRY(fapi2::getScom(iv_target, C_RAM_STATUS, l_data));
+        FAPI_TRY(GET_EC_PC_FIR_RAM_STATUS(iv_target, l_data));
 
         // attempting to ram during recovery
-        FAPI_ASSERT(!l_data.getBit<C_RAM_STATUS_RAM_CONTROL_ACCESS_DURING_RECOV>(),
+        FAPI_ASSERT(!l_data.getBit<EC_PC_FIR_RAM_STATUS_RAM_CONTROL_ACCESS_DURING_RECOV>(),
                     fapi2::P10_RAM_STATUS_IN_RECOVERY_ERR()
                     .set_CORE_TARGET(iv_target),
                     "Attempting to ram during recovery. "
-                    "C_RAM_STATUS reg 0x%.16llX", l_data);
+                    "EC_PC_FIR_RAM_STATUS reg 0x%.16llX", l_data);
 
         // exception or interrupt
-        FAPI_ASSERT(!l_data.getBit<C_RAM_STATUS_RAM_EXCEPTION>(),
+        FAPI_ASSERT(!l_data.getBit<EC_PC_FIR_RAM_STATUS_RAM_EXCEPTION>(),
                     fapi2::P10_RAM_STATUS_EXCEPTION_ERR()
                     .set_CORE_TARGET(iv_target),
                     "Exception or interrupt happened during ramming. "
-                    "C_RAM_STATUS reg 0x%.16llX", l_data);
+                    "EC_PC_FIR_RAM_STATUS reg 0x%.16llX", l_data);
 
         // load/store opcode need to check LSU empty and PPC complete
         if (l_is_load_store)
         {
-            if ( l_data.getBit<C_RAM_STATUS_RAM_COMPLETION>() &&
-                 l_data.getBit<C_RAM_STATUS_LSU_EMPTY>() )
+            if ( l_data.getBit<EC_PC_FIR_RAM_STATUS_RAM_COMPLETION>() &&
+                 l_data.getBit<EC_PC_FIR_RAM_STATUS_LSU_EMPTY>() )
             {
                 FAPI_DBG("ram_opcode:: RAM is done");
                 break;
@@ -378,7 +467,7 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
         }
         else
         {
-            if ( l_data.getBit<C_RAM_STATUS_RAM_COMPLETION>() )
+            if ( l_data.getBit<EC_PC_FIR_RAM_STATUS_RAM_COMPLETION>() )
             {
                 FAPI_DBG("ram_opcode:: RAM is done");
                 break;
@@ -391,7 +480,7 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
                     fapi2::P10_RAM_STATUS_POLL_THRESHOLD_ERR()
                     .set_CORE_TARGET(iv_target),
                     "Timeout for ram to complete, poll count expired. "
-                    "C_RAM_STATUS reg 0x%.16llX", l_data);
+                    "EC_PC_FIR_RAM_STATUS reg 0x%.16llX", l_data);
     }
 
     // ram_cleanup
@@ -411,65 +500,68 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-//-----------------------------------------------------------------------------------
+
+// See doxygen comments in header file
 uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
 {
     uint8_t  l_predecode = 0;
-    uint32_t l_opcode_pattern0 = i_opcode & 0xFC0007FE;
-    uint32_t l_opcode_pattern1 = i_opcode & 0xFC1FFFFE;
+    const uint32_t l_opcode_pattern    = i_opcode & OPCODE_MASK;
+    const uint32_t l_opcode_pattern_L  = i_opcode & OPCODE_MASK_L;
+    const uint32_t l_opcode_pattern_spr = i_opcode & OPCODE_MASK_SPR;
 
-    if((i_opcode == OPCODE_MFNIA_RT)    ||
-       (i_opcode == OPCODE_GPR_MOVE)    ||
-       (i_opcode == OPCODE_VSR_MOVE_HI) ||
-       (i_opcode == OPCODE_VSR_MOVE_LO) ||
-       (i_opcode == OPCODE_XER_MOVE)    ||
-       (i_opcode == OPCODE_CR_MOVE))
+    if (i_opcode == OPCODE_MFNIA_RT ||
+        l_opcode_pattern_spr == OPCODE_MFSPR_XER)
     {
-        l_predecode = 2;
+        l_predecode = 6;
     }
-    else if((i_opcode == OPCODE_MTNIA_LR)             ||
-            (l_opcode_pattern0 == OPCODE_MTMSR_L0)    ||
-            (l_opcode_pattern0 == OPCODE_MTMSRD_L0))
+    else if (i_opcode == OPCODE_MTNIA_LR)
     {
         l_predecode = 8;
     }
-    else if((l_opcode_pattern1 == OPCODE_MTSPR_IAMR)    ||
-            (l_opcode_pattern1 == OPCODE_MTSPR_PIDR)    ||
-            (l_opcode_pattern1 == OPCODE_MTSPR_LPIDR)   ||
-            (l_opcode_pattern1 == OPCODE_MTSPR_LPCR)    ||
-            (l_opcode_pattern1 == OPCODE_MTSPR_MMCRA)   ||
-            (l_opcode_pattern1 == OPCODE_MTSPR_MMCR1)   ||
-            (l_opcode_pattern1 == OPCODE_MTSPR_SEIDBAR) ||
-            (l_opcode_pattern1 == OPCODE_MTSPR_XER)     ||
-            (l_opcode_pattern1 == OPCODE_MFSPR_XER)     ||
-            (l_opcode_pattern0 == OPCODE_MFFS)          ||
-            (l_opcode_pattern0 == OPCODE_SLBMFEE)       ||
-            (l_opcode_pattern0 == OPCODE_SLBMFEV))
+    else if (l_opcode_pattern == OPCODE_MTMSR ||
+             l_opcode_pattern == OPCODE_MTMSRD)
     {
-        l_predecode = 4;
+        l_predecode = 9;
+    }
+    else if (l_opcode_pattern_spr == OPCODE_MTSPR_XER)
+    {
+        l_predecode = 5;
+    }
+    else if ((l_opcode_pattern   == OPCODE_MFSPR ||
+              l_opcode_pattern   == OPCODE_MTSPR ||
+              l_opcode_pattern_L == OPCODE_MTMSR_L1 ||
+              l_opcode_pattern_L == OPCODE_MTMSRD_L1 ||
+              l_opcode_pattern   == OPCODE_MFFS ||
+              l_opcode_pattern   == OPCODE_MFMSR ||
+              l_opcode_pattern   == OPCODE_SLBMFEE ||
+              l_opcode_pattern   == OPCODE_SLBMFEV) &&
+             l_opcode_pattern_spr != OPCODE_MFSPR_SPRG2 &&
+             l_opcode_pattern_spr != OPCODE_MTSPR_SPRG2)
+    {
+        l_predecode = 1;
     }
 
     return l_predecode;
 }
 
-//-----------------------------------------------------------------------------------
+
+// See doxygen comments in header file
 bool RamCore::is_load_store(const uint32_t i_opcode)
 {
     bool l_load_store = false;
-    uint32_t l_opcode_pattern0 = i_opcode & 0xFC0007FE;
-    uint32_t l_opcode_pattern1 = i_opcode & 0xFC000000;
+    uint32_t l_opcode_pattern = i_opcode & OPCODE_MASK;
+    uint32_t l_opcode_pattern_type = i_opcode & OPCODE_MASK_TYPE;
 
-    if((l_opcode_pattern0 == OPCODE_DCBZ)   ||
-       (l_opcode_pattern0 == OPCODE_DCBF)   ||
-       (l_opcode_pattern1 == OPCODE_LD)     ||
-       (l_opcode_pattern1 == OPCODE_LFD)    ||
-       (l_opcode_pattern1 == OPCODE_STD)    ||
-       (l_opcode_pattern1 == OPCODE_LFD)    ||
-       (l_opcode_pattern1 == OPCODE_STFD)   ||
-       (l_opcode_pattern0 == OPCODE_LVX)    ||
-       (l_opcode_pattern0 == OPCODE_STVX)   ||
-       (l_opcode_pattern0 == OPCODE_LXVD2X) ||
-       (l_opcode_pattern0 == OPCODE_STXVD2X))
+    if((l_opcode_pattern      == OPCODE_DCBZ)   ||
+       (l_opcode_pattern      == OPCODE_DCBF)   ||
+       (l_opcode_pattern_type == OPCODE_LD)     ||
+       (l_opcode_pattern_type == OPCODE_LFD)    ||
+       (l_opcode_pattern_type == OPCODE_STD)    ||
+       (l_opcode_pattern_type == OPCODE_STFD)   ||
+       (l_opcode_pattern      == OPCODE_LVX)    ||
+       (l_opcode_pattern      == OPCODE_STVX)   ||
+       (l_opcode_pattern      == OPCODE_LXVD2X) ||
+       (l_opcode_pattern      == OPCODE_STXVD2X))
     {
         l_load_store = true;
     }
@@ -477,7 +569,7 @@ bool RamCore::is_load_store(const uint32_t i_opcode)
     return l_load_store;
 }
 
-//-----------------------------------------------------------------------------------
+// See doxygen comments in header file
 fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
                                    const uint32_t i_reg_num,
                                    fapi2::buffer<uint64_t>* o_buffer,
@@ -485,8 +577,6 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
 {
     FAPI_DBG("Start get register");
     uint32_t l_opcode = 0;
-    uint32_t l_spr_regnum_lo = 0;
-    uint32_t l_spr_regnum_hi = 0;
     fapi2::buffer<uint64_t> l_backup_gpr0 = 0;
     fapi2::buffer<uint64_t> l_backup_fpr0 = 0;
     fapi2::buffer<uint64_t> l_backup_vr0_dw0 = 0;
@@ -519,7 +609,7 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
     {
         l_opcode = OPCODE_MTSPR_FROM_GPR0_TO_SPRD;
         FAPI_TRY(ram_opcode(l_opcode, true));
-        FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, l_backup_gpr0));
+        FAPI_TRY(GET_EC_PC_SCR0(iv_target, l_backup_gpr0));
     }
 
     // get register value
@@ -545,7 +635,7 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
                 l_opcode = OPCODE_MTSPR_FROM_GPR0_TO_SPRD;
                 FAPI_TRY(ram_opcode(l_opcode, true));
 
-                FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, l_crf_data));
+                FAPI_TRY(GET_EC_PC_SCR0(iv_target, l_crf_data));
                 l_cr_data |= l_crf_data();
             }
 
@@ -601,9 +691,7 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
             else
             {
                 //1.create mfspr<gpr0, i_reg_num> opcode, ram into thread
-                l_spr_regnum_lo = i_reg_num & 0x0000001F;
-                l_spr_regnum_hi = i_reg_num & 0x000003E0;
-                opcodes[0] = {NULL, OPCODE_MFSPR_FROM_SPR0_TO_GPR0 + (l_spr_regnum_lo << 16) + (l_spr_regnum_hi << 6), NULL};
+                opcodes[0] = {NULL, OPCODE_MFSPR_FROM_SPR0_TO_GPR0 | ENCODE_SPR_NUM_OPCODE(i_reg_num), NULL};
                 //2.create mtsprd<gpr0> opcode, ram into thread
                 //3.get GPR value from SCR0
                 opcodes[1] = {NULL, OPCODE_MTSPR_FROM_GPR0_TO_SPRD, &o_buffer[0]};
@@ -645,7 +733,7 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
         FAPI_TRY(ram_opcode(l_opcode, true));
 
         //3.get VSR dw0 value from SCR0
-        FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, o_buffer[0]));
+        FAPI_TRY(GET_EC_PC_SCR0(iv_target, o_buffer[0]));
 
         //4.create mfvrld<gpr0, i_reg_num> opcode, ram into thread to get dw1
         if(i_reg_num < 32)
@@ -666,7 +754,7 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
         FAPI_TRY(ram_opcode(l_opcode, true));
 
         //6.get VSR dw1 value from SCR0
-        FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, o_buffer[1]));
+        FAPI_TRY(GET_EC_PC_SCR0(iv_target, o_buffer[1]));
     }
 
 #endif
@@ -685,7 +773,8 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
         {
             if(opcodes[i].prePutScom)
             {
-                FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, *opcodes[i].prePutScom));
+                PREP_EC_PC_SCR0(iv_target);
+                FAPI_TRY(PUT_EC_PC_SCR0(iv_target, *opcodes[i].prePutScom));
             }
 
             if(opcodes[i].opCode)
@@ -702,7 +791,7 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
             if(opcodes[i].postGetScom)
             {
                 fapi2::buffer<uint64_t> scomData;
-                FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, scomData));
+                FAPI_TRY(GET_EC_PC_SCR0(iv_target, scomData));
                 *opcodes[i].postGetScom = scomData;
             }
         }
@@ -711,7 +800,8 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
     //restore GPR0 if necessary
     if(iv_write_gpr0)
     {
-        FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, l_backup_gpr0));
+        PREP_EC_PC_SCR0(iv_target);
+        FAPI_TRY(PUT_EC_PC_SCR0(iv_target, l_backup_gpr0));
         l_opcode = OPCODE_MFSPR_FROM_SPRD_TO_GPR0;
         FAPI_TRY(ram_opcode(l_opcode, true));
     }
@@ -737,7 +827,7 @@ fapi_try_exit:
     return first_err;
 }
 
-//-----------------------------------------------------------------------------------
+// See doxygen comments in header file
 fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
                                    const uint32_t i_reg_num,
                                    const fapi2::buffer<uint64_t>* i_buffer,
@@ -745,8 +835,6 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
 {
     FAPI_DBG("Start put register");
     uint32_t l_opcode = 0;
-    uint32_t l_spr_regnum_lo = 0;
-    uint32_t l_spr_regnum_hi = 0;
     bool l_write_gpr0 = false;
     fapi2::buffer<uint64_t> l_backup_lr   = 0;
     fapi2::buffer<uint64_t> l_backup_gpr0 = 0;
@@ -774,7 +862,7 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
     {
         l_opcode = OPCODE_MTSPR_FROM_GPR0_TO_SPRD;
         FAPI_TRY(ram_opcode(l_opcode, true));
-        FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, l_backup_gpr0));
+        FAPI_TRY(GET_EC_PC_SCR0(iv_target, l_backup_gpr0));
     }
 
 #ifndef __PPE__
@@ -784,7 +872,7 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
     {
         l_opcode = OPCODE_MTSPR_FROM_GPR1_TO_SPRD;
         FAPI_TRY(ram_opcode(l_opcode, true));
-        FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, l_backup_gpr1));
+        FAPI_TRY(GET_EC_PC_SCR0(iv_target, l_backup_gpr1));
     }
 
 #endif
@@ -885,9 +973,7 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
             opcodes[0] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
 
             //3.create mtspr<i_reg_num, gpr0> opcode, ram into thread
-            l_spr_regnum_lo = i_reg_num & 0x0000001F;
-            l_spr_regnum_hi = i_reg_num & 0x000003E0;
-            opcodes[1] = {NULL, OPCODE_MTSPR_FROM_GPR0_TO_SPR0 + (l_spr_regnum_lo << 16) + (l_spr_regnum_hi << 6), NULL};
+            opcodes[1] = {NULL, OPCODE_MTSPR_FROM_GPR0_TO_SPR0 | ENCODE_SPR_NUM_OPCODE(i_reg_num), NULL};
         }
 
         array_op = true;
@@ -907,14 +993,16 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
     else if(i_type == REG_VSR)
     {
         //1.put VSR dw1 value into SCR0
-        FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, i_buffer[1]));
+        PREP_EC_PC_SCR0(iv_target);
+        FAPI_TRY(PUT_EC_PC_SCR0(iv_target, i_buffer[1]));
 
         //2.create mfsprd<gpr0> opcode, ram into thread
         l_opcode = OPCODE_MFSPR_FROM_SPRD_TO_GPR0;
         FAPI_TRY(ram_opcode(l_opcode, true));
 
         //3.put VSR dw0 value into SCR0
-        FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, i_buffer[0]));
+        PREP_EC_PC_SCR0(iv_target);
+        FAPI_TRY(PUT_EC_PC_SCR0(iv_target, i_buffer[0]));
 
         //4.create mfsprd<gpr1> opcode, ram into thread
         l_opcode = OPCODE_MFSPR_FROM_SPRD_TO_GPR0;
@@ -952,7 +1040,8 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
         {
             if(opcodes[i].prePutScom)
             {
-                FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, *opcodes[i].prePutScom));
+                PREP_EC_PC_SCR0(iv_target);
+                FAPI_TRY(PUT_EC_PC_SCR0(iv_target, *opcodes[i].prePutScom));
             }
 
             if(opcodes[i].opCode)
@@ -969,7 +1058,7 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
             if(opcodes[i].postGetScom)
             {
                 fapi2::buffer<uint64_t> scomData;
-                FAPI_TRY(fapi2::getScom(iv_target, C_SCR0, scomData));
+                FAPI_TRY(GET_EC_PC_SCR0(iv_target, scomData));
                 *opcodes[i].postGetScom = scomData;
             }
         }
@@ -979,7 +1068,8 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
     //restore GPR0 if necessary
     if(iv_write_gpr0 && !l_write_gpr0)
     {
-        FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, l_backup_gpr0));
+        PREP_EC_PC_SCR0(iv_target);
+        FAPI_TRY(PUT_EC_PC_SCR0(iv_target, l_backup_gpr0));
         l_opcode = OPCODE_MFSPR_FROM_SPRD_TO_GPR0;
         FAPI_TRY(ram_opcode(l_opcode, true));
     }
@@ -989,7 +1079,8 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
     //restore GPR1 if necessary
     if(iv_write_gpr1 && ((i_type == REG_VSR) || ((i_type == REG_SPR) && (i_reg_num == RAM_REG_VSCR))))
     {
-        FAPI_TRY(fapi2::putScom(iv_target, C_SCR0, l_backup_gpr1));
+        PREP_EC_PC_SCR0(iv_target);
+        FAPI_TRY(PUT_EC_PC_SCR0(iv_target, l_backup_gpr1));
         l_opcode = OPCODE_MFSPR_FROM_SPRD_TO_GPR1;
         FAPI_TRY(ram_opcode(l_opcode, true));
     }
