@@ -43,6 +43,7 @@
 // Includes
 //------------------------------------------------------------------------------
 
+#include "p10_ring_id.H"
 #include "p10_hcd_core_gptr_time_initf.H"
 
 
@@ -62,7 +63,21 @@ p10_hcd_core_gptr_time_initf(
 {
     FAPI_INF(">>p10_hcd_core_gptr_time_initf");
 
+#ifndef P10_HCD_CORECACHE_SKIP_INITF
 
+    FAPI_DBG("Scan ec_cl2_gptr ring");
+    FAPI_TRY(fapi2::putRing(i_target, ec_cl2_gptr,
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (ec_cl2_gptr)");
+
+    FAPI_DBG("Scan ec_cl2_time ring");
+    FAPI_TRY(fapi2::putRing(i_target, ec_cl2_time,
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (ec_cl2_time)");
+
+fapi_try_exit:
+
+#endif
 
     FAPI_INF("<<p10_hcd_core_gptr_time_initf");
     return fapi2::current_err;
