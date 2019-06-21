@@ -26,25 +26,25 @@
 #include <fapi2.H>
 #include <p10_contained.H>
 
-fapi2::ReturnCode get_contained_run_mode(bool& io_is_runn)
+fapi2::ReturnCode get_contained_run_mode(bool& o_is_runn)
 {
     fapi2::ATTR_RUNN_MODE_Type tmp;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MODE, SYS, tmp));
 
-    io_is_runn = tmp == fapi2::ENUM_ATTR_RUNN_MODE_ON;
+    o_is_runn = tmp == fapi2::ENUM_ATTR_RUNN_MODE_ON;
 
 fapi_try_exit:
     return fapi2::current_err;
 }
 
-fapi2::ReturnCode get_contained_ipl_type(bool& io_is_cache_contained,
-        bool& io_is_chip_contained)
+fapi2::ReturnCode get_contained_ipl_type(bool& o_is_cache_contained,
+        bool& o_is_chip_contained)
 {
     fapi2::ATTR_CONTAINED_IPL_TYPE_Type tmp;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, SYS, tmp));
 
-    io_is_cache_contained = tmp == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE;
-    io_is_chip_contained = tmp == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP;
+    o_is_cache_contained = tmp == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE;
+    o_is_chip_contained = tmp == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP;
 
 fapi_try_exit:
     return fapi2::current_err;

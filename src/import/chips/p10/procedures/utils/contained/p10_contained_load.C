@@ -23,6 +23,7 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 #include <p10_contained.H>
+#include <p10_contained_sim.H>
 #include <p10_putmempba.H>
 #include <fapi2_mem_access.H>
 #include <p10_l3_flush.H>
@@ -92,6 +93,14 @@ inline fapi2::ReturnCode putmempba(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 inline fapi2::ReturnCode purgel3(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core)
 {
     fapi2::ReturnCode rc;
+
+    if (sim::skip_l3purge())
+    {
+        // Use FAPI_ERR(...) to force print this message
+        FAPI_ERR("Skipping L3 purge");
+        return fapi2::FAPI2_RC_SUCCESS;
+    }
+
     FAPI_EXEC_HWP(rc, p10_l3_flush, i_core, L3_FULL_PURGE, 0);
     return rc;
 }

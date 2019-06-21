@@ -23,5 +23,33 @@
 #
 # IBM_PROLOG_END_TAG
 PROCEDURE=p10_contained_ipl
+
+# Macro to add all procedures under a given path as EXTRALIBS
+# 1) gather $1/*.mk files
+# 2) remove *.mk suffixes
+# 3) remove leading path stuff $1/
+define addextralibs
+lib$(PROCEDURE)_EXTRALIBS+=$(subst $1/,,$(patsubst %.mk,%,$(wildcard $1/*.mk)))
+endef
+
+$(eval $(call addextralibs,$(ROOTPATH)/chips/p10/procedures/hwp/corecache))
+$(eval $(call addextralibs,$(ROOTPATH)/chips/p10/procedures/hwp/perv))
+
+$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/corecache)
+$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
+$(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
+
+#     Place the P10 include dir first and *then* the P9 include dir (otherwise
+#     hilarious compile errors ensue).
+$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/common/include/)
+$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p9/common/include/)
+
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
+$(call ADD_MODULE_OBJ,$(PROCEDURE),p10_perv_sbe_cmn.o)
+
+ifeq ($(P10_CONTAINED_SIM),1)
+	OBJS+=p10_contained_sim.o
+	LOCALCOMMONFLAGS+=-DP10_CONTAINED_SIM
+endif
+
 $(call BUILD_PROCEDURE)

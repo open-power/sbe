@@ -32,9 +32,11 @@ typedef fapi2::ReturnCode(*p10_contained_ipl_FP_t) (const fapi2::Target<fapi2::T
 
 extern "C" {
     ///
-    /// @brief
+    /// @brief Reinitialize system for cache- and chip-contained mode IPLs
     /// @param[in] i_target Reference to chip target
-    /// @return FAPI2_RC_SUCCESS on success, error otherwise
+    ///
+    /// @return FAPI2_RC_SUCCESS if success else error code
+    ///
     fapi2::ReturnCode p10_contained_ipl(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 }
 
