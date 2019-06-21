@@ -36,15 +36,18 @@
 // *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:QME
-// *HWP Level              : 1
+// *HWP Level              : 2
 
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
 
+#include "p10_ring_id.H"
 #include "p10_hcd_core_repair_initf.H"
-
+#include "p10_hcd_common.H"
+#include "p10_scom_eq.H"
+using namespace scomt::eq;
 
 //------------------------------------------------------------------------------
 // Constant Definitions
@@ -62,7 +65,72 @@ p10_hcd_core_repair_initf(
 {
     FAPI_INF(">>p10_hcd_core_repair_initf");
 
+#ifndef P10_HCD_CORECACHE_SKIP_INITF
 
+    fapi2::buffer<uint64_t>        l_data64             = 0;
+    uint32_t                       l_eq_num             = 0;
+    uint32_t                       l_core_num           = 0;
+    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip =
+        i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+
+    auto v_eqs = l_chip.getChildren<fapi2::TARGET_TYPE_EQ>
+                 (fapi2::TARGET_STATE_FUNCTIONAL);
+
+    for (auto const& l_eq : v_eqs)
+    {
+        auto v_cores = l_eq.getChildren<fapi2::TARGET_TYPE_CORE>
+                       (fapi2::TARGET_STATE_FUNCTIONAL);
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               l_eq,
+                               l_attr_chip_unit_pos));
+        l_eq_num = (uint32_t)l_attr_chip_unit_pos;
+
+        // Read partial good value from Chiplet Control 2
+        FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_data64));
+
+        // Cores are in bits 5:8
+        for (auto const& l_core : v_cores)
+        {
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                   l_core,
+                                   l_attr_chip_unit_pos));
+            l_core_num = (uint32_t)l_attr_chip_unit_pos % 4;
+
+            FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
+                     l_eq_num, l_core_num);
+
+            // While one could assume that the the plaform target model matches the active partial good
+            // settings in the hardware, let's not (at least until we get through some MPIPL and core
+            // deconfiguration testing.
+
+            FAPI_ASSERT((l_data64.getBit(5 + l_core_num)),
+                        fapi2::CORE_REPAIR_FUNCTIONAL_TARGET_MISMATCH_PARTIAL_GOOD()
+                        .set_CPLT_CTRL2(l_data64)
+                        .set_CORE_NUM(l_core_num)
+                        .set_EQ_NUM(l_eq_num),
+                        "Configuration Mismatch: CPLT_CTRL2 partial good bit is not set.");
+
+#ifdef __PPE_QME
+
+            if (!((i_target.getCoreSelect()) & (0x8 >> l_core_num)))
+            {
+                continue;
+            }
+
+#endif
+
+            FAPI_DBG("Scan ec_cl2_repr ring");
+            FAPI_TRY(fapi2::putRing(l_core, ec_cl2_repr,
+                                    fapi2::RING_MODE_HEADER_CHECK),
+                     "Error from putRing (ec_cl2_repr)");
+        }
+    }
+
+fapi_try_exit:
+
+#endif
 
     FAPI_INF("<<p10_hcd_core_repair_initf");
     return fapi2::current_err;

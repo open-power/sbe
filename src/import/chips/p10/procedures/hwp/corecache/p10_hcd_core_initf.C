@@ -36,13 +36,14 @@
 // *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
 // *HWP Team               : PM
 // *HWP Consumed by        : SBE:QME
-// *HWP Level              : 1
+// *HWP Level              : 2
 
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
 
+#include "p10_ring_id.H"
 #include "p10_hcd_core_initf.H"
 
 
@@ -62,7 +63,16 @@ p10_hcd_core_initf(
 {
     FAPI_INF(">>p10_hcd_core_initf");
 
+#ifndef P10_HCD_CORECACHE_SKIP_INITF
 
+    FAPI_DBG("Scan ec_cl2_fure ring");
+    FAPI_TRY(fapi2::putRing(i_target, ec_cl2_fure,
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (ec_cl2_fure)");
+
+fapi_try_exit:
+
+#endif
 
     FAPI_INF("<<p10_hcd_core_initf");
     return fapi2::current_err;
