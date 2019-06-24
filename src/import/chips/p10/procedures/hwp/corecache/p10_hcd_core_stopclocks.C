@@ -82,9 +82,14 @@ p10_hcd_core_stopclocks(
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect();
-    uint32_t                l_timeout  = 0;
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
+#ifndef EQ_SKEW_ADJUST_DISABLE
+    uint32_t                l_timeout  = 0;
+    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
+    fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
+#endif
 
     FAPI_INF(">>p10_hcd_core_stopclocks");
 
@@ -99,18 +104,23 @@ p10_hcd_core_stopclocks(
     FAPI_DBG("Disable ECL2 Skewadjust via CPMS_CGCSR_[1:CL2_CLK_SYNC_ENABLE]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_CLEAR, MMIO_1BIT(1) ) );
 
+#ifndef EQ_SKEW_ADJUST_DISABLE
+
     FAPI_DBG("Check ECL2 Skewadjust Removed via CPMS_CGCSR[33:CL2_CLK_SYNC_DONE]");
     l_timeout = HCD_ECL2_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS /
                 HCD_ECL2_CLK_SYNC_DROP_POLL_DELAY_HW_NS;
 
     do
     {
-        FAPI_TRY( HCD_GETMMIO_C( i_target, MMIO_LOWADDR(CPMS_CGCSR), l_mmioData ) );
-
-        // use multicastOR to check 0
-        if( MMIO_GET(MMIO_LOWBIT(33)) == 0 )
+        if (!l_attr_runn_mode)
         {
-            break;
+            FAPI_TRY( HCD_GETMMIO_C( i_target, MMIO_LOWADDR(CPMS_CGCSR), l_mmioData ) );
+
+            // use multicastOR to check 0
+            if( MMIO_GET(MMIO_LOWBIT(33)) == 0 )
+            {
+                break;
+            }
         }
 
         fapi2::delay(HCD_ECL2_CLK_SYNC_DROP_POLL_DELAY_HW_NS,
@@ -124,6 +134,8 @@ p10_hcd_core_stopclocks(
                 .set_CPMS_CGCSR(l_mmioData)
                 .set_CORE_TARGET(i_target),
                 "ECL2 Clock Sync Drop Timeout");
+
+#endif
 
 fapi_try_exit:
 
