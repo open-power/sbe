@@ -83,6 +83,12 @@ p10_hcd_core_startclocks(
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
+#ifndef EQ_SKEW_ADJUST_DISABLE
+    uint32_t                l_timeout = 0;
+    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
+    fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
+#endif
 
     FAPI_INF(">>p10_hcd_core_startclocks");
 
@@ -90,7 +96,6 @@ p10_hcd_core_startclocks(
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(1) ) );
 
 #ifndef EQ_SKEW_ADJUST_DISABLE
-    uint32_t l_timeout = 0;
 
     FAPI_DBG("Check ECL2 Skewadjust Sync Done via CPMS_CGCSR[33:CL2_CLK_SYNC_DONE_DONE]");
     l_timeout = HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS /
@@ -98,12 +103,15 @@ p10_hcd_core_startclocks(
 
     do
     {
-        FAPI_TRY( HCD_GETMMIO_C( i_target, MMIO_LOWADDR(CPMS_CGCSR), l_mmioData ) );
-
-        // use multicastAND to check 1
-        if( MMIO_GET(MMIO_LOWBIT(33)) == 1 )
+        if (!l_attr_runn_mode)
         {
-            break;
+            FAPI_TRY( HCD_GETMMIO_C( i_target, MMIO_LOWADDR(CPMS_CGCSR), l_mmioData ) );
+
+            // use multicastAND to check 1
+            if( MMIO_GET(MMIO_LOWBIT(33)) == 1 )
+            {
+                break;
+            }
         }
 
         fapi2::delay(HCD_ECL2_CLK_SYNC_DONE_POLL_DELAY_HW_NS,
@@ -117,6 +125,7 @@ p10_hcd_core_startclocks(
                 .set_CPMS_CGCSR(l_mmioData)
                 .set_CORE_TARGET(i_target),
                 "ECL2 Clock Sync Done Timeout");
+
 #endif
 
     FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_START ) );
@@ -126,6 +135,10 @@ p10_hcd_core_startclocks(
 
     FAPI_DBG("Enable ECL2 Regional PSCOMs via CPLT_CTRL3[5-8:ECL2_REGIONS]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
+
+    // Undo potential quiesces before last clock off, no-op for IPL
+    FAPI_DBG("Drop HBUS_DISABLE/L2RCMD_INTF_QUIESCE/NCU_TLBIE_QUIESCE/AUTO_PMSR_SHIFT_DIS via PCR_SCSR[4,7,8,22]");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( ( BIT32(4) | BITS32(7, 2) | BIT32(22) ) ) ) );
 
 fapi_try_exit:
 
