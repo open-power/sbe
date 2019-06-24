@@ -55,6 +55,7 @@ OBJDIR-ISTEP5 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep5
 OBJDIR-ISTEPMPIPL = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepmpipl
 OBJDIR-ISTEPCOMMON = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepcommon
 OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/arrayaccess
+OBJDIR-MEASUREMENT = $(BASE_OBJDIR)/sbefw/measurement
 
 PROJ_SUBDIRS += $(ISTEP2_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP2)
@@ -83,6 +84,11 @@ PROJ_LLIBS += -listepcommon
 PROJ_SUBDIRS += $(ARRAYACCESS_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ARRAYACCESS)
 #PROJ_LLIBS += -larrayaccess
+
+MEASURE_PROJ_SUBDIRS += $(MEASUREMENT_SRCDIR)
+MEASURE_PROJ_LIB_DIRS += -L$(OBJDIR-MEASUREMENT)
+MEASURE_PROJ_LLIBS += -ltestMeasure
+
 #########################################################
 # mandatory defines                                     #
 #########################################################
@@ -94,6 +100,8 @@ IMAGE_SBE_NAME := sbe_pibmem_$(IMAGE_SUFFIX)
 IMAGE_LOADER_NAME := sbe_loader_$(IMAGE_SUFFIX)
 IMAGE_OTPROM_NAME := sbe_otprom_$(IMAGE_SUFFIX)
 IMAGE_BASE_PPE_HEADER := base_ppe_header
+
+IMAGE_MEASURE_NAME := sbe_measurement_$(IMAGE_SUFFIX)
 
 SBE_SYMBOLS_NAME := sbe_$(IMAGE_SUFFIX).syms
 SBE_STRINGFILE_NAME := sbeStringFile_$(IMAGE_SUFFIX)

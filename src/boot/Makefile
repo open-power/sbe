@@ -29,16 +29,28 @@ include bootfiles.mk
 
 INCLUDES += -I$(BUILD_DIR)
 
-OBJS := $(addprefix $(OBJDIR)/, $(BOOT_OBJECTS))
+#This will generate L1 Boot *.o objects
+#this gets directly appended into Boot Seeprom
+L1_BOOT_OBJS := $(addprefix $(OBJDIR)/, $(L1_BOOT_OBJECTS))
+
+#This will generate L1 Measurement *.o objects
+#this gets directly appended into measurement seeprom
+#when img is passed as seeprom or measure, we need to enable this.
+ifeq ($(img), $(filter $(img), seeprom measurement))
+L1_MEASUREMENT_OBJS := $(addprefix $(OBJDIR)/, $(L1_MEASUREMENT_OBJECTS))
+endif
+
+#L1 loader doesn't need linking since the *.o directly gets appended to seeprom image (boot as well as measurement)
 LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
 LINK_SCRIPT_OTPROM =  $(addprefix $(OBJDIR)/, linkscriptotprom)
 
 ifneq ($(img), pibmem)
-all: $(OBJS) \
+all: $(L1_BOOT_OBJS) $(L1_MEASUREMENT_OBJS) \
      $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin
 endif
 
-$(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
+$(L1_BOOT_OBJS) $(L1_BOOT_OBJS:.o=.d): | $(OBJDIR)
+$(L1_MEASUREMENT_OBJS) $(L1_MEASUREMENT_OBJS:.o=.d): | $(OBJDIR)
 
 # Loader Objects
 LOADER_OBJS := $(addprefix $(OBJDIR)/, $(BASE_LOADER_OBJECTS))
@@ -58,12 +70,12 @@ $(IMG_DIR)/$(IMAGE_OTPROM_NAME).out: $(OTPROM_LOADER_OBJS) $(LINK_SCRIPT_OTPROM)
 $(LINK_SCRIPT_OTPROM): $(LINKER_DIR)/linkotprom.cmd
 	$(CPP) -I$(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/linkotprom.cmd -o $(LINK_SCRIPT_OTPROM)
 
-# ---- Loader Image  ------
+# ---- Loader Image for L2 Loader of Boot Seeprom  ------
 $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis: $(IMG_DIR)/$(IMAGE_LOADER_NAME).out
 	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
 	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 
-#create a linked ELF executable
+#create a linked ELF executable for L2 Loader of Boot Seeprom
 $(IMG_DIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
 	$(LD) -e l2_loader -T$(LINK_SCRIPT_LOADER) -Map $(IMG_DIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_LOADER_NAME).out $(LOADER_OBJS)
 
@@ -85,5 +97,6 @@ clean:
 	rm -fr $(OBJDIR)
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(OBJS:.o=.d)
+include $(L1_BOOT_OBJS:.o=.d)
+include $(L1_MEASUREMENT_OBJS:.o=.d)
 endif

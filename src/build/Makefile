@@ -24,7 +24,9 @@
 # IBM_PROLOG_END_TAG
 ############################################################################
 # Image settings
-# pass argument img=seeprom/pibmem
+# pass argument img=seeprom/measurement/boot/pibmem. When seeprom is
+# used both the boot and measurement images are built.
+# make img=seeprom -OR- make img=boot -OR- make img=measurment -OR- make img=pibmem
 # By default seeprom image is built
 ifndef img
 export img = seeprom
@@ -47,8 +49,9 @@ ifeq ($(img), pibmem)
 IMAGE_NAME = $(IMAGE_SBE_NAME)
 endif
 
-ifeq ($(img), seeprom)
+ifneq ($(img), pibmem)
 IMAGE_NAME = $(IMAGE_SEEPROM_NAME)
+IMAGE_MEASUREMENT_NAME = $(IMAGE_MEASURE_NAME)
 endif
 
 SUBDIRS := $(PK_SRCDIR)/$(PPE_TYPE)
@@ -113,8 +116,15 @@ SUBDIRS += $(PROJ_SUBDIRS)
 LIB_DIRS += $(PROJ_LIB_DIRS)
 LLIBS += $(PROJ_LLIBS)
 
+MEASURE_SUBDIRS = $(MEASURE_PROJ_SUBDIRS)
+MEASURE_LIB_DIRS = $(MEASURE_PROJ_LIB_DIRS)
+MEASURE_LLIBS = $(MEASURE_PROJ_LLIBS)
+
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
-ifeq ($(img), seeprom)
+# TODO Add Pibmem dis-assembly as well as measurement dis-assembly as part of
+# the simics.tar
+# add seeprom .dis only for img is "seeprom" or "boot"
+ifeq ($(img), $(filter $(img), seeprom boot))
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.dis
 endif
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_*.syms
@@ -140,18 +150,17 @@ SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
 
 IPL_IMAGE_TOOL := $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool
 
-LINK_OBJS = $(OBJS)
-
-# Define the objects
-OBJS := $(addprefix $(OBJDIR)/, $(TOP_OBJECTS))
-LINK_OBJS += $(OBJS) $(GCCLIBS)
-
-ifeq ($(img),seeprom)
+ifneq ($(img), pibmem)
+#boot seeprom image linker
 IN_LINK_SCRIPT = linkseeprom.cmd
 OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptseeprom_$(IMAGE_SUFFIX))
+#measurement seeprom image linker
+IN_MEASURE_LINK_SCRIPT = linkmeasure.cmd
+OUT_MEASURE_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptmeasure_$(IMAGE_SUFFIX))
 endif
 
 ifeq ($(img),pibmem)
+# same linker is used for both boot_seeprom and pibmem
 IN_LINK_SCRIPT = linkseeprom.cmd
 OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
 endif
@@ -162,7 +171,7 @@ build_sbe_image: $(SUBDIRS) $(SEEPROM_SUBDIRS)
 output_sbe_image:
 	$(C2) "Generating $(IMG_DIR)/$(IMAGE_NAME).out"
 	$(C1)$(LD) -e __system_reset -n -T$(OUT_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_NAME).map \
-		-Bstatic -o $(IMG_DIR)/$(IMAGE_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(BOOT_OBJECTS)) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
+		-Bstatic -o $(IMG_DIR)/$(IMAGE_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_BOOT_OBJECTS)) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group --gc-sections
 	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) $(img)
 	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_NAME).out > $(IMG_DIR)/$(IMAGE_NAME).dis
@@ -173,9 +182,49 @@ linker_seeprom:
 	@mkdir -p $(OBJDIR)/build
 	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/$(IN_LINK_SCRIPT) -o $(OUT_LINK_SCRIPT)
 
+## TODO:: Look into all pre linked info for measurement image
+pre_measure_image: ppe_trace_bin buildInfo linker_measure
+
+# Build the measurement subdirectories files
+build_measure_image:
+	$(C1)$(MAKE) -I $(INCLUDES) -C $(MEASURE_SUBDIRS) -f Makefile
+
+linker_measure:
+	@mkdir -p $(OBJDIR)/build
+	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/$(IN_MEASURE_LINK_SCRIPT) -o $(OUT_MEASURE_LINK_SCRIPT)
+
+output_measure_image:
+	$(C2) "Generating $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out"
+	$(C1)$(LD) -e __system_reset -n -T$(OUT_MEASURE_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).map \
+  -Bstatic -o $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_MEASUREMENT_OBJECTS)) \
+     $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(MEASURE_LIB_DIRS) \
+					   --start-group $(MEASURE_LLIBS) --end-group --gc-sections
+	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) $(img)
+	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).dis
+
+### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File 
+add_MeasureLoaderAddr:
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out | grep __l1Loader | cut -f 1 -d " "`
+
 ifeq ($(img), seeprom)
 all:
+	$(MAKE) boot_branch
+	$(MAKE) measurement_branch
+endif
+
+ifeq ($(img), boot)
+all:
+	$(MAKE) boot_branch
+endif
+
+ifeq ($(img), measurement)
+all:
+	$(MAKE) measurement_branch
+endif
+
+boot_branch:
 	$(MAKE) $(OBJDIR)
+	$(MAKE) attribute_parse
 	$(MAKE) pre_sbe_image
 	$(MAKE) build_sbe_image
 	$(MAKE) output_sbe_image
@@ -183,19 +232,19 @@ all:
 	$(MAKE) appendloader
 	$(MAKE) compress
 	$(MAKE) defaultset
-	$(MAKE) add_LoaderAddr
+	$(MAKE) add_BootLoaderAddr
 	$(MAKE) symbols tracehash buildtag
 	$(MAKE) report
 
-add_LoaderAddr:
+add_BootLoaderAddr:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __l1Loader | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L2_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __pk_boot | cut -f 1 -d " "`
-endif
 
 ifeq ($(img), pibmem)
 all:
 	$(MAKE) $(OBJDIR)
+	$(MAKE) attribute_parse
 	$(MAKE) pre_sbe_image
 	$(MAKE) build_sbe_image
 	$(MAKE) output_sbe_image
@@ -208,6 +257,19 @@ all:
 add_LoaderAddr:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __vectors | cut -f 1 -d " "`
 endif
+
+measurement_branch:
+	$(MAKE) $(OBJDIR)
+	$(MAKE) pre_measure_image
+	$(MAKE) build_measure_image
+	$(MAKE) output_measure_image
+#	$(MAKE) normalize
+#	$(MAKE) appendloader
+#	$(MAKE) compress
+#	$(MAKE) defaultset
+#	$(MAKE) add_MeasureLoaderAddr
+#	$(MAKE) symbols tracehash buildtag
+#	$(MAKE) report
 
 tar:
 	@cp $(IMG_DIR)/$(SBE_STRINGFILE_NAME) $(IMG_DIR)/sbeStringFile || true
@@ -224,11 +286,12 @@ tar:
 	@rm -rf $(TAR_OBJDIR)
 	@echo "Generated simics.tar in Sbe images Directory"
 
-.PHONY: all normalize compress defaultset appendloader add_LoaderAddr symbols report \
+.PHONY: all normalize compress defaultset appendloader add_BootLoaderAddr \
+  add_MeasureLoaderAddr add_LoaderAddr symbols report \
 		appendoverrides xml security tracehash topfixedheaders \
 		tar install
-
-ifeq ($(img), seeprom)
+#TODO add symbols for all images (pibmem/boot_seeprom/measurement_seeprom)
+ifeq ($(img), $(filter $(img), seeprom boot))
 symbols:
 	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
 	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_LOADER_NAME).out >> $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
@@ -251,6 +314,9 @@ buildtag:
 
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d)
+
+#Create measurement obj directory if needed
+$(MEASURE_OBJS) $(MEASURE_OBJS:.o=.d): | $(OBJDIR)
 
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_pervasive_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/system_attributes.xml
@@ -276,6 +342,8 @@ $(OBJDIR):
 	mkdir -p $(IMG_DIR)
 	mkdir -p $(GENFILES_DIR)
 	mkdir -p $(IMPORT_OBJDIR)
+
+attribute_parse:
 	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)

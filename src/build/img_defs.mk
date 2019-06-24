@@ -87,6 +87,11 @@ endif
 ifndef IMPORT_HWP_MK_DIR
 export IMPORT_HWP_MK_DIR = $(BUILD_DIR)/import_hwp_mk/$(project)
 endif
+
+ifndef MEASUREMENT_SRCDIR
+export MEASUREMENT_SRCDIR = $(SBE_SRC_DIR)/sbefw/measurement
+endif
+
 ifndef BOOT_SRCDIR
 export BOOT_SRCDIR = $(SBE_SRC_DIR)/boot
 endif

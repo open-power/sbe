@@ -1,11 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/boot/bootfiles.mk $
+# $Source: src/sbefw/measurement/Makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2019
 # [+] International Business Machines Corp.
 #
 #
@@ -22,17 +22,29 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BOOTTOP-S-SOURCES += loader_l1.S
 
-L1_BOOT_OBJECTS += $(BOOTTOP-C-SOURCES:.c=.o) $(BOOTTOP-S-SOURCES:.S=.o)
+export SUB_OBJDIR = /sbefw/measurement
+OBJS = $(addprefix $(OBJDIR)/, $(MEASUREMENT_OBJECTS))
+LIBNAME = libtestMeasure
 
-MEASUREMENT-S-SOURCES = measurement_l1.S
-L1_MEASUREMENT_OBJECTS = $(MEASUREMENT-S-SOURCES:.S=.o)
+include img_defs.mk
+include measurementfiles.mk
 
-BASE-LOADER-C-SOURCES = loader_l2.c
-BASE-LOADER-S-SOURCES = loader_l2_setup.S
+$(LIBNAME).a: $(OBJS)
+	$(AR) crs $(OBJDIR)/$(LIBNAME).a $(OBJDIR)/*.o
 
-BASE_LOADER_OBJECTS = $(BASE-LOADER-C-SOURCES:.c=.o)  $(BASE-LOADER-S-SOURCES:.S=.o)
+.PHONY: clean measure
+measure: $(OBJS)
 
-OTPROM-LOADER-S-SOURCES = otprom_init.S
-OTPROM_LOADER_OBJECTS = $(OTPROM-LOADER-S-SOURCES:.S=.o)
+$(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+#clean the kernel directory first, then the application level clean
+clean:
+	rm -fr $(OBJDIR)
+
+ifneq ($(MAKECMDGOALS),clean)
+	include $(OBJS:.o=.d)
+endif

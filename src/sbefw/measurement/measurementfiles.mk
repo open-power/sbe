@@ -1,11 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/boot/bootfiles.mk $
+# $Source: src/sbefw/measurement/measurementfiles.mk $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2019
 # [+] International Business Machines Corp.
 #
 #
@@ -22,17 +22,12 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BOOTTOP-S-SOURCES += loader_l1.S
 
-L1_BOOT_OBJECTS += $(BOOTTOP-C-SOURCES:.c=.o) $(BOOTTOP-S-SOURCES:.S=.o)
+MEASUREMENT-CPP-SOURCES =  measurement_main.C
+MEASUREMENT-CPP-SOURCES += test_lib.C
 
-MEASUREMENT-S-SOURCES = measurement_l1.S
-L1_MEASUREMENT_OBJECTS = $(MEASUREMENT-S-SOURCES:.S=.o)
+MEASUREMENT-C-SOURCES =
+MEASUREMENT-S-SOURCES =
 
-BASE-LOADER-C-SOURCES = loader_l2.c
-BASE-LOADER-S-SOURCES = loader_l2_setup.S
+MEASUREMENT_OBJECTS = $(MEASUREMENT-C-SOURCES:.c=.o) $(MEASUREMENT-CPP-SOURCES:.C=.o) $(MEASUREMENT-S-SOURCES:.S=.o)
 
-BASE_LOADER_OBJECTS = $(BASE-LOADER-C-SOURCES:.c=.o)  $(BASE-LOADER-S-SOURCES:.S=.o)
-
-OTPROM-LOADER-S-SOURCES = otprom_init.S
-OTPROM_LOADER_OBJECTS = $(OTPROM-LOADER-S-SOURCES:.S=.o)
