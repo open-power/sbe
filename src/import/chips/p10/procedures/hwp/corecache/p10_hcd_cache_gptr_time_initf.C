@@ -76,6 +76,24 @@ p10_hcd_cache_gptr_time_initf(
 
 fapi_try_exit:
 
+#else
+
+#ifdef __PPE_QME
+
+#include "iota_panic_codes.h"
+
+    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
+    fapi2::ATTR_QME_BROADSIDE_SCAN_Type         l_attr_qme_broadside_scan;
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_QME_BROADSIDE_SCAN, l_sys, l_attr_qme_broadside_scan ) );
+
+    if (l_attr_qme_broadside_scan)
+    {
+        FAPI_INF("QME TRAP FOR BROADSIDE SCAN");
+        IOTA_PANIC(CORECACHE_BROADSIDE_SCAN);
+    }
+
+#endif
+
 #endif
 
     FAPI_INF("<<p10_hcd_cache_gptr_time_initf");
