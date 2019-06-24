@@ -97,7 +97,7 @@ $(call ADD_PPEIMAGE_INCDIR,$(IMAGE),\
 	$(PK_SRCDIR)/../ppetrace \
 	$(PK_SRCDIR)/../boltonlib/$(_PPE_TYPE) \
 	$(OCC_SRCDIR) \
-	$(OCC_SRCDIR)/registers \
+	$(PMLIB_INCDIR)/registers \
 	$(ROOTPATH)/chips/p10/common \
 	$(OCC_SRCDIR)/occlib \
 	$(ROOTPATH)/chips/p10/common/ppe/powmanlib \
