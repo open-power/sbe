@@ -86,6 +86,12 @@ p10_hcd_cache_startclocks(
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(12);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
+#ifndef EQ_SKEW_ADJUST_DISABLE
+    uint32_t                l_timeout = 0;
+    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
+    fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
+#endif
 
     FAPI_INF(">>p10_hcd_cache_startclocks");
 
@@ -93,7 +99,6 @@ p10_hcd_cache_startclocks(
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(0) ) );
 
 #ifndef EQ_SKEW_ADJUST_DISABLE
-    uint32_t                l_timeout = 0;
 
     FAPI_DBG("Check L3 Skewadjust Sync Done via CPMS_CGCSR[32:L3_CLK_SYNC_DONE_DONE]");
     l_timeout = HCD_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS /
@@ -101,12 +106,15 @@ p10_hcd_cache_startclocks(
 
     do
     {
-        FAPI_TRY( HCD_GETMMIO_C( i_target, MMIO_LOWADDR(CPMS_CGCSR), l_mmioData ) );
-
-        //use multicastAND to check 1
-        if( MMIO_GET(MMIO_LOWBIT(32)) == 1 )
+        if (!l_attr_runn_mode)
         {
-            break;
+            FAPI_TRY( HCD_GETMMIO_C( i_target, MMIO_LOWADDR(CPMS_CGCSR), l_mmioData ) );
+
+            //use multicastAND to check 1
+            if( MMIO_GET(MMIO_LOWBIT(32)) == 1 )
+            {
+                break;
+            }
         }
 
         fapi2::delay(HCD_L3_CLK_SYNC_DONE_POLL_DELAY_HW_NS,
@@ -120,6 +128,7 @@ p10_hcd_cache_startclocks(
                 .set_CPMS_CGCSR(l_mmioData)
                 .set_CORE_TARGET(i_target),
                 "L3 Clock Sync Done Timeout");
+
 #endif
 
     FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_START ) );
@@ -129,6 +138,10 @@ p10_hcd_cache_startclocks(
 
     FAPI_DBG("Enable L3 Regional PSCOMs via CPLT_CTRL3[9-12:L3_REGIONS]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR, SCOM_LOAD32H(l_regions) ) );
+
+    // Undo potential powerbus quiesce before last clock off, no-op for IPL
+    FAPI_DBG("Drop PB_PURGE_REQ via PCR_SCSR[12]");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( BIT32(12) ) ) );
 
 fapi_try_exit:
 
