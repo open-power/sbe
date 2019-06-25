@@ -69,12 +69,9 @@ const char* g_usage =
 void assertTarget(const char* str, unsigned int index)
 {
 
-    if(strcmp(str, "TARGET_TYPE_SYSTEM") == 0 || (strcmp(str, "TARGET_TYPE_PROC_CHIP") == 0)) {
-        if (index > 0) {
-            fprintf(stderr, "sbe_default_tool: index (%d) is larger than 0\n", index);
-            exit(1);
-        }
-    } else if(strcmp(str, "TARGET_TYPE_EX") == 0)  {
+    //PPE has support for array attributes for TARGET_TYPE_SYSTEM and TARGET_TYPE_PROC_CHIP.
+    //So the below check is not required.
+    if(strcmp(str, "TARGET_TYPE_EX") == 0)  {
         if (index > EX_TARGET_COUNT) {
             fprintf(stderr, "sbe_default_tool: index (%d) is larger than EX_TARGET_COUNT (%d)\n",
                 index, EX_TARGET_COUNT);
