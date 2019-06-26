@@ -687,7 +687,7 @@ extern "C"
 
         // ensure PBA region is unlocked, discard/ignore return code
         fapi2::buffer<uint64_t> l_pba_slv_rst_data;
-        (void) fapi2::getScom(i_target, TP_TPBR_PBA_PBAO_PBASLVRST, l_pba_slv_rst_data);
+        (void) fapi2::getScom(i_target, scomt::proc::TP_TPBR_PBA_PBAO_PBASLVRST, l_pba_slv_rst_data);
 #endif
 
         // PIB is unlocked, analyze state of FIRs/state machines to see if the SCOM
