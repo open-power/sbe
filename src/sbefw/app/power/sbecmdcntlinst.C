@@ -37,8 +37,8 @@
 #include "sbeFifoMsgUtils.H"
 
 #include "fapi2.H"
-#include "p9_thread_control.H"
-#include "p9_query_core_access_state.H"
+#include "p10_thread_control.H"
+//#include "p9_query_core_access_state.H"
 
 
 using namespace fapi2;

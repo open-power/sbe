@@ -34,7 +34,7 @@
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
-#include "p9_ram_core.H"
+#include "p10_ram_core.H"
 
 using namespace fapi2;
 

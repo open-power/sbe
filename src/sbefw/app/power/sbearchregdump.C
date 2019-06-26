@@ -34,12 +34,9 @@
 #include "sbefapiutil.H"
 #include "sbearchregdump.H"
 #include "sbeglobals.H"
-#include "p9_query_core_access_state.H"
-#include "p9_ram_core.H"
 #include "sbeMemAccessInterface.H"
 #include "sbecmdcntlinst.H"
-#include "p9_thread_control.H"
-#include "p9_perv_scom_addresses.H"
+#include "p10_thread_control.H"
 
 #include "fapi2.H"
 

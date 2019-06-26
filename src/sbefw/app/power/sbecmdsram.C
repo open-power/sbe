@@ -38,17 +38,17 @@
 #include "sbeSecureMemRegionManager.H"
 
 #include "fapi2.H"
-#include "p9_pm_ocb_init.H"
-#include "p9_pm_ocb_indir_setup_linear.H"
-#include "p9_pm_ocb_indir_access.H"
+#include "p10_pm_ocb_init.H"
+#include "p10_pm_ocb_indir_setup_linear.H"
+#include "p10_pm_ocb_indir_access.H"
 #include "p9_perv_scom_addresses.H"
 
 using namespace fapi2;
 
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
-//p9_pm_ocb_indir_setup_linear_FP_t p9_ocb_setup_linear_access_hwp = &p9_pm_ocb_indir_setup_linear;
-//p9_pm_ocb_indir_access_FP_t p9_ocb_indirect_access_hwp = &p9_pm_ocb_indir_access;
+p10_pm_ocb_indir_setup_linear_FP_t p10_ocb_setup_linear_access_hwp = &p10_pm_ocb_indir_setup_linear;
+p10_pm_ocb_indir_access_FP_t p10_ocb_indirect_access_hwp = &p10_pm_ocb_indir_access;
 #endif
 
 ///////////////////////////////////////////////////////////////////////
@@ -62,11 +62,10 @@ using namespace fapi2;
 ///////////////////////////////////////////////////////////////////////
 uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
 {
+#if 0
     #define SBE_FUNC " sbeOccSramAccess_Wrap "
     SBE_ENTER(SBE_FUNC);
-
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-#if 0
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
 
     sbeRespGenHdr_t l_respHdr;
@@ -80,8 +79,8 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
     sbeOccSramAccessReqMsgHdr_t l_req = {0};
 
     // Check if True - Get / False - Put
-    p9ocb::PM_OCB_ACCESS_OP l_ocb_access =
-            (i_isGetFlag)? p9ocb::OCB_GET : p9ocb::OCB_PUT;
+    ocb::PM_OCB_ACCESS_OP l_ocb_access =
+            (i_isGetFlag)? ocb::OCB_GET : ocb::OCB_PUT;
     // Get the Req Struct Size Data from upstream Fifo
     uint32_t l_len2dequeue  = sizeof(l_req) / sizeof(uint32_t);
 
@@ -109,22 +108,22 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         bool l_validAddrForFirstAccess = true;
 
         // Channel Selection based on Mode as well as Fsp attchament
-        p9ocb::PM_OCB_CHAN_NUM l_chan = p9ocb::OCB_CHAN0;
+        ocb::PM_OCB_CHAN_NUM l_chan = ocb::OCB_CHAN0;
         switch(l_req.mode)
         {
             case NORMAL_MODE:
                 if(false == SbeRegAccess::theSbeRegAccess().isFspSystem())
                 {
-                    l_chan = p9ocb::OCB_CHAN2;
+                    l_chan = ocb::OCB_CHAN2;
                 }
                 break;
 
             case DEBUG_MODE:
-                l_chan = p9ocb::OCB_CHAN3;
+                l_chan = ocb::OCB_CHAN3;
                 break;
 
             case CIRCULAR_MODE:
-                l_chan = p9ocb::OCB_CHAN1;
+                l_chan = ocb::OCB_CHAN1;
                 l_validAddrForFirstAccess = false;
                 break;
 
@@ -155,12 +154,12 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         // Setup Needs to be called in Normal and Debug Mode only
         if( (l_req.mode == NORMAL_MODE) || (l_req.mode == DEBUG_MODE) )
         {
-            SBE_EXEC_HWP(l_fapiRc, p9_ocb_setup_linear_access_hwp,l_proc, l_chan,
-                                                    p9ocb::OCB_TYPE_LINSTR,
+            SBE_EXEC_HWP(l_fapiRc, p10_ocb_setup_linear_access_hwp,l_proc, l_chan,
+                                                    ocb::OCB_TYPE_LINSTR,
                                                     l_req.addr)
             if(l_fapiRc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR(SBE_FUNC "p9_pm_ocb_indir_setup_linear failed, "
+                SBE_ERROR(SBE_FUNC "p10_pm_ocb_indir_setup_linear failed, "
                     "Channel[0x%02X] Addr[0x%08X]",
                     l_chan, l_req.addr);
 
@@ -205,7 +204,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
             // API for access, For circular valid address flag is false, Hwp
             // doesn't need the address field from us.
             SBE_EXEC_HWP(l_fapiRc,
-                    p9_ocb_indirect_access_hwp,
+                    p10_ocb_indirect_access_hwp,
                     l_proc,
                     l_chan,
                     l_ocb_access, // Get/Put
@@ -216,7 +215,7 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
                     (uint64_t *)l_getBuf) // O/p buffer
             if(l_fapiRc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR(SBE_FUNC "p9_pm_ocb_indir_access failed, "
+                SBE_ERROR(SBE_FUNC "p10_pm_ocb_indir_access failed, "
                  "Channel[0x%02X] Addr[0x%08X] 64Bit Aligned Len[0x%08X]",
                  l_chan, l_req.addr, (l_lenPassedToHwp/SBE_64BIT_ALIGN_FACTOR));
 
@@ -275,10 +274,11 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
     }while(0);
-#endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
+#endif
+    return 0;
 }
 
 

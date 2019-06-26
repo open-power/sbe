@@ -31,10 +31,11 @@
 #include "sbefapiutil.H"
 #include "fapi2.H"
 
+#if 0
 #include "p9_sbe_fastarray_setup.H"
 #include "p9_sbe_fastarray_cleanup.H"
 #include "p9_sbe_fastarray_abist_catchup.H"
-#if 0
+
 #ifdef SEEPROM_IMAGE
 // Using Function pointer to force long call
 p9_sbe_fastarray_setup_FP_t p9_sbe_fastarray_setup_hwp =

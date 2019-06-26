@@ -37,8 +37,8 @@ OBJSISTEP5 := $(addprefix $(OBJDIR-ISTEP5)/, $(ISTEP5_OBJECTS))
 
 .PHONY: clean istep5
 
-#libistep5.a: istep5
-#	$(AR) crs $(OBJDIR-ISTEP5)/libistep5.a $(OBJDIR-ISTEP5)/*.o
+libistep5.a: istep5
+	$(AR) crs $(OBJDIR-ISTEP5)/libistep5.a $(OBJDIR-ISTEP5)/*.o
 
 istep5: $(OBJSISTEP5)
 

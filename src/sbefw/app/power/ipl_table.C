@@ -86,8 +86,9 @@
 //#include <p9_hcd_core.H>
 
 // istep 5 hwp header files
-//#include "p9_sbe_instruct_start.H"
-//#include "p9_sbe_load_bootloader.H"
+#include "p10_sbe_instruct_start.H"
+#include "p10_sbe_core_spr_setup.H"
+#include "p10_sbe_load_bootloader.H"
 
 // istep mpipl header files
 //#include "p9_block_wakeup_intr.H"
@@ -96,7 +97,7 @@
 //#include "p9_l2_flush.H"
 //#include "p9_l3_flush.H"
 //#include "p9_sbe_sequence_drtm.H"
-//#include "p9_thread_control.H"
+#include "p10_thread_control.H"
 //#include "sbecmdcntlinst.H"
 //#include "p9_quad_power_off.H"
 //#include "p9_hcd_cache_stopclocks.H"
@@ -107,7 +108,7 @@
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
 
-#include "p9_fbc_utils.H"
+#include "p10_fbc_utils.H"
 #include "sbeSecureMemRegionManager.H"
 
 #include "sbeConsole.H"
@@ -138,8 +139,8 @@ using sbeIstepHwpTpSwitchGears_t = ReturnCode (*)
 
 using  sbeIstepHwpProc_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
+extern p10_thread_control_FP_t threadCntlhwp;
 #if 0
-extern p9_thread_control_FP_t threadCntlhwp;
 using  sbeIstepHwpEq_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_EQ> & i_target);
 
@@ -353,10 +354,9 @@ static istepMap_t g_istep4PtrTbl[] =
 //  Add the support for istep 5 HWP
 static istepMap_t g_istep5PtrTbl[]
          {
-#ifdef SEEPROM_IMAGE
              ISTEP_MAP( istepLoadBootLoader, NULL ),
-             ISTEP_MAP( istepStartInstruction,  NULL),
-#endif
+             ISTEP_MAP( istepWithProc, p10_sbe_core_spr_setup ),
+             ISTEP_MAP( istepStartInstruction, p10_sbe_instruct_start),
          };
 
 istepTableEntry_t istepTableEntries[] = {
@@ -602,14 +602,14 @@ constexpr uint32_t HB_MEM_WINDOW_SIZE = 10*1024*1024; //10 MB
 ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
-    // Get master Ex
-#if 0
-    uint8_t exId = 0;
+
+    // Get master Core
+    uint8_t coreId = 0;
     Target< TARGET_TYPE_SYSTEM > sysTgt;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    FAPI_ATTR_GET(fapi2::ATTR_MASTER_EX,proc,exId);
-    fapi2::Target<fapi2::TARGET_TYPE_EX >
-        exTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_EX>(exId));
+    FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,proc,coreId);
+    fapi2::Target<fapi2::TARGET_TYPE_CORE >
+        coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
     // Get hbbl section
     P9XipHeader *hdr = getXipHdr();
     P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
@@ -624,11 +624,31 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         // since it is going to access these data from inside.
         uint64_t addr = SBE_GLOBAL->sbeKeyAddrPair.fetchStashAddrAttribute();
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR, sysTgt, addr);
-        //SBE_EXEC_HWP(rc, p9_sbe_load_bootloader, proc, exTgt, hbblSection->iv_size,
-        //             getSectionAddr(hbblSection))
+
+        //Initialize attribute ATTR_LPC_CONSOLE_INITIALIZED.
+        ATTR_LPC_CONSOLE_INITIALIZED_Type isLpcInitialized = SBE_GLOBAL->sbeUartActive;
+        PLAT_ATTR_INIT(fapi2::ATTR_LPC_CONSOLE_INITIALIZED, sysTgt, isLpcInitialized);
+
+        fapi2::ATTR_BACKING_CACHES_NUM_Type l_ATTR_BACKING_CACHES_NUM;
+
+        //Backing cache is of 4MB size.
+        //Num of backing cache should be equal or greater than 2 for IPL.
+
+        FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
+                               proc,
+                               l_ATTR_BACKING_CACHES_NUM);
+        if(l_ATTR_BACKING_CACHES_NUM < 2)
+        {
+           SBE_ERROR(" Num of backing cache is less than 2. Cannot proceed with IPL");
+           pk_halt();
+        }
+        ATTR_NUM_KEY_ADDR_PAIR_Type l_value = MAX_ROW_COUNT;
+        PLAT_ATTR_INIT(fapi2::ATTR_NUM_KEY_ADDR_PAIR, sysTgt, l_value);
+        SBE_EXEC_HWP(rc, p10_sbe_load_bootloader, proc, coreTgt, hbblSection->iv_size,
+                     getSectionAddr(hbblSection))
         if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(" p9_sbe_load_bootloader failed");
+            SBE_ERROR(" p10_sbe_load_bootloader failed");
             break;
         }
 
@@ -638,12 +658,13 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
                       FAPI_SYSTEM,
                       l_hostboot_hrmor_offset);
         //rc = p9_fbc_utils_get_chip_base_address_no_aliases(
-        //                            proc,
-        //                            HB_GRP_CHIP_IDS,
-        //                            drawer_base_address_nm0,
-        //                            drawer_base_address_nm1,
-        //                            drawer_base_address_m,
-        //                            drawer_base_address_mmio);
+        rc = p10_fbc_utils_get_chip_base_address(
+                                    proc,
+                                    HB_BOOT_ID,
+                                    drawer_base_address_nm0,
+                                    drawer_base_address_nm1,
+                                    drawer_base_address_m,
+                                    drawer_base_address_mmio);
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(" p9_fbc_utils_get_chip_base_address failed");
@@ -658,7 +679,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
                                     static_cast<uint8_t>(memRegionMode::READ));
 
     } while(0);
-#endif
+
     return rc;
 }
 

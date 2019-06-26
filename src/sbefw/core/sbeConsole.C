@@ -34,7 +34,7 @@
 
 #include "sberegaccess.H"
 #include "sbeglobals.H"
-#include "p9_lpc_utils.H"
+//#include "p9_lpc_utils.H"
 
 using namespace fapi2;
 

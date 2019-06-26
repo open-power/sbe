@@ -30,9 +30,10 @@
 # Object Files
 ##########################################################################
 
-#ISTEP5-CPP-SOURCES = p9_sbe_instruct_start.C
-#ISTEP5-CPP-SOURCES +=p9_thread_control.C
-ISTEP5-CPP-SOURCES =
+ISTEP5-CPP-SOURCES = p10_sbe_instruct_start.C
+ISTEP5-CPP-SOURCES +=p10_thread_control.C
+ISTEP5-CPP-SOURCES +=p10_sbe_core_spr_setup.C
+ISTEP5-CPP-SOURCES +=p10_sbe_load_bootloader.C
 ISTEP5-C-SOURCES =
 ISTEP5-S-SOURCES =
 

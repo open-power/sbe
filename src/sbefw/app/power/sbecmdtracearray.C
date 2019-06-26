@@ -37,17 +37,18 @@
 #include "sbefapiutil.H"
 #include "fapi2.H"
 
-#include "p9_sbe_tracearray.H"
+//#include "p9_sbe_tracearray.H"
 
 using namespace fapi2;
 
+#if 0
 constexpr uint32_t SBE_TRACE_GRANULE_NUM_ROWS = 1;
 constexpr uint32_t SBE_TRACEARRAY_BYTES_PER_ROW =
                             (P9_TRACEARRAY_BITS_PER_ROW / 8);
 constexpr uint32_t SBE_TRACE_GRANULE_NUM_WORDS =
      (SBE_TRACE_GRANULE_NUM_ROWS * SBE_TRACEARRAY_BYTES_PER_ROW) /
                                                         sizeof(uint32_t);
-
+#endif
 #ifdef SEEPROM_IMAGE
 //p9_sbe_tracearray_FP_t p9_sbe_tracearray_hwp = &p9_sbe_tracearray;
 #endif

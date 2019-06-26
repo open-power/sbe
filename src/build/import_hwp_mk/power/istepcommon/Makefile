@@ -37,8 +37,8 @@ OBJSISTEPCOMMON := $(addprefix $(OBJDIR-ISTEPCOMMON)/, $(ISTEPCOMMON_OBJECTS))
 
 .PHONY: clean istepcommon
 
-#libistepcommon.a: istepcommon
-#	$(AR) crs $(OBJDIR-ISTEPCOMMON)/libistepcommon.a $(OBJDIR-ISTEPCOMMON)/*.o
+libistepcommon.a: istepcommon
+	$(AR) crs $(OBJDIR-ISTEPCOMMON)/libistepcommon.a $(OBJDIR-ISTEPCOMMON)/*.o
 
 istepcommon: $(OBJSISTEPCOMMON)
 
