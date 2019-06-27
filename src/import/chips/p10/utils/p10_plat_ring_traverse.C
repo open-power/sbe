@@ -36,7 +36,7 @@
 using namespace RS4;
 fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                      const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
-                                     const RingId_t i_ringID,
+                                     const RingId_t i_ringId,
                                      const fapi2::RingMode i_ringMode,
                                      const uint32_t i_regionSelect,
                                      OpMode_t i_opMode )
@@ -64,7 +64,7 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
 
     FAPI_TRY( getRS4ImageFromTor( i_target,
                                   (i_pImgPtr + rev_32( l_pSection->iv_offset )),
-                                  i_ringID,
+                                  i_ringId,
                                   false,
                                   i_ringMode,
                                   i_regionSelect,
@@ -80,7 +80,7 @@ fapi_try_exit:
 fapi2::ReturnCode getRS4ImageFromTor(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
     uint8_t* i_pChipletSectn,
-    const RingId_t i_ringID,
+    const RingId_t i_ringId,
     bool i_applyOverride,
     const fapi2::RingMode i_ringMode,
     const uint32_t i_regionSelect,
@@ -105,16 +105,16 @@ fapi2::ReturnCode getRS4ImageFromTor(
                  .set_TOR_VER( l_torVersion ),
                  "Invalid TOR Version 0x%04x ", l_torVersion  );
 
-    FAPI_ASSERT( ( i_ringID < NUM_RING_IDS ),
+    FAPI_ASSERT( ( i_ringId < NUM_RING_IDS ),
                  fapi2::INVALID_RING_ID()
-                 .set_RING_ID( i_ringID ),
-                 "Invalid Ring Id 0x%04x", i_ringID );
+                 .set_RING_ID( i_ringId ),
+                 "Invalid Ring Id 0x%04x", i_ringId );
 
-    l_torOffset     =   ( INSTANCE_RING_MASK    &  ( RING_PROPERTIES[(uint8_t)i_ringID].idxRing ) );
-    l_ringType      =   ( INSTANCE_RING_MARK    &  ( RING_PROPERTIES[(uint8_t)i_ringID].idxRing ) ) ?
+    l_torOffset     =   ( INSTANCE_RING_MASK    &  ( RING_PROPERTIES[(uint8_t)i_ringId].idxRing ) );
+    l_ringType      =   ( INSTANCE_RING_MARK    &  ( RING_PROPERTIES[(uint8_t)i_ringId].idxRing ) ) ?
                         INSTANCE_RING : COMMON_RING;
 
-    l_chipletType   =   RING_PROPERTIES[(uint8_t)i_ringID].chipletType;
+    l_chipletType   =   RING_PROPERTIES[(uint8_t)i_ringId].chipletType;
 
     switch( l_chipletType )
     {
@@ -261,7 +261,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
     l_pRingTor          =   (uint16_t*) l_pRs4;
 
     FAPI_INF( "TOR Traversal: Ring Id 0x%08x Sectn Offset 0x%08x Chiplet Offset 0x%08x Ring offset 0x%08x",
-              i_ringID, (*((uint32_t*)i_pChipletSectn)), l_sectionOffset, l_torOffset );
+              i_ringId, (*((uint32_t*)i_pChipletSectn)), l_sectionOffset, l_torOffset );
 
     if( INSTANCE_RING == l_ringType )
     {
@@ -279,12 +279,12 @@ fapi2::ReturnCode getRS4ImageFromTor(
         l_pRs4  +=  rev_16(*l_pRingTor);
         CompressedScanData* l_pRs4Hdr   =  (CompressedScanData*)l_pRs4;
 
-        FAPI_ASSERT( ( rev_16(l_pRs4Hdr->iv_ringId) == i_ringID ),
+        FAPI_ASSERT( ( rev_16(l_pRs4Hdr->iv_ringId) == i_ringId ),
                      fapi2::TOR_TRAVERSAL_ERROR()
                      .set_ACTUAL_RING_ID( rev_16( l_pRs4Hdr->iv_ringId ) )
-                     .set_EXPECTED_RING_ID( i_ringID ),
+                     .set_EXPECTED_RING_ID( i_ringId ),
                      "Failed To Traverse To Correct Ring. Found 0x%04x Expected  0x%04x ",
-                     rev_16( l_pRs4Hdr->iv_ringId ), i_ringID );
+                     rev_16( l_pRs4Hdr->iv_ringId ), i_ringId );
 
         FAPI_EXEC_HWP( l_rc,
                        p10_putRingUtils,
@@ -303,7 +303,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
     }
     else
     {
-        FAPI_INF( "TOR slot not populated for ring 0x%04x ", (uint16_t) i_ringID );
+        FAPI_INF( "TOR slot not populated for ring 0x%04x ", (uint16_t) i_ringId );
     }
 
 fapi_try_exit:
@@ -317,19 +317,19 @@ extern "C"
      * @brief       cronus interface for verification of ring traversal.
      * @param[in]   i_pImgPtr   points to SBE SEEPROM image.
      * @param[in]   i_target    fapi2 target
-     * @param[in]   i_ringID    ring to be scanned.
+     * @param[in]   i_ringId    ring to be scanned.
      * @param[in]   i_ringMode  ring mode.
      */
     fapi2::ReturnCode p10_plat_ring_traverse(
         uint8_t* i_pImgPtr,
         const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
-        const RingId_t i_ringID,
+        const RingId_t i_ringId,
         const fapi2::RingMode i_ringMode,
         const uint32_t i_regionSelect,
         OpMode_t i_opMode )
     {
 
-        FAPI_TRY( lookUpRingSection( i_pImgPtr, i_target, i_ringID, i_ringMode, i_regionSelect, i_opMode ) );
+        FAPI_TRY( lookUpRingSection( i_pImgPtr, i_target, i_ringId, i_ringMode, i_regionSelect, i_opMode ) );
     fapi_try_exit:
         return fapi2::current_err;
     }
