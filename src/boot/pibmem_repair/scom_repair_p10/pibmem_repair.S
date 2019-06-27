@@ -32,31 +32,111 @@
 
 _pibmemRepair:
 
-        ### switch pcb mux settings to intermediate state
-        _liw     %r3, 0x50010
-        lvd      d0, 0(r3)                   # read data from 0x50010
-        _liw     %r5, 0x00003000             # Set Bit 18 & 19 Mask
-        or       r0, r0, r5                  # Read modify, set bit 18/19
-        _liw     %r5, 0xFFFF7FFF             # Reset Bit 16 Mask
-        and      r0, r0, r5                  # Read Modify, reset bit 16
-        stvd     d0, 0(r3)                   # putscom 50010 Set bit 18/19 and
-                                             # reset bit 16
+        ### Pibmem Init Sequence
+        #R4 and R5 are used to create the pattern to be written
+        #R6 and R7 are used to read the double word for comparison.
+        #Care should be taken if you add or delete code here.
+        #Registers values are sometime reused from the previous block
 
-        ### switch pcb mux settings to pib2pcb path
-        lvd      d0, 0(r3)                   # read data from 0x50010
-        _liw     %r5, 0x00002000             # Set Bit 18 Mask
-        or       r0, r0, r5                  # Read modify, set bit 18
-        _liw     %r5, 0xFFFF6FFF             # Reset Bit 16 and 19 Mask
-        and      r0, r0, r5                  # Read Modify, reset bit 16 and 19
-        stvd     d0, 0(r3)                   # putscom 50010 Set bit 18 and
-                                             # reset bit 16/19
-        
-        ### release pcb reset
-        lvd      d0, 0(r3)                   # read data from 0x50010
-        _liw     %r5, 0xFFFFFFFD             # Reset Bit 30 Mask
-        and      r0, r0, r5                  # Read Modify, reset bit 30
-        stvd     d0, 0(r3)                   # putscom 50010 reset bit 30
- 
+        #Release PCB Reset
+        #SCOMIN   00050130 0x00000002_00000000
+        _liw    %r3, 0x50130
+        li      r4, 0x2
+        li      r5, 0x0
+        stvd    d4, 0(r3)
+
+        #Initialize OPCG_ALIGN register with 1:1 scan ratio
+        #SCOMIN   01030001 0x50000000_00000020
+        _liw    %r3, 0x1030001
+        lis     %r4, 0x5000
+        li      r5, 0x20
+        stvd    d4, 0x0(r3)
+
+        #Set Chiplet Enable
+        #SCOMIN   0005012A 0x80000000_00000000
+        _liw    %r3, 0x5012A
+        lis     r4, 0x8000
+        li      r5, 0x0
+        stvd    d4, 0(r3)
+
+        #Drop TP Chiplet Fence Enable
+        #SCOMIN   0005013A 0x00002000_00000000
+        li      r4, 0x2000
+        stvd    d4, 0x10(r3)
+
+        #Drop PIB region fence
+        #SCOMIN   01000021 0x20000000_00000000
+        _liw    %r3, 0x1000021
+        lis    r4, 0x2000
+        stvd    d4, 0x0(r3)
+
+        #Starting clock for PIB
+        #Entering ...
+        #Exit flush (set flushmode inhibit)
+        #SCOMIN   01000010 0x20000000_00000000
+        stvd    d4, -0x11(r3)
+
+        #Clear Scan region type register
+        #SCOMIN   01030005 0x00000000_00000000
+        _liw    %r3, 0x1030005
+        li      r4, 0x0
+        stvd    d4, 0x0(r3)
+
+        #Setup all Clock Domains and Clock Types
+        #SCOMIN   01030006 0x42000000_0000E000
+        lis     r4, 0x4200
+        lis     r5, 0x1
+        addi    r5, r5, -0x2000
+        stvd    d4, 0x1(r3)
+
+
+        #Note per PPE manual , for instruction cmpwbne , only RA is
+        #guaranteed not be modified. So don't change the ordering
+        #in the code. R4 and R5 are reused across some blocks
+
+        #Poll OPCG done bit to check for completeness
+        #SCOMOUT  01000100 0x00C00000_00000000
+        _liw    %r3, 0x1000100
+        lis     r4, 0xC0
+        li      r5, 0
+        lvd     d6, 0x0(r3)
+        cmpwbne r4, r6, __compare_failed
+        cmpwbne r5, r7, __compare_failed
+
+        #Check for clocks running SL
+        #SCOMOUT  01030008 0xF9FFFFFF_FFFFFFFF
+        _liw    %r3, 0x1030008
+        lis     r4, 0xFA00
+        addi    r4, r4, -1
+        li      r5, -1
+        lvd     d6, 0x0(r3)
+        cmpwbne r4, r6, __compare_failed
+        cmpwbne r5, r7, __compare_failed
+
+        #Check for clocks running NSLI
+        #SCOMOUT  01030009 0xF9FFFFFF_FFFFFFFF
+        lvd     d6, 0x1(r3)
+        cmpwbne r4, r6, __compare_failed
+        cmpwbne r5, r7, __compare_failed
+
+        #Check for clocks running ARY
+        #SCOMOUT  0103000A F9FFFFFFFFFFFFFF
+        lvd     d6, 0x2(r3)
+        cmpwbne r4, r6, __compare_failed
+        cmpwbne r5, r7, __compare_failed
+
+        #Clear clock region
+        #SCOMIN   01030006 0x00000000_00000000
+        _liw    %r3, 0x1030006
+        lis     r4, 0x0
+        li      r5, 0x0
+        stvd    d4, 0x0(r3)
+
+        #Enter flush (clear flushmode inhibit)
+        #SCOMIN   01030020 0x20000000_00000000
+        lis     r4, 0x2000
+        stvd    d4, 0x1A(r3)
+
         ### Pibmem repair code here
         ## Row structure
         ################################################################
