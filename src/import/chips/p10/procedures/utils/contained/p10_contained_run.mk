@@ -23,5 +23,8 @@
 #
 # IBM_PROLOG_END_TAG
 PROCEDURE=p10_contained_run
+
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
+$(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained_runn.o)
+
 $(call BUILD_PROCEDURE)

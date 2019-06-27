@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/utils/contained/p10_contained_run.C $ */
+/* $Source: src/import/chips/p10/procedures/utils/contained/p10_contained_runn.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,70 +22,29 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include <p10_contained.H>
-#include <p10_contained_runn.H>
-
-#include <p10_scom_perv.H>
-#include <multicast_group_defs.H>
-
-namespace
-{
+#ifndef _P10_CONTAINED_RUNN_H_
+#define _P10_CONTAINED_RUNN_H_
 
 ///
-/// @brief Lower fences which are assumed low by istep3/4 procedures during
-///        p10_contained_ipl. These fences were raised during p10_contained_ipl
-///        to manually stop clocks. Note: only needed for non-RUNN/free-clocks.
+/// @brief Setup RUNN mode for cache-/chip-contained mode.
 ///
-/// @param[in] i_chip Reference to chip target
-/// @param[in] i_chc  Indicate chip-contained mode (vs. cache-contained mode)
+/// @param[in]  i_chip Reference to chip target
+/// @param[in]  i_chc  Indicate chip-contained mode
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode cleanup_for_free_clks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                        bool i_chc)
-{
-    using namespace scomt::perv;
+fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+                             bool i_chc);
 
-    auto all = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
-    fapi2::buffer<uint64_t> data;
+///
+/// @brief Start RUNN count for cache-/chip-contained mode.
+///
+/// @param[in]  i_chip Reference to chip target
+/// @param[in]  i_chc  Indicate chip-contained mode
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+                             bool i_chc);
 
-    FAPI_TRY(PREP_CPLT_CTRL0_WO_CLEAR(all));
-    SET_CPLT_CTRL1_REGION0_FENCE_DC(data); // perv
-
-    if (i_chc)
-    {
-        SET_CPLT_CTRL1_REGION9_FENCE_DC(data); // qme
-    }
-
-    FAPI_TRY(PUT_CPLT_CTRL1_WO_CLEAR(all, data));
-
-fapi_try_exit:
-    return fapi2::current_err;
-}
-
-}; // namespace
-
-extern "C" {
-    fapi2::ReturnCode p10_contained_run(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
-    {
-        bool cac;
-        bool chc;
-        bool runn;
-
-        FAPI_TRY(get_contained_run_mode(runn));
-        FAPI_TRY(get_contained_ipl_type(cac, chc));
-
-        if (runn)
-        {
-            FAPI_TRY(runn_setup(i_target, chc));
-            FAPI_TRY(runn_start(i_target, chc));
-        }
-        else
-        {
-            FAPI_TRY(cleanup_for_free_clks(i_target, chc));
-        }
-
-    fapi_try_exit:
-        return fapi2::current_err;
-    }
-} // extern "C"
+#endif
