@@ -63,10 +63,14 @@
 // of 8 byte each.
 #define SBE_XIP_TOC_OFFSET 8*8
 
-/// The link address of the P9 SBE Base image
+/// The link address of the P10 SBE Boot Seeprom image
 #define SBE_SEEPROM_BASE_ORIGIN 0xFF800000
 #define OTPROM_SEEPROM_HIGHER_NIBBLE 0xFF80
 
+/// The link address of the P10 SBE Measurement Seeprom image
+#define SBE_MEASUREMENT_BASE_ORIGIN 0xFF880000
+
+///  ALL XIP related offsets are valid for measurement seeprom as well
 ///  This Index depends upon XIP HEADER File
 ///  Each section table entry is 12 bytes(SIZE_OF_SBE_XIP_SECTION) size,
 //   Base Loader is 10 th (P9_XIP_SECTION_BASELOADER) section
