@@ -68,7 +68,7 @@
 #define OTPROM_SEEPROM_HIGHER_NIBBLE 0xFF80
 
 /// The link address of the P10 SBE Measurement Seeprom image
-#define SBE_MEASUREMENT_BASE_ORIGIN 0xFF880000
+#define SBE_MEASUREMENT_BASE_ORIGIN 0xFF800000
 
 ///  ALL XIP related offsets are valid for measurement seeprom as well
 ///  This Index depends upon XIP HEADER File
@@ -121,6 +121,8 @@
 #define SBE_CODE_SEEPROM_START_MSG 0x02
 // Code reached to PIBMEM Loader ( pibmem c loader )
 #define SBE_CODE_PIBMEM_START_MSG 0x03
+// Code reached to MEASURMENT loader
+#define SBE_CODE_MEASURE_START_MSG 0x04
 
 #endif  // __SBE_LINK_H
 
