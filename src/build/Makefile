@@ -199,8 +199,30 @@ output_measure_image:
   -Bstatic -o $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_MEASUREMENT_OBJECTS)) \
      $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(MEASURE_LIB_DIRS) \
 					   --start-group $(MEASURE_LLIBS) --end-group --gc-sections
-	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) $(img)
+	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) measurement
 	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).dis
+
+measure_normalize:
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin normalize
+
+measure_compress: $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin
+	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_MEASUREMENT_NAME.bin
+
+#measure_appendloader:
+#	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
+
+measure_symbols:
+	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(MEASUREMENT_SYMBOLS_NAME)
+
+measure_report: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin report > $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).rpt
+
+measure_buildtag:
+	./updateBuildTag.py $(IPL_IMAGE_TOOL) $(IMG_DIR) $(IMAGE_MEASUREMENT_NAME)
+
+# collect all of the trace hash files for measurement image into a single sbeMeasureStringFile
+measure_tracehash:
+	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/$(SBE_MEASURE_STRINGFILE_NAME)
 
 ### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File 
 add_MeasureLoaderAddr:
@@ -263,13 +285,12 @@ measurement_branch:
 	$(MAKE) pre_measure_image
 	$(MAKE) build_measure_image
 	$(MAKE) output_measure_image
-#	$(MAKE) normalize
-#	$(MAKE) appendloader
-#	$(MAKE) compress
-#	$(MAKE) defaultset
-#	$(MAKE) add_MeasureLoaderAddr
-#	$(MAKE) symbols tracehash buildtag
-#	$(MAKE) report
+	$(MAKE) measure_normalize
+#	$(MAKE) measure_appendloader
+	$(MAKE) add_MeasureLoaderAddr
+	$(MAKE) measure_symbols measure_buildtag
+	$(MAKE) measure_tracehash
+	$(MAKE) measure_report
 
 tar:
 	@cp $(IMG_DIR)/$(SBE_STRINGFILE_NAME) $(IMG_DIR)/sbeStringFile || true

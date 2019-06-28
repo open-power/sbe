@@ -504,6 +504,11 @@ ifeq ($(img), pibmem)
 GCC-DEFS += -DPIBMEM_ONLY_IMAGE
 endif
 
+#If make img=boot then only sbe_boot_seeprom image will create with L1 Loader
+ifeq ($(img), boot)
+GCC-DEFS += -DSBE_MEASUREMENT_SUPPORT=0
+endif
+
 ifeq ($(SBE_S0_SUPPORT), 1)
 GCC-DEFS += -D_S0_=$(SBE_S0_SUPPORT)
 endif

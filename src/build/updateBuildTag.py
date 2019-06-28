@@ -31,7 +31,7 @@ import socket
 from datetime import datetime
 
 # Update the build tag/time/data/user/host in the
-# sbe_seeprom_DD1.bin binary image
+# sbe_boot_seeprom.bin binary image
 def updateBuildTag(argv):
     try:
         xip_tool = argv[1]
