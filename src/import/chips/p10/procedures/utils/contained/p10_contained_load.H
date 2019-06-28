@@ -30,6 +30,7 @@
 
 typedef fapi2::ReturnCode(*p10_contained_load_FP_t) (const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
         const uint64_t&,
+        const uint64_t&,
         const uint8_t*,
         const uint64_t&,
         const uint8_t*);
