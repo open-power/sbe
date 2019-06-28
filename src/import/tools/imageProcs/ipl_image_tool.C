@@ -44,7 +44,7 @@
 #include "common_ringId.H"
 #ifndef __PPE__ // Needed on ppe side to avoid having to include various APIs
     #include "p10_tor.H"
-    #include "p9_scan_compression.H"
+    #include "p10_scan_compression.H"
     #include <vector>
     #include <endian.h>
 #endif
@@ -2110,7 +2110,11 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
                     // decompress ring to obtain ring length and to verify compressed string
                     // check for cmsk ring
-                    if (rs4_is_cmsk(rs4))
+                    MyBool_t bCmsk;
+                    uint8_t  ivType;
+                    bCmsk = rs4_is_cmsk(rs4, &ivType);
+
+                    if (bCmsk == true)
                     {
                         if (!cmskRingIteration)
                         {
@@ -2153,7 +2157,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                             }
                         }
                     }
-                    else
+                    else if (bCmsk == false)
                     {
                         ringSuffix = ' ';
                         rs4ForDisplay = rs4;
@@ -2164,6 +2168,15 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                             fprintf(stderr, "rs4 decompress error %d\n", rc);
                             exit(EXIT_FAILURE);
                         }
+                    }
+                    else
+                    {
+                        fprintf(stderr, "ERROR: rs4_is_cmsk() returned UNDEFINED_BOOLEAN. This"
+                                " is not allowed. A ring must be either an CMSK or a non-CMSK"
+                                " ring. The RS4 header indicates the following value of"
+                                " iv_type: 0x%02x\n",
+                                ivType);
+                        exit(EXIT_FAILURE);
                     }
 
                     comprRate = (double)ringSize / (double)bits * 100.0;
@@ -2208,7 +2221,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                                  "ringId = %u\n"
                                  "ringName = %s\n"
                                  "instanceId = 0x%02x\n"
-                                 "ringBlockSize = 0x%08x\n"
+                                 "ringBlockSize = 0x%04x\n"
                                  "raw bit length = %d\n"
                                  "compression [%%] = %6.2f\n",
                                  ringSeqNo, ringSuffix, ddLevel, ringId, ringName,
