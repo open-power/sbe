@@ -150,7 +150,6 @@ typedef fapi2::ReturnCode( *p10_putRingUtils_FP_t )
   const MyBool_t i_applyOverride,
   const fapi2::RingMode i_ringMode,
   const RingType_t i_ringType,
-  const uint32_t   i_regionSelect,
   RS4::OpMode_t    i_opMode );
 
 /// @brief Function to decompress the RS4 and apply the Ring data
@@ -159,27 +158,7 @@ typedef fapi2::ReturnCode( *p10_putRingUtils_FP_t )
 /// @param[in] i_applyOverride  state of the override mode 0:flush, 1:override, 0xff:use iv_type
 /// @param[in] i_ringMode       different ring access operation mode
 /// @param[in] i_ringType       Ring type Instance /Common
-/// @param[in] i_regionSelect   32 bit vector representing regions to be scanned.
-/// @note   i_regionSelect defintion
-///         b0-2    reserve
-///         b3      VITL
-///         b4      PERV
-///         b5      ECL0
-///         b6      ECL1
-///         b7      ECL2
-///         b8      ECL3
-///         b9      L30
-///         b10     L31
-///         b11     L32
-///         b12     L33
-///         b13     QME
-///         b14     CLKADJ
-///         b15     MMA0
-///         b16     MMA1
-///         b17     MMA2
-///         b18     MMA3
-///         b19:32  reserve
-/// For region other than mentioned explicitly, pass 0
+/// @param[in] i_opMode         operational mode of putring
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode p10_putRingUtils(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
@@ -187,7 +166,6 @@ fapi2::ReturnCode p10_putRingUtils(
     bool i_applyOverride,
     const fapi2::RingMode i_ringMode,
     const RingType_t i_ringType,
-    const uint32_t   i_regionSelect,
     RS4::OpMode_t    i_opMode );
 
 //
@@ -228,61 +206,55 @@ inline uint8_t rs4_get_nibble( const uint8_t* i_rs4Str, const uint32_t i_nibbleI
     return ((i_nibbleIndx % 2) ? (l_byte & 0x0f) : (l_byte >> 4));
 }
 
-//
-/// @brief       returns properties associated with a given ring id.
-/// @param[in]   i_ringId       id associated with the ring
-/// @param[out]  o_torOffset    offset associated with ring in TOR layout
-/// @param[out]  o_ringType     common or instance ring
-/// @param[out]  o_type         chiplet type associated with the ring
-void getRingProperties( const RingId_t  i_ringId,
-                        RingId_t&       o_torOffset,
-                        RingType_t&     o_ringType,
-                        ChipletType_t&  o_type );
-
 /// @brief Function to apply the Ring data using the standard-scan method
 /// @param[in] i_target         Chiplet Target of Scan
 /// @param[in] i_operation      Type of operation to perform - ROTATE/SCAN
 /// @param[in] i_opVal          Number of bits for the operation
+/// @param[in] i_chipletMask    chiplet id bit shifted by 24 position
 /// @param[in] i_scanData       This value has to be scanned when i_operation is SCAN
-/// @param[in] i_ringId         Ring id value for debug info
+/// @param[in] i_ringType       COMMON or INSTANCE_RING
+/// @param[in] i_ringId         Id associated with ring to be scanned
 /// @param[in] i_opMode         mode of operation for scanning code.
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode standardScan(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
-    RS4::opType_t        i_operation,
+    RS4::opType_t   i_operation,
     uint64_t        i_opVal,
+    uint32_t        i_chipletMask,
     uint64_t        i_scanData  =   0,
+    const RingType_t i_ringType =   COMMON_RING,
     const uint16_t  i_ringId    =   0,
     RS4::OpMode_t   i_opMode    =   RS4::SCANNING_MODE );
-
-/// @brief Function to set the Scan Region
-/// @param[in] i_target         Chiplet Target of Scan
-/// @param[in] i_scanRegion     Value to be set to select a Scan Region
-/// @param[in] i_opMode         mode of operation for scanning code.
-/// @return FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode setupScanRegion( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
-                                   uint64_t          i_scanRegion,
-                                   RS4::OpMode_t     i_opMode     = RS4::SCANNING_MODE );
 
 /// @brief Function to write the header data to the ring.
 /// @param[in] i_target         Chiplet Target of Scan
 /// @param[in] i_header         The header data that is to be written.
+/// @param[in] i_ringType       COMMON or INSTANCE_RING
+/// @param[in] i_chipletMask    chiplet id bit shifted by 24 position
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode writeHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
-                               const uint64_t i_header );
+                               const uint64_t i_header,
+                               const RingType_t i_ringType,
+                               uint32_t         i_chipletMask );
 
 
 /// @brief Function to reader the header data from the ring and verify it.
 /// @param[in] i_target         Chiplet Target of Scan
 /// @param[in] i_ringMode       different ring access operation mode
+/// @param[in] i_scanRegion     64 bit scan region type value
+/// @param[in] i_ringId         Id associated with ring to be scanned
+/// @param[in] i_chipletMask    chiplet id bit shifted by 24 position
 /// @param[in] i_bitsDecoded    number of bits rotated and scanned
-/// @param[in] i_ringId         ring Id that we scanned
+/// @param[in] i_ringType       COMMON or INSTANCE_RING
 /// @param[in] i_opMode         mode of operation for scanning code.
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
                                 const fapi2::RingMode i_ringMode,
+                                uint64_t       i_scanRegion,
+                                const uint16_t i_ringId,
+                                uint32_t       i_chipletMask,
                                 const uint32_t i_bitsDecoded =  0,
-                                const uint16_t i_ringId      =  0,
+                                const RingType_t i_ringType  =  COMMON_RING,
                                 RS4::OpMode_t i_opMode       =  RS4::SCANNING_MODE );
 
 } //extern "C"

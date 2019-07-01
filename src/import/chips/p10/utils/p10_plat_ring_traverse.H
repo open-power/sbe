@@ -68,14 +68,13 @@ struct SectionTOR
 
 
 ///
-/// @brief This is a plat pecific (SBE Plat) function that locates the
+/// @brief This is a plat specific (SBE Plat) function that locates the
 ///        Ring Container in the image and calls the functin to decompress the
 ///        RS4 string and apply it to the hardware.
 /// @param[in] i_pImgPtr        points to SBE image
 /// @param[in] i_target         The target of Ring apply.
 /// @param[in] i_ringID         The Ring ID that identifies the ring to be applied.
 /// @param[in] i_ringMode       different ring access operation mode
-/// @param[in] i_regionSelect   scan region select
 /// @param[in] i_opMode         operational mode of putring
 /// @return FAPI2_RC_SUCCESS on success, else error code.
 ///
@@ -84,7 +83,6 @@ fapi2::ReturnCode lookUpRingSection(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
     const RingId_t i_ringID,
     const fapi2::RingMode i_ringMode,
-    const uint32_t i_regionSelect   =   0,
     RS4::OpMode_t    i_opMode       =   RS4::SCANNING_MODE );
 ///
 /// @brief This is a plat pecific (SBE Plat) function that locates the
@@ -95,7 +93,6 @@ fapi2::ReturnCode lookUpRingSection(
 /// @param[in] i_ringID             The Ring ID that identifies the ring to be applied.
 /// @param[in] i_applyOverride      override is enabled or not
 /// @param[in] i_ringMode           different ring access operation mode
-/// @param[in] i_regionSelect       region within a chiplet that needs to be scanned
 /// @param[in] i_opMode             operational mode of putring
 /// @return FAPI2_RC_SUCCESS on success, else error code.
 ///
@@ -105,7 +102,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
     const RingId_t i_ringID,
     bool i_applyOverride,
     const fapi2::RingMode i_ringMode,
-    const uint32_t i_regionSelect   =   0,
     RS4::OpMode_t    i_opMode       =   RS4::SCANNING_MODE );
 
 extern "C"
@@ -116,8 +112,22 @@ extern "C"
       const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
       const RingId_t i_ringID,
       const fapi2::RingMode i_ringMode,
-      const uint32_t i_regionSelect,
       RS4::OpMode_t i_opMode );
+///
+/// @brief     entry point for SBE ring traversal HWP.
+/// @param[in] i_pImgPtr        points to SBE image
+/// @param[in] i_target         The target of Ring apply.
+/// @param[in] i_ringID         The Ring ID that identifies the ring to be applied.
+/// @param[in] i_ringMode       different ring access operation mode
+/// @param[in] i_opMode         operational mode of putring
+/// @return FAPI2_RC_SUCCESS on success, else error code.
+///
+    fapi2::ReturnCode p10_plat_ring_traverse(
+        uint8_t* i_pImgPtr,
+        const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
+        const RingId_t i_ringID,
+        const fapi2::RingMode i_ringMode,
+        RS4::OpMode_t i_opMode );
 
 }
 #endif

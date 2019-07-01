@@ -38,7 +38,6 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                      const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
                                      const RingId_t i_ringId,
                                      const fapi2::RingMode i_ringMode,
-                                     const uint32_t i_regionSelect,
                                      OpMode_t i_opMode )
 {
     FAPI_INF( ">> lookUpRingSection" );
@@ -67,7 +66,6 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                   i_ringId,
                                   false,
                                   i_ringMode,
-                                  i_regionSelect,
                                   i_opMode ) );
 
     FAPI_INF( "<< lookUpRingSection" );
@@ -83,7 +81,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
     const RingId_t i_ringId,
     bool i_applyOverride,
     const fapi2::RingMode i_ringMode,
-    const uint32_t i_regionSelect,
     OpMode_t i_opMode )
 {
     uint32_t l_torHdrSize       =   sizeof( TorHeader_t );
@@ -91,7 +88,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
     SectionTOR* l_pSectnTor     =   (SectionTOR*) ( i_pChipletSectn + l_torHdrSize );
     uint32_t l_torOffset        =   0;
     uint32_t l_sectionOffset    =   0;
-    uint32_t l_ringIndexOffset  =   0;
     RingType_t l_ringType       =   COMMON_RING;
     ChipletType_t l_chipletType;
     fapi2::ReturnCode l_rc      =   fapi2::FAPI2_RC_SUCCESS;
@@ -99,6 +95,9 @@ fapi2::ReturnCode getRS4ImageFromTor(
     ChipletData_t* l_pChipletData;
     uint16_t* l_pRingTor        =   NULL;
     uint8_t* l_pRs4             =   NULL;
+    std::vector < fapi2::Target < fapi2::TARGET_TYPE_ALL >> l_ucTgtAll =
+                i_target.getChildren< fapi2::TARGET_TYPE_ALL >();
+    uint8_t  l_chipletPos       =   l_ucTgtAll[0].getChipletNumber();
 
     FAPI_ASSERT( ( l_torVersion == TOR_VERSION ),
                  fapi2::INVALID_TOR_VERSION()
@@ -256,9 +255,8 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
     } // end of switch(l_chipletID)
 
-    l_pRs4              =   i_pChipletSectn + l_torHdrSize + l_sectionOffset + (2 * l_torOffset) +
+    l_pRs4              =   i_pChipletSectn + l_torHdrSize + l_sectionOffset +
                             ( l_chipletType * 8 ) + (( INSTANCE_RING == l_ringType ) ? 4 : 0);
-    l_pRingTor          =   (uint16_t*) l_pRs4;
 
     FAPI_INF( "TOR Traversal: Ring Id 0x%08x Sectn Offset 0x%08x Chiplet Offset 0x%08x Ring offset 0x%08x",
               i_ringId, (*((uint32_t*)i_pChipletSectn)), l_sectionOffset, l_torOffset );
@@ -267,12 +265,15 @@ fapi2::ReturnCode getRS4ImageFromTor(
     {
         if( l_chipletID >= l_pChipletData->chipletBaseId )
         {
-            l_ringIndexOffset   =   l_chipletID - l_pChipletData->chipletBaseId;
-            l_pRingTor         +=   ( l_pChipletData->numInstanceRings * l_ringIndexOffset );
-            //FIXME RTC 212097 Need to review instance ring traversal, once repair ring properties
-            //get updated in infrastructure code.
+            l_pRs4         +=   ( ( l_pChipletData->numInstanceRings * l_chipletPos ) + (l_torOffset  << 1) );
         }
     }
+    else
+    {
+        l_pRs4  +=  (l_torOffset << 1);
+    }
+
+    l_pRingTor          =   (uint16_t*) l_pRs4;
 
     if( *l_pRingTor )
     {
@@ -293,7 +294,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
                        i_applyOverride,
                        i_ringMode,
                        l_ringType,
-                       i_regionSelect,
                        i_opMode );
 
         if( l_rc )
@@ -325,11 +325,10 @@ extern "C"
         const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
         const RingId_t i_ringId,
         const fapi2::RingMode i_ringMode,
-        const uint32_t i_regionSelect,
         OpMode_t i_opMode )
     {
 
-        FAPI_TRY( lookUpRingSection( i_pImgPtr, i_target, i_ringId, i_ringMode, i_regionSelect, i_opMode ) );
+        FAPI_TRY( lookUpRingSection( i_pImgPtr, i_target, i_ringId, i_ringMode, i_opMode ) );
     fapi_try_exit:
         return fapi2::current_err;
     }
