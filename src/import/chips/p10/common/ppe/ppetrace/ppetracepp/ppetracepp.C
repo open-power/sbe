@@ -1130,4 +1130,6 @@ int main(int argc, char** argv)
     {
         dprintf("No trace calls/strings found, not writing hash file\n");
     }
+
+    return(0);
 } // end main
