@@ -95,12 +95,12 @@ p10_hcd_cache_startclocks(
 
     FAPI_INF(">>p10_hcd_cache_startclocks");
 
-    FAPI_DBG("Enable L3 Skewadjust via CPMS_CGCSR_[0:L3_CLK_SYNC_DONE_ENABLE]");
+    FAPI_DBG("Enable L3 Skewadjust via CPMS_CGCSR_[0:L3_CLK_SYNC_ENABLE]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(0) ) );
 
 #ifndef EQ_SKEW_ADJUST_DISABLE
 
-    FAPI_DBG("Check L3 Skewadjust Sync Done via CPMS_CGCSR[32:L3_CLK_SYNC_DONE_DONE]");
+    FAPI_DBG("Check L3 Skewadjust Sync Done via CPMS_CGCSR[32:L3_CLK_SYNC_DONE]");
     l_timeout = HCD_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS /
                 HCD_L3_CLK_SYNC_DONE_POLL_DELAY_HW_NS;
 

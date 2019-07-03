@@ -92,12 +92,12 @@ p10_hcd_core_startclocks(
 
     FAPI_INF(">>p10_hcd_core_startclocks");
 
-    FAPI_DBG("Enable ECL2 Skewadjust via CPMS_CGCSR[1:CL2_CLK_SYNC_DONE_ENABLE]");
+    FAPI_DBG("Enable ECL2 Skewadjust via CPMS_CGCSR[1:CL2_CLK_SYNC_ENABLE]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(1) ) );
 
 #ifndef EQ_SKEW_ADJUST_DISABLE
 
-    FAPI_DBG("Check ECL2 Skewadjust Sync Done via CPMS_CGCSR[33:CL2_CLK_SYNC_DONE_DONE]");
+    FAPI_DBG("Check ECL2 Skewadjust Sync Done via CPMS_CGCSR[33:CL2_CLK_SYNC_DONE]");
     l_timeout = HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS /
                 HCD_ECL2_CLK_SYNC_DONE_POLL_DELAY_HW_NS;
 
