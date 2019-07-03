@@ -31,10 +31,12 @@
 #define __p10_ppe_c_6_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_CERR = 0xc000e100ull;
@@ -53,8 +55,8 @@ static const uint32_t CPMS_CERR_FTC_DEBUG_EVENT_LEN = 3;
 // ppe_c/reg00006.H
 
 static const uint32_t CPMS_CUCR = 0xc000e3c0ull;
-static const uint32_t CPMS_CUCR_PPE1 = 0xc000e3e0ull;
-static const uint32_t CPMS_CUCR_PPE2 = 0xc000e3f0ull;
+static const uint32_t CPMS_CUCR_PPE1 = 0xc000e3f0ull;
+static const uint32_t CPMS_CUCR_PPE2 = 0xc000e3e0ull;
 
 static const uint32_t CPMS_CUCR_ENABLE_CORE_SHADOW = 0;
 static const uint32_t CPMS_CUCR_ENABLE_CORE_SAMPLE = 1;
@@ -88,8 +90,8 @@ static const uint32_t CPMS_CUCR_QME_EVENTS_PENDING_LEN = 7;
 // ppe_c/reg00006.H
 
 static const uint32_t CPMS_MMA_PFETCNTL = 0xc000e300ull;
-static const uint32_t CPMS_MMA_PFETCNTL_WO_CLEAR = 0xc000e320ull;
-static const uint32_t CPMS_MMA_PFETCNTL_WO_OR = 0xc000e330ull;
+static const uint32_t CPMS_MMA_PFETCNTL_WO_CLEAR = 0xc000e330ull;
+static const uint32_t CPMS_MMA_PFETCNTL_WO_OR = 0xc000e320ull;
 
 static const uint32_t CPMS_MMA_PFETCNTL_VDD_PFET_SEQ_STATE = 0;
 static const uint32_t CPMS_MMA_PFETCNTL_VDD_PFET_SEQ_STATE_LEN = 2;
@@ -106,9 +108,9 @@ static const uint32_t CPMS_MMA_PFETCNTL_VDD_PG_SEL_LEN = 4;
 static const uint32_t CPMS_MMA_PFETCNTL_MMA_FORCE_CL2 = 63;
 // ppe_c/reg00006.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00006.H"
+}
+}
+#include "ppe_c/reg00006.H"
 #endif
 #endif

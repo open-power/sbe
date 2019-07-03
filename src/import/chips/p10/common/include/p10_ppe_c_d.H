@@ -31,10 +31,12 @@
 #define __p10_ppe_c_d_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_DCCR = 0xc000e600ull;
@@ -101,9 +103,9 @@ static const uint32_t QME_PSCRS0_PLS = 24;
 static const uint32_t QME_PSCRS0_PLS_LEN = 4;
 // ppe_c/reg00013.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00013.H"
+}
+}
+#include "ppe_c/reg00013.H"
 #endif
 #endif

@@ -31,10 +31,12 @@
 #define __p10_ppe_c_e_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_ASSR = 0xc000e180ull;
@@ -141,9 +143,9 @@ static const uint32_t QME_CISR_REG_WKUP_PRESENT = 62;
 static const uint32_t QME_CISR_REG_WKUP_REQUESTED = 63;
 // ppe_c/reg00014.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00014.H"
+}
+}
+#include "ppe_c/reg00014.H"
 #endif
 #endif

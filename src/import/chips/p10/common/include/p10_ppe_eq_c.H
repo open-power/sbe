@@ -31,10 +31,12 @@
 #define __p10_ppe_eq_c_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_eq
 {
+#endif
 
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -180,9 +182,9 @@ static const uint32_t QME_SCOM_XISIB_IFETCH_PENDING = 62;
 static const uint32_t QME_SCOM_XISIB_DATAOP_PENDING = 63;
 // ppe_eq/reg00012.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_eq/reg00012.H"
+}
+}
+#include "ppe_eq/reg00012.H"
 #endif
 #endif

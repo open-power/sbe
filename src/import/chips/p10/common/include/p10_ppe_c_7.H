@@ -31,10 +31,12 @@
 #define __p10_ppe_c_7_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_CERRMSK = 0xc000e140ull;
@@ -147,9 +149,9 @@ static const uint32_t QME_TFCSR_DEC_MSB = 60;
 static const uint32_t QME_TFCSR_DEC_MSB_LEN = 4;
 // ppe_c/reg00007.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00007.H"
+}
+}
+#include "ppe_c/reg00007.H"
 #endif
 #endif

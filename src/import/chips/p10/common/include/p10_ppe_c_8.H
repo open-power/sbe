@@ -31,10 +31,12 @@
 #define __p10_ppe_c_8_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_ACDR = 0xc000e7c0ull;
@@ -113,9 +115,9 @@ static const uint32_t CPMS_ESCR_EVENTY_DONTCARE = 60;
 static const uint32_t CPMS_ESCR_EVENTY_DONTCARE_LEN = 4;
 // ppe_c/reg00008.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00008.H"
+}
+}
+#include "ppe_c/reg00008.H"
 #endif
 #endif

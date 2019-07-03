@@ -31,10 +31,12 @@
 #define __p10_ppe_c_4_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_CCCR = 0xc000e700ull;
@@ -56,8 +58,8 @@ static const uint32_t CPMS_CCCR_SPARE_LEN = 2;
 // ppe_c/reg00004.H
 
 static const uint32_t CPMS_RVCSR = 0xc000e040ull;
-static const uint32_t CPMS_RVCSR_WO_CLEAR = 0xc000e060ull;
-static const uint32_t CPMS_RVCSR_WO_OR = 0xc000e070ull;
+static const uint32_t CPMS_RVCSR_WO_CLEAR = 0xc000e070ull;
+static const uint32_t CPMS_RVCSR_WO_OR = 0xc000e060ull;
 
 static const uint32_t CPMS_RVCSR_RVID_ENABLE = 0;
 static const uint32_t CPMS_RVCSR_RVID_OVERRIDE = 1;
@@ -135,9 +137,9 @@ static const uint32_t QME_SSH_OCC_DEEPEST_ACT_STOP_LEVEL = 16;
 static const uint32_t QME_SSH_OCC_DEEPEST_ACT_STOP_LEVEL_LEN = 4;
 // ppe_c/reg00004.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00004.H"
+}
+}
+#include "ppe_c/reg00004.H"
 #endif
 #endif

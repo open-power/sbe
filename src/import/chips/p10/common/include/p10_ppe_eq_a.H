@@ -31,10 +31,12 @@
 #define __p10_ppe_eq_a_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_eq
 {
+#endif
 
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -113,9 +115,9 @@ static const uint32_t QME_TSEL_FIT_SEL = 4;
 static const uint32_t QME_TSEL_FIT_SEL_LEN = 4;
 // ppe_eq/reg00010.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_eq/reg00010.H"
+}
+}
+#include "ppe_eq/reg00010.H"
 #endif
 #endif

@@ -31,10 +31,12 @@
 #define __p10_ppe_c_5_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_FLMR = 0xc000e480ull;
@@ -95,9 +97,9 @@ static const uint32_t QME_SCR_QME_SCR_DATA = 0;
 static const uint32_t QME_SCR_QME_SCR_DATA_LEN = 64;
 // ppe_c/reg00005.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00005.H"
+}
+}
+#include "ppe_c/reg00005.H"
 #endif
 #endif

@@ -31,15 +31,17 @@
 #define __p10_ppe_c_0_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_L3_PFETCNTL = 0xc000e200ull;
-static const uint32_t CPMS_L3_PFETCNTL_WO_CLEAR = 0xc000e220ull;
-static const uint32_t CPMS_L3_PFETCNTL_WO_OR = 0xc000e230ull;
+static const uint32_t CPMS_L3_PFETCNTL_WO_CLEAR = 0xc000e230ull;
+static const uint32_t CPMS_L3_PFETCNTL_WO_OR = 0xc000e220ull;
 
 static const uint32_t CPMS_L3_PFETCNTL_VDD_PFET_SEQ_STATE = 0;
 static const uint32_t CPMS_L3_PFETCNTL_VDD_PFET_SEQ_STATE_LEN = 2;
@@ -125,9 +127,9 @@ static const uint32_t QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 62;
 static const uint32_t QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
 // ppe_c/reg00000.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00000.H"
+}
+}
+#include "ppe_c/reg00000.H"
 #endif
 #endif

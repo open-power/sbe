@@ -31,10 +31,12 @@
 #define __p10_ppe_eq_0_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_eq
 {
+#endif
 
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -44,6 +46,8 @@ static const uint32_t QME_BCECSR = 0xc0000680ull;
 
 static const uint32_t QME_BCECSR_BUSY = 0;
 static const uint32_t QME_BCECSR_ERROR = 1;
+static const uint32_t QME_BCECSR_START = 2;
+static const uint32_t QME_BCECSR_STOP = 3;
 static const uint32_t QME_BCECSR_RNW = 4;
 static const uint32_t QME_BCECSR_BARSEL = 5;
 static const uint32_t QME_BCECSR_PRIORITY = 6;
@@ -155,9 +159,9 @@ static const uint32_t QME_SCOM_XIVDRX_3 = 32;
 static const uint32_t QME_SCOM_XIVDRX_3_LEN = 32;
 // ppe_eq/reg00000.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_eq/reg00000.H"
+}
+}
+#include "ppe_eq/reg00000.H"
 #endif
 #endif

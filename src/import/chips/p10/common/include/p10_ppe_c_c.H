@@ -31,15 +31,17 @@
 #define __p10_ppe_c_c_H_
 
 
+#ifndef __PPE_HCODE__
 namespace scomt
 {
 namespace ppe_c
 {
+#endif
 
 
 static const uint32_t CPMS_CGCSR = 0xc000e000ull;
-static const uint32_t CPMS_CGCSR_WO_CLEAR = 0xc000e020ull;
-static const uint32_t CPMS_CGCSR_WO_OR = 0xc000e030ull;
+static const uint32_t CPMS_CGCSR_WO_CLEAR = 0xc000e030ull;
+static const uint32_t CPMS_CGCSR_WO_OR = 0xc000e020ull;
 
 static const uint32_t CPMS_CGCSR_L3_CLK_SYNC_ENABLE = 0;
 static const uint32_t CPMS_CGCSR_CL2_CLK_SYNC_ENABLE = 1;
@@ -76,9 +78,9 @@ static const uint32_t CPMS_DHCR_EVENT_COUNT = 8;
 static const uint32_t CPMS_DHCR_EVENT_COUNT_LEN = 8;
 // ppe_c/reg00012.H
 
-}
-}
 #ifndef __PPE_HCODE__
-    #include "ppe_c/reg00012.H"
+}
+}
+#include "ppe_c/reg00012.H"
 #endif
 #endif
