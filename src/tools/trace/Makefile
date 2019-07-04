@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -30,7 +30,7 @@ ppetracepp: ppetracepp.C
 	g++ -O3 -w -g -I./ ppetracepp.C -o $(PPETRACEPP_BIN_DIR)/ppetracepp
 
 ppe2fsp: ppe2fsp.c ppe2fsp_cmd.c
-	gcc -w -g -I./ -I$(PK_SRCDIR)/trace ppe2fsp.c ppe2fsp_cmd.c -o $(PPETRACEPP_BIN_DIR)/ppe2fsp
+	gcc -w -g -I./ -I$(PK_SRCDIR)/../ppetrace ppe2fsp.c ppe2fsp_cmd.c -o $(PPETRACEPP_BIN_DIR)/ppe2fsp
 
 clean:
 	rm $(PPETRACEPP_BIN_DIR)/ppetracepp $(PPETRACEPP_BIN_DIR)/ppe2fsp

@@ -232,8 +232,12 @@ ifndef IMG_DIR
 export IMG_DIR = $(IMG_ROOT_DIR)
 endif
 
+ifndef PK_BASELIB_SRCDIR
+export PK_BASELIB_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/common/ppe/baselib
+endif
+
 ifndef PK_SRCDIR
-export PK_SRCDIR = $(IMPORT_SRCDIR)/chips/p9/procedures/ppe/pk
+export PK_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/common/ppe/pk
 endif
 
 
@@ -427,13 +431,14 @@ INCLUDES += -I$(HWPLIB_SRCDIR)
 INCLUDES += -I$(GENFILES_DIR)
 INCLUDES += -I$(PLAT_FAPI2_DIR)
 INCLUDES += -I$(BASE_FAPI2_DIR)/include
-INCLUDES += -I$(PK_SRCDIR)/../include
 INCLUDES += -I$(PK_SRCDIR)/$(PPE_TYPE)
-INCLUDES += -I$(PK_SRCDIR)/../include
-INCLUDES += -I$(PK_SRCDIR)/../include/std
 INCLUDES += -I$(PK_SRCDIR)/kernel
-INCLUDES += -I$(PK_SRCDIR)/ppe
+INCLUDES += -I$(PK_SRCDIR)/../baselib
+INCLUDES += -I$(PK_SRCDIR)/../boltonlib
+INCLUDES += -I$(PK_SRCDIR)/../../../procedures/ppe/include/std
+INCLUDES += -I$(PK_SRCDIR)/../boltonlib/standard
 INCLUDES += -I$(PK_SRCDIR)/ppe42
+INCLUDES += -I$(PK_SRCDIR)/../ppetrace
 INCLUDES += -I$(SBE_FW_DIR)
 INCLUDES += -I$(SBE_FW_DIR)/core
 INCLUDES += -I$(SBE_FW_DIR)/app
@@ -442,7 +447,6 @@ INCLUDES += -I$(SBE_FW_DIR)/app/power
 INCLUDES += -I$(BOOT_SRCDIR)
 INCLUDES += -I$(BUILDDATA_SRCDIR)
 INCLUDES += -I$(BUILDDATA_SRCDIR)/$(project)
-INCLUDES += -I$(PK_SRCDIR)/trace
 INCLUDES += -I$(PPETRACEPP_DIR)
 INCLUDES += $(patsubst %,-I%/include,$(IMPORT_COMMON_DIRS))
 INCLUDES += -I$(IMPORT_UTILS_DIR)/
@@ -491,10 +495,11 @@ else
 ## Flags specific to ppe42 compiler
 PIPE-CFLAGS = -pipe
 
-GCC-CFLAGS += -mcpu=ppe42
+GCC-CFLAGS += -mcpu=ppe42x
 GCC-CFLAGS += -ffunction-sections
 GCC-CFLAGS += -fdata-sections
 GCC-CFLAGS += -fstack-usage
+GCC-CFLAGS += -mno-ppe42x-stack
 endif
 
 # Since pibmem is bigger in P10, we will build everything for pibmem image.
@@ -520,7 +525,7 @@ PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES
 CXXFLAGS        = -std=c++11 -nostdinc++ -fno-rtti -fno-threadsafe-statics -fno-strict-aliasing
 CPPFLAGS    	= -E
 
-ASFLAGS		= -mppe42
+ASFLAGS		= -mppe42x
 
 ifdef P2P_ENABLE
 #use this to disable optimizations (fused compare/branch etc.)
