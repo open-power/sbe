@@ -55,8 +55,18 @@ const uint32_t SPR_NUM_UPPER_SHIFT_R = 5;
      << SPR_NUM_OPCODE_SHIFT)
 
 // SPR numbers
-const uint32_t XER             =   1;
-const uint32_t SPR_NUM_SPRG2   = 274;
+const uint32_t SPR_NUM_XER             =   1;
+const uint32_t SPR_NUM_LR              =   8;
+const uint32_t SPR_NUM_CTR             =   9;
+const uint32_t SPR_NUM_SPRG2           = 274;
+const uint32_t SPR_NUM_HSPRG1          = 305;
+const uint32_t SPR_NUM_LPCR            = 318;
+const uint32_t SPR_NUM_SMFCTRL         = 511;
+const uint32_t SPR_NUM_MMCR1_RU        = 782;
+const uint32_t SPR_NUM_MMCR2           = 785;          // MTMMCR2
+const uint32_t SPR_NUM_MMCRA           = 786;          // MTMMCRA
+const uint32_t SPR_NUM_MMCR1           = 798;          // MTMMCR1
+const uint32_t SPR_NUM_TAR             = 815;
 
 // opcode pattern masks
 const uint32_t OPCODE_MASK_TYPE = 0xFC000000;
@@ -100,8 +110,8 @@ const uint32_t OPCODE_MTOCRF_FROM_GPR0             = 0x7C100120;
 const uint32_t OPCODE_MTFSF_FROM_FPR0              = 0xFE00058E;
 const uint32_t OPCODE_MFVSCR_TO_VR0                = 0x10000604;
 const uint32_t OPCODE_MTVSCR_FROM_VR0              = 0x10000644;
-const uint32_t OPCODE_MFNIA_RT                     = 0x001ac804;
-const uint32_t OPCODE_MTNIA_LR                     = 0x4c1e00a4;
+const uint32_t OPCODE_MFNIA_RT                     = 0x001AC804;
+const uint32_t OPCODE_MTNIA_LR                     = 0x4C1E00A4;
 const uint32_t OPCODE_GPR_MOVE                     = 0x00000010;
 const uint32_t OPCODE_VSR_MOVE_HI                  = 0x00000110;
 const uint32_t OPCODE_VSR_MOVE_LO                  = 0x00000210;
@@ -116,13 +126,31 @@ const uint32_t OPCODE_MTMSR_L1                     = (OPCODE_MTMSR | OPCODE_L);
 const uint32_t OPCODE_MTMSRD                       = 0x7C000164;
 const uint32_t OPCODE_MTMSRD_L0                    = OPCODE_MTMSRD;
 const uint32_t OPCODE_MTMSRD_L1                    = (OPCODE_MTMSRD | OPCODE_L);
-const uint32_t OPCODE_MFSPR_SPRG2 = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_SPRG2) ; // 0x7C1242A6;
-const uint32_t OPCODE_MTSPR_SPRG2 = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_SPRG2) ; // 0x7C1243A6;
-const uint32_t OPCODE_MTSPR_XER   = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(XER);  // 0x7C0103A6;
-const uint32_t OPCODE_MFSPR_XER   = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(XER);  // 0x7C0102A6;
+
+const uint32_t OPCODE_MFSPR_SPRG2   = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_SPRG2) ; // 0x7C1242A6
+const uint32_t OPCODE_MFSPR_XER     = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_XER);  // 0x7C0102A6
+const uint32_t OPCODE_MFSPR_CTR     = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_CTR);
+const uint32_t OPCODE_MFSPR_HSPRG1  = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_HSPRG1);
+const uint32_t OPCODE_MFSPR_LR      = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_LR);
+const uint32_t OPCODE_MFSPR_TAR     = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_TAR);
+
+const uint32_t OPCODE_MTSPR_SPRG2   = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_SPRG2) ; // 0x7C1243A6
+const uint32_t OPCODE_MTSPR_XER     = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_XER);  // 0x7C0103A6
+const uint32_t OPCODE_MTSPR_CTR     = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_CTR);
+const uint32_t OPCODE_MTSPR_LPCR    = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_LPCR); // 0x7C1E4BA6
+const uint32_t OPCODE_MTSPR_MMCR1   = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_MMCR1);
+const uint32_t OPCODE_MTSPR_MMCR2   = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_MMCR2);
+const uint32_t OPCODE_MTSPR_MMCRA   = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_MMCRA);
+const uint32_t OPCODE_MTSPR_SMFCTRL = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_SMFCTRL);
+const uint32_t OPCODE_MTSPR_HSPRG1  = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_HSPRG1);
+const uint32_t OPCODE_MTSPR_LR      = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_LR);
+const uint32_t OPCODE_MTSPR_TAR     = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_TAR);
+
 
 // poll count for check ram status
 const uint32_t RAM_CORE_STAT_POLL_CNT = 10;
+// poll count for check ram ready.  This can take about 3000 core clock cycles in P10.
+const uint32_t RAM_CORE_READY_POLL_CNT = 100;
 
 //-----------------------------------------------------------------------------------
 // Namespace declarations
@@ -149,6 +177,7 @@ RamCore::RamCore(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
     iv_backup_scr0   = 0;
     iv_backup_gpr0   = 0;
     iv_backup_gpr1   = 0;
+    iv_thread_activated = false;
 }
 
 // Sequence of operations in put_reg and get_reg
@@ -177,21 +206,39 @@ RamCore::~RamCore()
 }
 
 // See doxygen comments in header file
+fapi2::ReturnCode RamCore::ram_ready(bool& o_ready, fapi2::buffer<uint64_t>& o_thread_info)
+{
+    FAPI_DBG("Start ram_ready");
+    bool l_thread_active = false;
+    bool l_thread_action_in_progress = false;
+
+    FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, o_thread_info));
+    FAPI_DBG("EC_PC_PMC_THREAD_INFO: 0x%.16llX", o_thread_info());
+    // FIXME RTC 211536 convert extract to GET_* when scomt supports it.
+    FAPI_TRY(o_thread_info.extractToRight(l_thread_active,
+                                          EC_PC_PMC_THREAD_INFO_VTID0_V + iv_thread, 1));
+    FAPI_TRY(o_thread_info.extractToRight(l_thread_action_in_progress,
+                                          EC_PC_PMC_THREAD_INFO_THREAD_ACTION_IN_PROGRESS, 1));
+
+    o_ready = l_thread_active && !l_thread_action_in_progress;
+
+fapi_try_exit:
+    FAPI_DBG("Exiting ram_ready");
+    return fapi2::current_err;
+}
+
+// See doxygen comments in header file
 fapi2::ReturnCode RamCore::ram_setup()
 {
     FAPI_DBG("Start ram setup");
     fapi2::buffer<uint64_t> l_data = 0;
     uint32_t l_opcode = 0;
-    bool l_thread_active = false;
     ThreadSpecifier l_thread = NO_THREADS;
     fapi2::buffer<uint64_t> l_ras_status;
     uint64_t l_thread_state = 0;
     fapi2::ReturnCode rc_fapi(fapi2::FAPI2_RC_SUCCESS);
-
-    // set RAM_MODEREG via Scom to enable RAM mode
-    FAPI_TRY(GET_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
-    SET_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
-    FAPI_TRY(PUT_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
+    bool l_thread_ready = false;
+    uint32_t l_poll_count = RAM_CORE_READY_POLL_CNT;
 
     // FIXME RTC 211536 -- could p10_thread_control be enhanced to take iv_thread directly ?
     switch (iv_thread)
@@ -240,30 +287,36 @@ fapi2::ReturnCode RamCore::ram_setup()
                 "Thread to perform ram is not stopped. "
                 "RAS_STATUS register : 0x%.16llX", l_ras_status());
 
-    // If thread not already active, then make thread active
-    FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
-    FAPI_DBG("EC_PC_PMC_THREAD_INFO: 0x%.16llX", l_data());
-    // FIXME RTC 211536 convert extract to GET_* when scomt supports it.
-    FAPI_TRY(l_data.extractToRight(l_thread_active,
-                                   EC_PC_PMC_THREAD_INFO_VTID0_V + iv_thread, 1));
+    // check the thread is ready for RAMing
+    FAPI_TRY(ram_ready(l_thread_ready, l_data));
 
-    if (!l_thread_active)
+    while (!l_thread_ready && l_poll_count > 0)
     {
-        // FIXME RTC 211536 -- convert setBit to SET_* when scomt supports it
-        FAPI_TRY(l_data.setBit(EC_PC_PMC_THREAD_INFO_RAM_THREAD_ACTIVE + iv_thread));
-        FAPI_TRY(PUT_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
-        FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
-        // FIXME RTC 211536 convert extract to GET_* when scomt supports it.
-        FAPI_TRY(l_data.extractToRight(l_thread_active,
-                                       EC_PC_PMC_THREAD_INFO_VTID0_V + iv_thread, 1));
+        // If thread not ready, then try to make thread ready
+        if (!iv_thread_activated)
+        {
+            // FIXME RTC 211536 -- convert setBit to SET_* when scomt supports it
+            FAPI_TRY(l_data.setBit(EC_PC_PMC_THREAD_INFO_RAM_THREAD_ACTIVE + iv_thread));
+            FAPI_TRY(PUT_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+            iv_thread_activated = true;
+        }
+
+        FAPI_TRY(ram_ready(l_thread_ready, l_data));
+
+        l_poll_count--;
     }
 
-    FAPI_ASSERT(l_thread_active,
+    FAPI_ASSERT(l_thread_ready,
                 fapi2::P10_RAM_THREAD_INACTIVE_ERR()
                 .set_CORE_TARGET(iv_target)
                 .set_THREAD(iv_thread),
                 "Thread to perform ram is inactive. "
                 "EC_PC_PMC_THREAD_INFO reg 0x%.16llX", l_data);
+
+    // set RAM_MODEREG via Scom to enable RAM mode
+    FAPI_TRY(GET_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
+    SET_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
+    FAPI_TRY(PUT_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
 
     iv_ram_enable = true;
 
@@ -392,6 +445,16 @@ fapi2::ReturnCode RamCore::ram_cleanup()
     CLEAR_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
     FAPI_TRY(PUT_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
 
+    // clear RAM thread active
+    if (iv_thread_activated)
+    {
+        // FIXME RTC 211536 -- convert clearBit to CLEAR_* when scomt supports it
+        FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+        FAPI_TRY(l_data.clearBit(EC_PC_PMC_THREAD_INFO_RAM_THREAD_ACTIVE + iv_thread));
+        FAPI_TRY(PUT_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+        iv_thread_activated = false;
+    }
+
     iv_ram_enable    = false;
     iv_ram_scr0_save = false;
     iv_ram_setup     = false;
@@ -510,13 +573,18 @@ uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
     const uint32_t l_opcode_pattern_spr = i_opcode & OPCODE_MASK_SPR;
 
     if (i_opcode == OPCODE_MFNIA_RT ||
-        l_opcode_pattern_spr == OPCODE_MFSPR_XER)
+        l_opcode_pattern_spr == OPCODE_MFSPR_XER ||
+        l_opcode_pattern_spr == OPCODE_MTSPR_LPCR ||
+        l_opcode_pattern_spr == OPCODE_MTSPR_MMCR1 ||
+        l_opcode_pattern_spr == OPCODE_MTSPR_MMCR2 ||
+        l_opcode_pattern_spr == OPCODE_MTSPR_MMCRA ||
+        l_opcode_pattern_spr == OPCODE_MTSPR_SMFCTRL)
     {
         l_predecode = 6;
     }
     else if (i_opcode == OPCODE_MTNIA_LR)
     {
-        l_predecode = 8;
+        l_predecode = 0xE;
     }
     else if (l_opcode_pattern == OPCODE_MTMSR ||
              l_opcode_pattern == OPCODE_MTMSRD)
@@ -527,16 +595,27 @@ uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
     {
         l_predecode = 5;
     }
-    else if ((l_opcode_pattern   == OPCODE_MFSPR ||
-              l_opcode_pattern   == OPCODE_MTSPR ||
-              l_opcode_pattern_L == OPCODE_MTMSR_L1 ||
-              l_opcode_pattern_L == OPCODE_MTMSRD_L1 ||
-              l_opcode_pattern   == OPCODE_MFFS ||
-              l_opcode_pattern   == OPCODE_MFMSR ||
-              l_opcode_pattern   == OPCODE_SLBMFEE ||
-              l_opcode_pattern   == OPCODE_SLBMFEV) &&
-             l_opcode_pattern_spr != OPCODE_MFSPR_SPRG2 &&
-             l_opcode_pattern_spr != OPCODE_MTSPR_SPRG2)
+    else if (l_opcode_pattern_spr == OPCODE_MFSPR_SPRG2  ||
+             l_opcode_pattern_spr == OPCODE_MTSPR_SPRG2  ||
+             l_opcode_pattern_spr == OPCODE_MFSPR_CTR    ||
+             l_opcode_pattern_spr == OPCODE_MTSPR_CTR    ||
+             l_opcode_pattern_spr == OPCODE_MFSPR_HSPRG1 ||
+             l_opcode_pattern_spr == OPCODE_MTSPR_HSPRG1 ||
+             l_opcode_pattern_spr == OPCODE_MFSPR_LR     ||
+             l_opcode_pattern_spr == OPCODE_MTSPR_LR     ||
+             l_opcode_pattern_spr == OPCODE_MFSPR_TAR    ||
+             l_opcode_pattern_spr == OPCODE_MTSPR_TAR)
+    {
+        l_predecode = 0;
+    }
+    else if (l_opcode_pattern   == OPCODE_MFSPR ||
+             l_opcode_pattern   == OPCODE_MTSPR ||
+             l_opcode_pattern_L == OPCODE_MTMSR_L1 ||
+             l_opcode_pattern_L == OPCODE_MTMSRD_L1 ||
+             l_opcode_pattern   == OPCODE_MFFS ||
+             l_opcode_pattern   == OPCODE_MFMSR ||
+             l_opcode_pattern   == OPCODE_SLBMFEE ||
+             l_opcode_pattern   == OPCODE_SLBMFEV)
     {
         l_predecode = 1;
     }

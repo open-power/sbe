@@ -147,21 +147,32 @@ class RamCore
         bool iv_ram_err;       // error happened during ram
         bool iv_write_gpr0;    // putGPR0 operation is executed
         bool iv_write_gpr1;    // putGPR1 operation is executed
+        bool iv_thread_activated;   // iv_thread was activated
         fapi2::buffer<uint64_t> iv_backup_scr0;  // SCR0 register backup data
         fapi2::buffer<uint64_t> iv_backup_gpr0;  // GPR0 register backup data
         fapi2::buffer<uint64_t> iv_backup_gpr1;  // GPR1 register backup data
+
         //-----------------------------------------------------------------------------------
         /// @brief Generate predecode for the opcode to ramming
         /// @param[in] i_opcode => opcode to ram
         /// @return the predecode
         //
         uint8_t gen_predecode(const uint32_t i_opcode);
+
         //-----------------------------------------------------------------------------------
         /// @brief Check if the opcode is load/store or not
         /// @param[in] i_opcode => opcode to ram
         /// @return TRUE if it is load/store
         //
         bool is_load_store(const uint32_t i_opcode);
+
+        //-----------------------------------------------------------------------------------
+        /// @brief Check if the thread is ready for RAMing
+        /// @param[out] o_ready_for_ram => return true if ready, false if not ready
+        /// @param[out] o_thread_info   => contents of THREAD_INFO register
+        /// @return FAPI2_RC_SUCCESS if success, else error code.
+        //
+        fapi2::ReturnCode ram_ready(bool& o_ready, fapi2::buffer<uint64_t>& o_thread_info);
 
 };
 
