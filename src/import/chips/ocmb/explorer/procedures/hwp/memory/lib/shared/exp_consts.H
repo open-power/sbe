@@ -53,9 +53,9 @@ constexpr uint32_t OCMB_ADDR_SHIFT = 3;
 /// @brief enum list of explorer SPD derived attributes to set
 /// @note these attrs are strictly derived from SPD
 /// @warning wrapped in exp namesapce to be distinguished from
-/// the generic attr_eff_engine_fields
+/// the exp::attr_eff_engine_fields
 ///
-enum attr_eff_engine_fields
+enum class attr_eff_engine_fields
 {
     // Template recursive base case
     ATTR_EFF_BASE_CASE = 0,
@@ -73,7 +73,7 @@ enum attr_eff_engine_fields
     ADDRESS_MIRROR = 10,
 
     // Dispatcher set to last enum value
-    ATTR_EFF_DISPATCHER = ADDRESS_MIRROR,
+    DISPATCHER = ADDRESS_MIRROR,
 };
 
 ///
