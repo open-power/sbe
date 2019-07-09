@@ -730,15 +730,7 @@ ReturnCode istepWithCoreState( voidfuncptr_t i_hwp)
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
 
     l_rc = stopAllCoreInstructions();
-    if( l_rc == FAPI2_RC_SUCCESS )
-    {
-        l_rc = flushNVDIMM();
-        if( l_rc != FAPI2_RC_SUCCESS )
-        {
-            SBE_ERROR(SBE_FUNC "flushNVDIMM failed");
-        }
-    }
-    else
+    if( l_rc != FAPI2_RC_SUCCESS )
     {
         SBE_ERROR(SBE_FUNC "Stop all core instructions is failed, "
                  "RC=[0x%08X]", l_rc);
