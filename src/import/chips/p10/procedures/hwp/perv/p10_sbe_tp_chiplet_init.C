@@ -99,10 +99,6 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
 
     // startclocks for pll  - This is no longer necessary for P10
 
-    FAPI_DBG("Drop FSI fence 5");
-    l_data64.flush<0>().setBit<PERV_ROOT_CTRL0_SET_FENCE5_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_CLEAR_SCOM, l_data64));
-
     FAPI_DBG("Set TOD error routing register");
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_ERROR_ROUTING_REG, TOD_ERROR_ROUTING));
     //config TOD error mask reg;
@@ -202,8 +198,8 @@ static fapi2::ReturnCode p10_sbe_tp_chiplet_init_region_fence_setup(
 
     FAPI_DBG("Drop partial good fences");
     //Setting CPLT_CTRL1 register value
+    // No need to drop Vital fence
     l_data64.flush<0>();
-    l_data64.writeBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>(l_attr_pg.getBit<11>());
     l_data64.insertFromRight<4, 15>(l_attr_pg_data);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));
 

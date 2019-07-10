@@ -169,6 +169,9 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     l_read_reg. insertFromRight< 33, 16 > (freq_calculated);
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x01060151, l_read_reg));
 
+    FAPI_DBG("PAU DPLL, NEST DPLL : Switch to internal clocks");
+    l_data64_root_ctrl3.flush<0>().setBit<27>().setBit<31>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_root_ctrl3));
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PAU_DPLL_BYPASS, i_target_chip, l_attr_pau_dpll_bypass));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_DPLL_BYPASS, i_target_chip, l_attr_nest_dpll_bypass));
@@ -222,11 +225,6 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     l_data64_root_ctrl3.writeBit<29>(!(l_attr_pau_dpll_bypass.getBit<7>()));
     l_data64_root_ctrl3.writeBit<30>(!(l_attr_nest_dpll_bypass.getBit<7>()));
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_root_ctrl3));
-
-    FAPI_DBG("PAU DPLL + NEST DPLL: Release bypass ");
-    l_data64_root_ctrl4.flush<0>();
-    l_data64_root_ctrl4.writeBit<21>(!(l_attr_pau_dpll_bypass.getBit<7>()));
-    l_data64_root_ctrl4.writeBit<23>(!(l_attr_nest_dpll_bypass.getBit<7>()));
 
     // Clear Perv pcb slave error register
     FAPI_DBG(" Reset PCB error reg");

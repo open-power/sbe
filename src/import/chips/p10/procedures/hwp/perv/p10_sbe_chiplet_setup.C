@@ -44,9 +44,6 @@
 #include <multicast_group_defs.H>
 #include <p10_hang_pulse_mc_setup_tables.H>
 
-fapi2::ReturnCode p10_sbe_chiplet_setup_net_ctrl_setup(
-    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target);
-
 fapi2::ReturnCode p10_sbe_chiplet_setup(const
                                         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -66,16 +63,15 @@ fapi2::ReturnCode p10_sbe_chiplet_setup(const
     FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target_chip, ISTEP3_MC_GROUPS));
 
     {
-
-        auto l_mc_all = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
         auto l_mc_mctrl = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_MC);
         auto l_mc_pau   = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PAU);
         auto l_mc_iohs  = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_IOHS);
         auto l_mc_pci   = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PCI);
         auto l_mc_eq    = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
 
-        FAPI_DBG("Restore NET_CTRL0&1 init value - for all chiplets except TP");
-        FAPI_TRY(p10_sbe_chiplet_setup_net_ctrl_setup(l_mc_all));
+        FAPI_DBG("Setup EQ NET_CTRL1 to separate init value");
+        FAPI_TRY(fapi2::putScom(l_mc_eq, PERV_NET_CTRL1,
+                                p10SbeChipletSetup::EQ_NET_CNTL1_INIT_VALUE));
 
         FAPI_DBG("Setup hangcounters");
         FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_n0,       false, PERV_HANG_PULSE_0_REG,
@@ -95,28 +91,6 @@ fapi2::ReturnCode p10_sbe_chiplet_setup(const
     }
 
     FAPI_INF("p10_sbe_chiplet_setup: Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
-}
-
-/// @brief Configuring NET control registers into Default required value
-///
-/// @param[in]     i_mcast_target   Reference to TARGET_TYPE_PERV target or a MC target
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode p10_sbe_chiplet_setup_net_ctrl_setup(
-    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target)
-{
-    FAPI_INF("p10_sbe_chiplet_setup_net_ctrl_setup: Entering ...");
-
-    FAPI_TRY(fapi2::putScom(i_mcast_target, PERV_NET_CTRL0,
-                            p10SbeChipletSetup::NET_CNTL0_HW_INIT_VALUE));
-
-    FAPI_TRY(fapi2::putScom(i_mcast_target, PERV_NET_CTRL1,
-                            p10SbeChipletSetup::NET_CNTL1_HW_INIT_VALUE));
-
-    FAPI_INF("p10_sbe_chiplet_setup_net_ctrl_setup:Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;

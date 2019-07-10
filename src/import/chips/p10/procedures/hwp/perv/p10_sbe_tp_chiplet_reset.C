@@ -171,9 +171,9 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     l_data64.insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_read_attr_pg);
     FAPI_TRY(fapi2::putScom(l_tpchiplet, 0x00000002, l_data64));
 
-    FAPI_DBG("Assert sram_enable");
-    l_data64.flush<0>().setBit<P9N2_PERV_PERV_CTRL0_TP_TCPERV_SRAM_ENABLE_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_SET_SCOM, l_data64));
+    FAPI_DBG("Enable PERV vital clock gating");
+    l_data64.flush<0>().setBit<14>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PERV_CTRL0_CLEAR_SCOM, l_data64));
 
     FAPI_DBG("Setup hang counters for Perv chiplet");
     FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, false, BASE_ADDRESS, PRE_DIVIDER,

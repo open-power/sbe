@@ -67,106 +67,111 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_REFCLOCK_SELECT, i_target_chip, l_cp_refclck_select),
              "Error from FAPI_ATTR_GET (ATTR_CP_REFCLOCK_SELECT)");
 
-    FAPI_DBG("Drop RCS reset");
-    l_data64_rc5.flush<0>().setBit<0>(); // rc5 bit0 = 0
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
-
-    for(int i = 0; i < POLL_COUNT; i++)
+    if((l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0) ||
+       (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1))
     {
-        FAPI_DBG("Set input valuse to clock test latches - RCS_CLOCK_TEST_IN = 1");
-        FAPI_TRY(p10_sbe_rcs_setup_test_latches(i_target_chip, true, l_cp_refclck_select));
 
-        FAPI_DBG("Set input valuse to clock test latches - RCS_CLOCK_TEST_IN = 0");
-        FAPI_TRY(p10_sbe_rcs_setup_test_latches(i_target_chip, false, l_cp_refclck_select));
-    }
+        FAPI_DBG("Drop RCS reset");
+        l_data64_rc5.flush<0>().setBit<0>(); // rc5 bit0 = 0
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
 
-    FAPI_DBG("Release RCS PLLs test enable");
+        for(int i = 0; i < POLL_COUNT; i++)
+        {
+            FAPI_DBG("Set input valuse to clock test latches - RCS_CLOCK_TEST_IN = 1");
+            FAPI_TRY(p10_sbe_rcs_setup_test_latches(i_target_chip, true, l_cp_refclck_select));
 
-    l_data64_rc3.flush<0>();
+            FAPI_DBG("Set input valuse to clock test latches - RCS_CLOCK_TEST_IN = 0");
+            FAPI_TRY(p10_sbe_rcs_setup_test_latches(i_target_chip, false, l_cp_refclck_select));
+        }
 
-    if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
-    {
-        l_data64_rc3.setBit<2>(); // RC3 bit2 = 0
-    }
+        FAPI_DBG("Release RCS PLLs test enable");
 
-    if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
-    {
-        l_data64_rc3.setBit<6>(); // RC3 bit6 = 0
-    }
+        l_data64_rc3.flush<0>();
 
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_rc3));
+        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
+        {
+            l_data64_rc3.setBit<2>(); // RC3 bit2 = 0
+        }
 
-    FAPI_DBG("Release RCS PLLs reset & bypass ");
+        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
+        {
+            l_data64_rc3.setBit<6>(); // RC3 bit6 = 0
+        }
 
-    l_data64_rc3.flush<0>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_rc3));
 
-    if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
-    {
-        l_data64_rc3.setBit<0>(); // RC3 bit0 = 0
-        l_data64_rc3.setBit<1>(); // RC3 bit1 = 0
-    }
+        FAPI_DBG("Release RCS PLLs reset & bypass ");
 
-    if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
-    {
-        l_data64_rc3.setBit<4>(); // RC3 bit4 = 0
-        l_data64_rc3.setBit<5>(); // RC3 bit5 = 0
-    }
+        l_data64_rc3.flush<0>();
 
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_rc3));
+        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
+        {
+            l_data64_rc3.setBit<0>(); // RC3 bit0 = 0
+            l_data64_rc3.setBit<1>(); // RC3 bit1 = 0
+        }
 
-    fapi2::delay(PLL_LOCK_NS_DELAY, PLL_LOCK_SIM_CYCLE_DELAY);
+        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
+        {
+            l_data64_rc3.setBit<4>(); // RC3 bit4 = 0
+            l_data64_rc3.setBit<5>(); // RC3 bit5 = 0
+        }
 
-    //Getting PLL_LOCK_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG, l_read_reg));
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_rc3));
 
-    if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
-    {
-        FAPI_ASSERT(l_read_reg.getBit<0>(),
-                    fapi2::RCS_PLL_LOCK_ERR()
-                    .set_TP_PLL_LOCK_REG(l_read_reg)
-                    .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                    "ERROR:RCS_PLL_A not locked");
-    }
+        fapi2::delay(PLL_LOCK_NS_DELAY, PLL_LOCK_SIM_CYCLE_DELAY);
 
-    if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
-    {
-        FAPI_ASSERT(l_read_reg.getBit<1>(),
-                    fapi2::RCS_PLL_LOCK_ERR()
-                    .set_TP_PLL_LOCK_REG(l_read_reg)
-                    .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                    "ERROR:RCS_PLL_B not locked");
-    }
+        //Getting PLL_LOCK_REG register value
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG, l_read_reg));
 
-    FAPI_DBG("RCS out of bypass");
-    l_data64_rc5.flush<0>().setBit<1>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
+        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
+        {
+            FAPI_ASSERT(l_read_reg.getBit<0>(),
+                        fapi2::RCS_PLL_LOCK_ERR()
+                        .set_TP_PLL_LOCK_REG(l_read_reg)
+                        .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
+                        "ERROR:RCS_PLL_A not locked");
+        }
 
-    fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
+        {
+            FAPI_ASSERT(l_read_reg.getBit<1>(),
+                        fapi2::RCS_PLL_LOCK_ERR()
+                        .set_TP_PLL_LOCK_REG(l_read_reg)
+                        .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
+                        "ERROR:RCS_PLL_B not locked");
+        }
 
-    FAPI_DBG("Clear RCS errors");
-    l_data64_rc5.flush<0>().setBit<7, 2>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_SET_SCOM, l_data64_rc5));
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
+        FAPI_DBG("RCS out of bypass");
+        l_data64_rc5.flush<0>().setBit<1>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
 
-    FAPI_DBG("Check for clock errors");
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM, l_read_reg));
+        fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
 
-    if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
-    {
-        FAPI_ASSERT(((l_read_reg.getBit<0>() == 0) && (l_read_reg.getBit<2>() == 0)),
-                    fapi2::RCS_CLOCK_ERR()
-                    .set_READ_SNS1LTH(l_read_reg)
-                    .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                    "Clock A is bad");
-    }
+        FAPI_DBG("Clear RCS errors");
+        l_data64_rc5.flush<0>().setBit<7, 2>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_SET_SCOM, l_data64_rc5));
+        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
 
-    if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
-    {
-        FAPI_ASSERT(((l_read_reg.getBit<1>() == 0) && (l_read_reg.getBit<3>() == 0)),
-                    fapi2::RCS_CLOCK_ERR()
-                    .set_READ_SNS1LTH(l_read_reg)
-                    .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                    "Clock B is bad");
+        FAPI_DBG("Check for clock errors");
+        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM, l_read_reg));
+
+        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
+        {
+            FAPI_ASSERT(((l_read_reg.getBit<0>() == 0) && (l_read_reg.getBit<2>() == 0)),
+                        fapi2::RCS_CLOCK_ERR()
+                        .set_READ_SNS1LTH(l_read_reg)
+                        .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
+                        "Clock A is bad");
+        }
+
+        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
+        {
+            FAPI_ASSERT(((l_read_reg.getBit<1>() == 0) && (l_read_reg.getBit<3>() == 0)),
+                        fapi2::RCS_CLOCK_ERR()
+                        .set_READ_SNS1LTH(l_read_reg)
+                        .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
+                        "Clock B is bad");
+        }
     }
 
     FAPI_INF("p10_sbe_rcs_setup: Exiting ...");

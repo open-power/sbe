@@ -81,6 +81,7 @@ fapi2::ReturnCode p10_sbe_startclocks(const
     l_data64.flush<1>().clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
     FAPI_TRY(fapi2::putScom(l_mc_all, PERV_NET_CTRL0_WAND, l_data64));
 
+    // No need to drop Vital fence for chiplets
     FAPI_DBG("For all good chiplets except TP and EQ: Drop partial good fences");
 
     for (auto& targ : l_perv_all_good_but_TP_and_EQ)
@@ -88,15 +89,14 @@ fapi2::ReturnCode p10_sbe_startclocks(const
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, targ, l_attr_pg));
         l_attr_pg.invert();
         l_data64.flush<0>()
-        .insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_attr_pg)
-        .writeBit<PERV_1_CPLT_CTRL1_TC_VITL_REGION_FENCE>(l_attr_pg.getBit<11>());
+        .insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_attr_pg);
         FAPI_TRY(fapi2::putScom(targ, PERV_CPLT_CTRL1_CLEAR, l_data64));
     }
 
     FAPI_DBG("For all EQ chiplets: Drop partial good fences for perv, qme, clkadj");
     l_data64.flush<0>();
     // drop region fence for only regions vital,perv, qme, clkadj
-    l_data64.setBit<3>().setBit<4>().setBit<13>().setBit<14>();
+    l_data64.setBit<4>().setBit<13>().setBit<14>();
     FAPI_TRY(fapi2::putScom(l_mc_eq, PERV_CPLT_CTRL1_CLEAR, l_data64));
 
     FAPI_DBG("Reset abistclk_muxsel and syncclk_muxsel");

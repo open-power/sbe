@@ -35,6 +35,7 @@
 #include "p10_sbe_chiplet_init.H"
 #include "p9_perv_scom_addresses.H"
 #include "p9_perv_scom_addresses_fld.H"
+#include <target_filters.H>
 #include <multicast_group_defs.H>
 
 fapi2::ReturnCode p10_sbe_chiplet_init(const
@@ -46,18 +47,24 @@ fapi2::ReturnCode p10_sbe_chiplet_init(const
 
     FAPI_INF("p10_sbe_chiplet_init: Entering..");
 
-    auto l_mc_eq = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
+        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
+
+    auto l_mc_all    = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_TOPOLOGY_ID, i_target_chip, l_attr_topology_id));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_TOPOLOGY_MODE, FAPI_SYSTEM, l_attr_topology_mode));
 
-    //setup fabric topology into cplt_config reg for all eq's
-    FAPI_DBG("Setup fabric topology for EQ chiplets");
+    //setup fabric topology into cplt_config reg for all good chiplets
+    FAPI_DBG("Setup fabric topology for all chiplets");
     l_data64.flush<0>();
     l_data64.insertFromRight<PERV_1_CPLT_CONF0_TC_UNIT_GROUP_ID_DC, PERV_1_CPLT_CONF0_TC_UNIT_GROUP_ID_DC_LEN>
     (l_attr_topology_id);
     l_data64.writeBit<52>(l_attr_topology_mode);
-    FAPI_TRY(fapi2::putScom( l_mc_eq, PERV_CPLT_CONF0_OR, l_data64));
+    // All good but TP
+    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_CPLT_CONF0_OR, l_data64));
+    // Only TP
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, PERV_CPLT_CONF0_OR, l_data64));
 
     FAPI_INF("p10_sbe_chiplet_init: Exiting ...");
 
