@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -42,21 +43,44 @@
   * @brief SBE FIFO Access addresses
   *
   */
+//Base address for SBE FIFO
 const uint32_t SBE_FIFO_BASE                     =  0x000B0000;
+//Base address for HB FIFO
+const uint32_t SBE_HB_FIFO_BASE                  =  0x000B0020;
 
-const uint32_t SBE_UPSTREAM_FIFO_DEQ_ADD         = SBE_FIFO_BASE + 0x0000;
-const uint32_t SBE_UPSTREAM_FIFO_STATUS          = SBE_FIFO_BASE + 0x0001;
-const uint32_t SBE_UPSTREAM_FIFO_SIGNAL_EOT      = SBE_FIFO_BASE + 0x0002;
-const uint32_t SBE_UPSTREAM_FIFO_REQ_RESET       = SBE_FIFO_BASE + 0x0003;
-const uint32_t SBE_UPSTREAM_FIFO_PERFORM_RESET   = SBE_FIFO_BASE + 0x0004;
-const uint32_t SBE_UPSTREAM_FIFO_ACK_EOT         = SBE_FIFO_BASE + 0x0005;
+/**
+  * @brief Enum of SBE Fifo type.
+  */
+enum sbeFifoType
+{
+   SBE_FIFO,
+   SBE_HB_FIFO
+};
 
-const uint32_t SBE_DOWNSTREAM_FIFO_ENQ_ADD       = SBE_FIFO_BASE + 0x0010;
-const uint32_t SBE_DOWNSTREAM_FIFO_STATUS        = SBE_FIFO_BASE + 0x0011;
-const uint32_t SBE_DOWNSTREAM_FIFO_SIGNAL_EOT    = SBE_FIFO_BASE + 0x0012;
-const uint32_t SBE_DOWNSTREAM_FIFO_REQ_RESET     = SBE_FIFO_BASE + 0x0013;
-const uint32_t SBE_DOWNSTREAM_FIFO_PERFORM_RESET = SBE_FIFO_BASE + 0x0014;
-const uint32_t SBE_DOWNSTREAM_FIFO_ACK_EOT       = SBE_FIFO_BASE + 0x0015;
+/**
+  * Macro for dynamically determining the base address
+  */
+#define FIFO_BASE_ADDR(FIFO)  ( (FIFO == SBE_HB_FIFO) ? SBE_HB_FIFO_BASE : SBE_FIFO_BASE )
+
+const uint32_t SBE_UPSTREAM_FIFO_DEQ_ADD         = 0x0000;
+const uint32_t SBE_UPSTREAM_FIFO_STATUS          = 0x0001;
+const uint32_t SBE_UPSTREAM_FIFO_SIGNAL_EOT      = 0x0002;
+const uint32_t SBE_UPSTREAM_FIFO_REQ_RESET       = 0x0003;
+const uint32_t SBE_UPSTREAM_FIFO_PERFORM_RESET   = 0x0004;
+const uint32_t SBE_UPSTREAM_FIFO_ACK_EOT         = 0x0005;
+
+const uint32_t SBE_DOWNSTREAM_FIFO_ENQ_ADD       = 0x0010;
+const uint32_t SBE_DOWNSTREAM_FIFO_STATUS        = 0x0011;
+const uint32_t SBE_DOWNSTREAM_FIFO_SIGNAL_EOT    = 0x0012;
+const uint32_t SBE_DOWNSTREAM_FIFO_REQ_RESET     = 0x0013;
+const uint32_t SBE_DOWNSTREAM_FIFO_PERFORM_RESET = 0x0014;
+const uint32_t SBE_DOWNSTREAM_FIFO_ACK_EOT       = 0x0015;
+
+
+// Write this data to send EOT to DS FIFO. The register to send EOT
+// is 32 bit only. But our scom operations are 64 bit. So set a bit
+// in higher word to trigger EOT.
+static const uint64_t DOWNSTREAM_EOT_DATA = 0x100000000ull;
 
 /**
   * @brief SBE Upstream FIFO Status bits
@@ -158,39 +182,45 @@ typedef struct
   *
   * @param[out] 64-Bit Data read from Upstream FIFO
   *
+  * @param sbeFifoType: i_type
+  *
   * @return     Rc from the underlying scom utility
   *
   */
-extern inline uint32_t sbeUpFifoDeq (uint64_t *o_data)
+extern inline uint32_t sbeUpFifoDeq (uint64_t *o_data, const sbeFifoType i_type = SBE_FIFO)
 {
     /* For SBE FIFO (PIB) access, chiplet ID should be passed as 0 */
-    return getscom_abs(SBE_UPSTREAM_FIFO_DEQ_ADD, o_data);
+    return getscom_abs(SBE_UPSTREAM_FIFO_DEQ_ADD + FIFO_BASE_ADDR(i_type), o_data);
 }
 
 
 /**
   * @brief sbeUpFifoPerformReset : Perform Upstream FIFO reset request
   *
+  * @param sbeFifoType: i_type
+  *
   * @return     Rc from the underlying scom utility
   *
   */
-extern inline uint32_t sbeUpFifoPerformReset (void)
+extern inline uint32_t sbeUpFifoPerformReset (const sbeFifoType i_type = SBE_FIFO)
 {
     SBE_INFO("sbeUpFifoPerformReset");
-    return putscom_abs(SBE_UPSTREAM_FIFO_PERFORM_RESET, ((uint64_t)0x1)<<32);
+    return putscom_abs(SBE_UPSTREAM_FIFO_PERFORM_RESET + FIFO_BASE_ADDR(i_type), ((uint64_t)0x1)<<32);
 }
 
 
 /**
   * @brief sbeUpFifoAckEot : Acknowledge EOT in Upstream FIFO
   *
+  * @param sbeFifoType: i_type
+  *
   * @return     Rc from the underlying scom utility
   *
   */
-extern inline uint32_t sbeUpFifoAckEot (void)
+extern inline uint32_t sbeUpFifoAckEot (const sbeFifoType i_type = SBE_FIFO)
 {
     SBE_INFO("sbeUpFifoAckEot");
-    return putscom_abs(SBE_UPSTREAM_FIFO_ACK_EOT, ((uint64_t)0x1)<<32);
+    return putscom_abs(SBE_UPSTREAM_FIFO_ACK_EOT + FIFO_BASE_ADDR(i_type), ((uint64_t)0x1)<<32);
 }
 
 
@@ -205,12 +235,14 @@ extern inline uint32_t sbeUpFifoAckEot (void)
   *            Bit 0-31  : Data
   *            Bit 32-63 : Unused
   *
+  * @param sbeFifoType: i_type
+  *
   * @return    Rc from the underlying scom utility
   */
-extern inline uint32_t sbeDownFifoEnq (const uint64_t i_data)
+extern inline uint32_t sbeDownFifoEnq (const uint64_t i_data, const sbeFifoType i_type = SBE_FIFO)
 {
     SBE_DEBUG(">sbeDownFifoEnq");
-    return putscom_abs(SBE_DOWNSTREAM_FIFO_ENQ_ADD, i_data);
+    return putscom_abs(SBE_DOWNSTREAM_FIFO_ENQ_ADD + FIFO_BASE_ADDR(i_type), i_data);
 }
 
 
@@ -221,11 +253,26 @@ extern inline uint32_t sbeDownFifoEnq (const uint64_t i_data)
   *            Bit 0-31  : Data
   *            Bit 32-63 : Unused
   *
+  * @param sbeFifoType: i_type
+  *
   * @return    Rc from the underlying scom utility
   */
-extern inline uint32_t sbeDownFifoGetStatus (uint64_t *o_data)
+extern inline uint32_t sbeDownFifoGetStatus (uint64_t *o_data, const sbeFifoType i_type = SBE_FIFO)
 {
-    return getscom_abs(SBE_DOWNSTREAM_FIFO_STATUS, o_data);
+    return getscom_abs(SBE_DOWNSTREAM_FIFO_STATUS + FIFO_BASE_ADDR(i_type), o_data);
+}
+
+/**
+  * @brief sbeDownFifoWriteEot : Write the EOT for Down Stream Fifo
+  *
+  * @param sbeFifoType: i_type
+  *
+  * @return     Rc from the underlying scom utility
+  *
+  */
+extern inline uint32_t sbeDownFifoWriteEot ( const sbeFifoType i_type = SBE_FIFO )
+{
+    return putscom_abs(SBE_DOWNSTREAM_FIFO_SIGNAL_EOT + FIFO_BASE_ADDR(i_type), DOWNSTREAM_EOT_DATA);
 }
 
 #endif // __SBEFW_SBEFIFO_H

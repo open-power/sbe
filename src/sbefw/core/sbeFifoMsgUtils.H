@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -132,7 +133,7 @@ extern inline uint32_t sbeBuildRespHeaderStatusWordLocal (
   *             in loop ( sleep ) till the time there is some space in
   *             FIFO.
   */
-uint32_t sbeDownFifoSignalEot (void);
+uint32_t sbeDownFifoSignalEot ( void );
 
 /**
  * @brief sbeDsSendRespHdr : Send response header to DS FIFO

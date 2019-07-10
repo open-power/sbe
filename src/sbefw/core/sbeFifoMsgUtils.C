@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,10 +44,6 @@
 // or EMPTY while reading ) we will sleep for FIFO_WAIT_SLEEP_TIME
 // ms so that FIFO can be ready.
 static const uint32_t FIFO_WAIT_SLEEP_TIME = 1;
-// Write this data to send EOT to DS FIFO. The register to send EOT
-// is 32 bit only. But our scom operations are 64 bit. So set a bit
-// in higher word to trigger EOT.
-static const uint64_t DOWNSTREAM_EOT_DATA = 0x100000000ull;
 
 using namespace fapi2;
 inline uint32_t sbeBuildRespHeaderStatusWordGlobal (void)
@@ -278,7 +274,7 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-uint32_t sbeDownFifoSignalEot (void)
+uint32_t sbeDownFifoSignalEot ( void )
 {
     uint32_t l_rc = 0;
     #define SBE_FUNC "sbeDownFifoSignalEot "
@@ -309,7 +305,12 @@ uint32_t sbeDownFifoSignalEot (void)
             }
             continue;
         }
-        l_rc = putscom_abs(SBE_DOWNSTREAM_FIFO_SIGNAL_EOT, DOWNSTREAM_EOT_DATA);
+
+        l_rc = sbeDownFifoWriteEot();
+        if(l_rc)
+        {
+            SBE_ERROR(SBE_FUNC " Write EOT failed, rc=[0x%08X] ", l_rc);
+        }
         break;
     } while(1);
 
