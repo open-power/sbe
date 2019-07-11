@@ -75,6 +75,7 @@
 #include <p10_sbe_scominit.H>
 #include <p10_sbe_lpc_init.H>
 #include <p10_sbe_fabricinit.H>
+#include <p10_sbe_mcs_setup.H>
 #include <p10_sbe_select_ex.H>
 // Cache HWP header file
 //#include <p9_hcd_cache.H>
@@ -304,7 +305,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_scominit),
              ISTEP_MAP( istepLpcInit,  p10_sbe_lpc_init),
              ISTEP_MAP( istepWithProc, p10_sbe_fabricinit),
-             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_mcs_setup
+             ISTEP_MAP( istepWithProc, p10_sbe_mcs_setup), //p10_sbe_mcs_setup
              ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
 #endif
          };
