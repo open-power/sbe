@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,6 +41,7 @@
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
 #include <p9n2_perv_scom_addresses_fld.H>
+#include <p9a_perv_scom_addresses_fld.H>
 #include <p9_perv_sbe_cmn.H>
 #include <p9_sbe_common.H>
 
@@ -54,6 +55,48 @@ enum P9_SBE_TP_CHIPLET_INIT1_Private_Constants
     REGIONS_EXCEPT_VITAL_PIB_NET_SBE = 0x4DF, // Regions excluding VITAL, PIB, NET and SBE
     SCAN_TYPES_TIME_GPTR_REPR = 0x230
 };
+
+#ifndef __PPE__
+/// @brief Switch PCB mux via CFAM
+///
+/// @param[in]     i_target_chip     Reference to TARGET_TYPE_PROC_CHIP
+/// @param[in]     i_new_position    Desired new mux position (bit position in ROOT_CTRL0)
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode switch_pcb_mux_cfam(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
+    const uint32_t i_new_position)
+{
+    fapi2::buffer<uint32_t> l_pcb_reset, l_mux_select;
+
+    l_pcb_reset.flush<0>().setBit<PERV_ROOT_CTRL0_PCB_RESET_DC>();
+
+    l_mux_select.flush<0>()
+    .setBit<P9A_PERV_ROOT_CTRL0_PIB2PCB_DC>()
+    .setBit<P9A_PERV_ROOT_CTRL0_PCB2PCB_DC>();
+
+    FAPI_DBG("Setting PCB RESET bit in  ROOT_CTRL0_REG");
+    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_SET_FSI, l_pcb_reset));
+
+    // This will unconditionally set both bits (PIB2PCB, PCB2PCB), switching to a safe
+    // intermediate state from either of the two settings.
+    FAPI_DBG("Setting PCB mux to intermediate state");
+    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_SET_FSI, l_mux_select));
+
+    // We CLEAR the bit corresponding to the desired new position in l_mux_select
+    // and then use the CLEAR address of RC0 to effectively clear the _other_ bit,
+    // so that the bit left standing is our desired new position.
+    FAPI_DBG("Setting PCB mux to final state");
+    l_mux_select.clearBit(i_new_position);
+    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_CLEAR_FSI, l_mux_select));
+
+    FAPI_DBG("Clearing PCB RESET bit in  ROOT_CTRL0_REG");
+    FAPI_TRY(fapi2::putCfamRegister(i_target_chip, PERV_ROOT_CTRL0_CLEAR_FSI, l_pcb_reset));
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+#endif
 
 fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -102,12 +145,14 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
 
 #ifndef __PPE__
 
-    if(l_is_axone)
+    if (l_is_axone)
     {
-        FAPI_DBG("Release PCB Reset");
-        //PIB.ROOT_CTRL0.PCB_RESET_DC = 0
-        l_data64_root_ctrl0.clearBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_data64_root_ctrl0));
+        /*
+         * In some lab configurations, the SBE might have done these exact steps
+         * before us already, but it won't hurt to do them all again.
+         */
+        FAPI_DBG("Switch PCB mux to PIB2PCB position");
+        FAPI_TRY(switch_pcb_mux_cfam(i_target_chip, P9A_PERV_ROOT_CTRL0_PIB2PCB_DC));
 
         FAPI_DBG("Set Chiplet Enable");
         //PIB.PERV_CTRL0.TP_CHIPLET_EN_DC = 1
@@ -130,9 +175,8 @@ fapi2::ReturnCode p9_sbe_tp_chiplet_init1(const
         FAPI_DBG("l_clk_regions value: %#018lX", l_clk_regions);
         FAPI_TRY(p9_sbe_common_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, l_clk_regions, CLOCK_TYPES_ALL));
 
-        FAPI_DBG("Switching to PCB2PCB path");
-        FAPI_TRY(p9_perv_sbe_cmn_switch_to_pcb2pcb_path_scom(
-                     i_target_chip));
+        FAPI_DBG("Switch PCB mux to PCB2PCB position");
+        FAPI_TRY(switch_pcb_mux_cfam(i_target_chip, P9A_PERV_ROOT_CTRL0_PCB2PCB_DC));
 
         //Getting ROOT_CTRL0 register value again as it is changed in above function
         FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM,

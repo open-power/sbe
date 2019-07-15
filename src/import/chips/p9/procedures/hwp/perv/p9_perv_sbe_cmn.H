@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -65,10 +65,5 @@ fapi2::ReturnCode p9_perv_sbe_cmn_scan0_module(const
         fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplets,
         const fapi2::buffer<uint16_t> i_regions,
         const fapi2::buffer<uint16_t> i_scan_types);
-
-#if defined(SBE_AXONE_CONFIG) || !defined(__PPE__)
-fapi2::ReturnCode p9_perv_sbe_cmn_switch_to_pcb2pcb_path_scom(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
-#endif
 
 #endif

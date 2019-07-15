@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -515,60 +515,3 @@ fapi_try_exit:
     return fapi2::current_err;
 
 }
-
-#if defined(SBE_AXONE_CONFIG) || !defined(__PPE__)
-/// @brief Switching to PCB2PCB Path via scom
-///
-/// @param[in]     i_target_chip     Reference to TARGET_TYPE_PROC_CHIP
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode p9_perv_sbe_cmn_switch_to_pcb2pcb_path_scom(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
-{
-    fapi2::buffer<uint64_t> l_read_reg;
-    FAPI_INF("p9_perv_sbe_cmn_switch_to_pcb2pcb_path_scom: Entering ...");
-
-    FAPI_DBG("Reading ROOT_CTRL0_REG");
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_read_reg));
-
-    if (!l_read_reg.getBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>())
-    {
-        FAPI_DBG("Setting PCB RESET bit in  ROOT_CTRL0_REG");
-        l_read_reg.setBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_read_reg));
-    }
-
-    if (!l_read_reg.getBit<PERV_ROOT_CTRL0_19_SPARE_MUX_CONTROL>())
-    {
-        FAPI_DBG("Setting PCB2PCB bit in  ROOT_CTRL0_REG");
-        l_read_reg.setBit<PERV_ROOT_CTRL0_19_SPARE_MUX_CONTROL>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_read_reg));
-    }
-
-    if (l_read_reg.getBit<PERV_ROOT_CTRL0_PIB2PCB_DC>())
-    {
-        FAPI_DBG("Clearing FSI2PCB bit in  ROOT_CTRL0_REG");
-        l_read_reg.clearBit<PERV_ROOT_CTRL0_PIB2PCB_DC>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_read_reg));
-    }
-
-    if (l_read_reg.getBit<PERV_ROOT_CTRL0_18_SPARE_MUX_CONTROL>())
-    {
-        FAPI_DBG("Clearing PIB2PCB bit in  ROOT_CTRL0_REG");
-        l_read_reg.clearBit<PERV_ROOT_CTRL0_18_SPARE_MUX_CONTROL>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_read_reg));
-    }
-
-    if (l_read_reg.getBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>())
-    {
-        FAPI_DBG("Clearing PCB RESET bit in  ROOT_CTRL0_REG");
-        l_read_reg.clearBit<PERV_ROOT_CTRL0_SET_PCB_RESET_DC>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL0_SCOM, l_read_reg));
-    }
-
-    FAPI_INF("p9_perv_sbe_cmn_switch_to_pcb2pcb_path_scom: Exiting ...");
-
-fapi_try_exit:
-    return fapi2::current_err;
-
-}
-#endif
