@@ -2272,7 +2272,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                                  "-----------------------------\n"
                                  "%i.%c\n"
                                  "ddLevel = 0x%02x\n"
-                                 "ringId = %u\n"
+                                 "ringId = 0x%x\n"
                                  "ringName = %s\n"
                                  "instanceId = 0x%02x\n"
                                  "selector = %u\n"
