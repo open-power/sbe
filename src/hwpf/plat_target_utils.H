@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,6 +39,7 @@ typedef struct {
   fapi2attr::CoreAttributes_t      G_core_attrs __attribute__ ((aligned (8)));
   fapi2attr::EXAttributes_t        G_ex_attrs __attribute__ ((aligned (8)));
   fapi2attr::EQAttributes_t        G_eq_attrs __attribute__ ((aligned (8)));
+  fapi2attr::OCMBChipAttributes_t  G_ocmb_chip_attrs __attribute__ ((aligned (8)));
 } G_sbe_attrs_t;
 //
 // Platform Utility functions..

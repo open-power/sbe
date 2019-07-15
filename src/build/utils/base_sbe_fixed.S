@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -65,4 +65,5 @@
     .proc_sbe_fixed_perv
     .proc_sbe_fixed_core
     .proc_sbe_fixed_ex
+    .proc_sbe_fixed_ocmb_chip
     .proc_sbe_fixed_eq

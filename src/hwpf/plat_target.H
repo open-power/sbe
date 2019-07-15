@@ -46,6 +46,7 @@ static const uint8_t N3_CHIPLET = 5;
 static const uint8_t MCS_PER_MCBIST = 2;
 static const uint8_t MI_PER_MC = 2;
 static const uint8_t PCI0_CHIPLET = 0x0D;
+static const uint8_t OCMB_PER_PROC = 16;
 
 //
 // Define what a platform handle looks like. For Hostboot,
@@ -75,6 +76,7 @@ namespace fapi2
         PPE_TARGET_TYPE_PHB               = 0x100,
         PPE_TARGET_TYPE_MI                = 0x200,
         PPE_TARGET_TYPE_MC                = 0x400,
+        PPE_TARGET_TYPE_OCMB              = 0x800,
         PPE_TARGET_TYPE_ALL               = 0xFFF,
     } plat_target_type_t;
 
@@ -288,6 +290,12 @@ namespace fapi2
         {
             l_handle.fields.chiplet_num = N3_CHIPLET - (MI_PER_MC * (i_plat_argument / MI_PER_MC));
             l_handle.fields.type = PPE_TARGET_TYPE_MI;
+            l_handle.fields.type_target_num = i_plat_argument;
+        }
+        else if(K & TARGET_TYPE_OCMB_CHIP)
+        {
+            l_handle.fields.chiplet_num = i_plat_argument;
+            l_handle.fields.type = PPE_TARGET_TYPE_OCMB;
             l_handle.fields.type_target_num = i_plat_argument;
         }
         else if(K == TARGET_TYPE_ALL)

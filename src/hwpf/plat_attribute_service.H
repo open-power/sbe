@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -41,6 +42,9 @@
 #include <plat_includes.H>
 #include "proc_sbe_fixed.H"
 #include "plat_target_parms.H"
+#include <p9_perv_scom_addresses.H>
+#include <fapi2.H>
+#include <target.H>
 
 #define PLAT_GET_CHIP_EC_FEATURE_OVERRIDE(ID, PTARGET, VAL) \
       _getEcFeatureOverride<ID##_Type>(ID, PTARGET, VAL)
@@ -219,6 +223,7 @@ extern "C"
     extern fapi2attr::CoreAttributes_t      G_core_attributes      asm("G_core_attributes")       __attribute__ ((section (".fixed")));
     extern fapi2attr::EQAttributes_t        G_eq_attributes        asm("G_eq_attributes")         __attribute__ ((section (".fixed")));
     extern fapi2attr::EXAttributes_t        G_ex_attributes        asm("G_ex_attributes")         __attribute__ ((section (".fixed")));
+    extern fapi2attr::OCMBChipAttributes_t  G_ocmb_chip_attributes asm("G_ocmb_chip_attributes")  __attribute__ ((section (".fixed")));
 
     extern fapi2attr::SystemAttributes_t*   G_system_attributes_ptr;
     extern fapi2attr::ProcChipAttributes_t* G_proc_chip_attributes_ptr;
@@ -226,6 +231,7 @@ extern "C"
     extern fapi2attr::CoreAttributes_t*     G_core_attributes_ptr;
     extern fapi2attr::EQAttributes_t*       G_eq_attributes_ptr;
     extern fapi2attr::EXAttributes_t*       G_ex_attributes_ptr;
+    extern fapi2attr::OCMBChipAttributes_t* G_ocmb_chip_attributes_ptr;
 
 }
 
@@ -263,6 +269,59 @@ AttributeRC _getAttrChipUnitPos(const Target<TARGET_TYPE_PERV>& i_target,
     return FAPI2_RC_SUCCESS;
 }
 
+#define ATTR_NAME_GETMACRO PLAT_ATTR_GET_NAME
+
+#define PLAT_ATTR_GET_NAME(ID, PTARGET, VAL) \
+    _getAttrName(PTARGET, VAL)
+
+template<TargetType K>
+inline
+AttributeRC _getAttrName(const Target<K>& i_target,
+        ATTR_NAME_Type& o_val)
+{
+    o_val = fapi2::ENUM_ATTR_NAME_NONE;
+    deviceId l_deviceId;
+
+    FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
+    switch(l_deviceId.iv_chipId)
+    {
+        case 0xD1:
+            o_val = fapi2::ENUM_ATTR_NAME_NIMBUS;
+            break;
+        case 0xD4:
+            o_val = fapi2::ENUM_ATTR_NAME_CUMULUS;
+            break;
+        case 0xD9:
+            o_val = fapi2::ENUM_ATTR_NAME_AXONE;
+            break;
+        default:
+            FAPI_ERR("Unsupported chip ID: 0x%02X",
+                     static_cast<uint8_t>(l_deviceId.iv_chipId));
+            assert(false);
+    }
+fapi_try_exit:
+    return FAPI2_RC_SUCCESS;
+}
+
+#define ATTR_EC_GETMACRO PLAT_ATTR_GET_EC
+
+#define PLAT_ATTR_GET_EC(ID, PTARGET, VAL) \
+    _getAttrEC(PTARGET, VAL)
+
+template<TargetType K>
+inline
+AttributeRC _getAttrEC(const Target<K>& i_target,
+        ATTR_EC_Type& o_val)
+{
+    o_val = 0;
+    deviceId l_deviceId;
+    FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
+    o_val = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
+
+fapi_try_exit:
+    return FAPI2_RC_SUCCESS;
+}
+
 /* INSERT NEW GETTER AND SETTER FUNCTIONS HERE */
 
 
@@ -296,6 +355,11 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -339,6 +403,11 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -385,6 +454,11 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
          __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
@@ -427,6 +501,11 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -571,6 +650,11 @@ AttributeRC _setAttributeArrayShort(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, *i_pValues );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, *i_pValues );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -741,6 +825,11 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -785,6 +874,11 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -826,6 +920,11 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -873,6 +972,11 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -917,6 +1021,11 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
          __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
@@ -958,6 +1067,11 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -1004,6 +1118,11 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
     }
 
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
          __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
@@ -1046,6 +1165,11 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __get<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -1283,6 +1407,11 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -1324,6 +1453,11 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __set<K, fapi2attr::CoreAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -1369,6 +1503,11 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -1411,6 +1550,11 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_PROC_CHIP)
     {
         __set<K, fapi2attr::ProcChipAttributes_t, T, A>( i_pTarget, G_proc_chip_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)

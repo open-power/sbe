@@ -48,7 +48,8 @@ if ($numArgs < 3)
     print ("ex_attributes.xml \\\n" );
     print ("eq_attributes.xml \\\n" );
     print ("core_attributes.xml \\ \n");
-    print ("nest_attributes.xml \n");
+    print ("nest_attributes.xml \\ \n");
+    print ("ocmb_attributes.xml \n");
     exit(1);
 }
 
@@ -68,6 +69,7 @@ my @attrExIds;
 my @attrCoreIds;
 my @attrEqIds;
 my @attrPervIds;
+my @attrOcmbChipIds; 
 
 
 
@@ -146,6 +148,12 @@ foreach my $entr (@{$entries->{entry}}) {
                         $targetTypeMatched = 1;
                         last;
 
+                    } elsif($target eq "TARGET_TYPE_OCMB_CHIP") {
+
+                        push(@attrOcmbChipIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
+
                     } elsif($target eq "TARGET_TYPE_CORE") {
 
                         push(@attrCoreIds, $entr);
@@ -197,6 +205,7 @@ setFixed("TARGET_TYPE_CORE", @attrCoreIds);
 setFixed("TARGET_TYPE_EQ", @attrEqIds);
 setFixed("TARGET_TYPE_EX", @attrExIds);
 setFixed("TARGET_TYPE_PERV", @attrPervIds);
+setFixed("TARGET_TYPE_OCMB_CHIP", @attrOcmbChipIds);
 
 
 

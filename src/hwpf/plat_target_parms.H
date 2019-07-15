@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -87,6 +87,9 @@ CONST_UINT32_T(MCAST_TARGET_OFFSET, SYSTEM_TARGET_OFFSET + SYSTEM_TARGET_COUNT);
 CONST_UINT32_T(MCAST_CHIPLET_OFFSET,    4);
 CONST_UINT32_T(MCAST_TARGET_COUNT,      3);  // PPE only needs multicast groups 4-6
 
+CONST_UINT32_T(OCMB_TARGET_OFFSET, MCAST_TARGET_OFFSET + MCAST_TARGET_COUNT);
+CONST_UINT32_T(OCMB_TARGET_COUNT,      16);
+
 // Total number of pervasive targets (Both NEST groups + EQs + COREs +MCBISTs)
 CONST_UINT32_T(PERV_TARGET_COUNT, NEST_GROUP1_TARGET_COUNT + NEST_GROUP2_TARGET_COUNT +
         MCBIST_TARGET_COUNT + EQ_TARGET_COUNT + CORE_TARGET_COUNT);
@@ -98,7 +101,8 @@ CONST_UINT32_T(TARGET_COUNT,            CHIP_TARGET_COUNT +
                                         MCS_TARGET_COUNT +
                                         PHB_TARGET_COUNT +
                                         SYSTEM_TARGET_COUNT +
-                                        MCAST_TARGET_COUNT);
+                                        MCAST_TARGET_COUNT +
+                                        OCMB_TARGET_COUNT);
 
 // Maximum possible Pervasive chiplets
 CONST_UINT32_T(MAX_PERV_CHIPLETS, 64);

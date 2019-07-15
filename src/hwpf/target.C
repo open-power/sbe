@@ -49,6 +49,7 @@ fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
+fapi2attr::OCMBChipAttributes_t*  G_ocmb_chip_attributes_ptr;
 
 #else // __SBEFW_SEEPROM__
 extern uint64_t g_HRMOR;
@@ -64,6 +65,7 @@ extern fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 extern fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 extern fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
+extern fapi2attr::OCMBChipAttributes_t* G_ocmb_chip_attributes_ptr;
 
 // For PhyP system, HRMOR is set to 128MB, which is multiple of 64MB Granule * 2
 // For OPAL system, HRMOR needs to be lower than 4GB, so that HB reloading
@@ -83,26 +85,8 @@ extern fapi2::ReturnCode
 
     ReturnCode plat_AttrInit()
     {
-        union
-        {
-            struct
-            {
-                uint64_t iv_majorEC : 4;
-                uint64_t iv_deviceIdDontCare : 4;
-                uint64_t iv_minorEC : 4;
-                uint64_t iv_chipId : 8;
-                uint64_t iv_deviceIdDontCare2 : 20;
-                uint64_t iv_c4Pin : 1;
-                uint64_t iv_deviceIdDontCare3 :17;
-                uint64_t iv_fusedMode : 1;
-                uint64_t iv_deviceIdDontCare4 :5;
-            };
-            uint64_t iv_deviceIdReg;
-        } l_deviceId;
-
+        union deviceId l_deviceId;
         uint64_t l_temp_hrmor = 0;
-        uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
-        uint8_t l_ec = 0;
         uint8_t fusedMode = 0;
         fapi2::buffer<uint64_t> l_tempReg = 0;
         fapi2::buffer<uint64_t> l_scratch8Reg = 0;
@@ -457,26 +441,7 @@ extern fapi2::ReturnCode
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM,
                                l_riskLvl));
         FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
-        l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
-        switch(l_deviceId.iv_chipId)
-        {
-            case 0xD1:
-                l_chipName = fapi2::ENUM_ATTR_NAME_NIMBUS;
-                break;
-            case 0xD4:
-                l_chipName = fapi2::ENUM_ATTR_NAME_CUMULUS;
-                break;
-            case 0xD9:
-                l_chipName = fapi2::ENUM_ATTR_NAME_AXONE;
-                break;
-            default:
-                FAPI_ERR("Unsupported chip ID: 0x%02X",
-                         static_cast<uint8_t>(l_deviceId.iv_chipId));
-                assert(false);
-        }
         fusedMode = (uint8_t)l_deviceId.iv_fusedMode;
-        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
-        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC, l_chipTarget, l_ec));
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
                                 fapi2::Target<TARGET_TYPE_SYSTEM>(),
                                 fusedMode));
@@ -894,6 +859,7 @@ fapi_try_exit:
         G_sbe_attrs.G_core_attrs = G_core_attributes;
         G_sbe_attrs.G_eq_attrs = G_eq_attributes;
         G_sbe_attrs.G_ex_attrs = G_ex_attributes;
+        G_sbe_attrs.G_ocmb_chip_attrs = G_ocmb_chip_attributes;
 
         // Initialise global attribute pointers
         G_system_attributes_ptr = &(G_sbe_attrs.G_system_attrs);
@@ -902,6 +868,7 @@ fapi_try_exit:
         G_core_attributes_ptr = &(G_sbe_attrs.G_core_attrs);
         G_eq_attributes_ptr = &(G_sbe_attrs.G_eq_attrs);
         G_ex_attributes_ptr = &(G_sbe_attrs.G_ex_attrs);
+        G_ocmb_chip_attributes_ptr = &(G_sbe_attrs.G_ocmb_chip_attrs);
 
 
         std::vector<fapi2::plat_target_handle_t>::iterator tgt_iter;

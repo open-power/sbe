@@ -73,6 +73,23 @@ struct ScomAddr
     };
 };
 
+union deviceId
+{
+    struct
+    {
+        uint64_t iv_majorEC : 4;
+        uint64_t iv_deviceIdDontCare : 4;
+        uint64_t iv_minorEC : 4;
+        uint64_t iv_chipId : 8;
+        uint64_t iv_deviceIdDontCare2 : 20;
+        uint64_t iv_c4Pin : 1;
+        uint64_t iv_deviceIdDontCare3 :17;
+        uint64_t iv_fusedMode : 1;
+        uint64_t iv_deviceIdDontCare4 :5;
+    };
+    uint64_t iv_deviceIdReg;
+};
+
 
 namespace fapi2
 {
