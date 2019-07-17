@@ -75,6 +75,9 @@ const uint32_t OPCODE_L         = 0x00010000;
 const uint32_t OPCODE_MASK_L    = (OPCODE_MASK | OPCODE_L);
 const uint32_t OPCODE_MASK_SPR  = (OPCODE_MASK | (SPR_NUM_MASK << SPR_NUM_OPCODE_SHIFT));
 
+// See PC workbook, supported RAM instruction table footnote
+const uint32_t OPCODE_SPECIAL_PPC                  = 0x001E0000;
+
 // opcode for ramming
 const uint32_t OPCODE_MTSPR_FROM_GPR0_TO_SPRD      = 0x7C1543A6;
 const uint32_t OPCODE_MTSPR_FROM_GPR1_TO_SPRD      = 0x7C3543A6;
@@ -111,7 +114,7 @@ const uint32_t OPCODE_MTFSF_FROM_FPR0              = 0xFE00058E;
 const uint32_t OPCODE_MFVSCR_TO_VR0                = 0x10000604;
 const uint32_t OPCODE_MTVSCR_FROM_VR0              = 0x10000644;
 const uint32_t OPCODE_MFNIA_RT                     = 0x001AC804;
-const uint32_t OPCODE_MTNIA_LR                     = 0x4C1E00A4;
+const uint32_t OPCODE_MTNIA_LR                     = 0x4C0000A4;
 const uint32_t OPCODE_GPR_MOVE                     = 0x00000010;
 const uint32_t OPCODE_VSR_MOVE_HI                  = 0x00000110;
 const uint32_t OPCODE_VSR_MOVE_LO                  = 0x00000210;
@@ -125,6 +128,7 @@ const uint32_t OPCODE_MTMSR                        = 0x7C000124;
 const uint32_t OPCODE_MTMSR_L1                     = (OPCODE_MTMSR | OPCODE_L);
 const uint32_t OPCODE_MTMSRD                       = 0x7C000164;
 const uint32_t OPCODE_MTMSRD_L0                    = OPCODE_MTMSRD;
+const uint32_t OPCODE_MTMSR_L0                     = OPCODE_MTMSR;
 const uint32_t OPCODE_MTMSRD_L1                    = (OPCODE_MTMSRD | OPCODE_L);
 
 const uint32_t OPCODE_MFSPR_SPRG2   = OPCODE_MFSPR | ENCODE_SPR_NUM_OPCODE(SPR_NUM_SPRG2) ; // 0x7C1242A6
@@ -586,8 +590,8 @@ uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
     {
         l_predecode = 0xE;
     }
-    else if (l_opcode_pattern == OPCODE_MTMSR ||
-             l_opcode_pattern == OPCODE_MTMSRD)
+    else if (l_opcode_pattern_L == OPCODE_MTMSR ||
+             l_opcode_pattern_L == OPCODE_MTMSRD)
     {
         l_predecode = 9;
     }
@@ -729,7 +733,10 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
                 //2.get NIA from GPR0
                 opcodes[1] = {NULL, OPCODE_MTSPR_FROM_GPR0_TO_SPRD, &o_buffer[0]};
             }
-            else if(i_reg_num == RAM_REG_MSR)
+            else if(i_reg_num == RAM_REG_MSR ||
+                    i_reg_num == RAM_REG_MSRD ||
+                    i_reg_num == RAM_REG_MSR_L1 ||
+                    i_reg_num == RAM_REG_MSRD_L1)
             {
                 //1.create mfmsr opcode, ram into thread
                 opcodes[0] = {NULL, OPCODE_MFMSR_TO_GPR0, NULL};
@@ -987,7 +994,7 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
             opcodes[2] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
             opcodes[3] = {NULL, OPCODE_MTSPR_FROM_GPR0_TO_LR, NULL};
             //3.ram MTNIA_LR opcode
-            opcodes[4] = {NULL, OPCODE_MTNIA_LR, NULL};
+            opcodes[4] = {NULL, (OPCODE_MTNIA_LR | OPCODE_SPECIAL_PPC), NULL};
             //4.restore LR
             opcodes[5] = {&l_backup_lr, OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
             opcodes[6] = {NULL, OPCODE_MTSPR_FROM_GPR0_TO_LR, NULL};
@@ -997,8 +1004,32 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
             //1.put SPR value into SCR0
             //2.create mfsprd<gpr0> opcode, ram into thread
             opcodes[0] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
+            //3.create mtmsr opcode, ram into thread
+            opcodes[1] = {NULL, (OPCODE_MTMSR_L0 | OPCODE_SPECIAL_PPC), NULL};
+        }
+        else if(i_reg_num == RAM_REG_MSR_L1)
+        {
+            //1.put SPR value into SCR0
+            //2.create mfsprd<gpr0> opcode, ram into thread
+            opcodes[0] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
+            //3.create mtmsr opcode, ram into thread
+            opcodes[1] = {NULL, OPCODE_MTMSR_L1, NULL};
+        }
+        else if(i_reg_num == RAM_REG_MSRD)
+        {
+            //1.put SPR value into SCR0
+            //2.create mfsprd<gpr0> opcode, ram into thread
+            opcodes[0] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
             //3.create mtmsrd opcode, ram into thread
-            opcodes[1] = {NULL, OPCODE_MTMSRD_L0, NULL};
+            opcodes[1] = {NULL, (OPCODE_MTMSRD_L0 | OPCODE_SPECIAL_PPC), NULL};
+        }
+        else if(i_reg_num == RAM_REG_MSRD_L1)
+        {
+            //1.put SPR value into SCR0
+            //2.create mfsprd<gpr0> opcode, ram into thread
+            opcodes[0] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
+            //3.create mtmsrd opcode, ram into thread
+            opcodes[1] = {NULL, OPCODE_MTMSRD_L1, NULL};
         }
         else if(i_reg_num == RAM_REG_CR)
         {

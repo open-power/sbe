@@ -45,11 +45,14 @@
 //-----------------------------------------------------------------------------------
 
 // pseudo identifiers for special registers -- see p10_spr_name_map.H
-const uint32_t RAM_REG_NIA   = 2000;
-const uint32_t RAM_REG_MSR   = 2001;
-const uint32_t RAM_REG_CR    = 2002;
-const uint32_t RAM_REG_FPSCR = 2003;
-const uint32_t RAM_REG_VSCR  = 2004;
+const uint32_t RAM_REG_NIA     = 2000;
+const uint32_t RAM_REG_MSRD    = 2001;
+const uint32_t RAM_REG_CR      = 2002;
+const uint32_t RAM_REG_FPSCR   = 2003;
+const uint32_t RAM_REG_VSCR    = 2004;
+const uint32_t RAM_REG_MSR     = 2005;
+const uint32_t RAM_REG_MSR_L1  = 2006;
+const uint32_t RAM_REG_MSRD_L1 = 2007;
 
 //-----------------------------------------------------------------------------------
 // Structure definitions
