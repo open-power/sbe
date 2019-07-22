@@ -448,7 +448,7 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                  l_read_scratch7_reg),
                  "Error from p10_sbe_scratch_regs_write_noneq_pg_from_scratch");
 
-        if (l_attr_contained_ipl_type != fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE)
+        if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP)
         {
             fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC_Type l_attr_chip_contained_active_cores_vec;
 
@@ -788,7 +788,7 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                 FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_IOHS_PLL_BUCKET, i_target_chip, l_attr_iohs_pll_bucket),
                          "Error from FAPI_ATTR_SET (ATTR_IOHS_PLL_BUCKET)");
             }
-            else
+            else if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP)
             {
                 fapi2::ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC_Type l_attr_chip_contained_backing_caches_vec;
 

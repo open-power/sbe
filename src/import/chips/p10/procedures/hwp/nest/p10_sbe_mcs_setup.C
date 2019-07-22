@@ -199,6 +199,7 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_is_master_sbe = 0x0;
     fapi2::ATTR_IS_MPIPL_Type l_is_mpipl;
     fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_ipl_type;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_contained_type;
 
     auto l_mi_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MI>();
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
@@ -217,8 +218,11 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                            FAPI_SYSTEM,
                            l_ipl_type),
              "Error from FAPI_ATTR_GET (ATTR_SYSTEM_IPL_PHASE)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM,
+                           l_contained_type));
 
-    if ((l_ipl_type == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL) &&
+    if ((l_contained_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE &&
+         l_ipl_type == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL) &&
         (l_is_master_sbe == fapi2::ENUM_ATTR_PROC_SBE_MASTER_CHIP_TRUE) &&
         (l_is_mpipl == fapi2::ENUM_ATTR_IS_MPIPL_FALSE))
     {
