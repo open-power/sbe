@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -93,7 +93,14 @@ def getSymbolInfo( symbol ):
         if(re.search(symbol, key)!= None):
             symAddr = val[0]
             length = val[1]
+
+    if(ddsuffix == 'AXONE'):
+        baseAddr = 0xfffc8000
+    else:
+        baseAddr = 0xfffe8000
+    
     print "\n symAddress :", symAddr
+    print "\n baseAddress :", baseAddr
     offset = int(symAddr, base = 16) - baseAddr;
     return (hex(offset), length)
 
@@ -155,7 +162,10 @@ def collectTrace():
 def forcedCollectTrace():
     # Collect entire PIBMEM
     offset = "0x00" # PIBMEM BASE
-    length = "0x16400"
+    if(ddsuffix == 'AXONE'):
+        length = "0x37e00"
+    else:
+        length = "0x16400"
     if(target == 'FILE'):
         createPibmemDumpFile( offset, length );
     else:
