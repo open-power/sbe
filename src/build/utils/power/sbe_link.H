@@ -66,9 +66,17 @@
 /// The link address of the P10 SBE Boot Seeprom image
 #define SBE_SEEPROM_BASE_ORIGIN 0xFF800000
 #define OTPROM_SEEPROM_HIGHER_NIBBLE 0xFF80
+#define OTPROM_MEASUREMENT_HIGHER_NIBBLE    0xFF88
 
 /// The link address of the P10 SBE Measurement Seeprom image
-#define SBE_MEASUREMENT_BASE_ORIGIN 0xFF800000
+#define SBE_MEASUREMENT_BASE_ORIGIN 0xFF880000
+
+//   Base section is the 9th (P9_XIP_SECTION_SBE_BASE) section
+#define SBE_MEASUREMENT_BASE_SECTION  SBE_MEASUREMENT_BASE_ORIGIN \
+                                    + SBE_XIP_TOC_OFFSET  + 108
+//Maximum Length of pibmem. This is used to zero out the memory
+//after loading the base section of the measurement seeprom
+#define SBE_MEASUREMENT_PIBMEM_LENGTH 0x80000
 
 ///  ALL XIP related offsets are valid for measurement seeprom as well
 ///  This Index depends upon XIP HEADER File

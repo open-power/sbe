@@ -128,7 +128,7 @@ oos_chk_port_num:
 
 oos_sel_prim_sprm:
 #Read from 0th location of SEEPROM for magic number
-                lis r4 , OTPROM_SEEPROM_HIGHER_NIBBLE
+                lis r4 , OTPROM_MEASUREMENT_HIGHER_NIBBLE
                 ori r4 , r4 , 0x0000
                 lvd d0 , 0(r4)
 
@@ -143,8 +143,8 @@ oss_load_constant_magic_num:                       #Magic number of seeprom = 0x
                 cmplwbc 0, 2, r0, r2, oos_cmp_magic_fail
                 cmplwbc 0, 2, r1, r3, oos_cmp_magic_fail
 
-           ##### Branch to SEEPROM ###################
-                lis r4 , OTPROM_SEEPROM_HIGHER_NIBBLE #Go and fetch the branch address from 0x8000_0001
+           ##### Branch to MEASUREMENT SEEPROM ###################
+                lis r4 , OTPROM_MEASUREMENT_HIGHER_NIBBLE #Go and fetch the branch address from XIP at offset 0x8
                 ori r4 , r4 , 0x0008
                 lvd d0 , 0(r4)
                 mtctr r1

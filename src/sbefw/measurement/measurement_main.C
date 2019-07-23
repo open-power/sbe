@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2019                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -21,11 +22,35 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
+/*
+ *  * API to jump to the boot seeprom.
+ *   */
+extern "C" void jump2boot()
+{
+    asm(
+            "lis %r4, 0xFF80\n"
+            "lvd %d0, 0(%r4)\n"
+            "lis %r2 , 0x5849\n"
+            "ori %r2 , %r2 , 0x5020\n"
+            "lis %r3 , 0x5345\n"
+            "ori %r3 , %r3, 0x504d\n"
+            "cmplwbc 0, 2, %r0, %r2, magic_failed\n"
+            "cmplwbc 0, 2, %r1, %r3, magic_failed\n"
+            "ori %r4, %r4, 8\n"
+            "lvd %d0 , 0(%r4)\n"
+            "mtctr %r1\n"
+            "bctr\n"
+"magic_failed:\n"
+            "trap\n"
+       );
+}
 ////////////////////////////////////////////////////////////////
 // @brief - main : Measurement Application main
 ////////////////////////////////////////////////////////////////
 int  main(int argc, char **argv)
 {
-
+    jump2boot();
     return 0;
 }
+
