@@ -630,7 +630,11 @@ fapi_try_exit:
     {
         uint32_t l_idx = 0;
 
-        if((i_chipletNumber > 0) &&
+        if(i_chipletNumber == TP_CHIPLET_OFFSET)
+        {
+            l_idx = TP_CHIPLET_OFFSET;
+        }
+        else  if((i_chipletNumber >= NEST_CHIPLET_OFFSET) &&
            (i_chipletNumber < (NEST_CHIPLET_OFFSET + NEST_TARGET_COUNT)))
         {
             l_idx = (i_chipletNumber - NEST_CHIPLET_OFFSET) +
@@ -934,14 +938,14 @@ fapi_try_exit:
         {
             if (i_filter & (mask << (((sizeof(TargetFilter)*8)-1) - l_idx)))
             {
-                plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx);
+                plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx + 1);
 
                 if(l_targetHandle.isPerv()) // Can be an assertion?
                 {
                     switch (i_state)
                     {
                         case TARGET_STATE_PRESENT:
-                            if(l_targetHandle.fields.present)
+                             if(l_targetHandle.fields.present)
                             {
                                 o_children.push_back(l_targetHandle);
                             }
@@ -1106,6 +1110,17 @@ fapi_try_exit:
         FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_NAME, plat_getChipTarget(), l_chipName));
 
         /*
+         * TP Target
+         */
+        l_beginning_offset = TP_TARGET_OFFSET;
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PERV>(TP_CHIPLET_OFFSET)));
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
+            G_vec_targets.at(l_beginning_offset) = (fapi2::plat_target_handle_t)(target_name.get());
+        }
+        
+        /*
          * Nest Targets
          */
         l_beginning_offset = NEST_TARGET_OFFSET;
@@ -1115,8 +1130,8 @@ fapi_try_exit:
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
-            FAPI_TRY(plat_TargetPresent(target_name, b_present));
-
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             G_vec_targets.at(i + l_beginning_offset) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
@@ -1124,15 +1139,15 @@ fapi_try_exit:
          * PCI Targets
          */
 
-        l_beginning_offset = PCI_TARGET_OFFSET;
+         l_beginning_offset = PCI_TARGET_OFFSET;
         for (uint32_t i = 0; i < PCI_TARGET_COUNT; ++i)
         {
             fapi2::Target<fapi2::TARGET_TYPE_PERV> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PERV>(i + PCI_CHIPLET_OFFSET)));
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
-            FAPI_TRY(plat_TargetPresent(target_name, b_present));
-
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             G_vec_targets.at(i + l_beginning_offset) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
@@ -1142,16 +1157,15 @@ fapi_try_exit:
          */
 
         l_beginning_offset = MC_TARGET_OFFSET;
-        for (uint32_t i = 0; i < MC_TARGET_COUNT; ++i)
+         for (uint32_t i = 0; i < MC_TARGET_COUNT; ++i)
         {
             l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MC>(i);
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
-            //FAPI_TRY(plat_TargetPresent(target_name, b_present));
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
-
+            static_cast<plat_target_handle_t&>(l_perv.operator ()()).setFunctional(true);
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
         }
 
@@ -1167,9 +1181,8 @@ fapi_try_exit:
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
-            //FAPI_TRY(plat_TargetPresent(target_name, b_present));
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
-
+            static_cast<plat_target_handle_t&>(l_perv.operator ()()).setFunctional(true);
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
         }
 
@@ -1178,16 +1191,15 @@ fapi_try_exit:
          */
 
         l_beginning_offset = IOHS_TARGET_OFFSET;
-        for (uint32_t i = 0; i < IOHS_TARGET_COUNT; ++i)
+         for (uint32_t i = 0; i < IOHS_TARGET_COUNT; ++i)
         {
             l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_IOHS>(i);
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
-            //FAPI_TRY(plat_TargetPresent(target_name, b_present));
             FAPI_TRY(plat_TargetPresent(l_perv, b_present));
-
+            static_cast<plat_target_handle_t&>(l_perv.operator ()()).setFunctional(true);
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
         }
 
@@ -1196,22 +1208,22 @@ fapi_try_exit:
          */
         l_beginning_offset = EQ_TARGET_OFFSET;
         for (uint32_t i = 0; i < EQ_TARGET_COUNT; ++i)
-        {
+         {
             l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_EQ>(i);
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
             // Determine if the chiplet is present and, thus, functional
             // via partial good attributes
             //FAPI_TRY(plat_TargetPresent(target_name, b_present));
-            FAPI_TRY(plat_TargetPresent(l_perv, b_present));
-
+            static_cast<plat_target_handle_t&>(l_perv.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(l_perv.operator ()()).setFunctional(true);
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
         }
 
         /*
          * Core (EC) Targets
          */
-
+ 
         l_beginning_offset = CORE_TARGET_OFFSET;
         for (uint32_t i = 0; i < CORE_TARGET_COUNT; ++i)
         {
@@ -1221,26 +1233,6 @@ fapi_try_exit:
             // TODO - Fix this
             static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
             static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
-
-            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
-        }
-
-        /*
-         * EX Targets
-         */
-        l_beginning_offset = EX_TARGET_OFFSET;
-        for (uint32_t i = 0; i < EX_TARGET_COUNT; ++i)
-        {
-            fapi2::Target<fapi2::TARGET_TYPE_EX> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_EX>(i)));
-
-            //fapi2::Target<fapi2::TARGET_TYPE_EQ> l_parent = target_name.getParent<fapi2::TARGET_TYPE_EQ>();
-
-            // Get the parent EQ's ATTR_PG
-            // TODO - Fix this
-
-            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
-            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
-            
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
 
