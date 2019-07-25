@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -24,6 +24,16 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #ifndef _PLAT_UTILS_H_
 #define _PLAT_UTILS_H_
+
+#include <plat_types.H>
+
+namespace fapi2 {
+#ifdef __PPE_QME
+static const PlatformType PLATFORM = PLAT_QME;
+#else
+static const PlatformType PLATFORM = PLAT_SBE;
+#endif
+}
 
 #ifdef __ASSEMBLER__
 
