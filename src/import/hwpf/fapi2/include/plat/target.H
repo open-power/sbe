@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -107,6 +107,8 @@ template<TargetType K, MulticastType M, typename V>
 template<TargetType T>
 inline Target<T, M, V> Target<K, M, V>::getParent(void) const
 {
+    check_getParent<T>();
+
     // For testing
     return Target<T, M, V>(iv_handle);
 }
@@ -125,6 +127,37 @@ template<TargetType T>
 inline std::vector<Target<T, M, V> >
 Target<K, M, V>::getChildren(const TargetState i_state) const
 {
+    check_getChildren<T>();
+
+    // Example implementation of evaluating the members of a multicast group for P10,
+    // this should go into a .C file of course.
+    //
+    // if (K & TARGET_TYPE_MULTICAST)
+    // {
+    //     if (the plat_target turns out to really be a multicast target)
+    //     {
+    //         buffer<uint64_t> l_enabledTargets;
+    //         /*
+    //          * This "magic" SCOM operation will perform a "grab bit 0" multicast read from
+    //          * an address in the PCB slave that is guaranteed to be readable (since it does
+    //          * not depend on a chiplet being powered/enabled/clocked) and always have bit 0
+    //          * set to '1' (per definition).
+    //          * The result of the operation will be a 64bit value that will contain said bit 0,
+    //          * i.e. a '1' for all members of the multicast group, and a '0' for all others.
+    //          */
+    //         getScom(Target < TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST, MULTICAST_BITX > (*this),
+    //                 0xF0001, l_enabledTargets);
+    //
+    //         return {targets for all chiplets enabled in l_enabledTargets};
+    //     }
+    //     else
+    //     {
+    //         // If this target is a unicast target in disguise, return just this target
+    //         // with the multicast qualifier stripped.
+    //         return {Target<T, M, V>(*this)};
+    //     }
+    // }
+
     // To keep the compiler quiet about unused variables
     static_cast<void>(i_state);
     // For testing
@@ -144,6 +177,25 @@ Target<TARGET_TYPE_PERV>::getChildren(const TargetFilter i_filter,
     // For testing
     return {Target<TARGET_TYPE_PERV>(i_filter), Target<TARGET_TYPE_PERV>(i_filter)};
 }
+
+template<TargetType K, MulticastType M, typename V>
+template< TargetType T, MulticastType O >
+inline Target < T | TARGET_TYPE_MULTICAST, O, V >
+Target<K, M, V>::getMulticast(const MulticastGroup i_group) const
+{
+    check_getMulticast<T, O>();
+    return Target < T | TARGET_TYPE_MULTICAST, O, V > ();
+}
+
+template<TargetType K, MulticastType M, typename V>
+template< MulticastType O >
+inline Target < TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST, O, V >
+Target<K, M, V>::getMulticast(const MulticastGroup i_group, const MulticastCoreSelect i_cores) const
+{
+    check_getMulticast<TARGET_TYPE_CORE, O>();
+    return Target < TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST, O, V > ();
+}
+
 
 ///
 /// @brief Get the target at the other end of a bus
@@ -194,6 +246,7 @@ template<TargetType K, MulticastType M, typename V>
 inline uint8_t
 Target<K, M, V>::getChipletNumber(void) const
 {
+    check_getChipletNumber();
     // Platform can return the chiplet number stored in it's Target handle
     return 0;
 }
