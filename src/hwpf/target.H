@@ -201,6 +201,13 @@ namespace fapi2
     }
 
     ///
+    /// @brief Platform MC handle creation moved into function call
+    /// @param[in] i_plat_type requested type of multicast target
+    /// @param[in] i_group abstract group specification, will be mapped to a HW group
+    ///
+    plat_target_handle_t createPlatMCHandle(const plat_target_type_t i_plat_type, const MulticastGroup i_group, uint8_t i_core_select);
+
+    ///
     /// @brief Get this target's immediate parent
     /// @tparam T The type of the parent
     /// @return Target<T, M, V> a target representing the parent
@@ -210,33 +217,38 @@ namespace fapi2
     inline Target<T, M, V> Target<K, M, V>::getParent(void) const
     {
         constexpr TargetType TARGET_TYPE_PROC_CHILDREN =
-            TARGET_TYPE_EQ | TARGET_TYPE_PERV | TARGET_TYPE_EX |
-            TARGET_TYPE_MCBIST | TARGET_TYPE_CORE |
+            TARGET_TYPE_EQ | TARGET_TYPE_PERV |
+            TARGET_TYPE_MULTICAST | TARGET_TYPE_CORE |
             TARGET_TYPE_MCS | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB |
             TARGET_TYPE_MC | TARGET_TYPE_MI | TARGET_TYPE_PAU | TARGET_TYPE_IOHS;
 
-        static_assert(((
+        static_assert((
                        ((K & TARGET_TYPE_PROC_CHILDREN) != TARGET_TYPE_NONE) ||
                        (K == TARGET_TYPE_ALL)) &&
                       ((T == TARGET_TYPE_EQ) ||
-                       (T == TARGET_TYPE_EX) ||
+                       (T == (TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST)) ||
                        (T == TARGET_TYPE_PROC_CHIP) ||
-                       (T == TARGET_TYPE_PERV))),
+                       (T == TARGET_TYPE_PERV) ||
+                       (T == (TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST))),
                       "Invalid parent/child target type passed");
 
-        static_assert(!((K == TARGET_TYPE_EQ) &&
+        static_assert(!(((K == TARGET_TYPE_EQ) ||
+                         (K == (TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST))) &&
                         (T != TARGET_TYPE_PERV) &&
+                        (T != (TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST)) &&
                         (T != TARGET_TYPE_PROC_CHIP)),
                         "Invalid parent for EQ target, must be PERV or "
                         "PROC_CHIP");
 
-        static_assert(!((K == TARGET_TYPE_IOHS) &&
+        static_assert(!(((K == TARGET_TYPE_IOHS) ||
+                         (K == (TARGET_TYPE_IOHS | TARGET_TYPE_MULTICAST))) &&
                         (T != TARGET_TYPE_PERV) &&
                         (T != TARGET_TYPE_PROC_CHIP)),
                         "Invalid parent for IOHS target, must be PERV or "
                         "PROC_CHIP");
 
-        static_assert(!((K == TARGET_TYPE_PAU) &&
+        static_assert(!(((K == TARGET_TYPE_PAU)||
+                         (K == (TARGET_TYPE_PAU | TARGET_TYPE_MULTICAST))) &&
                         (T != TARGET_TYPE_PERV) &&
                         (T != TARGET_TYPE_IOHS) &&
                         (T != TARGET_TYPE_PROC_CHIP)),
@@ -247,13 +259,8 @@ namespace fapi2
                         ((K & TARGET_TYPE_PROC_CHILDREN) == TARGET_TYPE_NONE)),
                         "Parent proc chip invalid for this target type");
 
-        static_assert(!((K == TARGET_TYPE_MCBIST) &&
-                        (T != TARGET_TYPE_PERV) &&
-                        (T != TARGET_TYPE_PROC_CHIP)),
-                        "Invalid parent for MCBIST target, must be PERV or "
-                        "PROC_CHIP");
-
-        static_assert(!((K == TARGET_TYPE_MC) &&
+        static_assert(!(((K == TARGET_TYPE_MC) ||
+                         (K == (TARGET_TYPE_MC | TARGET_TYPE_MULTICAST))) &&
                         (T != TARGET_TYPE_PERV) &&
                         (T != TARGET_TYPE_PROC_CHIP)),
                         "Invalid parent for MC target, must be PERV or "
@@ -263,31 +270,28 @@ namespace fapi2
                         (T != TARGET_TYPE_PERV) &&
                         (T != TARGET_TYPE_PROC_CHIP) &&
                         (T != TARGET_TYPE_EQ) &&
-                        (T != TARGET_TYPE_EX)),
+                        (T != (TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST))),
                         "Invalid parent for CORE target, must be PERV or "
-                        "PROC_CHIP or EQ or EX");
-
-        static_assert(!((K == TARGET_TYPE_PERV) &&
-                        (T != TARGET_TYPE_PERV) &&
-                        (T != TARGET_TYPE_PROC_CHIP)),
-                        "Invalid parent for PERV target, must be PERV or "
-                        "PROC_CHIP");
-
-        static_assert(!((K == TARGET_TYPE_EX) &&
-                        (T != TARGET_TYPE_PROC_CHIP) &&
-                        (T != TARGET_TYPE_EQ)),
-                        "Invalid parent for EX target, must be PERV or "
                         "PROC_CHIP or EQ");
 
         static_assert((!(K & TARGET_TYPE_MULTICAST)) ||
                         (T == TARGET_TYPE_PROC_CHIP) ||
-                        (T == TARGET_TYPE_PERV),
+                        (T == TARGET_TYPE_PERV) ||
+                        (T == (TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST)) ||
+                        (T == (TARGET_TYPE_EQ)) ||
+                        (T == (TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST)),
                         "Invalid parent for multicast target, must be PERV "
-                        "or PROC_CHIP");
+                        "or PROC_CHIP or EQ with multicast");
+
 
         static_assert(!(((K ^ T) & TARGET_TYPE_MULTICAST) && ((T & TARGET_TYPE_CHIPLETS) != TARGET_TYPE_NONE)),
                       "Parent target for a multicast target must also be multicast or PROC_CHIP");
-
+        if(((TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST)== T) && ((TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST) == K)) // EQ ===> PERV
+        {
+            plat_target_handle_t T_parent = createPlatMCHandle(PPE_TARGET_TYPE_PERV, static_cast<MulticastGroup>(0), 0);
+            T_parent.fields.mcast_group = static_cast<MulticastGroup>(static_cast<plat_target_handle_t>(get()).getMultiCastGroup());
+            return T_parent;
+        }
         if((TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST) == T) // EQ/EC/MCBIST/MC/PERV ===> PERV
         {
             return static_cast<V>(this->iv_handle);
@@ -304,16 +308,18 @@ namespace fapi2
         {
             return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / CORES_PER_QUAD) + EQ_TARGET_OFFSET]);
         }
-        if((TARGET_TYPE_EQ == T) && (TARGET_TYPE_EX == K)) // EX ===> EQ
+        if(((TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST)== T) && ((TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST) == K)) // CORE ===> EQ
         {
-            return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / EX_PER_QUAD) + EQ_TARGET_OFFSET]);
-        }
-        if(TARGET_TYPE_EX == T) // EC ===> EX
-        {
-            return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / CORES_PER_EX) + EX_TARGET_OFFSET]);
+            plat_target_handle_t T_parent = createPlatMCHandle(PPE_TARGET_TYPE_EQ, static_cast<MulticastGroup>(0), 0);
+            T_parent.fields.mcast_group = static_cast<MulticastGroup>(static_cast<plat_target_handle_t>(get()).getMultiCastGroup());
+            return T_parent;
         }
         constexpr TargetType TARGET_TYPE_CORE_OR_EX = TARGET_TYPE_CORE | TARGET_TYPE_EX;
         if((TARGET_TYPE_EQ == T) && ((K & (TARGET_TYPE_CORE_OR_EX)) != TARGET_TYPE_NONE))
+        {
+            return get().getParent(T);
+        }
+        else
         {
             return get().getParent(T);
         }
@@ -388,13 +394,6 @@ namespace fapi2
 
         return l_children;
     }
-
-    ///
-    /// @brief Platform MC handle creation moved into function call
-    /// @param[in] i_plat_type requested type of multicast target
-    /// @param[in] i_group abstract group specification, will be mapped to a HW group
-    ///
-    plat_target_handle_t createPlatMCHandle(const plat_target_type_t i_plat_type, const MulticastGroup i_group, uint8_t i_core_select);
 
     template< TargetType K, MulticastType M, typename V>
     template< TargetType T, MulticastType O >
@@ -498,6 +497,14 @@ namespace fapi2
         {
             iv_handle.fields.mcast_type = static_cast<int>(M);
         }
+    }
+
+    template<TargetType K, MulticastType M, typename V>
+    inline MulticastCoreSelect
+    Target<K, M, V>::_getCoreSelect(void) const
+    {
+        // Platform can return the core select value stored in it's Target handle
+        return (MulticastCoreSelect)this->iv_handle.fields.core_select;
     }
 
     /// @brief Set up or replace the multicast group mapping for a given chip
