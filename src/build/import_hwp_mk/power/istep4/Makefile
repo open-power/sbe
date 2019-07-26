@@ -31,14 +31,14 @@ export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istep4
 include img_defs.mk
 include istep4files.mk
 
-export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR):$(HWPLIB_SRCDIR):$(HWPFFDC_SRCDIR)
+export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR):$(HWPLIB_SRCDIR):$(HWPFFDC_SRCDIR):$(CORECACHE_SRCDIR)
 
 OBJSISTEP4 := $(addprefix $(OBJDIR-ISTEP4)/, $(ISTEP4_OBJECTS))
 
 .PHONY: clean istep4
 
-#libistep4.a: istep4
-#	$(AR) crs $(OBJDIR-ISTEP4)/libistep4.a $(OBJDIR-ISTEP4)/*.o
+libistep4.a: istep4
+	$(AR) crs $(OBJDIR-ISTEP4)/libistep4.a $(OBJDIR-ISTEP4)/*.o
 
 istep4: $(OBJSISTEP4)
 

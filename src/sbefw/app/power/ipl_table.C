@@ -77,11 +77,29 @@
 #include <p10_sbe_fabricinit.H>
 #include <p10_sbe_mcs_setup.H>
 #include <p10_sbe_select_ex.H>
-// Cache HWP header file
-//#include <p9_hcd_cache.H>
-//#include <p9_hcd_cache_dcc_skewadjust_setup.H>
-//#include <p9_hcd_cache_chiplet_l3_dcc_setup.H>
-//#include <p9_hcd_cache_dpll_initf.H>
+
+// Core Cache HWP header files (istep 4)
+#include <p10_hcd_cache_poweron.H>
+#include <p10_hcd_cache_reset.H>
+#include <p10_hcd_cache_gptr_time_initf.H>
+#include <p10_hcd_cache_repair_initf.H>
+#include <p10_hcd_cache_arrayinit.H>
+#include <p10_hcd_cache_initf.H>
+#include <p10_hcd_cache_startclocks.H>
+#include <p10_hcd_cache_scominit.H>
+#include <p10_hcd_cache_scom_customize.H>
+#include <p10_hcd_cache_ras_runtime_scom.H>
+#include <p10_hcd_cache_ras_runtime_scom.H>
+//Core Procedures.
+#include <p10_hcd_core_poweron.H>
+#include <p10_hcd_core_reset.H>
+#include <p10_hcd_core_repair_initf.H>
+#include <p10_hcd_core_arrayinit.H>
+#include <p10_hcd_core_initf.H>
+#include <p10_hcd_core_startclocks.H>
+#include <p10_hcd_core_scominit.H>
+#include <p10_hcd_core_scom_customize.H>
+#include <p10_hcd_core_ras_runtime_scom.H>
 // Core HWP header file
 //#include <p9_hcd_core.H>
 
@@ -143,10 +161,18 @@ extern p10_thread_control_FP_t threadCntlhwp;
 #if 0
 using  sbeIstepHwpEq_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_EQ> & i_target);
-
+#endif
 using sbeIstepHwpCore_t =  ReturnCode (*)
                     (const Target<TARGET_TYPE_CORE> & i_target);
 
+using sbeIstepHwpMCCore_t =  ReturnCode (*)
+                    (const Target<fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target);
+
+using sbeIstepHwpMCORCore_t =  ReturnCode (*)
+                    (const Target<fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST> & i_target);
+
+
+#if 0
 using  sbeIstepHwpExL2Flush_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_EX> & i_target,
                      const p9core::purgeData_t & i_purgeData);
@@ -186,6 +212,8 @@ ReturnCode istepAttrSetup( voidfuncptr_t i_hwp );
 ReturnCode istepNoOp( voidfuncptr_t i_hwp );
 ReturnCode istepWithEq( voidfuncptr_t i_hwp);
 ReturnCode istepWithCore( voidfuncptr_t i_hwp);
+ReturnCode istepWithMCCore( voidfuncptr_t i_hwp);
+ReturnCode istepWithMCORCore( voidfuncptr_t i_hwp);
 ReturnCode istepSelectEx( voidfuncptr_t i_hwp);
 ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp);
 ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp);
@@ -306,47 +334,34 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_scominit),
              ISTEP_MAP( istepLpcInit,  p10_sbe_lpc_init),
              ISTEP_MAP( istepWithProc, p10_sbe_fabricinit),
-             ISTEP_MAP( istepWithProc, p10_sbe_mcs_setup), //p10_sbe_mcs_setup
+             ISTEP_MAP( istepWithProc, p10_sbe_mcs_setup),
              ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
 #endif
          };
 static istepMap_t g_istep4PtrTbl[] =
          {
 #ifdef SEEPROM_IMAGE
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepWithEq, NULL),
-             ISTEP_MAP( istepNoOp, NULL ),  // DFT Only
-             ISTEP_MAP( istepNoOp, NULL ),  // DFT Only
-             ISTEP_MAP( istepCacheInitf, NULL),
-             ISTEP_MAP( istepWithEqConditional, NULL),
-             ISTEP_MAP( istepWithEqConditional, NULL),
-             ISTEP_MAP( istepWithEqConditional, NULL),
-             ISTEP_MAP( istepNoOp, NULL ), // Runtime only
-             ISTEP_MAP( istepNoOp, NULL ), // Runtime only
-             ISTEP_MAP( istepNoOp, NULL ), // stub for SBE
-             ISTEP_MAP( istepNoOp, NULL ),  // stub for SBE
-             ISTEP_MAP( istepWithCore, NULL),
-             ISTEP_MAP( istepWithCore, NULL),
-             ISTEP_MAP( istepWithCore, NULL),
-             ISTEP_MAP( istepWithCore, NULL),
-             ISTEP_MAP( istepWithCore, NULL),
-             ISTEP_MAP( istepWithCore, NULL),
-             ISTEP_MAP( istepNoOp, NULL ),  // DFT Only
-             ISTEP_MAP( istepNoOp, NULL ),  // DFT Only
-             ISTEP_MAP( istepWithCore, NULL),
-             ISTEP_MAP( istepWithCoreConditional, NULL),
-             ISTEP_MAP( istepWithCoreConditional, NULL),
-             ISTEP_MAP( istepWithCoreConditional, NULL),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_poweron),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_reset),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_gptr_time_initf),
              ISTEP_MAP( istepNoOp, NULL ),
-             ISTEP_MAP( istepNoOp, NULL ),
+             ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_repair_initf),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_arrayinit),
+             ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_initf),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_startclocks),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_scominit),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_scom_customize),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_ras_runtime_scom),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_poweron),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_reset),
+             ISTEP_MAP( istepNoOp, NULL ),  //p10_hcd_core_gptr_time_initf 
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_repair_initf ),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_arrayinit),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_initf),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_startclocks),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_scominit),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_scom_customize),
+             ISTEP_MAP( istepWithMCCore, p10_hcd_core_ras_runtime_scom),
 #endif
          };
 
@@ -506,22 +521,21 @@ ReturnCode istepWithCore( voidfuncptr_t i_hwp)
 {
     #define SBE_FUNC "istepWithCore"
     ReturnCode rc = FAPI2_RC_SUCCESS;
-
-#if 0
-    // Get master Ex
-    uint8_t exId = 0;
+    // Get master Core
+    uint8_t coreId = 0;
     uint8_t fuseMode = 0;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    FAPI_ATTR_GET(fapi2::ATTR_MASTER_EX,proc,exId);
+    FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,proc,coreId);
     FAPI_ATTR_GET(ATTR_FUSED_CORE_MODE, Target<TARGET_TYPE_SYSTEM>(), fuseMode);
-    fapi2::Target<fapi2::TARGET_TYPE_EX >
-        exTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_EX>(exId));
+    fapi2::Target<fapi2::TARGET_TYPE_CORE >
+        coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
     assert( NULL != i_hwp );
 
-    for (auto &coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+    //for (auto &coreTgt : exTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+    do
     {
         // Core0 is assumed to be the master core
-        //SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpCore_t>(i_hwp), coreTgt)
+        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpCore_t>(i_hwp), coreTgt)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " istepWithCore failed, RC=[0x%08X]", rc);
@@ -534,13 +548,60 @@ ReturnCode istepWithCore( voidfuncptr_t i_hwp)
         {
             break;
         }
-    }
-#endif
+    }while(0);
     return rc;
     #undef SBE_FUNC
 }
+
+//----------------------------------------------------------------------------
+ReturnCode istepWithMCORCore( voidfuncptr_t i_hwp)
+{
+    #define SBE_FUNC "istepWithMCORCore"
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_mc_cores;
+    l_mc_cores = proc.getMulticast(fapi2::MCGROUP_ALL_EQ, fapi2::MCCORE_ALL);
+    FAPI_ERR("MultiCast Code target for group MCGROUP_ALL_EQ Created=0x%.8x",l_mc_cores.get());
+    do
+    {
+        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpMCORCore_t>(i_hwp),l_mc_cores)
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " istepWithMCORCore failed, RC=[0x%08X]", rc);
+            break;
+        }
+
+    }while(0);
+    return rc;
+    #undef SBE_FUNC
+}
+
+ReturnCode istepWithMCCore( voidfuncptr_t i_hwp)
+{
+    #define SBE_FUNC "istepWithMCCore"
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
+                     fapi2::MULTICAST_AND > l_mc_cores;
+    l_mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_ALL_EQ, fapi2::MCCORE_ALL);
+    FAPI_ERR("MultiCast Code target for group MCGROUP_ALL_EQ Created=0x%.8x",l_mc_cores.get());
+    do
+    {
+        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpMCCore_t>(i_hwp),l_mc_cores)
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " istepWithMCCore failed, RC=[0x%08X]", rc);
+            break;
+        }
+
+    }while(0);
+    return rc;
+    #undef SBE_FUNC
+}
+
 //----------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------
 ReturnCode istepWithEqConditional( voidfuncptr_t i_hwp)
 {
     SBE_ENTER("istepWithEqCondtional");
