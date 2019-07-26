@@ -147,6 +147,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
     ScomAddr l_addr(i_addr);
     switch(i_target.getTargetType())
     {
+#if 0
         case PPE_TARGET_TYPE_EX:
             if((EQ_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
                ((EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT) > l_addr.iv_chiplet))
@@ -166,7 +167,6 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
                assert(false);
             }
             return l_addr;
-#if 0
         case PPE_TARGET_TYPE_PHB:
             static const uint8_t ring_id_map[] = { 3, 3, 4, 3, 4, 5 };
             static const uint8_t sat_id_map[]  = { 1, 1, 2, 1, 2, 3 };

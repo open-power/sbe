@@ -889,6 +889,13 @@ fapi_try_exit:
             l_loopCount = l_childPerChiplet;
         }
 
+        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_MI))
+        {
+            l_childPerChiplet = MI_TARGET_COUNT;
+            l_childTargetOffset = MI_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
+
         // else it is TARGET_TYPE_PROC_CHIP ==> anything, and we iterate over
         // all the targets
 
@@ -1246,10 +1253,13 @@ fapi_try_exit:
         for (uint32_t i = 0; i < MCS_TARGET_COUNT; ++i)
         {
             l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_MI>(i);
+            fapi2::Target<fapi2::TARGET_TYPE_MI> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_MI>(i)));
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
 
-            fapi2::Target<fapi2::TARGET_TYPE_PERV>
-                l_nestTarget((plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>( (i/MCS_PER_MCBIST) + MCBIST_CHIPLET_OFFSET)));
-
+            //TODO: Having it disabled and forcing all MI/MCs targets
+#if 0
             uint32_t l_attrPg = 0;
 
             FAPI_ATTR_GET(fapi2::ATTR_PG, l_nestTarget, l_attrPg);
@@ -1270,8 +1280,7 @@ fapi_try_exit:
                 l_platHandle.setPresent();
                 l_platHandle.setFunctional(true);
             }
-
-            G_vec_targets.at(l_beginning_offset+i) = l_platHandle;
+#endif
         }
         
         /*
