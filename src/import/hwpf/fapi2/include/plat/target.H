@@ -107,11 +107,7 @@ template<TargetType K, MulticastType M, typename V>
 template<TargetType T>
 inline Target<T, M, V> Target<K, M, V>::getParent(void) const
 {
-    // It's forbidden to strip multicast from a target below PROC_CHIP level:
-    // Since a multicast might end up expanding to more than one unicast target,
-    // users are required to use getChildren if they want to map back to unicast.
-    static_assert(!(((K ^ T) & TARGET_TYPE_MULTICAST) && ((T & TARGET_TYPE_CHIPLETS) != TARGET_TYPE_NONE)),
-                  "Parent target for a multicast target must also be multicast or PROC_CHIP");
+    check_getParent<T>();
 
     // For testing
     return Target<T, M, V>(iv_handle);
@@ -131,10 +127,7 @@ template<TargetType T>
 inline std::vector<Target<T, M, V> >
 Target<K, M, V>::getChildren(const TargetState i_state) const
 {
-    // valid children for multicast targets are the same with multicast stripped
-    static_assert(!((K & TARGET_TYPE_MULTICAST) &&
-                    (K != (T | TARGET_TYPE_MULTICAST))),
-                  "improper child of fapi2::TARGET_TYPE_MULTICAST");
+    check_getChildren<T>();
 
     // Example implementation of evaluating the members of a multicast group for P10,
     // this should go into a .C file of course.
@@ -190,14 +183,7 @@ template< TargetType T, MulticastType O >
 inline Target < T | TARGET_TYPE_MULTICAST, O, V >
 Target<K, M, V>::getMulticast(const MulticastGroup i_group) const
 {
-    // C++ does not allow partial specialization of class member functions (please prove me wrong!),
-    // so we need to use this static assertion instead. On the upside, the error message is much clearer ;)
-    static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
-    static_assert((T & TARGET_TYPE_MULTICASTABLE) != 0,
-                  "Requested target type must be part of TARGET_TYPE_MULTICASTABLE");
-    static_assert(bitCount<T>::count == 1,
-                  "Requested target type must be a single type, TARGET_TYPE_MULTICAST will be added automatically");
-
+    check_getMulticast<T, O>();
     return Target < T | TARGET_TYPE_MULTICAST, O, V > ();
 }
 
@@ -206,9 +192,7 @@ template< MulticastType O >
 inline Target < TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST, O, V >
 Target<K, M, V>::getMulticast(const MulticastGroup i_group, const MulticastCoreSelect i_cores) const
 {
-    // C++ does not allow partial specialization of class member functions (please prove me wrong!),
-    // so we need to use this static assertion instead. On the upside, the error message is much clearer ;)
-    static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
+    check_getMulticast<TARGET_TYPE_CORE, O>();
     return Target < TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST, O, V > ();
 }
 
@@ -262,7 +246,7 @@ template<TargetType K, MulticastType M, typename V>
 inline uint8_t
 Target<K, M, V>::getChipletNumber(void) const
 {
-    static_assert((K & TARGET_TYPE_MULTICAST) == 0, "getChipletNumber is not supported for multicast targets");
+    check_getChipletNumber();
     // Platform can return the chiplet number stored in it's Target handle
     return 0;
 }
