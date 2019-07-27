@@ -236,7 +236,7 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         if (!l_mi_chiplets.size())
         {
             // collect PG FFDC
-            uint16_t l_mc_pg[NUMBER_MCS] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
+            fapi2::ATTR_PG_Type l_mc_pg[NUMBER_MCS] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
 
             for (auto l_tgt : i_target.getChildren<fapi2::TARGET_TYPE_PERV>(
                      static_cast<fapi2::TargetFilter>(
