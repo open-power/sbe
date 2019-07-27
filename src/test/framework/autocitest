@@ -70,7 +70,7 @@ echo "$timestamp Starting SBE test..."
 
 curDir=`pwd`
 cd simics/
-#TODO: Test cases should be enabled using following command
+#TODO: Enable Later:wq
 #./runsim -m p10_standalone sbe_boot_mem='seeprom' sbe_seeprom_img="$SBEROMDIR/sbe_seeprom_p10.bin.ecc" sbe_script_to_run=targets/p10_standalone/sbeTest/sbe_startup_p10_standalone.simics sbe_scripts_path=targets/p10_standalone/sbeTest/ sbe_ci=TRUE sbe_ci_script=targets/p10_standalone/sbeTest/testP10_standalone.simics || exit -1
 cd $curDir
 

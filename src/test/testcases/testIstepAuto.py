@@ -33,9 +33,9 @@ def collectFFDC():
     simics.SIM_run_command('sbe-trace 0')
     simics.SIM_run_command('sbe-stack 0')
     simics.SIM_run_command('sbe-regffdc 0')
-    simics.SIM_run_command('backplane0.proc0.pib_cmp.sbe_ppe->ppe_state')
-    simics.SIM_run_command('backplane0.proc0.cfam_cmp.sbe_fifo->upstream_hw_fifo')
-    simics.SIM_run_command('backplane0.proc0.cfam_cmp.sbe_fifo->downstream_hw_fifo')
+    simics.SIM_run_command('backplane0.dcm0.chip0.pib_cmp.sbe_ppe->ppe_state')
+    simics.SIM_run_command('backplane0.dcm0.chip0.cfam_cmp.sbe_fifo->upstream_hw_fifo')
+    simics.SIM_run_command('backplane0.dcm0.chip0.cfam_cmp.sbe_fifo->downstream_hw_fifo')
 
 SBE_TOOLS_PATH = simenv.sbe_scripts_path
 testUtil = imp.load_source("testUtil", SBE_TOOLS_PATH + "/testUtil.py")
@@ -43,8 +43,8 @@ EXPDATA = [0xc0,0xde,0xa1,0x01,
            0x0,0x0,0x0,0x0,
            0x00,0x0,0x0,0x03];
 gIstepArray = {
-        2:[2, 17],#istep 2.2 to 2.17
-        3:[1, 22],#istep 3.1 to 3.22
+        2:[2, 15],#istep 2.2 to 2.17
+        3:[1, 21],#istep 3.1 to 3.22
         4:[1, 34],#istep 4.1 to 4.34
         5:[1, 2], #istep 5.1 to 5.2
         96:[1, 8],#istep 96.1 to 96.8

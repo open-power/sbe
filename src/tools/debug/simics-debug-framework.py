@@ -113,7 +113,7 @@ def collectStackUsage ( procNr, nodeNr=0 ):
   print "==================================Stack usage==================================="
   # Dump stack memory to binary files
   for thread in threads:
-    cmd = "pipe \"backplane0.proc" + `procNr` + ".pib_cmp.sbe_mibo.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
+    cmd = "pipe \"backplane0.dcm0.chip" + `procNr` + ".pib_cmp.sbe_mibo.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
     print "simics running %s: "%( cmd)
     ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
     if ( rc ):
@@ -133,7 +133,7 @@ def collectStackUsage ( procNr, nodeNr=0 ):
         print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
 
 def collectAttr( procNr, nodeNr=0 ):
-  cmd= "pipe \"p9Proc" + `procNr` + ".sbe.mibo_space.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  cmd= "pipe \"backplane0.dcm0.chip" + `procNr` + ".pib_cmp.sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
   print "simics running %s: "%( cmd)
   ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
   if ( rc ):
@@ -146,7 +146,7 @@ def collectAttr( procNr, nodeNr=0 ):
   sbeDebug.collectAttr()
 
 def collectRegFfdc( procNr, nodeNr=0 ):
-  cmd = "pipe \"backplane0.proc" + `procNr` + ".pib_cmp.sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  cmd = "pipe \"backplane0.dcm0.chip" + `procNr` + ".pib_cmp.sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
   print "simics running %s: "%( cmd)
   ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
   if ( rc ):
@@ -163,7 +163,7 @@ def istep_func ( majorIstep, minorIstep, nodeNr=0 ):
 
 def collectTrace ( procNr, nodeNr=0 ):
   fileName = "sbe_" + `procNr` + "_tracMERG"
-  cmd1 = "pipe \"backplane0.proc" + `procNr` + ".pib_cmp.sbe_mibo.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
+  cmd1 = "pipe \"backplane0.dcm0.chip" + `procNr` + ".pib_cmp.sbe_mibo.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
   cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr, nodeNr)+" sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""

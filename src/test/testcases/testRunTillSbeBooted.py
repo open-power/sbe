@@ -32,7 +32,7 @@ import testScomUtil
 
 from sim_commands import *
 
-lbus = conf.backplane0.proc0.cfam_cmp.lbus_map
+lbus = conf.backplane0.dcm0.chip0.cfam_cmp.lbus_map
 
 while True:
     try:

@@ -32,7 +32,7 @@ fi
 # Create test directory.
 mkdir -p $SBETESTDIR || exit -1
 
-echo "Untar simics.tar.gz into the sandbox"
+echo "Untar $SIMICS_TAR/simics.tar.gz into the sandbox"
 tar -xf $SIMICS_TAR/simics.tar.gz -C $SBEROOT/simics/ || exit -1
 
 

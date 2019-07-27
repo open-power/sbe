@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2018,2019
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +24,7 @@
 #
 # IBM_PROLOG_END_TAG
 
-backplane0.proc0.pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
+backplane0.dcm0.chip0.pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
 
 echo "*******************Run testRunTillSbeBooted.py************************"
 
@@ -33,9 +34,11 @@ echo "*******************Run testPSUSetStashPair.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testPSUSetStashPair.py
 
-echo "*******************Run testIstep.xml*******************"
+echo "*******************Run SBE-ISTEPS ******************"
 
-sbe-istep 2.2 5.1
+sbe-istep 2.2 3.2
+#TODO: Remove exit after Istep5 is enabled 
+exit 0
 
 run-python-file targets/p10_standalone/sbeTest/testMatchStashPair.py
 

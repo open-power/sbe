@@ -58,7 +58,7 @@ FAILURE = 0
 '''
 This is a simulator obj mapped. Refer simics folks if new objects are needed.
 '''
-simSbeObj  = conf.backplane0.proc0.pib_cmp.sbe_scom_space
+simSbeObj  = conf.backplane0.dcm0.chip0.pib_cmp.sbe_scom_space
 simMemObj  = conf.system_cmp0.phys_mem
 
 '''

@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016,2018                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2019                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -36,13 +36,13 @@
             <simcmd>sbe-regffdc 0</simcmd>
         </testcase>
         <testcase>
-            <simcmd>p9Proc0.sbe.ppe->ppe_state</simcmd>
+            <simcmd>backplane0.dcm0.chip0.pib_cmp.sbe_ppe->ppe_state</simcmd>
         </testcase>
         <testcase>
-            <simcmd>p9Proc0.proc_fifo->upstream_hw_fifo</simcmd>
+            <simcmd>backplane0.dcm0.chip0.cfam_cmp.sbe_fifo->upstream_hw_fifo</simcmd>
         </testcase>
         <testcase>
-            <simcmd>p9Proc0.proc_fifo->downstream_hw_fifo</simcmd>
+            <simcmd>backplane0.dcm0.chip0.cfam_cmp.sbe_fifo->downstream_hw_fifo</simcmd>
         </testcase>
     </subtest>
     </test>
