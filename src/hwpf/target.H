@@ -227,6 +227,8 @@ namespace fapi2
             TARGET_TYPE_CORE | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB |
             TARGET_TYPE_MC | TARGET_TYPE_MI | TARGET_TYPE_PAUC | TARGET_TYPE_IOHS;
 
+        check_getParent<T>();
+
         static_assert((
                        ((K & TARGET_TYPE_PROC_CHILDREN) != TARGET_TYPE_NONE) ||
                        (K == TARGET_TYPE_ALL)) &&
@@ -347,6 +349,8 @@ namespace fapi2
         constexpr TargetType L = static_cast<TargetType>(K & ~(TARGET_TYPE_PROC_CHIP));
         constexpr plat_target_type_t P = fapiTargetTypeToPlatTargetType<T>();
 
+        check_getChildren<T>();
+
         static_assert(sizeof(Target<T, M, V>) == sizeof(plat_target_handle_t),
                       "Sizes of plat target and FAPI target must match");
 
@@ -384,6 +388,8 @@ namespace fapi2
     Target<K, M, V>::getChildren(const TargetFilter i_filter,
                                           const TargetState i_state) const
     {
+        check_getChildren<T>();
+
         static_assert(sizeof(Target<T, M, V>) == sizeof(plat_target_handle_t),
                       "Sizes of plat target and FAPI target must match");
 
@@ -405,12 +411,7 @@ namespace fapi2
     inline Target<T | TARGET_TYPE_MULTICAST, O, V>
     Target<K, M, V>::getMulticast(const MulticastGroup i_group) const
     {
-        static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
-        static_assert((T & TARGET_TYPE_MULTICASTABLE) != 0,
-                "Requested target type must be part of TARGET_TYPE_MULTICASTABLE");
-        static_assert(bitCount<T>::count == 1,
-                "Requested target type must be a single type, TARGET_TYPE_MULTICAST will be added automatically");
-
+        check_getMulticast<T, O>();
         constexpr plat_target_type_t l_plat_type = fapiTargetTypeToPlatTargetType<T>();
         return createPlatMCHandle(l_plat_type, i_group, 0);
     }
@@ -420,8 +421,7 @@ namespace fapi2
     inline Target<TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST, O, V>
     Target<K, M, V>::getMulticast(const MulticastGroup i_group, const MulticastCoreSelect i_cores) const
     {
-        static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
-
+        check_getMulticast<TARGET_TYPE_CORE, O>();
         return createPlatMCHandle(PPE_TARGET_TYPE_CORE, i_group, i_cores);
     }
 
@@ -444,7 +444,7 @@ namespace fapi2
     inline uint8_t
     Target<K, M, V>::getChipletNumber(void) const
     {
-        static_assert((K & TARGET_TYPE_MULTICAST) == 0, "getChipletNumber is not supported for multicast targets");
+        check_getChipletNumber();
         return static_cast<plat_target_handle_t>(iv_handle).fields.chiplet_num;
     }
 
