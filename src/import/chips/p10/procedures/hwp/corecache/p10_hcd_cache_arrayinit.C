@@ -83,8 +83,8 @@ p10_hcd_cache_arrayinit(
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
 #if !defined P10_HCD_CORECACHE_SKIP_ARRAY && !defined P10_HCD_CORECACHE_SKIP_FLUSH
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
-        eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ()
-        uint32_t                l_regions  = i_target.getCoreSelect();
+        eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
+    uint32_t                l_regions  = i_target.getCoreSelect();
 #endif
 
     fapi2::buffer<uint64_t> l_scomData = 0;
@@ -100,8 +100,6 @@ p10_hcd_cache_arrayinit(
     FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
              l_regions,
              LOOP_COUNTER,
-             SELECT_SRAM,
-             SELECT_EDRAM,
              START_ABIST_MATCH_VALUE));
 
 #endif
