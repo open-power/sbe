@@ -45,11 +45,16 @@
 #include <p9_fbc_utils.H>
 #include <p9_mc_scom_addresses.H>
 #include <p9_mc_scom_addresses_fld.H>
+#include <p9a_misc_scom_addresses.H>
+#include <p9a_misc_scom_addresses_fld.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions
 //------------------------------------------------------------------------------
 const uint8_t MCS_MCFGP_BASE_ADDRESS_START_BIT = 8;
+const uint8_t P9A_MI_MCFGP0_ONE_CHANNEL_PER_GROUP = 1;
+const uint8_t P9A_MI_MCFGP0_GROUP_MEMBER_ZERO = 0;
+const uint16_t P9A_MI_MCFGP0_GROUP_SIZE_4GB = 0;
 
 //------------------------------------------------------------------------------
 // Function definitions
@@ -66,32 +71,73 @@ const uint8_t MCS_MCFGP_BASE_ADDRESS_START_BIT = 8;
 template<fapi2::TargetType T>
 fapi2::ReturnCode set_hb_dcbz_config(
     const fapi2::Target<T>& i_target,
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_parentProc,
     const uint64_t i_chip_base_address)
 {
     FAPI_DBG("Start");
     fapi2::buffer<uint64_t> l_mcfgp;
+    fapi2::buffer<uint64_t> l_mcfgp0;
     fapi2::buffer<uint64_t> l_mcmode1;
     fapi2::buffer<uint64_t> l_mcperf1;
     fapi2::buffer<uint64_t> l_mcfirmask_and;
     fapi2::buffer<uint64_t> l_mcaction;
+    fapi2::ATTR_CHIP_EC_FEATURE_OMI_Type l_omiSupported;
 
-    // MCFGP -- set BAR valid, configure single MC group with minimum size at
-    // chip base address
-    FAPI_TRY(fapi2::getScom(i_target, MCS_MCFGP, l_mcfgp),
-             "Error from getScom (MCS_MCFGP)");
-    l_mcfgp.setBit<MCS_MCFGP_VALID>();
-    l_mcfgp.clearBit<MCS_MCFGP_MC_CHANNELS_PER_GROUP,
-                     MCS_MCFGP_MC_CHANNELS_PER_GROUP_LEN>();
-    l_mcfgp.clearBit<MCS_MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION,
-                     MCS_MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION_LEN>();
-    l_mcfgp.clearBit<MCS_MCFGP_GROUP_SIZE, MCS_MCFGP_GROUP_SIZE_LEN>();
-    // group base address field covers RA 8:31
-    l_mcfgp.insert(i_chip_base_address,
-                   MCS_MCFGP_GROUP_BASE_ADDRESS,
-                   MCS_MCFGP_GROUP_BASE_ADDRESS_LEN,
-                   MCS_MCFGP_BASE_ADDRESS_START_BIT);
-    FAPI_TRY(fapi2::putScom(i_target, MCS_MCFGP, l_mcfgp),
-             "Error from putScom (MCS_MCFGP)");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_OMI,
+                           i_parentProc,
+                           l_omiSupported),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_OMI)");
+
+    if(l_omiSupported)
+    {
+        // MCFGP -- set BAR valid, configure single MC group with minimum size at
+        // chip base address
+        FAPI_TRY(fapi2::getScom(i_target, P9A_MI_MCFGP0, l_mcfgp0),
+                 "Error from getScom (P9A_MI_MCFGP0)");
+
+        // Set Valid Bit
+        l_mcfgp0.setBit<P9A_MI_MCFGP0_VALID>();
+        // Channel per group (bits 40:42)
+        l_mcfgp0.insertFromRight<P9A_MI_MCFGP0_MC_CHANNELS_PER_GROUP,
+                                 P9A_MI_MCFGP0_MC_CHANNELS_PER_GROUP_LEN>(
+                                     P9A_MI_MCFGP0_ONE_CHANNEL_PER_GROUP);
+        // Channel 0 group id (bits 43:45)
+        l_mcfgp0.insertFromRight<P9A_MI_MCFGP0_GROUP_MEMBER_IDENTIFICATION,
+                                 P9A_MI_MCFGP0_GROUP_MEMBER_IDENTIFICATION_LEN>(
+                                     P9A_MI_MCFGP0_GROUP_MEMBER_ZERO);
+        // Group size (bits 25:39)
+        l_mcfgp0.insertFromRight<P9A_MI_MCFGP0_GROUP_SIZE,
+                                 P9A_MI_MCFGP0_GROUP_SIZE_LEN>(
+                                     P9A_MI_MCFGP0_GROUP_SIZE_4GB);
+        // group base address field covers RA 1:24
+        l_mcfgp0.insert<P9A_MI_MCFGP0_GROUP_BASE_ADDRESS,
+                        P9A_MI_MCFGP0_GROUP_BASE_ADDRESS_LEN>(
+                            i_chip_base_address);
+
+
+        FAPI_TRY(fapi2::putScom(i_target, P9A_MI_MCFGP0, l_mcfgp0),
+                 "Error from putScom (P9A_MCFGP0)");
+    }
+    else
+    {
+        // MCFGP -- set BAR valid, configure single MC group with minimum size at
+        // chip base address
+        FAPI_TRY(fapi2::getScom(i_target, MCS_MCFGP, l_mcfgp),
+                 "Error from getScom (MCS_MCFGP)");
+        l_mcfgp.setBit<MCS_MCFGP_VALID>();
+        l_mcfgp.clearBit<MCS_MCFGP_MC_CHANNELS_PER_GROUP,
+                         MCS_MCFGP_MC_CHANNELS_PER_GROUP_LEN>();
+        l_mcfgp.clearBit<MCS_MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION,
+                         MCS_MCFGP_CHANNEL_0_GROUP_MEMBER_IDENTIFICATION_LEN>();
+        l_mcfgp.clearBit<MCS_MCFGP_GROUP_SIZE, MCS_MCFGP_GROUP_SIZE_LEN>();
+        // group base address field covers RA 8:31
+        l_mcfgp.insert(i_chip_base_address,
+                       MCS_MCFGP_GROUP_BASE_ADDRESS,
+                       MCS_MCFGP_GROUP_BASE_ADDRESS_LEN,
+                       MCS_MCFGP_BASE_ADDRESS_START_BIT);
+        FAPI_TRY(fapi2::putScom(i_target, MCS_MCFGP, l_mcfgp),
+                 "Error from putScom (MCS_MCFGP)");
+    }
 
     // MCMODE1 -- disable speculation, cmd bypass, fp command bypass
     FAPI_TRY(fapi2::getScom(i_target, MCS_MCMODE1, l_mcmode1),
@@ -246,6 +292,7 @@ p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         {
             FAPI_TRY(set_hb_dcbz_config<fapi2::TARGET_TYPE_MCS>(
                          l_mcs_chiplets.front(),
+                         i_target,
                          l_chip_base_address_nm0),
                      "Error from set_hb_dcbz_config (MCS)");
         }
@@ -253,6 +300,7 @@ p9_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
         {
             FAPI_TRY(set_hb_dcbz_config<fapi2::TARGET_TYPE_MI>(
                          l_mi_chiplets.front(),
+                         i_target,
                          l_chip_base_address_nm0),
                      "Error from set_hb_dcbz_config (MI)");
         }

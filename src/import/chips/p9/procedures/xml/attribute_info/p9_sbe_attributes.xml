@@ -359,6 +359,10 @@ attribute tank
 
 <!-- Pervasive EC attributes -->
   <entry>
+           <name>ATTR_CHIP_EC_FEATURE_OMI</name>
+           <virtual/>
+  </entry>
+  <entry>
            <name>ATTR_CHIP_EC_FEATURE_DMI_MC_PLL_SCAN_BUCKETS</name>
            <virtual/>
   </entry>
