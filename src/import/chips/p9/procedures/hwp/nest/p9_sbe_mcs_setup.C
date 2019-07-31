@@ -122,8 +122,7 @@ fapi2::ReturnCode set_hb_dcbz_config(
     l_mcfirmask_and.flush<1>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_COMMAND_LIST_TIMEOUT>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR>();
-    //Temporary Mask to enable other teams for bringup
-    //l_mcfirmask_and.clearBit<MCS_MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR>();
+    l_mcfirmask_and.clearBit<MCS_MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_POWERBUS_PROTOCOL_ERROR>();
     l_mcfirmask_and.clearBit<MCS_MCFIR_MULTIPLE_BAR>();
 
