@@ -27,7 +27,7 @@
 /// @brief Initialize island-mode fabric configuration
 ///
 /// *HWP HW Maintainer: Jenny Huynh <jhuynh@us.ibm.com>
-/// *HWP FW Maintainer: Ilya Smirnov <ismirno@us.ibm.com>
+/// *HWP FW Maintainer: Raja Das <rajadas2@in.ibm.com>
 /// *HWP Consumed by: SBE
 ///
 
@@ -38,8 +38,7 @@
 #include <p10_adu_setup.H>
 #include <p10_adu_access.H>
 #include <p10_adu_utils.H>
-#include <p9_misc_scom_addresses.H>
-#include <p9_misc_scom_addresses_fld.H>
+#include <p10_scom_proc.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions
@@ -55,7 +54,9 @@ const uint8_t ALTD_MAX_LOCK_ATTEMPTS = 1;
 fapi2::ReturnCode
 p10_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 {
-    FAPI_INF("Start p10_sbe_fabricinit...");
+    using namespace scomt::proc;
+
+    FAPI_INF("Entering...");
 
     fapi2::buffer<uint64_t> l_data;
     adu_operationFlag l_aduFlags;
@@ -65,9 +66,10 @@ p10_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
     // check state of pb_stop; it will prohibit all fabric commands from being broadcast if asserted
     FAPI_DBG("Check that fabric is in a healthy state");
-    FAPI_TRY(getScom(i_target, PU_SND_MODE_REG, l_data), "Error reading pb_stop from pMisc Mode Register");
+    FAPI_TRY(GET_TP_TPBR_AD_SND_MODE_REG(i_target, l_data),
+             "Error reading pb_stop from pMisc Mode Register");
 
-    FAPI_ASSERT(l_data.getBit<PU_SND_MODE_REG_PB_STOP>() == 0,
+    FAPI_ASSERT(!GET_TP_TPBR_AD_SND_MODE_REG_PB_STOP(l_data),
                 fapi2::P10_SBE_FABRICINIT_FBC_STOPPED()
                 .set_TARGET(i_target),
                 "Pervasive stop control (pb_stop) is asserted, so fabric init will not run!");
@@ -99,6 +101,6 @@ p10_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     FAPI_DBG("Fabric is successfully initialized and running!");
 
 fapi_try_exit:
-    FAPI_INF("End p10_sbe_fabricinit...");
+    FAPI_INF("Exiting...");
     return fapi2::current_err;
 }

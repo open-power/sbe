@@ -62,7 +62,7 @@
 /// @author Joe McGill <jmcgill@us.ibm.com>
 ///
 /// *HWP HW Maintainer: Jenny Huynh <jhuynh@us.ibm.com>
-/// *HWP FW Maintainer: Ilya Smirnov <ismirno@us.ibm.com>
+/// *HWP FW Maintainer: Raja Das <rajadas2@in.ibm.com>
 /// *HWP Consumed by: SBE
 ///
 
