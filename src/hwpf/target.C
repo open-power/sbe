@@ -888,14 +888,19 @@ fapi_try_exit:
             l_childTargetOffset = CORE_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
-
+        //PROC and MI
         if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_MI))
         {
             l_childPerChiplet = MI_TARGET_COUNT;
             l_childTargetOffset = MI_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
-
+        //PROC and CORE
+        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_CORE))        {
+            l_childPerChiplet = CORE_TARGET_COUNT;
+            l_childTargetOffset = CORE_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
         // else it is TARGET_TYPE_PROC_CHIP ==> anything, and we iterate over
         // all the targets
 
