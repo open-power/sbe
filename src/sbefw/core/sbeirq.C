@@ -104,6 +104,8 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
 
 // Interrupts which are available in SBE, in an array
 static uint32_t G_supported_irqs[] = {
+                                        SBE_IRQ_SBEHFIFO_RESET,
+                                        SBE_IRQ_SBEHFIFO_DATA,
                                         SBE_IRQ_HOST_PSU_INTR,
                                         SBE_IRQ_SBEFIFO_DATA,
                                         SBE_IRQ_SBEFIFO_RESET,
@@ -116,7 +118,7 @@ static uint32_t G_supported_irqs[] = {
 // required to call disable/enable with this vector mask
 constexpr uint64_t getVectorMask ( size_t index )
 {
-    return (index >= (sizeof(G_supported_irqs)/sizeof(uint32_t))? 
+    return (index >= (sizeof(G_supported_irqs)/sizeof(uint32_t))?
         0:STD_IRQ_MASK64(G_supported_irqs[index])|getVectorMask(index + 1));
 }
 
