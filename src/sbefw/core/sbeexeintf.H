@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -87,13 +87,15 @@ enum sbeThreadStackSize
  */
 typedef enum
 {
-    SBE_INTERFACE_UNKNOWN       = 0x00,
-    SBE_INTERFACE_FIFO          = 0x01,
-    SBE_INTERFACE_PSU           = 0x02,
-    SBE_INTERFACE_FIFO_RESET    = 0x04,
+    SBE_INTERFACE_UNKNOWN        = 0x00,
+    SBE_INTERFACE_FIFO           = 0x01,
+    SBE_INTERFACE_PSU            = 0x02,
+    SBE_INTERFACE_FIFO_RESET     = 0x04,
 #ifdef _S0_
-    SBE_INTERFACE_S0            = 0x08,
+    SBE_INTERFACE_S0             = 0x08,
 #endif
+    SBE_INTERFACE_SBEHFIFO_RESET = 0x10,
+    SBE_INTERFACE_SBEHFIFO       = 0x20,
 } sbeInterfaceSrc_t;
 
 /*

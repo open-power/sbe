@@ -75,6 +75,19 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
                                             SBE_INTERFACE_FIFO_RESET);
             pk_irq_disable(SBE_IRQ_SBEFIFO_DATA);
             break;
+
+        case SBE_IRQ_SBEHFIFO_RESET:
+            SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
+                                            SBE_INTERFACE_SBEHFIFO_RESET);
+            pk_irq_disable(SBE_IRQ_SBEHFIFO_DATA);
+            break;
+
+        case SBE_IRQ_SBEHFIFO_DATA:
+            SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
+                                            SBE_INTERFACE_SBEHFIFO);
+            pk_irq_disable(SBE_IRQ_SBEHFIFO_RESET);
+            break; 
+
 #ifdef _S0_
         case SBE_IRQ_INTR0:
             SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
@@ -104,11 +117,11 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
 
 // Interrupts which are available in SBE, in an array
 static uint32_t G_supported_irqs[] = {
-                                        SBE_IRQ_SBEHFIFO_RESET,
-                                        SBE_IRQ_SBEHFIFO_DATA,
                                         SBE_IRQ_HOST_PSU_INTR,
                                         SBE_IRQ_SBEFIFO_DATA,
                                         SBE_IRQ_SBEFIFO_RESET,
+                                        SBE_IRQ_SBEHFIFO_RESET,
+                                        SBE_IRQ_SBEHFIFO_DATA,
 #ifdef _S0_
                                         SBE_IRQ_INTR0,
 #endif
