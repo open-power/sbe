@@ -54,16 +54,16 @@ enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
     CLOCK_TYPES_ALL = 0x7,
     REGIONS_PLL = 0x0010,
     CLOCK_TYPES_SL = 0x4,
-    HW_NS_DELAY = 100000, // unit is nano seconds
-    SIM_CYCLE_DELAY = 1000, // unit is sim cycles
-    POLL_COUNT = 300,
     LFIR_ACTION0_VALUE = 0x0000000000000000,
     LFIR_ACTION1_VALUE = 0xFFFFBC2BFC7FFFFF,
     FIR_MASK_VALUE = 0x0000000000000000,
     IPOLL_MASK_VALUE = 0xFC00000000000000,
     TOD_ERROR_ROUTING = 0x9FC02000F0004000,
     TOD_ERROR_MASK = 0x0000000003F00002,
-    TOD_ERROR_REG = 0xFFFFFFFFFFFFFFFF
+    TOD_ERROR_REG = 0xFFFFFFFFFFFFFFFF,
+    HANGPULSE1_MAIN_DIVIDER = 0x0400000000000000,
+    HANGPULSE2_MAIN_DIVIDER = 0x7800000000000000,
+    HANGPULSE3_MAIN_DIVIDER = 0x0400000000000000
 };
 
 
@@ -74,16 +74,16 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     fapi2::buffer<uint64_t> l_data64;
-    const uint32_t BASE_ADDRESS = 0x000D0070;
     uint8_t pre_divider;
     uint32_t l_attr_pau_freq_mhz;
-    int l_timeout = 0;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
             (fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
 
     FAPI_INF("p10_sbe_tp_chiplet_init: Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_pau_freq_mhz));
 
     // This step is redundant since tp_chiplet_reset already drops the OOB mux
 
@@ -131,45 +131,32 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(fapi2::putScom(i_target_chip, PERV_HOST_MASK_REG, IPOLL_MASK_VALUE));
 
     // setup hang pulse freq
-    FAPI_DBG("Setup constant freq hangpulses");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_pau_freq_mhz));
+    FAPI_DBG("Set up constant frequency hang pulse 1 pre divider");
+    pre_divider =  ((l_attr_pau_freq_mhz * 4 + 64) / 125);
+    l_data64.flush<0>();
+    l_data64.insertFromRight< 0, 8 >(pre_divider);
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0072, l_data64));
+
+    FAPI_DBG("Set up constant frequency hang pulse 1 main divider");
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0071, HANGPULSE1_MAIN_DIVIDER));
+
+    FAPI_DBG("Set up constant frequency hang pulse 2 pre divider");
+    pre_divider =  ((l_attr_pau_freq_mhz * 10 + 79) / 158);
+    l_data64.flush<0>();
+    l_data64.insertFromRight< 0, 8 >(pre_divider);
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0074, l_data64));
+
+    FAPI_DBG("Set up constant frequency hang pulse 2 main divider");
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0073, HANGPULSE2_MAIN_DIVIDER));
+
+    FAPI_DBG("Set up constant frequency hang pulse 3 pre divider");
     pre_divider =  ((l_attr_pau_freq_mhz + 125) / 250);
-    FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, true, BASE_ADDRESS, pre_divider,
-             SETUP_HANG_PULSE_FREQ));
+    l_data64.flush<0>();
+    l_data64.insertFromRight< 0, 8 >(pre_divider);
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0076, l_data64));
 
-    FAPI_DBG("Start  calibration");
-    //Setting KVREF_AND_VMEAS_MODE_STATUS_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
-    l_data64.setBit<PERV_1_KVREF_AND_VMEAS_MODE_STATUS_REG_START_CAL>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
-
-    FAPI_DBG("Check for calibration done");
-    l_timeout = POLL_COUNT;
-
-    //UNTIL KVREF_AND_VMEAS_MODE_STATUS_REG.KVREF_CAL_DONE == 1
-    while (l_timeout != 0)
-    {
-        //Getting KVREF_AND_VMEAS_MODE_STATUS_REG register value
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
-        bool l_poll_data = l_data64.getBit<PERV_1_KVREF_AND_VMEAS_MODE_STATUS_REG_CAL_DONE>();
-
-        if (l_poll_data == 1)
-        {
-            break;
-        }
-
-        fapi2::delay(HW_NS_DELAY, SIM_CYCLE_DELAY);
-        --l_timeout;
-    }
-
-    FAPI_DBG("Loop Count :%d", l_timeout);
-
-    FAPI_ASSERT(l_timeout > 0,
-                fapi2::KVREF_CAL_NOT_DONE_ERR()
-                .set_PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG(l_data64)
-                .set_LOOP_COUNT(l_timeout)
-                .set_HW_DELAY(HW_NS_DELAY),
-                "ERROR: Calibration not done, bit16 not set");
+    FAPI_DBG("Set up constant frequency hang pulse 3 main divider");
+    FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0075, HANGPULSE3_MAIN_DIVIDER));
 
     FAPI_INF("p10_sbe_tp_chiplet_init: Exiting ...");
 
