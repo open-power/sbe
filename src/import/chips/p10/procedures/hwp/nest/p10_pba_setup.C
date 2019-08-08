@@ -83,13 +83,16 @@ extern "C"
                  "Error from p10_pba_coherent_utils_get_num_granules");
 
     fapi_try_exit:
-
         //Append the input data to an error if we got an error back
-        if (!fapi2::is_platform<fapi2::PLAT_SBE>() && fapi2::current_err)
+#ifndef __PPE__
+
+        if (fapi2::current_err)
         {
             p10_pba_coherent_append_input_data(i_address, i_rnw, i_flags,
                                                fapi2::current_err);
         }
+
+#endif
 
         FAPI_DBG("Exiting...");
         return fapi2::current_err;
