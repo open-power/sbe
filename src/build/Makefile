@@ -209,7 +209,7 @@ add_MeasureLoaderAddr:
 ifeq ($(img), seeprom)
 all:
 	$(MAKE) boot_branch
-	$(MAKE) measurement_branch
+#	$(MAKE) measurement_branch
 endif
 
 ifeq ($(img), boot)

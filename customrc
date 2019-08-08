@@ -35,5 +35,5 @@ export SANDBOXNAME=test_sb
 export MACHINE=NIMBUS
 export BACKING_BUILD=/esw/fips940/Builds/b0620a_1925.940
 export SIMICSOPTIONS="-nre"
-export SIMICS_TAR=/gsa/ausgsa/projects/s/simics_published_builds/p10/9b9e03477e7e8997fd95f4eae7573f950e38dd67/
+export SIMICS_TAR=/gsa/ausgsa/projects/s/simics_published_builds/p10/5652fddab446c7cac54b2a3fb9d7331aeadfaf62
 export MCP_PATH=/opt/mcp/shared/fr_FLD9-DEV-20190320/
