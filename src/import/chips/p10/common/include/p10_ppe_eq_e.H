@@ -44,8 +44,8 @@ namespace ppe_eq
 
 static const uint32_t QME_CRCR = 0xc0003000ull;
 
-static const uint32_t QME_CRCR_QME_CRCR_CYCLE_REPRO_COMPARE_VALUE = 1;
-static const uint32_t QME_CRCR_QME_CRCR_CYCLE_REPRO_COMPARE_VALUE_LEN = 7;
+static const uint32_t QME_CRCR_QME_CRCR_COMPARE_VALUE = 0;
+static const uint32_t QME_CRCR_QME_CRCR_COMPARE_VALUE_LEN = 8;
 // ppe_eq/reg00014.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

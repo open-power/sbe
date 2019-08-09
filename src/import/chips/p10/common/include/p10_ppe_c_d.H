@@ -41,10 +41,8 @@ namespace ppe_c
 
 static const uint32_t CPMS_DCCR = 0xc000e600ull;
 
-static const uint32_t CPMS_DCCR_0_SELECT = 0;
-static const uint32_t CPMS_DCCR_1_SELECT = 1;
-static const uint32_t CPMS_DCCR__SMALL_OFFSET = 2;
-static const uint32_t CPMS_DCCR__SMALL_OFFSET_LEN = 2;
+static const uint32_t CPMS_DCCR__LARGE_OFFSET = 0;
+static const uint32_t CPMS_DCCR__LARGE_OFFSET_LEN = 4;
 static const uint32_t CPMS_DCCR_0_THRESH_SCALE = 4;
 static const uint32_t CPMS_DCCR_0_THRESH_SCALE_LEN = 4;
 static const uint32_t CPMS_DCCR_0_THRESH_VALUE = 8;

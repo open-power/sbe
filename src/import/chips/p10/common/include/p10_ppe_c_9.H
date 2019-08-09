@@ -59,7 +59,7 @@ static const uint32_t CPMS_DDSR_STOP_STATE_OCCURRED = 62;
 static const uint32_t CPMS_DDSR_SAMPLE_DISABLE_OCCURRED = 63;
 // ppe_c/reg00009.H
 
-static const uint32_t CPMS_FDIR = 0xc000e440ull;
+static const uint32_t CPMS_FDIR_RW = 0xc000e440ull;
 static const uint32_t CPMS_FDIR_WO_CLEAR = 0xc000e470ull;
 static const uint32_t CPMS_FDIR_WO_OR = 0xc000e460ull;
 

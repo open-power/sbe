@@ -70,6 +70,7 @@ static const uint32_t QME_PMSRS = 0xc0008640ull;
 
 static const uint32_t QME_PMSRS_PSTATE_DATA = 0;
 static const uint32_t QME_PMSRS_PSTATE_DATA_LEN = 36;
+static const uint32_t QME_PMSRS_INVALID_VERSION = 58;
 static const uint32_t QME_PMSRS_VERSION = 59;
 static const uint32_t QME_PMSRS_VERSION_LEN = 5;
 // ppe_c/reg00001.H

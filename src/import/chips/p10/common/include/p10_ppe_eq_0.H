@@ -57,7 +57,7 @@ static const uint32_t QME_BCECSR_TYPE_LEN = 3;
 static const uint32_t QME_BCECSR_NUM_BLOCKS = 17;
 static const uint32_t QME_BCECSR_NUM_BLOCKS_LEN = 11;
 static const uint32_t QME_BCECSR_SBASE = 28;
-static const uint32_t QME_BCECSR_SBASE_LEN = 12;
+static const uint32_t QME_BCECSR_SBASE_LEN = 13;
 static const uint32_t QME_BCECSR_MBASE = 42;
 static const uint32_t QME_BCECSR_MBASE_LEN = 22;
 // ppe_eq/reg00000.H

@@ -127,7 +127,7 @@ static const uint32_t QME_CDBA_QME_CDBA_MESSAGE_NUMBER_LEN = 8;
 static const uint32_t QME_CSIR = 0xc00087c0ull;
 
 static const uint32_t QME_CSIR_QME_CSIR_PMSR_INSTR_DATA = 36;
-static const uint32_t QME_CSIR_QME_CSIR_PMSR_INSTR_DATA_LEN = 23;
+static const uint32_t QME_CSIR_QME_CSIR_PMSR_INSTR_DATA_LEN = 22;
 // ppe_c/reg00003.H
 
 #ifndef __PPE_HCODE__
