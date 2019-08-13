@@ -858,7 +858,14 @@ fapi_try_exit:
         buffer<uint64_t> l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
         TargetType l_targetType = i_parentType;
 
-        if(i_parentType & TARGET_TYPE_MULTICAST)
+        if(i_parentType == (TARGET_TYPE_MULTICAST | TARGET_TYPE_CORE) && i_childType == TARGET_TYPE_CORE)
+        {
+            l_childTargetOffset = CORE_TARGET_OFFSET;
+            l_loopCount = CORE_TARGET_COUNT;
+        }
+       
+        // TODO - Review if this required ?? 
+        else if(i_parentType & TARGET_TYPE_MULTICAST)
         {
             if (this->fields.is_multicast)
             {
@@ -872,6 +879,7 @@ fapi_try_exit:
             {
                 // Otherwise just return this one target.
                 o_children.push_back(*this);
+                return;
             }
         }
         else if((i_parentType & ~(TARGET_TYPE_PROC_CHIP)) != 0)
@@ -907,8 +915,7 @@ fapi_try_exit:
         for(uint32_t i = 0; i < l_loopCount; ++i)
         {
             plat_target_handle_t l_temp =
-                G_vec_targets.at((this->fields.type_target_num *
-                            l_childPerChiplet) + l_childTargetOffset + i);
+                G_vec_targets.at(l_childTargetOffset + i);
             if ((l_temp.isType(i_platType)) && (l_enabledTargets.getBit(i)))
             {
                 switch (i_state)
