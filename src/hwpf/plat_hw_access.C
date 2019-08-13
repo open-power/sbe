@@ -144,49 +144,38 @@ ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
 
 static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const uint32_t i_addr)
 {
-    ScomAddr l_addr(i_addr);
+    uint32_t translatedAddr = 0;
     switch(i_target.getTargetType())
     {
-#if 0
-        case PPE_TARGET_TYPE_EX:
-            if((EQ_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
-               ((EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT) > l_addr.iv_chiplet))
-            {
-                l_addr.iv_chiplet = i_target.fields.chiplet_num;
-                l_addr.iv_ring = (l_addr.iv_ring - (l_addr.iv_ring % 2)) +
-                                  (i_target.getTargetInstance() % 2);
-            }
-            else if ((CORE_CHIPLET_OFFSET <= l_addr.iv_chiplet) &&
-                     ((CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT) > l_addr.iv_chiplet))
-            {
-                l_addr.iv_chiplet = CORE_CHIPLET_OFFSET + (l_addr.iv_chiplet % 2) +
-                                    (i_target.getTargetInstance() * 2);
-            }
-            else
-            {
-               assert(false);
-            }
-            return l_addr;
-        case PPE_TARGET_TYPE_PHB:
-            static const uint8_t ring_id_map[] = { 3, 3, 4, 3, 4, 5 };
-            static const uint8_t sat_id_map[]  = { 1, 1, 2, 1, 2, 3 };
-            if(l_addr.iv_chiplet == N2_CHIPLET)
-            {
-                l_addr.iv_ring = ring_id_map[i_target.getTargetInstance()];
-            }
-            else
-            {
-                l_addr.iv_chiplet = i_target.fields.chiplet_num;
-            }
-            l_addr.iv_satId = ((l_addr.iv_satId < 4) ? (1) : (4)) +
-                    sat_id_map[i_target.getTargetInstance()];
-            return l_addr;
-#endif            
         case PPE_TARGET_TYPE_PROC_CHIP:
-            return i_addr;
-        default:
-            return i_target.getPIBAddress() | i_addr;
+            translatedAddr = (i_target.getPIBAddress() | i_addr);
+            break;
+
+        case PPE_TARGET_TYPE_CORE:
+            {
+                if(i_target.fields.is_multicast == 0)
+                {
+                    uint32_t coreSelect = (i_target.fields.type_target_num % 4);
+                    coreSelect = 1 << (3 - coreSelect);
+                    //Bit 16:19 is the end region.
+                    coreSelect = (coreSelect << 12);
+                    translatedAddr = ((i_target.getPIBAddress() | (i_addr & 0x00FFFFFF)) | coreSelect);
+                    break;
+                }
+                else
+                {
+                    translatedAddr = i_target.getPIBAddress() | (i_addr & 0x00FFFFFF);
+                    break;
+                }
+            }
+        default: //For all the chiplet types
+            {
+                translatedAddr = i_target.getPIBAddress() | (i_addr & 0x00FFFFFF);
+                break;
+            }
     }
+    FAPI_INF("getEffectiveAddress(): Translated Addr = 0x%08X", translatedAddr);
+    return translatedAddr;
 }
 
 static fapi2::ReturnCode pibRcToFapiRc(const uint32_t i_pibRc)
