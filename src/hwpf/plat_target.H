@@ -156,6 +156,16 @@ namespace fapi2
         }
 
         ///
+        /// @brief Returns the multicast group from the target
+        ///
+        /// @return The multicast group for this target
+        ///
+        uint32_t getMultiCastGroup() const
+        {
+             return fields.mcast_group;
+        }
+
+        ///
         /// @brief Returns whether this target is functional
         ///
         /// @return true if Target is functional
