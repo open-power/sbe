@@ -99,8 +99,12 @@ CONST_UINT32_T(MCS_TARGET_COUNT,         8);
 CONST_UINT32_T(MI_TARGET_OFFSET,  MCS_TARGET_OFFSET);
 CONST_UINT32_T(MI_TARGET_COUNT,          8);
 
+// NMMU Targets
+CONST_UINT32_T(NMMU_TARGET_OFFSET,  MI_TARGET_OFFSET + MI_TARGET_COUNT);
+CONST_UINT32_T(NMMU_TARGET_COUNT,          2);
+
 // System Target
-CONST_UINT32_T(SYSTEM_TARGET_OFFSET, PHB_TARGET_OFFSET + PHB_TARGET_COUNT);
+CONST_UINT32_T(SYSTEM_TARGET_OFFSET, NMMU_TARGET_OFFSET + NMMU_TARGET_COUNT);
 CONST_UINT32_T(SYSTEM_TARGET_COUNT,     1);
 
 
@@ -121,6 +125,7 @@ CONST_UINT32_T(TARGET_COUNT,        CHIP_TARGET_COUNT +
                                     PHB_TARGET_COUNT +
                                     MCS_TARGET_COUNT +
                                     MI_TARGET_COUNT +
+                                    NMMU_TARGET_COUNT +
                                     SYSTEM_TARGET_COUNT);
 
 // Maximum possible Pervasive chiplets

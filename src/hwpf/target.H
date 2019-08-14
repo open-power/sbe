@@ -156,6 +156,12 @@ namespace fapi2
         return PPE_TARGET_TYPE_PERV;
     }
 
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_NMMU>()
+    {
+        return PPE_TARGET_TYPE_NMMU;
+    }
+
     ///
     /// @brief Assignment Operator.
     /// @param[in] i_right Reference to Target to assign from.

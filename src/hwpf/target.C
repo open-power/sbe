@@ -206,6 +206,13 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.type_target_num = i_plat_argument;
         l_handle.fields.sat_id = (2 * (i_plat_argument & 1));
     }
+    
+    else if(K & TARGET_TYPE_NMMU)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + NEST_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_NMMU;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
 
     return l_handle;
 }
@@ -811,6 +818,9 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_MI:
                 l_targetType = TARGET_TYPE_MI;
                 break;
+            case PPE_TARGET_TYPE_NMMU:
+                l_targetType = TARGET_TYPE_NMMU;
+                break;
             case PPE_TARGET_TYPE_NONE:
             default:
                 assert(false);
@@ -917,6 +927,13 @@ fapi_try_exit:
             l_childTargetOffset = PAUC_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
+        //PROC and NMMU
+        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_NMMU))
+        {
+            l_childPerChiplet = NMMU_TARGET_COUNT;
+            l_childTargetOffset = NMMU_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
         //PROC and CORE
         if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_CORE))        {
             l_childPerChiplet = CORE_TARGET_COUNT;
@@ -1014,7 +1031,7 @@ fapi_try_exit:
             true,  // PPE_TARGET_TYPE_MC
             true,  // PPE_TARGET_TYPE_PAUC
             true, // PPE_TARGET_TYPE_IOHS
-            false, // 0x0E
+            false, // PPE_TARGET_TYPE_NMMU
             false, // 0x0F
         };
         return l_truth_table[fields.type];
@@ -1326,6 +1343,23 @@ fapi_try_exit:
 
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
+
+        /*
+         * NMMU Targets
+         */
+ 
+        l_beginning_offset = NMMU_TARGET_OFFSET;
+        for (uint32_t i = 0; i < NMMU_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_NMMU> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_NMMU>(i)));
+            
+            // Get the parent NMMU's ATTR_PG
+            // TODO - Fix this
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
+        }
+
 
 fapi_try_exit:
         return fapi2::current_err;
