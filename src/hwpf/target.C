@@ -184,10 +184,10 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.type_target_num = i_plat_argument;
     }
     
-    else if(K & TARGET_TYPE_PAU)
+    else if(K & TARGET_TYPE_PAUC)
     {
-        l_handle.fields.chiplet_num = i_plat_argument + PAU_CHIPLET_OFFSET;
-        l_handle.fields.type = PPE_TARGET_TYPE_PAU;
+        l_handle.fields.chiplet_num = i_plat_argument + PAUC_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_PAUC;
         l_handle.fields.type_target_num = i_plat_argument;
     }
     
@@ -652,11 +652,11 @@ fapi_try_exit:
             l_idx = (i_chipletNumber - MC_CHIPLET_OFFSET) +
                 MC_TARGET_OFFSET;
         }
-        else if((i_chipletNumber >= PAU_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (PAU_CHIPLET_OFFSET + PAU_TARGET_COUNT)))
+        else if((i_chipletNumber >= PAUC_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (PAUC_CHIPLET_OFFSET + PAUC_TARGET_COUNT)))
         {
-            l_idx = (i_chipletNumber - PAU_CHIPLET_OFFSET) +
-                PAU_TARGET_OFFSET;
+            l_idx = (i_chipletNumber - PAUC_CHIPLET_OFFSET) +
+                PAUC_TARGET_OFFSET;
         }
         else if((i_chipletNumber >= IOHS_CHIPLET_OFFSET) &&
                 (i_chipletNumber < (IOHS_CHIPLET_OFFSET + IOHS_TARGET_COUNT)))
@@ -718,16 +718,16 @@ fapi_try_exit:
         return G_vec_targets[l_idx];
     }
 
-    // Get the plat target handle by chiplet number - For PAU targets
+    // Get the plat target handle by chiplet number - For PAUC targets
     template<>
-    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PAU>(
+    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PAUC>(
             const uint8_t i_chipletNumber)
     {
-        assert(((i_chipletNumber >= PAU_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (PAU_CHIPLET_OFFSET + PAU_TARGET_COUNT))));
+        assert(((i_chipletNumber >= PAUC_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (PAUC_CHIPLET_OFFSET + PAUC_TARGET_COUNT))));
 
-        uint32_t l_idx = (i_chipletNumber - PAU_CHIPLET_OFFSET) +
-                 PAU_TARGET_OFFSET;
+        uint32_t l_idx = (i_chipletNumber - PAUC_CHIPLET_OFFSET) +
+                 PAUC_TARGET_OFFSET;
 
         return G_vec_targets[l_idx];
     }
@@ -799,8 +799,8 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_MCBIST:
                 l_targetType = TARGET_TYPE_MCBIST;
                 break;
-            case PPE_TARGET_TYPE_PAU:
-                l_targetType = TARGET_TYPE_PAU;
+            case PPE_TARGET_TYPE_PAUC:
+                l_targetType = TARGET_TYPE_PAUC;
                 break;
             case PPE_TARGET_TYPE_IOHS:
                 l_targetType = TARGET_TYPE_IOHS;
@@ -903,6 +903,20 @@ fapi_try_exit:
             l_childTargetOffset = MI_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
+        //PROC and MC
+        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_MC))
+        {
+            l_childPerChiplet = MC_TARGET_COUNT;
+            l_childTargetOffset = MC_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
+        //PROC and PAUC
+        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PAUC))
+        {
+            l_childPerChiplet = PAUC_TARGET_COUNT;
+            l_childTargetOffset = PAUC_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
         //PROC and CORE
         if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_CORE))        {
             l_childPerChiplet = CORE_TARGET_COUNT;
@@ -998,7 +1012,7 @@ fapi_try_exit:
             false, // PPE_TARGET_TYPE_PHB
             false, // PPE_TARGET_TYPE_MI
             true,  // PPE_TARGET_TYPE_MC
-            true,  // PPE_TARGET_TYPE_PAU
+            true,  // PPE_TARGET_TYPE_PAUC
             true, // PPE_TARGET_TYPE_IOHS
             false, // 0x0E
             false, // 0x0F
@@ -1189,13 +1203,13 @@ fapi_try_exit:
         }
 
         /*
-         * PAU Targets
+         * PAUC Targets
          */
 
-        l_beginning_offset = PAU_TARGET_OFFSET;
-        for (uint32_t i = 0; i < PAU_TARGET_COUNT; ++i)
+        l_beginning_offset = PAUC_TARGET_OFFSET;
+        for (uint32_t i = 0; i < PAUC_TARGET_COUNT; ++i)
         {
-            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_PAU>(i);
+            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_PAUC>(i);
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
 
             // Determine if the chiplet is present and, thus, functional

@@ -71,7 +71,7 @@ namespace fapi2
         PPE_TARGET_TYPE_PHB               = 0x09,
         PPE_TARGET_TYPE_MI                = 0x0A,
         PPE_TARGET_TYPE_MC                = 0x0B,
-        PPE_TARGET_TYPE_PAU               = 0x0C,
+        PPE_TARGET_TYPE_PAUC              = 0x0C,
         PPE_TARGET_TYPE_IOHS              = 0x0D,
     } plat_target_type_t;
 

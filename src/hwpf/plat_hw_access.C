@@ -174,7 +174,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
                 break;
             }
     }
-    FAPI_INF("getEffectiveAddress(): Translated Addr = 0x%08X", translatedAddr);
+    FAPI_INF("getEffectiveAddress(): input target=0x%.8x and address=0x%.8x Translated Addr = 0x%08X", i_target.value, i_addr, translatedAddr);
     return translatedAddr;
 }
 
@@ -328,10 +328,9 @@ fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
 {
     uint32_t l_pibRc = 0;
     uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
-    FAPI_INF("getScom: address: 0x%08X", l_addr);
     l_pibRc = getscom_abs(l_addr, o_data);
-    FAPI_INF("getScom: returned pibRc: 0x%08X, data HI: 0x%08X, "
-             "data LO: 0x%08X", l_pibRc, (*o_data >> 32),
+    FAPI_INF("getScom: Address: 0x%08X returned pibRc: 0x%08X, data HI: 0x%08X, "
+             "data LO: 0x%08X", l_addr, l_pibRc, (*o_data >> 32),
              static_cast<uint32_t>(*o_data & 0xFFFFFFFF));
 
     return (l_pibRc == PIB_NO_ERROR) ? fapi2::ReturnCode(FAPI2_RC_SUCCESS) :
@@ -344,11 +343,9 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
     uint32_t l_pibRc = 0;
     uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target,
                                                                     i_addr);
-    FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X",
-             l_addr, (i_data >> 32),
-             static_cast<uint32_t>(i_data & 0xFFFFFFFF));
     l_pibRc = putscom_abs(l_addr, i_data);
-    FAPI_INF("putScom: returned pibRc: 0x%08X", l_pibRc);
+    FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X : returned pibRc: 0x%08X", l_addr, (i_data >> 32),
+             static_cast<uint32_t>(i_data & 0xFFFFFFFF), l_pibRc);
 
     return (l_pibRc == PIB_NO_ERROR) ? fapi2::ReturnCode(FAPI2_RC_SUCCESS) :
             handle_scom_error(i_addr, &i_data, l_pibRc, false);
