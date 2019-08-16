@@ -293,25 +293,9 @@ extern "C" void __sbe_register_saveoff()
     "mfisr  %r4\n"
     "stw %r4, __g_register_ffdc+12@sda21(0)\n"
 
-    "# Load address to r4\n"
-    "lis %r4, 0xC000\n"
-    "ori %r4, %r4, 0x0800\n"
-    "# getscom 0xC0000800\n"
-    "lvd %d5, 0(%r4)\n"
-    "stw %r5, __g_register_ffdc+16@sda21(0)\n"
-    "stw %r6, __g_register_ffdc+20@sda21(0)\n"
-
-    "# Load address to r4\n"
-    "lis %r4, 0xC000\n"
-    "ori %r4, %r4, 0x0820\n"
-    "# getscom 0xC0000820\n"
-    "lvd %d5, 0(%r4)\n"
-    "stw %r5, __g_register_ffdc+24@sda21(0)\n"
-    "stw %r6, __g_register_ffdc+28@sda21(0)\n"
-
     "# Read LR into r4\n"
     "mflr  %r4\n"
-    "stw %r4, __g_register_ffdc+32@sda21(0)\n"
+    "stw %r4, __g_register_ffdc+16@sda21(0)\n"
 
     "# Write versioning into the lower 32bit of d5 i.e. r6\n"
     "#lvd %d5, __g_sbe_register_save_version@sda21(0)\n"

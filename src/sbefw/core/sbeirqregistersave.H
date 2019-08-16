@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,7 +34,7 @@
 
 /**
  * @brief Register Save Structure
- * Total of 4 * 9 = 36Bytes of Data
+ * Total of 4 * 5 = 36Bytes of Data
  */
 typedef struct registersave
 {
@@ -49,10 +49,6 @@ typedef struct registersave
     uint32_t register_SRR0;
     uint32_t register_SRR1;
     uint32_t register_ISR;
-    uint32_t register_FI2C_CONFIG_LOWER_32BITS;
-    uint32_t register_FI2C_CONFIG_UPPER_32BITS;
-    uint32_t register_FI2C_STAT_LOWER_32BITS;
-    uint32_t register_FI2C_STAT_UPPER_32BITS;
     uint32_t register_LR;
 
     // Default Constructor to initialize
