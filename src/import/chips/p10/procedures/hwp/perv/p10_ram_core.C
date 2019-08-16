@@ -37,8 +37,6 @@
 #include <p10_ram_core.H>
 #include <p10_thread_control.H>
 #include <p10_scom_c.H>
-// FIXME RTC 211536 -- remove this TEMP file
-#include <p10_ram_core_TEMP_DEFINES.H>
 
 // shift/mask for inserting SPR num into opcode
 const uint32_t SPR_NUM_OPCODE_SHIFT  = 11;
@@ -156,6 +154,10 @@ const uint32_t RAM_CORE_STAT_POLL_CNT = 10;
 // poll count for check ram ready.  This can take about 3000 core clock cycles in P10.
 const uint32_t RAM_CORE_READY_POLL_CNT = 100;
 
+// register SPR_COMMON.SCOMC , definition for field MODE_CX_SCOMC
+// where field value = SCRATCH xxx SPR
+const uint32_t EC_PC_COMMON_SPR_SCOMC_MODE_CX_SCR0 = 0;
+
 //-----------------------------------------------------------------------------------
 // Namespace declarations
 //-----------------------------------------------------------------------------------
@@ -218,11 +220,11 @@ fapi2::ReturnCode RamCore::ram_ready(bool& o_ready, fapi2::buffer<uint64_t>& o_t
 
     FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, o_thread_info));
     FAPI_DBG("EC_PC_PMC_THREAD_INFO: 0x%.16llX", o_thread_info());
-    // FIXME RTC 211536 convert extract to GET_* when scomt supports it.
+
     FAPI_TRY(o_thread_info.extractToRight(l_thread_active,
-                                          EC_PC_PMC_THREAD_INFO_VTID0_V + iv_thread, 1));
-    FAPI_TRY(o_thread_info.extractToRight(l_thread_action_in_progress,
-                                          EC_PC_PMC_THREAD_INFO_THREAD_ACTION_IN_PROGRESS, 1));
+                                          EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID0_V + iv_thread, 1));
+
+    l_thread_action_in_progress = GET_EC_PC_PMC_THREAD_INFO_THREAD_ACTION_IN_PROGRESS(o_thread_info);
 
     o_ready = l_thread_active && !l_thread_action_in_progress;
 
@@ -244,7 +246,6 @@ fapi2::ReturnCode RamCore::ram_setup()
     bool l_thread_ready = false;
     uint32_t l_poll_count = RAM_CORE_READY_POLL_CNT;
 
-    // FIXME RTC 211536 -- could p10_thread_control be enhanced to take iv_thread directly ?
     switch (iv_thread)
     {
         case 0:
@@ -299,7 +300,6 @@ fapi2::ReturnCode RamCore::ram_setup()
         // If thread not ready, then try to make thread ready
         if (!iv_thread_activated)
         {
-            // FIXME RTC 211536 -- convert setBit to SET_* when scomt supports it
             FAPI_TRY(l_data.setBit(EC_PC_PMC_THREAD_INFO_RAM_THREAD_ACTIVE + iv_thread));
             FAPI_TRY(PUT_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
             iv_thread_activated = true;
@@ -342,8 +342,14 @@ fapi2::ReturnCode RamCore::ram_setup()
     // set Enable bits to allow a single SCOM write to SCOMC to be broadcast
     // to all of the per-logical thread SPRC registers
     FAPI_TRY(GET_EC_PC_COMMON_SPR_MODE(iv_target, l_data));
-    l_data.insertFromRight<EC_PC_COMMON_SPR_MODE_SPRC_LT0_SEL,
-                           EC_PC_COMMON_SPR_MODE_SPRC_LTX_SEL_WIDTH>(EC_PC_COMMON_SPR_MODE_SPRC_LTX_SEL_MASK);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT0_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT1_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT2_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT3_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT4_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT5_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT6_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT7_SEL(l_data);
     FAPI_TRY(PUT_EC_PC_COMMON_SPR_MODE(iv_target, l_data));
 
     //1.setup SPRC to use SPRD as an alias to SCR0
@@ -400,8 +406,14 @@ fapi2::ReturnCode RamCore::ram_cleanup()
     // set Enable bits to allow a single SCOM write to SCOMC to be broadcast
     // to all of the per-logical thread SPRC registers
     FAPI_TRY(GET_EC_PC_COMMON_SPR_MODE(iv_target, l_data));
-    l_data.insertFromRight<EC_PC_COMMON_SPR_MODE_SPRC_LT0_SEL,
-                           EC_PC_COMMON_SPR_MODE_SPRC_LTX_SEL_WIDTH>(EC_PC_COMMON_SPR_MODE_SPRC_LTX_SEL_MASK);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT0_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT1_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT2_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT3_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT4_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT5_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT6_SEL(l_data);
+    SET_EC_PC_COMMON_SPR_MODE_SPRC_LT7_SEL(l_data);
     FAPI_TRY(PUT_EC_PC_COMMON_SPR_MODE(iv_target, l_data));
 
     // setup SPRC to use SPRD as an alias to SCR0
@@ -452,7 +464,6 @@ fapi2::ReturnCode RamCore::ram_cleanup()
     // clear RAM thread active
     if (iv_thread_activated)
     {
-        // FIXME RTC 211536 -- convert clearBit to CLEAR_* when scomt supports it
         FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
         FAPI_TRY(l_data.clearBit(EC_PC_PMC_THREAD_INFO_RAM_THREAD_ACTIVE + iv_thread));
         FAPI_TRY(PUT_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
