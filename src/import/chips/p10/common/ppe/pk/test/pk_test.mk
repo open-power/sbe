@@ -101,6 +101,8 @@ $(call ADD_PPEIMAGE_INCDIR,$(IMAGE),\
 	$(ROOTPATH)/chips/p10/common \
 	$(OCC_SRCDIR)/occlib \
 	$(ROOTPATH)/chips/p10/common/ppe/powmanlib \
+	$(ROOTPATH)/chips/p10/common/pmlib/include/registers \
+	$(ROOTPATH)/chips/p10/common/ppe/boltonlib/$(_PPE_TYPE)\
 	)
 
 $(IMAGE)_LDFLAGS=-e __system_reset -N -gc-sections -Bstatic
