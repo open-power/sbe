@@ -53,9 +53,7 @@ PPE42-C-SOURCES = ppe42_core.c \
 
 PPE42-S-SOURCES =  ppe42_boot.S \
 		   ppe42_exceptions.S\
-		   div64.S\
 		   ppe42_timebase.S\
-		   div32.S
 
 PPE42-TIMER-C-SOURCES =
 PPE42-TIMER-S-SOURCES =
