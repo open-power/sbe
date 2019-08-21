@@ -96,8 +96,8 @@ static const uint32_t CPMS_FDIR_INJECT_DPT_SUSPEND = 31;
 
 static const uint32_t QME_CDBB = 0xc0008040ull;
 
-static const uint32_t QME_CDBB_QME_CDBB_MESSAGE_NUMBER = 0;
-static const uint32_t QME_CDBB_QME_CDBB_MESSAGE_NUMBER_LEN = 8;
+static const uint32_t QME_CDBB_MESSAGE_NUMBER = 0;
+static const uint32_t QME_CDBB_MESSAGE_NUMBER_LEN = 8;
 // ppe_c/reg00009.H
 
 #ifndef __PPE_HCODE__

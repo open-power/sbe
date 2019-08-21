@@ -55,8 +55,8 @@ static const uint32_t QME_BCEBAR0_SIZE_LEN = 3;
 
 static const uint32_t QME_QSDR = 0xc0000780ull;
 
-static const uint32_t QME_QSDR_QME_QSDR_SRAM_DATA = 0;
-static const uint32_t QME_QSDR_QME_QSDR_SRAM_DATA_LEN = 64;
+static const uint32_t QME_QSDR_SRAM_DATA = 0;
+static const uint32_t QME_QSDR_SRAM_DATA_LEN = 64;
 // ppe_eq/reg00010.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -64,8 +64,8 @@ static const uint32_t QME_QSDR_QME_QSDR_SRAM_DATA_LEN = 64;
 
 static const uint32_t QME_RCTAR0 = 0xc0001900ull;
 
-static const uint32_t QME_RCTAR0_QME_RCTAR0_DATA = 0;
-static const uint32_t QME_RCTAR0_QME_RCTAR0_DATA_LEN = 64;
+static const uint32_t QME_RCTAR0_DATA = 0;
+static const uint32_t QME_RCTAR0_DATA_LEN = 64;
 // ppe_eq/reg00010.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -73,8 +73,8 @@ static const uint32_t QME_RCTAR0_QME_RCTAR0_DATA_LEN = 64;
 
 static const uint32_t QME_SCOM_PBTXTR1 = 0xc0000410ull;
 
-static const uint32_t QME_SCOM_PBTXTR1__VALID = 0;
-static const uint32_t QME_SCOM_PBTXTR1__VALID_LEN = 8;
+static const uint32_t QME_SCOM_PBTXTR1_VALID = 0;
+static const uint32_t QME_SCOM_PBTXTR1_VALID_LEN = 8;
 static const uint32_t QME_SCOM_PBTXTR1_0 = 8;
 static const uint32_t QME_SCOM_PBTXTR1_0_LEN = 4;
 static const uint32_t QME_SCOM_PBTXTR1_1 = 12;

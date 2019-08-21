@@ -43,6 +43,25 @@ namespace ppe_eq
 // No targets could be determined from the address.
 
 static const uint32_t QME_DUCR = 0xc0001700ull;
+
+static const uint32_t QME_DUCR_FDCR_DELAY_C0 = 0;
+static const uint32_t QME_DUCR_FDCR_DELAY_C0_LEN = 8;
+static const uint32_t QME_DUCR_FDCR_DELAY_C1 = 8;
+static const uint32_t QME_DUCR_FDCR_DELAY_C1_LEN = 8;
+static const uint32_t QME_DUCR_FDCR_DELAY_C2 = 16;
+static const uint32_t QME_DUCR_FDCR_DELAY_C2_LEN = 8;
+static const uint32_t QME_DUCR_FDCR_DELAY_C3 = 24;
+static const uint32_t QME_DUCR_FDCR_DELAY_C3_LEN = 8;
+static const uint32_t QME_DUCR_FDCR_CAL_ADJUST_C0 = 32;
+static const uint32_t QME_DUCR_FDCR_CAL_ADJUST_C0_LEN = 2;
+static const uint32_t QME_DUCR_FDCR_CAL_ADJUST_C1 = 34;
+static const uint32_t QME_DUCR_FDCR_CAL_ADJUST_C1_LEN = 2;
+static const uint32_t QME_DUCR_FDCR_CAL_ADJUST_C2 = 36;
+static const uint32_t QME_DUCR_FDCR_CAL_ADJUST_C2_LEN = 2;
+static const uint32_t QME_DUCR_FDCR_CAL_ADJUST_C3 = 38;
+static const uint32_t QME_DUCR_FDCR_CAL_ADJUST_C3_LEN = 2;
+static const uint32_t QME_DUCR_CORE_UPDATE_ENABLE = 40;
+static const uint32_t QME_DUCR_CORE_UPDATE_ENABLE_LEN = 4;
 // ppe_eq/reg00002.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -98,8 +117,8 @@ static const uint32_t QME_EISR_CPMS_INTERRUPT1_LEN = 4;
 
 static const uint32_t QME_LFIRACT1 = 0xc00000c0ull;
 
-static const uint32_t QME_LFIRACT1_QME_LFIRACT1_FIR_ACTION1 = 0;
-static const uint32_t QME_LFIRACT1_QME_LFIRACT1_FIR_ACTION1_LEN = 28;
+static const uint32_t QME_LFIRACT1_FIR_ACTION1 = 0;
+static const uint32_t QME_LFIRACT1_FIR_ACTION1_LEN = 28;
 // ppe_eq/reg00002.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -107,8 +126,13 @@ static const uint32_t QME_LFIRACT1_QME_LFIRACT1_FIR_ACTION1_LEN = 28;
 
 static const uint32_t QME_SCOM_XIICAC = 0xc0002240ull;
 
-static const uint32_t QME_SCOM_XIICAC_SIB_PIB_IFETCH_PENDING = 34;
-static const uint32_t QME_SCOM_XIICAC_MEM_IFETCH_PENDING = 35;
+static const uint32_t QME_SCOM_XIICAC_ICACHE_TAG_ADDR = 0;
+static const uint32_t QME_SCOM_XIICAC_ICACHE_TAG_ADDR_LEN = 27;
+static const uint32_t QME_SCOM_XIICAC_ICACHE_ERR = 32;
+static const uint32_t QME_SCOM_XIICAC_QME_SCOM_XISIB_PIB_IFETCH_PENDING = 34;
+static const uint32_t QME_SCOM_XIICAC_QME_SCOM_XIMEM_MEM_IFETCH_PENDING = 35;
+static const uint32_t QME_SCOM_XIICAC_ICACHE_VALID = 36;
+static const uint32_t QME_SCOM_XIICAC_ICACHE_VALID_LEN = 4;
 // ppe_eq/reg00002.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -130,8 +154,8 @@ static const uint32_t QME_SCRB_RW = 0xc0001280ull;
 static const uint32_t QME_SCRB_WO_CLEAR = 0xc00012b0ull;
 static const uint32_t QME_SCRB_WO_OR = 0xc00012a0ull;
 
-static const uint32_t QME_SCRB_QME_SCRB_DATA = 0;
-static const uint32_t QME_SCRB_QME_SCRB_DATA_LEN = 32;
+static const uint32_t QME_SCRB_DATA = 0;
+static const uint32_t QME_SCRB_DATA_LEN = 32;
 // ppe_eq/reg00002.H
 
 #ifndef __PPE_HCODE__

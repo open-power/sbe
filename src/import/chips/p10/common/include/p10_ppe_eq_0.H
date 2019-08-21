@@ -67,10 +67,25 @@ static const uint32_t QME_BCECSR_MBASE_LEN = 22;
 
 static const uint32_t QME_PSREQ = 0xc0001300ull;
 
-static const uint32_t QME_PSREQ_CORE_PARTIAL_GOOD = 48;
-static const uint32_t QME_PSREQ_CORE_PARTIAL_GOOD_LEN = 4;
-static const uint32_t QME_PSREQ_AUTO_PMCR_UPDATE = 52;
-static const uint32_t QME_PSREQ_PMCR_RECENT_MODE = 53;
+static const uint32_t QME_PSREQ_PSTATE_REQ_C0 = 0;
+static const uint32_t QME_PSREQ_PSTATE_REQ_C0_LEN = 8;
+static const uint32_t QME_PSREQ_PSTATE_REQ_C1 = 8;
+static const uint32_t QME_PSREQ_PSTATE_REQ_C1_LEN = 8;
+static const uint32_t QME_PSREQ_PSTATE_REQ_C2 = 16;
+static const uint32_t QME_PSREQ_PSTATE_REQ_C2_LEN = 8;
+static const uint32_t QME_PSREQ_PSTATE_REQ_C3 = 24;
+static const uint32_t QME_PSREQ_PSTATE_REQ_C3_LEN = 8;
+static const uint32_t QME_PSREQ_PSTATE_REQ_QUAD = 32;
+static const uint32_t QME_PSREQ_PSTATE_REQ_QUAD_LEN = 8;
+static const uint32_t QME_PSREQ_RECENT_CORE_NUM = 42;
+static const uint32_t QME_PSREQ_RECENT_CORE_NUM_LEN = 2;
+static const uint32_t QME_PSREQ_PSTATE_UPDATE = 44;
+static const uint32_t QME_PSREQ_PSTATE_UPDATE_LEN = 4;
+static const uint32_t QME_PSREQ_QME_QMCR_CORE_PARTIAL_GOOD = 48;
+static const uint32_t QME_PSREQ_QME_QMCR_CORE_PARTIAL_GOOD_LEN = 4;
+static const uint32_t QME_PSREQ_QME_QMCR_AUTO_PMCR_UPDATE = 52;
+static const uint32_t QME_PSREQ_QME_QMCR_PMCR_RECENT_MODE = 53;
+static const uint32_t QME_PSREQ_PMCR_PIG_PENDING = 55;
 // ppe_eq/reg00000.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -101,8 +116,8 @@ static const uint32_t QME_RCOCR_3_RESCLK_ACTUAL_LEN = 8;
 
 static const uint32_t QME_RCTAR3 = 0xc00019c0ull;
 
-static const uint32_t QME_RCTAR3_QME_RCTAR3_DATA = 0;
-static const uint32_t QME_RCTAR3_QME_RCTAR3_DATA_LEN = 64;
+static const uint32_t QME_RCTAR3_DATA = 0;
+static const uint32_t QME_RCTAR3_DATA_LEN = 64;
 // ppe_eq/reg00000.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -128,8 +143,8 @@ static const uint32_t QME_RS4CSR_BAD_SCOM_RC_LEN = 3;
 
 static const uint32_t QME_SCOM_PBTXTR2 = 0xc0000420ull;
 
-static const uint32_t QME_SCOM_PBTXTR2__VALID = 0;
-static const uint32_t QME_SCOM_PBTXTR2__VALID_LEN = 8;
+static const uint32_t QME_SCOM_PBTXTR2_VALID = 0;
+static const uint32_t QME_SCOM_PBTXTR2_VALID_LEN = 8;
 static const uint32_t QME_SCOM_PBTXTR2_0 = 8;
 static const uint32_t QME_SCOM_PBTXTR2_0_LEN = 4;
 static const uint32_t QME_SCOM_PBTXTR2_1 = 12;

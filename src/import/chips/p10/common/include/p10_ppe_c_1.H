@@ -62,8 +62,8 @@ static const uint32_t QME_DCSR_SRESET_MSR_S = 24;
 
 static const uint32_t QME_PMCRS = 0xc0008600ull;
 
-static const uint32_t QME_PMCRS_QME_PMCRS_DATA = 0;
-static const uint32_t QME_PMCRS_QME_PMCRS_DATA_LEN = 64;
+static const uint32_t QME_PMCRS_DATA = 0;
+static const uint32_t QME_PMCRS_DATA_LEN = 64;
 // ppe_c/reg00001.H
 
 static const uint32_t QME_PMSRS = 0xc0008640ull;

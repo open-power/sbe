@@ -41,8 +41,8 @@ namespace ppe_c
 
 static const uint32_t CPMS_DCCR = 0xc000e600ull;
 
-static const uint32_t CPMS_DCCR__LARGE_OFFSET = 0;
-static const uint32_t CPMS_DCCR__LARGE_OFFSET_LEN = 4;
+static const uint32_t CPMS_DCCR_LARGE_OFFSET = 0;
+static const uint32_t CPMS_DCCR_LARGE_OFFSET_LEN = 4;
 static const uint32_t CPMS_DCCR_0_THRESH_SCALE = 4;
 static const uint32_t CPMS_DCCR_0_THRESH_SCALE_LEN = 4;
 static const uint32_t CPMS_DCCR_0_THRESH_VALUE = 8;
@@ -61,8 +61,8 @@ static const uint32_t CPMS_MMA_PFETSTAT = 0xc000e340ull;
 
 static const uint32_t CPMS_MMA_PFETSTAT_S_ENABLED_SENSE = 0;
 static const uint32_t CPMS_MMA_PFETSTAT_S_DISABLED_SENSE = 1;
-static const uint32_t CPMS_MMA_PFETSTAT__ENABLE_ACTUAL = 16;
-static const uint32_t CPMS_MMA_PFETSTAT__ENABLE_ACTUAL_LEN = 8;
+static const uint32_t CPMS_MMA_PFETSTAT_ENABLE_ACTUAL = 16;
+static const uint32_t CPMS_MMA_PFETSTAT_ENABLE_ACTUAL_LEN = 8;
 // ppe_c/reg00013.H
 
 static const uint32_t CPMS_PFETDLY = 0xc000e1c0ull;

@@ -265,7 +265,7 @@ p10_hcd_cache_scominit_sbe (
 
         FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG0(c, l_data));
         // 1. enable direct-mapped mode
-        SET_L3_MISC_L3CERRS_MODE_REG0__DMAP_CI_EN_CFG(l_data);
+        SET_L3_MISC_L3CERRS_MODE_REG0_L3_DMAP_CI_EN_CFG(l_data);
         FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG0(c, l_data));
 
         FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(c, l_data));

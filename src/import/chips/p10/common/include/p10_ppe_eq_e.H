@@ -44,8 +44,8 @@ namespace ppe_eq
 
 static const uint32_t QME_CRCR = 0xc0003000ull;
 
-static const uint32_t QME_CRCR_QME_CRCR_COMPARE_VALUE = 0;
-static const uint32_t QME_CRCR_QME_CRCR_COMPARE_VALUE_LEN = 8;
+static const uint32_t QME_CRCR_COMPARE_VALUE = 0;
+static const uint32_t QME_CRCR_COMPARE_VALUE_LEN = 8;
 // ppe_eq/reg00014.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -64,8 +64,8 @@ static const uint32_t QME_DERP_SOR_LEN = 32;
 
 static const uint32_t QME_EINR = 0xc0002740ull;
 
-static const uint32_t QME_EINR_QME_EINR_INTERRUPT_INPUT = 0;
-static const uint32_t QME_EINR_QME_EINR_INTERRUPT_INPUT_LEN = 64;
+static const uint32_t QME_EINR_INTERRUPT_INPUT = 0;
+static const uint32_t QME_EINR_INTERRUPT_INPUT_LEN = 64;
 // ppe_eq/reg00014.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -107,6 +107,12 @@ static const uint32_t QME_LFIR_SPARE27 = 27;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
 static const uint32_t QME_PCBSII = 0xc0000380ull;
+
+static const uint32_t QME_PCBSII_EQ_ACK = 0;
+static const uint32_t QME_PCBSII_SP_P = 1;
+static const uint32_t QME_PCBSII_SP_VLD = 4;
+static const uint32_t QME_PCBSII_SP_INFO = 5;
+static const uint32_t QME_PCBSII_SP_INFO_LEN = 3;
 // ppe_eq/reg00014.H
 
 #ifndef __PPE_HCODE__

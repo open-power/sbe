@@ -40,6 +40,22 @@ namespace ppe_c
 
 
 static const uint32_t CPMS_ACDR = 0xc000e7c0ull;
+
+static const uint32_t CPMS_ACDR_A_SCALE = 0;
+static const uint32_t CPMS_ACDR_A_SCALE_LEN = 4;
+static const uint32_t CPMS_ACDR_A_VALUE = 4;
+static const uint32_t CPMS_ACDR_A_VALUE_LEN = 16;
+static const uint32_t CPMS_ACDR_B_SCALE = 20;
+static const uint32_t CPMS_ACDR_B_SCALE_LEN = 4;
+static const uint32_t CPMS_ACDR_B_VALUE = 24;
+static const uint32_t CPMS_ACDR_B_VALUE_LEN = 16;
+static const uint32_t CPMS_ACDR_C_SCALE = 40;
+static const uint32_t CPMS_ACDR_C_SCALE_LEN = 4;
+static const uint32_t CPMS_ACDR_C_VALUE = 44;
+static const uint32_t CPMS_ACDR_C_VALUE_LEN = 16;
+static const uint32_t CPMS_ACDR_A_MOD = 60;
+static const uint32_t CPMS_ACDR_B_MOD = 61;
+static const uint32_t CPMS_ACDR_C_MOD = 62;
 // ppe_c/reg00008.H
 
 static const uint32_t CPMS_CL2_PFETSTAT = 0xc000e2c0ull;

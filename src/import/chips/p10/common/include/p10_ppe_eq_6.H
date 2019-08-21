@@ -55,8 +55,8 @@ static const uint32_t QME_PPEBAR_SIZE_LEN = 3;
 
 static const uint32_t QME_RCTAR2 = 0xc0001980ull;
 
-static const uint32_t QME_RCTAR2_QME_RCTAR2_DATA = 0;
-static const uint32_t QME_RCTAR2_QME_RCTAR2_DATA_LEN = 64;
+static const uint32_t QME_RCTAR2_DATA = 0;
+static const uint32_t QME_RCTAR2_DATA_LEN = 64;
 // ppe_eq/reg00006.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -64,8 +64,8 @@ static const uint32_t QME_RCTAR2_QME_RCTAR2_DATA_LEN = 64;
 
 static const uint32_t QME_SCOM_PBTXTR3 = 0xc0000430ull;
 
-static const uint32_t QME_SCOM_PBTXTR3__VALID = 0;
-static const uint32_t QME_SCOM_PBTXTR3__VALID_LEN = 8;
+static const uint32_t QME_SCOM_PBTXTR3_VALID = 0;
+static const uint32_t QME_SCOM_PBTXTR3_VALID_LEN = 8;
 static const uint32_t QME_SCOM_PBTXTR3_0 = 8;
 static const uint32_t QME_SCOM_PBTXTR3_0_LEN = 4;
 static const uint32_t QME_SCOM_PBTXTR3_1 = 12;

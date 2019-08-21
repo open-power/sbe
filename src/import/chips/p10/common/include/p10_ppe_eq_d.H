@@ -46,8 +46,8 @@ static const uint32_t QME_EIMR_RW = 0xc0002640ull;
 static const uint32_t QME_EIMR_WO_CLEAR = 0xc0002670ull;
 static const uint32_t QME_EIMR_WO_OR = 0xc0002660ull;
 
-static const uint32_t QME_EIMR_QME_EIMR_INTERRUPT_MASK = 0;
-static const uint32_t QME_EIMR_QME_EIMR_INTERRUPT_MASK_LEN = 64;
+static const uint32_t QME_EIMR_INTERRUPT_MASK = 0;
+static const uint32_t QME_EIMR_INTERRUPT_MASK_LEN = 64;
 // ppe_eq/reg00013.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -75,6 +75,17 @@ static const uint32_t QME_PIG_GRANTED_PACKET_LEN = 24;
 static const uint32_t QME_QSCR_RW = 0xc0000700ull;
 static const uint32_t QME_QSCR_WO_CLEAR = 0xc0000730ull;
 static const uint32_t QME_QSCR_WO_OR = 0xc0000720ull;
+
+static const uint32_t QME_QSCR_SRAM_ACCESS_MODE = 0;
+static const uint32_t QME_QSCR_SRAM_SCRUB_ENABLE = 1;
+static const uint32_t QME_QSCR_ECC_CORRECT_DIS = 2;
+static const uint32_t QME_QSCR_ECC_DETECT_DIS = 3;
+static const uint32_t QME_QSCR_ECC_INJECT_TYPE = 4;
+static const uint32_t QME_QSCR_ECC_INJECT_ERR = 5;
+static const uint32_t QME_QSCR_SPARE_6_7 = 6;
+static const uint32_t QME_QSCR_SPARE_6_7_LEN = 2;
+static const uint32_t QME_QSCR_SRAM_SCRUB_INDEX = 47;
+static const uint32_t QME_QSCR_SRAM_SCRUB_INDEX_LEN = 13;
 // ppe_eq/reg00013.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -84,22 +95,22 @@ static const uint32_t QME_RCMR = 0xc0001800ull;
 static const uint32_t QME_RCMR_WO_CLEAR = 0xc0001830ull;
 static const uint32_t QME_RCMR_WO_OR = 0xc0001820ull;
 
-static const uint32_t QME_RCMR_MR_STEP_ENABLE = 0;
-static const uint32_t QME_RCMR_MR_AUTO_ACK_ENABLE = 1;
-static const uint32_t QME_RCMR_MR_AUTO_TARGET_DISABLE = 2;
-static const uint32_t QME_RCMR_MR_AUTO_DONE_DISABLE = 3;
-static const uint32_t QME_RCMR_MR_STEP_DELAY = 4;
-static const uint32_t QME_RCMR_MR_STEP_DELAY_LEN = 4;
-static const uint32_t QME_RCMR_SCR_CORE_CHANGE_ERROR = 8;
-static const uint32_t QME_RCMR_SCR_CORE_CHANGE_ERROR_LEN = 4;
-static const uint32_t QME_RCMR_MR_CORE0_CONTROL_INDEX = 35;
-static const uint32_t QME_RCMR_MR_CORE0_CONTROL_INDEX_LEN = 5;
-static const uint32_t QME_RCMR_MR_CORE1_CONTROL_INDEX = 43;
-static const uint32_t QME_RCMR_MR_CORE1_CONTROL_INDEX_LEN = 5;
-static const uint32_t QME_RCMR_MR_CORE2_CONTROL_INDEX = 51;
-static const uint32_t QME_RCMR_MR_CORE2_CONTROL_INDEX_LEN = 5;
-static const uint32_t QME_RCMR_MR_CORE3_CONTROL_INDEX = 59;
-static const uint32_t QME_RCMR_MR_CORE3_CONTROL_INDEX_LEN = 5;
+static const uint32_t QME_RCMR_STEP_ENABLE = 0;
+static const uint32_t QME_RCMR_AUTO_ACK_ENABLE = 1;
+static const uint32_t QME_RCMR_AUTO_TARGET_DISABLE = 2;
+static const uint32_t QME_RCMR_AUTO_DONE_DISABLE = 3;
+static const uint32_t QME_RCMR_STEP_DELAY = 4;
+static const uint32_t QME_RCMR_STEP_DELAY_LEN = 4;
+static const uint32_t QME_RCMR_QME_RCSCR_CORE_CHANGE_ERROR = 8;
+static const uint32_t QME_RCMR_QME_RCSCR_CORE_CHANGE_ERROR_LEN = 4;
+static const uint32_t QME_RCMR_CORE0_CONTROL_INDEX = 35;
+static const uint32_t QME_RCMR_CORE0_CONTROL_INDEX_LEN = 5;
+static const uint32_t QME_RCMR_CORE1_CONTROL_INDEX = 43;
+static const uint32_t QME_RCMR_CORE1_CONTROL_INDEX_LEN = 5;
+static const uint32_t QME_RCMR_CORE2_CONTROL_INDEX = 51;
+static const uint32_t QME_RCMR_CORE2_CONTROL_INDEX_LEN = 5;
+static const uint32_t QME_RCMR_CORE3_CONTROL_INDEX = 59;
+static const uint32_t QME_RCMR_CORE3_CONTROL_INDEX_LEN = 5;
 // ppe_eq/reg00013.H
 
 #ifndef __PPE_HCODE__

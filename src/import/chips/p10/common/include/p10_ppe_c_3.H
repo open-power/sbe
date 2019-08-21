@@ -40,6 +40,22 @@ namespace ppe_c
 
 
 static const uint32_t CPMS_CCDR = 0xc000e740ull;
+
+static const uint32_t CPMS_CCDR_A_SCALE = 0;
+static const uint32_t CPMS_CCDR_A_SCALE_LEN = 4;
+static const uint32_t CPMS_CCDR_A_VALUE = 4;
+static const uint32_t CPMS_CCDR_A_VALUE_LEN = 16;
+static const uint32_t CPMS_CCDR_B_SCALE = 20;
+static const uint32_t CPMS_CCDR_B_SCALE_LEN = 4;
+static const uint32_t CPMS_CCDR_B_VALUE = 24;
+static const uint32_t CPMS_CCDR_B_VALUE_LEN = 16;
+static const uint32_t CPMS_CCDR_C_SCALE = 40;
+static const uint32_t CPMS_CCDR_C_SCALE_LEN = 4;
+static const uint32_t CPMS_CCDR_C_VALUE = 44;
+static const uint32_t CPMS_CCDR_C_VALUE_LEN = 16;
+static const uint32_t CPMS_CCDR_A_MOD = 60;
+static const uint32_t CPMS_CCDR_B_MOD = 61;
+static const uint32_t CPMS_CCDR_C_MOD = 62;
 // ppe_c/reg00003.H
 
 static const uint32_t CPMS_CL2_PFETCNTL = 0xc000e280ull;
@@ -120,14 +136,14 @@ static const uint32_t CPMS_FDCR_SLOPEB_CYCLES_LEN = 4;
 
 static const uint32_t QME_CDBA = 0xc0008000ull;
 
-static const uint32_t QME_CDBA_QME_CDBA_MESSAGE_NUMBER = 0;
-static const uint32_t QME_CDBA_QME_CDBA_MESSAGE_NUMBER_LEN = 8;
+static const uint32_t QME_CDBA_MESSAGE_NUMBER = 0;
+static const uint32_t QME_CDBA_MESSAGE_NUMBER_LEN = 8;
 // ppe_c/reg00003.H
 
 static const uint32_t QME_CSIR = 0xc00087c0ull;
 
-static const uint32_t QME_CSIR_QME_CSIR_PMSR_INSTR_DATA = 36;
-static const uint32_t QME_CSIR_QME_CSIR_PMSR_INSTR_DATA_LEN = 22;
+static const uint32_t QME_CSIR_PMSR_INSTR_DATA = 36;
+static const uint32_t QME_CSIR_PMSR_INSTR_DATA_LEN = 22;
 // ppe_c/reg00003.H
 
 #ifndef __PPE_HCODE__

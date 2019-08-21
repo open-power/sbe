@@ -108,18 +108,18 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     switch(l_broadcast_mode)
     {
         case fapi2::ENUM_ATTR_PROC_FABRIC_BROADCAST_MODE_1HOP_CHIP_IS_GROUP:
-            CLEAR_PB_COM_SCOM_EQ0_STATION_MODE_HOP_MODE_EQ0(l_pb_mode_data);
-            SET_PB_COM_SCOM_EQ0_STATION_MODE_PUMP_MODE_EQ0(l_pb_mode_data);
+            CLEAR_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_HOP_MODE_EQ0(l_pb_mode_data);
+            SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_PUMP_MODE_EQ0(l_pb_mode_data);
             break;
 
         case fapi2::ENUM_ATTR_PROC_FABRIC_BROADCAST_MODE_1HOP_CHIP_IS_NODE:
-            CLEAR_PB_COM_SCOM_EQ0_STATION_MODE_HOP_MODE_EQ0(l_pb_mode_data);
-            CLEAR_PB_COM_SCOM_EQ0_STATION_MODE_PUMP_MODE_EQ0(l_pb_mode_data);
+            CLEAR_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_HOP_MODE_EQ0(l_pb_mode_data);
+            CLEAR_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_PUMP_MODE_EQ0(l_pb_mode_data);
             break;
 
         case fapi2::ENUM_ATTR_PROC_FABRIC_BROADCAST_MODE_2HOP_CHIP_IS_NODE:
-            SET_PB_COM_SCOM_EQ0_STATION_MODE_HOP_MODE_EQ0(l_pb_mode_data);
-            CLEAR_PB_COM_SCOM_EQ0_STATION_MODE_PUMP_MODE_EQ0(l_pb_mode_data);
+            SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_HOP_MODE_EQ0(l_pb_mode_data);
+            CLEAR_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_PUMP_MODE_EQ0(l_pb_mode_data);
             break;
 
         default:
@@ -132,7 +132,7 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     }
 
     // configure sl chip domain for all ipl types
-    SET_PB_COM_SCOM_EQ0_STATION_MODE_SL_DOMAIN_SIZE_EQ0(l_pb_mode_data);
+    SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_SL_DOMAIN_SIZE_EQ0(l_pb_mode_data);
 
     // configure first mc as source for mca ratio if HBI and a valid mc exists, else override mc async
     if((l_ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL) && l_mc_chiplets.size())
@@ -140,11 +140,11 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_mc_chiplets.front(), l_chiplet_pos),
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
 
-        SET_PB_COM_SCOM_EQ0_STATION_MODE_MCA_RATIO_SEL_EQ0(l_chiplet_pos, l_pb_mode_data);
+        SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_MCA_RATIO_SEL_EQ0(l_chiplet_pos, l_pb_mode_data);
     }
     else
     {
-        SET_PB_COM_SCOM_EQ0_STATION_MODE_MCA_RATIO_OVERRIDE_EQ0(PB_CFG_MCA_RATIO_OVERRIDE, l_pb_mode_data);
+        SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_MCA_RATIO_OVERRIDE_EQ0(PB_CFG_MCA_RATIO_OVERRIDE, l_pb_mode_data);
     }
 
     // configure first pau as source for pau ratio if HBI and a valid pau exists, else override pau async
@@ -153,11 +153,11 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_pauc_chiplets.front(), l_chiplet_pos),
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
 
-        SET_PB_COM_SCOM_EQ0_STATION_MODE_PAU_STEP_SEL_EQ0(l_chiplet_pos, l_pb_mode_data);
+        SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_PAU_STEP_SEL_EQ0(l_chiplet_pos, l_pb_mode_data);
     }
     else
     {
-        SET_PB_COM_SCOM_EQ0_STATION_MODE_PAU_STEP_OVERRIDE_EQ0(l_pb_mode_data);
+        SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_PAU_STEP_OVERRIDE_EQ0(l_pb_mode_data);
     }
 
     // apply configuration to all racetrack station registers

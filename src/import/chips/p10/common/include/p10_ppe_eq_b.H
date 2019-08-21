@@ -99,6 +99,21 @@ static const uint32_t QME_SCOM_XIVDR30_1_LEN = 32;
 // No targets could be determined from the address.
 
 static const uint32_t QME_TTSR = 0xc0001380ull;
+
+static const uint32_t QME_TTSR_0_DATA = 0;
+static const uint32_t QME_TTSR_0_DATA_LEN = 8;
+static const uint32_t QME_TTSR_1_DATA = 8;
+static const uint32_t QME_TTSR_1_DATA_LEN = 8;
+static const uint32_t QME_TTSR_2_DATA = 16;
+static const uint32_t QME_TTSR_2_DATA_LEN = 8;
+static const uint32_t QME_TTSR_3_DATA = 24;
+static const uint32_t QME_TTSR_3_DATA_LEN = 8;
+static const uint32_t QME_TTSR_4_DATA = 32;
+static const uint32_t QME_TTSR_4_DATA_LEN = 8;
+static const uint32_t QME_TTSR_5_DATA = 40;
+static const uint32_t QME_TTSR_5_DATA_LEN = 8;
+static const uint32_t QME_TTSR_6_DATA = 48;
+static const uint32_t QME_TTSR_6_DATA_LEN = 8;
 // ppe_eq/reg00011.H
 
 #ifndef __PPE_HCODE__

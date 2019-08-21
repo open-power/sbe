@@ -57,8 +57,8 @@ static const uint32_t QME_EITR_RW = 0xc00026c0ull;
 static const uint32_t QME_EITR_WO_CLEAR = 0xc00026f0ull;
 static const uint32_t QME_EITR_WO_OR = 0xc00026e0ull;
 
-static const uint32_t QME_EITR_QME_EITR_INTERRUPT_TYPE = 0;
-static const uint32_t QME_EITR_QME_EITR_INTERRUPT_TYPE_LEN = 64;
+static const uint32_t QME_EITR_INTERRUPT_TYPE = 0;
+static const uint32_t QME_EITR_INTERRUPT_TYPE_LEN = 64;
 // ppe_eq/reg00005.H
 
 #ifndef __PPE_HCODE__

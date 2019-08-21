@@ -76,10 +76,10 @@ static const uint32_t CPMS_FLMR_SPARE2_LEN = 2;
 
 static const uint32_t QME_CIIR = 0xc0008740ull;
 
-static const uint32_t QME_CIIR__INTR_INJECT = 28;
-static const uint32_t QME_CIIR__INTR_INJECT_LEN = 4;
-static const uint32_t QME_CIIR_U_INTR_INJECT = 60;
-static const uint32_t QME_CIIR_U_INTR_INJECT_LEN = 4;
+static const uint32_t QME_CIIR_MSGSND_INTR_INJECT = 28;
+static const uint32_t QME_CIIR_MSGSND_INTR_INJECT_LEN = 4;
+static const uint32_t QME_CIIR_MSGSNDU_INTR_INJECT = 60;
+static const uint32_t QME_CIIR_MSGSNDU_INTR_INJECT_LEN = 4;
 // ppe_c/reg00005.H
 
 static const uint32_t QME_RMOR = 0xc0008680ull;
@@ -93,8 +93,8 @@ static const uint32_t QME_SCR_RW = 0xc00080c0ull;
 static const uint32_t QME_SCR_WO_CLEAR = 0xc00080f0ull;
 static const uint32_t QME_SCR_WO_OR = 0xc00080e0ull;
 
-static const uint32_t QME_SCR_QME_SCR_DATA = 0;
-static const uint32_t QME_SCR_QME_SCR_DATA_LEN = 64;
+static const uint32_t QME_SCR_DATA = 0;
+static const uint32_t QME_SCR_DATA_LEN = 64;
 // ppe_c/reg00005.H
 
 #ifndef __PPE_HCODE__

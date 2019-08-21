@@ -55,8 +55,8 @@ static const uint32_t QME_DORP_REMAINDER_LEN = 32;
 
 static const uint32_t QME_RVCR = 0xc0000840ull;
 
-static const uint32_t QME_RVCR_QME_RVCR_RVID_VALUE = 1;
-static const uint32_t QME_RVCR_QME_RVCR_RVID_VALUE_LEN = 7;
+static const uint32_t QME_RVCR_RVID_VALUE = 1;
+static const uint32_t QME_RVCR_RVID_VALUE_LEN = 7;
 // ppe_eq/reg00008.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -94,8 +94,8 @@ static const uint32_t QME_SCRA_RW = 0xc0001240ull;
 static const uint32_t QME_SCRA_WO_CLEAR = 0xc0001270ull;
 static const uint32_t QME_SCRA_WO_OR = 0xc0001260ull;
 
-static const uint32_t QME_SCRA_QME_SCRA_DATA = 0;
-static const uint32_t QME_SCRA_QME_SCRA_DATA_LEN = 32;
+static const uint32_t QME_SCRA_DATA = 0;
+static const uint32_t QME_SCRA_DATA_LEN = 32;
 // ppe_eq/reg00008.H
 
 #ifndef __PPE_HCODE__

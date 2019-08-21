@@ -49,14 +49,45 @@ static const uint32_t QME_EISTR = 0xc0002700ull;
 
 static const uint32_t QME_LFIRACT0 = 0xc0000080ull;
 
-static const uint32_t QME_LFIRACT0_QME_LFIRACT0_FIR_ACTION1 = 0;
-static const uint32_t QME_LFIRACT0_QME_LFIRACT0_FIR_ACTION1_LEN = 28;
+static const uint32_t QME_LFIRACT0_FIR_ACTION1 = 0;
+static const uint32_t QME_LFIRACT0_FIR_ACTION1_LEN = 28;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
 static const uint32_t QME_PLSR = 0xc0001480ull;
+
+static const uint32_t QME_PLSR_0_T0 = 0;
+static const uint32_t QME_PLSR_0_T0_LEN = 4;
+static const uint32_t QME_PLSR_0_T1 = 4;
+static const uint32_t QME_PLSR_0_T1_LEN = 4;
+static const uint32_t QME_PLSR_0_T2 = 8;
+static const uint32_t QME_PLSR_0_T2_LEN = 4;
+static const uint32_t QME_PLSR_0_T3 = 12;
+static const uint32_t QME_PLSR_0_T3_LEN = 4;
+static const uint32_t QME_PLSR_1_T0 = 16;
+static const uint32_t QME_PLSR_1_T0_LEN = 4;
+static const uint32_t QME_PLSR_1_T1 = 20;
+static const uint32_t QME_PLSR_1_T1_LEN = 4;
+static const uint32_t QME_PLSR_1_T2 = 24;
+static const uint32_t QME_PLSR_1_T2_LEN = 4;
+static const uint32_t QME_PLSR_1_T3 = 28;
+static const uint32_t QME_PLSR_1_T3_LEN = 4;
+static const uint32_t QME_PLSR_2_T0 = 32;
+static const uint32_t QME_PLSR_2_T0_LEN = 4;
+static const uint32_t QME_PLSR_2_T1 = 36;
+static const uint32_t QME_PLSR_2_T1_LEN = 4;
+static const uint32_t QME_PLSR_2_T2 = 40;
+static const uint32_t QME_PLSR_2_T2_LEN = 4;
+static const uint32_t QME_PLSR_2_T3 = 44;
+static const uint32_t QME_PLSR_2_T3_LEN = 4;
+static const uint32_t QME_PLSR_3_T0 = 48;
+static const uint32_t QME_PLSR_3_T0_LEN = 4;
+static const uint32_t QME_PLSR_3_T1 = 52;
+static const uint32_t QME_PLSR_3_T1_LEN = 4;
+static const uint32_t QME_PLSR_3_T2 = 56;
+static const uint32_t QME_PLSR_3_T2_LEN = 4;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -77,16 +108,16 @@ static const uint32_t QME_RCSCR = 0xc0001840ull;
 static const uint32_t QME_RCSCR_WO_CLEAR = 0xc0001870ull;
 static const uint32_t QME_RCSCR_WO_OR = 0xc0001860ull;
 
-static const uint32_t QME_RCSCR__OFF_REQ = 0;
-static const uint32_t QME_RCSCR__OFF_REQ_LEN = 4;
-static const uint32_t QME_RCSCR__CHANGE_DONE = 4;
-static const uint32_t QME_RCSCR__CHANGE_DONE_LEN = 4;
-static const uint32_t QME_RCSCR__CHANGE_ACTIVE = 8;
-static const uint32_t QME_RCSCR__CHANGE_ACTIVE_LEN = 4;
-static const uint32_t QME_RCSCR__PARTIAL_GOOD = 12;
-static const uint32_t QME_RCSCR__PARTIAL_GOOD_LEN = 4;
-static const uint32_t QME_RCSCR__CHANGE_ERROR = 16;
-static const uint32_t QME_RCSCR__CHANGE_ERROR_LEN = 4;
+static const uint32_t QME_RCSCR_OFF_REQ = 0;
+static const uint32_t QME_RCSCR_OFF_REQ_LEN = 4;
+static const uint32_t QME_RCSCR_CHANGE_DONE = 4;
+static const uint32_t QME_RCSCR_CHANGE_DONE_LEN = 4;
+static const uint32_t QME_RCSCR_CHANGE_ACTIVE = 8;
+static const uint32_t QME_RCSCR_CHANGE_ACTIVE_LEN = 4;
+static const uint32_t QME_RCSCR_PARTIAL_GOOD = 12;
+static const uint32_t QME_RCSCR_PARTIAL_GOOD_LEN = 4;
+static const uint32_t QME_RCSCR_CHANGE_ERROR = 16;
+static const uint32_t QME_RCSCR_CHANGE_ERROR_LEN = 4;
 static const uint32_t QME_RCSCR_0_TARGET_INDEX = 35;
 static const uint32_t QME_RCSCR_0_TARGET_INDEX_LEN = 5;
 static const uint32_t QME_RCSCR_1_TARGET_INDEX = 43;
@@ -102,8 +133,8 @@ static const uint32_t QME_RCSCR_3_TARGET_INDEX_LEN = 5;
 
 static const uint32_t QME_RS4BAR = 0xc0001600ull;
 
-static const uint32_t QME_RS4BAR_QME_RS4BAR_BASE = 0;
-static const uint32_t QME_RS4BAR_QME_RS4BAR_BASE_LEN = 32;
+static const uint32_t QME_RS4BAR_BASE = 0;
+static const uint32_t QME_RS4BAR_BASE_LEN = 32;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -111,8 +142,8 @@ static const uint32_t QME_RS4BAR_QME_RS4BAR_BASE_LEN = 32;
 
 static const uint32_t QME_RS4DBGD = 0xc0001580ull;
 
-static const uint32_t QME_RS4DBGD_QME_RS4DBGD_SCAN_DATA_IN = 0;
-static const uint32_t QME_RS4DBGD_QME_RS4DBGD_SCAN_DATA_IN_LEN = 64;
+static const uint32_t QME_RS4DBGD_SCAN_DATA_IN = 0;
+static const uint32_t QME_RS4DBGD_SCAN_DATA_IN_LEN = 64;
 // ppe_eq/reg00004.H
 
 #ifndef __PPE_HCODE__

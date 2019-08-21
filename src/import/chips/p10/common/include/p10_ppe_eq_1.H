@@ -46,8 +46,8 @@ static const uint32_t QME_EIPR_RW = 0xc0002680ull;
 static const uint32_t QME_EIPR_WO_CLEAR = 0xc00026b0ull;
 static const uint32_t QME_EIPR_WO_OR = 0xc00026a0ull;
 
-static const uint32_t QME_EIPR_QME_EIPR_INTERRUPT_POLARITY = 0;
-static const uint32_t QME_EIPR_QME_EIPR_INTERRUPT_POLARITY_LEN = 64;
+static const uint32_t QME_EIPR_INTERRUPT_POLARITY = 0;
+static const uint32_t QME_EIPR_INTERRUPT_POLARITY_LEN = 64;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -56,20 +56,81 @@ static const uint32_t QME_LFIRMASK_RW = 0xc0000040ull;
 static const uint32_t QME_LFIRMASK_WO_AND = 0xc0000050ull;
 static const uint32_t QME_LFIRMASK_WO_OR = 0xc0000060ull;
 
-static const uint32_t QME_LFIRMASK_QME_LFIRMASK_FIR_MASK = 0;
-static const uint32_t QME_LFIRMASK_QME_LFIRMASK_FIR_MASK_LEN = 28;
+static const uint32_t QME_LFIRMASK_FIR_MASK = 0;
+static const uint32_t QME_LFIRMASK_FIR_MASK_LEN = 28;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
 static const uint32_t QME_SCDR = 0xc0001440ull;
+
+static const uint32_t QME_SCDR_STOP_GATED = 0;
+static const uint32_t QME_SCDR_STOP_GATED_LEN = 4;
+static const uint32_t QME_SCDR_STOP_TRANSITION_C0 = 4;
+static const uint32_t QME_SCDR_STOP_TRANSITION_C0_LEN = 2;
+static const uint32_t QME_SCDR_STOP_TRANSITION_C1 = 6;
+static const uint32_t QME_SCDR_STOP_TRANSITION_C1_LEN = 2;
+static const uint32_t QME_SCDR_STOP_TRANSITION_C2 = 8;
+static const uint32_t QME_SCDR_STOP_TRANSITION_C2_LEN = 2;
+static const uint32_t QME_SCDR_STOP_TRANSITION_C3 = 10;
+static const uint32_t QME_SCDR_STOP_TRANSITION_C3_LEN = 2;
+static const uint32_t QME_SCDR_SPC_WKUP_DONE = 12;
+static const uint32_t QME_SCDR_SPC_WKUP_DONE_LEN = 4;
+static const uint32_t QME_SCDR_REQ_STOP_LEVEL_C0 = 16;
+static const uint32_t QME_SCDR_REQ_STOP_LEVEL_C0_LEN = 4;
+static const uint32_t QME_SCDR_REQ_STOP_LEVEL_C1 = 20;
+static const uint32_t QME_SCDR_REQ_STOP_LEVEL_C1_LEN = 4;
+static const uint32_t QME_SCDR_REQ_STOP_LEVEL_C2 = 24;
+static const uint32_t QME_SCDR_REQ_STOP_LEVEL_C2_LEN = 4;
+static const uint32_t QME_SCDR_REQ_STOP_LEVEL_C3 = 28;
+static const uint32_t QME_SCDR_REQ_STOP_LEVEL_C3_LEN = 4;
+static const uint32_t QME_SCDR_REG_WKUP_REQUESTED = 32;
+static const uint32_t QME_SCDR_REG_WKUP_REQUESTED_LEN = 4;
+static const uint32_t QME_SCDR_SPC_WKUP_REQUESTED = 36;
+static const uint32_t QME_SCDR_SPC_WKUP_REQUESTED_LEN = 4;
+static const uint32_t QME_SCDR_SELF_SAVE_ACTIVE = 40;
+static const uint32_t QME_SCDR_SELF_SAVE_ACTIVE_LEN = 4;
+static const uint32_t QME_SCDR_SELF_RESTORE_ACTIVE = 44;
+static const uint32_t QME_SCDR_SELF_RESTORE_ACTIVE_LEN = 4;
+static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C0 = 48;
+static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C0_LEN = 4;
+static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C1 = 52;
+static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C1_LEN = 4;
+static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2 = 56;
+static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2_LEN = 4;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
 static const uint32_t QME_SCOM_XIDBGPRO = 0xc0002140ull;
+
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_HS = 0;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_HC = 1;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_HC_LEN = 3;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_HCP = 4;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_RIP = 5;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_SIP = 6;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_TRAP = 7;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_IAC = 8;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_SIB = 9;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_SIB_LEN = 3;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_RDAC = 12;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_WDAC = 13;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_WS = 14;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_TRH = 15;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_SMS = 16;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_SMS_LEN = 4;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_LP = 20;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_EP = 21;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_PTR = 24;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_ST = 25;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_MFE = 28;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_MCS = 29;
+static const uint32_t QME_SCOM_XIDBGPRO_XSR_MCS_LEN = 3;
+static const uint32_t QME_SCOM_XIDBGPRO_IAR = 32;
+static const uint32_t QME_SCOM_XIDBGPRO_IAR_LEN = 30;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -77,30 +138,46 @@ static const uint32_t QME_SCOM_XIDBGPRO = 0xc0002140ull;
 
 static const uint32_t QME_SSDR = 0xc0001400ull;
 
-static const uint32_t QME_SSDR_0_QME_SCSR_PM_EXIT = 8;
-static const uint32_t QME_SSDR_1_QME_SCSR_PM_EXIT = 9;
-static const uint32_t QME_SSDR_2_QME_SCSR_PM_EXIT = 10;
-static const uint32_t QME_SSDR_3_QME_SCSR_PM_EXIT = 11;
-static const uint32_t QME_SSDR_0_QME_SCSR_BLOCK_INTR_OUTPUTS = 32;
-static const uint32_t QME_SSDR_1_QME_SCSR_BLOCK_INTR_OUTPUTS = 33;
-static const uint32_t QME_SSDR_2_QME_SCSR_BLOCK_INTR_OUTPUTS = 34;
-static const uint32_t QME_SSDR_3_QME_SCSR_BLOCK_INTR_OUTPUTS = 35;
-static const uint32_t QME_SSDR_0_QME_SCSR_PM_BLOCK_INTR = 36;
-static const uint32_t QME_SSDR_1_QME_SCSR_PM_BLOCK_INTR = 37;
-static const uint32_t QME_SSDR_2_QME_SCSR_PM_BLOCK_INTR = 38;
-static const uint32_t QME_SSDR_3_QME_SCSR_PM_BLOCK_INTR = 39;
-static const uint32_t QME_SSDR_0_QME_SSH_SRC_SAMPLED_STOP_ACTIVE = 44;
-static const uint32_t QME_SSDR_1_QME_SSH_SRC_SAMPLED_STOP_ACTIVE = 45;
-static const uint32_t QME_SSDR_2_QME_SSH_SRC_SAMPLED_STOP_ACTIVE = 46;
-static const uint32_t QME_SSDR_3_QME_SSH_SRC_SAMPLED_STOP_ACTIVE = 47;
-static const uint32_t QME_SSDR_0_QME_SSH_SRC_SAMPLED_STOP_STATE = 48;
-static const uint32_t QME_SSDR_0_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
-static const uint32_t QME_SSDR_1_QME_SSH_SRC_SAMPLED_STOP_STATE = 52;
-static const uint32_t QME_SSDR_1_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
-static const uint32_t QME_SSDR_2_QME_SSH_SRC_SAMPLED_STOP_STATE = 56;
-static const uint32_t QME_SSDR_2_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
-static const uint32_t QME_SSDR_3_QME_SSH_SRC_SAMPLED_STOP_STATE = 60;
-static const uint32_t QME_SSDR_3_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
+static const uint32_t QME_SSDR_PC_UNMASKED_ATTN = 0;
+static const uint32_t QME_SSDR_PC_UNMASKED_ATTN_LEN = 4;
+static const uint32_t QME_SSDR_INSTR_RUNNING = 4;
+static const uint32_t QME_SSDR_INSTR_RUNNING_LEN = 4;
+static const uint32_t QME_SSDR_QME_SCSR_PM_EXIT = 8;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_PM_EXIT = 9;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_PM_EXIT = 10;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_PM_EXIT = 11;
+static const uint32_t QME_SSDR_PM_STATE_ACTIVE = 12;
+static const uint32_t QME_SSDR_PM_STATE_ACTIVE_LEN = 4;
+static const uint32_t QME_SSDR_PM_STATE_C0 = 16;
+static const uint32_t QME_SSDR_PM_STATE_C0_LEN = 4;
+static const uint32_t QME_SSDR_PM_STATE_C1 = 20;
+static const uint32_t QME_SSDR_PM_STATE_C1_LEN = 4;
+static const uint32_t QME_SSDR_PM_STATE_C2 = 24;
+static const uint32_t QME_SSDR_PM_STATE_C2_LEN = 4;
+static const uint32_t QME_SSDR_PM_STATE_C3 = 28;
+static const uint32_t QME_SSDR_PM_STATE_C3_LEN = 4;
+static const uint32_t QME_SSDR_QME_SCSR_BLOCK_INTR_OUTPUTS = 32;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_BLOCK_INTR_OUTPUTS = 33;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_BLOCK_INTR_OUTPUTS = 34;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_BLOCK_INTR_OUTPUTS = 35;
+static const uint32_t QME_SSDR_QME_SCSR_PM_BLOCK_INTR = 36;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_PM_BLOCK_INTR = 37;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_PM_BLOCK_INTR = 38;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SCSR_PM_BLOCK_INTR = 39;
+static const uint32_t QME_SSDR_PC_DPES_INTR_PEND = 40;
+static const uint32_t QME_SSDR_PC_DPES_INTR_PEND_LEN = 4;
+static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_ACTIVE = 44;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_ACTIVE = 45;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_ACTIVE = 46;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_ACTIVE = 47;
+static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE = 48;
+static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE = 52;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE = 56;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE = 60;
+// ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -108,54 +185,62 @@ static const uint32_t QME_SSDR_3_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
 
 static const uint32_t QME_SWHR = 0xc00014c0ull;
 
-static const uint32_t QME_SWHR_0_QME_SSH_SRC_SPC_WKUP_RECENT_SET = 4;
-static const uint32_t QME_SWHR_0_QME_SSH_SRC_SPC_WKUP_RECENT_SET_LEN = 2;
-static const uint32_t QME_SWHR_0_QME_SSH_SRC_SPC_WKUP_RECENT_CLR = 6;
-static const uint32_t QME_SWHR_0_QME_SSH_SRC_SPC_WKUP_RECENT_CLR_LEN = 2;
-static const uint32_t QME_SWHR_0_QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 8;
-static const uint32_t QME_SWHR_0_QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
-static const uint32_t QME_SWHR_0_QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 10;
-static const uint32_t QME_SWHR_0_QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
-static const uint32_t QME_SWHR_0_QME_SPWU_OTR_SPECIAL_WKUP_REQ = 12;
-static const uint32_t QME_SWHR_0_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 13;
-static const uint32_t QME_SWHR_0_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 14;
-static const uint32_t QME_SWHR_0_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 15;
-static const uint32_t QME_SWHR_1_QME_SSH_SRC_SPC_WKUP_RECENT_SET = 20;
-static const uint32_t QME_SWHR_1_QME_SSH_SRC_SPC_WKUP_RECENT_SET_LEN = 2;
-static const uint32_t QME_SWHR_1_QME_SSH_SRC_SPC_WKUP_RECENT_CLR = 22;
-static const uint32_t QME_SWHR_1_QME_SSH_SRC_SPC_WKUP_RECENT_CLR_LEN = 2;
-static const uint32_t QME_SWHR_1_QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 24;
-static const uint32_t QME_SWHR_1_QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
-static const uint32_t QME_SWHR_1_QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 26;
-static const uint32_t QME_SWHR_1_QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
-static const uint32_t QME_SWHR_1_QME_SPWU_OTR_SPECIAL_WKUP_REQ = 28;
-static const uint32_t QME_SWHR_1_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 29;
-static const uint32_t QME_SWHR_1_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 30;
-static const uint32_t QME_SWHR_1_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 31;
-static const uint32_t QME_SWHR_2_QME_SSH_SRC_SPC_WKUP_RECENT_SET = 36;
-static const uint32_t QME_SWHR_2_QME_SSH_SRC_SPC_WKUP_RECENT_SET_LEN = 2;
-static const uint32_t QME_SWHR_2_QME_SSH_SRC_SPC_WKUP_RECENT_CLR = 38;
-static const uint32_t QME_SWHR_2_QME_SSH_SRC_SPC_WKUP_RECENT_CLR_LEN = 2;
-static const uint32_t QME_SWHR_2_QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 40;
-static const uint32_t QME_SWHR_2_QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
-static const uint32_t QME_SWHR_2_QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 42;
-static const uint32_t QME_SWHR_2_QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
-static const uint32_t QME_SWHR_2_QME_SPWU_OTR_SPECIAL_WKUP_REQ = 44;
-static const uint32_t QME_SWHR_2_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 45;
-static const uint32_t QME_SWHR_2_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 46;
-static const uint32_t QME_SWHR_2_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 47;
-static const uint32_t QME_SWHR_3_QME_SSH_SRC_SPC_WKUP_RECENT_SET = 52;
-static const uint32_t QME_SWHR_3_QME_SSH_SRC_SPC_WKUP_RECENT_SET_LEN = 2;
-static const uint32_t QME_SWHR_3_QME_SSH_SRC_SPC_WKUP_RECENT_CLR = 54;
-static const uint32_t QME_SWHR_3_QME_SSH_SRC_SPC_WKUP_RECENT_CLR_LEN = 2;
-static const uint32_t QME_SWHR_3_QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 56;
-static const uint32_t QME_SWHR_3_QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
-static const uint32_t QME_SWHR_3_QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 58;
-static const uint32_t QME_SWHR_3_QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
-static const uint32_t QME_SWHR_3_QME_SPWU_OTR_SPECIAL_WKUP_REQ = 60;
-static const uint32_t QME_SWHR_3_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 61;
-static const uint32_t QME_SWHR_3_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 62;
-static const uint32_t QME_SWHR_3_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 63;
+static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C0 = 0;
+static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C0_LEN = 4;
+static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_SET = 4;
+static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_SET_LEN = 2;
+static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_CLR = 6;
+static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_CLR_LEN = 2;
+static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 8;
+static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
+static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 10;
+static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
+static const uint32_t QME_SWHR_QME_SPWU_OTR_SPECIAL_WKUP_REQ = 12;
+static const uint32_t QME_SWHR_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 13;
+static const uint32_t QME_SWHR_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 14;
+static const uint32_t QME_SWHR_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 15;
+static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C1 = 16;
+static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C1_LEN = 4;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_SET = 20;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_SET_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_CLR = 22;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_CLR_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 24;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 26;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_OTR_SPECIAL_WKUP_REQ = 28;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 29;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 30;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 31;
+static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C2 = 32;
+static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C2_LEN = 4;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_SET = 36;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_SET_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_CLR = 38;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_CLR_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 40;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 42;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_OTR_SPECIAL_WKUP_REQ = 44;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 45;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 46;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 47;
+static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C3 = 48;
+static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C3_LEN = 4;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_SET = 52;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_SET_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_CLR = 54;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_CLR_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 56;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 58;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_OTR_SPECIAL_WKUP_REQ = 60;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 61;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 62;
+// ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 63;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
