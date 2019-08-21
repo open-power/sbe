@@ -171,6 +171,9 @@ using sbeIstepHwpMCCore_t =  ReturnCode (*)
 using sbeIstepHwpMCORCore_t =  ReturnCode (*)
                     (const Target<fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST> & i_target);
 
+using sbeIstepHwpStartCore_t =  ReturnCode (*)
+                    (const Target<TARGET_TYPE_CORE> & i_target,
+                     const ThreadSpecifier i_thread_mask);
 
 #if 0
 using  sbeIstepHwpExL2Flush_t = ReturnCode (*)
@@ -212,6 +215,7 @@ ReturnCode istepAttrSetup( voidfuncptr_t i_hwp );
 ReturnCode istepNoOp( voidfuncptr_t i_hwp );
 ReturnCode istepWithEq( voidfuncptr_t i_hwp);
 ReturnCode istepWithCore( voidfuncptr_t i_hwp);
+ReturnCode istepWithCoreStart( voidfuncptr_t i_hwp);
 ReturnCode istepWithMCCore( voidfuncptr_t i_hwp);
 ReturnCode istepWithMCORCore( voidfuncptr_t i_hwp);
 ReturnCode istepSelectEx( voidfuncptr_t i_hwp);
@@ -554,6 +558,43 @@ ReturnCode istepWithCore( voidfuncptr_t i_hwp)
 }
 
 //----------------------------------------------------------------------------
+ReturnCode istepWithCoreStart( voidfuncptr_t i_hwp)
+{
+    #define SBE_FUNC "istepWithCoreStart"
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    // Get master Core
+    uint8_t coreId = 0;
+
+    uint8_t fuseMode = 0;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,proc,coreId);
+    FAPI_ATTR_GET(ATTR_FUSED_CORE_MODE, Target<TARGET_TYPE_SYSTEM>(), fuseMode);
+    fapi2::Target<fapi2::TARGET_TYPE_CORE >
+        coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
+    assert( NULL != i_hwp );
+
+    do
+    {
+        // Core0 is assumed to be the master core
+       ThreadSpecifier l_thread = THREAD0;
+       SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpStartCore_t>(i_hwp), coreTgt, l_thread)
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " istepWithCoreStart failed, RC=[0x%08X]", rc);
+            break;
+        }
+        // Only continue in case of istep4 && fuse core mode
+        if(!( (fuseMode) &&
+              (SbeRegAccess::theSbeRegAccess().getSbeMajorIstepNumber() ==
+                                                            4) ) )
+        {
+            break;
+        }
+    }while(0);
+    return rc;
+    #undef SBE_FUNC
+}
+//----------------------------------------------------------------------------
 ReturnCode istepWithMCORCore( voidfuncptr_t i_hwp)
 {
     #define SBE_FUNC "istepWithMCORCore"
@@ -752,7 +793,7 @@ ReturnCode istepStartInstruction( voidfuncptr_t i_hwp)
 
     SBE_MSG_CONSOLE("SBE starting hostboot");
     SBE_UART_DISABLE;
-    rc = istepWithCore(i_hwp);
+    rc = istepWithCoreStart(i_hwp);
     if(rc == FAPI2_RC_SUCCESS)
     {
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
