@@ -525,6 +525,12 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
         }
     }
 
+    // Write attributes for sbe core spr setup
+    FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SBE_MASTER_HRMOR_ADDRESS,
+                           fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                           l_load_base_address),
+             "Error from FAPI_ATTR_SET (ATTR_SBE_MASTER_HRMOR_ADDRESS)");
+
 fapi_try_exit:
     FAPI_DBG("End");
     return fapi2::current_err;
