@@ -29,6 +29,7 @@ backplane0.dcm0.chip0.pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
 echo "*******************Run testRunTillSbeBooted.py************************"
 
 run-python-file targets/p10_standalone/sbeTest/testRunTillSbeBooted.py
+exit 0
 
 echo "*******************Run testPSUSetStashPair.xml*******************"
 
@@ -38,7 +39,6 @@ echo "*******************Run SBE-ISTEPS ******************"
 
 sbe-istep 2.2 5.2
 #TODO: Remove exit
-exit 0
 
 run-python-file targets/p10_standalone/sbeTest/testMatchStashPair.py
 
