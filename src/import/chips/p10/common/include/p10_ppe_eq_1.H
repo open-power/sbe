@@ -57,7 +57,7 @@ static const uint32_t QME_LFIRMASK_WO_AND = 0xc0000050ull;
 static const uint32_t QME_LFIRMASK_WO_OR = 0xc0000060ull;
 
 static const uint32_t QME_LFIRMASK_FIR_MASK = 0;
-static const uint32_t QME_LFIRMASK_FIR_MASK_LEN = 28;
+static const uint32_t QME_LFIRMASK_FIR_MASK_LEN = 31;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

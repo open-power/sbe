@@ -98,10 +98,13 @@ static const uint32_t QME_LFIR_DECONFIGURED_INTR = 20;
 static const uint32_t QME_LFIR_RS4_TIMEOUT = 21;
 static const uint32_t QME_LFIR_PB_DATA_HANG = 22;
 static const uint32_t QME_LFIR_WRITE_PROTECT_FAIL = 23;
-static const uint32_t QME_LFIR_SPARE24 = 24;
-static const uint32_t QME_LFIR_SPARE25 = 25;
-static const uint32_t QME_LFIR_SPARE26 = 26;
-static const uint32_t QME_LFIR_SPARE27 = 27;
+static const uint32_t QME_LFIR_DTC_ERROR = 24;
+static const uint32_t QME_LFIR_PB_CE = 25;
+static const uint32_t QME_LFIR_PB_UE = 26;
+static const uint32_t QME_LFIR_PB_SUE = 27;
+static const uint32_t QME_LFIR_PB_INVALID_TOPOTABLE_ENTRY = 28;
+static const uint32_t QME_LFIR_SPARE29 = 29;
+static const uint32_t QME_LFIR_SPARE30 = 30;
 // ppe_eq/reg00014.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

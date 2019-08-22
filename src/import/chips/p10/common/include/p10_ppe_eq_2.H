@@ -82,7 +82,7 @@ static const uint32_t QME_EISR_RS4_BUSY = 9;
 static const uint32_t QME_EISR_RESCLK_TARGET_ASSIST = 10;
 static const uint32_t QME_EISR_RESCLK_DONE_ASSIST = 11;
 static const uint32_t QME_EISR_SPARE_12 = 12;
-static const uint32_t QME_EISR_FTX_UPDATE = 13;
+static const uint32_t QME_EISR_WOCR_UPDATE = 13;
 static const uint32_t QME_EISR_TBR_CYCLES_ROLLED = 14;
 static const uint32_t QME_EISR_TBR_TIMEBASE_ROLLED = 15;
 static const uint32_t QME_EISR_DOORBELL_0 = 16;
@@ -118,7 +118,7 @@ static const uint32_t QME_EISR_CPMS_INTERRUPT1_LEN = 4;
 static const uint32_t QME_LFIRACT1 = 0xc00000c0ull;
 
 static const uint32_t QME_LFIRACT1_FIR_ACTION1 = 0;
-static const uint32_t QME_LFIRACT1_FIR_ACTION1_LEN = 28;
+static const uint32_t QME_LFIRACT1_FIR_ACTION1_LEN = 31;
 // ppe_eq/reg00002.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

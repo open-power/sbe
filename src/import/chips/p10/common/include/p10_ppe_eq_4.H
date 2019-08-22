@@ -46,11 +46,30 @@ static const uint32_t QME_EISTR = 0xc0002700ull;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_FTXR = 0xc0001780ull;
+
+static const uint32_t QME_FTXR_C0_DTC_INDEX = 2;
+static const uint32_t QME_FTXR_C0_DTC_INDEX_LEN = 6;
+static const uint32_t QME_FTXR_C1_DTC_INDEX = 10;
+static const uint32_t QME_FTXR_C1_DTC_INDEX_LEN = 6;
+static const uint32_t QME_FTXR_C2_DTC_INDEX = 18;
+static const uint32_t QME_FTXR_C2_DTC_INDEX_LEN = 6;
+static const uint32_t QME_FTXR_C3_DTC_INDEX = 26;
+static const uint32_t QME_FTXR_C3_DTC_INDEX_LEN = 6;
+static const uint32_t QME_FTXR_FTX_UPDATE_PENDING = 32;
+static const uint32_t QME_FTXR_FTX_UPDATE_PENDING_LEN = 4;
+static const uint32_t QME_FTXR_QOS_UPDATE_PENDING = 36;
+static const uint32_t QME_FTXR_QOS_UPDATE_PENDING_LEN = 4;
+// ppe_eq/reg00004.H
+
+//ERRCODE: // Some of the name targets not found in address targets: eq
 
 static const uint32_t QME_LFIRACT0 = 0xc0000080ull;
 
 static const uint32_t QME_LFIRACT0_FIR_ACTION1 = 0;
-static const uint32_t QME_LFIRACT0_FIR_ACTION1_LEN = 28;
+static const uint32_t QME_LFIRACT0_FIR_ACTION1_LEN = 31;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

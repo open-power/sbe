@@ -113,6 +113,25 @@ static const uint32_t QME_RCMR_CORE3_CONTROL_INDEX = 59;
 static const uint32_t QME_RCMR_CORE3_CONTROL_INDEX_LEN = 5;
 // ppe_eq/reg00013.H
 
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_WCOR = 0xc0001740ull;
+
+static const uint32_t QME_WCOR_0_OVER_THROTTLED = 1;
+static const uint32_t QME_WCOR_0_THROTTLE_INDEX = 2;
+static const uint32_t QME_WCOR_0_THROTTLE_INDEX_LEN = 6;
+static const uint32_t QME_WCOR_1_OVER_THROTTLED = 9;
+static const uint32_t QME_WCOR_1_THROTTLE_INDEX = 10;
+static const uint32_t QME_WCOR_1_THROTTLE_INDEX_LEN = 6;
+static const uint32_t QME_WCOR_2_OVER_THROTTLED = 17;
+static const uint32_t QME_WCOR_2_THROTTLE_INDEX = 18;
+static const uint32_t QME_WCOR_2_THROTTLE_INDEX_LEN = 6;
+static const uint32_t QME_WCOR_3_OVER_THROTTLED = 25;
+static const uint32_t QME_WCOR_3_THROTTLE_INDEX = 26;
+static const uint32_t QME_WCOR_3_THROTTLE_INDEX_LEN = 6;
+// ppe_eq/reg00013.H
+
 #ifndef __PPE_HCODE__
 }
 }

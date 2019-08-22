@@ -131,6 +131,22 @@ static const uint32_t CPMS_ESCR_EVENTY_DONTCARE = 60;
 static const uint32_t CPMS_ESCR_EVENTY_DONTCARE_LEN = 4;
 // ppe_c/reg00008.H
 
+static const uint32_t QME_QOSR = 0xc0008a00ull;
+
+static const uint32_t QME_QOSR_0_QOS_INDEX = 2;
+static const uint32_t QME_QOSR_0_QOS_INDEX_LEN = 6;
+static const uint32_t QME_QOSR_1_QOS_INDEX = 10;
+static const uint32_t QME_QOSR_1_QOS_INDEX_LEN = 6;
+static const uint32_t QME_QOSR_2_QOS_INDEX = 18;
+static const uint32_t QME_QOSR_2_QOS_INDEX_LEN = 6;
+static const uint32_t QME_QOSR_3_QOS_INDEX = 26;
+static const uint32_t QME_QOSR_3_QOS_INDEX_LEN = 6;
+static const uint32_t QME_QOSR_0_DTC_INDEX = 34;
+static const uint32_t QME_QOSR_0_DTC_INDEX_LEN = 4;
+static const uint32_t QME_QOSR_2_DTC_INDEX = 50;
+static const uint32_t QME_QOSR_2_DTC_INDEX_LEN = 6;
+// ppe_c/reg00008.H
+
 #ifndef __PPE_HCODE__
 }
 }

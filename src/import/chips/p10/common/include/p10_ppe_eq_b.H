@@ -60,7 +60,7 @@ static const uint32_t QME_RCPTR = 0xc0001880ull;
 
 static const uint32_t QME_RCPTR_TARGET_PSTATE = 0;
 static const uint32_t QME_RCPTR_TARGET_PSTATE_LEN = 8;
-static const uint32_t QME_RCPTR_PSTATE_ACK_PENDING = 8;
+static const uint32_t QME_RCPTR_PSTATE_CHANGE_PENDING = 8;
 static const uint32_t QME_RCPTR_TARGET_INDEX = 59;
 static const uint32_t QME_RCPTR_TARGET_INDEX_LEN = 5;
 // ppe_eq/reg00011.H
