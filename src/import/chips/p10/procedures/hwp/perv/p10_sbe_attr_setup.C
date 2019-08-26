@@ -584,6 +584,8 @@ fapi2::ReturnCode p10_sbe_attr_setup(
     // read_scratch6_reg -- Master/slave, node/chip selection, PLL bypass controls
     {
         fapi2::buffer<uint64_t> l_read_scratch6_reg = 0;
+        fapi2::ATTR_SKEWADJ_BYPASS_Type l_attr_skewadj_bypass = fapi2::ENUM_ATTR_SKEWADJ_BYPASS_NO_BYPASS;
+        fapi2::ATTR_DCADJ_BYPASS_Type l_attr_dcadj_bypass = fapi2::ENUM_ATTR_DCADJ_BYPASS_NO_BYPASS;
         fapi2::ATTR_CP_PLLTODFLT_BYPASS_Type l_attr_cp_plltodflt_bypass = fapi2::ENUM_ATTR_CP_PLLTODFLT_BYPASS_NO_BYPASS;
         fapi2::ATTR_CP_PLLNESTFLT_BYPASS_Type l_attr_cp_pllnestflt_bypass = fapi2::ENUM_ATTR_CP_PLLNESTFLT_BYPASS_NO_BYPASS;
         fapi2::ATTR_CP_PLLIOFLT_BYPASS_Type l_attr_cp_pllioflt_bypass = fapi2::ENUM_ATTR_CP_PLLIOFLT_BYPASS_NO_BYPASS;
@@ -604,6 +606,23 @@ fapi2::ReturnCode p10_sbe_attr_setup(
             FAPI_DBG("Reading Scratch 6 mailbox register");
             FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RW, l_read_scratch6_reg),
                      "Error reading Scratch 6 mailbox register");
+
+            FAPI_DBG("Setting up skew adjust/duty cycle adjust bypass attributes");
+
+            if (l_read_scratch6_reg.getBit<ATTR_SKEWADJ_BYPASS_BIT>())
+            {
+                l_attr_skewadj_bypass = fapi2::ENUM_ATTR_SKEWADJ_BYPASS_BYPASS;
+            }
+
+            if (l_read_scratch6_reg.getBit<ATTR_DCADJ_BYPASS_BIT>())
+            {
+                l_attr_dcadj_bypass = fapi2::ENUM_ATTR_DCADJ_BYPASS_BYPASS;
+            }
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SKEWADJ_BYPASS, i_target_chip, l_attr_skewadj_bypass),
+                     "Error from FAPI_ATTR_SET (ATTR_SKEWADJ_BYPASS)");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DCADJ_BYPASS, i_target_chip, l_attr_dcadj_bypass),
+                     "Error from FAPI_ATTR_SET (ATTR_DCADJ_BYPASS)");
 
             FAPI_DBG("Setting up filter PLL bypass attributes");
 
