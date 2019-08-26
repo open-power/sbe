@@ -54,7 +54,7 @@ if $sbe_ci_script != NIL {
 ###################################
 echo "Enable the SBE"
 
-(get-master-cec-chips)[0].invoke parallel_store SCOM 0x5003A "10000000_00000000" 64
+(get-master-cec-chips)[0].invoke parallel_store SCOM 0x5003A "90000000_00000000" 64
 # Set security enabled bit
 (get-master-cec-chips)[0].invoke parallel_store SCOM 0x00050001 "0C000002_00000000" 64
 
