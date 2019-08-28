@@ -134,6 +134,7 @@ static uint32_t specialWakeUpCoreAssert(
     return rc;
     #undef SBE_FUNC
 }
+
 static uint32_t specialWakeUpCoreDeAssert(
         const Target<TARGET_TYPE_CORE>& i_target, ReturnCode &o_fapiRc)
 {
@@ -183,6 +184,7 @@ ReturnCode stopAllCoreInstructions( )
         if(SBE::isSimicsRunning())
         {
             l_isCoreScomEnabled = true;
+            break;
         }
         else
         {
@@ -192,33 +194,27 @@ ReturnCode stopAllCoreInstructions( )
             if(l_fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC " p9_query_core_access_state failed, "
-                        "RC=[0x%08X]", l_fapiRc);
+                    "RC=[0x%08X]", l_fapiRc);
                 break;
             }
         }
         if(l_isCoreScomEnabled) //true
         {
-            uint8_t l_thread = SMT4_THREAD0;
             fapi2::buffer<uint64_t> l_data64;
             uint64_t l_state;
             bool l_warnCheck = true;
-            do
+
+            SBE_EXEC_HWP(l_fapiRc,
+                         threadCntlhwp,
+                         l_coreTgt,
+                         (SMT4_THREAD_ALL),
+                         PTC_CMD_STOP, l_warnCheck,l_data64, l_state)
+            if(l_fapiRc != FAPI2_RC_SUCCESS)
             {
-                // Call instruction control stop
-                // TODO RTC 164425 - Can we pass in 1111 i.e. all threads at the
-                // same time instead of individual threads
-                SBE_EXEC_HWP(l_fapiRc,
-                             threadCntlhwp,
-                             l_coreTgt,
-                             (SINGLE_THREAD_BIT_MASK >> l_thread),
-                             PTC_CMD_STOP, l_warnCheck,l_data64, l_state)
-                if(l_fapiRc != FAPI2_RC_SUCCESS)
-                {
-                    SBE_ERROR(SBE_FUNC "p9_thread_control stop Failed for "
-                        "Core Thread  RC[0x%08X]", l_fapiRc);
-                    break;
-                }
-            }while(++l_thread < SMT4_THREAD_MAX);
+                SBE_ERROR(SBE_FUNC "p9_thread_control stop Failed for "
+                    "Core Thread  RC[0x%08X]", l_fapiRc);
+                break;
+            }
 
             l_fapiRc = maskSpecialAttn(l_coreTgt);
             if( l_fapiRc != FAPI2_RC_SUCCESS)
@@ -266,7 +262,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
         }
 
         SBE_INFO("mode[0x%04X] coreChipletId[0x%08X] threadNum[0x%04X] "
-            "threadOps[0x%04X] ", l_req.mode, l_req.coreChipletId,
+            "threadOps[0x%04X]", l_req.mode, l_req.coreChipletId,
             l_req.threadNum, l_req.threadOps);
 
         // Validate Input Args
@@ -283,13 +279,12 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
         ThreadCommands l_cmd = getThreadCommand(l_req);
 
         // Default assignment not required since it is assigned below
-        uint8_t l_core, l_coreCntMax;
-        uint8_t l_threadCnt, l_threadCntMax;
-
-        l_req.processInputDataToIterate(l_core, l_coreCntMax,
-                                        l_threadCnt, l_threadCntMax);
+        uint8_t l_core, l_coreCntMax, l_threadCnt, l_threadCntMax;
         fapi2::buffer<uint64_t> l_data64;
         uint64_t l_state;
+
+        l_req.processInputDataToIterate(l_core, l_coreCntMax,
+                l_threadCnt, l_threadCntMax);
         do
         {
             fapi2::Target<fapi2::TARGET_TYPE_CORE>
@@ -300,16 +295,15 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                 continue;
             }
 
-            bool deassertRequired = false;
             if(l_req.isSpecialWakeUpRequired())
             {
                 l_rc = specialWakeUpCoreAssert(l_coreTgt, l_fapiRc);
                 if(l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
                 {
                     SBE_ERROR(SBE_FUNC "Special Wakeup Assert failed for core[0x%2x]",
-                                                 (uint8_t)l_req.coreChipletId);
+                        (uint8_t)l_req.coreChipletId);
                     l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                        l_rc);
+                            l_rc);
                     l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
                     l_ffdc.setRc(l_fapiRc);
                     if(!(IGNORE_HW_ERRORS & l_req.mode))
@@ -322,77 +316,98 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                 else
                 {
                     SBE_INFO(SBE_FUNC "Special Wakeup assert succeeded for core[0x%2x]",
-                                                     (uint8_t)l_req.coreChipletId);
-                    deassertRequired = true;
+                            (uint8_t)l_req.coreChipletId);
                 }
             }
+        }while(++l_core < l_coreCntMax);
 
-            uint8_t l_thread = l_threadCnt;
-            do
+        if ((l_fapiRc) && !(IGNORE_HW_ERRORS & l_req.mode))
+        {
+            // If FapiRc from the inner loop (thread loop), just break here
+            break; // From core while loop
+        }
+
+        l_req.processInputDataToIterate(l_core, l_coreCntMax,
+                l_threadCnt, l_threadCntMax);
+        do
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_CORE>
+                l_coreTgt(plat_getTargetHandleByChipletNumber
+                        <fapi2::TARGET_TYPE_CORE>(l_core));
+            if(!l_coreTgt.isFunctional())
             {
-                // Call the Procedure
-                SBE_EXEC_HWP(l_fapiRc,
-                             threadCntlhwp,
-                             l_coreTgt,
-                              (SINGLE_THREAD_BIT_MASK >> l_thread),
-                              l_cmd, l_warnCheck,
-                              l_data64, l_state)
+                continue;
+            }
 
-                if(l_fapiRc != FAPI2_RC_SUCCESS)
-                {
-                    SBE_ERROR(SBE_FUNC "Failed for Core[%d] Thread [%d] "
-                        "Cmd[%d] Mode[%d]", l_core, l_thread, l_req.threadOps,
-                        l_req.mode);
-                    if(IGNORE_HW_ERRORS & l_req.mode)
-                    {
-                        // No need to delete the l_fapiRc handle,it will get
-                        // over-written
-                        SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
-                            " As user has passed to ignore errors.");
-                        continue;
-                    }
-                    else
-                    {
-                        SBE_ERROR(SBE_FUNC "Breaking out, since User has "
-                            "Selected the mode to exit on first error.");
-                        l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                         SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-                        l_ffdc.setRc(l_fapiRc);
-                        break;
-                    }
-                }
-            }while(++l_thread < l_threadCntMax);
+            // Call the Procedure
+            SBE_EXEC_HWP(l_fapiRc,
+                         threadCntlhwp,
+                         l_coreTgt,
+                         SMT4_THREAD_ALL,
+                         l_cmd, l_warnCheck,
+                         l_data64, l_state)
 
-            if(deassertRequired)
+            if(l_fapiRc != FAPI2_RC_SUCCESS)
             {
-                ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-                l_rc = specialWakeUpCoreDeAssert(l_coreTgt, fapiRc);
-                if(l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
+                SBE_ERROR(SBE_FUNC "Failed for Core[%d] Thread ALL "
+                    "Cmd[%d] Mode[%d]", l_core, l_req.threadOps, l_req.mode);
+                if(IGNORE_HW_ERRORS & l_req.mode)
                 {
-                    SBE_ERROR(SBE_FUNC "Special Wakeup de-asssert failed for core[0x%2x]",
-                                                 (uint8_t)l_req.coreChipletId);
-                    l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                        l_rc);
-                    l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-                    l_ffdc.setRc(fapiRc);
-                    if(!(IGNORE_HW_ERRORS & l_req.mode))
-                    {
-                        break;
-                    }
+                    // No need to delete the l_fapiRc handle,it will get
+                    // over-written
                     SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
                         " As user has passed to ignore errors.");
+                    continue;
                 }
                 else
                 {
-                    SBE_INFO(SBE_FUNC "Special Wakeup de-assert succeeded for core[0x%2x]",
-                                                     (uint8_t)l_req.coreChipletId);
+                    SBE_ERROR(SBE_FUNC "Breaking out, since User has "
+                        "Selected the mode to exit on first error.");
+                    l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                        SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                    l_ffdc.setRc(l_fapiRc);
+                    break;
                 }
             }
+        }while(++l_core < l_coreCntMax);
 
-            if ((l_fapiRc) && !(IGNORE_HW_ERRORS & l_req.mode))
+        if ((l_fapiRc) && !(IGNORE_HW_ERRORS & l_req.mode))
+        {
+            // If FapiRc from the inner loop (thread loop), just break here
+            break; // From core while loop
+        }
+
+        l_req.processInputDataToIterate(l_core, l_coreCntMax,
+                l_threadCnt, l_threadCntMax);
+        do
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_CORE>
+                l_coreTgt(plat_getTargetHandleByChipletNumber
+                        <fapi2::TARGET_TYPE_CORE>(l_core));
+            if(!l_coreTgt.isFunctional())
             {
-                // If FapiRc from the inner loop (thread loop), just break here
-                break; // From core while loop
+                continue;
+            }
+            ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+            l_rc = specialWakeUpCoreDeAssert(l_coreTgt, fapiRc);
+            if(l_rc != SBE_SEC_OPERATION_SUCCESSFUL)
+            {
+                SBE_ERROR(SBE_FUNC "Special Wakeup de-asssert failed for core[0x%2x]",
+                    (uint8_t)l_req.coreChipletId);
+                l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE, l_rc);
+                l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+                l_ffdc.setRc(fapiRc);
+                if(!(IGNORE_HW_ERRORS & l_req.mode))
+                {
+                    break;
+                }
+                SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
+                    " As user has passed to ignore errors.");
+            }
+            else
+            {
+                SBE_INFO(SBE_FUNC "Special Wakeup de-assert succeeded for core[0x%2x]",
+                    (uint8_t)l_req.coreChipletId);
             }
         }while(++l_core < l_coreCntMax);
 
