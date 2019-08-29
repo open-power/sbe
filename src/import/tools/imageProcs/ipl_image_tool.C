@@ -186,6 +186,7 @@ P9_XIP_SECTION_NAMES_XGPE(g_sectionNamesXgpe);
 P9_XIP_SECTION_NAMES_PGPE(g_sectionNamesPgpe);
 P9_XIP_SECTION_NAMES_RESTORE(g_sectionNamesRestore);
 P9_XIP_SECTION_NAMES_IOPPE(g_sectionNamesIoppe);
+P9_XIP_SECTION_NAMES_IOPXRAM(g_sectionNamesIopxram);
 
 #define ERRBUF_SIZE 60
 
@@ -225,6 +226,9 @@ static inline const char* get_sectionName(uint64_t magic, int index)
 
         case P9_XIP_MAGIC_IOPPE:
             return P9_XIP_SECTION_NAME(g_sectionNamesIoppe, index);
+
+        case P9_XIP_MAGIC_IOPXRAM:
+            return P9_XIP_SECTION_NAME(g_sectionNamesIopxram, index);
     }
 
     return "";
