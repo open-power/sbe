@@ -22,11 +22,8 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-INC=$(ROOTPATH)/chips/p10/utils/imageProcs/
-INC+=$(ROOTPATH)/chips/p10/utils/
-$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(INC))
-lib$(PROCEDURE)_DEPLIBS += p10_putring_sbe_utils
+PROCEDURE=p10_plat_ring_traverse
+$(call ADD_MODULE_INCDIR,$(PROCEDURE), $(ROOTPATH)/chips/p10/utils/imageProcs/)
 lib$(PROCEDURE)_DEPLIBS += p10_ringId
 lib$(PROCEDURE)_DEPLIBS += p10_putRingUtils
-PROCEDURE=p10_plat_ring_traverse
 $(call BUILD_PROCEDURE)
