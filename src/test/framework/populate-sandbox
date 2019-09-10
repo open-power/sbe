@@ -51,6 +51,13 @@ then
     echo "Copy PIBMEM image"
     cp -f $SBEBINPIBMEMIMAGE $SBEROOT/simics/import/boot_roms/sbe_pibmem_p10.bin|| exit -1
 fi
+
+if [  -f $SBEBINMEASUREMENTIMAGE ]; then
+    echo "Copy sbe measurement seeprom image"
+    ecc --inject $SBEBINMEASUREMENTIMAGE --output  $SBEECCMEASUREMENTIMAGE --p8 || exit -1
+fi
+
+
 echo "Copy engd (scandef.abr) from backing build"
 mkdir -p $SBEROOT/simics/import/cec-chip/
 cp $BACKING_BUILD/obj/ppc/simu/data/cec-chip/scandef.abr $SBEROOT/simics/import/cec-chip/scandef.abr || exit -1
