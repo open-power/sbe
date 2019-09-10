@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2019                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2020                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -338,14 +338,12 @@
   <!-- See chip_attributes.xml for a description of ATTR_EC -->
   <entry>
            <name>ATTR_EC</name>
-           <!-- The value needs to be changed as per the EC level  -->
-           <value>0x10</value>
+           <virtual/>
   </entry>
   <!-- See chip_attributes.xml for a description of ATTR_NAME -->
   <entry>
            <name>ATTR_NAME</name>
-           <!-- NIMBUS -->
-           <value>0x5</value>
+           <virtual/>
   </entry>
 <!--
 This is an example of how to add a CHIP EC feature attribute to this file
