@@ -264,43 +264,35 @@ int sbeInitThreads(void)
 #ifdef PIBMEM_ONLY_IMAGE
 void pib_init_sequence(void)
 {
+    //Release PCB Reset
     uint64_t loadValue = 0x200000000ULL;
-    PPE_STVD(0x50120, loadValue);
-
-    loadValue = 0x200000000000ULL;
-    PPE_STVD(0x50120, loadValue);
-
-    loadValue = 0x900000000000ULL;
     PPE_STVD(0x50130, loadValue);
-
-    loadValue = 0x200000000ULL;
-    PPE_STVD(0x50130, loadValue);
-
+    //Initialize OPCG_ALIGN register with 1:1 scan ratio
     loadValue = 0x5000000000000020ULL;
     PPE_STVD(0x1030001, loadValue);
-
-    loadValue = 0x4000000000ULL;
-    PPE_STVD(0x50134, loadValue);
-
+    //Set Chiplet Enable
     loadValue = 0x8000000000000000ULL;
     PPE_STVD(0x5012A, loadValue);
-
+    //Drop TP Chiplet Fence Enable
     loadValue = 0x200000000000ULL;
     PPE_STVD(0x5013A, loadValue);
-
-    loadValue = 0x280000000000000ULL;
+    //Drop PIB region fence
+    loadValue = 0x200000000000000ULL;
     PPE_STVD(0x1000021, loadValue);
-
+    //Starting clock for PIB
+    //Entering ...
+    //Exit flush (set flushmode inhibit)
     loadValue = 0x2000000000000000ULL;
     PPE_STVD(0x1000010, loadValue);
-
+    //Clear Scan region type register
     loadValue = 0x0ULL;
     PPE_STVD(0x1030005, loadValue);
-
-    loadValue = 0x428000000000E000ULL;
+    //Setup all Clock Domains and Clock Types
+    loadValue = 0x420000000000E000ULL;
     PPE_STVD(0x1030006, loadValue);
 
     // Compare the values
+    //Poll OPCG done bit to check for completeness
     uint64_t fetchValue = 0; 
     loadValue = 0xC0000000000000ULL;
     PPE_LVD(0x1000100, fetchValue);
@@ -308,41 +300,34 @@ void pib_init_sequence(void)
     {
         pk_halt();
     }
-    loadValue = 0xFFFE00000000000ULL;
-    fetchValue = 0;
-    PPE_LVD(0x1000002, fetchValue);
-    if(fetchValue != loadValue)
-    {
-        pk_halt();
-    }
-    loadValue = 0xF97FFFFFFFFFFFFFULL;
+    //Check for clocks running SL
+    loadValue = 0xF9FFFFFFFFFFFFFFULL;
     fetchValue = 0;
     PPE_LVD(0x1030008, fetchValue);
     if(fetchValue != loadValue)
     {
         pk_halt();
     }
-    fetchValue = 0;
+    //Check for clocks running NSL
+    fetchValue = 0xF9FFFFFFFFFFFFFFULL;
     PPE_LVD(0x1030009, fetchValue);
     if(fetchValue != loadValue)
     {
         pk_halt();
     }
-    fetchValue = 0;
+    //Check for clocks running ARY
+    fetchValue = 0xF9FFFFFFFFFFFFFFULL;
     PPE_LVD(0x103000A, fetchValue);
     if(fetchValue != loadValue)
     {
         pk_halt();
     }
-
-    loadValue = 0x200000000ULL;
-    PPE_STVD(0x50120, loadValue);
-    loadValue = 0x100000000000ULL;
-    PPE_STVD(0x50120, loadValue);
-    loadValue = 0xA00000000000ULL;
-    PPE_STVD(0x50130, loadValue);
-    loadValue = 0x200000000ULL;
-    PPE_STVD(0x50130, loadValue);
+    //Clear clock region
+    loadValue = 0x0ULL;
+    PPE_STVD(0x1030006, loadValue);
+    //Enter flush (clear flushmode inhibit)
+    loadValue = 0x2000000000000000ULL;
+    PPE_STVD(0x1030020, loadValue);
 }
 #endif
 
