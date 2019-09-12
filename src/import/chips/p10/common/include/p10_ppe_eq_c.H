@@ -110,6 +110,8 @@ static const uint32_t QME_PTSR_5_DATA = 40;
 static const uint32_t QME_PTSR_5_DATA_LEN = 8;
 static const uint32_t QME_PTSR_6_DATA = 48;
 static const uint32_t QME_PTSR_6_DATA_LEN = 8;
+static const uint32_t QME_PTSR_7_DATA = 56;
+static const uint32_t QME_PTSR_7_DATA_LEN = 8;
 // ppe_eq/reg00012.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -174,29 +176,31 @@ static const uint32_t QME_SCOM_PBTXTR0_7_LEN = 4;
 
 static const uint32_t QME_SCOM_XIRAMDBG = 0xc00020c0ull;
 
-static const uint32_t QME_SCOM_XIRAMDBG_HS = 0;
-static const uint32_t QME_SCOM_XIRAMDBG_HC = 1;
-static const uint32_t QME_SCOM_XIRAMDBG_HC_LEN = 3;
-static const uint32_t QME_SCOM_XIRAMDBG_HCP = 4;
-static const uint32_t QME_SCOM_XIRAMDBG_RIP = 5;
-static const uint32_t QME_SCOM_XIRAMDBG_SIP = 6;
-static const uint32_t QME_SCOM_XIRAMDBG_TRAP = 7;
-static const uint32_t QME_SCOM_XIRAMDBG_IAC = 8;
-static const uint32_t QME_SCOM_XIRAMDBG_SIB = 9;
-static const uint32_t QME_SCOM_XIRAMDBG_SIB_LEN = 3;
-static const uint32_t QME_SCOM_XIRAMDBG_RDAC = 12;
-static const uint32_t QME_SCOM_XIRAMDBG_WDAC = 13;
-static const uint32_t QME_SCOM_XIRAMDBG_WS = 14;
-static const uint32_t QME_SCOM_XIRAMDBG_TRH = 15;
-static const uint32_t QME_SCOM_XIRAMDBG_SMS = 16;
-static const uint32_t QME_SCOM_XIRAMDBG_SMS_LEN = 4;
-static const uint32_t QME_SCOM_XIRAMDBG_LP = 20;
-static const uint32_t QME_SCOM_XIRAMDBG_EP = 21;
-static const uint32_t QME_SCOM_XIRAMDBG_PTR = 24;
-static const uint32_t QME_SCOM_XIRAMDBG_ST = 25;
-static const uint32_t QME_SCOM_XIRAMDBG_MFE = 28;
-static const uint32_t QME_SCOM_XIRAMDBG_MCS = 29;
-static const uint32_t QME_SCOM_XIRAMDBG_MCS_LEN = 3;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_HS = 0;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_HC = 1;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_HC_LEN = 3;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_HCP = 4;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_RIP = 5;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_SIP = 6;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_TRAP = 7;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_IAC = 8;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_SIB = 9;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_SIB_LEN = 3;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_RDAC = 12;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_WDAC = 13;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_WS = 14;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_TRH = 15;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_SMS = 16;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_SMS_LEN = 4;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_LP = 20;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_EP = 21;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_PTR = 24;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_ST = 25;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_MFE = 28;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_MCS = 29;
+static const uint32_t QME_SCOM_XIRAMDBG_XSR_MCS_LEN = 3;
+static const uint32_t QME_SCOM_XIRAMDBG_SPRG0 = 32;
+static const uint32_t QME_SCOM_XIRAMDBG_SPRG0_LEN = 32;
 // ppe_eq/reg00012.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -206,6 +210,8 @@ static const uint32_t QME_SCOM_XIRAMGA = 0xc0002080ull;
 
 static const uint32_t QME_SCOM_XIRAMGA_QME_SCOM_XIRAMEDR_IR = 0;
 static const uint32_t QME_SCOM_XIRAMGA_QME_SCOM_XIRAMEDR_IR_LEN = 32;
+static const uint32_t QME_SCOM_XIRAMGA_SPRG0 = 32;
+static const uint32_t QME_SCOM_XIRAMGA_SPRG0_LEN = 32;
 // ppe_eq/reg00012.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

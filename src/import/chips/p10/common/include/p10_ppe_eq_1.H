@@ -99,6 +99,8 @@ static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C1 = 52;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C1_LEN = 4;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2 = 56;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2_LEN = 4;
+static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C3 = 60;
+static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C3_LEN = 4;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

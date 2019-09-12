@@ -126,6 +126,8 @@ static const uint32_t CPMS_DTTR_T1_DPT_INFLIGHT_LIMIT = 40;
 static const uint32_t CPMS_DTTR_T1_DPT_INFLIGHT_LIMIT_LEN = 8;
 static const uint32_t CPMS_DTTR_T2_DPT_INFLIGHT_LIMIT = 48;
 static const uint32_t CPMS_DTTR_T2_DPT_INFLIGHT_LIMIT_LEN = 8;
+static const uint32_t CPMS_DTTR_T3_DPT_INFLIGHT_LIMIT = 56;
+static const uint32_t CPMS_DTTR_T3_DPT_INFLIGHT_LIMIT_LEN = 8;
 // ppe_c/reg00014.H
 
 static const uint32_t QME_CISR = 0xc0008780ull;

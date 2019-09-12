@@ -75,6 +75,7 @@ static const uint32_t QME_QSAR = 0xc0000740ull;
 
 static const uint32_t QME_QSAR_SRAM_ADDRESS = 16;
 static const uint32_t QME_QSAR_SRAM_ADDRESS_LEN = 13;
+static const uint32_t QME_QSAR_AUTO_INCR_MODE = 63;
 // ppe_eq/reg00015.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

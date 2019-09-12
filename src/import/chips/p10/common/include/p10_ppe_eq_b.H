@@ -114,6 +114,8 @@ static const uint32_t QME_TTSR_5_DATA = 40;
 static const uint32_t QME_TTSR_5_DATA_LEN = 8;
 static const uint32_t QME_TTSR_6_DATA = 48;
 static const uint32_t QME_TTSR_6_DATA_LEN = 8;
+static const uint32_t QME_TTSR_7_DATA = 56;
+static const uint32_t QME_TTSR_7_DATA_LEN = 8;
 // ppe_eq/reg00011.H
 
 #ifndef __PPE_HCODE__

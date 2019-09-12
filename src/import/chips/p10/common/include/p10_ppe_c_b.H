@@ -72,6 +72,7 @@ static const uint32_t CPMS_DHDR_DDP_ACTIVE_LEN = 2;
 static const uint32_t CPMS_DHDR_CPMS_DDSR_STOP_STATE_ACTIVE = 60;
 static const uint32_t CPMS_DHDR_CPMS_DDSR_CORE_SAMPLE_DISABLED = 61;
 static const uint32_t CPMS_DHDR_STOP_STATE_OCCURRED = 62;
+static const uint32_t CPMS_DHDR_SAMPLE_DISABLE_OCCURRED = 63;
 // ppe_c/reg00011.H
 
 static const uint32_t CPMS_L3_PFETSTAT = 0xc000e240ull;

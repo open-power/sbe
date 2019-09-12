@@ -63,6 +63,9 @@ static const uint32_t QME_RVCR_RVID_VALUE_LEN = 7;
 // No targets could be determined from the address.
 
 static const uint32_t QME_SCOM_XIRAMRA = 0xc0002040ull;
+
+static const uint32_t QME_SCOM_XIRAMRA_SPRG0 = 32;
+static const uint32_t QME_SCOM_XIRAMRA_SPRG0_LEN = 32;
 // ppe_eq/reg00008.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

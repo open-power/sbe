@@ -43,6 +43,9 @@ namespace ppe_eq
 // No targets could be determined from the address.
 
 static const uint32_t QME_EISTR = 0xc0002700ull;
+
+static const uint32_t QME_EISTR_INTERRUPT_STATUS = 0;
+static const uint32_t QME_EISTR_INTERRUPT_STATUS_LEN = 64;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -107,6 +110,8 @@ static const uint32_t QME_PLSR_3_T1 = 52;
 static const uint32_t QME_PLSR_3_T1_LEN = 4;
 static const uint32_t QME_PLSR_3_T2 = 56;
 static const uint32_t QME_PLSR_3_T2_LEN = 4;
+static const uint32_t QME_PLSR_3_T3 = 60;
+static const uint32_t QME_PLSR_3_T3_LEN = 4;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
