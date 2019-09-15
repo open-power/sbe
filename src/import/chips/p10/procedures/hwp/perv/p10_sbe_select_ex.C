@@ -570,14 +570,14 @@ fapi2::ReturnCode select_ex_config(
     l_data64.setBit(9  + (i_core_num & 0x3)); // L3
     l_data64.setBit(15 + (i_core_num & 0x3)); // MMA
 
-    // Partial Good
+    // Set Partial Good enable
     FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL2_WO_OR, l_data64));
 
-    // PSCOM enable
+    // Set PSCOM enable
     FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL3_WO_OR, l_data64));
 
-    // Power Gate enable
-    FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL5_WO_OR, l_data64));
+    // Clear Power Gate/DFT fence
+    FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL5_WO_CLEAR, l_data64));
 
 fapi_try_exit:
     FAPI_DBG("< select_ex_config...");
