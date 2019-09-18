@@ -36,11 +36,11 @@
 //------------------------------------------------------------------------------
 #include <p10_sbe_scominit.H>
 #include <p10_fbc_utils.H>
+#include <p10_nmmu_scom.H>
 
 #include <p10_scom_perv.H>
 #include <p10_scom_nmmu_4.H>
 #include <p10_scom_proc.H>
-#include <target_filters.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions
@@ -302,17 +302,16 @@ fapi2::ReturnCode p10_sbe_scominit_firs(const fapi2::Target<fapi2::TARGET_TYPE_P
     FAPI_TRY(PUT_TP_TPBR_PBA_PBAF_PBAFIRMASK_RW(i_target, PBA_FIR_MASK),
              "Error from putScom (TP_TPBR_PBA_PBAF_PBAFIRMASK_RW)");
 
-    // @FIXME TODO HW489793/HW491147 Enable LPCFIR scom access in future drop
     // configure LPC FIRs
-    //FAPI_DBG("Configuring LPC FIR");
-    //FAPI_TRY(PUT_TP_LPC_SYNC_FIR_REG_RWX(i_target, l_zeroes),
-    //         "Error from putScom (TP_LPC_SYNC_FIR_REG_RWX)");
-    //FAPI_TRY(PUT_TP_LPC_SYNC_FIR_ACTION0_REG(i_target, LPC_FIR_ACTION0),
-    //         "Error from putScom (TP_LPC_SYNC_FIR_ACTION0_REG)");
-    //FAPI_TRY(PUT_TP_LPC_SYNC_FIR_ACTION1_REG(i_target, LPC_FIR_ACTION1),
-    //         "Error from putScom (TP_LPC_SYNC_FIR_ACTION1_REG)");
-    //FAPI_TRY(PUT_TP_LPC_SYNC_FIR_MASK_REG_RW(i_target, LPC_FIR_MASK),
-    //         "Error from putScom (TP_LPC_SYNC_FIR_MASK_REG_RW)");
+    FAPI_DBG("Configuring LPC FIR");
+    FAPI_TRY(PUT_TP_LPC_SYNC_FIR_REG_RW(i_target, l_zeroes),
+             "Error from putScom (TP_LPC_SYNC_FIR_REG_RW)");
+    FAPI_TRY(PUT_TP_LPC_SYNC_FIR_ACTION0_REG(i_target, LPC_FIR_ACTION0),
+             "Error from putScom (TP_LPC_SYNC_FIR_ACTION0_REG)");
+    FAPI_TRY(PUT_TP_LPC_SYNC_FIR_ACTION1_REG(i_target, LPC_FIR_ACTION1),
+             "Error from putScom (TP_LPC_SYNC_FIR_ACTION1_REG)");
+    FAPI_TRY(PUT_TP_LPC_SYNC_FIR_MASK_REG_RW(i_target, LPC_FIR_MASK),
+             "Error from putScom (TP_LPC_SYNC_FIR_MASK_REG_RW)");
 
     scomt::enableRegchk();
 
@@ -344,24 +343,24 @@ fapi2::ReturnCode p10_sbe_scominit_nmmu(const fapi2::Target<fapi2::TARGET_TYPE_P
 
     FAPI_DBG("Entering ...");
 
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     auto l_nmmu_targets = i_target.getChildren<fapi2::TARGET_TYPE_NMMU>();
 
     for (auto& l_nmmu : l_nmmu_targets)
     {
-        // @FIXME TODO RTC208221 Enable call to nmmu scom initfile
         // execute NMMU initfile
         {
             fapi2::ReturnCode l_rc;
 
-            //FAPI_DBG("Executing NMMU initfile");
-            //FAPI_EXEC_HWP(l_rc, p10_mmu_scom, i_target, FAPI_SYSTEM);
+            FAPI_DBG("Invoking p10.nmmu.scom.initfile...");
+            FAPI_EXEC_HWP(l_rc, p10_nmmu_scom, l_nmmu, FAPI_SYSTEM);
 
-            //if (l_rc)
-            //{
-            //    FAPI_ERR("Error from p10_mmu_scom (p10.mmu.scom.initfile)");
-            //    fapi2::current_err = l_rc;
-            //    goto fapi_try_exit;
-            //}
+            if (l_rc)
+            {
+                FAPI_ERR("Error from p10_mmu_scom (p10.mmu.scom.initfile)");
+                fapi2::current_err = l_rc;
+                goto fapi_try_exit;
+            }
         }
 
         // setup NMMU lco config
