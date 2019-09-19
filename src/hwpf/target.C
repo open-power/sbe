@@ -66,7 +66,12 @@ extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 // the multipler.
 #define HRMOR_FOR_SPLESS_MODE 0x100000000ull //4096 * 1024 * 1024
 
+
 #endif // else __SBEFW_SEEPROM__
+
+//TODO - This will be removed once this address is 
+//define in P10 scom definition.
+#define EXPORT_REGL_STATUS 0x10009ull
 
 namespace fapi2
 {
@@ -255,6 +260,7 @@ extern fapi2::ReturnCode
         fapi2::buffer<uint16_t> l_read4 = 0;
         fapi2::buffer<uint32_t> l_read5 = 0;
         fapi2::buffer<uint64_t> l_deviceIdReg = 0;
+        fapi2::buffer<uint64_t> l_ctrlReg = 0;
         //uint8_t l_riskLvl  = 0;
         bool l_isSlave = false;
         //uint8_t l_smfConfig = 0;
@@ -600,9 +606,10 @@ extern fapi2::ReturnCode
                 assert(false);
         }
         
-        fusedMode = (uint8_t)l_deviceId.iv_fusedMode;
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC, l_chipTarget, l_ec));
+        FAPI_TRY(fapi2::getScom(l_chipTarget, EXPORT_REGL_STATUS, l_ctrlReg));
+        fusedMode = static_cast<uint8_t>(l_ctrlReg.getBit<10>());
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
                                 fapi2::Target<TARGET_TYPE_SYSTEM>(),
                                 fusedMode));
@@ -619,7 +626,7 @@ extern fapi2::ReturnCode
         {
             attrSeepromSlct.setBit<7>();
         }
-
+        //TODO: Read LFR SBE local reg and set ATTR_BACKUP_SEEPROM_SELECT
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_BACKUP_SEEPROM_SELECT,
                     l_chipTarget, attrSeepromSlct));
         } // end of scope initializer
