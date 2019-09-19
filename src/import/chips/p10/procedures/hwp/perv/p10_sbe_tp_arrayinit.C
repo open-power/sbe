@@ -33,11 +33,7 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_tp_arrayinit.H"
-#include "p9_const_common.H"
-
-#include <p9_misc_scom_addresses.H>
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_0.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 
@@ -105,6 +101,8 @@ static fapi2::ReturnCode p10_sbe_tp_arrayinit_sdisn_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chip,
     const bool i_set)
 {
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p10_sbe_tp_arrayinit_sdisn_setup: Entering ...");
 
@@ -112,17 +110,15 @@ static fapi2::ReturnCode p10_sbe_tp_arrayinit_sdisn_setup(
     {
         //Setting CPLT_CONF0 register value
         l_data64.flush<0>();
-        //CPLT_CONF0.CTRL_CC_SDIS_DC_N = 1
-        l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0_OR, l_data64));
+        l_data64.setBit<CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, CPLT_CONF0_WO_OR, l_data64));
     }
     else
     {
         //Setting CPLT_CONF0 register value
         l_data64.flush<0>();
-        //CPLT_CONF0.CTRL_CC_SDIS_DC_N = 0
-        l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_CPLT_CONF0_CLEAR, l_data64));
+        l_data64.setBit<CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, CPLT_CONF0_WO_CLEAR, l_data64));
     }
 
     FAPI_INF("p10_sbe_tp_arrayinit_sdisn_setup: Exiting ...");

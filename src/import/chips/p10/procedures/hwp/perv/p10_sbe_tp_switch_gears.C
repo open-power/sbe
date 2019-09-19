@@ -33,11 +33,8 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_tp_switch_gears.H"
-#include "p9_const_common.H"
-
-#include <p9_misc_scom_addresses.H>
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_proc_6.H"
+#include "p10_scom_perv_7.H"
 
 #define SEEPROM_START 0xFF800000
 
@@ -50,6 +47,8 @@ enum P10_SBE_TP_SWITCH_GEARS_Private_Constants
 fapi2::ReturnCode p10_sbe_tp_switch_gears(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+
     fapi2::buffer<uint64_t> l_data64, l_read_reg;
     fapi2::buffer<uint64_t> l_opcg_align;
     fapi2::buffer<uint32_t> l_attr_freq_pau_mhz;
@@ -95,10 +94,10 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
         FAPI_TRY(fapi2::putScom(i_target_chip, 0x000C0083, l_data64));
 
         FAPI_DBG("Write new clock divider / delay value back to scratch reg");
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SCRATCH_REGISTER_2_SCOM, l_data64));
+        FAPI_TRY(fapi2::getScom(i_target_chip, perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RW, l_data64));
         l_data64.insert< 0, 12, 4 >(sck_clock_divider);
         l_data64.insertFromRight< 12, 4 >(0x4);
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_SCRATCH_REGISTER_2_SCOM, l_data64));
+        FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RW, l_data64));
 
 #ifdef __PPE__
         FAPI_DBG("read magic number from seeprom, compare value");
@@ -108,12 +107,13 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
 
         // adjust scan ratio
         FAPI_DBG("Adjust scan rate to 4:1");
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_OPCG_ALIGN, l_opcg_align),
+        FAPI_TRY(fapi2::getScom(i_target_chip, proc::TP_TPCHIP_TPC_OPCG_ALIGN, l_opcg_align),
                  "Error from getScom (PERV_TP_OPCG_ALIGN)");
 
-        l_opcg_align.insertFromRight<PERV_1_OPCG_ALIGN_SCAN_RATIO, PERV_1_OPCG_ALIGN_SCAN_RATIO_LEN>(SCAN_RATIO_4TO1);
+        l_opcg_align.insertFromRight<proc::TP_TPCHIP_TPC_OPCG_ALIGN_SCAN_RATIO, proc::TP_TPCHIP_TPC_OPCG_ALIGN_SCAN_RATIO_LEN>
+        (SCAN_RATIO_4TO1);
 
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_OPCG_ALIGN, l_opcg_align),
+        FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_OPCG_ALIGN, l_opcg_align),
                  "Error from putScom (PERV_TP_OPCG_ALIGN)");
     }
 

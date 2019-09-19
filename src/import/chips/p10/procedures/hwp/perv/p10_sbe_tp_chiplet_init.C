@@ -38,11 +38,15 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_tp_chiplet_init.H"
-
-#include "p9_const_common.H"
-#include <p9_misc_scom_addresses.H>
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_0.H"
+#include "p10_scom_perv_6.H"
+#include "p10_scom_perv_7.H"
+#include "p10_scom_perv_8.H"
+#include "p10_scom_perv_a.H"
+#include "p10_scom_perv_b.H"
+#include "p10_scom_perv_d.H"
+#include "p10_scom_perv_e.H"
+#include "p10_scom_perv_f.H"
 #include <p10_perv_sbe_cmn.H>
 #include <p10_hang_pulse_mc_setup_tables.H>
 #include <target_filters.H>
@@ -60,7 +64,7 @@ enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
     IPOLL_MASK_VALUE = 0xFC00000000000000,
     TOD_ERROR_ROUTING = 0x9FC02000F0004000,
     TOD_ERROR_MASK = 0x0000000003F00002,
-    TOD_ERROR_REG = 0xFFFFFFFFFFFFFFFF,
+    TOD_ERROR_REG_VAL = 0xFFFFFFFFFFFFFFFF,
     HANGPULSE1_MAIN_DIVIDER = 0x0400000000000000,
     HANGPULSE2_MAIN_DIVIDER = 0x7800000000000000,
     HANGPULSE3_MAIN_DIVIDER = 0x0400000000000000
@@ -73,6 +77,9 @@ static fapi2::ReturnCode p10_sbe_tp_chiplet_init_region_fence_setup(
 fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64;
     uint8_t pre_divider;
     uint32_t l_attr_pau_freq_mhz;
@@ -88,7 +95,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     // This step is redundant since tp_chiplet_reset already drops the OOB mux
 
     FAPI_DBG("Reset PCB Master Interrupt Register");
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_PIB_INTERRUPT_TYPE_REG, 0x0));
+    FAPI_TRY(fapi2::putScom(i_target_chip, INTERRUPT_TYPE_REG, 0x0));
 
     FAPI_DBG("Clear pervasive chiplet region fence");
     FAPI_TRY(p10_sbe_tp_chiplet_init_region_fence_setup(l_tpchiplet));
@@ -100,35 +107,33 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     // startclocks for pll  - This is no longer necessary for P10
 
     FAPI_DBG("Set TOD error routing register");
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_ERROR_ROUTING_REG, TOD_ERROR_ROUTING));
+    FAPI_TRY(fapi2::putScom(i_target_chip, TOD_ERROR_ROUTING_REG, TOD_ERROR_ROUTING));
     //config TOD error mask reg;
     FAPI_DBG("Configure TOD error mask register");
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_ERROR_MASK_REG, TOD_ERROR_MASK));
+    FAPI_TRY(fapi2::putScom(i_target_chip, TOD_ERROR_MASK_REG, TOD_ERROR_MASK));
     //clear TOD error reg;
     FAPI_DBG("Clear TOD error register");
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TOD_ERROR_REG, TOD_ERROR_REG));
+    FAPI_TRY(fapi2::putScom(i_target_chip, TOD_ERROR_REG, TOD_ERROR_REG_VAL));
 
     FAPI_DBG("Clear pervasive LFIR");
-    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040100, 0));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, LOCAL_FIR_RW, 0));
 
     FAPI_DBG("Configure pervasive LFIR" );
     //Setting LOCAL_FIR_ACTION0 register value
-    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040106,
-                            LFIR_ACTION0_VALUE));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_ACTION0, LFIR_ACTION0_VALUE));
     //Setting LOCAL_FIR_ACTION1 register value
-    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040107,
-                            LFIR_ACTION1_VALUE));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_ACTION1, LFIR_ACTION1_VALUE));
     //Setting LOCAL_FIR_MASK register value
-    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040103, FIR_MASK_VALUE));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_RW, FIR_MASK_VALUE));
 
     FAPI_DBG("Unmask RFIR, XFIR Mask");
     // XSTOP_MASK
-    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040040, 0));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, XSTOP_MASK_RW, 0));
     // RECOV_MASK
-    FAPI_TRY(fapi2::putScom(i_target_chip, 0x01040041, 0));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, RECOV_MASK_RW, 0));
 
     FAPI_DBG("Setup IPOLL mask register");
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_HOST_MASK_REG, IPOLL_MASK_VALUE));
+    FAPI_TRY(fapi2::putScom(i_target_chip, COMP_INTR_HOST_MASK_REG, IPOLL_MASK_VALUE));
 
     // setup hang pulse freq
     FAPI_DBG("Set up constant frequency hang pulse 1 pre divider");
@@ -172,6 +177,8 @@ fapi_try_exit:
 static fapi2::ReturnCode p10_sbe_tp_chiplet_init_region_fence_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet)
 {
+    using namespace scomt::perv;
+
     // Local variable and constant definition
     fapi2::buffer <uint32_t> l_attr_pg;
     fapi2::buffer <uint16_t> l_attr_pg_data;
@@ -188,7 +195,7 @@ static fapi2::ReturnCode p10_sbe_tp_chiplet_init_region_fence_setup(
     // No need to drop Vital fence
     l_data64.flush<0>();
     l_data64.insertFromRight<4, 15>(l_attr_pg_data);
-    FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_CPLT_CTRL1_CLEAR, l_data64));
+    FAPI_TRY(fapi2::putScom(i_target_chiplet, CPLT_CTRL1_WO_CLEAR, l_data64));
 
     FAPI_INF("p10_sbe_tp_chiplet_init_region_fence_setup: Exiting ...");
 

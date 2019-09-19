@@ -34,10 +34,14 @@
 
 
 #include "p10_sbe_rcs_setup.H"
-#include "p9_const_common.H"
-
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_0.H"
+#include "p10_scom_perv_2.H"
+#include "p10_scom_perv_3.H"
+#include "p10_scom_perv_8.H"
+#include "p10_scom_perv_a.H"
+#include "p10_scom_perv_d.H"
+#include "p10_scom_perv_f.H"
+#include <target_filters.H>
 
 enum P10_SBE_RCS_SETUP_Private_Constants
 {
@@ -58,9 +62,14 @@ static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
 fapi2::ReturnCode p10_sbe_rcs_setup(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
 
     fapi2::buffer<uint64_t> l_data64_rc5, l_data64_rc3, l_read_reg;
     uint8_t l_cp_refclck_select;
+
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
+        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
 
     FAPI_INF("p10_sbe_rcs_setup: Entering ...");
 
@@ -72,8 +81,8 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
     {
 
         FAPI_DBG("Drop RCS reset");
-        l_data64_rc5.flush<0>().setBit<0>(); // rc5 bit0 = 0
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
+        l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_RESET_DC>(); // rc5 bit0 = 0
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
         for(int i = 0; i < POLL_COUNT; i++)
         {
@@ -90,15 +99,15 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
         if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
         {
-            l_data64_rc3.setBit<2>(); // RC3 bit2 = 0
+            l_data64_rc3.setBit<FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PLLCLKSW1_TEST_EN_DC>(); // RC3 bit2 = 0
         }
 
         if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
         {
-            l_data64_rc3.setBit<6>(); // RC3 bit6 = 0
+            l_data64_rc3.setBit<FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PLLCLKSW2_TEST_EN_DC>(); // RC3 bit6 = 0
         }
 
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_rc3));
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR, l_data64_rc3));
 
         FAPI_DBG("Release RCS PLLs reset & bypass ");
 
@@ -106,22 +115,22 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
         if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
         {
-            l_data64_rc3.setBit<0>(); // RC3 bit0 = 0
-            l_data64_rc3.setBit<1>(); // RC3 bit1 = 0
+            l_data64_rc3.setBit<FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PLLCLKSW1_RESET_DC>();     // RC3 bit0 = 0
+            l_data64_rc3.setBit<FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PLLCLKSW1_BYPASS_EN_DC>(); // RC3 bit1 = 0
         }
 
         if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
         {
-            l_data64_rc3.setBit<4>(); // RC3 bit4 = 0
-            l_data64_rc3.setBit<5>(); // RC3 bit5 = 0
+            l_data64_rc3.setBit<FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PLLCLKSW2_RESET_DC>();     // RC3 bit4 = 0
+            l_data64_rc3.setBit<FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PLLCLKSW2_BYPASS_EN_DC>(); // RC3 bit5 = 0
         }
 
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL3_CLEAR_SCOM, l_data64_rc3));
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR, l_data64_rc3));
 
         fapi2::delay(PLL_LOCK_NS_DELAY, PLL_LOCK_SIM_CYCLE_DELAY);
 
         //Getting PLL_LOCK_REG register value
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_PLL_LOCK_REG, l_read_reg));
+        FAPI_TRY(fapi2::getScom(l_tpchiplet, PLL_LOCK_REG, l_read_reg));
 
         if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
         {
@@ -142,18 +151,18 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
         }
 
         FAPI_DBG("RCS out of bypass");
-        l_data64_rc5.flush<0>().setBit<1>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
+        l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_BYPASS_DC>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
         fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
 
         FAPI_DBG("Clear RCS errors");
         l_data64_rc5.flush<0>().setBit<7, 2>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_SET_SCOM, l_data64_rc5));
-        FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL5_CLEAR_SCOM, l_data64_rc5));
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, l_data64_rc5));
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
         FAPI_DBG("Check for clock errors");
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM, l_read_reg));
+        FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SNS1LTH_RO, l_read_reg));
 
         if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
         {
@@ -161,7 +170,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
                         fapi2::RCS_CLOCK_ERR()
                         .set_READ_SNS1LTH(l_read_reg)
                         .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                        "Clock A is bad");
+                        "RCS_CLOCK error : Clock A is bad");
         }
 
         if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
@@ -170,7 +179,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
                         fapi2::RCS_CLOCK_ERR()
                         .set_READ_SNS1LTH(l_read_reg)
                         .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                        "Clock B is bad");
+                        "RCS_CLOCK error : Clock B is bad");
         }
     }
 
@@ -190,19 +199,24 @@ static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
     bool set_rcs_clock_test_in,
     uint8_t i_attr_cp_refclock_select)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64;
     bool check_clockA;
     bool check_clockB;
 
     FAPI_INF("p10_sbe_rcs_setup_test_latches: Entering ...");
 
-    l_data64.flush<0>().setBit<3>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, set_rcs_clock_test_in ? PERV_ROOT_CTRL5_SET_SCOM : PERV_ROOT_CTRL5_CLEAR_SCOM,
+    l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_CLK_TEST_IN_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip,
+                            set_rcs_clock_test_in ? FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR :
+                            FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR,
                             l_data64));
 
     fapi2::delay(HW_NS_DELAY, SIM_CYCLE_DELAY);
 
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_SNS1LTH_SCOM, l_data64));
+    FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SNS1LTH_RO, l_data64));
 
     check_clockA = set_rcs_clock_test_in ? (l_data64.getBit<4>() == 1) : (l_data64.getBit<4>() == 0) ;
     check_clockB = set_rcs_clock_test_in ? (l_data64.getBit<5>() == 1) : (l_data64.getBit<5>() == 0) ;
@@ -215,7 +229,7 @@ static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
                     .set_READ_SNS1LTH(l_data64)
                     .set_ATTR_CP_REFCLOCK_SELECT_VALUE(i_attr_cp_refclock_select)
                     .set_RCS_CLOCK_TEST_IN(set_rcs_clock_test_in),
-                    "Clock A is bad");
+                    "RCS_CLOCK_TEST_IN_OUT error : Clock A is bad");
     }
 
     if (! (i_attr_cp_refclock_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
@@ -226,7 +240,7 @@ static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
                     .set_READ_SNS1LTH(l_data64)
                     .set_ATTR_CP_REFCLOCK_SELECT_VALUE(i_attr_cp_refclock_select)
                     .set_RCS_CLOCK_TEST_IN(set_rcs_clock_test_in),
-                    "Clock B is bad");
+                    "RCS_CLOCK_TEST_IN_OUT error : Clock B is bad");
     }
 
 
