@@ -30,7 +30,7 @@ namespace SBEVECTORPOOL
 {
 
 // Size of a block  for a vector
-static const size_t G_BLOCKSIZE = 256;
+static const size_t G_BLOCKSIZE = 512;
 
 //Pool size
 static const size_t G_POOLSIZE = 6;
