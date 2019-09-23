@@ -113,12 +113,12 @@ p10_hcd_cache_stopgrid(
                  .set_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS(HCD_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS)
                  .set_CPMS_CGCSR(l_mmioData)
                  .set_CORE_TARGET(i_target),
-                 "L3 Clock Sync Drop Timeout");
+                 "ERROR: L3 Clock Sync Drop Timeout");
 
 #endif
 
-    FAPI_DBG("Switch glsmux to refclk to save clock grid power via CPMS_CGCSR[11]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_CLEAR, MMIO_1BIT(11) ) );
+    FAPI_DBG("Switch glsmux to refclk to save clock grid power via CPMS_CGCSR[7]");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_CLEAR, MMIO_1BIT(7) ) );
 
 fapi_try_exit:
 
