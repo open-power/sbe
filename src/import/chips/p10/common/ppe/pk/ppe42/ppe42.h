@@ -327,6 +327,7 @@ popcount64(uint64_t x)
 #if SIMICS_ENVIRONMENT
 #define PK_PANIC(code)                  \
     do {                                \
+        asm volatile ("b ."); \
         asm volatile ("stw     %r3, __pk_panic_save_r3@sda21(0)");      \
         asm volatile ("lwz     %r3, __pk_panic_dbcr@sda21(0)");         \
         asm volatile ("mtdbcr  %r3");                                   \
@@ -408,6 +409,7 @@ uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
 #define PK_PANIC(code) _pk_panic code
 #if SIMICS_ENVIRONMENT
         .macro _pk_panic, code
+            b       .
             stw     %r3, __pk_panic_save_r3@sda21(0)
             lwz     %r3, __pk_panic_dbcr@sda21(0)
             mtdbcr  %r3,
