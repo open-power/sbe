@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -45,6 +45,7 @@
 
 #include "p10_ring_id.H"
 #include "p10_hcd_core_initf.H"
+#include "p10_hcd_mma_startclocks.H"
 #include <p10_scom_eq_c.H>
 
 
@@ -66,14 +67,10 @@ p10_hcd_core_initf(
 
 #ifndef P10_HCD_CORECACHE_SKIP_INITF
 
-#ifndef __PPE_QME
-
     fapi2::buffer<uint64_t>        l_data64             = 0;
     uint32_t                       l_eq_num             = 0;
     uint32_t                       l_core_num           = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
-#endif
-
 
     FAPI_DBG("Scan ec_cl2_fure ring");
     FAPI_TRY(fapi2::putRing(i_target, ec_cl2_fure,
@@ -84,8 +81,6 @@ p10_hcd_core_initf(
     FAPI_TRY(fapi2::putRing(i_target, ec_cl2_mode,
                             fapi2::RING_MODE_HEADER_CHECK),
              "Error from putRing (ec_cl2_mode)");
-
-#ifndef __PPE_QME
 
     for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -125,7 +120,9 @@ p10_hcd_core_initf(
 
     }
 
-#endif
+    // not start mma clock as part of stop2 but only for stop11
+    // thus not called in core_startclocks
+    FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
 
 fapi_try_exit:
 

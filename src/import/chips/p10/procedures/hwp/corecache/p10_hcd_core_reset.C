@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -135,8 +135,6 @@ p10_hcd_core_reset(
                                                    (l_regions << SHIFT16(5)),
                                                    HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
 
-#ifndef __PPE_QME
-
         FAPI_DBG("Scan0 region:mma type:gptr_repr_time rings");
 
         for(l_loop = 0; l_loop < P10_HCD_SCAN0_GPTR_REPEAT; l_loop++)
@@ -150,8 +148,6 @@ p10_hcd_core_reset(
             FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
                                                    (l_regions << SHIFT16(15)),
                                                    HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
-
-#endif
 
     }
 

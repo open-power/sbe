@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -124,7 +124,7 @@ p10_hcd_core_startclocks(
                  .set_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS(HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS)
                  .set_CPMS_CGCSR(l_mmioData)
                  .set_CORE_TARGET(i_target),
-                 "ECL2 Clock Sync Done Timeout");
+                 "ERROR: ECL2 Clock Sync Done Timeout");
 
 #endif
 
@@ -153,12 +153,6 @@ p10_hcd_core_startclocks(
 
     FAPI_DBG("Set core as ready to run in STOP history register");
     FAPI_TRY( HCD_PUTSCOM_C( i_target, QME_SSH_SRC, 0 ) );
-#endif
-
-#ifndef __PPE_QME
-
-    FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
-
 #endif
 
 fapi_try_exit:

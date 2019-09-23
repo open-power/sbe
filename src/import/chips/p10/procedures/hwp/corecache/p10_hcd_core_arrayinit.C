@@ -101,15 +101,12 @@ p10_hcd_core_arrayinit(
              START_ABIST_MATCH_VALUE,
              false));
 
-    /*#ifndef __PPE_QME
-
+    /*
         FAPI_DBG("Arrayinit selected MMA regions");
         FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
                  (l_regions << SHIFT16(15)),
                  LOOP_COUNTER,
                  START_ABIST_MATCH_VALUE));
-
-    #endif
     */
 #endif
 
@@ -129,16 +126,12 @@ p10_hcd_core_arrayinit(
                                                (l_regions << SHIFT16(5)),
                                                HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
 
-#ifndef __PPE_QME
-
     FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
 
     for(uint32_t l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
         FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
                                                (l_regions << SHIFT16(15)),
                                                HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
-
-#endif
 
 #endif
 

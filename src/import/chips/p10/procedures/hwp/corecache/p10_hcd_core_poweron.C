@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -91,11 +91,14 @@ p10_hcd_core_poweron(
     // VDD on first, VCS on after
     FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_CL2_ON ) );
 
-#ifndef __PPE_QME
+    // MMA PFET Power On/Off sequence requires CL2 PFET[ON] + CL2 RegulationFinger[ON]
+    // Stop11: Set RF -> MMA PFET[OFF] -> Drop RF -> CL2 PFET[OFF]
+    // Exit11:                                       CL2 PFET[ON] -> Set RF -> MMA PFET[ON] (keep RF on)
+    FAPI_DBG("Assert VDD_PFET_REGULATION_FINGER_EN via CPMS_CL2_PFETCNTL[8]");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CL2_PFETCNTL_WO_OR, MMIO_1BIT(8) ) );
 
+    // Only VDD for MMA
     FAPI_TRY( p10_hcd_mma_poweron( i_target ) );
-
-#endif
 
 fapi_try_exit:
 

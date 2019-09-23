@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -123,14 +123,10 @@ p10_hcd_core_repair_initf(
                                 fapi2::RING_MODE_HEADER_CHECK),
                  "Error from putRing (ec_cl2_repr)");
 
-#ifndef __PPE_QME
-
         FAPI_DBG("Scan ec_mma_repr ring");
         FAPI_TRY(fapi2::putRing(l_core, ec_mma_repr_ids[l_core_num],
                                 fapi2::RING_MODE_HEADER_CHECK),
                  "Error from putRing (ec_mma_repr)");
-
-#endif
 
     }
 

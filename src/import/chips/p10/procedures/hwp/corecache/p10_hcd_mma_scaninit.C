@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -78,17 +78,23 @@ fapi2::ReturnCode
 p10_hcd_mma_scaninit(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target)
 {
-    /*#if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
+    /*
+    #if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
         fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
             i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
         fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
             eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
-        uint32_t l_regions  = i_target.getCoreSelect();
-        uint32_t l_loop;
+        uint32_t l_regions                                  = i_target.getCoreSelect();
+        uint32_t l_loop                                     = 0;
     #endif
-    */
-    FAPI_INF(">>p10_hcd_mma_scaninit");
-    /*
+    #ifndef P10_HCD_CORECACHE_SKIP_INITF
+        uint32_t l_eq_num                                   = 0;
+        uint32_t l_core_num                                 = 0;
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+    #endif
+
+        FAPI_INF(">>p10_hcd_mma_scaninit");
+
     #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
 
         FAPI_DBG("Scan0 region:mma type:gptr_repr_time rings");
@@ -109,25 +115,57 @@ p10_hcd_mma_scaninit(
 
     #ifndef P10_HCD_CORECACHE_SKIP_INITF
 
-        FAPI_DBG("Scan ec_mma_gptr ring");
-        FAPI_TRY(fapi2::putRing(i_target, ec_mma_gptr,
-                                fapi2::RING_MODE_HEADER_CHECK),
-                 "Error from putRing (ec_mma_gptr)");
+        for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
 
-        FAPI_DBG("Scan ec_mma_time ring");
-        FAPI_TRY(fapi2::putRing(i_target, ec_mma_time,
-                                fapi2::RING_MODE_HEADER_CHECK),
-                 "Error from putRing (ec_mma_time)");
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                   l_eq,
+                                   l_attr_chip_unit_pos));
+            l_eq_num = (uint32_t)l_attr_chip_unit_pos;
 
-        FAPI_DBG("Scan ec_mma_fure ring");
-        FAPI_TRY(fapi2::putRing(i_target, ec_mma_fure,
-                                fapi2::RING_MODE_HEADER_CHECK),
-                 "Error from putRing (ec_mma_fure)");
+            // Read partial good value from Chiplet Control 2
+            FAPI_TRY(fapi2::getScom(l_eq, scomt::eq::CPLT_CTRL2_RW, l_data64));
 
-        FAPI_DBG("Scan ec_mma_repr ring");
-        FAPI_TRY(fapi2::putRing(l_core, ec_mma_repr,
-                                fapi2::RING_MODE_HEADER_CHECK),
-                 "Error from putRing (ec_mma_repr)");
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                   l_core,
+                                   l_attr_chip_unit_pos));
+            l_core_num = (uint32_t)l_attr_chip_unit_pos % 4;
+
+            FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
+                     l_eq_num, l_core_num);
+
+            // While one could assume that the the plaform target model matches the active partial good
+            // settings in the hardware, let's not (at least until we get through some MPIPL and core
+            // deconfiguration testing.
+
+            FAPI_ASSERT((l_data64.getBit(5 + l_core_num)),
+                        fapi2::CORE_REPAIR_FUNCTIONAL_TARGET_MISMATCH_PARTIAL_GOOD()
+                        .set_CPLT_CTRL2(l_data64)
+                        .set_CORE_NUM(l_core_num)
+                        .set_EQ_NUM(l_eq_num),
+                        "Configuration Mismatch: CPLT_CTRL2 partial good bit is not set.");
+
+            FAPI_DBG("Scan ec_mma_gptr ring");
+            FAPI_TRY(fapi2::putRing(l_core, ec_mma_gptr,
+                                    fapi2::RING_MODE_HEADER_CHECK),
+                     "Error from putRing (ec_mma_gptr)");
+
+            FAPI_DBG("Scan ec_mma_time ring");
+            FAPI_TRY(fapi2::putRing(l_core, ec_mma_time,
+                                    fapi2::RING_MODE_HEADER_CHECK),
+                     "Error from putRing (ec_mma_time)");
+
+            FAPI_DBG("Scan ec_mma_fure ring");
+            FAPI_TRY(fapi2::putRing(l_core, ec_mma_fure,
+                                    fapi2::RING_MODE_HEADER_CHECK),
+                     "Error from putRing (ec_mma_fure)");
+
+            FAPI_DBG("Scan ec_mma_repr ring");
+            FAPI_TRY(fapi2::putRing(l_core, ec_mma_repr,
+                                    fapi2::RING_MODE_HEADER_CHECK),
+                     "Error from putRing (ec_mma_repr)");
+        }
 
     #endif
 

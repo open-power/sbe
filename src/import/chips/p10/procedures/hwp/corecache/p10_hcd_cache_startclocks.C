@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -125,7 +125,7 @@ p10_hcd_cache_startclocks(
                  .set_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS(HCD_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS)
                  .set_CPMS_CGCSR(l_mmioData)
                  .set_CORE_TARGET(i_target),
-                 "L3 Clock Sync Done Timeout");
+                 "ERROR: L3 Clock Sync Done Timeout");
 
 #endif
 
