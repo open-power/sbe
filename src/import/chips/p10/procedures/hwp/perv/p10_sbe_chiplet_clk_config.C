@@ -34,10 +34,8 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_chiplet_clk_config.H"
-#include "p9_const_common.H"
-
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_3.H"
+#include "p10_scom_perv_5.H"
 #include <target_filters.H>
 #include <multicast_group_defs.H>
 
@@ -50,6 +48,9 @@ static fapi2::ReturnCode p10_sbe_chiplet_clk_config_force_pll_out_enable(
 fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64_nc1, l_data64_nc0;
     fapi2::buffer<uint8_t> l_attr_mux_iohs, l_attr_mux_pci;
 
@@ -85,10 +86,10 @@ fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
     {
         uint32_t l_chipletID = targ.getChipletNumber();
 
-        FAPI_TRY(fapi2::getScom(targ, PERV_NET_CTRL1, l_data64_nc1));
-        l_data64_nc1.insertFromRight<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_clock_mux_iohs_lcpll_input[l_chipletID -
-                0x18]);
-        FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL1, l_data64_nc1));
+        FAPI_TRY(fapi2::getScom(targ, NET_CTRL1_RW, l_data64_nc1));
+        //TODO: correct dial names for netctrl1 register
+        l_data64_nc1.insertFromRight< 4, 2 >(l_attr_clock_mux_iohs_lcpll_input[l_chipletID - 0x18]);
+        FAPI_TRY(fapi2::putScom(targ, NET_CTRL1_RW, l_data64_nc1));
     }
 
 
@@ -100,10 +101,10 @@ fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
     {
         uint32_t l_chipletID = targ.getChipletNumber();
 
-        FAPI_TRY(fapi2::getScom(targ, PERV_NET_CTRL1, l_data64_nc1));
-        l_data64_nc1.insertFromRight<PERV_1_NET_CTRL1_REFCLK_CLKMUX0_SEL, 2 >(l_attr_clock_mux_pci_lcpll_input[l_chipletID -
-                0x08]);
-        FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL1, l_data64_nc1));
+        FAPI_TRY(fapi2::getScom(targ, NET_CTRL1_RW, l_data64_nc1));
+        //TODO: correct dial names for netctrl1 register
+        l_data64_nc1.insertFromRight< 4, 2 >(l_attr_clock_mux_pci_lcpll_input[l_chipletID - 0x08]);
+        FAPI_TRY(fapi2::putScom(targ, NET_CTRL1_RW, l_data64_nc1));
     }
 
     FAPI_DBG("Setup Sector buffer strength, Pulse mode enable and pulse mode");
@@ -115,8 +116,8 @@ fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
     {
         uint32_t l_chipletID = targ.getChipletNumber();
 
-        l_data64_nc0.flush<1>().clearBit<PERV_1_NET_CTRL0_CLK_ASYNC_RESET>();
-        FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL0_WAND, l_data64_nc0));
+        l_data64_nc0.flush<1>().clearBit<NET_CTRL0_CLK_ASYNC_RESET>();
+        FAPI_TRY(fapi2::putScom(targ, NET_CTRL0_RW_WAND, l_data64_nc0));
 
         if ((l_chipletID >= 0x10) && (l_chipletID <= 0x13) ) // PAU cplts
         {
@@ -124,7 +125,7 @@ fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, targ, l_attr_pg));
 
             l_data64_nc1.flush<1>().writeBit<2>(l_attr_pg.getBit<13>()).writeBit<3>(l_attr_pg.getBit<14>());
-            FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL1_WAND, l_data64_nc1));
+            FAPI_TRY(fapi2::putScom(targ, NET_CTRL1_RW_WAND, l_data64_nc1));
         }
     }
 
@@ -135,8 +136,8 @@ fapi2::ReturnCode p10_sbe_chiplet_clk_config(const
         fapi2::buffer<uint32_t> l_attr_pg;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, targ, l_attr_pg));
 
-        l_data64_nc0.flush<1>().writeBit<PERV_1_NET_CTRL0_CLK_ASYNC_RESET>(l_attr_pg.getBit<16>());
-        FAPI_TRY(fapi2::putScom(targ, PERV_NET_CTRL0_WAND, l_data64_nc0));
+        l_data64_nc0.flush<1>().writeBit<NET_CTRL0_CLK_ASYNC_RESET>(l_attr_pg.getBit<16>());
+        FAPI_TRY(fapi2::putScom(targ, NET_CTRL0_RW_WAND, l_data64_nc0));
     }
 
     FAPI_DBG("Force PLL out enable for IO PLLs(IOHS, PCIE, MC)");
@@ -158,11 +159,13 @@ fapi_try_exit:
 static fapi2::ReturnCode p10_sbe_chiplet_clk_config_force_pll_out_enable(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target)
 {
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64_net_ctrl0;
     FAPI_INF("p10_sbe_chiplet_clk_config_force_pll_out_enable: Entering ...");
 
-    l_data64_net_ctrl0.flush<0>().setBit<PERV_1_NET_CTRL0_PLLFORCE_OUT_EN>();
-    FAPI_TRY(fapi2::putScom(i_mcast_target, PERV_NET_CTRL0_WOR, l_data64_net_ctrl0));
+    l_data64_net_ctrl0.flush<0>().setBit<NET_CTRL0_PLLFORCE_OUT_EN>();
+    FAPI_TRY(fapi2::putScom(i_mcast_target, NET_CTRL0_RW_WOR, l_data64_net_ctrl0));
 
     FAPI_INF("p10_sbe_chiplet_clk_config_force_pll_out_enable: Exiting ...");
 
@@ -179,6 +182,7 @@ fapi_try_exit:
 static fapi2::ReturnCode p10_sbe_chiplet_clk_config_sectorbuffer_pulsemode_attr_setup(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target)
 {
+    using namespace scomt::perv;
 
     fapi2::buffer<uint64_t> l_data64_net_ctrl1;
     fapi2::buffer<uint8_t> l_attr_buffer_strength = 0;
@@ -195,19 +199,23 @@ static fapi2::ReturnCode p10_sbe_chiplet_clk_config_sectorbuffer_pulsemode_attr_
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PULSE_MODE_VALUE, l_sys,
                            l_attr_pulse_mode_value));
 
+    // SECTOR_BUFFER_STRENGTH - bit 16:19
+    // PULSE_MODE_ENABLE - bit 25
+    // PULSE_MODE_VALUE - bit 26:27
     l_data64_net_ctrl1
     .flush<1>()
-    .clearBit<PERV_1_NET_CTRL1_SB_STRENGTH, PERV_1_NET_CTRL1_SB_STRENGTH_LEN>()
-    .clearBit<PERV_1_NET_CTRL1_CLK_PULSE_EN>()
-    .clearBit<PERV_1_NET_CTRL1_CLK_PULSE_MODE, PERV_1_NET_CTRL1_CLK_PULSE_MODE_LEN>();
-    FAPI_TRY(fapi2::putScom(i_mcast_target, PERV_NET_CTRL1_WAND,
+    //TODO: correct dial names for netctrl1 register
+    .clearBit<16, 4>()
+    .clearBit<25>()
+    //TODO: pulse mode setup tobe removed
+    .clearBit<26, 7>();
+    FAPI_TRY(fapi2::putScom(i_mcast_target, NET_CTRL1_RW_WAND,
                             l_data64_net_ctrl1));
 
     FAPI_DBG("Sector buffer strength");
     l_data64_net_ctrl1
     .flush<0>()
-    .insertFromRight< PERV_1_NET_CTRL1_SB_STRENGTH,
-                      PERV_1_NET_CTRL1_SB_STRENGTH_LEN >(l_attr_buffer_strength);
+    .insertFromRight<16, 4>(l_attr_buffer_strength);
 
     FAPI_DBG("Pulse mode enable & pulse mode");
 
@@ -215,12 +223,11 @@ static fapi2::ReturnCode p10_sbe_chiplet_clk_config_sectorbuffer_pulsemode_attr_
     {
         FAPI_DBG("setting pulse mode enable");
         l_data64_net_ctrl1
-        .setBit<PERV_1_NET_CTRL1_CLK_PULSE_EN>()
-        .insertFromRight< PERV_1_NET_CTRL1_CLK_PULSE_MODE,
-                          PERV_1_NET_CTRL1_CLK_PULSE_MODE_LEN >(l_attr_pulse_mode_value);
+        .setBit<25>()
+        .insertFromRight< 26, 2 >(l_attr_pulse_mode_value);
     }
 
-    FAPI_TRY(fapi2::putScom(i_mcast_target, PERV_NET_CTRL1_WOR, l_data64_net_ctrl1));
+    FAPI_TRY(fapi2::putScom(i_mcast_target, NET_CTRL1_RW_WOR, l_data64_net_ctrl1));
 
     FAPI_INF("p10_sbe_chiplet_clk_config_sectorbuffer_pulsemode_attr_setup:Exiting ...");
 

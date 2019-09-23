@@ -34,10 +34,10 @@
 
 
 #include "p10_sbe_startclocks.H"
-#include "p9_const_common.H"
-
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_0.H"
+#include "p10_scom_perv_3.H"
+#include "p10_scom_perv_6.H"
+#include "p10_scom_perv_7.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 #include <multicast_group_defs.H>
@@ -60,6 +60,8 @@ enum P10_SBE_STARTCLOCKS_Private_Constants
 fapi2::ReturnCode p10_sbe_startclocks(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
 
     fapi2::buffer<uint64_t> l_data64;
     fapi2::buffer<uint32_t> l_attr_pg;
@@ -78,8 +80,8 @@ fapi2::ReturnCode p10_sbe_startclocks(const
           fapi2::MULTICAST_COMPARE > l_mcast_cmp_target = l_mc_all;
 
     FAPI_DBG("Drop chiplet fence");
-    l_data64.flush<1>().clearBit<PERV_1_NET_CTRL0_FENCE_EN>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_NET_CTRL0_WAND, l_data64));
+    l_data64.flush<1>().clearBit<NET_CTRL0_FENCE_EN>();
+    FAPI_TRY(fapi2::putScom(l_mc_all, NET_CTRL0_RW_WAND, l_data64));
 
     // No need to drop Vital fence for chiplets
     FAPI_DBG("For all good chiplets except TP and EQ: Drop partial good fences");
@@ -90,25 +92,25 @@ fapi2::ReturnCode p10_sbe_startclocks(const
         l_attr_pg.invert();
         l_data64.flush<0>()
         .insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_attr_pg);
-        FAPI_TRY(fapi2::putScom(targ, PERV_CPLT_CTRL1_CLEAR, l_data64));
+        FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL1_WO_CLEAR, l_data64));
     }
 
     FAPI_DBG("For all EQ chiplets: Drop partial good fences for perv, qme, clkadj");
     l_data64.flush<0>();
     // drop region fence for only regions vital,perv, qme, clkadj
     l_data64.setBit<4>().setBit<13>().setBit<14>();
-    FAPI_TRY(fapi2::putScom(l_mc_eq, PERV_CPLT_CTRL1_CLEAR, l_data64));
+    FAPI_TRY(fapi2::putScom(l_mc_eq, CPLT_CTRL1_WO_CLEAR, l_data64));
 
     FAPI_DBG("Reset abistclk_muxsel and syncclk_muxsel");
     l_data64.flush<0>()
-    .setBit<PERV_1_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>()
-    .setBit<PERV_1_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_CPLT_CTRL0_CLEAR, l_data64));
+    .setBit<CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC>()
+    .setBit<CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC>();
+    FAPI_TRY(fapi2::putScom(l_mc_all, CPLT_CTRL0_WO_CLEAR, l_data64));
 
     FAPI_DBG("Disable listen to sync for all chiplets");
-    FAPI_TRY(fapi2::getScom(l_mcast_cmp_target, PERV_SYNC_CONFIG, l_data64));
-    l_data64.setBit<4>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_SYNC_CONFIG, l_data64));
+    FAPI_TRY(fapi2::getScom(l_mcast_cmp_target, SYNC_CONFIG, l_data64));
+    l_data64.setBit<SYNC_CONFIG_LISTEN_TO_SYNC_PULSE_DIS>();
+    FAPI_TRY(fapi2::putScom(l_mc_all, SYNC_CONFIG, l_data64));
 
     // Align_chiplets  module
     FAPI_DBG("Align all chiplets");
@@ -124,8 +126,8 @@ fapi2::ReturnCode p10_sbe_startclocks(const
 
     FAPI_DBG("Clear flush_inhibit to go in to flush mode");
     l_data64.flush<0>()
-    .setBit<PERV_1_CPLT_CTRL0_CTRL_CC_FLUSHMODE_INH_DC>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_CPLT_CTRL0_CLEAR, l_data64));
+    .setBit<CPLT_CTRL0_CTRL_CC_FLUSHMODE_INH>();
+    FAPI_TRY(fapi2::putScom(l_mc_all, CPLT_CTRL0_WO_CLEAR, l_data64));
 
     FAPI_DBG("p10_sbe_startclocks: Exiting ...");
 

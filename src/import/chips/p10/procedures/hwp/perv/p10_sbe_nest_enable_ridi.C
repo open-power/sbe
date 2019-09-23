@@ -33,9 +33,8 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_nest_enable_ridi.H"
-
-#include "p9_perv_scom_addresses.H"
-#include "p9_perv_scom_addresses_fld.H"
+#include "p10_scom_perv_4.H"
+#include "p10_scom_perv_f.H"
 #include <target_filters.H>
 #include <p10_perv_sbe_cmn.H>
 
@@ -76,15 +75,17 @@ fapi_try_exit:
 static fapi2::ReturnCode p10_sbe_nest_enable_ridi_tp_enable_ridi(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p10_sbe_nest_enable_ridi_tp_enable_ridi: Entering ...");
 
     //Setting ROOT_CTRL1 register value
     l_data64.flush<0>()
-    .setBit<PERV_ROOT_CTRL1_TP_RI_DC_B>()    // 19
-    .setBit<PERV_ROOT_CTRL1_TP_DI1_DC_B>()   // 20
-    .setBit<PERV_ROOT_CTRL1_TP_DI2_DC_B>();  // 21
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_ROOT_CTRL1_SET_SCOM, l_data64));
+    .setBit<FSXCOMP_FSXLOG_ROOT_CTRL1_TP_RI_DC_B>()    // 19
+    .setBit<FSXCOMP_FSXLOG_ROOT_CTRL1_TP_DI1_DC_B>()   // 20
+    .setBit<FSXCOMP_FSXLOG_ROOT_CTRL1_TP_DI2_DC_B>();  // 21
+    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL1_SET_WO_OR, l_data64));
 
     FAPI_INF("p10_sbe_nest_enable_ridi_tp_enable_ridi: Exiting ...");
 

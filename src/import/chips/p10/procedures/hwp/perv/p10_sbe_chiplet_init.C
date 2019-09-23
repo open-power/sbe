@@ -33,8 +33,8 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_chiplet_init.H"
-#include "p9_perv_scom_addresses.H"
-#include "p9_perv_scom_addresses_fld.H"
+#include "p10_scom_perv_0.H"
+#include "p10_scom_proc_f.H"
 #include <target_filters.H>
 #include <multicast_group_defs.H>
 
@@ -48,6 +48,8 @@ enum P10_SBE_CHIPLET_INIT_Private_Constants
 fapi2::ReturnCode p10_sbe_chiplet_init(const
                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+
     fapi2::buffer<uint64_t> l_data64;
     int l_timeout = 0;
     fapi2::buffer<uint8_t> l_attr_topology_id, l_attr_topology_mode;
@@ -66,19 +68,19 @@ fapi2::ReturnCode p10_sbe_chiplet_init(const
     //setup fabric topology into cplt_config reg for all good chiplets
     FAPI_DBG("Setup fabric topology for all chiplets");
     l_data64.flush<0>();
-    l_data64.insertFromRight<PERV_1_CPLT_CONF0_TC_UNIT_GROUP_ID_DC, PERV_1_CPLT_CONF0_TC_UNIT_GROUP_ID_DC_LEN>
+    l_data64.insertFromRight<perv::CPLT_CONF0_TC_TOPOLOGY_ID_DC, perv::CPLT_CONF0_TC_TOPOLOGY_ID_DC_LEN>
     (l_attr_topology_id);
     l_data64.writeBit<47>(l_attr_topology_mode);
     // All good but TP
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_CPLT_CONF0_OR, l_data64));
+    FAPI_TRY(fapi2::putScom(l_mc_all, perv::CPLT_CONF0_WO_OR, l_data64));
     // Only TP
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, PERV_CPLT_CONF0_OR, l_data64));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::CPLT_CONF0_WO_OR, l_data64));
 
     FAPI_DBG("Start  calibration");
     //Setting KVREF_AND_VMEAS_MODE_STATUS_REG register value
-    FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
-    l_data64.setBit<PERV_1_KVREF_AND_VMEAS_MODE_STATUS_REG_START_CAL>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
+    FAPI_TRY(fapi2::getScom(i_target_chip, proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
+    l_data64.setBit<proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG_KVREF_START_CAL>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
 
     FAPI_DBG("Check for calibration done");
     l_timeout = POLL_COUNT;
@@ -87,8 +89,8 @@ fapi2::ReturnCode p10_sbe_chiplet_init(const
     while (l_timeout != 0)
     {
         //Getting KVREF_AND_VMEAS_MODE_STATUS_REG register value
-        FAPI_TRY(fapi2::getScom(i_target_chip, PERV_TP_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
-        bool l_poll_data = l_data64.getBit<PERV_1_KVREF_AND_VMEAS_MODE_STATUS_REG_CAL_DONE>();
+        FAPI_TRY(fapi2::getScom(i_target_chip, proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
+        bool l_poll_data = l_data64.getBit<proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG_KVREF_CAL_DONE>();
 
         if (l_poll_data == 1)
         {

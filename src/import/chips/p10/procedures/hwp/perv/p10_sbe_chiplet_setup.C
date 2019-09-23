@@ -35,10 +35,8 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_chiplet_setup.H"
-#include "p9_const_common.H"
-
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_5.H"
+#include "p10_scom_perv_7.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 #include <multicast_group_defs.H>
@@ -47,6 +45,8 @@
 fapi2::ReturnCode p10_sbe_chiplet_setup(const
                                         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
 
     fapi2::buffer<uint64_t> l_data64;
 
@@ -70,23 +70,23 @@ fapi2::ReturnCode p10_sbe_chiplet_setup(const
         auto l_mc_eq    = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
 
         FAPI_DBG("Setup EQ NET_CTRL1 to separate init value");
-        FAPI_TRY(fapi2::putScom(l_mc_eq, PERV_NET_CTRL1,
+        FAPI_TRY(fapi2::putScom(l_mc_eq, NET_CTRL1_RW,
                                 p10SbeChipletSetup::EQ_NET_CNTL1_INIT_VALUE));
 
         FAPI_DBG("Setup hangcounters");
-        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_n0,       false, PERV_HANG_PULSE_0_REG,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_n0,       false, HANG_PULSE_0_REG,
                  PRE_DIVIDER, SETUP_HANG_COUNTERS_N0));
-        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_n1,       false, PERV_HANG_PULSE_0_REG,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_n1,       false, HANG_PULSE_0_REG,
                  PRE_DIVIDER, SETUP_HANG_COUNTERS_N1));
-        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_pci,   false, PERV_HANG_PULSE_0_REG,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_pci,   false, HANG_PULSE_0_REG,
                  PRE_DIVIDER, SETUP_HANG_COUNTERS_PCI));
-        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_mctrl, false, PERV_HANG_PULSE_0_REG,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_mctrl, false, HANG_PULSE_0_REG,
                  PRE_DIVIDER, SETUP_HANG_COUNTERS_MC));
-        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_pau,   false, PERV_HANG_PULSE_0_REG,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_pau,   false, HANG_PULSE_0_REG,
                  PRE_DIVIDER, SETUP_HANG_COUNTERS_PAU));
-        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_iohs,  false, PERV_HANG_PULSE_0_REG,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_iohs,  false, HANG_PULSE_0_REG,
                  PRE_DIVIDER, SETUP_HANG_COUNTERS_IOHS));
-        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_eq,    false, PERV_HANG_PULSE_0_REG,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_mc_eq,    false, HANG_PULSE_0_REG,
                  PRE_DIVIDER, SETUP_HANG_COUNTERS_EQ));
     }
 

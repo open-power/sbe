@@ -34,10 +34,11 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_chiplet_reset.H"
-#include "p9_const_common.H"
-
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_0.H"
+#include "p10_scom_perv_3.H"
+#include "p10_scom_perv_8.H"
+#include "p10_scom_perv_a.H"
+#include "p10_scom_perv_c.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 #include <multicast_group_defs.H>
@@ -52,6 +53,9 @@ enum P10_SBE_CHIPLET_RESET_Private_Constants
 fapi2::ReturnCode p10_sbe_chiplet_reset(const
                                         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
+
     uint8_t l_attr_nest_dpll_bypass;
     fapi2::buffer<uint32_t> l_read_attr_pg;
     fapi2::buffer<uint64_t> l_data64_nc0, l_data64;
@@ -74,20 +78,20 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_DPLL_BYPASS, i_target_chip, l_attr_nest_dpll_bypass));
 
     FAPI_DBG("Enable chiplet");
-    l_data64_nc0.flush<0>().setBit<PERV_1_NET_CTRL0_CHIPLET_ENABLE>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_NET_CTRL0_WOR, l_data64_nc0));
+    l_data64_nc0.flush<0>().setBit<NET_CTRL0_CHIPLET_ENABLE>();
+    FAPI_TRY(fapi2::putScom(l_mc_all, NET_CTRL0_RW_WOR, l_data64_nc0));
 
     FAPI_DBG("Reset PCB slave error registers");
     l_data64.flush<1>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_ERROR_REG, l_data64));
+    FAPI_TRY(fapi2::putScom(l_mc_all, ERROR_REG, l_data64));
 
     FAPI_DBG("Drop lvltrans fence");
-    l_data64_nc0.flush<1>().clearBit<PERV_1_NET_CTRL0_LVLTRANS_FENCE>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_NET_CTRL0_WAND, l_data64_nc0));
+    l_data64_nc0.flush<1>().clearBit<NET_CTRL0_LVLTRANS_FENCE>();
+    FAPI_TRY(fapi2::putScom(l_mc_all, NET_CTRL0_RW_WAND, l_data64_nc0));
 
     FAPI_DBG("Drop endpoint reset");
-    l_data64_nc0.flush<1>().clearBit<PERV_1_NET_CTRL0_PCB_EP_RESET>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_NET_CTRL0_WAND, l_data64_nc0));
+    l_data64_nc0.flush<1>().clearBit<NET_CTRL0_PCB_EP_RESET>();
+    FAPI_TRY(fapi2::putScom(l_mc_all, NET_CTRL0_RW_WAND, l_data64_nc0));
 
     // Configuring cplt_ctrl2(Region pg), cplt_ctrl3(region multicast enable),
     // cplt_ctrl5(power_gate) registers with ATTR_PG values
@@ -101,8 +105,8 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
         l_read_attr_pg.invert();
         l_data64.insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_read_attr_pg);
 
-        FAPI_TRY(fapi2::putScom(targ, 0x00000002, l_data64));
-        FAPI_TRY(fapi2::putScom(targ, 0x00000003, l_data64));
+        FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL2_RW, l_data64));
+        FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL3_RW, l_data64));
     }
 
     FAPI_DBG("Transfer PGOOD attribute into region good,region enable and power gate register : ALL EQ");
@@ -110,21 +114,21 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     // only regions perv, qme, clkadj enabled
     l_data64.setBit<4>().setBit<13>().setBit<14>();
 
-    FAPI_TRY(fapi2::putScom(l_mc_eq, 0x00000002, l_data64));
-    FAPI_TRY(fapi2::putScom(l_mc_eq, 0x00000003, l_data64));
+    FAPI_TRY(fapi2::putScom(l_mc_eq, CPLT_CTRL2_RW, l_data64));
+    FAPI_TRY(fapi2::putScom(l_mc_eq, CPLT_CTRL3_RW, l_data64));
 
     FAPI_DBG("Initialize OPCG_ALIGN regs with default values");
-    FAPI_TRY(fapi2::putScom(l_mc_all, PERV_OPCG_ALIGN, p10SbeChipletReset::OPCG_ALIGN_DEFAULT_VAL));
+    FAPI_TRY(fapi2::putScom(l_mc_all, OPCG_ALIGN, p10SbeChipletReset::OPCG_ALIGN_DEFAULT_VAL));
 
     l_data64.flush<0>();
-    l_data64.insertFromRight< PERV_1_OPCG_ALIGN_INOP, PERV_1_OPCG_ALIGN_INOP_LEN>
+    l_data64.insertFromRight< OPCG_ALIGN_INOP_ALIGN, OPCG_ALIGN_INOP_ALIGN_LEN>
     (p10SbeChipletReset::OPCG_ALIGN_INOP_ALIGN);
-    l_data64.insertFromRight< PERV_1_OPCG_ALIGN_INOP_WAIT, PERV_1_OPCG_ALIGN_INOP_WAIT_LEN >
+    l_data64.insertFromRight< OPCG_ALIGN_INOP_WAIT, OPCG_ALIGN_INOP_WAIT_LEN >
     (p10SbeChipletReset::OPCG_ALIGN_INOP_WAIT);
 
     if(l_attr_nest_dpll_bypass == 0x0)
     {
-        l_data64.insertFromRight< PERV_1_OPCG_ALIGN_SCAN_RATIO, PERV_1_OPCG_ALIGN_SCAN_RATIO_LEN>
+        l_data64.insertFromRight< OPCG_ALIGN_SCAN_RATIO, OPCG_ALIGN_SCAN_RATIO_LEN>
         (p10SbeChipletReset::OPCG_ALIGN_SCANRATIO_4to1);
     }
 
@@ -134,56 +138,56 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
 
         if (l_chipletID == 0x2) // N0 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + n0_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x3) // N1 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + n1_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x20) // EQ0 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + eq0_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x21) // EQ1 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + eq1_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x22) // EQ2 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + eq2_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x23) // EQ3 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + eq3_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x24) // EQ4 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + eq4_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x25) // EQ5 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + eq5_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x26) // EQ6 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + eq6_chiplet_delay * 4);
         }
         else if (l_chipletID == 0x27) // EQ7 cplt
         {
-            l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >
+            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
             (0x020 + eq7_chiplet_delay * 4);
         }
 
-        FAPI_TRY(fapi2::putScom(targ, PERV_OPCG_ALIGN, l_data64));
+        FAPI_TRY(fapi2::putScom(targ, OPCG_ALIGN, l_data64));
     }
 
     // Scan0 call to support Multicast

@@ -33,10 +33,7 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_arrayinit.H"
-#include "p9_const_common.H"
-
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_0.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 #include <multicast_group_defs.H>
@@ -91,13 +88,16 @@ static fapi2::ReturnCode p10_sbe_arrayinit_sdisn_setup(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target,
     const bool i_set)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p10_sbe_arrayinit_sdisn_setup: Entering ...");
 
     l_data64.flush<0>();
-    l_data64.setBit<PERV_1_CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
+    l_data64.setBit<CPLT_CONF0_CTRL_CC_SDIS_DC_N>();
     FAPI_TRY(fapi2::putScom(i_mcast_target,
-                            i_set ? PERV_CPLT_CONF0_OR : PERV_CPLT_CONF0_CLEAR, l_data64));
+                            i_set ? CPLT_CONF0_WO_OR : CPLT_CONF0_WO_CLEAR, l_data64));
 
     FAPI_INF("p10_sbe_arrayinit_sdisn_setup: Exiting ...");
 

@@ -34,10 +34,10 @@
 
 
 #include "p10_sbe_chiplet_pll_setup.H"
-#include "p9_const_common.H"
-
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include "p10_scom_perv_0.H"
+#include "p10_scom_perv_3.H"
+#include "p10_scom_perv_8.H"
+#include "p10_scom_perv_e.H"
 #include <target_filters.H>
 #include <multicast_group_defs.H>
 
@@ -45,10 +45,10 @@ enum P10_SBE_CHIPLET_PLL_SETUP_Private_Constants
 {
     NS_DELAY = 5000000, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
-    OPCG_ALIGN_INOP_ALIGN = 0x5, // INOP phase alignment - 8:1
-    OPCG_ALIGN_INOP_WAIT = 0x0,
+    OPCG_ALIGN_INOP_ALIGN_VAL = 0x5, // INOP phase alignment - 8:1
+    OPCG_ALIGN_INOP_WAIT_VAL = 0x0,
     OPCG_ALIGN_SCANRATIO_4to1 = 0x03,
-    OPCG_ALIGN_WAIT_CYCLES = 0x020,
+    OPCG_ALIGN_WAIT_CYCLES_VAL = 0x020,
     ERROR_REG_VALUE = 0xFFFFFFFFFFFFFFFF,
 };
 
@@ -68,6 +68,8 @@ static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_pll_bypass(
 fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
 
     uint8_t l_bypass;
     fapi2::buffer<uint64_t> l_data64;
@@ -115,26 +117,26 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
 
         FAPI_DBG("set scan ratio to 4:1 as soon as PLLs are out of bypass mode");
         l_data64.flush<0>();
-        l_data64.insertFromRight< PERV_1_OPCG_ALIGN_INOP, PERV_1_OPCG_ALIGN_INOP_LEN >(OPCG_ALIGN_INOP_ALIGN);
-        l_data64.insertFromRight< PERV_1_OPCG_ALIGN_INOP_WAIT, PERV_1_OPCG_ALIGN_INOP_WAIT_LEN >(OPCG_ALIGN_INOP_WAIT);
-        l_data64.insertFromRight< PERV_1_OPCG_ALIGN_SCAN_RATIO, PERV_1_OPCG_ALIGN_SCAN_RATIO_LEN >(OPCG_ALIGN_SCANRATIO_4to1);
-        l_data64.insertFromRight< PERV_1_OPCG_ALIGN_WAIT_CYCLES, PERV_1_OPCG_ALIGN_WAIT_CYCLES_LEN >(OPCG_ALIGN_WAIT_CYCLES);
-        FAPI_TRY(fapi2::putScom(l_mc_iohs, PERV_OPCG_ALIGN, l_data64));
-        FAPI_TRY(fapi2::putScom(l_mc_pci, PERV_OPCG_ALIGN, l_data64));
-        FAPI_TRY(fapi2::putScom(l_mc_mc, PERV_OPCG_ALIGN, l_data64));
+        l_data64.insertFromRight< OPCG_ALIGN_INOP_ALIGN, OPCG_ALIGN_INOP_ALIGN_LEN >(OPCG_ALIGN_INOP_ALIGN_VAL);
+        l_data64.insertFromRight< OPCG_ALIGN_INOP_WAIT, OPCG_ALIGN_INOP_WAIT_LEN >(OPCG_ALIGN_INOP_WAIT_VAL);
+        l_data64.insertFromRight< OPCG_ALIGN_SCAN_RATIO, OPCG_ALIGN_SCAN_RATIO_LEN >(OPCG_ALIGN_SCANRATIO_4to1);
+        l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >(OPCG_ALIGN_WAIT_CYCLES_VAL);
+        FAPI_TRY(fapi2::putScom(l_mc_iohs, OPCG_ALIGN, l_data64));
+        FAPI_TRY(fapi2::putScom(l_mc_pci, OPCG_ALIGN, l_data64));
+        FAPI_TRY(fapi2::putScom(l_mc_mc, OPCG_ALIGN, l_data64));
 
         FAPI_DBG("Reset PCB Slave error register");
-        FAPI_TRY(fapi2::putScom(l_mc_iohs, PERV_ERROR_REG, ERROR_REG_VALUE));
-        FAPI_TRY(fapi2::putScom(l_mc_pci, PERV_ERROR_REG, ERROR_REG_VALUE));
-        FAPI_TRY(fapi2::putScom(l_mc_mc, PERV_ERROR_REG, ERROR_REG_VALUE));
+        FAPI_TRY(fapi2::putScom(l_mc_iohs, ERROR_REG, ERROR_REG_VALUE));
+        FAPI_TRY(fapi2::putScom(l_mc_pci, ERROR_REG, ERROR_REG_VALUE));
+        FAPI_TRY(fapi2::putScom(l_mc_mc, ERROR_REG, ERROR_REG_VALUE));
 
         FAPI_DBG(" Unmasking pll unlock error in   Pcb slave config reg");
 
         for (auto& targ : l_iohs_pci_mc)
         {
-            FAPI_TRY(fapi2::getScom(targ, PERV_TP_SLAVE_CONFIG_REG, l_data64));
+            FAPI_TRY(fapi2::getScom(targ, SLAVE_CONFIG_REG, l_data64));
             l_data64.clearBit<12>();
-            FAPI_TRY(fapi2::putScom(targ, PERV_TP_SLAVE_CONFIG_REG, l_data64));
+            FAPI_TRY(fapi2::putScom(targ, SLAVE_CONFIG_REG, l_data64));
         }
 
     }
@@ -153,11 +155,13 @@ fapi_try_exit:
 static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_check_pll_lock(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV>& i_target_cplt)
 {
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_read_reg;
     FAPI_INF("p10_sbe_chiplet_pll_setup_check_pll_lock: Entering ...");
 
     FAPI_DBG("Check  PLL lock");
-    FAPI_TRY(fapi2::getScom(i_target_cplt, PERV_PLL_LOCK_REG, l_read_reg));
+    FAPI_TRY(fapi2::getScom(i_target_cplt, PLL_LOCK_REG, l_read_reg));
 
     FAPI_ASSERT(l_read_reg.getBit<0>() == 1 ,
                 fapi2::PLL_LOCK_ERR()
@@ -179,12 +183,14 @@ fapi_try_exit:
 static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_pll_bypass(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target)
 {
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p10_sbe_chiplet_pll_setup_pll_bypass: Entering ...");
 
     FAPI_DBG("Drop PLL Reset");
-    l_data64.flush<1>().clearBit<PERV_1_NET_CTRL0_PLL_BYPASS>();
-    FAPI_TRY(fapi2::putScom(i_mcast_target, PERV_NET_CTRL0_WAND, l_data64));
+    l_data64.flush<1>().clearBit<NET_CTRL0_PLL_BYPASS>();
+    FAPI_TRY(fapi2::putScom(i_mcast_target, NET_CTRL0_RW_WAND, l_data64));
 
     FAPI_INF("p10_sbe_chiplet_pll_setup_pll_bypass: Exiting ...");
 
@@ -201,12 +207,14 @@ fapi_try_exit:
 static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_pll_reset(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target)
 {
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p10_sbe_chiplet_pll_setup_pll_reset: Entering ...");
 
     FAPI_DBG("Drop PLL Reset");
-    l_data64.flush<1>().clearBit<PERV_1_NET_CTRL0_PLL_RESET>();
-    FAPI_TRY(fapi2::putScom(i_mcast_target, PERV_NET_CTRL0_WAND, l_data64));
+    l_data64.flush<1>().clearBit<NET_CTRL0_PLL_RESET>();
+    FAPI_TRY(fapi2::putScom(i_mcast_target, NET_CTRL0_RW_WAND, l_data64));
 
     FAPI_INF("p10_sbe_chiplet_pll_setup_pll_reset: Exiting ...");
 
@@ -222,12 +230,14 @@ fapi_try_exit:
 static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_pll_test_enable(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target)
 {
+    using namespace scomt::perv;
+
     fapi2::buffer<uint64_t> l_data64;
     FAPI_INF("p10_sbe_chiplet_pll_setup_pll_test_enable: Entering ...");
 
     FAPI_DBG("Release PLL test enable");
-    l_data64.flush<1>().clearBit<PERV_1_NET_CTRL0_PLL_TEST_EN>();
-    FAPI_TRY(fapi2::putScom(i_mcast_target, PERV_NET_CTRL0_WAND, l_data64));
+    l_data64.flush<1>().clearBit<NET_CTRL0_PLL_TEST_EN>();
+    FAPI_TRY(fapi2::putScom(i_mcast_target, NET_CTRL0_RW_WAND, l_data64));
 
     FAPI_INF("p10_sbe_chiplet_pll_setup_pll_test_enable: Exiting ...");
 
