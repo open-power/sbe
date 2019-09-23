@@ -66,15 +66,10 @@ p10_hcd_core_gptr_time_initf(
 
 #ifndef P10_HCD_CORECACHE_SKIP_INITF
 
-#ifndef __PPE_QME
-
     fapi2::buffer<uint64_t>        l_data64             = 0;
     uint32_t                       l_eq_num             = 0;
     uint32_t                       l_core_num           = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
-
-#endif
-
 
     FAPI_DBG("Scan ec_cl2_gptr ring");
     FAPI_TRY(fapi2::putRing(i_target, ec_cl2_gptr,
@@ -85,7 +80,6 @@ p10_hcd_core_gptr_time_initf(
     FAPI_TRY(fapi2::putRing(i_target, ec_cl2_time,
                             fapi2::RING_MODE_HEADER_CHECK),
              "Error from putRing (ec_cl2_time)");
-#ifndef __PPE_QME
 
     for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -128,8 +122,6 @@ p10_hcd_core_gptr_time_initf(
                                 fapi2::RING_MODE_HEADER_CHECK),
                  "Error from putRing (ec_mma_time)");
     }
-
-#endif
 
 fapi_try_exit:
 
