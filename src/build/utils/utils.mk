@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2017
+# Contributors Listed Below - COPYRIGHT 2015,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -24,5 +24,6 @@
 # IBM_PROLOG_END_TAG
 BUILDDATA-S-SOURCES = base_ppe_header.S
 BUILDDATA-S-SOURCES += base_sbe_fixed.S
+BUILDDATA-S-SOURCES += base_measurement_header.S
 
 BUILDDATA_OBJECTS += $(BUILDDATA-S-SOURCES:.S=.o)

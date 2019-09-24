@@ -53,7 +53,7 @@
 /// scan ring images.
 #define OTPROM_CODE_SIZE (1 * OTPROM_BLOCK_SIZE)
 
-/// The link address of the P9 SBE Base image
+/// The link address of the P10 SBE Base image
 #define SBE_BASE_ORIGIN 0xFFF80000
 /// SBE base image length ( 512 KB - 512 bytes for loader)
 #define SBE_BASE_LENGTH ((512 * 1024) - 512)
@@ -84,6 +84,13 @@
 //   Base Loader is 10 th (P9_XIP_SECTION_BASELOADER) section
 #define SBE_LOADER_BASE_SECTION  SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 120
+//   Base section is the 9th (P9_XIP_SECTION_SBE_BASE) section
+#define SBE_MEASUREMENT_BASE_SECTION  SBE_MEASUREMENT_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
+                                  + 108
+//Maximum Length of pibmem. This is used to zero out the memory
+//after loading the base section of the measurement seeprom
+#define SBE_MEASUREMENT_PIBMEM_LENGTH 0x80000
+
 // Base Loader start address
 #define SBE_LOADER_BASE_ORIGIN 0xFFFFD400
 // Base Loader length
@@ -104,7 +111,7 @@
 /// This address *must* be a constant known to the OTPROM code.
 #define SBE_SEEPROM_LOAD_ADDRESS 0x2000
 
-/// The offset (in bytes) of the .fixed section in P9 SBE-XIP images
+/// The offset (in bytes) of the .fixed section in P10 SBE-XIP images
 #define SBE_XIP_FIXED_OFFSET 512
 
 /// The link address of the PIBMEM image
@@ -129,8 +136,8 @@
 #define SBE_CODE_SEEPROM_START_MSG 0x02
 // Code reached to PIBMEM Loader ( pibmem c loader )
 #define SBE_CODE_PIBMEM_START_MSG 0x03
-// Code reached to MEASURMENT loader
-#define SBE_CODE_MEASURE_START_MSG 0x04
+// Code reached to MEASUREMENT loader
+#define SBE_CODE_MEASUREMENT_START_MSG 0x04
 
 #endif  // __SBE_LINK_H
 

@@ -101,6 +101,7 @@ IMAGE_SBE_NAME := sbe_pibmem_$(IMAGE_SUFFIX)
 IMAGE_LOADER_NAME := sbe_loader_$(IMAGE_SUFFIX)
 IMAGE_OTPROM_NAME := sbe_otprom_$(IMAGE_SUFFIX)
 IMAGE_BASE_PPE_HEADER := base_ppe_header
+IMAGE_BASE_MEASUREMENT_HEADER := base_measurement_header
 
 IMAGE_MEASURE_NAME := sbe_measurement_$(IMAGE_SUFFIX)
 SBE_MEASURE_STRINGFILE_NAME := sbeMeasureStringFile

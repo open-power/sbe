@@ -197,7 +197,7 @@ output_measure_image:
 	$(C2) "Generating $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out"
 	$(C1)$(LD) -e __system_reset -n -T$(OUT_MEASURE_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).map \
   -Bstatic -o $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_MEASUREMENT_OBJECTS)) \
-     $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(MEASURE_LIB_DIRS) \
+     $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_MEASUREMENT_HEADER).o $(MEASURE_LIB_DIRS) \
 					   --start-group $(MEASURE_LLIBS) --end-group --gc-sections
 	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) measurement
 	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).dis
