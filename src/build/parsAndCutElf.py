@@ -36,10 +36,14 @@ def parserElf(argv):
         outdir  = argv[2]
         img     = argv[3]
     except:
-        print "Missing argument : arg[0] ddlevel; arg[1] output directory; arg[2] img (seeprom/pibmem)"
+        print "Missing argument : arg[0] ddlevel; arg[1] output directory; arg[2] img (seeprom/pibmem/measurement)"
         exit(-1)
-    SBE_OUT = outdir+"/sbe_"+img+"_"+ddlevel+".out"
-    SBE_BIN = outdir+"/sbe_"+img+"_"+ddlevel+".bin"
+    if(img == "measurement_seeprom"):
+        SBE_OUT = outdir+"/sbe_"+img+".out"
+        SBE_BIN = outdir+"/sbe_"+img+".bin"
+    else :
+        SBE_OUT = outdir+"/sbe_"+img+"_"+ddlevel+".out"
+        SBE_BIN = outdir+"/sbe_"+img+"_"+ddlevel+".bin"
     cmd = "readelf -S "+SBE_OUT
     firstSection = ".header"
     cmd1 = "nm "+SBE_OUT+" | grep  _sbe_image_size"

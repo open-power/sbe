@@ -505,9 +505,11 @@ ifeq ($(img), pibmem)
 GCC-DEFS += -DPIBMEM_ONLY_IMAGE
 endif
 
-#If make img=boot then only sbe_boot_seeprom image will create with L1 Loader
-ifeq ($(img), boot)
-GCC-DEFS += -DSBE_MEASUREMENT_SUPPORT=0
+#By default MEASUREMENT_IMAGE_SUPPORTED is set to ZERO 
+ifeq ($(MEASUREMENT_IMAGE_SUPPORTED), 1)
+# OTPROM and Seeprom L1 loader will use this variable to do additional
+# functionalities if the SBE image is being built without measurement image
+GCC-DEFS += -DSBE_MEASUREMENT_SUPPORT
 endif
 
 ifeq ($(SBE_S0_SUPPORT), 1)

@@ -24,10 +24,10 @@
 # IBM_PROLOG_END_TAG
 ############################################################################
 # Image settings
-# pass argument img=seeprom/measurement/boot/pibmem. When seeprom is
-# used both the boot and measurement images are built.
-# make img=seeprom -OR- make img=boot -OR- make img=measurment -OR- make img=pibmem
-# By default seeprom image is built
+# pass argument img=seeprom/pibmem. When seeprom is used both the boot and
+# measurement images are built only when set MEASUREMENT_IMAGE_SUPPORTED to 1.
+# By default seeprom image is built without measurement image
+
 ifndef img
 export img = seeprom
 endif
@@ -119,6 +119,9 @@ LIB_DIRS += $(PROJ_LIB_DIRS)
 LLIBS += $(PROJ_LLIBS)
 
 # PK Lib info
+MEASUREMENT_LIB_DIRS += -L$(OBJDIR)/pkbaselib
+MEASUREMENT_LLIBS += -lpkbase
+
 MEASUREMENT_LIB_DIRS := -L$(OBJDIR)/pk
 MEASUREMENT_LLIBS := -lpk
 
@@ -128,8 +131,8 @@ MEASUREMENT_LLIBS += $(MEASUREMENT_PROJ_LLIBS)
 
 # TODO Add Pibmem dis-assembly as well as measurement dis-assembly as part of
 # the simics.tar
-# add seeprom .dis only for img is "seeprom" or "boot"
-ifeq ($(img), $(filter $(img), seeprom boot))
+# add seeprom .dis only for img is "seeprom"
+ifeq ($(img), seeprom)
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.dis
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.bin
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_otprom_*.bin
@@ -156,7 +159,7 @@ SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
 
 IPL_IMAGE_TOOL := $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool
 
-ifneq ($(img), pibmem)
+ifeq ($(img), seeprom)
 #boot seeprom image linker
 IN_LINK_SCRIPT = linkseeprom.cmd
 OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptseeprom_$(IMAGE_SUFFIX))
@@ -203,17 +206,11 @@ output_measure_image:
   -Bstatic -o $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_MEASUREMENT_OBJECTS)) \
      $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_MEASUREMENT_HEADER).o $(MEASUREMENT_LIB_DIRS) \
 					   --start-group $(MEASUREMENT_LLIBS) --end-group --gc-sections
-	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) measurement
+	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) measurement_seeprom
 	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).dis
 
 measure_normalize:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin normalize
-
-measure_compress: $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin
-	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_MEASUREMENT_NAME.bin
-
-#measure_appendloader:
-#	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
 
 measure_symbols:
 	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(MEASUREMENT_SYMBOLS_NAME)
@@ -236,17 +233,9 @@ add_MeasureLoaderAddr:
 ifeq ($(img), seeprom)
 all:
 	$(MAKE) boot_branch
-#	$(MAKE) measurement_branch
-endif
-
-ifeq ($(img), boot)
-all:
-	$(MAKE) boot_branch
-endif
-
-ifeq ($(img), measurement)
-all:
+ifeq ($(MEASUREMENT_IMAGE_SUPPORTED), 1)
 	$(MAKE) measurement_branch
+endif
 endif
 
 boot_branch:
@@ -291,7 +280,6 @@ measurement_branch:
 	$(MAKE) build_measure_image
 	$(MAKE) output_measure_image
 	$(MAKE) measure_normalize
-#	$(MAKE) measure_appendloader
 	$(MAKE) add_MeasureLoaderAddr
 	$(MAKE) measure_symbols measure_buildtag
 	$(MAKE) measure_tracehash

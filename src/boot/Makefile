@@ -35,8 +35,8 @@ L1_BOOT_OBJS := $(addprefix $(OBJDIR)/, $(L1_BOOT_OBJECTS))
 
 #This will generate L1 Measurement *.o objects
 #this gets directly appended into measurement seeprom
-#when img is passed as seeprom or measure, we need to enable this.
-ifeq ($(img), $(filter $(img), seeprom measurement))
+#when MEASUREMENT_IMAGE_SUPPORTED is set with 1 to enable this.
+ifeq ($(MEASUREMENT_IMAGE_SUPPORTED), 1)
 L1_MEASUREMENT_OBJS := $(addprefix $(OBJDIR)/, $(L1_MEASUREMENT_OBJECTS))
 endif
 
