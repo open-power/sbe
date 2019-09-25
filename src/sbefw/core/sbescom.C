@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -83,6 +83,7 @@ void checkIndirectAndDoScom( const bool i_isRead,
     uint64_t tempBuffer = io_data;
     sbeScomType scomType = SBE_SCOM_TYPE_DIRECT;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP> l_hndl = plat_getChipTarget();
     do
     {
         #ifndef __ALLOW_INVALID_SCOMS__
@@ -106,7 +107,6 @@ void checkIndirectAndDoScom( const bool i_isRead,
         // If the indirect scom bit is 0, then doing a regular scom
         if( (i_addr & DIRECT_SCOM_ADDR_MASK) == 0)
         {
-            plat_target_handle_t l_hndl;
             SBE_INFO(SBE_FUNC "Performing Direct scom.");
             CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
                         static_cast<uint32_t>(i_addr),
@@ -161,7 +161,6 @@ void checkIndirectAndDoScom( const bool i_isRead,
         // bit 33-47 - bcast/chipletID/port
         // bit 48-63 - local addr
         uint64_t tempAddr = i_addr & 0x000000007FFFFFFF;
-        plat_target_handle_t l_hndl;
         CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
                         static_cast<uint32_t>(tempAddr),
                         (i_isRead ? SBE_SECURITY::READ : SBE_SECURITY::WRITE),
