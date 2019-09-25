@@ -26,6 +26,7 @@
 #ifndef _P10_CONTAINED_H_
 #define _P10_CONTAINED_H_
 
+#include <map>
 #include <fapi2.H>
 #include <p10_scom_perv.H>
 
@@ -52,31 +53,45 @@ const fapi2::buffer<uint64_t> CHC_EQ_REGIONS_NO_PERV = (fapi2::buffer<uint64_t>(
         .setBit<scomt::perv::CPLT_CTRL1_REGION12_FENCE_DC>()   // mma1
         .setBit<scomt::perv::CPLT_CTRL1_REGION13_FENCE_DC>()   // mma2
         .setBit<scomt::perv::CPLT_CTRL1_REGION14_FENCE_DC>()); // mma3
-// Encapsulate all regions in all chiplets which participate in cache-contained
+// Encapsulate all regions in all chiplets which participate in chip-contained
 // mode in a single constant for multicast operations on all chiplets.
 // Note: the "extra" EQ regions specified are unused in the N0/N1 chiplets.
 const auto CHC_MC_REGIONS_NO_PERV(CHC_EQ_REGIONS_NO_PERV);
 
-///
-/// @brief Read attribute(s) to determine if clocks should be started in RUNN
-///        or free-running mode
-///
-/// @param[o] o_is_runn Indicates clocks should be started in RUNN mode
-///
-/// @return FAPI2_RC_SUCCESS if success else error code
-///
-fapi2::ReturnCode get_contained_run_mode(bool& o_is_runn);
+enum runn_threads : uint8_t
+{
+    RUNN_T0 = 0b10000000,
+    RUNN_T1 = 0b01000000,
+    RUNN_T2 = 0b00100000,
+    RUNN_T3 = 0b00010000,
+};
 
 ///
-/// @brief Read attribute(s) to determine contained IPL type
+/// @brief Indicate an IPL where clocks are started in RUNN mode
 ///
-/// @param[o] o_is_cache_contained Indicates cache-contained boot
-/// @param[o] o_is_chip_contained Indiciates chip-contained boot
+/// @param[o] o_yes
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode get_contained_ipl_type(bool& o_is_cache_contained,
-        bool& o_is_chip_contained);
+fapi2::ReturnCode is_runn_ipl(bool& o_yes);
+
+///
+/// @brief Indicate a cache-contained IPL
+///
+/// @param[o] o_yes
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+fapi2::ReturnCode is_cac_ipl(bool& o_yes);
+
+///
+/// @brief Indicate a chip-contained IPL
+///
+/// @param[o] o_yes
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+fapi2::ReturnCode is_chc_ipl(bool& o_yes);
 
 ///
 /// @brief Determine if a core's cache is configured as "active"
@@ -90,5 +105,19 @@ inline bool is_active_core(const size_t i_corenum, const uint32_t i_active_bvec)
 {
     return ((1ul << (31 - i_corenum)) & i_active_bvec);
 }
+
+///
+/// @brief Hold L3 configuration registers which need to be saved and restored
+///        before and after scanning respectively
+///
+/// l3_config: [core #num][register addr] -> register value
+///
+using l3_config = std::map<size_t, std::map<uint64_t, uint64_t>>;
+
+fapi2::ReturnCode save_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+                                 const uint32_t i_active_bvec, l3_config& io_l3_config);
+fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+                                    const uint32_t i_active_bvec, const l3_config& i_l3_config,
+                                    const bool i_runn);
 
 #endif

@@ -23,14 +23,13 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 #include <p10_contained.H>
+#include <p10_contained_sim.H>
 
 #include <fapi2.H>
 #include <p10_scom_perv.H>
 #include <p10_scom_eq.H>
 #include <multicast_group_defs.H>
 
-namespace
-{
 enum opcg_capt_region
 {
     CORE,
@@ -55,7 +54,7 @@ struct opcg_capt_regs
 /// @return Value representing amount to left-shift a 2b value into a region's
 ///         2b field in the OPCG_CAPT* registers.
 ///
-inline size_t __attribute__((always_inline))
+static inline size_t __attribute__((always_inline))
 opcg_capt_region_shift (size_t i_corenum, opcg_capt_region i_region)
 {
     size_t region_shift = (i_region == CORE) ? 0 : (i_region == L3) ? 8 : 20;
@@ -74,8 +73,8 @@ opcg_capt_region_shift (size_t i_corenum, opcg_capt_region i_region)
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode update_opcg_capt_regs(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core,
-                                        opcg_capt_regs& io_regs)
+static fapi2::ReturnCode update_opcg_capt_regs(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core,
+        opcg_capt_regs& io_regs)
 {
     fapi2::ATTR_RUNN_CORE_CYCLE_OFFSET_Type offset;
     fapi2::ATTR_RUNN_CORE_CYCLE_OFFSET_Type runn_core_offset;
@@ -112,8 +111,8 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode init_runn_cnt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                uint64_t& o_runn_cnt)
+static fapi2::ReturnCode init_runn_cnt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+                                       uint64_t& o_runn_cnt)
 {
     fapi2::ATTR_RUNN_CYCLE_COUNT_Type runn_sys_cnt;
     fapi2::ATTR_RUNN_CHIP_CYCLE_OFFSET_Type runn_chip_offset;
@@ -137,8 +136,8 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode quad_runn_cnt(const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_quad,
-                                uint64_t i_runn_cnt, uint64_t& o_runn_cnt)
+static fapi2::ReturnCode quad_runn_cnt(const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_quad,
+                                       uint64_t i_runn_cnt, uint64_t& o_runn_cnt)
 {
     fapi2::ATTR_RUNN_QUAD_CYCLE_OFFSET_Type runn_quad_offset = 0; // -Werror=maybe-uninitialized
 
@@ -160,8 +159,8 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode runn_check_clks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                  bool i_chc)
+static fapi2::ReturnCode runn_check_clks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        bool i_chc)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -211,7 +210,7 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode runn_check_sync(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
+static fapi2::ReturnCode runn_check_sync(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -242,9 +241,9 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode runn_opcg_start(const fapi2::Target < fapi2::TARGET_TYPE_PERV |
-                                  fapi2::TARGET_TYPE_MULTICAST > & i_perv,
-                                  bool i_set_hld_dly_en, uint64_t i_runn_cnt)
+static fapi2::ReturnCode runn_opcg_start(const fapi2::Target < fapi2::TARGET_TYPE_PERV |
+        fapi2::TARGET_TYPE_MULTICAST > & i_perv,
+        bool i_set_hld_dly_en, uint64_t i_runn_cnt)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -270,8 +269,6 @@ fapi_try_exit:
     FAPI_INF("<< %s", __func__);
     return fapi2::current_err;
 }
-
-}; // namespace
 
 fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
                              bool i_chc)
@@ -378,11 +375,18 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
             // Start RUNN
             const bool set_hld_dly_en = regs.capt1 != 0 || regs.capt2 != 0 ||
                                         regs.capt3 != 0;
+            {
+                fapi2::ATTR_CHIP_UNIT_POS_Type quad_num;
+                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, quad, quad_num));
+                std::string tmp = "before_opcg_start_eq" + std::to_string(quad_num);
+                FAPI_TRY(sim::checkpoint(i_chc, true, tmp));
+            }
             FAPI_TRY(runn_opcg_start(perv_eq, set_hld_dly_en, runn_cnt));
         }
     }
     else
     {
+        FAPI_TRY(sim::checkpoint(i_chc, true, std::string("before_opcg_start")));
         FAPI_TRY(runn_opcg_start(all, false, base_runn_cnt));
     }
 

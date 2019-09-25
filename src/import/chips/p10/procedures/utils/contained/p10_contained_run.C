@@ -28,9 +28,6 @@
 #include <p10_scom_perv.H>
 #include <multicast_group_defs.H>
 
-namespace
-{
-
 ///
 /// @brief Lower fences which are assumed low by istep3/4 procedures during
 ///        p10_contained_ipl. These fences were raised during p10_contained_ipl
@@ -41,9 +38,11 @@ namespace
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode cleanup_for_free_clks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                        bool i_chc)
+static fapi2::ReturnCode cleanup_for_free_clks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        const bool i_chc)
 {
+    FAPI_INF(">> %s", __func__);
+
     using namespace scomt::perv;
 
     auto all = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
@@ -60,20 +59,18 @@ fapi2::ReturnCode cleanup_for_free_clks(const fapi2::Target<fapi2::TARGET_TYPE_P
     FAPI_TRY(PUT_CPLT_CTRL1_WO_CLEAR(all, data));
 
 fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
     return fapi2::current_err;
 }
-
-}; // namespace
 
 extern "C" {
     fapi2::ReturnCode p10_contained_run(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
-        bool cac;
         bool chc;
         bool runn;
 
-        FAPI_TRY(get_contained_run_mode(runn));
-        FAPI_TRY(get_contained_ipl_type(cac, chc));
+        FAPI_TRY(is_runn_ipl(runn));
+        FAPI_TRY(is_chc_ipl(chc));
 
         if (runn)
         {

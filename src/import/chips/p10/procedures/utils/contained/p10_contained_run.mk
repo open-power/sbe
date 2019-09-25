@@ -24,7 +24,14 @@
 # IBM_PROLOG_END_TAG
 PROCEDURE=p10_contained_run
 
+# XXX clean up this garbage dependency thing (need this for p10_contained.o)
+$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
+
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
+ifeq ($(P10_CONTAINED_SIM),1)
+	OBJS+=p10_contained_sim.o
+	LOCALCOMMONFLAGS+=-DP10_CONTAINED_SIM
+endif
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained_runn.o)
 
 $(call BUILD_PROCEDURE)

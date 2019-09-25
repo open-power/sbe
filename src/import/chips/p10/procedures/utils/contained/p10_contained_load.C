@@ -28,25 +28,10 @@
 #include <fapi2_mem_access.H>
 #include <p10_l3_flush.H>
 
-namespace
-{
-
 // L3 caches are 4MiB
 const uint64_t L3_CACHE_SIZE = (1ull << 20) * 4;
 // QME SRAM is 32KiB
 const uint64_t QME_SRAM_SIZE = (1ull << 10) * 32;
-
-///
-/// @brief Align a 64-bit value to 128B by rounding up
-///
-/// @param[in] val Value to align to 128B
-///
-/// @return val aligned to 128B if val != 0 else 0
-///
-inline uint64_t align128(const uint64_t& val)
-{
-    return (val + 127) / 128 * 128;
-}
 
 enum memflags : uint32_t
 {
@@ -70,12 +55,12 @@ enum memflags : uint32_t
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-inline fapi2::ReturnCode putmempba(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                   const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core,
-                                   const uint64_t i_start_addr,
-                                   const uint64_t i_data_bytes,
-                                   const uint8_t* i_data,
-                                   const memflags i_mem_flags)
+static inline fapi2::ReturnCode putmempba(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core,
+        const uint64_t i_start_addr,
+        const uint64_t i_data_bytes,
+        const uint8_t* i_data,
+        const memflags i_mem_flags)
 {
     fapi2::ReturnCode rc;
     FAPI_EXEC_HWP(rc, p10_putmempba, i_chip, i_core, i_start_addr, i_data_bytes,
@@ -90,7 +75,7 @@ inline fapi2::ReturnCode putmempba(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-inline fapi2::ReturnCode purgel3(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core)
+static inline fapi2::ReturnCode purgel3(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core)
 {
     fapi2::ReturnCode rc;
 
@@ -114,9 +99,9 @@ inline fapi2::ReturnCode purgel3(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode blkcpyqme(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                            const uint64_t& i_qme_img_bytes,
-                            const uint8_t* i_qme_img)
+static inline fapi2::ReturnCode blkcpyqme(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        const uint64_t& i_qme_img_bytes,
+        const uint8_t* i_qme_img)
 {
     // TODO RTC:212055 implement QME BCE
     // TODO RTC:212108
@@ -138,7 +123,7 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-inline fapi2::ReturnCode deleteqme(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core)
+static inline fapi2::ReturnCode deleteqme(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core)
 {
     fapi2::ReturnCode rc;
     FAPI_EXEC_HWP(rc, p10_l3_flush, i_core, L3_FULL_BLIND_PURGE, 0);
@@ -157,13 +142,13 @@ inline fapi2::ReturnCode deleteqme(const fapi2::Target<fapi2::TARGET_TYPE_CORE>&
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode validate(const bool& i_cac, const bool& i_chc,
-                           const uint64_t& i_cache_img_bytes,
-                           const uint64_t& i_qme_img_bytes,
-                           const fapi2::ATTR_ACTIVE_CORES_NUM_Type i_nactive,
-                           const fapi2::ATTR_BACKING_CACHES_NUM_Type i_nbacking)
+static fapi2::ReturnCode validate(const bool& i_cac, const bool& i_chc,
+                                  const uint64_t& i_cache_img_bytes,
+                                  const uint64_t& i_qme_img_bytes,
+                                  const fapi2::ATTR_ACTIVE_CORES_NUM_Type i_nactive,
+                                  const fapi2::ATTR_BACKING_CACHES_NUM_Type i_nbacking)
 {
-    FAPI_ASSERT(i_cac != i_chc,
+    FAPI_ASSERT(i_cac ^ i_chc,
                 fapi2::P10_CONTAINED_LOAD_NOT_CONTAINED_IPL()
                 .set_CAC(i_cac)
                 .set_CHC(i_chc),
@@ -205,8 +190,6 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-}; // namespace
-
 extern "C" {
     fapi2::ReturnCode p10_contained_load(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
                                          const uint64_t& i_cache_img_start_addr,
@@ -223,7 +206,8 @@ extern "C" {
         fapi2::ATTR_ACTIVE_CORES_NUM_Type nactive;
         fapi2::ATTR_BACKING_CACHES_NUM_Type nbacking;
 
-        FAPI_TRY(get_contained_ipl_type(cac, chc));
+        FAPI_TRY(is_cac_ipl(cac));
+        FAPI_TRY(is_chc_ipl(chc));
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_chip, active_bvec));
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_NUM, i_chip, nactive));
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM, i_chip, nbacking));
