@@ -88,6 +88,28 @@ static const uint32_t CPMS_L3_PFETSTAT_VCS_PFET_ENABLE_ACTUAL_LEN = 8;
 static const uint32_t CPMS_L3_PFETSTAT_SRAM_ENABLE_ACTUAL = 63;
 // ppe_c/reg00011.H
 
+static const uint32_t CPMS_WPMR = 0xc000e900ull;
+
+static const uint32_t CPMS_WPMR_PITCH_ENABLE = 0;
+static const uint32_t CPMS_WPMR_PERIOD_COUNT = 1;
+static const uint32_t CPMS_WPMR_BUDGET_TYPE = 2;
+static const uint32_t CPMS_WPMR_MIN_CLIP = 3;
+static const uint32_t CPMS_WPMR_MIN_CLIP_LEN = 2;
+static const uint32_t CPMS_WPMR_MAX_CLIP = 5;
+static const uint32_t CPMS_WPMR_MAX_CLIP_LEN = 2;
+static const uint32_t CPMS_WPMR_ACCUM_ERR_ADJ = 7;
+static const uint32_t CPMS_WPMR_OCP_ABORT_ENABLE = 8;
+static const uint32_t CPMS_WPMR_PITCH_DONE_INTERRUPT_ENABLE = 9;
+static const uint32_t CPMS_WPMR_LAST_PROP_ADJ = 10;
+static const uint32_t CPMS_WPMR_LAST_PROP_ADJ_LEN = 2;
+static const uint32_t CPMS_WPMR_EXTRA_BUDGET = 12;
+static const uint32_t CPMS_WPMR_EXTRA_BUDGET_LEN = 6;
+static const uint32_t CPMS_WPMR_PITCH_PERIOD_TIME = 18;
+static const uint32_t CPMS_WPMR_PITCH_PERIOD_TIME_LEN = 14;
+static const uint32_t CPMS_WPMR_MINIMUM_PROXY_VALUE = 32;
+static const uint32_t CPMS_WPMR_MINIMUM_PROXY_VALUE_LEN = 12;
+// ppe_c/reg00011.H
+
 static const uint32_t QME_PSCRS1 = 0xc0008540ull;
 
 static const uint32_t QME_PSCRS1_DPDES_EXIT_ENABLE = 0;

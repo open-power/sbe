@@ -84,6 +84,8 @@ static const uint32_t QME_QSCR_ECC_INJECT_TYPE = 4;
 static const uint32_t QME_QSCR_ECC_INJECT_ERR = 5;
 static const uint32_t QME_QSCR_SPARE_6_7 = 6;
 static const uint32_t QME_QSCR_SPARE_6_7_LEN = 2;
+static const uint32_t QME_QSCR_DTCBASE = 32;
+static const uint32_t QME_QSCR_DTCBASE_LEN = 8;
 static const uint32_t QME_QSCR_SRAM_SCRUB_INDEX = 47;
 static const uint32_t QME_QSCR_SRAM_SCRUB_INDEX_LEN = 13;
 // ppe_eq/reg00013.H
@@ -101,8 +103,6 @@ static const uint32_t QME_RCMR_AUTO_TARGET_DISABLE = 2;
 static const uint32_t QME_RCMR_AUTO_DONE_DISABLE = 3;
 static const uint32_t QME_RCMR_STEP_DELAY = 4;
 static const uint32_t QME_RCMR_STEP_DELAY_LEN = 4;
-static const uint32_t QME_RCMR_QME_RCSCR_CORE_CHANGE_ERROR = 8;
-static const uint32_t QME_RCMR_QME_RCSCR_CORE_CHANGE_ERROR_LEN = 4;
 static const uint32_t QME_RCMR_CORE0_CONTROL_INDEX = 35;
 static const uint32_t QME_RCMR_CORE0_CONTROL_INDEX_LEN = 5;
 static const uint32_t QME_RCMR_CORE1_CONTROL_INDEX = 43;

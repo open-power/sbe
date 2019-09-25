@@ -72,6 +72,16 @@ static const uint32_t QME_ERR_SPARE_LEN = 4;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
+static const uint32_t QME_QHTTRIG = 0xc0001b00ull;
+
+static const uint32_t QME_QHTTRIG_START = 0;
+static const uint32_t QME_QHTTRIG_STOP = 1;
+static const uint32_t QME_QHTTRIG_PAUSE = 2;
+// ppe_eq/reg00007.H
+
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
 static const uint32_t QME_QMCR = 0xc0000880ull;
 static const uint32_t QME_QMCR_WO_CLEAR = 0xc00008b0ull;
 static const uint32_t QME_QMCR_WO_OR = 0xc00008a0ull;
@@ -81,7 +91,7 @@ static const uint32_t QME_QMCR_PSCR_OVERRIDE_EN = 1;
 static const uint32_t QME_QMCR_CHAR_REGS_READ_ENABLE = 2;
 static const uint32_t QME_QMCR_BCECSR_OVERRIDE_EN = 3;
 static const uint32_t QME_QMCR_PSREQ_SCOM_READ_EN = 4;
-static const uint32_t QME_QMCR_LOCK_PCB_ON_ERR = 5;
+static const uint32_t QME_QMCR_LOCK_QUEUE_ON_PCB_ERR = 5;
 static const uint32_t QME_QMCR_STOP_OVERRIDE_MODE = 6;
 static const uint32_t QME_QMCR_STOP_ACTIVE_MASK = 7;
 static const uint32_t QME_QMCR_AUTO_PMCR_UPDATE = 8;

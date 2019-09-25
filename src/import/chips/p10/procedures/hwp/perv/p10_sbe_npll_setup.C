@@ -326,9 +326,8 @@ static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_pulsemode_settings(
 
     if (l_attr_pulse_mode_enable.getBit<7>())
     {
-        l_data64_perv_ctrl1.setBit<FSXCOMP_FSXLOG_PERV_CTRL1_PERV_CTRL1_25_RESERVED>()
-        .insertFromRight< FSXCOMP_FSXLOG_PERV_CTRL1_PERV_CTRL1_26_27_RESERVED,
-                          FSXCOMP_FSXLOG_PERV_CTRL1_PERV_CTRL1_26_27_RESERVED_LEN  >(l_attr_pulse_mode_value);
+        l_data64_perv_ctrl1.setBit<25>()
+        .insertFromRight< 26, 2  >(l_attr_pulse_mode_value);
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_PERV_CTRL1_RW, l_data64_perv_ctrl1));
     }
 

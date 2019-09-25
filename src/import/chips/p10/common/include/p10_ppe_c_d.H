@@ -77,6 +77,20 @@ static const uint32_t CPMS_PFETDLY_MMA_POWUP_DLY = 12;
 static const uint32_t CPMS_PFETDLY_MMA_POWUP_DLY_LEN = 4;
 // ppe_c/reg00013.H
 
+static const uint32_t CPMS_PPSR = 0xc000e980ull;
+
+static const uint32_t CPMS_PPSR_ENERGY_PROXY_UPPER = 0;
+static const uint32_t CPMS_PPSR_ENERGY_PROXY_UPPER_LEN = 32;
+static const uint32_t CPMS_PPSR_ENERGY_PROXY_LOWER = 32;
+static const uint32_t CPMS_PPSR_ENERGY_PROXY_LOWER_LEN = 8;
+static const uint32_t CPMS_PPSR_PERIOD_PROXY_REMAIN = 40;
+static const uint32_t CPMS_PPSR_PERIOD_PROXY_REMAIN_LEN = 20;
+static const uint32_t CPMS_PPSR_FTX_SATURATED = 60;
+static const uint32_t CPMS_PPSR_PITCH_SATURATED = 61;
+static const uint32_t CPMS_PPSR_PITCH_ABORTED = 62;
+static const uint32_t CPMS_PPSR_PITCH_ACTIVE = 63;
+// ppe_c/reg00013.H
+
 static const uint32_t QME_PSCRS0 = 0xc0008500ull;
 
 static const uint32_t QME_PSCRS0_DPDES_EXIT_ENABLE = 0;

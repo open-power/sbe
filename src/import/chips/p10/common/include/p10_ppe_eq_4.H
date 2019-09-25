@@ -71,8 +71,8 @@ static const uint32_t QME_FTXR_QOS_UPDATE_PENDING_LEN = 4;
 
 static const uint32_t QME_LFIRACT0 = 0xc0000080ull;
 
-static const uint32_t QME_LFIRACT0_FIR_ACTION1 = 0;
-static const uint32_t QME_LFIRACT0_FIR_ACTION1_LEN = 31;
+static const uint32_t QME_LFIRACT0_FIR_ACTION0 = 0;
+static const uint32_t QME_LFIRACT0_FIR_ACTION0_LEN = 34;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

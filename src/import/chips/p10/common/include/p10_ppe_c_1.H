@@ -69,6 +69,8 @@ static const uint32_t QME_DCSR_SL_T2_LEN = 2;
 static const uint32_t QME_DCSR_SL_T3 = 22;
 static const uint32_t QME_DCSR_SL_T3_LEN = 2;
 static const uint32_t QME_DCSR_SRESET_MSR_S = 24;
+static const uint32_t QME_DCSR_THREAD_INSTR_RUNNING_HISTORY = 60;
+static const uint32_t QME_DCSR_THREAD_INSTR_RUNNING_HISTORY_LEN = 4;
 // ppe_c/reg00001.H
 
 static const uint32_t QME_PMCRS = 0xc0008600ull;

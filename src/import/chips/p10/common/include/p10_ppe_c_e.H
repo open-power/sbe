@@ -105,7 +105,8 @@ static const uint32_t CPMS_DESR_STATEW_ENABLE_LEN = 3;
 static const uint32_t CPMS_DESR_STATEZ_ENABLE = 38;
 static const uint32_t CPMS_DESR_STATEZ_ENABLE_LEN = 3;
 static const uint32_t CPMS_DESR_SPARE_COUNT_SEL = 41;
-static const uint32_t CPMS_DESR_SPARE_COUNT_SEL_LEN = 3;
+static const uint32_t CPMS_DESR_SECONDARY_QUAL_SEL = 42;
+static const uint32_t CPMS_DESR_SECONDARY_QUAL_SEL_LEN = 2;
 static const uint32_t CPMS_DESR_SECONDARY_EVENT_SEL = 44;
 static const uint32_t CPMS_DESR_SECONDARY_EVENT_SEL_LEN = 2;
 // ppe_c/reg00014.H
@@ -165,6 +166,8 @@ static const uint32_t QME_CISR_TFCS_HDEC_PRESENT = 56;
 static const uint32_t QME_CISR_TFCS_HDEC_REQUESTED = 57;
 static const uint32_t QME_CISR_DPDES_INTR_PRESENT = 58;
 static const uint32_t QME_CISR_DPDES_INTR_REQUESTED = 59;
+static const uint32_t QME_CISR_PC_INTR_PENDING = 60;
+static const uint32_t QME_CISR_PC_INTR_REQUESTED = 61;
 static const uint32_t QME_CISR_REG_WKUP_PRESENT = 62;
 static const uint32_t QME_CISR_REG_WKUP_REQUESTED = 63;
 // ppe_c/reg00014.H

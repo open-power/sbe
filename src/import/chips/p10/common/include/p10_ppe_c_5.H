@@ -39,7 +39,9 @@ namespace ppe_c
 #endif
 
 
-static const uint32_t CPMS_FLMR = 0xc000e480ull;
+static const uint32_t CPMS_FLMR_RW = 0xc000e480ull;
+static const uint32_t CPMS_FLMR_WO_CLEAR = 0xc000e4b0ull;
+static const uint32_t CPMS_FLMR_WO_OR = 0xc000e4a0ull;
 
 static const uint32_t CPMS_FLMR_LARGE_INITIAL_CYCLES = 0;
 static const uint32_t CPMS_FLMR_LARGE_INITIAL_CYCLES_LEN = 6;
@@ -73,10 +75,29 @@ static const uint32_t CPMS_FLMR_PHASE2_RECOVERY_CYCLES_LEN = 8;
 static const uint32_t CPMS_FLMR_MMA_DROOP_PROTECT_ENABLE = 52;
 static const uint32_t CPMS_FLMR_MMA_DROOP_PREDICT_SELECT = 53;
 static const uint32_t CPMS_FLMR_MMA_DROOP_PREDICT_SELECT_LEN = 3;
-static const uint32_t CPMS_FLMR_CORE_QUIESCE_DROOP_IGNORE = 56;
+static const uint32_t CPMS_FLMR_CORE_UCODE_IDLE_DISABLE = 56;
 static const uint32_t CPMS_FLMR_CORE_UCODE_GRANT_SUPPRESS = 57;
-static const uint32_t CPMS_FLMR_CORE_UCODE_GRANT_INJECT = 58;
-static const uint32_t CPMS_FLMR_FTC_RESET = 59;
+static const uint32_t CPMS_FLMR_CORE_UCODE_GRANT_SUPPRESS_LEN = 2;
+static const uint32_t CPMS_FLMR_CORE_UCODE_GRANT_INJECT = 59;
+static const uint32_t CPMS_FLMR_FTC_RESET = 60;
+static const uint32_t CPMS_FLMR_IGNORE_IFU_THROTTLE_ACTIVE = 61;
+static const uint32_t CPMS_FLMR_PHASE1_DITHER_NTC = 62;
+static const uint32_t CPMS_FLMR_SPARE4 = 63;
+// ppe_c/reg00005.H
+
+static const uint32_t CPMS_WPCR = 0xc000e940ull;
+
+static const uint32_t CPMS_WPCR_SPARE = 0;
+static const uint32_t CPMS_WPCR_SPARE_LEN = 2;
+static const uint32_t CPMS_WPCR_BASE_THROTTLE_INDEX = 2;
+static const uint32_t CPMS_WPCR_BASE_THROTTLE_INDEX_LEN = 6;
+static const uint32_t CPMS_WPCR_INTERVAL_PROXY_TARGET = 8;
+static const uint32_t CPMS_WPCR_INTERVAL_PROXY_TARGET_LEN = 24;
+static const uint32_t CPMS_WPCR_SPARE2 = 32;
+static const uint32_t CPMS_WPCR_PROXY_THRESH_SELECT = 33;
+static const uint32_t CPMS_WPCR_PROXY_THRESH_SELECT_LEN = 3;
+static const uint32_t CPMS_WPCR_PROXY_CARRYOUT_SEL = 36;
+static const uint32_t CPMS_WPCR_PROXY_CARRYOUT_SEL_LEN = 4;
 // ppe_c/reg00005.H
 
 static const uint32_t QME_CIIR = 0xc0008740ull;

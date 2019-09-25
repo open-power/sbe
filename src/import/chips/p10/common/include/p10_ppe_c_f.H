@@ -57,12 +57,16 @@ static const uint32_t CPMS_ACCR_SPARE = 24;
 static const uint32_t CPMS_ACCR_SPARE_LEN = 2;
 // ppe_c/reg00015.H
 
-static const uint32_t CPMS_MMAR_RW = 0xc000e380ull;
-static const uint32_t CPMS_MMAR_WO_CLEAR = 0xc000e3b0ull;
-static const uint32_t CPMS_MMAR_WO_OR = 0xc000e3a0ull;
+static const uint32_t CPMS_MMAR = 0xc000e380ull;
+static const uint32_t CPMS_MMAR_PPE1 = 0xc000e3b0ull;
+static const uint32_t CPMS_MMAR_PPE2 = 0xc000e3a0ull;
 
 static const uint32_t CPMS_MMAR_AVAILABLE = 0;
 static const uint32_t CPMS_MMAR_FUNC_RESET = 1;
+static const uint32_t CPMS_MMAR_LIMIT = 2;
+static const uint32_t CPMS_MMAR_LIMIT_LEN = 2;
+static const uint32_t CPMS_MMAR_LIMIT_UPDATE_SELECT = 4;
+static const uint32_t CPMS_MMAR_DIRTY = 32;
 // ppe_c/reg00015.H
 
 #ifndef __PPE_HCODE__

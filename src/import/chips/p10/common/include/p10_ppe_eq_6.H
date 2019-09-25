@@ -53,6 +53,21 @@ static const uint32_t QME_PPEBAR_SIZE_LEN = 3;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
+static const uint32_t QME_QHTMEM = 0xc0001a40ull;
+
+static const uint32_t QME_QHTMEM_ALLOC = 0;
+static const uint32_t QME_QHTMEM_SCOPE = 1;
+static const uint32_t QME_QHTMEM_SCOPE_LEN = 3;
+static const uint32_t QME_QHTMEM_PRIORITY = 4;
+static const uint32_t QME_QHTMEM_BASE = 8;
+static const uint32_t QME_QHTMEM_BASE_LEN = 32;
+static const uint32_t QME_QHTMEM_SIZE = 40;
+static const uint32_t QME_QHTMEM_SIZE_LEN = 9;
+// ppe_eq/reg00006.H
+
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
 static const uint32_t QME_RCTAR2 = 0xc0001980ull;
 
 static const uint32_t QME_RCTAR2_DATA = 0;

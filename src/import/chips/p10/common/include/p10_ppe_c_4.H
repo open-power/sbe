@@ -57,6 +57,35 @@ static const uint32_t CPMS_CCCR_SPARE = 24;
 static const uint32_t CPMS_CCCR_SPARE_LEN = 2;
 // ppe_c/reg00004.H
 
+static const uint32_t CPMS_DPCR = 0xc000ea40ull;
+
+static const uint32_t CPMS_DPCR_PROXY_SCALE_FACTOR = 0;
+static const uint32_t CPMS_DPCR_PROXY_SCALE_FACTOR_LEN = 12;
+static const uint32_t CPMS_DPCR_DDP_RECHARGE_DELAY = 12;
+static const uint32_t CPMS_DPCR_DDP_RECHARGE_DELAY_LEN = 4;
+static const uint32_t CPMS_DPCR_DDP_RECHARGE_VALUE = 16;
+static const uint32_t CPMS_DPCR_DDP_RECHARGE_VALUE_LEN = 8;
+// ppe_c/reg00004.H
+
+static const uint32_t CPMS_PSSR = 0xc000e9c0ull;
+
+static const uint32_t CPMS_PSSR_ACCUM_ERROR = 0;
+static const uint32_t CPMS_PSSR_ACCUM_ERROR_LEN = 20;
+static const uint32_t CPMS_PSSR_AVG_FTX_PHASE0 = 20;
+static const uint32_t CPMS_PSSR_AVG_FTX_PHASE0_LEN = 8;
+static const uint32_t CPMS_PSSR_AVG_FTX_PHASE1 = 28;
+static const uint32_t CPMS_PSSR_AVG_FTX_PHASE1_LEN = 8;
+static const uint32_t CPMS_PSSR_AVG_FTX_TOTAL = 36;
+static const uint32_t CPMS_PSSR_AVG_FTX_TOTAL_LEN = 8;
+static const uint32_t CPMS_PSSR_PITCH_PERIOD_NUMBER = 44;
+static const uint32_t CPMS_PSSR_PITCH_PERIOD_NUMBER_LEN = 4;
+static const uint32_t CPMS_PSSR_PITCH_SUB_PERIOD = 48;
+static const uint32_t CPMS_PSSR_PITCH_SUB_PERIOD_LEN = 2;
+static const uint32_t CPMS_PSSR_PITCH_PERIOD_TIMER = 50;
+static const uint32_t CPMS_PSSR_PITCH_PERIOD_TIMER_LEN = 13;
+static const uint32_t CPMS_PSSR_PITCH_ACTIVE = 63;
+// ppe_c/reg00004.H
+
 static const uint32_t CPMS_RVCSR = 0xc000e040ull;
 static const uint32_t CPMS_RVCSR_WO_CLEAR = 0xc000e070ull;
 static const uint32_t CPMS_RVCSR_WO_OR = 0xc000e060ull;

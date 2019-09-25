@@ -120,7 +120,7 @@ static const uint32_t QME_EISR_CPMS_INTERRUPT1_LEN = 4;
 static const uint32_t QME_LFIRACT1 = 0xc00000c0ull;
 
 static const uint32_t QME_LFIRACT1_FIR_ACTION1 = 0;
-static const uint32_t QME_LFIRACT1_FIR_ACTION1_LEN = 31;
+static const uint32_t QME_LFIRACT1_FIR_ACTION1_LEN = 34;
 // ppe_eq/reg00002.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -158,6 +158,17 @@ static const uint32_t QME_SCRB_WO_OR = 0xc00012a0ull;
 
 static const uint32_t QME_SCRB_DATA = 0;
 static const uint32_t QME_SCRB_DATA_LEN = 32;
+// ppe_eq/reg00002.H
+
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_THOR = 0xc0000980ull;
+
+static const uint32_t QME_THOR_TSR_OVERRIDE_EN = 0;
+static const uint32_t QME_THOR_PTSR_OVERRIDE_SEL = 1;
+static const uint32_t QME_THOR_TSR_OVERRIDE_VAL = 4;
+static const uint32_t QME_THOR_TSR_OVERRIDE_VAL_LEN = 8;
 // ppe_eq/reg00002.H
 
 #ifndef __PPE_HCODE__

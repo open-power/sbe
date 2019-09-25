@@ -56,6 +56,15 @@ static const uint32_t QME_PCBQBI_ADDR_LEN = 16;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
+static const uint32_t QME_QHTLAST = 0xc0001ac0ull;
+
+static const uint32_t QME_QHTLAST_LAST_ADDRESS = 8;
+static const uint32_t QME_QHTLAST_LAST_ADDRESS_LEN = 49;
+// ppe_eq/reg00011.H
+
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
 static const uint32_t QME_RCPTR = 0xc0001880ull;
 
 static const uint32_t QME_RCPTR_TARGET_PSTATE = 0;

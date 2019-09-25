@@ -60,15 +60,15 @@ static const uint32_t CPMS_DDSR_STOP_STATE_OCCURRED = 62;
 static const uint32_t CPMS_DDSR_SAMPLE_DISABLE_OCCURRED = 63;
 // ppe_c/reg00009.H
 
-static const uint32_t CPMS_FDIR_RW = 0xc000e440ull;
+static const uint32_t CPMS_FDIR = 0xc000e440ull;
 static const uint32_t CPMS_FDIR_WO_CLEAR = 0xc000e470ull;
 static const uint32_t CPMS_FDIR_WO_OR = 0xc000e460ull;
 
 static const uint32_t CPMS_FDIR_INJECT_ENABLE = 0;
 static const uint32_t CPMS_FDIR_HALT_INJECT = 1;
 static const uint32_t CPMS_FDIR_HALT_TOGGLE_INJECT = 2;
-static const uint32_t CPMS_FDIR_FETCH_THROTTLE01_INJECT = 3;
-static const uint32_t CPMS_FDIR_FETCH_THROTTLE10_INJECT = 4;
+static const uint32_t CPMS_FDIR_FETCH_THROTTLE10_INJECT = 3;
+static const uint32_t CPMS_FDIR_FETCH_THROTTLE01_INJECT = 4;
 static const uint32_t CPMS_FDIR_ISSUE_NTC_INJECT = 5;
 static const uint32_t CPMS_FDIR_PREFETCH_THROTTLE_INJECT = 6;
 static const uint32_t CPMS_FDIR_PREFETCH_THROTTLE_INJECT_LEN = 2;
@@ -76,7 +76,7 @@ static const uint32_t CPMS_FDIR_SLOW_FETCH_INJECT = 8;
 static const uint32_t CPMS_FDIR_VECTOR_LIMIT_INJECT = 9;
 static const uint32_t CPMS_FDIR_VECTOR_LIMIT_INJECT_LEN = 3;
 static const uint32_t CPMS_FDIR_SLOW_COMPLETION_INJECT = 12;
-static const uint32_t CPMS_FDIR_SPARE = 13;
+static const uint32_t CPMS_FDIR_MMA_UARCH_ENABLE_INJECT = 13;
 static const uint32_t CPMS_FDIR_MMA_LIMIT = 14;
 static const uint32_t CPMS_FDIR_MMA_LIMIT_LEN = 2;
 static const uint32_t CPMS_FDIR_TOGGLE_HALT_AMOUNT = 16;
@@ -89,7 +89,7 @@ static const uint32_t CPMS_FDIR_IRRITATE_SMALL_SELECT = 24;
 static const uint32_t CPMS_FDIR_IRRITATE_SMALL_SELECT_LEN = 2;
 static const uint32_t CPMS_FDIR_IRRITATE_LARGE_SELECT = 26;
 static const uint32_t CPMS_FDIR_IRRITATE_LARGE_SELECT_LEN = 2;
-static const uint32_t CPMS_FDIR_IRRITATE_SPARE = 28;
+static const uint32_t CPMS_FDIR_EXCLUDE_LSU_HALT = 28;
 static const uint32_t CPMS_FDIR_IRRITATE_WEIGHT_SELECT = 29;
 static const uint32_t CPMS_FDIR_IRRITATE_WEIGHT_SELECT_LEN = 2;
 static const uint32_t CPMS_FDIR_INJECT_DPT_SUSPEND = 31;

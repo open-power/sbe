@@ -239,7 +239,7 @@ extern "C"
         SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_OCI_SLAVE_ERROR(ocb_status_ctl_data);
         SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_PIB_ADDR_PARITY_ERR(ocb_status_ctl_data);
         SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_PIB_DATA_PARITY_ERR(ocb_status_ctl_data);
-        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_FSM_ERR(ocb_status_ctl_data);
+        SET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_SPARE_3(ocb_status_ctl_data);
         FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_WO_CLEAR(i_target, ocb_status_ctl_data));
 
         // Set bit 4 to enable stream mode
@@ -487,7 +487,7 @@ extern "C"
                             && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_OCI_SLAVE_ERROR(l_ocb_csr_data)
                             && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_PIB_ADDR_PARITY_ERR(l_ocb_csr_data)
                             && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_PIB_DATA_PARITY_ERR(l_ocb_csr_data)
-                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_OCB_FSM_ERR(l_ocb_csr_data));
+                            && !GET_TP_TPCHIP_OCC_OCI_OCB_PIB_OCBCSR3_SPARE_3(l_ocb_csr_data));
 
         FAPI_ASSERT(l_expected_state,
                     fapi2::P10_PBA_COHERENT_UTILS_OCB_STATUS_MISMATCH()

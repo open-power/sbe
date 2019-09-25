@@ -91,6 +91,17 @@ static const uint32_t QME_PSREQ_PMCR_PIG_PENDING = 55;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
+static const uint32_t QME_QHTMODE = 0xc0001a00ull;
+
+static const uint32_t QME_QHTMODE_HTM_ENABLE = 0;
+static const uint32_t QME_QHTMODE_MODE_WRAP = 1;
+static const uint32_t QME_QHTMODE_DIS_TSTAMP = 2;
+static const uint32_t QME_QHTMODE_SINGLE_TSTAMP = 3;
+// ppe_eq/reg00000.H
+
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
 static const uint32_t QME_RCOCR = 0xc00017c0ull;
 
 static const uint32_t QME_RCOCR_0_RESCLK_CONTROL = 0;

@@ -103,8 +103,11 @@ static const uint32_t QME_LFIR_PB_CE = 25;
 static const uint32_t QME_LFIR_PB_UE = 26;
 static const uint32_t QME_LFIR_PB_SUE = 27;
 static const uint32_t QME_LFIR_PB_INVALID_TOPOTABLE_ENTRY = 28;
-static const uint32_t QME_LFIR_SPARE29 = 29;
-static const uint32_t QME_LFIR_SPARE30 = 30;
+static const uint32_t QME_LFIR_PB_TAG_PERR = 29;
+static const uint32_t QME_LFIR_PIG_PROTOCOL_ERR = 30;
+static const uint32_t QME_LFIR_SPARE1 = 31;
+static const uint32_t QME_LFIR_SPARE2 = 32;
+static const uint32_t QME_LFIR_SPARE3 = 33;
 // ppe_eq/reg00014.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
