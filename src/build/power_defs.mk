@@ -86,9 +86,9 @@ PROJ_SUBDIRS += $(ARRAYACCESS_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ARRAYACCESS)
 #PROJ_LLIBS += -larrayaccess
 
-MEASURE_PROJ_SUBDIRS += $(MEASUREMENT_SRCDIR)
-MEASURE_PROJ_LIB_DIRS += -L$(OBJDIR-MEASUREMENT)
-MEASURE_PROJ_LLIBS += -ltestMeasure
+MEASUREMENT_PROJ_SUBDIRS += $(MEASUREMENT_SRCDIR)
+MEASUREMENT_PROJ_LIB_DIRS += -L$(OBJDIR-MEASUREMENT)
+MEASUREMENT_PROJ_LLIBS += -ltestMeasure
 
 #########################################################
 # mandatory defines                                     #
@@ -103,8 +103,8 @@ IMAGE_OTPROM_NAME := sbe_otprom_$(IMAGE_SUFFIX)
 IMAGE_BASE_PPE_HEADER := base_ppe_header
 IMAGE_BASE_MEASUREMENT_HEADER := base_measurement_header
 
-IMAGE_MEASURE_NAME := sbe_measurement_$(IMAGE_SUFFIX)
-SBE_MEASURE_STRINGFILE_NAME := sbeMeasureStringFile
+IMAGE_MEASUREMENT_NAME := sbe_measurement_$(IMAGE_SUFFIX)
+SBE_MEASUREMENT_STRINGFILE_NAME := sbeMeasurementStringFile
 
 SBE_SYMBOLS_NAME := sbe_$(IMAGE_SUFFIX).syms
 MEASUREMENT_SYMBOLS_NAME := measurement_$(IMAGE_SUFFIX).syms

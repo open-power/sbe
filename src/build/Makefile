@@ -47,11 +47,8 @@ include $(BUILDDATA_SRCDIR)/utils.mk
 
 ifeq ($(img), pibmem)
 IMAGE_NAME = $(IMAGE_SBE_NAME)
-endif
-
-ifneq ($(img), pibmem)
+else
 IMAGE_NAME = $(IMAGE_SEEPROM_NAME)
-IMAGE_MEASUREMENT_NAME = $(IMAGE_MEASURE_NAME)
 endif
 
 SUBDIRS := $(PK_BASELIB_SRCDIR)
@@ -121,9 +118,13 @@ SUBDIRS += $(PROJ_SUBDIRS)
 LIB_DIRS += $(PROJ_LIB_DIRS)
 LLIBS += $(PROJ_LLIBS)
 
-MEASURE_SUBDIRS = $(MEASURE_PROJ_SUBDIRS)
-MEASURE_LIB_DIRS = $(MEASURE_PROJ_LIB_DIRS)
-MEASURE_LLIBS = $(MEASURE_PROJ_LLIBS)
+# PK Lib info
+MEASUREMENT_LIB_DIRS := -L$(OBJDIR)/pk
+MEASUREMENT_LLIBS := -lpk
+
+MEASUREMENT_SUBDIRS += $(MEASUREMENT_PROJ_SUBDIRS)
+MEASUREMENT_LIB_DIRS += $(MEASUREMENT_PROJ_LIB_DIRS)
+MEASUREMENT_LLIBS += $(MEASUREMENT_PROJ_LLIBS)
 
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 # TODO Add Pibmem dis-assembly as well as measurement dis-assembly as part of
@@ -160,11 +161,9 @@ ifneq ($(img), pibmem)
 IN_LINK_SCRIPT = linkseeprom.cmd
 OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptseeprom_$(IMAGE_SUFFIX))
 #measurement seeprom image linker
-IN_MEASURE_LINK_SCRIPT = linkmeasure.cmd
-OUT_MEASURE_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptmeasure_$(IMAGE_SUFFIX))
-endif
-
-ifeq ($(img),pibmem)
+IN_MEASUREMENT_LINK_SCRIPT = linkmeasure.cmd
+OUT_MEASUREMENT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptmeasure_$(IMAGE_SUFFIX))
+else
 # same linker is used for both boot_seeprom and pibmem
 IN_LINK_SCRIPT = linkseeprom.cmd
 OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
@@ -192,18 +191,18 @@ pre_measure_image: ppe_trace_bin buildInfo linker_measure
 
 # Build the measurement subdirectories files
 build_measure_image:
-	$(C1)$(MAKE) -I $(INCLUDES) -C $(MEASURE_SUBDIRS) -f Makefile
+	$(C1)$(MAKE) -I $(INCLUDES) -C $(MEASUREMENT_SUBDIRS) -f Makefile
 
 linker_measure:
 	@mkdir -p $(OBJDIR)/build
-	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/$(IN_MEASURE_LINK_SCRIPT) -o $(OUT_MEASURE_LINK_SCRIPT)
+	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/$(IN_MEASUREMENT_LINK_SCRIPT) -o $(OUT_MEASUREMENT_LINK_SCRIPT)
 
 output_measure_image:
 	$(C2) "Generating $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out"
-	$(C1)$(LD) -e __system_reset -n -T$(OUT_MEASURE_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).map \
+	$(C1)$(LD) -e __system_reset -n -T$(OUT_MEASUREMENT_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).map \
   -Bstatic -o $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_MEASUREMENT_OBJECTS)) \
-     $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_MEASUREMENT_HEADER).o $(MEASURE_LIB_DIRS) \
-					   --start-group $(MEASURE_LLIBS) --end-group --gc-sections
+     $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_MEASUREMENT_HEADER).o $(MEASUREMENT_LIB_DIRS) \
+					   --start-group $(MEASUREMENT_LLIBS) --end-group --gc-sections
 	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) measurement
 	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).dis
 
@@ -227,11 +226,12 @@ measure_buildtag:
 
 # collect all of the trace hash files for measurement image into a single sbeMeasureStringFile
 measure_tracehash:
-	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/$(SBE_MEASURE_STRINGFILE_NAME)
+	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/$(SBE_MEASUREMENT_STRINGFILE_NAME)
 
 ### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File 
 add_MeasureLoaderAddr:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out | grep __l1Loader | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 
 ifeq ($(img), seeprom)
 all:
@@ -340,9 +340,6 @@ buildtag:
 
 #Create an obj directory if needed
 $(LINK_OBJS) $(OBJS) $(OBJS:.o=.d)
-
-#Create measurement obj directory if needed
-$(MEASURE_OBJS) $(MEASURE_OBJS:.o=.d): | $(OBJDIR)
 
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_pervasive_attributes.xml
 ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/system_attributes.xml
