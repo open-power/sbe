@@ -26,6 +26,7 @@
 #define __SBE_FFDC_H
 
 #include "fapi2.H"
+#include "sbefifo.H"
 #include "plat_attributes.H"
 #include "pk_trace.h"
 #include "sbeFFDCType.H"
@@ -128,12 +129,15 @@ public:
      * @param[in] i_skipffdcBitCheck - Boolean to indicate whether
      *                                 ffdc bit should be checked or not.
      *                                 By default it is false.
+     * @param[in]                    - i_type FIFO type
+     *                                 The default fifo type is FIFO:0
      *
      * @return                       - SBE secondary RC
      */
     uint32_t sendOverFIFO(const uint32_t i_fieldsConfig,
                           uint32_t &o_bytesSent,
-                          const bool i_skipffdcBitCheck = false);
+                          const bool i_skipffdcBitCheck = false,
+                          sbeFifoType i_type = SBE_FIFO);
 
     /* @brief sendOverHostIntf       - method to pack and send SBE internal FFDC
      *                                 only if isSendInternalFFDCSet() is true

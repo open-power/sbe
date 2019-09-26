@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -96,7 +96,8 @@ uint32_t SbeFFDCPackage::collectAsyncHwpFfdc (void)
 
 uint32_t SbeFFDCPackage::sendOverFIFO(const uint32_t i_fieldsConfig,
                                       uint32_t &o_bytesSent,
-                                      const bool i_skipffdcBitCheck)
+                                      const bool i_skipffdcBitCheck,
+                                       sbeFifoType i_type)
 {
     #define SBE_FUNC "sendOverFIFO"
     SBE_ENTER(SBE_FUNC);
@@ -125,7 +126,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const uint32_t i_fieldsConfig,
         //Send FFDC package header
         length = sizeof(iv_sbeFFDCHeader) / sizeof(uint32_t);
         rc = sbeDownFifoEnq_mult(length,
-                                 (uint32_t *)(&(iv_sbeFFDCHeader)));
+                                 (uint32_t *)(&(iv_sbeFFDCHeader)), i_type);
         if( rc!= SBE_SEC_OPERATION_SUCCESSFUL)
         {
             break;
@@ -135,7 +136,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const uint32_t i_fieldsConfig,
         //Send FFDC user data header
         length = sizeof(iv_sbeFFDCDataHeader) / sizeof(uint32_t);
         rc = sbeDownFifoEnq_mult(length,
-                                 (uint32_t *)(&(iv_sbeFFDCDataHeader)));
+                                 (uint32_t *)(&(iv_sbeFFDCDataHeader)), i_type);
         if( rc!= SBE_SEC_OPERATION_SUCCESSFUL)
         {
             break;
@@ -150,7 +151,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const uint32_t i_fieldsConfig,
                 //Send User data identifer and length
                 length = sizeof(sbeFFDCUserDataIdentifier_t) / sizeof(uint32_t);
                 rc = sbeDownFifoEnq_mult(length,
-                                    (uint32_t*)&(sbeFFDCUserData.userDataId));
+                                    (uint32_t*)&(sbeFFDCUserData.userDataId), i_type);
                 if( rc!= SBE_SEC_OPERATION_SUCCESSFUL)
                 {
                     break;
@@ -160,7 +161,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const uint32_t i_fieldsConfig,
                 //Send User data
                 length = sbeFFDCUserData.userDataId.fieldLen / sizeof(uint32_t);
                 rc = sbeDownFifoEnq_mult(length,
-                                        (uint32_t*)sbeFFDCUserData.userDataPtr);
+                                        (uint32_t*)sbeFFDCUserData.userDataPtr, i_type);
                 if( rc!= SBE_SEC_OPERATION_SUCCESSFUL)
                 {
                     break;
