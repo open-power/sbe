@@ -126,20 +126,20 @@ MEASUREMENT_SUBDIRS += $(MEASUREMENT_PROJ_SUBDIRS)
 MEASUREMENT_LIB_DIRS += $(MEASUREMENT_PROJ_LIB_DIRS)
 MEASUREMENT_LLIBS += $(MEASUREMENT_PROJ_LLIBS)
 
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 # TODO Add Pibmem dis-assembly as well as measurement dis-assembly as part of
 # the simics.tar
 # add seeprom .dis only for img is "seeprom" or "boot"
 ifeq ($(img), $(filter $(img), seeprom boot))
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.dis
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.bin
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_otprom_*.bin
+SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 endif
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_*.syms
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.xml
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.py
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeStringFile*
 SIMICS_PPE_TAR_FILES += $(PPETRACEPP_BIN_DIR)/ppe2fsp
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_seeprom_*.bin
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_otprom_*.bin
 SIMICS_BB_TAR_FILES += $(SIMICSTOOLS_SRCDIR)/*
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/simics-debug-framework.py
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/sbe-debug.py

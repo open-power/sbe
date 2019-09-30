@@ -38,14 +38,19 @@ tar -xf $SIMICS_TAR/simics.tar.gz -C $SBEROOT/simics/ || exit -1
 
 echo "Add ecc to the binary workspace"
 #Check that the binary exists before adding ecc to it.
-if [ ! -f $SBEBINIMAGE ]; then
-    echo "ERROR: Could not find binary image - \"$SBEBINIMAGE\""
-    exit 2
+if [ -f $SBEBINIMAGE ]; then
+    echo "Copy sbe boot seeprom image"
+    #TODO: Add Ring section into the SBE image before adding the ECC
+    ecc --inject $SBEBINIMAGE --output  $SBEECCIMAGE --p8 || exit -1
+    echo "Copy OTPROM image"
+    cp -f $SBEROOT/images/sbe_otprom_DD1.bin $SBEROOT/simics/import/boot_roms/sbe_otprom_p10.bin|| exit -1
 fi
 
-#TODO: Add Ring section into the SBE image before adding the ECC
-ecc --inject $SBEBINIMAGE --output  $SBEECCIMAGE --p8 || exit -1
-
+if [ -f $SBEBINPIBMEMIMAGE ];
+then
+    echo "Copy PIBMEM image"
+    cp -f $SBEBINPIBMEMIMAGE $SBEROOT/simics/import/boot_roms/sbe_pibmem_p10.bin|| exit -1
+fi
 echo "Copy engd (scandef.abr) from backing build"
 mkdir -p $SBEROOT/simics/import/cec-chip/
 cp $BACKING_BUILD/obj/ppc/simu/data/cec-chip/scandef.abr $SBEROOT/simics/import/cec-chip/scandef.abr || exit -1
@@ -63,9 +68,6 @@ cp $SBEROOT/images/*.bin $SBETESTDIR/ || exit -1
 cp $SBEROOT/images/*.dis $SBETESTDIR/ || exit -1
 cp $SBEROOT/images/sbeStringFile_DD1 $SBETESTDIR/ || exit -1
 cp $SBEROOT/obj/power/genfiles/ppe2fsp $SBETESTDIR/ || exit -1
-echo "Copy OTPROM image"
-cp -f $SBEROOT/images/sbe_otprom_DD1.bin $SBEROOT/simics/import/boot_roms/sbe_otprom_p10.bin|| exit 
-
 echo "Copy fsp-trace"
 cp $MCP_PATH/opt/fsp/usr/bin/fsp-trace $SBETESTDIR || exit -1
 

@@ -34,6 +34,7 @@ export SBETESTDIR=${SBEROOT}/simics/targets/p10_standalone/sbeTest/
 export SBEROMDIR=${SBEROOT}/simics/import/boot_roms/
 export SBEBINIMAGE=${SBEROOT}/images/sbe_seeprom_DD1.bin
 export SBEECCIMAGE=$SBEROMDIR/sbe_seeprom_p10.bin.ecc
+export SBEBINPIBMEMIMAGE=${SBEROOT}/images/sbe_pibmem_DD1.bin
 
 # Indicate we setup the CI environment.
 export SBE_CI_ENV_SETUP=1
