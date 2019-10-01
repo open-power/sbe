@@ -59,8 +59,29 @@ struct SectionTOR
     uint32_t TOC_PAU3_COMMON_RING;      // Offset of PAU3 Common Ring section
     uint32_t TOC_PAU3_INSTANCE_RING;    // Offset of PAU3 Instance Ring section
 
-    uint32_t TOC_AXON_COMMON_RING;      // Offset of AXON Common Ring section
-    uint32_t TOC_AXON_INSTANCE_RING;    // Offset of AXON Instance Ring section
+    uint32_t TOC_AXON0_COMMON_RING;    // Offset of AXON0 Common Ring section
+    uint32_t TOC_AXON0_INSTANCE_RING;   // Offset of AXON0 Instance Ring section
+
+    uint32_t TOC_AXON1_COMMON_RING;    // Offset of AXON1 Common Ring section
+    uint32_t TOC_AXON1_INSTANCE_RING;   // Offset of AXON1 Instance Ring section
+
+    uint32_t TOC_AXON2_COMMON_RING;    // Offset of AXON2 Common Ring section
+    uint32_t TOC_AXON2_INSTANCE_RING;   // Offset of AXON2 Instance Ring section
+
+    uint32_t TOC_AXON3_COMMON_RING;    // Offset of AXON3 Common Ring section
+    uint32_t TOC_AXON3_INSTANCE_RING;   // Offset of AXON3 Instance Ring section
+
+    uint32_t TOC_AXON4_COMMON_RING;    // Offset of AXON4 Common Ring section
+    uint32_t TOC_AXON4_INSTANCE_RING;   // Offset of AXON4 Instance Ring section
+
+    uint32_t TOC_AXON5_COMMON_RING;    // Offset of AXON5 Common Ring section
+    uint32_t TOC_AXON5_INSTANCE_RING;   // Offset of AXON5 Instance Ring section
+
+    uint32_t TOC_AXON6_COMMON_RING;    // Offset of AXON6 Common Ring section
+    uint32_t TOC_AXON6_INSTANCE_RING;   // Offset of AXON6 Instance Ring section
+
+    uint32_t TOC_AXON7_COMMON_RING;    // Offset of AXON7 Common Ring section
+    uint32_t TOC_AXON7_INSTANCE_RING;   // Offset of AXON7 Instance Ring section
 
     uint32_t TOC_EQ_COMMON_RING;        // Offset of Quad Common Ring section
     uint32_t TOC_EQ_INSTANCE_RING;      // Offset of Quad Instance Ring section

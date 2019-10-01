@@ -224,14 +224,98 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             break;
 
-        case AXON_TYPE: // AXON
+        case AXON0_TYPE: // AXON0
 
-            l_pChipletData      =   (ChipletData_t*)&AXON::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON_COMMON_RING);
+            l_pChipletData      =   (ChipletData_t*)&AXON0::g_chipletData;
+            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON0_COMMON_RING);
 
             if( INSTANCE_RING == l_ringType )
             {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON_INSTANCE_RING);
+                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON0_INSTANCE_RING);
+            }
+
+            break;
+
+        case AXON1_TYPE: // AXON1
+
+            l_pChipletData      =   (ChipletData_t*)&AXON1::g_chipletData;
+            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON1_COMMON_RING);
+
+            if( INSTANCE_RING == l_ringType )
+            {
+                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON1_INSTANCE_RING);
+            }
+
+            break;
+
+        case AXON2_TYPE: // AXON2
+
+            l_pChipletData      =   (ChipletData_t*)&AXON2::g_chipletData;
+            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON2_COMMON_RING);
+
+            if( INSTANCE_RING == l_ringType )
+            {
+                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON2_INSTANCE_RING);
+            }
+
+            break;
+
+        case AXON3_TYPE: // AXON3
+
+            l_pChipletData      =   (ChipletData_t*)&AXON3::g_chipletData;
+            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON3_COMMON_RING);
+
+            if( INSTANCE_RING == l_ringType )
+            {
+                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON3_INSTANCE_RING);
+            }
+
+            break;
+
+        case AXON4_TYPE: // AXON4
+
+            l_pChipletData      =   (ChipletData_t*)&AXON4::g_chipletData;
+            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON4_COMMON_RING);
+
+            if( INSTANCE_RING == l_ringType )
+            {
+                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON4_INSTANCE_RING);
+            }
+
+            break;
+
+        case AXON5_TYPE: // AXON5
+
+            l_pChipletData      =   (ChipletData_t*)&AXON5::g_chipletData;
+            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON5_COMMON_RING);
+
+            if( INSTANCE_RING == l_ringType )
+            {
+                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON5_INSTANCE_RING);
+            }
+
+            break;
+
+        case AXON6_TYPE: // AXON6
+
+            l_pChipletData      =   (ChipletData_t*)&AXON6::g_chipletData;
+            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON6_COMMON_RING);
+
+            if( INSTANCE_RING == l_ringType )
+            {
+                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON6_INSTANCE_RING);
+            }
+
+            break;
+
+        case AXON7_TYPE: // AXON7
+
+            l_pChipletData      =   (ChipletData_t*)&AXON7::g_chipletData;
+            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON7_COMMON_RING);
+
+            if( INSTANCE_RING == l_ringType )
+            {
+                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON7_INSTANCE_RING);
             }
 
             break;
