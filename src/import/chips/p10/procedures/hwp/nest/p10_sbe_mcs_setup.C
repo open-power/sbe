@@ -120,11 +120,12 @@ fapi2::ReturnCode set_hb_dcbz_config(
     FAPI_TRY(PUT_SCOMFIR_MCMODE1(i_target_mc, l_mcmode1));
 
 
-    // MCMODE2 -- enable one subchannel (must be same channel set up in MCFGP)/
+    // MCMODE2 -- enable both subchannels (must be same channel set up in MCFGP)/
     FAPI_TRY(GET_SCOMFIR_MCMODE2(i_target_mc, l_mcmode2));
     l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCMODE2] = l_mcmode2;
 
     SET_SCOMFIR_MCMODE2_CHANNEL0_SUBCHANNEL0_ENABLE(l_mcmode2);
+    SET_SCOMFIR_MCMODE2_CHANNEL0_SUBCHANNEL1_ENABLE(l_mcmode2);
 
     FAPI_TRY(PUT_SCOMFIR_MCMODE2(i_target_mc, l_mcmode2));
 
