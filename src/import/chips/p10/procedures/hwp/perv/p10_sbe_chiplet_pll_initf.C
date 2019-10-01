@@ -53,11 +53,11 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
                                                mc_pll_bndy_bucket_4
                                              };
 
-    RingID iohs_ring_id[IOHS_PLL_FREQ_BUCKETS] = { iohs_pll_bndy_bucket_0,
-                                                   iohs_pll_bndy_bucket_1,
-                                                   iohs_pll_bndy_bucket_2,
-                                                   iohs_pll_bndy_bucket_3,
-                                                   iohs_pll_bndy_bucket_4
+    RingID iohs_ring_id[IOHS_PLL_FREQ_BUCKETS] = { iohs0_pll_bndy_bucket_0,
+                                                   iohs0_pll_bndy_bucket_1,
+                                                   iohs0_pll_bndy_bucket_2,
+                                                   iohs0_pll_bndy_bucket_3,
+                                                   iohs0_pll_bndy_bucket_4
                                                  };
 
     auto l_pci_mc_iohs = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
@@ -114,7 +114,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
             l_ring_id = iohs_ring_id[l_iohs_pll_bucket[i]];
 
             FAPI_TRY(fapi2::putRing(l_cplt_target, l_ring_id),
-                     "Error from putRing (iohs_pll_bndy_bucket_%d), ChipletID: %#010lX", l_iohs_pll_bucket[i], l_chipletID);
+                     "Error from putRing (iohs0_pll_bndy_bucket_%d), ChipletID: %#010lX", l_iohs_pll_bucket[i], l_chipletID);
         }
 
     }
