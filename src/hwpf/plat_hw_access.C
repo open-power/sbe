@@ -159,7 +159,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
                     coreSelect = 1 << (3 - coreSelect);
                     //Bit 16:19 is the end region.
                     coreSelect = (coreSelect << 12);
-                    translatedAddr = ((i_target.getPIBAddress() | (i_addr & 0x00FFFFFF)) | coreSelect);
+                    translatedAddr = ((i_target.getPIBAddress() | (i_addr & 0x00FF0FFF)) | coreSelect);
                     break;
                 }
                 else
