@@ -38,8 +38,10 @@
 #include "p10_scom_perv_8.H"
 #include "p10_scom_perv_a.H"
 #include "p10_scom_perv_e.H"
+#include "p10_scom_proc_1.H"
 #include "p10_scom_proc_2.H"
 #include "p10_scom_proc_d.H"
+#include "p10_scom_proc_e.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 
@@ -49,13 +51,15 @@ enum P10_SBE_NPLL_SETUP_Private_Constants
     REGIONS_PAU_DPLL = 0x0040,
     REGIONS_NEST_DPLL = 0x0020,
     CLOCK_TYPES_ALL = 0x7,
-    NS_DELAY = 5000000, // unit is nano seconds
-    SIM_CYCLE_DELAY = 1800000, // unit is sim cycles
+    NS_DELAY_DPLL = 5000000, // unit is nano seconds
+    SIM_CYCLE_DELAY_DPLL = 2200000, // unit is sim cycles
+    NS_DELAY_FPLL = 5000000, // unit is nano seconds
+    SIM_CYCLE_DELAY_FPLL = 1000, // unit is sim cycles
     PAU_DPLL_INITIALIZE_MODE = 0xA000000000000000,
     NEST_DPLL_INITIALIZE_MODE = 0xA000000000000000
 };
 
-static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_pulsemode_settings(
+static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_settings(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 fapi2::ReturnCode p10_sbe_npll_setup(const
@@ -63,7 +67,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 {
     using namespace scomt;
 
-    fapi2::buffer<uint64_t> l_data64_root_ctrl3, l_read_reg, l_data64_root_ctrl4;
+    fapi2::buffer<uint64_t> l_data64_root_ctrl3, l_read_reg, l_data64_root_ctrl4, l_data64;
     fapi2::buffer<uint8_t> l_attr_plltodflt_bypass, l_attr_pllnestflt_bypass, l_attr_pllioflt_bypass,
           l_attr_plliossflt_bypass,
           l_attr_cp_refclk_select, l_attr_pau_dpll_bypass, l_attr_nest_dpll_bypass;
@@ -77,8 +81,8 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_INF("p10_sbe_npll_setup: Entering ...");
 
-    FAPI_DBG("Sector buffer strength and pulse mode setup");
-    FAPI_TRY(p10_sbe_npll_setup_sectorbuffer_pulsemode_settings(i_target_chip));
+    FAPI_DBG("Sector buffer strength setup");
+    FAPI_TRY(p10_sbe_npll_setup_sectorbuffer_settings(i_target_chip));
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_PLLTODFLT_BYPASS, i_target_chip, l_attr_plltodflt_bypass));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_PLLNESTFLT_BYPASS, i_target_chip, l_attr_pllnestflt_bypass));
@@ -113,7 +117,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR,
                             l_data64_root_ctrl3));
 
-    fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
+    fapi2::delay(NS_DELAY_FPLL, SIM_CYCLE_DELAY_FPLL);
 
     FAPI_DBG("Check filter PLL lock");
     FAPI_TRY(fapi2::getScom(l_tpchiplet, perv::PLL_LOCK_REG, l_read_reg));
@@ -169,28 +173,40 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_DBG("PAU DPLL: Write frequency settings");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_pau_freq));
-    freq_calculated = ((l_attr_pau_freq * 96) / 25);
+    freq_calculated = ((l_attr_pau_freq * 48) / 25);
     FAPI_DBG("PAU_DPLL frequency calculation : %#018lX", freq_calculated);
 
     l_read_reg.flush<0>();
-    l_read_reg. insertFromRight< 1, 16 > (freq_calculated);
-    l_read_reg. insertFromRight< 17, 16 > (freq_calculated);
-    l_read_reg. insertFromRight< 33, 16 > (freq_calculated);
+    l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMAX,
+                (proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMAX_LEN +
+                 proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_HIRES_FMAX_LEN) > (freq_calculated);
+    l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMULT,
+                (proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMULT_LEN +
+                 proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_HIRES_FMULT_LEN) > (freq_calculated);
+    l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMIN,
+                (proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMIN_LEN +
+                 proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_HIRES_FMIN_LEN) > (freq_calculated);
     FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ, l_read_reg));
 
     FAPI_DBG("NEST DPLL: Initialize to mode1");
-    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_CTRL_RW, NEST_DPLL_INITIALIZE_MODE));
+    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_CTRL_RW, NEST_DPLL_INITIALIZE_MODE));
 
     FAPI_DBG("NEST DPLL: Write frequency settings");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_CORE_BOOT_MHZ, i_target_chip, l_attr_core_boot_freq));
-    freq_calculated = ((l_attr_core_boot_freq * 96) / 25);
+    freq_calculated = ((l_attr_core_boot_freq * 48) / 25);
     FAPI_DBG("NEST_DPLL frequency calculation : %#018lX", freq_calculated);
 
     l_read_reg.flush<0>();
-    l_read_reg. insertFromRight< 1, 16 > (freq_calculated);
-    l_read_reg. insertFromRight< 17, 16 > (freq_calculated);
-    l_read_reg. insertFromRight< 33, 16 > (freq_calculated);
-    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ, l_read_reg));
+    l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMAX,
+                (proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMAX_LEN +
+                 proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_HIRES_FMAX_LEN) > (freq_calculated);
+    l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMULT,
+                (proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMULT_LEN +
+                 proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_HIRES_FMULT_LEN) > (freq_calculated);
+    l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMIN,
+                (proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMIN_LEN +
+                 proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_HIRES_FMIN_LEN) > (freq_calculated);
+    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ, l_read_reg));
 
     FAPI_DBG("PAU DPLL, NEST DPLL : Switch to internal clocks");
     l_data64_root_ctrl3.flush<0>()
@@ -225,7 +241,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                  CLOCK_TYPES_ALL));
     }
 
-    fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
+    fapi2::delay(NS_DELAY_DPLL, SIM_CYCLE_DELAY_DPLL);
 
     FAPI_DBG("Check for PAU, NEST DPLL lock");
     FAPI_TRY(fapi2::getScom(l_tpchiplet, perv::PLL_LOCK_REG, l_read_reg));
@@ -261,6 +277,12 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR,
                             l_data64_root_ctrl3));
 
+    FAPI_DBG("Drop nest PDLY/DCC bypass");
+    l_data64.flush<0>()
+    .setBit<perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_TP_CHIPLET_CLK_DCC_BYPASS_EN_DC>()
+    .setBit<perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_TP_CHIPLET_CLK_PDLY_BYPASS_EN_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_WO_CLEAR, l_data64));
+
     // Clear Perv pcb slave error register
     FAPI_DBG(" Reset PCB error reg");
     l_read_reg.flush<1>();
@@ -291,11 +313,11 @@ fapi_try_exit:
 
 }
 
-/// @brief Setup sector buffer strength and pulse mode
+/// @brief Setup sector buffer strength
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
-static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_pulsemode_settings(
+static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_settings(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     using namespace scomt::perv;
@@ -303,17 +325,11 @@ static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_pulsemode_settings(
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     fapi2::buffer<uint64_t> l_data64_perv_ctrl1;
     fapi2::buffer<uint8_t> l_attr_buffer_strength = 0;
-    fapi2::buffer<uint8_t> l_attr_pulse_mode_enable = 0;
-    fapi2::buffer<uint8_t> l_attr_pulse_mode_value = 0;
 
-    FAPI_INF("p10_sbe_npll_setup_sectorbuffer_pulsemode_settings:Entering ...");
+    FAPI_INF("p10_sbe_npll_setup_sectorbuffer_settings:Entering ...");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECTOR_BUFFER_STRENGTH, l_sys,
                            l_attr_buffer_strength));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PULSE_MODE_ENABLE, l_sys,
-                           l_attr_pulse_mode_enable));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PULSE_MODE_VALUE, l_sys,
-                           l_attr_pulse_mode_value));
 
     FAPI_TRY(fapi2::getScom(i_target_chip , FSXCOMP_FSXLOG_PERV_CTRL1_RW, l_data64_perv_ctrl1));
 
@@ -322,16 +338,7 @@ static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_pulsemode_settings(
                                          FSXCOMP_FSXLOG_PERV_CTRL1_TP_SEC_BUF_DRV_STRENGTH_DC_LEN >(l_attr_buffer_strength);
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_PERV_CTRL1_RW, l_data64_perv_ctrl1));
 
-    FAPI_DBG("Pulse mode enable & pulse mode");
-
-    if (l_attr_pulse_mode_enable.getBit<7>())
-    {
-        l_data64_perv_ctrl1.setBit<25>()
-        .insertFromRight< 26, 2  >(l_attr_pulse_mode_value);
-        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_PERV_CTRL1_RW, l_data64_perv_ctrl1));
-    }
-
-    FAPI_INF("p10_sbe_npll_setup_sectorbuffer_pulsemode_settings:Exiting ...");
+    FAPI_INF("p10_sbe_npll_setup_sectorbuffer_settings:Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
