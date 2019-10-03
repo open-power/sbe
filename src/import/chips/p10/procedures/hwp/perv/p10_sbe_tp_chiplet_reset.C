@@ -51,6 +51,7 @@ enum P10_SBE_TP_CHIPLET_RESET_Private_Constants
     PGOOD_REGIONS_LENGTH = 15,
     PGOOD_REGIONS_OFFSET = 12,
     REGIONS_NET = 0x0400,
+    REGIONS_NET_PLL = 0x0410,
     SCAN_TYPES_EXCEPT_TIME_GPTR_REPR = 0xDCF,
     SCAN_TYPES_TIME_GPTR_REPR = 0x230,
     START_CMD = 0x1,
@@ -81,6 +82,10 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
                                  fapi2::TARGET_STATE_FUNCTIONAL);
 
     FAPI_INF("p10_sbe_tp_chiplet_reset: Entering ...");
+
+    FAPI_DBG("Release Nest/Cache clock DIV2 reset");
+    l_data64.flush<0>().setBit<26>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
 
     FAPI_DBG("Set up static power gating based on partial good info");
     l_data64.flush<0>();
@@ -132,11 +137,12 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL4_TP_AN_CLKGLM_NEST_ASYNC_RESET_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
 
-    FAPI_DBG("Run scan0 module for NET region, scan types GPTR, TIME, REPR");
-    FAPI_TRY(p10_perv_sbe_cmn_scan0_module(l_tpchiplet, REGIONS_NET, SCAN_TYPES_TIME_GPTR_REPR));
+    // NET,PLL regions works with nest_gckn
+    FAPI_DBG("Run scan0 module for NET and PLL regions, scan types GPTR, TIME, REPR");
+    FAPI_TRY(p10_perv_sbe_cmn_scan0_module(l_tpchiplet, REGIONS_NET_PLL, SCAN_TYPES_TIME_GPTR_REPR));
 
-    FAPI_DBG("Run scan0 module for NET region, scan types except GPTR, TIME, REPR");
-    FAPI_TRY(p10_perv_sbe_cmn_scan0_module(l_tpchiplet, REGIONS_NET, SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
+    FAPI_DBG("Run scan0 module for NET and PLL regions, scan types except GPTR, TIME, REPR");
+    FAPI_TRY(p10_perv_sbe_cmn_scan0_module(l_tpchiplet, REGIONS_NET_PLL, SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
 
     FAPI_DBG("Drop clock region fence for NET");
     l_data64.flush<0>()

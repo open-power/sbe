@@ -33,7 +33,9 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_npll_initf.H"
+#include "p10_scom_perv_6.H"
 #include "p10_perv_sbe_cmn.H"
+#include <target_filters.H>
 
 static const ring_setup_t ISTEP2_BNDY_FUNC_RINGS[] =
 {
@@ -44,9 +46,24 @@ static const ring_setup_t ISTEP2_BNDY_FUNC_RINGS[] =
 fapi2::ReturnCode p10_sbe_npll_initf(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt;
+    using namespace scomt::perv;
+
+    fapi2::buffer<uint64_t> l_data64;
+
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
+        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
+
     FAPI_INF("p10_sbe_npll_initf: Entering ...");
 
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP2_BNDY_FUNC_RINGS, true));
+
+    FAPI_DBG("Drop clock region fences for DPLL_PAU, DPLL_NEST and Filter PLL regions");
+    l_data64.flush<0>()
+    .setBit<CPLT_CTRL1_REGION8_FENCE_DC>()
+    .setBit<CPLT_CTRL1_REGION9_FENCE_DC>()
+    .setBit<CPLT_CTRL1_REGION10_FENCE_DC>();
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL1_WO_CLEAR, l_data64));
 
     FAPI_INF("p10_sbe_npll_initf: Exiting ...");
 

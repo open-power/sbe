@@ -42,16 +42,20 @@
 #include "p10_scom_perv_d.H"
 #include "p10_scom_perv_f.H"
 #include <target_filters.H>
+#include "p10_perv_sbe_cmn.H"
 
 enum P10_SBE_RCS_SETUP_Private_Constants
 {
+    RCS_CONTRL_DC_CFAM_RESET_VAL = 0x00800000,
     HW_NS_DELAY = 20, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     POLL_COUNT = 10,
     PLL_LOCK_NS_DELAY = 5000000, // unit is nano seconds
     PLL_LOCK_SIM_CYCLE_DELAY = 1000, // unit is sim cycles
     RCS_BYPASS_NS_DELAY = 10000, // unit is nano seconds
-    RCS_BYPASS_SIM_CYCLE_DELAY = 100 // unit is sim cycles
+    RCS_BYPASS_SIM_CYCLE_DELAY = 100, // unit is sim cycles
+    RCS_RESET_NS_DELAY = 1000, // unit is nano seconds
+    RCS_RESET_SIM_CYCLE_DELAY = 100  // unit is sim cycles
 };
 
 static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
@@ -67,6 +71,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
     fapi2::buffer<uint64_t> l_data64_rc5, l_data64_rc3, l_read_reg;
     uint8_t l_cp_refclck_select;
+    bool skipClkCheck = false;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
@@ -80,9 +85,10 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
        (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1))
     {
 
-        FAPI_DBG("Drop RCS reset");
-        l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_RESET_DC>(); // rc5 bit0 = 0
-        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
+        FAPI_DBG("Set up RCS configuration for sync mode, preserve bypass select bits");
+        FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_RW, l_data64_rc5));
+        l_data64_rc5.insertFromRight<4, 26>((RCS_CONTRL_DC_CFAM_RESET_VAL >> 2)); // Bits 4:29, preserve bits 0:3, 30:31
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_RW, l_data64_rc5));
 
         for(int i = 0; i < POLL_COUNT; i++)
         {
@@ -150,6 +156,12 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
                         "ERROR:RCS_PLL_B not locked");
         }
 
+        FAPI_DBG("Drop RCS reset");
+        l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_RESET_DC>(); // rc5 bit0 = 0
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
+
+        fapi2::delay(RCS_RESET_NS_DELAY, RCS_RESET_SIM_CYCLE_DELAY);
+
         FAPI_DBG("RCS out of bypass");
         l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_BYPASS_DC>();
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
@@ -161,25 +173,31 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, l_data64_rc5));
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
-        FAPI_DBG("Check for clock errors");
-        FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SNS1LTH_RO, l_read_reg));
+        FAPI_TRY(p10_perv_sbe_cmn_is_simulation_check(skipClkCheck));
 
-        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
+        if(!skipClkCheck)
         {
-            FAPI_ASSERT(((l_read_reg.getBit<0>() == 0) && (l_read_reg.getBit<2>() == 0)),
-                        fapi2::RCS_CLOCK_ERR()
-                        .set_READ_SNS1LTH(l_read_reg)
-                        .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                        "RCS_CLOCK error : Clock A is bad");
-        }
 
-        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
-        {
-            FAPI_ASSERT(((l_read_reg.getBit<1>() == 0) && (l_read_reg.getBit<3>() == 0)),
-                        fapi2::RCS_CLOCK_ERR()
-                        .set_READ_SNS1LTH(l_read_reg)
-                        .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                        "RCS_CLOCK error : Clock B is bad");
+            FAPI_DBG("Check for clock errors");
+            FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SNS1LTH_RO, l_read_reg));
+
+            if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
+            {
+                FAPI_ASSERT(((l_read_reg.getBit<0>() == 0) && (l_read_reg.getBit<2>() == 0)),
+                            fapi2::RCS_CLOCK_ERR()
+                            .set_READ_SNS1LTH(l_read_reg)
+                            .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
+                            "RCS_CLOCK error : Clock A is bad");
+            }
+
+            if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
+            {
+                FAPI_ASSERT(((l_read_reg.getBit<1>() == 0) && (l_read_reg.getBit<3>() == 0)),
+                            fapi2::RCS_CLOCK_ERR()
+                            .set_READ_SNS1LTH(l_read_reg)
+                            .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
+                            "RCS_CLOCK error : Clock B is bad");
+            }
         }
     }
 

@@ -33,6 +33,7 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_nest_enable_ridi.H"
+#include "p10_scom_perv_3.H"
 #include "p10_scom_perv_4.H"
 #include "p10_scom_perv_f.H"
 #include <target_filters.H>
@@ -44,12 +45,19 @@ static fapi2::ReturnCode p10_sbe_nest_enable_ridi_tp_enable_ridi(const
 fapi2::ReturnCode p10_sbe_nest_enable_ridi(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
+    using namespace scomt::perv;
+
+    fapi2::buffer<uint64_t> l_data64;
 
     FAPI_INF("p10_sbe_nest_enable_ridi: Entering ...");
 
     auto l_perv_nest = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
                            static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST),
                            fapi2::TARGET_STATE_FUNCTIONAL);
+
+    FAPI_DBG("Release perst override");
+    l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL1_TPFSI_TP_GLB_PERST_OVR_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL1_CLEAR_WO_CLEAR, l_data64));
 
     FAPI_DBG("Enabling TP drivers and receivers");
     FAPI_TRY(p10_sbe_nest_enable_ridi_tp_enable_ridi(i_target_chip));

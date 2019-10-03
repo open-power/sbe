@@ -85,10 +85,6 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     l_data64.flush<1>();
     FAPI_TRY(fapi2::putScom(l_mc_all, ERROR_REG, l_data64));
 
-    FAPI_DBG("Drop lvltrans fence");
-    l_data64_nc0.flush<1>().clearBit<NET_CTRL0_LVLTRANS_FENCE>();
-    FAPI_TRY(fapi2::putScom(l_mc_all, NET_CTRL0_RW_WAND, l_data64_nc0));
-
     FAPI_DBG("Drop endpoint reset");
     l_data64_nc0.flush<1>().clearBit<NET_CTRL0_PCB_EP_RESET>();
     FAPI_TRY(fapi2::putScom(l_mc_all, NET_CTRL0_RW_WAND, l_data64_nc0));

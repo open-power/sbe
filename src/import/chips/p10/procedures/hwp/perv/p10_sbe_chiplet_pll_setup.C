@@ -36,6 +36,7 @@
 #include "p10_sbe_chiplet_pll_setup.H"
 #include "p10_scom_perv_0.H"
 #include "p10_scom_perv_3.H"
+#include "p10_scom_perv_6.H"
 #include "p10_scom_perv_8.H"
 #include "p10_scom_perv_e.H"
 #include <target_filters.H>
@@ -65,6 +66,9 @@ static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_pll_test_enable(
 static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_pll_bypass(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target);
 
+static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_drop_pll_region_fence(
+    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target);
+
 fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -89,6 +93,11 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
                                  static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
                                          fapi2::TARGET_FILTER_ALL_IOHS | fapi2::TARGET_FILTER_ALL_PCI),
                                  fapi2::TARGET_STATE_FUNCTIONAL);
+
+        FAPI_DBG("Drop Pll fence");
+        FAPI_TRY(p10_sbe_chiplet_pll_setup_drop_pll_region_fence(l_mc_iohs));
+        FAPI_TRY(p10_sbe_chiplet_pll_setup_drop_pll_region_fence(l_mc_pci));
+        FAPI_TRY(p10_sbe_chiplet_pll_setup_drop_pll_region_fence(l_mc_mc));
 
 
         FAPI_DBG("Release PLL test enable");
@@ -240,6 +249,29 @@ static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_pll_test_enable(
     FAPI_TRY(fapi2::putScom(i_mcast_target, NET_CTRL0_RW_WAND, l_data64));
 
     FAPI_INF("p10_sbe_chiplet_pll_setup_pll_test_enable: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
+
+/// @brief Drop Pll region fence for Axon, Pci, Mc chiplets
+///
+/// @param[in]     i_mcast_target   Reference to TARGET_TYPE_PERV target or Multicast target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_drop_pll_region_fence(
+    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target)
+{
+    using namespace scomt::perv;
+
+    fapi2::buffer<uint64_t> l_data64;
+    FAPI_INF("p10_sbe_chiplet_pll_setup_drop_pll_region_fence: Entering ...");
+
+    FAPI_DBG("Drop Pll region fence for Axon, Pci, Mc chiplets");
+    l_data64.flush<0>().setBit<CPLT_CTRL1_REGION10_FENCE_DC>();
+    FAPI_TRY(fapi2::putScom(i_mcast_target, CPLT_CTRL1_WO_CLEAR, l_data64));
+
+    FAPI_INF("p10_sbe_chiplet_pll_setup_drop_pll_region_fence: Exiting ...");
 
 fapi_try_exit:
     return fapi2::current_err;
