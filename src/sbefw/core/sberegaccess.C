@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -189,6 +189,10 @@ uint32_t SbeRegAccess::init(bool forced)
             }
         }
 
+        SBE_ERROR("SKIP check the C4 board pin!!!");
+        // TODO - Enable this back from the new C4 pin available in CBS_ENVSTAT
+        // Register (50004) Bit4
+#if 0
         // If the master/slave bit is 0 (either default or read from mbx6),
         // check the C4 board pin to determine role
         // Read device ID register
@@ -208,6 +212,7 @@ uint32_t SbeRegAccess::init(bool forced)
                       (uint32_t)(l_sbeDevIdReg >> 32),
                       (uint32_t)(l_sbeDevIdReg & 0xFFFFFFFF));
         }
+#endif
     } while(false);
 
     SBE_INFO(SBE_FUNC"Read mailbox registers: mbx8: 0x%08X, mbx3: 0x%08X, "

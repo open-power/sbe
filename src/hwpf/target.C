@@ -232,6 +232,10 @@ extern fapi2::ReturnCode
 // proc_sbe_attr_setup istep istep 2.2
     ReturnCode plat_AttrInit()
     {
+// TODO - Need to cleanup, Device Id is not available, instead we have read
+// Export Control Status Register and Environment Status Register to fetch
+// EC Level, Fused Mode and SBE Master bit
+#if 0
         union
         {
             struct
@@ -248,7 +252,7 @@ extern fapi2::ReturnCode
             };
             uint64_t iv_deviceIdReg;
         } l_deviceId;
-
+#endif
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         uint8_t l_ec = 0;
         uint8_t fusedMode = 0;
@@ -259,7 +263,7 @@ extern fapi2::ReturnCode
         fapi2::buffer<uint8_t> l_read3 = 0;
         fapi2::buffer<uint16_t> l_read4 = 0;
         fapi2::buffer<uint32_t> l_read5 = 0;
-        fapi2::buffer<uint64_t> l_deviceIdReg = 0;
+        //fapi2::buffer<uint64_t> l_deviceIdReg = 0;
         fapi2::buffer<uint64_t> l_ctrlReg = 0;
         //uint8_t l_riskLvl  = 0;
         bool l_isSlave = false;
@@ -515,7 +519,12 @@ extern fapi2::ReturnCode
 #endif
             l_read1 = 0;
             l_isSlave = l_tempReg.getBit<24>();
-
+            if ( !l_isSlave )  // 0b0 == master
+            {
+                l_read1.setBit<7>();
+            }
+// TODO - Clean up, Read the TODO at line 235 
+#if 0
             if ( !l_isSlave )  // 0b0 == master
             {
                 FAPI_DBG("Reading DEVICE_ID_REG value");
@@ -526,7 +535,7 @@ extern fapi2::ReturnCode
                     l_read1.setBit<7>();
                 }
             }
-
+#endif
             FAPI_DBG("Setting up MASTER_CHIP, FABRIC_GROUP_ID and CHIP_ID");
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_SBE_MASTER_CHIP, l_chipTarget,
                                    l_read1));
@@ -593,8 +602,13 @@ extern fapi2::ReturnCode
         //FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM,
         //                       l_riskLvl));
 #endif
-        FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
-        l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
+        //FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
+        //l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
+        l_ec = 0x10;
+        l_chipName = fapi2::ENUM_ATTR_NAME_P10;
+
+// TODO - Clean up, Read the TODO at line 235 
+#if 0
         switch(l_deviceId.iv_chipId)
         {
             case 0xD9:
@@ -605,7 +619,7 @@ extern fapi2::ReturnCode
                          static_cast<uint8_t>(l_deviceId.iv_chipId));
                 assert(false);
         }
-        
+#endif 
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC, l_chipTarget, l_ec));
         FAPI_TRY(fapi2::getScom(l_chipTarget, EXPORT_REGL_STATUS, l_ctrlReg));
