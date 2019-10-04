@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -167,24 +167,26 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
         }
 
         fapiRc = sbeExecuteIstep( req.major, req.minor );
-        bool checkstop = isSystemCheckstop();
-        if(( fapiRc != FAPI2_RC_SUCCESS ) || (checkstop))
+        // TODO - F001A is not available till istep 2.3, which is driven by the
+        // nest clock, so we can enable this only after 2.3, For time being
+        // commenting this out.
+        //bool checkstop = isSystemCheckstop();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        //if(( fapiRc != FAPI2_RC_SUCCESS ) || (checkstop))
         {
             SBE_ERROR(SBE_FUNC" sbeExecuteIstep() Failed. major:0x%08x"
-                                      " minor:0x%08x",
-                                     (uint32_t)req.major,
-                                     (uint32_t)req.minor);
-            if(checkstop)
-            {
-                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                   SBE_SEC_SYSTEM_CHECKSTOP );
-            }
-            else
-            {
+                " minor:0x%08x", (uint32_t)req.major, (uint32_t)req.minor);
+            //if(checkstop)
+            //{
+            //    respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+            //                       SBE_SEC_SYSTEM_CHECKSTOP );
+            //}
+            //else
+            //{
                 respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                    SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
                 ffdc.setRc(fapiRc);
-            }
+            //}
 
             break;
         }
