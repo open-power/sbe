@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -140,8 +141,3 @@ __header_string_reserved:
 
     // Create the .fixed section
     .proc_sbe_fixed_system
-    .proc_sbe_fixed_proc_chip
-    .proc_sbe_fixed_perv
-    .proc_sbe_fixed_core
-    .proc_sbe_fixed_ex
-    .proc_sbe_fixed_eq

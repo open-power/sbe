@@ -281,7 +281,8 @@ measurement_branch:
 	$(MAKE) output_measure_image
 	$(MAKE) measure_normalize
 	$(MAKE) add_MeasureLoaderAddr
-	$(MAKE) measure_symbols measure_buildtag
+#	$(MAKE) measure_symbols measure_buildtag
+	$(MAKE) measure_symbols
 	$(MAKE) measure_tracehash
 	$(MAKE) measure_report
 
