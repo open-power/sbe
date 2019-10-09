@@ -77,22 +77,20 @@ fapi_try_exit:
 
 fapi2::ReturnCode getRS4ImageFromTor(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
-    uint8_t* i_pChipletSectn,
+    uint8_t* i_pRingSectn, // Pts to the beginning of the TOR ring section hdr
     const RingId_t i_ringId,
     bool i_applyOverride,
     const fapi2::RingMode i_ringMode)
 {
-    uint32_t l_torHdrSize       =   sizeof( TorHeader_t );
-    uint32_t l_torVersion       =   ((TorHeader_t*)i_pChipletSectn)->version;
-    SectionTOR* l_pSectnTor     =   (SectionTOR*) ( i_pChipletSectn + l_torHdrSize );
-    uint32_t l_torOffset        =   0;
-    uint32_t l_sectionOffset    =   0;
+    uint32_t l_torVersion       =   ((TorHeader_t*)i_pRingSectn)->version;
+    SectionTOR* l_pSectnTor     =   (SectionTOR*) ( i_pRingSectn + sizeof( TorHeader_t ) );
+    uint8_t  l_torIndex         =   0;
+    TorOffset_t l_sectionOffset =   0;
     RingType_t l_ringType       =   COMMON_RING;
     ChipletType_t l_chipletType;
     fapi2::ReturnCode l_rc      =   fapi2::FAPI2_RC_SUCCESS;
     ChipletData_t* l_pChipletData;
-    uint16_t* l_pRingTor        =   NULL;
-    uint8_t* l_pRs4             =   NULL;
+    TorOffset_t* l_pRingTor     =   NULL;
     std::vector < fapi2::Target < fapi2::TARGET_TYPE_ALL >> l_ucTgtAll =
                 i_target.getChildren< fapi2::TARGET_TYPE_ALL >();
     uint8_t  l_chipletPos       =   l_ucTgtAll[0].getChipletNumber();
@@ -116,227 +114,190 @@ fapi2::ReturnCode getRS4ImageFromTor(
                  .set_RING_ID( i_ringId ),
                  "Invalid Ring Id 0x%04x", i_ringId );
 
-    l_torOffset     =   ( INSTANCE_RING_MASK    &  ( RING_PROPERTIES[(uint8_t)i_ringId].idxRing ) );
-    l_ringType      =   ( INSTANCE_RING_MARK    &  ( RING_PROPERTIES[(uint8_t)i_ringId].idxRing ) ) ?
+    l_torIndex      =   ( INSTANCE_RING_MASK    &  ( RING_PROPERTIES[i_ringId].idxRing ) );
+    l_ringType      =   ( INSTANCE_RING_MARK    &  ( RING_PROPERTIES[i_ringId].idxRing ) ) ?
                         INSTANCE_RING : COMMON_RING;
 
-
-    l_chipletType   =   RING_PROPERTIES[(uint8_t)i_ringId].chipletType;
+    l_chipletType   =   RING_PROPERTIES[i_ringId].chipletType;
 
     switch( l_chipletType )
     {
         case PERV_TYPE: // PERV
             l_pChipletData      =   (ChipletData_t*)&PERV::g_chipletData;
-            l_sectionOffset     =   rev_32( l_pSectnTor->TOC_PERV_COMMON_RING );
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset = rev_32(l_pSectnTor->TOC_PERV_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_PERV_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_PERV_COMMON_RING);
 
             break;
 
         case N0_TYPE: // Nest - N0
 
             l_pChipletData      =   (ChipletData_t*)&N0::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_N0_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_N0_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_N0_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_N0_COMMON_RING);
 
             break;
 
         case N1_TYPE: // Nest - N1
 
             l_pChipletData      =   (ChipletData_t*)&N1::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_N1_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_N1_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_N1_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_N1_COMMON_RING);
 
             break;
 
         case PCI_TYPE: // PCI
 
             l_pChipletData      =   (ChipletData_t*)&PCI::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PCI_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_PCI_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_PCI_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_PCI_COMMON_RING);
 
             break;
 
         case MC_TYPE: // MC
 
             l_pChipletData      =   (ChipletData_t*)&MC::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_MC_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_MC_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_MC_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_MC_COMMON_RING);
 
             break;
 
         case PAU0_TYPE: // PAU0
 
             l_pChipletData      =   (ChipletData_t*)&PAU0::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PAU0_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_PAU0_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_PAU0_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_PAU0_COMMON_RING);
 
             break;
 
         case PAU1_TYPE: // PAU1
 
             l_pChipletData      =   (ChipletData_t*)&PAU1::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PAU1_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_PAU1_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_PAU1_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_PAU1_COMMON_RING);
 
             break;
 
         case PAU2_TYPE: // PAU2
 
             l_pChipletData      =   (ChipletData_t*)&PAU2::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PAU2_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_PAU2_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_PAU2_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_PAU2_COMMON_RING);
 
             break;
 
         case PAU3_TYPE: // PAU3
 
             l_pChipletData      =   (ChipletData_t*)&PAU3::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PAU3_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_PAU3_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_PAU3_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_PAU3_COMMON_RING);
 
             break;
 
         case AXON0_TYPE: // AXON0
 
             l_pChipletData      =   (ChipletData_t*)&AXON0::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON0_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON0_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_AXON0_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_AXON0_COMMON_RING);
 
             break;
 
         case AXON1_TYPE: // AXON1
 
             l_pChipletData      =   (ChipletData_t*)&AXON1::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON1_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON1_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_AXON1_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_AXON1_COMMON_RING);
 
             break;
 
         case AXON2_TYPE: // AXON2
 
             l_pChipletData      =   (ChipletData_t*)&AXON2::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON2_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON2_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_AXON2_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_AXON2_COMMON_RING);
 
             break;
 
         case AXON3_TYPE: // AXON3
 
             l_pChipletData      =   (ChipletData_t*)&AXON3::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON3_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON3_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_AXON3_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_AXON3_COMMON_RING);
 
             break;
 
         case AXON4_TYPE: // AXON4
 
             l_pChipletData      =   (ChipletData_t*)&AXON4::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON4_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON4_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_AXON4_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_AXON4_COMMON_RING);
 
             break;
 
         case AXON5_TYPE: // AXON5
 
             l_pChipletData      =   (ChipletData_t*)&AXON5::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON5_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON5_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_AXON5_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_AXON5_COMMON_RING);
 
             break;
 
         case AXON6_TYPE: // AXON6
 
             l_pChipletData      =   (ChipletData_t*)&AXON6::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON6_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON6_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_AXON6_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_AXON6_COMMON_RING);
 
             break;
 
         case AXON7_TYPE: // AXON7
 
             l_pChipletData      =   (ChipletData_t*)&AXON7::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON7_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset =   rev_32(l_pSectnTor->TOC_AXON7_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_AXON7_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_AXON7_COMMON_RING);
 
             break;
 
-        case EQ_TYPE: // EQ - Quad 0 - Quad 5
+        case EQ_TYPE: // EQ - Quad 0 - Quad 7
 
             l_pChipletData      =   (ChipletData_t*)&EQ::g_chipletData;
-            l_sectionOffset     =   rev_32(l_pSectnTor->TOC_EQ_COMMON_RING);
 
-            if( INSTANCE_RING == l_ringType )
-            {
-                l_sectionOffset = rev_32(l_pSectnTor->TOC_EQ_INSTANCE_RING);
-            }
+            l_sectionOffset = ( INSTANCE_RING == l_ringType ) ?
+                              rev_16(l_pSectnTor->TOC_EQ_INSTANCE_RING) :
+                              rev_16(l_pSectnTor->TOC_EQ_COMMON_RING);
 
             break;
 
@@ -347,8 +308,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
     } // end of switch(l_chipletID)
 
-    l_pRs4          =   i_pChipletSectn + l_torHdrSize + l_sectionOffset;
-    l_pRingTor      =   (uint16_t*) l_pRs4;
+    l_pRingTor      =   (TorOffset_t*) (i_pRingSectn + l_sectionOffset);
 
     if (l_chipletPos)
     {
@@ -365,26 +325,26 @@ fapi2::ReturnCode getRS4ImageFromTor(
     }
 
 
-    FAPI_INF( "TOR Traversal: Ring Id 0x%08x Sectn TOR 0x%08x Chiplet Offset 0x%08x Ring offset 0x%08x ",
-              i_ringId, rev_32(*((uint32_t*)i_pChipletSectn)), l_sectionOffset, l_torOffset);
+    FAPI_INF( "TOR Traversal: Ring Id 0x%04x Sectn TOR 0x%08x Chiplet Offset 0x%04x Ring offset 0x%02x ",
+              i_ringId, rev_32(*((uint32_t*)i_pRingSectn)), l_sectionOffset, l_torIndex );
 
-    FAPI_INF("l_chipletPos %02x", l_chipletPos);
+    FAPI_INF("l_chipletPos 0x%02x", l_chipletPos);
 
     if( INSTANCE_RING == l_ringType )
     {
         {
-            l_pRingTor      +=   ( ( l_pChipletData->numInstanceRings * l_chipletPos) + ( l_torOffset ) );
+            l_pRingTor      +=   ( ( l_pChipletData->numInstanceRings * l_chipletPos ) + ( l_torIndex ) );
         }
     }
     else
     {
-        l_pRingTor  +=  l_torOffset;
+        l_pRingTor  +=  l_torIndex;
     }
 
     if( *l_pRingTor )
     {
         FAPI_INF("*l_pRingTor %04x", rev_16(*l_pRingTor));
-        l_pRs4  +=  rev_16(*l_pRingTor);
+        uint8_t* l_pRs4  = i_pRingSectn + rev_16(*l_pRingTor);
         CompressedScanData* l_pRs4Hdr   =  (CompressedScanData*)l_pRs4;
 
         FAPI_ASSERT( ( rev_16(l_pRs4Hdr->iv_ringId) == i_ringId ),

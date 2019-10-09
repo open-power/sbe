@@ -2076,8 +2076,9 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     ChipId_t    chipId = UNDEFINED_CHIP_ID;
     uint8_t     ddLevel = UNDEFINED_DD_LEVEL;
     RingId_t    ringId;
-    uint8_t     instanceId;
+    uint8_t     chipletId;
     RingProperties_t* ringProps = NULL;
+    ChipletData_t*    chipletData = NULL;
     void*       rs4Buf;
     uint32_t    ringBlockSize;
     char*       ringName = NULL;
@@ -2193,64 +2194,81 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     // This loop supports traversing and retrieving rings from both TOR
     // and DYN ring sections.
     //
-    // In each case, there's a field in the RS4 header that is needed
-    // to fully qualify the identification of the ring as follows:
+    // In each case, there's an additional identifier, beyond ringId, that
+    // is needed to fully qualify the identification of the ring as follows:
     //
     // TOR ring section:
-    // - chipletId in iv_scanScomAddr (non-care for Common rings)
+    // - chipletId used to identify the TOR instance slot
     // - Note that iv_selector = 0xffff
     // DYN ring section:
-    // - iv_selector
+    // - iv_selector in the RS4 header
     // - Note that chipletId is non-care for DYN rings (since always Common rings)
     //
     // So since in both cases we need to traverse a "sub-qualifier" ID
     // value, we introduce the variable, subQualId, for this purpose:
-    // - subQualId represents instanceId for TOR ring sections
+    // - subQualId represents chipletId for TOR ring sections
     // - subQualId represents selector for DYN ring section
     //
-    // Note about the chiplet instanceId loop for TOR ring sections:.
-    // - Only loop once if ringId is a common ring. Determine this by
-    //   comparing the returned value of instanceId in tor_access_ring()
-    //   with the input value of instanceId, instanceInputId.
-    // - Start looping safely from 0 so that if instanceId is adjusted
-    //   in tor_access_ring, i.e. in case it's a Common ring, it will
-    //   return a non-zero value for instanceId.
-    // - Note that we do it this cumbersome way, even though it would be
-    //   easier to look up whether a ring is a Common or Instance ring
-    //   in the ring properties or by extracting chipletId from rs4->
-    //   scanAddr, since this way will show us more bugs in the entire
-    //   API, metadata and other assumptions made to create the ring
-    //   in the first place. In case of DYN rings though, due to how
-    //   the ring is selected in the API, we simply extract the
-    //   instanceId directly from the rs4 header.
     uint16_t subQualId;
-    uint16_t MAX_QUAL_ID = 0;
-    uint8_t instanceInputId = 0;
+    uint16_t MIN_QUAL_ID = 0;
+    uint16_t MAX_QUAL_ID = 0xffff;
     Rs4Selector_t selector = UNDEFINED_RS4_SELECTOR;
+    uint8_t  numInst; // Number of chiplet instances
 
     rs4 = (CompressedScanData*)rs4Buf;
 
     for (ringId = 0; ringId < numRingIds; ringId++)
     {
-        MAX_QUAL_ID = (torMagic != TOR_MAGIC_DYN) ? MAX_INSTANCE_ID : MAX_RS4_SELECTOR;
 
-        for (subQualId = 0; subQualId <= MAX_QUAL_ID; subQualId++)
+        //
+        // Get remaining metadata for the chipletType associated with the ringId
+        //
+        rc = ringid_get_chipletProps( chipId,
+                                      torMagic,
+                                      torHeader->version,
+                                      ringProps[ringId].chipletType,
+                                      &chipletData );
+
+        if (rc)
+        {
+            fprintf(stderr, "ringid_get_chipletProps() failed w/rc=0x%08x\n", rc);
+            return rc;
+        }
+
+        //
+        // Determine whether Common or Instance section based on the INSTANCE_RING_MARK
+        //
+        if ( ringProps[ringId].idxRing & INSTANCE_RING_MARK )
+        {
+            numInst = chipletData->numChipletInstances;
+        }
+        else
+        {
+            numInst = 1;
+        }
+
+        MIN_QUAL_ID = (torMagic != TOR_MAGIC_DYN) ?
+                      chipletData->chipletBaseId :
+                      0;
+        MAX_QUAL_ID = (torMagic != TOR_MAGIC_DYN) ?
+                      (chipletData->chipletBaseId + numInst - 1) :
+                      MAX_RS4_SELECTOR;
+
+        for (subQualId = MIN_QUAL_ID; subQualId <= MAX_QUAL_ID; subQualId++)
         {
             ringBlockSize = MAX_RING_BUF_SIZE_TOOL;
 
             if (torMagic != TOR_MAGIC_DYN)
             {
-                instanceId = subQualId;
-                instanceInputId = instanceId;
+                chipletId = subQualId;
 
-                rc = tor_access_ring( i_ringSection,
-                                      ringId,
-                                      ddLevel,
-                                      instanceId,        // IO parm
-                                      GET_SINGLE_RING,
-                                      rs4Buf,            // IO buffer (caller mgd)
-                                      ringBlockSize,     // IO parm
-                                      0 );
+                rc = tor_get_single_ring( i_ringSection,
+                                          ddLevel,
+                                          ringId,
+                                          chipletId,
+                                          rs4Buf,          // IO buffer (caller mgd)
+                                          ringBlockSize,   // IO parm
+                                          0 );
 
                 if (!rc)
                 {
@@ -2271,7 +2289,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
                 if (!rc)
                 {
-                    instanceId = be32toh(rs4->iv_scanAddr) >> 24;
+                    chipletId = be32toh(rs4->iv_scanAddr) >> 24;
                 }
             }
 
@@ -2332,9 +2350,8 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                     {
                         fprintf(stderr, "ERROR in ipl_image_tool:  Found a ring."
                                 " But RS4 header ringId(=0x%x) differs from requested"
-                                " ringId(=0x%x). Other info:\n"
-                                "instanceId: %d\n",
-                                l_ringId, ringId, instanceId);
+                                " ringId(=0x%x) and chipletId=0x%02x\n",
+                                l_ringId, ringId, chipletId);
                         operator delete(rs4Buf);
                         operator delete(dataBuf);
                         operator delete(careBuf);
@@ -2450,7 +2467,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                         fprintf(stdout,
                                 "%4i%c   "
                                 "0x%02x   "
-                                "%3u    " // instanceId for TOR, selector for DYN
+                                "%3u    " // chipletId for TOR, selector for DYN
                                 "%7d  "
                                 "%6.2f   "
                                 "%s\n",
@@ -2467,15 +2484,15 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                                  "-----------------------------\n"
                                  "%i.%c\n"
                                  "ddLevel = 0x%02x\n"
-                                 "ringId = 0x%x\n"
+                                 "ringId = 0x%x (%u)\n"
                                  "ringName = %s\n"
-                                 "instanceId = 0x%02x\n"
+                                 "chipletId = 0x%02x\n"
                                  "selector = %u\n"
                                  "rs4Size [bytes] = 0x%x\n"
                                  "rawLength [bits] = 0x%x\n"
                                  "compression [%%] = %6.2f\n",
-                                 ringSeqNo, ringSuffix, ddLevel, ringId, ringName,
-                                 instanceId, selector, rs4Size, bits, comprRate);
+                                 ringSeqNo, ringSuffix, ddLevel, ringId, ringId, ringName,
+                                 chipletId, selector, rs4Size, bits, comprRate);
                     }
 
                     // Dump ring block if "long" or "raw"
@@ -2535,15 +2552,10 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                 }
                 while (cmskRingIteration);
 
-                if (torMagic != TOR_MAGIC_DYN && instanceId != instanceInputId)
-                {
-                    // Break out of the instanceId loop since this is a Common ring
-                    break;
-                }
             }
             else if ( rc == TOR_RING_IS_EMPTY        ||
                       rc == TOR_RING_HAS_NO_TOR_SLOT ||
-                      rc == TOR_INVALID_INSTANCE_ID  ||
+                      rc == TOR_INVALID_CHIPLET_ID   ||
                       rc == TOR_INVALID_CHIPLET_TYPE ||
                       rc == TOR_AMBIGUOUS_API_PARMS  ||
                       rc == TOR_INVALID_RING_ID      ||
@@ -2555,7 +2567,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
             }
             else
             {
-                fprintf(stderr, "CODE BUG: tor_access_ring() or dyn_get_ring() returned"
+                fprintf(stderr, "CODE BUG: tor_get_single_ring() or dyn_get_ring() returned"
                         " unacceptable error code rc=%d\n", rc);
                 operator delete(rs4Buf);
                 operator delete(dataBuf);
@@ -2565,7 +2577,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                 exit(EXIT_FAILURE);
             }
 
-        }  // End of for(instanceId)
+        }  // End of for(subQualId={chipletId or selector})
 
     }  // End of for(ringId)
 

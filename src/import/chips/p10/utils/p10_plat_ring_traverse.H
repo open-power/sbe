@@ -48,59 +48,59 @@ enum OpMode_t
 ///        Common Ring section and Instance Ring section
 struct SectionTOR
 {
-    uint32_t TOC_PERV_COMMON_RING;      // Offset of Perv Common Ring section
-    uint32_t TOC_PERV_INSTANCE_RING;    // Offset of Perv Instance Ring section
+    TorOffset_t TOC_PERV_COMMON_RING;      // Offset of Perv Common Ring section
+    TorOffset_t TOC_PERV_INSTANCE_RING;    // Offset of Perv Instance Ring section
 
-    uint32_t TOC_N0_COMMON_RING;        // Offset of N0 Common Ring section
-    uint32_t TOC_N0_INSTANCE_RING;      // Offset of N0 Instance Ring section
+    TorOffset_t TOC_N0_COMMON_RING;        // Offset of N0 Common Ring section
+    TorOffset_t TOC_N0_INSTANCE_RING;      // Offset of N0 Instance Ring section
 
-    uint32_t TOC_N1_COMMON_RING;        // Offset of N1 Common Ring section
-    uint32_t TOC_N1_INSTANCE_RING;      // Offset of N1 Instance Ring section
+    TorOffset_t TOC_N1_COMMON_RING;        // Offset of N1 Common Ring section
+    TorOffset_t TOC_N1_INSTANCE_RING;      // Offset of N1 Instance Ring section
 
-    uint32_t TOC_PCI_COMMON_RING;       // Offset of PCI Common Ring section
-    uint32_t TOC_PCI_INSTANCE_RING;     // Offset of PCI Instance Ring section
+    TorOffset_t TOC_PCI_COMMON_RING;       // Offset of PCI Common Ring section
+    TorOffset_t TOC_PCI_INSTANCE_RING;     // Offset of PCI Instance Ring section
 
-    uint32_t TOC_MC_COMMON_RING;        // Offset of MC Common Ring section
-    uint32_t TOC_MC_INSTANCE_RING;      // Offset of MC Instance Ring section
+    TorOffset_t TOC_MC_COMMON_RING;        // Offset of MC Common Ring section
+    TorOffset_t TOC_MC_INSTANCE_RING;      // Offset of MC Instance Ring section
 
-    uint32_t TOC_PAU0_COMMON_RING;      // Offset of PAU0 Common Ring section
-    uint32_t TOC_PAU0_INSTANCE_RING;    // Offset of PAU0 Instance Ring section
+    TorOffset_t TOC_PAU0_COMMON_RING;      // Offset of PAU0 Common Ring section
+    TorOffset_t TOC_PAU0_INSTANCE_RING;    // Offset of PAU0 Instance Ring section
 
-    uint32_t TOC_PAU1_COMMON_RING;      // Offset of PAU1 Common Ring section
-    uint32_t TOC_PAU1_INSTANCE_RING;    // Offset of PAU1 Instance Ring section
+    TorOffset_t TOC_PAU1_COMMON_RING;      // Offset of PAU1 Common Ring section
+    TorOffset_t TOC_PAU1_INSTANCE_RING;    // Offset of PAU1 Instance Ring section
 
-    uint32_t TOC_PAU2_COMMON_RING;      // Offset of PAU2 Common Ring section
-    uint32_t TOC_PAU2_INSTANCE_RING;    // Offset of PAU2 Instance Ring section
+    TorOffset_t TOC_PAU2_COMMON_RING;      // Offset of PAU2 Common Ring section
+    TorOffset_t TOC_PAU2_INSTANCE_RING;    // Offset of PAU2 Instance Ring section
 
-    uint32_t TOC_PAU3_COMMON_RING;      // Offset of PAU3 Common Ring section
-    uint32_t TOC_PAU3_INSTANCE_RING;    // Offset of PAU3 Instance Ring section
+    TorOffset_t TOC_PAU3_COMMON_RING;      // Offset of PAU3 Common Ring section
+    TorOffset_t TOC_PAU3_INSTANCE_RING;    // Offset of PAU3 Instance Ring section
 
-    uint32_t TOC_AXON0_COMMON_RING;    // Offset of AXON0 Common Ring section
-    uint32_t TOC_AXON0_INSTANCE_RING;   // Offset of AXON0 Instance Ring section
+    TorOffset_t TOC_AXON0_COMMON_RING;    // Offset of AXON0 Common Ring section
+    TorOffset_t TOC_AXON0_INSTANCE_RING;   // Offset of AXON0 Instance Ring section
 
-    uint32_t TOC_AXON1_COMMON_RING;    // Offset of AXON1 Common Ring section
-    uint32_t TOC_AXON1_INSTANCE_RING;   // Offset of AXON1 Instance Ring section
+    TorOffset_t TOC_AXON1_COMMON_RING;    // Offset of AXON1 Common Ring section
+    TorOffset_t TOC_AXON1_INSTANCE_RING;   // Offset of AXON1 Instance Ring section
 
-    uint32_t TOC_AXON2_COMMON_RING;    // Offset of AXON2 Common Ring section
-    uint32_t TOC_AXON2_INSTANCE_RING;   // Offset of AXON2 Instance Ring section
+    TorOffset_t TOC_AXON2_COMMON_RING;    // Offset of AXON2 Common Ring section
+    TorOffset_t TOC_AXON2_INSTANCE_RING;   // Offset of AXON2 Instance Ring section
 
-    uint32_t TOC_AXON3_COMMON_RING;    // Offset of AXON3 Common Ring section
-    uint32_t TOC_AXON3_INSTANCE_RING;   // Offset of AXON3 Instance Ring section
+    TorOffset_t TOC_AXON3_COMMON_RING;    // Offset of AXON3 Common Ring section
+    TorOffset_t TOC_AXON3_INSTANCE_RING;   // Offset of AXON3 Instance Ring section
 
-    uint32_t TOC_AXON4_COMMON_RING;    // Offset of AXON4 Common Ring section
-    uint32_t TOC_AXON4_INSTANCE_RING;   // Offset of AXON4 Instance Ring section
+    TorOffset_t TOC_AXON4_COMMON_RING;    // Offset of AXON4 Common Ring section
+    TorOffset_t TOC_AXON4_INSTANCE_RING;   // Offset of AXON4 Instance Ring section
 
-    uint32_t TOC_AXON5_COMMON_RING;    // Offset of AXON5 Common Ring section
-    uint32_t TOC_AXON5_INSTANCE_RING;   // Offset of AXON5 Instance Ring section
+    TorOffset_t TOC_AXON5_COMMON_RING;    // Offset of AXON5 Common Ring section
+    TorOffset_t TOC_AXON5_INSTANCE_RING;   // Offset of AXON5 Instance Ring section
 
-    uint32_t TOC_AXON6_COMMON_RING;    // Offset of AXON6 Common Ring section
-    uint32_t TOC_AXON6_INSTANCE_RING;   // Offset of AXON6 Instance Ring section
+    TorOffset_t TOC_AXON6_COMMON_RING;    // Offset of AXON6 Common Ring section
+    TorOffset_t TOC_AXON6_INSTANCE_RING;   // Offset of AXON6 Instance Ring section
 
-    uint32_t TOC_AXON7_COMMON_RING;    // Offset of AXON7 Common Ring section
-    uint32_t TOC_AXON7_INSTANCE_RING;   // Offset of AXON7 Instance Ring section
+    TorOffset_t TOC_AXON7_COMMON_RING;    // Offset of AXON7 Common Ring section
+    TorOffset_t TOC_AXON7_INSTANCE_RING;   // Offset of AXON7 Instance Ring section
 
-    uint32_t TOC_EQ_COMMON_RING;        // Offset of Quad Common Ring section
-    uint32_t TOC_EQ_INSTANCE_RING;      // Offset of Quad Instance Ring section
+    TorOffset_t TOC_EQ_COMMON_RING;        // Offset of Quad Common Ring section
+    TorOffset_t TOC_EQ_INSTANCE_RING;      // Offset of Quad Instance Ring section
 };
 
 
@@ -125,7 +125,7 @@ fapi2::ReturnCode lookUpRingSection(
 ///        Ring Container in the image and calls the functin to decompress the
 ///        RS4 string and apply it to the hardware.
 /// @param[in] i_target             The target of Ring apply.
-/// @param[in] i_pChipletSectn      points to chiplet region of ring section.
+/// @param[in] i_pRingSectn         Points to TOR ring section (ie, to the TOR hdr)
 /// @param[in] i_ringID             The Ring ID that identifies the ring to be applied.
 /// @param[in] i_applyOverride      override is enabled or not
 /// @param[in] i_ringMode           different ring access operation mode
@@ -134,7 +134,7 @@ fapi2::ReturnCode lookUpRingSection(
 ///
 fapi2::ReturnCode getRS4ImageFromTor(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
-    uint8_t* i_pChipletSectn ,
+    uint8_t* i_pRingSectn ,
     const RingId_t i_ringID,
     bool i_applyOverride,
     const fapi2::RingMode i_ringMode);
