@@ -75,6 +75,9 @@ __header_64_reserved:
         .xip_section rings,                8, empty=1
         .xip_section overrides,            8, empty=1
         .xip_section hbbl,                 8, empty=1
+        .xip_section fa_ec_cl2_far,        8, empty=1
+        .xip_section fa_ec_mma_far,        8, empty=1
+        .xip_section ringidfeatlist,       8, empty=1
         .xip_section
         .xip_section
         .xip_section
@@ -82,10 +85,6 @@ __header_64_reserved:
         .xip_section
         .xip_section
         .xip_section
-        .xip_section
-        .xip_section
-        .xip_section
-
 
         //////////////////////////////////////////////////////////////////////
         // Other Information - 4-byte aligned; 8 entries; TOC-Indexed
@@ -132,7 +131,7 @@ __build_user:
 __build_host:
         .asciz "unknown                        " # 32 characters
 __build_head_commit:
-        .asciz "unknown "                        # 08 characters
+        .asciz "unknown "                        #  8 characters
 __header_string_reserved:
         .space    8, 0
 
