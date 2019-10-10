@@ -42,8 +42,7 @@
 #include <multicast_group_defs.H>
 
 #include "p10_scom_proc.H"
-#include "p10_scom_eq.H"
-#include "p10_scom_pauc.H"
+#include "p10_scom_perv.H"
 
 // -----------------------------------------------------------------------------
 //  Definitions
@@ -92,7 +91,7 @@ fapi2::ReturnCode p10_sbe_dts_init(
     fapi2::buffer<uint64_t> l_data64;
 
     auto l_eq_mc =
-        i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
+        i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
     auto l_pau_mc =
         i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PAU);
 
@@ -101,7 +100,7 @@ fapi2::ReturnCode p10_sbe_dts_init(
     // the sensors on each loop that have DTSs attached.
 
     {
-        using namespace scomt::eq;
+        using namespace scomt::perv;
 
         FAPI_DBG("Enable Core/Cache/Racetrack DTSs in EQs");
 
@@ -127,7 +126,7 @@ fapi2::ReturnCode p10_sbe_dts_init(
     } // namespace
 
     {
-        using namespace scomt::pauc;
+        using namespace scomt::perv;
 
         FAPI_DBG("Enable Endcap DTSs in the PAUs");
 
