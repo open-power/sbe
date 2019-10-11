@@ -37,6 +37,11 @@ run-python-file targets/p10_standalone/sbeTest/testPSUSetStashPair.py
 echo "*******************Run SBE-ISTEPS ******************"
 
 sbe-istep 2.2 5.3
+
+echo "*******************Run testPSUGetCapabilities.py*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
+
 exit 0
 #TODO: Remove exit
 
@@ -85,10 +90,6 @@ run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
 echo "*******************Run testPSUSetFFDCAddr.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
-
-echo "*******************Run testPSUGetCapabilities.py*******************"
-
-run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
 
 echo "*******************Run testSram.xml*******************"
 
