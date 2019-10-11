@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -230,7 +230,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
                     sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
 
-        p9_PBA_oper_flag l_myPbaFlag;
+        p10_PBA_oper_flag l_myPbaFlag;
         // Determine the access flags
         // Fast mode flag
         if(i_hdr.isFastModeSet())
@@ -242,7 +242,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // inject mode flag
         if(i_hdr.isPbaInjectModeSet())
         {
-            l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ); // Inject operation
+            l_myPbaFlag.setOperationType(p10_PBA_oper_flag::INJ); // Inject operation
             SBE_INFO(SBE_FUNC "inject Mode is set");
         }
 
@@ -257,7 +257,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             //..so on
             l_ex = plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>
                     (i_hdr.coreChipletId);
-            l_myPbaFlag.setOperationType(p9_PBA_oper_flag::LCO); // LCO operation
+            l_myPbaFlag.setOperationType(p10_PBA_oper_flag::LCO); // LCO operation
         }
 
         l_lenCacheAligned = i_hdr.getDataLenCacheAlign();
@@ -387,7 +387,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
     // Keeps track of number of granules sent to HWP
     uint64_t l_granulesCompleted = 0;
-    p9_ADU_oper_flag l_aduFlag;
+    adu_operationFlag l_aduFlag;
     // For local Use
     bool l_isEccMode = i_hdr.isEccFlagSet();
     bool l_isItagMode = i_hdr.isItagFlagSet();
@@ -395,7 +395,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
     do
     {
-        l_aduFlag.setTransactionSize(p9_ADU_oper_flag::TSIZE_8);
+        l_aduFlag.setTransactionSize(adu_operationFlag::TSIZE_8);
         // For len lesser than 8, only 1,2 and 4 lengths are allowed
         if(i_hdr.len < 8)
         {
@@ -410,10 +410,10 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             }
             l_sizeMultiplier = 1;
             l_granuleSize = i_hdr.len;
-            l_aduFlag.setTransactionSize((p9_ADU_oper_flag::Transaction_size_t)(i_hdr.len));
+            l_aduFlag.setTransactionSize((adu_operationFlag::Transaction_size_t)(i_hdr.len));
         }
         //Default Operation Type is DMA_PARTIAL
-        l_aduFlag.setOperationType(p9_ADU_oper_flag::DMA_PARTIAL);
+        l_aduFlag.setOperationType(adu_operationFlag::DMA_PARTIAL);
         l_aduFlag.setLockControl(false);
         l_aduFlag.setOperFailCleanup(true);
         l_aduFlag.setNumLockAttempts(SBE_ADU_LOCK_TRIES);

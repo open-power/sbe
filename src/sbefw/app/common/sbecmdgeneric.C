@@ -140,8 +140,8 @@ uint32_t sbePsuGetCapabilities(uint8_t *i_pArg)
             break;
         }
 
-        p9_PBA_oper_flag l_myPbaFlag;
-        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ);
+        p10_PBA_oper_flag l_myPbaFlag;
+        l_myPbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
 
         sbeMemAccessInterface l_PBAInterface(
                                 SBE_MEM_ACCESS_PBA,
@@ -452,8 +452,8 @@ uint32_t sbeSecurityListBinDump( uint8_t *i_pArg )
                  SBE::lower32BWord(dumpAddr));
         /// Initialise the PBA with the above address from stash,
         /// The access API would use it in auto-increment mode.
-        p9_PBA_oper_flag pbaFlag;
-        pbaFlag.setOperationType(p9_PBA_oper_flag::INJ);
+        p10_PBA_oper_flag pbaFlag;
+        pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
         sbeMemAccessInterface PBAInterface(
                                 SBE_MEM_ACCESS_PBA,
                                 dumpAddr,
@@ -604,8 +604,8 @@ uint32_t sbeReadMem( uint8_t *i_pArg )
         fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex(
             fapi2::plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>(
                     sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
-        p9_PBA_oper_flag l_myPbaFlag;
-        l_myPbaFlag.setOperationType(p9_PBA_oper_flag::INJ);
+        p10_PBA_oper_flag l_myPbaFlag;
+        l_myPbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
 
         sbeMemAccessInterface pbaInterface(
                                      SBE_MEM_ACCESS_PBA,

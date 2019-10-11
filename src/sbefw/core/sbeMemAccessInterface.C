@@ -26,12 +26,6 @@
 
 #ifdef HOST_INTERFACE_AVAILABLE
 
-#ifdef SEEPROM_IMAGE
-// Using Function pointer to force long call
-//p9_adu_access_FP_t p9_adu_access_hwp = &p9_adu_access;
-//p9_adu_setup_FP_t p9_adu_setup_hwp = &p9_adu_setup;
-#endif
-
 using namespace fapi2;
 
 void MEM_AVAILABLE_CHECK(uint32_t &io_available_len,uint32_t &io_len_to_send,bool &io_is_last_access)
@@ -50,7 +44,6 @@ ReturnCode sbeMemAccessInterface::setup()
 #define SBE_FUNC "sbeMemAccessInterface::setup"
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-#if 0
     // Reset the current granule count
     iv_currGranule = 0;
     iv_intfCleanedUp = false;
@@ -59,23 +52,23 @@ ReturnCode sbeMemAccessInterface::setup()
     {
         // Call the PBA setup HWP
         SBE_EXEC_HWP(fapiRc,
-                     p9_pba_setup,
+                     p10_pba_setup,
                      plat_getChipTarget(),
-                     iv_ex,
+                     iv_core,
                      iv_addr,
                      (iv_mode == SBE_MEM_ACCESS_READ),
-                     ((p9_PBA_oper_flag*)iv_flags)->setFlag(),
+                     ((p10_PBA_oper_flag*)iv_flags)->setFlag(),
                      iv_maxGranule);
     }
     if(iv_interface == SBE_MEM_ACCESS_ADU)
     {
         // Call the ADU setup HWP
         SBE_EXEC_HWP(fapiRc,
-                     p9_adu_setup_hwp,
+                     p10_adu_setup,
                      plat_getChipTarget(),
                      iv_addr,
                      (iv_mode == SBE_MEM_ACCESS_READ),
-                     ((p9_ADU_oper_flag*)iv_flags)->setFlag(),
+                     ((adu_operationFlag*)iv_flags)->setFlag(),
                      iv_maxGranule)
     }
     // if setup returns error
@@ -91,7 +84,6 @@ ReturnCode sbeMemAccessInterface::setup()
         SBE_INFO(SBE_FUNC "Hwp returned iv_maxGranule=[0x%08X]",
                                              iv_maxGranule);
     }
-#endif
     return fapiRc;
 #undef SBE_FUNC
 }
@@ -101,7 +93,6 @@ ReturnCode sbeMemAccessInterface::accessGranule(const bool i_isLastAccess)
 #define SBE_FUNC "sbeMemAccessInterface::accessGranule"
     SBE_DEBUG(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-#if 0
     do
     {
         // Check if we need to do a setup before access
@@ -119,11 +110,11 @@ ReturnCode sbeMemAccessInterface::accessGranule(const bool i_isLastAccess)
         {
             // Call PBA access for read/write
             SBE_EXEC_HWP(fapiRc,
-                         p9_pba_access,
+                         p10_pba_access,
                          plat_getChipTarget(),
                          iv_addr,
                          (iv_mode == SBE_MEM_ACCESS_READ),
-                         ((p9_PBA_oper_flag*)iv_flags)->setFlag(),
+                         ((p10_PBA_oper_flag*)iv_flags)->setFlag(),
                          (iv_currGranule == 0),
                          iv_intfCleanedUp,
                          (uint8_t *)&iv_buffer);
@@ -132,11 +123,11 @@ ReturnCode sbeMemAccessInterface::accessGranule(const bool i_isLastAccess)
         {
             // Call ADU access HWP for ADU write/read request
             SBE_EXEC_HWP(fapiRc,
-                     p9_adu_access_hwp,
+                     p10_adu_access,
                      plat_getChipTarget(),
                      iv_addr,
                      (iv_mode == SBE_MEM_ACCESS_READ),
-                     ((p9_ADU_oper_flag*)iv_flags)->setFlag(),
+                     ((adu_operationFlag*)iv_flags)->setFlag(),
                      (iv_currGranule == 0),
                      iv_intfCleanedUp,
                      (uint8_t *)&iv_buffer)
@@ -153,7 +144,6 @@ ReturnCode sbeMemAccessInterface::accessGranule(const bool i_isLastAccess)
         iv_iterator = (iv_mode == SBE_MEM_ACCESS_READ)?
                         iv_granuleSize : 0;
     } while(false);
-#endif
     return fapiRc;
 #undef SBE_FUNC
 }
@@ -165,7 +155,6 @@ ReturnCode sbeMemAccessInterface::accessWithBuffer(const void *io_buffer,
 #define SBE_FUNC "sbeMemAccessInterface::accessWithBuffer"
     SBE_DEBUG(SBE_FUNC" len[%d]",i_len);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-#if 0
     uint32_t iterator = 0;
     bool is_lastGranule = false;
 
@@ -181,11 +170,11 @@ ReturnCode sbeMemAccessInterface::accessWithBuffer(const void *io_buffer,
             // If Adu, put the ecc and itag applicable bytes
             if(iv_interface == SBE_MEM_ACCESS_ADU)
             {
-                if(((p9_ADU_oper_flag*)iv_flags)->getEccMode())
+                if(((adu_operationFlag*)iv_flags)->getEccMode())
                 {
                     iv_buffer[iv_iterator++] = ((char*)io_buffer)[iterator++];
                 }
-                if(((p9_ADU_oper_flag*)iv_flags)->getItagMode())
+                if(((adu_operationFlag*)iv_flags)->getItagMode())
                 {
                     iv_buffer[iv_iterator++] = ((char*)io_buffer)[iterator++];
                 }
@@ -234,12 +223,12 @@ ReturnCode sbeMemAccessInterface::accessWithBuffer(const void *io_buffer,
             if(iv_interface == SBE_MEM_ACCESS_ADU)
             {
                 uint32_t index = iv_granuleSize;
-                if(((p9_ADU_oper_flag*)iv_flags)->getEccMode())
+                if(((adu_operationFlag*)iv_flags)->getEccMode())
                 {
                     ((char*)io_buffer)[iterator++] =
                                             iv_buffer[index++];
                 }
-                if(((p9_ADU_oper_flag*)iv_flags)->getItagMode())
+                if(((adu_operationFlag*)iv_flags)->getItagMode())
                 {
                     ((char*)io_buffer)[iterator++] =
                                             iv_buffer[index];
@@ -253,7 +242,6 @@ ReturnCode sbeMemAccessInterface::accessWithBuffer(const void *io_buffer,
             break;
         }
     } while(true);
-#endif
     return fapiRc;
 #undef SBE_FUNC
 }

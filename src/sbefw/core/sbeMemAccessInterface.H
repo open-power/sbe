@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -26,13 +27,15 @@
 
 #include "fapi2.H"
 
-#include "p9_pba_coherent_utils.H"
-#include "p9_pba_setup.H"
-#include "p9_pba_access.H"
+#include "p10_pba_coherent_utils.H"
+#include "p10_pba_setup.H"
+#include "p10_pba_access.H"
 
-#include "p9_adu_setup.H"
-#include "p9_adu_access.H"
-#include "p9_adu_coherent_utils.H"
+#include "p10_adu_setup.H"
+#include "p10_adu_access.H"
+#include "p10_adu_utils.H"
+
+using namespace fapi2;
 
 /* @brief Enum for read or write interface
  * */
@@ -74,8 +77,11 @@ class sbeMemAccessInterface
         void *iv_flags;
         // Read or Write mode
         sbeMemAccessMode iv_mode;
+        /// TODO: iv_ex will remove from sbeMemAccessInterface  
         // Ex target used in PBA interface, not applicable for ADU
         fapi2::Target<fapi2::TARGET_TYPE_EX > iv_ex;
+        // Core target used in PBA interface, not applicable for ADU
+        fapi2::Target<fapi2::TARGET_TYPE_CORE> iv_core;
         // Number of granule that can be sent before calling setup again
         uint32_t iv_maxGranule;
         // Iterator to track the current depth of iv_buffer
@@ -148,6 +154,9 @@ class sbeMemAccessInterface
                         iv_granuleSize(i_granuleSize),
                         iv_intfCleanedUp(true)
         {
+            uint8_t coreId = 0;
+            FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,plat_getChipTarget(),coreId);
+            iv_core = plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId);
         }
 
         void * getBuffer()

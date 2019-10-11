@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,8 +34,7 @@
 #define __SBEFW_SBESP_MSG_H
 
 #include "sbe_sp_intf.H"
-
-#include "p9_adu_coherent_utils.H"
+#include "p10_adu_utils.H"
 
 // @NOTE Make sure all FIFO structures are 32 bit alligned ( the largest
 // member should be atleast 4 byte). It is required as in sbe fifo
@@ -437,35 +436,35 @@ typedef struct
       * @brief Map SBE mem access flags to ADU operation type flag
       *
       */
-    void setADUOperationType(p9_ADU_oper_flag &o_aduFlag) const
+    void setADUOperationType(adu_operationFlag &o_aduFlag) const
     {
         if(flags & SBE_MEM_ACCESS_FLAGS_CACHE_INHIBIT)
         {
-            o_aduFlag.setOperationType(p9_ADU_oper_flag::CACHE_INHIBIT);
+            o_aduFlag.setOperationType(adu_operationFlag::CACHE_INHIBIT);
         }
         else if(flags & SBE_MEM_ACCESS_FLAGS_PB_DIS)
         {
-            o_aduFlag.setOperationType(p9_ADU_oper_flag::PB_DIS_OPER);
+            o_aduFlag.setOperationType(adu_operationFlag::PB_DIS_OPER);
         }
         else if(flags & SBE_MEM_ACCESS_FLAGS_SWITCH)
         {
-            o_aduFlag.setOperationType(p9_ADU_oper_flag::PMISC_OPER);
+            o_aduFlag.setOperationType(adu_operationFlag::PMISC_OPER);
         }
         else if(flags & SBE_MEM_ACCESS_FLAGS_PB_INIT)
         {
-            o_aduFlag.setOperationType(p9_ADU_oper_flag::PB_INIT_OPER);
+            o_aduFlag.setOperationType(adu_operationFlag::PB_INIT_OPER);
         }
         else if(flags & SBE_MEM_ACCESS_FLAGS_PRESWITCH_AB)
         {
-            o_aduFlag.setOperationType(p9_ADU_oper_flag::PRE_SWITCH_AB);
+            o_aduFlag.setOperationType(adu_operationFlag::PRE_SWITCH_AB);
         }
         else if(flags & SBE_MEM_ACCESS_FLAGS_PRESWITCH_CD)
         {
-            o_aduFlag.setOperationType(p9_ADU_oper_flag::PRE_SWITCH_CD);
+            o_aduFlag.setOperationType(adu_operationFlag::PRE_SWITCH_CD);
         }
         else if(flags & SBE_MEM_ACCESS_FLAGS_POSTSWITCH)
         {
-            o_aduFlag.setOperationType(p9_ADU_oper_flag::POST_SWITCH);
+            o_aduFlag.setOperationType(adu_operationFlag::POST_SWITCH);
         }
     }
 
