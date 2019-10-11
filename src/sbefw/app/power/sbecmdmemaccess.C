@@ -225,10 +225,11 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             }
         }
 
-        // Default EX Target Init..Not changing it for the time being
-        Target<TARGET_TYPE_EX> l_ex(
-                plat_getTargetHandleByChipletNumber<TARGET_TYPE_EX>(
-                    sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
+        // Default Core Target Init..
+        uint8_t l_coreId = 0;
+        FAPI_ATTR_GET(ATTR_MASTER_CORE,plat_getChipTarget(),l_coreId);
+        Target<TARGET_TYPE_CORE> l_core(
+               plat_getTargetHandleByChipletNumber<TARGET_TYPE_CORE>(l_coreId));
 
         p10_PBA_oper_flag l_myPbaFlag;
         // Determine the access flags
@@ -250,13 +251,8 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // by LCO_mode (LCO Mode for PBA-Put)
         if(i_hdr.isPbaLcoModeSet())
         {
-            SBE_INFO(SBE_INFO "LCO Mode is set with Ex ChipletId[%d]",
-                (i_hdr.coreChipletId)/2);
-            //Derive the EX target from the input Core Chiplet Id
-            //Core0/1 -> EX0, Core2/3 -> EX1, Core4/5 -> EX2, Core6/7 -> EX3
-            //..so on
-            l_ex = plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>
-                    (i_hdr.coreChipletId);
+            SBE_INFO(SBE_INFO "LCO Mode is set with Core ChipletId[%d]", (uint8_t)i_hdr.coreChipletId);
+            l_core = plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(i_hdr.coreChipletId);
             l_myPbaFlag.setOperationType(p10_PBA_oper_flag::LCO); // LCO operation
         }
 
@@ -271,7 +267,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                                               SBE_MEM_ACCESS_READ:
                                               SBE_MEM_ACCESS_WRITE),
                                              l_granuleSize,
-                                             l_ex);
+                                             l_core);
 
         while (l_granulesCompleted < l_lenCacheAligned)
         {

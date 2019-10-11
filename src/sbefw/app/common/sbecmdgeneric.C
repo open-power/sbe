@@ -600,20 +600,20 @@ uint32_t sbeReadMem( uint8_t *i_pArg )
             break;
         }
 
-        // Default EX Target Init. As its not LCO mode, ex does not matter.
-        fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex(
-            fapi2::plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>(
-                    sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
         p10_PBA_oper_flag l_myPbaFlag;
         l_myPbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
 
+        uint8_t l_coreId = 0;
+        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,plat_getChipTarget(),l_coreId);
+        fapi2::Target<fapi2::TARGET_TYPE_CORE> l_core =
+              plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(l_coreId);
         sbeMemAccessInterface pbaInterface(
                                      SBE_MEM_ACCESS_PBA,
                                      req.responseAddr,
                                      &l_myPbaFlag,
                                      SBE_MEM_ACCESS_WRITE,
                                      sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES,
-                                     l_ex);
+                                     l_core);
         uint32_t len = req.size;
         uint64_t *seepromAddr = req.getEffectiveAddr();
         while( len > 0)

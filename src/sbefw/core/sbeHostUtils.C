@@ -215,12 +215,14 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
 
         uint32_t l_allocatedSize = SBE_GLOBAL->hostFFDCAddr.size;
         bool l_is_lastAccess = false;
-        // Default EX Target Init..Not changing it for the time being
-        fapi2::Target<fapi2::TARGET_TYPE_EX> l_ex(
-            fapi2::plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_EX>(
-                    sbeMemAccessInterface::PBA_DEFAULT_EX_CHIPLET_ID));
+
         p10_PBA_oper_flag l_myPbaFlag;
         l_myPbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
+
+        uint8_t l_coreId = 0;
+        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,plat_getChipTarget(),l_coreId);
+        fapi2::Target<fapi2::TARGET_TYPE_CORE> l_core =
+              plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(l_coreId);
 
         sbeMemAccessInterface l_PBAInterface(
                                      SBE_MEM_ACCESS_PBA,
@@ -228,7 +230,7 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
                                      &l_myPbaFlag,
                                      SBE_MEM_ACCESS_WRITE,
                                      sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES,
-                                     l_ex);
+                                     l_core );
 
         bool l_internal_ffdc_present = ((i_sbe2PsuRespHdr.primStatus() !=
                                          SBE_PRI_OPERATION_SUCCESSFUL) ||

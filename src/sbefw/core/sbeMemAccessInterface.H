@@ -73,13 +73,10 @@ class sbeMemAccessInterface
         uint64_t iv_addr;
         // Interface type - PBA/ADU
         sbeMemAccessInterfaceType iv_interface;
-        // Pointer to procedure flags - p9_PBA_oper_flag/p9_ADU_oper_flag
+        // Pointer to procedure flags - p10_PBA_oper_flag/adu_operationFlag
         void *iv_flags;
         // Read or Write mode
         sbeMemAccessMode iv_mode;
-        /// TODO: iv_ex will remove from sbeMemAccessInterface  
-        // Ex target used in PBA interface, not applicable for ADU
-        fapi2::Target<fapi2::TARGET_TYPE_EX > iv_ex;
         // Core target used in PBA interface, not applicable for ADU
         fapi2::Target<fapi2::TARGET_TYPE_CORE> iv_core;
         // Number of granule that can be sent before calling setup again
@@ -119,9 +116,6 @@ class sbeMemAccessInterface
          void alignAccessWithBuffer();
 
     public:
-        //Default EX Target ChipletId to be used in PBA by default
-        static constexpr uint32_t PBA_DEFAULT_EX_CHIPLET_ID = 0x20;
-
         // PBA / ADU Granule size as per the HWP Requirement
         static constexpr uint32_t PBA_GRAN_SIZE_BYTES  = 128;
         static constexpr uint32_t ADU_GRAN_SIZE_BYTES  = 8;
@@ -133,7 +127,7 @@ class sbeMemAccessInterface
          * @param[in] i_flags       Pointer to PBA/ADU flags
          * @param[in] i_mode        Read/Write mode
          * @param[in] i_granuleSize Granule size of the interface type
-         * @param[in] i_ex          EX target[Optional in case of ADU]
+         * @param[in] i_core        Core target[Optional in case of ADU]
          */
         sbeMemAccessInterface(
                         sbeMemAccessInterfaceType i_interface,
@@ -141,22 +135,19 @@ class sbeMemAccessInterface
                         void *i_flags,
                         sbeMemAccessMode i_mode,
                         uint32_t i_granuleSize,
-                        fapi2::Target<fapi2::TARGET_TYPE_EX> i_ex
-                        = fapi2::Target<fapi2::TARGET_TYPE_EX>()):
-                        iv_addr(i_addr),
+                        Target<TARGET_TYPE_CORE> i_core
+                        = plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(0)):
+                        iv_addr(i_addr=0),
                         iv_interface(i_interface),
                         iv_flags(i_flags),
                         iv_mode(i_mode),
-                        iv_ex(i_ex),
+                        iv_core(i_core),
                         iv_maxGranule(0),
                         iv_iterator(0),
                         iv_currGranule(0),
                         iv_granuleSize(i_granuleSize),
                         iv_intfCleanedUp(true)
         {
-            uint8_t coreId = 0;
-            FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,plat_getChipTarget(),coreId);
-            iv_core = plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId);
         }
 
         void * getBuffer()

@@ -31,7 +31,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <p9_sbe_hb_structures.H>
+#include <p10_sbe_hb_structures.H>
 #include "sbeMemAccessInterface.H"
 
 typedef struct sbeStashMemoryPair
