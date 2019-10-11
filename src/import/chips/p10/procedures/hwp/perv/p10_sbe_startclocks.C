@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -32,13 +32,13 @@
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
-
 #include "p10_sbe_startclocks.H"
 #include "p10_scom_perv_0.H"
 #include "p10_scom_perv_3.H"
 #include "p10_scom_perv_6.H"
 #include "p10_scom_perv_7.H"
 #include <p10_perv_sbe_cmn.H>
+#include <p10_scom_eq_e.H>
 #include <target_filters.H>
 #include <multicast_group_defs.H>
 
@@ -56,7 +56,6 @@ enum P10_SBE_STARTCLOCKS_Private_Constants
     REGIONS_ONLY_CLKADJ = 0x0010,
     REGIONS_OCC = 0x0800,
 };
-
 
 fapi2::ReturnCode p10_sbe_startclocks(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -82,6 +81,9 @@ fapi2::ReturnCode p10_sbe_startclocks(const
     auto l_mc_eq = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST,
           fapi2::MULTICAST_COMPARE > l_mcast_cmp_target = l_mc_all;
+
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
     FAPI_DBG("Drop OCC fence");
     l_data64.flush<0>();
@@ -128,6 +130,29 @@ fapi2::ReturnCode p10_sbe_startclocks(const
     // Align_chiplets  module
     FAPI_DBG("Align all chiplets");
     FAPI_TRY(p10_perv_sbe_cmn_align_chiplets(l_mc_all));
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
+             "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
+
+    if (l_attr_contained_ipl_type != fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE)
+    {
+        uint32_t l_qme_cycle_repro_compare_value;
+        fapi2::ATTR_FREQ_CORE_BOOT_MHZ_Type l_attr_boot_freq_mhz;
+
+        FAPI_DBG("Set the QME Cycle Repro Compare Value");
+        // From PM Hardware Specification: CEILING((31.25 * Core Frequency in Ghz)-0.125)
+        // Implementation on integer engine:
+        //    ((((Boot Freq MHz/100) * 31250) - 125) + 9999)/10000
+        // where MHz / 100 is .1 GHz to allow for X.XGHz forms of frequency definition
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_CORE_BOOT_MHZ, i_target_chip, l_attr_boot_freq_mhz));
+        FAPI_DBG("l_attr_boot_freq_mhz = %08X", l_attr_boot_freq_mhz);
+        l_qme_cycle_repro_compare_value =
+            (((((l_attr_boot_freq_mhz / 100) * 31250) - 125) + 9999) / 10000);
+        FAPI_DBG("l_qme_cycle_repro_compare_value = %08X", l_qme_cycle_repro_compare_value);
+        l_data64.flush<0>();
+        l_data64.insertFromRight<uint32_t>(l_qme_cycle_repro_compare_value, 0, 8);
+        FAPI_TRY(fapi2::putScom(l_mc_eq, scomt::eq::QME_CRCR, l_data64));
+    }
 
     FAPI_DBG("Start all clocks except PLL on all chiplets");
     FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_mc_all, CLOCK_CMD_START, 0, 0,

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -497,7 +497,7 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                      "Error from FAPI_ATTR_SET (ATTR_I2C_BUS_DIV_REF)");
 
             FAPI_DBG("Setting up ATTR_FREQ_CORE_BOOT_MHZ");
-            l_read_scratch4_reg.extract<ATTR_FREQ_CORE_BOOT_MHZ_STARTBIT, ATTR_FREQ_CORE_BOOT_MHZ_LENGTH>
+            l_read_scratch4_reg.extractToRight<ATTR_FREQ_CORE_BOOT_MHZ_STARTBIT, ATTR_FREQ_CORE_BOOT_MHZ_LENGTH>
             (l_attr_freq_core_boot_mhz);
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_FREQ_CORE_BOOT_MHZ, i_target_chip, l_attr_freq_core_boot_mhz),
                      "Error from FAPI_ATTR_SET (ATTR_FREQ_CORE_BOOT_MHZ");
