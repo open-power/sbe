@@ -40,8 +40,8 @@
 #include "sbeHostMsg.H"
 #include "sbeHostUtils.H"
 #include "sberegaccess.H"
-#include "sbeutil.H"
 #include "sbeglobals.H"
+#include "sbehandleresponse.H"
 
 #ifdef _S0_
 #include "sbes0handler.H"
@@ -369,7 +369,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
             }
             else if ( SBE_INTERFACE_FIFO == curInterface )
             {
-                sbeHandleFifoResponse(l_rc);
+                sbeHandleFifoResponse(l_rc, SBE_FIFO);
                 SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO);
                 pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
@@ -377,7 +377,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
             }
             else if ( SBE_INTERFACE_SBEHFIFO == curInterface )
             {
-                sbeHandleFifoResponse(l_rc);
+                sbeHandleFifoResponse(l_rc, SBE_HB_FIFO);
                 SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_SBEHFIFO);
                 pk_irq_enable(SBE_IRQ_SBEHFIFO_DATA);

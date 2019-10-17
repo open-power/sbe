@@ -44,11 +44,11 @@
 #include "sberegaccess.H"
 #include "sbestates.H"
 #include "fapi2.H"
-#include "sbeutil.H"
 #include "sbeglobals.H"
 #include "core/chipop_handler.H"
 #include "core/ipl.H"
 #include "sbeFFDC.H"
+#include "sbehandleresponse.H"
 
 #ifdef _S0_
 #include "sbes0handler.H"
@@ -131,7 +131,7 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
-void sbeHandleFifoResponse (const uint32_t i_rc)
+void sbeHandleFifoResponse (const uint32_t i_rc, sbeFifoType i_type)
 {
     #define SBE_FUNC " sbeHandleFifoResponse "
     SBE_ENTER(SBE_FUNC);
@@ -175,9 +175,8 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
 
                 // Flush out the upstream FIFO till EOT arrives
                 l_len2dequeue = 1;
-                l_rc = sbeUpFifoDeq_mult (l_len2dequeue, NULL,
-                                                true, true);
-
+                l_rc = sbeUpFifoDeq_mult (
+                            l_len2dequeue, NULL, true, true, i_type );
                 if ( (l_rc == SBE_FIFO_RESET_RECEIVED) ||
                      (l_rc == SBE_SEC_FIFO_ACCESS_FAILURE) )
                 {
@@ -204,7 +203,7 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
                              l_primStatus, l_secStatus);
                 l_hdr.setStatus(l_primStatus, l_secStatus);
 
-                l_rc = sbeDsSendRespHdr(l_hdr);
+                l_rc = sbeDsSendRespHdr(l_hdr, NULL, i_type);
                 if (l_rc)
                 {
                     SBE_ERROR(SBE_FUNC"sbeDownFifoEnq_mult failure,"
@@ -216,7 +215,7 @@ void sbeHandleFifoResponse (const uint32_t i_rc)
 
             case SBE_SEC_OPERATION_SUCCESSFUL: // Successful execution
                 // Signal EOT in Downstream FIFO
-                l_rc = sbeDownFifoSignalEot();
+                l_rc = sbeDownFifoSignalEot(i_type);
                 if (l_rc)
                 {
                     SBE_ERROR(SBE_FUNC"sbeDownFifoSignalEot failure,"
@@ -322,6 +321,10 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             // will impact new chipops also.
             fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
 
+            // SBE ChipOp associating config settings to processing functions
+            chipOpParam_t configStr = { SBE_FIFO, 0x00, (uint8_t*)i_pArg };
+            // configStr.pkThreadRoutine_param = reinterpret_cast<uint8_t*>(i_pArg);
+
             // Check on the Rx Thread Interrupt Bits for Interrupt Status
             if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
                                         SBE_INTERFACE_PSU) )
@@ -348,6 +351,18 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
                 // SBE_GLOBAL->sbeIntrSource again
                 SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
                                                SBE_INTERFACE_FIFO);
+            }
+            else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
+                                             SBE_INTERFACE_SBEHFIFO) )
+            {
+                l_rc         = SBE_GLOBAL->sbeCmdRespHdr.sec_status;
+                l_cmdClass   = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
+                l_cmdOpCode  = SBE_GLOBAL->sbeFifoCmdHdr.command;
+                configStr.fifoType = SBE_HB_FIFO;
+                SBE_INFO(SBE_FUNC"Processing command from client :0x%01X",
+                            (uint32_t)(SBE_GLOBAL->sbeFifoCmdHdr.clientId));
+                SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_PROC_ROUTINE,
+                                               SBE_INTERFACE_SBEHFIFO);
             }
 #ifdef _S0_
             else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
@@ -391,7 +406,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             assert( l_pFuncP )
 
             // Call the ChipOp function
-            l_rc = l_pFuncP ((uint8_t *)i_pArg);
+            l_rc = l_pFuncP (reinterpret_cast<uint8_t*>(&configStr));
 
         } while(false); // Inner do..while loop ends here
 
@@ -407,12 +422,19 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
         }
         else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_FIFO) )
         {
-            sbeHandleFifoResponse (l_rc);
+            sbeHandleFifoResponse (l_rc, SBE_FIFO);
 
             // Enable the new data available interrupt
             SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_FIFO);
             pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
             pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
+        }
+        else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_SBEHFIFO) )
+        {
+            sbeHandleFifoResponse (l_rc, SBE_HB_FIFO);
+            SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_SBEHFIFO);
+            pk_irq_enable(SBE_IRQ_SBEHFIFO_DATA);
+            pk_irq_enable(SBE_IRQ_SBEHFIFO_RESET);
         }
 #ifdef _S0_
         else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_PROC_ROUTINE, SBE_INTERFACE_S0) )

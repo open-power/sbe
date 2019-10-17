@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -142,10 +142,6 @@ inline void SBE_MAGIC_INSTRUCTION(int _n)
     fapiRc = FAPI2_RC_SUCCESS; \
 }
 #endif
-
-void sbeHandleFifoResponse (const uint32_t i_rc);
-
-void sbeHandlePsuResponse (const uint32_t i_rc);
 
 namespace SBE
 {
