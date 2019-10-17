@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -87,9 +87,17 @@ void sbeCommandReceiver_routine(void *i_pArg)
             if (  SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
                                          SBE_INTERFACE_FIFO_RESET) )
             {
-                SBE_ERROR(SBE_FUNC"FIFO reset received");
+                SBE_ERROR(SBE_FUNC"SBE FIFO reset received");
                 l_rc = SBE_FIFO_RESET_RECEIVED;
                 curInterface = SBE_INTERFACE_FIFO_RESET;
+                break;
+            }
+            if (  SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
+                                         SBE_INTERFACE_SBEHFIFO_RESET) )
+            {
+                SBE_ERROR(SBE_FUNC"SBE HB FIFO reset received");
+                l_rc = SBE_FIFO_RESET_RECEIVED;
+                curInterface = SBE_INTERFACE_SBEHFIFO_RESET;
                 break;
             }
 
@@ -146,12 +154,12 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 SBE_GLOBAL->sbeCmdRespHdr.init();
                 uint32_t len = sizeof(SBE_GLOBAL->sbeFifoCmdHdr)/sizeof(uint32_t);
                 l_rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&SBE_GLOBAL->sbeFifoCmdHdr,
-                        false );
+                        false); // EOT is not expected, Don't flush, SBE_FIFO type
 
                 // If FIFO reset is requested,
                 if (l_rc == SBE_FIFO_RESET_RECEIVED)
                 {
-                    SBE_ERROR(SBE_FUNC"FIFO reset received");
+                    SBE_ERROR(SBE_FUNC"SBE FIFO reset received");
                     break;
                 }
 
@@ -159,8 +167,8 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 if ( (l_rc == SBE_SEC_UNEXPECTED_EOT_INSUFFICIENT_DATA)  ||
                         (l_rc == SBE_SEC_UNEXPECTED_EOT_EXCESS_DATA) )
                 {
-                    SBE_ERROR(SBE_FUNC"sbeUpFifoDeq_mult failure, "
-                            " l_rc=[0x%08X]", l_rc);
+                    SBE_ERROR(SBE_FUNC"sbeUpFifoDeq_mult failure with SBE FIFO,"
+                        " l_rc=[0x%08X]", l_rc);
                     SBE_GLOBAL->sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_DATA, l_rc);
 
                     // Reassign l_rc to Success to Unblock command processor
@@ -168,12 +176,42 @@ void sbeCommandReceiver_routine(void *i_pArg)
                     l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
                     break;
                 }
-
                 l_cmdClass  = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
                 l_command   = SBE_GLOBAL->sbeFifoCmdHdr.command;
             } // end else if loop for FIFO interface chipOp handling
 
-#ifdef _S0_ 
+            else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
+                                             SBE_INTERFACE_SBEHFIFO) )
+            {
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_INTERRUPT_ROUTINE,
+                                                SBE_INTERFACE_SBEHFIFO);
+                curInterface = SBE_INTERFACE_SBEHFIFO;
+
+                SBE_GLOBAL->sbeFifoCmdHdr.cmdClass = SBE_CMD_CLASS_UNKNOWN;
+                SBE_GLOBAL->sbeCmdRespHdr.init();
+
+                uint32_t len = sizeof(SBE_GLOBAL->sbeFifoCmdHdr)/sizeof(uint32_t);
+                l_rc = sbeUpFifoDeq_mult (len, (uint32_t *)&SBE_GLOBAL->sbeFifoCmdHdr,
+                        false, false, SBE_HB_FIFO); // No EOT, No Flush, SBE_HB Fifo
+                if (l_rc == SBE_FIFO_RESET_RECEIVED)
+                {
+                    SBE_ERROR(SBE_FUNC" SBE HB FIFO reset received");
+                    break;
+                }
+                if ( (l_rc == SBE_SEC_UNEXPECTED_EOT_INSUFFICIENT_DATA)  ||
+                        (l_rc == SBE_SEC_UNEXPECTED_EOT_EXCESS_DATA) )
+                {
+                    SBE_ERROR(SBE_FUNC"sbeUpFifoDeq_mult failure with SBE_HB FIFO,"
+                        " l_rc=[0x%08X]", l_rc);
+                    SBE_GLOBAL->sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_DATA, l_rc);
+                    l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+                    break;
+                }
+
+                l_cmdClass  = SBE_GLOBAL->sbeFifoCmdHdr.cmdClass;
+                l_command   = SBE_GLOBAL->sbeFifoCmdHdr.command;
+            }
+#ifdef _S0_
             // Received S0 interrupt
             else if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
                                         SBE_INTERFACE_S0) )
@@ -209,7 +247,10 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 {
                     SBE_GLOBAL->sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND, l_rc);
                 }
-
+                else if ( SBE_INTERFACE_SBEHFIFO == curInterface )
+                {
+                    SBE_GLOBAL->sbeCmdRespHdr.setStatus(SBE_PRI_INVALID_COMMAND, l_rc);
+                }
                 // Reassign l_rc to Success to Unblock command processor
                 // thread and let that take the necessary action.
                 l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
@@ -238,7 +279,11 @@ void sbeCommandReceiver_routine(void *i_pArg)
                     SBE_GLOBAL->sbeCmdRespHdr.setStatus(cmdAllowedStatus.primStatus,
                                 cmdAllowedStatus.secStatus);
                 }
-
+                else if ( SBE_INTERFACE_SBEHFIFO == curInterface )
+                {
+                    SBE_GLOBAL->sbeCmdRespHdr.setStatus(cmdAllowedStatus.primStatus,
+                                cmdAllowedStatus.secStatus);
+                }
                 l_rc = cmdAllowedStatus.secStatus;
                 break;
             }
@@ -264,6 +309,11 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO);
             }
+            if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE, SBE_INTERFACE_SBEHFIFO) )
+            {
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
+                                                 SBE_INTERFACE_SBEHFIFO);
+            }
 
             if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
                                         SBE_INTERFACE_FIFO_RESET) )
@@ -271,9 +321,18 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
                                                  SBE_INTERFACE_FIFO_RESET);
             }
+            if ( SBE_GLOBAL->sbeIntrSource.isSet(SBE_RX_ROUTINE,
+                                        SBE_INTERFACE_SBEHFIFO_RESET) )
+            {
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
+                                                 SBE_INTERFACE_SBEHFIFO_RESET);
+            }
+
 
             pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
             pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
+            pk_irq_enable(SBE_IRQ_SBEHFIFO_DATA);
+            pk_irq_enable(SBE_IRQ_SBEHFIFO_RESET);
             continue;
         } // FIFO reset handling ends
 
@@ -315,6 +374,14 @@ void sbeCommandReceiver_routine(void *i_pArg)
                                                  SBE_INTERFACE_FIFO);
                 pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
                 pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
+            }
+            else if ( SBE_INTERFACE_SBEHFIFO == curInterface )
+            {
+                sbeHandleFifoResponse(l_rc);
+                SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,
+                                                 SBE_INTERFACE_SBEHFIFO);
+                pk_irq_enable(SBE_IRQ_SBEHFIFO_DATA);
+                pk_irq_enable(SBE_IRQ_SBEHFIFO_RESET);
             }
             continue;
         }
