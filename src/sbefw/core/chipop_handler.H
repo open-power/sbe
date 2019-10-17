@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -43,6 +44,18 @@ typedef struct sbeChipOpRc
                (secStatus == SBE_SEC_OPERATION_SUCCESSFUL);
     }
 } sbeChipOpRc_t;
+
+/**
+ * @brief SBE chip-op parameter definition
+ *
+ */
+typedef struct chipOpParam
+{
+    uint8_t  fifoType;          // Refer to enum sbeFifoType
+    uint16_t reserved;          // Reserved
+    uint8_t* pkThreadParam;     // Private data to be passed as the argument to
+                                // the thread routine when it begins execution
+} chipOpParam_t;
 
 /**
  *  @brief SBE Command structure associating an opcode of a command
