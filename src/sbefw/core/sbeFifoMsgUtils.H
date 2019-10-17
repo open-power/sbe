@@ -67,6 +67,8 @@
   *    false - Default good path.
   *        US Fifo entries will be dequeued and processed per inputs io_len
   *        and i_isEotExpected.
+  * @param[in]   i_type FIFO type.
+  *              The default fifo type is FIFO:0
   *
   * @return  Return Code  SUCCESS or a secondary response code
   *                SBE_SEC_OPERATION_SUCCESSFUL
@@ -79,7 +81,8 @@
 extern uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
                                    uint32_t    *o_pData,
                                    const bool  i_isEotExpected = true,
-                                   const bool  i_flush = false);
+                                   const bool  i_flush = false,
+                                   sbeFifoType i_type = SBE_FIFO);
 
 
 /**
@@ -88,6 +91,8 @@ extern uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
   * @param[in/out] io_len   number of entries to enqueue as input,
   *                         number of entries enqueued as output
   * @param[in]     i_pData  buffer containting data to be enqueued
+  * @param[in]     i_type FIFO type.
+  *                The default fifo type is FIFO:0
   *
   * @return        Rc  SUCCESS or a secondary response code
   *                SBE_SEC_OPERATION_SUCCESSFUL
@@ -96,7 +101,8 @@ extern uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
   *
   */
 extern uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
-                                     const uint32_t *i_pData) ;
+                                     const uint32_t *i_pData,
+                                      sbeFifoType i_type = SBE_FIFO) ;
 
 /**
   * @brief sbeBuildRespHeaderStatusWordGlobal
@@ -126,6 +132,8 @@ extern inline uint32_t sbeBuildRespHeaderStatusWordLocal (
 
 /**
   * @brief sbeDownFifoSignalEot : Signal EOT in Downstream FIFO
+  * @param[in]  i_type FIFO type.
+  *             The default fifo type is FIFO:0
   *
   * @return     Rc from the underlying scom utility
   *
@@ -133,7 +141,7 @@ extern inline uint32_t sbeBuildRespHeaderStatusWordLocal (
   *             in loop ( sleep ) till the time there is some space in
   *             FIFO.
   */
-uint32_t sbeDownFifoSignalEot ( void );
+uint32_t sbeDownFifoSignalEot ( sbeFifoType i_type = SBE_FIFO);
 
 /**
  * @brief sbeDsSendRespHdr : Send response header to DS FIFO
@@ -142,9 +150,12 @@ uint32_t sbeDownFifoSignalEot ( void );
  * @param[in]    i_hdr     Response Header
  * @param[in]    i_ffdc    Pointer to FFDC object, if NULL FFDC package
  *                         is not sent in the chip op response
+ * @param[in]    i_type    FIFO type
+ *                         The default fifo type is FIFO:0
  *
  * @return                 Rc from the underlying scom utility
  */
 uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
-                          sbeResponseFfdc_t *i_ffdc=NULL );
+                          sbeResponseFfdc_t *i_ffdc=NULL,
+                          sbeFifoType i_type = SBE_FIFO );
 #endif // __SBEFW_SBEFIFOMSGUTILS_H

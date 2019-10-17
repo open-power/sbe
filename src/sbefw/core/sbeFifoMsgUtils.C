@@ -56,9 +56,13 @@ inline uint32_t sbeBuildRespHeaderStatusWordGlobal (void)
 uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
                             uint32_t    *o_pData,
                             const bool  i_isEotExpected,
-                            const bool  i_flush)
+                            const bool  i_flush,
+                            sbeFifoType i_type)
 {
     #define SBE_FUNC " sbeUpFifoDeq_mult "
+    SBE_DEBUG(SBE_FUNC "Lenght:[0x%08X], isEotExpected:[%02X], flush:[%02X],"
+        "Fifo Type is:[%02X]", io_len, i_isEotExpected, i_flush, i_type);
+
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t l_len = 0;
 
@@ -88,22 +92,21 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
         //    0  : 0   -> data=dummy_data
         //    1  : 1   -> Not used
 
-        l_rc = sbeUpFifoDeq ( reinterpret_cast<uint64_t*>(&l_data) );
+        l_rc = sbeUpFifoDeq ( reinterpret_cast<uint64_t*>(&l_data), i_type);
 
         if (l_rc)
         {
             // Error while dequeueing from upstream FIFO
-            SBE_ERROR(SBE_FUNC"sbeUpFifoDeq failed,"
-                         "l_rc=[0x%08X]", l_rc);
+            SBE_ERROR(SBE_FUNC "sbeUpFifoDeq failed, "
+                "l_rc=[0x%08X], Fifo Type is:[%02X]", l_rc, i_type);
             // @TODO RTC via : 132295
             //       RC refactoring - reserve 3 bits in SBE RC for PCBPIB
             l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
             break;
         }
 
-        SBE_DEBUG(SBE_FUNC"sbeUpFifoDeq, "
-                    "fifo_data:0x%08X, status:0x%08X",
-                     l_data.fifo_data, l_data.status);
+        SBE_DEBUG(SBE_FUNC"sbeUpFifoDeq - fifo_data:0x%08X, status:0x%08X, "
+            "Fifo Type is:[%02X]", l_data.fifo_data, l_data.status, i_type);
 
         // If FIFO reset is requested
         if(l_data.statusOrReserved.req_upfifo_reset)
@@ -119,24 +122,23 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
         // set the RC accordingly
         if (l_data.statusOrReserved.eot_flag)
         {
-            l_rc = sbeUpFifoAckEot();
+            l_rc = sbeUpFifoAckEot(i_type);
             if (l_rc)
             {
                 // Error while ack'ing EOT in upstream FIFO
                 SBE_ERROR(SBE_FUNC"sbeUpFifoAckEot failed,"
-                          "l_rc=[0x%08X]", l_rc);
+                    "l_rc=[0x%08X], Fifo Type is:[%02X]", l_rc, i_type);
 
                 // Collect FFDC and save off the l_rc
                 l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
                 break;
             }
-
             // Successfully Ack'ed the EOT in upstream FIFO
             if ( ((!i_isEotExpected) || (l_len != io_len))
                      && (!i_flush) )
             {
-                SBE_ERROR(SBE_FUNC" Actual length:0x%08X Expected len:0x%08X",
-                          l_len, io_len );
+                SBE_ERROR(SBE_FUNC" Actual length:0x%08X Expected len:0x%08X, "
+                    "Fifo Type is:[%02X]", l_len, io_len, i_type);
                 if (l_len < io_len)
                 {
                     // Unexpected EOT, got insufficient data
@@ -150,14 +152,14 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
             }
             break;
         }
-
         // Check valid flag
         if ( !l_data.statusOrReserved.valid_flag )
         {
             if( l_data.statusOrReserved.parity_err )
             {
                 SBE_ERROR(SBE_FUNC"Parity error while reading FIFO."
-                          " FIFO status: 0x%08X");
+                          " FIFO status: 0x%08X, Fifo Type is:[%02X]",
+                          l_data.statusOrReserved.parity_err, i_type);
                 l_rc = SBE_SEC_FIFO_PARITY_ERROR;
                 break;
             }
@@ -193,7 +195,8 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
-                              const uint32_t *i_pData)
+                              const uint32_t *i_pData,
+                              sbeFifoType     i_type)
 {
     #define SBE_FUNC " sbeDownFifoEnq_mult "
     uint32_t  l_rc   = SBE_SEC_OPERATION_SUCCESSFUL;
@@ -204,12 +207,13 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
         sbeDownFifoStatusReg_t l_status = {0};
 
         // Read the down stream FIFO status
-        l_rc = sbeDownFifoGetStatus (reinterpret_cast<uint64_t *>(&l_status));
+        l_rc = sbeDownFifoGetStatus (reinterpret_cast<uint64_t *>(&l_status),
+                                     i_type);
         if (l_rc)
         {
             // Error while reading downstream FIFO status
-            SBE_ERROR(SBE_FUNC"sbeDownFifoGetStatus failed, "
-                      "l_rc=[0x%08X]", l_rc);
+            SBE_ERROR(SBE_FUNC"sbeDownFifoGetStatus failed, l_rc=[0x%08X] "
+                "Fifo Type is:[%02X]", l_rc, i_type);
             l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
             break;
         }
@@ -220,7 +224,8 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
             // @TODO via RTC : 126147
             //       Review reset loop flow in here.
             //       Received an upstream FIFO reset request
-            SBE_ERROR(SBE_FUNC"Received reset request");
+            SBE_ERROR(SBE_FUNC"Received reset request and the "
+                "Fifo Type is:[%02X]", i_type);
             l_rc = SBE_FIFO_RESET_RECEIVED;
             break;
         }
@@ -247,16 +252,16 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
 
         l_data.fifo_data   = *(i_pData+l_len);
 
-        SBE_DEBUG(SBE_FUNC"Downstream fifo data entry[0x%08X]",
-                                             l_data.fifo_data);
+        SBE_DEBUG(SBE_FUNC"Downstream fifo data entry[0x%08X]"
+            "Fifo Type is:[%02X]", l_data.fifo_data, i_type);
 
         // Write the data into the downstream FIFO
         uint64_t * tp = reinterpret_cast<uint64_t*>(&l_data);
-        l_rc = sbeDownFifoEnq ( *tp );
+        l_rc = sbeDownFifoEnq ( *tp, i_type );
         if (l_rc)
         {
-            SBE_ERROR(SBE_FUNC"sbeDownFifoEnq failed, "
-                              "l_rc[0x%08X]", l_rc);
+            SBE_ERROR(SBE_FUNC"sbeDownFifoEnq failed, l_rc[0x%08X], "
+                "Fifo Type is:[%02X]", l_rc, i_type);
             // @TODO RTC via : 132295
             //       RC refactoring - reserve 3 bits in SBE RC for PCBPIB
             l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
@@ -274,7 +279,7 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
-uint32_t sbeDownFifoSignalEot ( void )
+uint32_t sbeDownFifoSignalEot ( sbeFifoType i_type )
 {
     uint32_t l_rc = 0;
     #define SBE_FUNC "sbeDownFifoSignalEot "
@@ -283,12 +288,13 @@ uint32_t sbeDownFifoSignalEot ( void )
     do
     {
         // Read the down stream FIFO status
-        l_rc = sbeDownFifoGetStatus (reinterpret_cast<uint64_t *>(&l_status));
+        l_rc = sbeDownFifoGetStatus (reinterpret_cast<uint64_t *>(&l_status),
+                                     i_type);
         if (l_rc)
         {
             // Error while reading downstream FIFO status
-            SBE_ERROR(SBE_FUNC"sbeDownFifoGetStatus failed, "
-                      "l_rc=[0x%08X]", l_rc);
+            SBE_ERROR(SBE_FUNC"sbeDownFifoGetStatus failed, l_rc=[0x%08X], "
+                "Fifo Type is:[%02X]", l_rc, i_type);
             l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
             break;
         }
@@ -306,10 +312,11 @@ uint32_t sbeDownFifoSignalEot ( void )
             continue;
         }
 
-        l_rc = sbeDownFifoWriteEot();
+        l_rc = sbeDownFifoWriteEot(i_type);
         if(l_rc)
         {
-            SBE_ERROR(SBE_FUNC " Write EOT failed, rc=[0x%08X] ", l_rc);
+            SBE_ERROR(SBE_FUNC " Write EOT failed, rc=[0x%08X] "
+                "Fifo Type is:[%02X]", l_rc, i_type);
         }
         break;
     } while(1);
@@ -322,7 +329,7 @@ uint32_t sbeDownFifoSignalEot ( void )
 
 
 uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
-                          sbeResponseFfdc_t *i_ffdc )
+                          sbeResponseFfdc_t *i_ffdc, sbeFifoType i_type )
 {
     #define SBE_FUNC "sbeDsSendRespHdr "
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
@@ -331,7 +338,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         uint32_t distance = 1; //initialise by 1 for entry count itself.
         uint32_t len = sizeof( i_hdr )/sizeof(uint32_t);
         // sbeDownFifoEnq_mult.
-        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &i_hdr);
+        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &i_hdr, i_type);
         if (rc)
         {
             break;
@@ -352,7 +359,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
             // Add HWP specific ffdc data length
             i_ffdc->lenInWords += ffdcDataLenInWords;
             len = sizeof(sbeResponseFfdc_t)/sizeof(uint32_t);
-            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) i_ffdc);
+            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) i_ffdc, i_type);
             if (rc)
             {
                 break;
@@ -361,7 +368,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
 
             // Send HWP ffdc data
             rc = sbeDownFifoEnq_mult ( ffdcDataLenInWords,
-                                        ( uint32_t *) &g_FfdcData.ffdcData);
+                                   ( uint32_t *) &g_FfdcData.ffdcData, i_type);
             if (rc)
             {
                 break;
@@ -373,15 +380,15 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         if((i_hdr.primaryStatus() != SBE_PRI_OPERATION_SUCCESSFUL) ||\
            (i_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL))
         {
-            SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X",
-                       (uint32_t)i_hdr.primaryStatus(),
-                       (uint32_t)i_hdr.secondaryStatus());
+            SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X"
+                " Fifo Type is:[%02X]", (uint32_t)i_hdr.primaryStatus(),
+                (uint32_t)i_hdr.secondaryStatus(), i_type);
 
             //Add FFDC data as well.
             //Generate all the fields of FFDC package
             SbeFFDCPackage sbeFfdc;
             rc = sbeFfdc.sendOverFIFO(SBE_FFDC_ALL_DUMP,
-                                      len);
+                                      len, i_type);
             if (rc)
             {
                 break;
@@ -390,7 +397,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         }
 
         len = sizeof(distance)/sizeof(uint32_t);
-        rc = sbeDownFifoEnq_mult ( len, &distance);
+        rc = sbeDownFifoEnq_mult ( len, &distance, i_type);
         if (rc)
         {
             break;
