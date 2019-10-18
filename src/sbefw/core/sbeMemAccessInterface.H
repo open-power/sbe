@@ -137,7 +137,7 @@ class sbeMemAccessInterface
                         uint32_t i_granuleSize,
                         Target<TARGET_TYPE_CORE> i_core
                         = plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(0)):
-                        iv_addr(i_addr=0),
+                        iv_addr(i_addr),
                         iv_interface(i_interface),
                         iv_flags(i_flags),
                         iv_mode(i_mode),
