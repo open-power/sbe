@@ -46,6 +46,18 @@ echo "*******************Run testPSUGetCapabilities.py*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
 
+echo "*******************Run testAduMem.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_ecc.py
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_itag.py
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_withEccItag.py
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
+
+run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
+
 exit 0
 #TODO: Remove exit
 
