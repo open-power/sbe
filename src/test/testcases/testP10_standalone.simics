@@ -46,6 +46,10 @@ echo "*******************Run testPSUGetCapabilities.py*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
 
+echo "*******************Run testPutGetMem.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
+
 echo "*******************Run testAduMem.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testAduMem_ecc.py
@@ -88,8 +92,6 @@ run-python-file targets/p10_standalone/sbeTest/testUnsecureMemRegions.py
 echo "*******************Run testPutGetMem.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testMemPBA.py
-
-run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
 
 echo "*******************Run testAduMem.xml*******************"
 
