@@ -165,12 +165,16 @@ extern SBEGlobalsSingleton* sbeGlobal;
 //This is a struct defintion for the local register. This local register will be
 //used to save the SPI clock divider setting
 //Size should be 16byte
-//Note: Offset of these members are defined in sbe_link.H. Update them if you 
+//Note: Offset of these members are defined in sbe_link.H. Update them if you
 //move the existing members
 //TODO: Replace regX with the actual register number or give a meaning full name
 struct sbe_local_regX {
-    uint16_t spi_clock_divider;
-    uint16_t reserved[3];
+    uint16_t spi_clock_divider: 12;
+    uint16_t sec_boot_seeprom : 1; //Set if secondary boot seeprom is in use
+    uint16_t sec_meas_seeprom : 1; //Set if secondary measurement sprm is in use
+    uint16_t mpipl : 1;            //Set if mpipl
+    uint32_t bitsreserved : 17;
+    uint16_t reserved[2];
 };
 
 #endif //__SBE_GLOBALS_H

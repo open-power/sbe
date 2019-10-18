@@ -33,21 +33,25 @@
 .set r6 , 6
 .set r7 , 7
 .set r8 , 8
+.set r9 , 9
 .set d0 , 0
 .set d2 , 2
+.set d3 , 3
+.set d6 , 6
 .set d7 , 7
+.set d8 , 8
 .global __reserved
 __reserved:
 #############################################################
 ################## OTPROM location data contents ############
-# Magic number stored in OTP                            1806C
+# Magic number stored in OTP        1806C
 # 0x0040 : otprom loader
 #############################################################
 _start:
-#lis r4 , 0x50                                   #dummy instruction
+#lis r4 , 0x50           #dummy instruction
 .org __reserved + 0x0040
 .macro     .pm_otprom_fixed_system
-         .section   .fixed, "a", @progbits
+     .section   .fixed, "a", @progbits
 __otprom_magic_num:
     .quad   0x584950205345504D
  .endm
@@ -55,103 +59,231 @@ oos_start:
 #######################################################################################
 #   UPDATE bits 30:31 of sbe message register : 0x50009 with 0b01 to indicate OTPROM Control
 #######################################################################################
-        lis r5 , 0x5                  # load r5 with 0x00050000
-        lvd d2 , 0x9(r5)              # loads data from 0x50009 to d2
-        rlwinm r2, r2, 0x0, 0x0, 0x1d #Clear off the bits 30:31
-        ori r2 , r2 , 0x1             # set bit 31 to 1
-        stvd d2 , 0x9(r5)             # store data back into 0x50009
+    lis r5 , 0x5            # load r5 with 0x00050000
+    lvd d2 , 0x9(r5)        # loads data from 0x50009 to d2
+    rlwinm r2, r2, 0x0, 0x0, 0x1d #Clear off the bits 30:31
+    ori r2 , r2 , 0x1     # set bit 31 to 1
+    stvd d2 , 0x9(r5)     # store data back into 0x50009
+
+.set g_hreset_path, 31     #r31 will be used as global variable
+    li g_hreset_path, 1    #Init the global variable to 1
+
+#Check for hreset/mpipl
+    lis r4, 0x5
+    lvd d2, 0x8(r4)
+    bb1wi r2, 13, hreset_path
+    li g_hreset_path, 0   #Not HRESET path. Unset the global variable
+    lis r4, 0xC000
+    lvd d2, 0x2040(r4)
+    bb1wi r2, 14, mpipl_path  #check if mpipl set in sbe_local_regX.
 
 #######################################################################################
-        # R5 --> 0x50000
-        # Write into the SPI Clock divider
-        # Check valid bit rate divisor is there in scratch_8 (5003F)
-        #     - If yes load that value from 50039 to SPI config register
-        #       The clock divider value is in the MSB 4 Nibbles
-        #     - If no then let the default value stay on
-        # SCK_clock_divider is 12 bit. Mask the value read and write to all the
-        # SPI engines
+    # R5 --> 0x50000
+    # Check valid bit rate divisor is there in scratch_8 (5003F)
+    #     - If yes load that value from 50039 to SPI config register
+    #       The clock divider value is in the MSB 4 bytes
+    #     - If no then let the default value stay
+    # SCK_clock_divider is 12 bit. Mask the value read and write to all the
+    # SPI engines
 #######################################################################################
+
+#Note: Scratch register is not used on the hreset/mpipl path. THIS is IPL Path.
+#      Move the values from scratch register to local registers
 
 oos_load_spi_clk_cnfg:
-        lvd d2 , 0x3F(r5)                  # loads scratch_8 .
-        bb0wi r2 , 1 , oos_skip_spi_clk_cnfg  # checks If valid bit (bit1) is 1
-                                              # If yes cont Else branch
-        lvd d2 , 0x39(r5)
-        andis. r2 , r2 , 0xfff              # Pick the last 12 bits. This needs
-                                           # to be written to SCK_clock_divider
-        slwi r2, r2, 0x4                   # Shift left to MSB 12 bits position for easy
-                                           # ORing with clock register
-        #Save the clock divider in the local regsiter 0xc0002040
-        #Layout of this local register is struct sbe_local_regX
-        #TODO Question: Will this be same for all the SPIs?
-        lis r3, 0xC000
-        ori r3, r3, 0x2040
-        srwi r4, r2, 0x14                   #Right align the divider value for writing
-        sth r4, 0(r3)                       #Write into the local register
+    lvd d2 , 0x3F(r5)      # loads scratch_8 .
+    bb0wi r2 , 1 , spi_clk_cnfg_not_valid  # checks If valid bit (bit1) is 1
+    lvd d2 , 0x3B(r5)                 #Valid. Load the clock divider
+    rlwinm r6, r2, 0x0, 0x0, 0xB      #Pick the MSB 12 bits.
+    b save_spi_cnfg
+
+spi_clk_cnfg_not_valid:
+    #Config not valid, load default value of 0x004, in the top 12 bits
+    lis r6, 0x0040
+
+    #Save the clock divider in the local regsiter 0xc0002040
+    #Use the clear reg 0xC0002058 and OR reg at 0xC0002050 to set 0xC0002040
+    #Layout of this local register is struct sbe_local_regX
+save_spi_cnfg:
+    lis r4, 0xC000
+    ori r4, r4, 0x2050
+    lis r8, 0xfff0  #Set the mask to reset the top 12bits
+    li r9, 0x0
+    stvd d8, 0x8(r4)    #Write the mask to clear the top 12bits
+    li r7, 0
+    stvd d6, 0x0(r4)    #Write the divider value into the OR reg
+
+#For the new flow: This needs to be broken into two parts
+#part 1: Check the external config register and if valid, latch to local register.
+#part 2: Check the local register and set the ports if secondary
+#part 1 will happen only in ipl path. part 2 will happen in all the paths. This is IPL PATH
+#Note: Layout out for 0xC0002040 is sbe_local_regX
+#Use the clear reg 0xC0002058 and OR reg at 0xC0002050 to set 0xC0002040
+#First reset the bits sec_boot_seeprom and sec_meas_seeprom bit in 0xC0002040
+    lis r6, 0xC            #Set the clear bit for 12 and 13 bit.r7 is 0 already
+    stvd d6, 0x8(r4)       #Clears bit 12 and 13.Note r8 is 0, from above seq
+    lvd d2 , 0x8(r5)       #Read the port number from Selfboot control / status register
+    li r6, 0
+    bb0wi r2, 17, sel_prim_sprm  #Check If sec boot seeprom is selected
+    oris r6, r6, 0x8      #Using sec boot seeprom.Set sec_boot_seeprom in sbe_local_regX
+sel_prim_sprm:
+    bb0wi r2, 18, sel_prim_meas_sprm    #Check if backup measurement seeprom is selected
+    oris r6, r6, 0x4     #Using sec measurement seeprom.Set sec_meas_seeprom in sbe_local_regX
+sel_prim_meas_sprm:
+    stvd r6, 0x0(r4)       #Set the bits in the OR regsiter for sec_boot_seeprom and sec_meas_seeprom.r7 is already 0
+
+mpipl_path:
+    #MPIPL path will reset both Boot/Measurement SPIs
+    #Load the clock divider value from the local register
+    lis r4, 0xC000
+    ori r4, r4, 0x2040
+    lvd r2, 0x0(r4)       #Load the latched value from the local register
+    srwi r3, r2, 0x14     #Move the clock divider value to LSB
+    li r4, 0              #R4: Load with primary meas seeprom
+    bb0wi r2, 13, enable_primary_meas   #Check if primary meas seeprom is selected. Check sec_meas_seeprom bit
+    li r4, 1              #Backup measurement seeprom should be enabled
+enable_primary_meas:
+    bl init_measurement_spi #Note : r3,r4 are the parameters to this
+
+hreset_path:
+    #HRESET path will reset only Boot SPIs
+    lis r4, 0xC000
+    ori r4, r4, 0x2040
+    lvd r2, 0x0(r4)       #Load the latched value value from local regsiter
+    srwi r3, r2, 0x14     #Move the clock divider value to LSB
+    li r4, 0              #R4: Load with primary seeprom
+    bb0wi r2, 12, enable_primary_boot #Check if primary boot is selected. Check sec_seeprom bit
+    li r4, 1              #Secondary boot seeprom should be enabled
+enable_primary_boot:
+    bl init_boot_spi      #Note : r3,r4 are the parameters to this
+
+#Check if we are in hreset path
+    bb1wi g_hreset_path, 31, jump_to_boot
+    #If not, we are in IPL or MPIPL path. Need to jump to measurement
+    b   jump_to_measurement
+jump_to_boot:
+    lis r3, OTPROM_SEEPROM_HIGHER_NIBBLE
+    bl check_magic_number   #Verify the magic number
+    lis r6 , OTPROM_SEEPROM_HIGHER_NIBBLE
+    b jump_to_next_seeprom
+
+jump_to_measurement:
+    #Here we verify magic number for both boot and measurement
+    lis r3, OTPROM_SEEPROM_HIGHER_NIBBLE
+    bl check_magic_number   #Verify the magic number
+    lis r3, OTPROM_MEASUREMENT_HIGHER_NIBBLE
+    bl check_magic_number
+    lis r6 , OTPROM_MEASUREMENT_HIGHER_NIBBLE
+
+jump_to_next_seeprom:
+    ########### Branch to NEXT SEEPROM ###################
+    #Note: r6 still contains NIBBLE for the target seeprom
+    lvd d0 , 0x8(r6)
+    mtctr r1
+    bctr         #Branch to fetched address
+    ########## Branch to SEEPROM ###################
+
+#Pass the memory address of the magic number to be verified in r3
+#If the match fail, this API will directly trap and will not return
+check_magic_number:
+    lvd d3, 0x0(r3) #Read the magic number
+    lis r1, 0x5849
+    ori r1, r1, 0x5020
+    lis r2, 0x5345
+    ori r2, r2, 0x504d
+    cmplwbc 0, 2, r3, r1, oos_cmp_magic_fail
+    cmplwbc 0, 2, r4, r2, oos_cmp_magic_fail
+    blr
 
 
-
-#######################################################################################
-        # R2: Contains the clock divider register from the above block
-        # R3: Pointer to the base SPI address space: 0xC00000
-        # D7: Will be used a scratch register for updating the clock register
-
-        lis r3, 0xC         # SPI BASE ADDR
-        ori r3, r3, 0x40    # SPI address space for measurement seeprom.
+#This api will be used to reset the boot SPI (both primary/backup).
+#0xC0000 and 0xC0020 are the two boot SPI (TODO: Verify these)
+# R3 in parameter should contain the clock divider values for the SPI.
+# R4: 0 to enable primary. 1 to enable secondary.
+# As per the SPI Spec, mmSPIsm_enable is enabled by default at reset. Code not written
+# to use this fact. Simics doesn't seem to set it by default. If behaviour is confirmed
+# then code can be optimized to reduce 1-2 instructions per SPI.
 .set spi_clock_config_reg, 0x3  # Offset of the config reg
-# Set the clock divider for SPI Engine 0
-        lvd d7, spi_clock_config_reg(r3)
-        rlwinm r7, r7, 0x0, 0xC, 0x1F       # Zero the first 12bits
-        or r7, r7, r2                       # Put the clock divider bits
-        stvd d7, spi_clock_config_reg(r3)   # Write to config reg
+init_boot_spi:
+    #Reset the boot SPIs. They are eng 0 and 1 (TODO: Verify this)
+    #To reset, use the OR reg 0xC0002010 to set the bits
+    lis r6, 0xC000
+    ori r6, r6, 0x2000
+    lis r7, 0xC0   #Bit 8 and 9
+    li r8, 0
+    stvd d7, 0x10(r6)
 
-oos_write_spi_clk_cnfg:
+    #Primary BOOT SPI
+    lis r6, 0xC     # SPI BASE ADDR
+    # Set the clock divider for SPI Engine
+    lvd d7, spi_clock_config_reg(r6)
+    rlwinm r7, r7, 0x0, 0xC, 0x1F       # Zero the first 12bits
+    slwi r3, r3, 0x14       # We need only the 12 bits.Move it to MSB
+    or r7, r7, r3           # Put the clock divider bits
+    rlwinm r7, r7, 0x0, 0, 0x1E     # 0 the mmSPIsm_enable bit
+    bb1wi r4, 31, save_prim_boot_config #sec seeprom is selected.Save the config
+    ori r7, r7, 0x1         #Enable mmSPIsm_enable bit
+save_prim_boot_config:
+    stvd d7, spi_clock_config_reg(r6)   # Write to config reg
 
-oos_skip_spi_clk_cnfg:
+    #Backup BOOT SPI
+    lis r6, 0xC
+    ori r6, r6, 0x20    # Backup SPI BASE ADDR
+    lvd d7, spi_clock_config_reg(r6)
+    rlwinm r7, r7, 0x0, 0xC, 0x1F       # Zero the first 12bits
+    or r7, r7, r3           # Put the clock divider bits.Note r3 is left shifted already
+    rlwinm r7, r7, 0x0, 0, 0x1E     # 0 the mmSPIsm_enable bit
+    bb0wi r4, 31, save_sec_boot_config #Prim seeprom is selected. Save the config
+    ori r7, r7, 0x1                 #Enable mmSPIsm_enable bit
+save_sec_boot_config:
+    stvd d7, spi_clock_config_reg(r6)   # Write to config reg
+    blr
 
-oos_write_mode_done:
+#This api will be used to reset the measurement SPI (both primary/backup).
+#Parameters to this function are:
+# R3: The clock divider value to be set.
+# R4: 0 to enable primary. 1 to enable secondary.
+# As per the SPI Spec, mmSPIsm_enable is enabled by default at reset. Code not written
+# to use this fact. Simics doesn't seem to set it by default. If behaviour is confirmed
+# then code can be optimized to reduce 1-2 instructions per SPI
+#0xC0040(Pri) and 0xC0060(Sec) are the two measurement SPI (TODO: Verify these)
+init_measurement_spi:
+    #Reset the boot SPIs. They are eng 2 and 3 (TODO: Verify this)
+    #To reset, use the OR reg 0xC0002010 to set the bits
+    lis r6, 0xC000
+    ori r6, r6, 0x2000
+    lis r7, 0x30   #Bit 10 and 11
+    li r8, 0
+    stvd d7, 0x10(r6)
 
+    #Primary Measurement SPI
+    lis r6, 0xC
+    ori r6, r6, 0x40    # Primary SPI BASE ADDR
+    # Set the clock divider for SPI Engine
+    lvd d7, spi_clock_config_reg(r6)
+    rlwinm r7, r7, 0x0, 0xC, 0x1F       # Zero the first 12bits
+    slwi r3, r3, 0x14       # We need only the 12 bits. Move it to MSB
+    or r7, r7, r3           # Put the clock divider bits
+    rlwinm r7, r7, 0x0, 0, 0x1E     # 0 the mmSPIsm_enable bit
+    bb1wi r4, 31, save_prim_meas_config #sec seeprom is selected.Save the config
+    ori r7, r7, 0x1                  #Enable primary
+save_prim_meas_config:
+    stvd d7, spi_clock_config_reg(r6)   # Write to config reg
 
-####################### READ Magic number from SEEPROM ######################
-                # R5: Contains 0x50000
-# Read out Selfboot control status register(50008) for port number
-# Write that value into SPI Config Clk register and start the magic number read
-    
-oos_chk_port_num:
-#                lvd d2 , 0x8(r5)                   #Read the port number from Selfboot control / status register ::
-#                bb0wi r2 , 17 , oos_sel_prim_sprm  #Check If backup seeprom select is '1' bit_17 according to Srinivas
-#                ori r0 , r0 , 0x0200               #enable backup_sprm port
-#                lvd d7, -24(r6)                    #load SBE_CONFIG local reg
-#                oris r8 , r8 , 0x0200              #make bit 38 of sbe_config_reg bit '1'. (C0000800)
-#                stvd d7, -24(r6)                   #Store SBE_CONFIG local reg
-
-
-oos_sel_prim_sprm:
-#Read from 0th location of SEEPROM for magic number
-                lis r4 , OTPROM_MEASUREMENT_HIGHER_NIBBLE
-                ori r4 , r4 , 0x0000
-                lvd d0 , 0(r4)
-
-        # compared the seeprom data with 0x584950205345504D
-        # If doesn't match write the error msg into 0x50009
-
-oss_load_constant_magic_num:                       #Magic number of seeprom = 0x584950205345504D
-                lis r2 , 0x5849                    #load constant otprom magic number
-                ori r2 , r2 , 0x5020
-                lis r3 , 0x5345
-                ori r3 , r3, 0x504d
-                cmplwbc 0, 2, r0, r2, oos_cmp_magic_fail
-                cmplwbc 0, 2, r1, r3, oos_cmp_magic_fail
-
-           ##### Branch to MEASUREMENT SEEPROM ###################
-                lis r4 , OTPROM_MEASUREMENT_HIGHER_NIBBLE #Go and fetch the branch address from XIP at offset 0x8
-                ori r4 , r4 , 0x0008
-                lvd d0 , 0(r4)
-                mtctr r1
-                bctr                                 #Branch to fetched address
-           ##### Branch to SEEPROM ###################
+    lis r6, 0xC
+    ori r6, r6, 0x60    # Secondary SPI BASE ADDR
+    # Set the clock divider for SPI Engine
+    lvd d7, spi_clock_config_reg(r6)
+    rlwinm r7, r7, 0x0, 0xC, 0x1F       # Zero the first 12bits
+    or r7, r7, r3           # Put the clock divider bits.Note r3 is already left shifted
+    rlwinm r7, r7, 0x0, 0, 0x1E     # 0 the mmSPIsm_enable bit
+    bb0wi r4, 31, save_sec_meas_config  #Pri seeprom is selected.Save the config
+    ori r7, r7, 0x1                 #Enable Backup Measurement
+save_sec_meas_config:
+    stvd d7, spi_clock_config_reg(r6)   # Write to config reg
+    blr
 
 oos_cmp_magic_fail:
-                trap                               #FIXME hve to give branch to SEEPROM
+    trap           #FIXME hve to give branch to SEEPROM
 
 .pm_otprom_fixed_system
