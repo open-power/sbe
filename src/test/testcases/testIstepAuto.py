@@ -43,10 +43,10 @@ EXPDATA = [0xc0,0xde,0xa1,0x01,
            0x0,0x0,0x0,0x0,
            0x00,0x0,0x0,0x03];
 gIstepArray = {
-        2:[2, 15],#istep 2.2 to 2.17
-        3:[1, 21],#istep 3.1 to 3.22
-        4:[1, 21],#istep 4.1 to 4.21
-        5:[1, 2], #istep 5.1 to 5.2
+        2:[2, 15],#istep 2.2 to 2.15
+        3:[1, 23],#istep 3.1 to 3.23
+        4:[1, 20],#istep 4.1 to 4.20
+        5:[1, 3], #istep 5.1 to 5.3
         96:[1, 8],#istep 96.1 to 96.8
         97:[1, 7], #istep 97.1 to 97.7
         98:[1, 1] #istep 98.1 to 98.1

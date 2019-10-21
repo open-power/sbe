@@ -326,18 +326,20 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_initf),
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_setup),
              ISTEP_MAP( istepWithProc, p10_sbe_repr_initf),
-             ISTEP_MAP( istepNoOp, NULL ), // DFT only
-             ISTEP_MAP( istepWithProc, p10_sbe_arrayinit),
-             ISTEP_MAP( istepNoOp, NULL ), // DFT only
+             ISTEP_MAP( istepNoOp, NULL ), // DFT - Hook for DFT to run ABIST
+             ISTEP_MAP( istepWithProc, p10_sbe_arrayinit), // Chiplet array init
+             ISTEP_MAP( istepNoOp, NULL ), // DFT - Hook for DFT to run LBIST
              ISTEP_MAP( istepWithProc, p10_sbe_initf),
              ISTEP_MAP( istepWithProc, p10_sbe_startclocks),
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_init),
              ISTEP_MAP( istepNoOp, NULL), //p10_sbe_chiplet_fir_init
+             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_dts_init
              ISTEP_MAP( istepNoOp, NULL), //p10_sbe_skew_adjust_setup
              ISTEP_MAP( istepWithProc, p10_sbe_nest_enable_ridi),
              ISTEP_MAP( istepWithProc, p10_sbe_scominit),
              ISTEP_MAP( istepLpcInit,  p10_sbe_lpc_init),
              ISTEP_MAP( istepWithProc, p10_sbe_fabricinit),
+             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_check_master
              ISTEP_MAP( istepWithProc, p10_sbe_mcs_setup),
              ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
 #endif
@@ -348,7 +350,6 @@ static istepMap_t g_istep4PtrTbl[] =
              ISTEP_MAP( istepWithMCCore, p10_hcd_cache_poweron),
              ISTEP_MAP( istepWithMCCore, p10_hcd_cache_reset),
              ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_gptr_time_initf),
-             ISTEP_MAP( istepNoOp, NULL ),
              ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_repair_initf),
              ISTEP_MAP( istepWithMCCore, p10_hcd_cache_arrayinit),
              ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_initf),
@@ -358,7 +359,7 @@ static istepMap_t g_istep4PtrTbl[] =
              ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_ras_runtime_scom),
              ISTEP_MAP( istepWithMCCore, p10_hcd_core_poweron),
              ISTEP_MAP( istepWithMCCore, p10_hcd_core_reset),
-             ISTEP_MAP( istepNoOp, NULL ),  //p10_hcd_core_gptr_time_initf 
+             ISTEP_MAP( istepNoOp, NULL ), //p10_hcd_core_gptr_time_initf 
              ISTEP_MAP( istepWithMCORCore, p10_hcd_core_repair_initf ),
              ISTEP_MAP( istepWithMCCore, p10_hcd_core_arrayinit),
              ISTEP_MAP( istepWithMCORCore, p10_hcd_core_initf),
