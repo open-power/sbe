@@ -269,9 +269,9 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     l_data64_root_ctrl3.writeBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PAU_DPLL_BYPASS_EN_DC>(!
             (l_attr_pau_dpll_bypass.getBit<7>()));
     l_data64_root_ctrl3.writeBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PAU_DPLL_TEST_EN_DC>(!
-            (l_attr_nest_dpll_bypass.getBit<7>()));
-    l_data64_root_ctrl3.writeBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL3_TP_NEST_DPLL_BYPASS_EN_DC>(!
             (l_attr_pau_dpll_bypass.getBit<7>()));
+    l_data64_root_ctrl3.writeBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL3_TP_NEST_DPLL_BYPASS_EN_DC>(!
+            (l_attr_nest_dpll_bypass.getBit<7>()));
     l_data64_root_ctrl3.writeBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL3_TP_NEST_DPLL_TEST_EN_DC>(!
             (l_attr_nest_dpll_bypass.getBit<7>()));
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR,
