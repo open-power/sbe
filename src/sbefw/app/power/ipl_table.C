@@ -77,6 +77,7 @@
 #include <p10_sbe_fabricinit.H>
 #include <p10_sbe_mcs_setup.H>
 #include <p10_sbe_select_ex.H>
+#include <p10_sbe_dts_init.H>
 
 // Core Cache HWP header files (istep 4)
 #include <p10_hcd_cache_poweron.H>
@@ -333,7 +334,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_startclocks),
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_init),
              ISTEP_MAP( istepNoOp, NULL), //p10_sbe_chiplet_fir_init
-             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_dts_init
+             ISTEP_MAP( istepWithProc, p10_sbe_dts_init), //p10_sbe_dts_init
              ISTEP_MAP( istepNoOp, NULL), //p10_sbe_skew_adjust_setup
              ISTEP_MAP( istepWithProc, p10_sbe_nest_enable_ridi),
              ISTEP_MAP( istepWithProc, p10_sbe_scominit),

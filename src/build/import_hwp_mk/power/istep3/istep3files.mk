@@ -53,6 +53,7 @@ ISTEP3-CPP-SOURCES += p10_sbe_fabricinit.C
 ISTEP3-CPP-SOURCES += p10_sbe_mcs_setup.C
 ISTEP3-CPP-SOURCES += p10_sbe_select_ex.C
 ISTEP3-CPP-SOURCES += p10_nmmu_scom.C
+ISTEP3-CPP-SOURCES += p10_sbe_dts_init.C
 ISTEP3-C-SOURCES =
 ISTEP3-S-SOURCES =
 
