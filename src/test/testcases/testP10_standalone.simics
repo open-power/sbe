@@ -38,6 +38,10 @@ echo "*******************Run SBE-ISTEPS ******************"
 
 sbe-istep 2.2 5.3
 
+echo "*******************Run testPSUSetFFDCAddr.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
+
 echo "*******************Run testPSUGetCapabilities.py*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
