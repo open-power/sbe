@@ -31,9 +31,6 @@ extern "C" void __sbe_machine_check_handler()
 {
 }
 
-extern "C" void __eabi()
-{
-}
 int dummy_measure_lib()
 {
     return 0;
