@@ -73,12 +73,6 @@ extern "C" {
     /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
     fapi2::ReturnCode p10_sbe_check_quiesce(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
-
-    /// @brief Helper function to check the quiesce for PSIHB
-    /// @param[in] i_target       => Reference to processor chip target
-    /// @return FAPI_RC_SUCCESS if the check_quiesce completes successfully
-    fapi2::ReturnCode p10_psihb_check_quiesce(
-        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 } //extern "C"
 
 #endif //_P10_SBE_CHECK_QUIESCE_H_
