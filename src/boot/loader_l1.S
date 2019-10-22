@@ -62,8 +62,9 @@ __l1Loader:
         _liw     %r3, 0x50008
         lvd      d3,0(r3)
         bb1wi    r3,13,jump_to_kernel
-
+        #ifndef SBE_MEASUREMENT_SUPPORT
         bl _pibmemRepair
+        #endif
 
         _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
         _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest
