@@ -40,7 +40,6 @@
 // Includes
 //------------------------------------------------------------------------------
 #include <fapi2.H>
-
 //------------------------------------------------------------------------------
 // Structure definitions
 //------------------------------------------------------------------------------
@@ -48,7 +47,8 @@
 // Function pointer typedef definition for HWP call support
 typedef fapi2::ReturnCode (*p10_sbe_apply_fbc_rt_settings_FP_t)(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
-    const std::vector<std::pair<uint64_t, uint64_t>>&);
+    const size_t,
+    const void* );
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -56,20 +56,20 @@ typedef fapi2::ReturnCode (*p10_sbe_apply_fbc_rt_settings_FP_t)(
 extern "C"
 {
 
-///
-/// @brief Apply fabric runtime settings via XSCOM
-///
-/// @param[in] i_target    Reference to processor chip target
-/// @param[in] i_reg_inits Set of register inits to be performed via XSCOM
-///                        Each pair is expected to contain a fully
-///                        formed XSCOM address (first) + associated data
-///                        (second)
-///
-/// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
-///
+//
+// @brief Apply fabric runtime settings via XSCOM
+//
+// @param[in] i_target          Reference to processor chip target
+// @param[in] i_xscomPairSize   Number of XSCOM register address-data pair to
+//                              be initialized.
+// @param[in] i_pxscomInit      Pointer to the data set of address-data pair
+//
+// @return fapi2::ReturnCode    FAPI2_RC_SUCCESS if success, else error code.
+//
     fapi2::ReturnCode p10_sbe_apply_fbc_rt_settings(
         const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
-        const std::vector<std::pair<uint64_t, uint64_t>>& i_reg_inits);
+        const size_t i_xscomPairSize,
+        const void* i_pxscomInit);
 
 } // extern "C"
 

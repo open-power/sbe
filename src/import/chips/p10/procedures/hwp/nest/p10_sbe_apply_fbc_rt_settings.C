@@ -38,7 +38,6 @@
 //------------------------------------------------------------------------------
 #include <p10_sbe_apply_fbc_rt_settings.H>
 #include <p10_sbe_apply_xscom_inits.H>
-
 //------------------------------------------------------------------------------
 // Function definitions
 //------------------------------------------------------------------------------
@@ -47,7 +46,8 @@
 fapi2::ReturnCode
 p10_sbe_apply_fbc_rt_settings(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
-    const std::vector<std::pair<uint64_t, uint64_t>>& i_reg_inits)
+    const size_t i_xscomPairSize,
+    const void* i_pxscomInit)
 {
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_ipl_type;
@@ -81,7 +81,8 @@ p10_sbe_apply_fbc_rt_settings(
     FAPI_EXEC_HWP(fapi2::current_err,
                   p10_sbe_apply_xscom_inits,
                   i_target,
-                  i_reg_inits);
+                  i_xscomPairSize,
+                  i_pxscomInit);
 
 fapi_try_exit:
     FAPI_DBG("End");
