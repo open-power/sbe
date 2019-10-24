@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -30,14 +30,11 @@ int32_t loadSection( P9XipSection * i_section, uint64_t *i_destAddr )
 {
     uint32_t rc = 0;
     do {
-
          uint8_t *seepromAddr = (uint8_t *)( g_headerAddr + i_section->iv_offset);
-
          uint8_t rc = decompress(seepromAddr, (uint8_t *)i_destAddr);
 
          if (rc != 0 )
            break;
- 
        } while(0);
 
     return rc;
@@ -47,7 +44,7 @@ int32_t loadSection( P9XipSection * i_section, uint64_t *i_destAddr )
 int32_t l2_loader()
 {
     int32_t rc  = 0;
-    uint64_t loadValue = (uint64_t)(SBE_CODE_PIBMEM_START_MSG)<<32;
+    uint64_t loadValue = (uint64_t)(SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG)<<32;
     PPE_STVD(0x50009, loadValue);
     P9XipHeader *hdr = getXipHdr();
 

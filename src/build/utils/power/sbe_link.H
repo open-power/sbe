@@ -129,12 +129,16 @@
 //
 // Code reached to OTPROM
 #define SBE_CODE_OTPROM_START_MSG 0x01
-// Code reached to SEEPROM loader
-#define SBE_CODE_SEEPROM_START_MSG 0x02
-// Code reached to PIBMEM Loader ( pibmem c loader )
-#define SBE_CODE_PIBMEM_START_MSG 0x03
-// Code reached to MEASUREMENT loader
-#define SBE_CODE_MEASUREMENT_START_MSG 0x04
+// Code reached to MEASUREMENT SEEPROM loader
+#define SBE_CODE_MEASUREMENT_SEEPROM_START_MSG 0x02
+// Code reached to MEASUREMENT PIBMEM
+#define SBE_CODE_MEASURMENT_PIBMEM_START_MSG 0x03
+// Code reached to BOOT SEEPROM loader L1
+#define SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG 0x04
+// Code reached to BOOT PIBMEM Loader L2
+#define SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x05
+// Code reached to BOOT PIBMEM Main Flow
+#define SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x06
 
 #endif  // __SBE_LINK_H
 

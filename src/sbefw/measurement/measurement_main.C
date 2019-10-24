@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -25,7 +25,7 @@
 extern "C" {
 #include "pk_api.h"
 }
-
+#include "sbeXipUtils.H"
 ////////////////////////////////////////////////////////////////
 //// @brief Stacks for Non-critical Interrupts ( timebase, timers )
 ////////////////////////////////////////////////////////////////
@@ -104,10 +104,14 @@ void jump2boot()
 int  main(int argc, char **argv)
 {
     int l_rc = 0;
+
+    uint64_t loadValue = (uint64_t)(SBE_CODE_MEASURMENT_PIBMEM_START_MSG)<<32;
+    PPE_STVD(0x50009, loadValue);
+
     l_rc = pk_initialize((PkAddress)measurment_Kernel_NC_Int_stack,
                          MEASUREMENT_NONCRITICAL_STACK_SIZE,
                          INITIAL_PK_TIMEBASE, // initial_timebase
-                         SBE_PK_BASE_FREQ_HZ ); 
+                         SBE_PK_BASE_FREQ_HZ );
     if (l_rc)
     {
          return 0;

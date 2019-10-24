@@ -53,7 +53,7 @@ __system_reset:
 __l1Loader:
         # Update 50009 ( sbe status register) to show sbe in seeprom loader
         _liw     %r5, 0x50009
-        _liw     %r0, SBE_CODE_MEASUREMENT_START_MSG
+        _liw     %r0, SBE_CODE_MEASUREMENT_SEEPROM_START_MSG
         li       r1, 0x00
         stvd     d0, 0(r5)
 
@@ -66,13 +66,13 @@ __l1Loader:
 
         bl _pibmemRepair
 
-        # For Measurement SEEPROM, there is no L2 loader. The L1 loader will directly
-        # load the base, which contains the application.
+        # For Measurement SEEPROM, there is no L2 loader. The L1 loader will
+        # directly load the base, which contains the application.
 
         _liw    %r3, SBE_MEASUREMENT_BASE_SECTION # Base Loader Section Location
         _liw    %r4, SBE_BASE_ORIGIN  # dest
         _liw    %r9, SBE_MEASUREMENT_BASE_ORIGIN
-        
+
         lwz     r5, 4(r3)   #size of image in bytes
         srawi   r5, r5, 3   # Number of double word transfers
         mtctr   r5          # set the counter for loop

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -339,6 +339,9 @@ uint32_t main(int argc, char **argv)
     #define SBE_FUNC "main "
     SBE_ENTER(SBE_FUNC);
     int l_rc = 0;
+
+    uint64_t loadValue = (uint64_t)(SBE_CODE_BOOT_PIBMEM_MAIN_MSG)<<32;
+    PPE_STVD(0x50009, loadValue);
 
     // backup i2c mode register
     uint32_t reg_address = PU_MODE_REGISTER_B;

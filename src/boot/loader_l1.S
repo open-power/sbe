@@ -53,7 +53,7 @@ __system_reset:
 __l1Loader:
         # Update 50009 ( sbe status register) to show sbe in seeprom loader
         _liw     %r5, 0x50009
-        _liw     %r0, SBE_CODE_SEEPROM_START_MSG
+        _liw     %r0, SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG
         li       r1, 0x00
         stvd     d0, 0(r5)
 
