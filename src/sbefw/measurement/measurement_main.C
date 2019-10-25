@@ -22,6 +22,9 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
+#include "sbemtrace.H"
+
 extern "C" {
 #include "pk_api.h"
 }
@@ -103,6 +106,8 @@ void jump2boot()
 ////////////////////////////////////////////////////////////////
 int  main(int argc, char **argv)
 {
+    #define SBEM_FUNC "Measurement main"
+    SBEM_ENTER(SBEM_FUNC);
     int l_rc = 0;
 
     uint64_t loadValue = (uint64_t)(SBE_CODE_MEASURMENT_PIBMEM_START_MSG)<<32;
@@ -116,8 +121,13 @@ int  main(int argc, char **argv)
     {
          return 0;
     }
+    SBEM_INFO("Completed PK initialization for Measurement");
 
+    SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
+    
     jump2boot();
+    
+    SBEM_EXIT(SBEM_FUNC);
     return 0;
 }
 

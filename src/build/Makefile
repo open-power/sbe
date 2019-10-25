@@ -223,7 +223,7 @@ measure_buildtag:
 
 # collect all of the trace hash files for measurement image into a single sbeMeasureStringFile
 measure_tracehash:
-	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/$(SBE_MEASUREMENT_STRINGFILE_NAME)
+	$(THASH) -c -d $(subst -L,, $(MEASUREMENT_PROJ_LIB_DIRS)) -s $(IMG_DIR)/$(SBE_MEASUREMENT_STRINGFILE_NAME)
 
 ### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File 
 add_MeasureLoaderAddr:
