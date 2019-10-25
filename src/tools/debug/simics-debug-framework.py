@@ -39,7 +39,8 @@ sbeDebug = imp.load_source("sbeDebug", SBE_TOOLS_PATH + "/sbe-debug.py")
 err = False
 simicsObj = simics.SIM_run_command("get-master-procs")
 
-syms = {};
+bootSyms = {};
+measureSyms = {};
 
 def get_dd_level(procNr = 0, nodeNr = 0):
     return "DD1" 
@@ -99,7 +100,15 @@ def fillSymTable():
     for line in f:
         words = line.split()
         if( len( words ) == 4 ):
-            syms[words[3]] = [words[0], words[1]]
+            bootSyms[words[3]] = [words[0], words[1]]
+
+    measureSymFile = SBE_TOOLS_PATH + "/sbe_measurement_seeprom.syms"
+    if(os.path.exists(measureSymFile)):
+      mf = open( measureSymFile, 'r')
+      for mline in mf:
+        words = mline.split()
+        if( len( words ) == 4 ):
+            measureSyms[words[3]] = [words[0], words[1]]
 
 # Print least available stack of each thread in SBE during a Run.
 #
@@ -108,12 +117,24 @@ def fillSymTable():
 # the first memory address where the pattern('0xEFCDAB03') is broken,
 # will be the deepest stack usage point of tht thread during the run
 def collectStackUsage ( procNr, nodeNr=0 ):
-  threads = ('sbeSyncCommandProcessor_stack',
-             'sbeCommandReceiver_stack',
-             'sbe_Kernel_NCInt_stack',
-             'sbeAsyncCommandProcessor_stack')
-  print "==================================Stack usage==================================="
+  # Read opcode in SB_MSG Register [ 0x50009 ]
+  cmd = simicsObj[procNr] + ".pib_cmp.pib.read 0x500090 8"
+  ( rValue, out )  =   quiet_run_command( cmd, output_modes.regular )
+  opMode = (rValue >> 32) & 0x7
   # Dump stack memory to binary files
+  if ( opMode == 0x02 ):
+    syms = measureSyms
+    threads = ('measurment_Kernel_NC_Int_stack')
+  elif ( opMode == 0x06 ):
+    syms = bootSyms
+    threads = ('sbeSyncCommandProcessor_stack',
+               'sbeCommandReceiver_stack',
+               'sbe_Kernel_NCInt_stack',
+               'sbeAsyncCommandProcessor_stack')
+  else:
+    print "collectStackUsage is unsupported for opcode[%d] in SB_MSG Register [0x50009]"%( opMode )
+    return;
+  print "==================================Stack usage==================================="
   for thread in threads:
     cmd = "pipe \"" + simicsObj[procNr] + ".pib_cmp.sbe_mibo.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
     print "simics running %s: "%( cmd)
@@ -164,10 +185,33 @@ def istep_func ( majorIstep, minorIstep, nodeNr=0 ):
   testIstepAuto.sbe_istep_func(majorIstep, minorIstep, nodeNr)
 
 def collectTrace ( procNr, nodeNr=0 ):
-  fileName = "sbe_" + `procNr` + "_tracMERG"
+  # Read opcode in SB_MSG Register [ 0x50009 ]
+  cmd = simicsObj[procNr] + ".pib_cmp.pib.read 0x500090 8"
+  ( rValue, out )  =   quiet_run_command( cmd, output_modes.regular )
+
+  # 3bits of 0x50009 (29,30,31 bits)
+  # SBE_CODE_OTPROM_START_MSG 0x01 - code reached to OTPROM
+  # SBE_CODE_MEASUREMENT_SEEPROM_START_MSG 0x02 -  code reached to MEASUREMENT SEEPROM loader
+  # SBE_CODE_MEASURMENT_PIBMEM_START_MSG 0x03 - code reached to MEASUREMENT PIBMEM
+  # SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG 0x04 - code reached to BOOT SEEPROM loader L1
+  # SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x05 - code reached to BOOT PIBMEM Loader L2
+  # SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x06 - code reached to BOOT PIBMEM Main Flow
+  
+  opMode = (rValue >> 32) & 0x7
+  if ( opMode == 0x03 ):
+    fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
+    syms = measureSyms
+    stringFile = "sbeMeasurementStringFile"
+  elif ( opMode == 0x06 ):
+    fileName = "sbe_boot_seeprom" + `procNr` + "_tracMERG"
+    syms = bootSyms
+    stringFile = "sbeStringFile_"+get_dd_level(procNr, nodeNr)
+  else:
+    print "Traces are unsupported for opcode[%d] in SB_MSG Register [ 0x50009]"%( opMode )
+
   cmd1 = "pipe \"" + simicsObj[procNr] + ".pib_cmp.sbe_mibo.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
-  cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr, nodeNr)+" sbetrace.bin >" +  fileName + "\""
+  cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + `stringFile` + " sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""
 
   print "simics running %s: "%( cmd1)
