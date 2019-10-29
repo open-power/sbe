@@ -55,6 +55,14 @@ ISTEP3-CPP-SOURCES += p10_sbe_select_ex.C
 ISTEP3-CPP-SOURCES += p10_nmmu_scom.C
 ISTEP3-CPP-SOURCES += p10_sbe_dts_init.C
 ISTEP3-CPP-SOURCES += p10_sbe_chiplet_fir_init.C
+ISTEP3-CPP-SOURCES += p10_trace_eq_scom.C
+ISTEP3-CPP-SOURCES += p10_trace_iohs_scom.C
+ISTEP3-CPP-SOURCES += p10_trace_mc_scom.C
+ISTEP3-CPP-SOURCES += p10_trace_nest_scom.C
+ISTEP3-CPP-SOURCES += p10_trace_pau_scom.C
+ISTEP3-CPP-SOURCES += p10_trace_pci_scom.C
+ISTEP3-CPP-SOURCES += p10_trace_perv_scom.C
+
 ISTEP3-C-SOURCES =
 ISTEP3-S-SOURCES =
 
