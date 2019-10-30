@@ -29,6 +29,23 @@ from sim_commands import *
 waitItrCount = 10000000;
 cyclesPerIter = 20000;
 
+#FIFO1 Constants
+US_FIFO_ONE_BASE_ADDR = 0x2400
+DS_FIFO_ONE_BASE_ADDR = 0x2440
+
+#FIFO2 Constants
+US_FIFO_TWO_BASE_ADDR = 0x2480
+DS_FIFO_TWO_BASE_ADDR = 0x24C0
+
+US_FIFO_WRITE  = 0x0000
+US_FIFO_STATUS = 0x0004
+US_FIFO_EOT    = 0x0008
+US_FIFO_RESET  = 0x000C
+
+DS_FIFO_READ   = 0x0000
+DS_FIFO_STATUS = 0x0004
+DS_FIFO_EOT    = 0x0008
+    
 def getLbus( node):
     #Node is 0 by default
     if(node == 0):
@@ -43,27 +60,32 @@ def getLbus( node):
     return lbus
 
 #Default parameters are for single node, node 0
-def writeUsFifo( data, node=0):
+def writeUsFifo( data, i_fifoType, node=0):
     """Main test Loop"""
     lbus = getLbus(node)
     loopCount = len(data)/4;
+    address = getUsFifoDataAddrToWrite(i_fifoType)  #Address: 0x2400, 0x2480
     for i in range (loopCount):
         idx = i * 4;
-        writeEntry(lbus, 0x2400, (data[idx], data[idx+1], data[idx+2], data[idx+3]) )
+        writeEntry(lbus, address, i_fifoType,\
+                   (data[idx], data[idx+1], data[idx+2], data[idx+3]) )
 
 #Default parameters are for single node, node 0
-def readDsFifo(data, node=0):
+def readDsFifo(data,  i_fifoType, node=0):
     """Main test Loop"""
     lbus = getLbus(node)
     loopCount = len(data)/4;
+    read_ds_addr = getDsFifoDataAddrToRead(i_fifoType)  #Address: 0x2440, 0x24C0
     for i in range (loopCount):
         idx = i * 4;
-        checkEqual(readEntry(lbus, 0x2440, 4), (data[idx], data[idx+1], data[idx+2], data[idx+3]))
+        checkEqual(readEntry(lbus, read_ds_addr, 4, i_fifoType), (data[idx],\
+                                         data[idx+1], data[idx+2], data[idx+3]))
 
 #Default parameters are for single node, node 0
-def writeEot(node=0):
+def writeEot(i_fifoType, node=0):
     lbus = getLbus(node)
-    write(lbus, 0x2408, (0, 0, 0, 1) )
+    eot_addr = getUsFiFoEotAddrToWrite(i_fifoType)  #Address: 0x2408, 0x2448
+    write(lbus, eot_addr, (0, 0, 0, 1) )
 
 def write(obj, address, value ):
     """ Write to memory space """
@@ -71,29 +93,34 @@ def write(obj, address, value ):
     iface.write(None, address, value, 0x0)
 
 #Default parameters are for single node, node 0
-def readEot(node=0):
+def readEot(i_fifoType, node=0):
     """ Read from memory space """
     lbus = getLbus(node)
-    status = read(lbus, 0x2444, 4)
+    eot_addr = getDsFifoStatusAddrToRead(i_fifoType) #Address: 0x2444, 0x2484
+    read_addr = getDsFifoDataAddrToRead(i_fifoType)  #Address: 0x2440, 0x2480
+    status = read(lbus, eot_addr, 4)
     checkEqual( (status[3] & 0x80), 0x80 );
-    read(lbus, 0x2440, 4)
+    read(lbus, read_addr, 4)
 
 #Default parameters are for single node, node 0
-def resetFifo(node=0):
+def resetFifo(i_fifoType, node=0):
     lbus = getLbus(node)
-    write(lbus, 0x240C, (0, 0, 0, 1))
+    reset_addr = getResetAddr(i_fifoType) #Address:0x240C, 0x248C
+    write(lbus, reset_addr, (0, 0, 0, 1))
     return
 
 #Default parameters are for single node, node 0
-def readUsFifoStatus(node=0):
+def readUsFifoStatus(i_fifoType, node=0):
     lbus = getLbus(node)
-    status = read(lbus, 0x2404, 4)
+    read_addr = getUsFifoStatusAddrToRead(i_fifoType) #Address:0x2404, 0x2484
+    status = read(lbus, read_addr, 4)
     return status
 
 #Default parameters are for single node, node 0
-def readDsFifoStatus(node=0):
+def readDsFifoStatus(i_fifoType, node=0):
     lbus = getLbus(node)
-    status = read(lbus, 0x2444, 4)
+    read_addr = getDsFifoStatusAddrToRead(i_fifoType) #Address:0x2444, 0x24C4
+    status = read(lbus, read_addr, 4)
     return status
 
 def waitTillFifoEmpty(func):
@@ -128,18 +155,20 @@ def waitTillDsFifoEmpty():
 # This function will only read the entry but will not compare it
 # with anything. This can be used to flush out enteries.
 #Default parameters are for single node, node 0
-def readDsEntry(entryCount, node=0):
+def readDsEntry(entryCount, i_fifoType, node=0):
     lbus = getLbus(node)
+    read_addr = getDsFifoDataAddrToRead(i_fifoType) #Address:0x2440, 0x24C0
     for i in range (entryCount):
-        readEntry(lbus, 0x2440, 4)
+        readEntry(lbus, read_addr, 4)
 
 #Default parameters are for single node, node 0
-def writeEntry(obj, address, value, node=0):
+def writeEntry(obj, address, i_fifoType, value, node=0):
     lbus = getLbus(node)
     loop = 1;
     count = 0;
+    status_addr = getUsFifoStatusAddrToRead(i_fifoType)
     while( loop ):
-        status = read(lbus, 0x2404, 4)  # Address 0x2404: Upstream Fifo Status
+        status = read(lbus, status_addr, 4)  # Address 0x2404, 0x2484
 
         if( status[2] & 0x02):
             count = count + 1
@@ -155,22 +184,24 @@ def writeEntry(obj, address, value, node=0):
     return value
 
 #Default parameters are for single node, node 0
-def readDsEntryReturnVal(node=0):
+def readDsEntryReturnVal(i_fifoType, node=0):
     lbus = getLbus(node)
-    data = readEntry(lbus, 0x2440, 4)
+    read_addr = getDsFifoDataAddrToRead(i_fifoType) #Address:0x2440, 0x24C0
+    data = readEntry(lbus, read_addr, 4, i_fifoType)
     runCycles(200000)
     return data
 
 #Default parameters are for single node, node 0
-def readEntry(obj, address, size, node=0):
+def readEntry(obj, address, size, i_fifoType, node=0):
 
     """ Read from memory space """
     lbus = getLbus(node)
     loop = 1;
     count = 0;
     value = (0,0,0,0)
+    read_addr = getDsFifoStatusAddrToRead(i_fifoType)
     while( loop ):
-        status = read(lbus, 0x2444, 4)  # Address 0x2444: Downstream Fifo Status
+        status = read(lbus, read_addr, 4)  # Address 0x2444, 0x24C4: Downstream Fifo Status
 
         if( status[1] & 0x0F):
             # read entry
@@ -185,13 +216,13 @@ def readEntry(obj, address, size, node=0):
 
     return value
 
-def extractHWPFFDC(dumpToFile = False, readData = None):
+def extractHWPFFDC(i_fifoType, dumpToFile = False, readData = None):
     '''Header extraction'''
     if(readData != None):
         data = readData[:4]
         readData = readData[4:]
     else:
-        data = readDsEntryReturnVal()
+        data = readDsEntryReturnVal(i_fifoType)
     magicBytes = ((data[0] << 8) | data[1])
     if (magicBytes == 0xFFDC) :
         print ("\nMagic Bytes Match")
@@ -204,7 +235,7 @@ def extractHWPFFDC(dumpToFile = False, readData = None):
         data = readData[:4]
         readData = readData[4:]
     else:
-        data = readDsEntryReturnVal()
+        data = readDsEntryReturnVal(i_fifoType)
     seqId = ((data[0] << 24) | (data[1] << 16))
     cmdClass = data[2]
     cmd = data[3]
@@ -214,7 +245,7 @@ def extractHWPFFDC(dumpToFile = False, readData = None):
         data = readData[:4]
         readData = readData[4:]
     else:
-        data = readDsEntryReturnVal()
+        data = readDsEntryReturnVal(i_fifoType)
     fapiRc = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3])
     print ("\nFAPI rc = " + str(hex(fapiRc)))
 
@@ -226,7 +257,7 @@ def extractHWPFFDC(dumpToFile = False, readData = None):
             data = readData[:4]
             readData = readData[4:]
         else:
-            data = readDsEntryReturnVal()
+            data = readDsEntryReturnVal(i_fifoType)
         if(dumpToFile):
             myBin.write(bytearray(data))
     if(dumpToFile):
@@ -262,3 +293,45 @@ def collectFFDC():
         simics.SIM_run_command('backplane0.dcm0.chip0.pib_cmp.sbe_ppe->ppe_state')
         simics.SIM_run_command('backplane0.dcm0.chip0.cfam_cmp.sbe_fifo->upstream_hw_fifo')
         simics.SIM_run_command('backplane0.dcm0.chip0.cfam_cmp.sbe_fifo->downstream_hw_fifo')
+
+def getUsFifoDataAddrToWrite(i_fifoType):
+    if i_fifoType == 0:
+        address = US_FIFO_ONE_BASE_ADDR + US_FIFO_WRITE
+    if i_fifoType == 1:
+        address = US_FIFO_TWO_BASE_ADDR + US_FIFO_WRITE
+    return address
+
+def getDsFifoDataAddrToRead(i_fifoType):
+    if i_fifoType == 0:
+        address = DS_FIFO_ONE_BASE_ADDR + DS_FIFO_READ
+    if i_fifoType == 1:
+        address = DS_FIFO_TWO_BASE_ADDR + DS_FIFO_READ
+    return address
+
+def getUsFiFoEotAddrToWrite(i_fifoType):
+    if i_fifoType == 0:
+        address = US_FIFO_ONE_BASE_ADDR + US_FIFO_EOT
+    if i_fifoType == 1:
+        address = US_FIFO_TWO_BASE_ADDR + US_FIFO_EOT
+    return address
+
+def getResetAddr(i_fifoType):
+    if i_fifoType == 0:
+        address = US_FIFO_ONE_BASE_ADDR + US_FIFO_RESET
+    if i_fifoType == 1:
+        address = US_FIFO_TWO_BASE_ADDR + US_FIFO_RESET
+    return address
+
+def getUsFifoStatusAddrToRead(i_fifoType):
+    if i_fifoType == 0:
+        address = US_FIFO_ONE_BASE_ADDR + US_FIFO_STATUS
+    if i_fifoType == 1:
+        address =  US_FIFO_TWO_BASE_ADDR + US_FIFO_STATUS
+    return address
+
+def getDsFifoStatusAddrToRead(i_fifoType):
+    if i_fifoType == 0:
+        address = DS_FIFO_ONE_BASE_ADDR + DS_FIFO_STATUS
+    if i_fifoType == 1:
+        address = DS_FIFO_TWO_BASE_ADDR + DS_FIFO_STATUS
+    return address

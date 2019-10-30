@@ -32,6 +32,7 @@ import testUtil
 err = False
 
 RUN_CYCLES = 1
+i_fifoType = 0
 
 def gethalfword(dataInInt):
     hex_string = '0'*(4-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
@@ -77,8 +78,8 @@ def putmem(addr, data, flags, ecc=0):
           + getdoubleword(addr)
           + getsingleword(lenInBytes)  # length of data
           + data)
-    testUtil.writeUsFifo(req)
-    testUtil.writeEot( )
+    testUtil.writeUsFifo(req, i_fifoType)
+    testUtil.writeEot(i_fifoType )
     testUtil.runCycles( RUN_CYCLES )
     if(flags & 0x0008):
         lenInBytes += int(len(data)/8)
@@ -88,8 +89,8 @@ def putmem(addr, data, flags, ecc=0):
                +[0xc0,0xde,0xa4,0x02,
                  0x0,0x0,0x0,0x0,
                  0x00,0x0,0x0,0x03])
-    testUtil.readDsFifo(expData)
-    testUtil.readEot( )
+    testUtil.readDsFifo(expData, i_fifoType)
+    testUtil.readEot(i_fifoType )
 
 def putmem_failure(addr, data, flags, responseWord, ecc=0):
     lenInBytes = len(data)
@@ -108,15 +109,15 @@ def putmem_failure(addr, data, flags, responseWord, ecc=0):
           + getdoubleword(addr)
           + getsingleword(lenInBytes)  # length of data
           + data)
-    testUtil.writeUsFifo(req)
-    testUtil.writeEot( )
+    testUtil.writeUsFifo(req, i_fifoType)
+    testUtil.writeEot(i_fifoType )
     testUtil.runCycles( RUN_CYCLES )
     expResp =  ([0x0, 0x0, 0x0, 0x0]
     + [0xc0,0xde,0xa4,0x02]
     + getsingleword(responseWord)
     + [0x0,0x0,0x0,0x03])
-    testUtil.readDsFifo(expResp)
-    testUtil.readEot( )
+    testUtil.readDsFifo(expResp, i_fifoType)
+    testUtil.readEot(i_fifoType )
 
 def getmem(addr, len, flags):
     testUtil.runCycles( RUN_CYCLES )
@@ -125,8 +126,8 @@ def getmem(addr, len, flags):
          + getsingleword(flags)
          + getdoubleword(addr)
          + getsingleword(len))
-    testUtil.writeUsFifo(req)
-    testUtil.writeEot( )
+    testUtil.writeUsFifo(req, i_fifoType)
+    testUtil.writeEot(i_fifoType)
 
     # read data
     data = []
@@ -136,9 +137,9 @@ def getmem(addr, len, flags):
     if(flags & 0x0010):
         lenExp += int(len/8)
     for i in range(0, int(-(-float(lenExp)//4))):
-        data += list(testUtil.readDsEntryReturnVal())
+        data += list(testUtil.readDsEntryReturnVal(i_fifoType))
 
-    readLen = testUtil.readDsEntryReturnVal()
+    readLen = testUtil.readDsEntryReturnVal(i_fifoType)
     if(getsingleword(lenExp) != list(readLen)):
         print getsingleword(lenExp)
         print list(readLen)
@@ -147,8 +148,8 @@ def getmem(addr, len, flags):
     expResp =  [0xc0,0xde,0xa4,0x01,
                 0x0,0x0,0x0,0x0,
                 0x00,0x0,0x0,0x03];
-    testUtil.readDsFifo(expResp)
-    testUtil.readEot( )
+    testUtil.readDsFifo(expResp, i_fifoType)
+    testUtil.readEot(i_fifoType)
     return data[:lenExp]
 
 def getmem_failure(addr, len, flags, responseWord, withLen = True):
@@ -158,8 +159,8 @@ def getmem_failure(addr, len, flags, responseWord, withLen = True):
          + getsingleword(flags)
          + getdoubleword(addr)
          + getsingleword(len))
-    testUtil.writeUsFifo(req)
-    testUtil.writeEot( )
+    testUtil.writeUsFifo(req, i_fifoType)
+    testUtil.writeEot(i_fifoType)
     lenWord = []
     if withLen:
         lenWord = [0x0, 0x0, 0x0, 0x0]
@@ -167,8 +168,8 @@ def getmem_failure(addr, len, flags, responseWord, withLen = True):
     + [0xc0,0xde,0xa4,0x01]
     + getsingleword(responseWord)
     + [0x0,0x0,0x0,0x03])
-    testUtil.readDsFifo(expResp)
-    testUtil.readEot( )
+    testUtil.readDsFifo(expResp, i_fifoType)
+    testUtil.readEot(i_fifoType)
 
 def setUnsecureMemRegion(addr, size, controlFlag, responseWord):
     testUtil.runCycles( RUN_CYCLES )

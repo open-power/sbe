@@ -30,6 +30,7 @@ import testRegistry as reg
 import testUtil
 import testMemUtil
 
+i_fifoType = 0
 #-------------------------------
 # This  is a Test Expected Data
 #-------------------------------
@@ -148,7 +149,7 @@ def main():
     hostDumpFile.close()
 
     # extract HWP ffdc
-    readData = testUtil.extractHWPFFDC(True, readData)
+    readData = testUtil.extractHWPFFDC(i_fifoType, True, readData)
 
 if __name__ == "__main__":
     try:

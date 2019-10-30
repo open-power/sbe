@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -27,7 +27,21 @@ import sys
 import struct
 import testScomUtil
 
+print("********************FIFO:I******************************\n")
+i_fifoType = 0
 # getscom success
-testScomUtil.getscom(0x0204001A)
+testScomUtil.getscom(0x02040064, i_fifoType)
 # putscom success
-testScomUtil.putscom(0x000F001A, testScomUtil.getscom(0x000F001A))
+testScomUtil.putscom(0x000F001A, i_fifoType, testScomUtil.getscom(0x000F001A, i_fifoType))
+
+print("\nFIFO:I Test completed Successfully\n")
+
+print("\n********************FIFO:II******************************\n")
+i_fifoType = 1
+# getscom success
+testScomUtil.getscom(0x02040064, i_fifoType)
+# putscom success
+testScomUtil.putscom(0x000F001A, i_fifoType, testScomUtil.getscom(0x000F001A, i_fifoType))
+
+print("\nFIFO:II Test completed Successfully\n")
+

@@ -36,13 +36,13 @@ def getdoubleword(dataInInt):
     hex_string = '0'*(16-len(str(hex(dataInInt))[:18][2:])) + str(hex(dataInInt))[:18][2:]
     return list(struct.unpack('<BBBBBBBB',hex_string.decode('hex')))
 
-def getscom(addr, expStatus = [0, 0, 0, 0], HWPffdc = False):
+def getscom(addr, i_fifoType, expStatus = [0, 0, 0, 0], HWPffdc = False):
     req = ([0, 0, 0, 4]
           + [0,0,0xA2,0x01]
           + getdoubleword(addr))
 
-    testUtil.writeUsFifo(req)
-    testUtil.writeEot( )
+    testUtil.writeUsFifo(req, i_fifoType)
+    testUtil.writeEot(i_fifoType)
 
     expData = ([0xc0,0xde,0xa2,0x01]
               + expStatus)
@@ -52,27 +52,27 @@ def getscom(addr, expStatus = [0, 0, 0, 0], HWPffdc = False):
 
     data = [0]*8
     if(success):
-        data = testUtil.readDsEntryReturnVal()
-        data += testUtil.readDsEntryReturnVal()
-    testUtil.readDsFifo(expData)
+        data = testUtil.readDsEntryReturnVal(i_fifoType)
+        data += testUtil.readDsEntryReturnVal(i_fifoType)
+    testUtil.readDsFifo(expData, i_fifoType)
     if(not success and HWPffdc):
-        testUtil.extractHWPFFDC( )
+        testUtil.extractHWPFFDC(i_fifoType)
     #flush out distance
-    testUtil.readDsEntryReturnVal()
-    testUtil.readEot( )
+    testUtil.readDsEntryReturnVal(i_fifoType)
+    testUtil.readEot(i_fifoType)
 
     val = 0
     for i in range(0, 8):
         val |= data[i] << ((7-i)*8)
     return val
 
-def putscom(addr, data, expStatus = [0, 0, 0, 0]):
+def putscom(addr, i_fifoType, data, expStatus = [0, 0, 0, 0]):
     req = ([0,0,0,6,
             0,0,0xA2,0x02]
           + getdoubleword(addr)
           + getdoubleword(data))
-    testUtil.writeUsFifo(req)
-    testUtil.writeEot( )
+    testUtil.writeUsFifo(req, i_fifoType)
+    testUtil.writeEot(i_fifoType)
 
     expData = ([0xc0,0xde,0xa2,0x02]
                + expStatus)
@@ -80,19 +80,19 @@ def putscom(addr, data, expStatus = [0, 0, 0, 0]):
     success = False
     if(expStatus == [0, 0, 0, 0]):
         success = True
-    testUtil.readDsFifo(expData)
+    testUtil.readDsFifo(expData, i_fifoType)
     #flush out distance
-    testUtil.readDsEntryReturnVal()
-    testUtil.readEot( )
+    testUtil.readDsEntryReturnVal(i_fifoType)
+    testUtil.readEot(i_fifoType)
 
-def putScomUnderMask(addr, data, mask, expStatus = [0, 0, 0, 0]):
+def putScomUnderMask(addr, data, mask, i_fifoType, expStatus = [0, 0, 0, 0]):
     req = ([0,0,0,8,
             0,0,0xA2,0x04]
           + getdoubleword(addr)
           + getdoubleword(data)
           + getdoubleword(mask))
-    testUtil.writeUsFifo(req)
-    testUtil.writeEot( )
+    testUtil.writeUsFifo(req, i_fifoType)
+    testUtil.writeEot(i_fifoType)
 
     expData = ([0xc0,0xde,0xa2,0x04]
                + expStatus)
@@ -100,19 +100,19 @@ def putScomUnderMask(addr, data, mask, expStatus = [0, 0, 0, 0]):
     success = False
     if(expStatus == [0, 0, 0, 0]):
         success = True
-    testUtil.readDsFifo(expData)
+    testUtil.readDsFifo(expData, i_fifoType)
     #flush out distance
-    testUtil.readDsEntryReturnVal()
-    testUtil.readEot( )
+    testUtil.readDsEntryReturnVal(i_fifoType)
+    testUtil.readEot(i_fifoType)
 
-def modifyScom(operation, addr, data, expStatus = [0, 0, 0, 0]):
+def modifyScom(operation, addr, data, i_fifoType, expStatus = [0, 0, 0, 0]):
     req = ([0,0,0,7,
             0,0,0xA2,0x03]
           + getsingleword(operation)
           + getdoubleword(addr)
           + getdoubleword(data))
-    testUtil.writeUsFifo(req)
-    testUtil.writeEot( )
+    testUtil.writeUsFifo(req, i_fifoType)
+    testUtil.writeEot(i_fifoType)
 
     expData = ([0xc0,0xde,0xa2,0x03]
                + expStatus)
@@ -120,7 +120,7 @@ def modifyScom(operation, addr, data, expStatus = [0, 0, 0, 0]):
     success = False
     if(expStatus == [0, 0, 0, 0]):
         success = True
-    testUtil.readDsFifo(expData)
+    testUtil.readDsFifo(expData, i_fifoType)
     #flush out distance
-    testUtil.readDsEntryReturnVal()
-    testUtil.readEot( )
+    testUtil.readDsEntryReturnVal(i_fifoType)
+    testUtil.readEot(i_fifoType)

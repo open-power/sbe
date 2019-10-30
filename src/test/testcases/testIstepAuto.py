@@ -67,6 +67,8 @@ def sbe_istep_func( inum1, inum2, node=0):
     startMinor = 0
     endMajor = 0
     endMinor = 0
+    # FIFO type will be 0 by default.
+    i_fifoType = 0
     startMajor = int(istr1.split('.')[0])
     # Check for single istep condition, where inum1=x.0 and inum2=x.0
     # If not extract the start and end isteps range
@@ -97,12 +99,12 @@ def sbe_istep_func( inum1, inum2, node=0):
                              0,0,0xA1,0x01,
                             0,major,0,minor ]
                 testUtil.runCycles( 10000000 )
-                testUtil.writeUsFifo( TESTDATA, node)
-                testUtil.writeEot( node)
+                testUtil.writeUsFifo( TESTDATA, i_fifoType, node)
+                testUtil.writeEot( i_fifoType, node)
                 testUtil.runCycles( 10000 )
-                testUtil.readDsFifo( EXPDATA, node)
+                testUtil.readDsFifo( EXPDATA, i_fifoType, node)
                 testUtil.runCycles( 10000 )
-                testUtil.readEot( node )
+                testUtil.readEot( i_fifoType, node)
 
             except:
                 print ("\nTest completed with error(s). Raise error")
