@@ -512,6 +512,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
             printf("L1 Loader Address  : 0x%08x\n", (uint32_t)header.iv_L1LoaderAddr);
             printf("L2 Loader Address  : 0x%08x\n", (uint32_t)header.iv_L2LoaderAddr);
             printf("Kernel Address     : 0x%08x\n", (uint32_t)header.iv_kernelAddr);
+            printf("Data Addr          : 0x%08x\n", (uint32_t)header.iv_dataAddr);
             printf("Image size         : 0x%08x (%d)\n",
                    header.iv_imageSize, header.iv_imageSize);
             printf("Normalized         : %s\n", header.iv_normalized ? "Yes" : "No");

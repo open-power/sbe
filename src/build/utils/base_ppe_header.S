@@ -43,10 +43,12 @@ __L2_LoaderAddr:
         .quad 0
 __kernelAddr:
         .quad 0
+__dataAddr:
+        .quad 0
 __link_address:
         .quad (\link_address)
 __header_64_reserved:
-        .quad 0, 0, 0
+        .quad 0, 0
 
         .xip_toc magic, P9_XIP_UINT64, __magic
         .xip_toc L1_LoaderAddr, P9_XIP_UINT64, __L1_LoaderAddr
