@@ -53,7 +53,7 @@ gIstepArray = {
                }
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
-def sbe_istep_func( inum1, inum2, node=0, isfleetwood=0):
+def sbe_istep_func( inum1, inum2, node=0):
     # Convert float number to string, which would help extracting
     # decimal and integral part separately
     # Interpretation:
@@ -97,12 +97,12 @@ def sbe_istep_func( inum1, inum2, node=0, isfleetwood=0):
                              0,0,0xA1,0x01,
                             0,major,0,minor ]
                 testUtil.runCycles( 10000000 )
-                testUtil.writeUsFifo( TESTDATA, node, isfleetwood )
-                testUtil.writeEot( node, isfleetwood )
+                testUtil.writeUsFifo( TESTDATA, node)
+                testUtil.writeEot( node)
                 testUtil.runCycles( 10000 )
-                testUtil.readDsFifo( EXPDATA, node, isfleetwood )
+                testUtil.readDsFifo( EXPDATA, node)
                 testUtil.runCycles( 10000 )
-                testUtil.readEot( node, isfleetwood )
+                testUtil.readEot( node )
 
             except:
                 print ("\nTest completed with error(s). Raise error")

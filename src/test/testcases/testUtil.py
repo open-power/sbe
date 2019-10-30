@@ -29,44 +29,40 @@ from sim_commands import *
 waitItrCount = 10000000;
 cyclesPerIter = 20000;
 
-def getLbus( node, isfleetwood ):
-    #This is non-fleetwood system, where node is 0 by default
-    if (isfleetwood == 0):
+def getLbus( node):
+    #Node is 0 by default
+    if(node == 0):
         lbus=conf.backplane0.dcm0.chip0.cfam_cmp.lbus_map
-    else:
-        # This is fleetwood system
-        if(node == 0):
-            lbus=conf.D1Proc0.proc_lbus_map
-        if(node == 1):
-            lbus=conf.D2Proc0.proc_lbus_map
-        if(node == 2):
-            lbus=conf.D3Proc0.proc_lbus_map
-        if(node == 3):
-            lbus=conf.D4Proc0.proc_lbus_map
+    if(node == 1):
+        lbus=conf.backplane0.dcm1.chip0.cfam_cmp.lbus_map
+    if(node == 2):
+        lbus=conf.backplane0.dcm2.chip0.cfam_cmp.lbus_map
+    if(node == 3):
+        lbus=conf.backplane0.dcm3.chip0.cfam_cmp.lbus_map
    
     return lbus
 
 #Default parameters are for single node, node 0
-def writeUsFifo( data, node=0, isfleetwood=0):
+def writeUsFifo( data, node=0):
     """Main test Loop"""
-    lbus = getLbus(node, isfleetwood)
+    lbus = getLbus(node)
     loopCount = len(data)/4;
     for i in range (loopCount):
         idx = i * 4;
         writeEntry(lbus, 0x2400, (data[idx], data[idx+1], data[idx+2], data[idx+3]) )
 
 #Default parameters are for single node, node 0
-def readDsFifo(data, node=0, isfleetwood=0):
+def readDsFifo(data, node=0):
     """Main test Loop"""
-    lbus = getLbus(node, isfleetwood)
+    lbus = getLbus(node)
     loopCount = len(data)/4;
     for i in range (loopCount):
         idx = i * 4;
         checkEqual(readEntry(lbus, 0x2440, 4), (data[idx], data[idx+1], data[idx+2], data[idx+3]))
 
 #Default parameters are for single node, node 0
-def writeEot(node=0, isfleetwood=0):
-    lbus = getLbus(node, isfleetwood)
+def writeEot(node=0):
+    lbus = getLbus(node)
     write(lbus, 0x2408, (0, 0, 0, 1) )
 
 def write(obj, address, value ):
@@ -75,28 +71,28 @@ def write(obj, address, value ):
     iface.write(None, address, value, 0x0)
 
 #Default parameters are for single node, node 0
-def readEot(node=0, isfleetwood=0):
+def readEot(node=0):
     """ Read from memory space """
-    lbus = getLbus(node, isfleetwood)
+    lbus = getLbus(node)
     status = read(lbus, 0x2444, 4)
     checkEqual( (status[3] & 0x80), 0x80 );
     read(lbus, 0x2440, 4)
 
 #Default parameters are for single node, node 0
-def resetFifo(node=0, isfleetwood=0):
-    lbus = getLbus(node, isfleetwood)
+def resetFifo(node=0):
+    lbus = getLbus(node)
     write(lbus, 0x240C, (0, 0, 0, 1))
     return
 
 #Default parameters are for single node, node 0
-def readUsFifoStatus(node=0, isfleetwood=0):
-    lbus = getLbus(node, isfleetwood)
+def readUsFifoStatus(node=0):
+    lbus = getLbus(node)
     status = read(lbus, 0x2404, 4)
     return status
 
 #Default parameters are for single node, node 0
-def readDsFifoStatus(node=0, isfleetwood=0):
-    lbus = getLbus(node, isfleetwood)
+def readDsFifoStatus(node=0):
+    lbus = getLbus(node)
     status = read(lbus, 0x2444, 4)
     return status
 
@@ -132,14 +128,14 @@ def waitTillDsFifoEmpty():
 # This function will only read the entry but will not compare it
 # with anything. This can be used to flush out enteries.
 #Default parameters are for single node, node 0
-def readDsEntry(entryCount, node=0, isfleetwood=0):
-    lbus = getLbus(node, isfleetwood)
+def readDsEntry(entryCount, node=0):
+    lbus = getLbus(node)
     for i in range (entryCount):
         readEntry(lbus, 0x2440, 4)
 
 #Default parameters are for single node, node 0
-def writeEntry(obj, address, value, node=0, isfleetwood=0 ):
-    lbus = getLbus(node, isfleetwood)
+def writeEntry(obj, address, value, node=0):
+    lbus = getLbus(node)
     loop = 1;
     count = 0;
     while( loop ):
@@ -159,17 +155,17 @@ def writeEntry(obj, address, value, node=0, isfleetwood=0 ):
     return value
 
 #Default parameters are for single node, node 0
-def readDsEntryReturnVal(node=0, isfleetwood=0):
-    lbus = getLbus(node, isfleetwood)
+def readDsEntryReturnVal(node=0):
+    lbus = getLbus(node)
     data = readEntry(lbus, 0x2440, 4)
     runCycles(200000)
     return data
 
 #Default parameters are for single node, node 0
-def readEntry(obj, address, size, node=0, isfleetwood=0):
+def readEntry(obj, address, size, node=0):
 
     """ Read from memory space """
-    lbus = getLbus(node, isfleetwood)
+    lbus = getLbus(node)
     loop = 1;
     count = 0;
     value = (0,0,0,0)
