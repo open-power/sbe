@@ -44,7 +44,6 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
 {
 
     uint8_t l_mc_pll_bucket[4], l_iohs_pll_bucket[8] ;
-    RingID l_ring_id = mc_pll_bndy_bucket_0;
 
     RingID mc_ring_id[MC_PLL_FREQ_BUCKETS] = { mc_pll_bndy_bucket_0,
                                                mc_pll_bndy_bucket_1,
@@ -65,6 +64,8 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
                                      fapi2::TARGET_FILTER_ALL_MC | fapi2::TARGET_FILTER_ALL_IOHS),
                              fapi2::TARGET_STATE_FUNCTIONAL);
 
+    fapi2::ATTR_SCAN_CHIPLET_OVERRIDE_Type l_scan_chiplet_override = fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE;
+
     FAPI_INF("p10_sbe_chiplet_pll_initf: Entering ...");
 
     // determine mc pll buckets
@@ -81,7 +82,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
         // PCI0 and PCI1 chiplets
         if(l_chipletID >= 0x8 && l_chipletID <= 0x9)
         {
-            FAPI_TRY(fapi2::putRing(l_cplt_target, pci_pll_bndy),
+            FAPI_TRY(fapi2::putRing(l_cplt_target, pci_pll_bndy, fapi2::RING_MODE_SET_PULSE_NSL),
                      "Error from putRing (pci_pll_bndy), ChipletID: %#010lX", l_chipletID);
         }
         // MC chiplets
@@ -95,11 +96,12 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
                         set_CHIPLET_ID(l_chipletID),
                         "Unsupported PLL bucket value!");
 
-            l_ring_id = mc_ring_id[l_mc_pll_bucket[i]];
-
-            FAPI_TRY(fapi2::putRing(l_cplt_target, l_ring_id),
+            FAPI_TRY(fapi2::putRing(l_cplt_target,
+                                    mc_ring_id[l_mc_pll_bucket[i]],
+                                    fapi2::RING_MODE_SET_PULSE_NSL),
                      "Error from putRing (mc_pll_bndy_bucket_%d), ChipletID: %#010lX", l_mc_pll_bucket[i], l_chipletID);
         }
+
         // IOHS chiplets
         else if(l_chipletID >= 0x18 && l_chipletID <= 0x1F)
         {
@@ -111,15 +113,26 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
                         set_CHIPLET_ID(l_chipletID),
                         "Unsupported PLL bucket value!");
 
-            l_ring_id = iohs_ring_id[l_iohs_pll_bucket[i]];
+            l_scan_chiplet_override = l_chipletID;
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, i_target_chip, l_scan_chiplet_override),
+                     "Error from FAPI_ATTR_SET (ATTR_SCAN_CHIPLET_OVERRIDE)");
 
-            FAPI_TRY(fapi2::putRing(l_cplt_target, l_ring_id),
+            FAPI_TRY(fapi2::putRing(i_target_chip,
+                                    iohs_ring_id[l_iohs_pll_bucket[i]],
+                                    fapi2::RING_MODE_SET_PULSE_NSL),
                      "Error from putRing (iohs0_pll_bndy_bucket_%d), ChipletID: %#010lX", l_iohs_pll_bucket[i], l_chipletID);
-        }
 
+            l_scan_chiplet_override = fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE;
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, i_target_chip, l_scan_chiplet_override),
+                     "Error from FAPI_ATTR_SET (ATTR_SCAN_CHIPLET_OVERRIDE)");
+        }
     }
 
 fapi_try_exit:
+    // ensure attribute gets set back to no override on exit
+    l_scan_chiplet_override = fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE;
+    (void) FAPI_ATTR_SET(fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, i_target_chip, l_scan_chiplet_override);
+
     FAPI_INF("p10_sbe_chiplet_pll_initf: Exiting ...");
     return fapi2::current_err;
 }

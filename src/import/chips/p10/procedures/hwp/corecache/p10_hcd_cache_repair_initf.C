@@ -53,6 +53,13 @@ using namespace scomt::eq;
 // Constant Definitions
 //------------------------------------------------------------------------------
 
+RingID ec_l3_repr_ids[4] =
+{
+    ec_l3_repr,
+    ec1_l3_repr,
+    ec2_l3_repr,
+    ec3_l3_repr
+};
 
 //------------------------------------------------------------------------------
 // Procedure: p10_hcd_cache_repair_initf
@@ -72,7 +79,7 @@ p10_hcd_cache_repair_initf(
     uint32_t                       l_core_num           = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
 
-    for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+    for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
 
@@ -100,7 +107,7 @@ p10_hcd_cache_repair_initf(
                     "Configuration Mismatch: CPLT_CTRL2 partial good bit is not set.");
 
         FAPI_DBG("Scan ec_l3_repr ring");
-        FAPI_TRY(fapi2::putRing(l_core, ec_l3_repr,
+        FAPI_TRY(fapi2::putRing(l_core, ec_l3_repr_ids[l_core_num],
                                 fapi2::RING_MODE_HEADER_CHECK),
                  "Error from putRing (ec_l3_repr)");
     }
