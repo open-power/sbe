@@ -26,6 +26,7 @@
 #include <p10_contained_sim.H>
 #include <p10_contained_ipl_istep.H>
 
+#include <map>
 #include <fapi2.H>
 #include <p10_scom_perv.H>
 #include <p10_perv_sbe_cmn.H>
@@ -33,6 +34,11 @@
 #include <p10_hang_pulse_mc_setup_tables.H>
 #include <p10_hcd_core_stopclocks.H>
 #include <p10_hcd_cache_stopclocks.H>
+#include <p10_scom_c.H>
+
+#include <p10_scan_via_scom.H>
+#include <p10_contained_active_cache_ringspin.H>
+#include <p10_contained_backing_cache_ringspin.H>
 
 namespace
 {
@@ -128,6 +134,94 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+// l3_config: [core #num][register addr] -> register value
+using l3_config = std::map<size_t, std::map<uint64_t, uint64_t>>;
+const size_t L3_MODE_REG0_LEN = 37;
+const size_t L3_MODE_REG0_RSHIFT = 64 - L3_MODE_REG0_LEN;
+const size_t L3_MODE_REG1_LEN = 39;
+const size_t L3_MODE_REG1_RSHIFT = 64 - L3_MODE_REG1_LEN;
+const size_t L3_BACKING_CTL_REG_LEN = 4;
+const size_t L3_BACKING_CTL_REG_RSHIFT = 64 - L3_BACKING_CTL_REG_LEN;
+
+inline fapi2::ReturnCode save_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+                                        const uint32_t i_active_bvec, l3_config& i_l3_config)
+{
+    using namespace scomt::c;
+
+    fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));
+
+        if (is_active_core(corenum, i_active_bvec))
+        {
+            FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(core, tmp));
+            tmp >>= L3_MODE_REG1_RSHIFT;
+            i_l3_config[corenum][L3_MISC_L3CERRS_MODE_REG1] = tmp;
+            FAPI_TRY(GET_L3_MISC_L3CERRS_BACKING_CTL_REG(core, tmp));
+            tmp >>= L3_BACKING_CTL_REG_RSHIFT;
+            i_l3_config[corenum][L3_MISC_L3CERRS_BACKING_CTL_REG] = tmp;
+        }
+        else
+        {
+            FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(core, tmp));
+            tmp >>= L3_MODE_REG1_RSHIFT;
+            i_l3_config[corenum][L3_MISC_L3CERRS_MODE_REG1] = tmp;
+            FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG0(core, tmp));
+            tmp >>= L3_MODE_REG0_RSHIFT;
+            i_l3_config[corenum][L3_MISC_L3CERRS_MODE_REG0] = tmp;
+        }
+    }
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+inline fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        const uint32_t i_active_bvec, const l3_config& i_l3_config)
+{
+    using namespace scomt::c;
+    using namespace scomt::perv;
+
+    fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
+    uint64_t tmp0 = 0;
+    uint64_t tmp1 = 0;
+    // ec_l3_fure
+    const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
+            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>()
+            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_REGF>());
+    fapi2::buffer<uint64_t> scan_region_type = 0;
+
+    // TODO Eventually we should change this to use the parallel-scan feature
+    //      of the clock-controller to save scoms maybe.
+    for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        perv = core.getParent<fapi2::TARGET_TYPE_PERV>();
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));
+        scan_region_type = scan_type;
+        scan_region_type.setBit(SCAN_REGION_TYPE_SCAN_REGION_UNIT5 + (corenum % 4));
+
+        if (is_active_core(corenum, i_active_bvec))
+        {
+            tmp0 = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_MODE_REG1);
+            tmp1 = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_BACKING_CTL_REG);
+            FAPI_TRY(active_cache::ec_l3_fure(perv, scan_region_type, tmp0, tmp1));
+        }
+        else
+        {
+            tmp0 = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_MODE_REG1);
+            tmp1 = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_MODE_REG0);
+            FAPI_TRY(backing_cache::ec_l3_fure(perv, scan_region_type, tmp0, tmp1));
+        }
+    }
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
 }; // namespace
 
 extern "C" {
@@ -138,13 +232,18 @@ extern "C" {
         bool runn;
         const auto eqs = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
         const auto eqs_all_cores = i_target.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+        fapi2::ATTR_ACTIVE_CORES_VEC_Type active_bvec = 0;
         fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL;
+
+        l3_config l3_cache_config;
 
         FAPI_INF("Switching to ATTR_SYSTEM_IPL_PHASE[CONTAINED_IPL]");
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYSTEM_IPL_PHASE, SYS, ipl_phase));
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_target, active_bvec));
         FAPI_TRY(get_contained_ipl_type(cac, chc));
         FAPI_TRY(get_contained_run_mode(runn));
 
+        FAPI_TRY(save_l3_config(i_target, active_bvec, l3_cache_config));
         FAPI_TRY(stopclocks(i_target));
         FAPI_TRY(contained_setup(i_target, chc));
 
@@ -169,6 +268,7 @@ extern "C" {
         FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
                  ISTEP4_MC_GROUPS));
         FAPI_TRY(p10_contained_ipl_istep4(eqs_all_cores, chc, runn));
+        FAPI_TRY(restore_l3_config(i_target, active_bvec, l3_cache_config));
 
     fapi_try_exit:
         return fapi2::current_err;
