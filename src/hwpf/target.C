@@ -37,6 +37,9 @@
 // call.
 std::vector<fapi2::plat_target_handle_t> G_vec_targets;
 
+//Defined a Global variable to store HRMOR in PIBMEM, Alias for HRMOR Attr
+uint64_t g_HRMOR = 0;
+
 // Global variable for fixed section in pibmem
 G_sbe_attrs_t G_sbe_attrs;
 
@@ -48,6 +51,8 @@ fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 #else // __SBEFW_SEEPROM__
+extern uint64_t g_HRMOR;
+
 extern std::vector<fapi2::plat_target_handle_t> G_vec_targets;
 
 // Global variable for fixed section in pibmem
@@ -95,6 +100,7 @@ extern fapi2::ReturnCode
             uint64_t iv_deviceIdReg;
         } l_deviceId;
 
+        uint64_t l_temp_hrmor = 0;
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         uint8_t l_ec = 0;
         uint8_t fusedMode = 0;
@@ -124,7 +130,7 @@ extern fapi2::ReturnCode
         uint8_t l_proc_chip_mem_to_use_chip_id = 0;
         bool l_proc_chip_mem_to_use_set = false;
         fapi2::buffer<uint8_t> l_proc_chip_mem_to_use_attr = 0;
-
+        uint8_t isSpMode = 0;
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_riskLvl));
         //Getting SCRATCH_REGISTER_8 register value
@@ -222,7 +228,6 @@ extern fapi2::ReturnCode
         if ( l_scratch8Reg.getBit<2>() )
         {
             uint8_t isMpIpl = 0;
-            uint8_t isSpMode = 0;
             FAPI_DBG("Reading Scratch_reg3");
             //Getting SCRATCH_REGISTER_3 register value
             FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_3_SCOM,
@@ -234,15 +239,19 @@ extern fapi2::ReturnCode
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, isMpIpl));
 
             l_tempReg.extractToRight<3, 1>(isSpMode);
-            if(!isSpMode && !SBE::isSimicsRunning())
-            {
-                FAPI_DBG("Set up ATTR_HOSTBOOT_HRMOR_OFFSET in SPless mode");
-                uint64_t hrmor = HRMOR_FOR_SPLESS_MODE;
-                FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
-                                        FAPI_SYSTEM, hrmor));
-            }
+            FAPI_DBG("Upating ATTR_IS_SP_MODE based on Scratch_reg3:%d",isSpMode);
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE, l_chipTarget, isSpMode));
             l_tempReg.extractToRight<28, 4>(l_riskLvl);
+        }
+
+        //Update the HRMOR value based on system is FSP/BMC based.
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SP_MODE, l_chipTarget, isSpMode));
+        if(!isSpMode && !SBE::isSimicsRunning())
+        {
+            FAPI_DBG("Set up ATTR_HOSTBOOT_HRMOR_OFFSET in SPless mode");
+            uint64_t hrmor = HRMOR_FOR_SPLESS_MODE;
+            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
+                        FAPI_SYSTEM, hrmor));
         }
 
         if ( l_scratch8Reg.getBit<3>() )
@@ -473,6 +482,10 @@ extern fapi2::ReturnCode
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_BACKUP_SEEPROM_SELECT,
                     l_chipTarget, attrSeepromSlct));
         } // end of scope initializer
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET, FAPI_SYSTEM, l_temp_hrmor));
+        g_HRMOR = l_temp_hrmor;
+
 fapi_try_exit:
         return fapi2::current_err;
     }

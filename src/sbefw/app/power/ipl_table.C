@@ -240,6 +240,7 @@ static istepMap_t g_istepMpiplContinuePtrTbl[] =
         {
 #ifdef SEEPROM_IMAGE
             // Setup EC/EQ guard records
+            ISTEP_MAP( istepLpcInit, p9_sbe_lpc_init ),
             ISTEP_MAP( istepMpiplSetFunctionalState, p9_sbe_select_ex),
              ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_dump_reg)
              ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_query_quad_access_state)
