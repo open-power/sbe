@@ -328,9 +328,14 @@ ReturnCode performAttrSetup( )
         {
             break;
         }
-        // Apply the gard records
-        rc = plat_ApplyGards();
-
+        
+        // Update functional state basis the sbe_attr_setup procedure
+        rc = plat_UpdateFunctionalState();
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+        
         //Getting CBS_CS register value
         fapi2::buffer<uint64_t> tempReg = 0;
         plat_target_handle_t hndl;

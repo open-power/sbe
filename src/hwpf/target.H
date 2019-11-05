@@ -223,9 +223,8 @@ namespace fapi2
     inline Target<T, M, V> Target<K, M, V>::getParent(void) const
     {
         constexpr TargetType TARGET_TYPE_PROC_CHILDREN =
-            TARGET_TYPE_EQ | TARGET_TYPE_PERV |
-            TARGET_TYPE_MULTICAST | TARGET_TYPE_CORE |
-            TARGET_TYPE_MCS | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB |
+            TARGET_TYPE_EQ | TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST |
+            TARGET_TYPE_CORE | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB |
             TARGET_TYPE_MC | TARGET_TYPE_MI | TARGET_TYPE_PAUC | TARGET_TYPE_IOHS;
 
         static_assert((

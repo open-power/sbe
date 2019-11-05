@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -38,13 +39,6 @@ fapi2::TargetType sbeGetFapiTargetType(const uint16_t i_sbeTargetType,
     TargetType l_fapiTargetType = TARGET_TYPE_NONE;
     switch(i_sbeTargetType)
     {
-        case TARGET_EX:
-            if((i_chipletId >= SMT4_CORE0_ID) &&
-                    (i_chipletId <= SMT4_CORE_ID_LAST))
-            {
-                l_fapiTargetType = fapi2::TARGET_TYPE_EX;
-            }
-            break;
         case TARGET_PERV:
             if((i_chipletId >= EQ_ID_0) && (i_chipletId <= EQ_ID_LAST))
             {
@@ -89,10 +83,6 @@ bool sbeGetFapiTargetHandle(const uint16_t i_targetType,
                                  & i_fapiTargetMask);
         switch(l_fapiTargetType)
         {
-            case fapi2::TARGET_TYPE_EX:
-                o_tgtHndl = plat_getTargetHandleByChipletNumber
-                                <fapi2::TARGET_TYPE_EX>(i_chipletId);
-                break;
             case fapi2::TARGET_TYPE_PERV:
                 o_tgtHndl = plat_getTargetHandleByChipletNumber
                                 <fapi2::TARGET_TYPE_PERV>(i_chipletId);

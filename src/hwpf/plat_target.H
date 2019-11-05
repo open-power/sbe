@@ -43,8 +43,8 @@ static const uint8_t EX_PER_QUAD = 2;
 static const uint8_t CORES_PER_EX = 2;
 static const uint8_t NEST_CHIPLET = 2;
 static const uint8_t PCI_CHIPLET = 2;
-static const uint8_t MCS_PER_MCBIST = 2;
-static const uint8_t MI_PER_MC = 2;
+static const uint8_t MCS_PER_MCBIST = 1;
+static const uint8_t MI_PER_MC = 1;
 
 //
 // Define what a platform handle looks like. For Hostboot,

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,6 +57,10 @@ namespace fapi2
     //  ATTR_EQ_GARD/ATTR_EC_GARD) to mark corresponding targets non functional
     ReturnCode plat_ApplyGards();
 
+    /// @brief Function to initialize the G_targets vector with functional state
+    ///        basis the PG Attribute
+    ReturnCode plat_UpdateFunctionalState();
+
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes
     Target<TARGET_TYPE_PROC_CHIP> plat_getChipTarget();
@@ -80,9 +84,9 @@ namespace fapi2
     //  @param i_targetNum The instance number for the target
     //  @return Platform handle
     //  @note The caller can use the platform handle to construct a Target of
-    //  it's choice. Ex:
-    //  fapi2::Target<fapi2::TARGET_TYPE_EX>
-    //  l_ex(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_EX>(0);
+    //  it's choice. Example:
+    //  fapi2::Target<fapi2::TARGET_TYPE_MI>
+    //  l_mi(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_MI>(0);
     template <TargetType K>
     plat_target_handle_t plat_getTargetHandleByInstance(
             const uint8_t i_targetNum);
