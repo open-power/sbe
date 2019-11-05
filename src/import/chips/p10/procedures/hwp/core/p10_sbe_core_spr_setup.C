@@ -38,6 +38,7 @@
 //------------------------------------------------------------------------------
 #include <p10_sbe_core_spr_setup.H>
 #include <p10_scom_c.H>
+#include <p10_scom_eq.H>
 #include <p10_ram_core.H>
 
 // RAM constants
@@ -148,6 +149,12 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_program_sprs(
     const fapi2::ATTR_MASTER_CORE_Type& i_master_core_num)
 {
     using namespace scomt::c;
+    using namespace scomt::eq;
+
+    // RTC 245822
+    // remove this to use the auto-generated value once it bit shows up in the headers.
+    const uint32_t QME_QMCR_STOP_SHIFTREG_OVERRIDE_EN = 29;
+
     uint64_t l_master_hrmor = 0;
     uint64_t l_bootloader_offset = 0;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
@@ -169,6 +176,7 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_program_sprs(
 
     for (auto l_core_target : i_core_targets)
     {
+        auto l_eq = l_core_target.getParent<fapi2::TARGET_TYPE_EQ>();
 
         RamCore l_ram_t1(l_core_target, THREAD_1);
         RamCore l_ram_t2(l_core_target, THREAD_2);
@@ -176,6 +184,7 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_program_sprs(
 
         fapi2::buffer<uint64_t> l_data = l_master_hrmor;
         fapi2::buffer<uint64_t> l_msr = 0;
+        fapi2::buffer<uint64_t> l_qmcr = 0;
 
         uint8_t l_core_unit_pos = 0;
 
@@ -196,6 +205,11 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_program_sprs(
         // get MSR to determine if need to set URMOR
         FAPI_TRY(l_ram_t2.get_reg(REG_SPR, MSR_SPR_NUMBER, &l_msr),
                  "Error ramming MSR (T2)!");
+
+        // Enable SCOM access to the RMOR registers
+        l_qmcr.flush<0>().setBit<QME_QMCR_STOP_SHIFTREG_OVERRIDE_EN>();
+        FAPI_TRY(fapi2::putScom(l_eq, QME_QMCR_WO_OR, l_qmcr),
+                 "Error during putscom of QME_QMCR_WO_OR for shiftable regs access");
 
         // set URMOR to the HRMOR value if SMF is enabled
         if(l_msr.getBit <MSR_S_BITPOS>()) // SMF is on
