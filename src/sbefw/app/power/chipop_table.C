@@ -43,10 +43,10 @@
 #include "sbecmdtracearray.H"
 #include "sbecmdCntrlTimer.H"
 #include "sbecmdfastarray.H"
-#include "core/chipop_handler.H"
-#include "app/common/sbecmdgeneric.H"
-
-#include "power/istep.H"
+#include "sbecmdexitcachecontained.H"
+#include "chipop_handler.H"
+#include "sbecmdgeneric.H"
+#include "istep.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
@@ -249,7 +249,14 @@ CMD_ARR(
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE|
      SBE_FENCE_AT_MPIPL|SBE_FENCE_AT_ISTEP|
      SBE_FENCE_AT_DUMPING,
+    },
+    {sbePsuExitCacheContainedMode,
+     SBE_PSU_EXIT_CACHE_CONTAINED_MODE,
+     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE|
+     SBE_FENCE_AT_MPIPL|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_DUMPING,
     }
+
 )
 
 //////////////////////////////////////////////////////////////

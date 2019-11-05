@@ -61,8 +61,9 @@ enum sbePsuCommandClass
   */
 enum sbePsuCoreStateControlCommands
 {
-    SBE_PSU_CMD_CONTROL_DEADMAN     = 0x01,
-    SBE_PSU_CMD_UNKNOWN             = 0xFF,
+    SBE_PSU_CMD_CONTROL_DEADMAN       = 0x01,
+    SBE_PSU_EXIT_CACHE_CONTAINED_MODE = 0x02,
+    SBE_PSU_CMD_UNKNOWN               = 0xFF,
 };
 
 /**
@@ -105,6 +106,7 @@ enum sbePsuGenericMessages
     SBE_PSU_GENERIC_MSG_SECURITY_LIST_BIN_DUMP  = 0x08,
     SBE_PSU_GENERIC_MSG_UNKNOWN            = 0xFF,
 };
+
 
 /**
   * @brief enums denoting control flags
