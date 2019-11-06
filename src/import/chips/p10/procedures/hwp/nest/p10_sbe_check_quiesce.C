@@ -274,7 +274,6 @@ fapi2::ReturnCode p10_psihb_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE
     FAPI_TRY(PUT_TP_TPBR_PSIHB_ERROR_MASK_REG(i_target, l_psihb_data));
 
     //Poll PSIHBCR bit 20 - inbound queue empty to be 0b0 for quiesce state
-    //Poll PSIHBCR bit 20 - inbound queue empty to be 0b0 for quiesce state
     for (uint32_t i = 0; i < C_NUM_TRIES_QUIESCE_STATE; i++)
     {
         FAPI_TRY(GET_TP_TPBR_PSIHB_STATUS_CTL_REG(i_target, l_psihb_data));
@@ -303,6 +302,94 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+
+//---------------------------------------------------------------------------------
+// NOTE: description in header
+//---------------------------------------------------------------------------------
+fapi2::ReturnCode p10_vas_check_quiesce(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    FAPI_DBG("p10_vas_check_quiesce: Entering...");
+    fapi2::buffer<uint64_t> l_vas_north_misc_ctl_data(0);
+    fapi2::buffer<uint64_t> l_vas_south_misc_ctl_data(0);
+
+    // VAS needs to be quiesced before NX
+
+    // Read the VAS Misc status and North control register so we don't write over anything
+    FAPI_TRY(PREP_VAS_VA_RG_SCF_MISCCTL(i_target));
+    FAPI_TRY(GET_VAS_VA_RG_SCF_MISCCTL(i_target, l_vas_north_misc_ctl_data));
+
+    // Set the 'Quiesce Requested' bit in the VAS Miscellaneous Status and
+    // North Control Register to a 1. This will prevent VAS from
+    // accepting new paste or write monitor operations
+    SET_VAS_VA_RG_SCF_MISCCTL_QUIESCE_REQUEST(l_vas_north_misc_ctl_data);
+    FAPI_TRY(PUT_VAS_VA_RG_SCF_MISCCTL(i_target, l_vas_north_misc_ctl_data));
+
+    // Check that VAS has quiesced. This is accomplished by reading two
+    // status registers. The "RG is Idle' bit in the VAS Miscellaneous
+    // Status and North Control Register as well as the 'EG is Idle',
+    // 'CQ is Idle' and 'WC is Idle' bits in the VAS Miscellaneous Status
+    // and South Control Register must all be set to one to indicate that
+    // VAS has gone idle.
+    FAPI_TRY(PREP_VAS_VA_EG_SCF_SOUTHCTL(i_target));
+
+    for (uint32_t i = 0; i < C_NUM_TRIES_QUIESCE_STATE; i++)
+    {
+        // Read VAS Misc status and North control register to ensure
+        // 'RG is idle' is set -
+        FAPI_TRY(GET_VAS_VA_RG_SCF_MISCCTL(i_target, l_vas_north_misc_ctl_data));
+
+        // Read VAS Misc status and South control register to ensure
+        // 'WC is idle', 'CQ is idle' and 'EG is idle' bits are set -
+        FAPI_TRY(PREP_VAS_VA_EG_SCF_SOUTHCTL(i_target));
+        FAPI_TRY(GET_VAS_VA_EG_SCF_SOUTHCTL(i_target, l_vas_south_misc_ctl_data));
+
+        if(GET_VAS_VA_RG_SCF_MISCCTL_RG_IS_IDLE(l_vas_north_misc_ctl_data)
+           && GET_VAS_VA_EG_SCF_SOUTHCTL_WC_IDLE_BIT(l_vas_south_misc_ctl_data)
+           && GET_VAS_VA_EG_SCF_SOUTHCTL_CQ_IDLE_BIT(l_vas_south_misc_ctl_data)
+           && GET_VAS_VA_EG_SCF_SOUTHCTL_EG_IDLE_BIT(l_vas_south_misc_ctl_data))
+        {
+            break;
+        }
+
+        FAPI_TRY(fapi2::delay(C_DELAY_NS_396, C_DELAY_CYCLES_396));
+    }
+
+    // In order to prevent additional FIFO entries from getting posted
+    // to the NX receive FIFOs while trying to quiesce NX, software may
+    // wish to close all windows to prevent users from continuing to try
+    // to access the accelerators. Software may close all windows by
+    // writing the Open/Enable bit to a zero in the Window Control
+    // Register<n>. This step is optional, but should be done as part of
+    // an orderly shut down of a user's access.
+
+    // Software may also choose to deallocate any pages that partitions
+    // (or users) have mapped to VAS' MMIO space. In a general use case,
+    // a partition (or user) will have pages that map to VAS' MMIO space
+    // to allow the partition to return credits via the Local Receive
+    // Window Credit Adder Register <m>. In order to stop MMIO traffic,
+    // these pages should be unmapped. In a NX only usage model, this step
+    // can be ignored as long as the Quiesce NX procedures are followed.
+
+    FAPI_ASSERT((GET_VAS_VA_RG_SCF_MISCCTL_RG_IS_IDLE(l_vas_north_misc_ctl_data)
+                 && GET_VAS_VA_EG_SCF_SOUTHCTL_WC_IDLE_BIT(l_vas_south_misc_ctl_data)
+                 && GET_VAS_VA_EG_SCF_SOUTHCTL_CQ_IDLE_BIT(l_vas_south_misc_ctl_data)
+                 && GET_VAS_VA_EG_SCF_SOUTHCTL_EG_IDLE_BIT(l_vas_south_misc_ctl_data)),
+                fapi2::P10_VAS_QUIESCE_TIMEOUT()
+                .set_TARGET(i_target)
+                .set_NORTHDATA(l_vas_north_misc_ctl_data)
+                .set_SOUTHDATA(l_vas_south_misc_ctl_data),
+                "VAS quiesce timed out");
+
+    // Write Invalidate CAM location field of North register (optional)
+    SET_VAS_VA_RG_SCF_MISCCTL_INVALIDATE_CAM_ALL(l_vas_north_misc_ctl_data);
+    FAPI_TRY(PUT_VAS_VA_RG_SCF_MISCCTL(i_target, l_vas_north_misc_ctl_data));
+
+fapi_try_exit:
+    FAPI_DBG("p10_vas_check_quiesce: Exiting...");
+    return fapi2::current_err;
+}
+
 //--------------------------------------------------------------------------
 //  HWP entry point
 //--------------------------------------------------------------------------
@@ -313,8 +400,9 @@ fapi2::ReturnCode p10_sbe_check_quiesce(
 
     // SBE will check quiesce state for all units on the powerbus on its chip
     // TODO (SW477416): Implement HW Procedure for checking the quiesce state of
-    // CAPP, PHB, NPU and VAS.
+    // PHB, NPU and INTP.
 
+    FAPI_TRY(p10_vas_check_quiesce(i_target), "Error from p10_vas_check_quiesce");
     FAPI_TRY(p10_nx_check_quiesce(i_target), "Error from p10_nx_check_quiesce");
     FAPI_TRY(p10_psihb_check_quiesce(i_target), "Error from p10_psihb_check_quiesce");
 
