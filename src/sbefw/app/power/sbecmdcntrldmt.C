@@ -42,32 +42,20 @@
 #include "sbeTimerSvc.H"
 #include "sbeglobals.H"
 #include "sbeFFDC.H"
-
 using namespace fapi2;
-
-#if 0
-#ifdef SEEPROM_IMAGE
-// Using Function pointer to force long call
-p9_sbe_check_master_stop15_FP_t p9_sbe_check_master_stop15_hwp =
-                                &p9_sbe_check_master_stop15;
-p9_block_wakeup_intr_FP_t p9_block_wakeup_intr_hwp =
-                          &p9_block_wakeup_intr;
-#endif
 
 ////////////////////////////////////////////////////////////////////
 //Static initialization of the Dmt Pk timer
 static timerService g_sbe_pk_dmt_timer;
-#endif
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 void sbeDmtPkExpiryCallback(void *)
 {
     #define SBE_FUNC "sbeDmtPkExpiryCallback"
-    SBE_INFO (SBE_FUNC "DMT Callback Timer has expired..Checkstop the system");
-#if 0
-    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-
+    SBE_INFO (SBE_FUNC "DMT Callback Timer has expired..No-Checkstop on the system for now!!");
+ #if 0
+   ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     // SBE async ffdc
     captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                      SBE_SEC_DMT_TIMEOUT);
@@ -82,8 +70,9 @@ void sbeDmtPkExpiryCallback(void *)
         SBE_ERROR (SBE_FUNC "PutScom failed: REG PERV_N3_LOCAL_FIR");
         pk_halt();
     }
-#endif
+ #endif 
     #undef SBE_FUNC
+
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -121,7 +110,6 @@ uint32_t sbeStartCntlDmt()
 {
     #define SBE_FUNC "sbeStartCntlDmt"
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-#if 0
     uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
     do
     {
@@ -146,20 +134,19 @@ uint32_t sbeStartCntlDmt()
         }
 
         sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
-
         if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
         {
             SBE_ERROR(SBE_FUNC" Failed to send response to Hostboot ");
             break;
         }
-
         // Set DMT State
         (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_DMT_ENTER_EVENT);
-        // To start, assume no errors will hit when starting DMT and hence
+        SBE_GLOBAL->asyncFfdcRC = FAPI2_RC_SUCCESS;
+#if 0 
+       // To start, assume no errors will hit when starting DMT and hence
         // default to potential timeout in stopping DMT for FFDC
         SBE_GLOBAL->asyncFfdcRC = RC_CHECK_MASTER_STOP15_DEADMAN_TIMEOUT;
-
         Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
         // Fetch the Master EX
         uint8_t exId = 0;
@@ -265,7 +252,7 @@ uint32_t sbeStartCntlDmt()
         {
             break;
         }
-
+#endif
         // Entered stop15 and unblocked interrupts ..
         // Indicate the Host via Bit SBE_SBE2PSU_DOORBELL_SET_BIT2
         // that Stop15 exit
@@ -276,7 +263,6 @@ uint32_t sbeStartCntlDmt()
                  "SBE_SBE2PSU_DOORBELL_SET_BIT2");
         }
     }   while(0); // Outer loop
-#endif
     return l_rc;
     #undef SBE_FUNC
 }
@@ -287,7 +273,6 @@ uint32_t sbeStopCntlDmt()
 {
     #define SBE_FUNC "sbeStopCntlDmt "
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-#if 0
     uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
 
     do
@@ -311,7 +296,6 @@ uint32_t sbeStopCntlDmt()
     }while(0);
     // Send the response
     sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
-#endif
     return l_rc;
     #undef SBE_FUNC
 }
@@ -327,7 +311,7 @@ uint32_t sbeControlDeadmanTimer (uint8_t *i_pArg)
     do
     {
         if(SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_FLAGS_START_DMT)
-        {
+        {  
             l_rc = sbeStartCntlDmt();
             if(SBE_SEC_OPERATION_SUCCESSFUL != l_rc)
             {
