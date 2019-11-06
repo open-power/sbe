@@ -38,6 +38,7 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_tp_chiplet_init.H"
+#include "p10_scom_proc_6.H"
 #include "p10_scom_perv_0.H"
 #include "p10_scom_perv_6.H"
 #include "p10_scom_perv_7.H"
@@ -54,7 +55,7 @@
 enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
 {
     START_CMD = 0x1,
-    REGIONS_PERV_OCC = 0x4800,
+    REGIONS_PERV_OCC_PSI = 0x4900,
     CLOCK_TYPES_ALL = 0x7,
     REGIONS_PLL = 0x0010,
     CLOCK_TYPES_SL = 0x4,
@@ -102,8 +103,15 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_DBG("Clear pervasive chiplet region fence");
     FAPI_TRY(p10_sbe_tp_chiplet_init_region_fence_setup(l_tpchiplet));
 
+    FAPI_DBG("Reset abistclk_muxsel and syncclk_muxsel");
+    l_data64.flush<0>();
+    FAPI_TRY(proc::PREP_TP_TPCHIP_TPC_CPLT_CTRL0_WO_CLEAR(i_target_chip));
+    proc::SET_TP_TPCHIP_TPC_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC(l_data64);
+    proc::SET_TP_TPCHIP_TPC_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC(l_data64);
+    FAPI_TRY(proc::PUT_TP_TPCHIP_TPC_CPLT_CTRL0_WO_CLEAR(i_target_chip, l_data64));
+
     FAPI_DBG("Start clocks for all regions except Pib, Net and Pll ");
-    FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV_OCC,
+    FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV_OCC_PSI,
              CLOCK_TYPES_ALL));
 
     // startclocks for pll  - This is no longer necessary for P10
