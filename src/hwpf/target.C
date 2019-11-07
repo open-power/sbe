@@ -62,14 +62,13 @@ extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 // For PhyP system, HRMOR is set to 128MB, which is multiple of 64MB Granule * 2
 // For OPAL system, it needs the HRMOR in the range of 4GB, so that HB reloading
-// doesn't stamp on the OPAL/HostLinux Data. 64MB Granule * 64 = 4096MB, 64 is
+// doesn't stamp on the OPAL/HostLinux Data. 64MB Granule * 62 = 3968MB, 64 is
 // the multipler.
-#define HRMOR_FOR_SPLESS_MODE 0x100000000ull //4096 * 1024 * 1024
-
+#define HRMOR_FOR_SPLESS_MODE 0xF8000000ull //3968 * 1024 * 1024
 
 #endif // else __SBEFW_SEEPROM__
 
-//TODO - This will be removed once this address is 
+//TODO - This will be removed once this address is
 //define in P10 scom definition.
 #define EXPORT_REGL_STATUS 0x10009ull
 
@@ -802,7 +801,7 @@ fapi_try_exit:
     ///        basis the PG Attribute
     ReturnCode plat_UpdateFunctionalState()
     {
-        for (uint32_t i = 0; i < MC_TARGET_COUNT; ++i)
+        for (uint32_t i=0; i<MC_TARGET_COUNT; ++i)
         {
             fapi2::Target<fapi2::TARGET_TYPE_PERV> mcPerv = G_vec_targets.at(i + MC_TARGET_OFFSET);
             fapi2::ATTR_PG_Type pg;
@@ -819,10 +818,27 @@ fapi_try_exit:
             }
         }
 
+        for(uint32_t i=0; i<EQ_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> eqPerv = G_vec_targets.at(i + EQ_TARGET_OFFSET);
+            fapi2::ATTR_PG_Type pg;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, eqPerv, pg));
+            for(uint32_t j=0; j<CORES_PER_QUAD; ++j)
+            {
+                if((pg >> (PARTIAL_GOOD_OFFSET_SHIFT_CORE0 - j)) & 0x1)
+                {
+                    //EQs are always functional, find the logical Cores Target
+                    //and update functional/non-functional state
+                    fapi2::Target<fapi2::TARGET_TYPE_CORE> coreTgt = G_vec_targets.at(j + CORE_TARGET_OFFSET + i*CORES_PER_QUAD);
+                    static_cast<plat_target_handle_t&>(coreTgt.operator ()()).setFunctional(false);
+                    G_vec_targets.at(j + CORE_TARGET_OFFSET + i*CORES_PER_QUAD) = coreTgt.get();
+                }
+            }
+        }
+
     fapi_try_exit:
         return fapi2::current_err;
     }
-
 
 #endif // not __SBEFW_SEEPROM__
 

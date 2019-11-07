@@ -45,6 +45,7 @@ static const uint8_t NEST_CHIPLET = 2;
 static const uint8_t PCI_CHIPLET = 2;
 static const uint8_t MCS_PER_MCBIST = 1;
 static const uint8_t MI_PER_MC = 1;
+static const uint8_t PARTIAL_GOOD_OFFSET_SHIFT_CORE0 = 0x12;
 
 //
 // Define what a platform handle looks like. For Hostboot,
