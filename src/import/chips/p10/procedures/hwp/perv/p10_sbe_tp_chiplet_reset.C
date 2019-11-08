@@ -108,25 +108,24 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
         {
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, targ, l_read_attr_pg));
 
+            // bits 9,10 are unused in cplt_ctrl5
             if(l_chipletID == 0x10)
             {
-                l_data64.writeBit<8>(!(l_read_attr_pg.getBit<13>()));
-                l_data64.writeBit<9>(!(l_read_attr_pg.getBit<14>()));
+                l_data64.writeBit<8>(!(l_read_attr_pg.getBit<13>())); // pau0 region
             }
             else if(l_chipletID == 0x11)
             {
-                l_data64.writeBit<10>(!(l_read_attr_pg.getBit<13>()));
-                l_data64.writeBit<11>(!(l_read_attr_pg.getBit<14>()));
+                l_data64.writeBit<11>(!(l_read_attr_pg.getBit<13>())); // pau3 region
             }
             else if(l_chipletID == 0x12)
             {
-                l_data64.writeBit<12>(!(l_read_attr_pg.getBit<13>()));
-                l_data64.writeBit<13>(!(l_read_attr_pg.getBit<14>()));
+                l_data64.writeBit<12>(!(l_read_attr_pg.getBit<13>())); // pau4 region
+                l_data64.writeBit<13>(!(l_read_attr_pg.getBit<14>())); // pau5 region
             }
             else if(l_chipletID == 0x13)
             {
-                l_data64.writeBit<14>(!(l_read_attr_pg.getBit<13>()));
-                l_data64.writeBit<15>(!(l_read_attr_pg.getBit<14>()));
+                l_data64.writeBit<14>(!(l_read_attr_pg.getBit<13>())); // pau6 region
+                l_data64.writeBit<15>(!(l_read_attr_pg.getBit<14>())); // pau7 region
             }
         }
     }
