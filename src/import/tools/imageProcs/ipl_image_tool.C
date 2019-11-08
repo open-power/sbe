@@ -2041,8 +2041,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
             BOMB_IF(p9_xip_find(io_image, "proc_p9_ex_dpll_initf", 0) != 0);
         }
 
-        printf("\nYou will see an expected warning below "
-               "about P9_XIP_WOULD_OVERFLOW\n"
+        printf("\nYou will see an expected warning below about P9_XIP_WOULD_OVERFLOW\n"
                "It means the TEST is working (not failing)\n\n");
 
         // Finally compare against the original
@@ -2052,6 +2051,55 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
     while (0);
 
     return rc;
+}
+
+// Prints out the raw decompressed RS4 ring content
+void print_raw_ring( uint8_t*  data,
+                     uint32_t  bits )
+{
+    uint32_t i;
+    uint8_t  bytePerWordCount = 0; // Nibble count in each word
+    uint32_t bytePerLineCount = 0; // Column count
+    uint8_t  rem = bits % 8;      // Rem raw bits beyond 1-byte boundary
+    uint8_t  nibblesToPrint;      // The last 1 or 2 nibbles to dump
+
+    for (i = 0; i < bits / 8; i++)
+    {
+        printf("%02x", *(data + i));
+
+        if (++bytePerWordCount == 4)
+        {
+            printf(" ");
+            bytePerWordCount = 0;
+        }
+
+        if (++bytePerLineCount == 32)
+        {
+            printf("\n");
+            bytePerLineCount = 0;
+        }
+    }
+
+    // Dump remaining bits (in whole nibbles and with any
+    //   unused bits being zeroed)
+    if (rem)
+    {
+        // Ensure the rightmost (8-rem) unused bits are zeroed out
+        nibblesToPrint = (*(data + i) >> (8 - rem)) << (8 - rem);
+
+        if (rem <= 4)
+        {
+            // Content only in first nibble. Dump only first nibble
+            printf("%01x", nibblesToPrint >> 4);
+        }
+        else
+        {
+            // Content in both nibbles. Dump both nibbles
+            printf("%02x", nibblesToPrint);
+        }
+    }
+
+    printf("\n");
 }
 
 
