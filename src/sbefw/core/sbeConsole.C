@@ -34,11 +34,9 @@
 
 #include "sberegaccess.H"
 #include "sbeglobals.H"
-//#include "p9_lpc_utils.H"
-
+#include "p10_lpc_utils.H"
 using namespace fapi2;
 
-#if 0
 static uint32_t writeReg(uint8_t i_addr,
                   uint8_t i_data)
 {
@@ -88,12 +86,10 @@ static uint32_t readReg(uint8_t i_addr,
     } while(0);
     return rc;
 }
-#endif
 
 void uartInit(void)
 {
     #define SBE_FUNC "uartInit"
-#if 0
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint8_t lpcConsoleCfg = 0;
     FAPI_ATTR_GET(fapi2::ATTR_LPC_CONSOLE_CNFG,
@@ -155,14 +151,12 @@ void uartInit(void)
         SBE_INFO(SBE_FUNC " UART device initialized.");
         SBE_GLOBAL->sbeUartActive = true;
     } while(0);
-#endif
     #undef SBE_FUNC
 }
 
 static void uartPutChar(char c)
 {
     #define SBE_FUNC "uartPutChar"
-#if 0
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do {
         static const uint64_t DELAY_NS = 100;
@@ -208,7 +202,6 @@ static void uartPutChar(char c)
         }
 
     } while(0);
-#endif
     #undef SBE_FUNC
 }
 
