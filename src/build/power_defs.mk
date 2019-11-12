@@ -39,6 +39,8 @@ SBE_CONSOLE_SUPPORT = 1
 #If MEASUREMENT_IMAGE_SUPPORTED is 1 then only sbe_measurement_seeprom image will creates
 MEASUREMENT_IMAGE_SUPPORTED = 0
 
+AWAN_NMZ_MODEL = 1
+
 export SBE_S0_SUPPORT = 1
 export PIBMEM_REPAIR_SCOM_P9 = 1
 

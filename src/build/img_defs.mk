@@ -378,6 +378,10 @@ GCC-DEFS += -D__ALLOW_INVALID_SCOMS__=1
 GCC-DEFS += -DSIM_DPLL_LOCK_CHK=1
 endif
 
+ifeq ($(AWAN_NMZ_MODEL), 1)
+GCC-DEFS += -DPFET_SENSE_POLL_DISABLE
+endif
+
 # Generate a 16bit trace string hash prefix value based on the name of this image.  This will form
 # the upper 16 bits of the 32 bit trace hash values.
 ifndef PK_TRACE_HASH_PREFIX
