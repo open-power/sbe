@@ -96,8 +96,15 @@ fapi2::ReturnCode p10_getmempba(
         while (l_granules_before_setup && (l_target_address < l_end_address))
         {
             // invoke PBA access HWP to move one granule
+            // NOTE: SBE environment does not support memset and therefore must use
+            // compiler assisted initialization for dynamically sized memory, whereas some other
+            // environments do not support that ability.
+#ifndef __PPE__
             uint8_t l_data[l_granuleSize];
             memset(l_data, 0, l_granuleSize);
+#else
+            uint8_t l_data[l_granuleSize] = {0};
+#endif
             FAPI_TRY(p10_pba_access(i_target,
                                     l_target_address,
                                     true, // Read
