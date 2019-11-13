@@ -26,7 +26,6 @@
 /// \file ipl_image_tool.C
 /// \brief P10 IPL image (formerly XIP image) search and edit tool
 ///
-
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -42,14 +41,29 @@
 
 #include "p10_ipl_image.H"
 #include "common_ringId.H"
-#ifndef __PPE__ // Needed on ppe side to avoid having to include various APIs
+#ifndef __PPE__ // Needed on PPE side to avoid having to include various APIs
     #include "p10_tor.H"
     #include "p10_scan_compression.H"
     #include <vector>
     #include <endian.h>
 #endif
-#include "p10_infrastruct_help.H"
-#include "p10_ddco.H"
+#include <p10_infrastruct_help.H>
+#include <p10_ddco.H>
+
+#ifndef __PPE__ // Needed on PPE side to avoid having to include various APIs
+    #include <prcdUtils.H>
+    #include <croClientCapi.H>
+    #include <ecmdClientCapi.H>
+    #include <ecmdDataBuffer.H>
+    #include <ecmdUtils.H>
+    #include <ecmdSharedUtils.H>
+    #include <ecmdStructs.H>
+    #include <ecmdDefines.H>
+    #include <ecmdReturnCodes.H>
+    #include <fapi2.H>
+    #include <fapi2ClientCapi.H>
+    #include <mvpd_access_defs.H>
+#endif
 
 #define LINE_SIZE_MAX  1024     // Max size of a single snprintf dump.
 
@@ -451,7 +465,6 @@ static void
 resolve_image_section_type( const void* i_image,
                             image_section_type_t& o_imageSectionType )
 {
-
     if (be64toh(((P9XipHeader*)i_image)->iv_magic) >> 32 == P9_XIP_MAGIC)
     {
         o_imageSectionType = IST_XIP;
@@ -467,7 +480,23 @@ resolve_image_section_type( const void* i_image,
         o_imageSectionType = IST_DDCO;
     }
 
+    else if (be64toh(((MvpdHeader_t*)i_image)->magic) >> 8 == MVPD_MAGIC)
+    {
+        if ((uint32_t)g_imageSize == SIZE_OF_MVPD_FILE)
+        {
+            o_imageSectionType = IST_MVPD;
+        }
+        else
+        {
+            printf("ERROR: The size of the supplied file(=0x%08x) does not match the size"
+                   " of a valid MVPD file(SIZE_OF_MVPD_FILE=0x%08x)\n",
+                   (uint32_t)g_imageSize, SIZE_OF_MVPD_FILE);
+            exit(1);
+        }
+    }
+
 #endif
+
     else
     {
         o_imageSectionType = IST_UNDEFINED;
@@ -557,7 +586,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
 
             break;
 
-#if !defined(__PPE__) && !defined(FIPSODE)
+#if !defined(__PPE__)
 
         case IST_TOR:
 
@@ -587,6 +616,169 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
             printf("Number DD levels   : %d\n", ddContHeader->iv_num);
 
             break;
+
+        case IST_MVPD:
+
+            do
+            {
+                uint32_t rc = ECMD_SUCCESS;
+                ecmdDataBuffer keyword_data;
+                ecmdDllInfo DLLINFO;
+                ecmdLooperData drawer_looper;
+                ecmdChipTarget drawer_target;
+
+                rc = ecmdLoadDll("");
+
+                if (rc)
+                {
+                    printf("ecmdLoadDll failed\n");
+                    break;
+                }
+
+                rc = fapi2InitExtension();
+
+                if (rc)
+                {
+                    ecmdOutputError("Error initializing FAPI2 extension!\n");
+                    break;
+                }
+
+                drawer_target.cageState   = ECMD_TARGET_FIELD_WILDCARD;
+                drawer_target.nodeState   = ECMD_TARGET_FIELD_WILDCARD;
+                drawer_target.slotState   = ECMD_TARGET_FIELD_UNUSED;
+                drawer_target.posState    = ECMD_TARGET_FIELD_UNUSED;
+                drawer_target.chipUnitNumState   = ECMD_TARGET_FIELD_UNUSED;
+                drawer_target.threadState = ECMD_TARGET_FIELD_UNUSED;
+                rc = ecmdConfigLooperInit(drawer_target, ECMD_SELECTED_TARGETS_LOOP_DEFALL, drawer_looper);
+
+                if (rc)
+                {
+                    ecmdOutputError("Error initializing drawer looper!\n");
+                    break;
+                }
+
+                while(ecmdConfigLooperNext(drawer_target, drawer_looper))
+                {
+                    ecmdLooperData pu_looper;
+                    ecmdChipTarget pu_target;
+
+                    pu_target.chipType = "pu";
+                    pu_target.chipTypeState = ECMD_TARGET_FIELD_VALID;
+
+                    pu_target.cage = drawer_target.cage;
+                    pu_target.node = drawer_target.node;
+
+                    pu_target.cageState   = ECMD_TARGET_FIELD_VALID;
+                    pu_target.nodeState   = ECMD_TARGET_FIELD_VALID;
+                    pu_target.slotState   = ECMD_TARGET_FIELD_WILDCARD;
+                    pu_target.posState    = ECMD_TARGET_FIELD_WILDCARD;
+                    pu_target.chipUnitNumState   = ECMD_TARGET_FIELD_UNUSED;
+                    pu_target.threadState = ECMD_TARGET_FIELD_UNUSED;
+
+                    rc = ecmdConfigLooperInit(pu_target, ECMD_SELECTED_TARGETS_LOOP_DEFALL, pu_looper);
+
+                    if(rc)
+                    {
+                        ecmdOutputError("Error initializing chip looper!\n");
+                        break;
+                    }
+
+                    // Fetching MVPD details (DD level, chip type, RTV)
+                    //
+                    // Notes:
+                    // - getModuleVpdKeyword is used to access the HW's MVPD or the MODVPDFILE
+                    //   in the Cronus config file (if DEBUG==8.v). But we want to access the
+                    //   MVPD file supplied as an argument to ipl_image_tool.exe. So instead we
+                    //   use getModuleVpdKeywordFromImage.
+
+                    uint32_t input_data_length = SIZE_OF_MVPD_FILE * 8; //Mvpd size in bits
+                    ecmdDataBuffer image_buffer;
+                    image_buffer.setBitLength(input_data_length);
+                    image_buffer.insert((uint8_t*) i_image, 0, input_data_length, 0);
+
+                    rc = getModuleVpdKeywordFromImage(pu_target, "CRP0", "DD", 5, image_buffer, keyword_data);
+
+                    if(rc)
+                    {
+                        ecmdOutputError("getModuleVpdKeywordFromImage failed to fetch the DD level from MVPD!\n");
+                        break;
+                    }
+
+                    uint8_t* pmvpdDD = new uint8_t[4];
+
+                    for(uint32_t i = 1; i < 5; i++)
+                    {
+                        *(pmvpdDD + (i - 1)) = keyword_data.getByte(i) - '0';
+                    }
+
+                    uint8_t mvpdDD = ((((*pmvpdDD * 10) + * (pmvpdDD + 1)) << 4) |
+                                      (*(pmvpdDD + 2) * 10 + * (pmvpdDD + 3)));
+
+                    printf("DD level in MVPD : 0x%02x\n", mvpdDD);
+
+                    //Fetching chipType from MVPD
+                    rc = getModuleVpdKeywordFromImage(pu_target, "CRP0", "CI", 1, image_buffer, keyword_data);
+
+                    if(rc)
+                    {
+                        ecmdOutputError("getModuleVpdKeywordFromImage failed to fetch the chipType from MVPD!\n");
+                        break;
+                    }
+
+                    printf("chipType from MVPD : 0x%02x", keyword_data.getByte(0));
+
+                    if (keyword_data.getByte(0) == MVPD_CHIP_NAME_P10)
+                    {
+                        printf(" (This is a P10 MVPD)\n");
+                    }
+                    else
+                    {
+                        printf(" (This is *not* a P10 MVPD)\n");
+                    }
+
+                    //Fetching the ring table version from MVPD(#P rings)
+                    rc = getModuleVpdKeywordFromImage(pu_target, "CP00", "#P", 1, image_buffer, keyword_data);
+
+                    if(rc)
+                    {
+                        ecmdOutputError("getModuleVpdKeywordFromImage failed to fetch the ring"
+                                        " table version of #P rings from MVPD!\n");
+                        break;
+                    }
+
+                    printf("Ring Table version of #P rings in MVPD : 0x%02x\n", keyword_data.getByte(0));
+
+                    //Fetching the ring table version from MVPD(#R rings)
+                    rc = getModuleVpdKeywordFromImage(pu_target, "CP00", "#R", 1, image_buffer, keyword_data);
+
+                    if(rc)
+                    {
+                        ecmdOutputError("getModuleVpdKeywordFromImage failed to fetch the ring"
+                                        " table version of #R rings from MVPD!\n");
+                        break;
+                    }
+
+                    printf("Ring Table version of #R rings in MVPD : 0x%02x\n", keyword_data.getByte(0));
+
+                    //Fetching the ring table version from MVPD(#G rings)
+                    rc = getModuleVpdKeywordFromImage(pu_target, "CP00", "#G", 1, image_buffer, keyword_data);
+
+                    if(rc)
+                    {
+                        ecmdOutputError("getModuleVpdKeywordFromImage failed to fetch the ring"
+                                        " table version of #G rings from MVPD!\n");
+                        break;
+                    }
+
+                    printf("Ring Table version of #G rings in MVPD : 0x%02x\n", keyword_data.getByte(0));
+                }
+
+                ecmdUnloadDll();
+            }
+            while(0);
+
+            break;
+
 #endif
 
         default:
@@ -595,7 +787,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
                     "ERROR: In dumpHeader(): Invalid image section type (=%d)\n",
                     i_imageSectionType);
             uint64_t l_magic = *((uint64_t*)i_image);
-            fprintf(stderr, "Here's the first 8 bytes of the image section (LE): 0x%016lx ",
+            fprintf(stderr, "Here's the first 8 bytes of the image section: 0x%016lx ",
                     be64toh(l_magic));
             fprintf(stderr, "\"%c%c%c%c%c%c%c%c\"\n",
                     *(((uint8_t*)&l_magic) + 0),
@@ -2762,7 +2954,7 @@ dissectRingSection(void*                      i_image,
                     i_imageSectionType);
 
             uint64_t l_magic = *((uint64_t*)i_image);
-            fprintf(stderr, "Here's the first 8 bytes of the image section (LE): 0x%016lx ",
+            fprintf(stderr, "Here's the first 8 bytes of the image section: 0x%016lx ",
                     be64toh(l_magic));
             fprintf(stderr, "\"%c%c%c%c%c%c%c%c\"\n",
                     *(((uint8_t*)&l_magic) + 0),
