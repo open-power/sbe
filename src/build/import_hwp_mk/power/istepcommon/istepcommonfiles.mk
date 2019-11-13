@@ -43,6 +43,8 @@ ISTEPCOMMON-CPP-SOURCES +=p10_pm_ocb_init.C
 #ISTEPCOMMON-CPP-SOURCES +=p9_adu_coherent_utils.C
 #ISTEPCOMMON-CPP-SOURCES +=p9_adu_access.C
 ISTEPCOMMON-CPP-SOURCES +=p10_ram_core.C
+ISTEPCOMMON-CPP-SOURCES +=p10_getmempba.C
+ISTEPCOMMON-CPP-SOURCES +=p10_getputmempba_utils.C
 #istep5 Procedure but this is required to run from PIBMEM
 ISTEPCOMMON-C-SOURCES =
 ISTEPCOMMON-S-SOURCES =
