@@ -62,6 +62,7 @@ run-python-file targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
 
 run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
 
+run-python-file targets/p10_standalone/sbeTest/testExitCacheContainedMode.py
 exit 0
 #TODO: Remove exit
 
