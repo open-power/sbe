@@ -448,16 +448,16 @@ fapi2::ReturnCode standardScan(
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
              i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
     fapi2::Target< fapi2::TARGET_TYPE_ALL_MC,
-                    fapi2:: MULTICAST_COMPARE > l_mcCompTgt = i_target;
+                    fapi2:: MULTICAST_AND > l_mcAndTgt = i_target;
 
     fapi2::Target<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST> l_eqTgt;
     fapi2::Target< fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST,
-                    fapi2:: MULTICAST_COMPARE > l_eqCompTgt;
+                    fapi2:: MULTICAST_AND > l_eqAndTgt;
 
     if ( SUPER_CHIPLET_MASK == i_chipletMask )
     {
         l_eqTgt     =   i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST >();
-        l_eqCompTgt =   l_eqTgt;
+        l_eqAndTgt  =   l_eqTgt;
     }
 
     do
@@ -538,12 +538,12 @@ fapi2::ReturnCode standardScan(
                     {
                         if( SUPER_CHIPLET_MASK   ==  i_chipletMask )
                         {
-                            FAPI_TRY( fapi2::getScom( l_eqCompTgt, l_OPCGAddress, l_opcgStatus ),
+                            FAPI_TRY( fapi2::getScom( l_eqAndTgt, l_OPCGAddress, l_opcgStatus ),
                                       "EQ Common : Failure during OPCG Check" );
                         }
                         else
                         {
-                            FAPI_TRY( fapi2::getScom( l_mcCompTgt, l_OPCGAddress, l_opcgStatus ),
+                            FAPI_TRY( fapi2::getScom( l_mcAndTgt, l_OPCGAddress, l_opcgStatus ),
                                         "Non EQ Common: Failure during OPCG Check" );
                         }
                     }
