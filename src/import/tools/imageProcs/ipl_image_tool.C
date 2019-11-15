@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -2083,8 +2083,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                 }
             }
 
-            ringName = ringProps[ringId].ringName;
-
+            //
             // Gather ring details and print it.
             //
             if (rc == TOR_SUCCESS)
@@ -2167,6 +2166,8 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                 }
 
                 ringSeqNo++;
+
+                ringName = ringProps[ringId].ringName;
 
                 // This do-while loop is for cmsk support to display
                 // both rs4 stump ring and rs4 cmsk ring else this
@@ -2354,6 +2355,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                       rc == TOR_INVALID_CHIPLET_TYPE ||
                       rc == TOR_AMBIGUOUS_API_PARMS  ||
                       rc == TOR_INVALID_RING_ID      ||
+                      rc == TOR_HOLE_RING_ID         ||
                       rc == TOR_DYN_RING_NOT_FOUND )
             {
                 // All these errors are acceptable in the context of ipl_image_tool dissect.
