@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -40,6 +41,21 @@ static const uint8_t  SBE_DMT_SLEEP_INTERVAL = 1;
 // Bit-32 used to checkstop the system, since this is directly getting
 // inserted, we need to use bit (63-32) = 31st bit.
 static const uint64_t  N3_FIR_CORE_CHECKSTOP_BIT = 31; // 63-32 = 31
+
+/**
+ * @brief Information received from Host as part of PSU chip-op in
+ *        the mailbox registers.
+ * Mbox Reg1 - timeValue in millisec to wait for stop state
+ * Mbox Reg2 - Number of XSCOM register address-data pair to be initialized.
+ * Mbox Reg3 - Hostboot allocated cache address containing
+ *             XSCOM address-data pair information.
+ */
+typedef struct
+{
+    uint64_t timeValueMsec;
+    uint64_t numXscoms;
+    uint64_t xscomStartAddr;
+} psu2SbeDeadmanTimerReg_t;
 
 /**
   * @brief Callback for Timer Expiry for DMT
