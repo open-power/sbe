@@ -49,10 +49,13 @@ const uint32_t C_NUM_TRIES_QUIESCE_STATE = 10000;
 //These are the delays for the units that need them
 const uint32_t C_DELAY_NS_396      = 396000000 / C_NUM_TRIES_QUIESCE_STATE; //396 ms
 const uint32_t C_DELAY_CYCLES_396 = 792000000 / C_NUM_TRIES_QUIESCE_STATE; //2GHz * 396 ms
+const uint32_t C_INTP_DELAY_NS = 10000 / C_NUM_TRIES_QUIESCE_STATE; //10 microseconds
+const uint32_t C_INTP_DELAY_CYCLES = 20000 / C_NUM_TRIES_QUIESCE_STATE; //2GHz * 10 microseconds
 
 using namespace scomt;
 using namespace scomt::proc;
 using namespace scomt::nmmu;
+
 //---------------------------------------------------------------------------------
 // NOTE: description in header
 //---------------------------------------------------------------------------------
@@ -390,6 +393,101 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+//---------------------------------------------------------------------------------
+// NOTE: description in header
+//---------------------------------------------------------------------------------
+fapi2::ReturnCode p10_int_scrub_caches(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    const uint64_t c_flush_poll_cmd = 0ull;
+    fapi2::buffer<uint64_t> l_scrub_trig_data(0);
+    const uint64_t l_cache_ctrl_addrs[] =
+    {
+        INT_VC_ESBC_FLUSH_CTRL,
+        INT_VC_EASC_FLUSH_CTRL,
+        INT_VC_ENDC_FLUSH_CTRL,
+        INT_PC_NXC_REGS_FLUSH_CTRL
+    };
+
+    //Start the scrub operation in all caches
+    for (uint32_t i = 0; i < 4; i++)
+    {
+        // (flush_poll address) = (flush_ctrl address) + 1
+        fapi2::putScom(i_target, l_cache_ctrl_addrs[i] + 1, c_flush_poll_cmd);
+
+        for (uint32_t j = 0; j < C_NUM_TRIES_QUIESCE_STATE; j++)
+        {
+            FAPI_TRY(fapi2::delay(C_INTP_DELAY_NS, C_INTP_DELAY_CYCLES));
+            FAPI_TRY(fapi2::getScom(i_target, l_cache_ctrl_addrs[i], l_scrub_trig_data));
+
+            if (!l_scrub_trig_data.getBit<0>())
+            {
+                break;
+            }
+        }
+
+        FAPI_ASSERT(!l_scrub_trig_data.getBit<0>(),
+                    fapi2::P10_INT_SCRUB_NOT_FINISHED_ERR()
+                    .set_TARGET(i_target)
+                    .set_FLUSH_CTRL_ADDRESS(l_cache_ctrl_addrs[i])
+                    .set_FLUSH_CTRL_DATA(l_scrub_trig_data),
+                    "INT scrub operation still busy");
+    }
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+//---------------------------------------------------------------------------------
+// NOTE: description in header
+//---------------------------------------------------------------------------------
+fapi2::ReturnCode p10_intp_check_quiesce(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    FAPI_DBG("p10_intp_check_quiesce: Entering...");
+    fapi2::buffer<uint64_t> l_data(0);
+
+    //Start the scrub operation in all caches
+    FAPI_TRY(p10_int_scrub_caches(i_target), "Error scrubbing the caches");
+
+    // Read INT_CQ_RST_CTL so that we don't override anything
+    FAPI_TRY(GET_INT_CQ_RST_CTL(i_target, l_data));
+
+    // Set bit in INT_CQ_RST_CTL to request quiesce
+    SET_INT_CQ_RST_CTL_QUIESCE_PB(l_data);
+
+    FAPI_TRY(PUT_INT_CQ_RST_CTL(i_target, l_data));
+
+    // Poll master and slave quiesced via bits in RST_CTL
+    for (uint32_t i = 0; i < C_NUM_TRIES_QUIESCE_STATE; i++)
+    {
+        FAPI_TRY(GET_INT_CQ_RST_CTL(i_target, l_data));
+
+        if (GET_INT_CQ_RST_CTL_MASTER_IDLE(l_data) &&
+            GET_INT_CQ_RST_CTL_SLAVE_IDLE(l_data))
+        {
+            break;
+        }
+
+        FAPI_TRY(fapi2::delay(C_INTP_DELAY_NS, C_INTP_DELAY_CYCLES));
+    }
+
+    FAPI_ASSERT((GET_INT_CQ_RST_CTL_MASTER_IDLE(l_data) &&
+                 GET_INT_CQ_RST_CTL_SLAVE_IDLE(l_data)),
+                fapi2::P10_INTP_QUIESCE_TIMEOUT()
+                .set_TARGET(i_target)
+                .set_RST_CTL_DATA(l_data),
+                "INTP master or slave is not IDLE");
+
+    //Set sync_reset in RST_CTL
+    SET_INT_CQ_RST_CTL_SYNC_RESET(l_data);
+    FAPI_TRY(PUT_INT_CQ_RST_CTL(i_target, l_data));
+
+fapi_try_exit:
+    FAPI_DBG("p10_intp_check_quiesce: Exiting...");
+    return fapi2::current_err;
+}
+
 //--------------------------------------------------------------------------
 //  HWP entry point
 //--------------------------------------------------------------------------
@@ -400,13 +498,12 @@ fapi2::ReturnCode p10_sbe_check_quiesce(
 
     // SBE will check quiesce state for all units on the powerbus on its chip
     // TODO (SW477416): Implement HW Procedure for checking the quiesce state of
-    // PHB, NPU and INTP.
+    // PHB and  NPU.
 
     FAPI_TRY(p10_vas_check_quiesce(i_target), "Error from p10_vas_check_quiesce");
     FAPI_TRY(p10_nx_check_quiesce(i_target), "Error from p10_nx_check_quiesce");
     FAPI_TRY(p10_psihb_check_quiesce(i_target), "Error from p10_psihb_check_quiesce");
-
-    // TODO (SW477416): Implement HW Procedure for checking the quiesce state of INTP.
+    FAPI_TRY(p10_intp_check_quiesce(i_target), "Error from p10_intp_check_quiesce");
 
     //We also need to clean up any active special wakeups, and redirect
     //special wakeups to the SGPE
