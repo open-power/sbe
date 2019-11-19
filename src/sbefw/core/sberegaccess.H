@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -293,10 +293,13 @@ class SbeRegAccess
                 uint64_t iv_fspAttached : 1;
                 uint64_t iv_collectFFDC : 1;
                 uint64_t iv_sendFFDC : 1;
-                uint64_t iv_mbx3DontCare1 : 5;
+                uint64_t iv_mbx3Reserved1 : 5;  // Already occupied bits, not used by SBE
                 uint64_t iv_disableScomFiltering : 1;
                 uint64_t iv_disableInvalidScomAddrCheck : 1;
-                uint64_t iv_mbx3DontCare2 : 19;
+                uint64_t iv_mbx3Reserved2 : 2;  // Already occupied bits, not used by SBE
+                uint64_t iv_hostAsOPAL:1;
+                uint64_t iv_mbx3Unused1 : 12;   // Free bits available for future use.
+                uint64_t iv_mbx3Reserved3 : 4;  // Already occupied bits, not used by SBE
                 uint64_t iv_mbx3Unused : 32;
             };
             uint64_t iv_mbx3;

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -206,10 +206,9 @@ CMD_ARR(
 
     {sbeCollectDumpMpipl,
      SBE_CMD_MPIPL_COLLECT_DUMP,
-     HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
-     SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_DUMPING,
-     // Only allowed State is MPIPL
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_DUMPING,
      }
+
 )
 
 //////////////////////////////////////////////////////////////

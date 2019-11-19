@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -311,9 +311,22 @@ uint32_t sbeCollectDumpMpipl(uint8_t *i_pArg)
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                         SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             ffdc.setRc(fapiRc);
+            rc = fapiRc;
             break;
         }
+
+        //Core and Cache stop Clock
+        SBE_ERROR(SBE_FUNC "Stop clocks for all Core and cache ");
+        fapiRc = stopClockS0();
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+          rc = SBE_SEC_S0_STOP_CLOCK_FAILED;
+          SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock S0 Interface");
+          break;
+        }
+
     }while(0);
+
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread

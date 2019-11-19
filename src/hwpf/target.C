@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -131,6 +131,7 @@ extern fapi2::ReturnCode
         bool l_proc_chip_mem_to_use_set = false;
         fapi2::buffer<uint8_t> l_proc_chip_mem_to_use_attr = 0;
         uint8_t isSpMode = 0;
+        bool isHostOpal = true;
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RISK_LEVEL, FAPI_SYSTEM, l_riskLvl));
         //Getting SCRATCH_REGISTER_8 register value
@@ -239,19 +240,33 @@ extern fapi2::ReturnCode
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, isMpIpl));
 
             l_tempReg.extractToRight<3, 1>(isSpMode);
-            FAPI_DBG("Upating ATTR_IS_SP_MODE based on Scratch_reg3:%d",isSpMode);
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE, l_chipTarget, isSpMode));
+            l_tempReg.extractToRight<15, 1>(isHostOpal);
+            FAPI_INF("isSpMode=%d and isHostOpal=%d ",isSpMode,isHostOpal);
+            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE,l_chipTarget, isSpMode));
             l_tempReg.extractToRight<28, 4>(l_riskLvl);
         }
 
-        //Update the HRMOR value based on system is FSP/BMC based.
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SP_MODE, l_chipTarget, isSpMode));
-        if(!isSpMode && !SBE::isSimicsRunning())
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SP_MODE,l_chipTarget, isSpMode));
+        //If its BMC based system force the HRMOR to be 0xF8000000ull for both
+        //OPAL and PHYP payload
+        if( (isSpMode == false) && !SBE::isSimicsRunning())
         {
-            FAPI_DBG("Set up ATTR_HOSTBOOT_HRMOR_OFFSET in SPless mode");
+            FAPI_INF("FSP Less system HRMOR set as=0x%.8x",HRMOR_FOR_SPLESS_MODE);
             uint64_t hrmor = HRMOR_FOR_SPLESS_MODE;
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
                         FAPI_SYSTEM, hrmor));
+        }
+        //If FSP based system and payload is of the type OPAL then set the HRMOR
+        //as 0xF8000000ull
+        if(( isSpMode == true) && (!SBE::isSimicsRunning()))
+        {
+            if( isHostOpal == true)
+            {
+               FAPI_INF("OPAL based system HRMOR set as=0x%.8x",HRMOR_FOR_SPLESS_MODE);
+               uint64_t tempHRMOR = HRMOR_FOR_SPLESS_MODE;
+               FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
+                        FAPI_SYSTEM,tempHRMOR ));
+            }
         }
 
         if ( l_scratch8Reg.getBit<3>() )
