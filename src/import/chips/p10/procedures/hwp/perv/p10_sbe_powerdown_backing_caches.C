@@ -82,7 +82,8 @@ p10_sbe_powerdown_backing_caches(
     uint8_t l_attr_chip_unit_core_pos = 0;
     uint8_t l_attr_chip_unit_eq_pos = 0;
     fapi2::ATTR_BACKING_CACHES_VEC_Type l_attr_backing_vec = 0;
-    fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > l_eq_mc;
+    auto l_eq_mc =
+        i_proc_target.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_GOOD_EQ);
 
     auto eq_list =
         i_proc_target.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL);
@@ -125,8 +126,6 @@ p10_sbe_powerdown_backing_caches(
     }
 
     //Multicast this QME_FLAGS_STOP11_ENTRY_REQUESTED thru QME_FLAG
-    l_eq_mc = i_proc_target.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
-
     FAPI_TRY(PUT_QME_FLAGS_WO_OR(l_eq_mc, BIT64(QME_FLAGS_STOP11_ENTRY_REQUESTED)));
 
     //Verify backing cache cores are entered stop 11
