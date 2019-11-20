@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -163,6 +163,15 @@ class ReturnCode : public FirstFailureData<ReturnCode>
         inline bool isRC(const uint32_t i_rc) const
         {
             return i_rc == iv_rc;
+        }
+
+        ///
+        /// @brief set the underlying return code to the given value
+        /// @param[in] i_rc the target return code
+        ///
+        inline void setRC(const uint32_t i_rc)
+        {
+            iv_rc = i_rc;
         }
 
 
