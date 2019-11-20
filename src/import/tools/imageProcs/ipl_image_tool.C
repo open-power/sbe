@@ -315,7 +315,7 @@ attrListing(const P9XipItem* i_item, const char* prefix)
     int rc = 0;
     uint64_t data = 0;
     uint32_t i;
-    char name[42];
+    char name[43];
 
     if (i_item->iv_address == 0)
     {
@@ -338,7 +338,7 @@ attrListing(const P9XipItem* i_item, const char* prefix)
         }
         else
         {
-            strncpy(name, i_item->iv_id, sizeof(name));
+            strncpy(name, i_item->iv_id, (sizeof(name) - 1));
         }
 
         printf("%s%-42s | %s | ", prefix, name,
