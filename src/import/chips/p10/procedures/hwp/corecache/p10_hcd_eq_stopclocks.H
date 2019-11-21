@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/corecache/p10_hcd_core_stopclocks.C $ */
+/* $Source: src/import/chips/p10/procedures/hwp/corecache/p10_hcd_eq_stopclocks.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -25,73 +25,42 @@
 
 
 
-///
-/// @file  p10_hcd_core_stopclocks.C
-/// @brief
-///
-
-
-// *HWP HWP Owner          : David Du         <daviddu@us.ibm.com>
-// *HWP Backup HWP Owner   : Greg Still       <stillgs@us.ibm.com>
-// *HWP FW Owner           : Prem Shanker Jha <premjha2@in.ibm.com>
-// *HWP Team               : PM
-// *HWP Consumed by        : SBE:QME
-// *HWP Level              : 2
-
+#ifndef _P10_HCD_EQ_STOPCLOCKS_H_
+#define _P10_HCD_EQ_STOPCLOCKS_H_
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-
-#include "p10_hcd_core_stopclocks.H"
-#include "p10_hcd_corecache_clock_control.H"
-#include "p10_hcd_common.H"
-
-#ifdef __PPE_QME
-    #include "p10_scom_eq.H"
-    #include "p10_ppe_c.H"
-    using namespace scomt::eq;
-    using namespace scomt::ppe_c;
-#else
-    #include "p10_scom_eq.H"
-    #include "p10_scom_c.H"
-    using namespace scomt::eq;
-    using namespace scomt::c;
-#endif
-
+#include <fapi2.H>
 
 //------------------------------------------------------------------------------
-// Constant Definitions
+// Structure definitions
 //------------------------------------------------------------------------------
 
+/// function pointer typedef definition for HWP call support
+typedef fapi2::ReturnCode (*p10_hcd_eq_stopclocks_FP_t) (
+    const fapi2::Target < fapi2::TARGET_TYPE_EQ |
+    fapi2::TARGET_TYPE_MULTICAST,
+    fapi2::MULTICAST_AND > &);
 
 //------------------------------------------------------------------------------
-// Procedure: p10_hcd_core_stopclocks
+// Function prototypes
 //------------------------------------------------------------------------------
 
-fapi2::ReturnCode
-p10_hcd_core_stopclocks(
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_OR > & i_target)
+extern "C"
 {
-    fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
-        i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-    uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
-    fapi2::buffer<uint64_t> l_scomData = 0;
 
-    FAPI_INF(">>p10_hcd_core_stopclocks");
+///
+/// @brief
+///
+/// @param[in] i_target       Reference to fapi2::TARGET_TYPE_CORE|fapi2::TARGET_TYPE_MULTICAST
+/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
+///
+    fapi2::ReturnCode p10_hcd_eq_stopclocks(
+        const fapi2::Target < fapi2::TARGET_TYPE_EQ |
+        fapi2::TARGET_TYPE_MULTICAST,
+        fapi2::MULTICAST_AND > & i_target);
 
-    FAPI_DBG("Disable ECL2 Regional PSCOMs via CPLT_CTRL3[5-8:ECL2_REGIONS]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );
+} // extern "C"
 
-    FAPI_DBG("Enable ECL2 Regional Fences via CPLT_CTRL1[5-8:ECL2_FENCES]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_OR,  SCOM_LOAD32H(l_regions) ) );
-
-    FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_STOP ) );
-
-fapi_try_exit:
-
-    FAPI_INF("<<p10_hcd_core_stopclocks");
-
-    return fapi2::current_err;
-
-}
+#endif // _P10_HCD_EQ_STOPCLOCKS_H_

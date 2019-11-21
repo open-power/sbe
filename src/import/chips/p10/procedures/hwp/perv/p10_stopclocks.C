@@ -43,6 +43,7 @@
 #include <p10_tp_stopclocks.H>
 #include <p10_hcd_core_stopclocks.H>
 #include <p10_hcd_cache_stopclocks.H>
+#include <p10_hcd_eq_stopclocks.H>
 #include <p10_common_stopclocks.H>
 #include <p10_hcd_common.H>
 #include <multicast_group_defs.H>
@@ -61,6 +62,7 @@
 //              i_flags.stop_vitl_clks        True if PERV VITL clocks should be stopped, else false
 //              i_flags.stop_cache_clks       True if CACHE chiplet clocks should be stopped, else false
 //              i_flags.stop_core_clks        True if CORE chiplet clocks should be stopped, else false
+//              i_flags.stop_eq_clks          True if EQ chiplet clocks should be stopped, else false
 // returns: FAPI_RC_SUCCESS if operation was successful, else error
 //------------------------------------------------------------------------------
 
@@ -73,7 +75,7 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
     using namespace scomt;
     using namespace scomt::perv;
 
-    fapi2::ReturnCode l_rc_core, l_rc_cache, l_rc_vitl;
+    fapi2::ReturnCode l_rc_core, l_rc_cache, l_rc_vitl, l_rc_eq;
     fapi2::Target<fapi2::TARGET_TYPE_PERV>      l_target_tp = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
             (fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
 
@@ -102,8 +104,8 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
     FAPI_DBG("\n\ti_stop_tp = %d\n\ti_stop_sbe = %d\n\ti_stop_vitl =  %d\n",
              i_flags.stop_tp_clks, i_flags.stop_sbe_clks, i_flags.stop_vitl_clks);
     FAPI_DBG("p10_stopclocks : Input QUAD arguments received are \n\t"
-             "i_stop_cache = %d\n\ti_stop_core = %d\n ",
-             i_flags.stop_cache_clks, i_flags.stop_core_clks);
+             "i_stop_cache = %d\n\ti_stop_core = %d\n\ti_stop_eq = %d ",
+             i_flags.stop_cache_clks, i_flags.stop_core_clks, i_flags.stop_eq_clks);
 
     FAPI_DBG("p10_stopclocks : Check to see if the Perv Vital clocks are OFF");
 
@@ -156,7 +158,7 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         if(pcb_is_bypassed)
         {
             if(i_flags.stop_nest_clks || i_flags.stop_pcie_clks || i_flags.stop_mc_clks || i_flags.stop_pau_clks
-               || i_flags.stop_axon_clks || i_flags.stop_cache_clks || i_flags.stop_core_clks)
+               || i_flags.stop_axon_clks || i_flags.stop_cache_clks || i_flags.stop_core_clks || i_flags.stop_eq_clks)
             {
                 FAPI_ERR("p10_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible.");
             }
@@ -206,7 +208,6 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         // Core stopclocks
         if(i_flags.stop_core_clks)
         {
-
             FAPI_INF("p10_stopclocks : Calling p10_hcd_core_stopclocks");
             l_rc_core = p10_hcd_core_stopclocks(core_mc_target);
 
@@ -225,6 +226,18 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
             FAPI_ASSERT_NOEXIT(l_rc_cache == fapi2::FAPI2_RC_SUCCESS,
                                fapi2::HCD_CACHE_STOPCLOCKS_ERR(),
                                "p10_hcd_cache_stopclocks returned error");
+        }
+
+        // EQ stopclocks
+        if(i_flags.stop_eq_clks)
+        {
+            FAPI_INF("p10_stopclocks : Calling p10_hcd_eq_stopclocks.");
+            fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > l_eq_mc_target;
+            l_eq_mc_target =  i_target_chip.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_GOOD_EQ);
+            l_rc_eq = p10_hcd_eq_stopclocks(l_eq_mc_target);
+            FAPI_ASSERT_NOEXIT(l_rc_eq == fapi2::FAPI2_RC_SUCCESS,
+                               fapi2::HCD_EQ_STOPCLOCKS_ERR(),
+                               "p10_hcd_eq_stopclocks returned error");
         }
 
         // Chiplet stopclocks : Nest, Pcie, Mc, Pau, Axon

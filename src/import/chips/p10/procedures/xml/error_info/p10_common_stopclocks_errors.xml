@@ -36,7 +36,7 @@
     <ffdc>EXPECTED_ACK_VALUE</ffdc>
     <ffdc>CBS_CC_STAT</ffdc>
     <ffdc>TIMEOUT</ffdc>
-    <ffdc>DELAY</ffdc> 
+    <ffdc>DELAY</ffdc>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -58,6 +58,13 @@
     <rc>RC_HCD_CACHE_STOPCLOCKS_ERR</rc>
     <description>
       cache_stopclocks returned with error
+    </description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_HCD_EQ_STOPCLOCKS_ERR</rc>
+    <description>
+      eq_stopclocks returned with error
     </description>
   </hwpError>
   <!-- ******************************************************************** -->

@@ -53,6 +53,7 @@ struct p10_stopclocks_flags
     uint32_t stop_vitl_clks       : 1; //True if PERV VITL clocks should be stopped, else false
     uint32_t stop_cache_clks      : 1; //True if CACHE chiplet clocks should be stopped, else false
     uint32_t stop_core_clks       : 1; //True if CORE chiplet clocks should be stopped, else false
+    uint32_t stop_eq_clks         : 1; //True if EQ chiplet clocks should be stopped, else false
 
     // Default constructor - fill default values
     p10_stopclocks_flags()
@@ -67,6 +68,7 @@ struct p10_stopclocks_flags
         stop_vitl_clks = false;
         stop_cache_clks = true;
         stop_core_clks = true;
+        stop_eq_clks = true;
     }
     // Set all the flags to false
     void clearAll()
@@ -81,6 +83,7 @@ struct p10_stopclocks_flags
         stop_vitl_clks = false;
         stop_cache_clks = false;
         stop_core_clks = false;
+        stop_eq_clks = false;
     }
 };
 
@@ -104,6 +107,7 @@ extern "C"
     *            i_flags.stop_vitl_clks        True if PERV VITL clocks should be stopped, else false
     *            i_flags.stop_cache_clks       True if CACHE chiplet clocks should be stopped, else false
     *            i_flags.stop_core_clks        True if CORE chiplet clocks should be stopped, else false
+    *            i_flags.stop_eq_clks          True if EQ chiplet clocks should be stopped, else false
     *
     *
     * @return ReturnCode
