@@ -194,7 +194,7 @@ linker_seeprom:
 	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/$(IN_LINK_SCRIPT) -o $(OUT_LINK_SCRIPT)
 
 ## TODO:: Look into all pre linked info for measurement image
-pre_measure_image: ppe_trace_bin buildInfo linker_measure
+pre_measure_image: measure_xml ppe_trace_bin buildInfo linker_measure
 
 # Build the measurement subdirectories files
 build_measure_image: $(MEASUREMENT_SUBDIRS) $(SBEM_FAPI_SUBDIRS)
@@ -234,10 +234,19 @@ measure_buildtag:
 measure_tracehash:
 	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/$(SBE_MEASUREMENT_STRINGFILE_NAME)
 
+measure_xml: $(M_FAPI_RC)
+
+$(M_FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(HWPERR_SRCDIR)/p10_sbe_spi_cmd_errors.xml
+	$(M_FAPI_TOOLS_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=$(GENFILES_DIR) $(HWPERR_SRCDIR)/p10_sbe_spi_cmd_errors.xml
+
 ### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File 
 add_MeasureLoaderAddr:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out | grep __l1Loader | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out | grep __pk_boot | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin delete .fixed
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin delete .toc
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin delete .fixedtoc
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin delete .strings
 
 ifeq ($(img), seeprom)
 all:
@@ -286,6 +295,7 @@ endif
 
 measurement_branch:
 	$(MAKE) $(OBJDIR)
+	$(MAKE) measure_attribute_parse
 	$(MAKE) pre_measure_image
 	$(MAKE) build_measure_image
 	$(MAKE) output_measure_image
@@ -378,6 +388,15 @@ attrids:
 	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
 
 platattr:
+	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
+
+MEASURE_ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/system_attributes.xml 
+MEASURE_ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/unit_attributes.xml 
+MEASURE_ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/chip_attributes.xml
+
+measure_attribute_parse:
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(MEASURE_ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(MEASURE_ATTRFILES) 
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 # Build the subdirectories
