@@ -63,7 +63,8 @@ enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
     //LFIR_ACTION1_VALUE = 0xFFFFBC2BFC7FFFFF,
     // Setting FIR_ACTION1 reg to all Fs until we get correct values
     LFIR_ACTION1_VALUE = 0xFFFFFFFFFFFFFFFF,
-    FIR_MASK_VALUE = 0x0000000000000000,
+    FIR_MASK_VALUE =  0x0000040041006C00,
+    FIR_MASK_VALUE_SBE =  0x0000040001006C00,
     IPOLL_MASK_VALUE = 0xFC00000000000000,
     TOD_ERROR_ROUTING = 0x9FC02000F0004000,
     TOD_ERROR_MASK = 0x0000000003F00002,
@@ -133,8 +134,16 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_ACTION0, LFIR_ACTION0_VALUE));
     //Setting LOCAL_FIR_ACTION1 register value
     FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_ACTION1, LFIR_ACTION1_VALUE));
+
     //Setting LOCAL_FIR_MASK register value
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_RW, FIR_MASK_VALUE));
+    if (fapi2::is_platform<fapi2::PLAT_SBE>())
+    {
+        FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_RW, FIR_MASK_VALUE_SBE));
+    }
+    else
+    {
+        FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_RW, FIR_MASK_VALUE));
+    }
 
     FAPI_DBG("Unmask RFIR, XFIR Mask");
     // XSTOP_MASK
