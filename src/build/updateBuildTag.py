@@ -42,12 +42,13 @@ def updateBuildTag(argv):
         exit(-1)
 
     # Commandline cmds getting formed here
-    cmd_basic      = xip_tool+" "+image_dir+"/"+seeprom_name+".bin"
-    cmd_build_tag  = cmd_basic+" set build_tag "
-    cmd_build_date = cmd_basic+" set build_date "
-    cmd_build_time = cmd_basic+" set build_time "
-    cmd_build_user = cmd_basic+" set build_user "
-    cmd_build_host = cmd_basic+" set build_host "
+    cmd_basic             = xip_tool+" "+image_dir+"/"+seeprom_name+".bin"
+    cmd_build_tag         = cmd_basic+" set build_tag "
+    cmd_build_date        = cmd_basic+" set build_date "
+    cmd_build_time        = cmd_basic+" set build_time "
+    cmd_build_user        = cmd_basic+" set build_user "
+    cmd_build_host        = cmd_basic+" set build_host "
+    cmd_build_head_commit = cmd_basic+" set build_head_commit "
 
     tag_exist_cmd = "git log | grep \"Release notes for sbe\"| awk '{ print $NF }'"
     proc = subprocess.Popen(tag_exist_cmd, shell=True, stdout=subprocess.PIPE)
@@ -68,10 +69,16 @@ def updateBuildTag(argv):
     proc = subprocess.Popen(cmd_build_time, shell=True, stdout=subprocess.PIPE)
     cmd_temp = "id -un"
     proc = subprocess.Popen(cmd_temp, shell=True, stdout=subprocess.PIPE)
-    cmd_build_user = cmd_build_user+" "+proc.stdout.read() 
+    cmd_build_user = cmd_build_user+" "+proc.stdout.read()
     proc = subprocess.Popen(cmd_build_user, shell=True, stdout=subprocess.PIPE)
     cmd_build_host = cmd_build_host+" "+socket.gethostname()
     proc = subprocess.Popen(cmd_build_host, shell=True, stdout=subprocess.PIPE)
+
+    head_commit_cmd = "git log |grep commit -m1 |awk '{ print $NF }' |awk '{print substr ($0, 0, 7)}'"
+    proc = subprocess.Popen(head_commit_cmd, shell=True, stdout=subprocess.PIPE)
+    head_commit_id = proc.stdout.read()
+    cmd_build_head_commit = cmd_build_head_commit+" "+head_commit_id
+    proc = subprocess.Popen(cmd_build_head_commit, shell=True, stdout=subprocess.PIPE)
 
 updateBuildTag(sys.argv)
 

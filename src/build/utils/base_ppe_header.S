@@ -119,14 +119,17 @@ __header_8_reserved:
         //////////////////////////////////////////////////////////////////////
 
 __build_user:
-        .asciz "unknown        "                         # 16 Characters
+        .asciz "unknown        "                 # 16 Characters
 __build_host:
-        .asciz "unknown                                " # 40 characters
+        .asciz "unknown                        " # 32 characters
+__build_head_commit:
+        .asciz "unknown "                        # 08 characters
 __header_string_reserved:
         .space    8, 0
 
-        .xip_toc build_user, P9_XIP_STRING, __build_user
-        .xip_toc build_host, P9_XIP_STRING, __build_host
+        .xip_toc build_user,        P9_XIP_STRING, __build_user
+        .xip_toc build_host,        P9_XIP_STRING, __build_host
+        .xip_toc build_head_commit, P9_XIP_STRING, __build_head_commit
 
     .endm
 
