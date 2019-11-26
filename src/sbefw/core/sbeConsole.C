@@ -41,6 +41,7 @@ static uint32_t writeReg(uint8_t i_addr,
                   uint8_t i_data)
 {
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+#if 0
     do {
         Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
 
@@ -59,6 +60,7 @@ static uint32_t writeReg(uint8_t i_addr,
             break;
         }
     } while(0);
+#endif
     return rc;
 }
 
@@ -66,6 +68,7 @@ static uint32_t readReg(uint8_t i_addr,
                  uint8_t &o_data)
 {
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+#if 0
     do
     {
         Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
@@ -84,12 +87,14 @@ static uint32_t readReg(uint8_t i_addr,
         }
         data.extract(o_data, 0, 8);
     } while(0);
+#endif
     return rc;
 }
 
 void uartInit(void)
 {
     #define SBE_FUNC "uartInit"
+#if 0
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint8_t lpcConsoleCfg = 0;
     FAPI_ATTR_GET(fapi2::ATTR_LPC_CONSOLE_CNFG,
@@ -151,6 +156,7 @@ void uartInit(void)
         SBE_INFO(SBE_FUNC " UART device initialized.");
         SBE_GLOBAL->sbeUartActive = true;
     } while(0);
+#endif
     #undef SBE_FUNC
 }
 
