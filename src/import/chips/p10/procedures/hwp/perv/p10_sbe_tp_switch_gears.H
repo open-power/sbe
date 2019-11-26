@@ -46,7 +46,6 @@ typedef fapi2::ReturnCode (*p10_sbe_tp_switch_gears_FP_t)(
 /// Read new I2C Bit Rate Divisor setting from mailbox
 /// Adjust I2C bit rate divisor setting in I2CM B mode reg
 /// Send a stop sequence on I2C
-/// Check for magic number
 ///
 /// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
 /// @return  FAPI2_RC_SUCCESS if success, else error code.
@@ -55,8 +54,5 @@ extern "C"
     fapi2::ReturnCode p10_sbe_tp_switch_gears(const
             fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 }
-
-fapi2::ReturnCode p10_sbe_tp_switch_gears_check_magicnumber(
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 #endif

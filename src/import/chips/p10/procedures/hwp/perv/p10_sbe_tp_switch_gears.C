@@ -38,11 +38,8 @@
 #include "p10_scom_perv_7.H"
 #include "p10_scom_perv_b.H"
 
-#define SEEPROM_START 0xFF800000
-
 enum P10_SBE_TP_SWITCH_GEARS_Private_Constants
 {
-    MAGIC_NUMBER = 0x584950205345504D,
     SCAN_RATIO_4TO1 = 0x3
 };
 
@@ -101,12 +98,6 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
         l_data64.insertFromRight< 12, 4 >(0x4);
         FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RW, l_data64));
 
-#ifdef __PPE__
-        FAPI_DBG("read magic number from seeprom, compare value");
-        // To read and check magic number
-        FAPI_TRY(p10_sbe_tp_switch_gears_check_magicnumber(i_target_chip));
-#endif
-
         // adjust scan ratio
         FAPI_DBG("Adjust scan rate to 4:1");
         FAPI_TRY(fapi2::getScom(i_target_chip, proc::TP_TPCHIP_TPC_OPCG_ALIGN, l_opcg_align),
@@ -126,33 +117,6 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
 fapi_try_exit:
     FAPI_INF("p10_sbe_tp_switch_gears: Exiting ...");
 
-    return fapi2::current_err;
-
-}
-
-/// @brief check for magic number
-///
-/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
-/// @return  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode p10_sbe_tp_switch_gears_check_magicnumber(
-    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
-{
-    fapi2::buffer<uint64_t> l_read_reg;
-
-    FAPI_INF("p10_sbe_tp_switch_gears_check_magicnumber: Entering ...");
-
-    // Read SEEPROM start address FF800000 for magic number
-    l_read_reg = *reinterpret_cast<volatile uint64_t*>(SEEPROM_START);
-
-    FAPI_ASSERT(l_read_reg == MAGIC_NUMBER,
-                fapi2::MAGIC_NUMBER_NOT_VALID()
-                .set_SEEPROM_START_ADDR(l_read_reg)
-                .set_MAGIC_NUMBER_VALUE(MAGIC_NUMBER),
-                "ERROR: Magic number not matching");
-
-    FAPI_INF("p10_sbe_tp_switch_gears_check_magicnumber: Exiting ...");
-
-fapi_try_exit:
     return fapi2::current_err;
 
 }

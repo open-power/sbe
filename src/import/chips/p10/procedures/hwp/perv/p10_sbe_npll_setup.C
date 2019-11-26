@@ -45,8 +45,11 @@
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 
+#define SEEPROM_START 0xFF800000
+
 enum P10_SBE_NPLL_SETUP_Private_Constants
 {
+    MAGIC_NUMBER = 0x584950205345504D,
     START_CMD = 0x1,
     REGIONS_PAU_DPLL = 0x0040,
     REGIONS_NEST_DPLL = 0x0020,
@@ -58,6 +61,9 @@ enum P10_SBE_NPLL_SETUP_Private_Constants
     PAU_DPLL_INITIALIZE_MODE = 0xA000000000000000,
     NEST_DPLL_INITIALIZE_MODE = 0xA000000000000000
 };
+
+fapi2::ReturnCode p10_sbe_check_magicnumber(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_settings(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
@@ -306,6 +312,13 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::SLAVE_CONFIG_REG, l_read_reg));
 
+    if (fapi2::is_platform<fapi2::PLAT_SBE>())
+    {
+        FAPI_DBG("read magic number from seeprom, compare value");
+        // To read and check magic number
+        FAPI_TRY(p10_sbe_check_magicnumber(i_target_chip));
+    }
+
     FAPI_INF("p10_sbe_npll_setup: Exiting ...");
 
 fapi_try_exit:
@@ -342,4 +355,31 @@ static fapi2::ReturnCode p10_sbe_npll_setup_sectorbuffer_settings(
 
 fapi_try_exit:
     return fapi2::current_err;
+}
+
+/// @brief check for magic number
+///
+/// @param[in]     i_target_chip   Reference to TARGET_TYPE_PROC_CHIP target
+/// @return  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p10_sbe_check_magicnumber(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    fapi2::buffer<uint64_t> l_read_reg;
+
+    FAPI_INF("p10_sbe_check_magicnumber: Entering ...");
+
+    // Read SEEPROM start address FF800000 for magic number
+    l_read_reg = *reinterpret_cast<volatile uint64_t*>(SEEPROM_START);
+
+    FAPI_ASSERT(l_read_reg == MAGIC_NUMBER,
+                fapi2::MAGIC_NUMBER_NOT_VALID()
+                .set_SEEPROM_START_ADDR(l_read_reg)
+                .set_MAGIC_NUMBER_VALUE(MAGIC_NUMBER),
+                "ERROR: Magic number not matching");
+
+    FAPI_INF("p10_sbe_check_magicnumber: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+
 }

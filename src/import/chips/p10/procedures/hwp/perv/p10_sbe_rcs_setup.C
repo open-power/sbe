@@ -81,6 +81,14 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_REFCLOCK_SELECT, i_target_chip, l_cp_refclck_select),
              "Error from FAPI_ATTR_GET (ATTR_CP_REFCLOCK_SELECT)");
 
+    FAPI_DBG("Set up RCS filter PLL altrefclk selects");
+    FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_RW, l_data64_rc3));
+    l_data64_rc3.writeBit<FSXCOMP_FSXLOG_ROOT_CTRL3_SPARE_PLLCLKSW1>((l_cp_refclck_select ==
+            fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1));
+    l_data64_rc3.writeBit<FSXCOMP_FSXLOG_ROOT_CTRL3_SPARE_PLLCLKSW2>((l_cp_refclck_select ==
+            fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0));
+    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_RW, l_data64_rc3));
+
     if((l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0) ||
        (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1))
     {
