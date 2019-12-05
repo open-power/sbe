@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -290,7 +290,7 @@ static fapi2::ReturnCode p9_sbe_chiplet_pll_setup_function(
     //ERROR_REG = 0xFFFFFFFFFFFFFFFF
     FAPI_TRY(fapi2::putScom(i_target_chiplet, PERV_ERROR_REG, 0xFFFFFFFFFFFFFFFF));
 
-    if (i_unmask)
+    if ((i_bypass == 0) && i_unmask)
     {
         FAPI_DBG(" Unmasking pll unlock error in   Pcb slave config reg");
         FAPI_TRY(fapi2::getScom(i_target_chiplet, PERV_SLAVE_CONFIG_REG, l_data64));
