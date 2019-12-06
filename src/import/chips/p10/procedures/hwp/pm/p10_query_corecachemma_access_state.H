@@ -49,6 +49,7 @@ typedef union scomStatus
 {
     struct
     {
+#ifdef _BIG_ENDIAN
         uint32_t reserved: 5;
         uint32_t ecl20   : 1;
         uint32_t ecl21   : 1;
@@ -65,6 +66,24 @@ typedef union scomStatus
         uint32_t mma2    : 1;
         uint32_t mma3    : 1;
         uint32_t reserved1: 13;
+#else
+        uint32_t reserved1: 13;
+        uint32_t mma3    : 1;
+        uint32_t mma2    : 1;
+        uint32_t mma1    : 1;
+        uint32_t mma0    : 1;
+        uint32_t clkadj  : 1;
+        uint32_t qme     : 1;
+        uint32_t l33     : 1;
+        uint32_t l32     : 1;
+        uint32_t l31     : 1;
+        uint32_t l30     : 1;
+        uint32_t ecl23   : 1;
+        uint32_t ecl22   : 1;
+        uint32_t ecl21   : 1;
+        uint32_t ecl20   : 1;
+        uint32_t reserved: 5;
+#endif
     };
     uint32_t scomState = 0;
 } scomStatus_t;
@@ -73,6 +92,7 @@ typedef union scanStatus
 {
     struct
     {
+#ifdef _BIG_ENDIAN
         uint32_t reserved: 5;
         uint32_t ecl20   : 1;
         uint32_t ecl21   : 1;
@@ -89,6 +109,24 @@ typedef union scanStatus
         uint32_t mma2    : 1;
         uint32_t mma3    : 1;
         uint32_t reserved3: 13;
+#else
+        uint32_t reserved3: 13;
+        uint32_t mma3    : 1;
+        uint32_t mma2    : 1;
+        uint32_t mma1    : 1;
+        uint32_t mma0    : 1;
+        uint32_t reserved2: 1;
+        uint32_t reserved1: 1;
+        uint32_t l33     : 1;
+        uint32_t l32     : 1;
+        uint32_t l31     : 1;
+        uint32_t l30     : 1;
+        uint32_t ecl23   : 1;
+        uint32_t ecl22   : 1;
+        uint32_t ecl21   : 1;
+        uint32_t ecl20   : 1;
+        uint32_t reserved: 5;
+#endif
     };
     uint32_t scanState = 0;
 } scanStatus_t;
@@ -114,7 +152,7 @@ extern "C"
     ///
     fapi2::ReturnCode p10_query_corecachemma_access_state(
         const fapi2::Target < fapi2::TARGET_TYPE_EQ >& i_target,
-        scomStatus_t& o_scomaStateData,
+        scomStatus_t& o_scomStateData,
         scanStatus_t& o_scanStateData);
 } // extern "C"
 
