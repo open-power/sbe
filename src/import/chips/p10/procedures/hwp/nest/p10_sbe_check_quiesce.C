@@ -40,6 +40,7 @@
 #include <p10_sbe_check_quiesce.H>
 #include <p10_scom_proc.H>
 #include <p10_scom_nmmu.H>
+#include <p10_scom_pau.H>
 
 //-----------------------------------------------------------------------------------
 // Constant definitions
@@ -49,12 +50,244 @@ const uint32_t C_NUM_TRIES_QUIESCE_STATE = 10000;
 //These are the delays for the units that need them
 const uint32_t C_DELAY_NS_396      = 396000000 / C_NUM_TRIES_QUIESCE_STATE; //396 ms
 const uint32_t C_DELAY_CYCLES_396 = 792000000 / C_NUM_TRIES_QUIESCE_STATE; //2GHz * 396 ms
+const uint32_t C_PAU_DELAY_NS = 150000 / C_NUM_TRIES_QUIESCE_STATE; //150 microseconds
+const uint32_t C_PAU_DELAY_CYCLES = 300000 / C_NUM_TRIES_QUIESCE_STATE; //2GHz * 150 microseconds
 const uint32_t C_INTP_DELAY_NS = 10000 / C_NUM_TRIES_QUIESCE_STATE; //10 microseconds
 const uint32_t C_INTP_DELAY_CYCLES = 20000 / C_NUM_TRIES_QUIESCE_STATE; //2GHz * 10 microseconds
 
 using namespace scomt;
 using namespace scomt::proc;
 using namespace scomt::nmmu;
+
+//---------------------------------------------------------------------------------
+// NOTE: description in header
+//---------------------------------------------------------------------------------
+fapi2::ReturnCode p10_pau_check_quiesce(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    using namespace scomt::pau;
+
+    FAPI_DBG("p10_pau_check_quiesce: Entering...");
+    fapi2::buffer<uint64_t> l_data(0);
+    uint64_t l_fenced_data = 0;
+
+    const uint32_t c_otl_reset_cmd = 0x3ul;
+    const uint32_t c_otl_reset_status = 0x3ul;
+    const uint32_t c_fence_all_brick_cmd = 0x3ul;
+    const uint32_t c_otl_disabled_status = 0x1ul;
+
+    const uint32_t c_misc_fence_state_clear = 12;
+
+    const uint32_t c_num_brick_per_pau = 2;
+    const uint32_t c_num_gpu_bar_reg_per_brick = 6;
+    const uint32_t c_num_ndt_bar_reg_per_brick = 4;
+    const uint32_t c_num_gen_id_bar_reg_per_pau = 4;
+    const uint32_t c_num_mmio_bar_reg_per_pau = 4;
+    const uint64_t c_pau_0_fence_ctrl_address[c_num_brick_per_pau] =
+    {
+        CS_CTL_MISC_FENCE_CONTROL0,
+        CS_CTL_MISC_FENCE_CONTROL1
+    };
+    const uint64_t c_pau_0_cq_ctrl_status_address[c_num_brick_per_pau] =
+    {
+        CS_CTL_MISC_STATUS1,
+        CS_CTL_MISC_STATUS2
+    };
+    const uint64_t c_pau_0_gpu_bar_address[c_num_brick_per_pau][c_num_gpu_bar_reg_per_brick] =
+    {
+        {
+            CS_SM0_SNP_MISC_GPU0_BAR, CS_SM1_SNP_MISC_GPU0_BAR,
+            CS_SM2_SNP_MISC_GPU0_BAR, CS_SM3_SNP_MISC_GPU0_BAR,
+            CS_CTL_MISC_GPU0_BAR, XSL_MAIN_GPU0_BAR
+        },
+        {
+            CS_SM0_SNP_MISC_GPU1_BAR, CS_SM1_SNP_MISC_GPU1_BAR,
+            CS_SM2_SNP_MISC_GPU1_BAR, CS_SM3_SNP_MISC_GPU1_BAR,
+            CS_CTL_MISC_GPU1_BAR, XSL_MAIN_GPU1_BAR
+        }
+    };
+    const uint64_t c_pau_0_ndt_bar_address[c_num_brick_per_pau][c_num_ndt_bar_reg_per_brick] =
+    {
+        {
+            CS_SM0_SNP_MISC_NDT0_BAR, CS_SM1_SNP_MISC_NDT0_BAR,
+            CS_SM2_SNP_MISC_NDT0_BAR, CS_SM3_SNP_MISC_NDT0_BAR
+        },
+        {
+            CS_SM0_SNP_MISC_NDT1_BAR, CS_SM1_SNP_MISC_NDT1_BAR,
+            CS_SM2_SNP_MISC_NDT1_BAR, CS_SM3_SNP_MISC_NDT1_BAR
+        }
+    };
+    const uint64_t c_pau_0_gen_id_bar_address[c_num_gen_id_bar_reg_per_pau] =
+    {
+        CS_SM0_SNP_MISC_GENID_BAR,
+        CS_SM1_SNP_MISC_GENID_BAR,
+        CS_SM2_SNP_MISC_GENID_BAR,
+        CS_SM3_SNP_MISC_GENID_BAR
+    };
+    const uint64_t c_pau_0_mmio_bar_address[c_num_mmio_bar_reg_per_pau] =
+    {
+        CS_SM0_SNP_MISC_PAUMMIO_BAR,
+        CS_SM1_SNP_MISC_PAUMMIO_BAR,
+        CS_SM2_SNP_MISC_PAUMMIO_BAR,
+        CS_SM3_SNP_MISC_PAUMMIO_BAR
+    };
+
+    // Looping over all powered PAUs
+    for(const auto& l_pau_target :
+        i_target.getChildren<fapi2::TARGET_TYPE_PAU>(fapi2::TARGET_STATE_FUNCTIONAL))
+    {
+        FAPI_INF("Quiescing PAU: 0x%lX", l_pau_target.get());
+
+        // Place both OTLs into reset state
+        for(uint32_t i = 0; i < c_num_brick_per_pau; i++)
+        {
+            // Check whether OTL is enabled or not
+            FAPI_TRY(fapi2::getScom(
+                         l_pau_target,
+                         c_pau_0_cq_ctrl_status_address[i],
+                         l_data));
+            GET_CS_CTL_MISC_STATUS1_BRK0_AM_FENCED(l_data, l_fenced_data);
+
+            if(l_fenced_data == c_otl_disabled_status)
+            {
+                FAPI_INF("The OTL:%d is already disabled, l_fenced_data = %u",
+                         i, l_fenced_data);
+                continue;
+            }
+
+            l_data.flush<0>();
+            //Using brick-0 scom accessor function to setting value for both
+            // bricks
+            SET_CS_CTL_MISC_FENCE_CONTROL0_0_REQUEST_FENCE(
+                c_otl_reset_cmd, l_data);
+            FAPI_TRY(fapi2::putScom(
+                         l_pau_target,
+                         c_pau_0_fence_ctrl_address[i],
+                         l_data));
+
+            for (uint32_t j = 0; j < C_NUM_TRIES_QUIESCE_STATE; j++)
+            {
+                FAPI_TRY(fapi2::getScom(
+                             l_pau_target,
+                             c_pau_0_cq_ctrl_status_address[i],
+                             l_data
+                         ));
+
+                if(i == 0)
+                {
+                    GET_CS_CTL_MISC_STATUS1_BRK0_AM_FENCED(l_data, l_fenced_data);
+                }
+                else
+                {
+                    GET_CS_CTL_MISC_STATUS2_BRK1_AM_FENCED(l_data, l_fenced_data);
+                }
+
+                FAPI_DBG("Brick number:%u, l_fenced_data:%u", i, l_fenced_data);
+
+                if(l_fenced_data == c_otl_reset_status)
+                {
+                    break;
+                }
+
+                FAPI_TRY(fapi2::delay(C_PAU_DELAY_NS, C_PAU_DELAY_CYCLES));
+            }
+
+            FAPI_ASSERT(
+                (l_fenced_data == c_otl_reset_status),
+                fapi2::P10_OTL_NOT_IN_RESET()
+                .set_PROC_TARGET(i_target)
+                .set_PAU_TARGET(l_pau_target)
+                .set_STATUS_ADDR(c_pau_0_cq_ctrl_status_address[i])
+                .set_STATUS_DATA(l_data),
+                "One of the OTLs are not in the reset state");
+        }
+
+        l_data.flush<0>();
+        // Place all bricks into fence state
+        FAPI_TRY(PREP_MISC_FENCE_STATE(l_pau_target));
+        // No scom filed accessors are avialable for these fields
+        l_data.insertFromRight<c_misc_fence_state_clear,
+                               c_num_brick_per_pau>(c_fence_all_brick_cmd);
+        FAPI_TRY(PUT_MISC_FENCE_STATE(l_pau_target, l_data));
+
+        // Clear all interrupt requests
+        l_data.flush<0>();
+        FAPI_TRY(PREP_MISC_REGS_INT_REQ(l_pau_target));
+        // Writing zeros to all bits, since it will not affect reserved fields
+        FAPI_TRY(PUT_MISC_REGS_INT_REQ(l_pau_target, l_data));
+
+        // Disable all PAU BARs
+        for(uint32_t i = 0; i < c_num_brick_per_pau; i++)
+        {
+            for(uint8_t j = 0; j < c_num_gpu_bar_reg_per_brick; j++)
+            {
+                FAPI_TRY(fapi2::getScom(
+                             l_pau_target,
+                             c_pau_0_gpu_bar_address[i][j],
+                             l_data));
+                // Using 0th BAR scom accessor function to setting value for
+                // all registers
+                CLEAR_CS_SM0_SNP_MISC_GPU0_BAR_ENABLE(l_data);
+                FAPI_TRY(fapi2::putScom(
+                             l_pau_target,
+                             c_pau_0_gpu_bar_address[i][j],
+                             l_data));
+            }
+        }
+
+        for(uint32_t i = 0; i < c_num_brick_per_pau; i++)
+        {
+            for(uint8_t j = 0; j < c_num_ndt_bar_reg_per_brick; j++)
+            {
+                FAPI_TRY(fapi2::getScom(
+                             l_pau_target,
+                             c_pau_0_ndt_bar_address[i][j],
+                             l_data));
+                // Using 0th BAR scom accessor function to setting value for
+                // all registers
+                CLEAR_CS_SM0_SNP_MISC_NDT0_BAR_CONFIG_NDT0_BAR_ENABLE(l_data);
+                FAPI_TRY(fapi2::putScom(
+                             l_pau_target,
+                             c_pau_0_ndt_bar_address[i][j],
+                             l_data));
+            }
+        }
+
+        for(uint8_t i = 0; i < c_num_gen_id_bar_reg_per_pau; i++)
+        {
+            FAPI_TRY(fapi2::getScom(
+                         l_pau_target,
+                         c_pau_0_gen_id_bar_address[i],
+                         l_data));
+            // Using 0th BAR scom accessor function to setting value for
+            // all registers
+            CLEAR_CS_SM0_SNP_MISC_GENID_BAR_CONFIG_GENID_BAR_ENABLE(l_data);
+            FAPI_TRY(fapi2::putScom(
+                         l_pau_target,
+                         c_pau_0_gen_id_bar_address[i],
+                         l_data));
+        }
+
+        for(uint8_t i = 0; i < c_num_mmio_bar_reg_per_pau; i++)
+        {
+            FAPI_TRY(fapi2::getScom(
+                         l_pau_target,
+                         c_pau_0_mmio_bar_address[i],
+                         l_data));
+            // Using 0th BAR scom accessor function to setting value for
+            // all registers
+            CLEAR_CS_SM0_SNP_MISC_PAUMMIO_BAR_CONFIG_PAUMMIO_BAR_ENABLE(l_data);
+            FAPI_TRY(fapi2::putScom(
+                         l_pau_target,
+                         c_pau_0_mmio_bar_address[i],
+                         l_data));
+        }
+    }
+
+fapi_try_exit:
+    FAPI_DBG("p10_pau_check_quiesce: Exiting....");
+    return fapi2::current_err;
+}
 
 //---------------------------------------------------------------------------------
 // NOTE: description in header
@@ -498,8 +731,9 @@ fapi2::ReturnCode p10_sbe_check_quiesce(
 
     // SBE will check quiesce state for all units on the powerbus on its chip
     // TODO (SW477416): Implement HW Procedure for checking the quiesce state of
-    // PHB and  NPU.
+    // and PHB.
 
+    FAPI_TRY(p10_pau_check_quiesce(i_target), "Error from p10_pau_check_quiesce");
     FAPI_TRY(p10_vas_check_quiesce(i_target), "Error from p10_vas_check_quiesce");
     FAPI_TRY(p10_nx_check_quiesce(i_target), "Error from p10_nx_check_quiesce");
     FAPI_TRY(p10_psihb_check_quiesce(i_target), "Error from p10_psihb_check_quiesce");
