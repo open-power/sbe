@@ -36,7 +36,6 @@
 #include "p10_scom_perv_b.H"
 #include "p10_scom_perv_e.H"
 #include <multicast_group_defs.H>
-#include <target_filters.H>
 
 enum P10_SBE_CHIPLET_FIR_INIT_Private_Constants
 {
@@ -50,20 +49,9 @@ fapi2::ReturnCode p10_sbe_chiplet_fir_init(const fapi2::Target<fapi2::TARGET_TYP
 
     fapi2::buffer<uint64_t> l_data64;
 
-    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
-            (fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
-
     auto l_mc_all = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
 
     FAPI_DBG("p10_sbe_chiplet_fir_init: Entering ...");
-
-    FAPI_DBG("Clear 'external trigger' bit in Pervasive LFIR");
-    l_data64.flush<1>().clearBit<LOCAL_FIR_IN39>();
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, LOCAL_FIR_WO_AND, l_data64));
-
-    FAPI_DBG("Unmask 'external trigger' bit in Pervasive LFIR");
-    l_data64.flush<1>().clearBit<EPS_FIR_LOCAL_MASK_39>();
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_WO_AND, l_data64));
 
     FAPI_DBG("Set up pervasive LFIRs on all chiplets");
     FAPI_TRY(fapi2::putScom(l_mc_all, EPS_FIR_LOCAL_ACTION1, LFIR_ACTION1_VALUE));

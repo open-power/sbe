@@ -96,13 +96,31 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     {
         uint32_t l_chipletID = targ.getChipletNumber();
 
-        if(l_chipletID >= 0xC && l_chipletID <= 0xF) // bit4..7 = MC0..3 cplts
+        // bit4..7 = MC3..0 cplts
+        if(l_chipletID == 0xC)
         {
-            l_data64.setBit(l_chipletID - 8);
+            l_data64.setBit<7>();
         }
-        else if(l_chipletID >= 0x8 && l_chipletID <= 0x9) // bit16..17 = PCI0..1 cplts
+        else  if(l_chipletID == 0xD)
         {
-            l_data64.setBit(l_chipletID + 8);
+            l_data64.setBit<6>();
+        }
+        else  if(l_chipletID == 0xE)
+        {
+            l_data64.setBit<5>();
+        }
+        else  if(l_chipletID == 0xF)
+        {
+            l_data64.setBit<4>();
+        }
+        // bit16..17 = PCI1..0 cplts
+        else if(l_chipletID == 0x8)
+        {
+            l_data64.setBit<17>();
+        }
+        else if(l_chipletID == 0x9)
+        {
+            l_data64.setBit<16>();
         }
         else // PAU
         {
