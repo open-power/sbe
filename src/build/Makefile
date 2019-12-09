@@ -122,8 +122,11 @@ LLIBS += $(PROJ_LLIBS)
 MEASUREMENT_LIB_DIRS += -L$(OBJDIR)/pkbaselib
 MEASUREMENT_LLIBS += -lpkbase
 
-MEASUREMENT_LIB_DIRS := -L$(OBJDIR)/pk
-MEASUREMENT_LLIBS := -lpk
+MEASUREMENT_LIB_DIRS += -L$(OBJDIR)/pk
+MEASUREMENT_LLIBS += -lpk
+
+MEASUREMENT_LIB_DIRS += -L$(OBJDIR)/fapi2
+MEASUREMENT_LLIBS += -lfapi2
 
 MEASUREMENT_SUBDIRS += $(MEASUREMENT_PROJ_SUBDIRS)
 MEASUREMENT_LIB_DIRS += $(MEASUREMENT_PROJ_LIB_DIRS)
@@ -193,8 +196,10 @@ linker_seeprom:
 pre_measure_image: ppe_trace_bin buildInfo linker_measure
 
 # Build the measurement subdirectories files
-build_measure_image:
-	$(C1)$(MAKE) -I $(INCLUDES) -C $(MEASUREMENT_SUBDIRS) -f Makefile
+build_measure_image: $(MEASUREMENT_SUBDIRS)
+
+$(MEASUREMENT_SUBDIRS): ppe_trace_bin
+	$(C1)$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
 
 linker_measure:
 	@mkdir -p $(OBJDIR)/build
