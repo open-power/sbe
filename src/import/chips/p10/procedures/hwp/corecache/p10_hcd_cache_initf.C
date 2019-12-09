@@ -69,6 +69,11 @@ p10_hcd_cache_initf(
     FAPI_TRY(fapi2::putRing(i_target, ec_l3_fure),
              "Error from putRing (ec_l3_fure)");
 
+    FAPI_DBG("Scan ec_l3_mode ring");
+    FAPI_TRY(fapi2::putRing(i_target, ec_l3_mode),
+             "Error from putRing (ec_l3_mode)");
+
+
 fapi_try_exit:
 
 #else

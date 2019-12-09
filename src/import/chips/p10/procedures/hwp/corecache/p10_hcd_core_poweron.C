@@ -44,6 +44,7 @@
 //------------------------------------------------------------------------------
 
 #include "p10_hcd_core_poweron.H"
+#include "p10_hcd_mma_poweron.H"
 #include "p10_hcd_corecache_power_control.H"
 #include "p10_hcd_common.H"
 
@@ -89,6 +90,12 @@ p10_hcd_core_poweron(
 
     // VDD on first, VCS on after
     FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_CL2_ON ) );
+
+#ifndef __PPE_QME
+
+    FAPI_TRY( p10_hcd_mma_poweron( i_target ) );
+
+#endif
 
 fapi_try_exit:
 

@@ -107,27 +107,19 @@ p10_hcd_core_repair_initf(
         FAPI_TRY(fapi2::putRing(l_core, ec_cl2_repr,
                                 fapi2::RING_MODE_HEADER_CHECK),
                  "Error from putRing (ec_cl2_repr)");
+
+#ifndef __PPE_QME
+
+        FAPI_DBG("Scan ec_mma_repr ring");
+        FAPI_TRY(fapi2::putRing(l_core, ec_mma_repr,
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ec_mma_repr)");
+
+#endif
+
     }
 
 fapi_try_exit:
-
-#else
-
-#ifdef __PPE_QME
-
-#include "iota_panic_codes.h"
-
-    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
-    fapi2::ATTR_QME_BROADSIDE_SCAN_Type         l_attr_qme_broadside_scan;
-    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_QME_BROADSIDE_SCAN, l_sys, l_attr_qme_broadside_scan ) );
-
-    if (l_attr_qme_broadside_scan)
-    {
-        FAPI_INF("QME TRAP FOR BROADSIDE SCAN");
-        IOTA_PANIC(CORECACHE_BROADSIDE_SCAN);
-    }
-
-#endif
 
 #endif
 

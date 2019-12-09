@@ -78,21 +78,11 @@ p10_hcd_core_reset(
 {
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-
     uint32_t                l_regions  = i_target.getCoreSelect();
-    fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
+    fapi2::buffer<uint64_t> l_scomData = 0;
 
     FAPI_INF(">>p10_hcd_core_reset");
-
-    FAPI_DBG("Assert ECL2 DC Bypass via NET_CTRL1[4-7]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(7)) ) ) );
-
-    FAPI_DBG("Assert ECL2 PDLY Bypass via NET_CTRL1[12-15]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(15)) ) ) );
-
-    FAPI_DBG("Assert ECL2 DCC Reset via NET_CTRL1[20-23]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, NET_CTRL1_RW_WOR, SCOM_LOAD32H( (l_regions << SHIFT32(23)) ) ) );
 
     FAPI_DBG("Switch ECL2 Glsmux to DPLL via CPMS_CGCSR[11:CL2_CLKGLM_SEL]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(11) ) );
@@ -109,6 +99,12 @@ p10_hcd_core_reset(
     FAPI_TRY( HCD_PUTMMIO_C( i_target, MMIO_LOWADDR(CPMS_CL2_PFETCNTL_WO_OR), MMIO_1BIT( MMIO_LOWBIT(63) ) ) );
 
     //TODO SCAN ratio?
+
+    FAPI_DBG("Exit Flush (set flushmode inhibit) via CPLT_CTRL4[REGIONS]");
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL4_WO_OR, SCOM_LOAD32H(l_regions) ) );
+
+    FAPI_DBG("Enable Alignment via CPLT_CTRL0[3:CTRL_CC_FORCE_ALIGN]");
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL0_WO_OR, SCOM_1BIT(3) ) );
 
 #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
 
@@ -129,18 +125,43 @@ p10_hcd_core_reset(
 
         for(l_loop = 0; l_loop < P10_HCD_SCAN0_GPTR_REPEAT; l_loop++)
             FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                                   l_regions,
+                                                   (l_regions << SHIFT16(5)),
                                                    HCD_SCAN0_TYPE_GPTR_REPR_TIME));
 
         FAPI_DBG("Scan0 region:ecl2 type:all_but_gptr_repr_time rings");
 
         for(l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
             FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                                   l_regions,
+                                                   (l_regions << SHIFT16(5)),
                                                    HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
+
+#ifndef __PPE_QME
+
+        FAPI_DBG("Scan0 region:mma type:gptr_repr_time rings");
+
+        for(l_loop = 0; l_loop < P10_HCD_SCAN0_GPTR_REPEAT; l_loop++)
+            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
+                                                   (l_regions << SHIFT16(15)),
+                                                   HCD_SCAN0_TYPE_GPTR_REPR_TIME));
+
+        FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
+
+        for(l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
+            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
+                                                   (l_regions << SHIFT16(15)),
+                                                   HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
+
+#endif
+
     }
 
 #endif
+
+    FAPI_DBG("Disable Alignment via CPLT_CTRL0[3:CTRL_CC_FORCE_ALIGN]");
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL0_WO_CLEAR, SCOM_1BIT(3) ) );
+
+    FAPI_DBG("Enter Flush (clear flushmode inhibit) via CPLT_CTRL4[REGIONS]");
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL4_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );
 
 fapi_try_exit:
 

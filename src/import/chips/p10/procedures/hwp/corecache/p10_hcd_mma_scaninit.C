@@ -78,5 +78,83 @@ fapi2::ReturnCode
 p10_hcd_mma_scaninit(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target)
 {
+    /*#if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
+        fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
+            i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+        fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
+            eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
+        uint32_t l_regions  = i_target.getCoreSelect();
+        uint32_t l_loop;
+    #endif
+    */
+    FAPI_INF(">>p10_hcd_mma_scaninit");
+    /*
+    #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
+
+        FAPI_DBG("Scan0 region:mma type:gptr_repr_time rings");
+
+        for(l_loop = 0; l_loop < P10_HCD_SCAN0_GPTR_REPEAT; l_loop++)
+            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
+                                                   (l_regions << SHIFT16(15)),
+                                                   HCD_SCAN0_TYPE_GPTR_REPR_TIME));
+
+        FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
+
+        for(l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
+            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
+                                                   (l_regions << SHIFT16(15)),
+                                                   HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
+
+    #endif
+
+    #ifndef P10_HCD_CORECACHE_SKIP_INITF
+
+        FAPI_DBG("Scan ec_mma_gptr ring");
+        FAPI_TRY(fapi2::putRing(i_target, ec_mma_gptr,
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ec_mma_gptr)");
+
+        FAPI_DBG("Scan ec_mma_time ring");
+        FAPI_TRY(fapi2::putRing(i_target, ec_mma_time,
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ec_mma_time)");
+
+        FAPI_DBG("Scan ec_mma_fure ring");
+        FAPI_TRY(fapi2::putRing(i_target, ec_mma_fure,
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ec_mma_fure)");
+
+        FAPI_DBG("Scan ec_mma_repr ring");
+        FAPI_TRY(fapi2::putRing(l_core, ec_mma_repr,
+                                fapi2::RING_MODE_HEADER_CHECK),
+                 "Error from putRing (ec_mma_repr)");
+
+    #endif
+
+    #ifndef P10_HCD_CORECACHE_SKIP_ARRAY
+
+        FAPI_DBG("Arrayinit selected MMA regions");
+
+        FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
+                 (l_regions << SHIFT16(15)),
+                 LOOP_COUNTER,
+                 START_ABIST_MATCH_VALUE));
+
+    #endif
+
+    #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
+
+        FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
+
+        for(l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
+            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
+                                                   (l_regions << SHIFT16(15)),
+                                                   HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
+
+    fapi_try_exit:
+
+    #endif
+    */
+    FAPI_INF("<<p10_hcd_mma_scaninit");
     return fapi2::current_err;
 }

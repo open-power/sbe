@@ -54,7 +54,7 @@
     using namespace scomt::eq;
 #endif
 
-#if !defined P10_HCD_CORECACHE_SKIP_ARRAY && !defined P10_HCD_CORECACHE_SKIP_FLUSH
+#if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
     #include <p10_perv_sbe_cmn.H>
 #endif
 
@@ -65,8 +65,6 @@
 enum P10_HCD_CORE_ARRAYINIT_CONSTANTS
 {
     LOOP_COUNTER = 0x0000000000042FFF,
-    SELECT_SRAM = 0x1,
-    SELECT_EDRAM = 0x0,
     START_ABIST_MATCH_VALUE = 0x0000000F00000000
 };
 
@@ -81,7 +79,7 @@ p10_hcd_core_arrayinit(
 {
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-#if !defined P10_HCD_CORECACHE_SKIP_ARRAY && !defined P10_HCD_CORECACHE_SKIP_FLUSH
+#if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
         eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect();
@@ -96,12 +94,22 @@ p10_hcd_core_arrayinit(
 
 #ifndef P10_HCD_CORECACHE_SKIP_ARRAY
 
-    FAPI_DBG("Arrayinit all regions except vital/DPLL");
+    FAPI_DBG("Arrayinit selected ECL2 +MMA regions");
     FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
-             l_regions,
+             ((l_regions << SHIFT16(5)) | (l_regions << SHIFT16(15))),
              LOOP_COUNTER,
              START_ABIST_MATCH_VALUE));
 
+    /*#ifndef __PPE_QME
+
+        FAPI_DBG("Arrayinit selected MMA regions");
+        FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
+                 (l_regions << SHIFT16(15)),
+                 LOOP_COUNTER,
+                 START_ABIST_MATCH_VALUE));
+
+    #endif
+    */
 #endif
 
 #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
@@ -117,8 +125,19 @@ p10_hcd_core_arrayinit(
 
     for(uint32_t l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
         FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                               l_regions,
+                                               (l_regions << SHIFT16(5)),
                                                HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
+
+#ifndef __PPE_QME
+
+    FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
+
+    for(uint32_t l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
+        FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
+                                               (l_regions << SHIFT16(15)),
+                                               HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
+
+#endif
 
 #endif
 

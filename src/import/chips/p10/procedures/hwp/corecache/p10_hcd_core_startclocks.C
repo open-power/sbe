@@ -44,6 +44,7 @@
 //------------------------------------------------------------------------------
 
 #include "p10_hcd_core_startclocks.H"
+#include "p10_hcd_mma_startclocks.H"
 #include "p10_hcd_corecache_clock_control.H"
 #include "p10_hcd_common.H"
 
@@ -81,6 +82,7 @@ p10_hcd_core_startclocks(
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
+    uint32_t                l_scsr     = 0;
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
 #ifndef EQ_SKEW_ADJUST_DISABLE
@@ -137,13 +139,33 @@ p10_hcd_core_startclocks(
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
 
     // Undo potential quiesces before last clock off, no-op for IPL
+    l_scsr = ( BIT32(4) | BITS32(7, 2) | BIT32(22) );
+
+#ifndef __PPE_QME
+    // Only Drop QME_SCSR_AUTO_SPECIAL_WAKEUP_DISABLE for Istep4
+    l_scsr |= BIT32(20);
+#endif
+
     FAPI_DBG("Drop HBUS_DISABLE/L2RCMD_INTF_QUIESCE/NCU_TLBIE_QUIESCE/AUTO_PMSR_SHIFT_DIS via PCR_SCSR[4,7,8,22]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( ( BIT32(4) | BITS32(7, 2) | BIT32(22) ) ) ) );
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( l_scsr ) ) );
+
+#ifndef __PPE_QME
+    FAPI_DBG("Assert special wakeup on hostboot core via SPWKUP_OTR[0]");
+    FAPI_TRY( HCD_PUTSCOM_C( i_target, QME_SPWU_OTR, SCOM_1BIT(0) ) );
+
+    FAPI_DBG("Set core as ready to run in STOP history register");
+    FAPI_TRY( HCD_PUTSCOM_C( i_target, QME_SSH_SRC, 0 ) );
+#endif
+
+#ifndef __PPE_QME
+
+    FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
+
+#endif
 
 fapi_try_exit:
 
     FAPI_INF("<<p10_hcd_core_startclocks");
 
     return fapi2::current_err;
-
 }

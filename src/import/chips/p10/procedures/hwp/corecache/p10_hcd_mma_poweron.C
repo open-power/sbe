@@ -70,6 +70,26 @@ fapi2::ReturnCode
 p10_hcd_mma_poweron(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target)
 {
-    return fapi2::current_err;
+    fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
+        i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+    uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(18);
+    fapi2::buffer<uint64_t> l_scomData = 0;
+//    fapi2::buffer<buffer_t> l_mmioData = 0;
 
+    FAPI_INF(">>p10_hcd_mma_poweron");
+
+//    FAPI_DBG("Assert MMA Glsmux Reset via CPMS_CGCSR[4:L3_CLKGLM_ASYNC_RESET]");
+//    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(4) ) );
+
+    FAPI_DBG("Enable MMA Regional Fences via CPLT_CTRL1[16-19:MMA_FENCES] to regions 0x%08X", l_regions);
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_OR, SCOM_LOAD32H(l_regions) ) );
+
+    // VDD on first, VCS on after
+    FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_MMA_ON ) );
+
+fapi_try_exit:
+
+    FAPI_INF("<<p10_hcd_mma_poweron");
+
+    return fapi2::current_err;
 }
