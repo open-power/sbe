@@ -90,8 +90,7 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep3(const fapi2::Target<fap
 
     FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_gptr_time_initf, i_target));
     FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_repr_initf, i_target));
-    // FIXME: skip arrayinit for now - it's broken
-//    FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_arrayinit, i_target));
+    FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_arrayinit, i_target));
     FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_initf, i_target));
 
     FAPI_TRY(sim::init_via_dials(sim::ISTEP3, true));
