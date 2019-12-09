@@ -42,9 +42,9 @@ namespace ppe_eq
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint32_t QME_PBCR_RW = 0xc0000440ull;
-static const uint32_t QME_PBCR_WO_CLEAR = 0xc0000470ull;
-static const uint32_t QME_PBCR_WO_OR = 0xc0000460ull;
+static const uint32_t QME_PBCR = 0xc0000440ull;
+static const uint32_t QME_PBCR_PPE1 = 0xc0000470ull;
+static const uint32_t QME_PBCR_PPE2 = 0xc0000460ull;
 
 static const uint32_t QME_PBCR_DISABLE_LN_RD = 0;
 static const uint32_t QME_PBCR_DISABLE_NN_RN_RD = 1;
@@ -66,6 +66,7 @@ static const uint32_t QME_PBCR_HANG_POLL_MAX_CNT_LEN = 4;
 static const uint32_t QME_PBCR_HANG_DATA_MAX_CNT = 20;
 static const uint32_t QME_PBCR_HANG_DATA_MAX_CNT_LEN = 4;
 static const uint32_t QME_PBCR_DISABLE_PB_CACHE = 24;
+static const uint32_t QME_PBCR_INVALIDATE_PB_CACHE = 25;
 // ppe_eq/reg00015.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

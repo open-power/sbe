@@ -82,13 +82,18 @@ static const uint32_t QME_PPEDBG_TRACE_MODE_SEL = 10;
 static const uint32_t QME_PPEDBG_TRACE_MODE_SEL_LEN = 2;
 static const uint32_t QME_PPEDBG_EN_MARK_TRACE = 12;
 static const uint32_t QME_PPEDBG_EN_EE_TRACE = 13;
-static const uint32_t QME_PPEDBG_RESERVED14_15 = 14;
-static const uint32_t QME_PPEDBG_RESERVED14_15_LEN = 2;
+static const uint32_t QME_PPEDBG_TRACE_LOWER_SEL1 = 14;
+static const uint32_t QME_PPEDBG_TRACE_LOWER_SEL1_LEN = 2;
 static const uint32_t QME_PPEDBG_FIR_TRIGGER = 16;
 static const uint32_t QME_PPEDBG_MIB_GPIO = 17;
 static const uint32_t QME_PPEDBG_MIB_GPIO_LEN = 3;
 static const uint32_t QME_PPEDBG_TRACE_DATA_SEL = 20;
 static const uint32_t QME_PPEDBG_TRACE_DATA_SEL_LEN = 4;
+static const uint32_t QME_PPEDBG_QHTM_TRACE_SEL = 25;
+static const uint32_t QME_PPEDBG_TRACE_EXT_SEL0 = 26;
+static const uint32_t QME_PPEDBG_TRACE_MODE_SEL1 = 27;
+static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1 = 28;
+static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1_LEN = 4;
 // ppe_eq/reg00012.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

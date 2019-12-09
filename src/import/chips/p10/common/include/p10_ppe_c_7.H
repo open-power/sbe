@@ -116,6 +116,7 @@ static const uint32_t QME_SCSR_NCU_PURGE_DONE = 41;
 static const uint32_t QME_SCSR_CHTM_PURGE_DONE = 43;
 static const uint32_t QME_SCSR_PB_PURGE_DONE = 44;
 static const uint32_t QME_SCSR_CORE_QUIESCED = 45;
+static const uint32_t QME_SCSR_PC_INTR_PENDING = 46;
 static const uint32_t QME_SCSR_STOP_SHIFT_ACTIVE = 47;
 static const uint32_t QME_SCSR_SPECIAL_WKUP_DONE = 48;
 static const uint32_t QME_SCSR_SPARE_IN = 49;

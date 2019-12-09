@@ -119,10 +119,10 @@ static const uint32_t QME_PLSR_3_T3_LEN = 4;
 
 static const uint32_t QME_QHB = 0xc0000800ull;
 
-static const uint32_t QME_QHB_COUNT = 0;
-static const uint32_t QME_QHB_COUNT_LEN = 16;
-static const uint32_t QME_QHB_ENABLE = 16;
-static const uint32_t QME_QHB_LOSS_THROTTLE_ENABLE = 17;
+static const uint32_t QME_QHB_HEARTBEAT_COUNT = 0;
+static const uint32_t QME_QHB_HEARTBEAT_COUNT_LEN = 16;
+static const uint32_t QME_QHB_HEARTBEAT_ENABLE = 16;
+static const uint32_t QME_QHB_SPARE = 17;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
