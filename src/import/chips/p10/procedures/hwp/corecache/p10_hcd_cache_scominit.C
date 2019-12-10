@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -110,6 +110,7 @@ p10_hcd_cache_scominit_qme(
     using namespace scomt::c;
     using namespace scomt::proc;
 
+    FAPI_INF(">>>p10_hcd_cache_scominit_qme");
     fapi2::buffer<uint64_t> l_data;
     fapi2::ATTR_PROC_FABRIC_SL_DOMAIN_Type l_attr_sl_domain;
     fapi2::ATTR_PROC_CHIP_LCO_TARGETS_Type l_attr_chip_lco_targets;
@@ -120,6 +121,7 @@ p10_hcd_cache_scominit_qme(
     fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
           fapi2::MULTICAST_OR > c_mc_or = i_target;
 
+    FAPI_INF("p10_hcd_cache_scominit_qme: init the L3 and NCU topology tables");
     std::vector<uint64_t> l_topo_scoms;
     // Get the register values for the SCOMs to setup the topology id table
     FAPI_TRY(topo::get_topology_table_scoms(l_chip, l_topo_scoms));
@@ -128,26 +130,29 @@ p10_hcd_cache_scominit_qme(
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SL_DOMAIN, l_chip, l_attr_sl_domain));
 
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_CHIP_LCO_TARGETS, l_chip, l_attr_chip_lco_targets));
+
     if (l_attr_sl_domain == fapi2::ENUM_ATTR_PROC_FABRIC_SL_DOMAIN_CHIP)
     {
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_CHIP_LCO_TARGETS, l_chip, l_attr_chip_lco_targets));
+        FAPI_INF("p10_hcd_cache_scominit_qme: SL DOMAIN CHIP");
     }
     else
     {
+        FAPI_INF("p10_hcd_cache_scominit_qme: not SL DOMAIN CHIP");
         // Read which EQ this QME is on
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_eq, l_attr_chip_unit_pos));
+        FAPI_INF("p10_hcd_cache_scominit_qme: QME = %d", l_attr_chip_unit_pos);
 
         // Chip is split into hemispheres by even/odd EQ
         size_t hemisphere = l_attr_chip_unit_pos % 2;
 
-        // Read Core Configuration
-        FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_OCB_CCSR_RW(l_chip, l_data));
-
         // l_attr_chip_lco_targets = hemisphere caches
-        l_attr_chip_lco_targets = (l_data >> 32) & (0xF0F0F0F0 >> (hemisphere << 2));
+        l_attr_chip_lco_targets = l_attr_chip_lco_targets & (0xF0F0F0F0 >> (hemisphere << 2));
     }
 
     unsigned num_caches = __builtin_popcount(l_attr_chip_lco_targets);
+    FAPI_INF("p10_hcd_cache_scominit_qme: num_caches = %d, lco_targets = %X",
+             num_caches, l_attr_chip_lco_targets );
 
     // No point in setting up LCO with only one or two caches
     // (note: for two caches LCO requires a mode bit which is scan-only)
@@ -175,6 +180,7 @@ p10_hcd_cache_scominit_qme(
     FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c_mc_or, l_data));
 
 fapi_try_exit:
+    FAPI_INF("<<<p10_hcd_cache_scominit_qme");
     return fapi2::current_err;
 }
 #else
