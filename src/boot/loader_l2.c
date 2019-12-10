@@ -40,6 +40,30 @@ int32_t loadSection( P9XipSection * i_section, uint64_t *i_destAddr )
     return rc;
 }
 
+// Copy the section to destination address in pibmem
+// This is used to copy the data section which is not compressed
+int32_t
+copySection(P9XipSection * i_section, uint64_t *i_destAddr )
+{
+    uint32_t rc = 0, i= 0;
+    uint32_t dsize = i_section->iv_size;
+    uint64_t *srcAddr;
+
+    //dsize should be 8byte aligned
+    //assert(!(dsize & 0x7));
+
+    //Source address in the seeprom
+    srcAddr = (uint64_t*)(i_section->iv_offset + g_headerAddr);
+    while(i < dsize)
+    {
+        *i_destAddr = *srcAddr;
+        i_destAddr++;
+        srcAddr++;
+        i += sizeof(uint64_t);
+    }
+    return rc;
+}
+
 // Function to load base image into PIBMEM
 int32_t l2_loader()
 {
@@ -50,6 +74,15 @@ int32_t l2_loader()
     uint64_t *pibMemAddr  = (uint64_t *)g_pibMemAddr;
 
     loadSection(&(hdr->iv_section[P9_XIP_SECTION_SBE_BASE]), pibMemAddr);
+
+    //TODO: This code needs to be changed when the data section is compressed.
+    //Copy the data section to the pibmem.
+    copySection(&(hdr->iv_section[P9_XIP_SECTION_SBE_DATA]),
+                        (uint64_t *)((uint32_t)hdr->iv_dataAddr));
+    //TODO: Once compression is done, remove the above code and enable the below code
+    //loadSection(&(hdr->iv_section[P9_XIP_SECTION_SBE_DATA]),
+    //                    (uint64_t *)((uint32_t)hdr->iv_dataAddr));
+
     // Set the IVPR register. This is required so that interrupt vector table
     // points to pk interfaces.
     uint64_t data = (uint64_t)(SBE_BASE_ORIGIN) << 32;

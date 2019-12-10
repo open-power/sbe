@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -149,6 +149,7 @@ SECTIONS
          _strings_origin = .; _strings_offset = . - _origin; KEEP(*(.strings));
     } > MEMORY_REGION
     _strings_size = . - _strings_origin;
+    . = ALIGN(8);
 
     //No need to calculate seeprom size, if pibmem only image is being built
     #ifndef PIBMEM_ONLY_IMAGE
@@ -186,6 +187,14 @@ SECTIONS
              } > pibmem
 
     . = ALIGN(8);
+    // End of base section, which contains the Text Section
+    _base_size = . - _base_origin;
+
+
+    // Start of the data section
+    _data_origin = .;
+    _data_offset = . - _data_origin + _seeprom_size + _base_size;
+
     _RODATA_SECTION_BASE = .;
 
     // SDA2 constant sections .sdata2 and .sbss2 must be adjacent to each
@@ -214,12 +223,14 @@ SECTIONS
     .sdata  . : { *(.sdata*)  } > pibmem
     . = ALIGN(8);
 
+    // End of data section
+    _data_size = . - _data_origin;
+
     // We do not want to store bss section in sbe image as loader will take
     // care of it while loading image on PIBMEM. It will save us space in
     // SEEPROM. So define XIP image related variables here so that SBE image
     // finishes here.
 
-    _base_size = . - _base_origin;
     _pibmem_size = . - _pibmem_origin;
     _sbe_image_size = _seeprom_size  + ( . - _pibmem_origin );
 

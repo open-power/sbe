@@ -54,6 +54,7 @@ __header_64_reserved:
         .xip_toc L1_LoaderAddr, P9_XIP_UINT64, __L1_LoaderAddr
         .xip_toc L2_LoaderAddr, P9_XIP_UINT64, __L2_LoaderAddr
         .xip_toc kernelAddr, P9_XIP_UINT64, __kernelAddr
+        .xip_toc dataAddr, P9_XIP_UINT64, __dataAddr
         .xip_toc link_address, P9_XIP_UINT64, __link_address
 
         //////////////////////////////////////////////////////////////////////
@@ -69,7 +70,7 @@ __header_64_reserved:
         .xip_section loader_text,          4
         .xip_section pibrepr_data,         8, empty=1
         .xip_section text,                 4
-        .xip_section data,                 8, empty=1
+        .xip_section data,                 8
         .xip_section base,                 4
         .xip_section baseloader,           8, empty=1
         .xip_section rings,                8, empty=1
