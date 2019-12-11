@@ -39,7 +39,7 @@
 
 enum P10_SBE_TP_ARRAYINIT_Private_Constants
 {
-    REGIONS_EXCEPT_PIB_NET_SBE_PLL = 0x4B8F, // excluding NEST_DPLL, PAU_DPLL, PERV_PLL
+    REGIONS_EXCEPT_PIB_NET_SBE_OCC_PLL = 0x438F, // excluding PAU_DPLL, NEST_DPLL, PERV_PLL
     SCAN_TYPES = 0xDCF,
     LOOP_COUNTER = 0x0000000000042FFF,
     START_ABIST_MATCH_VALUE = 0x0000000F00000000,
@@ -72,11 +72,11 @@ fapi2::ReturnCode p10_sbe_tp_arrayinit(const
 
 
     FAPI_DBG("Call ARRAY INIT Module for Pervasive Chiplet");
-    FAPI_TRY(p10_perv_sbe_cmn_array_init_module(l_tpchiplet, REGIONS_EXCEPT_PIB_NET_SBE_PLL,
+    FAPI_TRY(p10_perv_sbe_cmn_array_init_module(l_tpchiplet, REGIONS_EXCEPT_PIB_NET_SBE_OCC_PLL,
              LOOP_COUNTER, START_ABIST_MATCH_VALUE));
 
     FAPI_DBG("Call SCAN0 Module for Pervasive Chiplet");
-    FAPI_TRY(p10_perv_sbe_cmn_scan0_module(l_tpchiplet, REGIONS_EXCEPT_PIB_NET_SBE_PLL, SCAN_TYPES));
+    FAPI_TRY(p10_perv_sbe_cmn_scan0_module(l_tpchiplet, REGIONS_EXCEPT_PIB_NET_SBE_OCC_PLL, SCAN_TYPES));
 
     FAPI_DBG("Add PIBMEM back to TP array init");
     l_data64.clearBit<5>();

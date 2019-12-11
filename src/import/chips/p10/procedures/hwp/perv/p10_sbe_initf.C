@@ -40,6 +40,7 @@ static const ring_setup_t ISTEP3_FURE_RINGS[] =
     { n0_fure,        IGNORE_PG, TARGET_CHIP,    0x2,  0x2,  0},
     { n1_fure,        IGNORE_PG, TARGET_CHIP,    0x3,  0x3,  0},
     { n1_nmmu1_fure,  0x9,       TARGET_CHIP,    0x3,  0x3,  0},
+    { occ_fure,       IGNORE_PG, TARGET_CHIP,    0x1,  0x1,  0},
     { pci_fure,       IGNORE_PG, TARGET_CHIPLET, 0x8,  0x9,  0},
     { mc_fure,        IGNORE_PG, TARGET_CHIPLET, 0xC,  0xF,  0},
     { iohs0_fure,     IGNORE_PG, TARGET_CHIP,    0x18, 0x18, 0},

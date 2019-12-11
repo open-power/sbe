@@ -38,8 +38,7 @@
 static const ring_setup_t ISTEP2_FURE_RINGS[] =
 {
     { perv_fure,      IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
-    // perv & occ regions are merged for all ring types other than fure
-    { occ_fure,  IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 1},
+    // putring call on occ_fure moved to istep s3.
 };
 
 fapi2::ReturnCode p10_sbe_tp_initf(const

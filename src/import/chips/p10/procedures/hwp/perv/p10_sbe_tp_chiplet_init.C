@@ -55,7 +55,7 @@
 enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
 {
     START_CMD = 0x1,
-    REGIONS_PERV_OCC_PSI = 0x4900,
+    REGIONS_PERV_PSI = 0x4100,
     CLOCK_TYPES_ALL = 0x7,
     REGIONS_PLL = 0x0010,
     CLOCK_TYPES_SL = 0x4,
@@ -112,7 +112,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(proc::PUT_TP_TPCHIP_TPC_CPLT_CTRL0_WO_CLEAR(i_target_chip, l_data64));
 
     FAPI_DBG("Start clocks for all regions except Pib, Net and Pll ");
-    FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV_OCC_PSI,
+    FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV_PSI,
              CLOCK_TYPES_ALL));
 
     // startclocks for pll  - This is no longer necessary for P10
@@ -214,6 +214,7 @@ static fapi2::ReturnCode p10_sbe_tp_chiplet_init_region_fence_setup(
     // No need to drop Vital fence
     l_data64.flush<0>();
     l_data64.insertFromRight<4, 15>(l_attr_pg_data);
+    l_data64.clearBit<7>(); // Not dropping region fence for OCC
     FAPI_TRY(fapi2::putScom(i_target_chiplet, CPLT_CTRL1_WO_CLEAR, l_data64));
 
     FAPI_INF("p10_sbe_tp_chiplet_init_region_fence_setup: Exiting ...");

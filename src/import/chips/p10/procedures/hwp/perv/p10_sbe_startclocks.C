@@ -54,6 +54,7 @@ enum P10_SBE_STARTCLOCKS_Private_Constants
     PGOOD_REGIONS_OFFSET = 12,
     REGIONS_EXCEPT_VITAL_AND_PLL = 0x7FEF,
     REGIONS_ONLY_CLKADJ = 0x0010,
+    REGIONS_OCC = 0x0800,
 };
 
 
@@ -68,6 +69,9 @@ fapi2::ReturnCode p10_sbe_startclocks(const
 
     FAPI_DBG("p10_sbe_startclocks: Entering ...");
 
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
+        i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
+
     auto l_perv_all_good_but_TP_and_EQ = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
             static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST |
                     fapi2::TARGET_FILTER_ALL_MC  |  fapi2::TARGET_FILTER_ALL_PCI  |
@@ -78,6 +82,15 @@ fapi2::ReturnCode p10_sbe_startclocks(const
     auto l_mc_eq = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST,
           fapi2::MULTICAST_COMPARE > l_mcast_cmp_target = l_mc_all;
+
+    FAPI_DBG("Drop OCC fence");
+    l_data64.flush<0>();
+    l_data64.setBit<7>(); // dropping region fence for OCC
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL1_WO_CLEAR, l_data64));
+
+    FAPI_DBG("Start OCC clocks");
+    FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, CLOCK_CMD_START, 0, 0,
+             REGIONS_OCC, CLOCK_TYPES_ALL));
 
     FAPI_DBG("Drop chiplet fence");
     l_data64.flush<1>().clearBit<NET_CTRL0_FENCE_EN>();
