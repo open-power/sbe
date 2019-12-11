@@ -83,9 +83,9 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
     FAPI_DBG("Set up RCS filter PLL altrefclk selects");
     FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_RW, l_data64_rc3));
-    l_data64_rc3.writeBit<FSXCOMP_FSXLOG_ROOT_CTRL3_SPARE_PLLCLKSW1>((l_cp_refclck_select ==
+    l_data64_rc3.writeBit<FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PLLCLKSW1_ALTREFCLK_SEL_DC>((l_cp_refclck_select ==
             fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1));
-    l_data64_rc3.writeBit<FSXCOMP_FSXLOG_ROOT_CTRL3_SPARE_PLLCLKSW2>((l_cp_refclck_select ==
+    l_data64_rc3.writeBit<FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PLLCLKSW2_ALTREFCLK_SEL_DC>((l_cp_refclck_select ==
             fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0));
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_RW, l_data64_rc3));
 
