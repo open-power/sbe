@@ -56,7 +56,7 @@ enum P10_SBE_CHIPLET_RESET_Public_Constants
 }
 
 const uint8_t n0_chiplet_delay = 0;
-const uint8_t n1_chiplet_delay = 6;
+const uint8_t n1_chiplet_delay = 4;
 const uint8_t eq0_chiplet_delay = 1;
 const uint8_t eq1_chiplet_delay = 1;
 const uint8_t eq2_chiplet_delay = 2;
