@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -187,6 +187,30 @@ def main( argv ):
     rc = os.system(cmd4)
     if rc:
       print "Unable to append the base section"
+      sys.exit()
+
+    #Extract data section from SEEPROM binary.
+    cmd5 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " extract .data " + imagePath + "/" + image + ".data"
+    rc = os.system(cmd5)
+    if rc:
+      print "Unable to extract the data from seeprom binary"
+      sys.exit()
+
+    #Compress the data section
+    compress(imagePath + "/" + image + ".data", imagePath + "/" + image + ".data.compressed")
+
+    #Delete the data section from SEEPEOM binary.
+    cmd6 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " delete .data"
+    rc = os.system(cmd6)
+    if rc:
+      print "Unable to delete data section from seeprom binary"
+      sys.exit()
+
+    #Append the data section from SEEPEOM binary.
+    cmd7 = imagePath + "/ipl_image_tool " + imagePath +  "/" + image + " append .data " + imagePath + "/" + image + ".data.compressed"
+    rc = os.system(cmd7)
+    if rc:
+      print "Unable to append the data section"
       sys.exit()
 
 if __name__ == "__main__":
