@@ -100,6 +100,49 @@ fapi_try_exit:
 }
 
 ///
+/// @brief Setup the dynamic scaninit feature-select vector for contained a IPL
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+static fapi2::ReturnCode dyn_inits_setup(const bool i_runn)
+{
+    fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC_Type dyninits;
+    fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type sthreads;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC, SYS, dyninits));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_SRESET_THREADS_BVEC, SYS, sthreads));
+    dyninits &= ~fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_HOSTBOOT;
+
+    if (i_runn)
+    {
+        if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T0 & sthreads)
+        {
+            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T0;
+        }
+
+        if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T1 & sthreads)
+        {
+            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T1;
+        }
+
+        if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T2 & sthreads)
+        {
+            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T2;
+        }
+
+        if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T3 & sthreads)
+        {
+            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T3;
+        }
+    }
+
+    FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC, SYS, dyninits));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+///
 /// @brief Disable non-synchronous hangpulses and set AVP mode in cache-contained
 ///        mode
 ///
@@ -237,6 +280,7 @@ extern "C" {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_target, active_bvec));
         FAPI_TRY(is_chc_ipl(chc));
         FAPI_TRY(is_runn_ipl(runn));
+        FAPI_TRY(dyn_inits_setup(runn));
 
         FAPI_TRY(save_l3_config(i_target, active_bvec, l3_cache_config));
         FAPI_TRY(save_eq_pgoods(perv_eqs_w_cores, eq_pgood_config));

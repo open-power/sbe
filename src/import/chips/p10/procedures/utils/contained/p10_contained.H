@@ -58,14 +58,6 @@ const fapi2::buffer<uint64_t> CHC_EQ_REGIONS_NO_PERV = (fapi2::buffer<uint64_t>(
 // Note: the "extra" EQ regions specified are unused in the N0/N1 chiplets.
 const auto CHC_MC_REGIONS_NO_PERV(CHC_EQ_REGIONS_NO_PERV);
 
-enum runn_threads : uint8_t
-{
-    RUNN_T0 = 0b10000000,
-    RUNN_T1 = 0b01000000,
-    RUNN_T2 = 0b00100000,
-    RUNN_T3 = 0b00010000,
-};
-
 ///
 /// @brief Indicate an IPL where clocks are started in RUNN mode
 ///

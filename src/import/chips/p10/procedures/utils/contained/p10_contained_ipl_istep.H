@@ -153,6 +153,10 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep4(const fapi2::Target < f
     {
         FAPI_TRY(EXEC_IPL_PROC(rc, p10_hcd_core_startclocks, i_cores));
     }
+    else
+    {
+        FAPI_TRY(sim::set_pc_decrementer());
+    }
 
 fapi_try_exit:
     return fapi2::current_err;

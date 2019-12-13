@@ -49,7 +49,7 @@ enum array
 
 
 ///
-/// @brief Checks if environment variable P10_CONTAINED_SIM_SKIP_STOPCLOCKS is
+/// @brief Check if environment variable P10_CONTAINED_SIM_SKIP_STOPCLOCKS is
 ///        set to a value.
 ///
 /// Environment variables:
@@ -60,7 +60,7 @@ enum array
 bool skip_stopclocks();
 
 ///
-/// @brief Checks if environment variable P10_CONTAINED_SIM_SKIP_L3PURGE is
+/// @brief Check if environment variable P10_CONTAINED_SIM_SKIP_L3PURGE is
 ///        set to a value.
 ///
 /// Environment variables:
@@ -71,7 +71,7 @@ bool skip_stopclocks();
 bool skip_l3purge();
 
 ///
-/// @brief Applies scan inits via dials.
+/// @brief Apply scan inits via dials.
 ///
 /// Environment variables:
 /// P10_CONTAINED_SIM_INIT_VIA_DIALS - export as =1 to enable, unset to disable
@@ -81,19 +81,17 @@ bool skip_l3purge();
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode init_via_dials(stage i_stage, bool i_chc);
+fapi2::ReturnCode init_via_dials(stage i_stage, const bool i_chc);
 
 ///
-/// @brief Sticks the inits to control selective skip arrayinit for QME and L3
-///        arrays.
+/// @brief Stick/unstick the inits to skip arrayinit for QME and L3 arrays.
 ///
 /// Environment variables:
 /// P10_CONTAINED_SIM_APPLY_SELECTIVE_SKIP_ARRAYINIT - export as =1 to enable,
 ///                                                    unset to disable
 ///
 /// @param[in] i_array Array for which to set/clr the init (QMEARY or L3ARY)
-/// @param[in] i_set   Bool which sets the init when true and clears the bit
-///                    when false
+/// @param[in] i_set   Set the init when true and clear the bit when false
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
@@ -101,6 +99,17 @@ fapi2::ReturnCode apply_selective_skip_arrayinit(const array i_array, const bool
 
 fapi2::ReturnCode checkpoint(const bool i_chc, const bool i_runn,
                              const std::string& i_suffix);
+
+///
+/// @brief Set the PC decrementer to 64 cycles via dial.
+///
+/// Environment variables:
+/// P10_CONTAINED_SIM_SET_PC_DECREMENTER - export as =1 to enable,
+//                                         unset to disable
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+fapi2::ReturnCode set_pc_decrementer();
 
 #else // P10_CONTAINED_SIM
 
@@ -112,7 +121,7 @@ constexpr bool skip_l3purge()
 {
     return false;
 }
-inline fapi2::ReturnCode init_via_dials(stage i_stage, bool i_chc)
+inline fapi2::ReturnCode init_via_dials(stage i_stage, const bool i_chc)
 {
     return fapi2::FAPI2_RC_SUCCESS;
 }
@@ -122,6 +131,10 @@ inline fapi2::ReturnCode apply_selective_skip_arrayinit(const array i_array, con
 }
 inline fapi2::ReturnCode checkpoint(const bool i_chc, const bool i_runn,
                                     const std::string& i_suffix)
+{
+    return fapi2::FAPI2_RC_SUCCESS;
+}
+inline fapi2::ReturnCode set_pc_decrementer()
 {
     return fapi2::FAPI2_RC_SUCCESS;
 }

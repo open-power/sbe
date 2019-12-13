@@ -150,14 +150,77 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+fapi2::ReturnCode set_pc_decrementer()
+{
+    FAPI_INF(">> %s", __func__);
+
+    std::string tmp;
+    fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type threads;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_SRESET_THREADS_BVEC, SYS, threads));
+
+    if (!getenvvar("P10_CONTAINED_SIM_SET_PC_DECREMENTER", tmp))
+    {
+        FAPI_ERR("P10_CONTAINED_SIM_SET_PC_DECREMENTER not set");
+        FAPI_INF(">> %s", __func__);
+        return fapi2::FAPI2_RC_SUCCESS;
+    }
+
+    if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T0)
+    {
+        // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.V0_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.V0_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.EC.PC.V0_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+    }
+
+    if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T1)
+    {
+        // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.V1_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.V1_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.EC.PC.V1_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+    }
+
+    if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T2)
+    {
+        // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.V2_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.V2_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.EC.PC.V2_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+    }
+
+    if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T3)
+    {
+        // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.V3_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.V3_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.EC.PC.V3_DEC",
+                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
 fapi2::ReturnCode init_via_dials(const stage i_stage, const bool i_chc)
 {
     FAPI_INF(">> %s", __func__);
 
-    std::string batchfile;
-    std::string envvar;
+    std::string tmp;
 
-    if (!getenvvar("P10_CONTAINED_SIM_SCAN_VIA_DIALS", batchfile))
+    if (!getenvvar("P10_CONTAINED_SIM_SCAN_VIA_DIALS", tmp))
     {
         FAPI_ERR("P10_CONTAINED_SIM_SCAN_VIA_DIALS not set");
         FAPI_INF(">> %s", __func__);
@@ -174,10 +237,6 @@ fapi2::ReturnCode init_via_dials(const stage i_stage, const bool i_chc)
                 ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.NC.NCMISC.NCSCOMS.TOPOTABLE_ENTRY00_VAL", "ON");
                 ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.NC.NCMISC.NCSCOMS.TOPOTABLE_ENTRY00_VAL", "ON");
                 ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.NC.NCMISC.NCSCOMS.TOPOTABLE_ENTRY00_VAL", "ON");
-
-                // XXX QME CRCR enable
-//                ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.TP.TPCHIP.NET.PCBSLEQ00.QME.QME_QMCR_CYCLE_REPRO_MODE", "ON");
-//                ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.TP.TPCHIP.NET.PCBSLEQ01.QME.QME_QMCR_CYCLE_REPRO_MODE", "ON");
             }
 
             if (!i_chc)
@@ -191,11 +250,6 @@ fapi2::ReturnCode init_via_dials(const stage i_stage, const bool i_chc)
                 ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.NC.NC_RUN_MODE", "TRASH_MODE");
                 ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.NC.NC_RUN_MODE", "TRASH_MODE");
                 ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.NC.NC_RUN_MODE", "TRASH_MODE");
-
-                // XXX QME
-//                ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.TP.TPCHIP.NET.PCBSLEQ00.QME.QME_REGS.PCR_C0.QME_SCSR_ASSERT_PM_EXIT", "ON");
-//                ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.TP.TPCHIP.NET.PCBSLEQ00.QME.QME_REGS.PCR_C1.QME_SCSR_ASSERT_PM_EXIT", "ON");
-//                ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.TP.TPCHIP.NET.PCBSLEQ01.QME.QME_REGS.PCR_C2.QME_SCSR_ASSERT_PM_EXIT", "ON");
             }
             else
             {
@@ -219,11 +273,11 @@ fapi2::ReturnCode init_via_dials(const stage i_stage, const bool i_chc)
 
         case ISTEP4_CORE:
             {
-                uint8_t threads_bvec = 0;
+                fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type threads;
                 FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_SRESET_THREADS_BVEC,
-                                       SYS, threads_bvec));
+                                       SYS, threads));
 
-                if (threads_bvec & RUNN_T0)
+                if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T0)
                 {
                     ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.PMC.VT0_SRESET_ON_1ST_DEC_EN", "ON");
                     ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.PMC.VT0_SRESET_ON_1ST_DEC_EN", "ON");
