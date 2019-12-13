@@ -53,6 +53,12 @@ ISTEP4-CPP-SOURCES += p10_hcd_core_startclocks.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_scominit.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_scom_customize.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_ras_runtime_scom.C
+ISTEP4-CPP-SOURCES += p10_hcd_mma_poweroff.C
+ISTEP4-CPP-SOURCES += p10_hcd_mma_poweron.C
+ISTEP4-CPP-SOURCES += p10_hcd_mma_scaninit.C
+ISTEP4-CPP-SOURCES += p10_hcd_mma_startclocks.C
+ISTEP4-CPP-SOURCES += p10_hcd_mma_stopclocks.C
+
 ISTEP4-C-SOURCES =
 ISTEP4-S-SOURCES =
 
