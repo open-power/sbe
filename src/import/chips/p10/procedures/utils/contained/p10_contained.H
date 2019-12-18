@@ -31,15 +31,17 @@
 #include <p10_scom_perv.H>
 
 const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> SYS;
-const fapi2::buffer<uint64_t> CHC_N0_REGIONS_NO_PERV = (fapi2::buffer<uint64_t>(0)
+const fapi2::buffer<uint64_t> CONTAINED_N0_REGIONS = (fapi2::buffer<uint64_t>(0)
+        .setBit<scomt::perv::CPLT_CTRL1_REGION0_FENCE_DC>()
         .setBit<scomt::perv::CPLT_CTRL1_REGION1_FENCE_DC>()   // int/nmmu/nx/vas
         .setBit<scomt::perv::CPLT_CTRL1_REGION4_FENCE_DC>()); // pe
-const fapi2::buffer<uint64_t> CHC_N1_REGIONS_NO_PERV = (fapi2::buffer<uint64_t>(0)
+const fapi2::buffer<uint64_t> CONTAINED_N1_REGIONS = (fapi2::buffer<uint64_t>(0)
+        .setBit<scomt::perv::CPLT_CTRL1_REGION0_FENCE_DC>()
         .setBit<scomt::perv::CPLT_CTRL1_REGION2_FENCE_DC>()   // fbc/mcd
         .setBit<scomt::perv::CPLT_CTRL1_REGION4_FENCE_DC>()   // pe
-        .setBit<scomt::perv::CPLT_CTRL1_REGION5_FENCE_DC>()   // nmmu
-        .setBit<scomt::perv::CPLT_CTRL1_REGION6_FENCE_DC>()); // psi
-const fapi2::buffer<uint64_t> CHC_EQ_REGIONS_NO_PERV = (fapi2::buffer<uint64_t>(0)
+        .setBit<scomt::perv::CPLT_CTRL1_REGION5_FENCE_DC>()); // nmmu
+const fapi2::buffer<uint64_t> CONTAINED_EQ_REGIONS = (fapi2::buffer<uint64_t>(0)
+        .setBit<scomt::perv::CPLT_CTRL1_REGION0_FENCE_DC>()
         .setBit<scomt::perv::CPLT_CTRL1_REGION1_FENCE_DC>()    // ecl20
         .setBit<scomt::perv::CPLT_CTRL1_REGION2_FENCE_DC>()    // ecl21
         .setBit<scomt::perv::CPLT_CTRL1_REGION3_FENCE_DC>()    // ecl22
@@ -56,7 +58,7 @@ const fapi2::buffer<uint64_t> CHC_EQ_REGIONS_NO_PERV = (fapi2::buffer<uint64_t>(
 // Encapsulate all regions in all chiplets which participate in chip-contained
 // mode in a single constant for multicast operations on all chiplets.
 // Note: the "extra" EQ regions specified are unused in the N0/N1 chiplets.
-const auto CHC_MC_REGIONS_NO_PERV(CHC_EQ_REGIONS_NO_PERV);
+const auto CONTAINED_MC_REGIONS(CONTAINED_EQ_REGIONS);
 
 ///
 /// @brief Indicate an IPL where clocks are started in RUNN mode

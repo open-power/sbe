@@ -79,7 +79,7 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep3(const fapi2::Target<fap
 {
     fapi2::ReturnCode rc;
     auto const all = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
-    auto const tmp = CHC_MC_REGIONS_NO_PERV;
+    auto const tmp = CONTAINED_MC_REGIONS;
     uint16_t const regions =  static_cast<uint16_t>(tmp.getBit<4, 15>());
 
     // Scan-zero

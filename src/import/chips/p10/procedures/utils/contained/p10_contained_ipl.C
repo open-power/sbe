@@ -56,7 +56,7 @@ static fapi2::ReturnCode stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
 
     using namespace scomt::perv;
 
-    auto data = CHC_MC_REGIONS_NO_PERV;
+    auto data = CONTAINED_MC_REGIONS;
     const auto all = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
 
     // Raise fences (including perv region fence)
@@ -76,7 +76,7 @@ static fapi2::ReturnCode stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
         // When reading the CLOCK_STAT_* registers via multicast-AND, partial bad
         // regions act "neutral" and return one (ie. "stopped"). This lets us get
         // away with just using the "usual" region mask(s).
-        auto mask = CHC_MC_REGIONS_NO_PERV;
+        auto mask = CONTAINED_MC_REGIONS;
 
         fapi2::Target < fapi2::TARGET_TYPE_PERV |
         fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > all_and = all;
@@ -93,6 +93,59 @@ static fapi2::ReturnCode stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                         "Some clocks are still running after stopping clocks");
         }
     }
+
+    // Restore pre-startclocks CPLT_CTRL0 settings
+    data = 0;
+    FAPI_TRY(PREP_CPLT_CTRL0_WO_CLEAR(all));
+    SET_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC(data);
+    FAPI_TRY(PUT_CPLT_CTRL0_WO_CLEAR(all, data));
+    data = 0;
+    FAPI_TRY(PREP_CPLT_CTRL0_WO_OR(all));
+    SET_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC(data);
+    FAPI_TRY(PUT_CPLT_CTRL0_WO_OR(all, data));
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
+///
+/// @brief Restart PERV and QME region clocks in EQs
+///
+/// @param[in] i_chip Reference to chip target
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+static fapi2::ReturnCode restart_perv_qme_clocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
+{
+    FAPI_INF(">> %s", __func__);
+
+    using namespace scomt::perv;
+
+    const auto all = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
+    auto data = fapi2::buffer<uint64_t>(0)
+                .setBit<CPLT_CTRL1_REGION0_FENCE_DC>()
+                .setBit<CPLT_CTRL1_REGION9_FENCE_DC>();
+
+    //  Lower perv region fence
+    FAPI_TRY(fapi2::putScom(all, CPLT_CTRL1_WO_CLEAR, data));
+
+    data = 0;
+    FAPI_TRY(PREP_CPLT_CTRL0_WO_CLEAR(all));
+    SET_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC(data);
+    SET_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC(data);
+    FAPI_TRY(PUT_CPLT_CTRL0_WO_CLEAR(all, data));
+
+    data = 0;
+    data.setBit<CPLT_CTRL1_REGION0_FENCE_DC>();
+    data.setBit<CPLT_CTRL1_REGION9_FENCE_DC>();
+    // Start clocks
+    FAPI_TRY(PREP_CLK_REGION(all));
+    SET_CLK_REGION_CLOCK_CMD(0b01, data);
+    SET_CLK_REGION_SEL_THOLD_SL(data);
+    SET_CLK_REGION_SEL_THOLD_NSL(data);
+    SET_CLK_REGION_SEL_THOLD_ARY(data);
+    FAPI_TRY(fapi2::putScom(all, CLK_REGION, data));
 
 fapi_try_exit:
     FAPI_INF("<< %s", __func__);
@@ -287,41 +340,41 @@ extern "C" {
         FAPI_TRY(stopclocks(i_target));
         FAPI_TRY(contained_setup(i_target, chc));
 
+        FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
+                 ISTEP3_MC_GROUPS));
 
         if (chc)
         {
-            FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
-                     ISTEP3_MC_GROUPS));
-
-            {
-                // istep3 arrayinit expects the EQ chiplets' partial-good config
-                // to mark all cores as 'bad'.
-                const auto istep3_cplt_ctrl2 = fapi2::buffer<uint64_t>(0)
-                                               .setBit<scomt::perv::CPLT_CTRL1_REGION0_FENCE_DC>()   // perv
-                                               .setBit<scomt::perv::CPLT_CTRL1_REGION9_FENCE_DC>()   // qme
-                                               .setBit<scomt::perv::CPLT_CTRL1_REGION10_FENCE_DC>(); // clkadj
-                const auto perv_eqs = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
-                FAPI_TRY(fapi2::putScom(perv_eqs, scomt::perv::CPLT_CTRL2_RW, istep3_cplt_ctrl2));
-            }
+            // istep3 arrayinit expects the EQ chiplets' partial-good config
+            // to mark all cores as 'bad'.
+            const auto istep3_cplt_ctrl2 = fapi2::buffer<uint64_t>(0)
+                                           .setBit<scomt::perv::CPLT_CTRL1_REGION0_FENCE_DC>()   // perv
+                                           .setBit<scomt::perv::CPLT_CTRL1_REGION9_FENCE_DC>()   // qme
+                                           .setBit<scomt::perv::CPLT_CTRL1_REGION10_FENCE_DC>(); // clkadj
+            const auto perv_eqs = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
+            FAPI_TRY(fapi2::putScom(perv_eqs, scomt::perv::CPLT_CTRL2_RW, istep3_cplt_ctrl2));
             FAPI_TRY(p10_contained_ipl_istep3(i_target, runn));
         }
-
-#undef P10_CACHE_CONTAINED_IPL_SCAN0_EQ
-#ifdef P10_CACHE_CONTAINED_IPL_SCAN0_EQ
         else
         {
+#undef P10_CACHE_CONTAINED_IPL_SCAN0_EQ
+#ifdef P10_CACHE_CONTAINED_IPL_SCAN0_EQ
             const auto eqs = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
             // In chip-contained mode the EQ regions are scan-zeroed during
             // the istep3 re-IPL. The istep3 re-IPL is skipped for cache-contained
             // mode so we scan-zero the EQ regions here.
-            const auto regions = fapi2::buffer<uint16_t>(CHC_EQ_REGIONS_NO_PERV.getBit<4, 15>());
+            const auto regions = fapi2::buffer<uint16_t>(CONTAINED_EQ_REGIONS.getBit<4, 15>());
             FAPI_TRY(p10_perv_sbe_cmn_scan0_module(eqs, regions,
                                                    p10SbeChipletReset::SCAN_TYPES_TIME_GPTR_REPR));
             FAPI_TRY(p10_perv_sbe_cmn_scan0_module(eqs, regions,
                                                    p10SbeChipletReset::SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
-        }
-
 #endif
+
+            if (!runn)
+            {
+                FAPI_TRY(restart_perv_qme_clocks(i_target));
+            }
+        }
 
         FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
                  ISTEP4_MC_GROUPS));

@@ -28,10 +28,11 @@ PROCEDURE=p10_contained_run
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
 
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
-ifeq ($(P10_CONTAINED_SIM),1)
-	OBJS+=p10_contained_sim.o
-	LOCALCOMMONFLAGS+=-DP10_CONTAINED_SIM
-endif
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained_runn.o)
+
+ifeq ($(P10_CONTAINED_SIM),1)
+	OBJS += p10_contained_sim.o
+	lib$(PROCEDURE)_COMMONFLAGS += -DP10_CONTAINED_SIM
+endif
 
 $(call BUILD_PROCEDURE)

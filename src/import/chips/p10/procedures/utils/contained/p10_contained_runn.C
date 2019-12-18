@@ -171,7 +171,7 @@ static fapi2::ReturnCode runn_check_clks(const fapi2::Target<fapi2::TARGET_TYPE_
     // When reading the CLOCK_STAT_* registers via multicast-OR, partial bad
     // regions act "neutral" and return zero (ie. "running"). This lets us get
     // away with just using the "usual" region mask(s).
-    auto mask = CHC_EQ_REGIONS_NO_PERV;
+    auto mask = CONTAINED_EQ_REGIONS;
     mask.setBit<CPLT_CTRL1_REGION0_FENCE_DC>();
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > all;
 
@@ -181,7 +181,7 @@ static fapi2::ReturnCode runn_check_clks(const fapi2::Target<fapi2::TARGET_TYPE_
     }
     else
     {
-        mask |= CHC_N0_REGIONS_NO_PERV | CHC_N1_REGIONS_NO_PERV;
+        mask |= CONTAINED_N0_REGIONS | CONTAINED_N1_REGIONS;
         all = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
     }
 
@@ -303,11 +303,11 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
     FAPI_TRY(fapi2::putScom(all, OPCG_CAPT2, data));
     FAPI_TRY(fapi2::putScom(all, OPCG_CAPT3, data));
 
-    data = CHC_EQ_REGIONS_NO_PERV;
+    data = CONTAINED_EQ_REGIONS;
 
     if (i_chc)
     {
-        data |= CHC_N0_REGIONS_NO_PERV | CHC_N1_REGIONS_NO_PERV;
+        data |= CONTAINED_N0_REGIONS | CONTAINED_N1_REGIONS;
     }
 
     FAPI_TRY(PREP_CLK_REGION(all));
@@ -317,12 +317,11 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
     SET_CLK_REGION_SEL_THOLD_ARY(data);
     FAPI_TRY(PUT_CLK_REGION(all, data));
 
-    data = CHC_EQ_REGIONS_NO_PERV;
-    data.setBit<CPLT_CTRL1_REGION0_FENCE_DC>(); // perv
+    data = CONTAINED_EQ_REGIONS;
 
     if (i_chc)
     {
-        data |= CHC_N0_REGIONS_NO_PERV | CHC_N1_REGIONS_NO_PERV;
+        data |= CONTAINED_N0_REGIONS | CONTAINED_N1_REGIONS;
     }
 
     FAPI_TRY(PUT_CPLT_CTRL1_WO_CLEAR(all, data));
