@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -173,7 +173,8 @@ p10_hcd_cache_arrayinit(
     FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
              (l_regions << SHIFT16(9)),
              LOOP_COUNTER,
-             START_ABIST_MATCH_VALUE));
+             START_ABIST_MATCH_VALUE,
+             false));
 
 #endif
 
