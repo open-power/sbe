@@ -97,7 +97,7 @@ static fapi2::ReturnCode p10_sbe_fastarray_setup(
     FAPI_TRY(fapi2::putScom(i_target_chiplet, OPCG_CAPT1, l_buf), "Failed to set up OPCG_CAPT1");
 
     l_buf.flush<0>()
-    .insertFromRight<OPCG_CAPT2_13_01EVEN, OPCG_CAPT2_13_01EVEN_LEN>(0x1C);
+    .insertFromRight<OPCG_CAPT2_14_01ODD, OPCG_CAPT2_14_01ODD_LEN>(0x1C);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, OPCG_CAPT2, l_buf), "Failed to set up OPCG_CAPT2");
 
     /* Assert CC_SDIS_DC_N, some arrays don't dump right if we don't set this */
@@ -140,7 +140,7 @@ static fapi2::ReturnCode p10_sbe_fastarray_run_abist_cycles(
                 break;
             }
 
-            fapi2::delay(1000000, 100000);
+            fapi2::delay(10000, 50000);
         }
 
         FAPI_ASSERT(l_timeout, fapi2::FASTARRAY_CLOCK_TIMEOUT().set_TARGET(i_target_chiplet),
@@ -338,6 +338,11 @@ fapi2::ReturnCode p10_sbe_fastarray(
 
         for (uint32_t i = 0; i < l_ncycles; i++)
         {
+            if (i != 0 && (i & 7) == 0)
+            {
+                FAPI_INF("Progress: Row %d", l_row - l_ncycles + i);
+            }
+
             // Every cycle, reuse the care data we've been sent
             fapi2::hwp_array_istream l_care_array(l_care_bits, l_nwords);
             fapi2::hwp_bit_istream l_care_stream(l_care_array);
