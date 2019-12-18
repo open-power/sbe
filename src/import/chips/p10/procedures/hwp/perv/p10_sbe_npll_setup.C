@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -300,8 +300,12 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     FAPI_DBG(" Unmasking pll unlock error in   Pcb slave config reg");
     FAPI_TRY(fapi2::getScom(l_tpchiplet, perv::SLAVE_CONFIG_REG, l_read_reg));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_REFCLOCK_SELECT, i_target_chip, l_attr_cp_refclk_select));
-    l_read_reg.writeBit<12>(!(l_attr_cp_refclk_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1));
-    l_read_reg.writeBit<13>(!(l_attr_cp_refclk_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0));
+    {
+        const bool l_dual_osc = (l_attr_cp_refclk_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0)
+                                || (l_attr_cp_refclk_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1);
+        l_read_reg.writeBit<12>(!l_dual_osc);
+        l_read_reg.writeBit<13>(!l_dual_osc);
+    }
 
     l_read_reg.writeBit<14>(l_attr_plltodflt_bypass.getBit<7>());
     l_read_reg.writeBit<15>(l_attr_pllnestflt_bypass.getBit<7>());
