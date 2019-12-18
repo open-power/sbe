@@ -76,13 +76,26 @@ fapi2::ReturnCode p10_write_xram(
     FAPI_TRY(autoIncrementControl(i_target, i_top, true, true),
              "autoIncrementControl Enable returns an error.");
 
+    // Auto-increment write:
+    //   - Do NOT setup Array Address Register.  The write will start
+    //     at address 0 as was set via scaninit.
+    //
+    // Individual write:
+    //   - Need to setup Array Address Register with write address and
+    //     bit 16 set.
+    //   - Currently, we don't support individual write operation.
+    //
+// For furture invidual write support
+#if 0
     // Setup Array Address Register for write
     l_offsetBuf = getXramAddress(i_offset);
+    l_offsetBuf.setBit<ARRAY_ADDR_REG_RW_SELECT_BIT>();
     FAPI_TRY(fapi2::putScom(i_target,
                             l_xramBaseReg + XRAM_ARRAY_ADDR_REG_PHY0_OFFSET + i_phy,
                             l_offsetBuf),
              "Error from putScom 0x%.16llX",
              l_xramBaseReg + XRAM_ARRAY_ADDR_REG_PHY0_OFFSET + i_phy);
+#endif
 
     // Write data, 8-byte chunk at a time
     FAPI_DBG("p10_write_xram: Start writing data...");
