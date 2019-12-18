@@ -46,7 +46,7 @@ inline fapi2::ReturnCode _svs_wait_opcg_done(
 
     while (timeout--)
     {
-        fapi2::delay(10000, 100000);
+        fapi2::delay(10000, 20000);
         FAPI_TRY(fapi2::getScom(i_target, scomt::perv::CPLT_STAT0, buf), "Failed to read chiplet status 0");
 
         if (buf.getBit<scomt::perv::CPLT_STAT0_CC_CTRL_OPCG_DONE_DC>())
