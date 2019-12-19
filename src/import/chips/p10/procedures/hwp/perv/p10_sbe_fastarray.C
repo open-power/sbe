@@ -50,7 +50,15 @@ using namespace scomt::perv;
 
 enum sbe_fastarray_constants
 {
-    REGION_VITL = 0x1000000000000000ULL,
+    REGION_VITL            = 0x1000000000000000,
+    MMA_REGION_MASK        = 0x0001E00000000000,
+    SCAN_HEADER            = 0xA5A55A5A00000000,
+    RUN_ABIST_DELAY_NS     = 10000,
+    RUN_ABIST_DELAY_SIM    = 50000,
+    RUN_ABIST_TIMEOUT      = 100,
+    CLEANUP_ABIST_CYCLES   = 0x1000,
+    CLEANUP_ABIST_TIMEOUT  = 16,
+    MAX_CARE_WORDS         = 100,
 };
 
 /**
@@ -62,7 +70,8 @@ enum sbe_fastarray_constants
  */
 static fapi2::ReturnCode p10_sbe_fastarray_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const uint64_t i_clock_regions)
+    const uint64_t i_clock_regions,
+    const uint64_t i_bist_regions)
 {
     fapi2::buffer<uint64_t> l_buf;
 
@@ -81,7 +90,7 @@ static fapi2::ReturnCode p10_sbe_fastarray_setup(
     .setBit<CLK_REGION_SEL_THOLD_ARY>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, CLK_REGION, l_buf), "Failed to set up clock regions");
 
-    l_buf = i_clock_regions;
+    l_buf = i_bist_regions;
     l_buf.setBit<BIST_TC_SRAM_ABIST_MODE_DC>()
     .setBit<BIST_TC_BIST_START_TEST_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chiplet, BIST, l_buf), "Failed to set up BIST register");
@@ -129,7 +138,7 @@ static fapi2::ReturnCode p10_sbe_fastarray_run_abist_cycles(
     /* If we clocked more than a single cycle, do due diligence and wait for OPCG_DONE */
     if( i_clock_cycles > 1 )
     {
-        uint32_t l_timeout = 100;
+        uint32_t l_timeout = RUN_ABIST_TIMEOUT;
 
         while (--l_timeout)
         {
@@ -140,7 +149,7 @@ static fapi2::ReturnCode p10_sbe_fastarray_run_abist_cycles(
                 break;
             }
 
-            fapi2::delay(10000, 50000);
+            fapi2::delay(RUN_ABIST_DELAY_NS, RUN_ABIST_DELAY_SIM);
         }
 
         FAPI_ASSERT(l_timeout, fapi2::FASTARRAY_CLOCK_TIMEOUT().set_TARGET(i_target_chiplet),
@@ -172,11 +181,12 @@ static fapi2::ReturnCode p10_sbe_fastarray_cleanup(
 
     /* Let ABIST engines run to completion */
     {
-        uint32_t l_timeout = 16;
+        uint32_t l_timeout = CLEANUP_ABIST_TIMEOUT;
 
         do
         {
-            FAPI_TRY(p10_sbe_fastarray_run_abist_cycles(i_target_chiplet, 0xFFF), "Failed to clock ABIST to completion");
+            FAPI_TRY(p10_sbe_fastarray_run_abist_cycles(i_target_chiplet, CLEANUP_ABIST_CYCLES),
+                     "Failed to clock ABIST to completion");
             FAPI_TRY(fapi2::getScom(i_target_chiplet, CPLT_STAT0, l_buf), "Failed to read Chiplet Status 0 Register");
         }
         while (--l_timeout && !l_buf.getBit<CPLT_STAT0_ABIST_DONE_DC>());
@@ -208,11 +218,6 @@ static fapi2::ReturnCode p10_sbe_fastarray_cleanup(
 fapi_try_exit:
     return fapi2::current_err;
 }
-
-/**
- * @brief magic value used for the dreaded header check
- */
-const uint64_t SCAN_HEADER = 0xA5A55A5A00000000ull;
 
 /**
  * @brief Dump a single row from the FARR ring and return it to the caller
@@ -281,80 +286,145 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-fapi2::ReturnCode p10_sbe_fastarray(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target,
-    uint64_t                                      i_scan_region_type,
-    fapi2::hwp_data_istream&                      i_instructions,
-    fapi2::hwp_data_ostream&                      o_dump_data)
+/**
+ * @brief expand a 32bit ring address into a 64bit value for the clock controller's SCAN_REGION_TYPE register
+ *
+ * If the ring address belongs to a core ring, the result will be shifted to match a core target's core select.
+ *
+ * @param[in] i_target a PERV or CORE target; used for adapting the result to a core select value
+ * @param[in] i_ring_address the 32bit ring address
+ * @return The 64bit SCAN_REGION_TYPE value
+ */
+static uint64_t expand_ring_address(
+    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_CORE > & i_target,
+    const uint32_t i_ring_address)
 {
-    const uint64_t l_regions = i_scan_region_type & 0xFFFFFFFF00000000;
-    uint32_t l_header, l_care_bits[500];
-    uint32_t l_row = 0;
+    const uint32_t l_chiplet_id   =   ((i_ring_address & 0xFF000000) >> 24 );
+    const uint32_t l_core_select  =   (l_chiplet_id >= 0x20) ? i_target.getCoreSelect() : 0x8;
+    // Multiplication with l_core_select puts copies of l_core_select everywhere a bit is set in the input region vector
+    // Since core 0 is 0x8 we need to shift left by three positions less
+    const uint32_t l_scan_region  =   l_core_select *
+                                      (((i_ring_address & 0x0000FFF0) | ((i_ring_address & 0x00F00000) >> 20)) << (13 - 3));
+    const uint32_t l_scan_encode  =   i_ring_address & 0x0000000F;
+    const uint32_t l_scan_type    =   (l_scan_encode == 0xF) ? 0x9000 : (0x8000 >> l_scan_encode);
+    return ((uint64_t)l_scan_region << 32) | l_scan_type;
+}
 
-    FAPI_TRY(p10_sbe_fastarray_setup(i_target, l_regions));
-
-    while (true)
+/**
+ * @brief Translate a clock region value into a BIST region value, apply workarounds
+ *
+ * Encapsulates the workaround for HW514994 by enabling ECL2 for BIST if MMA is selected for clocking.
+ *
+ * @param[in] i_target The target we're trying to BIST
+ * @param[in] i_ring_address Ring address of the fastarray control stream
+ * @param[in] i_clock_region Pre-masked clock region value without scan type bits
+ * @return The value for the BIST register
+ */
+static uint64_t translate_abist_region(
+    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_CORE > & i_target,
+    const uint32_t i_ring_address,
+    const uint64_t i_clock_region)
+{
+    if (((i_ring_address >> 24) >= 0x20) && (i_clock_region & MMA_REGION_MASK))
     {
-        FAPI_INF("Progress: Row %d", l_row);
+        uint8_t l_core_mma_abist_linked = false;
+        const auto l_proc_target = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+        // Ignore query errors and just default to no workaround
+        FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_MMA_CORE_ABIST_LINKED, l_proc_target, l_core_mma_abist_linked);
 
-        // Get the next tuple header
-        FAPI_TRY(i_instructions.get(l_header));
-        const uint32_t l_ncycles = l_header >> 16, l_nwords = l_header & 0xFFFF;
-        l_row += l_ncycles;
-
-        // Copy the header to the output stream
-        FAPI_TRY(o_dump_data.put(l_header));
-
-        // No cycles -> we're done!
-        if (!l_ncycles)
+        if (l_core_mma_abist_linked)
         {
-            break;
+            // In P10 DD1 the MMA ABIST is controlled by the ECL2 ABIST enable signal, so scoot the bits over there
+            return i_clock_region << 10;
         }
-
-        // Cycles but no data -> skip cycles
-        if (!l_nwords)
-        {
-            FAPI_TRY(p10_sbe_fastarray_run_abist_cycles(i_target, l_ncycles));
-            continue;
-        }
-
-        // Copy the care data into a local buffer (for reuse) and into the output stream
-        FAPI_ASSERT(l_nwords <= ARRAY_SIZE(l_care_bits),
-                    fapi2::FASTARRAY_CARE_BUFFER_OVERFLOW()
-                    .set_BUFFER_SIZE_WORDS(ARRAY_SIZE(l_care_bits))
-                    .set_DATA_SIZE_WORDS(l_nwords),
-                    "Too many care data words for internal buffer");
-
-        for (uint32_t i = 0; i < l_nwords; i++)
-        {
-            uint32_t l_data;
-            FAPI_TRY(i_instructions.get(l_data));
-            FAPI_TRY(o_dump_data.put(l_data));
-            l_care_bits[i] = l_data;
-        }
-
-        // Dumped bits go into a bit stream
-        fapi2::hwp_bit_ostream l_dumped_bits(o_dump_data);
-
-        for (uint32_t i = 0; i < l_ncycles; i++)
-        {
-            if (i != 0 && (i & 7) == 0)
-            {
-                FAPI_INF("Progress: Row %d", l_row - l_ncycles + i);
-            }
-
-            // Every cycle, reuse the care data we've been sent
-            fapi2::hwp_array_istream l_care_array(l_care_bits, l_nwords);
-            fapi2::hwp_bit_istream l_care_stream(l_care_array);
-
-            FAPI_TRY(p10_sbe_fastarray_run_abist_cycles(i_target, 1));
-            FAPI_TRY(p10_sbe_fastarray_row(i_target, i_scan_region_type, l_care_stream, l_dumped_bits));
-        }
-
-        FAPI_TRY(l_dumped_bits.flush());
     }
 
-    FAPI_TRY(p10_sbe_fastarray_cleanup(i_target, l_regions));
+    return i_clock_region;
+}
+
+fapi2::ReturnCode p10_sbe_fastarray(
+    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_CORE > & i_target,
+    fapi2::hwp_data_istream&  i_instructions,
+    fapi2::hwp_data_ostream&  o_dump_data)
+{
+    const auto l_perv_target = i_target.getParent<fapi2::TARGET_TYPE_PERV>();
+    uint32_t l_header, l_care_bits[MAX_CARE_WORDS];
+
+    // Open new scope so we can FAPI_TRY() across initializers at leisure
+    {
+        // Load the ring address from the stream and translate it
+        FAPI_TRY(i_instructions.get(l_header));
+        const uint64_t l_scan_region_type = expand_ring_address(i_target, l_header);
+        const uint64_t l_clock_region = l_scan_region_type & 0xFFFFFFFF00000000;
+        const uint64_t l_abist_region = translate_abist_region(i_target, l_header, l_clock_region);
+
+        FAPI_TRY(p10_sbe_fastarray_setup(l_perv_target, l_clock_region, l_abist_region));
+
+        uint32_t l_row = 0;
+
+        while (true)
+        {
+            FAPI_INF("Progress: Row %d", l_row);
+
+            // Get the next tuple header
+            FAPI_TRY(i_instructions.get(l_header));
+            const uint32_t l_ncycles = l_header >> 16, l_nwords = l_header & 0xFFFF;
+            l_row += l_ncycles;
+
+            // Copy the header to the output stream
+            FAPI_TRY(o_dump_data.put(l_header));
+
+            // No cycles -> we're done!
+            if (!l_ncycles)
+            {
+                break;
+            }
+
+            // Cycles but no data -> skip cycles
+            if (!l_nwords)
+            {
+                FAPI_TRY(p10_sbe_fastarray_run_abist_cycles(l_perv_target, l_ncycles));
+                continue;
+            }
+
+            // Copy the care data into a local buffer (for reuse) and into the output stream
+            FAPI_ASSERT(l_nwords <= ARRAY_SIZE(l_care_bits),
+                        fapi2::FASTARRAY_CARE_BUFFER_OVERFLOW()
+                        .set_BUFFER_SIZE_WORDS(ARRAY_SIZE(l_care_bits))
+                        .set_DATA_SIZE_WORDS(l_nwords),
+                        "Too many care data words for internal buffer");
+
+            for (uint32_t i = 0; i < l_nwords; i++)
+            {
+                uint32_t l_data;
+                FAPI_TRY(i_instructions.get(l_data));
+                FAPI_TRY(o_dump_data.put(l_data));
+                l_care_bits[i] = l_data;
+            }
+
+            // Dumped bits go into a bit stream
+            fapi2::hwp_bit_ostream l_dumped_bits(o_dump_data);
+
+            for (uint32_t i = 0; i < l_ncycles; i++)
+            {
+                if (i != 0 && (i & 7) == 0)
+                {
+                    FAPI_INF("Progress: Row %d", l_row - l_ncycles + i);
+                }
+
+                // Every cycle, reuse the care data we've been sent
+                fapi2::hwp_array_istream l_care_array(l_care_bits, l_nwords);
+                fapi2::hwp_bit_istream l_care_stream(l_care_array);
+
+                FAPI_TRY(p10_sbe_fastarray_run_abist_cycles(l_perv_target, 1));
+                FAPI_TRY(p10_sbe_fastarray_row(l_perv_target, l_scan_region_type, l_care_stream, l_dumped_bits));
+            }
+
+            FAPI_TRY(l_dumped_bits.flush());
+        }
+
+        FAPI_TRY(p10_sbe_fastarray_cleanup(l_perv_target, l_clock_region));
+    }
 
 fapi_try_exit:
     return fapi2::current_err;
