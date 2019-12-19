@@ -267,7 +267,7 @@ normalize(void* io_image, const int i_argc, const char** i_argv, uint32_t i_mask
 
         if (i_argc != 0)
         {
-            fprintf(stderr, g_usage);
+            fprintf(stderr, "%s", g_usage);
             exit(1);
         }
 
@@ -638,7 +638,7 @@ report(void*                      io_image,
 
             if (i_argc > 1)
             {
-                fprintf(stderr, g_usage);
+                fprintf(stderr, "%s", g_usage);
                 exit(1);
             }
 
@@ -751,7 +751,7 @@ set(void* io_image, const int i_argc, const char** i_argv, int i_setv)
 
         if ((i_argc % clause_args) != 0)
         {
-            fprintf(stderr, g_usage);
+            fprintf(stderr, "%s", g_usage);
             exit(1);
         }
 
@@ -988,7 +988,7 @@ get(void* i_image, const int i_argc, const char** i_argv, int i_getv)
 
         if (i_argc != nargs)
         {
-            fprintf(stderr, g_usage);
+            fprintf(stderr, "%s", g_usage);
             exit(1);
         }
 
@@ -1143,7 +1143,7 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
 
         if (i_argc != 2 && i_argc != 3)
         {
-            fprintf(stderr, g_usage);
+            fprintf(stderr, "%s", g_usage);
             exit(1);
         }
 
@@ -1162,7 +1162,7 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
             }
             else
             {
-                fprintf(stderr, g_usage);
+                fprintf(stderr, "%s", g_usage);
                 exit(1);
             }
         }
@@ -3118,7 +3118,7 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
 
         if(i_argc != 3)
         {
-            fprintf(stderr, g_usage);
+            fprintf(stderr, "%s", g_usage);
             exit(EXIT_FAILURE);
         }
 
@@ -3148,7 +3148,7 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
     else
     {
 
-        fprintf(stderr, g_usage);
+        fprintf(stderr, "%s", g_usage);
         exit(EXIT_FAILURE);
 
     }
@@ -3202,7 +3202,7 @@ main(int argc, const char** argv)
                 }
                 else
                 {
-                    fprintf(stderr, g_usage);
+                    fprintf(stderr, "%s", g_usage);
                     fprintf(stderr, "\n");
                     fprintf(stderr, "argv[%i]=%s is an unsupported flag.", idxArgv, argv[idxArgv]);
                     fprintf(stderr, "See top of above help menu for supported flags.\n");
@@ -3226,7 +3226,7 @@ main(int argc, const char** argv)
         (strncmp(argv[1], "-h", 2) == 0) ||
         (strncmp(argv[1], "--h", 3) == 0) )
     {
-        fprintf(stderr, g_usage);
+        fprintf(stderr, "%s", g_usage);
         exit(1);
     }
 

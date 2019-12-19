@@ -1094,13 +1094,16 @@ int main(int argc, char** argv)
 
         string pwd;
         FILE* PWD = popen("pwd", "r");
-        fgets(buf, MAX_BUFFER, PWD);
-        pwd = buf;
-        pclose(PWD);
-        time_t tt = time(NULL);
-        sprintf(buf, "%s", asctime(localtime(&tt)));
-        buf[strlen(buf) - 1] = '\0'; // chop off extra newline
-        fprintf(TRC, "#FSP_TRACE_v2|||%s|||BUILD:%s", buf, pwd.c_str());
+
+        if (fgets(buf, MAX_BUFFER, PWD) != NULL)
+        {
+            pwd = buf;
+            pclose(PWD);
+            time_t tt = time(NULL);
+            sprintf(buf, "%s", asctime(localtime(&tt)));
+            buf[strlen(buf) - 1] = '\0'; // chop off extra newline
+            fprintf(TRC, "#FSP_TRACE_v2|||%s|||BUILD:%s", buf, pwd.c_str());
+        }
 
         string srch_str = "||";
         srch_str += source;
