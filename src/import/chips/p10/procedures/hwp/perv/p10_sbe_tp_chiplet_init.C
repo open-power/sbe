@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -114,6 +114,11 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_DBG("Start clocks for all regions except Pib, Net and Pll ");
     FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV_PSI,
              CLOCK_TYPES_ALL));
+
+    FAPI_DBG("Clear flush_inhibit to go in to flush mode");
+    l_data64.flush<0>()
+    .setBit<CPLT_CTRL0_CTRL_CC_FLUSHMODE_INH>();
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL0_WO_CLEAR, l_data64));
 
     // startclocks for pll  - This is no longer necessary for P10
 
