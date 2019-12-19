@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -76,7 +76,7 @@ p10_hcd_cache_scom_customize(
     uint32_t l_core_mask     = 0;
     uint32_t l_scom_entry    = 0;
     ScomEntry_t* pQmeScomRes = 0;
-    qmeHeader_t* pQmeImgHdr  = (qmeHeader_t*)(QME_SRAM_HEADER_ADDR);
+    QmeHeader_t* pQmeImgHdr  = (QmeHeader_t*)(QME_SRAM_HEADER_ADDR);
 
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
     fapi2::ATTR_CONTAINED_IPL_TYPE_Type         l_attr_contained_ipl_type;
