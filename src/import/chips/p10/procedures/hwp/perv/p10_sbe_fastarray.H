@@ -47,10 +47,9 @@
 #include <hwp_data_stream.H>
 
 typedef fapi2::ReturnCode (*p10_sbe_fastarray_FP_t)(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target,
-    uint64_t                                      i_scan_region_type,
-    fapi2::hwp_data_istream&                      i_instructions,
-    fapi2::hwp_data_ostream&                      o_dump_data);
+    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_CORE > & i_target,
+    fapi2::hwp_data_istream&  i_instructions,
+    fapi2::hwp_data_ostream&  o_dump_data);
 
 /**
  * @brief Extract a raw fast array dump out of a given chiplet
@@ -69,8 +68,6 @@ typedef fapi2::ReturnCode (*p10_sbe_fastarray_FP_t)(
  * control is required. Likewise, the data that is dumped out of the chiplet is returned in another stream.
  *
  * @param[in]  i_target            The chiplet to be dumped
- * @param[in]  i_scan_region_type  Value for the clock controller's SCAN_REGION_TYPE register that will
- *                                 select the desired clock regions and FARR scan type.
  * @param[in]  i_instructions      Control data for the procedure
  * @param[out] o_dump_data         Raw fast array dump data that will require offline post processing
  *
@@ -79,7 +76,10 @@ typedef fapi2::ReturnCode (*p10_sbe_fastarray_FP_t)(
  *
  * Input stream format description:
  *
- * The input stream consists of (ncycles, nwords, carebits) tuples:
+ * The first 32-bit word in the input stream is the ring address of the ring to be dumped, in the format
+ * we all know and hate.
+ *
+ * The rest of the input stream consists of (ncycles, nwords, carebits) tuples:
  *   The first word (the "header") has ncycles in the upper halfword and nwords in the lower halfword
  *   The header is followed by a number of words equal to nwords; these words make up the carebits information
  *
@@ -93,9 +93,9 @@ typedef fapi2::ReturnCode (*p10_sbe_fastarray_FP_t)(
  *
  * Output stream format description:
  *
- * The output stream format is identical to the input stream format, except after each tuple the read data
- * is appended in a separate byte_ostream. For each run of care bits, that many bits are appended to the stream,
- * and at the end of each row, the number of bits is zero-padded to a byte boundary.
+ * The output stream format is identical to the input stream format minus the initial ring address word, except
+ * after each tuple the read data is appended in a separate byte_ostream. For each run of care bits, that many
+ * bits are appended to the stream, and at the end of each row, the number of bits is zero-padded to a byte boundary.
  *
  * This way, the output stream contains all necessary information about its own composition, and the offline
  * post processor can decode it without knowledge of the SBE image that produced it.
@@ -103,10 +103,9 @@ typedef fapi2::ReturnCode (*p10_sbe_fastarray_FP_t)(
 extern "C"
 {
     fapi2::ReturnCode p10_sbe_fastarray(
-        const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target,
-        uint64_t                                      i_scan_region_type,
-        fapi2::hwp_data_istream&                      i_instructions,
-        fapi2::hwp_data_ostream&                      o_dump_data);
+        const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_CORE > & i_target,
+        fapi2::hwp_data_istream&  i_instructions,
+        fapi2::hwp_data_ostream&  o_dump_data);
 }
 
 #endif
