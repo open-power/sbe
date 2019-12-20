@@ -524,10 +524,6 @@ fapi2::ReturnCode initQmeBoot(
         FAPI_TRY( putScom( l_eq_mc_or, QME_BCECSR, l_bceCsrReg ) );
         FAPI_INF( "QME Hcode Transfer Initiated" );
 
-        // RTC: 243681:  HW505969 - read BCECSR as the first one is junk
-        FAPI_INF( "HW505969 BCECSR read" );
-        FAPI_TRY( getScom( l_eq_mc_or, QME_BCECSR, l_bceCsrReg ) );
-
         uint32_t l_qmeRunningCount = l_qmeHcodeBlock;
         uint32_t loop_count = 0;
         FAPI_DBG("l_qmeRunningCount START: %u (0x%X)", l_qmeRunningCount, l_qmeRunningCount);
