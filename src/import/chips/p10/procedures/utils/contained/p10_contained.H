@@ -114,4 +114,15 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                                     const uint32_t i_active_bvec, const l3_config& i_l3_config,
                                     const bool i_runn);
 
+///
+/// @brief Disable sreset-on-decrementer for all threads on cores behind a backing cache
+///
+/// @param[in] i_chip        Reference to chip target
+/// @param[in] i_active_bvec Bitvector of cores configured to be active
+///
+/// Note: Only applies to chip-contained RUNN IPL
+///
+fapi2::ReturnCode disable_sreset_on_decr(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        const uint32_t i_active_bvec);
+
 #endif

@@ -30,6 +30,7 @@
 #include <p10_scan_via_scom.H>
 #include <p10_contained_active_cache_ringspin.H>
 #include <p10_contained_backing_cache_ringspin.H>
+#include <p10_contained_chc_inactive_cores_ringspin.H>
 
 fapi2::ReturnCode is_runn_ipl(bool& o_yes)
 {
@@ -178,6 +179,42 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                 PREP_L3_MISC_L3CERRS_MODE_REG0(core);
                 FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG0(core, mode_reg0));
             }
+        }
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
+fapi2::ReturnCode disable_sreset_on_decr(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        const uint32_t i_active_bvec)
+{
+    FAPI_INF(">> %s", __func__);
+
+    using namespace scomt::c;
+    using namespace scomt::perv;
+
+    fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
+    // ec_l2_mode
+    const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
+            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_CFG>());
+    fapi2::buffer<uint64_t> scan_region_type;
+
+
+    for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));
+
+        if (!is_active_core(corenum, i_active_bvec))
+        {
+            perv = core.getParent<fapi2::TARGET_TYPE_PERV>();
+            scan_region_type = scan_type;
+            scan_region_type.setBit(SCAN_REGION_TYPE_SCAN_REGION_UNIT1 +
+                                    (corenum % 4));
+
+            FAPI_TRY(chc_inactive_cores::ec_cl2_mode(perv, scan_region_type, 0, 0));
         }
     }
 

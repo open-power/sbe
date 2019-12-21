@@ -150,6 +150,29 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+fapi2::ReturnCode set_mcd_topoid_parity()
+{
+    FAPI_INF(">> %s", __func__);
+
+    std::string tmp;
+    ecmdDataBuffer bit = ecmdDataBuffer(1);
+    bit.setBit(0);
+
+    if (!getenvvar("P10_CONTAINED_SIM_SET_MCD_TOPOID_PARITY", tmp))
+    {
+        FAPI_ERR("P10_CONTAINED_SIM_SET_MCD_TOPOID_PARITY not set");
+        FAPI_INF(">> %s", __func__);
+        return fapi2::FAPI2_RC_SUCCESS;
+    }
+
+    ECMD_TRY(simSTKFAC,
+             "B0.C0.S0.P0.E10.ES.MCD.MCD_BANK0.MCD_BANK_DF.CFG_REGS.CFG_TOPOID_PARITY_Q_INST.LATC.L2", 1, bit);
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
 fapi2::ReturnCode set_pc_decrementer()
 {
     FAPI_INF(">> %s", __func__);

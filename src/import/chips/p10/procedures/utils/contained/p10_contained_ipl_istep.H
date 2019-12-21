@@ -95,6 +95,9 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep3(const fapi2::Target<fap
 
     FAPI_TRY(sim::init_via_dials(sim::ISTEP3, true));
 
+    // HW517482
+    FAPI_TRY(sim::set_mcd_topoid_parity());
+
     if (!i_runn)
     {
         FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_startclocks, i_target));
@@ -156,6 +159,12 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep4(const fapi2::Target < f
     else
     {
         FAPI_TRY(sim::set_pc_decrementer());
+    }
+
+    if (i_chc && i_runn)
+    {
+        FAPI_TRY(disable_sreset_on_decr(i_cores.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
+                                        i_active_bvec));
     }
 
 fapi_try_exit:

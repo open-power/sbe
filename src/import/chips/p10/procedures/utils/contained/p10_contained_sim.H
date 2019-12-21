@@ -111,6 +111,9 @@ fapi2::ReturnCode checkpoint(const bool i_chc, const bool i_runn,
 ///
 fapi2::ReturnCode set_pc_decrementer();
 
+/// HW517482
+fapi2::ReturnCode set_mcd_topoid_parity();
+
 #else // P10_CONTAINED_SIM
 
 constexpr bool skip_stopclocks()
@@ -135,6 +138,10 @@ inline fapi2::ReturnCode checkpoint(const bool i_chc, const bool i_runn,
     return fapi2::FAPI2_RC_SUCCESS;
 }
 inline fapi2::ReturnCode set_pc_decrementer()
+{
+    return fapi2::FAPI2_RC_SUCCESS;
+}
+inline fapi2::ReturnCode set_mcd_topoid_parity()
 {
     return fapi2::FAPI2_RC_SUCCESS;
 }
