@@ -53,6 +53,21 @@ using namespace scomt::eq;
 // Constant Definitions
 //------------------------------------------------------------------------------
 
+RingID ec_cl2_repr_ids[4] =
+{
+    ec_cl2_repr,
+    ec1_cl2_repr,
+    ec2_cl2_repr,
+    ec3_cl2_repr
+};
+
+RingID ec_mma_repr_ids[4] =
+{
+    ec_mma_repr,
+    ec1_mma_repr,
+    ec2_mma_repr,
+    ec3_mma_repr
+};
 
 //------------------------------------------------------------------------------
 // Procedure: p10_hcd_core_repair_initf
@@ -104,14 +119,14 @@ p10_hcd_core_repair_initf(
                     "Configuration Mismatch: CPLT_CTRL2 partial good bit is not set.");
 
         FAPI_DBG("Scan ec_cl2_repr ring");
-        FAPI_TRY(fapi2::putRing(l_core, ec_cl2_repr,
+        FAPI_TRY(fapi2::putRing(l_core, ec_cl2_repr_ids[l_core_num],
                                 fapi2::RING_MODE_HEADER_CHECK),
                  "Error from putRing (ec_cl2_repr)");
 
 #ifndef __PPE_QME
 
         FAPI_DBG("Scan ec_mma_repr ring");
-        FAPI_TRY(fapi2::putRing(l_core, ec_mma_repr,
+        FAPI_TRY(fapi2::putRing(l_core, ec_mma_repr_ids[l_core_num],
                                 fapi2::RING_MODE_HEADER_CHECK),
                  "Error from putRing (ec_mma_repr)");
 
