@@ -38,9 +38,12 @@
 // Includes
 //--------------------------------------------------------------------------
 #include <p10_sbe_check_quiesce.H>
+#include <p10_suspend_io.H>
 #include <p10_scom_proc.H>
 #include <p10_scom_nmmu.H>
 #include <p10_scom_pau.H>
+#include <p10_scom_phb_e.H>
+#include <p10_scom_phb_d.H>
 
 //-----------------------------------------------------------------------------------
 // Constant definitions
@@ -58,6 +61,60 @@ const uint32_t C_INTP_DELAY_CYCLES = 20000 / C_NUM_TRIES_QUIESCE_STATE; //2GHz *
 using namespace scomt;
 using namespace scomt::proc;
 using namespace scomt::nmmu;
+using namespace scomt::phb;
+
+const uint32_t PHB_HV_IND_ADDR_VALID_BIT = 0;
+const uint32_t PHB_HV_IND_ADDR_START_BIT = 52;
+const uint32_t PHB_HV_IND_ADDR_LEN = 12;
+
+
+//---------------------------------------------------------------------------------
+// NOTE: description in header
+//---------------------------------------------------------------------------------
+fapi2::ReturnCode p10_phb_check_quiesce(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    FAPI_DBG("p10_phb_check_quiesce: Entering ...");
+    fapi2::buffer<uint64_t> l_data(0);
+
+    // If ETU is not already in reset, use indirect register to quiesce DMAs
+    // The address of the PHB Quiesce DMA Register is 0x0888 (found in PHB spec)
+    auto l_phb_chiplets_vec = i_target.getChildren<fapi2::TARGET_TYPE_PHB>();
+
+    for (auto& l_phb_chiplet : l_phb_chiplets_vec)
+    {
+        FAPI_TRY(PREP_REGS_PHBRESET_REG(l_phb_chiplet));
+        FAPI_TRY(GET_REGS_PHBRESET_REG(l_phb_chiplet, l_data));
+
+        if (!GET_REGS_PHBRESET_REG_PE_ETU_RESET(l_data))
+        {
+            //Clear contents of PHB HV Indirect Address Register
+            l_data.flush<0>();
+
+            FAPI_TRY(PREP_RSB_SCOM_SSR_PHB5_HVIAR(l_phb_chiplet));
+            FAPI_TRY(GET_RSB_SCOM_SSR_PHB5_HVIAR(l_phb_chiplet, l_data));
+            //Setup the PHB HV registers for the write
+            l_data.insertFromRight<PHB_HV_IND_ADDR_START_BIT, PHB_HV_IND_ADDR_LEN>(0x888);
+            l_data.setBit<PHB_HV_IND_ADDR_VALID_BIT>();
+
+            FAPI_TRY(PUT_RSB_SCOM_SSR_PHB5_HVIAR(l_phb_chiplet, l_data));
+
+            //Setup PHB HV Indirect for write access
+            l_data.flush<0>().insertFromRight<0, 63>(0x8000000000000000);
+            FAPI_TRY(PUT_RSB_SCOM_SSR_PHB5_HVIAR(l_phb_chiplet, l_data));
+
+            //Clear contents of PHB HV Indirect Address Register
+            l_data.flush<0>();
+            FAPI_TRY(PUT_RSB_SCOM_SSR_PHB5_HVIAR(l_phb_chiplet, l_data));
+        }
+    }
+
+    FAPI_TRY(p10_suspend_io(i_target, true), "ERROR suspending IO");
+
+fapi_try_exit:
+    FAPI_DBG("p10_phb_check_quiesce: Exiting ...");
+    return fapi2::current_err;
+}
 
 typedef fapi2::ReturnCode (*getScomFuncType)(const fapi2::Target<fapi2::TARGET_TYPE_PAU>& i_target,
         fapi2::buffer<uint64_t>& o_data);
@@ -802,10 +859,7 @@ fapi2::ReturnCode p10_sbe_check_quiesce(
 {
     FAPI_DBG("p10_sbe_check_quiesce: Entering..");
 
-    // SBE will check quiesce state for all units on the powerbus on its chip
-    // TODO (SW477416): Implement HW Procedure for checking the quiesce state of
-    // and PHB.
-
+    FAPI_TRY(p10_phb_check_quiesce(i_target), "Error from p10_phb_check_quiesce");
     FAPI_TRY(p10_pau_check_quiesce(i_target), "Error from p10_pau_check_quiesce");
     FAPI_TRY(p10_vas_check_quiesce(i_target), "Error from p10_vas_check_quiesce");
     FAPI_TRY(p10_nx_check_quiesce(i_target), "Error from p10_nx_check_quiesce");
