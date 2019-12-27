@@ -46,6 +46,7 @@
 //
 struct restoreOpcgRegisters
 {
+    fapi2::buffer<uint64_t> l_opcgAlign;
     fapi2::buffer<uint64_t> l_opcgReg0;
     fapi2::buffer<uint64_t> l_opcgReg1;
     fapi2::buffer<uint64_t> l_opcgReg2;

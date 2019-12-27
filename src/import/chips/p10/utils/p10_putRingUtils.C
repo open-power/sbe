@@ -56,9 +56,24 @@ namespace RS4
 
 enum
 {
+    OPCG_ALIGN_ADDRESS          =   0x00030001,
+    OPCG_REG0_ADDRESS           =   0x00030002,
+    OPCG_REG1_ADDRESS           =   0x00030003,
+    OPCG_REG2_ADDRESS           =   0x00030004,
+    SCAN_REGION_TYPE_ADDRESS    =   0x00030005,
+    CLK_REGION_ADDRESS          =   0x00030006,
+    OPCG_CAPT1_ADDRESS          =   0x00030010,
+    OPCG_CAPT2_ADDRESS          =   0x00030011,
+    OPCG_CAPT3_ADDRESS          =   0x00030012,
     ROTATE_ADDRESS_REG          =   0x00039000,
+    ROTATE_ADDRESS_NSL_REG      =   0x0003A000,
+    ROTATE_ADDRESS_SL_REG       =   0x0003C000,
+    SCAN64_ADDRESS              =   0x0003E000,
     CHECK_WORD_REG_ADDRESS      =   0x0003F040,
+    NET_CTRL0_WAND              =   0x000F0041,
+    NET_CTRL0_WOR               =   0x000F0042,
     MAX_RING_LIST               =   512,
+    SCAN_HEADER_DATA            =   0xa5a5a5a5a5a5a5a5ull,
     MASK_RESERVE_REGION_BIT     =   0x0FFFFFFFFFFFFFFFull,
     SUPER_CHIPLET_BASE_ID       =   0x20,
     SUPER_CHIPLET_MAX_ID        =   0x27,
@@ -290,6 +305,146 @@ uint64_t rs4_get_verbatim( const uint8_t* i_rs4Str,
 
 //-------------------------------------------------------------------------------------------------------
 
+fapi2::ReturnCode putRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+                              const RingType_t i_ringType,
+                              const uint32_t i_chipletMask,
+                              const uint32_t i_scomAddress,
+                              const fapi2::buffer<uint64_t> i_scomData)
+{
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_target_proc = i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
+
+    uint32_t l_scomAddress = i_scomAddress;
+
+    if ( INSTANCE_RING == i_ringType )
+    {
+        l_scomAddress |= i_chipletMask;
+
+        FAPI_TRY( fapi2::putScom( l_target_proc, l_scomAddress, i_scomData ),
+                  "Instance: putRegister failed" );
+    }
+    else
+    {
+        if ( SUPER_CHIPLET_MASK == i_chipletMask )
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST> l_target_eq =
+                i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST >();
+            l_scomAddress |= i_chipletMask;
+
+            FAPI_TRY( fapi2::putScom( l_target_eq, l_scomAddress, i_scomData ),
+                      "EQ Common: putRegister failed" );
+        }
+        else
+        {
+            if (fapi2::TARGET_TYPE_PERV != i_target.getType() )
+            {
+                fapi2::ATTR_SCAN_CHIPLET_OVERRIDE_Type l_scan_chiplet_override =  fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE;
+
+                FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, l_target_proc, l_scan_chiplet_override ) );
+
+                if ( fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE == l_scan_chiplet_override )
+                {
+                    l_scomAddress |= i_chipletMask;
+                }
+                else
+                {
+                    l_scomAddress |= ( l_scan_chiplet_override << 24 );
+                }
+            }
+
+            FAPI_TRY( fapi2::putScom( i_target, l_scomAddress, i_scomData ),
+                      "Non EQ Common: putRegister failed" );
+        }
+    }
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+//-------------------------------------------------------------------------------------------------------
+
+fapi2::ReturnCode getRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+                              const RingType_t i_ringType,
+                              const uint32_t i_chipletMask,
+                              const uint32_t i_scomAddress,
+                              const bool i_and_not_comp,
+                              fapi2::buffer<uint64_t> & o_scomData)
+{
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_target_proc = i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
+
+    uint32_t l_scomAddress = i_scomAddress;
+
+    if ( INSTANCE_RING == i_ringType )
+    {
+        l_scomAddress |= i_chipletMask;
+        FAPI_TRY( fapi2::getScom( l_target_proc, l_scomAddress, o_scomData ),
+                  "Instance: getRegister failed" );
+    }
+    else
+    {
+        if ( SUPER_CHIPLET_MASK == i_chipletMask )
+        {
+            l_scomAddress |= i_chipletMask;
+
+            if ( i_and_not_comp )
+            {
+                fapi2::Target< fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2:: MULTICAST_AND > l_target_eq_and =
+                    i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST >();
+
+                FAPI_TRY( fapi2::getScom( l_target_eq_and, l_scomAddress, o_scomData ),
+                          "EQ Common: getRegister (and) failed" );
+
+            }
+            else
+            {
+                fapi2::Target< fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2:: MULTICAST_COMPARE > l_target_eq_comp =
+                    i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST>();
+
+                FAPI_TRY( fapi2::getScom( l_target_eq_comp, l_scomAddress, o_scomData ),
+                          "EQ Common: getRegister (comp) failed" );
+            }
+        }
+        else
+        {
+            if (fapi2::TARGET_TYPE_PERV != i_target.getType() )
+            {
+                fapi2::ATTR_SCAN_CHIPLET_OVERRIDE_Type l_scan_chiplet_override =  fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE;
+
+                FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, l_target_proc, l_scan_chiplet_override ) );
+
+                if ( fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE == l_scan_chiplet_override )
+                {
+                    l_scomAddress |= i_chipletMask;
+                }
+                else
+                {
+                    l_scomAddress |= ( l_scan_chiplet_override << 24 );
+                }
+            }
+
+            if ( i_and_not_comp )
+            {
+                fapi2::Target< fapi2::TARGET_TYPE_ALL_MC, fapi2:: MULTICAST_AND > l_target_mc_and = i_target;
+
+                FAPI_TRY( fapi2::getScom( l_target_mc_and, l_scomAddress, o_scomData ),
+                          "Non EQ Common: getRegister (and) failed" );
+            }
+            else
+            {
+                fapi2::Target< fapi2::TARGET_TYPE_ALL_MC, fapi2:: MULTICAST_COMPARE > l_target_mc_comp = i_target;
+
+                FAPI_TRY( fapi2::getScom( l_target_mc_comp, l_scomAddress, o_scomData ),
+                          "Non EQ Common: getRegister (comp) failed" );
+            }
+
+        }
+    }
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+//-------------------------------------------------------------------------------------------------------
+
 bool isInstanceRing( const uint16_t i_ringId )
 {
     bool l_instanceRing = false;
@@ -445,20 +600,7 @@ fapi2::ReturnCode standardScan(
 
     uint32_t l_scomAddress  =   0;
     fapi2::ReturnCode l_rc  =   fapi2::FAPI2_RC_SUCCESS;
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
-             i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
-    fapi2::Target< fapi2::TARGET_TYPE_ALL_MC,
-                    fapi2:: MULTICAST_AND > l_mcAndTgt = i_target;
-
-    fapi2::Target<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST> l_eqTgt;
-    fapi2::Target< fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST,
-                    fapi2:: MULTICAST_AND > l_eqAndTgt;
-
-    if ( SUPER_CHIPLET_MASK == i_chipletMask )
-    {
-        l_eqTgt     =   i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST >();
-        l_eqAndTgt  =   l_eqTgt;
-    }
+    uint32_t l_max_poll_attempts = 1000;
 
     do
     {
@@ -498,30 +640,13 @@ fapi2::ReturnCode standardScan(
                 FAPI_INF("l_rotateCount %u", l_rotateCount);
                 fapi2::buffer<uint64_t> l_scomData( l_rotateCount );
 
-                if( INSTANCE_RING == i_ringType )
-                {
-                    FAPI_TRY( fapi2::putScom( l_procTgt, ( l_scomAddress | i_chipletMask ), l_scomData ),
-                                "Instance: ROTATE for %d, failed", i_opVal );
-                }
-                else
-                {
-                    if ( SUPER_CHIPLET_MASK == i_chipletMask )
-                    {
-                        FAPI_TRY( fapi2::putScom( l_eqTgt, l_scomAddress, l_scomData ),
-                                  "EQ Common : ROTATE for %d, failed", i_opVal );
-                    }
-                    else
-                    {
-                        FAPI_TRY( fapi2::putScom( i_target, l_scomAddress, l_scomData ),
-                                  "Non EQ Common: ROTATE for %d, failed", i_opVal );
+                FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, l_scomAddress, l_scomData ),
+                          "ROTATE for %d, failed", i_opVal );
 
-                    }
-
-                }
                 // Check OPCG_DONE status
                 uint32_t  l_OPCGAddress = 0x00000100;
 
-                uint32_t l_attempts = 1000;
+                uint32_t l_attempts = l_max_poll_attempts;
 
                 while( l_attempts > 0 )
                 {
@@ -529,24 +654,9 @@ fapi2::ReturnCode standardScan(
 
                     fapi2::buffer<uint64_t> l_opcgStatus;
 
-                    if( INSTANCE_RING == i_ringType )
-                    {
-                        FAPI_TRY( fapi2::getScom( l_procTgt, ( l_OPCGAddress | i_chipletMask ), l_opcgStatus ),
-                                    "Instance: Failure during OPCG Check" );
-                    }
-                    else
-                    {
-                        if( SUPER_CHIPLET_MASK   ==  i_chipletMask )
-                        {
-                            FAPI_TRY( fapi2::getScom( l_eqAndTgt, l_OPCGAddress, l_opcgStatus ),
-                                      "EQ Common : Failure during OPCG Check" );
-                        }
-                        else
-                        {
-                            FAPI_TRY( fapi2::getScom( l_mcAndTgt, l_OPCGAddress, l_opcgStatus ),
-                                        "Non EQ Common: Failure during OPCG Check" );
-                        }
-                    }
+                    FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, l_OPCGAddress, true, l_opcgStatus ),
+                              "Failure during OPCG Check" );
+
                     if( ( l_opcgStatus.getBit( perv::CPLT_STAT0_CC_CTRL_OPCG_DONE_DC ) ) ||
                         ( CRONTEST_MODE == i_opMode ) )
                     {
@@ -554,10 +664,17 @@ fapi2::ReturnCode standardScan(
                         break;
                     }
 
-                    // @TODO: 1 micro second is a number that works now.
-                    //        Need to derive the real delay number.
-                    fapi2::delay( 1000, 1000000 );
+                    // delays pulled from Cronus p9/zT code
+                    if (l_attempts == (l_max_poll_attempts-1))
+                    {
+                        uint64_t l_rotate_cycles = (l_rotateCount >> 32);
+                        FAPI_TRY( fapi2::delay( l_rotate_cycles * 3333, l_rotate_cycles * 16 ) );
+                    }
 
+                    else
+                    {
+                        FAPI_TRY( fapi2::delay( 1000000, 10000) );
+                    }
                 }
 
                 if( 0 == l_attempts )
@@ -583,24 +700,9 @@ fapi2::ReturnCode standardScan(
             // Set the scan count to the actual value
             l_scomAddress          |=    (uint32_t)(i_opVal);
 
-            if( INSTANCE_RING == i_ringType )
-            {
-                FAPI_TRY( fapi2::putScom( l_procTgt, l_scomAddress, l_scomData ),
-                            "Instance: SCAN for %d, failed", i_opVal );
-            }
-            else
-            {
-                if( SUPER_CHIPLET_MASK   ==  i_chipletMask )
-                {
-                    FAPI_TRY( fapi2::putScom( l_eqTgt, l_scomAddress, l_scomData ),
-                              "EQ Common: SCAN for %d, failed", i_opVal );
-                }
-                else
-                {
-                    FAPI_TRY( fapi2::putScom( i_target, l_scomAddress, l_scomData ),
-                                "Non EQ Common:SCAN for %d, failed", i_opVal );
-                }
-            }
+            FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, l_scomAddress, l_scomData ),
+                      "SCAN for %d, failed", i_opVal );
+
         } // end of if(SCAN == i_operation)
     }
     while(0);
@@ -608,48 +710,6 @@ fapi2::ReturnCode standardScan(
 fapi_try_exit:
 
     FAPI_INF("<< standardScan");
-    return fapi2::current_err;
-}
-
-//---------------------------------------------------------------------------------------------
-
-fapi2::ReturnCode writeHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
-                               const uint64_t i_header,
-                               const RingType_t i_ringType,
-                               uint32_t i_chipletMask )
-{
-    fapi2::ReturnCode l_rc  =   fapi2::FAPI2_RC_SUCCESS;
-    uint32_t l_scomAddress  =   CHECK_WORD_REG_ADDRESS; // 64-bit scan
-
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
-             i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
-    fapi2::Target< fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > l_eqTgt;
-
-    if( SUPER_CHIPLET_MASK  == i_chipletMask )
-    {
-        l_eqTgt     =   i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST>();
-    }
-
-    if( INSTANCE_RING == i_ringType )
-    {
-        FAPI_TRY( putScom( l_procTgt, (l_scomAddress | i_chipletMask ), i_header ),
-                  "Error during writing header %016x", i_header );
-    }
-    else
-    {
-        if( SUPER_CHIPLET_MASK   ==  i_chipletMask )
-        {
-            FAPI_TRY( fapi2::putScom( l_eqTgt, l_scomAddress, i_header ),
-                      "Error during writing header %016x", i_header );
-        }
-        else
-        {
-            FAPI_TRY( putScom( i_target, l_scomAddress, i_header ),
-                      "Error during writing header %016x", i_header );
-        }
-    }
-
-fapi_try_exit:
     return fapi2::current_err;
 }
 
@@ -669,45 +729,19 @@ fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& 
     fapi2::buffer<uint64_t> l_scomData;
     fapi2::buffer<uint64_t> l_readHeader;
     fapi2::ReturnCode l_rc  =   fapi2::FAPI2_RC_SUCCESS;
-    uint32_t l_address      =   0;
-    uint32_t l_scomAddress  =   SCAN64CONTSCAN; // 64-bit scan
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
-             i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
-    fapi2::Target< fapi2::TARGET_TYPE_ALL_MC, fapi2:: MULTICAST_COMPARE > l_mcCompTgt = i_target;
-    fapi2::Target< fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST,
-                    fapi2:: MULTICAST_COMPARE > l_eqCompTgt;
-
-    if( SUPER_CHIPLET_MASK  == i_chipletMask )
-    {
-        l_eqCompTgt     =   i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST>();
-    }
 
     fapi2::delay(1000, 100);
 
-    if( INSTANCE_RING == i_ringType )
-    {
-        FAPI_TRY( fapi2::getScom( l_procTgt, ( l_scomAddress | i_chipletMask ), l_readHeader ) );
-    }
-    else
-    {
-        if( SUPER_CHIPLET_MASK  == i_chipletMask )
-        {
-            FAPI_TRY( fapi2::getScom( l_eqCompTgt, l_scomAddress, l_readHeader ) );
-        }
-        else
-        {
-            FAPI_TRY( fapi2::getScom( l_mcCompTgt, l_scomAddress, l_readHeader ) );
-        }
-    }
+    FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, SCAN64CONTSCAN, false, l_readHeader ) );
 
     if( CRONTEST_MODE    ==  i_opMode )
     {
-        l_readHeader = 0xa5a5a5a5a5a5a5a5;
+        l_readHeader = SCAN_HEADER_DATA;
     }
 
     FAPI_INF("Got header - %016lx", uint64_t(l_readHeader));
 
-    if( l_readHeader != 0xa5a5a5a5a5a5a5a5 )
+    if( l_readHeader != SCAN_HEADER_DATA )
     {
         FAPI_ERR("Read CHECKWORD (%016x) data incorrect and total bit decoded 0x%016x",
                  uint64_t(l_readHeader), (uint64_t)i_bitsDecoded);
@@ -716,7 +750,7 @@ fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& 
         FAPI_ASSERT( false,
                      fapi2::P10_PUTRING_CHECKWORD_DATA_MISMATCH()
                      .set_TARGET( i_target )
-                     .set_SCOM_ADDRESS( l_scomAddress )
+                     .set_SCOM_ADDRESS( SCAN64CONTSCAN )
                      .set_SCOM_DATA( l_readHeader )
                      .set_BITS_DECODED( i_bitsDecoded )
                      .set_RING_ID( i_ringId )
@@ -725,18 +759,9 @@ fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& 
                      "CHECKWORD DATA mismatch" );
     }
 
-    l_address   =   CPLT_STAT0;
-
     if(( i_scanRegion  >> 32 ) & ENABLE_PARALLEL_SCAN )
     {
-        if( SUPER_CHIPLET_MASK  == i_chipletMask )
-        {
-            FAPI_TRY( fapi2::getScom( l_eqCompTgt, l_address, l_scomData ) );
-        }
-        else
-        {
-            FAPI_TRY( fapi2::getScom( l_mcCompTgt, l_address, l_scomData ) );
-        }
+        FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, CPLT_STAT0, false, l_scomData ) );
 
         if( l_scomData.getBit<CPLT_STAT0_CC_CTRL_PARALLEL_SCAN_COMPARE_ERR>() )
         {
@@ -754,44 +779,226 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-//----------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
-/// @brief Function to clean up the scan region and type
-/// @param[in] i_target         Chiplet Target of Scan
-/// @param[in] i_ringType       COMMON or INSTANCE ring
-/// @param[in] i_chipletMask    chiplet id shifted by 24 bit position.
-/// @return FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode cleanScanRegionandTypeData(
+fapi2::ReturnCode setupClockController(
     const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
     const RingType_t i_ringType,
-    uint32_t i_chipletMask )
+    const uint32_t i_chipletMask,
+    const fapi2::RingMode i_ringMode,
+    const uint64_t i_scanRegion,
+    struct restoreOpcgRegisters& o_OPCGData)
 {
-    fapi2::ReturnCode l_rc;
-    fapi2::buffer<uint64_t> l_data( 0 );
-    uint32_t l_scomAddress  =   0x00030005;
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
-             i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
+    bool l_use_setpulse =
+        ((i_ringMode & fapi2::RING_MODE_SET_PULSE_NSL) ||
+         (i_ringMode & fapi2::RING_MODE_SET_PULSE_SL) ||
+         (i_ringMode & fapi2::RING_MODE_SET_PULSE_ALL));
 
-    if( INSTANCE_RING == i_ringType )
+    // **************************
+    // Setup OPCG align
+    // **************************
+
+    if ( l_use_setpulse )
     {
-        FAPI_TRY( fapi2::putScom( l_procTgt, ( l_scomAddress | i_chipletMask ), l_data ) );
+        fapi2::buffer<uint64_t> l_opcgAlign;
+        FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, OPCG_ALIGN_ADDRESS, true, o_OPCGData.l_opcgAlign ) );
+
+        // bits: 4:7   SNOP_ALIGN(0:3) 5: 8:1
+        // bits: 20:31 SNOP_WAIT(0:11)
+        //set SNOP Align=8:1 and SNOP Wait=7
+        l_opcgAlign = o_OPCGData.l_opcgAlign;
+        l_opcgAlign.setBit<5>();
+        l_opcgAlign.setBit<7>();
+        l_opcgAlign.setBit<29>();
+        l_opcgAlign.setBit<30>();
+        l_opcgAlign.setBit<31>();
+
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_ALIGN_ADDRESS, l_opcgAlign ) );
     }
-    else
+
+    // **************************
+    // Setup Scan-Type and Region
+    // **************************
+
+    FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, SCAN_REGION_TYPE_ADDRESS, i_scanRegion ) );
+
+
+    // ***************************
+    // Setup Clock Region & OPCG regs
+    // ***************************
+
+    if ( l_use_setpulse )
     {
-        if( SUPER_CHIPLET_MASK ==  i_chipletMask )
+        //First 32 bits tells clock region
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, CLK_REGION_ADDRESS, (i_scanRegion & 0xFFFFFFFF00000000ULL ) ) );
+
+        // bit 11 -- RUN_OPCG_ON_UPDATE_DR
+        uint64_t l_opcg_reg0 = 0x0010000000000000ULL;
+        uint64_t l_opcg_reg1 = 0x0ULL;
+        uint64_t l_opcg_reg2 = 0x0ULL;
+        // NSL for slow regions
+        uint64_t l_opcg_capt1 = 0x0ULL;
+        // NSL for fast regions
+        uint64_t l_opcg_capt2 = 0x0ULL;
+        uint64_t l_opcg_capt3 = 0x0ULL;
+
+        // setup NSL mode
+        if ( i_ringMode & fapi2::RING_MODE_SET_PULSE_NSL )
         {
-            fapi2::Target<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST> l_eqTgt;
-            l_eqTgt     =   i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST >();
-            FAPI_TRY( fapi2::putScom( l_eqTgt, l_scomAddress, l_data ) );
+            // NSL for slow regions
+            l_opcg_capt1 = 0x1480000000000000;
+            // NSL for fast regions
+            l_opcg_capt2 = 0x0480000000000000;
         }
-        else
+        else if ( i_ringMode & fapi2::RING_MODE_SET_PULSE_SL )
         {
-            FAPI_TRY( fapi2::putScom( i_target, l_scomAddress, l_data ) );
+            // NSL for slow regions
+            l_opcg_capt1 = 0x1800000000000000;
+            // NSL for fast regions
+            l_opcg_capt2 = 0x0800000000000000;
+        }
+        else   //set pulse all
+        {
+            // NSL for slow regions
+            l_opcg_capt1 = 0x1E80000000000000;
+            // NSL for fast regions
+            l_opcg_capt2 = 0x0E80000000000000;
+        }
+
+        // save register state
+        FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, OPCG_REG0_ADDRESS,  true, o_OPCGData.l_opcgReg0  ) );
+        FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, OPCG_REG1_ADDRESS,  true, o_OPCGData.l_opcgReg1  ) );
+        FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, OPCG_REG2_ADDRESS,  true, o_OPCGData.l_opcgReg2  ) );
+        FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT1_ADDRESS, true, o_OPCGData.l_opcgCapt1 ) );
+        FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT2_ADDRESS, true, o_OPCGData.l_opcgCapt2 ) );
+        FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT3_ADDRESS, true, o_OPCGData.l_opcgCapt3 ) );
+
+        // apply setpulse setup
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_REG0_ADDRESS,  l_opcg_reg0  ) );
+        // Maintain SCAN_CLK_USE_EVEN bit 49
+        l_opcg_reg1 = o_OPCGData.l_opcgReg1 & 0x0000000000004000ULL;
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_REG1_ADDRESS,  l_opcg_reg1  ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_REG2_ADDRESS,  l_opcg_reg2  ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT1_ADDRESS, l_opcg_capt1 ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT2_ADDRESS, l_opcg_capt2 ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT3_ADDRESS, l_opcg_capt3 ) );
+
+        if ( ( i_ringMode & fapi2::RING_MODE_SET_PULSE_SL  ) ||
+             ( i_ringMode & fapi2::RING_MODE_SET_PULSE_ALL ) )
+        {
+            FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, ROTATE_ADDRESS_SL_REG, 0x0ULL ) );
         }
     }
 
 fapi_try_exit:
     return fapi2::current_err;
+}
+
+//----------------------------------------------------------------------------------------------------
+
+fapi2::ReturnCode cleanupClockController(
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+    const RingType_t i_ringType,
+    const uint32_t i_chipletMask,
+    const fapi2::RingMode i_ringMode,
+    const uint64_t i_scanRegion,
+    const struct restoreOpcgRegisters& i_OPCGData)
+{
+    fapi2::ATTR_CHIP_EC_FEATURE_HW520842_Type l_hw520842;
+    bool l_toggle_vitl_clockgating = false;
+    auto l_proc_target = i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    fapi2::buffer<uint64_t> l_net_ctrl0_vitl_clkgate = 0x0002000000000000ULL;
+
+    bool l_use_setpulse =
+        ((i_ringMode & fapi2::RING_MODE_SET_PULSE_NSL) ||
+         (i_ringMode & fapi2::RING_MODE_SET_PULSE_SL) ||
+         (i_ringMode & fapi2::RING_MODE_SET_PULSE_ALL));
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW520842, l_proc_target, l_hw520842),
+             "Error from FAPI_ATTR_GET (ATTR_CHIP_EC_FEATURE_HW520842)");
+
+    l_toggle_vitl_clockgating = l_hw520842 &&
+        ((i_scanRegion & (ENABLE_PARALLEL_SCAN << 32)) == (ENABLE_PARALLEL_SCAN << 32));
+
+    if ( l_use_setpulse )
+    {
+        if ( ( i_ringMode & fapi2::RING_MODE_SET_PULSE_NSL ) ||
+             ( i_ringMode & fapi2::RING_MODE_SET_PULSE_ALL ) )
+        {
+            FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, ROTATE_ADDRESS_NSL_REG, 0x0ULL ) );
+        }
+
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_ALIGN_ADDRESS, i_OPCGData.l_opcgAlign ) );
+    }
+
+    // disable vital clock gating to permit scan region type clearing to reset parallel scan error bits
+    if (l_toggle_vitl_clockgating)
+    {
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, NET_CTRL0_WOR, l_net_ctrl0_vitl_clkgate ) );
+    }
+
+    FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, SCAN_REGION_TYPE_ADDRESS, 0x0ULL ) );
+
+    if (l_toggle_vitl_clockgating)
+    {
+        l_net_ctrl0_vitl_clkgate = ~l_net_ctrl0_vitl_clkgate;
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, NET_CTRL0_WAND, l_net_ctrl0_vitl_clkgate ) );
+    }
+
+    if ( l_use_setpulse )
+    {
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, CLK_REGION_ADDRESS, 0x0ULL ) );
+        // restore register state
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_REG0_ADDRESS,  i_OPCGData.l_opcgReg0  ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_REG1_ADDRESS,  i_OPCGData.l_opcgReg1  ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_REG2_ADDRESS,  i_OPCGData.l_opcgReg2  ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT1_ADDRESS, i_OPCGData.l_opcgCapt1 ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT2_ADDRESS, i_OPCGData.l_opcgCapt2 ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, OPCG_CAPT3_ADDRESS, i_OPCGData.l_opcgCapt3 ) );
+    }
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+//----------------------------------------------------------------------------------------------------
+
+fapi2::ReturnCode flushRTIM(
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+    const RingType_t i_ringType,
+    const uint32_t i_chipletMask,
+    const fapi2::RingMode i_ringMode,
+    const uint64_t i_scanRegion)
+{
+    // only run RTIM flush if target of scan operation has parallel scan bit set
+    if ((i_scanRegion & (ENABLE_PARALLEL_SCAN << 32)) == (ENABLE_PARALLEL_SCAN << 32))
+    {
+        struct restoreOpcgRegisters l_OPCGData;
+        uint64_t l_scanRegion = i_scanRegion;
+        // alter type to unused (bndy)
+        l_scanRegion &= 0xFFFFFFFFFFFF0000ULL;
+        l_scanRegion |= 0x0000000000000080ULL;
+        // setup 64-bit writes to zero
+        uint32_t l_scomAddress = SCAN64_ADDRESS | 0x40;
+        uint64_t l_scomData = 0x0ULL;
+
+        // Prep clock controller for ring scan with modified type
+        FAPI_TRY( setupClockController( i_target, i_ringType, i_chipletMask, i_ringMode, l_scanRegion, l_OPCGData ),
+                  "Error from setupClockController" );
+
+        // ensure RTIMs in chain are flushed with 0s, skip header check
+        for (auto i = 0; i < 4; i++)
+        {
+            FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, l_scomAddress, l_scomData ) );
+        }
+
+        // Cleanup clock controller
+        FAPI_TRY( cleanupClockController( i_target, i_ringType, i_chipletMask, i_ringMode, l_scanRegion, l_OPCGData ),
+                  "Error from cleanupClockController" );
+    }
+fapi_try_exit:
+    return fapi2::current_err;
+
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -809,7 +1016,6 @@ fapi2::ReturnCode p10_putRingUtils(
     CompressedScanData* l_rs4Header     =   (CompressedScanData*) i_rs4;
     const uint8_t* l_rs4Str             =   ( i_rs4 +  sizeof( CompressedScanData ) );
     opType_t l_opType                   =   ROTATE;
-    uint32_t l_scomAddress              =   0;
     uint64_t l_nibbleIndx               =   0;
     uint64_t l_bitsDecoded              =   0;
     uint32_t l_scanAddr                 =   0;
@@ -820,10 +1026,8 @@ fapi2::ReturnCode p10_putRingUtils(
     MyBool_t l_bOverride                =   UNDEFINED_BOOLEAN;
     bool l_decompressionDone            =   false;
     uint32_t l_chipletMask              =   0;
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt =
-            i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
 
-    fapi2::Target<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST> l_eqTgt;
+    struct restoreOpcgRegisters l_OPCGData;
 
     initScanRegionTest();
 
@@ -842,10 +1046,6 @@ fapi2::ReturnCode p10_putRingUtils(
         l_scanRegion    =   decodeScanRegionData( i_target, l_scanAddr, l_ringId );
         l_chipletMask   =   ( l_scanAddr  & CHIPLET_MASK );
 
-        if( SUPER_CHIPLET_MASK ==  l_chipletMask )
-        {
-            l_eqTgt     =   i_target.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST >();
-        }
 
         if ( i_applyOverride )
         {
@@ -901,31 +1101,14 @@ fapi2::ReturnCode p10_putRingUtils(
             goto  fapi_try_exit;
         }
 
-        // Set up the scan region for the ring.
 
-        // Do the scom
-        fapi2::buffer<uint64_t> l_regionData( l_scanRegion );
-        l_scomAddress   =  0x00030005;
+        // optionally flush RTIM staging
+        FAPI_TRY( flushRTIM( i_target, i_ringType, l_chipletMask, i_ringMode, l_scanRegion ),
+                  "Error from flushRTIM" );
 
-        if( INSTANCE_RING == i_ringType )
-        {
-            l_scomAddress |= l_chipletMask;
-            FAPI_TRY( fapi2::putScom( l_procTgt, l_scomAddress, l_regionData ),
-                      "Instance: Setup Scan-Type and Region failed" );
-        }
-        else
-        {
-            if ( SUPER_CHIPLET_MASK == l_chipletMask )
-            {
-                FAPI_TRY( fapi2::putScom( l_eqTgt, l_scomAddress, l_regionData ),
-                          "EQ: Setup Scan-Type and Region failed" );
-            }
-            else
-            {
-                FAPI_TRY( fapi2::putScom( i_target, l_scomAddress, l_regionData ),
-                          "Non EQ: Setup Scan-Type and Region failed" );
-            }
-        }
+        // Prep clock controller for ring scan
+        FAPI_TRY( setupClockController( i_target, i_ringType, l_chipletMask, i_ringMode, l_scanRegion, l_OPCGData ),
+                  "Error from setupClockController" );
 
         if( TEST_MODE == i_opMode )
         {
@@ -933,8 +1116,8 @@ fapi2::ReturnCode p10_putRingUtils(
         }
 
         // Write a 64 bit value for header.
-        const uint64_t l_header     =   0xa5a5a5a5a5a5a5a5;
-        FAPI_TRY( writeHeader( i_target, l_header, i_ringType, l_chipletMask ) );
+        FAPI_TRY( putRegister( i_target, i_ringType, l_chipletMask, CHECK_WORD_REG_ADDRESS, SCAN_HEADER_DATA ),
+                  "Error during writing header %016x", SCAN_HEADER_DATA );
 
         bool l_skip_64bits = true;
 
@@ -1195,8 +1378,10 @@ fapi2::ReturnCode p10_putRingUtils(
                                 l_ringId, l_chipletMask, l_bitsDecoded,
                                 i_ringType, i_opMode  ) );
 
-        // Clean scan region and type data
-        FAPI_TRY( cleanScanRegionandTypeData( i_target, l_ringId, l_chipletMask ) );
+        // Cleanup clock controller post scan
+        FAPI_TRY( cleanupClockController( i_target, i_ringType, l_chipletMask, i_ringMode, l_scanRegion, l_OPCGData ),
+                  "Error from cleanupClockController" );
+
     }
     while( 0 );
 
