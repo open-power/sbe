@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -77,7 +77,10 @@ static const ring_setup_t ISTEP3_FURE_RINGS[] =
     { pau2_pau5_fure, 0x6,       TARGET_CHIP,    0x12, 0x12, 0},
     { pau3_pau6_fure, 0x5,       TARGET_CHIP,    0x13, 0x13, 0},
     { pau3_pau7_fure, 0x6,       TARGET_CHIP,    0x13, 0x13, 0},
-    { eq_fure,        IGNORE_PG, TARGET_CHIPLET, 0x20, 0x27, 1},
+    { eq_fure,        IGNORE_PG, TARGET_CHIPLET, 0x20, 0x27, 0},
+    { eq_mode,        IGNORE_PG, TARGET_CHIPLET, 0x20, 0x27, 0},
+    { eq_clkadj_fure, IGNORE_PG, TARGET_CHIPLET, 0x20, 0x27, 0},
+    { eq_clkadj_mode, IGNORE_PG, TARGET_CHIPLET, 0x20, 0x27, 1},
 };
 
 fapi2::ReturnCode p10_sbe_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
