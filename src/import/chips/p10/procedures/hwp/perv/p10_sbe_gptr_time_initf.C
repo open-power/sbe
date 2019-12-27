@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -35,8 +35,11 @@
 
 #include "p10_sbe_gptr_time_initf.H"
 #include "p10_perv_sbe_cmn.H"
+#include <target_filters.H>
+#include <multicast_defs.H>
+#include <multicast_group_defs.H>
 
-static const ring_setup_t ISTEP3_GPTR_TIME_RINGS[] =
+static const ring_setup_t ISTEP3_GPTR_TIME_RINGS_UNICAST[] =
 {
     { n0_gptr,        IGNORE_PG,   TARGET_CHIP,    0x2,  0x2,  0},
     { n0_time,        IGNORE_PG,   TARGET_CHIP,    0x2,  0x2,  0},
@@ -44,12 +47,6 @@ static const ring_setup_t ISTEP3_GPTR_TIME_RINGS[] =
     { n1_time,        IGNORE_PG,   TARGET_CHIP,    0x3,  0x3,  0},
     { n1_nmmu1_gptr,  0x9,         TARGET_CHIP,    0x3,  0x3,  0},
     { n1_nmmu1_time,  0x9,         TARGET_CHIP,    0x3,  0x3,  0},
-    { pci_gptr,       IGNORE_PG,   TARGET_CHIPLET, 0x8,  0x9,  0},
-    { pci_time,       IGNORE_PG,   TARGET_CHIPLET, 0x8,  0x9,  0},
-    { pci_pll_gptr,   IGNORE_PG,   TARGET_CHIPLET, 0x8,  0x9,  0},
-    { mc_gptr,        IGNORE_PG,   TARGET_CHIPLET, 0xC,  0xF,  0},
-    { mc_time,        IGNORE_PG,   TARGET_CHIPLET, 0xC,  0xF,  0},
-    { mc_pll_gptr,    IGNORE_PG,   TARGET_CHIPLET, 0xC,  0xF,  0},
     { iohs0_gptr,     IGNORE_PG,   TARGET_CHIP,    0x18, 0x18, 0},
     { iohs0_time,     IGNORE_PG,   TARGET_CHIP,    0x18, 0x18, 0},
     { iohs0_pll_gptr, IGNORE_PG,   TARGET_CHIP,    0x18, 0x18, 0},
@@ -125,18 +122,60 @@ static const ring_setup_t ISTEP3_GPTR_TIME_RINGS[] =
     { pau3_pau6_gptr, 0x5,         TARGET_CHIP,    0x13, 0x13, 0},
     { pau3_pau6_time, 0x5,         TARGET_CHIP,    0x13, 0x13, 0},
     { pau3_pau7_gptr, 0x6,         TARGET_CHIP,    0x13, 0x13, 0},
-    { pau3_pau7_time, 0x6,         TARGET_CHIP,    0x13, 0x13, 0},
-    { eq_gptr,        IGNORE_PG,   TARGET_CHIPLET, 0x20, 0x27, 0},
-    { eq_time,        IGNORE_PG,   TARGET_CHIPLET, 0x20, 0x27, 1},
+    { pau3_pau7_time, 0x6,         TARGET_CHIP,    0x13, 0x13, 1},
+};
+
+static const mc_ring_setup_t ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST[] =
+{
+    { eq_gptr,        0},
+    { eq_time,        0},
+    { eq_clkadj_gptr, 0},
+    { eq_clkadj_time, 1},
+};
+
+static const mc_ring_setup_t ISTEP3_PCI_GPTR_TIME_RINGS_MULTICAST[] =
+{
+    { pci_gptr,       0},
+    { pci_time,       0},
+    { pci_pll_gptr,   1},
+};
+
+static const mc_ring_setup_t ISTEP3_MC_GPTR_TIME_RINGS_MULTICAST[] =
+{
+    { mc_gptr,        0},
+    { mc_time,        0},
+    { mc_pll_gptr,    1},
 };
 
 fapi2::ReturnCode p10_sbe_gptr_time_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-
     FAPI_INF("p10_sbe_gptr_time_initf: Entering ...");
 
-    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_GPTR_TIME_RINGS));
+    auto l_mc = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                    static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC),
+                    fapi2::TARGET_STATE_FUNCTIONAL);
+
+    auto l_pci = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                     static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
+                     fapi2::TARGET_STATE_FUNCTIONAL);
+
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_GPTR_TIME_RINGS_UNICAST));
+
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_ALL_EQ,
+             ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST));
+
+    if (l_mc.size())
+    {
+        FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_GOOD_MC,
+                 ISTEP3_MC_GPTR_TIME_RINGS_MULTICAST));
+    }
+
+    if (l_pci.size())
+    {
+        FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_GOOD_PCI,
+                 ISTEP3_PCI_GPTR_TIME_RINGS_MULTICAST));
+    }
 
     FAPI_INF("p10_sbe_gptr_time_initf: Exiting ...");
 

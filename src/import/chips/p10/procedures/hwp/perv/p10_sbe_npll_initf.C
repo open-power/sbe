@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,7 +40,7 @@
 static const ring_setup_t ISTEP2_BNDY_FUNC_RINGS[] =
 {
     {perv_pll_bndy,   IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
-    {perv_dpll_time,  IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
+    {perv_dpll_time,  IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 1},
     // Will dpll_mode ring be added?
 };
 

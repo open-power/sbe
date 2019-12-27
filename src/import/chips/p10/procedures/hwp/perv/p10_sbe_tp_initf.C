@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,7 +37,7 @@
 
 static const ring_setup_t ISTEP2_FURE_RINGS[] =
 {
-    { perv_fure,      IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
+    { perv_fure,      IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 1},
     // putring call on occ_fure moved to istep s3.
 };
 
