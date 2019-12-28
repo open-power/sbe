@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -102,6 +102,9 @@
 #include "p10_sbe_select_ex.H"
 #include "p10_hcd_common.H"
 #include <multicast_group_defs.H>
+#include <p10_perv_sbe_cmn.H>
+#include <target_filters.H>
+#include <p10_hang_pulse_mc_setup_tables.H>
 
 #include "p10_scom_proc.H"
 #include "p10_scom_eq.H"
@@ -173,6 +176,10 @@ fapi2::ReturnCode p10_sbe_select_ex(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
                            FAPI_SYSTEM,
                            l_attr_fused_mode));
+
+    FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
+             ISTEP4_MC_GROUPS),
+             "Error from p10_perv_sbe_cmn_setup_multicast_groups");
 
     if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
     {
