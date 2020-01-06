@@ -103,8 +103,7 @@ fapi2::ReturnCode lookUpRingSection(
     uint8_t* i_pImgPtr,
     const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
     const RingId_t i_ringID,
-    const fapi2::RingMode i_ringMode,
-    RS4::OpMode_t    i_opMode       =   RS4::SCANNING_MODE );
+    const fapi2::RingMode i_ringMode);
 ///
 /// @brief This is a plat pecific (SBE Plat) function that locates the
 ///        Ring Container in the image and calls the functin to decompress the
@@ -122,8 +121,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
     uint8_t* i_pChipletSectn ,
     const RingId_t i_ringID,
     bool i_applyOverride,
-    const fapi2::RingMode i_ringMode,
-    RS4::OpMode_t    i_opMode       =   RS4::SCANNING_MODE );
+    const fapi2::RingMode i_ringMode);
 
 extern "C"
 {
@@ -133,7 +131,7 @@ extern "C"
       const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
       const RingId_t i_ringID,
       const fapi2::RingMode i_ringMode,
-      RS4::OpMode_t i_opMode );
+      RS4::OpMode_t);
 ///
 /// @brief     entry point for SBE ring traversal HWP.
 /// @param[in] i_pImgPtr        points to SBE image
@@ -148,7 +146,7 @@ extern "C"
         const fapi2::Target<fapi2::TARGET_TYPE_ALL>& i_target,
         const RingId_t i_ringID,
         const fapi2::RingMode i_ringMode,
-        RS4::OpMode_t i_opMode );
+        RS4::OpMode_t i_opMode);
 
 }
 #endif

@@ -34,50 +34,39 @@
 //-------------------------------------------------------------------------------------------------
 
 using namespace RS4;
-enum
-{
-    PERVASIVE_CHIPLET_NUM   =   0x01,
-    NX_CHIPLET_NUM          =   0x02,
-    PCI_CHIPLET_NUM         =   0x08,
-    MC_CHIPLET_NUM          =   0x0C,
-    PAU_CHIPLET_NUM         =   0x10,
-    AXON_CHIPLET_NUM        =   0x18,
-    EQ_CHIPLET_NUM          =   0x20,
-};
+OpMode_t G_opMode = SCANNING_MODE;
+
 
 fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                      const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
                                      const RingId_t i_ringId,
-                                     const fapi2::RingMode i_ringMode,
-                                     OpMode_t i_opMode )
+                                     const fapi2::RingMode i_ringMode)
 {
     FAPI_INF( ">> lookUpRingSection" );
-    fapi2::ReturnCode l_rc      =   fapi2::FAPI2_RC_SUCCESS;
     P9XipHeader* l_imgHdr       =   (P9XipHeader*)( i_pImgPtr );
     P9XipSection* l_pSection    =   &l_imgHdr->iv_section[P9_XIP_SECTION_SBE_RINGS];
     TorHeader_t* l_torHeader    =   NULL;
 
-    FAPI_ASSERT( ( l_pSection->iv_offset > 0 ),
+    FAPI_ASSERT( ( (l_pSection->iv_offset) > 0 ),
                  fapi2::INVALID_RING_SECTION()
-                 .set_RING_OFFSET( l_pSection->iv_offset ),
-                 "Invalid Offset To Ring In SBE Image 0x%08x", rev_32( l_pSection->iv_offset  ));
+                 .set_RING_OFFSET( l_pSection->iv_offset),
+                 "Invalid Offset To Ring In SBE Image 0x%08x", rev_32( l_pSection->iv_offset));
 
-    l_torHeader     =   (TorHeader_t*) ( i_pImgPtr + rev_32( l_pSection->iv_offset ) );
+    l_torHeader     =   (TorHeader_t*) ( i_pImgPtr + rev_32( l_pSection->iv_offset) );
 
     FAPI_ASSERT( TOR_MAGIC_SBE == rev_32( l_torHeader->magic ),
                  fapi2::INVALID_RING_CHIPLET_SECTION()
                  .set_TOR_MAGIC_WORD( l_torHeader->magic ),
                  "Invalid Offset To Chiplet Section 0x%08x Magic Word 0x%08x",
-                 rev_32( l_pSection->iv_offset ), rev_32( l_torHeader->magic ) );
+                 rev_32( l_pSection->iv_offset), rev_32( l_torHeader->magic ) );
 
     //FIXME RTC  212097 Need to handle the case of override.
 
     FAPI_TRY( getRS4ImageFromTor( i_target,
-                                  (i_pImgPtr + rev_32( l_pSection->iv_offset )),
+                                  (i_pImgPtr + rev_32( l_pSection->iv_offset)),
                                   i_ringId,
                                   false,
-                                  i_ringMode,
-                                  i_opMode ) );
+                                  i_ringMode) );
 
     FAPI_INF( "<< lookUpRingSection" );
 fapi_try_exit:
@@ -91,8 +80,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
     uint8_t* i_pChipletSectn,
     const RingId_t i_ringId,
     bool i_applyOverride,
-    const fapi2::RingMode i_ringMode,
-    OpMode_t i_opMode )
+    const fapi2::RingMode i_ringMode)
 {
     uint32_t l_torHdrSize       =   sizeof( TorHeader_t );
     uint32_t l_torVersion       =   ((TorHeader_t*)i_pChipletSectn)->version;
@@ -102,14 +90,24 @@ fapi2::ReturnCode getRS4ImageFromTor(
     RingType_t l_ringType       =   COMMON_RING;
     ChipletType_t l_chipletType;
     fapi2::ReturnCode l_rc      =   fapi2::FAPI2_RC_SUCCESS;
-    uint8_t l_chipletID         =   i_target.getChipletNumber();
     ChipletData_t* l_pChipletData;
     uint16_t* l_pRingTor        =   NULL;
     uint8_t* l_pRs4             =   NULL;
     std::vector < fapi2::Target < fapi2::TARGET_TYPE_ALL >> l_ucTgtAll =
                 i_target.getChildren< fapi2::TARGET_TYPE_ALL >();
     uint8_t  l_chipletPos       =   l_ucTgtAll[0].getChipletNumber();
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
+        i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
 
+    uint8_t l_chipPos = l_procTgt.getChipletNumber();
+
+    FAPI_INF("l_chipletPos %02x\n", l_chipletPos);
+    FAPI_INF("l_chipPos %02x\n", l_chipPos);
+    OpMode_t i_opMode = G_opMode;
+
+    fapi2::ATTR_SCAN_CHIPLET_OVERRIDE_Type l_scan_chiplet_override =  fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE;
+
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, l_procTgt, l_scan_chiplet_override ) );
     FAPI_ASSERT( ( l_torVersion == TOR_VERSION ),
                  fapi2::INVALID_TOR_VERSION()
                  .set_TOR_VER( l_torVersion ),
@@ -124,6 +122,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
     l_ringType      =   ( INSTANCE_RING_MARK    &  ( RING_PROPERTIES[(uint8_t)i_ringId].idxRing ) ) ?
                         INSTANCE_RING : COMMON_RING;
 
+
     l_chipletType   =   RING_PROPERTIES[(uint8_t)i_ringId].chipletType;
 
     switch( l_chipletType )
@@ -131,7 +130,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
         case PERV_TYPE: // PERV
             l_pChipletData      =   (ChipletData_t*)&PERV::g_chipletData;
             l_sectionOffset     =   rev_32( l_pSectnTor->TOC_PERV_COMMON_RING );
-            l_chipletPos        =   l_chipletPos    -   PERVASIVE_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -144,7 +142,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&N0::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_N0_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   NX_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -157,7 +154,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&N1::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_N1_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   NX_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -170,7 +166,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&PCI::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PCI_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   PCI_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -183,7 +178,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&MC::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_MC_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   MC_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -196,7 +190,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&PAU0::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PAU0_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   PAU_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -209,7 +202,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&PAU1::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PAU1_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   PAU_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -222,7 +214,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&PAU2::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PAU2_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   PAU_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -235,7 +226,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&PAU3::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_PAU3_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   PAU_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -248,7 +238,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&AXON0::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON0_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   AXON_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -261,7 +250,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&AXON1::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON1_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   AXON_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -274,7 +262,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&AXON2::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON2_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   AXON_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -287,7 +274,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&AXON3::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON3_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   AXON_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -300,7 +286,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&AXON4::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON4_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   AXON_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -313,7 +298,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&AXON5::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON5_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   AXON_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -326,7 +310,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&AXON6::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON6_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   AXON_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -339,7 +322,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&AXON7::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_AXON7_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   AXON_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -352,7 +334,6 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
             l_pChipletData      =   (ChipletData_t*)&EQ::g_chipletData;
             l_sectionOffset     =   rev_32(l_pSectnTor->TOC_EQ_COMMON_RING);
-            l_chipletPos        =   l_chipletPos    -   EQ_CHIPLET_NUM;
 
             if( INSTANCE_RING == l_ringType )
             {
@@ -371,14 +352,30 @@ fapi2::ReturnCode getRS4ImageFromTor(
     l_pRs4          =   i_pChipletSectn + l_torHdrSize + l_sectionOffset;
     l_pRingTor      =   (uint16_t*) l_pRs4;
 
-    FAPI_INF( "TOR Traversal: Ring Id 0x%08x Sectn TOR 0x%08x Chiplet Offset 0x%08x Ring offset 0x%08x",
-              i_ringId, rev_32(*((uint32_t*)i_pChipletSectn)), l_sectionOffset, l_torOffset );
+    if (l_chipletPos)
+    {
+        l_chipletPos    =   l_chipletPos    -   l_pChipletData->chipletBaseId;
+    }
+
+    if ( fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE != l_scan_chiplet_override )
+    {
+        if (l_scan_chiplet_override != l_chipletPos)
+        {
+            l_chipletPos = l_scan_chiplet_override;
+            FAPI_INF("l_scan_chiplet_override l_chipletPos %02x", l_chipletPos);
+        }
+    }
+
+
+    FAPI_INF( "TOR Traversal: Ring Id 0x%08x Sectn TOR 0x%08x Chiplet Offset 0x%08x Ring offset 0x%08x ",
+              i_ringId, rev_32(*((uint32_t*)i_pChipletSectn)), l_sectionOffset, l_torOffset);
+
+    FAPI_INF("l_chipletPos %02x", l_chipletPos);
 
     if( INSTANCE_RING == l_ringType )
     {
-        if( l_chipletID >= l_pChipletData->chipletBaseId )
         {
-            l_pRingTor      +=   ( ( l_pChipletData->numInstanceRings * l_chipletPos ) + ( l_torOffset ) );
+            l_pRingTor      +=   ( ( l_pChipletData->numInstanceRings * l_chipletPos) + ( l_torOffset ) );
         }
     }
     else
@@ -388,6 +385,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
     if( *l_pRingTor )
     {
+        FAPI_INF("*l_pRingTor %04x", rev_16(*l_pRingTor));
         l_pRs4  +=  rev_16(*l_pRingTor);
         CompressedScanData* l_pRs4Hdr   =  (CompressedScanData*)l_pRs4;
 
@@ -439,7 +437,8 @@ extern "C"
         OpMode_t i_opMode )
     {
 
-        FAPI_TRY( lookUpRingSection( i_pImgPtr, i_target, i_ringId, i_ringMode, i_opMode ) );
+        G_opMode = i_opMode;
+        FAPI_TRY( lookUpRingSection( i_pImgPtr, i_target, i_ringId, i_ringMode) );
     fapi_try_exit:
         return fapi2::current_err;
     }
