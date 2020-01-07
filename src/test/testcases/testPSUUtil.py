@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -46,6 +46,8 @@ import testUtil
 import testPSUUserUtil
 from sim_commands import *
 
+simicsObj = simics.SIM_run_command("get-master-procs")
+
 #-------------------------
 # Macros constants
 #-------------------------
@@ -58,7 +60,7 @@ FAILURE = 0
 '''
 This is a simulator obj mapped. Refer simics folks if new objects are needed.
 '''
-simSbeObj  = conf.backplane0.dcm0.chip0.pib_cmp.sbe_scom_space
+simSbeObj  = SIM_get_object(simicsObj[0] + ".pib_cmp.sbe_scom_space")
 simMemObj  = conf.system_cmp0.phys_mem
 
 '''

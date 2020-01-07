@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2019
+# Contributors Listed Below - COPYRIGHT 2018,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -24,7 +24,8 @@
 #
 # IBM_PROLOG_END_TAG
 
-backplane0.dcm0.chip0.pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
+$simicsObj=(get-master-procs)
+$simicsObj[0].pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
 
 echo "*******************Run testRunTillSbeBooted.py************************"
 

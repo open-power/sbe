@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -25,6 +25,8 @@
 import time
 import conf
 from sim_commands import *
+
+simicsObj = simics.SIM_run_command("get-master-procs")
 
 waitItrCount = 10000000;
 cyclesPerIter = 20000;
@@ -49,13 +51,15 @@ DS_FIFO_EOT    = 0x0008
 def getLbus( node):
     #Node is 0 by default
     if(node == 0):
-        lbus=conf.backplane0.dcm0.chip0.cfam_cmp.lbus_map
+        lbus=SIM_get_object(simicsObj[0] + ".cfam_cmp.lbus_map")
+    #TODO: Simcics does not have object API for different modules.
+    #For now i am calling the zero module.
     if(node == 1):
-        lbus=conf.backplane0.dcm1.chip0.cfam_cmp.lbus_map
+        lbus=SIM_get_object(simicsObj[0] + ".cfam_cmp.lbus_map")
     if(node == 2):
-        lbus=conf.backplane0.dcm2.chip0.cfam_cmp.lbus_map
+        lbus=SIM_get_object(simicsObj[0] + ".cfam_cmp.lbus_map")
     if(node == 3):
-        lbus=conf.backplane0.dcm3.chip0.cfam_cmp.lbus_map
+        lbus=SIM_get_object(simicsObj[0] + ".cfam_cmp.lbus_map")
    
     return lbus
 
@@ -290,9 +294,9 @@ def collectFFDC():
         simics.SIM_run_command('sbe-trace 0')
         simics.SIM_run_command('sbe-stack 0')
         simics.SIM_run_command('sbe-regffdc 0')
-        simics.SIM_run_command('backplane0.dcm0.chip0.pib_cmp.sbe_ppe->ppe_state')
-        simics.SIM_run_command('backplane0.dcm0.chip0.cfam_cmp.sbe_fifo->upstream_hw_fifo')
-        simics.SIM_run_command('backplane0.dcm0.chip0.cfam_cmp.sbe_fifo->downstream_hw_fifo')
+        simics.SIM_run_command(simicsObj[0] + '.pib_cmp.sbe_ppe->ppe_state')
+        simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo->upstream_hw_fifo')
+        simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo->downstream_hw_fifo')
 
 def getUsFifoDataAddrToWrite(i_fifoType):
     if i_fifoType == 0:

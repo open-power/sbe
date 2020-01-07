@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2019
+# Contributors Listed Below - COPYRIGHT 2018,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -30,9 +30,11 @@ err = False
 
 import testScomUtil
 
+simicsObj = simics.SIM_run_command("get-master-procs")
+
 from sim_commands import *
 
-lbus = conf.backplane0.dcm0.chip0.cfam_cmp.lbus_map
+lbus = SIM_get_object(simicsObj[0] + ".cfam_cmp.lbus_map")
 
 while True:
     try:
