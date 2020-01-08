@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -63,7 +63,9 @@ __l1Loader:
         lvd      d3,0(r3)
         bb1wi    r3,13,jump_to_kernel
         #ifndef SBE_MEASUREMENT_SUPPORT
-        bl _pibmemRepair
+        # Commenting out repair to remove variables in bringup,
+        # will enable this once we have to test repairs
+        #bl _pibmemRepair
         #endif
 
         _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
@@ -82,11 +84,15 @@ copy_loop:
         addi    r4, r4, 8
         bdnz    copy_loop
 
-        # initilaise empty section of L1 loader with 0
-        bl __initPibmemL1Area
         ############################################################
         # SBE entry function is 4 byte number in image header
         ############################################################
+jump_to_kernel:
+        # setup IVPR before jumping to kernel
+        _liw    %r8, SBE_BASE_ORIGIN
+        li      r9,0
+        _liw    %r10, 0xC0000160
+        stvd    d8,0(r10)
 
         _liw     %r3,  SBE_SEEPROM_BASE_ORIGIN + SBE_LOADER_ENTRY_HEADER_OFFSET
         lwz      r6, 0(r3)
@@ -94,40 +100,5 @@ copy_loop:
         blr
 
         .epilogue __l1Loader
-
-# initialise the PIBMEM section for l1 loader with 0
-
-__initPibmemL1Area:
-        _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
-        _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest
-        lwz       r5, 4(r3)   #size of image in bytes
-        _liw     %r6, SBE_LOADER_BASE_LENGTH   #Max size of loader
-        add r4, r4, r5
-        subf r5, r5, r6
-        srawi    r5, r5, 3   # Number of double word transfers
-        mtctr   r5          # set the counter for loop
-        li r28, 0
-        li r29, 0
-copy_loop_init:
-        stvd    d28, 0(r4)
-        addi    r4, r4, 8
-        bdnz    copy_loop_init
-
-        blr
-
-jump_to_kernel:
-        # setup IVPR before jumping to kernel
-        _liw    %r8, SBE_BASE_ORIGIN
-        li      r9,0
-        _liw    %r10, 0xC0000160
-        stvd    d8,0(r10)
-        ############################################################
-        # SBE entry function is 4 byte number in image header
-        ############################################################
-
-        _liw     %r3,  SBE_SEEPROM_BASE_ORIGIN + SBE_KERNEL_ENTRY_HEADER_OFFSET
-        lwz      r6, 0(r3)
-        mtlr  r6
-        blr
 
 #include "pibmem_repair/scom_repair_p10/pibmem_repair.S"
