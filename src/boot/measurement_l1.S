@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -59,31 +59,32 @@ __l1Loader:
 
         # If hreset of SBE, jump directly to kernel, as all the pibmem contents
         # are already populated
-        _liw     %r3, 0x50008
-        lvd      d3,0(r3)
-        bb1wi    r3,13,jump_to_kernel
+        ## TODO - Comeback on this later
+        #_liw     %r3, 0x50008
+        #lvd      d3,0(r3)
+        #bb1wi    r3,13,jump_to_kernel
 
         bl _pibmemRepair
 
         # For Measurement SEEPROM, there is no L2 loader. The L1 loader will directly
         # load the base, which contains the application.
 
-        _liw     %r3, SBE_MEASUREMENT_BASE_SECTION # Base Loader Section Location
-        _liw     %r4, SBE_BASE_ORIGIN  # dest
-        _liw     %r9, SBE_MEASUREMENT_BASE_ORIGIN
+        _liw    %r3, SBE_MEASUREMENT_BASE_SECTION # Base Loader Section Location
+        _liw    %r4, SBE_BASE_ORIGIN  # dest
+        _liw    %r9, SBE_MEASUREMENT_BASE_ORIGIN
         
-        lwz       r5, 4(r3)   #size of image in bytes
-        srawi    r5, r5, 3   # Number of double word transfers
+        lwz     r5, 4(r3)   #size of image in bytes
+        srawi   r5, r5, 3   # Number of double word transfers
         mtctr   r5          # set the counter for loop
-        lwz    r8, 0(r3)    # offset of base section
+        lwz     r8, 0(r3)   # offset of base section
         adde    r8, r8, r9  # add base address to offset to get absolute address
 
 copy_loop:
         lvd    d28, 0(r8)
-        stvd    d28, 0(r4)
-        addi    r8, r8, 8
-        addi    r4, r4, 8
-        bdnz    copy_loop
+        stvd   d28, 0(r4)
+        addi   r8, r8, 8
+        addi   r4, r4, 8
+        bdnz   copy_loop
 
         # initilaise empty section of the pibmem
         bl __initPibmemL1Area
@@ -91,18 +92,22 @@ copy_loop:
         # SBE entry function is 4 byte number in image header
         ############################################################
 
+jump_to_kernel:
         # Set the IVPR register. This is required so that interrupt vector table
         # points to pk interfaces. *(0xC0000160) = SBE_BASE_ORIGIN
-        lis     r10, -16384
-        lis     r8, -8
-        li      r9, 0
-        ori     r10, r10, 0x160
-        stvd    r8, 0(r10)
+        ###setup IVPR before jumping to kernel
+        _liw    %r8, SBE_BASE_ORIGIN
+        li      r9,0
+        _liw    %r10, 0xC0000160
+        stvd    d8,0(r10)
 
+        ############################################################
+        # SBE entry function is 4 byte number in image header
+        ############################################################
         #Note we will jump to the kernel entry point in the base section
-        _liw     %r3,  SBE_MEASUREMENT_BASE_ORIGIN + SBE_KERNEL_ENTRY_HEADER_OFFSET
-        lwz      r6, 0(r3)
-        mtlr  r6
+        _liw   %r3, SBE_MEASUREMENT_BASE_ORIGIN + SBE_KERNEL_ENTRY_HEADER_OFFSET
+        lwz    r6, 0(r3)
+        mtlr   r6
         blr
 
         .epilogue __l1Loader
@@ -110,36 +115,20 @@ copy_loop:
 # initialise the PIBMEM section after base with 0s.
 
 __initPibmemL1Area:
-        _liw     %r3, SBE_MEASUREMENT_BASE_SECTION # Loader Section Location
-        _liw     %r4, SBE_BASE_ORIGIN  # dest
-        lwz       r5, 4(r3)   #size of image in bytes
-        _liw     %r6, SBE_MEASUREMENT_PIBMEM_LENGTH   #Max size of pibmem
-        add r4, r4, r5
-        subf r5, r5, r6
-        srawi    r5, r5, 3   # Number of double word transfers
-        mtctr   r5          # set the counter for loop
-        li r28, 0
-        li r29, 0
+        _liw   %r3, SBE_MEASUREMENT_BASE_SECTION # Loader Section Location
+        _liw   %r4, SBE_BASE_ORIGIN  # dest
+        lwz    r5, 4(r3)   #size of image in bytes
+        _liw   %r6, SBE_MEASUREMENT_PIBMEM_LENGTH   #Max size of pibmem
+        add    r4, r4, r5
+        subf   r5, r5, r6
+        srawi  r5, r5, 3   # Number of double word transfers
+        mtctr  r5          # set the counter for loop
+        li     r28, 0
+        li     r29, 0
 copy_loop_init:
-        stvd    d28, 0(r4)
-        addi    r4, r4, 8
-        bdnz    copy_loop_init
-
-        blr
-
-jump_to_kernel:
-        # setup IVPR before jumping to kernel
-        _liw    %r8, SBE_BASE_ORIGIN
-        li      r9,0
-        _liw    %r10, 0xC0000160
-        stvd    d8,0(r10)
-        ############################################################
-        # SBE entry function is 4 byte number in image header
-        ############################################################
-
-        _liw     %r3,  SBE_MEASUREMENT_BASE_ORIGIN + SBE_KERNEL_ENTRY_HEADER_OFFSET
-        lwz      r6, 0(r3)
-        mtlr  r6
+        stvd   d28, 0(r4)
+        addi   r4, r4, 8
+        bdnz   copy_loop_init
         blr
 
 #include "pibmem_repair/scom_repair_p10/pibmem_repair.S"
