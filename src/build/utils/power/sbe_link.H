@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -55,8 +55,8 @@
 
 /// The link address of the P10 SBE Base image
 #define SBE_BASE_ORIGIN 0xFFF80000
-/// SBE base image length ( 512 KB - 512 bytes for loader)
-#define SBE_BASE_LENGTH ((512 * 1024) - 512)
+/// SBE base image length ( 512 KB - 512B for loader - 128B for Pibmem Cntl)
+#define SBE_BASE_LENGTH ((512 * 1024) - 512 - 128)
 
 ///This Index depends upon XIP HEADER File
 // Start offset of sectionTable in XIP header. There are 8 entries
@@ -76,7 +76,7 @@
                                     + SBE_XIP_TOC_OFFSET  + 108
 //Maximum Length of pibmem. This is used to zero out the memory
 //after loading the base section of the measurement seeprom
-#define SBE_MEASUREMENT_PIBMEM_LENGTH 0x80000
+#define SBE_MEASUREMENT_PIBMEM_LENGTH (0x80000 - 0x80)
 
 ///  ALL XIP related offsets are valid for measurement seeprom as well
 ///  This Index depends upon XIP HEADER File
@@ -87,14 +87,10 @@
 //   Base section is the 9th (P9_XIP_SECTION_SBE_BASE) section
 #define SBE_MEASUREMENT_BASE_SECTION  SBE_MEASUREMENT_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 108
-//Maximum Length of pibmem. This is used to zero out the memory
-//after loading the base section of the measurement seeprom
-#define SBE_MEASUREMENT_PIBMEM_LENGTH 0x80000
-
 // Base Loader start address
 #define SBE_LOADER_BASE_ORIGIN 0xFFFFD400
-// Base Loader length
-#define SBE_LOADER_BASE_LENGTH 0x2C00
+// Base Loader length - Pibmem control area for P10
+#define SBE_LOADER_BASE_LENGTH (0x2C00 - 0x80)
 
 // Base Loader entry function offset in header
 #define SBE_LOADER_ENTRY_HEADER_OFFSET 20
@@ -118,7 +114,8 @@
 #define PIBMEM_ORIGIN 0
 
 /// The amount of space available in the PIBMEM, in bytes (512KB)
-#define PIBMEM_SIZE (512 * 1024)
+// The last 128 Bytes are used by Pibmem control block as control register
+#define PIBMEM_SIZE (512 * 1024 - 128)
 
 /// The fixed section of Otprom
 #define OTPROM_FIXED_SIZE (OTPROM_ORIGIN + 0x340)
