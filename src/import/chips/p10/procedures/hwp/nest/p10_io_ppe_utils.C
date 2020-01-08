@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_getputsram_utils.H $ */
+/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_io_ppe_utils.C $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2020                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -23,68 +23,61 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 ///
-/// @file p10_getputsram_utils.H
+/// @file p10_io_ppe_utils.C
 ///
-/// @brief Common code to support get/putsram HWPs.
+/// @brief Common code to support p10_get/putsram_io_ppe HWPs.
 ///
 /// *HWP HW Maintainer: Thi Tran <thi@us.ibm.com>
 /// *HWP FW Maintainer: N/A
 /// *HWP Consumed by: HB, Cronus, SBE
 ///
-#ifndef _P10_GETPUTSRAM_UTILS_H_
-#define _P10_GETPUTSRAM_UTILS_H_
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-#include <fapi2.H>
-#include <p10_pm_ocb_init.H>
+#include <p10_io_ppe_utils.H>
+#include <p10_scom_pauc.H>
 
 //------------------------------------------------------------------------------
-// Constants definitions
+// scomt name spaces
 //------------------------------------------------------------------------------
-const uint32_t PAU0_PERV_CHIPLET_ID  = 0x10;
-const uint32_t PAU3_PERV_CHIPLET_ID  = 0x13;
-const uint32_t EQ0_PERV_CHIPLET_ID   = 0x20;
-const uint32_t EQ7_PERV_CHIPLET_ID   = 0x27;
-const uint32_t PCI0_PERV_CHIPLET_ID  = 0x08;
-const uint32_t PCI1_PERV_CHIPLET_ID  = 0x09;
-
-// PCIe constants
-const uint8_t MODE_PCIE_TOP_BIT_MASK        = 0b10000000; // Bit 0
-const uint8_t MODE_PCIE_PHY_BIT_MASK        = 0b01000000; // Bit 1
-
-// OCC constants
-const uint8_t MODE_OCC_ACCESS_MODE_BIT_SHIFT = 6;   // Bits 0:1
-const uint8_t MODE_OCB_CHAN_BIT_SHIFT        = 3;   // Bits 2:4
-const uint8_t OCB_MODE_LOWER_LIMIT           = 1;
-const uint8_t OCB_MODE_UPPER_LIMIT           = 3;
-const uint8_t OCB_MODE_CIRCULAR              = 3;
+using namespace scomt;
+using namespace scomt::pauc;
 
 //------------------------------------------------------------------------------
-// Function prototype
+// Function definitions
 //------------------------------------------------------------------------------
-//
+/// NOTE: doxygen in header
+fapi2::ReturnCode enableDisableIoPpeAutoInc(
+    const fapi2::Target < fapi2::TARGET_TYPE_PAUC | fapi2::TARGET_TYPE_MULTICAST > & i_target,
+    bool i_enable)
+{
+    FAPI_DBG("Start");
+    fapi2::buffer<uint64_t> l_SRAM_ctrl_reg(0);
 
-extern "C" {
+    // There are write-only OR/CLEAR addresses for SRAM control reg 0x10012C0A
+    // PHY_PPE_WRAP_ARB_CSCR_WO_OR    (0x10012C0C, write 1 to set)
+    // PHY_PPE_WRAP_ARB_CSCR_WO_CLEAR (0x10012C0B, write 1 to clear)
+    if (i_enable == true)
+    {
+        FAPI_DBG("Enable SRAM Auto Increment.");
+        FAPI_TRY(PREP_PHY_PPE_WRAP_ARB_CSCR_WO_OR(i_target),
+                 "enableDisableIoPpeAutoInc: PREP_PHY_PPE_WRAP_ARB_CSCR_WO_OR returns an error.");
+        SET_PHY_PPE_WRAP_ARB_CSCR_SRAM_ACCESS_MODE(l_SRAM_ctrl_reg); // Write 1 to set
+        FAPI_TRY(PUT_PHY_PPE_WRAP_ARB_CSCR_WO_OR(i_target, l_SRAM_ctrl_reg),
+                 "enableDisableIoPpeAutoInc: PUT_PHY_PPE_WRAP_ARB_CSCR_WO_OR returns an error (Enable auto-inc).");
+    }
+    else
+    {
+        FAPI_DBG("Disable SRAM Auto Increment.");
+        FAPI_TRY(PREP_PHY_PPE_WRAP_ARB_CSCR_WO_CLEAR(i_target),
+                 "enableDisableIoPpeAutoInc: PREP_PHY_PPE_WRAP_ARB_CSCR_WO_CLEAR returns an error.");
+        SET_PHY_PPE_WRAP_ARB_CSCR_SRAM_ACCESS_MODE(l_SRAM_ctrl_reg); // Write 1 to clear
+        FAPI_TRY(PUT_PHY_PPE_WRAP_ARB_CSCR_WO_CLEAR(i_target, l_SRAM_ctrl_reg),
+                 "enableDisableIoPpeAutoInc: PUT_PHY_PPE_WRAP_ARB_CSCR_WO_CLEAR returns an error (Disable auto-inc).");
+    }
 
-///
-/// @brief Decode the OCB channel number from an input Mode value
-///
-/// @param[in]  i_mode          For OCC:
-///                               bits 0:1  1 = Normal; 2 = Debug; 3 = Circular
-///                               bits 2:4  OCB channel number
-///                                         0b001: OCB_CHAN0
-///                                         0b010: OCB_CHAN1
-///                                         0b011: OCB_CHAN2
-///                                         0b100: OCB_CHAN3
-///                                         Default to OCB_CHAN3 otherwise.
-///                               bits 5:7  Reserved
-///
-/// @return ocb::PM_OCB_CHAN_NUM
-///
-    ocb::PM_OCB_CHAN_NUM getOcbChanNum(const uint8_t i_mode);
-
-} //extern "C"
-
-#endif //_P10_GETPUTSRAM_UTILS_H_
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}

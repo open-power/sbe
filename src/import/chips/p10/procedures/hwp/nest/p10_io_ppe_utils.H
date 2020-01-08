@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_getputsram_utils.C $ */
+/* $Source: src/import/chips/p10/procedures/hwp/nest/p10_io_ppe_utils.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2020                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -23,49 +23,41 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 ///
-/// @file p10_getputsram_utils.C
+/// @file p10_io_ppe_utils.H
 ///
-/// @brief Common code to support get/putsram HWPs.
+/// @brief Common code to support p10_get/putsram_io_ppe HWPs.
 ///
 /// *HWP HW Maintainer: Thi Tran <thi@us.ibm.com>
 /// *HWP FW Maintainer: N/A
 /// *HWP Consumed by: HB, Cronus, SBE
 ///
+#ifndef _P10_IO_PPE_UTILS_H_
+#define _P10_IO_PPE_UTILS_H_
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-#include <p10_getputsram_utils.H>
+#include <fapi2.H>
 
-ocb::PM_OCB_CHAN_NUM getOcbChanNum(const uint8_t i_mode)
-{
-    FAPI_DBG("Entering getOcbChanNum: i_mode 0x%.2X", i_mode);
-    ocb::PM_OCB_CHAN_NUM l_ocbChan = ocb::PM_OCB_CHAN_NUM::OCB_CHAN3;
-    uint8_t l_inputChannel = (i_mode >> MODE_OCB_CHAN_BIT_SHIFT) & 0x7;
+//------------------------------------------------------------------------------
+// Function prototype
+//------------------------------------------------------------------------------
+//
 
-    switch (l_inputChannel)
-    {
-        case 0b001:
-            l_ocbChan = ocb::PM_OCB_CHAN_NUM::OCB_CHAN0;
-            break;
+extern "C" {
 
-        case 0b010:
-            l_ocbChan = ocb::PM_OCB_CHAN_NUM::OCB_CHAN1;
-            break;
+///
+/// @brief Enable/Disable Auto Increment for IO PPE SRAM access
+///
+/// @param[in]  i_target    Reference PAUC or MULTICAST target
+/// @param[in]  i_enable    true=Enable; false=Disable
+///
+/// @return FAPI_RC_SUCCESS if success, else error code
+///
+    fapi2::ReturnCode enableDisableIoPpeAutoInc(
+        const fapi2::Target < fapi2::TARGET_TYPE_PAUC | fapi2::TARGET_TYPE_MULTICAST > & i_target,
+        bool i_enable);
 
-        case 0b011:
-            l_ocbChan = ocb::PM_OCB_CHAN_NUM::OCB_CHAN2;
-            break;
+} //extern "C"
 
-        case 0b100:
-            l_ocbChan = ocb::PM_OCB_CHAN_NUM::OCB_CHAN3;
-            break;
-
-        default:
-            l_ocbChan = ocb::PM_OCB_CHAN_NUM::OCB_CHAN3;
-            break;
-    }
-
-    FAPI_DBG("Exiting getOcbChanNum: OCB channel %d", l_ocbChan);
-    return l_ocbChan;
-}
+#endif //_P10_IO_PPE_UTILS_H_
