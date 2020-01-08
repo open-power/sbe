@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -162,19 +162,19 @@ class SBEGlobalsSingleton
 };
 extern SBEGlobalsSingleton* sbeGlobal;
 
-//This is a struct defintion for the local register. This local register will be
-//used to save the SPI clock divider setting
-//Size should be 16byte
-//Note: Offset of these members are defined in sbe_link.H. Update them if you
-//move the existing members
-//TODO: Replace regX with the actual register number or give a meaning full name
-struct sbe_local_regX {
-    uint16_t spi_clock_divider: 12;
-    uint16_t sec_boot_seeprom : 1; //Set if secondary boot seeprom is in use
-    uint16_t sec_meas_seeprom : 1; //Set if secondary measurement sprm is in use
-    uint16_t mpipl : 1;            //Set if mpipl
-    uint32_t bitsreserved : 17;
-    uint16_t reserved[2];
+//This is a struct defintion for the local register 0xC0002040.
+//This local register will be used to save the SPI clock divider setting
+//MPIPL in progress setting
+//What kind of reset is triggered in 0x50008, since otprom clears the reset bit
+struct sbe_local_LFR {
+    uint32_t spi_clock_divider: 12;
+    uint32_t sec_boot_seeprom : 1; //Set if secondary boot seeprom is in use
+    uint32_t sec_meas_seeprom : 1; //Set if secondary measurement sprm is in use
+    uint32_t mpipl : 1;            //Set if mpipl
+    uint32_t ipl_reset : 1;        //Set if SBE is reset via 0x50008:bit12 Vec0
+    uint32_t runtime_reset : 1;    //Set if SBE is reset via 0x50008:bit13 Vec1
+    uint32_t bitsreserved : 15;
+    uint32_t reserved;
 };
 
 #endif //__SBE_GLOBALS_H
