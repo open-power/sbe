@@ -1291,6 +1291,7 @@
     <valueType>uint32</valueType>
     <array>4</array>
     <platInit/>
+    <initToZero/>    
     <group>vrm</group>
   </attribute>
 
