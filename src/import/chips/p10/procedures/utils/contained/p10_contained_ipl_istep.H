@@ -142,7 +142,7 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep4(const fapi2::Target < f
     }
 
     FAPI_TRY(restore_l3_config(i_cores.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
-                               i_active_bvec, i_l3_config, i_runn));
+                               i_active_bvec, i_l3_config, i_runn, i_chc));
 
     FAPI_TRY(EXEC_IPL_PROC(rc, p10_hcd_core_reset, i_cores));
     FAPI_TRY(EXEC_IPL_PROC(rc, p10_hcd_core_gptr_time_initf, i_cores));

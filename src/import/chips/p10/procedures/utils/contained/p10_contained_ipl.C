@@ -248,10 +248,10 @@ static fapi2::ReturnCode contained_setup(const fapi2::Target<fapi2::TARGET_TYPE_
     FAPI_TRY(fapi2::putScom(all, HANG_PULSE_5_REG, data));
 
     // Disable all constant hang pulses
-    FAPI_TRY(fapi2::putScom(i_chip, 0xd0070, data));
     FAPI_TRY(fapi2::putScom(i_chip, 0xd0071, data));
-    FAPI_TRY(fapi2::putScom(i_chip, 0xd0072, data));
     FAPI_TRY(fapi2::putScom(i_chip, 0xd0073, data));
+    FAPI_TRY(fapi2::putScom(i_chip, 0xd0075, data));
+    FAPI_TRY(fapi2::putScom(i_chip, 0xd0077, data));
 
 fapi_try_exit:
     FAPI_INF("<< %s", __func__);

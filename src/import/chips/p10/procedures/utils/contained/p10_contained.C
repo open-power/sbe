@@ -109,7 +109,7 @@ fapi_try_exit:
 
 fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
                                     const uint32_t i_active_bvec, const l3_config& i_l3_config,
-                                    const bool i_runn)
+                                    const bool i_runn, const bool i_chc)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -139,8 +139,14 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                                     (corenum % 4));
         }
 
-        // We need to set mode_reg1 for both active and backing caches
-        mode_reg1 = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_MODE_REG1);
+        if (!i_chc && i_runn)
+        {
+            mode_reg1 = 0;
+        }
+        else
+        {
+            mode_reg1 = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_MODE_REG1);
+        }
 
         if (is_active_core(corenum, i_active_bvec))
         {

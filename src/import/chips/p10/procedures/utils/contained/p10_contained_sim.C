@@ -426,23 +426,30 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-fapi2::ReturnCode checkpoint(const bool i_chc, const bool i_runn,
-                             const std::string& i_suffix)
+fapi2::ReturnCode checkpoint(const std::string& i_suffix)
 {
-    std::string name;
+    std::string filename("");
+    std::string tag("");
 
-    if (!getenvvar("USER", name))
+    if (!getenvvar("USER", filename))
     {
         FAPI_ERR("Could not read USER env variable");
         return fapi2::FAPI2_RC_INVALID_PARAMETER;
     }
 
-    name += (i_chc) ? "_chc" : "_cc";
-    name += (i_runn) ? "r_" : "_";
-    name += i_suffix;
+    if (!getenvvar("P10_CONTAINED_SIM_CHKPT_TAG", tag))
+    {
+        FAPI_ERR("Could not read P10_CONTAINED_SIM_CHKPT_TAG env variable");
+    }
+    else
+    {
+        filename += "_" + tag;
+    }
 
-    FAPI_INF("Taking simulation checkpoint '%s'", name.c_str());
-    ECMD_TRY(simcheckpoint, name.c_str());
+    filename += "_" + i_suffix;
+
+    FAPI_INF("Taking simulation checkpoint '%s'", filename.c_str());
+    ECMD_TRY(simcheckpoint, filename.c_str());
 
 fapi_try_exit:
     return fapi2::current_err;

@@ -97,8 +97,18 @@ fapi2::ReturnCode init_via_dials(stage i_stage, const bool i_chc);
 ///
 fapi2::ReturnCode apply_selective_skip_arrayinit(const array i_array, const bool i_set);
 
-fapi2::ReturnCode checkpoint(const bool i_chc, const bool i_runn,
-                             const std::string& i_suffix);
+///
+/// @brief Take a simulation checkpoint
+///
+/// Environment variables:
+/// P10_CONTAINED_SIM_CHKPT_TAG - export as =<tag> to specify the base checkpoint
+///                               filename
+///
+/// @param[in] i_suffix String to append to the base checkpoint name
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+fapi2::ReturnCode checkpoint(const std::string& i_suffix);
 
 ///
 /// @brief Set the PC decrementer to 64 cycles via dial.
@@ -132,8 +142,7 @@ inline fapi2::ReturnCode apply_selective_skip_arrayinit(const array i_array, con
 {
     return fapi2::FAPI2_RC_SUCCESS;
 }
-inline fapi2::ReturnCode checkpoint(const bool i_chc, const bool i_runn,
-                                    const std::string& i_suffix)
+inline fapi2::ReturnCode checkpoint(const std::string& i_suffix)
 {
     return fapi2::FAPI2_RC_SUCCESS;
 }

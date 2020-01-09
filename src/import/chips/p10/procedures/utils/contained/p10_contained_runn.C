@@ -29,6 +29,7 @@
 #include <p10_scom_perv.H>
 #include <p10_scom_eq.H>
 #include <multicast_group_defs.H>
+#include <queue>
 
 enum opcg_capt_region
 {
@@ -350,16 +351,16 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
         // there is to convert the multicast group containing all "good" EQs
         // down to individual EQ targets.
         auto quads = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
+        // We need to track which EQ clock-controllers are supposed to enable
+        // the per core offset delay after the initial RUNN count expires.
+        std::queue<bool> set_hld_dly_en;
 
         for (auto const& perv_eq : quads.getChildren<fapi2::TARGET_TYPE_PERV>())
         {
             using namespace scomt::eq;
 
             const auto quad = perv_eq.getChildren<fapi2::TARGET_TYPE_EQ>()[0];
-            uint64_t runn_cnt = 0;
             opcg_capt_regs regs = {0, 0, 0};
-
-            FAPI_TRY(quad_runn_cnt(quad, base_runn_cnt, runn_cnt));
 
             for (auto const& core : quad.getChildren<fapi2::TARGET_TYPE_CORE>())
             {
@@ -371,21 +372,33 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
             FAPI_TRY(PUT_OPCG_CAPT2(quad, regs.capt2));
             FAPI_TRY(PUT_OPCG_CAPT3(quad, regs.capt3));
 
-            // Start RUNN
-            const bool set_hld_dly_en = regs.capt1 != 0 || regs.capt2 != 0 ||
-                                        regs.capt3 != 0;
+            set_hld_dly_en.push(regs.capt1 != 0 || regs.capt2 != 0 || regs.capt3 != 0);
+        }
+
+        for (auto const& perv_eq : quads.getChildren<fapi2::TARGET_TYPE_PERV>())
+        {
+            using namespace scomt::eq;
+
+            const auto quad = perv_eq.getChildren<fapi2::TARGET_TYPE_EQ>()[0];
+            uint64_t runn_cnt = 0;
+
+            FAPI_TRY(quad_runn_cnt(quad, base_runn_cnt, runn_cnt));
+
             {
                 fapi2::ATTR_CHIP_UNIT_POS_Type quad_num;
                 FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, quad, quad_num));
                 std::string tmp = "before_opcg_start_eq" + std::to_string(quad_num);
-                FAPI_TRY(sim::checkpoint(i_chc, true, tmp));
+                FAPI_TRY(sim::checkpoint(tmp));
             }
-            FAPI_TRY(runn_opcg_start(perv_eq, set_hld_dly_en, runn_cnt));
+
+            // Start RUNN
+            FAPI_TRY(runn_opcg_start(perv_eq, set_hld_dly_en.front(), runn_cnt));
+            set_hld_dly_en.pop();
         }
     }
     else
     {
-        FAPI_TRY(sim::checkpoint(i_chc, true, std::string("before_opcg_start")));
+        FAPI_TRY(sim::checkpoint(std::string("before_opcg_start")));
         FAPI_TRY(runn_opcg_start(all, false, base_runn_cnt));
     }
 
