@@ -165,7 +165,7 @@ fapi2::ReturnCode set_mcd_topoid_parity()
         return fapi2::FAPI2_RC_SUCCESS;
     }
 
-    ECMD_TRY(simSTKFAC,
+    ECMD_TRY(simPUTFAC,
              "B0.C0.S0.P0.E10.ES.MCD.MCD_BANK0.MCD_BANK_DF.CFG_REGS.CFG_TOPOID_PARITY_Q_INST.LATC.L2", 1, bit);
 
 fapi_try_exit:
