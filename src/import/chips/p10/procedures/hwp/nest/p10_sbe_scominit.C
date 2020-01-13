@@ -369,7 +369,7 @@ fapi2::ReturnCode p10_sbe_scominit_nmmu(const fapi2::Target<fapi2::TARGET_TYPE_P
             fapi2::ReturnCode l_rc;
 
             FAPI_DBG("Invoking p10.nmmu.scom.initfile...");
-            FAPI_EXEC_HWP(l_rc, p10_nmmu_scom, l_nmmu, FAPI_SYSTEM);
+            FAPI_EXEC_HWP(l_rc, p10_nmmu_scom, l_nmmu, i_target, FAPI_SYSTEM);
 
             if (l_rc)
             {
