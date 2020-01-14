@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -833,6 +833,18 @@ fapi_try_exit:
                     static_cast<plat_target_handle_t&>(coreTgt.operator ()()).setFunctional(false);
                     G_vec_targets.at(j + CORE_TARGET_OFFSET + i*CORES_PER_QUAD) = coreTgt.get();
                 }
+            }
+        }
+
+        for(uint32_t i=0; i<PAUC_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> paucPerv = G_vec_targets.at(i + PAUC_TARGET_OFFSET);
+            fapi2::ATTR_PG_Type pg;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, paucPerv, pg));
+            if(pg == 0xFFFFFFFF)
+            {
+                static_cast<plat_target_handle_t&>(paucPerv.operator ()()).setFunctional(false);
+                G_vec_targets.at(i + PAUC_TARGET_OFFSET) = paucPerv.get();
             }
         }
 
