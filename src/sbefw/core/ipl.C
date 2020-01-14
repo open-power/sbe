@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -125,15 +125,21 @@ void sbeDoContinuousIpl()
                     SBE_MSG_CONSOLE("istep ", istepTableEntry->istepMajorNum, ".", step);
                     rc = istepMap->istepWrapper(istepMap->istepHwp);
                 }
-                bool checkstop = isSystemCheckstop();
-                if((rc != FAPI2_RC_SUCCESS) || checkstop )
+                // TODO - F001A is not available till istep 2.3, which is driven by the
+                // nest clock, so we can enable this only after 2.3, For time being
+                // commenting this out.
+
+                //bool checkstop = isSystemCheckstop();
+                //if((rc != FAPI2_RC_SUCCESS) || checkstop )
+                if(rc != FAPI2_RC_SUCCESS)
                 {
                     SBE_ERROR(SBE_FUNC"Failed istep execution in plck mode: "
                             "Major: %d, Minor: %d",
                             istepTableEntry->istepMajorNum, step);
 
-                    uint32_t secRc = checkstop ? SBE_SEC_SYSTEM_CHECKSTOP:
-                                        SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
+                    uint32_t secRc = SBE_PRI_GENERIC_EXECUTION_FAILURE;
+                    //uint32_t secRc = checkstop ? SBE_SEC_SYSTEM_CHECKSTOP:
+                    //                    SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
 
                     captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                      secRc);
