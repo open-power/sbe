@@ -145,7 +145,7 @@ p10_hcd_cache_startclocks(
     FAPI_TRY( HCD_PUTSCOM_C( i_target, 0x20010616, 0 ) );
 
     FAPI_DBG("Drop NCU_PM_RCMD_DIS_CFG via NCU_RCMD_QUIESCE_REG[0]");
-//TODO THIS SCOM DOESNT EXIST IN DROP Y:    FAPI_TRY( HCD_PUTSCOM_C( i_target, 0x20010658, 0 ) );
+    FAPI_TRY( HCD_PUTSCOM_C( i_target, 0x20010658, 0 ) );
 
 fapi_try_exit:
 
