@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -218,8 +218,8 @@ ReturnCode istepNoOp( voidfuncptr_t i_hwp );
 ReturnCode istepWithEq( voidfuncptr_t i_hwp);
 ReturnCode istepWithCore( voidfuncptr_t i_hwp);
 ReturnCode istepWithCoreStart( voidfuncptr_t i_hwp);
-ReturnCode istepWithMCCore( voidfuncptr_t i_hwp);
-ReturnCode istepWithMCORCore( voidfuncptr_t i_hwp);
+ReturnCode istepWithGoodEqMCCore( voidfuncptr_t i_hwp);
+ReturnCode istepWithGoodEqMCORCore( voidfuncptr_t i_hwp);
 ReturnCode istepSelectEx( voidfuncptr_t i_hwp);
 ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp);
 ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp);
@@ -349,26 +349,26 @@ static istepMap_t g_istep3PtrTbl[] =
 static istepMap_t g_istep4PtrTbl[] =
          {
 #ifdef SEEPROM_IMAGE
-             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_poweron),
-             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_reset),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_gptr_time_initf),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_repair_initf),
-             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_arrayinit),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_initf),
-             ISTEP_MAP( istepWithMCCore, p10_hcd_cache_startclocks),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_scominit),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_scom_customize),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_cache_ras_runtime_scom),
-             ISTEP_MAP( istepWithMCCore, p10_hcd_core_poweron),
-             ISTEP_MAP( istepWithMCCore, p10_hcd_core_reset),
+             ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_poweron),
+             ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_reset),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_gptr_time_initf),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_repair_initf),
+             ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_arrayinit),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_initf),
+             ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_startclocks),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_scominit),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_scom_customize),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_ras_runtime_scom),
+             ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_poweron),
+             ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_reset),
              ISTEP_MAP( istepNoOp, NULL ), //p10_hcd_core_gptr_time_initf 
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_core_repair_initf ),
-             ISTEP_MAP( istepWithMCCore, p10_hcd_core_arrayinit),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_core_initf),
-             ISTEP_MAP( istepWithMCCore, p10_hcd_core_startclocks),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_core_scominit),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_core_scom_customize),
-             ISTEP_MAP( istepWithMCORCore, p10_hcd_core_ras_runtime_scom),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_repair_initf ),
+             ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_arrayinit),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_initf),
+             ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_startclocks),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_scominit),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_scom_customize),
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_ras_runtime_scom),
 #endif
          };
 
@@ -598,20 +598,20 @@ ReturnCode istepWithCoreStart( voidfuncptr_t i_hwp)
     #undef SBE_FUNC
 }
 //----------------------------------------------------------------------------
-ReturnCode istepWithMCORCore( voidfuncptr_t i_hwp)
+ReturnCode istepWithGoodEqMCORCore( voidfuncptr_t i_hwp)
 {
-    #define SBE_FUNC "istepWithMCORCore"
+    #define SBE_FUNC "istepWithGoodEqMCORCore"
     ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_mc_cores;
-    l_mc_cores = proc.getMulticast(fapi2::MCGROUP_ALL_EQ, fapi2::MCCORE_ALL);
-    FAPI_ERR("MultiCast Code target for group MCGROUP_ALL_EQ Created=0x%.8x",l_mc_cores.get());
+    l_mc_cores = proc.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+    FAPI_DBG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",l_mc_cores.get());
     do
     {
         SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpMCORCore_t>(i_hwp),l_mc_cores)
         if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC " istepWithMCORCore failed, RC=[0x%08X]", rc);
+            SBE_ERROR(SBE_FUNC " istepWithGoodEqMCORCore failed, RC=[0x%08X]", rc);
             break;
         }
 
@@ -620,21 +620,21 @@ ReturnCode istepWithMCORCore( voidfuncptr_t i_hwp)
     #undef SBE_FUNC
 }
 
-ReturnCode istepWithMCCore( voidfuncptr_t i_hwp)
+ReturnCode istepWithGoodEqMCCore( voidfuncptr_t i_hwp)
 {
-    #define SBE_FUNC "istepWithMCCore"
+    #define SBE_FUNC "istepWithGoodEqMCCore"
     ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
                      fapi2::MULTICAST_AND > l_mc_cores;
-    l_mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_ALL_EQ, fapi2::MCCORE_ALL);
-    FAPI_ERR("MultiCast Code target for group MCGROUP_ALL_EQ Created=0x%.8x",l_mc_cores.get());
+    l_mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+    FAPI_DBG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",l_mc_cores.get());
     do
     {
         SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpMCCore_t>(i_hwp),l_mc_cores)
         if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC " istepWithMCCore failed, RC=[0x%08X]", rc);
+            SBE_ERROR(SBE_FUNC " istepWithGoodEqMCCore failed, RC=[0x%08X]", rc);
             break;
         }
 

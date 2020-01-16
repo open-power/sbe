@@ -88,7 +88,7 @@ plat_target_handle_t createPlatMCHandle(const plat_target_type_t i_plat_type, co
     l_handle.fields.is_multicast = 1;
     l_handle.fields.core_select = i_core_select;
     l_handle.fields.mcast_group = multicast_group_map[i_group];
-    assert(l_handle.fields.mcast_group != MC_UNDEFINED);
+    assert(multicast_group_map[i_group] != MC_UNDEFINED);
     l_handle.fields.type = i_plat_type;
     l_handle.fields.type_target_num = i_group;
 
