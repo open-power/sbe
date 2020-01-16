@@ -65,7 +65,7 @@ __l1Loader:
         #ifndef SBE_MEASUREMENT_SUPPORT
         # Commenting out repair to remove variables in bringup,
         # will enable this once we have to test repairs
-        #bl _pibmemRepair
+        bl _pibmemRepair
         #endif
 
         _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location

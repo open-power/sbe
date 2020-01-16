@@ -147,57 +147,57 @@ _pibmemRepair:
         ################################################################
         # NOTE - Saving LR into r4 and restore back at the end,
         # DONOT use R4 in any operation below.
-#        mflr     %r4                            # Store R4
-#        _liw     %r3, SBE_PIBMEM_REPAIR_SECTION # Pibmem Repair Section Location
-#        _liw     %r9, SBE_SEEPROM_BASE_ORIGIN
-#        lwz      r8, 0(r3)                      # offset of pibmem repair section
+        mflr     %r4                            # Store R4
+        _liw     %r3, SBE_PIBMEM_REPAIR_SECTION # Pibmem Repair Section Location
+        _liw     %r9, SBE_SEEPROM_BASE_ORIGIN
+        lwz      r8, 0(r3)                      # offset of pibmem repair section
 
         # Check if R8 has non-zero offset, This is required if the repair
         # section is not loaded onto to binary, no point trying to parse which
         # is not loaded.
-#        cmplwi   r8, 0x0                        # compare r8 to 0
-#        beq      skip_parse_row                 # if offset is zero, skip row parsing
-#        adde     r8, r8, r9                     # add base address to offset to get absolute address
+        cmplwi   r8, 0x0                        # compare r8 to 0
+        beq      skip_parse_row                 # if offset is zero, skip row parsing
+        adde     r8, r8, r9                     # add base address to offset to get absolute address
 
         # r8 is pointing to the first row of the table
-#parse_row:
-#        lvd      d0, 0(r8)                      # Get First 8bytes, r0 points to cmd, r1 points to addr
-#        srwi     %r3, %r0, 24                   # get the command byte
-#        addi     r8, r8, 8                      # Point to data offset
-#        lvd      d6, 0(r8)                      # r6 & r7 have the scom data
-#        ## Switch case for the operation to perform based on Command Byte
-#        ## r6/r7 contains the data and r1 contains the address
-#        cmpwibcl  1, 2, %r3, 0, __getscom_bootloader
-#        cmpwibcl  0, 2, %r3, 0, __putscom_bootloader
-#        addi     r8, r8, 8                      # point to the next row
-#        srwi     %r3, %r0, 16                   # fetch the second byte after command to check for end row
-#        andi.    %r3, %r3, 0x000000ff
-#        cmplwi   r3, 0x1                        # compare r3 with 1, if not equal got to parser another row
-#        bne      parse_row
+parse_row:
+        lvd      d0, 0(r8)                      # Get First 8bytes, r0 points to cmd, r1 points to addr
+        srwi     %r3, %r0, 24                   # get the command byte
+        addi     r8, r8, 8                      # Point to data offset
+        lvd      d6, 0(r8)                      # r6 & r7 have the scom data
+        ## Switch case for the operation to perform based on Command Byte
+        ## r6/r7 contains the data and r1 contains the address
+        cmpwibcl  1, 2, %r3, 0, __getscom_bootloader
+        cmpwibcl  0, 2, %r3, 0, __putscom_bootloader
+        addi     r8, r8, 8                      # point to the next row
+        srwi     %r3, %r0, 16                   # fetch the second byte after command to check for end row
+        andi.    %r3, %r3, 0x000000ff
+        cmplwi   r3, 0x1                        # compare r3 with 1, if not equal got to parser another row
+        bne      parse_row
 
         # End of Row Parsing
-#skip_parse_row:
-#        mtlr     %r4                            # restore LR from r4
+skip_parse_row:
+        mtlr     %r4                            # restore LR from r4
         ######################################################
 
         blr                                  # back to l1_loader
         .epilogue _pibmemRepair
 
 
-#__getscom_bootloader:
-#        ## r1 has the address and r6/r7 has the data
-#        lvd      d28, 0(r1)
-#        ## compare r28 with r6 and r29 with r7, all should match else halt
-#        cmpwbne r28, r6, __compare_failed
-#        cmpwbne r29, r7, __compare_failed
-#        blr
-#        .epilogue __getscom_bootloader
+__getscom_bootloader:
+        ## r1 has the address and r6/r7 has the data
+        lvd      d28, 0(r1)
+        ## compare r28 with r6 and r29 with r7, all should match else halt
+        cmpwbne r28, r6, __compare_failed
+        cmpwbne r29, r7, __compare_failed
+        blr
+        .epilogue __getscom_bootloader
 
-#__putscom_bootloader:
-#        ## r1 has the address and r6/r7 has the data
-#        stvd     d6, 0(r1)
-#        blr
-#        .epilogue __putscom_bootloader
+__putscom_bootloader:
+        ## r1 has the address and r6/r7 has the data
+        stvd     d6, 0(r1)
+        blr
+        .epilogue __putscom_bootloader
 
 __compare_failed:
         trap 
