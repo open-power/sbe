@@ -2096,6 +2096,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     uint8_t*    care;
     uint32_t    bits;
     uint16_t    rs4Size;
+    uint8_t     ringType;  // The RS4 header iv_type field
     double      comprRate;
     uint8_t     cmskRingIteration = 0;
     char        ringSuffix = ' ';
@@ -2237,7 +2238,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
             }
             else
             {
-                fprintf(stderr, "ringid_get_chipletProps() failed w/rc=0x%08x\n", rc);
+                fprintf(stderr, "ERROR: ringid_get_chipletProps() failed w/rc=0x%08x\n", rc);
                 return rc;
             }
         }
@@ -2468,6 +2469,8 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
                     comprRate = (double)rs4Size * 8.0 / (double)bits * 100.0;
 
+                    ringType = rs4ForDisplay->iv_type;
+
                     // tabular ring list if "table".
                     if (i_listingModeId == LMID_TABLE)
                     {
@@ -2494,12 +2497,13 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                                  "ringId = 0x%x (%u)\n"
                                  "ringName = %s\n"
                                  "chipletId = 0x%02x\n"
+                                 "type = 0x%02x\n"
                                  "selector = %u\n"
                                  "rs4Size [bytes] = 0x%x\n"
                                  "rawLength [bits] = 0x%x\n"
                                  "compression [%%] = %6.2f\n",
                                  ringSeqNo, ringSuffix, ddLevel, ringId, ringId, ringName,
-                                 chipletId, selector, rs4Size, bits, comprRate);
+                                 chipletId, ringType, selector, rs4Size, bits, comprRate);
                     }
 
                     // Dump ring block if "long" or "raw"
