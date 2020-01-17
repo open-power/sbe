@@ -136,6 +136,10 @@ p10_hcd_core_startclocks(
     FAPI_DBG("Enable ECL2 Regional PSCOMs via CPLT_CTRL3[5-8:ECL2_REGIONS]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
 
+    // Start MMA clocks along/after core clocks
+    // shared for both stop11 and stop3 path
+    FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
+
     // Undo potential quiesces before last clock off, no-op for IPL
     l_scsr = ( BIT32(4) | BITS32(7, 2) | BIT32(22) );
 

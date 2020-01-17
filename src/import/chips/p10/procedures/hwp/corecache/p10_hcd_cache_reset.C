@@ -44,18 +44,26 @@
 //------------------------------------------------------------------------------
 
 #include "p10_hcd_cache_reset.H"
+#include "p10_hcd_corecache_realign.H"
 #include "p10_hcd_common.H"
+#include "p10_pm_hcd_flags.h"
 
 #ifdef __PPE_QME
     #include "p10_scom_eq.H"
     #include "p10_ppe_c.H"
     using namespace scomt::eq;
     using namespace scomt::ppe_c;
+    #define QME_FLAGS_PLATFORM_EPM QME_FLAGS_RUNNING_EPM
+    // Due to p10_scom_eq.H has both CPLT_CTRL and QME quad register
+    // cannot include p10_ppe_eq.H for QME quad register alone
+    #define QME_FLAGS 0xc0001200
 #else
     #include "p10_scom_eq.H"
     #include "p10_scom_c.H"
     using namespace scomt::eq;
     using namespace scomt::c;
+    #define QME_FLAGS_PLATFORM_EPM p10hcd::QME_FLAGS_RUNNING_EPM
+    #define QME_FLAGS QME_FLAGS_RW
 #endif
 
 #if !defined P10_HCD_CORECACHE_SKIP_FLUSH
@@ -80,7 +88,6 @@ p10_hcd_cache_reset(
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect();
     fapi2::buffer<buffer_t> l_mmioData = 0;
-    fapi2::buffer<uint64_t> l_scomData = 0;
 
     FAPI_INF(">>p10_hcd_cache_reset");
 
@@ -100,11 +107,7 @@ p10_hcd_cache_reset(
 
     //TODO SCAN ratio?
 
-    FAPI_DBG("Exit Flush (set flushmode inhibit) via CPLT_CTRL4[REGIONS]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL4_WO_OR, SCOM_LOAD32H( ( l_regions << SHIFT32(12) ) ) ) );
-
-    FAPI_DBG("Enable Alignment via CPLT_CTRL0[3:CTRL_CC_FORCE_ALIGN]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL0_WO_OR, SCOM_1BIT(3) ) );
+    FAPI_TRY( p10_hcd_corecache_realign(eq_target, ( l_regions << SHIFT32(12) ) ) );
 
 #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
 
@@ -115,7 +118,9 @@ p10_hcd_cache_reset(
     // ring is defined by P9_HCD_SCAN_FUNC_REPEAT. When the design ALWAYS has
     // all stumps less than 8191, the loop can be removed.
 
-    // Putting in block to avoid c++ crosses initialization compile error
+    FAPI_TRY(HCD_GETMMIO_Q( eq_target, MMIO_LOWADDR(QME_FLAGS), l_mmioData ) );
+
+    if ( MMIO_GET( MMIO_LOWBIT(QME_FLAGS_PLATFORM_EPM) ) == 0 )
     {
         fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
             eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
@@ -137,12 +142,6 @@ p10_hcd_cache_reset(
     }
 
 #endif
-
-    FAPI_DBG("Disable Alignment via CPLT_CTRL0[3:CTRL_CC_FORCE_ALIGN]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL0_WO_CLEAR, SCOM_1BIT(3) ) );
-
-    FAPI_DBG("Enter Flush (clear flushmode inhibit) via CPLT_CTRL4[REGIONS]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL4_WO_CLEAR, SCOM_LOAD32H( ( l_regions << SHIFT32(12) ) ) ) );
 
 fapi_try_exit:
 

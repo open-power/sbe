@@ -45,7 +45,6 @@
 
 #include "p10_ring_id.H"
 #include "p10_hcd_core_initf.H"
-#include "p10_hcd_mma_startclocks.H"
 #include <p10_scom_eq_c.H>
 
 
@@ -119,10 +118,6 @@ p10_hcd_core_initf(
                  "Error from putRing (ec_mma_fure)");
 
     }
-
-    // not start mma clock as part of stop2 but only for stop11
-    // thus not called in core_startclocks
-    FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
 
 fapi_try_exit:
 
