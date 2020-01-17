@@ -45,6 +45,10 @@ decl {
     param sbe_ci_script : string or nil = NIL
     ! SBE ci script to run at time 0
     result sbe_ci_script : string or nil
+
+    param istep_mode : bool = FALSE
+    ! is SBE image will run in continuous mode by default
+    result istep_mode : bool
 }
 if $sbe_scripts_path != NIL {
     add-directory $sbe_scripts_path
@@ -58,7 +62,6 @@ if $sbe_ci_script != NIL {
 ###################################
 echo "Enable the SBE"
 
-(get-master-cec-chips)[0].invoke parallel_store SCOM 0x5003A "90000000_00000000" 64
 # Set security enabled bit
 (get-master-cec-chips)[0].invoke parallel_store SCOM 0x00050001 "0C000002_00000000" 64
 
@@ -66,6 +69,15 @@ echo "Enable the SBE"
 if $sbe_boot_mem == "otprom" {
     (get-master-cec-chips)[0].invoke parallel_store SCOM 0x00050008 "00080000_00000000" 64
 }
+if $istep_mode == TRUE {
+    echo "ISTEP IPL mode set"
+    (get-master-cec-chips)[0].invoke parallel_store SCOM 0x5003A "90000000_00000000" 64
+}
+if $istep_mode == FALSE {
+    echo "CONTINUOUS IPL mode set"
+    (get-master-cec-chips)[0].invoke parallel_store SCOM 0x5003A "10000000_00000000" 64
+}
+
 echo "Attempting to register SBE Tools"
 # Load SBE debug tools.
 try {
