@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -91,13 +91,13 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_ipl_phase;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_chiplet_pos;
     fapi2::buffer<uint64_t> l_pb_mode_data;
+    fapi2::buffer<uint64_t> l_pb_cfg3_data;
 
     auto l_mc_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MC>();
     auto l_pauc_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_PAUC>();
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_BROADCAST_MODE, FAPI_SYSTEM, l_broadcast_mode),
              "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_BROADCAST_MODE)");
-
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_ipl_phase),
              "Error from FAPI_ATTR_GET (ATTR_SYSTEM_IPL_PHASE)");
 
@@ -160,9 +160,25 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
         SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_PAU_STEP_OVERRIDE_EQ0(l_pb_mode_data);
     }
 
-    // apply configuration to all racetrack station registers
+    // configure fbc to abide by switch_cd signal
+    SET_PB_COM_SCOM_EQ0_STATION_MODE_PB_CFG_SWITCH_CD_GATE_ENABLE_EQ0(l_pb_mode_data);
+
+    // apply pb mode configuration to all racetrack station registers
     FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_MODE, l_pb_mode_data),
              "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_MODE)");
+
+    FAPI_TRY(GET_PB_COM_SCOM_EQ0_STATION_CFG3(i_target, l_pb_cfg3_data),
+             "Error from getScom (PB_COM_SCOM_EQ0_STATION_CFG3)");
+
+    // select to apply mode D on switch_cd signal
+    SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_PBIASY_UNIT0_SELCD(l_pb_cfg3_data);
+    SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_PBIASY_UNIT1_SELCD(l_pb_cfg3_data);
+    SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_PBIASY_LINK0_SELCD(l_pb_cfg3_data);
+    SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_PBIASY_LINK1_SELCD(l_pb_cfg3_data);
+
+    // apply pb cfg3 configuration to all racetrack station registers
+    FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_CFG3, l_pb_cfg3_data),
+             "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_CFG3)");
 
     // initialize topology table attribute for SBE platform
     FAPI_TRY(topo::init_topology_id_table(i_target));
