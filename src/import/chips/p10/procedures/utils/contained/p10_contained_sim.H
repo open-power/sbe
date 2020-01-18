@@ -101,8 +101,8 @@ fapi2::ReturnCode apply_selective_skip_arrayinit(const array i_array, const bool
 /// @brief Take a simulation checkpoint
 ///
 /// Environment variables:
-/// P10_CONTAINED_SIM_CHKPT_TAG - export as =<tag> to specify the base checkpoint
-///                               filename
+/// P10_CONTAINED_SIM_CHKPT_DIR - export as =<dir> to specify where to save the
+///                               checkpoint
 ///
 /// @param[in] i_suffix String to append to the base checkpoint name
 ///

@@ -121,7 +121,7 @@ fapi2::ReturnCode apply_selective_skip_arrayinit(const array i_array, const bool
     if (!getenvvar("P10_CONTAINED_SIM_APPLY_SELECTIVE_SKIP_ARRAYINIT", tmp))
     {
         FAPI_ERR("P10_CONTAINED_SIM_APPLY_SELECTIVE_SKIP_ARRAYINIT not set");
-        FAPI_INF(">> %s", __func__);
+        FAPI_INF("<< %s", __func__);
         return fapi2::FAPI2_RC_SUCCESS;
     }
 
@@ -161,7 +161,7 @@ fapi2::ReturnCode set_mcd_topoid_parity()
     if (!getenvvar("P10_CONTAINED_SIM_SET_MCD_TOPOID_PARITY", tmp))
     {
         FAPI_ERR("P10_CONTAINED_SIM_SET_MCD_TOPOID_PARITY not set");
-        FAPI_INF(">> %s", __func__);
+        FAPI_INF("<< %s", __func__);
         return fapi2::FAPI2_RC_SUCCESS;
     }
 
@@ -177,59 +177,72 @@ fapi2::ReturnCode set_pc_decrementer()
 {
     FAPI_INF(">> %s", __func__);
 
+    std::vector<std::string> exs;
+    std::vector<std::string> thread_ids;
     std::string tmp;
+    // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
+    const std::string PC_DECR_VAL("0b0000000000000000000000000000000001000000000000000000000001000000");
     fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type threads;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_SRESET_THREADS_BVEC, SYS, threads));
 
     if (!getenvvar("P10_CONTAINED_SIM_SET_PC_DECREMENTER", tmp))
     {
         FAPI_ERR("P10_CONTAINED_SIM_SET_PC_DECREMENTER not set");
-        FAPI_INF(">> %s", __func__);
+        FAPI_INF("<< %s", __func__);
         return fapi2::FAPI2_RC_SUCCESS;
     }
 
-    if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T0)
+    if (getenvvar("P10_CONTAINED_SIM_FULLCHIP", tmp))
     {
-        // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.V0_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.V0_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.EC.PC.V0_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        for (auto i(0u); i < 32; ++i)
+        {
+            std::string ex = std::to_string(i);
+
+            // Zero-pad to two digits
+            if (i < 10)
+            {
+                ex = "0" + ex;
+            }
+
+            exs.push_back("B0.C0.S0.P0.E10.EX" + ex + ".EC.PC.");
+        }
+    }
+    else
+    {
+        exs.push_back("B0.C0.S0.P0.E10.EX00.EC.PC.");
+        exs.push_back("B0.C0.S0.P0.E10.EX01.EC.PC.");
+        exs.push_back("B0.C0.S0.P0.E10.EX06.EC.PC.");
     }
 
-    if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T1)
+    for (auto const& ex : exs)
     {
-        // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.V1_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.V1_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.EC.PC.V1_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-    }
+        if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T0)
+        {
+            thread_ids.push_back("V0_DEC");
+        }
 
-    if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T2)
-    {
-        // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.V2_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.V2_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.EC.PC.V2_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-    }
+        if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T1)
+        {
+            thread_ids.push_back("V1_DEC");
+        }
 
-    if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T3)
-    {
-        // Set decrementer to 64 cycles and bit[33]=1 (invert bit)
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX00.EC.PC.V3_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX01.EC.PC.V3_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
-        ECMD_TRY(simPutDial, "B0.C0.S0.P0.E10.EX06.EC.PC.V3_DEC",
-                 "0b0000000000000000000000000000000001000000000000000000000001000000");
+        if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T2)
+        {
+            thread_ids.push_back("V2_DEC");
+        }
+
+        if (threads & fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T3)
+        {
+            thread_ids.push_back("V3_DEC");
+        }
+
+        for (auto const& id : thread_ids)
+        {
+            tmp = ex + id;
+            ECMD_TRY(simPutDial, tmp.c_str(), PC_DECR_VAL.c_str());
+        }
+
+        thread_ids.clear();
     }
 
 fapi_try_exit:
@@ -246,7 +259,7 @@ fapi2::ReturnCode init_via_dials(const stage i_stage, const bool i_chc)
     if (!getenvvar("P10_CONTAINED_SIM_SCAN_VIA_DIALS", tmp))
     {
         FAPI_ERR("P10_CONTAINED_SIM_SCAN_VIA_DIALS not set");
-        FAPI_INF(">> %s", __func__);
+        FAPI_INF("<< %s", __func__);
         return fapi2::FAPI2_RC_SUCCESS;
     }
 
@@ -429,7 +442,7 @@ fapi_try_exit:
 fapi2::ReturnCode checkpoint(const std::string& i_suffix)
 {
     std::string filename("");
-    std::string tag("");
+    std::string dir("");
 
     if (!getenvvar("USER", filename))
     {
@@ -437,13 +450,9 @@ fapi2::ReturnCode checkpoint(const std::string& i_suffix)
         return fapi2::FAPI2_RC_INVALID_PARAMETER;
     }
 
-    if (!getenvvar("P10_CONTAINED_SIM_CHKPT_TAG", tag))
+    if (getenvvar("P10_CONTAINED_SIM_CHKPT_DIR", dir))
     {
-        FAPI_ERR("Could not read P10_CONTAINED_SIM_CHKPT_TAG env variable");
-    }
-    else
-    {
-        filename += "_" + tag;
+        filename = dir + "/" + filename;
     }
 
     filename += "_" + i_suffix;
