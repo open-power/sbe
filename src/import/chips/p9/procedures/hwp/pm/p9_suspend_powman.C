@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -139,16 +139,21 @@ extern "C" {
                 }
             }
 
-            //SBE issues "halt OCC complex" to stop OCC instructions
+            FAPI_INF("Halting OCC PPC405, GPE0 and GPE1");
+            //OCC PPC405
             l_ocr_reg_data.setBit<PU_OCB_PIB_OCR_OCC_DBG_HALT>();
             FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCR_OR, l_ocr_reg_data), "Error writing to OCR register");
+
+            //GPE0 and GPE1
+            FAPI_TRY(putScom(i_target, PU_GPE0_GPENXIXCR_SCOM, PPE_XIXCR_XCR_HALT), "Error writing to OCC GPE0 XCR register");
+            FAPI_TRY(putScom(i_target, PU_GPE1_GPENXIXCR_SCOM, PPE_XIXCR_XCR_HALT), "Error writing to OCC GPE1 XCR register");
 
             //PGPE polls this bit on a reduced FIT timer period
             //if detected executes PGPE pm_suspend flow
             l_occflg_data.flush<0>().setBit<p9hcd::PM_COMPLEX_SUSPEND>();
             FAPI_TRY(fapi2::putScom(i_target, PU_OCB_OCI_OCCFLG_SCOM2, l_occflg_data), "Error setting OCC Flag register bit 3");
 
-            //This should cause the PGPE to observe a OCC Heartbeat interrupt,
+            //OCC being halted should cause the PGPE to observe a OCC Heartbeat interrupt,
             //causing it to enter PGPE pm_suspend flow
             for (uint32_t i = 0; i < TRIES_BEFORE_TIMEOUT; i++)
             {
@@ -175,6 +180,16 @@ extern "C" {
         }
         else
         {
+
+            FAPI_INF("Halting OCC PPC405, GPE0 and GPE1");
+            //OCC PPC405
+            l_ocr_reg_data.setBit<PU_OCB_PIB_OCR_OCC_DBG_HALT>();
+            FAPI_TRY(fapi2::putScom(i_target, PU_OCB_PIB_OCR_OR, l_ocr_reg_data), "Error writing to OCR register");
+
+            //GPE0 and GPE1
+            FAPI_TRY(putScom(i_target, PU_GPE0_GPENXIXCR_SCOM, PPE_XIXCR_XCR_HALT), "Error writing to OCC GPE0 XCR register");
+            FAPI_TRY(putScom(i_target, PU_GPE1_GPENXIXCR_SCOM, PPE_XIXCR_XCR_HALT), "Error writing to OCC GPE1 XCR register");
+
             FAPI_TRY(fapi2::getScom(i_target, PU_GPE3_GPEXIXSR_SCOM, l_xsr),
                      "Error reading SGPE XSR");
 
