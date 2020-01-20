@@ -182,6 +182,7 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
 
     // initialize topology table attribute for SBE platform
     FAPI_TRY(topo::init_topology_id_table(i_target));
+    FAPI_TRY(topo::set_topology_id_tables(i_target));
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");
