@@ -170,10 +170,10 @@ static fapi2::ReturnCode p10_sbe_region_stopclocks(const
 
         FAPI_DBG("p10_tp_stopclocks: Assert CFAM fences");
         // RC0 bit0 : cfam_protection0,  bit8 : cfam_protection1, bit9 : cfam_protection2
-        // Not raising PERV_ROOT_CTRL0_FENCE2_DC(cfam_protection2) because we need FSI2PIB <- PERV EPS connectivity
+        // Not raising ROOT_CTRL0_CFAM_PROTECTION_1_DC because we need the SHIFT <- TPvitl path for toad mode
+        // Not raising ROOT_CTRL0_CFAM_PROTECTION_2_DC because we need FSI2PIB <- PERV EPS connectivity
         l_data32_root_ctrl0.flush<0>()
-        .setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_CFAM_PROTECTION_0_DC>()
-        .setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_CFAM_PROTECTION_1_DC>();
+        .setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_CFAM_PROTECTION_0_DC>();
         FAPI_TRY(fapi2::putCfamRegister(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL0_SET_FSI, l_data32_root_ctrl0));
 
         FAPI_DBG("p10_tp_stopclocks: Raise OOB Mux");
