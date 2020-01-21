@@ -240,7 +240,7 @@ static inline int get_sectionId(uint64_t i_magic, const char* i_sectionName)
 {
     int i;
 
-    for (i = 0; i < P9_XIP_SECTIONS; i++)
+    for (i = 0; i < IPL_IMAGE_SECTIONS; i++)
         if (strcmp(i_sectionName, get_sectionName(i_magic, i)) == 0)
         {
             return i;
@@ -534,7 +534,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
             printf("    Name            Align   DD   Start        End          Size\n");
             printf("\n");
 
-            for (i = 0; i < P9_XIP_SECTIONS; i++)
+            for (i = 0; i < IPL_IMAGE_SECTIONS; i++)
             {
                 section = &(header.iv_section[i]);
                 printf("   %-16s %d       %d    0x%08x   ",
