@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -112,9 +112,10 @@ static fapi2::ReturnCode p10_sbe_arrayinit_occ(
     l_perv_fence.flush<0>().setBit<CPLT_CTRL1_REGION0_FENCE_DC>();
     FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL1_WO_OR, l_perv_fence));
 
+    // Not dropping OCC region fence during Arrayinit call
     FAPI_DBG("run array_init module for OCC");
     FAPI_TRY(p10_perv_sbe_cmn_array_init_module(l_tpchiplet, REGIONS_OCC,
-             LOOP_COUNTER, START_ABIST_MATCH_VALUE));
+             LOOP_COUNTER, START_ABIST_MATCH_VALUE, false));
 
     FAPI_DBG("Drop TP perv region fence");
     FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL1_WO_CLEAR, l_perv_fence));
