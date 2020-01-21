@@ -135,11 +135,11 @@ fapi2::ReturnCode p10_sbe_skew_adjust_setup(const
     {
         uint8_t dcadj_target_override;
         l_attr_dcadj_target_override.extract< 8, 8 >(dcadj_target_override);
-        l_data64.insertFromRight< 0, 6 >(0x40 + dcadj_target_override);
+        l_data64.insertFromRight< 0, 7 >(0x40 + dcadj_target_override);
     }
     else
     {
-        l_data64.insertFromRight< 0, 6 >(0x40);
+        l_data64.insertFromRight< 0, 7 >(0x40);
     }
 
     FAPI_TRY(fapi2::putScom(l_mc_core, 0x20010308, l_data64));
