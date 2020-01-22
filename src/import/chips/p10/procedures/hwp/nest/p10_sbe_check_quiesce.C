@@ -59,6 +59,22 @@ using namespace scomt;
 using namespace scomt::proc;
 using namespace scomt::nmmu;
 
+typedef fapi2::ReturnCode (*getScomFuncType)(const fapi2::Target<fapi2::TARGET_TYPE_PAU>& i_target,
+        fapi2::buffer<uint64_t>& o_data);
+
+typedef fapi2::ReturnCode (*putScomFuncType)(const fapi2::Target<fapi2::TARGET_TYPE_PAU>& i_target,
+        const uint64_t i_data);
+
+typedef fapi2::ReturnCode (*prepScomFuncType)(const fapi2::Target<fapi2::TARGET_TYPE_PAU>& i_target);
+
+typedef fapi2::buffer<uint64_t>& (*setRegFldFuncType)(const uint64_t i_data,
+        fapi2::buffer<uint64_t>& o_data);
+
+typedef fapi2::buffer<uint64_t>& (*getRegFldFuncType)(fapi2::buffer<uint64_t>& i_data,
+        uint64_t& o_data);
+
+typedef fapi2::buffer<uint64_t>& (*clearRegFldFuncType)(fapi2::buffer<uint64_t>& o_data);
+
 //---------------------------------------------------------------------------------
 // NOTE: description in header
 //---------------------------------------------------------------------------------
@@ -68,10 +84,11 @@ fapi2::ReturnCode p10_pau_check_quiesce(
     using namespace scomt::pau;
 
     FAPI_DBG("p10_pau_check_quiesce: Entering...");
+
     fapi2::buffer<uint64_t> l_data(0);
     uint64_t l_fenced_data = 0;
 
-    const uint32_t c_otl_reset_cmd = 0x3ul;
+    const uint32_t c_otl_reset_cmd = 0x3ull;
     const uint32_t c_otl_reset_status = 0x3ul;
     const uint32_t c_fence_all_brick_cmd = 0x3ul;
     const uint32_t c_otl_disabled_status = 0x1ul;
@@ -83,53 +100,161 @@ fapi2::ReturnCode p10_pau_check_quiesce(
     const uint32_t c_num_ndt_bar_reg_per_brick = 4;
     const uint32_t c_num_gen_id_bar_reg_per_pau = 4;
     const uint32_t c_num_mmio_bar_reg_per_pau = 4;
-    const uint64_t c_pau_0_fence_ctrl_address[c_num_brick_per_pau] =
+
+    //CS_CTL_MISC_FENCE_CONTROL functions
+    prepScomFuncType c_pau_0_fence_ctrl_prep_functions[c_num_brick_per_pau] =
     {
-        CS_CTL_MISC_FENCE_CONTROL0,
-        CS_CTL_MISC_FENCE_CONTROL1
+        PREP_CS_CTL_MISC_FENCE_CONTROL0,
+        PREP_CS_CTL_MISC_FENCE_CONTROL1
     };
-    const uint64_t c_pau_0_cq_ctrl_status_address[c_num_brick_per_pau] =
+    putScomFuncType c_pau_0_fence_ctrl_put_functions[c_num_brick_per_pau] =
+    {
+        PUT_CS_CTL_MISC_FENCE_CONTROL0,
+        PUT_CS_CTL_MISC_FENCE_CONTROL1
+    };
+    setRegFldFuncType c_pau_0_fence_ctrl_set_request_fence_functions[c_num_brick_per_pau] =
+    {
+        SET_CS_CTL_MISC_FENCE_CONTROL0_0_REQUEST_FENCE,
+        SET_CS_CTL_MISC_FENCE_CONTROL1_1_REQUEST_FENCE
+    };
+
+    //CS_CTL_MISC_STATUS functions
+    getScomFuncType c_pau_0_cq_ctrl_status_get_functions[c_num_brick_per_pau] =
+    {
+        GET_CS_CTL_MISC_STATUS1,
+        GET_CS_CTL_MISC_STATUS2
+    };
+    getRegFldFuncType c_pau_0_cq_ctrl_status_get_am_fenced_functions[c_num_brick_per_pau] =
+    {
+        GET_CS_CTL_MISC_STATUS1_BRK0_AM_FENCED,
+        GET_CS_CTL_MISC_STATUS2_BRK1_AM_FENCED
+    };
+    uint64_t c_pau_0_cq_ctrl_status_address[c_num_brick_per_pau] =
     {
         CS_CTL_MISC_STATUS1,
         CS_CTL_MISC_STATUS2
     };
-    const uint64_t c_pau_0_gpu_bar_address[c_num_brick_per_pau][c_num_gpu_bar_reg_per_brick] =
+
+    //CPU_BAR functions
+    getScomFuncType c_pau_0_gpu_bar_get_functions[c_num_brick_per_pau][c_num_gpu_bar_reg_per_brick] =
     {
         {
-            CS_SM0_SNP_MISC_GPU0_BAR, CS_SM1_SNP_MISC_GPU0_BAR,
-            CS_SM2_SNP_MISC_GPU0_BAR, CS_SM3_SNP_MISC_GPU0_BAR,
-            CS_CTL_MISC_GPU0_BAR, XSL_MAIN_GPU0_BAR
+            GET_CS_SM0_SNP_MISC_GPU0_BAR, GET_CS_SM1_SNP_MISC_GPU0_BAR,
+            GET_CS_SM2_SNP_MISC_GPU0_BAR, GET_CS_SM3_SNP_MISC_GPU0_BAR,
+            GET_CS_CTL_MISC_GPU0_BAR, GET_XSL_MAIN_GPU0_BAR
         },
         {
-            CS_SM0_SNP_MISC_GPU1_BAR, CS_SM1_SNP_MISC_GPU1_BAR,
-            CS_SM2_SNP_MISC_GPU1_BAR, CS_SM3_SNP_MISC_GPU1_BAR,
-            CS_CTL_MISC_GPU1_BAR, XSL_MAIN_GPU1_BAR
+            GET_CS_SM0_SNP_MISC_GPU1_BAR, GET_CS_SM1_SNP_MISC_GPU1_BAR,
+            GET_CS_SM2_SNP_MISC_GPU1_BAR, GET_CS_SM3_SNP_MISC_GPU1_BAR,
+            GET_CS_CTL_MISC_GPU1_BAR, GET_XSL_MAIN_GPU1_BAR
         }
     };
-    const uint64_t c_pau_0_ndt_bar_address[c_num_brick_per_pau][c_num_ndt_bar_reg_per_brick] =
+    clearRegFldFuncType c_pau_0_gpu_bar_clear_enable_functions[c_num_brick_per_pau][c_num_gpu_bar_reg_per_brick] =
     {
         {
-            CS_SM0_SNP_MISC_NDT0_BAR, CS_SM1_SNP_MISC_NDT0_BAR,
-            CS_SM2_SNP_MISC_NDT0_BAR, CS_SM3_SNP_MISC_NDT0_BAR
+            CLEAR_CS_SM0_SNP_MISC_GPU0_BAR_ENABLE, CLEAR_CS_SM1_SNP_MISC_GPU0_BAR_ENABLE,
+            CLEAR_CS_SM2_SNP_MISC_GPU0_BAR_ENABLE, CLEAR_CS_SM3_SNP_MISC_GPU0_BAR_ENABLE,
+            CLEAR_CS_CTL_MISC_GPU0_BAR_ENABLE, CLEAR_XSL_MAIN_GPU0_BAR_ENABLE
         },
         {
-            CS_SM0_SNP_MISC_NDT1_BAR, CS_SM1_SNP_MISC_NDT1_BAR,
-            CS_SM2_SNP_MISC_NDT1_BAR, CS_SM3_SNP_MISC_NDT1_BAR
+            CLEAR_CS_SM0_SNP_MISC_GPU1_BAR_ENABLE, CLEAR_CS_SM1_SNP_MISC_GPU1_BAR_ENABLE,
+            CLEAR_CS_SM2_SNP_MISC_GPU1_BAR_ENABLE, CLEAR_CS_SM3_SNP_MISC_GPU1_BAR_ENABLE,
+            CLEAR_CS_CTL_MISC_GPU1_BAR_ENABLE, CLEAR_XSL_MAIN_GPU1_BAR_ENABLE
         }
     };
-    const uint64_t c_pau_0_gen_id_bar_address[c_num_gen_id_bar_reg_per_pau] =
+    putScomFuncType c_pau_0_gpu_bar_put_functions[c_num_brick_per_pau][c_num_gpu_bar_reg_per_brick] =
     {
-        CS_SM0_SNP_MISC_GENID_BAR,
-        CS_SM1_SNP_MISC_GENID_BAR,
-        CS_SM2_SNP_MISC_GENID_BAR,
-        CS_SM3_SNP_MISC_GENID_BAR
+        {
+            PUT_CS_SM0_SNP_MISC_GPU0_BAR, PUT_CS_SM1_SNP_MISC_GPU0_BAR,
+            PUT_CS_SM2_SNP_MISC_GPU0_BAR, PUT_CS_SM3_SNP_MISC_GPU0_BAR,
+            PUT_CS_CTL_MISC_GPU0_BAR, PUT_XSL_MAIN_GPU0_BAR
+        },
+        {
+            PUT_CS_SM0_SNP_MISC_GPU1_BAR, PUT_CS_SM1_SNP_MISC_GPU1_BAR,
+            PUT_CS_SM2_SNP_MISC_GPU1_BAR, PUT_CS_SM3_SNP_MISC_GPU1_BAR,
+            PUT_CS_CTL_MISC_GPU1_BAR, PUT_XSL_MAIN_GPU1_BAR
+        }
     };
-    const uint64_t c_pau_0_mmio_bar_address[c_num_mmio_bar_reg_per_pau] =
+
+    //NDT functions
+    getScomFuncType c_pau_0_ndt_bar_get_functions[c_num_brick_per_pau][c_num_ndt_bar_reg_per_brick] =
     {
-        CS_SM0_SNP_MISC_PAUMMIO_BAR,
-        CS_SM1_SNP_MISC_PAUMMIO_BAR,
-        CS_SM2_SNP_MISC_PAUMMIO_BAR,
-        CS_SM3_SNP_MISC_PAUMMIO_BAR
+        {
+            GET_CS_SM0_SNP_MISC_NDT0_BAR, GET_CS_SM1_SNP_MISC_NDT0_BAR,
+            GET_CS_SM2_SNP_MISC_NDT0_BAR, GET_CS_SM3_SNP_MISC_NDT0_BAR
+        },
+        {
+            GET_CS_SM0_SNP_MISC_NDT1_BAR, GET_CS_SM1_SNP_MISC_NDT1_BAR,
+            GET_CS_SM2_SNP_MISC_NDT1_BAR, GET_CS_SM3_SNP_MISC_NDT1_BAR
+        }
+    };
+    clearRegFldFuncType c_pau_0_ndt_bar_clear_enable_functions[c_num_brick_per_pau][c_num_ndt_bar_reg_per_brick] =
+    {
+        {
+            CLEAR_CS_SM0_SNP_MISC_NDT0_BAR_CONFIG_NDT0_BAR_ENABLE, CLEAR_CS_SM1_SNP_MISC_NDT0_BAR_CONFIG_NDT0_BAR_ENABLE,
+            CLEAR_CS_SM2_SNP_MISC_NDT0_BAR_CONFIG_NDT0_BAR_ENABLE, CLEAR_CS_SM3_SNP_MISC_NDT0_BAR_CONFIG_NDT0_BAR_ENABLE
+        },
+        {
+            CLEAR_CS_SM0_SNP_MISC_NDT1_BAR_CONFIG_NDT1_BAR_ENABLE, CLEAR_CS_SM1_SNP_MISC_NDT1_BAR_CONFIG_NDT1_BAR_ENABLE,
+            CLEAR_CS_SM2_SNP_MISC_NDT1_BAR_CONFIG_NDT1_BAR_ENABLE, CLEAR_CS_SM3_SNP_MISC_NDT1_BAR_CONFIG_NDT1_BAR_ENABLE
+        }
+    };
+    putScomFuncType c_pau_0_ndt_bar_put_functions[c_num_brick_per_pau][c_num_ndt_bar_reg_per_brick] =
+    {
+        {
+            PUT_CS_SM0_SNP_MISC_NDT0_BAR, PUT_CS_SM1_SNP_MISC_NDT0_BAR,
+            PUT_CS_SM2_SNP_MISC_NDT0_BAR, PUT_CS_SM3_SNP_MISC_NDT0_BAR
+        },
+        {
+            PUT_CS_SM0_SNP_MISC_NDT1_BAR, PUT_CS_SM1_SNP_MISC_NDT1_BAR,
+            PUT_CS_SM2_SNP_MISC_NDT1_BAR, PUT_CS_SM3_SNP_MISC_NDT1_BAR
+        }
+    };
+
+    //GENID_BAR functions
+    getScomFuncType c_pau_0_gen_id_bar_get_functions[c_num_gen_id_bar_reg_per_pau] =
+    {
+        GET_CS_SM0_SNP_MISC_GENID_BAR,
+        GET_CS_SM1_SNP_MISC_GENID_BAR,
+        GET_CS_SM2_SNP_MISC_GENID_BAR,
+        GET_CS_SM3_SNP_MISC_GENID_BAR
+    };
+    clearRegFldFuncType c_pau_0_gen_id_bar_clear_enable_functions[c_num_gen_id_bar_reg_per_pau] =
+    {
+        CLEAR_CS_SM0_SNP_MISC_GENID_BAR_CONFIG_GENID_BAR_ENABLE,
+        CLEAR_CS_SM1_SNP_MISC_GENID_BAR_CONFIG_GENID_BAR_ENABLE,
+        CLEAR_CS_SM2_SNP_MISC_GENID_BAR_CONFIG_GENID_BAR_ENABLE,
+        CLEAR_CS_SM3_SNP_MISC_GENID_BAR_CONFIG_GENID_BAR_ENABLE
+    };
+    putScomFuncType c_pau_0_gen_id_bar_put_functions[c_num_gen_id_bar_reg_per_pau] =
+    {
+        PUT_CS_SM0_SNP_MISC_GENID_BAR,
+        PUT_CS_SM1_SNP_MISC_GENID_BAR,
+        PUT_CS_SM2_SNP_MISC_GENID_BAR,
+        PUT_CS_SM3_SNP_MISC_GENID_BAR
+    };
+
+    //MMIO_BAR functions
+    getScomFuncType c_pau_0_mmio_bar_get_functions[c_num_mmio_bar_reg_per_pau] =
+    {
+        GET_CS_SM0_SNP_MISC_PAUMMIO_BAR,
+        GET_CS_SM1_SNP_MISC_PAUMMIO_BAR,
+        GET_CS_SM2_SNP_MISC_PAUMMIO_BAR,
+        GET_CS_SM3_SNP_MISC_PAUMMIO_BAR
+    };
+    clearRegFldFuncType c_pau_0_mmio_bar_clear_enable_functions[c_num_mmio_bar_reg_per_pau] =
+    {
+        CLEAR_CS_SM0_SNP_MISC_PAUMMIO_BAR_CONFIG_PAUMMIO_BAR_ENABLE,
+        CLEAR_CS_SM1_SNP_MISC_PAUMMIO_BAR_CONFIG_PAUMMIO_BAR_ENABLE,
+        CLEAR_CS_SM2_SNP_MISC_PAUMMIO_BAR_CONFIG_PAUMMIO_BAR_ENABLE,
+        CLEAR_CS_SM3_SNP_MISC_PAUMMIO_BAR_CONFIG_PAUMMIO_BAR_ENABLE
+    };
+    putScomFuncType c_pau_0_mmio_bar_put_functions[c_num_mmio_bar_reg_per_pau] =
+    {
+        PUT_CS_SM0_SNP_MISC_PAUMMIO_BAR,
+        PUT_CS_SM1_SNP_MISC_PAUMMIO_BAR,
+        PUT_CS_SM2_SNP_MISC_PAUMMIO_BAR,
+        PUT_CS_SM3_SNP_MISC_PAUMMIO_BAR
     };
 
     // Looping over all powered PAUs
@@ -142,11 +267,8 @@ fapi2::ReturnCode p10_pau_check_quiesce(
         for(uint32_t i = 0; i < c_num_brick_per_pau; i++)
         {
             // Check whether OTL is enabled or not
-            FAPI_TRY(fapi2::getScom(
-                         l_pau_target,
-                         c_pau_0_cq_ctrl_status_address[i],
-                         l_data));
-            GET_CS_CTL_MISC_STATUS1_BRK0_AM_FENCED(l_data, l_fenced_data);
+            FAPI_TRY(c_pau_0_cq_ctrl_status_get_functions[i](l_pau_target, l_data));
+            c_pau_0_cq_ctrl_status_get_am_fenced_functions[i](l_data, l_fenced_data);
 
             if(l_fenced_data == c_otl_disabled_status)
             {
@@ -156,31 +278,14 @@ fapi2::ReturnCode p10_pau_check_quiesce(
             }
 
             l_data.flush<0>();
-            //Using brick-0 scom accessor function to setting value for both
-            // bricks
-            SET_CS_CTL_MISC_FENCE_CONTROL0_0_REQUEST_FENCE(
-                c_otl_reset_cmd, l_data);
-            FAPI_TRY(fapi2::putScom(
-                         l_pau_target,
-                         c_pau_0_fence_ctrl_address[i],
-                         l_data));
+            FAPI_TRY(c_pau_0_fence_ctrl_prep_functions[i](l_pau_target));
+            c_pau_0_fence_ctrl_set_request_fence_functions[i](c_otl_reset_cmd, l_data);
+            FAPI_TRY(c_pau_0_fence_ctrl_put_functions[i](l_pau_target, l_data));
 
             for (uint32_t j = 0; j < C_NUM_TRIES_QUIESCE_STATE; j++)
             {
-                FAPI_TRY(fapi2::getScom(
-                             l_pau_target,
-                             c_pau_0_cq_ctrl_status_address[i],
-                             l_data
-                         ));
-
-                if(i == 0)
-                {
-                    GET_CS_CTL_MISC_STATUS1_BRK0_AM_FENCED(l_data, l_fenced_data);
-                }
-                else
-                {
-                    GET_CS_CTL_MISC_STATUS2_BRK1_AM_FENCED(l_data, l_fenced_data);
-                }
+                FAPI_TRY(c_pau_0_cq_ctrl_status_get_functions[i](l_pau_target, l_data));
+                c_pau_0_cq_ctrl_status_get_am_fenced_functions[i](l_data, l_fenced_data);
 
                 FAPI_DBG("Brick number:%u, l_fenced_data:%u", i, l_fenced_data);
 
@@ -221,17 +326,9 @@ fapi2::ReturnCode p10_pau_check_quiesce(
         {
             for(uint8_t j = 0; j < c_num_gpu_bar_reg_per_brick; j++)
             {
-                FAPI_TRY(fapi2::getScom(
-                             l_pau_target,
-                             c_pau_0_gpu_bar_address[i][j],
-                             l_data));
-                // Using 0th BAR scom accessor function to setting value for
-                // all registers
-                CLEAR_CS_SM0_SNP_MISC_GPU0_BAR_ENABLE(l_data);
-                FAPI_TRY(fapi2::putScom(
-                             l_pau_target,
-                             c_pau_0_gpu_bar_address[i][j],
-                             l_data));
+                FAPI_TRY(c_pau_0_gpu_bar_get_functions[i][j](l_pau_target, l_data));
+                c_pau_0_gpu_bar_clear_enable_functions[i][j](l_data);
+                FAPI_TRY(c_pau_0_gpu_bar_put_functions[i][j](l_pau_target, l_data));
             }
         }
 
@@ -239,48 +336,24 @@ fapi2::ReturnCode p10_pau_check_quiesce(
         {
             for(uint8_t j = 0; j < c_num_ndt_bar_reg_per_brick; j++)
             {
-                FAPI_TRY(fapi2::getScom(
-                             l_pau_target,
-                             c_pau_0_ndt_bar_address[i][j],
-                             l_data));
-                // Using 0th BAR scom accessor function to setting value for
-                // all registers
-                CLEAR_CS_SM0_SNP_MISC_NDT0_BAR_CONFIG_NDT0_BAR_ENABLE(l_data);
-                FAPI_TRY(fapi2::putScom(
-                             l_pau_target,
-                             c_pau_0_ndt_bar_address[i][j],
-                             l_data));
+                FAPI_TRY(c_pau_0_ndt_bar_get_functions[i][j](l_pau_target, l_data));
+                c_pau_0_ndt_bar_clear_enable_functions[i][j](l_data);
+                FAPI_TRY(c_pau_0_ndt_bar_put_functions[i][j](l_pau_target, l_data));
             }
         }
 
         for(uint8_t i = 0; i < c_num_gen_id_bar_reg_per_pau; i++)
         {
-            FAPI_TRY(fapi2::getScom(
-                         l_pau_target,
-                         c_pau_0_gen_id_bar_address[i],
-                         l_data));
-            // Using 0th BAR scom accessor function to setting value for
-            // all registers
-            CLEAR_CS_SM0_SNP_MISC_GENID_BAR_CONFIG_GENID_BAR_ENABLE(l_data);
-            FAPI_TRY(fapi2::putScom(
-                         l_pau_target,
-                         c_pau_0_gen_id_bar_address[i],
-                         l_data));
+            FAPI_TRY(c_pau_0_gen_id_bar_get_functions[i](l_pau_target, l_data));
+            c_pau_0_gen_id_bar_clear_enable_functions[i](l_data);
+            FAPI_TRY(c_pau_0_gen_id_bar_put_functions[i](l_pau_target, l_data));
         }
 
         for(uint8_t i = 0; i < c_num_mmio_bar_reg_per_pau; i++)
         {
-            FAPI_TRY(fapi2::getScom(
-                         l_pau_target,
-                         c_pau_0_mmio_bar_address[i],
-                         l_data));
-            // Using 0th BAR scom accessor function to setting value for
-            // all registers
-            CLEAR_CS_SM0_SNP_MISC_PAUMMIO_BAR_CONFIG_PAUMMIO_BAR_ENABLE(l_data);
-            FAPI_TRY(fapi2::putScom(
-                         l_pau_target,
-                         c_pau_0_mmio_bar_address[i],
-                         l_data));
+            FAPI_TRY(c_pau_0_mmio_bar_get_functions[i](l_pau_target, l_data));
+            c_pau_0_mmio_bar_clear_enable_functions[i](l_data);
+            FAPI_TRY(c_pau_0_mmio_bar_put_functions[i](l_pau_target, l_data));
         }
     }
 
