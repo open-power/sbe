@@ -37,6 +37,8 @@
 #include "p10_scom_perv_3.H"
 #include "p10_scom_perv_6.H"
 #include "p10_scom_perv_7.H"
+#include "p10_scom_perv_a.H"
+#include "p10_scom_perv_c.H"
 #include <p10_perv_sbe_cmn.H>
 #include <p10_scom_eq_e.H>
 #include <target_filters.H>
@@ -76,6 +78,10 @@ fapi2::ReturnCode p10_sbe_startclocks(const
                     fapi2::TARGET_FILTER_ALL_MC  |  fapi2::TARGET_FILTER_ALL_PCI  |
                     fapi2::TARGET_FILTER_ALL_PAU |  fapi2::TARGET_FILTER_ALL_IOHS ),
             fapi2::TARGET_STATE_FUNCTIONAL);
+
+    auto l_perv_all_EQ = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                             static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_EQ),
+                             fapi2::TARGET_STATE_FUNCTIONAL);
 
     auto l_mc_all = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
     auto l_mc_eq = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
@@ -166,6 +172,21 @@ fapi2::ReturnCode p10_sbe_startclocks(const
     l_data64.flush<0>()
     .setBit<CPLT_CTRL0_CTRL_CC_FLUSHMODE_INH>();
     FAPI_TRY(fapi2::putScom(l_mc_all, CPLT_CTRL0_WO_CLEAR, l_data64));
+
+    // HW519203
+    FAPI_DBG("Transfer PGOOD attribute into region good,region enable registers : EQ");
+
+    for (auto& targ : l_perv_all_EQ)
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, targ, l_attr_pg));
+
+        l_data64.flush<0>();
+        l_attr_pg.invert();
+        l_data64.insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_attr_pg);
+
+        FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL2_RW, l_data64));
+        FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL3_RW, l_data64));
+    }
 
     FAPI_DBG("p10_sbe_startclocks: Exiting ...");
 
