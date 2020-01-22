@@ -28,7 +28,7 @@
 OUTPUT_FORMAT(elf32-powerpc);
 
 #ifndef INITIAL_STACK_SIZE
-#define INITIAL_STACK_SIZE 256
+#define INITIAL_STACK_SIZE 1024
 #endif
 
 MEMORY

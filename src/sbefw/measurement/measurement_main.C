@@ -101,6 +101,9 @@ void jump2boot()
        );
 }
 } // end extern "C"
+
+extern void spi_test();
+
 ////////////////////////////////////////////////////////////////
 // @brief - main : Measurement Application main
 ////////////////////////////////////////////////////////////////
@@ -122,9 +125,9 @@ int  main(int argc, char **argv)
          return 0;
     }
     SBEM_INFO("Completed PK initialization for Measurement");
-
-    SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom");
-
+    spi_test();
+    SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
+    
     jump2boot();
 
     SBEM_EXIT(SBEM_FUNC);
