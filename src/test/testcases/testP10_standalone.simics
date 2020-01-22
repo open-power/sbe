@@ -94,12 +94,15 @@ run-python-file targets/p10_standalone/sbeTest/testHResetIpl.py
 
 echo "*******************Run testFifoReset.xml*******************"
 
+run-python-file targets/p10_standalone/sbeTest/testGetTIInfo.py
+
+echo "*******************Run testFifoReset.xml*******************"
+
 run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
 
 echo "*******************Run testQuiesce.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
-
 exit 0
 #TODO: Remove exit
 

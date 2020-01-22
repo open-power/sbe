@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -165,9 +165,10 @@ enum sbeGenericMessageCommands
 
 enum sbeMpIplCommands
 {
-    SBE_CMD_MPIPL_ENTER    = 0x01, /* Enter MPIPL */
-    SBE_CMD_MPIPL_CONTINUE = 0x02, /* Continue MPIPL */
+    SBE_CMD_MPIPL_ENTER      = 0x01, /* Enter MPIPL */
+    SBE_CMD_MPIPL_CONTINUE   = 0x02, /* Continue MPIPL */
     SBE_CMD_MPIPL_STOPCLOCKS = 0x03, /* Stop Clocks */
+    SBE_CMD_GET_TI_INFO      = 0x04, /* Get TI Info */
 };
 
 /**
@@ -232,6 +233,8 @@ enum sbeSecondaryResponse
     SBE_SEC_S0_ARCH_REG_DUMP_FAILED           = 0x2A,
     SBE_SEC_LPC_ACCESS_FAILED                 = 0x2B,
     SBE_SEC_HWP_FAILURE                       = 0x2C,
+    SBE_SEC_TI_CORE_SCRATCH_READ_FAILED       = 0x2D,
+    SBE_SEC_TI_DATA_READ_FAILED               = 0x2E,
 };
 
 /**
@@ -323,6 +326,7 @@ enum
     ENTER_MPIPL_SUPPORTED               = 0xA9000001,
     CONTINUE_MPIPL_SUPPORTED            = 0xA9000002,
     STOP_CLOCKS_MPIPL_SUPPORTED         = 0xA9000004,
+    GET_TI_INFO_SUPPORTED               = 0xA9000008,
     RESERVED_A9_CAPABILITIES            = 0xA9800000,
 };
 

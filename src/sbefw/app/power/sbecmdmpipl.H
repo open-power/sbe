@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,6 +34,10 @@
 
 #include <stdint.h>
 #include "sbestates.H"
+
+#define TI_DATA_LEN 1024
+#define PBA_GRAN_SIZE 128 // PBA has to read in multiple of 128 Bytes.
+#define CORE_SCRATCH_REG0 0x20028486
 
 /**
   * @brief  Handles Sbe Enter Mpipl chip-op (0xA901)
@@ -86,5 +90,14 @@ fapi2::ReturnCode continueMpiplIstepsExecute(const sbeRole i_sbeRole);
   */
 fapi2::ReturnCode stopClockS0();
 #endif
+
+/**
+  * @brief sbeGetTIInfo : Implements SBE Get TI Info ChipOp (0xA904)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeGetTIInfo  (uint8_t *i_pArg);
 
 #endif /* __SBEFW_SBECMDMPIPL_H */

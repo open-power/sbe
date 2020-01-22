@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,12 +38,9 @@
 #include "sberegaccess.H"
 #include "sbefapiutil.H"
 #include "sbecmdiplcontrol.H"
-
-//#include "p9_hcd_core_stopclocks.H"
-//#include "p9_hcd_cache_stopclocks.H"
-//#include "p9_stopclocks.H"
+#include "fapi2_mem_access.H"
+#include "p10_getmempba.H"
 #include "fapi2.H"
-
 #include "core/ipl.H"
 
 using namespace fapi2;
@@ -540,6 +537,107 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
+}
+
+/////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbeGetTIInfo (uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeGetTIInfo "
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    sbeRespGenHdr_t hdr;
+    hdr.init();
+    sbeResponseFfdc_t ffdc;
+    uint32_t flags = fapi2::SBE_MEM_ACCESS_FLAGS_TARGET_PBA |
+                     fapi2::SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON |
+                     fapi2::SBE_MEM_ACCESS_FLAGS_LCO_MODE;
+    do
+    {
+        //Will attempt to dequeue for the expected EOT entry at the end.
+        uint32_t len2dequeue  = 0;
+        rc = sbeUpFifoDeq_mult (len2dequeue, NULL);
+
+        // If FIFO access failure
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            // Let command processor routine to handle the RC.
+            break;
+        }
+        //Read the Scratch register to get the TI data location.
+        //First get the master core for the proc. The scratch reg is
+        //for the master core.
+        uint8_t coreId = 0;
+        Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,procTgt,coreId);
+        fapi2::Target<fapi2::TARGET_TYPE_CORE >
+        coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
+
+        uint64_t tiDataLoc = 0;
+        fapiRc = getscom_abs_wrap(&coreTgt, CORE_SCRATCH_REG0, &tiDataLoc);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "GetScom failed for address 0x20028486");
+            hdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                           SBE_SEC_TI_CORE_SCRATCH_READ_FAILED);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+        SBE_INFO("tiDataLoc is 0x%08X%08X and core target is 0x%08X",
+                  SBE::higher32BWord(tiDataLoc), SBE::lower32BWord(tiDataLoc),
+                  coreTgt.get());
+        //Now we got the TI data location. Read TI_DATA_LEN bytes from
+        //that location.
+        uint32_t bytesRemaining = TI_DATA_LEN;
+        uint32_t bytesRead = 0;
+        do
+        {
+            uint8_t tiData[PBA_GRAN_SIZE] = {0};
+            SBE_EXEC_HWP(fapiRc, p10_getmempba, procTgt, (tiDataLoc + bytesRead), PBA_GRAN_SIZE,
+                         reinterpret_cast<uint8_t*>(tiData), flags);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "Failed in p10_getmempba() ,Addr[0x%08X%08X] "
+                "bytes[0x%08X]",SBE::higher32BWord(tiDataLoc),
+                SBE::lower32BWord(tiDataLoc), flags);
+                hdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_TI_DATA_READ_FAILED);
+                ffdc.setRc(fapiRc);
+                break;
+            }
+            for(uint32_t i = 0; i < PBA_GRAN_SIZE; i++)
+                SBE_DEBUG("TI data[%d] is 0x%08X ", i, tiData[i]);
+
+            uint32_t len2enqueue  = 0;
+            len2enqueue = PBA_GRAN_SIZE/sizeof(uint32_t);
+            //Create the response for TI Data.
+
+            rc = sbeDownFifoEnq_mult (len2enqueue, reinterpret_cast<uint32_t *>(tiData));
+            if (rc)
+            {
+               // will let command processor routine handle the failure
+               break;
+            }
+            bytesRemaining = bytesRemaining - PBA_GRAN_SIZE;
+            bytesRead = bytesRead + PBA_GRAN_SIZE;
+        }while(bytesRemaining > 0);
+
+    }while(0);
+    // Create the Response to caller
+    // If there was a FIFO error, will skip sending the response,
+    // instead give the control back to the command processor thread
+    do
+    {
+        // Build the response header packet
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+        rc = sbeDsSendRespHdr(hdr, &ffdc);
+       // will let command processor routine handle the failure
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
+    return 0;
 }
 
 #endif //__SBEFW_SEEPROM__

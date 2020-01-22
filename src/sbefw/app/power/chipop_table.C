@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -202,6 +202,11 @@ CMD_ARR(
     {sbeStopClocks,
      SBE_CMD_MPIPL_STOPCLOCKS,
      HARDWARE_FENCED_STATE|SBE_FENCE_AT_DUMPING,
+    },
+
+    {sbeGetTIInfo,
+     SBE_CMD_GET_TI_INFO,
+     PUT_HARDWARE_FENCED_STATE,
     }
 )
 
