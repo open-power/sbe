@@ -195,6 +195,34 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
             break;
         }
+
+        //If system is FSP less system then collect the SPRs/GPRs and stop the
+        //clocks.
+        if(false == SbeRegAccess::theSbeRegAccess().isFspSystem())
+        {
+            // Collect Architected Register Dump
+            fapiRc = sbeDumpArchRegs();
+            if( fapiRc != FAPI2_RC_SUCCESS )
+            {
+                SBE_ERROR(SBE_FUNC "Failed in sbeDumpArchRegs()");
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                ffdc.setRc(fapiRc);
+                break;
+            }
+
+            //Core and Cache stop Clock
+            SBE_INFO(SBE_FUNC "Attempt Stop clocks for all Core and cache ");
+            fapiRc = stopClockS0();
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                rc = SBE_SEC_S0_STOP_CLOCK_FAILED;
+                SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock");
+                break;
+            }
+
+        }
+
     }while(0);
 
     // Create the Response to caller
@@ -311,12 +339,11 @@ uint32_t sbeCollectDumpMpipl(uint8_t *i_pArg)
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                         SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             ffdc.setRc(fapiRc);
-            rc = fapiRc;
             break;
         }
 
         //Core and Cache stop Clock
-        SBE_ERROR(SBE_FUNC "Stop clocks for all Core and cache ");
+        SBE_INFO(SBE_FUNC "Stop clocks for all Core and cache ");
         fapiRc = stopClockS0();
         if(fapiRc != FAPI2_RC_SUCCESS)
         {
