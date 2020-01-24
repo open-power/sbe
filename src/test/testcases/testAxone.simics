@@ -25,10 +25,10 @@ run-python-file targets/p9_axone/sbeTest/testSuspendIO.py
 echo "*******************Run testGeneric.xml*******************"
 
 run-python-file targets/p9_axone/sbeTest/testGetCapabilities.py
+#TODO: Enable it 
+#run-python-file targets/p9_axone/sbeTest/testSbeDump.py
 
-run-python-file targets/p9_axone/sbeTest/testSbeDump.py
-
-run-python-file targets/p9_axone/sbeTest/testHostFFDC.py
+#run-python-file targets/p9_axone/sbeTest/testHostFFDC.py
 
 run-python-file targets/p9_axone/sbeTest/testPSUReadSbeMem.py
 
