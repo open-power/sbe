@@ -59,6 +59,7 @@ enum sbe_fastarray_constants
     CLEANUP_ABIST_CYCLES   = 0x1000,
     CLEANUP_ABIST_TIMEOUT  = 16,
     MAX_CARE_WORDS         = 100,
+    NUM_FLUSH_CYCLES       = 16,  // 4 should be plenty but let's go for broke
 };
 
 /**
@@ -66,13 +67,20 @@ enum sbe_fastarray_constants
  * @param[in] i_target_chiplet The chiplet to prepare
  * @param[in] i_clock_regions  The clock regions to set up,
  *                             formatted like bits 4:15 of SCAN_REGION_TYPE
+ * @param[in] i_setup_flush    If true, set up for initial flush cycles, where ARY clocks are
+ *                             excluded and the ABIST engines are not being started.
+ *                             If false, set up for the real thing.
  * @return FAPI2_RC_SUCCESS if success, else error code.
  */
 static fapi2::ReturnCode p10_sbe_fastarray_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
     const uint64_t i_clock_regions,
-    const uint64_t i_bist_regions)
+    const uint64_t i_bist_regions,
+    const bool i_setup_flush)
 {
+    // Five-bit value for OPCG_CAPT registers. Bits are SL, NSL, ARY, SE, FCE in that order
+    // For flush cycles, we set up SL+NSL, for actual dumps SL+NSL+ARY
+    const uint8_t l_capt_value = i_setup_flush ? 0x18 : 0x1C;
     fapi2::buffer<uint64_t> l_buf;
 
     /* Set up ABIST engines */
@@ -87,12 +95,12 @@ static fapi2::ReturnCode p10_sbe_fastarray_setup(
     l_buf = i_clock_regions;
     l_buf.setBit<CLK_REGION_SEL_THOLD_SL>()
     .setBit<CLK_REGION_SEL_THOLD_NSL>()
-    .setBit<CLK_REGION_SEL_THOLD_ARY>();
+    .writeBit<CLK_REGION_SEL_THOLD_ARY>(!i_setup_flush);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, CLK_REGION, l_buf), "Failed to set up clock regions");
 
     l_buf = i_bist_regions;
     l_buf.setBit<BIST_TC_SRAM_ABIST_MODE_DC>()
-    .setBit<BIST_TC_BIST_START_TEST_DC>();
+    .writeBit<BIST_TC_BIST_START_TEST_DC>(!i_setup_flush);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, BIST, l_buf), "Failed to set up BIST register");
 
     l_buf.flush<0>();
@@ -102,11 +110,11 @@ static fapi2::ReturnCode p10_sbe_fastarray_setup(
 
     l_buf.flush<0>()
     .insertFromRight<OPCG_CAPT1_COUNT, OPCG_CAPT1_COUNT_LEN>(1)
-    .insertFromRight<OPCG_CAPT1_SEQ_01, OPCG_CAPT1_SEQ_01_LEN>(0x1C);
+    .insertFromRight<OPCG_CAPT1_SEQ_01, OPCG_CAPT1_SEQ_01_LEN>(l_capt_value);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, OPCG_CAPT1, l_buf), "Failed to set up OPCG_CAPT1");
 
     l_buf.flush<0>()
-    .insertFromRight<OPCG_CAPT2_14_01ODD, OPCG_CAPT2_14_01ODD_LEN>(0x1C);
+    .insertFromRight<OPCG_CAPT2_14_01ODD, OPCG_CAPT2_14_01ODD_LEN>(l_capt_value);
     FAPI_TRY(fapi2::putScom(i_target_chiplet, OPCG_CAPT2, l_buf), "Failed to set up OPCG_CAPT2");
 
     /* Assert CC_SDIS_DC_N, some arrays don't dump right if we don't set this */
@@ -358,7 +366,17 @@ fapi2::ReturnCode p10_sbe_fastarray(
         const uint64_t l_clock_region = l_scan_region_type & 0xFFFFFFFF00000000;
         const uint64_t l_abist_region = translate_abist_region(i_target, l_header, l_clock_region);
 
-        FAPI_TRY(p10_sbe_fastarray_setup(l_perv_target, l_clock_region, l_abist_region));
+        // At this point there may still be pending write pulses stuck inside the array-internal
+        // pipelines. Enabling ABIST mode will make sure no new writes enter the pipelines, but
+        // any existing writes must be flushed.
+        // At the lowest level the actual array writes pass through ARY clocked latches, so we
+        // can drain those pipelines by clocking SL+NSL but not ARY. Thus, before we start dumping,
+        // run some cycles without starting the ABIST engine and without enabling ARY clocks.
+        FAPI_TRY(p10_sbe_fastarray_setup(l_perv_target, l_clock_region, l_abist_region, true));
+        FAPI_TRY(p10_sbe_fastarray_run_abist_cycles(l_perv_target, NUM_FLUSH_CYCLES));
+
+        // Now we can set up for the real thing, turn on the ABIST engines and enable ARY.
+        FAPI_TRY(p10_sbe_fastarray_setup(l_perv_target, l_clock_region, l_abist_region, false));
 
         uint32_t l_row = 0;
 
