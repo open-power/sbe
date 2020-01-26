@@ -327,6 +327,41 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
 
     FAPI_TRY(PUT_CPLT_CTRL1_WO_CLEAR(all, data));
 
+    // Align chiplets
+    {
+        data = 0;
+        data.setBit<CPLT_CTRL0_CTRL_CC_FLUSHMODE_INH>();
+        FAPI_TRY(PUT_CPLT_CTRL0_WO_OR(all, data));
+
+        data = 0;
+        data.setBit<CPLT_CTRL0_CTRL_CC_FORCE_ALIGN>();
+        FAPI_TRY(PUT_CPLT_CTRL0_WO_OR(all, data));
+
+        FAPI_TRY(GET_CPLT_STAT0(all, data));
+        FAPI_ASSERT(GET_CPLT_STAT0_CC_CTRL_CHIPLET_IS_ALIGNED_DC(data),
+                    fapi2::CPLT_NOT_ALIGNED_ERR()
+                    .set_PERV_CPLT_STAT0(data)
+                    .set_LOOP_COUNT(0)
+                    .set_HW_DELAY(0),
+                    "Some chiplet is not aligned after setting FORCE_ALIGN");
+
+        data = 0;
+        data.setBit<CPLT_CTRL0_CTRL_CC_FORCE_ALIGN>();
+        FAPI_TRY(PUT_CPLT_CTRL0_WO_CLEAR(all, data));
+
+        data = 0;
+        data.setBit<CPLT_CTRL0_CTRL_CC_FLUSHMODE_INH>();
+        FAPI_TRY(PUT_CPLT_CTRL0_WO_CLEAR(all, data));
+
+        FAPI_TRY(GET_CPLT_STAT0(all, data));
+        FAPI_ASSERT(GET_CPLT_STAT0_CC_CTRL_CHIPLET_IS_ALIGNED_DC(data),
+                    fapi2::CPLT_NOT_ALIGNED_ERR()
+                    .set_PERV_CPLT_STAT0(data)
+                    .set_LOOP_COUNT(0)
+                    .set_HW_DELAY(0),
+                    "Some chiplet is not aligned after clearing FORCE_ALIGN");
+    }
+
 fapi_try_exit:
     FAPI_INF("<< %s", __func__);
     return fapi2::current_err;
