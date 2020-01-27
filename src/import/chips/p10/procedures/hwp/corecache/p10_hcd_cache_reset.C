@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -101,7 +101,7 @@ p10_hcd_cache_reset(
     //TODO SCAN ratio?
 
     FAPI_DBG("Exit Flush (set flushmode inhibit) via CPLT_CTRL4[REGIONS]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL4_WO_OR, SCOM_LOAD32H(l_regions) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL4_WO_OR, SCOM_LOAD32H( ( l_regions << SHIFT32(12) ) ) ) );
 
     FAPI_DBG("Enable Alignment via CPLT_CTRL0[3:CTRL_CC_FORCE_ALIGN]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL0_WO_OR, SCOM_1BIT(3) ) );
@@ -142,7 +142,7 @@ p10_hcd_cache_reset(
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL0_WO_CLEAR, SCOM_1BIT(3) ) );
 
     FAPI_DBG("Enter Flush (clear flushmode inhibit) via CPLT_CTRL4[REGIONS]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL4_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL4_WO_CLEAR, SCOM_LOAD32H( ( l_regions << SHIFT32(12) ) ) ) );
 
 fapi_try_exit:
 
