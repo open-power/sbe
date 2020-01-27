@@ -482,7 +482,7 @@ fapi2::ReturnCode p10_sbe_attr_setup(
     // read_scratch4_reg -- Nest/Boot frequency
     {
         fapi2::buffer<uint64_t> l_read_scratch4_reg = 0;
-        fapi2::ATTR_I2C_BUS_DIV_REF_Type l_attr_i2c_bus_div_ref = 0;
+        fapi2::ATTR_SPI_BUS_DIV_REF_Type l_attr_spi_bus_div_ref = 0;
         fapi2::ATTR_FREQ_CORE_BOOT_MHZ_Type l_attr_freq_core_boot_mhz = 0;
 
         if (l_read_scratch8_reg.getBit<SCRATCH4_REG_VALID_BIT>())
@@ -491,10 +491,10 @@ fapi2::ReturnCode p10_sbe_attr_setup(
             FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SCRATCH_REGISTER_4_RW, l_read_scratch4_reg),
                      "Error reading Scrach 4 mailbox register");
 
-            FAPI_DBG("Setting up ATTR_I2C_BUS_DIV_REF");
-            l_read_scratch4_reg.extract<ATTR_I2C_BUS_DIV_REF_STARTBIT, ATTR_I2C_BUS_DIV_REF_LENGTH>(l_attr_i2c_bus_div_ref);
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_I2C_BUS_DIV_REF, i_target_chip, l_attr_i2c_bus_div_ref),
-                     "Error from FAPI_ATTR_SET (ATTR_I2C_BUS_DIV_REF)");
+            FAPI_DBG("Setting up ATTR_SPI_BUS_DIV_REF");
+            l_read_scratch4_reg.extract<ATTR_SPI_BUS_DIV_REF_STARTBIT, ATTR_SPI_BUS_DIV_REF_LENGTH>(l_attr_spi_bus_div_ref);
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SPI_BUS_DIV_REF, i_target_chip, l_attr_spi_bus_div_ref),
+                     "Error from FAPI_ATTR_SET (ATTR_SPI_BUS_DIV_REF)");
 
             FAPI_DBG("Setting up ATTR_FREQ_CORE_BOOT_MHZ");
             l_read_scratch4_reg.extractToRight<ATTR_FREQ_CORE_BOOT_MHZ_STARTBIT, ATTR_FREQ_CORE_BOOT_MHZ_LENGTH>

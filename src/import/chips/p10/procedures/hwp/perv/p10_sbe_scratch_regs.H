@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -77,8 +77,8 @@ enum p10_sbe_scratch_regs
     // Scratch_reg_4
     SCRATCH4_REG_VALID_BIT                          = 3,
 
-    ATTR_I2C_BUS_DIV_REF_STARTBIT                   = 0,
-    ATTR_I2C_BUS_DIV_REF_LENGTH                     = 16,
+    ATTR_SPI_BUS_DIV_REF_STARTBIT                   = 0,
+    ATTR_SPI_BUS_DIV_REF_LENGTH                     = 16,
     ATTR_FREQ_CORE_BOOT_MHZ_STARTBIT                = 16,
     ATTR_FREQ_CORE_BOOT_MHZ_LENGTH                  = 16,
 
