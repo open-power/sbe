@@ -138,6 +138,10 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
 
     if(tp_cplt_en && !(tp_ep_rst) && !(tp_vitl_clk_off))
     {
+        const bool l_stop_any_chiplet = i_flags.stop_nest_clks || i_flags.stop_pcie_clks || i_flags.stop_mc_clks
+                                        || i_flags.stop_pau_clks || i_flags.stop_axon_clks || i_flags.stop_cache_clks
+                                        || i_flags.stop_core_clks || i_flags.stop_eq_clks;
+
         FAPI_DBG("p10_stopclocks : Check to see if the PIB/PCB network is being bypassed");
 
         if (fapi2::is_platform<fapi2::PLAT_SBE>())
@@ -157,16 +161,17 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
 
         if(pcb_is_bypassed)
         {
-            if(i_flags.stop_nest_clks || i_flags.stop_pcie_clks || i_flags.stop_mc_clks || i_flags.stop_pau_clks
-               || i_flags.stop_axon_clks || i_flags.stop_cache_clks || i_flags.stop_core_clks || i_flags.stop_eq_clks)
+            if(l_stop_any_chiplet)
             {
-                FAPI_ERR("p10_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible.");
+                FAPI_ERR("p10_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible. Stopping TP only.");
             }
             else
             {
                 FAPI_IMP("p10_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible.");
             }
-
+        }
+        else
+        {
             FAPI_INF("p10_stopclocks : Reading Clock Status Register in the TP chiplet to see if SBE,PIB and NET clocks are running. Bits 5, 6 & 8 should be zero.");
 
             FAPI_DBG("Read Perv Clock Stat SL");
