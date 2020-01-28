@@ -1038,14 +1038,13 @@ fapi2::ReturnCode p10_putRingUtils(
         l_scanRegion    =   decodeScanRegionData( i_target, l_scanAddr);
         l_chipletMask   =   ( l_scanAddr  & CHIPLET_MASK );
 
-
         if ( i_applyOverride )
         {
-            if( UNDEFINED_BOOLEAN == i_applyOverride )
+            l_bOverride = false;
+
+            //CMO-20200410: Temp fix to avoid coreq
+            if (l_rs4Header->iv_version == RS4_VERSION)
             {
-//CMO-20200410: Temp fix to avoid coreq
-if (l_rs4Header->iv_version == RS4_VERSION)
-{
                 if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK ) == RS4_IV_TYPE_SCAN_OVRD )
                 {
                     l_bOverride     =   true;
@@ -1054,33 +1053,18 @@ if (l_rs4Header->iv_version == RS4_VERSION)
                 {
                     l_bOverride = false;
                 }
-}
-else
-{//V4 back support
-  if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK_V4 ) == RS4_IV_TYPE_SCAN_OVRD_V4 )
-  {
-    l_bOverride     =   true;
-  }
-  else if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK_V4 ) == RS4_IV_TYPE_SCAN_FLUSH_V4 )
-  {
-    l_bOverride = false;
-  }
-}
-            }
-
-            else if( true == i_applyOverride )
-            {
-                l_bOverride     =   true;
             }
             else
             {
-                FAPI_ASSERT( false,
-                             fapi2::RS4_BAD_RING_TYPE()
-                             .set_RING_TYPE( l_rs4Header->iv_type )
-                             .set_RING_ID( l_ringId )
-                             .set_INPUT_OVERRIDE( i_applyOverride ),
-                             "Bad Ring Type Field In RS4 Container 0x%02x", l_rs4Header->iv_type );
-                break;
+                //V4 back support
+                if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK_V4 ) == RS4_IV_TYPE_SCAN_OVRD_V4 )
+                {
+                    l_bOverride     =   true;
+                }
+                else if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK_V4 ) == RS4_IV_TYPE_SCAN_FLUSH_V4 )
+                {
+                    l_bOverride = false;
+                }
             }
         }
         else if( !i_applyOverride )

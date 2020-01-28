@@ -243,7 +243,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
                 fapi2::TARGET_STATE_PRESENT))
         {
             uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_PAUC>(l_perv);
-            uint32_t l_gard_mask;
+            uint32_t l_gard_mask = 0x0;
             fapi2::ATTR_PG_Type l_pg;
 
             // extract bits associated with the pau logic units
