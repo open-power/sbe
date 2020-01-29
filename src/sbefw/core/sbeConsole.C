@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -35,12 +35,14 @@
 #include "sberegaccess.H"
 #include "sbeglobals.H"
 #include "p10_lpc_utils.H"
+
 using namespace fapi2;
 
 static uint32_t writeReg(uint8_t i_addr,
                   uint8_t i_data)
 {
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
     do {
         Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
 
@@ -66,6 +68,7 @@ static uint32_t readReg(uint8_t i_addr,
                  uint8_t &o_data)
 {
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
     do
     {
         Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
@@ -158,7 +161,9 @@ static void uartPutChar(char c)
 {
     #define SBE_FUNC "uartPutChar"
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    do {
+    static unsigned char tx_room = 16;
+    if(tx_room < 1)
+    {
         static const uint64_t DELAY_NS = 100;
         static const uint64_t DELAY_LOOPS = 100000000;
 
@@ -181,27 +186,22 @@ static void uartPutChar(char c)
         if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
         {
             SBE_ERROR(SBE_FUNC " LSR read error.");
-            break;
-        }
-        if(data == LSR_BAD)
-        {
+        } else if(data == LSR_BAD) {
             SBE_ERROR(SBE_FUNC " LSR_BAD data error.");
-            break;
-        }
-        if(loops >= DELAY_LOOPS)
-        {
+        } else if(loops >= DELAY_LOOPS) {
             SBE_ERROR(SBE_FUNC " FIFO timeout.");
-            break;
+        } else {
+            tx_room = 16;
         }
+    }
 
-        rc = writeReg(THR, c);
-        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            SBE_ERROR(SBE_FUNC " failure to write THR");
-            break;
-        }
+    rc = writeReg(THR, c);
+    if(rc != SBE_SEC_OPERATION_SUCCESSFUL) {
+        SBE_ERROR(SBE_FUNC " failure to write THR");
+    } else {
+        tx_room--;
+    }
 
-    } while(0);
     #undef SBE_FUNC
 }
 
