@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,6 +38,7 @@
 #include "p10_scom_perv_f.H"
 #include <target_filters.H>
 #include <p10_perv_sbe_cmn.H>
+#include <p10_enable_ridi.H>
 
 static fapi2::ReturnCode p10_sbe_nest_enable_ridi_tp_enable_ridi(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
