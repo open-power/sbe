@@ -350,7 +350,7 @@ fapi2::ReturnCode p10_sbe_scominit_trace(const fapi2::Target<fapi2::TARGET_TYPE_
     return fapi2::current_err;
 }
 
-/// @brief Configures NMMU LCO and runtime inits
+/// @brief Configures NMMU LCO inits
 /// @param[in] i_target       Reference to processor chip target
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode p10_sbe_scominit_nmmu(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
@@ -365,21 +365,6 @@ fapi2::ReturnCode p10_sbe_scominit_nmmu(const fapi2::Target<fapi2::TARGET_TYPE_P
 
     for (auto& l_nmmu : l_nmmu_targets)
     {
-        // execute NMMU initfile
-        {
-            fapi2::ReturnCode l_rc;
-
-            FAPI_DBG("Invoking p10.nmmu.scom.initfile...");
-            FAPI_EXEC_HWP(l_rc, p10_nmmu_scom, l_nmmu, i_target, FAPI_SYSTEM);
-
-            if (l_rc)
-            {
-                FAPI_ERR("Error from p10_mmu_scom (p10.mmu.scom.initfile)");
-                fapi2::current_err = l_rc;
-                goto fapi_try_exit;
-            }
-        }
-
         // setup NMMU lco config
         {
             fapi2::buffer<uint64_t> l_scom_data;
