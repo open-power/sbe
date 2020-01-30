@@ -83,9 +83,6 @@ static fapi2::ReturnCode p10_sbe_fastarray_setup(
     const uint8_t l_capt_value = i_setup_flush ? 0x18 : 0x1C;
     fapi2::buffer<uint64_t> l_buf;
 
-    /* Set up ABIST engines */
-    //    FAPI_TRY(fapi2::putRing(i_target_chiplet, eq_c_fastarray_setup), "Failed to scan in fast array setup");
-
     /* Set up clock controller to do single BIST pulses */
     FAPI_TRY(fapi2::getScom(i_target_chiplet, OPCG_ALIGN, l_buf), "Failed to read OPCG_ALIGN register");
     l_buf.insertFromRight<OPCG_ALIGN_SNOP_ALIGN, OPCG_ALIGN_SNOP_ALIGN_LEN>(5)
@@ -366,6 +363,18 @@ fapi2::ReturnCode p10_sbe_fastarray(
         const uint64_t l_clock_region = l_scan_region_type & 0xFFFFFFFF00000000;
         const uint64_t l_abist_region = translate_abist_region(i_target, l_header, l_clock_region);
 
+        // Scan in setup bits as directed by the control data
+        FAPI_INF("Scanning in setup bits");
+        FAPI_TRY(i_instructions.get(l_header));
+
+        while (l_header--)
+        {
+            uint32_t l_ring_id;
+            FAPI_TRY(i_instructions.get(l_ring_id));
+            FAPI_TRY(fapi2::putRing(i_target, l_ring_id, fapi2::RING_MODE_FASTARRAY));
+        }
+
+        FAPI_INF("Preparing for dump");
         // At this point there may still be pending write pulses stuck inside the array-internal
         // pipelines. Enabling ABIST mode will make sure no new writes enter the pipelines, but
         // any existing writes must be flushed.
@@ -441,6 +450,7 @@ fapi2::ReturnCode p10_sbe_fastarray(
             FAPI_TRY(l_dumped_bits.flush());
         }
 
+        FAPI_INF("Dump complete, cleaning up");
         FAPI_TRY(p10_sbe_fastarray_cleanup(l_perv_target, l_clock_region));
     }
 
