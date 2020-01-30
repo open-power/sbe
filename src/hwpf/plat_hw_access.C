@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -26,11 +26,15 @@
 #include <fapi2.H>
 #include "hw_access.H"
 #include "plat_hw_access.H"
+#ifndef __SBEMFW_MEASUREMENT__
 #include "p9_perv_scom_addresses.H"
 //#include <p9_putRingUtils.H>
+#endif
 
 namespace fapi2
 {
+
+#ifndef __SBEMFW_MEASUREMENT__
 
 //struct restoreOpcgRegisters g_opcgData;
 
@@ -177,6 +181,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
     FAPI_INF("getEffectiveAddress(): input target=0x%.8x and address=0x%.8x Translated Addr = 0x%08X", i_target.value, i_addr, translatedAddr);
     return translatedAddr;
 }
+#endif // __SBEMFW_MEASUREMENT__
 
 static fapi2::ReturnCode pibRcToFapiRc(const uint32_t i_pibRc)
 {
@@ -327,7 +332,10 @@ fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
                                    const uint32_t i_addr, uint64_t *o_data)
 {
     uint32_t l_pibRc = 0;
-    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
+    uint32_t l_addr = i_addr;
+#ifndef __SBEMFW_MEASUREMENT__
+    l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
+#endif
     l_pibRc = getscom_abs(l_addr, o_data);
     FAPI_INF("getScom: Address: 0x%08X returned pibRc: 0x%08X, data HI: 0x%08X, "
              "data LO: 0x%08X", l_addr, l_pibRc, (*o_data >> 32),
@@ -341,8 +349,10 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
                                     const uint32_t i_addr, uint64_t i_data)
 {
     uint32_t l_pibRc = 0;
-    uint32_t l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target,
-                                                                    i_addr);
+    uint32_t l_addr = i_addr;
+#ifndef __SBEMFW_MEASUREMENT__
+    l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target,i_addr);
+#endif
     l_pibRc = putscom_abs(l_addr, i_data);
     FAPI_INF("putScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X : returned pibRc: 0x%08X", l_addr, (i_data >> 32),
              static_cast<uint32_t>(i_data & 0xFFFFFFFF), l_pibRc);
@@ -352,6 +362,7 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
 }
 
 
+#ifndef __SBEMFW_MEASUREMENT__
 fapi2::ReturnCode putscom_under_mask(const void *i_target,
                                      uint32_t i_addr,
                                      uint64_t i_data,
@@ -376,5 +387,6 @@ fapi2::ReturnCode putscom_under_mask(const void *i_target,
 
     return l_rc;
 }
+#endif
 
 };

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -24,15 +24,21 @@
 # IBM_PROLOG_END_TAG
 # This Makefile is designed to be invoked with the -I argument
 
-ifneq ($(img_mem), seeprom)
-export SUB_OBJDIR = /fapi2
-OBJS = $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_OBJECTS))
-LIBNAME = libfapi2
-else
+ifeq ($(img_mem), measurement)
+export SUB_OBJDIR = /fapi2_measurement
+GCC-DEFS += -D__SBEMFW_MEASUREMENT__=1
+OBJS = $(addprefix $(OBJDIR)/, $(SBEM_FAPI2PLATLIB_OBJECTS))
+LIBNAME = libfapi2measurement
+else ifeq ($(img_mem), seeprom)
 export SUB_OBJDIR = /fapi2_seeprom
 GCC-DEFS += -D__SBEFW_SEEPROM__=1
 OBJS = $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_SEEPROM_OBJECTS))
 LIBNAME = libfapi2seeprom
+else
+export SUB_OBJDIR = /fapi2
+GCC-DEFS += -D__SBEFW_PIBMEM__=1
+OBJS = $(addprefix $(OBJDIR)/, $(FAPI2PLATLIB_OBJECTS))
+LIBNAME = libfapi2
 endif
 
 include img_defs.mk

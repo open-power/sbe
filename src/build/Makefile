@@ -125,8 +125,8 @@ MEASUREMENT_LLIBS += -lpkbase
 MEASUREMENT_LIB_DIRS += -L$(OBJDIR)/pk
 MEASUREMENT_LLIBS += -lpk
 
-MEASUREMENT_LIB_DIRS += -L$(OBJDIR)/fapi2
-MEASUREMENT_LLIBS += -lfapi2
+# Measurment PLAT/FAPI lib
+SBEM_FAPI_SUBDIRS += sbemfapi_$(PLAT_FAPI2_DIR)
 
 MEASUREMENT_SUBDIRS += $(MEASUREMENT_PROJ_SUBDIRS)
 MEASUREMENT_LIB_DIRS += $(MEASUREMENT_PROJ_LIB_DIRS)
@@ -196,10 +196,13 @@ linker_seeprom:
 pre_measure_image: ppe_trace_bin buildInfo linker_measure
 
 # Build the measurement subdirectories files
-build_measure_image: $(MEASUREMENT_SUBDIRS)
+build_measure_image: $(MEASUREMENT_SUBDIRS) $(SBEM_FAPI_SUBDIRS)
 
 $(MEASUREMENT_SUBDIRS): ppe_trace_bin
 	$(C1)$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
+
+$(SBEM_FAPI_SUBDIRS): ppe_trace_bin
+	$(C1)$(MAKE) -I $(INCLUDES) -C $(subst sbemfapi_,, $@) -f Makefile img_mem=measurement
 
 linker_measure:
 	@mkdir -p $(OBJDIR)/build
@@ -228,7 +231,7 @@ measure_buildtag:
 
 # collect all of the trace hash files for measurement image into a single sbeMeasureStringFile
 measure_tracehash:
-	$(THASH) -c -d $(subst -L,, $(MEASUREMENT_PROJ_LIB_DIRS)) -s $(IMG_DIR)/$(SBE_MEASUREMENT_STRINGFILE_NAME)
+	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/$(SBE_MEASUREMENT_STRINGFILE_NAME)
 
 ### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File 
 add_MeasureLoaderAddr:

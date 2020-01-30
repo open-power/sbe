@@ -27,11 +27,13 @@
 #include <fapi2.H>
 #include <assert.h>
 #include <fapi2_target.H>
+#ifndef __SBEMFW_MEASUREMENT__
 #include <plat_target_utils.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9_perv_scom_addresses_fld.H>
+#endif
 
-#ifndef __SBEFW_SEEPROM__
+#if defined __SBEFW_PIBMEM__
 // Global Vector containing ALL targets.  This structure is referenced by
 // fapi2::getChildren to produce the resultant returned vector from that
 // call.
@@ -46,8 +48,9 @@ fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
+#endif // __SBEFW_PIBMEM__
 
-#else // __SBEFW_SEEPROM__
+#if defined __SBEFW_SEEPROM__ 
 extern std::vector<fapi2::plat_target_handle_t> G_vec_targets;
 
 // Global variable for fixed section in pibmem
@@ -66,17 +69,26 @@ extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 // the multipler.
 #define HRMOR_FOR_SPLESS_MODE 0xF8000000ull //3968 * 1024 * 1024
 
-#endif // else __SBEFW_SEEPROM__
+#endif // __SBEFW_SEEPROM__
 
+#ifndef __SBEMFW_MEASUREMENT__
 //TODO - This will be removed once this address is
 //define in P10 scom definition.
 #define EXPORT_REGL_STATUS 0x10009ull
 //Mask to remove Multicast bit
 #define MULTICAST_BIT_MASK 0x7FFFFFFFFFFFFFFF
+#endif  // not __SBEMFW_MEASUREMENT__
+
 namespace fapi2
 {
 
-#ifdef __SBEFW_SEEPROM__
+#ifndef __SBEFW_SEEPROM__
+  #ifndef __noRC__
+    ReturnCode current_err;
+  #endif
+#endif // not __SBEFW_SEEPROM__
+
+#if defined __SBEFW_SEEPROM__
 const uint8_t MC_UNDEFINED = 0xFF;
 uint8_t multicast_group_map[MCGROUP_COUNT];
 
@@ -118,6 +130,7 @@ ReturnCode plat_setMcMap(const std::vector< MulticastGroupMapping > &i_mappings)
 }
 #endif // __SBEFW_SEEPROM__
 
+#ifndef __SBEMFW_MEASUREMENT__
 template<TargetType K>
 plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
 {
@@ -200,9 +213,9 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
 
     return l_handle;
 }
+#endif // not __SBEMFW_MEASUREMENT__
 
-#ifdef __SBEFW_SEEPROM__
-
+#if defined __SBEFW_SEEPROM__
 extern fapi2::ReturnCode
     plat_TargetPresent( fapi2::Target<fapi2::TARGET_TYPE_PERV> & i_chiplet_target,
                                     bool & b_present);
@@ -334,7 +347,7 @@ fapi_try_exit:
     }
 #endif //__SBEFW_SEEPROM__
 
-#ifndef __SBEFW_SEEPROM__
+#if defined __SBEFW_PIBMEM__
 
     // Get the plat target handle by chiplet number - For PERV targets
     template<>
@@ -746,10 +759,6 @@ fapi_try_exit:
         return l_truth_table[fields.type];
     }
 
-    #ifndef __noRC__
-    ReturnCode current_err;
-    #endif
-
      fapi2::ReturnCode plat_PervPGTargets(const fapi2::Target<fapi2::TARGET_TYPE_PERV> & i_target,
                                           bool & o_present)
      {
@@ -865,9 +874,9 @@ fapi_try_exit:
         return fapi2::current_err;
     }
 
-#endif // not __SBEFW_SEEPROM__
+#endif // __SBEFW_PIBMEM__
 
-#ifdef __SBEFW_SEEPROM__
+#if defined __SBEFW_SEEPROM__
 
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes ///  this will move to plat_target.H formally
@@ -1074,7 +1083,7 @@ fapi_try_exit:
     }
 
 #endif // __SBEFW_SEEPROM__
-#ifndef __SBEFW_SEEPROM__
+#if defined __SBEFW_PIBMEM__
 
     /// @brief Function to initialize the G_targets vector based on partial good
     ///        attributes
@@ -1147,5 +1156,19 @@ fapi_try_exit:
 #endif
         return fapi2::current_err;
     }
-#endif //not __SBEFW_SEEPROM__
+#endif // __SBEFW_PIBMEM__
+
+#if defined __SBEMFW_MEASUREMENT__
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> plat_getChipTarget()
+    {
+         // Get the chip default specific target
+         return ((fapi2::plat_target_handle_t)0x0);
+    }
+    TargetType plat_target_handle_t::getFapiTargetType() const
+    {
+         // Get the chip specific target
+         return (TARGET_TYPE_PROC_CHIP);
+    }
+#endif // end of __SBEMFW_MEASUREMENT__
+
 } // fapi2
