@@ -79,6 +79,9 @@ typedef fapi2::ReturnCode (*p10_sbe_fastarray_FP_t)(
  * The first 32-bit word in the input stream is the ring address of the ring to be dumped, in the format
  * we all know and hate.
  *
+ * The second 32-bit word is a count of TOR ring IDs to scan in before dumping, followed by that many
+ * 32-bit words with ring IDs.
+ *
  * The rest of the input stream consists of (ncycles, nwords, carebits) tuples:
  *   The first word (the "header") has ncycles in the upper halfword and nwords in the lower halfword
  *   The header is followed by a number of words equal to nwords; these words make up the carebits information
