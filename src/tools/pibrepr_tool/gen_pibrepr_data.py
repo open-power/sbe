@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2019
+# Contributors Listed Below - COPYRIGHT 2018,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -33,13 +33,14 @@ bin_file = open("pibrepr.bin", "wb")
 ## 5th,6th,7th,8th Byte are the address bytes - 4B Addr
 ## Next 8Bytes are the data - 8B Data
 ## -------------------------------------------------------##
-## Total ring length of the repr data is 707bits, which is
-## 643 bits actual chain length + 64bits header.
+## Total ring length of the repr data is 1263bits, which is
+## 1216 bits actual chain length + 64bits header.
 ## perv_pib_repr 0x01031006 707 N N Y Y PERVPIB OFF
 ############################################################
 string = '''
            01 00 00 00 01 03 00 05 02 00 00 00 00 00 02 00
            01 00 00 00 01 03 E0 40 A5 A5 A5 A5 A5 A5 A5 A5
+           01 00 00 00 01 03 E0 40 00 01 63 80 80 00 00 00
            01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
            01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
            01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
@@ -50,7 +51,14 @@ string = '''
            01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
            01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
            01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
-           01 00 00 00 01 03 E0 03 00 00 00 00 00 00 00 00
+           01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
+           01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
+           01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
+           01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
+           01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
+           01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
+           01 00 00 00 01 03 E0 40 00 00 00 00 00 00 00 00
+           01 00 00 00 01 03 E0 2F 00 00 00 00 00 00 00 00
            00 00 00 00 01 03 80 00 A5 A5 A5 A5 A5 A5 A5 A5
            01 01 00 00 01 03 00 05 00 00 00 00 00 00 00 00'''
 string = string.split()

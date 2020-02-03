@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2019
+# Contributors Listed Below - COPYRIGHT 2018,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -33,4 +33,4 @@ fi
 
 # Generate the Pibrepr data
 python gen_pibrepr_data.py
-$1/p9_xip_tool $1/$2 append .pibrepr_data pibrepr.bin
+$1/ipl_image_tool $1/$2 append .pibrepr_data pibrepr.bin
