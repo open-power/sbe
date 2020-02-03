@@ -47,17 +47,13 @@ __reserved:
 ###############################################################################
 ################## OTPROM location data contents ##############################
 # Magic number stored in OTP        1806C
+# We have directly loaded the register with liw instead of a global variable
 # 0x0040 : otprom loader
 ###############################################################################
 _start:
 #lis r4 , 0x50           #dummy instruction
 .org __reserved + 0x0040
-# We have directly loaded the register with liw instead of a global variable
-#.macro     .pm_otprom_fixed_system
-#     .section   .fixed, "a", @progbits
-#__otprom_magic_num:
-#    .quad   0x584950205345504D
-# .endm
+
 oos_start:
 ################################################################################
 #   UPDATE bits 29:30:31 of sbe message register : 0x50009 with 0b01
@@ -73,25 +69,30 @@ oos_start:
     li g_hreset_path, 1             # Init the global variable to 1
 
 # Check for HRESET trigger from 50008:bit13 (HARDWARE Trigger)
-    lis   r4, 0x5
-    lvd   d2, 0x8(r4)
+## use r5 wherever you need reference for 0x00050000
+    lvd   d2, 0x8(r5)
     bb1wi r2, 13, hreset_path   # Jump to hreset function
     li    g_hreset_path, 0      # Not HRESET path. Unset the global variable
 
+# Check for IPL Reset Trigger from 50008:bit12 (HARDWARE Trigger)
+    bb0wi r2, 12, skip_bit12_pull_down   # Jump to hreset function
     # Bit12 is level trigger interrupt, pull down bit to take PPE out of reset
     xoris r2, r2, 0x0008        # Bit12 is pulled down here, XOR will flip bit12
-    stvd  d2, 0x8(r4)           # write to 50008 to pull down bit 12
+    stvd  d2, 0x8(r5)           # write to 50008 to pull down bit 12
 
-# Scan0 init sequence of c0002040 is expected to be all zeros.
+# Scan0 init sequence of c0002040 is expected to be all zeros. Not trying to
+# reset other bits here since it is fresh start
+# Set bit15 in LFR, to indicate Vector0(50008:12) reset triggered in FW
     lis   r4, 0xC000
-# Set bit15 in LFR, to indicate Vector0 reset triggered in FW
     lis   r8, 0x1
-    li    r9, 0x0               # d8 is 0000_0001_0000_0000
-    stvd  d8, 0x2050(r4)        # Write the mask to set the 15th bit
+    li    r9, 0x0               # d8 is 0001_0000_0000_0000
+    stvd  d8, 0x2040(r4)        # Write the mask to set the 15th bit
 
+skip_bit12_pull_down:
+# No bit:12 and No bit:13, check if FW triggerred for MPIPL
 # Check for Mpipl trigger from C0002040:bit14 (FIRMWARE Trigger)
     lvd   d2, 0x2040(r4)
-    bb1wi r2, 14, mpipl_path  #check if mpipl set in sbe_local_regX.
+    bb1wi r2, 14, mpipl_path  #check if mpipl set in sbe_local_regX (LFR)
 
 ################################################################################
     # R5 --> 0x50000
@@ -171,21 +172,29 @@ enable_prim_meas:
 
 hreset_path:
 ## Bit13 is a level trigger interrupt, pull down bit to take PPE out of reset
-    lis   r4, 0x5
-    lvd   d2, 0x8(r4)
-    bb0wi r2, 13, skip_bit13_pull_down
-    xoris r2, r2, 0x0004  # Bit13 is pulled down here
-    stvd  d2, 0x8(r4)
-
-skip_bit13_pull_down:
-## HRESET path will reset only Boot SPIs
+## use r5 wherever you need reference for 0x00050000
+    lvd   d2, 0x8(r5)
     lis   r4, 0xC000
     ori   r4, r4, 0x2040
+    bb0wi r2, 13, skip_bit13_pull_down
+    xoris r2, r2, 0x0004  # Bit13 is pulled down here
+    stvd  d2, 0x8(r5)
+
+## HRESET path will reset only Boot SPIs
 # Set bit 16 in LFR, to indicate Vector1 reset triggered in FW
     li    r8, 0x0
-    lis   r9, 0x8000       # d8 is 0000_0000_8000_0000
-    stvd  d8, 0x10(r4)     # Write the mask to set the 16th bit
+    ori   r8, r8, 0x8000
+    li    r9, 0x0          # d8 is 0000_8000_0000_0000
+    stvd  d8, 0x10(r4)     # Write the mask to set the 16th bit with W_OR
+# Unset Bit 15 (IPL Reset) in LFR and Bit 14 (MPIPL) and Bit 17 (HReset Done)
+# to clear off previous triggers, in order to keep only the current trigger
+    lis   r8, 0x3          # Set the mask to reset the bit 14/15
+    ori   r8, r8, 0x4000   # Set the mask to reset the bit 17
+    li    r9, 0x0          # d8 is 0x0003_4000_0000_0000
+    stvd  d8, 0x18(r4)     # write to WO_CLR Register
 
+skip_bit13_pull_down:
+    ## r4 is 0xc0002040
     lvd   r2, 0x0(r4)      # Load the latched value value from local regsiter
     srwi  r3, r2, 0x14     # Move the clock divider value to LSB
     li    r4, 0            # R4: Load with primary seeprom
@@ -200,18 +209,32 @@ enable_prim_boot:
     #If not, we are in IPL or MPIPL path. Need to jump to measurement
     b   jump_to_measurement
 jump_to_boot:
+    ## Let's set the PIB SPIm Selection in Root Control Register 50018:0:1
+    ## Boot seeprom should be handled in this path (HReset Path)
+    lvd d8, 0x18(r5)       # load/fetch 50018 onto r8/r9
+    rlwinm r8, r8, 0x0, 0x2, 0x1f  # Set Bit0 for SPIm[0] and Bit1 for SPIm[1]
+    stvd d8, 0x18(r5)      # store 50018 with bit0 and bit1 as SET
+    ## Don't change r3 here on
     lis r3, OTPROM_SEEPROM_HIGHER_NIBBLE
     bl check_magic_number   #Verify the magic number
-    lis r6 , OTPROM_SEEPROM_HIGHER_NIBBLE
+    lis r6, OTPROM_SEEPROM_HIGHER_NIBBLE
     b jump_to_next_seeprom
 
 jump_to_measurement:
-    #Here we verify magic number for both boot and measurement
+    ## Let's set the PIB SPIm Selection in Root Control Register 50018:0:1:2:3
+    ## Both Boot and Measurement seeprom should be handled in this path (IPL
+    ## Reset & MPIPL Path)
+    lvd d8, 0x18(r5)       # load/fetch 50018 onto r8/r9
+    rlwinm r8, r8, 0x0, 0x4, 0x1f  # Set Bit0 for SPIm[0] and Bit1 for SPIm[1]
+                                   # Set Bit2 for SPIm[2] and Bit3 for SPIm[3]
+    stvd d8, 0x18(r5)      # store 50018 with bit0/bit1/bit2/bit3 as SET
+    ## Here we verify magic number for both boot and measurement
+    ## Don't change r3 here on
     lis r3, OTPROM_SEEPROM_HIGHER_NIBBLE
     bl check_magic_number   #Verify the magic number
     lis r3, OTPROM_MEASUREMENT_HIGHER_NIBBLE
     bl check_magic_number
-    lis r6 , OTPROM_MEASUREMENT_HIGHER_NIBBLE
+    lis r6, OTPROM_MEASUREMENT_HIGHER_NIBBLE
 
 jump_to_next_seeprom:
     ########### Branch to NEXT SEEPROM ###################

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -259,6 +259,7 @@ uint64_t __g_address_for_register_ffdc = (uint32_t)&__g_register_ffdc;
 extern "C" void __sbe_register_saveoff()
 {
     asm(
+    "b pk_halt\n"
     "# Save r4, r5, r6 to stack, since it is going to be used\n"
     "# inside here, move the stack by 12\n"
     "stwu %r1, -12(%r1)\n"

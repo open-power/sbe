@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -205,11 +205,11 @@ namespace SBE
      */
     bool isHreset(void);
 
-    /* @brief - Clear HRESET BIT
+    /* @brief - Set the HReset Done bit on the LFR
      *
      * @return - void
      */
-    void clearHresetBit(void);
+    void setHResetDoneBit(void);
 
 } // namespace SBE
 #endif //SBE_UTIL_H

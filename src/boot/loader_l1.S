@@ -59,9 +59,9 @@ __l1Loader:
 
         # If hreset of SBE, jump directly to kernel, as all the pibmem contents
         # are already populated
-        _liw     %r3, 0x50008
+        _liw     %r3, 0xc0002040
         lvd      d3,0(r3)
-        bb1wi    r3,13,jump_to_kernel
+        bb1wi    r3,16,jump_to_kernel
         #ifndef SBE_MEASUREMENT_SUPPORT
         # Commenting out repair to remove variables in bringup,
         # will enable this once we have to test repairs
@@ -87,6 +87,13 @@ copy_loop:
         ############################################################
         # SBE entry function is 4 byte number in image header
         ############################################################
+        ## IPL Reset Flow - Jump to L2 loader
+        _liw     %r3,  SBE_SEEPROM_BASE_ORIGIN + SBE_LOADER_ENTRY_HEADER_OFFSET
+        lwz      r6, 0(r3)
+        mtlr     r6
+        blr
+
+        ## Runtime Reset Flow
 jump_to_kernel:
         # setup IVPR before jumping to kernel
         _liw    %r8, SBE_BASE_ORIGIN
@@ -94,9 +101,9 @@ jump_to_kernel:
         _liw    %r10, 0xC0000160
         stvd    d8,0(r10)
 
-        _liw     %r3,  SBE_SEEPROM_BASE_ORIGIN + SBE_LOADER_ENTRY_HEADER_OFFSET
-        lwz      r6, 0(r3)
-        mtlr  r6
+        _liw    %r3,  SBE_SEEPROM_BASE_ORIGIN + SBE_KERNEL_ENTRY_HEADER_OFFSET
+        lwz     r6, 0(r3)
+        mtlr    r6
         blr
 
         .epilogue __l1Loader

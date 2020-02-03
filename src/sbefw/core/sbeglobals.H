@@ -166,16 +166,32 @@ extern SBEGlobalsSingleton* sbeGlobal;
 //This local register will be used to save the SPI clock divider setting
 //MPIPL in progress setting
 //What kind of reset is triggered in 0x50008, since otprom clears the reset bit
-struct sbe_local_LFR {
+// ipl_reset which is the cbs_start flow
+// hreset which is the runtime reset flow
+// hreset_done bit to indicate SBE finished Hreset flow and back up to receive
+// commands over fifo.
+typedef struct sbe_local_LFR {
     uint32_t spi_clock_divider: 12;
     uint32_t sec_boot_seeprom : 1; //Set if secondary boot seeprom is in use
     uint32_t sec_meas_seeprom : 1; //Set if secondary measurement sprm is in use
     uint32_t mpipl : 1;            //Set if mpipl
     uint32_t ipl_reset : 1;        //Set if SBE is reset via 0x50008:bit12 Vec0
     uint32_t runtime_reset : 1;    //Set if SBE is reset via 0x50008:bit13 Vec1
-    uint32_t bitsreserved : 15;
+    uint32_t hreset_done : 1;
+    uint32_t bitsreserved : 14;
     uint32_t reserved;
-};
+
+    sbe_local_LFR()
+    {
+        spi_clock_divider = 0;
+        sec_boot_seeprom = 0;
+        sec_meas_seeprom = 0;
+        mpipl = 0;
+        ipl_reset = 0;
+        runtime_reset = 0;
+        hreset_done = 0;
+    }
+}sbe_local_LFR;
 
 #endif //__SBE_GLOBALS_H
 

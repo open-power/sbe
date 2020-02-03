@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -266,11 +266,12 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 
     if (SBE_GLOBAL->isHreset)
     {
-        SBE::clearHresetBit();
         SBE_INFO(SBE_FUNC"Hreset, going back to the state before reset");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(
                 (sbeState)SbeRegAccess::theSbeRegAccess().getSbeState());
+        SBE_GLOBAL->isHreset = 0;
+        SBE::setHResetDoneBit();
     }
     else if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
     {

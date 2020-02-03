@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -32,10 +32,6 @@
 
 // Nest frequency array
 #include "p9_frequency_buckets.H"
-
-#define SBE_PERV_SB_CS_SCOM 0x00050008
-#define SBCS_VEC_1_CLEAR(sbcsreg) (sbcsreg & ~0x0004000000000000ull)
-#define SBCS_VEC_1_GET(sbcsreg)   (sbcsreg & 0x0004000000000000ull)
 
 namespace SBE
 {
@@ -74,51 +70,24 @@ namespace SBE
     bool isHreset(void)
     {
         #define SBE_FUNC "IS_HRESET"
-        using namespace fapi2;
         bool isHreset = false;
-        uint64_t sbcsreg = 0;
-        ReturnCode rc = FAPI2_RC_SUCCESS;
-        plat_target_handle_t tgtHndl;
-        rc = getscom_abs_wrap (&tgtHndl,
-                                SBE_PERV_SB_CS_SCOM,
-                                &sbcsreg);
-        if (rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR(SBE_FUNC" could not read sbcs register, halting.");
-            pk_halt();
-        }
-        isHreset = SBCS_VEC_1_GET(sbcsreg);
+        sbe_local_LFR lfrReg;
+        PPE_LVD(0xc0002040, lfrReg);
+        isHreset = lfrReg.runtime_reset;
         SBE_INFO(SBE_FUNC" [%d]", isHreset);
         return (isHreset);
         #undef SBE_FUNC
     }
 
-    void clearHresetBit(void)
+    void setHResetDoneBit(void)
     {
-        #define SBE_FUNC "CLEAR_HRESET_BIT"
-        using namespace fapi2;
-        // clear the hreset bit
-        uint64_t sbcsreg = 0;
-        plat_target_handle_t tgtHndl;
-        ReturnCode rc = getscom_abs_wrap (&tgtHndl,
-                                          SBE_PERV_SB_CS_SCOM,
-                                          &sbcsreg);
-        if (rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR(SBE_FUNC" could not read sbcs register, halting.");
-            pk_halt();
-        }
-
-        sbcsreg = SBCS_VEC_1_CLEAR(sbcsreg);
-        rc = putscom_abs_wrap (&tgtHndl,
-                                SBE_PERV_SB_CS_SCOM,
-                                sbcsreg);
-        if (rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR(SBE_FUNC" could not write sbcs register, halting.");
-            pk_halt();
-        }
+        #define SBE_FUNC "HRESET_DONE"
+        sbe_local_LFR lfrReg;
+        // Set the hreset_done bit and write to WO_OR Reg to set
+        lfrReg.hreset_done = 1;
+        PPE_STVD(0xc0002050, lfrReg);
         #undef SBE_FUNC
     }
+
 }
 
