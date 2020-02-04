@@ -703,7 +703,7 @@ ReturnCode istepNoOp( voidfuncptr_t i_hwp)
 
 #ifdef __SBEFW_SEEPROM__
 //----------------------------------------------------------------------------
-constexpr uint32_t HB_MEM_WINDOW_SIZE = 10*1024*1024; //10 MB
+constexpr uint32_t HB_MEM_WINDOW_SIZE = 8*1024*1024; //8 MB
 ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
