@@ -149,7 +149,7 @@ _pibmemRepair:
         # DONOT use R4 in any operation below.
         mflr     %r4                            # Store R4
         _liw     %r3, SBE_PIBMEM_REPAIR_SECTION # Pibmem Repair Section Location
-        _liw     %r9, SBE_SEEPROM_BASE_ORIGIN
+        _liw     %r9, SBE_MEASUREMENT_BASE_ORIGIN
         lwz      r8, 0(r3)                      # offset of pibmem repair section
 
         # Check if R8 has non-zero offset, This is required if the repair

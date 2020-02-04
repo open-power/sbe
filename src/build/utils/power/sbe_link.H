@@ -99,7 +99,7 @@
 
 // Pibmem Repair Section XIP HDR
 // Each section table entry is 12Bytes size, Pibmem repair is 6th section
-#define SBE_PIBMEM_REPAIR_SECTION SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
+#define SBE_PIBMEM_REPAIR_SECTION SBE_MEASUREMENT_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                     + 72
 
 /// The physical address offset where SBE-SEEPROM code is loaded
