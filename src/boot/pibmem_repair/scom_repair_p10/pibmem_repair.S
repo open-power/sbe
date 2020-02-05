@@ -52,6 +52,58 @@ _pibmemRepair:
         li      r5, 0x20
         stvd    d4, 0x0(r3)
 
+        ##################### BREAK PIB INIT SEQUENCE  #########################
+
+
+        ########################################################################
+        ########## Call PibRepair Sequence here before chiplet enable ##########
+        #### In P10, scan are required to be done before clocks are enabled ####
+        ########################################################################
+        ### How to understand the Row structure in the image ##
+        ################################################################
+        ### 1B CMD ### 1B END ROW ### 2B PAD ### 4B ADDR ### 8B DATA ###
+        ################################################################
+        # NOTE - Saving LR into r4 and restore back at the end,
+        # DONOT use R4 in any operation below.
+        mflr     %r4                            # Store R4
+        _liw     %r3, SBE_PIBMEM_REPAIR_SECTION # Pibmem Repair Section Location
+        _liw     %r9, SBE_MEASUREMENT_BASE_ORIGIN
+        lwz      r8, 0(r3)                      # offset of pibmem repair section
+
+        # Check if R8 has non-zero offset, This is required if the repair
+        # section is not loaded onto to binary, no point trying to parse which
+        # is not loaded.
+        cmplwi   r8, 0x0          # compare r8 to 0
+        beq      skip_parse_row   # if offset is zero, skip row parsing
+        adde     r8, r8, r9       # add base addr to offset to get absolute addr
+
+        # r8 is pointing to the first row of the table
+parse_row:
+        # Get First 8bytes from R8 Referenced Location
+        lvd      d0, 0(r8)        # r0 points to cmd, r1 points to addr
+        srwi     %r3, %r0, 24     # get the command byte
+        addi     r8, r8, 8        # Point to data offset
+        lvd      d6, 0(r8)        # r6 & r7 have the scom data
+
+        ## Switch case for the operation to perform based on Command Byte
+        ## r6/r7 contains the data and r1 contains the address
+        cmpwibcl  1, 2, %r3, 0, __getscom_bootloader
+        cmpwibcl  0, 2, %r3, 0, __putscom_bootloader
+        addi     r8, r8, 8       # point to the next row
+        srwi     %r3, %r0, 16    # fetch 2nd Byte after cmd to check for end row
+        andi.    %r3, %r3, 0x000000ff
+        cmplwi   r3, 0x1         # compare r3 with 1,if not eq go to parser another row
+        bne      parse_row
+
+        # End of Row Parsing
+skip_parse_row:
+        mtlr     %r4             # restore LR from r4
+
+        #################### END OF PIB REPAIR SEQUENCE ########################
+        ########################################################################
+
+
+        ################### CONTINUE PIB INIT SEQUENCE  ########################
         #Set Chiplet Enable
         #SCOMIN   0005012A 0x80000000_00000000
         _liw    %r3, 0x5012A
@@ -102,7 +154,7 @@ _pibmemRepair:
         lis     r4, 0x80
         li      r5, 0
         lvd     d6, 0x0(r3)
-        andis.  r6, r6, 0x0080 
+        andis.  r6, r6, 0x0080
         cmpwbne r4, r6, __compare_failed
 
         #Check for clocks running SL
@@ -140,46 +192,6 @@ _pibmemRepair:
         lis     r4, 0x0200
         stvd    d4, 0x0(r3)
 
-        ### Pibmem repair code here
-        ## Row structure
-        ################################################################
-        ### 1B CMD ### 1B END ROW ### 2B PAD ### 4B ADDR ### 8B DATA ###
-        ################################################################
-        # NOTE - Saving LR into r4 and restore back at the end,
-        # DONOT use R4 in any operation below.
-        mflr     %r4                            # Store R4
-        _liw     %r3, SBE_PIBMEM_REPAIR_SECTION # Pibmem Repair Section Location
-        _liw     %r9, SBE_MEASUREMENT_BASE_ORIGIN
-        lwz      r8, 0(r3)                      # offset of pibmem repair section
-
-        # Check if R8 has non-zero offset, This is required if the repair
-        # section is not loaded onto to binary, no point trying to parse which
-        # is not loaded.
-        cmplwi   r8, 0x0                        # compare r8 to 0
-        beq      skip_parse_row                 # if offset is zero, skip row parsing
-        adde     r8, r8, r9                     # add base address to offset to get absolute address
-
-        # r8 is pointing to the first row of the table
-parse_row:
-        lvd      d0, 0(r8)                      # Get First 8bytes, r0 points to cmd, r1 points to addr
-        srwi     %r3, %r0, 24                   # get the command byte
-        addi     r8, r8, 8                      # Point to data offset
-        lvd      d6, 0(r8)                      # r6 & r7 have the scom data
-        ## Switch case for the operation to perform based on Command Byte
-        ## r6/r7 contains the data and r1 contains the address
-        cmpwibcl  1, 2, %r3, 0, __getscom_bootloader
-        cmpwibcl  0, 2, %r3, 0, __putscom_bootloader
-        addi     r8, r8, 8                      # point to the next row
-        srwi     %r3, %r0, 16                   # fetch the second byte after command to check for end row
-        andi.    %r3, %r3, 0x000000ff
-        cmplwi   r3, 0x1                        # compare r3 with 1, if not equal got to parser another row
-        bne      parse_row
-
-        # End of Row Parsing
-skip_parse_row:
-        mtlr     %r4                            # restore LR from r4
-        ######################################################
-
         blr                                  # back to l1_loader
         .epilogue _pibmemRepair
 
@@ -200,5 +212,5 @@ __putscom_bootloader:
         .epilogue __putscom_bootloader
 
 __compare_failed:
-        trap 
+        trap
         .epilogue __compare_failed
