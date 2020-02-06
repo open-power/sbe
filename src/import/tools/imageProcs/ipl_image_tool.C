@@ -41,7 +41,7 @@
 
 #include "p10_ipl_image.H"
 #include "common_ringId.H"
-#ifndef __PPE__ // Needed on PPE side to avoid having to include various APIs
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD) // Needed on PPE & OP-Build side to avoid having to include various APIs
     #include "p10_tor.H"
     #include "p10_scan_compression.H"
     #include <vector>
@@ -50,7 +50,7 @@
 #include <p10_infrastruct_help.H>
 #include <p10_ddco.H>
 
-#ifndef __PPE__ // Needed on PPE side to avoid having to include various APIs
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD) // Needed on PPE & OP-Build side to avoid having to include various APIs
     #include <prcdUtils.H>
     #include <croClientCapi.H>
     #include <ecmdClientCapi.H>
@@ -470,7 +470,7 @@ resolve_image_section_type( const void* i_image,
         o_imageSectionType = IST_XIP;
     }
 
-#ifndef __PPE__
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD)
     else if (be32toh(((TorHeader_t*)i_image)->magic) >> 8 == TOR_MAGIC)
     {
         o_imageSectionType = IST_TOR;
@@ -514,7 +514,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
     int i;
     P9XipHeader header;
     P9XipSection* section;
-#ifndef __PPE__
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD)
     TorHeader_t* torHeader = (TorHeader_t*)i_image;
     DdContHeader_t* ddContHeader = (DdContHeader_t*)i_image;
 #endif
@@ -586,7 +586,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
 
             break;
 
-#if !defined(__PPE__)
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD)
 
         case IST_TOR:
 
@@ -2055,7 +2055,7 @@ TEST(void* io_image, const int i_argc, const char** i_argv)
 }
 
 
-#ifndef __PPE__  // Needed on the ppe side to avoid TOR API
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD)  // Needed on the ppe & OP-Build side to avoid TOR API
 
 /// Function:  dissectRingSectionTor()
 ///
@@ -3131,7 +3131,7 @@ int check_sbe_ring_section_size( void* i_hwImage,
                                  uint32_t i_maxSize )
 {
     int rc = 0;
-#ifndef __PPE__ // Needed on ppe side to avoid TOR API
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD) // Needed on ppe & OP-Build side to avoid TOR API
 
     P9XipSection l_ringsSection;
 
@@ -3287,7 +3287,7 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
     {
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
-#ifndef __PPE__ // Needed on ppe side to avoid TOR API
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD) // Needed on ppe & OP-Build side to avoid TOR API
         rc = dissectRingSection(image, i_argc - 1, &(i_argv[1]), l_imageSectionType);
 #else
         fprintf(stderr, "\n");
