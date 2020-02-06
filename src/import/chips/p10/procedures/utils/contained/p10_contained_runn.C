@@ -47,7 +47,7 @@ struct opcg_capt_regs
 
 ///
 /// @brief Compute the left-shift required for each region's 2b value into the
-///        OPCT_CAPT* registers.
+///        OPCG_CAPT* registers.
 ///
 /// @param[in] i_corenum Associated core instance number (0-3) for region
 /// @param[in] i_region  Region
@@ -59,7 +59,7 @@ static inline size_t __attribute__((always_inline))
 opcg_capt_region_shift (size_t i_corenum, opcg_capt_region i_region)
 {
     size_t region_shift = (i_region == CORE) ? 0 : (i_region == L3) ? 8 : 20;
-    return (31 - 3 - 2 * i_corenum - region_shift);
+    return (63 - 3 - 2 * (i_corenum % 4) - region_shift);
 }
 
 ///
@@ -78,27 +78,49 @@ static fapi2::ReturnCode update_opcg_capt_regs(const fapi2::Target<fapi2::TARGET
         opcg_capt_regs& io_regs)
 {
     fapi2::ATTR_RUNN_CORE_CYCLE_OFFSET_Type offset;
-    fapi2::ATTR_RUNN_CORE_CYCLE_OFFSET_Type runn_core_offset;
     fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_CORE_CYCLE_OFFSET, i_core,
-                           runn_core_offset));
+                           offset));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, i_core, corenum));
 
-    FAPI_ASSERT(runn_core_offset >= 0 && runn_core_offset <= 3,
+    FAPI_ASSERT(offset >= 0 && offset <= 4,
                 fapi2::P10_CONTAINED_RUN_INVALID_CORE_RUNN_OFFSET()
                 .set_CORE(corenum),
-                "ATTR_RUNN_CORE_CYCLE_OFFSET is not 0,1,2, or 3");
+                "ATTR_RUNN_CORE_CYCLE_OFFSET is not 0,1,2,3, or 4");
 
-    offset = runn_core_offset >> 1;
-    io_regs.capt1 |= offset << opcg_capt_region_shift(corenum, CORE) |
-                     offset << opcg_capt_region_shift(corenum, L3) |
-                     offset << opcg_capt_region_shift(corenum, MMA);
-    offset = (runn_core_offset + 1) >> 1;
-    io_regs.capt2 |= offset << opcg_capt_region_shift(corenum, CORE) |
-                     offset << opcg_capt_region_shift(corenum, L3) |
-                     offset << opcg_capt_region_shift(corenum, MMA);
-    io_regs.capt3 |= io_regs.capt1;
+    // XXX replace switch-statement with maths (see P10_EPS.pptx)
+    switch(offset)
+    {
+        case 1:
+            io_regs.capt2 |= 0b01ull << opcg_capt_region_shift(corenum, CORE) |
+                             0b01ull << opcg_capt_region_shift(corenum, MMA);
+            break;
+
+        case 2:
+            io_regs.capt1 |= 0b01ull << opcg_capt_region_shift(corenum, L3);
+            io_regs.capt2 |= 0b01ull << opcg_capt_region_shift(corenum, CORE) |
+                             0b01ull << opcg_capt_region_shift(corenum, MMA);
+            io_regs.capt3 |= 0b01ull << opcg_capt_region_shift(corenum, CORE) |
+                             0b01ull << opcg_capt_region_shift(corenum, MMA);
+            break;
+
+        case 3:
+            io_regs.capt1 |= 0b01ull << opcg_capt_region_shift(corenum, L3);
+            io_regs.capt2 |= 0b10ull << opcg_capt_region_shift(corenum, CORE) |
+                             0b10ull << opcg_capt_region_shift(corenum, MMA);
+            io_regs.capt3 |= 0b01ull << opcg_capt_region_shift(corenum, CORE) |
+                             0b01ull << opcg_capt_region_shift(corenum, MMA);
+            break;
+
+        case 4:
+            io_regs.capt1 |= 0b10ull << opcg_capt_region_shift(corenum, L3);
+            io_regs.capt2 |= 0b10ull << opcg_capt_region_shift(corenum, CORE) |
+                             0b10ull << opcg_capt_region_shift(corenum, MMA);
+            io_regs.capt3 |= 0b10ull << opcg_capt_region_shift(corenum, CORE) |
+                             0b10ull << opcg_capt_region_shift(corenum, MMA);
+            break;
+    }
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -238,13 +260,14 @@ fapi_try_exit:
 ///
 /// @param[in]  i_perv           Reference to perv target
 /// @param[in]  i_set_hld_dly_en Set OPCG_REG0_RUNN_HLD_DLY_EN
+/// @param[in]  i_stop_on_xstop  Set OPCG_REG0_STOP_RUNN_ON_XSTOP
 /// @param[in]  i_runn_cnt       RUNN cycle count to program
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
 static fapi2::ReturnCode runn_opcg_start(const fapi2::Target < fapi2::TARGET_TYPE_PERV |
         fapi2::TARGET_TYPE_MULTICAST > & i_perv,
-        bool i_set_hld_dly_en, uint64_t i_runn_cnt)
+        bool i_set_hld_dly_en, bool i_stop_on_xstop, uint64_t i_runn_cnt)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -256,14 +279,22 @@ static fapi2::ReturnCode runn_opcg_start(const fapi2::Target < fapi2::TARGET_TYP
     SET_OPCG_REG0_RUNN_MODE(data);
     SET_OPCG_REG0_OPCG_GO(data);
 
-//            SET_OPCG_REG0_RUN_OPCG_ON_UPDATE_DR(data);
     if (i_set_hld_dly_en)
     {
-        data.setBit<15>();    // OPCG_REG0_RUNN_HLD_DLY_EN
+        data.setBit<15>(); // OPCG_REG0_RUNN_HLD_DLY_EN
     }
 
+
+    // Convert core RUNN cycles to nest RUNN cycles (what the OPCG wants)
+    i_runn_cnt = i_runn_cnt / 2;
+
     SET_OPCG_REG0_LOOP_COUNT(i_runn_cnt, data);
-//            SET_OPCG_REG0_STOP_RUNN_ON_XSTOP(data);
+
+    if (i_stop_on_xstop)
+    {
+        SET_OPCG_REG0_STOP_RUNN_ON_XSTOP(data);
+    }
+
     FAPI_TRY(PUT_OPCG_REG0(i_perv, data));
 
 fapi_try_exit:
@@ -271,8 +302,56 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+///
+/// @brief Setup OPCG HLD_DLY functionality if required due to an odd number of
+///        "core" RUNN cycles or explicit per-core HLD_DLY offset.
+///
+/// @param[in]  i_perv_eq        Reference to perv EQ target
+/// @param[in]  i_runn_cnt       RUNN cycle count
+/// @param[out] o_set_hld_dly_en OPCG is setup to use HLD_DLY functionality
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+static fapi2::ReturnCode runn_opcg_setup(const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_perv_eq,
+        const uint64_t i_runn_cnt,
+        bool& o_set_hld_dly_en)
+{
+    FAPI_INF(">> %s", __func__);
+
+    using namespace scomt::eq;
+
+    const auto quad = i_perv_eq.getChildren<fapi2::TARGET_TYPE_EQ>()[0];
+    opcg_capt_regs regs = {0, 0, 0};
+
+    for (auto const& core : quad.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        if (i_runn_cnt % 2 == 1)
+        {
+            fapi2::ATTR_RUNN_CORE_CYCLE_OFFSET_Type offset;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_CORE_CYCLE_OFFSET,
+                                   core, offset));
+            offset += 1;
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_RUNN_CORE_CYCLE_OFFSET,
+                                   core, offset));
+        }
+
+        FAPI_TRY(update_opcg_capt_regs(core, regs));
+    }
+
+    // Program per-core offsets
+    FAPI_TRY(PUT_OPCG_CAPT1(quad, regs.capt1));
+    FAPI_TRY(PUT_OPCG_CAPT2(quad, regs.capt2));
+    FAPI_TRY(PUT_OPCG_CAPT3(quad, regs.capt3));
+
+    o_set_hld_dly_en = regs.capt1 != 0 || regs.capt2 != 0 || regs.capt3 != 0;
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
 fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                             bool i_chc)
+                             const bool i_chc)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -373,6 +452,10 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
     FAPI_INF(">> %s", __func__);
 
     auto all = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
+    // Only want EQs with actively-configured cores - the obvious way to get
+    // there is to convert the multicast group containing all "good" EQs
+    // down to individual EQ targets.
+    auto quads = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
     uint64_t base_runn_cnt = 0;
     fapi2::buffer<uint64_t> data;
     fapi2::ATTR_RUNN_DO_CONFIG_CHECKS_Type do_checks;
@@ -382,41 +465,38 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
 
     if (!i_chc)
     {
-        // Only want EQs with actively-configured cores - the obvious way to get
-        // there is to convert the multicast group containing all "good" EQs
-        // down to individual EQ targets.
-        auto quads = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
         // We need to track which EQ clock-controllers are supposed to enable
         // the per core offset delay after the initial RUNN count expires.
         std::queue<bool> set_hld_dly_en;
 
+        // Program any per-core HLD_DLY offsets
         for (auto const& perv_eq : quads.getChildren<fapi2::TARGET_TYPE_PERV>())
         {
-            using namespace scomt::eq;
-
             const auto quad = perv_eq.getChildren<fapi2::TARGET_TYPE_EQ>()[0];
-            opcg_capt_regs regs = {0, 0, 0};
+            uint64_t runn_cnt = 0;
+            bool tmp;
 
-            for (auto const& core : quad.getChildren<fapi2::TARGET_TYPE_CORE>())
-            {
-                FAPI_TRY(update_opcg_capt_regs(core, regs));
-            }
+            FAPI_TRY(quad_runn_cnt(quad, base_runn_cnt, runn_cnt));
+            FAPI_TRY(runn_opcg_setup(perv_eq, runn_cnt, tmp));
 
-            // Program per-core offsets
-            FAPI_TRY(PUT_OPCG_CAPT1(quad, regs.capt1));
-            FAPI_TRY(PUT_OPCG_CAPT2(quad, regs.capt2));
-            FAPI_TRY(PUT_OPCG_CAPT3(quad, regs.capt3));
-
-            set_hld_dly_en.push(regs.capt1 != 0 || regs.capt2 != 0 || regs.capt3 != 0);
+            set_hld_dly_en.push(tmp);
         }
 
+        // Program the OPCG to start the RUNN. Do *not* merge this loop with
+        // the previous so that all EQs are "primed" to go and only require the
+        // OPCG_REG0 to be written at this point - no other registers need to
+        // be configured. This means we can take checkpoints before the RUNN
+        // start per EQ in simulation and only a single SCOM is required to go.
         for (auto const& perv_eq : quads.getChildren<fapi2::TARGET_TYPE_PERV>())
         {
             using namespace scomt::eq;
 
             const auto quad = perv_eq.getChildren<fapi2::TARGET_TYPE_EQ>()[0];
             uint64_t runn_cnt = 0;
+            fapi2::ATTR_RUNN_STOP_ON_XSTOP_Type use_stop_on_xstop;
 
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_STOP_ON_XSTOP, perv_eq,
+                                   use_stop_on_xstop));
             FAPI_TRY(quad_runn_cnt(quad, base_runn_cnt, runn_cnt));
 
             {
@@ -427,14 +507,31 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
             }
 
             // Start RUNN
-            FAPI_TRY(runn_opcg_start(perv_eq, set_hld_dly_en.front(), runn_cnt));
+            FAPI_TRY(runn_opcg_start(perv_eq, set_hld_dly_en.front(),
+                                     use_stop_on_xstop == fapi2::ENUM_ATTR_RUNN_STOP_ON_XSTOP_ON,
+                                     runn_cnt));
             set_hld_dly_en.pop();
         }
     }
     else
     {
+        bool set_hld_dly_en;
+        bool stop_on_xstop = false; //-Werror=maybe-uninitialized
+
+        for (auto const& perv_eq : quads.getChildren<fapi2::TARGET_TYPE_PERV>())
+        {
+            fapi2::ATTR_RUNN_STOP_ON_XSTOP_Type use_stop_on_xstop;
+
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_STOP_ON_XSTOP, perv_eq,
+                                   use_stop_on_xstop));
+            FAPI_TRY(runn_opcg_setup(perv_eq, base_runn_cnt, set_hld_dly_en));
+
+            stop_on_xstop = stop_on_xstop ||
+                            use_stop_on_xstop == fapi2::ENUM_ATTR_RUNN_STOP_ON_XSTOP_ON;
+        }
+
         FAPI_TRY(sim::checkpoint(std::string("before_opcg_start")));
-        FAPI_TRY(runn_opcg_start(all, false, base_runn_cnt));
+        FAPI_TRY(runn_opcg_start(all, set_hld_dly_en, stop_on_xstop, base_runn_cnt));
     }
 
     if (do_checks == fapi2::ENUM_ATTR_RUNN_DO_CONFIG_CHECKS_ON)
