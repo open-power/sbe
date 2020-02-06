@@ -28,7 +28,7 @@
     <rc>RC_P10_CONTAINED_RUN_INVALID_CORE_RUNN_OFFSET</rc>
     <description>
       Procedure: p10_contained_run
-      Core RUNN offset is invalid / out-of-range, valid: 0-3.
+      Core RUNN offset is invalid / out-of-range, valid: 0-4.
     </description>
    <ffdc>CORE</ffdc>
     <callout>
