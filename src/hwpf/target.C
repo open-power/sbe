@@ -71,7 +71,8 @@ extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 //TODO - This will be removed once this address is
 //define in P10 scom definition.
 #define EXPORT_REGL_STATUS 0x10009ull
-
+//Mask to remove Multicast bit
+#define MULTICAST_BIT_MASK 0x7FFFFFFFFFFFFFFF
 namespace fapi2
 {
 
@@ -528,8 +529,10 @@ fapi_try_exit:
     plat_target_handle_t plat_target_handle_t::getParent(
             const TargetType i_parentType) const
     {
+      
         plat_target_handle_t l_handle;
-        switch(i_parentType)
+        //Remove Multicast bit
+        switch(i_parentType & MULTICAST_BIT_MASK)
         {
             case TARGET_TYPE_PROC_CHIP:
                 l_handle = G_vec_targets[CHIP_TARGET_OFFSET];
@@ -539,14 +542,24 @@ fapi_try_exit:
                 l_handle = *this;
                 break;
             case TARGET_TYPE_EQ:
-                assert(fields.type == PPE_TARGET_TYPE_CORE);
+                if(fields.is_multicast && 
+                  ((fields.type == PPE_TARGET_TYPE_PERV) || (fields.type == PPE_TARGET_TYPE_EQ)))
                 {
-                    l_handle = G_vec_targets[(fields.type_target_num / CORES_PER_QUAD) + EQ_TARGET_OFFSET];
+                    l_handle = *this;
+                }
+                else
+                {
+                    assert(fields.type == PPE_TARGET_TYPE_CORE);
+                    {
+                        l_handle = G_vec_targets[(fields.type_target_num / CORES_PER_QUAD) + EQ_TARGET_OFFSET];
+                    }
                 }
                 break;
             default:
                 assert(false);
+                break;
         }
+        assert(l_handle.value != 0x0);
         return l_handle;
     }
 
