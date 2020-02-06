@@ -88,6 +88,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
     TorOffset_t l_sectionOffset =   0;
     RingType_t l_ringType       =   COMMON_RING;
     ChipletType_t l_chipletType;
+    RingId_t l_rpIndex          = UNDEFINED_RING_ID;
     fapi2::ReturnCode l_rc      =   fapi2::FAPI2_RC_SUCCESS;
     ChipletData_t* l_pChipletData;
     TorOffset_t* l_pRingTor     =   NULL;
@@ -109,16 +110,19 @@ fapi2::ReturnCode getRS4ImageFromTor(
                  .set_TOR_VER( l_torVersion ),
                  "Invalid TOR Version 0x%04x ", l_torVersion  );
 
-    FAPI_ASSERT( ( i_ringId < NUM_RING_IDS ),
+    // Get the ring properties (rp) index
+    l_rpIndex = ringid_convert_ringId_to_rpIndex(i_ringId);
+
+    FAPI_ASSERT( ( l_rpIndex < NUM_RING_IDS ),
                  fapi2::INVALID_RING_ID()
                  .set_RING_ID( i_ringId ),
                  "Invalid Ring Id 0x%04x", i_ringId );
 
-    l_torIndex      =   ( INSTANCE_RING_MASK    &  ( RING_PROPERTIES[i_ringId].idxRing ) );
-    l_ringType      =   ( INSTANCE_RING_MARK    &  ( RING_PROPERTIES[i_ringId].idxRing ) ) ?
+    l_torIndex      =   ( INSTANCE_RING_MASK    &  ( RING_PROPERTIES[l_rpIndex].idxRing ) );
+    l_ringType      =   ( INSTANCE_RING_MARK    &  ( RING_PROPERTIES[l_rpIndex].idxRing ) ) ?
                         INSTANCE_RING : COMMON_RING;
 
-    l_chipletType   =   RING_PROPERTIES[i_ringId].chipletType;
+    l_chipletType   =   RING_PROPERTIES[l_rpIndex].chipletType;
 
     switch( l_chipletType )
     {

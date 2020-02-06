@@ -41,6 +41,7 @@
 
 #include "p10_ipl_image.H"
 #include "common_ringId.H"
+#include "p10_ringId.H"
 #if !defined(__PPE__) && !defined(OPENPOWER_BUILD) // Needed on PPE & OP-Build side to avoid having to include various APIs
     #include "p10_tor.H"
     #include "p10_scan_compression.H"
@@ -2105,7 +2106,7 @@ void print_raw_ring( uint8_t*  data,
 
 #if !defined(__PPE__) && !defined(OPENPOWER_BUILD)  // Needed on the ppe & OP-Build side to avoid TOR API
 
-/// Function:  dissectRingSectionTor()
+/// Function:  dissectRingSection()
 ///
 /// Brief:  Dissects and summarizes content of a ring section.
 ///
@@ -2114,8 +2115,8 @@ void print_raw_ring( uint8_t*  data,
 /// \param[in] i_listingModeId  The listing mode: {table, normal(default), long, raw}.
 ///
 static
-int dissectRingSectionTor( uint8_t*    i_ringSection,
-                           uint8_t     i_listingModeId )
+int dissectRingSection( uint8_t*    i_ringSection,
+                        uint8_t     i_listingModeId )
 {
     int         rc = INFRASTRUCT_RC_SUCCESS;
     uint32_t    i;
@@ -2124,6 +2125,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     ChipId_t    chipId = UNDEFINED_CHIP_ID;
     uint8_t     ddLevel = UNDEFINED_DD_LEVEL;
     RingId_t    ringId;
+    RingId_t    rpIndex;
     uint8_t     chipletId;
     RingProperties_t* ringProps = NULL;
     ChipletData_t*    chipletData = NULL;
@@ -2213,9 +2215,9 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     bRingsFound = false;
     bPrintHeader = true;
 
-    //---------------------------
-    // Master Ring ID loop
-    //---------------------------
+    //--------------------------------
+    // Master Ring ID / RP Index loop
+    //--------------------------------
     // This loop supports traversing and retrieving rings from both TOR
     // and DYN ring sections.
     //
@@ -2242,8 +2244,38 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
     rs4 = (CompressedScanData*)rs4Buf;
 
-    for (ringId = 0; ringId < numRingIds; ringId++)
+    for (rpIndex = 0; rpIndex < numRingIds; rpIndex++)
     {
+        //Get the ringId
+        ringId = ringProps[rpIndex].ringId;
+
+        // Check the ringId validity
+        rc = ringid_check_ringId( chipId, ringId);
+
+        switch (rc)
+        {
+            case TOR_SUCCESS:
+                // Good ringId, represents an ENGD ring. Continue...
+                break;
+
+            case TOR_HOLE_RING_ID:
+                // Valid rc but nothing to do for hole ring ID.
+                continue;
+
+            case TOR_INVALID_RING_ID:
+                // We should never get called with an invalid ringId
+                MY_ERR("ERROR: dissectRingSection: ringid_check_ringId() returned"
+                       " rc=TOR_INVALID_RING_ID (rc=0x%08x) for ringId=0x%08x\n",
+                       rc, ringId);
+                exit(EXIT_FAILURE);
+
+            default:
+                // Should never come here
+                MY_ERR("CODE BUG: dissectRingSection: A non-supported rc(=0x%08x)"
+                       " was returned by ringid_check_ringId(). Fix code.\n",
+                       rc);
+                exit(EXIT_FAILURE);
+        }
 
         //
         // Get remaining metadata for the chipletType associated with the ringId
@@ -2251,7 +2283,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
         rc = ringid_get_chipletProps( chipId,
                                       torMagic,
                                       torHeader->version,
-                                      ringProps[ringId].chipletType,
+                                      ringProps[rpIndex].chipletType,
                                       &chipletData );
 
         if (rc)
@@ -2268,9 +2300,9 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
         }
 
         //
-        // Determine whether Common or Instance section based on the INSTANCE_RING_MARK
+        // Determine whether Common or Instance section
         //
-        if ( ringProps[ringId].idxRing & INSTANCE_RING_MARK )
+        if ( ringProps[rpIndex].idxRing & INSTANCE_RING_MARK )
         {
             numInst = chipletData->numChipletInstances;
         }
@@ -2362,12 +2394,14 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                 bRingsFound = true;
 
                 // Sanity check RS4 container's ringId matches the requested.
-                RingId_t l_ringId = be16toh(rs4->iv_ringId);
+                RingId_t ringIdTmp = be16toh(rs4->iv_ringId);
 
-                if ( l_ringId != ringId )
+                if ( ringIdTmp != ringId )
                 {
-                    if ( (ringProps[l_ringId].ringClass & RMRK_ROOT) !=
-                         (ringProps[ringId].ringClass & RMRK_ROOT) )
+                    RingId_t rpIndexTmp = ringid_convert_ringId_to_rpIndex(ringIdTmp);
+
+                    if ( (ringProps[rpIndexTmp].ringClass & RMRK_ROOT) !=
+                         (ringProps[rpIndex].ringClass & RMRK_ROOT) )
                     {
                         fprintf(stderr, "COND in ipl_image_tool: Found a ring. But the"
                                 " requested ringId"
@@ -2376,14 +2410,14 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                                 " it's not a valid find and we'll skip it.\n"
                                 "Requested ringId: 0x%x\n"
                                 "RS4 headr ringId: 0x%x\n",
-                                ringId, l_ringId);
+                                ringId, ringIdTmp);
                     }
                     else
                     {
                         fprintf(stderr, "ERROR in ipl_image_tool:  Found a ring."
                                 " But RS4 header ringId(=0x%x) differs from requested"
                                 " ringId(=0x%x) and chipletId=0x%02x\n",
-                                l_ringId, ringId, chipletId);
+                                ringIdTmp, ringId, chipletId);
                         operator delete(rs4Buf);
                         operator delete(dataBuf);
                         operator delete(careBuf);
@@ -2404,7 +2438,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
                 ringSeqNo++;
 
-                ringName = ringProps[ringId].ringName;
+                ringName = ringProps[rpIndex].ringName;
 
                 data = (uint8_t*)dataBuf;
                 care = (uint8_t*)careBuf;
@@ -2539,7 +2573,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
         }  // End of for(subQualId={chipletId or selector})
 
-    }  // End of for(ringId)
+    }  // End of for(rpIndex)
 
     if( bRingsFound == false )
     {
@@ -2655,10 +2689,10 @@ unpack_ddco_image( const void* i_ddcoImage,
 }
 
 
-/// Function:  dissectRingSection()
+/// Function:  dissectRingSectionPrep()
 ///
 /// Brief:  Processes XIP tool input parms and prepares parameters to be passed
-///         to dissectRingSectionTor which does the actual dissection and
+///         to dissectRingSection() which does the actual dissection and
 ///         summarizing of the ring section.
 ///
 /// \param[in] i_image A pointer to a P9-XIP image or TOR ringSection in host memory.
@@ -2672,10 +2706,10 @@ unpack_ddco_image( const void* i_ddcoImage,
 /// Assumptions:
 ///
 static int
-dissectRingSection(void*                      i_image,
-                   int                        i_argc,
-                   const char**               i_argv,
-                   const image_section_type_t i_imageSectionType)
+dissectRingSectionPrep(void*                      i_image,
+                       int                        i_argc,
+                       const char**               i_argv,
+                       const image_section_type_t i_imageSectionType)
 {
     int             rc = 0;
     const char*     sectionName = NULL;
@@ -2920,7 +2954,7 @@ dissectRingSection(void*                      i_image,
         default:
 
             fprintf(stderr,
-                    "\nERROR : In dissectRingSection(): Invalid image section type (=0x%02x)\n",
+                    "\nERROR : dissectRingSectionPrep: Invalid image section type (=0x%02x)\n",
                     i_imageSectionType);
 
             uint64_t l_magic = *((uint64_t*)i_image);
@@ -2988,11 +3022,12 @@ dissectRingSection(void*                      i_image,
         fprintf(stdout, "----------------------------------------------\n");
         fprintf(stdout, "\n");
 
-        rc = dissectRingSectionTor(static_cast<uint8_t*>(ringSectionPtrs.at(iPos)), listingModeId);
+        rc = dissectRingSection(static_cast<uint8_t*>(ringSectionPtrs.at(iPos)), listingModeId);
 
         if (rc)
         {
-            fprintf(stderr, "ERROR: dissectRingSectionTor() failed w/rc=0x%08x\n", rc);
+            fprintf(stderr, "ERROR: dissectRingSectionPrep: dissectRingSection() failed"
+                    " w/rc=0x%08x\n", rc);
             break;
         }
 
@@ -3258,7 +3293,7 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
 
         openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
 #if !defined(__PPE__) && !defined(OPENPOWER_BUILD) // Needed on ppe & OP-Build side to avoid TOR API
-        rc = dissectRingSection(image, i_argc - 1, &(i_argv[1]), l_imageSectionType);
+        rc = dissectRingSectionPrep(image, i_argc - 1, &(i_argv[1]), l_imageSectionType);
 #else
         fprintf(stderr, "\n");
         fprintf(stderr, "---------------------------------------------\n");
@@ -3270,7 +3305,7 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
 
         if (rc)
         {
-            fprintf(stderr, "ERROR: dissectRingSection() failed w/rc=0x%08x\n", rc);
+            fprintf(stderr, "ERROR: command: dissectRingSectionPrep() failed w/rc=0x%08x\n", rc);
             exit(EXIT_FAILURE);
         }
 

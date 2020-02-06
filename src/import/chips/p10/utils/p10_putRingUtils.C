@@ -446,20 +446,6 @@ fapi_try_exit:
 
 //-------------------------------------------------------------------------------------------------------
 
-bool isInstanceRing( const uint16_t i_ringId )
-{
-    bool l_instanceRing = false;
-
-    if( INSTANCE_RING_MARK & ( RING_PROPERTIES[(uint8_t)i_ringId].idxRing ) )
-    {
-        l_instanceRing  =   true;
-    }
-
-    return l_instanceRing;
-}
-
-//-------------------------------------------------------------------------------------------------------
-
 uint64_t decodeScanRegionData( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
                                const uint32_t i_ringAddress)
 {
