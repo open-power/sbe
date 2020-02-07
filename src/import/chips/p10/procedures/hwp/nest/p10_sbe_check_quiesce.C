@@ -498,11 +498,11 @@ fapi2::ReturnCode p10_psihb_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE
 
     // Disable FSP Command Enable bit in PSIHB Command/Status register
 
-    FAPI_TRY(PREP_TP_TPBR_PSIHB_STATUS_CTL_REG_SCOM2(i_target));
+    FAPI_TRY(PREP_TP_TPBR_PSIHB_STATUS_CTL_REG_WO_CLEAR(i_target));
 
     SET_TP_TPBR_PSIHB_STATUS_CTL_REG_FSP_CMD_ENABLE(l_psihb_data);
     SET_TP_TPBR_PSIHB_STATUS_CTL_REG_FSP_INT_ENABLE(l_psihb_data);
-    FAPI_TRY(PUT_TP_TPBR_PSIHB_STATUS_CTL_REG_SCOM2(i_target, l_psihb_data));
+    FAPI_TRY(PUT_TP_TPBR_PSIHB_STATUS_CTL_REG_WO_CLEAR(i_target, l_psihb_data));
 
     //mask all interrupts to quiesce
     FAPI_TRY(GET_TP_TPBR_PSIHB_ERROR_MASK_REG(i_target, l_psihb_data));
