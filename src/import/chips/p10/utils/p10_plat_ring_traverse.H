@@ -25,7 +25,23 @@
 #ifndef _PLAT_RING_TRAVERSE_H_
 #define _PLAT_RING_TRAVERSE_H_
 
-#include <p10_putRingUtils.H>
+//#include <p10_putRingUtils.H>
+#include <return_code.H>
+#include <fapi2.H>
+#include <p10_ringId.H>
+#include <common_ringId.H>
+
+/// @brief various operational modes supported by the scanning.
+namespace RS4
+{
+enum OpMode_t
+{
+    SCANNING_MODE    =  0x00,
+    TEST_MODE        =  0x01,
+    CRONTEST_MODE    =  0x02,
+};
+}
+
 
 /// @brief This structure represents the layout of the Section-TOR
 ///        Section-TOR has the offsets to the different chiplet's

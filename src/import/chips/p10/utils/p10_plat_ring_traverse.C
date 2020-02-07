@@ -99,10 +99,8 @@ fapi2::ReturnCode getRS4ImageFromTor(
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
         i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
 
-    uint8_t l_chipPos = l_procTgt.getChipletNumber();
 
     FAPI_INF("l_chipletPos %02x\n", l_chipletPos);
-    FAPI_INF("l_chipPos %02x\n", l_chipPos);
     OpMode_t i_opMode = G_opMode;
 
     fapi2::ATTR_SCAN_CHIPLET_OVERRIDE_Type l_scan_chiplet_override =  fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE;

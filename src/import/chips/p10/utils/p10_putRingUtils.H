@@ -37,10 +37,7 @@
 #ifndef _P10_PUTRINGUTILS_H_
 #define _P10_PUTRINGUTILS_H_
 
-#include <return_code.H>
-#include <fapi2.H>
-#include <p10_ringId.H>
-#include <common_ringId.H>
+#include <p10_plat_ring_traverse.H>
 
 // Constants and Structures
 //
@@ -82,13 +79,6 @@ enum scanType_t
     POLLED_SCAN     =   3   ///< used in SGPE plat
 };
 
-/// @brief various operational modes supported by the scanning.
-enum OpMode_t
-{
-    SCANNING_MODE    =  0x00,
-    TEST_MODE        =  0x01,
-    CRONTEST_MODE    =  0x02,
-};
 
 /// @brief scan region supported by putring through 32 bit vector.
 enum ScanRegion_t
