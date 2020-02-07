@@ -176,7 +176,8 @@ fapi_try_exit:
  */
 static fapi2::ReturnCode p10_sbe_fastarray_cleanup(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_chiplet,
-    const uint64_t i_clock_regions)
+    const uint64_t i_clock_regions,
+    bool i_ignore_abist_done)
 {
     fapi2::buffer<uint64_t> l_buf;
 
@@ -196,7 +197,8 @@ static fapi2::ReturnCode p10_sbe_fastarray_cleanup(
         }
         while (--l_timeout && !l_buf.getBit<CPLT_STAT0_ABIST_DONE_DC>());
 
-        FAPI_ASSERT_NOEXIT(l_timeout != 0, fapi2::FASTARRAY_CLEANUP_NOT_DONE().set_TARGET(i_target_chiplet),
+        FAPI_ASSERT_NOEXIT(i_ignore_abist_done || l_timeout != 0,
+                           fapi2::FASTARRAY_CLEANUP_NOT_DONE().set_TARGET(i_target_chiplet),
                            "Warning: ABIST_DONE not seen! Your dump is probably fine, but this is unexpected.");
     }
 
@@ -328,8 +330,11 @@ static uint64_t expand_ring_address(
 static uint64_t translate_abist_region(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_CORE > & i_target,
     const uint32_t i_ring_address,
-    const uint64_t i_clock_region)
+    const uint64_t i_clock_region,
+    bool& o_ignore_abist_done)
 {
+    o_ignore_abist_done = false;
+
     if (((i_ring_address >> 24) >= 0x20) && (i_clock_region & MMA_REGION_MASK))
     {
         uint8_t l_core_mma_abist_linked = false;
@@ -339,6 +344,8 @@ static uint64_t translate_abist_region(
 
         if (l_core_mma_abist_linked)
         {
+            // In P10 DD1 the MMA is part of the core ABIST_DONE chain so we can't observe its ABIST_DONE if we don't run the core too.
+            o_ignore_abist_done = true;
             // In P10 DD1 the MMA ABIST is controlled by the ECL2 ABIST enable signal, so scoot the bits over there
             return i_clock_region << 10;
         }
@@ -354,6 +361,7 @@ fapi2::ReturnCode p10_sbe_fastarray(
 {
     const auto l_perv_target = i_target.getParent<fapi2::TARGET_TYPE_PERV>();
     uint32_t l_header, l_care_bits[MAX_CARE_WORDS];
+    bool l_ignore_abist_done;
 
     // Open new scope so we can FAPI_TRY() across initializers at leisure
     {
@@ -361,7 +369,7 @@ fapi2::ReturnCode p10_sbe_fastarray(
         FAPI_TRY(i_instructions.get(l_header));
         const uint64_t l_scan_region_type = expand_ring_address(i_target, l_header);
         const uint64_t l_clock_region = l_scan_region_type & 0xFFFFFFFF00000000;
-        const uint64_t l_abist_region = translate_abist_region(i_target, l_header, l_clock_region);
+        const uint64_t l_abist_region = translate_abist_region(i_target, l_header, l_clock_region, l_ignore_abist_done);
 
         // Scan in setup bits as directed by the control data
         FAPI_INF("Scanning in setup bits");
@@ -451,7 +459,7 @@ fapi2::ReturnCode p10_sbe_fastarray(
         }
 
         FAPI_INF("Dump complete, cleaning up");
-        FAPI_TRY(p10_sbe_fastarray_cleanup(l_perv_target, l_clock_region));
+        FAPI_TRY(p10_sbe_fastarray_cleanup(l_perv_target, l_clock_region, l_ignore_abist_done));
     }
 
 fapi_try_exit:
