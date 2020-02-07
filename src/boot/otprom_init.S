@@ -59,11 +59,12 @@ oos_start:
 #   UPDATE bits 29:30:31 of sbe message register : 0x50009 with 0b01
 #   to indicate OTPROM Control
 ################################################################################
-    lis r5 , 0x5                    # load r5 with 0x00050000
-    lvd d2 , 0x9(r5)                # loads data from 0x50009 to d2
+    lis    r5 , 0x5                 # load r5 with 0x00050000
+    lis    r4, 0xC000
+    lvd    d2 , 0x9(r5)             # loads data from 0x50009 to d2
     rlwinm r2, r2, 0x0, 0x0, 0x1c   # Clear off the bits 29:30:31
-    ori r2 , r2 , 0x1               # set bit 31 to 1
-    stvd d2 , 0x9(r5)               # store data back into 0x50009
+    ori    r2 , r2 , 0x1            # set bit 31 to 1
+    stvd   d2 , 0x9(r5)             # store data back into 0x50009
 
 .set g_hreset_path, 31              # r31 will be used as global variable
     li g_hreset_path, 1             # Init the global variable to 1
@@ -83,7 +84,6 @@ oos_start:
 # Scan0 init sequence of c0002040 is expected to be all zeros. Not trying to
 # reset other bits here since it is fresh start
 # Set bit15 in LFR, to indicate Vector0(50008:12) reset triggered in FW
-    lis   r4, 0xC000
     lis   r8, 0x1
     li    r9, 0x0               # d8 is 0001_0000_0000_0000
     stvd  d8, 0x2040(r4)        # Write the mask to set the 15th bit
@@ -161,6 +161,16 @@ mpipl_path:
 # Load the clock divider value from the local register
     lis   r4, 0xC000
     ori   r4, r4, 0x2040
+    lvd   d8, 0x0(r4)
+    bb0wi r8, 14, skip_lfr_bit_flush
+## Unset bit15, bit16, bit17, bit18 to indicate MPIPL path only
+## Bit15 Ipl Reset, Bit16 Hreset, Bit17 HReset Done, Bit18 Mpipl Done
+    lis   r8, 0x1            # Set the mask to reset the bit 15
+    ori   r8, r8, 0xe000     # Set the mask to reset the bit 16/17/18
+    li    r9, 0x0            # d8 is 0x0001_E000_0000_0000
+    stvd  d8, 0x18(r4)       # write to WO_CLR Register
+skip_lfr_bit_flush:
+## Fetch Clock Divider and seeprom selection from LFR
     lvd   r2, 0x0(r4)        # Load the latched value from the local register
     srwi  r3, r2, 0x14       # Move the clock divider value to LSB
     li    r4, 0              # R4: Load with primary meas seeprom
@@ -186,10 +196,10 @@ hreset_path:
     ori   r8, r8, 0x8000
     li    r9, 0x0          # d8 is 0000_8000_0000_0000
     stvd  d8, 0x10(r4)     # Write the mask to set the 16th bit with W_OR
-# Unset Bit 15 (IPL Reset) in LFR and Bit 14 (MPIPL) and Bit 17 (HReset Done)
+# Unset Bit15 (IPL Reset) Bit14 (MPIPL) Bit17 (HReset Done) Bit18 (MPIPL Done)
 # to clear off previous triggers, in order to keep only the current trigger
     lis   r8, 0x3          # Set the mask to reset the bit 14/15
-    ori   r8, r8, 0x4000   # Set the mask to reset the bit 17
+    ori   r8, r8, 0x6000   # Set the mask to reset the bit 17/18
     li    r9, 0x0          # d8 is 0x0003_4000_0000_0000
     stvd  d8, 0x18(r4)     # write to WO_CLR Register
 

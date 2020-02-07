@@ -88,5 +88,26 @@ namespace SBE
         #undef SBE_FUNC
     }
 
+    void setMpiplResetDoneBit(void)
+    {
+        #define SBE_FUNC "MPIPL_RESET_DONE"
+        sbe_local_LFR lfrReg;
+        // Set the mpiplreset_done bit and write to WO_OR Reg to set
+        lfrReg.mpipl_reset_done = 1;
+        PPE_STVD(0xc0002050, lfrReg);
+        #undef SBE_FUNC
+    }
+
+    bool isMpiplReset(void)
+    {
+        #define SBE_FUNC "IS_MPIPL"
+        bool isMpipl = false;
+        sbe_local_LFR lfrReg;
+        PPE_LVD(0xc0002040, lfrReg);
+        isMpipl = lfrReg.mpipl;
+        SBE_INFO(SBE_FUNC" [%d]", isMpipl);
+        return (isMpipl);
+        #undef SBE_FUNC
+    }
 }
 

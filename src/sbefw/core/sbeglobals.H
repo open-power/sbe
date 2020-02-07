@@ -171,14 +171,15 @@ extern SBEGlobalsSingleton* sbeGlobal;
 // hreset_done bit to indicate SBE finished Hreset flow and back up to receive
 // commands over fifo.
 typedef struct sbe_local_LFR {
-    uint32_t spi_clock_divider: 12;
-    uint32_t sec_boot_seeprom : 1; //Set if secondary boot seeprom is in use
-    uint32_t sec_meas_seeprom : 1; //Set if secondary measurement sprm is in use
-    uint32_t mpipl : 1;            //Set if mpipl
-    uint32_t ipl_reset : 1;        //Set if SBE is reset via 0x50008:bit12 Vec0
-    uint32_t runtime_reset : 1;    //Set if SBE is reset via 0x50008:bit13 Vec1
-    uint32_t hreset_done : 1;
-    uint32_t bitsreserved : 14;
+    uint32_t spi_clock_divider: 12; // bit0-11
+    uint32_t sec_boot_seeprom : 1; //Bit 12 Set if sec boot sprm is in use
+    uint32_t sec_meas_seeprom : 1; //Bit 13 Set if sec measure sprm is in use
+    uint32_t mpipl : 1;            //Bit 14 Set if mpipl is triggered
+    uint32_t ipl_reset : 1;        //Bit 15 Set if SBE is reset via 50008:bit12
+    uint32_t runtime_reset : 1;    //Bit 16 Set if SBE is reset via 50008:bit13
+    uint32_t hreset_done : 1;      //Bit 17 Set if HReset flow is done in FW
+    uint32_t mpipl_reset_done : 1; //Bit 18 Set if Mpipl flow is done in FW
+    uint32_t bitsreserved : 13;
     uint32_t reserved;
 
     sbe_local_LFR()
@@ -190,6 +191,7 @@ typedef struct sbe_local_LFR {
         ipl_reset = 0;
         runtime_reset = 0;
         hreset_done = 0;
+        mpipl_reset_done = 0;
     }
 }sbe_local_LFR;
 

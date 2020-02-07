@@ -211,5 +211,17 @@ namespace SBE
      */
     void setHResetDoneBit(void);
 
+    /* @brief - Set the Mpipl Reset Done bit on the LFR
+     *
+     * @return - void
+     */
+    void setMpiplResetDoneBit(void);
+
+    /* @brief - Check if the boot is on Mpipl Reset of SBE
+     *
+     * @return - True if Mpipl Reset, false otherwise
+     */
+    bool isMpiplReset(void);
+
 } // namespace SBE
 #endif //SBE_UTIL_H

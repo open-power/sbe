@@ -49,6 +49,7 @@
 #include "core/ipl.H"
 #include "sbeFFDC.H"
 #include "sbehandleresponse.H"
+#include "sbeXipUtils.H"
 
 #ifdef _S0_
 #include "sbes0handler.H"
@@ -264,6 +265,15 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     // is ready now to receive data on its interfaces
     (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
 
+    // This is test function to test the MPIPL path in case of MPIPL Reset
+    // Presently there is no mechanism to force it, simply set ivpr to 0x18000
+    // and iar to 0x18040. Before triggering MPIPL make sure you are setting
+    // 0xc0002040 bit 14 to set, so that OTPROM can act on this info.
+    if (SBE::isMpiplReset())
+    {
+        SBE_INFO(SBE_FUNC"Mpipl reset, going back to the state before reset");
+        SBE::setMpiplResetDoneBit();
+    }
     if (SBE_GLOBAL->isHreset)
     {
         SBE_INFO(SBE_FUNC"Hreset, going back to the state before reset");

@@ -51,7 +51,6 @@ union IndirectScom_t
     };
 
 };
-
 // Wait time slice to check indirect scom status register
 static const uint32_t SBE_INDIRECT_SCOM_WAIT_TIME_NS = 10000;
 // Indirect scom timeout
