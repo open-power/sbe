@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -59,7 +59,12 @@ static const uint32_t MAX_INDSCOM_TIMEOUT_NS = 100000; //0.1 ns
 
 static const uint64_t DIRECT_SCOM_ADDR_MASK = 0x8000000000000000;
 static const uint64_t INDIRECT_SCOM_NEW_ADDR_MASK = 0x9000000000000000;
-static const uint64_t SCOM_SBE_ADDR_MASK = 0x80000000;
+// Allowed Address first 3 bits
+// 0x000 - Allowed
+// 0x10X  - Not Allowed
+// 0x110 - Allowed
+// 0x111 - Allowed
+static const uint64_t SCOM_SBE_ADDR_MASK = 0xE0000000; // 0x01, 0x11, 0x00 is allowed
 static const uint64_t SCOM_MASTER_ID_MASK = 0x00F00000;
 
 // Scom types
@@ -95,7 +100,8 @@ void checkIndirectAndDoScom( const bool i_isRead,
         // Override bit check for invalid Scom Addr check
         if(!SbeRegAccess::theSbeRegAccess().isSbeRegressionBit())
         {
-            if(( i_addr & SCOM_SBE_ADDR_MASK) || ( i_addr & SCOM_MASTER_ID_MASK ))
+            if( (( i_addr & SCOM_SBE_ADDR_MASK) == 0x80000000) ||
+                ( i_addr & SCOM_MASTER_ID_MASK ))
             {
                 SBE_ERROR(SBE_FUNC "Invalid scom");
                 o_hdr->setStatus(SBE_PRI_USER_ERROR,
