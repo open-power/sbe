@@ -56,13 +56,13 @@ _start:
 
 oos_start:
 ################################################################################
-#   UPDATE bits 29:30:31 of sbe message register : 0x50009 with 0b01
+#   UPDATE bits 28:29:30:31 of sbe message register : 0x50009 with 0b01
 #   to indicate OTPROM Control
 ################################################################################
     lis    r5 , 0x5                 # load r5 with 0x00050000
     lis    r4, 0xC000
     lvd    d2 , 0x9(r5)             # loads data from 0x50009 to d2
-    rlwinm r2, r2, 0x0, 0x0, 0x1c   # Clear off the bits 29:30:31
+    rlwinm r2, r2, 0x0, 0x0, 0x1b   # Clear off the bits 28:29:30:31
     ori    r2 , r2 , 0x1            # set bit 31 to 1
     stvd   d2 , 0x9(r5)             # store data back into 0x50009
 

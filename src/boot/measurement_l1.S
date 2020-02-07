@@ -53,7 +53,9 @@ __system_reset:
 __l1Loader:
         # Update 50009 ( sbe status register) to show sbe in seeprom loader
         _liw     %r5, 0x50009
-        _liw     %r0, SBE_CODE_MEASUREMENT_SEEPROM_START_MSG
+        lvd      d0, 0(r5)
+        rlwinm   r0, r0, 0x0, 0x0, 0x1b   # Clear off the bits 28:29:30:31
+        ori      r0, r0, SBE_CODE_MEASUREMENT_SEEPROM_START_MSG
         li       r1, 0x00
         stvd     d0, 0(r5)
 

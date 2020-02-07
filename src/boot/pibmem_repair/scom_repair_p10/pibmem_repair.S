@@ -53,7 +53,13 @@ _pibmemRepair:
         stvd    d4, 0x0(r3)
 
         ##################### BREAK PIB INIT SEQUENCE  #########################
-
+        # Update 50009 ( sbe status register) to show sbe in pibmem repr section
+        _liw     %r5, 0x50009
+        lvd      d0, 0(r5)
+        rlwinm   r0, r0, 0x0, 0x0, 0x1b   # Clear off the bits 28:29:30:31
+        ori      r0, r0, SBE_CODE_MEASUREMENT_SEEPROM_PIBMEM_REPAIR_MSG
+        li       r1, 0x00
+        stvd     d0, 0(r5)
 
         ########################################################################
         ########## Call PibRepair Sequence here before chiplet enable ##########
@@ -101,7 +107,13 @@ skip_parse_row:
 
         #################### END OF PIB REPAIR SEQUENCE ########################
         ########################################################################
-
+        # Update 50009 ( sbe status register) to show sbe in pibinit sequence
+        _liw     %r5, 0x50009
+        lvd      d0, 0(r5)
+        rlwinm   r0, r0, 0x0, 0x0, 0x1b   # Clear off the bits 28:29:30:31
+        ori      r0, r0, SBE_CODE_MEASUREMENT_SEEPROM_PIB_INIT_MSG
+        li       r1, 0x00
+        stvd     d0, 0(r5)
 
         ################### CONTINUE PIB INIT SEQUENCE  ########################
         #Set Chiplet Enable

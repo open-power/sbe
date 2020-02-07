@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -43,7 +43,7 @@ bootSyms = {};
 measureSyms = {};
 
 def get_dd_level(procNr = 0, nodeNr = 0):
-    return "DD1" 
+    return "DD1"
 
 
 def register_sbe_debug_framework_tools():
@@ -120,12 +120,12 @@ def collectStackUsage ( procNr, nodeNr=0 ):
   # Read opcode in SB_MSG Register [ 0x50009 ]
   cmd = simicsObj[procNr] + ".pib_cmp.pib.read 0x500090 8"
   ( rValue, out )  =   quiet_run_command( cmd, output_modes.regular )
-  opMode = (rValue >> 32) & 0x7
+  opMode = (rValue >> 32) & 0xf
   # Dump stack memory to binary files
-  if ( opMode == 0x02 ):
+  if ( opMode == 0x05 ):
     syms = measureSyms
     threads = ('measurment_Kernel_NC_Int_stack')
-  elif ( opMode == 0x06 ):
+  elif ( opMode == 0x0A ):
     syms = bootSyms
     threads = ('sbeSyncCommandProcessor_stack',
                'sbeCommandReceiver_stack',
@@ -192,17 +192,17 @@ def collectTrace ( procNr, nodeNr=0 ):
   # 3bits of 0x50009 (29,30,31 bits)
   # SBE_CODE_OTPROM_START_MSG 0x01 - code reached to OTPROM
   # SBE_CODE_MEASUREMENT_SEEPROM_START_MSG 0x02 -  code reached to MEASUREMENT SEEPROM loader
-  # SBE_CODE_MEASURMENT_PIBMEM_START_MSG 0x03 - code reached to MEASUREMENT PIBMEM
-  # SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG 0x04 - code reached to BOOT SEEPROM loader L1
-  # SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x05 - code reached to BOOT PIBMEM Loader L2
-  # SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x06 - code reached to BOOT PIBMEM Main Flow
-  
-  opMode = (rValue >> 32) & 0x7
-  if ( opMode == 0x03 ):
+  # SBE_CODE_MEASURMENT_PIBMEM_START_MSG 0x05 - code reached to MEASUREMENT PIBMEM
+  # SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG 0x08 - code reached to BOOT SEEPROM loader L1
+  # SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x09 - code reached to BOOT PIBMEM Loader L2
+  # SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x0A - code reached to BOOT PIBMEM Main Flow
+
+  opMode = (rValue >> 32) & 0xf
+  if ( opMode == 0x05 ):
     fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
-  elif ( opMode == 0x06 ):
+  elif ( opMode == 0x0A ):
     fileName = "sbe_boot_seeprom" + `procNr` + "_tracMERG"
     syms = bootSyms
     stringFile = "sbeStringFile_"+get_dd_level(procNr, nodeNr)
