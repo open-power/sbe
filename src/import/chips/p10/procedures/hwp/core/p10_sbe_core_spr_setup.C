@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -208,8 +208,8 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_program_sprs(
 
         // Enable SCOM access to the RMOR registers
         l_qmcr.flush<0>().setBit<QME_QMCR_STOP_SHIFTREG_OVERRIDE_EN>();
-        FAPI_TRY(fapi2::putScom(l_eq, QME_QMCR_WO_OR, l_qmcr),
-                 "Error during putscom of QME_QMCR_WO_OR for shiftable regs access");
+        FAPI_TRY(fapi2::putScom(l_eq, QME_QMCR_SCOM2, l_qmcr),
+                 "Error during putscom of QME_QMCR_SCOM2 for shiftable regs access");
 
         // set URMOR to the HRMOR value if SMF is enabled
         if(l_msr.getBit <MSR_S_BITPOS>()) // SMF is on

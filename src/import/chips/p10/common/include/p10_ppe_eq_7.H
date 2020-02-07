@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -86,8 +86,8 @@ static const uint32_t QME_QHTTRIG_PAUSE = 2;
 // No targets could be determined from the address.
 
 static const uint32_t QME_QMCR = 0xc0000880ull;
+static const uint32_t QME_QMCR_PPE2 = 0xc00008a0ull;
 static const uint32_t QME_QMCR_WO_CLEAR = 0xc00008b0ull;
-static const uint32_t QME_QMCR_WO_OR = 0xc00008a0ull;
 
 static const uint32_t QME_QMCR_PMCR_OVERRIDE_EN = 0;
 static const uint32_t QME_QMCR_PSCR_OVERRIDE_EN = 1;
@@ -103,6 +103,8 @@ static const uint32_t QME_QMCR_FUSED_CORE_PAIR_MODE = 10;
 static const uint32_t QME_QMCR_CYCLE_REPRO_MODE = 11;
 static const uint32_t QME_QMCR_QUEUED_WR_EN = 12;
 static const uint32_t QME_QMCR_QUEUED_RD_EN = 13;
+static const uint32_t QME_QMCR_RESET_IMPRECISE_QERR = 14;
+static const uint32_t QME_QMCR_RESET_PB_RAMP = 15;
 static const uint32_t QME_QMCR_LOPRI_STOP_WKUP_SEL = 16;
 static const uint32_t QME_QMCR_LOPRI_STOP_WKUP_SEL_LEN = 4;
 static const uint32_t QME_QMCR_LOPRI_STOP_ENTRY_SEL = 20;
@@ -111,7 +113,7 @@ static const uint32_t QME_QMCR_WRITE_PROTECT_ENABLE = 24;
 static const uint32_t QME_QMCR_TTSR_READ_ENABLE = 25;
 static const uint32_t QME_QMCR_PTSR_READ_ENABLE = 26;
 static const uint32_t QME_QMCR_RESET_QME_PCB_MASTER_INTERFACE = 27;
-static const uint32_t QME_QMCR_SPARE = 28;
+static const uint32_t QME_QMCR_OCP_REQUEST_ENABLE = 28;
 static const uint32_t QME_QMCR_STOP_SHIFTREG_OVERRIDE_EN = 29;
 static const uint32_t QME_QMCR_CPMS_PG_CLKOFF_DISABLE = 30;
 static const uint32_t QME_QMCR_CTFS_PG_CLKOFF_DISABLE = 31;
@@ -124,27 +126,6 @@ static const uint32_t QME_QMCR_SPARE2_LEN = 4;
 static const uint32_t QME_QMCR_FUSED_CORE_MODE = 47;
 static const uint32_t QME_QMCR_CORE_PARTIAL_GOOD = 60;
 static const uint32_t QME_QMCR_CORE_PARTIAL_GOOD_LEN = 4;
-// ppe_eq/reg00007.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_RS4DBGC = 0xc0001540ull;
-
-static const uint32_t QME_RS4DBGC_SCAN_DATA_OUT = 0;
-static const uint32_t QME_RS4DBGC_SCAN_DATA_OUT_LEN = 56;
-static const uint32_t QME_RS4DBGC_LAST_CMD_TYPE = 63;
-// ppe_eq/reg00007.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XIDBGINF = 0xc00023c0ull;
-
-static const uint32_t QME_SCOM_XIDBGINF_SRR0_TOP = 0;
-static const uint32_t QME_SCOM_XIDBGINF_SRR0_TOP_LEN = 30;
-static const uint32_t QME_SCOM_XIDBGINF_LR = 32;
-static const uint32_t QME_SCOM_XIDBGINF_LR_LEN = 32;
 // ppe_eq/reg00007.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

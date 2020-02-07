@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -95,8 +95,8 @@ static const uint32_t CPMS_CL2_PFETCNTL_SRAM_ENABLE = 63;
 // ppe_c/reg00003.H
 
 static const uint32_t CPMS_FDCR = 0xc000e400ull;
-static const uint32_t CPMS_FDCR_PPE1 = 0xc000e430ull;
 static const uint32_t CPMS_FDCR_PPE2 = 0xc000e420ull;
+static const uint32_t CPMS_FDCR_WO_CLEAR = 0xc000e430ull;
 
 static const uint32_t CPMS_FDCR_DISABLE = 0;
 static const uint32_t CPMS_FDCR_FORCE_SAMPLE = 1;
@@ -133,6 +133,12 @@ static const uint32_t CPMS_FDCR_SLOPEA_CYCLES = 56;
 static const uint32_t CPMS_FDCR_SLOPEA_CYCLES_LEN = 4;
 static const uint32_t CPMS_FDCR_SLOPEB_CYCLES = 60;
 static const uint32_t CPMS_FDCR_SLOPEB_CYCLES_LEN = 4;
+// ppe_c/reg00003.H
+
+static const uint32_t CPMS_PRSR = 0xc000eac0ull;
+
+static const uint32_t CPMS_PRSR_CPMS_PPSR_PERIOD_PROXY_REMAIN = 0;
+static const uint32_t CPMS_PRSR_CPMS_PPSR_PERIOD_PROXY_REMAIN_LEN = 20;
 // ppe_c/reg00003.H
 
 static const uint32_t QME_CDBA = 0xc0008000ull;

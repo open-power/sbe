@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -72,59 +72,6 @@ static const uint32_t QME_RCPTR_TARGET_PSTATE_LEN = 8;
 static const uint32_t QME_RCPTR_PSTATE_CHANGE_PENDING = 8;
 static const uint32_t QME_RCPTR_TARGET_INDEX = 59;
 static const uint32_t QME_RCPTR_TARGET_INDEX_LEN = 5;
-// ppe_eq/reg00011.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XIMEM = 0xc00021c0ull;
-
-static const uint32_t QME_SCOM_XIMEM_ADDR = 0;
-static const uint32_t QME_SCOM_XIMEM_ADDR_LEN = 32;
-static const uint32_t QME_SCOM_XIMEM_R_NW = 32;
-static const uint32_t QME_SCOM_XIMEM_BUSY = 33;
-static const uint32_t QME_SCOM_XIMEM_IMPRECISE_ERROR_PENDING = 34;
-static const uint32_t QME_SCOM_XIMEM_BYTE_ENABLE = 35;
-static const uint32_t QME_SCOM_XIMEM_BYTE_ENABLE_LEN = 8;
-static const uint32_t QME_SCOM_XIMEM_LINE_MODE = 43;
-static const uint32_t QME_SCOM_XIMEM_ERROR = 49;
-static const uint32_t QME_SCOM_XIMEM_ERROR_LEN = 3;
-static const uint32_t QME_SCOM_XIMEM_IFETCH_PENDING = 62;
-static const uint32_t QME_SCOM_XIMEM_DATAOP_PENDING = 63;
-// ppe_eq/reg00011.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XIVDR30 = 0xc00029c0ull;
-
-static const uint32_t QME_SCOM_XIVDR30_0 = 0;
-static const uint32_t QME_SCOM_XIVDR30_0_LEN = 32;
-static const uint32_t QME_SCOM_XIVDR30_1 = 32;
-static const uint32_t QME_SCOM_XIVDR30_1_LEN = 32;
-// ppe_eq/reg00011.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_TTSR = 0xc0001380ull;
-
-static const uint32_t QME_TTSR_0_DATA = 0;
-static const uint32_t QME_TTSR_0_DATA_LEN = 8;
-static const uint32_t QME_TTSR_1_DATA = 8;
-static const uint32_t QME_TTSR_1_DATA_LEN = 8;
-static const uint32_t QME_TTSR_2_DATA = 16;
-static const uint32_t QME_TTSR_2_DATA_LEN = 8;
-static const uint32_t QME_TTSR_3_DATA = 24;
-static const uint32_t QME_TTSR_3_DATA_LEN = 8;
-static const uint32_t QME_TTSR_4_DATA = 32;
-static const uint32_t QME_TTSR_4_DATA_LEN = 8;
-static const uint32_t QME_TTSR_5_DATA = 40;
-static const uint32_t QME_TTSR_5_DATA_LEN = 8;
-static const uint32_t QME_TTSR_6_DATA = 48;
-static const uint32_t QME_TTSR_6_DATA_LEN = 8;
-static const uint32_t QME_TTSR_7_DATA = 56;
-static const uint32_t QME_TTSR_7_DATA_LEN = 8;
 // ppe_eq/reg00011.H
 
 #ifndef __PPE_HCODE__

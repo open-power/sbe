@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -143,7 +143,9 @@ static const uint32_t QME_QOSR_2_QOS_INDEX_LEN = 6;
 static const uint32_t QME_QOSR_3_QOS_INDEX = 26;
 static const uint32_t QME_QOSR_3_QOS_INDEX_LEN = 6;
 static const uint32_t QME_QOSR_0_DTC_INDEX = 34;
-static const uint32_t QME_QOSR_0_DTC_INDEX_LEN = 4;
+static const uint32_t QME_QOSR_0_DTC_INDEX_LEN = 6;
+static const uint32_t QME_QOSR_1_DTC_INDEX = 42;
+static const uint32_t QME_QOSR_1_DTC_INDEX_LEN = 6;
 static const uint32_t QME_QOSR_2_DTC_INDEX = 50;
 static const uint32_t QME_QOSR_2_DTC_INDEX_LEN = 6;
 static const uint32_t QME_QOSR_3_DTC_INDEX = 58;

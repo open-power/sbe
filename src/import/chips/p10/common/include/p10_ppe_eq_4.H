@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -72,7 +72,7 @@ static const uint32_t QME_FTXR_QOS_UPDATE_PENDING_LEN = 4;
 static const uint32_t QME_LFIRACT0 = 0xc0000080ull;
 
 static const uint32_t QME_LFIRACT0_FIR_ACTION0 = 0;
-static const uint32_t QME_LFIRACT0_FIR_ACTION0_LEN = 34;
+static const uint32_t QME_LFIRACT0_FIR_ACTION0_LEN = 36;
 // ppe_eq/reg00004.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -150,24 +150,6 @@ static const uint32_t QME_RCSCR_2_TARGET_INDEX = 51;
 static const uint32_t QME_RCSCR_2_TARGET_INDEX_LEN = 5;
 static const uint32_t QME_RCSCR_3_TARGET_INDEX = 59;
 static const uint32_t QME_RCSCR_3_TARGET_INDEX_LEN = 5;
-// ppe_eq/reg00004.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_RS4BAR = 0xc0001600ull;
-
-static const uint32_t QME_RS4BAR_BASE = 0;
-static const uint32_t QME_RS4BAR_BASE_LEN = 32;
-// ppe_eq/reg00004.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_RS4DBGD = 0xc0001580ull;
-
-static const uint32_t QME_RS4DBGD_SCAN_DATA_IN = 0;
-static const uint32_t QME_RS4DBGD_SCAN_DATA_IN_LEN = 64;
 // ppe_eq/reg00004.H
 
 #ifndef __PPE_HCODE__

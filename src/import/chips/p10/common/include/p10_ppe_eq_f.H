@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -43,8 +43,8 @@ namespace ppe_eq
 // No targets could be determined from the address.
 
 static const uint32_t QME_PBCR = 0xc0000440ull;
-static const uint32_t QME_PBCR_PPE1 = 0xc0000470ull;
 static const uint32_t QME_PBCR_PPE2 = 0xc0000460ull;
+static const uint32_t QME_PBCR_WO_CLEAR = 0xc0000470ull;
 
 static const uint32_t QME_PBCR_DISABLE_LN_RD = 0;
 static const uint32_t QME_PBCR_DISABLE_NN_RN_RD = 1;
@@ -77,17 +77,6 @@ static const uint32_t QME_QSAR = 0xc0000740ull;
 static const uint32_t QME_QSAR_SRAM_ADDRESS = 16;
 static const uint32_t QME_QSAR_SRAM_ADDRESS_LEN = 13;
 static const uint32_t QME_QSAR_AUTO_INCR_MODE = 63;
-// ppe_eq/reg00015.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XIVDR6 = 0xc00028c0ull;
-
-static const uint32_t QME_SCOM_XIVDR6_6 = 0;
-static const uint32_t QME_SCOM_XIVDR6_6_LEN = 32;
-static const uint32_t QME_SCOM_XIVDR6_7 = 32;
-static const uint32_t QME_SCOM_XIVDR6_7_LEN = 32;
 // ppe_eq/reg00015.H
 
 #ifndef __PPE_HCODE__

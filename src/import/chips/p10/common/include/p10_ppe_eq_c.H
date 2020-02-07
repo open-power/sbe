@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -99,29 +99,6 @@ static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1_LEN = 4;
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
-static const uint32_t QME_PTSR = 0xc00013c0ull;
-
-static const uint32_t QME_PTSR_0_DATA = 0;
-static const uint32_t QME_PTSR_0_DATA_LEN = 8;
-static const uint32_t QME_PTSR_1_DATA = 8;
-static const uint32_t QME_PTSR_1_DATA_LEN = 8;
-static const uint32_t QME_PTSR_2_DATA = 16;
-static const uint32_t QME_PTSR_2_DATA_LEN = 8;
-static const uint32_t QME_PTSR_3_DATA = 24;
-static const uint32_t QME_PTSR_3_DATA_LEN = 8;
-static const uint32_t QME_PTSR_4_DATA = 32;
-static const uint32_t QME_PTSR_4_DATA_LEN = 8;
-static const uint32_t QME_PTSR_5_DATA = 40;
-static const uint32_t QME_PTSR_5_DATA_LEN = 8;
-static const uint32_t QME_PTSR_6_DATA = 48;
-static const uint32_t QME_PTSR_6_DATA_LEN = 8;
-static const uint32_t QME_PTSR_7_DATA = 56;
-static const uint32_t QME_PTSR_7_DATA_LEN = 8;
-// ppe_eq/reg00012.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
 static const uint32_t QME_RCIMR = 0xc00018c0ull;
 
 static const uint32_t QME_RCIMR_P0 = 0;
@@ -149,91 +126,6 @@ static const uint32_t QME_RCTAR1 = 0xc0001940ull;
 
 static const uint32_t QME_RCTAR1_DATA = 0;
 static const uint32_t QME_RCTAR1_DATA_LEN = 64;
-// ppe_eq/reg00012.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_PBTXTR0 = 0xc0000400ull;
-
-static const uint32_t QME_SCOM_PBTXTR0_VALID = 0;
-static const uint32_t QME_SCOM_PBTXTR0_VALID_LEN = 8;
-static const uint32_t QME_SCOM_PBTXTR0_0 = 8;
-static const uint32_t QME_SCOM_PBTXTR0_0_LEN = 4;
-static const uint32_t QME_SCOM_PBTXTR0_1 = 12;
-static const uint32_t QME_SCOM_PBTXTR0_1_LEN = 4;
-static const uint32_t QME_SCOM_PBTXTR0_2 = 16;
-static const uint32_t QME_SCOM_PBTXTR0_2_LEN = 4;
-static const uint32_t QME_SCOM_PBTXTR0_3 = 20;
-static const uint32_t QME_SCOM_PBTXTR0_3_LEN = 4;
-static const uint32_t QME_SCOM_PBTXTR0_4 = 24;
-static const uint32_t QME_SCOM_PBTXTR0_4_LEN = 4;
-static const uint32_t QME_SCOM_PBTXTR0_5 = 28;
-static const uint32_t QME_SCOM_PBTXTR0_5_LEN = 4;
-static const uint32_t QME_SCOM_PBTXTR0_6 = 32;
-static const uint32_t QME_SCOM_PBTXTR0_6_LEN = 4;
-static const uint32_t QME_SCOM_PBTXTR0_7 = 36;
-static const uint32_t QME_SCOM_PBTXTR0_7_LEN = 4;
-// ppe_eq/reg00012.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XIRAMDBG = 0xc00020c0ull;
-
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_HS = 0;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_HC = 1;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_HC_LEN = 3;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_HCP = 4;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_RIP = 5;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_SIP = 6;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_TRAP = 7;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_IAC = 8;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_SIB = 9;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_SIB_LEN = 3;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_RDAC = 12;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_WDAC = 13;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_WS = 14;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_TRH = 15;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_SMS = 16;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_SMS_LEN = 4;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_LP = 20;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_EP = 21;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_PTR = 24;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_ST = 25;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_MFE = 28;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_MCS = 29;
-static const uint32_t QME_SCOM_XIRAMDBG_XSR_MCS_LEN = 3;
-static const uint32_t QME_SCOM_XIRAMDBG_SPRG0 = 32;
-static const uint32_t QME_SCOM_XIRAMDBG_SPRG0_LEN = 32;
-// ppe_eq/reg00012.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XIRAMGA = 0xc0002080ull;
-
-static const uint32_t QME_SCOM_XIRAMGA_QME_SCOM_XIRAMEDR_IR = 0;
-static const uint32_t QME_SCOM_XIRAMGA_QME_SCOM_XIRAMEDR_IR_LEN = 32;
-static const uint32_t QME_SCOM_XIRAMGA_SPRG0 = 32;
-static const uint32_t QME_SCOM_XIRAMGA_SPRG0_LEN = 32;
-// ppe_eq/reg00012.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XISIB = 0xc0002180ull;
-
-static const uint32_t QME_SCOM_XISIB_ADDR = 0;
-static const uint32_t QME_SCOM_XISIB_ADDR_LEN = 32;
-static const uint32_t QME_SCOM_XISIB_R_NW = 32;
-static const uint32_t QME_SCOM_XISIB_BUSY = 33;
-static const uint32_t QME_SCOM_XISIB_IMPRECISE_ERROR_PENDING = 34;
-static const uint32_t QME_SCOM_XISIB_RSP_INFO = 49;
-static const uint32_t QME_SCOM_XISIB_RSP_INFO_LEN = 3;
-static const uint32_t QME_SCOM_XISIB_RESET_PENDING = 61;
-static const uint32_t QME_SCOM_XISIB_IFETCH_PENDING = 62;
-static const uint32_t QME_SCOM_XISIB_DATAOP_PENDING = 63;
 // ppe_eq/reg00012.H
 
 #ifndef __PPE_HCODE__

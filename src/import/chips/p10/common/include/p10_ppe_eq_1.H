@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,7 +57,7 @@ static const uint32_t QME_LFIRMASK_WO_AND = 0xc0000050ull;
 static const uint32_t QME_LFIRMASK_WO_OR = 0xc0000060ull;
 
 static const uint32_t QME_LFIRMASK_FIR_MASK = 0;
-static const uint32_t QME_LFIRMASK_FIR_MASK_LEN = 34;
+static const uint32_t QME_LFIRMASK_FIR_MASK_LEN = 36;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq
@@ -101,38 +101,6 @@ static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2 = 56;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2_LEN = 4;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C3 = 60;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C3_LEN = 4;
-// ppe_eq/reg00001.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XIDBGPRO = 0xc0002140ull;
-
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_HS = 0;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_HC = 1;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_HC_LEN = 3;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_HCP = 4;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_RIP = 5;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_SIP = 6;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_TRAP = 7;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_IAC = 8;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_SIB = 9;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_SIB_LEN = 3;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_RDAC = 12;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_WDAC = 13;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_WS = 14;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_TRH = 15;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_SMS = 16;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_SMS_LEN = 4;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_LP = 20;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_EP = 21;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_PTR = 24;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_ST = 25;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_MFE = 28;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_MCS = 29;
-static const uint32_t QME_SCOM_XIDBGPRO_XSR_MCS_LEN = 3;
-static const uint32_t QME_SCOM_XIDBGPRO_IAR = 32;
-static const uint32_t QME_SCOM_XIDBGPRO_IAR_LEN = 30;
 // ppe_eq/reg00001.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -120,33 +120,7 @@ static const uint32_t QME_EISR_CPMS_INTERRUPT1_LEN = 4;
 static const uint32_t QME_LFIRACT1 = 0xc00000c0ull;
 
 static const uint32_t QME_LFIRACT1_FIR_ACTION1 = 0;
-static const uint32_t QME_LFIRACT1_FIR_ACTION1_LEN = 34;
-// ppe_eq/reg00002.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XIICAC = 0xc0002240ull;
-
-static const uint32_t QME_SCOM_XIICAC_ICACHE_TAG_ADDR = 0;
-static const uint32_t QME_SCOM_XIICAC_ICACHE_TAG_ADDR_LEN = 27;
-static const uint32_t QME_SCOM_XIICAC_ICACHE_ERR = 32;
-static const uint32_t QME_SCOM_XIICAC_QME_SCOM_XISIB_PIB_IFETCH_PENDING = 34;
-static const uint32_t QME_SCOM_XIICAC_QME_SCOM_XIMEM_MEM_IFETCH_PENDING = 35;
-static const uint32_t QME_SCOM_XIICAC_ICACHE_VALID = 36;
-static const uint32_t QME_SCOM_XIICAC_ICACHE_VALID_LEN = 4;
-// ppe_eq/reg00002.H
-
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_SCOM_XISGB = 0xc0002200ull;
-
-static const uint32_t QME_SCOM_XISGB_TORE_ADDRESS = 0;
-static const uint32_t QME_SCOM_XISGB_TORE_ADDRESS_LEN = 32;
-static const uint32_t QME_SCOM_XISGB_GB_BYTE_VALID = 36;
-static const uint32_t QME_SCOM_XISGB_GB_BYTE_VALID_LEN = 4;
-static const uint32_t QME_SCOM_XISGB_GB_FLUSH_PENDING = 63;
+static const uint32_t QME_LFIRACT1_FIR_ACTION1_LEN = 36;
 // ppe_eq/reg00002.H
 
 //ERRCODE: // Some of the name targets not found in address targets: eq

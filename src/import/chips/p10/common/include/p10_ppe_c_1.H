@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,23 +38,6 @@ namespace ppe_c
 {
 #endif
 
-
-static const uint32_t CPMS_PDSR = 0xc000e680ull;
-
-static const uint32_t CPMS_PDSR_DDS_DATA = 0;
-static const uint32_t CPMS_PDSR_DDS_DATA_LEN = 5;
-static const uint32_t CPMS_PDSR_DDS_MIN = 5;
-static const uint32_t CPMS_PDSR_DDS_MIN_LEN = 5;
-static const uint32_t CPMS_PDSR_DDS_MAX = 10;
-static const uint32_t CPMS_PDSR_DDS_MAX_LEN = 5;
-static const uint32_t CPMS_PDSR_SAMPLE_DISABLE_OCCURRED = 15;
-static const uint32_t CPMS_PDSR_CPMS1_DATA = 16;
-static const uint32_t CPMS_PDSR_CPMS1_DATA_LEN = 16;
-static const uint32_t CPMS_PDSR_CPMS2_DATA = 32;
-static const uint32_t CPMS_PDSR_CPMS2_DATA_LEN = 16;
-static const uint32_t CPMS_PDSR_CPMS3_DATA = 48;
-static const uint32_t CPMS_PDSR_CPMS3_DATA_LEN = 16;
-// ppe_c/reg00001.H
 
 static const uint32_t QME_DCSR = 0xc0008700ull;
 

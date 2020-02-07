@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -165,13 +165,13 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
         }
 
         FAPI_DBG("Drop RCS reset");
-        l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_RESET_DC>(); // rc5 bit0 = 0
+        l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_TPFSI_RCS_RESET_DC>(); // rc5 bit0 = 0
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
         fapi2::delay(RCS_RESET_NS_DELAY, RCS_RESET_SIM_CYCLE_DELAY);
 
         FAPI_DBG("RCS out of bypass");
-        l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_BYPASS_DC>();
+        l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_TPFSI_RCS_BYPASS_DC>();
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
         fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
@@ -234,7 +234,7 @@ static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
 
     FAPI_INF("p10_sbe_rcs_setup_test_latches: Entering ...");
 
-    l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_CLK_TEST_IN_DC>();
+    l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_TPFSI_RCS_CLK_TEST_IN_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip,
                             set_rcs_clock_test_in ? FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR :
                             FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR,

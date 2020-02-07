@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -54,8 +54,8 @@ static const uint32_t CPMS_ASSR_CPMS_L3_PFETSTAT_VCS_PFETS_ENABLED_SENSE = 12;
 static const uint32_t CPMS_ASSR_CPMS_L3_PFETSTAT_VCS_PFETS_DISABLED_SENSE = 13;
 static const uint32_t CPMS_ASSR_CPMS_CL2_PFETSTAT_VCS_PFETS_ENABLED_SENSE = 14;
 static const uint32_t CPMS_ASSR_CPMS_CL2_PFETSTAT_VCS_PFETS_DISABLED_SENSE = 15;
-static const uint32_t CPMS_ASSR_CPMS_CGCSR_L3_CLKGLM_SEL = 16;
-static const uint32_t CPMS_ASSR_CPMS_CGCSR_CL2_CLKGLM_SEL = 17;
+static const uint32_t CPMS_ASSR_L3_CLKGLM_SEL = 16;
+static const uint32_t CPMS_ASSR_L2_CLKGLM_SEL = 17;
 static const uint32_t CPMS_ASSR_CPMS_CGCSR_L3_CLK_SYNC_DONE = 18;
 static const uint32_t CPMS_ASSR_CPMS_CGCSR_CL2_CLK_SYNC_DONE = 19;
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_AVG = 27;

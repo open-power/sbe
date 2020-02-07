@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -106,7 +106,9 @@ static const uint32_t QME_LFIR_PB_INVALID_TOPOTABLE_ENTRY = 28;
 static const uint32_t QME_LFIR_PB_TAG_PERR = 29;
 static const uint32_t QME_LFIR_PIG_PROTOCOL_ERR = 30;
 static const uint32_t QME_LFIR_LOCAL_ACCESS_ERR = 31;
-static const uint32_t QME_LFIR_SPARE1 = 32;
+static const uint32_t QME_LFIR_PB_SSA_CE = 32;
+static const uint32_t QME_LFIR_PB_SSA_UE = 33;
+static const uint32_t QME_LFIR_SPARE1 = 34;
 static const uint32_t QME_LFIR_SPARE1_LEN = 2;
 // ppe_eq/reg00014.H
 
@@ -114,11 +116,13 @@ static const uint32_t QME_LFIR_SPARE1_LEN = 2;
 
 static const uint32_t QME_PCBSII = 0xc0000380ull;
 
-static const uint32_t QME_PCBSII_EQ_ACK = 0;
-static const uint32_t QME_PCBSII_SP_P = 1;
-static const uint32_t QME_PCBSII_SP_VLD = 4;
-static const uint32_t QME_PCBSII_SP_INFO = 5;
-static const uint32_t QME_PCBSII_SP_INFO_LEN = 3;
+static const uint32_t QME_PCBSII_PCB_REQ_ACK = 0;
+static const uint32_t QME_PCBSII_PCB_RSP_P = 1;
+static const uint32_t QME_PCBSII_PCB_RSP_VLD = 4;
+static const uint32_t QME_PCBSII_PCB_RSP_INFO = 5;
+static const uint32_t QME_PCBSII_PCB_RSP_INFO_LEN = 3;
+static const uint32_t QME_PCBSII_QUAD_ID = 33;
+static const uint32_t QME_PCBSII_QUAD_ID_LEN = 3;
 // ppe_eq/reg00014.H
 
 #ifndef __PPE_HCODE__
