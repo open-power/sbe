@@ -52,19 +52,18 @@ namespace SBE
 
     void updatePkFreq()
     {
-#if 0
         #define SBE_FUNC "updatePkFreq "
         using namespace fapi2;
         Target<TARGET_TYPE_SYSTEM> sys;
-        uint8_t nestPllBkt = 0;
-        FAPI_ATTR_GET( ATTR_NEST_PLL_BUCKET, sys, nestPllBkt );
-        assert( nestPllBkt && (nestPllBkt <= NEST_PLL_FREQ_BUCKETS ));
-        SBE_GLOBAL->sbefreq = ( NEST_PLL_FREQ_LIST[ nestPllBkt - 1 ] * 1000 * 1000 )/
-                                              SBE::SBE_TO_NEST_FREQ_FACTOR;
+        uint32_t pauFreqMhz = 0;
+        FAPI_ATTR_GET( ATTR_FREQ_PAU_MHZ, sys, pauFreqMhz );
+        SBE_INFO("Attr PAU Frequency in MHz [0x%08X]", pauFreqMhz);
+        assert( nestPllBkt );
+        SBE_GLOBAL->sbefreq = 
+            ( pauFreqMhz * 1000 * 1000 ) / SBE::SBE_TO_NEST_FREQ_FACTOR;
         SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
         pk_timebase_freq_set(SBE_GLOBAL->sbefreq);
         #undef SBE_FUNC
-#endif
     }
 
     bool isHreset(void)
