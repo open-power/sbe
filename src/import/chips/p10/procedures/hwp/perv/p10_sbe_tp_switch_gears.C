@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -66,7 +66,15 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_freq_pau_mhz));
         sck_clock_divider = ((l_attr_freq_pau_mhz / 40) - 1 );
         FAPI_DBG("sck clock divider calculation : %#018lX", sck_clock_divider);
-
+#ifdef __PPE__
+        // Need to store the Clock Divider in LFR 0xc0002040 Reg (bit0-11),
+        // so that it can be retrieved and used in case of HReset and Mpipl flow
+        // (In HReset & Mpipl, we won't execute this procedure and will be
+        // resetting the SPIms)
+        FAPI_TRY(fapi2::getScom(i_target_chip, 0x000C0002040, l_data64));
+        l_data64.insert< 0, 12, 4 >(sck_clock_divider);
+        FAPI_TRY(fapi2::putScom(i_target_chip, 0x000C0002040, l_data64));
+#endif
         FAPI_TRY(fapi2::getScom(i_target_chip, 0x000C0003, l_data64));
         l_data64.insert< 0, 12, 4 >(sck_clock_divider);
         l_data64.insertFromRight< 12, 4 >(0x4);
