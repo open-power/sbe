@@ -97,8 +97,8 @@ skip_bit12_pull_down:
 ################################################################################
     # R5 --> 0x50000
     # Check valid bit rate divisor is there in scratch_8 (5003F)
-    #     - If yes load that value from 50039 to SPI config register
-    #       The clock divider value is in the MSB 4 bytes
+    #     - If yes load that value from 5003B to LFR/SPIm Clock Divider
+    #       The clock divider value is in the MSB 12 bits of 5003B
     #     - If no then let the default value stay
     # SCK_clock_divider is 12 bit. Mask the value read and write to all the
     # SPI engines
@@ -109,7 +109,7 @@ skip_bit12_pull_down:
 
 oos_load_spi_clk_cnfg:
     lvd    d2, 0x3F(r5)                    # loads scratch_8 .
-    bb0wi  r2, 1, spi_clk_cnfg_not_valid   # checks If valid bit (bit1) is Set
+    bb0wi  r2, 3, spi_clk_cnfg_not_valid   # checks If valid Bit3 is Set
     lvd    d2, 0x3B(r5)                    # Valid. Load the clock divider
     rlwinm r6, r2, 0x0, 0x0, 0xB           # Pick the MSB 12 bits.
     b save_spi_cnfg
