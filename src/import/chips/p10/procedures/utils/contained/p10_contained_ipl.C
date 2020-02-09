@@ -161,9 +161,11 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn)
 {
     fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC_Type dyninits;
     fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type sthreads;
+    fapi2::ATTR_RUNN_USE_QME_TIMEBASE_Type use_qme_tb;
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC, SYS, dyninits));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_SRESET_THREADS_BVEC, SYS, sthreads));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_USE_QME_TIMEBASE, SYS, use_qme_tb));
     dyninits &= ~fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_HOSTBOOT;
 
     if (i_runn)
@@ -186,6 +188,11 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn)
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T3 & sthreads)
         {
             dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T3;
+        }
+
+        if (use_qme_tb == fapi2::ENUM_ATTR_RUNN_USE_QME_TIMEBASE_ON)
+        {
+            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_USE_QME_TB_SRC;
         }
     }
 
