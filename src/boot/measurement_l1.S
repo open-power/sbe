@@ -66,8 +66,15 @@ __l1Loader:
         #lvd      d3,0(r3)
         #bb1wi    r3,13,jump_to_kernel
 
+        ## Check if it is called in MPIPL path, if yes then skip calling pibmem
+        ## the below function which handles OPGC Align, Pibmem Repair, Pib Init
+        lis     r6, 0xc000
+        ori     r6, r6, 0x2040
+        lvd     d0, 0x0(r6)
+        bb1wi   r0, 14, skip_pibmem_repair_in_mpipl
         bl _pibmemRepair
 
+skip_pibmem_repair_in_mpipl:
         # For Measurement SEEPROM, there is no L2 loader. The L1 loader will
         # directly load the base, which contains the application.
 
@@ -88,8 +95,16 @@ copy_loop:
         addi   r4, r4, 8
         bdnz   copy_loop
 
+        ## Check if it is called in MPIPL path, if yes then skip calling pibmem
+        ## memory initialise
+        lis     r6, 0xc000
+        ori     r6, r6, 0x2040
+        lvd     d0, 0x0(r6)
+        bb1wi   r0, 14, skip_pibmem_init_memory_in_mpipl
         # initilaise empty section of the pibmem
         bl __initPibmemL1Area
+
+skip_pibmem_init_memory_in_mpipl:
         ############################################################
         # SBE entry function is 4 byte number in image header
         ############################################################
