@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -111,8 +111,8 @@ const uint32_t OPCODE_MTOCRF_FROM_GPR0             = 0x7C100120;
 const uint32_t OPCODE_MTFSF_FROM_FPR0              = 0xFE00058E;
 const uint32_t OPCODE_MFVSCR_TO_VR0                = 0x10000604;
 const uint32_t OPCODE_MTVSCR_FROM_VR0              = 0x10000644;
-const uint32_t OPCODE_MFNIA_RT                     = 0x001AC804;
-const uint32_t OPCODE_MTNIA_LR                     = 0x4C0000A4;
+const uint32_t OPCODE_MFNIA_RT                     = 0x00000004;
+const uint32_t OPCODE_MTNIA_LR                     = 0x00000002;
 const uint32_t OPCODE_GPR_MOVE                     = 0x00000010;
 const uint32_t OPCODE_VSR_MOVE_HI                  = 0x00000110;
 const uint32_t OPCODE_VSR_MOVE_LO                  = 0x00000210;
@@ -587,8 +587,7 @@ uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
     const uint32_t l_opcode_pattern_L  = i_opcode & OPCODE_MASK_L;
     const uint32_t l_opcode_pattern_spr = i_opcode & OPCODE_MASK_SPR;
 
-    if (i_opcode == OPCODE_MFNIA_RT ||
-        l_opcode_pattern_spr == OPCODE_MFSPR_XER ||
+    if (l_opcode_pattern_spr == OPCODE_MFSPR_XER ||
         l_opcode_pattern_spr == OPCODE_MTSPR_LPCR ||
         l_opcode_pattern_spr == OPCODE_MTSPR_MMCR1 ||
         l_opcode_pattern_spr == OPCODE_MTSPR_MMCR2 ||
@@ -623,7 +622,8 @@ uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
     {
         l_predecode = 0;
     }
-    else if (l_opcode_pattern   == OPCODE_MFSPR ||
+    else if (i_opcode           == OPCODE_MFNIA_RT ||
+             l_opcode_pattern   == OPCODE_MFSPR ||
              l_opcode_pattern   == OPCODE_MTSPR ||
              l_opcode_pattern_L == OPCODE_MTMSR_L1 ||
              l_opcode_pattern_L == OPCODE_MTMSRD_L1 ||
