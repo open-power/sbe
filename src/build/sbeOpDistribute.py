@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2018
 # [+] International Business Machines Corp.
 #
 #
@@ -25,10 +25,9 @@
 import os
 import sys
 import getopt
-import sbeOpToolsRegister
 
-CHIPID = 'p10'
-p10_EC = {'10':'DD1'}
+CHIPID = 'p9n'
+p9n_EC = {'21':'DD2', '22':'DD2', '23':'DD2'}
 
 def usage():
     print "usage:sbeOpDistribute.py [--sbe_binary_dir] <sbe binary path> [--img_dir] <images path>"
@@ -93,36 +92,12 @@ def main(argv):
     if (mode == "MAKE"):
         # Create binaries folder
         run_system_cmd('mkdir -p '+sbe_binary_dir)
-        for ecLevel, ddLevel in p10_EC.items():
-            # Copy sbe seeprom binary to binaries folder.
+        for ecLevel, ddLevel in p9n_EC.items():
+            # Copy sbe raw binary to binaries folder
             run_system_cmd('cp '+img_dir+'/'+'sbe_seeprom_'+ddLevel+'.bin'+' '+sbe_binary_dir+'/'+CHIPID+'_'+ecLevel+'.'+SEEPROM_IMAGE)
-
-            # Copy sbe measurement binary to binaries folder.
-            # No EC level in generated measurment seeprom image.
-            run_system_cmd('cp '+img_dir+'/'+'sbe_measurement_seeprom.bin'+' '+sbe_binary_dir+'/')
-
-            #Update HBBL and ECC to SBE BOOT SEEPROM and MEASUREMENT SEEPROM.
-            sbeSeepromImage = sbe_binary_dir + "/p10_10.sbe_seeprom.bin"
-            sbeSeepromImageEcc = sbeSeepromImage + ".ecc"
-            sbeMeasurementSeepromImage = sbe_binary_dir + "/sbe_measurement_seeprom.bin"
-            sbeMeasurementSeepromImageEcc = sbeMeasurementSeepromImage + ".ecc"
-            hbbl = sbe_binary_dir + "/../openpower_pnor_scratch/HBBL.staged"
-
-            #Delete HBBL from sbeSeepromImage
-            run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " delete .hbbl" )
-
-            #Append HBBL into sbeSeepromImage
-            run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " append .hbbl " + hbbl )
-
-            #Inject ECC into sbeSeepromImage
-            run_system_cmd( " /opt/mcp/shared/fr_FLD9-DEV-20190320/opt/fsp/usr/bin/ecc --p8 --inject " + sbeSeepromImage + " --output " + sbeSeepromImageEcc )
-
-            #Inject ECC into sbeMeasurementSeepromImage
-            run_system_cmd( " /opt/mcp/shared/fr_FLD9-DEV-20190320/opt/fsp/usr/bin/ecc --p8 --inject " + sbeMeasurementSeepromImage + " --output " + sbeMeasurementSeepromImageEcc )
-
     elif (mode == "INSTALL"):
         ec_build_sbe_cmd = ''
-        for ecLevel, ddLevel in p10_EC.items():
+        for ecLevel, ddLevel in p9n_EC.items():
             basename = CHIPID+'_'+ecLevel+'.sbe_seeprom'
             ec_build_sbe_cmd += ' --ecImg_'+ecLevel+' '+scratch_dir+'/'+basename+'.hdr.bin'
             # Copy sbe raw binary to scratch folder
@@ -138,10 +113,5 @@ def main(argv):
         # buildSbePart.pl
         run_system_cmd(buildSbePart+" --sbeOutBin "+scratch_dir+"/"+sbe_out_name+ec_build_sbe_cmd)
         run_system_cmd("ecc --inject "+scratch_dir+"/"+sbe_out_name+" --output "+scratch_dir+"/"+sbe_out_name+".ecc --p8")
-
-    #Create the sbe_sim_path directory.
-    sbe_sim_data = sbe_binary_dir + "/../sbe_sim_data"
-    sbeOpToolsRegister.exportFiles(sbe_sim_data, img_dir)
-
 if __name__ == "__main__":
     main(sys.argv)
