@@ -102,6 +102,7 @@
 #include <p10_hcd_core_scominit.H>
 #include <p10_hcd_core_scom_customize.H>
 #include <p10_hcd_core_ras_runtime_scom.H>
+#include <p10_hcd_core_gptr_time_initf.H>
 // Core HWP header file
 //#include <p9_hcd_core.H>
 
@@ -361,7 +362,7 @@ static istepMap_t g_istep4PtrTbl[] =
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_ras_runtime_scom),
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_poweron),
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_reset),
-             ISTEP_MAP( istepNoOp, NULL ), //p10_hcd_core_gptr_time_initf 
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_gptr_time_initf), //p10_hcd_core_gptr_time_initf 
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_repair_initf ),
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_arrayinit),
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_initf),

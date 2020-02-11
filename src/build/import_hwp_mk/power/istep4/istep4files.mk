@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -45,7 +45,7 @@ ISTEP4-CPP-SOURCES += p10_hcd_corecache_power_control.C
 ISTEP4-CPP-SOURCES += p10_hcd_corecache_clock_control.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_poweron.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_reset.C
-#ISTEP4-CPP-SOURCES += p10_hcd_core_gptr_time.inif.C
+ISTEP4-CPP-SOURCES += p10_hcd_core_gptr_time_initf.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_repair_initf.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_arrayinit.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_initf.C
