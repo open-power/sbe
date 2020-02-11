@@ -59,13 +59,6 @@ __l1Loader:
         li       r1, 0x00
         stvd     d0, 0(r5)
 
-        # If hreset of SBE, jump directly to kernel, as all the pibmem contents
-        # are already populated
-        ## TODO - Comeback on this later
-        #_liw     %r3, 0x50008
-        #lvd      d3,0(r3)
-        #bb1wi    r3,13,jump_to_kernel
-
         ## Check if it is called in MPIPL path, if yes then skip calling pibmem
         ## the below function which handles OPGC Align, Pibmem Repair, Pib Init
         lis     r6, 0xc000
@@ -101,8 +94,8 @@ copy_loop:
         ori     r6, r6, 0x2040
         lvd     d0, 0x0(r6)
         bb1wi   r0, 14, skip_pibmem_init_memory_in_mpipl
-        # initilaise empty section of the pibmem
-        bl __initPibmemL1Area
+        # initialise empty section of the pibmem
+        bl __zeroInitPibmemArea
 
 skip_pibmem_init_memory_in_mpipl:
         ############################################################
@@ -130,8 +123,16 @@ jump_to_kernel:
         .epilogue __l1Loader
 
 # initialise the PIBMEM section after base with 0s.
-
-__initPibmemL1Area:
+# Though this is inefficient, this is quick fix to solve the HW write of data
+# which is not 8 byte alligned. All write which are not 8 byte alligned,
+# translates to read-modify-write. So if code does a write for 4 byte, first
+# HW will read 8 bytes. If there is no data written there earlier and random
+# data is present it can cause ecc errors.
+# This is only required for the first time write to pibmem, not in mpipl reset
+# as well as not in Hreset flows.
+# Measurment base will get written into pibmem from fff8_0000 till the len.
+# remaining len for zero fill is (fff8_0000 + len) till ffff_ffff
+__zeroInitPibmemArea:
         _liw   %r3, SBE_MEASUREMENT_BASE_SECTION # Loader Section Location
         _liw   %r4, SBE_BASE_ORIGIN  # dest
         lwz    r5, 4(r3)   #size of image in bytes
