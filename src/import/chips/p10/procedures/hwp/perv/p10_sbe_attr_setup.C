@@ -44,57 +44,6 @@ const uint32_t NUM_PAUC_PER_CHIP = 4; // Num of PAU pervasive chiplets per chip
 const uint32_t NUM_PAUS_PER_PAUC = 2; // Num of PAU logical units per PAU pervasive chiplet
 const uint32_t NUM_IOHS_PER_CHIP = 8; // Num of IOHS pervasive chiplets per chip
 
-const uint32_t PCI0_CHIPLET_ID  = 0x08;
-const uint32_t MC0_CHIPLET_ID   = 0x0C;
-const uint32_t PAU0_CHIPLET_ID  = 0x10;
-const uint32_t AXON0_CHIPLET_ID = 0x18;
-const uint32_t EQ0_CHIPLET_ID   = 0x20;
-
-
-
-///
-/// @brief Calculate functional unit target number from pervasive target type
-///
-/// @tparam T template parameter, functional target type
-/// @param[in]    i_target_chip  Processor chip target
-///
-/// @return uint8_t
-///
-template<fapi2::TargetType T>
-uint8_t
-p10_sbe_scratch_regs_get_unit_num(
-    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target_perv)
-{
-    uint8_t l_perv_unit_num = i_target_perv.getChipletNumber();
-    uint8_t l_functional_unit_num = 0;
-
-    switch (T)
-    {
-        case fapi2::TARGET_TYPE_EQ:
-            l_functional_unit_num = l_perv_unit_num - EQ0_CHIPLET_ID;
-            break;
-
-        case fapi2::TARGET_TYPE_PEC:
-            l_functional_unit_num = l_perv_unit_num - PCI0_CHIPLET_ID;
-            break;
-
-        case fapi2::TARGET_TYPE_MC:
-            l_functional_unit_num = l_perv_unit_num - MC0_CHIPLET_ID;
-            break;
-
-        case fapi2::TARGET_TYPE_PAUC:
-            l_functional_unit_num = l_perv_unit_num - PAU0_CHIPLET_ID;
-            break;
-
-        case fapi2::TARGET_TYPE_IOHS:
-            l_functional_unit_num = l_perv_unit_num - AXON0_CHIPLET_ID;
-            break;
-    }
-
-    return l_functional_unit_num;
-}
-
-
 ///
 /// @brief Set platform ATTR_PG attribute for EQ chiplets, based on MPVD
 ///        driven partial good (ATTR_PG_MPVD) and mailbox gard records
@@ -121,7 +70,7 @@ p10_sbe_scratch_regs_write_eq_pg_from_scratch(
             fapi2::TARGET_STATE_PRESENT))
     {
         // extract bits associated with this quad (4 cores)
-        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_EQ>(l_perv);
+        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_EQ);
         uint32_t l_gard_mask = (l_core_gard >>
                                 (NUM_CORES_PER_EQ * ((NUM_EQS_PER_CHIP - 1) - l_unit_num))) & CORE_GARD_EQ_MASK;
         FAPI_DBG("EQ%d, core gard mask: 0x%X", l_unit_num, l_gard_mask);
@@ -190,7 +139,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
             (fapi2::TARGET_FILTER_ALL_PCI),
             fapi2::TARGET_STATE_PRESENT))
     {
-        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_PEC>(l_perv);
+        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_PEC);
         fapi2::ATTR_PG_Type l_pg;
         FAPI_DBG("PCI%d, gard mask: 0x%X",
                  l_unit_num,
@@ -213,7 +162,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
             (fapi2::TARGET_FILTER_ALL_MC),
             fapi2::TARGET_STATE_PRESENT))
     {
-        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_MC>(l_perv);
+        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_MC);
         fapi2::ATTR_PG_Type l_pg;
 
         FAPI_DBG("MC%d, gard mask: 0x%X",
@@ -242,7 +191,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
                 (fapi2::TARGET_FILTER_ALL_PAU),
                 fapi2::TARGET_STATE_PRESENT))
         {
-            uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_PAUC>(l_perv);
+            uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_PAUC);
             uint32_t l_gard_mask = 0x0;
             fapi2::ATTR_PG_Type l_pg;
 
@@ -327,12 +276,11 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
             (fapi2::TARGET_FILTER_ALL_IOHS),
             fapi2::TARGET_STATE_PRESENT))
     {
-        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_IOHS>(l_perv);
+        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_IOHS);
         fapi2::ATTR_PG_Type l_pg;
-        FAPI_DBG("IOHS%d, chiplet gard mask: 0x%X, NDL region gard mask: 0x%X",
+        FAPI_DBG("IOHS%d, chiplet gard mask: 0x%X",
                  l_unit_num,
-                 i_scratch2_reg.getBit(static_cast<uint32_t>(IOHS_GARD_STARTBIT) + l_unit_num),
-                 i_scratch7_reg.getBit(NDL_GARD_STARTBIT + l_unit_num));
+                 i_scratch2_reg.getBit(static_cast<uint32_t>(IOHS_GARD_STARTBIT) + l_unit_num));
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
         FAPI_DBG("  PG before: 0x%08X", l_pg);
@@ -340,10 +288,6 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
         if (i_scratch2_reg.getBit(static_cast<uint32_t>(IOHS_GARD_STARTBIT) + l_unit_num))
         {
             l_pg = 0xFFFFFFFF;
-        }
-        else
-        {
-            l_pg |= (i_scratch7_reg.getBit(NDL_GARD_STARTBIT + l_unit_num) << IOHS_PG_NDL_SHIFT);
         }
 
         FAPI_DBG("  PG after: 0x%08X", l_pg);
@@ -439,6 +383,9 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SECURITY_ENABLE, FAPI_SYSTEM, l_attr_security_enable),
                  "Error from FAPI_ATTR_SET (ATTR_SECURITY_ENABLE");
     }
+
+    // populate scratch registers from attribute state/targeting model, if not set by setup_sbe_config
+    FAPI_TRY(p10_sbe_scratch_regs_update(i_target_chip, false, true));
 
     // read_scratch1_reg -- set EQ chiplet PG
     {
@@ -584,8 +531,8 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_IOHS),
                      fapi2::TARGET_STATE_FUNCTIONAL))
             {
-                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_IOHS>
-                        (l_perv_iohs_target);
+                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_iohs_target,
+                        fapi2::TARGET_TYPE_IOHS);
 
                 FAPI_TRY(l_read_scratch5_reg.extractToRight(l_attr_clock_mux_iohs_lcpll_input[l_attr_chip_unit_pos],
                          ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_STARTBIT +
@@ -600,8 +547,8 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
                      fapi2::TARGET_STATE_FUNCTIONAL))
             {
-                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_PEC>
-                        (l_perv_pci_target);
+                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_pci_target,
+                        fapi2::TARGET_TYPE_PEC);
 
                 FAPI_TRY(l_read_scratch5_reg.extractToRight(l_attr_clock_mux_pci_lcpll_input[l_attr_chip_unit_pos],
                          ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_STARTBIT +
@@ -617,6 +564,8 @@ fapi2::ReturnCode p10_sbe_attr_setup(
     // read_scratch6_reg -- Master/slave, node/chip selection, PLL bypass controls
     {
         fapi2::buffer<uint64_t> l_read_scratch6_reg = 0;
+        fapi2::ATTR_FILTER_PLL_BUCKET_Type l_attr_filter_pll_bucket = 0;
+        fapi2::ATTR_PCI_PLL_BUCKET_Type l_attr_pci_pll_bucket = 0;
         fapi2::ATTR_SKEWADJ_BYPASS_Type l_attr_skewadj_bypass = fapi2::ENUM_ATTR_SKEWADJ_BYPASS_NO_BYPASS;
         fapi2::ATTR_DCADJ_BYPASS_Type l_attr_dcadj_bypass = fapi2::ENUM_ATTR_DCADJ_BYPASS_NO_BYPASS;
         fapi2::ATTR_CP_PLLTODFLT_BYPASS_Type l_attr_cp_plltodflt_bypass = fapi2::ENUM_ATTR_CP_PLLTODFLT_BYPASS_NO_BYPASS;
@@ -640,6 +589,22 @@ fapi2::ReturnCode p10_sbe_attr_setup(
             FAPI_DBG("Reading Scratch 6 mailbox register");
             FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RW, l_read_scratch6_reg),
                      "Error reading Scratch 6 mailbox register");
+
+            FAPI_DBG("Setting up filter PLL bucket attribute");
+            FAPI_TRY(l_read_scratch6_reg.extractToRight(l_attr_filter_pll_bucket,
+                     ATTR_FILTER_PLL_BUCKET_STARTBIT,
+                     ATTR_FILTER_PLL_BUCKET_LENGTH));
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_FILTER_PLL_BUCKET, i_target_chip, l_attr_filter_pll_bucket),
+                     "Error from FAPI_ATTR_SET (ATTR_FILTER_PLL_BUCKET)");
+
+            FAPI_DBG("Setting up PCI PLL bucket attribute");
+            FAPI_TRY(l_read_scratch6_reg.extractToRight(l_attr_pci_pll_bucket,
+                     ATTR_PCI_PLL_BUCKET_STARTBIT,
+                     ATTR_PCI_PLL_BUCKET_LENGTH));
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PCI_PLL_BUCKET, i_target_chip, l_attr_pci_pll_bucket),
+                     "Error from FAPI_ATTR_SET (ATTR_PCI_PLL_BUCKET)");
 
             FAPI_DBG("Setting up skew adjust/duty cycle adjust bypass attributes");
 
@@ -776,7 +741,6 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         fapi2::buffer<uint64_t> l_read_scratch9_reg = 0;
         fapi2::ATTR_FREQ_PAU_MHZ_Type l_attr_freq_pau_mhz = 0;
         fapi2::ATTR_MC_PLL_BUCKET_Type l_attr_mc_pll_bucket = { 0 };
-        fapi2::ATTR_NDL_MESHCTRL_SETUP_Type l_attr_ndl_meshctrl_setup;
 
         if (l_read_scratch8_reg.getBit<SCRATCH9_REG_VALID_BIT>())
         {
@@ -795,8 +759,8 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC),
                      fapi2::TARGET_STATE_FUNCTIONAL))
             {
-                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_MC>
-                        (l_perv_mc_target);
+                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_mc_target,
+                        fapi2::TARGET_TYPE_MC);
 
                 FAPI_TRY(l_read_scratch9_reg.extractToRight(l_attr_mc_pll_bucket[l_attr_chip_unit_pos],
                          ATTR_MC_PLL_BUCKET_STARTBIT +
@@ -806,12 +770,6 @@ fapi2::ReturnCode p10_sbe_attr_setup(
 
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_PLL_BUCKET, i_target_chip, l_attr_mc_pll_bucket),
                      "Error from FAPI_ATTR_SET (ATTR_MC_PLL_BUCKET)");
-
-            FAPI_DBG("ATTR_NDL_MESHCTRL_SETUP");
-            l_read_scratch9_reg.extractToRight<ATTR_NDL_MESHCTRL_SETUP_STARTBIT, ATTR_NDL_MESHCTRL_SETUP_LENGTH>
-            (l_attr_ndl_meshctrl_setup);
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_NDL_MESHCTRL_SETUP, i_target_chip, l_attr_ndl_meshctrl_setup),
-                     "Error from FAPI_ATTR_SET (ATTR_NDL_MESHCTRL_SETUP)");
         }
     }
 
@@ -836,8 +794,8 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                          static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_IOHS),
                          fapi2::TARGET_STATE_FUNCTIONAL))
                 {
-                    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_IOHS>
-                            (l_perv_iohs_target);
+                    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_iohs_target,
+                            fapi2::TARGET_TYPE_IOHS);
 
                     FAPI_TRY(l_read_scratch10_reg.extractToRight(l_attr_iohs_pll_bucket[l_attr_chip_unit_pos],
                              ATTR_IOHS_PLL_BUCKET_STARTBIT +
