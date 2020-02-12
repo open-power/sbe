@@ -165,8 +165,9 @@ def collectAttr( procNr, nodeNr=0 ):
   sbeDebug.ddsuffix = ddlevel
   sbeDebug.target = 'FILE'
   sbeDebug.file_path = 'DumpFullPIBMEM'
-  sbeDebug.fillSymTable()
-  sbeDebug.collectAttr()
+  sbe_syms_file = 'sbe_DD1.syms'
+  sbeDebug.fillSymTable(sbe_syms_file)
+  sbeDebug.collectStdAttr()
 
 def collectRegFfdc( procNr, nodeNr=0 ):
   cmd = "pipe \"" + simicsPrcObj[procNr] + ".sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
@@ -178,7 +179,8 @@ def collectRegFfdc( procNr, nodeNr=0 ):
   sbeDebug.ddsuffix = ddlevel
   sbeDebug.target = 'FILE'
   sbeDebug.file_path = 'DumpFullPIBMEM'
-  sbeDebug.fillSymTable()
+  sbe_syms_file = 'sbe_DD1.syms'
+  sbeDebug.fillSymTable(sbe_syms_file)
   sbeDebug.ppeStateFfdc()
 
 def istep_func ( majorIstep, minorIstep, procNr=0, nodeNr=0):

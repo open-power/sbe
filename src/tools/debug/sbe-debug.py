@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/python
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -38,7 +38,7 @@ import ctypes
 
 err = False
 
-baseAddr = 0xfffe8000
+pibmemBaseAddr = 0xfff80000
 syms = {};
 SBE_TOOLS_PATH = os.getcwd()
 if 'SBE_TOOLS_PATH' in os.environ:
@@ -48,10 +48,14 @@ if 'SBE_TOOLS_PATH' in os.environ:
 PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']
 
 target = 'HW'
+image_type = 'SBE'
 node = 0
 proc = 0
-ddsuffix = 'DD2'
+ddsuffix = 'DD1'
 file_path = ""
+sbe_string_file = ""
+sbe_tracMERG_file = ""
+sbe_syms_file = ""
 output_path = os.getcwd()+"/"
 
 '''
@@ -69,16 +73,15 @@ def getFilePath(filename):
 
 def getTraceFilePath():
     fspTrace = getFilePath("fsp-trace")
+    print("\n fsp-trace: [" + fspTrace + "]")
     if(fspTrace == None):
         fspTrace = "fsp-trace"
     return fspTrace
 
-def fillSymTable():
+def fillSymTable(file_name):
     try:
-        if (target == 'AWAN'):
-            symFile = getFilePath("sim.sbe.syms")
-        else:
-            symFile = getFilePath("sbe_"+ddsuffix+".syms")
+        symFile = getFilePath(file_name)
+        print("\n Symbol File: [" + symFile + "]")
         f = open( symFile, 'r' )
         for line in f:
             words = line.split()
@@ -94,8 +97,8 @@ def getSymbolInfo( symbol ):
         if(re.search(symbol, key)!= None):
             symAddr = val[0]
             length = val[1]
-    print("\n symAddress :", symAddr)
-    offset = int(symAddr, base = 16) - baseAddr;
+    print("\n Trace buffer symbol addr: [" + symAddr + "] Trace Buffer Length: [" + length + "]")
+    offset = int(symAddr, base = 16) - pibmemBaseAddr;
     return (hex(offset), length)
 
 def createPibmemDumpFile( offset, length, input_file=None):
@@ -110,7 +113,7 @@ def createPibmemDumpFile( offset, length, input_file=None):
     fileHandle.close()
 
 def createPibmemDump(offset, length):
-    invokeOsCmd( getFilePath("p9_pibmem_dump_wrap.exe")+
+    invokeOsCmd( getFilePath("p10_pibmem_dump_wrap.exe")+
             " -quiet -start_byte "+str(offset)+
             " -num_of_byte " + length +
             " -n" + str(node) + " -p" + str(proc)+ " -path "+output_path +
@@ -136,27 +139,52 @@ def invokeOsCmd(cmd):
        print("ERROR running command: %d " % ( rc ))
        return 1
 
-'''
+def updateHwTraceFiles(sbe_tracMERG_file,sbe_string_file,sbe_syms_file):
+    if(target == 'HW'):
+        cmd = ("getcfam pu 2809" +\
+               " -n" + str(node) + " -p" + str(proc))
+        print("cmd:", cmd)
+        output = os.popen(cmd).read()
+        output = output.split()
+        expected_out = 'k0:n%1d:s0:p%02d'%(node,proc)
+        if (expected_out not in output):
+            print("Error while getting the status register")
+            print(' '.join(output))
+        else:
+            # Read opcode in SB_MSG Register
+            # SBE_CODE_MEASURMENT_PIBMEM_START_MSG 0x05
+            tempVal = bin(int(output[output.index(expected_out)+1], 16))
+            print("opcode in SB_MSG Register[28:31] : %s" %(tempVal))
+            if( 0x05 == tempVal[30:34] ):
+                sbe_tracMERG_file = "sbe_measurement_seeprom_" + str(proc) + "_tracMERG"
+                sbe_string_file = stringFile = "sbeMeasurementStringFile"
+                sbe_syms_file = "sbe_measurement_seeprom.syms"
+
+
+''' 
 --------------------------------------------------------------------------------
                 Command functions
 --------------------------------------------------------------------------------
 '''
-def collectTrace():
+def collectTrace(string_file,tracMERG_file):
     getSymbolVal('g_pk_trace_buf' )
-
+    stringFile = getFilePath(string_file)
+    print("\n String File: [" + stringFile + "]")
     invokeOsCmd( getFilePath("ppe2fsp")+ " " + output_path + "DumpPIBMEM "+\
             output_path +"sbetrace.bin " )
-    invokeOsCmd( getTraceFilePath() + " -s " +
-            getFilePath("sbeStringFile_"+ddsuffix)+ " "+ output_path +"sbetrace.bin > "+\
-            output_path+"sbe_"+str(node)+"_"+str(proc)+"_tracMERG" )
+    invokeOsCmd( getTraceFilePath() + " -s " + stringFile + " "+ output_path +"sbetrace.bin > "+\
+            output_path + tracMERG_file )
     invokeOsCmd( "mv " + output_path +"DumpPIBMEM "+\
             output_path +"dumpPibMem_trace" )
 
 # Can be used if proper sbe symbol files are not available
-def forcedCollectTrace():
+def forcedCollectTrace(string_file,tracMERG_file):
+    stringFile = getFilePath(string_file)
+    print("\n String File: [" + stringFile + "]")
     # Collect entire PIBMEM
     offset = "0x00" # PIBMEM BASE
-    length = "0x16400"
+    length = "0x7D400"
+    print("\n Forced Trace, Pibmem Offset: [" + offset + "] Pibmem Length: [" + length + "]")
     if(target == 'FILE'):
         createPibmemDumpFile( offset, length );
     else:
@@ -189,21 +217,26 @@ def forcedCollectTrace():
     invokeOsCmd( getFilePath("ppe2fsp")+ " " + output_path + "DumpPIBMEM "+\
             output_path +"sbetrace.bin " )
 
-    invokeOsCmd( getTraceFilePath() + " -s " +
-            getFilePath("sbeStringFile_"+ddsuffix)+" "+ output_path +"sbetrace.bin > "+\
-            output_path+"sbe_"+str(node)+"_"+str(proc)+"_tracMERG" )
+    invokeOsCmd( getTraceFilePath() + " -s " + stringFile +" "+ output_path +"sbetrace.bin > "+\
+            output_path + tracMERG_file )
     invokeOsCmd( "mv "+ output_path +"DumpPIBMEM "+\
             output_path +"dumpPibMem_trace" )
 
+def collectStdAttr():
+    sbeImgFile = "sbe_seeprom_"+ddsuffix+".bin"
+    getSymbolVal( 'G_sbe_attrs' )
+    invokeOsCmd( getFilePath("ipl_image_tool")+" "+getFilePath(sbeImgFile) +\
+                 " extract .fixed "+ output_path +"sbeStdAttr.bin ")
+    invokeOsCmd( getFilePath("ipl_image_tool")+" "+getFilePath(sbeImgFile) +\
+                 " attrdump "+ output_path +"sbeStdAttr.bin > " +\
+                 output_path+"sbe_"+str(node)+"_"+str(proc)+"_attrs")
+
 def collectAttr():
-    if (target == 'AWAN'):
-        sbeImgFile = "p9n_10.sim.sbe_seeprom.bin"
-    else:
-        sbeImgFile = "sbe_seeprom_"+ddsuffix+".bin"
+    sbeImgFile = "sbe_seeprom_"+ddsuffix+".bin"
     getSymbolVal( 'G_sbe_attrs' )
     invokeOsCmd( "mv "+ output_path + "DumpPIBMEM " +\
             output_path +"sbeAttr.bin" )
-    invokeOsCmd( getFilePath("p9_xip_tool")+" "+getFilePath(sbeImgFile) + " -ifs attrdump "+ output_path +"sbeAttr.bin > "+\
+    invokeOsCmd( getFilePath("ipl_image_tool")+" "+getFilePath(sbeImgFile) + " -ifs attrdump "+ output_path +"sbeAttr.bin > "+\
              output_path+"sbe_"+str(node)+"_"+str(proc)+"_attrs")
 
 def collectStackUsage():
@@ -267,7 +300,7 @@ def ppeStateFfdc():
 
         print('''
 ---------------------------------------------------------------------------------
-Please verify sbe_DD2.syms is valid for this dump, before depending on the values
+Please verify sbe_DD1.syms is valid for this dump, before depending on the values
 ---------------------------------------------------------------------------------''')
         if ppestateffdc.validbyte == 0x1 and ppestateffdc.magicbyte == 0xA5:
             print("ppestateffdc.version                             0x%04X" % ppestateffdc.version)
@@ -378,7 +411,7 @@ def ppeState():
         print('********************************************************************')
         fileHandle.close()
     else:
-        invokeOsCmd(getFilePath("p9_ppe_state_wrap.exe")+" -verbose -sbe -snapshot"+
+        invokeOsCmd(getFilePath("p10_ppe_state_wrap.exe")+" -verbose -sbe -snapshot"+
                 " -n" + str(node) + " -p" + str(proc))
 
 def sbeLocalRegister():
@@ -398,8 +431,28 @@ def sbeLocalRegister():
         print('********************************************************************')
         fileHandle.close()
     else:
-        invokeOsCmd(getFilePath("p9_sbe_localreg_dump_wrap.exe")+" -verbose -halt"+
+        invokeOsCmd(getFilePath("p10_sbe_localreg_dump_wrap.exe")+" -verbose -halt"+
                 " -n" + str(node) + " -p" + str(proc))
+
+def bootSeepromDump():
+    invokeOsCmd(getFilePath("p10_sbe_seepromDump_wrap.exe")+" -seeprom0 -ecc"+
+                " -n" + str(node) + " -p" + str(proc) + " -TARGET p10 -length 71C70 -scom -dump_file bseeprom.txt")
+    print("Primary Boot SEEPROM content is dumped to bseeprom.txt")
+
+def measSeepromDump():
+    invokeOsCmd(getFilePath("p10_sbe_seepromDump_wrap.exe")+" -seeprom3 -ecc"+
+                " -n" + str(node) + " -p" + str(proc) + " -TARGET p10 -length 2AAA8 -scom -dump_file mseeprom.txt")
+    print("Primary Mesurement SEEPROM content is dumped to mseeprom.txt")
+
+def secBootSeepromDump():
+    invokeOsCmd(getFilePath("p10_sbe_seepromDump_wrap.exe")+" -seeprom1 -ecc"+
+                " -n" + str(node) + " -p" + str(proc) + " -TARGET p10 -length 71C70 -scom -dump_file secbseeprom.txt")
+    print("Secondary Boot SEEPROM content is dumped to secbseeprom.txt")
+
+def secMeasSeepromDump():
+    invokeOsCmd(getFilePath("p10_sbe_seepromDump_wrap.exe")+" -seeprom2 -ecc"+
+                " -n" + str(node) + " -p" + str(proc) + " -TARGET p10 -length 2AAA8 -scom -dump_file secmseeprom.txt")
+    print("Secondary Measurement SEEPROM content is dumped to secmseeprom.txt")
 
 def sbeState():
     if(target == 'FILE'):
@@ -418,8 +471,8 @@ def sbeState():
         print('********************************************************************')
         fileHandle.close()
     else:
-        invokeOsCmd(getFilePath("p9_pibms_reg_dump_wrap.exe")+" -verbose" +\
-                " -n" + str(node) + " -p" + str(proc))
+        invokeOsCmd(getFilePath("p10_pibms_reg_dump_wrap.exe")+" -verbose" +\
+                " -n" + str(node) + " -p" + str(proc) + " -TARGET p10")
 
 def sbeStatus():
     if(target == 'FILE'):
@@ -479,13 +532,13 @@ def parsevalue(iValue):
 -----------------------------------------------------------------------------
 '''
 LEVELS_ARRAY = ('all', 'trace', 'forced-trace','attr','stack','ppestate','sbestate',
-                'sbestatus','sbelocalregister', 'sym', 'sbecommit', 'ppestateffdc')
+                'sbestatus','sbelocalregister', 'sym', 'sbecommit', 'ppestateffdc', 'bseepromdump', 'mseepromdump', 'secbseepromdump', 'secmseepromdump')
 
 def usage():
     print(
     '''
 usage: testarg.py [-h] [-l '''+str(LEVELS_ARRAY)+''']
-[-t {AWAN,HW,FILE}] [-n NODE] [-p PROC] [-s SYMBOL] [-f FILE_PATH]
+[-t {AWAN,HW,FILE}] [-i {SBE,MSBE}] [-n NODE] [-p PROC] [-s SYMBOL] [-f FILE_PATH]
 
 SBE Dump Parser
 
@@ -495,6 +548,8 @@ optional arguments:
                         '''+str(LEVELS_ARRAY)+'''
   -t, --target          Target type
                         {AWAN,HW,FILE}
+  -i, --image_type      Seeprom Image type
+                        {SBE,MSBE}
   -n, --node NODE       Node Number
   -p, --proc PROC       Proc Number
   -d, --ddlevel         DD Specific image identifier
@@ -505,17 +560,16 @@ optional arguments:
 
 def main( argv ):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "l:t:n:p:d:s:f:o:h", ['level=', 'target=', 'node=', 'proc=', 'ddlevel=', 'symbol=', 'file_path=', 'output_path=','help'])
+        opts, args = getopt.getopt(sys.argv[1:], "l:t:i:n:p:d:s:f:o:h", ['level=', 'target=', 'image_type=', 'node=', 'proc=', 'ddlevel=', 'symbol=', 'file_path=', 'output_path=','help'])
     except getopt.GetoptError as err:
         print(str(err))
         usage()
         exit(1)
 
     # Default values
-    global target, node, proc, ddsuffix, file_path, output_path
+    global target, image_type, node, proc, ddsuffix, file_path, output_path
     level = 'trace'
     symbol = ''
-
     # Parse the command line arguments
     for opt, arg in opts:
         if opt in ('-h', '--help'):
@@ -533,6 +587,12 @@ def main( argv ):
             else:
                 print("target should be one of {AWAN,HW,FILE}")
                 exit(1)
+        elif opt in ('-i', '--image_type'):
+            if arg in ('SBE', 'MSBE'):
+                image_type = arg
+            else:
+                print("target should be one of {SBE,MSBE}")
+                exit(1)
         elif opt in ('-n', '--node'):
             try:
                 node = int(arg)
@@ -546,10 +606,10 @@ def main( argv ):
                 print("proc should be an integer number")
                 exit(1)
         elif opt in ('-d', '--ddlevel'):
-            if arg in ('DD1', 'DD2', 'AXONE'):
+            if arg in ('DD1', 'AXONE'):
                 ddsuffix = arg
             else:
-                print("target should be one of {DD1, DD2, AXONE}")
+                print("target should be DD1")
                 exit(1)
         elif opt in ('-f', '--file_path'):
             try:
@@ -584,20 +644,35 @@ def main( argv ):
         # check if the file path exist or not
         assert os.path.exists(file_path), "Did not find the file at, "+str(arg)
 
-    fillSymTable()
+    if ( image_type == 'MSBE' ):
+        sbe_tracMERG_file = "sbe_measurement_seeprom_" + str(proc) + "_tracMERG"
+        sbe_string_file = stringFile = "sbeMeasurementStringFile"
+        sbe_syms_file = "sbe_measurement_seeprom.syms"
+    else:
+        sbe_tracMERG_file = "sbe_"+str(node)+"_"+str(proc)+"_tracMERG"
+        sbe_string_file = "sbeStringFile_"+ddsuffix
+        sbe_syms_file = "sbe_"+ddsuffix+".syms"
+
+    #updateHwTraceFiles(sbe_tracMERG_file,sbe_string_file,sbe_syms_file)
+    #print("\n ****symFile :", sbe_syms_file)
+    fillSymTable(sbe_syms_file)
 
     if ( level == 'all' ):
         print("Parsing everything")
-        collectTrace()
+        collectTrace(sbe_string_file,sbe_tracMERG_file)
         collectAttr()
         sbeStatus()
         ppeState()
         sbeState()
         sbeLocalRegister()
+        bootSeepromDump()
+        measSeepromDump()
+        secBootSeepromDump()
+        secMeasSeepromDump()
     elif ( level == 'trace' ):
-        collectTrace()
+        collectTrace(sbe_string_file,sbe_tracMERG_file)
     elif ( level == 'forced-trace' ):
-        forcedCollectTrace()
+        forcedCollectTrace(sbe_string_file,sbe_tracMERG_file)
     elif ( level == 'attr' ):
         collectAttr()
     elif ( level == 'ppestate' ):
@@ -616,6 +691,14 @@ def main( argv ):
         getSbeCommit()
     elif ( level == 'ppestateffdc' ):
         ppeStateFfdc()
+    elif ( level == 'bseepromdump' ):
+        bootSeepromDump()
+    elif ( level == 'mseepromdump' ):
+        measSeepromDump()
+    elif ( level == 'secbseepromdump' ):
+        secBootSeepromDump()
+    elif ( level == 'secmseepromdump' ):
+        secMeasSeepromDump()
 
     if(target != 'FILE'):
         # On cronus, set the FIFO mode to previous state
