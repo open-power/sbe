@@ -77,8 +77,8 @@ __header_64_reserved:
         .xip_section hbbl,                 8, empty=1
         .xip_section fa_ec_cl2_far,        8, empty=1
         .xip_section fa_ec_mma_far,        8, empty=1
+        .xip_section fa_ring_ovrd,         8, empty=1
         .xip_section ringidfeatlist,       8, empty=1
-        .xip_section
         .xip_section
         .xip_section
         .xip_section
