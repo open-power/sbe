@@ -76,8 +76,18 @@ int32_t l2_loader()
     uint64_t *pibMemAddr  = (uint64_t *)g_pibMemAddr;
 
     loadSection(&(hdr->iv_section[P9_XIP_SECTION_SBE_BASE]), pibMemAddr);
-    loadSection(&(hdr->iv_section[P9_XIP_SECTION_SBE_DATA]),
+
+    // If reg 0xc0002040 bit 14 is set then MPIPL
+    // Reset is inprogress. In MPIPL reset Only base section should update
+    // on PIBMEM and data section should not update.
+    // Check sbe_local_LFR struc for  more info
+    uint64_t fetchValue = 0;
+    PPE_LVD(0xc0002040, fetchValue);
+    if (!(fetchValue & 0x0002000000000000ull))
+    {
+        loadSection(&(hdr->iv_section[P9_XIP_SECTION_SBE_DATA]),
                         (uint64_t *)((uint32_t)hdr->iv_dataAddr));
+    }
 
     // Set the IVPR register. This is required so that interrupt vector table
     // points to pk interfaces.
