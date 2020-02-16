@@ -46,17 +46,44 @@
 #include <p10_suspend_powman.H>
 #include <p10_pm_hcd_flags.h>
 #include <p10_hcd_common.H>
+#include <p10_ppe_defs.H>
+#include <p10_ppe_utils.H>
 #include <p10_scom_proc.H>
+#include <p10_scom_eq.H>
+#include <multicast_group_defs.H>
+#include <vector>
+#include <p10_pm.H>
+#include <p10_pm_pgpe_init.H>
+#include <p10_pm_xgpe_init.H>
+#include <p10_pm_qme_init.H>
+#include <p10_pm_occ_gpe_init.H>
+
 
 
 // 1000000 nanosecond = 1 millisecond
 // total timeout = 10 milliseconds
 static const uint64_t POLLTIME_NS = 1000000;
-static const uint64_t POLLTIME_MCYCLES = 4000;
+static const uint64_t POLLTIME_MCYCLES = 4;
 static const uint32_t TRIES_BEFORE_TIMEOUT = 500;
+// Following constants hold an approximate value.
+static const uint32_t PPE_TIMEOUT_MS       = 50000;
+static const uint32_t PPE_POLLTIME_MS      = 20;
+static const uint32_t PPE_POLLTIME_MCYCLES = 2;
+
+
+
+enum
+{
+    QME_ACTIVE              =   p10hcd::QME_FLAGS_STOP_READY,
+    QME_POLLTIME_MS         =   1,
+    QME_POLLTIME_MCYCLES    =   1,
+};
+
+
 
 extern "C" 
 {
+fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
     using namespace scomt;
     using namespace proc;
@@ -80,9 +107,13 @@ extern "C"
 
         bool l_pgpe_in_safe_mode = false;
         bool l_xgpe_suspended = false;
+        uint8_t l_occ_mode = false;
 
         do
         {
+            const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+            FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_SUSPEND_OCC_MODE,
+                      FAPI_SYSTEM,l_occ_mode));
             FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE2_OCB_GPEXIXSR(i_target,l_xsr));
 
             if(!(l_xsr >> 63))
@@ -90,6 +121,12 @@ extern "C"
                 // SBE waits for PGPE to set OCC Scratch2[PGPE_SAFE_MODE_ACTIVE]
                 for(uint32_t method = 0; method < 2; method++)
                 {
+                    //If this is set, then OCC is not booting,hence skipping
+                    //the request from occ to pgpe
+                    if (l_occ_mode)
+                    {
+                        method = 1;
+                    }
                     if(method == 0)
                     {
                         // SBE requests OCC enter safe state by setting OCC_Flag[REQUEST_OCC_SAFE_STATE]
@@ -188,6 +225,9 @@ extern "C"
                     FAPI_INF("WARNING! XGPE and PGPE Already Halted, skipping procedure");
                 }
             }
+
+            //Halt all gpe's and qme
+            FAPI_TRY(suspend_pm_halt(i_target));
         }while (0);
 
 
@@ -196,4 +236,52 @@ fapi_try_exit:
         return fapi2::current_err;
 
     }
+
+
+
+    fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        fapi2::ReturnCode l_rc;
+
+        //  ************************************************************************
+        //  Issue halt to OCC GPEs ( GPE0 and GPE1) (Bring them to HALT)
+        //  ************************************************************************
+        FAPI_DBG("Executing p10_pm_occ_gpe_init to halt OCC GPE");
+        FAPI_EXEC_HWP(l_rc, p10_pm_occ_gpe_init,
+                i_target,
+                pm::PM_HALT,
+                occgpe::GPEALL // Apply to both OCC GPEs
+                );
+        FAPI_TRY(l_rc, "ERROR: Failed to halt the OCC GPEs");
+
+        //  ************************************************************************
+        //  Reset the PSTATE GPE (Bring it to HALT)
+        //  ************************************************************************
+        FAPI_DBG("Executing p10_pm_pstate_gpe_init to halt PGPE");
+        FAPI_EXEC_HWP(l_rc, p10_pm_pgpe_init, i_target, pm::PM_HALT);
+        FAPI_TRY(l_rc, "ERROR: Failed to halt the PGPE");
+
+        //  ************************************************************************
+        //  Reset the XGPE (Bring it to HALT)
+        //  ************************************************************************
+        FAPI_DBG("Executing p10_pm_stop_gpe_init to halt XGPE");
+        FAPI_EXEC_HWP(l_rc, p10_pm_xgpe_init, i_target, pm::PM_HALT);
+        FAPI_TRY(l_rc, "ERROR: Failed to halt XGPE");
+
+        //  ************************************************************************
+        //  Reset the QME (Bring it to HALT)
+        //  ************************************************************************
+        FAPI_DBG("Executing p10_pm_qme_init to halt QME");
+        FAPI_EXEC_HWP(l_rc, p10_pm_qme_init, i_target, pm::PM_HALT);
+        FAPI_TRY(l_rc, "ERROR: Failed to halt QME");
+
+
+
+fapi_try_exit:
+        FAPI_IMP("<< p10_pm_halt...");
+        return fapi2::current_err;
+
+    }
+
+
 } // extern "C"
