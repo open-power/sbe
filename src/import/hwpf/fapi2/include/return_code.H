@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -32,6 +32,8 @@
 
 #include <stdint.h>
 #include <return_code_defs.H>
+
+#include <hwp_return_codes.H>
 
 #ifndef FAPI2_NO_FFDC
     #include <ffdc.H>

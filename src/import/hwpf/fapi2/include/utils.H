@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -80,7 +80,7 @@ static inline constexpr bool is_platform()
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-#ifndef __PPE__
+#if !defined(__PPE__) && !defined(BOOTLOADER)
 ///
 /// @brief Enable/Disable special wakeup on processor chip core(s)
 ///
