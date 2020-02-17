@@ -24,6 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #include <cstdlib>
 #include <ecmdClientCapi.H>
+#include <simClientCapi.H>
 #include <fapi2.H>
 #include <p10_contained.H>
 #include <p10_contained_sim.H>
