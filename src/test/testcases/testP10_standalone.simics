@@ -88,6 +88,10 @@ run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
 
 run-python-file targets/p10_standalone/sbeTest/testExitCacheContainedMode.py
 
+echo "*******************Run testHResetIpl.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testHResetIpl.py
+
 echo "*******************Run testFifoReset.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
