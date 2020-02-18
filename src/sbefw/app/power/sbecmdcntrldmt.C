@@ -285,7 +285,7 @@ uint32_t sbeStartCntlDmt()
             //As per IPL Doc, SBE should call p10_sbe_fbc_apply_rt_settings.C.
             //Also, we are ignoring the pre checks for master proc, HB_IPL and MPIPL.
             //All this will be handled by HB.
-            fapiRc = sbeFetchAndApplyXSCOMInit(req.numXscoms,reinterpret_cast<void*>(req.xscomStartAddr));
+            fapiRc = sbeFetchAndApplyXSCOMInit(req.numXscoms,req.xscomStartAddr);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC "Failed in sbeFetchAndApplyXSCOMInit()"

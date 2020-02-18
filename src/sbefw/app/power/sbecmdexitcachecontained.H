@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -51,13 +51,13 @@ uint32_t sbePsuExitCacheContainedMode(uint8_t *i_pArg);
  * XSCOM INITS.
  *
  * @param[in]i_xscomPairSize  Number of registers to be initialized.
- * @param[in] i_xscomInitAddress Pointer to the address which hostboot has
- *                               saved the array of register inits to be performed
- *                               via XSCOM.Each entryis expected to contain a
+ * @param[in] i_xscomInitAddress Address which hostboot has saved the array of
+ *                               register inits to be performed via XSCOM.
+ *                               Each entryis expected to contain a
  *                               fully formed XSCOM address and its associated
  *                               data
  * @return  fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code
  */
-uint32_t sbeFetchAndApplyXSCOMInit(const size_t i_xscomPairSize,const void* i_xscomInitAddress);
+uint32_t sbeFetchAndApplyXSCOMInit(const size_t i_xscomPairSize, const uint64_t i_xscomInitAddress);
 
 #endif //__SBE_CMDFASTARRAY_H
