@@ -40,6 +40,9 @@
 #include "sbecmdiplcontrol.H"
 #include "fapi2_mem_access.H"
 #include "p10_getmempba.H"
+#include "sbeglobals.H"
+#include "sbehandleresponse.H"
+
 #include "fapi2.H"
 #include "core/ipl.H"
 
@@ -156,19 +159,29 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     #define SBE_FUNC " sbeEnterMpipl "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-    uint32_t len = 0;
+    //ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
+    uint32_t len = 0;
     sbeResponseFfdc_t ffdc;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
-
     do
     {
-        // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+        if (!SBE::isMpiplReset())
+        {
+            // Dequeue the EOT entry as no more data is expected.
+            rc = sbeUpFifoDeq_mult (len, NULL);
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
+            // Create MPIPL Reset request for the Otprom to execute
+            // Set bit 14 in 0xc0002040 and jump to otprom addr 0x18040
+            SBE::setMpiplReset();
+            SBE::runSystemReset();
+            // There is no execution after this.. SBE is taking a reset.
+        }
+
+#if 0 // Place holder for MPIPL Procedure execution
+        // @TODO Enable code while MPIPL HWP added
         fapiRc = startMpiplIstepsExecute();
         bool checkstop = isSystemCheckstop();
         if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
@@ -191,17 +204,27 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
             break;
         }
+#endif
     }while(0);
 
     // Create the Response to caller
     do
     {
+        // Clear MPIPL Reset. System is ready for sbeEnterMpipl Chip-Op call
+        SBE::clearMpiplReset();
+
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
         rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        if(SBE::isMpiplResetDone())
+        {
+            sbeHandleFifoResponse (rc, SBE_FIFO);
+            SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_FIFO);
+            pk_irq_enable(SBE_IRQ_SBEHFIFO_DATA);
+            pk_irq_enable(SBE_IRQ_SBEHFIFO_RESET);
+        }
     }while(0);
-
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC

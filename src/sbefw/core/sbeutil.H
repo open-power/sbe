@@ -217,11 +217,36 @@ namespace SBE
      */
     void setMpiplResetDoneBit(void);
 
+    /* @brief - Set the Mpipl Reset bit on the LFR
+     *
+     * @return - void
+     */
+    void setMpiplReset(void);
+
+    /* @brief - Clear the Mpipl Reset bit on the LFR
+     *
+     * @return - void
+     */
+    void clearMpiplReset(void);
+
+    /* @brief - Check if the boot is on Mpipl Reset Done of SBE
+     *
+     * @return - True if Mpipl Reset Done, false otherwise
+     */
+    bool isMpiplResetDone(void);
+
     /* @brief - Check if the boot is on Mpipl Reset of SBE
      *
      * @return - True if Mpipl Reset, false otherwise
      */
     bool isMpiplReset(void);
+
+     /* @brief - Set OTPROM_ORIGIN value to g_ivprLoc and
+      *          jump to 0x00018040 address to reset of SBE
+      *
+      * @return - void
+      */
+     void runSystemReset(void);
 
 } // namespace SBE
 #endif //SBE_UTIL_H

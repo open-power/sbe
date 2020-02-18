@@ -50,6 +50,7 @@
 #include "sbeFFDC.H"
 #include "sbehandleresponse.H"
 #include "sbeXipUtils.H"
+#include "sbecmdmpipl.H"
 
 #ifdef _S0_
 #include "sbes0handler.H"
@@ -273,8 +274,9 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     {
         SBE_INFO(SBE_FUNC"Mpipl reset, going back to the state before reset");
         SBE::setMpiplResetDoneBit();
+        sbeEnterMpipl(NULL);
     }
-    if (SBE_GLOBAL->isHreset)
+    else if (SBE_GLOBAL->isHreset)
     {
         SBE_INFO(SBE_FUNC"Hreset, going back to the state before reset");
         (void)SbeRegAccess::theSbeRegAccess().

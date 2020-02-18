@@ -26,6 +26,8 @@
 #include "fapi2.H"
 #include "sbetrace.H"
 #include "sbeglobals.H"
+#include "sbeXipUtils.H"
+#include "sbeglobals.H"
 
 #include "plat_hw_access.H"
 #include "assert.h"
@@ -73,7 +75,7 @@ namespace SBE
         sbe_local_LFR lfrReg;
         PPE_LVD(0xc0002040, lfrReg);
         isHreset = lfrReg.runtime_reset;
-        SBE_INFO(SBE_FUNC" [%d]", isHreset);
+        //SBE_INFO(SBE_FUNC" [%d]", isHreset);
         return (isHreset);
         #undef SBE_FUNC
     }
@@ -98,6 +100,38 @@ namespace SBE
         #undef SBE_FUNC
     }
 
+    bool isMpiplResetDone(void)
+    {
+        #define SBE_FUNC "IS_MPIPL_RESET_DONE"
+        bool isMpiplDone = false;
+        sbe_local_LFR lfrReg;
+        PPE_LVD(0xc0002040, lfrReg);
+        isMpiplDone = lfrReg.mpipl_reset_done;
+        //SBE_INFO(SBE_FUNC" [%d]", isMpiplDone);
+        return (isMpiplDone);
+        #undef SBE_FUNC
+    }
+
+    void setMpiplReset(void)
+    {
+        #define SBE_FUNC "SET_MPIPL_RESET"
+        sbe_local_LFR lfrReg;
+        // Set the mpiplreset bit and write to WO_OR Reg to set
+        lfrReg.mpipl = 1;
+        PPE_STVD(0xc0002050, lfrReg);
+        #undef SBE_FUNC
+    }
+
+    void clearMpiplReset(void)
+    {
+        #define SBE_FUNC "CLEAR_MPIPL_RESET"
+        sbe_local_LFR lfrReg;
+        // Set the mpiplreset bit and write to WO_OR Reg to clear
+        lfrReg.mpipl = 0;
+        PPE_STVD(0xc0002050, lfrReg);
+        #undef SBE_FUNC
+    }
+
     bool isMpiplReset(void)
     {
         #define SBE_FUNC "IS_MPIPL"
@@ -105,8 +139,18 @@ namespace SBE
         sbe_local_LFR lfrReg;
         PPE_LVD(0xc0002040, lfrReg);
         isMpipl = lfrReg.mpipl;
-        SBE_INFO(SBE_FUNC" [%d]", isMpipl);
+        //SBE_INFO(SBE_FUNC" [%d]", isMpipl);
         return (isMpipl);
+        #undef SBE_FUNC
+    }
+
+    void runSystemReset(void)
+    {
+        #define SBE_FUNC "RUN_SYSTEM_RESET"
+        SBE_INFO(SBE_FUNC" System is going for manual Reset");
+        uint64_t data = (uint64_t)(OTPROM_ORIGIN) << 32;
+        PPE_STVD(g_ivprLoc, data);
+        JUMP_TO_ADDR(0x00018040);
         #undef SBE_FUNC
     }
 }

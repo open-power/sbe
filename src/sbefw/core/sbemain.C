@@ -44,6 +44,7 @@
 #include "fapi2.H" // For target init
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
 #include "sbeglobals.H"
+#include "sbecmdmpipl.H"
 #include "p9_misc_scom_addresses.H"
 
 // Max defines for Semaphores
@@ -74,7 +75,7 @@ void __eabi()
     do
     {
         SBE_GLOBAL->isHreset = SBE::isHreset();
-        if (SBE_GLOBAL->isHreset)
+        if (SBE_GLOBAL->isHreset || SBE::isMpiplReset())
         {
             // skip constructors
             break;
@@ -391,7 +392,7 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
-        if (!SBE_GLOBAL->isHreset)
+        if ( (!SBE::isMpiplReset()) && (!SBE_GLOBAL->isHreset) ) 
         {
             // TODO via RTC 126146.
             //  Check if we should call plat_TargetsInit in some other thread.
