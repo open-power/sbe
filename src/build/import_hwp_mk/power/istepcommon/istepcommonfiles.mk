@@ -29,19 +29,24 @@
 ##########################################################################
 # Object Files
 ##########################################################################
-#ISTEPCOMMON-CPP-SOURCES +=p9_sbe_common.C
-#ISTEPCOMMON-CPP-SOURCES +=p9_sbe_gear_switcher.C
-#ISTEPCOMMON-CPP-SOURCES +=p9_fbc_utils.C
 ISTEPCOMMON-CPP-SOURCES +=p10_pba_access.C
 ISTEPCOMMON-CPP-SOURCES +=p10_pba_coherent_utils.C
 ISTEPCOMMON-CPP-SOURCES +=p10_pba_setup.C
+ISTEPCOMMON-CPP-SOURCES +=p10_getsram.C
+ISTEPCOMMON-CPP-SOURCES +=p10_getputsram_utils.C
+ISTEPCOMMON-CPP-SOURCES +=p10_getsram_io_ppe.C
+ISTEPCOMMON-CPP-SOURCES +=p10_io_ppe_utils.C
+ISTEPCOMMON-CPP-SOURCES +=p10_iop_xram_utils.C
+ISTEPCOMMON-CPP-SOURCES +=p10_putsram.C
+ISTEPCOMMON-CPP-SOURCES +=p10_putsram_io_ppe.C
+ISTEPCOMMON-CPP-SOURCES +=p10_read_xram.C
+ISTEPCOMMON-CPP-SOURCES +=p10_write_xram.C
+ISTEPCOMMON-CPP-SOURCES +=p10_qme_sram_access.C
+ISTEPCOMMON-CPP-SOURCES +=p10_pm_sram_access_utils.C
 ISTEPCOMMON-CPP-SOURCES +=p10_pm_ocb_indir_access.C
-#ISTEPCOMMON-CPP-SOURCES +=p9_pm_ocb_indir_setup_circular.C
+ISTEPCOMMON-CPP-SOURCES +=p10_pm_ocb_indir_setup_circular.C
 ISTEPCOMMON-CPP-SOURCES +=p10_pm_ocb_indir_setup_linear.C
 ISTEPCOMMON-CPP-SOURCES +=p10_pm_ocb_init.C
-#ISTEPCOMMON-CPP-SOURCES +=p9_adu_setup.C
-#ISTEPCOMMON-CPP-SOURCES +=p9_adu_coherent_utils.C
-#ISTEPCOMMON-CPP-SOURCES +=p9_adu_access.C
 ISTEPCOMMON-CPP-SOURCES +=p10_ram_core.C
 ISTEPCOMMON-CPP-SOURCES +=p10_getmempba.C
 ISTEPCOMMON-CPP-SOURCES +=p10_getputmempba_utils.C
