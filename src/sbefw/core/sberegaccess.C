@@ -317,16 +317,37 @@ uint32_t SbeRegAccess::setMpIplMode(const bool i_set)
     #define SBE_FUNC "SbeRegAccess::setMpIplMode"
     uint32_t rc = 0;
     uint8_t l_set = i_set;
-    rc = getscom_abs(PERV_SCRATCH_REGISTER_3_SCOM, &iv_mbx3);
+
+    //NOTE: FSP system during the reset-reload to runtime loses the CFAM 283A,
+    //SCOM 5003A content. As a workaround we will use iv_mbx3 to do read modify
+    //write into 5003A until HWSV fixes the defect SW485901.We will only update
+    //the MPIPL bit in the iv_mbx3
+    uint64_t scratch3Reg = 0;
+    rc = getscom_abs(PERV_SCRATCH_REGISTER_3_SCOM, &scratch3Reg);
     if(rc)
     {
         SBE_ERROR(SBE_FUNC"Failed read PERV_SCRATCH_REGISTER_3_SCOM "
                 "RC: 0x%08X", rc);
     }
 
+    //Update the MPIPL mode bit in the SBE cached iv_mbx3 value.
     iv_mpiplMode = i_set;
+    //Update the Attribute 
     PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), l_set);
-    rc = putscom_abs(PERV_SCRATCH_REGISTER_3_SCOM, iv_mbx3);
+ 
+    if(i_set)
+    {
+        //Set the MPIPL bit
+        scratch3Reg = scratch3Reg | 0x2000000000000000;
+    }
+    else
+    {
+        //Clear the MPIPL bit
+        scratch3Reg = scratch3Reg & 0xDFFFFFFFFFFFFFFF;
+    }
+
+    //Write back to the register 
+    rc = putscom_abs(PERV_SCRATCH_REGISTER_3_SCOM, scratch3Reg);
     if(rc)
     {
         SBE_ERROR(SBE_FUNC"Failed to set/clear MPIPL flag in "
