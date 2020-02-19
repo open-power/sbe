@@ -122,10 +122,10 @@ def collectStackUsage ( procNr, nodeNr=0 ):
   ( rValue, out )  =   quiet_run_command( cmd, output_modes.regular )
   opMode = (rValue >> 32) & 0xf
   # Dump stack memory to binary files
-  if ( opMode == 0x05 ):
+  if ( opMode == 0x06 ):
     syms = measureSyms
     threads = ('measurment_Kernel_NC_Int_stack')
-  elif ( opMode == 0x0A ):
+  elif ( opMode == 0x0B ):
     syms = bootSyms
     threads = ('sbeSyncCommandProcessor_stack',
                'sbeCommandReceiver_stack',
@@ -192,17 +192,17 @@ def collectTrace ( procNr, nodeNr=0 ):
   # 3bits of 0x50009 (29,30,31 bits)
   # SBE_CODE_OTPROM_START_MSG 0x01 - code reached to OTPROM
   # SBE_CODE_MEASUREMENT_SEEPROM_START_MSG 0x02 -  code reached to MEASUREMENT SEEPROM loader
-  # SBE_CODE_MEASURMENT_PIBMEM_START_MSG 0x05 - code reached to MEASUREMENT PIBMEM
-  # SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG 0x08 - code reached to BOOT SEEPROM loader L1
-  # SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x09 - code reached to BOOT PIBMEM Loader L2
-  # SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x0A - code reached to BOOT PIBMEM Main Flow
+  # SBE_CODE_MEASURMENT_PIBMEM_START_MSG 0x06 - code reached to MEASUREMENT PIBMEM
+  # SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG 0x09 - code reached to BOOT SEEPROM loader L1
+  # SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x0A - code reached to BOOT PIBMEM Loader L2
+  # SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x0B - code reached to BOOT PIBMEM Main Flow
 
   opMode = (rValue >> 32) & 0xf
-  if ( opMode == 0x05 ):
+  if ( opMode == 0x06 ):
     fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
-  elif ( opMode == 0x0A ):
+  elif ( opMode == 0x0B ):
     fileName = "sbe_boot_seeprom" + `procNr` + "_tracMERG"
     syms = bootSyms
     stringFile = "sbeStringFile_"+get_dd_level(procNr, nodeNr)

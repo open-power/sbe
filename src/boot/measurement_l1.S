@@ -98,6 +98,25 @@ copy_loop:
         bl __zeroInitPibmemArea
 
 skip_pibmem_init_memory_in_mpipl:
+        # Update 50009 ( sbe status register) to show sbe in TPM HReset
+        _liw     %r5, 0x50009
+        lvd      d0, 0(r5)
+        rlwinm   r0, r0, 0x0, 0x0, 0x1b   # Clear off the bits 28:29:30:31
+        ori      r0, r0, SBE_CODE_MEASUREMENT_SEEPROM_TPM_RESET_MSG
+        li       r1, 0x00
+        stvd     d0, 0(r5)
+
+        // Reset the TPM using SBE local register 0xC0002020
+        // 0xC0002030 is the W_OR Register, 0xC0002038 is W_CLR Register,
+        // Set the Bit0 to 1 then to 0
+        lis     r6, 0xc000
+        ori     r6, r6, 0x2030
+        lis     r0, 0x8000
+        ori     r0, r0, 0x0
+        li      r1, 0x0
+        stvd    d0, 0(r6)   // putscom 0xc0002030 0x8000000000000000
+        stvd    d0, 0x8(r6) // putscom 0xc0002038 0x8000000000000000
+
         ############################################################
         # SBE entry function is 4 byte number in image header
         ############################################################

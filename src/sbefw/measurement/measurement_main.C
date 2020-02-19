@@ -123,10 +123,10 @@ int  main(int argc, char **argv)
     }
     SBEM_INFO("Completed PK initialization for Measurement");
 
-    SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
-    
+    SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom");
+
     jump2boot();
-    
+
     SBEM_EXIT(SBEM_FUNC);
     return 0;
 }
