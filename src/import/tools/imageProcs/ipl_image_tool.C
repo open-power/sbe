@@ -2231,8 +2231,15 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
         if (rc)
         {
-            fprintf(stderr, "ringid_get_chipletProps() failed w/rc=0x%08x\n", rc);
-            return rc;
+            if (rc == TOR_INVALID_CHIPLET_TYPE)
+            {
+                continue;
+            }
+            else
+            {
+                fprintf(stderr, "ringid_get_chipletProps() failed w/rc=0x%08x\n", rc);
+                return rc;
+            }
         }
 
         //
