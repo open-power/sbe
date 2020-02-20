@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2019
 # [+] International Business Machines Corp.
 #
 #
@@ -45,9 +45,6 @@ ISTEPCOMMON-CPP-SOURCES +=p10_pm_ocb_init.C
 ISTEPCOMMON-CPP-SOURCES +=p10_ram_core.C
 ISTEPCOMMON-CPP-SOURCES +=p10_getmempba.C
 ISTEPCOMMON-CPP-SOURCES +=p10_getputmempba_utils.C
-ISTEPCOMMON-CPP-SOURCES +=p10_plat_ring_traverse.C
-ISTEPCOMMON-CPP-SOURCES +=p10_putRingUtils.C
-
 #istep5 Procedure but this is required to run from PIBMEM
 ISTEPCOMMON-C-SOURCES =
 ISTEPCOMMON-S-SOURCES =
