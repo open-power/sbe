@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,7 +41,7 @@
 #include <utils.H>
 #include <common_ringId.H>
 #include <plat_hw_access.H>
-#include "plat_ring_traverse.H" // for findRS4InImageAndApply
+#include "p10_plat_ring_traverse.H" 
 
 namespace fapi2
 {
@@ -298,10 +298,16 @@ __fapi2exit__:
                                   const RingMode i_ringMode = RING_MODE_HEADER_CHECK)
         {
             ReturnCode l_rc = FAPI2_RC_SUCCESS;
-
+            if( SBE::isSimicsRunning() )
+            {
+                return l_rc;
+            }
+            uint8_t *l_seepromAddr =(uint8_t*) SBE_SEEPROM_BASE_ORIGIN;
             // Find the RS4 string in the SEEPROM
-            l_rc = findRS4InImageAndApply(i_target, i_ringID, i_ringMode);
-
+            l_rc = lookUpRingSection (l_seepromAddr,
+                                      i_target,
+                                      i_ringID,
+                                      i_ringMode);
             return l_rc;
         }
 

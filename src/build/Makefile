@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -112,7 +112,7 @@ include $(HWPERR_SRCDIR)/hwpErrors.mk
 SUBDIRS += $(UTILS_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/utils
 UTILSLIB := $(OBJDIR)/utils/libutils.a
-#LLIBS += -lutils
+LLIBS += -lutils
 
 SUBDIRS += $(PROJ_SUBDIRS)
 LIB_DIRS += $(PROJ_LIB_DIRS)
