@@ -64,7 +64,7 @@ def getLbus( node):
     return lbus
 
 #Default parameters are for single node, node 0
-def writeUsFifo( data, i_fifoType, node=0):
+def writeUsFifo( data, i_fifoType=0, node=0):
     """Main test Loop"""
     lbus = getLbus(node)
     loopCount = len(data)/4;
@@ -75,7 +75,7 @@ def writeUsFifo( data, i_fifoType, node=0):
                    (data[idx], data[idx+1], data[idx+2], data[idx+3]) )
 
 #Default parameters are for single node, node 0
-def readDsFifo(data,  i_fifoType, node=0):
+def readDsFifo(data,  i_fifoType=0, node=0):
     """Main test Loop"""
     lbus = getLbus(node)
     loopCount = len(data)/4;
@@ -86,7 +86,7 @@ def readDsFifo(data,  i_fifoType, node=0):
                                          data[idx+1], data[idx+2], data[idx+3]))
 
 #Default parameters are for single node, node 0
-def writeEot(i_fifoType, node=0):
+def writeEot(i_fifoType=0, node=0):
     lbus = getLbus(node)
     eot_addr = getUsFiFoEotAddrToWrite(i_fifoType)  #Address: 0x2408, 0x2448
     write(lbus, eot_addr, (0, 0, 0, 1) )
@@ -97,7 +97,7 @@ def write(obj, address, value ):
     iface.write(None, address, value, 0x0)
 
 #Default parameters are for single node, node 0
-def readEot(i_fifoType, node=0):
+def readEot(i_fifoType=0, node=0):
     """ Read from memory space """
     lbus = getLbus(node)
     eot_addr = getDsFifoStatusAddrToRead(i_fifoType) #Address: 0x2444, 0x2484
@@ -107,21 +107,21 @@ def readEot(i_fifoType, node=0):
     read(lbus, read_addr, 4)
 
 #Default parameters are for single node, node 0
-def resetFifo(i_fifoType, node=0):
+def resetFifo(i_fifoType=0, node=0):
     lbus = getLbus(node)
     reset_addr = getResetAddr(i_fifoType) #Address:0x240C, 0x248C
     write(lbus, reset_addr, (0, 0, 0, 1))
     return
 
 #Default parameters are for single node, node 0
-def readUsFifoStatus(i_fifoType, node=0):
+def readUsFifoStatus(i_fifoType=0, node=0):
     lbus = getLbus(node)
     read_addr = getUsFifoStatusAddrToRead(i_fifoType) #Address:0x2404, 0x2484
     status = read(lbus, read_addr, 4)
     return status
 
 #Default parameters are for single node, node 0
-def readDsFifoStatus(i_fifoType, node=0):
+def readDsFifoStatus(i_fifoType=0, node=0):
     lbus = getLbus(node)
     read_addr = getDsFifoStatusAddrToRead(i_fifoType) #Address:0x2444, 0x24C4
     status = read(lbus, read_addr, 4)
@@ -159,7 +159,7 @@ def waitTillDsFifoEmpty():
 # This function will only read the entry but will not compare it
 # with anything. This can be used to flush out enteries.
 #Default parameters are for single node, node 0
-def readDsEntry(entryCount, i_fifoType, node=0):
+def readDsEntry(entryCount, i_fifoType=0, node=0):
     lbus = getLbus(node)
     read_addr = getDsFifoDataAddrToRead(i_fifoType) #Address:0x2440, 0x24C0
     for i in range (entryCount):
@@ -196,7 +196,7 @@ def readDsEntryReturnVal(i_fifoType, node=0):
     return data
 
 #Default parameters are for single node, node 0
-def readEntry(obj, address, size, i_fifoType, node=0):
+def readEntry(obj, address, size, i_fifoType=0, node=0):
 
     """ Read from memory space """
     lbus = getLbus(node)
@@ -220,7 +220,7 @@ def readEntry(obj, address, size, i_fifoType, node=0):
 
     return value
 
-def extractHWPFFDC(i_fifoType, dumpToFile = False, readData = None):
+def extractHWPFFDC(i_fifoType=0, dumpToFile = False, readData = None):
     '''Header extraction'''
     if(readData != None):
         data = readData[:4]

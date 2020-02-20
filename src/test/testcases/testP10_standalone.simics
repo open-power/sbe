@@ -37,7 +37,13 @@ run-python-file targets/p10_standalone/sbeTest/testPSUSetStashPair.py
 
 echo "*******************Run SBE-ISTEPS ******************"
 
+run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
+
 sbe-istep 2.2 5.3
+
+run-python-file targets/p10_standalone/sbeTest/testIstepInvalid.py
+
+run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
 
 echo "*******************Run testPSUSetFFDCAddr.xml*******************"
 
@@ -64,14 +70,19 @@ run-python-file targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
 run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
 
 run-python-file targets/p10_standalone/sbeTest/testExitCacheContainedMode.py
+
+echo "*******************Run testFifoReset.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
+
+echo "*******************Run testQuiesce.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
+
 exit 0
 #TODO: Remove exit
 
 run-python-file targets/p10_standalone/sbeTest/testMatchStashPair.py
-
-run-python-file targets/p10_standalone/sbeTest/testIstepInvalid.py
-
-run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
 
 echo "*******************Run testSuspendIO.xml*******************"
 
@@ -95,22 +106,6 @@ echo "*******************Run testPutGetMem.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testMemPBA.py
 
-echo "*******************Run testAduMem.xml*******************"
-
-run-python-file targets/p10_standalone/sbeTest/testAduMem_ecc.py
-
-run-python-file targets/p10_standalone/sbeTest/testAduMem_itag.py
-
-run-python-file targets/p10_standalone/sbeTest/testAduMem_withEccItag.py
-
-run-python-file targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
-
-run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
-
-echo "*******************Run testPSUSetFFDCAddr.xml*******************"
-
-run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
-
 echo "*******************Run testSram.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testSram.py
@@ -129,12 +124,6 @@ run-python-file targets/p10_standalone/sbeTest/testPutGetRegFpr.py
 run-python-file targets/p10_standalone/sbeTest/testPutGetRegSpr.py
 
 run-python-file targets/p10_standalone/sbeTest/testStartInstruction.py
-
-echo "*******************Run testFifoReset.xml*******************"
-
-run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
-
-run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
 
 echo "*******************Run testSystemFabricMap.xml*******************"
 
@@ -165,10 +154,6 @@ run-python-file targets/p10_standalone/sbeTest/testExecutorPutRing.py
 echo "*******************Run testFastAccess.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testFastArray.py
-
-echo "*******************Run testQuiesce.xml*******************"
-
-run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
 
 echo "*******************Run sbe-trace*******************"
 
