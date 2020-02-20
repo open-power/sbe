@@ -36,7 +36,6 @@
 //------------------------------------------------------------------------------
 #include <p10_sbe_scominit.H>
 #include <p10_fbc_utils.H>
-#include <p10_nmmu_scom.H>
 
 #include <p10_scom_perv.H>
 #include <p10_scom_nmmu_4.H>
