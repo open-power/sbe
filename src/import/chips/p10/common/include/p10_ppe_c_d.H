@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -105,8 +105,8 @@ static const uint32_t QME_PSCRS0_HYP_DB_EXIT_ENABLE = 10;
 static const uint32_t QME_PSCRS0_EXT_EXIT_ENABLE = 11;
 static const uint32_t QME_PSCRS0_DEC_EXIT_ENABLE = 12;
 static const uint32_t QME_PSCRS0_HMI_EXIT_ENABLE = 13;
-static const uint32_t QME_PSCRS0_ = 14;
-static const uint32_t QME_PSCRS0__LEN = 2;
+static const uint32_t QME_PSCRS0_TR = 14;
+static const uint32_t QME_PSCRS0_TR_LEN = 2;
 static const uint32_t QME_PSCRS0_MTL = 16;
 static const uint32_t QME_PSCRS0_MTL_LEN = 4;
 static const uint32_t QME_PSCRS0_RL = 20;
