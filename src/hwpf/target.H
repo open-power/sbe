@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -222,12 +222,27 @@ namespace fapi2
     template<TargetType T>
     inline Target<T, M, V> Target<K, M, V>::getParent(void) const
     {
+
         constexpr TargetType TARGET_TYPE_PROC_CHILDREN =
             TARGET_TYPE_EQ | TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST |
             TARGET_TYPE_CORE | TARGET_TYPE_PROC_CHIP | TARGET_TYPE_PHB |
             TARGET_TYPE_MC | TARGET_TYPE_MI | TARGET_TYPE_PAUC | TARGET_TYPE_IOHS;
 
         check_getParent<T>();
+ 
+       //Copy the current(*this) target Type details into local variable
+       TargetType cTargType = K;
+       //Check if the "K" input target is TARGET_TYPE_ALL_MC, then reconstruct
+       //the actual target type details from the Plat target handle details.
+       if(cTargType ==  TARGET_TYPE_ALL_MC )
+       {
+           cTargType = get().getFapiTargetType();
+           if(get().isMulticastSet())
+           {
+               cTargType = cTargType | TARGET_TYPE_MULTICAST;
+           }
+
+       }
 
         static_assert((
                        ((K & TARGET_TYPE_PROC_CHILDREN) != TARGET_TYPE_NONE) ||
@@ -293,7 +308,15 @@ namespace fapi2
 
         static_assert(!(((K ^ T) & TARGET_TYPE_MULTICAST) && ((T & TARGET_TYPE_CHIPLETS) != TARGET_TYPE_NONE)),
                       "Parent target for a multicast target must also be multicast or PROC_CHIP");
-        if(((TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST)== T) && ((TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST) == K)) // EQ ===> PERV
+
+        static_assert(!((K == TARGET_TYPE_ALL_MC) &&
+                        (T != TARGET_TYPE_PROC_CHIP) &&
+                        (T != (TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST))),
+                        "Unsupported expected Parent type when current target "
+                        "type is TARGET_TYPE_ALL_MC");
+
+        if(((TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST)== T) && 
+           (((TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST) == K) || ((TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST) == cTargType)))
         {
             plat_target_handle_t T_parent = createPlatMCHandle(PPE_TARGET_TYPE_PERV, static_cast<MulticastGroup>(0), 0);
             T_parent.fields.mcast_group = static_cast<MulticastGroup>(static_cast<plat_target_handle_t>(get()).getMultiCastGroup());
@@ -315,7 +338,8 @@ namespace fapi2
         {
             return static_cast<V>(G_vec_targets[(static_cast<plat_target_handle_t>(get()).getTargetInstance() / CORES_PER_QUAD) + EQ_TARGET_OFFSET]);
         }
-        if(((TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST)== T) && ((TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST) == K)) // CORE ===> EQ
+        if(((TARGET_TYPE_EQ | TARGET_TYPE_MULTICAST)== T) && 
+           (((TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST) == K) || ((TARGET_TYPE_CORE | TARGET_TYPE_MULTICAST) == cTargType)))
         {
             plat_target_handle_t T_parent = createPlatMCHandle(PPE_TARGET_TYPE_EQ, static_cast<MulticastGroup>(0), 0);
             T_parent.fields.mcast_group = static_cast<MulticastGroup>(static_cast<plat_target_handle_t>(get()).getMultiCastGroup());

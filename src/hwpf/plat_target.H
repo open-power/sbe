@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -166,6 +166,17 @@ namespace fapi2
         {
              return fields.mcast_group;
         }
+
+        ///
+        /// @brief Returns the status of the multicast bit
+        ///
+        /// @return The multicast bit of the target
+        bool isMulticastSet() const
+        {
+            return fields.is_multicast;
+        }
+
+
 
         ///
         /// @brief Returns whether this target is functional
