@@ -55,19 +55,28 @@ _start:
 .org __reserved + 0x0040
 
 oos_start:
+
+################################################################################
+## Set DBCR bit7, this will enable trap instruction to halt the processor and
+## not cause a program exception. Ultimately program exception will also halt
+## the processor but there will be jump, with DBCR bit7 set, there is no jump
+## to the program exception vector.
+################################################################################
+    lis    r5, 0x100
+    mtdbcr r5
 ################################################################################
 #   UPDATE bits 28:29:30:31 of sbe message register : 0x50009 with 0b01
 #   to indicate OTPROM Control
 ################################################################################
-    lis    r5 , 0x5                 # load r5 with 0x00050000
+    lis    r5, 0x5                 # load r5 with 0x00050000
     lis    r4, 0xC000
-    lvd    d2 , 0x9(r5)             # loads data from 0x50009 to d2
-    rlwinm r2, r2, 0x0, 0x0, 0x1b   # Clear off the bits 28:29:30:31
-    ori    r2 , r2 , 0x1            # set bit 31 to 1
-    stvd   d2 , 0x9(r5)             # store data back into 0x50009
+    lvd    d2, 0x9(r5)             # loads data from 0x50009 to d2
+    rlwinm r2, r2, 0x0, 0x0, 0x1b  # Clear off the bits 28:29:30:31
+    ori    r2, r2 , 0x1            # set bit 31 to 1
+    stvd   d2, 0x9(r5)             # store data back into 0x50009
 
-.set g_hreset_path, 31              # r31 will be used as global variable
-    li g_hreset_path, 1             # Init the global variable to 1
+.set g_hreset_path, 31             # r31 will be used as global variable
+    li g_hreset_path, 1            # Init the global variable to 1
 
 # Check for HRESET trigger from 50008:bit13 (HARDWARE Trigger)
 ## use r5 wherever you need reference for 0x00050000
