@@ -204,6 +204,13 @@ skip_parse_row:
         lis     r4, 0x0200
         stvd    d4, 0x0(r3)
 
+        #Enable TPM SPI Driver Inhibit
+        #SCOMIN   00050121 0x00000200_00000000
+        _liw    %r3, 0x00050121
+        li      r4, 0x200
+        li      r5, 0x0
+        stvd    d4, 0x0(r3) 
+
         blr                                  # back to l1_loader
         .epilogue _pibmemRepair
 
