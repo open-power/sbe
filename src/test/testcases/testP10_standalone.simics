@@ -117,8 +117,11 @@ echo "*******************Run testFifoReset.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
 
-echo "*******************Run testPutGetScom.xml*******************"
+echo "*******************Run testEnterMpipl.xml*******************"
 
+run-python-file targets/p10_standalone/sbeTest/testEnterMpipl.py
+
+echo "*******************Run testPutGetScom.xml*******************"
 run-python-file targets/p10_standalone/sbeTest/testPutGetScom.py
 
 echo "*******************Run testQuiesce.xml*******************"
@@ -127,8 +130,6 @@ run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
 
 #TODO: Remove exit
 exit 0
-
-run-python-file targets/p10_standalone/sbeTest/testMatchStashPair.py
 
 echo "*******************Run testSuspendIO.xml*******************"
 
