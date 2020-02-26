@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -237,9 +237,7 @@ get_bootloader_config_data(
     uint8_t  l_numBackingCaches = 0;
 
     fapi2::buffer<uint64_t> l_cbs_cs;
-    fapi2::buffer<uint64_t> l_scom;
     BootloaderConfigData_t l_bootloader_config_data;
-    fapi2::ATTR_SMF_CONFIG_Type l_smf_config;
 
     FAPI_DBG("Start");
 
@@ -254,24 +252,13 @@ get_bootloader_config_data(
 
     l_bootloader_config_data.version = INIT;
 
-    // XSCOM BAR offset
+    // XSCOM BAR offset (always set smf bit, anyone can access the bar if smf is disabled)
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET,
                            FAPI_SYSTEM,
                            l_bootloader_config_data.xscomBAR),
              "Error from FAPI_ATTR_GET (ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET)");
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SMF_CONFIG,
-                           FAPI_SYSTEM,
-                           l_smf_config),
-             "Error from FAPI_ATTR_GET (ATTR_SMF_CONFIG)");
-
     l_bootloader_config_data.xscomBAR += l_chip_base_address_mmio;
-
-    if (l_smf_config)
-    {
-        l_scom.flush<0>().setBit<FABRIC_ADDR_SMF_BIT>();
-        l_bootloader_config_data.xscomBAR += l_scom();
-    }
+    l_bootloader_config_data.xscomBAR |= FABRIC_ADDR_SMF_MASK;
 
     // LPC BAR offset
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET,

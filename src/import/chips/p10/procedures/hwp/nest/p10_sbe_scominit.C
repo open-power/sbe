@@ -214,25 +214,18 @@ fapi2::ReturnCode p10_sbe_scominit_bars(const fapi2::Target<fapi2::TARGET_TYPE_P
                  l_base_addr_mmio),
              "Error from p10_fbc_utils_get_chip_base_address");
 
-    // set XSCOM BAR
+    // set XSCOM BAR (always set smf bit, anyone can access the bar if smf is disabled)
     {
         fapi2::buffer<uint64_t> l_xscom_bar;
         fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET_Type l_xscom_bar_offset;
-        fapi2::ATTR_SMF_CONFIG_Type l_smf_config;
 
         FAPI_DBG("Configuring XSCOM BAR");
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET, FAPI_SYSTEM, l_xscom_bar_offset),
                  "Error from FAPI_ATTR_GET (ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET)");
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SMF_CONFIG, FAPI_SYSTEM, l_smf_config),
-                 "Error from FAPI_ATTR_GET (ATTR_SMF_CONFIG)");
 
         l_xscom_bar = l_base_addr_mmio + l_xscom_bar_offset;
-
-        if (l_smf_config)
-        {
-            l_xscom_bar.setBit(FABRIC_ADDR_SMF_BIT);
-        }
+        l_xscom_bar.setBit(FABRIC_ADDR_SMF_BIT);
 
         FAPI_ASSERT((l_xscom_bar & XSCOM_BAR_MASK) == 0,
                     fapi2::P10_SBE_SCOMINIT_XSCOM_BAR_ATTR_ERR()
