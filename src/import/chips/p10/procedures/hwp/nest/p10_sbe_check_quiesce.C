@@ -682,7 +682,6 @@ fapi2::ReturnCode p10_vas_check_quiesce(
     // VAS needs to be quiesced before NX
 
     // Read the VAS Misc status and North control register so we don't write over anything
-    FAPI_TRY(PREP_VAS_VA_RG_SCF_MISCCTL(i_target));
     FAPI_TRY(GET_VAS_VA_RG_SCF_MISCCTL(i_target, l_vas_north_misc_ctl_data));
 
     // Set the 'Quiesce Requested' bit in the VAS Miscellaneous Status and
@@ -697,20 +696,21 @@ fapi2::ReturnCode p10_vas_check_quiesce(
     // 'CQ is Idle' and 'WC is Idle' bits in the VAS Miscellaneous Status
     // and South Control Register must all be set to one to indicate that
     // VAS has gone idle.
-    FAPI_TRY(PREP_VAS_VA_EG_SCF_SOUTHCTL(i_target));
+    bool l_misc_ctl_rg_is_idle;
 
     for (uint32_t i = 0; i < C_NUM_TRIES_QUIESCE_STATE; i++)
     {
         // Read VAS Misc status and North control register to ensure
         // 'RG is idle' is set -
         FAPI_TRY(GET_VAS_VA_RG_SCF_MISCCTL(i_target, l_vas_north_misc_ctl_data));
+        l_misc_ctl_rg_is_idle =
+            GET_VAS_VA_RG_SCF_MISCCTL_RG_IS_IDLE(l_vas_north_misc_ctl_data);
 
         // Read VAS Misc status and South control register to ensure
         // 'WC is idle', 'CQ is idle' and 'EG is idle' bits are set -
-        FAPI_TRY(PREP_VAS_VA_EG_SCF_SOUTHCTL(i_target));
         FAPI_TRY(GET_VAS_VA_EG_SCF_SOUTHCTL(i_target, l_vas_south_misc_ctl_data));
 
-        if(GET_VAS_VA_RG_SCF_MISCCTL_RG_IS_IDLE(l_vas_north_misc_ctl_data)
+        if(l_misc_ctl_rg_is_idle
            && GET_VAS_VA_EG_SCF_SOUTHCTL_WC_IDLE_BIT(l_vas_south_misc_ctl_data)
            && GET_VAS_VA_EG_SCF_SOUTHCTL_CQ_IDLE_BIT(l_vas_south_misc_ctl_data)
            && GET_VAS_VA_EG_SCF_SOUTHCTL_EG_IDLE_BIT(l_vas_south_misc_ctl_data))
@@ -737,7 +737,7 @@ fapi2::ReturnCode p10_vas_check_quiesce(
     // these pages should be unmapped. In a NX only usage model, this step
     // can be ignored as long as the Quiesce NX procedures are followed.
 
-    FAPI_ASSERT((GET_VAS_VA_RG_SCF_MISCCTL_RG_IS_IDLE(l_vas_north_misc_ctl_data)
+    FAPI_ASSERT((l_misc_ctl_rg_is_idle
                  && GET_VAS_VA_EG_SCF_SOUTHCTL_WC_IDLE_BIT(l_vas_south_misc_ctl_data)
                  && GET_VAS_VA_EG_SCF_SOUTHCTL_CQ_IDLE_BIT(l_vas_south_misc_ctl_data)
                  && GET_VAS_VA_EG_SCF_SOUTHCTL_EG_IDLE_BIT(l_vas_south_misc_ctl_data)),
@@ -748,6 +748,7 @@ fapi2::ReturnCode p10_vas_check_quiesce(
                 "VAS quiesce timed out");
 
     // Write Invalidate CAM location field of North register (optional)
+    FAPI_TRY(PREP_VAS_VA_RG_SCF_MISCCTL(i_target));
     SET_VAS_VA_RG_SCF_MISCCTL_INVALIDATE_CAM_ALL(l_vas_north_misc_ctl_data);
     FAPI_TRY(PUT_VAS_VA_RG_SCF_MISCCTL(i_target, l_vas_north_misc_ctl_data));
 
