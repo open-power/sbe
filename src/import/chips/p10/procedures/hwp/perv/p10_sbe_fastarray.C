@@ -359,7 +359,10 @@ fapi2::ReturnCode p10_sbe_fastarray(
     fapi2::hwp_data_istream&  i_instructions,
     fapi2::hwp_data_ostream&  o_dump_data)
 {
-    const auto l_perv_target = i_target.getParent<fapi2::TARGET_TYPE_PERV>();
+    /* FIXME: Temporary hack as long as Target<PERV>::getParent<PERV>() fails */
+    const auto l_perv_target = i_target.getChipletNumber() >= 0x20 ?
+                               i_target.getParent<fapi2::TARGET_TYPE_PERV>() :
+                               fapi2::Target<fapi2::TARGET_TYPE_PERV>(i_target.get());
     uint32_t l_header, l_care_bits[MAX_CARE_WORDS];
     bool l_ignore_abist_done;
 
