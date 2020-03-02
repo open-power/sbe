@@ -109,12 +109,6 @@ namespace fapi2
     }
 
     template<>
-    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MCS>()
-    {
-        return PPE_TARGET_TYPE_MCS;
-    }
-
-    template<>
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MI>()
     {
         return PPE_TARGET_TYPE_MI;
@@ -127,9 +121,9 @@ namespace fapi2
     }
 
     template<>
-    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MCBIST>()
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PEC>()
     {
-        return PPE_TARGET_TYPE_MCBIST;
+        return PPE_TARGET_TYPE_PEC;
     }
 
     template<>
@@ -142,6 +136,12 @@ namespace fapi2
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PAUC>()
     {
         return PPE_TARGET_TYPE_PAUC;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PAU>()
+    {
+        return PPE_TARGET_TYPE_PAU;
     }
 
     template<>
@@ -419,7 +419,7 @@ namespace fapi2
 
         static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
         static_assert((T == TARGET_TYPE_EQ) || (T == TARGET_TYPE_CORE)
-                || (T == TARGET_TYPE_PERV) || (T == TARGET_TYPE_MCBIST)
+                || (T == TARGET_TYPE_PERV) || (T == TARGET_TYPE_PEC)
                 || (T == TARGET_TYPE_MC),
                 "Child target type must be a pervasive chiplet");
 

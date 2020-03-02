@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -56,18 +56,13 @@ CONST_UINT32_T(MC_TARGET_OFFSET, PCI_TARGET_OFFSET + PCI_TARGET_COUNT);
 CONST_UINT32_T(MC_CHIPLET_OFFSET, 0xC);
 CONST_UINT32_T(MC_TARGET_COUNT,     4);
 
-//MCBIST targets
-CONST_UINT32_T(MCBIST_TARGET_OFFSET, PCI_TARGET_OFFSET + PCI_TARGET_COUNT);
-CONST_UINT32_T(MCBIST_CHIPLET_OFFSET, 0xC);
-CONST_UINT32_T(MCBIST_TARGET_COUNT,     4);
-
-// PAUC targets
-CONST_UINT32_T(PAUC_TARGET_OFFSET, MC_TARGET_OFFSET + MC_TARGET_COUNT);
-CONST_UINT32_T(PAUC_CHIPLET_OFFSET, 0x10);
-CONST_UINT32_T(PAUC_TARGET_COUNT,      4);
+// PAU targets
+CONST_UINT32_T(PAU_TARGET_OFFSET, MC_TARGET_OFFSET + MC_TARGET_COUNT);
+CONST_UINT32_T(PAU_CHIPLET_OFFSET, 0x10);
+CONST_UINT32_T(PAU_TARGET_COUNT,      4);
 
 // IOHS targets
-CONST_UINT32_T(IOHS_TARGET_OFFSET, PAUC_TARGET_OFFSET + PAUC_TARGET_COUNT);
+CONST_UINT32_T(IOHS_TARGET_OFFSET, PAU_TARGET_OFFSET + PAU_TARGET_COUNT);
 CONST_UINT32_T(IOHS_CHIPLET_OFFSET, 0x18);
 CONST_UINT32_T(IOHS_TARGET_COUNT,      8);
 
@@ -101,6 +96,17 @@ CONST_UINT32_T(MI_TARGET_COUNT,          4);
 CONST_UINT32_T(NMMU_TARGET_OFFSET,  MI_TARGET_OFFSET + MI_TARGET_COUNT);
 CONST_UINT32_T(NMMU_TARGET_COUNT,          2);
 
+// PAUC Targets
+CONST_UINT32_T(PAUC_TARGET_OFFSET,  NMMU_TARGET_OFFSET + NMMU_TARGET_COUNT);
+CONST_UINT32_T(PAUC_CHIPLET_OFFSET,      0x0);
+CONST_UINT32_T(PAUC_TARGET_COUNT,          6);
+
+// PEC targets
+CONST_UINT32_T(PEC_TARGET_OFFSET, PAUC_TARGET_OFFSET + PAUC_TARGET_COUNT);
+CONST_UINT32_T(PEC_CHIPLET_OFFSET, 0x8);
+CONST_UINT32_T(PEC_TARGET_COUNT,     2);
+
+
 // System Target
 CONST_UINT32_T(SYSTEM_TARGET_OFFSET, NMMU_TARGET_OFFSET + NMMU_TARGET_COUNT);
 CONST_UINT32_T(SYSTEM_TARGET_COUNT,     1);
@@ -111,18 +117,20 @@ CONST_UINT32_T(PERV_TARGET_COUNT,   TP_TARGET_COUNT +
                                     NEST_TARGET_COUNT +
                                     PCI_TARGET_COUNT +
                                     MC_TARGET_COUNT +
-                                    PAUC_TARGET_COUNT +
+                                    PAU_TARGET_COUNT +
                                     IOHS_TARGET_COUNT +
                                     EQ_TARGET_COUNT);
 
 // Total Target Count
 CONST_UINT32_T(TARGET_COUNT,        CHIP_TARGET_COUNT +
                                     PERV_TARGET_COUNT +
+                                    PEC_TARGET_COUNT +
                                     EX_TARGET_COUNT +
                                     CORE_TARGET_COUNT +
                                     PHB_TARGET_COUNT +
                                     MI_TARGET_COUNT +
                                     NMMU_TARGET_COUNT +
+                                    PAUC_TARGET_COUNT +
                                     SYSTEM_TARGET_COUNT);
 
 // Maximum possible Pervasive chiplets

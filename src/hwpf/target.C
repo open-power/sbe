@@ -181,15 +181,15 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.type = PPE_TARGET_TYPE_MC;
         l_handle.fields.type_target_num = i_plat_argument;
     }
-    else if(K & TARGET_TYPE_MCBIST)
+    else if(K & TARGET_TYPE_PAU)
     {
-        l_handle.fields.chiplet_num = i_plat_argument + MCBIST_CHIPLET_OFFSET;
-        l_handle.fields.type = PPE_TARGET_TYPE_MCBIST;
+        l_handle.fields.chiplet_num = i_plat_argument + PAU_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_PAU;
         l_handle.fields.type_target_num = i_plat_argument;
     }
     else if(K & TARGET_TYPE_PAUC)
     {
-        l_handle.fields.chiplet_num = i_plat_argument + PAUC_CHIPLET_OFFSET;
+        l_handle.fields.chiplet_num = (i_plat_argument/2) + PAU_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_PAUC;
         l_handle.fields.type_target_num = i_plat_argument;
     }
@@ -209,6 +209,12 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
     {
         l_handle.fields.chiplet_num = i_plat_argument + NEST_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_NMMU;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_PEC)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + PEC_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_PEC;
         l_handle.fields.type_target_num = i_plat_argument;
     }
 
@@ -379,11 +385,11 @@ fapi_try_exit:
             l_idx = (i_chipletNumber - MC_CHIPLET_OFFSET) +
                 MC_TARGET_OFFSET;
         }
-        else if((i_chipletNumber >= PAUC_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (PAUC_CHIPLET_OFFSET + PAUC_TARGET_COUNT)))
+        else if((i_chipletNumber >= PAU_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (PAU_CHIPLET_OFFSET + PAU_TARGET_COUNT)))
         {
-            l_idx = (i_chipletNumber - PAUC_CHIPLET_OFFSET) +
-                PAUC_TARGET_OFFSET;
+            l_idx = (i_chipletNumber - PAU_CHIPLET_OFFSET) +
+                PAU_TARGET_OFFSET;
         }
         else if((i_chipletNumber >= IOHS_CHIPLET_OFFSET) &&
                 (i_chipletNumber < (IOHS_CHIPLET_OFFSET + IOHS_TARGET_COUNT)))
@@ -460,6 +466,22 @@ fapi_try_exit:
         return G_vec_targets[l_idx];
     }
 
+    // Get the plat target handle by chiplet number - For PAU targets
+    template<>
+    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PAU>(
+            const uint8_t i_chipletNumber)
+    {
+        assert(((i_chipletNumber >= PAU_CHIPLET_OFFSET) &&
+                (i_chipletNumber < (PAU_CHIPLET_OFFSET + PAU_TARGET_COUNT))));
+
+        uint32_t l_idx = (i_chipletNumber - PAU_CHIPLET_OFFSET) +
+                 PAU_TARGET_OFFSET;
+
+        return G_vec_targets[l_idx];
+    }
+
+
+
     // Get the plat target handle by chiplet number - For IOHS targets
     template<>
     plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_IOHS>(
@@ -514,17 +536,17 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_MC:
                 l_targetType = TARGET_TYPE_MC;
                 break;
-            case PPE_TARGET_TYPE_MCBIST:
-                l_targetType = TARGET_TYPE_MCBIST;
+            case PPE_TARGET_TYPE_PEC:
+                l_targetType = TARGET_TYPE_PEC;
                 break;
             case PPE_TARGET_TYPE_PAUC:
                 l_targetType = TARGET_TYPE_PAUC;
                 break;
+            case PPE_TARGET_TYPE_PAU:
+                l_targetType = TARGET_TYPE_PAU;
+                break;
             case PPE_TARGET_TYPE_IOHS:
                 l_targetType = TARGET_TYPE_IOHS;
-                break;
-            case PPE_TARGET_TYPE_MCS:
-                l_targetType = TARGET_TYPE_MCS;
                 break;
             case PPE_TARGET_TYPE_MI:
                 l_targetType = TARGET_TYPE_MI;
@@ -755,17 +777,17 @@ fapi_try_exit:
         static const bool l_truth_table[] = {
             false, // PPE_TARGET_TYPE_NONE
             false, // PPE_TARGET_TYPE_PROC_CHIP
-            false, // PPE_TARGET_TYPE_MCS
+            true, // PPE_TARGET_TYPE_PAU
             false,  // PPE_TARGET_TYPE_CORE
             true,  // PPE_TARGET_TYPE_EQ
             false, // PPE_TARGET_TYPE_EX
             true,  // PPE_TARGET_TYPE_PERV
-            true,  // PPE_TARGET_TYPE_MCBIST
+            false,  // PPE_TARGET_TYPE_PEC
             false, // PPE_TARGET_TYPE_SYSTEM
             false, // PPE_TARGET_TYPE_PHB
             false, // PPE_TARGET_TYPE_MI
             true,  // PPE_TARGET_TYPE_MC
-            true,  // PPE_TARGET_TYPE_PAUC
+            false,  // PPE_TARGET_TYPE_PAUC
             true, // PPE_TARGET_TYPE_IOHS
             false, // PPE_TARGET_TYPE_NMMU
             false, // 0x0F
@@ -872,15 +894,15 @@ fapi_try_exit:
             }
         }
 
-        for(uint32_t i=0; i<PAUC_TARGET_COUNT; ++i)
+        for(uint32_t i=0; i<PAU_TARGET_COUNT; ++i)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV> paucPerv = G_vec_targets.at(i + PAUC_TARGET_OFFSET);
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> pauPerv = G_vec_targets.at(i + PAU_TARGET_OFFSET);
             fapi2::ATTR_PG_Type pg;
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, paucPerv, pg));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, pauPerv, pg));
             if(pg == 0xFFFFFFFF)
             {
-                static_cast<plat_target_handle_t&>(paucPerv.operator ()()).setFunctional(false);
-                G_vec_targets.at(i + PAUC_TARGET_OFFSET) = paucPerv.get();
+                static_cast<plat_target_handle_t&>(pauPerv.operator ()()).setFunctional(false);
+                G_vec_targets.at(i + PAU_TARGET_OFFSET) = pauPerv.get();
             }
         }
 
@@ -898,6 +920,7 @@ fapi_try_exit:
     {
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         plat_target_handle_t l_platHandle;
+        uint32_t pauc_chiplet = 0;
 
         // Initialize multicast group mappings to "undefined"
         clear_mc_map();
@@ -983,7 +1006,7 @@ fapi_try_exit:
         }
 
         /*
-         * Note: MCBIST/MC have the same offset and counts, so the loop just
+         * Note: MC have the same offset and counts, so the loop just
          *       uses MC constants
          */
         l_beginning_offset = MC_TARGET_OFFSET;
@@ -998,14 +1021,14 @@ fapi_try_exit:
         }
 
         /*
-         * PAUC Targets
+         * PAU Targets
          */
-        l_beginning_offset = PAUC_TARGET_OFFSET;
-        for (uint32_t i = 0; i < PAUC_TARGET_COUNT; ++i)
+        l_beginning_offset = PAU_TARGET_OFFSET;
+        for (uint32_t i = 0; i < PAU_TARGET_COUNT; ++i)
         {
-            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_PAUC>(i);
+            l_platHandle = createPlatTargetHandle<fapi2::TARGET_TYPE_PAU>(i);
             fapi2::Target<fapi2::TARGET_TYPE_PERV> l_perv(l_platHandle);
-            // Set PAUC Chiplet Present/Functional by Default
+            // Set PAU Chiplet Present/Functional by Default
             static_cast<plat_target_handle_t&>(l_perv.operator ()()).setPresent();
             static_cast<plat_target_handle_t&>(l_perv.operator ()()).setFunctional(true);
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(l_perv.get());
@@ -1080,6 +1103,24 @@ fapi_try_exit:
         }
 
         /*
+         * PAU Targets
+         */
+        l_beginning_offset = PAUC_TARGET_OFFSET;
+        for (uint32_t i = 0; i < PAUC_TARGET_COUNT; ++i)
+        {
+            if(i > 0)
+            {
+                pauc_chiplet = i+2;
+            }
+            fapi2::Target<fapi2::TARGET_TYPE_PAUC> target_name(createPlatTargetHandle<fapi2::TARGET_TYPE_PAUC>(pauc_chiplet));
+            // Set PAUC Chiplet Present/Functional by Default
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
+        }
+
+
+        /*
          * NMMU Targets
          */
         l_beginning_offset = NMMU_TARGET_OFFSET;
@@ -1090,6 +1131,23 @@ fapi_try_exit:
             static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
             static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
+        }
+
+        /*
+         * PEC Targets
+         */
+        l_beginning_offset = PEC_TARGET_OFFSET;
+        for (uint32_t i = 0; i < PEC_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_PEC> target_name((createPlatTargetHandle<fapi2::TARGET_TYPE_PEC>(i)));
+            // Set PEC Chiplet Present/Functional by Default
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setPresent();
+            static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
+            G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
+        }
+        for(uint32_t i=0;i< TARGET_COUNT;i++)
+        {
+            FAPI_ERR("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
         }
 
 fapi_try_exit:

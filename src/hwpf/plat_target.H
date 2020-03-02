@@ -43,8 +43,8 @@ static const uint8_t EX_PER_QUAD = 2;
 static const uint8_t CORES_PER_EX = 2;
 static const uint8_t NEST_CHIPLET = 2;
 static const uint8_t PCI_CHIPLET = 2;
-static const uint8_t MCS_PER_MCBIST = 1;
 static const uint8_t MI_PER_MC = 1;
+static const uint8_t PAUC_CHIPLET = 6;
 static const uint8_t PARTIAL_GOOD_OFFSET_SHIFT_CORE0 = 0x12;
 
 //
@@ -62,12 +62,12 @@ namespace fapi2
     {
         PPE_TARGET_TYPE_NONE              = 0x00,
         PPE_TARGET_TYPE_PROC_CHIP         = 0x01,
-        PPE_TARGET_TYPE_MCS               = 0x02,
+        PPE_TARGET_TYPE_PAU               = 0x02,
         PPE_TARGET_TYPE_CORE              = 0x03,
         PPE_TARGET_TYPE_EQ                = 0x04,
-        PPE_TARGET_TYPE_EX                = 0x05,
+        PPE_TARGET_TYPE_EX                = 0x05,  // This can be removed
         PPE_TARGET_TYPE_PERV              = 0x06,
-        PPE_TARGET_TYPE_MCBIST            = 0x07,
+        PPE_TARGET_TYPE_PEC               = 0x07,
         PPE_TARGET_TYPE_SYSTEM            = 0x08,
         PPE_TARGET_TYPE_PHB               = 0x09,
         PPE_TARGET_TYPE_MI                = 0x0A,
