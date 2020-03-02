@@ -153,5 +153,9 @@ const uint64_t PCBM_REC_ERR_REG2         = 0x000F0013;
 const uint64_t PCBM_REC_ERR_REG3         = 0x000F0014;
 const uint64_t PCBM_FIRST_ERR            = 0x000F001E;
 const uint64_t PCBM_ERR_REG              = 0x000F001F;
+const uint64_t PCBM_REC_ERR_MST14_REG0         = 0x000F0078;
+const uint64_t PCBM_REC_ERR_MST14_REG1         = 0x000F0079;
+const uint64_t PCBM_REC_ERR_MST14_REG2         = 0x000F007A;
+const uint64_t PCBM_REC_ERR_MST14_REG3         = 0x000F007B;
 
 #endif
