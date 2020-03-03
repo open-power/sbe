@@ -2134,20 +2134,14 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     CompressedScanData* rs4 = NULL;
     CompressedScanData* rs4ForDisplay = NULL;
     uint32_t    maxRingBufSize;
-    void*       rs4StumpBuf;
-    void*       rs4CmskBuf;
-    CompressedScanData* rs4Stump;
-    CompressedScanData* rs4Cmsk;
     void*       dataBuf;
     void*       careBuf;
     uint8_t*    data;
     uint8_t*    care;
     uint32_t    bits;
     uint16_t    rs4Size;
-    uint8_t     ringType;  // The RS4 header iv_type field
+    uint8_t     typeField;  // The RS4 header iv_type field
     double      comprRate;
-    uint8_t     cmskRingIteration = 0;
-    char        ringSuffix = ' ';
     MyBool_t bRingsFound = UNDEFINED_BOOLEAN;
     MyBool_t bPrintHeader = UNDEFINED_BOOLEAN;
 
@@ -2195,8 +2189,7 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     }
 
     //
-    // Allocate buffers to hold decompressed raw rings for data and care as well
-    // as for buffers to hold extracted RS4 Stump and CMSK rings
+    // Allocate buffers to hold decompressed raw rings for data and care
     //
     maxRingBufSize = MAX_RING_BUF_SIZE_TOOL;
 
@@ -2214,23 +2207,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
     data = (uint8_t*)dataBuf;
     care = (uint8_t*)careBuf;
-
-    rs4StumpBuf = operator new(maxRingBufSize);
-    rs4CmskBuf = operator new(maxRingBufSize);
-
-    if (!rs4StumpBuf || !rs4CmskBuf)
-    {
-        fprintf(stderr, "malloc of rs4StumpBuf or rs4CmskBuf failed!\n");
-        operator delete(rs4Buf);
-        operator delete(dataBuf);
-        operator delete(careBuf);
-        operator delete(rs4StumpBuf);
-        operator delete(rs4CmskBuf);
-        exit(EXIT_FAILURE);
-    }
-
-    rs4Stump = (CompressedScanData*)rs4StumpBuf;
-    rs4Cmsk  = (CompressedScanData*)rs4CmskBuf;
 
     // Assume no rings will be found so on the next loop so we can print
     // the info
@@ -2411,8 +2387,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                         operator delete(rs4Buf);
                         operator delete(dataBuf);
                         operator delete(careBuf);
-                        operator delete(rs4StumpBuf);
-                        operator delete(rs4CmskBuf);
                         exit(EXIT_FAILURE);
                     }
                 }
@@ -2425,8 +2399,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                     operator delete(rs4Buf);
                     operator delete(dataBuf);
                     operator delete(careBuf);
-                    operator delete(rs4StumpBuf);
-                    operator delete(rs4CmskBuf);
                     exit(EXIT_FAILURE);
                 }
 
@@ -2434,182 +2406,113 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
 
                 ringName = ringProps[ringId].ringName;
 
-                // This do-while loop is for cmsk support to display
-                // both rs4 stump ring and rs4 cmsk ring else this
-                // loop would run only once
-                cmskRingIteration = 0;
+                data = (uint8_t*)dataBuf;
+                care = (uint8_t*)careBuf;
 
-                do
+                // - Decompress ring to obtain ring length and to verify compressed string
+
+                rs4ForDisplay = rs4;
+                rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4);
+
+                if (rc)
                 {
-                    data = (uint8_t*)dataBuf;
-                    care = (uint8_t*)careBuf;
+                    fprintf(stderr, "rs4 decompress error %d\n", rc);
+                    exit(EXIT_FAILURE);
+                }
 
-                    // - Decompress ring to obtain ring length and to verify compressed string
-                    // - Check for cmsk ring
-                    MyBool_t bCmsk = UNDEFINED_BOOLEAN;
-                    uint8_t  ivType;
-                    bCmsk = rs4_is_cmsk(rs4, ivType);
+                rs4Size = be16toh(rs4ForDisplay->iv_size);
 
-                    if (bCmsk == true)
-                    {
-                        if (!cmskRingIteration)
-                        {
-                            // Extract Stump & Cmsk rings from hybrid RS4 ring. Then
-                            // decompress each to get ring length and trace out
-                            rs4Stump = (CompressedScanData*)rs4StumpBuf;
-                            rs4Cmsk  = (CompressedScanData*)rs4CmskBuf;
-                            rc = _rs4_extract_cmsk(rs4, maxRingBufSize, rs4Stump, rs4Cmsk);
+                comprRate = (double)rs4Size * 8.0 / (double)bits * 100.0;
 
-                            if (rc)
-                            {
-                                fprintf(stderr, "CMSK extract error %d\n", rc);
-                                exit(EXIT_FAILURE);
-                            }
+                typeField = rs4ForDisplay->iv_type;
 
-                            cmskRingIteration++;
-                            ringSuffix = 's';
-                            rs4ForDisplay = rs4Stump;    //For 'raw' & 'long' display
-                            rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4Stump);
+                // tabular ring list if "table".
+                if (i_listingModeId == LMID_TABLE)
+                {
+                    fprintf(stdout,
+                            "%4i    "
+                            "0x%02x   "
+                            "%3u    " // chipletId for TOR, selector for DYN
+                            "%7d  "
+                            "%6.2f   "
+                            "%s\n",
+                            ringSeqNo, ddLevel, subQualId, bits, comprRate, ringName);
+                }
 
-                            if (rc)
-                            {
-                                fprintf(stderr, "rs4Stump decompress error %d\n", rc);
-                                exit(EXIT_FAILURE);
-                            }
-                        }
-                        else
-                        {
-                            cmskRingIteration--;
-                            ringSuffix = 'c';
-                            rs4ForDisplay = rs4Cmsk;    //For 'raw' & 'long' display
-                            rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4Cmsk);
+                // Summarize all characteristics of the ring block if "normal", "long" or "raw"
+                if ( i_listingModeId == LMID_NORMAL ||
+                     i_listingModeId == LMID_LONG ||
+                     i_listingModeId == LMID_RAW )
+                {
+                    fprintf( stdout,
+                             "-----------------------------\n"
+                             "%i\n"
+                             "ddLevel = 0x%02x\n"
+                             "ringId = 0x%03x (%u)\n"
+                             "ringName = %s\n"
+                             "chipletId = 0x%02x\n"
+                             "iv_type = 0x%02x\n"
+                             "selector = %u\n"
+                             "rs4Size [bytes] = 0x%x\n"
+                             "rawLength [bits] = 0x%x\n"
+                             "compression [%%] = %6.2f\n",
+                             ringSeqNo, ddLevel, ringId, ringId, ringName,
+                             chipletId, typeField, selector, rs4Size, bits, comprRate);
+                }
 
-                            if (rc)
-                            {
-                                fprintf(stderr, "rs4Cmsk decompress error %d\n", rc);
-                                exit(EXIT_FAILURE);
-                            }
-                        }
-                    }
-                    else if (bCmsk == false)
-                    {
-                        ringSuffix = ' ';
-                        rs4ForDisplay = rs4;
-                        rc = _rs4_decompress(data, care, maxRingBufSize, &bits, rs4);
+                // Dump ring block if "long" or "raw"
+                if ( i_listingModeId == LMID_LONG ||
+                     i_listingModeId == LMID_RAW )
+                {
+                    fprintf(stdout, "Binary ring block dump:\n");
 
-                        if (rc)
-                        {
-                            fprintf(stderr, "rs4 decompress error %d\n", rc);
-                            exit(EXIT_FAILURE);
-                        }
-                    }
-                    else
-                    {
-                        fprintf(stderr, "ERROR: rs4_is_cmsk() returned UNDEFINED_BOOLEAN. This"
-                                " is not allowed. A ring must be either an CMSK or a non-CMSK"
-                                " ring. The RS4 header indicates the following value of"
-                                " iv_type: 0x%02x\n",
-                                ivType);
-                        exit(EXIT_FAILURE);
-                    }
-
-                    rs4Size = be16toh(rs4ForDisplay->iv_size);
-
-                    comprRate = (double)rs4Size * 8.0 / (double)bits * 100.0;
-
-                    ringType = rs4ForDisplay->iv_type;
-
-                    // tabular ring list if "table".
-                    if (i_listingModeId == LMID_TABLE)
-                    {
-                        fprintf(stdout,
-                                "%4i%c   "
-                                "0x%02x   "
-                                "%3u    " // chipletId for TOR, selector for DYN
-                                "%7d  "
-                                "%6.2f   "
-                                "%s\n",
-                                ringSeqNo, ringSuffix, ddLevel, subQualId,
-                                bits, comprRate, ringName);
-                    }
-
-                    // Summarize all characteristics of the ring block if "normal", "long" or "raw"
-                    if (i_listingModeId == LMID_NORMAL ||
-                        i_listingModeId == LMID_LONG ||
-                        i_listingModeId == LMID_RAW)
+                    // Output 8 bytes per line (in 2 byte chunks)
+                    for (i = 0; i < rs4Size / 8; i++)
                     {
                         fprintf( stdout,
-                                 "-----------------------------\n"
-                                 "%i.%c\n"
-                                 "ddLevel = 0x%02x\n"
-                                 "ringId = 0x%x (%u)\n"
-                                 "ringName = %s\n"
-                                 "chipletId = 0x%02x\n"
-                                 "type = 0x%02x\n"
-                                 "selector = %u\n"
-                                 "rs4Size [bytes] = 0x%x\n"
-                                 "rawLength [bits] = 0x%x\n"
-                                 "compression [%%] = %6.2f\n",
-                                 ringSeqNo, ringSuffix, ddLevel, ringId, ringId, ringName,
-                                 chipletId, ringType, selector, rs4Size, bits, comprRate);
+                                 "%04x: %04x %04x %04x %04x\n",
+                                 i * 8,
+                                 (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 48),
+                                 (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 32),
+                                 (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 16),
+                                 (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i))) );
                     }
 
-                    // Dump ring block if "long" or "raw"
-                    if (i_listingModeId == LMID_LONG ||
-                        i_listingModeId == LMID_RAW)
+                    // Output rem above 8 bytes (in 2 byte chunks, 1 byte resolution)
+                    uint8_t l_rem = rs4Size - rs4Size / 8 * 8;
+
+                    if (l_rem)
                     {
-                        fprintf(stdout, "Binary ring block dump:\n");
+                        fprintf( stdout, "%04x:", i * 8);
 
-                        // Output 8 bytes per line (in 2 byte chunks)
-                        for (i = 0; i < rs4Size / 8; i++)
+                        for (uint8_t ii = 0; ii < l_rem; ii++)
                         {
-                            fprintf( stdout,
-                                     "%04x: %04x %04x %04x %04x\n",
-                                     i * 8,
-                                     (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 48),
-                                     (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 32),
-                                     (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> 16),
-                                     (uint16_t)( htobe64(*((uint64_t*)rs4ForDisplay + i))) );
-                        }
-
-                        // Output rem above 8 bytes (in 2 byte chunks, 1 byte resolution)
-                        uint8_t l_rem = rs4Size - rs4Size / 8 * 8;
-
-                        if (l_rem)
-                        {
-                            fprintf( stdout, "%04x:", i * 8);
-
-                            for (uint8_t ii = 0; ii < l_rem; ii++)
+                            if ( (ii - ii / 2 * 2) == 0 )
                             {
-                                if ( (ii - ii / 2 * 2) == 0 )
-                                {
-                                    fprintf( stdout, " ");
-                                }
-
-                                fprintf( stdout, "%02x",
-                                         (uint8_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> (56 - ii * 8)) );
+                                fprintf( stdout, " ");
                             }
+
+                            fprintf( stdout, "%02x",
+                                     (uint8_t)( htobe64(*((uint64_t*)rs4ForDisplay + i)) >> (56 - ii * 8)) );
                         }
-
-                        fprintf( stdout, "\n");
                     }
 
-                    // Below we dump the raw decompressed ring content in the exact same
-                    //   format that it appears as in EKB's ifCompiler generated raw ring
-                    //   files, i.e. *.bin.srd (DATA) and *.bin.srd.bitsModified (CARE).
-                    if (i_listingModeId == LMID_RAW)
-                    {
-                        fprintf( stdout, "\nRaw decompressed DATA nibbles:\n");
-                        print_raw_ring( data, bits);
-
-                        fprintf( stdout, "\nRaw decompressed CARE nibbles:\n");
-                        print_raw_ring( care, bits);
-
-                        fprintf( stdout, "\n");
-                    }
-
+                    fprintf( stdout, "\n");
                 }
-                while (cmskRingIteration);
+
+                // Below we dump the raw decompressed ring content in the exact same
+                //   format that it appears as in EKB's ifCompiler generated raw ring
+                //   files, i.e. *.bin.srd (DATA) and *.bin.srd.bitsModified (CARE).
+                if (i_listingModeId == LMID_RAW)
+                {
+                    fprintf( stdout, "\nRaw decompressed DATA nibbles:\n");
+                    print_raw_ring( data, bits);
+
+                    fprintf( stdout, "\nRaw decompressed CARE nibbles:\n");
+                    print_raw_ring( care, bits);
+
+                    fprintf( stdout, "\n");
+                }
 
             }
             else if ( rc == TOR_RING_IS_EMPTY        ||
@@ -2631,8 +2534,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
                 operator delete(rs4Buf);
                 operator delete(dataBuf);
                 operator delete(careBuf);
-                operator delete(rs4StumpBuf);
-                operator delete(rs4CmskBuf);
                 exit(EXIT_FAILURE);
             }
 
@@ -2657,8 +2558,6 @@ int dissectRingSectionTor( uint8_t*    i_ringSection,
     operator delete(rs4Buf);
     operator delete(dataBuf);
     operator delete(careBuf);
-    operator delete(rs4StumpBuf);
-    operator delete(rs4CmskBuf);
 
     return rc;
 }

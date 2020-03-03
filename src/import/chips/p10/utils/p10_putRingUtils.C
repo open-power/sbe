@@ -1054,14 +1054,29 @@ fapi2::ReturnCode p10_putRingUtils(
         {
             if( UNDEFINED_BOOLEAN == i_applyOverride )
             {
-                if( ( l_rs4Header->iv_type & RS4_IV_TYPE_OVRD_MASK ) == RS4_IV_TYPE_OVRD_OVRD )
+//CMO-20200410: Temp fix to avoid coreq
+if (l_rs4Header->iv_version == RS4_VERSION)
+{
+                if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK ) == RS4_IV_TYPE_SCAN_OVRD )
                 {
                     l_bOverride     =   true;
                 }
-                else if( ( l_rs4Header->iv_type & RS4_IV_TYPE_OVRD_MASK ) == RS4_IV_TYPE_OVRD_FLUSH )
+                else if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK ) == RS4_IV_TYPE_SCAN_FLUSH )
                 {
                     l_bOverride = false;
                 }
+}
+else
+{//V4 back support
+  if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK_V4 ) == RS4_IV_TYPE_SCAN_OVRD_V4 )
+  {
+    l_bOverride     =   true;
+  }
+  else if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK_V4 ) == RS4_IV_TYPE_SCAN_FLUSH_V4 )
+  {
+    l_bOverride = false;
+  }
+}
             }
 
             else if( true == i_applyOverride )
