@@ -39,7 +39,36 @@
 
 using namespace fapi2;
 
-uint32_t writeLPCReg(uint8_t i_addr,
+uint32_t readLPCReg(uint16_t i_addr,
+                  uint8_t &o_data)
+{
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    if (!o_data)
+        return SBE_SEC_INVALID_PARAMS;
+
+    do {
+        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+
+        buffer<uint32_t> data = 0;
+        ReturnCode fapiRc = lpc_rw(proc,
+                                   LPC_IO_SPACE + i_addr,
+                                   sizeof(uint8_t),
+                                   true,
+                                   false,
+                                   data);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            rc = SBE_SEC_LPC_ACCESS_FAILED;
+            o_data = 0xff;
+            break;
+        }
+        data.extract(o_data, 0, 8);
+    } while(0);
+
+    return rc;
+}
+
+uint32_t writeLPCReg(uint16_t i_addr,
                   uint8_t i_data)
 {
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;

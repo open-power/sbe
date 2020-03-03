@@ -39,4 +39,5 @@
 #define LPC_IO_SPACE        0xD0010000
 #define LPC_MAX_IO_SPACE    (64*1024)
 
-uint32_t writeLPCReg(uint8_t i_addr, uint8_t i_data);
+uint32_t readLPCReg(uint16_t i_addr, uint8_t &i_data);
+uint32_t writeLPCReg(uint16_t i_addr, uint8_t i_data);
