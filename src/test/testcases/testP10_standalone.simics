@@ -26,10 +26,27 @@
 
 $simicsObj=(get-master-procs)
 $simicsObj[0].pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
+echo "Run-cycles"
+#sim->frontend_current_processor = backplane0.dcm[0].chip[0].pib_cmp.sbe_ppe
+#sim->frontend_current_processor 
+#b 0xff880520
 
+#output-file-start pib_cmp_dump -overwrite
+#backplane0.dcm[0].chip[0].pib_cmp.cecchip.log-level 1
+# calebs
+#cript-branch "wait for configuration loaded before starting" {
+#       wait-for-hap hap = Core_Configuration_Loaded
+#       echo "Post Core_Configuration_Loaded hap"
+run-cycles 10000000
+#run
+#run-seconds 1.0
 echo "*******************Run testRunTillSbeBooted.py************************"
 
 run-python-file targets/p10_standalone/sbeTest/testRunTillSbeBooted.py
+#backplane0.dcm[0].chip[0].pib_cmp.sbe_ppe.pregs
+#backplane0.dcm[0].chip[0].pib_cmp.cecchip.invoke parallel_load SCOM 0x1000100 64
+#backplane0.dcm[0].chip[0].pib_cmp.cecchip.invoke parallel_load SCOM 0x1030005 64
+#output-file-stop
 
 echo "*******************Run testPSUSetStashPair.xml*******************"
 

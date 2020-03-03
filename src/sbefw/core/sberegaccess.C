@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -158,6 +158,7 @@ uint32_t SbeRegAccess::init(bool forced)
             SBE_ERROR(SBE_FUNC"Failed reading mailbox reg 8, RC: 0x%08X. ", rc);
             break;
         }
+        SBE_INFO(SBE_FUNC "MBX_reg8 read : 0x%08X", (uint32_t)(iv_mbx8 >> 32));
         if(iv_mbx3_valid)
         {
             // Read MBX3
@@ -168,6 +169,7 @@ uint32_t SbeRegAccess::init(bool forced)
                         rc);
                 break;
             }
+            SBE_INFO(SBE_FUNC "MBX_reg3 from scratch : 0x%08X", (uint32_t)(iv_mbx3 >> 32));
         }
         else
         {
@@ -176,6 +178,7 @@ uint32_t SbeRegAccess::init(bool forced)
             FAPI_ATTR_GET(ATTR_BOOT_FLAGS, Target<TARGET_TYPE_SYSTEM>(),
                           l_attr);
             iv_mbx3 = ((uint64_t) l_attr ) << 32;
+            SBE_INFO(SBE_FUNC "MBX_reg3 from Attribute : 0x%08X", (uint32_t)(iv_mbx3 >> 32));
         }
         if(iv_mbx6_valid)
         {
@@ -187,6 +190,7 @@ uint32_t SbeRegAccess::init(bool forced)
                           rc);
                 break;
             }
+            SBE_INFO(SBE_FUNC "MBX_reg6 from scratch : 0x%08X", (uint32_t)(iv_mbx6 >> 32));
         }
 
         SBE_ERROR("SKIP check the C4 board pin!!!");
