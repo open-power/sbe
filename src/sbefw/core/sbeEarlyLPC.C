@@ -94,3 +94,46 @@ uint32_t writeLPCReg(uint16_t i_addr,
 
     return rc;
 }
+
+uint32_t readLPCRegIndexed(uint8_t i_addr,
+                  uint8_t i_index, uint8_t &o_data)
+{
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    do {
+        rc = writeLPCReg(i_addr, i_index);
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            o_data = 0xff;
+            break;
+        }
+        rc = readLPCReg(i_addr + 1, o_data);
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            break;
+        }
+    } while(0);
+
+    return rc;
+}
+
+uint32_t writeLPCRegIndexed(uint8_t i_addr,
+                  uint8_t i_index, uint8_t i_data)
+{
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    do {
+        rc = writeLPCReg(i_addr, i_index);
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            break;
+        }
+        rc = writeLPCReg(i_addr + 1, i_data);
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            break;
+        }
+    } while(0);
+
+    return rc;
+}

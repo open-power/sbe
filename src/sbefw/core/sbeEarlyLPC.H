@@ -41,3 +41,7 @@
 
 uint32_t readLPCReg(uint16_t i_addr, uint8_t &i_data);
 uint32_t writeLPCReg(uint16_t i_addr, uint8_t i_data);
+uint32_t readLPCRegIndexed(uint8_t i_addr,
+                  uint8_t i_index, uint8_t &o_data);
+uint32_t writeLPCRegIndexed(uint8_t i_addr,
+                  uint8_t i_index, uint8_t i_data);
