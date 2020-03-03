@@ -30,28 +30,15 @@
 
 #ifndef SBE_IPL_STATUS_LPC_SUPPORT
 
-#define SBE_ISTEP_LPC_INIT
-#define SBE_ISTEP_LPC_DISABLE
 #define SBE_PUT_ISTEP_LPC(major, minor)
 
 #else
-
-#define SBE_ISTEP_LPC_INIT {         \
-    SBE_GLOBAL->sbeLPCActive = true; \
-}
-
-#define SBE_ISTEP_LPC_DISABLE {       \
-    SBE_GLOBAL->sbeLPCActive = false; \
-}
 
 #define SBE_PUT_ISTEP_LPC(major, minor) \
     if(SBE_GLOBAL->sbeLPCActive) \
     { \
         postPutIStep(major, minor); \
     }
-
-#define LPC_IO_SPACE        0xD0010000
-#define LPC_MAX_IO_SPACE    (64*1024)
 
 void postPutIStep(char major, char minor);
 

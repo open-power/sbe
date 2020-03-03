@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018-2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018-2020                        */
 /* [+] International Business Machines Corp.                              */
 /* [+] Raptor Engineering, LLC                                            */
 /*                                                                        */
@@ -26,6 +26,7 @@
 #include "sbetrace.H"
 #include "fapi2.H"
 
+#include "sbeEarlyLPC.H"
 #include "sbeIPLStatusLPC.H"
 
 #include "p9_perv_scom_addresses.H"
@@ -38,33 +39,6 @@
 #include "p9_lpc_utils.H"
 
 using namespace fapi2;
-
-static uint32_t writeLPCReg(uint8_t i_addr,
-                  uint8_t i_data)
-{
-    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-
-    do {
-        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-
-        buffer<uint32_t> data = 0;
-        data.insert(i_data, 0, 8);
-
-        ReturnCode fapiRc = lpc_rw(proc,
-                                   LPC_IO_SPACE + i_addr,
-                                   sizeof(uint8_t),
-                                   false,
-                                   false,
-                                   data);
-        if(fapiRc != FAPI2_RC_SUCCESS)
-        {
-            rc = SBE_SEC_LPC_ACCESS_FAILED;
-            break;
-        }
-    } while(0);
-
-    return rc;
-}
 
 void postPutIStep(char major, char minor)
 {
