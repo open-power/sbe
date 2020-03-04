@@ -58,7 +58,7 @@ namespace SBE
         uint32_t pauFreqMhz = 0;
         FAPI_ATTR_GET( ATTR_FREQ_PAU_MHZ, sys, pauFreqMhz );
         SBE_INFO("Attr PAU Frequency in MHz [0x%08X]", pauFreqMhz);
-        assert( nestPllBkt );
+        assert( pauFreqMhz );
         SBE_GLOBAL->sbefreq = 
             ( pauFreqMhz * 1000 * 1000 ) / SBE::SBE_TO_NEST_FREQ_FACTOR;
         SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
