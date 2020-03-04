@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,11 +34,7 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_chiplet_reset.H"
-#include "p10_scom_perv_0.H"
-#include "p10_scom_perv_3.H"
-#include "p10_scom_perv_8.H"
-#include "p10_scom_perv_a.H"
-#include "p10_scom_perv_c.H"
+#include "p10_scom_perv.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 #include <multicast_group_defs.H>
@@ -112,6 +108,9 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
 
     FAPI_TRY(fapi2::putScom(l_mc_eq, CPLT_CTRL2_RW, l_data64));
     FAPI_TRY(fapi2::putScom(l_mc_eq, CPLT_CTRL3_RW, l_data64));
+
+    FAPI_DBG("Initialize SYNC_CONFIG regs with default values");
+    FAPI_TRY(fapi2::putScom(l_mc_all, SYNC_CONFIG, p10SbeChipletReset::SYNC_CONFIG_DEFAULT_VAL));
 
     FAPI_DBG("Initialize OPCG_ALIGN regs with default values");
     FAPI_TRY(fapi2::putScom(l_mc_all, OPCG_ALIGN, p10SbeChipletReset::OPCG_ALIGN_DEFAULT_VAL));

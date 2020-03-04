@@ -59,6 +59,10 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PAU_DPLL_BYPASS, i_target_chip, l_attr_dpll_bypass));
 
+    FAPI_DBG("Switch Nest/Cache mesh from 1:1 to 2:1");
+    l_data64.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL4_TP_MUX4A_CLKIN_SEL_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
+
     if (! (l_attr_dpll_bypass))
     {
         FAPI_DBG("Program bit rate divisor and delay into multiple SPI masters :1.MEAS 2.BOOT0 3.BOOT1 4.MVPD/Keystore 5.TPM");
@@ -116,10 +120,6 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
 
         FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_OPCG_ALIGN, l_opcg_align),
                  "Error from putScom (PERV_TP_OPCG_ALIGN)");
-
-        FAPI_DBG("Switch Nest/Cache mesh from 1:1 to 2:1");
-        l_data64.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL4_TP_MUX4A_CLKIN_SEL_DC>();
-        FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
     }
 
 fapi_try_exit:

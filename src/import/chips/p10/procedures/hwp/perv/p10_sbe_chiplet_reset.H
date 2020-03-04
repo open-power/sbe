@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -47,6 +47,7 @@ enum P10_SBE_CHIPLET_RESET_Public_Constants
     SCAN_TYPES_EXCEPT_TIME_GPTR_REPR = 0xDCF,
     REGIONS_EXCEPT_VITAL = 0x7FFF,
     SCAN_TYPES_TIME_GPTR_REPR = 0x230,
+    SYNC_CONFIG_DEFAULT_VAL = 0xA000000000000000,
     OPCG_ALIGN_DEFAULT_VAL = 0x5000000000000020,
     OPCG_ALIGN_INOP_ALIGN = 0x5,
     OPCG_ALIGN_INOP_WAIT = 0x0,
