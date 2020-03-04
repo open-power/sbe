@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -117,9 +117,9 @@ typedef struct
         // As we use PBA operation, size should be multiple
         // of 128bytes.
         uint32_t const SIZE_ALLIGNMENT = 128;
-        // There are 4 seeprom devices each of 64KB,
-        // aso there is 1 ecc byte per 8 bytes of data
-        uint32_t const MAX_SEEPROM_SIZE = ((65536 - (65536 % 9)) / 9) * 8 * 4;
+        // There 1 seeprom devices of 512KB, also there is 1 ecc byte per
+        // 8 bytes of data, total usable size is (512KB/9)*8
+        uint32_t const MAX_SEEPROM_SIZE = ((524288 - (524288 % 9)) / 9) * 8;
 
         return ( !(( offset % OFFSET_ALLIGNMENT != 0) ||
                   ( size % SIZE_ALLIGNMENT != 0 ) ||
