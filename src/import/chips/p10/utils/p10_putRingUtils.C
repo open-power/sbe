@@ -88,6 +88,7 @@ enum
     SCAN_REGION_MMA0            =   0x00010000,
     CHIPLET_MASK                =   0xff000000,
     SUPER_CHIPLET_MASK          =   0x20000000,
+    MULTICAST_BIT               =   0x40000000,
 };
 
 }// namespace RS4
@@ -459,18 +460,20 @@ bool isInstanceRing( const uint16_t i_ringId )
 
 //-------------------------------------------------------------------------------------------------------
 
-uint64_t decodeScanRegionData( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target, const uint32_t i_ringAddress,
-                               const uint16_t i_ringId )
+uint64_t decodeScanRegionData( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+                               const uint32_t i_ringAddress)
 {
     uint32_t l_chipletId    =   ((i_ringAddress & 0xFF000000) >> 24 );
     uint64_t l_value        =   0;
     uint32_t l_scan_region  =   ( ( i_ringAddress & 0x0000FFF0 ) |
                                   ( ( i_ringAddress & 0x00F00000 ) >> 20 ) ) << 13;
     uint32_t l_coreSelect   =   0;
+    uint32_t l_coreSetBitCount = 0;
 
     if( ( l_chipletId >= SUPER_CHIPLET_BASE_ID ) && ( l_chipletId <= SUPER_CHIPLET_MAX_ID ) )
     {
         l_coreSelect    =   i_target.getCoreSelect( );
+        l_coreSetBitCount = __builtin_popcount(l_coreSelect);
 
         do
         {
@@ -480,37 +483,32 @@ uint64_t decodeScanRegionData( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i
                break;
             }
 
-            // No parallel scan if core select suggest only one core region selected
-            if( ec_cl2_repr == i_ringId )
-            {
-                l_scan_region  |= ( l_coreSelect << SHIFT32(SHIFT_TO_BIT_ECL0) );
-                break;
-            }
-
-            if( ec_l3_repr == i_ringId )
-            {
-                l_scan_region  |=   ( l_coreSelect << SHIFT32(SHIFT_TO_BIT_L30) );
-                break;
-            }
-
             if( SCAN_REGION_MMA0 & l_scan_region )
             {
+                //MMA common rings are scanned individually.
+                //We need to deselect mma region bit that is set above
+                //because we need to set the right mma region thru coreselect.
+                l_scan_region &= ~SCAN_REGION_MMA0;
                 l_scan_region |= ( l_coreSelect << SHIFT32(SHIFT_TO_BIT_MMA0));
                 break;
             }
+            if (l_coreSetBitCount > 1)
+            {
+                l_scan_region |=  ENABLE_PARALLEL_SCAN; //Enabling parallel scan for all functional core region
+            }
 
             //we have core target as input
-            if( SCAN_REGION_ECL0 & l_scan_region )
+            if( SCAN_REGION_ECL0 & l_scan_region)
             {
-                l_scan_region   |=  SELECT_ALL_ECL;
-                l_scan_region   |=  ENABLE_PARALLEL_SCAN; //Enabling parallel scan for all functional core region
+                l_scan_region &= ~SCAN_REGION_ECL0;
+                l_scan_region |= ( l_coreSelect << SHIFT32(SHIFT_TO_BIT_ECL0));
                 break;
             }
 
-            if( SCAN_REGION_L30 & l_scan_region )
+            if( SCAN_REGION_L30 & l_scan_region)
             {
-                l_scan_region   |=  SELECT_ALL_L3;
-                l_scan_region   |=  ENABLE_PARALLEL_SCAN; //Enabling parallel scan for all functional L3 region
+                l_scan_region &= ~SCAN_REGION_L30;
+                l_scan_region |= ( l_coreSelect << SHIFT32(SHIFT_TO_BIT_L30));
                 break;
             }
 
@@ -1043,7 +1041,7 @@ fapi2::ReturnCode p10_putRingUtils(
         //Determine Override/flush status
         l_scanAddr      =   rev_32( l_rs4Header->iv_scanAddr );
         l_ringId        =   rev_16(l_rs4Header->iv_ringId);
-        l_scanRegion    =   decodeScanRegionData( i_target, l_scanAddr, l_ringId );
+        l_scanRegion    =   decodeScanRegionData( i_target, l_scanAddr);
         l_chipletMask   =   ( l_scanAddr  & CHIPLET_MASK );
 
 

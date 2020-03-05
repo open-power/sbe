@@ -248,6 +248,37 @@ fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& 
                                 const RingType_t i_ringType  =  COMMON_RING,
                                 RS4::OpMode_t i_opMode       =  RS4::SCANNING_MODE );
 
+
+/// @brief Function to clean up the clock controller scan region
+/// @param[in] i_target         Chiplet Target of Scan
+/// @param[in] i_ringType       COMMON or INSTANCE_RING
+/// @param[in] i_chipletMask    chiplet id bit shifted by 24 position
+/// @param[in] i_ringMode       different ring access operation mode
+/// @param[in] i_scanRegion     64 bit scan region type value
+/// @return FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode cleanupClockController(
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+    const RingType_t i_ringType,
+    const uint32_t i_chipletMask,
+    const fapi2::RingMode i_ringMode,
+    const uint64_t i_scanRegion,
+    const struct restoreOpcgRegisters& i_OPCGData);
+
+/// @brief Function to setup scan region and type
+/// @param[in] i_target         Chiplet Target of Scan
+/// @param[in] i_ringType       COMMON or INSTANCE_RING
+/// @param[in] i_chipletMask    chiplet id bit shifted by 24 position
+/// @param[in] i_ringMode       different ring access operation mode
+/// @param[in] i_scanRegion     64 bit scan region type value
+/// @return FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode setupClockController(
+    const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+    const RingType_t i_ringType,
+    const uint32_t i_chipletMask,
+    const fapi2::RingMode i_ringMode,
+    const uint64_t i_scanRegion,
+    struct restoreOpcgRegisters& o_OPCGData);
+
 } //extern "C"
 
 #endif  //_P10_PUTRINGUTILS_H_
