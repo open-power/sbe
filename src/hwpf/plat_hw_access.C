@@ -28,7 +28,8 @@
 #include "plat_hw_access.H"
 #ifndef __SBEMFW_MEASUREMENT__
 #include "p9_perv_scom_addresses.H"
-//#include <p9_putRingUtils.H>
+#include <p10_putRingUtils.H>
+#include <p10_plat_ring_traverse.H>
 #endif
 
 namespace fapi2
@@ -36,11 +37,16 @@ namespace fapi2
 
 #ifndef __SBEMFW_MEASUREMENT__
 
-//struct restoreOpcgRegisters g_opcgData;
+#define FASTINIT_SUPPORT 0x00080000
 
-uint64_t decodeScanRegionData(const uint32_t i_ringAddress)
+struct restoreOpcgRegisters g_opcgData;
+
+uint64_t decodeScanRegionData(const uint32_t i_ringAddress,
+                               const RingMode i_ringMode)
 {
-    uint32_t l_scan_region = (i_ringAddress & 0x0000FFF0) << 13;
+    
+    uint32_t l_scan_region  =   ( ( i_ringAddress & 0x0000FFF0 ) |
+                                ( ( i_ringAddress & 0x00F00000 ) >> 20 ) ) << 13;
 
     uint32_t l_scan_type = 0x00008000 >> (i_ringAddress & 0x0000000F);
 
@@ -50,6 +56,12 @@ uint64_t decodeScanRegionData(const uint32_t i_ringAddress)
     {
         l_scan_type = 0x00008000 | (l_scan_type << 12);
     }
+
+    if (i_ringAddress & FASTINIT_SUPPORT)
+    {
+        l_scan_region |= 0x8000000000000000;
+    }
+
     uint64_t l_value = l_scan_region;
     l_value = (l_value << 32) |  l_scan_type;
 
@@ -60,40 +72,24 @@ ReturnCode getRing_setup(const uint32_t i_ringAddress,
                              const RingMode i_ringMode)
 {
     fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
-#if 0
     uint64_t l_scanRegion = 0;
-    uint32_t l_chipletId = i_ringAddress >> 24;
+    uint32_t l_chipletId =  i_ringAddress & 0xFF000000;
 
     Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc = plat_getChipTarget();
 
     do
     {
-        l_scanRegion = decodeScanRegionData(i_ringAddress);
+        l_scanRegion = decodeScanRegionData(i_ringAddress, i_ringMode);
 
-        if (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL)
+        // Prep clock controller for ring scan with modified type
+        l_rc =  setupClockController( l_proc, INSTANCE_RING,
+                l_chipletId, i_ringMode, l_scanRegion, g_opcgData);
+        if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
-            l_rc =  storeOPCGRegData (l_proc, g_opcgData, l_chipletId);
-            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
-            {
-                break;
-            }
+            FAPI_ERR("setupClockController failed");
+            break;
+        }
 
-            l_rc = setupScanRegionForSetPulse(l_proc, l_scanRegion,
-                                        i_ringMode,l_chipletId);
-            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
-            {
-                break;
-            }
-        }
-        else
-        {
-            // Set up the scan region for the ring.
-            l_rc = setupScanRegion(l_proc, l_scanRegion, l_chipletId);
-            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
-            {
-                break;
-            }
-        }
         // Write a 64 bit value for header.
         const uint64_t l_header = 0xa5a5a5a5a5a5a5a5;
         uint32_t l_scomAddress = 0x0003E000 |  (i_ringAddress & 0xFF000000);
@@ -104,7 +100,6 @@ ReturnCode getRing_setup(const uint32_t i_ringAddress,
         }
 
     }while(0);
-#endif
     return l_rc;
 }
 
@@ -112,37 +107,29 @@ ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
                                     const RingMode i_ringMode)
 {
     fapi2::ReturnCode l_rc = FAPI2_RC_SUCCESS;
-#if 0
-    uint32_t l_chipletId = i_ringAddress >> 24;
+    uint32_t l_chipletId =  i_ringAddress & 0xFF000000;
 
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc;
+    Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc = plat_getChipTarget();
 
     do
     {
         // Verify header
-        l_rc = verifyHeader(l_proc,l_chipletId,i_ringMode);
+        l_rc = verifyHeader( l_proc, i_ringMode, 0,
+              0, l_chipletId, 0,
+              INSTANCE_RING, RS4::SCANNING_MODE) ; 
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
             break;
         }
 
-        l_rc = cleanScanRegionandTypeData(l_proc, l_chipletId);
+        l_rc =cleanupClockController( l_proc, INSTANCE_RING, l_chipletId, i_ringMode, 0, g_opcgData);
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
             break;
         }
 
-        if (i_ringMode &  fapi2::RING_MODE_SET_PULSE_SL)
-        {
-            l_rc =  restoreOPCGRegData(l_proc, g_opcgData, l_chipletId);
-            if(l_rc != fapi2::FAPI2_RC_SUCCESS)
-            {
-                break;
-            }
-        }
 
     }while(0);
-#endif
     return l_rc;
 }
 
