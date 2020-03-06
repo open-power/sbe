@@ -590,16 +590,18 @@ fapi_try_exit:
         buffer<uint64_t> l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
         TargetType l_targetType = i_parentType;
 
-        if(i_parentType == (TARGET_TYPE_MULTICAST | TARGET_TYPE_CORE) && i_childType == TARGET_TYPE_CORE)
+        if (i_parentType == (i_childType | TARGET_TYPE_MULTICAST) && !this->fields.is_multicast)
+        {
+            // Trivial case where we're already a unicast target of the requested type - return just this target
+            o_children.push_back(*this);
+            return;
+        }
+        else if (this->fields.is_multicast && this->fields.type == PPE_TARGET_TYPE_CORE)
         {
             l_childTargetOffset = CORE_TARGET_OFFSET;
             l_loopCount = CORE_TARGET_COUNT;
         }
-
-        // TODO - Review if this required ?? 
-        else if(i_parentType & TARGET_TYPE_MULTICAST)
-        {
-            if (this->fields.is_multicast)
+        else if (this->fields.is_multicast)
             {
                 // If a real multicast target, loop over all targets in the chip
                 // but filter for multicast group members.
@@ -607,13 +609,6 @@ fapi_try_exit:
                 getScom(Target<TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST, MULTICAST_BITX>(*this),
                         0xF0001, l_enabledTargets);
             }
-            else
-            {
-                // Otherwise just return this one target.
-                o_children.push_back(*this);
-                return;
-            }
-        }
         else if((i_parentType & ~(TARGET_TYPE_PROC_CHIP)) != 0)
         {
             // For composite targets, treat as other target
