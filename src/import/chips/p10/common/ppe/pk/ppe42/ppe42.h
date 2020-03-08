@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -266,6 +266,13 @@ popcount64(uint64_t x)
 
 #ifndef PK_THREAD_MACHINE_CONTEXT_DEFAULT
 
+#ifdef DFT
+
+#define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
+    (MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
+
+#else /* DFT */
+
 #if defined(USE_PPE_IMPRECISE_MODE)
 
 #if defined(MASK_MSR_SEM6)
@@ -278,7 +285,7 @@ popcount64(uint64_t x)
 #define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
     (MSR_UIE | MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
 
-#endif  /*MASK_MSR_SEM6*/
+#endif  /* MASK_MSR_SEM6 */
 
 #else
 
@@ -292,9 +299,10 @@ popcount64(uint64_t x)
 #define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
     (MSR_UIE | MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2)
 
-#endif  /*MASK_MSR_SEM6*/
-#endif  /*USE_PPE_IMPRECISE_MODE*/
-#endif  /*PK_THREAD_MACHINE_CONTEXT_DEFAULT*/
+#endif  /* MASK_MSR_SEM6 */
+#endif  /* USE_PPE_IMPRECISE_MODE */
+#endif  /* DFT */
+#endif  /* PK_THREAD_MACHINE_CONTEXT_DEFAULT */
 
 
 #ifndef __ASSEMBLER__
@@ -428,8 +436,12 @@ uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
 /// the 'panic' macros and the default DBCR0 setup.
 
 #ifndef PPE42_DBCR_INITIAL
+#ifdef DFT
+#define PPE42_DBCR_INITIAL (DBCR_TRAP | DBCR_ZACE)
+#else
 #define PPE42_DBCR_INITIAL (DBCR_TRAP | DBCR_IACE | DBCR_ZACE)
-#endif
+#endif /* DFT */
+#endif /* PPE42_DBCR_INITIAL */
 
 
 #ifndef PPE42_DACR_INITIAL
@@ -445,12 +457,16 @@ uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
 
 
 #ifndef PPE42_MSR_INITIAL
+#ifdef DFT
+#define PPE42_MSR_INITIAL (MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
+#else /* DFT */
 #if defined(USE_PPE_IMPRECISE_MODE)
 #define PPE42_MSR_INITIAL (MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
 #else
 #define PPE42_MSR_INITIAL (MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2)
 #endif
-#endif
+#endif /* DFT */
+#endif /* PPE42_MSR_INITIAL */
 
 /// The \a argc argument passed to \c main(). This definition can be overriden
 /// by the application.
