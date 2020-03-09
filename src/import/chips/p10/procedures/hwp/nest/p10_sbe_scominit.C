@@ -38,7 +38,6 @@
 #include <p10_fbc_utils.H>
 
 #include <p10_scom_perv.H>
-#include <p10_scom_nmmu_4.H>
 #include <p10_scom_proc.H>
 
 //------------------------------------------------------------------------------
@@ -67,9 +66,6 @@ const uint64_t PBA_FIR_MASK    = 0xFFFFFFFFFFFFFFFFULL;
 
 // FBC Mode constants
 const uint8_t PB_CFG_MCA_RATIO_OVERRIDE = 0x01;
-
-// NMMU LCO constants
-const uint8_t MAX_L3_TARGETS = 32;
 
 //------------------------------------------------------------------------------
 // Function definitions
@@ -342,71 +338,6 @@ fapi2::ReturnCode p10_sbe_scominit_trace(const fapi2::Target<fapi2::TARGET_TYPE_
     return fapi2::current_err;
 }
 
-/// @brief Configures NMMU LCO inits
-/// @param[in] i_target       Reference to processor chip target
-/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode p10_sbe_scominit_nmmu(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
-{
-    using namespace scomt;
-    using namespace scomt::nmmu;
-
-    FAPI_DBG("Entering ...");
-
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    auto l_nmmu_targets = i_target.getChildren<fapi2::TARGET_TYPE_NMMU>();
-
-    for (auto& l_nmmu : l_nmmu_targets)
-    {
-        // setup NMMU lco config
-        {
-            fapi2::buffer<uint64_t> l_scom_data;
-            auto l_core_targets = i_target.getChildren<fapi2::TARGET_TYPE_CORE>();
-            uint8_t l_lco_min;
-            uint8_t l_lco_min_threshold;
-
-            FAPI_TRY(GET_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG(l_nmmu, l_scom_data),
-                     "Error from getScom (PU_NMMU_MMCQ_PB_MODE_REG)");
-
-            // lco_targ_config: enable only valid L3s
-            for (auto& l_core : l_core_targets)
-            {
-                uint8_t l_coreid = l_core.get();
-                FAPI_TRY(l_scom_data.setBit(FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_CONFIG + l_coreid),
-                         "Error from setBit (l_scom_data, FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_CONFIG + l_coreid)");
-            }
-
-            // lco_targ_min:
-            // let lco_min_threshold = 2/3 of max possible L3s in a chip
-            //   if 0 L3s or 1 L3, set to zero/one respectively
-            //   if lco_min_threshold or less, set to one less than number of L3s
-            //   if more than lco_min_threshold, set to lco_min_threshold
-            l_lco_min_threshold = ((2 * MAX_L3_TARGETS) / 3);
-
-            if ((l_core_targets.size() == 0) || (l_core_targets.size() == 1))
-            {
-                l_lco_min = l_core_targets.size();
-            }
-            else if (l_core_targets.size() < l_lco_min_threshold)
-            {
-                l_lco_min = l_core_targets.size() - 1;
-            }
-            else
-            {
-                l_lco_min = l_lco_min_threshold;
-            }
-
-            SET_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG_TARG_MIN(l_lco_min, l_scom_data);
-
-            FAPI_TRY(PUT_FBC_CQ_WRAP_NXCQ_SCOM_MMCQ_LCO_CONFIG_REG(l_nmmu, l_scom_data),
-                     "Error from putScom (PU_NMMU_MMCQ_PB_MODE_REG)");
-        }
-    }
-
-fapi_try_exit:
-    FAPI_DBG("Exiting ...");
-    return fapi2::current_err;
-}
-
 /// Main function, see description in header
 fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 {
@@ -416,7 +347,6 @@ fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
     FAPI_TRY(p10_sbe_scominit_bars(i_target), "Error from p10_sbe_scominit_bars\n");
     FAPI_TRY(p10_sbe_scominit_firs(i_target), "Error from p10_sbe_scominit_firs\n");
     FAPI_TRY(p10_sbe_scominit_trace(i_target), "Error from p10_sbe_scominit_trace\n");
-    FAPI_TRY(p10_sbe_scominit_nmmu(i_target), "Error from p10_sbe_scominit_nmmu\n");
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");

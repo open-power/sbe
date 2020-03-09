@@ -113,13 +113,15 @@ p10_hcd_cache_scominit_qme(
     FAPI_INF(">>>p10_hcd_cache_scominit_qme");
     fapi2::buffer<uint64_t> l_data;
     fapi2::ATTR_PROC_FABRIC_SL_DOMAIN_Type l_attr_sl_domain;
-    fapi2::ATTR_PROC_CHIP_LCO_TARGETS_Type l_attr_chip_lco_targets;
+    //fapi2::ATTR_PROC_LCO_TARGETS_VECTOR_Type l_attr_chip_lco_targets;
+    uint32_t l_attr_chip_lco_targets = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > l_eq =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
           fapi2::MULTICAST_OR > c_mc_or = i_target;
+    unsigned num_caches = 0;
 
     FAPI_INF("p10_hcd_cache_scominit_qme: init the L3 and NCU topology tables");
     std::vector<uint64_t> l_topo_scoms;
@@ -130,7 +132,7 @@ p10_hcd_cache_scominit_qme(
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SL_DOMAIN, l_chip, l_attr_sl_domain));
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_CHIP_LCO_TARGETS, l_chip, l_attr_chip_lco_targets));
+    //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_LCO_TARGETS_VECTOR, l_chip, l_attr_chip_lco_targets));
 
     if (l_attr_sl_domain == fapi2::ENUM_ATTR_PROC_FABRIC_SL_DOMAIN_CHIP)
     {
@@ -150,7 +152,7 @@ p10_hcd_cache_scominit_qme(
         l_attr_chip_lco_targets = l_attr_chip_lco_targets & (0xF0F0F0F0 >> (hemisphere << 2));
     }
 
-    unsigned num_caches = __builtin_popcount(l_attr_chip_lco_targets);
+    num_caches = __builtin_popcount(l_attr_chip_lco_targets);
     FAPI_INF("p10_hcd_cache_scominit_qme: num_caches = %d, lco_targets = %X",
              num_caches, l_attr_chip_lco_targets );
 
