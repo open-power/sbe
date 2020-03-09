@@ -302,9 +302,14 @@ __fapi2exit__:
             {
                 return l_rc;
             }
-            uint8_t *l_seepromAddr =(uint8_t*) SBE_SEEPROM_BASE_ORIGIN;
+#ifdef DFT
+			// For DFT only, XIP header is in PIBMEM rather than SEEPROM
+            uint8_t *l_baseAddr =(uint8_t*) SBE_BASE_ORIGIN;
+#else	//DFT
+            uint8_t *l_baseAddr =(uint8_t*) SBE_SEEPROM_BASE_ORIGIN;
+#endif	//DFT
             // Find the RS4 string in the SEEPROM
-            l_rc = lookUpRingSection (l_seepromAddr,
+            l_rc = lookUpRingSection (l_baseAddr,
                                       i_target,
                                       i_ringID,
                                       i_ringMode);

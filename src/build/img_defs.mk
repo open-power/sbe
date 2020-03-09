@@ -85,7 +85,11 @@ export LINKER_DIR = $(BUILD_DIR)/linkerscripts/$(project)
 endif
 
 ifndef IMPORT_HWP_MK_DIR
+ifeq ($(project),power_dft)
+export IMPORT_HWP_MK_DIR = $(BUILD_DIR)/import_hwp_mk/power
+else # DFT
 export IMPORT_HWP_MK_DIR = $(BUILD_DIR)/import_hwp_mk/$(project)
+endif # DFT
 endif
 
 ifndef MEASUREMENT_SRCDIR
@@ -430,8 +434,8 @@ GCC-DEFS += -DFAPI_TRACE_LEVEL=$(FAPI_TRACE_LEVEL_DEF)
 GCC-DEFS += -DSBE_TRACE_LEVEL=$(SBE_TRACE_LEVEL_DEF)
 GCC-DEFS += -DSBEM_TRACE_LEVEL=$(SBEM_TRACE_LEVEL_DEF)
 GCC-DEFS += -DPLAT_NO_THREAD_LOCAL_STORAGE=1
-# disable assert - NDEBUG Enable / Disable
-# GCC-DEFS += -DNDEBUG
+# disable assert
+#GCC-DEFS += -DNDEBUG
 GCC-DEFS += -DHOST_INTERFACE_AVAILABLE=$(HOST_INTERFACE_AVAILABLE)
 GCC-DEFS += -DPERIODIC_IO_TOGGLE_SUPPORTED=$(PERIODIC_IO_TOGGLE_SUPPORTED)
 
@@ -461,7 +465,8 @@ INCLUDES += -I$(SBE_FW_DIR)
 INCLUDES += -I$(SBE_FW_DIR)/core
 INCLUDES += -I$(SBE_FW_DIR)/app
 INCLUDES += -I$(SBE_FW_DIR)/app/common
-INCLUDES += -I$(SBE_FW_DIR)/app/power
+INCLUDES += -I$(SBE_FW_DIR)/app/$(project)
+
 INCLUDES += -I$(BOOT_SRCDIR)
 INCLUDES += -I$(BUILDDATA_SRCDIR)
 INCLUDES += -I$(BUILDDATA_SRCDIR)/$(project)
@@ -538,6 +543,15 @@ ifeq ($(SBE_S0_SUPPORT), 1)
 GCC-DEFS += -D_S0_=$(SBE_S0_SUPPORT)
 endif
 
+# Pass compile flags for DFT mode and its various flavors 
+ifeq ($(project),power_dft)
+GCC-DEFS += -DDFT
+GCC-DEFS += -DNO_INIT_DBCR0
+#ifeq ($(flavor), avp)
+#GCC-DEFS += -DAVP
+#endif #flavor
+endif #mode
+
 ############################################################################
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
@@ -555,6 +569,10 @@ endif
 # project specific include
 ifeq ($(project),power)
 include power_defs.mk
+endif
+
+ifeq ($(project),power_dft)
+include power_dft_defs.mk
 endif
 
 ifeq ($(project),z)
