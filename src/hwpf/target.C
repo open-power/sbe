@@ -590,25 +590,41 @@ fapi_try_exit:
         buffer<uint64_t> l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
         TargetType l_targetType = i_parentType;
 
-        if (i_parentType == (i_childType | TARGET_TYPE_MULTICAST) && !this->fields.is_multicast)
+        if (i_parentType == (i_childType | TARGET_TYPE_MULTICAST))
         {
-            // Trivial case where we're already a unicast target of the requested type - return just this target
-            o_children.push_back(*this);
-            return;
-        }
-        else if (this->fields.is_multicast && this->fields.type == PPE_TARGET_TYPE_CORE)
-        {
-            l_childTargetOffset = CORE_TARGET_OFFSET;
-            l_loopCount = CORE_TARGET_COUNT;
-        }
-        else if (this->fields.is_multicast)
+            // The caller is attempting to decompose a multicast target into unicast targets
+            if (!this->fields.is_multicast)
+            {
+                // Trivial case where we're already a unicast target of the requested type - return just this target
+                o_children.push_back(*this);
+                return;
+            }
+            else
             {
                 // If a real multicast target, loop over all targets in the chip
                 // but filter for multicast group members.
                 l_targetType = TARGET_TYPE_PROC_CHIP;
                 getScom(Target<TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST, MULTICAST_BITX>(*this),
                         0xF0001, l_enabledTargets);
+
+                // Special handling for core targets: take core_select into account
+                if (this->fields.type == PPE_TARGET_TYPE_CORE)
+                {
+                    buffer<uint64_t> l_enabledCores = 0;
+
+                    for (int i = 0; i < 32; i++)
+                    {
+                        // Select a core if its EQ is part of the MC group and its ID is selected in core_select
+                        l_enabledCores.writeBit(i, l_enabledTargets.getBit(32 + (i >> 2))
+                                                && (this->fields.core_select & (8 >> (i & 3))));
+                    }
+
+                    l_childTargetOffset = CORE_TARGET_OFFSET;
+                    l_loopCount = CORE_TARGET_COUNT;
+                    l_enabledTargets = l_enabledCores;
+                }
             }
+        }
         else if((i_parentType & ~(TARGET_TYPE_PROC_CHIP)) != 0)
         {
             // For composite targets, treat as other target
