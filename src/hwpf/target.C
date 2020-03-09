@@ -155,6 +155,7 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.chiplet_num = (i_plat_argument / 4) + EQ_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_CORE;
         l_handle.fields.type_target_num = i_plat_argument;
+        l_handle.fields.core_select = (1 << ( 3 - (i_plat_argument % 4)));
     }
     else if(K & TARGET_TYPE_EQ)
     {
