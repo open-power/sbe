@@ -316,12 +316,16 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::SLAVE_CONFIG_REG, l_read_reg));
 
+#ifndef DFT
+
     if (fapi2::is_platform<fapi2::PLAT_SBE>())
     {
         FAPI_DBG("read magic number from seeprom, compare value");
         // To read and check magic number
         FAPI_TRY(p10_sbe_check_magicnumber(i_target_chip));
     }
+
+#endif /*DFT*/
 
     FAPI_INF("p10_sbe_npll_setup: Exiting ...");
 
