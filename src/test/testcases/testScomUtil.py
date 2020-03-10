@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -66,7 +66,7 @@ def getscom(addr, i_fifoType, expStatus = [0, 0, 0, 0], HWPffdc = False):
         val |= data[i] << ((7-i)*8)
     return val
 
-def putscom(addr, i_fifoType, data, expStatus = [0, 0, 0, 0]):
+def putscom(addr, data, i_fifoType, expStatus = [0, 0, 0, 0]):
     req = ([0,0,0,6,
             0,0,0xA2,0x02]
           + getdoubleword(addr)

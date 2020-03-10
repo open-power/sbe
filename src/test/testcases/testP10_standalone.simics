@@ -100,6 +100,10 @@ echo "*******************Run testFifoReset.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
 
+echo "*******************Run testPutGetScom.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testPutGetScom.py
+
 echo "*******************Run testQuiesce.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
