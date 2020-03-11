@@ -62,6 +62,12 @@ run-python-file targets/p10_standalone/sbeTest/testIstepInvalid.py
 
 run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
 
+echo "*******************Run testGeneric.xml*******************"
+
+run-python-file targets/p10_standalone/sbeTest/testGetCapabilities.py
+
+run-python-file targets/p10_standalone/sbeTest/testSbeDump.py
+
 echo "*******************Run testPSUSetFFDCAddr.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
@@ -118,10 +124,6 @@ echo "*******************Run testSuspendIO.xml*******************"
 run-python-file targets/p10_standalone/sbeTest/testSuspendIO.py
 
 echo "*******************Run testGeneric.xml*******************"
-
-run-python-file targets/p10_standalone/sbeTest/testGetCapabilities.py
-
-run-python-file targets/p10_standalone/sbeTest/testSbeDump.py
 
 run-python-file targets/p10_standalone/sbeTest/testHostFFDC.py
 
