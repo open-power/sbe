@@ -605,8 +605,10 @@ fapi_try_exit:
                 // If a real multicast target, loop over all targets in the chip
                 // but filter for multicast group members.
                 l_targetType = TARGET_TYPE_PROC_CHIP;
-                getScom(Target<TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST, MULTICAST_BITX>(*this),
-                        0xF0001, l_enabledTargets);
+
+                Target<TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST, MULTICAST_BITX> l_tmpTarget(*this);
+                l_tmpTarget().fields.core_select = 0; // Strip core select in case it's a core target; we want to target the EQ for this
+                getScom(l_tmpTarget, 0xF0001, l_enabledTargets);
 
                 // Special handling for core targets: take core_select into account
                 if (this->fields.type == PPE_TARGET_TYPE_CORE)
