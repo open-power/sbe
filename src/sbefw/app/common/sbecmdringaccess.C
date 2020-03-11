@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -42,6 +42,9 @@
 #include "plat_hw_access.H"
 #include "sbeglobals.H"
 #include "p10_ring_id.H"
+#include <p10_plat_ring_traverse.H>
+#include <p10_putRingUtils.H>
+
 
 using namespace fapi2;
 
@@ -324,7 +327,6 @@ uint32_t sbePutRing(uint8_t *i_pArg)
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
-#if 0
         uint16_t ringMode = sbeToFapiRingMode(hdr.ringMode);
         bool i_applyOverride = false;
 
@@ -336,18 +338,17 @@ uint32_t sbePutRing(uint8_t *i_pArg)
 
         Target<TARGET_TYPE_PROC_CHIP> proc = plat_getChipTarget();
         // No need to pass length as platform api takes length from payload.
-        fapiRc = rs4DecompressionSvc(proc, (uint8_t *)reqMsg.rs4Payload,
-                                     i_applyOverride, (fapi2::RingMode)ringMode);
+        fapiRc = p10_putRingUtils(proc, (uint8_t *)reqMsg.rs4Payload,
+                 i_applyOverride, (fapi2::RingMode)ringMode,INSTANCE_RING, RS4::SCANNING_MODE);
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
-            SBE_ERROR(SBE_FUNC" rs4DecompressionSvc failed."
+            SBE_ERROR(SBE_FUNC" p10_putRingUtils failed."
                 "RingMode:0x%04x",  ringMode);
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             ffdc.setRc(fapiRc);
             break;
         }
-#endif
     }while(false);
 
     // Now build and enqueue response into downstream FIFO
