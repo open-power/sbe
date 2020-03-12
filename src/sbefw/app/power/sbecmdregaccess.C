@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -91,21 +91,16 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             break;
         }
-
         len  = regReqMsg.numRegs;
         rc = sbeUpFifoDeq_mult (len, reqData, true);
         if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
         {
             break;
         }
-#if 0
         uint8_t core = regReqMsg.coreChiplet;
-#ifdef SEEPROM_IMAGE
         RamCore ramCore( plat_getTargetHandleByChipletNumber
                          <fapi2::TARGET_TYPE_CORE>(core),
                          regReqMsg.threadNr );
-#endif
-
         SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_setup)
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
@@ -120,8 +115,8 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
         uint64_t respData = 0;
         for( uint32_t regIdx = 0; regIdx < regReqMsg.numRegs; regIdx++ )
         {
-            SBE_EXEC_HWP(fapiRc, ramCore.get_reg, getRegType(regReqMsg), reqData[regIdx],
-                                      &data64, true )
+            SBE_EXEC_HWP(fapiRc, ramCore.get_reg, getRegType(regReqMsg),
+                         reqData[regIdx], &data64, true )
             if( fapiRc != FAPI2_RC_SUCCESS )
             {
                 SBE_ERROR(SBE_FUNC" get_reg failed. threadNr:0x%x"
@@ -157,14 +152,12 @@ uint32_t sbeGetReg(uint8_t *i_pArg)
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
              ffdc.setRc(fapiRc);
          }
-#endif
     }while(false);
 
     if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
     {
         rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }
-
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -206,7 +199,6 @@ uint32_t sbePutReg(uint8_t *i_pArg)
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             break;
         }
-
         sbeRegAccessPackage_t regPkg[SBE_MAX_REG_ACCESS_REGS];
         len  = (sizeof(sbeRegAccessPackage_t)/sizeof(uint32_t)) * 
                                                     regReqMsg.numRegs;
@@ -215,14 +207,10 @@ uint32_t sbePutReg(uint8_t *i_pArg)
         {
             break;
         }
-#if 0
         uint8_t core = regReqMsg.coreChiplet;
-#ifdef SEEPROM_IMAGE
         RamCore ramCore( plat_getTargetHandleByChipletNumber
                          <fapi2::TARGET_TYPE_CORE>(core),
                          regReqMsg.threadNr );
-#endif
-
         SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_setup)
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
@@ -233,7 +221,6 @@ uint32_t sbePutReg(uint8_t *i_pArg)
             ffdc.setRc(fapiRc);
             break;
         }
-
         fapi2::buffer<uint64_t> data64;
         for( uint32_t regIdx = 0; regIdx < regReqMsg.numRegs; regIdx++ )
         {
@@ -269,14 +256,12 @@ uint32_t sbePutReg(uint8_t *i_pArg)
                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
              ffdc.setRc(fapiRc);
          }
-#endif
     }while(false);
 
     if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
     {
         rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }
-
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
