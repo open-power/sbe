@@ -618,8 +618,8 @@ fapi_try_exit:
                     for (int i = 0; i < 32; i++)
                     {
                         // Select a core if its EQ is part of the MC group and its ID is selected in core_select
-                        l_enabledCores.writeBit(i, l_enabledTargets.getBit(32 + (i >> 2))
-                                                && (this->fields.core_select & (8 >> (i & 3))));
+                        l_enabledCores.writeBit((l_enabledTargets.getBit(32 + (i >> 2))
+                                                && (this->fields.core_select & (8 >> (i & 3)))), i);
                     }
 
                     l_childTargetOffset = CORE_TARGET_OFFSET;
