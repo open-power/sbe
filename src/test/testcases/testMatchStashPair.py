@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -44,7 +44,7 @@ def main( ):
 # First Case without Fast Mode without LCO
     testUtil.runCycles( 10000000 )
     # Get mem PBA - WO FMODE, WO LCO
-    readData = testMemUtil.getmem(0x08200000, 128, 0x02)[44:][:-12]
+    readData = testMemUtil.getmem(0xF0200000, 128, 0x02)[44:][:-12]
     if(data == readData):
         print ("Success - Write-Read PBA - WO FMODE, WO LCO")
     else:
