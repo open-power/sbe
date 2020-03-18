@@ -79,7 +79,7 @@ fapi2::ReturnCode p10_putmemproc(
                                l_granules_before_setup),
                  "Error from p10_adu_setup");
 
-        FAPI_DBG("Granules before setup: %d",
+        FAPI_DBG("Granules before setup: %08X",
                  l_granules_before_setup);
         l_first_access = true;
 
