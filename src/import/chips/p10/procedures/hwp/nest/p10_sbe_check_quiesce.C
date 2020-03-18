@@ -44,6 +44,7 @@
 #include <p10_scom_pau.H>
 #include <p10_scom_phb_e.H>
 #include <p10_scom_phb_d.H>
+#include <p10_scom_c.H>
 
 //-----------------------------------------------------------------------------------
 // Constant definitions
@@ -855,6 +856,56 @@ fapi_try_exit:
 //--------------------------------------------------------------------------
 //  HWP entry point
 //--------------------------------------------------------------------------
+fapi2::ReturnCode p10_pm_clear_special_wakeup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    FAPI_DBG("p10_pm_clear_special_wakeup: Entering..");
+
+    using namespace scomt::c;
+
+    typedef fapi2::ReturnCode (*prepCoreScomFuncType)(
+        const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target);
+    typedef fapi2::ReturnCode (*putCoreScomFuncType)(
+        const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
+        const uint64_t i_data);
+
+    const uint8_t c_qme_spwu_count = 4;
+    prepCoreScomFuncType c_prep_qme_spwu[c_qme_spwu_count] =
+    {
+        PREP_QME_SPWU_OTR,
+        PREP_QME_SPWU_FSP,
+        PREP_QME_SPWU_HYP,
+        PREP_QME_SPWU_OCC
+    };
+
+    putCoreScomFuncType c_put_qme_spwu[c_qme_spwu_count] =
+    {
+        PUT_QME_SPWU_OTR,
+        PUT_QME_SPWU_FSP,
+        PUT_QME_SPWU_HYP,
+        PUT_QME_SPWU_OCC
+    };
+
+    for(auto& l_childCore :
+        i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        for (uint8_t i = 0; i < c_qme_spwu_count; i++)
+        {
+            FAPI_TRY(c_prep_qme_spwu[i](l_childCore));
+
+            uint64_t l_data = 0;
+            FAPI_TRY(c_put_qme_spwu[i](l_childCore, l_data));
+        }
+    }
+
+fapi_try_exit:
+    FAPI_DBG("p10_pm_clear_special_wakeup: Exiting...");
+    return fapi2::current_err;
+}
+
+//--------------------------------------------------------------------------
+//  HWP entry point
+//--------------------------------------------------------------------------
 fapi2::ReturnCode p10_sbe_check_quiesce(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 {
@@ -867,9 +918,8 @@ fapi2::ReturnCode p10_sbe_check_quiesce(
     FAPI_TRY(p10_psihb_check_quiesce(i_target), "Error from p10_psihb_check_quiesce");
     FAPI_TRY(p10_intp_check_quiesce(i_target), "Error from p10_intp_check_quiesce");
 
-    //We also need to clean up any active special wakeups, and redirect
-    //special wakeups to the SGPE
-    // TODO (SW477416):
+    //We also need to clean up any active special wakeups
+    FAPI_TRY(p10_pm_clear_special_wakeup(i_target), "Error from p10_pm_clear_special_wakeup");
 
 fapi_try_exit:
     // TODO (SW477416): If the quiesce fails then checkstop the system
