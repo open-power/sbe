@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -47,6 +47,7 @@
 #include <p9_perv_scom_addresses.H>
 #include <p9_suspend_io.H>
 #include <p9n2_misc_scom_addresses.H>
+#include <p9n2_misc_scom_addresses_fld.H>
 
 //Needed for SW reset of XIVE unit
 #include <p9_thread_control.H>
@@ -88,6 +89,7 @@ extern "C" {
         FAPI_TRY(p9_capp_check_quiesce(i_target), "Error from p9_capp_check_quiesce");
         FAPI_TRY(p9_phb_check_quiesce(i_target), "Error from p9_phb_check_quiesce");
         FAPI_TRY(p9_npu_check_quiesce(i_target), "Error from p9_npu_check_quiesce");
+        FAPI_TRY(p9_openCapi_check_quiesce(i_target), "Error from p9_openCapi_check_quiesce");
         FAPI_TRY(p9_vas_check_quiesce(i_target), "Error from p9_vas_check_quiesce");
         FAPI_TRY(p9_nx_check_quiesce(i_target), "Error from p9_nx_check_quiesce");
         FAPI_TRY(p9_psihb_check_quiesce(i_target), "Error from p9_psihb_check_quiesce");
@@ -212,6 +214,7 @@ extern "C" {
         FAPI_DBG("p9_phb_check_quiesce: Exiting ...");
         return fapi2::current_err;
     }
+
 
     //---------------------------------------------------------------------------------
     // NOTE: description in header
@@ -410,6 +413,177 @@ extern "C" {
     fapi_try_exit:
         FAPI_DBG("p9_npu_check_quiesce: Exiting...");
         return fapi2::current_err;
+    }
+
+
+    //---------------------------------------------------------------------------------
+    // NOTE: description in header
+    //---------------------------------------------------------------------------------
+    fapi2::ReturnCode p9_openCapi_check_quiesce(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+    {
+        FAPI_DBG("p9_openCapi_check_quiesce: Entering...");
+
+        //P9 OCAPI procedssing unit (NPU), has  three stacks, out of which two are used for
+        //OCAPI communication, each of these stacks have two OTLs.
+        const uint32_t C_NUMOCAPISTACKS = 2;
+        const uint32_t C_NUMOTLS = 2;
+
+        //Fence control registers to put OTLs in reset state
+        const uint64_t c_Fence_cntl_regs[C_NUMOCAPISTACKS][C_NUMOTLS] =
+        {
+            {P9N2_PU_NPU2_NTL1_FENCE_CONTROL0, P9N2_PU_NPU2_NTL1_FENCE_CONTROL1},
+            {P9N2_NV_5_FENCE_CONTROL0, P9N2_NV_5_FENCE_CONTROL1}
+        };
+
+        //Registers to check whether OTL is enabled or not
+        const uint64_t c_otl_config_regs[C_NUMOCAPISTACKS][C_NUMOTLS] =
+        {
+            {P9N2_PU_NPU_SM2_CONFIG0, P9N2_PU_NPU_CTL_CONFIG0},
+            {P9N2__SM2_CONFIG0, P9N2__CTL_CONFIG0}
+        };
+
+        //Register to check the reset state of OTL
+        const uint64_t c_cq_cntl_status_regs[C_NUMOCAPISTACKS] =
+        {
+            P9N2_PU_NPU2_NTL0_CTL_STATUS, P9N2_NV_4_CTL_STATUS
+        };
+
+        const uint32_t C_GPU_MEMORY_BARS_SIZE = 16;
+        const uint32_t C_MMIO_BARS_SIZE = 28;
+
+        //Register to disable NPU BARS
+        const uint64_t c_GPU_MemoryBARs[C_GPU_MEMORY_BARS_SIZE] =
+        {
+            P9N2_PU_NPU2_SM0_GPU0_BAR, P9N2_PU_NPU2_SM1_GPU0_BAR, P9N2_PU_NPU2_SM3_GPU0_BAR, P9N2_PU_NPU2_CTL_GPU0_BAR,
+            P9N2_PU_NPU2_SM0_GPU1_BAR, P9N2_PU_NPU2_SM1_GPU1_BAR, P9N2_PU_NPU2_SM3_GPU1_BAR, P9N2_PU_NPU2_CTL_GPU1_BAR,
+            P9N2_PU_NPU_MSC_SM0_GPU0_BAR, P9N2_PU_NPU_MSC_SM1_GPU0_BAR, P9N2_PU_NPU_MSC_SM3_GPU0_BAR, P9N2_PU_NPU_MSC_CTL_GPU0_BAR,
+            P9N2_PU_NPU_MSC_SM0_GPU1_BAR, P9N2_PU_NPU_MSC_SM1_GPU1_BAR, P9N2_PU_NPU_MSC_SM3_GPU1_BAR, P9N2_PU_NPU_MSC_CTL_GPU1_BAR
+        };
+
+        //MMIO BAR registers
+        const uint64_t c_OTL_MMIO_BARs[C_MMIO_BARS_SIZE] =
+        {
+            P9N2_PU_NPU2_SM0_NDT0_BAR, P9N2_PU_NPU2_SM1_NDT0_BAR, P9N2_PU_NPU2_SM3_NDT0_BAR, P9N2_PU_NPU2_CTL_NDT0_BAR,
+            P9N2_PU_NPU2_SM0_NDT1_BAR, P9N2_PU_NPU2_SM1_NDT1_BAR, P9N2_PU_NPU2_SM3_NDT1_BAR, P9N2_PU_NPU2_CTL_NDT1_BAR,
+            P9N2_PU_NPU_MSC_SM0_NDT0_BAR, P9N2_PU_NPU_MSC_SM1_NDT0_BAR, P9N2_PU_NPU_MSC_SM3_NDT0_BAR, P9N2_PU_NPU_MSC_CTL_NDT0_BAR,
+            P9N2_PU_NPU_MSC_SM0_NDT1_BAR, P9N2_PU_NPU_MSC_SM1_NDT1_BAR, P9N2_PU_NPU_MSC_SM3_NDT1_BAR, P9N2_PU_NPU_MSC_CTL_NDT1_BAR,
+
+            P9N2_PU_NPU2_SM0_GENID_BAR, P9N2_PU_NPU2_SM1_GENID_BAR, P9N2_PU_NPU2_SM3_GENID_BAR, P9N2_PU_NPU2_CTL_GENID_BAR,
+            P9N2_PU_NPU_MSC_SM0_GENID_BAR, P9N2_PU_NPU_MSC_SM1_GENID_BAR, P9N2_PU_NPU_MSC_SM3_GENID_BAR, P9N2_PU_NPU_MSC_CTL_GENID_BAR,
+
+            P9N2_PU_NPU0_SM0_PHY_BAR, P9N2_PU_NPU0_SM1_PHY_BAR, P9N2_PU_NPU0_SM3_PHY_BAR, P9N2_PU_NPU0_CTL_PHY_BAR
+        };
+
+
+        const uint32_t  c_otl_reset_cmd = 0x3ull;  //Value to be written for OTL reset
+        const uint32_t  c_otl_reset_status = 0x3ull; //Value indicating successful OTL reset
+        const uint32_t  c_disable_gpu_bar = 0x0ull;
+
+        fapi2::buffer<uint64_t> l_data(0);
+        fapi2::buffer<uint64_t> l_brickData(0);
+
+        //Step 1: Set all the OTLs to reset state, set bit 0 t0 1 to 0b11, in the status fence control register 0 and
+        //fence control register 1 for the OTL
+        for ( uint32_t l_stackIndex = 0; l_stackIndex < C_NUMOCAPISTACKS ; ++l_stackIndex )
+        {
+
+            for ( uint32_t l_OTLIndex = 0; l_OTLIndex < C_NUMOTLS ; ++l_OTLIndex )
+            {
+
+                FAPI_DBG(" going to read register c_otl_config_regs[%d][%d]: 0x%08X",
+                         l_stackIndex, l_OTLIndex, c_otl_config_regs[l_stackIndex][l_OTLIndex]);
+
+                FAPI_TRY(fapi2::getScom(i_target, c_otl_config_regs[l_stackIndex][l_OTLIndex], l_data));
+
+                //Make sure that OTL is enabled
+                if( l_data.getBit(0) )
+                {
+                    //Step 1.1: Place the OTL in reset state
+                    FAPI_TRY(fapi2::getScom(i_target, c_Fence_cntl_regs[l_stackIndex][l_OTLIndex], l_data));
+                    l_data.insertFromRight<P9N2_PU_NPU2_NTL1_FENCE_CONTROL0_FENCE0_REQUEST, P9N2_PU_NPU2_NTL1_FENCE_CONTROL0_FENCE0_REQUEST_LEN>
+                    (c_otl_reset_cmd);
+                    FAPI_TRY(fapi2::putScom(i_target, c_Fence_cntl_regs[l_stackIndex][l_OTLIndex], l_data));
+
+                    //Step 1.2: Check fo the reset of OTL
+                    //Poll the CQ_CTL status register until the value detected indicates that
+                    //OTLs are in Reset State
+                    for ( uint32_t l_tryIndex = 0; l_tryIndex < C_NUM_TRIES_QUIESCE_STATE ; ++l_tryIndex)
+                    {
+                        FAPI_TRY(fapi2::getScom(i_target, c_cq_cntl_status_regs[l_stackIndex], l_data));
+
+                        if ( 0 == l_OTLIndex )
+                        {
+                            //For OTL 0 bits 48 and 49 needs to be validated
+                            l_data.extractToRight<P9N2_PU_NPU2_NTL0_CTL_STATUS_BRK0_AM_FENCED, P9N2_PU_NPU2_NTL0_CTL_STATUS_BRK0_AM_FENCED_LEN>
+                            (l_brickData);
+                        }
+                        else
+                        {
+                            //For
+                            //OTL 1 bits 50 and 51 needs to be validated
+                            l_data.extractToRight<P9N2_PU_NPU2_NTL0_CTL_STATUS_BRK1_AM_FENCED, P9N2_PU_NPU2_NTL0_CTL_STATUS_BRK1_AM_FENCED_LEN>
+                            (l_brickData);
+                        }
+
+                        if (c_otl_reset_status == l_brickData )
+                        {
+                            FAPI_DBG("PAU Number:%d, OTL  Index:%d,  Brick fenced_data:0x%08x", l_stackIndex , l_OTLIndex, l_brickData);
+                            break;
+                        }
+                    }
+
+                    FAPI_ASSERT((l_brickData  == c_otl_reset_status),
+                                fapi2::P9_OTL_NOT_IN_RESET()
+                                .set_PROC_TARGET(i_target)
+                                .set_STATUS_ADDR(c_cq_cntl_status_regs[l_stackIndex])
+                                .set_STATUS_DATA(l_brickData),
+                                " OTL did  not enter the reset state");
+                }
+            }//for OTL Index
+        }//for stackIndex
+
+        //Step 2: Put all the bricks in fence state
+        //Put all the bricks in fence state
+        //brick 0 and brick 1 are not used for openCAPI link
+        l_data.flush<0>();
+        l_data.setBit<P9N2__CTL_FENCE_STATE_BRK2>().
+        setBit<P9N2__CTL_FENCE_STATE_BRK3>().
+        setBit<P9N2__CTL_FENCE_STATE_BRK4>().
+        setBit<P9N2__CTL_FENCE_STATE_BRK5>();
+
+        FAPI_TRY(fapi2::putScom(i_target, P9N2__CTL_FENCE_STATE, l_data));
+
+        //Clear interrupts
+        l_data.flush<0>();
+        FAPI_TRY(fapi2::putScom(i_target, P9N2__CTL_INT_REQ, l_data));
+
+
+        //Step 3:
+        //Diable all NPU BARs
+        //Reset bits 0:2 in GPU0-Memory BAR and GPU1-Memory BAR to stop NPU from responding to accesses to AFU memory.
+        for ( uint32_t i = 0; i < C_GPU_MEMORY_BARS_SIZE; i++)
+        {
+            FAPI_TRY(fapi2::getScom(i_target, c_GPU_MemoryBARs[i], l_data));
+            l_data.insertFromRight<P9N2_PU_NPU2_SM0_GPU0_BAR_CONFIG_MEMSELMATCH, P9N2_PU_NPU2_SM0_GPU0_BAR_CONFIG_MEMSELMATCH_LEN>
+            (c_disable_gpu_bar);
+            FAPI_TRY(fapi2::putScom(i_target, c_GPU_MemoryBARs[i], l_data));
+        }
+
+        //Reset bit 0 in NTL0/NDL0 MMIO BAR and NTL1/NDL1 MMIO BAR to stop NPU from responding to accesses to AFU MMIO registers.
+        //Reset bit 0 in Generation-ID Registers MMIO BAR to stop NPU from responding to AFU Config accesses.
+        //Reset bit 0 in PHY0/PHY1/NPU MMIO BAR in stack-0 to stop NPU from responding to NPU MMIO register accesses.
+        for ( uint32_t i = 0; i < C_MMIO_BARS_SIZE; i++)
+        {
+            FAPI_TRY(fapi2::getScom(i_target, c_OTL_MMIO_BARs[i], l_data));
+            l_data.clearBit<0>();
+            FAPI_TRY(fapi2::putScom(i_target, c_OTL_MMIO_BARs[i], l_data));
+        }
+
+    fapi_try_exit:
+        FAPI_DBG("p9_openCapi_check_quiesce: Exiting...");
+        return fapi2::current_err;
+
     }
 
     //---------------------------------------------------------------------------------
