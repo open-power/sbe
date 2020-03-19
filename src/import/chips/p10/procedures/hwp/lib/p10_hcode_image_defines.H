@@ -436,7 +436,6 @@ typedef struct
     uint8_t iv_bootCopier[XGPE_BOOT_COPIER_LENGTH];
     uint8_t iv_bootLoader[XGPE_BOOT_LOADER_LENGTH];
     uint8_t iv_xgpeSramRegion[XGPE_SRAM_SIZE];
-    uint8_t iv_xpmrReserve[ONE_MB - (XPMR_BOOT_REGION + XGPE_SRAM_SIZE)];
 } XPMRLayout_t;
 
 /**
