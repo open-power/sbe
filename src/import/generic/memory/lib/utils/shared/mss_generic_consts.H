@@ -278,7 +278,7 @@ enum generic_ffdc_codes
 ///
 enum class proc_type
 {
-    P10 = 0x0900,
+    PROC_P10 = 0x0900,
 };
 
 ///
