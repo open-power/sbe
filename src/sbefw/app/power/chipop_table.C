@@ -139,13 +139,13 @@ CMD_ARR(
      PUT_HARDWARE_FENCED_STATE,
     },
 
-    {sbeGetOccSram,
-     SBE_CMD_GETSRAM_OCC,
+    {sbeGetSram,
+     SBE_CMD_GETSRAM,
      HARDWARE_FENCED_STATE,
     },
 
-    {sbePutOccSram,
-     SBE_CMD_PUTSRAM_OCC,
+    {sbePutSram,
+     SBE_CMD_PUTSRAM,
      PUT_HARDWARE_FENCED_STATE,
     }
 )

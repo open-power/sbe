@@ -123,8 +123,8 @@ void updateFifoCapabilities(uint32_t * capability)
     capability[MEMORY_CAPABILITY_START_IDX] =
                                 GET_MEMORY_SUPPPORTED |
                                 PUT_MEMORY_SUPPPORTED |
-                                GET_SRAM_OCC_SUPPPORTED |
-                                PUT_SRAM_OCC_SUPPPORTED;
+                                GET_SRAM_SUPPPORTED |
+                                PUT_SRAM_SUPPPORTED;
     capability[MEMORY_CAPABILITY_START_IDX+1] =
                                 RESERVED_A4_CAPABILITIES;
 

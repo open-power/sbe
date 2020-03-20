@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -492,15 +492,51 @@ typedef struct
 }sbeMemAccessReqMsgHdr_t;
 
 /**
- * @brief Structure for SBE OCC Get/Put Sram Access ChipOps (0xA403/A404)
+ * @brief Structure for SBE Get/Put Sram Access ChipOps (0xA403/A404)
+ * This supports QME,IO-PPE,OCC SRAM access. PCI-XRAM access will be
+ * supported via RTC:252306
+ *
+ *  Detailed Descrition for mode
+ *  - Applicable for OCC and PCIe SRAM access only.
+ *  OCC:
+ *    - Bits 0-1: Access Mode(1=Normal, 2=Debug , 3=Circular)
+ *    - Bits 2-4: OCB Channel Number(0,1,2,3)
+ *                0b001: OCB_CHAN0
+ *                0b010: OCB_CHAN1
+ *                0b011: OCB_CHAN2
+ *                0b100: OCB_CHAN3
+ *    - Bits 5-7: Unused
+ *  PCIe:
+ *   - Bit-0 : io_top number (0=io_top_0, 1=io_top_1)
+ *   - Bit-1 : PHYP (0=PHY0 , 1=PHY1)
+ *   - Bit2-7: Unused
  */
 typedef struct
 {
-    uint32_t reserved:24;           // Not used
-    sbeSramAccessMode mode:8;       // Channel select 0-3
-    uint32_t addr;                  // 32-Bit Memory Address
-    uint32_t len;                   // Length of Data in Bytes
-}sbeOccSramAccessReqMsgHdr_t;
+    uint32_t chipletId:16;          // Pervasive target chipletId
+    uint32_t multicastAccess:1;     // Used for putSRAM (TRUE: Multicast FALSE: Unicast),NO-OP for getSRAM
+    uint32_t reserved:7;            // Not used
+    uint32_t mode:8;                // Used for OCC and PCIe.
+    uint32_t addressWord0;          // 32-Bit SRAM Memory address word0
+    uint32_t addressWord1;          // 32-Bit SRAM Memory address word1
+    uint32_t length;                // 8 byte aligned length
+
+    //Utility for checking if length is 8 byte aligned
+    bool isLen8ByteAligned() const
+    {
+         return !(length % 8);
+    }
+
+    //Utility for checking if address is 8 byte aligned
+    bool isAddr8ByteAligned() const
+    {
+         return !((((uint64_t)addressWord0 << 32) | addressWord1) % 8);
+    }
+
+}sbeSramAccessReqMsgHdr_t;
+
+
+
 
 // Maximum number of capabilities - max of FIFO and PSU capabilities
 static const uint32_t SBE_MAX_CAPABILITIES      = 20;

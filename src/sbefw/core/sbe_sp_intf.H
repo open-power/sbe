@@ -116,10 +116,10 @@ enum sbeRingAccessCommands
 */
 enum sbeMemoryAccesCommands
 {
-    SBE_CMD_GETMEM           = 0x01, /* Get Memory (Proc/PBA) */
+    SBE_CMD_GETMEM           = 0x01, /* Get Memory (Proc/ADU) */
     SBE_CMD_PUTMEM           = 0x02, /* Put Memory (Proc/PBA) */
-    SBE_CMD_GETSRAM_OCC      = 0x03, /* Get Memory (OCC SRAM) */
-    SBE_CMD_PUTSRAM_OCC      = 0x04, /* Put Memory (OCC SRAM) */
+    SBE_CMD_GETSRAM          = 0x03, /* Get Memory (SRAM-IOPPE,OCC,QME) TODO:RTC:252306 Enable PCI XRAM access */
+    SBE_CMD_PUTSRAM          = 0x04, /* Put Memory (SRAM-IOPPE,OCC,QME) TODO:RTC:252306 Enable PCI XRAM access */
 };
 
 /**
@@ -235,6 +235,8 @@ enum sbeSecondaryResponse
     SBE_SEC_HWP_FAILURE                       = 0x2C,
     SBE_SEC_TI_CORE_SCRATCH_READ_FAILED       = 0x2D,
     SBE_SEC_TI_DATA_READ_FAILED               = 0x2E,
+    SBE_SEC_PUT_SRAM_FAILED                   = 0x2F,
+    SBE_SEC_GET_SRAM_FAILED                   = 0x30,
 };
 
 /**
@@ -302,8 +304,8 @@ enum
 
     GET_MEMORY_SUPPPORTED               = 0xA4000001,
     PUT_MEMORY_SUPPPORTED               = 0xA4000002,
-    GET_SRAM_OCC_SUPPPORTED             = 0xA4000004,
-    PUT_SRAM_OCC_SUPPPORTED             = 0xA4000008,
+    GET_SRAM_SUPPPORTED                 = 0xA4000004,
+    PUT_SRAM_SUPPPORTED                 = 0xA4000008,
     GET_SRAM_CME_SUPPPORTED             = 0xA4000010,
     PUT_SRAM_CME_SUPPPORTED             = 0xA4000020,
     RESERVED_A4_CAPABILITIES            = 0xA4800000,
@@ -355,15 +357,6 @@ enum sbeMemoryAccessFlags
     SBE_MEM_ACCESS_FLAGS_POSTSWITCH         = 0x00008000,
 };
 
-/**
- *  @brief enum for various modes for Sram Access
- */
-enum sbeSramAccessMode
-{
-    NORMAL_MODE    = 0x1,
-    DEBUG_MODE     = 0x2,
-    CIRCULAR_MODE  = 0x3,
-};
 /*
  * Constants for maximum number of register supported in reg access chipop.
  */
