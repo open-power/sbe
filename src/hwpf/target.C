@@ -648,6 +648,25 @@ fapi_try_exit:
                     l_loopCount = CORE_TARGET_COUNT;
                     l_enabledTargets = l_enabledCores;
                 }
+                if(this->fields.type == PPE_TARGET_TYPE_EQ)
+                {
+                    l_childTargetOffset = EQ_TARGET_OFFSET;
+                    l_loopCount = EQ_TARGET_COUNT;
+                    l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
+                }
+                else if(this->fields.type == PPE_TARGET_TYPE_PEC)
+                {
+                    l_childTargetOffset = PEC_TARGET_OFFSET;
+                    l_loopCount = PEC_TARGET_COUNT;
+                    l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
+                }
+                else if(this->fields.type == PPE_TARGET_TYPE_PAUC) 
+                {
+                    l_childTargetOffset = PAUC_TARGET_OFFSET;
+                    l_loopCount = PAUC_TARGET_COUNT;
+                    l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
+                }
+
             }
         }
         else if((i_parentType & ~(TARGET_TYPE_PROC_CHIP)) != 0)
