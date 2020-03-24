@@ -672,32 +672,62 @@ fapi_try_exit:
             l_loopCount = l_childPerChiplet;
         }
         //PROC and MC
-        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_MC))
+        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_MC))
         {
             l_childPerChiplet = MC_TARGET_COUNT;
             l_childTargetOffset = MC_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
         //PROC and PAUC
-        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PAUC))
+        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PAUC))
         {
             l_childPerChiplet = PAUC_TARGET_COUNT;
             l_childTargetOffset = PAUC_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
+        //PROC and PAU
+        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PAU))
+        {
+            l_childPerChiplet = PAU_TARGET_COUNT;
+            l_childTargetOffset = PAU_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
         //PROC and NMMU
-        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_NMMU))
+        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_NMMU))
         {
             l_childPerChiplet = NMMU_TARGET_COUNT;
             l_childTargetOffset = NMMU_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
         //PROC and CORE
-        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_CORE))        {
+        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_CORE))
+        {
             l_childPerChiplet = CORE_TARGET_COUNT;
             l_childTargetOffset = CORE_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
+        //PROC and IOHS
+        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_IOHS))
+        {
+            l_childPerChiplet = IOHS_TARGET_COUNT;
+            l_childTargetOffset = IOHS_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
+        //PROC and PEC
+        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PEC))
+        {
+            l_childPerChiplet = PEC_TARGET_COUNT;
+            l_childTargetOffset = PEC_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
+        //PROC and PHB
+        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PHB))
+        {
+            l_childPerChiplet = PHB_TARGET_COUNT;
+            l_childTargetOffset = PHB_TARGET_OFFSET;
+            l_loopCount = l_childPerChiplet;
+        }
+       
         // else it is TARGET_TYPE_PROC_CHIP ==> anything, and we iterate over
         // all the targets
 
