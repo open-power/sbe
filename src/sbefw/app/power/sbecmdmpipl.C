@@ -554,6 +554,7 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
     uint32_t flags = fapi2::SBE_MEM_ACCESS_FLAGS_TARGET_PBA |
                      fapi2::SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON |
                      fapi2::SBE_MEM_ACCESS_FLAGS_LCO_MODE;
+    uint32_t bytesRead = 0;
     do
     {
         //Will attempt to dequeue for the expected EOT entry at the end.
@@ -591,7 +592,6 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
         //Now we got the TI data location. Read TI_DATA_LEN bytes from
         //that location.
         uint32_t bytesRemaining = TI_DATA_LEN;
-        uint32_t bytesRead = 0;
         do
         {
             uint8_t tiData[PBA_GRAN_SIZE] = {0};
@@ -623,7 +623,6 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
             bytesRemaining = bytesRemaining - PBA_GRAN_SIZE;
             bytesRead = bytesRead + PBA_GRAN_SIZE;
         }while(bytesRemaining > 0);
-
     }while(0);
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
@@ -631,6 +630,12 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
     do
     {
         // Build the response header packet
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        //TI data is sent. Now send the TI length.
+        uint32_t len2enqueue = sizeof(bytesRead)/sizeof(uint32_t);;
+        SBE_INFO("Length of data sent through FIFO 0x%08X", bytesRead);
+        rc = sbeDownFifoEnq_mult (len2enqueue, &bytesRead);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
         rc = sbeDsSendRespHdr(hdr, &ffdc);
        // will let command processor routine handle the failure

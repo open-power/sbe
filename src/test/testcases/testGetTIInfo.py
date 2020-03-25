@@ -36,6 +36,7 @@ GETTIINFO_TESTDATA = [0, 0, 0, 0x2,
                       0, 0, 0xA9, 0x04]
 
 GETTIINFO_EXPDATA =  [0xc0, 0xde, 0xA9, 0x04]
+GETTIINFO_EXPLEN  =  [0, 0, 0x4, 0]
 
 #As of now TI length is 8 bytes.
 TI_LEN = 1024
@@ -69,6 +70,9 @@ def main(expStatus = [0, 0, 0, 0]):
     while length > 0: 
         data += testUtil.readDsEntryReturnVal(i_fifoType)
         length = length - 4
+
+    #Read the length from FIFO.
+    testUtil.readDsFifo( GETTIINFO_EXPLEN )
 
     #Flush out the expected data from FIFO.
     testUtil.readDsFifo(expData, i_fifoType)
