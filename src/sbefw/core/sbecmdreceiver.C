@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -87,7 +87,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
             if (  SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
                                          SBE_INTERFACE_FIFO_RESET) )
             {
-                SBE_ERROR(SBE_FUNC"SBE FIFO reset received");
+                SBE_INFO(SBE_FUNC"SBE FIFO reset received");
                 l_rc = SBE_FIFO_RESET_RECEIVED;
                 curInterface = SBE_INTERFACE_FIFO_RESET;
                 break;
@@ -95,7 +95,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
             if (  SBE_GLOBAL->sbeIntrSource.isSet(SBE_INTERRUPT_ROUTINE,
                                          SBE_INTERFACE_SBEHFIFO_RESET) )
             {
-                SBE_ERROR(SBE_FUNC"SBE HB FIFO reset received");
+                SBE_INFO(SBE_FUNC"SBE HB FIFO reset received");
                 l_rc = SBE_FIFO_RESET_RECEIVED;
                 curInterface = SBE_INTERFACE_SBEHFIFO_RESET;
                 break;
@@ -294,8 +294,14 @@ void sbeCommandReceiver_routine(void *i_pArg)
         // If there was a FIFO reset request,
         if (l_rc == SBE_FIFO_RESET_RECEIVED)
         {
+            sbeFifoType type = SBE_FIFO;
+            if(curInterface == SBE_INTERFACE_SBEHFIFO_RESET)
+            {
+                type = SBE_HB_FIFO;
+            }
+            
             // Perform FIFO Reset
-            uint32_t l_rc = sbeUpFifoPerformReset();
+            l_rc = sbeUpFifoPerformReset(type);
             if (l_rc)
             {
                 // Perform FIFO Reset failed
