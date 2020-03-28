@@ -26,6 +26,7 @@
 #include <p10_contained_sim.H>
 #include <p10_putmempba.H>
 #include <fapi2_mem_access.H>
+#include <fapi2_subroutine_executor.H>
 #include <p10_l3_flush.H>
 
 // L3 caches are 4MiB
@@ -63,8 +64,8 @@ static inline fapi2::ReturnCode putmempba(const fapi2::Target<fapi2::TARGET_TYPE
         const memflags i_mem_flags)
 {
     fapi2::ReturnCode rc;
-    FAPI_EXEC_HWP(rc, p10_putmempba, i_chip, i_core, i_start_addr, i_data_bytes,
-                  i_data, i_mem_flags);
+    FAPI_CALL_SUBROUTINE(rc, p10_putmempba, i_chip, i_core, i_start_addr, i_data_bytes,
+                         i_data, i_mem_flags);
     return rc;
 }
 
