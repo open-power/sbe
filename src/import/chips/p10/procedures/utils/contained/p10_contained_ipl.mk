@@ -24,23 +24,31 @@
 # IBM_PROLOG_END_TAG
 PROCEDURE=p10_contained_ipl
 
-# Macro to add all procedures under a given path as EXTRALIBS
-# 1) gather $1/*.mk files
-# 2) remove *.mk suffixes
-# 3) remove leading path stuff $1/
-define addextralibs
-lib$(PROCEDURE)_EXTRALIBS+=$(subst $1/,,$(patsubst %.mk,%,$(wildcard $1/*.mk)))
-endef
+lib$(PROCEDURE)_EXTRALIBS+=p10_sbe_chiplet_reset
+lib$(PROCEDURE)_EXTRALIBS+=p10_sbe_gptr_time_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_sbe_repr_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_sbe_arrayinit
+lib$(PROCEDURE)_EXTRALIBS+=p10_sbe_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_sbe_startclocks
 
-$(eval $(call addextralibs,$(ROOTPATH)/chips/p10/procedures/hwp/corecache))
-$(eval $(call addextralibs,$(ROOTPATH)/chips/p10/procedures/hwp/perv))
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_cache_reset
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_cache_gptr_time_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_cache_repair_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_cache_arrayinit
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_cache_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_cache_startclocks
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_reset
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_gptr_time_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_repair_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_arrayinit
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_initf
+lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_startclocks
 
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/corecache)
-$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
 $(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
+$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/output/gen/ringspin)
 
-#     Place the P10 include dir first and *then* the P9 include dir (otherwise
-#     hilarious compile errors ensue).
+# Place the P10 include dir first and *then* the P9 include dir
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/common/include/)
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p9/common/include/)
 
@@ -51,7 +59,5 @@ ifeq ($(P10_CONTAINED_SIM),1)
 	OBJS += p10_contained_sim.o
 	lib$(PROCEDURE)_COMMONFLAGS += -DP10_CONTAINED_SIM
 endif
-
-lib$(PROCEDURE)_COMMONFLAGS += -DP10_CONTAINED_IPL_COMPILE
 
 $(call BUILD_PROCEDURE)

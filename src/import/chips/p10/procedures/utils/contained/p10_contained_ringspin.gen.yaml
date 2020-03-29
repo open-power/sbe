@@ -1,0 +1,15 @@
+ec10:
+  engd_path: $PROJECT_ROOT/chips/p10/engd/p10/10
+  functions:
+    restore_active_l3:
+      spy_names:
+        - ECP.L3.L3_MISC.L3CERRS.BACKING_L3_CTL_REG
+        - ECP.L3.L3_MISC.L3CERRS.MODE_REG1
+    restore_backing_l3:
+      spy_names:
+        - ECP.L3.L3_MISC.L3CERRS.MODE_REG0
+        - ECP.L3.L3_MISC.L3CERRS.MODE_REG1
+    disable_core_sreset:
+      spy_names:
+        - ECP.EC.PC.PMC.DECR_EXTENDED_FUNC
+        - ECP.EC.PC.THRCTL.TCTLCOM.DECR_EXTENDED_FUNC

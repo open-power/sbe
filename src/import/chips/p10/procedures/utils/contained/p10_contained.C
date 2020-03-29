@@ -28,9 +28,7 @@
 #include <p10_scom_c.H>
 #include <p10_scom_perv.H>
 #include <p10_scan_via_scom.H>
-#include <p10_contained_active_cache_ringspin.H>
-#include <p10_contained_backing_cache_ringspin.H>
-#include <p10_contained_chc_inactive_cores_ringspin.H>
+#include <p10_contained_ringspin.gen.H>
 
 fapi2::ReturnCode is_runn_ipl(bool& o_yes)
 {
@@ -64,13 +62,6 @@ fapi2::ReturnCode is_chc_ipl(bool& o_yes)
 fapi_try_exit:
     return fapi2::current_err;
 }
-
-const size_t L3_MODE_REG0_LEN = 37;
-const size_t L3_MODE_REG0_RSHIFT = 64 - L3_MODE_REG0_LEN;
-const size_t L3_MODE_REG1_LEN = 39;
-const size_t L3_MODE_REG1_RSHIFT = 64 - L3_MODE_REG1_LEN;
-const size_t L3_BACKING_CTL_REG_LEN = 4;
-const size_t L3_BACKING_CTL_REG_RSHIFT = 64 - L3_BACKING_CTL_REG_LEN;
 
 fapi2::ReturnCode save_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
                                  const uint32_t i_active_bvec, l3_config& io_l3_config)
@@ -107,6 +98,14 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+#define RINGSPIN_EC_SWITCH_PRCD(chip_ec, prcd) ec ## chip_ec::prcd
+#define RINGSPIN_EC_SWITCH_CASE(chip_ec, prcd, args...)         \
+    case 0x ## chip_ec:                                         \
+    {                                                           \
+        FAPI_TRY(RINGSPIN_EC_SWITCH_PRCD(chip_ec, prcd)(args)); \
+        break;                                                  \
+    }
+
 fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
                                     const uint32_t i_active_bvec, const l3_config& i_l3_config,
                                     const bool i_runn, const bool i_chc)
@@ -118,6 +117,7 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
 
     uint64_t mode_reg1, mode_reg0, backing_ctl_reg;
     fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+    fapi2::ATTR_EC_Type ec;
     fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
     // ec_l3_fure
     const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
@@ -125,8 +125,8 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
             .setBit<SCAN_REGION_TYPE_SCAN_TYPE_REGF>());
     fapi2::buffer<uint64_t> scan_region_type;
 
-    // TODO Eventually we should change this to use the parallel-scan feature
-    //      of the clock-controller to save scoms maybe.
+    FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_chip, ec));
+
     for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));
@@ -154,10 +154,18 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
 
             if (i_runn)
             {
-                // The scan-via-scom procedures expect right-aligned input data
-                FAPI_TRY(active_cache::ec_l3_fure(perv, scan_region_type,
-                                                  mode_reg1 >> L3_MODE_REG1_RSHIFT,
-                                                  backing_ctl_reg >> L3_BACKING_CTL_REG_RSHIFT));
+                switch (ec)
+                {
+                // *INDENT-OFF*
+                RINGSPIN_EC_SWITCH_CASE(10, ec_l3_fure_restore_active_l3,
+                                        perv, scan_region_type, backing_ctl_reg,
+                                        mode_reg1)
+                default:
+                    FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
+                             " PROCEDURE=ec_l3_fure_restore_backing_l3", ec);
+                    return fapi2::FAPI2_RC_FALSE;
+                }
+                // *INDENT-ON*
             }
             else
             {
@@ -173,10 +181,18 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
 
             if (i_runn)
             {
-                // The scan-via-scom procedures expect right-aligned input data
-                FAPI_TRY(backing_cache::ec_l3_fure(perv, scan_region_type,
-                                                   mode_reg1 >> L3_MODE_REG1_RSHIFT,
-                                                   mode_reg0 >> L3_MODE_REG0_RSHIFT));
+                switch (ec)
+                {
+                // *INDENT-OFF*
+                RINGSPIN_EC_SWITCH_CASE(10, ec_l3_fure_restore_backing_l3,
+                                        perv, scan_region_type, mode_reg0,
+                                        mode_reg1)
+                default:
+                    FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
+                             " PROCEDURE=ec_l3_fure_restore_backing_l3", ec);
+                    return fapi2::FAPI2_RC_FALSE;
+                // *INDENT-ON*
+                }
             }
             else
             {
@@ -202,12 +218,14 @@ fapi2::ReturnCode disable_sreset_on_decr(const fapi2::Target<fapi2::TARGET_TYPE_
     using namespace scomt::perv;
 
     fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+    fapi2::ATTR_EC_Type ec;
     fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
     // ec_l2_mode
     const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
             .setBit<SCAN_REGION_TYPE_SCAN_TYPE_CFG>());
     fapi2::buffer<uint64_t> scan_region_type;
 
+    FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_chip, ec));
 
     for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
@@ -220,7 +238,17 @@ fapi2::ReturnCode disable_sreset_on_decr(const fapi2::Target<fapi2::TARGET_TYPE_
             scan_region_type.setBit(SCAN_REGION_TYPE_SCAN_REGION_UNIT1 +
                                     (corenum % 4));
 
-            FAPI_TRY(chc_inactive_cores::ec_cl2_mode(perv, scan_region_type, 0, 0));
+            switch (ec)
+            {
+            // *INDENT-OFF*
+            RINGSPIN_EC_SWITCH_CASE(10, ec_cl2_mode_disable_core_sreset,
+                                    perv, scan_region_type, 0, 0)
+            default:
+                FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
+                         " PROCEDURE=ec_cl2_mode_disable_core_sreset", ec);
+                return fapi2::FAPI2_RC_FALSE;
+            // *INDENT-ON*
+            }
         }
     }
 
