@@ -171,10 +171,16 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
     }
     else if(K & TARGET_TYPE_PHB)
     {
-        l_handle.fields.chiplet_num = (i_plat_argument / 3) + PHB_CHIPLET_OFFSET;
+        l_handle.fields.chiplet_num = (i_plat_argument / 3) + PEC_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_PHB;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+    else if(K & TARGET_TYPE_PEC)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument + PEC_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_PEC;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }    
     else if(K & TARGET_TYPE_MC)
     {
         l_handle.fields.chiplet_num = i_plat_argument + MC_CHIPLET_OFFSET;
@@ -209,12 +215,6 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
     {
         l_handle.fields.chiplet_num = i_plat_argument + NEST_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_NMMU;
-        l_handle.fields.type_target_num = i_plat_argument;
-    }
-    else if(K & TARGET_TYPE_PEC)
-    {
-        l_handle.fields.chiplet_num = i_plat_argument + PEC_CHIPLET_OFFSET;
-        l_handle.fields.type = PPE_TARGET_TYPE_PEC;
         l_handle.fields.type_target_num = i_plat_argument;
     }
 
@@ -746,6 +746,13 @@ fapi_try_exit:
             l_childTargetOffset = PHB_TARGET_OFFSET;
             l_loopCount = l_childPerChiplet;
         }
+        //PEC and PHB
+        else if((i_parentType == TARGET_TYPE_PEC) && (i_childType == TARGET_TYPE_PHB))
+        {
+            l_childPerChiplet = PHB_PER_PEC;
+            l_childTargetOffset = PHB_TARGET_OFFSET + (PHB_PER_PEC * fields.type_target_num);
+            l_loopCount = l_childPerChiplet;
+        }
        
         // else it is TARGET_TYPE_PROC_CHIP ==> anything, and we iterate over
         // all the targets
@@ -950,8 +957,26 @@ fapi_try_exit:
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, pauPerv, pg));
             if(pg == 0xFFFFFFFF)
             {
-                static_cast<plat_target_handle_t&>(pauPerv.operator ()()).setFunctional(false);
+                static_cast<plat_target_handle_t&>(pauPerv.operator()()).setFunctional(false);
                 G_vec_targets.at(i + PAU_TARGET_OFFSET) = pauPerv.get();
+            }
+        }
+
+        for(uint32_t i=0; i<PCI_TARGET_COUNT; ++i)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> pciPerv = G_vec_targets.at(i + PCI_TARGET_OFFSET);
+            fapi2::ATTR_PG_Type pg;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, pciPerv, pg));
+            if(pg == 0xFFFFFFFF) //Based on ATTR_PG of PCI target update the PCI and PEC functional state
+            {
+                //Update functional state for PCI target
+                static_cast<plat_target_handle_t&>(pciPerv.operator ()()).setFunctional(false);
+                G_vec_targets.at(i + PCI_TARGET_OFFSET) = pciPerv.get();
+
+                //Update functional state of PEC target
+                fapi2::Target<fapi2::TARGET_TYPE_PERV> pecPerv = G_vec_targets.at(i + PEC_TARGET_OFFSET);
+                static_cast<plat_target_handle_t&>(pecPerv.operator ()()).setFunctional(false);
+                G_vec_targets.at(i + PEC_TARGET_OFFSET) = pecPerv.get();
             }
         }
 

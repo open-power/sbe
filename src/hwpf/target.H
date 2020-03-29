@@ -103,12 +103,6 @@ namespace fapi2
     }
 
     template<>
-    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_EX>()
-    {
-        return PPE_TARGET_TYPE_EX;
-    }
-
-    template<>
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MI>()
     {
         return PPE_TARGET_TYPE_MI;
@@ -330,7 +324,7 @@ namespace fapi2
         {
             return static_cast<V>(this->iv_handle);
         }
-        if(TARGET_TYPE_PROC_CHIP == T) // EQ/EC/EX/MCBIST/MC/PERV ===> PROC
+        if(TARGET_TYPE_PROC_CHIP == T) // EQ/EC/MCBIST/MC/PERV ===> PROC
         {
             return static_cast<V>(G_vec_targets[CHIP_TARGET_OFFSET]);
         }
@@ -345,8 +339,7 @@ namespace fapi2
             T_parent.fields.mcast_group = static_cast<MulticastGroup>(static_cast<plat_target_handle_t>(get()).getMultiCastGroup());
             return T_parent;
         }
-        constexpr TargetType TARGET_TYPE_CORE_OR_EX = TARGET_TYPE_CORE | TARGET_TYPE_EX;
-        if((TARGET_TYPE_EQ == T) && ((K & (TARGET_TYPE_CORE_OR_EX)) != TARGET_TYPE_NONE))
+        if((TARGET_TYPE_EQ == T) && ((K & (TARGET_TYPE_CORE)) != TARGET_TYPE_NONE))
         {
             return get().getParent(T);
         }
@@ -356,7 +349,7 @@ namespace fapi2
         }
     }
 
-    /// @brief Get this target's children - handles EQ/EX/EC conversions
+    /// @brief Get this target's children - handles EQ/EC and PEC conversions
     /// @tparam K The type of parent
     /// @tparam V The plat target handle type
     /// @tparam T The type of child
@@ -378,22 +371,20 @@ namespace fapi2
         static_assert(sizeof(Target<T, M, V>) == sizeof(plat_target_handle_t),
                       "Sizes of plat target and FAPI target must match");
 
-        static_assert(((L == TARGET_TYPE_EQ) || (L == TARGET_TYPE_EX) || (K == TARGET_TYPE_PROC_CHIP) ||
+        static_assert(((L == TARGET_TYPE_EQ) || (L == TARGET_TYPE_PEC) || (K == TARGET_TYPE_PROC_CHIP) || 
                       (((K & TARGET_TYPE_MULTICAST) != 0) && ((K & TARGET_TYPE_MULTICASTABLE) != 0))),
                       "Invalid parent passed to getChildren");
         // valid children for EQ
         // EQ -> CORE
-        // EQ -> EX
         static_assert(!((L == fapi2::TARGET_TYPE_EQ) &&
-                        (T != fapi2::TARGET_TYPE_CORE) &&
-                        (T != fapi2::TARGET_TYPE_EX)),
+                        (T != fapi2::TARGET_TYPE_CORE)),
                       "improper child of fapi2::TARGET_TYPE_EQ");
 
-        // valid children for EX
-        // EX -> CORE
-        static_assert(!((L == fapi2::TARGET_TYPE_EX) &&
-                        (T != fapi2::TARGET_TYPE_CORE)),
-                      "improper child of fapi2::TARGET_TYPE_EX");
+        // valid children for PEC
+        // PEC -> PHB
+        static_assert(!((L == fapi2::TARGET_TYPE_PEC) &&
+                        (T != fapi2::TARGET_TYPE_PHB)),
+                       "improper child of fapi2::TARGET_TYPE_PEC");
 
         // valid children for multicast targets are the same with multicast stripped
         static_assert(!((K & TARGET_TYPE_MULTICAST) &&

@@ -241,6 +241,7 @@ enum sbeSecondaryResponse
     SBE_SEC_RAM_CORE_SETUP_FAILED             = 0x32,
     SBE_SEC_RAM_CORE_ACCESS_FAILED            = 0x33,
     SBE_SEC_RAM_CORE_CLEANUP_FAILED           = 0x34,
+    SBE_SEC_SUSPEND_IO_FAILED                 = 0x35,
 };
 
 /**
