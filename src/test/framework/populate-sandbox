@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -40,8 +40,11 @@ echo "Add ecc to the binary workspace"
 #Check that the binary exists before adding ecc to it.
 if [ -f $SBEBINIMAGE ]; then
     echo "Copy sbe boot seeprom image"
+    cp -f $SBEBINIMAGE $SBEBINSIMIMAGE || exit -1
+    #Add HBBL section into the SBE image.
+    $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hbbl $SBEROOT/src/tools/debug/hbbl.bin || exit -1 
     #TODO: Add Ring section into the SBE image before adding the ECC
-    ecc --inject $SBEBINIMAGE --output  $SBEECCIMAGE --p8 || exit -1
+    ecc --inject $SBEBINSIMIMAGE --output  $SBEECCIMAGE --p8 || exit -1
     echo "Copy OTPROM image"
     cp -f $SBEROOT/images/sbe_otprom_DD1.bin $SBEROOT/simics/import/boot_roms/sbe_otprom_p10.bin|| exit -1
 fi
