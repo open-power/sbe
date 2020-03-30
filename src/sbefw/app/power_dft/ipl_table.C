@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -746,8 +747,8 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
             SBE_ERROR(SBE_FUNC" performTpmReset failed");
             break;
         }
-        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
-                    SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
+        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeMaster() ?
+                    SBE_ROLE_MASTER : SBE_ROLE_SLAVE;
         SBE_INFO(SBE_FUNC"g_sbeRole [%x]", g_sbeRole);
         if(SBE_ROLE_SLAVE == g_sbeRole)
         {

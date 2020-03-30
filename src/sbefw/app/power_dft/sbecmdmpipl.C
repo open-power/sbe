@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -238,8 +239,8 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         fapi2::plat_AttrInit();
         SbeRegAccess::theSbeRegAccess().init(true);
 
-        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
-                    SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
+        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeMaster() ?
+                    SBE_ROLE_MASTER : SBE_ROLE_SLAVE;
 
         fapiRc = continueMpiplIstepsExecute(g_sbeRole);
         bool checkstop = isSystemCheckstop();

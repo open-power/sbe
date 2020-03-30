@@ -33,6 +33,7 @@
 #include "sbetrace.H"
 #include "fapi2.H"
 #include <ppe42_scom.h>
+#include <p10_scom_perv.H>
 #include <p9_perv_scom_addresses.H>
 #include <p9_misc_scom_addresses.H>
 
@@ -180,6 +181,17 @@ uint32_t SbeRegAccess::init(bool forced)
             iv_mbx3 = ((uint64_t) l_attr ) << 32;
             SBE_INFO(SBE_FUNC "MBX_reg3 from Attribute : 0x%08X", (uint32_t)(iv_mbx3 >> 32));
         }
+
+        uint64_t cbs_envstat_reg;
+        rc = getscom_abs(scomt::perv::FSXCOMP_FSXLOG_CBS_ENVSTAT_RO, &cbs_envstat_reg);
+        if(PCB_ERROR_NONE != rc)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to read CBS_ENVSTAT Register, "
+                "RC: 0x%08X", rc);
+            break;
+        }
+        SBE_INFO(SBE_FUNC "CBS_ENVSTAT Reg [0x%08X]", (cbs_envstat_reg >>32));
+        
         if(iv_mbx6_valid)
         {
             // Read MBX6
@@ -191,32 +203,35 @@ uint32_t SbeRegAccess::init(bool forced)
                 break;
             }
             SBE_INFO(SBE_FUNC "MBX_reg6 from scratch : 0x%08X", (uint32_t)(iv_mbx6 >> 32));
+
+            // If already a slave, no override from C4 required
+            if(iv_isMaster) // If Master, C4 might over-ride
+            {
+                //Use C4 pin as indicator of Master Slave, to Over-ride
+
+                if( !((cbs_envstat_reg >> 32) & 0x8000000) )
+                {
+                    // C4 overrides Master as slave
+                    iv_isMaster = 0;
+                    SBE_INFO(SBE_FUNC "After C4 Override, Master to Slave "
+                        "transition MBX_reg6:0x%08X", (uint32_t)(iv_mbx6 >> 32));
+                }
+            }
+        }
+        else // iv_mbx6 not valid, use C4 to indicate Master/Slave
+        {
+            if( (cbs_envstat_reg >> 32) & 0x8000000 )
+            {
+                iv_isMaster = 1;
+            }
+            else
+            {
+                iv_isMaster = 0;
+            }
+            SBE_INFO(SBE_FUNC "MBX_reg6 Scratch not valid, Decide Master/Slave "
+                "basis the C4 Reg, MBX_reg6:0x%08X", (uint32_t)(iv_mbx6 >> 32));
         }
 
-        SBE_ERROR("SKIP check the C4 board pin!!!");
-        // TODO - Enable this back from the new C4 pin available in CBS_ENVSTAT
-        // Register (50004) Bit4
-#if 0
-        // If the master/slave bit is 0 (either default or read from mbx6),
-        // check the C4 board pin to determine role
-        // Read device ID register
-        uint64_t l_sbeDevIdReg = 0;
-        rc = getscom_abs(PERV_DEVICE_ID_REG, &l_sbeDevIdReg);
-        if(PCB_ERROR_NONE != rc)
-        {
-            SBE_ERROR(SBE_FUNC"Failed reading device id reg, RC: 0x%08X.",rc);
-            break;
-        }
-
-        if(0 == iv_isSlave)
-        {
-            iv_isSlave = l_sbeDevIdReg & SBE_DEV_ID_C4_PIN_MASK;
-            SBE_INFO(SBE_FUNC"Overriding master/slave with data read from "
-                      "C4 pin: HI: 0x%08X, LO: 0x%08X",
-                      (uint32_t)(l_sbeDevIdReg >> 32),
-                      (uint32_t)(l_sbeDevIdReg & 0xFFFFFFFF));
-        }
-#endif
     } while(false);
 
     SBE_INFO(SBE_FUNC"Read mailbox registers: mbx8: 0x%08X, mbx3: 0x%08X, "

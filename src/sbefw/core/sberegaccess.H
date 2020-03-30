@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -181,14 +181,14 @@ class SbeRegAccess
         }
 
         /**
-         * @brief Check if SBE is slave/master
+         * @brief Check if SBE is master
          *
-         * @return true if SBE is slave, false if master
+         * @return true if SBE is Master, true if master
          *
          */
-        inline bool isSbeSlave() const
+        inline bool isSbeMaster() const
         {
-            return iv_isSlave;
+            return iv_isMaster;
         }
 
         /**
@@ -307,7 +307,7 @@ class SbeRegAccess
             struct
             {
                 uint64_t iv_mbx6DontCare : 24;
-                uint64_t iv_isSlave : 1;
+                uint64_t iv_isMaster : 1;
                 uint64_t iv_mbx6DontCare2 : 7;
                 uint64_t iv_mbx6Unused : 32;
             };

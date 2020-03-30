@@ -342,7 +342,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_scominit),
              ISTEP_MAP( istepLpcInit,  p10_sbe_lpc_init),
              ISTEP_MAP( istepWithProc, p10_sbe_fabricinit),
-             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_check_master
+             ISTEP_MAP( istepCheckSbeMaster, NULL),
              ISTEP_MAP( istepWithProc, p10_sbe_mcs_setup),
              ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
 #endif
@@ -418,8 +418,18 @@ ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
     SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
-    SBE_UART_INIT;
-    SBE_MSG_CONSOLE( SBE_CONSOLE_WELCOME_MSG );
+    
+    g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeMaster() ?
+                    SBE_ROLE_MASTER : SBE_ROLE_SLAVE;
+    if(SBE_ROLE_MASTER == g_sbeRole)
+    {
+        SBE_UART_INIT;
+        SBE_MSG_CONSOLE( SBE_CONSOLE_WELCOME_MSG );
+    }
+    else
+    {
+        SBE_INFO(SBE_FUNC "Skipping UART_INIT on slave chip");
+    }
     return rc;
 }
 //----------------------------------------------------------------------------
@@ -811,32 +821,23 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
 {
     #define SBE_FUNC "istepCheckSbeMaster "
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
+    
     do
     {
-        rc = performTpmReset();
-        if( rc != FAPI2_RC_SUCCESS )
-        {
-            SBE_ERROR(SBE_FUNC" performTpmReset failed");
-            break;
-        }
-        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
-                    SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
-        SBE_INFO(SBE_FUNC"g_sbeRole [%x]", g_sbeRole);
+        g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeMaster() ?
+                    SBE_ROLE_MASTER : SBE_ROLE_SLAVE;
+        SBE_INFO(SBE_FUNC"Sbe role [%x]", g_sbeRole);
         if(SBE_ROLE_SLAVE == g_sbeRole)
         {
             (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_RUNTIME_EVENT);
         }
     }while(0);
-#endif
+
     return rc;
     #undef SBE_FUNC
 }
 
-/*
- * --------------------------------------------- start SEEPROM CODE
- */
 //----------------------------------------------------------------------------
 ReturnCode istepWithCoreSetBlock( voidfuncptr_t i_hwp)
 {

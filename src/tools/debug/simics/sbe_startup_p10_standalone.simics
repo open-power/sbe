@@ -67,7 +67,10 @@ echo "Enable the SBE"
 (get-master-procs)[0].cfam_cmp.lbus_map.write 0x2800 + 0x1*4 0x0c000002 4 -b
 
 # Set valid bit for Scratch Reg3 in Scratch Reg8 bit 2
-(get-master-procs)[0].cfam_cmp.lbus_map.write 0x2800 + 0x3F*4 0x20000000 4 -b
+(get-master-procs)[0].cfam_cmp.lbus_map.write 0x2800 + 0x3F*4 0x24000000 4 -b
+
+# Set bit24 for Scratch Reg6 - Master Proc
+(get-master-procs)[0].cfam_cmp.lbus_map.write 0x2800 + 0x3D*4 0x00000080 4 -b
 
 if $istep_mode == TRUE {
     echo "ISTEP IPL mode set"
@@ -92,6 +95,9 @@ echo "Setting l3_base"
 foreach $proc in (get-all-procs) {
     $proc->l3_base=0xF0000000
 }
+
+#This is already taken care by simics environment, no need to set anymore
+#@conf.backplane0.dcm[0].chip[0].cfam_cmp.fsi2host_mbox.pib_regs_environment_status |= 0x0800000000000000
 
 #If we are running CI, run the test cases
 if $sbe_ci == TRUE {

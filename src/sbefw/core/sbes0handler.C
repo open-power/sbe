@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -90,8 +90,8 @@ uint32_t sbeHandleS0(uint8_t *i_pArg)
             break;
         }
 
-        sbeRole sbeRole = SbeRegAccess::theSbeRegAccess().isSbeSlave() ?
-                    SBE_ROLE_SLAVE : SBE_ROLE_MASTER;
+        sbeRole sbeRole = SbeRegAccess::theSbeRegAccess().isSbeMaster() ?
+                   SBE_ROLE_MASTER : SBE_ROLE_SLAVE;
 
         if(sbeRole == SBE_ROLE_MASTER)
         {

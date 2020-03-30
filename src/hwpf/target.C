@@ -1194,10 +1194,11 @@ fapi_try_exit:
             static_cast<plat_target_handle_t&>(target_name.operator ()()).setFunctional(true);
             G_vec_targets.at(l_beginning_offset+i) = (fapi2::plat_target_handle_t)(target_name.get());
         }
-        for(uint32_t i=0;i< TARGET_COUNT;i++)
-        {
-            FAPI_ERR("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
-        }
+        // Debug Code - Don't Remove
+        //for(uint32_t i=0;i< TARGET_COUNT;i++)
+        //{
+        //    FAPI_ERR("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
+        //}
 
 fapi_try_exit:
         return fapi2::current_err;

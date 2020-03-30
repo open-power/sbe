@@ -37,7 +37,8 @@ print "SBE_TOOLS_PATH = " +  SBE_TOOLS_PATH
 testIstepAuto = imp.load_source("testIstepAuto", SBE_TOOLS_PATH + "/testIstepAuto.py")
 sbeDebug = imp.load_source("sbeDebug", SBE_TOOLS_PATH + "/sbe-debug.py")
 err = False
-simicsObj = simics.SIM_run_command("get-master-procs")
+#simicsObj = simics.SIM_run_command("get-master-procs")
+simicsObj = simics.SIM_run_command("get-component-list -all proc_p10_pib")
 
 bootSyms = {};
 measureSyms = {};
@@ -118,7 +119,7 @@ def fillSymTable():
 # will be the deepest stack usage point of tht thread during the run
 def collectStackUsage ( procNr, nodeNr=0 ):
   # Read opcode in SB_MSG Register [ 0x50009 ]
-  cmd = simicsObj[procNr] + ".pib_cmp.pib.read 0x500090 8"
+  cmd = simicsObj[procNr] + ".pib.read 0x500090 8"
   ( rValue, out )  =   quiet_run_command( cmd, output_modes.regular )
   opMode = (rValue >> 32) & 0xf
   # Dump stack memory to binary files
@@ -136,7 +137,7 @@ def collectStackUsage ( procNr, nodeNr=0 ):
     return;
   print "==================================Stack usage==================================="
   for thread in threads:
-    cmd = "pipe \"" + simicsObj[procNr] + ".pib_cmp.sbe_mibo.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
+    cmd = "pipe \"" + simicsObj[procNr] + ".sbe_mibo.x 0x" + syms[thread][0] + " 0x"+syms[thread][1]+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> "+thread+"\""
     print "simics running %s: "%( cmd)
     ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
     if ( rc ):
@@ -156,7 +157,7 @@ def collectStackUsage ( procNr, nodeNr=0 ):
         print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
 
 def collectAttr( procNr, nodeNr=0 ):
-  cmd= "pipe \"" + simicsObj[procNr] + ".pib_cmp.sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  cmd= "pipe \"" + simicsObj[procNr] + ".sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
   print "simics running %s: "%( cmd)
   ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
   if ( rc ):
@@ -169,7 +170,7 @@ def collectAttr( procNr, nodeNr=0 ):
   sbeDebug.collectAttr()
 
 def collectRegFfdc( procNr, nodeNr=0 ):
-  cmd = "pipe \"" + simicsObj[procNr] + ".pib_cmp.sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
+  cmd = "pipe \"" + simicsObj[procNr] + ".sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
   print "simics running %s: "%( cmd)
   ( rc, out )  =   quiet_run_command( cmd, output_modes.regular )
   if ( rc ):
@@ -186,7 +187,8 @@ def istep_func ( majorIstep, minorIstep, nodeNr=0 ):
 
 def collectTrace ( procNr, nodeNr=0 ):
   # Read opcode in SB_MSG Register [ 0x50009 ]
-  cmd = simicsObj[procNr] + ".pib_cmp.pib.read 0x500090 8"
+  cmd = simicsObj[procNr] + ".pib.read 0x500090 8"
+  print "simics running %s [%d]: "%( cmd, procNr) 
   ( rValue, out )  =   quiet_run_command( cmd, output_modes.regular )
 
   # 3bits of 0x50009 (29,30,31 bits)
@@ -209,7 +211,7 @@ def collectTrace ( procNr, nodeNr=0 ):
   else:
     print "Traces are unsupported for opcode[%d] in SB_MSG Register [ 0x50009]"%( opMode )
 
-  cmd1 = "pipe \"" + simicsObj[procNr] + ".pib_cmp.sbe_mibo.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
+  cmd1 = "pipe \"" + simicsObj[procNr] + ".sbe_mibo.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
   cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + `stringFile` + " sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""
