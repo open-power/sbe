@@ -87,17 +87,25 @@ try {
 
 } except { echo "ERROR: Failed to load SBE debug tools." }
 
+# Changing the base of HRMOR to 4GB - 256MB for all procs
+echo "Setting l3_base"
+foreach $proc in (get-all-procs) {
+    $proc->l3_base=0xF0000000
+}
 
 #If we are running CI, run the test cases
 if $sbe_ci == TRUE {
    script-branch {
-       wait-for-hap Core_Configuration_Loaded
-       try {
-       run-command-file $sbe_ci_script
-   } except{
-   echo " Debug ::SBE CI Script error"
-   q 1
+        wait-for-simulation-started
+        stop
+        wait-for-simulation-stopped
+        try {
+            run-command-file $sbe_ci_script
+        } except{
+            echo " Debug ::SBE CI Script error"
+            q 1
+        }
+        #Kill runsim if any test case fails.
+        q 0
    }
-   #Kill runsim if any test case fails.
-   q 0}
 }
