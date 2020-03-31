@@ -219,6 +219,12 @@ extern "C" {
         FAPI_INF("nactive[%02d] nbacking[%02d] active[x%08x]", nactive, nbacking,
                  active_bvec);
 
+        if (i_cache_img == NULL && i_cache_img_bytes == 0)
+        {
+            FAPI_INF("No cache image, skipping PBA-LCO load");
+            return fapi2::FAPI2_RC_SUCCESS;
+        }
+
         for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));

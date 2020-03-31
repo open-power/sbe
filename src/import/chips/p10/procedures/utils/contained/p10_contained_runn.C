@@ -284,9 +284,14 @@ static fapi2::ReturnCode runn_opcg_start(const fapi2::Target < fapi2::TARGET_TYP
         data.setBit<15>(); // OPCG_REG0_RUNN_HLD_DLY_EN
     }
 
-
     // Convert core RUNN cycles to nest RUNN cycles (what the OPCG wants)
     i_runn_cnt = i_runn_cnt / 2;
+
+    // Zero means maximum RUNN count
+    if (i_runn_cnt == 0)
+    {
+        i_runn_cnt = (1ull << OPCG_REG0_LOOP_COUNT_LEN) - 1;
+    }
 
     SET_OPCG_REG0_LOOP_COUNT(i_runn_cnt, data);
 
