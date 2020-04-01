@@ -36,6 +36,7 @@ using namespace fapi2;
 
 void MEM_AVAILABLE_CHECK(uint32_t &io_available_len,uint32_t &io_len_to_send,bool &io_is_last_access)
 {
+#define SBE_FUNC "MEM_AVAILABLE_CHECK"
     if(io_len_to_send > io_available_len)
     {
         SBE_INFO(SBE_FUNC" Allocated memory is less, truncating the access");
@@ -43,6 +44,7 @@ void MEM_AVAILABLE_CHECK(uint32_t &io_available_len,uint32_t &io_len_to_send,boo
         io_is_last_access = true;
     }
     io_available_len -= io_len_to_send;
+#undef SBE_FUNC
 }
 
 ReturnCode sbeMemAccessInterface::setup()
