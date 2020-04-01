@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -48,11 +48,11 @@ def main( ):
     #PutMemAdu with Itag
     data = os.urandom(80)
     data = [ord(c) for c in data]
-    testMemProcUtil.putmem(0x08000000, data, 0xB5)
+    testMemProcUtil.putmem(0xF0000000, data, 0xB5)
     data = testMemProcUtil.addItagEcc(data,True, False)
 
     # GetMemAdu test with ECC and Itag
-    readData = testMemProcUtil.getmem(0x08000000, 80, 0xB5)
+    readData = testMemProcUtil.getmem(0xF0000000, 80, 0xB5)
     if(data == readData):
         print ("Success - Write-Read ADU with Itag")
     else:
@@ -61,12 +61,12 @@ def main( ):
         raise Exception('data mistmach')
 
     # Partial Write test
-    readData = testMemProcUtil.getmem(0x08000000, 40, 0xB5)
+    readData = testMemProcUtil.getmem(0xF0000000, 40, 0xB5)
     data = os.urandom(8)
     data = [ord(c) for c in data]
-    testMemProcUtil.putmem(0x08000008, data, 0xB5, 0xEF)
+    testMemProcUtil.putmem(0xF0000008, data, 0xB5, 0xEF)
     data = testMemProcUtil.addItagEcc(data,True, False)
-    readBackData = testMemProcUtil.getmem(0x08000000, 40, 0xB5)
+    readBackData = testMemProcUtil.getmem(0xF0000000, 40, 0xB5)
     sandwichData = readData[:9]+data+readData[len(data)+9:]
     if(sandwichData == readBackData):
         print ("Success - Write_Part-Read ADU with Itag")

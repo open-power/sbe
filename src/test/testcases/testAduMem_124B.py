@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -43,10 +43,10 @@ def main( ):
             #PutMemAdu Test
             data = os.urandom(byte)
             data = [ord(c) for c in data]
-            testMemProcUtil.putmem(0x08000000 + offset, data, 0xA5)
+            testMemProcUtil.putmem(0xF0000000 + offset, data, 0xA5)
 
             # GetMemAdu test
-            readData = testMemProcUtil.getmem(0x08000000 + offset, byte, 0xA5)
+            readData = testMemProcUtil.getmem(0xF0000000 + offset, byte, 0xA5)
             if(data == readData):
                 print ("Success - Write-Read ADU byte["+str(byte)+"] offset[" + str(offset)+"]")
             else:
@@ -56,7 +56,7 @@ def main( ):
 
 # Test case 2: Invalid length - 3
     # GetMemAdu test
-    testMemProcUtil.getmem_failure(0x08000000, 3, 0xA5, 0x0002000A)
+    testMemProcUtil.getmem_failure(0xF0000000, 3, 0xA5, 0x0002000A)
     print ("Success - invalid length test")
 
 #-------------------------------------------------

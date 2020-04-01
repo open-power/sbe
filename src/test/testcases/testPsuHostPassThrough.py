@@ -52,7 +52,7 @@ sbe_test_data = (
     #                           FFDC Addr
     ["write", reg.REG_MBOX2, "1234567898765432", 	 8, 	"None", 			"Writing to MBOX2 address"],
     #                           Pass Cmd Addr
-    ["write", reg.REG_MBOX3, "0000000008000000", 	 8, 	"None", 			"Writing to MBOX3 address"],
+    ["write", reg.REG_MBOX3, "00000000F0000000", 	 8, 	"None", 			"Writing to MBOX3 address"],
     ["write", reg.PSU_SBE_DOORBELL_REG_WO_OR, "8000000000000000", 	 8, 	"None", 		"Update SBE Doorbell register to interrupt SBE"],
     )
 '''
