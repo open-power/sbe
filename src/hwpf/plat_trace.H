@@ -45,6 +45,10 @@ extern "C"
 #include "trac_interface.h"
 }
 
+#ifdef SBE_CONSOLE_SUPPORT
+#include "printf.H"
+#endif
+
 // Why not a #define, why is this in the fapi2 namespace?
 // To prevent problems with Cronus and the fapi1 definitions.
 namespace fapi2
@@ -52,9 +56,16 @@ namespace fapi2
     static const uint32_t MAX_ECMD_STRING_LEN = 64;
 };
 
+#if defined(SBE_CONSOLE_SUPPORT) && defined(ENABLE_CONSOLE_TRACE_IN_FILE)
+#define FAPI_TRACE(_id_, _fmt_, _args_...) {         \
+        printf(_fmt_, ##_args_);                     \
+        printf("\n\r");                              \
+}
+#else
 // Information traces (go into fast trace buffer that can wrap often)
 #define FAPI_TRACE(_id_, _fmt_, _args_...)                              \
     PK_TRACE(_fmt_, ##_args_);
+#endif
 
 
 /*  The following is a desirous trace entry but the second line has a
