@@ -279,3 +279,12 @@ void sbeMsgConsole(char const *msg)
         uartPutChar(msg[c++]);
     }
 }
+
+void _putchar(char c)
+{
+    if (!SBE_GLOBAL->sbeUartActive)
+    {
+        return;
+    }
+    uartPutChar(c);
+}
