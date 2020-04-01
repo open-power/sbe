@@ -250,7 +250,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // by LCO_mode (LCO Mode for PBA-Put)
         if(i_hdr.isPbaLcoModeSet())
         {
-            SBE_INFO(SBE_INFO "LCO Mode is set with Ex ChipletId[%d]",
+            SBE_INFO(SBE_FUNC "LCO Mode is set with Ex ChipletId[%d]",
                 (i_hdr.coreChipletId)/2);
             //Derive the EX target from the input Core Chiplet Id
             //Core0/1 -> EX0, Core2/3 -> EX1, Core4/5 -> EX2, Core6/7 -> EX3
