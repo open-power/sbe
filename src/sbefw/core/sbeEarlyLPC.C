@@ -137,3 +137,57 @@ uint32_t writeLPCRegIndexed(uint8_t i_addr,
 
     return rc;
 }
+
+uint32_t clearLPCErrorStatusRegister()
+{
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    do {
+        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+
+        buffer<uint32_t> data;
+        ReturnCode fapiRc;
+
+        fapiRc = lpc_read(proc, LPCM_OPB_MASTER_STATUS_REG, data);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            rc = SBE_SEC_LPC_ACCESS_FAILED;
+            break;
+        }
+        if (data & LPCM_OPB_MASTER_STATUS_ERROR_BITS)
+        {
+            // Error bits set -- clear them
+            data = LPCM_OPB_MASTER_STATUS_ERROR_BITS;
+            fapiRc = lpc_write(proc,
+                               LPCM_OPB_MASTER_ACTUAL_STATUS_REG,
+                               data);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                rc = SBE_SEC_LPC_ACCESS_FAILED;
+                break;
+            }
+
+            data = LPCM_OPB_MASTER_STATUS_ERROR_BITS;
+            fapiRc = lpc_write(proc,
+                               LPCM_OPB_MASTER_STATUS_REG,
+                               data);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                rc = SBE_SEC_LPC_ACCESS_FAILED;
+                break;
+            }
+
+            data = LPCHC_IRQSTAT_ERROR_BITS;
+            fapiRc = lpc_write(proc,
+                           LPC_REG_HC_IRQSTAT,
+                           data);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                rc = SBE_SEC_LPC_ACCESS_FAILED;
+                break;
+            }
+        }
+    } while(0);
+
+    return rc;
+}

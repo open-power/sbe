@@ -39,9 +39,17 @@
 #define LPC_IO_SPACE        0xD0010000
 #define LPC_MAX_IO_SPACE    (64*1024)
 
+#define LPCM_OPB_MASTER_STATUS_REG        0xC0010000
+#define LPCM_OPB_MASTER_ACTUAL_STATUS_REG 0xC001004C
+#define LPC_REG_HC_IRQSTAT                0xC0012038
+
+#define LPCM_OPB_MASTER_STATUS_ERROR_BITS 0x20000FC3
+#define LPCHC_IRQSTAT_ERROR_BITS          0x000004FC
+
 uint32_t readLPCReg(uint16_t i_addr, uint8_t &i_data);
 uint32_t writeLPCReg(uint16_t i_addr, uint8_t i_data);
 uint32_t readLPCRegIndexed(uint8_t i_addr,
                   uint8_t i_index, uint8_t &o_data);
 uint32_t writeLPCRegIndexed(uint8_t i_addr,
                   uint8_t i_index, uint8_t i_data);
+uint32_t clearLPCErrorStatusRegister();
