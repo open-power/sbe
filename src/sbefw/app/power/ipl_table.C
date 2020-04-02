@@ -181,6 +181,7 @@ using  sbeIstepHwpCacheInitf_t = ReturnCode (*)
 // Wrapper function which will call HWP.
 ReturnCode istepWithProc( voidfuncptr_t i_hwp );
 ReturnCode istepLpcInit( voidfuncptr_t i_hwp );
+ReturnCode istepLpcClearErrors( voidfuncptr_t i_hwp );
 ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp);
 ReturnCode istepAttrSetup( voidfuncptr_t i_hwp );
 ReturnCode istepNoOp( voidfuncptr_t i_hwp );
@@ -361,6 +362,7 @@ static istepMap_t g_istep5PtrTbl[]
          {
 #ifdef SEEPROM_IMAGE
              ISTEP_MAP( istepLoadBootLoader, NULL ),
+             ISTEP_MAP( istepLpcClearErrors, p9_sbe_lpc_clear_errors ),
              ISTEP_MAP( istepStartInstruction,  p9_sbe_instruct_start ),
 #endif
          };
@@ -394,6 +396,20 @@ ReturnCode istepWithProc( voidfuncptr_t i_hwp)
     return rc;
 }
 //----------------------------------------------------------------------------
+
+ReturnCode istepLpcClearErrors( voidfuncptr_t i_hwp)
+{
+    #define SBE_FUNC "istepLpcClearErrors "
+
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    assert( NULL != i_hwp );
+    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+
+    #undef SBE_FUNC
+
+    return rc;
+}
 
 ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
 {
