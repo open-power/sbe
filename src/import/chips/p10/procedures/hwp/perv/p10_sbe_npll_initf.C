@@ -37,12 +37,6 @@
 #include "p10_perv_sbe_cmn.H"
 #include <target_filters.H>
 
-static const ring_setup_t ISTEP2_BNDY_FUNC_RINGS[] =
-{
-    {perv_pll_bndy,   IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
-    {perv_dpll_time,  IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 1},
-    // Will dpll_mode ring be added?
-};
 
 fapi2::ReturnCode p10_sbe_npll_initf(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -57,7 +51,15 @@ fapi2::ReturnCode p10_sbe_npll_initf(
 
     FAPI_INF("p10_sbe_npll_initf: Entering ...");
 
-    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP2_BNDY_FUNC_RINGS, true));
+
+    FAPI_TRY(fapi2::putRing(i_target_chip,
+                            perv_pll_bndy,
+                            fapi2::RING_MODE_SET_PULSE_NSL),
+             "Error from putRing (perv_pll_bndy)");
+
+    FAPI_TRY(fapi2::putRing(i_target_chip,
+                            perv_dpll_time),
+             "Error from putRing (perv_dpll_time)");
 
     FAPI_DBG("Drop clock region fences for DPLL_PAU, DPLL_NEST and Filter PLL regions");
     l_data64.flush<0>()
