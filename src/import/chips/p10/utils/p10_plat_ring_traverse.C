@@ -302,7 +302,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
             break;
 
         default:
-            fapi2::current_err = fapi2::FAPI2_RC_INVALID_PARAMETER;
+            fapi2::current_err = fapi2::RC_PUTRING_INVALID_PARAMETER;
             goto fapi_try_exit;
             break;
 
