@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -24,7 +24,6 @@
 <!-- IBM_PROLOG_END_TAG                                                     -->
 
 <hwpErrors>
-  <sbeTarget>MASTER_CHIP</sbeTarget>
   <!-- ******************************************************************** -->
   <hwpError>
       <sbeError/>
