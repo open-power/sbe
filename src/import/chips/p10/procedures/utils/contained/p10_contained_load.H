@@ -43,8 +43,8 @@ extern "C" {
     /// @param[in] i_cache_start_addr   Start address for where to start loading cache image
     /// @param[in] i_cache_img_bytes    Size of the cache image to load in bytes (MUST be 128B aligned)
     /// @param[in] i_cache_img          Pointer to the cache image to load
-    /// @param[in] i_qme_img_bytes      Size of the QME image to load in bytes
-    /// @param[in] i_qme_img            Pointer to the QME image to load (or NULL)
+    /// @param[in] i_homer_img_bytes    Size of the HOMER image to load QME SRAM from in bytes
+    /// @param[in] i_homer_img          Pointer to the HOMER image to load QME SRAM from (or NULL)
     ///
     /// @return FAPI2_RC_SUCCESS if success else error code
     ///
@@ -52,8 +52,8 @@ extern "C" {
                                          const uint64_t& i_cache_img_start_addr,
                                          const uint64_t& i_cache_img_bytes,
                                          const uint8_t* i_cache_img,
-                                         const uint64_t& i_qme_img_bytes,
-                                         const uint8_t* i_qme_img);
+                                         const uint64_t& i_homer_img_bytes,
+                                         const uint8_t* i_homer_img);
 }
 
 #endif

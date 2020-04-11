@@ -31,8 +31,10 @@ $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/nest)
 $(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/nest)
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/output/gen/ringspin)
+$(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/lib)
 
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
+$(call ADD_MODULE_OBJ,$(PROCEDURE),p10_pm_utils.o)
 
 ifeq ($(P10_CONTAINED_SIM),1)
 	OBJS += p10_contained_sim.o
