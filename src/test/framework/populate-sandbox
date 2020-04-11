@@ -29,12 +29,21 @@ then
     source "$SBEROOT/src/test/framework/setup-env"
 fi
 
+SIMICSROOTDIR=$1
+echo "Simics Path $SIMICSROOTDIR"
+SBETESTDIR=${SIMICSROOTDIR}/targets/p10_standalone/sbeTest/
+SBEROMDIR=${SIMICSROOTDIR}/import/boot_roms/
+SBEBINSIMIMAGE=${SBEROMDIR}/sbe_seeprom_p10.bin
+SBEECCIMAGE=${SBEROMDIR}/sbe_seeprom_p10.bin.ecc
+SBEECCMEASUREMENTIMAGE=$SBEROMDIR/sbe_measurement_p10.bin.ecc
+
 # Create test directory.
 mkdir -p $SBETESTDIR || exit -1
 
-echo "Untar $SIMICS_TAR/simics.tar.gz into the sandbox"
-tar -xf $SIMICS_TAR/simics.tar.gz -C $SBEROOT/simics/ || exit -1
-
+if [ $2 -ne 1 ];  then
+    echo "Untar $SIMICS_TAR/simics.tar.gz into the sandbox"
+    tar -xf $SIMICS_TAR/simics.tar.gz -C $SIMICSROOTDIR || exit -1
+fi
 
 echo "Add ecc to the binary workspace"
 #Check that the binary exists before adding ecc to it.
@@ -46,13 +55,13 @@ if [ -f $SBEBINIMAGE ]; then
     #TODO: Add Ring section into the SBE image before adding the ECC
     ecc --inject $SBEBINSIMIMAGE --output  $SBEECCIMAGE --p8 || exit -1
     echo "Copy OTPROM image"
-    cp -f $SBEROOT/images/sbe_otprom_DD1.bin $SBEROOT/simics/import/boot_roms/sbe_otprom_p10.bin|| exit -1
+    cp -f $SBEROOT/images/sbe_otprom_DD1.bin ${SIMICSROOTDIR}/import/boot_roms/sbe_otprom_p10.bin|| exit -1
 fi
 
 if [ -f $SBEBINPIBMEMIMAGE ];
 then
     echo "Copy PIBMEM image"
-    cp -f $SBEBINPIBMEMIMAGE $SBEROOT/simics/import/boot_roms/sbe_pibmem_p10.bin|| exit -1
+    cp -f $SBEBINPIBMEMIMAGE ${SIMICSROOTDIR}/import/boot_roms/sbe_pibmem_p10.bin|| exit -1
 fi
 
 if [  -f $SBEBINMEASUREMENTIMAGE ]; then
@@ -62,8 +71,8 @@ fi
 
 
 echo "Copy engd (scandef.abr) from backing build"
-mkdir -p $SBEROOT/simics/import/cec-chip/
-cp $BACKING_BUILD/obj/ppc/simu/data/cec-chip/scandef.abr $SBEROOT/simics/import/cec-chip/scandef.abr || exit -1
+mkdir -p $SIMICSROOTDIR/import/cec-chip/
+cp $BACKING_BUILD/obj/ppc/simu/data/cec-chip/scandef.abr $SIMICSROOTDIR/import/cec-chip/scandef.abr || exit -1
 
 echo  "Copy test files."
 cp -r $SBEROOT/src/test/testcases/* $SBETESTDIR/ || exit -1
@@ -82,7 +91,7 @@ echo "Copy fsp-trace"
 cp $MCP_PATH/opt/fsp/usr/bin/fsp-trace $SBETESTDIR || exit -1
 
 echo "Install simics"
-$SBEROOT/simics/INSTALL.sh || exit -1
+$SIMICSROOTDIR/INSTALL.sh || exit -1
 
 
 

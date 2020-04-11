@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -42,7 +42,7 @@ source "$SBEROOT/src/test/framework/setup-env"
 bash -c  "make install -j" || exit -1
 
 # Add SBE files to simics sandbox.
-populate-sandbox || exit -1
+populate-sandbox $SBEROOT/simics 0 || exit -1
 
 sbetest-start.sh || exit -1
 

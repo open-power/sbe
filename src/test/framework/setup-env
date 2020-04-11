@@ -29,12 +29,8 @@ export PATH=${CITESTPATH}:${PATH}:$MCP_PATH/opt/fsp/usr/bin/
 
 # Setup machine type.
 export MACHINE=${MACHINE:-$DEFAULT_MACHINE}
-
-export SBETESTDIR=${SBEROOT}/simics/targets/p10_standalone/sbeTest/
 export SBEROMDIR=${SBEROOT}/simics/import/boot_roms/
 export SBEBINIMAGE=${SBEROOT}/images/sbe_seeprom_DD1.bin
-export SBEBINSIMIMAGE=$SBEROMDIR/sbe_seeprom_p10.bin
-export SBEECCIMAGE=$SBEROMDIR/sbe_seeprom_p10.bin.ecc
 export SBEBINPIBMEMIMAGE=${SBEROOT}/images/sbe_pibmem_DD1.bin
 export SBEBINMEASUREMENTIMAGE=${SBEROOT}/images/sbe_measurement_seeprom.bin
 export SBEECCMEASUREMENTIMAGE=$SBEROMDIR/sbe_measurement_p10.bin.ecc

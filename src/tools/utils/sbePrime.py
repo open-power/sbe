@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -80,6 +80,8 @@ def main():
         print " \t                                sbe_seeprom_DD2.bin"
         print " \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)"
         print " \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled"
+        print " \t  -m,--simicsPath    = [ Optional ] Path to create the simics folder"
+        print " \t  -b,--hbStandalone  = [ Optional ] Flag to determine if sb prime is for sbe or HBstnadalone"
         print " \t  -h,--help      = Help"
         print "  ------------------------------------------------------------------------------------"
 
@@ -115,11 +117,13 @@ def main():
     rc_file      = "None"
     build        = "1"
     ddlevel      = "None"
+    hbStandalone = "0"
+    simicsPath   = "simics"
 
     #----------------------------
     # Read command line args
     #----------------------------
-    opts, args = getopt.getopt(sys.argv[1:],"p:s:i:hr:nl:",['patch=', 'sb=', 'files=', 'help', 'rc_file=', 'no_build', 'level='])
+    opts, args = getopt.getopt(sys.argv[1:],"p:s:i:hr:nl:m:b:",['patch=', 'sb=', 'files=', 'help', 'rc_file=', 'no_build', 'level=', 'simicsPath=', 'hbStandalone='])
     for opt, arg in opts:
        if opt in ('-h', '--help'):
            usage()
@@ -136,6 +140,10 @@ def main():
            build = "0"
        elif opt in ('-l', '--level'):
            ddlevel = arg
+       elif opt in ('-m', '--simicsPath'):
+           simicsPath = arg
+       elif opt in ('-b', '--hbStandalone'):
+           hbStandalone = arg
        else:
            usage()
            exit_main(errorcode.ERROR_EXIT)
@@ -171,7 +179,7 @@ def main():
         #----------------------------------------
         # 2) Simics setup
         #----------------------------------------
-        rc = os.system("sh $SBEROOT/src/test/framework/populate-sandbox")
+        rc = os.system("sh $SBEROOT/src/test/framework/populate-sandbox " + simicsPath + " " + hbStandalone)
         print "  Simics setup returned rc :",rc
         if rc != 0:
             exit_main(errorcode.ERROR_BUILD_FAILED)
