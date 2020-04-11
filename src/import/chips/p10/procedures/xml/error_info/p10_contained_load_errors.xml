@@ -39,19 +39,6 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
-    <rc>RC_P10_CONTAINED_LOAD_QME_IMG_TOO_BIG</rc>
-    <description>
-      Procedure: p10_contained_load
-      QME image is too large to fit into QME SRAM.
-    </description>
-    <ffdc>QME_IMG_BYTES</ffdc>
-    <callout>
-      <procedure>CODE</procedure>
-      <priority>HIGH</priority>
-    </callout>
-  </hwpError>
-  <!-- ******************************************************************** -->
-  <hwpError>
     <rc>RC_P10_CONTAINED_LOAD_CACHE_IMG_TOO_BIG_CHC</rc>
     <description>
       Procedure: p10_contained_load
