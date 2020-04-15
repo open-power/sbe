@@ -24,126 +24,166 @@
 #
 # IBM_PROLOG_END_TAG
 
-$simicsObj=(get-master-procs)
-$simicsObj[0].pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
-echo "Run-cycles"
-#sim->frontend_current_processor = backplane0.dcm[0].chip[0].pib_cmp.sbe_ppe
-#sim->frontend_current_processor 
-#b 0xff880520
+$procNr = -1
+foreach $proc in (get-component-list -all proc_p10) {
 
-#output-file-start pib_cmp_dump -overwrite
-#backplane0.dcm[0].chip[0].pib_cmp.cecchip.log-level 1
-# calebs
-#cript-branch "wait for configuration loaded before starting" {
-#       wait-for-hap hap = Core_Configuration_Loaded
-#       echo "Post Core_Configuration_Loaded hap"
-run-cycles 10000000
-#run
-#run-seconds 1.0
-echo "*******************Run testRunTillSbeBooted.py************************"
+    $procNr = $procNr + 1
+    echo "**************** Run sbe testcases for " + $proc + "****************"
+    $proc.pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]
+    echo "Run-cycles"
 
-run-python-file targets/p10_standalone/sbeTest/testRunTillSbeBooted.py
-#backplane0.dcm[0].chip[0].pib_cmp.sbe_ppe.pregs
-#backplane0.dcm[0].chip[0].pib_cmp.cecchip.invoke parallel_load SCOM 0x1000100 64
-#backplane0.dcm[0].chip[0].pib_cmp.cecchip.invoke parallel_load SCOM 0x1030005 64
-#output-file-stop
+    #sim->frontend_current_processor = backplane0.dcm[0].chip[0].pib_cmp.sbe_ppe
+    #sim->frontend_current_processor 
+    #b 0xff880520
 
-run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
+    #output-file-start pib_cmp_dump -overwrite
+    #backplane0.dcm[0].chip[0].pib_cmp.cecchip.log-level 1
+    # calebs
+    #script-branch "wait for configuration loaded before starting" {
+    #       wait-for-hap hap = Core_Configuration_Loaded
+    #       echo "Post Core_Configuration_Loaded hap"
+    #}
 
-echo "*******************Run testPSUSetStashPair.xml*******************"
+    run-cycles 10000000
 
-run-python-file targets/p10_standalone/sbeTest/testPSUSetStashPair.py
+    #run
+    #run-seconds 1.0
 
-echo "*******************Run SBE-ISTEPS ******************"
+    if $proc == backplane0.dcm[0].chip[0] {
 
-sbe-istep 2.2 5.1
+        echo "*******************Run testRunTillSbeBooted.py************************"
 
-echo "*******************Run testMatchStashPair.xml*******************"
+        run-python-file targets/p10_standalone/sbeTest/testRunTillSbeBooted.py
 
-run-python-file targets/p10_standalone/sbeTest/testMatchStashPair.py
+        echo "*******************Run testIstepInvalidFenced.py*******************"
 
-sbe-istep 5.2 5.3
+        run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
 
-echo "*******************Run testSram.py *******************"
-run-python-file targets/p10_standalone/sbeTest/testSram.py
+        echo "*******************Run testPSUSetStashPair.xml*******************"
 
-echo "**Run testIstepInvalid.py and testIstepInvalidFenced.py **"
+        run-python-file targets/p10_standalone/sbeTest/testPSUSetStashPair.py
 
-run-python-file targets/p10_standalone/sbeTest/testIstepInvalid.py
+    }
 
-run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
+    #Enable slave proc. Master proc is already enblaed.
+    if  $proc != backplane0.dcm[0].chip[0] {
 
-echo "*******************Run testGeneric.xml*******************"
+        echo "*******************sbe-start-slaveProc.py************************"
 
-run-python-file targets/p10_standalone/sbeTest/testGetCapabilities.py
+        run-python-file targets/p10_standalone/sbeTest/sbe-start-slaveProc.py
 
-run-python-file targets/p10_standalone/sbeTest/testSbeDump.py
+        echo "*******************Run testRunTillSbeBootedSlaveProc.py****************"
 
-echo "*******************Run testPSUSetFFDCAddr.xml*******************"
+        run-python-file targets/p10_standalone/sbeTest/testRunTillSbeBootedSlaveProc.py
+    }
 
-run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
+    echo "*******************Run SBE-ISTEPS ******************"
 
-echo "*******************Run testPSUGetCapabilities.py*******************"
+    sbe-istep 2.2 3.18 $procNr 
 
-run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
+    #backplane0.dcm[0].chip[0].pib_cmp.sbe_ppe.pregs
+    #backplane0.dcm[0].chip[0].pib_cmp.cecchip.invoke parallel_load SCOM 0x1000100 64
+    #backplane0.dcm[0].chip[0].pib_cmp.cecchip.invoke parallel_load SCOM 0x1030005 64
+    #output-file-stop
 
-echo "*******************Run testPutGetMem.xml*******************"
+    if $proc == backplane0.dcm[0].chip[0] {
 
-run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
+        echo "*******************Run SBE-ISTEPS ******************"
 
-echo "*******************Run StopInstruction******************"
+        sbe-istep 3.19 5.1
 
-run-python-file targets/p10_standalone/sbeTest/testStopInstruction.py
+        echo "*******************Run testMatchStashPair.xml*******************"
 
-echo "*******************Run testRegAccess.xml*******************"
+        run-python-file targets/p10_standalone/sbeTest/testMatchStashPair.py
 
-run-python-file targets/p10_standalone/sbeTest/testPutGetRegGpr.py
+        sbe-istep 5.2 5.3
 
-run-python-file targets/p10_standalone/sbeTest/testPutGetRegFpr.py
+        echo "*******************Run testSram.py *******************"
 
-run-python-file targets/p10_standalone/sbeTest/testPutGetRegSpr.py
+        run-python-file targets/p10_standalone/sbeTest/testSram.py
 
-echo "*******************Run StartInstruction******************"
+        echo "**Run testIstepInvalid.py and testIstepInvalidFenced.py **"
 
-run-python-file targets/p10_standalone/sbeTest/testStartInstruction.py
+        run-python-file targets/p10_standalone/sbeTest/testIstepInvalid.py
 
-echo "*******************Run testAduMem.xml*******************"
+        run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
 
-run-python-file targets/p10_standalone/sbeTest/testAduMem_ecc.py
+        echo "*******************Run testGeneric.xml*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testAduMem_itag.py
+        run-python-file targets/p10_standalone/sbeTest/testGetCapabilities.py
 
-run-python-file targets/p10_standalone/sbeTest/testAduMem_withEccItag.py
+        run-python-file targets/p10_standalone/sbeTest/testSbeDump.py
 
-run-python-file targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
+        echo "*******************Run testPSUSetFFDCAddr.xml*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
+        run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
 
-run-python-file targets/p10_standalone/sbeTest/testExitCacheContainedMode.py
+        echo "*******************Run testPSUGetCapabilities.py*******************"
 
-echo "*******************Run testHResetIpl.xml*******************"
+        run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
 
-run-python-file targets/p10_standalone/sbeTest/testHResetIpl.py
+        echo "*******************Run testPutGetMem.xml*******************"
 
-echo "*******************Run testFifoReset.xml*******************"
+        run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
 
-run-python-file targets/p10_standalone/sbeTest/testGetTIInfo.py
+        echo "*******************Run testAduMem.xml*******************"
 
-echo "*******************Run testFifoReset.xml*******************"
+        echo "*******************Run StopInstruction******************"
 
-run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
+        run-python-file targets/p10_standalone/sbeTest/testStopInstruction.py
 
-echo "*******************Run testEnterMpipl.xml*******************"
+        echo "*******************Run testRegAccess.xml*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testEnterMpipl.py
+        run-python-file targets/p10_standalone/sbeTest/testPutGetRegGpr.py
 
-echo "*******************Run testPutGetScom.xml*******************"
-run-python-file targets/p10_standalone/sbeTest/testPutGetScom.py
+        run-python-file targets/p10_standalone/sbeTest/testPutGetRegFpr.py
 
-echo "*******************Run testQuiesce.xml*******************"
+        run-python-file targets/p10_standalone/sbeTest/testPutGetRegSpr.py
 
-run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
+        echo "*******************Run StartInstruction******************"
 
+        run-python-file targets/p10_standalone/sbeTest/testStartInstruction.py
+
+        echo "*******************Run testAduMem.xml*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testAduMem_ecc.py
+
+        run-python-file targets/p10_standalone/sbeTest/testAduMem_itag.py
+
+        run-python-file targets/p10_standalone/sbeTest/testAduMem_withEccItag.py
+
+        run-python-file targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
+
+        run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
+
+        run-python-file targets/p10_standalone/sbeTest/testExitCacheContainedMode.py
+
+        echo "*******************Run testHResetIpl.xml*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testHResetIpl.py
+
+        echo "*******************Run testGetTIInfo.py*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testGetTIInfo.py
+
+        echo "*******************Run testFifoReset.xml*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
+
+        echo "*******************Run testEnterMpipl.xml*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testEnterMpipl.py
+
+        echo "*******************Run testPutGetScom.xml*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testPutGetScom.py
+
+        echo "*******************Run testQuiesce.xml*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
+
+    }
+}
 #TODO: Remove exit
 exit 0
 

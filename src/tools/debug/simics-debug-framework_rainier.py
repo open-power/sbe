@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016,2020
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +49,7 @@ def register_sbe_debug_framework_tools():
     fillSymTable()
     # Create command hook.
     new_command("sbe-istep",istep_func,
-                 args = [arg(float_t, "Major/start istep"), arg(float_t, "Minor/end istep"), arg(int_t, "arg", "?", 0)],
+                 args = [arg(float_t, "Major/start istep"), arg(float_t, "Minor/end istep"), arg(int_t, "procNr", "?", 0), arg(int_t, "arg", "?", 0)],
                  alias = "istep",
                  type = ["sbe-commands"],
                  short = "Runs the debug framework for istep ",
@@ -159,8 +160,8 @@ def collectRegFfdc( procNr, nodeNr=0 ):
   sbeDebug.fillSymTable()
   sbeDebug.ppeStateFfdc()
 
-def istep_func ( majorIstep, minorIstep, nodeNr=0 ):
-  testIstepAuto.sbe_istep_func(majorIstep, minorIstep, nodeNr)
+def istep_func ( majorIstep, minorIstep, procNr=0, nodeNr=0):
+  testIstepAuto.sbe_istep_func(majorIstep, minorIstep, procNr, nodeNr)
 
 def collectTrace ( procNr, nodeNr=0 ):
   fileName = "sbe_" + `procNr` + "_tracMERG"
