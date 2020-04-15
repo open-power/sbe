@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,10 +34,6 @@
 
 #include <stdint.h>
 #include "fapi2.H"
-
-// This is used to find out the array index in g_control_reg_map in
-// p10_thread_control.C
-static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
 
 /**
   * @brief stopAllCoreInstructions  Stop all core instructions function

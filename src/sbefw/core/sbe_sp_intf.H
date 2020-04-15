@@ -237,6 +237,7 @@ enum sbeSecondaryResponse
     SBE_SEC_TI_DATA_READ_FAILED               = 0x2E,
     SBE_SEC_PUT_SRAM_FAILED                   = 0x2F,
     SBE_SEC_GET_SRAM_FAILED                   = 0x30,
+    SBE_SEC_THREAD_CONTROL_INSTR_FAILED       = 0x31,
 };
 
 /**
@@ -373,21 +374,17 @@ enum sbeErrorMode
 };
 
 /**
- * @brief Core Chiplet Id Enum
+ * @brief Core Id Enum
+ *   User needs to define the coreIDs as input in the sbeCntlInstMsgHdr
+ *   structure, similar modification would be there for PBA/ADU, GET/PUT Reg,
+ *   Stop clocks etc. There are no Pervasive chiplet Id for core, just coreId,
+ *   SBE will generate the right core target basis the CoreId. 
  */
-enum sbeCoreChipletId
+enum sbeCoreId
 {
-    SMT4_CORE0_ID       = 0x20,
-    SMT4_CORE_ID_LAST   = 0x37,
+    SMT4_CORE0_ID       = 0x00,
+    SMT4_CORE_ID_LAST   = 0x1F,
     SMT4_ALL_CORES      = 0xFF,
-};
-
-/**
- * @brief EX Chiplet Id Enum
- */
-enum sbeExChipletId
-{
-    EX_ALL_CHIPLETS     = 0xFF,
 };
 
 /**

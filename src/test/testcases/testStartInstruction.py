@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -34,7 +34,7 @@ LOOP_COUNT = 1
 # Start All thread in Core0 with warn flag true
 INST_START0_ALL_TESTDATA_WITH_WARN_FLG =      [0,0,0,0x03,
                                               0,0,0xa7,0x01,
-                                              0,1,0x20,0xf0]
+                                              0,1,0,0xf0]
 
 INST_EXPDATA  =     [0xc0,0xde,0xa7,0x01,
                      0x0,0x0,0x0,0x0,

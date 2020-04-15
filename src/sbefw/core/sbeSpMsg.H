@@ -536,8 +536,6 @@ typedef struct
 }sbeSramAccessReqMsgHdr_t;
 
 
-
-
 // Maximum number of capabilities - max of FIFO and PSU capabilities
 static const uint32_t SBE_MAX_CAPABILITIES      = 20;
 
@@ -601,17 +599,21 @@ typedef struct
     uint32_t       chipletId:8;
 }sbeStopClocksReqMsgHdr_t;
 
+// This is used to find out the array index in g_control_reg_map in
+// p10_thread_control.C
+static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
+
 /**
   * @brief structure for Control Instruction Chipop (0xA701) contents.
   *
   */
 typedef struct
 {
-    uint32_t           reserved:12;
-    sbeErrorMode       mode:4;
-    sbeCoreChipletId   coreChipletId:8;
-    sbeThreadNum       threadNum:4;
-    sbeThreadOps       threadOps:4;
+    uint32_t         reserved:12;
+    sbeErrorMode     mode:4;
+    sbeCoreId        coreId:8;
+    sbeThreadNum     threadId:4;
+    sbeThreadOps     threadOps:4;
 
     /**
       * @brief Validate input arguments
@@ -621,16 +623,17 @@ typedef struct
       */
     bool validateInputArgs()
     {
-        bool l_validatePassFlag = true;
-        // Validate Thread Command / Thread Num / Error Mode
-        if((threadOps > THREAD_SRESET_INS) ||
-           !((threadNum <= SMT4_THREAD3) || (threadNum == SMT4_THREAD_ALL)))
+        bool validatePassFlag = true;
+        // Validate Thread Command / Thread Num / Error Mode / Core Id
+        if( (threadOps > THREAD_SRESET_INS) ||
+            !((threadId <= SMT4_THREAD3) || (threadId == SMT4_THREAD_ALL)) ||
+            !((coreId <= SMT4_CORE_ID_LAST) || (coreId == SMT4_ALL_CORES)) )
         {
-            SBE_ERROR(SBE_FUNC "Invalid Parameter by User, ThreadOps[%d] "
-                "mode[%d] ThreadNum[%d]", (uint32_t)threadOps, (uint32_t)mode, (uint32_t)threadNum);
-            l_validatePassFlag = false;
+            SBE_ERROR(SBE_FUNC "Invalid Parameters, CoreId[%d] ThreadOps[%d] "
+                "mode[%d] ThreadId[%d]",coreId, threadOps, mode, threadId);
+            validatePassFlag = false;
         }
-        return l_validatePassFlag;
+        return validatePassFlag;
     }
 
     /**
@@ -639,31 +642,33 @@ typedef struct
       *
       * @param[out] o_core, Core Id to start with in the iteration
       * @param[out] o_coreCntMax, Core Max count to iterate, start from o_core
-      * @param[out] o_threadCnt, Thread Num to start with in the iteration
-      * @param[out] o_threadCntMax, Thread Max Num to iterate, start from
-      *             o_threadCnt
+      * @param[out] o_threadMax, Thread Mask as input to the procedure
       *
       * @return void
       */
-    void processInputDataToIterate(uint8_t & o_core, uint8_t & o_coreCntMax,
-                               uint8_t & o_threadCnt, uint8_t & o_threadCntMax)
+    void processInputDataToIterate(uint8_t & o_core,
+                                   uint8_t & o_coreCntMax,
+                                   uint8_t & o_threadMask)
     {
         //Default Init
-        o_threadCnt = SMT4_THREAD0;
-        o_threadCntMax = SMT4_THREAD_MAX;
-
+        o_threadMask = SMT4_THREAD_ALL;
         o_core = SMT4_CORE0_ID;
         o_coreCntMax = SMT4_CORE_ID_LAST+1;
 
-        if( SMT4_ALL_CORES != coreChipletId )
+        if( SMT4_ALL_CORES != coreId )
         {
-            o_core = coreChipletId;
-            o_coreCntMax = coreChipletId;
+            o_core = coreId;
+            o_coreCntMax = coreId;
         }
-        if( SMT4_THREAD_ALL != threadNum )
+        if( SMT4_THREAD_ALL != threadId )
         {
-            o_threadCnt = threadNum;
-            o_threadCntMax = threadNum;
+            o_threadMask = (SINGLE_THREAD_BIT_MASK >> threadId);
+            // If all thread then default mask is already initialised with 1111b
+            // all threads  -> 1111b
+            // else thread0 -> 1000b
+            // else thread1 -> 0100b
+            // else thread2 -> 0010b
+            // else thread3 -> 0001b
         }
     }
 
@@ -676,7 +681,7 @@ typedef struct
     {
         return (mode & SPECIAL_WAKEUP);
     }
-}sbeCntlInstRegMsgHdr_t;
+}sbeCntlInstMsgHdr_t;
 
 /**
  * @brief Get Ring access message header

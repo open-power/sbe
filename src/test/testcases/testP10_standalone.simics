@@ -91,8 +91,13 @@ echo "*******************Run testPutGetMem.xml*******************"
 
 run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
 
-echo "*******************Run testAduMem.xml*******************"
+echo "*******************Run StopInstruction******************"
+run-python-file targets/p10_standalone/sbeTest/testStopInstruction.py
 
+echo "*******************Run StartInstruction******************"
+run-python-file targets/p10_standalone/sbeTest/testStartInstruction.py
+
+echo "*******************Run testAduMem.xml*******************"
 run-python-file targets/p10_standalone/sbeTest/testAduMem_ecc.py
 
 run-python-file targets/p10_standalone/sbeTest/testAduMem_itag.py
@@ -107,7 +112,7 @@ run-python-file targets/p10_standalone/sbeTest/testExitCacheContainedMode.py
 
 echo "*******************Run testHResetIpl.xml*******************"
 
-#run-python-file targets/p10_standalone/sbeTest/testHResetIpl.py
+run-python-file targets/p10_standalone/sbeTest/testHResetIpl.py
 
 echo "*******************Run testFifoReset.xml*******************"
 
@@ -158,7 +163,6 @@ sbe-istep 5 2
 
 echo "*******************Run testRegAccess.xml*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testStopInstruction.py
 
 run-python-file targets/p10_standalone/sbeTest/testPutGetRegGpr.py
 
