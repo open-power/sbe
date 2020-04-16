@@ -2330,11 +2330,18 @@ int dissectRingSection( uint8_t*    i_ringSection,
                                           ddLevel,
                                           ringId,
                                           chipletId,
-                                          rs4Buf,          // IO buffer (caller mgd)
-                                          ringBlockSize,   // IO parm
+                                          rs4Buf, //IO buffer (caller mgd)
+                                          ringBlockSize,
+                                          true, //No-care. =true to minimize chance of err code
                                           0 );
 
-                if (!rc)
+                // Here we will be forgiving with the RS4 MAGIC and VERSION rc since they will
+                // be rechecked in rs4_decompress, in case we display the raw rings. And the
+                // RS4 TYPE rc, we certainly want to also dissect in this case so we can see
+                // which other rings might have same error conditions.
+                if ( rc == TOR_SUCCESS || rc == TOR_INVALID_RS4_MAGIC ||
+                     rc == TOR_INVALID_RS4_VERSION ||
+                     rc == TOR_INVALID_RS4_TYPE )
                 {
                     selector = be16toh(((CompressedScanData*)rs4Buf)->iv_selector);
                 }
@@ -2348,13 +2355,20 @@ int dissectRingSection( uint8_t*    i_ringSection,
                                    selector,
                                    ddLevel,
                                    rs4Buf,          // IO buffer (caller managed)
-                                   ringBlockSize,   // IO parm
+                                   ringBlockSize,
                                    0 );
 
-                if (!rc)
-                {
-                    chipletId = be32toh(rs4->iv_scanAddr) >> 24;
-                }
+                // Here we will be forgiving with the RS4 MAGIC and VERSION rc since they will
+                // be rechecked in rs4_decompress, in case we display the raw rings. And the
+                // RS4 TYPE rc, we certainly want to also dissect in this case so we can see
+                // which other rings might have same error conditions.
+                if ( rc == TOR_SUCCESS || rc == TOR_INVALID_RS4_MAGIC ||
+                     rc == TOR_INVALID_RS4_VERSION ||
+                     rc == TOR_INVALID_RS4_TYPE )
+                    if (!rc)
+                    {
+                        chipletId = be32toh(rs4->iv_scanAddr) >> 24;
+                    }
             }
 
             //

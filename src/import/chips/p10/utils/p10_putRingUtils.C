@@ -327,9 +327,10 @@ fapi2::ReturnCode putRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
     {
         if ( SUPER_CHIPLET_MASK == i_chipletMask )
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST> l_target;
-            FAPI_TRY(temp_reduceType(i_target, l_target), "Invalid target for core/EQ level ring");
-            auto l_target_eq = l_target.getParent< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST >();
+            fapi2::Target<fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST> l_target_core;
+            FAPI_TRY(temp_reduceType(i_target, l_target_core), "Invalid target for core level ring");
+            fapi2::Target<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST> l_target_eq =
+                l_target_core.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST >();
             l_scomAddress |= i_chipletMask;
 
             FAPI_TRY( fapi2::putScom( l_target_eq, l_scomAddress, i_scomData ),
@@ -385,14 +386,14 @@ fapi2::ReturnCode getRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
     {
         if ( SUPER_CHIPLET_MASK == i_chipletMask )
         {
-            fapi2::Target<fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST> l_target;
-            FAPI_TRY(temp_reduceType(i_target, l_target), "Invalid target for core/EQ level ring");
+            fapi2::Target<fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST> l_target_core;
+            FAPI_TRY(temp_reduceType(i_target, l_target_core), "Invalid target for core level ring");
             l_scomAddress |= i_chipletMask;
 
             if ( i_and_not_comp )
             {
-                fapi2::Target< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2:: MULTICAST_AND > l_target_eq_and =
-                    l_target.getParent< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST >();
+                fapi2::Target< fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2:: MULTICAST_AND > l_target_eq_and =
+                    l_target_core.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST >();
 
                 FAPI_TRY( fapi2::getScom( l_target_eq_and, l_scomAddress, o_scomData ),
                           "EQ Common: getRegister (and) failed" );
@@ -400,8 +401,8 @@ fapi2::ReturnCode getRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
             }
             else
             {
-                fapi2::Target< fapi2::TARGET_TYPE_PERV| fapi2::TARGET_TYPE_MULTICAST, fapi2:: MULTICAST_COMPARE > l_target_eq_comp =
-                    l_target.getParent< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST >();
+                fapi2::Target< fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2:: MULTICAST_COMPARE > l_target_eq_comp =
+                    l_target_core.getParent<fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST>();
 
                 FAPI_TRY( fapi2::getScom( l_target_eq_comp, l_scomAddress, o_scomData ),
                           "EQ Common: getRegister (comp) failed" );
@@ -1040,36 +1041,24 @@ fapi2::ReturnCode p10_putRingUtils(
 
         if ( i_applyOverride )
         {
-            l_bOverride = false;
-
-            //CMO-20200410: Temp fix to avoid coreq
-            if (l_rs4Header->iv_version == RS4_VERSION)
+            if( (l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK) == RS4_IV_TYPE_SCAN_OVRD )
             {
-                if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK ) == RS4_IV_TYPE_SCAN_OVRD )
-                {
-                    l_bOverride     =   true;
-                }
-                else if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK ) == RS4_IV_TYPE_SCAN_FLUSH )
-                {
-                    l_bOverride = false;
-                }
+                l_bOverride = true;
+            }
+            else if( (l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK) == RS4_IV_TYPE_SCAN_FLUSH )
+            {
+                l_bOverride = false;
             }
             else
             {
-                //V4 back support
-                if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK_V4 ) == RS4_IV_TYPE_SCAN_OVRD_V4 )
-                {
-                    l_bOverride     =   true;
-                }
-                else if( ( l_rs4Header->iv_type & RS4_IV_TYPE_SCAN_MASK_V4 ) == RS4_IV_TYPE_SCAN_FLUSH_V4 )
-                {
-                    l_bOverride = false;
-                }
+                //If scan type is either a) set to 0b11 or 0b00, we will let the context decide
+                //override status. And since applyOverride==true, we'll make bOverride=true
+                l_bOverride = true;
             }
         }
-        else if( !i_applyOverride )
+        else
         {
-            l_bOverride     =   false;
+            l_bOverride = false;
         }
 
         if( TEST_MODE == i_opMode )
