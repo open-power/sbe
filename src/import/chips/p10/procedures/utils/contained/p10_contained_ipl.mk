@@ -46,7 +46,6 @@ lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_startclocks
 
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/corecache)
 $(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
-$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/output/gen/ringspin)
 
 # Place the P10 include dir first and *then* the P9 include dir
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/common/include/)

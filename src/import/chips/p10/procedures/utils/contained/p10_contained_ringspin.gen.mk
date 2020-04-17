@@ -22,14 +22,13 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-GENERATED=p10_contained_ringspin.gen
-$(GENERATED)_PATH=$(ROOTPATH)/output/gen/ringspin
-TARGETS+=$(GENERATED).H
-
 ENGD_ROOTDIR=$(ROOTPATH)/chips/p10/engd/p10
 CONTAINED_ROOTDIR=$(ROOTPATH)/chips/p10/procedures/utils/contained
 RINGSPIN_YAML_CFG=$(CONTAINED_ROOTDIR)/p10_contained_ringspin.gen.yaml
 
+GENERATED=p10_contained_ringspin.gen
+$(GENERATED)_PATH=$(CONTAINED_ROOTDIR)
+TARGETS+=$(GENERATED).H
 
 # Only generate the ringspinner procedures if we have engd
 ifneq ($(wildcard $(ENGD_ROOTDIR)/*),)
@@ -40,22 +39,14 @@ SOURCES+=$(RINGSPIN_YAML_CFG)
 
 $(GENERATED)_COMMAND_PATH=$(CONTAINED_ROOTDIR)/tools/bin/
 $(GENERATED)_RUN=$(call RUN_RINGSPINNER,$(RINGSPIN_YAML_CFG),$($(GENERATED)_PATH)/$(GENERATED))
+
+# The generated prolog has an incorrect path set which results in `git status`
+# differences which break CI EKB builds. Fix this by using `sed` to edit the
+# path in-place after generating the prolog - gross.
 define RUN_RINGSPINNER
-$(C1) $$< $(1) -o $(2)
-endef
-
-else
-
-COMMAND=cp
-SOURCES+=$(CONTAINED_ROOTDIR)/p10_contained_ringspin.def.H
-
-$(GENERATED)_COMMAND_PATH=/bin/
-$(GENERATED)_RUN=$(call RUN_RINGSPINNER,$(CONTAINED_ROOTDIR)/p10_contained_ringspin.def.H,$($(GENERATED)_PATH)/$(GENERATED).H)
-define RUN_RINGSPINNER
-$(C1) $$< $(1) $(2)
+$(C1) $$< $(1) -o $(2) && addCopyright update $(2).H && sed -i 's%\$$Source: ../../%\$$Source: %' $(2).H
 endef
 
 endif
 
-$(call CLEAN_TARGET,$($(GENERATED)_PATH)/$(GENERATED).H)
 $(call BUILD_GENERATED)

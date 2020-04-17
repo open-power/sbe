@@ -25,7 +25,6 @@
 PROCEDURE=p10_contained_run
 
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
-$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/output/gen/ringspin)
 
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained_runn.o)
