@@ -630,7 +630,9 @@ uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
              l_opcode_pattern   == OPCODE_MFFS ||
              l_opcode_pattern   == OPCODE_MFMSR ||
              l_opcode_pattern   == OPCODE_SLBMFEE ||
-             l_opcode_pattern   == OPCODE_SLBMFEV)
+             l_opcode_pattern   == OPCODE_SLBMFEV ||
+             l_opcode_pattern   == OPCODE_MFVSCR_TO_VR0 ||
+             l_opcode_pattern   == OPCODE_MTVSCR_FROM_VR0)
     {
         l_predecode = 1;
     }
