@@ -167,39 +167,39 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC, SYS, dyninits));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_SRESET_THREADS_BVEC, SYS, sthreads));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_USE_QME_TIMEBASE, SYS, use_qme_tb));
-    dyninits &= ~fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_HOSTBOOT;
+    dyninits[0] &= ~fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_HOSTBOOT;
 
     if (i_runn)
     {
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T0 & sthreads)
         {
-            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T0;
+            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_THREAD0;
         }
 
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T1 & sthreads)
         {
-            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T1;
+            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_THREAD1;
         }
 
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T2 & sthreads)
         {
-            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T2;
+            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_THREAD2;
         }
 
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T3 & sthreads)
         {
-            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_T3;
+            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_THREAD3;
         }
 
         if (use_qme_tb == fapi2::ENUM_ATTR_RUNN_USE_QME_TIMEBASE_ON)
         {
-            dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_USE_QME_TB_SRC;
+            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_USE_QME_TB_SRC;
         }
     }
 
     if (i_is_dump_ipl)
     {
-        dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_CONTAINED_DUMP;
+        dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_CONTAINED_DUMP;
     }
 
     FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC, SYS, dyninits));
