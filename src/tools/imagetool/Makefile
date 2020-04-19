@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2019
+# Contributors Listed Below - COPYRIGHT 2019,2020
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +48,8 @@ export INCLUDES = -I$(IMAGEPROCS_COMMON_SRCDIR) \
 
 OBJS = $(P10_IMAGE_TOOL_BINDIR)/p10_ipl_image.o  \
        $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool.o \
-	   $(P10_IMAGE_TOOL_BINDIR)/p10_ddco.o
+	   $(P10_IMAGE_TOOL_BINDIR)/p10_ddco.o \
+	   $(P10_IMAGE_TOOL_BINDIR)/p10_dynamic.o
 
 all:objdir utilities
 

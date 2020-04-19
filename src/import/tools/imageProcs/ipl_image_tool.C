@@ -50,6 +50,7 @@
 #endif
 #include <p10_infrastruct_help.H>
 #include <p10_ddco.H>
+#include <p10_dynamic.H>
 
 #if !defined(__PPE__) && !defined(OPENPOWER_BUILD) // Needed on PPE & OP-Build side to avoid having to include various APIs
     #include <prcdUtils.H>
@@ -498,6 +499,11 @@ resolve_image_section_type( const void* i_image,
 
 #endif
 
+    else if ( (be64toh(((DynamicHdr_t*)i_image)->magic) == DYN_MAGIC_FEATURE) ||
+              (be64toh(((DynamicHdr_t*)i_image)->magic) == DYN_MAGIC_SERVICE) )
+    {
+        o_imageSectionType = IST_DYN;
+    }
     else
     {
         o_imageSectionType = IST_UNDEFINED;
@@ -513,6 +519,8 @@ static void
 dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
 {
     int i;
+    uint8_t numOf64BitsSet;
+    uint16_t numOfRecords;
     P9XipHeader header;
     P9XipSection* section;
 #if !defined(__PPE__) && !defined(OPENPOWER_BUILD)
@@ -781,6 +789,166 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
             break;
 
 #endif
+
+        case IST_DYN:
+
+            //Display Dynamic binary images - Features/Services
+            //=================================================
+            if (be64toh(((DynamicHdr_t*)i_image)->magic) == DYN_MAGIC_FEATURE)
+            {
+                printf("***** Dynamic Feature binary file *****\n");
+            }
+            else
+            {
+                printf("***** Dynamic Service binary file *****\n");
+            }
+
+            //Get dynamic header fields
+            //=========================
+            //uint64_t    magic;
+            //uint8_t     version;
+            //uint8_t     numOf64BitsSet;
+            //uint16_t    numOfRecords;
+            //uint16_t    sizeOfBinary;
+            printf("Magic\t\t:%016lx\n", be64toh(((DynamicHdr_t*)i_image)->magic));
+            printf("Version\t\t:%d.%d\n", ((DynamicHdr_t*)i_image)->version >> 4, ((DynamicHdr_t*)i_image)->version & 0x0F);
+            printf("64-bits set\t:%d\n", ((DynamicHdr_t*)i_image)->numOf64BitsSet);
+            printf("Num of records\t:%d\n", htobe16(((DynamicHdr_t*)i_image)->numOfRecords));
+            printf("Size of bin file:%d bytes\n\n", htobe16(((DynamicHdr_t*)i_image)->sizeOfBinary));
+
+            //Get number of records and 64-bit vector size
+            dynamic_get_bitVectorSize_n_numRecords(i_image, &numOf64BitsSet, &numOfRecords);
+
+            //Get properties of dynamic feature
+            //=================================
+            //uint8_t     featureNameSize;
+            //char*       featureName;
+            //uint16_t    featureValue;
+            //uint8_t     featureDescSize;
+            //char*       featureDesc;
+            if (be64toh(((DynamicHdr_t*)i_image)->magic) == DYN_MAGIC_FEATURE)
+            {
+                uint8_t len, j, space_size;
+                uint16_t i, val;
+                char* ch;
+
+                printf("Feature Name            | Feature Value | Feature Description\n");
+                printf("------------------------|---------------|--------------------\n");
+
+                for ( i = 0; i < numOfRecords; i++ )
+                {
+                    //Get feature name size
+                    dynamic_get_name_length_perValue(i_image, i, &len);
+
+                    //Get feature name
+                    ch = (char*)(malloc(sizeof(len)));
+                    dynamic_get_name(i_image, i, ch);
+                    printf("%s", (char*)ch);
+
+                    space_size = ( len > 24 ) ? 1 : ( 24 - len );
+
+                    for ( j = 0; j < space_size; j++ )
+                    {
+                        printf(" ");
+                    }
+
+                    //Get feature value
+                    dynamic_get_value(i_image, ch, &val);
+                    printf("  %04d            ", val);
+
+                    //Get feature desc size
+                    dynamic_get_desc_length_perValue(i_image, i, &len);
+
+                    //Get feature desc
+                    ch = (char*)realloc(ch, len);
+                    dynamic_get_desc_perValue(i_image, i, ch);
+                    printf("%s\n", (char*)ch);
+
+                    //Free up the used memory
+                    free(ch);
+                }
+            }
+            else
+            {
+                //Get properties of dynamic service
+                //=================================
+                //uint8_t     serviceNameSize;
+                //char*       serviceName;
+                //uint16_t    serviceValue;
+                //uint64_t*   serviceBitVector;
+                //uint8_t     serviceDescSize;
+                //char*       serviceDesc;
+
+                uint8_t len, j, space_size;
+                uint16_t i, val;
+                char* ch;
+                uint64_t* val64;
+
+                //Get title displayed in order
+                printf("Service Name            | Service Value | Service Vector");
+
+                for ( i = 0; i < ( (numOf64BitsSet * 17) + 1 - 14 ); i++ )
+                {
+                    printf(" ");
+                }
+
+                printf("| Service Description\n");
+                printf("------------------------|---------------|---------------");
+
+                for ( i = 0; i < ( (numOf64BitsSet * 17) + 1 - 14 ); i++ )
+                {
+                    printf("-");
+                }
+
+                printf("|--------------------\n");
+
+                for ( i = 0; i < numOfRecords; i++ )
+                {
+                    //Get service name size
+                    dynamic_get_name_length_perValue(i_image, i, &len);
+
+                    //Get service name
+                    ch = (char*)(malloc(sizeof(len)));
+                    dynamic_get_name(i_image, i, ch);
+                    printf("%s", (char*)ch);
+
+                    space_size = ( len > 24 ) ? 1 : ( 24 - len );
+
+                    for ( j = 0; j < space_size; j++ )
+                    {
+                        printf(" ");
+                    }
+
+                    //Get service value
+                    dynamic_get_value(i_image, ch, &val);
+                    printf("  %04d            ", val);
+
+                    //Get service bit vector
+                    val64 = (uint64_t*)(malloc(sizeof(8 * numOf64BitsSet)));
+                    dynamic_get_bitVector_perValue(i_image, i, val64);
+
+                    for ( j = 0; j < numOf64BitsSet; j++ )
+                    {
+                        printf("%016lx ", *(uint64_t*)(val64 + j));
+                    }
+
+                    printf("   ");
+
+                    //Get service desc size
+                    dynamic_get_desc_length_perValue(i_image, i, &len);
+
+                    //Get service desc
+                    ch = (char*)realloc(ch, len);
+                    dynamic_get_desc_perValue(i_image, i, ch);
+                    printf("%s\n", (char*)ch);
+
+                    //Free up the used memory
+                    free(ch);
+                    free(val64);
+                }
+            }
+
+            break;
 
         default:
 
