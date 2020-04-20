@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -224,7 +225,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             }
         }
 
-        // Default Core Target Init..
+        // Default Master Core Target Init..
         uint8_t l_coreId = 0;
         FAPI_ATTR_GET(ATTR_MASTER_CORE,plat_getChipTarget(),l_coreId);
         Target<TARGET_TYPE_CORE> l_core(
@@ -246,12 +247,12 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             SBE_INFO(SBE_FUNC "inject Mode is set");
         }
 
-        // By default, ex_chipletId printed below won't be used unless accompanied
-        // by LCO_mode (LCO Mode for PBA-Put)
+        // By default master coreId will be used, coreId printed below won't be
+        // used unless accompanied by LCO_mode (LCO Mode for PBA-Put)
         if(i_hdr.isPbaLcoModeSet())
         {
-            SBE_INFO(SBE_INFO "LCO Mode is set with Core ChipletId[%d]", (uint8_t)i_hdr.coreChipletId);
-            l_core = plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(i_hdr.coreChipletId);
+            SBE_INFO(SBE_INFO "LCO Mode is set with Core Id[%d]", (uint8_t)i_hdr.coreId);
+            l_core = plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(i_hdr.coreId);
             l_myPbaFlag.setOperationType(p10_PBA_oper_flag::LCO); // LCO operation
         }
 

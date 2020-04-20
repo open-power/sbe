@@ -298,12 +298,12 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t coreChipletId:8; //Pervasive Core Chiplet Id for PBA
-    uint32_t eccByte:8;       //Ecc Override Byte from user
-    uint32_t flags:16;        //Operational Flags -refer enum sbeMemoryAccessFlags
-    uint32_t addrHi;          //Higher 32-Bit Memory Address
-    uint32_t addrLo;          //Lower  32-Bit Memory Address
-    uint32_t len;             //Length of Data in Bytes
+    uint32_t coreId:8;    //Core Id (0..31) for PBA
+    uint32_t eccByte:8;   //Ecc Override Byte from user
+    uint32_t flags:16;    //Operational Flags -refer enum sbeMemoryAccessFlags
+    uint32_t addrHi;      //Higher 32-Bit Memory Address
+    uint32_t addrLo;      //Lower  32-Bit Memory Address
+    uint32_t len;         //Length of Data in Bytes
 
     /**
       * @brief Calculates 64-bit PBA ADU Address
@@ -726,7 +726,7 @@ typedef struct
 typedef struct
 {
     uint32_t reserved:8;
-    uint32_t coreChiplet:8;
+    uint32_t coreId:8;     // Core Instance Id (0..31)
     uint32_t threadNr:4;
     uint32_t regType:4;
     uint32_t numRegs:8;
@@ -741,8 +741,8 @@ typedef struct
         return (( SBE_REG_ACCESS_FPR >= regType )
                 &&( SBE_MAX_REG_ACCESS_REGS >= numRegs )
                 &&( SMT4_THREAD3 >= threadNr )
-                &&( SMT4_CORE0_ID <= coreChiplet )
-                &&( SMT4_CORE_ID_LAST >= coreChiplet )) ? true:false;
+                &&( SMT4_CORE0_ID <= coreId )
+                &&( SMT4_CORE_ID_LAST >= coreId )) ? true:false;
     }
 }sbeRegAccessMsgHdr_t;
 

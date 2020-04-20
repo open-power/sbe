@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,15 +44,13 @@ fapi2::TargetType sbeGetFapiTargetType(const uint16_t i_sbeTargetType,
             {
                 l_fapiTargetType = fapi2::TARGET_TYPE_EQ;
             }
-            else if((i_chipletId >= SMT4_CORE0_ID) &&
-                    (i_chipletId <= SMT4_CORE_ID_LAST))
-            {
-                l_fapiTargetType = fapi2::TARGET_TYPE_CORE;
-            }
             else
             {
                 l_fapiTargetType = fapi2::TARGET_TYPE_PERV;
             }
+            break;
+        case TARGET_CORE:
+            l_fapiTargetType = fapi2::TARGET_TYPE_CORE;
             break;
         case TARGET_PROC_CHIP:
             l_fapiTargetType = fapi2::TARGET_TYPE_PROC_CHIP;
@@ -92,7 +90,7 @@ bool sbeGetFapiTargetHandle(const uint16_t i_targetType,
                                 <fapi2::TARGET_TYPE_EQ>(i_chipletId);
                 break;
             case fapi2::TARGET_TYPE_CORE:
-                o_tgtHndl = plat_getTargetHandleByChipletNumber
+                o_tgtHndl = plat_getTargetHandleByInstance
                                 <fapi2::TARGET_TYPE_CORE>(i_chipletId);
                 break;
             case fapi2::TARGET_TYPE_PROC_CHIP:

@@ -359,18 +359,15 @@ static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
     if((l_fapiTarget == TARGET_TYPE_PROC_CHIP) ||
        (l_fapiTarget == TARGET_TYPE_PERV) ||
        ((i_targetType == TARGET_CORE) && (i_chipletId == SMT4_ALL_CORES))||
-       ((i_targetType == TARGET_EQ) && (i_chipletId == EQ_ALL_CHIPLETS)) ||
-       ((i_targetType == TARGET_EX) && (i_chipletId == EX_ALL_CHIPLETS)))
+       ((i_targetType == TARGET_EQ) && (i_chipletId == EQ_ALL_CHIPLETS)) )
     {
            l_rc |= SC_PROC;
     }
-    if((l_fapiTarget == TARGET_TYPE_CORE) ||
-       (l_fapiTarget == TARGET_TYPE_EX))
+    if(l_fapiTarget == TARGET_TYPE_CORE)
     {
         l_rc |= SC_CORE;
     }
-    if((l_fapiTarget == TARGET_TYPE_EQ) ||
-       (l_fapiTarget == TARGET_TYPE_EX))
+    if(l_fapiTarget == TARGET_TYPE_EQ)
     {
         l_rc |= SC_CACHE;
     }
@@ -409,12 +406,6 @@ static inline p9_stopclocks_flags getStopClocksFlags(uint32_t i_targetType)
     {
         // Keep only cache flag as true
         l_flags.stop_cache_clks = true;
-    }
-    else if(i_targetType == TARGET_EX)
-    {
-        // Keep only cache and core as true
-        l_flags.stop_cache_clks = true;
-        l_flags.stop_core_clks = true;
     }
 
     return l_flags;

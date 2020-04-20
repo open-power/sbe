@@ -238,6 +238,9 @@ enum sbeSecondaryResponse
     SBE_SEC_PUT_SRAM_FAILED                   = 0x2F,
     SBE_SEC_GET_SRAM_FAILED                   = 0x30,
     SBE_SEC_THREAD_CONTROL_INSTR_FAILED       = 0x31,
+    SBE_SEC_RAM_CORE_SETUP_FAILED             = 0x32,
+    SBE_SEC_RAM_CORE_ACCESS_FAILED            = 0x33,
+    SBE_SEC_RAM_CORE_CLEANUP_FAILED           = 0x34,
 };
 
 /**
@@ -434,11 +437,9 @@ enum sbeRegAccesRegType
 typedef enum
 {
     TARGET_PROC_CHIP    = 0x0000,
-    TARGET_EX           = 0x0001,
-    TARGET_PERV         = 0x0002,
-    TARGET_MCS          = 0x0003,
-    TARGET_EQ           = 0x0004,
-    TARGET_CORE         = 0x0005,
+    TARGET_PERV         = 0x0001,
+    TARGET_EQ           = 0x0002,
+    TARGET_CORE         = 0x0003,
 } sbeTargetTypes_t;
 
 /**
@@ -455,42 +456,43 @@ enum sbePervChipletId
 enum sbeNestChipletId
 {
     NEST_ID_0       = 0x02,
-    NEST_ID_LAST    = 0x05,
+    NEST_ID_LAST    = 0x03,
 };
 
 /**
- * @brief XBus Chiplet Id Enum
+ * @brief PCI Chiplet Id Enum
  */
-enum sbeXBusChipletId
+enum sbePciChipletId
 {
-    XBUS_ID    = 0x06,
+    PCI_ID_0     = 0x08,
+    PCI_ID_LAST  = 0x09,
 };
 
 /**
- * @brief MC Bist Chiplet Id Enum
+ * @brief MC Chiplet Id Enum
  */
-enum sbeMcbistChipletId
+enum sbeMcChipletId
 {
-    MCBIST_ID_0     = 0x07,
-    MCBIST_ID_LAST  = 0x08,
+    MC_ID_0     = 0x0C,
+    MC_ID_LAST  = 0x0F,
 };
 
 /**
- * @brief OBus Chiplet Id Enum
+ * @brief PAU Chiplet Id Enum
  */
-enum sbeObusChipletId
+enum sbePauChipletId
 {
-    OBUS_ID_0       = 0x09,
-    OBUS_ID_LAST    = 0x0C,
+    PAU_ID_0       = 0x10,
+    PAU_ID_LAST    = 0x14,
 };
 
 /**
- * @brief PCIe Chiplet Id Enum
+ * @brief IOHS Chiplet Id Enum
  */
-enum sbePcieChipletId
+enum sbeIohsChipletId
 {
-    PCIE_ID_0       = 0x0D,
-    PCIE_ID_LAST    = 0x0F,
+    IOHS_ID_0       = 0x18,
+    IOHS_ID_LAST    = 0x20,
 };
 
 /**
@@ -498,8 +500,8 @@ enum sbePcieChipletId
  */
 enum sbeCacheChipletId
 {
-    EQ_ID_0          = 0x10,
-    EQ_ID_LAST       = 0x15,
+    EQ_ID_0          = 0x20,
+    EQ_ID_LAST       = 0x28,
     EQ_ALL_CHIPLETS  = 0xFF,
 };
 
