@@ -922,8 +922,23 @@ fapi2::ReturnCode p10_sbe_check_quiesce(
     FAPI_TRY(p10_pm_clear_special_wakeup(i_target), "Error from p10_pm_clear_special_wakeup");
 
 fapi_try_exit:
-    // TODO (SW477416): If the quiesce fails then checkstop the system
+    fapi2::ReturnCode saveError = fapi2::current_err;
+    fapi2::buffer<uint64_t> l_data(0);
+
+    //If the quiesce fails then checkstop the system
+    if (fapi2::current_err)
+    {
+        //Checkstop the system
+        l_data.setBit<56>();
+        fapi2::ReturnCode rc = fapi2::putScom(i_target, TP_TCN1_N1_LOCAL_FIR_WO_OR, l_data);
+
+        if (rc)
+        {
+            FAPI_ERR("ERROR: There was an error doing the checkstop, "
+                     "it may not have gone through");
+        }
+    }
 
     FAPI_DBG("p10_sbe_check_quiesce: Exiting..");
-    return fapi2::current_err;
+    return saveError;
 }
