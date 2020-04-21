@@ -49,10 +49,12 @@ def putsram(addr, mode, data, primStatus, secStatus,fifoType):
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( req,fifoType )
     testUtil.writeEot(fifoType)
-
+    
+    length = len(data)
     if((primStatus != 0) or (secStatus != 0)):
-        data = []
-    expData = (getsingleword(len(data))
+        length = 0
+    
+    expData = (getsingleword(length)
                + [0xc0, 0xde, 0xa4, 0x04]
                + gethalfword(primStatus)
                + gethalfword(secStatus)
@@ -91,6 +93,26 @@ def getsram(addr, mode, length, primStatus, secStatus,fifoType):
     testUtil.readEot(fifoType)
 
     return data[:length]
+
+
+def validateSRAMAccessFailureCases( fifoType ):
+   testcase = ""
+   try:
+       #Data used to write to SRAM
+       data = os.urandom(128*2)
+       data = [ord(c) for c in data]
+       #---------------------------------------------
+       # PutSram Failure Test
+       #---------------------------------------------
+       testUtil.runCycles( 10000000 )
+       testcase = "Non-aligned address Put SRAM Testcase"
+       #0x208000 : Chiplet 0x10 Multicast Bit:1
+       putsram(0xffff2803, 0x108000, data, 2, 3,fifoType)
+       print ("Success: Non-aligned address Put SRAM Testcase:%d"%fifoType)  
+
+   except:
+        print "Failed Test Case:"+str(testcase)
+        raise Exception('Failure')
 
 
 def validateSRAMAccess( fifoType ):
@@ -155,21 +177,19 @@ def validateSRAMAccess( fifoType ):
        #---------------------------------------------
        # Put and Get IO_PPE Sram test
        #---------------------------------------------
-#TODO: Enable this once simics fixes autoincrementation of the
-#      IO_PPE SRAM Address
-#       testUtil.runCycles( 10000000 )
-#       testcase = "IO_PPE SRAM Put and GET Testcase"
-        #0x208000 : Chiplet 0x10 Multicast Bit:1
-#       putsram(0xffff280000000000, 0x108000, data, 0, 0,fifoType)
-#       testUtil.runCycles( 10000000 )
-#       readData = getsram(0xffff280000000000, 0x100000, (128*2), 0, 0,fifoType)
-#       if(data == readData):
-#          print("Success: IO_PPE SRAM Put and GET Testcase,FIFOTYPE:%d"%fifoType)
-#       else:
-#          print ("Read data does not match with data used to write")
-#          print data
-#          print readData
-#          raise Exception('data mistmach')
+       testUtil.runCycles( 10000000 )
+       testcase = "IO_PPE SRAM Put and GET Testcase"
+       #0x208000 : Chiplet 0x10 Multicast Bit:1
+       putsram(0xffff2800, 0x108000, data, 0, 0,fifoType)
+       testUtil.runCycles( 10000000 )
+       readData = getsram(0xffff2800, 0x100000, (128*2), 0, 0,fifoType)
+       if(data == readData):
+          print("Success: IO_PPE SRAM Put and GET Testcase,FIFOTYPE:%d"%fifoType)
+       else:
+          print ("Read data does not match with data used to write")
+          print data
+          print readData
+          raise Exception('data mistmach')
 
    except:
         print "FAILED Test Case:"+str(testcase)
@@ -180,11 +200,14 @@ def validateSRAMAccess( fifoType ):
 def main( ):
       #Validate all SRAM access usecases using First FIFO
       fifoType=0
+      validateSRAMAccessFailureCases(fifoType)
       validateSRAMAccess(fifoType)
       testUtil.runCycles( 10000000 )
+
       #Validate all SRAM access usecases using Second FIFO
       fifoType=1
       validateSRAMAccess(fifoType)
+      testUtil.runCycles( 10000000 )
 
 #-------------------------------------------------
 # Calling all test code

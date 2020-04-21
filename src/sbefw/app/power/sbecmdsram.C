@@ -40,6 +40,7 @@
 #include "fapi2.H"
 #include "p10_getsram.H"
 #include "p10_putsram.H"
+#include "p10_getputsram_utils.H"
 #include "chipop_handler.H"
 using namespace fapi2;
 
@@ -118,6 +119,17 @@ uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
             }
             l_remainingLen = l_remainingLen - l_lenPassedToHwp;
 
+
+            uint64_t addrToHwp = addr;
+            //For IO-PPE SRAM access,caller will pass valid offset/address to be accessed
+            //in the lower 32 bits. Procedure expects valid offset/address information
+            //to be in upper 32 bits.Updating the address as per the HWP requirement
+            if( ((uint32_t)l_req.chipletId >= PAU0_PERV_CHIPLET_ID) && 
+                ((uint32_t)l_req.chipletId <= PAU3_PERV_CHIPLET_ID) )
+            {
+                addrToHwp = ((uint64_t)addr << 32);
+            }
+
             // Fetch buffer from Upstream Fifo for the HWP if it is Put SRAM
             if(!i_isGetFlag)
             {
@@ -129,7 +141,7 @@ uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
                 SBE_EXEC_HWP(l_fapiRc,p10_putsram_hwp,l_proc,
                              (uint32_t)l_req.chipletId,
                              l_req.multicastAccess,
-                             (uint8_t)l_req.mode,addr,l_lenPassedToHwp,
+                             (uint8_t)l_req.mode,addrToHwp,l_lenPassedToHwp,
                              (uint8_t *)dataBuffer);
                 if(l_fapiRc != FAPI2_RC_SUCCESS)
                 {
@@ -146,7 +158,7 @@ uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
             else //GetSRAM
             {
                 SBE_EXEC_HWP(l_fapiRc,p10_getsram_hwp,l_proc,(uint32_t)l_req.chipletId,
-                             (uint8_t)l_req.mode,addr,l_lenPassedToHwp,(uint8_t *)dataBuffer);
+                             (uint8_t)l_req.mode,addrToHwp,l_lenPassedToHwp,(uint8_t *)dataBuffer);
                 if(l_fapiRc != FAPI2_RC_SUCCESS)
                 {
                     SBE_ERROR("Failed in P10 GETSRAM , ChipletId:[0x%.8x]  mode [0x%.8X]",
@@ -161,6 +173,7 @@ uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
 
             }
             l_totalReturnLen = l_totalReturnLen + l_lenPassedToHwp;
+            //Update the address offset 
             addr += l_lenPassedToHwp;
             if(i_isGetFlag) // Get Sram
             {
