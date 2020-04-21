@@ -67,15 +67,17 @@ foreach $proc in (get-component-list -all proc_p10) {
     #(get-master-cec-chips)[0].invoke parallel_store SCOM 0x00050001 "0C000002_00000000" 64
     $proc.cfam_cmp.lbus_map.write 0x2800 + 0x1*4 0x0c000002 4 -b
 
-    # Set valid bit for Scratch Reg3 in Scratch Reg8 bit 2
-    $proc.cfam_cmp.lbus_map.write 0x2800 + 0x3F*4 0x24000000 4 -b
+    # Set valid bit for Scratch Reg3 & Reg4 in Scratch Reg8 bit 2 & bit 3
+    $proc.cfam_cmp.lbus_map.write 0x2800 + 0x3F*4 0x34000000 4 -b
 
+    # Set clock divider in first 12bit, round trip delay in next 4bits in Scratch Reg4
+    $proc.cfam_cmp.lbus_map.write 0x2800 + 0x3B*4 0x00420000 4 -b
+    
     if $proc == "backplane0.dcm[0].chip[0]"{
         # Set bit24 for Scratch Reg6 - Master Proc
         echo "Set bit24 for Scratch Reg6 - Master Proc"
         (get-master-procs)[0].cfam_cmp.lbus_map.write 0x2800 + 0x3D*4 0x00000080 4 -b
     }
-
     if $istep_mode == TRUE {
         echo "ISTEP IPL mode set"
         #(get-master-cec-chips)[0].invoke parallel_store SCOM 0x5003A "90000000_00000000" 64

@@ -163,7 +163,8 @@ class SBEGlobalsSingleton
 extern SBEGlobalsSingleton* sbeGlobal;
 
 //This is a struct defintion for the local register 0xC0002040.
-//This local register will be used to save the SPI clock divider setting
+//This local register will be used to save the SPI clock divider and round trip
+//delay settings
 //MPIPL in progress setting
 //What kind of reset is triggered in 0x50008, since otprom clears the reset bit
 // ipl_reset which is the cbs_start flow
@@ -171,15 +172,17 @@ extern SBEGlobalsSingleton* sbeGlobal;
 // hreset_done bit to indicate SBE finished Hreset flow and back up to receive
 // commands over fifo.
 typedef struct sbe_local_LFR {
-    uint32_t spi_clock_divider: 12; // bit0-11
-    uint32_t sec_boot_seeprom : 1; //Bit 12 Set if sec boot sprm is in use
-    uint32_t sec_meas_seeprom : 1; //Bit 13 Set if sec measure sprm is in use
-    uint32_t mpipl : 1;            //Bit 14 Set if mpipl is triggered
-    uint32_t ipl_reset : 1;        //Bit 15 Set if SBE is reset via 50008:bit12
-    uint32_t runtime_reset : 1;    //Bit 16 Set if SBE is reset via 50008:bit13
-    uint32_t hreset_done : 1;      //Bit 17 Set if HReset flow is done in FW
-    uint32_t mpipl_reset_done : 1; //Bit 18 Set if Mpipl flow is done in FW
-    uint32_t bitsreserved : 13;
+    uint32_t spi_clock_divider: 12; //Bit0-11 clock divider bits
+    uint32_t sec_boot_seeprom : 1;  //Bit 12 Set if sec boot sprm is in use
+    uint32_t sec_meas_seeprom : 1;  //Bit 13 Set if sec measure sprm is in use
+    uint32_t mpipl : 1;             //Bit 14 Set if mpipl is triggered
+    uint32_t ipl_reset : 1;         //Bit 15 Set if SBE is reset via 50008:bit12
+    uint32_t runtime_reset : 1;     //Bit 16 Set if SBE is reset via 50008:bit13
+    uint32_t hreset_done : 1;       //Bit 17 Set if HReset flow is done in FW
+    uint32_t mpipl_reset_done : 1;  //Bit 18 Set if Mpipl flow is done in FW
+    uint32_t bitreserve1 : 1;       //Bit 19 Reserved
+    uint32_t round_trip_delay : 4;  //Bit 20-23 round trip delay
+    uint32_t bitsreserved : 8;      //Bit24-31 Reserved
     uint32_t reserved;
 
     sbe_local_LFR()
@@ -192,6 +195,11 @@ typedef struct sbe_local_LFR {
         runtime_reset = 0;
         hreset_done = 0;
         mpipl_reset_done = 0;
+        round_trip_delay = 0;
+        // This is required else these gets initialised with dummy data
+        bitreserve1 = 0;
+        bitsreserved = 0;
+        reserved = 0;
     }
 }sbe_local_LFR;
 
