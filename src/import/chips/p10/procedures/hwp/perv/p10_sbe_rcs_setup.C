@@ -50,8 +50,6 @@ enum P10_SBE_RCS_SETUP_Private_Constants
     HW_NS_DELAY = 20, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     POLL_COUNT = 10,
-    PLL_LOCK_NS_DELAY = 5000000, // unit is nano seconds
-    PLL_LOCK_SIM_CYCLE_DELAY = 1000, // unit is sim cycles
     RCS_BYPASS_NS_DELAY = 10000, // unit is nano seconds
     RCS_BYPASS_SIM_CYCLE_DELAY = 100, // unit is sim cycles
     RCS_RESET_NS_DELAY = 1000, // unit is nano seconds
@@ -69,7 +67,8 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
     using namespace scomt;
     using namespace scomt::perv;
 
-    fapi2::buffer<uint64_t> l_data64_rc5, l_data64_rc3, l_read_reg;
+    fapi2::buffer<uint64_t> l_data64_rc5, l_data64_rc3, l_pll_expect, l_read_reg;
+    fapi2::ReturnCode l_rc;
     uint8_t l_cp_refclck_select;
     bool skipClkCheck = false;
 
@@ -141,28 +140,21 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR, l_data64_rc3));
 
-        fapi2::delay(PLL_LOCK_NS_DELAY, PLL_LOCK_SIM_CYCLE_DELAY);
+        FAPI_DBG("Check for RCS PLL lock");
+        l_pll_expect.flush<0>()
+        .writeBit<0>(! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
+        .writeBit<1>(! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0));
 
-        //Getting PLL_LOCK_REG register value
-        FAPI_TRY(fapi2::getScom(l_tpchiplet, PLL_LOCK_REG, l_read_reg));
-
-        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
-        {
-            FAPI_ASSERT(l_read_reg.getBit<0>(),
-                        fapi2::RCS_PLL_LOCK_ERR()
-                        .set_TP_PLL_LOCK_REG(l_read_reg)
-                        .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                        "ERROR:RCS_PLL_A not locked");
-        }
-
-        if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
-        {
-            FAPI_ASSERT(l_read_reg.getBit<1>(),
-                        fapi2::RCS_PLL_LOCK_ERR()
-                        .set_TP_PLL_LOCK_REG(l_read_reg)
-                        .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                        "ERROR:RCS_PLL_B not locked");
-        }
+        l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_tpchiplet, l_pll_expect, l_read_reg);
+        FAPI_ASSERT(l_rc != fapi2::FAPI2_RC_FALSE,
+                    fapi2::RCS_PLL_LOCK_ERR()
+                    .set_TP_PLL_LOCK_REG(l_read_reg)
+                    .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
+                    "One or both RCS PLLs failed to lock! exp/got: "
+                    "PLL_A: %d/%d  PLL_B: %d/%d",
+                    l_pll_expect.getBit<0>(), l_read_reg.getBit<0>(),
+                    l_pll_expect.getBit<1>(), l_read_reg.getBit<1>());
+        FAPI_TRY(l_rc, "Failed to poll for PLL lock");
 
         FAPI_DBG("Drop RCS reset");
         l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_TPFSI_RCS_RESET_DC>(); // rc5 bit0 = 0

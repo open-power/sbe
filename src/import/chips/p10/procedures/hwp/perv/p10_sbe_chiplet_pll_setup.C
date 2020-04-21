@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,13 +39,12 @@
 #include "p10_scom_perv_6.H"
 #include "p10_scom_perv_8.H"
 #include "p10_scom_perv_e.H"
+#include "p10_perv_sbe_cmn.H"
 #include <target_filters.H>
 #include <multicast_group_defs.H>
 
 enum P10_SBE_CHIPLET_PLL_SETUP_Private_Constants
 {
-    NS_DELAY = 5000000, // unit is nano seconds
-    SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     OPCG_ALIGN_INOP_ALIGN_VAL = 0x5, // INOP phase alignment - 8:1
     OPCG_ALIGN_INOP_WAIT_VAL = 0x0,
     OPCG_ALIGN_SCANRATIO_4to1 = 0x03,
@@ -77,6 +76,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
 
     uint8_t l_bypass;
     fapi2::buffer<uint64_t> l_data64;
+    fapi2::ReturnCode l_rc;
 
     FAPI_INF("p10_sbe_chiplet_pll_setup: Entering ...");
 
@@ -110,14 +110,32 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
         FAPI_TRY(p10_sbe_chiplet_pll_setup_pll_reset(l_mc_pci));
         FAPI_TRY(p10_sbe_chiplet_pll_setup_pll_reset(l_mc_mc));
 
-        fapi2::delay(NS_DELAY, SIM_CYCLE_DELAY);
-
         FAPI_DBG("Check PLL lock for IOHS, MC, PCI chiplets");
+        // This smells like three separate timeouts, and it kinda is, but in the good case
+        // the second and third poll call will exit very quickly since their PLLs had ample
+        // time to lock.
+        l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_iohs, 0x8000000000000000ULL, l_data64);
 
-        for (auto& targ : l_iohs_pci_mc)
+        if (l_rc == fapi2::FAPI2_RC_SUCCESS)
         {
-            FAPI_TRY(p10_sbe_chiplet_pll_setup_check_pll_lock(targ));
+            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_pci, 0x8000000000000000ULL, l_data64);
         }
+
+        if (l_rc == fapi2::FAPI2_RC_SUCCESS)
+        {
+            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_mc, 0x8000000000000000ULL, l_data64);
+        }
+
+        if (l_rc == fapi2::FAPI2_RC_FALSE)
+        {
+            // One or more PLLs failed to lock, fall back to unicast to figure out which
+            for (auto& targ : l_iohs_pci_mc)
+            {
+                FAPI_TRY(p10_sbe_chiplet_pll_setup_check_pll_lock(targ));
+            }
+        }
+
+        FAPI_TRY(l_rc, "Failed to poll for PLL lock");
 
         FAPI_DBG("Release PLL bypass");
         FAPI_TRY(p10_sbe_chiplet_pll_setup_pll_bypass(l_mc_iohs));

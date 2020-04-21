@@ -54,12 +54,9 @@ enum P10_SBE_NPLL_SETUP_Private_Constants
     REGIONS_PAU_DPLL = 0x0040,
     REGIONS_NEST_DPLL = 0x0020,
     CLOCK_TYPES_ALL = 0x7,
-    NS_DELAY_DPLL = 5000000, // unit is nano seconds
-    SIM_CYCLE_DELAY_DPLL = 2200000, // unit is sim cycles
-    NS_DELAY_FPLL = 5000000, // unit is nano seconds
-    SIM_CYCLE_DELAY_FPLL = 1000, // unit is sim cycles
-    PAU_DPLL_INITIALIZE_MODE = 0xA000000000000000,
-    NEST_DPLL_INITIALIZE_MODE = 0xA000000000000000
+    PAU_DPLL_INITIALIZE_MODE1 = 0xA000000000000000,
+    NEST_DPLL_INITIALIZE_MODE1 = 0xA001010000000000,
+    NEST_DPLL_INITIALIZE_MODE2 = 0x8001010000000000,
 };
 
 fapi2::ReturnCode p10_sbe_check_magicnumber(
@@ -80,6 +77,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     fapi2::buffer<uint32_t> l_attr_pau_freq, l_attr_core_boot_freq;
     fapi2::buffer<uint16_t> freq_calculated;
     fapi2::buffer<uint64_t> l_regions;
+    fapi2::ReturnCode l_rc;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
@@ -123,42 +121,22 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR,
                             l_data64_root_ctrl3));
 
-    fapi2::delay(NS_DELAY_FPLL, SIM_CYCLE_DELAY_FPLL);
-
     FAPI_DBG("Check filter PLL lock");
-    FAPI_TRY(fapi2::getScom(l_tpchiplet, perv::PLL_LOCK_REG, l_read_reg));
+    l_data64.flush<0>()
+    .writeBit<2>(!l_attr_plltodflt_bypass)
+    .writeBit<3>(!l_attr_pllnestflt_bypass)
+    .writeBit<4>(!l_attr_pllioflt_bypass)
+    .writeBit<5>(!l_attr_plliossflt_bypass);
 
-    if(!l_attr_plltodflt_bypass)
-    {
-        FAPI_ASSERT(l_read_reg.getBit<2>(),
-                    fapi2::FILT_PLL_LOCK_ERR()
-                    .set_PLL_READ(l_read_reg),
-                    "ERROR:FILTER0 PLL LOCK NOT SET");
-    }
-
-    if(!l_attr_pllnestflt_bypass)
-    {
-        FAPI_ASSERT(l_read_reg.getBit<3>(),
-                    fapi2::FILT_PLL_LOCK_ERR()
-                    .set_PLL_READ(l_read_reg),
-                    "ERROR:FILTER1 PLL LOCK NOT SET");
-    }
-
-    if(!l_attr_pllioflt_bypass)
-    {
-        FAPI_ASSERT(l_read_reg.getBit<4>(),
-                    fapi2::FILT_PLL_LOCK_ERR()
-                    .set_PLL_READ(l_read_reg),
-                    "ERROR:FILTER2 PLL LOCK NOT SET");
-    }
-
-    if(!l_attr_plliossflt_bypass)
-    {
-        FAPI_ASSERT(l_read_reg.getBit<5>(),
-                    fapi2::FILT_PLL_LOCK_ERR()
-                    .set_PLL_READ(l_read_reg),
-                    "ERROR:FILTER3 PLL LOCK NOT SET");
-    }
+    l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_tpchiplet, l_data64, l_read_reg);
+    FAPI_ASSERT(l_rc != fapi2::FAPI2_RC_FALSE,
+                fapi2::FILT_PLL_LOCK_ERR()
+                .set_PLL_EXPECT(l_data64)
+                .set_PLL_READ(l_read_reg),
+                "One or more filter PLLs failed to lock! expected 0x%X, got 0x%X "
+                "(bits: PLLTODFLT, PLLNESTFLT, PLLIOFLT, PLLIOSSFLT)",
+                (l_data64.getBits<2, 4>()), (l_read_reg.getBits<2, 4>()));
+    FAPI_TRY(l_rc, "Failed to poll for PLL lock");
 
     FAPI_DBG("Release PLL bypass for filter PLLs");
     // RC3 bits 9,13,17,21
@@ -175,7 +153,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                             l_data64_root_ctrl3));
 
     FAPI_DBG("PAU DPLL: Initialize to mode1");
-    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_CTRL_RW, PAU_DPLL_INITIALIZE_MODE));
+    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_CTRL_RW, PAU_DPLL_INITIALIZE_MODE1));
 
     FAPI_DBG("PAU DPLL: Write frequency settings");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_pau_freq));
@@ -195,7 +173,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ, l_read_reg));
 
     FAPI_DBG("NEST DPLL: Initialize to mode1");
-    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_CTRL_RW, NEST_DPLL_INITIALIZE_MODE));
+    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_CTRL_RW, NEST_DPLL_INITIALIZE_MODE1));
 
     FAPI_DBG("NEST DPLL: Write frequency settings");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_CORE_BOOT_MHZ, i_target_chip, l_attr_core_boot_freq));
@@ -247,27 +225,21 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                  CLOCK_TYPES_ALL));
     }
 
-    fapi2::delay(NS_DELAY_DPLL, SIM_CYCLE_DELAY_DPLL);
-
     FAPI_DBG("Check for PAU, NEST DPLL lock");
-    FAPI_TRY(fapi2::getScom(l_tpchiplet, perv::PLL_LOCK_REG, l_read_reg));
+    l_data64.flush<0>()
+    .writeBit<6>(!l_attr_pau_dpll_bypass)
+    .writeBit<7>(!l_attr_nest_dpll_bypass);
 
-    if(!l_attr_pau_dpll_bypass)
-    {
-        FAPI_ASSERT(l_read_reg.getBit<6>(),
-                    fapi2::DPLL_LOCK_ERR()
-                    .set_DPLL_READ(l_read_reg),
-                    "ERROR:PAU DPLL LOCK NOT SET");
-    }
-
-
-    if(!l_attr_nest_dpll_bypass)
-    {
-        FAPI_ASSERT(l_read_reg.getBit<7>(),
-                    fapi2::DPLL_LOCK_ERR()
-                    .set_DPLL_READ(l_read_reg),
-                    "ERROR:NEST DPLL LOCK NOT SET");
-    }
+    l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_tpchiplet, l_data64, l_read_reg);
+    FAPI_ASSERT(l_rc != fapi2::FAPI2_RC_FALSE,
+                fapi2::DPLL_LOCK_ERR()
+                .set_PLL_EXPECT(l_data64)
+                .set_PLL_READ(l_read_reg),
+                "One or more DPLLs failed to lock! exp/got: "
+                "PAU DPLL: %d/%d  NEST DPLL: %d/%d",
+                l_data64.getBit<6>(), l_read_reg.getBit<6>(),
+                l_data64.getBit<7>(), l_read_reg.getBit<7>());
+    FAPI_TRY(l_rc, "Failed to poll for PLL lock");
 
     FAPI_DBG("PAU DPLL + NEST DPLL: Release test_enable ");
     // RC3 bits 25,26,29,30
@@ -282,6 +254,9 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
             (l_attr_nest_dpll_bypass.getBit<7>()));
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR,
                             l_data64_root_ctrl3));
+
+    FAPI_DBG("NEST DPLL: Transition from mode1 to mode2 (enable frequency slewing)");
+    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_CTRL_RW, NEST_DPLL_INITIALIZE_MODE2));
 
     FAPI_DBG("Drop nest PDLY/DCC bypass");
     l_data64.flush<0>()
