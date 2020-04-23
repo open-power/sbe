@@ -234,12 +234,8 @@ __fapi2exit__:
                                const uint32_t i_address,
                                buffer<uint32_t>& o_data)
     {
-        static_assert(does_plat_allow<K, V>::value, "getCfamRegister not suppported");
-        PLAT_GETCFAM(i_target.get(),
-                    (uint32_t)(i_address & BITS(40,24)),
-                    &(o_data()));
-
-        return FAPI2_RC_SUCCESS;
+        FAPI_ERR("GET-CFAM ACCESS via SBE is NOOP!");
+        return FAPI2_RC_FALSE;
     }
 
     /// @brief Writes a CFAM register on a chip.
@@ -254,12 +250,8 @@ __fapi2exit__:
                                const uint32_t i_address,
                                buffer<uint32_t>& i_data)
     {
-        static_assert(does_plat_allow<K, V>::value, "putCfamRegister not suppported");
-        PLAT_PUTCFAM(i_target.get(),
-                    (uint32_t)(i_address & BITS(40,24)),
-                    &(i_data()));
-
-        return FAPI2_RC_SUCCESS;
+        FAPI_ERR("PUT-CFAM ACCESS via SBE is NOOP!");
+        return FAPI2_RC_FALSE;
     }
 
     /// @brief Read-modify-write a CFAM register on a chip.
