@@ -565,7 +565,6 @@ fapi_try_exit:
     plat_target_handle_t plat_target_handle_t::getParent(
             const TargetType i_parentType) const
     {
-      
         plat_target_handle_t l_handle;
         //Remove Multicast bit
         switch(i_parentType & MULTICAST_BIT_MASK)
@@ -680,7 +679,7 @@ fapi_try_exit:
         if((l_targetType == TARGET_TYPE_EQ) && (i_childType == TARGET_TYPE_CORE))
         {
             l_childPerChiplet = CORES_PER_QUAD;
-            l_childTargetOffset = CORE_TARGET_OFFSET;
+            l_childTargetOffset = CORE_TARGET_OFFSET+(CORES_PER_QUAD*fields.type_target_num);
             l_loopCount = l_childPerChiplet;
         }
         //PROC and MI
