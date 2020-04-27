@@ -603,6 +603,8 @@ typedef struct
 // p10_thread_control.C
 static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
 
+// TODO - Remove this once Z and DFT team update their code to not use this
+#define SPECIAL_WAKEUP  0x02
 /**
   * @brief structure for Control Instruction Chipop (0xA701) contents.
   *
@@ -671,6 +673,10 @@ typedef struct
             // else thread3 -> 0001b
         }
     }
+
+    // Z/DFT Only use-case, We need to involve the DFT and Z team to update
+    // this use-case, till then we keep this here. Power will ignore this
+    // mode in P10 as updated in the interfsace document.
 
     /**
      * @brief Special wakeup required for this request

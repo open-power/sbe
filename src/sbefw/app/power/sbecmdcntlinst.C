@@ -131,6 +131,8 @@ static uint32_t specialWakeUpCoreAssert(
     return rc;
     #undef SBE_FUNC
 }
+
+// TODO : Convert this to Multi-cast write, so that it done via one scom write
 static uint32_t specialWakeUpCoreDeAssert(
         const Target<TARGET_TYPE_CORE>& i_target, ReturnCode &o_fapiRc)
 {
@@ -281,23 +283,24 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
         fapi2::buffer<uint64_t> data64;
         uint64_t state;
 
-        do //Iterate over all cores for special wakeup assert
+        // Do Special Wakeup Assert only for Stop Instruction, For Rest of the
+        // control instruction commands, it's a no-op
+        if( req.threadOps == THREAD_STOP_INS )
         {
-            fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
-              plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_CORE>(core));
-            if(!coreTgt.isFunctional())
+            do //Iterate over all cores for special wakeup assert
             {
-                continue;
-            }
+                fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
+                        plat_getTargetHandleByChipletNumber<
+                        fapi2::TARGET_TYPE_CORE>(core));
+                if(!coreTgt.isFunctional())
+                {
+                    continue;
+                }
 
-            // TODO - Comeback on this if we need to do this by default
-            if(req.isSpecialWakeUpRequired())
-            {
                 rc = specialWakeUpCoreAssert(coreTgt, fapiRc);
                 if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
                 {
-                    SBE_ERROR(SBE_FUNC "SpecialWakeup Assert failed for "
-                        "core[0x%2x]", core);
+                    SBE_ERROR(SBE_FUNC "Assert failed for core[0x%2x]", core);
                     respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,rc);
                     // Revert back the local RC to success
                     rc = SBE_SEC_OPERATION_SUCCESSFUL;
@@ -307,20 +310,19 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                         break;
                     }
                     SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
-                        " As user has passed to ignore errors.");
+                            " As user has passed to ignore errors.");
                 }
                 else
                 {
-                    SBE_INFO(SBE_FUNC "SpecialWakeup assert succeeded for "
-                        "core[0x%2x]", core);
+                    SBE_INFO(SBE_FUNC "Assert succeeded for core[0x%2x]", core);
                 }
-            }
-        } while(++core < coreCntMax);
+            } while(++core < coreCntMax);
 
-        if ( (fapiRc) && !(IGNORE_HW_ERRORS & req.mode) )
-        {
-            // If FapiRc from the inner loop (thread loop), just break here
-            break; // From core while loop
+            if ( (fapiRc) && !(IGNORE_HW_ERRORS & req.mode) )
+            {
+                // If FapiRc from the inner loop (thread loop), just break here
+                break; // From core while loop
+            }
         }
 
         req.processInputDataToIterate(core,coreCntMax,threadMask);
@@ -354,7 +356,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                 else
                 {
                     SBE_ERROR(SBE_FUNC "Breaking out, since User has "
-                        "Selected the mode to exit on first error.");
+                        "selected the mode to exit on first error.");
                     respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                       SBE_SEC_THREAD_CONTROL_INSTR_FAILED);
                     ffdc.setRc(fapiRc);
@@ -371,23 +373,23 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
 
         req.processInputDataToIterate(core,coreCntMax,threadMask);
 
-        do //Iterate over all cores for special wakeup de-assert
+        // Do Special Wakeup De-assert only for Start/SReset Instruction,
+        // For Rest of the control instruction commands, it's a no-op
+        if(req.threadOps == THREAD_START_INS || req.threadOps == THREAD_SRESET_INS)
         {
-            fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
-                plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_CORE>(core));
-            if(!coreTgt.isFunctional())
+            do //Iterate over all cores for special wakeup de-assert
             {
-                continue;
-            }
+                fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
+                        plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_CORE>(core));
+                if(!coreTgt.isFunctional())
+                {
+                    continue;
+                }
 
-            // TODO - Comeback on this if we need to do this by default
-            if(req.isSpecialWakeUpRequired())
-            {
                 rc = specialWakeUpCoreDeAssert(coreTgt, fapiRc);
                 if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
                 {
-                    SBE_ERROR(SBE_FUNC "Special Wakeup de-asssert failed for "
-                            "core[0x%2x]", core);
+                    SBE_ERROR(SBE_FUNC "De-asssert failed for core[0x%2x]",core);
                     respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE, rc);
                     rc = SBE_SEC_OPERATION_SUCCESSFUL;
                     ffdc.setRc(fapiRc);
@@ -400,16 +402,15 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                 }
                 else
                 {
-                    SBE_INFO(SBE_FUNC "Special Wakeup de-assert succeeded for "
-                            "core[0x%2x]", core);
+                    SBE_INFO(SBE_FUNC "De-assert succeeded for core[0x%2x]",core);
                 }
-            }
-        } while(++core < coreCntMax);
+            } while(++core < coreCntMax);
 
-        if ( (fapiRc) && !(IGNORE_HW_ERRORS & req.mode) )
-        {
-            // If FapiRc from the inner loop (thread loop), just break here
-            break; // From core while loop
+            if ( (fapiRc) && !(IGNORE_HW_ERRORS & req.mode) )
+            {
+                // If FapiRc from the inner loop (thread loop), just break here
+                break; // From core while loop
+            }
         }
 
     }while(0);

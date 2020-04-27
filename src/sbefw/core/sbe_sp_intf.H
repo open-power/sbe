@@ -373,8 +373,7 @@ static const uint32_t SBE_MAX_REG_ACCESS_REGS = 64;
 enum sbeErrorMode
 {
     EXIT_ON_FIRST_ERROR = 0x00,   // Bail out on first error
-    IGNORE_HW_ERRORS    = 0x01,  // Attempt best case
-    SPECIAL_WAKEUP      = 0x02,  // Special wakeup core before stop instruction
+    IGNORE_HW_ERRORS    = 0x01,   // Attempt best case
 };
 
 /**
