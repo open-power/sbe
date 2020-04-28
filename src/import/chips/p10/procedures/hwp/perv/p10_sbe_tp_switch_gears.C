@@ -40,7 +40,10 @@
 
 enum P10_SBE_TP_SWITCH_GEARS_Private_Constants
 {
-    SCAN_RATIO_4TO1 = 0x3
+    SCAN_RATIO_4TO1           = 0x3,
+    SPI_RECEIVE_DELAY_ENCODED = 1,  // Might need to be adapted once we get some lab experience
+    SPI_RECEIVE_DELAY_DECODED = 0x80 >> SPI_RECEIVE_DELAY_ENCODED,
+    SBE_LFR                   = 0x000C0002040,
 };
 
 fapi2::ReturnCode p10_sbe_tp_switch_gears(const
@@ -51,7 +54,7 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
     fapi2::buffer<uint64_t> l_data64, l_read_reg;
     fapi2::buffer<uint64_t> l_opcg_align;
     fapi2::buffer<uint32_t> l_attr_freq_pau_mhz;
-    fapi2::buffer<uint16_t> sck_clock_divider;
+    unsigned int sck_clock_divider;
     uint8_t l_attr_dpll_bypass;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
@@ -70,45 +73,29 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_freq_pau_mhz));
         sck_clock_divider = ((l_attr_freq_pau_mhz / 40) - 1 );
         FAPI_DBG("sck clock divider calculation : %#018lX", sck_clock_divider);
-#ifdef __PPE__
-        // Need to store the Clock Divider in LFR 0xc0002040 Reg (bit0-11),
-        // so that it can be retrieved and used in case of HReset and Mpipl flow
-        // (In HReset & Mpipl, we won't execute this procedure and will be
-        // resetting the SPIms)
-        FAPI_TRY(fapi2::getScom(i_target_chip, 0x000C0002040, l_data64));
-        l_data64.insert< 0, 12, 4 >(sck_clock_divider);
-        FAPI_TRY(fapi2::putScom(i_target_chip, 0x000C0002040, l_data64));
-#endif
-        FAPI_TRY(fapi2::getScom(i_target_chip, 0x000C0003, l_data64));
-        l_data64.insert< 0, 12, 4 >(sck_clock_divider);
-        l_data64.insertFromRight< 12, 4 >(0x4);
-        FAPI_TRY(fapi2::putScom(i_target_chip, 0x000C0003, l_data64));
 
-        FAPI_TRY(fapi2::getScom(i_target_chip, 0x000C0023, l_data64));
-        l_data64.insert< 0, 12, 4 >(sck_clock_divider);
-        l_data64.insertFromRight< 12, 4 >(0x4);
-        FAPI_TRY(fapi2::putScom(i_target_chip, 0x000C0023, l_data64));
+        if (fapi2::is_platform<fapi2::PLAT_SBE>())
+        {
+            // Need to store the Clock Divider and receive delay in LFR 0xc0002040 Reg (bit0-11, 20-23),
+            // so that it can be retrieved and used in case of HReset and Mpipl flow
+            // (In HReset & Mpipl, we won't execute this procedure and will be
+            // resetting the SPIms)
+            FAPI_DBG("Update clock divider and receive delay in SBE LFR register");
+            FAPI_TRY(fapi2::getScom(i_target_chip, SBE_LFR, l_data64));
+            l_data64.insertFromRight< 0, 12 >(sck_clock_divider);
+            l_data64.insertFromRight< 20, 4 >(SPI_RECEIVE_DELAY_ENCODED);
+            FAPI_TRY(fapi2::putScom(i_target_chip, SBE_LFR, l_data64));
+        }
 
-        FAPI_TRY(fapi2::getScom(i_target_chip, 0x000C0043, l_data64));
-        l_data64.insert< 0, 12, 4 >(sck_clock_divider);
-        l_data64.insertFromRight< 12, 4 >(0x4);
-        FAPI_TRY(fapi2::putScom(i_target_chip, 0x000C0043, l_data64));
+        FAPI_DBG("Update clock divider and receive delay in SPI masters");
 
-        FAPI_TRY(fapi2::getScom(i_target_chip, 0x000C0063, l_data64));
-        l_data64.insert< 0, 12, 4 >(sck_clock_divider);
-        l_data64.insertFromRight< 12, 4 >(0x4);
-        FAPI_TRY(fapi2::putScom(i_target_chip, 0x000C0063, l_data64));
-
-        FAPI_TRY(fapi2::getScom(i_target_chip, 0x000C0083, l_data64));
-        l_data64.insert< 0, 12, 4 >(sck_clock_divider);
-        l_data64.insertFromRight< 12, 4 >(0x4);
-        FAPI_TRY(fapi2::putScom(i_target_chip, 0x000C0083, l_data64));
-
-        FAPI_DBG("Write new clock divider / delay value back to scratch reg");
-        FAPI_TRY(fapi2::getScom(i_target_chip, perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RW, l_data64));
-        l_data64.insert< 0, 12, 4 >(sck_clock_divider);
-        l_data64.insertFromRight< 12, 4 >(0x4);
-        FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_2_RW, l_data64));
+        for (uint32_t l_addr = 0x000C0003; l_addr <= 0x000C0083; l_addr += 0x20)
+        {
+            FAPI_TRY(fapi2::getScom(i_target_chip, l_addr, l_data64));
+            l_data64.insertFromRight< 0, 12 >(sck_clock_divider);
+            l_data64.insertFromRight< 12, 8 >(SPI_RECEIVE_DELAY_DECODED);
+            FAPI_TRY(fapi2::putScom(i_target_chip, l_addr, l_data64));
+        }
 
         // adjust scan ratio
         FAPI_DBG("Adjust scan rate to 4:1");
