@@ -41,8 +41,6 @@
 
 #include "p9_misc_scom_addresses.H"
 #include "p10_scom_perv_9.H"
-//#include "p9_perv_scom_addresses_fld.H"
-//#include "p9n2_quad_scom_addresses.H"
 
 // Pervasive HWP Header Files ( istep 2)
 #include <p10_sbe_attr_setup.H>
@@ -104,8 +102,6 @@
 #include <p10_hcd_core_scom_customize.H>
 #include <p10_hcd_core_ras_runtime_scom.H>
 #include <p10_hcd_core_gptr_time_initf.H>
-// Core HWP header file
-//#include <p9_hcd_core.H>
 
 // istep 5 hwp header files
 #include "p10_sbe_instruct_start.H"
@@ -113,21 +109,18 @@
 #include "p10_sbe_load_bootloader.H"
 
 // istep mpipl header files
-//#include "p9_block_wakeup_intr.H"
 #include "p10_query_corecachemma_access_state.H"
 #include "p10_sbe_check_quiesce.H"
 #include "p10_l2_flush.H"
 #include "p10_l3_flush.H"
-//#include "p9_sbe_sequence_drtm.H"
+//#include "p9_sbe_sequence_drtm.H" //This will be enabled later on
 #include "p10_thread_control.H"
 #include "sbecmdcntlinst.H"
 #include "p10_hcd_mma_poweroff.H"
 #include "p10_hcd_core_poweroff.H"
 #include "p10_hcd_cache_poweroff.H"
-//#include "p9_hcd_cache_stopclocks.H"
-//#include "p9_stopclocks.H"
+#include "p10_stopclocks.H"
 //#include "p10_suspend_powman.H"
-//#include "p9_query_cache_access_state.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
@@ -1286,27 +1279,21 @@ ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp )
 {
     #define SBE_FUNC "istepStopClockMpipl"
     SBE_ENTER(SBE_FUNC);
-    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
-#if 0
-    p9_stopclocks_flags l_flags; // Default Flag Values
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    p10_stopclocks_flags flags;
+    flags.clearAll();
+    flags.stop_core_clks = true;
+    flags.stop_cache_clks = true;
     Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
-    p9hcd::P9_HCD_CLK_CTRL_CONSTANTS l_clk_regions =
-                p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
-    p9hcd::P9_HCD_EX_CTRL_CONSTANTS l_ex_select = p9hcd::BOTH_EX;
-
-    l_flags.clearAll();
-    l_flags.stop_core_clks = true;
-    l_flags.stop_cache_clks = true;
-
-    //SBE_EXEC_HWP(l_fapiRc,
-     //            reinterpret_cast<p9_stopclocks_FP_t>(i_hwp),
-     //            l_procTgt,
-     //            l_flags,
-     //            l_clk_regions,
-     //            l_ex_select);
-#endif
+    SBE_EXEC_HWP(fapiRc, reinterpret_cast<p10_stopclocks_FP_t>(i_hwp),
+                 l_procTgt, flags);
+    if(fapiRc != FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC" Failed p10_stopclocks() procedure, RC=0x%.8x",
+                  fapiRc);
+    }
     SBE_EXIT(SBE_FUNC);
-    return l_fapiRc;
+    return fapiRc;
     #undef SBE_FUNC
 }
 
