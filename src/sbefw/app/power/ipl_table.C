@@ -40,6 +40,7 @@
 #include "fapi2.H"
 
 #include "p9_misc_scom_addresses.H"
+#include "p10_scom_perv_9.H"
 //#include "p9_perv_scom_addresses_fld.H"
 //#include "p9n2_quad_scom_addresses.H"
 
@@ -120,7 +121,9 @@
 //#include "p9_sbe_sequence_drtm.H"
 #include "p10_thread_control.H"
 #include "sbecmdcntlinst.H"
-//#include "p9_quad_power_off.H"
+#include "p10_hcd_mma_poweroff.H"
+#include "p10_hcd_core_poweroff.H"
+#include "p10_hcd_cache_poweroff.H"
 //#include "p9_hcd_cache_stopclocks.H"
 //#include "p9_stopclocks.H"
 //#include "p10_suspend_powman.H"
@@ -276,13 +279,15 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
 static istepMap_t g_istepMpiplContinuePtrTbl[] =
         {
 #ifdef SEEPROM_IMAGE
+            ISTEP_MAP( istepLpcInit, p10_sbe_lpc_init ),
             // Setup EC/EQ guard records
-            ISTEP_MAP( istepMpiplSetFunctionalState, NULL),
-             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_dump_reg)
-             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_query_quad_access_state)
-             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_core_stopclocks)
-             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_cache_stopclocks)
-            // p9_quad_power_off
+            ISTEP_MAP( istepMpiplSetFunctionalState, p10_sbe_select_ex),
+            ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_dump_reg)
+            ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_query_quad_access_state)
+            ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_core_stopclocks)
+            ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_cache_stopclocks)
+            //istepMpiplQuadPoweroff internally calls 3 procedures
+            //P10_hcd_mma_poweroff,p10_hcd_core_poweroff and p10_hcd_cache_poweroff
             ISTEP_MAP( istepMpiplQuadPoweroff, NULL),
             // No-op
             ISTEP_MAP( istepNoOp, NULL ),
@@ -614,12 +619,12 @@ ReturnCode istepWithGoodEqMCORCore( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepWithGoodEqMCORCore"
     ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_mc_cores;
-    l_mc_cores = proc.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
-    FAPI_DBG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",l_mc_cores.get());
+    fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > mc_cores;
+    mc_cores = proc.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+    FAPI_DBG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",mc_cores.get());
     do
     {
-        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpMCORCore_t>(i_hwp),l_mc_cores)
+        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpMCORCore_t>(i_hwp),mc_cores)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " istepWithGoodEqMCORCore failed, RC=[0x%08X]", rc);
@@ -637,12 +642,12 @@ ReturnCode istepWithGoodEqMCCore( voidfuncptr_t i_hwp)
     ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
-                     fapi2::MULTICAST_AND > l_mc_cores;
-    l_mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
-    FAPI_DBG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",l_mc_cores.get());
+                     fapi2::MULTICAST_AND > mc_cores;
+    mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+    FAPI_DBG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",mc_cores.get());
     do
     {
-        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpMCCore_t>(i_hwp),l_mc_cores)
+        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpMCCore_t>(i_hwp),mc_cores)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC " istepWithGoodEqMCCore failed, RC=[0x%08X]", rc);
@@ -1113,28 +1118,41 @@ ReturnCode istepStartMpipl( voidfuncptr_t i_hwp)
 //----------------------------------------------------------------------------
 ReturnCode istepMpiplQuadPoweroff( voidfuncptr_t i_hwp)
 {
-    #define SBE_FUNC "istepMpiplQuadPoweroff"
+#define SBE_FUNC "istepMpiplQuadPoweroff"
     SBE_ENTER(SBE_FUNC);
-    ReturnCode l_rc = FAPI2_RC_SUCCESS;
-#if 0
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     if(g_sbeRole == SBE_ROLE_MASTER)
     {
-        Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
-        // Fetch the MASTER_CORE attribute
-        uint8_t l_coreId = 0;
-        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE, l_proc, l_coreId);
-        // Construct the Master Core Target
-        fapi2::Target<fapi2::TARGET_TYPE_CORE > l_core(
-            plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_CORE>(
-            l_coreId + CORE_CHIPLET_OFFSET));
-        fapi2::Target<fapi2::TARGET_TYPE_EQ> l_quad =
-                                l_core.getParent<fapi2::TARGET_TYPE_EQ>();
-        //SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpQuadPoweroff_t>(i_hwp), l_quad, G_ring_save)
+        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+        fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
+                      fapi2::MULTICAST_AND > mc_cores;
+        mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+        SBE_DEBUG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",mc_cores.get());
+        do
+        {
+            SBE_EXEC_HWP(fapiRc, p10_hcd_mma_poweroff,mc_cores)
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "p10_hcd_mma_poweroff() failed, fapiRc=[0x%08X]", fapiRc);
+                break;
+            }
+            SBE_EXEC_HWP(fapiRc, p10_hcd_core_poweroff,mc_cores)
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "p10_hcd_core_poweroff() failed, fapiRc=[0x%08X]", fapiRc);
+                break;
+            }
+            SBE_EXEC_HWP(fapiRc, p10_hcd_cache_poweroff,mc_cores)
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "p10_hcd_cache_poweroff() failed, fapiRc=[0x%08X]", fapiRc);
+                break;
+            }
+        }while(0);
     }
-#endif
     SBE_EXIT(SBE_FUNC);
-    return l_rc;
-    #undef SBE_FUNC
+    return fapiRc;
+#undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------
@@ -1186,13 +1204,13 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
     #define SBE_FUNC "istepMpiplSetFunctionalState"
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     do
     {
         // Read the EQ and EC gard attributes from the chip target
         fapi2::buffer<uint64_t> l_scratchReg1 = 0;
         uint64_t l_scratchReg8 = 0;
+        //TODO:Update this bit information post analysis
         static const uint64_t SCRATCH8_SCRATCH1REG_VALID_BIT =
                                                     0x8000000000000000ULL;
         fapi2::buffer<uint8_t> l_eqMask = 0;
@@ -1203,15 +1221,18 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
         (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
 
         rc = getscom_abs_wrap (&l_hndl,
-                               PERV_SCRATCH_REGISTER_8_SCOM,
+                               scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RW ,
                                &l_scratchReg8);
         if( rc != FAPI2_RC_SUCCESS )
         {
-            SBE_ERROR(SBE_FUNC" Failed to read Scratch RegR8");
+            SBE_ERROR(SBE_FUNC" Failed to read Scratch RegR8, rc=0x%.8x",rc);
             break;
         }
         if(l_scratchReg8 & SCRATCH8_SCRATCH1REG_VALID_BIT)
         {
+            //TODO:Revisit the below logic to apply EQ and CORE gard
+            //records.
+#if 0
             rc = getscom_abs_wrap (&l_hndl,
                                    PERV_SCRATCH_REGISTER_1_SCOM,
                                    &l_scratchReg1());
@@ -1237,16 +1258,14 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
                 SBE_ERROR(SBE_FUNC" Failed to to apply gard records");
                 break;
             }
+#endif
 
             if (g_sbeRole == SBE_ROLE_MASTER)
             {
-                // TODO via RTC 135345
-                // Once multicast targets are supported, we may need to pass
-                // p9selectex::ALL as input.
-                SBE_EXEC_HWP(rc, reinterpret_cast<p9_sbe_select_ex_FP_t>(i_hwp), proc, p9selectex::SINGLE)
+                SBE_EXEC_HWP(rc, reinterpret_cast<p10_sbe_select_ex_FP_t>(i_hwp), proc, selectex::SINGLE)
                 if( rc != FAPI2_RC_SUCCESS )
                 {
-                    SBE_ERROR(SBE_FUNC" Failed hwp p9_sbe_select_ex_hwp");
+                    SBE_ERROR(SBE_FUNC" Failed hwp p10_sbe_select_ex_hwp");
                     break;
                 }
             }
@@ -1256,8 +1275,7 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
             SBE_ERROR(SBE_FUNC " Scratch Reg 1 is invalid,"
                     "not applying gard records");
         }
-     }while(0);
-#endif
+    }while(0);
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
