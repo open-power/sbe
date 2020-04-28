@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -27,44 +27,42 @@ sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
 err = False
 #from testWrite import *
-
-STOPCLOCK_CORE_TESTDATA =  [0,0,0,0x3,
-                            0,0,0xA9,0x03,
-                            0x0,0x02,0x00,0x20]      # target type/chiplet id
 STOPCLOCK_PROC_TESTDATA =  [0,0,0,0x3,
                             0,0,0xA9,0x03,
                             0x0,0x0,0x0,0x00]      # target type/chiplet id
 
+STOPCLOCK_EQ_TESTDATA =  [0,0,0,0x3,
+                          0,0,0xA9,0x03,
+                          0x0,0x2,0x0,0x20]      # target type/chiplet id
+
+STOPCLOCK_ALL_EQ_TESTDATA =  [0,0,0,0x3,
+                              0,0,0xA9,0x03,
+                              0x0,0x2,0x0,0xFF]      # target type/chiplet id
+
+STOPCLOCK_CORE_TESTDATA =  [0,0,0,0x3,
+                            0,0,0xA9,0x03,
+                            0x0,0x3,0x0,0x0]      # target type/chiplet Instance
+
 STOPCLOCK_ALL_CORE_TESTDATA =  [0,0,0,0x3,
                                 0,0,0xA9,0x03,
-                                0x0,0x5,0x0,0xFF]      # target type/chiplet id
+                                0x0,0x3,0x0,0xFF]      # target type/chiplet id
+
+STOPCLOCK_INVALIDTARGET_TESTDATA =  [0,0,0,0x3,
+                            0,0,0xA9,0x03,
+                            0x0,0x09,0x00,0x20]      # target type/chiplet id
 
 STOPCLOCK_PASS_EXPDATA =   [0xc0,0xde,0xa9,0x03,
                             0x0,0x0,0x0,0x0,
                             0x0,0x0,0x0,0x03];
 
-STOPCLOCK_EQ_TESTDATA =  [0,0,0,0x3,
-                          0,0,0xA9,0x03,
-                          0x0,0x2,0x0,0x10]      # target type/chiplet id
-
-STOPCLOCK_EX0_TESTDATA =  [0,0,0,0x3,
-                          0,0,0xA9,0x03,
-                          0x0,0x1,0x0,0x24]      # target type/chiplet id
-
-STOPCLOCK_EX1_TESTDATA =  [0,0,0,0x3,
-                          0,0,0xA9,0x03,
-                          0x0,0x1,0x0,0x26]      # target type/chiplet id
-
-STOPCLOCK_ALL_EQ_TESTDATA =  [0,0,0,0x3,
-                              0,0,0xA9,0x03,
-                              0x0,0x4,0x0,0xFF]      # target type/chiplet id
-
-STOPCLOCK_INVALIDTARGET_TESTDATA =  [0,0,0,0x3,
-                            0,0,0xA9,0x03,
-                            0x0,0x09,0x00,0x20]      # target type/chiplet id
 STOPCLOCK_FAIL_EXPDATA =   [0xc0,0xde,0xa9,0x03,
                             0x0,0x02,0x0,0x04,
                             0x0,0x0,0x0,0x03];
+
+STOPCLOCK_PERV_TESTDATA =  [0,0,0,0x3,
+                            0,0,0xA9,0x03,
+                            0x0,0x1,0x0,0xFF]      # target type/chiplet id
+
 
 
 # MAIN Test Run Starts Here...
@@ -72,57 +70,56 @@ STOPCLOCK_FAIL_EXPDATA =   [0xc0,0xde,0xa9,0x03,
 def main( ):
     testUtil.runCycles( 10000000 )
 
-    testUtil.writeUsFifo( STOPCLOCK_CORE_TESTDATA )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
-
-#    testUtil.writeUsFifo( STOPCLOCK_ALL_CORE_TESTDATA )
-#    testUtil.writeEot( )
-#    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
-#    testUtil.runCycles( 10000000 )
-#    testUtil.readEot( )
-#
-    testUtil.runCycles( 10000000 )
-    testUtil.writeUsFifo( STOPCLOCK_EQ_TESTDATA )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
-
-    testUtil.runCycles( 10000000 )
-    testUtil.writeUsFifo( STOPCLOCK_EX0_TESTDATA )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
-
-    testUtil.runCycles( 10000000 )
-    testUtil.writeUsFifo( STOPCLOCK_EX1_TESTDATA )
-    testUtil.writeEot( )
-    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
-    testUtil.runCycles( 10000000 )
-    testUtil.readEot( )
-#
-#    testUtil.runCycles( 10000000 )
-#    testUtil.writeUsFifo( STOPCLOCK_ALL_EQ_TESTDATA )
-#    testUtil.writeEot( )
-#    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
-#    testUtil.runCycles( 10000000 )
-#    testUtil.readEot( )
-
     testUtil.writeUsFifo( STOPCLOCK_PROC_TESTDATA )
     testUtil.writeEot( )
     testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
     testUtil.runCycles( 10000000 )
     testUtil.readEot( )
+    print ( "Test for Proc Level Stop Clock completed!!" )
+
+    testUtil.writeUsFifo( STOPCLOCK_PERV_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
+    print ( "Test for PERV Level Stop Clock completed!!" )
+
+
+    testUtil.writeUsFifo( STOPCLOCK_EQ_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
+    print ( "Test for specific EQ Stop Clock completed!!" )
+
+
+    testUtil.writeUsFifo( STOPCLOCK_ALL_EQ_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
+    print ( "Test for All EQ Stop Clock completed!!" )
+
+    testUtil.writeUsFifo( STOPCLOCK_CORE_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
+    print ( "Test for Specific Core Stop Clock completed!!" )
+
+    testUtil.writeUsFifo( STOPCLOCK_ALL_CORE_TESTDATA )
+    testUtil.writeEot( )
+    testUtil.readDsFifo( STOPCLOCK_PASS_EXPDATA )
+    testUtil.runCycles( 10000000 )
+    testUtil.readEot( )
+    print ( "Test for All Core Stop Clock completed!!" )
 
     testUtil.writeUsFifo( STOPCLOCK_INVALIDTARGET_TESTDATA )
     testUtil.writeEot( )
     testUtil.readDsFifo( STOPCLOCK_FAIL_EXPDATA )
     testUtil.runCycles( 10000000 )
     testUtil.readEot( )
+    print ( "Test for invalid target for Stop Clock completed!!" )
 
 #-------------------------------------------------
 # Calling all test code

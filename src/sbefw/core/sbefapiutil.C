@@ -49,6 +49,9 @@ fapi2::TargetType sbeGetFapiTargetType(const uint16_t i_sbeTargetType,
                 l_fapiTargetType = fapi2::TARGET_TYPE_PERV;
             }
             break;
+        case TARGET_EQ:
+            l_fapiTargetType = fapi2::TARGET_TYPE_EQ;
+            break;
         case TARGET_CORE:
             l_fapiTargetType = fapi2::TARGET_TYPE_CORE;
             break;
