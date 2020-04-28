@@ -159,7 +159,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     #define SBE_FUNC " sbeEnterMpipl "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    //ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
     uint32_t len = 0;
     sbeResponseFfdc_t ffdc;
@@ -180,8 +180,6 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             // There is no execution after this.. SBE is taking a reset.
         }
 
-#if 0 // Place holder for MPIPL Procedure execution
-        // @TODO Enable code while MPIPL HWP added
         fapiRc = startMpiplIstepsExecute();
         bool checkstop = isSystemCheckstop();
         if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
@@ -195,7 +193,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             else
             {
                 respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                   SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                                   SBE_SEC_ENTER_MPIPL_FAILED);
                 ffdc.setRc(fapiRc);
             }
             // reset attribute. We do not want to reset register, so do not
@@ -204,7 +202,6 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
             break;
         }
-#endif
     }while(0);
 
     // Create the Response to caller

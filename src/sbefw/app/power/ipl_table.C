@@ -113,17 +113,17 @@
 
 // istep mpipl header files
 //#include "p9_block_wakeup_intr.H"
-//#include "p9_query_core_access_state.H"
-//#include "p9_sbe_check_quiesce.H"
-//#include "p9_l2_flush.H"
-//#include "p9_l3_flush.H"
+#include "p10_query_corecachemma_access_state.H"
+#include "p10_sbe_check_quiesce.H"
+#include "p10_l2_flush.H"
+#include "p10_l3_flush.H"
 //#include "p9_sbe_sequence_drtm.H"
 #include "p10_thread_control.H"
-//#include "sbecmdcntlinst.H"
+#include "sbecmdcntlinst.H"
 //#include "p9_quad_power_off.H"
 //#include "p9_hcd_cache_stopclocks.H"
 //#include "p9_stopclocks.H"
-//#include "p9_suspend_powman.H"
+//#include "p10_suspend_powman.H"
 //#include "p9_query_cache_access_state.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
@@ -178,16 +178,16 @@ using sbeIstepHwpStartCore_t =  ReturnCode (*)
                     (const Target<TARGET_TYPE_CORE> & i_target,
                      const ThreadSpecifier i_thread_mask);
 
-#if 0
-using  sbeIstepHwpExL2Flush_t = ReturnCode (*)
-                    (const Target<TARGET_TYPE_EX> & i_target,
-                     const p9core::purgeData_t & i_purgeData);
+using  sbeIstepHwpCoreL2Flush_t = ReturnCode (*)
+                    (const Target<TARGET_TYPE_CORE> & i_target,
+                     const p10core::purgeData_t & i_purgeData);
 
-using  sbeIstepHwpExL3Flush_t = ReturnCode (*)
-                    (const Target<TARGET_TYPE_EX> & i_target,
+using  sbeIstepHwpCoreL3Flush_t = ReturnCode (*)
+                    (const Target<TARGET_TYPE_CORE> & i_target,
                      const uint32_t i_purgeType,
                      const uint32_t i_purgeAddr);
-
+ 
+#if 0
 using sbeIstepHwpCoreBlockIntr_t =  ReturnCode (*)
                     (const Target<TARGET_TYPE_CORE> & i_target,
                      const p9pmblockwkup::OP_TYPE i_oper);
@@ -233,10 +233,10 @@ ReturnCode istepCacheInitf( voidfuncptr_t i_hwp );
 //MPIPL Specific
 ReturnCode istepWithCoreSetBlock( voidfuncptr_t i_hwp );
 ReturnCode istepWithCoreState( voidfuncptr_t i_hwp );
-ReturnCode istepMpiplRstClrTpmBits( voidfuncptr_t i_hwp );
+//ReturnCode istepMpiplRstClrTpmBits( voidfuncptr_t i_hwp );//TODO::RTC:253772
 ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp );
-ReturnCode istepWithExL2Flush( voidfuncptr_t i_hwp );
-ReturnCode istepWithExL3Flush( voidfuncptr_t i_hwp );
+ReturnCode istepWithCoreL2Flush( voidfuncptr_t i_hwp );
+ReturnCode istepWithCoreL3Flush( voidfuncptr_t i_hwp );
 ReturnCode istepStartMpipl( voidfuncptr_t i_hwp );
 ReturnCode istepWithProcSequenceDrtm( voidfuncptr_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp );
@@ -255,20 +255,20 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             // Set MPIPL mode in Sratch Reg 3
             ISTEP_MAP( istepStartMpipl, NULL ),
             // Call suspend powerman
-            ISTEP_MAP( istepWithProc, NULL ),
+            ISTEP_MAP( istepWithProc, NULL),
             // Find all the child cores within proc and call hwp to know the
             // scom state and call instruction control. Also mask spl attention
             // from core.
             ISTEP_MAP( istepWithCoreState, NULL ),
-            //  Reset the TPM and clear the TPM deconfig bit, it's not a
-            //  procedure but local SBE function
-            ISTEP_MAP( istepMpiplRstClrTpmBits, NULL ),
+            //  Reset the TPM is not done as separate istep. It will be done
+            //  as part of measurement seeprom boot flow.
+            ISTEP_MAP( istepNoOp, NULL ),
             // quiesce state for all units on the powerbus on its chip
-            ISTEP_MAP( istepWithProcQuiesceLQASet, NULL ),
+            ISTEP_MAP( istepWithProcQuiesceLQASet, p10_sbe_check_quiesce ),
             // L2 cache flush via purge engine on each EX
-            ISTEP_MAP( istepWithExL2Flush, NULL ),
+            ISTEP_MAP( istepWithCoreL2Flush, p10_l2_flush ),
             // L3 cache flush via purge engine on each EX
-            ISTEP_MAP( istepWithExL3Flush, NULL ),
+            ISTEP_MAP( istepWithCoreL3Flush, p10_l3_flush ),
             // Check on Quiescing of all Chips in a System by Local SBE
             ISTEP_MAP( istepWithProcSequenceDrtm, NULL ),
 #endif
@@ -869,27 +869,30 @@ ReturnCode istepWithCoreState( voidfuncptr_t i_hwp)
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
 
-#if 0
     l_rc = stopAllCoreInstructions();
     if( l_rc == FAPI2_RC_SUCCESS )
     {
+        //TODO:RTC:253772, Enable flushNVDIMM() support
+        /*
         l_rc = flushNVDIMM();
         if( l_rc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC "flushNVDIMM failed");
-        }
+        }*/
     }
     else
     {
         SBE_ERROR(SBE_FUNC "Stop all core instructions is failed, "
                  "RC=[0x%08X]", l_rc);
     }
-#endif
+
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
 }
 
+//TODO:RTC:253772, Cleanup
+#if 0
 //----------------------------------------------------------------------------
 ReturnCode istepMpiplRstClrTpmBits( voidfuncptr_t i_hwp)
 {
@@ -906,122 +909,106 @@ ReturnCode istepMpiplRstClrTpmBits( voidfuncptr_t i_hwp)
     return l_rc;
     #undef SBE_FUNC
 }
+#endif
 
 //----------------------------------------------------------------------------
-ReturnCode istepWithExL2Flush( voidfuncptr_t i_hwp)
+ReturnCode istepWithCoreL2Flush( voidfuncptr_t i_hwp)
 {
-    #define SBE_FUNC "istepWithExL2Flush"
+    #define SBE_FUNC "istepWithCoreL2Flush"
     SBE_ENTER(SBE_FUNC);
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
-    for (auto& exTgt : procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
+    //Fetch all EQ Targets
+    for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
     {
-        bool l2IsScomable[MAX_L2_PER_QUAD] = {false};
-        bool l2IsScanable[MAX_L2_PER_QUAD] = {false};
-        bool l3IsScomable[MAX_L3_PER_QUAD] = {false};
-        bool l3IsScanable[MAX_L3_PER_QUAD] = {false};
-        uint8_t chipUnitNum = 0;
-
-        // Get EQ Parent to figure if this EX's L2 is scommable
-        fapi2::Target<fapi2::TARGET_TYPE_EQ> eqTgt =
-                                exTgt.getParent<fapi2::TARGET_TYPE_EQ>();
-
-        //rc = p9_query_cache_access_state(eqTgt,
-        //                                 l2IsScomable,
-        //                                 l2IsScanable,
-        //                                 l3IsScomable,
-        //                                 l3IsScanable);
-        if(rc != FAPI2_RC_SUCCESS)
+        //Default Set the bits represeting the L2 SCOM state as TRUE
+        scomStatus_t scomStateData;
+        scanStatus_t scanStateData;
+        SBE_EXEC_HWP(fapiRc,p10_query_corecachemma_access_state, eqTgt,
+                     scomStateData,scanStateData);
+        if(fapiRc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC " p9_query_cache_access_state failed, "
-                "RC=[0x%08X]", rc);
+            SBE_ERROR(SBE_FUNC " p10_query_corecachemma_access_state failed, "
+                    " RC=[0x%08X]", fapiRc);
             break;
         }
 
-        FAPI_ATTR_GET( fapi2::ATTR_CHIP_UNIT_POS, exTgt, chipUnitNum );
-
-        // check the position of EX i.e. Ex0 or Ex1
-        if( !(l2IsScomable[(chipUnitNum % 2)]) )
+        //For all Core targets associated with the EQ target,call procedure to
+        //purge L2 if scomStateData for the particular core is TRUE
+        for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
-            SBE_INFO(SBE_FUNC "Ex chipletId [%d] Ex%d is not l2 scomable, "
-                "so no purge", chipUnitNum, (chipUnitNum % 2));
-            continue;
-        }
+            if(isCoreOrL2CacheScomEnabled(coreTgt,scomStateData))
+            {
+                p10core::purgeData_t purgeData;
+                SBE_EXEC_HWP(fapiRc,
+                             reinterpret_cast<sbeIstepHwpCoreL2Flush_t>(i_hwp),
+                             coreTgt,
+                             purgeData)
+                if(fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR(SBE_FUNC " p10_l2_flush failed, RC=[0x%08X]", fapiRc);
+                    break;
+                }
 
-        p9core::purgeData_t l_purgeData;
-        //SBE_EXEC_HWP(rc,
-        //             reinterpret_cast<sbeIstepHwpExL2Flush_t>(i_hwp),
-        //             exTgt,
-        //             l_purgeData)
-        if(rc != FAPI2_RC_SUCCESS)
+            }//End of SCOM state check
+        }//End of Core loop
+        if(fapiRc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC " p9_l2_flush failed, RC=[0x%08X]", rc);
             break;
         }
-    }
-#endif
+    }//End of Eq loop
     SBE_EXIT(SBE_FUNC);
-    return rc;
+    return fapiRc;
     #undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------
-ReturnCode istepWithExL3Flush( voidfuncptr_t i_hwp)
+ReturnCode istepWithCoreL3Flush( voidfuncptr_t i_hwp)
 {
-    #define SBE_FUNC "istepWithExL3Flush"
+    #define SBE_FUNC "istepWithCoreL3Flush"
     SBE_ENTER(SBE_FUNC);
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
-    for (auto& exTgt : procTgt.getChildren<fapi2::TARGET_TYPE_EX>())
+    //Fetch all EQ Targets
+    for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
     {
-        bool l2IsScomable[MAX_L2_PER_QUAD] = {false};
-        bool l2IsScanable[MAX_L2_PER_QUAD] = {false};
-        bool l3IsScomable[MAX_L3_PER_QUAD] = {false};
-        bool l3IsScanable[MAX_L3_PER_QUAD] = {false};
-        uint8_t chipUnitNum = 0;
-
-        // Get EQ Parent to figure if this EX's L3 is scommable
-        fapi2::Target<fapi2::TARGET_TYPE_EQ> eqTgt =
-                                exTgt.getParent<fapi2::TARGET_TYPE_EQ>();
-
-        //rc = p9_query_cache_access_state(eqTgt,
-        //                                 l2IsScomable,
-        //                                 l2IsScanable,
-        //                                 l3IsScomable,
-        //                                 l3IsScanable);
-        if(rc != FAPI2_RC_SUCCESS)
+        scomStatus_t scomStateData;
+        scanStatus_t scanStateData;
+        SBE_EXEC_HWP(fapiRc,p10_query_corecachemma_access_state, eqTgt,
+                     scomStateData,scanStateData);
+        if(fapiRc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC " p9_query_cache_access_state failed, "
-                "RC=[0x%08X]", rc);
+            SBE_ERROR(SBE_FUNC " p10_query_corecachemma_access_state failed, "
+                               " RC=[0x%08X]", fapiRc);
             break;
         }
 
-        FAPI_ATTR_GET( fapi2::ATTR_CHIP_UNIT_POS, exTgt, chipUnitNum );
-
-        // check the position of EX i.e. Ex0 or Ex1
-        if( !(l3IsScomable[(chipUnitNum % 2)]) )
+        //For all Core targets associated with the EQ target,call procedure to
+        //purge L3 if scomStateData for the particular core is TRUE
+        for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
-            SBE_INFO(SBE_FUNC "Ex chipletId [%d] EX%d is not l3 scomable, "
-                "so no purge", chipUnitNum, (chipUnitNum % 2));
-            continue;
-        }
+            if(isL3CacheScomEnabled(coreTgt,scomStateData))
+            {
+                p10core::purgeData_t l_purgeData;
+                SBE_EXEC_HWP(fapiRc,
+                             reinterpret_cast<sbeIstepHwpCoreL3Flush_t>(i_hwp),
+                             coreTgt,L3_FULL_PURGE,0x0);
+                if(fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR(SBE_FUNC " p10_l3_flush failed, RC=[0x%08X]", fapiRc);
+                    break;
+                }
 
-        //SBE_EXEC_HWP(rc,
-        //            reinterpret_cast<sbeIstepHwpExL3Flush_t>(i_hwp),
-        //             exTgt,
-        //             L3_FULL_PURGE,
-        //             0x0)
-        if(rc != FAPI2_RC_SUCCESS)
+            }//End of SCOM state check
+        }//End of Core loop
+        if(fapiRc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC " p9_l3_flush failed, RC=[0x%08X]", rc);
             break;
         }
-    }
-#endif
+    }//End of Eq loop
+
     SBE_EXIT(SBE_FUNC);
-    return rc;
+    return fapiRc;
     #undef SBE_FUNC
 }
 
@@ -1036,7 +1023,7 @@ ReturnCode istepWithProcSequenceDrtm( voidfuncptr_t i_hwp)
 
     uint8_t l_status = 0;
     size_t l_timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
-    while(l_timeOut)
+     while(l_timeOut)
     {
         //SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpSequenceDrtm_t>(i_hwp), l_procTgt, l_status)
         if(l_rc != FAPI2_RC_SUCCESS)
@@ -1156,13 +1143,15 @@ ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp )
     #define SBE_FUNC "istepWithProcQuiesceLQASet"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
-#if 0
+
     do
     {
         l_rc = istepWithProc(i_hwp);
         if(l_rc == FAPI2_RC_SUCCESS)
         {
-            //set the LQA Bit
+#if 0
+            //TODO:Re-enabel this with update P10 addresses and enable
+            //setting of the LQA Bit
             // TODO RTC 164425 - Create another istep for Setting LQA bit after
             // L2/L3 flush istep
             Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
@@ -1182,9 +1171,10 @@ ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp )
             }
             SBE_INFO(SBE_FUNC "PU_SECURITY_SWITCH_REGISTER_SCOM Data [0x%08X][%08X]",
                 (uint32_t)((l_data >> 32) & 0xFFFFFFFF), (uint32_t)(l_data & 0xFFFFFFFF));
+#endif         
         }
     }while(0);
-#endif
+
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

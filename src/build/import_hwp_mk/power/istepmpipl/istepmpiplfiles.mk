@@ -46,6 +46,7 @@ ISTEPMPIPL-CPP-SOURCES += p10_hcd_mma_poweroff.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_core_poweroff.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_cache_poweroff.C
 ISTEPMPIPL-CPP-SOURCES += p10_suspend_io.C
+ISTEPMPIPL-CPP-SOURCES += p10_sbe_check_quiesce.C
 #ISTEPMPIPL-CPP-SOURCES +=p9_block_wakeup_intr.C
 #ISTEPMPIPL-CPP-SOURCES +=p9_inject_local_xstop.C
 #ISTEPMPIPL-CPP-SOURCES +=p9_sbe_sequence_drtm.C
