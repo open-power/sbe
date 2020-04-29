@@ -39,6 +39,52 @@
 
 #include <p10_plat_ring_traverse.H>
 
+// Provide temporary implementation of Target::reduceType until
+// the next ecmd update provides the official implementation
+template<fapi2::TargetType K, fapi2::TargetType T, fapi2::MulticastType M, typename V>
+inline fapi2::ReturnCodes
+temp_reduceType(const fapi2::Target<K, M, V>& i_target, fapi2::Target<T, M, V>& o_target)
+{
+#ifdef fapi2ClientCapi_H    // lame check for Cronus platform
+    bool compatible = true;
+    fapi2::plat_target_handle_t l_handle = i_target.get();
+    const ecmdChipTarget * l_pEcmdTarget = l_handle;
+    fapi2::TargetType l_type = fapi2::TARGET_TYPE_NONE;
+
+    uint32_t l_rc = fapi2GetTargetType(*l_pEcmdTarget, l_type);
+    if (l_rc)
+    {
+        compatible = false;
+    }
+
+    // Here you would check that the platform target's type is compatible with T,
+    // also taking multicast into account (iff the plat target is a real multicast
+    // target, T must include TARGET_TYPE_MULTICAST).
+
+    if (((T & fapi2::TARGET_TYPE_MULTICAST) == fapi2::TARGET_TYPE_NONE) &&
+        (l_handle.multicast == true))
+    {
+        compatible = false;
+    }
+
+    if (((l_type & T) == fapi2::TARGET_TYPE_NONE) &&
+        (l_handle.multicast == false))
+    {
+        compatible = false;
+    }
+
+    if (!compatible)
+    {
+        return fapi2::FAPI2_RC_INVALID_PARAMETER;
+    }
+
+    o_target = fapi2::Target < T, M, V > (l_handle);
+    return fapi2::FAPI2_RC_SUCCESS;
+#else
+    return i_target.reduceType(o_target);
+#endif
+}
+
 // Constants and Structures
 //
 struct restoreOpcgRegisters

@@ -92,19 +92,11 @@ fapi2::ReturnCode getRS4ImageFromTor(
     fapi2::ReturnCode l_rc      =   fapi2::FAPI2_RC_SUCCESS;
     ChipletData_t* l_pChipletData;
     TorOffset_t* l_pRingTor     =   NULL;
-    std::vector < fapi2::Target < fapi2::TARGET_TYPE_ALL >> l_ucTgtAll =
-                i_target.getChildren< fapi2::TARGET_TYPE_ALL >();
-    uint8_t  l_chipletPos       =   l_ucTgtAll[0].getChipletNumber();
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
         i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
 
-
-    FAPI_INF("l_chipletPos %02x\n", l_chipletPos);
     OpMode_t i_opMode = G_opMode;
 
-    fapi2::ATTR_SCAN_CHIPLET_OVERRIDE_Type l_scan_chiplet_override =  fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE;
-
-    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, l_procTgt, l_scan_chiplet_override ) );
     FAPI_ASSERT( ( l_torVersion == TOR_VERSION ),
                  fapi2::INVALID_TOR_VERSION()
                  .set_TOR_VER( l_torVersion ),
@@ -314,31 +306,37 @@ fapi2::ReturnCode getRS4ImageFromTor(
 
     l_pRingTor      =   (TorOffset_t*) (i_pRingSectn + l_sectionOffset);
 
-    if (l_chipletPos)
-    {
-        l_chipletPos    =   l_chipletPos    -   l_pChipletData->chipletBaseId;
-    }
-
-    if ( fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE != l_scan_chiplet_override )
-    {
-        if (l_scan_chiplet_override != l_chipletPos)
-        {
-            l_chipletPos = l_scan_chiplet_override;
-            FAPI_INF("l_scan_chiplet_override l_chipletPos %02x", l_chipletPos);
-        }
-    }
-
 
     FAPI_INF( "TOR Traversal: Ring Id 0x%04x Sectn TOR 0x%08x Chiplet Offset 0x%04x Ring offset 0x%02x ",
               i_ringId, rev_32(*((uint32_t*)i_pRingSectn)), l_sectionOffset, l_torIndex );
 
-    FAPI_INF("l_chipletPos 0x%02x", l_chipletPos);
-
     if( INSTANCE_RING == l_ringType )
     {
+        fapi2::ATTR_SCAN_CHIPLET_OVERRIDE_Type l_scan_chiplet_override;
+        FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, l_procTgt, l_scan_chiplet_override ) );
+
+        uint8_t l_chipletPos;
+
+        if ( fapi2::ENUM_ATTR_SCAN_CHIPLET_OVERRIDE_NONE != l_scan_chiplet_override )
         {
-            l_pRingTor      +=   ( ( l_pChipletData->numInstanceRings * l_chipletPos ) + ( l_torIndex ) );
+            l_chipletPos = l_scan_chiplet_override;
+            FAPI_INF("l_scan_chiplet_override l_chipletPos %02x", l_chipletPos);
         }
+        else
+        {
+            // If we're in this path, the target should be of chiplet type
+            fapi2::Target < fapi2::TARGET_TYPE_CHIPLETS | fapi2::TARGET_TYPE_MULTICAST > l_cplt_target;
+            FAPI_TRY(temp_reduceType(i_target, l_cplt_target), "Invalid target for instance ring");
+
+            l_chipletPos = l_cplt_target
+                           .getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ()
+                           .getChildren< fapi2::TARGET_TYPE_PERV >()[0].getChipletNumber();
+        }
+
+        l_chipletPos    -=   l_pChipletData->chipletBaseId;
+
+        FAPI_INF("l_chipletPos %02x\n", l_chipletPos);
+        l_pRingTor      +=   ( ( l_pChipletData->numInstanceRings * l_chipletPos ) + ( l_torIndex ) );
     }
     else
     {
