@@ -139,7 +139,7 @@ namespace fapi2
             uint32_t core_select          :4; // used for targeting
             uint32_t ring_id              :2; // used for targeting
             uint32_t sat_id               :4; // used for targeting
-            uint32_t present              :1; // used internally
+            uint32_t                      :1; // unused
             uint32_t functional           :1; // used internally
             uint32_t type                 :4; // used internally
         } fields __attribute__((packed));
@@ -234,24 +234,6 @@ namespace fapi2
         void setFunctional(const bool &i_state)
         {
             fields.functional = i_state;
-        }
-
-        ///
-        /// @brief Returns whether this target is present
-        ///
-        /// @return true if Target is present
-        ///
-        bool getPresent() const
-        {
-            return fields.present;
-        }
-
-        ///
-        /// @brief Set Target as present
-        ///
-        void setPresent()
-        {
-            fields.present = true;
         }
 
         ///
