@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,6 +34,24 @@ static const PlatformType PLATFORM = PLAT_QME;
 static const PlatformType PLATFORM = PLAT_SBE;
 #endif
 }
+
+/// @brief Cause a compile time error unless eliminated by dead code elimination
+/// Use this if you have nested if statements and would like the compile to fail
+/// if a given condition is possible to be hit.
+#define STATIC_COMPILE_ERROR(msg)                           \
+    {                                                       \
+        extern void __attribute__((error(msg))) e();		\
+        e();                                                \
+    }
+
+/// @brief Static assertion that can be optimized out
+#define STATIC_CHECK(cond, msg)                 \
+    {                                           \
+        if (!(cond))                            \
+        {                                       \
+            STATIC_COMPILE_ERROR(msg);          \
+        }                                       \
+    }
 
 #ifdef __ASSEMBLER__
 

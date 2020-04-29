@@ -78,6 +78,43 @@ namespace fapi2
         PPE_TARGET_TYPE_NMMU              = 0x0E,
     } plat_target_type_t;
 
+    constexpr struct {
+        bool is_chiplet;
+        unsigned int first_chiplet;
+    } _PLAT_TARGET_TYPE_TRAITS[] = {
+        { false, 0                   }, // PPE_TARGET_TYPE_NONE
+        { false, 0                   }, // PPE_TARGET_TYPE_PROC_CHIP
+        { false, 0                   }, // PPE_TARGET_TYPE_PAU
+        { false, 0                   }, // PPE_TARGET_TYPE_CORE
+        { true,  EQ_CHIPLET_OFFSET   }, // PPE_TARGET_TYPE_EQ
+        { false, 0                   }, // PPE_TARGET_TYPE_EX
+        { true,  0                   }, // PPE_TARGET_TYPE_PERV
+        { true,  PEC_CHIPLET_OFFSET  }, // PPE_TARGET_TYPE_PEC
+        { false, 0                   }, // PPE_TARGET_TYPE_SYSTEM
+        { false, 0                   }, // PPE_TARGET_TYPE_PHB
+        { false, 0                   }, // PPE_TARGET_TYPE_MI
+        { true,  MC_CHIPLET_OFFSET   }, // PPE_TARGET_TYPE_MC
+        { true,  PAUC_CHIPLET_OFFSET }, // PPE_TARGET_TYPE_PAUC
+        { true,  IOHS_CHIPLET_OFFSET }, // PPE_TARGET_TYPE_IOHS
+        { false, 0                   }, // PPE_TARGET_TYPE_NMMU
+        { false, 0                   }, // 0x0F
+    };
+
+    template <plat_target_type T>
+    constexpr bool plat_target_is_chiplet()
+    {
+        return _PLAT_TARGET_TYPE_TRAITS[T].is_chiplet;
+    }
+
+    template <plat_target_type T>
+    constexpr unsigned int plat_target_first_chiplet()
+    {
+        static_assert(plat_target_is_chiplet<T>(),
+                      "Destination type is not a chiplet");
+
+        return _PLAT_TARGET_TYPE_TRAITS[T].first_chiplet;
+    }
+
     /*
      * The plat_target_handle bit layout is designed so that when the bits
      * used for internal bookkeeping are masked off, we end up with a PIB
@@ -270,6 +307,38 @@ namespace fapi2
         /// @return Plat target handle as a uint32_t
         ///
         operator uint32_t() const {return value;}
+
+        ///
+        /// @brief Convert any target to a chiplet target of specified
+        ///        type, stripping any unit specific address bits.
+        ///
+        /// This is used by getParent() to map a chiplet child target to a
+        /// chiplet target, or any target to PERV. It returns a copy of this
+        /// target that has all unit-level address bits cleared and
+        /// type_target_num updated to match the new target type.
+        ///
+        template <plat_target_type K>
+        plat_target_handle convertToChiplet() const
+        {
+            static_assert(plat_target_is_chiplet<K>(),
+                          "Destination type is not a chiplet");
+
+            plat_target_handle copy = *this;
+
+            // type becomes the new type
+            copy.fields.type = K;
+
+            // type_target_num becomes the chiplet ID minus the first chiplet
+            // This only works for chiplet targets of course, but there it works.
+            copy.fields.type_target_num =
+                copy.fields.chiplet_num - plat_target_first_chiplet<K>();
+
+            // Clear out any unit level address bits
+            copy.fields.core_select = 0;
+            copy.fields.ring_id = 0;
+            copy.fields.sat_id = 0;
+            return copy;
+        }
     } plat_target_handle_t;
 };
 

@@ -50,7 +50,7 @@ fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 #endif // __SBEFW_PIBMEM__
 
-#if defined __SBEFW_SEEPROM__ 
+#if defined __SBEFW_SEEPROM__
 extern std::vector<fapi2::plat_target_handle_t> G_vec_targets;
 
 // Global variable for fixed section in pibmem
@@ -75,8 +75,6 @@ extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 //TODO - This will be removed once this address is
 //define in P10 scom definition.
 #define EXPORT_REGL_STATUS 0x10009ull
-//Mask to remove Multicast bit
-#define MULTICAST_BIT_MASK 0x7FFFFFFFFFFFFFFF
 #endif  // not __SBEMFW_MEASUREMENT__
 
 namespace fapi2
@@ -180,7 +178,7 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.chiplet_num = i_plat_argument + PEC_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_PEC;
         l_handle.fields.type_target_num = i_plat_argument;
-    }    
+    }
     else if(K & TARGET_TYPE_MC)
     {
         l_handle.fields.chiplet_num = i_plat_argument + MC_CHIPLET_OFFSET;
@@ -373,7 +371,7 @@ fapi_try_exit:
             l_idx = (i_chipletNumber - NEST_CHIPLET_OFFSET) +
                 NEST_TARGET_OFFSET;
         }
-        else if((i_chipletNumber >= PCI_CHIPLET_OFFSET) && 
+        else if((i_chipletNumber >= PCI_CHIPLET_OFFSET) &&
                (i_chipletNumber < PCI_CHIPLET_OFFSET + PCI_TARGET_COUNT))
         {
             l_idx = (i_chipletNumber - PCI_CHIPLET_OFFSET) +
@@ -562,42 +560,6 @@ fapi_try_exit:
         return l_targetType;
     }
 
-    plat_target_handle_t plat_target_handle_t::getParent(
-            const TargetType i_parentType) const
-    {
-        plat_target_handle_t l_handle;
-        //Remove Multicast bit
-        switch(i_parentType & MULTICAST_BIT_MASK)
-        {
-            case TARGET_TYPE_PROC_CHIP:
-                l_handle = G_vec_targets[CHIP_TARGET_OFFSET];
-                break;
-            case TARGET_TYPE_PERV:
-                assert(isPerv());
-                l_handle = *this;
-                break;
-            case TARGET_TYPE_EQ:
-                if(fields.is_multicast && 
-                  ((fields.type == PPE_TARGET_TYPE_PERV) || (fields.type == PPE_TARGET_TYPE_EQ)))
-                {
-                    l_handle = *this;
-                }
-                else
-                {
-                    assert(fields.type == PPE_TARGET_TYPE_CORE);
-                    {
-                        l_handle = G_vec_targets[(fields.type_target_num / CORES_PER_QUAD) + EQ_TARGET_OFFSET];
-                    }
-                }
-                break;
-            default:
-                assert(false);
-                break;
-        }
-        assert(l_handle.value != 0x0);
-        return l_handle;
-    }
-
     // TODO - Need to check this
     void plat_target_handle_t::getChildren(const TargetType i_parentType,
                                            const TargetType i_childType,
@@ -659,7 +621,7 @@ fapi_try_exit:
                     l_loopCount = PEC_TARGET_COUNT;
                     l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
                 }
-                else if(this->fields.type == PPE_TARGET_TYPE_PAUC) 
+                else if(this->fields.type == PPE_TARGET_TYPE_PAUC)
                 {
                     l_childTargetOffset = PAUC_TARGET_OFFSET;
                     l_loopCount = PAUC_TARGET_COUNT;
@@ -752,7 +714,7 @@ fapi_try_exit:
             l_childTargetOffset = PHB_TARGET_OFFSET + (PHB_PER_PEC * fields.type_target_num);
             l_loopCount = l_childPerChiplet;
         }
-       
+
         // else it is TARGET_TYPE_PROC_CHIP ==> anything, and we iterate over
         // all the targets
 
@@ -783,7 +745,7 @@ fapi_try_exit:
         }
     }
 
-    
+
     // TODO - Need to check this
     void plat_target_handle_t::getChildren(
                 const TargetFilter i_filter,
