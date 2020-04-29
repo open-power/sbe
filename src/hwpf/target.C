@@ -422,35 +422,6 @@ fapi_try_exit:
         return G_vec_targets[l_idx];
     }
 
-    // Get the plat target handle by chiplet number - For CORE targets
-    template<>
-    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_CORE>(
-            const uint8_t i_chipletNumber)
-    {
-        assert(((i_chipletNumber >= CORE_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (CORE_CHIPLET_OFFSET + CORE_TARGET_COUNT))));
-
-        uint32_t l_idx = (i_chipletNumber - CORE_CHIPLET_OFFSET) +
-                 CORE_TARGET_OFFSET;
-
-        return G_vec_targets[l_idx];
-    }
-
-    // Get the plat target handle by chiplet number - For MI targets
-    template<>
-    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_MI>(
-            const uint8_t i_chipletNumber)
-    {
-        assert(((i_chipletNumber >= MI_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (MI_CHIPLET_OFFSET + MI_TARGET_COUNT))));
-
-        uint32_t l_idx = (i_chipletNumber - MI_CHIPLET_OFFSET) +
-                 MI_TARGET_OFFSET;
-
-        return G_vec_targets[l_idx];
-    }
-
-
     // Get the plat target handle by chiplet number - For PAUC targets
     template<>
     plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PAUC>(
@@ -464,22 +435,6 @@ fapi_try_exit:
 
         return G_vec_targets[l_idx];
     }
-
-    // Get the plat target handle by chiplet number - For PAU targets
-    template<>
-    plat_target_handle_t plat_getTargetHandleByChipletNumber<TARGET_TYPE_PAU>(
-            const uint8_t i_chipletNumber)
-    {
-        assert(((i_chipletNumber >= PAU_CHIPLET_OFFSET) &&
-                (i_chipletNumber < (PAU_CHIPLET_OFFSET + PAU_TARGET_COUNT))));
-
-        uint32_t l_idx = (i_chipletNumber - PAU_CHIPLET_OFFSET) +
-                 PAU_TARGET_OFFSET;
-
-        return G_vec_targets[l_idx];
-    }
-
-
 
     // Get the plat target handle by chiplet number - For IOHS targets
     template<>

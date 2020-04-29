@@ -261,7 +261,7 @@ ReturnCode stopAllCoreInstructions( )
                 if(fapiRc != FAPI2_RC_SUCCESS)
                 {
                     SBE_ERROR(SBE_FUNC "p10_thread_control stop Failed for "
-                            "Core ALL Thread  RC[0x%08X],CoreTarget=0x%.8x", 
+                            "Core ALL Thread  RC[0x%08X],CoreTarget=0x%.8x",
                             fapiRc,coreTgt.get());
                     break;
                 }
@@ -342,8 +342,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
             do //Iterate over all cores for special wakeup assert
             {
                 fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
-                        plat_getTargetHandleByChipletNumber<
-                        fapi2::TARGET_TYPE_CORE>(core));
+                        plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(core));
                 if(!coreTgt.isFunctional())
                 {
                     continue;
@@ -382,7 +381,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
         do //Iterate over all cores to execute control instruction procedure
         {
             fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
-              plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_CORE>(core));
+              plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(core));
             if(!coreTgt.isFunctional())
             {
                 continue;
@@ -432,7 +431,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
             do //Iterate over all cores for special wakeup de-assert
             {
                 fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
-                        plat_getTargetHandleByChipletNumber<fapi2::TARGET_TYPE_CORE>(core));
+                        plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(core));
                 if(!coreTgt.isFunctional())
                 {
                     continue;
@@ -479,9 +478,8 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
 
         rc = sbeDsSendRespHdr(respHdr, &ffdc);
     }while(0);
-    
+
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
 }
-
