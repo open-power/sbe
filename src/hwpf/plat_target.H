@@ -38,15 +38,12 @@
 #include <plat_target_parms.H>
 #include <vector>
 
-static const uint8_t CORES_PER_QUAD = 4;
-static const uint8_t EX_PER_QUAD = 2;
-static const uint8_t CORES_PER_EX = 2;
-static const uint8_t NEST_CHIPLET = 2;
-static const uint8_t PCI_CHIPLET = 2;
-static const uint8_t PHB_PER_PEC = 3;
-static const uint8_t MI_PER_MC = 1;
-static const uint8_t PAUC_CHIPLET = 6;
-static const uint8_t PARTIAL_GOOD_OFFSET_SHIFT_CORE0 = 0x12;
+static const uint8_t CORES_PER_QUAD     = 4;
+static const uint8_t PAU_PER_PAUC       = 2;
+static const uint8_t MI_PER_MC          = 1;
+static const uint8_t PHB_PER_PEC        = 3;
+static const uint8_t PARTIAL_GOOD_CORE0 = 13;
+static const uint8_t PARTIAL_GOOD_PAU0  = 13;
 
 //
 // Define what a platform handle looks like. For Hostboot,

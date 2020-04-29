@@ -36,7 +36,11 @@
 CONST_UINT32_T(CHIP_TARGET_OFFSET,    0);
 CONST_UINT32_T(CHIP_TARGET_COUNT ,    1);
 
-// TP taret
+//----------------------------------------------------------------------------------
+// Chiplet targets
+//----------------------------------------------------------------------------------
+
+// TP target
 CONST_UINT32_T(TP_TARGET_OFFSET, CHIP_TARGET_OFFSET + CHIP_TARGET_COUNT);
 CONST_UINT32_T(TP_CHIPLET_OFFSET, 0x1);
 CONST_UINT32_T(TP_TARGET_COUNT,     1);
@@ -46,30 +50,44 @@ CONST_UINT32_T(NEST_TARGET_OFFSET,  TP_TARGET_OFFSET + TP_TARGET_COUNT);
 CONST_UINT32_T(NEST_CHIPLET_OFFSET, 0x2);
 CONST_UINT32_T(NEST_TARGET_COUNT,     2);
 
-// PCI targets
-CONST_UINT32_T(PCI_TARGET_OFFSET, NEST_TARGET_OFFSET + NEST_TARGET_COUNT);
-CONST_UINT32_T(PCI_CHIPLET_OFFSET, 0x8);
-CONST_UINT32_T(PCI_TARGET_COUNT,     2);
+// PEC (PCI Express Chiplet) targets
+CONST_UINT32_T(PEC_TARGET_OFFSET, NEST_TARGET_OFFSET + NEST_TARGET_COUNT);
+CONST_UINT32_T(PEC_CHIPLET_OFFSET, 0x8);
+CONST_UINT32_T(PEC_TARGET_COUNT,     2);
 
 // MC targets
-CONST_UINT32_T(MC_TARGET_OFFSET, PCI_TARGET_OFFSET + PCI_TARGET_COUNT);
+CONST_UINT32_T(MC_TARGET_OFFSET, PEC_TARGET_OFFSET + PEC_TARGET_COUNT);
 CONST_UINT32_T(MC_CHIPLET_OFFSET, 0xC);
 CONST_UINT32_T(MC_TARGET_COUNT,     4);
 
-// PAU targets
-CONST_UINT32_T(PAU_TARGET_OFFSET, MC_TARGET_OFFSET + MC_TARGET_COUNT);
-CONST_UINT32_T(PAU_CHIPLET_OFFSET, 0x10);
-CONST_UINT32_T(PAU_TARGET_COUNT,      4);
+// PAUC (PAU chiplet) targets
+CONST_UINT32_T(PAUC_TARGET_OFFSET, MC_TARGET_OFFSET + MC_TARGET_COUNT);
+CONST_UINT32_T(PAUC_CHIPLET_OFFSET, 0x10);
+CONST_UINT32_T(PAUC_TARGET_COUNT,      4);
 
 // IOHS targets
-CONST_UINT32_T(IOHS_TARGET_OFFSET, PAU_TARGET_OFFSET + PAU_TARGET_COUNT);
+CONST_UINT32_T(IOHS_TARGET_OFFSET, PAUC_TARGET_OFFSET + PAUC_TARGET_COUNT);
 CONST_UINT32_T(IOHS_CHIPLET_OFFSET, 0x18);
 CONST_UINT32_T(IOHS_TARGET_COUNT,      8);
 
-// Cache Targets
+// EQ (Quad) Targets
 CONST_UINT32_T(EQ_TARGET_OFFSET, IOHS_TARGET_OFFSET + IOHS_TARGET_COUNT);
 CONST_UINT32_T(EQ_CHIPLET_OFFSET,   0x20);
 CONST_UINT32_T(EQ_TARGET_COUNT,        8);
+
+// Total number of pervasive targets
+CONST_UINT32_T(PERV_TARGET_OFFSET,  TP_TARGET_OFFSET);
+CONST_UINT32_T(PERV_TARGET_COUNT,   TP_TARGET_COUNT +
+                                    NEST_TARGET_COUNT +
+                                    PEC_TARGET_COUNT +
+                                    MC_TARGET_COUNT +
+                                    PAUC_TARGET_COUNT +
+                                    IOHS_TARGET_COUNT +
+                                    EQ_TARGET_COUNT);
+
+//----------------------------------------------------------------------------------
+// Non-chiplet targets
+//----------------------------------------------------------------------------------
 
 // Core Targets
 CONST_UINT32_T(CORE_TARGET_OFFSET, EQ_TARGET_OFFSET + EQ_TARGET_COUNT);
@@ -86,7 +104,6 @@ CONST_UINT32_T(PHB_TARGET_OFFSET, EX_TARGET_OFFSET + EX_TARGET_COUNT);
 CONST_UINT32_T(PHB_CHIPLET_OFFSET,     0x8);
 CONST_UINT32_T(PHB_TARGET_COUNT,         6);
 
-
 // MI Targets
 CONST_UINT32_T(MI_TARGET_OFFSET,  PHB_TARGET_OFFSET + PHB_TARGET_COUNT);
 CONST_UINT32_T(MI_CHIPLET_OFFSET,      0x0);
@@ -96,41 +113,24 @@ CONST_UINT32_T(MI_TARGET_COUNT,          4);
 CONST_UINT32_T(NMMU_TARGET_OFFSET,  MI_TARGET_OFFSET + MI_TARGET_COUNT);
 CONST_UINT32_T(NMMU_TARGET_COUNT,          2);
 
-// PAUC Targets
-CONST_UINT32_T(PAUC_TARGET_OFFSET,  NMMU_TARGET_OFFSET + NMMU_TARGET_COUNT);
-CONST_UINT32_T(PAUC_CHIPLET_OFFSET,      0x0);
-CONST_UINT32_T(PAUC_TARGET_COUNT,          6);
-
-// PEC targets
-CONST_UINT32_T(PEC_TARGET_OFFSET, PAUC_TARGET_OFFSET + PAUC_TARGET_COUNT);
-CONST_UINT32_T(PEC_CHIPLET_OFFSET, 0x8);
-CONST_UINT32_T(PEC_TARGET_COUNT,     2);
-
+// PAU (PAU unit) Targets
+CONST_UINT32_T(PAU_TARGET_OFFSET,  NMMU_TARGET_OFFSET + NMMU_TARGET_COUNT);
+CONST_UINT32_T(PAU_CHIPLET_OFFSET,      0x0);
+CONST_UINT32_T(PAU_TARGET_COUNT,          6);
 
 // System Target
-CONST_UINT32_T(SYSTEM_TARGET_OFFSET, NMMU_TARGET_OFFSET + NMMU_TARGET_COUNT);
+CONST_UINT32_T(SYSTEM_TARGET_OFFSET, PAU_TARGET_OFFSET + PAU_TARGET_COUNT);
 CONST_UINT32_T(SYSTEM_TARGET_COUNT,     1);
-
-
-// Total number of pervasive targets
-CONST_UINT32_T(PERV_TARGET_COUNT,   TP_TARGET_COUNT +
-                                    NEST_TARGET_COUNT +
-                                    PCI_TARGET_COUNT +
-                                    MC_TARGET_COUNT +
-                                    PAU_TARGET_COUNT +
-                                    IOHS_TARGET_COUNT +
-                                    EQ_TARGET_COUNT);
 
 // Total Target Count
 CONST_UINT32_T(TARGET_COUNT,        CHIP_TARGET_COUNT +
                                     PERV_TARGET_COUNT +
-                                    PEC_TARGET_COUNT +
-                                    EX_TARGET_COUNT +
                                     CORE_TARGET_COUNT +
+                                    EX_TARGET_COUNT +
                                     PHB_TARGET_COUNT +
                                     MI_TARGET_COUNT +
                                     NMMU_TARGET_COUNT +
-                                    PAUC_TARGET_COUNT +
+                                    PAU_TARGET_COUNT +
                                     SYSTEM_TARGET_COUNT);
 
 // Maximum possible Pervasive chiplets
