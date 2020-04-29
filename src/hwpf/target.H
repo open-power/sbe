@@ -207,6 +207,22 @@ namespace fapi2
     ///
     plat_target_handle_t createPlatMCHandle(const plat_target_type_t i_plat_type, const MulticastGroup i_group, uint8_t i_core_select);
 
+    template<TargetType K, MulticastType M, typename V>
+    template<TargetType T>
+    inline ReturnCodes Target<K, M, V>::reduceType(Target<T, M, V> &o_target) const
+    {
+        const TargetType l_type = iv_handle.getFapiTargetType() |
+            (iv_handle.fields.is_multicast ? TARGET_TYPE_MULTICAST : TARGET_TYPE_NONE);
+
+        if ((l_type & T) != l_type)
+        {
+            return FAPI2_RC_INVALID_PARAMETER;
+        }
+
+        o_target = get();
+        return FAPI2_RC_SUCCESS;
+    }
+
     ///
     /// @brief Get this target's immediate parent
     /// @tparam T The type of the parent
