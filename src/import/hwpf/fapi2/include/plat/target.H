@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -176,6 +176,26 @@ Target<TARGET_TYPE_PERV>::getChildren(const TargetFilter i_filter,
 
     // For testing
     return {Target<TARGET_TYPE_PERV>(i_filter), Target<TARGET_TYPE_PERV>(i_filter)};
+}
+
+template<TargetType K, MulticastType M, typename V>
+template< TargetType T >
+inline ReturnCodes
+Target<K, M, V>::reduceType(Target<T, M, V>& o_target) const
+{
+    check_reduceType<T>();
+    // Here you would check that the platform target's type is compatible with T,
+    // also taking multicast into account (iff the plat target is a real multicast
+    // target, T must include TARGET_TYPE_MULTIAST).
+    const bool compatible = true;
+
+    if (!compatible)
+    {
+        return FAPI2_RC_INVALID_PARAMETER;
+    }
+
+    o_target = Target < T, M, V > ();
+    return FAPI2_RC_SUCCESS;
 }
 
 template<TargetType K, MulticastType M, typename V>
