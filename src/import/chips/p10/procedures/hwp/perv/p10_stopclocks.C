@@ -237,12 +237,14 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         if(i_flags.stop_eq_clks)
         {
             FAPI_INF("p10_stopclocks : Calling p10_hcd_eq_stopclocks.");
-            fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > l_eq_mc_target;
-            l_eq_mc_target =  i_target_chip.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_GOOD_EQ);
-            l_rc_eq = p10_hcd_eq_stopclocks(l_eq_mc_target);
-            FAPI_ASSERT_NOEXIT(l_rc_eq == fapi2::FAPI2_RC_SUCCESS,
-                               fapi2::HCD_EQ_STOPCLOCKS_ERR(),
-                               "p10_hcd_eq_stopclocks returned error");
+
+            for (const auto l_eq_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                l_rc_eq = p10_hcd_eq_stopclocks(l_eq_target);
+                FAPI_ASSERT_NOEXIT(l_rc_eq == fapi2::FAPI2_RC_SUCCESS,
+                                   fapi2::HCD_EQ_STOPCLOCKS_ERR(),
+                                   "p10_hcd_eq_stopclocks returned error");
+            }
         }
 
         // Chiplet stopclocks : Nest, Pcie, Mc, Pau, Axon
