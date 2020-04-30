@@ -302,7 +302,7 @@ namespace fapi2
         STATIC_COMPILE_ERROR("Unsupported combination of parent and child for getParent()");
     }
 
-    /// @brief Get this target's children - handles EQ/EC and PEC conversions
+    /// @brief Get this target's children - handles EQ/CORE/PEC conversions
     /// @tparam K The type of parent
     /// @tparam V The plat target handle type
     /// @tparam T The type of child

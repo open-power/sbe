@@ -63,7 +63,7 @@ namespace fapi2
         PPE_TARGET_TYPE_PAU               = 0x02,
         PPE_TARGET_TYPE_CORE              = 0x03,
         PPE_TARGET_TYPE_EQ                = 0x04,
-        PPE_TARGET_TYPE_EX                = 0x05,  // This can be removed
+        // 0x05 is free
         PPE_TARGET_TYPE_PERV              = 0x06,
         PPE_TARGET_TYPE_PEC               = 0x07,
         PPE_TARGET_TYPE_SYSTEM            = 0x08,
@@ -73,6 +73,7 @@ namespace fapi2
         PPE_TARGET_TYPE_PAUC              = 0x0C,
         PPE_TARGET_TYPE_IOHS              = 0x0D,
         PPE_TARGET_TYPE_NMMU              = 0x0E,
+        // 0x0F is free
     } plat_target_type_t;
 
     constexpr struct {
@@ -84,7 +85,7 @@ namespace fapi2
         { false, 0                   }, // PPE_TARGET_TYPE_PAU
         { false, 0                   }, // PPE_TARGET_TYPE_CORE
         { true,  EQ_CHIPLET_OFFSET   }, // PPE_TARGET_TYPE_EQ
-        { false, 0                   }, // PPE_TARGET_TYPE_EX
+        { false, 0                   }, // 0x05
         { true,  0                   }, // PPE_TARGET_TYPE_PERV
         { true,  PEC_CHIPLET_OFFSET  }, // PPE_TARGET_TYPE_PEC
         { false, 0                   }, // PPE_TARGET_TYPE_SYSTEM

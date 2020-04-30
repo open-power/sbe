@@ -161,12 +161,6 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.type = PPE_TARGET_TYPE_EQ;
         l_handle.fields.type_target_num = i_plat_argument;
     }
-    else if(K & TARGET_TYPE_EX)
-    {
-        l_handle.fields.chiplet_num = (i_plat_argument / 2) + EQ_CHIPLET_OFFSET;
-        l_handle.fields.type = PPE_TARGET_TYPE_EX;
-        l_handle.fields.type_target_num = i_plat_argument;
-    }
     else if(K & TARGET_TYPE_PHB)
     {
         l_handle.fields.chiplet_num = (i_plat_argument / 3) + PEC_CHIPLET_OFFSET;
@@ -478,9 +472,6 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_EQ:
                 l_targetType = TARGET_TYPE_EQ;
                 break;
-            case PPE_TARGET_TYPE_EX:
-                l_targetType = TARGET_TYPE_EX;
-                break;
             case PPE_TARGET_TYPE_PERV:
                 l_targetType = TARGET_TYPE_PERV;
                 break;
@@ -747,7 +738,7 @@ fapi_try_exit:
             false, // PPE_TARGET_TYPE_PAU
             false, // PPE_TARGET_TYPE_CORE
             true,  // PPE_TARGET_TYPE_EQ
-            false, // PPE_TARGET_TYPE_EX
+            false, // 0x05
             true,  // PPE_TARGET_TYPE_PERV
             true,  // PPE_TARGET_TYPE_PEC
             false, // PPE_TARGET_TYPE_SYSTEM

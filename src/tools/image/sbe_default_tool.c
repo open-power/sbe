@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -71,13 +71,7 @@ void assertTarget(const char* str, unsigned int index)
 
     //PPE has support for array attributes for TARGET_TYPE_SYSTEM and TARGET_TYPE_PROC_CHIP.
     //So the below check is not required.
-    if(strcmp(str, "TARGET_TYPE_EX") == 0)  {
-        if (index > EX_TARGET_COUNT) {
-            fprintf(stderr, "sbe_default_tool: index (%d) is larger than EX_TARGET_COUNT (%d)\n",
-                index, EX_TARGET_COUNT);
-            exit(1);
-        }
-    } else if(strcmp(str, "TARGET_TYPE_EQ") == 0)  {
+    if(strcmp(str, "TARGET_TYPE_EQ") == 0)  {
         if (index > EQ_TARGET_COUNT) {
             fprintf(stderr, "sbe_default_tool: index (%d) is larger than EQ_TARGET_COUNT (%d)\n",
                     index, EQ_TARGET_COUNT);
