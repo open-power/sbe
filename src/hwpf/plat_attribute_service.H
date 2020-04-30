@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -221,14 +221,12 @@ extern "C"
     extern fapi2attr::PervAttributes_t      G_perv_attributes      asm("G_perv_attributes")       __attribute__ ((section (".fixed")));
     extern fapi2attr::CoreAttributes_t      G_core_attributes      asm("G_core_attributes")       __attribute__ ((section (".fixed")));
     extern fapi2attr::EQAttributes_t        G_eq_attributes        asm("G_eq_attributes")         __attribute__ ((section (".fixed")));
-    extern fapi2attr::EXAttributes_t        G_ex_attributes        asm("G_ex_attributes")         __attribute__ ((section (".fixed")));
 
     extern fapi2attr::SystemAttributes_t*   G_system_attributes_ptr;
     extern fapi2attr::ProcChipAttributes_t* G_proc_chip_attributes_ptr;
     extern fapi2attr::PervAttributes_t*     G_perv_attributes_ptr;
     extern fapi2attr::CoreAttributes_t*     G_core_attributes_ptr;
     extern fapi2attr::EQAttributes_t*       G_eq_attributes_ptr;
-    extern fapi2attr::EXAttributes_t*       G_ex_attributes_ptr;
 
 }
 
@@ -316,11 +314,6 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -357,11 +350,6 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
     }
 
     return FAPI2_RC_SUCCESS;
@@ -403,11 +391,6 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -445,11 +428,6 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
     }
 
     return FAPI2_RC_SUCCESS;
@@ -564,11 +542,6 @@ AttributeRC _getAttributeArrayShort(const AttributeId i_id,
         __get<K, fapi2attr::EQAttributes_t, uint8_t, A>( i_pTarget, G_eq_attributes_ptr, i_id, o_pValues );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, uint8_t, A>( i_pTarget, G_ex_attributes_ptr, i_id, o_pValues );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -603,11 +576,6 @@ AttributeRC _setAttributeArrayShort(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __set<K, fapi2attr::EQAttributes_t, uint8_t, A>( i_pTarget, G_eq_attributes_ptr, i_id, *i_pValues );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, uint8_t, A>( i_pTarget, G_ex_attributes_ptr, i_id, *i_pValues );
     }
 
     return FAPI2_RC_SUCCESS;
@@ -691,11 +659,6 @@ AttributeRC _getAttributeArrayDoubleWord(const AttributeId i_id,
         __get<K, fapi2attr::EQAttributes_t, uint64_t, A>( i_pTarget, G_eq_attributes_ptr, i_id, o_pValues );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, uint64_t, A>( i_pTarget, G_ex_attributes_ptr, i_id, o_pValues );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -730,11 +693,6 @@ AttributeRC _setAttributeArrayDoubleWord(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __set<K, fapi2attr::EQAttributes_t, uint64_t, A>( i_pTarget, G_eq_attributes_ptr, i_id, *i_pValues );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, uint64_t, A>( i_pTarget, G_ex_attributes_ptr, i_id, *i_pValues );
     }
 
     return FAPI2_RC_SUCCESS;
@@ -833,11 +791,6 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -877,11 +830,6 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -918,11 +866,6 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id,i_value );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
 
     return FAPI2_RC_SUCCESS;
@@ -965,11 +908,6 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -1009,11 +947,6 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -1050,11 +983,6 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
     }
 
     return FAPI2_RC_SUCCESS;
@@ -1096,11 +1024,6 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -1138,11 +1061,6 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __get<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, &o_value );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __get<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, &o_value );
     }
 
     return FAPI2_RC_SUCCESS;
@@ -1375,11 +1293,6 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -1416,11 +1329,6 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
 
     return FAPI2_RC_SUCCESS;
@@ -1461,11 +1369,6 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
     }
 
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
-    }
-
     return FAPI2_RC_SUCCESS;
 }
 
@@ -1503,11 +1406,6 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_EQ)
     {
         __set<K, fapi2attr::EQAttributes_t, T, A>( i_pTarget, G_eq_attributes_ptr, i_id, i_value );
-    }
-
-    if(K & TARGET_TYPE_EX)
-    {
-        __set<K, fapi2attr::EXAttributes_t, T, A>( i_pTarget, G_ex_attributes_ptr, i_id, i_value );
     }
 
     return FAPI2_RC_SUCCESS;

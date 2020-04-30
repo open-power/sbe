@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,7 +49,7 @@
 /// writing images via this header.
 ///
 /// In assembler code, this header creates macros '.proc_sbe_fixed_proc_chip',
-/// '.proc_sbe_fixed_perv', '.proc_sbe_fixed_core', '.proc_sbe_fixed_ex',
+/// '.proc_sbe_fixed_perv', '.proc_sbe_fixed_core',
 /// '.proc_sbe_fixed_eq', that is expanded exactly once in the file
 /// 'sbe_base_header.S', creating the actual data allocation of the data
 /// equivalent to the C structure.  Assembler code references the data symbols
@@ -155,28 +155,6 @@ typedef struct CoreAttributes_t {
 	.endm
 #else
 } CoreAttributes;
-} // fapi2
-#endif
-
-///
-/// EX Target Attributes
-#ifdef __ASSEMBLER__
-         .macro	    .proc_sbe_fixed_ex
-	     .section   .fixed, "a", @progbits
-	     .balign    8
-         .global    G_ex_attributes
-G_ex_attributes:
-#else
-namespace fapi2attr {
-typedef struct EXAttributes_t {
-#endif
-
-#include "proc_sbe_fixed_ex.H"
-
-#ifdef __ASSEMBLER__
-	.endm
-#else
-} EXAttributes;
 } // fapi2
 #endif
 

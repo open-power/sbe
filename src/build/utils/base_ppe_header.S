@@ -162,5 +162,4 @@ __header_string_reserved:
     .proc_sbe_fixed_proc_chip
     .proc_sbe_fixed_perv
     .proc_sbe_fixed_core
-    .proc_sbe_fixed_ex
     .proc_sbe_fixed_eq

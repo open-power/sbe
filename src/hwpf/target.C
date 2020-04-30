@@ -47,7 +47,6 @@ fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr;
 fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
-fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 #endif // __SBEFW_PIBMEM__
 
 #if defined __SBEFW_SEEPROM__
@@ -61,7 +60,6 @@ extern fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr;
 extern fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 extern fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 extern fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
-extern fapi2attr::EXAttributes_t*        G_ex_attributes_ptr;
 
 // For PhyP system, HRMOR is set to 128MB, which is multiple of 64MB Granule * 2
 // For OPAL system, it needs the HRMOR in the range of 4GB, so that HB reloading
@@ -843,7 +841,6 @@ fapi_try_exit:
         G_sbe_attrs.G_perv_attrs = G_perv_attributes;
         G_sbe_attrs.G_core_attrs = G_core_attributes;
         G_sbe_attrs.G_eq_attrs = G_eq_attributes;
-        G_sbe_attrs.G_ex_attrs = G_ex_attributes;
 
         // Initialise global attribute pointers
         G_system_attributes_ptr = &(G_sbe_attrs.G_system_attrs);
@@ -851,7 +848,6 @@ fapi_try_exit:
         G_perv_attributes_ptr = &(G_sbe_attrs.G_perv_attrs);
         G_core_attributes_ptr = &(G_sbe_attrs.G_core_attrs);
         G_eq_attributes_ptr = &(G_sbe_attrs.G_eq_attrs);
-        G_ex_attributes_ptr = &(G_sbe_attrs.G_ex_attrs);
 
 
         std::vector<fapi2::plat_target_handle_t>::iterator tgt_iter;
