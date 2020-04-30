@@ -505,250 +505,132 @@ fapi_try_exit:
         return l_targetType;
     }
 
-    // TODO - Need to check this
-    void plat_target_handle_t::getChildren(const TargetType i_parentType,
-                                           const TargetType i_childType,
-                                           const plat_target_type_t i_platType,
-                                           const TargetState i_state,
-                                           std::vector<plat_target_handle>
-                                           &o_children) const
+    static void loopTargetsByChiplet(
+        const int i_first, const int i_count,
+        const buffer<uint64_t> &i_enabled,
+        const bool i_include_nonfunctional,
+        std::vector<plat_target_handle> &o_children)
     {
-        uint32_t l_childPerChiplet = 0;
-        uint32_t l_childTargetOffset = 0;
-        uint32_t l_loopCount = G_vec_targets.size();
-        buffer<uint64_t> l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
-        TargetType l_targetType = i_parentType;
-
-        if (i_parentType == (i_childType | TARGET_TYPE_MULTICAST))
+        for (int i = i_first; i < i_first + i_count; i++)
         {
-            // The caller is attempting to decompose a multicast target into unicast targets
-            if (!this->fields.is_multicast)
+            const auto &l_tgt = G_vec_targets[i];
+            if ((i_include_nonfunctional || l_tgt.fields.functional)
+                && i_enabled.getBit(l_tgt.fields.chiplet_num))
             {
-                // Trivial case where we're already a unicast target of the requested type - return just this target
-                o_children.push_back(*this);
-                return;
-            }
-            else
-            {
-                // If a real multicast target, loop over all targets in the chip
-                // but filter for multicast group members.
-                l_targetType = TARGET_TYPE_PROC_CHIP;
-
-                Target<TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST, MULTICAST_BITX> l_tmpTarget(*this);
-                l_tmpTarget().fields.core_select = 0; // Strip core select in case it's a core target; we want to target the EQ for this
-                getScom(l_tmpTarget, 0xF0001, l_enabledTargets);
-
-                // Special handling for core targets: take core_select into account
-                if (this->fields.type == PPE_TARGET_TYPE_CORE)
-                {
-                    buffer<uint64_t> l_enabledCores = 0;
-
-                    for (int i = 0; i < 32; i++)
-                    {
-                        // Select a core if its EQ is part of the MC group and its ID is selected in core_select
-                        l_enabledCores.writeBit((l_enabledTargets.getBit(32 + (i >> 2))
-                                                && (this->fields.core_select & (8 >> (i & 3)))), i);
-                    }
-
-                    l_childTargetOffset = CORE_TARGET_OFFSET;
-                    l_loopCount = CORE_TARGET_COUNT;
-                    l_enabledTargets = l_enabledCores;
-                }
-                if(this->fields.type == PPE_TARGET_TYPE_EQ)
-                {
-                    l_childTargetOffset = EQ_TARGET_OFFSET;
-                    l_loopCount = EQ_TARGET_COUNT;
-                    l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
-                }
-                else if(this->fields.type == PPE_TARGET_TYPE_PEC)
-                {
-                    l_childTargetOffset = PEC_TARGET_OFFSET;
-                    l_loopCount = PEC_TARGET_COUNT;
-                    l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
-                }
-                else if(this->fields.type == PPE_TARGET_TYPE_PAUC)
-                {
-                    l_childTargetOffset = PAUC_TARGET_OFFSET;
-                    l_loopCount = PAUC_TARGET_COUNT;
-                    l_enabledTargets = 0xFFFFFFFFFFFFFFFFULL;
-                }
-
-            }
-        }
-        else if((i_parentType & ~(TARGET_TYPE_PROC_CHIP)) != 0)
-        {
-            // For composite targets, treat as other target
-            l_targetType =
-                static_cast<TargetType>(l_targetType & ~(TARGET_TYPE_PROC_CHIP));
-        }
-
-        // EQ ==> EC
-        if((l_targetType == TARGET_TYPE_EQ) && (i_childType == TARGET_TYPE_CORE))
-        {
-            l_childPerChiplet = CORES_PER_QUAD;
-            l_childTargetOffset = CORE_TARGET_OFFSET+(CORES_PER_QUAD*fields.type_target_num);
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and MI
-        if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_MI))
-        {
-            l_childPerChiplet = MI_TARGET_COUNT;
-            l_childTargetOffset = MI_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and MC
-        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_MC))
-        {
-            l_childPerChiplet = MC_TARGET_COUNT;
-            l_childTargetOffset = MC_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and PAUC
-        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PAUC))
-        {
-            l_childPerChiplet = PAUC_TARGET_COUNT;
-            l_childTargetOffset = PAUC_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and PAU
-        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PAU))
-        {
-            l_childPerChiplet = PAU_TARGET_COUNT;
-            l_childTargetOffset = PAU_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and NMMU
-        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_NMMU))
-        {
-            l_childPerChiplet = NMMU_TARGET_COUNT;
-            l_childTargetOffset = NMMU_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and CORE
-        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_CORE))
-        {
-            l_childPerChiplet = CORE_TARGET_COUNT;
-            l_childTargetOffset = CORE_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and IOHS
-        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_IOHS))
-        {
-            l_childPerChiplet = IOHS_TARGET_COUNT;
-            l_childTargetOffset = IOHS_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and PEC
-        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PEC))
-        {
-            l_childPerChiplet = PEC_TARGET_COUNT;
-            l_childTargetOffset = PEC_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PROC and PHB
-        else if((i_parentType == TARGET_TYPE_PROC_CHIP) && (i_childType == TARGET_TYPE_PHB))
-        {
-            l_childPerChiplet = PHB_TARGET_COUNT;
-            l_childTargetOffset = PHB_TARGET_OFFSET;
-            l_loopCount = l_childPerChiplet;
-        }
-        //PEC and PHB
-        else if((i_parentType == TARGET_TYPE_PEC) && (i_childType == TARGET_TYPE_PHB))
-        {
-            l_childPerChiplet = PHB_PER_PEC;
-            l_childTargetOffset = PHB_TARGET_OFFSET + (PHB_PER_PEC * fields.type_target_num);
-            l_loopCount = l_childPerChiplet;
-        }
-
-        // else it is TARGET_TYPE_PROC_CHIP ==> anything, and we iterate over
-        // all the targets
-
-        for(uint32_t i = 0; i < l_loopCount; ++i)
-        {
-            plat_target_handle_t l_temp =
-                G_vec_targets.at(l_childTargetOffset + i);
-            if ((l_temp.isType(i_platType)) && (l_enabledTargets.getBit(i)))
-            {
-                switch (i_state)
-                {
-                    case TARGET_STATE_PRESENT:
-                            o_children.push_back(l_temp);
-                        break;
-                    case TARGET_STATE_FUNCTIONAL:
-                        if (l_temp.fields.functional)
-                        {
-                            o_children.push_back(l_temp);
-                        }
-                        break;
-                    default:
-                        assert(false);
-                }
+                o_children.push_back(l_tgt);
             }
         }
     }
 
-
-    // TODO - Need to check this
-    void plat_target_handle_t::getChildren(
-                const TargetFilter i_filter,
-                const TargetState i_state,
-                std::vector<plat_target_handle_t> &o_children) const
+    static void loopTargetsByInstance(
+        const int i_first, const int i_count,
+        const buffer<uint64_t> &i_enabled,
+        const bool i_include_nonfunctional,
+        std::vector<plat_target_handle> &o_children)
     {
-        static const uint64_t mask = 1;
+        for (int i = i_first; i < i_first + i_count; i++)
+        {
+            const auto &l_tgt = G_vec_targets[i];
+            if ((i_include_nonfunctional || l_tgt.fields.functional)
+                && i_enabled.getBit(l_tgt.fields.type_target_num))
+            {
+                o_children.push_back(l_tgt);
+            }
+        }
+    }
+
+    void plat_target_handle_t::getMulticastChildren(
+        const bool i_include_nonfunctional,
+        std::vector<plat_target_handle> &o_children) const
+    {
+        if (!this->fields.is_multicast)
+        {
+            // Trivial case where we're already a unicast target of the requested type - return just this target
+            o_children.push_back(*this);
+            return;
+        }
+
+        // If a real multicast target, loop over all targets in the chip
+        // but filter for multicast group members.
+        fapi2::buffer<uint64_t> l_enabledTargets;
+        Target<TARGET_TYPE_PERV | TARGET_TYPE_MULTICAST, MULTICAST_BITX> l_tmpTarget(*this);
+        l_tmpTarget().fields.core_select = 0; // Strip core select in case it's a core target; we want to target the EQ for this
+        getScom(l_tmpTarget, 0xF0001, l_enabledTargets);
+
+        if (this->fields.type != PPE_TARGET_TYPE_CORE)
+        {
+            // Non-core (i.e. chiplet) target -> loop over all PERV targets, match chiplet ID
+            loopTargetsByChiplet(PERV_TARGET_OFFSET, PERV_TARGET_COUNT,
+                                 l_enabledTargets, i_include_nonfunctional, o_children);
+        }
+        else
+        {
+            // Special handling for core targets: take core_select into account
+            buffer<uint64_t> l_enabledCores = 0;
+
+            for (uint32_t i = 0; i < CORE_TARGET_COUNT; i++)
+            {
+                // Select a core if its EQ is part of the MC group and its ID is selected in core_select
+                l_enabledCores.writeBit((l_enabledTargets.getBit(32 + (i >> 2))
+                                         && (this->fields.core_select & (8 >> (i & 3)))), i);
+            }
+
+            loopTargetsByInstance(CORE_TARGET_OFFSET, CORE_TARGET_COUNT,
+                                  l_enabledCores, i_include_nonfunctional, o_children);
+        }
+    }
+
+    void plat_target_handle_t::getChipletChildren(
+        const plat_target_type_t i_child_type,
+        const bool i_include_nonfunctional,
+        std::vector<plat_target_handle> &o_children) const
+    {
+        for (uint32_t i = NON_CHIPLET_TARGET_OFFSET; i < TARGET_COUNT; i++)
+        {
+            plat_target_handle_t &l_target = G_vec_targets[i];
+            if ((l_target.fields.type == i_child_type) &&
+                (l_target.fields.chiplet_num == fields.chiplet_num) &&
+                (i_include_nonfunctional || l_target.fields.functional))
+            {
+                o_children.push_back(l_target);
+            }
+        }
+    }
+
+    void plat_target_handle_t::getProcChildren(
+        const plat_target_type_t i_child_type,
+        const bool i_include_nonfunctional,
+        std::vector<plat_target_handle> &o_children) const
+    {
+        for (uint32_t i = PERV_TARGET_OFFSET; i < TARGET_COUNT; i++)
+        {
+            plat_target_handle_t &l_target = G_vec_targets[i];
+            if ((l_target.fields.type == i_child_type) &&
+                (i_include_nonfunctional || l_target.fields.functional))
+            {
+                o_children.push_back(l_target);
+            }
+        }
+    }
+
+    void plat_target_handle_t::getChildren(
+        const TargetFilter i_filter,
+        const bool i_include_nonfunctional,
+        std::vector<plat_target_handle_t> &o_children) const
+    {
+        const fapi2::buffer<__underlying_type(TargetFilter)> l_filter = i_filter;
 
         // Walk the bits in the input target filter. For every bit, at
         // position x, that is set, x can be used as an index into our global
         // target vector (indexed by chiplet number)
-        for (uint32_t l_idx = 0;
-                l_idx < sizeof(TargetFilter) * 8;
-                ++l_idx)
+        for (uint32_t i = 0; i < PERV_TARGET_COUNT; i++)
         {
-            if (i_filter & (mask << (((sizeof(TargetFilter)*8)-1) - l_idx)))
+            plat_target_handle_t &l_target = G_vec_targets[i + PERV_TARGET_OFFSET];
+            if (l_filter.getBit(i) && (i_include_nonfunctional || l_target.fields.functional))
             {
-                plat_target_handle_t l_targetHandle = G_vec_targets.at(l_idx + 1);
-
-                if(l_targetHandle.isPerv()) // Can be an assertion?
-                {
-                    switch (i_state)
-                    {
-                        case TARGET_STATE_PRESENT:
-                                o_children.push_back(l_targetHandle);
-                            break;
-                         case TARGET_STATE_FUNCTIONAL:
-                            if(l_targetHandle.fields.functional)
-                            {
-                                o_children.push_back(l_targetHandle);
-                            }
-                            break;
-                        default:
-                            break;
-                     }
-                 }
-             }
+                o_children.push_back(l_target);
+            }
          }
-    }
-
-    bool plat_target_handle::isPerv() const
-    {
-        static const bool l_truth_table[] = {
-            false, // PPE_TARGET_TYPE_NONE
-            false, // PPE_TARGET_TYPE_PROC_CHIP
-            false, // PPE_TARGET_TYPE_PAU
-            false, // PPE_TARGET_TYPE_CORE
-            true,  // PPE_TARGET_TYPE_EQ
-            false, // 0x05
-            true,  // PPE_TARGET_TYPE_PERV
-            true,  // PPE_TARGET_TYPE_PEC
-            false, // PPE_TARGET_TYPE_SYSTEM
-            false, // PPE_TARGET_TYPE_PHB
-            false, // PPE_TARGET_TYPE_MI
-            true,  // PPE_TARGET_TYPE_MC
-            true,  // PPE_TARGET_TYPE_PAUC
-            true,  // PPE_TARGET_TYPE_IOHS
-            false, // PPE_TARGET_TYPE_NMMU
-            false, // 0x0F
-        };
-        return l_truth_table[fields.type];
     }
 
     /// @brief Function to initialize the G_targets vector with functional state

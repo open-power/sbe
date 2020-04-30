@@ -224,6 +224,7 @@ namespace fapi2
         return FAPI2_RC_SUCCESS;
     }
 
+    constexpr TargetType TARGET_TYPE_PROC_CHILDREN = TARGET_TYPE_CHIPLETS;
     constexpr TargetType TARGET_TYPE_PERV_CHILDREN = TARGET_TYPE_CHIPLETS;
     constexpr TargetType TARGET_TYPE_EQ_CHILDREN = TARGET_TYPE_CORE;
     constexpr TargetType TARGET_TYPE_PAUC_CHILDREN = TARGET_TYPE_PAU;
@@ -316,37 +317,67 @@ namespace fapi2
     std::vector<Target<T, M, V>>
     Target<K, M, V>::getChildren(const TargetState i_state) const
     {
-        constexpr TargetType L = static_cast<TargetType>(K & ~(TARGET_TYPE_PROC_CHIP));
+        constexpr TargetType K_NO_PROC  = K & ~TARGET_TYPE_PROC_CHIP;
+        constexpr TargetType K_NO_MCAST = K & ~TARGET_TYPE_MULTICAST;
         constexpr plat_target_type_t P = fapiTargetTypeToPlatTargetType<T>();
+
+        const bool l_include_nonfunctional = i_state == TARGET_STATE_PRESENT;
 
         check_getChildren<T>();
 
         static_assert(sizeof(Target<T, M, V>) == sizeof(plat_target_handle_t),
                       "Sizes of plat target and FAPI target must match");
 
-        static_assert(((L == TARGET_TYPE_EQ) || (L == TARGET_TYPE_PEC) || (K == TARGET_TYPE_PROC_CHIP) ||
-                      (((K & TARGET_TYPE_MULTICAST) != 0) && ((K & TARGET_TYPE_MULTICASTABLE) != 0))),
-                      "Invalid parent passed to getChildren");
-        // valid children for EQ
-        // EQ -> CORE
-        static_assert(!((L == fapi2::TARGET_TYPE_EQ) &&
-                        (T != fapi2::TARGET_TYPE_CORE)),
-                      "improper child of fapi2::TARGET_TYPE_EQ");
-
-        // valid children for PEC
-        // PEC -> PHB
-        static_assert(!((L == fapi2::TARGET_TYPE_PEC) &&
-                        (T != fapi2::TARGET_TYPE_PHB)),
-                       "improper child of fapi2::TARGET_TYPE_PEC");
-
-        // valid children for multicast targets are the same with multicast stripped
-        static_assert(!((K & TARGET_TYPE_MULTICAST) &&
-                        (K != (T | TARGET_TYPE_MULTICAST))),
-                      "improper child of fapi2::TARGET_TYPE_MULTICAST");
-
+        // Using the same kind of "dispatcher" approach as getParent()
         std::vector<Target<T, M, V> > l_children;
-        static_cast<plat_target_handle_t>(get()).getChildren(K, T, P, i_state, reinterpret_cast<std::vector<plat_target_handle>&>(l_children));
-        return l_children;
+        auto &l_cast_children = reinterpret_cast<std::vector<plat_target_handle>&>(l_children);
+        if ((K & TARGET_TYPE_MULTICAST) && (T == K_NO_MCAST))
+        {
+            get().getMulticastChildren(l_include_nonfunctional, l_cast_children);
+            return l_children;
+        }
+        else if (K_NO_PROC == TARGET_TYPE_EQ)
+        {
+            STATIC_CHECK((T & ~TARGET_TYPE_EQ_CHILDREN) == 0,
+                         "Invalid child type for EQ target");
+            get().getChipletChildren(P, l_include_nonfunctional, l_cast_children);
+            return l_children;
+        }
+        else if (K_NO_PROC == TARGET_TYPE_PAUC)
+        {
+            STATIC_CHECK((T & ~TARGET_TYPE_PAUC_CHILDREN) == 0,
+                         "Invalid child type for EQ target");
+            get().getChipletChildren(P, l_include_nonfunctional, l_cast_children);
+            return l_children;
+        }
+        else if (K_NO_PROC == TARGET_TYPE_PEC)
+        {
+            STATIC_CHECK((T & ~TARGET_TYPE_PEC_CHILDREN) == 0,
+                         "Invalid child type for EQ target");
+            get().getChipletChildren(P, l_include_nonfunctional, l_cast_children);
+            return l_children;
+        }
+        else if (K_NO_PROC == TARGET_TYPE_MC)
+        {
+            STATIC_CHECK((T & ~TARGET_TYPE_MC_CHILDREN) == 0,
+                         "Invalid child type for EQ target");
+            get().getChipletChildren(P, l_include_nonfunctional, l_cast_children);
+            return l_children;
+        }
+        else if (K == TARGET_TYPE_PROC_CHIP)
+        {
+            STATIC_CHECK((T & ~TARGET_TYPE_PROC_CHILDREN) == 0,
+                         "Invalid child type for PROC_CHIP targets");
+            get().getProcChildren(P, l_include_nonfunctional, l_cast_children);
+            return l_children;
+        }
+        else
+        {
+            // If we fall through to here, there is no defined code path to handle the
+            // combination of T and K -- let's fail loudly.
+            STATIC_COMPILE_ERROR("Unsupported combination of parent and child for getChildren()");
+            return l_children;
+        }
     }
 
     // Specialization of getChildren, filtered for the chip target
@@ -356,21 +387,21 @@ namespace fapi2
     Target<K, M, V>::getChildren(const TargetFilter i_filter,
                                           const TargetState i_state) const
     {
+        const bool l_include_nonfunctional = i_state == TARGET_STATE_PRESENT;
         check_getChildren<T>();
 
         static_assert(sizeof(Target<T, M, V>) == sizeof(plat_target_handle_t),
                       "Sizes of plat target and FAPI target must match");
 
-        static_assert((K == TARGET_TYPE_PROC_CHIP), "Parent target must be the proc chip");
-        static_assert((T == TARGET_TYPE_EQ) || (T == TARGET_TYPE_CORE)
-                || (T == TARGET_TYPE_PERV) || (T == TARGET_TYPE_PEC)
-                || (T == TARGET_TYPE_MC),
-                "Child target type must be a pervasive chiplet");
+        static_assert(K == TARGET_TYPE_PROC_CHIP,
+                      "Parent target must be the proc chip");
 
-        std::vector<Target<T> > l_children;
+        static_assert((T & ~TARGET_TYPE_PROC_CHILDREN) == 0,
+                      "Child target type must be a pervasive chiplet");
 
-        (static_cast<plat_target_handle_t>(get())).getChildren(i_filter, i_state, reinterpret_cast<std::vector<plat_target_handle_t>&>(l_children));
-
+        std::vector<Target<T, M, V> > l_children;
+        get().getChildren(i_filter, l_include_nonfunctional,
+                          reinterpret_cast<std::vector<plat_target_handle_t>&>(l_children));
         return l_children;
     }
 

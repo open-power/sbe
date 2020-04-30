@@ -243,19 +243,36 @@ namespace fapi2
         plat_target_handle getParent(const TargetType i_parentType) const;
 
         ///
-        /// @brief Get this target's children
+        /// @brief Break a multicast target up into unicast targets
         ///
-        /// @param [in] i_parentType fapi2 type of the parent
-        /// @param [in] i_childType  fapi2 type of the child
-        /// @param [in] i_platType   Plat type of the parent
-        /// @param [in] i_state      Required state of the children
-        /// @param [out] o_children  A vector of child target handles
+        /// @param [in] i_include_nonfunctional Return also targets that are not functional
+        /// @param [out] o_children             A vector of child target handles
         ///
-        void getChildren(const TargetType i_parentType,
-                         const TargetType i_childType,
-                         const plat_target_type_t i_platType,
-                         const TargetState i_state,
-                         std::vector<plat_target_handle> &o_children) const;
+        void getMulticastChildren(
+            const bool i_include_nonfunctional,
+            std::vector<plat_target_handle> &o_children) const;
+
+        ///
+        /// @brief Enumerate all targets with a given type that match this target's chiplet ID
+        ///
+        /// @param [in] i_child_type            Plat target type of requested children
+        /// @param [in] i_include_nonfunctional Return also targets that are not functional
+        /// @param [out] o_children             A vector of child target handles
+        void getChipletChildren(
+            const plat_target_type_t i_child_type,
+            const bool i_include_nonfunctional,
+            std::vector<plat_target_handle> &o_children) const;
+
+        ///
+        /// @brief Enumerate all targets with a given type regardless of chiplet ID
+        ///
+        /// @param [in] i_child_type            Plat target type of requested children
+        /// @param [in] i_include_nonfunctional Return also targets that are not functional
+        /// @param [out] o_children             A vector of child target handles
+        void getProcChildren(
+            const plat_target_type_t i_child_type,
+            const bool i_include_nonfunctional,
+            std::vector<plat_target_handle> &o_children) const;
 
         ///
         /// @brief Get proc chip target's children - filtered
@@ -264,22 +281,10 @@ namespace fapi2
         /// @param [in] i_state      Required state of the children
         /// @param [out] o_children  A vector of child target handles
         ///
-        void getChildren(const TargetFilter i_filter,
-                         const TargetState i_state,
-                         std::vector<plat_target_handle>& o_children) const;
-
-        ///
-        /// @brief Is this also usable as a PERV target?
-        ///
-        bool isPerv() const;
-
-        ///
-        /// @brief Is this target usable as type i_type?
-        ///
-        bool isType(const plat_target_type_t i_type) const
-        {
-            return (PPE_TARGET_TYPE_PERV == i_type) ? isPerv() : (fields.type == i_type);
-        }
+        void getChildren(
+            const TargetFilter i_filter,
+            const bool i_include_nonfunctional,
+            std::vector<plat_target_handle>& o_children) const;
 
         ///
         /// @brief Gets the plat target handle as a uint32
