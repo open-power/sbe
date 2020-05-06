@@ -47,7 +47,9 @@
 #include <p10_pm_hcd_flags.h>
 #include <p10_hcd_common.H>
 #include <p10_ppe_defs.H>
-#include <p10_ppe_utils.H>
+#ifndef __PPE__
+  #include <p10_ppe_utils.H>
+#endif
 #include <p10_scom_proc.H>
 #include <p10_scom_eq.H>
 #include <multicast_group_defs.H>
