@@ -120,7 +120,7 @@
 #include "p10_hcd_core_poweroff.H"
 #include "p10_hcd_cache_poweroff.H"
 #include "p10_stopclocks.H"
-//#include "p10_suspend_powman.H"
+#include "p10_suspend_powman.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
@@ -251,7 +251,7 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             // Set MPIPL mode in Sratch Reg 3
             ISTEP_MAP( istepStartMpipl, NULL ),
             // Call suspend powerman
-            ISTEP_MAP( istepWithProc, NULL),
+            ISTEP_MAP( istepWithProc, p10_suspend_powman),
             // Find all the child cores within proc and call hwp to know the
             // scom state and call instruction control. Also mask spl attention
             // from core.
