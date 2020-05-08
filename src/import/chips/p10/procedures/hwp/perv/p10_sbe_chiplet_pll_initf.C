@@ -37,38 +37,41 @@
 #include <target_filters.H>
 #include <multicast_defs.H>
 #include <multicast_group_defs.H>
-
-#define MC_PLL_FREQ_BUCKETS 5
-#define IOHS_PLL_FREQ_BUCKETS 8
+#include <p10_frequency_buckets.H>
 
 fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_INF("p10_sbe_chiplet_pll_initf: Entering ...");
 
-    uint8_t l_mc_pll_bucket[4], l_iohs_pll_bucket[8] ;
+    fapi2::ATTR_MC_PLL_BUCKET_Type l_mc_pll_bucket;
+    fapi2::ATTR_IOHS_PLL_BUCKET_Type l_iohs_pll_bucket;
 
     // This variable (mc_ring_id/iohs_ring_id) is getting assigned to ro data
     // section per the map file, which is by default 8byte aligned.
     // Even then while creating these objects, PPE hits an alignment execption,
     // even after forcing the compiler with "__attribute__ ((aligned (8)))", ppe
     // hit the alignment execution. // TODO - To remove static const
-    static const RingID mc_ring_id[MC_PLL_FREQ_BUCKETS] = { mc_pll_bndy_bucket_0,
-                                                            mc_pll_bndy_bucket_1,
-                                                            mc_pll_bndy_bucket_2,
-                                                            mc_pll_bndy_bucket_3,
-                                                            mc_pll_bndy_bucket_4
-                                                          };
+    static const RingID mc_ring_id[P10_MAX_MC_PLL_BUCKETS] = { mc_pll_bndy_bucket_0,
+                                                               mc_pll_bndy_bucket_1,
+                                                               mc_pll_bndy_bucket_2,
+                                                               mc_pll_bndy_bucket_3,
+                                                               mc_pll_bndy_bucket_4,
+                                                               // RTC: 253964
+                                                               mc_pll_bndy_bucket_4,
+                                                               mc_pll_bndy_bucket_4,
+                                                               mc_pll_bndy_bucket_4,
+                                                             };
 
-    static const RingID iohs_ring_id[IOHS_PLL_FREQ_BUCKETS] = { iohs0_pll_bndy_bucket_0,
-                                                                iohs0_pll_bndy_bucket_1,
-                                                                iohs0_pll_bndy_bucket_2,
-                                                                iohs0_pll_bndy_bucket_3,
-                                                                iohs0_pll_bndy_bucket_4,
-                                                                iohs0_pll_bndy_bucket_5,
-                                                                iohs0_pll_bndy_bucket_6,
-                                                                iohs0_pll_bndy_bucket_7
-                                                              };
+    static const RingID iohs_ring_id[P10_MAX_IOHS_PLL_BUCKETS] = { iohs0_pll_bndy_bucket_0,
+                                                                   iohs0_pll_bndy_bucket_1,
+                                                                   iohs0_pll_bndy_bucket_2,
+                                                                   iohs0_pll_bndy_bucket_3,
+                                                                   iohs0_pll_bndy_bucket_4,
+                                                                   iohs0_pll_bndy_bucket_5,
+                                                                   iohs0_pll_bndy_bucket_6,
+                                                                   iohs0_pll_bndy_bucket_7
+                                                                 };
 
     auto l_pci = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
@@ -108,7 +111,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
         {
             int i = (l_chipletID - 0xC);
 
-            FAPI_ASSERT(l_mc_pll_bucket[i] < MC_PLL_FREQ_BUCKETS,
+            FAPI_ASSERT(l_mc_pll_bucket[i] < P10_MAX_MC_PLL_BUCKETS,
                         fapi2::P10_SBE_CHIPLET_PLL_INITF_UNSUPPORTED_PLL_BUCKET().
                         set_BUCKET_INDEX(l_mc_pll_bucket[i]).
                         set_CHIPLET_ID(l_chipletID),
@@ -125,7 +128,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
         {
             int i = (l_chipletID - 0x18);
 
-            FAPI_ASSERT(l_iohs_pll_bucket[i] < IOHS_PLL_FREQ_BUCKETS,
+            FAPI_ASSERT(l_iohs_pll_bucket[i] < P10_MAX_IOHS_PLL_BUCKETS,
                         fapi2::P10_SBE_CHIPLET_PLL_INITF_UNSUPPORTED_PLL_BUCKET().
                         set_BUCKET_INDEX(l_iohs_pll_bucket[i]).
                         set_CHIPLET_ID(l_chipletID),
