@@ -47,6 +47,17 @@ define RUN_RINGSPINNER
 $(C1) $$< $(1) -o $(2) && addCopyright update $(2).H && sed -i 's%\$$Source: ../../%\$$Source: %' $(2).H
 endef
 
+else
+
+COMMAND=git
+
+$(GENERATED)_COMMAND_PATH=$(dir $(shell which git))
+$(GENERATED)_RUN=$(call RUN_RINGSPINNER,$($(GENERATED)_PATH)/$(GENERATED).H)
+
+define RUN_RINGSPINNER
+$(C1) $$< checkout -- $(1)
+endef
+
 endif
 
 $(call BUILD_GENERATED)
