@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_DB1]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -48,8 +49,10 @@ static const uint32_t QME_DB1_NUMBER = 0;
 static const uint32_t QME_DB1_NUMBER_LEN = 8;
 static const uint32_t QME_DB1_DATA = 8;
 static const uint32_t QME_DB1_DATA_LEN = 56;
+//<< [QME_DB1]
 // ppe_eq/reg00003.H
 
+//>> [QME_PCBSID]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
 static const uint32_t QME_PCBSID = 0xc0000340ull;
@@ -65,7 +68,10 @@ static const uint32_t QME_PCBSID_EQ_PORT = 12;
 static const uint32_t QME_PCBSID_EQ_PORT_LEN = 4;
 static const uint32_t QME_PCBSID_EQ_LOCAL_ADDR = 16;
 static const uint32_t QME_PCBSID_EQ_LOCAL_ADDR_LEN = 16;
+//<< [QME_PCBSID]
 // ppe_eq/reg00003.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_ACDR]
 static const uint32_t CPMS_ACDR = 0xc000e7c0ull;
 
 static const uint32_t CPMS_ACDR_CHAR_COUNTA_SCALE = 0;
@@ -57,8 +58,10 @@ static const uint32_t CPMS_ACDR_CHAR_COUNTA_MOD = 60;
 static const uint32_t CPMS_ACDR_CHAR_COUNTB_MOD = 61;
 static const uint32_t CPMS_ACDR_CHAR_COUNTC_MOD = 62;
 static const uint32_t CPMS_ACDR_SAMPLE_DISABLE_INDICATOR = 63;
+//<< [CPMS_ACDR]
 // ppe_c/reg00008.H
 
+//>> [CPMS_CL2_PFETSTAT]
 static const uint32_t CPMS_CL2_PFETSTAT = 0xc000e2c0ull;
 
 static const uint32_t CPMS_CL2_PFETSTAT_VDD_PFETS_ENABLED_SENSE = 0;
@@ -70,8 +73,10 @@ static const uint32_t CPMS_CL2_PFETSTAT_VDD_PFET_ENABLE_ACTUAL_LEN = 8;
 static const uint32_t CPMS_CL2_PFETSTAT_VCS_PFET_ENABLE_ACTUAL = 24;
 static const uint32_t CPMS_CL2_PFETSTAT_VCS_PFET_ENABLE_ACTUAL_LEN = 8;
 static const uint32_t CPMS_CL2_PFETSTAT_SRAM_ENABLE_ACTUAL = 63;
+//<< [CPMS_CL2_PFETSTAT]
 // ppe_c/reg00008.H
 
+//>> [CPMS_DTCR]
 static const uint32_t CPMS_DTCR = 0xc000e840ull;
 
 static const uint32_t CPMS_DTCR_DPT_MODE = 0;
@@ -88,8 +93,10 @@ static const uint32_t CPMS_DTCR_CORE_DPT_INFLIGHT_LIMIT_LEN = 8;
 static const uint32_t CPMS_DTCR_DISABLE_DPT_ON_UPDATE = 24;
 static const uint32_t CPMS_DTCR_CORE_SMT_MODE = 34;
 static const uint32_t CPMS_DTCR_CORE_SMT_MODE_LEN = 2;
+//<< [CPMS_DTCR]
 // ppe_c/reg00008.H
 
+//>> [CPMS_ESCR]
 static const uint32_t CPMS_ESCR = 0xc000e6c0ull;
 
 static const uint32_t CPMS_ESCR_DURATION_MODE = 0;
@@ -130,8 +137,10 @@ static const uint32_t CPMS_ESCR_EVENTY_COMPARE = 56;
 static const uint32_t CPMS_ESCR_EVENTY_COMPARE_LEN = 4;
 static const uint32_t CPMS_ESCR_EVENTY_DONTCARE = 60;
 static const uint32_t CPMS_ESCR_EVENTY_DONTCARE_LEN = 4;
+//<< [CPMS_ESCR]
 // ppe_c/reg00008.H
 
+//>> [QME_QOSR]
 static const uint32_t QME_QOSR = 0xc0008a00ull;
 
 static const uint32_t QME_QOSR_0_QOS_INDEX = 2;
@@ -150,7 +159,10 @@ static const uint32_t QME_QOSR_2_DTC_INDEX = 50;
 static const uint32_t QME_QOSR_2_DTC_INDEX_LEN = 6;
 static const uint32_t QME_QOSR_3_DTC_INDEX = 58;
 static const uint32_t QME_QOSR_3_DTC_INDEX_LEN = 6;
+//<< [QME_QOSR]
 // ppe_c/reg00008.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

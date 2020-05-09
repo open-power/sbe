@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_BCEBAR0]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -48,8 +49,10 @@ static const uint32_t QME_BCEBAR0_BASE = 8;
 static const uint32_t QME_BCEBAR0_BASE_LEN = 36;
 static const uint32_t QME_BCEBAR0_SIZE = 61;
 static const uint32_t QME_BCEBAR0_SIZE_LEN = 3;
+//<< [QME_BCEBAR0]
 // ppe_eq/reg00010.H
 
+//>> [QME_QSDR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -57,8 +60,10 @@ static const uint32_t QME_QSDR = 0xc0000780ull;
 
 static const uint32_t QME_QSDR_SRAM_DATA = 0;
 static const uint32_t QME_QSDR_SRAM_DATA_LEN = 64;
+//<< [QME_QSDR]
 // ppe_eq/reg00010.H
 
+//>> [QME_RCTAR0]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -66,8 +71,10 @@ static const uint32_t QME_RCTAR0 = 0xc0001900ull;
 
 static const uint32_t QME_RCTAR0_DATA = 0;
 static const uint32_t QME_RCTAR0_DATA_LEN = 64;
+//<< [QME_RCTAR0]
 // ppe_eq/reg00010.H
 
+//>> [QME_TSEL]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -77,7 +84,10 @@ static const uint32_t QME_TSEL_WATCHDOG_SEL = 0;
 static const uint32_t QME_TSEL_WATCHDOG_SEL_LEN = 4;
 static const uint32_t QME_TSEL_FIT_SEL = 4;
 static const uint32_t QME_TSEL_FIT_SEL_LEN = 4;
+//<< [QME_TSEL]
 // ppe_eq/reg00010.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

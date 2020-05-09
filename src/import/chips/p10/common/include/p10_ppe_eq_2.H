@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_DUCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -64,8 +65,10 @@ static const uint32_t QME_DUCR_CORE_UPDATE_ENABLE = 40;
 static const uint32_t QME_DUCR_CORE_UPDATE_ENABLE_LEN = 4;
 static const uint32_t QME_DUCR_RESERVED_44_63 = 44;
 static const uint32_t QME_DUCR_RESERVED_44_63_LEN = 20;
+//<< [QME_DUCR]
 // ppe_eq/reg00002.H
 
+//>> [QME_EISR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -113,16 +116,20 @@ static const uint32_t QME_EISR_CPMS_INTERRUPT0 = 56;
 static const uint32_t QME_EISR_CPMS_INTERRUPT0_LEN = 4;
 static const uint32_t QME_EISR_CPMS_INTERRUPT1 = 60;
 static const uint32_t QME_EISR_CPMS_INTERRUPT1_LEN = 4;
+//<< [QME_EISR]
 // ppe_eq/reg00002.H
 
+//>> [QME_LFIRACT1]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
 static const uint32_t QME_LFIRACT1 = 0xc00000c0ull;
 
 static const uint32_t QME_LFIRACT1_FIR_ACTION1 = 0;
 static const uint32_t QME_LFIRACT1_FIR_ACTION1_LEN = 36;
+//<< [QME_LFIRACT1]
 // ppe_eq/reg00002.H
 
+//>> [QME_SCRB]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -132,8 +139,10 @@ static const uint32_t QME_SCRB_WO_OR = 0xc00012a0ull;
 
 static const uint32_t QME_SCRB_DATA = 0;
 static const uint32_t QME_SCRB_DATA_LEN = 32;
+//<< [QME_SCRB]
 // ppe_eq/reg00002.H
 
+//>> [QME_THOR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -143,7 +152,10 @@ static const uint32_t QME_THOR_TSR_OVERRIDE_EN = 0;
 static const uint32_t QME_THOR_PTSR_OVERRIDE_SEL = 1;
 static const uint32_t QME_THOR_TSR_OVERRIDE_VAL = 4;
 static const uint32_t QME_THOR_TSR_OVERRIDE_VAL_LEN = 8;
+//<< [QME_THOR]
 // ppe_eq/reg00002.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

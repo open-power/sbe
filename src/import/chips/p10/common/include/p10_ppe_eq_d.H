@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_EIMR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -48,8 +49,10 @@ static const uint32_t QME_EIMR_WO_OR = 0xc0002660ull;
 
 static const uint32_t QME_EIMR_INTERRUPT_MASK = 0;
 static const uint32_t QME_EIMR_INTERRUPT_MASK_LEN = 64;
+//<< [QME_EIMR]
 // ppe_eq/reg00013.H
 
+//>> [QME_PIG]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
 static const uint32_t QME_PIG = 0xc0000300ull;
@@ -67,8 +70,10 @@ static const uint32_t QME_PIG_QUAD_ID = 37;
 static const uint32_t QME_PIG_QUAD_ID_LEN = 3;
 static const uint32_t QME_PIG_GRANTED_PACKET = 40;
 static const uint32_t QME_PIG_GRANTED_PACKET_LEN = 24;
+//<< [QME_PIG]
 // ppe_eq/reg00013.H
 
+//>> [QME_QSCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -88,8 +93,10 @@ static const uint32_t QME_QSCR_DTCBASE = 32;
 static const uint32_t QME_QSCR_DTCBASE_LEN = 8;
 static const uint32_t QME_QSCR_SRAM_SCRUB_INDEX = 47;
 static const uint32_t QME_QSCR_SRAM_SCRUB_INDEX_LEN = 13;
+//<< [QME_QSCR]
 // ppe_eq/reg00013.H
 
+//>> [QME_RCMR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -111,8 +118,10 @@ static const uint32_t QME_RCMR_CORE2_CONTROL_INDEX = 51;
 static const uint32_t QME_RCMR_CORE2_CONTROL_INDEX_LEN = 5;
 static const uint32_t QME_RCMR_CORE3_CONTROL_INDEX = 59;
 static const uint32_t QME_RCMR_CORE3_CONTROL_INDEX_LEN = 5;
+//<< [QME_RCMR]
 // ppe_eq/reg00013.H
 
+//>> [QME_WCOR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -130,7 +139,10 @@ static const uint32_t QME_WCOR_2_THROTTLE_INDEX_LEN = 6;
 static const uint32_t QME_WCOR_3_OVER_THROTTLED = 25;
 static const uint32_t QME_WCOR_3_THROTTLE_INDEX = 26;
 static const uint32_t QME_WCOR_3_THROTTLE_INDEX_LEN = 6;
+//<< [QME_WCOR]
 // ppe_eq/reg00013.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

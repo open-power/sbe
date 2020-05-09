@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_CCDR]
 static const uint32_t CPMS_CCDR = 0xc000e740ull;
 
 static const uint32_t CPMS_CCDR_CHAR_COUNTA_SCALE = 0;
@@ -57,8 +58,10 @@ static const uint32_t CPMS_CCDR_CHAR_COUNTA_MOD = 60;
 static const uint32_t CPMS_CCDR_CHAR_COUNTB_MOD = 61;
 static const uint32_t CPMS_CCDR_CHAR_COUNTC_MOD = 62;
 static const uint32_t CPMS_CCDR_SAMPLE_DISABLE_INDICATOR = 63;
+//<< [CPMS_CCDR]
 // ppe_c/reg00003.H
 
+//>> [CPMS_CL2_PFETCNTL]
 static const uint32_t CPMS_CL2_PFETCNTL = 0xc000e280ull;
 static const uint32_t CPMS_CL2_PFETCNTL_WO_CLEAR = 0xc000e2b0ull;
 static const uint32_t CPMS_CL2_PFETCNTL_WO_OR = 0xc000e2a0ull;
@@ -92,8 +95,10 @@ static const uint32_t CPMS_CL2_PFETCNTL_ACS_MINMAX_SEL = 58;
 static const uint32_t CPMS_CL2_PFETCNTL_ACS_MINMAX_SEL_LEN = 4;
 static const uint32_t CPMS_CL2_PFETCNTL_ACS_ENABLE = 62;
 static const uint32_t CPMS_CL2_PFETCNTL_SRAM_ENABLE = 63;
+//<< [CPMS_CL2_PFETCNTL]
 // ppe_c/reg00003.H
 
+//>> [CPMS_FDCR]
 static const uint32_t CPMS_FDCR = 0xc000e400ull;
 static const uint32_t CPMS_FDCR_PPE2 = 0xc000e420ull;
 static const uint32_t CPMS_FDCR_WO_CLEAR = 0xc000e430ull;
@@ -133,25 +138,34 @@ static const uint32_t CPMS_FDCR_SLOPEA_CYCLES = 56;
 static const uint32_t CPMS_FDCR_SLOPEA_CYCLES_LEN = 4;
 static const uint32_t CPMS_FDCR_SLOPEB_CYCLES = 60;
 static const uint32_t CPMS_FDCR_SLOPEB_CYCLES_LEN = 4;
+//<< [CPMS_FDCR]
 // ppe_c/reg00003.H
 
+//>> [CPMS_PRSR]
 static const uint32_t CPMS_PRSR = 0xc000eac0ull;
 
 static const uint32_t CPMS_PRSR_CPMS_PPSR_PERIOD_PROXY_REMAIN = 0;
 static const uint32_t CPMS_PRSR_CPMS_PPSR_PERIOD_PROXY_REMAIN_LEN = 20;
+//<< [CPMS_PRSR]
 // ppe_c/reg00003.H
 
+//>> [QME_CDBA]
 static const uint32_t QME_CDBA = 0xc0008000ull;
 
 static const uint32_t QME_CDBA_MESSAGE_NUMBER = 0;
 static const uint32_t QME_CDBA_MESSAGE_NUMBER_LEN = 8;
+//<< [QME_CDBA]
 // ppe_c/reg00003.H
 
+//>> [QME_CSIR]
 static const uint32_t QME_CSIR = 0xc00087c0ull;
 
 static const uint32_t QME_CSIR_PMSR_INSTR_DATA = 36;
 static const uint32_t QME_CSIR_PMSR_INSTR_DATA_LEN = 22;
+//<< [QME_CSIR]
 // ppe_c/reg00003.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

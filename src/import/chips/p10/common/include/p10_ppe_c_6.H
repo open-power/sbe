@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_CERR]
 static const uint32_t CPMS_CERR = 0xc000e100ull;
 
 static const uint32_t CPMS_CERR_L3_PFET_SEQ_ERR = 0;
@@ -52,8 +53,10 @@ static const uint32_t CPMS_CERR_PROXY_UNDERFLOW = 7;
 static const uint32_t CPMS_CERR_PITCH_SATURATED = 8;
 static const uint32_t CPMS_CERR_FTC_DEBUG_EVENT = 9;
 static const uint32_t CPMS_CERR_FTC_DEBUG_EVENT_LEN = 3;
+//<< [CPMS_CERR]
 // ppe_c/reg00006.H
 
+//>> [CPMS_CUCR]
 static const uint32_t CPMS_CUCR = 0xc000e3c0ull;
 static const uint32_t CPMS_CUCR_PPE2 = 0xc000e3e0ull;
 static const uint32_t CPMS_CUCR_WO_CLEAR = 0xc000e3f0ull;
@@ -99,16 +102,20 @@ static const uint32_t CPMS_CUCR_QME_TYPE0_EVENTC0_PENDING = 60;
 static const uint32_t CPMS_CUCR_QME_TYPE0_EVENTC1_PENDING = 61;
 static const uint32_t CPMS_CUCR_QME_TYPE0_EVENTC2_PENDING = 62;
 static const uint32_t CPMS_CUCR_QME_TYPE0_EVENTC3_PENDING = 63;
+//<< [CPMS_CUCR]
 // ppe_c/reg00006.H
 
+//>> [CPMS_DMSR]
 static const uint32_t CPMS_DMSR = 0xc000e640ull;
 
 static const uint32_t CPMS_DMSR_0_COUNT = 0;
 static const uint32_t CPMS_DMSR_0_COUNT_LEN = 24;
 static const uint32_t CPMS_DMSR_1_COUNT = 32;
 static const uint32_t CPMS_DMSR_1_COUNT_LEN = 24;
+//<< [CPMS_DMSR]
 // ppe_c/reg00006.H
 
+//>> [CPMS_DPPR]
 static const uint32_t CPMS_DPPR = 0xc000ea80ull;
 static const uint32_t CPMS_DPPR_WO_CLEAR = 0xc000eab0ull;
 static const uint32_t CPMS_DPPR_WO_OR = 0xc000eaa0ull;
@@ -139,8 +146,10 @@ static const uint32_t CPMS_DPPR_OCP_LOCAL_TANK_VALUE = 40;
 static const uint32_t CPMS_DPPR_OCP_LOCAL_TANK_VALUE_LEN = 10;
 static const uint32_t CPMS_DPPR_OCP_PITCH_OVERRIDE = 50;
 static const uint32_t CPMS_DPPR_OCP_OVERRIDE_HISTORY = 51;
+//<< [CPMS_DPPR]
 // ppe_c/reg00006.H
 
+//>> [CPMS_MMA_PFETCNTL]
 static const uint32_t CPMS_MMA_PFETCNTL = 0xc000e300ull;
 static const uint32_t CPMS_MMA_PFETCNTL_WO_CLEAR = 0xc000e330ull;
 static const uint32_t CPMS_MMA_PFETCNTL_WO_OR = 0xc000e320ull;
@@ -158,7 +167,10 @@ static const uint32_t CPMS_MMA_PFETCNTL_VDD_PG_STATE_LEN = 4;
 static const uint32_t CPMS_MMA_PFETCNTL_VDD_PG_SEL = 46;
 static const uint32_t CPMS_MMA_PFETCNTL_VDD_PG_SEL_LEN = 4;
 static const uint32_t CPMS_MMA_PFETCNTL_MMA_FORCE_CL2 = 63;
+//<< [CPMS_MMA_PFETCNTL]
 // ppe_c/reg00006.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

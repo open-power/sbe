@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_DORP]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -48,8 +49,10 @@ static const uint32_t QME_DORP_QUOTIENT = 0;
 static const uint32_t QME_DORP_QUOTIENT_LEN = 32;
 static const uint32_t QME_DORP_REMAINDER = 32;
 static const uint32_t QME_DORP_REMAINDER_LEN = 32;
+//<< [QME_DORP]
 // ppe_eq/reg00008.H
 
+//>> [QME_RVCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -57,8 +60,10 @@ static const uint32_t QME_RVCR = 0xc0000840ull;
 
 static const uint32_t QME_RVCR_RVID_VALUE = 1;
 static const uint32_t QME_RVCR_RVID_VALUE_LEN = 7;
+//<< [QME_RVCR]
 // ppe_eq/reg00008.H
 
+//>> [QME_SCRA]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -68,7 +73,10 @@ static const uint32_t QME_SCRA_WO_OR = 0xc0001260ull;
 
 static const uint32_t QME_SCRA_DATA = 0;
 static const uint32_t QME_SCRA_DATA_LEN = 32;
+//<< [QME_SCRA]
 // ppe_eq/reg00008.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

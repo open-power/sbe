@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_EIPR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -48,8 +49,10 @@ static const uint32_t QME_EIPR_WO_OR = 0xc00026a0ull;
 
 static const uint32_t QME_EIPR_INTERRUPT_POLARITY = 0;
 static const uint32_t QME_EIPR_INTERRUPT_POLARITY_LEN = 64;
+//<< [QME_EIPR]
 // ppe_eq/reg00001.H
 
+//>> [QME_LFIRMASK]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
 static const uint32_t QME_LFIRMASK_RW = 0xc0000040ull;
@@ -58,8 +61,10 @@ static const uint32_t QME_LFIRMASK_WO_OR = 0xc0000060ull;
 
 static const uint32_t QME_LFIRMASK_FIR_MASK = 0;
 static const uint32_t QME_LFIRMASK_FIR_MASK_LEN = 36;
+//<< [QME_LFIRMASK]
 // ppe_eq/reg00001.H
 
+//>> [QME_SCDR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -101,8 +106,10 @@ static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2 = 56;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2_LEN = 4;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C3 = 60;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C3_LEN = 4;
+//<< [QME_SCDR]
 // ppe_eq/reg00001.H
 
+//>> [QME_SSDR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -148,8 +155,10 @@ static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
 // ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
 // ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE = 60;
 // ERROR Duplicate Dial         static const uint32_t QME_SSDR_QME_SSH_SRC_SAMPLED_STOP_STATE_LEN = 4;
+//<< [QME_SSDR]
 // ppe_eq/reg00001.H
 
+//>> [QME_SWHR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -211,8 +220,10 @@ static const uint32_t QME_SWHR_SPC_WKUP_HISTORY_C3_LEN = 4;
 // ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_FSP_SPECIAL_WKUP_REQ = 61;
 // ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_OCC_SPECIAL_WKUP_REQ = 62;
 // ERROR Duplicate Dial         static const uint32_t QME_SWHR_QME_SPWU_HYP_SPECIAL_WKUP_REQ = 63;
+//<< [QME_SWHR]
 // ppe_eq/reg00001.H
 
+//>> [QME_SWPR0]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -222,8 +233,10 @@ static const uint32_t QME_SWPR0_BAR = 0;
 static const uint32_t QME_SWPR0_BAR_LEN = 27;
 static const uint32_t QME_SWPR0_SIZE = 44;
 static const uint32_t QME_SWPR0_SIZE_LEN = 15;
+//<< [QME_SWPR0]
 // ppe_eq/reg00001.H
 
+//>> [QME_TBR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -233,7 +246,10 @@ static const uint32_t QME_TBR_TIMEBASE = 0;
 static const uint32_t QME_TBR_TIMEBASE_LEN = 32;
 static const uint32_t QME_TBR_CYCLES = 32;
 static const uint32_t QME_TBR_CYCLES_LEN = 32;
+//<< [QME_TBR]
 // ppe_eq/reg00001.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

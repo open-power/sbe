@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_BCEBAR1]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -48,8 +49,10 @@ static const uint32_t QME_BCEBAR1_BASE = 8;
 static const uint32_t QME_BCEBAR1_BASE_LEN = 36;
 static const uint32_t QME_BCEBAR1_SIZE = 61;
 static const uint32_t QME_BCEBAR1_SIZE_LEN = 3;
+//<< [QME_BCEBAR1]
 // ppe_eq/reg00012.H
 
+//>> [QME_FLAGS]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -59,8 +62,10 @@ static const uint32_t QME_FLAGS_WO_OR = 0xc0001220ull;
 
 static const uint32_t QME_FLAGS_DATA = 0;
 static const uint32_t QME_FLAGS_DATA_LEN = 64;
+//<< [QME_FLAGS]
 // ppe_eq/reg00012.H
 
+//>> [QME_PPEDBG]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -94,8 +99,10 @@ static const uint32_t QME_PPEDBG_TRACE_EXT_SEL0 = 26;
 static const uint32_t QME_PPEDBG_TRACE_MODE_SEL1 = 27;
 static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1 = 28;
 static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1_LEN = 4;
+//<< [QME_PPEDBG]
 // ppe_eq/reg00012.H
 
+//>> [QME_RCIMR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -117,8 +124,10 @@ static const uint32_t QME_RCIMR_P3 = 48;
 static const uint32_t QME_RCIMR_P3_LEN = 8;
 static const uint32_t QME_RCIMR_X3 = 59;
 static const uint32_t QME_RCIMR_X3_LEN = 5;
+//<< [QME_RCIMR]
 // ppe_eq/reg00012.H
 
+//>> [QME_RCTAR1]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -126,7 +135,10 @@ static const uint32_t QME_RCTAR1 = 0xc0001940ull;
 
 static const uint32_t QME_RCTAR1_DATA = 0;
 static const uint32_t QME_RCTAR1_DATA_LEN = 64;
+//<< [QME_RCTAR1]
 // ppe_eq/reg00012.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

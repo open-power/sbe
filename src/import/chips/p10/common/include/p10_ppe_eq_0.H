@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_BCECSR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -60,8 +61,10 @@ static const uint32_t QME_BCECSR_SBASE = 28;
 static const uint32_t QME_BCECSR_SBASE_LEN = 13;
 static const uint32_t QME_BCECSR_MBASE = 42;
 static const uint32_t QME_BCECSR_MBASE_LEN = 22;
+//<< [QME_BCECSR]
 // ppe_eq/reg00000.H
 
+//>> [QME_PSREQ]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -86,8 +89,10 @@ static const uint32_t QME_PSREQ_QME_QMCR_CORE_PARTIAL_GOOD_LEN = 4;
 static const uint32_t QME_PSREQ_QME_QMCR_AUTO_PMCR_UPDATE = 52;
 static const uint32_t QME_PSREQ_QME_QMCR_PMCR_RECENT_MODE = 53;
 static const uint32_t QME_PSREQ_PMCR_PIG_PENDING = 55;
+//<< [QME_PSREQ]
 // ppe_eq/reg00000.H
 
+//>> [QME_QHTMODE]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -97,8 +102,10 @@ static const uint32_t QME_QHTMODE_HTM_ENABLE = 0;
 static const uint32_t QME_QHTMODE_MODE_WRAP = 1;
 static const uint32_t QME_QHTMODE_DIS_TSTAMP = 2;
 static const uint32_t QME_QHTMODE_SINGLE_TSTAMP = 3;
+//<< [QME_QHTMODE]
 // ppe_eq/reg00000.H
 
+//>> [QME_RCOCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -120,8 +127,10 @@ static const uint32_t QME_RCOCR_2_RESCLK_ACTUAL = 48;
 static const uint32_t QME_RCOCR_2_RESCLK_ACTUAL_LEN = 8;
 static const uint32_t QME_RCOCR_3_RESCLK_ACTUAL = 56;
 static const uint32_t QME_RCOCR_3_RESCLK_ACTUAL_LEN = 8;
+//<< [QME_RCOCR]
 // ppe_eq/reg00000.H
 
+//>> [QME_RCTAR3]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -129,7 +138,10 @@ static const uint32_t QME_RCTAR3 = 0xc00019c0ull;
 
 static const uint32_t QME_RCTAR3_DATA = 0;
 static const uint32_t QME_RCTAR3_DATA_LEN = 64;
+//<< [QME_RCTAR3]
 // ppe_eq/reg00000.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_DB2]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -46,8 +47,10 @@ static const uint32_t QME_DB2 = 0xc0001080ull;
 
 static const uint32_t QME_DB2_MESSAGE_NUMBER = 0;
 static const uint32_t QME_DB2_MESSAGE_NUMBER_LEN = 8;
+//<< [QME_DB2]
 // ppe_eq/reg00009.H
 
+//>> [QME_PSSUM]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -70,7 +73,10 @@ static const uint32_t QME_PSSUM_QME_QMCR_CORE_PARTIAL_GOOD_LEN = 4;
 static const uint32_t QME_PSSUM_QME_QMCR_AUTO_PMCR_UPDATE = 52;
 static const uint32_t QME_PSSUM_QME_QMCR_PMCR_RECENT_MODE = 53;
 static const uint32_t QME_PSSUM_PMCR_PIG_PENDING = 55;
+//<< [QME_PSSUM]
 // ppe_eq/reg00009.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

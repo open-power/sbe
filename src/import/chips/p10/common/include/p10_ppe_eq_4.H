@@ -39,6 +39,7 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_EISTR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -46,8 +47,10 @@ static const uint32_t QME_EISTR = 0xc0002700ull;
 
 static const uint32_t QME_EISTR_INTERRUPT_STATUS = 0;
 static const uint32_t QME_EISTR_INTERRUPT_STATUS_LEN = 64;
+//<< [QME_EISTR]
 // ppe_eq/reg00004.H
 
+//>> [QME_FTXR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -65,16 +68,20 @@ static const uint32_t QME_FTXR_FTX_UPDATE_PENDING = 32;
 static const uint32_t QME_FTXR_FTX_UPDATE_PENDING_LEN = 4;
 static const uint32_t QME_FTXR_QOS_UPDATE_PENDING = 36;
 static const uint32_t QME_FTXR_QOS_UPDATE_PENDING_LEN = 4;
+//<< [QME_FTXR]
 // ppe_eq/reg00004.H
 
+//>> [QME_LFIRACT0]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
 static const uint32_t QME_LFIRACT0 = 0xc0000080ull;
 
 static const uint32_t QME_LFIRACT0_FIR_ACTION0 = 0;
 static const uint32_t QME_LFIRACT0_FIR_ACTION0_LEN = 36;
+//<< [QME_LFIRACT0]
 // ppe_eq/reg00004.H
 
+//>> [QME_PLSR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -112,8 +119,10 @@ static const uint32_t QME_PLSR_3_T2 = 56;
 static const uint32_t QME_PLSR_3_T2_LEN = 4;
 static const uint32_t QME_PLSR_3_T3 = 60;
 static const uint32_t QME_PLSR_3_T3_LEN = 4;
+//<< [QME_PLSR]
 // ppe_eq/reg00004.H
 
+//>> [QME_QHB]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -123,8 +132,10 @@ static const uint32_t QME_QHB_HEARTBEAT_COUNT = 0;
 static const uint32_t QME_QHB_HEARTBEAT_COUNT_LEN = 16;
 static const uint32_t QME_QHB_HEARTBEAT_ENABLE = 16;
 static const uint32_t QME_QHB_SPARE = 17;
+//<< [QME_QHB]
 // ppe_eq/reg00004.H
 
+//>> [QME_RCSCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
 
@@ -150,7 +161,10 @@ static const uint32_t QME_RCSCR_2_TARGET_INDEX = 51;
 static const uint32_t QME_RCSCR_2_TARGET_INDEX_LEN = 5;
 static const uint32_t QME_RCSCR_3_TARGET_INDEX = 59;
 static const uint32_t QME_RCSCR_3_TARGET_INDEX_LEN = 5;
+//<< [QME_RCSCR]
 // ppe_eq/reg00004.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

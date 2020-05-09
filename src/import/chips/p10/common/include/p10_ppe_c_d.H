@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_DCCR]
 static const uint32_t CPMS_DCCR = 0xc000e600ull;
 
 static const uint32_t CPMS_DCCR_LARGE_OFFSET = 0;
@@ -55,16 +56,20 @@ static const uint32_t CPMS_DCCR_0_EVENT_SEL = 28;
 static const uint32_t CPMS_DCCR_0_EVENT_SEL_LEN = 3;
 static const uint32_t CPMS_DCCR_1_EVENT_SEL = 31;
 static const uint32_t CPMS_DCCR_1_EVENT_SEL_LEN = 3;
+//<< [CPMS_DCCR]
 // ppe_c/reg00013.H
 
+//>> [CPMS_MMA_PFETSTAT]
 static const uint32_t CPMS_MMA_PFETSTAT = 0xc000e340ull;
 
 static const uint32_t CPMS_MMA_PFETSTAT_S_ENABLED_SENSE = 0;
 static const uint32_t CPMS_MMA_PFETSTAT_S_DISABLED_SENSE = 1;
 static const uint32_t CPMS_MMA_PFETSTAT_ENABLE_ACTUAL = 16;
 static const uint32_t CPMS_MMA_PFETSTAT_ENABLE_ACTUAL_LEN = 8;
+//<< [CPMS_MMA_PFETSTAT]
 // ppe_c/reg00013.H
 
+//>> [CPMS_PFETDLY]
 static const uint32_t CPMS_PFETDLY = 0xc000e1c0ull;
 
 static const uint32_t CPMS_PFETDLY_POWDN_DLY = 0;
@@ -75,8 +80,10 @@ static const uint32_t CPMS_PFETDLY_CL2_POWUP_DLY = 8;
 static const uint32_t CPMS_PFETDLY_CL2_POWUP_DLY_LEN = 4;
 static const uint32_t CPMS_PFETDLY_MMA_POWUP_DLY = 12;
 static const uint32_t CPMS_PFETDLY_MMA_POWUP_DLY_LEN = 4;
+//<< [CPMS_PFETDLY]
 // ppe_c/reg00013.H
 
+//>> [CPMS_PPSR]
 static const uint32_t CPMS_PPSR = 0xc000e980ull;
 
 static const uint32_t CPMS_PPSR_ENERGY_PROXY_UPPER = 0;
@@ -89,8 +96,10 @@ static const uint32_t CPMS_PPSR_FTX_SATURATED = 60;
 static const uint32_t CPMS_PPSR_PITCH_SATURATED = 61;
 static const uint32_t CPMS_PPSR_PITCH_ABORTED = 62;
 static const uint32_t CPMS_PPSR_PITCH_ACTIVE = 63;
+//<< [CPMS_PPSR]
 // ppe_c/reg00013.H
 
+//>> [QME_PSCRS0]
 static const uint32_t QME_PSCRS0 = 0xc0008500ull;
 
 static const uint32_t QME_PSCRS0_DPDES_EXIT_ENABLE = 0;
@@ -113,7 +122,10 @@ static const uint32_t QME_PSCRS0_RL = 20;
 static const uint32_t QME_PSCRS0_RL_LEN = 4;
 static const uint32_t QME_PSCRS0_PLS = 24;
 static const uint32_t QME_PSCRS0_PLS_LEN = 4;
+//<< [QME_PSCRS0]
 // ppe_c/reg00013.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_ASSR]
 static const uint32_t CPMS_ASSR = 0xc000e180ull;
 
 static const uint32_t CPMS_ASSR_CPMS_L3_PFETSTAT_VDD_PFETS_ENABLED_SENSE = 0;
@@ -72,8 +73,10 @@ static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_SENSE_MAX = 52;
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_SENSE_MAX_LEN = 5;
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_SENSE_MIN = 57;
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_SENSE_MIN_LEN = 5;
+//<< [CPMS_ASSR]
 // ppe_c/reg00014.H
 
+//>> [CPMS_DESR]
 static const uint32_t CPMS_DESR = 0xc000e5c0ull;
 
 static const uint32_t CPMS_DESR_COUNTA_FTC_ACTIVITY_SEL = 0;
@@ -109,8 +112,10 @@ static const uint32_t CPMS_DESR_SECONDARY_QUAL_SEL = 42;
 static const uint32_t CPMS_DESR_SECONDARY_QUAL_SEL_LEN = 2;
 static const uint32_t CPMS_DESR_SECONDARY_EVENT_SEL = 44;
 static const uint32_t CPMS_DESR_SECONDARY_EVENT_SEL_LEN = 2;
+//<< [CPMS_DESR]
 // ppe_c/reg00014.H
 
+//>> [CPMS_DTTR]
 static const uint32_t CPMS_DTTR = 0xc000e880ull;
 
 static const uint32_t CPMS_DTTR_CPMS_DTCR_CORE_DPT_RATE_LIMIT = 0;
@@ -129,8 +134,10 @@ static const uint32_t CPMS_DTTR_T2_DPT_INFLIGHT_LIMIT = 48;
 static const uint32_t CPMS_DTTR_T2_DPT_INFLIGHT_LIMIT_LEN = 8;
 static const uint32_t CPMS_DTTR_T3_DPT_INFLIGHT_LIMIT = 56;
 static const uint32_t CPMS_DTTR_T3_DPT_INFLIGHT_LIMIT_LEN = 8;
+//<< [CPMS_DTTR]
 // ppe_c/reg00014.H
 
+//>> [QME_CISR]
 static const uint32_t QME_CISR = 0xc0008780ull;
 
 static const uint32_t QME_CISR_HYP_INTR_PRESENT = 0;
@@ -170,7 +177,10 @@ static const uint32_t QME_CISR_PC_INTR_PENDING = 60;
 static const uint32_t QME_CISR_PC_INTR_REQUESTED = 61;
 static const uint32_t QME_CISR_REG_WKUP_PRESENT = 62;
 static const uint32_t QME_CISR_REG_WKUP_REQUESTED = 63;
+//<< [QME_CISR]
 // ppe_c/reg00014.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

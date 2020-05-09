@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_CCCR]
 static const uint32_t CPMS_CCCR = 0xc000e700ull;
 
 static const uint32_t CPMS_CCCR_COUNT_MODE = 0;
@@ -55,8 +56,10 @@ static const uint32_t CPMS_CCCR_LO_THRESHOLD = 16;
 static const uint32_t CPMS_CCCR_LO_THRESHOLD_LEN = 8;
 static const uint32_t CPMS_CCCR_SPARE = 24;
 static const uint32_t CPMS_CCCR_SPARE_LEN = 2;
+//<< [CPMS_CCCR]
 // ppe_c/reg00004.H
 
+//>> [CPMS_DPCR]
 static const uint32_t CPMS_DPCR = 0xc000ea40ull;
 
 static const uint32_t CPMS_DPCR_PROXY_SCALE_FACTOR = 0;
@@ -65,8 +68,10 @@ static const uint32_t CPMS_DPCR_PROXY_LEAKAGE_CONSTANT = 12;
 static const uint32_t CPMS_DPCR_PROXY_LEAKAGE_CONSTANT_LEN = 8;
 static const uint32_t CPMS_DPCR_DDP_RECHARGE_VALUE = 20;
 static const uint32_t CPMS_DPCR_DDP_RECHARGE_VALUE_LEN = 7;
+//<< [CPMS_DPCR]
 // ppe_c/reg00004.H
 
+//>> [CPMS_PSSR]
 static const uint32_t CPMS_PSSR = 0xc000e9c0ull;
 
 static const uint32_t CPMS_PSSR_ACCUM_ERROR = 0;
@@ -84,8 +89,10 @@ static const uint32_t CPMS_PSSR_PITCH_SUB_PERIOD_LEN = 2;
 static const uint32_t CPMS_PSSR_PITCH_PERIOD_TIMER = 50;
 static const uint32_t CPMS_PSSR_PITCH_PERIOD_TIMER_LEN = 13;
 static const uint32_t CPMS_PSSR_PITCH_ACTIVE = 63;
+//<< [CPMS_PSSR]
 // ppe_c/reg00004.H
 
+//>> [CPMS_RVCSR]
 static const uint32_t CPMS_RVCSR = 0xc000e040ull;
 static const uint32_t CPMS_RVCSR_WO_CLEAR = 0xc000e070ull;
 static const uint32_t CPMS_RVCSR_WO_OR = 0xc000e060ull;
@@ -98,26 +105,34 @@ static const uint32_t CPMS_RVCSR_RVRM_TUNE_LEN = 6;
 static const uint32_t CPMS_RVCSR_RVID_ACTIVE = 32;
 static const uint32_t CPMS_RVCSR_BYPASS_ACTIVE = 33;
 static const uint32_t CPMS_RVCSR_RVID_ENABLED = 34;
+//<< [CPMS_RVCSR]
 // ppe_c/reg00004.H
 
+//>> [QME_SPWU_FSP]
 static const uint32_t QME_SPWU_FSP = 0xc0008340ull;
 
 static const uint32_t QME_SPWU_FSP_REQ = 0;
 static const uint32_t QME_SPWU_FSP_DONE = 4;
+//<< [QME_SPWU_FSP]
 // ppe_c/reg00004.H
 
+//>> [QME_SPWU_HYP]
 static const uint32_t QME_SPWU_HYP = 0xc00083c0ull;
 
 static const uint32_t QME_SPWU_HYP_REQ = 0;
 static const uint32_t QME_SPWU_HYP_DONE = 4;
+//<< [QME_SPWU_HYP]
 // ppe_c/reg00004.H
 
+//>> [QME_SPWU_OCC]
 static const uint32_t QME_SPWU_OCC = 0xc0008380ull;
 
 static const uint32_t QME_SPWU_OCC_REQ = 0;
 static const uint32_t QME_SPWU_OCC_DONE = 4;
+//<< [QME_SPWU_OCC]
 // ppe_c/reg00004.H
 
+//>> [QME_SSH_FSP]
 static const uint32_t QME_SSH_FSP = 0xc0008240ull;
 
 static const uint32_t QME_SSH_FSP_STOP_GATED = 0;
@@ -132,8 +147,10 @@ static const uint32_t QME_SSH_FSP_DEEPEST_REQ_STOP_LEVEL = 12;
 static const uint32_t QME_SSH_FSP_DEEPEST_REQ_STOP_LEVEL_LEN = 4;
 static const uint32_t QME_SSH_FSP_DEEPEST_ACT_STOP_LEVEL = 16;
 static const uint32_t QME_SSH_FSP_DEEPEST_ACT_STOP_LEVEL_LEN = 4;
+//<< [QME_SSH_FSP]
 // ppe_c/reg00004.H
 
+//>> [QME_SSH_HYP]
 static const uint32_t QME_SSH_HYP = 0xc00082c0ull;
 
 static const uint32_t QME_SSH_HYP_STOP_GATED = 0;
@@ -148,8 +165,10 @@ static const uint32_t QME_SSH_HYP_DEEPEST_REQ_STOP_LEVEL = 12;
 static const uint32_t QME_SSH_HYP_DEEPEST_REQ_STOP_LEVEL_LEN = 4;
 static const uint32_t QME_SSH_HYP_DEEPEST_ACT_STOP_LEVEL = 16;
 static const uint32_t QME_SSH_HYP_DEEPEST_ACT_STOP_LEVEL_LEN = 4;
+//<< [QME_SSH_HYP]
 // ppe_c/reg00004.H
 
+//>> [QME_SSH_OCC]
 static const uint32_t QME_SSH_OCC = 0xc0008280ull;
 
 static const uint32_t QME_SSH_OCC_STOP_GATED = 0;
@@ -164,7 +183,10 @@ static const uint32_t QME_SSH_OCC_DEEPEST_REQ_STOP_LEVEL = 12;
 static const uint32_t QME_SSH_OCC_DEEPEST_REQ_STOP_LEVEL_LEN = 4;
 static const uint32_t QME_SSH_OCC_DEEPEST_ACT_STOP_LEVEL = 16;
 static const uint32_t QME_SSH_OCC_DEEPEST_ACT_STOP_LEVEL_LEN = 4;
+//<< [QME_SSH_OCC]
 // ppe_c/reg00004.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

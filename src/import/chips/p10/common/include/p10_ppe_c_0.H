@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_L3_PFETCNTL]
 static const uint32_t CPMS_L3_PFETCNTL = 0xc000e200ull;
 static const uint32_t CPMS_L3_PFETCNTL_WO_CLEAR = 0xc000e230ull;
 static const uint32_t CPMS_L3_PFETCNTL_WO_OR = 0xc000e220ull;
@@ -68,14 +69,18 @@ static const uint32_t CPMS_L3_PFETCNTL_VCS_PG_STATE_LEN = 4;
 static const uint32_t CPMS_L3_PFETCNTL_VCS_PG_SEL = 54;
 static const uint32_t CPMS_L3_PFETCNTL_VCS_PG_SEL_LEN = 4;
 static const uint32_t CPMS_L3_PFETCNTL_SRAM_ENABLE = 63;
+//<< [CPMS_L3_PFETCNTL]
 // ppe_c/reg00000.H
 
+//>> [QME_SPWU_OTR]
 static const uint32_t QME_SPWU_OTR = 0xc0008300ull;
 
 static const uint32_t QME_SPWU_OTR_REQ = 0;
 static const uint32_t QME_SPWU_OTR_DONE = 4;
+//<< [QME_SPWU_OTR]
 // ppe_c/reg00000.H
 
+//>> [QME_SSH_OTR]
 static const uint32_t QME_SSH_OTR = 0xc0008200ull;
 
 static const uint32_t QME_SSH_OTR_STOP_GATED = 0;
@@ -96,8 +101,10 @@ static const uint32_t QME_SSH_OTR_STOP_STATE_EXITED = 22;
 static const uint32_t QME_SSH_OTR_STOP_STATE_ENTERED = 23;
 static const uint32_t QME_SSH_OTR_DEEPEST_STOP_ENTRY = 24;
 static const uint32_t QME_SSH_OTR_DEEPEST_STOP_ENTRY_LEN = 4;
+//<< [QME_SSH_OTR]
 // ppe_c/reg00000.H
 
+//>> [QME_SSH_SRC]
 static const uint32_t QME_SSH_SRC = 0xc00081c0ull;
 
 static const uint32_t QME_SSH_SRC_STOP_GATED = 0;
@@ -125,7 +132,10 @@ static const uint32_t QME_SSH_SRC_SPC_WKUP_RECENT_ACT = 60;
 static const uint32_t QME_SSH_SRC_SPC_WKUP_RECENT_ACT_LEN = 2;
 static const uint32_t QME_SSH_SRC_SPC_WKUP_RECENT_DRP = 62;
 static const uint32_t QME_SSH_SRC_SPC_WKUP_RECENT_DRP_LEN = 2;
+//<< [QME_SSH_SRC]
 // ppe_c/reg00000.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_DDSR]
 static const uint32_t CPMS_DDSR = 0xc000e500ull;
 
 static const uint32_t CPMS_DDSR_DDS_DATA = 3;
@@ -57,8 +58,10 @@ static const uint32_t CPMS_DDSR_STOP_STATE_ACTIVE = 60;
 static const uint32_t CPMS_DDSR_CORE_SAMPLE_DISABLED = 61;
 static const uint32_t CPMS_DDSR_STOP_STATE_OCCURRED = 62;
 static const uint32_t CPMS_DDSR_SAMPLE_DISABLE_OCCURRED = 63;
+//<< [CPMS_DDSR]
 // ppe_c/reg00009.H
 
+//>> [CPMS_FDIR]
 static const uint32_t CPMS_FDIR = 0xc000e440ull;
 static const uint32_t CPMS_FDIR_WO_CLEAR = 0xc000e470ull;
 static const uint32_t CPMS_FDIR_WO_OR = 0xc000e460ull;
@@ -92,13 +95,18 @@ static const uint32_t CPMS_FDIR_EXCLUDE_LSU_HALT = 28;
 static const uint32_t CPMS_FDIR_IRRITATE_WEIGHT_SELECT = 29;
 static const uint32_t CPMS_FDIR_IRRITATE_WEIGHT_SELECT_LEN = 2;
 static const uint32_t CPMS_FDIR_INJECT_DPT_SUSPEND = 31;
+//<< [CPMS_FDIR]
 // ppe_c/reg00009.H
 
+//>> [QME_CDBB]
 static const uint32_t QME_CDBB = 0xc0008040ull;
 
 static const uint32_t QME_CDBB_MESSAGE_NUMBER = 0;
 static const uint32_t QME_CDBB_MESSAGE_NUMBER_LEN = 8;
+//<< [QME_CDBB]
 // ppe_c/reg00009.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }

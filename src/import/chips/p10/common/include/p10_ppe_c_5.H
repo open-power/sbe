@@ -39,6 +39,7 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_FLMR]
 static const uint32_t CPMS_FLMR_RW = 0xc000e480ull;
 static const uint32_t CPMS_FLMR_WO_CLEAR = 0xc000e4b0ull;
 static const uint32_t CPMS_FLMR_WO_OR = 0xc000e4a0ull;
@@ -83,8 +84,10 @@ static const uint32_t CPMS_FLMR_FTC_RESET = 60;
 static const uint32_t CPMS_FLMR_IGNORE_IFU_THROTTLE_ACTIVE = 61;
 static const uint32_t CPMS_FLMR_PHASE1_DITHER_NTC = 62;
 static const uint32_t CPMS_FLMR_CORE_UCODE_EXIT_DISABLE = 63;
+//<< [CPMS_FLMR]
 // ppe_c/reg00005.H
 
+//>> [CPMS_WPCR]
 static const uint32_t CPMS_WPCR = 0xc000e940ull;
 
 static const uint32_t CPMS_WPCR_SPARE = 0;
@@ -104,30 +107,39 @@ static const uint32_t CPMS_WPCR_PITCH_ACCERR_SAT_MAX = 60;
 static const uint32_t CPMS_WPCR_PITCH_ACCERR_SAT_MIN = 61;
 static const uint32_t CPMS_WPCR_PITCH_APP_SATURATED = 62;
 static const uint32_t CPMS_WPCR_STOP_STATE_OCCURRED = 63;
+//<< [CPMS_WPCR]
 // ppe_c/reg00005.H
 
+//>> [QME_CIIR]
 static const uint32_t QME_CIIR = 0xc0008740ull;
 
 static const uint32_t QME_CIIR_MSGSND_INTR_INJECT = 28;
 static const uint32_t QME_CIIR_MSGSND_INTR_INJECT_LEN = 4;
 static const uint32_t QME_CIIR_MSGSNDU_INTR_INJECT = 60;
 static const uint32_t QME_CIIR_MSGSNDU_INTR_INJECT_LEN = 4;
+//<< [QME_CIIR]
 // ppe_c/reg00005.H
 
+//>> [QME_RMOR]
 static const uint32_t QME_RMOR = 0xc0008680ull;
 
 static const uint32_t QME_RMOR_DATA = 0;
 static const uint32_t QME_RMOR_DATA_LEN = 63;
 static const uint32_t QME_RMOR_URMOR_SELECT = 63;
+//<< [QME_RMOR]
 // ppe_c/reg00005.H
 
+//>> [QME_SCR]
 static const uint32_t QME_SCR_RW = 0xc00080c0ull;
 static const uint32_t QME_SCR_WO_CLEAR = 0xc00080f0ull;
 static const uint32_t QME_SCR_WO_OR = 0xc00080e0ull;
 
 static const uint32_t QME_SCR_DATA = 0;
 static const uint32_t QME_SCR_DATA_LEN = 64;
+//<< [QME_SCR]
 // ppe_c/reg00005.H
+
+//>>THE END<<
 
 #ifndef __PPE_HCODE__
 }
