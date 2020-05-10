@@ -181,7 +181,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
         uint32_t l_buf[NUM_WORDS_PER_GRANULE]__attribute__ ((aligned (8))) ={0};
         uint32_t l_bitShift = 0;
         l_len = NUM_WORDS_PER_GRANULE;
-        plat_target_handle_t l_hndl;
+        Target<TARGET_TYPE_PROC_CHIP> proc = plat_getChipTarget();
         uint32_t l_chipletId = (uint32_t)(l_reqMsg.ringAddr) & 0xFF000000;
         uint32_t l_scomAddress = 0;
 
@@ -191,7 +191,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
 
             l_scomAddress = LONG_ROTATE_ADDRESS | l_chipletId;
             l_scomAddress |= l_bitShift;
-            l_fapiRc = getscom_abs_wrap (&l_hndl,
+            l_fapiRc = getscom_abs_wrap (&proc,
                                          l_scomAddress,
                                          (uint64_t*)&l_buf);
 
@@ -233,7 +233,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
             //above for loop.. so here we ignore the data
             l_scomAddress = LONG_ROTATE_ADDRESS | l_chipletId;
             l_scomAddress |= l_mod;
-            l_fapiRc = getscom_abs_wrap (&l_hndl,
+            l_fapiRc = getscom_abs_wrap (&proc,
                                          l_scomAddress,
                                          (uint64_t*)&l_buf);
 
