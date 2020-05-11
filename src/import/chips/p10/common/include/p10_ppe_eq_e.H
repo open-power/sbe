@@ -39,17 +39,6 @@ namespace ppe_eq
 #endif
 
 
-//>> [QME_CRCR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_CRCR = 0xc0003000ull;
-
-static const uint32_t QME_CRCR_COMPARE_VALUE = 0;
-static const uint32_t QME_CRCR_COMPARE_VALUE_LEN = 8;
-//<< [QME_CRCR]
-// ppe_eq/reg00014.H
-
 //>> [QME_DERP]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
@@ -61,17 +50,6 @@ static const uint32_t QME_DERP_DEND_LEN = 32;
 static const uint32_t QME_DERP_SOR = 32;
 static const uint32_t QME_DERP_SOR_LEN = 32;
 //<< [QME_DERP]
-// ppe_eq/reg00014.H
-
-//>> [QME_EINR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_EINR = 0xc0002740ull;
-
-static const uint32_t QME_EINR_INTERRUPT_INPUT = 0;
-static const uint32_t QME_EINR_INTERRUPT_INPUT_LEN = 64;
-//<< [QME_EINR]
 // ppe_eq/reg00014.H
 
 //>> [QME_LFIR]
@@ -120,19 +98,26 @@ static const uint32_t QME_LFIR_SPARE1_LEN = 2;
 //<< [QME_LFIR]
 // ppe_eq/reg00014.H
 
-//>> [QME_PCBSII]
+//>> [QME_CRCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
 
-static const uint32_t QME_PCBSII = 0xc0000380ull;
+static const uint32_t QME_CRCR = 0xc0003000ull;
 
-static const uint32_t QME_PCBSII_PCB_REQ_ACK = 0;
-static const uint32_t QME_PCBSII_PCB_RSP_P = 1;
-static const uint32_t QME_PCBSII_PCB_RSP_VLD = 4;
-static const uint32_t QME_PCBSII_PCB_RSP_INFO = 5;
-static const uint32_t QME_PCBSII_PCB_RSP_INFO_LEN = 3;
-static const uint32_t QME_PCBSII_QUAD_ID = 33;
-static const uint32_t QME_PCBSII_QUAD_ID_LEN = 3;
-//<< [QME_PCBSII]
+static const uint32_t QME_CRCR_COMPARE_VALUE = 0;
+static const uint32_t QME_CRCR_COMPARE_VALUE_LEN = 8;
+//<< [QME_CRCR]
+// ppe_eq/reg00014.H
+
+//>> [QME_EINR]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_EINR = 0xc0002740ull;
+
+static const uint32_t QME_EINR_INTERRUPT_INPUT = 0;
+static const uint32_t QME_EINR_INTERRUPT_INPUT_LEN = 64;
+//<< [QME_EINR]
 // ppe_eq/reg00014.H
 
 //>>THE END<<

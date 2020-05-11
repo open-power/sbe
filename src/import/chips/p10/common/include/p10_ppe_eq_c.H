@@ -65,43 +65,6 @@ static const uint32_t QME_FLAGS_DATA_LEN = 64;
 //<< [QME_FLAGS]
 // ppe_eq/reg00012.H
 
-//>> [QME_PPEDBG]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_PPEDBG_RW = 0xc0002440ull;
-static const uint32_t QME_PPEDBG_WO_CLEAR = 0xc0002470ull;
-static const uint32_t QME_PPEDBG_WO_OR = 0xc0002460ull;
-
-static const uint32_t QME_PPEDBG_EN_DBG = 0;
-static const uint32_t QME_PPEDBG_HALT_ON_XSTOP = 1;
-static const uint32_t QME_PPEDBG_HALT_ON_TRIG = 2;
-static const uint32_t QME_PPEDBG_EN_COVERAGE_MODE = 3;
-static const uint32_t QME_PPEDBG_EN_INTR_ADDR = 4;
-static const uint32_t QME_PPEDBG_EN_TRACE_EXTRA = 5;
-static const uint32_t QME_PPEDBG_EN_TRACE_STALL = 6;
-static const uint32_t QME_PPEDBG_EN_WAIT_CYCLES = 7;
-static const uint32_t QME_PPEDBG_EN_FULL_SPEED = 8;
-static const uint32_t QME_PPEDBG_DIS_FLOW_CHANGE = 9;
-static const uint32_t QME_PPEDBG_TRACE_MODE_SEL = 10;
-static const uint32_t QME_PPEDBG_TRACE_MODE_SEL_LEN = 2;
-static const uint32_t QME_PPEDBG_EN_MARK_TRACE = 12;
-static const uint32_t QME_PPEDBG_EN_EE_TRACE = 13;
-static const uint32_t QME_PPEDBG_TRACE_LOWER_SEL1 = 14;
-static const uint32_t QME_PPEDBG_TRACE_LOWER_SEL1_LEN = 2;
-static const uint32_t QME_PPEDBG_FIR_TRIGGER = 16;
-static const uint32_t QME_PPEDBG_MIB_GPIO = 17;
-static const uint32_t QME_PPEDBG_MIB_GPIO_LEN = 3;
-static const uint32_t QME_PPEDBG_TRACE_DATA_SEL = 20;
-static const uint32_t QME_PPEDBG_TRACE_DATA_SEL_LEN = 4;
-static const uint32_t QME_PPEDBG_QHTM_TRACE_SEL = 25;
-static const uint32_t QME_PPEDBG_TRACE_EXT_SEL0 = 26;
-static const uint32_t QME_PPEDBG_TRACE_MODE_SEL1 = 27;
-static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1 = 28;
-static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1_LEN = 4;
-//<< [QME_PPEDBG]
-// ppe_eq/reg00012.H
-
 //>> [QME_RCIMR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
@@ -125,17 +88,6 @@ static const uint32_t QME_RCIMR_P3_LEN = 8;
 static const uint32_t QME_RCIMR_X3 = 59;
 static const uint32_t QME_RCIMR_X3_LEN = 5;
 //<< [QME_RCIMR]
-// ppe_eq/reg00012.H
-
-//>> [QME_RCTAR1]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_RCTAR1 = 0xc0001940ull;
-
-static const uint32_t QME_RCTAR1_DATA = 0;
-static const uint32_t QME_RCTAR1_DATA_LEN = 64;
-//<< [QME_RCTAR1]
 // ppe_eq/reg00012.H
 
 //>>THE END<<

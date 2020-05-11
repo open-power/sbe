@@ -39,50 +39,6 @@ namespace ppe_c
 #endif
 
 
-//>> [QME_DCSR]
-static const uint32_t QME_DCSR = 0xc0008700ull;
-
-static const uint32_t QME_DCSR_PLS_T0 = 0;
-static const uint32_t QME_DCSR_PLS_T0_LEN = 4;
-static const uint32_t QME_DCSR_PLS_T1 = 4;
-static const uint32_t QME_DCSR_PLS_T1_LEN = 4;
-static const uint32_t QME_DCSR_PLS_T2 = 8;
-static const uint32_t QME_DCSR_PLS_T2_LEN = 4;
-static const uint32_t QME_DCSR_PLS_T3 = 12;
-static const uint32_t QME_DCSR_PLS_T3_LEN = 4;
-static const uint32_t QME_DCSR_SL_T0 = 16;
-static const uint32_t QME_DCSR_SL_T0_LEN = 2;
-static const uint32_t QME_DCSR_SL_T1 = 18;
-static const uint32_t QME_DCSR_SL_T1_LEN = 2;
-static const uint32_t QME_DCSR_SL_T2 = 20;
-static const uint32_t QME_DCSR_SL_T2_LEN = 2;
-static const uint32_t QME_DCSR_SL_T3 = 22;
-static const uint32_t QME_DCSR_SL_T3_LEN = 2;
-static const uint32_t QME_DCSR_SRESET_MSR_S = 24;
-static const uint32_t QME_DCSR_THREAD_INSTR_RUNNING_HISTORY = 60;
-static const uint32_t QME_DCSR_THREAD_INSTR_RUNNING_HISTORY_LEN = 4;
-//<< [QME_DCSR]
-// ppe_c/reg00001.H
-
-//>> [QME_PMCRS]
-static const uint32_t QME_PMCRS = 0xc0008600ull;
-
-static const uint32_t QME_PMCRS_DATA = 0;
-static const uint32_t QME_PMCRS_DATA_LEN = 64;
-//<< [QME_PMCRS]
-// ppe_c/reg00001.H
-
-//>> [QME_PMSRS]
-static const uint32_t QME_PMSRS = 0xc0008640ull;
-
-static const uint32_t QME_PMSRS_PSTATE_DATA = 0;
-static const uint32_t QME_PMSRS_PSTATE_DATA_LEN = 36;
-static const uint32_t QME_PMSRS_INVALID_VERSION = 58;
-static const uint32_t QME_PMSRS_VERSION = 59;
-static const uint32_t QME_PMSRS_VERSION_LEN = 5;
-//<< [QME_PMSRS]
-// ppe_c/reg00001.H
-
 //>> [QME_PSCRS2]
 static const uint32_t QME_PSCRS2 = 0xc0008580ull;
 
@@ -107,6 +63,17 @@ static const uint32_t QME_PSCRS2_RL_LEN = 4;
 static const uint32_t QME_PSCRS2_PLS = 24;
 static const uint32_t QME_PSCRS2_PLS_LEN = 4;
 //<< [QME_PSCRS2]
+// ppe_c/reg00001.H
+
+//>> [QME_PMSRS]
+static const uint32_t QME_PMSRS = 0xc0008640ull;
+
+static const uint32_t QME_PMSRS_PSTATE_DATA = 0;
+static const uint32_t QME_PMSRS_PSTATE_DATA_LEN = 36;
+static const uint32_t QME_PMSRS_INVALID_VERSION = 58;
+static const uint32_t QME_PMSRS_VERSION = 59;
+static const uint32_t QME_PMSRS_VERSION_LEN = 5;
+//<< [QME_PMSRS]
 // ppe_c/reg00001.H
 
 //>>THE END<<

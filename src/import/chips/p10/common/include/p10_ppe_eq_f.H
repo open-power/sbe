@@ -39,38 +39,6 @@ namespace ppe_eq
 #endif
 
 
-//>> [QME_PBCR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_PBCR = 0xc0000440ull;
-static const uint32_t QME_PBCR_PPE2 = 0xc0000460ull;
-static const uint32_t QME_PBCR_WO_CLEAR = 0xc0000470ull;
-
-static const uint32_t QME_PBCR_DISABLE_LN_RD = 0;
-static const uint32_t QME_PBCR_DISABLE_NN_RN_RD = 1;
-static const uint32_t QME_PBCR_DISABLE_GROUP_RD = 2;
-static const uint32_t QME_PBCR_DISABLE_VG_RD = 3;
-static const uint32_t QME_PBCR_DISABLE_LN_WR = 4;
-static const uint32_t QME_PBCR_DISABLE_NN_RN_WR = 5;
-static const uint32_t QME_PBCR_DISABLE_GROUP_WR = 6;
-static const uint32_t QME_PBCR_DISABLE_VG_WR = 7;
-static const uint32_t QME_PBCR_SKIP_GROUP_SCOPE = 8;
-static const uint32_t QME_PBCR_USE_DMA_PR_W = 9;
-static const uint32_t QME_PBCR_FREEZE_ON_CRESP_ERR = 10;
-static const uint32_t QME_PBCR_SPARE = 11;
-static const uint32_t QME_PBCR_SPARE_LEN = 2;
-static const uint32_t QME_PBCR_TYPE = 13;
-static const uint32_t QME_PBCR_TYPE_LEN = 3;
-static const uint32_t QME_PBCR_HANG_POLL_MAX_CNT = 16;
-static const uint32_t QME_PBCR_HANG_POLL_MAX_CNT_LEN = 4;
-static const uint32_t QME_PBCR_HANG_DATA_MAX_CNT = 20;
-static const uint32_t QME_PBCR_HANG_DATA_MAX_CNT_LEN = 4;
-static const uint32_t QME_PBCR_DISABLE_PB_CACHE = 24;
-static const uint32_t QME_PBCR_INVALIDATE_PB_CACHE = 25;
-//<< [QME_PBCR]
-// ppe_eq/reg00015.H
-
 //>> [QME_QSAR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.

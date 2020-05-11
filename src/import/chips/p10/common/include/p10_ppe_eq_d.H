@@ -39,40 +39,6 @@ namespace ppe_eq
 #endif
 
 
-//>> [QME_EIMR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_EIMR_RW = 0xc0002640ull;
-static const uint32_t QME_EIMR_WO_CLEAR = 0xc0002670ull;
-static const uint32_t QME_EIMR_WO_OR = 0xc0002660ull;
-
-static const uint32_t QME_EIMR_INTERRUPT_MASK = 0;
-static const uint32_t QME_EIMR_INTERRUPT_MASK_LEN = 64;
-//<< [QME_EIMR]
-// ppe_eq/reg00013.H
-
-//>> [QME_PIG]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-
-static const uint32_t QME_PIG = 0xc0000300ull;
-
-static const uint32_t QME_PIG_REQ_INTR_TYPE = 1;
-static const uint32_t QME_PIG_REQ_INTR_TYPE_LEN = 4;
-static const uint32_t QME_PIG_REQ_INTR_PAYLOAD = 5;
-static const uint32_t QME_PIG_REQ_INTR_PAYLOAD_LEN = 19;
-static const uint32_t QME_PIG_PENDING_SOURCE = 24;
-static const uint32_t QME_PIG_PENDING_SOURCE_LEN = 6;
-static const uint32_t QME_PIG_INTR_GRANTED = 32;
-static const uint32_t QME_PIG_GRANTED_SOURCE = 33;
-static const uint32_t QME_PIG_GRANTED_SOURCE_LEN = 3;
-static const uint32_t QME_PIG_QUAD_ID = 37;
-static const uint32_t QME_PIG_QUAD_ID_LEN = 3;
-static const uint32_t QME_PIG_GRANTED_PACKET = 40;
-static const uint32_t QME_PIG_GRANTED_PACKET_LEN = 24;
-//<< [QME_PIG]
-// ppe_eq/reg00013.H
-
 //>> [QME_QSCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
@@ -94,6 +60,19 @@ static const uint32_t QME_QSCR_DTCBASE_LEN = 8;
 static const uint32_t QME_QSCR_SRAM_SCRUB_INDEX = 47;
 static const uint32_t QME_QSCR_SRAM_SCRUB_INDEX_LEN = 13;
 //<< [QME_QSCR]
+// ppe_eq/reg00013.H
+
+//>> [QME_EIMR]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_EIMR_RW = 0xc0002640ull;
+static const uint32_t QME_EIMR_WO_CLEAR = 0xc0002670ull;
+static const uint32_t QME_EIMR_WO_OR = 0xc0002660ull;
+
+static const uint32_t QME_EIMR_INTERRUPT_MASK = 0;
+static const uint32_t QME_EIMR_INTERRUPT_MASK_LEN = 64;
+//<< [QME_EIMR]
 // ppe_eq/reg00013.H
 
 //>> [QME_RCMR]

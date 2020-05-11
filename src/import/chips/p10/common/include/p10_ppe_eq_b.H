@@ -39,33 +39,6 @@ namespace ppe_eq
 #endif
 
 
-//>> [QME_PCBQBI]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-
-static const uint32_t QME_PCBQBI = 0xc00003c0ull;
-
-static const uint32_t QME_PCBQBI_ENTRY_VALID = 0;
-static const uint32_t QME_PCBQBI_MERGING_SCHEME = 2;
-static const uint32_t QME_PCBQBI_MERGING_SCHEME_LEN = 3;
-static const uint32_t QME_PCBQBI_R_NW = 8;
-static const uint32_t QME_PCBQBI_PORT = 12;
-static const uint32_t QME_PCBQBI_PORT_LEN = 4;
-static const uint32_t QME_PCBQBI_ADDR = 16;
-static const uint32_t QME_PCBQBI_ADDR_LEN = 16;
-//<< [QME_PCBQBI]
-// ppe_eq/reg00011.H
-
-//>> [QME_QHTLAST]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_QHTLAST = 0xc0001ac0ull;
-
-static const uint32_t QME_QHTLAST_LAST_ADDRESS = 8;
-static const uint32_t QME_QHTLAST_LAST_ADDRESS_LEN = 49;
-//<< [QME_QHTLAST]
-// ppe_eq/reg00011.H
-
 //>> [QME_RCPTR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
