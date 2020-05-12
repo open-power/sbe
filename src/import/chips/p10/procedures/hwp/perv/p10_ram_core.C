@@ -111,13 +111,26 @@ const uint32_t OPCODE_MTOCRF_FROM_GPR0             = 0x7C100120;
 const uint32_t OPCODE_MTFSF_FROM_FPR0              = 0xFE00058E;
 const uint32_t OPCODE_MFVSCR_TO_VR0                = 0x10000604;
 const uint32_t OPCODE_MTVSCR_FROM_VR0              = 0x10000644;
-const uint32_t OPCODE_MFNIA_RT                     = 0x00000004;
+// Pseudo PPCs
 const uint32_t OPCODE_MTNIA_LR                     = 0x00000002;
-const uint32_t OPCODE_GPR_MOVE                     = 0x00000010;
-const uint32_t OPCODE_VSR_MOVE_HI                  = 0x00000110;
-const uint32_t OPCODE_VSR_MOVE_LO                  = 0x00000210;
-const uint32_t OPCODE_XER_MOVE                     = 0x00000310;
-const uint32_t OPCODE_CR_MOVE                      = 0x00000410;
+const uint32_t OPCODE_MFNIA_RT                     = 0x00000004;
+const uint32_t OPCODE_GPR_XOR                      = 0x00000010;
+const uint32_t OPCODE_VSR0_XOR                     = 0x00000110;
+const uint32_t OPCODE_VSR1_XOR                     = 0x00000210;
+const uint32_t OPCODE_FASTSPR_XOR                  = 0x00000310;
+const uint32_t OPCODE_GPR_MOVE_RECONFIG            = 0x00000410;
+const uint32_t OPCODE_VSR0_MOVE_RECONFIG           = 0x00000510;
+const uint32_t OPCODE_VSR1_MOVE_RECONFIG           = 0x00000610;
+const uint32_t OPCODE_FASTSPR_MOVE_RECONFIG        = 0x00000710;
+const uint32_t OPCODE_XFVC_MOVE                    = 0x00000810;
+const uint32_t OPCODE_MMA_DPRIME                   = 0x00000910;
+const uint32_t OPCODE_MMM_PRIME                    = 0x00000A10;
+const uint32_t OPCODE_STF_REBALANCE                = 0x00000B10;
+const uint32_t OPCODE_GPR_MOVE_RECOVERY            = 0x00000C10;
+const uint32_t OPCODE_VSR0_MOVE_RECOVERY           = 0x00000D10;
+const uint32_t OPCODE_VSR1_MOVE_RECOVERY           = 0x00000E10;
+const uint32_t OPCODE_FASTSPR_MOVE_RECOVERY        = 0x00000F10;
+
 const uint32_t OPCODE_MFSPR                        = 0x7C0002A6;
 const uint32_t OPCODE_MTSPR                        = 0x7C0003A6;
 const uint32_t OPCODE_SLBMFEE                      = 0x7C000726;
@@ -635,6 +648,25 @@ uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
              l_opcode_pattern   == OPCODE_MTVSCR_FROM_VR0)
     {
         l_predecode = 1;
+    }
+    else if (i_opcode == OPCODE_GPR_XOR ||
+             i_opcode == OPCODE_VSR0_XOR ||
+             i_opcode == OPCODE_VSR1_XOR ||
+             i_opcode == OPCODE_FASTSPR_XOR ||
+             i_opcode == OPCODE_GPR_MOVE_RECONFIG ||
+             i_opcode == OPCODE_VSR0_MOVE_RECONFIG ||
+             i_opcode == OPCODE_VSR1_MOVE_RECONFIG ||
+             i_opcode == OPCODE_FASTSPR_MOVE_RECONFIG ||
+             i_opcode == OPCODE_XFVC_MOVE ||
+             i_opcode == OPCODE_MMA_DPRIME ||
+             i_opcode == OPCODE_MMM_PRIME ||
+             i_opcode == OPCODE_STF_REBALANCE ||
+             i_opcode == OPCODE_GPR_MOVE_RECOVERY ||
+             i_opcode == OPCODE_VSR0_MOVE_RECOVERY ||
+             i_opcode == OPCODE_VSR1_MOVE_RECOVERY ||
+             i_opcode == OPCODE_FASTSPR_MOVE_RECOVERY)
+    {
+        l_predecode = 7;
     }
 
     return l_predecode;
