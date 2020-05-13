@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2016
+# Contributors Listed Below - COPYRIGHT 2015,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -24,6 +24,10 @@
 # IBM_PROLOG_END_TAG
 ROOTDIR=.
 export SBEROOT=`pwd`
+
+if [ -e ./projectrc ]; then
+    source ./projectrc
+fi
 
 if [ -e ./customrc ]; then
     source ./customrc
