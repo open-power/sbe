@@ -344,8 +344,11 @@ static fapi2::ReturnCode runn_opcg_setup(const fapi2::Target<fapi2::TARGET_TYPE_
     }
 
     // Program per-core offsets
+    FAPI_TRY(PREP_OPCG_CAPT1(quad));
     FAPI_TRY(PUT_OPCG_CAPT1(quad, regs.capt1));
+    FAPI_TRY(PREP_OPCG_CAPT2(quad));
     FAPI_TRY(PUT_OPCG_CAPT2(quad, regs.capt2));
+    FAPI_TRY(PREP_OPCG_CAPT3(quad));
     FAPI_TRY(PUT_OPCG_CAPT3(quad, regs.capt3));
 
     o_set_hld_dly_en = regs.capt1 != 0 || regs.capt2 != 0 || regs.capt3 != 0;
@@ -409,10 +412,12 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
         data |= CONTAINED_N0_REGIONS | CONTAINED_N1_REGIONS;
     }
 
+    FAPI_TRY(PREP_CPLT_CTRL1_WO_CLEAR(all));
     FAPI_TRY(PUT_CPLT_CTRL1_WO_CLEAR(all, data));
 
     // Align chiplets
     {
+        FAPI_TRY(PREP_CPLT_CTRL0_WO_OR(all));
         data = 0;
         data.setBit<CPLT_CTRL0_CTRL_CC_FLUSHMODE_INH>();
         FAPI_TRY(PUT_CPLT_CTRL0_WO_OR(all, data));
@@ -429,6 +434,7 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
                     .set_HW_DELAY(0),
                     "Some chiplet is not aligned after setting FORCE_ALIGN");
 
+        FAPI_TRY(PREP_CPLT_CTRL0_WO_CLEAR(all));
         data = 0;
         data.setBit<CPLT_CTRL0_CTRL_CC_FORCE_ALIGN>();
         FAPI_TRY(PUT_CPLT_CTRL0_WO_CLEAR(all, data));

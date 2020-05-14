@@ -52,6 +52,7 @@ inline fapi2::ReturnCode qme_sram_xfer_setup(const fapi2::Target < fapi2::TARGET
     // Writing to QME_QSAR clears the ACCESS_MODE bit in QME_QSCR - which means
     // we can just control the auto-increment using QME_QSAR[63] using a single
     // SCOM. Not sure if this is intended behavior or not <shrug>...
+    FAPI_TRY(PREP_QME_QSAR(i_target));
     FAPI_TRY(PUT_QME_QSAR(i_target, ((uint64_t)(i_addr) << 32) | i_auto_incr));
 
 fapi_try_exit:
@@ -80,6 +81,7 @@ inline fapi2::ReturnCode qme_sram_xfer_do_xfer(const fapi2::Target < fapi2::TARG
     }
     else
     {
+        FAPI_TRY(PREP_QME_QSDR(i_target));
         FAPI_TRY(PUT_QME_QSDR(i_target, io_data));
     }
 

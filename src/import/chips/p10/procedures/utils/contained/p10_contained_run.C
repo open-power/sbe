@@ -48,7 +48,7 @@ static fapi2::ReturnCode cleanup_for_free_clks(const fapi2::Target<fapi2::TARGET
     auto all = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
     fapi2::buffer<uint64_t> data;
 
-    FAPI_TRY(PREP_CPLT_CTRL0_WO_CLEAR(all));
+    FAPI_TRY(PREP_CPLT_CTRL1_WO_CLEAR(all));
     SET_CPLT_CTRL1_REGION0_FENCE_DC(data); // perv
 
     if (i_chc)
