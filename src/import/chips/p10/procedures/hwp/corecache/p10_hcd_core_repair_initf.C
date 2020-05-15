@@ -96,6 +96,13 @@ p10_hcd_core_repair_initf(
                                l_attr_chip_unit_pos));
         l_eq_num = (uint32_t)l_attr_chip_unit_pos;
 
+        // do this to avoid unused variable warning
+        do
+        {
+            (void)( l_eq_num );
+        }
+        while (0);
+
         // Read partial good value from Chiplet Control 2
         FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_data64));
 
@@ -107,16 +114,12 @@ p10_hcd_core_repair_initf(
         FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
                  l_eq_num, l_core_num);
 
-        // While one could assume that the the plaform target model matches the active partial good
-        // settings in the hardware, let's not (at least until we get through some MPIPL and core
-        // deconfiguration testing.
-
-        FAPI_ASSERT((l_data64.getBit(5 + l_core_num)),
-                    fapi2::CORE_REPAIR_FUNCTIONAL_TARGET_MISMATCH_PARTIAL_GOOD()
-                    .set_CPLT_CTRL2(l_data64)
-                    .set_CORE_NUM(l_core_num)
-                    .set_EQ_NUM(l_eq_num),
-                    "Configuration Mismatch: CPLT_CTRL2 partial good bit is not set.");
+        if( l_data64.getBit(5 + l_core_num) == 0)
+        {
+            FAPI_DBG("Partial Bad detected for EQ %d Core %d, Skip",
+                     l_eq_num, l_core_num);
+            continue;
+        }
 
         FAPI_DBG("Scan ec_cl2_repr ring");
         FAPI_TRY(fapi2::putRing(l_core, ec_cl2_repr_ids[l_core_num],

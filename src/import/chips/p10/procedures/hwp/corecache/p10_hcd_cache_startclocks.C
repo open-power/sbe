@@ -81,11 +81,17 @@ fapi2::ReturnCode
 p10_hcd_cache_startclocks(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target)
 {
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_target =
+        i_target;//getChildren w/o and/or
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(12);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
+    uint32_t                       l_eq_num             = 0;
+    uint32_t                       l_core_num           = 0;
+    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+
 #ifndef EQ_SKEW_ADJUST_DISABLE
     uint32_t                l_timeout = 0;
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
@@ -134,8 +140,46 @@ p10_hcd_cache_startclocks(
     FAPI_DBG("Disable L3 Regional Fences via CPLT_CTRL1[9-12:L3_FENCES]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );
 
-    FAPI_DBG("Enable L3 Regional PSCOMs via CPLT_CTRL3[9-12:L3_REGIONS]");
-    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR, SCOM_LOAD32H(l_regions) ) );
+    for (auto const& l_core : l_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               l_eq,
+                               l_attr_chip_unit_pos));
+        l_eq_num = (uint32_t)l_attr_chip_unit_pos;
+
+        // do this to avoid unused variable warning
+        do
+        {
+            (void)( l_eq_num );
+        }
+        while (0);
+
+        // Read partial good value from Chiplet Control 2
+        FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_scomData));
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               l_core,
+                               l_attr_chip_unit_pos));
+        l_core_num = (uint32_t)l_attr_chip_unit_pos % 4;
+
+        FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
+                 l_eq_num, l_core_num);
+
+        if( l_scomData.getBit(9 + l_core_num) == 0)
+        {
+            FAPI_DBG("Partial Bad detected for EQ %d Core %d, Skip",
+                     l_eq_num, l_core_num);
+            continue;
+        }
+
+        l_regions = BIT32((9 + l_core_num));
+
+        FAPI_DBG("Enable L3 Regional PSCOMs via CPLT_CTRL3[9-12:L3_REGIONS]");
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR, SCOM_LOAD32H(l_regions) ) );
+
+    }
 
     // Undo potential powerbus quiesce before last clock off, no-op for IPL
     FAPI_DBG("Drop PB_PURGE_REQ via PCR_SCSR[12]");

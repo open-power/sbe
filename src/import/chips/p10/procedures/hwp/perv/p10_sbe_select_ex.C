@@ -131,7 +131,8 @@ fapi2::ReturnCode select_ex_pfet_delay(
 
 fapi2::ReturnCode select_ex_config(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_eq_target,
-    const uint32_t i_core_num);
+    const uint32_t i_core_num,
+    const bool i_set_good);
 
 // -----------------------------------------------------------------------------
 //  Function definitions
@@ -290,7 +291,7 @@ fapi2::ReturnCode p10_sbe_select_ex(
         {
             l_core_config_bvec.setBit(l_core_num);
             l_active_config_bvec.setBit(l_core_num);
-            FAPI_TRY(select_ex_config(l_eq_target, l_core_num));
+            FAPI_TRY(select_ex_config(l_eq_target, l_core_num, true));
             ++l_num_active;
             continue;  // next core
         }
@@ -299,24 +300,21 @@ fapi2::ReturnCode p10_sbe_select_ex(
         {
             l_core_config_bvec.setBit(l_core_num);
             l_backing_config_bvec.setBit(l_core_num);
-            FAPI_TRY(select_ex_config(l_eq_target, l_core_num));
+            FAPI_TRY(select_ex_config(l_eq_target, l_core_num, true));
             ++l_num_backing;
             continue;  // next core
         }
 
-        // Exit loop if the required numbers have been achieved
-        if (l_num_active == l_attr_num_active &&
-            l_num_backing == l_attr_num_backing)
-        {
-            FAPI_DBG("Found everything needed.  Breaking loop");
-            break;
-        }
-
-        FAPI_DBG("Scoreboard values for OCC: Core 0x%08X", l_core_config_bvec);
+        // Set non-Master non-Backing to Partial Bad temporally for
+        // istep4 only so istep4 will skip them in SBE ALL-Core targeting
+        // Istep15 should restore PG via update_ec_state
+        FAPI_TRY(select_ex_config(l_eq_target, l_core_num, false));
 
     } // Core loop
 
+    FAPI_DBG("Scoreboard values for OCC: Core 0x%08X", l_core_config_bvec);
     FAPI_DBG("Active core check: num_active %d attr_num_active %d", l_num_active, l_attr_num_active);
+
     FAPI_ASSERT(l_num_active == l_attr_num_active,
                 fapi2::SBE_SELECT_EX_INSUFFICIENT_ACTIVE_CORES_ERROR()
                 .set_CHIP(i_target)
@@ -564,11 +562,13 @@ fapi_try_exit:
 inline
 fapi2::ReturnCode select_ex_config(
     const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_eq_target,
-    const uint32_t i_core_num)
+    const uint32_t i_core_num,
+    const bool i_set_good)
 {
     using namespace scomt::eq;
 
-    FAPI_DBG("> select_ex_config for core/L3 %d", i_core_num);
+    FAPI_DBG("> select_ex_config for core/L3 %d Set to Partial %s",
+             i_core_num, i_set_good ? "Good" : "Bad");
 
     fapi2::buffer<uint64_t> l_data64;
 
@@ -577,14 +577,28 @@ fapi2::ReturnCode select_ex_config(
     l_data64.setBit(9  + (i_core_num & 0x3)); // L3
     l_data64.setBit(15 + (i_core_num & 0x3)); // MMA
 
-    // Set Partial Good enable
-    FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL2_WO_OR, l_data64));
+    if( i_set_good )
+    {
+        // Set Partial Good enable
+        FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL2_WO_OR, l_data64));
 
-    // Set PSCOM enable
-    FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL3_WO_OR, l_data64));
+        // Set PSCOM enable
+        FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL3_WO_OR, l_data64));
 
-    // Clear Power Gate/DFT fence
-    FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL5_WO_CLEAR, l_data64));
+        // Clear Power Gate/DFT fence
+        FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL5_WO_CLEAR, l_data64));
+    }
+    else
+    {
+        // Unset Partial Good enable
+        FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL2_WO_CLEAR, l_data64));
+
+        // Unset PSCOM enable
+        FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL3_WO_CLEAR, l_data64));
+
+        // Raise Power Gate/DFT fence
+        FAPI_TRY(fapi2::putScom(i_eq_target, CPLT_CTRL5_WO_OR, l_data64));
+    }
 
 fapi_try_exit:
     FAPI_DBG("< select_ex_config...");
