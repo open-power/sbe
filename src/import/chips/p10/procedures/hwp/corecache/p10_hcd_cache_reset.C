@@ -88,6 +88,10 @@ p10_hcd_cache_reset(
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect();
     fapi2::buffer<buffer_t> l_mmioData = 0;
+    bool                    l_do_scan0 = true;
+    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
+    fapi2::ATTR_SYSTEM_IPL_PHASE_Type           l_attr_ipl_phase;
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys, l_attr_ipl_phase ) );
 
     FAPI_INF(">>p10_hcd_cache_reset");
 
@@ -118,9 +122,13 @@ p10_hcd_cache_reset(
     // ring is defined by P9_HCD_SCAN_FUNC_REPEAT. When the design ALWAYS has
     // all stumps less than 8191, the loop can be removed.
 
-    FAPI_TRY(HCD_GETMMIO_Q( eq_target, MMIO_LOWADDR(QME_FLAGS), l_mmioData ) );
+    if ( l_attr_ipl_phase != fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL )
+    {
+        FAPI_TRY(HCD_GETMMIO_Q( eq_target, MMIO_LOWADDR(QME_FLAGS), l_mmioData ) );
+        l_do_scan0 = !MMIO_GET(MMIO_LOWBIT(QME_FLAGS_PLATFORM_EPM));
+    }
 
-    if ( MMIO_GET( MMIO_LOWBIT(QME_FLAGS_PLATFORM_EPM) ) == 0 )
+    if ( l_do_scan0 )
     {
         fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
             eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
