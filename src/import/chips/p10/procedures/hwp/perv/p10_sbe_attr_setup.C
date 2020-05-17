@@ -185,21 +185,6 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
     }
 
-    // N1 - apply NMMU1 GARD information to partial good vector
-    for (const auto& l_perv : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(static_cast<fapi2::TargetFilter>
-            (fapi2::TARGET_FILTER_NEST_SOUTH),
-            fapi2::TARGET_STATE_PRESENT))
-    {
-        fapi2::ATTR_PG_Type l_pg;
-        FAPI_DBG("N1, NMMU1 region gard mask: 0x%X", i_scratch2_reg.getBit<NMMU1_GARD_BIT>());
-
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
-        FAPI_DBG("  PG before: 0x%08X", l_pg);
-        l_pg |= (i_scratch2_reg.getBit<NMMU1_GARD_BIT>() << N1_PG_NMMU1_SHIFT);
-        FAPI_DBG("  PG after: 0x%08X", l_pg);
-        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
-    }
-
     // apply GARD information to PCI0..1
     for (const auto& l_perv : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(static_cast<fapi2::TargetFilter>
             (fapi2::TARGET_FILTER_ALL_PCI),
@@ -247,46 +232,94 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
     }
 
-    // apply GARD information to PAU0..3
-    for (const auto& l_perv : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(static_cast<fapi2::TargetFilter>
-            (fapi2::TARGET_FILTER_ALL_PAU),
-            fapi2::TARGET_STATE_PRESENT))
     {
-        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_PAUC>(l_perv);
-        uint32_t l_gard_mask;
-        fapi2::ATTR_PG_Type l_pg;
+        // apply GARD information to PAU0..3, N1
+        // track logical requirement to enable NMMU1 unit as processing PAU unit resources
+        bool l_nmmu1_needed = false;
 
-        // extract bits associated with the pau logic units
-        i_scratch2_reg.extractToRight<PAU_GARD_STARTBIT, PAU_GARD_LENGTH>(l_gard_mask);
-        l_gard_mask = (l_gard_mask >> (NUM_PAUS_PER_PAUC * ((NUM_PAUC_PER_CHIP - 1) - l_unit_num))) & PAU_GARD_PAUC_MASK;
-
-        // PAUC1 has pau3 in first unit position, swap bits
-        if (l_unit_num == 1)
+        // PAUC
+        for (const auto& l_perv : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(static_cast<fapi2::TargetFilter>
+                (fapi2::TARGET_FILTER_ALL_PAU),
+                fapi2::TARGET_STATE_PRESENT))
         {
-            l_gard_mask = ((l_gard_mask & 0x1) << 1) |
-                          ((l_gard_mask >> 1) & 0x1);
+            uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num<fapi2::TARGET_TYPE_PAUC>(l_perv);
+            uint32_t l_gard_mask;
+            fapi2::ATTR_PG_Type l_pg;
+
+            // extract bits associated with the pau logic units
+            i_scratch2_reg.extractToRight<PAU_GARD_STARTBIT, PAU_GARD_LENGTH>(l_gard_mask);
+            l_gard_mask = (l_gard_mask >> (NUM_PAUS_PER_PAUC * ((NUM_PAUC_PER_CHIP - 1) - l_unit_num))) & PAU_GARD_PAUC_MASK;
+
+            // PAUC1 has pau3 in first unit bit position, swap bits
+            if (l_unit_num == 1)
+            {
+                l_gard_mask = ((l_gard_mask & 0x1) << 1) |
+                              ((l_gard_mask >> 1) & 0x1);
+            }
+
+            FAPI_DBG("PAU%d, chiplet gard mask: 0x%X, region gard mask: 0x%X",
+                     l_unit_num,
+                     i_scratch2_reg.getBit(static_cast<uint32_t>(PAUC_GARD_STARTBIT) + l_unit_num),
+                     l_gard_mask);
+
+
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
+            FAPI_DBG("  PG before: 0x%08X", l_pg);
+
+            if (i_scratch2_reg.getBit(static_cast<uint32_t>(PAUC_GARD_STARTBIT) + l_unit_num))
+            {
+                l_pg = 0xFFFFFFFF;
+            }
+            else
+            {
+                l_pg |= (l_gard_mask << PAUC_PG_PAU_SHIFT);
+            }
+
+            // NMMU1 required if any of pau0,4,5 are enabled, make decision from final PAUC chiplet PG data
+            // PAUC0 -> pau0
+            // PAUC2 -> pau4/5
+            if ((l_unit_num % 2) == 0)
+            {
+                if (((l_pg >> PAUC_PG_PAU_SHIFT) & PAU_GARD_PAUC_MASK) != PAU_GARD_PAUC_MASK)
+                {
+                    l_nmmu1_needed = true;
+                    FAPI_DBG("  NMMU1 required based on PAUC%d chiplet", l_unit_num);
+                }
+            }
+
+            FAPI_DBG("  PG after: 0x%08X", l_pg);
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
         }
 
-        FAPI_DBG("PAU%d, chiplet gard mask: 0x%X, region gard mask: 0x%X",
-                 l_unit_num,
-                 i_scratch2_reg.getBit(static_cast<uint32_t>(PAUC_GARD_STARTBIT) + l_unit_num),
-                 l_gard_mask);
-
-
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
-        FAPI_DBG("  PG before: 0x%08X", l_pg);
-
-        if (i_scratch2_reg.getBit(static_cast<uint32_t>(PAUC_GARD_STARTBIT) + l_unit_num))
+        // N1 - qualify NMM1 partial good state based on PAU logic unit state calculated above
+        for (const auto& l_perv : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(static_cast<fapi2::TargetFilter>
+                (fapi2::TARGET_FILTER_NEST_SOUTH),
+                fapi2::TARGET_STATE_PRESENT))
         {
-            l_pg = 0xFFFFFFFF;
-        }
-        else
-        {
-            l_pg |= (l_gard_mask << PAUC_PG_PAU_SHIFT);
-        }
+            fapi2::ATTR_PG_Type l_pg;
 
-        FAPI_DBG("  PG after: 0x%08X", l_pg);
-        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
+            FAPI_DBG("N1, NMMU1 region %s required", (l_nmmu1_needed) ? ("") : ("NOT"));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
+            FAPI_DBG("  PG before: 0x%08X", l_pg);
+
+            if (l_nmmu1_needed)
+            {
+                // ensure that NMM1 VPD partial good state supports requested PAU logic unit configuration
+                FAPI_ASSERT(((l_pg >> N1_PG_NMMU1_SHIFT) & 0x1) == 0x0,
+                            fapi2::P10_SBE_ATTR_SETUP_NMMU1_ERR()
+                            .set_TARGET_CHIP(i_target_chip)
+                            .set_N1_PG_MVPD(l_pg),
+                            "NMMU1 unit is required by PAU unit config, but it is disabled in module VPD");
+            }
+            else
+            {
+                // NMMU1 not needed, ensure it's deconfigured
+                l_pg |= (0x1 << N1_PG_NMMU1_SHIFT);
+            }
+
+            FAPI_DBG("  PG after: 0x%08X", l_pg);
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
+        }
     }
 
     // apply GARD information to IOHS0..7
