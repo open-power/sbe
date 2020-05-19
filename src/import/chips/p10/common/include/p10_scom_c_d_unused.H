@@ -39,22 +39,6 @@ namespace c
 #endif
 
 
-//>> [CPMS_PPSR]
-static const uint64_t CPMS_PPSR = 0x200e0e98ull;
-
-static const uint32_t CPMS_PPSR_ENERGY_PROXY_UPPER = 0;
-static const uint32_t CPMS_PPSR_ENERGY_PROXY_UPPER_LEN = 32;
-static const uint32_t CPMS_PPSR_ENERGY_PROXY_LOWER = 32;
-static const uint32_t CPMS_PPSR_ENERGY_PROXY_LOWER_LEN = 8;
-static const uint32_t CPMS_PPSR_PERIOD_PROXY_REMAIN = 40;
-static const uint32_t CPMS_PPSR_PERIOD_PROXY_REMAIN_LEN = 20;
-static const uint32_t CPMS_PPSR_FTX_SATURATED = 60;
-static const uint32_t CPMS_PPSR_PITCH_SATURATED = 61;
-static const uint32_t CPMS_PPSR_PITCH_ABORTED = 62;
-static const uint32_t CPMS_PPSR_PITCH_ACTIVE = 63;
-//<< [CPMS_PPSR]
-// c/reg00013.H
-
 //>> [EC_LS_LSU_HOLD_OUT_REG3]
 static const uint64_t EC_LS_LSU_HOLD_OUT_REG3 = 0x200206c3ull;
 
