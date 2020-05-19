@@ -240,4 +240,17 @@
     </callout>
   </hwpError>
   <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_OPIT_INTERRUPT_NOT_CLEAR</rc>
+    <description> OPIT Type A Interrupts could not be cleared by writing to PIG registers
+    </description>
+    <ffdc>CHIP</ffdc>
+    <ffdc>LOOP_COUNT</ffdc>
+    <ffdc>OPIT_AND</ffdc>
+    <callout>
+      <target>CHIP</target>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- ******************************************************************** -->
 </hwpErrors>
