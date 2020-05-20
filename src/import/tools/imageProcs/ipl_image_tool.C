@@ -2997,6 +2997,34 @@ dissectRingSectionPrep(void*                      i_image,
                     exit(EXIT_FAILURE);
                 }
             }
+            else if (strcmp(sectionName, ".dyn_features") == 0)
+            {
+                if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
+                {
+                    sectionId = P9_XIP_SECTION_HW_DYN_FEAT;
+                }
+                else
+                {
+                    fprintf(stderr,
+                            "\nERROR: .dyn_features is not a valid section for image w/magic=0x%016lx\n",
+                            hostHeader.iv_magic);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if (strcmp(sectionName, ".dyn_services") == 0)
+            {
+                if (hostHeader.iv_magic == P9_XIP_MAGIC_HW)
+                {
+                    sectionId = P9_XIP_SECTION_HW_DYN_SERV;
+                }
+                else
+                {
+                    fprintf(stderr,
+                            "\nERROR: .dyn_services is not a valid section for image w/magic=0x%016lx\n",
+                            hostHeader.iv_magic);
+                    exit(EXIT_FAILURE);
+                }
+            }
             else
             {
                 fprintf(stderr,
@@ -3006,6 +3034,8 @@ dissectRingSectionPrep(void*                      i_image,
                 fprintf(stderr, "\t.overlays\n");
                 fprintf(stderr, "\t.dynamic\n");
                 fprintf(stderr, "\t.overrides\n");
+                fprintf(stderr, "\t.dyn_features\n");
+                fprintf(stderr, "\t.dyn_services\n");
                 fprintf(stderr, "\n");
                 exit(EXIT_FAILURE);
             }
