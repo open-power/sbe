@@ -82,9 +82,16 @@ fapi2::ReturnCode p10_getmemproc(
 
         while (l_granules_before_setup && (l_target_address < l_end_address))
         {
+            // Invoke ADU access HWP to move one granule
+            // NOTE: SBE environment does not support memset and therefore must
+            // use compiler assisted initialization for dynamically sized memory,
+            // whereas some other environments do not support that ability.
+#ifndef __PPE__
             uint8_t l_data[8];
             memset(l_data, 0, 8);
-
+#else
+            uint8_t l_data[8] = {0};
+#endif
             // invoke ADU access HWP to read one granule (8B)
             FAPI_TRY(p10_adu_access(i_target,
                                     l_target_address,
