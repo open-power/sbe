@@ -111,7 +111,7 @@ p10_hcd_core_reset(
 
     //TODO SCAN ratio?
 
-    FAPI_TRY( p10_hcd_corecache_realign(eq_target, ( l_regions << SHIFT32(8) ) ) );
+    FAPI_TRY( p10_hcd_corecache_realign(eq_target, ( ( l_regions << SHIFT32(8) ) | ( l_regions << SHIFT32(18) ) ) ) );
 
 #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
 
