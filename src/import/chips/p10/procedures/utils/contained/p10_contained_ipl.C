@@ -157,7 +157,8 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-static fapi2::ReturnCode dyn_inits_setup(const bool i_runn)
+static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
+        const bool i_is_dump_ipl)
 {
     fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC_Type dyninits;
     fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type sthreads;
@@ -194,6 +195,11 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn)
         {
             dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_USE_QME_TB_SRC;
         }
+    }
+
+    if (i_is_dump_ipl)
+    {
+        dyninits |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_CONTAINED_DUMP;
     }
 
     FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC, SYS, dyninits));
@@ -265,17 +271,8 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-///
-/// @brief Hold EQ partial-good configuration from CPLT_CTRL2 registers which
-///        need to be saved and restored during the contained IPL.
-///
-/// eq_pgoods: [quadnum] -> CPLT_CTRL2 register value
-///
-using eq_pgoods = std::map<size_t, uint64_t>;
-
 static fapi2::ReturnCode save_eq_pgoods(const fapi2::Target < fapi2::TARGET_TYPE_PERV |
-                                        fapi2::TARGET_TYPE_MULTICAST > & i_perv_eqs_w_cores,
-                                        eq_pgoods& io_eq_pgoods)
+                                        fapi2::TARGET_TYPE_MULTICAST > & i_perv_eqs_w_cores)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -284,13 +281,18 @@ static fapi2::ReturnCode save_eq_pgoods(const fapi2::Target < fapi2::TARGET_TYPE
     const size_t perv_eq_cplt_id_start = 32;
     fapi2::buffer<uint64_t> tmp;
     fapi2::ATTR_CHIP_UNIT_POS_Type quadnum;
+    fapi2::ATTR_CONTAINED_EQ_PGOODS_Type eq_pgoods;
 
     for (const auto& eq : i_perv_eqs_w_cores.getChildren<fapi2::TARGET_TYPE_PERV>())
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, eq, quadnum));
         FAPI_TRY(GET_CPLT_CTRL2_RW(eq, tmp));
-        io_eq_pgoods[quadnum - perv_eq_cplt_id_start] = tmp;
+        eq_pgoods[quadnum - perv_eq_cplt_id_start] = tmp;
     }
+
+    FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CONTAINED_EQ_PGOODS,
+                           i_perv_eqs_w_cores.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
+                           eq_pgoods));
 
 fapi_try_exit:
     FAPI_INF("<< %s", __func__);
@@ -298,8 +300,7 @@ fapi_try_exit:
 }
 
 static fapi2::ReturnCode restore_eq_pgoods(const fapi2::Target < fapi2::TARGET_TYPE_PERV |
-        fapi2::TARGET_TYPE_MULTICAST > & i_perv_eqs_w_cores,
-        const eq_pgoods& i_eq_pgoods)
+        fapi2::TARGET_TYPE_MULTICAST > & i_perv_eqs_w_cores)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -308,11 +309,16 @@ static fapi2::ReturnCode restore_eq_pgoods(const fapi2::Target < fapi2::TARGET_T
     const size_t perv_eq_cplt_id_start = 32;
     fapi2::buffer<uint64_t> tmp;
     fapi2::ATTR_CHIP_UNIT_POS_Type quadnum;
+    fapi2::ATTR_CONTAINED_EQ_PGOODS_Type eq_pgoods;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_EQ_PGOODS,
+                           i_perv_eqs_w_cores.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
+                           eq_pgoods));
 
     for (const auto& eq : i_perv_eqs_w_cores.getChildren<fapi2::TARGET_TYPE_PERV>())
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, eq, quadnum));
-        tmp = i_eq_pgoods.at(quadnum - perv_eq_cplt_id_start);
+        tmp = eq_pgoods[quadnum - perv_eq_cplt_id_start];
         FAPI_TRY(PREP_CPLT_CTRL2_RW(eq));
         FAPI_TRY(PUT_CPLT_CTRL2_RW(eq, tmp));
     }
@@ -327,23 +333,37 @@ extern "C" {
     {
         bool chc;
         bool runn;
+        bool is_dump_ipl;
         const auto eqs_all_cores = i_target.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
         const auto perv_eqs_w_cores = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
         fapi2::ATTR_ACTIVE_CORES_VEC_Type active_bvec = 0;
-        fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL;
+        fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
 
-        l3_config l3_cache_config;
-        eq_pgoods eq_pgood_config;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, SYS, ipl_phase));
+        is_dump_ipl = ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL;
 
-        FAPI_INF("Switching to ATTR_SYSTEM_IPL_PHASE[CONTAINED_IPL]");
-        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYSTEM_IPL_PHASE, SYS, ipl_phase));
+        if (is_dump_ipl)
+        {
+            FAPI_INF("Running contained dump IPL");
+        }
+        else
+        {
+            ipl_phase = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL;
+            FAPI_INF("Switching to ATTR_SYSTEM_IPL_PHASE[CONTAINED_IPL]");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYSTEM_IPL_PHASE, SYS, ipl_phase));
+        }
+
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_target, active_bvec));
         FAPI_TRY(is_chc_ipl(chc));
         FAPI_TRY(is_runn_ipl(runn));
-        FAPI_TRY(dyn_inits_setup(runn));
+        FAPI_TRY(dyn_inits_setup(runn, is_dump_ipl));
 
-        FAPI_TRY(save_l3_config(i_target, active_bvec, l3_cache_config));
-        FAPI_TRY(save_eq_pgoods(perv_eqs_w_cores, eq_pgood_config));
+        if (!is_dump_ipl)
+        {
+            FAPI_TRY(save_l3_config(i_target, active_bvec));
+            FAPI_TRY(save_eq_pgoods(perv_eqs_w_cores));
+        }
+
         FAPI_TRY(stopclocks(i_target));
         FAPI_TRY(contained_setup(i_target, chc));
 
@@ -360,7 +380,7 @@ extern "C" {
                                            .setBit<scomt::perv::CPLT_CTRL1_REGION10_FENCE_DC>(); // clkadj
             const auto perv_eqs = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
             FAPI_TRY(fapi2::putScom(perv_eqs, scomt::perv::CPLT_CTRL2_RW, istep3_cplt_ctrl2));
-            FAPI_TRY(p10_contained_ipl_istep3(i_target, runn));
+            FAPI_TRY(p10_contained_ipl_istep3(i_target, runn, is_dump_ipl));
         }
         else
         {
@@ -385,9 +405,9 @@ extern "C" {
 
         FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
                  ISTEP4_MC_GROUPS));
-        FAPI_TRY(restore_eq_pgoods(perv_eqs_w_cores, eq_pgood_config));
-        FAPI_TRY(p10_contained_ipl_istep4(eqs_all_cores, chc, runn,
-                                          l3_cache_config, active_bvec));
+        FAPI_TRY(restore_eq_pgoods(perv_eqs_w_cores));
+        FAPI_TRY(p10_contained_ipl_istep4(eqs_all_cores, chc, runn, is_dump_ipl,
+                                          active_bvec));
 
     fapi_try_exit:
         return fapi2::current_err;

@@ -100,19 +100,11 @@ inline bool is_active_core(const size_t i_corenum, const uint32_t i_active_bvec)
     return ((1ul << (31 - i_corenum)) & i_active_bvec);
 }
 
-///
-/// @brief Hold L3 configuration registers which need to be saved and restored
-///        before and after scanning respectively
-///
-/// l3_config: [core #num][register addr] -> register value
-///
-using l3_config = std::map<size_t, std::map<uint64_t, uint64_t>>;
-
 fapi2::ReturnCode save_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                 const uint32_t i_active_bvec, l3_config& io_l3_config);
+                                 const uint32_t i_active_bvec);
 fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                    const uint32_t i_active_bvec, const l3_config& i_l3_config,
-                                    const bool i_runn, const bool i_chc);
+                                    const uint32_t i_active_bvec, const bool i_runn,
+                                    const bool i_chc);
 
 ///
 /// @brief Disable sreset-on-decrementer for all threads on cores behind a backing cache

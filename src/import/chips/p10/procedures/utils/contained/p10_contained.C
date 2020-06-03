@@ -64,13 +64,14 @@ fapi_try_exit:
 }
 
 fapi2::ReturnCode save_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                 const uint32_t i_active_bvec, l3_config& io_l3_config)
+                                 const uint32_t i_active_bvec)
 {
     FAPI_INF(">> %s", __func__);
 
     using namespace scomt::c;
 
     fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+    fapi2::ATTR_CONTAINED_L3_CONFIG_Type l3_config;
     fapi2::buffer<uint64_t> tmp = 0;
 
     for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
@@ -80,18 +81,20 @@ fapi2::ReturnCode save_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         if (is_active_core(corenum, i_active_bvec))
         {
             FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(core, tmp));
-            io_l3_config[corenum][L3_MISC_L3CERRS_MODE_REG1] = tmp;
+            l3_config[corenum * 2 + 0] = tmp;
             FAPI_TRY(GET_L3_MISC_L3CERRS_BACKING_CTL_REG(core, tmp));
-            io_l3_config[corenum][L3_MISC_L3CERRS_BACKING_CTL_REG] = tmp;
+            l3_config[corenum * 2 + 1] = tmp;
         }
         else
         {
             FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(core, tmp));
-            io_l3_config[corenum][L3_MISC_L3CERRS_MODE_REG1] = tmp;
+            l3_config[corenum * 2 + 0] = tmp;
             FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG0(core, tmp));
-            io_l3_config[corenum][L3_MISC_L3CERRS_MODE_REG0] = tmp;
+            l3_config[corenum * 2 + 1] = tmp;
         }
     }
+
+    FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CONTAINED_L3_CONFIG, i_chip, l3_config));
 
 fapi_try_exit:
     FAPI_INF("<< %s", __func__);
@@ -107,8 +110,8 @@ fapi_try_exit:
     }
 
 fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                    const uint32_t i_active_bvec, const l3_config& i_l3_config,
-                                    const bool i_runn, const bool i_chc)
+                                    const uint32_t i_active_bvec, const bool i_runn,
+                                    const bool i_chc)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -123,8 +126,10 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
     const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
             .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>());
     fapi2::buffer<uint64_t> scan_region_type;
+    fapi2::ATTR_CONTAINED_L3_CONFIG_Type l3_config;
 
     FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_chip, ec));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_L3_CONFIG, i_chip, l3_config));
 
     for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
@@ -144,12 +149,12 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
         }
         else
         {
-            mode_reg1 = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_MODE_REG1);
+            mode_reg1 = l3_config[corenum * 2 + 0];
         }
 
         if (is_active_core(corenum, i_active_bvec))
         {
-            backing_ctl_reg = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_BACKING_CTL_REG);
+            backing_ctl_reg = l3_config[corenum * 2 + 1];
 
             if (i_runn)
             {
@@ -176,7 +181,7 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
         }
         else
         {
-            mode_reg0 = i_l3_config.at(corenum).at(L3_MISC_L3CERRS_MODE_REG0);
+            mode_reg0 = l3_config[corenum * 2 + 1];
 
             if (i_runn)
             {
