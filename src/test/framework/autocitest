@@ -70,7 +70,7 @@ echo "$timestamp Starting SBE test..."
 
 curDir=`pwd`
 cd simics/
-./runsim -b -m p10_standalone sbe_boot_mem='otprom' sbe_seeprom_img="$SBEROMDIR/sbe_seeprom_p10.bin.ecc" sbe_meas_seeprom_img="$SBEROMDIR/sbe_measurement_p10.bin.ecc" istep_mode=TRUE sbe_script_to_run=targets/p10_standalone/sbeTest/sbe_startup_p10_standalone.simics sbe_scripts_path=targets/p10_standalone/sbeTest/ sbe_ci=TRUE sbe_ci_script=targets/p10_standalone/sbeTest/testP10_standalone.simics || exit -1
+./runsim -b -m p10_standalone sbe_boot_mem='otprom' sbe_otprom_img="$SBEROMDIR/sbe_otprom_p10.bin" sbe_seeprom_img="$SBEROMDIR/sbe_seeprom_p10.bin.ecc" sbe_meas_seeprom_img="$SBEROMDIR/sbe_measurement_p10.bin.ecc" istep_mode=TRUE sbe_script_to_run=targets/p10_standalone/sbeTest/sbe_startup_p10_standalone.simics sbe_scripts_path=targets/p10_standalone/sbeTest/ sbe_ci=TRUE sbe_ci_script=targets/p10_standalone/sbeTest/testP10_standalone.simics || exit -1
 cd $curDir
 
 exit 0
