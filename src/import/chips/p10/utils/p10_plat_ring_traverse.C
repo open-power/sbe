@@ -326,7 +326,7 @@ fapi2::ReturnCode getRS4ImageFromTor(
         {
             // Try to reduce the target to chiplet type
             fapi2::Target < fapi2::TARGET_TYPE_CHIPLETS | fapi2::TARGET_TYPE_MULTICAST > l_cplt_target;
-            fapi2::ReturnCode l_reduce_rc = temp_reduceType(i_target, l_cplt_target);
+            fapi2::ReturnCode l_reduce_rc = i_target.reduceType(l_cplt_target);
 
             if (l_reduce_rc == fapi2::FAPI2_RC_SUCCESS)
             {
