@@ -183,6 +183,20 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                 {
                     FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_OCB_OCCFLG3_RW(i_target,l_occs3_data));
 
+#ifdef __PPE__
+                    //Adding this code because, in simics FIT interrupt is
+                    //taking longer duration to interrupt the XGPE and when I
+                    //tried to change the FIT frequency to different values, it
+                    //was very fast and that was causing other interrupts task
+                    //to hold.So for now adding this code only for simics
+                    //environment
+                    if( SBE::isSimicsRunning() )
+                    {
+                        FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_OCCFLG3_WO_OR(i_target,BIT64(PM_COMPLEX_SUSPENDED)));
+                        FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_OCCFLG3_WO_CLEAR(i_target,BIT64(PM_COMPLEX_SUSPEND)));
+                    }
+#endif
+
                     if(l_occs3_data.getBit<PM_COMPLEX_SUSPENDED>())
                     {
                         l_xgpe_suspended = true;
