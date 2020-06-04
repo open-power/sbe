@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2019
+# Contributors Listed Below - COPYRIGHT 2019,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -24,6 +24,7 @@
 # IBM_PROLOG_END_TAG
 
 export SUB_OBJDIR = /sbefw/measurement
+
 OBJS = $(addprefix $(OBJDIR)/, $(MEASUREMENT_OBJECTS))
 LIBNAME = libtestMeasure
 

@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -56,7 +57,8 @@ enum sbeState
 enum sbeRole
 {
     SBE_ROLE_MASTER = 0,
-    SBE_ROLE_SLAVE = 1
+    SBE_ROLE_SLAVE = 1,
+    SBE_ROLE_ALT_MASTER = 2,
 };
 
 #endif //__SBEFW_SBESTATES_H

@@ -106,6 +106,8 @@ void jump2boot()
 }
 } // end extern "C"
 
+extern uint32_t initializeTPM();
+extern uint32_t performTPMSequences();
 // SBE Frequency to be used to initialise PK
 uint32_t g_sbemfreqency = SBE_REF_BASE_FREQ_HZ;
 
@@ -119,68 +121,84 @@ int  main(int argc, char **argv)
     int l_rc = 0;
     uint64_t rootCtrlReg3 = 0;
     sbe_local_LFR lfrReg;
-
-    // Update the Code Flow status in messaging register 50009
-    uint64_t loadValue = (uint64_t)(SBE_CODE_MEASURMENT_PIBMEM_START_MSG)<<32;
-    PPE_STVD(0x50009, loadValue);
-
-    //Fetch the default clock divider from LFR
-    PPE_LVD(0xc0002040, lfrReg);
-
-    // Fetch the SPI4 Config Registers 
-    uint64_t spiClockReg = 0;
-    uint64_t spiConfigReg = 0;
-    // Unlock SPI4 if it was locked by Hostboot, keep it unlocked
-    PPE_LVD(0xc0082, spiConfigReg);
-    PPE_STVD(0xc0082, spiConfigReg);
-
-    PPE_LVD(0xc0083, spiClockReg);
-    uint8_t clock_delay = 0x80; // default clock delay
-    spiClockReg = ( (spiClockReg & SPI_CLOCK_DELAY_MASK) |
-                    ((uint64_t)clock_delay << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) );
-    PPE_STVD(0xc0083, spiClockReg);
-
-    //Check root control register3 bit25 if the PAU DPLL in bypass or not.
-    //If not bypass then we can use the 1968MHz chip frequency, if bypass then
-    //use 133MHz chip frequency
-    PPE_LVD(0x50013, rootCtrlReg3);
-    if(!(rootCtrlReg3 & MASK_BIT25))
+    do
     {
-        g_sbemfreqency = SBE_PAU_DPLL_BASE_FREQ_HZ;
-        lfrReg.spi_clock_divider = 48; // Hard-coded basis (1968/40 - 1)
+        // Update the Code Flow status in messaging register 50009
+        uint64_t loadValue = (uint64_t)(SBE_CODE_MEASURMENT_PIBMEM_START_MSG)<<32;
+        PPE_STVD(0x50009, loadValue);
 
-        //Update LFR to match up to the new divider
-        PPE_STVD(0xc0002040, lfrReg);
-    }
-    else
-    {
-        // g_sbemfrequency and lfr.spi_clock_divider are already updated with
-        // 133Mhz and 4 respectively. Just update the TPM Spi clock at this
-        // point so that TPM can be accessible. 
+        //Fetch the default clock divider from LFR
+        PPE_LVD(0xc0002040, lfrReg);
 
-        //SPI4
-        spiClockReg = 0;
+        // Fetch the SPI4 Config Registers 
+        uint64_t spiClockReg = 0;
+        uint64_t spiConfigReg = 0;
+        // Unlock SPI4 if it was locked by Hostboot, keep it unlocked
+        PPE_LVD(0xc0082, spiConfigReg);
+        PPE_STVD(0xc0082, spiConfigReg);
+
         PPE_LVD(0xc0083, spiClockReg);
-        spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_MASK) |
-                        ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) );
+        uint8_t clock_delay = 0x80; // default clock delay
+        spiClockReg = ( (spiClockReg & SPI_CLOCK_DELAY_MASK) |
+                        ((uint64_t)clock_delay << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) );
         PPE_STVD(0xc0083, spiClockReg);
-    }
 
-    l_rc = pk_initialize((PkAddress)measurment_Kernel_NC_Int_stack,
-                         MEASUREMENT_NONCRITICAL_STACK_SIZE,
-                         INITIAL_PK_TIMEBASE, // initial_timebase
-                         g_sbemfreqency );
-    if (l_rc)
-    {
-         return 0;
-    }
+        //Check root control register3 bit25 if the PAU DPLL in bypass or not.
+        //If not bypass then we can use the 1968MHz chip frequency, if bypass then
+        //use 133MHz chip frequency
+        PPE_LVD(0x50013, rootCtrlReg3);
+        if(!(rootCtrlReg3 & MASK_BIT25))
+        {
+            g_sbemfreqency = SBE_PAU_DPLL_BASE_FREQ_HZ;
+            lfrReg.spi_clock_divider = 48; // Hard-coded basis (1968/40 - 1)
+            // Update LFR to match up to the new divider
+            PPE_STVD(0xc0002040, lfrReg);
+
+        }
+        else
+        {
+            // g_sbemfrequency and lfr.spi_clock_divider are already updated with
+            // 133Mhz and 4 respectively. Just update the TPM Spi clock at this
+            // point so that TPM can be accessible. 
+
+            //SPI4
+            spiClockReg = 0;
+            PPE_LVD(0xc0083, spiClockReg);
+            spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_MASK) |
+                            ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) );
+            PPE_STVD(0xc0083, spiClockReg);
+        }
+
+        l_rc = pk_initialize((PkAddress)measurment_Kernel_NC_Int_stack,
+                             MEASUREMENT_NONCRITICAL_STACK_SIZE,
+                             INITIAL_PK_TIMEBASE, // initial_timebase
+                             g_sbemfreqency );
+        if (l_rc)
+        {
+            SBEM_ERROR(SBEM_FUNC "pk_initialize failed with rc 0x%08X", l_rc);
+            break;
+        }
+        SBEM_INFO("Completed PK initialization for Measurement");
+        l_rc = initializeTPM();
+        if (l_rc)
+        {
+            SBEM_ERROR(SBEM_FUNC "initializeTPM failed with rc 0x%08X", l_rc);
+            break;
+        }
+        SBEM_INFO("TPM initialization is complete. Verify SPI and TPM read and write.");
+        l_rc = performTPMSequences();
+        if (l_rc)
+        {
+            SBEM_ERROR(SBEM_FUNC "verifySPIandTPM failed with rc 0x%08X", l_rc);
+            break;
+        }
+        SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
+    }while(0);
     SBEM_INFO("LFR = [0x%04X 0x%02X] SBE Freq = 0x%08X", lfrReg.spi_clock_divider, lfrReg.round_trip_delay, g_sbemfreqency);
 
     sbemSetSecureAccessBit();
     
     jump2boot();
-
     SBEM_EXIT(SBEM_FUNC);
-    return 0;
+    return l_rc;
 }
-

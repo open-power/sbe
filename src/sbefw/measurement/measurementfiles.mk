@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2019,2020
+# Contributors Listed Below - COPYRIGHT 2019,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -24,10 +24,11 @@
 # IBM_PROLOG_END_TAG
 
 MEASUREMENT-CPP-SOURCES =  measurement_main.C
-MEASUREMENT-CPP-SOURCES += p10_sbe_spi_cmd_test.C
+MEASUREMENT-CPP-SOURCES += sbemTPMSequences.C
+MEASUREMENT-CPP-SOURCES += sbeglobals.C 
 MEASUREMENT-CPP-SOURCES += sbeutil.C 
-MEASUREMENT-CPP-SOURCES += test_lib.C
 MEASUREMENT-CPP-SOURCES += sbemsecuritysetting.C
+MEASUREMENT-CPP-SOURCES += test_lib.C
 
 MEASUREMENT-C-SOURCES =
 MEASUREMENT-S-SOURCES =

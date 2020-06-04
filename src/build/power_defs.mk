@@ -29,7 +29,7 @@
 # 3 - Error, info, entry/exit
 # 4 - Error, info, entry/exit, debug
 SBE_TRACE_LEVEL_DEF = 2
-SBEM_TRACE_LEVEL_DEF = 4
+SBEM_TRACE_LEVEL_DEF = 2
 
 FAPI_TRACE_LEVEL_DEF = 2
 
