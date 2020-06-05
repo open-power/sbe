@@ -27,7 +27,7 @@
 #define P10_CONTAINED_RINGSPIN_GEN_H
 
 namespace ec10 {
-static inline fapi2::ReturnCode ec_l3_fure_restore_active_l3(
+static inline fapi2::ReturnCode ec_l3_func_restore_active_l3(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
     const uint64_t i_scan_region_type,
     const uint64_t i_ecp_l3_l3_misc_l3cerrs_backing_l3_ctl_reg,
@@ -153,7 +153,7 @@ fapi_try_exit:
 }// namespace ec10
 
 namespace ec10 {
-static inline fapi2::ReturnCode ec_l3_fure_restore_backing_l3(
+static inline fapi2::ReturnCode ec_l3_func_restore_backing_l3(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
     const uint64_t i_scan_region_type,
     const uint64_t i_ecp_l3_l3_misc_l3cerrs_mode_reg0,

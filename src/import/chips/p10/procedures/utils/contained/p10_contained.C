@@ -119,10 +119,9 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
     fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
     fapi2::ATTR_EC_Type ec;
     fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
-    // ec_l3_fure
+    // ec_l3_func
     const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
-            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>()
-            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_REGF>());
+            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>());
     fapi2::buffer<uint64_t> scan_region_type;
 
     FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_chip, ec));
@@ -157,12 +156,12 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                 switch (ec)
                 {
                 // *INDENT-OFF*
-                RINGSPIN_EC_SWITCH_CASE(10, ec_l3_fure_restore_active_l3,
+                RINGSPIN_EC_SWITCH_CASE(10, ec_l3_func_restore_active_l3,
                                         perv, scan_region_type, backing_ctl_reg,
                                         mode_reg1)
                 default:
                     FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
-                             " PROCEDURE=ec_l3_fure_restore_backing_l3", ec);
+                             " PROCEDURE=ec_l3_func_restore_backing_l3", ec);
                     return fapi2::FAPI2_RC_FALSE;
                 }
                 // *INDENT-ON*
@@ -184,12 +183,12 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                 switch (ec)
                 {
                 // *INDENT-OFF*
-                RINGSPIN_EC_SWITCH_CASE(10, ec_l3_fure_restore_backing_l3,
+                RINGSPIN_EC_SWITCH_CASE(10, ec_l3_func_restore_backing_l3,
                                         perv, scan_region_type, mode_reg0,
                                         mode_reg1)
                 default:
                     FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
-                             " PROCEDURE=ec_l3_fure_restore_backing_l3", ec);
+                             " PROCEDURE=ec_l3_func_restore_backing_l3", ec);
                     return fapi2::FAPI2_RC_FALSE;
                 // *INDENT-ON*
                 }

@@ -51,7 +51,7 @@ Generated procedure prototypes look like this (first function from the sample
 YAML above):
 
     namespace ec10 {
-    static inline fapi2::ReturnCode ec_l3_fure_ringspin(
+    static inline fapi2::ReturnCode ec_l3_func_ringspin(
         const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
         const uint64_t i_scan_region_type,
         const uint64_t i_ecp_l3_l3_misc_l3cerrs_backing_l3_ctl_reg,
@@ -68,13 +68,13 @@ Notes
 -----
 There is a simple testing script in `src/ringspinner/test/`. The test can be run
 with `src/ringspinner/test/ringspin.test.sh` from a suitable checkpoint (ie.
-EQ00 `EC_L3_FURE` ring in scanable state) on AWAN (or MESA but that's slooow).
-The test sets some SPYs in the EQ00 `EC_L3_FURE` ring using a
+EQ00 `EC_L3_FUNC` ring in scanable state) on AWAN (or MESA but that's slooow).
+The test sets some SPYs in the EQ00 `EC_L3_FUNC` ring using a
 ringspinner-generated procedure and checks the resulting scanring using the
 ECMD/CRONUS `getspy` utility.
 
 Summary of how to run test:
-    1. Load an AWAN/MESA simulation checkpoint where the EQ00 `EC_L3_FURE` ring
+    1. Load an AWAN/MESA simulation checkpoint where the EQ00 `EC_L3_FUNC` ring
        is in a scanable state
     2. Set `PROJECT_ROOT` environment variable
     3. Potentially modify `src/ringspinner/test/ringsping.test.yaml` to point to
