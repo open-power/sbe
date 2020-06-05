@@ -301,6 +301,7 @@ static istepMap_t g_istep2PtrTbl[] =
 #ifdef SEEPROM_IMAGE
              ISTEP_MAP( NULL, NULL ),
              ISTEP_MAP( istepAttrSetup, p10_sbe_attr_setup),
+             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_tp_dpll_bypass
              ISTEP_MAP( istepWithProc, p10_sbe_tp_chiplet_reset),
              ISTEP_MAP( istepWithProc, p10_sbe_tp_gptr_time_initf),
              ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_1),// DFT only
