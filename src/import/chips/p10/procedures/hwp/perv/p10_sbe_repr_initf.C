@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,28 +44,20 @@ static const ring_setup_t ISTEP3_REPR_RINGS[] =
     { mc_repr,              IGNORE_PG,   TARGET_CHIPLET, 0xC,  0xF,  0},
     { iohs0_repr,           IGNORE_PG,   TARGET_CHIP,    0x18, 0x18, 0},
     { iohs0_pdl_repr,       IGNORE_PG,   TARGET_CHIP,    0x18, 0x18, 0},
-    { iohs0_ndl_repr,       0x8,         TARGET_CHIP,    0x18, 0x18, 0},
     { iohs1_repr,           IGNORE_PG,   TARGET_CHIP,    0x19, 0x19, 0},
     { iohs1_pdl_repr,       IGNORE_PG,   TARGET_CHIP,    0x19, 0x19, 0},
-    { iohs1_ndl_repr,       0x8,         TARGET_CHIP,    0x19, 0x19, 0},
     { iohs2_repr,           IGNORE_PG,   TARGET_CHIP,    0x1A, 0x1A, 0},
     { iohs2_pdl_repr,       IGNORE_PG,   TARGET_CHIP,    0x1A, 0x1A, 0},
-    { iohs2_ndl_repr,       0x8,         TARGET_CHIP,    0x1A, 0x1A, 0},
     { iohs3_repr,           IGNORE_PG,   TARGET_CHIP,    0x1B, 0x1B, 0},
     { iohs3_pdl_repr,       IGNORE_PG,   TARGET_CHIP,    0x1B, 0x1B, 0},
-    { iohs3_ndl_repr,       0x8,         TARGET_CHIP,    0x1B, 0x1B, 0},
     { iohs4_repr,           IGNORE_PG,   TARGET_CHIP,    0x1C, 0x1C, 0},
     { iohs4_pdl_repr,       IGNORE_PG,   TARGET_CHIP,    0x1C, 0x1C, 0},
-    { iohs4_ndl_repr,       0x8,         TARGET_CHIP,    0x1C, 0x1C, 0},
     { iohs5_repr,           IGNORE_PG,   TARGET_CHIP,    0x1D, 0x1D, 0},
     { iohs5_pdl_repr,       IGNORE_PG,   TARGET_CHIP,    0x1D, 0x1D, 0},
-    { iohs5_ndl_repr,       0x8,         TARGET_CHIP,    0x1D, 0x1D, 0},
     { iohs6_repr,           IGNORE_PG,   TARGET_CHIP,    0x1E, 0x1E, 0},
     { iohs6_pdl_repr,       IGNORE_PG,   TARGET_CHIP,    0x1E, 0x1E, 0},
-    { iohs6_ndl_repr,       0x8,         TARGET_CHIP,    0x1E, 0x1E, 0},
     { iohs7_repr,           IGNORE_PG,   TARGET_CHIP,    0x1F, 0x1F, 0},
     { iohs7_pdl_repr,       IGNORE_PG,   TARGET_CHIP,    0x1F, 0x1F, 0},
-    { iohs7_ndl_repr,       0x8,         TARGET_CHIP,    0x1F, 0x1F, 0},
     { pau0_repr,            IGNORE_PG,   TARGET_CHIP,    0x10, 0x10, 0},
     { pau1_repr,            IGNORE_PG,   TARGET_CHIP,    0x11, 0x11, 0},
     { pau2_repr,            IGNORE_PG,   TARGET_CHIP,    0x12, 0x12, 0},

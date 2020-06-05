@@ -65,14 +65,9 @@ p10_hcd_cache_initf(
 
 #ifndef P10_HCD_CORECACHE_SKIP_INITF
 
-    FAPI_DBG("Scan ec_l3_fure ring");
-    FAPI_TRY(fapi2::putRing(i_target, ec_l3_fure),
-             "Error from putRing (ec_l3_fure)");
-
-    FAPI_DBG("Scan ec_l3_mode ring");
-    FAPI_TRY(fapi2::putRing(i_target, ec_l3_mode),
-             "Error from putRing (ec_l3_mode)");
-
+    FAPI_DBG("Scan ec_l3_func ring");
+    FAPI_TRY(fapi2::putRing(i_target, ec_l3_func),
+             "Error from putRing (ec_l3_func)");
 
 fapi_try_exit:
 

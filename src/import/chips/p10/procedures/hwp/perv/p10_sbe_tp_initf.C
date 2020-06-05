@@ -35,10 +35,10 @@
 #include "p10_sbe_tp_initf.H"
 #include "p10_perv_sbe_cmn.H"
 
-static const ring_setup_t ISTEP2_FURE_RINGS[] =
+static const ring_setup_t ISTEP2_FUNC_RINGS[] =
 {
-    { perv_fure,      IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 1},
-    // putring call on occ_fure moved to istep s3.
+    { perv_func,      IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 1},
+    // putring call on occ_func moved to istep s3.
 };
 
 fapi2::ReturnCode p10_sbe_tp_initf(const
@@ -46,7 +46,7 @@ fapi2::ReturnCode p10_sbe_tp_initf(const
 {
     FAPI_INF("p10_sbe_tp_initf: Entering ...");
 
-    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP2_FURE_RINGS, true));
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP2_FUNC_RINGS, true));
 
     FAPI_INF("p10_sbe_tp_initf: Exiting ...");
 

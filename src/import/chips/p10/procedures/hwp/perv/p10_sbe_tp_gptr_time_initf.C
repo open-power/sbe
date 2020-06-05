@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,7 +40,7 @@ static const ring_setup_t ISTEP2_GPTR_TIME_RINGS[] =
 {
     {perv_pll_gptr,  IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
     {perv_dpll_gptr, IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
-    // perv & occ regions are merged for all ring types other than fure
+    // perv & occ regions are merged for all ring types other than func
     {perv_occ_gptr,  IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 0},
     {perv_occ_time,  IGNORE_PG, TARGET_CHIP, 0x1, 0x1, 1},
 };

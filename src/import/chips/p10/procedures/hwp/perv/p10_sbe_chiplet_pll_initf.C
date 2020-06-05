@@ -46,6 +46,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
 
     fapi2::ATTR_MC_PLL_BUCKET_Type l_mc_pll_bucket;
     fapi2::ATTR_IOHS_PLL_BUCKET_Type l_iohs_pll_bucket;
+    fapi2::ATTR_PCI_PLL_BUCKET_Type l_pci_pll_bucket;
 
     // This variable (mc_ring_id/iohs_ring_id) is getting assigned to ro data
     // section per the map file, which is by default 8byte aligned.
@@ -57,10 +58,9 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
                                                                mc_pll_bndy_bucket_2,
                                                                mc_pll_bndy_bucket_3,
                                                                mc_pll_bndy_bucket_4,
-                                                               // RTC: 253964
-                                                               mc_pll_bndy_bucket_4,
-                                                               mc_pll_bndy_bucket_4,
-                                                               mc_pll_bndy_bucket_4,
+                                                               mc_pll_bndy_bucket_5,
+                                                               mc_pll_bndy_bucket_6,
+                                                               mc_pll_bndy_bucket_7,
                                                              };
 
     static const RingID iohs_ring_id[P10_MAX_IOHS_PLL_BUCKETS] = { iohs0_pll_bndy_bucket_0,
@@ -70,8 +70,22 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
                                                                    iohs0_pll_bndy_bucket_4,
                                                                    iohs0_pll_bndy_bucket_5,
                                                                    iohs0_pll_bndy_bucket_6,
-                                                                   iohs0_pll_bndy_bucket_7
+                                                                   iohs0_pll_bndy_bucket_7,
+                                                                   iohs0_pll_bndy_bucket_8,
+                                                                   iohs0_pll_bndy_bucket_9,
+                                                                   iohs0_pll_bndy_bucket_10,
+                                                                   iohs0_pll_bndy_bucket_11,
+                                                                   iohs0_pll_bndy_bucket_12,
+                                                                   iohs0_pll_bndy_bucket_13,
+                                                                   iohs0_pll_bndy_bucket_14,
+                                                                   iohs0_pll_bndy_bucket_15,
                                                                  };
+
+    static const RingID pci_ring_id[P10_MAX_PCI_PLL_BUCKETS] = { pci_pll_bndy_bucket_0,
+                                                                 pci_pll_bndy_bucket_1,
+                                                                 pci_pll_bndy_bucket_2,
+                                                                 pci_pll_bndy_bucket_3,
+                                                               };
 
     auto l_pci = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
@@ -88,9 +102,18 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
     // PCI chiplets
     if (l_pci.size())
     {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PCI_PLL_BUCKET, i_target_chip, l_pci_pll_bucket),
+                 "Error from FAPI_ATTR_GET (ATTR_PCI_PLL_BUCKET)");
+
+        FAPI_ASSERT(l_pci_pll_bucket < P10_MAX_PCI_PLL_BUCKETS,
+                    fapi2::P10_SBE_PLL_INITF_UNSUPPORTED_PLL_BUCKET().
+                    set_BUCKET_INDEX(l_pci_pll_bucket).
+                    set_CHIPLET_ID(0x8),
+                    "Unsupported PCI PLL bucket value!");
+
         auto l_pci = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PCI);
         FAPI_TRY(fapi2::putRing(l_pci,
-                                pci_pll_bndy,
+                                pci_ring_id[l_pci_pll_bucket],
                                 fapi2::RING_MODE_SET_PULSE_NSL),
                  "Error from putRing (pci_pll_bndy)");
     }
@@ -112,10 +135,10 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
             int i = (l_chipletID - 0xC);
 
             FAPI_ASSERT(l_mc_pll_bucket[i] < P10_MAX_MC_PLL_BUCKETS,
-                        fapi2::P10_SBE_CHIPLET_PLL_INITF_UNSUPPORTED_PLL_BUCKET().
+                        fapi2::P10_SBE_PLL_INITF_UNSUPPORTED_PLL_BUCKET().
                         set_BUCKET_INDEX(l_mc_pll_bucket[i]).
                         set_CHIPLET_ID(l_chipletID),
-                        "Unsupported PLL bucket value!");
+                        "Unsupported MC PLL bucket value!");
 
             FAPI_TRY(fapi2::putRing(l_cplt_target,
                                     mc_ring_id[l_mc_pll_bucket[i]],
@@ -129,10 +152,10 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
             int i = (l_chipletID - 0x18);
 
             FAPI_ASSERT(l_iohs_pll_bucket[i] < P10_MAX_IOHS_PLL_BUCKETS,
-                        fapi2::P10_SBE_CHIPLET_PLL_INITF_UNSUPPORTED_PLL_BUCKET().
+                        fapi2::P10_SBE_PLL_INITF_UNSUPPORTED_PLL_BUCKET().
                         set_BUCKET_INDEX(l_iohs_pll_bucket[i]).
                         set_CHIPLET_ID(l_chipletID),
-                        "Unsupported PLL bucket value!");
+                        "Unsupported IOHS PLL bucket value!");
 
             l_scan_chiplet_override = l_chipletID;
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SCAN_CHIPLET_OVERRIDE, i_target_chip, l_scan_chiplet_override),

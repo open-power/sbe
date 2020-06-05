@@ -38,64 +38,55 @@
 #include <multicast_defs.H>
 #include <multicast_group_defs.H>
 
-static const ring_setup_t ISTEP3_FURE_RINGS_UNICAST[] =
+static const ring_setup_t ISTEP3_FUNC_RINGS_UNICAST[] =
 {
-    { n0_fure,        IGNORE_PG, TARGET_CHIP,    0x2,  0x2,  0},
-    { n1_fure,        IGNORE_PG, TARGET_CHIP,    0x3,  0x3,  0},
-    { n1_nmmu1_fure,  0x9,       TARGET_CHIP,    0x3,  0x3,  0},
-    { occ_fure,       IGNORE_PG, TARGET_CHIP,    0x1,  0x1,  0},
-    { iohs0_fure,     IGNORE_PG, TARGET_CHIP,    0x18, 0x18, 0},
-    { iohs0_pdl_fure, IGNORE_PG, TARGET_CHIP,    0x18, 0x18, 0},
-    { iohs0_ndl_fure, 0x8,       TARGET_CHIP,    0x18, 0x18, 0},
-    { iohs1_fure,     IGNORE_PG, TARGET_CHIP,    0x19, 0x19, 0},
-    { iohs1_pdl_fure, IGNORE_PG, TARGET_CHIP,    0x19, 0x19, 0},
-    { iohs1_ndl_fure, 0x8,       TARGET_CHIP,    0x19, 0x19, 0},
-    { iohs2_fure,     IGNORE_PG, TARGET_CHIP,    0x1A, 0x1A, 0},
-    { iohs2_pdl_fure, IGNORE_PG, TARGET_CHIP,    0x1A, 0x1A, 0},
-    { iohs2_ndl_fure, 0x8,       TARGET_CHIP,    0x1A, 0x1A, 0},
-    { iohs3_fure,     IGNORE_PG, TARGET_CHIP,    0x1B, 0x1B, 0},
-    { iohs3_pdl_fure, IGNORE_PG, TARGET_CHIP,    0x1B, 0x1B, 0},
-    { iohs3_ndl_fure, 0x8,       TARGET_CHIP,    0x1B, 0x1B, 0},
-    { iohs4_fure,     IGNORE_PG, TARGET_CHIP,    0x1C, 0x1C, 0},
-    { iohs4_pdl_fure, IGNORE_PG, TARGET_CHIP,    0x1C, 0x1C, 0},
-    { iohs4_ndl_fure, 0x8,       TARGET_CHIP,    0x1C, 0x1C, 0},
-    { iohs5_fure,     IGNORE_PG, TARGET_CHIP,    0x1D, 0x1D, 0},
-    { iohs5_pdl_fure, IGNORE_PG, TARGET_CHIP,    0x1D, 0x1D, 0},
-    { iohs5_ndl_fure, 0x8,       TARGET_CHIP,    0x1D, 0x1D, 0},
-    { iohs6_fure,     IGNORE_PG, TARGET_CHIP,    0x1E, 0x1E, 0},
-    { iohs6_pdl_fure, IGNORE_PG, TARGET_CHIP,    0x1E, 0x1E, 0},
-    { iohs6_ndl_fure, 0x8,       TARGET_CHIP,    0x1E, 0x1E, 0},
-    { iohs7_fure,     IGNORE_PG, TARGET_CHIP,    0x1F, 0x1F, 0},
-    { iohs7_pdl_fure, IGNORE_PG, TARGET_CHIP,    0x1F, 0x1F, 0},
-    { iohs7_ndl_fure, 0x8,       TARGET_CHIP,    0x1F, 0x1F, 0},
-    { pau0_fure,      IGNORE_PG, TARGET_CHIP,    0x10, 0x10, 0},
-    { pau1_fure,      IGNORE_PG, TARGET_CHIP,    0x11, 0x11, 0},
-    { pau2_fure,      IGNORE_PG, TARGET_CHIP,    0x12, 0x12, 0},
-    { pau3_fure,      IGNORE_PG, TARGET_CHIP,    0x13, 0x13, 0},
-    { pau0_pau0_fure, 0x5,       TARGET_CHIP,    0x10, 0x10, 0},
-    { pau1_pau3_fure, 0x5,       TARGET_CHIP,    0x11, 0x11, 0},
-    { pau2_pau4_fure, 0x5,       TARGET_CHIP,    0x12, 0x12, 0},
-    { pau2_pau5_fure, 0x6,       TARGET_CHIP,    0x12, 0x12, 0},
-    { pau3_pau6_fure, 0x5,       TARGET_CHIP,    0x13, 0x13, 0},
-    { pau3_pau7_fure, 0x6,       TARGET_CHIP,    0x13, 0x13, 1},
+    { n0_func,        IGNORE_PG, TARGET_CHIP,    0x2,  0x2,  0},
+    { n1_func,        IGNORE_PG, TARGET_CHIP,    0x3,  0x3,  0},
+    { n1_nmmu1_func,  0x9,       TARGET_CHIP,    0x3,  0x3,  0},
+    { occ_func,       IGNORE_PG, TARGET_CHIP,    0x1,  0x1,  0},
+    { iohs0_func,     IGNORE_PG, TARGET_CHIP,    0x18, 0x18, 0},
+    { iohs0_pdl_func, IGNORE_PG, TARGET_CHIP,    0x18, 0x18, 0},
+    { iohs1_func,     IGNORE_PG, TARGET_CHIP,    0x19, 0x19, 0},
+    { iohs1_pdl_func, IGNORE_PG, TARGET_CHIP,    0x19, 0x19, 0},
+    { iohs2_func,     IGNORE_PG, TARGET_CHIP,    0x1A, 0x1A, 0},
+    { iohs2_pdl_func, IGNORE_PG, TARGET_CHIP,    0x1A, 0x1A, 0},
+    { iohs3_func,     IGNORE_PG, TARGET_CHIP,    0x1B, 0x1B, 0},
+    { iohs3_pdl_func, IGNORE_PG, TARGET_CHIP,    0x1B, 0x1B, 0},
+    { iohs4_func,     IGNORE_PG, TARGET_CHIP,    0x1C, 0x1C, 0},
+    { iohs4_pdl_func, IGNORE_PG, TARGET_CHIP,    0x1C, 0x1C, 0},
+    { iohs5_func,     IGNORE_PG, TARGET_CHIP,    0x1D, 0x1D, 0},
+    { iohs5_pdl_func, IGNORE_PG, TARGET_CHIP,    0x1D, 0x1D, 0},
+    { iohs6_func,     IGNORE_PG, TARGET_CHIP,    0x1E, 0x1E, 0},
+    { iohs6_pdl_func, IGNORE_PG, TARGET_CHIP,    0x1E, 0x1E, 0},
+    { iohs7_func,     IGNORE_PG, TARGET_CHIP,    0x1F, 0x1F, 0},
+    { iohs7_pdl_func, IGNORE_PG, TARGET_CHIP,    0x1F, 0x1F, 0},
+    { pau0_func,      IGNORE_PG, TARGET_CHIP,    0x10, 0x10, 0},
+    { pau1_func,      IGNORE_PG, TARGET_CHIP,    0x11, 0x11, 0},
+    { pau2_func,      IGNORE_PG, TARGET_CHIP,    0x12, 0x12, 0},
+    { pau3_func,      IGNORE_PG, TARGET_CHIP,    0x13, 0x13, 0},
+    { pau0_pau0_func, 0x5,       TARGET_CHIP,    0x10, 0x10, 0},
+    { pau1_pau3_func, 0x5,       TARGET_CHIP,    0x11, 0x11, 0},
+    { pau2_pau4_func, 0x5,       TARGET_CHIP,    0x12, 0x12, 0},
+    { pau2_pau5_func, 0x6,       TARGET_CHIP,    0x12, 0x12, 0},
+    { pau3_pau6_func, 0x5,       TARGET_CHIP,    0x13, 0x13, 0},
+    { pau3_pau7_func, 0x6,       TARGET_CHIP,    0x13, 0x13, 1},
 };
 
-static const mc_ring_setup_t ISTEP3_EQ_FURE_RINGS_MULTICAST[] =
+static const mc_ring_setup_t ISTEP3_EQ_FUNC_RINGS_MULTICAST[] =
 {
-    { eq_fure,        0},
+    { eq_func,        0},
     { eq_mode,        0},
-    { eq_clkadj_fure, 0},
-    { eq_clkadj_mode, 1},
+    { eq_clkadj_func, 1},
 };
 
-static const mc_ring_setup_t ISTEP3_PCI_FURE_RINGS_MULTICAST[] =
+static const mc_ring_setup_t ISTEP3_PCI_FUNC_RINGS_MULTICAST[] =
 {
-    { pci_fure,       1},
+    { pci_func,       1},
 };
 
-static const mc_ring_setup_t ISTEP3_MC_FURE_RINGS_MULTICAST[] =
+static const mc_ring_setup_t ISTEP3_MC_FUNC_RINGS_MULTICAST[] =
 {
-    { mc_fure,        1},
+    { mc_func,        1},
 };
 
 fapi2::ReturnCode p10_sbe_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -110,21 +101,21 @@ fapi2::ReturnCode p10_sbe_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
                      fapi2::TARGET_STATE_FUNCTIONAL);
 
-    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_FURE_RINGS_UNICAST));
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_FUNC_RINGS_UNICAST));
 
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_ALL_EQ,
-             ISTEP3_EQ_FURE_RINGS_MULTICAST));
+             ISTEP3_EQ_FUNC_RINGS_MULTICAST));
 
     if (l_mc.size())
     {
         FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_GOOD_MC,
-                 ISTEP3_MC_FURE_RINGS_MULTICAST));
+                 ISTEP3_MC_FUNC_RINGS_MULTICAST));
     }
 
     if (l_pci.size())
     {
         FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_GOOD_PCI,
-                 ISTEP3_PCI_FURE_RINGS_MULTICAST));
+                 ISTEP3_PCI_FUNC_RINGS_MULTICAST));
     }
 
     FAPI_INF("p10_sbe_initf: Exiting ...");

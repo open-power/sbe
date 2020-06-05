@@ -156,15 +156,11 @@ p10_hcd_mma_scaninit(
                                     fapi2::RING_MODE_HEADER_CHECK),
                      "Error from putRing (ec_mma_time)");
 
-            FAPI_DBG("Scan ec_mma_fure ring");
-            FAPI_TRY(fapi2::putRing(l_core, ec_mma_fure,
+            FAPI_DBG("Scan ec_mma_func ring");
+            FAPI_TRY(fapi2::putRing(l_core, ec_mma_func,
                                     fapi2::RING_MODE_HEADER_CHECK),
-                     "Error from putRing (ec_mma_fure)");
+                     "Error from putRing (ec_mma_func)");
 
-            FAPI_DBG("Scan ec_mma_repr ring");
-            FAPI_TRY(fapi2::putRing(l_core, ec_mma_repr,
-                                    fapi2::RING_MODE_HEADER_CHECK),
-                     "Error from putRing (ec_mma_repr)");
         }
 
     #endif

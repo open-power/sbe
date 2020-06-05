@@ -71,10 +71,10 @@ p10_hcd_core_initf(
     uint32_t                       l_core_num           = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
 
-    FAPI_DBG("Scan ec_cl2_fure ring");
-    FAPI_TRY(fapi2::putRing(i_target, ec_cl2_fure,
+    FAPI_DBG("Scan ec_cl2_func ring");
+    FAPI_TRY(fapi2::putRing(i_target, ec_cl2_func,
                             fapi2::RING_MODE_HEADER_CHECK),
-             "Error from putRing (ec_cl2_fure)");
+             "Error from putRing (ec_cl2_func)");
 
     FAPI_DBG("Scan ec_cl2_mode ring");
     FAPI_TRY(fapi2::putRing(i_target, ec_cl2_mode,
@@ -115,10 +115,10 @@ p10_hcd_core_initf(
             continue;
         }
 
-        FAPI_DBG("Scan ec_mma_fure ring");
-        FAPI_TRY(fapi2::putRing(l_core, ec_mma_fure,
+        FAPI_DBG("Scan ec_mma_func ring");
+        FAPI_TRY(fapi2::putRing(l_core, ec_mma_func,
                                 fapi2::RING_MODE_HEADER_CHECK),
-                 "Error from putRing (ec_mma_fure)");
+                 "Error from putRing (ec_mma_func)");
 
     }
 
