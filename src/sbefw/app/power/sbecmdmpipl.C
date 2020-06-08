@@ -46,6 +46,7 @@
 #include "p10_hcd_core_stopclocks.H"
 #include "p10_hcd_eq_stopclocks.H"
 #include "p10_hcd_cache_stopclocks.H"
+#include "sbearchregdump.H"
 #include "fapi2.H"
 #include "core/ipl.H"
 
@@ -206,6 +207,30 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
             break;
         }
+
+        //In P10 Architected register data will be collected as part of MPIPL
+        //for both the FSP and BMC based systems
+        //Collect Architected Register Dump
+        fapiRc = sbeDumpArchRegs();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "Failed in sbeDumpArchRegs()");
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                    SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+
+        //Core and Cache stop Clock
+        SBE_INFO(SBE_FUNC "Attempt Stop clocks for all Core and cache ");
+        fapiRc = stopClockS0();
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            rc = SBE_SEC_S0_STOP_CLOCK_FAILED;
+            SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock");
+            break;
+        }
+
     }while(0);
 
     // Create the Response to caller
