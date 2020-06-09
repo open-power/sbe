@@ -37,7 +37,8 @@ SpyQuery = namedtuple('_SpyQuery', ['ring', 'ringlen', 'latches', 'invmask'])
 @functools.lru_cache(maxsize=32)
 def query_spy(spy, spydef, scandef):
     ring, latches = __query_spy_latches(spy, spydef)
-    invmask, ringlen = __query_spy_invmask_ringlen(spy, ring, scandef)
+    latch = latches[0].latch.split('.LATC.L2')[0]
+    invmask, ringlen = __query_spy_invmask_ringlen(latch, ring, scandef)
     return SpyQuery(ring, ringlen, latches, invmask)
 
 
@@ -84,11 +85,11 @@ def __query_spy_latches(spy, spydef):
 
             rbit, latch, sbit = (int(m2.group(1), 10), m2.group(2),
                                  int(m2.group(3), 10))
-            latches.append(SpyLatch(sbit, rbit, latch))
+            latches.append(SpyLatch(sbit, rbit, latch.decode("utf-8")))
     return ring, latches
 
 
-def __query_spy_invmask_ringlen(spy, ring, scandef):
+def __query_spy_invmask_ringlen(latch, ring, scandef):
     with open(scandef) as f, mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) as mm:
         SCANDEF_RE_STR = "BEGIN Scanring\n"\
                         f"Name = {ring}\n"\
@@ -110,7 +111,7 @@ def __query_spy_invmask_ringlen(spy, ring, scandef):
         ringlen = m0.group(1)
         ringlen = int(ringlen.decode(), 10)
 
-        SCANDEF_RE_1_STR = f"^\s+1\s+[0-9]+\s+[0-9]+\s+([0-1])\s+{spy}[A-Z0-9_.]+\(([0-9]+)\)$"
+        SCANDEF_RE_1_STR = f"^\s+1\s+[0-9]+\s+[0-9]+\s+([0-1])\s+{latch}[A-Z0-9_.]+\(([0-9]+)\)$"
         SCANDEF_RE_1_STR = SCANDEF_RE_1_STR.encode("utf-8")
         SCANDEF_RE_1 = re.compile(SCANDEF_RE_1_STR, re.MULTILINE | re.IGNORECASE)
 

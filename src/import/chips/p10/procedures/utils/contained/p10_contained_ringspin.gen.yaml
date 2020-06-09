@@ -13,3 +13,9 @@ ec10:
       spy_names:
         - ECP.EC.PC.PMC.DECR_EXTENDED_FUNC
         - ECP.EC.PC.THRCTL.TCTLCOM.DECR_EXTENDED_FUNC
+    set_runn_seed:
+      spy_names:
+        - ECP.EC.PC.PMU.T0_SIER
+        - ECP.EC.PC.PMU.T1_SIER
+        - ECP.EC.PC.PMU.T2_SIER
+        - ECP.EC.PC.PMU.T3_SIER

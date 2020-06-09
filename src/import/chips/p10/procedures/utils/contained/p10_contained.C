@@ -23,6 +23,7 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
+#include <random>
 #include <fapi2.H>
 #include <p10_contained.H>
 #include <p10_scom_c.H>
@@ -260,3 +261,91 @@ fapi_try_exit:
     FAPI_INF("<< %s", __func__);
     return fapi2::current_err;
 }
+
+#ifdef P10_CONTAINED_ENABLE_SEEDING
+
+static std::mt19937_64 seed_rng;
+
+fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+                                    const uint32_t i_active_bvec)
+{
+    FAPI_INF(">> %s", __func__);
+
+    using namespace scomt::perv;
+
+    fapi2::ATTR_EC_Type ec;
+    fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+    fapi2::ATTR_RUNN_MASTER_SEED_Type master_seed;
+    fapi2::ATTR_RUNN_CORE_SEED_SELECT_Type core_seed_sel;
+    fapi2::ATTR_RUNN_THREAD_SEEDS_Type thread_seeds;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
+    // ec_cl2_func
+    const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
+            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>());
+    fapi2::buffer<uint64_t> scan_region_type;
+
+    FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_chip, ec));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MASTER_SEED, i_chip, master_seed));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_CORE_SEED_SELECT, i_chip,
+                           core_seed_sel));
+
+    // Initialize the RNG
+    seed_rng.seed(master_seed);
+
+    for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));
+
+        if (!is_active_core(corenum, i_active_bvec))
+        {
+            continue;
+        }
+
+        perv = core.getParent<fapi2::TARGET_TYPE_PERV>();
+
+        scan_region_type = scan_type;
+        scan_region_type.setBit(SCAN_REGION_TYPE_SCAN_REGION_UNIT1 +
+                                (corenum % 4));
+
+        if (core_seed_sel != fapi2::ENUM_ATTR_RUNN_CORE_SEED_SELECT_RANDOM)
+        {
+            // Re-initialize the RNG
+            seed_rng.seed(master_seed);
+            // Advance the RNG to the core specified
+            seed_rng.discard((core_seed_sel - 1) * 4);
+        }
+
+        thread_seeds[0] = seed_rng();
+        thread_seeds[1] = seed_rng();
+        thread_seeds[2] = seed_rng();
+        thread_seeds[3] = seed_rng();
+
+        // Attempt to write the attribute - if the user has an override set via
+        // CONST in a seedfile then the write will silently turn into a NOP and
+        // we pick up the override value instead.
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_RUNN_THREAD_SEEDS, core,
+                               thread_seeds));
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_THREAD_SEEDS, core,
+                               thread_seeds));
+
+        switch (ec)
+        {
+        // *INDENT-OFF*
+        RINGSPIN_EC_SWITCH_CASE(10, ec_cl2_func_set_runn_seed,
+                                perv, scan_region_type,
+                                thread_seeds[0], thread_seeds[1],
+                                thread_seeds[2], thread_seeds[3])
+        default:
+            FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
+                     " PROCEDURE=ec_cl2_func_set_runn_seed", ec);
+            return fapi2::FAPI2_RC_FALSE;
+        // *INDENT-ON*
+        }
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
+#endif // P10_CONTAINED_ENABLE_SEEDING
