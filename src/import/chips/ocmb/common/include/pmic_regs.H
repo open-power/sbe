@@ -111,7 +111,7 @@ struct pmicRegs<mss::pmic::product::JEDEC_COMPLIANT>
     static constexpr uint8_t R38_PASSWORD_UPPER_BYTE_1           = 0x38;
     static constexpr uint8_t R39_COMMAND_CODES                   = 0x39;
     static constexpr uint8_t R3A                                 = 0x3A;
-    static constexpr uint8_t R3B                                 = 0x3B;
+    static constexpr uint8_t R3B_REVISION                        = 0x3B;
     static constexpr uint8_t R3C_VENDOR_ID_BYTE_0                = 0x3C;
     static constexpr uint8_t R3D_VENDOR_ID_BYTE_1                = 0x3D;
 
