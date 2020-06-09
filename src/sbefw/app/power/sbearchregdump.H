@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018                             */
+/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,4 +41,10 @@
  */
 fapi2::ReturnCode sbeDumpArchRegs(void);
 
+/**
+ * @brief Utility to fetch the group and chip Id from the
+ * ATTR_PROC_FABRIC_EFF_TOPOLOGY_ID and ATTR_PROC_FABRIC_TOPOLOGY_MODE
+ */
+void fetchEffectiveGroupAndChipId(uint8_t &o_procGroupId,
+                                      uint8_t &o_chipId);
 #endif /* __SBEFW_ARCHREGDUMP_H */

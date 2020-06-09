@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -414,4 +414,37 @@ ReturnCode sbeDumpArchRegs()
     return fapiRc;
     #undef SBE_FUNC
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
+void fetchEffectiveGroupAndChipId(uint8_t &o_procGroupId,
+                                      uint8_t &o_chipId)
+{
+#define SBE_FUNC " fetchGroupAndChipId "
+    SBE_ENTER(SBE_FUNC);
+ 
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget(); 
+    uint8_t topologyMode = 0;
+    uint8_t topologyId = 0;
+    FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_EFF_TOPOLOGY_ID, procTgt, topologyId);
+    FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_TOPOLOGY_MODE, FAPI_SYSTEM, topologyMode);
+    //If Mode = 0 , Topology ID: GGG_C
+    //If Mode = 1 , Topology ID: GG_CC
+    if(topologyMode == fapi2::ENUM_ATTR_PROC_FABRIC_TOPOLOGY_MODE_MODE0) //GGG_C
+    {
+       o_chipId = topologyId & 0x1;
+       o_procGroupId = (topologyId & 0xE) >> 1;
+    }
+    else //GG_CC
+    {
+        o_chipId = topologyId & 0x3;
+        o_procGroupId = (topologyId & 0xC) >> 2;
+    }
+    SBE_INFO("topologyMode=%d , topologyId=0x%.8x , o_procGroupId=0x%.8x and  o_chipId = 0x%x",
+               topologyMode,topologyId, o_procGroupId, o_chipId);
+    SBE_EXIT(SBE_FUNC);
+#undef SBE_FUNC
+}
+
+
 
