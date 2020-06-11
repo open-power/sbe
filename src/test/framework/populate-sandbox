@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -71,6 +71,7 @@ elif [ "$MACHINE_TYPE" = "AXONE" ]; then
 
     echo "Copy binary to simics workspace"
     cp $SANDBOXBASE/images/ppc/lab/flash/sbe_seeprom_p9a_10.bin.ecc $SBEROMDIRAXONE/ || exit -1
+    cp $SANDBOXBASE/images/ppc/lab/flash/sbe_otprom_AXONE.bin $SBEROMDIRAXONE/ || exit -1
 
     echo "Copy engd (scandef.abr) from backing build"
     cp $BACKING_BUILD/obj/ppc/simu/data/cec-chip/scandef.abr $SANDBOXBASE/simics/import/cec-chip/scandef.abr || exit -1
