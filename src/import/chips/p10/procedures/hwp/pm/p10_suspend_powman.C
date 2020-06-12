@@ -277,14 +277,14 @@ fapi_try_exit:
         //  ************************************************************************
         //  Reset the PSTATE GPE (Bring it to HALT)
         //  ************************************************************************
-        FAPI_DBG("Executing p10_pm_pstate_gpe_init to halt PGPE");
+        FAPI_DBG("Executing p10_pm_pgpe_init to halt PGPE");
         FAPI_EXEC_HWP(l_rc, p10_pm_pgpe_init, i_target, pm::PM_HALT);
         FAPI_TRY(l_rc, "ERROR: Failed to halt the PGPE");
 
         //  ************************************************************************
         //  Reset the XGPE (Bring it to HALT)
         //  ************************************************************************
-        FAPI_DBG("Executing p10_pm_stop_gpe_init to halt XGPE");
+        FAPI_DBG("Executing p10_pm_xgpe_init to halt XGPE");
         FAPI_EXEC_HWP(l_rc, p10_pm_xgpe_init, i_target, pm::PM_HALT);
         FAPI_TRY(l_rc, "ERROR: Failed to halt XGPE");
 
