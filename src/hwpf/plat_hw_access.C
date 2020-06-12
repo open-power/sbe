@@ -203,6 +203,8 @@ static fapi2::ReturnCode pibRcToFapiRc(const uint32_t i_pibRc)
     return l_fapiRc;
 }
 
+
+#if 0
 ///
 /// @brief Platform wrapper to handle pib errors on scoms
 ///
@@ -290,22 +292,24 @@ static uint32_t recoverPibErr( const uint32_t i_addr, uint64_t *io_data,
     FAPI_INF("Exiting recoverPibErr");
     return pibErr;
 }
-
+#endif
 static fapi2::ReturnCode handle_scom_error(const uint32_t i_addr, uint64_t *io_data,
         uint8_t i_pibRc, const bool i_isRead)
 {
+    // Need a clean-up later. Presently no re-tries required.
+    // Fail at the first instance.
     /* Attempt recovery */
-    i_pibRc = recoverPibErr( i_addr, io_data, i_pibRc, i_isRead );
-    if (PIB_NO_ERROR == i_pibRc)
-    {
-        return FAPI2_RC_SUCCESS;
-    }
+    //i_pibRc = recoverPibErr( i_addr, io_data, i_pibRc, i_isRead );
+    //if (PIB_NO_ERROR == i_pibRc)
+    //{
+    //    return FAPI2_RC_SUCCESS;
+    //}
 
     PLAT_FAPI_ASSERT( false,
                       SBE_SCOM_FAILURE().
                       set_address(i_addr).
                       set_pcb_pib_rc(i_pibRc),
-                      "getScom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X]"
+                      "Scom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X]"
                       "Scom_Data[0x%08X%08X]",
                       i_pibRc, i_addr, (*io_data >> 32), (*io_data & 0xFFFFFFFF));
 fapi_try_exit:

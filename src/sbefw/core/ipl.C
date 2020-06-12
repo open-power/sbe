@@ -40,6 +40,10 @@ sbeRole g_sbeRole = SBE_ROLE_MASTER;
 uint64_t G_ring_save[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 // Globals
+////////////////////// Declaration in sbeirq.C ////////////////////////
+extern "C" void __sbe_register_saveoff();
+extern uint32_t __g_isParityError;
+//////////////////////////////////////////////////////////////////////
 // TODO: via RTC 123602 This global needs to move to a class that will store the
 // SBE FFDC.
 fapi2::ReturnCode g_iplFailRc = FAPI2_RC_SUCCESS;
@@ -60,6 +64,35 @@ bool isSystemCheckstop()
     return checkstop;
 }
 
+//--------------------------------------------------------------------------
+// Check for Parity Error in the respective Boot SPI
+//--------------------------------------------------------------------------
+#define SPI_PARITY_CHECK_MASK          0xFFE00000
+#define PRIMARY_BOOT_SPI_STATUS_REG    0xC0008
+#define SECONDARY_BOOT_SPI_STATUS_REG  0xC0028
+bool isSpiParityError()
+{
+    sbe_local_LFR lfrReg;
+    uint32_t spiBaseAddr = 0;
+    uint64_t data = 0;
+    // Directly Load the LFR here
+    PPE_LVD(0xc0002040, lfrReg);
+    if(lfrReg.sec_boot_seeprom)
+    {
+        spiBaseAddr = SECONDARY_BOOT_SPI_STATUS_REG;
+    }
+    else
+    {
+        spiBaseAddr = PRIMARY_BOOT_SPI_STATUS_REG;
+    }
+    // Load the SPI Status Register Here
+    PPE_LVD(spiBaseAddr, data);
+    if(data & SPI_PARITY_CHECK_MASK) // Check bit32 to 42 for set
+    {
+        return true;
+    }
+    return false;
+}
 //----------------------------------------------------------------------------
 // @note This is the responsibilty of caller to verify major/minor
 //       number before calling this function
@@ -85,6 +118,11 @@ ReturnCode sbeExecuteIstep (const uint8_t i_major, const uint8_t i_minor)
             }
             break;
         }
+    }
+    if (isSpiParityError()) // If true call saveoff and halt
+    {
+        __g_isParityError = 1;
+        __sbe_register_saveoff();
     }
 
     if(rc != FAPI2_RC_SUCCESS)
@@ -131,6 +169,12 @@ void sbeDoContinuousIpl()
 
                 //bool checkstop = isSystemCheckstop();
                 //if((rc != FAPI2_RC_SUCCESS) || checkstop )
+    
+                if (isSpiParityError()) // If true call saveoff and halt
+                {
+                    __g_isParityError = 1;
+                    __sbe_register_saveoff();
+                }
                 if(rc != FAPI2_RC_SUCCESS)
                 {
                     SBE_ERROR(SBE_FUNC"Failed istep execution in plck mode: "

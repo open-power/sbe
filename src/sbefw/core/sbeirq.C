@@ -169,97 +169,18 @@ int sbeIRQSetup (void)
     #undef SBE_FUNC
 }
 
-// SBE I2C reset sequence
-uint32_t __max_i2c_reset_retrials = 3;
-
-// bit 0
-#define I2CM_RESET_BIT              (0x8000000000000000ull)
-// bit 7
-#define I2C_CMD_COMPLETE_BIT        (0x0100000000000000ull)
-// bit 3
-#define I2C_STOP_BIT                (0x1000000000000000ull)
-// bit 16-21
-#define I2C_MODE_REG_PORT_BITS      (0xFFFF03FFFFFFFFFFull)
-// bit 8
-#define I2C_MODE_FGAT_BIT           (0x0000000800000000ull)
-
-#define POLL_BEFORE_I2C_RESET       (25600)
-#define I2C_CMD_COMPLETE_POLL       (0x00003FFF)
-
-extern "C" void i2c_reset()
-{
-    // check if we exhausted the number of retrials
-    if(!__max_i2c_reset_retrials)
-    {
-        asm("b __halt_sbe\n");
-    }
-    __max_i2c_reset_retrials--;
-
-    // empty cycles before i2c reset
-    for (auto i = POLL_BEFORE_I2C_RESET; i > 0; --i) {
-        // Force compiler not to optimize for loop
-         asm("");
-    }
-
-    uint32_t reg_address = 0;
-    uint64_t value = 0ull;
-
-    // reset I2CM register - 0x000A0001
-    reg_address = PU_RESET_REGISTER_B;
-    value = I2CM_RESET_BIT;
-    PPE_STVD( reg_address, value);
-
-    // forcefully reset port busy register - 0x000A000E
-    reg_address = PU_I2C_BUSY_REGISTER_B;
-    value = I2CM_RESET_BIT;
-    PPE_STVD( reg_address, value);
-
-    // set enchanced mode - fgat bit - 28
-    SBE_GLOBAL->i2cModeRegister |= I2C_MODE_FGAT_BIT;
-
-    for( auto port=0; port < 2; port++ )
-    {
-        // write mode register - 0x000A0006
-        reg_address = PU_MODE_REGISTER_B;
-        // set port number in bits 16-21 of mode register
-        SBE_GLOBAL->i2cModeRegister &= I2C_MODE_REG_PORT_BITS;
-        SBE_GLOBAL->i2cModeRegister |= ((uint64_t)port << 42);
-        PPE_STVD( reg_address, SBE_GLOBAL->i2cModeRegister );
-
-        // write command control register - 0x000A0005
-        reg_address = PU_COMMAND_REGISTER_B;
-        value = I2C_STOP_BIT;
-        PPE_STVD( reg_address, value );
-
-        // poll cmd complete register 0x000A000B
-        uint64_t status = 0;
-        for( auto i=0; i < I2C_CMD_COMPLETE_POLL; i--)
-        {
-            reg_address = PU_IMM_RESET_I2C_B;
-            PPE_LVD( reg_address, status );
-            if( status & I2C_CMD_COMPLETE_BIT )
-            {
-                // cmd complete
-                break;
-            }
-        }
-        if(!( status & I2C_CMD_COMPLETE_BIT ))
-        {
-            pk_halt();
-        }
-    }
-}
 
 ///////////////////////////////////////////////////////////////////
 // SBE handler to save off specific registers
 ///////////////////////////////////////////////////////////////////
-registersave_t __g_register_ffdc __attribute__((section (".sbss")));
+registersave_t __g_register_ffdc __attribute__((aligned(8), section (".sbss")));
+//registersave_t __g_register_ffdc __attribute__ ((aligned(8)));
 uint64_t __g_address_for_register_ffdc = (uint32_t)&__g_register_ffdc;
+uint32_t __g_isParityError __attribute__((section (".sbss"))) = 0;
 
 extern "C" void __sbe_register_saveoff()
 {
     asm(
-    "b pk_halt\n"
     "# Save r4, r5, r6 to stack, since it is going to be used\n"
     "# inside here, move the stack by 12\n"
     "stwu %r1, -12(%r1)\n"
@@ -298,6 +219,72 @@ extern "C" void __sbe_register_saveoff()
     "mflr  %r4\n"
     "stw %r4, __g_register_ffdc+16@sda21(0)\n"
 
+    "# Read LFR into r4\n"
+    "lis %r6, 0xc000\n"
+    "lvd %d4, 0x2040(%r6)\n"
+    "stw %r4, __g_register_ffdc+20@sda21(0)\n"
+
+    "# Read Spi0 Status Register into r4 and r5\n"
+    "lis %r6, 0xc\n"
+    "lvd %d4, 0x8(%r6)\n"
+    "stw %r4, __g_register_ffdc+24@sda21(0)\n"
+    "stw %r5, __g_register_ffdc+28@sda21(0)\n"
+
+    "# Read Spi0 Config Register into r4 and r5\n"
+    "lvd %d4, 0x2(%r6)\n"
+    "stw %r4, __g_register_ffdc+32@sda21(0)\n"
+
+    "# Read Spi0 Clock Config Register into r4 and r5\n"
+    "lvd %d4, 0x3(%r6)\n"
+    "stw %r4, __g_register_ffdc+36@sda21(0)\n"
+
+    "# Read Spi1 Status Register into r4 and r5\n"
+    "lis %r6, 0xc\n"
+    "lvd %d4, 0x28(%r6)\n"
+    "stw %r4, __g_register_ffdc+40@sda21(0)\n"
+    "stw %r5, __g_register_ffdc+44@sda21(0)\n"
+
+    "# Read Spi1 Config Register into r4 and r5\n"
+    "lvd %d4, 0x22(%r6)\n"
+    "stw %r4, __g_register_ffdc+48@sda21(0)\n"
+
+    "# Read Spi1 Clock Config Register into r4 and r5\n"
+    "lvd %d4, 0x23(%r6)\n"
+    "stw %r4, __g_register_ffdc+52@sda21(0)\n"
+    
+    "# Read Spi2 Status Register into r4 and r5\n"
+    "lis %r6, 0xc\n"
+    "lvd %d4, 0x68(%r6)\n"
+    "stw %r4, __g_register_ffdc+56@sda21(0)\n"
+    "stw %r5, __g_register_ffdc+60@sda21(0)\n"
+
+    "# Read Spi2 Config Register into r4 and r5\n"
+    "lvd %d4, 0x62(%r6)\n"
+    "stw %r4, __g_register_ffdc+64@sda21(0)\n"
+
+    "# Read Spi2 Clock Config Register into r4 and r5\n"
+    "lvd %d4, 0x63(%r6)\n"
+    "stw %r4, __g_register_ffdc+68@sda21(0)\n"
+
+    "# Read Spi3 Status Register into r4 and r5\n"
+    "lis %r6, 0xc\n"
+    "lvd %d4, 0x48(%r6)\n"
+    "stw %r4, __g_register_ffdc+72@sda21(0)\n"
+    "stw %r5, __g_register_ffdc+76@sda21(0)\n"
+
+    "# Read Spi3 Config Register into r4 and r5\n"
+    "lvd %d4, 0x42(%r6)\n"
+    "stw %r4, __g_register_ffdc+80@sda21(0)\n"
+
+    "# Read Spi3 Clock Config Register into r4 and r5\n"
+    "lvd %d4, 0x43(%r6)\n"
+    "stw %r4, __g_register_ffdc+84@sda21(0)\n"
+
+    "# TODO\n"
+    "# Read Spi parity errors\n"
+    "lvd %d4, __g_isParityError@sda21(0)\n"
+    "stw %r4, __g_register_ffdc+88@sda21(0)\n"
+
     "# Write versioning into the lower 32bit of d5 i.e. r6\n"
     "#lvd %d5, __g_sbe_register_save_version@sda21(0)\n"
     "# Directly load Versioninfo into upper 16bits in r4 \n"
@@ -325,22 +312,20 @@ extern "C" void __sbe_register_saveoff()
 
 ////////////////////////////////////////////////////////////////
 // SBE handler for the PPE machine check interrupt
+// This is valid for both measurement fw and boot fw
 ////////////////////////////////////////////////////////////////
-// TODO: via RTC 155896 - Change the way bad scoms are handled.
-// Once HW375602 is fixed, there will be no need for this
-// interrupt handler.
 extern "C" void __sbe_machine_check_handler()
 {
     asm(
     "# reclaim function callstack\n"
-    "lwz     %r0,12(%r1)\n"
-    "mtlr    %r0\n"
-    "addi    %r1,%r1,8\n"
+    "#lwz     %r0,12(%r1)\n"
+    "#mtlr    %r0\n"
+    "#addi    %r1,%r1,8\n"
 
     "# Save r0, r1, r2, r3,r4, r5, r6, r7, r8, r9, r10, r13, r28, r29, r30, r31\n"
     "# lr to stack, since it is going to be used by\n"
     "# this handler\n"
-    "stwu %r1, -68(%r1)\n"
+    "stwu %r1, -80(%r1)\n"
     "stw  %r0, 0(%r1)\n"
     "stw  %r2, 4(%r1)\n"
     "stw  %r3, 8(%r1)\n"
@@ -356,24 +341,39 @@ extern "C" void __sbe_machine_check_handler()
     "stw  %r29, 48(%r1)\n"
     "stw  %r30, 52(%r1)\n"
     "stw  %r31, 56(%r1)\n"
+    "mflr %r0\n"
+    "stw  %r0, 60(%r1)\n"
 
     "# Check the MCS bits (29:31) in the ISR to determine the cause for the machine check\n"
     "# For a data machine check, the MCS should be 0x001 to 0x011\n"
+    "# 0x01 -> Data Load MC\n"
+    "# 0x02 -> Data Store MC\n"
+    "# 0x03 -> Imprecise Data Store MC\n"
     "mfisr %r4\n"
     "andi. %r4, %r4, 0x0007\n"
+
+    "# branch to Instr_MC if MCS is zero\n"
     "bwz %r4, __instruction_machine_check\n"
-    "cmpwibgt %r4, 0x0003, __halt_sbe\n"
-    "# The EDR contains the address that caused the machine check\n"
+
+    "# branch to Other_MC if MCS is greater than 3\n"
+    "cmpwibgt %r4, 0x0003, __other_error_machine_check\n"
+
+    "# This is the Data_MC path, EDR contains the Data Addr causing the MC\n"
     "mfedr %r4\n"
     "srawi %r4, %r4, 16\n"
     "# If the address is in the range 0x00000000 - 0x7f000000, we treat it as a\n"
     "# failed scom and jump to __scom_error\n"
     "cmplwi %r4, 0x8000\n"
     "blt __scom_error\n"
-    "# Else, halt the SBE\n"
-    "__halt_sbe:\n"
+    "# Else, save-off and halt the SBE\n"
+    "# Save-off Register FFDC and Halt\n"
+
+    "__other_error_machine_check:\n"
+    "__instruction_machine_check:\n"
+    "# The srr0 contains the address that caused the instruction machine check\n"
     "# Save-off Register FFDC and Halt\n"
     "b __sbe_register_saveoff\n"
+
     "__scom_error:\n"
     "# The srr0 contains the address of the instruction that caused the machine\n"
     "# check (since the the interrupt is raised *before* the instruction\n"
@@ -382,25 +382,8 @@ extern "C" void __sbe_machine_check_handler()
     "mfsrr0 %r4\n"
     "addi %r4, %r4, 4\n"
     "mtsrr0 %r4\n"
-    "b __exit\n"
-    "__instruction_machine_check:\n"
-    "# The srr0 contains the address that caused the instruction machine check\n"
-    "mfsrr0 %r4\n"
-    "srawi %r4, %r4, 16\n"
-    "# If the address is not SEEPROM address, go for halt\n");
-    asm(
-    "andi. %r4, %r4, 0xFF80\n"
-    "cmplwi %r4, 0xFF80\n"
-    "bne __halt_sbe\n"
-    "__sbe_i2c_reset_sequence:\n"
-    "mflr %r0\n"
-    "stw  %r0, 60(%r1)\n");
-    i2c_reset();
-    asm(
-    "lwz %r0, 60(%r1)\n"
-    "mtlr %r0\n"
-    "__exit:\n"
-    "lwz %r0, 0(%r1)\n"
+
+    "#lwz %r0, 0(%r1)\n"
     "lwz %r2, 4(%r1)\n"
     "lwz %r3, 8(%r1)\n"
     "lwz %r4, 12(%r1)\n"
@@ -415,7 +398,10 @@ extern "C" void __sbe_machine_check_handler()
     "lwz %r29, 48(%r1)\n"
     "lwz %r30, 52(%r1)\n"
     "lwz %r31, 56(%r1)\n"
-    "addi %r1, %r1, 68\n"
+    "lwz %r0, 60(%r1)\n"
+    "mtlr %r0\n"
+    "lwz %r0, 0(%r1)\n"
+    "addi %r1, %r1, 80\n"
 
     "rfi\n"
     );
