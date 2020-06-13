@@ -54,17 +54,21 @@
 
 enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
 {
+    // Values translated from (long link, undo line breaks):
+    // https://w3-connections.ibm.com/communities/service/html/communityview?
+    //   communityUuid=340f24c2-a7a1-4377-8104-e443d5836678#
+    //   fullpageWidgetId=We97b5997bab6_46f0_989d_4c47c6ed3356&
+    //   file=361e143b-4808-4e36-a594-9d3d64bd5ad6
+    // using chips/p10/procedures/utils/perv_lfir/gen_lfir_settings.sh
+
+    // AND mask to unmask "SBE halted" FIR
+    LFIR_MASK_SBE_UPDATE = 0b1111111111111111111111111111111110111111111111111111111111111111,
+
     START_CMD = 0x1,
     REGIONS_PERV_PSI = 0x4100,
     CLOCK_TYPES_ALL = 0x7,
     REGIONS_PLL = 0x0010,
     CLOCK_TYPES_SL = 0x4,
-    LFIR_ACTION0_VALUE = 0x0000000000000000,
-    //LFIR_ACTION1_VALUE = 0xFFFFBC2BFC7FFFFF,
-    // Setting FIR_ACTION1 reg to all Fs until we get correct values
-    LFIR_ACTION1_VALUE = 0xFFFFFFFFFFFFFFFF,
-    FIR_MASK_VALUE =  0x0000040041006C00,
-    FIR_MASK_VALUE_SBE =  0x0000040001006C00,
     IPOLL_MASK_VALUE = 0xFC00000000000000,
     TOD_ERROR_ROUTING = 0x9FC02000F0004000,
     TOD_ERROR_MASK = 0x0000000003F00002,
@@ -134,20 +138,11 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_DBG("Clear pervasive LFIR");
     FAPI_TRY(fapi2::putScom(l_tpchiplet, LOCAL_FIR_RW, 0));
 
-    FAPI_DBG("Configure pervasive LFIR" );
-    //Setting LOCAL_FIR_ACTION0 register value
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_ACTION0, LFIR_ACTION0_VALUE));
-    //Setting LOCAL_FIR_ACTION1 register value
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_ACTION1, LFIR_ACTION1_VALUE));
-
-    //Setting LOCAL_FIR_MASK register value
+    // If on SBE, additionally unmask "SBE halted" errors
     if (fapi2::is_platform<fapi2::PLAT_SBE>())
     {
-        FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_RW, FIR_MASK_VALUE_SBE));
-    }
-    else
-    {
-        FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_RW, FIR_MASK_VALUE));
+        FAPI_DBG("Configure pervasive LFIR (SBE)");
+        FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_WO_AND, LFIR_MASK_SBE_UPDATE));
     }
 
     FAPI_DBG("Unmask RFIR, XFIR Mask");

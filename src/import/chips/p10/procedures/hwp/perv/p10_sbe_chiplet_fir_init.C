@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,28 +33,63 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_chiplet_fir_init.H"
-#include "p10_scom_perv_b.H"
-#include "p10_scom_perv_e.H"
+#include "p10_scom_perv.H"
+#include "p10_scom_proc.H"
 #include <multicast_group_defs.H>
 
 enum P10_SBE_CHIPLET_FIR_INIT_Private_Constants
 {
-    LFIR_ACTION1_VALUE = 0xFFFFFFFFFFFFFFFF
+    // Values translated from (long link, undo line breaks):
+    // https://w3-connections.ibm.com/communities/service/html/communityview?
+    //   communityUuid=340f24c2-a7a1-4377-8104-e443d5836678#
+    //   fullpageWidgetId=We97b5997bab6_46f0_989d_4c47c6ed3356&
+    //   file=361e143b-4808-4e36-a594-9d3d64bd5ad6
+    // using chips/p10/procedures/utils/perv_lfir/gen_lfir_settings.sh
+
+    OTH_LFIR_ACTION0_VALUE = 0b0000000000000000000000000000000000000000000000000000000000000000,
+    OTH_LFIR_ACTION1_VALUE = 0b1111111111111111111111111111111111111111111111111111111111111111,
+    OTH_LFIR_MASK_VALUE    = 0b0000000000101111111100111111111111111111111111111111111111111111,
 };
 
 fapi2::ReturnCode p10_sbe_chiplet_fir_init(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     using namespace scomt;
     using namespace scomt::perv;
+    using namespace scomt::proc;
 
     fapi2::buffer<uint64_t> l_data64;
 
-    auto l_mc_all = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
+    auto l_mc_mctl = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_MC);
+    auto l_mc_iohs = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_IOHS);
+    auto l_mc_pau  = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PAU);
+    auto l_mc_pci  = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PCI);
+    auto l_mc_all  = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
 
     FAPI_DBG("p10_sbe_chiplet_fir_init: Entering ...");
 
-    FAPI_DBG("Set up pervasive LFIRs on all chiplets");
-    FAPI_TRY(fapi2::putScom(l_mc_all, EPS_FIR_LOCAL_ACTION1, LFIR_ACTION1_VALUE));
+    FAPI_DBG("Set up pervasive LFIR on all IO chiplets");
+    FAPI_TRY(fapi2::putScom(l_mc_mctl, EPS_FIR_LOCAL_ACTION0, OTH_LFIR_ACTION0_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_mctl, EPS_FIR_LOCAL_ACTION1, OTH_LFIR_ACTION1_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_mctl, EPS_FIR_LOCAL_MASK_RW, OTH_LFIR_MASK_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_iohs, EPS_FIR_LOCAL_ACTION0, OTH_LFIR_ACTION0_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_iohs, EPS_FIR_LOCAL_ACTION1, OTH_LFIR_ACTION1_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_iohs, EPS_FIR_LOCAL_MASK_RW, OTH_LFIR_MASK_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_pau,  EPS_FIR_LOCAL_ACTION0, OTH_LFIR_ACTION0_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_pau,  EPS_FIR_LOCAL_ACTION1, OTH_LFIR_ACTION1_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_pau,  EPS_FIR_LOCAL_MASK_RW, OTH_LFIR_MASK_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_ACTION0, OTH_LFIR_ACTION0_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_ACTION1, OTH_LFIR_ACTION1_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_MASK_RW, OTH_LFIR_MASK_VALUE));
+
+    if (false)   // TODO: Debug hot FIRs so we can actually drop these
+    {
+        FAPI_DBG("Drop pervasive CFIR masks on all chiplets");
+        FAPI_TRY(fapi2::putScom(l_mc_all, XSTOP_MASK_RW, 0));
+        FAPI_TRY(fapi2::putScom(l_mc_all, RECOV_MASK_RW, 0));
+        FAPI_TRY(fapi2::putScom(l_mc_all, SPATTN_MASK_RW, 0));
+        FAPI_TRY(fapi2::putScom(l_mc_all, LOCAL_XSTOP_MASK_RW, 0));
+        FAPI_TRY(fapi2::putScom(l_mc_all, HOSTATTN_MASK_RW, 0));
+    }
 
     FAPI_DBG("p10_sbe_chiplet_fir_init: Exiting ...");
 

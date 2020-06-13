@@ -38,12 +38,16 @@
 #include <multicast_defs.H>
 #include <multicast_group_defs.H>
 
+static const ring_setup_t ISTEP3_TP_FUNC_RINGS_UNICAST[] =
+{
+    { occ_func,       IGNORE_PG, TARGET_CHIP,    0x1,  0x1,  1},
+};
+
 static const ring_setup_t ISTEP3_FUNC_RINGS_UNICAST[] =
 {
     { n0_func,        IGNORE_PG, TARGET_CHIP,    0x2,  0x2,  0},
     { n1_func,        IGNORE_PG, TARGET_CHIP,    0x3,  0x3,  0},
     { n1_nmmu1_func,  0x9,       TARGET_CHIP,    0x3,  0x3,  0},
-    { occ_func,       IGNORE_PG, TARGET_CHIP,    0x1,  0x1,  0},
     { iohs0_func,     IGNORE_PG, TARGET_CHIP,    0x18, 0x18, 0},
     { iohs0_pdl_func, IGNORE_PG, TARGET_CHIP,    0x18, 0x18, 0},
     { iohs1_func,     IGNORE_PG, TARGET_CHIP,    0x19, 0x19, 0},
@@ -125,6 +129,7 @@ fapi2::ReturnCode p10_sbe_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
         l_eq_func_rings_mc = &ISTEP3_EQ_FUNC_RINGS_MULTICAST_NO_CLKADJ;
     }
 
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_TP_FUNC_RINGS_UNICAST, true));
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_FUNC_RINGS_UNICAST));
 
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_ALL_EQ,

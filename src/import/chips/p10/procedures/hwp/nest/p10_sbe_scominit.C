@@ -48,22 +48,6 @@
 const uint64_t XSCOM_BAR_MASK   = 0xFF000003FFFFFFFFULL;
 const uint64_t LPC_BAR_MASK     = 0xFF000000FFFFFFFFULL;
 
-// @FIXME TODO RTC208222 Fill in actual FIR mask/action values
-// FBC FIR constants
-const uint64_t PB_COM_FIR_ACTION0 = 0x0000000000000000ULL;
-const uint64_t PB_COM_FIR_ACTION1 = 0x0000000000000000ULL;
-const uint64_t PB_COM_FIR_MASK    = 0xFFFFFFFFFFFFFFFFULL;
-
-// LPC FIR constants
-const uint64_t LPC_FIR_ACTION0 = 0x0000000000000000ULL;
-const uint64_t LPC_FIR_ACTION1 = 0x0000000000000000ULL;
-const uint64_t LPC_FIR_MASK    = 0xFFFFFFFFFFFFFFFFULL;
-
-// PBA FIR constants
-const uint64_t PBA_FIR_ACTION0 = 0x0000000000000000ULL;
-const uint64_t PBA_FIR_ACTION1 = 0x0000000000000000ULL;
-const uint64_t PBA_FIR_MASK    = 0xFFFFFFFFFFFFFFFFULL;
-
 // FBC Mode constants
 const uint8_t PB_CFG_MCA_RATIO_OVERRIDE = 0x01;
 
@@ -271,60 +255,6 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-/// @brief Configures selected FIRs in preparation for fabric init
-/// @param[in] i_target       Reference to processor chip target
-/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
-fapi2::ReturnCode p10_sbe_scominit_firs(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
-{
-    using namespace scomt;
-    using namespace scomt::proc;
-
-    FAPI_DBG("Entering ...");
-
-    fapi2::buffer<uint64_t> l_zeroes(0);
-
-    scomt::disableRegchk();
-
-    // configure PB COM FIRs
-    FAPI_DBG("Configuring PB COM FIR");
-    FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_FIR_REG_RW, l_zeroes),
-             "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_FIR_REG_RW)");
-    FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_FIR_ACTION0_REG, PB_COM_FIR_ACTION0),
-             "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_FIR_ACTION0_REG)");
-    FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_FIR_ACTION1_REG, PB_COM_FIR_ACTION1),
-             "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_FIR_ACTION1_REG)");
-    FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_FIR_MASK_REG_RW, PB_COM_FIR_MASK),
-             "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_FIR_MASK_REG_RW)");
-
-    // configure PBA FIRs
-    FAPI_DBG("Configuring PBA FIR");
-    FAPI_TRY(PUT_TP_TPBR_PBA_PBAF_PBAFIR_RW(i_target, l_zeroes),
-             "Error from putScom (TP_TPBR_PBA_PBAF_PBAFIR_RW)");
-    FAPI_TRY(PUT_TP_TPBR_PBA_PBAF_PBAFIRACT0(i_target, PBA_FIR_ACTION0),
-             "Error from putScom (TP_TPBR_PBA_PBAF_PBAFIRACT0)");
-    FAPI_TRY(PUT_TP_TPBR_PBA_PBAF_PBAFIRACT1(i_target, PBA_FIR_ACTION1),
-             "Error from putScom (TP_TPBR_PBA_PBAF_PBAFIRACT1)");
-    FAPI_TRY(PUT_TP_TPBR_PBA_PBAF_PBAFIRMASK_RW(i_target, PBA_FIR_MASK),
-             "Error from putScom (TP_TPBR_PBA_PBAF_PBAFIRMASK_RW)");
-
-    // configure LPC FIRs
-    FAPI_DBG("Configuring LPC FIR");
-    FAPI_TRY(PUT_TP_LPC_SYNC_FIR_REG_RW(i_target, l_zeroes),
-             "Error from putScom (TP_LPC_SYNC_FIR_REG_RW)");
-    FAPI_TRY(PUT_TP_LPC_SYNC_FIR_ACTION0_REG(i_target, LPC_FIR_ACTION0),
-             "Error from putScom (TP_LPC_SYNC_FIR_ACTION0_REG)");
-    FAPI_TRY(PUT_TP_LPC_SYNC_FIR_ACTION1_REG(i_target, LPC_FIR_ACTION1),
-             "Error from putScom (TP_LPC_SYNC_FIR_ACTION1_REG)");
-    FAPI_TRY(PUT_TP_LPC_SYNC_FIR_MASK_REG_RW(i_target, LPC_FIR_MASK),
-             "Error from putScom (TP_LPC_SYNC_FIR_MASK_REG_RW)");
-
-    scomt::enableRegchk();
-
-fapi_try_exit:
-    FAPI_DBG("Exiting ...");
-    return fapi2::current_err;
-}
-
 /// @brief Configures any trace array setup that cannot be done by scan init
 /// @param[in] i_target       Reference to processor chip target
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
@@ -345,7 +275,7 @@ fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 
     FAPI_TRY(p10_sbe_scominit_fbc(i_target), "Error from p10_sbe_scominit_fbc\n");
     FAPI_TRY(p10_sbe_scominit_bars(i_target), "Error from p10_sbe_scominit_bars\n");
-    FAPI_TRY(p10_sbe_scominit_firs(i_target), "Error from p10_sbe_scominit_firs\n");
+    // FIR inits have been moved to scan
     FAPI_TRY(p10_sbe_scominit_trace(i_target), "Error from p10_sbe_scominit_trace\n");
 
 fapi_try_exit:
