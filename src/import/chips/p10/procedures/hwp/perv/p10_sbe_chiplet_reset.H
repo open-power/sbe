@@ -56,16 +56,29 @@ enum P10_SBE_CHIPLET_RESET_Public_Constants
 };
 }
 
-const uint8_t n0_chiplet_delay = 0;
-const uint8_t n1_chiplet_delay = 6;
-const uint8_t eq0_chiplet_delay = 1;
-const uint8_t eq1_chiplet_delay = 1;
-const uint8_t eq2_chiplet_delay = 2;
-const uint8_t eq3_chiplet_delay = 2;
-const uint8_t eq4_chiplet_delay = 3;
-const uint8_t eq5_chiplet_delay = 3;
-const uint8_t eq6_chiplet_delay = 4;
-const uint8_t eq7_chiplet_delay = 4;
+static inline uint8_t chiplet_delay_cycles(uint8_t i_chiplet_id)
+{
+    constexpr uint8_t n0_chiplet_delay = 0;
+    constexpr uint8_t n1_chiplet_delay = 6;
+    static const uint8_t eq_chiplet_delays[8] = { 1, 1, 2, 2, 3, 3, 4, 4 };
+
+    if (i_chiplet_id == 2)
+    {
+        return n0_chiplet_delay * 4;
+    }
+    else if (i_chiplet_id == 3)
+    {
+        return n1_chiplet_delay * 4;
+    }
+    else if (i_chiplet_id >= 0x20 && i_chiplet_id <= 0x27)
+    {
+        return eq_chiplet_delays[i_chiplet_id - 0x20] * 4;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 typedef fapi2::ReturnCode (*p10_sbe_chiplet_reset_FP_t)(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);

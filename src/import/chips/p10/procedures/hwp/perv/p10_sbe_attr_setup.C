@@ -490,8 +490,10 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         fapi2::ATTR_RUNN_MODE_Type l_attr_runn_mode = fapi2::ENUM_ATTR_RUNN_MODE_OFF;
         fapi2::ATTR_DISABLE_HBBL_VECTORS_Type l_attr_disable_hbbl_vectors = fapi2::ENUM_ATTR_DISABLE_HBBL_VECTORS_FALSE;
         fapi2::ATTR_SBE_SELECT_EX_POLICY_Type l_attr_sbe_select_ex_policy = fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_DEFAULT;
+        fapi2::ATTR_CLOCKSTOP_ON_XSTOP_Type l_attr_clockstop_on_xstop = fapi2::ENUM_ATTR_CLOCKSTOP_ON_XSTOP_DISABLED;
         fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_Type l_attr_clock_mux_iohs_lcpll_input = { 0 };
         fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_Type l_attr_clock_mux_pci_lcpll_input = { 0 };
+        uint8_t l_clockstop_on_xstop = ATTR_CLOCKSTOP_ON_XSTOP_DISABLED;
 
         if (l_read_scratch8_reg.getBit<SCRATCH5_REG_VALID_BIT>())
         {
@@ -524,6 +526,26 @@ fapi2::ReturnCode p10_sbe_attr_setup(
             (l_attr_sbe_select_ex_policy);
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SBE_SELECT_EX_POLICY, FAPI_SYSTEM, l_attr_sbe_select_ex_policy),
                      "Error from FAPI_ATTR_SET (ATTR_SBE_SELECT_EX_POLICY)");
+
+            FAPI_DBG("Setting up ATTR_CLOCKSTOP_ON_XSTOP");
+            l_read_scratch5_reg.extractToRight<ATTR_CLOCKSTOP_ON_XSTOP_STARTBIT, ATTR_CLOCKSTOP_ON_XSTOP_LENGTH>
+            (l_clockstop_on_xstop);
+
+            if (l_clockstop_on_xstop == ATTR_CLOCKSTOP_ON_XSTOP_XSTOP)
+            {
+                l_attr_clockstop_on_xstop = fapi2::ENUM_ATTR_CLOCKSTOP_ON_XSTOP_STOP_ON_XSTOP;
+            }
+            else if (l_clockstop_on_xstop == ATTR_CLOCKSTOP_ON_XSTOP_XSTOP_SPATTN)
+            {
+                l_attr_clockstop_on_xstop = fapi2::ENUM_ATTR_CLOCKSTOP_ON_XSTOP_STOP_ON_XSTOP_AND_SPATTN;
+            }
+            else if (l_clockstop_on_xstop == ATTR_CLOCKSTOP_ON_XSTOP_STAGED_XSTOP)
+            {
+                l_attr_clockstop_on_xstop = fapi2::ENUM_ATTR_CLOCKSTOP_ON_XSTOP_STOP_ON_STAGED_XSTOP;
+            }
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCKSTOP_ON_XSTOP, i_target_chip, l_attr_clockstop_on_xstop),
+                     "Error from FAPI_ATTR_SET (ATTR_CLOCKSTOP_ON_XSTOP)");
 
             FAPI_DBG("Setting up IOHS PLL mux attributes");
 

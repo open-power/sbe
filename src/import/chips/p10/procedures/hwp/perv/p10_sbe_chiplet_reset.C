@@ -129,59 +129,8 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
 
     for (auto& targ : l_perv_eq_nest_func)
     {
-        uint32_t l_chipletID = targ.getChipletNumber();
-
-        if (l_chipletID == 0x2) // N0 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + n0_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x3) // N1 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + n1_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x20) // EQ0 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + eq0_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x21) // EQ1 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + eq1_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x22) // EQ2 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + eq2_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x23) // EQ3 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + eq3_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x24) // EQ4 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + eq4_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x25) // EQ5 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + eq5_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x26) // EQ6 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + eq6_chiplet_delay * 4);
-        }
-        else if (l_chipletID == 0x27) // EQ7 cplt
-        {
-            l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
-            (0x020 + eq7_chiplet_delay * 4);
-        }
-
+        l_data64.insertFromRight< OPCG_ALIGN_OPCG_WAIT_CYCLES, OPCG_ALIGN_OPCG_WAIT_CYCLES_LEN >
+        (0x020 + chiplet_delay_cycles(targ.getChipletNumber()));
         FAPI_TRY(fapi2::putScom(targ, OPCG_ALIGN, l_data64));
     }
 
