@@ -92,23 +92,33 @@ const char* g_usage =
     "       ipl_image_tool <image> [-i<flag>...] delete <section> [<section1>...<sectionN>]\n"
     "       ipl_image_tool <image> [-i<flag>...] dissect <section={.rings,.overlays,.dynamic,.overrides,,(none)}> [table,normal(default),long,raw]\n"
     "       ipl_image_tool <image> [-i<flag>...] check-sbe-ring-section <ddLevel> <maximum size>\n"
+    "       ipl_image_tool <image> [-i<flag>...] raw4test\n"
     "\n"
-    "This simple application uses the P9-XIP image APIs to normalize, search\n"
-    "update and edit P9-XIP images. This program encapsulates several commands\n"
-    "in a common command framework which requires a supported binary image to\n"
+    "The ipl_image_tool (formerly xip_tool) was originally developed to use\n"
+    "IPL (formerly XIP) image APIs to normalize, search, update and edit P8\n"
+    "IPL (XIP) images. Now, in P10, the program has evolved to support\n"
+    "examination of several other types of binary image files, as explained\n"
+    "in more detail below."
+    "\n"
+    "Generally speaking, this program encapsulates several commands in a common\n"
+    "command framework which requires a supported *binary* image, <image>, to\n"
     "operate on, a command name, and command arguments that vary by command.\n"
     "Commands that modify the image always rewrite the image in-place in the\n"
     "filesystem. However the original image is only modified if the command has\n"
     "completed without error.\n"
     "\n"
-    "The program operates predominantly on a P9-XIP formatted binary image, which\n"
-    "must be normalized - unless the tool is being called to normalize the image\n"
-    "in the first place with the 'normalize' command. The tool also validates the\n"
-    "image prior to operating on the image.\n"
+    "The program's main purpose is to operate on an XIP formatted binary image,\n"
+    "which must be normalized - unless the tool is being called to normalize\n"
+    "the image in the first place with the 'normalize' command. The tool also\n"
+    "validates the image has been properly formatted prior to operating on it.\n"
     "\n"
     "The program also operates in socalled standalone ring section images but\n"
     "which can only be used in the context of the following commands: 'report',\n"
     "'extract' and 'dissect'.\n"
+    "\n"
+    "The most recent additions to the program allows it to do a 'report' on\n"
+    "an Mvpd file and to test the Raw4 compression algorithm used for overlay\n"
+    "operation.\n"
     "\n"
     "The 'get' command retrieves a scalar value from the image and prints its\n"
     "representation on stdout (followed by a newline).  Scalar integer values\n"
@@ -184,6 +194,11 @@ const char* g_usage =
     "The 'check-sbe-ring-section' command checks that the size of the SBE ring\n"
     "section, within the .rings section of the HW image, of the specified\n"
     "ddLevel (in hex), does not exceed the specified <maximum size>\n"
+    "\n"
+    "The 'raw4test' command takes an image file containing a single RS4 encoded\n"
+    "ring and runs it through the RS4-to-Raw4 decompression function and then\n"
+    "through the Raw4-to-RS4 compression function. It then compares the output\n"
+    "RS4 ring to the input RS4 ring and reports whether they compare or not.\n"
     "\n"
     "-i<flag>:\n"
     "\t-ifs  Causes the validation step to ignore image size check against the\n"
@@ -3249,6 +3264,91 @@ dissectRingSectionPrep(void*                      i_image,
     return rc;
 }
 
+
+
+
+/// Function:  raw4Test()
+///
+/// Brief:  Passes an RS4 ring through the RS4->Raw4->RS4 compression functions
+///
+/// \param[in] i_image    A pointer to a binary image containing an RS4 ring
+///
+static
+int raw4Test(void*  i_image)
+{
+    int   rc = INFRASTRUCT_RC_SUCCESS;
+
+    CompressedScanData*  rs4In = (CompressedScanData*)i_image;
+
+    if (be16toh(rs4In->iv_magic) != RS4_MAGIC)
+    {
+        fprintf(stderr, "ERROR: In rawTest(): Image content is not an RS4 ring\n");
+        exit(EXIT_FAILURE);
+    }
+
+    CompressedScanData*  rs4Out = (CompressedScanData*)malloc(OVLY_WORK_BUF_SIZE);
+
+    if (!rs4Out)
+    {
+        fprintf(stderr, "ERROR: In rawTest(): malloc() failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    rc = rs4_overlay( rs4Out, //Work buffer and output RS4 ring
+                      OVLY_WORK_BUF_SIZE, //Space in rs4Out buffer
+                      rs4In,  //Tgt
+                      rs4In,  //Ovly
+                      rs4In->iv_type,
+                      be16toh(rs4In->iv_selector),
+                      OVLY_MODE_RAW4TEST,
+                      1 ); //Add'l debug trace outputs
+
+    if (rc)
+    {
+        fprintf(stderr, "ERROR: raw4Test: rs4_overlay failed w/rc=0x%08x\n",
+                rc);
+        exit(EXIT_FAILURE);
+    }
+
+
+    //
+    // Compare input and output RS4 rings
+    //
+    bool  bMatch = true;
+
+    printf("\n        Input RS4 ring   Output RS4 ring\n");
+
+    for (uint16_t iRs4 = 0; iRs4 < (be16toh(rs4In->iv_size) + 7) / 8; iRs4++)
+    {
+        uint64_t quadIn  = be64toh(*((uint64_t*)rs4In  + iRs4));
+        uint64_t quadOut = be64toh(*((uint64_t*)rs4Out + iRs4));
+
+        if (quadIn == quadOut)
+        {
+            printf("%06x: %016lx %016lx\n",
+                   iRs4 * 8, quadIn, quadOut);
+        }
+        else
+        {
+            printf("%06x: %016lx %016lx  !\n",
+                   iRs4, quadIn, quadOut);
+
+            bMatch = false;
+        }
+    }
+
+    if (bMatch)
+    {
+        printf("\nInput and Output rings *MATCH*\n\n");
+    }
+    else
+    {
+        printf("\nInput and Output rings *DIFFER*\n\n");
+    }
+
+    return rc;
+}
+
 #endif
 
 
@@ -3509,8 +3609,9 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
 #else
         fprintf(stderr, "\n");
         fprintf(stderr, "---------------------------------------------\n");
-        fprintf(stderr, "  dissect feature not supported in PPE repo  \n");
-        fprintf(stderr, "  => Use EKB version of ipl_image_tool       \n");
+        fprintf(stderr, "  dissect feature not supported              \n");
+        fprintf(stderr, "  => Use EKB version of ipl_image_tool:      \n");
+        fprintf(stderr, "     $CRONUS_HOME/exe/dev/prcd_d/x86_64/ipl_image_tool.exe \n");
         fprintf(stderr, "---------------------------------------------\n\n");
         exit(EXIT_FAILURE);
 #endif
@@ -3520,8 +3621,28 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
             fprintf(stderr, "ERROR: command: dissectRingSectionPrep() failed w/rc=0x%08x\n", rc);
             exit(EXIT_FAILURE);
         }
+    }
+    else if (strcmp(i_argv[0], "raw4test") == 0)
+    {
 
+        openAndMapReadOnly(i_imageFile, &fd, &image, i_maskIgnores);
+#if !defined(__PPE__) && !defined(OPENPOWER_BUILD) // Needed on ppe & OP-Build side to avoid TOR API
+        rc = raw4Test(image);
+#else
+        fprintf(stderr, "\n");
+        fprintf(stderr, "---------------------------------------------\n");
+        fprintf(stderr, "  raw4test feature not supported             \n");
+        fprintf(stderr, "  => Use EKB version of ipl_image_tool:      \n");
+        fprintf(stderr, "     $CRONUS_HOME/exe/dev/prcd_d/x86_64/ipl_image_tool.exe \n");
+        fprintf(stderr, "---------------------------------------------\n\n");
+        exit(EXIT_FAILURE);
+#endif
 
+        if (rc)
+        {
+            fprintf(stderr, "ERROR: command: raw4Test() failed w/rc=0x%08x\n", rc);
+            exit(EXIT_FAILURE);
+        }
     }
     else if ( strcmp(i_argv[0], "check-sbe-ring-section") == 0 &&
               l_imageSectionType == IST_XIP )
