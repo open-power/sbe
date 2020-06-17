@@ -29,9 +29,12 @@
 #include <fapi2_target.H>
 #ifndef __SBEMFW_MEASUREMENT__
 #include <plat_target_utils.H>
-#include <p9_perv_scom_addresses.H>
-#include <p9_perv_scom_addresses_fld.H>
+#include <p10_scom_pibms.H>
+#include <p10_scom_perv_9.H>
 #endif
+
+
+#define PERV_SB_CS_SELECT_SECONDARY_SEEPROM 17
 
 #if defined __SBEFW_PIBMEM__
 // Global Vector containing ALL targets.  This structure is referenced by
@@ -254,14 +257,15 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         fapi2::buffer<uint16_t> l_read4 = 0;
         fapi2::buffer<uint32_t> l_read5 = 0;
         fapi2::buffer<uint64_t> l_ctrlReg = 0;
-        bool l_isSlave = false;
+        fapi2::buffer<uint64_t> cbs_envstat_reg = 0;
+        fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type isMaster = false;
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chipTarget = plat_getChipTarget();
         const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-        FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_8_SCOM,
+        FAPI_TRY(fapi2::getScom(l_chipTarget, MAILBOX_SCRATCH_REG_8,
                                 l_scratch8Reg));
 
         //Getting CBS_CS register value
-        FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_CBS_CS_SCOM,
+        FAPI_TRY(fapi2::getScom(l_chipTarget, MAILBOX_CBS_CTRL_STATUS,
                                 l_tempReg));
 
         l_read1.writeBit<7>(l_tempReg.getBit<4>());
@@ -276,7 +280,7 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
             uint8_t isSpMode = 0;
             FAPI_DBG("Reading Scratch_reg3");
             //Getting SCRATCH_REGISTER_3 register value
-            FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_3_SCOM,
+            FAPI_TRY(fapi2::getScom(l_chipTarget, MAILBOX_SCRATCH_REG_3,
                                     l_tempReg));
 
             l_tempReg.extractToRight<2, 1>(isMpIpl);
@@ -288,28 +292,48 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
             FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_IS_SP_MODE, l_chipTarget, isSpMode));
         }
 
-
-
+    
+        //Update the ATTR_PROC_SBE_MASTER_CHIP based on the Scratch Register 6 and 
+        //FSXCOMP_FSXLOG_CBS_ENVSTAT_RO(0x50004) register.
+        //Read FSXCOMP_FSXLOG_CBS_ENVSTAT_RO value
+        FAPI_TRY(fapi2::getScom(l_chipTarget, scomt::perv::FSXCOMP_FSXLOG_CBS_ENVSTAT_RO,
+                                cbs_envstat_reg));
+        FAPI_INF("CBS_ENVSTAT Reg [0x%08X]", (cbs_envstat_reg >>32));
+        //Check SCRATCH_REGISTER_6 register value is valid
         if ( l_scratch8Reg.getBit<5>() )
         {
-            //uint8_t l_pumpMode = fapi2::ENUM_ATTR_PROC_FABRIC_PUMP_MODE_CHIP_IS_NODE;
-
             FAPI_DBG("Reading Scratch_reg6");
             //Getting SCRATCH_REGISTER_6 register value
-            FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SCRATCH_REGISTER_6_SCOM,
+            FAPI_TRY(fapi2::getScom(l_chipTarget, MAILBOX_SCRATCH_REG_6 ,
                                     l_tempReg));
 
-            l_read1 = 0;
-            l_isSlave = l_tempReg.getBit<24>();
-            if ( !l_isSlave )  // 0b0 == master
+            //Scratch bit 24 indicates Master if SET
+            if ( l_tempReg.getBit<24>() ) 
             {
-                l_read1.setBit<7>();
+                isMaster = true;
+                //Override based on the C4 PIN in the regegister FSXCOMP_FSXLOG_CBS_ENVSTAT_RO
+                if( !((cbs_envstat_reg >> 32) & 0x8000000) )
+                {
+                    // C4 overrides Master as slave
+                    isMaster = false;
+                    FAPI_INF("Overriding the Proc:0x%.8x as SLAVE chip based on C4 Pin",
+                              l_chipTarget.get());
+                }
             }
+         }
+         else //SCRATCH_REGISTER_6 register value is invalid, determine
+         {
+            FAPI_INF("Scratch Register 6 is not valid,depend on FSXCOMP_FSXLOG_CBS_ENVSTAT_RO"
+                     "to determine master/slave PROC" );
+            if( (cbs_envstat_reg >> 32) & 0x8000000 )
+            {
+                isMaster = true;
+            }
+         }
+         //Update the ATTR_PROC_SBE_MASTER_CHIP
+         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_SBE_MASTER_CHIP, l_chipTarget,isMaster));
 
-            FAPI_DBG("Setting up MASTER_CHIP, FABRIC_GROUP_ID and CHIP_ID");
-            FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_SBE_MASTER_CHIP, l_chipTarget,
-                                   l_read1));
-        }
+
 
         //FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
         //l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
@@ -326,9 +350,9 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
 
         { // scope initializer to resolve compile issues
 
-        // if bit 17 of PERV_SB_CS_SCOM is set, set attribute
+        // if bit 17 of MAILBOX_CBS_SELFBOOT_CTRL_STATUS is set, set attribute
         // which suggest backup seeprom is selected for boot.
-        FAPI_TRY(fapi2::getScom(l_chipTarget, PERV_SB_CS_SCOM,
+        FAPI_TRY(fapi2::getScom(l_chipTarget, MAILBOX_CBS_SELFBOOT_CTRL_STATUS,
                                 l_tempReg));
         fapi2::buffer<uint8_t> attrSeepromSlct = 0;
 
