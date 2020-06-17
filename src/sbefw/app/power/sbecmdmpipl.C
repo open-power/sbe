@@ -83,8 +83,8 @@ static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 7;
 static const uint32_t SBE_ISTEP4                    = 4;
 static const uint32_t SBE_ISTEP5                    = 5;
 static const uint32_t ISTEP_MINOR_START             = 1;
-static const uint32_t ISTEP4_MAX_SUBSTEPS           = 34;
-static const uint32_t ISTEP5_MAX_SUBSTEPS           = 2;
+static const uint32_t ISTEP4_MAX_SUBSTEPS           = 20;
+static const uint32_t ISTEP5_MAX_SUBSTEPS           = 3;
 
 ReturnCode startMpiplIstepsExecute(void)
 {
