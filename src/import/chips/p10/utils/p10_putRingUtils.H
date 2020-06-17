@@ -184,7 +184,7 @@ extern "C"
 typedef fapi2::ReturnCode( *p10_putRingUtils_FP_t )
 ( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
   const uint8_t* i_rs4,
-  const MyBool_t i_applyOverride,
+  const bool i_applyOverride,
   const fapi2::RingMode i_ringMode,
   const RingType_t i_ringType,
   RS4::OpMode_t    i_opMode );
