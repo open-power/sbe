@@ -720,6 +720,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 
     // Get master Core
     uint8_t coreId = 0;
+    uint8_t l_is_mpipl = 0;
     Target< TARGET_TYPE_SYSTEM > sysTgt;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,proc,coreId);
@@ -752,7 +753,11 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
                                proc,
                                l_ATTR_BACKING_CACHES_NUM);
-        if(l_ATTR_BACKING_CACHES_NUM < 2)
+        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+        FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL,FAPI_SYSTEM,l_is_mpipl);
+        //In the MPIPL path Memory is alive and backing cache is not mandatory.
+        //In MPIPL boot loader image is loaded(DMAed) directly into the memory 
+        if( (l_ATTR_BACKING_CACHES_NUM < 2) && (!l_is_mpipl) )
         {
            SBE_ERROR(" Num of backing cache is less than 2. Cannot proceed with IPL");
            pk_halt();
@@ -768,11 +773,9 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         }
 
         // Open HB Dump memory Region
-        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
         FAPI_ATTR_GET(fapi2::ATTR_HOSTBOOT_HRMOR_OFFSET,
                       FAPI_SYSTEM,
                       l_hostboot_hrmor_offset);
-        //rc = p9_fbc_utils_get_chip_base_address_no_aliases(
         rc = p10_fbc_utils_get_chip_base_address(
                                     proc,
                                     HB_BOOT_ID,
@@ -782,7 +785,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
                                     drawer_base_address_mmio);
         if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(" p9_fbc_utils_get_chip_base_address failed");
+            SBE_ERROR(" p10_fbc_utils_get_chip_base_address failed");
             break;
         }
         drawer_base_address_nm0 += l_hostboot_hrmor_offset;
