@@ -324,13 +324,22 @@ fapi2::ReturnCode getRS4ImageFromTor(
         }
         else
         {
-            // If we're in this path, the target should be of chiplet type
+            // Try to reduce the target to chiplet type
             fapi2::Target < fapi2::TARGET_TYPE_CHIPLETS | fapi2::TARGET_TYPE_MULTICAST > l_cplt_target;
-            FAPI_TRY(temp_reduceType(i_target, l_cplt_target), "Invalid target for instance ring");
+            fapi2::ReturnCode l_reduce_rc = temp_reduceType(i_target, l_cplt_target);
 
-            l_chipletPos = l_cplt_target
-                           .getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ()
-                           .getChildren< fapi2::TARGET_TYPE_PERV >()[0].getChipletNumber();
+            if (l_reduce_rc == fapi2::FAPI2_RC_SUCCESS)
+            {
+                // It's a chiplet, so grab the chiplet number
+                l_chipletPos = l_cplt_target
+                               .getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ()
+                               .getChildren< fapi2::TARGET_TYPE_PERV >()[0].getChipletNumber();
+            }
+            else
+            {
+                // It's not a chiplet, so it's the chip and we use the first chiplet ID
+                l_chipletPos = l_pChipletData->chipletBaseId;
+            }
         }
 
         l_chipletPos    -=   l_pChipletData->chipletBaseId;
