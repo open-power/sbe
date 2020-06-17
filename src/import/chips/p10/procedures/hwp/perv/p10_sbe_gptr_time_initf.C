@@ -42,8 +42,10 @@
 static const ring_setup_t ISTEP3_GPTR_TIME_RINGS_UNICAST[] =
 {
     { n0_gptr,        IGNORE_PG,   TARGET_CHIP,    0x2,  0x2,  0},
+    { n0_gptr_ovly,   IGNORE_PG,   TARGET_CHIP,    0x2,  0x2,  0},
     { n0_time,        IGNORE_PG,   TARGET_CHIP,    0x2,  0x2,  0},
     { n1_gptr,        IGNORE_PG,   TARGET_CHIP,    0x3,  0x3,  0},
+    { n1_gptr_ovly,   IGNORE_PG,   TARGET_CHIP,    0x3,  0x3,  0},
     { n1_time,        IGNORE_PG,   TARGET_CHIP,    0x3,  0x3,  0},
     { n1_nmmu1_gptr,  0x9,         TARGET_CHIP,    0x3,  0x3,  0},
     { n1_nmmu1_time,  0x9,         TARGET_CHIP,    0x3,  0x3,  0},
@@ -88,12 +90,16 @@ static const ring_setup_t ISTEP3_GPTR_TIME_RINGS_UNICAST[] =
     { iohs7_pdl_gptr, IGNORE_PG,   TARGET_CHIP,    0x1F, 0x1F, 0},
     { iohs7_pdl_time, IGNORE_PG,   TARGET_CHIP,    0x1F, 0x1F, 0},
     { pau0_gptr,      IGNORE_PG,   TARGET_CHIP,    0x10, 0x10, 0},
+    { pau0_gptr_ovly, IGNORE_PG,   TARGET_CHIP,    0x10, 0x10, 0},
     { pau0_time,      IGNORE_PG,   TARGET_CHIP,    0x10, 0x10, 0},
     { pau1_gptr,      IGNORE_PG,   TARGET_CHIP,    0x11, 0x11, 0},
+    { pau1_gptr_ovly, IGNORE_PG,   TARGET_CHIP,    0x11, 0x11, 0},
     { pau1_time,      IGNORE_PG,   TARGET_CHIP,    0x11, 0x11, 0},
     { pau2_gptr,      IGNORE_PG,   TARGET_CHIP,    0x12, 0x12, 0},
+    { pau2_gptr_ovly, IGNORE_PG,   TARGET_CHIP,    0x12, 0x12, 0},
     { pau2_time,      IGNORE_PG,   TARGET_CHIP,    0x12, 0x12, 0},
     { pau3_gptr,      IGNORE_PG,   TARGET_CHIP,    0x13, 0x13, 0},
+    { pau3_gptr_ovly, IGNORE_PG,   TARGET_CHIP,    0x13, 0x13, 0},
     { pau3_time,      IGNORE_PG,   TARGET_CHIP,    0x13, 0x13, 0},
     { pau0_pau0_gptr, 0x5,         TARGET_CHIP,    0x10, 0x10, 0},
     { pau0_pau0_time, 0x5,         TARGET_CHIP,    0x10, 0x10, 0},
@@ -114,6 +120,11 @@ static const mc_ring_setup_t ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST[] =
     { eq_gptr,        0},
     { eq_time,        0},
     { eq_clkadj_gptr, 1},
+};
+
+static const ring_setup_t ISTEP3_EQ_GPTR_RINGS_UNICAST[] =
+{
+    { eq_gptr_ovly,   IGNORE_PG,   TARGET_CHIPLET, 0x20, 0x27, 1},
 };
 
 static const mc_ring_setup_t ISTEP3_PCI_GPTR_TIME_RINGS_MULTICAST[] =
@@ -147,6 +158,8 @@ fapi2::ReturnCode p10_sbe_gptr_time_initf(const
 
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_ALL_EQ,
              ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST));
+
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_EQ_GPTR_RINGS_UNICAST));
 
     if (l_mc.size())
     {
