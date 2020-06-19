@@ -37,6 +37,7 @@
 #include <p10_ram_core.H>
 #include <p10_thread_control.H>
 #include <p10_scom_c.H>
+#include <p10_scom_eq.H>
 
 // shift/mask for inserting SPR num into opcode
 const uint32_t SPR_NUM_OPCODE_SHIFT  = 11;
@@ -72,9 +73,6 @@ const uint32_t OPCODE_MASK      = 0xFC0007FE;
 const uint32_t OPCODE_L         = 0x00010000;
 const uint32_t OPCODE_MASK_L    = (OPCODE_MASK | OPCODE_L);
 const uint32_t OPCODE_MASK_SPR  = (OPCODE_MASK | (SPR_NUM_MASK << SPR_NUM_OPCODE_SHIFT));
-
-// See PC workbook, supported RAM instruction table footnote
-const uint32_t OPCODE_SPECIAL_PPC                  = 0x001E0000;
 
 // opcode for ramming
 const uint32_t OPCODE_MTSPR_FROM_GPR0_TO_SPRD      = 0x7C1543A6;
@@ -171,12 +169,18 @@ const uint32_t RAM_CORE_READY_POLL_CNT = 100;
 // where field value = SCRATCH xxx SPR
 const uint32_t EC_PC_COMMON_SPR_SCOMC_MODE_CX_SCR0 = 0;
 
+// constants for HW533775
+const uint32_t HW533775_MAX_POLLS = 10;
+const uint32_t HW533775_POLL_DELAY_HW_NS = 1000;
+const uint32_t HW533775_POLL_DELAY_SIM_CYCLES = 100000;
+
 //-----------------------------------------------------------------------------------
 // Namespace declarations
 //-----------------------------------------------------------------------------------
 
 using namespace scomt;
 using namespace scomt::c;
+using namespace scomt::eq;
 
 //-----------------------------------------------------------------------------------
 // Function definitions
@@ -258,6 +262,8 @@ fapi2::ReturnCode RamCore::ram_setup()
     fapi2::ReturnCode rc_fapi(fapi2::FAPI2_RC_SUCCESS);
     bool l_thread_ready = false;
     uint32_t l_poll_count = RAM_CORE_READY_POLL_CNT;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip_target = iv_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    fapi2::ATTR_CHIP_EC_FEATURE_HW533775_Type l_hw533775 = 0;
 
     switch (iv_thread)
     {
@@ -329,6 +335,267 @@ fapi2::ReturnCode RamCore::ram_setup()
                 .set_THREAD(iv_thread),
                 "Thread to perform ram is inactive. "
                 "EC_PC_PMC_THREAD_INFO reg 0x%.16llX", l_data);
+
+    // HW533775 -- Worthwhile Toad
+    // apply workaround sequence to engage recovery via core FIR
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW533775,
+                           l_chip_target,
+                           l_hw533775));
+
+    if (l_hw533775)
+    {
+        // parent EQ
+        fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq_target = iv_target.getParent<fapi2::TARGET_TYPE_EQ>();
+        fapi2::buffer<uint64_t> l_eq_fir_mask_restore;
+
+        // fused core state
+        fapi2::ATTR_FUSED_CORE_MODE_Type l_fused_core_mode = fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_UNFUSED;
+        fapi2::Target<fapi2::TARGET_TYPE_CORE> l_target_fused_peer;
+        bool l_block_recovery_fused_peer = false;
+
+        // HID restore values
+        fapi2::buffer<uint64_t> l_hid_restore;
+        fapi2::buffer<uint64_t> l_hid_restore_fused_peer;
+
+        // chip units (core#)
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_chip_unit_pos;
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_chip_unit_pos_fused_peer = 0;
+
+        FAPI_DBG("Executing HW533775 sequence");
+
+        // determine core number from target
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               iv_target,
+                               l_chip_unit_pos));
+
+        // if fused, determine peer target
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
+                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                               l_fused_core_mode));
+
+        if (l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+        {
+            bool l_found_fused_peer = false;
+            l_chip_unit_pos_fused_peer = l_chip_unit_pos;
+
+            if (l_chip_unit_pos % 2)
+            {
+                l_chip_unit_pos_fused_peer--;
+            }
+            else
+            {
+                l_chip_unit_pos_fused_peer++;
+            }
+
+            for (auto l_core_target : l_chip_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+            {
+                fapi2::ATTR_CHIP_UNIT_POS_Type l_candidate_chip_unit_pos = 0;
+                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                       l_core_target,
+                                       l_candidate_chip_unit_pos));
+
+                if (l_candidate_chip_unit_pos == l_chip_unit_pos_fused_peer)
+                {
+                    l_found_fused_peer = true;
+                    l_target_fused_peer = l_core_target;
+                    break;
+                }
+            }
+
+            FAPI_ASSERT(l_found_fused_peer,
+                        fapi2::P10_RAM_HW533775_FUSED_CORE_SEARCH_ERROR()
+                        .set_CORE_TARGET(iv_target)
+                        .set_THREAD(iv_thread),
+                        "Unable to find fused core partner for target of RAM operation");
+
+            // determine if fused peer has any valid virtual thread mappings
+            // if not, we'll need to block recovery from occuring on the peer core
+            FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(l_target_fused_peer, l_data));
+
+            if (!GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID0_V(l_data) &&
+                !GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID1_V(l_data) &&
+                !GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID2_V(l_data) &&
+                !GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID3_V(l_data))
+            {
+                l_block_recovery_fused_peer = true;
+            }
+        }
+
+        // ensure HID permits recovery
+        // read HID register, save current state to restore later
+        FAPI_TRY(GET_EC_PC_PMU_SPRCOR_HID(iv_target, l_data));
+        l_hid_restore = l_data;
+        // write HID, to ensure recovery is enabled before we write core FIR
+        CLEAR_EC_PC_PMU_SPRCOR_HID_DIS_RECOVERY(l_data);
+        FAPI_TRY(PUT_EC_PC_PMU_SPRCOR_HID(iv_target, l_data));
+
+        // follow sequence on fused peer if we're taking it through recovery
+        if ((l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED) &&
+            !l_block_recovery_fused_peer)
+        {
+            FAPI_TRY(GET_EC_PC_PMU_SPRCOR_HID(l_target_fused_peer, l_data));
+            l_hid_restore_fused_peer = l_data;
+            CLEAR_EC_PC_PMU_SPRCOR_HID_DIS_RECOVERY(l_data);
+            FAPI_TRY(PUT_EC_PC_PMU_SPRCOR_HID(l_target_fused_peer, l_data));
+        }
+
+        // mask EQ chiplet level RFIR bit for core(s), so core FIR write used
+        // to trigger recovery will not bubble up to chip top level
+        FAPI_TRY(PREP_RECOV_MASK_WO_OR(l_eq_target));
+        l_data.flush<0>();
+        FAPI_TRY(l_data.setBit(RECOV_MASK_5 +            // bit offset for c0
+                               (l_chip_unit_pos % 4)));  // core offset within EQ
+
+        if (l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+        {
+            FAPI_TRY(l_data.setBit(RECOV_MASK_5 +
+                                   (l_chip_unit_pos_fused_peer % 4)));
+        }
+
+        FAPI_TRY(PUT_RECOV_MASK_WO_OR(l_eq_target, l_data));
+
+        // reset forward progress counter tracking number of recovery events
+        FAPI_TRY(GET_EC_PC_FIR_RECOV_FWD_PROG_CTRL(iv_target, l_data));
+        SET_EC_PC_FIR_RECOV_FWD_PROG_CTRL_RESET_FWD_PROG(l_data);
+        FAPI_TRY(PUT_EC_PC_FIR_RECOV_FWD_PROG_CTRL(iv_target, l_data));
+
+        if (l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+        {
+            // block passed error from registering on fused core peer if
+            // we're not going to take it through recovery
+            if (l_block_recovery_fused_peer)
+            {
+                FAPI_TRY(PREP_EC_PC_FIR_CORE_FIRMASK_WO_OR(l_target_fused_peer));
+                l_data.flush<0>();
+                SET_EC_PC_FIR_CORE_FIRMASK_MASK_PC_OTHER_CORE_CHIPLET_REC_ERROR(l_data);
+                FAPI_TRY(PUT_EC_PC_FIR_CORE_FIRMASK_WO_OR(l_target_fused_peer, l_data));
+            }
+            // reset forward progress counter on peer
+            else
+            {
+                FAPI_TRY(GET_EC_PC_FIR_RECOV_FWD_PROG_CTRL(l_target_fused_peer, l_data));
+                SET_EC_PC_FIR_RECOV_FWD_PROG_CTRL_RESET_FWD_PROG(l_data);
+                FAPI_TRY(PUT_EC_PC_FIR_RECOV_FWD_PROG_CTRL(l_target_fused_peer, l_data));
+            }
+        }
+
+        // write core LFIR to force recovery (on RAM target core only)
+        FAPI_TRY(PREP_EC_PC_FIR_CORE_WO_OR(iv_target));
+        l_data.flush<0>();
+        SET_EC_PC_FIR_CORE_PC_FW_INJ_REC_ERROR(l_data);
+        FAPI_TRY(PUT_EC_PC_FIR_CORE_WO_OR(iv_target, l_data));
+
+        // poll until core FIR clears (on target core)
+        l_poll_count = HW533775_MAX_POLLS;
+
+        while (l_poll_count > 0)
+        {
+            FAPI_TRY(GET_EC_PC_FIR_CORE_RW(iv_target, l_data));
+
+            if (!l_data())
+            {
+                break;
+            }
+
+            FAPI_TRY(fapi2::delay(HW533775_POLL_DELAY_HW_NS, HW533775_POLL_DELAY_SIM_CYCLES));
+            l_poll_count--;
+        }
+
+        FAPI_ASSERT(!l_data(),
+                    fapi2::P10_RAM_HW533775_RECOVERY_ERROR()
+                    .set_CORE_TARGET(iv_target)
+                    .set_CORE_FIR_POLL_TARGET(iv_target)
+                    .set_THREAD(iv_thread)
+                    .set_CORE_FIR(l_data)
+                    .set_HID(l_hid_restore),
+                    "Timeout waiting for recovery to clear Core FIR, FIR: 0x%.16llX",
+                    l_data);
+
+        // handle core FIR clear (on fused peer)
+        if (l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+        {
+            // clear masked FIR set by injection on target core as recovery won't run
+            if (l_block_recovery_fused_peer)
+            {
+                FAPI_TRY(PREP_EC_PC_FIR_CORE_WO_AND(l_target_fused_peer));
+                l_data.flush<1>();
+                CLEAR_EC_PC_FIR_CORE_PC_OTHER_CORE_CHIPLET_REC_ERROR(l_data);
+                FAPI_TRY(PUT_EC_PC_FIR_CORE_WO_AND(l_target_fused_peer, l_data));
+            }
+
+            l_poll_count = HW533775_MAX_POLLS;
+
+            while (l_poll_count > 0)
+            {
+                FAPI_TRY(GET_EC_PC_FIR_CORE_RW(l_target_fused_peer, l_data));
+
+                if (!l_data())
+                {
+                    break;
+                }
+
+                FAPI_TRY(fapi2::delay(HW533775_POLL_DELAY_HW_NS, HW533775_POLL_DELAY_SIM_CYCLES));
+                l_poll_count--;
+            }
+
+            FAPI_ASSERT(!l_data(),
+                        fapi2::P10_RAM_HW533775_RECOVERY_ERROR()
+                        .set_CORE_TARGET(iv_target)
+                        .set_CORE_FIR_POLL_TARGET(l_target_fused_peer)
+                        .set_THREAD(iv_thread)
+                        .set_CORE_FIR(l_data)
+                        .set_HID(l_hid_restore_fused_peer),
+                        "Timeout waiting for recovery to clear Core FIR, FIR: 0x%.16llX",
+                        l_data);
+
+            // unmask passed FIR indicator for future reporting
+            if (l_block_recovery_fused_peer)
+            {
+                FAPI_TRY(PREP_EC_PC_FIR_CORE_FIRMASK_WO_AND(l_target_fused_peer));
+                l_data.flush<1>();
+                CLEAR_EC_PC_FIR_CORE_FIRMASK_MASK_PC_OTHER_CORE_CHIPLET_REC_ERROR(l_data);
+                FAPI_TRY(PUT_EC_PC_FIR_CORE_FIRMASK_WO_AND(l_target_fused_peer, l_data));
+            }
+        }
+
+        // clear core WOF
+        FAPI_TRY(PREP_EC_PC_FIR_CORE_WOF(iv_target));
+        l_data.flush<0>();
+        FAPI_TRY(PUT_EC_PC_FIR_CORE_WOF(iv_target, l_data));
+
+        if ((l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED) &&
+            !l_block_recovery_fused_peer)
+        {
+            FAPI_TRY(PREP_EC_PC_FIR_CORE_WOF(l_target_fused_peer));
+            l_data.flush<0>();
+            FAPI_TRY(PUT_EC_PC_FIR_CORE_WOF(l_target_fused_peer, l_data));
+        }
+
+        // clear EQ chiplet RFIR mask bit(s)
+        FAPI_TRY(PREP_RECOV_MASK_WO_CLEAR(l_eq_target));
+        l_data.flush<0>();
+        FAPI_TRY(l_data.setBit(RECOV_MASK_5 +
+                               (l_chip_unit_pos % 4)));
+
+        if (l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+        {
+            FAPI_TRY(l_data.setBit(RECOV_MASK_5 +
+                                   (l_chip_unit_pos_fused_peer % 4)));
+        }
+
+        FAPI_TRY(PUT_RECOV_MASK_WO_CLEAR(l_eq_target, l_data));
+
+        // restore saved HID value(s)
+        FAPI_TRY(PREP_EC_PC_PMU_SPRCOR_HID(iv_target));
+        FAPI_TRY(PUT_EC_PC_PMU_SPRCOR_HID(iv_target, l_hid_restore));
+
+        if ((l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED) &&
+            !l_block_recovery_fused_peer)
+        {
+            FAPI_TRY(PREP_EC_PC_PMU_SPRCOR_HID(l_target_fused_peer));
+            FAPI_TRY(PUT_EC_PC_PMU_SPRCOR_HID(l_target_fused_peer, l_hid_restore_fused_peer));
+        }
+    }
 
     // set RAM_MODEREG via Scom to enable RAM mode
     FAPI_TRY(GET_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
@@ -503,6 +770,7 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
     uint8_t  l_predecode = 0;
     uint32_t l_poll_count = RAM_CORE_STAT_POLL_CNT;
     bool l_is_load_store = false;
+    fapi2::ATTR_CHIP_EC_FEATURE_HW533775_Type l_hw533775 = 0;
 
     // check the opcode for load/store
     l_is_load_store = is_load_store(i_opcode);
@@ -517,6 +785,10 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
                 fapi2::P10_RAM_NOT_SETUP_ERR()
                 .set_CORE_TARGET(iv_target),
                 "Attempting to ram opcode without enable RAM mode before");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW533775,
+                           iv_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
+                           l_hw533775));
 
     // write RAM_CTRL Scom for ramming the opcode
     PREP_EC_PC_FIR_RAM_CTRL(iv_target);
@@ -533,7 +805,7 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
         FAPI_TRY(GET_EC_PC_FIR_RAM_STATUS(iv_target, l_data));
 
         // attempting to ram during recovery
-        FAPI_ASSERT(!l_data.getBit<EC_PC_FIR_RAM_STATUS_RAM_CONTROL_ACCESS_DURING_RECOV>(),
+        FAPI_ASSERT(l_hw533775 || !l_data.getBit<EC_PC_FIR_RAM_STATUS_RAM_CONTROL_ACCESS_DURING_RECOV>(),
                     fapi2::P10_RAM_STATUS_IN_RECOVERY_ERR()
                     .set_CORE_TARGET(iv_target),
                     "Attempting to ram during recovery. "
@@ -608,10 +880,6 @@ uint8_t RamCore::gen_predecode(const uint32_t i_opcode)
         l_opcode_pattern_spr == OPCODE_MTSPR_SMFCTRL)
     {
         l_predecode = 6;
-    }
-    else if (i_opcode == OPCODE_MTNIA_LR)
-    {
-        l_predecode = 0xE;
     }
     else if (l_opcode_pattern_L == OPCODE_MTMSR ||
              l_opcode_pattern_L == OPCODE_MTMSRD)
@@ -1039,7 +1307,7 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
             opcodes[2] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
             opcodes[3] = {NULL, OPCODE_MTSPR_FROM_GPR0_TO_LR, NULL};
             //3.ram MTNIA_LR opcode
-            opcodes[4] = {NULL, (OPCODE_MTNIA_LR | OPCODE_SPECIAL_PPC), NULL};
+            opcodes[4] = {NULL, OPCODE_MTNIA_LR, NULL};
             //4.restore LR
             opcodes[5] = {&l_backup_lr, OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
             opcodes[6] = {NULL, OPCODE_MTSPR_FROM_GPR0_TO_LR, NULL};
@@ -1050,7 +1318,7 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
             //2.create mfsprd<gpr0> opcode, ram into thread
             opcodes[0] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
             //3.create mtmsr opcode, ram into thread
-            opcodes[1] = {NULL, (OPCODE_MTMSR_L0 | OPCODE_SPECIAL_PPC), NULL};
+            opcodes[1] = {NULL, OPCODE_MTMSR_L0, NULL};
         }
         else if(i_reg_num == RAM_REG_MSR_L1)
         {
@@ -1066,7 +1334,7 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
             //2.create mfsprd<gpr0> opcode, ram into thread
             opcodes[0] = {const_cast<fapi2::buffer<uint64_t>* >(&i_buffer[0]), OPCODE_MFSPR_FROM_SPRD_TO_GPR0, NULL};
             //3.create mtmsrd opcode, ram into thread
-            opcodes[1] = {NULL, (OPCODE_MTMSRD_L0 | OPCODE_SPECIAL_PPC), NULL};
+            opcodes[1] = {NULL, OPCODE_MTMSRD_L0, NULL};
         }
         else if(i_reg_num == RAM_REG_MSRD_L1)
         {
