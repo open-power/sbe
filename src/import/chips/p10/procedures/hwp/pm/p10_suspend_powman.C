@@ -134,6 +134,7 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                         // SBE requests OCC enter safe state by setting OCC_Flag[REQUEST_OCC_SAFE_STATE]
                         // OCC polls this bit every 500us,
                         // if detected heartbeat stop PGPE is interrupted and enters suspend
+                        PREP_TP_TPCHIP_OCC_OCI_OCB_OCCFLG0_WO_OR(i_target);
                         FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_OCCFLG0_WO_OR(i_target,BIT64(p10hcd::REQUEST_OCC_SAFE_STATE)));
                     }
                     else
@@ -141,6 +142,7 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                         FAPI_DBG("Safe Mode bit failed after requesting occ safe state\n Requesting in PGPE...");
                         //PGPE polls this bit on a reduced FIT timer period
                         //if detected enters safe mode
+                        PREP_TP_TPCHIP_OCC_OCI_OCB_OCCFLG2_WO_OR(i_target);
                         FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_OCCFLG2_WO_OR(i_target,BIT64(PGPE_SAFE_MODE)));
                     }
 
@@ -170,10 +172,12 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                 }
 
                 //SBE issues "halt OCC complex" to stop OCC instructions
+                PREP_TP_TPCHIP_OCC_OCI_OCB_PIB_OCR_WO_OR(i_target);
                 FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_PIB_OCR_WO_OR(i_target,BIT64(TP_TPCHIP_OCC_OCI_OCB_PIB_OCR_OCR_DBG_HALT)));
 
                 //XGPE polls this bit on a reduced FIT timer period
                 //if detected executes XGPE pm_suspend flow
+                PREP_TP_TPCHIP_OCC_OCI_OCB_OCCFLG3_WO_OR(i_target);
                 FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_OCCFLG3_WO_OR(i_target,BIT64(PM_COMPLEX_SUSPEND)));
 
                 //Poll PM_COMPLEX_SUSPENDED (bit 19) in OCCFLG3 register, that tells
