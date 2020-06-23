@@ -36,6 +36,7 @@ SBEROMDIR=${SIMICSROOTDIR}/import/boot_roms/
 SBEBINSIMIMAGE=${SBEROMDIR}/sbe_seeprom_p10.bin
 SBEECCIMAGE=${SBEROMDIR}/sbe_seeprom_p10.bin.ecc
 SBEECCMEASUREMENTIMAGE=$SBEROMDIR/sbe_measurement_p10.bin.ecc
+RINGPATH=/afs/apd.pok.ibm.com/projects/eclipz/lab/p10/vbu_models/sbeimages/ring_image/
 
 # Create test directory.
 mkdir -p $SBETESTDIR || exit -1
@@ -50,6 +51,8 @@ echo "Add ecc to the binary workspace"
 if [ -f $SBEBINIMAGE ]; then
     echo "Copy sbe boot seeprom image"
     cp -f $SBEBINIMAGE $SBEBINSIMIMAGE || exit -1
+    #Add HBBL section into the SBE image.
+    $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .rings $RINGPATH/ring.bin || exit -1
     #Add HBBL section into the SBE image.
     $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hbbl $SBEROOT/src/tools/debug/hbbl.bin || exit -1 
     #TODO: Add Ring section into the SBE image before adding the ECC

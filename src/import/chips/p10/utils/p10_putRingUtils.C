@@ -97,6 +97,8 @@ enum
 std::map <uint8_t, uint64_t> g_ringScanRegionMap;
 #endif
 
+static uint32_t g_simics_state = 0;
+
 void initScanRegionTest()
 {
 
@@ -319,9 +321,14 @@ fapi2::ReturnCode putRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
     if ( INSTANCE_RING == i_ringType )
     {
         l_scomAddress |= i_chipletMask;
+        if (g_simics_state)
+        {
+            return  fapi2::current_err;
+        }
+
 
         FAPI_TRY( fapi2::putScom( l_target_proc, l_scomAddress, i_scomData ),
-                  "Instance: putRegister failed" );
+                "Instance: putRegister failed" );
     }
     else
     {
@@ -332,9 +339,13 @@ fapi2::ReturnCode putRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
             auto l_target_eq = l_target.getParent< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST >();
 
             l_scomAddress &= ~CHIPLET_MASK;
+            if (g_simics_state)
+            {
+                return  fapi2::current_err;
+            }
 
             FAPI_TRY( fapi2::putScom( l_target_eq, l_scomAddress, i_scomData ),
-                      "EQ Common: putRegister failed" );
+                    "EQ Common: putRegister failed" );
         }
         else
         {
@@ -353,9 +364,13 @@ fapi2::ReturnCode putRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
                     l_scomAddress |= ( l_scan_chiplet_override << 24 );
                 }
             }
+            if (g_simics_state)
+            {
+                return  fapi2::current_err;
+            }
 
             FAPI_TRY( fapi2::putScom( i_target, l_scomAddress, i_scomData ),
-                      "Non EQ Common: putRegister failed" );
+                    "Non EQ Common: putRegister failed" );
         }
     }
 
@@ -379,8 +394,13 @@ fapi2::ReturnCode getRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
     if ( INSTANCE_RING == i_ringType )
     {
         l_scomAddress |= i_chipletMask;
+        if (g_simics_state)
+        {
+            return  fapi2::current_err;
+        }
+
         FAPI_TRY( fapi2::getScom( l_target_proc, l_scomAddress, o_scomData ),
-                  "Instance: getRegister failed" );
+                "Instance: getRegister failed" );
     }
     else
     {
@@ -395,18 +415,26 @@ fapi2::ReturnCode getRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
             {
                 fapi2::Target< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2:: MULTICAST_AND > l_target_eq_and =
                     l_target.getParent< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST >();
+                if (g_simics_state)
+                {
+                    return  fapi2::current_err;
+                }
 
                 FAPI_TRY( fapi2::getScom( l_target_eq_and, l_scomAddress, o_scomData ),
-                          "EQ Common: getRegister (and) failed" );
+                        "EQ Common: getRegister (and) failed" );
 
             }
             else
             {
                 fapi2::Target< fapi2::TARGET_TYPE_PERV| fapi2::TARGET_TYPE_MULTICAST, fapi2:: MULTICAST_COMPARE > l_target_eq_comp =
                     l_target.getParent< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST >();
+                if (g_simics_state)
+                {
+                    return  fapi2::current_err;
+                }
 
                 FAPI_TRY( fapi2::getScom( l_target_eq_comp, l_scomAddress, o_scomData ),
-                          "EQ Common: getRegister (comp) failed" );
+                        "EQ Common: getRegister (comp) failed" );
             }
         }
         else
@@ -429,16 +457,24 @@ fapi2::ReturnCode getRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
             if ( i_and_not_comp )
             {
                 fapi2::Target< fapi2::TARGET_TYPE_ALL_MC, fapi2:: MULTICAST_AND > l_target_mc_and = i_target;
+                if (g_simics_state)
+                {
+                    return  fapi2::current_err;
+                }
 
                 FAPI_TRY( fapi2::getScom( l_target_mc_and, l_scomAddress, o_scomData ),
-                          "Non EQ Common: getRegister (and) failed" );
+                        "Non EQ Common: getRegister (and) failed" );
             }
             else
             {
                 fapi2::Target< fapi2::TARGET_TYPE_ALL_MC, fapi2:: MULTICAST_COMPARE > l_target_mc_comp = i_target;
+                if (g_simics_state)
+                {
+                    return  fapi2::current_err;
+                }
 
                 FAPI_TRY( fapi2::getScom( l_target_mc_comp, l_scomAddress, o_scomData ),
-                          "Non EQ Common: getRegister (comp) failed" );
+                        "Non EQ Common: getRegister (comp) failed" );
             }
 
         }
@@ -634,7 +670,7 @@ fapi2::ReturnCode standardScan(
                 fapi2::buffer<uint64_t> l_scomData( l_rotateCount );
 
                 FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, l_scomAddress, l_scomData ),
-                          "ROTATE for %d, failed", i_opVal );
+                        "ROTATE for %d, failed", i_opVal );
 
                 // Check OPCG_DONE status
                 uint32_t  l_OPCGAddress = 0x00000100;
@@ -648,10 +684,14 @@ fapi2::ReturnCode standardScan(
                     fapi2::buffer<uint64_t> l_opcgStatus;
 
                     FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, l_OPCGAddress, true, l_opcgStatus ),
-                              "Failure during OPCG Check" );
+                            "Failure during OPCG Check" );
+                    if (g_simics_state)
+                    {
+                        return  fapi2::current_err;
+                    }
 
                     if( ( l_opcgStatus.getBit( perv::CPLT_STAT0_CC_CTRL_OPCG_DONE_DC ) ) ||
-                        ( CRONTEST_MODE == i_opMode ) )
+                            ( CRONTEST_MODE == i_opMode ) )
                     {
                         FAPI_INF("OPCG_DONE set");
                         break;
@@ -674,13 +714,13 @@ fapi2::ReturnCode standardScan(
                     l_rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
                     FAPI_ERR("Max attempts exceeded checking OPCG_DONE");
                     FAPI_ASSERT(false,
-                                fapi2::P10_PUTRING_OPCG_DONE_TIMEOUT()
-                                .set_SCOM_ADDRESS(l_scomAddress)
-                                .set_SCOM_DATA(l_scomData)
-                                .set_ROTATE_COUNT(l_rotateCount)
-                                .set_RING_ID(i_ringId)
-                                .set_RETURN_CODE(l_rc),
-                                "ROTATE operation failed  due to timeout");
+                            fapi2::P10_PUTRING_OPCG_DONE_TIMEOUT()
+                            .set_SCOM_ADDRESS(l_scomAddress)
+                            .set_SCOM_DATA(l_scomData)
+                            .set_ROTATE_COUNT(l_rotateCount)
+                            .set_RING_ID(i_ringId)
+                            .set_RETURN_CODE(l_rc),
+                            "ROTATE operation failed  due to timeout");
                 }
             }// end of for loop
         }
@@ -693,7 +733,7 @@ fapi2::ReturnCode standardScan(
             l_scomAddress          |=    (uint32_t)(i_opVal);
 
             FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, l_scomAddress, l_scomData ),
-                      "SCAN for %d, failed", i_opVal );
+                    "SCAN for %d, failed", i_opVal );
 
         } // end of if(SCAN == i_operation)
     }
@@ -731,6 +771,11 @@ fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& 
     if( CRONTEST_MODE    ==  i_opMode )
     {
         l_readHeader = SCAN_HEADER_DATA;
+    }
+    if (g_simics_state)
+    {
+        FAPI_ERR("Total Bits decoded %d",i_bitsDecoded);
+        return  fapi2::current_err;
     }
 
     FAPI_INF("Got header - %016lx", uint64_t(l_readHeader));
@@ -1033,6 +1078,12 @@ fapi2::ReturnCode p10_putRingUtils(
             FAPI_ERR("NULL header data in RS4 image");
             break;
         }
+#ifdef __PPE__
+        if( SBE::isSimicsRunning() )
+        {
+            g_simics_state = 1;
+        }
+#endif
 
         //Determine Override/flush status
         l_scanAddr      =   rev_32( l_rs4Header->iv_scanAddr );
