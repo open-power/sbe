@@ -70,7 +70,7 @@ enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
     TOD_ERROR_MASK = 0x0000000003F00002,
     TOD_ERROR_REG_VAL = 0xFFFFFFFFFFFFFFFF,
     HANGPULSE1_MAIN_DIVIDER = 0x0400000000000000,
-    HANGPULSE2_MAIN_DIVIDER = 0x7800000000000000,
+    HANGPULSE2_MAIN_DIVIDER = 0x6C00000000000000,
     HANGPULSE3_MAIN_DIVIDER = 0x0400000000000000
 };
 
@@ -161,7 +161,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
 
     // setup hang pulse freq
     FAPI_DBG("Set up constant frequency hang pulse 1 pre divider");
-    pre_divider =  ((l_attr_pau_freq_mhz * 4 + 64) / 125);
+    pre_divider =  ((l_attr_pau_freq_mhz * 2 + 64) / 125);
     l_data64.flush<0>();
     l_data64.insertFromRight< 0, 8 >(pre_divider);
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0072, l_data64));
@@ -170,7 +170,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0071, HANGPULSE1_MAIN_DIVIDER));
 
     FAPI_DBG("Set up constant frequency hang pulse 2 pre divider");
-    pre_divider =  ((l_attr_pau_freq_mhz * 10 + 79) / 158);
+    pre_divider =  ((l_attr_pau_freq_mhz * 8 + 64) / 125);
     l_data64.flush<0>();
     l_data64.insertFromRight< 0, 8 >(pre_divider);
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0074, l_data64));
