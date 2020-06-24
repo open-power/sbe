@@ -127,6 +127,13 @@ static const ring_setup_t ISTEP3_EQ_GPTR_RINGS_UNICAST[] =
     { eq_gptr_ovly,   IGNORE_PG,   TARGET_CHIPLET, 0x20, 0x27, 1},
 };
 
+static const mc_ring_setup_t ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST_NO_CLKADJ[] =
+{
+    { eq_gptr,        0},
+    { eq_time,        1},
+    { eq_clkadj_gptr, 0},
+};
+
 static const mc_ring_setup_t ISTEP3_PCI_GPTR_TIME_RINGS_MULTICAST[] =
 {
     { pci_gptr,       0},
@@ -154,10 +161,27 @@ fapi2::ReturnCode p10_sbe_gptr_time_initf(const
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
                      fapi2::TARGET_STATE_FUNCTIONAL);
 
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYS;
+    const auto* l_eq_gptr_time_rings_mc = &ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST;
+
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type;
+    fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYS,
+                           ipl_type));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYS,
+                           ipl_phase));
+
+    if (ipl_type != fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE &&
+        ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL)
+    {
+        l_eq_gptr_time_rings_mc = &ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST_NO_CLKADJ;
+    }
+
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_GPTR_TIME_RINGS_UNICAST));
 
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_ALL_EQ,
-             ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST));
+             *l_eq_gptr_time_rings_mc));
 
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_EQ_GPTR_RINGS_UNICAST));
 
