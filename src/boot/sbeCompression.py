@@ -23,6 +23,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import os
 import subprocess
 import re
@@ -40,18 +41,18 @@ def compress(inputFile, compressedFile):
     try:
       f = open(inputFile, "rb")
     except IOError as e :
-      print "I/O error File for File to be compressed."
-      sys.exit()
+      print("I/O error File for File to be compressed.")
+      sys.exit(1)
 
     try:
       fW = open(compressedFile, "wb")
     except IOError as e :
-      print "I/O error File for compressed file."
-      sys.exit()
+      print("I/O error File for compressed file.")
+      sys.exit(1)
 
     if os.stat(inputFile).st_size < 4 :
-      print "File is less than four bytes."
-      sys.exit()
+      print("File is less than four bytes.")
+      sys.exit(1)
 
     instDict = dict()
     for i in range(0, os.stat(inputFile).st_size / 4 ):
@@ -68,7 +69,10 @@ def compress(inputFile, compressedFile):
           iCount = 1
           instDict[fourByt] = iCount
 
-    sortedList =  sorted(instDict.iteritems(), key=operator.itemgetter(1), reverse = True)
+    try:
+        sortedList = sorted(instDict.iteritems(), key=operator.itemgetter(1), reverse = True)
+    except AttributeError:
+        sortedList = sorted(instDict.items(), key=operator.itemgetter(1), reverse = True)
 
     sortedList[256:] = []
     instList = []
@@ -129,12 +133,13 @@ def compress(inputFile, compressedFile):
     fW.close()
 
 def usage():
-    print "usage: sbeCompression.py [-h] [-l <path>] [-i <image>]"
-    print "SBE Compression Parser"
-    print "Arguments:"
-    print "-h, --help\t\tshow this help message and exit"
-    print "-l, --imageLoc\t\tSeeprom Binary Location"
-    print "-i, --image\t\tSeeprom Binary"
+    print("usage: sbeCompression.py [-h] [-l <path>] [-i <image>]")
+    print("SBE Compression Parser")
+    print("Arguments:")
+    print("-h, --help\t\tshow this help message and exit")
+    print("-l, --imageLoc\t\tSeeprom Binary Location")
+    print("-i, --image\t\tSeeprom Binary")
+    print("-p, --p9_xip_tool\t\tp9_xip_tool path")
     return 1
 
 def main( argv ):
@@ -142,7 +147,7 @@ def main( argv ):
     try:
         opts, args = getopt.getopt(argv[1:], "l:i:h", ['imageLoc=', 'image=', 'help'])
     except getopt.GetoptError as err:
-        print str(err)
+        print(str(err))
         usage()
         exit(1)
 
@@ -162,15 +167,15 @@ def main( argv ):
     cmd1 = "cp " + imagePath + "/" + image + " " + imagePath +  "/" + image + ".orig"
     rc = os.system(cmd1)
     if rc:
-      print "Unable to make copy of seeprom binary"
-      sys.exit()
+      print("Unable to make copy of seeprom binary")
+      sys.exit(1)
 
     #Extract base from SEEPROM binary.
     cmd2 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " extract .base " + imagePath + "/" + image + ".base"
     rc = os.system(cmd2)
     if rc:
-      print "Unable to extract the base from seeprom binary"
-      sys.exit()
+      print("Unable to extract the base from seeprom binary")
+      sys.exit(1)
 
     #Compress the base section
     compress(imagePath + "/" + image + ".base", imagePath + "/" + image + ".base.compressed")
@@ -179,22 +184,22 @@ def main( argv ):
     cmd3 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " delete .base"
     rc = os.system(cmd3)
     if rc:
-      print "Unable to delete base section from seeprom binary"
-      sys.exit()
+      print("Unable to delete base section from seeprom binary")
+      sys.exit(1)
 
     #Append the base section from SEEPEOM binary.
     cmd4 = imagePath + "/ipl_image_tool " + imagePath +  "/" + image + " append .base " + imagePath + "/" + image + ".base.compressed"
     rc = os.system(cmd4)
     if rc:
-      print "Unable to append the base section"
-      sys.exit()
+      print("Unable to append the base section")
+      sys.exit(1)
 
     #Extract data section from SEEPROM binary.
     cmd5 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " extract .data " + imagePath + "/" + image + ".data"
     rc = os.system(cmd5)
     if rc:
-      print "Unable to extract the data from seeprom binary"
-      sys.exit()
+      print("Unable to extract the data from seeprom binary")
+      sys.exit(1)
 
     #Compress the data section
     compress(imagePath + "/" + image + ".data", imagePath + "/" + image + ".data.compressed")
@@ -203,15 +208,15 @@ def main( argv ):
     cmd6 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " delete .data"
     rc = os.system(cmd6)
     if rc:
-      print "Unable to delete data section from seeprom binary"
-      sys.exit()
+      print("Unable to delete data section from seeprom binary")
+      sys.exit(1)
 
     #Append the data section from SEEPEOM binary.
     cmd7 = imagePath + "/ipl_image_tool " + imagePath +  "/" + image + " append .data " + imagePath + "/" + image + ".data.compressed"
     rc = os.system(cmd7)
     if rc:
-      print "Unable to append the data section"
-      sys.exit()
+      print("Unable to append the data section")
+      sys.exit(1)
 
 if __name__ == "__main__":
     main( sys.argv )

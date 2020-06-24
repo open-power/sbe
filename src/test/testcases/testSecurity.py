@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import os
 import sys
 import struct
@@ -84,23 +85,23 @@ def main():
                         whitelist_table1,
                         whitelist_table2,
                         whitelist_table3)
-            print "generated whitelist validation passed"
+            print("generated whitelist validation passed")
             test_normal('blacklist',
                         blacklist,
                         blacklist_table1,
                         blacklist_table2,
                         blacklist_table3)
-            print "generated blacklist validation passed"
+            print("generated blacklist validation passed")
 
         # getscom success
         testScomUtil.getscom(0x0204001A)
-        print "getscom success testcase - passed"
+        print("getscom success testcase - passed")
         # getscom failure
         testScomUtil.getscom(eval(BLACKLISTED_REG_FOR_READ_TEST), [0x00, 0x05, 0x00, 0x23])
-        print "getscom failure testcase - passed"
+        print("getscom failure testcase - passed")
         # putscom success
         testScomUtil.putscom(eval(WHITELISTED_REG_FOR_WRITE_TEST), testScomUtil.getscom(eval(WHITELISTED_REG_FOR_WRITE_TEST)))
-        print "putscom success testcase - passed"
+        print("putscom success testcase - passed")
         # putscom failure
         while(True):
             random_addr = struct.unpack('>L', os.urandom(4))[0]
@@ -108,21 +109,21 @@ def main():
                 if not ((random_addr & 0x80000000) or (random_addr & 0x00F00000)):
                     testScomUtil.putscom(random_addr, 0, [0x00, 0x05, 0x00, 0x23])
                     break
-        print "putscom failure testcase - passed"
+        print("putscom failure testcase - passed")
         # modify scom success
         dataWritten = testScomUtil.getscom(0x00040006)
         testScomUtil.modifyScom(0x01, 0x00040006, 0x0)
         dataRead = testScomUtil.getscom(0x00040006)
         if(dataRead != dataWritten):
             raise Exception('modify scom failed %x != %x' % (dataRead, dataWritten))
-        print "modify scom success testcase - passed"
+        print("modify scom success testcase - passed")
         # putscom under mask success
         dataWritten = testScomUtil.getscom(0x00040006)
         testScomUtil.putScomUnderMask(0x00040006, dataWritten, 0xFFFFFFFFFFFFFFFF)
         dataRead = testScomUtil.getscom(0x00040006)
         if(dataRead != dataWritten):
             raise Exception('PutScom under mask failed %x != %x' % (dataRead, dataWritten))
-        print "putscom under mask success testcase - passed"
+        print("putscom under mask success testcase - passed")
 
         # Greylist test cases
         dataWritten = testScomUtil.getscom(0x0901080B)
@@ -134,7 +135,7 @@ def main():
         testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF0FFFFFFF0FFFFF)
         # Do putScomUnderMask with superset mask
         testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF00FFFFFF0FFFFF)
-        print "Greylist testcases - passed"
+        print("Greylist testcases - passed")
 
         # indirect scom test
         dataWritten = testScomUtil.getscom(0x8000000D06010C3F)
@@ -143,7 +144,7 @@ def main():
         dataRead = testScomUtil.getscom(0x8000000D06010C3F)
         if(dataRead != dataWritten):
             raise Exception('indirect scom test failed %x != %x' % (dataRead, dataWritten))
-        print "Indirect scom success testcase - passed"
+        print("Indirect scom success testcase - passed")
 
     except Exception, error:
         raise Exception(error)
@@ -156,11 +157,11 @@ def test_normal(id, list, table1, table2, table3):
                                table1,
                                table2,
                                table3)):
-            print id, list
-            print 'table1:', table1
-            print 'table2:', table2
-            print 'table3:', table3
-            print "Failed Addr", hex(addr)
+            print(id, list)
+            print('table1:', table1)
+            print('table2:', table2)
+            print('table3:', table3)
+            print("Failed Addr", hex(addr))
             raise Exception(id+' positive testcase')
     # negative testcase - number of random addresses checked is configurable
     i = 0
@@ -171,11 +172,11 @@ def test_normal(id, list, table1, table2, table3):
             i = i-1
         else:
             if(True == is_present(random_addr, table1, table2, table3)):
-                print id, list
-                print 'table1:', table1
-                print 'table2:', table2
-                print 'table3:', table3
-                print "Failed Addr", hex(random_addr)
+                print(id, list)
+                print('table1:', table1)
+                print('table2:', table2)
+                print('table3:', table3)
+                print("Failed Addr", hex(random_addr))
                 raise Exception(id+' negative testcase')
 
 def test_brute_force(id, list, table1, table2, table3):
@@ -188,18 +189,18 @@ def test_brute_force(id, list, table1, table2, table3):
             sys.stdout.write("Progress: addr[0x%08x] last_addr[0x%08x]" % (addr, last_addr) )
             sys.stdout.flush()
             if(True == is_present(addr, table1, table2, table3)):
-                print id, list
-                print 'table1:', table1
-                print 'table2:', table2
-                print 'table3:', table3
-                print "Failed Addr", hex(addr)
+                print(id, list)
+                print('table1:', table1)
+                print('table2:', table2)
+                print('table3:', table3)
+                print("Failed Addr", hex(addr))
                 raise Exception(id+' brute force testcase')
         addr = addr + 1
 
 def is_present(addr, table1, table2, table3):
     t1_addr = (addr & 0xFF000000) >> 24;
     if(DEBUG):
-        print "find", t1_addr, "in table1"
+        print("find", t1_addr, "in table1")
     for id1, (chiplet_range, count) in enumerate(table1):
         start = (chiplet_range & 0xFF00) >> 8
         end = chiplet_range & 0x00FF
@@ -211,7 +212,7 @@ def is_present(addr, table1, table2, table3):
             last_t2 = count-1
             t2_addr = (addr & 0x00FF0000) >> 16;
             if(DEBUG):
-                print "find", t2_addr, "in table2", first_t2, last_t2
+                print("find", t2_addr, "in table2", first_t2, last_t2)
             (found, id2) = binary_search(t2_addr, table2, first_t2, last_t2, True)
             if(found):
                 if(id2-1 < 0):
@@ -221,11 +222,11 @@ def is_present(addr, table1, table2, table3):
                 last_t3 = table2[id2][1]-1
                 t3_addr = (addr & 0x0000FFFF)
                 if(DEBUG):
-                    print "find",t3_addr,"in table3", first_t3, last_t3
+                    print("find",t3_addr,"in table3", first_t3, last_t3)
                 (found, id3) = binary_search(t3_addr, table3, first_t3, last_t3)
                 if(found):
                     if(DEBUG):
-                        print "found"
+                        print("found")
                     return True
     return False
 

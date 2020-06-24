@@ -23,6 +23,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import testPSUUtil
 import testRegistry as reg
 import testUtil
@@ -90,12 +91,12 @@ def main():
     # Intialize the class obj instances
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test set1  [ Deadman control loop ] ...\n"
+    print("\n  Execute SBE Test set1  [ Deadman control loop ] ...\n")
 
     '''
     Test Case 1
     '''
-    print "\n  Test Start Deadman Loop\n"
+    print("\n  Test Start Deadman Loop\n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_startDeadmanLoop )
 
@@ -105,7 +106,7 @@ def main():
     '''
     Test Case 2. Stop Deadman Loop
     '''
-    print "\n  Test Stop Deadman Loop\n"
+    print("\n  Test Stop Deadman Loop\n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_StopDeadmanLoop )
 
@@ -117,10 +118,10 @@ if __name__ == "__main__":
     try:
         main()
     except:
-        print ( "\nTest Suite completed with error(s)" )
+        print( "\nTest Suite completed with error(s)" )
         testUtil.collectFFDC()
         raise()
 
-    print ( "\nTest Suite completed with no errors" )
+    print( "\nTest Suite completed with no errors" )
 
 

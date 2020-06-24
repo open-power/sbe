@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
@@ -48,8 +49,8 @@ def main( ):
     if(data == readData):
         print ("Success - Write-Read PBA - WO FMODE, WO LCO")
     else:
-        print data
-        print readData
+        print(data)
+        print(readData)
         raise Exception('data mistmach')
 #-------------------------------------------------
 # Calling all test code

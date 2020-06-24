@@ -41,6 +41,7 @@
 #-------------------------
 #  Imports
 #-------------------------
+from __future__ import print_function
 import getopt
 import os, sys, glob
 import shutil
@@ -60,51 +61,51 @@ def main():
     # Usage tool option
     #------------------------------------------
     def usage():
-        print " \n"
-        print "  :: Command line USAGE options for Copying SBE FW files for compilation :: \n"
-        print "  sbeDistribute.py -s <Sandbox Name> -i <file1,file2...>"
+        print(" \n")
+        print("  :: Command line USAGE options for Copying SBE FW files for compilation :: \n")
+        print("  sbeDistribute.py -s <Sandbox Name> -i <file1,file2...>")
 
-        print " \n"
-        print "   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print "   |       By default NO argument is needed as an input .                            |"
-        print "   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print " \n  ***** Options Supported  *****"
-        print " \t  -p,--patch     = [ Optional ] Patch Simics related files on Sandbox "
-        print " \t  -s,--sb        = [ Optional ] Sandbox base name"
-        print " \t                                By default it picks up the ppe Repo test_sb sandbox"
-        print " \t                                but if you have created a sandbox of your own manually "
-        print " \t                                and you want to compile, use this option then only"
-        print " \t  -i,--files     = [ Optional ] Firmware Files coma ',' separated input file1,file2"
-        print " \t                                Only the pre-define listed files bellow:"
-        print " \t                                sbe_sp_intf.H,simics.tar,"
-        print " \t                                sbe_seeprom_DD2.bin"
-        print " \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)"
-        print " \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled"
-        print " \t  -m,--simicsPath    = [ Optional ] Path to create the simics folder"
-        print " \t  -b,--hbStandalone  = [ Optional ] Flag to determine if sb prime is for sbe or HBstnadalone"
-        print " \t  -h,--help      = Help"
-        print "  ------------------------------------------------------------------------------------"
+        print(" \n")
+        print("   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print("   |       By default NO argument is needed as an input .                            |")
+        print("   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print(" \n  ***** Options Supported  *****")
+        print(" \t  -p,--patch     = [ Optional ] Patch Simics related files on Sandbox ")
+        print(" \t  -s,--sb        = [ Optional ] Sandbox base name")
+        print(" \t                                By default it picks up the ppe Repo test_sb sandbox")
+        print(" \t                                but if you have created a sandbox of your own manually ")
+        print(" \t                                and you want to compile, use this option then only")
+        print(" \t  -i,--files     = [ Optional ] Firmware Files coma ',' separated input file1,file2")
+        print(" \t                                Only the pre-define listed files bellow:")
+        print(" \t                                sbe_sp_intf.H,simics.tar,")
+        print(" \t                                sbe_seeprom_DD2.bin")
+        print(" \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)")
+        print(" \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled")
+        print(" \t  -m,--simicsPath    = [ Optional ] Path to create the simics folder")
+        print(" \t  -b,--hbStandalone  = [ Optional ] Flag to determine if sb prime is for sbe or HBstnadalone")
+        print(" \t  -h,--help      = Help")
+        print("------------------------------------------------------------------------------------")
 
     #------------------------------------------
     # Exit from this Main
     #------------------------------------------
     def exit_main(rc):
         if rc == errorcode.HELP_EXIT:
-           print "  [ HELP DOCUMENTATION ]\n"
+           print("  [ HELP DOCUMENTATION ]\n")
            sys.exit(0)
 
         if rc == errorcode.ERROR_BUILD_FAILED:
-            print "  Compilation Failed .. Error "
+            print("  Compilation Failed .. Error ")
 
         if rc == errorcode.SUCCESS_DEV_EXIT:
-           print "  [ Files Copy done! ]\n"
+           print("  [ Files Copy done! ]\n")
            sys.exit(0)
 
         if rc:
-           print "\n  [ ERROR - MAIN ] Exiting with error code = ", rc
+           print("\n  [ ERROR - MAIN ] Exiting with error code = ", rc)
            sys.exit(rc)
         else:
-           print "\n  Fips Sandbox compilation and simics patching completed [ OK ] "
+           print("\n  Fips Sandbox compilation and simics patching completed [ OK ] ")
            sys.exit(0)
 
     #------------------------------------------
@@ -162,17 +163,17 @@ def main():
     #------------------------------
     # 1) User input params/ Check ENV
     #------------------------------
-    print "\n [ Checking SBE user ENV Pre-req ] "
+    print("\n [ Checking SBE user ENV Pre-req ] ")
     # Get it from ENV
     if path_name == "None":
         # Get the PPE path
         l_ppe_path = utilcode.utilppeSbENV("SBEROOT")
         if l_ppe_path == "None":
-            print "\n  Couldn't find PPE repo info from ENV currently set... "
-            print "  [ ERROR ] PPE Repo ENV Setting Path  : %s " % l_ppe_path
+            print("\n  Couldn't find PPE repo info from ENV currently set... ")
+            print("  [ ERROR ] PPE Repo ENV Setting Path  : %s " % l_ppe_path)
             exit_main(errorcode.ERROR_SETTING)
         else:
-            print "  PPE Repo path Setting\t :  %s "% l_ppe_path
+            print("  PPE Repo path Setting\t :  %s "% l_ppe_path)
             path_name = l_ppe_path
 
     if build == "1": 
@@ -180,7 +181,7 @@ def main():
         # 2) Simics setup
         #----------------------------------------
         rc = os.system("sh $SBEROOT/src/test/framework/populate-sandbox " + simicsPath + " " + hbStandalone)
-        print "  Simics setup returned rc :",rc
+        print("  Simics setup returned rc :",rc)
         if rc != 0:
             exit_main(errorcode.ERROR_BUILD_FAILED)
 

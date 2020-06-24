@@ -23,6 +23,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import os
 import subprocess
 import re
@@ -36,7 +37,7 @@ def parserElf(argv):
         outdir  = argv[2]
         img     = argv[3]
     except:
-        print "Missing argument : arg[0] ddlevel; arg[1] output directory; arg[2] img (seeprom/pibmem/measurement)"
+        print("Missing argument : arg[0] ddlevel; arg[1] output directory; arg[2] img (seeprom/pibmem/measurement)")
         exit(-1)
     if(img == "measurement_seeprom"):
         SBE_OUT = outdir+"/sbe_"+img+".out"
@@ -57,7 +58,7 @@ def parserElf(argv):
         if( (line.find(firstSection) != -1) ):
             tokens = line.split();
             startSize = int( tokens[5], 16 )
-            print startSize
+            print(startSize)
             break;
 
    # Get the location of sbe end
@@ -68,7 +69,7 @@ def parserElf(argv):
         endSize = int( tokens[0], 16 );
         break;
 
-    print endSize;
+    print(endSize)
     if( (startSize == 0) or (endSize == 0)):
         exit(-1)
 
@@ -76,7 +77,7 @@ def parserElf(argv):
     cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if="+SBE_OUT+" of="+SBE_BIN+" bs=1"
     rc = os.system(cmd1)
     if ( rc ):
-       print "ERROR running %s: %d "%( cmd1, rc )
+       print("ERROR running %s: %d "%( cmd1, rc ))
        exit(-1)
 
 parserElf(sys.argv)

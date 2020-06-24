@@ -23,6 +23,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import testPSUUtil
 import testRegistry as reg
 import testUtil
@@ -86,7 +87,7 @@ def main():
     # Intialize the class obj instances
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test - Set FFDC Address\n"
+    print("\n  Execute SBE Test - Set FFDC Address\n")
 
     '''
     Test Case 1
@@ -94,7 +95,7 @@ def main():
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data )
 
-    print "\n  Poll on Host side for INTR  ...\n"
+    print("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 

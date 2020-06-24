@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import getopt
 import sys
 import os
@@ -51,29 +52,30 @@ TAG_NAME_GREYLIST = 'write_greylist'
 TAG_NAME_BLACKLIST = 'read_blacklist'
 
 def usage():
-    print "usage: p9_security_list_gen.py [-h] [-f <security_list_path>] [-0 <output directory] [i] [-d] [-v]\n\
+    print(
+'''usage: p9_security_list_gen.py [-h] [-f <security_list_path>] [-0 <output directory] [i] [-d] [-v]
 arguments:\n\
--h, --help               show this help message and exit\n\
--f, --file               path to the security list csv file\n\
--o, --output             output directory\n\
--w, --whitelist          print whitelist read from csv\n\
--b, --blacklist          print blacklist read from csv\n\
--g, --greylist           print greylist read from csv\n\
--i, --info               get version info of the security list\n\
--d, --debug              enable debug traces\n\
--v, --verbose            enable verbose traces"
+-h, --help               show this help message and exit
+-f, --file               path to the security list csv file
+-o, --output             output directory
+-w, --whitelist          print whitelist read from csv
+-b, --blacklist          print blacklist read from csv
+-g, --greylist           print greylist read from csv
+-i, --info               get version info of the security list
+-d, --debug              enable debug traces
+-v, --verbose            enable verbose traces''')
 
 def exit(error, msg = ''):
     if(error == SUCCESS):
         return 0
     elif(error == INVALID_USAGE):
-        print msg
+        print(msg)
         usage()
     elif(error == PRINT_AND_EXIT):
-        print msg
+        print(msg)
     else:
         if(DEBUG):
-            print "unknown error:exiting"
+            print("unknown error:exiting")
     sys.exit(1)
 
 def remove_duplicates(xlist):
@@ -465,16 +467,16 @@ def get_tables(id, list):
             # for each range and key combination in order
             table3 += temp_keys
     if(VERBOSE):
-        print id+" table3 keys len ["+s_list_len(table3)+"]"
+        print(id+" table3 keys len ["+s_list_len(table3)+"]")
 
     if(VERBOSE):
-        print id,"table1:", ['0x%04x:0x%02x' % ele for ele in table1]
-        print id,"table2:", ['0x%02x:0x%02x' % ele for ele in table2]
-        print id,"table3:", ['0x%04x' % ele for ele in table3]
+        print(id,"table1:", ['0x%04x:0x%02x' % ele for ele in table1])
+        print(id,"table2:", ['0x%02x:0x%02x' % ele for ele in table2])
+        print(id,"table3:", ['0x%04x' % ele for ele in table3])
     if(DEBUG):
-        print id,"table1 len ["+s_list_len(table1)+"]"
-        print id,"table2 len ["+s_list_len(table2)+"]"
-        print id+" table3 len ["+s_list_len(table3)+"]"
+        print(id,"table1 len ["+s_list_len(table1)+"]")
+        print(id,"table2 len ["+s_list_len(table2)+"]")
+        print(id+" table3 len ["+s_list_len(table3)+"]")
 
     return (table1, table2, table3)
 
@@ -490,8 +492,8 @@ def s_table1_gen(id, table):
             str_table1 += '\n'
     str_table1 = str_table1[:-1]
     if(VERBOSE):
-        print id+" generated table1"
-        print str_table1
+        print(id+" generated table1")
+        print(str_table1)
     return str_table1
 
 def s_table2_gen(id, table):
@@ -504,8 +506,8 @@ def s_table2_gen(id, table):
             str_table2 += '\n'
     str_table2 = str_table2[:-1]
     if(VERBOSE):
-        print id+" generated table2"
-        print str_table2
+        print(id+" generated table2")
+        print(str_table2)
     return str_table2
 
 def s_table3_gen(id, table):
@@ -518,8 +520,8 @@ def s_table3_gen(id, table):
             str_table3 += '\n'
     str_table3 = str_table3[:-1]
     if(VERBOSE):
-        print id+" generated table3"
-        print str_table3
+        print(id+" generated table3")
+        print(str_table3)
     return str_table3
 
 def s_greylist_table_gen( greyList):
@@ -529,8 +531,8 @@ def s_greylist_table_gen( greyList):
         str_table += '{0x%08x, 0x%016xull}, ' % (ele[0], ele[1])
     str_table = str_table[:-1]
     if(VERBOSE):
-        print " greylist table"
-        print str_table
+        print(" greylist table")
+        print(str_table)
     return str_table
 def main(argv):
 
@@ -577,8 +579,8 @@ def main(argv):
             GEN_FILE = str(arg)+"/"+GEN_FILE
 
     if(DEBUG):
-        print "file ["+str(SECURITY_LIST)+"]"
-        print "output ["+str(GEN_FILE)+"]"
+        print("file ["+str(SECURITY_LIST)+"]")
+        print("output ["+str(GEN_FILE)+"]")
 
     # Read the security list file
     version   = 'unknown'
@@ -598,7 +600,7 @@ def main(argv):
                 base_addr = base_addr[len(base_addr)-8:]
                 base_addr = int(base_addr, 16)
                 if(VERBOSE):
-                    print "base["+'0x%08x' % base_addr + "]"
+                    print("base["+'0x%08x' % base_addr + "]")
                 bit_mask = row[TAG_BIT_MASK].strip()
                 if not bit_mask:
                     bit_mask = 0
@@ -611,9 +613,9 @@ def main(argv):
                     exit(PRINT_AND_EXIT, "Missing chiplet id range")
                 if(chiplet_range[0].strip().lower() != '0x00'):
                     if(chiplet_range[0].strip().lower() != '0x%02x' % (get_chiplet(base_addr))):
-                        print "base_addr",hex(base_addr)
-                        print "get_chiplet(base_addr)",hex(get_chiplet(base_addr))
-                        print "chiplet_range[0]", chiplet_range[0]
+                        print("base_addr",hex(base_addr))
+                        print("get_chiplet(base_addr)",hex(get_chiplet(base_addr)))
+                        print("chiplet_range[0]", chiplet_range[0])
                         exit(PRINT_AND_EXIT, "Base address is not consistent")
                     base_addr = base_addr & 0x00FFFFFF
                 chiplet_range = [int(ele, 16) for ele in chiplet_range]
@@ -624,29 +626,29 @@ def main(argv):
                 expanded_line = [(base_addr + ele) for ele in expanded_range]
                 expanded_line = get_effective_address(row[TAG_CHIPLET], expanded_line)
                 if(VERBOSE):
-                    print s_list_hex("range:", expanded_range, 8)
+                    print(s_list_hex("range:", expanded_range, 8))
                 if(row[TAG_TYPE].strip().lower() == TAG_NAME_GREYLIST):
                    if(( bit_mask == 0 ) or ( bit_mask == 0xffffffffffffffff)):
                         exit(PRINT_AND_EXIT, "Wrong mask for Greylist")
                    greylist_line = expanded_line
                    if(VERBOSE):
-                        print s_list_hex("greylist_line:", greylist_line, 8)
-                        print "mask:", bit_mask
+                        print(s_list_hex("greylist_line:", greylist_line, 8))
+                        print("mask:", bit_mask)
                    for ele in greylist_line:
                         greylist.append((ele, bit_mask))
                 elif(row[TAG_TYPE].strip().lower() == TAG_NAME_WHITELIST):
                     whitelist_line = expanded_line
                     if(VERBOSE):
-                        print s_list_hex("whitelist_line:", whitelist_line, 8)
+                        print(s_list_hex("whitelist_line:", whitelist_line, 8))
                     whitelist += whitelist_line
                 elif(row[TAG_TYPE].strip().lower() == TAG_NAME_BLACKLIST):
                     blacklist_line = expanded_line
                     if(VERBOSE):
-                        print s_list_hex("blacklist_line:", blacklist_line, 8)
+                        print(s_list_hex("blacklist_line:", blacklist_line, 8))
                     blacklist += blacklist_line
 
             except:
-                print "Error in line ["+str(idx+2)+"]"
+                print("Error in line ["+str(idx+2)+"]")
                 exit(PRINT_AND_EXIT, sys.exc_info()[0])
 
     whitelist = remove_duplicates(whitelist)
@@ -668,13 +670,13 @@ def main(argv):
         exit(PRINT_AND_EXIT, greylist)
 
     if(VERBOSE):
-        print s_list_hex("whitelist:", whitelist, 8)
-        print s_list_hex("blacklist:", blacklist, 8)
+        print(s_list_hex("whitelist:", whitelist, 8))
+        print(s_list_hex("blacklist:", blacklist, 8))
     if(DEBUG):
-        print "security list version ["+version+"]"
-        print "Whitelist len ["+s_list_len(whitelist)+"]"
-        print "Blacklist len ["+s_list_len(blacklist)+"]"
-        print "Greylist len ["+s_list_len(greylist)+"]"
+        print("security list version ["+version+"]")
+        print("Whitelist len ["+s_list_len(whitelist)+"]")
+        print("Blacklist len ["+s_list_len(blacklist)+"]")
+        print("Greylist len ["+s_list_len(greylist)+"]")
 
     whitelist_tables = get_tables("Whitelist", whitelist)
     blacklist_tables = get_tables("Blacklist", blacklist)

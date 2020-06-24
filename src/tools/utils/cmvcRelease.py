@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2018
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import subprocess
 import os
 import sys
@@ -42,7 +43,7 @@ CMVC_PASSWORD   = "xxxxxx"
 #    cmd = ['Feature','-open', '-remarks',' \"SBE release '+build_name+'\"', '-component', 'esw_sbei']
 #    result = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
 #    cmvc_feature = result.split()[-1].split('.')[0]
-#    print "cmvc track ["+cmvc_feature+']'
+#    print("cmvc track ["+cmvc_feature+']')
 #    os.system('Feature -assign '+cmvc_feature+' -owner '+CMVC_USER)
 #    os.system('Feature -accept '+cmvc_feature)
 #    os.system('Track -create -feature '+cmvc_feature+' -release fips911')
@@ -77,46 +78,46 @@ def step_2(branch, cmvc_feature):
             filterarray += [ele]
     last_release = filterarray[-1].split()[0].split('/')[-1]
 
-    print "last release ["+last_release+"]"
+    print("last release ["+last_release+"]")
 
     # build-name generation
     cmd = [REL_TOOL,'build-name', '-release', RELEASE[branch]]
     build_name = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].split('\n')[0]
-    print "build name ["+build_name+"]"
+    print("build name ["+build_name+"]")
 
     # latest commit
     cmd = ['git','log', '-1', '--pretty=format:%H']
     commit = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].split('\n')[0]
-    print "commit ["+commit+"]"
+    print("commit ["+commit+"]")
 
     # define release level
     cmd = REL_TOOL+' define --level '+str(build_name)+' --base '+str(commit)+' --released '+str(last_release)
     os.system(cmd)
-    print cmd
+    print(cmd)
     # release
     cmd = REL_TOOL+' release --level '+build_name
     os.system(cmd)
-    print cmd
+    print(cmd)
 
     # make SBE
     cmd = 'make clean'
-    print cmd
+    print(cmd)
     os.system(cmd)
     cmd = 'make install'
-    print cmd
+    print(cmd)
     os.system(cmd)
 
     # trigger CI
     cmd = './sb cmvc -f '+str(cmvc_feature)+' -r ' + 'fips'+RELEASE[branch]
     os.system(cmd)
-    print cmd
+    print(cmd)
 
 # after ci pass
 def step_3(branch, track):
     # integrate track
     cmd = 'Track -integrate -feature '+track+' -release fips'+RELEASE[branch]
     os.system(cmd)
-    print cmd
+    print(cmd)
 
     # get last release tag
     cmd = ['git', 'for-each-ref', '--sort=taggerdate', '--format','\'%(refname) %(taggerdate)\'','refs/tags']
@@ -129,10 +130,10 @@ def step_3(branch, track):
             filterarray += [ele]
     last_release = filterarray[-1].split()[0].split('/')[-1]
 
-    print "last release ["+last_release+"]"
+    print("last release ["+last_release+"]")
     cmd = 'git push '+REMOTE+' '+last_release
     os.system(cmd)
-    print cmd
+    print(cmd)
 
 
 # cmvc log in

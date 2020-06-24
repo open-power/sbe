@@ -23,6 +23,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 import os
 import struct
@@ -124,7 +125,7 @@ def main():
     '''
     Test Case 1
     '''
-    print "\n  Trigger Exit Cache Contained ChipOp\n"
+    print("\n  Trigger Exit Cache Contained ChipOp\n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbeExitCacheContainedMode )
 
@@ -136,10 +137,10 @@ if __name__ == "__main__":
     try:
         main()
     except:
-        print ( "\nTest Suite completed with error(s)" )
+        print( "\nTest Suite completed with error(s)" )
         testUtil.collectFFDC()
         raise()
 
-    print ( "\nTest Suite completed with no errors" )
+    print( "\nTest Suite completed with no errors" )
 
 

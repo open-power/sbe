@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 import os
 import struct
@@ -141,8 +142,8 @@ def getmem(addr, len, flags):
 
     readLen = testUtil.readDsEntryReturnVal(i_fifoType)
     if(getsingleword(lenExp) != list(readLen)):
-        print getsingleword(lenExp)
-        print list(readLen)
+        print(getsingleword(lenExp))
+        print(list(readLen))
         raise Exception("Invalid Length")
 
     expResp =  [0xc0,0xde,0xa4,0x01,
@@ -185,7 +186,7 @@ def setUnsecureMemRegion(addr, size, controlFlag, responseWord):
     # Host to SBE req
     regObj = testPSUUtil.registry()
     regObj.ExecuteTestOp(testPSUUtil.simSbeObj, req)
-    print "\n  Poll on Host side for INTR  ...\n"
+    print("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5)
 

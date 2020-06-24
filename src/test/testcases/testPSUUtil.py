@@ -40,6 +40,7 @@
 #-------------------------
 # Imports packages
 #-------------------------
+from __future__ import print_function
 import time
 import conf
 import testUtil
@@ -103,9 +104,9 @@ class registry(object):
     # Read Reg value set or updated
     #------------------------------
     def getRegData(self):
-        print "  Addr  : ",hex(self.regAddr)
-        print "  Value : ",self.regVal
-        print "  Size  : ",self.regSize
+        print("  Addr  : ",hex(self.regAddr))
+        print("  Value : ",self.regVal)
+        print("  Size  : ",self.regSize)
 
     #------------------------------
     # Write to a Registry
@@ -114,9 +115,9 @@ class registry(object):
         address = self.regAddr
         value   = self.stringToByte(self.regVal)
         size    = self.regSize
-#        print "  WData  : 0x%s -> Byte Data %s"% (self.regVal,value)
-#        print "  Addr   :", hex(address)
-#        print "  Size   : %s Bytes"% size
+#        print("  WData  : 0x%s -> Byte Data %s"% (self.regVal,value))
+#        print("  Addr   :", hex(address))
+#        print("  Size   : %s Bytes"% size)
 
         self.__write(objType,address,value,size)
         return
@@ -131,8 +132,8 @@ class registry(object):
         size = 8
         for i in range (entryCount):
             value = stringToByte(data[i])
-#            print "\n   Writting ", hex(REGDATA_SBE[i])
-#            print "   %x %x %x %x %x %x %x %x" % (value[0],value[1],value[2],value[3],value[4],value[5],value[6],value[7])
+#            print("\n   Writting ", hex(REGDATA_SBE[i]))
+#            print("   %x %x %x %x %x %x %x %x" % (value[0],value[1],value[2],value[3],value[4],value[5],value[6],value[7]))
             simObj.write(None, REGDATA_SBE[regIndex],
                         (value[0],value[1],value[2],value[3],value[4],value[5],value[6],value[7]),
                         size)
@@ -152,7 +153,7 @@ class registry(object):
             simObj.write(None, address,
                         (value[0],value[1],value[2],value[3],value[4],value[5],value[6],value[7]),
                         size)
-        print "  SIM obj: Write %s bytes [ OK ] " % size
+        print("  SIM obj: Write %s bytes [ OK ] " % size)
         return
 
     #---------------------------
@@ -163,9 +164,9 @@ class registry(object):
         size    = self.regSize
         value   = self.regVal
 #        if int(value) !=0:
-#            print "  RData  :", value
-#        print "  Addr   :", hex(address)
-#        print "  Size   : %s Bytes"% size
+#            print("  RData  :", value)
+#        print("  Addr   :", hex(address))
+#        print("  Size   : %s Bytes"% size)
 
         value = self.__read(objType,address,size)
         return value
@@ -182,20 +183,20 @@ class registry(object):
         value   = self.regVal     # Max lentgth it should read
 
         MaxAddr  = address + value   # This is the addres range it could read
-#        print "  MaxAddr Range:",hex(MaxAddr)
+#        print("  MaxAddr Range:",hex(MaxAddr))
         OffsetAddr = address
-#        print "  OffsetAddr:",hex(OffsetAddr)
+#        print("  OffsetAddr:",hex(OffsetAddr))
 
-#        print "  Memory Entries to be read : %d" % (value/8)
-#        print "  Match Magic Number : ", magicNum
+#        print("  Memory Entries to be read : %d" % (value/8))
+#        print("  Match Magic Number : ", magicNum)
 
         while ( OffsetAddr <= MaxAddr):
             sim_data = self.__read(objType,OffsetAddr,size)
-#            print " ", hex(OffsetAddr),self.joinListDataToHex(sim_data).upper()
+#            print(" ", hex(OffsetAddr),self.joinListDataToHex(sim_data).upper())
             OffsetAddr += 8
 
             if self.validateTestMemOp(sim_data,magicNum) == True:
-#                        print "  Test validated .. [ OK ]"
+#                        print("  Test validated .. [ OK ]")
                         return SUCCESS
 
         return FAILURE # Failed validation
@@ -206,7 +207,7 @@ class registry(object):
     def __read(self, Targetobj, address, size):
         simObj = SIM_get_interface(Targetobj, "memory_space")
         value = simObj.read(None, address, size, 0x0)
-        #print "  SIM obj: Read %s bytes [ OK ] " % size
+        #print("  SIM obj: Read %s bytes [ OK ] " % size)
         return value
 
     #--------------------------------
@@ -252,14 +253,14 @@ class registry(object):
         #--------------------------------------------
         for l_params in test_bucket:
         #--------------------------------------------
-#            print "  Desc   : %s "  % l_params[5]
-#            print "  Op     : %s "  % l_params[0]
+#            print("  Desc   : %s "  % l_params[5])
+#            print("  Op     : %s "  % l_params[0])
             if "func" == l_params[0]:
-                print "  Func    : %s "  % l_params[1]
+                print("  Func    : %s "  % l_params[1])
             if l_params[4] != "None":
-                print "  Expect : %s "  % l_params[4]
+                print("  Expect : %s "  % l_params[4])
             if "func" == l_params[0]:
-                print "  Function Params :",l_params[2]
+                print("  Function Params :",l_params[2])
             else:
                                   # addr,      value,      size
                 self.setRegData(l_params[1],l_params[2],l_params[3])
@@ -278,16 +279,16 @@ class registry(object):
                 '''
                 if l_params[4] != "None":
                     if self.validateTestOp(sim_data,l_params[4]) == True:
-                        print "  Test validated .. [ OK ]"
+                        print("  Test validated .. [ OK ]")
                     else:
-                        print "  ++++++++++++++++++++++++++++++++++++++++++"
-                        print "  simics Data  : ", sim_data
-                        print "  simics Hex   : ", self.joinListDataToHex(sim_data).upper()
+                        print("  ++++++++++++++++++++++++++++++++++++++++++")
+                        print("  simics Data  : ", sim_data)
+                        print("  simics Hex   : ", self.joinListDataToHex(sim_data).upper())
                         if(raiseException == True):
                             raise Exception('Data mistmach');
                         return FAILURE # Failed validation
 #                else:
-#                    print "  ++++++++++++++++++++++++++++++++++++++++++"
+#                    print("  ++++++++++++++++++++++++++++++++++++++++++")
             elif "write" == l_params[0]:
                 self.writeToReg(testOp)
             elif "memRead" == l_params[0]:
@@ -298,27 +299,27 @@ class registry(object):
                 rc = self.loadFunc( l_params[1], l_params[2] )
                 return rc
             else:
-                print "\n Invalid Test Data"
+                print("\n Invalid Test Data")
                 if(raiseException == True):
                     raise Exception('Invalid Test Data');
                 return FAILURE # Unknown entry op
 
-            print "\n"
+            print("\n")
         return SUCCESS
 
     #----------------------------------------------------
     # Validate simulator data against test data
     #----------------------------------------------------
     def validateTestOp(self, sim_data, test_data):
-        print "  Test Expects :  0x%s " % test_data
-        print "  Expect bytes : ", self.stringToByte(test_data)
+        print("  Test Expects :  0x%s " % test_data)
+        print("  Expect bytes : ", self.stringToByte(test_data))
         if self.compareList(self.stringToByte(test_data), sim_data, "None") == True:
-           print "  Test ... [ OK ] "
-           print "  ++++++++++++++++++++++++++++++++++++++++++"
+           print("  Test ... [ OK ] ")
+           print("  ++++++++++++++++++++++++++++++++++++++++++")
            return SUCCESS
         else:
-           print "  Test Failed... !!!"
-           print "  ++++++++++++++++++++++++++++++++++++++++++"
+           print("  Test Failed... !!!")
+           print("  ++++++++++++++++++++++++++++++++++++++++++")
            return FAILURE
 
     #----------------------------------------------------
@@ -337,11 +338,11 @@ class registry(object):
     def compareList(self, expList, resList, opType):
         for i in range(0,8):
             if int(expList[i]) == int(resList[i]):
-                #print "  %s : %s  " % (expList[i],resList[i])
+                #print("  %s : %s  " % (expList[i],resList[i]))
                 continue
             else:
                 if opType != "memRead":
-                    print "  Error \t  %s : %s  [ Mismatch ]" % (expList[i],resList[i])
+                    print("  Error \t  %s : %s  [ Mismatch ]" % (expList[i],resList[i]))
                     return False # mismatch
                 return # Return nothing for Next Mem byte read
         return True
@@ -358,7 +359,7 @@ class registry(object):
                 if rc == SUCCESS:
                     break
                 elif retries <= 0:
-                    print "  Retrials exhausted... Exiting polling"
+                    print("  Retrials exhausted... Exiting polling")
                     raise Exception('Polling Failed for - ' + l_param[5]);
                     break
                 else:

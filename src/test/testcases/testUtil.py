@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import time
 import conf
 from sim_commands import *
@@ -279,14 +280,14 @@ def runCycles( cycles ):
         syscmd   =   "run-cycles %d"%(cycles)
         ( rc, out )  =   quiet_run_command( syscmd, output_modes.regular )
         if ( rc ):
-            print "simics ERROR running %s: %d "%( syscmd, rc )
+            print("simics ERROR running %s: %d "%( syscmd, rc ))
 
 def checkEqual( data, expdata ):
     """ Throw exception if data is not equal """
     if( cmp(data, expdata )):
-        print "Eqality check failed"
-        print "Data:", data
-        print "Expected Data", expdata
+        print("Eqality check failed")
+        print("Data:", data)
+        print("Expected Data", expdata)
         raise Exception('data mistmach');
 
 def collectFFDC():

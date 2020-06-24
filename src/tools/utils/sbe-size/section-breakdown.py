@@ -6,7 +6,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018
+# Contributors Listed Below - COPYRIGHT 2018,2020
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +23,6 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-
 from elftools.elf.elffile import ELFFile
 from os import path
 from itertools import groupby

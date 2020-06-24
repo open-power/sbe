@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+#from __future__ import print_function
 import sys
 import os
 sys.path.append("targets/p10_standalone/sbeTest" )
@@ -81,9 +82,9 @@ def getsram(addr, mode, length, primStatus, secStatus,fifoType):
         data += list(testUtil.readDsEntryReturnVal(fifoType))
     readLen = testUtil.readDsEntryReturnVal(fifoType)
     if(getsingleword(length) != list(readLen)):
-        print getsingleword(length)
-        print list(readLen)
-        raise Exception("Ivalid Length")
+        print(getsingleword(length))
+        print(list(readLen))
+        raise Exception("Invalid Length")
 
     expResp = (getsingleword(0xc0dea403)
                + gethalfword(primStatus)
@@ -108,10 +109,10 @@ def validateSRAMAccessFailureCases( fifoType ):
        testcase = "Non-aligned address Put SRAM Testcase"
        #0x208000 : Chiplet 0x10 Multicast Bit:1
        putsram(0xffff2803, 0x108000, data, 2, 3,fifoType)
-       print ("Success: Non-aligned address Put SRAM Testcase:%d"%fifoType)  
+       print("Success: Non-aligned address Put SRAM Testcase:%d"%fifoType)
 
    except:
-        print "Failed Test Case:"+str(testcase)
+        print("Failed Test Case:"+str(testcase))
         raise Exception('Failure')
 
 
@@ -134,9 +135,9 @@ def validateSRAMAccess( fifoType ):
        if(data == readData):
           print("Success: Put-get OCC sram, Circular Mode:FIFOTYPE:%d"%fifoType)
        else:
-          print ("Read data does not match with data used to write")
-          print data
-          print readData
+          print("Read data does not match with data used to write")
+          print(data)
+          print(readData)
           raise Exception('data mistmach')
 
        #---------------------------------------------
@@ -152,9 +153,9 @@ def validateSRAMAccess( fifoType ):
        if(data == readData):
            print("Success: Put-Get sram Linear Mode,FIFOTYPE:%d"%fifoType)
        else:
-           print ("Read data does not match with data used to write")
-           print data
-           print readData
+           print("Read data does not match with data used to write")
+           print(data)
+           print(readData)
            raise Exception('data mistmach')
   
        #---------------------------------------------
@@ -169,9 +170,9 @@ def validateSRAMAccess( fifoType ):
        if(data == readData):
           print("Success: QME SRAM Put and GET Testcase,FIFOTYPE:%d"%fifoType)
        else:
-          print ("Read data does not match with data used to write")
-          print data
-          print readData
+          print("Read data does not match with data used to write")
+          print(data)
+          print(readData)
           raise Exception('data mistmach')
 
        #---------------------------------------------

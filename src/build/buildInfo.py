@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] Google Inc.
 # [+] International Business Machines Corp.
 #
@@ -27,6 +27,7 @@
 
 # This script will create header file sbe_build_info.H which will have
 # buld information required by SBE code.
+from __future__ import print_function
 import os
 import sys
 

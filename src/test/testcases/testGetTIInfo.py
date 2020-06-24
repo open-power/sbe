@@ -22,6 +22,7 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+from __future__ import print_function
 import sys
 sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
@@ -82,10 +83,10 @@ def main(expStatus = [0, 0, 0, 0]):
     testUtil.readEot(i_fifoType)
 
     if(tiData == data):
-        print ("Success")
+        print("Success")
     else:
-        print tiData
-        print data
+        print(tiData)
+        print(data)
         raise Exception('data mistmach')
 
 
@@ -95,7 +96,7 @@ def main(expStatus = [0, 0, 0, 0]):
 try:
     main()
 except:
-    print ( "\nTest Suite completed with error(s)" )
+    print( "\nTest Suite completed with error(s)" )
     testUtil.collectFFDC()
     raise()
 
