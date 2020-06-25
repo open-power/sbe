@@ -495,9 +495,9 @@ foreach my $entr (@{$entries->{entry}}) {
                 # Consider only supported target types. The rest are ignored
                 if($targType ~~ ["TARGET_TYPE_PROC_CHIP", "TARGET_TYPE_SYSTEM",
                     "TARGET_TYPE_CORE", "TARGET_TYPE_PAU", "TARGET_TYPE_PERV",
-                    "TARGET_TYPE_EQ", "TARGET_TYPE_EX", "TARGET_TYPE_PHB",
+                    "TARGET_TYPE_EQ", "TARGET_TYPE_NMMU", "TARGET_TYPE_PHB",
                     "TARGET_TYPE_PEC", "TARGET_TYPE_MC", "TARGET_TYPE_MI",
-                    "TARGET_TYPE_PAUC"])
+                    "TARGET_TYPE_PAUC", "TARGET_TYPE_IOHS"])
                 {
                     if($targetTypeCount != 0)
                     {
