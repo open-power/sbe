@@ -47,6 +47,11 @@
 #include "p10_hcd_mma_startclocks.H"
 #include "p10_hcd_corecache_clock_control.H"
 #include "p10_hcd_common.H"
+#ifndef __PPE__
+#include "p10_resclk.H"
+#endif
+
+
 
 #ifdef __PPE_QME
     #include "p10_scom_eq.H"
@@ -66,14 +71,23 @@
 
 enum P10_HCD_CORE_STARTCLOCKS_CONSTANTS
 {
-    HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS        = 100000, // 10^5ns = 100us timeout
-    HCD_ECL2_CLK_SYNC_DONE_POLL_DELAY_HW_NS          = 1000,   // 1us poll loop delay
-    HCD_ECL2_CLK_SYNC_DONE_POLL_DELAY_SIM_CYCLE      = 32000,  // 32k sim cycle delay
+    HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS       = 100000, // 10^5ns = 100us timeout
+    HCD_ECL2_CLK_SYNC_DONE_POLL_DELAY_HW_NS         = 1000,   // 1us poll loop delay
+    HCD_ECL2_CLK_SYNC_DONE_POLL_DELAY_SIM_CYCLE     = 32000,  // 32k sim cycle delay
+    HCD_RESCLK_ENABLE_ISTEP4_POLL_TIMEOUT_HW_NS     = 50000,  // 50000ns = 50us timeout
+    HCD_RESCLK_ENABLE_ISTEP4_POLL_DELAY_HW_NS       = 1000,   // 1us poll loop delay
+    HCD_RESCLK_ENABLE_ISTEP4_POLL_DELAY_SIM_CYCLE   = 32000,  // 32k sim cycle delay
 };
 
 //------------------------------------------------------------------------------
 // Procedure: p10_hcd_core_startclocks
 //------------------------------------------------------------------------------
+#ifndef __PPE__
+uint32_t p10_hcd_core_startclocks_ps_from_freq(uint32_t freq)
+{
+    return  (4600000 - freq) / 16667; //Assume Pstate0 Frequency of 4.6Ghz and Step-Size of 16.667Mhz
+}
+#endif
 
 fapi2::ReturnCode
 p10_hcd_core_startclocks(
@@ -91,9 +105,12 @@ p10_hcd_core_startclocks(
     uint32_t                       l_core_num           = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
 
+#ifndef __PPE__
+    fapi2::Target < fapi2::TARGET_TYPE_PROC_CHIP> l_proc = eq_target.getParent <fapi2::TARGET_TYPE_PROC_CHIP> ();
+#endif
+    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
 #ifndef EQ_SKEW_ADJUST_DISABLE
     uint32_t                l_timeout = 0;
-    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
     fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
 #endif
@@ -203,6 +220,106 @@ p10_hcd_core_startclocks(
 
     FAPI_DBG("Set core as ready to run in STOP history register");
     FAPI_TRY( HCD_PUTSCOM_C( i_target, QME_SSH_SRC, 0 ) );
+#endif
+
+#ifndef __PPE__
+    fapi2::ATTR_SYSTEM_RESCLK_ISTEP4_ENABLE_Type l_attr_resclk_istep4_enable;
+
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_RESCLK_ISTEP4_ENABLE, l_sys, l_attr_resclk_istep4_enable) );
+
+    if (l_attr_resclk_istep4_enable)
+    {
+        FAPI_INF("Enabling Resclk at istep4");
+        //Write RCIMR(Index Map Register) with the pstate values for the 4-inflection points
+        uint32_t i, ps;
+
+        fapi2::ATTR_FREQ_CORE_BOOT_MHZ_Type l_attr_freq_core_boot;
+        FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_FREQ_CORE_BOOT_MHZ, l_proc, l_attr_freq_core_boot) );
+
+        l_scomData.flush<0>();
+
+        for (i = 0; i < RESCLK_FREQ_REGIONS; i++)
+        {
+            switch(i)
+            {
+                case(0):
+                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i].freq * 1000);
+                    l_scomData.insertFromRight(ps, QME_RCIMR_P0, QME_RCIMR_P0_LEN);
+                    l_scomData.insertFromRight(RESCLK_INDEX[i].idx, QME_RCIMR_X0, QME_RCIMR_X0_LEN);
+                    break;
+
+                case(1):
+                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i].freq * 1000);
+                    l_scomData.insertFromRight(ps, QME_RCIMR_P1, QME_RCIMR_P1_LEN);
+                    l_scomData.insertFromRight(RESCLK_INDEX[i].idx, QME_RCIMR_X1, QME_RCIMR_X1_LEN);
+                    break;
+
+                case(2):
+                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i].freq * 1000);
+                    l_scomData.insertFromRight(ps, QME_RCIMR_P2, QME_RCIMR_P2_LEN);
+                    l_scomData.insertFromRight(RESCLK_INDEX[i].idx, QME_RCIMR_X2, QME_RCIMR_X2_LEN);
+                    break;
+
+                case(3):
+                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i].freq * 1000);
+                    l_scomData.insertFromRight(ps, QME_RCIMR_P3, QME_RCIMR_P3_LEN);
+                    l_scomData.insertFromRight(RESCLK_INDEX[i].idx, QME_RCIMR_X3, QME_RCIMR_X3_LEN);
+                    break;
+            }
+        }
+
+        FAPI_DBG("Write RCIMR=0x%016llX", l_scomData);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCIMR, l_scomData) );
+
+
+        //Write RCTARn with the resonant clock table values
+        //Set configuration values before enabling the hardware
+        l_scomData.flush<0>().insertFromRight(RESCLK_TABLE[0], QME_RCTAR0_DATA, QME_RCTAR0_DATA_LEN);
+        FAPI_DBG("Writing RCTAR0=0x%016llX", l_scomData);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCTAR0, l_scomData) );
+
+        l_scomData.flush<0>().insertFromRight(RESCLK_TABLE[1], QME_RCTAR1_DATA, QME_RCTAR1_DATA_LEN);
+        FAPI_DBG("Writing RCTAR1=0x%016llX", l_scomData);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCTAR1, l_scomData) );
+
+        l_scomData.flush<0>().insertFromRight(RESCLK_TABLE[2], QME_RCTAR2_DATA, QME_RCTAR2_DATA_LEN);
+        FAPI_DBG("Writing RCTAR2=0x%016llX", l_scomData);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCTAR2, l_scomData) );
+
+        l_scomData.flush<0>().insertFromRight(RESCLK_TABLE[3], QME_RCTAR3_DATA, QME_RCTAR3_DATA_LEN);
+        FAPI_DBG("Writing RCTAR3=0x%016llX", l_scomData);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCTAR3, l_scomData) );
+
+        //RCMR
+        l_scomData.flush<0>().insertFromRight(2, QME_RCMR_STEP_DELAY, QME_RCMR_STEP_DELAY_LEN);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCMR, l_scomData) );
+
+        //RCPTR - Write RP1 + 1 to RCPTR to make sure resclk is disabled
+        l_scomData.flush<0>().insertFromRight(p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[1].freq * 1000) + 1,
+                                              QME_RCPTR_TARGET_PSTATE, QME_RCPTR_TARGET_PSTATE_LEN);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCPTR, l_scomData) );
+
+        //RCMR - Set Step Enable
+        l_scomData.flush<0>().setBit<QME_RCMR_STEP_ENABLE>();
+        FAPI_TRY( HCD_PUTSCOM_Q( i_target, QME_RCMR_WO_OR, l_scomData) );
+
+        //RCPTR - Write boot Pstate to RCPTR
+        l_scomData.flush<0>().insertFromRight(p10_hcd_core_startclocks_ps_from_freq(l_attr_freq_core_boot),
+                                              QME_RCPTR_TARGET_PSTATE, QME_RCPTR_TARGET_PSTATE_LEN);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCPTR, l_scomData) );
+
+        l_timeout = HCD_RESCLK_ENABLE_ISTEP4_POLL_TIMEOUT_HW_NS /
+                    HCD_RESCLK_ENABLE_ISTEP4_POLL_DELAY_HW_NS;
+
+        do
+        {
+            FAPI_TRY(HCD_GETSCOM_Q(eq_target, QME_RCPTR, l_scomData));
+            fapi2::delay(HCD_RESCLK_ENABLE_ISTEP4_POLL_DELAY_HW_NS,
+                         HCD_RESCLK_ENABLE_ISTEP4_POLL_DELAY_SIM_CYCLE);
+        }
+        while( (--l_timeout) != 0 );
+    }
+
 #endif
 
 fapi_try_exit:
