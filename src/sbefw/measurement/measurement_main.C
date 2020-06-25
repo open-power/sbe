@@ -125,7 +125,7 @@ int  main(int argc, char **argv)
          return 0;
     }
     SBEM_INFO("Completed PK initialization for Measurement");
-    spi_test();
+    //spi_test();
     SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
     
     jump2boot();
