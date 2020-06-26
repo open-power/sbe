@@ -646,14 +646,11 @@ fapi_try_exit:
             fapi2::Target<fapi2::TARGET_TYPE_PERV> perv = ref;
             fapi2::ATTR_PG_Type pg;
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, perv, pg));
-            if(pg == 0xFFFFFFFF)
+            for (plat_target_handle &target : G_vec_targets)
             {
-                for (plat_target_handle &target : G_vec_targets)
+                if (target.fields.chiplet_num == ref.fields.chiplet_num)
                 {
-                    if (target.fields.chiplet_num == ref.fields.chiplet_num)
-                    {
-                        target.setFunctional(false);
-                    }
+                    target.setFunctional(pg != 0xFFFFFFFF);
                 }
             }
         }
@@ -667,10 +664,7 @@ fapi_try_exit:
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, eqPerv, pg));
             for(uint32_t j=0; j<CORES_PER_QUAD; ++j)
             {
-                if(pg.getBit(PARTIAL_GOOD_CORE0 + j))
-                {
-                    G_vec_targets[j + CORE_TARGET_OFFSET + i * CORES_PER_QUAD].setFunctional(false);
-                }
+                G_vec_targets[j + CORE_TARGET_OFFSET + i * CORES_PER_QUAD].setFunctional(!pg.getBit(PARTIAL_GOOD_CORE0 + j));
             }
         }
 
@@ -692,9 +686,9 @@ fapi_try_exit:
                 };
 
                 const uint8_t l_pau_id = pau_pg_map[i][j];
-                if (l_pau_id && pg.getBit(PARTIAL_GOOD_PAU0 + j))
+                if (l_pau_id)
                 {
-                    G_vec_targets[l_pau_id].setFunctional(false);
+                    G_vec_targets[l_pau_id].setFunctional(!pg.getBit(PARTIAL_GOOD_PAU0 + j));
                 }
             }
         }

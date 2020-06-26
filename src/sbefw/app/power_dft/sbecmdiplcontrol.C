@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -318,23 +319,34 @@ ReturnCode performAttrSetup( )
     #define SBE_FUNC "performAttrSetup "
     SBE_ENTER("performAttrSetup ");
     ReturnCode rc = FAPI2_RC_SUCCESS;
-    
+
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     do
     {
-        SBE_EXEC_HWP(rc, p10_sbe_attr_setup, proc)
-        if( rc != FAPI2_RC_SUCCESS )
-        {
-            break;
-        }
-        
-        // Update functional state basis the sbe_attr_setup procedure
+        // Update functional state based on ATTR_PG stored in the customized
+        // SBE image, not taking external gards into account just yet.
+        // attr_setup needs this information to reconstruct gard vectors in
+        // case the scratch registers are empty.
         rc = plat_UpdateFunctionalState();
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;
         }
-        
+
+        SBE_EXEC_HWP(rc, p10_sbe_attr_setup, proc)
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+
+        // Now update functional state again, picking up any updates that
+        // attr_setup may have done.
+        rc = plat_UpdateFunctionalState();
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+
         //Getting CBS_CS register value
         fapi2::buffer<uint64_t> tempReg = 0;
         plat_target_handle_t hndl;
