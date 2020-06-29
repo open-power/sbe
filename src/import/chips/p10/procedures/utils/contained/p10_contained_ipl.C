@@ -34,6 +34,8 @@
 #include <p10_hang_pulse_mc_setup_tables.H>
 #include <p10_hcd_core_stopclocks.H>
 #include <p10_hcd_cache_stopclocks.H>
+#include <p10_dyninit_bitvec_utils.H>
+#include <p10_dynamic.H>
 
 ///
 /// @brief Stopclocks for all regions required for either a cache- or
@@ -160,49 +162,59 @@ fapi_try_exit:
 static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
         const bool i_is_dump_ipl)
 {
-    fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC_Type dyninits;
+    using namespace p10_dyninit_bitvec_utils;
+
     fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type sthreads;
     fapi2::ATTR_RUNN_USE_QME_TIMEBASE_Type use_qme_tb;
+    p10_dyninit_bitvec plat_feature_bvec;
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC, SYS, dyninits));
+    // initialize bit vector from platform -- content will reflect
+    // curent value of platform dynamic init feature vector attribute
+    FAPI_TRY(init_bitvec_from_plat(SYS, FEATURE, plat_feature_bvec));
+    dump_bitvec(plat_feature_bvec);
+
+    // adjust dynamic init features based on current state/paramters
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_SRESET_THREADS_BVEC, SYS, sthreads));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_USE_QME_TIMEBASE, SYS, use_qme_tb));
-    dyninits[0] &= ~fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_HOSTBOOT;
+
+    FAPI_TRY(clear_bit(plat_feature_bvec, HOSTBOOT, "HOSTBOOT"));
 
     if (i_runn)
     {
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T0 & sthreads)
         {
-            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_THREAD0;
+            FAPI_TRY(set_bit(plat_feature_bvec, RUNN_SRESET_THREAD0, "RUNN_SRESET_THREAD0"));
         }
 
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T1 & sthreads)
         {
-            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_THREAD1;
+            FAPI_TRY(set_bit(plat_feature_bvec, RUNN_SRESET_THREAD1, "RUNN_SRESET_THREAD1"));
         }
 
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T2 & sthreads)
         {
-            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_THREAD2;
+            FAPI_TRY(set_bit(plat_feature_bvec, RUNN_SRESET_THREAD2, "RUNN_SRESET_THREAD2"));
         }
 
         if (fapi2::ENUM_ATTR_RUNN_SRESET_THREADS_BVEC_T3 & sthreads)
         {
-            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_SRESET_THREAD3;
+            FAPI_TRY(set_bit(plat_feature_bvec, RUNN_SRESET_THREAD3, "RUNN_SRESET_THREAD3"));
         }
 
         if (use_qme_tb == fapi2::ENUM_ATTR_RUNN_USE_QME_TIMEBASE_ON)
         {
-            dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_USE_QME_TB_SRC;
+            FAPI_TRY(set_bit(plat_feature_bvec, RUNN_USE_QME_TB_SRC, "RUNN_USE_QME_TB_SRC"));
         }
     }
 
     if (i_is_dump_ipl)
     {
-        dyninits[0] |= fapi2::ENUM_ATTR_DYNAMIC_INIT_FEATURE_VEC_RUNN_CONTAINED_DUMP;
+        FAPI_TRY(set_bit(plat_feature_bvec, RUNN_CONTAINED_DUMP, "RUNN_CONTAINED_DUMP"));
     }
 
-    FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC, SYS, dyninits));
+    // save state back to platform attribute
+    dump_bitvec(plat_feature_bvec);
+    FAPI_TRY(save_bitvec_to_plat(SYS, plat_feature_bvec));
 
 fapi_try_exit:
     return fapi2::current_err;

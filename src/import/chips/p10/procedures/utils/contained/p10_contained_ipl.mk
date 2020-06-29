@@ -46,6 +46,9 @@ lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_startclocks
 
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/corecache)
 $(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
+$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/customize)
+$(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/customize)
+$(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/utils/imageProcs)
 
 # Place the P10 include dir first and *then* the P9 include dir
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/common/include/)
@@ -53,6 +56,7 @@ $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p9/common/include/)
 
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_perv_sbe_cmn.o)
+$(call ADD_MODULE_OBJ,$(PROCEDURE),p10_dyninit_bitvec_utils.o)
 
 ifeq ($(P10_CONTAINED_SIM),1)
 	OBJS += p10_contained_sim.o
