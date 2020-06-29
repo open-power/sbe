@@ -93,11 +93,13 @@ fapi2::ReturnCode p10_sbe_skew_adjust_setup(const
 
     FAPI_DBG("Set up core PDLY override");
     l_data64.flush<0>().writeBit<0>(l_attr_skewadj_core_override.getBit<0>());
+    FAPI_TRY(fapi2::putScom(l_mc_core, 0x20010332, l_data64));
     l_data64.insert< 4, 4, 12 >(l_attr_skewadj_core_override);
     FAPI_TRY(fapi2::putScom(l_mc_core, 0x20010326, l_data64));
 
     FAPI_DBG("Set up cache PDLY override");
     l_data64.flush<0>().writeBit<0>(l_attr_skewadj_cache_override.getBit<0>());
+    FAPI_TRY(fapi2::putScom(l_mc_core, 0x20010333, l_data64));
     l_data64.insert< 4, 4, 12 >(l_attr_skewadj_cache_override);
     FAPI_TRY(fapi2::putScom(l_mc_core, 0x20010327, l_data64));
 
