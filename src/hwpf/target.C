@@ -48,6 +48,7 @@ G_sbe_attrs_t G_sbe_attrs;
 
 fapi2attr::SystemAttributes_t*    G_system_attributes_ptr;
 fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr;
+fapi2attr::OCMBChipAttributes_t*  G_ocmb_chip_attributes_ptr;
 fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
@@ -64,6 +65,7 @@ extern fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr;
 extern fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 extern fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 extern fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
+extern fapi2attr::OCMBChipAttributes_t*  G_ocmb_chip_attributes_ptr;
 
 // For PhyP system, HRMOR is set to 128MB, which is multiple of 64MB Granule * 2
 // For OPAL system, it needs the HRMOR in the range of 4GB, so that HB reloading
@@ -211,6 +213,12 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.type = PPE_TARGET_TYPE_NMMU;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+    else if(K & TARGET_TYPE_OCMB_CHIP)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument;
+        l_handle.fields.type = PPE_TARGET_TYPE_OCMB;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
     else
     {
         STATIC_COMPILE_ERROR("Unhandled target type");
@@ -229,26 +237,6 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
 // TODO - Need to cleanup, Device Id is not available, instead we have read
 // Export Control Status Register and Environment Status Register to fetch
 // EC Level, Fused Mode and SBE Master bit
-#if 0
-        union
-        {
-            struct
-            {
-                uint64_t iv_majorEC : 4;
-                uint64_t iv_deviceIdDontCare : 4;
-                uint64_t iv_minorEC : 4;
-                uint64_t iv_chipId : 8;
-                uint64_t iv_deviceIdDontCare2 : 20;
-                uint64_t iv_c4Pin : 1;
-                uint64_t iv_deviceIdDontCare3 :17;
-                uint64_t iv_fusedMode : 1;
-                uint64_t iv_deviceIdDontCare4 :5;
-            };
-            uint64_t iv_deviceIdReg;
-        } l_deviceId;
-#endif
-        uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
-        uint8_t l_ec = 0;
         uint8_t fusedMode = 0;
         fapi2::buffer<uint64_t> l_tempReg = 0;
         fapi2::buffer<uint64_t> l_scratch8Reg = 0;
@@ -334,17 +322,6 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
          //Update the ATTR_PROC_SBE_MASTER_CHIP
          FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_SBE_MASTER_CHIP, l_chipTarget,isMaster));
 
-
-        //Fetch the EC level of the Processor chip.
-        //From SCOM 0x50004/CFAM 0x2804 (CBS Environment Status Register)
-        //Bits24:27:Chip Major EC
-        //Bits28:31:Chip Minor EC
-        l_ec = ((cbs_envstat_reg >> 32) & 0xFF);
-        FAPI_INF("EC level :0x%.8x",l_ec);
-        l_chipName = fapi2::ENUM_ATTR_NAME_P10;
-
-        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
-        FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_EC, l_chipTarget, l_ec));
         FAPI_TRY(fapi2::getScom(l_chipTarget, EXPORT_REGL_STATUS, l_ctrlReg));
         fusedMode = static_cast<uint8_t>(l_ctrlReg.getBit<10>());
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_FUSED_CORE_MODE,
@@ -750,6 +727,7 @@ fapi_try_exit:
         // Copy fixed section from SEEPROM to PIBMEM
         G_sbe_attrs.G_system_attrs = G_system_attributes;
         G_sbe_attrs.G_proc_chip_attrs = G_proc_chip_attributes;
+        G_sbe_attrs.G_ocmb_chip_attrs = G_ocmb_chip_attributes;
         G_sbe_attrs.G_perv_attrs = G_perv_attributes;
         G_sbe_attrs.G_core_attrs = G_core_attributes;
         G_sbe_attrs.G_eq_attrs = G_eq_attributes;
@@ -757,6 +735,7 @@ fapi_try_exit:
         // Initialise global attribute pointers
         G_system_attributes_ptr = &(G_sbe_attrs.G_system_attrs);
         G_proc_chip_attributes_ptr = &(G_sbe_attrs.G_proc_chip_attrs);
+        G_ocmb_chip_attributes_ptr = &(G_sbe_attrs.G_ocmb_chip_attrs);
         G_perv_attributes_ptr = &(G_sbe_attrs.G_perv_attrs);
         G_core_attributes_ptr = &(G_sbe_attrs.G_core_attrs);
         G_eq_attributes_ptr = &(G_sbe_attrs.G_eq_attrs);

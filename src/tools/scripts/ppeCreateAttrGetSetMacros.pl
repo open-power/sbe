@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -278,6 +278,8 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
             $macroTarget = "EQAttributes_t";
         } elsif ($targetMacro eq "TARGET_TYPE_PERV") {
             $macroTarget = "PervAttributes_t";
+        } elsif ($targetMacro eq "TARGET_TYPE_OCMB_CHIP") {
+            $macroTarget = "OCMBChipAttributes_t";
         } else {
         print "ERROR:: unknown type $targetMacro for attribute $attribute\n";
         next;

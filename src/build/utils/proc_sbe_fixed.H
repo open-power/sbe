@@ -115,6 +115,32 @@ typedef struct ProcChipAttributes_t {
 #endif
 
 ///
+/// OCMB Chip Target Attributes
+#ifdef __ASSEMBLER__
+         .macro	    .proc_sbe_fixed_ocmb_chip
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_ocmb_chip_attributes
+G_ocmb_chip_attributes:
+#else
+
+extern "C" {
+namespace fapi2attr {
+typedef struct OCMBChipAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_ocmb_chip.H"
+
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} OCMBChipAttributes;
+} // fapi2
+} // C
+#endif
+
+
+///
 /// Pervasive Target Attributes
 #ifdef __ASSEMBLER__
          .macro	    .proc_sbe_fixed_perv

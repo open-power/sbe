@@ -38,6 +38,7 @@ typedef struct {
   fapi2attr::PervAttributes_t      G_perv_attrs __attribute__ ((aligned (8)));
   fapi2attr::CoreAttributes_t      G_core_attrs __attribute__ ((aligned (8)));
   fapi2attr::EQAttributes_t        G_eq_attrs __attribute__ ((aligned (8)));
+  fapi2attr::OCMBChipAttributes_t  G_ocmb_chip_attrs __attribute__ ((aligned (8)));
 } G_sbe_attrs_t;
 //
 // Platform Utility functions..

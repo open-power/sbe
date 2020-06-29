@@ -74,7 +74,6 @@ struct ScomAddr
     };
 };
 
-
 namespace fapi2
 {
 

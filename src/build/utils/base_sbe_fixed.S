@@ -64,4 +64,5 @@
     .proc_sbe_fixed_proc_chip
     .proc_sbe_fixed_perv
     .proc_sbe_fixed_core
+    .proc_sbe_fixed_ocmb_chip
     .proc_sbe_fixed_eq

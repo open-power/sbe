@@ -44,6 +44,7 @@ static const uint8_t MI_PER_MC          = 1;
 static const uint8_t PHB_PER_PEC        = 3;
 static const uint8_t PARTIAL_GOOD_CORE0 = 13;
 static const uint8_t PARTIAL_GOOD_PAU0  = 13;
+static const uint8_t OCMB_PER_PROC = 16;
 
 //
 // Define what a platform handle looks like. For Hostboot,
@@ -73,6 +74,7 @@ namespace fapi2
         PPE_TARGET_TYPE_PAUC              = 0x0C,
         PPE_TARGET_TYPE_IOHS              = 0x0D,
         PPE_TARGET_TYPE_NMMU              = 0x0E,
+        PPE_TARGET_TYPE_OCMB              = 0x0F,
         // 0x0F is free
     } plat_target_type_t;
 
@@ -95,7 +97,8 @@ namespace fapi2
         { true,  PAUC_CHIPLET_OFFSET }, // PPE_TARGET_TYPE_PAUC
         { true,  IOHS_CHIPLET_OFFSET }, // PPE_TARGET_TYPE_IOHS
         { false, 0                   }, // PPE_TARGET_TYPE_NMMU
-        { false, 0                   }, // 0x0F
+        { false, 0                   }, // PPE_TARGET_TYPE_OCMB
+        { false, 0                   }, // 0x10
     };
 
     template <plat_target_type T>
