@@ -223,6 +223,7 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_program_sprs(
 
         // set HRMOR -- core level SPR
         // Must not set bit 12 in HRMOR.  Only applies to URMOR.
+        PREP_QME_RMOR(l_core_target);
         l_data.clearBit<12>();
         FAPI_TRY(PUT_QME_RMOR(l_core_target,
                               l_data.clearBit<QME_RMOR_URMOR_SELECT>()),

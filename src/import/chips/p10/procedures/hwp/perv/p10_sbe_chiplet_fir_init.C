@@ -48,12 +48,13 @@ enum P10_SBE_CHIPLET_FIR_INIT_Private_Constants
     //   file=361e143b-4808-4e36-a594-9d3d64bd5ad6
     // using chips/p10/procedures/utils/perv_lfir/gen_lfir_settings.sh
 
-    OTH_LFIR_ACTION0_VALUE = 0b0000000000000000000000000000000000000000000000000000000000000000,
-    OTH_LFIR_ACTION1_VALUE = 0b1111111111111111111111111111111111111111111111111111111111111111,
-    OTH_LFIR_MASK_VALUE    = 0b0000000000101111111100111111111111111111111111111111111111111111,
-
+    OTH_LFIR_ACTION0_VALUE  = 0b0000000000000000000000000000000000000000000000000000000000000000,
+    OTH_LFIR_ACTION1_VALUE  = 0b1111111111111111111111111111111111111111111111111111111111111111,
+    OTH_LFIR_MASK_VALUE     = 0b0000000000101111111100111111111111111111111111111111111111111111,
+    XSTOP_MASK_VALUE        = 0b0010000000000000000000000000000000000000000000000000000000000000,
+    XSTOP_MASK_VALUE_SPATTN = 0b0000000000000000000000000000000000000000000000000000000000000000,
     // Constants to set up clockstop-on-xstop
-    CLKSTOP_CC_XSTOP1      = 0x97FFE00000000000,
+    CLKSTOP_CC_XSTOP1       = 0x97FFE00000000000,
 };
 
 fapi2::ReturnCode p10_sbe_chiplet_fir_init(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -63,6 +64,7 @@ fapi2::ReturnCode p10_sbe_chiplet_fir_init(const fapi2::Target<fapi2::TARGET_TYP
     using namespace scomt::proc;
 
     fapi2::buffer<uint64_t> l_data64;
+    fapi2::buffer<uint8_t>  l_xstop_on_spattn;
     fapi2::buffer<uint8_t>  l_clkstop_on_xstop;
 
     auto l_mc_mctl = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_MC);
@@ -77,6 +79,8 @@ fapi2::ReturnCode p10_sbe_chiplet_fir_init(const fapi2::Target<fapi2::TARGET_TYP
                                      fapi2::TARGET_FILTER_ALL_IOHS), fapi2::TARGET_STATE_FUNCTIONAL);
 
     FAPI_DBG("p10_sbe_chiplet_fir_init: Entering ...");
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_XSTOP_ON_SPATTN, FAPI_SYSTEM, l_xstop_on_spattn));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCKSTOP_ON_XSTOP, i_target_chip, l_clkstop_on_xstop));
 
     FAPI_DBG("Set up pervasive LFIR on all IO chiplets");
@@ -93,15 +97,12 @@ fapi2::ReturnCode p10_sbe_chiplet_fir_init(const fapi2::Target<fapi2::TARGET_TYP
     FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_ACTION1, OTH_LFIR_ACTION1_VALUE));
     FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_MASK_RW, OTH_LFIR_MASK_VALUE));
 
-    if (false)   // TODO: Debug hot FIRs so we can actually drop these
-    {
-        FAPI_DBG("Drop pervasive CFIR masks on all chiplets");
-        FAPI_TRY(fapi2::putScom(l_mc_all, XSTOP_MASK_RW, 0));
-        FAPI_TRY(fapi2::putScom(l_mc_all, RECOV_MASK_RW, 0));
-        FAPI_TRY(fapi2::putScom(l_mc_all, SPATTN_MASK_RW, 0));
-        FAPI_TRY(fapi2::putScom(l_mc_all, LOCAL_XSTOP_MASK_RW, 0));
-        FAPI_TRY(fapi2::putScom(l_mc_all, HOSTATTN_MASK_RW, 0));
-    }
+    FAPI_DBG("Drop pervasive CFIR masks on all chiplets");
+    FAPI_TRY(fapi2::putScom(l_mc_all, XSTOP_MASK_RW, l_xstop_on_spattn ? (XSTOP_MASK_VALUE_SPATTN) : (XSTOP_MASK_VALUE)));
+    FAPI_TRY(fapi2::putScom(l_mc_all, RECOV_MASK_RW, 0));
+    FAPI_TRY(fapi2::putScom(l_mc_all, SPATTN_MASK_RW, 0));
+    FAPI_TRY(fapi2::putScom(l_mc_all, LOCAL_XSTOP_MASK_RW, 0));
+    FAPI_TRY(fapi2::putScom(l_mc_all, HOSTATTN_MASK_RW, 0));
 
     if (l_clkstop_on_xstop)
     {
