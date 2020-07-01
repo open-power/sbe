@@ -38,6 +38,8 @@
 #include "chipop_handler.H"
 #include "plat_target.H"
 #include "sbescom.H"
+#include "plat_i2c_access.H"
+#include "sbe_sp_intf.H"
 
 using namespace fapi2;
 
@@ -273,6 +275,7 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
     hdr.init();
     sbeResponseFfdc_t ffdc;
     sbeFifoType type;
+    uint32_t pibRc = 0;
 
     do
     {
@@ -300,7 +303,17 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
         if(msg.targetType == TARGET_OCMB_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "OCMB GET SCOM");
-            //TODO: Plugin the i2cgetscom
+            Target<TARGET_TYPE_PROC_CHIP> l_hndl = plat_getChipTarget();;
+            pibRc = i2cGetScom(&l_hndl, addr, &scomData);
+            if(pibRc != 0)
+            {
+                SBE_ERROR(SBE_FUNC"i2cGetScom failed, scomAddr[0x%08X %08X]",
+                    msg.hiAddr, msg.lowAddr);
+                hdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                              SBE_SEC_OCMB_SCOM_FAILED);
+                ffdc.setRc(pibRc);
+                break;
+            }
         }
         else if(msg.targetType == TARGET_PROC_CHIP)
         {
@@ -368,6 +381,7 @@ uint32_t sbePutHWReg(uint8_t *i_pArg)
     hdr.init();
     sbeResponseFfdc_t ffdc;
     sbeFifoType type;
+    uint32_t pibRc = 0;
 
     do
     {
@@ -399,7 +413,17 @@ uint32_t sbePutHWReg(uint8_t *i_pArg)
         if(msg.hwRegMsg.targetType == TARGET_OCMB_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "OCMB PUT SCOM");
-            //TODO: Plugin the i2cgetscom
+            Target<TARGET_TYPE_PROC_CHIP> l_hndl = plat_getChipTarget();;
+            pibRc = i2cPutScom(&l_hndl, addr, scomData);
+            if(pibRc != 0)
+            {
+                SBE_ERROR(SBE_FUNC"i2cPutScom failed, scomAddr[0x%08X %08X]",
+                    msg.hwRegMsg.hiAddr, msg.hwRegMsg.lowAddr);
+                hdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_OCMB_SCOM_FAILED);
+                ffdc.setRc(pibRc);
+                break;
+            }
         }
         else if(msg.hwRegMsg.targetType == TARGET_PROC_CHIP)
         {

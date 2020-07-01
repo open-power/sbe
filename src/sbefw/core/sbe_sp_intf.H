@@ -246,6 +246,7 @@ enum sbeSecondaryResponse
     SBE_SEC_SUSPEND_IO_FAILED                 = 0x35,
     SBE_SEC_ENTER_MPIPL_FAILED                = 0X36,
     SBE_SEC_STOP_CLOCK_FAILED                 = 0x37,
+    SBE_SEC_OCMB_SCOM_FAILED                  = 0x38,
 };
 
 /**
