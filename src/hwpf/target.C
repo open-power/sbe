@@ -335,10 +335,12 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
          FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_PROC_SBE_MASTER_CHIP, l_chipTarget,isMaster));
 
 
-
-        //FAPI_TRY(getscom_abs(PERV_DEVICE_ID_REG, &l_deviceId.iv_deviceIdReg));
-        //l_ec = (l_deviceId.iv_majorEC << 4) | (l_deviceId.iv_minorEC);
-        l_ec = 0x10;
+        //Fetch the EC level of the Processor chip.
+        //From SCOM 0x50004/CFAM 0x2804 (CBS Environment Status Register)
+        //Bits24:27:Chip Major EC
+        //Bits28:31:Chip Minor EC
+        l_ec = ((cbs_envstat_reg >> 32) & 0xFF);
+        FAPI_INF("EC level :0x%.8x",l_ec);
         l_chipName = fapi2::ENUM_ATTR_NAME_P10;
 
         FAPI_TRY(PLAT_ATTR_INIT(fapi2::ATTR_NAME, l_chipTarget, l_chipName));
