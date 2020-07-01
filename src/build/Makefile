@@ -295,7 +295,6 @@ endif
 
 measurement_branch:
 	$(MAKE) $(OBJDIR)
-	$(MAKE) measure_attribute_parse
 	$(MAKE) pre_measure_image
 	$(MAKE) build_measure_image
 	$(MAKE) output_measure_image
@@ -389,18 +388,10 @@ attrids:
 platattr:
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
-MEASURE_ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/system_attributes.xml 
-MEASURE_ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/unit_attributes.xml 
-MEASURE_ATTRFILES += $(BASE_FAPI2_DIR)/xml/attribute_info/chip_attributes.xml
-
-measure_attribute_parse:
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(MEASURE_ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(MEASURE_ATTRFILES) 
-	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
-
 # Build the subdirectories
 $(SUBDIRS): ppe_trace_bin
 	$(C1)$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
+
 $(SEEPROM_SUBDIRS): ppe_trace_bin
 	$(C1)$(MAKE) -I $(INCLUDES) -C $(subst targetseeprom_,, $@) -f Makefile img_mem=seeprom
 
