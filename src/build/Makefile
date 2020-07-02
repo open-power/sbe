@@ -107,6 +107,8 @@ LLIBS += -lfapi2seeprom
 
 include $(P9_HWPERR_SRCDIR)/hwpErrors.mk
 include $(HWPERR_SRCDIR)/hwpErrors.mk
+include $(GENERR_SRCDIR)/hwpErrors.mk
+include $(OCMBERR_SRCDIR)/hwpErrors.mk
 
 # Common Utils library
 SUBDIRS += $(UTILS_SRCDIR)

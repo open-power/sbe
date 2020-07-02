@@ -1,0 +1,396 @@
+/* IBM_PROLOG_BEGIN_TAG                                                   */
+/* This is an automatically generated prolog.                             */
+/*                                                                        */
+/* $Source: src/sbefw/core/functional $                                   */
+/*                                                                        */
+/* OpenPOWER sbe Project                                                  */
+/*                                                                        */
+/* Contributors Listed Below - COPYRIGHT 2011,2020                        */
+/*                                                                        */
+/*                                                                        */
+/* Licensed under the Apache License, Version 2.0 (the "License");        */
+/* you may not use this file except in compliance with the License.       */
+/* You may obtain a copy of the License at                                */
+/*                                                                        */
+/*     http://www.apache.org/licenses/LICENSE-2.0                         */
+/*                                                                        */
+/* Unless required by applicable law or agreed to in writing, software    */
+/* distributed under the License is distributed on an "AS IS" BASIS,      */
+/* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        */
+/* implied. See the License for the specific language governing           */
+/* permissions and limitations under the License.                         */
+/*                                                                        */
+/* IBM_PROLOG_END_TAG                                                     */
+#ifndef _FUNCTIONAL_H
+#define _FUNCTIONAL_H
+
+// See C++ spec
+
+namespace std
+{
+    template<typename A1, typename A2, typename R>
+    struct binary_function
+    {
+        typedef A1 first_argument_type;   ///< type of the first argument
+        typedef A2 second_argument_type;  ///< type of the second argument
+        typedef R result_type;            ///< type of the return type
+    };
+
+    template<typename A, typename R>
+    struct unary_function
+    {
+        typedef A argument_type;
+        typedef R result_type;
+    };
+
+    /**
+     * less template
+     */
+    template<typename T>
+    struct less : public binary_function<T, T, bool>
+    {
+
+        /**
+         * operator()
+         * @param[in] x first object
+         * @param[in] y second object
+         * @return true if x < y otherwise false
+         */
+        bool operator()(const T& x, const T& y) const
+        {
+            return x < y;
+        }
+    };
+
+    /**
+     * less_equal template
+     */
+    template<typename T>
+    struct less_equal : public binary_function<T, T, bool>
+    {
+        /**
+         * operator()
+         * @param[in] x first object
+         * @param[in] y second object
+         * @return true if x <= y otherwise false
+         */
+        bool operator()(const T& x, const T& y) const
+        {
+            return x <= y;
+        }
+    };
+
+    /**
+     * greater template
+     */
+    template<typename T>
+    struct greater : public binary_function<T, T, bool>
+    {
+        /**
+         * operator()
+         * @param[in] x first object
+         * @param[in] y second object
+         * @return true if x > y otherwise false
+         */
+        bool operator()(const T& x, const T& y) const
+        {
+             return x > y;
+        }
+    };
+
+    /**
+     * greater_equal template
+     */
+    template<typename T>
+    struct greater_equal : public binary_function<T, T, bool>
+    {
+        /**
+         * operator()
+         * @param[in] x first object
+         * @param[in] y second object
+         * @return true if x >= y otherwise false
+         */
+        bool operator()(const T& x, const T& y) const
+        {
+            return x >= y;
+        }
+    };
+
+    /**
+     * not_equal_to template
+     */
+    template<typename T>
+    struct not_equal_to : public binary_function<T, T, bool>
+    {
+        /**
+         * operator()
+         * @param[in] x first object
+         * @param[in] y second object
+         * @return true if x != y otherwise false
+         */
+        bool operator()(const T& x, const T& y) const
+        {
+            return x != y;
+        }
+    };
+
+    /**
+     * equal_to template
+     */
+    template<typename T>
+    struct equal_to : public binary_function<T, T, bool>
+    {
+        /**
+         * operator()
+         * @param[in] x first object
+         * @param[in] y second object
+         * @return true if x == y otherwise false
+         */
+        bool operator()(const T& x, const T& y) const
+        {
+            return x == y;
+        }
+    };
+
+// --------------- ptr_fun templates --------------- //
+    template<typename A1, typename Result>
+        struct pointer_to_unary_function : public unary_function<A1, Result>
+    {
+        explicit pointer_to_unary_function(Result (*f)(A1)) : func(f) {}
+        Result operator()(A1 a1) const { return (*func)(a1); }
+
+        protected:
+            Result (*func)(A1);
+    };
+
+    template <typename A1, typename Result>
+        pointer_to_unary_function<A1, Result> ptr_fun(Result (*f)(A1))
+    {
+        return pointer_to_unary_function<A1, Result>(f);
+    }
+
+    template<typename A1, typename A2, typename Result>
+        struct pointer_to_binary_function :
+            public binary_function<A1, A2, Result>
+    {
+        explicit pointer_to_binary_function(Result (*f)(A1, A2)) : func(f) {}
+        Result operator()(A1 a1, A2 a2) const { return (*func)(a1,a2); }
+
+        protected:
+            Result (*func)(A1,A2);
+    };
+
+    template <typename A1, typename A2, typename Result>
+        pointer_to_binary_function<A1, A2, Result> ptr_fun(Result (*f)(A1,A2))
+    {
+        return pointer_to_binary_function<A1, A2, Result>(f);
+    }
+
+// --------------- mem_fun templates --------------- //
+
+    template<typename Result, typename X>
+        struct mem_fun_t : public unary_function<X*, Result>
+    {
+        explicit mem_fun_t(Result (X::*f)()) : func(f) {}
+        Result operator()(X* x) const { return (x->*func)(); }
+
+        protected:
+            Result (X::*func)();
+    };
+
+    template<typename Result, typename X>
+        struct const_mem_fun_t : public unary_function<X*, Result>
+    {
+        explicit const_mem_fun_t(Result (X::*f)() const) : func(f) {}
+        Result operator()(const X* x) const { return (x->*func)(); }
+
+        protected:
+            Result (X::*func)() const;
+    };
+
+    template<typename Result, typename X>
+    mem_fun_t<Result, X> mem_fun(Result (X::*f)())
+    {
+        return mem_fun_t<Result, X>(f);
+    }
+
+    template<typename Result, typename X>
+    const_mem_fun_t<Result, X> mem_fun(Result (X::*f)() const)
+    {
+        return const_mem_fun_t<Result, X>(f);
+    }
+
+// --------------- mem_fun1 templates --------------- //
+
+    template<typename Result, typename X, typename Arg>
+        struct mem_fun1_t : public binary_function<X*, Arg, Result>
+    {
+        explicit mem_fun1_t(Result (X::*f)(Arg)) : func(f) {}
+        Result operator()(X* x, Arg a) const { return (x->*func)(a); }
+
+        protected:
+            Result (X::*func)(Arg);
+    };
+
+    template<typename Result, typename X, typename Arg>
+        struct const_mem_fun1_t : public binary_function<X*, Arg, Result>
+    {
+        explicit const_mem_fun1_t(Result (X::*f)(Arg) const) : func(f) {}
+        Result operator()(const X* x, Arg a) const { return (x->*func)(a); }
+
+        protected:
+            Result (X::*func)(Arg) const;
+    };
+
+    template<typename Result, typename X, typename Arg>
+    mem_fun1_t<Result, X, Arg> mem_fun(Result (X::*f)(Arg))
+    {
+        return mem_fun1_t<Result, X, Arg>(f);
+    }
+
+    template<typename Result, typename X, typename Arg>
+    const_mem_fun1_t<Result, X, Arg> mem_fun(Result (X::*f)(Arg) const)
+    {
+        return const_mem_fun1_t<Result, X, Arg>(f);
+    }
+
+// --------------- mem_fun_ref templates --------------- //
+
+    template<typename Result, typename X>
+        struct mem_fun_ref_t : public unary_function<X, Result>
+    {
+        explicit mem_fun_ref_t(Result (X::*f)()) : func(f) {}
+        Result operator()(X& x) const { return (x.*func)(); }
+
+        protected:
+            Result (X::*func)();
+    };
+
+    template<typename Result, typename X>
+        struct const_mem_fun_ref_t : public unary_function<X, Result>
+    {
+        explicit const_mem_fun_ref_t(Result (X::*f)() const) : func(f) {}
+        Result operator()(const X& x) const { return (x.*func)(); }
+
+        protected:
+            Result (X::*func)() const;
+    };
+
+    template<typename Result, typename X>
+    mem_fun_ref_t<Result, X> mem_fun_ref(Result (X::*f)())
+    {
+        return mem_fun_ref_t<Result, X>(f);
+    }
+
+    template<typename Result, typename X>
+    const_mem_fun_ref_t<Result, X> mem_fun_ref(Result (X::*f)() const)
+    {
+        return const_mem_fun_ref_t<Result, X>(f);
+    }
+
+// --------------- mem_fun1_ref templates --------------- //
+
+    template<typename Result, typename X, typename Arg>
+        struct mem_fun1_ref_t : public binary_function<X, Arg, Result>
+    {
+        explicit mem_fun1_ref_t(Result (X::*f)(Arg)) : func(f) {}
+        Result operator()(X& x, Arg a) const { return (x.*func)(a); }
+
+        protected:
+            Result (X::*func)(Arg);
+    };
+
+    template<typename Result, typename X, typename Arg>
+        struct const_mem_fun1_ref_t : public binary_function<X, Arg, Result>
+    {
+        explicit const_mem_fun1_ref_t(Result (X::*f)(Arg) const) : func(f) {}
+        Result operator()(const X& x, Arg a) const { return (x.*func)(a); }
+
+        protected:
+            Result (X::*func)(Arg) const;
+    };
+
+    template<typename Result, typename X, typename Arg>
+    mem_fun1_ref_t<Result, X, Arg> mem_fun_ref(Result (X::*f)(Arg))
+    {
+        return mem_fun1_ref_t<Result, X, Arg>(f);
+    }
+
+    template<typename Result, typename X, typename Arg>
+    const_mem_fun1_ref_t<Result, X, Arg> mem_fun_ref(Result (X::*f)(Arg) const)
+    {
+        return const_mem_fun1_ref_t<Result, X, Arg>(f);
+    }
+
+// --------------- bind1st templates --------------- //
+
+    template<typename AdaptableBinaryFunction>
+    struct binder1st :
+        public unary_function<
+                    typename AdaptableBinaryFunction::second_argument_type,
+                    typename AdaptableBinaryFunction::result_type
+               >
+    {
+        binder1st(const AdaptableBinaryFunction& F,
+                  typename AdaptableBinaryFunction::first_argument_type c) :
+            func(F), arg(c) {}
+
+        typename AdaptableBinaryFunction::result_type
+            operator()(const typename
+                       AdaptableBinaryFunction::second_argument_type& x) const
+        {
+            return func(arg, x);
+        }
+
+        protected:
+            AdaptableBinaryFunction func;
+            typename AdaptableBinaryFunction::first_argument_type arg;
+    };
+
+    template<typename AdaptableBinaryFunction, typename T>
+    binder1st<AdaptableBinaryFunction>
+        bind1st(const AdaptableBinaryFunction& F,
+                const T& c)
+    {
+        return binder1st<AdaptableBinaryFunction>(F,
+                    typename AdaptableBinaryFunction::first_argument_type(c));
+    };
+
+// --------------- bind2nd templates --------------- //
+
+    template<typename AdaptableBinaryFunction>
+    struct binder2nd :
+        public unary_function<
+                    typename AdaptableBinaryFunction::first_argument_type,
+                    typename AdaptableBinaryFunction::result_type
+               >
+    {
+        binder2nd(const AdaptableBinaryFunction& F,
+                  typename AdaptableBinaryFunction::second_argument_type c) :
+            func(F), arg(c) {}
+
+        typename AdaptableBinaryFunction::result_type
+            operator()(const typename
+                       AdaptableBinaryFunction::first_argument_type& x) const
+        {
+            return func(x, arg);
+        }
+
+        protected:
+            AdaptableBinaryFunction func;
+            typename AdaptableBinaryFunction::second_argument_type arg;
+    };
+
+    template<typename AdaptableBinaryFunction, typename T>
+    binder2nd<AdaptableBinaryFunction>
+        bind2nd(const AdaptableBinaryFunction& F,
+                const T& c)
+    {
+        return binder2nd<AdaptableBinaryFunction>(F,
+                    typename AdaptableBinaryFunction::second_argument_type(c));
+    };
+
+
+};
+#endif
+/* vim: set filetype=cpp : */
