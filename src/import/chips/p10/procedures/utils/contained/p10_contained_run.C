@@ -74,6 +74,7 @@ extern "C" {
 
         if (runn)
         {
+            FAPI_TRY(seed_exer_threads(i_target));
             FAPI_TRY(runn_setup(i_target, chc));
             FAPI_TRY(runn_start(i_target, chc));
         }

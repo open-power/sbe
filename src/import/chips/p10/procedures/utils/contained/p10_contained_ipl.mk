@@ -44,8 +44,6 @@ lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_arrayinit
 lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_initf
 lib$(PROCEDURE)_EXTRALIBS+=p10_hcd_core_startclocks
 
-lib$(PROCEDURE)_COMMONFLAGS += -DP10_CONTAINED_ENABLE_SEEDING
-
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/corecache)
 $(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
 

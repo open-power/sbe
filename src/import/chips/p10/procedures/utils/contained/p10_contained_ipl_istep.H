@@ -167,9 +167,6 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep4(const fapi2::Target < f
 
     FAPI_TRY(sim::init_via_dials(sim::ISTEP4_CORE, i_chc));
 
-    FAPI_TRY(seed_exer_threads(i_cores.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
-                               i_active_bvec));
-
     if (!i_runn)
     {
         FAPI_TRY(EXEC_IPL_PROC(rc, p10_hcd_core_startclocks, i_cores));

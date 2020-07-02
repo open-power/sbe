@@ -23,7 +23,6 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#include <random>
 #include <fapi2.H>
 #include <p10_contained.H>
 #include <p10_scom_c.H>
@@ -264,10 +263,11 @@ fapi_try_exit:
 
 #ifdef P10_CONTAINED_ENABLE_SEEDING
 
+#include <random>
+
 static std::mt19937_64 seed_rng;
 
-fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                    const uint32_t i_active_bvec)
+fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
 {
     FAPI_INF(">> %s", __func__);
 
@@ -278,6 +278,7 @@ fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
     fapi2::ATTR_RUNN_MASTER_SEED_Type master_seed;
     fapi2::ATTR_RUNN_CORE_SEED_SELECT_Type core_seed_sel;
     fapi2::ATTR_RUNN_THREAD_SEEDS_Type thread_seeds;
+    fapi2::ATTR_ACTIVE_CORES_VEC_Type active_bvec;
     fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
     // ec_cl2_func
     const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
@@ -285,18 +286,16 @@ fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
     fapi2::buffer<uint64_t> scan_region_type;
 
     FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_chip, ec));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_chip, active_bvec));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_MASTER_SEED, i_chip, master_seed));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_CORE_SEED_SELECT, i_chip,
                            core_seed_sel));
-
-    // Initialize the RNG
-    seed_rng.seed(master_seed);
 
     for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));
 
-        if (!is_active_core(corenum, i_active_bvec))
+        if (!is_active_core(corenum, active_bvec))
         {
             continue;
         }
@@ -307,12 +306,18 @@ fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
         scan_region_type.setBit(SCAN_REGION_TYPE_SCAN_REGION_UNIT1 +
                                 (corenum % 4));
 
+        // Initialize the RNG and *then* advance the RNG state to a core.
+        seed_rng.seed(master_seed);
+
         if (core_seed_sel != fapi2::ENUM_ATTR_RUNN_CORE_SEED_SELECT_RANDOM)
         {
-            // Re-initialize the RNG
-            seed_rng.seed(master_seed);
             // Advance the RNG to the core specified
-            seed_rng.discard((core_seed_sel - 1) * 4);
+            seed_rng.discard(core_seed_sel * 4);
+        }
+        else
+        {
+            // Advance the RNG to this core
+            seed_rng.discard(corenum * 4);
         }
 
         thread_seeds[0] = seed_rng();

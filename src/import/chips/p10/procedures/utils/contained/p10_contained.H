@@ -123,16 +123,13 @@ fapi2::ReturnCode disable_sreset_on_decr(const fapi2::Target<fapi2::TARGET_TYPE_
 /// @brief Set T0-T3 SIER registers via scan to seed exercisers
 ///
 /// @param[in] i_chip        Reference to chip target
-/// @param[in] i_active_bvec Bitvector of cores configured to be active
 ///
 ///
-fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-                                    const uint32_t i_active_bvec);
+fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip);
 
 #else
 
-inline fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
-        const uint32_t i_active_bvec)
+inline fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
 {
     return fapi2::FAPI2_RC_SUCCESS;
 }

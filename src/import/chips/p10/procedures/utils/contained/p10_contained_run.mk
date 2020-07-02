@@ -29,6 +29,8 @@ $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/perv)
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained_runn.o)
 
+lib$(PROCEDURE)_COMMONFLAGS += -DP10_CONTAINED_ENABLE_SEEDING
+
 ifeq ($(P10_CONTAINED_SIM),1)
 	OBJS += p10_contained_sim.o
 	lib$(PROCEDURE)_COMMONFLAGS += -DP10_CONTAINED_SIM
