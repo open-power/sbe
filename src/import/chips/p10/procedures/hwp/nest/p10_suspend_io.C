@@ -85,14 +85,12 @@ fapi2::ReturnCode p10_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
 
         FAPI_DBG("PHB%i: Recov_2 - Force freeze the PEC if not already frozen.", l_phb_id);
 
-        FAPI_TRY(PREP_REGS_NFIRACTION0_REG(l_phb_chiplets));
         //Read PCI Nest FIR Action0 register and put contents into l_buf
         FAPI_TRY(GET_REGS_NFIRACTION0_REG(l_phb_chiplets, l_buf));
         FAPI_DBG("PHB%i: PCI Nest FIR Action0 Register %#lx", l_phb_id, l_buf());
         act0_bits = l_buf;
 
         //Read PCI Nest FIR Action1 register and put contents into l_buf
-        FAPI_TRY(PREP_REGS_NFIRACTION1_REG(l_phb_chiplets));
         FAPI_TRY(GET_REGS_NFIRACTION1_REG(l_phb_chiplets, l_buf));
         FAPI_DBG("PHB%i: PCI Nest FIR Action1 Register %#lx", l_phb_id, l_buf());
         act1_bits = l_buf;
@@ -102,7 +100,6 @@ fapi2::ReturnCode p10_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         FAPI_DBG("PHB%i: PCI Nest FIR Freeze Bits %#lx", l_phb_id, l_buf2());
 
         //Read PCI Nest FIR register and put contents into l_buf
-        FAPI_TRY(PREP_REGS_NFIR_REG_RW(l_phb_chiplets));
         FAPI_TRY(GET_REGS_NFIR_REG_RW(l_phb_chiplets, l_buf));
         FAPI_DBG("PHB%i: PCI Nest FIR Register %#lx", l_phb_id, l_buf());
 
@@ -206,7 +203,6 @@ fapi2::ReturnCode p10_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         FAPI_DBG("PHB%i: Recov_5 - Clearing Base Address Enabled register.", l_phb_id);
 
         //Clear BARE register
-        FAPI_TRY(PREP_REGS_BARE_REG(l_phb_chiplets));
         FAPI_TRY(GET_REGS_BARE_REG(l_phb_chiplets, l_buf));
 
         l_buf.clearBit<REGS_BARE_REG_MMIO_BAR0_EN>()
@@ -227,8 +223,8 @@ fapi2::ReturnCode p10_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         l_buf = (uint64_t)0x0;
         FAPI_DBG("PHB%i: PCI FIR Register Clear %#lx", l_phb_id, l_buf());
 
-        FAPI_TRY(PREP_REGS_NFIR_REG_WO_AND(l_phb_chiplets));
-        FAPI_TRY(PUT_REGS_NFIR_REG_WO_AND(l_phb_chiplets, l_buf));
+        FAPI_TRY(PREP_REGS_PFIR_REG_WO_AND(l_phb_chiplets));
+        FAPI_TRY(PUT_REGS_PFIR_REG_WO_AND(l_phb_chiplets, l_buf));
 
         //Confirm FIR bits have been cleared
         FAPI_TRY(GET_REGS_PFIR_REG_RW(l_phb_chiplets, l_buf));
@@ -257,20 +253,13 @@ fapi2::ReturnCode p10_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         FAPI_DBG("PHB%i: Recov_8 - Clearing PCI Nest FIR.", l_phb_id);
 
         //Clear FIR bits of PCI Nest FIR register
-        FAPI_TRY(GET_REGS_NFIR_REG_RW(l_phb_chiplets, l_buf));
-        FAPI_DBG("PHB%i: PCI Nest FIR Register %#lx", l_phb_id, l_buf());
-        l_buf.invert();
-        FAPI_DBG("PHB%i: PCI Nest FIR Register Clear %#lx", l_phb_id, l_buf());
-
+        l_buf.flush<0>();
         FAPI_TRY(PREP_REGS_NFIR_REG_WO_AND(l_phb_chiplets));
         FAPI_TRY(PUT_REGS_NFIR_REG_WO_AND(l_phb_chiplets, l_buf));
 
         //Confirm FIR bits have been cleared
         FAPI_TRY(GET_REGS_NFIR_REG_RW(l_phb_chiplets, l_buf));
         FAPI_DBG("PHB%i: PCI Nest FIR Register %#lx", l_phb_id, l_buf());
-
-
-        FAPI_DBG("PHB%i: PCI FIR Register %#lx", l_phb_id, l_buf2());
 
         if (l_buf.getBit<REGS_NFIR_REG_NFIRNFIR, REGS_NFIR_REG_NFIRNFIR_LEN>())
         {
