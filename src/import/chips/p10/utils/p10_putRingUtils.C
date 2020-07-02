@@ -424,7 +424,6 @@ fapi2::ReturnCode getRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
                     l_scomAddress |= ( l_scan_chiplet_override << 24 );
                 }
             }
-
             if ( i_and_not_comp )
             {
                 fapi2::Target< fapi2::TARGET_TYPE_ALL_MC, fapi2:: MULTICAST_AND > l_target_mc_and = i_target;
