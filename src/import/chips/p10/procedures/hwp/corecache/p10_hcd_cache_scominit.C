@@ -22,14 +22,9 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-
-
-
 ///
 /// @file  p10_hcd_cache_scominit.C
-/// @brief
-///
-
+/// @brief Applies L3 scom inits
 ///
 /// *HWP HW Maintainer: David Du         <daviddu@us.ibm.com>
 /// *HWP FW Maintainer: Prem Shanker Jha <premjha2@in.ibm.com>
@@ -42,17 +37,46 @@
 
 #include "p10_hcd_cache_scominit.H"
 #include <p10_scom_c.H>
-#include <p10_scom_proc.H>
 #include <p10_fbc_utils.H>
+#ifdef __PPE_QME
+    #include <p10_l3_scom.H>
+#endif
 
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// Procedure: p10_hcd_cache_scominit_qme
+//------------------------------------------------------------------------------
+
+#ifdef __PPE_QME
+static inline fapi2::ReturnCode p10_hcd_cache_scominit_qme(
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
+{
+    FAPI_INF(">>p10_hcd_cache_scominit_qme");
+
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    auto l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+
+    for (const auto& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        fapi2::ReturnCode l_rc;
+
+        FAPI_DBG("Invoking p10.l3.scom.initfile on target");
+        FAPI_EXEC_HWP(l_rc, p10_l3_scom, l_core, FAPI_SYSTEM, l_chip);
+    }
+
+fapi_try_exit:
+    FAPI_INF("<<p10_hcd_cache_scominit_qme");
+    return fapi2::current_err;
+}
 
 //------------------------------------------------------------------------------
-// Procedure: p10_hcd_cache_scominit
+// Procedure: p10_hcd_cache_scominit_sbe
 //------------------------------------------------------------------------------
+
+#else
 
 namespace
 {
@@ -102,92 +126,7 @@ fapi_try_exit:
 }
 };
 
-#ifdef __PPE_QME
-static inline fapi2::ReturnCode
-p10_hcd_cache_scominit_qme(
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
-{
-    using namespace scomt::c;
-    using namespace scomt::proc;
-
-    FAPI_INF(">>>p10_hcd_cache_scominit_qme");
-    fapi2::buffer<uint64_t> l_data;
-    fapi2::ATTR_PROC_FABRIC_SL_DOMAIN_Type l_attr_sl_domain;
-    //fapi2::ATTR_PROC_LCO_TARGETS_VECTOR_Type l_attr_chip_lco_targets;
-    uint32_t l_attr_chip_lco_targets = 0;
-    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos;
-    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
-    fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > l_eq =
-        i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-    fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
-          fapi2::MULTICAST_OR > c_mc_or = i_target;
-    unsigned num_caches = 0;
-
-    FAPI_INF("p10_hcd_cache_scominit_qme: init the L3 and NCU topology tables");
-    std::vector<uint64_t> l_topo_scoms;
-    // Get the register values for the SCOMs to setup the topology id table
-    FAPI_TRY(topo::get_topology_table_scoms(l_chip, l_topo_scoms));
-    // Setup the topology id tables for L3 and NCU via multicast
-    FAPI_TRY(init_topo_id_tables(i_target, l_topo_scoms));
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_SL_DOMAIN, l_chip, l_attr_sl_domain));
-
-    //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_LCO_TARGETS_VECTOR, l_chip, l_attr_chip_lco_targets));
-
-    if (l_attr_sl_domain == fapi2::ENUM_ATTR_PROC_FABRIC_SL_DOMAIN_CHIP)
-    {
-        FAPI_INF("p10_hcd_cache_scominit_qme: SL DOMAIN CHIP");
-    }
-    else
-    {
-        FAPI_INF("p10_hcd_cache_scominit_qme: not SL DOMAIN CHIP");
-        // Read which EQ this QME is on
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_eq, l_attr_chip_unit_pos));
-        FAPI_INF("p10_hcd_cache_scominit_qme: QME = %d", l_attr_chip_unit_pos);
-
-        // Chip is split into hemispheres by even/odd EQ
-        size_t hemisphere = l_attr_chip_unit_pos % 2;
-
-        // l_attr_chip_lco_targets = hemisphere caches
-        l_attr_chip_lco_targets = l_attr_chip_lco_targets & (0xF0F0F0F0 >> (hemisphere << 2));
-    }
-
-    num_caches = __builtin_popcount(l_attr_chip_lco_targets);
-    FAPI_INF("p10_hcd_cache_scominit_qme: num_caches = %d, lco_targets = %X",
-             num_caches, l_attr_chip_lco_targets );
-
-    // No point in setting up LCO with only one or two caches
-    // (note: for two caches LCO requires a mode bit which is scan-only)
-    if (num_caches < 3)
-    {
-        goto fapi_try_exit;
-    }
-
-    for (const auto& c : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
-    {
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, c, l_attr_chip_unit_pos));
-
-        FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
-        // 1. core-num is LCO ID
-        SET_L3_MISC_L3CERRS_MODE_REG1_MY_LCO_TARGET_ID_CFG(l_attr_chip_unit_pos, l_data);
-        FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
-    }
-
-    // can write the targets and enable via multicast :D
-    l_data = 0;
-    // 2. all-good cores makeup the LCO targets
-    SET_L3_MISC_L3CERRS_MODE_REG1_LCO_TARGETS_CFG(l_attr_chip_lco_targets, l_data);
-    // 3. LCO enable multicast
-    SET_L3_MISC_L3CERRS_MODE_REG1_LCO_ENABLE_CFG(l_data);
-    FAPI_TRY(PUT_L3_MISC_L3CERRS_MODE_REG1(c_mc_or, l_data));
-
-fapi_try_exit:
-    FAPI_INF("<<<p10_hcd_cache_scominit_qme");
-    return fapi2::current_err;
-}
-#else
-static inline fapi2::ReturnCode
-p10_hcd_cache_scominit_sbe (
+static inline fapi2::ReturnCode p10_hcd_cache_scominit_sbe(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
     using namespace scomt::c;
@@ -296,9 +235,11 @@ fapi_try_exit:
 }
 #endif
 
+//------------------------------------------------------------------------------
+// Procedure: p10_hcd_cache_scominit
+//------------------------------------------------------------------------------
 
-fapi2::ReturnCode
-p10_hcd_cache_scominit(
+fapi2::ReturnCode p10_hcd_cache_scominit(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
     FAPI_INF(">>p10_hcd_cache_scominit");

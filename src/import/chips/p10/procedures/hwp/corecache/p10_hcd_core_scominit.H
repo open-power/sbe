@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,8 +22,14 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-
-
+///
+/// @file  p10_hcd_core_scominit.H
+/// @brief Applies core/L2/NCU scom inits
+///
+/// *HWP HW Maintainer: David Du         <daviddu@us.ibm.com>
+/// *HWP FW Maintainer: Prem Shanker Jha <premjha2@in.ibm.com>
+/// *HWP Consumed by  : SBE,QME
+///
 
 #ifndef _P10_HCD_CORE_SCOMINIT_H_
 #define _P10_HCD_CORE_SCOMINIT_H_
@@ -38,8 +44,8 @@
 //------------------------------------------------------------------------------
 
 /// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p10_hcd_core_scominit_FP_t) (const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-        fapi2::TARGET_TYPE_MULTICAST > &);
+typedef fapi2::ReturnCode (*p10_hcd_core_scominit_FP_t) (
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > &);
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -49,13 +55,13 @@ extern "C"
 {
 
 ///
-/// @brief
+/// @brief Applies core/L2/NCU scom inits
 ///
 /// @param[in] i_target       Reference to fapi2::TARGET_TYPE_CORE|fapi2::TARGET_TYPE_MULTICAST
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
 ///
-    fapi2::ReturnCode p10_hcd_core_scominit(const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > &
-                                            i_target);
+    fapi2::ReturnCode p10_hcd_core_scominit(
+        const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target);
 
 } // extern "C"
 
