@@ -175,6 +175,14 @@ CMD_ARR(
     {sbePutReg,
      SBE_CMD_PUTREG,
      PUT_HARDWARE_FENCED_STATE | SBE_FENCE_AT_SECURE_MODE,
+    },
+    {sbeGetHWReg,
+     SBE_CMD_GETHWREG,
+     HARDWARE_FENCED_STATE,
+    },
+    {sbePutHWReg,
+     SBE_CMD_PUTHWREG,
+     HARDWARE_FENCED_STATE,
     }
 )
 

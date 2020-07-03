@@ -772,4 +772,46 @@ typedef struct
     }
 }sbeRegAccessPackage_t;
 
+/**
+  * @brief structure for HWReg Chip-op (0xA503)
+  */
+typedef struct
+{
+    uint32_t targetType:16;
+    uint32_t reserved:8;
+    uint32_t targetInstance:8;
+    uint32_t hiAddr;
+    uint32_t lowAddr;
+     /**
+       * @brief Creates 64-bit Scom Addr
+       *
+       * @param[in/out] io_scomAddr 64-bit scom data
+       */
+     uint64_t getScomAddr()
+     {
+         uint64_t io_scomAddr = ((uint64_t)hiAddr << 32) | lowAddr;
+         return io_scomAddr;
+     }
+}sbeGetHWRegReqMsg_t;
+
+/**
+  * @brief structure for PutHWReg Chip-op (0xA504)
+  */
+typedef struct
+{
+    sbeGetHWRegReqMsg_t hwRegMsg;
+    uint32_t hiInputData;
+    uint32_t lowInputData;
+
+     /**
+       * @brief Determines 64-bit Scom data
+       *
+       * @param[in/out] io_scomData 64-bit scom data
+       */
+     uint64_t getScomData()
+     {
+         uint64_t data = ((uint64_t)hiInputData << 32) | lowInputData;
+         return data;
+     }
+}sbePutHWRegReqMsg_t;
 #endif // __SBEFW_SBESP_MSG_H

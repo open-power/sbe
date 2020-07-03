@@ -35,6 +35,9 @@
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
 #include "p10_ram_core.H"
+#include "chipop_handler.H"
+#include "plat_target.H"
+#include "sbescom.H"
 
 using namespace fapi2;
 
@@ -251,6 +254,181 @@ uint32_t sbePutReg(uint8_t *i_pArg)
     if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
     {
         rc = sbeDsSendRespHdr( respHdr, &ffdc);
+    }
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbeGetHWReg(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeGetHWReg "
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    sbeGetHWRegReqMsg_t msg;
+    sbeRespGenHdr_t hdr;
+    hdr.init();
+    sbeResponseFfdc_t ffdc;
+    sbeFifoType type;
+
+    do
+    {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+
+        // Will attempt to dequeue three entries for the scom addresses plus
+        // the expected EOT entry at the end
+        uint32_t len2dequeue  = sizeof(msg)/sizeof(uint32_t);
+        rc = sbeUpFifoDeq_mult (len2dequeue, (uint32_t *)&msg, true, false, type);
+
+        // If FIFO access failure
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        uint32_t len2enqueue  = 0;
+        uint32_t downFifoRespBuf[2] = {0};
+
+        uint64_t addr = msg.getScomAddr();
+        uint64_t scomData = 0;
+        SBE_DEBUG(SBE_FUNC " scomAddr[0x%08X %08X]",
+            msg.hiAddr, msg.lowAddr);
+
+        //Fetch Target type.
+        if(msg.targetType == TARGET_OCMB_CHIP)
+        {
+            SBE_DEBUG(SBE_FUNC "OCMB GET SCOM");
+            //TODO: Plugin the i2cgetscom
+        }
+        else if(msg.targetType == TARGET_PROC_CHIP)
+        {
+            SBE_DEBUG(SBE_FUNC "PROC or Its chiplet GET SCOM");
+            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc);
+        }
+        else
+        {
+            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]"
+                      (uint32_t)msg.targetType, (uint32_t)msg.targetInstance);
+            hdr.setStatus( SBE_PRI_INVALID_DATA,
+                               SBE_SEC_INVALID_TARGET_TYPE_PASSED );
+            break;
+
+        }
+
+        // scom failed
+        if (hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC"sbeGetScom failed, scomAddr[0x%08X %08X]",
+                msg.hiAddr, msg.lowAddr);
+            break;
+        }
+        else // successful scom
+        {
+            downFifoRespBuf[0] = (uint32_t)(scomData>>32);
+            downFifoRespBuf[1] = (uint32_t)(scomData);
+
+            SBE_DEBUG(SBE_FUNC"getscom succeeds, scomData[0x%08X %08X]",
+                downFifoRespBuf[0], downFifoRespBuf[1]);
+
+            // Push the data into downstream FIFO
+            len2enqueue = 2;
+            rc = sbeDownFifoEnq_mult (len2enqueue, &downFifoRespBuf[0], type);
+            if (rc)
+            {
+                // will let command processor routine handle the failure
+                break;
+            }
+        } // end successful scom
+
+    } while(false);
+
+    if(rc == SBE_SEC_OPERATION_SUCCESSFUL)
+    {
+        // Build the response header packet
+        rc = sbeDsSendRespHdr(hdr, &ffdc, type);
+       // will let command processor routine handle the failure
+    }
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbePutHWReg(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbePutHWReg "
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    sbePutHWRegReqMsg_t msg;
+    sbeRespGenHdr_t hdr;
+    hdr.init();
+    sbeResponseFfdc_t ffdc;
+    sbeFifoType type;
+
+    do
+    {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_ENTER(SBE_FUNC "Fifo Type is:[%02X]",type);
+
+        // Will attempt to dequeue five entries for the scom address
+        // (two entries) and the corresponding data (two entries) plus
+        // the expected EOT entry at the end
+
+        uint32_t  len2dequeue  = sizeof(msg)/sizeof(uint32_t);
+        rc = sbeUpFifoDeq_mult (len2dequeue, (uint32_t *)&msg, true, false, type);
+
+        // If FIFO access failure
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        uint64_t scomData = 0;
+        scomData = msg.getScomData();
+
+        uint64_t addr = msg.hwRegMsg.getScomAddr();
+        SBE_DEBUG(SBE_FUNC " scomAddr[0x%08X %08X]",
+            msg.hwRegMsg.hiAddr, msg.hwRegMsg.lowAddr);
+
+        SBE_DEBUG(SBE_FUNC " scomData[0x%08X %08X]",
+            msg.hiInputData, msg.lowInputData);
+
+        //Fetch Target type.
+        if(msg.hwRegMsg.targetType == TARGET_OCMB_CHIP)
+        {
+            SBE_DEBUG(SBE_FUNC "OCMB PUT SCOM");
+            //TODO: Plugin the i2cgetscom
+        }
+        else if(msg.hwRegMsg.targetType == TARGET_PROC_CHIP)
+        {
+            SBE_DEBUG(SBE_FUNC "PROC or Its chiplet PUT SCOM");
+            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc);
+        }
+        else
+        {
+            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]"
+                      (uint32_t)msg.hwRegMsg.targetType, (uint32_t)msg.hwRegMsg.targetInstance);
+            hdr.setStatus( SBE_PRI_INVALID_DATA,
+                               SBE_SEC_INVALID_TARGET_TYPE_PASSED );
+            break;
+
+        }
+        // scom failed
+        if (hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC"sbePutHWReg failure data, scomAddr[0x%08X %08X], "
+                "scomData[0x%08X %08X]", msg.hwRegMsg.hiAddr, msg.hwRegMsg.lowAddr,
+                SBE::higher32BWord(scomData), SBE::lower32BWord(scomData));
+            break;
+        }
+    } while(false);
+    if(rc == SBE_SEC_OPERATION_SUCCESSFUL)
+    {
+        // Build the response header packet
+        rc = sbeDsSendRespHdr(hdr, &ffdc, type);
+       // will let command processor routine handle the failure
     }
     SBE_EXIT(SBE_FUNC);
     return rc;

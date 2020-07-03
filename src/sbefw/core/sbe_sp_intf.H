@@ -130,6 +130,8 @@ enum sbeRegisterAccessCommands
 {
     SBE_CMD_GETREG           = 0x01, /* Get Register (GPR,SPR,FPR) */
     SBE_CMD_PUTREG           = 0x02, /* Put Register (GPR,SPR,FPR) */
+    SBE_CMD_GETHWREG         = 0x03, /* Get HW Register (Scoms, OCMB Scoms) */
+    SBE_CMD_PUTHWREG         = 0x04, /* Put HW Register (Scoms, OCMB Scoms) */
 };
 
 /**
@@ -442,6 +444,7 @@ typedef enum
     TARGET_PERV         = 0x0001,
     TARGET_EQ           = 0x0002,
     TARGET_CORE         = 0x0003,
+    TARGET_OCMB_CHIP    = 0x0004,
 } sbeTargetTypes_t;
 
 /**

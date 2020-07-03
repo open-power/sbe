@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -52,5 +53,23 @@ uint32_t sbeGetReg(uint8_t *i_pArg);
   */
 uint32_t sbePutReg(uint8_t *i_pArg);
 
+/**
+  * @brief sbeGetHWReg : Get the scom data for proc, proc chiplet and ocmb scoms.
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeGetHWReg(uint8_t *i_pArg);
+
+
+/**
+  * @brief sbePutReg : Put the scom data for proc, proc chiplet and ocmb scoms.
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbePutHWReg(uint8_t *i_pArg);
 
 #endif /* __SBEFW_SBECMDREGACCESS_H */

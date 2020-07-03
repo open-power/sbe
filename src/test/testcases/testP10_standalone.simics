@@ -180,6 +180,10 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         run-python-file targets/p10_standalone/sbeTest/testPutGetScom.py
 
+        echo "*******************Run testPutGetHWReg.py*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testPutGetHWReg.py
+
         echo "*******************Run testQuiesce.xml*******************"
 
         run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
