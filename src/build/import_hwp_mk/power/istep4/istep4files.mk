@@ -33,6 +33,7 @@ include img_defs.mk
 
 ISTEP4-CPP-SOURCES = p10_hcd_cache_poweron.C
 ISTEP4-CPP-SOURCES += p10_hcd_cache_reset.C
+ISTEP4-CPP-SOURCES += p10_hcd_cache_scan0.C
 ISTEP4-CPP-SOURCES += p10_hcd_cache_gptr_time_initf.C
 ISTEP4-CPP-SOURCES += p10_hcd_cache_repair_initf.C
 ISTEP4-CPP-SOURCES += p10_hcd_cache_arrayinit.C
@@ -45,6 +46,7 @@ ISTEP4-CPP-SOURCES += p10_hcd_corecache_power_control.C
 ISTEP4-CPP-SOURCES += p10_hcd_corecache_clock_control.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_poweron.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_reset.C
+ISTEP4-CPP-SOURCES += p10_hcd_core_scan0.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_gptr_time_initf.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_repair_initf.C
 ISTEP4-CPP-SOURCES += p10_hcd_core_arrayinit.C

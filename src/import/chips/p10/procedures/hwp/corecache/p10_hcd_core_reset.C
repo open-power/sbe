@@ -44,30 +44,20 @@
 //------------------------------------------------------------------------------
 
 #include "p10_hcd_core_reset.H"
+#include "p10_hcd_core_scan0.H"
 #include "p10_hcd_corecache_realign.H"
 #include "p10_hcd_common.H"
-#include "p10_pm_hcd_flags.h"
 
 #ifdef __PPE_QME
     #include "p10_scom_eq.H"
     #include "p10_ppe_c.H"
     using namespace scomt::eq;
     using namespace scomt::ppe_c;
-    #define QME_FLAGS_PLATFORM_EPM QME_FLAGS_RUNNING_EPM
-    // Due to p10_scom_eq.H has both CPLT_CTRL and QME quad register
-    // cannot include p10_ppe_eq.H for QME quad register alone
-    #define QME_FLAGS 0xc0001200
 #else
     #include "p10_scom_eq.H"
     #include "p10_scom_c.H"
     using namespace scomt::eq;
     using namespace scomt::c;
-    #define QME_FLAGS_PLATFORM_EPM p10hcd::QME_FLAGS_RUNNING_EPM
-    #define QME_FLAGS QME_FLAGS_RW
-#endif
-
-#if !defined P10_HCD_CORECACHE_SKIP_FLUSH
-    #include <p10_perv_sbe_cmn.H>
 #endif
 
 
@@ -88,10 +78,6 @@ p10_hcd_core_reset(
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect();
     fapi2::buffer<buffer_t> l_mmioData = 0;
-    bool                    l_do_scan0 = true;
-    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
-    fapi2::ATTR_SYSTEM_IPL_PHASE_Type           l_attr_ipl_phase;
-    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_IPL_PHASE, l_sys, l_attr_ipl_phase ) );
 
     FAPI_INF(">>p10_hcd_core_reset");
 
@@ -113,63 +99,14 @@ p10_hcd_core_reset(
 
     FAPI_TRY( p10_hcd_corecache_realign(eq_target, ( ( l_regions << SHIFT32(8) ) | ( l_regions << SHIFT32(18) ) ) ) );
 
-#ifndef P10_HCD_CORECACHE_SKIP_FLUSH
+#ifndef __PPE_QME
 
-    //--------------------------------------------
-    // perform scan0 module for pervasive chiplet
-    //--------------------------------------------
-    // Each scan0 will rotate the ring 8191 latches (2**13 - 1) and the longest
-    // ring is defined by P9_HCD_SCAN_FUNC_REPEAT. When the design ALWAYS has
-    // all stumps less than 8191, the loop can be removed.
-
-    if ( l_attr_ipl_phase != fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL )
-    {
-        FAPI_TRY(HCD_GETMMIO_Q( eq_target, MMIO_LOWADDR(QME_FLAGS), l_mmioData ) );
-        l_do_scan0 = !MMIO_GET(MMIO_LOWBIT(QME_FLAGS_PLATFORM_EPM));
-    }
-
-    if ( l_do_scan0 )
-    {
-        fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
-            eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
-        uint32_t l_loop;
-
-        FAPI_DBG("Scan0 region:ecl2 type:gptr_repr_time rings");
-
-        for(l_loop = 0; l_loop < P10_HCD_SCAN0_GPTR_REPEAT; l_loop++)
-            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                                   (l_regions << SHIFT16(5)),
-                                                   HCD_SCAN0_TYPE_GPTR_REPR_TIME));
-
-        FAPI_DBG("Scan0 region:ecl2 type:all_but_gptr_repr_time rings");
-
-        for(l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
-            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                                   (l_regions << SHIFT16(5)),
-                                                   HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
-
-        FAPI_DBG("Scan0 region:mma type:gptr_repr_time rings");
-
-        for(l_loop = 0; l_loop < P10_HCD_SCAN0_GPTR_REPEAT; l_loop++)
-            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                                   (l_regions << SHIFT16(15)),
-                                                   HCD_SCAN0_TYPE_GPTR_REPR_TIME));
-
-        FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
-
-        for(l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
-            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                                   (l_regions << SHIFT16(15)),
-                                                   HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
-
-    }
+    FAPI_TRY( p10_hcd_core_scan0(i_target) );
 
 #endif
 
 fapi_try_exit:
 
     FAPI_INF("<<p10_hcd_core_reset");
-
     return fapi2::current_err;
-
 }
