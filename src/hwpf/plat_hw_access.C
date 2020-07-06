@@ -309,8 +309,8 @@ static fapi2::ReturnCode handle_scom_error(const uint32_t i_addr, uint64_t *io_d
                       SBE_SCOM_FAILURE().
                       set_address(i_addr).
                       set_pcb_pib_rc(i_pibRc),
-                      "Scom:pcb pib error, pibRc[0x%08X] Scom_Addr[0x%08X]"
-                      "Scom_Data[0x%08X%08X]",
+                      "SCOM : pcb pib error, pibRc[0x%08X] Translated_ScomAddr[0x%08X]"
+                      "ScomData[0x%08X%08X]",
                       i_pibRc, i_addr, (*io_data >> 32), (*io_data & 0xFFFFFFFF));
 fapi_try_exit:
     // Override FAPI RC based on PIB RC
@@ -333,7 +333,7 @@ fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
              static_cast<uint32_t>(*o_data & 0xFFFFFFFF));
 
     return (l_pibRc == PIB_NO_ERROR) ? fapi2::ReturnCode(FAPI2_RC_SUCCESS) :
-            handle_scom_error(i_addr, o_data, l_pibRc, true);
+            handle_scom_error(l_addr, o_data, l_pibRc, true);
 }
 
 fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
@@ -349,7 +349,7 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
              static_cast<uint32_t>(i_data & 0xFFFFFFFF), l_pibRc);
 
     return (l_pibRc == PIB_NO_ERROR) ? fapi2::ReturnCode(FAPI2_RC_SUCCESS) :
-            handle_scom_error(i_addr, &i_data, l_pibRc, false);
+            handle_scom_error(l_addr, &i_data, l_pibRc, false);
 }
 
 

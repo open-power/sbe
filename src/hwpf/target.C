@@ -35,6 +35,7 @@
 
 
 #define PERV_SB_CS_SELECT_SECONDARY_SEEPROM 17
+#define N1_PG_NMMU1_BIT                     17
 
 #if defined __SBEFW_PIBMEM__
 // Global Vector containing ALL targets.  This structure is referenced by
@@ -715,6 +716,15 @@ fapi_try_exit:
                     G_vec_targets[l_pau_id].setFunctional(!pg.getBit(PARTIAL_GOOD_PAU0 + j));
                 }
             }
+        }
+
+        {
+            // NMMU0 is should always be functional.
+            // Set NMMU1 Functional State basis Nest1 Perv chiplet bit 17
+            fapi2::Target<fapi2::TARGET_TYPE_PERV> nest1Perv = G_vec_targets[NEST_TARGET_OFFSET + 1];
+            fapi2::buffer<fapi2::ATTR_PG_Type> pg;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, nest1Perv, pg));
+            G_vec_targets[NMMU_TARGET_OFFSET + 1].setFunctional(!pg.getBit(N1_PG_NMMU1_BIT));
         }
 
     fapi_try_exit:

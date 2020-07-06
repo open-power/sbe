@@ -103,9 +103,9 @@ def sbe_istep_func( inum1, inum2, proc=0, node=0):
                 testUtil.runCycles( 10000000 )
                 testUtil.writeUsFifo( TESTDATA, i_fifoType, node, proc)
                 testUtil.writeEot( i_fifoType, node, proc)
-                testUtil.runCycles( 10000 )
+                testUtil.runCycles( 1000000 )
                 testUtil.readDsFifo( EXPDATA, i_fifoType, node, proc)
-                testUtil.runCycles( 10000 )
+                testUtil.runCycles( 1000000 )
                 testUtil.readEot( i_fifoType, node, proc)
 
             except:
