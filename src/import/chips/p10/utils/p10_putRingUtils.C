@@ -330,7 +330,8 @@ fapi2::ReturnCode putRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
             fapi2::Target<fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST> l_target;
             FAPI_TRY(i_target.reduceType(l_target), "Invalid target for core/EQ level ring");
             auto l_target_eq = l_target.getParent< fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST >();
-            l_scomAddress |= i_chipletMask;
+
+            l_scomAddress &= ~CHIPLET_MASK;
 
             FAPI_TRY( fapi2::putScom( l_target_eq, l_scomAddress, i_scomData ),
                       "EQ Common: putRegister failed" );
@@ -387,7 +388,8 @@ fapi2::ReturnCode getRegister(const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_
         {
             fapi2::Target<fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST> l_target;
             FAPI_TRY(i_target.reduceType(l_target), "Invalid target for core/EQ level ring");
-            l_scomAddress |= i_chipletMask;
+
+            l_scomAddress &= ~CHIPLET_MASK;
 
             if ( i_and_not_comp )
             {
