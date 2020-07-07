@@ -259,12 +259,12 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             //  Reset the TPM is not done as separate istep. It will be done
             //  as part of measurement seeprom boot flow.
             ISTEP_MAP( istepNoOp, NULL ),
-            // quiesce state for all units on the powerbus on its chip
-            ISTEP_MAP( istepWithProcQuiesceLQASet, p10_sbe_check_quiesce ),
             // L2 cache flush via purge engine on each EX
             ISTEP_MAP( istepWithCoreL2Flush, p10_l2_flush ),
             // L3 cache flush via purge engine on each EX
             ISTEP_MAP( istepWithCoreL3Flush, p10_l3_flush ),
+            // quiesce state for all units on the powerbus on its chip
+            ISTEP_MAP( istepWithProcQuiesceLQASet, p10_sbe_check_quiesce ),
             // Check on Quiescing of all Chips in a System by Local SBE
             ISTEP_MAP( istepWithProcSequenceDrtm, NULL ),
 #endif
