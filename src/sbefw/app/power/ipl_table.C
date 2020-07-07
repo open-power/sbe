@@ -113,7 +113,7 @@
 #include "p10_sbe_check_quiesce.H"
 #include "p10_l2_flush.H"
 #include "p10_l3_flush.H"
-//#include "p9_sbe_sequence_drtm.H" //This will be enabled later on
+#include "p10_sbe_sync_quiesce_states.H"
 #include "p10_thread_control.H"
 #include "sbecmdcntlinst.H"
 #include "p10_hcd_mma_poweroff.H"
@@ -126,6 +126,8 @@
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
 
 #include "p10_fbc_utils.H"
+#include "p10_sbe_scratch_regs.H"
+#include "p10_scom_perv_d.H"
 #include "sbeSecureMemRegionManager.H"
 
 #include "sbeConsole.H"
@@ -182,7 +184,10 @@ using  sbeIstepHwpCoreL3Flush_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_CORE> & i_target,
                      const uint32_t i_purgeType,
                      const uint32_t i_purgeAddr);
- 
+
+using  sbeIstepHwpSyncQuiesceState_t = ReturnCode (*)
+                    (const Target<TARGET_TYPE_PROC_CHIP> & i_target,
+                     uint8_t & o_status);
 #if 0
 using sbeIstepHwpCoreBlockIntr_t =  ReturnCode (*)
                     (const Target<TARGET_TYPE_CORE> & i_target,
@@ -234,7 +239,7 @@ ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp );
 ReturnCode istepWithCoreL2Flush( voidfuncptr_t i_hwp );
 ReturnCode istepWithCoreL3Flush( voidfuncptr_t i_hwp );
 ReturnCode istepStartMpipl( voidfuncptr_t i_hwp );
-ReturnCode istepWithProcSequenceDrtm( voidfuncptr_t i_hwp );
+ReturnCode istepWithProcSyncQuiesceState( voidfuncptr_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( voidfuncptr_t i_hwp );
 ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp );
@@ -266,7 +271,7 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             // quiesce state for all units on the powerbus on its chip
             ISTEP_MAP( istepWithProcQuiesceLQASet, p10_sbe_check_quiesce ),
             // Check on Quiescing of all Chips in a System by Local SBE
-            ISTEP_MAP( istepWithProcSequenceDrtm, NULL ),
+            ISTEP_MAP( istepWithProcSyncQuiesceState, p10_sbe_sync_quiesce_states ),
 #endif
         };
 static istepMap_t g_istepMpiplContinuePtrTbl[] =
@@ -1015,27 +1020,27 @@ ReturnCode istepWithCoreL3Flush( voidfuncptr_t i_hwp)
 }
 
 //----------------------------------------------------------------------------
-ReturnCode istepWithProcSequenceDrtm( voidfuncptr_t i_hwp)
+ReturnCode istepWithProcSyncQuiesceState( voidfuncptr_t i_hwp)
 {
-    #define SBE_FUNC "istepWithProcSequenceDrtm"
+    #define SBE_FUNC "istepWithProcSyncQuiesceState"
     SBE_ENTER(SBE_FUNC);
     ReturnCode l_rc = FAPI2_RC_SUCCESS;
-#if 0
-        Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
+
+    Target<TARGET_TYPE_PROC_CHIP > l_procTgt = plat_getChipTarget();
 
     uint8_t l_status = 0;
     size_t l_timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
-     while(l_timeOut)
+    while(l_timeOut)
     {
-        //SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpSequenceDrtm_t>(i_hwp), l_procTgt, l_status)
+        SBE_EXEC_HWP(l_rc, reinterpret_cast<sbeIstepHwpSyncQuiesceState_t>(i_hwp), l_procTgt, l_status)
         if(l_rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(SBE_FUNC "p9_sbe_sequence_drtm failed, RC=[0x%08X]",l_rc);
+            SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states failed, RC=[0x%08X]",l_rc);
             break;
         }
         if(l_status)
         {
-            SBE_INFO(SBE_FUNC "p9_sbe_sequence_drtm LQA SBE System Quiesce done");
+            SBE_INFO(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce done");
             break;
         }
         else
@@ -1049,9 +1054,11 @@ ReturnCode istepWithProcSequenceDrtm( voidfuncptr_t i_hwp)
     // Checkstop system if SBE system quiesce not set after the loop
     if(!l_status || l_rc)
     {
-        SBE_ERROR(SBE_FUNC "p9_sbe_sequence_drtm LQA SBE System Quiesce failed,"
+        SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce failed,"
             "Either System Quiesce Achieved not true or procedure "
             "failed RC=[0x%08X]",l_rc);
+    #if 0
+        //TODO: Enable once register information is confirmed.
         // check stop the system
         // TODO RTC 164425 this needs to be replicated on any MPIPL Hwp failure
         Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
@@ -1064,13 +1071,14 @@ ReturnCode istepWithProcSequenceDrtm( voidfuncptr_t i_hwp)
             // TODO - Store the response in Async Response
             // RTC:149074
         }
+   #endif     
     }
 fapi_try_exit:
     if(fapi2::current_err)
     {
         l_rc = fapi2::current_err;
     }
-#endif
+
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
