@@ -48,7 +48,7 @@
 #include <p10_suspend_io.H>
 #include <p10_sbe_attr_setup.H>
 #include "p10_scom_pec_6.H"
-
+#include "p10_scom_proc_9.H"
 using namespace fapi2;
 
 static const uint32_t PEC_PHB_BIT_SHIFT = 55;
@@ -212,30 +212,29 @@ ReturnCode updatePhbFunctionalState( void )
 //----------------------------------------------------------------------------
 ReturnCode resetCrespErrLatch( void )
 {
-    #define SBE_FUNC "resetCrespErrLatch"
+#define SBE_FUNC "resetCrespErrLatch"
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
     static const uint64_t BIT_63_MASK = 0x01;
     do
     {
         Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
         uint64_t data;
-        rc = getscom_abs_wrap (&procTgt, PU_PB_CENT_SM0_PB_CENT_MODE,
+        rc = getscom_abs_wrap (&procTgt, scomt::proc::PB_COM_SCOM_ES3_STATION_MODE,
                                                 &data);
         if( rc )
         {
             break;
         }
         data = data | BIT_63_MASK;
-        rc = putscom_abs_wrap (&procTgt, PU_PB_CENT_SM0_PB_CENT_MODE,
+        rc = putscom_abs_wrap (&procTgt, scomt::proc::PB_COM_SCOM_ES3_STATION_MODE,
                                                data);
         if( rc )
         {
             break;
         }
         data = data &(~BIT_63_MASK);
-        rc = putscom_abs_wrap (&procTgt, PU_PB_CENT_SM0_PB_CENT_MODE,
+        rc = putscom_abs_wrap (&procTgt, scomt::proc::PB_COM_SCOM_ES3_STATION_MODE,
                                               data);
         if( rc )
         {
@@ -247,7 +246,6 @@ ReturnCode resetCrespErrLatch( void )
         SBE_ERROR(SBE_FUNC" Failed to reset Cresp error latch");
     }
     SBE_EXIT(SBE_FUNC);
-#endif
     return rc;
 #undef SBE_FUNC
 }

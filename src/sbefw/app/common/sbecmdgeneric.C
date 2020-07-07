@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -396,7 +396,6 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
-#if 0
     do
     {
         uint64_t l_sysFabricMap = 0;
@@ -419,7 +418,6 @@ uint32_t sbeSetSystemFabricMap( uint8_t *i_pArg )
                        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
                        l_sysFabricMap);
     }while(0);
-#endif
     // Send the response
     sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, l_fapiRc, l_rc);
 
