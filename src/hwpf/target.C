@@ -916,68 +916,6 @@ fapi_try_exit:
         return ((fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>)G_vec_targets.at(CHIP_TARGET_OFFSET));
     }
 
-    /// @brief Function to apply any gard records set (via
-    //  ATTR_EQ_GARD/ATTR_EC_GARD) to mark corresponding targets non functional
-    ReturnCode plat_ApplyGards()
-    {
-#if 0
-        uint8_t l_eqGards = 0;
-        uint32_t l_ecGards = 0;
-        static const uint32_t l_mask = 0x80000000;
-        bool l_coreGroupNonFunctional = true;
-        //fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = plat_getChipTarget();
-
-        // Read the EQ and EC gard attributes from the chip target
-        //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EQ_GARD, l_chip, l_eqGards));
-        //FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_EC_GARD, l_chip, l_ecGards));
-
-        FAPI_DBG("ATTR_EQ_GARD:: 0x%08x", l_eqGards);
-        FAPI_DBG("ATTR_EC_GARD:: 0x%08x", l_ecGards);
-
-        // Iterate over the bits in EQ and EC gards, if set, mark the
-        // corresponding target non-functional
-        for(uint32_t l_idx = 0; l_idx < EQ_TARGET_COUNT; ++l_idx)
-        {
-            if((l_mask >> l_idx) & (((uint32_t)(l_eqGards)) << 24))
-            {
-                FAPI_DBG("Making %d'th EQ non-functional", l_idx);
-                // EQ chiplet l_idx is to be marked non-functional
-                fapi2::Target<fapi2::TARGET_TYPE_EQ> l_target = G_vec_targets.at(l_idx + EQ_TARGET_OFFSET);
-                static_cast<plat_target_handle_t&>(l_target.operator ()()).setFunctional(false);
-                G_vec_targets.at(l_idx + EQ_TARGET_OFFSET) = l_target.get();
-            }
-        }
-
-        for(uint32_t l_idx = 0; l_idx < CORE_TARGET_COUNT; ++l_idx)
-        {
-            if((l_mask >> l_idx) & (l_ecGards))
-            {
-                FAPI_DBG("Making %d'th EC non-functional", l_idx);
-                // EC chiplet l_idx is to be marked non-functional
-                fapi2::Target<fapi2::TARGET_TYPE_CORE> l_target = G_vec_targets.at(l_idx + CORE_TARGET_OFFSET);
-                static_cast<plat_target_handle_t&>(l_target.operator ()()).setFunctional(false);
-                G_vec_targets.at(l_idx + CORE_TARGET_OFFSET) = l_target.get();
-            }
-            else
-            {
-                l_coreGroupNonFunctional = false;
-            }
-            if(0 == ((l_idx + 1) % CORES_PER_EX))
-            {
-                if(true == l_coreGroupNonFunctional)
-                {
-                    // All cores of this group are non-functional. Mark the EX
-                    // non-functional too.
-                    G_vec_targets.at((l_idx / CORES_PER_EX) + EX_TARGET_OFFSET).fields.functional = false;
-                }
-                // Reset ex non-functional flag for the next group
-                l_coreGroupNonFunctional = true;
-            }
-        }
-fapi_try_exit:
-#endif
-        return fapi2::current_err;
-    }
 #endif // __SBEFW_PIBMEM__
 
 #if defined __SBEMFW_MEASUREMENT__

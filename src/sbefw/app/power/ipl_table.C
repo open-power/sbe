@@ -125,6 +125,7 @@
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
 
+#include "p10_scom_pibms.H"
 #include "p10_fbc_utils.H"
 #include "p10_sbe_scratch_regs.H"
 #include "p10_scom_perv_d.H"
@@ -1173,29 +1174,26 @@ ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp )
         l_rc = istepWithProc(i_hwp);
         if(l_rc == FAPI2_RC_SUCCESS)
         {
-#if 0
-            //TODO:Re-enabel this with update P10 addresses and enable
-            //setting of the LQA Bit
             // TODO RTC 164425 - Create another istep for Setting LQA bit after
             // L2/L3 flush istep
             Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
             uint64_t l_data = 0x1000000000000000ULL; //Set bit3
-            l_rc = putscom_abs_wrap(&l_proc, PU_SECURITY_SWITCH_REGISTER_SCOM, l_data);
+            //Set bit3(SECURITY_SWITCH_LOCAL_QUIESCE_ACHIEVED) on 0x00010005
+            l_rc = putscom_abs_wrap(&l_proc, OTP_SECURITY_SWITCH, l_data);
             if(l_rc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR(SBE_FUNC "PutScom failed for PU_SECURITY_SWITCH_REGISTER_SCOM");
+                SBE_ERROR(SBE_FUNC "PutScom failed for OTP_SECURITY_SWITCH(0x10005)");
                 break;
             }
             l_data = 0;
-            l_rc = getscom_abs_wrap (&l_proc, PU_SECURITY_SWITCH_REGISTER_SCOM, &l_data);
+            l_rc = getscom_abs_wrap (&l_proc, OTP_SECURITY_SWITCH, &l_data);
             if(l_rc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR(SBE_FUNC "GetScom failed for PU_SECURITY_SWITCH_REGISTER_SCOM");
+                SBE_ERROR(SBE_FUNC "GetScom failed for OTP_SECURITY_SWITCH(0x10005)");
                 break;
             }
-            SBE_INFO(SBE_FUNC "PU_SECURITY_SWITCH_REGISTER_SCOM Data [0x%08X][%08X]",
+            SBE_INFO(SBE_FUNC "OTP_SECURITY_SWITCH Data [0x%08X][%08X]",
                 (uint32_t)((l_data >> 32) & 0xFFFFFFFF), (uint32_t)(l_data & 0xFFFFFFFF));
-#endif         
         }
     }while(0);
 
@@ -1213,59 +1211,53 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     do
     {
-        // Read the EQ and EC gard attributes from the chip target
-        fapi2::buffer<uint64_t> l_scratchReg1 = 0;
-        uint64_t l_scratchReg8 = 0;
-        //TODO:Update this bit information post analysis
-        static const uint64_t SCRATCH8_SCRATCH1REG_VALID_BIT =
-                                                    0x8000000000000000ULL;
-        fapi2::buffer<uint8_t> l_eqMask = 0;
-        fapi2::buffer<uint32_t> l_ecMask = 0;
-        plat_target_handle_t l_hndl;
+        // Read the EC gard attributes from the chip target
+        fapi2::buffer<uint64_t> scratchReg1 = 0;
+        fapi2::buffer<uint64_t> scratchReg8 = 0;
+        fapi2::buffer<uint32_t> ecMask = 0;
+        plat_target_handle_t hndl;
 
         // Set MPIPL mode bit in Scratch Reg 3
         (void)SbeRegAccess::theSbeRegAccess().setMpIplMode(true);
-
-        rc = getscom_abs_wrap (&l_hndl,
+        rc = getscom_abs_wrap (&hndl,
                                scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RW ,
-                               &l_scratchReg8);
+                               &scratchReg8());
         if( rc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" Failed to read Scratch RegR8, rc=0x%.8x",rc);
             break;
         }
-        if(l_scratchReg8 & SCRATCH8_SCRATCH1REG_VALID_BIT)
+ 
+        //Read Scratch register and Update the core fuctional states
+        if(scratchReg8.getBit<SCRATCH1_REG_VALID_BIT>())
         {
-            //TODO:Revisit the below logic to apply EQ and CORE gard
-            //records.
-#if 0
-            rc = getscom_abs_wrap (&l_hndl,
-                                   PERV_SCRATCH_REGISTER_1_SCOM,
-                                   &l_scratchReg1());
+            //Read 0x50038 
+            rc = getscom_abs_wrap (&hndl,
+                                   scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RW,
+                                   &scratchReg1());
             if( rc != FAPI2_RC_SUCCESS )
             {
                 SBE_ERROR(SBE_FUNC" Failed to read Scratch Reg1");
                 break;
             }
-
-            l_scratchReg1.extract<0, 6>(l_eqMask);
-            l_scratchReg1.extract<8, 24>(l_ecMask);
-            SBE_INFO(SBE_FUNC" Setting ATTR_EQ_GARD [0x%08X] "
-                             "ATTR_EC_GARD [0x%08X]",
-                             l_eqMask, l_ecMask);
-
-            PLAT_ATTR_INIT(fapi2::ATTR_EQ_GARD, proc, l_eqMask);
-            PLAT_ATTR_INIT(fapi2::ATTR_EC_GARD, proc, l_ecMask);
-
-            // Apply the gard records
-            rc = plat_ApplyGards();
-            if( rc != FAPI2_RC_SUCCESS )
-            {
-                SBE_ERROR(SBE_FUNC" Failed to to apply gard records");
-                break;
+            //0..31 bits indicate CORE GARD state for all cores with
+            //respect to the PROC chip.
+            scratchReg1.extract<0, 31>(ecMask);
+            uint32_t shiftCnt = (CORE_TARGET_COUNT - 1);
+            for(uint32_t idx = 0; idx < CORE_TARGET_COUNT; ++idx)
+            { 
+                //Pick Core specific bit , If set , then mark the core
+                //NON-Functional 
+                if( (ecMask >> (shiftCnt-idx) ) & 0x1  )
+                {
+                    FAPI_INF("Making %d'th EC non-functional", idx);
+                    // EC chiplet idx is to be marked non-functional
+                    fapi2::Target<fapi2::TARGET_TYPE_CORE> target = G_vec_targets.at(idx + CORE_TARGET_OFFSET);
+                    static_cast<plat_target_handle_t&>(target.operator ()()).setFunctional(false);
+                    G_vec_targets.at(idx + CORE_TARGET_OFFSET) = target.get();
+                }
             }
-#endif
-
+            //If SBE is master call the procedure p10_sbe_select_ex
             if (g_sbeRole == SBE_ROLE_MASTER)
             {
                 SBE_EXEC_HWP(rc, reinterpret_cast<p10_sbe_select_ex_FP_t>(i_hwp), proc, selectex::SINGLE)
@@ -1278,14 +1270,14 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
         }
         else
         {
-            SBE_ERROR(SBE_FUNC " Scratch Reg 1 is invalid,"
-                    "not applying gard records");
+            SBE_ERROR(SBE_FUNC " Scratch Reg 1 is invalid not applying gard records in MPIPL path");
         }
     }while(0);
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
 }
+
 
 //----------------------------------------------------------------------------
 ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp )
