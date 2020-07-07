@@ -41,16 +41,18 @@
 // TODO Workaround
 #include "plat_target_parms.H"
 
-#include "p9_misc_scom_addresses.H"
-#include "p9_perv_scom_addresses.H"
-#include "p9_perv_scom_addresses_fld.H"
-
+//#include "p9_misc_scom_addresses.H"
+//#include "p9_perv_scom_addresses.H"
+//#include "p9_perv_scom_addresses_fld.H"
+#include "p10_scom_pibms.H"
 #include <p10_suspend_io.H>
 #include <p10_sbe_attr_setup.H>
 #include "p10_scom_pec_6.H"
 #include "p10_scom_proc_9.H"
-using namespace fapi2;
+#include "p10_scom_eq_3.H"
 
+using namespace fapi2;
+static const uint64_t P10_SPATTN_MASK = 0x20040002;
 static const uint32_t PEC_PHB_BIT_SHIFT = 55;
 static const uint64_t PEC_PHB_BIT_MASK = 0x1ULL;
 
@@ -59,32 +61,30 @@ p10_suspend_io_FP_t p10_suspend_io_hwp = &p10_suspend_io;
 /* ----------------------------------- start SEEPROM CODE */
 //Utility function to mask special attention
 //----------------------------------------------------------------------------
-ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target )
+ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target )
 {
 #define SBE_FUNC "maskSpecialAttn "
     SBE_ENTER(SBE_FUNC);
     ReturnCode rc = FAPI2_RC_SUCCESS;
-#if 0
     do
     {
         uint64_t maskData = 0;
-        const  uint64_t ecMask = 0xffc0000000000000;
-        rc = getscom_abs_wrap (&i_target, P9N2_EX_SPA_MASK, &maskData );
+        const  uint64_t ecMask = 0x7FFF80000000000; //Bit 5..20 
+        rc = getscom_abs_wrap (&i_target, P10_SPATTN_MASK, &maskData );
         if( rc )
         {
-            SBE_ERROR(SBE_FUNC" Failed to read P9N2_EX_SPA_MASK");
+            SBE_ERROR(SBE_FUNC" Failed to read P10_SPATTN_MASK(0x20040002)");
             break;
         }
         maskData = maskData | ecMask;
-        rc = putscom_abs_wrap (&i_target, P9N2_EX_SPA_MASK, maskData );
+        rc = putscom_abs_wrap (&i_target, P10_SPATTN_MASK, maskData );
         if( rc )
         {
-            SBE_ERROR(SBE_FUNC" Failed to write P9N2_EX_SPA_MASK");
+            SBE_ERROR(SBE_FUNC" Failed to write P10_SPATTN_MASK(0x20040002)");
             break;
         }
     }while(0);
     SBE_EXIT(SBE_FUNC);
-#endif
     return rc;
 #undef SBE_FUNC
 }
@@ -347,7 +347,7 @@ ReturnCode performAttrSetup( )
         fapi2::buffer<uint64_t> tempReg = 0;
         plat_target_handle_t hndl;
         rc = getscom_abs_wrap(&hndl,
-                              PERV_CBS_CS_SCOM, tempReg.pointer());
+                              MAILBOX_CBS_CTRL_STATUS, tempReg.pointer());
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;

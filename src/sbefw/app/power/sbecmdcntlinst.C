@@ -43,7 +43,7 @@
 using namespace fapi2;
 
 //Utility function to mask special attention
-extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target);
+extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target);
 
 p10_thread_control_FP_t threadCntlhwp = &p10_thread_control;
 
@@ -231,6 +231,14 @@ ReturnCode stopAllCoreInstructions( )
     //Fetch all EQ Targets
     for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
     {
+        //Mask Core Special Attentions for all cores related to the EQ
+        fapiRc = maskSpecialAttn(eqTgt);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "Failure in maskSpecialAttn()");
+            break;
+        }
+
         //Default Set the bits represeting the core SCOM state as TRUE
         //based on the bits defined in scomStatus_t
         scomStatus_t scomStateData;
@@ -266,13 +274,6 @@ ReturnCode stopAllCoreInstructions( )
                     break;
                 }
 
-                fapiRc = maskSpecialAttn(coreTgt);
-                if(fapiRc != FAPI2_RC_SUCCESS)
-                {
-                    SBE_ERROR(SBE_FUNC "maskSpecialAttn failed");
-                    break;
-                }
-
             }
         }//Core Target Loop
         if(fapiRc)
@@ -280,7 +281,6 @@ ReturnCode stopAllCoreInstructions( )
             break;
         }
     }//EQ Loop
-
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
 #undef SBE_FUNC
