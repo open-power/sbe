@@ -513,7 +513,7 @@ enum sbeCacheChipletId
 /*
  * @brief maximum length for putring RS4 payload for chipop operation
 */
-static const uint32_t SBE_PUT_RING_RS4_MAX_PAYLOAD_BYTES = 512;
+static const uint32_t SBE_PUT_RING_RS4_MAX_PAYLOAD_BYTES = 10240;
 /*
  * @brief enums for access modes used in ring access chip op
  */

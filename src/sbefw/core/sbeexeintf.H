@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -78,7 +78,7 @@ enum sbeThreadStackSize
     SBE_NONCRITICAL_STACK_SIZE           = 512,
     SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE = 256,
     SBE_THREAD_CMD_RECV_STACK_SIZE       = 512,
-    SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE  = 2048,
+    SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE  = 12288, //12K of Stack to handle large rings
 };
 
 /**
