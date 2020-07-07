@@ -31,8 +31,8 @@
 #include "sbeConsole.H"
 #include "sbeglobals.H"
 
-#include "p9n2_perv_scom_addresses.H"
-
+//#include "p9n2_perv_scom_addresses.H"
+#include "p10_scom_perv_b.H"
 using namespace fapi2;
 
 sbeRole g_sbeRole = SBE_ROLE_MASTER;
@@ -55,7 +55,7 @@ bool isSystemCheckstop()
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     plat_target_handle_t hndl;
     fapiRc = getscom_abs_wrap(&hndl,
-                              P9N2_PERV_ATTN_INTERRUPT_REG,
+                              scomt::perv::ATTN_INTERRUPT_REG,
                               attnReg.pointer());
     if( fapiRc == FAPI2_RC_SUCCESS )
     {
