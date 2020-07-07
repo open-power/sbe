@@ -42,6 +42,7 @@
 #include <p10_cplt_stopclocks.H>
 #include <p10_tp_stopclocks.H>
 #include <p10_hcd_core_stopclocks.H>
+#include <p10_hcd_mma_stopclocks.H>
 #include <p10_hcd_cache_stopclocks.H>
 #include <p10_hcd_eq_stopclocks.H>
 #include <p10_common_stopclocks.H>
@@ -219,6 +220,14 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
             FAPI_ASSERT_NOEXIT(l_rc_core == fapi2::FAPI2_RC_SUCCESS,
                                fapi2::HCD_CORE_STOPCLOCKS_ERR(),
                                "p10_hcd_core_stopclocks returned error");
+
+            FAPI_INF("p10_stopclocks : Calling p10_hcd_mma_stopclocks");
+            l_rc_core = p10_hcd_mma_stopclocks(core_mc_target);
+
+            FAPI_ASSERT_NOEXIT(l_rc_core == fapi2::FAPI2_RC_SUCCESS,
+                               fapi2::HCD_MMA_STOPCLOCKS_ERR(),
+                               "p10_hcd_mma_stopclocks returned error");
+
         }
 
         // Cache stopclocks

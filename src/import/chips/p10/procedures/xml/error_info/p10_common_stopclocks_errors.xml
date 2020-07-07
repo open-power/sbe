@@ -55,6 +55,13 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <rc>RC_HCD_MMA_STOPCLOCKS_ERR</rc>
+    <description>
+      mma_stopclocks returned with error
+    </description>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
     <rc>RC_HCD_CACHE_STOPCLOCKS_ERR</rc>
     <description>
       cache_stopclocks returned with error
