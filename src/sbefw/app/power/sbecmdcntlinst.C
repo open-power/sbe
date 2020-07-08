@@ -256,7 +256,9 @@ ReturnCode stopAllCoreInstructions( )
         //stop the instructions if scomStateData for the particular core is TRUE
         for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
-            if(isCoreOrL2CacheScomEnabled(coreTgt,scomStateData))
+            //On Simics force Stop Instruction all on Cores irrespective of SCOMABLE states
+            //Until all Simics fixes are released
+            if( isCoreOrL2CacheScomEnabled(coreTgt,scomStateData) || SBE::isSimicsRunning() )
             {
                 fapi2::buffer<uint64_t> data64;
                 uint64_t state;
