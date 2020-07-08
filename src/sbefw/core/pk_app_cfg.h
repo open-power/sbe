@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -137,8 +137,8 @@
 #define PPE42_MACHINE_CHECK_HANDLER SBE_MACHINE_CHECK_HANDLER
 
 // Added default register-save handler to the interrupt
-#ifdef PPE_CAPTURE_INTERRUPT_FFDC 
-#undef PPE_CAPTURE_INTERRUPT_FFDC 
+#ifdef PPE_CAPTURE_INTERRUPT_FFDC
+#undef PPE_CAPTURE_INTERRUPT_FFDC
 #endif
 #define PPE_CAPTURE_INTERRUPT_FFDC SBE_INTERRUPT_REGISTER_SAVEOFF
 
@@ -146,5 +146,5 @@
 #ifdef PK_TRACE_SZ
 #undef PK_TRACE_SZ
 #endif
-#define PK_TRACE_SZ 4096
+#define PK_TRACE_SZ 8192
 #endif /*__PK_APP_CFG_H__*/
