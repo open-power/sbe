@@ -137,12 +137,22 @@ namespace fapi2
             } __attribute__((packed));
             uint32_t type_target_num      :8; // used internally
             /* lower 16 bits start here */
-            uint32_t core_select          :4; // used for targeting
-            uint32_t ring_id              :2; // used for targeting
-            uint32_t sat_id               :4; // used for targeting
-            uint32_t                      :1; // unused
-            uint32_t functional           :1; // used internally
-            uint32_t type                 :4; // used internally
+            union {
+                // core_select (for core targets) and ring_id (for non-core targets)
+                // overlap, so we need another union here, ugh
+                struct {
+                    uint32_t core_select  :4; // used for targeting
+                    uint32_t              :12;
+                } __attribute__((packed));
+                struct {
+                    uint32_t              :2;
+                    uint32_t ring_id      :4; // used for targeting
+                    uint32_t sat_id       :4; // used for targeting
+                    uint32_t              :1; // unused
+                    uint32_t functional   :1; // used internally
+                    uint32_t type         :4; // used internally
+                } __attribute__((packed));
+            } __attribute__((packed));
         } fields __attribute__((packed));
 
 		/* Return the target value with all internal bits masked away */
@@ -155,7 +165,11 @@ namespace fapi2
         ///
         /// @param  i_value Value to instantiate handle with
         ///
-        explicit plat_target_handle(uint32_t i_value = 0):value(i_value) {}
+        explicit plat_target_handle(uint32_t i_value = 0):value(i_value)
+            {
+                static_assert(sizeof(*this) == sizeof(uint32_t),
+                              "Incorrect size of plat_target, check your unions!");
+            }
 
         ///
         /// @brief Get the fapi2::TargetType for this target

@@ -44,7 +44,7 @@ struct restoreOpcgRegisters g_opcgData;
 uint64_t decodeScanRegionData(const uint32_t i_ringAddress,
                                const RingMode i_ringMode)
 {
-    
+
     uint32_t l_scan_region  =   ( ( i_ringAddress & 0x0000FFF0 ) |
                                 ( ( i_ringAddress & 0x00F00000 ) >> 20 ) ) << 13;
 
@@ -116,7 +116,7 @@ ReturnCode getRing_verifyAndcleanup(const uint32_t i_ringAddress,
         // Verify header
         l_rc = verifyHeader( l_proc, i_ringMode, 0,
               0, l_chipletId, 0,
-              INSTANCE_RING, RS4::SCANNING_MODE) ; 
+              INSTANCE_RING, RS4::SCANNING_MODE) ;
         if(l_rc != fapi2::FAPI2_RC_SUCCESS)
         {
             break;
@@ -159,6 +159,16 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
                     break;
                 }
             }
+
+        case PPE_TARGET_TYPE_PAU:
+            {
+                // ring_id bits 1:2 are determined by the target and need to be masked off
+                // from the address. createPlatTargetHandle() sets these bits up based
+                // on type_target_num.
+                translatedAddr = i_target.getPIBAddress() | (i_addr & 0x00FFE7FF);
+                break;
+            }
+
         default: //For all the chiplet types
             {
                 translatedAddr = i_target.getPIBAddress() | (i_addr & 0x00FFFFFF);

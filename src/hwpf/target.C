@@ -194,6 +194,7 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.chiplet_num = (i_plat_argument/2) + PAUC_CHIPLET_OFFSET;
         l_handle.fields.type = PPE_TARGET_TYPE_PAU;
         l_handle.fields.type_target_num = i_plat_argument;
+        l_handle.fields.ring_id = (i_plat_argument == 5 || i_plat_argument == 7) ? 4 : 2;
     }
     else if(K & TARGET_TYPE_IOHS)
     {
