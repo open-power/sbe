@@ -48,7 +48,7 @@
 #include "p10_hcd_corecache_clock_control.H"
 #include "p10_hcd_common.H"
 #ifndef __PPE__
-#include "p10_resclk.H"
+    #include "p10_resclk.H"
 #endif
 
 
