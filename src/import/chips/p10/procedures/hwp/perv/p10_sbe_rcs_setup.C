@@ -46,7 +46,7 @@
 
 enum P10_SBE_RCS_SETUP_Private_Constants
 {
-    RCS_CONTRL_DC_CFAM_RESET_VAL = 0x00800000,
+    RCS_CONTRL_DC_CFAM_RESET_VAL = 0x00130000,
     HW_NS_DELAY = 20, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     POLL_COUNT = 10,
@@ -93,9 +93,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
     {
 
         FAPI_DBG("Set up RCS configuration for sync mode, preserve bypass select bits");
-        FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_RW, l_data64_rc5));
-        l_data64_rc5.insertFromRight<4, 26>((RCS_CONTRL_DC_CFAM_RESET_VAL >> 2)); // Bits 4:29, preserve bits 0:3, 30:31
-        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_RW, l_data64_rc5));
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, RCS_CONTRL_DC_CFAM_RESET_VAL));
 
         for(int i = 0; i < POLL_COUNT; i++)
         {
