@@ -189,7 +189,9 @@ p10_hcd_core_startclocks(
 
 #ifndef __PPE_QME
     // Only Drop QME_SCSR_AUTO_SPECIAL_WAKEUP_DISABLE for Istep4
+    // due to auto mode bug, also assert pm_exit
     l_scsr |= BIT32(20);
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_OR, MMIO_LOAD32H( BIT32(1) ) ) );
 #endif
 
     FAPI_DBG("Drop HBUS_DISABLE/L2RCMD_INTF_QUIESCE/NCU_TLBIE_QUIESCE/AUTO_PMSR_SHIFT_DIS via PCR_SCSR[4,7,8,22]");
