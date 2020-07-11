@@ -37,7 +37,7 @@
 #include "sbeMemAccessInterface.H"
 #include "sbecmdcntlinst.H"
 #include "p10_thread_control.H"
-
+#include "p10_ram_core.H"
 #include "fapi2.H"
 
 using namespace fapi2;
@@ -77,7 +77,6 @@ uint64_t sbeFetchRegDumpAddrFromStash(void)
     #undef SBE_FUNC
 }
 
-#if 0
 ReturnCode checkCoreStateForRam(
         const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_coreTgt,
         bool  & o_isRamming,
@@ -94,68 +93,33 @@ ReturnCode checkCoreStateForRam(
     do
     {
         fapi2::buffer<uint64_t> ppm_ssh_buf = 0;
-        fapiRc = getscom_abs_wrap (&i_coreTgt, C_PPM_SSHSRC, &ppm_ssh_buf());
+        fapiRc = getscom_abs_wrap (&i_coreTgt, scomt::c::QME_SSH_SRC, &ppm_ssh_buf());
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC "Failed to read SSHSRC for Core[%d]",
-                    chipUnitNum);
-            break;
-        }
-        //Check for Stop-gated (to check if corestate is valid)
-        if (ppm_ssh_buf.getBit<SSHSRC_STOP_GATED_BIT>() == 1)
-        {
-            // CoreState may be 2/4/5/11
-            ppm_ssh_buf.extractToRight<uint8_t>(o_coreState, 8, 4);
-            // StopState Enabled, skip ramming,
-            SBE_INFO(SBE_FUNC "StopGated Set for Core [%d] StopState[%d], "
-                    "no ramming", chipUnitNum, o_coreState);
+                      chipUnitNum);
             break;
         }
 
-        //Not Stop Gated
-        // CoreState may be 0/1, we need to identify which one.
-        // Only for coreState 0, we need to enable ramming.
-        // Double check the core isn't in stop 1
-        auto exTgt = i_coreTgt.getParent<fapi2::TARGET_TYPE_EX>();
-        fapi2::buffer<uint64_t> sisr_buf = 0;
-        fapiRc = getscom_abs_wrap (&exTgt, EX_CME_LCL_SISR_SCOM, &sisr_buf());
-        if( fapiRc != FAPI2_RC_SUCCESS )
+        ppm_ssh_buf.extractToRight<uint8_t>(o_coreState, 8, 4);
+
+        // If CORESTATE is NON-ZERO then ramming is not enabled.
+        if(!o_coreState)
         {
-            SBE_ERROR(SBE_FUNC "Failed to read SISR for Core[%d]",
-                    chipUnitNum);
-            break;
-        }
-        uint32_t pos = chipUnitNum % 2;
-        if (pos == 0 && sisr_buf.getBit<EX_CME_LCL_SISR_PM_STATE_ACTIVE_C0>())
-        {
-            sisr_buf.extractToRight<uint8_t>(o_coreState,
-                    EX_CME_LCL_SISR_PM_STATE_C0,
-                    EX_CME_LCL_SISR_PM_STATE_C0_LEN);
-        }
-        if (pos == 1 && sisr_buf.getBit<EX_CME_LCL_SISR_PM_STATE_ACTIVE_C1>())
-        {
-            sisr_buf.extractToRight<uint8_t>(o_coreState,
-                    EX_CME_LCL_SISR_PM_STATE_C1,
-                    EX_CME_LCL_SISR_PM_STATE_C1_LEN);
-        }
-        if(o_coreState == 0)
-        {
-            // Enable ramming for core state 0
             o_isRamming = true;
-            SBE_INFO(SBE_FUNC "StopGated not set for Core[%d] StopState"
-                    " [%d], so yes ramming", chipUnitNum,o_coreState);
         }
-        else
-        {
-            SBE_INFO(SBE_FUNC "StopGated set for Core[%d] StopState"
-                    " [%d], so no ramming", chipUnitNum, o_coreState);
-        }
+
+        SBE_INFO(SBE_FUNC "Core[%d] StopState[%d] and isRamming[%d]",
+                 chipUnitNum, o_coreState, o_isRamming);
     }while(0);
+
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
     #undef SBE_FUNC
 }
-#endif
+
+
+
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeDumpArchRegs Dump out the architected registers
 //
@@ -165,7 +129,6 @@ ReturnCode sbeDumpArchRegs()
     #define SBE_FUNC " sbeDumpArchRegs "
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-#if 0
     uint64_t dumpAddr = 0;
     sbeArchRegDumpProcHdr_t dumpProcHdr = {};
     sbeArchRegDumpThreadHdr_t dumpThreadHdr = {};
@@ -201,8 +164,8 @@ ReturnCode sbeDumpArchRegs()
 
         // Initialise the PBA with the above address from stash,
         // The access API would use it in auto-increment mode.
-        p9_PBA_oper_flag pbaFlag;
-        pbaFlag.setOperationType(p9_PBA_oper_flag::INJ);
+        p10_PBA_oper_flag pbaFlag;
+        pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
         sbeMemAccessInterface PBAInterface(
                 SBE_MEM_ACCESS_PBA,
                 dumpAddr,
@@ -239,13 +202,12 @@ ReturnCode sbeDumpArchRegs()
 
             // Required for PIR calculation
             FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, coreTgt, chipUnitNum);
-            FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_GROUP_ID, procTgt, procGrpId);
-            FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_CHIP_ID, procTgt,procChipId); 
+            fetchEffectiveGroupAndChipId(procGrpId, procChipId);
             fapiRc = checkCoreStateForRam(coreTgt, doRamming, coreState);
             if( fapiRc != FAPI2_RC_SUCCESS )
             {
                 SBE_ERROR(SBE_FUNC "Failed in checkCoreStateForRam Core[%d]",
-                    chipUnitNum);
+                 "GroupId[%d], ChipId[%d]",chipUnitNum,procGrpId,procChipId);
                 //Mark the coreState to be bad and disable ramming.
                 coreState = INVALID_CORE_STATE;
                 doRamming = false;
@@ -381,14 +343,17 @@ ReturnCode sbeDumpArchRegs()
                     break;
                 }
 
-                //Clean up the ram core setup
-                SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_cleanup)
-                if( fapiRc != FAPI2_RC_SUCCESS )
+                if(doRamming)
                 {
-                    SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%02X"
-                            " coreChipletId:0x%02X", thread, chipUnitNum);
-                    // Don't break, continue for the next thread
-                    continue;
+                    //Clean up the ram core setup
+                    SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_cleanup)
+                    if( fapiRc != FAPI2_RC_SUCCESS )
+                    {
+                        SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%02X"
+                                " coreChipletId:0x%02X", thread, chipUnitNum);
+                        // Don't break, continue for the next thread
+                        continue;
+                    }
                 }
 
             } //End of Thread Loop
@@ -410,7 +375,6 @@ ReturnCode sbeDumpArchRegs()
 
     }while(0);
     SBE_EXIT(SBE_FUNC);
-#endif
     return fapiRc;
     #undef SBE_FUNC
 }
@@ -421,9 +385,9 @@ void fetchEffectiveGroupAndChipId(uint8_t &o_procGroupId,
 {
 #define SBE_FUNC " fetchGroupAndChipId "
     SBE_ENTER(SBE_FUNC);
- 
+
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget(); 
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
     uint8_t topologyMode = 0;
     uint8_t topologyId = 0;
     FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_EFF_TOPOLOGY_ID, procTgt, topologyId);
