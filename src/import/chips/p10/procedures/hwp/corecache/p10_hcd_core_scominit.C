@@ -40,6 +40,7 @@
 #include <p10_scom_c.H>
 
 #ifdef __PPE_QME
+    #include <p10_core_scom.H>
     #include <p10_l2_scom.H>
     #include <p10_ncu_scom.H>
 #endif
@@ -71,6 +72,9 @@ static inline fapi2::ReturnCode p10_hcd_core_scominit_qme(
     for (const auto& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         fapi2::ReturnCode l_rc;
+
+        FAPI_DBG("Invoking p10.core.scom.initfile");
+        FAPI_EXEC_HWP(l_rc, p10_core_scom, l_core, FAPI_SYSTEM, l_chip);
 
         FAPI_DBG("Invoking p10.l2.scom.initfile");
         FAPI_EXEC_HWP(l_rc, p10_l2_scom, l_core, FAPI_SYSTEM, l_chip);
