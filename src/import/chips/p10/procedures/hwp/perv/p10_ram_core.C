@@ -311,6 +311,28 @@ fapi2::ReturnCode RamCore::ram_setup()
                 "Thread to perform ram is not stopped. "
                 "RAS_STATUS register : 0x%.16llX", l_ras_status());
 
+    // HW533775 -- Worthwhile Toad
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW533775,
+                           l_chip_target,
+                           l_hw533775));
+
+    if (l_hw533775)
+    {
+        // determine recovery requirements for normal core which is the target
+        // of the ram operation -- if no virtual thread mappings are present,
+        // we'll skip forcing recovery
+        FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+
+        if (!GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID0_V(l_data) &&
+            !GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID1_V(l_data) &&
+            !GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID2_V(l_data) &&
+            !GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID3_V(l_data))
+        {
+            FAPI_DBG("Skipping recovery on RAM target core");
+            l_hw533775 = 0;
+        }
+    }
+
     // check the thread is ready for RAMing
     FAPI_TRY(ram_ready(l_thread_ready, l_data));
 
@@ -336,12 +358,7 @@ fapi2::ReturnCode RamCore::ram_setup()
                 "Thread to perform ram is inactive. "
                 "EC_PC_PMC_THREAD_INFO reg 0x%.16llX", l_data);
 
-    // HW533775 -- Worthwhile Toad
     // apply workaround sequence to engage recovery via core FIR
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW533775,
-                           l_chip_target,
-                           l_hw533775));
-
     if (l_hw533775)
     {
         // parent EQ
