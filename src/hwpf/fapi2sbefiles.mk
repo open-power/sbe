@@ -42,6 +42,7 @@
 ##########################################################################
 
 FAPI2PLAT-CPP-SOURCES += plat_hw_access.C
+FAPI2PLAT-CPP-SOURCES += p10_scom_addr.C
 FAPI2PLAT-CPP-SOURCES += plat_utils.C
 FAPI2PLAT-CPP-SOURCES += target.C
 FAPI2PLAT-CPP-SOURCES += ffdc.C

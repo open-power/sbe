@@ -26,11 +26,18 @@
 #include <fapi2.H>
 #include "hw_access.H"
 #include "plat_hw_access.H"
+#include "p10_scom_addr.H"
 #ifndef __SBEMFW_MEASUREMENT__
-#include "p9_perv_scom_addresses.H"
 #include <p10_putRingUtils.H>
 #include <p10_plat_ring_traverse.H>
 #endif
+
+uint32_t getRemainder(uint32_t num, uint32_t divisor)
+{
+    while (num >= divisor)
+        num -= divisor;
+    return num;
+}
 
 namespace fapi2
 {
@@ -166,6 +173,35 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
                 // from the address. createPlatTargetHandle() sets these bits up based
                 // on type_target_num.
                 translatedAddr = i_target.getPIBAddress() | (i_addr & 0x00FFE7FF);
+                break;
+            }
+
+        case PPE_TARGET_TYPE_PHB:
+            {
+                p10_scom_addr l_scom(i_addr);
+                // If input address is of Nest chiplets
+                if ( (l_scom.getChipletId() >= N0_CHIPLET_ID) &&
+                        (l_scom.getChipletId() <= N1_CHIPLET_ID) )
+                {
+                    l_scom.setSatId(1 +getRemainder(i_target.getTargetInstance(),3));
+                }
+                // If input address is of PCI chiplets
+                else
+                {
+                    if (l_scom.getRingId() == 2)
+                    {
+                        if ((l_scom.getSatId() >= 1) &&
+                                (l_scom.getSatId() <= 3))
+                        {
+                            l_scom.setSatId(1 +getRemainder(i_target.getTargetInstance(),3));
+                        }
+                        else
+                        {
+                            l_scom.setSatId(4 +getRemainder(i_target.getTargetInstance(),3));
+                        }
+                    }
+                }
+                translatedAddr = l_scom.getAddr();
                 break;
             }
 
