@@ -39,7 +39,7 @@
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
-
+#include "p10_hcd_ecl2_l3_poweroff.H"
 #include "p10_hcd_core_poweroff.H"
 #include "p10_hcd_cache_poweroff.H"
 #include "p10_hcd_mma_poweroff.H"
