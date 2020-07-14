@@ -76,12 +76,14 @@ SECTIONS
         _header_origin = .; _header_offset = . - _origin; KEEP(*(.header));
     } > MEMORY_REGION
     _header_size = . - _header_origin;
- 
+
     #ifdef PIBMEM_ONLY_IMAGE
     //pkVector should be at top of pibmem memory after XIP header.
     .pkVectors ALIGN(0x200) : {
-            *(.vectors)
+      _pkVectors_origin = .; _pkVectors_offset = . - _origin;
+      KEEP(*(.vectors));
     } > pibmem
+    _pkVectors_size = . - _pkVectors_origin;
     #endif
 
     // @TODO via RTC 136215
@@ -167,10 +169,10 @@ SECTIONS
     . = _pibmem_origin;
 
     #else
-    _seeprom_size = 0;
+    _seeprom_size = . - _origin;
+    . = _pibmem_origin +  _seeprom_size;
     . = ALIGN(4);
     #endif
-
     _base_origin = .;
     _base_offset = . - _base_origin + _seeprom_size;
 
@@ -231,8 +233,10 @@ SECTIONS
     // SEEPROM. So define XIP image related variables here so that SBE image
     // finishes here.
 
+#ifndef PIBMEM_ONLY_IMAGE
     _pibmem_size = . - _pibmem_origin;
     _sbe_image_size = _seeprom_size  + ( . - _pibmem_origin );
+#endif
 
     _sbss_start = .;
     .sbss   . : {
@@ -250,4 +254,8 @@ SECTIONS
    _PK_INITIAL_STACK = . - 1;
     . = ALIGN(8);
 
+#ifdef PIBMEM_ONLY_IMAGE
+    _pibmem_size = . - _pibmem_origin;
+    _sbe_image_size = _seeprom_size  + ( . - _pibmem_origin );
+#endif
 }

@@ -349,7 +349,7 @@ uint32_t main(int argc, char **argv)
     PPE_LVD( reg_address, SBE_GLOBAL->i2cModeRegister);
 
 #ifdef PIBMEM_ONLY_IMAGE
-    pib_init_sequence();
+    //pib_init_sequence();
 #endif
 
     // @TODO via RTC : 128818

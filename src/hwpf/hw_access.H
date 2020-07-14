@@ -294,7 +294,7 @@ __fapi2exit__:
             {
                 return l_rc;
             }
-#ifdef DFT
+#if defined DFT || defined PIBMEM_ONLY_IMAGE
 			// For DFT only, XIP header is in PIBMEM rather than SEEPROM
             uint8_t *l_baseAddr =(uint8_t*) SBE_BASE_ORIGIN;
 #else	//DFT
