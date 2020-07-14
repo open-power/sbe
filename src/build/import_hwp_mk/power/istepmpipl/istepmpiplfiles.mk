@@ -44,6 +44,7 @@ ISTEPMPIPL-CPP-SOURCES += p10_query_corecachemma_access_state.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_mma_poweroff.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_core_poweroff.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_cache_poweroff.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_ecl2_l3_poweroff.C
 ISTEPMPIPL-CPP-SOURCES += p10_suspend_io.C
 ISTEPMPIPL-CPP-SOURCES += p10_suspend_powman.C
 ISTEPMPIPL-CPP-SOURCES += p10_sbe_check_quiesce.C

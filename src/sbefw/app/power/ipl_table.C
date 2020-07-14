@@ -116,9 +116,7 @@
 #include "p10_sbe_sync_quiesce_states.H"
 #include "p10_thread_control.H"
 #include "sbecmdcntlinst.H"
-#include "p10_hcd_mma_poweroff.H"
-#include "p10_hcd_core_poweroff.H"
-#include "p10_hcd_cache_poweroff.H"
+#include "p10_hcd_ecl2_l3_poweroff.H"
 #include "p10_stopclocks.H"
 #include "p10_suspend_powman.H"
 
@@ -189,28 +187,11 @@ using  sbeIstepHwpCoreL3Flush_t = ReturnCode (*)
 using  sbeIstepHwpSyncQuiesceState_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target,
                      uint8_t & o_status);
-#if 0
-using sbeIstepHwpCoreBlockIntr_t =  ReturnCode (*)
-                    (const Target<TARGET_TYPE_CORE> & i_target,
-                     const p9pmblockwkup::OP_TYPE i_oper);
-
-using  sbeIstepHwpCoreScomState_t = ReturnCode (*)
-                    (const Target<TARGET_TYPE_CORE> & i_target,
-                     bool & o_isScom,
-                     bool & o_isScan);
-
-using  sbeIstepHwpSequenceDrtm_t = ReturnCode (*)
-                    (const Target<TARGET_TYPE_PROC_CHIP> & i_target,
-                     uint8_t & o_status);
 
 using  sbeIstepHwpQuadPoweroff_t = ReturnCode (*)
-                    (const Target<TARGET_TYPE_EQ> & i_target,
-                     uint64_t * o_ring_save_data);
+                   ( const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+                    fapi2::TARGET_TYPE_MULTICAST,fapi2::MULTICAST_AND > &);
 
-using  sbeIstepHwpCacheInitf_t = ReturnCode (*)
-                    (const Target<TARGET_TYPE_EQ> & i_target,
-                    const uint64_t * i_ring_save_data);
-#endif
 // Forward declarations
 // Wrapper function which will call HWP.
 ReturnCode istepWithProc( voidfuncptr_t i_hwp );
@@ -285,9 +266,7 @@ static istepMap_t g_istepMpiplContinuePtrTbl[] =
             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_query_quad_access_state)
             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_core_stopclocks)
             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_cache_stopclocks)
-            //istepMpiplQuadPoweroff internally calls 3 procedures
-            //P10_hcd_mma_poweroff,p10_hcd_core_poweroff and p10_hcd_cache_poweroff
-            ISTEP_MAP( istepMpiplQuadPoweroff, NULL),
+            ISTEP_MAP( istepMpiplQuadPoweroff, p10_hcd_ecl2_l3_poweroff),
             // No-op
             ISTEP_MAP( istepNoOp, NULL ),
 #endif
@@ -1137,22 +1116,10 @@ ReturnCode istepMpiplQuadPoweroff( voidfuncptr_t i_hwp)
         SBE_DEBUG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",mc_cores.get());
         do
         {
-            SBE_EXEC_HWP(fapiRc, p10_hcd_mma_poweroff,mc_cores)
+            SBE_EXEC_HWP(fapiRc, reinterpret_cast<sbeIstepHwpQuadPoweroff_t>(i_hwp),mc_cores)
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC "p10_hcd_mma_poweroff() failed, fapiRc=[0x%08X]", fapiRc);
-                break;
-            }
-            SBE_EXEC_HWP(fapiRc, p10_hcd_core_poweroff,mc_cores)
-            if(fapiRc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR(SBE_FUNC "p10_hcd_core_poweroff() failed, fapiRc=[0x%08X]", fapiRc);
-                break;
-            }
-            SBE_EXEC_HWP(fapiRc, p10_hcd_cache_poweroff,mc_cores)
-            if(fapiRc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR(SBE_FUNC "p10_hcd_cache_poweroff() failed, fapiRc=[0x%08X]", fapiRc);
                 break;
             }
         }while(0);
