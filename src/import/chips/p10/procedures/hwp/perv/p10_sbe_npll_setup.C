@@ -157,7 +157,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_DBG("PAU DPLL: Write frequency settings");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_pau_freq));
-    freq_calculated = ((l_attr_pau_freq * 48) / 25);
+    freq_calculated = ((l_attr_pau_freq * 24) / 25);
     FAPI_DBG("PAU_DPLL frequency calculation : %#018lX", freq_calculated);
 
     l_read_reg.flush<0>();
@@ -177,7 +177,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_DBG("NEST DPLL: Write frequency settings");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_CORE_BOOT_MHZ, i_target_chip, l_attr_core_boot_freq));
-    freq_calculated = ((l_attr_core_boot_freq * 48) / 25);
+    freq_calculated = ((l_attr_core_boot_freq * 24) / 25);
     FAPI_DBG("NEST_DPLL frequency calculation : %#018lX", freq_calculated);
 
     l_read_reg.flush<0>();
