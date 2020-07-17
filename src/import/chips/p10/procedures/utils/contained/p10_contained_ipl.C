@@ -210,6 +210,10 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
     if (i_is_dump_ipl)
     {
         FAPI_TRY(set_bit(plat_feature_bvec, RUNN_CONTAINED_DUMP, "RUNN_CONTAINED_DUMP"));
+        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD0, "RUNN_SRESET_THREAD0"));
+        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD1, "RUNN_SRESET_THREAD0"));
+        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD2, "RUNN_SRESET_THREAD0"));
+        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD3, "RUNN_SRESET_THREAD0"));
     }
 
     // save state back to platform attribute
