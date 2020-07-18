@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -199,6 +199,7 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
                               sbeFifoType     i_type)
 {
     #define SBE_FUNC " sbeDownFifoEnq_mult "
+    SBE_DEBUG(SBE_FUNC " sbeDownFifoEnq_mult FIFO_TYPE[0x%02X]", i_type);
     uint32_t  l_rc   = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t   l_len = 0;
 
@@ -284,6 +285,7 @@ uint32_t sbeDownFifoSignalEot ( sbeFifoType i_type )
     uint32_t l_rc = 0;
     #define SBE_FUNC "sbeDownFifoSignalEot "
     SBE_ENTER(SBE_FUNC);
+    SBE_DEBUG(SBE_FUNC "sbeDownFifoSignalEot FIFO_TYPE[0x%02X]", i_type);
     sbeDownFifoStatusReg_t l_status = {0};
     do
     {
@@ -380,7 +382,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         if((i_hdr.primaryStatus() != SBE_PRI_OPERATION_SUCCESSFUL) ||\
            (i_hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL))
         {
-            SBE_ERROR( SBE_FUNC" primaryStatus:0x%08X secondaryStatus:0x%08X"
+            SBE_ERROR( SBE_FUNC" PriStatus:0x%08X SecStatus:0x%08X"
                 " Fifo Type is:[%02X]", (uint32_t)i_hdr.primaryStatus(),
                 (uint32_t)i_hdr.secondaryStatus(), i_type);
 
@@ -388,7 +390,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
             //Generate all the fields of FFDC package
             SbeFFDCPackage sbeFfdc;
             rc = sbeFfdc.sendOverFIFO(SBE_FFDC_ALL_DUMP,
-                                      len, i_type);
+                                      len, false, i_type);
             if (rc)
             {
                 break;
@@ -404,6 +406,7 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         }
 
     }while(0);
+    SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
 }
