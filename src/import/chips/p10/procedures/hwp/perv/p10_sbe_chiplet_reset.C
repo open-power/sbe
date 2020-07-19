@@ -53,6 +53,7 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     using namespace scomt::perv;
 
     uint8_t l_attr_nest_dpll_bypass;
+    uint8_t l_attr_pau_dpll_bypass;
     fapi2::buffer<uint32_t> l_read_attr_pg;
     fapi2::buffer<uint64_t> l_data64_nc0, l_data64;
 
@@ -69,9 +70,11 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
                                      fapi2::TARGET_FILTER_ALL_IOHS), fapi2::TARGET_STATE_FUNCTIONAL);
 
     auto l_mc_all = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
+    auto l_mc_pau = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PAU);
     auto l_mc_eq = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_DPLL_BYPASS, i_target_chip, l_attr_nest_dpll_bypass));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PAU_DPLL_BYPASS, i_target_chip, l_attr_pau_dpll_bypass));
 
     FAPI_DBG("Enable chiplet");
     l_data64_nc0.flush<0>().setBit<NET_CTRL0_CHIPLET_ENABLE>();
@@ -114,6 +117,12 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
 
     FAPI_DBG("Initialize OPCG_ALIGN regs with default values");
     FAPI_TRY(fapi2::putScom(l_mc_all, OPCG_ALIGN, p10SbeChipletReset::OPCG_ALIGN_DEFAULT_VAL));
+
+    if (!l_attr_pau_dpll_bypass)
+    {
+        FAPI_DBG("Initialize PAU OPCG_ALIGN regs with default values");
+        FAPI_TRY(fapi2::putScom(l_mc_pau, OPCG_ALIGN, p10SbeChipletReset::PAU_OPCG_ALIGN_DEFAULT_VAL));
+    }
 
     l_data64.flush<0>();
     l_data64.insertFromRight< OPCG_ALIGN_INOP_ALIGN, OPCG_ALIGN_INOP_ALIGN_LEN>
