@@ -549,6 +549,9 @@ fapi2::ReturnCode p10_sbe_attr_setup(
 
             FAPI_DBG("Setting up IOHS PLL mux attributes");
 
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_iohs_lcpll_input),
+                     "Error from FAPI_ATTR_GET (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT)");
+
             for (const auto& l_perv_iohs_target :  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_IOHS),
                      fapi2::TARGET_STATE_FUNCTIONAL))
@@ -564,6 +567,9 @@ fapi2::ReturnCode p10_sbe_attr_setup(
 
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_iohs_lcpll_input),
                      "Error from FAPI_ATTR_SET (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT)");
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_pci_lcpll_input),
+                     "Error from FAPI_ATTR_GET (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT)");
 
             for (const auto& l_perv_pci_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
                      static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
