@@ -33,10 +33,9 @@
 //------------------------------------------------------------------------------
 
 #include "p10_sbe_tp_switch_gears.H"
-#include "p10_scom_proc_6.H"
-#include "p10_scom_perv_4.H"
-#include "p10_scom_perv_7.H"
-#include "p10_scom_perv_b.H"
+#include "p10_perv_sbe_cmn.H"
+#include "p10_scom_proc.H"
+#include "p10_scom_perv.H"
 
 enum P10_SBE_TP_SWITCH_GEARS_Private_Constants
 {
@@ -51,7 +50,7 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
 {
     using namespace scomt;
 
-    fapi2::buffer<uint64_t> l_data64, l_read_reg;
+    fapi2::buffer<uint64_t> l_data64, l_read_reg, l_dpll_bypass, l_mux345_reset;
     fapi2::buffer<uint64_t> l_opcg_align;
     fapi2::buffer<uint32_t> l_attr_freq_pau_mhz;
     unsigned int sck_clock_divider;
@@ -63,8 +62,37 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PAU_DPLL_BYPASS, i_target_chip, l_attr_dpll_bypass));
 
     FAPI_DBG("Switch Nest/Cache mesh from 1:1 to 2:1");
+    l_dpll_bypass.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL3_TP_NEST_DPLL_BYPASS_EN_DC>();
+    l_mux345_reset.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL4_TP_AN_CLKGLM_NEST_ASYNC_RESET_DC>();
+    // Some comments to explain how this workaround works:
+    //
+    // Switching MUX4A from 1:1 to 2:1 might dealign the PCB because there are multiple copies of
+    // that mux, and the select signal is untimed, so individual copies might switch at different times,
+    // causing different sections of the PCB to receive different amounts of clock cycles, losing alignment.
+    //
+    // The solution is to turn off the nest mesh before we flip MUX4A. We have two options on the signal
+    // path before it fans out into a clock tree: We can put MUX3 into reset, or we can take the Nest DPLL
+    // (which is still turned off at this point) out of bypass. Unfortunately MUX3 will glitch when we
+    // put it into reset, while the DPLL will glitch when we put it back into bypass, so we have to use
+    // both and interleave the steps:
+    //
+    // First bring the DPLL out of bypass without turning it on. This will glitchlessly disable its output.
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR, l_dpll_bypass));
+    //
+    // Then put MUX3 into reset. This would glitch, but its input clock is already inactive so we're safe.
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL4_SET_WO_OR, l_mux345_reset));
+    //
+    // Now put the DPLL back into bypass, turning its output back on. This will glitch, but since we
+    // disabled MUX3 the glitch will not reach the mesh.
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR, l_dpll_bypass));
+    //
+    // By this time the mesh is inactive, and we can proceed to flipping the mux without danger of
+    // breaking PCB alignment.
     l_data64.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL4_TP_MUX4A_CLKIN_SEL_DC>();
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
+    //
+    // And finally, release MUX3 reset to (glitchlessly) turn the mesh back on, now at half speed.
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_mux345_reset));
 
     if (! (l_attr_dpll_bypass))
     {

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,6 +33,7 @@
 //------------------------------------------------------------------------------
 //
 #include "p10_sbe_tp_chiplet_reset.H"
+#include "p10_scom_perv_0.H"
 #include "p10_scom_perv_2.H"
 #include "p10_scom_perv_4.H"
 #include "p10_scom_perv_6.H"
@@ -211,6 +212,10 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     FAPI_DBG("Enable PERV vital clock gating");
     l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_PERV_CTRL0_TP_TCPERV_VITL_CG_DIS>();
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_WO_CLEAR, l_data64));
+
+    FAPI_DBG("Disable PERV align pulses");
+    l_data64.flush<0>().setBit<CPLT_CTRL0_CTRL_CC_FORCE_ALIGN>();
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL0_WO_CLEAR, l_data64));
 
     FAPI_DBG("Setup hang counters for Perv chiplet");
     FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, false, BASE_ADDRESS, PRE_DIVIDER,
