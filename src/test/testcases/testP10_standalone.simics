@@ -33,7 +33,7 @@ foreach $proc in (get-component-list -all proc_p10) {
     echo "Run-cycles"
 
     #sim->frontend_current_processor = backplane0.dcm[0].chip[0].pib_cmp.sbe_ppe
-    #sim->frontend_current_processor 
+    #sim->frontend_current_processor
     #b 0xff880520
 
     #output-file-start pib_cmp_dump -overwrite
@@ -79,7 +79,7 @@ foreach $proc in (get-component-list -all proc_p10) {
 
     echo "*******************Run SBE-ISTEPS ******************"
 
-    sbe-istep 2.2 3.18 $procNr 
+    sbe-istep 2.2 3.18 $procNr
 
     #backplane0.dcm[0].chip[0].pib_cmp.sbe_ppe.pregs
     #backplane0.dcm[0].chip[0].pib_cmp.cecchip.invoke parallel_load SCOM 0x1000100 64
@@ -187,6 +187,10 @@ foreach $proc in (get-component-list -all proc_p10) {
         echo "*******************Run testUpdateOCMBTargets.py*******************"
 
         run-python-file targets/p10_standalone/sbeTest/testUpdateOCMBTargets.py
+
+        echo "*******************Run testInvalidScom.py*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testInvalidScom.py
 
         echo "*******************Run testPutGetHWReg.py*******************"
 
