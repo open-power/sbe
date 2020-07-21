@@ -88,11 +88,11 @@ extern "C" {
         // SBE will check quiesce state for all units on the powerbus on its chip
         FAPI_TRY(p9_capp_check_quiesce(i_target), "Error from p9_capp_check_quiesce");
         FAPI_TRY(p9_phb_check_quiesce(i_target), "Error from p9_phb_check_quiesce");
-        FAPI_TRY(p9_npu_check_quiesce(i_target), "Error from p9_npu_check_quiesce");
-        FAPI_TRY(p9_openCapi_check_quiesce(i_target), "Error from p9_openCapi_check_quiesce");
         FAPI_TRY(p9_vas_check_quiesce(i_target), "Error from p9_vas_check_quiesce");
         FAPI_TRY(p9_nx_check_quiesce(i_target), "Error from p9_nx_check_quiesce");
         FAPI_TRY(p9_psihb_check_quiesce(i_target), "Error from p9_psihb_check_quiesce");
+        FAPI_TRY(p9_npu_check_quiesce(i_target), "Error from p9_npu_check_quiesce");
+        FAPI_TRY(p9_openCapi_check_quiesce(i_target), "Error from p9_openCapi_check_quiesce");
         FAPI_TRY(p9_intp_check_quiesce(i_target), "Error from p9_intp_check_quiesce");
 
         //We also need to clean up any active special wakeups, and redirect

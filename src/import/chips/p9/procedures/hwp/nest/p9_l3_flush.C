@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -64,7 +64,7 @@ fapi2::ReturnCode p9_l3_flush(
     const uint32_t i_purge_addr)
 {
     // mark HWP entry
-    FAPI_DBG("Entering ...\n");
+    FAPI_DBG("Entering L3 flush ...\n");
 
     fapi2::buffer<uint64_t> purge_reg_data(0x0);
     uint32_t purge_pending_count = 0;
@@ -136,6 +136,6 @@ fapi2::ReturnCode p9_l3_flush(
                 "Purge did not complete in time.");
 
 fapi_try_exit:
-    FAPI_DBG("Exiting...");
+    FAPI_DBG("Exiting L3 flush...");
     return fapi2::current_err;
 }
