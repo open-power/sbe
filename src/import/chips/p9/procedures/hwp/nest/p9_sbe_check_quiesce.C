@@ -429,11 +429,21 @@ extern "C" {
         const uint32_t C_NUMOCAPISTACKS = 2;
         const uint32_t C_NUMOTLS = 2;
 
+        //Bit position of ODL config register for resetting ODL
+        const uint32_t C_ODL_RESET_BIT = 0;
+
         //Fence control registers to put OTLs in reset state
         const uint64_t c_Fence_cntl_regs[C_NUMOCAPISTACKS][C_NUMOTLS] =
         {
             {P9N2_PU_NPU2_NTL1_FENCE_CONTROL0, P9N2_PU_NPU2_NTL1_FENCE_CONTROL1},
             {P9N2_NV_5_FENCE_CONTROL0, P9N2_NV_5_FENCE_CONTROL1}
+        };
+
+        //Config registers for resetting ODL
+        const uint64_t c_powerbus_odl_config_regs[C_NUMOCAPISTACKS][C_NUMOTLS] =
+        {
+            {0x901082A, 0x901082B},
+            {0xC01082B, 0xC01082A}
         };
 
         //Registers to check whether OTL is enabled or not
@@ -539,6 +549,10 @@ extern "C" {
                                 .set_STATUS_ADDR(c_cq_cntl_status_regs[l_stackIndex])
                                 .set_STATUS_DATA(l_brickData),
                                 " OTL did  not enter the reset state");
+
+                    FAPI_TRY(fapi2::getScom(i_target, c_powerbus_odl_config_regs[l_stackIndex][l_OTLIndex], l_data));
+                    l_data.setBit<C_ODL_RESET_BIT>();
+                    FAPI_TRY(fapi2::putScom(i_target, c_powerbus_odl_config_regs[l_stackIndex][l_OTLIndex], l_data));
                 }
             }//for OTL Index
         }//for stackIndex
