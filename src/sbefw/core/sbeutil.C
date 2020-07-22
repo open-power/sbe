@@ -150,7 +150,14 @@ namespace SBE
         SBE_INFO(SBE_FUNC" System is going for manual Reset");
         uint64_t data = (uint64_t)(OTPROM_ORIGIN) << 32;
         PPE_STVD(g_ivprLoc, data);
-        JUMP_TO_ADDR(0x00018040);
+        if(SBE::isSimicsRunning())
+        {
+            JUMP_TO_ADDR(0x00018040);
+        }
+        else //HW
+        {
+            JUMP_TO_ADDR(0x000C0040);
+        }
         #undef SBE_FUNC
     }
 }
