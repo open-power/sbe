@@ -656,17 +656,16 @@ fapi2::ReturnCode standardScan(
                         FAPI_INF("OPCG_DONE set");
                         break;
                     }
-
                     // delays pulled from Cronus p9/zT code
-                    if (l_attempts == (l_max_poll_attempts-1))
+                    if (!fapi2::is_platform<fapi2::PLAT_SBE>() //This condition not required for SBE
+                        && l_attempts == (l_max_poll_attempts-1))
                     {
                         uint64_t l_rotate_cycles = (l_rotateCount >> 32);
                         FAPI_TRY( fapi2::delay( l_rotate_cycles * 3333, l_rotate_cycles * 16 ) );
                     }
-
                     else
                     {
-                        FAPI_TRY( fapi2::delay( 1000000, 10000) );
+                        FAPI_TRY( fapi2::delay( 1000, 10000) );
                     }
                 }
 
@@ -723,6 +722,8 @@ fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& 
     fapi2::buffer<uint64_t> l_readHeader;
     fapi2::ReturnCode l_rc  =   fapi2::FAPI2_RC_SUCCESS;
 
+    //Trying to give some more time for all the cores to be sync after
+    //rotate/scan operation
     fapi2::delay(1000, 100);
 
     FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, SCAN64CONTSCAN, false, l_readHeader ) );
