@@ -462,7 +462,7 @@ uint64_t decodeScanRegionData( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i
 
     //Fastinit support
     //if bit 12 is set in the ring address then set bit 0 in scan region data
-    l_scan_region = i_ringAddress & 0x00080000 ? l_scan_region | 0x8000000000000000 :
+    l_scan_region = i_ringAddress & 0x00080000 ? l_scan_region | 0x80000000 :
                     l_scan_region;
 
     if( ( l_chipletId >= SUPER_CHIPLET_BASE_ID ) && ( l_chipletId <= SUPER_CHIPLET_MAX_ID ) )
