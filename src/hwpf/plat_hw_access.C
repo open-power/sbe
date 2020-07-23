@@ -59,7 +59,7 @@ uint64_t decodeScanRegionData(const uint32_t i_ringAddress,
 
     if (i_ringAddress & FASTINIT_SUPPORT)
     {
-        l_scan_region |= 0x8000000000000000;
+        l_scan_region |= 0x80000000;
     }
 
     uint64_t l_value = l_scan_region;
