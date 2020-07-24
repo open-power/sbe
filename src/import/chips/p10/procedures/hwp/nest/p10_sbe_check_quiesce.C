@@ -664,6 +664,17 @@ fapi2::ReturnCode p10_psihb_check_quiesce(const fapi2::Target<fapi2::TARGET_TYPE
     FAPI_TRY(PREP_TP_TPBR_PSIHB_TRUST_CONTROL(i_target));
     FAPI_TRY(PUT_TP_TPBR_PSIHB_TRUST_CONTROL(i_target, l_psihb_data));
 
+    // Reset interrupt state machine & set mode to LSI
+    FAPI_TRY(GET_TP_TPBR_PSIHB_INTERRUPT_CONTROL(i_target, l_psihb_data));
+    SET_TP_TPBR_PSIHB_INTERRUPT_CONTROL_INTERRUPT_SM_RESET(l_psihb_data);
+    SET_TP_TPBR_PSIHB_INTERRUPT_CONTROL_ESB_OR_LSI_INTERRUPTS(l_psihb_data);
+    FAPI_TRY(PUT_TP_TPBR_PSIHB_INTERRUPT_CONTROL(i_target, l_psihb_data));
+
+    // Reset notify address valid bit
+    FAPI_TRY(GET_TP_TPBR_PSIHB_ESB_NOTIFY(i_target, l_psihb_data));
+    SET_TP_TPBR_PSIHB_ESB_NOTIFY_VALID(l_psihb_data);
+    FAPI_TRY(PUT_TP_TPBR_PSIHB_ESB_NOTIFY(i_target, l_psihb_data));
+
 fapi_try_exit:
     FAPI_DBG("p10_psihb_check_quiesce: Exiting...");
     return fapi2::current_err;
