@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,7 +37,7 @@
 #include "core/ipl.H"
 
 extern sbeRole g_sbeRole;
-static const uint8_t SLAVE_LAST_MINOR_ISTEP = 20;
+static const uint8_t SLAVE_LAST_MINOR_ISTEP = 22;
 
 namespace SBEAPP_POWER
 {

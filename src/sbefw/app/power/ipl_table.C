@@ -420,13 +420,14 @@ ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    assert( NULL != i_hwp );
-    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
-    
     g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeMaster() ?
                     SBE_ROLE_MASTER : SBE_ROLE_SLAVE;
+
     if(SBE_ROLE_MASTER == g_sbeRole)
     {
+        assert( NULL != i_hwp );
+        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+
         SBE_UART_INIT;
         SBE_MSG_CONSOLE( SBE_CONSOLE_WELCOME_MSG );
     }
