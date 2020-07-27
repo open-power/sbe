@@ -44,6 +44,9 @@
 #include "p10_ring_id.H"
 #include <p10_plat_ring_traverse.H>
 #include <p10_putRingUtils.H>
+#include <multicast_group_defs.H>
+#include <p10_scan_compression.H>
+#include <p10_perv_sbe_cmn.H>
 
 
 using namespace fapi2;
@@ -337,9 +340,53 @@ uint32_t sbePutRing(uint8_t *i_pArg)
 
 
         Target<TARGET_TYPE_PROC_CHIP> proc = plat_getChipTarget();
+        CompressedScanData* l_rs4Header     =   (CompressedScanData*) reqMsg.rs4Payload;
+        uint32_t l_scanAddr      =   ( l_rs4Header->iv_scanAddr );
+        uint32_t l_multgrp = 0;
+        fapi2::Target<fapi2::TARGET_TYPE_ALL_MC> l_target = proc;
+        //For non-multicast case, we should treat as instance ring, because we
+        //pass the absolute address to scan
+        RingType_t l_ring = INSTANCE_RING;
+
+        //The below support is basically if somebody sends multicast scan
+        //address to perform putring chipOp
+        //Check if scan address is multicast address
+        if ( l_scanAddr & 0x40000000)
+        {
+            l_ring = COMMON_RING;
+            //Find the multicast group
+            l_multgrp = ( l_scanAddr >> 24 ) & 0x07;
+
+            //This setup is required to perform multicast operation, becasue
+            //some of the target variables needs to be initialized as we won't
+            //setup this as part of istep 3 which it runs in cronus mode.
+            //For simplicity we abuse MCGROUP_GOOD for all the groups
+            std::vector< fapi2::MulticastGroupMapping > l_mappings;
+            l_mappings.push_back({MCGROUP_GOOD, l_multgrp});
+            setMulticastGroupMap(proc, l_mappings);
+
+            if ((l_multgrp == MC_GROUP_6) && (l_scanAddr & 0x00003FC0)) //Check if scan address belongs to ecl2/l3
+            {
+                // Grab core select bits from scan address
+                int l_core_select = l_scanAddr >> ((l_scanAddr & 0x00003C00) ? 11 : 7);
+                l_target = proc.getMulticast(fapi2::MCGROUP_GOOD, static_cast<fapi2::MulticastCoreSelect>(l_core_select));
+            }
+            else
+            {
+                l_target = proc.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD);
+            }
+
+            //copy the base chipletId (as this is common ring with multicast)
+            const uint32_t l_base_chiplets[8] = {
+                //    MC          IOHS        PAU         PCI         EQ
+                0, 0, 0x0C000000, 0x18000000, 0x10000000, 0x08000000, 0x20000000, 0
+            };
+            l_rs4Header->iv_scanAddr = (l_rs4Header->iv_scanAddr & 0x00FFFFFF) | l_base_chiplets[l_multgrp];
+        } //end of MC bit check
+
         // No need to pass length as platform api takes length from payload.
-        fapiRc = p10_putRingUtils(proc, (uint8_t *)reqMsg.rs4Payload,
-                 i_applyOverride, (fapi2::RingMode)ringMode,INSTANCE_RING, RS4::SCANNING_MODE);
+        fapiRc = p10_putRingUtils(l_target, (uint8_t *)reqMsg.rs4Payload,
+                 i_applyOverride, (fapi2::RingMode)ringMode,l_ring, RS4::SCANNING_MODE);
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC" p10_putRingUtils failed."
@@ -362,4 +409,3 @@ uint32_t sbePutRing(uint8_t *i_pArg)
     return rc;
 #undef SBE_FUNC
 }
-
