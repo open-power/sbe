@@ -36,7 +36,7 @@
   <ffdc>OFFSET</ffdc>
   <ffdc>BYTES</ffdc>
   <callout>
-    <target>CODE</target>
+    <procedure>CODE</procedure>
     <priority>HIGH</priority>
   </callout>
 </hwpError>
@@ -54,7 +54,7 @@
   <ffdc>OFFSET</ffdc>
   <ffdc>BYTES</ffdc>
   <callout>
-    <target>CODE</target>
+    <procedure>CODE</procedure>
     <priority>HIGH</priority>
   </callout>
 </hwpError>
@@ -70,7 +70,7 @@
   <ffdc>PERV_CHIPLET_ID</ffdc>
   <ffdc>OCC_MODE</ffdc>
   <callout>
-    <target>CODE</target>
+    <procedure>CODE</procedure>
     <priority>HIGH</priority>
   </callout>
 </hwpError>
