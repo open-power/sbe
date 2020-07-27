@@ -41,6 +41,7 @@
 #include "p10_sbe_apply_fbc_rt_settings.H"
 #include "p10_sbe_powerdown_backing_caches.H"
 #include "p10_block_wakeup_intr.H"
+#include "p10_scom_proc_9.H"
 #include "sbecmdexitcachecontained.H"
 using namespace fapi2;
 
@@ -73,26 +74,21 @@ void sbeDmtPkExpiryCallback(void *)
     SBE_INFO (SBE_FUNC "DMT Callback Timer has expired.."
                        "No-Checkstop on the system for now"
                        "and FFDC will not be collected.");
-    SBE_INFO (SBE_FUNC "HALTING SBE! - NO-OP");
-#if 0
     // SBE async ffdc
     captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                      SBE_SEC_DMT_TIMEOUT);
-
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     // check stop the system
-    plat_target_handle_t l_hndl;
-    fapiRc = putscom_abs_wrap(&l_hndl, PERV_N3_LOCAL_FIR_OR,
-                              ((uint64_t)1 << N3_FIR_CORE_CHECKSTOP_BIT));
+    Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
+    fapiRc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR,
+                                        scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN58);
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
         // Scom failed
-        SBE_ERROR (SBE_FUNC "PutScom failed: REG PERV_N3_LOCAL_FIR");
+        SBE_ERROR (SBE_FUNC "PutScom failed: REG TP_TCN1_N1_LOCAL_FIR");
         pk_halt();
     }
-#endif
     #undef SBE_FUNC
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -152,8 +148,6 @@ uint32_t sbeStartCntlDmt()
         // Pass in the time in micro-second to the start timer interface
         // TODO - We need some kind of check here that it doesn't overflow
         // uint32 size
-#if 0   // step 16.1 HW PON BU Hack >>
-        // Do not time-out until the activate primary cores BU issues are fixed
         rc = g_sbe_pk_dmt_timer.startTimer( (uint32_t )req.timeValueMsec * 1000,
                                      (PkTimerCallback)&sbeDmtPkExpiryCallback );
 
@@ -164,7 +158,6 @@ uint32_t sbeStartCntlDmt()
                 "[0x%08X]", (uint32_t )req.timeValueMsec);
             rc = SBE_SEC_OPERATION_SUCCESSFUL;
         }
-#endif  // << step 16.1 HW PON BU Hack
 
         sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
         if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
