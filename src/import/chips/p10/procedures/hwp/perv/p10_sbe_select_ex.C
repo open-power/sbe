@@ -34,8 +34,6 @@
 /// High-level procedure flow:
 /// @verbatim
 ///
-///   Prerequisite:  MCGROUP_GOOD_EQ has been setup in all EQ chiplets
-///
 /// Two modes are supported:
 /// - SINGLE: select 1 core based on type (normal or fused) and then 8MB of
 ///   backing cache (2 normal or fused)
@@ -178,8 +176,10 @@ fapi2::ReturnCode p10_sbe_select_ex(
                            FAPI_SYSTEM,
                            l_attr_fused_mode));
 
+    // Set up multicast groups, MCGROUP_GOOD_CORES gets all EQs that
+    // are good according to ATTR_PG
     FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
-             ISTEP4_MC_GROUPS),
+             SELECT_EX_MC_GROUPS),
              "Error from p10_perv_sbe_cmn_setup_multicast_groups");
 
     if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
@@ -385,7 +385,13 @@ fapi2::ReturnCode p10_sbe_select_ex(
                 .set_BACKING_CACHES_VEC(l_backing_config_bvec),
                 "Need configuration not satisfied");
 
-    // Setup all Cores PFET delays
+    // Set up multicast once again, this time only including those EQs
+    // we just selected cores on
+    FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
+             ISTEP4_MC_GROUPS),
+             "Error from p10_perv_sbe_cmn_setup_multicast_groups");
+
+    // Setup the PFET Delays for the configure cores
     FAPI_TRY(select_ex_pfet_delay(i_target));
 
     // Write to the OCC Core Configuration Status Register
@@ -512,7 +518,6 @@ fapi2::ReturnCode select_ex_pfet_delay(
 
     fapi2::buffer<uint64_t> l_data64;
     fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_core_mc;
-
     l_core_mc = i_target.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
 
     // *INDENT-OFF*
@@ -523,32 +528,8 @@ fapi2::ReturnCode select_ex_pfet_delay(
             .insertFromRight<12, 4>(HCD_PFET_DELAY_POWERUP_MMA);
     // *INDENT-ON*
 
-#ifdef UNICAST_ONLY
-    auto l_core_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>
-                                    (fapi2::TARGET_STATE_FUNCTIONAL);
-    // UNICAST
-    FAPI_DBG("Setting PFET Delays in each core with unicast");
-
-    for (auto& core : l_core_functional_vector)
-    {
-        FAPI_TRY(fapi2::putScom(core, CPMS_PFETDLY, l_data64));
-    }
-
-#else
-    // MULTICAST
     FAPI_DBG("Setting PFET Delays in all cores via multicast");
     FAPI_TRY(fapi2::putScom(l_core_mc, CPMS_PFETDLY, l_data64));
-#endif
-
-    // Clear QME Scratch 1[Runtime Wakeup Mode](3) to force SMF enabled systems
-    // to start Hostboot in UV mode
-
-    // @todo RTC 207903
-    // This bit should come from p10_pm_hcd_flags.h but it is presently
-    // not mirrored.
-//    l_data64.flush<0>().setBit<31>();
-//     FAPI_TRY(fapi2::putScom(i_target_core, C_CPPM_CPMMR_CLEAR, l_data64));
-//     FAPI_DBG("Clearing CPPMR[Runtime Wakeup Mode] in core %d", i_core_num);
 
 fapi_try_exit:
     FAPI_DBG("< select_ex_pfet_delay...");
