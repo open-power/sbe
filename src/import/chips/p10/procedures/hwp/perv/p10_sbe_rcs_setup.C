@@ -167,7 +167,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
         fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
 
         FAPI_DBG("Clear RCS errors");
-        l_data64_rc5.flush<0>().setBit<7, 2>();
+        l_data64_rc5.flush<0>().setBit<6, 2>();
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, l_data64_rc5));
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
