@@ -46,7 +46,7 @@
 
 enum P10_SBE_RCS_SETUP_Private_Constants
 {
-    RCS_CONTRL_DC_CFAM_RESET_VAL = 0x00130000,
+    RCS_CONTRL_DC_CFAM_RESET_VAL = 0x0013000000000000,
     HW_NS_DELAY = 20, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     POLL_COUNT = 10,
