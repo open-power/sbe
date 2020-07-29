@@ -1209,7 +1209,7 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
             }
             //0..31 bits indicate CORE GARD state for all cores with
             //respect to the PROC chip.
-            scratchReg1.extract<0, 31>(ecMask);
+            scratchReg1.extract<0, 32>(ecMask);
             uint32_t shiftCnt = (CORE_TARGET_COUNT - 1);
             for(uint32_t idx = 0; idx < CORE_TARGET_COUNT; ++idx)
             { 
