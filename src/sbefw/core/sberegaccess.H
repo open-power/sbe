@@ -325,7 +325,8 @@ class SbeRegAccess
                 uint64_t iv_currState : 4;
                 uint64_t iv_majorStep : 8; // Max major is 97
                 uint64_t iv_minorStep : 6; // Max minor is 34
-                uint64_t iv_reserved2 : 6; // Unused
+                uint64_t iv_reserved2 : 2; // Unused
+                uint64_t iv_progressCode  : 4;
                 uint64_t iv_unused : 32;
             };
             uint64_t iv_messagingReg;

@@ -161,7 +161,7 @@ def updateHwTraceFiles(sbe_tracMERG_file,sbe_string_file,sbe_syms_file):
                 sbe_syms_file = "sbe_measurement_seeprom.syms"
 
 
-''' 
+'''
 --------------------------------------------------------------------------------
                 Command functions
 --------------------------------------------------------------------------------
@@ -498,6 +498,18 @@ def parsevalue(iValue):
                  '1000' : 'SBE_STATE_QUIESCE' , '1001' : 'SBE_STATE_QUIESCE' ,
                  '1111' : 'SBE_INVALID_STATE'}
 
+    progressCode = {'0001' : 'OTPROM' ,
+                    '0010' : 'MEASUREMENT SEEPROM loader',
+                    '0011' : 'MEASUREMENT SEEPROM Pibmem Repair' ,
+                    '0100' : 'MEASUREMENT SEEPROM Pib Init',
+                    '0101' : 'MEASUREMENT TPM RESET',
+                    '0110' : 'MEASUREMENT PIBMEM',
+                    '0111' : 'MEASUREMENT PIBMEM SHA COMPUTE',
+                    '1000' : 'MEASUREMENT PIBMEM TPM INIT',
+                    '1001' : 'BOOT SEEPROM loader L1',
+                    '1010' : 'BOOT PIBMEM Loader L2',
+                    '1011' : 'BOOT PIBMEM Main Flow'}
+
     tempVal = iValue[2:3]
     tempVal = 'True' if tempVal == '1' else 'False'
     print("SBE Booted           : %s" %(tempVal))
@@ -512,7 +524,6 @@ def parsevalue(iValue):
     tempVal = iValue[6:10]
     print("SBE Previous State   : %s (%s)" %(sbeStates[tempVal], tempVal))
 
-
     tempVal = iValue[10:14]
     print("SBE Current State    : %s (%s)" %(sbeStates[tempVal], tempVal))
 
@@ -522,9 +533,11 @@ def parsevalue(iValue):
     tempVal = iValue[22:28]
     print("Istep Minor          : %s" %(int(tempVal, 2)))
 
-    tempVal = iValue[28:34]
-    print("Reserved Bit [26:31] : %s" %(tempVal))
+    tempVal = iValue[28:30]
+    print("Reserved Bit [26:27] : %s" %(tempVal))
 
+    tempVal = iValue[30:34]
+    print("SBE Progress Code [28:31] : Code reached to %s (%s)" %(progressCode[tempVal],tempVal))
 
 '''
 -----------------------------------------------------------------------------
