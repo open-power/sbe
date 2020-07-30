@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2019                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2020                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -346,16 +346,6 @@
     <gard>
         <target>MCBIST_TARGET</target>
     </gard>
-  </hwpError>
-
-  <hwpError>
-    <rc>RC_MSS_MCBIST_PROGRAM_TOO_BIG</rc>
-    <description>MCBIST program larger than currently supported size</description>
-    <ffdc>PROGRAM_LENGTH</ffdc>
-    <callout>
-        <procedure>CODE</procedure>
-        <priority>HIGH</priority>
-    </callout>
   </hwpError>
 
   <hwpError>
