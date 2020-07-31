@@ -42,6 +42,8 @@
 #include "p10_perv_sbe_cmn.H"
 #include <target_filters.H>
 #include <multicast_group_defs.H>
+#include "hw540133.H"
+
 
 enum P10_SBE_CHIPLET_PLL_SETUP_Private_Constants
 {
@@ -85,6 +87,9 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
 
     if (!l_bypass)
     {
+        fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133_Type l_filter_pll_hw540133;
+        fapi2::ATTR_CHIP_EC_FEATURE_TANK_PLL_HW540133_Type l_tank_pll_hw540133;
+
         auto l_mc_iohs = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_IOHS);
         auto l_mc_pci = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PCI);
         auto l_mc_mc = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_MC);
@@ -93,6 +98,14 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
                                  static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC |
                                          fapi2::TARGET_FILTER_ALL_IOHS | fapi2::TARGET_FILTER_ALL_PCI),
                                  fapi2::TARGET_STATE_FUNCTIONAL);
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133,
+                               i_target_chip,
+                               l_filter_pll_hw540133));
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_TANK_PLL_HW540133,
+                               i_target_chip,
+                               l_tank_pll_hw540133));
 
         FAPI_DBG("Drop Pll fence");
         FAPI_TRY(p10_sbe_chiplet_pll_setup_drop_pll_region_fence(l_mc_iohs));
@@ -109,6 +122,17 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
         FAPI_TRY(p10_sbe_chiplet_pll_setup_pll_reset(l_mc_iohs));
         FAPI_TRY(p10_sbe_chiplet_pll_setup_pll_reset(l_mc_pci));
         FAPI_TRY(p10_sbe_chiplet_pll_setup_pll_reset(l_mc_mc));
+
+        if (l_tank_pll_hw540133)
+        {
+            FAPI_TRY(hw540133::apply_workaround(l_mc_iohs, hw540133::iohs_plls));
+            FAPI_TRY(hw540133::apply_workaround(l_mc_mc, hw540133::mc_plls));
+        }
+
+        if (l_filter_pll_hw540133)
+        {
+            FAPI_TRY(hw540133::apply_workaround(l_mc_pci, hw540133::pci_plls));
+        }
 
         FAPI_DBG("Check PLL lock for IOHS, MC, PCI chiplets");
         // This smells like three separate timeouts, and it kinda is, but in the good case

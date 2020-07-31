@@ -22,3 +22,31 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+#ifndef HW540133_H
+#define HW540133_H
+
+#include <fapi2.H>
+
+namespace hw540133
+{
+
+// Opaque workaround settings for different rings
+struct pll_ring_settings;
+extern const pll_ring_settings perv_plls, pci_plls, iohs_plls, mc_plls;
+
+/// @brief Apply workaround sequence for HW540133
+///
+/// Check selected PLLs on the given ring for completion of their internal
+/// calibration, and once they are all done read out the band they calibrated
+/// to and force them to one band below that (band 1 if they're at band 0).
+///
+/// @param[in] i_mcast_target Target chiplet(s) to apply workaround to
+/// @param[in] i_settings     Workaround settings to use, depends on ring
+///
+fapi2::ReturnCode apply_workaround(
+    const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target,
+    const pll_ring_settings& i_settings);
+
+}
+
+#endif //HW540133_H

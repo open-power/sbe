@@ -46,6 +46,7 @@ ISTEP2-CPP-SOURCES +=p10_sbe_dft_probe_setup_2.C
 ISTEP2-CPP-SOURCES +=p10_sbe_tp_chiplet_init.C
 ISTEP2-CPP-SOURCES +=p10_perv_sbe_cmn.C
 ISTEP2-CPP-SOURCES +=p10_sbe_scratch_regs.C
+ISTEP2-CPP-SOURCES +=hw540133.C
 
 ISTEP2-C-SOURCES =
 ISTEP2-S-SOURCES =

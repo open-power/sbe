@@ -55,7 +55,8 @@ inline fapi2::ReturnCode _svs_wait_opcg_done(
         }
     }
 
-    FAPI_ASSERT(false, fapi2::SCAN_VIA_SCOM_TIMEOUT().set_TARGET(i_target));
+    FAPI_ASSERT(false, fapi2::SCAN_VIA_SCOM_TIMEOUT().set_TARGET(i_target),
+                "Timed out waiting for OPCG_DONE");
 
 fapi_try_exit:
     return fapi2::current_err;
