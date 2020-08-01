@@ -152,7 +152,7 @@ SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.xml
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.py
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeStringFile*
 SIMICS_PPE_TAR_FILES += $(PPETRACEPP_BIN_DIR)/ppe2fsp
-SIMICS_PPE_TAR_FILES += $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool 
+SIMICS_PPE_TAR_FILES += $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool
 SIMICS_BB_TAR_FILES += $(SIMICSTOOLS_SRCDIR)/*
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/simics-debug-framework.py
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/sbe-debug.py
@@ -252,7 +252,7 @@ measure_xml: $(M_FAPI_RC)
 $(M_FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(HWPERR_SRCDIR)/p10_sbe_spi_cmd_errors.xml
 	$(M_FAPI_TOOLS_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=$(GENFILES_DIR) $(HWPERR_SRCDIR)/p10_sbe_spi_cmd_errors.xml
 
-### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File 
+### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File
 add_MeasureLoaderAddr:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out | grep __l1Loader | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out | grep __pk_boot | cut -f 1 -d " "`
@@ -427,6 +427,7 @@ $(IPL_IMAGE_TOOL):
 	$(MAKE) -I $(INCLUDES) -C $(IPL_IMAGE_BUILD_DIR) -f Makefile BINDIR=$(P10_IPL_IMAGE_BINDIR) CXX_FLAGS=-D__PPE__=1
 #$(MAKE) -I $(IMAGEPROCS_TOOL_DIR) -C $(IPL_IMAGE_BUILD_DIR) -f Makefile BINDIR=$(P10_IPL_IMAGE_BINDIR) CXX_FLAGS=-D__PPE__=1
 	cp -f $(IPL_IMAGE_TOOL) $(IMG_DIR)/
+	cp -f $(P10_SBE_DEBUG_TOOL) $(IMG_DIR)/
 
 normalize:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin normalize
