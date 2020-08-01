@@ -48,6 +48,9 @@ def exportFiles(sbe_simdata_dir, img_dir):
     #Copy the String file to the sbe_simdata_dir
     os.system('cp '+img_dir+'/*StringFile*'+' '+sbe_simdata_dir+'/')
 
+    #Copy the ipl_image_tool file to the sbe_simdata_dir
+    os.system('cp '+img_dir+'/ipl_image_tool'+' '+sbe_simdata_dir+'/')
+
     #Copy the ppe2fsp file to the sbe_simdata_dir
     os.system('cp '+img_dir+'/../obj/power/genfiles/ppe2fsp'+' '+sbe_simdata_dir+'/')
 
@@ -57,6 +60,7 @@ def exportFiles(sbe_simdata_dir, img_dir):
     #Copy the simic scripts to the sbe_simdata_dir
     os.system('cp '+img_dir+'/../src/tools/debug/simics-debug-framework_rainier.py'+' '+sbe_simdata_dir+'/')
     os.system('cp '+img_dir+'/../src/tools/debug/sbe-debug.py'+' '+sbe_simdata_dir+'/')
+    os.system('cp '+img_dir+'/../src/tools/debug/sbeModifyPGvalue.py'+' '+sbe_simdata_dir+'/')
     os.system('cp '+img_dir+'/../src/tools/debug/simics/sbe_startup.simics'+' '+sbe_simdata_dir+'/')
     os.system('cp '+img_dir+'/../src/test/testcases/testP10_standalone.simics'+' '+sbe_simdata_dir+'/')
     os.system('cp '+img_dir+'/../src/test/testcases/testIstepAuto.py'+' '+sbe_simdata_dir+'/')

@@ -35,10 +35,19 @@ import struct
 SBE_TOOLS_PATH = simenv.sbe_scripts_path
 print("SBE_TOOLS_PATH = " +  SBE_TOOLS_PATH)
 
+SBE_SEEPROM_IMG = simenv.sbe_seeprom_img
+print("SBE_SEEPROM_IMG = " +  SBE_SEEPROM_IMG)
+
+NUM_CORES = simenv.num_cores_per_chip
+print("Functional Num of Core = " +  str(NUM_CORES)) 
+
 testIstepAuto = imp.load_source("testIstepAuto", SBE_TOOLS_PATH + "/testIstepAuto.py")
 sbeDebug = imp.load_source("sbeDebug", SBE_TOOLS_PATH + "/sbe-debug.py")
+sbeUpdateAttrPG = imp.load_source("sbeUpdateAttrPG", SBE_TOOLS_PATH + "/sbeModifyPGvalue.py")
 err = False
 simicsObj = simics.SIM_run_command("get-master-procs")
+simicsObjForPrimarySeeprom = simics.SIM_run_command("get-seeprom 0 0 0")
+simicsObjForBackupSeeprom = simics.SIM_run_command("get-seeprom 0 0 1")
 
 syms = {};
 
@@ -85,6 +94,12 @@ def register_sbe_debug_framework_tools():
                 type = ["sbe-commands"],
                 short = "Runs the debug framework for register ffdc ",
                 doc = "")
+    new_command("sbe-updatepg",updateAttrPG,
+                args = [arg(str_t, "eccFile"), arg(int_t, "coreNr", "?", 2)],
+                alias = "supdatepg",
+                type = ["sbe-commands"],
+                short = "Runs the debug framework for update EQ PG Attr ",
+                doc = "")
 
     print("SBE Debug Framework: Registered tool:", "sbe-istep")
     print("SBE Debug Framework: Registered tool:", "sbe-trace")
@@ -92,7 +107,8 @@ def register_sbe_debug_framework_tools():
     print("SBE Debug Framework: Registered tool:", "sbe-ddlevel")
     print("SBE Debug Framework: Registered tool:", "sbe-attrdump")
     print("SBE Debug Framework: Registered tool:", "sbe-regffdc")
-
+    print("SBE Debug Framework: Registered tool:", "sbe-updatepg")
+    updateAttrPG(SBE_SEEPROM_IMG, NUM_CORES)
 
 def fillSymTable():
     symFile = SBE_TOOLS_PATH + "/sbe_"+get_dd_level()+".syms"
@@ -134,6 +150,27 @@ def collectStackUsage ( procNr, nodeNr=0 ):
             else:
                 break
         print(str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1],16)))))))
+
+def updateAttrPG( eccFile, coreNr, procNr=0, nodeNr=0 ):
+  cmd1 = "shell \"mkdir -p " + os.getcwd() + "/sbe_updated_seeprom_image \""
+  quiet_run_command( cmd1, output_modes.regular )
+
+  cmd2 = "shell \"cp " + eccFile + " " + os.getcwd() + "/sbe_updated_seeprom_image/ \""
+  quiet_run_command( cmd2, output_modes.regular )
+
+  filename = os.getcwd() + "/sbe_updated_seeprom_image/p10_10.sbe_seeprom.bin.ecc"
+  sbeUpdateAttrPG.updateAttrPg(filename, coreNr)
+
+  sfilename = "\"" + filename + "\""
+  cmd3 = simicsObjForPrimarySeeprom + "->files = [[" + sfilename + ", \"ro\", 0, 0 ]]"
+  ( rc, out ) = quiet_run_command( cmd3, output_modes.regular )
+  if ( rc ):
+    print("simics ERROR running %s: %d "%( cmd3, rc ))
+
+  cmd4 = simicsObjForBackupSeeprom + "->files = [[" + sfilename + ", \"ro\", 0, 0 ]]"
+  ( rc, out ) = quiet_run_command( cmd4, output_modes.regular )
+  if ( rc ):
+    print("simics ERROR running %s: %d "%( cmd4, rc ))
 
 def collectAttr( procNr, nodeNr=0 ):
   cmd= "pipe \"" + simicsObj[procNr] + ".pib_cmp.sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""

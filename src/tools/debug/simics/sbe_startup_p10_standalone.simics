@@ -38,6 +38,10 @@ decl {
     ! SBE scripts_path at time 0
     result sbe_scripts_path : string or nil
 
+    param sbe_seeprom_img : string or nil = NIL
+    ! SBE sbe_seeprom_img at time 0
+    result sbe_seeprom_img : string or nil
+
     param sbe_ci : bool = FALSE
     ! is sbe-ci TRUE
     result sbe_ci : bool
@@ -49,6 +53,10 @@ decl {
     param istep_mode : bool = FALSE
     ! is SBE image will run in continuous mode by default
     result istep_mode : bool
+
+    param num_cores_per_chip : int = 4
+    ! is SBE image will run in 4 number of core per chip by default
+    result num_cores_per_chip : int
 }
 if $sbe_scripts_path != NIL {
     add-directory $sbe_scripts_path
