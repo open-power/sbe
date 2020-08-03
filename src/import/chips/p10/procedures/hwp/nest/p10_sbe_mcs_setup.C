@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,13 +57,13 @@ const uint8_t NUMBER_MCS = 4;
 ///        previous register states in attributes
 ///
 /// @tparam T template parameter, passed in target.
-/// @param[in] i_target_mc Reference to an MC target (MI)
+/// @param[in] i_target_mc Reference to an MC target (MC)
 /// @param[in] i_target_chip Reference to chip target
 /// @param[in] i_chip_base_address Chip non-mirrored base address
 /// @return FAPI2_RC_SUCCESS if success, else error code.
 ///
 fapi2::ReturnCode set_hb_dcbz_config(
-    const fapi2::Target<fapi2::TARGET_TYPE_MI>& i_target_mc,
+    const fapi2::Target<fapi2::TARGET_TYPE_MC>& i_target_mc,
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
     const uint64_t i_chip_base_address)
 {
@@ -202,7 +202,7 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_ipl_type;
     fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_contained_type;
 
-    auto l_mi_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MI>();
+    auto l_mc_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MC>();
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
     // configure one MC on master chip (only if IPL is loading hostboot, and is
@@ -236,9 +236,9 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
 #ifdef __PPE__
 
-        // assert that a viable MI chiplet is found to service dcbz on the
+        // assert that a viable MC chiplet is found to service dcbz on the
         // master processor
-        if (!l_mi_chiplets.size())
+        if (!l_mc_chiplets.size())
         {
             // collect PG FFDC
             fapi2::ATTR_PG_Type l_mc_pg[NUMBER_MCS] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
@@ -281,7 +281,7 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 #endif
         // determine base address
         //   = (drawer non-mirrored base address) + (hostboot HRMOR offset)
-        //   min MI base size is 4GB, local HB will always be below
+        //   min MC base size is 4GB, local HB will always be below
         FAPI_TRY(p10_fbc_utils_get_chip_base_address(i_target,
                  p10_fbc_utils_addr_mode::HB_BOOT_ID,
                  l_chip_base_address_nm0,
@@ -300,10 +300,10 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
         FAPI_DBG("Base address found: %016llx", l_chip_base_address_nm0);
 
-        if (l_mi_chiplets.size())
+        if (l_mc_chiplets.size())
         {
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                                   l_mi_chiplets.front(),
+                                   l_mc_chiplets.front(),
                                    l_mc_unit_pos),
                      "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_SBE_MCS_SETUP_SELECTED_MC,
@@ -312,14 +312,14 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
                      "Error from FAPI_ATTR_SET (ATTR_PROC_MC_SETUP)");
 
             FAPI_TRY(set_hb_dcbz_config(
-                         l_mi_chiplets.front(),
+                         l_mc_chiplets.front(),
                          i_target,
                          l_chip_base_address_nm0),
-                     "Error from set_hb_dcbz_config (MI)");
+                     "Error from set_hb_dcbz_config (MC)");
         }
         else
         {
-            FAPI_INF("No MI targets found! Nothing to do!");
+            FAPI_INF("No MC targets found! Nothing to do!");
         }
     }
 
