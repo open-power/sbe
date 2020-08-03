@@ -391,6 +391,7 @@ ReturnCode sbeDumpArchRegs()
                 // Loop over the combined list of registers
                 for( uint32_t regIdx=0; regIdx < totalRegisters; regIdx++ )
                 {
+                    dumpRegData = {};
                     Enum_RegType type=REG_GPR;
                     // Start filling up the rest of data structure
                     if(regIdx < TIMA_LIST_SIZE)
@@ -435,6 +436,7 @@ ReturnCode sbeDumpArchRegs()
                             dumpRegData.isRegDataValid = false;//Invalid data
                             dumpRegData.regVal = (uint64_t)fapiRc; //Save FAPI_RC
                             dumpRegData.isLastReg = true;//No more registers fetched
+                            dumpRegData.isFfdcPresent = true;
                         }
                     }
                     else
@@ -447,6 +449,18 @@ ReturnCode sbeDumpArchRegs()
                             "ThreadNumber:%d",SPR_GPR_TIMA_list[regIdx],chipUnitNum,thread);
                             dumpRegData.isRegDataValid = false;//Invalid data
                             dumpRegData.regVal = (uint64_t)fapiRc; //Save FAPI_RC
+                            dumpRegData.isFfdcPresent = true;//Indicate pressesnce of FFDC
+                            //If cores are in non-zero state, this failed register will be the
+                            //last register 
+                            if(!doRamming)
+                            {
+                                dumpRegData.isLastReg = true;//No more registers fetched
+                            }
+                            else //Bump up the regIdx to skip read of remaining TIMA offsets
+                            {
+                                uint8_t remainingTIMAOffsets = (TIMA_LIST_SIZE - regIdx)-1 ;
+                                regIdx += remainingTIMAOffsets;
+                            }
                         }
                     }
                     if(fapiRc == FAPI2_RC_SUCCESS)
@@ -471,8 +485,12 @@ ReturnCode sbeDumpArchRegs()
                         /* 128 Bytes FAPI FFDC which will be added to the data
                          * shared with the hostboot  when accessing the
                          * SPR/GPR data fails.*/
-                        uint32_t FFDCData[128] = {0xFF};
-
+                        uint32_t FFDCData[32];
+                        //For Now fill all FFDC bytes as 0xFFs
+                        for(uint8_t i=0;i<32;++i )
+                        {
+                            FFDCData[i]=0xFFFFFFFF;
+                        }
                         //Send the Register data to the Hostboot using PBA
                         fapiRc = PBAInterface.accessWithBuffer(
                                 &FFDCData, sizeof(FFDCData),false);
