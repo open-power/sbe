@@ -44,6 +44,7 @@
 #include "fapi2_mem_access.H"
 #include "p10_getmemproc.H"
 #include "target_filters.H"
+#include "sbeFFDC.H"
 
 #include "fapi2.H"
 
@@ -354,15 +355,15 @@ ReturnCode sbeDumpArchRegs()
                     SBE_EXEC_HWP_NOARG(fapiRc, ramCore.ram_setup)
                     if( fapiRc != FAPI2_RC_SUCCESS )
                     {
-                       SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%2X"
-                         "coreChipletId:0x%02X Proc:0x%02X",thread, chipUnitNum,
-                          procChipId);
+                        SBE_ERROR(SBE_FUNC" ram_setup failed. threadNr:0x%2X"
+                                "coreChipletId:0x%02X Proc:0x%02X",thread, chipUnitNum,
+                                procChipId);
 
-                       //Mark the coreState to be bad for this thread in the
-                       //thread header to indicate the non-existence of register
-                       //data.
-                       dumpThreadHdr.coreState = INVALID_CORE_STATE;
-                       doRamming = false;
+                        //Mark the coreState to be bad for this thread in the
+                        //thread header to indicate the non-existence of register
+                        //data.
+                        dumpThreadHdr.coreState = INVALID_CORE_STATE;
+                        doRamming = false;
                     }
                 }
 
@@ -482,22 +483,29 @@ ReturnCode sbeDumpArchRegs()
                     //failed
                     if(dumpRegData.isFfdcPresent)
                     {
-                        /* 128 Bytes FAPI FFDC which will be added to the data
-                         * shared with the hostboot  when accessing the
-                         * SPR/GPR data fails.*/
-                        uint32_t FFDCData[32];
-                        //For Now fill all FFDC bytes as 0xFFs
-                        for(uint8_t i=0;i<32;++i )
-                        {
-                            FFDCData[i]=0xFFFFFFFF;
-                        }
-                        //Send the Register data to the Hostboot using PBA
+
+                        //Read the Global FFDC contents 
+                        SbeFFDCPackage sbeFfdcPack;
+                        sbeFfdcPack.collectAsyncHwpFfdc();
+
+                        SBE_ERROR("FAPI_RC=0x%.8x and FFDC Length =0x%.8x",
+                                  g_FfdcData.fapiRc,g_FfdcData.ffdcLength);
+
+                        //Write Length of FFDC
                         fapiRc = PBAInterface.accessWithBuffer(
-                                &FFDCData, sizeof(FFDCData),false);
+                                 &g_FfdcData.ffdcLength,4,false);
                         if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
                         {
-                            SBE_ERROR(SBE_FUNC "failed to write failure FFDC to hostboot");
-                            break;
+                           SBE_ERROR(SBE_FUNC "failed to write FFDC length");
+                           break;
+                        }
+                        //Write the FFDC bytes
+                        fapiRc = PBAInterface.accessWithBuffer(
+                                 &g_FfdcData.ffdcData,g_FfdcData.ffdcLength,false);
+                        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+                        {
+                           SBE_ERROR(SBE_FUNC "failed to write failure FFDC to hostboot");
+                           break;
                         }
                     }
                     if(dumpRegData.isLastReg)
@@ -519,7 +527,7 @@ ReturnCode sbeDumpArchRegs()
                     if( fapiRc != FAPI2_RC_SUCCESS )
                     {
                         SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%02X"
-                                  " coreChipletId:0x%02X", thread, chipUnitNum);
+                                " coreChipletId:0x%02X", thread, chipUnitNum);
                         // Don't break, continue for the next thread
                         continue;
                     }
