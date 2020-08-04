@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -88,6 +88,8 @@ fapi2::ReturnCode p10_sbe_chiplet_init(const
     //UNTIL KVREF_AND_VMEAS_MODE_STATUS_REG.KVREF_CAL_DONE == 1
     while (l_timeout != 0)
     {
+        fapi2::delay(HW_NS_DELAY, SIM_CYCLE_DELAY);
+
         //Getting KVREF_AND_VMEAS_MODE_STATUS_REG register value
         FAPI_TRY(fapi2::getScom(i_target_chip, proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
         bool l_poll_data = l_data64.getBit<proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG_KVREF_CAL_DONE>();
@@ -97,7 +99,6 @@ fapi2::ReturnCode p10_sbe_chiplet_init(const
             break;
         }
 
-        fapi2::delay(HW_NS_DELAY, SIM_CYCLE_DELAY);
         --l_timeout;
     }
 
@@ -109,6 +110,11 @@ fapi2::ReturnCode p10_sbe_chiplet_init(const
                 .set_LOOP_COUNT(l_timeout)
                 .set_HW_DELAY(HW_NS_DELAY),
                 "ERROR: Calibration not done, bit16 not set");
+
+    FAPI_DBG("Clear start_cal bit again");
+    FAPI_TRY(fapi2::getScom(i_target_chip, proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
+    l_data64.clearBit<proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG_KVREF_START_CAL>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_ITR_FMU_KVREF_AND_VMEAS_MODE_STATUS_REG, l_data64));
 
     FAPI_INF("p10_sbe_chiplet_init: Exiting ...");
 
