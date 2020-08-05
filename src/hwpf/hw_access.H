@@ -290,17 +290,21 @@ __fapi2exit__:
                                   const RingMode i_ringMode = RING_MODE_HEADER_CHECK)
         {
             ReturnCode l_rc = FAPI2_RC_SUCCESS;
+            if( SBE::isSimicsRunning() )
+            {
+                return l_rc;
+            }
 #if defined DFT || defined PIBMEM_ONLY_IMAGE
-			// For DFT only, XIP header is in PIBMEM rather than SEEPROM
+            // For DFT only, XIP header is in PIBMEM rather than SEEPROM
             uint8_t *l_baseAddr =(uint8_t*) SBE_BASE_ORIGIN;
 #else	//DFT
             uint8_t *l_baseAddr =(uint8_t*) SBE_SEEPROM_BASE_ORIGIN;
 #endif	//DFT
             // Find the RS4 string in the SEEPROM
             l_rc = lookUpRingSection (l_baseAddr,
-                                      i_target,
-                                      i_ringID,
-                                      i_ringMode);
+                    i_target,
+                    i_ringID,
+                    i_ringMode);
             return l_rc;
         }
 
