@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -140,7 +140,6 @@ fapi2::ReturnCode p10_sbe_startclocks(const
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
              "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
 
-    if (l_attr_contained_ipl_type != fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE)
     {
         uint32_t l_qme_cycle_repro_compare_value;
         fapi2::ATTR_FREQ_CORE_BOOT_MHZ_Type l_attr_boot_freq_mhz;
