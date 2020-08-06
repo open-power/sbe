@@ -420,7 +420,7 @@ extern "C" {
         }
 
         FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
-                 ISTEP4_MC_GROUPS));
+                 SELECT_EX_MC_GROUPS));
         FAPI_TRY(restore_eq_pgoods(perv_eqs_w_cores));
         FAPI_TRY(p10_contained_ipl_istep4(eqs_all_cores, chc, runn, is_dump_ipl,
                                           active_bvec));
