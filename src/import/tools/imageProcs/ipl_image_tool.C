@@ -3400,6 +3400,7 @@ openAndMap(const char* i_fileName, int i_writable, int* o_fd, void** o_image, co
     if (*o_image == MAP_FAILED)
     {
         perror("mmap() of the image failed : ");
+        fprintf(stderr, "The size of the supplied image %s : 0x%08x \n", i_fileName, (uint32_t)g_imageSize);
         exit(1);
     }
 
