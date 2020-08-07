@@ -121,13 +121,13 @@ fapi2::ReturnCode set_hb_dcbz_config(
 
 
     // MCMODE2 -- enable both subchannels (must be same channel set up in MCFGP)/
-    FAPI_TRY(GET_SCOMFIR_MCMODE2(i_target_mc, l_mcmode2));
-    l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCMODE2] = l_mcmode2;
+    //FAPI_TRY(GET_SCOMFIR_MCMODE2(i_target_mc, l_mcmode2));
+    //l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCMODE2] = l_mcmode2;
 
-    SET_SCOMFIR_MCMODE2_CHANNEL0_SUBCHANNEL0_ENABLE(l_mcmode2);
-    SET_SCOMFIR_MCMODE2_CHANNEL0_SUBCHANNEL1_ENABLE(l_mcmode2);
+    //SET_SCOMFIR_MCMODE2_CHANNEL0_SUBCHANNEL0_ENABLE(l_mcmode2);
+    //SET_SCOMFIR_MCMODE2_CHANNEL0_SUBCHANNEL1_ENABLE(l_mcmode2);
 
-    FAPI_TRY(PUT_SCOMFIR_MCMODE2(i_target_mc, l_mcmode2));
+    //FAPI_TRY(PUT_SCOMFIR_MCMODE2(i_target_mc, l_mcmode2));
 
     // MCPERF1 -- disable fast path////////////////////////////////////////////
     FAPI_TRY(GET_SCOMFIR_MCPERF1(i_target_mc, l_mcperf1));
@@ -172,9 +172,11 @@ fapi2::ReturnCode set_hb_dcbz_config(
     FAPI_TRY(GET_SCOMFIR_MCTO(i_target_mc, l_mcto));
     l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCTO] = l_mcto;
 
-    SET_SCOMFIR_MCTO_SELECT_PB_HANG_PULSE(l_mcto);
-    CLEAR_SCOMFIR_MCTO_SELECT_LOCAL_HANG_PULSE(l_mcto);
+    CLEAR_SCOMFIR_MCTO_SELECT_PB_HANG_PULSE(l_mcto);
+    SET_SCOMFIR_MCTO_SELECT_LOCAL_HANG_PULSE(l_mcto);
     SET_SCOMFIR_MCTO_CL_TIMEOUT_VALUE(0x7, l_mcto);
+    SET_SCOMFIR_MCTO_LOCAL_HANG_COMP(0xFFFF, l_mcto);
+    SET_SCOMFIR_MCTO_HANG_COMP(0x70, l_mcto);
     SET_SCOMFIR_MCTO_ENABLE_APO_HANG(l_mcto);
     SET_SCOMFIR_MCTO_CHANNEL_TIMEOUT_VALUE(0x1, l_mcto);
 
