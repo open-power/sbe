@@ -31,6 +31,7 @@
 #include <fapi2_mem_access.H>
 #include <fapi2_subroutine_executor.H>
 #include <p10_l3_flush.H>
+#include <p10_l2_flush.H>
 #include <p10_pm_utils.H>
 #include <p10_hcode_image_defines.H>
 #include <p10_hcd_memmap_qme_sram.H>
@@ -102,6 +103,24 @@ static inline fapi2::ReturnCode purgel3(const fapi2::Target<fapi2::TARGET_TYPE_C
 }
 
 ///
+/// @brief Wrapper around p10_l2_flush
+///
+/// @param[in] i_core L2 cache to purge
+///
+/// @return FAPI2_RC_SUCCESS if success else error code
+///
+static inline fapi2::ReturnCode purgel2(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core)
+{
+    fapi2::ReturnCode rc;
+
+    p10core::purgeData_t purge_req;
+
+    FAPI_EXEC_HWP(rc, p10_l2_flush, i_core, purge_req);
+    return rc;
+}
+
+
+///
 /// @brief Load QME SRAM with content from HOMER image
 ///
 /// @param[in] i_chip            Reference to chip target
@@ -167,13 +186,15 @@ fapi_try_exit:
 /// @param[in] i_cache_img_bytes    Size of the cache image to load in bytes (MUST be 128B aligned)
 /// @param[in] i_nactive            Number of active caches
 /// @param[in] i_nbacking           Number of backing caches
+/// @param[in] i_load_path          Load mechanism/path
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
 static fapi2::ReturnCode validate(const bool& i_cac, const bool& i_chc,
                                   const uint64_t& i_cache_img_bytes,
                                   const fapi2::ATTR_ACTIVE_CORES_NUM_Type i_nactive,
-                                  const fapi2::ATTR_BACKING_CACHES_NUM_Type i_nbacking)
+                                  const fapi2::ATTR_BACKING_CACHES_NUM_Type i_nbacking,
+                                  const fapi2::ATTR_CONTAINED_LOAD_PATH_Type i_load_path)
 {
     FAPI_ASSERT(i_cac ^ i_chc,
                 fapi2::P10_CONTAINED_LOAD_NOT_CONTAINED_IPL()
@@ -183,6 +204,11 @@ static fapi2::ReturnCode validate(const bool& i_cac, const bool& i_chc,
 
     if (i_chc)
     {
+        FAPI_ASSERT(i_load_path == fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_PBA,
+                    fapi2::P10_CONTAINED_LOAD_BAD_PATH_CHC()
+                    .set_LOAD_PATH(i_load_path),
+                    "Cache image must be loaded via PBA");
+
         FAPI_ASSERT(i_cache_img_bytes <= (i_nbacking * L3_CACHE_SIZE),
                     fapi2::P10_CONTAINED_LOAD_CACHE_IMG_TOO_BIG_CHC()
                     .set_CACHE_IMG_BYTES(i_cache_img_bytes)
@@ -227,14 +253,16 @@ extern "C" {
         fapi2::ATTR_ACTIVE_CORES_VEC_Type active_bvec;
         fapi2::ATTR_ACTIVE_CORES_NUM_Type nactive;
         fapi2::ATTR_BACKING_CACHES_NUM_Type nbacking;
+        fapi2::ATTR_CONTAINED_LOAD_PATH_Type load_path;
 
         FAPI_TRY(is_cac_ipl(cac));
         FAPI_TRY(is_chc_ipl(chc));
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_chip, active_bvec));
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_NUM, i_chip, nactive));
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM, i_chip, nbacking));
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_LOAD_PATH, SYS, load_path));
 
-        FAPI_TRY(validate(cac, chc, i_cache_img_bytes, nactive, nbacking));
+        FAPI_TRY(validate(cac, chc, i_cache_img_bytes, nactive, nbacking, load_path));
 
         FAPI_INF("chip_contained[%d] cache_contained[%d]", chc, cac);
         FAPI_INF("nactive[%02d] nbacking[%02d] active[x%08x]", nactive, nbacking,
@@ -246,12 +274,12 @@ extern "C" {
             FAPI_TRY(load_qme_sram(i_chip, i_homer_img_bytes, i_homer_img));
         }
 
-        if (i_cache_img == NULL && i_cache_img_bytes == 0)
+        if (i_cache_img == NULL && i_cache_img_bytes == 0 &&
+            (load_path == fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_PBA))
         {
             FAPI_INF("No cache image, skipping PBA-LCO load");
             return fapi2::FAPI2_RC_SUCCESS;
         }
-
 
         for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
@@ -277,10 +305,19 @@ extern "C" {
                 break;
             }
 
-            FAPI_INF("core[%02d/%02d]: PBA-LCO cache img bytes[%09d] @ core[#%02d] L3",
-                     ncores, nactive, i_cache_img_bytes, corenum);
-            FAPI_TRY(putmempba(i_chip, core, 0, i_cache_img_bytes, i_cache_img,
-                               PBA_LCO_OP));
+            if (load_path == fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_PBA)
+            {
+                FAPI_INF("core[%02d/%02d]: PBA-LCO cache img bytes[%09d] @ core[#%02d] L3",
+                         ncores, nactive, i_cache_img_bytes, corenum);
+                FAPI_TRY(putmempba(i_chip, core, 0, i_cache_img_bytes, i_cache_img,
+                                   PBA_LCO_OP));
+            }
+            else
+            {
+                FAPI_INF("core[%02d/%02d]: L2 purge @ core[#%02d]",
+                         ncores, nactive, corenum);
+                FAPI_TRY(purgel2(core));
+            }
 
             if (ncores == nactive)
             {
