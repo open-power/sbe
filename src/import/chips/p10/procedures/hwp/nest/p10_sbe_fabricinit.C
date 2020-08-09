@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -58,11 +58,24 @@ p10_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
     FAPI_INF("Entering...");
 
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
+    fapi2::ATTR_CONTAINED_LOAD_PATH_Type l_attr_contained_load_path;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::buffer<uint64_t> l_data;
     adu_operationFlag l_aduFlags;
     uint32_t l_fabricinit_flags;
     uint32_t l_numGranules;     // dummy variable
     uint8_t l_rwData[8] = {0};  // dummy variable
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_LOAD_PATH, FAPI_SYSTEM, l_attr_contained_load_path));
+
+    if ((l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE) &&
+        (l_attr_contained_load_path == fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_L2SQ))
+    {
+        FAPI_INF("Skipping fabricinit for cache-contained L2 store-queue load");
+        goto fapi_try_exit;
+    }
 
     // check state of pb_stop; it will prohibit all fabric commands from being broadcast if asserted
     FAPI_DBG("Check that fabric is in a healthy state");

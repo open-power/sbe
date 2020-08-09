@@ -543,6 +543,10 @@
     <name>ATTR_EC_GARD</name>
     <value>0x00</value>
   </entry>
+  <entry>
+    <name>ATTR_CONTAINED_LOAD_PATH</name>
+    <value>0x0</value>
+  </entry>
   <!-- HWP writeable attributes -->
   <entry>
     <name>ATTR_SCAN_CHIPLET_OVERRIDE</name>

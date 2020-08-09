@@ -547,45 +547,49 @@ fapi2::ReturnCode p10_sbe_attr_setup(
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCKSTOP_ON_XSTOP, i_target_chip, l_attr_clockstop_on_xstop),
                      "Error from FAPI_ATTR_SET (ATTR_CLOCKSTOP_ON_XSTOP)");
 
-            FAPI_DBG("Setting up IOHS PLL mux attributes");
 
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_iohs_lcpll_input),
-                     "Error from FAPI_ATTR_GET (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT)");
-
-            for (const auto& l_perv_iohs_target :  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
-                     static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_IOHS),
-                     fapi2::TARGET_STATE_FUNCTIONAL))
+            if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE)
             {
-                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_iohs_target,
-                        fapi2::TARGET_TYPE_IOHS);
+                FAPI_DBG("Setting up IOHS PLL mux attributes");
 
-                FAPI_TRY(l_read_scratch5_reg.extractToRight(l_attr_clock_mux_iohs_lcpll_input[l_attr_chip_unit_pos],
-                         ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_STARTBIT +
-                         (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_LENGTH * l_attr_chip_unit_pos),
-                         ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_LENGTH));
+                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_iohs_lcpll_input),
+                         "Error from FAPI_ATTR_GET (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT)");
+
+                for (const auto& l_perv_iohs_target :  i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                         static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_IOHS),
+                         fapi2::TARGET_STATE_FUNCTIONAL))
+                {
+                    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_iohs_target,
+                            fapi2::TARGET_TYPE_IOHS);
+
+                    FAPI_TRY(l_read_scratch5_reg.extractToRight(l_attr_clock_mux_iohs_lcpll_input[l_attr_chip_unit_pos],
+                             ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_STARTBIT +
+                             (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_LENGTH * l_attr_chip_unit_pos),
+                             ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_LENGTH));
+                }
+
+                FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_iohs_lcpll_input),
+                         "Error from FAPI_ATTR_SET (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT)");
+
+                FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_pci_lcpll_input),
+                         "Error from FAPI_ATTR_GET (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT)");
+
+                for (const auto& l_perv_pci_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                         static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
+                         fapi2::TARGET_STATE_FUNCTIONAL))
+                {
+                    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_pci_target,
+                            fapi2::TARGET_TYPE_PEC);
+
+                    FAPI_TRY(l_read_scratch5_reg.extractToRight(l_attr_clock_mux_pci_lcpll_input[l_attr_chip_unit_pos],
+                             ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_STARTBIT +
+                             (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_LENGTH * l_attr_chip_unit_pos),
+                             ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_LENGTH));
+                }
+
+                FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_pci_lcpll_input),
+                         "Error from FAPI_ATTR_SET (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT)");
             }
-
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_iohs_lcpll_input),
-                     "Error from FAPI_ATTR_SET (ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT)");
-
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_pci_lcpll_input),
-                     "Error from FAPI_ATTR_GET (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT)");
-
-            for (const auto& l_perv_pci_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
-                     static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI),
-                     fapi2::TARGET_STATE_FUNCTIONAL))
-            {
-                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_pci_target,
-                        fapi2::TARGET_TYPE_PEC);
-
-                FAPI_TRY(l_read_scratch5_reg.extractToRight(l_attr_clock_mux_pci_lcpll_input[l_attr_chip_unit_pos],
-                         ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_STARTBIT +
-                         (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_LENGTH * l_attr_chip_unit_pos),
-                         ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_LENGTH));
-            }
-
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_pci_lcpll_input),
-                     "Error from FAPI_ATTR_SET (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT)");
         }
     }
 
@@ -781,23 +785,26 @@ fapi2::ReturnCode p10_sbe_attr_setup(
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_freq_pau_mhz),
                      "Error from FAPI_ATTR_SET (ATTR_FREQ_PAU_MHZ)");
 
-            FAPI_DBG("Setting up ATTR_MC_PLL_BUCKET");
-
-            for (const auto& l_perv_mc_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
-                     static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC),
-                     fapi2::TARGET_STATE_FUNCTIONAL))
+            if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE)
             {
-                fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_mc_target,
-                        fapi2::TARGET_TYPE_MC);
+                FAPI_DBG("Setting up ATTR_MC_PLL_BUCKET");
 
-                FAPI_TRY(l_read_scratch9_reg.extractToRight(l_attr_mc_pll_bucket[l_attr_chip_unit_pos],
-                         ATTR_MC_PLL_BUCKET_STARTBIT +
-                         (ATTR_MC_PLL_BUCKET_LENGTH * l_attr_chip_unit_pos),
-                         ATTR_MC_PLL_BUCKET_LENGTH));
+                for (const auto& l_perv_mc_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                         static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC),
+                         fapi2::TARGET_STATE_FUNCTIONAL))
+                {
+                    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = p10_sbe_scratch_regs_get_unit_num(l_perv_mc_target,
+                            fapi2::TARGET_TYPE_MC);
+
+                    FAPI_TRY(l_read_scratch9_reg.extractToRight(l_attr_mc_pll_bucket[l_attr_chip_unit_pos],
+                             ATTR_MC_PLL_BUCKET_STARTBIT +
+                             (ATTR_MC_PLL_BUCKET_LENGTH * l_attr_chip_unit_pos),
+                             ATTR_MC_PLL_BUCKET_LENGTH));
+                }
+
+                FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_PLL_BUCKET, i_target_chip, l_attr_mc_pll_bucket),
+                         "Error from FAPI_ATTR_SET (ATTR_MC_PLL_BUCKET)");
             }
-
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_MC_PLL_BUCKET, i_target_chip, l_attr_mc_pll_bucket),
-                     "Error from FAPI_ATTR_SET (ATTR_MC_PLL_BUCKET)");
         }
     }
 
