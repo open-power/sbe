@@ -39,6 +39,19 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <rc>RC_P10_CONTAINED_LOAD_BAD_PATH_CHC</rc>
+    <description>
+      Procedure: p10_contained_load
+      Chip contained image must be loaded via PBA
+    </description>
+    <ffdc>LOAD_PATH</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
     <rc>RC_P10_CONTAINED_LOAD_CACHE_IMG_TOO_BIG_CHC</rc>
     <description>
       Procedure: p10_contained_load
