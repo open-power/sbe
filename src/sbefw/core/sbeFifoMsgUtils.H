@@ -34,7 +34,7 @@
 
 #include <stdint.h>
 #include "sbeexeintf.H"
-
+#include "sbefifo.H"
 
 /**********************************************************************/
 // SBE Utilities
