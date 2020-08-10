@@ -386,7 +386,7 @@ enum sbeErrorMode
  *   User needs to define the coreIDs as input in the sbeCntlInstMsgHdr
  *   structure, similar modification would be there for PBA/ADU, GET/PUT Reg,
  *   Stop clocks etc. There are no Pervasive chiplet Id for core, just coreId,
- *   SBE will generate the right core target basis the CoreId. 
+ *   SBE will generate the right core target basis the CoreId.
  */
 enum sbeCoreId
 {
@@ -541,15 +541,8 @@ static const uint16_t SBE_TA_STOP               = 0x0004;
 static const uint16_t SBE_TA_COLLECT_DUMP       = 0x0008;
 static const uint16_t SBE_TA_IGNORE_MUX_SETTING = 0x0010;
 
-/*
- * @brief enums for fast array control mode
- */
-typedef enum
-{
-    FASTARRAY_SETUP      = 0x01,
-    FASTARRAY_SKIPCYCLES = 0x02,
-    FASTARRAY_CLEANUP    = 0x03,
-} sbeFastArrayControlModes_t;
+static const uint32_t SBE_FASTARRAY_MAX_CONTROL_DATA_BYTES = SBE_PUT_RING_RS4_MAX_PAYLOAD_BYTES;
+static const uint32_t SBE_FASTARRAY_CUSTOM_CONTROL_SET = 0;  ///< indicates to use custom control data
 
 /*
  * @brief enums for SBE client ID

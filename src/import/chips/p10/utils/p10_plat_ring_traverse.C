@@ -43,8 +43,11 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                      const fapi2::RingMode i_ringMode)
 {
     FAPI_INF( ">> lookUpRingSection" );
+    p9_xip_section_sbe_t l_sectionName = (i_ringMode & fapi2::RING_MODE_FASTARRAY) ?
+        P9_XIP_SECTION_SBE_FA_RING_OVRD : P9_XIP_SECTION_SBE_RINGS;
+
     P9XipHeader* l_imgHdr       =   (P9XipHeader*)( i_pImgPtr );
-    P9XipSection* l_pSection    =   &l_imgHdr->iv_section[P9_XIP_SECTION_SBE_RINGS];
+    P9XipSection* l_pSection    =   &l_imgHdr->iv_section[l_sectionName];
     TorHeader_t* l_torHeader    =   NULL;
 
     FAPI_ASSERT( ( (l_pSection->iv_offset) > 0 ),
