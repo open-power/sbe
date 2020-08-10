@@ -120,6 +120,7 @@ p10_sbe_powerdown_backing_caches(
             {
                 //STOP 11 entry request enable[0:3]
                 l_scrb_data = BIT64(l_attr_chip_unit_core_pos) >> 24;
+                PREP_QME_SCRB_WO_OR(eq);
                 PUT_QME_SCRB_WO_OR(eq, l_scrb_data);
             }
         }
@@ -167,8 +168,8 @@ p10_sbe_powerdown_backing_caches(
                         FAPI_TRY(GET_QME_SSH_OTR(core, l_data64));
                         GET_QME_SSH_OTR_ACT_STOP_LEVEL(l_data64, l_ssh_data);
 
-                        if (l_ssh_data == 0xB ||
-                            l_ssh_data == 0xF)
+                        if (l_data64.getBit<0>() && (l_ssh_data == 0xB ||
+                                                     l_ssh_data == 0xF))
                         {
                             FAPI_IMP(" stop 11  entered for core %d of quad %d", l_relative_core_pos, l_attr_chip_unit_eq_pos);
                             l_stop11_state_entered = true;
