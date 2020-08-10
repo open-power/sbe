@@ -180,6 +180,10 @@ class SbeRegAccess
             return iv_sendFFDC;
         }
 
+        inline bool isSystemCheckStopForDMTFail() const
+        {
+            return !iv_dontCheckStopForDMT;
+        }
         /**
          * @brief Check if SBE is master
          *
@@ -293,7 +297,8 @@ class SbeRegAccess
                 uint64_t iv_fspAttached : 1;
                 uint64_t iv_collectFFDC : 1;
                 uint64_t iv_sendFFDC : 1;
-                uint64_t iv_mbx3DontCare1 : 5;
+                uint64_t iv_mbx3DontCare1 : 4;
+                uint64_t iv_dontCheckStopForDMT : 1;
                 uint64_t iv_disableScomFiltering : 1;
                 uint64_t iv_disableInvalidScomAddrCheck : 1;
                 uint64_t iv_mbx3DontCare2 : 19;
