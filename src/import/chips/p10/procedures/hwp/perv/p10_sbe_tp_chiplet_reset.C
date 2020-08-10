@@ -70,6 +70,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64, l_data64_root_ctrl0;
     fapi2::buffer<uint32_t> l_read_attr_pg;
+    fapi2::ATTR_CHIP_EC_FEATURE_HW541221_Type l_hw541221;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
@@ -147,6 +148,13 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
                 l_data64.writeBit<15>(!(l_read_attr_pg.getBit<14>())); // pau7 region
             }
         }
+    }
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW541221, i_target_chip, l_hw541221));
+
+    if (l_hw541221)
+    {
+        l_data64.setBit<0, 20>();
     }
 
     FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL5_RW, l_data64));
