@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -26,7 +26,7 @@
 # "*.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/*
-export SUB_OBJDIR = /arrayaccess
+export SUB_OBJDIR = /$(IMPORT_OBJDIR)/arrayaccess
 
 include img_defs.mk
 include arrayaccessfiles.mk
@@ -39,8 +39,8 @@ OBJSARRAYACCESS := $(addprefix $(OBJDIR-ARRAYACCESS)/, $(ARRAYACCESS_OBJECTS))
 
 .PHONY: clean arrayaccess
 
-#libarrayaccess.a: arrayaccess
-#	$(AR) crs $(OBJDIR-ARRAYACCESS)/libarrayaccess.a $(OBJDIR-ARRAYACCESS)/*.o
+libarrayaccess.a: arrayaccess
+	$(AR) crs $(OBJDIR-ARRAYACCESS)/libarrayaccess.a $(OBJDIR-ARRAYACCESS)/*.o
 
 arrayaccess: $(OBJSARRAYACCESS)
 
