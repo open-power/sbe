@@ -278,7 +278,8 @@ static fapi2::ReturnCode p10_sbe_fastarray_row(
 
     /* Header check -- the last svs::rotate() conveniently read it into l_data for us :3 */
     FAPI_ASSERT(l_data == SCAN_HEADER, fapi2::FASTARRAY_HEADER_CHECK_FAILED()
-                .set_TARGET(i_scan_chiplet).set_EXPECTED(SCAN_HEADER).set_ACTUAL(l_data));
+                .set_TARGET(i_scan_chiplet).set_EXPECTED(SCAN_HEADER).set_ACTUAL(l_data),
+                "Header check failed! Read header: 0x%08X%08X", l_data >> 32, l_data & 0xFFFFFFFF);
 
 fapi_try_exit:
     /* Clear scan region & type */

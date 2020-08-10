@@ -37,13 +37,13 @@
 // *HWP Team            : Chip
 // *HWP Level           : 3
 // *HWP Consumed by     : SBE
+// EKB-Mirror-To: hw/ppe
 //------------------------------------------------------------------------------
 
 #ifndef _P10_SBE_FASTARRAY_H_
 #define _P10_SBE_FASTARRAY_H_
 
 #include <fapi2.H>
-#include <fapi2_subroutine_executor.H>
 #include <hwp_data_stream.H>
 
 typedef fapi2::ReturnCode (*p10_sbe_fastarray_FP_t)(

@@ -577,4 +577,8 @@
     <name>ATTR_CHIP_EC_FEATURE_TANK_PLL_HW540133</name>
     <virtual/>
   </entry>
+  <entry>
+    <name>ATTR_CHIP_EC_FEATURE_MMA_CORE_ABIST_LINKED</name>
+    <virtual/>
+  </entry>
 </entries>
