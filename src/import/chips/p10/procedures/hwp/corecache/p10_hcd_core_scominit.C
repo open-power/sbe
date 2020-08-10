@@ -49,11 +49,6 @@
 // Constant Definitions
 //------------------------------------------------------------------------------
 
-static const uint64_t NC_NCMISC_NCSCOMS_NCU_DARN_BAR_REG = 0x20010651ull;
-static const uint32_t NC_NCMISC_NCSCOMS_NCU_DARN_BAR_REG_EN = 0;
-static const uint32_t NC_NCMISC_NCSCOMS_NCU_DARN_BAR_REG_ADDR = 12;
-static const uint32_t NC_NCMISC_NCSCOMS_NCU_DARN_BAR_REG_ADDR_LEN = 40;
-
 //------------------------------------------------------------------------------
 // Procedure: p10_hcd_core_scominit_qme
 //------------------------------------------------------------------------------
