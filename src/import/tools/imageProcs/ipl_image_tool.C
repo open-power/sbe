@@ -1577,6 +1577,7 @@ append(const char* i_imageFile, const int i_imageFd, void* io_image,
         if (appendImage == MAP_FAILED)
         {
             perror("mmap() of the file to be appended failed : ");
+            fprintf(stderr, "The size of the supplied image %s : 0x%08x \n", file, (uint32_t)buf.st_size);
             exit(1);
         }
 
