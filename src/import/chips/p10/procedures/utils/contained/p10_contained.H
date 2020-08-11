@@ -136,4 +136,26 @@ inline fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYP
 
 #endif // P10_CONTAINED_ENABLE_SEEDING
 
+#ifdef P10_CONTAINED_ENVVARS_ALLOWED
+
+///
+/// @brief Read an environment variable, indicate if the variable is set to a
+///        value, and return that value when set.
+///
+/// @param[in] i_envvar Environment variable to read
+/// @param[out] o_val Environment variable value
+///
+/// @return true if environment variable is set to some value else false
+///
+bool getenvvar(const char* i_envvar, std::string& o_val);
+
+#else
+
+constexpr bool getenvvar(const char* i_envvar, std::string& o_val)
+{
+    return false;
+}
+
+#endif // P10_CONTAINED_ENVVARS_ALLOWED
+
 #endif

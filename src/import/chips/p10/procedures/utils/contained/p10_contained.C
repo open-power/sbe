@@ -354,3 +354,22 @@ fapi_try_exit:
 }
 
 #endif // P10_CONTAINED_ENABLE_SEEDING
+
+#ifdef P10_CONTAINED_ENVVARS_ALLOWED
+
+bool getenvvar(const char* i_envvar, std::string & o_val)
+{
+    const char* tmp = std::getenv(i_envvar);
+
+    if (tmp != NULL)
+    {
+        o_val = std::string(tmp);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+#endif // P10_CONTAINED_ENVVARS_ALLOWED

@@ -27,7 +27,9 @@
 #include <p10_contained_ipl_istep.H>
 
 #include <fapi2.H>
+#include <p10_scom_c.H>
 #include <p10_scom_perv.H>
+#include <p10_scom_c_c_unused.H> // For NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG
 #include <p10_perv_sbe_cmn.H>
 #include <multicast_group_defs.H>
 #include <multicast_defs.H>
@@ -211,9 +213,9 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
     {
         FAPI_TRY(set_bit(plat_feature_bvec, RUNN_CONTAINED_DUMP, "RUNN_CONTAINED_DUMP"));
         FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD0, "RUNN_SRESET_THREAD0"));
-        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD1, "RUNN_SRESET_THREAD0"));
-        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD2, "RUNN_SRESET_THREAD0"));
-        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD3, "RUNN_SRESET_THREAD0"));
+        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD1, "RUNN_SRESET_THREAD1"));
+        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD2, "RUNN_SRESET_THREAD2"));
+        FAPI_TRY(clear_bit(plat_feature_bvec, RUNN_SRESET_THREAD3, "RUNN_SRESET_THREAD3"));
     }
 
     // save state back to platform attribute
@@ -344,6 +346,61 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+static fapi2::ReturnCode connect_single_ec_to_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
+{
+    FAPI_INF(">> %s", __func__);
+
+    using namespace scomt::c;
+
+    fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+
+    std::string dump_core_str;
+    int dump_core;
+
+    if (!getenvvar("P10_CONTAINED_DUMP_CORE", dump_core_str))
+    {
+        FAPI_ERR("P10_CONTAINED_DUMP_CORE envvar not set");
+        return fapi2::FAPI2_RC_SUCCESS;
+    }
+
+    dump_core = std::stoi(dump_core_str); // YOLO.
+
+    for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));
+
+        // Functionally disconnect all other ECs from the fabric by applying
+        // the proper PM controls.
+        if (corenum != dump_core)
+        {
+            fapi2::buffer<uint64_t> tmp;
+
+            tmp.flush<0>()
+            .setBit<QME_SCSR_HBUS_DISABLE>()
+            .setBit<QME_SCSR_L2RCMD_INTF_QUIESCE>()
+            .setBit<QME_SCSR_NCU_TLBIE_QUIESCE>()
+            .setBit<QME_SCSR_PB_PURGE_REQ>();
+            PREP_QME_SCSR_SCOM2(core);
+            FAPI_TRY(PUT_QME_SCSR_SCOM2(core, tmp));
+
+            tmp.flush<0>()
+            .setBit<NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG_NCU_RCMD_QUIESCE>();
+            PREP_NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG(core);
+            FAPI_TRY(PUT_NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG(core, tmp));
+
+            tmp.flush<0>()
+            .setBit<L3_MISC_L3CERRS_PM_LCO_DIS_REG_LCO_DIS_CFG>()
+            .setBit<L3_MISC_L3CERRS_PM_LCO_DIS_REG_RCMD_DIS_CFG>();
+            PREP_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core);
+            FAPI_TRY(PUT_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core, tmp));
+        }
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
 extern "C" {
     fapi2::ReturnCode p10_contained_ipl(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     {
@@ -360,6 +417,8 @@ extern "C" {
 
         if (is_dump_ipl)
         {
+            fapi2::ATTR_RUNN_MODE_Type runn_mode = fapi2::ENUM_ATTR_RUNN_MODE_OFF;
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_RUNN_MODE, SYS, runn_mode));
             FAPI_INF("Running contained dump IPL");
         }
         else
@@ -386,7 +445,30 @@ extern "C" {
         FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
                  ISTEP3_MC_GROUPS));
 
-        if (chc)
+        if (!chc && is_dump_ipl)
+        {
+            using namespace scomt::perv;
+            const auto all = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
+            const uint64_t istep3_sync_config = 0xa800000000000000;
+
+            // EQs are started sequentially in a cache-contained RUNN and other
+            // synchronous chiplets remain clocked-off resulting in different
+            // phase counter values in SYNC_CONFIG. This needs to be cleaned up
+            // before calling sbe_startclocks during a reeeeee-IPL to prevent a
+            // multicast read-compare of the SYNC_CONFIG register to fail.
+            // We also need to mask xstop inputs to the OPCG since we do not
+            // re-initialize that logic as part of a contained IPL.
+            for (auto const& cplt : all.getChildren<fapi2::TARGET_TYPE_PERV>())
+            {
+                FAPI_TRY(PREP_SYNC_CONFIG(cplt));
+                FAPI_TRY(PUT_SYNC_CONFIG(cplt, istep3_sync_config));
+
+                FAPI_TRY(PREP_XSTOP1(cplt));
+                FAPI_TRY(PUT_XSTOP1(cplt, 0));
+            }
+        }
+
+        if (chc || is_dump_ipl)
         {
             // istep3 arrayinit expects the EQ chiplets' partial-good config
             // to mark all cores as 'bad'.
@@ -396,23 +478,10 @@ extern "C" {
                                            .setBit<scomt::perv::CPLT_CTRL1_REGION10_FENCE_DC>(); // clkadj
             const auto perv_eqs = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
             FAPI_TRY(fapi2::putScom(perv_eqs, scomt::perv::CPLT_CTRL2_RW, istep3_cplt_ctrl2));
-            FAPI_TRY(p10_contained_ipl_istep3(i_target, runn, is_dump_ipl));
+            FAPI_TRY(p10_contained_ipl_istep3(i_target, runn));
         }
         else
         {
-#undef P10_CACHE_CONTAINED_IPL_SCAN0_EQ
-#ifdef P10_CACHE_CONTAINED_IPL_SCAN0_EQ
-            const auto eqs = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
-            // In chip-contained mode the EQ regions are scan-zeroed during
-            // the istep3 re-IPL. The istep3 re-IPL is skipped for cache-contained
-            // mode so we scan-zero the EQ regions here.
-            const auto regions = fapi2::buffer<uint16_t>(CONTAINED_EQ_REGIONS.getBit<4, 15>());
-            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(eqs, regions,
-                                                   p10SbeChipletReset::SCAN_TYPES_TIME_GPTR_REPR));
-            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(eqs, regions,
-                                                   p10SbeChipletReset::SCAN_TYPES_EXCEPT_TIME_GPTR_REPR));
-#endif
-
             if (!runn)
             {
                 FAPI_TRY(restart_perv_qme_clocks(i_target));
@@ -424,6 +493,11 @@ extern "C" {
         FAPI_TRY(restore_eq_pgoods(perv_eqs_w_cores));
         FAPI_TRY(p10_contained_ipl_istep4(eqs_all_cores, chc, runn, is_dump_ipl,
                                           active_bvec));
+
+        if (is_dump_ipl && !chc)
+        {
+            FAPI_TRY(connect_single_ec_to_fbc(i_target));
+        }
 
     fapi_try_exit:
         return fapi2::current_err;

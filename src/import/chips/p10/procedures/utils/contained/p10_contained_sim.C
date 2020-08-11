@@ -69,30 +69,6 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-///
-/// @brief Read an environment variable, indicate if the variable is set to a
-///        value, and return that value when set.
-///
-/// @param[in] i_envvar Environment variable to read
-/// @param[out] o_val Environment variable value
-///
-/// @return true if environment variable is set to some value else false
-///
-static bool getenvvar(const char* i_envvar, std::string& o_val)
-{
-    const char* tmp = std::getenv(i_envvar);
-
-    if (tmp != NULL)
-    {
-        o_val = std::string(tmp);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
 namespace sim
 {
 bool skip_stopclocks()

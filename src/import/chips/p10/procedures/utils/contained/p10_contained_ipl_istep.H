@@ -76,7 +76,7 @@
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
 static inline fapi2::ReturnCode p10_contained_ipl_istep3(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
-        const bool i_runn, const bool i_is_dump_ipl)
+        const bool i_runn)
 {
     fapi2::ReturnCode rc;
     auto const all = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
@@ -91,12 +91,7 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep3(const fapi2::Target<fap
 
     FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_gptr_time_initf, i_target));
     FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_repr_initf, i_target));
-
-    if (!i_is_dump_ipl)
-    {
-        FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_arrayinit, i_target));
-    }
-
+    FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_arrayinit, i_target));
     FAPI_TRY(EXEC_IPL_PROC(rc, p10_sbe_initf, i_target));
 
     FAPI_TRY(sim::init_via_dials(sim::ISTEP3, true));
