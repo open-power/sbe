@@ -39,6 +39,10 @@
 //--------------------------------------------------------------------------
 #include <p10_sbe_check_quiesce.H>
 #include <p10_suspend_io.H>
+// Cronus only
+#if !defined(__PPE__) && !defined(__HOSTBOOT_MODULE)
+    #include <p10_pcie_utils.H>
+#endif
 #include <p10_scom_proc.H>
 #include <p10_scom_nmmu.H>
 #include <p10_scom_pau.H>
@@ -84,6 +88,22 @@ fapi2::ReturnCode p10_phb_check_quiesce(
 
     for (auto& l_phb_chiplet : l_phb_chiplets_vec)
     {
+
+// Cronus only
+#if !defined(__PPE__) && !defined(__HOSTBOOT_MODULE)
+        // Skip if PHB target is not enabled
+        bool l_phbEnabled = false;
+        FAPI_TRY(isPHBEnabled(l_phb_chiplet, l_phbEnabled),
+                 "Error returned from isPHBEnabled()");
+
+        if (!l_phbEnabled)
+        {
+            FAPI_DBG("PHB is disabled, skip checking quiesce.");
+            continue;
+        }
+
+#endif
+
         FAPI_TRY(PREP_REGS_PHBRESET_REG(l_phb_chiplet));
         FAPI_TRY(GET_REGS_PHBRESET_REG(l_phb_chiplet, l_data));
 

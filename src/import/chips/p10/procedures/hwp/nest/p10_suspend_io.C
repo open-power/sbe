@@ -34,6 +34,10 @@
 // Includes
 //-----------------------------------------------------------------------------------
 #include <p10_suspend_io.H>
+// Cronus only
+#if !defined(__PPE__) && !defined(__HOSTBOOT_MODULE)
+    #include <p10_pcie_utils.H>
+#endif
 #include <p10_scom_phb_3.H>
 #include <p10_scom_phb_4.H>
 #include <p10_scom_phb_a.H>
@@ -41,7 +45,6 @@
 #include <p10_scom_phb_e.H>
 #include <p10_scom_phb_f.H>
 #include <p10_scom_phb_2.H>
-
 
 ///
 /// @brief p10_suspend_io procedure entry point
@@ -71,6 +74,21 @@ fapi2::ReturnCode p10_suspend_io(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         // Get the PHB id
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_phb_chiplets, l_phb_id),
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS");
+
+// Cronus only
+#if !defined(__PPE__) && !defined(__HOSTBOOT_MODULE)
+        // Skip if PHB target is not enabled
+        bool l_phbEnabled = false;
+        FAPI_TRY(isPHBEnabled(l_phb_chiplets, l_phbEnabled),
+                 "Error returned from isPHBEnabled()");
+
+        if (!l_phbEnabled)
+        {
+            FAPI_DBG("PHB ID %i is disabled, skip suspend_io.", l_phb_id);
+            continue;
+        }
+
+#endif
 
         //****************************************************************************************************************
         // STEP #1: nop
