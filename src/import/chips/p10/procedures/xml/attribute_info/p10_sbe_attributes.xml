@@ -144,6 +144,11 @@
     <name>ATTR_SECURITY_ENABLE</name>
     <value>0x0</value>
   </entry>
+  <!-- sampled: PERV CTRL0 register -->
+  <entry>
+    <name>ATTR_CORE_LPAR_MODE</name>
+    <value>0x0</value>
+  </entry>
   <!-- sampled: mailbox 1, 2, 7 -->
   <entry>
     <!-- ATTR_PG will be calculated and written by HWP code, based on ATTR_PG_MVPD and -->

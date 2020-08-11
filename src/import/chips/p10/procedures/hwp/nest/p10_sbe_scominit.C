@@ -168,6 +168,46 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+/// @brief Configures interrupt controller mode registers
+/// @param[in] i_target       Reference to processor chip target
+/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p10_sbe_scominit_int(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    using namespace scomt;
+    using namespace scomt::proc;
+
+    fapi2::buffer<uint64_t> l_tctxt_cfg = 0;
+
+    FAPI_DBG("Entering ...");
+
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ATTR_FUSED_CORE_MODE_Type l_fused_core_mode;
+    fapi2::ATTR_CORE_LPAR_MODE_Type l_core_lpar_mode;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE, FAPI_SYSTEM, l_fused_core_mode));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CORE_LPAR_MODE, FAPI_SYSTEM, l_core_lpar_mode));
+
+    FAPI_TRY(GET_INT_PC_REGS_TCTXT_CFG(i_target, l_tctxt_cfg),
+             "Error from getScom (INT_PC_REGS_TCTXT_CFG)");
+
+    if (l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+    {
+        SET_INT_PC_REGS_TCTXT_CFG_CFG_FUSE_CORE_EN(l_tctxt_cfg);
+    }
+
+    if (l_core_lpar_mode == fapi2::ENUM_ATTR_CORE_LPAR_MODE_LPAR_PER_CORE)
+    {
+        SET_INT_PC_REGS_TCTXT_CFG_CFG_PHYP_CORE_MODE(l_tctxt_cfg);
+    }
+
+    FAPI_TRY(PUT_INT_PC_REGS_TCTXT_CFG(i_target, l_tctxt_cfg),
+             "Error from getScom (INT_PC_REGS_TCTXT_CFG)");
+
+fapi_try_exit:
+    FAPI_DBG("Exiting ...");
+    return fapi2::current_err;
+}
+
 /// @brief Performs BAR setup needed for HBI (XSCOM/LPC)
 /// @param[in] i_target       Reference to processor chip target
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
@@ -273,10 +313,10 @@ fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
 {
     FAPI_DBG("Entering ...");
 
-    FAPI_TRY(p10_sbe_scominit_fbc(i_target), "Error from p10_sbe_scominit_fbc\n");
-    FAPI_TRY(p10_sbe_scominit_bars(i_target), "Error from p10_sbe_scominit_bars\n");
-    // FIR inits have been moved to scan
-    FAPI_TRY(p10_sbe_scominit_trace(i_target), "Error from p10_sbe_scominit_trace\n");
+    FAPI_TRY(p10_sbe_scominit_fbc(i_target), "Error from p10_sbe_scominit_fbc");
+    FAPI_TRY(p10_sbe_scominit_int(i_target), "Error from p10_sbe_scominit_int");
+    FAPI_TRY(p10_sbe_scominit_bars(i_target), "Error from p10_sbe_scominit_bars");
+    FAPI_TRY(p10_sbe_scominit_trace(i_target), "Error from p10_sbe_scominit_trace");
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");

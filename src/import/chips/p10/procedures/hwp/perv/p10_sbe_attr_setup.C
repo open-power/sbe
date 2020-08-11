@@ -313,6 +313,19 @@ fapi2::ReturnCode p10_sbe_attr_setup(
 
     FAPI_INF("p10_sbe_attr_setup: Entering ...");
 
+    // set core LPAR mode
+    {
+        fapi2::buffer<uint64_t> l_perv_ctrl0;
+        fapi2::ATTR_CORE_LPAR_MODE_Type l_attr_core_lpar_mode = fapi2::ENUM_ATTR_CORE_LPAR_MODE_LPAR_PER_THREAD;
+
+        FAPI_DBG("Read PERV_CTRL0 to set core LPAR mode");
+        FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_PERV_CTRL0_RW, l_perv_ctrl0));
+
+        l_attr_core_lpar_mode = l_perv_ctrl0.getBit<FSXCOMP_FSXLOG_PERV_CTRL0_TP_EX_SINGLE_LPAR_EN_DC>();
+
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CORE_LPAR_MODE, FAPI_SYSTEM, l_attr_core_lpar_mode));
+    }
+
     FAPI_DBG("Read Scratch8 for validity of Scratch register");
     FAPI_TRY(fapi2::getScom(i_target_chip,
                             FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RW,
