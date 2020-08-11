@@ -368,7 +368,18 @@ uint32_t sbePutRing(uint8_t *i_pArg)
             if ((l_multgrp == MC_GROUP_6) && (l_scanAddr & 0x00003FC0)) //Check if scan address belongs to ecl2/l3
             {
                 // Grab core select bits from scan address
-                int l_core_select = l_scanAddr >> ((l_scanAddr & 0x00003C00) ? 11 : 7);
+                int l_core_select = 0;
+                if (l_scanAddr & 0x00003C00) //ecl2
+                {
+                    l_rs4Header->iv_scanAddr = l_scanAddr & 0xFFFFE3FF;
+                    l_core_select = ( l_scanAddr & 0x00003C00 ) >> 10;
+                }
+                if (l_scanAddr & 0x000003C0) //l3
+                {
+                    l_rs4Header->iv_scanAddr = l_scanAddr & 0xFFFFFE3F;
+                    l_core_select = ( l_scanAddr & 0x000003C0 ) >> 6;
+                }
+
                 l_target = proc.getMulticast(fapi2::MCGROUP_GOOD, static_cast<fapi2::MulticastCoreSelect>(l_core_select));
             }
             else
