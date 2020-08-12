@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -226,7 +227,7 @@ inline uint16_t i2cGetBitRateDivisor(uint64_t i_bus_speed_khz,
                                      uint64_t i_local_bus_MHZ)
 {
   // Use tmp variable to convert everything to KHZ safely
-  uint64_t tmp = ( i_local_bus_MHZ / 16 ) * 1000;
+  uint64_t tmp = ( i_local_bus_MHZ  ) * 1000;
 
   return ( ( ( tmp / i_bus_speed_khz ) - 1 ) / 4 );
 }
@@ -575,16 +576,20 @@ ReturnCode i2cSetBusVariables(uint64_t speed,
     args.timeout_count = I2C_TIMEOUT_COUNT(args.polling_interval_ns);
     // TODO: In actual read the Freq from the attribute and set it.
     // This will be done while actual testing.
-#if 0
-    uint8_t l_attr_mc_pll_bucket = 0;
+    fapi2::ATTR_FREQ_PAU_MHZ_Type l_attr_freq_pau_mhz = 0;
     const Target<TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    FAPI_TRY(FAPI_ATTR_GET(ATTR_MC_PLL_BUCKET, FAPI_SYSTEM,
-                                           l_attr_mc_pll_bucket));
+    FAPI_TRY(FAPI_ATTR_GET(ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM,
+                                           l_attr_freq_pau_mhz));
+    FAPI_IMP("NEST Frequency is 0x%08X", l_attr_freq_pau_mhz);
     args.bit_rate_divisor = i2cGetBitRateDivisor(args.bus_speed,
-                                NEST_PLL_FREQ_I2CDIV_LIST[l_attr_mc_pll_bucket - 1]);
-#endif
-    args.bit_rate_divisor = i2cGetBitRateDivisor(args.bus_speed,
-                                60);
+                                l_attr_freq_pau_mhz/2);
+    FAPI_IMP("i2cSetBusVariables: Bus speed 0x%08X %08X", (args.bus_speed >> 32) & 0xFFFFFFFF,
+                                                          (args.bus_speed & 0xFFFFFFFF));
+    FAPI_IMP("i2cSetBusVariables: Polling interval 0x%08X %08X", (args.polling_interval_ns >> 32) & 0xFFFFFFFF,
+                                                          (args.polling_interval_ns & 0xFFFFFFFF));
+    FAPI_IMP("i2cSetBusVariables: Time out count 0x%08X %08X", (args.timeout_count >> 32) & 0xFFFFFFFF,
+                                                          (args.timeout_count & 0xFFFFFFFF));
+    FAPI_IMP("i2cSetBusVariables: Bit rate Divisor 0x%08X ", args.bit_rate_divisor);
     return FAPI2_RC_SUCCESS;
 fapi_try_exit:
     return current_err;
