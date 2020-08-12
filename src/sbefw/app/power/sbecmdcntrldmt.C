@@ -45,6 +45,9 @@
 
 using namespace fapi2;
 
+static const uint32_t CHECK_MASTER_STOP5_POLL_INTERVAL_NS = 1000000000;    // 1000 ms/1s
+static const uint32_t CHECK_MASTER_STOP5_POLL_INTERVAL_SIMICS = 100000000; // 100 ms
+
 ///////////////////////////////////////////////////////////////////////////////
 // Procedure function pointers
 p10_sbe_check_master_stop15_FP_t p10_sbe_check_master_stop15_hwp =
@@ -71,6 +74,7 @@ void sbeDmtPkExpiryCallback(void *)
     SBE_INFO (SBE_FUNC "DMT Callback Timer has expired.."
                        "No-Checkstop on the system for now"
                        "and FFDC will not be collected.");
+    SBE_INFO (SBE_FUNC "HALTING SBE! - NO-OP");
 #if 0
     // SBE async ffdc
     captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
@@ -127,7 +131,7 @@ uint32_t sbeCollectDeadmanFfdc (void)
 uint32_t sbeStartCntlDmt()
 {
     #define SBE_FUNC "sbeStartCntlDmt"
-    SBE_INFO(SBE_FUNC);
+    SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
     uint8_t fuseMode = 0;
@@ -148,6 +152,8 @@ uint32_t sbeStartCntlDmt()
         // Pass in the time in micro-second to the start timer interface
         // TODO - We need some kind of check here that it doesn't overflow
         // uint32 size
+#if 0   // step 16.1 HW PON BU Hack >>
+        // Do not time-out until the activate primary cores BU issues are fixed
         rc = g_sbe_pk_dmt_timer.startTimer( (uint32_t )req.timeValueMsec * 1000,
                                      (PkTimerCallback)&sbeDmtPkExpiryCallback );
 
@@ -158,6 +164,7 @@ uint32_t sbeStartCntlDmt()
                 "[0x%08X]", (uint32_t )req.timeValueMsec);
             rc = SBE_SEC_OPERATION_SUCCESSFUL;
         }
+#endif  // << step 16.1 HW PON BU Hack
 
         sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
         if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
@@ -228,15 +235,26 @@ uint32_t sbeStartCntlDmt()
 
         // Call HWP p10_sbe_check_master_stop15 in a loop as long as the timer is
         // active and HWP returns RC_STOP_TRANSITION_PENDING
+        SBE_INFO (SBE_FUNC "1. Entering Check Master Stop 15 Loop .. ");
         do
         {
             uint8_t coreCnt = 0;
+            uint8_t i = 0;
+            SBE_INFO (SBE_FUNC "Check Master Stop 15 Loop Iteration #%d", i++);
+
+            // P10 HW BU workaround .. wait for 1s
+            // Adding a higher delay here to mitigate any potential SCOM conflict
+            // related issue and give QME+SR enought time to enter stop15
+            SBE_INFO (SBE_FUNC "Waiting ~1 s before next poll on core(s) ..");
+            delay (CHECK_MASTER_STOP5_POLL_INTERVAL_NS, CHECK_MASTER_STOP5_POLL_INTERVAL_SIMICS);
+
             for(auto core : l_core_targets)
             {
                 // Skip calling on core that already entered stop15
                 if (rcFapi[coreCnt] == RC_STOP_TRANSITION_PENDING)
                 {
                     SBE_GLOBAL->deadmanCore = core.get().getTargetInstance();
+                    SBE_INFO (SBE_FUNC "Poll on core [%d]", SBE_GLOBAL->deadmanCore);
                     SBE_EXEC_HWP ( fapiRc,
                                    p10_sbe_check_master_stop15_hwp,
                                    core);
@@ -260,6 +278,8 @@ uint32_t sbeStartCntlDmt()
                         break;
                     }
                 }
+                // Adding a small delay before going to next core
+                pk_sleep(PK_MILLISECONDS(SBE_DMT_SLEEP_INTERVAL));
             } // Core loop for check master stop 15
             // Either Core failed or Both Cores succeeded
             if ( hwpFailed || ((FAPI2_RC_SUCCESS == rcFapi[0]) &&
@@ -269,9 +289,11 @@ uint32_t sbeStartCntlDmt()
             }
             // Wait if either or both cores are pending to enter stop 15
             // and no error on either cores
-            pk_sleep(PK_MILLISECONDS(SBE_DMT_SLEEP_INTERVAL));
-            // loop back only if timer is still active
-        }   while (g_sbe_pk_dmt_timer.isActive());
+            // pk_sleep(PK_MILLISECONDS(SBE_DMT_SLEEP_INTERVAL)); // alredy have 1s delay
+            // loop back forever, unless there was success/failure
+        }   while (1);
+
+        SBE_INFO (SBE_FUNC "2. Check Master Stop 15 Loop Passed??: %d", (hwpFailed)? true:false);
 
         if (hwpFailed)
         {
@@ -282,6 +304,8 @@ uint32_t sbeStartCntlDmt()
         // Use the count and address for Xscom sent by Host in the chip-op
         if(req.numXscoms)
         {
+            SBE_INFO (SBE_FUNC "3. p10_sbe_fbc_apply_rt_settings with %d XScoms", req.numXscoms);
+
             //As per IPL Doc, SBE should call p10_sbe_fbc_apply_rt_settings.C.
             //Also, we are ignoring the pre checks for master proc, HB_IPL and MPIPL.
             //All this will be handled by HB.
@@ -297,6 +321,7 @@ uint32_t sbeStartCntlDmt()
         }
         //Call p10_sbe_powerdown_backing_caches.C
         //Doorbell to the QMEs to have a “virtual” STOP 11 a “virtual” STOP 11
+        SBE_INFO (SBE_FUNC "4. Powering Down Backing Caches .. ");
         SBE_EXEC_HWP(fapiRc, p10_sbe_powerdown_backing_caches_hwp, procTgt);
         if(fapiRc != FAPI2_RC_SUCCESS)
         {
@@ -339,6 +364,7 @@ uint32_t sbeStartCntlDmt()
         // Entered stop15 and unblocked interrupts ..
         // Indicate the Host via Bit SBE_SBE2PSU_DOORBELL_SET_BIT2
         // that Stop15 exit
+        SBE_INFO (SBE_FUNC "5. Waking up HB master core .. ");
         rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT2);
         if(rc)
         {
