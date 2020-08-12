@@ -157,19 +157,16 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_DBG("PAU DPLL: Write frequency settings");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_pau_freq));
-    freq_calculated = ((l_attr_pau_freq * 24) / 25);
+    freq_calculated = (((l_attr_pau_freq + 1) * 3) / 50);
     FAPI_DBG("PAU_DPLL frequency calculation : %#018lX", freq_calculated);
 
     l_read_reg.flush<0>();
     l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMAX,
-                (proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMAX_LEN +
-                 proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_HIRES_FMAX_LEN) > (freq_calculated);
+                proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMAX_LEN > (freq_calculated);
     l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMULT,
-                (proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMULT_LEN +
-                 proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_HIRES_FMULT_LEN) > (freq_calculated);
+                proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMULT_LEN > (freq_calculated);
     l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMIN,
-                (proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMIN_LEN +
-                 proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_HIRES_FMIN_LEN) > (freq_calculated);
+                proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMIN_LEN > (freq_calculated);
     FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ, l_read_reg));
 
     FAPI_DBG("NEST DPLL: Initialize to mode1");
@@ -177,19 +174,16 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
 
     FAPI_DBG("NEST DPLL: Write frequency settings");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_CORE_BOOT_MHZ, i_target_chip, l_attr_core_boot_freq));
-    freq_calculated = ((l_attr_core_boot_freq * 24) / 25);
+    freq_calculated = (((l_attr_core_boot_freq + 1) * 3) / 50);
     FAPI_DBG("NEST_DPLL frequency calculation : %#018lX", freq_calculated);
 
     l_read_reg.flush<0>();
     l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMAX,
-                (proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMAX_LEN +
-                 proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_HIRES_FMAX_LEN) > (freq_calculated);
+                proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMAX_LEN > (freq_calculated);
     l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMULT,
-                (proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMULT_LEN +
-                 proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_HIRES_FMULT_LEN) > (freq_calculated);
+                proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMULT_LEN > (freq_calculated);
     l_read_reg. insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMIN,
-                (proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMIN_LEN +
-                 proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_HIRES_FMIN_LEN) > (freq_calculated);
+                proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ_FMIN_LEN > (freq_calculated);
     FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_FREQ, l_read_reg));
 
     FAPI_DBG("PAU DPLL, NEST DPLL : Switch to internal clocks");
