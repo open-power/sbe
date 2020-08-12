@@ -57,7 +57,7 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
 
     l_torHeader     =   (TorHeader_t*) ( i_pImgPtr + rev_32( l_pSection->iv_offset) );
 
-    FAPI_ASSERT( TOR_MAGIC_SBE == rev_32( l_torHeader->magic ),
+    FAPI_ASSERT( TOR_MAGIC == (rev_32( l_torHeader->magic ) >> 8),
                  fapi2::INVALID_RING_CHIPLET_SECTION()
                  .set_TOR_MAGIC_WORD( l_torHeader->magic ),
                  "Invalid Offset To Chiplet Section 0x%08x Magic Word 0x%08x",
