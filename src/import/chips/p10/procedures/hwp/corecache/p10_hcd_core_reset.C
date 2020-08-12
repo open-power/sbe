@@ -76,28 +76,29 @@ p10_hcd_core_reset(
 {
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-    uint32_t                l_regions  = i_target.getCoreSelect();
     fapi2::buffer<buffer_t> l_mmioData = 0;
+    fapi2::buffer<uint64_t> l_scomData = 0;
+    uint32_t                l_regions  = i_target.getCoreSelect();
+
+    l_regions  = ( l_regions << SHIFT32(8) ) | ( l_regions << SHIFT32(18) );
 
     FAPI_INF(">>p10_hcd_core_reset");
 
     FAPI_DBG("Switch ECL2 Glsmux to DPLL via CPMS_CGCSR[11:CL2_CLKGLM_SEL]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(11) ) );
 
-    FAPI_DBG("ECL2 sector buffer control");
-    // RTC: 208213  to determine if any value other than 0 is needed
+    FAPI_DBG("ECL2 sector buffer strength is left as default 0");
 
     FAPI_DBG("Drop ECL2 Glsmux Reset via CPMS_CGCSR[8:CL2_CLKGLM_ASYNC_RESET]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_CLEAR, MMIO_1BIT(8) ) );
 
-    //TODO DELAY before scan?
-
     FAPI_DBG("Assert sram_enable via CPMS_CL2_PFETCNTL[63:SRAM_ENABLE]");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, MMIO_LOWADDR(CPMS_CL2_PFETCNTL_WO_OR), MMIO_1BIT( MMIO_LOWBIT(63) ) ) );
 
-    //TODO SCAN ratio?
+    FAPI_DBG("Drop TC_REGION0_DFT_FENCE_DC via CPLT_CTRL5[5-8:ECL2_FENCES,15:18:MMA_FENCES] to regions 0x%08X", l_regions);
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL5_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );
 
-    FAPI_TRY( p10_hcd_corecache_realign(eq_target, ( ( l_regions << SHIFT32(8) ) | ( l_regions << SHIFT32(18) ) ) ) );
+    FAPI_TRY( p10_hcd_corecache_realign( eq_target, l_regions ) );
 
 #ifndef __PPE_QME
 
