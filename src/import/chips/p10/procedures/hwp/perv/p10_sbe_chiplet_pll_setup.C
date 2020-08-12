@@ -47,7 +47,7 @@
 
 enum P10_SBE_CHIPLET_PLL_SETUP_Private_Constants
 {
-    OPCG_ALIGN_INOP_ALIGN_VAL = 0x5, // INOP phase alignment - 8:1
+    OPCG_ALIGN_INOP_ALIGN_VAL = 0x7, // INOP phase alignment - 16:1
     OPCG_ALIGN_INOP_WAIT_VAL = 0x0,
     OPCG_ALIGN_SCANRATIO_4to1 = 0x03,
     OPCG_ALIGN_WAIT_CYCLES_VAL = 0x020,
