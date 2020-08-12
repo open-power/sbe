@@ -29,7 +29,6 @@
 #include <fapi2.H>
 #include <p10_scom_c.H>
 #include <p10_scom_perv.H>
-#include <p10_scom_c_c_unused.H> // For NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG
 #include <p10_perv_sbe_cmn.H>
 #include <multicast_group_defs.H>
 #include <multicast_defs.H>
