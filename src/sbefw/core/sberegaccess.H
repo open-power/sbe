@@ -144,6 +144,17 @@ class SbeRegAccess
         {
             return iv_istepMode;
         }
+        
+        /**
+         * @brief Check if architected data collection in 
+         * MPIPL path needs to be skipped.
+         * @return true if skip dump collection, false otherwise
+         *
+         */
+        inline bool isSkipMpiplDump() const
+        {
+            return iv_skipMpiplDumpCollection;
+        }
 
         /**
          * @brief Check if SBE should directly go to runtime state
@@ -301,7 +312,9 @@ class SbeRegAccess
                 uint64_t iv_dontCheckStopForDMT : 1;
                 uint64_t iv_disableScomFiltering : 1;
                 uint64_t iv_disableInvalidScomAddrCheck : 1;
-                uint64_t iv_mbx3DontCare2 : 19;
+                uint64_t iv_mbx3DontCare2 : 2;
+                uint64_t iv_skipMpiplDumpCollection : 1;
+                uint64_t iv_mbx3DontCare3 : 16;
                 uint64_t iv_mbx3Unused : 32;
             };
             uint64_t iv_mbx3;

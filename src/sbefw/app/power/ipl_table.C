@@ -34,6 +34,7 @@
 #include "sbestates.H"
 #include "sbecmdcntrldmt.H"
 #include "sbeglobals.H"
+#include "sbearchregdump.H"
 // TODO Workaround
 #include "plat_target_parms.H"
 
@@ -199,6 +200,7 @@ ReturnCode istepLpcInit( voidfuncptr_t i_hwp );
 ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp);
 ReturnCode istepAttrSetup( voidfuncptr_t i_hwp );
 ReturnCode istepNoOp( voidfuncptr_t i_hwp );
+ReturnCode istepCollectArcRegData(voidfuncptr_t i_hwp);
 ReturnCode istepWithEq( voidfuncptr_t i_hwp);
 ReturnCode istepWithCore( voidfuncptr_t i_hwp);
 ReturnCode istepWithCoreStart( voidfuncptr_t i_hwp);
@@ -243,9 +245,8 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             // scom state and call instruction control. Also mask spl attention
             // from core.
             ISTEP_MAP( istepWithCoreState, NULL ),
-            //  Reset the TPM is not done as separate istep. It will be done
-            //  as part of measurement seeprom boot flow.
-            ISTEP_MAP( istepNoOp, NULL ),
+            // Collect Architected Register data
+            ISTEP_MAP( istepCollectArcRegData, NULL ),
             // L2 cache flush via purge engine on each EX
             ISTEP_MAP( istepWithCoreL2Flush, p10_l2_flush ),
             // L3 cache flush via purge engine on each EX
@@ -691,6 +692,29 @@ ReturnCode istepNoOp( voidfuncptr_t i_hwp)
     SBE_INFO("istepNoOp");
     return FAPI2_RC_SUCCESS ;
 }
+
+//----------------------------------------------------------------------------
+ReturnCode istepCollectArcRegData( voidfuncptr_t i_hwp)
+{
+    SBE_ENTER("istepCollectArcRegData");
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    if (!SbeRegAccess::theSbeRegAccess().isSkipMpiplDump())
+    {
+        fapiRc = sbeDumpArchRegs();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "Failed in sbeDumpArchRegs()");
+        }
+    }
+    else
+    {
+        SBE_INFO("Caller disabled collection of Architected data via Bit15(0x5003A)");
+    }
+    SBE_EXIT("istepCollectArcRegData");
+    return fapiRc;
+}
+
+
 
 /*
  * end PIBMEMCODE -----------------------------------------------
