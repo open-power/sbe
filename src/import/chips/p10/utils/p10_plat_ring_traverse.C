@@ -71,6 +71,20 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                   false,
                                   i_ringMode) );
 
+    //Scan Override rings if Present
+    l_pSection    =   &l_imgHdr->iv_section[P9_XIP_SECTION_SBE_OVERRIDES];
+
+    if( !rev_32(l_pSection->iv_size) )
+    {
+        goto fapi_try_exit;
+    }
+
+    FAPI_TRY( getRS4ImageFromTor( i_target,
+                                  (i_pImgPtr + rev_32( l_pSection->iv_offset)),
+                                  i_ringId,
+                                  false,
+                                  i_ringMode) );
+
     FAPI_INF( "<< lookUpRingSection" );
 fapi_try_exit:
     return fapi2::current_err;
