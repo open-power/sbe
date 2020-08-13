@@ -445,24 +445,28 @@ extern "C" {
         FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
                  ISTEP3_MC_GROUPS));
 
-        if (!chc && is_dump_ipl)
+        if (is_dump_ipl)
         {
             using namespace scomt::perv;
             const auto all = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
             const uint64_t istep3_sync_config = 0xa800000000000000;
 
-            // EQs are started sequentially in a cache-contained RUNN and other
-            // synchronous chiplets remain clocked-off resulting in different
-            // phase counter values in SYNC_CONFIG. This needs to be cleaned up
-            // before calling sbe_startclocks during a reeeeee-IPL to prevent a
-            // multicast read-compare of the SYNC_CONFIG register to fail.
-            // We also need to mask xstop inputs to the OPCG since we do not
-            // re-initialize that logic as part of a contained IPL.
             for (auto const& cplt : all.getChildren<fapi2::TARGET_TYPE_PERV>())
             {
-                FAPI_TRY(PREP_SYNC_CONFIG(cplt));
-                FAPI_TRY(PUT_SYNC_CONFIG(cplt, istep3_sync_config));
+                // EQs are started sequentially in a cache-contained RUNN and
+                // other synchronous chiplets remain clocked-off resulting in
+                // different phase counter values in SYNC_CONFIG. This needs to
+                // be cleaned up before calling sbe_startclocks during a
+                // reeeeee-IPL to prevent a multicast read-compare of the
+                // SYNC_CONFIG register to fail.
+                if (!chc)
+                {
+                    FAPI_TRY(PREP_SYNC_CONFIG(cplt));
+                    FAPI_TRY(PUT_SYNC_CONFIG(cplt, istep3_sync_config));
+                }
 
+                // Mask xstop inputs to the OPCG since we do not re-initialize
+                // that logic as part of a contained IPL.
                 FAPI_TRY(PREP_XSTOP1(cplt));
                 FAPI_TRY(PUT_XSTOP1(cplt, 0));
             }
