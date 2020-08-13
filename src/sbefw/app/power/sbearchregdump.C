@@ -485,12 +485,8 @@ ReturnCode sbeDumpArchRegs()
                     //failed
                     if(dumpRegData.isFfdcPresent)
                     {
-
-                        //Read the Global FFDC contents 
-                        SbeFFDCPackage sbeFfdcPack;
-                        sbeFfdcPack.collectAsyncHwpFfdc();
-
-                        SBE_ERROR("FAPI_RC=0x%.8x and FFDC Length =0x%.8x",
+                        //g_FfdcData Will have FFDC data collected on failure
+                        SBE_INFO("FAPI_RC=0x%.8x and FFDC Length =0x%.8x",
                                   g_FfdcData.fapiRc,g_FfdcData.ffdcLength);
 
                         //Write Length of FFDC
