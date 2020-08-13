@@ -401,14 +401,13 @@ ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    assert( NULL != i_hwp );
+    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+
     g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeMaster() ?
                     SBE_ROLE_MASTER : SBE_ROLE_SLAVE;
-
     if(SBE_ROLE_MASTER == g_sbeRole)
     {
-        assert( NULL != i_hwp );
-        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
-
         SBE_UART_INIT;
         SBE_MSG_CONSOLE( SBE_CONSOLE_WELCOME_MSG );
     }
@@ -1131,23 +1130,20 @@ ReturnCode istepMpiplQuadPoweroff( voidfuncptr_t i_hwp)
 #define SBE_FUNC "istepMpiplQuadPoweroff"
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-    if(g_sbeRole == SBE_ROLE_MASTER)
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
+        fapi2::MULTICAST_AND > mc_cores;
+    mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+    SBE_DEBUG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",mc_cores.get());
+    do
     {
-        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-        fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
-                      fapi2::MULTICAST_AND > mc_cores;
-        mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
-        SBE_DEBUG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",mc_cores.get());
-        do
-        {
-            SBE_EXEC_HWP(fapiRc, reinterpret_cast<sbeIstepHwpQuadPoweroff_t>(i_hwp),mc_cores)
+        SBE_EXEC_HWP(fapiRc, reinterpret_cast<sbeIstepHwpQuadPoweroff_t>(i_hwp),mc_cores)
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR(SBE_FUNC "p10_hcd_mma_poweroff() failed, fapiRc=[0x%08X]", fapiRc);
+                SBE_ERROR(SBE_FUNC "p10_hcd_ecl2_l3_poweroff() failed, fapiRc=[0x%08X]", fapiRc);
                 break;
             }
-        }while(0);
-    }
+    }while(0);
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
 #undef SBE_FUNC
