@@ -143,7 +143,6 @@ fapi2::ReturnCode set_hb_dcbz_config(
 
     l_mcfirmask.flush<1>();
     PREP_SCOMFIR_MCFIR_RW(i_target_mc);
-    CLEAR_SCOMFIR_MCFIR_COMMAND_LIST_TIMEOUT(l_mcfirmask);
     CLEAR_SCOMFIR_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR(l_mcfirmask);
     CLEAR_SCOMFIR_MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR(l_mcfirmask);
     CLEAR_SCOMFIR_MCFIR_POWERBUS_PROTOCOL_ERROR(l_mcfirmask);
