@@ -52,7 +52,8 @@
 #include "p10_scom_eq_3.H"
 
 using namespace fapi2;
-static const uint64_t P10_SPATTN_MASK = 0x20040002;
+static const uint64_t P10_SPATTN_MASK_RO = 0x20040002;
+static const uint64_t P10_SPATTN_MASK_WO = 0x20040052;
 static const uint32_t PEC_PHB_BIT_SHIFT = 55;
 static const uint64_t PEC_PHB_BIT_MASK = 0x1ULL;
 
@@ -70,19 +71,20 @@ ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target )
     {
         uint64_t maskData = 0;
         const  uint64_t ecMask = 0x7FFF80000000000; //Bit 5..20 
-        rc = getscom_abs_wrap (&i_target, P10_SPATTN_MASK, &maskData );
+        rc = getscom_abs_wrap (&i_target, P10_SPATTN_MASK_RO, &maskData );
         if( rc )
         {
-            SBE_ERROR(SBE_FUNC" Failed to read P10_SPATTN_MASK(0x20040002)");
+            SBE_ERROR(SBE_FUNC" Failed to read P10_SPATTN_MASK_RO(0x20040002)");
             break;
         }
         maskData = maskData | ecMask;
-        rc = putscom_abs_wrap (&i_target, P10_SPATTN_MASK, maskData );
+        rc = putscom_abs_wrap (&i_target, P10_SPATTN_MASK_WO, maskData );
         if( rc )
         {
-            SBE_ERROR(SBE_FUNC" Failed to write P10_SPATTN_MASK(0x20040002)");
+            SBE_ERROR(SBE_FUNC" Failed to write P10_SPATTN_MASK_WO(0x20040052)");
             break;
         }
+
     }while(0);
     SBE_EXIT(SBE_FUNC);
     return rc;
