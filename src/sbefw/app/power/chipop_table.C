@@ -47,6 +47,7 @@
 #include "chipop_handler.H"
 #include "sbecmdgeneric.H"
 #include "istep.H"
+#include "sbecmddump.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
@@ -248,6 +249,18 @@ CMD_ARR(
     {sbeControlTraceArray,
      SBE_CMD_CONTROL_TRACE_ARRAY,
      SBE_FENCE_AT_QUIESCE,
+    }
+)
+
+//////////////////////////////////////////////////////////////
+//// @brief g_sbeSbeDumpCmdArray
+////
+////////////////////////////////////////////////////////////////
+CMD_ARR(
+    AA,
+    {sbeGetDump,
+     SBE_CMD_GET_DUMP,
+     SBE_NO_FENCE,
     }
 )
 

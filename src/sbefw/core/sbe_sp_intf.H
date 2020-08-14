@@ -173,6 +173,16 @@ enum sbeMpIplCommands
     SBE_CMD_GET_TI_INFO      = 0x04, /* Get TI Info */
 };
 
+
+/**
+ * @brief enums for SBE Dump.
+ *
+*/
+enum sbeDumpCommands
+{
+    SBE_CMD_GET_DUMP = 0x01, /* Get Dump */
+};
+
 /**
  * @brief enums for primary SBE response
  *
@@ -247,6 +257,7 @@ enum sbeSecondaryResponse
     SBE_SEC_ENTER_MPIPL_FAILED                = 0X36,
     SBE_SEC_STOP_CLOCK_FAILED                 = 0x37,
     SBE_SEC_OCMB_SCOM_FAILED                  = 0x38,
+    SBE_SEC_GET_DUMP_FAILED                   = 0x39,
 };
 
 /**

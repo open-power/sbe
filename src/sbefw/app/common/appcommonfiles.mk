@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -26,6 +26,7 @@ APPCOMMONPIBMEM-CPP-SOURCES  = sbecmdscomaccess.C
 APPCOMMONPIBMEM-CPP-SOURCES += sbecmdringaccess.C
 APPCOMMONPIBMEM-CPP-SOURCES += sbecmdCntrlTimer.C
 APPCOMMONPIBMEM-CPP-SOURCES += sbecmdgeneric.C
+APPCOMMONPIBMEM-CPP-SOURCES += sbecmddump.C
 
 APPCOMMONPIBMEM-C-SOURCES =
 APPCOMMONPIBMEM-S-SOURCES =

@@ -814,4 +814,13 @@ typedef struct
          return data;
      }
 }sbePutHWRegReqMsg_t;
+
+/**
+ * @brief Structure for GetDump Chip-op (0xAA01)
+ */
+typedef struct
+{
+    uint32_t dumpType;
+}sbeGetDumpReq_t;
+
 #endif // __SBEFW_SBESP_MSG_H

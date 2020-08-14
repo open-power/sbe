@@ -98,6 +98,10 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         sbe-istep 5.2 5.3
 
+        echo "*******************Run testGetDump.py*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testGetDump.py
+
         echo "*******************Run testSram.py *******************"
 
         run-python-file targets/p10_standalone/sbeTest/testSram.py
@@ -187,7 +191,6 @@ foreach $proc in (get-component-list -all proc_p10) {
         echo "*******************Run testQuiesce.xml*******************"
 
         run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
-
     }
 }
 #TODO: Remove exit
