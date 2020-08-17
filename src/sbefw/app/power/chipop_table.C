@@ -361,6 +361,11 @@ CMD_ARR(
     {sbeSecurityListBinDump,
      SBE_PSU_GENERIC_MSG_SECURITY_LIST_BIN_DUMP,
      SBE_NO_FENCE,
+    },
+
+    {sbeUpdateOCMBTarget,
+     SBE_PSU_GENERIC_MSG_UPDATE_OCMB_TARGET,
+     SBE_NO_FENCE,
     }
 )
 

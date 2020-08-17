@@ -303,6 +303,15 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
         if(msg.targetType == TARGET_OCMB_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "OCMB GET SCOM");
+            //Validate OCMB instance ID.
+            if(!msg.validateOCMBInstance())
+            {
+                SBE_ERROR(SBE_FUNC"Invalid OCMB Instance ID 0x%08X",
+                    (uint8_t)msg.targetInstance);
+                hdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                              SBE_SEC_INVALID_OCMB_INSTANCE);
+                break;
+            }
             Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
                   <fapi2::TARGET_TYPE_OCMB_CHIP>(msg.targetInstance);
             SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",msg.targetInstance, l_hndl.get());
@@ -415,6 +424,15 @@ uint32_t sbePutHWReg(uint8_t *i_pArg)
         if(msg.hwRegMsg.targetType == TARGET_OCMB_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "OCMB PUT SCOM");
+            //Validate OCMB instance ID.
+            if(!msg.hwRegMsg.validateOCMBInstance())
+            {
+                SBE_ERROR(SBE_FUNC"Invalid OCMB Instance ID 0x%08X",
+                    (uint8_t)msg.hwRegMsg.targetInstance);
+                hdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                              SBE_SEC_INVALID_OCMB_INSTANCE);
+                break;
+            }
             Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
                   <fapi2::TARGET_TYPE_OCMB_CHIP>(msg.hwRegMsg.targetInstance);
             SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",msg.hwRegMsg.targetInstance, l_hndl.get());

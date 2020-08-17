@@ -50,7 +50,7 @@ namespace fapi2
     ReturnCode plat_TargetsInit();
 
     /// @brief Function to initialize the G_targets vector for OCMB targets
-    /// based on UpdateOCMBTarget chip-op. 
+    /// based on UpdateOCMBTarget chip-op.
     void plat_OCMBTargetsInit(uint8_t * ocmbParams);
 
     /// @brief Initializes all platInit attributes (the values for which come

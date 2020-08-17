@@ -99,6 +99,12 @@ typedef struct
     uint64_t address;
 } sbePsuGetCapabilitiesReq_t;
 
+//SBE PSU Update OCMB target request.
+typedef struct
+{
+    uint8_t omcbParam[24];
+} sbePsuUpdateOcmbTargetReq_t;
+
 /**
  * @brief Update Fifo capabilities
  *
@@ -206,3 +212,12 @@ uint32_t sbePsuGetCapabilities(uint8_t *i_pArg);
  * @return    Rc from the Psu access utility
  */
 uint32_t sbeSecurityListBinDump(uint8_t *i_pArg);
+
+/**
+ * @brief SBE Psu Update OCMB target list (0xD709)
+ *
+ * @param[in] i_pArg Buffer to be passed to the function.
+ *
+ * @return    Rc from the Psu access utility
+ */
+uint32_t sbeUpdateOCMBTarget(uint8_t *i_pArg);

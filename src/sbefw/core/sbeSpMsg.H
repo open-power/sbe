@@ -792,6 +792,15 @@ typedef struct
          uint64_t io_scomAddr = ((uint64_t)hiAddr << 32) | lowAddr;
          return io_scomAddr;
      }
+     /**
+       * @brief Validate OCMB target instance.
+       *
+       * @param[in/out] true incase of valid instance, else false.
+       */
+       bool validateOCMBInstance()
+       {
+           return (targetInstance >= 0 && targetInstance < OCMB_TARGET_COUNT)?true:false;
+       }
 }sbeGetHWRegReqMsg_t;
 
 /**

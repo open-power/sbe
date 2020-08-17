@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -104,6 +104,7 @@ enum sbePsuGenericMessages
     SBE_PSU_GENERIC_MSG_SYSTEM_FABRIC_MAP  = 0x06,
     SBE_PSU_GENERIC_MSG_STASH_MPIPL_CONFIG = 0x07,
     SBE_PSU_GENERIC_MSG_SECURITY_LIST_BIN_DUMP  = 0x08,
+    SBE_PSU_GENERIC_MSG_UPDATE_OCMB_TARGET = 0x09,
     SBE_PSU_GENERIC_MSG_UNKNOWN            = 0xFF,
 };
 

@@ -282,6 +282,7 @@ enum sbeSecondaryResponse
     SBE_SEC_OCMB_SCOM_FAILED                  = 0x38,
     SBE_SEC_GET_DUMP_FAILED                   = 0x39,
     SBE_SEC_INVALID_DUMP_TYPE                 = 0x40,
+    SBE_SEC_INVALID_OCMB_INSTANCE             = 0x41,
 };
 
 /**

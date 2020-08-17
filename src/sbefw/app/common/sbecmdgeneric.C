@@ -663,4 +663,44 @@ uint32_t sbeReadMem( uint8_t *i_pArg )
     return rc;
     #undef SBE_FUNC
 }
+
+//----------------------------------------------------------------------------
+uint32_t sbeUpdateOCMBTarget( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbeUpdateOCMBTarget"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+
+    sbePsuUpdateOcmbTargetReq_t req = {};
+
+    do
+    {
+        // Extract the request.
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                  (sizeof(req)/sizeof(uint64_t)),
+                                  (uint64_t*)&req,
+                                   true);
+
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to extract SBE_HOST_PSU_MBOX_REG1, "
+                    "SBE_HOST_PSU_MBOX_REG2 and SBE_HOST_PSU_MBOX_REG3 %d", rc);
+            break;
+        }
+
+        //update the G_vec list with the req message.
+        plat_OCMBTargetsInit(reinterpret_cast<uint8_t *>(&req));
+
+    }while(0);
+
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+    if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+    {
+        SBE_ERROR( SBE_FUNC"Failed to write SBE_HOST_PSU_MBOX_REG4. rc[0x%X]", rc);
+    }
+    return rc;
+    #undef SBE_FUNC
+}
 #endif //not __SBEFW_SEEPROM__

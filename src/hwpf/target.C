@@ -37,9 +37,9 @@
 #define PERV_SB_CS_SELECT_SECONDARY_SEEPROM 17
 #define N1_PG_NMMU1_BIT                     17
 
-#define OCMB_ENGINE_OFFSET    16
-#define OCMB_DEVADDR_OFFSET   17
-#define OCMB_FUNCSTATE_OFFSET 18
+#define PSU_REGS_OCMB_ENGINE_OFFSET    16
+#define PSU_REGS_OCMB_DEVADDR_OFFSET   17
+#define PSU_REGS_OCMB_FUNCSTATE_OFFSET 18
 
 #if defined __SBEFW_PIBMEM__
 // Global Vector containing ALL targets.  This structure is referenced by
@@ -914,7 +914,7 @@ fapi_try_exit:
         //{
         //    FAPI_ERR("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
         //}
-        
+
 fapi_try_exit:
         return fapi2::current_err;
     }
@@ -929,9 +929,9 @@ fapi_try_exit:
                 break;
             }
             //Get the Engine from the ocmbParams.
-            uint8_t engine = *(ocmbParams + OCMB_ENGINE_OFFSET);
-            uint8_t devAddr = *(ocmbParams + OCMB_DEVADDR_OFFSET);
-            uint16_t funcState = *((uint16_t *)(ocmbParams + OCMB_FUNCSTATE_OFFSET));
+            uint8_t engine = *(ocmbParams + PSU_REGS_OCMB_ENGINE_OFFSET);
+            uint8_t devAddr = *(ocmbParams + PSU_REGS_OCMB_DEVADDR_OFFSET);
+            uint16_t funcState = *((uint16_t *)(ocmbParams + PSU_REGS_OCMB_FUNCSTATE_OFFSET));
             FAPI_IMP("Engine : 0x%02X, Device Address: 0x%02X, Func State 0x%04X",
                   engine, devAddr, funcState);
             // Update the G_VEC for the OCMB targets.
