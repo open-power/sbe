@@ -42,7 +42,6 @@
 #include "p10_sbe_powerdown_backing_caches.H"
 #include "p10_block_wakeup_intr.H"
 #include "sbecmdexitcachecontained.H"
-
 using namespace fapi2;
 
 static const uint32_t CHECK_MASTER_STOP5_POLL_INTERVAL_NS = 1000000000;    // 1000 ms/1s
@@ -385,6 +384,12 @@ uint32_t sbeStartCntlDmt()
         if(rc)
         {
             SBE_ERROR(SBE_FUNC "Failed to Write SBE_SBE2PSU_DOORBELL_SET_BIT2");
+        }
+        else
+        {
+            //Update teh Global variable which indicates the SBE has completed
+            //DMT state
+            SBE_GLOBAL->sbeDmtStateComplete = 0x1;
         }
     }   while(0); // Outer loop
 

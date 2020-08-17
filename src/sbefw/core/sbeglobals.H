@@ -128,6 +128,9 @@ class SBEGlobalsSingleton
         static uint8_t  failedCmdClass;
         static uint8_t  failedCmd;
 
+        //Indicate DMT State completion
+        uint32_t sbeDmtStateComplete;
+
         ////////////////////////////////////////////////////////////////
         //// @brief PkThread structure for SBE Command Receiver thread
         //////////////////////////////////////////////////////////////////
@@ -156,7 +159,8 @@ class SBEGlobalsSingleton
             sbeSemAsyncProcess(),
             SBERole(SBE_ROLE_MASTER),
             sbefreq(( 133 * 1000 * 1000)/SBE::SBE_TO_NEST_FREQ_FACTOR),
-            sbeFWSecurityEnabled(1)
+            sbeFWSecurityEnabled(1),
+            sbeDmtStateComplete(0)
         {
         }
 };

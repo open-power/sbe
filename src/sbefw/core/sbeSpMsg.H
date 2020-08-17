@@ -35,7 +35,10 @@
 
 #include "sbe_sp_intf.H"
 #include "p10_adu_utils.H"
+#include "sberegaccess.H"
+#include "sbestates.H"
 
+using namespace fapi2;
 // @NOTE Make sure all FIFO structures are 32 bit alligned ( the largest
 // member should be atleast 4 byte). It is required as in sbe fifo
 // operation we are casting these structures to uint32_t pointer. It can
@@ -650,29 +653,7 @@ typedef struct
       */
     void processInputDataToIterate(uint8_t & o_core,
                                    uint8_t & o_coreCntMax,
-                                   uint8_t & o_threadMask)
-    {
-        //Default Init
-        o_threadMask = SMT4_THREAD_ALL;
-        o_core = SMT4_CORE0_ID;
-        o_coreCntMax = SMT4_CORE_ID_LAST+1;
-
-        if( SMT4_ALL_CORES != coreId )
-        {
-            o_core = coreId;
-            o_coreCntMax = coreId;
-        }
-        if( SMT4_THREAD_ALL != threadId )
-        {
-            o_threadMask = (SINGLE_THREAD_BIT_MASK >> threadId);
-            // If all thread then default mask is already initialised with 1111b
-            // all threads  -> 1111b
-            // else thread0 -> 1000b
-            // else thread1 -> 0100b
-            // else thread2 -> 0010b
-            // else thread3 -> 0001b
-        }
-    }
+                                   uint8_t & o_threadMask);
 
     // Z/DFT Only use-case, We need to involve the DFT and Z team to update
     // this use-case, till then we keep this here. Power will ignore this
