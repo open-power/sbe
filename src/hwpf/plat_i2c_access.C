@@ -737,9 +737,15 @@ namespace fapi2
                            std::vector<uint8_t>& o_data )
     {
         ReturnCode rc = FAPI2_RC_SUCCESS;
-        // TODO: Read the OCMB attribute and populate the structure
-        // based on OCMB instance.
+        FAPI_IMP("platGetI2c: Input OCMB target passed is 0x%08X", target.get());
         misc_args_t args;
+        // Derive the port, engine and deviceaddress from input target.
+        uint32_t trgt = (target.get());
+        args.port = (uint8_t)((trgt >> 16) & 0xFF);
+        args.engine = (uint8_t)((trgt >> 8) & 0xFF);
+        args.devAddr = (uint8_t)(trgt & 0xFF);
+        FAPI_IMP("platGetI2c OCMB Port: %02X Engine: %02X DevAddr: %02x set",
+                       args.port, args.engine, args.devAddr);
         do {
             rc = i2cSetBusVariables(400, args);
             if(rc != FAPI2_RC_SUCCESS)
@@ -799,9 +805,15 @@ namespace fapi2
     {
         ReturnCode rc = FAPI2_RC_SUCCESS;
 
-        // TODO: Read the OCMB attribute and populate the structure
-        // based on OCMB instance.
+        FAPI_IMP("platPutI2c Input OCMB target passed is 0x%08X", target.get());
         misc_args_t args;
+        // Derive the port, engine and deviceaddress from input target.
+        uint32_t trgt = (target.get());
+        args.port = (uint8_t)((trgt >> 16) & 0xFF);
+        args.engine = (uint8_t)((trgt >> 8) & 0xFF);
+        args.devAddr = (uint8_t)(trgt & 0xFF);
+        FAPI_IMP("platPutI2c OCMB Port: %02X Engine: %02X DevAddr: %02x set.", 
+                       args.port, args.engine, args.devAddr);
         do {
             rc = i2cSetBusVariables(400, args);
             if(rc != FAPI2_RC_SUCCESS)

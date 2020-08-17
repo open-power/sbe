@@ -37,6 +37,10 @@
 #define PERV_SB_CS_SELECT_SECONDARY_SEEPROM 17
 #define N1_PG_NMMU1_BIT                     17
 
+#define OCMB_ENGINE_OFFSET    16
+#define OCMB_DEVADDR_OFFSET   17
+#define OCMB_FUNCSTATE_OFFSET 18
+
 #if defined __SBEFW_PIBMEM__
 // Global Vector containing ALL targets.  This structure is referenced by
 // fapi2::getChildren to produce the resultant returned vector from that
@@ -457,6 +461,15 @@ fapi_try_exit:
         return G_vec_targets[i_targetNum + CORE_TARGET_OFFSET];
     }
 
+    // Get plat target handle by instance number - For OCMB targets
+    template <>
+    plat_target_handle_t plat_getOCMBTargetHandleByInstance<TARGET_TYPE_OCMB_CHIP>(
+            const uint8_t i_targetNum)
+    {
+        assert(i_targetNum < OCMB_TARGET_COUNT);
+
+        return G_vec_targets[i_targetNum + OCMB_TARGET_OFFSET];
+    }
 
     TargetType plat_target_handle_t::getFapiTargetType() const
     {
@@ -656,6 +669,7 @@ fapi_try_exit:
                 if (target.fields.chiplet_num == ref.fields.chiplet_num)
                 {
                     target.setFunctional(pg != 0xFFFFFFFF);
+                    break;
                 }
             }
         }
@@ -706,7 +720,6 @@ fapi_try_exit:
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, nest1Perv, pg));
             G_vec_targets[NMMU_TARGET_OFFSET + 1].setFunctional(!pg.getBit(N1_PG_NMMU1_BIT));
         }
-
     fapi_try_exit:
         return fapi2::current_err;
     }
@@ -721,6 +734,13 @@ fapi_try_exit:
     {
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         plat_target_handle_t l_platHandle;
+
+        //TODO: Remove once UpdateOCMBTarget chip-op is enabled.
+        //This data will from that chip-op.
+        uint8_t mReg[24] = {0x00, 0x1A, 0x2B, 0x39, 0x4C, 0x5D, 0x68, 0x77,
+                             0x8F, 0x92, 0xA1, 0xBE, 0xC3, 0xD6, 0xE5, 0xF4,
+                             0x03, 0x40, 0xFF, 0xFF, 0x0, 0x0, 0x0, 0x0};
+        uint8_t *ocmbParam = mReg;
 
         // Initialize multicast group mappings to "undefined"
         clear_mc_map();
@@ -874,14 +894,55 @@ fapi_try_exit:
             G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_NMMU>(i);
         }
 
+        plat_OCMBTargetsInit(ocmbParam);
+
         // Debug Code - Don't Remove
         //for(uint32_t i=0;i< TARGET_COUNT;i++)
         //{
         //    FAPI_ERR("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
         //}
-
+        
 fapi_try_exit:
         return fapi2::current_err;
+    }
+
+    void plat_OCMBTargetsInit(uint8_t * ocmbParams)
+    {
+        do
+        {
+            if(ocmbParams == NULL)
+            {
+                SBE_ERROR("OCMB Parameters can not be NULL");
+                break;
+            }
+            //Get the Engine from the ocmbParams.
+            uint8_t engine = *(ocmbParams + OCMB_ENGINE_OFFSET);
+            uint8_t devAddr = *(ocmbParams + OCMB_DEVADDR_OFFSET);
+            uint16_t funcState = *((uint16_t *)(ocmbParams + OCMB_FUNCSTATE_OFFSET));
+            FAPI_IMP("Engine : 0x%02X, Device Address: 0x%02X, Func State 0x%04X",
+                  engine, devAddr, funcState);
+            // Update the G_VEC for the OCMB targets.
+            for(uint32_t i = 0; i < OCMB_TARGET_COUNT; i++ )
+            {
+                //Get the instance and port number; Instance:Port 4:4
+                FAPI_IMP("OCMB Param[%d] is 0x%02X", i, *(ocmbParams + i));
+                uint8_t instance = (*(ocmbParams + i)) >> 4;
+                FAPI_IMP("instance is 0x%02X", instance);
+                uint8_t functionalSate = (funcState >> (OCMB_TARGET_COUNT - i -1)) & 0x1;
+                FAPI_IMP("functional state is 0x%02X", functionalSate);
+                uint8_t port = (*(ocmbParams + i)) & 0xF;
+                FAPI_IMP("port is 0x%02X", port);
+                //create OCMB target.
+                uint32_t ocmbTarget = (instance << 28) | (functionalSate << 24) | (port << 16) |
+                                      (engine << 8) | devAddr;
+                FAPI_IMP("OCMB target created is 0x%08X", ocmbTarget);
+                G_vec_targets[OCMB_TARGET_OFFSET + i] = (fapi2::plat_target_handle&)ocmbTarget;
+            }
+            for(uint32_t i=0;i< TARGET_COUNT;i++)
+            {
+                FAPI_DBG("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
+            }
+        }while(0);
     }
 
 #endif // __SBEFW_SEEPROM__

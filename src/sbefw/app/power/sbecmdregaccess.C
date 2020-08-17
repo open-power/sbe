@@ -303,7 +303,9 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
         if(msg.targetType == TARGET_OCMB_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "OCMB GET SCOM");
-            Target<TARGET_TYPE_PROC_CHIP> l_hndl = plat_getChipTarget();;
+            Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
+                  <fapi2::TARGET_TYPE_OCMB_CHIP>(msg.targetInstance);
+            SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",msg.targetInstance, l_hndl.get());
             pibRc = i2cGetScom(&l_hndl, addr, &scomData);
             if(pibRc != 0)
             {
@@ -413,7 +415,9 @@ uint32_t sbePutHWReg(uint8_t *i_pArg)
         if(msg.hwRegMsg.targetType == TARGET_OCMB_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "OCMB PUT SCOM");
-            Target<TARGET_TYPE_PROC_CHIP> l_hndl = plat_getChipTarget();;
+            Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
+                  <fapi2::TARGET_TYPE_OCMB_CHIP>(msg.hwRegMsg.targetInstance);
+            SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",msg.hwRegMsg.targetInstance, l_hndl.get());
             pibRc = i2cPutScom(&l_hndl, addr, scomData);
             if(pibRc != 0)
             {

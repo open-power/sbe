@@ -49,6 +49,10 @@ namespace fapi2
     ///      attributes
     ReturnCode plat_TargetsInit();
 
+    /// @brief Function to initialize the G_targets vector for OCMB targets
+    /// based on UpdateOCMBTarget chip-op. 
+    void plat_OCMBTargetsInit(uint8_t * ocmbParams);
+
     /// @brief Initializes all platInit attributes (the values for which come
     // from the scratch registers)
     ReturnCode plat_AttrInit();
@@ -89,6 +93,15 @@ namespace fapi2
     //  l_mi(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_MI>(0);
     template <TargetType K>
     plat_target_handle_t plat_getTargetHandleByInstance(
+            const uint8_t i_targetNum);
+
+
+    /// @brief Function to return a OCMB platform target handle, given the target
+    ///        instance number.
+    //  @param i_targetNum The instance number for the target
+    //  @return Platform handle
+    template <TargetType K>
+    plat_target_handle_t plat_getOCMBTargetHandleByInstance(
             const uint8_t i_targetNum);
 }
 #endif
