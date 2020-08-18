@@ -44,12 +44,13 @@
 #include <p10_scom_proc.H>
 #include <p10_scom_eq.H>
 #include <p10_scom_c_0.H>
+#include <p10_scom_c_7.H>
 #include <multicast_group_defs.H>
 
 using namespace scomt;
-using namespace proc;
-using namespace eq;
-using namespace c;
+using namespace scomt::proc;
+using namespace scomt::eq;
+using namespace scomt::c;
 using namespace p10hcd;
 
 
@@ -195,6 +196,10 @@ p10_sbe_powerdown_backing_caches(
                                     .set_EQ_POSITION(l_attr_chip_unit_eq_pos),
                                     "Backing cache power down procedure failed");
                     }
+
+                    // Drop PM Exit to allow the core to wake-up later.  This was set
+                    // during istep 4.
+                    FAPI_TRY(fapi2::putScom(core, QME_SCSR_WO_CLEAR, BIT64(QME_SCSR_ASSERT_PM_EXIT)));
                 }
             }
         }
