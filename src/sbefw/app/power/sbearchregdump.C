@@ -241,6 +241,7 @@ ReturnCode sbeDumpArchRegs()
     #define SBE_FUNC " sbeDumpArchRegs "
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+#if 0
     uint64_t dumpAddr = 0;
     uint64_t timaBarAddr = 0;
     uint32_t timaAddrKBrange = 0;
@@ -551,6 +552,7 @@ ReturnCode sbeDumpArchRegs()
         }
 
     }while(0);
+#endif
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
     #undef SBE_FUNC
