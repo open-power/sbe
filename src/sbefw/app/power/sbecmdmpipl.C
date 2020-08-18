@@ -373,7 +373,7 @@ static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
     if((l_fapiTarget == TARGET_TYPE_PROC_CHIP) ||
        (l_fapiTarget == TARGET_TYPE_PERV))
     {
-           l_rc |= SC_PROC;
+        l_rc |= SC_PROC;
     }
     if(l_fapiTarget == TARGET_TYPE_CORE)
     {
@@ -390,39 +390,79 @@ static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
 /* @brief Prepare Stop clock flags base on Target Type
  *
  * @param[in] i_targetType  SBE chip-op target Type
+ * @param[in] i_chipletId  Target chiplet
  *
  * @return p9_stopclocks_flags
  */
 ///////////////////////////////////////////////////////////////////////
-static inline p10_stopclocks_flags getStopClocksFlags(uint32_t i_targetType)
+static inline p10_stopclocks_flags getStopClocksFlags(uint32_t i_targetType,
+                                                      uint32_t i_chipletId)
 {
     p10_stopclocks_flags flags;
 
-    if(i_targetType != TARGET_PROC_CHIP)
+    do
     {
+        if(i_targetType == TARGET_PROC_CHIP)
+        {
+            // We need the default Proc Flags
+            SBE_INFO(SBE_FUNC "In Proc Target");
+            break;
+        }
+
         // Clear default flags - only in case the target is not PROC_CHIP
         // Otherwise, for a PROC_CHIP target, we want to keep default flags
         flags.clearAll();
-    }
-    if(i_targetType == TARGET_PERV)
-    {
-        // Keep only tp as true
-        flags.stop_tp_clks  = true;
-    }
-    else if(i_targetType == TARGET_CORE)
-    {
-        // Keep only core flag as true
-        flags.stop_core_clks = true;
-    }
-    else if(i_targetType == TARGET_EQ)
-    {
-        // Keep only cache flag as true
-        flags.stop_cache_clks = true;
-    }
-    else
-    {
-        SBE_ERROR("getStopClocksFlags:Unsupported Target Type=0x%.8x",i_targetType);
-    }
+
+        if(i_targetType == TARGET_PERV)
+        {
+            if((i_chipletId >= NEST_CHIPLET_OFFSET) &&
+               (i_chipletId < (NEST_CHIPLET_OFFSET + NEST_TARGET_COUNT)))
+            {
+                flags.stop_nest_clks = true;
+            }
+            else if((i_chipletId >= PEC_CHIPLET_OFFSET) &&
+                    (i_chipletId < (PEC_CHIPLET_OFFSET + PEC_TARGET_COUNT)))
+            {
+                flags.stop_pcie_clks = true;
+            }
+            else if((i_chipletId >= MC_CHIPLET_OFFSET) &&
+                i_chipletId < (MC_CHIPLET_OFFSET + MC_TARGET_COUNT))
+            {
+                flags.stop_mc_clks = true;
+            }
+            else if((i_chipletId >= PAUC_CHIPLET_OFFSET) &&
+                    (i_chipletId < (PAUC_CHIPLET_OFFSET + PAUC_TARGET_COUNT)))
+            {
+                flags.stop_pau_clks = true;
+            }
+            else if((i_chipletId >= IOHS_CHIPLET_OFFSET) &&
+                    (i_chipletId < (IOHS_CHIPLET_OFFSET + IOHS_TARGET_COUNT)))
+            {
+                flags.stop_axon_clks = true;
+            }
+            else
+            {
+                SBE_ERROR( SBE_FUNC "Unsupported Perv TargetType=[0x%08X] "
+                    "Chiplet Id=[0x%08X]",i_targetType, i_chipletId);
+            }
+            break;
+        }
+        else if(i_targetType == TARGET_CORE)
+        {
+            // Keep only core flag as true
+            flags.stop_core_clks = true;
+        }
+        else if(i_targetType == TARGET_EQ)
+        {
+            // Keep only cache flag as true
+            flags.stop_cache_clks = true;
+        }
+        else
+        {
+            SBE_ERROR( SBE_FUNC "Unsupported TargetType=[0x%08X] "
+                "ChipletId=[0x%08X]",i_targetType, i_chipletId);
+        }
+    }while(0);
     return flags;
 }
 
@@ -477,10 +517,8 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         if(hwpType & SC_PROC)
         {
             SBE_DEBUG(SBE_FUNC " Calling p10_stopclocks HWP");
-            p10_stopclocks_flags flags = getStopClocksFlags(
-                                                        reqMsg.targetType);
-            SBE_EXEC_HWP(fapiRc, p10_stopclocks_hwp,
-                         proc, flags);
+            p10_stopclocks_flags flags = getStopClocksFlags(reqMsg.targetType, reqMsg.chipletId);
+            SBE_EXEC_HWP(fapiRc, p10_stopclocks_hwp, proc, flags);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR("Failed in p10_stopclocks(), fapiRc=0x%.8x",fapiRc);
@@ -503,8 +541,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
             }
             else //Specific core Instance number
             {
-                sbeGetFapiTargetHandle(reqMsg.targetType,
-                                       reqMsg.chipletId,tgtHndl);
+                sbeGetFapiTargetHandle(reqMsg.targetType,reqMsg.chipletId,tgtHndl);
             }
             //Execute the Core Stop Clock HWP
             SBE_EXEC_HWP(fapiRc, p10_hcd_core_stopclocks_hwp, tgtHndl);
@@ -530,8 +567,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
             }
             else //Specific eq chiplet
             {
-                sbeGetFapiTargetHandle(reqMsg.targetType,
-                                       reqMsg.chipletId,tgtHndl);
+                sbeGetFapiTargetHandle(reqMsg.targetType,reqMsg.chipletId,tgtHndl);
             }
             //Execute the EQ Stop Clock procedure
             SBE_EXEC_HWP(fapiRc, p10_hcd_eq_stopclocks_hwp, tgtHndl);
@@ -541,7 +577,6 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
                            fapiRc,tgtHndl);
                 break;
             }
-
         }
 
     }while(0);
