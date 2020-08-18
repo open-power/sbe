@@ -38,9 +38,10 @@
 #include "p10_hcd_core_scominit.H"
 #include <p10_fbc_utils.H>
 #include <p10_scom_c.H>
+#include <p10_scom_eq.H>
+#include <p10_core_scom.H>
 
 #ifdef __PPE_QME
-    #include <p10_core_scom.H>
     #include <p10_l2_scom.H>
     #include <p10_ncu_scom.H>
 #endif
@@ -63,6 +64,7 @@ static inline fapi2::ReturnCode p10_hcd_core_scominit_qme(
 
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     auto l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    fapi2::ReturnCode l_rc;
 
     for (const auto& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
@@ -71,11 +73,32 @@ static inline fapi2::ReturnCode p10_hcd_core_scominit_qme(
         FAPI_DBG("Invoking p10.core.scom.initfile");
         FAPI_EXEC_HWP(l_rc, p10_core_scom, l_core, FAPI_SYSTEM, l_chip);
 
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p10_core_scom");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+
         FAPI_DBG("Invoking p10.l2.scom.initfile");
         FAPI_EXEC_HWP(l_rc, p10_l2_scom, l_core, FAPI_SYSTEM, l_chip);
 
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p10_l2_scom");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+
         FAPI_DBG("Invoking p10.ncu.scom.initfile");
         FAPI_EXEC_HWP(l_rc, p10_ncu_scom, l_core, FAPI_SYSTEM, l_chip);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p10_ncu_scom");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
 
         FAPI_DBG("Configuring NCU darn bar");
         {
@@ -161,14 +184,66 @@ fapi_try_exit:
 static inline fapi2::ReturnCode p10_hcd_core_scominit_sbe(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
+    using namespace scomt::eq;
+
     // Placeholder for core/L2 scom inits needed during HBI
     std::vector<uint64_t> l_topo_scoms;
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ReturnCode l_rc;
 
     // Get the register values for the SCOMs to setup the topology id table
     FAPI_TRY(topo::get_topology_table_scoms(l_chip, l_topo_scoms));
     // Setup the topology id tables for L2 via multicast
     FAPI_TRY(init_topo_id_tables(i_target, l_topo_scoms));
+
+    for (const auto& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        fapi2::buffer<uint64_t> l_data64 = 0;
+        uint32_t l_eq_num = 0;
+        uint32_t l_core_num = 0;
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+        fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               l_eq,
+                               l_attr_chip_unit_pos));
+        l_eq_num = (uint32_t)l_attr_chip_unit_pos;
+
+        // do this to avoid unused variable warning
+        do
+        {
+            (void)( l_eq_num );
+        }
+        while (0);
+
+        // Read partial good value from Chiplet Control 2
+        FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_data64));
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               l_core,
+                               l_attr_chip_unit_pos));
+        l_core_num = (uint32_t)l_attr_chip_unit_pos % 4;
+
+        FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
+                 l_eq_num, l_core_num);
+
+        if( l_data64.getBit(9 + l_core_num) == 0)
+        {
+            FAPI_DBG("Partial Bad detected for EQ %d Core %d, Skip",
+                     l_eq_num, l_core_num);
+            continue;
+        }
+
+        FAPI_EXEC_HWP(fapi2::current_err, p10_core_scom, l_core, FAPI_SYSTEM, l_chip);
+
+        if (l_rc)
+        {
+            FAPI_ERR("Error from p10_core_scom");
+            fapi2::current_err = l_rc;
+            goto fapi_try_exit;
+        }
+    }
 
 fapi_try_exit:
     return fapi2::current_err;
