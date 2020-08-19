@@ -83,7 +83,7 @@ namespace
 
 inline int fastlog2(unsigned n)
 {
-    return (n == 0) ? -1 : __builtin_ctz(n);
+    return (n == 0) ? 0 : __builtin_ctz(n);
 }
 ///
 /// @brief Initialize the L3 and NCU topology id table entries
@@ -176,15 +176,12 @@ static inline fapi2::ReturnCode p10_hcd_cache_scominit_sbe(
         // 0. setup the the L3 and NCU topology id tables
         FAPI_TRY(init_topo_id_tables(c, l_topo_scoms));
 
-        if (l_attr_backing_num)
-        {
-            FAPI_TRY(GET_L3_MISC_L3CERRS_BACKING_CTL_REG(c, l_data));
-            // 1. enable castout to backing caches
-            SET_L3_MISC_L3CERRS_BACKING_CTL_REG_CASTOUT_TO_BACKING_L3_EN_CFG((l_attr_backing_vec != 0), l_data);
-            // 2. configure the number of backing caches
-            SET_L3_MISC_L3CERRS_BACKING_CTL_REG_BACKING_CNT_CFG(fastlog2(l_attr_backing_num), l_data);
-            FAPI_TRY(PUT_L3_MISC_L3CERRS_BACKING_CTL_REG(c, l_data));
-        }
+        FAPI_TRY(GET_L3_MISC_L3CERRS_BACKING_CTL_REG(c, l_data));
+        // 1. enable castout to backing caches
+        SET_L3_MISC_L3CERRS_BACKING_CTL_REG_CASTOUT_TO_BACKING_L3_EN_CFG((l_attr_backing_vec != 0), l_data);
+        // 2. configure the number of backing caches
+        SET_L3_MISC_L3CERRS_BACKING_CTL_REG_BACKING_CNT_CFG(fastlog2(l_attr_backing_num), l_data);
+        FAPI_TRY(PUT_L3_MISC_L3CERRS_BACKING_CTL_REG(c, l_data));
 
         FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG1(c, l_data));
 
