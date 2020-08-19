@@ -34,21 +34,18 @@ extern "C" {
 
 ResClkFreqIdx_t RESCLK_INDEX[RESCLK_FREQ_REGIONS] =
 {
-    {0, 3},         //Freq, Index
-    {1500, 3},      //Freq, Index
+    {0,     3},     //Freq, Index
+    {1500,  3},     //Freq, Index
     {2000, 21},     //Freq, Index
-    {3400, 23}      //Freq, Index
+    {3400, 19}      //Freq, Index
 };
 
-//\todo Review if defining this table as array of 8 bytes is ok or not. Spec
-//defines it as array of bytes. However, defining it as array 8 bytes makes it
-//easy to use in the initialization code below
 uint64_t RESCLK_TABLE[RESCLK_STEPS / 8] =
 {
-    0x0001020304050607ULL,  //Entries 0-7
-    0x08090a0b0c0d0e0fULL,  //Entries 8-15
-    0x1011121314151617ULL,  //Entries 16-23
-    0x18191a1b1c1d1e1fULL   //Entries 24-31
+    0x2030100001030206ULL,  //Entries 0-7
+    0x0705040C0D0F0E0AULL,  //Entries 8-15
+    0x0B09088898B8A8E8ULL,  //Entries 16-23
+    0xF8F8F8F8F8F8F8F8ULL   //Entries 24-31
 };
 
 #ifdef __cplusplus
