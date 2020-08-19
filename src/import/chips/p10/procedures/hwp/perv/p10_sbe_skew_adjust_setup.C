@@ -40,7 +40,7 @@
 enum P10_SBE_SKEW_ADJUST_SETUP_Private_Constants
 {
     DCADJ_COMP_DLY = 0x0040,
-    DCADJ_DAC_DLY = 0x0010,
+    DCADJ_DAC_DLY = 0x0100,
     DCADJ_LOW_PASS_DLY = 0x2000,
     SKEWADJ_IGNORE_CNT = 0x2,
     SKEWADJ_WAIT_CNT = 0x8,
@@ -109,6 +109,10 @@ fapi2::ReturnCode p10_sbe_skew_adjust_setup(const
 
     FAPI_DBG("Put DCAdj into HOLD state");
     FAPI_TRY(fapi2::putScom(l_mc_core, 0x20010301, 0x0));
+
+    FAPI_DBG("Set up DCAdj configuration");
+    l_data64.flush<0>().setBit<1>();
+    FAPI_TRY(fapi2::putScom(l_mc_core, 0x2001030C, l_data64));
 
     FAPI_DBG("Set up low pass filter delay");
     l_data64.flush<0>();
