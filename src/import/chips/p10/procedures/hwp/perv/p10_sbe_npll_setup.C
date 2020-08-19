@@ -252,12 +252,6 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     FAPI_DBG("NEST DPLL: Transition from mode1 to mode2 (enable frequency slewing)");
     FAPI_TRY(fapi2::putScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_NEST_REGS_CTRL_RW, NEST_DPLL_INITIALIZE_MODE2));
 
-    FAPI_DBG("Drop nest PDLY/DCC bypass");
-    l_data64.flush<0>()
-    .setBit<perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_TP_CHIPLET_CLK_DCC_BYPASS_EN_DC>()
-    .setBit<perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_TP_CHIPLET_CLK_PDLY_BYPASS_EN_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_WO_CLEAR, l_data64));
-
     // Clear Perv pcb slave error register
     FAPI_DBG(" Reset PCB error reg");
     l_read_reg.flush<1>();

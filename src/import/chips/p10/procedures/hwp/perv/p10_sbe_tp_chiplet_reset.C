@@ -38,6 +38,7 @@
 #include "p10_scom_perv_4.H"
 #include "p10_scom_perv_6.H"
 #include "p10_scom_perv_7.H"
+#include "p10_scom_perv_a.H"
 #include "p10_scom_perv_b.H"
 #include "p10_scom_perv_c.H"
 #include "p10_scom_perv_e.H"
@@ -57,6 +58,7 @@ enum P10_SBE_TP_CHIPLET_RESET_Private_Constants
     SCAN_TYPES_TIME_GPTR_REPR = 0x230,
     START_CMD = 0x1,
     CLOCK_TYPES_ALL = 0x7,
+    NEST_PDLY_SETTING = 0x7,
 };
 
 fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
@@ -158,6 +160,18 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     }
 
     FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL5_RW, l_data64));
+
+    FAPI_DBG("Set up static progdelay for the nest mesh");
+    l_data64.flush<0>()
+    .insertFromRight<CPLT_CONF0_TP_AN_NEST_PROGDLY_SETTING_DC,
+                     CPLT_CONF0_TP_AN_NEST_PROGDLY_SETTING_DC_LEN>(NEST_PDLY_SETTING);
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CONF0_WO_OR, l_data64));
+
+    FAPI_DBG("Drop nest PDLY/DCC bypass");
+    l_data64.flush<0>()
+    .setBit<perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_TP_CHIPLET_CLK_DCC_BYPASS_EN_DC>()
+    .setBit<perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_TP_CHIPLET_CLK_PDLY_BYPASS_EN_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_WO_CLEAR, l_data64));
 
     FAPI_DBG("Release Nest Async Reset to enable Nest clock mesh");
     l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL4_TP_AN_CLKGLM_NEST_ASYNC_RESET_DC>();
