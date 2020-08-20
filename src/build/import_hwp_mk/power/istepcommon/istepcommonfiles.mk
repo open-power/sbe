@@ -56,6 +56,7 @@ ISTEPCOMMON-CPP-SOURCES +=p10_getputmemproc_utils.C
 ISTEPCOMMON-CPP-SOURCES +=p10_plat_ring_traverse.C
 ISTEPCOMMON-CPP-SOURCES +=p10_putRingUtils.C
 ISTEPCOMMON-CPP-SOURCES +=p10_suspend_io.C
+ISTEPCOMMON-CPP-SOURCES +=exp_i2c.C
 #istep5 Procedure but this is required to run from PIBMEM
 ISTEPCOMMON-C-SOURCES =
 ISTEPCOMMON-S-SOURCES =

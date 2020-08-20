@@ -32,6 +32,7 @@
 // *HWP Team: Memory
 // *HWP Level: 3
 // *HWP Consumed by: HB:FSP
+// EKB-Mirror-To: hw/ppe
 
 #ifndef _MSS_POS_H_
 #define _MSS_POS_H_
@@ -166,7 +167,7 @@ typename TT::pos_type relative_pos(const fapi2::Target<T>& i_target);
 /// @return The position relative to the system
 ///
 template< fapi2::TargetType T, typename TT = posTraits<T> >
-inline uint32_t fapi_pos(const fapi2::Target<T>& i_target)
+uint32_t fapi_pos(const fapi2::Target<T>& i_target)
 {
     uint32_t l_pos = 0;
 
