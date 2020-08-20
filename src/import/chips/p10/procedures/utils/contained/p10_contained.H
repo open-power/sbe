@@ -107,6 +107,18 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                                     const bool i_chc);
 
 ///
+/// @brief Fix the thread sreset configuration for fused-cores to match the
+///        RUNN SMT sreset setting.
+///
+/// @param[in] i_chip        Reference to chip target
+/// @param[in] i_active_bvec Bitvector of cores configured to be active
+///
+/// Note: Only applies to chip-contained RUNN IPL
+///
+fapi2::ReturnCode fix_fused_core_thread_sreset(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        const uint32_t i_active_bvec);
+
+///
 /// @brief Disable sreset-on-decrementer for all threads on cores behind a backing cache
 ///
 /// @param[in] i_chip        Reference to chip target

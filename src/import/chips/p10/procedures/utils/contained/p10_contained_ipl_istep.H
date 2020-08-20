@@ -173,8 +173,16 @@ static inline fapi2::ReturnCode p10_contained_ipl_istep4(const fapi2::Target < f
 
     if (i_chc && i_runn)
     {
+        fapi2::ATTR_FUSED_CORE_MODE_Type fused_core_mode;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE, SYS, fused_core_mode));
         FAPI_TRY(disable_sreset_on_decr(i_cores.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
                                         i_active_bvec));
+
+        if (fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+        {
+            FAPI_TRY(fix_fused_core_thread_sreset(i_cores.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
+                                                  i_active_bvec));
+        }
     }
 
 fapi_try_exit:

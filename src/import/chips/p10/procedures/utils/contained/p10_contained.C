@@ -213,6 +213,134 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+static fapi2::ReturnCode set_core_thread_sresets(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_core,
+        const uint8_t i_thread_sreset_bvec,
+        const int i_corenum)
+{
+    FAPI_INF(">> %s", __func__);
+
+    using namespace scomt::perv;
+
+    fapi2::ATTR_EC_Type ec;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> perv = i_core.getParent<fapi2::TARGET_TYPE_PERV>();
+    // ec_cl2_func
+    const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
+            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>());
+    fapi2::buffer<uint64_t> scan_region_type = scan_type;
+    scan_region_type.setBit(SCAN_REGION_TYPE_SCAN_REGION_UNIT1 + (i_corenum % 4));
+
+    FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC,
+                                      i_core.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
+                                      ec));
+
+    switch (ec)
+    {
+    // *INDENT-OFF*
+    RINGSPIN_EC_SWITCH_CASE(10, ec_cl2_func_set_thread_sreset,
+                            perv, scan_region_type,
+                            (uint64_t)((i_thread_sreset_bvec & 0x80) != 0) << 63,
+                            (uint64_t)((i_thread_sreset_bvec & 0x80) != 0) << 63,
+                            (uint64_t)((i_thread_sreset_bvec & 0x40) != 0) << 62,
+                            (uint64_t)((i_thread_sreset_bvec & 0x40) != 0) << 63,
+                            (uint64_t)((i_thread_sreset_bvec & 0x20) != 0) << 61,
+                            (uint64_t)((i_thread_sreset_bvec & 0x20) != 0) << 63,
+                            (uint64_t)((i_thread_sreset_bvec & 0x10) != 0) << 60,
+                            (uint64_t)((i_thread_sreset_bvec & 0x10) != 0) << 63)
+    default:
+        FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
+                 " PROCEDURE=ec_cl2_func_set_thread_sreset", ec);
+        return fapi2::FAPI2_RC_FALSE;
+    // *INDENT-ON*
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
+fapi2::ReturnCode fix_fused_core_thread_sreset(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
+        const uint32_t i_active_bvec)
+{
+    FAPI_INF(">> %s", __func__);
+
+    using namespace scomt::perv;
+
+    uint8_t small_a_cores_smt = 0;
+    uint8_t small_b_cores_smt = 0;
+    fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type sthreads;;
+    fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
+
+    /*
+     * The Cronus RUNN sreset option is always applied to "small" (non-fused) cores
+     * via a dynamic init. In fused core mode we need to manually clean this up to
+     * be consistent with the mappings below.
+     *
+     *             Cronus
+     *  SMTn       sreset      non-fused       fused
+     *  --------------------------------------------------------------
+     *  SMT1       0x80        0b1000          0b1000, -> small core a
+     *                                         0b0000  -> small core b
+     *  SMT2       0xc0        0b1100          0b1000,
+     *                                         0b1000
+     *  SMT4       0xf0        0b1111          0b1100,
+     *                                         0b1100
+     *  SMT8       0xff        0b1111          0b1111,
+     *                                         0b1111
+     */
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_SRESET_THREADS_BVEC, SYS, sthreads));
+
+    switch (sthreads)
+    {
+        case 0xff:
+            return fapi2::FAPI2_RC_SUCCESS;
+
+        case 0xf0:
+            small_a_cores_smt = 0b11000000;
+            small_b_cores_smt = 0b11000000;
+            break;
+
+        case 0xc0:
+            small_a_cores_smt = 0b10000000;
+            small_b_cores_smt = 0b10000000;
+            break;
+
+        case 0x80:
+            small_a_cores_smt = 0b10000000;
+            small_b_cores_smt = 0b00000000;
+            break;
+
+        default:
+            FAPI_ERR("Invalid RUNN_SRESET_THREADS: %02x", sthreads);
+            return fapi2::FAPI2_RC_FALSE;
+    }
+
+    // Note: There is NO checking if the given fused-core setup is valid.
+    //       This loop makes a blind assumption that all active cores are
+    //       properly paired-up for fused core mode. Caveat emptor.
+    for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, corenum));
+
+        if (is_active_core(corenum, i_active_bvec))
+        {
+            if (corenum % 2 == 0)
+            {
+                FAPI_TRY(set_core_thread_sresets(core, small_a_cores_smt,
+                                                 corenum));
+            }
+            else
+            {
+                FAPI_TRY(set_core_thread_sresets(core, small_b_cores_smt,
+                                                 corenum));
+            }
+        }
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
 fapi2::ReturnCode disable_sreset_on_decr(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
         const uint32_t i_active_bvec)
 {

@@ -1162,5 +1162,70 @@ fapi_try_exit:
 }
 }// namespace ec10
 
+namespace ec10 {
+static inline fapi2::ReturnCode ec_cl2_func_set_thread_sreset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
+    const uint64_t i_scan_region_type,
+    const uint64_t i_ecp_ec_pc_pmc_vt0_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_vt0_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_pmc_vt1_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_vt1_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_pmc_vt2_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_vt2_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_pmc_vt3_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_vt3_sreset_on_1st_dec_en)
+{
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // ---
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 264516, tmp));
+        tmp &= 0x0fffffffffffffffull;
+        // ECP.EC.PC.THRCTL.TCTLCOM.VT3_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_vt3_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 63;
+        // ECP.EC.PC.THRCTL.TCTLCOM.VT2_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_vt2_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 62;
+        // ECP.EC.PC.THRCTL.TCTLCOM.VT1_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_vt1_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 61;
+        // ECP.EC.PC.THRCTL.TCTLCOM.VT0_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_vt0_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 60;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 95972, tmp));
+        tmp &= 0x3fffffffffffffffull;
+        // ECP.EC.PC.PMC.VT2_SRESET_ON_1ST_DEC_EN[2:2]
+        tmp |= (((i_ecp_ec_pc_pmc_vt2_sreset_on_1st_dec_en & 0x2000000000000000) >> 61) ^ 0b1) << 63;
+        // ECP.EC.PC.PMC.VT3_SRESET_ON_1ST_DEC_EN[3:3]
+        tmp |= (((i_ecp_ec_pc_pmc_vt3_sreset_on_1st_dec_en & 0x1000000000000000) >> 60) ^ 0b1) << 62;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 96, tmp));
+        tmp &= 0x3fffffffffffffffull;
+        // ECP.EC.PC.PMC.VT1_SRESET_ON_1ST_DEC_EN[1:1]
+        tmp |= (((i_ecp_ec_pc_pmc_vt1_sreset_on_1st_dec_en & 0x4000000000000000) >> 62) ^ 0b1) << 63;
+        // ECP.EC.PC.PMC.VT0_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_pmc_vt0_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 62;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        FAPI_TRY(svs::rotate(i_cplt, 143901, tmp));
+    }
+    // ---
+
+    if (tmp != 0x00BAD666BAD66600) {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+}// namespace ec10
+
 #endif//P10_CONTAINED_RINGSPIN_GEN_H
 // *INDENT-ON*
