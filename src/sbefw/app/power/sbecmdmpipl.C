@@ -296,10 +296,14 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         }
     }while(0);
 
-    // reset attribute. We do not want to reset register, so do not
-    // use setMpIplMode
-    uint8_t isMpipl = 0;
-    PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
+    //Clear the MPIPL attribute for secondary SBEs. For the primary SBE
+    //this attribute will be cleared post deadman timer chipOp.
+    if(g_sbeRole == SBE_ROLE_SLAVE)
+    {
+        uint8_t isMpipl = 0;
+        PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
+    }
+
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread

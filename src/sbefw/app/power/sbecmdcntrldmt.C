@@ -135,6 +135,7 @@ uint32_t sbeStartCntlDmt()
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
     uint8_t fuseMode = 0;
+    uint8_t l_is_mpipl = 0;
     do
     {
         // Fetch the Timer Value, Number of Xscom entries, Starting address for
@@ -319,15 +320,30 @@ uint32_t sbeStartCntlDmt()
                 break;
             }
         }
-        //Call p10_sbe_powerdown_backing_caches.C
-        //Doorbell to the QMEs to have a “virtual” STOP 11 a “virtual” STOP 11
-        SBE_INFO (SBE_FUNC "4. Powering Down Backing Caches .. ");
-        SBE_EXEC_HWP(fapiRc, p10_sbe_powerdown_backing_caches_hwp, procTgt);
-        if(fapiRc != FAPI2_RC_SUCCESS)
+
+        //Skip Powering down of backing caches in MPIPL Path
+        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+        FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL,FAPI_SYSTEM,l_is_mpipl);
+        if( !l_is_mpipl )
         {
-            SBE_ERROR(SBE_FUNC "Failed in p10_sbe_powerdown_backing_caches()");
-            break;
+            //Call p10_sbe_powerdown_backing_caches.C
+            //Doorbell to the QMEs to have a “virtual” STOP 11 a “virtual” STOP 11
+            SBE_INFO (SBE_FUNC "4. Powering Down Backing Caches .. ");
+            SBE_EXEC_HWP(fapiRc, p10_sbe_powerdown_backing_caches_hwp, procTgt);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "Failed in p10_sbe_powerdown_backing_caches()");
+                break;
+            }
         }
+        else
+        {
+            SBE_INFO(SBE_FUNC "MPIPL Path: Skip Powering Down Backing Caches!");
+            //Clear the MPIPL Attribute
+            l_is_mpipl = 0;
+            PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), l_is_mpipl);
+        }
+
         // Both cores entered stop 15 successfully, now unblock interrupts
         for(auto core : l_core_targets)
         {

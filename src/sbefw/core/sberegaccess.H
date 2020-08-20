@@ -144,9 +144,9 @@ class SbeRegAccess
         {
             return iv_istepMode;
         }
-        
+
         /**
-         * @brief Check if architected data collection in 
+         * @brief Check if architected data collection in
          * MPIPL path needs to be skipped.
          * @return true if skip dump collection, false otherwise
          *
@@ -157,6 +157,7 @@ class SbeRegAccess
         }
 
         /**
+         *
          * @brief Check if SBE should directly go to runtime state
          *
          * @return true if SBE should go directly to runtime state,
