@@ -38,6 +38,7 @@
 // Includes
 //--------------------------------------------------------------------------
 #include <p10_sbe_check_quiesce.H>
+#include <p10_sbe_scominit.H>
 #include <p10_suspend_io.H>
 // Cronus only
 #if !defined(__PPE__) && !defined(__HOSTBOOT_MODULE)
@@ -878,6 +879,11 @@ fapi2::ReturnCode p10_intp_check_quiesce(
     //Set sync_reset in RST_CTL
     SET_INT_CQ_RST_CTL_SYNC_RESET(l_data);
     FAPI_TRY(PUT_INT_CQ_RST_CTL(i_target, l_data));
+
+    //Resetting of interrupt unit clears out the thread context
+    //configuration, call p10_sbe_scominit_int to set the thread
+    //context again
+    FAPI_TRY(p10_sbe_scominit_int(i_target), "ERROR calling p10_sbe_scominit_int");
 
 fapi_try_exit:
     FAPI_DBG("p10_intp_check_quiesce: Exiting...");

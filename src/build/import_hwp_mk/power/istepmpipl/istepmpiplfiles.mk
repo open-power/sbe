@@ -64,6 +64,7 @@ ISTEPMPIPL-CPP-SOURCES += p10_pm_pba_init.C
 #ISTEPMPIPL-CPP-SOURCES +=p9_block_wakeup_intr.C
 #ISTEPMPIPL-CPP-SOURCES +=p9_inject_local_xstop.C
 ISTEPMPIPL-CPP-SOURCES +=p10_sbe_sync_quiesce_states.C
+ISTEPMPIPL-CPP-SOURCES +=p10_sbe_scominit_int.C
 #ISTEPMPIPL-CPP-SOURCES +=p9_pm_pfet_control.C
 #ISTEPMPIPL-CPP-SOURCES +=p9_collect_suspend_ffdc.C
 #ISTEPMPIPL-CPP-SOURCES +=p9_eq_clear_atomic_lock.C

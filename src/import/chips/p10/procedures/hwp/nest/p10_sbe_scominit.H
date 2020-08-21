@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -52,6 +52,13 @@ typedef fapi2::ReturnCode (*p10_sbe_scominit_FP_t)(const fapi2::Target<fapi2::TA
 
 extern "C"
 {
+
+/// @brief Configures interrupt controller mode registers
+///
+/// @param[in] i_target       Reference to processor chip target
+/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
+///
+    fapi2::ReturnCode p10_sbe_scominit_int(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
 ///
 /// @brief Set fabric topology IDs for all configured chipets (outside of EC/EP),
