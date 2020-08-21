@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -86,7 +86,8 @@ class RamCore
 
         //-----------------------------------------------------------------------------------
         /// @brief Enable RAM mode and backup the registers(SCR0/GPR0/GPR1) that
-        ///        will be destroyed later during ramming
+        ///        will be destroyed later during ramming. Avoid doing RAM setup if
+        //         required to avoid HW542214.
         /// @return FAPI2_RC_SUCCESS if success, else error code.
         //
         fapi2::ReturnCode ram_setup();
@@ -104,16 +105,16 @@ class RamCore
                                      const bool i_allow_mult = false);
 
         //-----------------------------------------------------------------------------------
-        /// @brief Clear RAM mode and restore the backup registers
+        /// @brief Clear RAM mode and restore the backup registers.
         /// @return FAPI2_RC_SUCCESS if success, else error code.
         //
         fapi2::ReturnCode ram_cleanup();
 
         //-----------------------------------------------------------------------------------
-        /// @brief Get a register value by ramming
+        /// @brief Get a register value by ramming.  Avoid RAMing if required to avoid HW542214.
         /// @param[in] i_type       => register type (REG_SPR/REG_GPR/REG_FPR/REG_VSR)
         /// @param[in] i_reg_num    => register nubmer
-        /// @param[out] o_buffer    => register value
+        /// @param[out] o_buffer    => register value.  Return 'INACTIVE' if required to avoid HW542214.
         /// @param[in] i_allow_mult => indicate whether to setup and cleanup
         ///                            true: only perform ram, do not call ram_setup
         ///                                  and ram_cleanup
@@ -126,7 +127,7 @@ class RamCore
                                   const bool i_allow_mult = false);
 
         //-----------------------------------------------------------------------------------
-        /// @brief Put a register value by ramming
+        /// @brief Put a register value by ramming. Return an error if required to avoid HW542214.
         /// @param[in] i_type       => register type (REG_SPR/REG_GPR/REG_FPR/REG_VSR)
         /// @param[in] i_reg_num    => register nubmer
         /// @param[in] i_buffer     => register value
@@ -151,6 +152,7 @@ class RamCore
         bool iv_write_gpr0;    // putGPR0 operation is executed
         bool iv_write_gpr1;    // putGPR1 operation is executed
         bool iv_thread_activated;   // iv_thread was activated
+        bool iv_fake_ramming;   // Using fake RAMing to avoid HW542214
         fapi2::buffer<uint64_t> iv_backup_scr0;  // SCR0 register backup data
         fapi2::buffer<uint64_t> iv_backup_gpr0;  // GPR0 register backup data
         fapi2::buffer<uint64_t> iv_backup_gpr1;  // GPR1 register backup data
@@ -176,6 +178,46 @@ class RamCore
         /// @return FAPI2_RC_SUCCESS if success, else error code.
         //
         fapi2::ReturnCode ram_ready(bool& o_ready, fapi2::buffer<uint64_t>& o_thread_info);
+
+        //-----------------------------------------------------------------------------------
+        /// @brief Check if the thread is ready for RAMing and activate thread if necessary
+        /// @return FAPI2_RC_SUCCESS if success, else error code.
+        //
+        fapi2::ReturnCode ram_ready_activate();
+
+        //-----------------------------------------------------------------------------------
+        /// @brief Initiate HW recovery as workaround for HW533775
+        /// @return FAPI2_RC_SUCCESS if success, else error code.
+        fapi2::ReturnCode ram_initiate_recovery();
+
+        //-----------------------------------------------------------------------------------
+        /// @brief Enable RAM mode and backup the registers(SCR0/GPR0/GPR1) that
+        ///        will be destroyed later during ramming
+        /// @return FAPI2_RC_SUCCESS if success, else error code.
+        //
+        fapi2::ReturnCode ram_setup_internal();
+
+        //-----------------------------------------------------------------------------------
+        /// @brief Get a register value by ramming.
+        /// @param[in] i_type       => register type (REG_SPR/REG_GPR/REG_FPR/REG_VSR)
+        /// @param[in] i_reg_num    => register nubmer
+        /// @param[out] o_buffer    => register value
+        /// @param[in] i_allow_mult => indicate whether to setup and cleanup
+        ///                            true: only perform ram, do not call ram_setup
+        ///                                  and ram_cleanup
+        ///                            false: call ram_setup and ram_cleanup
+        /// @return FAPI2_RC_SUCCESS if success, else error code.
+        //
+        fapi2::ReturnCode get_reg_internal(const Enum_RegType i_type,
+                                           const uint32_t i_reg_num,
+                                           fapi2::buffer<uint64_t>* o_buffer,
+                                           const bool i_allow_mult = false);
+
+        //-----------------------------------------------------------------------------------
+        /// @brief Clear RAM mode and restore the backup registers.
+        /// @return FAPI2_RC_SUCCESS if success, else error code.
+        //
+        fapi2::ReturnCode ram_cleanup_internal();
 
 };
 
