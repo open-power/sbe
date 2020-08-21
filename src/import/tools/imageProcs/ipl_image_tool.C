@@ -3460,39 +3460,34 @@ int check_sbe_ring_section_size( void* i_hwImage,
                                  &l_ringsSection,
                                  i_ddLevel );
 
+    // verify the .rings section is populated
+    if (rc == P9_XIP_SECTION_SIZE_IS_ZERO)
+    {
+        fprintf(stderr, "ipl_image_tool: .sbe.rings section size in HW image is =%u\n",
+                l_ringsSection.iv_size);
+        exit (EXIT_FAILURE);
+    }
+
     if (rc)
     {
         fprintf(stderr, "ipl_image_tool: p9_xip_get_sub_section failed w/rc=0x%x while getting "
-                "DD (=0x%x) ring block withing the SBE .rings section.\n",
+                "DD (=0x%x) ring block within the .sbe.rings section in HW image\n",
                 (uint32_t)rc, i_ddLevel);
         exit (EXIT_FAILURE);
     }
 
-    // verify the .rings section is populated
-    if (l_ringsSection.iv_size == 0)
-    {
-        fprintf(stderr, "ipl_image_tool: Ring section size in HW image is zero.\n");
-        rc = P9_XIP_DATA_NOT_PRESENT;
-        return rc;
-    }
-
-    if( l_ringsSection.iv_size == 0 )
-    {
-        fprintf(stderr, "ipl_image_tool: No rings for dd_level 0x%x found\n", i_ddLevel);
-    }
-
-    fprintf(stderr, "ipl_image_tool: SBE .rings section size for DD level 0x%x ", i_ddLevel);
+    fprintf(stderr, "ipl_image_tool: SBE .rings section size for DD level 0x%02x ", i_ddLevel);
 
     // return failure if the block size would exceed the maximum allowed size
     if( l_ringsSection.iv_size > i_maxSize )
     {
-        fprintf(stderr, "is %d bytes, which exceeds maximum size limit of %i\n",
+        fprintf(stderr, "is %u bytes, which exceeds maximum size limit of %i\n",
                 l_ringsSection.iv_size, i_maxSize);
-        rc = P9_XIP_SBE_DD_SIZE_ERR;
+        exit (EXIT_FAILURE);
     }
     else
     {
-        fprintf(stderr, "is %d bytes - OK\n", l_ringsSection.iv_size);
+        fprintf(stderr, "is %u bytes - OK\n", l_ringsSection.iv_size);
     }
 
 #endif
@@ -3690,8 +3685,8 @@ command(const char* i_imageFile, const int i_argc, const char** i_argv, const ui
     if (rc)
     {
         fprintf(stderr,
-                "\nERROR: In command(): Command failed : %s\n",
-                P9_XIP_ERROR_STRING(g_errorStrings, rc));
+                "\nERROR: In command(): Command \"%s\" failed : %s\n",
+                i_argv[0], P9_XIP_ERROR_STRING(g_errorStrings, rc));
         exit(EXIT_FAILURE);
     }
 }
