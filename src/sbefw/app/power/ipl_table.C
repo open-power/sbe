@@ -261,13 +261,13 @@ static istepMap_t g_istepMpiplContinuePtrTbl[] =
         {
 #ifdef SEEPROM_IMAGE
             ISTEP_MAP( istepLpcInit, p10_sbe_lpc_init ),
-            // Setup EC/EQ guard records
-            ISTEP_MAP( istepMpiplSetFunctionalState, p10_sbe_select_ex),
+            ISTEP_MAP( istepMpiplQuadPoweroff, p10_hcd_ecl2_l3_poweroff),
             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_dump_reg)
             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_query_quad_access_state)
             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_core_stopclocks)
             ISTEP_MAP( istepNoOp, NULL ),  // Witherspoon only (mpipl_hcd_cache_stopclocks)
-            ISTEP_MAP( istepMpiplQuadPoweroff, p10_hcd_ecl2_l3_poweroff),
+            // Setup EC/EQ guard records
+            ISTEP_MAP( istepMpiplSetFunctionalState, p10_sbe_select_ex),
             // No-op
             ISTEP_MAP( istepNoOp, NULL ),
 #endif
