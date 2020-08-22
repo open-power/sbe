@@ -43,59 +43,79 @@ enum hw540133_PRIVATE_CONSTANTS
     CCALCOMP_MAX_POLLS = 6,
     CCALCOMP_DELAY_NS = 1000000,
     CCALCOMP_DELAY_CYCLES = 500000,
+    LOCK_MAX_POLLS = 6,
+    LOCK_DELAY_NS = 1000000,
+    LOCK_DELAY_CYCLES = 500000,
+    BANDSEL_MIN = 0,
+    BANDSEL_MAX = 15,
+};
+
+enum hw540133_wa_type
+{
+    NO_WORKAROUND,             // accept HW calibration
+    CALIBRATED_BANDSEL_M1,     // force calibration to calibrated bandsel-1 (+1 if zero)
+    LAST_LOCKING_BANDSEL_M1,   // force calibration to last locking bandsel-1
 };
 
 // Structure for reading/writing calibration status/settings
 struct pll_cal
 {
-    union
-    {
-        bool calibrated;
-        bool load;
-    };
+    bool calibrated;
+    bool load;
     uint8_t bandsel;
+    bool locked;
 };
 
 // Sort of a "scandef lite" which tells the procedure how many PLLs to check
 // and where their calibration bits are on the ring
 struct pll_ring_settings
 {
+    hw540133_wa_type wa_type;            ///< Workaround algorithm to apply
     uint64_t scan_region_type;           ///< Scan region & type of affected ring
     uint16_t nplls;                      ///< Number of PLLs to check on that ring
     uint16_t result_offsets[MAX_PLLS];   ///< Rotate counts for the scanning functions below;
     uint16_t override_offsets[MAX_PLLS]; ///< one per PLL to get to the first/next PLL, plus one to finish the ring
+    uint8_t  lock_bit[MAX_PLLS];         ///< PCB slave lock indicator bits (last entry unused)
 };
 
 const pll_ring_settings perv_plls =
 {
+    CALIBRATED_BANDSEL_M1,
     0x0002000000000080ULL,
     4,
-    {  97, 194, 192, 192, 587 },
-    { 249, 194, 192, 192, 435 }
+    {  97, 194, 192, 192, 587 },         ///< TOD, NEST, IOSS, IO filter PLLs
+    { 249, 194, 192, 192, 435 },
+    {   2,   3,   5,   4,   8 },
 };
 
 const pll_ring_settings pci_plls =
 {
+    CALIBRATED_BANDSEL_M1,
     0x0002000000000080ULL,
     1,
-    { 100, 208 },
-    { 252,  56 }
+    { 100, 208 },                        ///< PCI filter PLL
+    { 252,  56 },
+    {   0,   8 },
 };
 
 const pll_ring_settings iohs_plls =
 {
+    CALIBRATED_BANDSEL_M1,
     0x0002000000000080ULL,
     1,
-    {  98, 104 },
-    { 146,  56 }
+    {  98, 104 },                        ///< IOHS tank PLL
+    { 146,  56 },
+    {   0,   8 },
 };
 
 const pll_ring_settings mc_plls =
 {
+    LAST_LOCKING_BANDSEL_M1,
     0x0002000000000080ULL,
     2,
-    {  98,  97, 106 },
-    { 146,  97,  58 }
+    {  98,  97, 106 },                   ///< MC tank PLLs (odd, even)
+    { 146,  97,  58 },
+    {   1,   0,   8 },
 };
 
 /// @brief Rotate across the PLL ring and scan out the BANDSEL and CCALCOMP bits
@@ -182,95 +202,317 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+/// @brief Process all PLLs in ring to confirm calibration (CCALCOMP) and sample resolved band (BANDSEL)
+fapi2::ReturnCode confirm_calibration(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target,
+    const pll_ring_settings& i_settings,
+    pll_cal* o_bands)
+{
+    using namespace scomt::perv;
+
+    const uint64_t l_set_pulse_sl  = (i_settings.scan_region_type & 0x0FFFF00000000000ULL) | 0xC000000000008000ULL;
+
+    uint8_t l_uncalibrated = 0xFF;
+    uint8_t l_calibration_poll_count = 0;
+
+    FAPI_DBG("Start");
+
+    while (l_uncalibrated)
+    {
+        // move PLL feedback into boundary ring (via SL clock) where it's observable
+        FAPI_DBG("Issuing SL setpulse to fill bndy ring");
+        FAPI_TRY(fapi2::putScom(i_target, CLK_REGION, l_set_pulse_sl));
+
+        // sample CCALCOMP to confirm PLL has resolved
+        FAPI_DBG("Read bndy ring to sample CCALCOMP, BANDSEL");
+        FAPI_TRY(read_pll_cal_results(i_target,
+                                      i_settings.scan_region_type,
+                                      i_settings.nplls,
+                                      i_settings.result_offsets,
+                                      o_bands));
+
+        l_uncalibrated = 0;
+
+        for (int i = 0; i < i_settings.nplls; i++)
+        {
+            l_uncalibrated |= o_bands[i].calibrated ? 0 : (0x80 >> i);
+        }
+
+        FAPI_DBG("Poll: %d, NO CCALCOMP -> perv 0x%02X: 0x%02x",
+                 l_calibration_poll_count,
+                 i_target.getChipletNumber(),
+                 l_uncalibrated);
+
+        // all calibrated
+        if (l_uncalibrated == 0)
+        {
+            break;
+        }
+        else
+        {
+            // bump poll count
+            l_calibration_poll_count++;
+
+            // check we haven't exceeded maximum poll limit
+            FAPI_ASSERT(l_calibration_poll_count < CCALCOMP_MAX_POLLS,
+                        fapi2::P10_HW540133_CCALCOMP_TIMEOUT()
+                        .set_TARGET(i_target)
+                        .set_UNCALIBRATED(l_uncalibrated),
+                        "Polling timeout reached waiting for CCALCOMP on PLL!");
+
+            // delay for PLL to resolve
+            FAPI_TRY(fapi2::delay(CCALCOMP_DELAY_NS, CCALCOMP_DELAY_CYCLES));
+        }
+    }
+
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}
+
+fapi2::ReturnCode force_band(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_target,
+    const pll_ring_settings& i_settings,
+    pll_cal* io_bands)
+{
+    using namespace scomt::perv;
+
+    const uint64_t l_set_pulse_nsl = (i_settings.scan_region_type & 0x0FFFF00000000000ULL) | 0xC000000000004000ULL;
+
+    uint8_t l_unlocked = 0xFF;
+    uint8_t l_lock_poll_count = 0;
+
+    FAPI_DBG("Start");
+
+    FAPI_DBG("Scan updates into bndy ring");
+    FAPI_TRY(write_pll_cal_overrides(i_target,
+                                     i_settings.scan_region_type,
+                                     i_settings.nplls,
+                                     i_settings.override_offsets,
+                                     io_bands));
+
+    FAPI_DBG("Issuing NSL setpulse to update PLL");
+    FAPI_TRY(fapi2::putScom(i_target, CLK_REGION, l_set_pulse_nsl));
+
+    while (l_unlocked)
+    {
+        l_unlocked = 0;
+
+        fapi2::buffer<uint64_t> l_pll_lock_reg = 0;
+
+        // read HW, update unlocked vector
+        FAPI_TRY(fapi2::getScom(i_target, PLL_LOCK_REG, l_pll_lock_reg));
+
+        for (int i = 0; i < i_settings.nplls; i++)
+        {
+            io_bands[i].locked = l_pll_lock_reg.getBit(i_settings.lock_bit[i]) ? true : false;
+            l_unlocked |= (!io_bands[i].locked ? (0x80 >> i) : 0);
+        }
+
+        FAPI_DBG("Poll: %d, NO LOCK -> perv 0x%02X: 0x%02x",
+                 l_lock_poll_count,
+                 i_target.getChipletNumber(),
+                 l_unlocked);
+
+        if (l_unlocked == 0)
+        {
+            break;
+        }
+        else
+        {
+            // bump poll count
+            l_lock_poll_count++;
+
+            // return fapi2::FAPI2_RC_FALSE if we have exceeded polling limit
+            // caller must handle
+            if (l_lock_poll_count == LOCK_MAX_POLLS)
+            {
+                FAPI_DBG("Polling timeout reached waiting for LOCK on PLL!");
+                return fapi2::FAPI2_RC_FALSE;
+            }
+
+            // delay for PLLs to lock
+            FAPI_TRY(fapi2::delay(LOCK_DELAY_NS, LOCK_DELAY_CYCLES));
+        }
+    }
+
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}
+
 fapi2::ReturnCode apply_workaround(
     const fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > & i_mcast_target,
     const pll_ring_settings& i_settings)
 {
     using namespace scomt::perv;
-    const uint64_t l_set_pulse_sl  = (i_settings.scan_region_type & 0x0FFFF00000000000ULL) | 0xC000000000008000ULL;
-    const uint64_t l_set_pulse_nsl = (i_settings.scan_region_type & 0x0FFFF00000000000ULL) | 0xC000000000004000ULL;
-    pll_cal l_bands[MAX_PLLS];
+
+    FAPI_INF("Begin");
+
+    fapi2::ATTR_IS_SIMULATION_Type l_attr_is_simulation = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
 #ifdef __PPE__
 
     if (SBE::isSimicsRunning())
     {
         FAPI_INF("Skipping workaround because Simics does not support scanning");
-        return fapi2::FAPI2_RC_SUCCESS;
+        goto fapi_try_exit;
     }
 
 #endif
 
-    FAPI_INF("Begin");
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SIMULATION, FAPI_SYSTEM, l_attr_is_simulation));
+
+    if (l_attr_is_simulation)
+    {
+        FAPI_INF("Skipping workaround in simulation");
+        goto fapi_try_exit;
+    }
 
     for (auto l_chiplet_tgt : i_mcast_target.getChildren<fapi2::TARGET_TYPE_PERV>())
     {
-        uint8_t l_uncalibrated = 0xFF;
-        uint8_t l_calibration_poll_count = 0;
+        fapi2::ReturnCode l_rc;
+        pll_cal l_bands[MAX_PLLS];
 
-        while (l_uncalibrated)
+        for (int i = 0; i < i_settings.nplls; i++)
         {
-            // move PLL feedback into boundary ring (via SL clock) where it's observable
-            FAPI_DBG("Isusing SL setpulse to fill bndy ring");
-            FAPI_TRY(fapi2::putScom(l_chiplet_tgt, CLK_REGION, l_set_pulse_sl));
+            l_bands[i].calibrated = false;
+            l_bands[i].load = false;
+            l_bands[i].locked = false;
+            l_bands[i].bandsel = 0;
+        }
 
-            // sample CCALCOMP to confirm PLL has resolved
-            FAPI_DBG("Read bndy ring to sample CCALCOMP, BANDSEL");
-            FAPI_TRY(read_pll_cal_results(l_chiplet_tgt,
-                                          i_settings.scan_region_type,
-                                          i_settings.nplls,
-                                          i_settings.result_offsets,
-                                          l_bands));
+        // confirm that PLL calibrates, return band selected by HW calibration
+        FAPI_TRY(confirm_calibration(l_chiplet_tgt, i_settings, l_bands),
+                 "Error from confirm_calibration");
 
-            l_uncalibrated = 0;
+        FAPI_DBG("Base calibration (BANDSEL):");
 
-            for (int i = 0; i < i_settings.nplls; i++)
-            {
-                l_uncalibrated |= l_bands[i].calibrated ? 0 : (0x80 >> i);
-            }
+        for (int i = 0; i < i_settings.nplls; i++)
+        {
+            FAPI_DBG("PLL %d: %d", i, l_bands[i].bandsel);
+        }
 
-            FAPI_DBG("Poll: %d, NO CCALCOMP -> perv%d: 0x%02x",
-                     l_calibration_poll_count,
-                     l_chiplet_tgt.getChipletNumber(),
-                     l_uncalibrated);
+        switch (i_settings.wa_type)
+        {
+            case NO_WORKAROUND:
+                FAPI_DBG("Skipping all workarounds");
+                break;
 
-            // all calibrated, set CCBANDSEL based on PLL BANDSEL feedback
-            if (l_uncalibrated == 0)
-            {
+            case CALIBRATED_BANDSEL_M1:
+                FAPI_DBG("Executing CALIBRATED_BANDSEL_M1 workaround");
+
+                // set CCBANDSEL based on PLL BANDSEL feedback
                 for (int i = 0; i < i_settings.nplls; i++)
                 {
                     l_bands[i].load = true;
-                    l_bands[i].bandsel = l_bands[i].bandsel ? (l_bands[i].bandsel - 1) : 1;
+                    l_bands[i].bandsel = ((l_bands[i].bandsel == BANDSEL_MIN) ? 1 : (l_bands[i].bandsel - 1));
                 }
 
-                FAPI_DBG("Scan updates into bndy ring");
+                l_rc = force_band(l_chiplet_tgt, i_settings, l_bands);
 
-                FAPI_TRY(write_pll_cal_overrides(l_chiplet_tgt,
-                                                 i_settings.scan_region_type,
-                                                 i_settings.nplls,
-                                                 i_settings.override_offsets,
-                                                 l_bands));
-
-                FAPI_DBG("Issuing NSL setpulse to update PLL");
-                FAPI_TRY(fapi2::putScom(l_chiplet_tgt, CLK_REGION, l_set_pulse_nsl));
+                FAPI_ASSERT(l_rc == fapi2::FAPI2_RC_SUCCESS,
+                            fapi2::P10_HW540133_CBM1_WA_ERR()
+                            .set_TARGET(l_chiplet_tgt)
+                            .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE),
+                            "Error from force_band (CALIBRATED_BANDSEL_M1, chiplet: %02d)",
+                            l_chiplet_tgt.getChipletNumber());
 
                 break;
-            }
-            else
-            {
-                // bump poll count
-                l_calibration_poll_count++;
 
-                // check we haven't exceeded maximum poll limit
-                FAPI_ASSERT(l_calibration_poll_count < CCALCOMP_MAX_POLLS,
-                            fapi2::P10_SBE_CHIPLET_PLL_SETUP_CCALCOMP_TIMEOUT()
+            case LAST_LOCKING_BANDSEL_M1:
+                FAPI_DBG("Executing LAST_LOCKING_BANDSEL_M1 workaround");
+
+                for (int i = 0; i < i_settings.nplls; i++)
+                {
+                    // execute workaround sequence on only one PLL in each ring at a time
+                    // keep all previously adjusted PLLs in the ring with 'load' set to
+                    // maintain resolved setpoint
+                    FAPI_DBG("Adjusting PLL: %d", i);
+
+                    for (int j = 0; j <= i; j++)
+                    {
+                        l_bands[j].load = true;
+                    }
+
+                    // confirm that PLL locks just forcing calibrated band
+                    l_rc = force_band(l_chiplet_tgt, i_settings, l_bands);
+                    FAPI_ASSERT(l_rc == fapi2::FAPI2_RC_SUCCESS,
+                                fapi2::P10_HW540133_LLBM1_WA_ERR()
+                                .set_TARGET(l_chiplet_tgt)
+                                .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE)
+                                .set_FIRST_ATTEMPT(true)
+                                .set_INTERMEDIATE_STEP(false)
+                                .set_LAST_ATTEMPT(false),
+                                "Error from force_band (LAST_LOCKING_BANDSEL_M1, chiplet: %02d), first lock attempt",
+                                l_chiplet_tgt.getChipletNumber());
+
+                    FAPI_DBG("Locked when forced to calibrated band (%d)", l_bands[i].bandsel);
+
+                    // step bandsel up until we fail to lock
+                    while (l_bands[i].bandsel < BANDSEL_MAX)
+                    {
+                        l_bands[i].bandsel++;
+                        FAPI_DBG("Attempting lock at bandsel %d...", l_bands[i].bandsel);
+                        l_rc = force_band(l_chiplet_tgt, i_settings, l_bands);
+
+                        if (l_rc == fapi2::FAPI2_RC_SUCCESS)
+                        {
+                            FAPI_DBG("Lock successful at bandsel: %d, stepping up", l_bands[i].bandsel);
+                            continue;
+                        }
+                        else if (l_rc == fapi2::FAPI2_RC_FALSE)
+                        {
+                            FAPI_DBG("Lock failed at at bandsel: %d, backing off", l_bands[i].bandsel);
+                            break;
+                        }
+
+                        FAPI_ASSERT(false,
+                                    fapi2::P10_HW540133_LLBM1_WA_ERR()
+                                    .set_TARGET(l_chiplet_tgt)
+                                    .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE)
+                                    .set_FIRST_ATTEMPT(false)
+                                    .set_INTERMEDIATE_STEP(true)
+                                    .set_LAST_ATTEMPT(false),
+                                    "Error from force_band (LAST_LOCKING_BANDSEL_M1, chiplet: %02d), step sequence",
+                                    l_chiplet_tgt.getChipletNumber());
+                    }
+
+                    // if last adjustment failed to lock, back off by two
+                    if (l_rc == fapi2::FAPI2_RC_FALSE)
+                    {
+                        if (l_bands[i].bandsel < 2)
+                        {
+                            l_bands[i].bandsel = 0;
+                        }
+                        else
+                        {
+                            l_bands[i].bandsel -= 2;
+                        }
+                    }
+
+                    FAPI_DBG("Confirming final band selection (%d)", l_bands[i].bandsel);
+                    l_rc = force_band(l_chiplet_tgt, i_settings, l_bands);
+                    FAPI_ASSERT(l_rc == fapi2::FAPI2_RC_SUCCESS,
+                                fapi2::P10_HW540133_LLBM1_WA_ERR()
+                                .set_TARGET(l_chiplet_tgt)
+                                .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE)
+                                .set_FIRST_ATTEMPT(false)
+                                .set_INTERMEDIATE_STEP(false)
+                                .set_LAST_ATTEMPT(true),
+                                "Error from force_band (LAST_LOCKING_BANDSEL_M1, chiplet: %02d), last lock attempt",
+                                l_chiplet_tgt.getChipletNumber());
+                }
+
+                break;
+
+            default:
+                FAPI_ASSERT(false,
+                            fapi2::P10_HW540133_WORKAROUND_ERR()
                             .set_TARGET(l_chiplet_tgt)
-                            .set_UNCALIBRATED(l_uncalibrated),
-                            "Polling timeout reached waiting for CCALCOMP on PLL!");
-
-                // delay for PLL to resolve
-                FAPI_TRY(fapi2::delay(CCALCOMP_DELAY_NS, CCALCOMP_DELAY_CYCLES));
-            }
+                            .set_WORKAROUND_TYPE(i_settings.wa_type),
+                            "Unsupported HW540133 workaround selection!");
         }
     }
 
@@ -278,4 +520,5 @@ fapi_try_exit:
     FAPI_INF("End");
     return fapi2::current_err;
 }
+
 }

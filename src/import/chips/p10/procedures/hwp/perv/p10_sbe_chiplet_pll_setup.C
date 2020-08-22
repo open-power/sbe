@@ -214,7 +214,7 @@ static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_check_pll_lock(
     FAPI_DBG("Check  PLL lock");
     FAPI_TRY(fapi2::getScom(i_target_cplt, PLL_LOCK_REG, l_read_reg));
 
-    FAPI_ASSERT(l_read_reg.getBit<0>() == 1 ,
+    FAPI_ASSERT((l_read_reg.getBit<0>() == 1),
                 fapi2::PLL_LOCK_ERR()
                 .set_TARGET_CHIPLET(i_target_cplt)
                 .set_PLL_READ(l_read_reg),
