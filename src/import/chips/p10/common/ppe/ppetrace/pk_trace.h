@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -99,7 +99,7 @@
 
 // In version 3, the 64 bit time is shifted left 8 bits The LSB 24 bits are
 // kept in the trace entree, the residue in the trace buffer header.
-#define PK_TRACE_V3_TIME_SHIFT 6
+#define PK_TRACE_V3_TIME_SHIFT 8
 
 //Set the trace timer period to be the maximum
 //32 bit time minus 2 seconds (assuming a 32ns tick)
