@@ -138,16 +138,16 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
         // This smells like three separate timeouts, and it kinda is, but in the good case
         // the second and third poll call will exit very quickly since their PLLs had ample
         // time to lock.
-        l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_iohs, 0x8000000000000000ULL, l_data64);
+        l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_iohs, 0xC000000000000000ULL, l_data64);
 
         if (l_rc == fapi2::FAPI2_RC_SUCCESS)
         {
-            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_pci, 0x8000000000000000ULL, l_data64);
+            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_pci, 0xC000000000000000ULL, l_data64);
         }
 
         if (l_rc == fapi2::FAPI2_RC_SUCCESS)
         {
-            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_mc, 0x8000000000000000ULL, l_data64);
+            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_mc, 0xC000000000000000ULL, l_data64);
         }
 
         if (l_rc == fapi2::FAPI2_RC_FALSE)
@@ -214,7 +214,8 @@ static fapi2::ReturnCode p10_sbe_chiplet_pll_setup_check_pll_lock(
     FAPI_DBG("Check  PLL lock");
     FAPI_TRY(fapi2::getScom(i_target_cplt, PLL_LOCK_REG, l_read_reg));
 
-    FAPI_ASSERT((l_read_reg.getBit<0>() == 1),
+    FAPI_ASSERT((l_read_reg.getBit<0>() == 1) &&
+                (l_read_reg.getBit<1>() == 1),
                 fapi2::PLL_LOCK_ERR()
                 .set_TARGET_CHIPLET(i_target_cplt)
                 .set_PLL_READ(l_read_reg),
