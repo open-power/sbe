@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2019                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2020                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -1812,59 +1812,6 @@
         <writeable/>
         <array>2</array>
         <mssAccessorName>eff_read_dbi</mssAccessorName>
-    </attribute>
-
-    <attribute>
-        <id>ATTR_EFF_VREF_DQ_TRAIN_VALUE</id>
-        <targetType>TARGET_TYPE_MCS</targetType>
-        <description>
-            vrefdq_train value. This is for DDR4 MRS6.
-            Computed in mss_eff_cnfg. Each memory channel will have a value.
-            Creator: mss_eff_cnfg
-            Consumer:various
-            Firmware notes: none
-        </description>
-        <initToZero></initToZero>
-        <valueType>uint8</valueType>
-        <writeable/>
-        <array> 2 2 4</array>
-        <mssAccessorName>eff_vref_dq_train_value</mssAccessorName>
-    </attribute>
-
-    <attribute>
-        <id>ATTR_EFF_VREF_DQ_TRAIN_RANGE</id>
-        <targetType>TARGET_TYPE_MCS</targetType>
-        <description>
-            vrefdq_train range. This is for DDR4 MRS6.
-            Computed in mss_eff_cnfg. Each memory channel will have a value.
-            Creator: mss_eff_cnfg
-            Consumer:various
-            Firmware notes: none
-        </description>
-        <initToZero></initToZero>
-        <valueType>uint8</valueType>
-        <enum>RANGE1 = 0, RANGE2 = 1</enum>
-        <writeable/>
-        <array> 2 2 4</array>
-        <mssAccessorName>eff_vref_dq_train_range</mssAccessorName>
-    </attribute>
-
-    <attribute>
-        <id>ATTR_EFF_VREF_DQ_TRAIN_ENABLE</id>
-        <targetType>TARGET_TYPE_MCS</targetType>
-        <description>
-            vrefdq_train enable. This is for DDR4 MRS6.
-            Computed in mss_eff_cnfg. Each memory channel will have a value.
-            Creator: mss_eff_cnfg
-            Consumer:various
-            Firmware notes: none
-        </description>
-        <initToZero></initToZero>
-        <valueType>uint8</valueType>
-        <enum>DISABLE = 0, ENABLE = 1</enum>
-        <writeable/>
-        <array> 2 2 4</array>
-        <mssAccessorName>eff_vref_dq_train_enable</mssAccessorName>
     </attribute>
 
     <attribute>
