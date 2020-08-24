@@ -38,11 +38,13 @@
 #include "p10_scom_perv_4.H"
 #include "p10_scom_perv_6.H"
 #include "p10_scom_perv_7.H"
+#include "p10_scom_perv_8.H"
 #include "p10_scom_perv_a.H"
 #include "p10_scom_perv_b.H"
 #include "p10_scom_perv_c.H"
 #include "p10_scom_perv_e.H"
 #include "p10_scom_perv_f.H"
+#include "p10_scom_proc_f.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 #include <p10_hang_pulse_mc_setup_tables.H>
@@ -65,13 +67,12 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     using namespace scomt;
-    using namespace scomt::perv;
 
     const uint32_t BASE_ADDRESS = 0x000F0020;
     const uint8_t PRE_DIVIDER = 0x1;
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64, l_data64_root_ctrl0;
-    fapi2::buffer<uint32_t> l_read_attr_pg;
+    fapi2::buffer<uint32_t> l_read_attr_pg, l_read_attr_pg_n1;
     fapi2::ATTR_CHIP_EC_FEATURE_HW541221_Type l_hw541221;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
@@ -89,12 +90,12 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
 
     FAPI_DBG("Release Nest/Cache clock DIV2 reset");
     l_data64.flush<0>().setBit<26>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
 
     FAPI_DBG("Set up static power gating based on partial good info");
     l_data64.flush<0>();
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, l_n1, l_read_attr_pg));
-    l_data64.writeBit<0>(!(l_read_attr_pg.getBit<17>())); // bit 0 = not (ATTR_PG(N1) region NMMU)
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, l_n1, l_read_attr_pg_n1));
+    l_data64.writeBit<0>(!(l_read_attr_pg_n1.getBit<17>())); // bit 0 = not (ATTR_PG(N1) region NMMU)
 
     for (auto& targ : l_perv_mc_pci_pau)
     {
@@ -159,13 +160,13 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
         l_data64.setBit<0, 20>();
     }
 
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL5_RW, l_data64));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::CPLT_CTRL5_RW, l_data64));
 
     FAPI_DBG("Set up static progdelay for the nest mesh");
     l_data64.flush<0>()
-    .insertFromRight<CPLT_CONF0_TP_AN_NEST_PROGDLY_SETTING_DC,
-                     CPLT_CONF0_TP_AN_NEST_PROGDLY_SETTING_DC_LEN>(NEST_PDLY_SETTING);
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CONF0_WO_OR, l_data64));
+    .insertFromRight<perv::CPLT_CONF0_TP_AN_NEST_PROGDLY_SETTING_DC,
+                     perv::CPLT_CONF0_TP_AN_NEST_PROGDLY_SETTING_DC_LEN>(NEST_PDLY_SETTING);
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::CPLT_CONF0_WO_OR, l_data64));
 
     FAPI_DBG("Drop nest PDLY/DCC bypass");
     l_data64.flush<0>()
@@ -174,8 +175,8 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_WO_CLEAR, l_data64));
 
     FAPI_DBG("Release Nest Async Reset to enable Nest clock mesh");
-    l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL4_TP_AN_CLKGLM_NEST_ASYNC_RESET_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
+    l_data64.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL4_TP_AN_CLKGLM_NEST_ASYNC_RESET_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
 
     // NET,PLL regions works with nest_gckn
     FAPI_DBG("Run scan0 module for NET and PLL regions, scan types GPTR, TIME, REPR");
@@ -186,42 +187,42 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
 
     FAPI_DBG("Drop clock region fence for NET");
     l_data64.flush<0>()
-    .setBit<CPLT_CTRL1_REGION4_FENCE_DC>();
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL1_WO_CLEAR, l_data64));
+    .setBit<perv::CPLT_CTRL1_REGION4_FENCE_DC>();
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::CPLT_CTRL1_WO_CLEAR, l_data64));
 
     FAPI_DBG("Starting clock for NET");
     FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_NET, CLOCK_TYPES_ALL));
 
     FAPI_DBG("Set PCB Reset");
-    l_data64_root_ctrl0.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_PCB_RESET_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL0_SET_WO_OR,
+    l_data64_root_ctrl0.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL0_PCB_RESET_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL0_SET_WO_OR,
                             l_data64_root_ctrl0));
 
     FAPI_DBG("switch pcb mux settings to intermediate state");
-    l_data64_root_ctrl0.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_PCB2PCB_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL0_SET_WO_OR,
+    l_data64_root_ctrl0.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL0_PCB2PCB_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL0_SET_WO_OR,
                             l_data64_root_ctrl0));
 
     FAPI_DBG("switch pcb mux settings to pcb2pcb path");
     l_data64_root_ctrl0.flush<0>()
-    .setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_FSI2PCB_DC>()
-    .setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_PIB2PCB_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR,
+    .setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL0_FSI2PCB_DC>()
+    .setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL0_PIB2PCB_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR,
                             l_data64_root_ctrl0));
 
     FAPI_DBG("Release PCB Reset");
-    l_data64_root_ctrl0.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_PCB_RESET_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR,
+    l_data64_root_ctrl0.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL0_PCB_RESET_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR,
                             l_data64_root_ctrl0));
 
     FAPI_DBG("Drop Global Endpoint reset");
-    l_data64_root_ctrl0.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_GLOBAL_EP_RESET_DC>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR,
+    l_data64_root_ctrl0.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL0_GLOBAL_EP_RESET_DC>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR,
                             l_data64_root_ctrl0));
 
     FAPI_DBG("Drop OOB Mux");
-    l_data64_root_ctrl0.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL0_OOB_MUX>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR,
+    l_data64_root_ctrl0.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL0_OOB_MUX>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL0_CLEAR_WO_CLEAR,
                             l_data64_root_ctrl0));
 
     FAPI_DBG("Transfer Perv pgood attribute into region good register(cplt_ctrl2 reg)");
@@ -229,15 +230,115 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     l_data64.flush<0>();
     l_read_attr_pg.invert();
     l_data64.insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_read_attr_pg);
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL2_RW, l_data64));
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::CPLT_CTRL2_RW, l_data64));
 
     FAPI_DBG("Enable PERV vital clock gating");
-    l_data64.flush<0>().setBit<FSXCOMP_FSXLOG_PERV_CTRL0_TP_TCPERV_VITL_CG_DIS>();
-    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_WO_CLEAR, l_data64));
+    l_data64.flush<0>().setBit<perv::FSXCOMP_FSXLOG_PERV_CTRL0_TP_TCPERV_VITL_CG_DIS>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_PERV_CTRL0_CLEAR_WO_CLEAR, l_data64));
 
     FAPI_DBG("Disable PERV align pulses");
-    l_data64.flush<0>().setBit<CPLT_CTRL0_CTRL_CC_FORCE_ALIGN>();
-    FAPI_TRY(fapi2::putScom(l_tpchiplet, CPLT_CTRL0_WO_CLEAR, l_data64));
+    l_data64.flush<0>().setBit<perv::CPLT_CTRL0_CTRL_CC_FORCE_ALIGN>();
+    FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::CPLT_CTRL0_WO_CLEAR, l_data64));
+
+    FAPI_DBG("Verify static power gating PFET states");
+    FAPI_TRY(fapi2::getScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_MISC_REGS_PFET, l_data64));
+
+    // Pfet state for N1 : bit 25
+    FAPI_ASSERT((l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_NMMU_VDD_PFETS_ENABLED_SENSE_OUT_DC>() == (!
+                 (l_read_attr_pg_n1.getBit<17>()))) ,
+                fapi2::STATIC_POWER_GATING_PFET_CNFG_ERR()
+                .set_MISC_PFET_REG(l_data64)
+                .set_CHIPLET_ID(l_n1.getChipletNumber())
+                .set_TARGET(l_n1),
+                "ERROR:Pfet not configures for ChipletID : %#010lX", l_n1.getChipletNumber());
+
+    for (auto& targ : l_perv_mc_pci_pau)
+    {
+        uint32_t l_chipletID = targ.getChipletNumber();
+        bool pfet_val1 = 1, pfet_val2 = 1;
+
+        // TODO: change to dial names for MC and PCIE
+        // bit1,3,5,7 = MC3..0 cplts
+        if(l_chipletID == 0xC)
+        {
+            pfet_val1 = l_data64.getBit<7>();
+        }
+        else  if(l_chipletID == 0xD)
+        {
+            pfet_val1 = l_data64.getBit<5>();
+        }
+        else  if(l_chipletID == 0xE)
+        {
+            pfet_val1 = l_data64.getBit<3>();
+        }
+        else  if(l_chipletID == 0xF)
+        {
+            pfet_val1 = l_data64.getBit<1>();
+        }
+        // bit21,23 = PCI1..0 cplts
+        else if(l_chipletID == 0x8)
+        {
+            pfet_val1 = l_data64.getBit<23>();
+        }
+        else if(l_chipletID == 0x9)
+        {
+            pfet_val1 = l_data64.getBit<21>();
+        }
+        else // PAU
+        {
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, targ, l_read_attr_pg));
+
+            // bits 9,11, 13, 15, 17, 19
+            if(l_chipletID == 0x10)
+            {
+                if(!(l_read_attr_pg.getBit<13>()))
+                {
+                    pfet_val1 = l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_PAU0_VDD_PFETS_ENABLED_SENSE_OUT_DC>(); // pau0 region
+                }
+            }
+            else if(l_chipletID == 0x11)
+            {
+                if(!(l_read_attr_pg.getBit<13>()))
+                {
+                    pfet_val1 = l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_PAU3_VDD_PFETS_ENABLED_SENSE_OUT_DC>(); // pau3 region
+                }
+            }
+            else if(l_chipletID == 0x12)
+            {
+                if(!(l_read_attr_pg.getBit<13>()))
+                {
+                    pfet_val1 = l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_PAU4_VDD_PFETS_ENABLED_SENSE_OUT_DC>(); // pau4 region
+                }
+
+                if( !(l_read_attr_pg.getBit<14>()))
+                {
+                    pfet_val2 = l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_PAU5_VDD_PFETS_ENABLED_SENSE_OUT_DC>(); // pau5 region
+                }
+            }
+            else if(l_chipletID == 0x13)
+            {
+                if(!(l_read_attr_pg.getBit<13>()))
+                {
+                    pfet_val1 = l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_PAU6_VDD_PFETS_ENABLED_SENSE_OUT_DC>(); // pau6 region
+                }
+
+                if(!(l_read_attr_pg.getBit<14>()))
+                {
+                    pfet_val2 = l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_PAU7_VDD_PFETS_ENABLED_SENSE_OUT_DC>(); // pau7 region
+                }
+            }
+        }
+
+        // Pfet state check
+        FAPI_ASSERT((pfet_val1 && pfet_val2) ,
+                    fapi2::STATIC_POWER_GATING_PFET_CNFG_ERR()
+                    .set_MISC_PFET_REG(l_data64)
+                    .set_CHIPLET_ID(l_chipletID)
+                    .set_TARGET(targ),
+                    "ERROR:Pfet not configured for ChipletID : %#010lX", l_chipletID);
+
+    }
+
 
     FAPI_DBG("Setup hang counters for Perv chiplet");
     FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, false, BASE_ADDRESS, PRE_DIVIDER,
