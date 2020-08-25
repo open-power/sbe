@@ -1,5 +1,8 @@
 echo "Attempting to register SBE Tools"
 
+if defined sbe_scripts_path {
+    $sbe_scripts_path = (lookup-file $sbe_scripts_path)
+}
 # Load SBE debug tools.
 try {
     run-python-file (lookup-file "%script%/simics-debug-framework_rainier.py")
