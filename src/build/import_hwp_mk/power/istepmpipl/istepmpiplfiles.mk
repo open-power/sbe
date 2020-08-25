@@ -29,8 +29,15 @@
 ##########################################################################
 # Object Files
 ##########################################################################
-
-ISTEPMPIPL-CPP-SOURCES =  p10_hcd_core_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_l2_purge.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_l2_tlbie_quiesce.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_ncu_purge.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_core_shadows_disable.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_core_stopgrid.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_chtm_purge.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_l3_purge.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_powerbus_purge.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_core_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_cache_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_eq_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES += p10_common_stopclocks.C
@@ -48,6 +55,7 @@ ISTEPMPIPL-CPP-SOURCES += p10_hcd_ecl2_l3_poweroff.C
 ISTEPMPIPL-CPP-SOURCES += p10_suspend_io.C
 ISTEPMPIPL-CPP-SOURCES += p10_suspend_powman.C
 ISTEPMPIPL-CPP-SOURCES += p10_sbe_check_quiesce.C
+ISTEPMPIPL-CPP-SOURCES += p10_cl2_l3_cleanup.C
 ISTEPMPIPL-CPP-SOURCES += p10_pm_pgpe_init.C
 ISTEPMPIPL-CPP-SOURCES += p10_pm_qme_init.C
 ISTEPMPIPL-CPP-SOURCES += p10_pm_xgpe_init.C

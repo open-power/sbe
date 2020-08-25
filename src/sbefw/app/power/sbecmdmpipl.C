@@ -77,7 +77,7 @@ p10_stopclocks_FP_t p10_stopclocks_hwp = &p10_stopclocks;
 #endif
 
 static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
-static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 8;
+static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 9;
 static const uint32_t SBE_ISTEP_MPIPL_CONTINUE      = 97;
 static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 7;
 static const uint32_t SBE_ISTEP4                    = 4;

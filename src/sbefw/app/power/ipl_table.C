@@ -120,6 +120,7 @@
 #include "p10_hcd_ecl2_l3_poweroff.H"
 #include "p10_stopclocks.H"
 #include "p10_suspend_powman.H"
+#include "p10_cl2_l3_cleanup.H"
 
 #include "sbeXipUtils.H" // For getting hbbl offset
 #include "sbeutil.H" // For getting SBE_TO_NEST_FREQ_FACTOR
@@ -184,7 +185,8 @@ using  sbeIstepHwpCoreL3Flush_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_CORE> & i_target,
                      const uint32_t i_purgeType,
                      const uint32_t i_purgeAddr);
-
+using  sbeIstepHwpCoreCleanup_t = ReturnCode (*)
+                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target);
 using  sbeIstepHwpSyncQuiesceState_t = ReturnCode (*)
                     (const Target<TARGET_TYPE_PROC_CHIP> & i_target,
                      uint8_t & o_status);
@@ -222,6 +224,7 @@ ReturnCode istepWithCoreState( voidfuncptr_t i_hwp );
 ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp );
 ReturnCode istepWithCoreL2Flush( voidfuncptr_t i_hwp );
 ReturnCode istepWithCoreL3Flush( voidfuncptr_t i_hwp );
+ReturnCode istepWithCoreCLeanup( voidfuncptr_t i_hwp );
 ReturnCode istepStartMpipl( voidfuncptr_t i_hwp );
 ReturnCode istepWithProcSyncQuiesceState( voidfuncptr_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp );
@@ -255,6 +258,8 @@ static istepMap_t g_istepMpiplStartPtrTbl[] =
             ISTEP_MAP( istepWithProcQuiesceLQASet, p10_sbe_check_quiesce ),
             // Check on Quiescing of all Chips in a System by Local SBE
             ISTEP_MAP( istepWithProcSyncQuiesceState, p10_sbe_sync_quiesce_states ),
+            // Run core,L2 nd L3 cleanup procedures
+            ISTEP_MAP( istepWithCoreCLeanup, p10_cl2_l3_cleanup),
 #endif
         };
 static istepMap_t g_istepMpiplContinuePtrTbl[] =
@@ -971,6 +976,27 @@ ReturnCode istepWithCoreL2Flush( voidfuncptr_t i_hwp)
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
     #undef SBE_FUNC
+}
+
+//----------------------------------------------------------------------------
+ReturnCode istepWithCoreCLeanup( voidfuncptr_t i_hwp)
+{
+#define SBE_FUNC "istepWithCoreCLeanup"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+    SBE_EXEC_HWP(fapiRc,
+            reinterpret_cast<sbeIstepHwpCoreCleanup_t>(i_hwp),
+            procTgt);
+    if(fapiRc != FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC " p10_cl2_l3_cleanup failed, RC=[0x%08X]", fapiRc);
+    }
+
+
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+#undef SBE_FUNC
 }
 
 //----------------------------------------------------------------------------
