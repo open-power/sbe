@@ -33,7 +33,7 @@ export SANDBOXNAME=test_sb
 #export WORKSPACE=<set it to your root ppe directory. This is required if you
 # to use build script locally>
 export MACHINE=NIMBUS
-export BACKING_BUILD=/esw/fips940/Builds/b0620a_1925.940
+export BACKING_BUILD=/esw/fips1010/Builds/b0824a2035.1010/
 export SIMICSOPTIONS="-nre"
 export SIMICS_TAR=/gsa/ausgsa/projects/s/simics_published_builds/p10/1485f963db733bceeb08fa16e01c53df3b55a125/
 export MCP_PATH=/opt/mcp/shared/fr_FLD9-DEV-20190320/

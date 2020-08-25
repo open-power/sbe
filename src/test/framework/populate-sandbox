@@ -36,6 +36,10 @@ SBEROMDIR=${SIMICSROOTDIR}/import/boot_roms/
 SBEBINSIMIMAGE=${SBEROMDIR}/sbe_seeprom_p10.bin
 SBEECCIMAGE=${SBEROMDIR}/sbe_seeprom_p10.bin.ecc
 SBEECCMEASUREMENTIMAGE=$SBEROMDIR/sbe_measurement_p10.bin.ecc
+HWREFIMAGE=$BACKING_BUILD/src/engd/href/p10.hw_ref_image.bin
+HREFTEMPIMAGE=$SBEROOT/images/hwref.bin
+HREFSBEIMAGE=$SBEROOT/images/sbe.bin
+HDCTBINIMAGE=$SBEROOT/images/hdct.bin
 
 # Create test directory.
 mkdir -p $SBETESTDIR || exit -1
@@ -51,7 +55,21 @@ if [ -f $SBEBINIMAGE ]; then
     echo "Copy sbe boot seeprom image"
     cp -f $SBEBINIMAGE $SBEBINSIMIMAGE || exit -1
     #Add HBBL section into the SBE image.
-    $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hbbl $SBEROOT/src/tools/debug/hbbl.bin || exit -1 
+    $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hbbl $SBEROOT/src/tools/debug/hbbl.bin || exit -1
+
+    #Add hdct section into the SBE image.
+    #Copy the HWREF image locally.
+    cp $HWREFIMAGE $HREFTEMPIMAGE
+
+    #Extract SBE section from HWREF image.
+    $SBEROOT/images/ipl_image_tool $HREFTEMPIMAGE extract .sbe $HREFSBEIMAGE || exit -1
+
+    #Extract HDCT section from SBE section of HWREF image.
+    $SBEROOT/images/ipl_image_tool $HREFSBEIMAGE extract .hdct $HDCTBINIMAGE || exit -1
+
+    #Append HDCT section into SBE image.
+    $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hdct $HDCTBINIMAGE || exit -1
+
     #TODO: Add Ring section into the SBE image before adding the ECC
     ecc --inject $SBEBINSIMIMAGE --output  $SBEECCIMAGE --p8 || exit -1
     echo "Copy OTPROM image"
@@ -68,11 +86,6 @@ if [  -f $SBEBINMEASUREMENTIMAGE ]; then
     echo "Copy sbe measurement seeprom image"
     ecc --inject $SBEBINMEASUREMENTIMAGE --output  $SBEECCMEASUREMENTIMAGE --p8 || exit -1
 fi
-
-
-echo "Copy engd (scandef.abr) from backing build"
-mkdir -p $SIMICSROOTDIR/import/cec-chip/
-cp $BACKING_BUILD/obj/ppc/simu/data/cec-chip/scandef.abr $SIMICSROOTDIR/import/cec-chip/scandef.abr || exit -1
 
 echo  "Copy test files."
 cp -r $SBEROOT/src/test/testcases/* $SBETESTDIR/ || exit -1
