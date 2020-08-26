@@ -44,7 +44,7 @@ enum hw540133_PRIVATE_CONSTANTS
     CCALCOMP_DELAY_NS = 1000000,
     CCALCOMP_DELAY_CYCLES = 500000,
     LOCK_MAX_POLLS = 6,
-    LOCK_DELAY_NS = 1000000,
+    LOCK_DELAY_NS = 5000000,
     LOCK_DELAY_CYCLES = 500000,
     BANDSEL_MIN = 0,
     BANDSEL_MAX = 15,
@@ -223,6 +223,9 @@ fapi2::ReturnCode confirm_calibration(
         FAPI_DBG("Issuing SL setpulse to fill bndy ring");
         FAPI_TRY(fapi2::putScom(i_target, CLK_REGION, l_set_pulse_sl));
 
+        // delay for PLL to resolve
+        FAPI_TRY(fapi2::delay(CCALCOMP_DELAY_NS, CCALCOMP_DELAY_CYCLES));
+
         // sample CCALCOMP to confirm PLL has resolved
         FAPI_DBG("Read bndy ring to sample CCALCOMP, BANDSEL");
         FAPI_TRY(read_pll_cal_results(i_target,
@@ -259,9 +262,6 @@ fapi2::ReturnCode confirm_calibration(
                         .set_TARGET(i_target)
                         .set_UNCALIBRATED(l_uncalibrated),
                         "Polling timeout reached waiting for CCALCOMP on PLL!");
-
-            // delay for PLL to resolve
-            FAPI_TRY(fapi2::delay(CCALCOMP_DELAY_NS, CCALCOMP_DELAY_CYCLES));
         }
     }
 
@@ -298,6 +298,9 @@ fapi2::ReturnCode force_band(
     {
         l_unlocked = 0;
 
+        // delay for PLLs to lock
+        FAPI_TRY(fapi2::delay(LOCK_DELAY_NS, LOCK_DELAY_CYCLES));
+
         fapi2::buffer<uint64_t> l_pll_lock_reg = 0;
 
         // read HW, update unlocked vector
@@ -330,9 +333,6 @@ fapi2::ReturnCode force_band(
                 FAPI_DBG("Polling timeout reached waiting for LOCK on PLL!");
                 return fapi2::FAPI2_RC_FALSE;
             }
-
-            // delay for PLLs to lock
-            FAPI_TRY(fapi2::delay(LOCK_DELAY_NS, LOCK_DELAY_CYCLES));
         }
     }
 
