@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/procedures/hwp/corecache/p10_hcd_ncu_purge.H $ */
+/* $Source: src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.H $ */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2020                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,47 +22,48 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-
-
+/// @file  p10_cl2_l3_cleanup.C
+/// @brief In mpipl down path verify cores chiplet state..if it is still running then
+///        will put the core to stop 11 state
+///        will put the core to stop 11 state
+/// *HWP HW Owner        : Greg Still <stillgs@us.ibm.com>
+/// *HWP FW Owner        : Prasad Bg Ranganath <prasadbgr@in.ibm.com>
+/// *HWP Team            : PM
+/// *HWP Level           : 2
+/// *HWP Consumed by     : HB,CRO
 ///
 // EKB-Mirror-To: hw/ppe
 
-#ifndef _P10_HCD_NCU_PURGE_H_
-#define _P10_HCD_NCU_PURGE_H_
+#ifndef _p10_cl2_l3_cleanup_H_
+#define _p10_cl2_l3_cleanup_H_
 
 //------------------------------------------------------------------------------
 // Includes
 //------------------------------------------------------------------------------
+
 #include <fapi2.H>
 
-//------------------------------------------------------------------------------
-// Structure definitions
-//------------------------------------------------------------------------------
 
-/// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p10_hcd_ncu_purge_FP_t) (
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-    fapi2::TARGET_TYPE_MULTICAST,
-    fapi2::MULTICAST_AND > &);
+// function pointer typedef definition for HWP call support
+typedef fapi2::ReturnCode (*p10_cl2_l3_cleanup_FP_t) (
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
 
-//------------------------------------------------------------------------------
-// Function prototypes
-//------------------------------------------------------------------------------
 
-extern "C"
-{
 
+extern "C" {
+
+// -----------------------------------------------------------------------------
+//  Function prototype
+// -----------------------------------------------------------------------------
+
+/// @brief Select the Hostboot core from the available cores on the chip
 ///
-/// @brief
+/// @param [in] i_target    Chip target
 ///
-/// @param[in] i_target       Reference to fapi2::TARGET_TYPE_CORE|fapi2::TARGET_TYPE_MULTICAST
-/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
-///
-    fapi2::ReturnCode p10_hcd_ncu_purge(
-        const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-        fapi2::TARGET_TYPE_MULTICAST,
-        fapi2::MULTICAST_AND > & i_target);
+
+    fapi2::ReturnCode p10_cl2_l3_cleanup(
+        const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
 
 } // extern "C"
 
-#endif // _P10_HCD_NCU_PURGE_H_
+#endif // _p10_cl2_l3_cleanup_H_

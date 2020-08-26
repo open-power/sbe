@@ -24,6 +24,8 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 
+///
+// EKB-Mirror-To: hw/ppe
 
 #ifndef _P10_HCD_CORE_STOPGRID_H_
 #define _P10_HCD_CORE_STOPGRID_H_

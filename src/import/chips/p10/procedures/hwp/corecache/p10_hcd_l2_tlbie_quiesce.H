@@ -24,6 +24,8 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 
+///
+// EKB-Mirror-To: hw/ppe
 
 #ifndef _P10_HCD_L2_TLBIE_QUIESCE_H_
 #define _P10_HCD_L2_TLBIE_QUIESCE_H_
