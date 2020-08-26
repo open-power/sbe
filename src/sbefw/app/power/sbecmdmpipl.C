@@ -643,6 +643,8 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
         SBE_INFO("tiDataLoc is 0x%08X%08X and core target is 0x%08X",
                   SBE::higher32BWord(tiDataLoc), SBE::lower32BWord(tiDataLoc),
                   coreTgt.get());
+        //Bit 0 of the core scratch reg meant to ignore hrmor.
+        tiDataLoc = tiDataLoc & 0x7FFFFFFFFFFFFFFF;
         //Now we got the TI data location. Read TI_DATA_LEN bytes from
         //that location.
         uint32_t bytesRemaining = TI_DATA_LEN;
