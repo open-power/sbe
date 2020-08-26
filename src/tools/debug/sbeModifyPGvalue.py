@@ -37,6 +37,7 @@ import operator
 
 err = False
 
+ECC_TOOL_PATH = "/opt/mcp/shared/fr_FLD9-DEV-20200624/opt/fsp/usr/bin/"
 SBE_TOOLS_PATH = os.getcwd()
 if 'SBE_TOOLS_PATH' in os.environ:
     SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
@@ -46,12 +47,12 @@ if 'BLD' in os.environ:
     #Add sbeModifyPGvalue.py path in PATH for Denali system.
     SBE_SCRIPTS_PATH_DENALI=os.environ['BLD']+"/obj/ppc/sbei/sbfw/simics/"
     # preference is SBE_TOOLS_PATH, current woring directory and then system path
-    PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']+os.pathsep+SBE_SCRIPTS_PATH_DENALI
+    PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']+os.pathsep+SBE_SCRIPTS_PATH_DENALI+os.pathsep+ECC_TOOL_PATH
 else:
     #Add sbeModifyPGvalue.py path in PATH for Rainier system.
     SBE_SCRIPTS_PATH_RAINIER=os.getcwd()+"/sbe_sim_data/"
     # preference is SBE_TOOLS_PATH, current woring directory and then system path
-    PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']+os.pathsep+SBE_SCRIPTS_PATH_RAINIER
+    PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']+os.pathsep+SBE_SCRIPTS_PATH_RAINIER+os.pathsep+ECC_TOOL_PATH
 
 
 def getFilePath(filename):
@@ -130,7 +131,7 @@ def updateAttrPg( image, coresnum):
       sys.exit(1)
 
     #Remove without ECC from SEEPROM binary.
-    cmd2 = "/opt/mcp/shared/fr_FLD9-DEV-20200624/opt/fsp/usr/bin/ecc --p8 --remove " + image + " --output "  + image + "updat.bin"
+    cmd2 = getFilePath("ecc") +  " --p8 --remove " + image + " --output "  + image + "updat.bin"
     rc = os.system(cmd2)
     if rc:
       print("Unable to remove ECC from seeprom binary")
@@ -182,7 +183,7 @@ def updateAttrPg( image, coresnum):
       sys.exit(1)
 
     #Append the ecc from SEEPEOM binary.
-    cmd6 = "/opt/mcp/shared/fr_FLD9-DEV-20200624/opt/fsp/usr/bin/ecc --p8 image --inject " + image + " --output "  + image_ecc
+    cmd6 = getFilePath("ecc") + " --p8 image --inject " + image + " --output "  + image_ecc
     rc = os.system(cmd6)
     if rc:
       print("Unable to append the ECC to seeprom binary")
