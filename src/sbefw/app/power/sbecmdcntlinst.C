@@ -35,6 +35,9 @@
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
+#include "sbestates.H"
+#include "sberegaccess.H"
+
 
 #include "fapi2.H"
 #include "p10_thread_control.H"
@@ -341,6 +344,16 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
         // control instruction commands, it's a no-op
         if( req.threadOps == THREAD_STOP_INS )
         {
+            //Stop Instruction Chip-OP is a NOOP when SBE in the MPIPL path
+            //Special Wake Asserts should not be done in the MPIPL path
+            if(  (SbeRegAccess::theSbeRegAccess().getSbePrevState() == SBE_STATE_RUNTIME) &&
+                 (SbeRegAccess::theSbeRegAccess().getSbeState() ==  SBE_STATE_MPIPL) )
+            {
+                SBE_INFO("Stopping Instructions is NOOP in the MPIPL path");
+                rc = SBE_SEC_OPERATION_SUCCESSFUL;
+                break;
+            }
+
             do //Iterate over all cores for special wakeup assert
             {
                 fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
