@@ -90,7 +90,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
 
     fapi2::buffer<uint64_t> l_data64;
     uint8_t pre_divider;
-    uint32_t l_attr_pau_freq_mhz;
+    uint32_t l_attr_pau_freq_mhz, l_pau_multiplier, l_real_pau_frequency;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
@@ -155,8 +155,14 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(fapi2::putScom(i_target_chip, COMP_INTR_HOST_MASK_REG, IPOLL_MASK_VALUE));
 
     // setup hang pulse freq
+    // This calculation seems redundant, but we want to round the attribute value down to
+    // an integer multiple of 50/3 since that is the granularity of the PAU DPLL.
+    // Add 1 to the attribute value to correct for 2033.333 being represented as 2033 etc.
+    l_pau_multiplier = ((l_attr_pau_freq_mhz + 1) * 3) / 50;
+    l_real_pau_frequency = (l_pau_multiplier * 50) / 3;
+
     FAPI_DBG("Set up constant frequency hang pulse 1 pre divider");
-    pre_divider =  ((l_attr_pau_freq_mhz * 2 + 64) / 125);
+    pre_divider =  ((l_real_pau_frequency * 2 + 64) / 125) - 1;
     l_data64.flush<0>();
     l_data64.insertFromRight< 0, 8 >(pre_divider);
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0072, l_data64));
@@ -165,7 +171,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0071, HANGPULSE1_MAIN_DIVIDER));
 
     FAPI_DBG("Set up constant frequency hang pulse 2 pre divider");
-    pre_divider =  ((l_attr_pau_freq_mhz * 8 + 64) / 125);
+    pre_divider =  ((l_real_pau_frequency * 8 + 64) / 125) - 1;
     l_data64.flush<0>();
     l_data64.insertFromRight< 0, 8 >(pre_divider);
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0074, l_data64));
@@ -174,7 +180,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0073, HANGPULSE2_MAIN_DIVIDER));
 
     FAPI_DBG("Set up constant frequency hang pulse 3 pre divider");
-    pre_divider =  ((l_attr_pau_freq_mhz + 125) / 250);
+    pre_divider =  ((l_real_pau_frequency + 125) / 250) - 1;
     l_data64.flush<0>();
     l_data64.insertFromRight< 0, 8 >(pre_divider);
     FAPI_TRY(fapi2::putScom(i_target_chip, 0x000D0076, l_data64));
