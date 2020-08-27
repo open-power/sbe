@@ -89,6 +89,11 @@ p10_hcd_core_arrayinit(
 
     FAPI_INF(">>p10_hcd_core_arrayinit");
 
+    FAPI_DBG("Scan ec_cl2_abst");
+    FAPI_TRY(fapi2::putRing(i_target, ec_cl2_abst,
+                            fapi2::RING_MODE_HEADER_CHECK),
+             "Error from putRing (ec_cl2_abst)");
+
     FAPI_DBG("Assert sdis_n(flushing LCBES condition) via CPLT_CONF0[34]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CONF0_WO_OR, SCOM_1BIT(34) ) );
 
