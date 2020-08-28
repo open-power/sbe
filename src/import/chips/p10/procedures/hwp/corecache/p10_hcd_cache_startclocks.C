@@ -181,16 +181,6 @@ p10_hcd_cache_startclocks(
 
     }
 
-    // Undo potential powerbus quiesce before last clock off, no-op for IPL
-    FAPI_DBG("Drop PB_PURGE_REQ via PCR_SCSR[12]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( BIT32(12) ) ) );
-
-    FAPI_DBG("Drop L3_PM_RCMD_DIS_CFG and L3_PM_LCO_DIS_CFG via PM_LCO_DIS_REG[0,1]");
-    FAPI_TRY( HCD_PUTSCOM_C( i_target, 0x20010616, 0 ) );
-
-    FAPI_DBG("Drop NCU_PM_RCMD_DIS_CFG via NCU_RCMD_QUIESCE_REG[0]");
-    FAPI_TRY( HCD_PUTSCOM_C( i_target, 0x20010658, 0 ) );
-
 fapi_try_exit:
 
     FAPI_INF("<<p10_hcd_cache_startclocks");

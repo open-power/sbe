@@ -98,7 +98,6 @@ p10_hcd_core_startclocks(
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
-    uint32_t                l_scsr     = 0;
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
     uint32_t                       l_eq_num             = 0;
@@ -201,20 +200,13 @@ p10_hcd_core_startclocks(
     // shared for both stop11 and stop3 path
     FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
 
-    // Undo potential quiesces before last clock off, no-op for IPL
-    l_scsr = ( BIT32(4) | BITS32(7, 2) | BIT32(22) );
-
 #ifndef __PPE_QME
-    // Only Drop QME_SCSR_AUTO_SPECIAL_WAKEUP_DISABLE for Istep4
-    // due to auto mode bug, also assert pm_exit
-    l_scsr |= BIT32(20);
+    FAPI_DBG("Only Drop QME_SCSR_AUTO_SPECIAL_WAKEUP_DISABLE for Istep4");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_OR, MMIO_LOAD32H( BIT32(1) ) ) );
-#endif
 
-    FAPI_DBG("Drop HBUS_DISABLE/L2RCMD_INTF_QUIESCE/NCU_TLBIE_QUIESCE/AUTO_PMSR_SHIFT_DIS via PCR_SCSR[4,7,8,22]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( l_scsr ) ) );
+    FAPI_DBG("Due to auto mode bug, also assert pm_exit");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( BIT32(20) ) ) );
 
-#ifndef __PPE_QME
     FAPI_DBG("Assert special wakeup on hostboot core via SPWKUP_OTR[0]");
     FAPI_TRY( HCD_PUTSCOM_C( i_target, QME_SPWU_OTR, SCOM_1BIT(0) ) );
 

@@ -37,14 +37,20 @@
 
 #include "p10_hcd_core_scominit.H"
 #include <p10_fbc_utils.H>
-#include <p10_scom_c.H>
-#include <p10_scom_eq.H>
 #include <p10_core_scom.H>
+#include <p10_scom_eq.H>
+#include "p10_hcd_common.H"
 
 #ifdef __PPE_QME
     #include <p10_l2_scom.H>
     #include <p10_ncu_scom.H>
+    #include "p10_scom_c_c.H"
+    #include "p10_ppe_c_7.H"
+#else
+    #include <p10_scom_c.H>
 #endif
+
+
 
 //------------------------------------------------------------------------------
 // Constant Definitions
@@ -59,7 +65,6 @@ static inline fapi2::ReturnCode p10_hcd_core_scominit_qme(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
     using namespace scomt::c;
-
     FAPI_INF(">>p10_hcd_core_scominit_qme");
 
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
@@ -257,13 +262,24 @@ fapi_try_exit:
 fapi2::ReturnCode p10_hcd_core_scominit(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
+    uint32_t                l_scsr     = 0;
+    fapi2::buffer<buffer_t> l_mmioData = 0;
+
     FAPI_INF(">>p10_hcd_core_scominit");
 
 #ifdef __PPE_QME
+    using namespace scomt::ppe_c;
     FAPI_TRY(p10_hcd_core_scominit_qme(i_target));
 #else
+    using namespace scomt::c;
     FAPI_TRY(p10_hcd_core_scominit_sbe(i_target));
 #endif
+
+    // Undo potential quiesces before last clock off, no-op for istep4
+    l_scsr = ( BIT32(4) | BITS32(7, 2) | BIT32(22) );
+
+    FAPI_DBG("Drop HBUS_DISABLE/L2RCMD_INTF_QUIESCE/NCU_TLBIE_QUIESCE/AUTO_PMSR_SHIFT_DIS via PCR_SCSR[4,7,8,22]");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( l_scsr ) ) );
 
 fapi_try_exit:
     FAPI_INF("<<p10_hcd_core_scominit");

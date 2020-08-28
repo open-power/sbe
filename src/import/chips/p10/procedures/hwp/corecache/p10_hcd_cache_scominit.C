@@ -36,10 +36,16 @@
 //------------------------------------------------------------------------------
 
 #include "p10_hcd_cache_scominit.H"
-#include <p10_scom_c.H>
 #include <p10_fbc_utils.H>
+#include "p10_hcd_common.H"
+
 #ifdef __PPE_QME
     #include <p10_l3_scom.H>
+    #include "p10_scom_c_c.H"
+    #include "p10_scom_c_e.H"
+    #include "p10_ppe_c_7.H"
+#else
+    #include <p10_scom_c.H>
 #endif
 
 //------------------------------------------------------------------------------
@@ -239,13 +245,27 @@ fapi_try_exit:
 fapi2::ReturnCode p10_hcd_cache_scominit(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
+    fapi2::buffer<buffer_t> l_mmioData = 0;
+
     FAPI_INF(">>p10_hcd_cache_scominit");
 
 #ifdef __PPE_QME
+    using namespace scomt::ppe_c;
     FAPI_TRY(p10_hcd_cache_scominit_qme(i_target));
 #else
+    using namespace scomt::c;
     FAPI_TRY(p10_hcd_cache_scominit_sbe(i_target));
 #endif
+
+    // Undo potential powerbus quiesce before last clock off, no-op for IPL
+    FAPI_DBG("Drop PB_PURGE_REQ via PCR_SCSR[12]");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( BIT32(12) ) ) );
+
+    FAPI_DBG("Drop L3_PM_RCMD_DIS_CFG and L3_PM_LCO_DIS_CFG via PM_LCO_DIS_REG[0,1]");
+    FAPI_TRY( HCD_PUTSCOM_C( i_target, scomt::c::L3_MISC_L3CERRS_PM_LCO_DIS_REG, 0 ) );
+
+    FAPI_DBG("Drop NCU_PM_RCMD_DIS_CFG via NCU_RCMD_QUIESCE_REG[0]");
+    FAPI_TRY( HCD_PUTSCOM_C( i_target, scomt::c::NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG, 0 ) );
 
 fapi_try_exit:
     FAPI_INF("<<p10_hcd_cache_scominit");
