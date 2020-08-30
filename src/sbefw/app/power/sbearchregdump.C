@@ -293,6 +293,30 @@ ReturnCode sbeCaptureTIMAOffsets( uint64_t  *i_timaArray)
 #undef SBE_FUNC
 }
 
+//////////////////////////////////////////////////////////////////////////////////
+// @brief Utility to fetch specific TIMA offset data for a particular thread with
+//        respect to the input core
+// @param[in] i_timaArray    Reference to Tima data container
+// @param[in] i_chipUnitNum  Core instance number
+// @param[in] i_thread       Thread Instance number
+// @param[in] i_regIdx       TIMA register offset with respect to thread
+// @param[out] o_isDataValid Register data validity
+//                           TRUE  - Valid register data
+//                           FALSE - Data in container for requried offset is invalid
+// @param[out] o_data64      TIMA register data
+//
+/////////////////////////////////////////////////////////////////////////////////
+void fetchTimaData(uint64_t *i_timaArray, uint8_t i_chipUnitNum, uint8_t i_thread,
+                    uint32_t i_regIdx,bool &o_isDataValid,uint64_t &o_data64)
+{
+    o_isDataValid = true;
+    uint32_t timaIndex = ( ((i_chipUnitNum*4) + i_thread) * TIMA_LIST_SIZE) + i_regIdx;
+    o_data64 = i_timaArray[timaIndex];
+    if(o_data64 == 0xdeadbeefbeefdead)
+    {
+       o_isDataValid = false;
+    }
+}
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -361,6 +385,19 @@ ReturnCode sbeDumpArchRegs()
                           procTgt.getChildren<fapi2::TARGET_TYPE_CORE>().size();
         dumpProcHdr.thread_count = (dumpProcHdr.core_cnt * SMT4_THREAD_MAX);
         dumpProcHdr.reg_cnt = (sizeof(SPR_GPR_TIMA_list)/sizeof(uint16_t));
+
+        //Make a container for storing the TIMA values
+        //Each core has 4 threads and each thread has 8 TIMA offsets
+        //Create a container for maximum TIMA offsets
+        uint64_t timaArray[MAX_TIMA_ENTRIES_PER_PROC]={0};
+        //Fetch all the required TIMA bytes.
+        fapiRc = sbeCaptureTIMAOffsets(timaArray);
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR("Failed to fetch the TIMA data! Continuing to collect SPR/GPR data");
+            fapiRc = fapi2::FAPI2_RC_SUCCESS;
+            //Not breaking the flow here as per the design.
+        }
 
         fapiRc = PBAInterface.accessWithBuffer(&dumpProcHdr,
                  sizeof(dumpProcHdr),false);
@@ -470,6 +507,8 @@ ReturnCode sbeDumpArchRegs()
                     {
                         dumpRegData.isLastReg = false;
                     }
+                    dumpRegData.isFfdcPresent = false;
+                    dumpRegData.isRegDataValid = true;
 
                     fapi2::buffer<uint64_t> data64;
                     //Do not attempt to read the SPR or GPR register data related to
@@ -480,7 +519,7 @@ ReturnCode sbeDumpArchRegs()
                                      SPR_GPR_TIMA_list[regIdx], &data64, true)
                         if(fapiRc!=FAPI2_RC_SUCCESS)
                         {
-                             SBE_ERROR("Failed to read SPR/GPR Register:threadNr:0x%x"
+                            SBE_ERROR("Failed to read SPR/GPR Register:threadNr:0x%x"
                             "coreChipletId:0x%02x, regNr:%u regType:%u",thread,
                             chipUnitNum, SPR_GPR_TIMA_list[regIdx], dumpRegData.regType);
                             dumpRegData.isRegDataValid = false;//Invalid data
@@ -488,16 +527,25 @@ ReturnCode sbeDumpArchRegs()
                             dumpRegData.isLastReg = true;//No more registers fetched
                             dumpRegData.isFfdcPresent = true;
                         }
+                        else//Valid data obtained
+                        {
+                            dumpRegData.regVal = data64;
+                        }
+                        SBE_DEBUG("REG:%u value=0x%.8x%.8x",SPR_GPR_TIMA_list[regIdx],
+                        (((uint64_t)dumpRegData.regVal & 0xFFFFFFFF00000000ull) >> 32),
+                        ((uint64_t)dumpRegData.regVal & 0xFFFFFFFF));
                     }
                     else
                     {
-                        //TODO:Add logic to fetch TIMA offsets
-                        data64 = 0xDEADBEEFBEEFDEAD;
-                    }
-                    if(fapiRc == FAPI2_RC_SUCCESS)
-                    {
+                        //Just copy the already collected TIMA for the specific core and
+                        //thread index.If data collected is invalid ,mark the flag accordingly.
+                        //Note:FFDC and FAPI_RC wont be collected for TIMA failures.
+                        bool isDataValid = true;
+                        (void)fetchTimaData(timaArray,chipUnitNum,thread,regIdx,
+                                            isDataValid,data64);
+                        dumpRegData.isRegDataValid = isDataValid;
                         dumpRegData.regVal = data64;
-                        dumpRegData.isRegDataValid = true; //Valid Data
+
                     }
 
                     //Send the Register data to the Hostboot using PBA
@@ -541,7 +589,7 @@ ReturnCode sbeDumpArchRegs()
                         break;
                     }
                 }//End of Register loop
-                 if(fapiRc)
+                if(fapiRc)
                 {
                     break;
                 }
@@ -555,7 +603,7 @@ ReturnCode sbeDumpArchRegs()
                     {
                         SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%02X"
                                 " coreChipletId:0x%02X", thread, chipUnitNum);
-                         // Don't break, continue for the next thread
+                        // Don't break, continue for the next thread
                         continue;
                     }
                 }
