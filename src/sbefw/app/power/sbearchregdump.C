@@ -103,26 +103,64 @@ ReturnCode checkCoreStateForRam(
 
     do
     {
-        fapi2::buffer<uint64_t> ppm_ssh_buf = 0;
-        fapiRc = getscom_abs_wrap (&i_coreTgt, scomt::c::QME_SSH_SRC, &ppm_ssh_buf());
+        fapi2::buffer<uint64_t> datBuffer = 0;
+        fapiRc = getscom_abs_wrap (&i_coreTgt, scomt::c::QME_SSH_SRC, &datBuffer());
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC "Failed to read SSHSRC for Core[%d]",
+                    chipUnitNum);
+            break;
+        }
+        //If stop state history register has QME_SSH_SRC_STOP_GATED bit set then
+        //ramming cannot be performed.
+        if(datBuffer.getBit<scomt::c::QME_SSH_SRC_STOP_GATED>())
+        {
+            SBE_DEBUG("core=0x%.8x QME_SSH_SRC value=0x%.8x%.8x, STOP_GATED(1),no ramming",
+                     i_coreTgt.get(),(((uint64_t)datBuffer & 0xFFFFFFFF00000000ull) >> 32),
+                     ((uint64_t)datBuffer & 0xFFFFFFFF));
+            datBuffer.extractToRight<uint8_t>(o_coreState,scomt::c::QME_SSH_SRC_ACT_STOP_LEVEL,
+                     scomt::c::QME_SSH_SRC_ACT_STOP_LEVEL_LEN);
+            break;
+        }
+        //If Core is not STOP GATED, then derive the core state based on the Stop state
+        //control register
+        datBuffer = 0x0;
+        fapiRc = getscom_abs_wrap (&i_coreTgt, scomt::c::QME_SCSR, &datBuffer());
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "Failed to read scomt::c::QME_SCSR for Core[%d]",
                       chipUnitNum);
             break;
         }
+        SBE_DEBUG("core=0x%.8x QME_SCSR value=0x%.8x%.8x",i_coreTgt.get(),
+                 (((uint64_t)datBuffer & 0xFFFFFFFF00000000ull) >> 32),
+                 ((uint64_t)datBuffer & 0xFFFFFFFF));
 
-        ppm_ssh_buf.extractToRight<uint8_t>(o_coreState, 8, 4);
-
-        // If CORESTATE is NON-ZERO then ramming is not enabled.
-        if(!o_coreState)
+        //Read the QME_SCSR_PM_STATE_ACTIVE bit(59)
+        //If bit 59 is set then bits 60..63 indicate the PM State
+        if(datBuffer.getBit<scomt::c::QME_SCSR_PM_STATE_ACTIVE>())
         {
+            datBuffer.extractToRight<uint8_t>(o_coreState,
+                    scomt::c::QME_SCSR_PM_STATE ,scomt::c::QME_SCSR_PM_STATE_LEN);
+            //If obtained core state is 0 then ramming is allowed
+            if(!o_coreState)
+            {
+                o_isRamming = true;
+            }
+            break;
+        }
+        else
+        {
+            //If the QME_SCSR_PM_STATE_ACTIVE bit is not set then core is considered SCOMABLE
+            SBE_DEBUG("In QME_SCSR , PM_STATE_ACTIVE not set, Ramming is allowed");
             o_isRamming = true;
+            break;
         }
 
-        SBE_INFO(SBE_FUNC "Core[%d] StopState[%d] and isRamming[%d]",
-                 chipUnitNum, o_coreState, o_isRamming);
     }while(0);
+
+    SBE_INFO(SBE_FUNC "Core[%d] StopState[%d] and isRamming[%d]",
+             chipUnitNum, o_coreState, o_isRamming);
 
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
