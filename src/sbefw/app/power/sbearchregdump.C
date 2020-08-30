@@ -56,7 +56,7 @@ using namespace fapi2;
 #define GPR_REG_TYPE   0x1
 #define SPR_REG_TYPE   0x2
 #define TIMA_REG_TYPE  0x3
-
+#define MAX_TIMA_ENTRIES_PER_PROC 1024
 // This is defined in Hostboot src/include/usr/sbeio/sbeioif.H, this is just a
 // copy, so that SBE refers to the same count.
 #define STASH_KEY_CNT_FOR_ARCH_DUMP_ADDR 0x4
@@ -124,7 +124,7 @@ ReturnCode checkCoreStateForRam(
         }
         //If Core is not STOP GATED, then derive the core state based on the Stop state
         //control register
-        datBuffer = 0x0;
+        datBuffer.flush<0>();
         fapiRc = getscom_abs_wrap (&i_coreTgt, scomt::c::QME_SCSR, &datBuffer());
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
@@ -167,6 +167,134 @@ ReturnCode checkCoreStateForRam(
     #undef SBE_FUNC
 }
 
+
+/////////////////////////////////////////////////////////////////////////
+// @brief sbeCaptureTIMAOffsets Capture thread specific TIMA offset data
+//        for all functional cores into the input container
+// @param[in] Pointer to the container for capturing the TIMA value.
+// @return    Return code indicating status of the operation.
+/////////////////////////////////////////////////////////////////////////
+ReturnCode sbeCaptureTIMAOffsets( uint64_t  *i_timaArray)
+{
+#define SBE_FUNC " sbeCaptureTIMAOffsets "
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    do
+    {
+        Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+        //Initialize the TIMA container with default value
+        for(uint32_t i=0;i<MAX_TIMA_ENTRIES_PER_PROC; ++i)
+        {
+            i_timaArray[i] = 0xDEADBEEFBEEFDEAD;
+        }
+        //Fetch the list of functional cores present on the systems
+        fapi2::buffer<uint64_t> data;
+        //Remove below once these are avaible in EKB headers
+        const uint64_t INT_PC_REGS_ERR0_CFG0        = 0x02010ac0ull;
+        const uint64_t INT_PC_REGS_TCTXT_DEBUG_ADDR = 0x02010b2cull;
+        const uint64_t INT_PC_REGS_TCTXT_DEBUG_DATA = 0x02010b2dull;
+
+        auto nest0 = procTgt.getChildren<fapi2::TARGET_TYPE_PERV>
+            (fapi2::TARGET_FILTER_NEST_NORTH,
+             fapi2::TARGET_STATE_PRESENT)[0];
+
+        //Turn off the FIR . Note: This is required only for DD1
+        fapiRc =getscom_abs_wrap(&nest0, INT_PC_REGS_ERR0_CFG0, &data());
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR("Failed to read INT_PC_REGS_ERR0_CFG0(0x02010ac0)");
+            break;
+        }
+        data.setBit<61>();
+        fapiRc =putscom_abs_wrap(&nest0, INT_PC_REGS_ERR0_CFG0, data());
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR("Failed to write to INT_PC_REGS_ERR0_CFG0(0x02010ac0)");
+            break;
+        }
+
+        //Obtain the TIMA offset data
+        for(auto &coreTgt : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+        {
+            uint8_t chipUnitNum = 0;
+            FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, coreTgt, chipUnitNum);
+            for(uint8_t thread = SMT4_THREAD0;thread < SMT4_THREAD_MAX;thread++)
+            {
+                //Set the Thread related information into the Debug address register
+                data.flush<0>();
+                uint64_t threadInstance = (chipUnitNum*4)+thread;
+                //Move the Thread id to bits(8..15)in the 64 bit value
+                data = threadInstance << 48;
+                //Set the auto increment mode.
+                data.setBit<0>();
+                SBE_DEBUG("Writing 0x%.8x%.8x into debut address register(0x02010b2c) ",
+                         (((uint64_t)data & 0xFFFFFFFF00000000ull) >> 32),((uint64_t)data & 0xFFFFFFFF));
+                //Write to the debug address register
+                fapiRc =putscom_abs_wrap(&nest0, INT_PC_REGS_TCTXT_DEBUG_ADDR, data);
+                if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR("Failed to configure the  Debug address register for"
+                    "Thread:%d, core:0x%.8x",thread,coreTgt.get());
+                    //Do not break move to the next thread
+                    fapiRc = fapi2::FAPI2_RC_SUCCESS;
+                    continue;
+                }
+
+                //Read 8 TIMA offsets for this particular thread
+                for(uint8_t threadTimaOffset=0; threadTimaOffset<8 ;++threadTimaOffset)
+                {
+                    //Read the debug data register
+                    data.flush<0>();
+                    fapiRc =getscom_abs_wrap(&nest0, INT_PC_REGS_TCTXT_DEBUG_DATA, &data());
+                    if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+                    {
+                        SBE_ERROR("Failed to read TIMA offset:%d, Thread:%d, core:0x%.8x",
+                                   threadTimaOffset,thread,coreTgt.get());
+                        //Do not break move to next TIMA offset
+                        fapiRc = fapi2::FAPI2_RC_SUCCESS;
+                        continue;
+                    }
+                    //Calculate the actual offset in the TIMA containter to be
+                    //stored.
+                    uint32_t timaIndex = ( ((chipUnitNum*4) + thread) * TIMA_LIST_SIZE) +
+                                        threadTimaOffset;
+                    SBE_DEBUG("index=%d CoreUnitNum=%d Thread=%d TimaInstance(%d)",
+                              timaIndex,chipUnitNum,thread,threadTimaOffset);
+                    i_timaArray[timaIndex]=(uint64_t)data;
+                    SBE_DEBUG( "TIMA[%d]=0x%.8x%.8x",timaIndex,
+                    ((i_timaArray[timaIndex] & 0xFFFFFFFF00000000ull) >> 32),
+                    (i_timaArray[timaIndex] & 0xFFFFFFFF));
+                }
+            }
+        }
+        //If we have failure FAPIRC at this point , indicates turining off the FIR was not successfull.
+        //because all other FAPI_RC are ignored. So no need to turn ON the FIR.
+        if(fapiRc == fapi2::FAPI2_RC_SUCCESS)
+        {
+            //Turn on the FIR . Note: This is required only for DD1
+            fapiRc =getscom_abs_wrap(&nest0, INT_PC_REGS_ERR0_CFG0, &data());
+            if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("Failed to read INT_PC_REGS_ERR0_CFG0(0x02010ac0ull)");
+                break;
+            }
+            data.clearBit<61>();
+            fapiRc =putscom_abs_wrap(&nest0, INT_PC_REGS_ERR0_CFG0, data());
+            if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("Failed to write to INT_PC_REGS_ERR0_CFG0(0x02010ac0ull)");
+                break;
+            }
+        }
+
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+#undef SBE_FUNC
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeDumpArchRegs Dump out the architected registers
 //
@@ -181,9 +309,6 @@ ReturnCode sbeDumpArchRegs()
     sbeArchRegDumpThreadHdr_t dumpThreadHdr = {};
     sbeArchRegDumpEntries_t dumpRegData = {};
 
-    //TODO: Add below SPRs to the list after confirming the 
-    //requirement 496,497,505,506,507,511
-    //
     // Combined list of SPRs GPRs TIMAs
     static const uint16_t SPR_GPR_TIMA_list[] = {
         // List for TIMA 0-7 to be collected in MPIPL path
