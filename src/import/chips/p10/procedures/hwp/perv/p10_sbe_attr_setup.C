@@ -36,6 +36,7 @@
 #include <p10_scom_perv.H>
 #include <p10_sbe_scratch_regs.H>
 #include <target_filters.H>
+#include <p10_sbe_hb_structures.H>
 
 
 const uint32_t NUM_EQS_PER_CHIP  = 8;  // Num of EQ pervasive chiplets per chip
@@ -47,6 +48,7 @@ const uint32_t CORE0_ECL2_PG_BIT = 13; // ECL2 bit in EQ ATTR_PG
 const uint32_t CORE0_L3_PG_BIT   = 17; // L3 bit in EQ ATTR_PG
 const uint32_t CORE0_MMA_PG_BIT  = 23; // MMA bit in EQ ATTR_PG
 
+const uint32_t SBE_LFR_REG       = 0x000C0002040;
 ///
 /// @brief Set platform ATTR_PG attribute for EQ chiplets, based on MPVD
 ///        driven partial good (ATTR_PG_MPVD) and mailbox gard records
@@ -452,20 +454,42 @@ fapi2::ReturnCode p10_sbe_attr_setup(
     // read_cbs_cs_reg -- Security_Access_Bit
     {
         fapi2::buffer<uint64_t> l_read_cbs_cs_reg;
-        fapi2::ATTR_SECURITY_MODE_Type l_attr_security_mode = 0;
+        fapi2::buffer<uint64_t> l_read_scratch3_reg;
+        BootloaderSecureSettings l_secure_settings;
+        fapi2::buffer<uint64_t> l_data64;
+        uint8_t l_security_mode = 0; // Read from Ppe LFR Register
         fapi2::ATTR_SECURITY_ENABLE_Type l_attr_security_enable = fapi2::ENUM_ATTR_SECURITY_ENABLE_ENABLE;
+
+        if (fapi2::is_platform<fapi2::PLAT_SBE>())
+        {
+            // LFR Register Bit 19 is updated with Security Mode from Measurment
+            // Seeprom execution
+            FAPI_DBG("Reading Bit 19 from SBE LFR Register");
+            FAPI_TRY(fapi2::getScom(i_target_chip, SBE_LFR_REG, l_data64),
+                     "Error reading SBE LFR Register");
+            l_security_mode = l_data64.getBit<19>();
+        }
+
+        // Transfer to SBE Security Backdoor Bit, Need to invert the bit since
+        //////// 1 == Secure mode == Backdoor disabled
+        //////// 0 == Unsecure mode == Backdoor enabled
+        l_secure_settings.secBackdoorBit = !l_security_mode;
 
         FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_CBS_CS, l_read_cbs_cs_reg),
                  "Error reading CBS Control/Status register");
 
-        FAPI_DBG("Reading ATTR_SECURITY_MODE");
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, l_attr_security_mode));
-
-        if (!l_attr_security_mode) //ATTR_SECURITY_MODE == 0b0, then clear the SAB bit
+        if(l_read_cbs_cs_reg.getBit<5>() == 0)
         {
-            l_read_cbs_cs_reg.clearBit<FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT>();
-            FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_CBS_CS, l_read_cbs_cs_reg),
-                     "Error writing CBS Control/Status register");
+            if( !(l_security_mode) && (l_read_scratch8_reg.getBit<SCRATCH3_REG_VALID_BIT>()) )
+            {
+                FAPI_DBG("Reading mailbox scratch register3 bit6 to check for"
+                         " external security override request");
+                FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SCRATCH_REGISTER_3_RW, l_read_scratch3_reg),
+                         "Error reading Scratch 3 mailbox register");
+                FAPI_DBG("Copying mailbox scratch register 3 bits 6,7 to ATTR_SECURE_SETTINGS");
+                l_secure_settings.securityOverride = l_read_scratch3_reg.getBit<6>();
+                l_secure_settings.allowAttrOverrides = l_read_scratch3_reg.getBit<7>();
+            }
         }
 
         FAPI_DBG("Setting up ATTR_SECURITY_ENABLE with SAB state");
@@ -477,6 +501,10 @@ fapi2::ReturnCode p10_sbe_attr_setup(
 
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SECURITY_ENABLE, FAPI_SYSTEM, l_attr_security_enable),
                  "Error from FAPI_ATTR_SET (ATTR_SECURITY_ENABLE");
+        // Include the Secure Access Bit now
+        l_secure_settings.secureAccessBit = l_read_cbs_cs_reg.getBit<FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT>();
+        FAPI_DBG("Setting up ATTR_SECURITY_SETTINGS");
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SECURE_SETTINGS, FAPI_SYSTEM, l_secure_settings.data8));
     }
 
     // populate scratch registers from attribute state/targeting model, if not set by setup_sbe_config
