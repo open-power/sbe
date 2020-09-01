@@ -44,7 +44,7 @@ $(GENERATED)_RUN=$(call RUN_RINGSPINNER,$(RINGSPIN_YAML_CFG),$($(GENERATED)_PATH
 # differences which break CI EKB builds. Fix this by using `sed` to edit the
 # path in-place after generating the prolog - gross.
 define RUN_RINGSPINNER
-$(C1) $$< $(1) -o $(2) && addCopyright update $(2).H && sed -i 's%\$$Source: ../../%\$$Source: %' $(2).H
+$(C1) $$< $(1) -o $(2) && addCopyright update $(2).H > /dev/null 2>&1 && sed -i 's%\$$Source: ../../%\$$Source: %' $(2).H
 endef
 
 else
