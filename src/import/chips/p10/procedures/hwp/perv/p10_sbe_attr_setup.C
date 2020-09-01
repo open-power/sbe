@@ -506,6 +506,7 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         fapi2::ATTR_CLOCKSTOP_ON_XSTOP_Type l_attr_clockstop_on_xstop = fapi2::ENUM_ATTR_CLOCKSTOP_ON_XSTOP_DISABLED;
         fapi2::ATTR_CLOCK_MUX_IOHS_LCPLL_INPUT_Type l_attr_clock_mux_iohs_lcpll_input = { 0 };
         fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_Type l_attr_clock_mux_pci_lcpll_input = { 0 };
+        fapi2::ATTR_CONTAINED_LOAD_PATH_Type l_attr_contained_load_path = fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_PBA;
         uint8_t l_clockstop_on_xstop = ATTR_CLOCKSTOP_ON_XSTOP_DISABLED;
 
         if (l_read_scratch8_reg.getBit<SCRATCH5_REG_VALID_BIT>())
@@ -603,6 +604,16 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                 FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_attr_clock_mux_pci_lcpll_input),
                          "Error from FAPI_ATTR_SET (ATTR_CLOCK_MUX_PCI_LCPLL_INPUT)");
             }
+
+            FAPI_DBG("Setting up ATTR_CONTAINED_LOAD_PATH");
+
+            if (l_read_scratch5_reg.getBit<ATTR_CONTAINED_LOAD_PATH_BIT>())
+            {
+                l_attr_contained_load_path = fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_L2SQ;
+            }
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CONTAINED_LOAD_PATH, FAPI_SYSTEM, l_attr_contained_load_path),
+                     "Error from FAPI_ATTR_SET (ATTR_CONTAINED_LOAD_PATH)");
         }
     }
 

@@ -802,6 +802,24 @@ fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& 
     {
         FAPI_TRY( getRegister( i_target, i_ringType, i_chipletMask, CPLT_STAT0, false, l_scomData ) );
 
+#if defined(__PPE__) && !defined(__PPE_QME__)
+        {
+            fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> sys;
+            fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type;
+            fapi2::ATTR_CONTAINED_LOAD_PATH_Type load_type;
+            fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
+
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, sys, ipl_type));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_LOAD_PATH, sys, load_type));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, sys, ipl_phase));
+
+            if (load_type == fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_L2SQ &&
+                ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL &&
+                ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE)
+                return fapi2::current_err;
+        }
+#endif
+
         if( l_scomData.getBit<CPLT_STAT0_CC_CTRL_PARALLEL_SCAN_COMPARE_ERR>() )
         {
             FAPI_ERR( "Parallel Scan Error For Ring 0x%02x ", i_ringId );
