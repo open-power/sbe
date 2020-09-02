@@ -1,0 +1,121 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: src/import/chips/p10/procedures/xml/attribute_info/p10_dft_attributes.xml $ -->
+<!--                                                                        -->
+<!-- OpenPOWER sbe Project                                                  -->
+<!--                                                                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2020                             -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
+<!-- you may not use this file except in compliance with the License.       -->
+<!-- You may obtain a copy of the License at                                -->
+<!--                                                                        -->
+<!--     http://www.apache.org/licenses/LICENSE-2.0                         -->
+<!--                                                                        -->
+<!-- Unless required by applicable law or agreed to in writing, software    -->
+<!-- distributed under the License is distributed on an "AS IS" BASIS,      -->
+<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        -->
+<!-- implied. See the License for the specific language governing           -->
+<!-- permissions and limitations under the License.                         -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<attributes>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ISTEP_START_MAJOR</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>
+    Major number of first istep to execute
+  </description>
+  <valueType>uint8</valueType>
+  <platInit/>
+  <default>0x0</default>
+  <mrwHide/>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ISTEP_START_MINOR</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>
+    Minor number of first istep to execute
+  </description>
+  <valueType>uint8</valueType>
+  <platInit/>
+  <default>0x0</default>
+  <mrwHide/>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_SEEPROM_IMG_SIZE</id>
+      <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>
+	Size of seeprom image SBE will write
+  </description>
+  <valueType>uint32</valueType>
+  <platInit/>
+  <default>0x0</default>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_RING_IMG_CNFG</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>
+    Chooses which ring image ptr to use to point to the starting address of ring image
+  </description>
+  <valueType>uint8</valueType>
+  <writeable/>
+  <platInit/>
+  <default>0x0</default>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_AVP_IMG_PTR</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>
+    Pointer to beginning of AVP image in memory (typically PIBMEM)
+  </description>
+  <valueType>uint32</valueType>
+  <writeable/>
+  <platInit/>
+  <default>0x0</default>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_AVP_IMG_SIZE</id>
+      <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>
+	Size of AVP image
+  </description>
+  <valueType>uint64</valueType>
+  <platInit/>
+  <default>0x0</default>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_HW_IMG_PTR</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>
+    Pointer to beginning of HW image in memory (typically PIBMEM)
+  </description>
+  <valueType>uint32</valueType>
+  <writeable/>
+  <platInit/>
+  <default>0x0</default>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_DYN_INIT_IMG_PTR</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>
+    Pointer to beginning of DYN_INIT image in memory (typically PIBMEM)
+  </description>
+  <valueType>uint32</valueType>
+  <writeable/>
+  <platInit/>
+  <default>0x0</default>
+</attribute>
+<!-- ********************************************************************** -->
+</attributes>
