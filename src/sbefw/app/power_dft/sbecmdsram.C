@@ -1,11 +1,12 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power_dft/sbecmdsram.C $                        */
+/* $Source: src/sbefw/app/power/sbecmdsram.C $                            */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -37,36 +38,31 @@
 #include "sbeSecureMemRegionManager.H"
 
 #include "fapi2.H"
-#include "p10_pm_ocb_init.H"
-#include "p10_pm_ocb_indir_setup_linear.H"
-#include "p10_pm_ocb_indir_access.H"
-#include "p9_perv_scom_addresses.H"
-
+#include "p10_getsram.H"
+#include "p10_putsram.H"
+#include "p10_getputsram_utils.H"
+#include "chipop_handler.H"
 using namespace fapi2;
 
-#ifdef SEEPROM_IMAGE
-// Using Function pointer to force long call
-p10_pm_ocb_indir_setup_linear_FP_t p10_ocb_setup_linear_access_hwp = &p10_pm_ocb_indir_setup_linear;
-p10_pm_ocb_indir_access_FP_t p10_ocb_indirect_access_hwp = &p10_pm_ocb_indir_access;
-#endif
+p10_getsram_FP_t p10_getsram_hwp = &p10_getsram;
+p10_putsram_FP_t p10_putsram_hwp = &p10_putsram;
 
 ///////////////////////////////////////////////////////////////////////
-// @brief sbeOccSramAccess_Wrap Occ Sran Access Wrapper function
+// @brief sbeSramAccess_Wrap Sram Access Wrapper function
 //
 // @param [in] i_isGetFlag Flag to indicate the sram Access Type
-//                 true  : GetOccSram ChipOp
-//                 false : PutOccSram ChipOp
+//                 true  : GetSram ChipOp
+//                 false : PutSram ChipOp
 //
 // @return  RC from the underlying FIFO utility
 ///////////////////////////////////////////////////////////////////////
-uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
+uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
 {
-#if 0
-    #define SBE_FUNC " sbeOccSramAccess_Wrap "
+
+    #define SBE_FUNC " sbeSramAccess_Wrap "
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode l_fapiRc = FAPI2_RC_SUCCESS;
-
     sbeRespGenHdr_t l_respHdr;
     l_respHdr.init();
     sbeResponseFfdc_t l_ffdc;
@@ -74,12 +70,9 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
     // Total Returned length from the procedure
     uint32_t l_totalReturnLen = 0;
 
-    // Create the req struct for the OCC Sram Chip-op
-    sbeOccSramAccessReqMsgHdr_t l_req = {0};
+    // Create the req struct for the SRAM Chip-op
+    sbeSramAccessReqMsgHdr_t l_req = {0};
 
-    // Check if True - Get / False - Put
-    ocb::PM_OCB_ACCESS_OP l_ocb_access =
-            (i_isGetFlag)? ocb::OCB_GET : ocb::OCB_PUT;
     // Get the Req Struct Size Data from upstream Fifo
     uint32_t l_len2dequeue  = sizeof(l_req) / sizeof(uint32_t);
 
@@ -87,156 +80,107 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
     {
         l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
                                   (uint32_t *)&l_req,
-                                  i_isGetFlag);
-
+                                  i_isGetFlag,false,type);
 
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-        SBE_INFO("mode [0x%08X] addr[0x%08X] len[0x%08X]",
-             (uint32_t)l_req.mode,
-             (uint32_t)l_req.addr,
-             (uint32_t)l_req.len);
-
+        SBE_INFO("ChipletId:[0x%.8x] McastAccess:[%d] mode [0x%.8X]",
+                  (uint32_t)l_req.chipletId,(uint32_t)l_req.multicastAccess,(uint32_t)l_req.mode);
+        SBE_INFO("Address:0x%.8x%.8x Length=0x%.8x",l_req.addressWord0,l_req.addressWord1,l_req.length);
+        uint64_t addr = ( (uint64_t)l_req.addressWord0 << 32) | l_req.addressWord1;
+        if(l_req.isAddr8ByteAligned() == false)
+        {
+            SBE_ERROR("Input address:0x%.8x%.8x is not 8 byte aligned ",l_req.addressWord0,l_req.addressWord1);
+            l_respHdr.setStatus(SBE_PRI_INVALID_DATA, SBE_SEC_INVALID_ADDRESS_PASSED);
+            break;
+        }
+        if(l_req.isLen8ByteAligned() == false)
+        {
+            SBE_ERROR("Input Length:0x%.8x is not 8 byte aligned ",l_req.length);
+            l_respHdr.setStatus(SBE_PRI_INVALID_DATA,SBE_SEC_INVALID_PARAMS);
+            break;
+        } 
         // Get the Proc Chip Target to be passed in to the procedure call
         Target<fapi2::TARGET_TYPE_PROC_CHIP> l_proc = plat_getChipTarget();
-
-        // Do linear setup for indirect access HWP for Chan0, Chan2 and Chan3
-        // For Circular Mode, Chan1 is assumed to be setup by default
-        // Linear mode is setup with Linear streaming mode only
-
-        // Sram Access condition to pass valid address during the first access
-        bool l_validAddrForFirstAccess = true;
-
-        // Channel Selection based on Mode as well as Fsp attchament
-        ocb::PM_OCB_CHAN_NUM l_chan = ocb::OCB_CHAN0;
-        switch(l_req.mode)
-        {
-            case NORMAL_MODE:
-                if(false == SbeRegAccess::theSbeRegAccess().isFspSystem())
-                {
-                    l_chan = ocb::OCB_CHAN2;
-                }
-                break;
-
-            case DEBUG_MODE:
-                l_chan = ocb::OCB_CHAN3;
-                break;
-
-            case CIRCULAR_MODE:
-                l_chan = ocb::OCB_CHAN1;
-                l_validAddrForFirstAccess = false;
-                break;
-
-            default:
-                SBE_ERROR(SBE_FUNC "Invalid Mode Passed by User");
-                l_rc = SBE_SEC_GENERIC_FAILURE_IN_EXECUTION;
-                l_respHdr.setStatus( SBE_PRI_INVALID_DATA, l_rc);
-                break;
-        }
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-        // Check if the access to the address is allowed
-        // For read access no checking is required
-        if( (l_validAddrForFirstAccess) && !( i_isGetFlag ))
-        {
-            uint16_t sbeRc = occSramSecRegionManager.isAccessAllowed(
-                        {static_cast<uint64_t>(l_req.addr)&(0x00000000FFFFFFFFull),
-                        l_req.len,
-                        (i_isGetFlag? static_cast<uint8_t>(memRegionMode::READ):
-                        static_cast<uint8_t>(memRegionMode::WRITE))});
-            if(sbeRc != SBE_SEC_OPERATION_SUCCESSFUL)
-            {
-                l_respHdr.setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED,
-                                    sbeRc);
-                break;
-            }
-        }
-
-        // Setup Needs to be called in Normal and Debug Mode only
-        if( (l_req.mode == NORMAL_MODE) || (l_req.mode == DEBUG_MODE) )
-        {
-            SBE_EXEC_HWP(l_fapiRc, p10_ocb_setup_linear_access_hwp,l_proc, l_chan,
-                                                    ocb::OCB_TYPE_LINSTR,
-                                                    l_req.addr)
-            if(l_fapiRc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR(SBE_FUNC "p10_pm_ocb_indir_setup_linear failed, "
-                    "Channel[0x%02X] Addr[0x%08X]",
-                    l_chan, l_req.addr);
-
-                // Respond with HWP FFDC
-                l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                         SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-                l_ffdc.setRc(l_fapiRc);
-                break;
-            }
-        }
-
         //Create a 128 Byte Buffer -  16 64-Bit buffer
-        // This is our Granule size as well for this HWP
-        uint32_t l_getBuf[SBE_OCC_SRAM_GRANULE/SBE_32BIT_ALIGN_FACTOR] = {};
-        uint32_t l_remainingLen = l_req.len; // Initialize with Total Len
+        uint32_t dataBuffer[SBE_SRAM_GRANULE/SBE_32BIT_ALIGN_FACTOR] = {};
+        uint32_t l_remainingLen = l_req.length; // Initialize with Total Len
         uint32_t l_lenPassedToHwp = 0;
-        uint32_t l_actLen = 0;  // Return Len from Hwp not used
 
+       //Write or Read in the chunks of 128 bytes
         while(l_remainingLen)
         {
-            if(l_remainingLen <= SBE_OCC_SRAM_GRANULE)
+            if(l_remainingLen <= SBE_SRAM_GRANULE)
             {
                 l_lenPassedToHwp = l_remainingLen;
             }
             else
             {
-                l_lenPassedToHwp = SBE_OCC_SRAM_GRANULE;
+                l_lenPassedToHwp = SBE_SRAM_GRANULE;
             }
             l_remainingLen = l_remainingLen - l_lenPassedToHwp;
 
-            // Fetch buffer from Upstream Fifo for the HWP if it is PutOCC Sram
+
+            uint64_t addrToHwp = addr;
+            //For IO-PPE SRAM access,caller will pass valid offset/address to be accessed
+            //in the lower 32 bits. Procedure expects valid offset/address information
+            //to be in upper 32 bits.Updating the address as per the HWP requirement
+            if( ((uint32_t)l_req.chipletId >= PAU0_PERV_CHIPLET_ID) && 
+                ((uint32_t)l_req.chipletId <= PAU3_PERV_CHIPLET_ID) )
+            {
+                addrToHwp = ((uint64_t)addr << 32);
+            }
+
+            // Fetch buffer from Upstream Fifo for the HWP if it is Put SRAM
             if(!i_isGetFlag)
             {
                 l_len2dequeue = (l_lenPassedToHwp/SBE_32BIT_ALIGN_FACTOR);
                 l_rc = sbeUpFifoDeq_mult ( l_len2dequeue,
-                                           l_getBuf,
-                                           false);
+                                           dataBuffer,
+                                           false,false,type);
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+                SBE_EXEC_HWP(l_fapiRc,p10_putsram_hwp,l_proc,
+                             (uint32_t)l_req.chipletId,
+                             l_req.multicastAccess,
+                             (uint8_t)l_req.mode,addrToHwp,l_lenPassedToHwp,
+                             (uint8_t *)dataBuffer);
+                if(l_fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR("Failed in P10 PUTSRAM , ChipletId:[0x%.8x] McastAccess:[%d] mode [0x%.8X]",
+                            (uint32_t)l_req.chipletId,(uint32_t)l_req.multicastAccess,(uint32_t)l_req.mode);
+                    SBE_ERROR("Address:0x%.8x%.8x Length=0x%.8x",l_req.addressWord0,l_req.addressWord1,l_lenPassedToHwp);
+                    // Respond with HWP FFDC
+                    l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                        SBE_SEC_PUT_SRAM_FAILED);
+                    l_ffdc.setRc(l_fapiRc);
+                    break;
+                }
             }
-
-            // Don't need to put any check for Linear/Circular - It's the same
-            // API for access, For circular valid address flag is false, Hwp
-            // doesn't need the address field from us.
-            SBE_EXEC_HWP(l_fapiRc,
-                    p10_ocb_indirect_access_hwp,
-                    l_proc,
-                    l_chan,
-                    l_ocb_access, // Get/Put
-                    (l_lenPassedToHwp/SBE_64BIT_ALIGN_FACTOR), // 64-bit aligned
-                    l_validAddrForFirstAccess, // If requested addr is valid
-                    l_req.addr, // Requested Addr being passed
-                    l_actLen, // O/p from hwp not used
-                    (uint64_t *)l_getBuf) // O/p buffer
-            if(l_fapiRc != FAPI2_RC_SUCCESS)
+            else //GetSRAM
             {
-                SBE_ERROR(SBE_FUNC "p10_pm_ocb_indir_access failed, "
-                 "Channel[0x%02X] Addr[0x%08X] 64Bit Aligned Len[0x%08X]",
-                 l_chan, l_req.addr, (l_lenPassedToHwp/SBE_64BIT_ALIGN_FACTOR));
+                SBE_EXEC_HWP(l_fapiRc,p10_getsram_hwp,l_proc,(uint32_t)l_req.chipletId,
+                             (uint8_t)l_req.mode,addrToHwp,l_lenPassedToHwp,(uint8_t *)dataBuffer);
+                if(l_fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR("Failed in P10 GETSRAM , ChipletId:[0x%.8x]  mode [0x%.8X]",
+                            (uint32_t)l_req.chipletId ,(uint32_t)l_req.mode);
+                    SBE_ERROR("Address:0x%.8x%.8x Length=0x%.8x",l_req.addressWord0,l_req.addressWord1,l_lenPassedToHwp);
+                    // Respond with HWP FFDC
+                    l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                        SBE_SEC_GET_SRAM_FAILED);
+                    l_ffdc.setRc(l_fapiRc);
+                    break;
+                }
 
-                // Respond with HWP FFDC
-                l_respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                         SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-                l_ffdc.setRc(l_fapiRc);
-                break;
             }
-
             l_totalReturnLen = l_totalReturnLen + l_lenPassedToHwp;
-            // Change this to false, so that Indirect Access Hwp doesn't
-            // reset the Address to starting point.
-            l_validAddrForFirstAccess = false;
-
-            if(i_isGetFlag) // Get Occ Sram
+            //Update the address offset 
+            addr += l_lenPassedToHwp;
+            if(i_isGetFlag) // Get Sram
             {
                 l_len2dequeue = (l_lenPassedToHwp/SBE_32BIT_ALIGN_FACTOR);
                 // Push this into the downstream FIFO
-                l_rc = sbeDownFifoEnq_mult (l_len2dequeue, l_getBuf);
+                l_rc = sbeDownFifoEnq_mult (l_len2dequeue, dataBuffer,type);
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-
             }
         } // End of while Put/Get from Hwp
     }while(0);
@@ -249,53 +193,54 @@ uint32_t sbeOccSramAccess_Wrap(const bool i_isGetFlag)
         l_len2dequeue = 0;
         if (!i_isGetFlag)
         {
-            // If there was a HWP failure for put sram occ request,
+            // If there was a HWP failure for put sram  request,
             // need to Flush out upstream FIFO, until EOT arrives
             if ( l_respHdr.primaryStatus() != SBE_PRI_OPERATION_SUCCESSFUL)
             {
                 l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL,
-                                         true, true);
+                                         true, true,type);
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
             // For other success paths, just attempt to offload
             // the next entry, which is supposed to be the EOT entry
             else
             {
-                l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL, true);
+                l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL, true,false,type);
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
         }
 
         uint32_t l_len = 1;
         // first enqueue the length of data actually written
-        l_rc = sbeDownFifoEnq_mult(l_len, (uint32_t *)(&l_totalReturnLen));
-
+        l_rc = sbeDownFifoEnq_mult(l_len, &l_totalReturnLen,type);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc,type);
     }while(0);
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC
-#endif
-    return 0;
 }
 
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
-uint32_t sbePutOccSram (uint8_t *i_pArg)
+uint32_t sbePutSram (uint8_t *i_pArg)
 {
-    #define SBE_FUNC " sbePutOccSram "
-    return sbeOccSramAccess_Wrap (false);
+    #define SBE_FUNC " sbePutSram "
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+    return sbeSramAccess_Wrap (false,type);
     #undef SBE_FUNC
 }
 
 /////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
-uint32_t sbeGetOccSram (uint8_t *i_pArg)
+uint32_t sbeGetSram (uint8_t *i_pArg)
 {
-    #define SBE_FUNC " sbeGetOccSram "
-    return sbeOccSramAccess_Wrap (true);
+    #define SBE_FUNC " sbeGetSram "
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+    return sbeSramAccess_Wrap (true,type);
     #undef SBE_FUNC
 }
 

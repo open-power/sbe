@@ -1,11 +1,12 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power_dft/sbecmdcntlinst.H $                    */
+/* $Source: src/sbefw/app/power/sbecmdcntlinst.H $                        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -33,11 +34,7 @@
 
 #include <stdint.h>
 #include "fapi2.H"
-
-// This is used to find out the array index in g_control_reg_map in
-// p10_thread_control.C
-static const uint8_t SINGLE_THREAD_BIT_MASK = 0x08;
-
+#include "p10_query_corecachemma_access_state.H"
 /**
   * @brief stopAllCoreInstructions  Stop all core instructions function
   *
@@ -53,5 +50,26 @@ fapi2::ReturnCode stopAllCoreInstructions( );
   * @return    Rc from the FIFO access utility
   */
 uint32_t sbeCntlInst (uint8_t *i_pArg);
+
+/**
+  * @brief Returns SCOMable states for input Core and L2
+  *
+  * @param[in] i_coreTgt Core Target 
+  * @param[in] scomStatus_t entry for particular core target
+  *
+  * @return  Scom state for particular core and its assocaied cache
+  */
+bool isCoreOrL2CacheScomEnabled(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_coreTgt ,scomStatus_t& i_scomStateData);
+
+/**
+  * @brief Returns SCOMable states for L3 associated with Core 
+  *
+  * @param[in] i_coreTgt Core Target
+  * @param[in] scomStatus_t entry for particular core target
+  *
+  * @return  Scom state for L3 assocaited with the core target
+  */
+bool isL3CacheScomEnabled(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_coreTgt ,scomStatus_t& i_scomStateData);
+
 
 #endif /* __SBEFW_SBECMDCNTLINST_H */

@@ -757,13 +757,23 @@ fapi_try_exit:
         G_sbe_attrs.G_eq_attrs = G_eq_attributes;
 
         // Initialise global attribute pointers
+#ifndef DFT
         G_system_attributes_ptr = &(G_sbe_attrs.G_system_attrs);
         G_proc_chip_attributes_ptr = &(G_sbe_attrs.G_proc_chip_attrs);
         G_ocmb_chip_attributes_ptr = &(G_sbe_attrs.G_ocmb_chip_attrs);
         G_perv_attributes_ptr = &(G_sbe_attrs.G_perv_attrs);
         G_core_attributes_ptr = &(G_sbe_attrs.G_core_attrs);
         G_eq_attributes_ptr = &(G_sbe_attrs.G_eq_attrs);
-
+#else
+		// For DFT PIBMEM contained, use the attributes in the image header
+		// at the top of the image instead of the second header appended
+		// further into the image
+        G_system_attributes_ptr = &(G_system_attributes);
+        G_proc_chip_attributes_ptr = &(G_proc_chip_attributes);
+        G_perv_attributes_ptr = &(G_perv_attributes);
+        G_core_attributes_ptr = &(G_core_attributes);
+        G_eq_attributes_ptr = &(G_eq_attributes);
+#endif	
 
         std::vector<fapi2::plat_target_handle_t>::iterator tgt_iter;
         uint32_t l_beginning_offset;

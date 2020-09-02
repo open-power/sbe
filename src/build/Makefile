@@ -144,6 +144,9 @@ SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_otprom_*.bin
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeMeasurementStringFile
 endif
+
+# tar content is excluded for DFT
+ifneq ($(project), $(filter $(project), power_dft))
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_*.syms
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.xml
 SIMICS_PPE_TAR_FILES += $(TEST_SRCDIR)/*.py
@@ -163,6 +166,7 @@ SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/trac_interface.h
 SIMICS_PPETRACEPP_TAR_FILES += $(PK_SRCDIR)/../ppetrace/pk_trace.h
 SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/plugins/sbeUserDataParser.C
 SIMICS_PARSERPLUGINS_TAR_FILES += $(SBE_FW_DIR)/core/sbeFFDCType.H
+endif
 
 SBE_TOOLS := $(IMG_DIR)/sbe_default_tool
 
@@ -189,7 +193,11 @@ output_sbe_image:
 	$(C1)$(LD) -e __system_reset -n -T$(OUT_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_NAME).map \
 		-Bstatic -o $(IMG_DIR)/$(IMAGE_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_BOOT_OBJECTS)) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 	    --start-group $(LLIBS) --end-group --gc-sections
+ifeq ($(project), $(filter $(project), power_dft))
+	$(C1)./parsAndCutElfDFT.py $(IMG_DIR) $(IMAGE_NAME)
+else
 	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) $(img)
+endif
 	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_NAME).out > $(IMG_DIR)/$(IMAGE_NAME).dis
 
 # pass the link command file through the C preprocessor to evaluate macros
@@ -310,6 +318,7 @@ measurement_branch:
 	$(MAKE) measure_tracehash
 	$(MAKE) measure_report
 
+ifneq ($(project), $(filter $(project), power_dft))
 tar:
 	@cp $(IMG_DIR)/$(SBE_STRINGFILE_NAME) $(IMG_DIR)/sbeStringFile || true
 	@echo "Installing simics.tar"
@@ -324,6 +333,7 @@ tar:
 	@cd  $(TAR_OBJDIR) && tar -cvf simics.tar * && mv simics.tar $(IMG_DIR) && cd ..
 	@rm -rf $(TAR_OBJDIR)
 	@echo "Generated simics.tar in Sbe images Directory"
+endif
 
 .PHONY: all normalize compress defaultset appendloader add_BootLoaderAddr \
   add_MeasureLoaderAddr add_LoaderAddr symbols report \
@@ -372,6 +382,11 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_hcode_image_build_attributes.x
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_bars_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_memory_bars_attributes.xml
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_runn_attributes.xml
+
+# Support for additional attributes for DFT, without affecting mainline collection
+ifeq ($(project), $(filter $(project), power_dft))
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_dft_attributes.xml
+endif
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

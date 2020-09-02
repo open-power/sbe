@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016,2020
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,11 +25,11 @@
 #export P2P_ENABLE = 1
 
 ifneq ($(img_mem), seeprom)
-export SUB_OBJDIR = /sbefw/app/power_dft_pibmem
+export SUB_OBJDIR = /sbefw/app/power_pibmem
 OBJS = $(addprefix $(OBJDIR)/, $(APPPOWERPIBMEM_OBJECTS))
 LIBNAME = libsbeapppowerpibmem
 else
-export SUB_OBJDIR = /sbefw/app/power_dft_seeprom
+export SUB_OBJDIR = /sbefw/app/power_seeprom
 GCC-CFLAGS += -mlongcall
 GCC-DEFS += -D__SBEFW_SEEPROM__=1
 OBJS = $(addprefix $(OBJDIR)/, $(APPPOWERSEEPROM_OBJECTS))

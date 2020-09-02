@@ -233,7 +233,10 @@ extern inline uint32_t sbeUpFifoAckEot (const sbeFifoType i_type = SBE_FIFO)
   */
 extern inline uint32_t sbeDownFifoEnq (const uint64_t i_data, const sbeFifoType i_type = SBE_FIFO)
 {
+#ifndef DFT
+	// This particular message is overly verbose for DFT; it can fill an entire pk tracebuffer!
     SBE_DEBUG(">sbeDownFifoEnq");
+#endif
     return putscom_abs(SBE_DOWNSTREAM_FIFO_ENQ_ADD + FIFO_BASE_ADDR(i_type), i_data);
 }
 

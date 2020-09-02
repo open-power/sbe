@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power_dft/sbecmdregaccess.C $                   */
+/* $Source: src/sbefw/app/power/sbecmdregaccess.C $                       */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -180,7 +180,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
 
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-
+        
         if( false == regReqMsg.isValidRequest() )
         {
             SBE_ERROR(SBE_FUNC" Invalid request. coreId 0x%02x threadNr:0x%x"

@@ -1,11 +1,12 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power_dft/sbecmdgeneric.C $                     */
+/* $Source: src/sbefw/app/power/sbecmdgeneric.C $                         */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -122,8 +123,8 @@ void updateFifoCapabilities(uint32_t * capability)
     capability[MEMORY_CAPABILITY_START_IDX] =
                                 GET_MEMORY_SUPPPORTED |
                                 PUT_MEMORY_SUPPPORTED |
-                                GET_SRAM_OCC_SUPPPORTED |
-                                PUT_SRAM_OCC_SUPPPORTED;
+                                GET_SRAM_SUPPPORTED |
+                                PUT_SRAM_SUPPPORTED;
     capability[MEMORY_CAPABILITY_START_IDX+1] =
                                 RESERVED_A4_CAPABILITIES;
 
@@ -153,7 +154,8 @@ void updateFifoCapabilities(uint32_t * capability)
     capability[MPIPL_CAPABILITY_START_IDX] =
                                 ENTER_MPIPL_SUPPORTED |
                                 CONTINUE_MPIPL_SUPPORTED |
-                                STOP_CLOCKS_MPIPL_SUPPORTED;
+                                STOP_CLOCKS_MPIPL_SUPPORTED |
+                                GET_TI_INFO_SUPPORTED;
     capability[MPIPL_CAPABILITY_START_IDX+1] =
                                 RESERVED_A9_CAPABILITIES;
 

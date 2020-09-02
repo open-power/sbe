@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power_dft/sbecmdmemaccess.C $                   */
+/* $Source: src/sbefw/app/power/sbecmdmemaccess.C $                       */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -229,7 +229,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         uint8_t l_coreId = 0;
         FAPI_ATTR_GET(ATTR_MASTER_CORE,plat_getChipTarget(),l_coreId);
         Target<TARGET_TYPE_CORE> l_core(
-               plat_getTargetHandleByChipletNumber<TARGET_TYPE_CORE>(l_coreId));
+               plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(l_coreId));
 
         p10_PBA_oper_flag l_myPbaFlag;
         // Determine the access flags

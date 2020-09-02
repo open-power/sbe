@@ -105,8 +105,11 @@ uint32_t sbeUpFifoDeq_mult (uint32_t    &io_len,
             break;
         }
 
+#ifndef DFT
+		// This particular message is overly verbose for DFT - it can fill an entire pk trace buffer
         SBE_DEBUG(SBE_FUNC"sbeUpFifoDeq - fifo_data:0x%08X, status:0x%08X, "
             "Fifo Type is:[%02X]", l_data.fifo_data, l_data.status, i_type);
+#endif
 
         // If FIFO reset is requested
         if(l_data.statusOrReserved.req_upfifo_reset)
@@ -199,7 +202,10 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
                               sbeFifoType     i_type)
 {
     #define SBE_FUNC " sbeDownFifoEnq_mult "
+#ifndef DFT
+		// This particular message is overly verbose for DFT - it can fill an entire pk trace buffer
     SBE_DEBUG(SBE_FUNC " sbeDownFifoEnq_mult FIFO_TYPE[0x%02X]", i_type);
+#endif
     uint32_t  l_rc   = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t   l_len = 0;
 

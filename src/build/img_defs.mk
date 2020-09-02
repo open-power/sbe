@@ -85,7 +85,7 @@ export LINKER_DIR = $(BUILD_DIR)/linkerscripts/$(project)
 endif
 
 ifndef IMPORT_HWP_MK_DIR
-ifeq ($(project),power_dft)
+ifeq ($(project),$(filter $(project), power_dft))
 export IMPORT_HWP_MK_DIR = $(BUILD_DIR)/import_hwp_mk/power
 else # DFT
 export IMPORT_HWP_MK_DIR = $(BUILD_DIR)/import_hwp_mk/$(project)
@@ -504,6 +504,10 @@ INCLUDES += -I$(IMPORT_SRCDIR)/tools/imageProcs
 INCLUDES += -I$(IMPORT_UTILS_DIR)/
 INCLUDES += -I$(IMPORT_SRCDIR)/chips/p10/utils/imageProcs
 
+ifdef DFT_INCLUDES
+INCLUDES += -I$(DFT_INCLUDES)
+endif
+
 GCC-CFLAGS += -Wall -Werror -Wno-unused-label
 GCC-CFLAGS += -msoft-float
 GCC-CFLAGS += -meabi -msdata=eabi
@@ -571,15 +575,6 @@ ifeq ($(SBE_S0_SUPPORT), 1)
 GCC-DEFS += -D_S0_=$(SBE_S0_SUPPORT)
 endif
 
-# Pass compile flags for DFT mode and its various flavors
-ifeq ($(project),power_dft)
-GCC-DEFS += -DDFT
-GCC-DEFS += -DNO_INIT_DBCR0
-#ifeq ($(flavor), avp)
-#GCC-DEFS += -DAVP
-#endif #flavor
-endif #mode
-
 ############################################################################
 CFLAGS =
 PPE-CFLAGS = $(CFLAGS) -c $(GCC-CFLAGS) $(PIPE-CFLAGS) $(GCC-O-LEVEL) $(INCLUDES)
@@ -601,6 +596,10 @@ endif
 
 ifeq ($(project),power_dft)
 include power_dft_defs.mk
+endif
+
+ifeq ($(project),power_dft_iddq)
+include power_dft_iddq_defs.mk
 endif
 
 ifeq ($(project),z)

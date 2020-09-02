@@ -1,11 +1,12 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power_dft/sbecmdexitcachecontained.C $          */
+/* $Source: src/sbefw/app/power/sbecmdexitcachecontained.C $              */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -92,7 +93,7 @@ uint32_t sbePsuExitCacheContainedMode(uint8_t *i_pArg)
         }
 
         //STEP2:
-        fapiRc = sbeFetchAndApplyXSCOMInit(req.xscomEntries,reinterpret_cast<void*>(req.address));
+        fapiRc = sbeFetchAndApplyXSCOMInit(req.xscomEntries,req.address);
         if(fapiRc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(SBE_FUNC "Failed in sbeFetchAndApplyXSCOMInit() Addr[0x%08X%08X] "
@@ -126,12 +127,12 @@ uint32_t sbePsuExitCacheContainedMode(uint8_t *i_pArg)
 #undef SBE_FUNC
 }
 
-uint32_t sbeFetchAndApplyXSCOMInit(const size_t i_xscomPairSize,const void* i_xscomInitAddress)
+uint32_t sbeFetchAndApplyXSCOMInit(const size_t i_xscomPairSize,const uint64_t i_xscomInitAddress)
 {
 #define SBE_FUNC " sbePsuExitCacheContainedMode"
     SBE_ENTER(SBE_FUNC);
     fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
-    uint64_t xscomInitAddress = reinterpret_cast<uint64_t>(i_xscomInitAddress);
+    uint64_t xscomInitAddress = i_xscomInitAddress;
     uint32_t regInitSize = i_xscomPairSize;
     Target<fapi2::TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
     //SBE has restriction to allocate maximum buffer size of 1024 bytes.

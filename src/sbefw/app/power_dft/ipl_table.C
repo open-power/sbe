@@ -95,6 +95,7 @@
 //Core Procedures.
 #include <p10_hcd_core_poweron.H>
 #include <p10_hcd_core_reset.H>
+#include <p10_hcd_core_gptr_time_initf.H>
 #include <p10_hcd_core_repair_initf.H>
 #include <p10_hcd_core_arrayinit.H>
 #include <p10_hcd_core_initf.H>
@@ -104,6 +105,15 @@
 #include <p10_hcd_core_ras_runtime_scom.H>
 // Core HWP header file
 //#include <p9_hcd_core.H>
+
+#if 0
+// Contained procedures
+#include <p10_contained.H>
+#include <p10_contained_load.H>
+#include <p10_contained_ipl.H>
+#include <p10_contained_run.H>
+#include <p10_contained_dft.H>
+#endif
 
 // istep mpipl header files
 //#include "p9_block_wakeup_intr.H"
@@ -128,6 +138,26 @@
 
 #include "sbeConsole.H"
 #include "sbecmdflushnvdimm.H"
+
+// p10 stopclocks 
+#include "p10_stopclocks.H"
+#include "p10_hcd_common.H"
+#include "p10_scom_perv_2.H"
+#include "p10_scom_perv_3.H"
+#include "p10_scom_perv_4.H"
+#include "p10_scom_perv_7.H"
+#include "p10_scom_perv_a.H"
+#include "p10_scom_perv_f.H"
+#include <p10_cplt_stopclocks.H>
+#include <p10_tp_stopclocks.H>
+#include <p10_hcd_core_stopclocks.H>
+#include <p10_hcd_cache_stopclocks.H>
+#include <p10_hcd_eq_stopclocks.H>
+#include <p10_common_stopclocks.H>
+#include <p10_hcd_common.H>
+#include <multicast_group_defs.H>
+#include <target_filters.H>
+#include <fapi2_attribute_service.H>
 
 // Forward declaration
 using namespace fapi2;
@@ -224,6 +254,12 @@ ReturnCode istepWithEqConditional( voidfuncptr_t i_hwp);
 ReturnCode istepNestFreq( voidfuncptr_t i_hwp);
 ReturnCode istepCacheInitf( voidfuncptr_t i_hwp );
 
+#if 0
+//Contained
+ReturnCode istepContainedLoad( voidfuncptr_t i_hwp );
+ReturnCode istepContainedRun( voidfuncptr_t i_hwp );
+#endif
+
 //MPIPL Specific
 ReturnCode istepWithCoreSetBlock( voidfuncptr_t i_hwp );
 ReturnCode istepWithCoreState( voidfuncptr_t i_hwp );
@@ -237,71 +273,66 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( voidfuncptr_t i_hwp );
 ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp );
 
+//DFT Specific
+ReturnCode istepStopClockDFT( voidfuncptr_t i_hwp );
+
 #ifndef __SBEFW_SEEPROM__
 /*
  * --------------------------------------------- start PIBMEM CODE
  */
 
-static istepMap_t g_istepStopClockPtrTbl[] =
-        {
-            // Stop Clock Mpipl
-            ISTEP_MAP( istepStopClockMpipl, NULL),
-        };
-
 // File static data
 static istepMap_t g_istep2PtrTbl[] =
          {
-             ISTEP_MAP( NULL, NULL ),
-             ISTEP_MAP( istepAttrSetup, p10_sbe_attr_setup),
-             ISTEP_MAP( istepWithProc, p10_sbe_tp_chiplet_reset),
-             ISTEP_MAP( istepWithProc, p10_sbe_tp_gptr_time_initf),
-             ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_1),// DFT only
-             ISTEP_MAP( istepWithProc, p10_sbe_npll_initf),
-             ISTEP_MAP( istepWithProc, p10_sbe_rcs_setup),
-             ISTEP_MAP( istepHwpTpSwitchGears, p10_sbe_tp_switch_gears),
-             ISTEP_MAP( istepNestFreq, p10_sbe_npll_setup),
-             ISTEP_MAP( istepWithProc, p10_sbe_tp_repr_initf),
-             ISTEP_MAP( istepWithProc, p10_sbe_tp_abist_setup),
-             ISTEP_MAP( istepWithProc, p10_sbe_tp_arrayinit),
-             ISTEP_MAP( istepWithProc, p10_sbe_tp_initf),
-             ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_2), //DFT only
-             ISTEP_MAP( istepWithProc, p10_sbe_tp_chiplet_init),
-//#endif
+             ISTEP_MAP( NULL, NULL ), //1
+             ISTEP_MAP( istepAttrSetup, p10_sbe_attr_setup), //2
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_chiplet_reset), //3
+             ISTEP_MAP( istepWithProc    , p10_sbe_tp_gptr_time_initf), //4
+             ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_1), //5
+             ISTEP_MAP( istepWithProc, p10_sbe_npll_initf), //6
+             ISTEP_MAP( istepWithProc, p10_sbe_rcs_setup), //7
+             ISTEP_MAP( istepHwpTpSwitchGears, p10_sbe_tp_switch_gears), //8
+             ISTEP_MAP( istepNestFreq, p10_sbe_npll_setup), //9
+             ISTEP_MAP( istepNoOp, p10_sbe_tp_repr_initf), //10
+             ISTEP_MAP( istepNoOp, p10_sbe_tp_abist_setup), //11
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_arrayinit), //12
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_initf), //13
+             ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_2), //14
+             ISTEP_MAP( istepWithProc, p10_sbe_tp_chiplet_init), //15
          };
 
 static istepMap_t g_istep3PtrTbl[] =
          {
-             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_setup),
-             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_clk_config),
-             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_reset),
-             ISTEP_MAP( istepWithProc, p10_sbe_gptr_time_initf),
-             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_initf),
-             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_setup),
-             ISTEP_MAP( istepNoOp, p10_sbe_repr_initf),
-             ISTEP_MAP( istepNoOp, NULL ), // DFT - Hook for DFT to run ABIST
-             ISTEP_MAP( istepWithProc, p10_sbe_arrayinit), // Chiplet array init
-             ISTEP_MAP( istepNoOp, NULL ), // DFT - Hook for DFT to run LBIST
-             ISTEP_MAP( istepNoOp, p10_sbe_initf),
-             ISTEP_MAP( istepWithProc, p10_sbe_startclocks),
-             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_init),
-             ISTEP_MAP( istepNoOp, p10_sbe_chiplet_fir_init),
-             ISTEP_MAP( istepWithProc, p10_sbe_dts_init), //p10_sbe_dts_init
-             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_skew_adjust_setup
-             ISTEP_MAP( istepWithProc, p10_sbe_nest_enable_ridi),
-             ISTEP_MAP( istepWithProc, p10_sbe_scominit),
-             //ISTEP_MAP( istepLpcInit,  p10_sbe_lpc_init),
-             ISTEP_MAP( istepNoOp,  p10_sbe_lpc_init),
-             ISTEP_MAP( istepNoOp, p10_sbe_fabricinit),
-             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_check_master
-             ISTEP_MAP( istepWithProc, p10_sbe_mcs_setup),
-             ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_setup),	//1
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_clk_config), //2
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_reset), //3
+             ISTEP_MAP( istepWithProc, p10_sbe_gptr_time_initf), //4
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_initf), //5
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_pll_setup),  //6
+             ISTEP_MAP( istepNoOp, p10_sbe_repr_initf),  //7
+             ISTEP_MAP( istepNoOp, NULL ), //8
+             ISTEP_MAP( istepWithProc, p10_sbe_arrayinit), //9
+             ISTEP_MAP( istepNoOp, NULL ), //10
+             ISTEP_MAP( istepWithProc, p10_sbe_initf), //11
+             ISTEP_MAP( istepWithProc, p10_sbe_startclocks), //12
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_init), //13
+             ISTEP_MAP( istepWithProc, p10_sbe_chiplet_fir_init), //14
+             ISTEP_MAP( istepWithProc, p10_sbe_dts_init), //15
+             ISTEP_MAP( istepNoOp, NULL), //16
+             ISTEP_MAP( istepWithProc, p10_sbe_nest_enable_ridi), //17
+             ISTEP_MAP( istepWithProc, p10_sbe_scominit), //18
+             ISTEP_MAP( istepNoOp,  p10_sbe_lpc_init), //19
+             ISTEP_MAP( istepWithProc, p10_sbe_fabricinit), //20
+             ISTEP_MAP( istepNoOp, NULL), //21
+             ISTEP_MAP( istepNoOp, p10_sbe_mcs_setup), //22
+             ISTEP_MAP( istepSelectEx, p10_sbe_select_ex), //23
          };
 static istepMap_t g_istep4PtrTbl[] =
          {
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_poweron), //1
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_reset), //2
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_gptr_time_initf), //3
-             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_repair_initf), //4
+             ISTEP_MAP( istepNoOp, p10_hcd_cache_repair_initf), //4
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_arrayinit), //5
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_initf), //6
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_startclocks), //7
@@ -310,21 +341,39 @@ static istepMap_t g_istep4PtrTbl[] =
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_ras_runtime_scom), //10
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_poweron), //11
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_reset), //12
-             ISTEP_MAP( istepNoOp, NULL ), //p10_hcd_core_gptr_time_initf //13 
-             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_repair_initf ), //14
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_gptr_time_initf), //p10_hcd_core_gptr_time_initf //13 
+             ISTEP_MAP( istepNoOp, p10_hcd_core_repair_initf ), //14
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_arrayinit), //15
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_initf), //16
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_startclocks), //17
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_scominit), //18
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_scom_customize), //19
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_ras_runtime_scom), //20
+             ISTEP_MAP( istepStopClockDFT, p10_stopclocks), //21
          };
+#if 0
+static istepMap_t g_istep8PtrTbl[] =
+        {
+            ISTEP_MAP( istepContainedLoad, p10_contained_load),    //1
+            ISTEP_MAP( istepWithProc, p10_contained_dyn_inits), //2
+            ISTEP_MAP( istepWithProc, p10_contained_save_config), //3
+            ISTEP_MAP( istepWithProc, p10_contained_stopclocks), //4
+            ISTEP_MAP( istepWithProc, p10_contained_setup), //5
+            ISTEP_MAP( istepWithProc, p10_contained_scan0),    //6
+            ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_cache_reset), //7
+            ISTEP_MAP( istepWithProc, p10_contained_restore_l3_config),    //8
+            ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_reset), //9
+            ISTEP_MAP( istepContainedRun, p10_contained_run),    //10
+        };
+#endif
 
 istepTableEntry_t istepTableEntries[] = {
     ISTEP_ENTRY(  2, g_istep2PtrTbl),
     ISTEP_ENTRY(  3, g_istep3PtrTbl),
     ISTEP_ENTRY(  4, g_istep4PtrTbl),
-    ISTEP_ENTRY( 98, g_istepStopClockPtrTbl),
+#if 0
+    ISTEP_ENTRY(  8, g_istep8PtrTbl),
+#endif
 };
 
 REGISTER_ISTEP_TABLE(istepTableEntries)
@@ -575,9 +624,56 @@ ReturnCode istepWithGoodEqMCCore( voidfuncptr_t i_hwp)
     #undef SBE_FUNC
 }
 
+#if 0
 //----------------------------------------------------------------------------
+//                    Contained Procedures
+//----------------------------------------------------------------------------
+ReturnCode istepContainedLoad( voidfuncptr_t i_hwp)
+{
+    SBE_ENTER("istepContainedLoad");
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    const uint64_t l_cache_img_start_addr = 0;
+    const uint64_t l_qme_img_bytes = 0;
+    const uint8_t *l_qme_img = 0;
 
+    uint32_t p_cache_img = 0;
+    uint64_t l_cache_img_bytes = 0; 
+	uint8_t l_ring_img_cnfg = 1;	
+
+    // Get AVP image pointer from attribute
+    FAPI_ATTR_GET(ATTR_AVP_IMG_PTR, proc, p_cache_img);
+    //SBE_INFO("Image pointer: [0x%08X]", p_cache_img);
+    SBE_INFO("Image pointer: 0x%X", p_cache_img);
+    // Get AVP image size from attribute
+    FAPI_ATTR_GET(ATTR_AVP_IMG_SIZE, proc, l_cache_img_bytes);
+    //SBE_INFO("Image size: [0x%08X]", l_cache_img_bytes);
+    SBE_INFO("Image size: 0x%X", l_cache_img_bytes);
+	// Set ring image config to setRing to dynamic init image
+	FAPI_ATTR_SET(ATTR_RING_IMG_CNFG, proc, l_ring_img_cnfg);
+
+    uint8_t* l_cache_img = (uint8_t*) p_cache_img;
+    
+    SBE_EXEC_HWP(rc, reinterpret_cast<p10_contained_load_FP_t>(i_hwp), proc, l_cache_img_start_addr, l_cache_img_bytes, l_cache_img, l_qme_img_bytes, l_qme_img);
+
+    SBE_EXIT("istepContainedLoad");
+    return rc;
+}    
 //----------------------------------------------------------------------------
+ReturnCode istepContainedRun( voidfuncptr_t i_hwp)
+{
+    SBE_ENTER("istepContainedRun");
+    ReturnCode rc=FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+
+    SBE_EXEC_HWP(rc, reinterpret_cast<p10_contained_run_FP_t>(i_hwp), proc);
+
+    SBE_EXIT("istepContainedRun");
+    return rc;
+}
+//----------------------------------------------------------------------------
+#endif
+
 ReturnCode istepWithEqConditional( voidfuncptr_t i_hwp)
 {
     SBE_ENTER("istepWithEqCondtional");
@@ -1227,6 +1323,39 @@ ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp )
     return l_fapiRc;
     #undef SBE_FUNC
 }
+
+ReturnCode istepStopClockDFT( voidfuncptr_t i_hwp )
+{
+    #define SBE_FUNC "istepStopClockDFT"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
+    p10_stopclocks_flags l_flags; // Default Flag Values
+    Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt = plat_getChipTarget();
+
+    l_flags.clearAll();
+    l_flags.stop_nest_clks = true;
+    l_flags.stop_pcie_clks = true;
+    l_flags.stop_mc_clks = true;
+    l_flags.stop_pau_clks = true;
+    l_flags.stop_axon_clks = true;
+    l_flags.stop_tp_clks = true;
+    l_flags.ignore_pib_net_ppll = true;
+    //l_flags.stop_sbe_clks = true;
+    //l_flags.stop_vitl_clks = true;
+    l_flags.stop_cache_clks = true;
+    l_flags.stop_core_clks = true;
+    l_flags.stop_eq_clks = true;
+
+    SBE_EXEC_HWP(l_fapiRc,
+                 reinterpret_cast<p10_stopclocks_FP_t>(i_hwp),
+                 l_procTgt,
+                 l_flags);
+    
+    SBE_EXIT(SBE_FUNC);
+    return l_fapiRc;
+    #undef SBE_FUNC
+}
+
 
 /*
  * end SEEPROM CODE --------------------------------------------------

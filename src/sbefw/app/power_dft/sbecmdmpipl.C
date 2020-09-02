@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power_dft/sbecmdmpipl.C $                       */
+/* $Source: src/sbefw/app/power/sbecmdmpipl.C $                           */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -38,12 +38,16 @@
 #include "sberegaccess.H"
 #include "sbefapiutil.H"
 #include "sbecmdiplcontrol.H"
-
-//#include "p9_hcd_core_stopclocks.H"
-//#include "p9_hcd_cache_stopclocks.H"
-//#include "p9_stopclocks.H"
+#include "fapi2_mem_access.H"
+#include "p10_getmempba.H"
+#include "sbeglobals.H"
+#include "sbehandleresponse.H"
+#include "p10_stopclocks.H"
+#include "p10_hcd_core_stopclocks.H"
+#include "p10_hcd_eq_stopclocks.H"
+#include "p10_hcd_cache_stopclocks.H"
+#include "sbearchregdump.H"
 #include "fapi2.H"
-
 #include "core/ipl.H"
 
 using namespace fapi2;
@@ -57,18 +61,19 @@ using namespace fapi2;
 enum stopClockHWPType
 {
     SC_NONE     = 0x00,
-    SC_PROC     = 0x01, // Call p9_stopclocks
-    SC_CACHE    = 0x02, // Call p9_hcd_cache_stopclocks
-    SC_CORE     = 0x04, // Call p9_hcd_core_stopclocks
+    SC_PROC     = 0x01, // Call p10_stopclocks
+    SC_CACHE    = 0x02, // Call p10_hcd_cache_stopclocks
+    SC_CORE     = 0x04, // Call p10_hcd_core_stopclocks
 };
 
 #ifdef __SBEFW_SEEPROM__
 
 #ifdef SEEPROM_IMAGE
-    // Using function pointer to force long call.
-//p9_hcd_cache_stopclocks_FP_t p9_hcd_cache_stopclocks_hwp = &p9_hcd_cache_stopclocks;
-//p9_hcd_core_stopclocks_FP_t p9_hcd_core_stopclocks_hwp = &p9_hcd_core_stopclocks;
-//p9_stopclocks_FP_t p9_stopclocks_hwp = &p9_stopclocks;
+// Using function pointer to force long call.
+p10_hcd_cache_stopclocks_FP_t p10_hcd_cache_stopclocks_hwp = &p10_hcd_cache_stopclocks;
+p10_hcd_eq_stopclocks_FP_t p10_hcd_eq_stopclocks_hwp = &p10_hcd_eq_stopclocks;
+p10_hcd_core_stopclocks_FP_t p10_hcd_core_stopclocks_hwp = &p10_hcd_core_stopclocks;
+p10_stopclocks_FP_t p10_stopclocks_hwp = &p10_stopclocks;
 #endif
 
 static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
@@ -78,8 +83,8 @@ static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 7;
 static const uint32_t SBE_ISTEP4                    = 4;
 static const uint32_t SBE_ISTEP5                    = 5;
 static const uint32_t ISTEP_MINOR_START             = 1;
-static const uint32_t ISTEP4_MAX_SUBSTEPS           = 34;
-static const uint32_t ISTEP5_MAX_SUBSTEPS           = 2;
+static const uint32_t ISTEP4_MAX_SUBSTEPS           = 20;
+static const uint32_t ISTEP5_MAX_SUBSTEPS           = 3;
 
 ReturnCode startMpiplIstepsExecute(void)
 {
@@ -160,17 +165,25 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-    uint32_t len = 0;
 
+    uint32_t len = 0;
     sbeResponseFfdc_t ffdc;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
-
     do
     {
-        // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+        if (!SBE::isMpiplReset())
+        {
+            // Dequeue the EOT entry as no more data is expected.
+            rc = sbeUpFifoDeq_mult (len, NULL);
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+            // Create MPIPL Reset request for the Otprom to execute
+            // Set bit 14 in 0xc0002040 and jump to otprom addr 0x18040
+            SBE::setMpiplReset();
+            SBE::runSystemReset();
+            // There is no execution after this.. SBE is taking a reset.
+        }
 
         fapiRc = startMpiplIstepsExecute();
         bool checkstop = isSystemCheckstop();
@@ -185,7 +198,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             else
             {
                 respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                   SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+                                   SBE_SEC_ENTER_MPIPL_FAILED);
                 ffdc.setRc(fapiRc);
             }
             // reset attribute. We do not want to reset register, so do not
@@ -194,17 +207,50 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
             break;
         }
+
+        //In P10 Architected register data will be collected as part of MPIPL
+        //for both the FSP and BMC based systems
+        //Collect Architected Register Dump
+        fapiRc = sbeDumpArchRegs();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "Failed in sbeDumpArchRegs()");
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                    SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+
+        //Core and Cache stop Clock
+        SBE_INFO(SBE_FUNC "Attempt Stop clocks for all Core and cache ");
+        fapiRc = stopClockS0();
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            rc = SBE_SEC_S0_STOP_CLOCK_FAILED;
+            SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock");
+            break;
+        }
+
     }while(0);
 
     // Create the Response to caller
     do
     {
+        // Clear MPIPL Reset. System is ready for sbeEnterMpipl Chip-Op call
+        SBE::clearMpiplReset();
+
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
         rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        if(SBE::isMpiplResetDone())
+        {
+            sbeHandleFifoResponse (rc, SBE_FIFO);
+            SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_FIFO);
+            pk_irq_enable(SBE_IRQ_SBEHFIFO_DATA);
+            pk_irq_enable(SBE_IRQ_SBEHFIFO_RESET);
+        }
     }while(0);
-
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -291,28 +337,17 @@ ReturnCode stopClockS0()
 #define SBE_FUNC "stopClockS0"
     SBE_ENTER(SBE_FUNC);
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
-#if 0
-    p9_stopclocks_flags flags;
-
-    p9hcd::P9_HCD_CLK_CTRL_CONSTANTS clk_regions =
-        p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
-    p9hcd::P9_HCD_EX_CTRL_CONSTANTS ex_select = p9hcd::BOTH_EX;
-
+    p10_stopclocks_flags flags;
     flags.clearAll();
-    flags.sync_stop_quad_clks = false;
     flags.stop_core_clks = true; 
     flags.stop_cache_clks = true;
     
-    SBE_EXEC_HWP(fapiRc, p9_stopclocks_hwp,
-            plat_getChipTarget(),
-            flags,
-            clk_regions,
-            ex_select);
+    SBE_EXEC_HWP(fapiRc, p10_stopclocks_hwp,
+                 plat_getChipTarget(), flags);
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
-        SBE_ERROR(SBE_FUNC "Failed in StopClock S0S1 Interface");
+        SBE_ERROR(SBE_FUNC "Failed in stopClockS0():,fapiRc=0x%.8x",fapiRc);
     }
-#endif
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
 #undef SBE_FUNC
@@ -324,11 +359,9 @@ ReturnCode stopClockS0()
  *
  * @param[in] i_targetType  SBE chip-op target type
  * @param[in] i_chipletId   Chiplet id
- *
  * @return Bitmapped stopClockHWPType enum values
  */
 ///////////////////////////////////////////////////////////////////////
-#if 0
 static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
                                            uint32_t i_chipletId)
 {
@@ -336,21 +369,17 @@ static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
     TargetType l_fapiTarget = sbeGetFapiTargetType(
                                                 i_targetType,
                                                 i_chipletId);
+
     if((l_fapiTarget == TARGET_TYPE_PROC_CHIP) ||
-       (l_fapiTarget == TARGET_TYPE_PERV) ||
-       ((i_targetType == TARGET_CORE) && (i_chipletId == SMT4_ALL_CORES))||
-       ((i_targetType == TARGET_EQ) && (i_chipletId == EQ_ALL_CHIPLETS)) ||
-       ((i_targetType == TARGET_EX) && (i_chipletId == EX_ALL_CHIPLETS)))
+       (l_fapiTarget == TARGET_TYPE_PERV))
     {
            l_rc |= SC_PROC;
     }
-    if((l_fapiTarget == TARGET_TYPE_CORE) ||
-       (l_fapiTarget == TARGET_TYPE_EX))
+    if(l_fapiTarget == TARGET_TYPE_CORE)
     {
         l_rc |= SC_CORE;
     }
-    if((l_fapiTarget == TARGET_TYPE_EQ) ||
-       (l_fapiTarget == TARGET_TYPE_EX))
+    if(l_fapiTarget == TARGET_TYPE_EQ)
     {
         l_rc |= SC_CACHE;
     }
@@ -365,42 +394,38 @@ static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
  * @return p9_stopclocks_flags
  */
 ///////////////////////////////////////////////////////////////////////
-static inline p9_stopclocks_flags getStopClocksFlags(uint32_t i_targetType)
+static inline p10_stopclocks_flags getStopClocksFlags(uint32_t i_targetType)
 {
-    p9_stopclocks_flags l_flags;
+    p10_stopclocks_flags flags;
 
     if(i_targetType != TARGET_PROC_CHIP)
     {
         // Clear default flags - only in case the target is not PROC_CHIP
         // Otherwise, for a PROC_CHIP target, we want to keep default flags
-        l_flags.clearAll();
+        flags.clearAll();
     }
     if(i_targetType == TARGET_PERV)
     {
         // Keep only tp as true
-        l_flags.stop_tp_clks  = true;
+        flags.stop_tp_clks  = true;
     }
     else if(i_targetType == TARGET_CORE)
     {
         // Keep only core flag as true
-        l_flags.stop_core_clks = true;
+        flags.stop_core_clks = true;
     }
     else if(i_targetType == TARGET_EQ)
     {
         // Keep only cache flag as true
-        l_flags.stop_cache_clks = true;
+        flags.stop_cache_clks = true;
     }
-    else if(i_targetType == TARGET_EX)
+    else
     {
-        // Keep only cache and core as true
-        l_flags.stop_cache_clks = true;
-        l_flags.stop_core_clks = true;
+        SBE_ERROR("getStopClocksFlags:Unsupported Target Type=0x%.8x",i_targetType);
     }
-
-    return l_flags;
+    return flags;
 }
 
-#endif
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeStopClocks Sbe Stop Clocks function
 //
@@ -410,136 +435,243 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeStopClocks"
     SBE_ENTER(SBE_FUNC);
-    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-#if 0
-    uint32_t l_fapiRc = FAPI2_RC_SUCCESS;
-    uint32_t l_len = 0;
-    sbeResponseFfdc_t l_ffdc;
-    sbeRespGenHdr_t l_respHdr;
-    l_respHdr.init();
-    sbeStopClocksReqMsgHdr_t l_reqMsg = {0};
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    uint32_t len = 0;
+    sbeResponseFfdc_t ffdc;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+    sbeStopClocksReqMsgHdr_t reqMsg = {0};
 
     do
     {
         // Get the TargetType and ChipletId from the command message
-        l_len  = sizeof(sbeStopClocksReqMsgHdr_t)/sizeof(uint32_t);
-        l_rc = sbeUpFifoDeq_mult (l_len, (uint32_t *)&l_reqMsg); // EOT fetch
+        len  = sizeof(sbeStopClocksReqMsgHdr_t)/sizeof(uint32_t);
+        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&reqMsg); // EOT fetch
         // If FIFO access failure
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
         SBE_INFO(SBE_FUNC "TargetType 0x%04X ChipletId 0x%02X",
-                    (uint16_t)l_reqMsg.targetType,
-                    (uint8_t)l_reqMsg.chipletId);
+                    (uint16_t)reqMsg.targetType,
+                    (uint8_t)reqMsg.chipletId);
 
-        fapi2::plat_target_handle_t l_tgtHndl;
-        // Keep these default values in sync with p9_stopclocks.H
-        p9hcd::P9_HCD_CLK_CTRL_CONSTANTS l_clk_regions
-                                    = p9hcd::CLK_REGION_ALL_BUT_PLL_REFR;
-        p9hcd::P9_HCD_EX_CTRL_CONSTANTS l_ex_select   = p9hcd::BOTH_EX;
-
+        fapi2::plat_target_handle_t tgtHndl;
+        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
         // Get the type of stopclocks procedure to call
         // based on target and chiplet id
-        uint32_t l_hwpType = getStopClockHWPType(l_reqMsg.targetType,
-                                                        l_reqMsg.chipletId);
-        if(l_hwpType == SC_NONE)
+        uint32_t hwpType = getStopClockHWPType(reqMsg.targetType,
+                                               reqMsg.chipletId);
+
+
+        if(hwpType == SC_NONE)
         {
             // Error in target and chiplet id combination
             SBE_ERROR(SBE_FUNC "Invalid TargetType[0x%04X] ChipletId[0x%02X]",
-                    (uint32_t)l_reqMsg.targetType,
-                    (uint32_t)l_reqMsg.chipletId);
-            l_respHdr.setStatus( SBE_PRI_INVALID_DATA,
-                                 SBE_SEC_INVALID_TARGET_TYPE_PASSED );
+            (uint32_t)reqMsg.targetType, (uint32_t)reqMsg.chipletId);
+            respHdr.setStatus( SBE_PRI_INVALID_DATA,
+                               SBE_SEC_INVALID_TARGET_TYPE_PASSED );
             break;
-        }
-        // All Core/All Cache/All Ex & Perv & Proc are handled here
-        if(l_hwpType & SC_PROC)
-        {
-            SBE_DEBUG(SBE_FUNC " Calling p9_stopclocks");
-            p9_stopclocks_flags l_flags = getStopClocksFlags(
-                                                        l_reqMsg.targetType);
-            if(l_reqMsg.targetType == TARGET_EX)
-            {
-                l_clk_regions = static_cast<p9hcd::P9_HCD_CLK_CTRL_CONSTANTS>
-                                (p9hcd::CLK_REGION_EX0_REFR |
-                                                    p9hcd::CLK_REGION_EX1_REFR);
-            }
-            l_flags.sync_stop_quad_clks = false;
-            SBE_EXEC_HWP(l_fapiRc, p9_stopclocks_hwp,
-                          plat_getChipTarget(),
-                          l_flags,
-                          l_clk_regions,
-                          l_ex_select);
-        }
-        // Specific CORE/EX
-        if(l_hwpType & SC_CORE)
-        {
-            SBE_DEBUG(SBE_FUNC " Calling p9_hcd_core_stopclocks");
-            sbeGetFapiTargetHandle(l_reqMsg.targetType,
-                                   l_reqMsg.chipletId,
-                                   l_tgtHndl);
-            if(l_reqMsg.targetType == TARGET_EX)
-            {
-                Target<TARGET_TYPE_EX> l_exTgt(l_tgtHndl);
-                for(auto &l_childCore :
-                                    l_exTgt.getChildren<TARGET_TYPE_CORE>())
-                {
-                    SBE_EXEC_HWP(l_fapiRc,
-                                 p9_hcd_core_stopclocks_hwp,
-                                 l_childCore,
-                                 false);
-                }
-            }
-            else
-            {
-                SBE_EXEC_HWP(l_fapiRc, p9_hcd_core_stopclocks_hwp, l_tgtHndl, false);
-            }
-        }
-        // Specific EQ/EX
-        if(l_hwpType & SC_CACHE)
-        {
-            SBE_DEBUG(SBE_FUNC " Calling p9_hcd_cache_stopclocks");
-            if(l_reqMsg.targetType == TARGET_EX)
-            {
-                // Modify l_clk_regions based on chiplet Id
-                l_clk_regions = SBE_IS_EX0(l_reqMsg.chipletId) ?
-                        p9hcd::CLK_REGION_EX0_REFR : p9hcd::CLK_REGION_EX1_REFR;
-                // Modify l_ex_select based on chiplet ID
-                l_ex_select = SBE_IS_EX0(l_reqMsg.chipletId) ?
-                                            p9hcd::EVEN_EX : p9hcd::ODD_EX;
-                Target<TARGET_TYPE_EX> l_ex_target(l_tgtHndl);
-                l_tgtHndl = l_ex_target.getParent<TARGET_TYPE_EQ>();
-            }
-            SBE_EXEC_HWP(l_fapiRc, p9_hcd_cache_stopclocks_hwp,
-                         l_tgtHndl,
-                         (p9hcd::P9_HCD_CLK_CTRL_CONSTANTS)l_clk_regions,
-                         (p9hcd::P9_HCD_EX_CTRL_CONSTANTS)l_ex_select,
-                         false);
         }
 
-        if( l_fapiRc != FAPI2_RC_SUCCESS )
+        // All Eq/All Cache/All & Perv & Proc are handled here
+        if(hwpType & SC_PROC)
         {
-            SBE_ERROR(SBE_FUNC" Stopclocks failed for TargetType [0x%04X] "
-                "ChipletId [0x%02X]",
-                (uint16_t)l_reqMsg.targetType,
-                (uint8_t)l_reqMsg.chipletId);
-            l_respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                 SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-            l_ffdc.setRc(l_fapiRc);
-            break;
+            SBE_DEBUG(SBE_FUNC " Calling p10_stopclocks HWP");
+            p10_stopclocks_flags flags = getStopClocksFlags(
+                                                        reqMsg.targetType);
+            SBE_EXEC_HWP(fapiRc, p10_stopclocks_hwp,
+                         proc, flags);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("Failed in p10_stopclocks(), fapiRc=0x%.8x",fapiRc);
+                break;
+            }
         }
+        // Specific CORE or all Cores
+        // p10_hcd_core_stopclocks() Stops CORE+L2 clocks. Does not alter the L3
+        // and MMA.
+        if(hwpType & SC_CORE)
+        {
+            SBE_DEBUG(SBE_FUNC " Calling p10_hcd_core_stopclocks");
+            if(reqMsg.chipletId == SMT4_ALL_CORES)
+            {
+                //Request is for All cores , create a multicast target and call
+                //the procedure.
+                fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,fapi2::MULTICAST_OR> mc_cores;
+                mc_cores = proc.getMulticast<fapi2::MULTICAST_OR>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+                tgtHndl = mc_cores;
+            }
+            else //Specific core Instance number
+            {
+                sbeGetFapiTargetHandle(reqMsg.targetType,
+                                       reqMsg.chipletId,tgtHndl);
+            }
+            //Execute the Core Stop Clock HWP
+            SBE_EXEC_HWP(fapiRc, p10_hcd_core_stopclocks_hwp, tgtHndl);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("Failed in p10_hcd_core_stopclocks(), fapiRc=0x%.8x, Target=0x%.8x",
+                          fapiRc,tgtHndl);
+                break;
+            }
+        }
+        // Specific EQ or All EQs
+        // p10_hcd_eq_stopclocks: CORE+L2,L3 and MMA clocks are stopped.
+        if(hwpType & SC_CACHE)
+        {
+            SBE_DEBUG(SBE_FUNC " Calling p10_hcd_eq_stopclocks");
+            if(reqMsg.chipletId == EQ_ALL_CHIPLETS)
+            {
+                //Request is for All EQs , create a multicast target and call
+                //the procedure.
+                fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST,fapi2::MULTICAST_AND> mc_eqs;
+                mc_eqs = proc.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_GOOD_EQ);
+                tgtHndl = mc_eqs;
+            }
+            else //Specific eq chiplet
+            {
+                sbeGetFapiTargetHandle(reqMsg.targetType,
+                                       reqMsg.chipletId,tgtHndl);
+            }
+            //Execute the EQ Stop Clock procedure
+            SBE_EXEC_HWP(fapiRc, p10_hcd_eq_stopclocks_hwp, tgtHndl);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("Failed in p10_hcd_eq_stopclocks(), fapiRc=0x%.8x,Target=0x%.8x",
+                           fapiRc,tgtHndl);
+                break;
+            }
+
+        }
+
     }while(0);
+
+    if( fapiRc != FAPI2_RC_SUCCESS )
+    {
+        SBE_ERROR(SBE_FUNC" Stopclocks failed for TargetType [0x%04X] "
+                "ChipletId [0x%02X]", (uint16_t)reqMsg.targetType,
+                (uint8_t)reqMsg.chipletId);
+        respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                           SBE_SEC_STOP_CLOCK_FAILED );
+        ffdc.setRc(fapiRc);
+    }
 
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
-    if(SBE_SEC_OPERATION_SUCCESSFUL == l_rc)
+    if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
     {
-        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc);
     }
-#endif
     SBE_EXIT(SBE_FUNC);
-    return l_rc;
+    return rc;
     #undef SBE_FUNC
+}
+
+/////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbeGetTIInfo (uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeGetTIInfo "
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    sbeRespGenHdr_t hdr;
+    hdr.init();
+    sbeResponseFfdc_t ffdc;
+    uint32_t flags = fapi2::SBE_MEM_ACCESS_FLAGS_TARGET_PBA |
+                     fapi2::SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON |
+                     fapi2::SBE_MEM_ACCESS_FLAGS_LCO_MODE;
+    uint32_t bytesRead = 0;
+    do
+    {
+        //Will attempt to dequeue for the expected EOT entry at the end.
+        uint32_t len2dequeue  = 0;
+        rc = sbeUpFifoDeq_mult (len2dequeue, NULL);
+
+        // If FIFO access failure
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            // Let command processor routine to handle the RC.
+            break;
+        }
+        //Read the Scratch register to get the TI data location.
+        //First get the master core for the proc. The scratch reg is
+        //for the master core.
+        uint8_t coreId = 0;
+        Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,procTgt,coreId);
+        fapi2::Target<fapi2::TARGET_TYPE_CORE >
+        coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
+
+        uint64_t tiDataLoc = 0;
+        fapiRc = getscom_abs_wrap(&coreTgt, CORE_SCRATCH_REG0, &tiDataLoc);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "GetScom failed for address 0x20028486");
+            hdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                           SBE_SEC_TI_CORE_SCRATCH_READ_FAILED);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+        SBE_INFO("tiDataLoc is 0x%08X%08X and core target is 0x%08X",
+                  SBE::higher32BWord(tiDataLoc), SBE::lower32BWord(tiDataLoc),
+                  coreTgt.get());
+        //Now we got the TI data location. Read TI_DATA_LEN bytes from
+        //that location.
+        uint32_t bytesRemaining = TI_DATA_LEN;
+        do
+        {
+            uint8_t tiData[PBA_GRAN_SIZE] = {0};
+            SBE_EXEC_HWP(fapiRc, p10_getmempba, procTgt, (tiDataLoc + bytesRead), PBA_GRAN_SIZE,
+                         reinterpret_cast<uint8_t*>(tiData), flags);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "Failed in p10_getmempba() ,Addr[0x%08X%08X] "
+                "bytes[0x%08X]",SBE::higher32BWord(tiDataLoc),
+                SBE::lower32BWord(tiDataLoc), flags);
+                hdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_TI_DATA_READ_FAILED);
+                ffdc.setRc(fapiRc);
+                break;
+            }
+            for(uint32_t i = 0; i < PBA_GRAN_SIZE; i++)
+                SBE_DEBUG("TI data[%d] is 0x%08X ", i, tiData[i]);
+
+            uint32_t len2enqueue  = 0;
+            len2enqueue = PBA_GRAN_SIZE/sizeof(uint32_t);
+            //Create the response for TI Data.
+
+            rc = sbeDownFifoEnq_mult (len2enqueue, reinterpret_cast<uint32_t *>(tiData));
+            if (rc)
+            {
+               // will let command processor routine handle the failure
+               break;
+            }
+            bytesRemaining = bytesRemaining - PBA_GRAN_SIZE;
+            bytesRead = bytesRead + PBA_GRAN_SIZE;
+        }while(bytesRemaining > 0);
+    }while(0);
+    // Create the Response to caller
+    // If there was a FIFO error, will skip sending the response,
+    // instead give the control back to the command processor thread
+    do
+    {
+        // Build the response header packet
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        //TI data is sent. Now send the TI length.
+        uint32_t len2enqueue = sizeof(bytesRead)/sizeof(uint32_t);;
+        SBE_INFO("Length of data sent through FIFO 0x%08X", bytesRead);
+        rc = sbeDownFifoEnq_mult (len2enqueue, &bytesRead);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+        rc = sbeDsSendRespHdr(hdr, &ffdc);
+       // will let command processor routine handle the failure
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
+    return 0;
 }
 
 #endif //__SBEFW_SEEPROM__

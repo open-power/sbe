@@ -1,11 +1,12 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power_dft/istep.C $                             */
+/* $Source: src/sbefw/app/power/istep.C $                                 */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -36,7 +37,7 @@
 #include "core/ipl.H"
 
 extern sbeRole g_sbeRole;
-static const uint8_t SLAVE_LAST_MINOR_ISTEP = 20;
+static const uint8_t SLAVE_LAST_MINOR_ISTEP = 22;
 
 namespace SBEAPP_POWER
 {
@@ -59,14 +60,14 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
             break;
         }
 
-//        if( SBE_ROLE_SLAVE == g_sbeRole )
-//        {
-//            if(( i_major == 3 && i_minor > SLAVE_LAST_MINOR_ISTEP ) ||
-//               ( i_major > 3 ))
-//            {
-//                break;
-//            }
-//        }
+        if( SBE_ROLE_SLAVE == g_sbeRole )
+        {
+            if(( i_major == 3 && i_minor > SLAVE_LAST_MINOR_ISTEP ) ||
+               ( i_major > 3 ))
+            {
+                break;
+            }
+        }
 
         uint32_t prevMajorNumber =
                     SbeRegAccess::theSbeRegAccess().getSbeMajorIstepNumber();
@@ -127,35 +128,32 @@ bool validateIstep (const uint8_t i_major, const uint8_t i_minor)
 }
 
 //----------------------------------------------------------------------------
-//JDG TODO: Make this take major/minor from reserved field in the PSU
-//mailbox reg 0 rather than SBE FIFO
 uint32_t sbeHandleIstep (uint8_t *i_pArg)
 {
     #define SBE_FUNC "sbeHandleIstep "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-//    uint32_t len = 0;
-	// This struct houses major and minor step numbers
+    uint32_t len = 0;
     sbeIstepReqMsg_t req;
     sbeRespGenHdr_t respHdr;
-	// Get command class, opcode from SBE_GLOBAL singleton
     respHdr.init();
     sbeResponseFfdc_t ffdc;
 
-	// JDG TODO: don't need to loop - just populate req from the reserved
-	// field in sbePsu2SbeCmdReqHdr
-
-	// split SBE_GLOBAL->sbePsu2SbeCmdReqHdr.res into two 8 bit fields
-	// req.major, req.minor
-	
-	req.major = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.res >> 8;
-	req.minor = SBE_GLOBAL->sbePsu2SbeCmdReqHdr.res & 0x0000FFFF;
-
-	SBE_INFO(SBE_FUNC" istep major:0x%08x minor:0x%08x", (uint32_t)req.major, (uint32_t)req.minor);
-
+    // NOTE: In this function we will have two loops
+    // First loop will deque data and prepare the response
+    // Second response will enque the data on DS FIFO
+    //loop 1
     do
     {
+        len = sizeof( req )/sizeof(uint32_t);
+        rc = sbeUpFifoDeq_mult ( len, (uint32_t *)&req);
+        if (rc != SBE_SEC_OPERATION_SUCCESSFUL) //FIFO access issue
+        {
+            SBE_ERROR(SBE_FUNC"FIFO dequeue failed, rc[0x%X]", rc);
+            break;
+        }
+
         if( false == validateIstep( req.major, req.minor ) )
         {
             SBE_ERROR(SBE_FUNC" Invalid Istep. major:0x%08x"
@@ -169,29 +167,43 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
         }
 
         fapiRc = sbeExecuteIstep( req.major, req.minor );
-//        bool checkstop = isSystemCheckstop();
-//       if(( fapiRc != FAPI2_RC_SUCCESS ) || (checkstop))
+        // TODO - F001A is not available till istep 2.3, which is driven by the
+        // nest clock, so we can enable this only after 2.3, For time being
+        // commenting this out.
+        //bool checkstop = isSystemCheckstop();
+        if( fapiRc != FAPI2_RC_SUCCESS )
+        //if(( fapiRc != FAPI2_RC_SUCCESS ) || (checkstop))
         {
             SBE_ERROR(SBE_FUNC" sbeExecuteIstep() Failed. major:0x%08x"
-                                      " minor:0x%08x",
-                                     (uint32_t)req.major,
-                                     (uint32_t)req.minor);
-//            if(checkstop)
-//            {
-//                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-//                                   SBE_SEC_SYSTEM_CHECKSTOP );
-//            }
-//            else
-//            {
-//                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-//                                   SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
-//                ffdc.setRc(fapiRc);
-//            }
+                " minor:0x%08x", (uint32_t)req.major, (uint32_t)req.minor);
+            //if(checkstop)
+            //{
+            //    respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+            //                       SBE_SEC_SYSTEM_CHECKSTOP );
+            //}
+            //else
+            //{
+                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                   SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
+                ffdc.setRc(fapiRc);
+            //}
 
             break;
         }
 
-    } while(0);
+    }while(0);
+
+    //loop 2
+    do
+    {
+        // FIFO error
+        if ( rc )
+        {
+            break;
+        }
+
+        rc = sbeDsSendRespHdr(respHdr, &ffdc);
+    }while(0);
 
     if( rc )
     {
