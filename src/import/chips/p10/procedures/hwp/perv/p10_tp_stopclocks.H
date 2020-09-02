@@ -41,7 +41,7 @@
 
 
 typedef fapi2::ReturnCode (*p10_tp_stopclocks_FP_t)(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&, bool, bool);
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&, bool, bool, bool);
 
 /// @brief Stop clocks for TP chiplet
 ///
@@ -50,7 +50,8 @@ typedef fapi2::ReturnCode (*p10_tp_stopclocks_FP_t)(const
 extern "C"
 {
     fapi2::ReturnCode p10_tp_stopclocks(const
-                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, const bool i_stop_tp_clks, const bool i_stop_sbe_clks);
+                                        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, const bool i_stop_tp_clks, const bool i_stop_sbe_clks,
+                                        const bool i_ignore_pib_net_dpllnest_ppll);
 }
 
 #endif

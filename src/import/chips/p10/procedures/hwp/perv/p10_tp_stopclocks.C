@@ -44,24 +44,28 @@ enum P10_TP_STOPCLOCKS_Private_Constants
     CLOCK_CMD = 0x2,
     CLOCK_TYPES = 0x7,
     REGIONS_ALL_EXCEPT_SBE = 0x5FFF,
+    REGIONS_ALL_EXCEPT_SBE_PIB_NET_DPLLNEST_PPLL = 0x4BCF,
 };
 
 static fapi2::ReturnCode p10_tp_stopclocks_regions_all_except_sbe(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, bool i_ignore_pib_net_dpllnest_ppll);
 static fapi2::ReturnCode p10_sbe_region_stopclocks(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
                                     const bool i_stop_tp_clks,
-                                    const bool i_stop_sbe_clks)
+                                    const bool i_stop_sbe_clks,
+                                    const bool i_ignore_pib_net_dpllnest_ppll)
 {
     fapi2::ReturnCode l_rc;
     bool l_tp_chiplet_accessible = 0;
 
     FAPI_INF("p10_tp_stopclocks: Entering ...");
 
+#ifndef __PPE__
     FAPI_INF("p10_tp_stopclocks: Input arguments \n\t i_stop_tp_clks  = %s \n\t i_stop_sbe_clks = %s",
              btos(i_stop_tp_clks), btos(i_stop_sbe_clks));
+#endif
 
     l_rc = p10_common_stopclock_tp_chiplet_accessible(i_target_chip, l_tp_chiplet_accessible);
 
@@ -73,7 +77,7 @@ fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
     {
         if(i_stop_tp_clks)
         {
-            l_rc = p10_tp_stopclocks_regions_all_except_sbe(i_target_chip);
+            l_rc = p10_tp_stopclocks_regions_all_except_sbe(i_target_chip, i_ignore_pib_net_dpllnest_ppll);
 
             FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
                                fapi2::TP_STOPCLOCKS_ERR(),
@@ -103,7 +107,7 @@ fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 static fapi2::ReturnCode p10_tp_stopclocks_regions_all_except_sbe(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, bool i_ignore_pib_net_dpllnest_ppll)
 {
     fapi2::buffer<uint64_t> l_clock_regions;
 
@@ -112,11 +116,21 @@ static fapi2::ReturnCode p10_tp_stopclocks_regions_all_except_sbe(const
 
     FAPI_INF("p10_tp_stopclocks_regions_all_except_sbe: Entering ...");
 
-    FAPI_DBG("Switch mux to PIB2PCB path");
-    FAPI_TRY(p10_perv_sbe_cmn_switch_mux_scom(i_target_chip, PIB2PCB));
+    if (i_ignore_pib_net_dpllnest_ppll)
+    {
+        // Reqiured for DFT ABIST testing
+        FAPI_DBG("p10_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_SBE_PIB_NET_DPLLNEST_PPLL");
+        l_clock_regions = REGIONS_ALL_EXCEPT_SBE_PIB_NET_DPLLNEST_PPLL;
+    }
+    else
+    {
+        FAPI_DBG("p10_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_SBE");
+        l_clock_regions = REGIONS_ALL_EXCEPT_SBE;
 
-    FAPI_DBG("p10_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_SBE");
-    l_clock_regions = REGIONS_ALL_EXCEPT_SBE;
+        FAPI_DBG("Switch mux to PIB2PCB path");
+        FAPI_TRY(p10_perv_sbe_cmn_switch_mux_scom(i_target_chip, PIB2PCB));
+    }
+
     FAPI_DBG("p10_tp_stopclocks: Regions value: %#018lX", l_clock_regions);
     FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, CLOCK_CMD, 0, 0, l_clock_regions, CLOCK_TYPES));
 

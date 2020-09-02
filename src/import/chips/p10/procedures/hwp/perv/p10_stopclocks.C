@@ -59,6 +59,7 @@
 //              i_flags.stop_pau_clks         True if PAU chiplet clocks should be stopped, else false
 //              i_flags.stop_axon_clks        True if AXON chiplet clocks should be stopped, else false
 //              i_flags.stop_tp_clks          True if PERV (TP) chiplet clocks all except SBE should be stopped, else false
+//              i_flags.ignore_pib_net_dpllnest_ppll    True if PERV (TP) chiplet clocks excluding SBE, PIB, NET, DPLLNEST, and pervPLL should be stopped, else false
 //              i_flags.stop_sbe_clks         True if PERV (TP) chiplet SBE clocks should be stopped, else false
 //              i_flags.stop_vitl_clks        True if PERV VITL clocks should be stopped, else false
 //              i_flags.stop_cache_clks       True if CACHE chiplet clocks should be stopped, else false
@@ -98,10 +99,12 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
     auto core_mc_target = i_target_chip.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
     //auto l_target_core = i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL);
 
+#ifndef __PPE__
     FAPI_DBG("p10_stopclocks : Input arguments received are \n\t"
              "i_stop_nest = %d\n\ti_stop_pcie = %d\n\ti_stop_mc = %d\n\t"
              "i_stop_pau = %d\n\ti_stop_axon = %d\n", i_flags.stop_nest_clks, i_flags.stop_pcie_clks,
              i_flags.stop_mc_clks, i_flags.stop_pau_clks, i_flags.stop_axon_clks);
+#endif
     FAPI_DBG("\n\ti_stop_tp = %d\n\ti_stop_sbe = %d\n\ti_stop_vitl =  %d\n",
              i_flags.stop_tp_clks, i_flags.stop_sbe_clks, i_flags.stop_vitl_clks);
     FAPI_DBG("p10_stopclocks : Input QUAD arguments received are \n\t"
@@ -273,7 +276,7 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
     {
         // p10_tp_stopclocks will log errors if any during stopclocks sequence into FFDC
         FAPI_INF("p10_stopclocks : Call p10_tp_stopclocks function");
-        p10_tp_stopclocks(i_target_chip, i_flags.stop_tp_clks, i_flags.stop_sbe_clks);
+        p10_tp_stopclocks(i_target_chip, i_flags.stop_tp_clks, i_flags.stop_sbe_clks, i_flags.ignore_pib_net_dpllnest_ppll);
     }
 
     // Vital stopclocks

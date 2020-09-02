@@ -49,6 +49,8 @@ struct p10_stopclocks_flags
     uint32_t stop_pau_clks        : 1; //True if PAU chiplet clocks should be stopped, else false
     uint32_t stop_axon_clks       : 1; //True if AXON chiplet clocks should be stopped, else false
     uint32_t stop_tp_clks         : 1; //True if PERV (TP) chiplet clocks all except SBE should be stopped, else false
+uint32_t ignore_pib_net_dpllnest_ppll  :
+    1; //True if PERV (TP) chiplet clocks excluding SBE, PIB, NET, DPLLNEST and pervPLL should be stopped, else false
     uint32_t stop_sbe_clks        : 1; //True if PERV (TP) chiplet SBE clocks should be stopped, else false
     uint32_t stop_vitl_clks       : 1; //True if PERV VITL clocks should be stopped, else false
     uint32_t stop_cache_clks      : 1; //True if CACHE chiplet clocks should be stopped, else false
@@ -64,6 +66,7 @@ struct p10_stopclocks_flags
         stop_pau_clks = true;
         stop_axon_clks = true;
         stop_tp_clks = false;
+        ignore_pib_net_dpllnest_ppll = false;
         stop_sbe_clks = false;
         stop_vitl_clks = false;
         stop_cache_clks = true;
@@ -79,6 +82,7 @@ struct p10_stopclocks_flags
         stop_pau_clks = false;
         stop_axon_clks = false;
         stop_tp_clks = false;
+        ignore_pib_net_dpllnest_ppll = false;
         stop_sbe_clks = false;
         stop_vitl_clks = false;
         stop_cache_clks = false;
@@ -103,6 +107,7 @@ extern "C"
     *            i_flags.stop_pau_clks         True if PAU chiplet clocks should be stopped, else false
     *            i_flags.stop_axon_clks        True if AXON chiplet clocks should be stopped, else false
     *            i_flags.stop_tp_clks          True if PERV (TP) chiplet clocks all except SBE should be stopped, else false
+    *            i_flags.ignore_pib_net_dpllnest_ppll    True if PERV (TP) chiplet clocks excluding SBE, PIB, NET, DPLLNEST and pervPLL should be stopped, else false
     *            i_flags.stop_sbe_clks         True if PERV (TP) chiplet SBE clocks should be stopped, else false
     *            i_flags.stop_vitl_clks        True if PERV VITL clocks should be stopped, else false
     *            i_flags.stop_cache_clks       True if CACHE chiplet clocks should be stopped, else false
