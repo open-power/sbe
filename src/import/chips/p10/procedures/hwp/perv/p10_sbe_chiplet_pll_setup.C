@@ -186,7 +186,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
         for (auto& targ : l_iohs_pci_mc)
         {
             FAPI_TRY(fapi2::getScom(targ, SLAVE_CONFIG_REG, l_data64));
-            l_data64.clearBit<12>();
+            l_data64.clearBit<12, 2>();
             FAPI_TRY(fapi2::putScom(targ, SLAVE_CONFIG_REG, l_data64));
         }
 
