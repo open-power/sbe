@@ -38,9 +38,7 @@ import operator
 err = False
 
 ECC_TOOL_PATH = "/opt/mcp/shared/fr_FLD9-DEV-20200624/opt/fsp/usr/bin/"
-SBE_TOOLS_PATH = os.getcwd()
-if 'SBE_TOOLS_PATH' in os.environ:
-    SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
+SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
 
 if 'BLD' in os.environ:
     BLD = os.environ['BLD'];

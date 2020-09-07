@@ -39,6 +39,8 @@ NUM_CORES = simenv.num_cores_per_chip
 
 SBE_TOOLS_PATH = simenv.sbe_scripts_path
 print("SBE_TOOLS_PATH = " +  SBE_TOOLS_PATH)
+# "Export SBE_TOOL_PATH" as OS environment variable. 
+os.environ['SBE_TOOLS_PATH'] = SBE_TOOLS_PATH
 
 testIstepAuto = imp.load_source("testIstepAuto", SBE_TOOLS_PATH + "/testIstepAuto.py")
 sbeDebug = imp.load_source("sbeDebug", SBE_TOOLS_PATH + "/sbe-debug.py")

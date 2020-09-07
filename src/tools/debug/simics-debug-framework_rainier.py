@@ -34,6 +34,8 @@ import struct
 
 SBE_TOOLS_PATH = simenv.sbe_scripts_path
 print("SBE_TOOLS_PATH = " +  SBE_TOOLS_PATH)
+# "Export SBE_TOOL_PATH" as OS environment variable.
+os.environ['SBE_TOOLS_PATH'] = SBE_TOOLS_PATH
 
 SBE_SEEPROM_IMG = simenv.sbe_seeprom_img
 print("SBE_SEEPROM_IMG = " +  SBE_SEEPROM_IMG)
