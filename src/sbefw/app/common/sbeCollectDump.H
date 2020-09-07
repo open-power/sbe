@@ -26,11 +26,14 @@
 #ifndef __SBEFW_SBECOLLECTDUMP_H
 #define __SBEFW_SBECOLLECTDUMP_H
 
-#include<stdint.h>
+#include <stdint.h>
 #include "sbefifo.H"
 #include "sbecmddump.H"
 #include "p10_ddco.H"
 #include "sbeDumpConstants.H"
+#include "sbeFifoMsgUtils.H"
+#include "plat_hw_access.H"
+#include "plat_hwp_data_stream.H"
 
 //Dump chip-op Footer - COMPLETE
 #define DUMP_CHIP_OP_FOOTER 0x434f4d504c455445UL
@@ -145,11 +148,13 @@ typedef struct
 
     uint32_t iv_ffdcLen;
     uint64_t iv_cpuCycles;
+    uint8_t  iv_specialCase;
+    fapi2::plat_target_handle_t iv_tgtHndl;
 
     void tocHeaderInit(genericHdctRow_t* genericHdctRow)
     {
         //TODO:Need to be filled with right value
-        tocHeader.preReq = false;
+        tocHeader.preReq = true;
         tocHeader.cmdType = (uint8_t) genericHdctRow->genericHdr.command;
         tocHeader.chipUnitType = (uint8_t) genericHdctRow->genericHdr.chipUnitType;
 
@@ -178,9 +183,9 @@ typedef struct
 class sbeCollectDump
 {
     private:
-
-        sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
+        fapi2::sbefifo_hwp_data_ostream iv_oStream; // ostream to push FIFO data
         uint8_t iv_clockState;    //Dump collection clock state(ON or OFF)
+        sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
         uint16_t iv_hdctDumpTypeMap; //Equivalent HDCT dump type wrt requested dump type.
 
         genericHdctRow_t *iv_hdctRow;
@@ -195,19 +200,35 @@ class sbeCollectDump
          * @brief Constructor for the class sbeCollectDump
          *
          * @param [in] dumpID      The id of the dumpType.
-         * @param [in] type        sbe fifo type.
          * @param [in] clockState  Dump collection clock state.(ON or OFF)
+         * @param [in] type        sbe fifo type.
          */
-        sbeCollectDump(uint8_t i_dumpID, sbeFifoType i_type, uint8_t i_clockState);
+         sbeCollectDump( uint8_t i_dumpID, uint8_t i_clockState,
+                         sbeFifoType i_type ):iv_oStream(i_type, false),
+                         iv_clockState(i_clockState), iv_fifoType(i_type)
+         {
+             //Parse the HDCT Xip section header
+             iv_hdctSectionHdr = (hdctSectionHdr_t*)iv_hdctXipSecDetails.startAddr;
+
+             //Get the equivalent HDCT dump type based on the requested Dump type
+             iv_hdctDumpTypeMap = getEquivDumpType(i_dumpID);
+             SBE_DEBUG("Dump Type Map is %x ", iv_hdctDumpTypeMap);
+
+             //Populate dump header struct
+             iv_dumpHeader.hdctVer = iv_hdctSectionHdr->ekbCommitId;
+             SBE_INFO("EKB Commit ID: 0x%.8x%.8x ",
+                       SBE::higher32BWord(iv_dumpHeader.hdctVer),
+                       SBE::lower32BWord(iv_dumpHeader.hdctVer));
+         }
 
         /**
          * @brief Collect the data for all the entries present in HDCT.
-         *        It will be called from sbeGetDump() func.
+         *        It will be called from sbeGetDump() func. 
          *
          * @return SUCCESS, Incase of no error.
-         *         error,   Incase of failure.
+         *         error,   Incase of failure. 
          */
-        uint32_t collectAllHDCTEntries();
+         uint32_t collectAllHDCTEntries();
 
     private:
 
@@ -237,6 +258,14 @@ class sbeCollectDump
          *         ERROR,    Incase of failure.
          */
         uint32_t populateHDCTRowTOC();
+
+       /**
+        * @brief Write dump data to the FIFO
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *         ERROR,    Incase of failure.
+        */
+        uint32_t writeDumpPacketRowToFifo();
 
         /**
          * @brief Call the chip-opbased on HDCT row to gather the chip-op data.

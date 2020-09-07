@@ -39,6 +39,7 @@
 #include "chipop_handler.H"
 #include "sbeCollectDump.H"
 #include "sbecmddump.H"
+#include "plat_hwp_data_stream.H"
 
 uint32_t sbeGetDump( uint8_t *i_pArg )
 {
@@ -56,15 +57,14 @@ uint32_t sbeGetDump( uint8_t *i_pArg )
         chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
         fifoType = static_cast<sbeFifoType>(configStr->fifoType);
         SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",fifoType);
+        sbefifo_hwp_data_istream istream(fifoType);
 
         // Will attempt to dequeue an entry for the dump Type plus
         // the expected EOT entry at the end.
         uint32_t len2dequeue  = sizeof(msg)/sizeof(uint32_t);
-        rc = sbeUpFifoDeq_mult (len2dequeue, (uint32_t *)&msg, true, false, fifoType);
-
+        rc = istream.get(len2dequeue, (uint32_t *)&msg, true, false);
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-
         if(!msg.validateDumpType())
         {
             SBE_ERROR(SBE_FUNC " Unsupported/Invalid dump type %x",(uint8_t)msg.dumpType);
@@ -82,7 +82,9 @@ uint32_t sbeGetDump( uint8_t *i_pArg )
         }
 
         //Create the sbeCollectDump object.
-        sbeCollectDump dumpObj(msg.dumpType, fifoType, msg.clockState);
+        sbeCollectDump dumpObj( (uint8_t)msg.dumpType,
+                                (uint8_t)msg.clockState,
+                                fifoType );
 
         //Call collectAllEntries.
         rc = dumpObj.collectAllHDCTEntries();
@@ -92,8 +94,9 @@ uint32_t sbeGetDump( uint8_t *i_pArg )
             SBE_ERROR(SBE_FUNC" Dump collection failed for dumpType 0x%08X",
                     (uint8_t)msg.dumpType);
             respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                          SBE_SEC_GET_DUMP_FAILED);
+                              SBE_SEC_GET_DUMP_FAILED);
             ffdc.setRc(rc);
+            break;
         }
     } while(false);
     do

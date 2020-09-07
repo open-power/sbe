@@ -25,53 +25,55 @@
 
 #include "sbeCollectDump.H"
 #include "fapi2.H"
+#include <hwp_data_stream.H>
+#include <plat_hwp_data_stream.H>
 
 using namespace fapi2;
-
-//Constuctor for sbeCollectDump class.
-sbeCollectDump::sbeCollectDump(uint8_t i_dumpID, sbeFifoType i_type, uint8_t i_clockState)
-{
-    #define SBE_FUNC " sbeCollectDump "
-
-    iv_fifoType = i_type;
-    iv_clockState = i_clockState;
-
-    //Parse the HDCT Xip section header
-    iv_hdctSectionHdr = (hdctSectionHdr_t*)iv_hdctXipSecDetails.startAddr;
-
-    //Get the equivalent HDCT dump type based on the requested Dump type
-    iv_hdctDumpTypeMap = getEquivDumpType(i_dumpID);
-    SBE_DEBUG("Dump Type Map is %x ", iv_hdctDumpTypeMap);
-
-    //Populate dump header struct
-    iv_dumpHeader.hdctVer = iv_hdctSectionHdr->ekbCommitId;
-    SBE_INFO("EKB Commit ID: 0x%.8x%.8x ", SBE::higher32BWord(iv_dumpHeader.hdctVer),
-            SBE::lower32BWord(iv_dumpHeader.hdctVer));
-
-    #undef SBE_FUNC
-}
 
 inline bool sbeCollectDump::dumpTypeCheck()
 {
     return (iv_hdctRow->genericHdr.dumpContent & iv_hdctDumpTypeMap);
 }
 
-//collectAllHDCTEntries()
+uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
+{
+    #define SBE_FUNC "writeDumpPacketRowToFifo"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
 uint32_t sbeCollectDump::collectAllHDCTEntries()
 {
     #define SBE_FUNC " collectAllHDCTEntries "
     SBE_ENTER(SBE_FUNC);
-
-    while(sbeCollectDump::parserSingleHDCTEntry())
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    do
     {
-        SBE_DEBUG("Collecting Data");
-
-        //TODO call chipop wrapper functions in here
-        //TODO call streamer function etc
+        // Write the dump header to FIFO
+        uint32_t len = sizeof(dumpHeader_t)/ sizeof(uint32_t);
+        rc = iv_oStream.put(len, (uint32_t*)&iv_dumpHeader);
+        // If FIFO access failure
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+        while(sbeCollectDump::parserSingleHDCTEntry())
+        {
+            SBE_INFO("Collecting Data");
+            rc = writeDumpPacketRowToFifo();
+            if(rc)
+            {
+                SBE_ERROR(SBE_FUNC" Dump collection failed");
+                rc = SBE_PRI_GENERIC_EXECUTION_FAILURE;
+                break;
+            }
+        }
     }
+    while(0);
 
     SBE_EXIT(SBE_FUNC);
-    return 0;
+    return rc;
     #undef SBE_FUNC
 }
 
