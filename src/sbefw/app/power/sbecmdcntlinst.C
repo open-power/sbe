@@ -42,6 +42,7 @@
 #include "fapi2.H"
 #include "p10_thread_control.H"
 #include "p10_scom_c.H"
+#include "p10_scom_eq_3.H"
 #include "p10_query_corecachemma_access_state.H"
 using namespace fapi2;
 
@@ -219,6 +220,30 @@ bool isL3CacheScomEnabled(const Target<TARGET_TYPE_CORE>& i_coreTgt,scomStatus_t
     }
 }
 
+bool isCoreCheckStopped(const Target<TARGET_TYPE_CORE>& i_coreTgt,fapi2::buffer<uint64_t>& i_data)
+{
+    switch(i_coreTgt.get().getTargetInstance() % 4)
+    {
+        case 0: //CORE INSTANCE 0
+             return(i_data.getBit<scomt::eq::LOCAL_XSTOP_IN05>());
+             break;
+
+        case 1: //CORE INSTANCE 1
+             return(i_data.getBit<scomt::eq::LOCAL_XSTOP_IN06>());
+             break;
+
+        case 2: //CORE INSTANCE 2
+             return(i_data.getBit<scomt::eq::LOCAL_XSTOP_IN07>());
+             break;
+
+        case 3: //CORE INSTANCE 3
+             return(i_data.getBit<scomt::eq::LOCAL_XSTOP_IN08>());
+             break;
+        default : return false;
+
+    }
+
+}
 
 ///////////////////////////////////////////////////////////////////////
 // @brief stopAllCoreInstructions  Stop all core instructions function
@@ -231,61 +256,75 @@ ReturnCode stopAllCoreInstructions( )
     SBE_ENTER(SBE_FUNC);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
-    //Fetch all EQ Targets
-    for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
-    {
-        //Mask Core Special Attentions for all cores related to the EQ
-        fapiRc = maskSpecialAttn(eqTgt);
-        if(fapiRc != FAPI2_RC_SUCCESS)
+
+    do{
+        //Check for core local checkstop and update the core functional
+        //states
+        fapiRc = checkCoreCheckStopAndUpdateFuncState();
+        if(fapiRc != FAPI2_RC_SUCCESS )
         {
-            SBE_ERROR(SBE_FUNC "Failure in maskSpecialAttn()");
+            SBE_ERROR("Failed in checkCoreCheckStopAndUpdateFuncState() ,RC=0x%.8x",
+                    fapiRc);
             break;
         }
-
-        //Default Set the bits represeting the core SCOM state as TRUE
-        //based on the bits defined in scomStatus_t
-        scomStatus_t scomStateData;
-        scanStatus_t scanStateData;
-        SBE_EXEC_HWP(fapiRc,p10_query_corecachemma_access_state, eqTgt,
-                     scomStateData,scanStateData);
-        if(fapiRc != FAPI2_RC_SUCCESS)
+        //Fetch all EQ Targets
+        for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
         {
-            SBE_ERROR(SBE_FUNC " p10_query_corecachemma_access_state failed, "
-                    " RC=[0x%08X],EqTarget=0x%.8x", fapiRc,eqTgt.get());
-            break;
-        }
-
-        //For all Core targets associated with the EQ target,call procedure to
-        //stop the instructions if scomStateData for the particular core is TRUE
-        for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
-        {
-            //On Simics force Stop Instruction all on Cores irrespective of SCOMABLE states
-            //Until all Simics fixes are released
-            if( isCoreOrL2CacheScomEnabled(coreTgt,scomStateData) || SBE::isSimicsRunning() )
+            //Mask Core Special Attentions for all cores related to the EQ
+            fapiRc = maskSpecialAttn(eqTgt);
+            if(fapiRc != FAPI2_RC_SUCCESS)
             {
-                fapi2::buffer<uint64_t> data64;
-                uint64_t state;
-                bool warnCheck = true;
+                SBE_ERROR(SBE_FUNC "Failure in maskSpecialAttn()");
+                break;
+            }
 
-                // Call instruction control stop
-                SBE_EXEC_HWP(fapiRc, threadCntlhwp, coreTgt,
-                        static_cast<ThreadSpecifier>(SMT4_THREAD_ALL),
-                        PTC_CMD_STOP, warnCheck, data64, state);
-                if(fapiRc != FAPI2_RC_SUCCESS)
+            //Default Set the bits represeting the core SCOM state as TRUE
+            //based on the bits defined in scomStatus_t
+            scomStatus_t scomStateData;
+            scanStatus_t scanStateData;
+            SBE_EXEC_HWP(fapiRc,p10_query_corecachemma_access_state, eqTgt,
+                    scomStateData,scanStateData);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC " p10_query_corecachemma_access_state failed, "
+                        " RC=[0x%08X],EqTarget=0x%.8x", fapiRc,eqTgt.get());
+                break;
+            }
+
+            //For all Core targets associated with the EQ target,call procedure to
+            //stop the instructions if scomStateData for the particular core is TRUE
+            for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+            {
+
+                //Stop Instructions on the core only if Core Scomable state is TRUE
+                if( isCoreOrL2CacheScomEnabled(coreTgt,scomStateData) )
                 {
-                    SBE_ERROR(SBE_FUNC "p10_thread_control stop Failed for "
-                            "Core ALL Thread  RC[0x%08X],CoreTarget=0x%.8x",
-                            fapiRc,coreTgt.get());
-                    break;
+                    fapi2::buffer<uint64_t> data64;
+                    uint64_t state;
+                    bool warnCheck = true;
+
+                    // Call instruction control stop
+                    SBE_EXEC_HWP(fapiRc, threadCntlhwp, coreTgt,
+                            static_cast<ThreadSpecifier>(SMT4_THREAD_ALL),
+                            PTC_CMD_STOP, warnCheck, data64, state);
+                    if(fapiRc != FAPI2_RC_SUCCESS)
+                    {
+                        SBE_ERROR(SBE_FUNC "p10_thread_control stop Failed for "
+                                "Core ALL Thread  RC[0x%08X],CoreTarget=0x%.8x",
+                                fapiRc,coreTgt.get());
+                        break;
+                    }
+
                 }
 
+            }//Core Target Loop
+            if(fapiRc)
+            {
+                break;
             }
-        }//Core Target Loop
-        if(fapiRc)
-        {
-            break;
-        }
-    }//EQ Loop
+        }//EQ Loop
+
+    }while(0);
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
 #undef SBE_FUNC
@@ -497,4 +536,58 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
+}
+
+///////////////////////////////////////////////////////////////////////
+//
+// @brief Check for local checkstop pressence with respect to the
+//        Core and mark it non functional
+///////////////////////////////////////////////////////////////////////
+fapi2::ReturnCode checkCoreCheckStopAndUpdateFuncState()
+{
+#define SBE_FUNC "checkCoreCheckStopAndUpdateFuncState"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    uint8_t coreId = 0;
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+    //Fetch all EQ Targets
+    uint8_t fuseMode = 0;
+    FAPI_ATTR_GET(ATTR_FUSED_CORE_MODE,Target<TARGET_TYPE_SYSTEM>(),fuseMode);
+
+    for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
+    {
+        //Check for Core Checkstop
+        fapi2::buffer<uint64_t> data64 =0x0;
+        fapiRc = getscom_abs_wrap (&eqTgt,scomt::eq::LOCAL_XSTOP , &data64());
+        for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+        {
+            //getChildren() returns functional core targets, but the logic below
+            //can mark the paired fused core as non-functional. This check is to 
+            //skip acting upon those cores which were marked non-functional due
+            //to the pressence of local checkstop on their parter core Targets.
+            bool coreFuncState = static_cast<plat_target_handle_t&>(
+                                 coreTgt.operator ()()).getFunctional();
+            //Check for core checkstop pressence only if the core is functional
+            if( coreFuncState && isCoreCheckStopped(coreTgt,data64))
+            {
+              FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,coreTgt, coreId);
+              G_vec_targets[CORE_TARGET_OFFSET+ coreId].setFunctional(false);
+              SBE_INFO("Core:0x%.8x marked non-functional due to local checkstop pressence",
+                        (fapi2::plat_target_handle_t)(coreTgt.get()));
+              //If in fused mode, update the pair code as non-functional
+              if(fuseMode)
+              {
+                  fapi2::ATTR_CHIP_UNIT_POS_Type pairCoreId = 
+                                                 (coreId % 2) ? (coreId - 1) : (coreId + 1);
+                  G_vec_targets[CORE_TARGET_OFFSET+ pairCoreId].setFunctional(false);
+                  SBE_INFO("Paired Core:0x%.8x marked non-functional due to local checkstop"
+                  " pressence",static_cast<uint32_t>(
+                                       G_vec_targets[CORE_TARGET_OFFSET+ pairCoreId].value));
+              }
+            }
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+#undef SBE_FUNC
 }

@@ -72,4 +72,11 @@ bool isCoreOrL2CacheScomEnabled(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_
 bool isL3CacheScomEnabled(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_coreTgt ,scomStatus_t& i_scomStateData);
 
 
+/**
+ * @brief Check for local checkstop pressence with respect to the
+ *        Core and mark it non functional
+ */
+fapi2::ReturnCode checkCoreCheckStopAndUpdateFuncState();
+
+
 #endif /* __SBEFW_SBECMDCNTLINST_H */
