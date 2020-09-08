@@ -43,8 +43,10 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                      const fapi2::RingMode i_ringMode)
 {
     FAPI_INF( ">> lookUpRingSection" );
-    p9_xip_section_sbe_t l_sectionName = (i_ringMode & fapi2::RING_MODE_FASTARRAY) ?
-        P9_XIP_SECTION_SBE_FA_RING_OVRD : P9_XIP_SECTION_SBE_RINGS;
+#ifndef DFT
+    // For non-DFT, find offset to TOR in the XIP header
+    p9_xip_section_sbe_t l_sectionName = (i_ringMode & fapi2::RING_MODE_FASTARRAY) ? P9_XIP_SECTION_SBE_FA_RING_OVRD :
+                                         P9_XIP_SECTION_SBE_RINGS;
 
     P9XipHeader* l_imgHdr       =   (P9XipHeader*)( i_pImgPtr );
     P9XipSection* l_pSection    =   &l_imgHdr->iv_section[l_sectionName];
@@ -84,6 +86,35 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                   i_ringId,
                                   false,
                                   i_ringMode) );
+#else
+    // For DFT, find offset to TOR using attributes
+    fapi2::ATTR_RING_IMG_CNFG_Type l_ring_img_cnfg = 0;
+    fapi2::ATTR_HW_IMG_PTR_Type l_img_addr = 0;
+    uint8_t* l_img_ptr = 0;
+
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
+        i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RING_IMG_CNFG, l_procTgt, l_ring_img_cnfg));
+
+    if (l_ring_img_cnfg == 0)
+    {
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HW_IMG_PTR, l_procTgt, l_img_addr));
+        FAPI_DBG("DFT putRing reading appended BASE RS4 image beginning at 0x%.8x", l_img_ptr);
+    }
+    else
+    {
+        FAPI_ERR("Unknown image pointer %.2x in ATTR_RING_IMG_CNFG", l_ring_img_cnfg);
+    }
+
+    l_img_ptr = (uint8_t*) l_img_addr;
+
+    FAPI_TRY( getRS4ImageFromTor( i_target,
+                                  l_img_ptr,
+                                  i_ringId,
+                                  false,
+                                  i_ringMode) );
+#endif
 
     FAPI_INF( "<< lookUpRingSection" );
 fapi_try_exit:
