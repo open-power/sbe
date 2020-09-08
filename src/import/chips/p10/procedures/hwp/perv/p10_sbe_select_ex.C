@@ -548,8 +548,10 @@ fapi2::ReturnCode select_ex_config(
 {
     using namespace scomt::eq;
 
+#ifndef __PPE__
     FAPI_DBG("> select_ex_config for core/L3 %d Set to Partial %s",
              i_core_num, i_set_good ? "Good" : "Bad");
+#endif
 
     fapi2::buffer<uint64_t> l_data64;
 

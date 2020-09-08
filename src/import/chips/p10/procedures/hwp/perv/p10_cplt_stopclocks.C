@@ -63,8 +63,10 @@ fapi2::ReturnCode p10_cplt_stopclocks(const
 
     FAPI_INF("Entering ...");
 
+#ifndef __PPE__
     FAPI_INF("p10_cplt_stopclocks: Input arguments \n\t i_stop_nest  = %s \n\t i_stop_pci = %s \n\t i_stop_mc  = %s \n\t i_stop_pau = %s \n\t i_stop_axon = %s",
              btos(i_stop_nest), btos(i_stop_pci), btos(i_stop_mc), btos(i_stop_pau),  btos(i_stop_axon));
+#endif
 
 
     if (i_stop_pci)

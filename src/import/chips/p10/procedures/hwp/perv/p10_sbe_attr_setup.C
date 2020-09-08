@@ -247,7 +247,9 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
         {
             fapi2::ATTR_PG_Type l_pg;
 
+#ifndef __PPE__
             FAPI_DBG("N1, NMMU1 region %s required", (l_nmmu1_needed) ? ("") : ("NOT"));
+#endif
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
             FAPI_DBG("  PG before: 0x%08X", l_pg);
 
