@@ -94,6 +94,28 @@ const pll_ring_settings perv_plls =
     false,
 };
 
+const pll_ring_settings rcs_pll0 =
+{
+    CALIBRATED_BANDSEL_M1,
+    0x0002000000000080ULL,
+    1,
+    { 1059, 203 },                       ///< PLLCLKSW1
+    { 1211,  51 },
+    {    0,   1 },
+    false,
+};
+
+const pll_ring_settings rcs_pll1 =
+{
+    CALIBRATED_BANDSEL_M1,
+    0x0002000000000080ULL,
+    1,
+    {  867, 395 },                       ///< PLLCLKSW2
+    { 1019, 243 },
+    {    1,   2 },
+    false,
+};
+
 const pll_ring_settings pci_plls =
 {
     CALIBRATED_BANDSEL_M1,

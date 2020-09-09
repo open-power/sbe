@@ -32,7 +32,7 @@ namespace hw540133
 
 // Opaque workaround settings for different rings
 struct pll_ring_settings;
-extern const pll_ring_settings perv_plls, pci_plls, iohs_plls, mc_plls;
+extern const pll_ring_settings perv_plls, rcs_pll0, rcs_pll1, pci_plls, iohs_plls, mc_plls;
 
 /// @brief Apply workaround sequence for HW540133
 ///
