@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -32,14 +32,19 @@
 // Includes
 //------------------------------------------------------------------------------
 #include <fapi2.H>
+enum RESTORE_ENTRY_TYPE
+{
+    CACHE_RESTORE_ENTRY = 0x01,
+    CORE_RESTORE_ENTRY  = 0x02,
 
+};
 //------------------------------------------------------------------------------
 // Structure definitions
 //------------------------------------------------------------------------------
 
 /// function pointer typedef definition for HWP call support
-typedef fapi2::ReturnCode (*p10_hcd_cache_scom_customize_FP_t) (const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-        fapi2::TARGET_TYPE_MULTICAST > &);
+typedef fapi2::ReturnCode (*p10_hcd_cache_scom_customize_FP_t) ( const fapi2::Target < fapi2::TARGET_TYPE_CORE |
+        fapi2::TARGET_TYPE_MULTICAST > & , RESTORE_ENTRY_TYPE i_entryType );
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -55,7 +60,7 @@ extern "C"
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
 ///
     fapi2::ReturnCode p10_hcd_cache_scom_customize(const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-            fapi2::TARGET_TYPE_MULTICAST > & i_target);
+            fapi2::TARGET_TYPE_MULTICAST > & i_target, RESTORE_ENTRY_TYPE i_entryType );
 
 } // extern "C"
 
