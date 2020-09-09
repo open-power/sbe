@@ -55,13 +55,19 @@ namespace fapi2
         /**
          * @brief Construct a FIFO data stream
          *
-         * @param[in] i_expected_words Expected number of words (hwp_data_units)
-         *                             that will be available in the FIFO.
-         * @param[in] i_type Which FIFO to use
+         * @param[in] expected_words Expected number of words (hwp_data_units)
+         *                           that will be available in the FIFO.
+         * @param[in] data           ponter to hold istream data [Only DUMP usage]
+         * @param[in] fifoType       Which FIFO to use
+         * @param[in] doFifoAccess   Do FIFO data stream to get data
          */
-        sbefifo_hwp_data_istream(uint32_t i_expected_words,
-                                 sbeFifoType i_type = SBE_FIFO) :
-            iv_words_left(i_expected_words), iv_type(i_type) {};
+        sbefifo_hwp_data_istream( sbeFifoType fifoType = SBE_FIFO,
+                                  uint32_t words_left = 0,
+                                  uint32_t *data = NULL,
+                                  bool doFifoAccess = true ):
+                                  iv_fifoType(fifoType),
+                                  iv_words_left(words_left), iv_data(data),
+                                  iv_doFifoAccess(doFifoAccess) {};
 
         /**
          *	@brief Reads 4 bytes of data from the FIFO to the caller.
@@ -75,9 +81,37 @@ namespace fapi2
          */
         ReturnCodes get(hwp_data_unit& o_data);
 
+        /**
+         * @brief Reads bytes of buffer data from the caller to the FIFO.
+         *
+         * @param[in] length     The amount of data buffer units the buffer
+         * @param[in] buffer     The buffer data to read from FIFO/dump data.
+         * @param[in] isEot      fifo eot expected then true or else false 
+         * @param[in] flush      fifo flush then true or else false
+         *
+         * @return
+         *    FAPI2_RC_SUCCESS if data is available
+         *    any other RC     if an error occurred and the data could not be
+         *                     read.
+         */
+        uint32_t get( uint32_t length, uint32_t* buffer,
+                      bool isEot = true, bool flush = false );
+
+        /**
+         * @brief Return FIFO type as per the stream init
+         *
+         * @return return Fifo Type
+         */
+        sbeFifoType getFifoType()
+        {
+            return iv_fifoType;
+        }
+
     private:
+        const sbeFifoType iv_fifoType;
         uint32_t iv_words_left;
-        const sbeFifoType iv_type;
+        uint32_t* iv_data;
+        bool iv_doFifoAccess;
     };
 
     /**
@@ -92,10 +126,15 @@ namespace fapi2
         /**
          * @brief Construct a FIFO data stream
          *
-         * @param[in] i_type Which FIFO to use
+         * @param[in] fifoType       Which FIFO to use
+         * @param[in] doRespHeader   Do FIFO header response
+         *
          */
-        sbefifo_hwp_data_ostream(sbeFifoType i_type = SBE_FIFO) :
-            iv_words_written(0), iv_type(i_type) {};
+        sbefifo_hwp_data_ostream( sbeFifoType type = SBE_FIFO,
+                                  bool doRespHeader = true ):
+                                  iv_words_written(0),
+                                  iv_doResponseHeader(doRespHeader),
+                                  iv_fifoType(type){};
 
         /**
          *	@brief Writes 4 bytes of data from the caller to the FIFO.
@@ -109,6 +148,19 @@ namespace fapi2
         ReturnCodes put(hwp_data_unit i_data);
 
         /**
+         * @brief Writes bytes of buffer data from the caller to the FIFO.
+         *
+         * @param[in] i_length The amount of data buffer units the buffer can hold
+         * @param[in] i_buffer The buffer data to write to FIFO.
+         *
+         * @return
+         *    FAPI2_RC_SUCCESS if data is available
+         *    any other RC     if an error occurred and the data could not be
+         *                     written.
+         */
+        uint32_t put(uint32_t i_length, uint32_t* i_buffer);
+
+        /**
          * @brief Return the amount of words written to the stream so far.
          *
          * @return Amount of data written in words (hwp_data_unit)
@@ -118,9 +170,29 @@ namespace fapi2
             return iv_words_written;
         }
 
+        /**
+         * @brief Return FIFO Response Header is required to the stream or not
+         *
+         * @return return Response Header
+         */
+        bool doStreamRespHeader()
+        {
+            return iv_doResponseHeader;
+        }
+
+        /**
+         * @brief Return FIFO type as per the stream init
+         *
+         * @return return Fifo Type
+         */
+        sbeFifoType getFifoType()
+        {
+            return iv_fifoType;
+        }
     private:
         uint32_t iv_words_written;
-        const sbeFifoType iv_type;
+        bool iv_doResponseHeader;
+        const sbeFifoType iv_fifoType;
     };
 
     /**

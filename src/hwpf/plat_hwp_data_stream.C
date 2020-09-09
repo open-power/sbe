@@ -29,23 +29,62 @@ using namespace fapi2;
 
 ReturnCodes sbefifo_hwp_data_istream::get(hwp_data_unit& o_data)
 {
-    #define SBE_FUNC "sbefifo_hwp_data_ostream::get"
+    #define SBE_FUNC "sbefifo_hwp_data_istream::get"
     SBE_ENTER(SBE_FUNC);
 
     if (iv_words_left == 0)
     {
         return FAPI2_RC_FALSE;
     }
-
     uint32_t l_len = 1;
-    uint32_t l_rc = sbeUpFifoDeq_mult(l_len, &o_data, iv_words_left == 1, false, iv_type);
-    if (l_rc)
-    {
-        return FAPI2_RC_PLAT_ERR_SEE_DATA;
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    if(iv_doFifoAccess)
+    {   // PopUp data from the upstream FIFO
+        l_rc = sbeUpFifoDeq_mult(l_len, &o_data, iv_words_left == 1,
+                                 false, iv_fifoType);
+        if (l_rc)
+        {
+            return FAPI2_RC_PLAT_ERR_SEE_DATA;
+        }
     }
-
+    else
+    {
+        if(iv_data == NULL)
+        {
+            return FAPI2_RC_PLAT_ERR_SEE_DATA;
+        }
+        o_data = iv_data[0];
+        iv_data++;
+    }
     iv_words_left--;
     return FAPI2_RC_SUCCESS;
+    #undef SBE_FUNC
+}
+
+uint32_t sbefifo_hwp_data_istream::get( uint32_t o_length, uint32_t* o_buffer,
+                                        bool i_isEot, bool i_flush )
+{
+    #define SBE_FUNC "sbefifo_hwp_data_istream::get with length"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t l_len = o_length;
+    
+    if(iv_doFifoAccess)
+    {   // Push data into the downstream FIFO
+        l_rc = sbeUpFifoDeq_mult(l_len, o_buffer, i_isEot,
+                                 i_flush, iv_fifoType);
+    }
+    else
+    {
+        if(iv_data == NULL)
+        {
+            l_rc = SBE_SEC_FIFO_ACCESS_FAILURE;
+        }
+        for( uint8_t i=0; i< o_length; i++ )
+            o_buffer[i] = iv_data[i];
+    }
+    iv_words_left += o_length;
+    return l_rc;
     #undef SBE_FUNC
 }
 
@@ -55,14 +94,31 @@ ReturnCodes sbefifo_hwp_data_ostream::put(hwp_data_unit i_data)
     SBE_ENTER(SBE_FUNC);
 
     uint32_t l_len = 1;
-    uint32_t l_rc = sbeDownFifoEnq_mult(l_len, &i_data, iv_type);
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    l_rc = sbeDownFifoEnq_mult(l_len, &i_data, iv_fifoType);
     if (l_rc)
     {
         return FAPI2_RC_PLAT_ERR_SEE_DATA;
     }
-
     iv_words_written++;
     return FAPI2_RC_SUCCESS;
+    #undef SBE_FUNC
+}
+
+uint32_t sbefifo_hwp_data_ostream::put(uint32_t i_length, hwp_data_unit* i_buffer)
+{
+    #define SBE_FUNC "sbefifo_hwp_data_ostream::put with length"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t l_len = i_length;
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    // Push data into the downstream FIFO
+    l_rc = sbeDownFifoEnq_mult (l_len, i_buffer, iv_fifoType);
+    if (l_rc)
+    {
+        return l_rc;
+    }
+    iv_words_written = iv_words_written + l_len;
+    return l_rc;
     #undef SBE_FUNC
 }
 
