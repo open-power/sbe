@@ -150,9 +150,34 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
             {
                 if (!l_core_clock_State)
                 {
+                    //L2 purge
                     FAPI_TRY(p10_hcd_l2_purge(i_core_target));
+
+                    //TLBIE quiesce
                     FAPI_TRY(p10_hcd_l2_tlbie_quiesce(i_core_target));
+
+                    //NCU purge
                     FAPI_TRY(p10_hcd_ncu_purge(i_core_target));
+
+                    //This procedure executes in mpipl down path, where we need
+                    //to clean up the states of all the cores before we init the
+                    //cores again in istep 4 and istep 16.The sequence of these
+                    //procedures almost match with stop 11 entry sequence, but
+                    //we won't stop the clocks(l2/l3) here (which will be done after
+                    //dump hw collection), so after ncu purge we need to
+                    //disable IMA functionality to avoid further traffic in power
+                    //bus ( which causes xstop during pb purge).
+                    FAPI_TRY( fapi2::getScom( i_core_target, NC_NCCHTM_NCCHTSC_HTM_MODE, l_data));
+
+                    //HTMSC_MODE_CONTENT_SEL:Direct memory write =>0b11
+                    if (l_data.getBit<1>() & l_data.getBit<2>())
+                    {
+                        FAPI_IMP(" Disable the IMA function by clearing 20018680[4]");
+                        l_data.clearBit<NC_NCCHTM_NCCHTSC_HTM_MODE_CAPTURE>();
+                        FAPI_TRY( fapi2::putScom( i_core_target, NC_NCCHTM_NCCHTSC_HTM_MODE, l_data));
+                    }
+
+                    //Shadow disable
                     FAPI_TRY(p10_hcd_core_shadows_disable(i_core_target));
                 }
                 else
@@ -166,9 +191,15 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
             {
                 if (!l_l3_clock_State)
                 {
+                    //CHTM purge
                     FAPI_TRY(p10_hcd_chtm_purge(i_core_target));
+
+                    //L3 purge
                     FAPI_TRY(p10_hcd_l3_purge(i_core_target));
+
+                    //PB purge
                     FAPI_TRY(p10_hcd_powerbus_purge(i_core_target));
+
                 }
                 else
                 {
@@ -184,5 +215,4 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
 fapi_try_exit:
     FAPI_IMP ("<<cleanup_cl2_l3_states");
     return fapi2::current_err;
-
 }

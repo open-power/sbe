@@ -246,10 +246,13 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                 }
             }
 
-            //Halt all gpe's and qme
-            FAPI_TRY(suspend_pm_halt(i_target));
         }while (0);
 
+
+        //Halt all gpe's and qme
+        //If we fail during safe mode or suspend stop operation,
+        //we should still halt the engines and continue the mpipl path.
+        FAPI_TRY(suspend_pm_halt(i_target));
 
 fapi_try_exit:
         FAPI_DBG("Exiting p10_suspend_powman...");
