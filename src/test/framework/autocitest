@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2020
 # [+] International Business Machines Corp.
 #
 #
@@ -97,7 +97,7 @@ if [ "$MACHINE_TYPE" = "NIMBUS" ]; then
 elif [ "$MACHINE_TYPE" = "AXONE" ]; then
     curDir=`pwd`
     cd $SANDBOXBASE/simics/
-    ./runsim -m axone sbe_script_to_run=$SBETESTDIRAXONE/sbe_startupAxone.simics sbe_scripts_path=$SBETESTDIRAXONE sbe_ci=TRUE sbe_ci_script=$SBETESTDIRAXONE/testAxone.simics || exit -1
+    ./runsim -m axone sbe_script_to_run=$SBETESTDIRAXONE/sbe_startupAxone.simics sbe_scripts_path=$SBETESTDIRAXONE sbe_otprom="import/boot_roms/sbe_otprom_AXONE.bin" sbe_seeprom_img="import/boot_roms/sbe_seeprom_p9a_10.bin.ecc" sbe_ci=TRUE sbe_ci_script=$SBETESTDIRAXONE/testAxone.simics || exit -1
     cd $curDir
 fi
 exit 0
