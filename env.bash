@@ -53,6 +53,18 @@ else
       export BACKING_BUILD=${BACKING_BUILD_PATH}/built #Default
 fi
 
+# Set CTE path if not already set
+if [ -z "${CTEPATH}" ]; then
+    export CTEPATH=/afs/apd.pok.ibm.com/projects/cte
+fi
+
+# set path for Python 3
+if [ -f /opt/xsite/cte/tools/python/bin/python3 ]; then
+    export PATH_PYTHON3=/opt/xsite/cte/tools/python/bin/python3
+else
+    export PATH_PYTHON3=$CTEPATH/tools/ecmd/rel/x86_64/python3
+fi
+
 # The following ENV variables are required by the pre/post commit hooks
 export PROJECT_NAME=sbe
 export TOOLSDIR=$SBEROOT/src/tools/hooks
