@@ -48,7 +48,7 @@ US_FIFO_RESET  = 0x000C
 DS_FIFO_READ   = 0x0000
 DS_FIFO_STATUS = 0x0004
 DS_FIFO_EOT    = 0x0008
-    
+
 def getLbus( node, proc=0):
     #Node is 0 by default
     if(node == 0):
@@ -61,7 +61,7 @@ def getLbus( node, proc=0):
         lbus=SIM_get_object(simicsObj[0] + ".cfam_cmp.lbus_map")
     if(node == 3):
         lbus=SIM_get_object(simicsObj[0] + ".cfam_cmp.lbus_map")
-   
+
     return lbus
 
 #Default parameters are for single node, node 0
@@ -106,6 +106,18 @@ def readEot(i_fifoType=0, node=0, proc=0):
     status = read(lbus, eot_addr, 4)
     checkEqual( (status[3] & 0x80), 0x80 );
     read(lbus, read_addr, 4)
+
+#Default parameters are for single node, node 0
+def checkIfEot(i_fifoType=0, node=0, proc=0):
+    """ Read from memory space """
+    lbus = getLbus(node, proc)
+    eot_addr = getDsFifoStatusAddrToRead(i_fifoType) #Address: 0x2444, 0x2484
+    read_addr = getDsFifoDataAddrToRead(i_fifoType)  #Address: 0x2440, 0x2480
+    status = read(lbus, eot_addr, 4)
+    if( cmp((status[3] & 0x80), 0x80 )):
+        return False
+    read(lbus, read_addr, 4)
+    return True
 
 #Default parameters are for single node, node 0
 def resetFifo(i_fifoType=0, node=0, proc=0):

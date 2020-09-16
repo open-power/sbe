@@ -22,72 +22,95 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
+
 from __future__ import print_function
 import sys
-sys.path.append("targets/p10_standalone/sbeTest" )
+import os
+import time
+import datetime
+import textwrap
+sys.path.append("targets/p10_standalone/sbeTest")
 import testUtil
+import testDumpUtils as dumpUtils
+import testOut as out
 
-err = False
 i_fifoType = 0
 i_fifoType1 = 1
 
-#Dump Type - HB ; Clock State - OFF
-GETDUMP_TESTDATA = [0, 0, 0, 0x3,
-                    0, 0, 0xAA, 0x01,
-                    0x00, 0, 0x02 ,0x05]
+#Set the consol level and log level.
+console_level = out.levels.INFO
+log_level = out.levels.DEBUG
 
-#Dump Type - Invalid ; Clock State - OFF
-GETDUMP_INVALID_DUMP_TYPE_TESTDATA = [0, 0, 0, 0x3,
-                                      0, 0, 0xAA, 0x01,
-                                      0x00, 0, 0x02 ,0x0A]
+#Create a generic time stamp we can use throughout the program
+timestamp = datetime.datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
 
-#Dump Type - Performance ; Clock State - Invalid
-GETDUMP_INVALID_CLOCK_STATE_TESTDATA = [0, 0, 0, 0x3,
-                                      0, 0, 0xAA, 0x01,
-                                      0x00, 0, 0x05 ,0x03]
+#Start time
+stageStartTime = time.time()
 
-GETDUMP_EXPDATA =  [0xc0, 0xde, 0xAA, 0x01]
+#Dict to store all file names
+filenames = dict()
 
-def getDump(data, i_fifoType, expStatus = [0, 0, 0, 0]):
-    testUtil.runCycles( 10000000 )
+# Make sure the path exists
+if (not os.path.exists(dumpUtils.outputPath)):
+    # Create the output dir
+    try:
+        os.mkdir(dumpUtils.outputPath)
+    except:
+        out.critical("The output path does not exist.  Please check the path and re-run")
+        out.critical("Problem creating: %s" % dumpUtils.outputPath)
+        out.critical("Exception: %s" % sys.exc_info()[0])
+        sys.exit(1)
+    out.print("Output path is %s" % dumpUtils.outputPath)
 
-    #Get Dump chip-op test.
-    testUtil.writeUsFifo(data, i_fifoType)
-    testUtil.writeEot(i_fifoType)
+filenames["log"] = os.path.join(dumpUtils.outputPath, dumpUtils.filenameBase + ".log")
+filenames["console"] = os.path.join(dumpUtils.outputPath, dumpUtils.filenameBase + ".console")
 
-    expData = GETDUMP_EXPDATA + expStatus
+# Setup our console output level
+out.setConsoleLevel(console_level)
 
-    success = False
-    if(expStatus == [0, 0, 0, 0]):
-        success = True
+# Set our log output level
+out.setLogLevel(log_level)
 
-    #Flush out the expected data from FIFO.
-    print("\n Compare expData")
-    testUtil.readDsFifo(expData, i_fifoType)
-
-    #Flush out distance.
-    print("\n Flush out distance")
-    testUtil.readDsEntryReturnVal(i_fifoType)
-    testUtil.readEot(i_fifoType)
+# Setup our logging infrastructure
+# This has to be done after cmdline args are processed and we know output dirs and suffixes
+out.setupLogging(filenames["log"], filenames["console"])
 
 def main():
-    print("********************Get Dump******************************\n")
+    out.print("********************Get Dump******************************")
 
-    print("*****FIFO 0*****\n")
-    getDump(GETDUMP_INVALID_DUMP_TYPE_TESTDATA, i_fifoType, [0, 0x02, 0, 0x40])
-    getDump(GETDUMP_INVALID_CLOCK_STATE_TESTDATA, i_fifoType, [0, 0x02, 0, 0x19])
-    getDump(GETDUMP_TESTDATA, i_fifoType, [0, 0, 0, 0])
+    out.print("*****FIFO 0*****")
+    #Invalid test case's
+    dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["OFF"], dumpUtils.sbeSupportedDumpTypes["INVALID"]), i_fifoType, [0, 0x02, 0, 0x40])
+    dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["INVALID"], dumpUtils.sbeSupportedDumpTypes["PERF"]), i_fifoType, [0, 0x02, 0, 0x19])
 
-    print("*****FIFO 1*****\n")
-    getDump(GETDUMP_INVALID_DUMP_TYPE_TESTDATA, i_fifoType1, [0, 0x02, 0, 0x40])
-    getDump(GETDUMP_INVALID_CLOCK_STATE_TESTDATA, i_fifoType1, [0, 0x02, 0, 0x19])
-    getDump(GETDUMP_TESTDATA, i_fifoType1, [0, 0, 0, 0])
+    #HB Dump test case
+    dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["ON"], dumpUtils.sbeSupportedDumpTypes["HB"]), i_fifoType)
+    dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["OFF"], dumpUtils.sbeSupportedDumpTypes["HB"]), i_fifoType)
+
+    #MPIPL Dump test case
+    dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["ON"], dumpUtils.sbeSupportedDumpTypes["MPIPL"]), i_fifoType)
+    dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["OFF"], dumpUtils.sbeSupportedDumpTypes["MPIPL"]), i_fifoType)
+
+    out.print("*****FIFO 1*****")
+    #Invalid test case's
+    dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["OFF"], dumpUtils.sbeSupportedDumpTypes["INVALID"]), i_fifoType1, [0, 0x02, 0, 0x40])
+    dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["INVALID"], dumpUtils.sbeSupportedDumpTypes["PERF"]), i_fifoType1, [0, 0x02, 0, 0x19])
+    #TODO:Add test case's if needed for FIFO 1 also
+
+    #End time
+    stageEndTime = time.time() - stageStartTime
+
+    out.print("")
+    out.print("Date and Time: %s" % timestamp + "    " + "Run Duration: %s" % dumpUtils.formatTime(stageEndTime))
+    out.print("For more info all output in: %s/" % dumpUtils.outputPath)
+    out.print("Log File: %s" % filenames["log"])
+    out.print("Console File: %s" % filenames["console"])
 
 try:
     main()
 except:
-    print ( "\nTest Suite completed with error(s)" )
+    out.print ( "Test Suite completed with error(s)" )
     testUtil.collectFFDC()
     raise()
 
-print ( "\nTest Suite completed with no errors" )
+out.print( "Test Suite completed with no errors" )
