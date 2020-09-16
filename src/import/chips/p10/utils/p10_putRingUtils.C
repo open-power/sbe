@@ -629,7 +629,6 @@ fapi2::ReturnCode standardScan(
 
     uint32_t l_scomAddress  =   0;
     fapi2::ReturnCode l_rc  =   fapi2::FAPI2_RC_SUCCESS;
-    uint32_t l_max_poll_attempts = 1000;
 
     do
     {
@@ -650,9 +649,6 @@ fapi2::ReturnCode standardScan(
                 l_rotateCount = l_maxRotates;
             }
 
-            // Scom Data needs to have the no.of rotates in the bits 12-31
-            l_rotateCount <<= 32;
-
             for( uint32_t i = 0; i < (l_numRotateScoms + 1); i++ )
             {
                 if( i == l_numRotateScoms )
@@ -663,11 +659,11 @@ fapi2::ReturnCode standardScan(
                     }
 
                     l_rotateCount = ( i_opVal % l_maxRotates );
-                    l_rotateCount <<= 32;
                 }
 
                 FAPI_INF("l_rotateCount %u", l_rotateCount);
-                fapi2::buffer<uint64_t> l_scomData( l_rotateCount );
+                // Scom Data needs to have the no.of rotates in the bits 12-31
+                fapi2::buffer<uint64_t> l_scomData( l_rotateCount << 32 );
 
                 FAPI_TRY( putRegister( i_target, i_ringType, i_chipletMask, l_scomAddress, l_scomData ),
                         "ROTATE for %d, failed", i_opVal );
@@ -675,8 +671,38 @@ fapi2::ReturnCode standardScan(
                 // Check OPCG_DONE status
                 uint32_t  l_OPCGAddress = 0x00000100;
 
-                uint32_t l_attempts = l_max_poll_attempts;
+                // Some musings on timeout (for P10):
+                //
+                // The slowest expected scan rate is at bypass speeds:
+                //   f=100 MHz, scan ratio = 1:1 => 100e6 bits per second => 10 ns per bit
+                // The fastest expected scan rate is at ~4GHz core:
+                //   f=4000 MHz, scan ratio = 4:1 => 1e9 bits per second => 1 ns per bit
+                //
+                // The OPCG won't be done earlier than the minimum time, and after, say,
+                // 1.5x the maximum time we can safely assume that something went wrong.
+                //
+                // So here's the approach:
+                //   1. Do the first poll without waiting - small rotates may be done immediately
+                //   2. Wait for the minimum time, poll again
+                //   3. Continue polling at a faster rate until the maximum time expires
 
+                const uint32_t POLL_DELAY_NS = 1024;      // Using power of two to avoid division at l_attempts below
+                const uint32_t POLL_DELAY_CYCLES = 10000;
+                const uint32_t MIN_NS_PER_BIT = 1;
+                const uint32_t MIN_CYCLES_PER_BIT = 16;   // Replicating Cronus value here
+                const uint32_t MAX_NS_PER_BIT = 15;       // Includes 50% extra allowance
+
+                // The minimum time until the OPCG can reasonably be finished
+                const uint32_t l_initialDelay_ns = l_rotateCount * MIN_NS_PER_BIT;
+                const uint32_t l_initialDelay_cycles = l_rotateCount * MIN_CYCLES_PER_BIT;
+
+                // The difference between the maximum time and the minimum
+                const uint32_t l_additionalDelay_ns = l_rotateCount * (MAX_NS_PER_BIT - MIN_NS_PER_BIT);
+
+                // Add 1 to round up, 1 for the error check below, and 1 for the initial delay
+                // TODO: Scale number of attempts down if in simulation
+                uint32_t l_attempts = (l_additionalDelay_ns / POLL_DELAY_NS) + 3;
+                bool l_first_attempt = true;
                 while( l_attempts > 0 )
                 {
                     l_attempts--;
@@ -696,16 +722,15 @@ fapi2::ReturnCode standardScan(
                         FAPI_INF("OPCG_DONE set");
                         break;
                     }
-                    // delays pulled from Cronus p9/zT code
-                    if (!fapi2::is_platform<fapi2::PLAT_SBE>() //This condition not required for SBE
-                        && l_attempts == (l_max_poll_attempts-1))
+
+                    if (l_first_attempt)
                     {
-                        uint64_t l_rotate_cycles = (l_rotateCount >> 32);
-                        FAPI_TRY( fapi2::delay( l_rotate_cycles * 3333, l_rotate_cycles * 16 ) );
+                        l_first_attempt = false;
+                        FAPI_TRY( fapi2::delay( l_initialDelay_ns, l_initialDelay_cycles) );
                     }
                     else
                     {
-                        FAPI_TRY( fapi2::delay( 1000, 10000) );
+                        FAPI_TRY( fapi2::delay( POLL_DELAY_NS, POLL_DELAY_CYCLES ) );
                     }
                 }
 
