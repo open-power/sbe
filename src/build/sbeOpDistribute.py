@@ -137,7 +137,7 @@ def main(argv):
             sbeSeepromImageEcc = sbeSeepromImage + ".ecc"
             sbeMeasurementSeepromImage = sbe_binary_dir + "/sbe_measurement_seeprom.bin"
             sbeMeasurementSeepromImageEcc = sbeMeasurementSeepromImage + ".ecc"
-            hbbl = sbe_binary_dir + "/../openpower_pnor_scratch/HBBL.staged"
+            hbbl = scratch_dir + "/HBBL.staged"
 
             #Delete HBBL from sbeSeepromImage
             run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " delete .hbbl" )
