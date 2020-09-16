@@ -707,7 +707,9 @@ ReturnCode istepCollectArcRegData( voidfuncptr_t i_hwp)
         fapiRc = sbeDumpArchRegs();
         if( fapiRc != FAPI2_RC_SUCCESS )
         {
-            SBE_ERROR(SBE_FUNC "Failed in sbeDumpArchRegs()");
+            SBE_ERROR(SBE_FUNC "Internal Failure detected in sbeDumpArchRegs()"
+            "MPIPL will still be continued!");
+            fapiRc = FAPI2_RC_SUCCESS;
         }
     }
     else

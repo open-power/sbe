@@ -604,6 +604,7 @@ ReturnCode sbeDumpArchRegs()
                         SBE_ERROR(SBE_FUNC" ram_cleanup failed. threadNr:0x%02X"
                                 " coreChipletId:0x%02X", thread, chipUnitNum);
                         // Don't break, continue for the next thread
+                        fapiRc = FAPI2_RC_SUCCESS;
                         continue;
                     }
                 }
