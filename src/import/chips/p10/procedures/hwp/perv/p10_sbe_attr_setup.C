@@ -38,11 +38,14 @@
 #include <target_filters.H>
 
 
-const uint32_t NUM_EQS_PER_CHIP  = 8; // Num of EQ pervasive chiplets per chip
-const uint32_t NUM_CORES_PER_EQ  = 4; // Num of cores per EQ chiplet
-const uint32_t NUM_PAUC_PER_CHIP = 4; // Num of PAU pervasive chiplets per chip
-const uint32_t NUM_PAUS_PER_PAUC = 2; // Num of PAU logical units per PAU pervasive chiplet
-const uint32_t NUM_IOHS_PER_CHIP = 8; // Num of IOHS pervasive chiplets per chip
+const uint32_t NUM_EQS_PER_CHIP  = 8;  // Num of EQ pervasive chiplets per chip
+const uint32_t NUM_CORES_PER_EQ  = 4;  // Num of cores per EQ chiplet
+const uint32_t NUM_PAUC_PER_CHIP = 4;  // Num of PAU pervasive chiplets per chip
+const uint32_t NUM_PAUS_PER_PAUC = 2;  // Num of PAU logical units per PAU pervasive chiplet
+const uint32_t NUM_IOHS_PER_CHIP = 8;  // Num of IOHS pervasive chiplets per chip
+const uint32_t CORE0_ECL2_PG_BIT = 13; // ECL2 bit in EQ ATTR_PG
+const uint32_t CORE0_L3_PG_BIT   = 17; // L3 bit in EQ ATTR_PG
+const uint32_t CORE0_MMA_PG_BIT  = 23; // MMA bit in EQ ATTR_PG
 
 ///
 /// @brief Set platform ATTR_PG attribute for EQ chiplets, based on MPVD
@@ -302,6 +305,83 @@ fapi_try_exit:
 }
 
 
+///
+/// @brief Update platform ATTR_PG attribute for EQ chiplets, in a fused core mode.
+///        If only one core is functional in fused mode, SBE will gard that core.
+///        eg. If first core is functional and second core is non-functional
+///            gard both the cores.
+///
+/// @param[in] i_target_chip  Processor chip target
+///
+/// @return fapi2::ReturnCode
+///
+
+fapi2::ReturnCode
+p10_sbe_update_eq_pg_for_fusedcore(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    FAPI_DBG("Entering ...");
+    fapi2::ATTR_FUSED_CORE_MODE_Type fused_core_mode;
+    fapi2::buffer<uint32_t> temp_pg = 0;
+    fapi2::buffer<uint64_t> scratch1_reg = 0;
+
+    FAPI_TRY(fapi2::getScom(i_target_chip,
+                            scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RW, scratch1_reg),
+             "Error reading Scratch 1 mailbox register");
+    FAPI_DBG("Scratch Reg1 [0x%08X]", ((scratch1_reg >> 32) & 0xFFFFFFFF));
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
+                           fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(), fused_core_mode),
+             "Error from FAPI_ATTR_GET (ATTR_FUSED_CORE_MODE)");
+    FAPI_DBG("Fused core mode: 0x%08X", fused_core_mode);
+
+    if(fused_core_mode)
+    {
+        for (const auto& perv : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
+             (static_cast<fapi2::TargetFilter>
+              (fapi2::TARGET_FILTER_ALL_EQ),
+              fapi2::TARGET_STATE_PRESENT))
+        {
+            fapi2::ATTR_PG_Type pg;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, perv, pg));
+            uint8_t unit_num = p10_sbe_scratch_regs_get_unit_num(perv, fapi2::TARGET_TYPE_EQ);
+            FAPI_DBG("Eq[%d] PG before: 0x%08X", unit_num, pg);
+            temp_pg = pg;
+
+            for(uint8_t core = 0; core < NUM_CORES_PER_EQ - 1; core = core + 2)
+            {
+                // Check if any of the even(0)/odd(1) pair is bad then both
+                // core0 (even) & core1 (odd) goes bad. Same goes for core2 & core3 pair
+                if(temp_pg.getBit(core + CORE0_ECL2_PG_BIT) || temp_pg.getBit(core + CORE0_ECL2_PG_BIT + 1))
+                {
+                    temp_pg.setBit(core + CORE0_ECL2_PG_BIT); //core0/2 - ecl2 bit
+                    temp_pg.setBit(core + CORE0_ECL2_PG_BIT + 1); // core1/3 - ecl2 bit
+                    temp_pg.setBit(core + CORE0_L3_PG_BIT); //core0/2 - l3 bit
+                    temp_pg.setBit(core + CORE0_L3_PG_BIT + 1); //core1/3 - l3 bit
+                    temp_pg.setBit(core + CORE0_MMA_PG_BIT); //core0/2 - mma bit
+                    temp_pg.setBit(core + CORE0_MMA_PG_BIT + 1); //core1/3 - mma bit
+                    // Set the Scratch Bit - (EQ * 4 + Core0/1/2/3)
+                    scratch1_reg.setBit(unit_num * NUM_CORES_PER_EQ + core);
+                    scratch1_reg.setBit(unit_num * NUM_CORES_PER_EQ + core + 1);
+                }
+            }
+
+            pg = temp_pg;
+            FAPI_DBG("Eq[%d] PG after: [0x%08X] ", unit_num, pg);
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, perv, pg));
+        }
+
+        FAPI_DBG("Updated Scratch Reg1 [0x%08X]", ((scratch1_reg >> 32) & 0xFFFFFFFF));
+        FAPI_TRY(fapi2::putScom(i_target_chip,
+                                scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RW, scratch1_reg),
+                 "Error writing Scratch 1 mailbox register");
+    }
+
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}
+
 // description in header
 fapi2::ReturnCode p10_sbe_attr_setup(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -416,6 +496,9 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         FAPI_TRY(p10_sbe_scratch_regs_write_eq_pg_from_scratch(i_target_chip,
                  l_read_scratch1_reg),
                  "Error from p10_sbe_scratch_regs_write_eq_pg_from_scratch");
+
+        FAPI_TRY(p10_sbe_update_eq_pg_for_fusedcore(i_target_chip),
+                 "Error from p10_sbe_update_eq_pg_for_fusedcore");
     }
 
     // read_scratch2_reg -- set TP/N0/N1/PCI/MC/PAU/IOHS chiplet PG
