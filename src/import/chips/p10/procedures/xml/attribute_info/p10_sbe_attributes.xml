@@ -602,4 +602,8 @@
     <name>ATTR_CHIP_EC_FEATURE_HW541221</name>
     <virtual/>
   </entry>
+  <entry>
+    <name>ATTR_CHIP_EC_FEATURE_HW546482_QME_TOPO_FIR</name>
+    <virtual/>
+  </entry>
 </entries>
