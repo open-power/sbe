@@ -275,8 +275,7 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     l_read_reg.writeBit<16>(l_attr_pllioflt_bypass.getBit<7>());
     l_read_reg.writeBit<17>(l_attr_plliossflt_bypass.getBit<7>());
     l_read_reg.writeBit<18>(l_attr_pau_dpll_bypass.getBit<7>());
-    // Temporarily keep Nest DPLL errors masked until we figure out the intermittent unlocks
-    //l_read_reg.writeBit<19>(l_attr_nest_dpll_bypass.getBit<7>());
+    l_read_reg.writeBit<19>(l_attr_nest_dpll_bypass.getBit<7>());
 
     FAPI_TRY(fapi2::putScom(l_tpchiplet, perv::SLAVE_CONFIG_REG, l_read_reg));
 
