@@ -37,11 +37,11 @@ def main( ):
     #PutMemAdu with ECC
     data = os.urandom(80)
     data = [ord(c) for c in data]
-    testMemProcUtil.putmem(0xF0000000, data, 0xBD, 0xEF)
+    testMemProcUtil.putmem(0xE0000000, data, 0xBD, 0xEF)
     data = testMemProcUtil.addItagEcc(data,True, True, 0xEF)
 
     # GetMemAdu test with ECC and Itag
-    readData = testMemProcUtil.getmem(0xF0000000, 80, 0xBD)
+    readData = testMemProcUtil.getmem(0xE0000000, 80, 0xBD)
     if(data == readData):
         print ("Success - Write-Read ADU with ECC,Itag")
     else:
@@ -50,12 +50,12 @@ def main( ):
         raise Exception('data mistmach')
 
     # Partial Write test
-    readData = testMemProcUtil.getmem(0xF0000000, 40, 0xBD)
+    readData = testMemProcUtil.getmem(0xE0000000, 40, 0xBD)
     data = os.urandom(8)
     data = [ord(c) for c in data]
-    testMemProcUtil.putmem(0xF0000008, data, 0xBD, 0xEF)
+    testMemProcUtil.putmem(0xE0000008, data, 0xBD, 0xEF)
     data = testMemProcUtil.addItagEcc(data,True, True, 0xEF)
-    readBackData = testMemProcUtil.getmem(0xF0000000, 40, 0xBD)
+    readBackData = testMemProcUtil.getmem(0xE0000000, 40, 0xBD)
     sandwichData = readData[:10]+data+readData[len(data)+10:]
     if(sandwichData == readBackData):
         print ("Success - Write_Part-Read ADU with ECC,Itag")

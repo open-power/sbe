@@ -127,16 +127,16 @@ def main():
     testUtil.runCycles( 100000000 )
 
     print("\n  Execute SBE Test - negative testcase - less size\n")
-    getCapabilities(0xF0000000, 30, 0x00020019)
+    getCapabilities(0xE0000000, 30, 0x00020019)
     print("\n  Execute SBE Test - negative testcase - not multiple of PBA\n")
-    getCapabilities(0xF0000000, 129, 0x00020019)
+    getCapabilities(0xE0000000, 129, 0x00020019)
 
     print("\n  Execute SBE Test - positive testcase \n")
-    getCapabilities(0xF0000000, 128, 0)
+    getCapabilities(0xE0000000, 128, 0)
 
     testUtil.runCycles( 100000000 );
     # read capabilities memory
-    readData = testMemUtil.getmem(0xF0000000, 128, 0x02)
+    readData = testMemUtil.getmem(0xE0000000, 128, 0x02)
     # ignore first 20 bytes which is a dynamic data
     readData = readData[28:]
     # get only valid data

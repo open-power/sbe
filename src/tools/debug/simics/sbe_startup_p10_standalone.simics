@@ -108,10 +108,10 @@ try {
     run-python-file (lookup-file "%script%/simics-debug-framework.py")
 } except { echo "ERROR: Failed to load SBE debug tools." }
 
-# Changing the base of HRMOR to 4GB - 256MB for all procs
+# Changing the base of HRMOR to 4GB - 512MB for all procs
 echo "Setting l3_base"
 foreach $proc in (get-all-procs) {
-    $proc->l3_base=0xF0000000
+    $proc->l3_base=0xE0000000
 }
 
 #This is already taken care by simics environment, no need to set anymore

@@ -11,8 +11,8 @@ try {
     # p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003A "00000000_00000000" 64
 } except { echo "ERROR: Failed to load SBE debug tools." }
 
-# Changing the base of HRMOR to 4GB - 256MB for all procs
+# Changing the base of HRMOR to 4GB - 512MB for all procs
 echo "Setting l3_base"
 foreach $proc in (get-all-procs) {
-    $proc->l3_base=0xF0000000
+    $proc->l3_base=0xE0000000
 }
