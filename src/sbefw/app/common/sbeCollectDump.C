@@ -35,11 +35,198 @@ inline bool sbeCollectDump::dumpTypeCheck()
     return (iv_hdctRow->genericHdr.dumpContent & iv_hdctDumpTypeMap);
 }
 
+void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetList)
+{
+    #define SBE_FUNC "getTargetList"
+    SBE_ENTER(SBE_FUNC);   
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> procTgt =  plat_getChipTarget();
+    switch(iv_tocRow.tocHeader.chipUnitType)
+    {
+        case CHIP_UNIT_TYPE_CHIP:
+            {
+                o_targetList.push_back(procTgt.get());
+                SBE_DEBUG(SBE_FUNC "PROC: [0x%08X]", procTgt.get());
+                break;
+            }
+        case CHIP_UNIT_TYPE_PERV:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "PERV: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_EQ:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "EQ: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_C:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "CORE: [0x%08X]",target.get());
+                SBE_DEBUG(SBE_FUNC "CORE id: [0x%08X]",target.get().getTargetInstance());
+            }
+            break;
+        case CHIP_UNIT_TYPE_PHB:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PHB>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "PHB: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_MI:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_MI>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "MI: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_MC:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_MC>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "MC: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_PAUC:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PAUC>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "PAUC: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_IOHS:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_IOHS>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "IOHS: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_NMMU:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_NMMU>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "NMMU: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_PEC:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PEC>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "PEC: [0x%08X]",target.get());
+            }
+            break;
+        case CHIP_UNIT_TYPE_PAU:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PAU>(fapi2::TARGET_STATE_FUNCTIONAL))
+            {
+                o_targetList.push_back(target);
+                SBE_DEBUG(SBE_FUNC "PAU: [0x%08X]",target.get());
+            }
+            break;
+        //TODO: omic and mcc target types are not yet implemented.
+        /*
+        //TODO: Bellow targets are required or not should be checked.
+        case CHIP_UNIT_TYPE_MCS:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MCS>(fapi2::TARGET_STATE_FUNCTIONAL);
+        case CHIP_UNIT_TYPE_MCBIST:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL);
+        case CHIP_UNIT_TYPE_CAPP:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_CAPP>(fapi2::TARGET_STATE_FUNCTIONAL);
+        case CHIP_UNIT_TYPE_XBUS:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_XBUS>(fapi2::TARGET_STATE_FUNCTIONAL);
+        case CHIP_UNIT_TYPE_MCA:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MCA>(fapi2::TARGET_STATE_FUNCTIONAL);
+        case CHIP_UNIT_TYPE_MBA:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MBA>(fapi2::TARGET_STATE_FUNCTIONAL);
+        case CHIP_UNIT_TYPE_DMI:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_DMI>(fapi2::TARGET_STATE_FUNCTIONAL);
+        case CHIP_UNIT_TYPE_MCC:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MCC>(fapi2::TARGET_STATE_FUNCTIONAL);
+        case CHIP_UNIT_TYPE_OMI:
+            return procTgt.getChildren<fapi2::TARGET_TYPE_OMI>(fapi2::TARGET_STATE_FUNCTIONAL);
+        */
+        default:
+        {
+            SBE_INFO(SBE_FUNC "command Id [0x%02X] Type[0x%02X] not supported.",
+                               (uint8_t) iv_tocRow.tocHeader.chipUnitType,
+                               (uint8_t) iv_tocRow.tocHeader.cmdType);
+            break;
+        }
+    }
+    #undef SBE_FUNC
+}
+
 uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
 {
     #define SBE_FUNC "writeDumpPacketRowToFifo"
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    // Get update row values by using HDCT bin data
+    iv_tocRow.tocHeaderInit(iv_hdctRow);
+
+    // Map Dump target id with plat target list
+    std::vector<plat_target_handle_t> targetList;
+    getTargetList(targetList);
+
+    //CPU cycles to complete the chip-op.
+    iv_tocRow.cpuCycles = pk_timebase_get();
+
+    for( auto &target : targetList )
+    {
+        // write dump row header contents using FIFO
+        fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
+        iv_tocRow.tgtHndl = target;
+        iv_tocRow.specialCase = 0x00;
+        iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
+
+        switch(iv_tocRow.tocHeader.cmdType)
+        {
+            case CMD_GETSCOM:
+            {
+                SBE_INFO(SBE_FUNC "CMD_GETSCOM: [0x%08X]", target);
+                break;
+            }
+            default:
+            {
+                SBE_INFO(SBE_FUNC " command Id [0x%08X] is not supported.",
+                                    (uint8_t)iv_tocRow.tocHeader.cmdType);
+                rc = SBE_SEC_INVALID_CHIPLET_ID_PASSED;
+                break;
+            }
+        } // End switch
+
+        if(iv_tocRow.specialCase)
+        {
+            // Any special cases are not required to send fifo
+            // data as part of ChipOp
+            continue;
+        }
+
+        if(rc == SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            uint32_t ffdcDataLength = 0x00;
+            // write FFDC data as a zero for success using FIFO
+            iv_oStream.put(ffdcDataLength);
+        }
+        else
+        {
+            //TODO: Need to update FFDC and fail scenario handling here
+            iv_tocRow.ffdcLen = 0x08;
+            uint64_t ffdcData = 0x0000FFDC0000FFDC;
+            // write FFDC data on failed case using FIFO
+            iv_oStream.put(iv_tocRow.ffdcLen);
+            iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&ffdcData);
+            rc = SBE_SEC_OPERATION_SUCCESSFUL;
+        }
+        // FIFO the cpuCycles value 
+        iv_tocRow.cpuCycles = pk_timebase_get() - iv_tocRow.cpuCycles; // Delay time
+        iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&iv_tocRow.cpuCycles);
+
+    } // End For loop
 
     SBE_EXIT(SBE_FUNC);
     return rc;
@@ -69,6 +256,8 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
                 break;
             }
         }
+        //Dump chip-op Footer - DONE
+        iv_oStream.put(DUMP_CHIP_OP_FOOTER);
     }
     while(0);
 

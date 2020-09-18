@@ -35,8 +35,9 @@
 #include "plat_hw_access.H"
 #include "plat_hwp_data_stream.H"
 
-//Dump chip-op Footer - COMPLETE
-#define DUMP_CHIP_OP_FOOTER 0x434f4d504c455445UL
+//Dump chip-op Footer - DONE
+static const uint32_t DUMP_CHIP_OP_FOOTER = 0x444F4E45;
+static const uint32_t FIFO_DOUBLEWORD_LEN = 2;
 
 extern size_t genericHdctRowSize_table[NO_OF_CMD_TYPES];
 
@@ -146,15 +147,16 @@ typedef struct
         uint32_t dataLength;
     }tocHeader;
 
-    uint32_t iv_ffdcLen;
-    uint64_t iv_cpuCycles;
-    uint8_t  iv_specialCase;
-    fapi2::plat_target_handle_t iv_tgtHndl;
+    uint32_t ffdcLen;
+    uint64_t cpuCycles;
+    uint8_t  specialCase;
+    fapi2::plat_target_handle_t tgtHndl;
 
     void tocHeaderInit(genericHdctRow_t* genericHdctRow)
     {
         //TODO:Need to be filled with right value
         tocHeader.preReq = true;
+        tocHeader.reserved = 0x0;
         tocHeader.cmdType = (uint8_t) genericHdctRow->genericHdr.command;
         tocHeader.chipUnitType = (uint8_t) genericHdctRow->genericHdr.chipUnitType;
 
@@ -167,7 +169,7 @@ typedef struct
                 break;
             case CMD_GETSCOM:
                 tocHeader.address = genericHdctRow->cmdGetScom.addr;
-                tocHeader.dataLength = 0x08;
+                tocHeader.dataLength = 0x40;
                 break;
             case CMD_GETRING:
                 tocHeader.address = genericHdctRow->cmdGetRing.strEqvHash32;
@@ -267,16 +269,26 @@ class sbeCollectDump
         */
         uint32_t writeDumpPacketRowToFifo();
 
-        /**
-         * @brief Call the chip-opbased on HDCT row to gather the chip-op data.
-         *
-         * @param [in] data The data/FFDC returned from chip-op.
-         * @prama [in] len  The length of the data returned.
-         *
-         * @return SUCCESS,  If chip-op is successful.
-         *         ERROR,    Incase of failure.
-         */
-        uint32_t collectSingleEntry(uint8_t * i_data, uint32_t i_len);
+       /**
+        * @brief Get target list as per DUMP target id's.
+        *
+        * @param [in] o_targetList list of plat target handles
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *         ERROR,    Incase of failure.
+        */
+        void getTargetList(std::vector<fapi2::plat_target_handle_t> &o_targetList);
+
+       /**
+        * @brief Call the chip-opbased on HDCT row to gather the chip-op data.
+        *
+        * @param [in] data The data/FFDC returned from chip-op.
+        * @prama [in] len  The length of the data returned.
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *         ERROR,    Incase of failure.
+        */
+        uint32_t collectSingleEntry(uint8_t * data, uint32_t len);
 
         /**
          * @brief Write data to the FIFO.
