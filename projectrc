@@ -30,10 +30,12 @@ export SANDBOXROOT=$SBEROOT
 # If you want to change name of default sandbox, enable SANDBOXNAME
 export SANDBOXNAME=test_sb
 
+#BACKING_BUILD will be exported/set inside env.bash and will be the latest one
+#related to fips1010 release
+
 #export WORKSPACE=<set it to your root ppe directory. This is required if you
 # to use build script locally>
 export MACHINE=NIMBUS
-export BACKING_BUILD=/esw/fips1010/Builds/b0824a2035.1010/
 export SIMICSOPTIONS="-nre"
 export SIMICS_TAR=/gsa/ausgsa/projects/s/simics_published_builds/p10/fbbfb540e3e2e1d46cbe0ae713232b2e4d8b22a7/
 export MCP_PATH=/opt/mcp/shared/fr_FLD9-DEV-20190320/
