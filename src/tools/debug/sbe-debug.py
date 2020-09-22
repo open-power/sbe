@@ -327,8 +327,9 @@ def ppeState():
                          308 : ["DBCR", False],
                          22 : ["DEC", False],
                          61 : ["EDR", False],
-                         63 : ["IVPR", False],
+                         3  : ["IR", False],
                          62 : ["ISR", False],
+                         63 : ["IVPR", False],
                          8 : ["LR", False],
                          286 : ["PIR", False],
                          287 : ["PVR", False],
@@ -338,32 +339,12 @@ def ppeState():
                          340 : ["TCR", False],
                          336 : ["TSR", False],
                          1 : ["XER", False],
-                         4200 : ["XSR", False],
-                         2 : ["IAR", False],
-                         3 : ["IR", False],
                          42 : ["MSR", False],
                          420 : ["CR", False],
-                        0x800:["FI2C_CFG", False],
-                        0x820:["FI2C_STAT", False],
-                        0x860:["FI2C_SCFG0", False],
-                        0x880:["FI2C_SCFG1", False],
-                        0x8A0:["FI2C_SCFG2", False],
-                        0x8C0:["FI2C_SCFG3", False],
-                        0x1000:["SBE_SCRATCH0", False],
-                        0x1020:["SBE_SCRATCH1", False],
-                        0x1040:["SBE_SCRATCH2", False],
-                        0x1060:["SBE_SCRATCH3", False],
-                        0x2000:["SBE_MISC", False],
-                        0x0000:["SBE_EISR", False],
-                        0x0020:["SBE_EIMR", False],
-                        0x0040:["SBE_EIPR", False],
-                        0x0060:["SBE_EITR", False],
-                        0x0080:["SBE_EISTR", False],
-                        0x00A0:["SBE_EINR", False],
-                        0x0100:["SBE_TSEL", False],
-                        0x0120:["SBE_DBG", False],
-                        0x0140:["SBE_TBR", False],
-                        0x0160:["SBE_IVPR", False],
+                         1003 : ["XSR", False],
+                         1000 : ["IAR", False],
+                         1001 : ["IR", False],
+                         1002 : ["XCR", False],
                          }
 
         regNameMapGPR = {
@@ -406,7 +387,9 @@ def ppeState():
                 str1 = hex(regNum)
             str3 = binascii.hexlify(fileHandle.read(4))
             print(str(str1).ljust(15),str(str3).ljust(20))
-            l_cnt = l_cnt + 6;
+            str4 = fileHandle.read(4)    
+            #2Bytes(SPR/GPR number) + 4Bytes(Value) + 4Bytes(Name)
+            l_cnt = l_cnt + 10; #  
 
         print('********************************************************************')
         fileHandle.close()
@@ -539,6 +522,41 @@ def parsevalue(iValue):
     tempVal = iValue[30:34]
     print("SBE Progress Code [28:31] : Code reached to %s (%s)" %(progressCode[tempVal],tempVal))
 
+def extractSbeDump(dumpFile):
+    print("Extract dump File")
+
+    #Open the file in binary mode.
+    fileObj=open(dumpFile, 'rb')
+    hwDataLenOffest = 0x40 + 0x30 + 0x18 #FileHeaderLength + SumarrySectionLen + HWSectionLenOffset
+    hwDataOffest = 0x4D0
+
+    #Read the sysdatalength.
+    fileObj.seek(hwDataLenOffest, 0)
+    fourByteChunk = fileObj.read(4)
+    sysDataSize = struct.unpack('>i', fourByteChunk)[0]
+    print("Sys data size is %s" %hex(sysDataSize));
+
+    #Read the hwdatalength.
+    fileObj.seek(hwDataLenOffest + 4, 0)
+    fourByteChunk = fileObj.read(4)
+    hwDataSize = struct.unpack('>i', fourByteChunk)[0]
+    print("HW data size is %s" %hex(hwDataSize));
+
+    length = hwDataSize - sysDataSize
+    print("Length of tar is %s" %hex(length));
+
+    cmd = "dd skip=" + str(hwDataOffest) + " count=" + str(length) + " if=" + dumpFile  + " of=output.binary bs=1"
+    print("Command is %s" %cmd)
+    os.system(cmd)
+    
+    #Untar the HW data.
+    cmd = "tar -xvf output.binary"
+    print("Command is %s" %cmd)
+    os.system(cmd)
+
+    #Close the fileObj.
+    fileObj.close();
+
 '''
 -----------------------------------------------------------------------------
                         Main Application
@@ -569,11 +587,12 @@ optional arguments:
   -s, --symbol          Get value of symbol from PIBMEM for level 'sym'
   -f, --file_path       Path of the file if Target is FILE
   -o, --output_path     Path to put the outfiles
+  -e, --extract         Extract Sbe Dump.
   ''')
 
 def main( argv ):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "l:t:i:n:p:d:s:f:o:h", ['level=', 'target=', 'image_type=', 'node=', 'proc=', 'ddlevel=', 'symbol=', 'file_path=', 'output_path=','help'])
+        opts, args = getopt.getopt(sys.argv[1:], "l:t:i:n:p:d:s:f:o:e:h", ['level=', 'target=', 'image_type=', 'node=', 'proc=', 'ddlevel=', 'symbol=', 'file_path=', 'output_path=', 'extract=', 'help'])
     except getopt.GetoptError as err:
         print(str(err))
         usage()
@@ -583,6 +602,7 @@ def main( argv ):
     global target, image_type, node, proc, ddsuffix, file_path, output_path
     level = 'trace'
     symbol = ''
+    dumpFile = ''
     # Parse the command line arguments
     for opt, arg in opts:
         if opt in ('-h', '--help'):
@@ -638,8 +658,19 @@ def main( argv ):
             except:
                 print("output_path should a string path")
                 exit(1)
+        elif opt in ('-e', '--extract'):
+            try:
+                dumpFile = arg
+                assert os.path.exists(arg), "Did not find the dump file at,"+str(arg)
+            except:
+                print("dump file path should be a string path")
+                exit(1)
         elif opt in ('-s', '--symbol'):
             symbol = arg
+
+    if (dumpFile != '' ):
+        extractSbeDump(dumpFile)
+        exit()
 
     if(target != 'FILE'):
         # On cronus, save the existing FIFO mode
