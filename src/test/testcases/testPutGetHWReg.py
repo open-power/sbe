@@ -47,20 +47,25 @@ testHwRegUtil.putHWReg([0, 0, 0, 0], 0x000F001A, testHwRegUtil.getHWReg([0, 0, 0
 print("\nFIFO:II Test completed Successfully\n")
 
 print("********************FIFO:I OCMB SCOM******************************\n")
+
+print("Enable OCMBs\n")
+
+simics.SIM_run_command("set-class-attr i2c_ocmb_slave cmds_EXP_FW_STATUS 0x00030000")
+
 i_fifoType = 0
 # getHWReg success
-testHwRegUtil.getHWReg([0, 0x4, 0, 1], 0x02040064,i_fifoType)
+testHwRegUtil.getHWReg([0, 0x4, 0, 1], 0x00002134,i_fifoType)
 # putHWReg success
-testHwRegUtil.putHWReg([0, 0x4, 0, 1], 0x000F001A, testHwRegUtil.getHWReg([0, 0x4, 0, 1], 0x000F001A,i_fifoType), i_fifoType)
+testHwRegUtil.putHWReg([0, 0x4, 0, 1], 0x00002134, testHwRegUtil.getHWReg([0, 0x4, 0, 1], 0x00002134,i_fifoType), i_fifoType)
 
 print("\nFIFO:I Test completed Successfully\n")
 
 print("\n********************FIFO:II OCMB SCOM******************************\n")
 i_fifoType = 1
 # getHWReg success
-testHwRegUtil.getHWReg([0, 0x4, 0, 1], 0x02040064, i_fifoType)
+testHwRegUtil.getHWReg([0, 0x4, 0, 1], 0x00002134, i_fifoType)
 # putHWReg success
-testHwRegUtil.putHWReg([0, 0x4, 0, 1], 0x000F001A, testHwRegUtil.getHWReg([0, 0x4, 0, 1], 0x000F001A, i_fifoType), i_fifoType)
+testHwRegUtil.putHWReg([0, 0x4, 0, 1], 0x00002134, testHwRegUtil.getHWReg([0, 0x4, 0, 1], 0x00002134, i_fifoType), i_fifoType)
 
 print("\nFIFO:II Test completed Successfully\n")
 
