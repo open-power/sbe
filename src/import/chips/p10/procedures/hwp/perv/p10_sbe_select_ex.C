@@ -176,12 +176,6 @@ fapi2::ReturnCode p10_sbe_select_ex(
                            FAPI_SYSTEM,
                            l_attr_fused_mode));
 
-    // Set up multicast groups, MCGROUP_GOOD_CORES gets all EQs that
-    // are good according to ATTR_PG
-    FAPI_TRY(p10_perv_sbe_cmn_setup_multicast_groups(i_target,
-             SELECT_EX_MC_GROUPS),
-             "Error from p10_perv_sbe_cmn_setup_multicast_groups");
-
     if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
     {
         b_fused = true;

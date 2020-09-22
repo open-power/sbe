@@ -31,6 +31,7 @@
 // *HWP FW Maintainer   : Raja Das (rajadas2@in.ibm.com)
 // *HWP Consumed by     : FSP
 //------------------------------------------------------------------------------
+// EKB-Mirror-To: hw/ppe
 
 #ifndef _P10_SBE_CHECK_MASTER_H_
 #define _P10_SBE_CHECK_MASTER_H_
