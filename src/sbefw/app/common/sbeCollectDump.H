@@ -149,7 +149,6 @@ typedef struct
 
     uint32_t ffdcLen;
     uint64_t cpuCycles;
-    uint8_t  specialCase;
     fapi2::plat_target_handle_t tgtHndl;
 
     void tocHeaderInit(genericHdctRow_t* genericHdctRow)
@@ -242,6 +241,17 @@ class sbeCollectDump
          */
         inline bool dumpTypeCheck();
 
+        /*
+         * @brief Check if requested chip unit is present in the current HDCT row generic header.
+         *        allowed unit chip numbers like -c2..39 / -c2..39 /  -c1..31
+         *
+         * @param [in] i_target plat target handle for chip type number.
+         *
+         * @return bool true  if the chip unit is present in the current HDCT row.
+         *              false if the chip unit is not present in the current HDCT row.
+         */
+        bool isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target);
+
         /**
          * @brief Parse the single HDCT entry and populate the genericHDCTRow_t object.
          *
@@ -262,7 +272,15 @@ class sbeCollectDump
         uint32_t populateHDCTRowTOC();
 
        /**
-        * @brief Write dump data to the FIFO
+        * @brief Write get scom data to the FIFO.
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *         ERROR,    Incase of failure.
+        */
+        uint32_t writeGetScomPacketToFifo();
+
+       /**
+        * @brief Write DUMP data to the FIFO
         *
         * @return SUCCESS,  If chip-op is successful.
         *         ERROR,    Incase of failure.
