@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2020                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -21,48 +22,70 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include"sbeCollectDump.H"
+
+#include "sbeCollectDump.H"
+#include "fapi2.H"
 
 using namespace fapi2;
 
 //Constuctor for sbeCollectDump class.
-sbeCollectDump::sbeCollectDump(uint32_t dumpID, sbeFifoType type, uint32_t & errHndl)
+sbeCollectDump::sbeCollectDump(uint32_t i_dumpID, sbeFifoType i_type)
 {
+    #define SBE_FUNC " sbeCollectDump "
 
+    iv_dumpType = i_dumpID;
+    iv_fifoType = i_type;
+
+    #undef SBE_FUNC
 }
 
 //collectAllHDCTEntries()
-uint32_t collectAllHDCTEntries()
+uint32_t sbeCollectDump::collectAllHDCTEntries()
 {
+    #define SBE_FUNC " collectAllHDCTEntries "
+    SBE_ENTER(SBE_FUNC);
+
+    SBE_EXIT(SBE_FUNC);
     return 0;
+    #undef SBE_FUNC
 }
 
-//parserSingleHDCTEntry()
-uint32_t parserSingleHDCTEntry()
+uint32_t sbeCollectDump::parserSingleHDCTEntry()
 {
+    #define SBE_FUNC " parserSingleHDCTEntry "
+    SBE_ENTER(SBE_FUNC);
+
+
+    SBE_EXIT(SBE_FUNC);
     return 0;
+    #undef SBE_FUNC
 }
+
 
 //populateHDCTRowTOC()
-uint32_t populateHDCTRowTOC()
+uint32_t sbeCollectDump::populateHDCTRowTOC()
 {
+    #define SBE_FUNC " populateHDCTRowTOC "
+
+
     return 0;
+    #undef SBE_FUNC
 }
 
 //collectSingleEntry()
-uint32_t collectSingleEntry(uint8_t * data, uint32_t len)
+uint32_t sbeCollectDump::collectSingleEntry(uint8_t * i_data, uint32_t i_len)
 {
     return 0;
 }
 
 //writeDatatoFIFO()
-uint32_t writeDatatoFIFO(uint8_t * data, uint32_t len)
+uint32_t sbeCollectDump::writeDataToFIFO(uint8_t * i_data, uint32_t i_len)
 {
     return 0;
 }
 
 //checkHWStateofChipAndChiplets()
-bool checkHWStateofChipAndChiplets()
+bool sbeCollectDump::checkHWStateofChipAndChiplets()
 {
     return 0;
 }

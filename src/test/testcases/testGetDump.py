@@ -28,18 +28,31 @@ sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
 
 err = False
+i_fifoType = 0
+i_fifoType1 = 1
 
+#Dump Type - HB ; Clock State - OFF
 GETDUMP_TESTDATA = [0, 0, 0, 0x3,
                     0, 0, 0xAA, 0x01,
-                    0x40, 0, 0 ,0]
+                    0x00, 0, 0x02 ,0x05]
+
+#Dump Type - Invalid ; Clock State - OFF
+GETDUMP_INVALID_DUMP_TYPE_TESTDATA = [0, 0, 0, 0x3,
+                                      0, 0, 0xAA, 0x01,
+                                      0x00, 0, 0x02 ,0x0A]
+
+#Dump Type - Performance ; Clock State - Invalid
+GETDUMP_INVALID_CLOCK_STATE_TESTDATA = [0, 0, 0, 0x3,
+                                      0, 0, 0xAA, 0x01,
+                                      0x00, 0, 0x05 ,0x03]
 
 GETDUMP_EXPDATA =  [0xc0, 0xde, 0xAA, 0x01]
 
-def getDump(i_fifoType, expStatus = [0, 0, 0, 0]):
+def getDump(data, i_fifoType, expStatus = [0, 0, 0, 0]):
     testUtil.runCycles( 10000000 )
 
     #Get Dump chip-op test.
-    testUtil.writeUsFifo(GETDUMP_TESTDATA, i_fifoType)
+    testUtil.writeUsFifo(data, i_fifoType)
     testUtil.writeEot(i_fifoType)
 
     expData = GETDUMP_EXPDATA + expStatus
@@ -57,10 +70,24 @@ def getDump(i_fifoType, expStatus = [0, 0, 0, 0]):
     testUtil.readDsEntryReturnVal(i_fifoType)
     testUtil.readEot(i_fifoType)
 
-print("********************Get Dump******************************\n")
+def main():
+    print("********************Get Dump******************************\n")
 
-i_fifoType = 0
-getDump(i_fifoType, [0, 0, 0, 0])
-print("\n Test completed Successfully\n")
+    print("*****FIFO 0*****\n")
+    getDump(GETDUMP_INVALID_DUMP_TYPE_TESTDATA, i_fifoType, [0, 0x02, 0, 0x40])
+    getDump(GETDUMP_INVALID_CLOCK_STATE_TESTDATA, i_fifoType, [0, 0x02, 0, 0x19])
+    getDump(GETDUMP_TESTDATA, i_fifoType, [0, 0, 0, 0])
 
-#TODO: Enable it for second FIFO.
+    print("*****FIFO 1*****\n")
+    getDump(GETDUMP_INVALID_DUMP_TYPE_TESTDATA, i_fifoType1, [0, 0x02, 0, 0x40])
+    getDump(GETDUMP_INVALID_CLOCK_STATE_TESTDATA, i_fifoType1, [0, 0x02, 0, 0x19])
+    getDump(GETDUMP_TESTDATA, i_fifoType1, [0, 0, 0, 0])
+
+try:
+    main()
+except:
+    print ( "\nTest Suite completed with error(s)" )
+    testUtil.collectFFDC()
+    raise()
+
+print ( "\nTest Suite completed with no errors" )

@@ -184,6 +184,29 @@ enum sbeDumpCommands
 };
 
 /**
+ * @brief enum for sbe supported dump types
+ *
+*/
+enum sbeSupportedDumpTypes
+{
+    SBE_DUMP_TYPE_SCS   = 0x01, /* System Check Stop */
+    SBE_DUMP_TYPE_MPIPL = 0x02, /* Memory Preserving IPl */
+    SBE_DUMP_TYPE_PERF  = 0x03, /* Performance */
+    SBE_DUMP_TYPE_CCS   = 0x04, /* Core Check Stop */
+    SBE_DUMP_TYPE_HB    = 0x05, /* Host Boot */
+};
+
+/**
+ * @brief enum for sbe Dump clock state's
+ *
+*/
+enum sbeDumpClockStates
+{
+    SBE_DUMP_CLOCK_ON   = 0x01, /* Clock's ON  */
+    SBE_DUMP_CLOCK_OFF  = 0x02, /* Clock's OFF */
+};
+
+/**
  * @brief enums for primary SBE response
  *
 */
@@ -258,6 +281,7 @@ enum sbeSecondaryResponse
     SBE_SEC_STOP_CLOCK_FAILED                 = 0x37,
     SBE_SEC_OCMB_SCOM_FAILED                  = 0x38,
     SBE_SEC_GET_DUMP_FAILED                   = 0x39,
+    SBE_SEC_INVALID_DUMP_TYPE                 = 0x40,
 };
 
 /**
