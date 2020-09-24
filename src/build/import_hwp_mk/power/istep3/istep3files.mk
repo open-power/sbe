@@ -63,6 +63,7 @@ ISTEP3-CPP-SOURCES += p10_trace_nest_scom.C
 ISTEP3-CPP-SOURCES += p10_trace_pau_scom.C
 ISTEP3-CPP-SOURCES += p10_trace_pci_scom.C
 ISTEP3-CPP-SOURCES += p10_trace_perv_scom.C
+ISTEP3-CPP-SOURCES += p10_sbe_check_master.C
 
 ISTEP3-C-SOURCES =
 ISTEP3-S-SOURCES =

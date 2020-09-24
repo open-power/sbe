@@ -79,6 +79,7 @@
 #include <p10_sbe_select_ex.H>
 #include <p10_sbe_dts_init.H>
 #include <p10_sbe_chiplet_fir_init.H>
+#include <p10_sbe_check_master.H>
 
 // Core Cache HWP header files (istep 4)
 #include <p10_hcd_cache_poweron.H>
@@ -332,7 +333,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_scominit),
              ISTEP_MAP( istepLpcInit,  p10_sbe_lpc_init),
              ISTEP_MAP( istepWithProc, p10_sbe_fabricinit),
-             ISTEP_MAP( istepCheckSbeMaster, NULL),
+             ISTEP_MAP( istepCheckSbeMaster, p10_sbe_check_master),
              ISTEP_MAP( istepWithProc, p10_sbe_mcs_setup),
              ISTEP_MAP( istepSelectEx, p10_sbe_select_ex),
 #endif
@@ -839,9 +840,14 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
 {
     #define SBE_FUNC "istepCheckSbeMaster "
     ReturnCode rc = FAPI2_RC_SUCCESS;
-    
     do
     {
+        rc = istepWithProc(i_hwp);
+        if(rc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR("Failed in p10_sbe_check_master():rc=0x%.8x",rc);
+            break;
+        }
         g_sbeRole = SbeRegAccess::theSbeRegAccess().isSbeMaster() ?
                     SBE_ROLE_MASTER : SBE_ROLE_SLAVE;
         SBE_INFO(SBE_FUNC"Sbe role [%x]", g_sbeRole);
@@ -851,7 +857,6 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
                                             SBE_RUNTIME_EVENT);
         }
     }while(0);
-
     return rc;
     #undef SBE_FUNC
 }
