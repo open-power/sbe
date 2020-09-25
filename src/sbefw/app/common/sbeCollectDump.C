@@ -36,6 +36,14 @@ sbeCollectDump::sbeCollectDump(uint32_t i_dumpID, sbeFifoType i_type)
     iv_dumpType = i_dumpID;
     iv_fifoType = i_type;
 
+    //Get HDCT Xip section details
+    iv_hdctXipSecDetails.init();
+
+    //Parse the HDCT Xip section header
+    iv_hdctSectionHdr = (hdctSectionHdr_t*)iv_hdctXipSecDetails.startAddr;
+    SBE_DEBUG("EKB Commit ID: 0x%.8x%.8x ",
+        ((iv_hdctSectionHdr->ekbCommitId & 0xFFFFFFFF00000000ull) >> 32),(iv_hdctSectionHdr->ekbCommitId & 0xFFFFFFFF));
+
     #undef SBE_FUNC
 }
 

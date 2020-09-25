@@ -29,6 +29,79 @@
 #include<stdint.h>
 #include "sbefifo.H"
 #include "sbecmddump.H"
+#include "p10_ddco.H"
+
+//Struct with complete HDCT.bin header section
+//(HDCT XIP section Header + EKB Commit ID)
+typedef struct __attribute__((packed))
+{
+     DdContHeader_t hdctXipSectionHdr;
+     //TODO:Remove p9_dd_block once DdContHeader_t struct issue is fixed in ekb
+     struct p9_dd_block p9_dd_blk;
+     uint64_t ekbCommitId;
+}hdctSectionHdr_t;
+
+//Struct containing details of HDCT XIP section
+typedef struct
+{
+    uint32_t startAddr;
+    uint32_t size;
+    uint32_t endAddr;
+    uint32_t rowStartAddr;
+    uint32_t *currAddr;
+
+    /**
+     * @brief Get the HDCT Xip offset(Start location) from SBE Image.
+     *
+     * @return  HDCT Xip offset(Start location)
+     */
+    uint32_t getHdctXipOffset()
+    {
+#if defined DFT || defined PIBMEM_ONLY_IMAGE
+        uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
+#else
+        uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
+#endif
+        P9XipHeader* imgHdr = (P9XipHeader*)(base);
+        p9_xip_section_sbe_t sectionName = P9_XIP_SECTION_SBE_HDCT;
+        P9XipSection* pSection = &imgHdr->iv_section[sectionName];
+        return ( (uint32_t)base + pSection->iv_offset);
+    }
+
+    /**
+     * @brief Get the HDCT Xip Size.
+     *
+     * @return  HDCT Xip Size
+     */
+    uint32_t getHdctXipSize()
+    {
+#if defined DFT || defined PIBMEM_ONLY_IMAGE
+        uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
+#else
+        uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
+#endif
+        P9XipHeader* imgHdr = (P9XipHeader*)(base);
+        p9_xip_section_sbe_t sectionName = P9_XIP_SECTION_SBE_HDCT;
+        P9XipSection* pSection = &imgHdr->iv_section[sectionName];
+        return (pSection->iv_size);
+    }
+
+    /**
+     * @brief Init all members
+     */
+    void init()
+    {
+        startAddr = getHdctXipOffset();
+        size = getHdctXipSize();
+        endAddr = startAddr + size;
+        //Set pointer to start of HDCT row
+        currAddr = (uint32_t *)(startAddr + sizeof(hdctSectionHdr_t));
+
+        SBE_INFO("Start Offset: [0x%08X] Size: [0x%08X] End offset: [0x%08X] ",
+                startAddr,size,endAddr );
+    }
+
+}hdctXipSecDetails_t;
 
 class sbeCollectDump
 {
@@ -53,6 +126,9 @@ class sbeCollectDump
         uint64_t iv_cpuCycles; //CPU cycles to complete the chip-op.
 
         sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
+
+         hdctXipSecDetails_t iv_hdctXipSecDetails;
+         hdctSectionHdr_t *iv_hdctSectionHdr;
 
     public:
 
