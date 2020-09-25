@@ -30,6 +30,7 @@
 #include "sbefifo.H"
 #include "sbecmddump.H"
 #include "p10_ddco.H"
+#include "sbeDumpConstants.H"
 
 //Struct with complete HDCT.bin header section
 //(HDCT XIP section Header + EKB Commit ID)
@@ -117,8 +118,6 @@ class sbeCollectDump
             uint32_t dataLength;
         }genericRowTOC_t;
 
-        uint8_t iv_dumpType;    //Type of the dump requested
-
         genericRowTOC_t iv_tocRow;
 
         uint32_t *iv_buffer;   //Data or FFDC for each row.
@@ -127,8 +126,9 @@ class sbeCollectDump
 
         sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
 
-         hdctXipSecDetails_t iv_hdctXipSecDetails;
-         hdctSectionHdr_t *iv_hdctSectionHdr;
+        uint16_t iv_hdctDumpTypeMap; //Equivalent HDCT dump type wrt requested dump type.
+        hdctXipSecDetails_t iv_hdctXipSecDetails;
+        hdctSectionHdr_t *iv_hdctSectionHdr;
 
     public:
 

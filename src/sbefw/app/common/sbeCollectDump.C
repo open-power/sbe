@@ -33,7 +33,6 @@ sbeCollectDump::sbeCollectDump(uint32_t i_dumpID, sbeFifoType i_type)
 {
     #define SBE_FUNC " sbeCollectDump "
 
-    iv_dumpType = i_dumpID;
     iv_fifoType = i_type;
 
     //Get HDCT Xip section details
@@ -43,6 +42,10 @@ sbeCollectDump::sbeCollectDump(uint32_t i_dumpID, sbeFifoType i_type)
     iv_hdctSectionHdr = (hdctSectionHdr_t*)iv_hdctXipSecDetails.startAddr;
     SBE_DEBUG("EKB Commit ID: 0x%.8x%.8x ",
         ((iv_hdctSectionHdr->ekbCommitId & 0xFFFFFFFF00000000ull) >> 32),(iv_hdctSectionHdr->ekbCommitId & 0xFFFFFFFF));
+
+    //Get the equivalent HDCT dump type based on the requested Dump type
+    iv_hdctDumpTypeMap = getEquivDumpType(i_dumpID);
+    SBE_DEBUG("Dump Type Map is %x ", iv_hdctDumpTypeMap);
 
     #undef SBE_FUNC
 }
