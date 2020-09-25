@@ -244,8 +244,9 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     FAPI_TRY(fapi2::getScom(i_target_chip, proc::TP_TPCHIP_TPC_DPLL_CNTL_MISC_REGS_PFET, l_data64));
 
     // Pfet state for N1 : bit 25
-    FAPI_ASSERT((l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_NMMU_VDD_PFETS_ENABLED_SENSE_OUT_DC>() == (!
-                 (l_read_attr_pg_n1.getBit<17>()))) ,
+    FAPI_ASSERT((l_hw541221 != 0)
+                || (l_data64.getBit<perv::DPLL_CNTL_MISC_REGS_PFET_NMMU_VDD_PFETS_ENABLED_SENSE_OUT_DC>() == (!
+                        (l_read_attr_pg_n1.getBit<17>()))) ,
                 fapi2::STATIC_POWER_GATING_PFET_CNFG_ERR()
                 .set_MISC_PFET_REG(l_data64)
                 .set_CHIPLET_ID(l_n1.getChipletNumber())
@@ -330,7 +331,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
         }
 
         // Pfet state check
-        FAPI_ASSERT((pfet_val1 && pfet_val2) ,
+        FAPI_ASSERT((l_hw541221 != 0) || (pfet_val1 && pfet_val2) ,
                     fapi2::STATIC_POWER_GATING_PFET_CNFG_ERR()
                     .set_MISC_PFET_REG(l_data64)
                     .set_CHIPLET_ID(l_chipletID)
