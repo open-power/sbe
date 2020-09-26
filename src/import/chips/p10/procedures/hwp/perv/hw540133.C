@@ -35,6 +35,7 @@
 #include "p10_scan_via_scom.H"
 #include <p10_scom_perv.H>
 #include <p10_scom_proc.H>
+#include <p10_ring_id.H>
 
 namespace hw540133
 {
@@ -52,12 +53,13 @@ enum hw540133_PRIVATE_CONSTANTS
     BANDSEL_MAX = 15,
 };
 
-enum hw540133_wa_type
+enum pll_wa_type
 {
-    NO_WORKAROUND,             // accept HW calibration
-    CALIBRATED_BANDSEL_M1,     // force calibration to calibrated bandsel-1 (+1 if zero)
-    LAST_LOCKING_BANDSEL_M1,   // force calibration to last locking bandsel-1
-    LAST_LOCKING_BANDSEL,      // force calibration to last locking bandsel
+    NO_WORKAROUND,              // accept HW calibration
+    CALIBRATED_BANDSEL_M1,      // force calibration to calibrated bandsel-1 (+1 if zero)
+    LAST_LOCKING_BANDSEL_M1,    // force calibration to last locking bandsel-1
+    LAST_LOCKING_BANDSEL,       // force calibration to last locking bandsel
+    FIRST_LOCKING_BANDSEL_P1,   // force calibration to first locking bandsel+1
 };
 
 // Structure for reading/writing calibration status/settings
@@ -73,7 +75,7 @@ struct pll_cal
 // and where their calibration bits are on the ring
 struct pll_ring_settings
 {
-    hw540133_wa_type wa_type;            ///< Workaround algorithm to apply
+    pll_wa_type wa_type;                 ///< Workaround algorithm to apply
     uint64_t scan_region_type;           ///< Scan region & type of affected ring
     uint16_t nplls;                      ///< Number of PLLs to check on that ring
     uint16_t result_offsets[MAX_PLLS];   ///< Rotate counts for the scanning functions below;
@@ -390,6 +392,8 @@ fapi2::ReturnCode apply_workaround(
     fapi2::buffer<uint64_t> l_tp_lfir = 0;
     fapi2::buffer<uint64_t> l_tp_lfir_mask_restore = 0;
 
+    pll_wa_type l_wa_type = i_settings.wa_type;
+
 #ifdef __PPE__
 
     if (SBE::isSimicsRunning())
@@ -426,6 +430,7 @@ fapi2::ReturnCode apply_workaround(
     {
         fapi2::ReturnCode l_rc;
         pll_cal l_bands[MAX_PLLS];
+        uint32_t l_chiplet_id = l_chiplet_tgt.getChipletNumber();
 
         for (int i = 0; i < i_settings.nplls; i++)
         {
@@ -433,6 +438,25 @@ fapi2::ReturnCode apply_workaround(
             l_bands[i].load = false;
             l_bands[i].locked = false;
             l_bands[i].bandsel = 0;
+        }
+
+        // determine appropriate workaround to apply for MC PLLs
+        if ((l_chiplet_id >= 0xC) && (l_chiplet_id <= 0xF))
+        {
+            uint32_t l_idx = (l_chiplet_id - 0xC);
+            fapi2::ATTR_MC_PLL_BUCKET_Type l_mc_pll_bucket;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_PLL_BUCKET, l_chip_target, l_mc_pll_bucket),
+                     "Error from FAPI_ATTR_GET (ATTR_MC_PLL_BUCKET)");
+
+            // bucket 2 -> DR4-2667 = 1333 MHz mesh, 21.330 Gbps link
+            if (l_mc_pll_bucket[l_idx] == mc_pll_bndy_bucket_2)
+            {
+                l_wa_type = LAST_LOCKING_BANDSEL_M1;
+            }
+            else
+            {
+                l_wa_type = FIRST_LOCKING_BANDSEL_P1;
+            }
         }
 
         // confirm that PLL calibrates, return band selected by HW calibration
@@ -446,7 +470,7 @@ fapi2::ReturnCode apply_workaround(
             FAPI_DBG("PLL %d: %d", i, l_bands[i].bandsel);
         }
 
-        switch (i_settings.wa_type)
+        switch (l_wa_type)
         {
             case NO_WORKAROUND:
                 FAPI_DBG("Skipping all workarounds");
@@ -473,9 +497,105 @@ fapi2::ReturnCode apply_workaround(
 
                 break;
 
+            case FIRST_LOCKING_BANDSEL_P1:
+                FAPI_DBG("Executing FIRST_LOCKING_BANDSEL_P1 workaround")
+
+                for (int i = 0; i < i_settings.nplls; i++)
+                {
+                    // execute workaround sequence on only one PLL in each ring at a time
+                    // keep all previously adjusted PLLs in the ring with 'load' set to
+                    // maintain resolved setpoint
+                    FAPI_DBG("Begin adjusting PLL: %d", i);
+
+                    for (int j = 0; j <= i; j++)
+                    {
+                        l_bands[j].load = true;
+                    }
+
+                    // confirm that PLL locks just forcing calibrated band
+                    l_rc = force_band(l_chiplet_tgt, i_settings, l_bands);
+                    FAPI_ASSERT(l_rc == fapi2::FAPI2_RC_SUCCESS,
+                                fapi2::P10_HW540133_FLB_WA_ERR()
+                                .set_TARGET(l_chiplet_tgt)
+                                .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE)
+                                .set_FIRST_ATTEMPT(true)
+                                .set_INTERMEDIATE_STEP(false)
+                                .set_LAST_ATTEMPT(false)
+                                .set_WA_TYPE(l_wa_type),
+                                "Error from force_band (FIRST_LOCKING_BANDSEL, chiplet: %02d), first lock attempt",
+                                l_chiplet_tgt.getChipletNumber());
+
+                    FAPI_DBG("Locked when forced to calibrated band (%d)", l_bands[i].bandsel);
+
+                    // start at minimum, step bandsel up until we achieve lock
+                    for (l_bands[i].bandsel = BANDSEL_MIN; l_bands[i].bandsel < BANDSEL_MAX; l_bands[i].bandsel++)
+                    {
+                        FAPI_DBG("Attempting lock at bandsel %d...", l_bands[i].bandsel);
+                        l_rc = force_band(l_chiplet_tgt, i_settings, l_bands);
+
+                        if (l_rc == fapi2::FAPI2_RC_SUCCESS)
+                        {
+                            FAPI_DBG("Lock successful at bandsel: %d, exiting loop", l_bands[i].bandsel);
+                            break;
+                        }
+                        else if (l_rc == fapi2::FAPI2_RC_FALSE)
+                        {
+                            FAPI_DBG("Lock failed at at bandsel: %d, stepping up", l_bands[i].bandsel);
+                            continue;
+                        }
+
+                        FAPI_ASSERT(false,
+                                    fapi2::P10_HW540133_FLB_WA_ERR()
+                                    .set_TARGET(l_chiplet_tgt)
+                                    .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE)
+                                    .set_FIRST_ATTEMPT(false)
+                                    .set_INTERMEDIATE_STEP(true)
+                                    .set_LAST_ATTEMPT(false)
+                                    .set_WA_TYPE(l_wa_type),
+                                    "Error from force_band (FIRST_LOCKING_BANDSEL, chiplet: %02d), step sequence",
+                                    l_chiplet_tgt.getChipletNumber());
+                    }
+
+                    // confirm that we actually found lock in above loop
+                    FAPI_ASSERT(l_rc == fapi2::FAPI2_RC_SUCCESS,
+                                fapi2::P10_HW540133_FLB_WA_ERR()
+                                .set_TARGET(l_chiplet_tgt)
+                                .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE)
+                                .set_FIRST_ATTEMPT(false)
+                                .set_INTERMEDIATE_STEP(true)
+                                .set_LAST_ATTEMPT(false)
+                                .set_WA_TYPE(l_wa_type),
+                                "Error from force_band (FIRST_LOCKING_BANDSEL, chiplet: %02d), no lock found",
+                                l_chiplet_tgt.getChipletNumber());
+
+                    // perform final nudge if there is room to raise bandsel (if not, stay at max)
+                    if (l_bands[i].bandsel != BANDSEL_MAX)
+                    {
+                        l_bands[i].bandsel += 1;
+
+                        // confirm lock
+                        FAPI_DBG("Confirming final band selection (%d)", l_bands[i].bandsel);
+                        l_rc = force_band(l_chiplet_tgt, i_settings, l_bands);
+                        FAPI_ASSERT(l_rc == fapi2::FAPI2_RC_SUCCESS,
+                                    fapi2::P10_HW540133_FLB_WA_ERR()
+                                    .set_TARGET(l_chiplet_tgt)
+                                    .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE)
+                                    .set_FIRST_ATTEMPT(false)
+                                    .set_INTERMEDIATE_STEP(false)
+                                    .set_LAST_ATTEMPT(true)
+                                    .set_WA_TYPE(l_wa_type),
+                                    "Error from force_band (FIRST_LOCKING_BANDSEL, chiplet: %02d), last lock attempt",
+                                    l_chiplet_tgt.getChipletNumber());
+
+                        FAPI_DBG("End adjusting PLL: %d", i);
+                    }
+                }
+
+                break;
+
             case LAST_LOCKING_BANDSEL:
             case LAST_LOCKING_BANDSEL_M1:
-                FAPI_DBG("Executing LAST_LOCKING_BANDSEL workaround (%d)", i_settings.wa_type);
+                FAPI_DBG("Executing LAST_LOCKING_BANDSEL workaround (%d)", l_wa_type);
 
                 for (int i = 0; i < i_settings.nplls; i++)
                 {
@@ -498,7 +618,7 @@ fapi2::ReturnCode apply_workaround(
                                 .set_FIRST_ATTEMPT(true)
                                 .set_INTERMEDIATE_STEP(false)
                                 .set_LAST_ATTEMPT(false)
-                                .set_WA_TYPE(i_settings.wa_type),
+                                .set_WA_TYPE(l_wa_type),
                                 "Error from force_band (LAST_LOCKING_BANDSEL, chiplet: %02d), first lock attempt",
                                 l_chiplet_tgt.getChipletNumber());
 
@@ -529,7 +649,7 @@ fapi2::ReturnCode apply_workaround(
                                     .set_FIRST_ATTEMPT(false)
                                     .set_INTERMEDIATE_STEP(true)
                                     .set_LAST_ATTEMPT(false)
-                                    .set_WA_TYPE(i_settings.wa_type),
+                                    .set_WA_TYPE(l_wa_type),
                                     "Error from force_band (LAST_LOCKING_BANDSEL, chiplet: %02d), step sequence",
                                     l_chiplet_tgt.getChipletNumber());
                     }
@@ -537,7 +657,7 @@ fapi2::ReturnCode apply_workaround(
                     // if last adjustment failed to lock, back off
                     if (l_rc == fapi2::FAPI2_RC_FALSE)
                     {
-                        if (i_settings.wa_type == LAST_LOCKING_BANDSEL_M1)
+                        if (l_wa_type == LAST_LOCKING_BANDSEL_M1)
                         {
                             if (l_bands[i].bandsel < 2)
                             {
@@ -570,7 +690,7 @@ fapi2::ReturnCode apply_workaround(
                                 .set_FIRST_ATTEMPT(false)
                                 .set_INTERMEDIATE_STEP(false)
                                 .set_LAST_ATTEMPT(true)
-                                .set_WA_TYPE(i_settings.wa_type),
+                                .set_WA_TYPE(l_wa_type),
                                 "Error from force_band (LAST_LOCKING_BANDSEL, chiplet: %02d), last lock attempt",
                                 l_chiplet_tgt.getChipletNumber());
 
@@ -583,7 +703,7 @@ fapi2::ReturnCode apply_workaround(
                 FAPI_ASSERT(false,
                             fapi2::P10_HW540133_WORKAROUND_ERR()
                             .set_TARGET(l_chiplet_tgt)
-                            .set_WORKAROUND_TYPE(i_settings.wa_type),
+                            .set_WORKAROUND_TYPE(l_wa_type),
                             "Unsupported HW540133 workaround selection!");
         }
     }
