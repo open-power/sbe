@@ -27,7 +27,17 @@
 #define __SBEFW_SBEDUMPCONSTANTS_H
 
 #include<stdint.h>
+#include<stddef.h>
 #include "sbe_sp_intf.H"
+
+#define NO_OF_CMD_TYPES CMD_END
+#define CMD_TYPE_NOT_USED 0
+
+//Get the size of the structure member
+#define member_size(type, member) sizeof(((type *)0)->member)
+//Get the size of the HDCT row for each command type
+//(Sizeof(genericHdr) + sizeof(cmdTypeStruct))
+#define genericHdctRowSize(type, member) (member_size(genericHdctRow_t, genericHdr) + member_size(type, member))
 
 //Dump types(Dump types encoded as in HDCT.bin)
 enum dumpTypes
@@ -95,6 +105,7 @@ enum commandTypes
     CMD_GETFASTARRAY = 0x0C,
     CMD_GETMEMPBA = 0x0D,
     CMD_GETSRAM = 0x0E,
+    CMD_END,
 };
 
 //Bit Modifiers incase of putscom
@@ -105,6 +116,78 @@ enum bitModifier
     B_AND = 0x02,
 };
 
+// Generic Structre for each HDCT row.
+typedef struct __attribute__((packed))
+{
+    struct __attribute__((packed))
+    {
+        uint32_t chipUnitType:6;
+        uint32_t chipletStart:6;
+        uint32_t chipletEnd:6;
+        uint32_t command:4;
+        uint32_t dumpContent:10;
+    }genericHdr;
+
+    union
+    {
+        struct __attribute__((packed))
+        {
+            uint32_t addr;
+        }cmdGetScom;
+
+        struct __attribute__((packed))
+        {
+            uint32_t addr;
+            uint64_t value;
+            struct __attribute__((packed))
+            {
+            uint32_t reserved:28;
+            uint32_t bitModifier:4;
+            }extGenericHdr;
+        }cmdPutScom;
+
+        struct __attribute__((packed))
+        {
+            uint32_t strEqvHash32;
+            uint32_t ringAddr;
+            uint32_t ringLen;
+        }cmdGetRing;
+
+        struct __attribute__((packed))
+        {
+            uint32_t addr;
+            uint64_t value;
+        }cmdGetMemPba;
+
+        struct __attribute__((packed))
+        {
+            uint32_t addr;
+            uint64_t value;
+            struct __attribute__((packed))
+            {
+                uint32_t reserved:28;
+                uint32_t mode:4;
+            }extGenericHdr;
+        }cmdGetSram;
+
+        struct __attribute__((packed))
+        {
+            uint32_t strEqvHash32;
+            uint32_t controlSet;
+        }cmdFastArray;
+
+        struct __attribute__((packed))
+        {
+            uint32_t strEqvHash32;
+        }cmdStopClocks;
+
+        struct __attribute__((packed))
+        {
+            uint32_t strEqvHash32;
+        }cmdTraceArray;
+    };
+
+}genericHdctRow_t;
 
 //Struct to map requested/sbe_Supported dump type(e-bmc/fsp) enum with HDCT dump types enum
 struct _dumpTypeMap_t
@@ -113,14 +196,16 @@ struct _dumpTypeMap_t
     dumpTypes hdctDumpType;
 
 };
-typedef struct _dumpTypeMap_t DUMPTYPEMAP ;
-
+typedef struct _dumpTypeMap_t DUMPTYPEMAP;
 
 /*
- * @brief Map the requested dump type with equivalent HDCT dump type.
+ * @brief Get the equivalent HDCT dump type based on the requested dump type
+ * from DUMPTYPEMAP
  *        eg Checkstop, HB, MPIPL.
  *
- * @return void
+ * @param [in] reqDumpType FSP/EBMC requested dump type
+ *
+ * @return HDCT equivalent dump type from DUMPTYPEMAP
  */
 uint16_t getEquivDumpType(uint8_t reqDumpType);
 

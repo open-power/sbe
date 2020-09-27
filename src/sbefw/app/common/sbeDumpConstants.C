@@ -33,6 +33,27 @@ DUMPTYPEMAP dumpTypeMap[5] = {
     {SBE_DUMP_TYPE_HB , DUMP_TYPE_HB}
 };
 
+//Index mapped table wrt commandTypes enum for storing the size of the genericHdctRow_t
+//for a particular command type.
+//Write NULL for commands that are not used in HDCT.txt
+size_t genericHdctRowSize_table[NO_OF_CMD_TYPES] = {
+    CMD_TYPE_NOT_USED,
+    genericHdctRowSize(genericHdctRow_t,cmdGetScom),
+    genericHdctRowSize(genericHdctRow_t,cmdPutScom),
+    CMD_TYPE_NOT_USED,
+    CMD_TYPE_NOT_USED,
+    genericHdctRowSize(genericHdctRow_t,cmdGetRing),
+    CMD_TYPE_NOT_USED,
+    genericHdctRowSize(genericHdctRow_t,cmdStopClocks),
+    CMD_TYPE_NOT_USED,
+    CMD_TYPE_NOT_USED,
+    CMD_TYPE_NOT_USED,
+    genericHdctRowSize(genericHdctRow_t,cmdTraceArray),
+    genericHdctRowSize(genericHdctRow_t,cmdFastArray),
+    genericHdctRowSize(genericHdctRow_t,cmdGetMemPba),
+    genericHdctRowSize(genericHdctRow_t,cmdGetSram)
+};
+
 uint16_t getEquivDumpType(uint8_t reqDumpType)
 {
     #define SBE_FUNC " getEquivDumpType "
@@ -51,4 +72,3 @@ uint16_t getEquivDumpType(uint8_t reqDumpType)
     return hdctDumpTypeMap;
     #undef SBE_FUNC
 }
-
