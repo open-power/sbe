@@ -32,6 +32,8 @@
 #include "p10_ddco.H"
 #include "sbeDumpConstants.H"
 
+extern size_t genericHdctRowSize_table[NO_OF_CMD_TYPES];
+
 //Struct with complete HDCT.bin header section
 //(HDCT XIP section Header + EKB Commit ID)
 typedef struct __attribute__((packed))
@@ -48,8 +50,7 @@ typedef struct
     uint32_t startAddr;
     uint32_t size;
     uint32_t endAddr;
-    uint32_t rowStartAddr;
-    uint32_t *currAddr;
+    uint32_t currAddr;
 
     /**
      * @brief Get the HDCT Xip offset(Start location) from SBE Image.
@@ -95,8 +96,8 @@ typedef struct
         startAddr = getHdctXipOffset();
         size = getHdctXipSize();
         endAddr = startAddr + size;
-        //Set pointer to start of HDCT row
-        currAddr = (uint32_t *)(startAddr + sizeof(hdctSectionHdr_t));
+        //Set currAddr to start of HDCT row
+        currAddr = startAddr + sizeof(hdctSectionHdr_t);
 
         SBE_INFO("Start Offset: [0x%08X] Size: [0x%08X] End offset: [0x%08X] ",
                 startAddr,size,endAddr );
@@ -118,6 +119,7 @@ class sbeCollectDump
             uint32_t dataLength;
         }genericRowTOC_t;
 
+        genericHdctRow_t *iv_hdctRow;
         genericRowTOC_t iv_tocRow;
 
         uint32_t *iv_buffer;   //Data or FFDC for each row.
@@ -125,6 +127,7 @@ class sbeCollectDump
         uint64_t iv_cpuCycles; //CPU cycles to complete the chip-op.
 
         sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
+        uint8_t iv_clockState;    //Dump collection clock state(ON or OFF)
 
         uint16_t iv_hdctDumpTypeMap; //Equivalent HDCT dump type wrt requested dump type.
         hdctXipSecDetails_t iv_hdctXipSecDetails;
@@ -135,10 +138,11 @@ class sbeCollectDump
         /**
          * @brief Constructor for the class sbeCollectDump
          *
-         * @param [in] dumpID  The id of the dumpType.
-         * @param [in] type    sbe fifo type.
+         * @param [in] dumpID      The id of the dumpType.
+         * @param [in] type        sbe fifo type.
+         * @param [in] clockState  Dump collection clock state.(ON or OFF)
          */
-        sbeCollectDump(uint32_t i_dumpID, sbeFifoType i_type);
+        sbeCollectDump(uint8_t i_dumpID, sbeFifoType i_type, uint8_t i_clockState);
 
         /**
          * @brief Collect the data for all the entries present in HDCT.
@@ -150,6 +154,14 @@ class sbeCollectDump
         uint32_t collectAllHDCTEntries();
 
     private:
+
+        /*
+         * @brief Check if requested dump type is present in the current HDCT row generic header.
+         *        eg Checkstop, HB, MPIPL.
+         * @return bool true  if the dumpType is present in the current HDCT row generic header.
+         *              false if the dumpType is not present in the current HDCT row generic header.
+         */
+        inline bool dumpTypeCheck();
 
         /**
          * @brief Parse the single HDCT entry and populate the genericHDCTRow_t object.

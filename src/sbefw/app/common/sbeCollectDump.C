@@ -29,19 +29,18 @@
 using namespace fapi2;
 
 //Constuctor for sbeCollectDump class.
-sbeCollectDump::sbeCollectDump(uint32_t i_dumpID, sbeFifoType i_type)
+sbeCollectDump::sbeCollectDump(uint8_t i_dumpID, sbeFifoType i_type, uint8_t i_clockState)
 {
     #define SBE_FUNC " sbeCollectDump "
 
     iv_fifoType = i_type;
+    iv_clockState = i_clockState;
 
     //Get HDCT Xip section details
     iv_hdctXipSecDetails.init();
 
     //Parse the HDCT Xip section header
     iv_hdctSectionHdr = (hdctSectionHdr_t*)iv_hdctXipSecDetails.startAddr;
-    SBE_DEBUG("EKB Commit ID: 0x%.8x%.8x ",
-        ((iv_hdctSectionHdr->ekbCommitId & 0xFFFFFFFF00000000ull) >> 32),(iv_hdctSectionHdr->ekbCommitId & 0xFFFFFFFF));
 
     //Get the equivalent HDCT dump type based on the requested Dump type
     iv_hdctDumpTypeMap = getEquivDumpType(i_dumpID);
@@ -50,11 +49,24 @@ sbeCollectDump::sbeCollectDump(uint32_t i_dumpID, sbeFifoType i_type)
     #undef SBE_FUNC
 }
 
+inline bool sbeCollectDump::dumpTypeCheck()
+{
+    return (iv_hdctRow->genericHdr.dumpContent & iv_hdctDumpTypeMap);
+}
+
 //collectAllHDCTEntries()
 uint32_t sbeCollectDump::collectAllHDCTEntries()
 {
     #define SBE_FUNC " collectAllHDCTEntries "
     SBE_ENTER(SBE_FUNC);
+
+    while(sbeCollectDump::parserSingleHDCTEntry())
+    {
+        SBE_DEBUG("Collecting Data");
+
+        //TODO call chipop wrapper functions in here
+        //TODO call streamer function etc
+    }
 
     SBE_EXIT(SBE_FUNC);
     return 0;
@@ -66,12 +78,32 @@ uint32_t sbeCollectDump::parserSingleHDCTEntry()
     #define SBE_FUNC " parserSingleHDCTEntry "
     SBE_ENTER(SBE_FUNC);
 
+    do
+    {
+        if(iv_hdctXipSecDetails.currAddr < iv_hdctXipSecDetails.endAddr)
+        {
+            //Parse single HDCT row and populate genericHdctRow_t struct
+            iv_hdctRow = (genericHdctRow_t*)iv_hdctXipSecDetails.currAddr;
+            if(genericHdctRowSize_table[(uint8_t)(iv_hdctRow->genericHdr.command)] == CMD_TYPE_NOT_USED)
+            {
+                SBE_ERROR("Unknown command type: %X",(uint8_t) iv_hdctRow->genericHdr.command);
+                SBE_ERROR("Error in parsing HDCT.bin");
+                return false;
+            }
+            //Increament the current address to point to the next HDCT row
+            iv_hdctXipSecDetails.currAddr = iv_hdctXipSecDetails.currAddr + genericHdctRowSize_table[(uint8_t)(iv_hdctRow->genericHdr.command)];
+        }
+        else
+        {
+            SBE_INFO("All HDCT entries parsed");
+            return false;
+        }
+    }while(!(sbeCollectDump::dumpTypeCheck()));
 
     SBE_EXIT(SBE_FUNC);
-    return 0;
+    return true;
     #undef SBE_FUNC
 }
-
 
 //populateHDCTRowTOC()
 uint32_t sbeCollectDump::populateHDCTRowTOC()

@@ -55,7 +55,7 @@ uint32_t sbeGetDump( uint8_t *i_pArg )
     {
         chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
         fifoType = static_cast<sbeFifoType>(configStr->fifoType);
-        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",fifoType);
 
         // Will attempt to dequeue an entry for the dump Type plus
         // the expected EOT entry at the end.
@@ -82,7 +82,7 @@ uint32_t sbeGetDump( uint8_t *i_pArg )
         }
 
         //Create the sbeCollectDump object.
-        sbeCollectDump dumpObj(msg.dumpType, fifoType);
+        sbeCollectDump dumpObj(msg.dumpType, fifoType, msg.clockState);
 
         //Call collectAllEntries.
         rc = dumpObj.collectAllHDCTEntries();
