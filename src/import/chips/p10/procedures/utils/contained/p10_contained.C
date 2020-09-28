@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -164,6 +164,9 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                 RINGSPIN_EC_SWITCH_CASE(10, ec_l3_func_restore_active_l3,
                                         perv, scan_region_type, backing_ctl_reg,
                                         mode_reg1)
+                RINGSPIN_EC_SWITCH_CASE(20, ec_l3_func_restore_active_l3,
+                                        perv, scan_region_type, backing_ctl_reg,
+                                        mode_reg1)
                 default:
                     FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
                              " PROCEDURE=ec_l3_func_restore_backing_l3", ec);
@@ -189,6 +192,9 @@ fapi2::ReturnCode restore_l3_config(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                 {
                 // *INDENT-OFF*
                 RINGSPIN_EC_SWITCH_CASE(10, ec_l3_func_restore_backing_l3,
+                                        perv, scan_region_type, mode_reg0,
+                                        mode_reg1)
+                RINGSPIN_EC_SWITCH_CASE(20, ec_l3_func_restore_backing_l3,
                                         perv, scan_region_type, mode_reg0,
                                         mode_reg1)
                 default:
@@ -237,6 +243,16 @@ static fapi2::ReturnCode set_core_thread_sresets(const fapi2::Target<fapi2::TARG
     {
     // *INDENT-OFF*
     RINGSPIN_EC_SWITCH_CASE(10, ec_cl2_func_set_thread_sreset,
+                            perv, scan_region_type,
+                            (uint64_t)((i_thread_sreset_bvec & 0x80) != 0) << 63,
+                            (uint64_t)((i_thread_sreset_bvec & 0x80) != 0) << 63,
+                            (uint64_t)((i_thread_sreset_bvec & 0x40) != 0) << 62,
+                            (uint64_t)((i_thread_sreset_bvec & 0x40) != 0) << 63,
+                            (uint64_t)((i_thread_sreset_bvec & 0x20) != 0) << 61,
+                            (uint64_t)((i_thread_sreset_bvec & 0x20) != 0) << 63,
+                            (uint64_t)((i_thread_sreset_bvec & 0x10) != 0) << 60,
+                            (uint64_t)((i_thread_sreset_bvec & 0x10) != 0) << 63)
+    RINGSPIN_EC_SWITCH_CASE(20, ec_cl2_func_set_thread_sreset,
                             perv, scan_region_type,
                             (uint64_t)((i_thread_sreset_bvec & 0x80) != 0) << 63,
                             (uint64_t)((i_thread_sreset_bvec & 0x80) != 0) << 63,
@@ -375,6 +391,8 @@ fapi2::ReturnCode disable_sreset_on_decr(const fapi2::Target<fapi2::TARGET_TYPE_
             // *INDENT-OFF*
             RINGSPIN_EC_SWITCH_CASE(10, ec_cl2_mode_disable_core_sreset,
                                     perv, scan_region_type, 0, 0)
+            RINGSPIN_EC_SWITCH_CASE(20, ec_cl2_mode_disable_core_sreset,
+                                    perv, scan_region_type, 0, 0)
             default:
                 FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
                          " PROCEDURE=ec_cl2_mode_disable_core_sreset", ec);
@@ -465,6 +483,10 @@ fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
         {
         // *INDENT-OFF*
         RINGSPIN_EC_SWITCH_CASE(10, ec_cl2_func_set_runn_seed,
+                                perv, scan_region_type,
+                                thread_seeds[0], thread_seeds[1],
+                                thread_seeds[2], thread_seeds[3])
+        RINGSPIN_EC_SWITCH_CASE(20, ec_cl2_func_set_runn_seed,
                                 perv, scan_region_type,
                                 thread_seeds[0], thread_seeds[1],
                                 thread_seeds[2], thread_seeds[3])

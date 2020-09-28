@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -1226,6 +1226,1072 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 }// namespace ec10
+
+namespace ec20 {
+static inline fapi2::ReturnCode ec_l3_func_restore_active_l3(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
+    const uint64_t i_scan_region_type,
+    const uint64_t i_ecp_l3_l3_misc_l3cerrs_backing_l3_ctl_reg,
+    const uint64_t i_ecp_l3_l3_misc_l3cerrs_mode_reg1)
+{
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // ---
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 15326, tmp));
+        tmp &= 0x00000003ffffffffull;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[10:10]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0020000000000000) >> 53) ^ 0b1) << 63;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[26:26]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000002000000000) >> 37) ^ 0b1) << 62;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[21:21]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000040000000000) >> 42) ^ 0b1) << 61;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[32:32]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000080000000) >> 31) ^ 0b1) << 60;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[29:29]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000400000000) >> 34) ^ 0b1) << 59;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[9:9]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0040000000000000) >> 54) ^ 0b1) << 58;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[28:28]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000800000000) >> 35) ^ 0b1) << 57;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[16:16]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000800000000000) >> 47) ^ 0b1) << 56;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[20:20]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000080000000000) >> 43) ^ 0b1) << 55;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[23:24]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000018000000000) >> 39) ^ 0b11;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 53) | (((x & 0x0000000000000001ull) >> 0) << 54);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[17:17]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000400000000000) >> 46) ^ 0b1) << 52;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[14:14]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0002000000000000) >> 49) ^ 0b1) << 51;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[11:11]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0010000000000000) >> 52) ^ 0b1) << 50;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[7:8]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0180000000000000) >> 55) ^ 0b11;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 48) | (((x & 0x0000000000000001ull) >> 0) << 49);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[0:0]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x8000000000000000) >> 63) ^ 0b0) << 47;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[33:33]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000040000000) >> 30) ^ 0b1) << 46;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[35:35]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000010000000) >> 28) ^ 0b1) << 45;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[25:25]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000004000000000) >> 38) ^ 0b1) << 44;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[27:27]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000001000000000) >> 36) ^ 0b1) << 43;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[31:31]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000100000000) >> 32) ^ 0b1) << 42;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[22:22]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000020000000000) >> 41) ^ 0b1) << 41;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[15:15]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0001000000000000) >> 48) ^ 0b1) << 40;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[18:18]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000200000000000) >> 45) ^ 0b1) << 39;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[12:12]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0008000000000000) >> 51) ^ 0b1) << 38;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[30:30]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000200000000) >> 33) ^ 0b1) << 37;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[13:13]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0004000000000000) >> 50) ^ 0b1) << 36;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[38:38]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000002000000) >> 25) ^ 0b0) << 35;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[6:6]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0200000000000000) >> 57) ^ 0b1) << 34;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 555, tmp));
+        tmp &= 0x0ffffffffffff83full;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[34:34]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000020000000) >> 29) ^ 0b1) << 63;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[36:37]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x000000000c000000) >> 26) ^ 0b11;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 61) | (((x & 0x0000000000000001ull) >> 0) << 62);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[19:19]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000100000000000) >> 44) ^ 0b1) << 60;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[1:1]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x4000000000000000) >> 62) ^ 0b0) << 10;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[2:4]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x3800000000000000) >> 59) ^ 0b000;
+            tmp |= (((x & 0x0000000000000004ull) >> 2) << 7) | (((x & 0x0000000000000002ull) >> 1) << 8) | (((x & 0x0000000000000001ull) >> 0) << 9);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[5:5]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0400000000000000) >> 58) ^ 0b0) << 6;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 24991, tmp));
+        tmp &= 0x0fffffffffffffffull;
+        // ECP.L3.L3_MISC.L3CERRS.BACKING_L3_CTL_REG[0:0]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_backing_l3_ctl_reg & 0x8000000000000000) >> 63) ^ 0b0) << 63;
+        // ECP.L3.L3_MISC.L3CERRS.BACKING_L3_CTL_REG[3:3]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_backing_l3_ctl_reg & 0x1000000000000000) >> 60) ^ 0b0) << 62;
+        // ECP.L3.L3_MISC.L3CERRS.BACKING_L3_CTL_REG[1:2]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_backing_l3_ctl_reg & 0x6000000000000000) >> 61) ^ 0b00) << 60;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        FAPI_TRY(svs::rotate(i_cplt, 16300, tmp));
+    }
+    // ---
+
+    if (tmp != 0x00BAD666BAD66600) {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+}// namespace ec20
+
+namespace ec20 {
+static inline fapi2::ReturnCode ec_l3_func_restore_backing_l3(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
+    const uint64_t i_scan_region_type,
+    const uint64_t i_ecp_l3_l3_misc_l3cerrs_mode_reg0,
+    const uint64_t i_ecp_l3_l3_misc_l3cerrs_mode_reg1)
+{
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // ---
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 15326, tmp));
+        tmp &= 0x00000003ffffffffull;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[10:10]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0020000000000000) >> 53) ^ 0b1) << 63;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[26:26]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000002000000000) >> 37) ^ 0b1) << 62;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[21:21]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000040000000000) >> 42) ^ 0b1) << 61;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[32:32]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000080000000) >> 31) ^ 0b1) << 60;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[29:29]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000400000000) >> 34) ^ 0b1) << 59;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[9:9]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0040000000000000) >> 54) ^ 0b1) << 58;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[28:28]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000800000000) >> 35) ^ 0b1) << 57;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[16:16]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000800000000000) >> 47) ^ 0b1) << 56;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[20:20]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000080000000000) >> 43) ^ 0b1) << 55;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[23:24]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000018000000000) >> 39) ^ 0b11;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 53) | (((x & 0x0000000000000001ull) >> 0) << 54);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[17:17]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000400000000000) >> 46) ^ 0b1) << 52;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[14:14]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0002000000000000) >> 49) ^ 0b1) << 51;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[11:11]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0010000000000000) >> 52) ^ 0b1) << 50;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[7:8]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0180000000000000) >> 55) ^ 0b11;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 48) | (((x & 0x0000000000000001ull) >> 0) << 49);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[0:0]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x8000000000000000) >> 63) ^ 0b0) << 47;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[33:33]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000040000000) >> 30) ^ 0b1) << 46;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[35:35]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000010000000) >> 28) ^ 0b1) << 45;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[25:25]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000004000000000) >> 38) ^ 0b1) << 44;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[27:27]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000001000000000) >> 36) ^ 0b1) << 43;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[31:31]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000100000000) >> 32) ^ 0b1) << 42;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[22:22]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000020000000000) >> 41) ^ 0b1) << 41;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[15:15]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0001000000000000) >> 48) ^ 0b1) << 40;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[18:18]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000200000000000) >> 45) ^ 0b1) << 39;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[12:12]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0008000000000000) >> 51) ^ 0b1) << 38;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[30:30]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000200000000) >> 33) ^ 0b1) << 37;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[13:13]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0004000000000000) >> 50) ^ 0b1) << 36;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[38:38]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000002000000) >> 25) ^ 0b0) << 35;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[6:6]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0200000000000000) >> 57) ^ 0b1) << 34;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 555, tmp));
+        tmp &= 0x0ffffffffffff83full;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[34:34]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000000020000000) >> 29) ^ 0b1) << 63;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[36:37]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x000000000c000000) >> 26) ^ 0b11;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 61) | (((x & 0x0000000000000001ull) >> 0) << 62);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[19:19]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0000100000000000) >> 44) ^ 0b1) << 60;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[1:1]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x4000000000000000) >> 62) ^ 0b0) << 10;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[2:4]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x3800000000000000) >> 59) ^ 0b000;
+            tmp |= (((x & 0x0000000000000004ull) >> 2) << 7) | (((x & 0x0000000000000002ull) >> 1) << 8) | (((x & 0x0000000000000001ull) >> 0) << 9);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG1[5:5]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg1 & 0x0400000000000000) >> 58) ^ 0b0) << 6;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 10324, tmp));
+        tmp &= 0x0000000007ffffffull;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[5:5]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0400000000000000) >> 58) ^ 0b0) << 63;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[31:31]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000000100000000) >> 32) ^ 0b0) << 62;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[3:3]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x1000000000000000) >> 60) ^ 0b0) << 61;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[14:14]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0002000000000000) >> 49) ^ 0b1) << 60;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[36:36]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000000008000000) >> 27) ^ 0b0) << 59;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[1:1]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x4000000000000000) >> 62) ^ 0b1) << 58;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[34:34]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000000020000000) >> 29) ^ 0b0) << 57;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[22:22]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000020000000000) >> 41) ^ 0b0) << 56;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[33:33]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000000040000000) >> 30) ^ 0b0) << 55;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[30:30]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000000200000000) >> 33) ^ 0b0) << 54;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[35:35]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000000010000000) >> 28) ^ 0b0) << 53;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[11:11]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0010000000000000) >> 52) ^ 0b0) << 52;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[2:2]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x2000000000000000) >> 61) ^ 0b0) << 51;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[6:6]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0200000000000000) >> 57) ^ 0b0) << 50;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[12:12]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0008000000000000) >> 51) ^ 0b0) << 49;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[7:7]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0100000000000000) >> 56) ^ 0b0) << 48;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[4:4]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0800000000000000) >> 59) ^ 0b0) << 47;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[8:8]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0080000000000000) >> 55) ^ 0b0) << 46;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[17:17]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000400000000000) >> 46) ^ 0b0) << 45;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[13:13]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0004000000000000) >> 50) ^ 0b0) << 44;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[0:0]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x8000000000000000) >> 63) ^ 0b0) << 43;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[9:9]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0040000000000000) >> 54) ^ 0b1) << 42;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[18:19]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000300000000000) >> 44) ^ 0b10) << 40;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[24:25]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x000000c000000000) >> 38) ^ 0b00) << 38;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[27:27]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000001000000000) >> 36) ^ 0b0) << 37;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[10:10]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0020000000000000) >> 53) ^ 0b0) << 36;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[32:32]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000000080000000) >> 31) ^ 0b0) << 35;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[26:26]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000002000000000) >> 37) ^ 0b0) << 34;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[28:29]
+        {
+            uint64_t x = ((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000000c00000000) >> 34) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 32) | (((x & 0x0000000000000001ull) >> 0) << 33);
+        }
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[15:16]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0001800000000000) >> 47) ^ 0b00) << 30;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[21:21]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000040000000000) >> 42) ^ 0b0) << 29;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[23:23]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000010000000000) >> 40) ^ 0b0) << 28;
+        // ECP.L3.L3_MISC.L3CERRS.MODE_REG0[20:20]
+        tmp |= (((i_ecp_l3_l3_misc_l3cerrs_mode_reg0 & 0x0000080000000000) >> 43) ^ 0b0) << 27;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        FAPI_TRY(svs::rotate(i_cplt, 30967, tmp));
+    }
+    // ---
+
+    if (tmp != 0x00BAD666BAD66600) {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+}// namespace ec20
+
+namespace ec20 {
+static inline fapi2::ReturnCode ec_cl2_mode_disable_core_sreset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
+    const uint64_t i_scan_region_type,
+    const uint64_t i_ecp_ec_pc_pmc_decr_extended_func,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_decr_extended_func)
+{
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // ---
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 12306, tmp));
+        tmp &= 0x7fffffffffffffffull;
+        // ECP.EC.PC.THRCTL.TCTLCOM.DECR_EXTENDED_FUNC[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_decr_extended_func & 0x8000000000000000) >> 63) ^ 0b0) << 63;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 9767, tmp));
+        tmp &= 0x7fffffffffffffffull;
+        // ECP.EC.PC.PMC.DECR_EXTENDED_FUNC[0:0]
+        tmp |= (((i_ecp_ec_pc_pmc_decr_extended_func & 0x8000000000000000) >> 63) ^ 0b0) << 63;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        FAPI_TRY(svs::rotate(i_cplt, 14958, tmp));
+    }
+    // ---
+
+    if (tmp != 0x00BAD666BAD66600) {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+}// namespace ec20
+
+namespace ec20 {
+static inline fapi2::ReturnCode ec_cl2_func_set_runn_seed(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
+    const uint64_t i_scan_region_type,
+    const uint64_t i_ecp_ec_pc_pmu_t0_sier,
+    const uint64_t i_ecp_ec_pc_pmu_t1_sier,
+    const uint64_t i_ecp_ec_pc_pmu_t2_sier,
+    const uint64_t i_ecp_ec_pc_pmu_t3_sier)
+{
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // ---
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 322395, tmp));
+        tmp &= 0x05848f9dcfffffffull;
+        // ECP.EC.PC.PMU.T2_SIER[45:46]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000060000) >> 17) ^ 0b00) << 62;
+        // ECP.EC.PC.PMU.T2_SIER[55:55]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000100) >> 8) ^ 0b0) << 61;
+        // ECP.EC.PC.PMU.T2_SIER[47:47]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000010000) >> 16) ^ 0b0) << 60;
+        // ECP.EC.PC.PMU.T2_SIER[62:62]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000002) >> 1) ^ 0b0) << 59;
+        // ECP.EC.PC.PMU.T2_SIER[61:61]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000004) >> 2) ^ 0b0) << 57;
+        // ECP.EC.PC.PMU.T2_SIER[54:54]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000200) >> 9) ^ 0b0) << 54;
+        // ECP.EC.PC.PMU.T2_SIER[51:52]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000001800) >> 11) ^ 0b00) << 52;
+        // ECP.EC.PC.PMU.T2_SIER[48:48]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000008000) >> 15) ^ 0b0) << 51;
+        // ECP.EC.PC.PMU.T2_SIER[53:53]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000400) >> 10) ^ 0b0) << 49;
+        // ECP.EC.PC.PMU.T2_SIER[49:49]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000004000) >> 14) ^ 0b0) << 48;
+        // ECP.EC.PC.PMU.T2_SIER[57:57]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000040) >> 6) ^ 0b0) << 46;
+        // ECP.EC.PC.PMU.T2_SIER[10:10]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0020000000000000) >> 53) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T2_SIER[58:58]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000020) >> 5) ^ 0b0) << 44;
+        // ECP.EC.PC.PMU.T2_SIER[50:50]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000002000) >> 13) ^ 0b0) << 38;
+        // ECP.EC.PC.PMU.T2_SIER[63:63]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000001) >> 0) ^ 0b0) << 37;
+        // ECP.EC.PC.PMU.T2_SIER[60:60]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000008) >> 3) ^ 0b0) << 33;
+        // ECP.EC.PC.PMU.T2_SIER[30:30]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000200000000) >> 33) ^ 0b0) << 29;
+        // ECP.EC.PC.PMU.T2_SIER[43:43]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000100000) >> 20) ^ 0b0) << 28;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 399, tmp));
+        tmp &= 0x7fffffbe7fffffffull;
+        // ECP.EC.PC.PMU.T2_SIER[38:38]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000002000000) >> 25) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T2_SIER[36:36]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000008000000) >> 27) ^ 0b0) << 38;
+        // ECP.EC.PC.PMU.T2_SIER[41:41]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000400000) >> 22) ^ 0b0) << 32;
+        // ECP.EC.PC.PMU.T2_SIER[37:37]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000004000000) >> 26) ^ 0b0) << 31;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 104, tmp));
+        tmp &= 0x0b49ffffffffffffull;
+        // ECP.EC.PC.PMU.T2_SIER[59:59]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000010) >> 4) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T2_SIER[56:56]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000000080) >> 7) ^ 0b0) << 62;
+        // ECP.EC.PC.PMU.T2_SIER[44:44]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000080000) >> 19) ^ 0b0) << 61;
+        // ECP.EC.PC.PMU.T2_SIER[39:39]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000001000000) >> 24) ^ 0b0) << 60;
+        // ECP.EC.PC.PMU.T2_SIER[40:40]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000800000) >> 23) ^ 0b0) << 58;
+        // ECP.EC.PC.PMU.T2_SIER[32:32]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000080000000) >> 31) ^ 0b0) << 55;
+        // ECP.EC.PC.PMU.T2_SIER[34:35]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t2_sier & 0x0000000030000000) >> 28) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 52) | (((x & 0x0000000000000001ull) >> 0) << 53);
+        }
+        // ECP.EC.PC.PMU.T2_SIER[31:31]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000100000000) >> 32) ^ 0b0) << 50;
+        // ECP.EC.PC.PMU.T2_SIER[33:33]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000040000000) >> 30) ^ 0b0) << 49;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 74, tmp));
+        tmp &= 0x67d8c8fff9ffffffull;
+        // ECP.EC.PC.PMU.T2_SIER[42:42]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000000200000) >> 21) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T2_SIER[27:28]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t2_sier & 0x0000001800000000) >> 35) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 59) | (((x & 0x0000000000000001ull) >> 0) << 60);
+        }
+        // ECP.EC.PC.PMU.T2_SIER[29:29]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000000400000000) >> 34) ^ 0b0) << 53;
+        // ECP.EC.PC.PMU.T2_SIER[18:19]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000300000000000) >> 44) ^ 0b00) << 49;
+        // ECP.EC.PC.PMU.T2_SIER[7:7]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0100000000000000) >> 56) ^ 0b0) << 48;
+        // ECP.EC.PC.PMU.T2_SIER[17:17]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000400000000000) >> 46) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T2_SIER[23:23]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000010000000000) >> 40) ^ 0b0) << 44;
+        // ECP.EC.PC.PMU.T2_SIER[16:16]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000800000000000) >> 47) ^ 0b0) << 42;
+        // ECP.EC.PC.PMU.T2_SIER[25:26]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000006000000000) >> 37) ^ 0b00) << 40;
+        // ECP.EC.PC.PMU.T2_SIER[22:22]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000020000000000) >> 41) ^ 0b0) << 26;
+        // ECP.EC.PC.PMU.T2_SIER[20:20]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000080000000000) >> 43) ^ 0b0) << 25;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 65, tmp));
+        tmp &= 0x7fd1d06ffd3fffffull;
+        // ECP.EC.PC.PMU.T2_SIER[24:24]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000008000000000) >> 39) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T2_SIER[11:11]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0010000000000000) >> 52) ^ 0b0) << 53;
+        // ECP.EC.PC.PMU.T2_SIER[1:2]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t2_sier & 0x6000000000000000) >> 61) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 50) | (((x & 0x0000000000000001ull) >> 0) << 51);
+        }
+        // ECP.EC.PC.PMU.T2_SIER[15:15]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0001000000000000) >> 48) ^ 0b0) << 49;
+        // ECP.EC.PC.PMU.T2_SIER[4:4]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0800000000000000) >> 59) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T2_SIER[13:14]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t2_sier & 0x0006000000000000) >> 49) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 42) | (((x & 0x0000000000000001ull) >> 0) << 43);
+        }
+        // ECP.EC.PC.PMU.T2_SIER[5:5]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0400000000000000) >> 58) ^ 0b0) << 41;
+        // ECP.EC.PC.PMU.T2_SIER[0:0]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x8000000000000000) >> 63) ^ 0b0) << 40;
+        // ECP.EC.PC.PMU.T2_SIER[6:6]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0200000000000000) >> 57) ^ 0b0) << 39;
+        // ECP.EC.PC.PMU.T2_SIER[3:3]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x1000000000000000) >> 60) ^ 0b0) << 36;
+        // ECP.EC.PC.PMU.T2_SIER[12:12]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0008000000000000) >> 51) ^ 0b0) << 25;
+        // ECP.EC.PC.PMU.T2_SIER[8:9]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x00c0000000000000) >> 54) ^ 0b00) << 22;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 20083, tmp));
+        tmp &= 0x05848f9dcfffffffull;
+        // ECP.EC.PC.PMU.T3_SIER[45:46]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000060000) >> 17) ^ 0b00) << 62;
+        // ECP.EC.PC.PMU.T3_SIER[55:55]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000100) >> 8) ^ 0b0) << 61;
+        // ECP.EC.PC.PMU.T3_SIER[47:47]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000010000) >> 16) ^ 0b0) << 60;
+        // ECP.EC.PC.PMU.T3_SIER[62:62]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000002) >> 1) ^ 0b0) << 59;
+        // ECP.EC.PC.PMU.T3_SIER[61:61]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000004) >> 2) ^ 0b0) << 57;
+        // ECP.EC.PC.PMU.T3_SIER[54:54]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000200) >> 9) ^ 0b0) << 54;
+        // ECP.EC.PC.PMU.T3_SIER[51:52]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000001800) >> 11) ^ 0b00) << 52;
+        // ECP.EC.PC.PMU.T3_SIER[48:48]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000008000) >> 15) ^ 0b0) << 51;
+        // ECP.EC.PC.PMU.T3_SIER[53:53]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000400) >> 10) ^ 0b0) << 49;
+        // ECP.EC.PC.PMU.T3_SIER[49:49]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000004000) >> 14) ^ 0b0) << 48;
+        // ECP.EC.PC.PMU.T3_SIER[57:57]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000040) >> 6) ^ 0b0) << 46;
+        // ECP.EC.PC.PMU.T3_SIER[10:10]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0020000000000000) >> 53) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T3_SIER[58:58]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000020) >> 5) ^ 0b0) << 44;
+        // ECP.EC.PC.PMU.T3_SIER[50:50]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000002000) >> 13) ^ 0b0) << 38;
+        // ECP.EC.PC.PMU.T3_SIER[63:63]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000001) >> 0) ^ 0b0) << 37;
+        // ECP.EC.PC.PMU.T3_SIER[60:60]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000008) >> 3) ^ 0b0) << 33;
+        // ECP.EC.PC.PMU.T3_SIER[30:30]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000200000000) >> 33) ^ 0b0) << 29;
+        // ECP.EC.PC.PMU.T3_SIER[43:43]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000100000) >> 20) ^ 0b0) << 28;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 399, tmp));
+        tmp &= 0x7fffffbe7fffffffull;
+        // ECP.EC.PC.PMU.T3_SIER[38:38]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000002000000) >> 25) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T3_SIER[36:36]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000008000000) >> 27) ^ 0b0) << 38;
+        // ECP.EC.PC.PMU.T3_SIER[41:41]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000400000) >> 22) ^ 0b0) << 32;
+        // ECP.EC.PC.PMU.T3_SIER[37:37]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000004000000) >> 26) ^ 0b0) << 31;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 104, tmp));
+        tmp &= 0x0b49ffffffffffffull;
+        // ECP.EC.PC.PMU.T3_SIER[59:59]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000010) >> 4) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T3_SIER[56:56]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000000080) >> 7) ^ 0b0) << 62;
+        // ECP.EC.PC.PMU.T3_SIER[44:44]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000080000) >> 19) ^ 0b0) << 61;
+        // ECP.EC.PC.PMU.T3_SIER[39:39]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000001000000) >> 24) ^ 0b0) << 60;
+        // ECP.EC.PC.PMU.T3_SIER[40:40]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000800000) >> 23) ^ 0b0) << 58;
+        // ECP.EC.PC.PMU.T3_SIER[32:32]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000080000000) >> 31) ^ 0b0) << 55;
+        // ECP.EC.PC.PMU.T3_SIER[34:35]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t3_sier & 0x0000000030000000) >> 28) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 52) | (((x & 0x0000000000000001ull) >> 0) << 53);
+        }
+        // ECP.EC.PC.PMU.T3_SIER[31:31]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000100000000) >> 32) ^ 0b0) << 50;
+        // ECP.EC.PC.PMU.T3_SIER[33:33]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000040000000) >> 30) ^ 0b0) << 49;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 74, tmp));
+        tmp &= 0x67d8c8fff9ffffffull;
+        // ECP.EC.PC.PMU.T3_SIER[42:42]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000000200000) >> 21) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T3_SIER[27:28]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t3_sier & 0x0000001800000000) >> 35) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 59) | (((x & 0x0000000000000001ull) >> 0) << 60);
+        }
+        // ECP.EC.PC.PMU.T3_SIER[29:29]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000000400000000) >> 34) ^ 0b0) << 53;
+        // ECP.EC.PC.PMU.T3_SIER[18:19]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000300000000000) >> 44) ^ 0b00) << 49;
+        // ECP.EC.PC.PMU.T3_SIER[7:7]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0100000000000000) >> 56) ^ 0b0) << 48;
+        // ECP.EC.PC.PMU.T3_SIER[17:17]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000400000000000) >> 46) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T3_SIER[23:23]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000010000000000) >> 40) ^ 0b0) << 44;
+        // ECP.EC.PC.PMU.T3_SIER[16:16]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000800000000000) >> 47) ^ 0b0) << 42;
+        // ECP.EC.PC.PMU.T3_SIER[25:26]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000006000000000) >> 37) ^ 0b00) << 40;
+        // ECP.EC.PC.PMU.T3_SIER[22:22]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000020000000000) >> 41) ^ 0b0) << 26;
+        // ECP.EC.PC.PMU.T3_SIER[20:20]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000080000000000) >> 43) ^ 0b0) << 25;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 65, tmp));
+        tmp &= 0x7fd1d06ffd3fffffull;
+        // ECP.EC.PC.PMU.T3_SIER[24:24]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000008000000000) >> 39) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T3_SIER[11:11]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0010000000000000) >> 52) ^ 0b0) << 53;
+        // ECP.EC.PC.PMU.T3_SIER[1:2]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t3_sier & 0x6000000000000000) >> 61) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 50) | (((x & 0x0000000000000001ull) >> 0) << 51);
+        }
+        // ECP.EC.PC.PMU.T3_SIER[15:15]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0001000000000000) >> 48) ^ 0b0) << 49;
+        // ECP.EC.PC.PMU.T3_SIER[4:4]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0800000000000000) >> 59) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T3_SIER[13:14]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t3_sier & 0x0006000000000000) >> 49) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 42) | (((x & 0x0000000000000001ull) >> 0) << 43);
+        }
+        // ECP.EC.PC.PMU.T3_SIER[5:5]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0400000000000000) >> 58) ^ 0b0) << 41;
+        // ECP.EC.PC.PMU.T3_SIER[0:0]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x8000000000000000) >> 63) ^ 0b0) << 40;
+        // ECP.EC.PC.PMU.T3_SIER[6:6]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0200000000000000) >> 57) ^ 0b0) << 39;
+        // ECP.EC.PC.PMU.T3_SIER[3:3]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x1000000000000000) >> 60) ^ 0b0) << 36;
+        // ECP.EC.PC.PMU.T3_SIER[12:12]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0008000000000000) >> 51) ^ 0b0) << 25;
+        // ECP.EC.PC.PMU.T3_SIER[8:9]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x00c0000000000000) >> 54) ^ 0b00) << 22;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 2323, tmp));
+        tmp &= 0x05848f9dcfffffffull;
+        // ECP.EC.PC.PMU.T0_SIER[45:46]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000060000) >> 17) ^ 0b00) << 62;
+        // ECP.EC.PC.PMU.T0_SIER[55:55]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000100) >> 8) ^ 0b0) << 61;
+        // ECP.EC.PC.PMU.T0_SIER[47:47]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000010000) >> 16) ^ 0b0) << 60;
+        // ECP.EC.PC.PMU.T0_SIER[62:62]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000002) >> 1) ^ 0b0) << 59;
+        // ECP.EC.PC.PMU.T0_SIER[61:61]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000004) >> 2) ^ 0b0) << 57;
+        // ECP.EC.PC.PMU.T0_SIER[54:54]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000200) >> 9) ^ 0b0) << 54;
+        // ECP.EC.PC.PMU.T0_SIER[51:52]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000001800) >> 11) ^ 0b00) << 52;
+        // ECP.EC.PC.PMU.T0_SIER[48:48]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000008000) >> 15) ^ 0b0) << 51;
+        // ECP.EC.PC.PMU.T0_SIER[53:53]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000400) >> 10) ^ 0b0) << 49;
+        // ECP.EC.PC.PMU.T0_SIER[49:49]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000004000) >> 14) ^ 0b0) << 48;
+        // ECP.EC.PC.PMU.T0_SIER[57:57]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000040) >> 6) ^ 0b0) << 46;
+        // ECP.EC.PC.PMU.T0_SIER[10:10]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0020000000000000) >> 53) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T0_SIER[58:58]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000020) >> 5) ^ 0b0) << 44;
+        // ECP.EC.PC.PMU.T0_SIER[50:50]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000002000) >> 13) ^ 0b0) << 38;
+        // ECP.EC.PC.PMU.T0_SIER[63:63]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000001) >> 0) ^ 0b0) << 37;
+        // ECP.EC.PC.PMU.T0_SIER[60:60]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000008) >> 3) ^ 0b0) << 33;
+        // ECP.EC.PC.PMU.T0_SIER[30:30]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000200000000) >> 33) ^ 0b0) << 29;
+        // ECP.EC.PC.PMU.T0_SIER[43:43]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000100000) >> 20) ^ 0b0) << 28;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 399, tmp));
+        tmp &= 0x7fffffbe7fffffffull;
+        // ECP.EC.PC.PMU.T0_SIER[38:38]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000002000000) >> 25) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T0_SIER[36:36]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000008000000) >> 27) ^ 0b0) << 38;
+        // ECP.EC.PC.PMU.T0_SIER[41:41]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000400000) >> 22) ^ 0b0) << 32;
+        // ECP.EC.PC.PMU.T0_SIER[37:37]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000004000000) >> 26) ^ 0b0) << 31;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 104, tmp));
+        tmp &= 0x0b49ffffffffffffull;
+        // ECP.EC.PC.PMU.T0_SIER[59:59]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000010) >> 4) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T0_SIER[56:56]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000000080) >> 7) ^ 0b0) << 62;
+        // ECP.EC.PC.PMU.T0_SIER[44:44]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000080000) >> 19) ^ 0b0) << 61;
+        // ECP.EC.PC.PMU.T0_SIER[39:39]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000001000000) >> 24) ^ 0b0) << 60;
+        // ECP.EC.PC.PMU.T0_SIER[40:40]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000800000) >> 23) ^ 0b0) << 58;
+        // ECP.EC.PC.PMU.T0_SIER[32:32]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000080000000) >> 31) ^ 0b0) << 55;
+        // ECP.EC.PC.PMU.T0_SIER[34:35]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t0_sier & 0x0000000030000000) >> 28) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 52) | (((x & 0x0000000000000001ull) >> 0) << 53);
+        }
+        // ECP.EC.PC.PMU.T0_SIER[31:31]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000100000000) >> 32) ^ 0b0) << 50;
+        // ECP.EC.PC.PMU.T0_SIER[33:33]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000040000000) >> 30) ^ 0b0) << 49;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 74, tmp));
+        tmp &= 0x67d8c8fff9ffffffull;
+        // ECP.EC.PC.PMU.T0_SIER[42:42]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000000200000) >> 21) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T0_SIER[27:28]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t0_sier & 0x0000001800000000) >> 35) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 59) | (((x & 0x0000000000000001ull) >> 0) << 60);
+        }
+        // ECP.EC.PC.PMU.T0_SIER[29:29]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000000400000000) >> 34) ^ 0b0) << 53;
+        // ECP.EC.PC.PMU.T0_SIER[18:19]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000300000000000) >> 44) ^ 0b00) << 49;
+        // ECP.EC.PC.PMU.T0_SIER[7:7]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0100000000000000) >> 56) ^ 0b0) << 48;
+        // ECP.EC.PC.PMU.T0_SIER[17:17]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000400000000000) >> 46) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T0_SIER[23:23]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000010000000000) >> 40) ^ 0b0) << 44;
+        // ECP.EC.PC.PMU.T0_SIER[16:16]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000800000000000) >> 47) ^ 0b0) << 42;
+        // ECP.EC.PC.PMU.T0_SIER[25:26]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000006000000000) >> 37) ^ 0b00) << 40;
+        // ECP.EC.PC.PMU.T0_SIER[22:22]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000020000000000) >> 41) ^ 0b0) << 26;
+        // ECP.EC.PC.PMU.T0_SIER[20:20]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000080000000000) >> 43) ^ 0b0) << 25;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 65, tmp));
+        tmp &= 0x7fd1d06ffd3fffffull;
+        // ECP.EC.PC.PMU.T0_SIER[24:24]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000008000000000) >> 39) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T0_SIER[11:11]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0010000000000000) >> 52) ^ 0b0) << 53;
+        // ECP.EC.PC.PMU.T0_SIER[1:2]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t0_sier & 0x6000000000000000) >> 61) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 50) | (((x & 0x0000000000000001ull) >> 0) << 51);
+        }
+        // ECP.EC.PC.PMU.T0_SIER[15:15]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0001000000000000) >> 48) ^ 0b0) << 49;
+        // ECP.EC.PC.PMU.T0_SIER[4:4]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0800000000000000) >> 59) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T0_SIER[13:14]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t0_sier & 0x0006000000000000) >> 49) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 42) | (((x & 0x0000000000000001ull) >> 0) << 43);
+        }
+        // ECP.EC.PC.PMU.T0_SIER[5:5]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0400000000000000) >> 58) ^ 0b0) << 41;
+        // ECP.EC.PC.PMU.T0_SIER[0:0]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x8000000000000000) >> 63) ^ 0b0) << 40;
+        // ECP.EC.PC.PMU.T0_SIER[6:6]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0200000000000000) >> 57) ^ 0b0) << 39;
+        // ECP.EC.PC.PMU.T0_SIER[3:3]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x1000000000000000) >> 60) ^ 0b0) << 36;
+        // ECP.EC.PC.PMU.T0_SIER[12:12]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0008000000000000) >> 51) ^ 0b0) << 25;
+        // ECP.EC.PC.PMU.T0_SIER[8:9]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x00c0000000000000) >> 54) ^ 0b00) << 22;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 360, tmp));
+        tmp &= 0x05848f9dcfffffffull;
+        // ECP.EC.PC.PMU.T1_SIER[45:46]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000060000) >> 17) ^ 0b00) << 62;
+        // ECP.EC.PC.PMU.T1_SIER[55:55]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000100) >> 8) ^ 0b0) << 61;
+        // ECP.EC.PC.PMU.T1_SIER[47:47]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000010000) >> 16) ^ 0b0) << 60;
+        // ECP.EC.PC.PMU.T1_SIER[62:62]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000002) >> 1) ^ 0b0) << 59;
+        // ECP.EC.PC.PMU.T1_SIER[61:61]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000004) >> 2) ^ 0b0) << 57;
+        // ECP.EC.PC.PMU.T1_SIER[54:54]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000200) >> 9) ^ 0b0) << 54;
+        // ECP.EC.PC.PMU.T1_SIER[51:52]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000001800) >> 11) ^ 0b00) << 52;
+        // ECP.EC.PC.PMU.T1_SIER[48:48]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000008000) >> 15) ^ 0b0) << 51;
+        // ECP.EC.PC.PMU.T1_SIER[53:53]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000400) >> 10) ^ 0b0) << 49;
+        // ECP.EC.PC.PMU.T1_SIER[49:49]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000004000) >> 14) ^ 0b0) << 48;
+        // ECP.EC.PC.PMU.T1_SIER[57:57]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000040) >> 6) ^ 0b0) << 46;
+        // ECP.EC.PC.PMU.T1_SIER[10:10]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0020000000000000) >> 53) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T1_SIER[58:58]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000020) >> 5) ^ 0b0) << 44;
+        // ECP.EC.PC.PMU.T1_SIER[50:50]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000002000) >> 13) ^ 0b0) << 38;
+        // ECP.EC.PC.PMU.T1_SIER[63:63]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000001) >> 0) ^ 0b0) << 37;
+        // ECP.EC.PC.PMU.T1_SIER[60:60]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000008) >> 3) ^ 0b0) << 33;
+        // ECP.EC.PC.PMU.T1_SIER[30:30]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000200000000) >> 33) ^ 0b0) << 29;
+        // ECP.EC.PC.PMU.T1_SIER[43:43]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000100000) >> 20) ^ 0b0) << 28;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 399, tmp));
+        tmp &= 0x7fffffbe7fffffffull;
+        // ECP.EC.PC.PMU.T1_SIER[38:38]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000002000000) >> 25) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T1_SIER[36:36]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000008000000) >> 27) ^ 0b0) << 38;
+        // ECP.EC.PC.PMU.T1_SIER[41:41]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000400000) >> 22) ^ 0b0) << 32;
+        // ECP.EC.PC.PMU.T1_SIER[37:37]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000004000000) >> 26) ^ 0b0) << 31;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 104, tmp));
+        tmp &= 0x0b49ffffffffffffull;
+        // ECP.EC.PC.PMU.T1_SIER[59:59]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000010) >> 4) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T1_SIER[56:56]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000000080) >> 7) ^ 0b0) << 62;
+        // ECP.EC.PC.PMU.T1_SIER[44:44]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000080000) >> 19) ^ 0b0) << 61;
+        // ECP.EC.PC.PMU.T1_SIER[39:39]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000001000000) >> 24) ^ 0b0) << 60;
+        // ECP.EC.PC.PMU.T1_SIER[40:40]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000800000) >> 23) ^ 0b0) << 58;
+        // ECP.EC.PC.PMU.T1_SIER[32:32]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000080000000) >> 31) ^ 0b0) << 55;
+        // ECP.EC.PC.PMU.T1_SIER[34:35]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t1_sier & 0x0000000030000000) >> 28) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 52) | (((x & 0x0000000000000001ull) >> 0) << 53);
+        }
+        // ECP.EC.PC.PMU.T1_SIER[31:31]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000100000000) >> 32) ^ 0b0) << 50;
+        // ECP.EC.PC.PMU.T1_SIER[33:33]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000040000000) >> 30) ^ 0b0) << 49;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 74, tmp));
+        tmp &= 0x67d8c8fff9ffffffull;
+        // ECP.EC.PC.PMU.T1_SIER[42:42]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000000200000) >> 21) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T1_SIER[27:28]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t1_sier & 0x0000001800000000) >> 35) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 59) | (((x & 0x0000000000000001ull) >> 0) << 60);
+        }
+        // ECP.EC.PC.PMU.T1_SIER[29:29]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000000400000000) >> 34) ^ 0b0) << 53;
+        // ECP.EC.PC.PMU.T1_SIER[18:19]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000300000000000) >> 44) ^ 0b00) << 49;
+        // ECP.EC.PC.PMU.T1_SIER[7:7]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0100000000000000) >> 56) ^ 0b0) << 48;
+        // ECP.EC.PC.PMU.T1_SIER[17:17]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000400000000000) >> 46) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T1_SIER[23:23]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000010000000000) >> 40) ^ 0b0) << 44;
+        // ECP.EC.PC.PMU.T1_SIER[16:16]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000800000000000) >> 47) ^ 0b0) << 42;
+        // ECP.EC.PC.PMU.T1_SIER[25:26]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000006000000000) >> 37) ^ 0b00) << 40;
+        // ECP.EC.PC.PMU.T1_SIER[22:22]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000020000000000) >> 41) ^ 0b0) << 26;
+        // ECP.EC.PC.PMU.T1_SIER[20:20]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000080000000000) >> 43) ^ 0b0) << 25;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 65, tmp));
+        tmp &= 0x7fd1d06ffd3fffffull;
+        // ECP.EC.PC.PMU.T1_SIER[24:24]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000008000000000) >> 39) ^ 0b0) << 63;
+        // ECP.EC.PC.PMU.T1_SIER[11:11]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0010000000000000) >> 52) ^ 0b0) << 53;
+        // ECP.EC.PC.PMU.T1_SIER[1:2]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t1_sier & 0x6000000000000000) >> 61) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 50) | (((x & 0x0000000000000001ull) >> 0) << 51);
+        }
+        // ECP.EC.PC.PMU.T1_SIER[15:15]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0001000000000000) >> 48) ^ 0b0) << 49;
+        // ECP.EC.PC.PMU.T1_SIER[4:4]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0800000000000000) >> 59) ^ 0b0) << 45;
+        // ECP.EC.PC.PMU.T1_SIER[13:14]
+        {
+            uint64_t x = ((i_ecp_ec_pc_pmu_t1_sier & 0x0006000000000000) >> 49) ^ 0b00;
+            tmp |= (((x & 0x0000000000000002ull) >> 1) << 42) | (((x & 0x0000000000000001ull) >> 0) << 43);
+        }
+        // ECP.EC.PC.PMU.T1_SIER[5:5]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0400000000000000) >> 58) ^ 0b0) << 41;
+        // ECP.EC.PC.PMU.T1_SIER[0:0]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x8000000000000000) >> 63) ^ 0b0) << 40;
+        // ECP.EC.PC.PMU.T1_SIER[6:6]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0200000000000000) >> 57) ^ 0b0) << 39;
+        // ECP.EC.PC.PMU.T1_SIER[3:3]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x1000000000000000) >> 60) ^ 0b0) << 36;
+        // ECP.EC.PC.PMU.T1_SIER[12:12]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0008000000000000) >> 51) ^ 0b0) << 25;
+        // ECP.EC.PC.PMU.T1_SIER[8:9]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x00c0000000000000) >> 54) ^ 0b00) << 22;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 1366, tmp));
+        tmp &= 0x7fffffffffffffffull;
+        // ECP.EC.PC.PMU.T1_SIER[21:21]
+        tmp |= (((i_ecp_ec_pc_pmu_t1_sier & 0x0000040000000000) >> 42) ^ 0b0) << 63;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 200, tmp));
+        tmp &= 0x7fffffffffffffffull;
+        // ECP.EC.PC.PMU.T0_SIER[21:21]
+        tmp |= (((i_ecp_ec_pc_pmu_t0_sier & 0x0000040000000000) >> 42) ^ 0b0) << 63;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 448, tmp));
+        tmp &= 0x7fffffffffffffffull;
+        // ECP.EC.PC.PMU.T3_SIER[21:21]
+        tmp |= (((i_ecp_ec_pc_pmu_t3_sier & 0x0000040000000000) >> 42) ^ 0b0) << 63;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 176, tmp));
+        tmp &= 0x7fffffffffffffffull;
+        // ECP.EC.PC.PMU.T2_SIER[21:21]
+        tmp |= (((i_ecp_ec_pc_pmu_t2_sier & 0x0000040000000000) >> 42) ^ 0b0) << 63;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        FAPI_TRY(svs::rotate(i_cplt, 134644, tmp));
+    }
+    // ---
+
+    if (tmp != 0x00BAD666BAD66600) {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+}// namespace ec20
+
+namespace ec20 {
+static inline fapi2::ReturnCode ec_cl2_func_set_thread_sreset(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
+    const uint64_t i_scan_region_type,
+    const uint64_t i_ecp_ec_pc_pmc_vt0_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_vt0_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_pmc_vt1_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_vt1_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_pmc_vt2_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_vt2_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_pmc_vt3_sreset_on_1st_dec_en,
+    const uint64_t i_ecp_ec_pc_thrctl_tctlcom_vt3_sreset_on_1st_dec_en)
+{
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // ---
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 267312, tmp));
+        tmp &= 0x1fffff7fffffffffull;
+        // ECP.EC.PC.THRCTL.TCTLCOM.VT1_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_vt1_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 63;
+        // ECP.EC.PC.THRCTL.TCTLCOM.VT2_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_vt2_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 62;
+        // ECP.EC.PC.THRCTL.TCTLCOM.VT0_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_vt0_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 61;
+        // ECP.EC.PC.THRCTL.TCTLCOM.VT3_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_thrctl_tctlcom_vt3_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 39;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 80935, tmp));
+        tmp &= 0x7fffefffdfffffffull;
+        // ECP.EC.PC.PMC.VT0_SRESET_ON_1ST_DEC_EN[0:0]
+        tmp |= (((i_ecp_ec_pc_pmc_vt0_sreset_on_1st_dec_en & 0x8000000000000000) >> 63) ^ 0b1) << 63;
+        // ECP.EC.PC.PMC.VT3_SRESET_ON_1ST_DEC_EN[3:3]
+        tmp |= (((i_ecp_ec_pc_pmc_vt3_sreset_on_1st_dec_en & 0x1000000000000000) >> 60) ^ 0b1) << 44;
+        // ECP.EC.PC.PMC.VT1_SRESET_ON_1ST_DEC_EN[1:1]
+        tmp |= (((i_ecp_ec_pc_pmc_vt1_sreset_on_1st_dec_en & 0x4000000000000000) >> 62) ^ 0b1) << 29;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 578, tmp));
+        tmp &= 0x7fffffffffffffffull;
+        // ECP.EC.PC.PMC.VT2_SRESET_ON_1ST_DEC_EN[2:2]
+        tmp |= (((i_ecp_ec_pc_pmc_vt2_sreset_on_1st_dec_en & 0x2000000000000000) >> 61) ^ 0b1) << 63;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        FAPI_TRY(svs::rotate(i_cplt, 135738, tmp));
+    }
+    // ---
+
+    if (tmp != 0x00BAD666BAD66600) {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+}// namespace ec20
 
 #endif//P10_CONTAINED_RINGSPIN_GEN_H
 // *INDENT-ON*
