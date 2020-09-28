@@ -35,7 +35,6 @@
 #include "p10_scan_via_scom.H"
 #include <p10_scom_perv.H>
 #include <p10_scom_proc.H>
-#include <p10_ring_id.H>
 
 namespace hw540133
 {
@@ -449,7 +448,7 @@ fapi2::ReturnCode apply_workaround(
                      "Error from FAPI_ATTR_GET (ATTR_MC_PLL_BUCKET)");
 
             // bucket 2 -> DR4-2667 = 1333 MHz mesh, 21.330 Gbps link
-            if (l_mc_pll_bucket[l_idx] == mc_pll_bndy_bucket_2)
+            if (l_mc_pll_bucket[l_idx] == 2)
             {
                 l_wa_type = LAST_LOCKING_BANDSEL_M1;
             }
