@@ -27,6 +27,7 @@
 <!--    defined attributes that will be included in the SBE platform.       -->
 <!--    Additionally, build time initial values can also be optionally      -->
 <!--    defined.                                                            -->
+<!-- EKB-Mirror-To: hw/ppe                                                  -->
 <entries>
   <!-- static: chip type and EC -->
   <entry>
@@ -564,6 +565,14 @@
 	<value>0x00</value>
   </entry>
   <entry>
+    <name>ATTR_CHIP_EC_FEATURE_HW542214</name>
+    <virtual/>
+  </entry>
+  <entry>
+    <name>ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133</name>
+    <virtual/>
+  </entry>
+  <entry>
 	<name>ATTR_RING_IMG_CNFG</name>
 	<value>0x00</value>
   </entry>
@@ -624,15 +633,23 @@
     <value>0x00</value>
   </entry>
   <entry>
-    <name>ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133</name>
-    <virtual/>
-  </entry>
-  <entry>
     <name>ATTR_CHIP_EC_FEATURE_TANK_PLL_HW540133</name>
     <virtual/>
   </entry>
   <entry>
     <name>ATTR_CHIP_EC_FEATURE_HW541221</name>
+    <virtual/>
+  </entry>
+  <entry>
+    <name>ATTR_CHIP_EC_FEATURE_HW533775</name>
+    <virtual/>
+  </entry>
+  <entry>
+	<name>ATTR_CHIP_EC_FEATURE_HW546482_QME_TOPO_FIR</name>
+	<virtual/>
+  </entry>	
+  <entry>
+    <name>ATTR_CHIP_EC_FEATURE_MMA_CORE_ABIST_LINKED</name>
     <virtual/>
   </entry>
 </entries>
