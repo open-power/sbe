@@ -217,6 +217,17 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             break;
         }
 
+        //WORKAROUND:Force TOD RUNNING status to be OFF
+        //TODO:Remove this once TOD procedure is updated.
+        Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
+        fapiRc = putscom_abs_wrap(&l_proc, 0x40024,0x1000000000000000);
+        if(fapiRc)
+        {
+            SBE_ERROR("Failed in applying TOD workaround in MPIPL Path");
+            break;
+        }
+        SBE_INFO("Workaround applied : TOD Status Forced to be OFF");
+
     }while(0);
 
     // Create the Response to caller
