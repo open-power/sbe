@@ -154,6 +154,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
 
     o_scomStateData.scomState = (~l_clockState) & (~l_fenceState) & (l_pgState) & (l_pscomState);
 
+#ifndef __PPE__
     FAPI_INF("QUAD Status : clock state(0x%08X), fence state(0x%08X), "
              "pgood state(0x%08X), pscom state(0x%08X),scom state(0x%08X)",
              l_clockState,
@@ -161,6 +162,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
              l_pgState,
              l_pscomState,
              o_scomStateData.scomState);
+#endif
 
 fapi_try_exit:
     FAPI_INF("< p10_query_access_state...");
