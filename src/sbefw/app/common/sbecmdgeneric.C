@@ -44,6 +44,7 @@
 #include "sbeXipUtils.H"
 #include "sbeMemAccessInterface.H"
 #include "sbeSecurity.H"
+#include "chipop_handler.H"
 
 #include "fapi2.H"
 //#include "p9_xip_image.h"
@@ -174,6 +175,7 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
     #define SBE_FUNC "sbeGetCapabilities "
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
+    sbeFifoType type;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
     sbeCapabilityRespMsg_t capMsg;
@@ -181,8 +183,12 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
 
     do
     {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+
         // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
+        rc = sbeUpFifoDeq_mult (len, NULL, true, false, type);
         // @TODO via RTC : 130575
         // Optimize both the RC handling and
         // FIFO operation infrastructure.
@@ -193,13 +199,13 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
         }
 
         len = SBE_CAPABILITES_LEN_FIFO / sizeof(uint32_t);
-        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &capMsg);
+        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &capMsg, type);
         if (rc)
         {
             break;
         }
 
-        rc = sbeDsSendRespHdr(respHdr);
+        rc = sbeDsSendRespHdr(respHdr, NULL, type);
     }while(0);
 
     if( rc )
@@ -218,13 +224,18 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
+    sbeFifoType type;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
 
     do
     {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+
         // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
+        rc = sbeUpFifoDeq_mult (len, NULL, true, false, type);
 
         if ( rc != SBE_SEC_OPERATION_SUCCESSFUL )
         {
@@ -233,16 +244,16 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
         }
 
         SbeFFDCPackage sbeFfdcPack;
-        sbeResponseFfdc_t l_ffdc;
+        sbeResponseFfdc_t ffdc;
 
         // If need be, force collect HWP FFDC async to the real HWP fail.
         // Else, just send back what the SBE already has.
         sbeFfdcPack.collectAsyncHwpFfdc ();
 
-        l_ffdc.setRc(g_FfdcData.fapiRc);
+        ffdc.setRc(g_FfdcData.fapiRc);
         SBE_INFO(SBE_FUNC"FAPI RC is %x", g_FfdcData.fapiRc);
         // If no ffdc , exit;
-        if( (l_ffdc.getRc() != FAPI2_RC_SUCCESS))
+        if( (ffdc.getRc() != FAPI2_RC_SUCCESS) )
         {
             // making sure ffdc length is multiples of uint32_t
             assert((g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0);
@@ -250,19 +261,20 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
                                             / sizeof(uint32_t);
             // Set failed command information
             // Sequence Id is 0 by default for Fifo interface
-            l_ffdc.setCmdInfo(0, SBE_GLOBAL->failedCmdClass,
-                                 SBE_GLOBAL->failedCmd);
+            ffdc.setCmdInfo(0, SBE_GLOBAL->failedCmdClass, SBE_GLOBAL->failedCmd);
+
             // Add HWP specific ffdc data length
-            l_ffdc.lenInWords += ffdcDataLenInWords;
+            ffdc.lenInWords += ffdcDataLenInWords;
             len = sizeof(sbeResponseFfdc_t)/sizeof(uint32_t);
-            rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &l_ffdc);
+            rc = sbeDownFifoEnq_mult( len, (uint32_t *)&ffdc, type );
             if (rc)
             {
                 break;
             }
             //Send HWP internal Data
-            rc = sbeDownFifoEnq_mult ( ffdcDataLenInWords,
-                                        ( uint32_t *) &g_FfdcData.ffdcData);
+            rc = sbeDownFifoEnq_mult( ffdcDataLenInWords,
+                                      (uint32_t *)&g_FfdcData.ffdcData,
+                                      type );
             if (rc)
             {
                 break;
@@ -270,17 +282,17 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
 
         }
         //Send the FFDC data over FIFO.
-        rc = sbeFfdcPack.sendOverFIFO(SBE_FFDC_ALL_DUMP,
-                                      len,
-                                      true);
+        rc = sbeFfdcPack.sendOverFIFO(SBE_FFDC_ALL_DUMP, len, true, type);
         if (rc)
         {
+            SBE_ERROR(SBE_FUNC "Failed in sendOverFIFO, rc[0x%08X]", rc);
             break;
         }
-        rc = sbeDsSendRespHdr(respHdr);
+        rc = sbeDsSendRespHdr(respHdr, NULL, type);
 
         if (rc)
         {
+            SBE_ERROR(SBE_FUNC "Failed in sbeDsSendRespHdr, rc[0x%08X]", rc);
             break;
         }
         // If we are able to send ffdc, turn off async ffdc bit
@@ -291,7 +303,7 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
 
     if( rc )
     {
-        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
+        SBE_ERROR(SBE_FUNC "Failed. rc[0x%X]", rc);
     }
     return rc;
     #undef SBE_FUNC
@@ -485,32 +497,36 @@ uint32_t sbeFifoQuiesce( uint8_t *i_pArg )
     #define SBE_FUNC "sbeFifoQuiesce"
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t len = 0;
+    sbeFifoType type;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
 
     do
     {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+
         // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
+        rc = sbeUpFifoDeq_mult (len, NULL, true, false, type);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
         // Suspend async task
         int pkRc = pk_thread_suspend(&SBE_GLOBAL->sbeAsyncCommandProcessor_thread);
         if (pkRc != PK_OK)
         {
-            SBE_ERROR(SBE_FUNC "async thread suspend failed. pkRc:%u", (-pkRc));
+            SBE_ERROR(SBE_FUNC "Async thread suspend failed. pkRc:%u", (-pkRc));
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                SBE_SEC_OS_FAILURE);
             break;
         }
 
         // Set Quiesce State
-        (void)SbeRegAccess::theSbeRegAccess().stateTransition(
-                                          SBE_QUIESCE_EVENT);
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(SBE_QUIESCE_EVENT);
 
     }while(0);
 
-    rc = sbeDsSendRespHdr(respHdr);
+    rc = sbeDsSendRespHdr(respHdr, NULL, type);
     if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
     {
         SBE_ERROR( SBE_FUNC"sbeDsSendRespHdr failed. rc[0x%X]", rc);
