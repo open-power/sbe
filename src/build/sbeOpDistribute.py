@@ -116,9 +116,6 @@ def main(argv):
             #Delete ring section from sbeSeepromImage
             run_system_cmd(img_dir + "/ipl_image_tool " + scratch_dir+'/'+basename+'.bin' + " delete .rings" )
 
-            #Append RING into sbeSeepromImage
-            run_system_cmd(img_dir + "/ipl_image_tool " + scratch_dir+'/'+basename+'.bin' + " append .rings " + hw_ref_image )
-
             #add pnor header
             run_system_cmd("env echo -en VERSION\\\\0 > "+scratch_dir+"/"+basename+".sha.bin")
             run_system_cmd("sha512sum "+scratch_dir+"/"+basename+".bin | awk '{print $1}' | xxd -pr -r >> "+scratch_dir+"/"+basename+".sha.bin")
