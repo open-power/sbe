@@ -32,6 +32,9 @@
 #include "p10_ddco.H"
 #include "sbeDumpConstants.H"
 
+//Dump chip-op Footer - COMPLETE
+#define DUMP_CHIP_OP_FOOTER 0x434f4d504c455445UL
+
 extern size_t genericHdctRowSize_table[NO_OF_CMD_TYPES];
 
 //Struct with complete HDCT.bin header section
@@ -45,7 +48,7 @@ typedef struct __attribute__((packed))
 }hdctSectionHdr_t;
 
 //Struct containing details of HDCT XIP section
-typedef struct
+typedef struct hdctXipSecDetails
 {
     uint32_t startAddr;
     uint32_t size;
@@ -89,9 +92,9 @@ typedef struct
     }
 
     /**
-     * @brief Init all members
+     * @brief Init all members(Constructor)
      */
-    void init()
+    hdctXipSecDetails()
     {
         startAddr = getHdctXipOffset();
         size = getHdctXipSize();
@@ -105,31 +108,84 @@ typedef struct
 
 }hdctXipSecDetails_t;
 
+//Struct for getDump chip-op header
+typedef struct __attribute__((packed)) dumpHeader
+{
+    uint32_t dataLayoutVersion:8;
+    uint32_t reserved:24;
+    //EKB Commit ID
+    uint64_t hdctVer;
+
+    /**
+     * @brief Constructor
+     */
+    dumpHeader()
+    {
+        //TODO: Needs to be updated to right version
+        dataLayoutVersion = 0x01;
+        reserved = 0x00;
+    }
+
+}dumpHeader_t;
+
+//Generic struct for each HDCT row TOC.
+//(Data to be streamed out of FIFO)
+typedef struct
+{
+    struct __attribute__((packed))
+    {
+        uint32_t preReq:1;
+        uint32_t reserved:7;
+        uint32_t cmdType:8;
+        uint32_t chipUnitType:8;
+        uint32_t chipUnitNum:8;
+        uint64_t address;
+        uint32_t dataLength;
+    }tocHeader;
+
+    uint32_t iv_ffdcLen;
+    uint64_t iv_cpuCycles;
+
+    void tocHeaderInit(genericHdctRow_t* genericHdctRow)
+    {
+        //TODO:Need to be filled with right value
+        tocHeader.preReq = false;
+        tocHeader.cmdType = (uint8_t) genericHdctRow->genericHdr.command;
+        tocHeader.chipUnitType = (uint8_t) genericHdctRow->genericHdr.chipUnitType;
+
+        //TODO:Update for remaining command typei
+        switch((uint8_t)genericHdctRow->genericHdr.command)
+        {
+            case CMD_PUTSCOM:
+                tocHeader.address = genericHdctRow->cmdPutScom.addr;
+                tocHeader.dataLength = 0x00;
+                break;
+            case CMD_GETSCOM:
+                tocHeader.address = genericHdctRow->cmdGetScom.addr;
+                tocHeader.dataLength = 0x08;
+                break;
+            case CMD_GETRING:
+                tocHeader.address = genericHdctRow->cmdGetRing.strEqvHash32;
+                tocHeader.dataLength = genericHdctRow->cmdGetRing.ringLen;
+                break;
+            default:
+                break;
+        };
+    }
+
+}genericRowTOC_t;
+
 class sbeCollectDump
 {
     private:
 
-        // Generic struct for each HDCT row TOC.
-        typedef struct
-        {
-            uint8_t preReq;
-            uint8_t commandId;
-            uint16_t chipletId;
-            uint64_t address;
-            uint32_t dataLength;
-        }genericRowTOC_t;
+        sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
+        uint8_t iv_clockState;    //Dump collection clock state(ON or OFF)
+        uint16_t iv_hdctDumpTypeMap; //Equivalent HDCT dump type wrt requested dump type.
 
         genericHdctRow_t *iv_hdctRow;
         genericRowTOC_t iv_tocRow;
-
-        uint32_t *iv_buffer;   //Data or FFDC for each row.
-        uint32_t iv_dataLen;   //Lenght of data or FFDC.
-        uint64_t iv_cpuCycles; //CPU cycles to complete the chip-op.
-
-        sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
-        uint8_t iv_clockState;    //Dump collection clock state(ON or OFF)
-
-        uint16_t iv_hdctDumpTypeMap; //Equivalent HDCT dump type wrt requested dump type.
+        dumpHeader_t iv_dumpHeader;
         hdctXipSecDetails_t iv_hdctXipSecDetails;
         hdctSectionHdr_t *iv_hdctSectionHdr;
 
