@@ -179,11 +179,13 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
         case PPE_TARGET_TYPE_PHB:
             {
                 p10_scom_addr l_scom(i_addr);
+                uint8_t l_chipletId = 0;
                 // If input address is of Nest chiplets
                 if ( (l_scom.getChipletId() >= N0_CHIPLET_ID) &&
                         (l_scom.getChipletId() <= N1_CHIPLET_ID) )
                 {
                     l_scom.setSatId(1 +getRemainder(i_target.getTargetInstance(),3));
+                    l_chipletId = ((i_target.getTargetInstance() / 3) ? N0_CHIPLET_ID:N1_CHIPLET_ID);
                 }
                 // If input address is of PCI chiplets
                 else
@@ -200,7 +202,9 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
                             l_scom.setSatId(4 +getRemainder(i_target.getTargetInstance(),3));
                         }
                     }
+                    l_chipletId = PCI0_CHIPLET_ID + (i_target.getTargetInstance() / 3); 
                 }
+                l_scom.setChipletId(l_chipletId);
                 translatedAddr = l_scom.getAddr();
                 break;
             }
