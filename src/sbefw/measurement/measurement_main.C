@@ -24,6 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 #include "sbemtrace.H"
+#include "sbemsecuritysetting.H"
 
 extern "C" {
 #include "pk_api.h"
@@ -127,6 +128,9 @@ int  main(int argc, char **argv)
     SBEM_INFO("Completed PK initialization for Measurement");
     //spi_test();
     SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
+
+    SBEM_INFO("Calling Security Settingi, to evaluate SAB");
+    sbemSetSecureAccessBit();
     
     jump2boot();
 

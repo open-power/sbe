@@ -180,7 +180,7 @@ typedef struct sbe_local_LFR {
     uint32_t runtime_reset : 1;     //Bit 16 Set if SBE is reset via 50008:bit13
     uint32_t hreset_done : 1;       //Bit 17 Set if HReset flow is done in FW
     uint32_t mpipl_reset_done : 1;  //Bit 18 Set if Mpipl flow is done in FW
-    uint32_t bitreserve1 : 1;       //Bit 19 Reserved
+    uint32_t secure_mode : 1;       //Bit 19 Secure mode bit indication from M.Seeprom to B.Seeprom
     uint32_t round_trip_delay : 4;  //Bit 20-23 round trip delay
     uint32_t bitsreserved : 8;      //Bit24-31 Reserved
     uint32_t reserved;
@@ -196,8 +196,8 @@ typedef struct sbe_local_LFR {
         hreset_done = 0;
         mpipl_reset_done = 0;
         round_trip_delay = 0;
+        secure_mode = 0;
         // This is required else these gets initialised with dummy data
-        bitreserve1 = 0;
         bitsreserved = 0;
         reserved = 0;
     }
