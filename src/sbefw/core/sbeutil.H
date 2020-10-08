@@ -39,6 +39,15 @@ extern "C" {
 #define MASK_ZERO_H32B_UINT64(x)    ((x) & 0x00000000FFFFFFFFull)
 #define SHIFT_RIGHT(x, bits)        ((x) >> bits)
 
+/**
+ * @brief Enum of SBE Fifo type.
+ */
+enum sbeFifoType
+{
+   SBE_FIFO,
+   SBE_HB_FIFO
+};
+
 // Macros Defined for Internal RC Check, Break if Error
 #define CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc) \
 if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
@@ -46,8 +55,8 @@ if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
     break; \
 }
 
-#define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, resp, mask) \
-if (!SBE_SECURITY::isAllowed(addr,mask,op)) \
+#define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, resp, fifotype, mask) \
+if (!((fifotype == SBE_HB_FIFO) || (SBE_SECURITY::isAllowed(addr,mask,op))) ) \
 { \
     /* TODO via RTC 180983:Enable this once the BL/WL registers are settled */ \
     if(SbeRegAccess::theSbeRegAccess().disableScomFiltering()) \

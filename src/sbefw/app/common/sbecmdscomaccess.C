@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -82,7 +82,7 @@ uint32_t sbeGetScom (uint8_t *i_pArg)
         SBE_DEBUG(SBE_FUNC "sbeGetScom scomAddr[0x%08X%08X]",
             msg.hiAddr, msg.lowAddr);
 
-        checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc);
+        checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc, type);
 
         // scom failed
         if (hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL)
@@ -172,7 +172,7 @@ uint32_t sbePutScom (uint8_t *i_pArg)
         SBE_DEBUG(SBE_FUNC "sbePutScom scomAddr[0x%08X%08X]",
             msg.hiAddr, msg.lowAddr);
 
-        checkIndirectAndDoScom(false, addr, scomData, &hdr, &ffdc);
+        checkIndirectAndDoScom(false, addr, scomData, &hdr, &ffdc, type);
 
         // scom failed
         if (hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL)
@@ -267,7 +267,7 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
             SBE_DEBUG(SBE_FUNC "sbeModifyScom scomAddr[0x%08X%08X]",
                 msg.hiAddr, msg.lowAddr);
 
-            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc);
+            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc, type);
 
             // scom failed
             if (hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL)
@@ -291,7 +291,7 @@ uint32_t sbeModifyScom (uint8_t *i_pArg)
             }
 
             // Write the modified data
-            checkIndirectAndDoScom(false, addr, modifyData, &hdr, &ffdc);
+            checkIndirectAndDoScom(false, addr, modifyData, &hdr, &ffdc, type);
 
             // scom failed
             if (hdr.secondaryStatus() != SBE_SEC_OPERATION_SUCCESSFUL)
@@ -372,7 +372,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
         {
             uint64_t scomData = 0;
             uint64_t addr = ( (uint64_t) msg.hiAddr << 32) | msg.lowAddr;
-            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc);
+            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc, type);
 
             // scom success
             if (hdr.secondaryStatus() == SBE_SEC_OPERATION_SUCCESSFUL)
@@ -380,7 +380,7 @@ uint32_t sbePutScomUnderMask (uint8_t *i_pArg)
                 msg.getScomData(scomData);
 
                 // Write the modified data
-                checkIndirectAndDoScom(false, addr, scomData, &hdr, &ffdc,
+                checkIndirectAndDoScom(false, addr, scomData, &hdr, &ffdc, type,
                                        msg.getInputMask());
             }
 

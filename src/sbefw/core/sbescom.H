@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -24,6 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 #include "sbeSpMsg.H"
+#include "sbeutil.H"
 /**
   * @brief check if scom address is Indirect scom and perform scom
   *
@@ -32,6 +33,7 @@
   * @param[in]  io_data data for scom operation. For read, it is output operand.
   * @param[out] o_hdr response header object
   * @param[out] o_ffdc ffdc object
+  * @param[out] i_fifoType fifo type
   * @param[in]  i_mask mask for data
   *
   */
@@ -40,4 +42,5 @@ void checkIndirectAndDoScom( const bool i_isRead,
                                  uint64_t & io_data,
                                  sbeRespGenHdr_t *const o_hdr,
                                  sbeResponseFfdc_t *const o_ffdc,
+                                 sbeFifoType i_fifoType = SBE_FIFO,
                                  uint64_t i_mask = 0xffffffffffffffffull);

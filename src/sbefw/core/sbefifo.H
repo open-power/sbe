@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,6 +38,7 @@
 #include "ppe42_scom.h"
 #include "sbe_sp_intf.H"
 #include "sbeSpMsg.H"
+#include "sbeutil.H"
 
 /**
   * @brief SBE FIFO Access addresses
@@ -47,15 +48,6 @@
 const uint32_t SBE_FIFO_BASE                     =  0x000B0000;
 //Base address for HB FIFO
 const uint32_t SBE_HB_FIFO_BASE                  =  0x000B0020;
-
-/**
-  * @brief Enum of SBE Fifo type.
-  */
-enum sbeFifoType
-{
-   SBE_FIFO,
-   SBE_HB_FIFO
-};
 
 /**
   * Macro for dynamically determining the base address

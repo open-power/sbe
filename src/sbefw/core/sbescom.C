@@ -80,6 +80,7 @@ void checkIndirectAndDoScom( const bool i_isRead,
                              uint64_t & io_data,
                              sbeRespGenHdr_t *const o_hdr,
                              sbeResponseFfdc_t *const o_ffdc,
+                             sbeFifoType i_fifoType,
                              uint64_t i_mask )
 {
 
@@ -118,7 +119,7 @@ void checkIndirectAndDoScom( const bool i_isRead,
             CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
                         static_cast<uint32_t>(i_addr),
                         (i_isRead ? SBE_SECURITY::READ : SBE_SECURITY::WRITE),
-                        o_hdr, i_mask)
+                        o_hdr, i_fifoType, i_mask)
             if( i_isRead )
             {
                 fapiRc = getscom_abs_wrap (&l_hndl, (uint32_t)i_addr,
@@ -171,7 +172,7 @@ void checkIndirectAndDoScom( const bool i_isRead,
         CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
                         static_cast<uint32_t>(tempAddr),
                         (i_isRead ? SBE_SECURITY::READ : SBE_SECURITY::WRITE),
-                        o_hdr, i_mask)
+                        o_hdr, i_fifoType, i_mask)
 
         // If we are doing a read. We need to do a write first..
         if( i_isRead)

@@ -320,7 +320,7 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
         else if(msg.targetType == TARGET_PROC_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "PROC or Its chiplet GET SCOM");
-            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc);
+            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc, type);
         }
         else
         {
@@ -432,7 +432,7 @@ uint32_t sbePutHWReg(uint8_t *i_pArg)
         else if(msg.hwRegMsg.targetType == TARGET_PROC_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "PROC or Its chiplet PUT SCOM");
-            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc);
+            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc, type);
         }
         else
         {
