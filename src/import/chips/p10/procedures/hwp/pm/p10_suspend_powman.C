@@ -105,10 +105,13 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
         fapi2::buffer<uint64_t> l_occs2_data(0);
         fapi2::buffer<uint64_t> l_occs3_data(0);
         fapi2::buffer<uint64_t> l_xsr(0);
-        static const uint64_t  PPE_XIXCR_XCR_HALT      = 0x1000000000000000;
+        //static const uint64_t  PPE_XIXCR_XCR_HALT      = 0x1000000000000000;
 
-        bool l_pgpe_in_safe_mode = false;
-        bool l_xgpe_suspended = false;
+        //TODO:SW508480
+        //Currently we are not able to  put the system to safe mode, thru
+        //PGPE/OCC, Until this gets fixed, will disable the code that requests.
+        bool l_pgpe_in_safe_mode =true;
+       // bool l_xgpe_suspended = false;
         uint8_t l_occ_mode = false;
 
         do
@@ -121,7 +124,7 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
             if(!(l_xsr >> 63))
             {
                 // SBE waits for PGPE to set OCC Scratch2[PGPE_SAFE_MODE_ACTIVE]
-                for(uint32_t method = 0; method < 2; method++)
+                for(uint32_t method = 2; method < 2; method++)
                 {
                     //If this is set, then OCC is not booting,hence skipping
                     //the request from occ to pgpe
@@ -175,6 +178,7 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                 PREP_TP_TPCHIP_OCC_OCI_OCB_PIB_OCR_WO_OR(i_target);
                 FAPI_TRY(PUT_TP_TPCHIP_OCC_OCI_OCB_PIB_OCR_WO_OR(i_target,BIT64(TP_TPCHIP_OCC_OCI_OCB_PIB_OCR_OCR_DBG_HALT)));
 
+/*
                 //XGPE polls this bit on a reduced FIT timer period
                 //if detected executes XGPE pm_suspend flow
                 PREP_TP_TPCHIP_OCC_OCI_OCB_OCCFLG3_WO_OR(i_target);
@@ -244,7 +248,7 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                 {
                     FAPI_INF("WARNING! XGPE and PGPE Already Halted, skipping procedure");
                 }
-            }
+*/            }
 
         }while (0);
 
