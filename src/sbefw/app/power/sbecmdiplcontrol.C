@@ -161,6 +161,17 @@ ReturnCode updatePhbFunctionalState( void )
     do
     {
         Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+        uint8_t phb_id = 0;
+
+        //Update all present PHB target to be non-functional.
+        auto l_phb_chiplets_vec = procTgt.getChildren<fapi2::TARGET_TYPE_PHB>(fapi2::TARGET_STATE_PRESENT);
+        for (auto& l_phb_chiplet : l_phb_chiplets_vec)
+        {
+             phb_id = l_phb_chiplet.get().getTargetInstance();
+             G_vec_targets[PHB_TARGET_OFFSET + phb_id].setFunctional(false);
+        }
+
+        //Update PHB target functional states based on the PEC target.
         auto pecTgt_vec = procTgt.getChildren<fapi2::TARGET_TYPE_PEC>();
         for (auto &pecTgt : pecTgt_vec)
         {
@@ -176,31 +187,22 @@ ReturnCode updatePhbFunctionalState( void )
             SBE_INFO(SBE_FUNC" PEC-%d:[0x%08X] data HI:0x%08X, data LO:0x%08X",
                      pec_id,static_cast<uint32_t>(pecTgt.get()),(pec_data >> 32),
                      static_cast<uint32_t>(pec_data & 0xFFFFFFFF));
-            auto phbTgt_vec = pecTgt.getChildren<fapi2::TARGET_TYPE_PHB>();
+            auto phbTgt_vec = pecTgt.getChildren<fapi2::TARGET_TYPE_PHB>(fapi2::TARGET_STATE_PRESENT);
             for (auto &phbTgt : phbTgt_vec)
             {
                 //Get the PHB id
-                uint8_t phb_id = phbTgt.get().getTargetInstance();
+                phb_id = phbTgt.get().getTargetInstance();
                 // PEC-0 target getSCOM on 0x08000009 Read the 8/9/10 bits
                 // PHB0 - Bit 8 / PHB1 - Bit 9 / PHB2 - Bit 10
                 // PEC-1 target getSCOM on 0x09000009 Read the 8/9/10 bits
                 // PHB3 - Bit 8 / PHB4 - Bit 9 / PHB5 - Bit 10
                 uint8_t bitNumber = PEC_PHB_BIT_SHIFT - (phb_id - (PHB_PER_PEC * pec_id ));
                 uint8_t bitValue = (pec_data >> bitNumber) & PEC_PHB_BIT_MASK;
-                if( !bitValue )
+                if( bitValue )
                 {
-                    SBE_INFO(SBE_FUNC" PHB-%d:[0x%08X] setting up as Non-Functional",
-                                       phb_id, phbTgt.get());
-                    static_cast<plat_target_handle_t&>
-                                   (phbTgt.operator ()()).setFunctional(false);
-                    G_vec_targets.at(PHB_TARGET_OFFSET + phb_id) =
-                                   (fapi2::plat_target_handle_t)(phbTgt.get());
-                }
-                else
-                {
-                    SBE_INFO(SBE_FUNC" PEC TargetId[0x%08X] <==> PHB TargetId[0x%08X]",
-                                       static_cast<uint32_t>(pecTgt.get()),
-                                       static_cast<uint32_t>(phbTgt.get()));
+                    SBE_INFO(SBE_FUNC" PEC TargetId[0x%08X] : PHB TargetId[0x%08X] is functional",
+                             static_cast<uint32_t>(pecTgt.get()),static_cast<uint32_t>(phbTgt.get()));
+                    G_vec_targets[PHB_TARGET_OFFSET + phb_id].setFunctional(true);
                 }
             }
         }
