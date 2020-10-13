@@ -515,6 +515,9 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_NMMU:
                 l_targetType = TARGET_TYPE_NMMU;
                 break;
+            case PPE_TARGET_TYPE_OCMB :
+                l_targetType = TARGET_TYPE_OCMB_CHIP;
+                break;
             case PPE_TARGET_TYPE_NONE:
             default:
                 assert(false);
@@ -932,11 +935,18 @@ fapi_try_exit:
                 FAPI_IMP("functional state is 0x%02X", functionalSate);
                 uint8_t port = (*(ocmbParams + i)) & 0xF;
                 FAPI_IMP("port is 0x%02X", port);
+                uint8_t targetType = PPE_TARGET_TYPE_OCMB & 0x0F;
                 //create OCMB target.
-                uint32_t ocmbTarget = (instance << 28) | (functionalSate << 24) | (port << 16) |
-                                      (engine << 8) | devAddr;
+                plat_target_handle ocmbTarget;
+                ocmbTarget.value = 0;
+                ocmbTarget.fields.chiplet_num = instance;
+                ocmbTarget.fields.port = port;
+                ocmbTarget.fields.engine = engine;
+                ocmbTarget.fields.devAddr = devAddr;
+                ocmbTarget.fields.trgtFunctional = functionalSate;
+                ocmbTarget.fields.trgtType = targetType;
                 FAPI_IMP("OCMB target created is 0x%08X", ocmbTarget);
-                G_vec_targets[OCMB_TARGET_OFFSET + i] = (fapi2::plat_target_handle&)ocmbTarget;
+                G_vec_targets[OCMB_TARGET_OFFSET + i] = ocmbTarget;
             }
             for(uint32_t i=0;i< TARGET_COUNT;i++)
             {

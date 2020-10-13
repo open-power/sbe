@@ -740,10 +740,9 @@ namespace fapi2
         FAPI_IMP("platGetI2c: Input OCMB target passed is 0x%08X", target.get());
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
-        uint32_t trgt = (target.get());
-        args.port = (uint8_t)((trgt >> 16) & 0xFF);
-        args.engine = (uint8_t)((trgt >> 8) & 0xFF);
-        args.devAddr = (uint8_t)(trgt & 0xFF);
+        args.port = (uint8_t)(target.get().fields.port);
+        args.engine = (uint8_t)(target.get().fields.engine);
+        args.devAddr = (uint8_t)(target.get().fields.devAddr);
         FAPI_IMP("platGetI2c OCMB Port: %02X Engine: %02X DevAddr: %02x set",
                        args.port, args.engine, args.devAddr);
         do {
@@ -808,10 +807,9 @@ namespace fapi2
         FAPI_IMP("platPutI2c Input OCMB target passed is 0x%08X", target.get());
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
-        uint32_t trgt = (target.get());
-        args.port = (uint8_t)((trgt >> 16) & 0xFF);
-        args.engine = (uint8_t)((trgt >> 8) & 0xFF);
-        args.devAddr = (uint8_t)(trgt & 0xFF);
+        args.port = (uint8_t)(target.get().fields.port);
+        args.engine = (uint8_t)(target.get().fields.engine);
+        args.devAddr = (uint8_t)(target.get().fields.devAddr);
         FAPI_IMP("platPutI2c OCMB Port: %02X Engine: %02X DevAddr: %02x set.", 
                        args.port, args.engine, args.devAddr);
         do {

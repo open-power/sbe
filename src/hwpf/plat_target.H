@@ -135,7 +135,16 @@ namespace fapi2
                     uint32_t mcast_group  :3; // used for targeting
                 } __attribute__((packed));
             } __attribute__((packed));
-            uint32_t type_target_num      :8; // used internally
+            /* next 8 bits */
+            union {
+                uint32_t type_target_num      :8; // used internally
+                // used for ocmb targets
+                struct {
+                    uint32_t port             :4;
+                    uint32_t engine           :4;
+                } __attribute__((packed));
+            } __attribute__((packed));
+
             /* lower 16 bits start here */
             union {
                 // core_select (for core targets) and ring_id (for non-core targets)
@@ -152,8 +161,15 @@ namespace fapi2
                     uint32_t functional   :1; // used internally
                     uint32_t type         :4; // used internally
                 } __attribute__((packed));
+                // used for ocmb targets
+                struct {
+                    uint32_t devAddr          :8;
+                    uint32_t reserved         :3;
+                    uint32_t trgtFunctional   :1;
+                    uint32_t trgtType         :4;
+                } __attribute__((packed));
             } __attribute__((packed));
-        } fields __attribute__((packed));
+        } fields;
 
 		/* Return the target value with all internal bits masked away */
 		uint32_t getPIBAddress() const {
