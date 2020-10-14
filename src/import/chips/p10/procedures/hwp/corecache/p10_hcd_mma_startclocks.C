@@ -79,6 +79,7 @@ p10_hcd_mma_startclocks(
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(18);
     fapi2::buffer<uint64_t> l_scomData = 0;
+    fapi2::buffer<buffer_t> l_mmioData = 0;
 
     FAPI_INF(">>p10_hcd_mma_startclocks");
 
@@ -90,9 +91,10 @@ p10_hcd_mma_startclocks(
     FAPI_DBG("Enable MMA Regional PSCOMs via CPLT_CTRL3[5-8:MMA_REGIONS]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
 
+    FAPI_DBG("Assert MMA_AVAILABLE via CPMS_MMAR[0]");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_MMAR_WO_OR, MMIO_1BIT(0) ) );
+
 fapi_try_exit:
-
     FAPI_INF("<<p10_hcd_mma_startclocks");
-
     return fapi2::current_err;
 }
