@@ -1125,7 +1125,6 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
         fapi2::buffer<uint64_t> l_buffer;
         FAPI_TRY(l_buffer.insertFromRight(l_data, 0, 8 * sizeof(uint64_t)));
         o_buffer[0] = l_buffer;
-        iv_fake_ramming = false;
     }
 
 fapi_try_exit:
