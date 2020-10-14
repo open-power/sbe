@@ -285,15 +285,18 @@ p10_hcd_core_startclocks(
         //RCMR
         l_scomData.flush<0>().insertFromRight(2, QME_RCMR_STEP_DELAY, QME_RCMR_STEP_DELAY_LEN);
         FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCMR, l_scomData) );
+        FAPI_DBG("Writing RCMR=0x%016llX", l_scomData);
 
         //RCPTR - Write RP1 + 1 to RCPTR to make sure resclk is disabled
         l_scomData.flush<0>().insertFromRight(p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[1].freq * 1000) + 1,
                                               QME_RCPTR_TARGET_PSTATE, QME_RCPTR_TARGET_PSTATE_LEN);
         FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCPTR, l_scomData) );
+        FAPI_DBG("Writing RCPTR=0x%016llX", l_scomData);
 
         //RCMR - Set Step Enable
         l_scomData.flush<0>().setBit<QME_RCMR_STEP_ENABLE>();
-        FAPI_TRY( HCD_PUTSCOM_Q( i_target, QME_RCMR_WO_OR, l_scomData) );
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCMR_WO_OR, l_scomData) );
+        FAPI_DBG("Writing RCMR_WO_OR=0x%016llX", l_scomData);
 
         //RCPTR - Write boot Pstate to RCPTR
         l_scomData.flush<0>().insertFromRight(p10_hcd_core_startclocks_ps_from_freq(l_attr_freq_core_boot),
