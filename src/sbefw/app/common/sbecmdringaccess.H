@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -32,6 +33,7 @@
 #define __SBEFW_SBECMDRINGACCESS_H
 
 #include <stdint.h>
+#include "plat_hwp_data_stream.H"
 
 typedef struct
 {
@@ -49,6 +51,18 @@ typedef struct
  * @return    RC from the PSU access utility
  */
 uint32_t sbePutRingFromImagePSU(uint8_t *i_pArg);
+
+/**
+  * @brief sbeGetRing : write the ring data Buffer
+  *
+  * @param[in]  i_getStream      fifo down stream interface
+  * @param[in]  i_putStream      fifo up stream interface
+  *
+  * @return    Rc from the FIFO access utility
+  */
+
+uint32_t sbeGetRingWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
+                        fapi2::sbefifo_hwp_data_ostream& i_putStream);
 
 /**
   * @brief sbeGetRing : Get the ring data

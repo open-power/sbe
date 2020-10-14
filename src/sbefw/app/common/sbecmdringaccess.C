@@ -40,7 +40,9 @@
 #include "sbefapiutil.H"
 #include "fapi2.H"
 #include "plat_hw_access.H"
+#include "plat_hwp_data_stream.H"
 #include "sbeglobals.H"
+#include "chipop_handler.H"
 #include "p10_ring_id.H"
 #include <p10_plat_ring_traverse.H>
 #include <p10_putRingUtils.H>
@@ -119,9 +121,10 @@ uint32_t sbePutRingFromImagePSU (uint8_t *i_pArg)
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
-uint32_t sbeGetRing(uint8_t *i_pArg)
+uint32_t sbeGetRingWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
+                        fapi2::sbefifo_hwp_data_ostream& i_putStream)
 {
-    #define SBE_FUNC " sbeGetRing "
+    #define SBE_FUNC " sbeGetRingWrap "
     SBE_ENTER(SBE_FUNC);
 
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
@@ -144,7 +147,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
     {
         // Get the ring access header
         l_len  = sizeof(sbeGetRingAccessMsgHdr_t)/sizeof(uint32_t);
-        l_rc = sbeUpFifoDeq_mult (l_len, (uint32_t *)&l_reqMsg); // EOT fetch
+        l_rc = i_getStream.get(l_len, (uint32_t *)&l_reqMsg);
 
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
@@ -219,7 +222,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
             // If this is the last iteration in the loop, let the full 64bit
             // go, even for 1bit of remaining length. The length passed to
             // the user will take care of actual number of bits.
-            l_rc = sbeDownFifoEnq_mult (l_len, (uint32_t *)&l_buf);
+            l_rc = i_putStream.put(l_len, (uint32_t *)&l_buf);
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             l_bitSentCnt = l_bitSentCnt + l_bitShift;
             l_bitShift = GETRING_GRANULE_SIZE_IN_BITS;
@@ -272,18 +275,39 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
     // instead give the control back to the command processor thread
     if ( SBE_SEC_OPERATION_SUCCESSFUL == l_rc )
     {
-        l_len = SIZE_OF_LENGTH_INWORDS;
-        l_rc = sbeDownFifoEnq_mult (l_len, &(l_bitSentCnt));
-        if(SBE_SEC_OPERATION_SUCCESSFUL == l_rc)
+        l_rc  = i_putStream.put(l_bitSentCnt);
+        if( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc) &&
+            (i_putStream.doStreamRespHeader()) )
         {
-            l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc);
+            l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc,
+                                     i_getStream.getFifoType() );
         }
     }
     SBE_EXIT(SBE_FUNC);
     return l_rc;
 #undef SBE_FUNC
 }
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbeGetRing(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeGetRing "
+    SBE_ENTER(SBE_FUNC);
 
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+
+    sbefifo_hwp_data_ostream ostream(type);
+    sbefifo_hwp_data_istream istream(type);
+
+    l_rc = sbeGetRingWrap( istream, ostream )
+
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+#undef SBE_FUNC
+}
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 uint32_t sbePutRing(uint8_t *i_pArg)
