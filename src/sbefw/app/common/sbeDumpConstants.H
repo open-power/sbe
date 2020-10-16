@@ -30,6 +30,12 @@
 #include<stddef.h>
 #include "sbe_sp_intf.H"
 
+/************************************************** CONTENT IN THIS FILE SHOULD NOT BE CHANGED WITHOUT CONSENT OF BELOW MEMBERS ****************************************************
+***rajadas2@in.ibm.com
+***skumar8j@in.ibm.com
+***akhis023@in.ibm.com
+*/
+
 #define NO_OF_CMD_TYPES CMD_END
 #define CMD_TYPE_NOT_USED 0
 
@@ -39,7 +45,13 @@
 //(Sizeof(genericHdr) + sizeof(cmdTypeStruct))
 #define genericHdctRowSize(type, member) (member_size(genericHdctRow_t, genericHdr) + member_size(type, member))
 
+/*All enums and constants defined in this file are as per crondump repo:- dumpConstants.py and createHdctBin.py.
+ * Crondump document link: https://github.ibm.com/smartdump/dump-docs/blob/master/commonFieldValues.md
+ *Any changes made in above document/files appropriate changes need to be incorporated in here also.
+ */
+
 //Dump types(Dump types encoded as in HDCT.bin)
+//No: of bits used in HDCT.bin - 10bits (one bit for each dump type)
 enum dumpTypes
 {
     DUMP_TYPE_SCS = 0x00,
@@ -57,6 +69,7 @@ enum dumpTypes
 };
 
 //Chip Unit types(Chip unit types encoded as in HDCT.bin)
+//No: of bits used in HDCT.bin - 6bits
 enum chipUnitTypes
 {
     CHIP_UNIT_TYPE_UNKNOWN = 0x00,
@@ -89,6 +102,7 @@ enum chipUnitTypes
 };
 
 //Command Types(Command types encoded as in HDCT.bin)
+//No: of bits used in HDCT.bin - 4bits
 enum commandTypes
 {
     CMD_GETSCOM = 0x01,
@@ -109,6 +123,7 @@ enum commandTypes
 };
 
 //Bit Modifiers incase of putscom
+//No: of bits used in HDCT.bin - 4bits
 enum bitModifier
 {
     B_NONE = 0x00,
@@ -117,6 +132,7 @@ enum bitModifier
 };
 
 // Generic Structre for each HDCT row.
+// Any change in HDCT.bin row format the below structure needs to be updated.
 typedef struct __attribute__((packed))
 {
     struct __attribute__((packed))
