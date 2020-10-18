@@ -29,7 +29,10 @@
 #include <plat_hwp_data_stream.H>
 #include <sbecmdsram.H>
 #include <sbecmdmemaccess.H>
+#include <sbecmdringaccess.H>
 #include <p10_query_host_meminfo.H>
+
+#include "sbecmdringaccess.H"
 
 using namespace fapi2;
 
@@ -48,6 +51,61 @@ bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
     return ( (!iv_hdctRow->genericHdr.chipletStart) ||
              ( (chipUnitNum-1 >= iv_hdctRow->genericHdr.chipletStart) &&
                (chipUnitNum-1 <= iv_hdctRow->genericHdr.chipletEnd)) );
+}
+
+uint32_t sbeCollectDump::writeGetRingPacketToFifo()
+{
+    #define SBE_FUNC " writeGetRingPacketToFifo "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    // Update address, length and stream header data vai FIFO
+    iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetRing.strEqvHash32;
+    uint32_t bitlength = iv_hdctRow->cmdGetRing.ringLen;
+    iv_tocRow.tocHeader.dataLength =
+                64 * (((uint32_t)(bitlength / 64)) + ((uint32_t)(bitlength % 64) ? 1:0 ));
+    uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+    iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+
+    sbeGetRingAccessMsgHdr_t l_reqMsg;
+    len  = sizeof(sbeGetRingAccessMsgHdr_t)/sizeof(uint32_t);
+
+    l_reqMsg.ringAddr = iv_hdctRow->cmdGetRing.ringAddr;
+    l_reqMsg.ringMode = 0x0001;
+    l_reqMsg.ringLenInBits = bitlength;
+
+    SBE_INFO(SBE_FUNC "Ring Address 0x%08X User Ring Mode 0x%04X "
+             "Length in Bits 0x%08X Length in Bits(8 Byte aligned) 0x%08X", l_reqMsg.ringAddr,
+              l_reqMsg.ringMode, l_reqMsg.ringLenInBits, iv_tocRow.tocHeader.dataLength);
+
+    // Verify ring data length in FIFO as per length size
+    uint32_t startCount = iv_oStream.words_written();
+    uint32_t totalCountInBytes = iv_tocRow.tocHeader.dataLength / 8;
+    uint32_t totalCount = totalCountInBytes / (sizeof(uint32_t));
+    uint32_t dummyData = 0x00;
+
+    sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                      (uint32_t*)&l_reqMsg, false );
+    rc = sbeGetRingWrap( istream, iv_oStream );
+    uint32_t endCount = iv_oStream.words_written();
+
+    //If endCount = startCount means chip-op failed. We will write dummy data.
+    //TODO:Rc is not handled properly. Will hardcode rc=fail based on endCount
+    //and startCount.
+    if(endCount == startCount || ((endCount - startCount) != totalCount))
+    {
+        totalCount = totalCount - (endCount - startCount);
+        rc = SBE_SEC_PCB_PIB_ERR;
+        while(totalCount !=0)
+        {
+            iv_oStream.put(dummyData);
+            totalCount = totalCount - 1;
+        }
+    }
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
 }
 
 uint32_t sbeCollectDump::writeGetMemPBAPacketToFifo()
@@ -464,6 +522,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
     if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM)   ||
            (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM)   ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA) ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETRING)   ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM) ) )
         return rc;
 
@@ -490,6 +549,10 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             case CMD_PUTSCOM:
             {
                 rc = writePutScomPacketToFifo();
+            }
+            case CMD_GETRING:
+            {
+                rc = writeGetRingPacketToFifo();
                 break;
             }
             case CMD_GETSRAM:

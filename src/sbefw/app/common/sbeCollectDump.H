@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -265,6 +265,13 @@ class sbeCollectDump
         *         ERROR,    Incase of failure.
         */
         uint32_t writeGetMemPBAPacketToFifo();
+
+       /** @brief Write getRing data to the FIFO.
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *          ERROR,    Incase of failure.
+        */
+        uint32_t writeGetRingPacketToFifo();
 
        /**
         * @brief Write get sram data to the FIFO

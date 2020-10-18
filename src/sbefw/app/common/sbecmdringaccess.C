@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -273,11 +273,11 @@ uint32_t sbeGetRingWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
     // Now build and enqueue response into downstream FIFO
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
-    if ( SBE_SEC_OPERATION_SUCCESSFUL == l_rc )
+    if ( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc) &&
+         (i_putStream.isStreamRespHeader()) )
     {
         l_rc  = i_putStream.put(l_bitSentCnt);
-        if( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc) &&
-            (i_putStream.isStreamRespHeader()) )
+        if( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc) )
         {
             l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc,
                                      i_getStream.getFifoType() );
