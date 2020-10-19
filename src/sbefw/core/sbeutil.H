@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -212,7 +212,13 @@ namespace SBE
      *
      * @return - void
      */
-    void updatePkFreq();
+    void updatePkFreqToPauDpll();
+
+    /*@brief - Update the pk frequcy to Ref Clock
+     *
+     * @return - void
+     */
+    void updatePkFreqToRefClk();
 
     /* @brief - Check if the boot is on HRESET of SBE
      *

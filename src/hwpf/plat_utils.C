@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -29,13 +29,19 @@
  */
 
 #include <stdint.h>
+
+#ifndef __SBEMFW_MEASUREMENT__
 #include <fapi2_attribute_service.H>
 #include <attribute_ids.H>
 #include <return_code.H>
 #include <plat_trace.H>
 #include <target.H>
 #include <sbeutil.H>
+#endif
+
 #include <sbeglobals.H>
+
+extern uint32_t g_sbemfreqency;
 
 namespace fapi2
 {
@@ -55,7 +61,12 @@ namespace fapi2
     // frequency till istep 2.7
     inline uint64_t delayCycles(uint64_t i_nanoSeconds )
     {
-        return ( i_nanoSeconds/1000) * ( SBE_GLOBAL->sbefreq /(1000*1000));
+#ifdef __SBEMFW_MEASUREMENT__
+        uint32_t sbeFrequency = g_sbemfreqency;
+#else
+        uint32_t sbeFrequency = SBE_GLOBAL->sbefreq;
+#endif
+        return ( i_nanoSeconds/1000) * ( sbeFrequency /(1000*1000));
     }
     /// @brief Delay this thread.
     ///
@@ -125,6 +136,7 @@ namespace fapi2
         return FAPI2_RC_SUCCESS;
     }
 
+#ifndef __SBEMFW_MEASUREMENT__
     ///
     /// @brief Queries the ATTR_NAME and ATTR_EC attributes
     ///
@@ -139,5 +151,6 @@ namespace fapi2
 
 	return FAPI2_RC_SUCCESS;
     }
+#endif
 };
 

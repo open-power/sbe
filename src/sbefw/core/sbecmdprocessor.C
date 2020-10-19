@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -247,7 +247,7 @@ ReturnCode sbeDestRuntimeSetup()
             SBE_ERROR(SBE_FUNC"performAttrSetup failed");
             break;
         }
-        SBE::updatePkFreq();
+        SBE::updatePkFreqToPauDpll();
      }while(0);
     SBE_EXIT("SBE_FUNC");
     return rc;

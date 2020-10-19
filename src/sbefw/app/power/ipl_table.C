@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -45,6 +45,7 @@
 #include "p10_scom_proc_9.H"
 // Pervasive HWP Header Files ( istep 2)
 #include <p10_sbe_attr_setup.H>
+#include <p10_sbe_tp_dpll_bypass.H>
 #include <p10_sbe_tp_chiplet_reset.H>
 #include <p10_sbe_tp_gptr_time_initf.H>
 #include <p10_sbe_dft_probe_setup_1.H>
@@ -201,6 +202,7 @@ using  sbeIstepHwpQuadPoweroff_t = ReturnCode (*)
 ReturnCode istepWithProc( voidfuncptr_t i_hwp );
 ReturnCode istepLpcInit( voidfuncptr_t i_hwp );
 ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp);
+ReturnCode istepHwpPauBypass( voidfuncptr_t i_hwp);
 ReturnCode istepAttrSetup( voidfuncptr_t i_hwp );
 ReturnCode istepNoOp( voidfuncptr_t i_hwp );
 ReturnCode istepCollectArcRegData(voidfuncptr_t i_hwp);
@@ -293,7 +295,7 @@ static istepMap_t g_istep2PtrTbl[] =
 #ifdef SEEPROM_IMAGE
              ISTEP_MAP( NULL, NULL ),
              ISTEP_MAP( istepAttrSetup, p10_sbe_attr_setup),
-             ISTEP_MAP( istepNoOp, NULL), //p10_sbe_tp_dpll_bypass
+             ISTEP_MAP( istepHwpPauBypass, p10_sbe_tp_dpll_bypass),
              ISTEP_MAP( istepWithProc, p10_sbe_tp_chiplet_reset),
              ISTEP_MAP( istepWithProc, p10_sbe_tp_gptr_time_initf),
              ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_1),// DFT only
@@ -438,6 +440,26 @@ ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp)
     return rc;
 }
 
+ReturnCode istepHwpPauBypass( voidfuncptr_t i_hwp)
+{
+    #define SBE_FUNC "istepHwpPauBypass "
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    assert( NULL != i_hwp );
+    do
+    {
+        SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+        // Update PK frequency
+        SBE::updatePkFreqToRefClk();
+    }while(0);
+    return rc;
+    #undef SBE_FUNC
+}
+
 //----------------------------------------------------------------------------
 
 ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
@@ -455,7 +477,7 @@ ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
             break;
         }
         // Update PK frequency
-        SBE::updatePkFreq();
+        SBE::updatePkFreqToPauDpll();
     }while(0);
     return rc;
     #undef SBE_FUNC

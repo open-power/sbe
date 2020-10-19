@@ -432,7 +432,7 @@ ReturnCode istepNestFreq( voidfuncptr_t i_hwp)
             break;
         }
         // Update PK frequency
-        SBE::updatePkFreq();
+        SBE::updatePkFreqToPauDpll();
     }while(0);
     return rc;
     #undef SBE_FUNC

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,6 +34,10 @@
 #include "sbeSecureMemRegionManager.H"
 
 #define SBE_GLOBAL sbeGlobal
+
+#define SBE_REF_BASE_FREQ_HZ ((133 * 1000 * 1000)/4)
+#define SBE_PAU_DPLL_BASE_FREQ_HZ ((1968 * 1000 * 1000)/4)
+#define MASK_BIT25 0x4000000000
 
 constexpr size_t MAX_MAIN_STORE_REGIONS = 8;
 constexpr size_t MAX_OCC_SRAM_REGIONS   = 1;

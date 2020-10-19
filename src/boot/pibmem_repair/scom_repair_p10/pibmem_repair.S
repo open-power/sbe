@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -167,7 +167,7 @@ skip_parse_row:
         li      r5, 0
         lvd     d6, 0x0(r3)
         andis.  r6, r6, 0x0080
-        cmpwbne r4, r6, __compare_failed
+        cmpwbne r4, r6, __PIB_OPCG_LOCK_FAIL
 
         #Check for clocks running SL
         #SCOMOUT  01030008 0xF9FFFFFF_FFFFFFFF
@@ -176,20 +176,20 @@ skip_parse_row:
         addi    r4, r4, -1
         li      r5, -1
         lvd     d6, 0x0(r3)
-        cmpwbne r4, r6, __compare_failed
-        cmpwbne r5, r7, __compare_failed
+        cmpwbne r4, r6, __PIB_CLOCK_RUNNING_STATUS_FAIL
+        cmpwbne r5, r7, __PIB_CLOCK_RUNNING_STATUS_FAIL
 
         #Check for clocks running NSLI
         #SCOMOUT  01030009 0xF9FFFFFF_FFFFFFFF
         lvd     d6, 0x1(r3)
-        cmpwbne r4, r6, __compare_failed
-        cmpwbne r5, r7, __compare_failed
+        cmpwbne r4, r6, __PIB_CLOCK_RUNNING_STATUS_FAIL
+        cmpwbne r5, r7, __PIB_CLOCK_RUNNING_STATUS_FAIL
 
         #Check for clocks running ARY
         #SCOMOUT  0103000A F9FFFFFFFFFFFFFF
         lvd     d6, 0x2(r3)
-        cmpwbne r4, r6, __compare_failed
-        cmpwbne r5, r7, __compare_failed
+        cmpwbne r4, r6, __PIB_CLOCK_RUNNING_STATUS_FAIL
+        cmpwbne r5, r7, __PIB_CLOCK_RUNNING_STATUS_FAIL
 
         #Clear clock region
         #SCOMIN   01030006 0x00000000_00000000
@@ -219,8 +219,8 @@ __getscom_bootloader:
         ## r1 has the address and r6/r7 has the data
         lvd      d28, 0(r1)
         ## compare r28 with r6 and r29 with r7, all should match else halt
-        cmpwbne r28, r6, __compare_failed
-        cmpwbne r29, r7, __compare_failed
+        cmpwbne r28, r6, __PIBMEM_REPAIR_COMPARE_HDR_FAIL
+        cmpwbne r29, r7, __PIBMEM_REPAIR_COMPARE_HDR_FAIL
         blr
         .epilogue __getscom_bootloader
 
@@ -230,6 +230,19 @@ __putscom_bootloader:
         blr
         .epilogue __putscom_bootloader
 
+__PIB_OPCG_LOCK_FAIL:
+        li  r0, PIB_OPCG_LOCK_FAIL
+        b __compare_failed
+
+__PIB_CLOCK_RUNNING_STATUS_FAIL:
+        li  r0, PIB_CLOCK_RUNNING_STATUS_FAIL
+        b __compare_failed
+
+__PIBMEM_REPAIR_COMPARE_HDR_FAIL:
+        li  r0, PIBMEM_REPAIR_COMPARE_HDR_FAIL
+        b __compare_failed
+
 __compare_failed:
+        mtedr  r0
         trap
         .epilogue __compare_failed

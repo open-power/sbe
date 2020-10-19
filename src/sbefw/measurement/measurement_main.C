@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -25,6 +25,7 @@
 
 #include "sbemtrace.H"
 #include "sbemsecuritysetting.H"
+#include "sbeglobals.H"
 
 extern "C" {
 #include "pk_api.h"
@@ -35,8 +36,10 @@ extern "C" {
 ////////////////////////////////////////////////////////////////
 #define INITIAL_PK_TIMEBASE   0
 #define MEASUREMENT_NONCRITICAL_STACK_SIZE 512
-
-#define SBE_PK_BASE_FREQ_HZ (133 * 1000 * 1000)/ 4
+#define SPI_CLOCK_DELAY_SHIFT     44
+#define SPI_CLOCK_DELAY_MASK      0xFFF00FFFFFFFFFFF
+#define SPI_CLOCK_DIVIDER_SHIFT   52 
+#define SPI_CLOCK_DIVIDER_MASK    0x000FFFFFFFFFFFFF
 
 uint8_t measurment_Kernel_NC_Int_stack[MEASUREMENT_NONCRITICAL_STACK_SIZE];
 
@@ -103,7 +106,8 @@ void jump2boot()
 }
 } // end extern "C"
 
-extern void spi_test();
+// SBE Frequency to be used to initialise PK
+uint32_t g_sbemfreqency = SBE_REF_BASE_FREQ_HZ;
 
 ////////////////////////////////////////////////////////////////
 // @brief - main : Measurement Application main
@@ -113,23 +117,60 @@ int  main(int argc, char **argv)
     #define SBEM_FUNC "Measurement main"
     SBEM_ENTER(SBEM_FUNC);
     int l_rc = 0;
+    uint64_t rootCtrlReg3 = 0;
+    sbe_local_LFR lfrReg;
 
+    // Update the Code Flow status in messaging register 50009
     uint64_t loadValue = (uint64_t)(SBE_CODE_MEASURMENT_PIBMEM_START_MSG)<<32;
     PPE_STVD(0x50009, loadValue);
+
+    //Fetch the default clock divider from LFR
+    PPE_LVD(0xc0002040, lfrReg);
+
+    // Fetch the SPI4 Config Registers 
+    uint64_t spiClockReg = 0;
+    PPE_LVD(0xc0083, spiClockReg);
+    uint8_t clock_delay = 0x80; // default clock delay
+    spiClockReg = ( (spiClockReg & SPI_CLOCK_DELAY_MASK) |
+                    ((uint64_t)clock_delay << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) );
+    PPE_STVD(0xc0083, spiClockReg);
+
+    //Check root control register3 bit25 if the PAU DPLL in bypass or not.
+    //If not bypass then we can use the 1968MHz chip frequency, if bypass then
+    //use 133MHz chip frequency
+    PPE_LVD(0x50013, rootCtrlReg3);
+    if(!(rootCtrlReg3 & MASK_BIT25))
+    {
+        g_sbemfreqency = SBE_PAU_DPLL_BASE_FREQ_HZ;
+        lfrReg.spi_clock_divider = 48; // Hard-coded basis (1968/40 - 1)
+
+        //Update LFR to match up to the new divider
+        PPE_STVD(0xc0002040, lfrReg);
+    }
+    else
+    {
+        // g_sbemfrequency and lfr.spi_clock_divider are already updated with
+        // 133Mhz and 4 respectively. Just update the TPM Spi clock at this
+        // point so that TPM can be accessible. 
+
+        //SPI4
+        spiClockReg = 0;
+        PPE_LVD(0xc0083, spiClockReg);
+        spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_MASK) |
+                        ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) );
+        PPE_STVD(0xc0083, spiClockReg);
+    }
 
     l_rc = pk_initialize((PkAddress)measurment_Kernel_NC_Int_stack,
                          MEASUREMENT_NONCRITICAL_STACK_SIZE,
                          INITIAL_PK_TIMEBASE, // initial_timebase
-                         SBE_PK_BASE_FREQ_HZ );
+                         g_sbemfreqency );
     if (l_rc)
     {
          return 0;
     }
-    SBEM_INFO("Completed PK initialization for Measurement");
-    //spi_test();
-    SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
+    SBEM_INFO("LFR = [0x%04X 0x%02X] SBE Freq = 0x%08X", lfrReg.spi_clock_divider, lfrReg.round_trip_delay, g_sbemfreqency);
 
-    SBEM_INFO("Calling Security Settingi, to evaluate SAB");
     sbemSetSecureAccessBit();
     
     jump2boot();

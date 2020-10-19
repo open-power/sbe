@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2020
+# Contributors Listed Below - COPYRIGHT 2018,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -87,8 +87,13 @@ foreach $proc in (get-component-list -all proc_p10) {
 
     if $proc == "backplane0.dcm[0].chip[0]"{
         # Set bit24 for Scratch Reg6 - Master Proc
+        # Set bit 15 to skip measurement seeprom to lock pau dpll and run at ref clock
         echo "Set bit24 for Scratch Reg6 - Master Proc"
-        (get-master-procs)[0].cfam_cmp.lbus_map.write 0x2800 + 0x3D*4 0x00000080 4 -b
+        $proc.cfam_cmp.lbus_map.write 0x2800 + 0x3D*4 0x00010080 4 -b
+    }
+    if $proc != "backplane0.dcm[0].chip[0]"{
+        # Set bit 15 to skip measurement seeprom to lock pau dpll and run at ref clock
+        $proc.cfam_cmp.lbus_map.write 0x2800 + 0x3D*4 0x00010000 4 -b
     }
     if $istep_mode == TRUE {
         echo "ISTEP IPL mode set"

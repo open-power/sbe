@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -52,17 +52,27 @@ namespace SBE
         return simics;
     }
 
-    void updatePkFreq()
+    void updatePkFreqToPauDpll()
     {
-        #define SBE_FUNC "updatePkFreq "
+        #define SBE_FUNC "updatePkFreqPauDpll "
         using namespace fapi2;
         Target<TARGET_TYPE_SYSTEM> sys;
         uint32_t pauFreqMhz = 0;
         FAPI_ATTR_GET( ATTR_FREQ_PAU_MHZ, sys, pauFreqMhz );
-        SBE_INFO("Attr PAU Frequency in MHz [0x%08X]", pauFreqMhz);
+        SBE_INFO(SBE_FUNC "Attr PAU Frequency in MHz [0x%08X]", pauFreqMhz);
         assert( pauFreqMhz );
         SBE_GLOBAL->sbefreq = 
             ( pauFreqMhz * 1000 * 1000 ) / SBE::SBE_TO_NEST_FREQ_FACTOR;
+        SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
+        pk_timebase_freq_set(SBE_GLOBAL->sbefreq);
+        #undef SBE_FUNC
+    }
+
+    void updatePkFreqToRefClk()
+    {
+        #define SBE_FUNC "updatePkFreqRefClk "
+        using namespace fapi2;
+        SBE_GLOBAL->sbefreq = SBE_REF_BASE_FREQ_HZ; 
         SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
         pk_timebase_freq_set(SBE_GLOBAL->sbefreq);
         #undef SBE_FUNC
