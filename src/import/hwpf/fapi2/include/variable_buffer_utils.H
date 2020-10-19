@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -72,9 +72,10 @@ inline uint32_t bufferCopy(ecmdDataBufferBase& o_dest, const fapi2::variable_buf
 
         if (l_copy_rc != fapi2::FAPI2_RC_SUCCESS)
         {
-            FAPI_ERR("Error calling i_src.extract(l_extractData, %d, %d) rc = 0x" UINT64_HEX16_FORMAT "\n",
-                     l_currentWord * l_bitsPerWord, l_bitsPerWord, static_cast<uint64_t>(l_copy_rc));
-            rc = static_cast<uint64_t>(l_copy_rc);
+            FAPI_ERR("Error calling i_src.extract(l_extractData, %d, %d) "
+                     "rc = 0x%08X \n", l_currentWord * l_bitsPerWord, l_bitsPerWord,
+                     static_cast<uint32_t>(l_copy_rc));
+            rc = static_cast<uint32_t>(l_copy_rc);
             break;
         }
 
@@ -82,7 +83,7 @@ inline uint32_t bufferCopy(ecmdDataBufferBase& o_dest, const fapi2::variable_buf
 
         if (l_ecmdRc)
         {
-            FAPI_ERR("Error calling o_dest.insert(%08X, %d, %d, 0) rc = 0x%08X\n",
+            FAPI_ERR("Error calling o_dest.insert(0x%08X, %d, %d, 0) rc = 0x%08X\n",
                      l_extractData, l_currentWord * l_bitsPerWord, l_bitsPerWord, l_ecmdRc);
             rc = l_ecmdRc;
             break;
@@ -98,9 +99,10 @@ inline uint32_t bufferCopy(ecmdDataBufferBase& o_dest, const fapi2::variable_buf
 
         if (l_copy_rc != fapi2::FAPI2_RC_SUCCESS)
         {
-            FAPI_ERR("error calling i_src.extract(l_extractData, %d, %d) rc = 0x" UINT64_HEX16_FORMAT "\n",
-                     l_wordLength * l_bitsPerWord, l_bitsRemaining, static_cast<uint64_t>(l_copy_rc));
-            rc = static_cast<uint64_t>(l_copy_rc);
+            FAPI_ERR("error calling i_src.extract(l_extractData, %d, %d) rc = 0x%08X \n",
+                     l_wordLength * l_bitsPerWord, l_bitsRemaining,
+                     static_cast<uint32_t>(l_copy_rc));
+            rc = static_cast<uint32_t>(l_copy_rc);
         }
         else
         {
