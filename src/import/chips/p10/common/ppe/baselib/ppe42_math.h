@@ -59,10 +59,6 @@
         asm volatile("mullhwu %0,%1,%2" : "=r" (__z) : "r" (__x), "r" (__y) : "cc"); \
         __z;})
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 // These names are emitted by the ppe42 compiler.
 // Implement the ones that will be used.
 
@@ -94,19 +90,19 @@ unsigned long __umodsi3(unsigned long a, unsigned long b);
 // Only PPE42A instuction set does not have native 32 bit mult.
 #if defined(__PPE42A__)
 
-/** 32 bit unsigned multiply
- * @param[in] multiplier
- * @param[in] multiplier
- * @return product
- */
-unsigned long __umulsi3(unsigned long _a, unsigned long _b);
+    /** 32 bit unsigned multiply
+    * @param[in] multiplier
+    * @param[in] multiplier
+    * @return product
+    */
+    unsigned long __umulsi3(unsigned long _a, unsigned long _b);
 
-/** 32 bit signed multiply
- * @param[in] multiplier
- * @param[in] multiplier
- * @return product
- */
-unsigned int __mulsi3(unsigned int _a, unsigned int _b);
+    /** 32 bit signed multiply
+    * @param[in] multiplier
+    * @param[in] multiplier
+    * @return product
+    */
+    unsigned int __mulsi3(unsigned int _a, unsigned int _b);
 
 #endif // __PPE42A__
 
@@ -117,8 +113,5 @@ unsigned int __mulsi3(unsigned int _a, unsigned int _b);
  */
 unsigned long long __muldi3(unsigned long long _a, unsigned long long _b);
 
-#ifdef __cplusplus
-};
-#endif
 
 #endif
