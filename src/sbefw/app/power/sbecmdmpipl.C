@@ -50,6 +50,8 @@
 #include "fapi2.H"
 #include "core/ipl.H"
 #include "sberegaccess.H"
+#include "chipop_handler.H"
+
 using namespace fapi2;
 
 // Defines for stop clock
@@ -265,15 +267,19 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
-
+    sbeFifoType type;
     sbeResponseFfdc_t ffdc;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
 
     do
     {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+
         // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
+        rc = sbeUpFifoDeq_mult (len, NULL, true, false, type);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
         // Refresh SBE role and proc chip mem attribute
@@ -320,7 +326,7 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
     // instead give the control back to the command processor thread
     if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
     {
-        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc,type);
     }
     SBE_EXIT(SBE_FUNC);
     return rc;
