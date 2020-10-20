@@ -36,11 +36,11 @@
   </entry>
   <entry>
     <name>ATTR_NAME</name>
-    <value>0xA</value>
+    <virtual/>
   </entry>
   <entry>
     <name>ATTR_EC</name>
-    <value>0x10</value>
+    <virtual/>
   </entry>
   <!-- customize-only attributes -->
   <entry>
@@ -143,6 +143,11 @@
   <!-- sampled: CBS status/control register -->
   <entry>
     <name>ATTR_SECURITY_ENABLE</name>
+    <value>0x0</value>
+  </entry>
+  <!-- sampled: PERV CTRL0 register -->
+  <entry>
+    <name>ATTR_CORE_LPAR_MODE</name>
     <value>0x0</value>
   </entry>
   <!-- sampled: mailbox 1, 2, 7 -->
@@ -260,6 +265,14 @@
   </entry>
   <entry>
     <name>ATTR_SBE_SELECT_EX_POLICY</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
+    <name>ATTR_XSTOP_ON_SPATTN</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
+    <name>ATTR_CLOCKSTOP_ON_XSTOP</name>
     <value>0x0</value>
   </entry>
   <entry>
@@ -486,7 +499,7 @@
   </entry>
   <entry>
     <name>ATTR_HOSTBOOT_HRMOR_OFFSET</name>
-    <value>0xF0000000</value>
+    <value>0xE0000000</value>
   </entry>
   <entry>
     <name>ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET</name>
@@ -532,7 +545,18 @@
     <name>ATTR_SYSTEM_SUSPEND_OCC_MODE</name>
     <value>0x0</value>
   </entry>
-
+  <entry>
+    <name>ATTR_SBE_SYS_CONFIG</name>
+    <value>0x8000000000000000</value>
+  </entry>
+  <entry>
+    <name>ATTR_EC_GARD</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_CONTAINED_LOAD_PATH</name>
+    <value>0x0</value>
+  </entry>
   <!-- HWP writeable attributes -->
   <entry>
     <name>ATTR_SCAN_CHIPLET_OVERRIDE</name>
@@ -555,14 +579,9 @@
     <name>ATTR_CHIP_EC_FEATURE_PARTIAL_IOP_XRAM_ACCESS_ALLOWED</name>
     <virtual/>
   </entry>
-  <!-- contained attributes -->
   <entry>
-	<name>ATTR_CONTAINED_L3_CONFIG</name>
-	<value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_CONTAINED_EQ_PGOODS</name>
-	<value>0x00</value>
+    <name>ATTR_CHIP_EC_FEATURE_HW533775</name>
+    <virtual/>
   </entry>
   <entry>
     <name>ATTR_CHIP_EC_FEATURE_HW542214</name>
@@ -573,67 +592,11 @@
     <virtual/>
   </entry>
   <entry>
-	<name>ATTR_RING_IMG_CNFG</name>
-	<value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_AVP_IMG_PTR</name>
-	<value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_AVP_IMG_SIZE</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_SEEPROM_IMG_SIZE</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_HW_IMG_PTR</name>
-	<value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_DYN_INIT_IMG_PTR</name>
-	<value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_RUNN_SRESET_THREADS_BVEC</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_RUNN_CYCLE_COUNT</name>
-    <value>0x0000000000000000</value>
-  </entry>
-  <entry>
-	<name>ATTR_RUNN_CHIP_CYCLE_OFFSET</name>
-    <value>0x0000000000000000</value>
-  </entry>
-  <entry>
-	<name>ATTR_RUNN_QUAD_CYCLE_OFFSET</name>
-    <value>0x0000000000000000</value>
-  </entry>
-  <entry>
-	<name>ATTR_RUNN_CORE_CYCLE_OFFSET</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_RUNN_DO_CONFIG_CHECKS</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_RUNN_USE_QME_TIMEBASE</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_RUNN_STOP_ON_XSTOP</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
-	<name>ATTR_DYNAMIC_INIT_FEATURE_VEC</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
     <name>ATTR_CHIP_EC_FEATURE_TANK_PLL_HW540133</name>
+    <virtual/>
+  </entry>
+  <entry>
+    <name>ATTR_CHIP_EC_FEATURE_MMA_CORE_ABIST_LINKED</name>
     <virtual/>
   </entry>
   <entry>
@@ -641,15 +604,76 @@
     <virtual/>
   </entry>
   <entry>
-    <name>ATTR_CHIP_EC_FEATURE_HW533775</name>
+    <name>ATTR_CHIP_EC_FEATURE_HW546482_QME_TOPO_FIR</name>
     <virtual/>
+  </entry>    
+  <!-- contained attributes -->
+  <entry>
+    <name>ATTR_CONTAINED_L3_CONFIG</name>
+    <value>0x00</value>
   </entry>
   <entry>
-	<name>ATTR_CHIP_EC_FEATURE_HW546482_QME_TOPO_FIR</name>
-	<virtual/>
-  </entry>	
+    <name>ATTR_CONTAINED_EQ_PGOODS</name>
+    <value>0x00</value>
+  </entry>
   <entry>
-    <name>ATTR_CHIP_EC_FEATURE_MMA_CORE_ABIST_LINKED</name>
-    <virtual/>
+    <name>ATTR_RING_IMG_CNFG</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_AVP_IMG_PTR</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_AVP_IMG_SIZE</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_SEEPROM_IMG_SIZE</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_HW_IMG_PTR</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_DYN_INIT_IMG_PTR</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_SRESET_THREADS_BVEC</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_CYCLE_COUNT</name>
+    <value>0x0000000000000000</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_CHIP_CYCLE_OFFSET</name>
+    <value>0x0000000000000000</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_QUAD_CYCLE_OFFSET</name>
+    <value>0x0000000000000000</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_CORE_CYCLE_OFFSET</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_DO_CONFIG_CHECKS</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_USE_QME_TIMEBASE</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_STOP_ON_XSTOP</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_DYNAMIC_INIT_FEATURE_VEC</name>
+    <value>0x00</value>
   </entry>
 </entries>
