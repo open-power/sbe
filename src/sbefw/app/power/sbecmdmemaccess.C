@@ -38,6 +38,8 @@
 #include "sbeHostUtils.H"
 #include "sbeglobals.H"
 #include "sbeSecureMemRegionManager.H"
+#include "plat_hwp_data_stream.H"
+#include "chipop_handler.H"
 
 #include "fapi2.H"
 
@@ -133,25 +135,26 @@ inline uint32_t sbeAduLenInUpStreamFifo(uint32_t i_numGranules,
 ///////////////////////////////////////////////////////////////////////
 // @brief flushUpstreamFifo - Internal Method to this file, to flush
 //        out the upstream fifo
-//
+// @param [in] i_getStream      flush upstream fifo interface
 // @param [in] i_primaryStatus, Fapi RC
 //
 // @return  RC from the underlying FIFO utility
 ///////////////////////////////////////////////////////////////////////
-inline uint32_t flushUpstreamFifo (const uint32_t &i_primaryStatus)
+inline uint32_t flushUpstreamFifo( fapi2::sbefifo_hwp_data_istream& i_getStream,
+                                   const uint32_t &i_primaryStatus)
 {
     uint32_t l_len2dequeue = 0;
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     if ( i_primaryStatus != SBE_PRI_OPERATION_SUCCESSFUL)
     {
-        l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL,
+        l_rc = i_getStream.get(l_len2dequeue, NULL,
                              true, true);
     }
     // For other success paths, just attempt to offload
     // the next entry, which is supposed to be the EOT entry
     else
     {
-        l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL, true);
+        l_rc = i_getStream.get(l_len2dequeue, NULL, true);
     }
     return l_rc;
 }
@@ -160,13 +163,19 @@ inline uint32_t flushUpstreamFifo (const uint32_t &i_primaryStatus)
 // @brief processPbaRequest - Internal Method to this file,
 //        To process the PBA Access request
 //
-// @param [in] i_hdr, Message Request Header
-// @param [in] i_isFlagRead, Read/Write Flag
+// @param[in]  i_getStream    up-stream fifo for chip-op /
+//                            memory interface for dump
+// @param[in]  i_putStream    down-stream fifo for chip-op /
+//                            memory interface for dump
+// @param [in] i_hdr          Message Request Header
+// @param [in] i_isFlagRead   Read/Write Flag
 //
 // @return  RC from the method
 ///////////////////////////////////////////////////////////////////////
-uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
-                           const bool i_isFlagRead)
+uint32_t processPbaRequest( fapi2::sbefifo_hwp_data_istream& i_getStream,
+                            fapi2::sbefifo_hwp_data_ostream& i_putStream,
+                            const sbeMemAccessReqMsgHdr_t &i_hdr,
+                            const bool i_isFlagRead)
 {
     #define SBE_FUNC " processPbaRequest "
     SBE_ENTER(SBE_FUNC);
@@ -283,9 +292,9 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 // l_sizeMultiplier * 4B Upstream FIFO = Granule size 128B
                 uint32_t l_len2dequeue = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES
                                                                 / sizeof(uint32_t);
-                l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
-                        (uint32_t *)l_PBAInterface.getBuffer(),
-                        false);
+                l_rc = i_getStream.get( l_len2dequeue,
+                                       (uint32_t *)l_PBAInterface.getBuffer(),
+                                        false);
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
 
@@ -310,8 +319,8 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                 // l_len*4 = Granule Size
                 uint32_t l_len = sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES
                                                                 / sizeof(uint32_t);
-                l_rc = sbeDownFifoEnq_mult (l_len,
-                                    (uint32_t *)l_PBAInterface.getBuffer());
+                l_rc = i_putStream.put( l_len,
+                                        (uint32_t *)l_PBAInterface.getBuffer());
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
 
@@ -329,7 +338,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // need to Flush out upstream FIFO, until EOT arrives
         if (!i_isFlagRead)
         {
-            l_rc = flushUpstreamFifo(l_respHdr.primaryStatus());
+            l_rc = flushUpstreamFifo(i_getStream, l_respHdr.primaryStatus());
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
 
@@ -338,10 +347,14 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         uint32_t l_respLen = l_granulesCompleted * l_granuleSize;
 
         SBE_INFO(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
-        l_rc = sbeDownFifoEnq_mult ( l_len, &l_respLen );
+        l_rc = i_putStream.put( l_len, &l_respLen );
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+        if(i_putStream.isStreamRespHeader())
+        {
+            l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc,
+                                     i_getStream.getFifoType() );
+        }
         // Indicate the host in put pass through mode via Interrupt
         if(!l_rc && i_hdr.isPbaHostPassThroughModeSet() && !i_isFlagRead)
         {
@@ -358,15 +371,21 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 // @brief processAduRequest - Internal Method to this file,
 //        To process the ADU Access request
 //
-// @param [in] i_hdr, Message Request Header
-// @param [in] i_isFlagRead, Read/Write Flag
+// @param[in]  i_getStream    up-stream fifo for chip-op /
+//                            memory interface for dump
+// @param[in]  i_putStream    down-stream fifo for chip-op /
+//                            memory interface for dump
+// @param [in] i_hdr          Message Request Header
+// @param [in] i_isFlagRead   Read/Write Flag
 //
 // @return  RC from the method
 ///////////////////////////////////////////////////////////////////////
 #define IS_ONE_BIT_SET(x)               ((x & (x-1)) == 0)
 #define GET_8_BYTE_ALIGNED_OFFSET(x)    ((x & 0x07) * 8)
-uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
-                           const bool i_isFlagRead)
+uint32_t processAduRequest( fapi2::sbefifo_hwp_data_istream& i_getStream,
+                            fapi2::sbefifo_hwp_data_ostream& i_putStream,
+                            const sbeMemAccessReqMsgHdr_t &i_hdr,
+                            const bool i_isFlagRead )
 {
     #define SBE_FUNC " processAduRequest "
     SBE_ENTER(SBE_FUNC);
@@ -518,9 +537,9 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             {
                 // l_sizeMultiplier * 4B Upstream FIFO = Granule size 8B
                 uint32_t l_len2dequeue = l_sizeMultiplier;
-                l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
-                        (uint32_t *)&l_dataFifo,
-                        false);
+                l_rc = i_getStream.get( l_len2dequeue,
+                                        (uint32_t *)&l_dataFifo,
+                                        false);
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
                 SBE_DEBUG("l_dataFifo#1 0x%08x%08x", SBE::higher32BWord(l_dataFifo[0]),
                                                     SBE::lower32BWord(l_dataFifo[0]));
@@ -615,7 +634,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                     SBE_DEBUG("l_dataFifo#4 0x%08x%08x", SBE::higher32BWord(l_dataFifo[0]),
                                                         SBE::lower32BWord(l_dataFifo[0]));
 
-                    l_rc = sbeDownFifoEnq_mult (l_len, (uint32_t *)&l_dataFifo);
+                    l_rc = i_putStream.put(l_len, (uint32_t *)&l_dataFifo);
                     CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
                 }
             }
@@ -634,7 +653,7 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // need to Flush out upstream FIFO, until EOT arrives
         if (!i_isFlagRead)
         {
-            l_rc = flushUpstreamFifo(l_respHdr.primaryStatus());
+            l_rc = flushUpstreamFifo(i_getStream, l_respHdr.primaryStatus());
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
 
@@ -647,10 +666,14 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
                                        l_isEccMode);
 
         SBE_INFO(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
-        l_rc = sbeDownFifoEnq_mult ( l_len, &l_respLen );
+        l_rc = i_putStream.put( l_len, &l_respLen );
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc);
+        if(i_putStream.isStreamRespHeader())
+        {
+            l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc,
+                                     i_getStream.getFifoType() );
+        }
     } while(false);
 
     SBE_EXIT(SBE_FUNC);
@@ -660,14 +683,20 @@ uint32_t processAduRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
 
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeMemAccess_Wrap Memory Access Wrapper function
-//
-// @param [in] i_isFlagRead Flag to indicate the memory Access Type
-//                 true  : GetMem ChipOp
-//                 false : PutMem ChipOp
+// 
+// @param[in]  i_getStream      up-stream fifo for chip-op /
+//                              memory interface for dump
+// @param[in]  i_putStream      down-stream fifo for chip-op /
+//                              memory interface for dump
+// @param [in] i_isFlagRead     flag to indicate the memory Access Type
+//                              true  : GetMem ChipOp
+//                              false : PutMem ChipOp
 //
 // @return  RC from the method
 ///////////////////////////////////////////////////////////////////////
-uint32_t sbeMemAccess_Wrap(const bool i_isFlagRead)
+uint32_t sbeMemAccess_Wrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
+                            fapi2::sbefifo_hwp_data_ostream& i_putStream,
+                            const bool i_isFlagRead )
 {
     #define SBE_FUNC " sbeMemAccess_Wrap "
     SBE_ENTER(SBE_FUNC);
@@ -678,7 +707,7 @@ uint32_t sbeMemAccess_Wrap(const bool i_isFlagRead)
 
     // Offload the common header from the Upstream FIFO
     uint32_t l_len2dequeue  = sizeof(l_req) / sizeof(uint32_t);
-    l_rc = sbeUpFifoDeq_mult(l_len2dequeue, (uint32_t *)&l_req, i_isFlagRead);
+    l_rc = i_getStream.get(l_len2dequeue, (uint32_t *)&l_req, i_isFlagRead);
 
     if(!l_rc)
     {
@@ -691,7 +720,8 @@ uint32_t sbeMemAccess_Wrap(const bool i_isFlagRead)
         bool l_isPBA = l_req.isPbaFlagSet();
         if(l_isPBA)
         {
-            l_rc = processPbaRequest(l_req, i_isFlagRead);
+            l_rc = processPbaRequest( i_getStream, i_putStream,
+                                      l_req, i_isFlagRead );
             if(l_rc)
             {
                 SBE_ERROR(SBE_FUNC "processPbaRequest failed");
@@ -700,7 +730,8 @@ uint32_t sbeMemAccess_Wrap(const bool i_isFlagRead)
         // ADU
         else
         {
-            l_rc = processAduRequest(l_req, i_isFlagRead);
+            l_rc = processAduRequest( i_getStream, i_putStream,
+                                      l_req, i_isFlagRead );
             if(l_rc)
             {
                 SBE_ERROR(SBE_FUNC "processAduRequest failed");
@@ -718,15 +749,28 @@ uint32_t sbeMemAccess_Wrap(const bool i_isFlagRead)
 //////////////////////////////////////////////////////
 uint32_t sbePutMem (uint8_t *i_pArg)
 {
-    return sbeMemAccess_Wrap (false);
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+
+    fapi2::sbefifo_hwp_data_ostream ostream(type);
+    fapi2::sbefifo_hwp_data_istream istream(type);
+
+    return sbeMemAccess_Wrap (istream, ostream, false);
 }
 
 /////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 uint32_t sbeGetMem (uint8_t *i_pArg)
 {
-    return sbeMemAccess_Wrap (true);
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+
+    fapi2::sbefifo_hwp_data_ostream ostream(type);
+    fapi2::sbefifo_hwp_data_istream istream(type);
+    return sbeMemAccess_Wrap (istream, ostream, true);
 }
+/////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 #endif //not __SBEFW_SEEPROM__
 #ifdef __SBEFW_SEEPROM__
 
