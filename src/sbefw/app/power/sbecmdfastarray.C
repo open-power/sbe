@@ -31,16 +31,17 @@
 #include "sbefapiutil.H"
 #include "sbeglobals.H"
 #include "fapi2.H"
+#include "chipop_handler.H"
 #include <hwp_data_stream.H>
-
 #include <plat_hwp_data_stream.H>
 #include "p10_sbe_fastarray.H"
 
 using namespace fapi2;
 
-uint32_t sbeControlFastArray(uint8_t *i_pArg)
+uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
+                                  fapi2::sbefifo_hwp_data_ostream& i_putStream )
 {
-    #define SBE_FUNC " sbeControlFastArray"
+    #define SBE_FUNC " sbeControlFastArrayWrap"
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     sbeControlFastArrayCMD_t req = {};
@@ -64,11 +65,11 @@ uint32_t sbeControlFastArray(uint8_t *i_pArg)
             respHdr.setStatus( SBE_PRI_INVALID_DATA,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             // flush the fifo
-            rc = sbeUpFifoDeq_mult(len, NULL, true, true);
+            rc = i_getStream.get(len, NULL, true, true);
             break;
         }
 
-        rc = sbeUpFifoDeq_mult(len, (uint32_t *)&req); //EOT fetch
+        rc = i_getStream.get(len, (uint32_t *)&req); //EOT fetch
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
         SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X] control_set [0x%02X] "
@@ -102,9 +103,8 @@ uint32_t sbeControlFastArray(uint8_t *i_pArg)
                 break;
             }
             hwp_array_istream istream(req.custom_control_data, req.hdr.custom_data_length);
-            sbefifo_hwp_data_ostream ostream;
-            SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, ostream);
-            ostream.put(ostream.words_written() * 4); //words_written needs to convert to number of bytes
+            SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, i_putStream);
+            i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
         }
         else
         {
@@ -131,9 +131,8 @@ uint32_t sbeControlFastArray(uint8_t *i_pArg)
                 req.hdr.getFastArrayXipOffset(), req.hdr.getFastArrayXipSize());
 
             seeprom_hwp_data_istream istream(control_data, control_data_size);
-            sbefifo_hwp_data_ostream ostream;
-            SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, ostream);
-            ostream.put(ostream.words_written() * 4); //words_written needs to convert to number of bytes
+            SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, i_putStream);
+            i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
         }
 
         if(fapiRc != FAPI2_RC_SUCCESS)
@@ -151,12 +150,33 @@ uint32_t sbeControlFastArray(uint8_t *i_pArg)
     // Now build and enqueue response into downstream FIFO
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
-    if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
+    if( ( SBE_SEC_OPERATION_SUCCESSFUL == rc ) &&
+        ( i_putStream.isStreamRespHeader()) )
     {
-        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc,
+                               i_getStream.getFifoType() );
     }
 
     SBE_EXIT(SBE_FUNC);
     return rc;
+    #undef SBE_FUNC
+}
+
+uint32_t sbeControlFastArray(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeControlFastArray "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+
+    fapi2::sbefifo_hwp_data_ostream ostream(type);
+    fapi2::sbefifo_hwp_data_istream istream(type);
+
+    l_rc = sbeControlFastArrayWrap( istream, ostream )
+
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
     #undef SBE_FUNC
 }

@@ -29,6 +29,7 @@
 #include "sbe_sp_intf.H"
 #include "sbe_link.H"
 #include "p10_ipl_image.H"
+#include "plat_hwp_data_stream.H"
 
 static const uint32_t SBE_FASTARRAY_MAX_CONTROL_DATA_WORDS = SBE_FASTARRAY_MAX_CONTROL_DATA_BYTES / 4;
 static const uint32_t FA_XIP_SECTION_START = 14;
@@ -67,7 +68,7 @@ typedef struct
             P9XipSection* pSection = &imgHdr->iv_section[sectionName];
             return ( (uint32_t)base + pSection->iv_offset);
         }
-        
+
         //Get the FastArray Xip section size basis the control_set
         uint32_t getFastArrayXipSize()
         {
@@ -85,6 +86,19 @@ typedef struct
 
     uint32_t custom_control_data[SBE_FASTARRAY_MAX_CONTROL_DATA_WORDS];
 } sbeControlFastArrayCMD_t;
+
+/**
+ * @brief sbeControlFastArrayWrap: write the data Buffer
+ *
+ * @param[in]  i_getStream  upstream fifo for chip-op /
+ *                          memory interface for dump
+ * @param[in]  i_putStream  down-stream fifo for chip-op /
+ *                          memory interface for dump
+ *
+ * @return    Rc from the FIFO access utility
+ */
+uint32_t sbeControlFastArrayWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
+                                 fapi2::sbefifo_hwp_data_ostream& i_putStream);
 
 /**
  * @brief Control Fast Array Command (0xA601)
