@@ -157,16 +157,13 @@ namespace fapi2
                     uint32_t              :2;
                     uint32_t ring_id      :4; // used for targeting
                     uint32_t sat_id       :4; // used for targeting
-                    uint32_t              :1; // unused
                     uint32_t functional   :1; // used internally
-                    uint32_t type         :4; // used internally
+                    uint32_t type         :5; // used internally
                 } __attribute__((packed));
                 // used for ocmb targets
                 struct {
                     uint32_t devAddr          :8;
-                    uint32_t reserved         :3;
-                    uint32_t trgtFunctional   :1;
-                    uint32_t trgtType         :4;
+                    uint32_t                  :8;  //unused
                 } __attribute__((packed));
             } __attribute__((packed));
         } fields;

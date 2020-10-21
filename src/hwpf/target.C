@@ -953,8 +953,8 @@ fapi_try_exit:
                 ocmbTarget.fields.port = port;
                 ocmbTarget.fields.engine = engine;
                 ocmbTarget.fields.devAddr = devAddr;
-                ocmbTarget.fields.trgtFunctional = functionalSate;
-                ocmbTarget.fields.trgtType = targetType;
+                ocmbTarget.fields.functional = functionalSate;
+                ocmbTarget.fields.type = targetType;
                 FAPI_IMP("OCMB target created is 0x%08X", ocmbTarget);
                 G_vec_targets[OCMB_TARGET_OFFSET + i] = ocmbTarget;
             }
