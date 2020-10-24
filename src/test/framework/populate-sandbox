@@ -70,6 +70,9 @@ if [ -f $SBEBINIMAGE ]; then
     #Append HDCT section into SBE image.
     $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hdct $HDCTBINIMAGE || exit -1
 
+    #Sign SBE Image
+    $SBEROOT/src/tools/scripts/signSbeImage -s $SBEROOT/images/sbeScratchDir/ -i ${SBEROOT}/simics/import/boot_roms/sbe_seeprom_p10.bin -t $SBEROOT/images/ipl_image_tool
+
     #TODO: Add Ring section into the SBE image before adding the ECC
     ecc --inject $SBEBINSIMIMAGE --output  $SBEECCIMAGE --p8 || exit -1
     echo "Copy OTPROM image"

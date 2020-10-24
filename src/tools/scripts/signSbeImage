@@ -1,0 +1,191 @@
+#!/bin/sh
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: src/tools/scripts/signSbeImage $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2016,2021
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
+
+# Exit if any command fails
+set -e
+
+# @brief Checks whether the file that is the input argument exists on the file
+# system. The function
+#        exits with an error status if the file DNE.
+#
+# @param[in] Full path to the file to check
+check_path()
+{
+    if [ ! -f $1 ]; then
+        echo "***ERROR | SBE | signSbeImage : $1 DNE!"
+        exit -1
+    fi
+}
+
+# @brief Print the help/usage info to the console
+usage()
+{
+    echo "Usage"
+    echo "!!!RUN ON A RHEL7 MACHINE!!!"
+    echo "Sign SBE image"
+    echo "signSbeImage -i <SBE image to sign> -t <IPL Image tool path> -s <scratch dir path> [-h ]"
+    echo ""
+    echo "Options:"
+    echo "  -h: print this message."
+    echo "  -s: scratch dir path."
+    echo "  -i: SBE image to sign. "
+    echo "  -t: IPL Image tool path."
+}
+
+while getopts "h?s:i:t:" opt;
+do
+    case $opt in
+
+        h)
+            usage
+            exit 0
+        ;;
+
+        s)
+            SCRATCH_DIR=$OPTARG
+        ;;
+
+        i)
+            SBEBINSIMIMAGE=$OPTARG
+        ;;
+
+        t)
+            IPL_IMAGE_TOOL=$OPTARG
+        ;;
+
+        *)
+            echo "Bad option: $OPTARG"
+            usage
+            exit -1
+        ;;
+
+    esac
+done
+
+#Check if user has passed all required arguments
+if [ -z $SCRATCH_DIR ]; then
+    echo "***ERROR | SBE | signSbeImage : Scratch directory path not set. Please supply the -s option."
+    usage
+    exit -1
+fi
+
+if [ -z $SBEBINSIMIMAGE ]; then
+    echo "***ERROR | SBE | signSbeImage : SBE Image path not set. Please supply the -i option."
+    usage
+    exit -1
+fi
+
+if [ -z $IPL_IMAGE_TOOL ]; then
+    echo "***ERROR | SBE | signSbeImage : IPL Image tool path not set. Please supply the -t option."
+    usage
+    exit -1
+fi
+
+printf "\nSign SBE Image\n"
+
+OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
+OP_BUILD_LEVEL=/latest_master-p10/
+KEYS_DIR=${OP_BUILD_BASE}/${OP_BUILD_LEVEL}/op-build/output/build/skiboot-*/libstb/keys/
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/esw/bin/bld/portal/rh7/bin/openssl:/esw/bin/bld/portal/rh7/bin:/esw/bin/bld/sb_signing_rh7/sb-signing-utils
+PATH=$PATH:$LD_LIBRARY_PATH:$OP_BUILD_BASE
+
+#Append MSV after HW Keys Hash in .sb_settings and add padding to keep the section 8 byte alligned.
+MSV="\x00"
+RESERVED="\x00\x00\x00\x00\x00\x00\x00"
+
+# Do some sanity checks on things we expect the script to consume
+check_path ${KEYS_DIR}/hw_key_a.key
+check_path ${KEYS_DIR}/hw_key_b.key
+check_path ${KEYS_DIR}/hw_key_c.key
+check_path ${KEYS_DIR}/sw_key_a.key
+check_path ${IPL_IMAGE_TOOL}
+check_path ${SBEBINSIMIMAGE}
+
+#Create the scratch dir
+mkdir -p ${SCRATCH_DIR}
+
+#Extract .hbbl section from SBE image
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .hbbl $SCRATCH_DIR/hbbl.bin || exit -1
+
+#Extract .loader_text section from SBE image
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .loader_text $SCRATCH_DIR/loader_text.bin || exit -1
+
+#Extract .text section from SBE image
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .text $SCRATCH_DIR/text.bin || exit -1
+
+#Extract .base section from SBE image
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .base $SCRATCH_DIR/base.bin || exit -1
+
+#Extract .baseloader section from SBE image
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .baseloader $SCRATCH_DIR/baseloader.bin || exit -1
+
+#Combine .loader_text,.test,.baseloader,.base
+cat $SCRATCH_DIR/loader_text.bin $SCRATCH_DIR/text.bin $SCRATCH_DIR/base.bin $SCRATCH_DIR/baseloader.bin > $SCRATCH_DIR/sbe_fw.bin
+
+# Sign the .hbbl binary
+echo "Sign .hbbl section"
+crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token SBE_HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin --validate
+
+#Strip out padding zeros from SBE_HBBL.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
+echo "Strip SBE_HBBL.header content"
+dd bs=1 count=1288 if=${SCRATCH_DIR}/SBE_HBBL.header of=${SCRATCH_DIR}/SBE_HBBL_stripped.header
+
+#Append the stripped SBE_HBBL_stripped.header into .sbh_hbbl xip section
+echo "Appending secure header into .sbh_hbbl xip section"
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_hbbl $SCRATCH_DIR/SBE_HBBL_stripped.header || exit -1
+
+# Sign the SBE firmware binary image(payload.bin)
+echo "Sign SBE FW image"
+crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin --contrHdrOut ${SCRATCH_DIR}/SBE_FW.header --out ${SCRATCH_DIR}/SBE_FW.protected_payload.bin --validate
+
+#Strip out padding zeros from SBE_FW.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
+echo "Strip SBE_FW.header content"
+dd bs=1 count=1288 if=${SCRATCH_DIR}/SBE_FW.header of=${SCRATCH_DIR}/SBE_FW_stripped.header
+
+#Append the stripped SBE_FW_stripped.header into .sbh_firmware xip section
+echo "Appending secure header into .sbh_firmware xip section"
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_firmware $SCRATCH_DIR/SBE_FW_stripped.header || exit -1
+
+#Hash of the HW keys. Fetch the value from any of the secure container which is created.
+#We need to filter out the HW keys from the print container output and convert the output to .bin format
+echo "Calculate/Fetch Hash of HW keys"
+print-container -w0 --imagefile ${SCRATCH_DIR}/SBE_FW.header | grep -A1 "HW keys hash" | grep "           " | head -1 | tr -d " " | tr -d "\n" | xxd -r -p > $SCRATCH_DIR/hw_keys_hash.bin
+
+#Append MSV into .sb_settings xip section after HW key hash
+echo "Appending MSV $MSV and reserved bytes $RESERVED"
+echo -n -e $MSV$RESERVED >> $SCRATCH_DIR/hw_keys_hash.bin
+
+#Append the HW key hash into .sb_settings xip section
+echo "Appending HW key hash into .sb_settings xip section"
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sb_settings $SCRATCH_DIR/hw_keys_hash.bin || exit -1
+
+#Lets delete the scratch dir
+rm -rf $SCRATCH_DIR
+
+echo "SBE Image Signed Successfully"
+echo " "
+
+exit 0
