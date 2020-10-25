@@ -282,6 +282,11 @@ p10_hcd_core_startclocks(
         FAPI_DBG("Writing RCTAR3=0x%016llX", l_scomData);
         FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCTAR3, l_scomData) );
 
+        //RCSCR - Clear Core Req Off
+        l_scomData.flush<0>().setBit(QME_RCSCR_OFF_REQ, QME_RCSCR_OFF_REQ_LEN);
+        FAPI_DBG("Writing RCSCR_WO_CLEAR=0x%016llX", l_scomData);
+        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCSCR_WO_CLEAR, l_scomData) );
+
         //RCMR
         l_scomData.flush<0>().insertFromRight(2, QME_RCMR_STEP_DELAY, QME_RCMR_STEP_DELAY_LEN);
         FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCMR, l_scomData) );
@@ -302,6 +307,8 @@ p10_hcd_core_startclocks(
         l_scomData.flush<0>().insertFromRight(p10_hcd_core_startclocks_ps_from_freq(l_attr_freq_core_boot),
                                               QME_RCPTR_TARGET_PSTATE, QME_RCPTR_TARGET_PSTATE_LEN);
         FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCPTR, l_scomData) );
+
+
 
         l_timeout = HCD_RESCLK_ENABLE_ISTEP4_POLL_TIMEOUT_HW_NS /
                     HCD_RESCLK_ENABLE_ISTEP4_POLL_DELAY_HW_NS;
