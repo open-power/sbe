@@ -99,11 +99,6 @@ static const uint32_t EC_PC_PMU_SPRCOR_OCC_SCOMC_OCC_SCOMD_ADDRESS_LEN = 4;
 //<< [EC_PC_PMU_SPRCOR_OCC_SCOMC]
 // c/reg00013.H
 
-//>> [EC_PC_SCR1]
-static const uint64_t EC_PC_SCR1 = 0x20020487ull;
-//<< [EC_PC_SCR1]
-// c/reg00013.H
-
 //>> [EC_PC_TRACE2_TR_TR0_CONFIG_3]
 static const uint64_t EC_PC_TRACE2_TR_TR0_CONFIG_3 = 0x20020a86ull;
 
