@@ -50,13 +50,19 @@ p10_putsram_FP_t p10_putsram_hwp = &p10_putsram;
 ///////////////////////////////////////////////////////////////////////
 // @brief sbeSramAccess_Wrap Sram Access Wrapper function
 //
-// @param [in] i_isGetFlag Flag to indicate the sram Access Type
-//                 true  : GetSram ChipOp
-//                 false : PutSram ChipOp
+// @param[in]  i_getStream      up-stream fifo for chip-op /
+//                              memory interface for dump
+// @param[in]  i_putStream      down-stream fifo for chip-op /
+//                              memory interface for dump
+// @param[in]  i_isGetFlag      Flag to indicate the sram Access Type
+//                              true  : GetSram ChipOp
+//                              false : PutSram ChipOp
 //
 // @return  RC from the underlying FIFO utility
 ///////////////////////////////////////////////////////////////////////
-uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
+uint32_t sbeSramAccess_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
+                            fapi2::sbefifo_hwp_data_ostream& i_putStream,
+                            const bool i_isGetFlag )
 {
 
     #define SBE_FUNC " sbeSramAccess_Wrap "
@@ -78,9 +84,9 @@ uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
 
     do
     {
-        l_rc = sbeUpFifoDeq_mult (l_len2dequeue,
-                                  (uint32_t *)&l_req,
-                                  i_isGetFlag,false,type);
+        l_rc = i_getStream.get( l_len2dequeue,
+                                (uint32_t *)&l_req,
+                                i_isGetFlag, false );
 
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         SBE_INFO("ChipletId:[0x%.8x] McastAccess:[%d] mode [0x%.8X]",
@@ -134,9 +140,9 @@ uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
             if(!i_isGetFlag)
             {
                 l_len2dequeue = (l_lenPassedToHwp/SBE_32BIT_ALIGN_FACTOR);
-                l_rc = sbeUpFifoDeq_mult ( l_len2dequeue,
-                                           dataBuffer,
-                                           false,false,type);
+                l_rc = i_getStream.get( l_len2dequeue,
+                                        dataBuffer,
+                                        false, false );
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
                 SBE_EXEC_HWP(l_fapiRc,p10_putsram_hwp,l_proc,
                              (uint32_t)l_req.chipletId,
@@ -179,7 +185,7 @@ uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
             {
                 l_len2dequeue = (l_lenPassedToHwp/SBE_32BIT_ALIGN_FACTOR);
                 // Push this into the downstream FIFO
-                l_rc = sbeDownFifoEnq_mult (l_len2dequeue, dataBuffer,type);
+                l_rc = i_putStream.put(l_len2dequeue, dataBuffer);
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
         } // End of while Put/Get from Hwp
@@ -197,24 +203,29 @@ uint32_t sbeSramAccess_Wrap(const bool i_isGetFlag,const sbeFifoType type)
             // need to Flush out upstream FIFO, until EOT arrives
             if ( l_respHdr.primaryStatus() != SBE_PRI_OPERATION_SUCCESSFUL)
             {
-                l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL,
-                                         true, true,type);
+                l_rc = i_getStream.get( l_len2dequeue, NULL,
+                                         true, true );
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
             // For other success paths, just attempt to offload
             // the next entry, which is supposed to be the EOT entry
             else
             {
-                l_rc = sbeUpFifoDeq_mult(l_len2dequeue, NULL, true,false,type);
+                l_rc = i_getStream.get( l_len2dequeue, NULL,
+                                        true, false );
                 CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             }
         }
 
-        uint32_t l_len = 1;
-        // first enqueue the length of data actually written
-        l_rc = sbeDownFifoEnq_mult(l_len, &l_totalReturnLen,type);
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
-        l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc,type);
+        if(i_putStream.isStreamRespHeader())
+        {
+            uint32_t l_len = 1;
+            // first enqueue the length of data actually written
+            l_rc = i_putStream.put(l_len, &l_totalReturnLen);
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+            l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc,
+                                     i_getStream.getFifoType() );
+        }
     }while(0);
     SBE_EXIT(SBE_FUNC);
     return l_rc;
@@ -229,7 +240,11 @@ uint32_t sbePutSram (uint8_t *i_pArg)
     #define SBE_FUNC " sbePutSram "
     chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
     sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
-    return sbeSramAccess_Wrap (false,type);
+
+    fapi2::sbefifo_hwp_data_ostream ostream(type);
+    fapi2::sbefifo_hwp_data_istream istream(type);
+
+    return sbeSramAccess_Wrap (istream,ostream,false);
     #undef SBE_FUNC
 }
 
@@ -240,7 +255,11 @@ uint32_t sbeGetSram (uint8_t *i_pArg)
     #define SBE_FUNC " sbeGetSram "
     chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
     sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
-    return sbeSramAccess_Wrap (true,type);
+
+    fapi2::sbefifo_hwp_data_ostream ostream(type);
+    fapi2::sbefifo_hwp_data_istream istream(type);
+
+    return sbeSramAccess_Wrap (istream,ostream,true);
     #undef SBE_FUNC
 }
 
