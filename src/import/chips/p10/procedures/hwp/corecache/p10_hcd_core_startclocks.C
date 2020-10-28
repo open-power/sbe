@@ -85,7 +85,7 @@ enum P10_HCD_CORE_STARTCLOCKS_CONSTANTS
 #ifndef __PPE__
 uint32_t p10_hcd_core_startclocks_ps_from_freq(uint32_t freq)
 {
-    return  (4600000 - freq) / 16667; //Assume Pstate0 Frequency of 4.6Ghz and Step-Size of 16.667Mhz
+    return  (4600000 - freq + 16667) / 16667; //Assume Pstate0 Frequency of 4.6Ghz and Step-Size of 16.667Mhz
 }
 #endif
 
@@ -304,11 +304,10 @@ p10_hcd_core_startclocks(
         FAPI_DBG("Writing RCMR_WO_OR=0x%016llX", l_scomData);
 
         //RCPTR - Write boot Pstate to RCPTR
-        l_scomData.flush<0>().insertFromRight(p10_hcd_core_startclocks_ps_from_freq(l_attr_freq_core_boot),
+        l_scomData.flush<0>().insertFromRight(p10_hcd_core_startclocks_ps_from_freq(l_attr_freq_core_boot * 1000),
                                               QME_RCPTR_TARGET_PSTATE, QME_RCPTR_TARGET_PSTATE_LEN);
         FAPI_TRY( HCD_PUTSCOM_Q( eq_target, QME_RCPTR, l_scomData) );
-
-
+        FAPI_DBG("Writing RCPTR=0x%016llX, l_attr_freq_core_boot=0x%08x Mhz", l_scomData, l_attr_freq_core_boot);
 
         l_timeout = HCD_RESCLK_ENABLE_ISTEP4_POLL_TIMEOUT_HW_NS /
                     HCD_RESCLK_ENABLE_ISTEP4_POLL_DELAY_HW_NS;
