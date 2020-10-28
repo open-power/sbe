@@ -97,6 +97,19 @@ def main():
     dumpUtils.getDump(dumpUtils.getDumpValidCase(dumpUtils.dumpClockStates["INVALID"], dumpUtils.sbeSupportedDumpTypes["PERF"]), i_fifoType1, [0, 0x02, 0, 0x19])
     #TODO:Add test case's if needed for FIFO 1 also
 
+###############################################################################################################################################################
+
+    #Lets Run the dump intrepret tool to verify the FIFO.bin content.
+    #This is a seperate tool and will run independent of test case in a different shell
+    #Tool is written python 3
+
+    dumpUtils.executeDumpInterpretTool("HB","ON")
+    dumpUtils.executeDumpInterpretTool("HB","OFF")
+    dumpUtils.executeDumpInterpretTool("MPIPL","ON")
+    dumpUtils.executeDumpInterpretTool("MPIPL","OFF")
+
+###############################################################################################################################################################
+
     #End time
     stageEndTime = time.time() - stageStartTime
 

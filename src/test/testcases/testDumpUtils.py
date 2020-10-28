@@ -122,3 +122,14 @@ def getDump(data, i_fifoType, expStatus = [0, 0, 0, 0], dumpOutputFilePath = out
 
     dumpBinFile.close()
 
+def executeDumpInterpretTool(dumpType, clockState):
+
+    #Lets Run the dump intrepret tool to verify the FIFO.bin content.
+    #This is a seperate tool and will run independent of test case in a different shell
+    #Tool is written python 3
+
+    out.print("********************************* Execute Dump Intepret Tool: %s DUMP CLOCK %s STATE *************************************************" % (dumpType,clockState))
+    cmd = os.environ['PATH_PYTHON3'] + " " + os.path.expandvars("$SBEROOT") + "/src/tools/utils/dump_interpret.py" + " -b " + outputPath + "/dump_Fifo0_%s_clk_%s.bin" % (dumpType,clockState) + " -d " + dumpType + " -k " + clockState + " -s " + os.path.expandvars("$SBEROOT") + "/images/hdct.bin"
+    rc = os.system(cmd)
+    if rc:
+        sys.exit("Failed to verify FIFO.bin for %s DUMP CLOCK %s STATE" % (dumpType,clockState))
