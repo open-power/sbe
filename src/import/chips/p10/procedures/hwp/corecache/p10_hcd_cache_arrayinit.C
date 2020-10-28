@@ -174,7 +174,7 @@ p10_hcd_cache_arrayinit(
              (l_regions << SHIFT16(9)),
              LOOP_COUNTER,
              START_ABIST_MATCH_VALUE,
-             false));
+             false, false));
 
 #endif
 

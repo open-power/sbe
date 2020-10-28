@@ -104,7 +104,7 @@ p10_hcd_core_arrayinit(
              ((l_regions << SHIFT16(5)) | (l_regions << SHIFT16(15))),
              LOOP_COUNTER,
              START_ABIST_MATCH_VALUE,
-             false));
+             false, false));
 
     /*
         FAPI_DBG("Arrayinit selected MMA regions");
