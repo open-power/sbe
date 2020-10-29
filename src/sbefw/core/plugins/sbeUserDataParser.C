@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -52,7 +52,7 @@ std::string SBE_SEEPROM_BIN = "sbe_seeprom_DD1.bin";
 << std::endl;}
 #define SBE_PARSER_PRINT_HEADING(x) { SBE_PARSER_PRINT_DELIMITER \
 std::cout << \
-"                             "x<< std::endl;\
+"                             " x<< std::endl;\
 SBE_PARSER_PRINT_DELIMITER }
 
 std::string findSbeFile(const char *name)
