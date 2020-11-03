@@ -39,20 +39,6 @@ namespace ppe_eq
 #endif
 
 
-//>> [QME_RCPTR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_RCPTR = 0xc0001880ull;
-
-static const uint32_t QME_RCPTR_TARGET_PSTATE = 0;
-static const uint32_t QME_RCPTR_TARGET_PSTATE_LEN = 8;
-static const uint32_t QME_RCPTR_PSTATE_CHANGE_PENDING = 8;
-static const uint32_t QME_RCPTR_TARGET_INDEX = 59;
-static const uint32_t QME_RCPTR_TARGET_INDEX_LEN = 5;
-//<< [QME_RCPTR]
-// ppe_eq/reg00011.H
-
 //>> [QME_PCBQBI]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 
@@ -75,9 +61,24 @@ static const uint32_t QME_PCBQBI_ADDR_LEN = 16;
 
 static const uint32_t QME_QHTLAST = 0xc0001ac0ull;
 
+static const uint32_t QME_QHTLAST_HTM_BUFFER_OVERFLOW = 0; // p10:20,
 static const uint32_t QME_QHTLAST_LAST_ADDRESS = 8;
 static const uint32_t QME_QHTLAST_LAST_ADDRESS_LEN = 49;
 //<< [QME_QHTLAST]
+// ppe_eq/reg00011.H
+
+//>> [QME_RCPTR]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_RCPTR = 0xc0001880ull;
+
+static const uint32_t QME_RCPTR_TARGET_PSTATE = 0;
+static const uint32_t QME_RCPTR_TARGET_PSTATE_LEN = 8;
+static const uint32_t QME_RCPTR_PSTATE_CHANGE_PENDING = 8;
+static const uint32_t QME_RCPTR_TARGET_INDEX = 59;
+static const uint32_t QME_RCPTR_TARGET_INDEX_LEN = 5;
+//<< [QME_RCPTR]
 // ppe_eq/reg00011.H
 
 //>>THE END<<

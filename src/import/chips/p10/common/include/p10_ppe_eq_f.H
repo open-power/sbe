@@ -39,18 +39,6 @@ namespace ppe_eq
 #endif
 
 
-//>> [QME_QSAR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_QSAR = 0xc0000740ull;
-
-static const uint32_t QME_QSAR_SRAM_ADDRESS = 16;
-static const uint32_t QME_QSAR_SRAM_ADDRESS_LEN = 13;
-static const uint32_t QME_QSAR_AUTO_INCR_MODE = 63;
-//<< [QME_QSAR]
-// ppe_eq/reg00015.H
-
 //>> [QME_PBCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
@@ -81,6 +69,18 @@ static const uint32_t QME_PBCR_HANG_DATA_MAX_CNT_LEN = 4;
 static const uint32_t QME_PBCR_DISABLE_PB_CACHE = 24;
 static const uint32_t QME_PBCR_INVALIDATE_PB_CACHE = 25;
 //<< [QME_PBCR]
+// ppe_eq/reg00015.H
+
+//>> [QME_QSAR]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_QSAR = 0xc0000740ull;
+
+static const uint32_t QME_QSAR_SRAM_ADDRESS = 16;
+static const uint32_t QME_QSAR_SRAM_ADDRESS_LEN = 13;
+static const uint32_t QME_QSAR_AUTO_INCR_MODE = 63;
+//<< [QME_QSAR]
 // ppe_eq/reg00015.H
 
 //>>THE END<<

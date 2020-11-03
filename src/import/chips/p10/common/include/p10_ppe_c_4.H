@@ -39,46 +39,6 @@ namespace ppe_c
 #endif
 
 
-//>> [CPMS_RVCSR]
-static const uint32_t CPMS_RVCSR = 0xc000e040ull;
-static const uint32_t CPMS_RVCSR_WO_CLEAR = 0xc000e070ull;
-static const uint32_t CPMS_RVCSR_WO_OR = 0xc000e060ull;
-
-static const uint32_t CPMS_RVCSR_RVID_ENABLE = 0;
-static const uint32_t CPMS_RVCSR_RVID_OVERRIDE = 1;
-static const uint32_t CPMS_RVCSR_ACS_CALIBRATE = 2;
-static const uint32_t CPMS_RVCSR_RVRM_TUNE = 6;
-static const uint32_t CPMS_RVCSR_RVRM_TUNE_LEN = 6;
-static const uint32_t CPMS_RVCSR_RVID_ACTIVE = 32;
-static const uint32_t CPMS_RVCSR_BYPASS_ACTIVE = 33;
-static const uint32_t CPMS_RVCSR_RVID_ENABLED = 34;
-//<< [CPMS_RVCSR]
-// ppe_c/reg00004.H
-
-//>> [QME_SPWU_FSP]
-static const uint32_t QME_SPWU_FSP = 0xc0008340ull;
-
-static const uint32_t QME_SPWU_FSP_REQ = 0;
-static const uint32_t QME_SPWU_FSP_DONE = 4;
-//<< [QME_SPWU_FSP]
-// ppe_c/reg00004.H
-
-//>> [QME_SPWU_HYP]
-static const uint32_t QME_SPWU_HYP = 0xc00083c0ull;
-
-static const uint32_t QME_SPWU_HYP_REQ = 0;
-static const uint32_t QME_SPWU_HYP_DONE = 4;
-//<< [QME_SPWU_HYP]
-// ppe_c/reg00004.H
-
-//>> [QME_SPWU_OCC]
-static const uint32_t QME_SPWU_OCC = 0xc0008380ull;
-
-static const uint32_t QME_SPWU_OCC_REQ = 0;
-static const uint32_t QME_SPWU_OCC_DONE = 4;
-//<< [QME_SPWU_OCC]
-// ppe_c/reg00004.H
-
 //>> [CPMS_CCCR]
 static const uint32_t CPMS_CCCR = 0xc000e700ull;
 
@@ -130,6 +90,47 @@ static const uint32_t CPMS_PSSR_PITCH_PERIOD_TIMER = 50;
 static const uint32_t CPMS_PSSR_PITCH_PERIOD_TIMER_LEN = 13;
 static const uint32_t CPMS_PSSR_PITCH_ACTIVE = 63;
 //<< [CPMS_PSSR]
+// ppe_c/reg00004.H
+
+//>> [CPMS_RVCSR]
+static const uint32_t CPMS_RVCSR = 0xc000e040ull;
+static const uint32_t CPMS_RVCSR_WO_CLEAR = 0xc000e070ull;
+static const uint32_t CPMS_RVCSR_WO_OR = 0xc000e060ull;
+
+static const uint32_t CPMS_RVCSR_RVID_ENABLE = 0;
+static const uint32_t CPMS_RVCSR_RVID_OVERRIDE = 1;
+static const uint32_t CPMS_RVCSR_ACS_CALIBRATE = 2;
+static const uint32_t CPMS_RVCSR_RVRM_TUNE = 6;
+static const uint32_t CPMS_RVCSR_RVRM_TUNE_LEN = 6;
+static const uint32_t CPMS_RVCSR_RVID_ACTIVE = 32;
+static const uint32_t CPMS_RVCSR_BYPASS_ACTIVE = 33;
+static const uint32_t CPMS_RVCSR_RVID_ENABLED = 34;
+static const uint32_t CPMS_RVCSR_BYPASS_RAW = 35; // p10:20,
+//<< [CPMS_RVCSR]
+// ppe_c/reg00004.H
+
+//>> [QME_SPWU_FSP]
+static const uint32_t QME_SPWU_FSP = 0xc0008340ull;
+
+static const uint32_t QME_SPWU_FSP_REQ = 0;
+static const uint32_t QME_SPWU_FSP_DONE = 4;
+//<< [QME_SPWU_FSP]
+// ppe_c/reg00004.H
+
+//>> [QME_SPWU_HYP]
+static const uint32_t QME_SPWU_HYP = 0xc00083c0ull;
+
+static const uint32_t QME_SPWU_HYP_REQ = 0;
+static const uint32_t QME_SPWU_HYP_DONE = 4;
+//<< [QME_SPWU_HYP]
+// ppe_c/reg00004.H
+
+//>> [QME_SPWU_OCC]
+static const uint32_t QME_SPWU_OCC = 0xc0008380ull;
+
+static const uint32_t QME_SPWU_OCC_REQ = 0;
+static const uint32_t QME_SPWU_OCC_DONE = 4;
+//<< [QME_SPWU_OCC]
 // ppe_c/reg00004.H
 
 //>> [QME_SSH_FSP]

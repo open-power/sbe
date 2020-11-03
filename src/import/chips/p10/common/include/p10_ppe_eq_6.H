@@ -62,6 +62,7 @@ static const uint32_t QME_QHTMEM_ALLOC = 0;
 static const uint32_t QME_QHTMEM_SCOPE = 1;
 static const uint32_t QME_QHTMEM_SCOPE_LEN = 3;
 static const uint32_t QME_QHTMEM_PRIORITY = 4;
+static const uint32_t QME_QHTMEM_SIZE_SMALL = 5; // p10:20,
 static const uint32_t QME_QHTMEM_BASE = 8;
 static const uint32_t QME_QHTMEM_BASE_LEN = 32;
 static const uint32_t QME_QHTMEM_SIZE = 40;

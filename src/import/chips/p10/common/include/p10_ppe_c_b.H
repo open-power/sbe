@@ -39,47 +39,6 @@ namespace ppe_c
 #endif
 
 
-//>> [CPMS_L3_PFETSTAT]
-static const uint32_t CPMS_L3_PFETSTAT = 0xc000e240ull;
-
-static const uint32_t CPMS_L3_PFETSTAT_VDD_PFETS_ENABLED_SENSE = 0;
-static const uint32_t CPMS_L3_PFETSTAT_VDD_PFETS_DISABLED_SENSE = 1;
-static const uint32_t CPMS_L3_PFETSTAT_VCS_PFETS_ENABLED_SENSE = 2;
-static const uint32_t CPMS_L3_PFETSTAT_VCS_PFETS_DISABLED_SENSE = 3;
-static const uint32_t CPMS_L3_PFETSTAT_VDD_PFET_ENABLE_ACTUAL = 16;
-static const uint32_t CPMS_L3_PFETSTAT_VDD_PFET_ENABLE_ACTUAL_LEN = 8;
-static const uint32_t CPMS_L3_PFETSTAT_VCS_PFET_ENABLE_ACTUAL = 24;
-static const uint32_t CPMS_L3_PFETSTAT_VCS_PFET_ENABLE_ACTUAL_LEN = 8;
-static const uint32_t CPMS_L3_PFETSTAT_SRAM_ENABLE_ACTUAL = 63;
-//<< [CPMS_L3_PFETSTAT]
-// ppe_c/reg00011.H
-
-//>> [QME_PSCRS1]
-static const uint32_t QME_PSCRS1 = 0xc0008540ull;
-
-static const uint32_t QME_PSCRS1_DPDES_EXIT_ENABLE = 0;
-static const uint32_t QME_PSCRS1_SD = 1;
-static const uint32_t QME_PSCRS1_ESL = 2;
-static const uint32_t QME_PSCRS1_EC = 3;
-static const uint32_t QME_PSCRS1_PSLL = 4;
-static const uint32_t QME_PSCRS1_PSLL_LEN = 4;
-static const uint32_t QME_PSCRS1_HYP_VIRT_EXIT_ENABLE = 8;
-static const uint32_t QME_PSCRS1_UV_DB_EXIT_ENABLE = 9;
-static const uint32_t QME_PSCRS1_HYP_DB_EXIT_ENABLE = 10;
-static const uint32_t QME_PSCRS1_EXT_EXIT_ENABLE = 11;
-static const uint32_t QME_PSCRS1_DEC_EXIT_ENABLE = 12;
-static const uint32_t QME_PSCRS1_HMI_EXIT_ENABLE = 13;
-static const uint32_t QME_PSCRS1_TR = 14;
-static const uint32_t QME_PSCRS1_TR_LEN = 2;
-static const uint32_t QME_PSCRS1_MTL = 16;
-static const uint32_t QME_PSCRS1_MTL_LEN = 4;
-static const uint32_t QME_PSCRS1_RL = 20;
-static const uint32_t QME_PSCRS1_RL_LEN = 4;
-static const uint32_t QME_PSCRS1_PLS = 24;
-static const uint32_t QME_PSCRS1_PLS_LEN = 4;
-//<< [QME_PSCRS1]
-// ppe_c/reg00011.H
-
 //>> [CPMS_DHDR]
 static const uint32_t CPMS_DHDR = 0xc000e580ull;
 
@@ -118,6 +77,23 @@ static const uint32_t CPMS_DHDR_SAMPLE_DISABLE_OCCURRED = 63;
 //<< [CPMS_DHDR]
 // ppe_c/reg00011.H
 
+//>> [CPMS_L3_PFETSTAT]
+static const uint32_t CPMS_L3_PFETSTAT = 0xc000e240ull;
+
+static const uint32_t CPMS_L3_PFETSTAT_VDD_PFETS_ENABLED_SENSE = 0;
+static const uint32_t CPMS_L3_PFETSTAT_VDD_PFETS_DISABLED_SENSE = 1;
+static const uint32_t CPMS_L3_PFETSTAT_VCS_PFETS_ENABLED_SENSE = 2;
+static const uint32_t CPMS_L3_PFETSTAT_VCS_PFETS_DISABLED_SENSE = 3;
+static const uint32_t CPMS_L3_PFETSTAT_L3_VDD_PFETS_FINGER0_SENSE = 4; // p10:20,
+static const uint32_t CPMS_L3_PFETSTAT_L3_VCS_PFETS_FINGER0_SENSE = 5; // p10:20,
+static const uint32_t CPMS_L3_PFETSTAT_VDD_PFET_ENABLE_ACTUAL = 16;
+static const uint32_t CPMS_L3_PFETSTAT_VDD_PFET_ENABLE_ACTUAL_LEN = 8;
+static const uint32_t CPMS_L3_PFETSTAT_VCS_PFET_ENABLE_ACTUAL = 24;
+static const uint32_t CPMS_L3_PFETSTAT_VCS_PFET_ENABLE_ACTUAL_LEN = 8;
+static const uint32_t CPMS_L3_PFETSTAT_SRAM_ENABLE_ACTUAL = 63;
+//<< [CPMS_L3_PFETSTAT]
+// ppe_c/reg00011.H
+
 //>> [CPMS_WPMR]
 static const uint32_t CPMS_WPMR = 0xc000e900ull;
 static const uint32_t CPMS_WPMR_PPE2 = 0xc000e920ull;
@@ -134,6 +110,32 @@ static const uint32_t CPMS_WPMR_PITCH_PERIOD_TIME_LEN = 14;
 static const uint32_t CPMS_WPMR_RESET_ACTIVITY_PROXY = 32;
 static const uint32_t CPMS_WPMR_RESET_ENERGY_PROXY = 33;
 //<< [CPMS_WPMR]
+// ppe_c/reg00011.H
+
+//>> [QME_PSCRS1]
+static const uint32_t QME_PSCRS1 = 0xc0008540ull;
+
+static const uint32_t QME_PSCRS1_DPDES_EXIT_ENABLE = 0;
+static const uint32_t QME_PSCRS1_SD = 1;
+static const uint32_t QME_PSCRS1_ESL = 2;
+static const uint32_t QME_PSCRS1_EC = 3;
+static const uint32_t QME_PSCRS1_PSLL = 4;
+static const uint32_t QME_PSCRS1_PSLL_LEN = 4;
+static const uint32_t QME_PSCRS1_HYP_VIRT_EXIT_ENABLE = 8;
+static const uint32_t QME_PSCRS1_UV_DB_EXIT_ENABLE = 9;
+static const uint32_t QME_PSCRS1_HYP_DB_EXIT_ENABLE = 10;
+static const uint32_t QME_PSCRS1_EXT_EXIT_ENABLE = 11;
+static const uint32_t QME_PSCRS1_DEC_EXIT_ENABLE = 12;
+static const uint32_t QME_PSCRS1_HMI_EXIT_ENABLE = 13;
+static const uint32_t QME_PSCRS1_TR = 14;
+static const uint32_t QME_PSCRS1_TR_LEN = 2;
+static const uint32_t QME_PSCRS1_MTL = 16;
+static const uint32_t QME_PSCRS1_MTL_LEN = 4;
+static const uint32_t QME_PSCRS1_RL = 20;
+static const uint32_t QME_PSCRS1_RL_LEN = 4;
+static const uint32_t QME_PSCRS1_PLS = 24;
+static const uint32_t QME_PSCRS1_PLS_LEN = 4;
+//<< [QME_PSCRS1]
 // ppe_c/reg00011.H
 
 //>>THE END<<

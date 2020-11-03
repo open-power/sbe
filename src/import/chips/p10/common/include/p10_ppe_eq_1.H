@@ -39,6 +39,31 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_EIPR]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_EIPR_RW = 0xc0002680ull;
+static const uint32_t QME_EIPR_WO_CLEAR = 0xc00026b0ull;
+static const uint32_t QME_EIPR_WO_OR = 0xc00026a0ull;
+
+static const uint32_t QME_EIPR_INTERRUPT_POLARITY = 0;
+static const uint32_t QME_EIPR_INTERRUPT_POLARITY_LEN = 64;
+//<< [QME_EIPR]
+// ppe_eq/reg00001.H
+
+//>> [QME_LFIRMASK]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+
+static const uint32_t QME_LFIRMASK_RW = 0xc0000040ull;
+static const uint32_t QME_LFIRMASK_WO_AND = 0xc0000050ull;
+static const uint32_t QME_LFIRMASK_WO_OR = 0xc0000060ull;
+
+static const uint32_t QME_LFIRMASK_FIR_MASK = 0;
+static const uint32_t QME_LFIRMASK_FIR_MASK_LEN = 36;
+//<< [QME_LFIRMASK]
+// ppe_eq/reg00001.H
+
 //>> [QME_SCDR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
@@ -82,44 +107,6 @@ static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C2_LEN = 4;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C3 = 60;
 static const uint32_t QME_SCDR_ACT_STOP_LEVEL_C3_LEN = 4;
 //<< [QME_SCDR]
-// ppe_eq/reg00001.H
-
-//>> [QME_TBR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_TBR = 0xc0002480ull;
-
-static const uint32_t QME_TBR_TIMEBASE = 0;
-static const uint32_t QME_TBR_TIMEBASE_LEN = 32;
-static const uint32_t QME_TBR_CYCLES = 32;
-static const uint32_t QME_TBR_CYCLES_LEN = 32;
-//<< [QME_TBR]
-// ppe_eq/reg00001.H
-
-//>> [QME_EIPR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_EIPR_RW = 0xc0002680ull;
-static const uint32_t QME_EIPR_WO_CLEAR = 0xc00026b0ull;
-static const uint32_t QME_EIPR_WO_OR = 0xc00026a0ull;
-
-static const uint32_t QME_EIPR_INTERRUPT_POLARITY = 0;
-static const uint32_t QME_EIPR_INTERRUPT_POLARITY_LEN = 64;
-//<< [QME_EIPR]
-// ppe_eq/reg00001.H
-
-//>> [QME_LFIRMASK]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-
-static const uint32_t QME_LFIRMASK_RW = 0xc0000040ull;
-static const uint32_t QME_LFIRMASK_WO_AND = 0xc0000050ull;
-static const uint32_t QME_LFIRMASK_WO_OR = 0xc0000060ull;
-
-static const uint32_t QME_LFIRMASK_FIR_MASK = 0;
-static const uint32_t QME_LFIRMASK_FIR_MASK_LEN = 36;
-//<< [QME_LFIRMASK]
 // ppe_eq/reg00001.H
 
 //>> [QME_SSDR]
@@ -247,6 +234,19 @@ static const uint32_t QME_SWPR0_BAR_LEN = 27;
 static const uint32_t QME_SWPR0_SIZE = 44;
 static const uint32_t QME_SWPR0_SIZE_LEN = 15;
 //<< [QME_SWPR0]
+// ppe_eq/reg00001.H
+
+//>> [QME_TBR]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_TBR = 0xc0002480ull;
+
+static const uint32_t QME_TBR_TIMEBASE = 0;
+static const uint32_t QME_TBR_TIMEBASE_LEN = 32;
+static const uint32_t QME_TBR_CYCLES = 32;
+static const uint32_t QME_TBR_CYCLES_LEN = 32;
+//<< [QME_TBR]
 // ppe_eq/reg00001.H
 
 //>>THE END<<

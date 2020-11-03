@@ -39,6 +39,57 @@ namespace ppe_eq
 #endif
 
 
+//>> [QME_ERR]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+
+static const uint32_t QME_ERR = 0xc0000100ull;
+
+static const uint32_t QME_ERR_PPE_INTERNAL_ERROR = 0;
+static const uint32_t QME_ERR_PPE_EXTERNAL_ERROR = 1;
+static const uint32_t QME_ERR_PPE_PROGRESS_ERROR = 2;
+static const uint32_t QME_ERR_PPE_BREAKPOINT_ERROR = 3;
+static const uint32_t QME_ERR_RESCLK_FREEZE = 4;
+static const uint32_t QME_ERR_RESCLK_FREEZE_LEN = 4;
+static const uint32_t QME_ERR_SPECIAL_WKUP_PROTOCOL_ERR = 8;
+static const uint32_t QME_ERR_SPECIAL_WKUP_PROTOCOL_ERR_LEN = 4;
+static const uint32_t QME_ERR_SPECIAL_WKUP_DONE_WINDOW = 12;
+static const uint32_t QME_ERR_SPECIAL_WKUP_DONE_WINDOW_LEN = 4;
+static const uint32_t QME_ERR_DISABLED_INTR = 16;
+static const uint32_t QME_ERR_DISABLED_INTR_LEN = 4;
+static const uint32_t QME_ERR_DECONFIGURED_INTR = 20;
+static const uint32_t QME_ERR_DECONFIGURED_INTR_LEN = 4;
+static const uint32_t QME_ERR_CTFS_ERR = 24;
+static const uint32_t QME_ERR_CTFS_ERR_LEN = 4;
+static const uint32_t QME_ERR_CPMS_ERR = 28;
+static const uint32_t QME_ERR_CPMS_ERR_LEN = 4;
+static const uint32_t QME_ERR_PCB_ENDPOINT_RESET = 32;
+static const uint32_t QME_ERR_PCB_NETWORK_RESET = 33;
+static const uint32_t QME_ERR_PIG_PENDING_SOURCE_LOST = 34;
+static const uint32_t QME_ERR_PIG_PENDING_SOURCE_LOST_LEN = 6;
+static const uint32_t QME_ERR_SPARE = 40;
+static const uint32_t QME_ERR_SPARE_LEN = 4;
+static const uint32_t QME_ERR_PCB_NETWORK_RESET_REQ = 40; // p10:20,
+static const uint32_t QME_ERR_PCB_NETWORK_RESET_PIG_REQ = 41; // p10:20,
+// ERROR Duplicate Dial         static const uint32_t QME_ERR_SPARE = 42; // p10:20,
+// ERROR Duplicate Dial         static const uint32_t QME_ERR_SPARE_LEN = 2;
+static const uint32_t QME_ERR_LOCAL_ACCESS_PROTECT_ERR = 44;
+static const uint32_t QME_ERR_LOCAL_ACCESS_REGION_ERR = 45;
+static const uint32_t QME_ERR_LOCAL_ACCESS_PARTIAL_ERR = 46;
+//<< [QME_ERR]
+// ppe_eq/reg00007.H
+
+//>> [QME_QHTTRIG]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_QHTTRIG = 0xc0001b00ull;
+
+static const uint32_t QME_QHTTRIG_START = 0;
+static const uint32_t QME_QHTTRIG_STOP = 1;
+static const uint32_t QME_QHTTRIG_PAUSE = 2;
+//<< [QME_QHTTRIG]
+// ppe_eq/reg00007.H
+
 //>> [QME_QMCR]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
@@ -81,57 +132,21 @@ static const uint32_t QME_QMCR_QOS_AUTO_SEQ_ENABLE = 34;
 static const uint32_t QME_QMCR_QOSR_SPR_UPDATE_ENABLE = 35;
 static const uint32_t QME_QMCR_SPARE2 = 36;
 static const uint32_t QME_QMCR_SPARE2_LEN = 4;
+static const uint32_t QME_QMCR_MIXED_LPAR_MODE_DISABLE = 36; // p10:20,
+static const uint32_t QME_QMCR_RESET_QME_PCB_INTERRUPT_INTERFACE = 37; // p10:20,
+static const uint32_t QME_QMCR_PCB_RESET_ALL_REQ = 38; // p10:20,
+static const uint32_t QME_QMCR_CR_STEP_SYNC_TOGGLE_DISABLE = 39; // p10:20,
+static const uint32_t QME_QMCR_CR_SYNC_PULSE_DIS = 40; // p10:20,
+// ERROR Duplicate Dial         static const uint32_t QME_QMCR_SPARE2 = 41; // p10:20,
+// ERROR Duplicate Dial         static const uint32_t QME_QMCR_SPARE2_LEN = 6;
 static const uint32_t QME_QMCR_FUSED_CORE_MODE = 47;
+static const uint32_t QME_QMCR_TOD_STEP_MS = 48; // p10:20,
+static const uint32_t QME_QMCR_TOD_SYNC_MS = 49; // p10:20,
+static const uint32_t QME_QMCR_TOD_STEP_ACTUAL = 50; // p10:20,
+static const uint32_t QME_QMCR_TOD_SYNC_ACTUAL = 51; // p10:20,
 static const uint32_t QME_QMCR_CORE_PARTIAL_GOOD = 60;
 static const uint32_t QME_QMCR_CORE_PARTIAL_GOOD_LEN = 4;
 //<< [QME_QMCR]
-// ppe_eq/reg00007.H
-
-//>> [QME_ERR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-
-static const uint32_t QME_ERR = 0xc0000100ull;
-
-static const uint32_t QME_ERR_PPE_INTERNAL_ERROR = 0;
-static const uint32_t QME_ERR_PPE_EXTERNAL_ERROR = 1;
-static const uint32_t QME_ERR_PPE_PROGRESS_ERROR = 2;
-static const uint32_t QME_ERR_PPE_BREAKPOINT_ERROR = 3;
-static const uint32_t QME_ERR_RESCLK_FREEZE = 4;
-static const uint32_t QME_ERR_RESCLK_FREEZE_LEN = 4;
-static const uint32_t QME_ERR_SPECIAL_WKUP_PROTOCOL_ERR = 8;
-static const uint32_t QME_ERR_SPECIAL_WKUP_PROTOCOL_ERR_LEN = 4;
-static const uint32_t QME_ERR_SPECIAL_WKUP_DONE_WINDOW = 12;
-static const uint32_t QME_ERR_SPECIAL_WKUP_DONE_WINDOW_LEN = 4;
-static const uint32_t QME_ERR_DISABLED_INTR = 16;
-static const uint32_t QME_ERR_DISABLED_INTR_LEN = 4;
-static const uint32_t QME_ERR_DECONFIGURED_INTR = 20;
-static const uint32_t QME_ERR_DECONFIGURED_INTR_LEN = 4;
-static const uint32_t QME_ERR_CTFS_ERR = 24;
-static const uint32_t QME_ERR_CTFS_ERR_LEN = 4;
-static const uint32_t QME_ERR_CPMS_ERR = 28;
-static const uint32_t QME_ERR_CPMS_ERR_LEN = 4;
-static const uint32_t QME_ERR_PCB_ENDPOINT_RESET = 32;
-static const uint32_t QME_ERR_PCB_NETWORK_RESET = 33;
-static const uint32_t QME_ERR_PIG_PENDING_SOURCE_LOST = 34;
-static const uint32_t QME_ERR_PIG_PENDING_SOURCE_LOST_LEN = 6;
-static const uint32_t QME_ERR_SPARE = 40;
-static const uint32_t QME_ERR_SPARE_LEN = 4;
-static const uint32_t QME_ERR_LOCAL_ACCESS_PROTECT_ERR = 44;
-static const uint32_t QME_ERR_LOCAL_ACCESS_REGION_ERR = 45;
-static const uint32_t QME_ERR_LOCAL_ACCESS_PARTIAL_ERR = 46;
-//<< [QME_ERR]
-// ppe_eq/reg00007.H
-
-//>> [QME_QHTTRIG]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_QHTTRIG = 0xc0001b00ull;
-
-static const uint32_t QME_QHTTRIG_START = 0;
-static const uint32_t QME_QHTTRIG_STOP = 1;
-static const uint32_t QME_QHTTRIG_PAUSE = 2;
-//<< [QME_QHTTRIG]
 // ppe_eq/reg00007.H
 
 //>> [QME_SWPR1]

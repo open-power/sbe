@@ -78,11 +78,19 @@ static const uint32_t CPMS_SDSR = 0xc000e680ull;
 
 static const uint32_t CPMS_SDSR_DDS_DATA = 0;
 static const uint32_t CPMS_SDSR_DDS_DATA_LEN = 5;
+static const uint32_t CPMS_SDSR_CPMS_DDSR_DDS_DATA = 0; // p10:20,
+static const uint32_t CPMS_SDSR_CPMS_DDSR_DDS_DATA_LEN = 5;
 static const uint32_t CPMS_SDSR_DDS_MIN = 5;
 static const uint32_t CPMS_SDSR_DDS_MIN_LEN = 5;
+// ERROR Duplicate Dial         static const uint32_t CPMS_SDSR_DDS_MIN = 5; // p10:20,
+// ERROR Duplicate Dial         static const uint32_t CPMS_SDSR_DDS_MIN_LEN = 5;
 static const uint32_t CPMS_SDSR_DDS_MAX = 10;
 static const uint32_t CPMS_SDSR_DDS_MAX_LEN = 5;
+// ERROR Duplicate Dial         static const uint32_t CPMS_SDSR_DDS_MAX = 10; // p10:20,
+// ERROR Duplicate Dial         static const uint32_t CPMS_SDSR_DDS_MAX_LEN = 5;
 static const uint32_t CPMS_SDSR_SAMPLE_DISABLE_OCCURRED = 15;
+// ERROR Duplicate Dial         static const uint32_t CPMS_SDSR_SAMPLE_DISABLE_OCCURRED = 15; // p10:20,
+static const uint32_t CPMS_SDSR_STOP_STATE_OCCURRED = 16; // p10:20,
 //<< [CPMS_SDSR]
 // ppe_c/reg00015.H
 

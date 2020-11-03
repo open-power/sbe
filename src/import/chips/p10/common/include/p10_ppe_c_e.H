@@ -50,6 +50,7 @@ static const uint32_t CPMS_ASSR_CPMS_MMA_PFETSTAT_VDD_PFETS_ENABLED_SENSE = 4;
 static const uint32_t CPMS_ASSR_CPMS_MMA_PFETSTAT_VDD_PFETS_DISABLED_SENSE = 5;
 static const uint32_t CPMS_ASSR_CPMS_RVCSR_RVID_ACTIVE = 6;
 static const uint32_t CPMS_ASSR_CPMS_RVCSR_BYPASS_ACTIVE = 7;
+static const uint32_t CPMS_ASSR_CPMS_RVCSR_BYPASS_RAW = 7; // p10:20,
 static const uint32_t CPMS_ASSR_CPMS_CL2_PFETCNTL_VDD_PFET_REGULATION_FINGER_SET = 8;
 static const uint32_t CPMS_ASSR_CPMS_L3_PFETSTAT_VCS_PFETS_ENABLED_SENSE = 12;
 static const uint32_t CPMS_ASSR_CPMS_L3_PFETSTAT_VCS_PFETS_DISABLED_SENSE = 13;
@@ -59,6 +60,11 @@ static const uint32_t CPMS_ASSR_L3_CLKGLM_SEL = 16;
 static const uint32_t CPMS_ASSR_L2_CLKGLM_SEL = 17;
 static const uint32_t CPMS_ASSR_CPMS_CGCSR_L3_CLK_SYNC_DONE = 18;
 static const uint32_t CPMS_ASSR_CPMS_CGCSR_CL2_CLK_SYNC_DONE = 19;
+static const uint32_t CPMS_ASSR_CPMS_L3_PFETSTAT_VDD_PFETS_FINGER0_SENSE = 20; // p10:20,
+static const uint32_t CPMS_ASSR_CPMS_L3_PFETSTAT_VCS_PFETS_FINGER0_SENSE = 21; // p10:20,
+static const uint32_t CPMS_ASSR_CPMS_CL2_PFETSTAT_L2_VDD_PFETS_FINGER0_SENSE = 22; // p10:20,
+static const uint32_t CPMS_ASSR_CPMS_CL2_PFETSTAT_L2_VCS_PFETS_FINGER0_SENSE = 23; // p10:20,
+static const uint32_t CPMS_ASSR_CPMS_MMA_PFETSTAT_VDD_PFETS_FINGER0_SENSE = 24; // p10:20,
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_AVG = 27;
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_AVG_LEN = 5;
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_SENSE0 = 32;
@@ -74,49 +80,6 @@ static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_SENSE_MAX_LEN = 5;
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_SENSE_MIN = 57;
 static const uint32_t CPMS_ASSR_CL2_VDD_CURRENT_SENSE_MIN_LEN = 5;
 //<< [CPMS_ASSR]
-// ppe_c/reg00014.H
-
-//>> [QME_CISR]
-static const uint32_t QME_CISR = 0xc0008780ull;
-
-static const uint32_t QME_CISR_HYP_INTR_PRESENT = 0;
-static const uint32_t QME_CISR_HYP_INTR_PRESENT_LEN = 4;
-static const uint32_t QME_CISR_OS_INTR_PRESENT = 4;
-static const uint32_t QME_CISR_OS_INTR_PRESENT_LEN = 4;
-static const uint32_t QME_CISR_MSGSND_INTR_PRESENT = 8;
-static const uint32_t QME_CISR_MSGSND_INTR_PRESENT_LEN = 4;
-static const uint32_t QME_CISR_EBB_INTR_PRESENT = 12;
-static const uint32_t QME_CISR_EBB_INTR_PRESENT_LEN = 4;
-static const uint32_t QME_CISR_HYP_INTR_REQUESTED = 16;
-static const uint32_t QME_CISR_HYP_INTR_REQUESTED_LEN = 4;
-static const uint32_t QME_CISR_OS_INTR_REQUESTED = 20;
-static const uint32_t QME_CISR_OS_INTR_REQUESTED_LEN = 4;
-static const uint32_t QME_CISR_MSGSND_INTR_REQUESTED = 24;
-static const uint32_t QME_CISR_MSGSND_INTR_REQUESTED_LEN = 4;
-static const uint32_t QME_CISR_MSGSND_INTR_SAMPLE = 28;
-static const uint32_t QME_CISR_MSGSND_INTR_SAMPLE_LEN = 4;
-static const uint32_t QME_CISR_MSGSND_ACK = 32;
-static const uint32_t QME_CISR_MALF_ALERT_PRESENT = 33;
-static const uint32_t QME_CISR_MALF_ALERT_REQUESTED = 34;
-static const uint32_t QME_CISR_MSGSNDU_INTR_PRESENT = 36;
-static const uint32_t QME_CISR_MSGSNDU_INTR_PRESENT_LEN = 4;
-static const uint32_t QME_CISR_MSGSNDU_INTR_REQUESTED = 40;
-static const uint32_t QME_CISR_MSGSNDU_INTR_REQUESTED_LEN = 4;
-static const uint32_t QME_CISR_MSGSNDU_INTR_SAMPLE = 44;
-static const uint32_t QME_CISR_MSGSNDU_INTR_SAMPLE_LEN = 4;
-static const uint32_t QME_CISR_TFCS_DEC_PRESENT = 48;
-static const uint32_t QME_CISR_TFCS_DEC_PRESENT_LEN = 4;
-static const uint32_t QME_CISR_TFCS_DEC_REQUESTED = 52;
-static const uint32_t QME_CISR_TFCS_DEC_REQUESTED_LEN = 4;
-static const uint32_t QME_CISR_TFCS_HDEC_PRESENT = 56;
-static const uint32_t QME_CISR_TFCS_HDEC_REQUESTED = 57;
-static const uint32_t QME_CISR_DPDES_INTR_PRESENT = 58;
-static const uint32_t QME_CISR_DPDES_INTR_REQUESTED = 59;
-static const uint32_t QME_CISR_PC_INTR_PENDING = 60;
-static const uint32_t QME_CISR_PC_INTR_REQUESTED = 61;
-static const uint32_t QME_CISR_REG_WKUP_PRESENT = 62;
-static const uint32_t QME_CISR_REG_WKUP_REQUESTED = 63;
-//<< [QME_CISR]
 // ppe_c/reg00014.H
 
 //>> [CPMS_DESR]
@@ -178,6 +141,49 @@ static const uint32_t CPMS_DTTR_T2_DPT_INFLIGHT_LIMIT_LEN = 8;
 static const uint32_t CPMS_DTTR_T3_DPT_INFLIGHT_LIMIT = 56;
 static const uint32_t CPMS_DTTR_T3_DPT_INFLIGHT_LIMIT_LEN = 8;
 //<< [CPMS_DTTR]
+// ppe_c/reg00014.H
+
+//>> [QME_CISR]
+static const uint32_t QME_CISR = 0xc0008780ull;
+
+static const uint32_t QME_CISR_HYP_INTR_PRESENT = 0;
+static const uint32_t QME_CISR_HYP_INTR_PRESENT_LEN = 4;
+static const uint32_t QME_CISR_OS_INTR_PRESENT = 4;
+static const uint32_t QME_CISR_OS_INTR_PRESENT_LEN = 4;
+static const uint32_t QME_CISR_MSGSND_INTR_PRESENT = 8;
+static const uint32_t QME_CISR_MSGSND_INTR_PRESENT_LEN = 4;
+static const uint32_t QME_CISR_EBB_INTR_PRESENT = 12;
+static const uint32_t QME_CISR_EBB_INTR_PRESENT_LEN = 4;
+static const uint32_t QME_CISR_HYP_INTR_REQUESTED = 16;
+static const uint32_t QME_CISR_HYP_INTR_REQUESTED_LEN = 4;
+static const uint32_t QME_CISR_OS_INTR_REQUESTED = 20;
+static const uint32_t QME_CISR_OS_INTR_REQUESTED_LEN = 4;
+static const uint32_t QME_CISR_MSGSND_INTR_REQUESTED = 24;
+static const uint32_t QME_CISR_MSGSND_INTR_REQUESTED_LEN = 4;
+static const uint32_t QME_CISR_MSGSND_INTR_SAMPLE = 28;
+static const uint32_t QME_CISR_MSGSND_INTR_SAMPLE_LEN = 4;
+static const uint32_t QME_CISR_MSGSND_ACK = 32;
+static const uint32_t QME_CISR_MALF_ALERT_PRESENT = 33;
+static const uint32_t QME_CISR_MALF_ALERT_REQUESTED = 34;
+static const uint32_t QME_CISR_MSGSNDU_INTR_PRESENT = 36;
+static const uint32_t QME_CISR_MSGSNDU_INTR_PRESENT_LEN = 4;
+static const uint32_t QME_CISR_MSGSNDU_INTR_REQUESTED = 40;
+static const uint32_t QME_CISR_MSGSNDU_INTR_REQUESTED_LEN = 4;
+static const uint32_t QME_CISR_MSGSNDU_INTR_SAMPLE = 44;
+static const uint32_t QME_CISR_MSGSNDU_INTR_SAMPLE_LEN = 4;
+static const uint32_t QME_CISR_TFCS_DEC_PRESENT = 48;
+static const uint32_t QME_CISR_TFCS_DEC_PRESENT_LEN = 4;
+static const uint32_t QME_CISR_TFCS_DEC_REQUESTED = 52;
+static const uint32_t QME_CISR_TFCS_DEC_REQUESTED_LEN = 4;
+static const uint32_t QME_CISR_TFCS_HDEC_PRESENT = 56;
+static const uint32_t QME_CISR_TFCS_HDEC_REQUESTED = 57;
+static const uint32_t QME_CISR_DPDES_INTR_PRESENT = 58;
+static const uint32_t QME_CISR_DPDES_INTR_REQUESTED = 59;
+static const uint32_t QME_CISR_PC_INTR_PENDING = 60;
+static const uint32_t QME_CISR_PC_INTR_REQUESTED = 61;
+static const uint32_t QME_CISR_REG_WKUP_PRESENT = 62;
+static const uint32_t QME_CISR_REG_WKUP_REQUESTED = 63;
+//<< [QME_CISR]
 // ppe_c/reg00014.H
 
 //>>THE END<<

@@ -39,25 +39,6 @@ namespace ppe_c
 #endif
 
 
-//>> [QME_CIIR]
-static const uint32_t QME_CIIR = 0xc0008740ull;
-
-static const uint32_t QME_CIIR_MSGSND_INTR_INJECT = 28;
-static const uint32_t QME_CIIR_MSGSND_INTR_INJECT_LEN = 4;
-static const uint32_t QME_CIIR_MSGSNDU_INTR_INJECT = 60;
-static const uint32_t QME_CIIR_MSGSNDU_INTR_INJECT_LEN = 4;
-//<< [QME_CIIR]
-// ppe_c/reg00005.H
-
-//>> [QME_RMOR]
-static const uint32_t QME_RMOR = 0xc0008680ull;
-
-static const uint32_t QME_RMOR_DATA = 0;
-static const uint32_t QME_RMOR_DATA_LEN = 63;
-static const uint32_t QME_RMOR_URMOR_SELECT = 63;
-//<< [QME_RMOR]
-// ppe_c/reg00005.H
-
 //>> [CPMS_FLMR]
 static const uint32_t CPMS_FLMR_RW = 0xc000e480ull;
 static const uint32_t CPMS_FLMR_WO_CLEAR = 0xc000e4b0ull;
@@ -113,9 +94,14 @@ static const uint32_t CPMS_WPCR_SPARE = 0;
 static const uint32_t CPMS_WPCR_SPARE_LEN = 2;
 static const uint32_t CPMS_WPCR_BASE_THROTTLE_INDEX = 2;
 static const uint32_t CPMS_WPCR_BASE_THROTTLE_INDEX_LEN = 6;
+static const uint32_t CPMS_WPCR_SPARE2 = 8; // p10:20,
+static const uint32_t CPMS_WPCR_SPARE2_LEN = 4;
 static const uint32_t CPMS_WPCR_INTERVAL_PROXY_TARGET = 12;
 static const uint32_t CPMS_WPCR_INTERVAL_PROXY_TARGET_LEN = 20;
-static const uint32_t CPMS_WPCR_SPARE2 = 32;
+static const uint32_t CPMS_WPCR_WOF_INTERVAL_TARGET = 12; // p10:20,
+static const uint32_t CPMS_WPCR_WOF_INTERVAL_TARGET_LEN = 20;
+// ERROR Duplicate Dial         static const uint32_t CPMS_WPCR_SPARE2 = 32;
+static const uint32_t CPMS_WPCR_SPARE3 = 32; // p10:20,
 static const uint32_t CPMS_WPCR_PROXY_THRESH_SELECT = 33;
 static const uint32_t CPMS_WPCR_PROXY_THRESH_SELECT_LEN = 3;
 static const uint32_t CPMS_WPCR_PROXY_CARRYOUT_SEL = 36;
@@ -129,6 +115,25 @@ static const uint32_t CPMS_WPCR_STOP_STATE_OCCURRED = 63;
 //<< [CPMS_WPCR]
 // ppe_c/reg00005.H
 
+//>> [QME_CIIR]
+static const uint32_t QME_CIIR = 0xc0008740ull;
+
+static const uint32_t QME_CIIR_MSGSND_INTR_INJECT = 28;
+static const uint32_t QME_CIIR_MSGSND_INTR_INJECT_LEN = 4;
+static const uint32_t QME_CIIR_MSGSNDU_INTR_INJECT = 60;
+static const uint32_t QME_CIIR_MSGSNDU_INTR_INJECT_LEN = 4;
+//<< [QME_CIIR]
+// ppe_c/reg00005.H
+
+//>> [QME_RMOR]
+static const uint32_t QME_RMOR = 0xc0008680ull;
+
+static const uint32_t QME_RMOR_DATA = 0;
+static const uint32_t QME_RMOR_DATA_LEN = 63;
+static const uint32_t QME_RMOR_URMOR_SELECT = 63;
+//<< [QME_RMOR]
+// ppe_c/reg00005.H
+
 //>> [QME_SCR]
 static const uint32_t QME_SCR_RW = 0xc00080c0ull;
 static const uint32_t QME_SCR_WO_CLEAR = 0xc00080f0ull;
@@ -136,6 +141,8 @@ static const uint32_t QME_SCR_WO_OR = 0xc00080e0ull;
 
 static const uint32_t QME_SCR_DATA = 0;
 static const uint32_t QME_SCR_DATA_LEN = 64;
+// ERROR Duplicate Dial         static const uint32_t QME_SCR_DATA = 0; // p10:20,
+// ERROR Duplicate Dial         static const uint32_t QME_SCR_DATA_LEN = 16;
 //<< [QME_SCR]
 // ppe_c/reg00005.H
 

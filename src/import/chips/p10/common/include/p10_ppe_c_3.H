@@ -39,6 +39,28 @@ namespace ppe_c
 #endif
 
 
+//>> [CPMS_CCDR]
+static const uint32_t CPMS_CCDR = 0xc000e740ull;
+
+static const uint32_t CPMS_CCDR_CHAR_COUNTA_SCALE = 0;
+static const uint32_t CPMS_CCDR_CHAR_COUNTA_SCALE_LEN = 4;
+static const uint32_t CPMS_CCDR_CHAR_COUNTA_VALUE = 4;
+static const uint32_t CPMS_CCDR_CHAR_COUNTA_VALUE_LEN = 16;
+static const uint32_t CPMS_CCDR_CHAR_COUNTB_SCALE = 20;
+static const uint32_t CPMS_CCDR_CHAR_COUNTB_SCALE_LEN = 4;
+static const uint32_t CPMS_CCDR_CHAR_COUNTB_VALUE = 24;
+static const uint32_t CPMS_CCDR_CHAR_COUNTB_VALUE_LEN = 16;
+static const uint32_t CPMS_CCDR_CHAR_COUNTC_SCALE = 40;
+static const uint32_t CPMS_CCDR_CHAR_COUNTC_SCALE_LEN = 4;
+static const uint32_t CPMS_CCDR_CHAR_COUNTC_VALUE = 44;
+static const uint32_t CPMS_CCDR_CHAR_COUNTC_VALUE_LEN = 16;
+static const uint32_t CPMS_CCDR_CHAR_COUNTA_MOD = 60;
+static const uint32_t CPMS_CCDR_CHAR_COUNTB_MOD = 61;
+static const uint32_t CPMS_CCDR_CHAR_COUNTC_MOD = 62;
+static const uint32_t CPMS_CCDR_SAMPLE_DISABLE_INDICATOR = 63;
+//<< [CPMS_CCDR]
+// ppe_c/reg00003.H
+
 //>> [CPMS_CL2_PFETCNTL]
 static const uint32_t CPMS_CL2_PFETCNTL = 0xc000e280ull;
 static const uint32_t CPMS_CL2_PFETCNTL_WO_CLEAR = 0xc000e2b0ull;
@@ -117,28 +139,6 @@ static const uint32_t CPMS_FDCR_SLOPEA_CYCLES_LEN = 4;
 static const uint32_t CPMS_FDCR_SLOPEB_CYCLES = 60;
 static const uint32_t CPMS_FDCR_SLOPEB_CYCLES_LEN = 4;
 //<< [CPMS_FDCR]
-// ppe_c/reg00003.H
-
-//>> [CPMS_CCDR]
-static const uint32_t CPMS_CCDR = 0xc000e740ull;
-
-static const uint32_t CPMS_CCDR_CHAR_COUNTA_SCALE = 0;
-static const uint32_t CPMS_CCDR_CHAR_COUNTA_SCALE_LEN = 4;
-static const uint32_t CPMS_CCDR_CHAR_COUNTA_VALUE = 4;
-static const uint32_t CPMS_CCDR_CHAR_COUNTA_VALUE_LEN = 16;
-static const uint32_t CPMS_CCDR_CHAR_COUNTB_SCALE = 20;
-static const uint32_t CPMS_CCDR_CHAR_COUNTB_SCALE_LEN = 4;
-static const uint32_t CPMS_CCDR_CHAR_COUNTB_VALUE = 24;
-static const uint32_t CPMS_CCDR_CHAR_COUNTB_VALUE_LEN = 16;
-static const uint32_t CPMS_CCDR_CHAR_COUNTC_SCALE = 40;
-static const uint32_t CPMS_CCDR_CHAR_COUNTC_SCALE_LEN = 4;
-static const uint32_t CPMS_CCDR_CHAR_COUNTC_VALUE = 44;
-static const uint32_t CPMS_CCDR_CHAR_COUNTC_VALUE_LEN = 16;
-static const uint32_t CPMS_CCDR_CHAR_COUNTA_MOD = 60;
-static const uint32_t CPMS_CCDR_CHAR_COUNTB_MOD = 61;
-static const uint32_t CPMS_CCDR_CHAR_COUNTC_MOD = 62;
-static const uint32_t CPMS_CCDR_SAMPLE_DISABLE_INDICATOR = 63;
-//<< [CPMS_CCDR]
 // ppe_c/reg00003.H
 
 //>> [CPMS_PRSR]

@@ -65,31 +65,6 @@ static const uint32_t QME_FLAGS_DATA_LEN = 64;
 //<< [QME_FLAGS]
 // ppe_eq/reg00012.H
 
-//>> [QME_RCIMR]
-//ERRCODE: // Some of the name targets not found in address targets: eq
-// No targets could be determined from the address.
-
-static const uint32_t QME_RCIMR = 0xc00018c0ull;
-
-static const uint32_t QME_RCIMR_P0 = 0;
-static const uint32_t QME_RCIMR_P0_LEN = 8;
-static const uint32_t QME_RCIMR_X0 = 11;
-static const uint32_t QME_RCIMR_X0_LEN = 5;
-static const uint32_t QME_RCIMR_P1 = 16;
-static const uint32_t QME_RCIMR_P1_LEN = 8;
-static const uint32_t QME_RCIMR_X1 = 27;
-static const uint32_t QME_RCIMR_X1_LEN = 5;
-static const uint32_t QME_RCIMR_P2 = 32;
-static const uint32_t QME_RCIMR_P2_LEN = 8;
-static const uint32_t QME_RCIMR_X2 = 43;
-static const uint32_t QME_RCIMR_X2_LEN = 5;
-static const uint32_t QME_RCIMR_P3 = 48;
-static const uint32_t QME_RCIMR_P3_LEN = 8;
-static const uint32_t QME_RCIMR_X3 = 59;
-static const uint32_t QME_RCIMR_X3_LEN = 5;
-//<< [QME_RCIMR]
-// ppe_eq/reg00012.H
-
 //>> [QME_PPEDBG]
 //ERRCODE: // Some of the name targets not found in address targets: eq
 // No targets could be determined from the address.
@@ -125,6 +100,31 @@ static const uint32_t QME_PPEDBG_TRACE_MODE_SEL1 = 27;
 static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1 = 28;
 static const uint32_t QME_PPEDBG_TRACE_DATA_SEL1_LEN = 4;
 //<< [QME_PPEDBG]
+// ppe_eq/reg00012.H
+
+//>> [QME_RCIMR]
+//ERRCODE: // Some of the name targets not found in address targets: eq
+// No targets could be determined from the address.
+
+static const uint32_t QME_RCIMR = 0xc00018c0ull;
+
+static const uint32_t QME_RCIMR_P0 = 0;
+static const uint32_t QME_RCIMR_P0_LEN = 8;
+static const uint32_t QME_RCIMR_X0 = 11;
+static const uint32_t QME_RCIMR_X0_LEN = 5;
+static const uint32_t QME_RCIMR_P1 = 16;
+static const uint32_t QME_RCIMR_P1_LEN = 8;
+static const uint32_t QME_RCIMR_X1 = 27;
+static const uint32_t QME_RCIMR_X1_LEN = 5;
+static const uint32_t QME_RCIMR_P2 = 32;
+static const uint32_t QME_RCIMR_P2_LEN = 8;
+static const uint32_t QME_RCIMR_X2 = 43;
+static const uint32_t QME_RCIMR_X2_LEN = 5;
+static const uint32_t QME_RCIMR_P3 = 48;
+static const uint32_t QME_RCIMR_P3_LEN = 8;
+static const uint32_t QME_RCIMR_X3 = 59;
+static const uint32_t QME_RCIMR_X3_LEN = 5;
+//<< [QME_RCIMR]
 // ppe_eq/reg00012.H
 
 //>> [QME_RCTAR1]
