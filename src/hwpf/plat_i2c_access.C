@@ -737,13 +737,13 @@ namespace fapi2
                            std::vector<uint8_t>& o_data )
     {
         ReturnCode rc = FAPI2_RC_SUCCESS;
-        FAPI_IMP("platGetI2c: Input OCMB target passed is 0x%08X", target.get());
+        FAPI_IMP("platGetI2c: Input target passed is 0x%08X", target.get());
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
         args.port = (uint8_t)(target.get().fields.port);
         args.engine = (uint8_t)(target.get().fields.engine);
         args.devAddr = (uint8_t)(target.get().fields.devAddr);
-        FAPI_IMP("platGetI2c OCMB Port: %02X Engine: %02X DevAddr: %02x set",
+        FAPI_IMP("platGetI2c Port: %02X Engine: %02X DevAddr: %02x set",
                        args.port, args.engine, args.devAddr);
         do {
             rc = i2cSetBusVariables(400, args);

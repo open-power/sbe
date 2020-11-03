@@ -225,6 +225,8 @@ extern "C"
     extern fapi2attr::CoreAttributes_t      G_core_attributes      asm("G_core_attributes")       __attribute__ ((section (".fixed")));
     extern fapi2attr::EQAttributes_t        G_eq_attributes        asm("G_eq_attributes")         __attribute__ ((section (".fixed")));
     extern fapi2attr::OCMBChipAttributes_t  G_ocmb_chip_attributes asm("G_ocmb_chip_attributes")  __attribute__ ((section (".fixed")));
+    extern fapi2attr::PMICAttributes_t      G_pmic_attributes      asm("G_pmic_attributes")  __attribute__ ((section (".fixed")));
+    extern fapi2attr::GI2CAttributes_t      G_gi2c_attributes      asm("G_gi2c_attributes")  __attribute__ ((section (".fixed")));
 
     extern fapi2attr::SystemAttributes_t*   G_system_attributes_ptr;
     extern fapi2attr::ProcChipAttributes_t* G_proc_chip_attributes_ptr;
@@ -232,6 +234,8 @@ extern "C"
     extern fapi2attr::CoreAttributes_t*     G_core_attributes_ptr;
     extern fapi2attr::EQAttributes_t*       G_eq_attributes_ptr;
     extern fapi2attr::OCMBChipAttributes_t* G_ocmb_chip_attributes_ptr;
+    extern fapi2attr::PMICAttributes_t*     G_pmic_attributes_ptr;
+    extern fapi2attr::GI2CAttributes_t*     G_gi2c_attributes_ptr;
 
 }
 
@@ -343,6 +347,16 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __get<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __get<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
          __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
@@ -384,6 +398,16 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_OCMB_CHIP)
     {
         __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __get<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __get<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -430,6 +454,16 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __get<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __get<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
          __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
@@ -472,6 +506,16 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_OCMB_CHIP)
     {
         __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __get<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __get<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -630,6 +674,16 @@ AttributeRC _setAttributeArrayShort(const AttributeId i_id,
     if(K & TARGET_TYPE_OCMB_CHIP)
     {
         __set<K, fapi2attr::OCMBChipAttributes_t, uint8_t, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, *i_pValues );
+    }
+
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, uint8_t, A>( i_pTarget, G_pmic_attributes_ptr, i_id, *i_pValues );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, uint8_t, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, *i_pValues );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -860,6 +914,16 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -904,6 +968,16 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -945,6 +1019,16 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_OCMB_CHIP)
     {
         __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -992,6 +1076,16 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -1036,6 +1130,16 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __get<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __get<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
          __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
@@ -1077,6 +1181,16 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_OCMB_CHIP)
     {
         __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __get<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __get<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -1123,6 +1237,16 @@ AttributeRC _get(const AttributeId i_id,
         __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __get<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __get<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, &o_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
          __get<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, &o_value );
@@ -1154,7 +1278,7 @@ AttributeRC _get(const AttributeId i_id,
 
     if(K & TARGET_TYPE_SYSTEM)
     {
-        __set<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
+        __get<K, fapi2attr::SystemAttributes_t, T, A>( i_pTarget, G_system_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PROC_CHIP)
@@ -1165,6 +1289,16 @@ AttributeRC _get(const AttributeId i_id,
     if(K & TARGET_TYPE_OCMB_CHIP)
     {
         __get<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __get<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, &o_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __get<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, &o_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -1402,6 +1536,16 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -1443,6 +1587,16 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_OCMB_CHIP)
     {
         __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)
@@ -1488,6 +1642,16 @@ AttributeRC _set(const AttributeId i_id,
         __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
     }
 
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, i_value );
+    }
+
     if(K & TARGET_TYPE_PERV)
     {
         __set<K, fapi2attr::PervAttributes_t, T, A>( i_pTarget, G_perv_attributes_ptr, i_id, i_value );
@@ -1530,6 +1694,16 @@ AttributeRC _set(const AttributeId i_id,
     if(K & TARGET_TYPE_OCMB_CHIP)
     {
         __set<K, fapi2attr::OCMBChipAttributes_t, T, A>( i_pTarget, G_ocmb_chip_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_PMIC)
+    {
+        __set<K, fapi2attr::PMICAttributes_t, T, A>( i_pTarget, G_pmic_attributes_ptr, i_id, i_value );
+    }
+
+    if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        __set<K, fapi2attr::GI2CAttributes_t, T, A>( i_pTarget, G_gi2c_attributes_ptr, i_id, i_value );
     }
 
     if(K & TARGET_TYPE_PERV)

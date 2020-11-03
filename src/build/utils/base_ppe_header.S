@@ -164,3 +164,5 @@ __header_string_reserved:
     .proc_sbe_fixed_core
     .proc_sbe_fixed_eq
     .proc_sbe_fixed_ocmb_chip
+    .proc_sbe_fixed_pmic
+    .proc_sbe_fixed_gi2c

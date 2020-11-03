@@ -56,6 +56,9 @@ fapi2attr::OCMBChipAttributes_t*  G_ocmb_chip_attributes_ptr;
 fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
+fapi2attr::PMICAttributes_t*      G_pmic_attributes_ptr;
+fapi2attr::GI2CAttributes_t*      G_gi2c_attributes_ptr;
+
 #endif // __SBEFW_PIBMEM__
 
 #if defined __SBEFW_SEEPROM__
@@ -70,6 +73,8 @@ extern fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
 extern fapi2attr::CoreAttributes_t*      G_core_attributes_ptr;
 extern fapi2attr::EQAttributes_t*        G_eq_attributes_ptr;
 extern fapi2attr::OCMBChipAttributes_t*  G_ocmb_chip_attributes_ptr;
+extern fapi2attr::PMICAttributes_t*      G_pmic_attributes_ptr;
+extern fapi2attr::GI2CAttributes_t*      G_gi2c_attributes_ptr;
 
 // For PhyP system, HRMOR is set to 128MB, which is multiple of 64MB Granule * 2
 // For OPAL system, it needs the HRMOR in the range of 4GB, so that HB reloading
@@ -518,6 +523,12 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_OCMB :
                 l_targetType = TARGET_TYPE_OCMB_CHIP;
                 break;
+            case PPE_TARGET_TYPE_PMIC :
+                l_targetType = TARGET_TYPE_PMIC;
+                break;
+            case PPE_TARGET_TYPE_GENERICI2CSLAVE :
+                l_targetType = TARGET_TYPE_GENERICI2CSLAVE;
+                break;
             case PPE_TARGET_TYPE_NONE:
             default:
                 assert(false);
@@ -755,6 +766,8 @@ fapi_try_exit:
         G_sbe_attrs.G_perv_attrs = G_perv_attributes;
         G_sbe_attrs.G_core_attrs = G_core_attributes;
         G_sbe_attrs.G_eq_attrs = G_eq_attributes;
+        G_sbe_attrs.G_pmic_attrs = G_pmic_attributes;
+        G_sbe_attrs.G_gi2c_attrs = G_gi2c_attributes;
 
         // Initialise global attribute pointers
 #ifndef DFT
@@ -764,6 +777,8 @@ fapi_try_exit:
         G_perv_attributes_ptr = &(G_sbe_attrs.G_perv_attrs);
         G_core_attributes_ptr = &(G_sbe_attrs.G_core_attrs);
         G_eq_attributes_ptr = &(G_sbe_attrs.G_eq_attrs);
+        G_pmic_attributes_ptr = &(G_sbe_attrs.G_pmic_attrs);
+        G_gi2c_attributes_ptr = &(G_sbe_attrs.G_gi2c_attrs);
 #else
 		// For DFT PIBMEM contained, use the attributes in the image header
 		// at the top of the image instead of the second header appended
@@ -773,6 +788,8 @@ fapi_try_exit:
         G_perv_attributes_ptr = &(G_perv_attributes);
         G_core_attributes_ptr = &(G_core_attributes);
         G_eq_attributes_ptr = &(G_eq_attributes);
+        G_pmic_attributes_ptr = &(G_pmic_attrs);
+        G_gi2c_attributes_ptr = &(G_gi2c_attrs);
 #endif	
 
         std::vector<fapi2::plat_target_handle_t>::iterator tgt_iter;
@@ -907,7 +924,32 @@ fapi_try_exit:
             G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_NMMU>(i);
         }
 
+        /*
+         * OCMB Targets
+         */
         plat_OCMBTargetsInit(ocmbParam);
+
+        /*
+         * PMIC Targets
+         */
+        l_beginning_offset = PMIC_TARGET_OFFSET;
+        for (uint32_t i = 0; i < PMIC_TARGET_COUNT; ++i)
+        {
+            plat_target_handle pmicTarget;
+            pmicTarget.value = 0xDEADBEEF;
+            G_vec_targets[l_beginning_offset + i] = pmicTarget;
+        }
+
+        /*
+         * GI2C Targets
+         */
+        l_beginning_offset = GI2C_TARGET_OFFSET;
+        for (uint32_t i = 0; i < GI2C_TARGET_COUNT; ++i)
+        {
+            plat_target_handle gi2cTarget;
+            gi2cTarget.value = 0xDEADBEEF;
+            G_vec_targets[l_beginning_offset + i] = gi2cTarget;
+        }
 
         // Debug Code - Don't Remove
         //for(uint32_t i=0;i< TARGET_COUNT;i++)

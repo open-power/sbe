@@ -45,6 +45,10 @@ static const uint8_t PHB_PER_PEC        = 3;
 static const uint8_t PARTIAL_GOOD_CORE0 = 13;
 static const uint8_t PARTIAL_GOOD_PAU0  = 13;
 static const uint8_t OCMB_PER_PROC = 16;
+static const uint8_t PMIC_PER_OCMB = 4; // For 4U only
+static const uint8_t GI2C_PER_OCMB = 4; // For 4U only
+
+
 
 //
 // Define what a platform handle looks like. For Hostboot,
@@ -75,7 +79,10 @@ namespace fapi2
         PPE_TARGET_TYPE_IOHS              = 0x0D,
         PPE_TARGET_TYPE_NMMU              = 0x0E,
         PPE_TARGET_TYPE_OCMB              = 0x0F,
-        // 0x0F is free
+        PPE_TARGET_TYPE_PMIC              = 0x10,
+        PPE_TARGET_TYPE_GENERICI2CSLAVE   = 0x11,
+
+        // 0x12 is free
     } plat_target_type_t;
 
     constexpr struct {
@@ -98,7 +105,9 @@ namespace fapi2
         { true,  IOHS_CHIPLET_OFFSET }, // PPE_TARGET_TYPE_IOHS
         { false, 0                   }, // PPE_TARGET_TYPE_NMMU
         { false, 0                   }, // PPE_TARGET_TYPE_OCMB
-        { false, 0                   }, // 0x10
+        { false, 0                   }, // PPE_TARGET_TYPE_PMIC
+        { false, 0                   }, // PPE_TARGET_TYPE_GENERICI2CSLAVE
+        { false, 0                   }, // 0x12
     };
 
     template <plat_target_type T>
@@ -138,7 +147,7 @@ namespace fapi2
             /* next 8 bits */
             union {
                 uint32_t type_target_num      :8; // used internally
-                // used for ocmb targets
+                // used for ocmb/pmic/gi2c targets
                 struct {
                     uint32_t port             :4;
                     uint32_t engine           :4;
@@ -160,7 +169,7 @@ namespace fapi2
                     uint32_t functional   :1; // used internally
                     uint32_t type         :5; // used internally
                 } __attribute__((packed));
-                // used for ocmb targets
+                // used for ocmb/pmic/gi2c targets
                 struct {
                     uint32_t devAddr          :8;
                     uint32_t                  :8;  //unused

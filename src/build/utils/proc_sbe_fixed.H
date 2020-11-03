@@ -139,6 +139,56 @@ typedef struct OCMBChipAttributes_t {
 } // C
 #endif
 
+///
+/// PMIC Target Attributes
+#ifdef __ASSEMBLER__
+         .macro	    .proc_sbe_fixed_pmic
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_pmic_attributes
+G_pmic_attributes:
+#else
+
+extern "C" {
+namespace fapi2attr {
+typedef struct PMICAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_pmic.H"
+
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} PMICAttributes;
+} // fapi2
+} // C
+#endif
+
+///
+/// GI2C Chip Target Attributes
+#ifdef __ASSEMBLER__
+         .macro	    .proc_sbe_fixed_gi2c
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_gi2c_attributes
+G_gi2c_attributes:
+#else
+
+extern "C" {
+namespace fapi2attr {
+typedef struct GI2CAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_gi2c.H"
+
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} GI2CAttributes;
+} // fapi2
+} // C
+#endif
+
 
 ///
 /// Pervasive Target Attributes

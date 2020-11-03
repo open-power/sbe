@@ -280,6 +280,10 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
             $macroTarget = "PervAttributes_t";
         } elsif ($targetMacro eq "TARGET_TYPE_OCMB_CHIP") {
             $macroTarget = "OCMBChipAttributes_t";
+        } elsif ($targetMacro eq "TARGET_TYPE_PMIC") {
+            $macroTarget = "PMICAttributes_t";
+        } elsif ($targetMacro eq "TARGET_TYPE_GENERICI2CSLAVE") {
+            $macroTarget = "GI2CAttributes_t";
         } else {
         print "ERROR:: unknown type $targetMacro for attribute $attribute\n";
         next;

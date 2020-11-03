@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -30,7 +30,7 @@ namespace SBEVECTORPOOL
 {
 
 // Size of a block  for a vector
-static const size_t G_BLOCKSIZE = 512;
+static const size_t G_BLOCKSIZE = 1024;
 
 //Pool size
 static const size_t G_POOLSIZE = 6;

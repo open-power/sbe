@@ -50,6 +50,8 @@ if ($numArgs < 3)
     print ("core_attributes.xml \\ \n");
     print ("nest_attributes.xml \\ \n");
     print ("ocmb_attributes.xml \n");
+    print ("pmic_attributes.xml \n");
+    print ("gi2c_attributes.xml \n");
     exit(1);
 }
 
@@ -69,9 +71,9 @@ my @attrExIds;
 my @attrCoreIds;
 my @attrEqIds;
 my @attrPervIds;
-my @attrOcmbChipIds; 
-
-
+my @attrOcmbChipIds;
+my @attrPMICIds;
+my @attrGI2CIds;
 
 #------------------------------------------------------------------------------
 # Element names
@@ -154,6 +156,18 @@ foreach my $entr (@{$entries->{entry}}) {
                         $targetTypeMatched = 1;
                         last;
 
+                    } elsif($target eq "TARGET_TYPE_PMIC") {
+
+                        push(@attrPMICIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
+
+                    } elsif($target eq "TARGET_TYPE_GENERICI2CSLAVE") {
+
+                        push(@attrGI2CIds, $entr);
+                        $targetTypeMatched = 1;
+                        last;
+
                     } elsif($target eq "TARGET_TYPE_CORE") {
 
                         push(@attrCoreIds, $entr);
@@ -206,6 +220,8 @@ setFixed("TARGET_TYPE_EQ", @attrEqIds);
 setFixed("TARGET_TYPE_EX", @attrExIds);
 setFixed("TARGET_TYPE_PERV", @attrPervIds);
 setFixed("TARGET_TYPE_OCMB_CHIP", @attrOcmbChipIds);
+setFixed("TARGET_TYPE_PMIC", @attrPMICIds);
+setFixed("TARGET_TYPE_GENERICIC2CSLAVE", @attrGI2CIds);
 
 
 

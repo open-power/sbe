@@ -39,6 +39,10 @@ typedef struct {
   fapi2attr::CoreAttributes_t      G_core_attrs __attribute__ ((aligned (8)));
   fapi2attr::EQAttributes_t        G_eq_attrs __attribute__ ((aligned (8)));
   fapi2attr::OCMBChipAttributes_t  G_ocmb_chip_attrs __attribute__ ((aligned (8)));
+  fapi2attr::PMICAttributes_t      G_pmic_attrs __attribute__ ((aligned (8)));
+  fapi2attr::GI2CAttributes_t      G_gi2c_attrs __attribute__ ((aligned (8)));
+
+
 } G_sbe_attrs_t;
 //
 // Platform Utility functions..
@@ -52,6 +56,9 @@ namespace fapi2
     /// @brief Function to initialize the G_targets vector for OCMB targets
     /// based on UpdateOCMBTarget chip-op.
     void plat_OCMBTargetsInit(uint8_t * ocmbParams);
+
+    /// @brief Function to initialize the G_targets vector for PMIC and GI2C targets
+    void plat_PMICGI2CTargetsInit(uint8_t * ocmbParams);
 
     /// @brief Initializes all platInit attributes (the values for which come
     // from the scratch registers)
